@@ -162,11 +162,11 @@ void HDF5Stream::set_attribute(std::string const &url, Properties const &any_v)
 //    hid_t g_id, o_id;
     UNIMPLEMENTED;
 // FIXME
-//    std::tie(grp_path, g_id) = m_pimpl_->open_group(grp_path);
+//    std::tie(grp_path, g_id) = m_self_->open_group(grp_path);
 //
 //    if (o_id != g_id) { H5Oclose(o_id); }
 //
-//    if (g_id != m_pimpl_->base_group_id_) { H5Gclose(g_id); }
+//    if (g_id != m_self_->base_group_id_) { H5Gclose(g_id); }
 
 }
 
@@ -257,13 +257,13 @@ void HDF5Stream::delete_attribute(std::string const &url)
 //    {
     // FIXME UNIMPLEMENTED;
 //        hid_t g_id;
-//        std::tie(grp_name, g_id) = m_pimpl_->open_group(grp_name);
+//        std::tie(grp_name, g_id) = m_self_->open_group(grp_name);
 //
 //        if (H5Aexists_by_name(g_id, obj_name.c_str(), attr_name.c_str(), H5P_DEFAULT))
 //        {
 //            H5Adelete_by_name(g_id, obj_name.c_str(), attr_name.c_str(), H5P_DEFAULT);
 //        }
-//        if (g_id != m_pimpl_->base_group_id_)
+//        if (g_id != m_self_->base_group_id_)
 //        {
 //            H5Gclose(g_id);
 //        }
@@ -1038,7 +1038,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
     UNIMPLEMENTED;
     return "UNIMPLEMENTED";
 }
-//hid_t HDF5Stream::pimpl_s::create_h5_dataset(dataset const & ds,
+//hid_t HDF5Stream::holder_s::create_h5_dataset(dataset const & ds,
 //		size_t flag) const
 //{
 //
@@ -1105,7 +1105,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //
 //}
 
-//std::string HDF5Stream::pimpl_s::write(std::string const &url, h5_dataset ds)
+//std::string HDF5Stream::holder_s::write(std::string const &url, h5_dataset ds)
 //{
 //	if ((ds.flag & (SP_UNORDER)) == (SP_UNORDER))
 //	{
@@ -1128,7 +1128,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //
 //}
 
-//void HDF5Stream::pimpl_s::convert_record_dataset(h5_dataset *pds) const
+//void HDF5Stream::holder_s::convert_record_dataset(h5_dataset *pds) const
 //{
 //	for (int i = pds->ndims; i > 0; --i)
 //	{
@@ -1161,7 +1161,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //
 //}
 
-//std::string HDF5Stream::pimpl_s::write_cache(std::string const & p_url,
+//std::string HDF5Stream::holder_s::write_cache(std::string const & p_url,
 //		h5_dataset const & ds)
 //{
 //
@@ -1233,7 +1233,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //	}
 //
 //}
-//std::string HDF5Stream::pimpl_s::flush_cache(std::string const & url)
+//std::string HDF5Stream::holder_s::flush_cache(std::string const & url)
 //{
 //
 //	if (cache_.find(url) == cache_.end())

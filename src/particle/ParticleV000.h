@@ -69,19 +69,20 @@ public:
 
 
     Particle(mesh_type const *m = nullptr)
-            : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_properties_(new Properties), MeshAttribute(nullptr)
+            : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_properties_(new Properties), MeshAttribute(nullptr),
+              MeshAttribute(nullptr)
     {
     }
 
     Particle(mesh::MeshBase const *m)
             : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const *>(m)),
-              m_data_(nullptr), m_properties_(new Properties), MeshAttribute(nullptr)
+              m_data_(nullptr), m_properties_(new Properties), MeshAttribute(nullptr), MeshAttribute(nullptr)
     {
         assert(m->template is_a<mesh_type>());
     }
 
     Particle(std::shared_ptr<base_type> h)
-            : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr), MeshAttribute(nullptr)
+            : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr), MeshAttribute(nullptr), MeshAttribute(nullptr)
     {
         deploy();
     }
@@ -91,7 +92,7 @@ public:
     Particle(TFactory &factory, Args &&...args)
             : m_holder_(std::dynamic_pointer_cast<base_type>(
             factory.template create<this_type>(std::forward<Args>(args)...))),
-              m_mesh_(nullptr), m_data_(nullptr), m_properties_(nullptr), MeshAttribute(nullptr)
+              m_mesh_(nullptr), m_data_(nullptr), m_properties_(nullptr), MeshAttribute(nullptr), MeshAttribute(nullptr)
     {
         deploy();
     }
@@ -100,7 +101,7 @@ public:
     //copy construct
     Particle(this_type const &other)
             : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
-              m_data_(other.m_data_), m_properties_(other.m_properties_), MeshAttribute(nullptr)
+              m_data_(other.m_data_), m_properties_(other.m_properties_), MeshAttribute(nullptr), MeshAttribute(nullptr)
     {
     }
 
@@ -108,7 +109,7 @@ public:
     // move construct
     Particle(this_type &&other)
             : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
-              m_data_(other.m_data_), m_properties_(other.m_properties_), MeshAttribute(nullptr)
+              m_data_(other.m_data_), m_properties_(other.m_properties_), MeshAttribute(nullptr), MeshAttribute(nullptr)
     {
     }
 

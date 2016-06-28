@@ -21,9 +21,7 @@ namespace simpla
 
 
 template<typename TV, typename TManifold, size_t IFORM>
-class Field<TV, TManifold, index_const<IFORM>> :
-        public mesh::MeshAttribute,
-        public std::enable_shared_from_this<Field<TV, TManifold, index_const<IFORM>>>
+class Field<TV, TManifold, index_const<IFORM>> : public mesh::MeshAttribute
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value, "TManifold is not derived from MeshBase");
@@ -57,10 +55,10 @@ public:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-    Field() : base_type(), m_mesh_(nullptr), m_data_(nullptr) { }
+    Field() : base_type(nullptr), m_mesh_(nullptr), m_data_(nullptr) { }
 
     //create construct
-    Field(mesh::MeshBase const *m) : base_type(m, new Field), m_mesh_(nullptr), m_data_(nullptr) { }
+    Field(mesh::MeshBase const *m) : base_type(new Field), m_mesh_(nullptr), m_data_(nullptr) { }
 
     Field(mesh_type const *m) : Field(dynamic_cast<mesh::MeshBase const *>(m)) { }
 

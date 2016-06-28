@@ -94,7 +94,7 @@ ProblemDomain::print(std::ostream &os, int indent) const
     m_mesh_->print(os, indent + 2);
     os << std::setw(indent + 1) << " }," << std::endl;
 
-//    os << std::setw(indent + 1) << " time =" << m_pimpl_->m_time_ << ", dt =" << m_pimpl_->m_dt_ << "," << std::endl;
+//    os << std::setw(indent + 1) << " time =" << m_self_->m_time_ << ", dt =" << m_self_->m_dt_ << "," << std::endl;
 
 
     os << std::setw(indent + 1) << " Attributes= {  ";
@@ -131,8 +131,6 @@ ProblemDomain::save(io::IOStream &os) const
     auto m_id = m_mesh_->uuid();
     for (auto const &item:m_pimpl_->m_attr_)
     {
-        CHECK(item.first);
-        CHECK(item.second->empty());
         if (!item.second->empty()) { os.write(item.first, item.second->dataset(), io::SP_NEW); }
     }
     return os;

@@ -207,19 +207,19 @@ int MPIComm::get_neighbour(nTuple<ptrdiff_t, 3> const &d) const
 
     return (!pimpl_) ? 0 : get_rank(pimpl_->m_topology_coord_ + d);
 
-//			(((m_pimpl_->m_topology_coord_[0] + m_pimpl_->m_topology_dims_[0] + d[0])
-//					% m_pimpl_->m_topology_dims_[0])
-//					* m_pimpl_->m_topology_strides_[0]
-//					+ ((m_pimpl_->m_topology_coord_[1]
+//			(((m_self_->m_topology_coord_[0] + m_self_->m_topology_dims_[0] + d[0])
+//					% m_self_->m_topology_dims_[0])
+//					* m_self_->m_topology_strides_[0]
+//					+ ((m_self_->m_topology_coord_[1]
 //
-//					+ m_pimpl_->m_topology_dims_[1] + d[1])
-//							% m_pimpl_->m_topology_dims_[1])
-//							* m_pimpl_->m_topology_strides_[1]
+//					+ m_self_->m_topology_dims_[1] + d[1])
+//							% m_self_->m_topology_dims_[1])
+//							* m_self_->m_topology_strides_[1]
 //
-//					+ ((m_pimpl_->m_topology_coord_[2]
-//							+ m_pimpl_->m_topology_dims_[2] + d[2])
-//							% m_pimpl_->m_topology_dims_[2])
-//							* m_pimpl_->m_topology_strides_[2]
+//					+ ((m_self_->m_topology_coord_[2]
+//							+ m_self_->m_topology_dims_[2] + d[2])
+//							% m_self_->m_topology_dims_[2])
+//							* m_self_->m_topology_strides_[2]
 //
 //			);
     ;

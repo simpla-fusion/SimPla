@@ -8,7 +8,7 @@
 #endif
 namespace simpla { namespace mesh
 {
-struct MeshAttribute::pimpl_s
+struct MeshAttribute::holder_s
 {
     parallel::DistributedObject m_dist_obj_;
 
@@ -23,79 +23,76 @@ struct MeshAttribute::pimpl_s
     std::map<int, link_s> m_links_;
 
 
-    MeshBase const *m_mesh_;
-    std::shared_ptr<void> m_data_;
-    std::shared_ptr<MeshAttribute> m_holder_;
-
-
+    std::shared_ptr<MeshAttribute> m_self_ = nullptr;;
 };
 
-MeshAttribute::MeshAttribute() : m_pimpl_(new pimpl_s) { }
-
-MeshAttribute::MeshAttribute(MeshBase const *m, MeshAttribute *other) : m_pimpl_(new pimpl_s)
+MeshAttribute::MeshAttribute(MeshBase const *m)
+        : m_holder_(new holder_s), m_mesh_(m), m_data_(nullptr)
 {
-    m_pimpl_->m_mesh_ = m;
-    m_pimpl_->m_data_ = nullptr;
-    m_pimpl_->m_holder_ = std::shared_ptr<MeshAttribute>(other);
 }
 
-MeshAttribute::MeshAttribute(std::shared_ptr<MeshAttribute> other) : m_pimpl_(new pimpl_s)
+MeshAttribute::MeshAttribute(MeshAttribute *other)
+        : m_holder_(new holder_s), m_mesh_(other->m_mesh_), m_data_(other->m_data_)
 {
-    assert (other->is_valid());
+    m_holder_->m_self_ = std::shared_ptr<MeshAttribute>(other);
+}
 
-    m_pimpl_->m_mesh_ = other->m_pimpl_->m_mesh_;
-    m_pimpl_->m_data_ = other->m_pimpl_->m_data_;
-    m_pimpl_->m_holder_ = other;
-
+MeshAttribute::MeshAttribute(std::shared_ptr<MeshAttribute> other)
+        : m_holder_(new holder_s), m_mesh_(other->m_mesh_), m_data_(other->m_data_)
+{
+    m_holder_->m_self_ = other;
 }
 
 MeshAttribute::MeshAttribute(MeshAttribute const &other)
+        : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 {
-    assert (other.is_valid());
-
-    std::unique_ptr<pimpl_s>(new pimpl_s).swap(m_pimpl_);
-    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
-    m_pimpl_->m_data_ = other.m_pimpl_->m_data_;
-    m_pimpl_->m_holder_ = other.m_pimpl_->m_holder_;
-
 }
-
 
 MeshAttribute::~MeshAttribute() { }
 
-bool MeshAttribute::is_valid() const { return m_pimpl_ != nullptr; }
+bool MeshAttribute::is_valid() const { return m_holder_ != nullptr; }
 
-bool MeshAttribute::empty() const { return (!is_valid()) || (m_pimpl_->m_data_ == nullptr); }
+bool MeshAttribute::empty() const { return (!is_valid()) || (m_data_ == nullptr); }
 
 void MeshAttribute::swap(MeshAttribute &other)
 {
-    std::swap(m_pimpl_, other.m_pimpl_);
+    std::swap(m_holder_, other.m_holder_);
 }
 
 std::shared_ptr<MeshAttribute>
-MeshAttribute::holder() { return m_pimpl_->m_holder_; }
+MeshAttribute::holder() { return m_holder_->m_self_; }
 
 MeshBase const *
-MeshAttribute::mesh() const { return m_pimpl_->m_mesh_; }
+MeshAttribute::mesh() const { return m_mesh_; }
 
-void *MeshAttribute::data() { return m_pimpl_->m_data_.get(); }
+void *MeshAttribute::data() { return m_data_.get(); }
 
-const void *MeshAttribute::data() const { return m_pimpl_->m_data_.get(); }
+const void *MeshAttribute::data() const { return m_data_.get(); }
 
 size_type MeshAttribute::size_in_byte() const
 {
-    assert(m_pimpl_ != nullptr);
-    assert(m_pimpl_->m_mesh_ != nullptr);
-    return m_pimpl_->m_mesh_->max_hash(entity_type()) * entity_size_in_byte();
+    assert(m_holder_ != nullptr);
+    assert(m_mesh_ != nullptr);
+    return m_mesh_->max_hash(entity_type()) * entity_size_in_byte();
 }
 
 bool MeshAttribute::deploy()
 {
-    assert(m_pimpl_ != nullptr);
+    assert(m_holder_ != nullptr);
 
-    if (m_pimpl_->m_data_ == 0x0)
+
+    if (m_data_ == nullptr)
     {
-        m_pimpl_->m_data_ = sp_alloc_memory(size_in_byte());
+        if (m_holder_->m_self_ = nullptr)
+        {
+            m_data_ = sp_alloc_memory(size_in_byte());
+        }
+        else
+        {
+            m_holder_->m_self_->deploy();
+            m_data_ = m_holder_->m_self_->m_data_;
+        }
+
     }
     return true;
 }
@@ -103,7 +100,7 @@ bool MeshAttribute::deploy()
 void MeshAttribute::clear()
 {
     deploy();
-    memset(m_pimpl_->m_data_.get(), 0, size_in_byte());
+    memset(m_holder_->m_data_.get(), 0, size_in_byte());
 }
 
 void MeshAttribute::sync(bool is_blocking)
@@ -203,9 +200,9 @@ void MeshAttribute::sync(bool is_blocking)
     //                recv_ds.memory_space.select_hyperslab(&recv_offset[0], nullptr, &recv_count[0], nullptr);
     //
     //
-    //                m_pimpl_->m_dist_obj_.add_send_link(id, send_offset, std::move(send_ds));
+    //                m_self_->m_dist_obj_.add_send_link(id, send_offset, std::move(send_ds));
     //
-    //                m_pimpl_->m_dist_obj_.add_send_link(id, recv_offset, std::move(recv_ds));
+    //                m_self_->m_dist_obj_.add_send_link(id, recv_offset, std::move(recv_ds));
     //
     //
     //            }
@@ -219,7 +216,7 @@ void MeshAttribute::sync(bool is_blocking)
     //    }
 
 
-        m_pimpl_->m_dist_obj_.sync();
+        m_self_->m_dist_obj_.sync();
         if (is_blocking) { wait(); }
 #endif
 }
@@ -227,12 +224,12 @@ void MeshAttribute::sync(bool is_blocking)
 void MeshAttribute::wait()
 {
 #ifdef HAS_MPI
-    LOG_CMD_DESC(" SYNC [" + get_class_name() + "]", m_pimpl_->m_dist_obj_.wait());
+    LOG_CMD_DESC(" SYNC [" + get_class_name() + "]", m_self_->m_dist_obj_.wait());
 #endif
 }
 
 bool MeshAttribute::is_ready() const
 {
-    return m_pimpl_->m_dist_obj_.is_ready();
+    return m_holder_->m_dist_obj_.is_ready();
 }
 }}//namespace simpla{namespace get_mesh{

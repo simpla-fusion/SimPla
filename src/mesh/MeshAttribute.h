@@ -18,12 +18,12 @@
 
 namespace simpla { namespace mesh
 {
-struct MeshAttribute : public base::Object
+struct MeshAttribute : public base::Object, std::enable_shared_from_this<MeshAttribute>
 {
 
-    MeshAttribute();
+    MeshAttribute(MeshBase const *m = nullptr);
 
-    MeshAttribute(MeshBase const *m, MeshAttribute *other);
+    MeshAttribute(MeshAttribute *other);
 
     MeshAttribute(std::shared_ptr<MeshAttribute>);
 
@@ -83,8 +83,12 @@ struct MeshAttribute : public base::Object
     bool is_ready() const;
 
 private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    struct holder_s;
+    std::shared_ptr<holder_s> m_holder_;
+    MeshBase const *m_mesh_ = nullptr;
+    std::shared_ptr<void> m_data_ = nullptr;
+
+
 };
 //
 ///**

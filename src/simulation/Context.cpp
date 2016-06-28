@@ -102,7 +102,7 @@ Context::add_domain(std::shared_ptr<ProblemDomain> pb)
 
     m_pimpl_->m_domains_.emplace(std::make_pair(pb->m_mesh_->id(), pb));
 //
-//    if (m_pimpl_->m_atlas_.find(id) == m_pimpl_->m_atlas_.end())
+//    if (m_self_->m_atlas_.find(id) == m_self_->m_atlas_.end())
 //    {
 //        add_mesh(const_cast<mesh::Chart *>(pb->m)->shared_from_this(), at_level);
 //    }
@@ -139,7 +139,7 @@ io::IOStream &
 Context::save(io::IOStream &os) const
 {
 
-//    m_pimpl_->m_atlas_.save(os);
+//    m_self_->m_atlas_.save(os);
 
     for (auto const &item:m_pimpl_->m_domains_)
     {

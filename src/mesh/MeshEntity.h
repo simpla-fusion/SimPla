@@ -27,23 +27,23 @@ namespace simpla { namespace mesh
 //    template<typename TOther>
 //    struct Holder;
 //
-//    std::shared_ptr<HolderBase> m_holder_;
+//    std::shared_ptr<HolderBase> m_self_;
 //
 //public:
-//    MeshEntityIterator() : m_holder_(nullptr) { }
+//    MeshEntityIterator() : m_self_(nullptr) { }
 //
 //    template<typename TOther>
-//    MeshEntityIterator(TOther const &it) : m_holder_(
+//    MeshEntityIterator(TOther const &it) : m_self_(
 //            std::dynamic_pointer_cast<HolderBase>(std::make_shared<Holder<TOther> >(it))) { }
 //
 //    template<typename TI>
-//    MeshEntityIterator(TI const &it, TI const &ie) : m_holder_(
+//    MeshEntityIterator(TI const &it, TI const &ie) : m_self_(
 //            std::dynamic_pointer_cast<HolderBase>(
 //                    std::make_shared<Holder<std::pair<TI, TI>>>(std::make_pair(it, ie)))) { }
 //
-//    MeshEntityIterator(this_type const &other) : m_holder_(other.m_holder_->clone()) { }
+//    MeshEntityIterator(this_type const &other) : m_self_(other.m_self_->clone()) { }
 //
-//    MeshEntityIterator(this_type &&other) : m_holder_(other.m_holder_) { }
+//    MeshEntityIterator(this_type &&other) : m_self_(other.m_self_) { }
 //
 //    virtual  ~MeshEntityIterator() { }
 //
@@ -53,7 +53,7 @@ namespace simpla { namespace mesh
 //        return *this;
 //    }
 //
-//    void swap(this_type &other) { std::swap(m_holder_, other.m_holder_); }
+//    void swap(this_type &other) { std::swap(m_self_, other.m_self_); }
 //
 //
 //    const reference   operator*() const { return get(); }
@@ -140,20 +140,20 @@ namespace simpla { namespace mesh
 //
 //    bool equal(this_type const &other) const
 //    {
-//        return (m_holder_ == nullptr && other.m_holder_ == nullptr) || m_holder_->equal(*other.m_holder_);
+//        return (m_self_ == nullptr && other.m_self_ == nullptr) || m_self_->equal(*other.m_self_);
 //    }
 //
 //    /** return  current value */
-//    const reference get() const { return m_holder_->get(); }
+//    const reference get() const { return m_self_->get(); }
 //
-//    reference get() { return m_holder_->get(); }
+//    reference get() { return m_self_->get(); }
 //
 //    /** advance iterator n steps, return number of actually advanced steps  */
-//    void advance(difference_type n = 1) { m_holder_->advance(n); }
+//    void advance(difference_type n = 1) { m_self_->advance(n); }
 //
 //    difference_type distance(this_type const &other) const
 //    {
-//        return m_holder_->distance(*other.m_holder_);
+//        return m_self_->distance(*other.m_self_);
 //    };
 //
 //private:
@@ -274,13 +274,13 @@ public:
     size_t size() const { return m_holder_->size(); }
 
 
-//    iterator begin() { return m_holder_->begin(); }
+//    iterator begin() { return m_self_->begin(); }
 //
-//    iterator end() { return m_holder_->end(); }
+//    iterator end() { return m_self_->end(); }
 //
-//    iterator begin() const { return m_holder_->begin(); }
+//    iterator begin() const { return m_self_->begin(); }
 //
-//    iterator end() const { return m_holder_->end(); }
+//    iterator end() const { return m_self_->end(); }
 
     //****************************************************************************
     // TBB RangeHolder Concept End
@@ -289,7 +289,7 @@ public:
     //    MeshEntityRange op(op_tag tag, MeshEntityRange const &other) const
     //    {
     //        MeshEntityRange res;
-    //        res.m_holder_ = m_holder_->op(tag, *other.m_holder_);
+    //        res.m_self_ = m_self_->op(tag, *other.m_self_);
     //        return std::move(res);
     //    }
 
