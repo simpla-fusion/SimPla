@@ -49,7 +49,7 @@ public:
 
     virtual ~EMFluid() { }
 
-    virtual void init(ConfigParser const &options);
+    virtual void setup(ConfigParser const &options);
 
     virtual void next_step(Real dt);
 
@@ -115,8 +115,9 @@ public:
 };
 
 template<typename TM>
-void EMFluid<TM>::init(ConfigParser const &options)
+void EMFluid<TM>::setup(ConfigParser const &options)
 {
+    base_type::setup(options);
     if (options["Constraints"]["J"])
     {
         options["Constraints"]["J"]["Value"].as(&J_src_fun);

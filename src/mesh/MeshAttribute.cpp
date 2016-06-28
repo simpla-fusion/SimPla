@@ -8,7 +8,7 @@
 #endif
 namespace simpla { namespace mesh
 {
-struct MeshAttribute::View::pimpl_s
+struct MeshAttribute::pimpl_s
 {
     parallel::DistributedObject m_dist_obj_;
 
@@ -23,11 +23,11 @@ struct MeshAttribute::View::pimpl_s
     std::map<int, link_s> m_links_;
 };
 
-MeshAttribute::View::View() : m_pimpl_(new pimpl_s) { }
+MeshAttribute::MeshAttribute() : m_pimpl_(new pimpl_s) { }
 
-MeshAttribute::View::~View() { }
+MeshAttribute::~MeshAttribute() { }
 
-void MeshAttribute::View::sync(bool is_blocking)
+void MeshAttribute::sync(bool is_blocking)
 {
 #ifdef HAS_MPI
     //
@@ -145,14 +145,14 @@ void MeshAttribute::View::sync(bool is_blocking)
 #endif
 }
 
-void MeshAttribute::View::wait()
+void MeshAttribute::wait()
 {
 #ifdef HAS_MPI
     LOG_CMD_DESC(" SYNC [" + get_class_name() + "]", m_pimpl_->m_dist_obj_.wait());
 #endif
 }
 
-bool MeshAttribute::View::is_ready() const
+bool MeshAttribute::is_ready() const
 {
     return m_pimpl_->m_dist_obj_.is_ready();
 }

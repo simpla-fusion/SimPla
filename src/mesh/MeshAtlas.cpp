@@ -30,10 +30,12 @@ int TransitionMap::direct_pull_back(Real const *g, Real *f, mesh::MeshEntityType
 MeshBlockId Atlas::add_block(std::shared_ptr<Chart> p_m)
 {
     m_.emplace(std::make_pair(p_m->id(), p_m));
+    return p_m->id();
 }
 
 std::shared_ptr<Chart> Atlas::get_block(mesh::MeshBlockId m_id) const
 {
+    assert(m_.at(m_id) != nullptr);
     return m_.at(m_id);
 }
 
@@ -49,11 +51,11 @@ void Atlas::add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int
 
 MeshBlockId Atlas::extent_block(mesh::MeshBlockId first_id, int const *offset_direction, size_type width)
 {
-    auto second_id = add_block(get_block(first_id)->extend(width, offset_direction));
+    auto second_id = add_block(get_block(first_id)->extend(offset_direction, width));
+    assert(get_block(second_id).get() != nullptr);
 
-    add_adjacency(first_id, second_id, SP_MB_SYNC);
-    add_adjacency(second_id, first_id, SP_MB_SYNC);
-
+//    add_adjacency(first_id, second_id, SP_MB_SYNC);
+//    add_adjacency(second_id, first_id, SP_MB_SYNC);
     return second_id;
 
 };
@@ -67,6 +69,22 @@ MeshBlockId Atlas::refine_block(mesh::MeshBlockId first, box_type const &)
 MeshBlockId Atlas::coarsen_block(mesh::MeshBlockId first, box_type const &)
 {
     UNIMPLEMENTED;
+}
+
+io::IOStream &Atlas::save(io::IOStream &os) const
+{
+
+    for (auto const &item:m_)
+    {
+        item.second->save(os);
+    }
+    return os;
+}
+
+io::IOStream &Atlas::load(io::IOStream &is)
+{
+    UNIMPLEMENTED;
+    return is;
 }
 
 

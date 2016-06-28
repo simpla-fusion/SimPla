@@ -14,8 +14,7 @@
 #include "../../src/simulation/Context.h"
 
 #include "EMFluid.h"
-
-//#include "PML.h"
+#include "PML.h"
 
 using namespace simpla;
 
@@ -73,21 +72,34 @@ int main(int argc, char **argv)
     {
         auto mesh_center = ctx.add_mesh<mesh_type>();
 
-        mesh_center->setup(options["Mesh"]);
-
-        ctx.add_problem_domain<EMFluid<mesh_type>>(mesh_center)->setup(options);
+        ctx.get_mesh<mesh_type>(mesh_center)->setup(options["Mesh"]);
 
 
-//        if (options["PML"])
-//        {
-//
-//            std::shared_ptr<simulation::ProblemDomain> boundary_domain;
-//
-//            boundary_domain = std::make_shared<PML < mesh_type>>
-//            (&mesh_center);
-//            boundary_domain->setup(options["PML"]);
-//            boundary_domain->print(std::cout);
-//        }
+        ctx.add_problem_domain<EMFluid<mesh_type>, mesh_type>(mesh_center)->setup(options);
+
+        if (options["PML"])
+        {
+            size_type PML_width = 5;
+            auto &atlas = ctx.get_mesh_atlas();
+
+            int od[3];
+            for (int tag = 1, tag_e = 1 << 6; tag < tag_e; tag <<= 1)
+            {
+
+                od[0] = ((tag & 0x3) << 1) - 3;
+                od[1] = (((tag >> 2) & 0x3) << 1) - 3;
+                od[2] = (((tag >> 4) & 0x3) << 1) - 3;
+
+                if (od[0] > 1 || od[1] > 1 || od[2] > 1)
+                {
+                    continue;
+                }
+
+                ctx.add_problem_domain<PML<mesh_type>, mesh_type>(
+                                atlas.extent_block(mesh_center, od, PML_width))
+                        ->set_direction(od);
+            }
+        }
 //
 //
 //    {

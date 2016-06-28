@@ -142,7 +142,7 @@ public:
 
     virtual ~CoordinateSystem() { }
 
-    CoordinateSystem(this_type const &m) = delete;
+    CoordinateSystem(this_type const &other) : TMesh(other), Policies<mesh_type>(static_cast<mesh_type &>(*this))... { }
 
     this_type &operator=(const this_type &other) = delete;
 
@@ -197,7 +197,10 @@ public:
         return os;
     }
 
-
+    virtual std::shared_ptr<mesh::MeshBase> clone() const
+    {
+        return std::dynamic_pointer_cast<mesh::MeshBase>(std::make_shared<this_type>(*this));
+    };
 //    virtual data_model::DataSet grid_vertices() const
 //    {
 //        auto ds = this->storage_policy::template dataset<point_type, VERTEX>();

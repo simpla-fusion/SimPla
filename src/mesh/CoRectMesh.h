@@ -17,6 +17,7 @@
 #include "../gtl/nTupleExt.h"
 #include "../gtl/PrettyStream.h"
 #include "../gtl/type_traits.h"
+#include "../gtl/type_cast.h"
 #include "../gtl/Log.h"
 
 #include "MeshCommon.h"
@@ -109,7 +110,13 @@ public:
 
     Mesh() { }
 
-    Mesh(this_type const &other) = delete;
+    Mesh(this_type const &other)
+    {
+        m_dims_ = other.m_dims_;
+        m_coords_lower_ = other.m_coords_lower_;
+        m_coords_upper_ = other.m_coords_upper_;
+        deploy();
+    };
 
     virtual  ~Mesh() { }
 
@@ -134,6 +141,15 @@ public:
         deploy();
     }
 
+    virtual io::IOStream &save(io::IOStream &os) const
+    {
+        os.open(type_cast<std::string>(this->short_id()) + "/");
+        os.set_attribute(".dims", dimensions());
+        os.set_attribute(".box", box());
+        return os;
+    };
+
+
     void dimensions(index_tuple const &d) { m_dims_ = d; }
 
     index_tuple const &dimensions() const { return m_dims_; }
@@ -157,6 +173,35 @@ public:
     void box(box_type const &b) { std::tie(m_coords_lower_, m_coords_upper_) = b; }
 
     vector_type const &dx() const { return m_dx_; }
+
+
+    virtual std::shared_ptr<MeshBase> extend(int const *od, size_type w = 2) const
+    {
+        auto res = std::dynamic_pointer_cast<this_type>(clone());
+        for (int i = 0; i < 3; ++i)
+        {
+            switch (od[i])
+            {
+                case 1:
+                    res->m_dims_[i] = w;
+                    res->m_coords_lower_[i] = this->m_coords_upper_[i];
+                    res->m_coords_upper_[i] = res->m_coords_lower_[i] + m_dx_[i] * w;
+                    break;
+                case -1:
+                    res->m_coords_upper_[i] = this->m_coords_lower_[i];
+                    res->m_coords_lower_[i] = res->m_coords_upper_[i] - m_dx_[i] * w;
+                    break;
+                case 0:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        res->deploy();
+
+        return res;
+    };
 
 private:
     //TODO should use block-entity_id_range

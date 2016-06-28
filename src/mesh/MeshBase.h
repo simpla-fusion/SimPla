@@ -14,6 +14,7 @@
 #include "MeshEntity.h"
 
 namespace simpla { namespace data_model { struct DataSpace; }}
+namespace simpla { namespace io { struct IOStream; }}
 
 namespace simpla { namespace mesh
 {
@@ -31,9 +32,18 @@ public:
 
     virtual    ~MeshBase() { }
 
-    int const &level() const { return m_level_; }
+    virtual io::IOStream &save(io::IOStream &os) const
+    {
+        UNIMPLEMENTED;
+        return os;
+    };
 
-    void level(int l) { m_level_ = l; }
+    virtual io::IOStream &load(io::IOStream &is)
+    {
+        UNIMPLEMENTED;
+        return is;
+    };
+
 
     unsigned long const &status() const { return m_status_flag_; }
 
@@ -105,7 +115,6 @@ public:
     virtual int get_adjacent_entities(MeshEntityType const &t, MeshEntityId const &,
                                       MeshEntityId *p = nullptr) const = 0;
 
-    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const = 0;
 
     int get_vertices(MeshEntityId const &s, point_type *p) const
     {
@@ -125,23 +134,27 @@ public:
 
     virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t) const = 0;
 
+    virtual std::shared_ptr<MeshBase> clone() const = 0;
 
-    virtual std::shared_ptr<MeshBase> extend(size_type w, int const *)
+    virtual std::shared_ptr<MeshBase> extend(int const *od, size_type w = 2) const
     {
+        auto res = this->clone();
         UNIMPLEMENTED;
-        return std::shared_ptr<MeshBase>(nullptr);
+        return res;
     };
 
-    virtual std::shared_ptr<MeshBase> refine(box_type const &, int refine_ratio = 2)
+    virtual std::shared_ptr<MeshBase> refine(box_type const &, int refine_ratio = 2) const
     {
+        auto res = this->clone();
         UNIMPLEMENTED;
-        return std::shared_ptr<MeshBase>(nullptr);
+        return res;
     };
 
-    virtual std::shared_ptr<MeshBase> coarsen(box_type const &, int refine_ratio = 2)
+    virtual std::shared_ptr<MeshBase> coarsen(box_type const &, int refine_ratio = 2) const
     {
+        auto res = this->clone();
         UNIMPLEMENTED;
-        return std::shared_ptr<MeshBase>(nullptr);
+        return res;
     };
 
 

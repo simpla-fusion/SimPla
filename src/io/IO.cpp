@@ -62,10 +62,6 @@ IOStream &global()
 {
     return *(SingletonHolder<std::unique_ptr<io::IOStream>>::instance());
 }
-//std::string help_message()
-//{
-//    return HDF5Stream::help_message();
-//};
 
 std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag)
 {
@@ -83,7 +79,5 @@ std::string cd(std::string const &url)
 {
     return std::get<1>(SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->open(url));
 }
-}//namespace io
-}
-// namespace simpla
+}}// namespace simpla//namespace io
 

@@ -45,7 +45,7 @@ public:
 
     ProblemDomain(const mesh::MeshBase *);
 
-    mesh::MeshBlockId mesh_id() const { return m->uuid(); }
+    mesh::MeshBlockId mesh_id() const { return m_mesh_->uuid(); }
 
     virtual  ~ProblemDomain();
 
@@ -59,7 +59,6 @@ public:
 
     virtual void teardown();
 
-    virtual void init(ConfigParser const &options) = 0;
 
     virtual void next_step(Real dt) = 0;
 
@@ -79,18 +78,29 @@ public:
      */
     static constexpr bool is_factory = true;
 
-    std::shared_ptr<mesh::MeshAttribute> attribute(std::string const &s_name);
 
     std::shared_ptr<mesh::MeshAttribute const> attribute(std::string const &s_name) const;
 
-    template<typename TF, typename ...Args>
-    std::shared_ptr<TF> create(std::string const &s, Args &&...args)
+    void add_attribute(std::string const &s_name, std::shared_ptr<mesh::MeshAttribute> attr);
+
+    template<typename TF>
+    TF create()
     {
-        return (attribute(s)->template add<TF>(m, std::forward<Args>(args)...));
+        auto res = std::make_shared<TF>(m_mesh_);
+        res->deploy();
+        return *res;
     }
 
+    template<typename TF, typename ...Args>
+    TF create(std::string const &s, Args &&...args)
+    {
+        auto res = std::make_shared<TF>(m_mesh_, std::forward<Args>(args)...);
+        res->deploy();
+        add_attribute(s, std::dynamic_pointer_cast<mesh::MeshAttribute>(res));
+        return *res;
+    }
 
-    const mesh::MeshBase *m;
+    const mesh::MeshBase *m_mesh_;
 
 private:
 

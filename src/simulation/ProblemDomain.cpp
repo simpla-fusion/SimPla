@@ -17,31 +17,12 @@ struct ProblemDomain::pimpl_s
     parallel::DistributedObject m_dist_obj_;
 };
 
-ProblemDomain::ProblemDomain() : m(nullptr), m_pimpl_(new pimpl_s) { }
+ProblemDomain::ProblemDomain() : m_mesh_(nullptr), m_pimpl_(new pimpl_s) { }
 
-ProblemDomain::ProblemDomain(const mesh::MeshBase *msh) : m(msh), m_pimpl_(new pimpl_s) { };
+ProblemDomain::ProblemDomain(const mesh::MeshBase *msh) : m_mesh_(msh), m_pimpl_(new pimpl_s) { };
 
 ProblemDomain::~ProblemDomain() { teardown(); }
 
-
-//Real const &ProblemDomain::dt() const { return m_pimpl_->m_dt_; }
-//
-//void ProblemDomain::dt(Real pdt) { m_pimpl_->m_dt_ = pdt; }
-//
-//Real ProblemDomain::time() const { return m_pimpl_->m_time_; }
-//
-//void ProblemDomain::time(Real t) { m_pimpl_->m_time_ = t; }
-
-std::shared_ptr<mesh::MeshAttribute>
-ProblemDomain::attribute(std::string const &s_name)
-{
-    if (m_pimpl_->m_attr_.find(s_name) == m_pimpl_->m_attr_.end())
-    {
-        m_pimpl_->m_attr_.emplace(std::make_pair(s_name, std::make_shared<mesh::MeshAttribute>()));
-    }
-    return m_pimpl_->m_attr_[s_name];
-
-};
 
 std::shared_ptr<mesh::MeshAttribute const>
 ProblemDomain::attribute(std::string const &s_name) const
@@ -49,19 +30,25 @@ ProblemDomain::attribute(std::string const &s_name) const
     return m_pimpl_->m_attr_.at(s_name);
 };
 
+void ProblemDomain::add_attribute(std::string const &s_name, std::shared_ptr<mesh::MeshAttribute> attr)
+{
+
+    m_pimpl_->m_attr_.emplace(std::make_pair(s_name, attr));
+
+};
+
 void ProblemDomain::setup(ConfigParser const &dict)
 {
 
-    init(dict);
     LOGGER << "Setup problem domain [" << get_class_name() << "]" << std::endl;
 
 };
 
 void ProblemDomain::teardown()
 {
-    if (m != nullptr)
+    if (m_mesh_ != nullptr)
     {
-        m = nullptr;
+        m_mesh_ = nullptr;
         LOGGER << "Teardown problem domain [" << get_class_name() << "]" << std::endl;
     }
 };
@@ -104,7 +91,7 @@ ProblemDomain::print(std::ostream &os, int indent) const
     os << std::setw(indent + 1) << " Type=\"" << get_class_name() << "\"," << std::endl;
 
     os << std::setw(indent + 1) << " Mesh= {" << std::endl;
-    m->print(os, indent + 2);
+    m_mesh_->print(os, indent + 2);
     os << std::setw(indent + 1) << " }," << std::endl;
 
 //    os << std::setw(indent + 1) << " time =" << m_pimpl_->m_time_ << ", dt =" << m_pimpl_->m_dt_ << "," << std::endl;
@@ -141,10 +128,10 @@ ProblemDomain::load(io::IOStream &is) const
 io::IOStream &
 ProblemDomain::save(io::IOStream &os) const
 {
-    auto m_id = m->uuid();
+    auto m_id = m_mesh_->uuid();
     for (auto const &item:m_pimpl_->m_attr_)
     {
-        os.write(item.first, item.second->dataset(m_id), io::SP_NEW);
+        os.write(item.first, item.second->dataset(), io::SP_NEW);
     }
     return os;
 }
@@ -152,10 +139,10 @@ ProblemDomain::save(io::IOStream &os) const
 io::IOStream &
 ProblemDomain::check_point(io::IOStream &os) const
 {
-    auto m_id = m->uuid();
+    auto m_id = m_mesh_->uuid();
     for (auto const &item:m_pimpl_->m_attr_)
     {
-        auto ds = item.second->dataset(m_id);
+        auto ds = item.second->dataset();
         if (ds.is_valid()) { os.write(item.first, ds, io::SP_RECORD); }
 
     }

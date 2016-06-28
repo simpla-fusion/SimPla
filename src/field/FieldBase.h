@@ -22,7 +22,7 @@ namespace simpla
 
 template<typename TV, typename TManifold, size_t IFORM>
 class Field<TV, TManifold, index_const<IFORM>> :
-        public mesh::MeshAttribute::View,
+        public mesh::MeshAttribute,
         public std::enable_shared_from_this<Field<TV, TManifold, index_const<IFORM>>>
 {
 private:
@@ -32,7 +32,7 @@ private:
 
     static constexpr mesh::MeshEntityType iform = static_cast<mesh::MeshEntityType>(IFORM);
 
-    typedef typename mesh::MeshAttribute::View base_type;
+    typedef typename mesh::MeshAttribute base_type;
 public:
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
@@ -57,42 +57,23 @@ public:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-
-
     //create construct
+    Field(mesh_type const *m) : m_mesh_(m), m_data_(nullptr) { assert(m != nullptr); }
 
-    Field(mesh_type const *m = nullptr) : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr) { }
 
-    Field(mesh::MeshBase const *m)
-            : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const *>(m)), m_data_(nullptr)
-    {
-        assert(m->template is_a<mesh_type>());
-    }
+    //copy construct
+    Field(this_type const &other) : m_mesh_(other.m_mesh_), m_data_(other.m_data_) { }
 
-    Field(std::shared_ptr<base_type> h) : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr) { }
+
+    // move construct
+    Field(this_type &&other) : m_mesh_(other.m_mesh_), m_data_(other.m_data_) { }
+
+    Field(mesh::MeshBase const *m) : Field(dynamic_cast<mesh_type const *>(m)) { }
 
     //factory construct
     template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
     Field(TFactory &factory, Args &&...args)
-            : m_holder_(std::dynamic_pointer_cast<base_type>(
-            factory.template create<this_type>(std::forward<Args>(args)...))),
-              m_mesh_(nullptr), m_data_(nullptr)
-    {
-    }
-
-
-    //copy construct
-    Field(this_type const &other)
-            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
-    {
-    }
-
-
-    // move construct
-    Field(this_type &&other)
-            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
-    {
-    }
+            : Field(factory.template create<this_type>(std::forward<Args>(args)...)) { }
 
     virtual ~Field() { }
 
@@ -121,39 +102,17 @@ public:
     virtual bool deploy()
     {
         bool success = true;
-
-        if (m_holder_ == nullptr)
+        if (m_data_ == nullptr)
         {
-            if (m_data_ == nullptr)
-            {
-                if (m_mesh_ == nullptr) { RUNTIME_ERROR << "get_mesh is not valid!" << std::endl; }
-                else
-                {
-                    size_t m_size = m_mesh_->max_hash(entity_type());
-
-                    m_data_ = sp_alloc_array<value_type>(m_size);
-
-                }
-
-                success = true;
-            }
-        }
-        else
-        {
-            assert (m_holder_->is_a<this_type>());
-
-            m_holder_->deploy();
-            auto self = std::dynamic_pointer_cast<this_type>(m_holder_);
-            m_mesh_ = self->m_mesh_;
-            m_data_ = self->m_data_;
+            assert (m_mesh_ != nullptr);
+            size_t m_size = m_mesh_->max_hash(entity_type());
+            m_data_ = sp_alloc_array<value_type>(m_size);
             success = true;
-
         }
-
         return success;
     }
 
-    bool empty() const { return m_holder_ == nullptr && m_data_ == nullptr; }
+    bool empty() const { return m_data_ == nullptr; }
 
     virtual bool is_valid() const { return !empty(); }
 
@@ -235,15 +194,12 @@ public:
 
     inline value_type &get(mesh::MeshEntityId const &s)
     {
-        assert(!empty());
-
         return m_data_.get()[m_mesh_->hash(s)];
     }
 
     inline value_type const &get(mesh::MeshEntityId const &s) const
     {
-        size_t n = m_mesh_->hash(s);
-        return m_data_.get()[n];
+        return m_data_.get()[m_mesh_->hash(s)];
     }
 
     inline value_type &operator[](mesh::MeshEntityId const &s) { return get(s); }
@@ -402,6 +358,7 @@ private:
                     }
 
             );
+
         }
         return *this;
     }
@@ -422,8 +379,6 @@ private:
 protected:
     mesh_type const *m_mesh_;
     std::shared_ptr<value_type> m_data_;
-    std::shared_ptr<base_type> m_holder_;
-
 };
 
 }// namespace simpla

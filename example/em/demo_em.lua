@@ -123,6 +123,7 @@ Particles = {
         --        end
     }
 }
+PML = {}
 
 PEC = {
     Domain = {

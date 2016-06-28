@@ -80,6 +80,9 @@ struct Wedge { };
 struct ExteriorDerivative { };
 struct CodifferentialDerivative { };
 
+template<size_t I> struct P_ExteriorDerivative { };
+template<size_t I> struct P_CodifferentialDerivative { };
+
 struct MapTo { };
 
 struct Cross { };
@@ -132,6 +135,16 @@ struct iform<Field<Expression<ct::CodifferentialDerivative, T> > > : public inde
 {
 };
 
+
+template<typename T, size_t I>
+struct iform<Field<Expression<ct::P_ExteriorDerivative<I>, T> > > : public index_const<iform<T>::value + 1>
+{
+};
+
+template<typename T, size_t I>
+struct iform<Field<Expression<ct::P_CodifferentialDerivative<I>, T> > > : public index_const<iform<T>::value - 1>
+{
+};
 
 template<typename T0, typename T1>
 struct iform<Field<Expression<ct::Wedge, T0, T1> > > : public index_const<iform<T0>::value + iform<T1>::value>
@@ -192,6 +205,23 @@ struct value_type<Field<Expression<ct::CodifferentialDerivative, T> > >
             simpla::_impl::multiplies(geometry::traits::scalar_type_t<traits::manifold_type_t<T> >,
                                       value_type_t<T>)> type;
 };
+
+
+template<typename T, size_t I>
+struct value_type<Field<Expression<ct::P_ExteriorDerivative<I>, T> > >
+{
+    typedef std::result_of_t<simpla::_impl::multiplies(
+            geometry::traits::scalar_type_t<traits::manifold_type_t<T >>, value_type_t<T>)> type;
+};
+
+template<typename T, size_t I>
+struct value_type<Field<Expression<ct::P_CodifferentialDerivative<I>, T> > >
+{
+    typedef std::result_of_t<
+            simpla::_impl::multiplies(geometry::traits::scalar_type_t<traits::manifold_type_t<T> >,
+                                      value_type_t<T>)> type;
+};
+
 
 template<typename T0, typename T1>
 struct value_type<Field<Expression<ct::Wedge, T0, T1> > >
@@ -479,12 +509,11 @@ curl(T const &f) DECL_RET_TYPE((curl(f, traits::iform<T>())))
 
 template<size_t I, typename T> inline auto
 p_exterior_derivative(T const &f)
-DECL_RET_TYPE((Field<Expression<ct::ExteriorDerivative, index_const<I>, T> >(index_const<I>(), f)))
+DECL_RET_TYPE((Field<Expression<ct::P_ExteriorDerivative<I>, T>>(f)))
 
 template<size_t I, typename T> inline auto
 p_codifferential_derivative(T const &f)
-DECL_RET_TYPE(
-        (Field<Expression<ct::CodifferentialDerivative, index_const<I>, T> >(index_const<I>(), f)))
+DECL_RET_TYPE((Field<Expression<ct::P_CodifferentialDerivative<I>, T>>(f)))
 
 
 template<typename T> inline auto

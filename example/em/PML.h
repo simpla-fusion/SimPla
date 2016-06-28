@@ -29,67 +29,99 @@ public:
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
 
 
-    field_t<scalar_type, mesh::EDGE> E{*this, "E"};
-    field_t<scalar_type, mesh::FACE> B{*this, "B"};
+    mesh_type const *m = nullptr;
 
 
-    field_t<scalar_type, mesh::EDGE> X10{m}, X11{m}, X12{m};
-    field_t<scalar_type, mesh::FACE> X20{m}, X21{m}, X22{m};
+    PML(const mesh_type *mp) : base_type(mp), m(mp) { }
 
-    // alpha
-    field_t<scalar_type, mesh::VERTEX> a0{*this, "PML_a0"};
-    field_t<scalar_type, mesh::VERTEX> a1{*this, "PML_a1"};
-    field_t<scalar_type, mesh::VERTEX> a2{*this, "PML_a2"};
-    // sigma
-    field_t<scalar_type, mesh::VERTEX> s0{*this, "PML_s0"};
-    field_t<scalar_type, mesh::VERTEX> s1{*this, "PML_s1"};
-    field_t<scalar_type, mesh::VERTEX> s2{*this, "PML_s2"};
-
-
-public:
-
-    PML(mesh_type const &mesh);
-
-    virtual ~PML();
+    virtual ~PML() { }
 
     virtual void next_step(Real dt);
 
-    virtual void setup();
+    virtual void set_direction(int const *od);
+
+    virtual void setup(ConfigParser const &options);
 
     virtual void tear_down();
 
     virtual io::IOStream &check_point(io::IOStream &) const;
+
+    virtual io::IOStream &save(io::IOStream &os) const { return os; };
+
+    virtual io::IOStream &load(io::IOStream &is) const { return is; };
+
+    virtual void sync(mesh::TransitionMap const &, simulation::ProblemDomain const &other) { };
+
+    virtual std::string get_class_name() const { return class_name(); }
+
+    static std::string class_name() { return "PML<" + traits::type_id<TM>::name() + ">"; }
+
+    field_t<scalar_type, mesh::EDGE> E{*this, "E"};
+    field_t<scalar_type, mesh::FACE> B{*this, "B"};
+
+
+    field_t<scalar_type, mesh::EDGE> X10{*this}, X11{*this}, X12{*this};
+    field_t<scalar_type, mesh::FACE> X20{*this}, X21{*this}, X22{*this};
+
+    // alpha
+    field_t<scalar_type, mesh::VERTEX> a0{*this};
+    field_t<scalar_type, mesh::VERTEX> a1{*this};
+    field_t<scalar_type, mesh::VERTEX> a2{*this};
+    // sigma
+    field_t<scalar_type, mesh::VERTEX> s0{*this};
+    field_t<scalar_type, mesh::VERTEX> s1{*this};
+    field_t<scalar_type, mesh::VERTEX> s2{*this};
 
 private:
 
 
     inline Real sigma_(Real r, Real expN, Real dB)
     {
-        return (0.5 * (expN + 2.0) * 0.1 * dB * std::pow(r, expN + 1.0));
+        return static_cast<Real>((0.5 * (expN + 2.0) * 0.1 * dB * std::pow(r, expN + 1.0)));
     }
 
     inline Real alpha_(Real r, Real expN, Real dB)
     {
-        return (1.0 + 2.0 * std::pow(r, expN));
+        return static_cast<Real>(1.0 + 2.0 * std::pow(r, expN));
     }
 
 
 };
 
-template<typename TM> PML<TM>::PML(mesh_type const &m) : base_type(m) { }
 
-template<typename TM> PML<TM>::~PML() { }
+template<typename TM>
+void PML<TM>::setup(ConfigParser const &options)
+{
+    base_type::setup(options);
 
+    E.clear();
+    B.clear();
+
+
+    X10.clear();
+    X11.clear();
+    X12.clear();
+    X20.clear();
+    X21.clear();
+    X22.clear();
+
+
+    a0.clear();
+    a1.clear();
+    a2.clear();
+    s0.clear();
+    s1.clear();
+    s2.clear();
+}
 
 template<typename TM> void
-PML<TM>::setup()
+PML<TM>::set_direction(int const *od)
 {
-
     point_type xmin, xmax;
 
     std::tie(xmin, xmax) = m->box();
 
-    LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]";
+    LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]" << std::endl;
 
     DEFINE_PHYSICAL_CONST
 
@@ -111,32 +143,32 @@ PML<TM>::setup()
     point_type ymin, ymax;
     std::tie(ymin, ymax) = m->box();
 
-    for (auto s : m->range(mesh::VERTEX))
-    {
-        point_type x = m->point(s);
+    m->range(mesh::VERTEX).foreach(
+            [&](mesh::MeshEntityId s)
+            {
+                point_type x = m->point(s);
 
 #define DEF(_N_)                                                                    \
-        if (x[_N_] < xmin[_N_])                                                         \
+        if (od[_N_] ==-1)                                                         \
         {                                                                           \
             Real r = (xmin[_N_] - x[_N_]) / (xmin[_N_] - ymin[_N_]);                        \
             a##_N_[s] = alpha_(r, expN, dB);                                            \
             s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmin[_N_] - ymin[_N_]);     \
         }                                                                           \
-        else if (x[_N_] > xmax[_N_])                                                    \
+        else if (od[_N_] ==1)                                                    \
         {                                                                           \
             Real r = (x[_N_] - xmax[_N_]) / (ymax[_N_] - xmax[_N_]);                        \
             a##_N_[s] = alpha_(r, expN, dB);                                            \
             s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (ymax[_N_] - xmax[_N_]);     \
         };
 
-        DEF(0)
-        DEF(1)
-        DEF(2)
+                DEF(0)
+                DEF(1)
+                DEF(2)
 #undef DEF
-    }
+            }
+    );
 
-
-    LOGGER << DONE;
 
 }
 
@@ -152,11 +184,12 @@ PML<TM>::check_point(io::IOStream &) const
 template<typename TM>
 void PML<TM>::next_step(Real dt)
 {
-    VERBOSE << "PML push E" << std::endl;
+    VERBOSE << "Mesh Block[" << m->short_id() << "] PML push E" << std::endl;
 
     DEFINE_PHYSICAL_CONST
 
     field_t<scalar_type, mesh::EDGE> dX1{*this};
+    dX1.clear();
 
     dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
     X10 += dX1;
@@ -170,9 +203,10 @@ void PML<TM>::next_step(Real dt)
     X12 += dX1;
     E += dX1;
 
-    VERBOSE << "PML Push B" << std::endl;
+    VERBOSE << "Mesh Block[" << m->short_id() << "] PML Push B" << std::endl;
 
     field_t<scalar_type, mesh::FACE> dX2{*this};
+    dX2.clear();
 
     dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E) * dt) / (a0 + s0 * dt);
     X20 += dX2;

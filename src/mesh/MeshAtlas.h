@@ -14,6 +14,7 @@
 
 #include "MeshCommon.h"
 #include "MeshBase.h"
+#include "../io/IOStream.h"
 
 namespace simpla { namespace mesh
 {
@@ -126,6 +127,10 @@ public:
 
 
     std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> const &at_level(int l = 0) const { return m_; };
+
+    io::IOStream &save(io::IOStream &os) const;
+
+    io::IOStream &load(io::IOStream &is);
 
 private:
     void add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int flag);

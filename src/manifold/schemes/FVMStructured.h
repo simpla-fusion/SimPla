@@ -168,6 +168,7 @@ private:
 
     }
 
+
     //! div<2>
     template<typename T>
     constexpr inline traits::value_type_t<Field<Expression<ct::ExteriorDerivative, T>>>
@@ -206,14 +207,10 @@ private:
                  - get_d(std::get<0>(expr.args), s - M::_DK)
 
         ) * m.inv_dual_volume(s);
-
-
     }
 
     //! curl<2>
-    template<typename T>
-    inline traits::value_type_t<
-            Field<Expression<ct::CodifferentialDerivative, T>>>
+    template<typename T> inline traits::value_type_t<Field<Expression<ct::CodifferentialDerivative, T>>>
     eval_(Field<Expression<ct::CodifferentialDerivative, T>> const &expr, id_type s, index_sequence<FACE>) const
     {
 
@@ -230,8 +227,7 @@ private:
 
     //! grad<3>
     template<typename T>
-    inline traits::value_type_t<
-            Field<Expression<ct::CodifferentialDerivative, T>>>
+    inline traits::value_type_t<Field<Expression<ct::CodifferentialDerivative, T>>>
     eval_(Field<Expression<ct::CodifferentialDerivative, T> > const &expr, id_type s, index_sequence<VOLUME>) const
     {
         id_type D = M::delta_index(M::dual(s));
@@ -273,6 +269,41 @@ private:
 
     };
 
+    ////***************************************************************************************************
+    //! curl<1>
+    template<typename T, size_t I>
+    inline traits::value_type_t<Field<Expression<ct::P_ExteriorDerivative<I>, T>>>
+    eval_(Field<Expression<ct::P_ExteriorDerivative<I>, T>> const &expr, id_type s,
+          index_sequence<EDGE>) const
+    {
+        // FIXME this is incorrect
+        id_type X = M::delta_index(M::dual(s));
+        id_type Y = M::rotate(X);
+        id_type Z = M::inverse_rotate(X);
+
+
+        return ((get_v(std::get<0>(expr.args), s + Y) - get_v(std::get<0>(expr.args), s - Y))
+                - (get_v(std::get<0>(expr.args), s + Z) - get_v(std::get<0>(expr.args), s - Z))
+               ) * m.inv_volume(s);
+
+
+    }
+
+    template<typename T, size_t I>
+    inline traits::value_type_t<Field<Expression<ct::P_CodifferentialDerivative<I>, T>>>
+    eval_(Field<Expression<ct::P_CodifferentialDerivative<I>, T>> const &expr, id_type s,
+          index_sequence<FACE>) const
+    {
+        // FIXME this is incorrect
+        id_type X = M::delta_index(s);
+        id_type Y = M::rotate(X);
+        id_type Z = M::inverse_rotate(X);
+
+
+        return -((get_d(std::get<0>(expr.args), s + Y) - get_d(std::get<0>(expr.args), s - Y))
+                 - (get_d(std::get<0>(expr.args), s + Z) - get_d(std::get<0>(expr.args), s - Z))
+        ) * m.inv_dual_volume(s);
+    }
 
 ////***************************************************************************************************
 //
@@ -531,8 +562,7 @@ private:
     template<typename TF>
     constexpr inline
     nTuple<typename traits::value_type<TF>::type, 3>
-    mapto(TF const &expr, id_type s,
-          index_sequence<EDGE, VOLUME>) const
+    mapto(TF const &expr, id_type s, index_sequence<EDGE, VOLUME>) const
     {
         auto const &l = expr;
 

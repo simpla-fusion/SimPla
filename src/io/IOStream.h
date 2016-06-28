@@ -12,8 +12,7 @@
 #include "../gtl/Properties.h"
 #include "../data_model/DataSet.h"
 
-namespace simpla { namespace mesh { struct MeshAtlas; }}
-
+ 
 namespace simpla { namespace io
 {
 /**

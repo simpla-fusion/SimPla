@@ -46,45 +46,58 @@ public:
 
     io::IOStream &check_point(io::IOStream &os) const;
 
+
+    io::IOStream &save_mesh(io::IOStream &os) const;
+
+    io::IOStream &load_mesh(io::IOStream &is);
+
     io::IOStream &save(io::IOStream &os) const;
 
     io::IOStream &load(io::IOStream &is);
 
 
-    void add_mesh(std::shared_ptr<mesh::Chart>, int level = 0);
+    mesh::MeshBlockId add_mesh(std::shared_ptr<mesh::Chart>);
 
     template<typename TM, typename ...Args>
-    std::shared_ptr<TM> add_mesh(int level = 0, Args &&...args)
+    mesh::MeshBlockId add_mesh(Args &&...args)
     {
-        auto res = std::make_shared<TM>(std::forward<Args>(args)...);
-        add_mesh(std::dynamic_pointer_cast<mesh::Chart>(res), level);
-        return res;
+        return add_mesh(std::dynamic_pointer_cast<mesh::Chart>(std::make_shared<TM>(std::forward<Args>(args)...)));
     };
 
-    std::shared_ptr<mesh::Chart> get_mesh_chart(mesh::MeshBlockId id, int level = 0) const;
+    mesh::Atlas &get_mesh_atlas();
 
-    template<typename TM, typename ...Args>
-    std::shared_ptr<const TM> get_mesh(Args &&...args) const
+    mesh::Atlas const &get_mesh_atlas() const;
+
+    std::shared_ptr<const mesh::Chart> get_mesh_block(mesh::MeshBlockId id) const;
+
+    std::shared_ptr<mesh::Chart> get_mesh_block(mesh::MeshBlockId id);
+
+    template<typename TM>
+    std::shared_ptr<const TM> get_mesh(mesh::MeshBlockId s) const
     {
-        return std::dynamic_pointer_cast<const TM>(std::forward<Args>(args)...);
+        return std::dynamic_pointer_cast<const TM>(get_mesh_block(s));
     }
 
-
-    std::shared_ptr<ProblemDomain> add_domain(std::shared_ptr<ProblemDomain> pb, int level = 0);
-
-
-    template<typename TProb, typename TM>
-    std::shared_ptr<TProb> add_problem_domain(std::shared_ptr<TM> m, int level = 0)
+    template<typename TM>
+    std::shared_ptr<TM> get_mesh(mesh::MeshBlockId s)
     {
-        auto res = std::make_shared<TProb>(m.get());
-        add_domain(res, level);
+        static_assert(std::is_base_of<mesh::MeshBase, TM>::value, "illegal mesh convert!");
+        assert(get_mesh_block(s).get() != nullptr);
+        assert(get_mesh_block(s)->is_a<TM>());
+        auto res = std::dynamic_pointer_cast<TM>(get_mesh_block(s));
+        return std::dynamic_pointer_cast<TM>(get_mesh_block(s));
+    }
+
+    std::shared_ptr<ProblemDomain> add_domain(std::shared_ptr<ProblemDomain> pb);
+
+
+    template<typename TProb, typename TM, typename ...Args>
+    std::shared_ptr<TProb> add_problem_domain(mesh::MeshBlockId id, Args &&...args)
+    {
+        assert(get_mesh<TM>(id).get() != nullptr);
+        auto res = std::make_shared<TProb>(get_mesh<TM>(id).get(), std::forward<Args>(args)...);
+        add_domain(res);
         return res;
-    };
-
-    template<typename TProb>
-    std::shared_ptr<TProb> add_problem_domain(mesh::MeshBlockId id, int level = 0)
-    {
-        return add_problem_domain<TProb>(get_mesh_chart(id, level), level);
     };
 
     std::shared_ptr<ProblemDomain> get_domain(mesh::MeshBlockId id) const;
@@ -110,7 +123,7 @@ public:
 
 private:
     Real m_time_;
-private:
+
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };

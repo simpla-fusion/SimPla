@@ -59,19 +59,34 @@ Context::print(std::ostream &os, int indent) const
     return os;
 }
 
-
-void
-Context::add_mesh(std::shared_ptr<mesh::Chart> m, int level)
+mesh::Atlas &Context::get_mesh_atlas()
 {
-    m_pimpl_->m_atlas_.add_block(m);
+    return m_pimpl_->m_atlas_;
+};
+
+mesh::Atlas const &Context::get_mesh_atlas() const
+{
+    return m_pimpl_->m_atlas_;
+};
+
+mesh::MeshBlockId
+Context::add_mesh(std::shared_ptr<mesh::Chart> m)
+{
+    return m_pimpl_->m_atlas_.add_block(m);
+
 }
 
-std::shared_ptr<mesh::Chart>
-Context::get_mesh_chart(mesh::MeshBlockId id, int level) const
+std::shared_ptr<const mesh::Chart>
+Context::get_mesh_block(mesh::MeshBlockId id) const
 {
     return m_pimpl_->m_atlas_.get_block(id);
 }
 
+std::shared_ptr<mesh::Chart>
+Context::get_mesh_block(mesh::MeshBlockId id)
+{
+    return m_pimpl_->m_atlas_.get_block(id);
+}
 
 std::shared_ptr<ProblemDomain>
 Context::get_domain(mesh::MeshBlockId id) const
@@ -81,11 +96,11 @@ Context::get_domain(mesh::MeshBlockId id) const
 
 
 std::shared_ptr<ProblemDomain>
-Context::add_domain(std::shared_ptr<ProblemDomain> pb, int level)
+Context::add_domain(std::shared_ptr<ProblemDomain> pb)
 {
-    auto id = pb->m->id();
+    auto id = pb->m_mesh_->id();
 
-    m_pimpl_->m_domains_.emplace(std::make_pair(pb->m->id(), pb));
+    m_pimpl_->m_domains_.emplace(std::make_pair(pb->m_mesh_->id(), pb));
 //
 //    if (m_pimpl_->m_atlas_.find(id) == m_pimpl_->m_atlas_.end())
 //    {
@@ -106,8 +121,25 @@ Context::check_point(io::IOStream &os) const
 }
 
 io::IOStream &
+Context::save_mesh(io::IOStream &os) const
+{
+    m_pimpl_->m_atlas_.save(os);
+    return os;
+}
+
+
+io::IOStream &
+Context::load_mesh(io::IOStream &is)
+{
+    UNIMPLEMENTED;
+    return is;
+}
+
+io::IOStream &
 Context::save(io::IOStream &os) const
 {
+
+//    m_pimpl_->m_atlas_.save(os);
 
     for (auto const &item:m_pimpl_->m_domains_)
     {
@@ -117,13 +149,12 @@ Context::save(io::IOStream &os) const
     return os;
 }
 
+
 io::IOStream &
 Context::load(io::IOStream &is)
 {
-    for (auto const &item:m_pimpl_->m_domains_)
-    {
-        item.second->load(is);
-    }
+    UNIMPLEMENTED;
+
     return is;
 }
 

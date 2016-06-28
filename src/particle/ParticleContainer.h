@@ -613,11 +613,11 @@ ParticleContainer<V, K>::count_(container_type const &d)
     return count_(d, d.range());
 //    return parallel::parallel_reduce(
 //            d.entity_id_range(), 0U,
-//            [&](typename container_type::const_range_type const &r, size_t init) -> size_t
+//            [&](typename container_type::const_range_type const &r, size_t set_direction) -> size_t
 //            {
-//                for (auto const &item : r) { init += item.second.size(); }
+//                for (auto const &item : r) { set_direction += item.second.size(); }
 //
-//                return init;
+//                return set_direction;
 //            },
 //            [](size_t x, size_t y) -> size_t
 //            {

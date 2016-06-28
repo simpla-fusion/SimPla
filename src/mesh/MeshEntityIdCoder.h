@@ -293,11 +293,11 @@ struct MeshEntityIdCoder_
     }
 
 
-    template<typename T>
-    static constexpr T type_cast(id_type s)
-    {
-        return static_cast<T>(unpack(s));
-    }
+//    template<typename T>
+//    static constexpr T type_cast(id_type s)
+//    {
+//        return static_cast<T>(unpack(s));
+//    }
 
 
     static point_type point(id_type const &s)
