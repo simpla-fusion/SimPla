@@ -37,9 +37,12 @@ public:
 
     virtual void deploy();
 
+    virtual void sync(mesh::TransitionMap const &, simulation::ProblemDomain const &other);
+
     virtual std::string get_class_name() const { return class_name(); }
 
     static std::string class_name() { return "PML<" + traits::type_id<TM>::name() + ">"; }
+
 
     mesh_type const *m = nullptr;
 
@@ -59,6 +62,10 @@ public:
     field_t<scalar_type, mesh::VERTEX> s0{m};
     field_t<scalar_type, mesh::VERTEX> s1{m};
     field_t<scalar_type, mesh::VERTEX> s2{m};
+
+    field_t<scalar_type, mesh::EDGE> dX1{m};
+    field_t<scalar_type, mesh::FACE> dX2{m};
+
 
 private:
 
@@ -155,9 +162,31 @@ void PML<TM>::deploy()
 
     E.clear();
     B.clear();
-
+    dX1.clear();
+    dX2.clear();
     declare_global(&E, "E");
     declare_global(&B, "B");
+}
+
+template<typename TM>
+void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)
+{
+    auto E2 = static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
+    auto B2 = static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
+
+    t_map.direct_map(mesh::EDGE,
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2)
+                     {
+                         E[s1] = (*E2)[s2];
+                     }
+    );
+    t_map.direct_map(mesh::FACE,
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2)
+                     {
+                         B[s1] = (*B2)[s2];
+                     }
+    );
+
 }
 
 template<typename TM>
@@ -167,8 +196,6 @@ void PML<TM>::next_step(Real dt)
 
     DEFINE_PHYSICAL_CONST
 
-    field_t<scalar_type, mesh::EDGE> dX1{m};
-    dX1.clear();
 
     dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
     X10 += dX1;
@@ -182,9 +209,6 @@ void PML<TM>::next_step(Real dt)
     X12 += dX1;
     E += dX1;
 
-
-    field_t<scalar_type, mesh::FACE> dX2{m};
-    dX2.clear();
 
     dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E) * dt) / (a0 + s0 * dt);
     X20 += dX2;

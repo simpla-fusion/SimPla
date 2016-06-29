@@ -177,10 +177,10 @@ Context::update(int level, int flag)
 {
     //TODO async update
 
-    for (auto &mesh_chart: m_pimpl_->m_atlas_.at_level(level))
+    for (auto const &mesh_chart: m_pimpl_->m_atlas_.at_level(level))
     {
         auto this_domain = m_pimpl_->m_domains_.find(mesh_chart.second->id());
-        if (this_domain != m_pimpl_->m_domains_.find(mesh_chart.second->id()))
+        if (this_domain != m_pimpl_->m_domains_.end())
         {
             auto r = m_pimpl_->m_atlas_.get_adjacencies(mesh_chart.first);
             for (auto it = std::get<0>(r), ie = std::get<1>(r); it != ie; ++it)

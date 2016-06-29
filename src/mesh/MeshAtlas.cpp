@@ -18,14 +18,6 @@ TransitionMap::TransitionMap(Chart const *p_first, Chart const *p_second, int p_
 
 TransitionMap::~TransitionMap() { };
 
-int TransitionMap::direct_pull_back(Real *f, Real const *g, mesh::MeshEntityType entity_type) const
-{
-    first->range(m_overlap_region_M_, entity_type).foreach(
-            [&](mesh::MeshEntityId const &s)
-            {
-                f[first->hash(s)] = g[second->hash(direct_map(s))];
-            });
-};
 
 int TransitionMap::direct_pull_back(void *f, void const *g, size_type ele_size_in_byte,
                                     MeshEntityType entity_type) const

@@ -91,10 +91,26 @@ public:
                 });
     }
 
+    template<typename TFun>
+    int direct_map(MeshEntityType entity_type, TFun const &fun) const
+    {
+        parallel::parallel_foreach(
+                first->range(m_overlap_region_M_, entity_type),
+                [&](mesh::MeshEntityId const &s) { fun(s, direct_map(s)); }
+        );
+    }
 
-    int direct_pull_back(Real *f, Real const *g, mesh::MeshEntityType entity_type) const;
 
     int direct_pull_back(void *f, void const *g, size_type ele_size_in_byte, MeshEntityType entity_type) const;
+
+
+    template<typename TV>
+    int direct_pull_back(TV *f, TV const *g, MeshEntityType entity_type) const
+    {
+        first->range(m_overlap_region_M_, entity_type).foreach(
+                [&](mesh::MeshEntityId const &s) { f[first->hash(s)] = g[second->hash(direct_map(s))]; });
+    }
+
 
     template<typename TScalar>
     void push_forward(point_type const &x, TScalar const *v, TScalar *u) const

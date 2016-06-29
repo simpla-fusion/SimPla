@@ -128,7 +128,7 @@ ProblemDomain::load(io::IOStream &is) const
 io::IOStream &
 ProblemDomain::save(io::IOStream &os, int flag) const
 {
-    if (!m_properties_["DISABLE_SAVE"])
+//    if (!m_properties_["DISABLE_SAVE"])
     {
         auto pwd = os.pwd();
 
@@ -153,8 +153,6 @@ void ProblemDomain::sync(mesh::TransitionMap const &t_map, ProblemDomain const &
     {
         if (!item.second->empty())
         {
-            VERBOSE << "Sync " << item.first << std::endl;
-
             t_map.direct_pull_back(item.second->data().get(), other.attribute(item.first)->data().get(),
                                    item.second->entity_size_in_byte(), item.second->entity_type());
         }
