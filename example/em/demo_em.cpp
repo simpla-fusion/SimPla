@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 
         if (options["PML"])
         {
-            ctx.extend_domain<PML<mesh_type> >(mesh_center->id(), options["PML"]["Width"].as<int>(5), "PML_");
+            ctx.extend_domain<PML<mesh_type> >(mesh_center->id(), options["PML"]["Width"].as<size_type>(5), "PML_");
         }
 //
 //
@@ -106,14 +106,12 @@ int main(int argc, char **argv)
     }
     ctx.print(std::cout);
 
-
-    Real stop_time = options["stop_time"].as<Real>(ctx.time());
-
     int num_of_steps = options["number_of_steps"].as<int>(1);
+    Real stop_time = options["stop_time"].as<Real>(1);
+    Real dt = options["dt"].as<Real>();
 
-    Real inc_time = (stop_time - ctx.time()) /
-                    (options["number_of_check_point"].as<int>(1));
     io::cd("/start/");
+
     ctx.save(io::global(), 0);
 
     MESSAGE << "====================================================" << std::endl;
@@ -129,7 +127,7 @@ int main(int argc, char **argv)
     while (ctx.time() < stop_time)
     {
 
-        ctx.run(current_time + inc_time);
+        ctx.run(dt);
 
         current_time = ctx.time();
 

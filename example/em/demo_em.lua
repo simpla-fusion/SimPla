@@ -30,7 +30,7 @@ Te = 0.05 * KeV
 N0 = 1.0e17 -- m^-3
 
 
-omega_ci = qe * Btor / mp -- e/m_p B0 rad/s
+omega_ci = 10 * qe * Btor / mp -- e/m_p B0 rad/s
 vTi = math.sqrt(k_B * Ti * 2 / mp)
 rhoi = vTi / omega_ci -- m
 
@@ -47,7 +47,7 @@ LZ = 3.0 -- math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_steps = 10
+number_of_steps = 1000
 dt = 0.5 * (LX / NX) / c
 --current_time = 0;
 stop_time = dt * number_of_steps;
@@ -124,7 +124,7 @@ Particles = {
     }
 }
 
-PML = {}
+--PML = { Width = 10 }
 
 PEC = {
     Domain = {
@@ -145,7 +145,7 @@ Constraints = {
         Value = function(t, x, v)
             local tau = t * omega_ext + x[1] * TWOPI / LX
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
-            return { amp, amp, amp }
+            return { 0, 0, amp }
         end
     },
 }
