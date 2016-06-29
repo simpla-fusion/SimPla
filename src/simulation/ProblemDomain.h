@@ -47,6 +47,8 @@ public:
 
     mesh::MeshBlockId mesh_id() const { return m_mesh_->uuid(); }
 
+    mesh::MeshBase const *mesh() const { return m_mesh_; }
+
     virtual  ~ProblemDomain();
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
@@ -59,7 +61,6 @@ public:
 
     virtual void teardown();
 
-
     virtual void next_step(Real dt) = 0;
 
     virtual io::IOStream &check_point(io::IOStream &os) const;
@@ -68,7 +69,7 @@ public:
 
     virtual io::IOStream &load(io::IOStream &is) const;
 
-    virtual void sync(mesh::TransitionMap const &, ProblemDomain const &other) = 0;
+    virtual void sync(mesh::TransitionMap const &, ProblemDomain const &other);
 
 
 
@@ -79,25 +80,33 @@ public:
     static constexpr bool is_factory = true;
 
 
-    std::shared_ptr<mesh::MeshAttribute const> attribute(std::string const &s_name) const;
+    const mesh::MeshAttribute *attribute(std::string const &s_name) const;
 
-    void add_attribute(std::string const &s_name, std::shared_ptr<mesh::MeshAttribute> attr);
+    void add_attribute(mesh::MeshAttribute *attr, std::string const &s_name);
 
     template<typename TF>
-    std::shared_ptr<TF> create()
+    void declare_global(TF *attr, std::string const &s_name)
     {
-        auto res = std::make_shared<TF>(m_mesh_);
-        res->deploy();
-        return res;
-    }
+        static_assert(std::is_base_of<mesh::MeshAttribute, TF>::value, "illegal Mesh convert");
+        add_attribute(dynamic_cast<mesh::MeshAttribute *>(attr), s_name);
+    };
 
-    template<typename TF, typename ...Args>
-    std::shared_ptr<TF> create(std::string const &s, Args &&...args)
-    {
-        auto res = std::make_shared<TF>(m_mesh_, std::forward<Args>(args)...);
-        add_attribute(s, res);
-        return res;
-    }
+//    template<typename TF>
+//    std::shared_ptr<TF> create()
+//    {
+//        auto res = std::make_shared<TF>(m_mesh_);
+//        res->deploy();
+//        return res;
+//    }
+//
+//    template<typename TF, typename ...Args>
+//    std::shared_ptr<TF> create(std::string const &s, Args &&...args)
+//    {
+//        auto res = std::make_shared<TF>(m_mesh_, std::forward<Args>(args)...);
+//        add_attribute(res, s);
+//        return res;
+//    }
+
 
     const mesh::MeshBase *m_mesh_;
 

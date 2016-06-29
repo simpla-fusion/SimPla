@@ -102,16 +102,16 @@ struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector
 //
 //	DataType & m_data()
 //	{
-//		return m_data_;
+//		return m_attr_data_;
 //	}
 //	DataType const& m_data() const
 //	{
-//		return m_data_;
+//		return m_attr_data_;
 //	}
 //	boundary_type boundary() const;
 //
 //private:
-//	DataType m_data_;
+//	DataType m_attr_data_;
 };
 
 }  // namespace model

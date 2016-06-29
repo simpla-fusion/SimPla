@@ -144,7 +144,7 @@ public:
 //
 //		p0->x += p0->v * dt * 0.5;
 //
-//		m_mesh_.scatter(J, project(*p0), push_forward(*p0));
+//		m_attr_mesh_.scatter(J, project(*p0), push_forward(*p0));
 
 	}
 

@@ -85,7 +85,7 @@ public:
     Particle(TFactory &factory, Args &&...args)
             : m_properties_(nullptr), m_pool_(nullptr)
     {
-        field_type::m_holder_ = (std::dynamic_pointer_cast<base_type>(
+        field_type::m_pimpl_ = (std::dynamic_pointer_cast<base_type>(
                 factory.template create<this_type>(std::forward<Args>(args)...)));
         deploy();
     }

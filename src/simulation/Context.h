@@ -91,11 +91,10 @@ public:
     std::shared_ptr<ProblemDomain> add_domain(std::shared_ptr<ProblemDomain> pb);
 
 
-    template<typename TProb, typename TM, typename ...Args>
+    template<typename TProb, typename ...Args>
     std::shared_ptr<TProb> add_problem_domain(mesh::MeshBlockId id, Args &&...args)
     {
-        assert(get_mesh<TM>(id).get() != nullptr);
-        auto res = std::make_shared<TProb>(get_mesh<TM>(id).get(), std::forward<Args>(args)...);
+        auto res = std::make_shared<TProb>(get_mesh_block(id).get(), std::forward<Args>(args)...);
         add_domain(res);
         return res;
     };

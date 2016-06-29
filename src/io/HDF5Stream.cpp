@@ -1038,7 +1038,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
     UNIMPLEMENTED;
     return "UNIMPLEMENTED";
 }
-//hid_t HDF5Stream::holder_s::create_h5_dataset(dataset const & ds,
+//hid_t HDF5Stream::pimpl_s::create_h5_dataset(dataset const & ds,
 //		size_t flag) const
 //{
 //
@@ -1105,7 +1105,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //
 //}
 
-//std::string HDF5Stream::holder_s::write(std::string const &url, h5_dataset ds)
+//std::string HDF5Stream::pimpl_s::write(std::string const &url, h5_dataset ds)
 //{
 //	if ((ds.flag & (SP_UNORDER)) == (SP_UNORDER))
 //	{
@@ -1128,7 +1128,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //
 //}
 
-//void HDF5Stream::holder_s::convert_record_dataset(h5_dataset *pds) const
+//void HDF5Stream::pimpl_s::convert_record_dataset(h5_dataset *pds) const
 //{
 //	for (int i = pds->ndims; i > 0; --i)
 //	{
@@ -1161,7 +1161,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //
 //}
 
-//std::string HDF5Stream::holder_s::write_cache(std::string const & p_url,
+//std::string HDF5Stream::pimpl_s::write_cache(std::string const & p_url,
 //		h5_dataset const & ds)
 //{
 //
@@ -1233,7 +1233,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //	}
 //
 //}
-//std::string HDF5Stream::holder_s::flush_cache(std::string const & url)
+//std::string HDF5Stream::pimpl_s::flush_cache(std::string const & url)
 //{
 //
 //	if (cache_.find(url) == cache_.end())

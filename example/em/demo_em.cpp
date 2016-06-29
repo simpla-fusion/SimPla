@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         ctx.get_mesh<mesh_type>(mesh_center)->setup(options["Mesh"]);
 
 
-        ctx.add_problem_domain<EMFluid<mesh_type>, mesh_type>(mesh_center)->setup(options);
+        ctx.add_problem_domain<EMFluid<mesh_type>>(mesh_center)->setup(options);
 
         if (options["PML"])
         {
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
                     continue;
                 }
 
-                ctx.add_problem_domain<PML<mesh_type>, mesh_type>(
+                ctx.add_problem_domain<PML<mesh_type>>(
                                 atlas.extent_block(mesh_center, od, PML_width))
                         ->set_direction(od);
             }

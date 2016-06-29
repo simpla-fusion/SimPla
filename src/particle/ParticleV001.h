@@ -515,7 +515,7 @@ Particle<P, M, V001>::count(range_type const &r0) const
 //                for (auto const &item:r)
 //                {
 //                    typename container_type::accessor acc1;
-//                    m_data_->insert(acc1, item.first);
+//                    m_attr_data_->insert(acc1, item.first);
 //
 //                    auto *p = acc1->second;
 //                    acc1->second = item.second;
@@ -557,7 +557,7 @@ Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator
 //void
 //Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator ie)
 //{
-////    _insert(m_data_.get(), s, ib, ie);
+////    _insert(m_attr_data_.get(), s, ib, ie);
 //}
 
 //*******************************************************************************

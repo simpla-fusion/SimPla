@@ -281,7 +281,7 @@ public:
 
     }
     /**
-     *  move  elements  which `hash(value)!=key`  from   `m_data_[key]`
+     *  move  elements  which `hash(value)!=key`  from   `m_attr_data_[key]`
      *   to container `other[hash(value)]`
      * @param key
      * @param other

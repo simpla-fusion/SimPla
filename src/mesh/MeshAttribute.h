@@ -21,53 +21,43 @@ namespace simpla { namespace mesh
 struct MeshAttribute : public base::Object, std::enable_shared_from_this<MeshAttribute>
 {
 
-    MeshAttribute(MeshBase const *m = nullptr);
-
-    MeshAttribute(MeshAttribute *other);
-
-    MeshAttribute(std::shared_ptr<MeshAttribute>);
-
-    MeshAttribute(MeshAttribute const &other);
+    MeshAttribute();
 
     ~MeshAttribute();
 
 
     MeshAttribute &operator=(MeshAttribute const &other) = delete;
 
+    virtual bool deploy() = 0;
+
+    virtual void clear() = 0;
+
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
+
     virtual bool is_a(std::type_info const &t_info) const = 0;
 
     template<typename T>
     inline bool is_a() const { return (std::is_base_of<MeshAttribute, T>::value && is_a(typeid(T))); }
 
-    std::shared_ptr<MeshAttribute> holder();
+    virtual bool is_valid() const = 0;
 
-    MeshBase const *mesh() const;
-
-    void *data();
-
-    const void *data() const;
-
-    virtual bool deploy();
-
-    virtual void clear();
-
-    virtual void swap(MeshAttribute &other);
-
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
-
-    virtual bool is_valid() const;
-
-    virtual bool empty() const;
-
-    virtual size_type size_in_byte() const;
+    virtual bool empty() const = 0;
 
     virtual std::string get_class_name() const = 0;
 
     virtual MeshEntityRange entity_id_range(MeshEntityStatus status = SP_ES_VALID) const = 0;
 
+    virtual MeshEntityType entity_type() const = 0;
+
     virtual size_type entity_size_in_byte() const = 0;
 
-    virtual MeshEntityType entity_type() const = 0;
+    virtual size_type size_in_byte() const = 0;
+
+    virtual MeshBase const *mesh() const = 0;
+
+    virtual std::shared_ptr<void> data() = 0;
+
+    virtual std::shared_ptr<const void> data() const = 0;
 //    virtual void dataset(data_model::DataSet const &) = 0;
 //
 //    virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &) = 0;
@@ -83,10 +73,8 @@ struct MeshAttribute : public base::Object, std::enable_shared_from_this<MeshAtt
     bool is_ready() const;
 
 private:
-    struct holder_s;
-    std::shared_ptr<holder_s> m_holder_;
-    MeshBase const *m_mesh_ = nullptr;
-    std::shared_ptr<void> m_data_ = nullptr;
+    struct pimpl_s;
+    std::shared_ptr<pimpl_s> m_pimpl_;
 
 
 };

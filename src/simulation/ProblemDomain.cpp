@@ -13,7 +13,7 @@ struct ProblemDomain::pimpl_s
 {
 //    Real m_dt_ = 0;
 //    Real m_time_ = 0;
-    std::map<std::string, std::shared_ptr<mesh::MeshAttribute> > m_attr_;
+    std::map<std::string, mesh::MeshAttribute *> m_attr_;
     parallel::DistributedObject m_dist_obj_;
 };
 
@@ -24,13 +24,13 @@ ProblemDomain::ProblemDomain(const mesh::MeshBase *msh) : m_mesh_(msh), m_pimpl_
 ProblemDomain::~ProblemDomain() { teardown(); }
 
 
-std::shared_ptr<mesh::MeshAttribute const>
+const mesh::MeshAttribute *
 ProblemDomain::attribute(std::string const &s_name) const
 {
     return m_pimpl_->m_attr_.at(s_name);
 };
 
-void ProblemDomain::add_attribute(std::string const &s_name, std::shared_ptr<mesh::MeshAttribute> attr)
+void ProblemDomain::add_attribute(mesh::MeshAttribute *attr, std::string const &s_name)
 {
 
     m_pimpl_->m_attr_.emplace(std::make_pair(s_name, attr));
@@ -146,6 +146,19 @@ ProblemDomain::check_point(io::IOStream &os) const
 
     }
     return os;
+}
+
+void ProblemDomain::sync(mesh::TransitionMap const &t_map, ProblemDomain const &other)
+{
+//    for (auto const &item:m_pimpl_->m_attr_)
+//    {
+//        if (!item.second->empty())
+//        {
+//            t_map.direct_pull_back(item.second->data().get(), other.attribute(item.first)->data().get(),
+//                                   item.second->entity_size_in_byte(), item.second->entity_type());
+//        }
+//
+//    }
 }
 
 bool ProblemDomain::same_as(mesh::MeshBase const &) const

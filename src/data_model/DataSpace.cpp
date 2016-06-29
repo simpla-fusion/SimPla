@@ -452,7 +452,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //
 //}
 //
-//void data_space::holder_s::decompose()
+//void data_space::pimpl_s::decompose()
 //{
 //
 ////	local_shape_.dimensions = global_shape_.dimensions;

@@ -32,6 +32,73 @@ private:
 
     typedef typename mesh::MeshAttribute base_type;
 public:
+    typedef TManifold mesh_type;
+    typedef TV value_type;
+protected:
+    mesh_type const *m_mesh_;
+    std::shared_ptr<void> m_data_holder_;
+    value_type *m_data_;
+public:
+
+
+    typedef typename traits::field_value_type<this_type>::type field_value_type;
+
+    Field() : base_type(), m_mesh_(nullptr), m_data_holder_(nullptr), m_data_(nullptr) { }
+
+    //create construct
+    Field(mesh::MeshBase const *m) : Field(dynamic_cast<mesh_type const *>(m)) { }
+
+    Field(mesh_type const *m) : m_mesh_(m), m_data_holder_(nullptr), m_data_(nullptr) { }
+
+    //copy construct
+    Field(this_type const &other) : m_mesh_(other.m_mesh_), m_data_holder_(other.m_data_holder_),
+                                    m_data_(other.m_data_) { }
+
+    //factory construct
+    template<typename TFactory, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
+    Field(TFactory &factory, std::string const &s_name = "") : Field(factory.mesh())
+    {
+        if (s_name != "")
+        {
+            factory.add_attribute(this, s_name);
+        }
+    }
+
+
+    virtual ~Field() { }
+
+    virtual void swap(this_type &other)
+    {
+        std::swap(m_mesh_, other.m_mesh_);
+        std::swap(m_data_, other.m_data_);
+        std::swap(m_data_holder_, other.m_data_holder_);
+    }
+
+    virtual bool deploy()
+    {
+        if (m_data_ == nullptr)
+        {
+            if (m_data_holder_ == nullptr)
+            {
+                m_data_holder_ = sp_alloc_memory(size_in_byte());
+            }
+
+            m_data_ = reinterpret_cast<value_type *>(m_data_holder_.get());
+
+        }
+    }
+
+    virtual void clear()
+    {
+        deploy();
+        memset(m_data_, 0, size_in_byte());
+    }
+
+    virtual std::ostream &print(std::ostream &os, int indent) const
+    {
+//        os << std::setw(indent + 1) << " Type= " << get_class_name() << ", ";
+        return os;
+    };
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
 
@@ -46,47 +113,15 @@ public:
                + ">";
     }
 
+    virtual bool is_valid() const { return m_mesh_ != nullptr; }
 
-public:
+    virtual bool empty() const { return (!is_valid()) || (m_data_ == nullptr); }
 
-    typedef TManifold mesh_type;
-
-    typedef TV value_type;
-
-    typedef typename traits::field_value_type<this_type>::type field_value_type;
-
-    Field() : base_type(nullptr), m_mesh_(nullptr), m_data_(nullptr) { }
-
-    //create construct
-    Field(mesh::MeshBase const *m) : base_type(new Field), m_mesh_(nullptr), m_data_(nullptr) { }
-
-    Field(mesh_type const *m) : Field(dynamic_cast<mesh::MeshBase const *>(m)) { }
-
-    //factory construct
-    template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
-    Field(TFactory &factory, Args &&...args)
-            : base_type(std::dynamic_pointer_cast<mesh::MeshAttribute>(
-            factory.template create<this_type>(std::forward<Args>(args)...))),
-              m_mesh_(nullptr), m_data_(nullptr) { }
-
-    //copy construct
-    Field(this_type const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_) { }
-
-    virtual ~Field() { }
-
-    std::ostream &print(std::ostream &os, int indent) const
-    {
-//        os << std::setw(indent + 1) << " Type= " << get_class_name() << ", ";
-        return os;
-    };
-
-
-    bool empty() const { return !is_valid() || m_data_ == nullptr; }
 
     virtual mesh::MeshEntityRange
     entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::SP_ES_VALID) const
     {
-        assert(m_mesh_ != nullptr);
+        assert(is_valid());
         return m_mesh_->range(entity_type(), entityStatus);
     }
 
@@ -94,26 +129,17 @@ public:
 
     virtual mesh::MeshEntityType entity_type() const { return static_cast<mesh::MeshEntityType >(IFORM); }
 
-    virtual bool deploy()
+    virtual size_type size_in_byte() const
     {
-        if (m_data_ == nullptr)
-        {
-            base_type::deploy();
-            m_mesh_ = dynamic_cast<mesh_type const *>(base_type::mesh());
-            m_data_ = reinterpret_cast<value_type *>(base_type::data());
-        }
-        return true;
+        assert(is_valid());
+        return m_mesh_->max_hash(entity_type()) * entity_size_in_byte();
     }
 
+    virtual mesh::MeshBase const *mesh() const { return m_mesh_; }
 
-    virtual void swap(this_type &other)
-    {
-        std::swap(m_mesh_, other.m_mesh_);
-        std::swap(m_data_, other.m_data_);
+    virtual std::shared_ptr<void> data() { return m_data_holder_; }
 
-        base_type::swap(other);
-    }
-
+    virtual std::shared_ptr<const void> data() const { return m_data_holder_; }
 
     virtual data_model::DataSet dataset() const
     {
@@ -121,7 +147,7 @@ public:
 
         res.data_type = data_model::DataType::create<value_type>();
 
-        res.data = std::shared_ptr<void>(const_cast<void *>(base_type::data()), tags::do_nothing());
+        res.data = m_data_holder_;
 
         std::tie(res.memory_space, res.data_space) = m_mesh_->data_space(entity_type());
 
@@ -354,9 +380,7 @@ private:
         return *this;
     }
 
-protected:
-    mesh_type const *m_mesh_;
-    value_type *m_data_;
+
 };
 
 }// namespace simpla

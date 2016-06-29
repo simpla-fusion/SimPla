@@ -386,7 +386,7 @@ Particle<P, M>::apply(range_type const &r0, TFun const &op, Args &&...args)
             acc.release();
         }
     });
-//    for (auto const &s:r0) { for (auto &p:(*m_data_)[s]) { op(&p); }}
+//    for (auto const &s:r0) { for (auto &p:(*m_attr_data_)[s]) { op(&p); }}
 }
 
 template<typename P, typename M>

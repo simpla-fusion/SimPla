@@ -212,9 +212,9 @@ struct any
 
     operator bool() const { return m_data_ != nullptr; }
 //
-//    void const *m_data() const { return m_data_ != nullptr ? m_data_->m_data() : nullptr; }
+//    void const *m_data() const { return m_attr_data_ != nullptr ? m_attr_data_->m_data() : nullptr; }
 //
-//    void *m_data() { return m_data_ != nullptr ? m_data_->m_data() : nullptr; }
+//    void *m_data() { return m_attr_data_ != nullptr ? m_attr_data_->m_data() : nullptr; }
 
     std::string string() const
     {
@@ -283,7 +283,7 @@ struct any
         return os;
     }
 
-//    data_model::DataType data_type() const { return m_data_->data_type(); }
+//    data_model::DataType data_type() const { return m_attr_data_->data_type(); }
 
 private:
     struct PlaceHolder;

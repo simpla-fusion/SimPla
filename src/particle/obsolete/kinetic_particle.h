@@ -54,7 +54,7 @@ struct particle_hasher
 
 //	template<typename ...Args>
 //	constexpr auto operator()(Args &&... args) const
-//	DECL_RET_TYPE((m_mesh_->hash(std::forward<Args>(args)...)))
+//	DECL_RET_TYPE((m_attr_mesh_->hash(std::forward<Args>(args)...)))
 };
 
 template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<TDomain, TPoint_s>::iform;

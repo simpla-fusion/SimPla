@@ -1242,8 +1242,8 @@ HHC_LOCATION           =
 
 GENERATE_CHI           = NO
 
-# The CHM_INDEX_ENCODING is used to encode HtmlHelp index ( hhk), m_data_ ( hhc)
-# and project file m_data_.
+# The CHM_INDEX_ENCODING is used to encode HtmlHelp index ( hhk), m_attr_data_ ( hhc)
+# and project file m_attr_data_.
 # This tag requires that the tag GENERATE_HTMLHELP is set to YES.
 
 CHM_INDEX_ENCODING     =

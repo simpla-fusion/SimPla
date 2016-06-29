@@ -92,8 +92,9 @@ public:
     }
 
 
-    int direct_pull_back(Real const *g, Real *f, mesh::MeshEntityType entity_type = mesh::VERTEX) const;
+    int direct_pull_back(Real *f, Real const *g, mesh::MeshEntityType entity_type) const;
 
+    int direct_pull_back(void *f, void const *g, size_type ele_size_in_byte, MeshEntityType entity_type) const;
 
     template<typename TScalar>
     void push_forward(point_type const &x, TScalar const *v, TScalar *u) const
