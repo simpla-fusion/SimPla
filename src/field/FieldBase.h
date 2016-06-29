@@ -74,7 +74,7 @@ public:
         std::swap(m_data_holder_, other.m_data_holder_);
     }
 
-    virtual bool deploy()
+    virtual void deploy()
     {
         if (m_data_ == nullptr)
         {

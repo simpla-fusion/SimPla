@@ -63,24 +63,24 @@ void Atlas::add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int
     UNIMPLEMENTED;
 }
 
-MeshBlockId Atlas::extent_block(mesh::MeshBlockId first_id, int const *offset_direction, size_type width)
+std::shared_ptr<MeshBase> Atlas::extent_block(mesh::MeshBlockId first_id, int const *offset_direction, size_type width)
 {
-    auto second_id = add_block(get_block(first_id)->extend(offset_direction, width));
-    assert(get_block(second_id).get() != nullptr);
-
-//    add_adjacency(first_id, second_id, SP_MB_SYNC);
-//    add_adjacency(second_id, first_id, SP_MB_SYNC);
-    return second_id;
+    auto res = get_block(first_id)->extend(offset_direction, width);
+    assert(res != nullptr);
+    auto second_id = add_block(res);
+    add_adjacency(first_id, second_id, SP_MB_SYNC);
+    add_adjacency(second_id, first_id, SP_MB_SYNC);
+    return res;
 
 };
 
 
-MeshBlockId Atlas::refine_block(mesh::MeshBlockId first, box_type const &)
+std::shared_ptr<MeshBase> Atlas::refine_block(mesh::MeshBlockId first, box_type const &)
 {
     UNIMPLEMENTED;
 }
 
-MeshBlockId Atlas::coarsen_block(mesh::MeshBlockId first, box_type const &)
+std::shared_ptr<MeshBase> Atlas::coarsen_block(mesh::MeshBlockId first, box_type const &)
 {
     UNIMPLEMENTED;
 }

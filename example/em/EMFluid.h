@@ -187,20 +187,10 @@ void EMFluid<TM>::deploy()
     declare_global(&B1, "B");
 }
 
-//template<typename TM>
-//io::IOStream &EMFluid<TM>::check_point(io::IOStream &os) const
-//{
-//    os.write("E1", E1.dataset(), io::SP_RECORD);
-//    os.write("B1", B1.dataset(), io::SP_RECORD);
-//    os.write("J1", J1.dataset(), io::SP_RECORD);
-//    return os;
-//}
-
 
 template<typename TM>
 void EMFluid<TM>::next_step(Real dt)
 {
-    VERBOSE << "next_step:\tEMFluid \t [Mesh Block : " << m->box() << "] " << std::endl;
 
     DEFINE_PHYSICAL_CONST
 
@@ -220,11 +210,11 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
 
-    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
+    B1 -= curl(E1) * (dt * 0.5);
 
     B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
-    LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
+    E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt;
 
     E1.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
@@ -260,7 +250,7 @@ void EMFluid<TM>::next_step(Real dt)
             field_t<vector_type, VERTEX> &Js = p.second.J1;;
 
 
-            Real as = (dt * qs) / (2.0 * ms);
+            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
             Q -= 0.5 * dt / epsilon0 * Js;
 
@@ -305,7 +295,7 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
 
-    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
+    B1 -= curl(E1) * (dt * 0.5);
 
     B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 

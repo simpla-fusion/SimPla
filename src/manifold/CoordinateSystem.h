@@ -176,9 +176,10 @@ public:
     }
 
     template<typename TDict>
-    void setup(TDict const &dict)
+    this_type &setup(TDict const &dict)
     {
         mesh_type::setup(dict);
+        return *this;
     }
 
 

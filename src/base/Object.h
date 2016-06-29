@@ -97,6 +97,8 @@ public:
 
     void swap(Object &other);
 
+    virtual void deploy() { }
+
     virtual bool is_a(std::type_info const &info) const;
 
     template<typename T> inline bool is_a() const { return is_a(typeid(T)); };
@@ -107,7 +109,11 @@ public:
 
     std::string name() const { return m_name_ == "" ? type_cast<std::string>(short_id()) : m_name_; };
 
-    void name(std::string const &s) { m_name_ = s; };
+    Object &name(std::string const &s)
+    {
+        m_name_ = s;
+        return *this;
+    };
 
     boost::uuids::uuid uuid() const { return m_uuid_; }
 

@@ -163,10 +163,14 @@ public:
 
     void time(Real t) { m_time_ = t; };
 
-    void next_step(Real dt) { m_time_ += dt; };
+    void next_step(Real dt)
+    {
+        VERBOSE << " Mesh [ " << name() << " ] next time step, time = " << m_time_ / dt << " ." << std::endl;
+        m_time_ += dt;
+    };
 
 private:
-    Real m_time_;
+    Real m_time_ = 0.0;
 
 };
 

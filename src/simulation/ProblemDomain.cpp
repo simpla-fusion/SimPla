@@ -118,34 +118,33 @@ ProblemDomain::print(std::ostream &os, int indent) const
 io::IOStream &
 ProblemDomain::load(io::IOStream &is) const
 {
-    UNIMPLEMENTED;
+    if (!m_properties_["DISABLE_LOAD"])
+    {
+        UNIMPLEMENTED;
+    }
     return is;
 }
 
 io::IOStream &
 ProblemDomain::save(io::IOStream &os, int flag) const
 {
-    auto pwd = os.pwd();
-
-    for (auto const &item:m_pimpl_->m_attr_)
+    if (!m_properties_["DISABLE_SAVE"])
     {
-        if (!item.second->empty())
+        auto pwd = os.pwd();
+
+        for (auto const &item:m_pimpl_->m_attr_)
         {
-            os.open(item.first + "/");
-            os.write(m_mesh_->name(), item.second->dataset(), flag);
-            os.open(pwd);
+            if (!item.second->empty())
+            {
+                os.open(item.first + "/");
+                os.write(m_mesh_->name(), item.second->dataset(), flag);
+                os.open(pwd);
+            }
         }
     }
-
     return os;
 };
 
-
-io::IOStream &
-ProblemDomain::check_point(io::IOStream &os) const
-{
-    return save(os, io::SP_RECORD);
-}
 
 void ProblemDomain::sync(mesh::TransitionMap const &t_map, ProblemDomain const &other)
 {

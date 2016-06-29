@@ -120,11 +120,11 @@ public:
 
     void remove_block(MeshBlockId const &m_id);
 
-    MeshBlockId extent_block(mesh::MeshBlockId first, int const *offset_direction, size_type width);
+    std::shared_ptr<MeshBase> extent_block(mesh::MeshBlockId first, int const *offset_direction, size_type width);
 
-    MeshBlockId refine_block(mesh::MeshBlockId first, box_type const &);
+    std::shared_ptr<MeshBase> refine_block(mesh::MeshBlockId first, box_type const &);
 
-    MeshBlockId coarsen_block(mesh::MeshBlockId first, box_type const &);
+    std::shared_ptr<MeshBase> coarsen_block(mesh::MeshBlockId first, box_type const &);
 
 
     std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> const &at_level(int l = 0) const { return m_; };

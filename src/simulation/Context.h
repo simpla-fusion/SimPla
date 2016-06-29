@@ -44,24 +44,25 @@ public:
 
     std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    io::IOStream &check_point(io::IOStream &os) const;
-
 
     io::IOStream &save_mesh(io::IOStream &os) const;
 
     io::IOStream &load_mesh(io::IOStream &is);
 
-    io::IOStream &save(io::IOStream &os) const;
+    io::IOStream &save(io::IOStream &os, int flag = io::SP_NEW) const;
 
     io::IOStream &load(io::IOStream &is);
 
+    io::IOStream &check_point(io::IOStream &os) const;
 
     mesh::MeshBlockId add_mesh(std::shared_ptr<mesh::Chart>);
 
     template<typename TM, typename ...Args>
-    mesh::MeshBlockId add_mesh(Args &&...args)
+    std::shared_ptr<TM> add_mesh(Args &&...args)
     {
-        return add_mesh(std::dynamic_pointer_cast<mesh::Chart>(std::make_shared<TM>(std::forward<Args>(args)...)));
+        auto res = std::make_shared<TM>(std::forward<Args>(args)...);
+        add_mesh(std::dynamic_pointer_cast<mesh::Chart>(res));
+        return res;
     };
 
     mesh::Atlas &get_mesh_atlas();
@@ -97,6 +98,36 @@ public:
         auto res = std::make_shared<TProb>(get_mesh_block(id).get(), std::forward<Args>(args)...);
         add_domain(res);
         return res;
+    };
+
+    template<typename TProb>
+    void extend_domain(mesh::MeshBlockId mesh_center, size_type PML_width, std::string prefix = "")
+    {
+        auto &atlas = get_mesh_atlas();
+
+        int od[3];
+        int count = 0;
+        for (int tag = 1, tag_e = 1 << 6; tag < tag_e; ++tag)
+        {
+
+            od[0] = ((tag & 0x3) << 1) - 3;
+            od[1] = (((tag >> 2) & 0x3) << 1) - 3;
+            od[2] = (((tag >> 4) & 0x3) << 1) - 3;
+
+            if (od[0] > 1 || od[1] > 1 || od[2] > 1)
+            {
+                continue;
+            }
+
+
+            auto pml_m = atlas.extent_block(mesh_center, od, PML_width);
+
+            pml_m->name(prefix + type_cast<std::string>(count)).deploy();
+
+            add_domain(std::make_shared<TProb>(pml_m.get(), od))->deploy();
+
+            ++count;
+        }
     };
 
     std::shared_ptr<ProblemDomain> get_domain(mesh::MeshBlockId id) const;

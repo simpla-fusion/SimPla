@@ -28,18 +28,13 @@ class PML : public simulation::ProblemDomain
 public:
     template<typename ValueType, size_t IFORM> using field_t =  Field <ValueType, TM, index_const<IFORM>>;;
 
-    template<typename T>
-    PML(const T *mp) : base_type(mp), m(dynamic_cast<mesh_type const *>(mp)) { }
+    template<typename T> PML(const T *mp, int const *od = nullptr);
 
-    virtual ~PML() { }
+    virtual ~PML();
 
     virtual void next_step(Real dt);
 
     virtual void deploy();
-
-    PML<TM> &set_direction(int const *od);
-
-//    PML<TM> &setup(ConfigParser const &options);
 
     virtual std::string get_class_name() const { return class_name(); }
 
@@ -82,19 +77,23 @@ private:
 
 
 template<typename TM>
-void PML<TM>::deploy()
+PML<TM>::~PML() { }
+
+template<typename TM>
+template<typename TOtherM>
+PML<TM>::PML(const TOtherM *mp, int const *p_od) : base_type(mp), m(dynamic_cast<mesh_type const *>(mp))
 {
+    properties()["DISABLE_WRITE"] = false;
 
-    E.clear();
-    B.clear();
+    int od[3] = {0, 0, 0};
 
-    declare_global(&E, "E");
-    declare_global(&B, "B");
-}
+    if (p_od != nullptr)
+    {
+        od[0] = p_od[0];
+        od[1] = p_od[1];
+        od[2] = p_od[2];
+    }
 
-template<typename TM> PML<TM> &
-PML<TM>::set_direction(int const *od)
-{
     point_type xmin, xmax;
 
     std::tie(xmin, xmax) = m->box();
@@ -146,15 +145,23 @@ PML<TM>::set_direction(int const *od)
 #undef DEF
             }
     );
-
-    return *this;
 }
 
+template<typename TM>
+void PML<TM>::deploy()
+{
+
+    E.clear();
+    B.clear();
+
+    declare_global(&E, "E");
+    declare_global(&B, "B");
+}
 
 template<typename TM>
 void PML<TM>::next_step(Real dt)
 {
-    VERBOSE << "next_step:\tPML  \t [Mesh Block : " << m->box() << "] " << std::endl;
+//    VERBOSE << "next_step:\tPML  \t [Mesh Block : " << m->box() << "] " << std::endl;
 
     DEFINE_PHYSICAL_CONST
 

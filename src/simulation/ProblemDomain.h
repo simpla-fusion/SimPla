@@ -8,14 +8,14 @@
 #define SIMPLA_MESHWALKER_H
 
 #include <memory>
-#include "../base/Object.h"
 #include "../sp_def.h"
+#include "../base/Object.h"
 #include "../gtl/Log.h"
-
+#include "../gtl/Properties.h"
+#include "../gtl/ConfigParser.h"
 #include "../mesh/Mesh.h"
 #include "../mesh/MeshAtlas.h"
 #include "../mesh/MeshAttribute.h"
-#include "../gtl/ConfigParser.h"
 
 
 namespace simpla
@@ -38,14 +38,15 @@ namespace simpla { namespace simulation
 class ProblemDomain : public base::Object
 {
 public:
+    const mesh::MeshBase *m_mesh_;
+
+    HAS_PROPERTIES;
 
     SP_OBJECT_HEAD(ProblemDomain, base::Object);
 
     ProblemDomain();
 
     ProblemDomain(const mesh::MeshBase *);
-
-    mesh::MeshBlockId mesh_id() const { return m_mesh_->uuid(); }
 
     mesh::MeshBase const *mesh() const { return m_mesh_; }
 
@@ -62,8 +63,6 @@ public:
     virtual void teardown();
 
     virtual void next_step(Real dt) = 0;
-
-    virtual io::IOStream &check_point(io::IOStream &os) const;
 
     virtual io::IOStream &save(io::IOStream &os, int flag = io::SP_NEW) const;
 
@@ -108,7 +107,6 @@ public:
 //    }
 
 
-    const mesh::MeshBase *m_mesh_;
 
 private:
 

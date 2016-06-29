@@ -28,7 +28,7 @@ struct MeshAttribute : public base::Object, std::enable_shared_from_this<MeshAtt
 
     MeshAttribute &operator=(MeshAttribute const &other) = delete;
 
-    virtual bool deploy() = 0;
+    virtual void deploy() = 0;
 
     virtual void clear() = 0;
 

@@ -10,7 +10,6 @@
 #include "../../src/io/IO.h"
 #include "../../src/gtl/Utilities.h"
 #include "../../src/manifold/pre_define/PreDefine.h"
-#include "../../src/parallel/Parallel.h"
 #include "../../src/simulation/Context.h"
 
 #include "EMFluid.h"
@@ -72,46 +71,15 @@ int main(int argc, char **argv)
     {
         auto mesh_center = ctx.add_mesh<mesh_type>();
 
-        {
-            auto c_mesh = ctx.get_mesh<mesh_type>(mesh_center);
-            c_mesh->name("Center");
-            c_mesh->setup(options["Mesh"]);
-            c_mesh->deploy();
-        }
+        mesh_center->setup(options["Mesh"]).name("Center").deploy();
 
-        ctx.add_problem_domain<EMFluid<mesh_type>>(mesh_center)
+
+        ctx.add_problem_domain<EMFluid<mesh_type>>(mesh_center->id())
                 ->setup(options).deploy();
 
         if (options["PML"])
         {
-            size_type PML_width = 5;
-            auto &atlas = ctx.get_mesh_atlas();
-
-            int od[3];
-            int count = 0;
-            for (int tag = 1, tag_e = 1 << 6; tag < tag_e; tag <<= 1)
-            {
-
-                od[0] = ((tag & 0x3) << 1) - 3;
-                od[1] = (((tag >> 2) & 0x3) << 1) - 3;
-                od[2] = (((tag >> 4) & 0x3) << 1) - 3;
-
-                if (od[0] > 1 || od[1] > 1 || od[2] > 1)
-                {
-                    continue;
-                }
-
-
-                auto b_id = atlas.extent_block(mesh_center, od, PML_width);
-
-                ctx.get_mesh_block(b_id)->name("PML_" + type_cast<std::string>(count));
-
-                ctx.add_problem_domain<PML<mesh_type>>(b_id)
-                        ->set_direction(od).deploy();
-
-
-                ++count;
-            }
+            ctx.extend_domain<PML<mesh_type> >(mesh_center->id(), options["PML"]["Width"].as<int>(5), "PML_");
         }
 //
 //
@@ -146,7 +114,7 @@ int main(int argc, char **argv)
     Real inc_time = (stop_time - ctx.time()) /
                     (options["number_of_check_point"].as<int>(1));
     io::cd("/start/");
-    ctx.save(io::global());
+    ctx.save(io::global(), 0);
 
     MESSAGE << "====================================================" << std::endl;
 
@@ -177,7 +145,7 @@ int main(int argc, char **argv)
 
     // MESSAGE << "====================================================" << std::endl;
     io::cd("/dump/");
-    ctx.save(io::global());
+    ctx.save(io::global(), 0);
     ctx.teardown();
 
     TheEnd();

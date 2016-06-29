@@ -111,16 +111,6 @@ Context::add_domain(std::shared_ptr<ProblemDomain> pb)
 
 
 io::IOStream &
-Context::check_point(io::IOStream &os) const
-{
-    for (auto const &item:m_pimpl_->m_domains_)
-    {
-        item.second->check_point(os);
-    }
-    return os;
-}
-
-io::IOStream &
 Context::save_mesh(io::IOStream &os) const
 {
     m_pimpl_->m_atlas_.save(os);
@@ -136,18 +126,21 @@ Context::load_mesh(io::IOStream &is)
 }
 
 io::IOStream &
-Context::save(io::IOStream &os) const
+Context::save(io::IOStream &os, int flag) const
 {
-
-//    m_self_->m_atlas_.save(os);
 
     for (auto const &item:m_pimpl_->m_domains_)
     {
-        item.second->save(os);
+        item.second->save(os, flag);
     }
     return os;
 }
 
+io::IOStream &
+Context::check_point(io::IOStream &os) const
+{
+    return save(os, io::SP_RECORD);
+}
 
 io::IOStream &
 Context::load(io::IOStream &is)
@@ -163,13 +156,13 @@ Context::run(Real dt, int level)
 
     //TODO async run
 
-#ifdef ENABLE_AMR
-    update(level + 1, mesh::SP_MB_REFINE); //  push data to next level
-    for (int i = 0; i < m_refine_ratio; ++i)
-    {
-        run(dt / m_refine_ratio, level + 1);
-    }
-#endif
+//#ifdef ENABLE_AMR
+//    update(level + 1, mesh::SP_MB_REFINE); //  push data to next level
+//    for (int i = 0; i < m_refine_ratio; ++i)
+//    {
+//        run(dt / m_refine_ratio, level + 1);
+//    }
+//#endif
 
     for (auto const &chart_node: m_pimpl_->m_atlas_.at_level(level))
     {
