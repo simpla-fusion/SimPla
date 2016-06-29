@@ -49,8 +49,8 @@
 #  - Check for spaces between brackets in one-line inline method
 #  - Check for no assert()
 #  - Check for spaces surrounding operators
-#  - Check for 0 in pointer context (should be NULL)
-#  - Check for 0 in char context (should be '\0')
+#  - Check for 0 in pointer predefine (should be NULL)
+#  - Check for 0 in char predefine (should be '\0')
 #  - Check for camel-case method name conventions for methods
 #    that are not simple inline getters and setters
 #  - Check that base classes have virtual destructors
@@ -2401,7 +2401,7 @@ def CheckLanguage(filename, clean_lines, linenum, file_extension, include_state,
       r'(int|float|double|bool|char|int32|uint32|int64|uint64)\([^)]', line)
   if match:
     # gMock methods are defined using some variant of MOCK_METHODx(name, type)
-    # where type may be float(), int(string), etc.  Without context they are
+    # where type may be float(), int(string), etc.  Without predefine they are
     # virtually indistinguishable from int(x) casts.
     if (match.group(1) is None and  # If new operator, then this isn't a cast
         not Match(r'^\s*MOCK_(CONST_)?METHOD\d+(_T)?\(', line)):
@@ -2729,7 +2729,7 @@ def FilesBelongToSameModule(filename_cc, filename_h):
   '/absolute/path/to/base/sysinfo.cc', and this file would include
   'base/sysinfo.h', this function also produces the prefix needed to open the
   header. This is used by the caller of this function to more robustly open the
-  header file. We don't have access to the real include paths in this context,
+  header file. We don't have access to the real include paths in this predefine,
   so we need this guesswork here.
 
   Known bugs: tools/base/bar.cc and base/bar.h belong to the same module

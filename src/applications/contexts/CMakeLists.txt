@@ -1,6 +1,6 @@
-add_library(context
+add_library(predefine
 		context_cartesian.cpp
 		context_cylindrical.cpp
 )
-TARGET_LINK_LIBRARIES(context physics io)
+TARGET_LINK_LIBRARIES(predefine physics io)
 

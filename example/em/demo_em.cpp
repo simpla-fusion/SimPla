@@ -12,8 +12,8 @@
 #include "../../src/manifold/pre_define/PreDefine.h"
 #include "../../src/simulation/Context.h"
 
-#include "EMFluid.h"
-#include "PML.h"
+#include "../../scenario/problem_domain/EMFluid.h"
+#include "../../scenario/problem_domain/PML.h"
 
 using namespace simpla;
 
@@ -68,42 +68,7 @@ int main(int argc, char **argv)
 
     simulation::Context ctx;
 
-    {
-        auto mesh_center = ctx.add_mesh<mesh_type>();
 
-        mesh_center->setup(options["Mesh"]).name("Center").deploy();
-
-
-        ctx.add_problem_domain<EMFluid<mesh_type>>(mesh_center->id())
-                ->setup(options).deploy();
-
-        if (options["PML"])
-        {
-            ctx.extend_domain<PML<mesh_type> >(mesh_center->id(), options["PML"]["Width"].as<size_type>(5), "PML_");
-        }
-//
-//
-//    {
-//        std::string str = options["ProblemDomain"].as<std::string>();
-//        if (str == "PIC")
-//        {
-//            problem_domain = std::make_shared<EMPIC < mesh_type>>
-//            (&mesh_center);
-//        }
-//        else if (str == "Fluid")
-//        {
-//            problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh_center);
-//
-//        }
-//        else
-//        {
-//            RUNTIME_ERROR << "Unknown problem type [" << str << "]" << std::endl;
-//        }
-//
-//    }
-
-
-    }
     ctx.print(std::cout);
 
     int num_of_steps = options["number_of_steps"].as<int>(1);

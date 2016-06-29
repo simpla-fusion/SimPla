@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 					<< "Too lazy to implemented it\n"<< std::endl;
 					TheEnd(1);
 				}
-				else if( opt=="context")
+				else if( opt=="predefine")
 				{
 					context_type =string_to_value<std::string>(value);
 				}

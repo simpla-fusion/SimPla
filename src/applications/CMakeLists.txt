@@ -5,5 +5,5 @@ ADD_SUBDIRECTORY(fokker_planck)
               
 #ADD_EXECUTABLE(simpla  simpla.cpp   )
 #
-#TARGET_LINK_LIBRARIES(simpla  physics context  geqdsk io parallel utilities)
+#TARGET_LINK_LIBRARIES(simpla  physics predefine  geqdsk io parallel utilities)
 
