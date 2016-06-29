@@ -57,7 +57,7 @@ public:
 
     virtual bool same_as(mesh::MeshBase const &) const;
 
-    virtual void setup(ConfigParser const &dict);
+    virtual void deploy();
 
     virtual void teardown();
 
@@ -65,7 +65,7 @@ public:
 
     virtual io::IOStream &check_point(io::IOStream &os) const;
 
-    virtual io::IOStream &save(io::IOStream &os) const;
+    virtual io::IOStream &save(io::IOStream &os, int flag = io::SP_NEW) const;
 
     virtual io::IOStream &load(io::IOStream &is) const;
 

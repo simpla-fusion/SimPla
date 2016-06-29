@@ -72,10 +72,15 @@ int main(int argc, char **argv)
     {
         auto mesh_center = ctx.add_mesh<mesh_type>();
 
-        ctx.get_mesh<mesh_type>(mesh_center)->setup(options["Mesh"]);
+        {
+            auto c_mesh = ctx.get_mesh<mesh_type>(mesh_center);
+            c_mesh->name("Center");
+            c_mesh->setup(options["Mesh"]);
+            c_mesh->deploy();
+        }
 
-
-        ctx.add_problem_domain<EMFluid<mesh_type>>(mesh_center)->setup(options);
+        ctx.add_problem_domain<EMFluid<mesh_type>>(mesh_center)
+                ->setup(options).deploy();
 
         if (options["PML"])
         {
@@ -83,6 +88,7 @@ int main(int argc, char **argv)
             auto &atlas = ctx.get_mesh_atlas();
 
             int od[3];
+            int count = 0;
             for (int tag = 1, tag_e = 1 << 6; tag < tag_e; tag <<= 1)
             {
 
@@ -95,9 +101,16 @@ int main(int argc, char **argv)
                     continue;
                 }
 
-                ctx.add_problem_domain<PML<mesh_type>>(
-                                atlas.extent_block(mesh_center, od, PML_width))
-                        ->set_direction(od);
+
+                auto b_id = atlas.extent_block(mesh_center, od, PML_width);
+
+                ctx.get_mesh_block(b_id)->name("PML_" + type_cast<std::string>(count));
+
+                ctx.add_problem_domain<PML<mesh_type>>(b_id)
+                        ->set_direction(od).deploy();
+
+
+                ++count;
             }
         }
 //

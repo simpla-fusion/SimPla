@@ -105,6 +105,10 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
+    std::string name() const { return m_name_ == "" ? type_cast<std::string>(short_id()) : m_name_; };
+
+    void name(std::string const &s) { m_name_ = s; };
+
     boost::uuids::uuid uuid() const { return m_uuid_; }
 
     boost::uuids::uuid id() const { return m_uuid_; }
@@ -124,6 +128,7 @@ public:
     inline bool try_lock() { return m_mutex_.try_lock(); }
 
 private:
+    std::string m_name_{""};
     std::mutex m_mutex_;
     boost::uuids::uuid m_uuid_;
 

@@ -37,11 +37,9 @@ void ProblemDomain::add_attribute(mesh::MeshAttribute *attr, std::string const &
 
 };
 
-void ProblemDomain::setup(ConfigParser const &dict)
+void ProblemDomain::deploy()
 {
-
-    LOGGER << "Setup problem domain [" << get_class_name() << "]" << std::endl;
-
+    LOGGER << "deploy problem domain [" << get_class_name() << "]" << std::endl;
 };
 
 void ProblemDomain::teardown()
@@ -124,28 +122,29 @@ ProblemDomain::load(io::IOStream &is) const
     return is;
 }
 
-
 io::IOStream &
-ProblemDomain::save(io::IOStream &os) const
+ProblemDomain::save(io::IOStream &os, int flag) const
 {
-    auto m_id = m_mesh_->uuid();
+    auto pwd = os.pwd();
+
     for (auto const &item:m_pimpl_->m_attr_)
     {
-        if (!item.second->empty()) { os.write(item.first, item.second->dataset(), io::SP_NEW); }
+        if (!item.second->empty())
+        {
+            os.open(item.first + "/");
+            os.write(m_mesh_->name(), item.second->dataset(), flag);
+            os.open(pwd);
+        }
     }
+
     return os;
-}
+};
+
 
 io::IOStream &
 ProblemDomain::check_point(io::IOStream &os) const
 {
-    auto m_id = m_mesh_->uuid();
-    for (auto const &item:m_pimpl_->m_attr_)
-    {
-        if (!item.second->empty()) { os.write(item.first, item.second->dataset(), io::SP_RECORD); }
-
-    }
-    return os;
+    return save(os, io::SP_RECORD);
 }
 
 void ProblemDomain::sync(mesh::TransitionMap const &t_map, ProblemDomain const &other)

@@ -97,7 +97,7 @@ std::string HDF5Stream::absolute_path(std::string const &url) const
     return file_name + ":" + grp_name + obj_name;
 }
 
-std::tuple<bool, std::string> HDF5Stream::open(std::string const &url, size_t flag)
+std::tuple<bool, std::string> HDF5Stream::open(std::string const &url, int flag)
 {
     std::string file_name = IOStream::current_file_name();
     std::string grp_name = IOStream::current_group_name();
@@ -873,7 +873,7 @@ void HDF5Stream::flush()
 
 }
 
-std::string HDF5Stream::write(std::string const &url, data_model::DataSet const &ds, size_t flag)
+std::string HDF5Stream::write(std::string const &url, data_model::DataSet const &ds, int flag)
 {
 
 
@@ -1033,7 +1033,7 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
     return pwd() + dsname;
 }
 
-std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, size_t flag)
+std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, int flag)
 {
     UNIMPLEMENTED;
     return "UNIMPLEMENTED";

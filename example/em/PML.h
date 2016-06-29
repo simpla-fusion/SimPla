@@ -28,15 +28,18 @@ class PML : public simulation::ProblemDomain
 public:
     template<typename ValueType, size_t IFORM> using field_t =  Field <ValueType, TM, index_const<IFORM>>;;
 
-    template<typename T> PML(const T *mp) : base_type(mp), m(dynamic_cast<mesh_type const *>(mp)) { }
+    template<typename T>
+    PML(const T *mp) : base_type(mp), m(dynamic_cast<mesh_type const *>(mp)) { }
 
     virtual ~PML() { }
 
     virtual void next_step(Real dt);
 
-    virtual void set_direction(int const *od);
+    virtual void deploy();
 
-    virtual void setup(ConfigParser const &options);
+    PML<TM> &set_direction(int const *od);
+
+//    PML<TM> &setup(ConfigParser const &options);
 
     virtual std::string get_class_name() const { return class_name(); }
 
@@ -79,35 +82,17 @@ private:
 
 
 template<typename TM>
-void PML<TM>::setup(ConfigParser const &options)
+void PML<TM>::deploy()
 {
-    base_type::setup(options);
 
     E.clear();
     B.clear();
-
-
-    X10.clear();
-    X11.clear();
-    X12.clear();
-    X20.clear();
-    X21.clear();
-    X22.clear();
-
-
-    a0.clear();
-    a1.clear();
-    a2.clear();
-    s0.clear();
-    s1.clear();
-    s2.clear();
-
 
     declare_global(&E, "E");
     declare_global(&B, "B");
 }
 
-template<typename TM> void
+template<typename TM> PML<TM> &
 PML<TM>::set_direction(int const *od)
 {
     point_type xmin, xmax;
@@ -162,7 +147,7 @@ PML<TM>::set_direction(int const *od)
             }
     );
 
-
+    return *this;
 }
 
 
@@ -176,33 +161,33 @@ void PML<TM>::next_step(Real dt)
     field_t<scalar_type, mesh::EDGE> dX1{m};
     dX1.clear();
 
-//    dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
+    dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
     X10 += dX1;
     E += dX1;
 
-//    dX1 = (-2.0 * dt * s1 * X11 + curl_pdy(B) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
-//    X11 += dX1;
-//    E += dX1;
-//
-//    dX1 = (-2.0 * dt * s2 * X12 + curl_pdz(B) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
-//    X12 += dX1;
-//    E += dX1;
-//
-//
-//    field_t<scalar_type, mesh::FACE> dX2{m};
-//    dX2.clear();
-//
-//    dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E) * dt) / (a0 + s0 * dt);
-//    X20 += dX2;
-//    B -= dX2;
-//
-//    dX2 = (-2.0 * dt * s1 * X21 + curl_pdy(E) * dt) / (a1 + s1 * dt);
-//    X21 += dX2;
-//    B -= dX2;
-//
-//    dX2 = (-2.0 * dt * s2 * X22 + curl_pdz(E) * dt) / (a2 + s2 * dt);
-//    X22 += dX2;
-//    B -= dX2;
+    dX1 = (-2.0 * dt * s1 * X11 + curl_pdy(B) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
+    X11 += dX1;
+    E += dX1;
+
+    dX1 = (-2.0 * dt * s2 * X12 + curl_pdz(B) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
+    X12 += dX1;
+    E += dX1;
+
+
+    field_t<scalar_type, mesh::FACE> dX2{m};
+    dX2.clear();
+
+    dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E) * dt) / (a0 + s0 * dt);
+    X20 += dX2;
+    B -= dX2;
+
+    dX2 = (-2.0 * dt * s1 * X21 + curl_pdy(E) * dt) / (a1 + s1 * dt);
+    X21 += dX2;
+    B -= dX2;
+
+    dX2 = (-2.0 * dt * s2 * X22 + curl_pdz(E) * dt) / (a2 + s2 * dt);
+    X22 += dX2;
+    B -= dX2;
 
 }
 } //namespace simpla

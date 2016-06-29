@@ -27,7 +27,8 @@ int TransitionMap::direct_pull_back(Real *f, Real const *g, mesh::MeshEntityType
             });
 };
 
-int TransitionMap::direct_pull_back(void *f, void const *g, size_type ele_size_in_byte, MeshEntityType entity_type) const
+int TransitionMap::direct_pull_back(void *f, void const *g, size_type ele_size_in_byte,
+                                    MeshEntityType entity_type) const
 {
     first->range(m_overlap_region_M_, entity_type).foreach(
             [&](mesh::MeshEntityId const &s)

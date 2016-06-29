@@ -69,11 +69,11 @@ public:
 
     virtual void close() = 0;
 
-    virtual std::tuple<bool, std::string> open(std::string const &url, size_t flag = 0UL) = 0;
+    virtual std::tuple<bool, std::string> open(std::string const &url, int flag = 0UL) = 0;
 
-    virtual std::string write(std::string const &url, data_model::DataSet const &, size_t flag = 0UL) = 0;
+    virtual std::string write(std::string const &url, data_model::DataSet const &, int flag = 0UL) = 0;
 
-    virtual std::string read(std::string const &url, data_model::DataSet *ds, size_t flag = 0UL) = 0;
+    virtual std::string read(std::string const &url, data_model::DataSet *ds, int flag = 0UL) = 0;
 
 
 //    template<typename TV>

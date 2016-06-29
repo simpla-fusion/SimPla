@@ -45,7 +45,7 @@ public:
      *         else return ,return <false,data_model name>
      *         if <data_model name>=="" return <false,"">
      */
-    std::tuple<bool, std::string> open(std::string const &url, size_t flag = 0UL);
+    std::tuple<bool, std::string> open(std::string const &url, int flag = 0UL);
 
     void open_group(std::string const &path);
 
@@ -80,7 +80,7 @@ public:
      * @return
      */
 
-    virtual std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag = 0UL);
+    virtual std::string write(std::string const &url, data_model::DataSet const &ds, int flag = 0UL);
 
     void push_buffer(std::string const &url, data_model::DataSet const &ds);
 
@@ -93,7 +93,7 @@ public:
      * @param flag
      * @return
      */
-    virtual std::string read(std::string const &url, data_model::DataSet *ds, size_t flag = 0UL);
+    virtual std::string read(std::string const &url, data_model::DataSet *ds, int flag = 0UL);
 
 
     /**

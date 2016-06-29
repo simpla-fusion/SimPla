@@ -27,6 +27,7 @@ Object::~Object() { }
 
 void Object::swap(Object &other)
 {
+    std::swap(m_name_, other.m_name_);
     std::swap(m_click_, other.m_click_);
     std::swap(m_uuid_, other.m_uuid_);
 };

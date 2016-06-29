@@ -49,11 +49,12 @@ public:
 
     virtual ~EMFluid() { }
 
-    virtual void setup(ConfigParser const &options);
+
+    this_type &setup(ConfigParser const &options);
+
+    virtual void deploy();
 
     virtual void next_step(Real dt);
-
-//    virtual io::IOStream &check_point(io::IOStream &os) const;
 
     virtual void sync(mesh::TransitionMap const &, simulation::ProblemDomain const &other) { };
 
@@ -115,9 +116,8 @@ public:
 };
 
 template<typename TM>
-void EMFluid<TM>::setup(ConfigParser const &options)
+EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
 {
-    base_type::setup(options);
     if (options["Constraints"]["J"])
     {
         options["Constraints"]["J"]["Value"].as(&J_src_fun);
@@ -176,9 +176,15 @@ void EMFluid<TM>::setup(ConfigParser const &options)
         options["Constraints"]["J"]["Value"].as(&J_src_fun);
     }
 
+    return *this;
+}
+
+
+template<typename TM>
+void EMFluid<TM>::deploy()
+{
     declare_global(&E1, "E");
     declare_global(&B1, "B");
-
 }
 
 //template<typename TM>

@@ -40,7 +40,7 @@ std::string XDMFStream::path() const
 }
 
 
-std::tuple<bool, std::string> XDMFStream::open(std::string const &url, size_t flag)
+std::tuple<bool, std::string> XDMFStream::open(std::string const &url, int flag)
 {
 
     close();
@@ -157,7 +157,7 @@ void _str_replace(std::string *s, std::string const &place_holder, std::string c
 }
 
 
-std::string XDMFStream::write(std::string const &ds_name, data_model::DataSet const &ds, size_t flag)
+std::string XDMFStream::write(std::string const &ds_name, data_model::DataSet const &ds, int flag)
 {
     if (ds.empty())
     {
