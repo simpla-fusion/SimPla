@@ -58,11 +58,11 @@ public:
     Chart const *second;
 
 
-    virtual int map(point_type *) const = 0;
+    virtual int map(point_type *) const;
 
-    virtual point_type map(point_type const &) const = 0;
+    virtual point_type map(point_type const &) const;
 
-    virtual mesh::MeshEntityId direct_map(mesh::MeshEntityId) const = 0;
+    virtual mesh::MeshEntityId direct_map(mesh::MeshEntityId) const;
 
     virtual void push_forward(point_type const &x, Real const *v, Real *u) const
     {

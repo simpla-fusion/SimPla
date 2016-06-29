@@ -41,6 +41,16 @@ int TransitionMap::direct_pull_back(void *f, void const *g, size_type ele_size_i
             });
 }
 
+
+int TransitionMap::map(point_type *x) const { return 1; };
+
+point_type TransitionMap::map(point_type const &x) const { return x; }
+
+mesh::MeshEntityId TransitionMap::direct_map(mesh::MeshEntityId s) const
+{
+    return s;
+};
+
 MeshBlockId Atlas::add_block(std::shared_ptr<Chart> p_m)
 {
     m_.emplace(std::make_pair(p_m->id(), p_m));
@@ -55,7 +65,8 @@ std::shared_ptr<Chart> Atlas::get_block(mesh::MeshBlockId m_id) const
 
 void Atlas::add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int flag)
 {
-    UNIMPLEMENTED;
+    m_adjacency_list_.emplace(std::make_pair(first, std::make_shared<TransitionMap>(
+            get_block(first).get(), get_block(second).get(), flag)));
 }
 
 
