@@ -39,7 +39,7 @@ vTe = math.sqrt(k_B * Te * 2 / me)
 rhoe = vTe / omega_ce -- m
 
 NX = 50
-NY = 50
+NY = 1
 NZ = 1
 LX = 1.0 --m --100000*rhoi --0.6
 LY = 2.0 --2.0*math.pi/k0
@@ -47,7 +47,7 @@ LZ = 3.0 -- math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_steps = 1000
+number_of_steps = 1
 dt = 0.5 * (LX / NX) / c
 --current_time = 0;
 stop_time = dt * number_of_steps;
@@ -124,7 +124,7 @@ Particles = {
     }
 }
 
---PML = { Width = 10 }
+PML = { Width = 10 }
 
 PEC = {
     Domain = {

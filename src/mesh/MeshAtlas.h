@@ -120,11 +120,11 @@ public:
 
     void remove_block(MeshBlockId const &m_id);
 
-    std::shared_ptr<MeshBase> extent_block(mesh::MeshBlockId first, int const *offset_direction, size_type width);
-
-    std::shared_ptr<MeshBase> refine_block(mesh::MeshBlockId first, box_type const &);
-
-    std::shared_ptr<MeshBase> coarsen_block(mesh::MeshBlockId first, box_type const &);
+//    std::shared_ptr<MeshBase> extent_block(mesh::MeshBlockId first, int const *offset_direction, size_type width);
+//
+//    std::shared_ptr<MeshBase> refine_block(mesh::MeshBlockId first, box_type const &);
+//
+//    std::shared_ptr<MeshBase> coarsen_block(mesh::MeshBlockId first, box_type const &);
 
 
     std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> const &at_level(int l = 0) const { return m_; };
@@ -133,9 +133,9 @@ public:
 
     io::IOStream &load(io::IOStream &is);
 
-private:
     void add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int flag);
 
+private:
     typedef std::multimap<mesh::MeshBlockId, std::shared_ptr<TransitionMap>> adjacency_list_t;
 
     adjacency_list_t m_adjacency_list_;

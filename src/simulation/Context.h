@@ -95,7 +95,9 @@ public:
     template<typename TProb, typename ...Args>
     std::shared_ptr<TProb> add_problem_domain(mesh::MeshBlockId id, Args &&...args)
     {
-        auto res = std::make_shared<TProb>(get_mesh_block(id).get(), std::forward<Args>(args)...);
+        auto res = std::make_shared<TProb>(
+                dynamic_cast<typename TProb::mesh_type const * > (get_mesh_block(id).get()),
+                std::forward<Args>(args)...);
         add_domain(res);
         return res;
     };
@@ -103,31 +105,44 @@ public:
     template<typename TProb>
     void extend_domain(mesh::MeshBlockId mesh_center, size_type PML_width, std::string prefix = "")
     {
+
+
         auto &atlas = get_mesh_atlas();
 
+        auto first = atlas.get_block(mesh_center);
+        int m_flag = first->status();
+
         int od[3];
+
         int count = 0;
+
         for (int tag = 1, tag_e = 1 << 6; tag < tag_e; ++tag)
         {
+            static constexpr int flag[4] = {0, 1, -1, 2};
+            od[0] = flag[tag & 0x3];
+            od[1] = flag[(tag >> 2) & 0x3];
+            od[2] = flag[(tag >> 4) & 0x3];
 
-            od[0] = ((tag & 0x3) << 1) - 3;
-            od[1] = (((tag >> 2) & 0x3) << 1) - 3;
-            od[2] = (((tag >> 4) & 0x3) << 1) - 3;
 
-            if (od[0] > 1 || od[1] > 1 || od[2] > 1)
+            auto second = first->extend(od, PML_width);
+
+            if (second != nullptr)
             {
-                continue;
+
+                auto second_id = atlas.add_block(second);
+
+//                atlas.add_adjacency(mesh_center, second_id, mesh::SP_MB_SYNC);
+//
+//                atlas.add_adjacency(second_id, mesh_center, mesh::SP_MB_SYNC);
+
+                second->name(prefix + type_cast<std::string>(count)).deploy();
+
+                add_domain(std::make_shared<TProb>(static_cast<typename TProb::mesh_type const *>(second.get()), od))->deploy();
+
+                ++count;
             }
-
-
-            auto pml_m = atlas.extent_block(mesh_center, od, PML_width);
-
-            pml_m->name(prefix + type_cast<std::string>(count)).deploy();
-
-            add_domain(std::make_shared<TProb>(pml_m.get(), od))->deploy();
-
-            ++count;
         }
+        CHECK(count);
     };
 
     std::shared_ptr<ProblemDomain> get_domain(mesh::MeshBlockId id) const;

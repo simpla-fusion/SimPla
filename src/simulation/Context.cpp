@@ -99,16 +99,9 @@ std::shared_ptr<ProblemDomain>
 Context::add_domain(std::shared_ptr<ProblemDomain> pb)
 {
     auto id = pb->m_mesh_->id();
-
     m_pimpl_->m_domains_.emplace(std::make_pair(pb->m_mesh_->id(), pb));
-//
-//    if (m_self_->m_atlas_.find(id) == m_self_->m_atlas_.end())
-//    {
-//        add_mesh(const_cast<mesh::Chart *>(pb->m)->shared_from_this(), at_level);
-//    }
     return pb;
 }
-
 
 io::IOStream &
 Context::save_mesh(io::IOStream &os) const

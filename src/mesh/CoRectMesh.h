@@ -174,33 +174,64 @@ public:
 
     vector_type const &dx() const { return m_dx_; }
 
+    virtual std::shared_ptr<MeshBase> clone() const
+    {
+        return std::make_shared<this_type>(*this);
+    }
 
     virtual std::shared_ptr<MeshBase> extend(int const *od, size_type w = 2) const
     {
-        auto res = std::dynamic_pointer_cast<this_type>(clone());
+
+        index_tuple dims{0, 0, 0};
+        point_type lower{0, 0, 0};
+        point_type upper{0, 0, 0};
+
+        bool valid = true;
+
+        int flag = status();
+
         for (int i = 0; i < 3; ++i)
         {
-            switch (od[i])
+            if (m_dims_[i] == 1 && od[i] != 0)
             {
-                case 1:
-                    res->m_dims_[i] = w;
-                    res->m_coords_lower_[i] = this->m_coords_upper_[i];
-                    res->m_coords_upper_[i] = res->m_coords_lower_[i] + m_dx_[i] * w;
-                    break;
-                case -1:
-                    res->m_coords_upper_[i] = this->m_coords_lower_[i];
-                    res->m_coords_lower_[i] = res->m_coords_upper_[i] - m_dx_[i] * w;
-                    break;
-                case 0:
-                    break;
-                default:
-                    break;
+                valid = false;
+            }
+            else
+            {
+                switch (od[i])
+                {
+                    case 1:
+                        dims[i] = w;
+                        lower[i] = m_coords_upper_[i];
+                        upper[i] = m_coords_upper_[i] + m_dx_[i] * w;
+                        break;
+                    case -1:
+                        dims[i] = w;
+                        lower[i] = m_coords_lower_[i] - m_dx_[i] * w;
+                        upper[i] = m_coords_lower_[i];
+                        break;
+                    case 0:
+                        dims[i] = m_dims_[i];
+                        lower[i] = m_coords_lower_[i];
+                        upper[i] = m_coords_upper_[i];
+                        break;
+                    default:
+                        valid = false;
+                        break;
+                }
             }
         }
-
-        res->deploy();
-
-        return res;
+        if (valid)
+        {
+            auto res = std::dynamic_pointer_cast<this_type>(this->clone());
+            res->dimensions(dims);
+            res->box(std::make_tuple(lower, upper));
+            res->deploy();
+            return std::dynamic_pointer_cast<MeshBase>(res);
+        } else
+        {
+            return nullptr;
+        }
     };
 
 private:
@@ -523,6 +554,22 @@ public:
         m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 0 : m_inv_dx_[2];
 
 
+        int flag = 0;
+
+        for (int i = 0; i < 3; ++i)
+        {
+            if (m_dims_[0] == 1)
+            {
+                flag = flag | (0x3 << (i * 2));
+            }
+
+            if (m_ghost_width_[i] == 0)
+            {
+                flag = flag | (0x1 << (i * 2));
+            }
+
+        }
+        status(flag);
     }
 
 

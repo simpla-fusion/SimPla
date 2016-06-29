@@ -18,11 +18,12 @@ namespace simpla { namespace io { struct IOStream; }}
 
 namespace simpla { namespace mesh
 {
+enum { SP_MESH_AX_NORMAL = 0, SP_MESH_AX_CYCLE = 0x1, SP_MESH_AX_NULL = 0x3 };
 
 class MeshBase : public base::Object, public std::enable_shared_from_this<MeshBase>
 {
     int m_level_;
-    unsigned long m_status_flag_ = 0;
+    int m_status_flag_ = 0;
 public:
 
     SP_OBJECT_HEAD(MeshBase, base::Object);
@@ -45,9 +46,14 @@ public:
     };
 
 
-    unsigned long const &status() const { return m_status_flag_; }
+    /** status:   0000000zzyyxx
+     *  xx : 00 NORMAL
+     *       01 CYCLE
+     *       11 NULL
+     */
+    int const &status() const { return m_status_flag_; }
 
-    void status(unsigned long l) { m_status_flag_ = l; }
+    void status(int l) { m_status_flag_ = l; }
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
 
@@ -134,7 +140,7 @@ public:
 
     virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t) const = 0;
 
-    virtual std::shared_ptr<MeshBase> clone() const = 0;
+    virtual std::shared_ptr<MeshBase> clone() const { return std::shared_ptr<MeshBase>{nullptr}; };
 
     virtual std::shared_ptr<MeshBase> extend(int const *od, size_type w = 2) const
     {

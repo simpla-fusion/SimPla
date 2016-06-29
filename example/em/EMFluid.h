@@ -44,8 +44,8 @@ public:
     typedef typename mesh_type::scalar_type scalar_type;
     mesh_type const *m;
 
-    template<typename T>
-    EMFluid(const T *mp) : base_type(mp), m(dynamic_cast<mesh_type const *>(mp)) { }
+
+    EMFluid(const mesh_type *mp) : base_type(mp), m(mp) { }
 
     virtual ~EMFluid() { }
 

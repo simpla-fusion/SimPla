@@ -24,11 +24,12 @@ template<typename TM>
 class PML : public simulation::ProblemDomain
 {
     typedef simulation::ProblemDomain base_type;
-    typedef TM mesh_type;
 public:
+    typedef TM mesh_type;
+
     template<typename ValueType, size_t IFORM> using field_t =  Field <ValueType, TM, index_const<IFORM>>;;
 
-    template<typename T> PML(const T *mp, int const *od = nullptr);
+    PML(const mesh_type *mp, int const *od = nullptr);
 
     virtual ~PML();
 
@@ -80,9 +81,10 @@ template<typename TM>
 PML<TM>::~PML() { }
 
 template<typename TM>
-template<typename TOtherM>
-PML<TM>::PML(const TOtherM *mp, int const *p_od) : base_type(mp), m(dynamic_cast<mesh_type const *>(mp))
+PML<TM>::PML(const mesh_type *mp, int const *p_od) : base_type(mp), m(mp)
 {
+    assert(mp != nullptr);
+
     properties()["DISABLE_WRITE"] = false;
 
     int od[3] = {0, 0, 0};
