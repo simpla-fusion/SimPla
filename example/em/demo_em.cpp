@@ -107,6 +107,9 @@ int main(int argc, char **argv)
     ctx.print(std::cout);
 
     int num_of_steps = options["number_of_steps"].as<int>(1);
+
+    int step_of_check_points = options["step_of_check_point"].as<int>(1);
+
     Real stop_time = options["stop_time"].as<Real>(1);
     Real dt = options["dt"].as<Real>();
 
@@ -124,6 +127,8 @@ int main(int argc, char **argv)
     io::cd("/checkpoint/");
     ctx.check_point(io::global());
 
+    size_type count = 0;
+
     while (ctx.time() < stop_time)
     {
 
@@ -131,10 +136,13 @@ int main(int argc, char **argv)
 
         current_time = ctx.time();
 
-        ctx.check_point(io::global());
+        if (count % step_of_check_points == 0)
+        {
+            ctx.check_point(io::global());
+        }
+        INFORM << "\t >>>  [ Time = " << current_time << " Count = " << count << "] <<< " << std::endl;
 
-        INFORM << "\t >>> Time [" << current_time << "] <<< " << std::endl;
-
+        ++count;
     }
 
 

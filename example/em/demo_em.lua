@@ -49,7 +49,7 @@ number_of_steps = 100
 dt = 0.5 * (LX / NX) / c
 --current_time = 0;
 stop_time = dt * number_of_steps;
-number_of_check_point = 10
+step_of_check_point = 10
 Mesh =
 {
     Dimensions = { NX, NY, NZ },
@@ -122,7 +122,7 @@ Particles = {
     }
 }
 
---PML = { Width = 10 }
+PML = { Width = 10 }
 
 PEC = {
     Domain = {

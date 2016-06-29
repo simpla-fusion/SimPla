@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-f1 = h5py.File("untitled0007.h5")
-step = 5
+f1 = h5py.File("untitled0009.h5")
+step =  1
 
 plt.style.use('ggplot')
 gs = gridspec.GridSpec(3, 3,
@@ -12,7 +12,7 @@ gs = gridspec.GridSpec(3, 3,
                        height_ratios=[1, 5, 1]
                        )
 
-m_levels=np.arange(0, 100, 1)
+m_levels=np.arange(-10, 10, 0.5)
 
 plt.subplot(gs[0, 0]).contour(f1["/checkpoint/E/PML_6"][:, :, 0, 2, step], levels=m_levels)
 plt.subplot(gs[0, 1]).contour(f1["/checkpoint/E/PML_0"][:, :, 0, 2, step], levels=m_levels)
