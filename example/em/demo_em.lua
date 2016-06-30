@@ -122,7 +122,7 @@ Particles = {
     }
 }
 
-PML = { Width = 10 }
+--PML = { Width = 10 }
 
 PEC = {
     Domain = {
