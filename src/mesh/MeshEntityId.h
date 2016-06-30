@@ -1,121 +1,133 @@
-//
-// Created by salmon on 16-6-30.
-//
+/**
+ * @file MeshEntityIdCoder_.h
+ *
+ * @date 2015-3-19
+ * @author salmon
+ */
 
-#ifndef SIMPLA_MESHENTITYID_H
-#define SIMPLA_MESHENTITYID_H
+#ifndef CORE_MESH_MESH_ENTITY_ID_CODER_H_
+#define CORE_MESH_MESH_ENTITY_ID_CODER_H_
 
-#include <cstdint>
-#include "../sp_def.h"
+#include <stddef.h>
+#include <limits>
+#include <tuple>
+
 #include "../gtl/nTuple.h"
-#include "../parallel/Parallel.h"
+#include "../sp_def.h"
+#include "../gtl/IteratorBlock.h"
+#include "../gtl/iterator/Range.h"
 #include "../parallel/ParallelTbb.h"
-
 #include "MeshCommon.h"
+#include "MeshEntity.h"
+
 
 namespace simpla { namespace mesh
 {
 
+
+//  \verbatim
+//
+//   |----------------|----------------|---------------|--------------|------------|
+//   ^                ^                ^               ^              ^            ^
+//   |                |                |               |              |            |
+//global          local_outer      local_inner    local_inner    local_outer     global
+// _begin          _begin          _begin           _end           _end          _end
+//
+//  \endverbatim
 /**
+ *
+ *  signed long is 63bit, unsigned long is 64 bit, add a sign bit
+ *  \note
+ *  \verbatim
+ * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on bitwise operation
+ * 	    H          m  I           m    J           m K
+ *  |--------|--------------|--------------|-------------|
+ *  |11111111|00000000000000|00000000000000|0000000000000| <= _MH
+ *  |00000000|11111111111111|00000000000000|0000000000000| <= _MI
+ *  |00000000|00000000000000|11111111111111|0000000000000| <= _MJ
+ *  |00000000|00000000000000|00000000000000|1111111111111| <= _MK
+ *
+ *                      I/J/K
+ *  | INDEX_DIGITS------------------------>|
+ *  |  Root------------------->| Leaf ---->|
+ *  |11111111111111111111111111|00000000000| <=_MRI
+ *  |00000000000000000000000001|00000000000| <=_DI
+ *  |00000000000000000000000000|11111111111| <=_MTI
+ *  | Page NO.->| Tree Root  ->|
+ *  |00000000000|11111111111111|11111111111| <=_MASK
+ *  \endverbatim
+ *
  *  @comment similar to MOAB::EntityHandle but using different code ruler and more efficienct for FD and SAMR  -- salmon. 2016.5.24
  *  @note different get_mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
  */
 
 
-/**
-    * \verbatim
-    *                ^y
-    *               /
-    *        z     /
-    *        ^
-    *        |   6---------------7
-    *        |  /|              /|
-    *          / |             / |
-    *         /  |            /  |
-    *        4---|-----------5   |
-    * w =    |   |           |   |
-    *        |   2-----------|---3
-    *        |  /            |  /
-    *        | /             | /
-    *        |/              |/
-    *        0---------------1   ---> x
-    *
-    *   \endverbatim
-    */
-
-
-
-constexpr inline bool operator==(MeshEntityId const &first, MeshEntityId const &second)
+typedef union
 {
-    return first.v == second.v;
-}
+    struct { int16_t w, z, y, x; };
+    int64_t v;
+} MeshEntityId;
 
-constexpr inline MeshEntityId operator+(MeshEntityId const &first, MeshEntityId const &second)
-{
-    return MeshEntityId{.v=first.v + second.v};
-}
-
-constexpr inline MeshEntityId operator|(MeshEntityId const &first, MeshEntityId const &second)
-{
-    return MeshEntityId{.v=first.v | second.v};
-}
+constexpr inline bool operator==(MeshEntityId const &first, MeshEntityId const &second) { return first.v == second.v; }
 
 constexpr inline MeshEntityId operator-(MeshEntityId const &first, MeshEntityId const &second)
 {
     return MeshEntityId{
-            static_cast<int16_t>(first.x - second.x),
-            static_cast<int16_t>(first.y - second.y),
-            static_cast<int16_t>(first.z - second.z),
-            first.w};
+            first.w,
+            static_cast<int16_t >(first.z - second.z),
+            static_cast<int16_t >(first.y - second.y),
+            static_cast<int16_t >(first.x - second.x)
+    };
+}
+
+constexpr inline MeshEntityId operator+(MeshEntityId const &first, MeshEntityId const &second)
+{
+    return MeshEntityId{
+            first.w,
+            static_cast<int16_t >(first.z + second.z),
+            static_cast<int16_t >(first.y + second.y),
+            static_cast<int16_t >(first.x + second.x)
+    };
 }
 
 
-template<int I = 1>
+constexpr inline MeshEntityId operator|(MeshEntityId const &first, MeshEntityId const &second)
+{
+    return MeshEntityId{.v=  first.v | second.v};
+}
+
+constexpr inline bool operator<(MeshEntityId const &first, MeshEntityId const &second)
+{
+    return first.v < second.v;
+}
+
+
+template<int LEVEL = 4>
 struct MeshEntityIdCoder_
 {
+    /// @name at_level independent
+    /// @{
 
     static constexpr int MAX_NUM_OF_NEIGHBOURS = 12;
     static constexpr int ndims = 3;
+    static constexpr int MESH_RESOLUTION = 1;
 
     typedef MeshEntityIdCoder_ this_type;
 
-    typedef MeshEntityId id_type;
+
+    /// @name at_level dependent
+    /// @{
+
+    static constexpr Real _R = 0.2;
 
 
-    static constexpr Real _R = 0.5;
+    static constexpr MeshEntityId _DI{0, 0, 0, 1};
+    static constexpr MeshEntityId _DJ{0, 0, 1, 0};
+    static constexpr MeshEntityId _DK{0, 1, 0, 0};
+    static constexpr MeshEntityId _DA{0, 1, 1, 1};
 
 
-    static constexpr id_type _DI{1, 0, 0, 0};
-    static constexpr id_type _DJ{0, 1, 0, 0};
-    static constexpr id_type _DK{0, 0, 1, 0};
-    static constexpr id_type _DA{1, 1, 1, 0};
 
-
-    static constexpr MeshEntityId delta_index(MeshEntityId s)
-    {
-        return MeshEntityId{.v=s.v & (~_DA.v)};
-    };
-
-
-    static constexpr MeshEntityId rotate(MeshEntityId s)
-    {
-        return MeshEntityId{
-                static_cast<int16_t >((s.x & ~0x1) | (s.y & 0x1)),
-                static_cast<int16_t >((s.y & ~0x1) | (s.z & 0x1)),
-                static_cast<int16_t >((s.z & ~0x1) | (s.x & 0x1)),
-                s.w
-        };
-    };
-
-    static constexpr MeshEntityId inverse_rotate(MeshEntityId s)
-    {
-        return MeshEntityId{
-                static_cast<int16_t >((s.x & ~0x1) | (s.z & 0x1)),
-                static_cast<int16_t >((s.y & ~0x1) | (s.x & 0x1)),
-                static_cast<int16_t >((s.z & ~0x1) | (s.y & 0x1)),
-                s.w
-        };
-    };
     /// @}
 
     static constexpr int m_sub_index_to_id_[4][3] = { //
@@ -139,16 +151,17 @@ struct MeshEntityIdCoder_
             0, // 111
     };
 
-    static constexpr int16_t m_id_to_shift_[] = {
+    static constexpr MeshEntityId m_id_to_shift_[] = {
 
-            0,                    // 000
-            1,                    // 001
-            2,                    // 010
-            3,                    // 011
-            4,                    // 100
-            5,                    // 101
-            6,                    // 110
-            7,                    // 111
+            {0, 0, 0, 0},         // 000
+            {0, 0, 0, 1},         // 001
+            {0, 0, 1, 0},         // 010
+            {0, 0, 1, 1},         // 011
+            {0, 1, 0, 0},         // 100
+            {0, 1, 0, 1},         // 101
+            {0, 1, 1, 0},         // 110
+            {0, 1, 1, 1},         // 111
+
 
     };
 
@@ -161,7 +174,7 @@ struct MeshEntityIdCoder_
             {_R, _R, 0},          // 100
             {_R, 0,  _R},          // 101
             {0,  _R, _R},          // 110
-            {_R, _R, _R},         // 111
+            {0,  _R, _R},          // 111
 
     };
     static constexpr int m_iform_to_num_of_ele_in_cell_[] = {
@@ -191,9 +204,14 @@ struct MeshEntityIdCoder_
             1, // 100
             2, // 101
             2, // 110
-            3  // 111
+            3 // 111
     };
 
+    static constexpr MeshEntityId minimal_vertex(MeshEntityId s)
+    {
+        return (s) - (_DA);
+
+    }
 
     template<int IFORM>
     static constexpr int sub_index_to_id(int n = 0)
@@ -201,80 +219,135 @@ struct MeshEntityIdCoder_
         return m_sub_index_to_id_[IFORM][n];
     }
 
-    static constexpr int iform(id_type s)
+    static constexpr int iform(MeshEntityId s)
     {
         return m_id_to_iform_[node_id(s)];
     }
 
+    template<typename TI>
+    static constexpr MeshEntityId pack(TI i0, TI i1, TI i2)
+    {
+        return MeshEntityId{0, static_cast<int16_t>(i2), static_cast<int16_t>(i1), static_cast<int16_t>(i0)};
+    }
 
     template<typename T>
-    static constexpr id_type pack(T const &idx, int n_id = 0)
+    static constexpr MeshEntityId pack(T const &idx)
     {
-        return id_type{static_cast<int16_t>(idx[0] << 1),
-
-                       static_cast<int16_t>(idx[1] << 1),
-
-                       static_cast<int16_t>(idx[2] << 1),
-
-                       n_id};
-
-        ;
+        return pack(idx[0], idx[1], idx[2]);
     }
 
-    static constexpr id_type pack_index(index_type i, index_type j, index_type k, index_type n_id = 0)
+
+    template<typename T>
+    static constexpr MeshEntityId pack_index(T const &idx, int n_id = 0)
     {
-        return id_type{static_cast<int16_t>(i << 1),
-                       static_cast<int16_t>(j << 1),
-                       static_cast<int16_t>(k << 1),
-                       static_cast<int16_t>(n_id),
+
+        return pack((idx[0]) << 1,
+                    (idx[1]) << 1,
+                    (idx[2]) << 1) | m_id_to_shift_[n_id];
+    }
+
+    static constexpr MeshEntityId pack_index(index_type i, index_type j, index_type k, index_type n_id = 0)
+    {
+
+        return pack((i) << 1, (j) << 1, (k) << 1) | m_id_to_shift_[n_id];
+    }
+
+
+    static constexpr index_tuple unpack_index(MeshEntityId s)
+    {
+        return index_tuple{
+                static_cast<index_type>(s.x) >> 1,
+                static_cast<index_type>(s.y) >> 1,
+                static_cast<index_type>(s.z) >> 1
         };
     }
 
-    static constexpr index_tuple unpack_index(id_type const &s)
-    {
-        return index_tuple{static_cast<index_type>(s.x),
-                           static_cast<index_type>(s.y),
-                           static_cast<index_type>(s.z)};
-    }
+
+//    template<typename T>
+//    static constexpr T type_cast(MeshEntityId s)
+//    {
+//        return static_cast<T>(unpack(s));
+//    }
 
 
-    static point_type point(id_type const &s)
+    static point_type point(MeshEntityId const &s)
     {
-        return point_type{static_cast<Real>(s.x) * _R,
-                          static_cast<Real>(s.y) * _R,
-                          static_cast<Real>(s.z) * _R,
+        return point_type{
+                static_cast<Real>(s.x),
+                static_cast<Real>(s.y),
+                static_cast<Real>(s.z)
         };
     }
 
-    static std::tuple<MeshEntityId, point_type>
-    point_global_to_local(point_type const &g, int nId = 0)
+
+    static constexpr int num_of_ele_in_cell(MeshEntityId s)
     {
+        return m_id_to_num_of_ele_in_cell_[node_id(s)];
+    }
+
+    template<typename TX>
+    static std::tuple<MeshEntityId, point_type> point_global_to_local(
+            TX const &x, int n_id = 0)
+    {
+
+        MeshEntityId s = pack(x - m_id_to_coordinates_shift_[n_id]) | m_id_to_shift_[n_id];
+
         point_type r;
-        r = g - m_id_to_coordinates_shift_[nId];
-        MeshEntityId s{
-                static_cast<int16_t >(r[0]),
-                static_cast<int16_t >(r[1]),
-                static_cast<int16_t >(r[2]),
-                static_cast<int16_t >(nId)
-        };
 
-        r[0] -= static_cast<Real>(s.x);
-        r[1] -= static_cast<Real>(s.y);
-        r[2] -= static_cast<Real>(s.z);
+        r = (x - point(s)) / (_R * 2.0);
 
         return std::make_tuple(s, r);
+
     }
 
-    static constexpr int num_of_ele_in_cell(id_type s)
+    static point_type point_local_to_global(MeshEntityId s, point_type const &x) { return point(s) + x * _R * 2; }
+
+
+    static point_type point_local_to_global(std::tuple<MeshEntityId, point_type> const &t)
     {
-        return m_id_to_num_of_ele_in_cell_[s.w & 0x7];
+        return point_local_to_global(std::get<0>(t), std::get<1>(t));
     }
 
 //! @name id auxiliary functions
 //! @{
-    static constexpr id_type dual(id_type s)
+
+
+//    static constexpr MeshEntityId DI(int n, MeshEntityId s)
+//    {
+//        return (s >> (n * ID_DIGITS)) & _D;
+//    }
+
+
+    static constexpr MeshEntityId dual(MeshEntityId s)
     {
-        return id_type{s.x, s.y, s.z, static_cast<int16_t >(((~s.w) & 0x7) | (s.w & (~0x7)))};
+        return MeshEntityId{.v=(s.v & (~_DA.v)) | ((~(s.v & _DA.v)) & _DA.v)};
+
+    }
+
+    static constexpr MeshEntityId delta_index(MeshEntityId s)
+    {
+        return MeshEntityId{.v=static_cast<int64_t >(s.v & _DA.v)};
+    }
+
+    static constexpr MeshEntityId rotate(MeshEntityId const &s)
+    {
+        return MeshEntityId{
+                static_cast<int16_t >(s.w),
+                static_cast<int16_t >((s.z & ~0x1) | (s.y & 0x1)),
+                static_cast<int16_t >((s.y & ~0x1) | (s.x & 0x1)),
+                static_cast<int16_t >((s.x & ~0x1) | (s.z & 0x1))
+
+        };
+    }
+
+    static constexpr MeshEntityId inverse_rotate(MeshEntityId const &s)
+    {
+        return MeshEntityId{
+                static_cast<int16_t >(s.w),
+                static_cast<int16_t >((s.z & ~0x1) | (s.x & 0x1)),
+                static_cast<int16_t >((s.y & ~0x1) | (s.z & 0x1)),
+                static_cast<int16_t >((s.x & ~0x1) | (s.y & 0x1))
+        };
     }
 
 
@@ -313,9 +386,9 @@ struct MeshEntityIdCoder_
         TAG_VOLUME = 7
     };
 
-    static constexpr int16_t node_id(id_type const &s)
+    static constexpr int node_id(MeshEntityId const &s)
     {
-        return static_cast<int16_t>(s.w & 0x7);
+        return (s.x & 0x1) | ((s.y & 0x1) << 1) | ((s.z & 0x1) << 2);
     }
 
     static constexpr int m_id_to_index_[8] = { //
@@ -330,12 +403,31 @@ struct MeshEntityIdCoder_
             0, // 111
     };
 
-    static constexpr int sub_index(id_type const &s)
+    static constexpr int sub_index(MeshEntityId const &s)
     {
         return m_id_to_index_[node_id(s)];
     }
 
-
+    /**
+     * \verbatim
+     *                ^y
+     *               /
+     *        z     /
+     *        ^
+     *        |   6---------------7
+     *        |  /|              /|
+     *          / |             / |
+     *         /  |            /  |
+     *        4---|-----------5   |
+     *        |   |     x0    |   |
+     *        |   2-----------|---3
+     *        |  /            |  /
+     *        | /             | /
+     *        |/              |/
+     *        0---------------1   ---> x
+     *
+     *   \endverbatim
+     */
     static constexpr int MAX_NUM_OF_ADJACENT_CELL = 12;
 
 
@@ -391,61 +483,61 @@ struct MeshEntityIdCoder_
 
             };
 
-    static constexpr id_type m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
+    static constexpr MeshEntityId m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
             {
                     //To VERTEX
                     {
 
                             /* 000*/
                             {//
-                                    {1, 1, 1, 0}
+                                    _DA
                             },
                             /* 001*/
                             {       //
-                                    {1, 0, 0, 0},
-                                    {0, 0, 0, 0}
+                                    _DA - _DI,
+                                    _DA + _DI
                             },
                             /* 010*/
                             {       //
-                                    {0, 1, 0, 0},
-                                    {0, 0, 0, 0}
+                                    _DA - _DJ,
+                                    _DA + _DJ
                             },
                             /* 011*/
                             {//
-                                    {0, 0, 0, 0},//_DA - _DI - _DJ, /* 000*/
-                                    {0, 0, 1, 0},//_DA + _DI - _DJ, /* 001*/
-                                    {0, 1, 0, 0},//_DA - _DI + _DJ, /* 010*/
-                                    {0, 1, 1, 0} //_DA + _DI + _DJ /* 011 */
+                                    _DA - _DI - _DJ, /* 000*/
+                                    _DA + _DI - _DJ, /* 001*/
+                                    _DA - _DI + _DJ, /* 010*/
+                                    _DA + _DI + _DJ /* 011 */
                             },
                             /* 100*/
                             {//
-                                    {0, 0, 1, 0},
-                                    {0, 0, 0, 0}
+                                    _DA - _DK,
+                                    _DA + _DK
                             },
                             /* 101*/
                             {       //
-                                    {0, 0, 0, 0},//_DA - _DK - _DI, /*000*/
-                                    {0, 0, 1, 0},//_DA - _DK + _DI, /*001*/
-                                    {1, 0, 0, 0},//_DA + _DK - _DI, /*100*/
-                                    {1, 0, 1, 0} //_DA + _DK + _DI /*101*/
+                                    _DA - _DK - _DI, /*000*/
+                                    _DA - _DK + _DI, /*001*/
+                                    _DA + _DK - _DI, /*100*/
+                                    _DA + _DK + _DI /*101*/
                             },
                             /* 110*/
                             {//
-                                    {0, 0, 0, 0},//_DA - _DJ - _DK, /*000*/
-                                    {0, 1, 0, 0},//_DA + _DJ - _DK, /*010*/
-                                    {1, 0, 0, 0},//_DA - _DJ + _DK, /*100*/
-                                    {1, 1, 0, 0} //_DA + _DJ + _DK /*110*/
+                                    _DA - _DJ - _DK, /*000*/
+                                    _DA + _DJ - _DK, /*010*/
+                                    _DA - _DJ + _DK, /*100*/
+                                    _DA + _DJ + _DK /*110*/
                             },
                             /* 111*/
                             {       //
-                                    {0, 0, 0, 0},//_DA - _DK - _DJ - _DI, /*000*/
-                                    {0, 0, 1, 0},//_DA - _DK - _DJ + _DI, /*001*/
-                                    {0, 1, 0, 0},//_DA - _DK + _DJ - _DI, /*010*/
-                                    {0, 1, 1, 0},//_DA - _DK + _DJ + _DI, /*011*/
-                                    {1, 0, 0, 0},//_DA + _DK - _DJ - _DI, /*100*/
-                                    {1, 0, 1, 0},//_DA + _DK - _DJ + _DI, /*101*/
-                                    {1, 1, 0, 0},//_DA + _DK + _DJ - _DI, /*110*/
-                                    {1, 1, 1, 0} //_DA + _DK + _DJ + _DI  /*111*/
+                                    _DA - _DK - _DJ - _DI, /*000*/
+                                    _DA - _DK - _DJ + _DI, /*001*/
+                                    _DA - _DK + _DJ - _DI, /*010*/
+                                    _DA - _DK + _DJ + _DI, /*011*/
+                                    _DA + _DK - _DJ - _DI, /*100*/
+                                    _DA + _DK - _DJ + _DI, /*101*/
+                                    _DA + _DK + _DJ - _DI, /*110*/
+                                    _DA + _DK + _DJ + _DI  /*111*/
 
                             }
 
@@ -455,198 +547,198 @@ struct MeshEntityIdCoder_
                     {
                             /* 000*/
                             {       //
-                                    {0, 0, 0, 1},   //_DA + _DI,
-                                    {0, 0, -1, 1},  //_DA - _DI,
-                                    {0, 1, 0, 2},   //_DA + _DJ,
-                                    {0, -1, 0, 2},   //_DA - _DJ,
-                                    {1, 0, 0, 4},   //_DA + _DK,
-                                    {-1, 0, 0, 4},   //_DA - _DK
+                                    _DA + _DI,
+                                    _DA - _DI,
+                                    _DA + _DJ,
+                                    _DA - _DJ,
+                                    _DA + _DK,
+                                    _DA - _DK
                             },
                             /* 001*/
                             {
-                                    {0, 0, 0, 1}    //_DA
+                                    _DA
                             },
                             /* 010*/
                             {
-                                    {0, 0, 0, 2}   // _DA
+                                    _DA
                             },
                             /* 011*/
                             {        //
-                                    {0, 0, 0, 1},//_DA - _DJ,
-                                    {0, 0, 1, 2},//_DA + _DI,
-                                    {0, 1, 0, 1},//_DA + _DJ,
-                                    {0, 0, 0, 2},//_DA - _DI
+                                    _DA - _DJ,
+                                    _DA + _DI,
+                                    _DA + _DJ,
+                                    _DA - _DI
                             },
                             /* 100*/
                             {       //
-                                    {0, 0, 0, 4}
+                                    _DA
                             },
                             /* 101*/
                             {         //
-                                    {0, 0, 0, 1},//_DA - _DI,
-                                    {0, 0, 1, 2},//_DA + _DK,
-                                    {0, 1, 0, 1},//_DA + _DI,
-                                    {0, 0, 0, 2},//_DA - _DK
+                                    _DA - _DI,
+                                    _DA + _DK,
+                                    _DA + _DI,
+                                    _DA - _DK
                             },
-//                            /* 110*/
-//                            {       //
-//                                    _DA - _DK,
-//                                    _DA + _DJ,
-//                                    _DA + _DK,
-//                                    _DA - _DJ
-//                            },
-//                            /* 111*/
-//                            {       //
-//                                    _DA - _DK - _DJ,  //-> 001
-//                                    _DA - _DK + _DI,  //   012
-//                                    _DA - _DK + _DJ,  //   021
-//                                    _DA - _DK - _DI,  //   010
-//
-//                                    _DA - _DI - _DJ,  //
-//                                    _DA - _DI + _DJ,  //
-//                                    _DA + _DI - _DJ,  //
-//                                    _DA + _DI + _DJ,  //
-//
-//                                    _DA + _DK - _DJ,  //
-//                                    _DA + _DK + _DI,  //
-//                                    _DA + _DK + _DJ,  //
-//                                    _DA + _DK - _DI  //
-//                            }
-                    },
+                            /* 110*/
+                            {       //
+                                    _DA - _DK,
+                                    _DA + _DJ,
+                                    _DA + _DK,
+                                    _DA - _DJ
+                            },
+                            /* 111*/
+                            {       //
+                                    _DA - _DK - _DJ,  //-> 001
+                                    _DA - _DK + _DI,  //   012
+                                    _DA - _DK + _DJ,  //   021
+                                    _DA - _DK - _DI,  //   010
 
-//                    //To FACE
-//                    {
-//                            /* 000*/
-//                            {       //
-//                                    _DA - _DK - _DJ,  //
-//                                    _DA - _DK + _DI,  //
-//                                    _DA - _DK + _DJ,  //
-//                                    _DA - _DK - _DI,  //
-//
-//                                    _DA - _DI - _DJ,  //
-//                                    _DA - _DI + _DJ,  //
-//                                    _DA + _DI - _DJ,  //
-//                                    _DA + _DI + _DJ,  //
-//
-//                                    _DA + _DK - _DJ,  //
-//                                    _DA + _DK + _DI,  //
-//                                    _DA + _DK + _DJ,  //
-//                                    _DA + _DK - _DI  //
-//                            },
-//                            /* 001*/
-//                            {       //
-//                                    _DA - _DJ,          //
-//                                    _DA + _DK,   //
-//                                    _DA + _DJ,   //
-//                                    _DA - _DK    //
-//                            },
-//                            /* 010*/
-//                            {       //
-//                                    _DA - _DK,          //
-//                                    _DA + _DI,   //
-//                                    _DA + _DK,   //
-//                                    _DA - _DI    //
-//                            },
-//                            /* 011*/
-//                            {       _DA},
-//                            /* 100*/
-//                            {//
-//                                    _DA - _DI,         //
-//                                    _DA + _DJ,  //
-//                                    _DA + _DI,  //
-//                                    _DA - _DJ   //
-//                            },
-//                            /* 101*/
-//                            {       //
-//                                    _DA
-//                            },
-//                            /* 110*/
-//                            {       //
-//                                    _DA
-//                            },
-//                            /* 111*/
-//                            {       //
-//                                    _DA - _DI,         //
-//                                    _DA - _DJ,  //
-//                                    _DA - _DK,  //
-//                                    _DA + _DI,  //
-//                                    _DA + _DJ,  //
-//                                    _DA + _DK   //
-//                            }},
-//                    // TO VOLUME
-//                    {
-//                            /* 000*/
-//                            {       //
-//                                    _DA - _DI - _DJ - _DK,  //
-//                                    _DA - _DI + _DJ - _DK,  //
-//                                    _DA - _DI - _DJ + _DK,  //
-//                                    _DA - _DI + _DJ + _DK,  //
-//
-//                                    _DA + _DI - _DJ - _DK,  //
-//                                    _DA + _DI + _DJ - _DK,  //
-//                                    _DA + _DI - _DJ + _DK,  //
-//                                    _DA + _DI + _DJ + _DK  //
-//
-//                            },
-//                            /* 001*/
-//                            {       //
-//                                    _DA - _DJ - _DK,           //
-//                                    _DA - _DJ + _DK,    //
-//                                    _DA + _DJ - _DK,    //
-//                                    _DA + _DJ + _DK     //
-//                            },
-//                            /* 010*/
-//                            {        //
-//                                    _DA - _DK - _DI,  //
-//                                    _DA - _DK + _DI,  //
-//                                    _DA + _DK - _DI,  //
-//                                    _DA + _DK + _DI   //
-//                            },
-//                            /* 011*/
-//                            {       //
-//                                    _DA - _DK,
-//                                    _DA + _DK},
-//                            /* 100*/
-//                            {         //
-//                                    _DA - _DI - _DJ,   //
-//                                    _DA - _DI + _DJ,   //
-//                                    _DA + _DI - _DJ,   //
-//                                    _DA + _DI + _DJ    //
-//                            },
-//                            /* 101*/
-//                            {//
-//                                    _DA - _DJ,
-//                                    _DA + _DJ
-//                            },
-//                            /* 110*/
-//                            {       //
-//                                    _DA - _DI,
-//                                    _DA + _DI
-//                            },
-//                            /* 111*/
-//                            {//
-//                                    _DA
-//                            }
-//                    }
+                                    _DA - _DI - _DJ,  //
+                                    _DA - _DI + _DJ,  //
+                                    _DA + _DI - _DJ,  //
+                                    _DA + _DI + _DJ,  //
+
+                                    _DA + _DK - _DJ,  //
+                                    _DA + _DK + _DI,  //
+                                    _DA + _DK + _DJ,  //
+                                    _DA + _DK - _DI  //
+                            }},
+
+                    //To FACE
+                    {
+                            /* 000*/
+                            {       //
+                                    _DA - _DK - _DJ,  //
+                                    _DA - _DK + _DI,  //
+                                    _DA - _DK + _DJ,  //
+                                    _DA - _DK - _DI,  //
+
+                                    _DA - _DI - _DJ,  //
+                                    _DA - _DI + _DJ,  //
+                                    _DA + _DI - _DJ,  //
+                                    _DA + _DI + _DJ,  //
+
+                                    _DA + _DK - _DJ,  //
+                                    _DA + _DK + _DI,  //
+                                    _DA + _DK + _DJ,  //
+                                    _DA + _DK - _DI  //
+                            },
+                            /* 001*/
+                            {       //
+                                    _DA - _DJ,          //
+                                    _DA + _DK,   //
+                                    _DA + _DJ,   //
+                                    _DA - _DK    //
+                            },
+                            /* 010*/
+                            {       //
+                                    _DA - _DK,          //
+                                    _DA + _DI,   //
+                                    _DA + _DK,   //
+                                    _DA - _DI    //
+                            },
+                            /* 011*/
+                            {       _DA},
+                            /* 100*/
+                            {//
+                                    _DA - _DI,         //
+                                    _DA + _DJ,  //
+                                    _DA + _DI,  //
+                                    _DA - _DJ   //
+                            },
+                            /* 101*/
+                            {       //
+                                    _DA
+                            },
+                            /* 110*/
+                            {       //
+                                    _DA
+                            },
+                            /* 111*/
+                            {       //
+                                    _DA - _DI,         //
+                                    _DA - _DJ,  //
+                                    _DA - _DK,  //
+                                    _DA + _DI,  //
+                                    _DA + _DJ,  //
+                                    _DA + _DK   //
+                            }},
+                    // TO VOLUME
+                    {
+                            /* 000*/
+                            {       //
+                                    _DA - _DI - _DJ - _DK,  //
+                                    _DA - _DI + _DJ - _DK,  //
+                                    _DA - _DI - _DJ + _DK,  //
+                                    _DA - _DI + _DJ + _DK,  //
+
+                                    _DA + _DI - _DJ - _DK,  //
+                                    _DA + _DI + _DJ - _DK,  //
+                                    _DA + _DI - _DJ + _DK,  //
+                                    _DA + _DI + _DJ + _DK  //
+
+                            },
+                            /* 001*/
+                            {       //
+                                    _DA - _DJ - _DK,           //
+                                    _DA - _DJ + _DK,    //
+                                    _DA + _DJ - _DK,    //
+                                    _DA + _DJ + _DK     //
+                            },
+                            /* 010*/
+                            {        //
+                                    _DA - _DK - _DI,  //
+                                    _DA - _DK + _DI,  //
+                                    _DA + _DK - _DI,  //
+                                    _DA + _DK + _DI   //
+                            },
+                            /* 011*/
+                            {       //
+                                    _DA - _DK,
+                                    _DA + _DK},
+                            /* 100*/
+                            {         //
+                                    _DA - _DI - _DJ,   //
+                                    _DA - _DI + _DJ,   //
+                                    _DA + _DI - _DJ,   //
+                                    _DA + _DI + _DJ    //
+                            },
+                            /* 101*/
+                            {//
+                                    _DA - _DJ,
+                                    _DA + _DJ
+                            },
+                            /* 110*/
+                            {       //
+                                    _DA - _DI,
+                                    _DA + _DI
+                            },
+                            /* 111*/
+                            {//
+                                    _DA
+                            }
+                    }
 
             };
 
-    static int get_adjacent_entities(int IFORM, id_type s, id_type *res = nullptr)
+    static int get_adjacent_entities(int IFORM, MeshEntityId s, MeshEntityId *res = nullptr)
     {
         return get_adjacent_entities(IFORM, node_id(s), s, res);
     }
 
-    static int get_adjacent_entities(int IFORM, int nodeid, id_type s, id_type *res = nullptr)
+    static int get_adjacent_entities(int IFORM, int nodeid, MeshEntityId s, MeshEntityId *res = nullptr)
     {
         if (res != nullptr)
         {
             for (int i = 0; i < m_adjacent_cell_num_[IFORM][nodeid]; ++i)
             {
-                res[i] = m_adjacent_cell_matrix_[IFORM][nodeid][i] + s;
+                res[i] = s - _DA + m_adjacent_cell_matrix_[IFORM][nodeid][i];
             }
         }
         return m_adjacent_cell_num_[IFORM][nodeid];
     }
+
 
     struct range_type
     {
@@ -739,9 +831,9 @@ struct MeshEntityIdCoder_
             std::swap(m_grain_size_, other.m_grain_size_);
         }
 
-        int entity_type() const { return static_cast<int>(m_iform_); }
+        MeshEntityType entity_type() const { return static_cast<MeshEntityType>(m_iform_); }
 
-        std::tuple<index_tuple, index_tuple> index_box() const { return std::make_tuple(m_min_, m_max_); }
+        MeshEntityType index_box() const { return std::make_tuple(m_min_, m_max_); }
 
         // Proportional split is enabled
         static const bool is_splittable_in_proportion = true;
@@ -818,11 +910,11 @@ struct MeshEntityIdCoder_
         template<typename Body>
         void foreach(Body const &body, bool auto_parallel = false) const
         {
-            if (auto_parallel)
-            {
-                parallel_foreach(body);
-            }
-            else
+//            if (auto_parallel)
+//            {
+//                parallel_foreach(body);
+//            }
+//            else
             {
                 serial_foreach(body);
             }
@@ -857,191 +949,64 @@ struct MeshEntityIdCoder_
     }
 
 
-    static index_type hash(id_type const &s, index_tuple const &b, index_tuple const &e)
+    static index_type hash(MeshEntityId const &s, index_tuple const &b, index_tuple const &e)
     {
         //C-ORDER SLOW FIRST
 
         return
                 (
-                        (s.z + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
+                        ((s.z >> 1) + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
 
                         (
-                                ((s.y + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
+                                (((s.y >> 1) + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
 
-                                ((s.x + e[0] - b[0] - b[0]) % (e[0] - b[0])) * (e[1] - b[1])
+                                (((s.x >> 1) + e[0] - b[0] - b[0]) % (e[0] - b[0])) * (e[1] - b[1])
 
                         ) * (e[2] - b[2])
 
                 ) * num_of_ele_in_cell(s) + sub_index(s);
 
     }
-
-
-    static size_type max_hash(index_tuple const &b, index_tuple const &e, int IFORM)
-    {
-        return static_cast<size_type>(((e[0] - b[0]) * (e[1] - b[1]) * (e[2] - b[2])) *
-                                      m_id_to_num_of_ele_in_cell_[m_sub_index_to_id_[IFORM][0]]);
-    }
-
-//    template<typename TGeometry>
-//    static void get_element_volume_in_cell(TGeometry const &geo, id_type s0, Real *v, Real *inv_v, Real *dual_v,
-//                                           Real *inv_dual_v)
+//
+//    static constexpr index_type hash(MeshEntityId s, MeshEntityId b, MeshEntityId e)
 //    {
+//        return hash(s, unpack_index(b), unpack_index(e));
 //
-//        /**
-//         *\verbatim
-//         *                ^y
-//         *               /
-//         *        z     /
-//         *        ^    /
-//         *        |   6---------------7
-//         *        |  /|              /|
-//         *        | / |             / |
-//         *        |/  |            /  |
-//         *        4---|-----------5   |
-//         *        |   |           |   |
-//         *        |   2-----------|---3
-//         *        |  /            |  /
-//         *        | /             | /
-//         *        |/              |/
-//         *        0---------------1---> x
-//         *
-//         *\endverbatim
-//         */
+//        //  return hash_((diff(s, b) + diff(e, b)), diff(e, b)) * num_of_ele_in_cell(s) + sub_index(s);
+//    }
 //
 //
+//    static constexpr index_type hash_(MeshEntityId const &s, MeshEntityId const &d)
+//    {
+//        //C-ORDER SLOW FIRST
 //
-//        typedef typename TGeometry::point_type point_type;
+//        return
 //
-//        auto dims = geo.dimensions();
+//                (UNPACK_INDEX(s, 2) % UNPACK_INDEX(d, 2)) +
 //
+//                (
+//                        (UNPACK_INDEX(s, 1) % UNPACK_INDEX(d, 1)) +
+//                        (UNPACK_INDEX(s, 0) % UNPACK_INDEX(d, 0)) * UNPACK_INDEX(d, 1)
+//                )
 //
-//        static constexpr id_type HI = 1UL << (MESH_RESOLUTION);
-//        static constexpr id_type HJ = HI << ID_DIGITS;
-//        static constexpr id_type HK = HI << (ID_DIGITS * 2);
-//
-//        static constexpr id_type HA = HI | HJ | HK;
-//        //primary
-//        {
-//            size_t s = (s0 | FULL_OVERFLOW_FLAG);
-//
-//            point_type p[NUM_OF_NODE_ID] = {
-//
-//                    /*000*/  geo.point(s),                       //
-//                    /*001*/  geo.point(s + (HI)),          //
-//                    /*010*/  geo.point(s + (HJ)),          //
-//                    /*011*/  geo.point(s + (HJ | HI)),  //
-//
-//                    /*100*/  geo.point(s + (HK)),          //
-//                    /*101*/  geo.point(s + (HK | HI)),   //
-//                    /*110*/  geo.point(s + (HK | HJ)),   //
-//                    /*111*/  geo.point(s + (HK | HJ | HI))    //
-//
-//            };
-//
-//
-//            v[TAG_VERTEX] = 1;
-//
-//            v[TAG_EDGE0] = geo.simplex_length(p[0], p[1]);
-//            v[TAG_EDGE1] = geo.simplex_length(p[0], p[2]);
-//            v[TAG_EDGE2] = geo.simplex_length(p[0], p[4]);
-//
-//            v[TAG_FACE0] = geo.simplex_area(p[0], p[2], p[6]) + geo.simplex_area(p[0], p[6], p[4]);
-//            v[TAG_FACE1] = geo.simplex_area(p[0], p[1], p[5]) + geo.simplex_area(p[0], p[5], p[4]);
-//            v[TAG_FACE2] = geo.simplex_area(p[0], p[1], p[3]) + geo.simplex_area(p[0], p[3], p[2]);
-//
-//
-//            v[TAG_VOLUME] = geo.simplex_volume(p[0], p[1], p[2], p[4]) + //
-//                            geo.simplex_volume(p[1], p[4], p[5], p[2]) + //
-//                            geo.simplex_volume(p[2], p[6], p[4], p[5]) + //
-//                            geo.simplex_volume(p[1], p[3], p[2], p[5]) + //
-//                            geo.simplex_volume(p[3], p[5], p[7], p[6]) + //
-//                            geo.simplex_volume(p[3], p[6], p[2], p[5]);
-//
-//        }
-//        //dual
-//        {
-//            size_t s = (s0 | FULL_OVERFLOW_FLAG) - (HA >> 1);
-//
-////            point_type p[NUM_OF_NODE_ID] = {
-////
-////                    /*000*/    geo.point(s + ((LK | LJ | LI) << 1)),   //
-////                    /*001*/    geo.point(s + ((LK | LJ | HI) << 1)),   //
-////                    /*010*/    geo.point(s + ((LK | HJ | LI) << 1)),   //
-////                    /*011*/    geo.point(s + ((LK | HJ | HI) << 1)),   //
-////
-////                    /*100*/    geo.point(s + ((HK | LJ | LI) << 1)),   //
-////                    /*101*/    geo.point(s + ((HK | LJ | HI) << 1)),   //
-////                    /*110*/    geo.point(s + ((HK | HJ | LI) << 1)),   //
-////                    /*111*/    geo.point(s + ((HK | HJ | HI) << 1))    //
-////
-////            };
-//
-//            point_type p[NUM_OF_NODE_ID] = {
-//
-//                    /*000*/  geo.point(s),                       //
-//                    /*001*/  geo.point(s + (HI)),          //
-//                    /*010*/  geo.point(s + (HJ)),          //
-//                    /*011*/  geo.point(s + (HJ | HI)),  //
-//
-//                    /*100*/  geo.point(s + (HK)),          //
-//                    /*101*/  geo.point(s + (HK | HI)),   //
-//                    /*110*/  geo.point(s + (HK | HJ)),   //
-//                    /*111*/  geo.point(s + (HK | HJ | HI))    //
-//
-//            };
-//
-//
-//            dual_v[TAG_VOLUME] = 1;
-//
-//            dual_v[TAG_FACE0] = geo.simplex_length(p[6], p[7]);
-//            dual_v[TAG_FACE1] = geo.simplex_length(p[5], p[7]);
-//            dual_v[TAG_FACE2] = geo.simplex_length(p[3], p[7]);
-//
-//
-//            dual_v[TAG_EDGE0] = geo.simplex_area(p[1], p[3], p[5]) + geo.simplex_area(p[3], p[7], p[5]);
-//            dual_v[TAG_EDGE1] = geo.simplex_area(p[2], p[3], p[7]) + geo.simplex_area(p[2], p[7], p[6]);
-//            dual_v[TAG_EDGE2] = geo.simplex_area(p[4], p[5], p[7]) + geo.simplex_area(p[4], p[7], p[6]);
-//
-//
-//            dual_v[TAG_VERTEX] = geo.simplex_volume(p[0], p[1], p[2], p[4]) + //
-//                                 geo.simplex_volume(p[1], p[4], p[5], p[2]) + //
-//                                 geo.simplex_volume(p[2], p[6], p[4], p[5]) + //
-//                                 geo.simplex_volume(p[1], p[3], p[2], p[5]) +
-//                                 geo.simplex_volume(p[3], p[5], p[7], p[6]) + //
-//                                 geo.simplex_volume(p[3], p[6], p[2], p[5])  //
-//                    ;
-//
-//        }
-//
-//        for (int i = 0; i < NUM_OF_NODE_ID; ++i)
-//        {
-//            inv_v[i] = 1.0 / v[i];
-//            inv_dual_v[i] = 1.0 / dual_v[i];
-//        }
-//
-//
-//        if (dims[0] <= 1)
-//        {
-//            inv_v[TAG_EDGE0] = 0;
-//            inv_dual_v[TAG_FACE0] = 0;
-//        }
-//
-//        if (dims[1] <= 1)
-//        {
-//            inv_v[TAG_EDGE1] = 0;
-//            inv_dual_v[TAG_FACE1] = 0;
-//        }
-//
-//        if (dims[2] <= 1)
-//        {
-//            inv_v[TAG_EDGE2] = 0;
-//
-//            inv_dual_v[TAG_FACE2] = 0;
-//        }
-//
+//                * UNPACK_INDEX(d, 2);
 //
 //    }
+
+    template<int IFORM>
+    static constexpr size_t max_hash(MeshEntityId b, MeshEntityId e)
+    {
+        return NProduct(unpack_index((e - b)))
+               * m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)];
+    }
+
+
+    static constexpr size_t max_hash(index_tuple const &b, index_tuple const &e, int IFORM)
+    {
+        return NProduct((e - b))
+               * m_id_to_num_of_ele_in_cell_[m_sub_index_to_id_[IFORM][0]];
+    }
+
 };
 
 
@@ -1051,22 +1016,27 @@ struct MeshEntityIdCoder_
  */
 
 template<int L> constexpr int MeshEntityIdCoder_<L>::ndims;
+template<int L> constexpr int MeshEntityIdCoder_<L>::MESH_RESOLUTION;
+
 
 template<int L> constexpr Real MeshEntityIdCoder_<L>::_R;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DK;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DJ;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DI;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DA;
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::_DK;
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::_DJ;
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::_DI;
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::_DA;
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_index_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_iform_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_num_of_ele_in_cell_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_adjacent_cell_num_[4][8];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_iform_to_num_of_ele_in_cell_[];
-template<int L> constexpr int16_t MeshEntityIdCoder_<L>::m_id_to_shift_[];
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_id_to_shift_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_sub_index_to_id_[4][3];
 template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
 template<int L> constexpr point_type MeshEntityIdCoder_<L>::m_id_to_coordinates_shift_[];
 
-typedef MeshEntityIdCoder_<1> MeshEntityIdCoder;
-}}//namespace simpla{namespace mesh{
-#endif //SIMPLA_MESHENTITYID_H
+typedef MeshEntityIdCoder_<> MeshEntityIdCoder;
+}//namespace  get_mesh
+}// namespace simpla
+
+#endif /* CORE_MESH_MESH_ENTITY_ID_CODER_H_ */
+

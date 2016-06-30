@@ -236,8 +236,8 @@ public:
 
 private:
     //TODO should use block-entity_id_range
-    parallel::concurrent_unordered_set <MeshEntityId> m_affected_entities_[4];
-    parallel::concurrent_unordered_set <MeshEntityId> m_interface_entities_[4];
+    parallel::concurrent_unordered_set<MeshEntityId> m_affected_entities_[4];
+    parallel::concurrent_unordered_set<MeshEntityId> m_interface_entities_[4];
 public:
 
     typedef typename MeshEntityIdCoder::range_type block_range_type;
@@ -383,11 +383,11 @@ public:
     virtual point_type
     point_local_to_global(MeshEntityId s, point_type const &r) const
     {
-        point_type p = m::point(s);
+        point_type p = m::point_local_to_global(s, r);
 
-        p[0] = std::fma(p[0] + r[0], m_l2g_scale_[0], m_l2g_shift_[0]);
-        p[1] = std::fma(p[1] + r[1], m_l2g_scale_[1], m_l2g_shift_[1]);
-        p[2] = std::fma(p[2] + r[2], m_l2g_scale_[2], m_l2g_shift_[2]);
+        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
+        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
+        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
 
         return std::move(p);
     }
@@ -397,11 +397,11 @@ public:
     {
 
         return m::point_global_to_local(
-                point_type{{
-                                   std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
-                                   std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
-                                   std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
-                           }}, nId);
+                point_type{
+                        std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
+                        std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
+                        std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
+                }, nId);
     }
 
     virtual index_tuple
@@ -686,24 +686,24 @@ public:
 //
 //    virtual point_type point(id_type const &s) const { return std::move(map(m::point(s))); }
 //
-//    virtual point_type coordinates_local_to_global(id_type s, point_type const &x) const
+//    virtual point_type point_local_to_global(id_type s, point_type const &x) const
 //    {
-//        return std::move(map(m::coordinates_local_to_global(s, x)));
+//        return std::move(map(m::point_local_to_global(s, x)));
 //    }
 //
-//    virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
+//    virtual point_type point_local_to_global(std::tuple<id_type, point_type> const &t) const
 //    {
-//        return std::move(map(m::coordinates_local_to_global(t)));
+//        return std::move(map(m::point_local_to_global(t)));
 //    }
 //
-//    virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type const &x, int n_id = 0) const
+//    virtual std::tuple<id_type, point_type> point_global_to_local(point_type const &x, int n_id = 0) const
 //    {
-//        return std::move(m::coordinates_global_to_local(inv_map(x), n_id));
+//        return std::move(m::point_global_to_local(inv_map(x), n_id));
 //    }
 //
 //    virtual id_type id(point_type const &x, int n_id = 0) const
 //    {
-//        return std::get<0>(m::coordinates_global_to_local(inv_map(x), n_id));
+//        return std::get<0>(m::point_global_to_local(inv_map(x), n_id));
 //    }
 //
 //

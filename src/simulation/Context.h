@@ -33,27 +33,27 @@ public:
 
     Context();
 
-    virtual ~Context();
+    ~Context();
 
     int m_refine_ratio = 2;
 
-    virtual void setup();
+    void setup();
 
-    virtual void teardown();
-
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const;
+    void teardown();
 
 
-    virtual io::IOStream &save(io::IOStream &os, int flag = io::SP_NEW) const;
-
-    virtual io::IOStream &load(io::IOStream &is);
-
-    virtual io::IOStream &check_point(io::IOStream &os) const;
+    std::ostream &print(std::ostream &os, int indent = 1) const;
 
 
     io::IOStream &save_mesh(io::IOStream &os) const;
 
     io::IOStream &load_mesh(io::IOStream &is);
+
+    io::IOStream &save(io::IOStream &os, int flag = io::SP_NEW) const;
+
+    io::IOStream &load(io::IOStream &is);
+
+    io::IOStream &check_point(io::IOStream &os) const;
 
     mesh::MeshBlockId add_mesh(std::shared_ptr<mesh::Chart>);
 
@@ -101,7 +101,6 @@ public:
         add_domain(res);
         return res;
     };
-
 
     template<typename TProb>
     void extend_domain(mesh::MeshBlockId mesh_center, size_type PML_width, std::string prefix = "")

@@ -6,7 +6,6 @@
 #include "../parallel/Parallel.h"
 #include "MeshUtility.h"
 
-
 namespace simpla { namespace mesh
 {
 
@@ -29,10 +28,10 @@ namespace simpla { namespace mesh
 MeshEntityRange select(MeshBase const &m, MeshEntityRange const &r, box_type const &b)
 {
     parallel::concurrent_unordered_set<MeshEntityId> i_set;
-//
-//    point_type xl, xu;
-//    std::tie(xl, xu) = b;
-//
+
+    point_type xl, xu;
+    std::tie(xl, xu) = b;
+
 //    parallel::parallel_foreach(r, [&](MeshEntityId const &s)
 //    {
 //        auto x0 = m.point(s);

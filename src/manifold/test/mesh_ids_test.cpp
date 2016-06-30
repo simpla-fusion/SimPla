@@ -224,24 +224,24 @@ TEST(GeometryTest, MeshIDs)
 //    for (auto const &s:g.range<VERTEX>())
 //    {
 //        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
-//        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.coordinates_global_to_local(g.point(s)) << std::endl;
+//        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.point_global_to_local(g.point(s)) << std::endl;
 //    }
 //    CHECK("=======================");
 //    for (auto const &s:g.range<EDGE>())
 //    {
 //        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
-//        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.coordinates_global_to_local(g.point(s)) << std::endl;
+//        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.point_global_to_local(g.point(s)) << std::endl;
 //    }
 //    CHECK("=======================");
 //    for (auto const &s:g.range<FACE>())
 //    {
 //        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
-//        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.coordinates_global_to_local(g.point(s)) << std::endl;
+//        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.point_global_to_local(g.point(s)) << std::endl;
 //    }
 //    CHECK("=======================");
 //    for (auto const &s:g.range<VOLUME>())
 //    {
 //        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
-//        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.coordinates_global_to_local(g.point(s)) << std::endl;
+//        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.point_global_to_local(g.point(s)) << std::endl;
 //    }
 //}

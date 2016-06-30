@@ -10,7 +10,6 @@
 #include "MeshCommon.h"
 #include "MeshAtlas.h"
 #include "MeshBase.h"
-#include "MeshEntityId.h"
 
 namespace simpla { namespace mesh
 {

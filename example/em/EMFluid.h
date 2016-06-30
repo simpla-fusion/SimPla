@@ -177,6 +177,7 @@ EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
         options["Constraints"]["J"]["Value"].as(&J_src_fun);
     }
 
+
     return *this;
 }
 

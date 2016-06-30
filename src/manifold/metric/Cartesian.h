@@ -22,7 +22,7 @@ class Cartesian<mesh::CoRectMesh>
 
     mesh_type &m_;
 
-    typedef mesh::MeshEntityId id_type;
+    typedef   mesh::MeshEntityId id_type;
 public:
     typedef this_type metric_policy;
     typedef Real scalar_type;
@@ -33,7 +33,7 @@ public:
 
     static std::string class_name() { return "Cartesian"; }
 
-    void deploy() { }
+    void deploy() {}
 
     std::ostream &print(std::ostream &os, int indent = 1) const
     {
