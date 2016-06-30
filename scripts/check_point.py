@@ -10,7 +10,7 @@ o_dir = int(sys.argv[3])
 step = int(sys.argv[4])
 
 if 'PML_0' in f1[ds].keys():
-    plt.style.use('ggplot')
+    # plt.style.use('ggplot')
     gs = gridspec.GridSpec(3, 3,
                            width_ratios=[1, 5, 1],
                            height_ratios=[1, 5, 1]

@@ -131,11 +131,10 @@ public:
             {
 
                 auto second_id = atlas.add_block(second);
+                second->name(prefix + type_cast<std::string>(count)).deploy();
 
                 atlas.add_adjacency(mesh_center, second_id, mesh::SP_MB_SYNC);
                 atlas.add_adjacency(second_id, mesh_center, mesh::SP_MB_SYNC);
-
-                second->name(prefix + type_cast<std::string>(count)).deploy();
 
                 add_domain(std::make_shared<TProb>(static_cast<typename TProb::mesh_type const *>(second.get()),
                                                    od))->deploy();

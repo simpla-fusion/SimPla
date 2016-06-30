@@ -283,12 +283,10 @@ struct MeshEntityIdCoder_
         return m_id_to_num_of_ele_in_cell_[node_id(s)];
     }
 
-    template<typename TX>
-    static std::tuple<MeshEntityId, point_type> point_global_to_local(
-            TX const &x, int n_id = 0)
+    static std::tuple<MeshEntityId, point_type> point_global_to_local(point_type const &x, int n_id = 0)
     {
 
-        MeshEntityId s = pack(x - m_id_to_coordinates_shift_[n_id]) | m_id_to_shift_[n_id];
+        MeshEntityId s = pack((x - m_id_to_coordinates_shift_[n_id]) * 2) | m_id_to_shift_[n_id];
 
         point_type r;
 
@@ -308,12 +306,21 @@ struct MeshEntityIdCoder_
 
 //! @name id auxiliary functions
 //! @{
+    static constexpr MeshEntityId m_num_to_di_[] = { //
+            {0, 0, 0, 1},
+            {0, 0, 1, 0},
+            {0, 1, 0, 0}
+    };
 
+    static constexpr MeshEntityId DI(int n)
+    {
+        return m_num_to_di_[n];
+    }
 
-//    static constexpr MeshEntityId DI(int n, MeshEntityId s)
-//    {
-//        return (s >> (n * ID_DIGITS)) & _D;
-//    }
+    static constexpr MeshEntityId DI(int n, MeshEntityId s)
+    {
+        return MeshEntityId{.v=s.v & m_num_to_di_[n].v};
+    }
 
 
     static constexpr MeshEntityId dual(MeshEntityId s)
@@ -857,9 +864,7 @@ struct MeshEntityIdCoder_
             {
                 if (m_max_[i] - m_min_[i] <= m_grain_size_[i]) { ++count; }
             }
-
             return count < ndims;
-
         }
 
         // iterators

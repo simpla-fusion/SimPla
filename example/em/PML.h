@@ -91,69 +91,70 @@ template<typename TM>
 PML<TM>::PML(const mesh_type *mp, int const *p_od) : base_type(mp), m(mp)
 {
     assert(mp != nullptr);
-
-    properties()["DISABLE_WRITE"] = false;
-
-    int od[3] = {0, 0, 0};
-
-    if (p_od != nullptr)
-    {
-        od[0] = p_od[0];
-        od[1] = p_od[1];
-        od[2] = p_od[2];
-    }
-
-    point_type xmin, xmax;
-
-    std::tie(xmin, xmax) = m->box();
-
-    LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]" << std::endl;
-
-    DEFINE_PHYSICAL_CONST
-
-    Real dB = 100, expN = 2;
-
-    a0 = 1.0;
-    a1 = 1.0;
-    a2 = 1.0;
-    s0 = 0.0;
-    s1 = 0.0;
-    s2 = 0.0;
-    X10 = 0.0;
-    X11 = 0.0;
-    X12 = 0.0;
-    X20 = 0.0;
-    X21 = 0.0;
-    X22 = 0.0;
-
-    point_type ymin, ymax;
-    std::tie(ymin, ymax) = m->box();
-
-    m->range(mesh::VERTEX).foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                point_type x = m->point(s);
-
-#define DEF(_N_)                                                                    \
-        if (od[_N_] ==-1)                                                         \
-        {                                                                           \
-            Real r = (xmax[_N_] - x[_N_]) / (xmax[_N_] - xmin[_N_]);                        \
-            a##_N_[s] = alpha_(r, expN, dB);                                            \
-            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmax[_N_] - xmin[_N_]);     \
-        }                                                                           \
-        else if (od[_N_] ==1)                                                    \
-        {                                                                           \
-            Real r = (x[_N_] - xmin[_N_]) / (xmax[_N_] - xmin[_N_]);                        \
-            a##_N_[s] = alpha_(r, expN, dB);                                            \
-            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmax[_N_] - xmin[_N_]);     \
-        };
-
-                DEF(0)
-                DEF(1)
-                DEF(2)
-#undef DEF
-            }
-    );
+//
+//    properties()["DISABLE_WRITE"] = false;
+//
+//    int od[3] = {0, 0, 0};
+//
+//    if (p_od != nullptr)
+//    {
+//        od[0] = p_od[0];
+//        od[1] = p_od[1];
+//        od[2] = p_od[2];
+//    }
+//
+//    point_type xmin, xmax;
+//
+//    std::tie(xmin, xmax) = m->box();
+//
+//    LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]" << std::endl;
+//
+//    DEFINE_PHYSICAL_CONST
+//
+//    Real dB = 100, expN = 2;
+//
+//    a0.clear();
+//    a1.clear();
+//    a2.clear();
+//    s0.clear();
+//    s1.clear();
+//    s2.clear();
+//    X10.clear();
+//    X11.clear();
+//    X12.clear();
+//    X20.clear();
+//    X21.clear();
+//    X22.clear();
+//
+//    point_type ymin, ymax;
+//    std::tie(ymin, ymax) = m->box();
+//
+//    m->range(mesh::VERTEX, SP_ES_VALID).foreach(
+//            [&](mesh::MeshEntityId s)
+//            {
+//                point_type x = m->point(s);
+//
+//#define DEF(_N_)  a##_N_[s]=1;   s##_N_[s]=0;                                     \
+//
+////        if (od[_N_] ==-1)                                                         \
+////        {                                                                           \
+////            Real r = (xmax[_N_] - x[_N_]) / (xmax[_N_] - xmin[_N_]);                        \
+////            a##_N_[s] = alpha_(r, expN, dB);                                            \
+////            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmax[_N_] - xmin[_N_]);     \
+////        }                                                                           \
+////        else if (od[_N_] ==1)                                                    \
+////        {                                                                           \
+////            Real r = (x[_N_] - xmin[_N_]) / (xmax[_N_] - xmin[_N_]);                        \
+////            a##_N_[s] = alpha_(r, expN, dB);                                            \
+////            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmax[_N_] - xmin[_N_]);     \
+////        };
+//
+//                DEF(0)
+//                DEF(1)
+//                DEF(2)
+//#undef DEF
+//            }
+//    );
 }
 
 template<typename TM>
@@ -172,15 +173,42 @@ template<typename TM>
 void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)
 {
 
+
     auto E2 = static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto B2 = static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
+
 
     t_map.direct_map(mesh::EDGE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = (*E2)[s2]; }
     );
+
     t_map.direct_map(mesh::FACE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = (*B2)[s2]; }
     );
+
+//    if (m_mesh_->name() == "PML_0")
+//    {
+//        t_map.direct_map(mesh::EDGE,
+//                         [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2)
+//                         {
+//
+//                             INFORM << "("
+//                             << (s1.x >> 1) << ", "
+//                             << (s1.y >> 1) << ", "
+//                             << (s1.z >> 1) << " ) -( "
+//                             << (s2.x >> 1) << ", "
+//                             << (s2.y >> 1) << ", "
+//                             << (s2.z >> 1) << ") "
+//                             << "E =" << E[s1]
+//
+//                             << std::endl;
+//
+//
+//                         }
+//        );
+//
+//    }
+
 
 }
 
@@ -191,31 +219,34 @@ void PML<TM>::next_step(Real dt)
 
     DEFINE_PHYSICAL_CONST
 
+    B -= curl(E) * (dt * 0.5);
+    E += (curl(B) * speed_of_light2) * dt;
+    B -= curl(E) * (dt * 0.5);
 
-    dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
-    X10 += dX1;
-    E += dX1;
-
-    dX1 = (-2.0 * dt * s1 * X11 + curl_pdy(B) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
-    X11 += dX1;
-    E += dX1;
-
-    dX1 = (-2.0 * dt * s2 * X12 + curl_pdz(B) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
-    X12 += dX1;
-    E += dX1;
-
-
-    dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E) * dt) / (a0 + s0 * dt);
-    X20 += dX2;
-    B -= dX2;
-
-    dX2 = (-2.0 * dt * s1 * X21 + curl_pdy(E) * dt) / (a1 + s1 * dt);
-    X21 += dX2;
-    B -= dX2;
-
-    dX2 = (-2.0 * dt * s2 * X22 + curl_pdz(E) * dt) / (a2 + s2 * dt);
-    X22 += dX2;
-    B -= dX2;
+//    dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
+//    X10 += dX1;
+//    E += dX1;
+//
+//    dX1 = (-2.0 * dt * s1 * X11 + curl_pdy(B) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
+//    X11 += dX1;
+//    E += dX1;
+//
+//    dX1 = (-2.0 * dt * s2 * X12 + curl_pdz(B) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
+//    X12 += dX1;
+//    E += dX1;
+//
+//
+//    dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E) * dt) / (a0 + s0 * dt);
+//    X20 += dX2;
+//    B -= dX2;
+//
+//    dX2 = (-2.0 * dt * s1 * X21 + curl_pdy(E) * dt) / (a1 + s1 * dt);
+//    X21 += dX2;
+//    B -= dX2;
+//
+//    dX2 = (-2.0 * dt * s2 * X22 + curl_pdz(E) * dt) / (a2 + s2 * dt);
+//    X22 += dX2;
+//    B -= dX2;
 
 }
 } //namespace simpla

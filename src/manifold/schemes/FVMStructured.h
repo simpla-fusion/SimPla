@@ -270,21 +270,18 @@ private:
     };
 
     ////***************************************************************************************************
-    //! curl<1>
+    //! p_curl<1>
+
+
     template<typename T, size_t I>
     inline traits::value_type_t<Field<Expression<ct::P_ExteriorDerivative<I>, T>>>
     eval_(Field<Expression<ct::P_ExteriorDerivative<I>, T>> const &expr, MeshEntitId s,
           index_sequence<EDGE>) const
     {
-        // FIXME this is incorrect
-        MeshEntitId X = M::delta_index(M::dual(s));
-        MeshEntitId Y = M::rotate(X);
-        MeshEntitId Z = M::inverse_rotate(X);
 
-
-        return ((get_v(std::get<0>(expr.args), s + Y) - get_v(std::get<0>(expr.args), s - Y))
-                - (get_v(std::get<0>(expr.args), s + Z) - get_v(std::get<0>(expr.args), s - Z))
-               ) * m.inv_volume(s);
+        return (get_v(std::get<0>(expr.args), s + M::DI(I)) -
+                get_v(std::get<0>(expr.args), s - M::DI(I))
+               ) * m.inv_volume(s) * (((I + 1) % 3 == M::sub_index(s)) ? 1 : -1);
 
 
     }
@@ -294,15 +291,9 @@ private:
     eval_(Field<Expression<ct::P_CodifferentialDerivative<I>, T>> const &expr, MeshEntitId s,
           index_sequence<FACE>) const
     {
-        // FIXME this is incorrect
-        MeshEntitId X = M::delta_index(s);
-        MeshEntitId Y = M::rotate(X);
-        MeshEntitId Z = M::inverse_rotate(X);
-
-
-        return -((get_d(std::get<0>(expr.args), s + Y) - get_d(std::get<0>(expr.args), s - Y))
-                 - (get_d(std::get<0>(expr.args), s + Z) - get_d(std::get<0>(expr.args), s - Z))
-        ) * m.inv_dual_volume(s);
+        return (get_v(std::get<0>(expr.args), s + M::DI(I)) -
+                get_v(std::get<0>(expr.args), s - M::DI(I))
+               ) * m.inv_dual_volume(s) * (((I + 1) % 3 == M::sub_index(s)) ? 1 : -1);
     }
 
 ////***************************************************************************************************

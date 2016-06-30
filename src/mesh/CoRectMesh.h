@@ -82,14 +82,20 @@ public:
  *
  */
 
-
     point_type m_coords_lower_{{0, 0, 0}};
 
     point_type m_coords_upper_{{1, 1, 1}};
 
+    index_tuple m_ghost_width_{{0, 0, 0}};
+
+    index_tuple m_offset_{{0, 0, 0}};
+
+    index_tuple m_dims_{{10, 10, 10}};
+
+
     vector_type m_dx_{{1, 1, 1}}, m_inv_dx_{{1, 1, 1}}; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
-    index_tuple m_dims_{{10, 10, 10}}, m_shape_{{10, 10, 10}};
+    index_tuple m_shape_{{10, 10, 10}};
 
     index_tuple m_lower_{{0, 0, 0}}, m_upper_{{10, 10, 10}};
 
@@ -97,9 +103,6 @@ public:
 
     index_tuple m_outer_lower_{{0, 0, 0}}, m_outer_upper_{{10, 10, 10}};
 
-    index_tuple m_ghost_width_{{0, 0, 0}};
-
-    index_tuple m_offset_{{0, 0, 0}};
 
     typedef MeshEntityIdCoder m;
 
@@ -115,6 +118,8 @@ public:
         m_dims_ = other.m_dims_;
         m_coords_lower_ = other.m_coords_lower_;
         m_coords_upper_ = other.m_coords_upper_;
+        m_ghost_width_ = other.m_ghost_width_;
+        m_offset_ = other.m_offset_;
         deploy();
     };
 
@@ -160,9 +165,9 @@ public:
 
     virtual point_type origin_point() const { return m_coords_lower_; };
 
-    void ghost_width(index_tuple const &d) { m_ghost_width_ = d; }
+    virtual void ghost_width(index_tuple const &d) { m_ghost_width_ = d; }
 
-    index_tuple const &ghost_width() const { return m_ghost_width_; }
+    virtual index_tuple const &ghost_width() const { return m_ghost_width_; }
 
     template<typename X0, typename X1>
     void box(X0 const &x0, X1 const &x1)
@@ -343,7 +348,7 @@ public:
         switch (status)
         {
             case SP_ES_VALID : //all valid
-                MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType)).swap(res);
+                MeshEntityRange(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType)).swap(res);
                 break;
             case SP_ES_NON_LOCAL : // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
             case SP_ES_SHARED : //       = 0x04,                    0b000100 shared by two or more get_mesh blocks
@@ -492,21 +497,21 @@ public:
 
             m_dx_[i] = (m_coords_upper_[i] - m_coords_lower_[i]) / static_cast<Real>( m_dims_[i]);
 
-            m_inv_dx_[i] = static_cast<Real>(1.0) / m_dx_[i];
+            m_inv_dx_[i] = (m_dims_[i] > 1) ? static_cast<Real>(1.0) / m_dx_[i] : static_cast<Real>(0.0);
 
             m_ghost_width_[i] = (m_dims_[i] > 1) ? m_ghost_width_[i] : 0;
 
-            m_lower_[i] = m_ghost_width_[i];
+            m_outer_lower_[i] = -m_ghost_width_[i];
+            m_outer_upper_[i] = m_dims_[i] + m_ghost_width_[i];
+            m_shape_[i] = m_upper_[i] + m_ghost_width_[i] * 2;
 
-            m_upper_[i] = m_lower_[i] + m_dims_[i];
+            m_lower_[i] = 0;
+            m_upper_[i] = m_dims_[i];
 
-            m_shape_[i] = m_upper_[i] + m_ghost_width_[i];
 
             m_inner_lower_[i] = m_lower_[i] + m_ghost_width_[i];
             m_inner_upper_[i] = m_upper_[i] - m_ghost_width_[i];
 
-            m_outer_lower_[i] = 0;
-            m_outer_upper_[i] = m_shape_[i];
 
             m_l2g_scale_[i] = (m_dims_[i] <= 1) ? 0 : m_dx_[i];
             m_l2g_shift_ = m_coords_lower_;
