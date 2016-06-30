@@ -110,10 +110,6 @@ namespace simpla { namespace mesh
 //typedef size_t id_type; //!< Data type  of entity id
 
 
-typedef unsigned long MeshEntityId;
-
-typedef long MeshEntityIdDiff;
-
 
 typedef boost::uuids::uuid MeshBlockId;
 

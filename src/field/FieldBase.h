@@ -243,7 +243,7 @@ public:
         if (!r0.empty())
         {
             parallel::parallel_foreach(
-                    r0, [&](typename mesh::MeshEntityId const &s)
+                    r0, [&](mesh::MeshEntityId const &s)
                     {
                         auto x = m_mesh_->point(s);
                         get(s) = m_mesh_->template sample<IFORM>(s, op(x, gather(x)));
@@ -265,7 +265,7 @@ public:
         if (!r0.empty())
         {
             parallel::parallel_foreach(
-                    r0, [&](typename mesh::MeshEntityId const &s)
+                    r0, [&](mesh::MeshEntityId const &s)
                     {
                         auto v = op(m_mesh_->point(s));
                         get(s) = m_mesh_->template sample<IFORM>(s, v);
@@ -287,7 +287,7 @@ public:
 
         if (!r0.empty())
         {
-            parallel::parallel_foreach(r0, [&](typename mesh::MeshEntityId const &s) { get(s) = op(s); });
+            parallel::parallel_foreach(r0, [&](mesh::MeshEntityId const &s) { get(s) = op(s); });
         }
         return *this;
     }
@@ -302,7 +302,7 @@ public:
 
         if (!r0.empty())
         {
-            parallel::parallel_foreach(r0, [&](typename mesh::MeshEntityId const &s) { op(get(s)); });
+            parallel::parallel_foreach(r0, [&](mesh::MeshEntityId const &s) { op(get(s)); });
         }
 
         return *this;
@@ -311,14 +311,14 @@ public:
 
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &f,
-          FUNCTION_REQUIREMENT((traits::is_indexable<TFun, typename mesh::MeshEntityId>::value)))
+          FUNCTION_REQUIREMENT((traits::is_indexable<TFun, mesh::MeshEntityId>::value)))
     {
 
         deploy();
 
         if (!r0.empty())
         {
-            parallel::parallel_foreach(r0, [&](typename mesh::MeshEntityId const &s) { get(s) = f[s]; });
+            parallel::parallel_foreach(r0, [&](mesh::MeshEntityId const &s) { get(s) = f[s]; });
         }
 
         return *this;
@@ -343,7 +343,7 @@ public:
 
         parallel::parallel_foreach(
                 entity_id_range(mesh::SP_ES_VALID),
-                [&](typename mesh::MeshEntityId const &s) { get(s) = other; });
+                [&](mesh::MeshEntityId const &s) { get(s) = other; });
 
         return *this;
     }
@@ -356,7 +356,7 @@ private:
         if (!r.empty())
         {
             parallel::parallel_foreach(
-                    r, [&](typename mesh::MeshEntityId const &s)
+                    r, [&](mesh::MeshEntityId const &s)
                     {
                         op(get(s), m_mesh_->eval(other, s));
                     }

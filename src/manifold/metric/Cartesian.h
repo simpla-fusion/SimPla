@@ -22,7 +22,7 @@ class Cartesian<mesh::CoRectMesh>
 
     mesh_type &m_;
 
-    typedef typename mesh::MeshEntityId id_type;
+    typedef   mesh::MeshEntityId id_type;
 public:
     typedef this_type metric_policy;
     typedef Real scalar_type;

@@ -61,6 +61,47 @@ namespace simpla { namespace mesh
  *  @note different get_mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
  */
 
+
+typedef union
+{
+    struct { int16_t w, z, y, x; };
+    int64_t v;
+} MeshEntityId;
+
+constexpr inline bool operator==(MeshEntityId const &first, MeshEntityId const &second) { return first.v == second.v; }
+
+constexpr inline MeshEntityId operator-(MeshEntityId const &first, MeshEntityId const &second)
+{
+    return MeshEntityId{
+            first.w,
+            static_cast<int16_t >(first.z - second.z),
+            static_cast<int16_t >(first.y - second.y),
+            static_cast<int16_t >(first.x - second.x)
+    };
+}
+
+constexpr inline MeshEntityId operator+(MeshEntityId const &first, MeshEntityId const &second)
+{
+    return MeshEntityId{
+            first.w,
+            static_cast<int16_t >(first.z + second.z),
+            static_cast<int16_t >(first.y + second.y),
+            static_cast<int16_t >(first.x + second.x)
+    };
+}
+
+
+constexpr inline MeshEntityId operator|(MeshEntityId const &first, MeshEntityId const &second)
+{
+    return MeshEntityId{.v=  first.v | second.v};
+}
+
+constexpr inline bool operator<(MeshEntityId const &first, MeshEntityId const &second)
+{
+    return first.v < second.v;
+}
+
+
 template<int LEVEL = 4>
 struct MeshEntityIdCoder_
 {
@@ -73,63 +114,19 @@ struct MeshEntityIdCoder_
 
     typedef MeshEntityIdCoder_ this_type;
 
-    typedef MeshEntityId id_type;
-
-    typedef nTuple<id_type, ndims> id_tuple;
-
-    typedef long index_type;
-
-
-//	typedef Real coordinate_type;
-
-    static constexpr int FULL_DIGITS = std::numeric_limits<id_type>::digits;
-
-    static constexpr int ID_DIGITS = 21;
-
-    static constexpr int HEAD_DIGITS = (FULL_DIGITS - ID_DIGITS * 3);
-
-    static constexpr id_type ID_MASK = (1UL << ID_DIGITS) - 1;
-
-    static constexpr id_type NO_HAED = (1UL << (ID_DIGITS * 3)) - 1;
-
-    static constexpr id_type OVERFLOW_FLAG = (1UL) << (ID_DIGITS - 1);
-
-    static constexpr id_type FULL_OVERFLOW_FLAG =
-            OVERFLOW_FLAG | (OVERFLOW_FLAG << ID_DIGITS) | (OVERFLOW_FLAG << (ID_DIGITS * 2));
-
-    static constexpr id_type INDEX_ZERO = (1UL) << (ID_DIGITS - 2);
-
-    static constexpr id_type ID_ZERO = INDEX_ZERO | (INDEX_ZERO << ID_DIGITS) | (INDEX_ZERO << (ID_DIGITS * 2));
-
-    static constexpr Real EPSILON = 1.0 / static_cast<Real>(INDEX_ZERO);
-
-
-    /// @}
 
     /// @name at_level dependent
     /// @{
 
-    static constexpr id_type SUB_ID_MASK = ((1UL << MESH_RESOLUTION) - 1);
-
-    static constexpr id_type _D = 1UL << (MESH_RESOLUTION - 1);
-
-    static constexpr Real _R = static_cast<Real>(_D);
+    static constexpr Real _R = 0.2;
 
 
-    static constexpr id_type _DI = _D;
-    static constexpr id_type _DJ = _D << (ID_DIGITS);
-    static constexpr id_type _DK = _D << (ID_DIGITS * 2);
-    static constexpr id_type _DA = _DI | _DJ | _DK;
+    static constexpr MeshEntityId _DI{0, 0, 0, 1};
+    static constexpr MeshEntityId _DJ{0, 0, 1, 0};
+    static constexpr MeshEntityId _DK{0, 1, 0, 0};
+    static constexpr MeshEntityId _DA{0, 1, 1, 1};
 
 
-    static constexpr id_type PRIMARY_ID_MASK_ = ID_MASK & (~SUB_ID_MASK);
-    static constexpr id_type PRIMARY_ID_MASK = PRIMARY_ID_MASK_
-                                               | (PRIMARY_ID_MASK_ << ID_DIGITS)
-                                               | (PRIMARY_ID_MASK_ << (ID_DIGITS * 2));
-
-
-    static constexpr Real GRID_WIDTH = static_cast<Real>(1UL << MESH_RESOLUTION);
-    static constexpr Real INV_GRID_WIDTH = 1.0 / GRID_WIDTH;
 
     /// @}
 
@@ -142,7 +139,7 @@ struct MeshEntityIdCoder_
 
     };
 
-    static constexpr id_type m_id_to_sub_index_[8] = { //
+    static constexpr int m_id_to_sub_index_[8] = { //
 
             0, // 000
             0, // 001
@@ -154,16 +151,17 @@ struct MeshEntityIdCoder_
             0, // 111
     };
 
-    static constexpr id_type m_id_to_shift_[] = {
+    static constexpr MeshEntityId m_id_to_shift_[] = {
 
-            0,                    // 000
-            _DI,                    // 001
-            _DJ,                    // 010
-            (_DI | _DJ),                    // 011
-            _DK,                    // 100
-            (_DK | _DI),                    // 101
-            (_DJ | _DK),                    // 110
-            _DA                    // 111
+            {0, 0, 0, 0},         // 000
+            {0, 0, 0, 1},         // 001
+            {0, 0, 1, 0},         // 010
+            {0, 0, 1, 1},         // 011
+            {0, 1, 0, 0},         // 100
+            {0, 1, 0, 1},         // 101
+            {0, 1, 1, 0},         // 110
+            {0, 1, 1, 1},         // 111
+
 
     };
 
@@ -209,9 +207,9 @@ struct MeshEntityIdCoder_
             3 // 111
     };
 
-    static constexpr id_type miminal_vertex(id_type s)
+    static constexpr MeshEntityId minimal_vertex(MeshEntityId s)
     {
-        return (s | FULL_OVERFLOW_FLAG) - (_DA);
+        return (s) - (_DA);
 
     }
 
@@ -221,116 +219,78 @@ struct MeshEntityIdCoder_
         return m_sub_index_to_id_[IFORM][n];
     }
 
-    static constexpr int iform(id_type s)
+    static constexpr int iform(MeshEntityId s)
     {
         return m_id_to_iform_[node_id(s)];
     }
 
-    static constexpr id_type pack(id_type i0, id_type i1, id_type i2)
+    template<typename TI>
+    static constexpr MeshEntityId pack(TI i0, TI i1, TI i2)
     {
-        return (i0 & ID_MASK) | ((i1 & ID_MASK) << ID_DIGITS) | ((i2 & ID_MASK) << (ID_DIGITS * 2)) |
-               FULL_OVERFLOW_FLAG;
+        return MeshEntityId{0, static_cast<int16_t>(i2), static_cast<int16_t>(i1), static_cast<int16_t>(i0)};
     }
 
     template<typename T>
-    static constexpr id_type pack(T const &idx)
+    static constexpr MeshEntityId pack(T const &idx)
     {
-        return pack(static_cast<id_type>(idx[0]),
-
-                    static_cast<id_type>(idx[1]),
-
-                    static_cast<id_type>(idx[2]));
+        return pack(idx[0], idx[1], idx[2]);
     }
 
 
     template<typename T>
-    static constexpr id_type pack_index(T const &idx, int n_id = 0)
+    static constexpr MeshEntityId pack_index(T const &idx, int n_id = 0)
     {
 
-        return pack(static_cast<id_type>(idx[0]) << MESH_RESOLUTION,
-
-                    static_cast<id_type>(idx[1]) << MESH_RESOLUTION,
-
-                    static_cast<id_type>(idx[2]) << MESH_RESOLUTION) | m_id_to_shift_[n_id];
+        return pack((idx[0]) << 1,
+                    (idx[1]) << 1,
+                    (idx[2]) << 1) | m_id_to_shift_[n_id];
     }
 
-    static constexpr id_type pack_index(index_type i, index_type j, index_type k, index_type n_id = 0)
+    static constexpr MeshEntityId pack_index(index_type i, index_type j, index_type k, index_type n_id = 0)
     {
 
-        return pack(static_cast<id_type>(i) << MESH_RESOLUTION,
-
-                    static_cast<id_type>(j) << MESH_RESOLUTION,
-
-                    static_cast<id_type>(k) << MESH_RESOLUTION) | m_id_to_shift_[n_id];
-    }
-
-    static constexpr id_type extent_flag_bit(id_type const &s, int n = ID_DIGITS - 2)
-    {
-        return s | (((s & (1UL << n)) == 0) ? 0UL : (static_cast<id_type>( -1L << (n + 1))));
-    }
-
-    static constexpr id_type unpack_id(id_type const &s, int n)
-    {
-        return extent_flag_bit(((s & (~FULL_OVERFLOW_FLAG)) >> (ID_DIGITS * n)) & ID_MASK);
-    }
-
-    static constexpr index_type unpack_index(id_type const &s, int n)
-    {
-        return static_cast<index_type>(extent_flag_bit(
-                (((s & (~FULL_OVERFLOW_FLAG)) >> (ID_DIGITS * n)) & ID_MASK) >> MESH_RESOLUTION,
-                ID_DIGITS - 2 - MESH_RESOLUTION));
+        return pack((i) << 1, (j) << 1, (k) << 1) | m_id_to_shift_[n_id];
     }
 
 
-    static constexpr id_tuple unpack(id_type s)
+    static constexpr index_tuple unpack_index(MeshEntityId s)
     {
-        return id_tuple({unpack_id(s, 0), unpack_id(s, 1), unpack_id(s, 2)});;
-    }
-
-    static constexpr index_tuple unpack_index(id_type s)
-    {
-        return index_tuple({unpack_index(s, 0), unpack_index(s, 1), unpack_index(s, 2)});
+        return index_tuple{
+                static_cast<index_type>(s.x) >> 1,
+                static_cast<index_type>(s.y) >> 1,
+                static_cast<index_type>(s.z) >> 1
+        };
     }
 
 
 //    template<typename T>
-//    static constexpr T type_cast(id_type s)
+//    static constexpr T type_cast(MeshEntityId s)
 //    {
 //        return static_cast<T>(unpack(s));
 //    }
 
 
-    static point_type point(id_type const &s)
-    {
-        return point_type{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0))),
-                          static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
-                          static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))
-        };
-    }
-
-
-    static point_type point(nTuple<index_type, ndims> const &idx)
+    static point_type point(MeshEntityId const &s)
     {
         return point_type{
-                static_cast<Real>((idx[0] << MESH_RESOLUTION)),
-                static_cast<Real>((idx[1] << MESH_RESOLUTION)),
-                static_cast<Real>((idx[2] << MESH_RESOLUTION))
+                static_cast<Real>(s.x),
+                static_cast<Real>(s.y),
+                static_cast<Real>(s.z)
         };
     }
 
 
-    static constexpr int num_of_ele_in_cell(id_type s)
+    static constexpr int num_of_ele_in_cell(MeshEntityId s)
     {
         return m_id_to_num_of_ele_in_cell_[node_id(s)];
     }
 
     template<typename TX>
-    static std::tuple<id_type, point_type> coordinates_global_to_local(
+    static std::tuple<MeshEntityId, point_type> point_global_to_local(
             TX const &x, int n_id = 0)
     {
 
-        id_type s = (pack(x - m_id_to_coordinates_shift_[n_id])
-                     & PRIMARY_ID_MASK) | m_id_to_shift_[n_id];
+        MeshEntityId s = pack(x - m_id_to_coordinates_shift_[n_id]) | m_id_to_shift_[n_id];
 
         point_type r;
 
@@ -340,46 +300,56 @@ struct MeshEntityIdCoder_
 
     }
 
-    static point_type coordinates_local_to_global(id_type s, point_type const &x) { return point(s) + x * _R * 2; }
+    static point_type point_local_to_global(MeshEntityId s, point_type const &x) { return point(s) + x * _R * 2; }
 
 
-    static point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t)
+    static point_type point_local_to_global(std::tuple<MeshEntityId, point_type> const &t)
     {
-        return coordinates_local_to_global(std::get<0>(t), std::get<1>(t));
+        return point_local_to_global(std::get<0>(t), std::get<1>(t));
     }
 
 //! @name id auxiliary functions
 //! @{
-    static constexpr id_type dual(id_type s)
+
+
+//    static constexpr MeshEntityId DI(int n, MeshEntityId s)
+//    {
+//        return (s >> (n * ID_DIGITS)) & _D;
+//    }
+
+
+    static constexpr MeshEntityId dual(MeshEntityId s)
     {
-        return (s & (~_DA)) | ((~(s & _DA)) & _DA);
+        return MeshEntityId{.v=(s.v & (~_DA.v)) | ((~(s.v & _DA.v)) & _DA.v)};
 
     }
 
-    static constexpr id_type DI(int n, id_type s)
+    static constexpr MeshEntityId delta_index(MeshEntityId s)
     {
-        return (s >> (n * ID_DIGITS)) & _D;
+        return MeshEntityId{.v=static_cast<int64_t >(s.v & _DA.v)};
     }
 
-
-    static constexpr id_type delta_index(id_type s)
+    static constexpr MeshEntityId rotate(MeshEntityId const &s)
     {
-        return (s & _DA);
+        return MeshEntityId{
+                static_cast<int16_t >(s.w),
+                static_cast<int16_t >((s.z & ~0x1) | (s.y & 0x1)),
+                static_cast<int16_t >((s.y & ~0x1) | (s.x & 0x1)),
+                static_cast<int16_t >((s.x & ~0x1) | (s.z & 0x1))
+
+        };
     }
 
-    static constexpr id_type rotate(id_type const &s)
+    static constexpr MeshEntityId inverse_rotate(MeshEntityId const &s)
     {
-        return ((s & (~_DA))
-                | (((s & (_DA)) << ID_DIGITS) | ((s & _DK) >> (ID_DIGITS * 2))))
-               & NO_HAED;
+        return MeshEntityId{
+                static_cast<int16_t >(s.w),
+                static_cast<int16_t >((s.z & ~0x1) | (s.x & 0x1)),
+                static_cast<int16_t >((s.y & ~0x1) | (s.z & 0x1)),
+                static_cast<int16_t >((s.x & ~0x1) | (s.y & 0x1))
+        };
     }
 
-    static constexpr id_type inverse_rotate(id_type const &s)
-    {
-        return ((s & (~_DA))
-                | (((s & (_DA)) >> ID_DIGITS) | ((s & _DI) << (ID_DIGITS * 2))))
-               & NO_HAED;
-    }
 
     /**
      *\verbatim
@@ -416,11 +386,9 @@ struct MeshEntityIdCoder_
         TAG_VOLUME = 7
     };
 
-    static constexpr size_t node_id(id_type const &s)
+    static constexpr int node_id(MeshEntityId const &s)
     {
-        return ((s >> (MESH_RESOLUTION - 1)) & 1UL)
-               | ((s >> (ID_DIGITS + MESH_RESOLUTION - 2)) & 2UL)
-               | ((s >> (ID_DIGITS * 2 + MESH_RESOLUTION - 3)) & 4UL);
+        return (s.x & 0x1) | ((s.y & 0x1) << 1) | ((s.z & 0x1) << 2);
     }
 
     static constexpr int m_id_to_index_[8] = { //
@@ -435,7 +403,7 @@ struct MeshEntityIdCoder_
             0, // 111
     };
 
-    static constexpr int sub_index(id_type const &s)
+    static constexpr int sub_index(MeshEntityId const &s)
     {
         return m_id_to_index_[node_id(s)];
     }
@@ -515,7 +483,7 @@ struct MeshEntityIdCoder_
 
             };
 
-    static constexpr id_type m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
+    static constexpr MeshEntityId m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
             {
                     //To VERTEX
                     {
@@ -754,129 +722,23 @@ struct MeshEntityIdCoder_
 
             };
 
-    static int get_adjacent_entities(int IFORM, id_type s, id_type *res = nullptr)
+    static int get_adjacent_entities(int IFORM, MeshEntityId s, MeshEntityId *res = nullptr)
     {
         return get_adjacent_entities(IFORM, node_id(s), s, res);
     }
 
-    static int get_adjacent_entities(int IFORM, int nodeid, id_type s, id_type *res = nullptr)
+    static int get_adjacent_entities(int IFORM, int nodeid, MeshEntityId s, MeshEntityId *res = nullptr)
     {
         if (res != nullptr)
         {
             for (int i = 0; i < m_adjacent_cell_num_[IFORM][nodeid]; ++i)
             {
-                res[i] = (((s | FULL_OVERFLOW_FLAG) - _DA + m_adjacent_cell_matrix_[IFORM][nodeid][i])) |
-                         (FULL_OVERFLOW_FLAG);
+                res[i] = s - _DA + m_adjacent_cell_matrix_[IFORM][nodeid][i];
             }
         }
         return m_adjacent_cell_num_[IFORM][nodeid];
     }
-//
-//    struct iterator : public gtl::IteratorBlock<index_type, 3 + 1>
-//    {
-//    private:
-//        typedef gtl::IteratorBlock<index_type, 3 + 1> base_type;
-//
-//        int m_iform_;
-//
-//    public:
-//
-//        typedef std::random_access_iterator_tag iterator_category;
-//        typedef id_type value_type;
-//        typedef MeshEntityIdDiff difference_type;
-//        typedef value_type *pointer;
-//        typedef value_type reference;
-//
-//        iterator() : base_type(), m_iform_(0) { }
-//
-//        iterator(id_type s, id_type b, id_type e)
-//                : base_type(unpack_index(s), unpack_index(b), unpack_index(e)), m_iform_(iform(s))
-//        {
-//            nTuple<index_type, ndims + 1> self, min, max;
-//            self = unpack_index(s);
-//            min = unpack_index(b);
-//            max = unpack_index(e);
-//
-//            self[ndims] = 0;
-//
-//            min[ndims] = 0;
-//
-//            max[ndims] = num_of_ele_in_cell(s);
-//
-//            base_type(self, min, max).swap(*this);
-//
-//        }
-//
-//        template<typename T0, typename T1, typename T2>
-//        iterator(T0 const &pself, T1 const &pmin, T2 const &pmax, int IFORM = 0) :
-//                m_iform_(IFORM)
-//        {
-//            nTuple<index_type, ndims + 1> self, min, max;
-//            self = pself;
-//            min = pmin;
-//            max = pmax;
-//
-//            self[ndims] = 0;
-//
-//            min[ndims] = 0;
-//
-//            max[ndims] = (IFORM == 0 || IFORM == 3) ? 1 : 3;
-//
-//            base_type(self, min, max).swap(*this);
-//        }
-//
-//        iterator(iterator const &other) : base_type(other), m_iform_(other.m_iform_)
-//        {
-//        }
-//
-//        iterator(iterator &&other) : base_type(other), m_iform_(other.m_iform_)
-//        {
-//        }
-//
-//        iterator(base_type const &other, int IFORM) : base_type(other), m_iform_(IFORM)
-//        {
-//        }
-//
-//        ~iterator() { }
-//
-//        iterator end() const
-//        {
-//            return iterator(base_type::end(), m_iform_);
-//        }
-//
-//        iterator &operator=(iterator const &other)
-//        {
-//            iterator(other).swap(*this);
-//            return *this;
-//        }
-//
-//        iterator &operator=(base_type const &other)
-//        {
-//            base_type(other).swap(*this);
-//            return *this;
-//        }
-//
-//        iterator operator+(difference_type const &s) const
-//        {
-//            iterator res(*this);
-//            res.advance(s);
-//            return std::move(res);
-//        }
-//
-//        void swap(iterator &other)
-//        {
-//            base_type::swap(other);
-//            std::swap(m_iform_, other.m_iform_);
-//        }
-//
-//        value_type operator*() const { return pack_(base_type::operator*()); }
-//
-//        value_type pack_(nTuple<index_type, ndims + 1> const &idx) const
-//        {
-//            return pack_index(idx, m_sub_index_to_id_[m_iform_][idx[ndims]]);
-//        }
-//
-//    };
+
 
     struct range_type
     {
@@ -1048,11 +910,11 @@ struct MeshEntityIdCoder_
         template<typename Body>
         void foreach(Body const &body, bool auto_parallel = false) const
         {
-            if (auto_parallel)
-            {
-                parallel_foreach(body);
-            }
-            else
+//            if (auto_parallel)
+//            {
+//                parallel_foreach(body);
+//            }
+//            else
             {
                 serial_foreach(body);
             }
@@ -1087,18 +949,18 @@ struct MeshEntityIdCoder_
     }
 
 
-    static index_type hash(id_type const &s, index_tuple const &b, index_tuple const &e)
+    static index_type hash(MeshEntityId const &s, index_tuple const &b, index_tuple const &e)
     {
         //C-ORDER SLOW FIRST
 
         return
                 (
-                        (unpack_index(s, 2) + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
+                        ((s.z >> 1) + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
 
                         (
-                                ((unpack_index(s, 1) + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
+                                (((s.y >> 1) + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
 
-                                ((unpack_index(s, 0) + e[0] - b[0] - b[0]) % (e[0] - b[0])) * (e[1] - b[1])
+                                (((s.x >> 1) + e[0] - b[0] - b[0]) % (e[0] - b[0])) * (e[1] - b[1])
 
                         ) * (e[2] - b[2])
 
@@ -1106,7 +968,7 @@ struct MeshEntityIdCoder_
 
     }
 //
-//    static constexpr index_type hash(id_type s, id_type b, id_type e)
+//    static constexpr index_type hash(MeshEntityId s, MeshEntityId b, MeshEntityId e)
 //    {
 //        return hash(s, unpack_index(b), unpack_index(e));
 //
@@ -1114,7 +976,7 @@ struct MeshEntityIdCoder_
 //    }
 //
 //
-//    static constexpr index_type hash_(id_type const &s, id_type const &d)
+//    static constexpr index_type hash_(MeshEntityId const &s, MeshEntityId const &d)
 //    {
 //        //C-ORDER SLOW FIRST
 //
@@ -1132,7 +994,7 @@ struct MeshEntityIdCoder_
 //    }
 
     template<int IFORM>
-    static constexpr size_t max_hash(id_type b, id_type e)
+    static constexpr size_t max_hash(MeshEntityId b, MeshEntityId e)
     {
         return NProduct(unpack_index((e - b)))
                * m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)];
@@ -1145,165 +1007,6 @@ struct MeshEntityIdCoder_
                * m_id_to_num_of_ele_in_cell_[m_sub_index_to_id_[IFORM][0]];
     }
 
-    template<typename TGeometry>
-    static void get_element_volume_in_cell(TGeometry const &geo, id_type s0, Real *v, Real *inv_v, Real *dual_v,
-                                           Real *inv_dual_v)
-    {
-
-        /**
-         *\verbatim
-         *                ^y
-         *               /
-         *        z     /
-         *        ^    /
-         *        |   6---------------7
-         *        |  /|              /|
-         *        | / |             / |
-         *        |/  |            /  |
-         *        4---|-----------5   |
-         *        |   |           |   |
-         *        |   2-----------|---3
-         *        |  /            |  /
-         *        | /             | /
-         *        |/              |/
-         *        0---------------1---> x
-         *
-         *\endverbatim
-         */
-
-
-
-        typedef typename TGeometry::point_type point_type;
-
-        auto dims = geo.dimensions();
-
-
-        static constexpr id_type HI = 1UL << (MESH_RESOLUTION);
-        static constexpr id_type HJ = HI << ID_DIGITS;
-        static constexpr id_type HK = HI << (ID_DIGITS * 2);
-
-        static constexpr id_type HA = HI | HJ | HK;
-        //primary
-        {
-            size_t s = (s0 | FULL_OVERFLOW_FLAG);
-
-            point_type p[NUM_OF_NODE_ID] = {
-
-                    /*000*/  geo.point(s),                       //
-                    /*001*/  geo.point(s + (HI)),          //
-                    /*010*/  geo.point(s + (HJ)),          //
-                    /*011*/  geo.point(s + (HJ | HI)),  //
-
-                    /*100*/  geo.point(s + (HK)),          //
-                    /*101*/  geo.point(s + (HK | HI)),   //
-                    /*110*/  geo.point(s + (HK | HJ)),   //
-                    /*111*/  geo.point(s + (HK | HJ | HI))    //
-
-            };
-
-
-            v[TAG_VERTEX] = 1;
-
-            v[TAG_EDGE0] = geo.simplex_length(p[0], p[1]);
-            v[TAG_EDGE1] = geo.simplex_length(p[0], p[2]);
-            v[TAG_EDGE2] = geo.simplex_length(p[0], p[4]);
-
-            v[TAG_FACE0] = geo.simplex_area(p[0], p[2], p[6]) + geo.simplex_area(p[0], p[6], p[4]);
-            v[TAG_FACE1] = geo.simplex_area(p[0], p[1], p[5]) + geo.simplex_area(p[0], p[5], p[4]);
-            v[TAG_FACE2] = geo.simplex_area(p[0], p[1], p[3]) + geo.simplex_area(p[0], p[3], p[2]);
-
-
-            v[TAG_VOLUME] = geo.simplex_volume(p[0], p[1], p[2], p[4]) + //
-                            geo.simplex_volume(p[1], p[4], p[5], p[2]) + //
-                            geo.simplex_volume(p[2], p[6], p[4], p[5]) + //
-                            geo.simplex_volume(p[1], p[3], p[2], p[5]) + //
-                            geo.simplex_volume(p[3], p[5], p[7], p[6]) + //
-                            geo.simplex_volume(p[3], p[6], p[2], p[5]);
-
-        }
-        //dual
-        {
-            size_t s = (s0 | FULL_OVERFLOW_FLAG) - (HA >> 1);
-
-//            point_type p[NUM_OF_NODE_ID] = {
-//
-//                    /*000*/    geo.point(s + ((LK | LJ | LI) << 1)),   //
-//                    /*001*/    geo.point(s + ((LK | LJ | HI) << 1)),   //
-//                    /*010*/    geo.point(s + ((LK | HJ | LI) << 1)),   //
-//                    /*011*/    geo.point(s + ((LK | HJ | HI) << 1)),   //
-//
-//                    /*100*/    geo.point(s + ((HK | LJ | LI) << 1)),   //
-//                    /*101*/    geo.point(s + ((HK | LJ | HI) << 1)),   //
-//                    /*110*/    geo.point(s + ((HK | HJ | LI) << 1)),   //
-//                    /*111*/    geo.point(s + ((HK | HJ | HI) << 1))    //
-//
-//            };
-
-            point_type p[NUM_OF_NODE_ID] = {
-
-                    /*000*/  geo.point(s),                       //
-                    /*001*/  geo.point(s + (HI)),          //
-                    /*010*/  geo.point(s + (HJ)),          //
-                    /*011*/  geo.point(s + (HJ | HI)),  //
-
-                    /*100*/  geo.point(s + (HK)),          //
-                    /*101*/  geo.point(s + (HK | HI)),   //
-                    /*110*/  geo.point(s + (HK | HJ)),   //
-                    /*111*/  geo.point(s + (HK | HJ | HI))    //
-
-            };
-
-
-            dual_v[TAG_VOLUME] = 1;
-
-            dual_v[TAG_FACE0] = geo.simplex_length(p[6], p[7]);
-            dual_v[TAG_FACE1] = geo.simplex_length(p[5], p[7]);
-            dual_v[TAG_FACE2] = geo.simplex_length(p[3], p[7]);
-
-
-            dual_v[TAG_EDGE0] = geo.simplex_area(p[1], p[3], p[5]) + geo.simplex_area(p[3], p[7], p[5]);
-            dual_v[TAG_EDGE1] = geo.simplex_area(p[2], p[3], p[7]) + geo.simplex_area(p[2], p[7], p[6]);
-            dual_v[TAG_EDGE2] = geo.simplex_area(p[4], p[5], p[7]) + geo.simplex_area(p[4], p[7], p[6]);
-
-
-            dual_v[TAG_VERTEX] = geo.simplex_volume(p[0], p[1], p[2], p[4]) + //
-                                 geo.simplex_volume(p[1], p[4], p[5], p[2]) + //
-                                 geo.simplex_volume(p[2], p[6], p[4], p[5]) + //
-                                 geo.simplex_volume(p[1], p[3], p[2], p[5]) +
-                                 geo.simplex_volume(p[3], p[5], p[7], p[6]) + //
-                                 geo.simplex_volume(p[3], p[6], p[2], p[5])  //
-                    ;
-
-        }
-
-        for (int i = 0; i < NUM_OF_NODE_ID; ++i)
-        {
-            inv_v[i] = 1.0 / v[i];
-            inv_dual_v[i] = 1.0 / dual_v[i];
-        }
-
-
-        if (dims[0] <= 1)
-        {
-            inv_v[TAG_EDGE0] = 0;
-            inv_dual_v[TAG_FACE0] = 0;
-        }
-
-        if (dims[1] <= 1)
-        {
-            inv_v[TAG_EDGE1] = 0;
-            inv_dual_v[TAG_FACE1] = 0;
-        }
-
-        if (dims[2] <= 1)
-        {
-            inv_v[TAG_EDGE2] = 0;
-
-            inv_dual_v[TAG_FACE2] = 0;
-        }
-
-
-    }
 };
 
 
@@ -1314,25 +1017,19 @@ struct MeshEntityIdCoder_
 
 template<int L> constexpr int MeshEntityIdCoder_<L>::ndims;
 template<int L> constexpr int MeshEntityIdCoder_<L>::MESH_RESOLUTION;
-template<int L> constexpr Real MeshEntityIdCoder_<L>::EPSILON;
-template<int L> constexpr int MeshEntityIdCoder_<L>::FULL_DIGITS;
-template<int L> constexpr int MeshEntityIdCoder_<L>::ID_DIGITS;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::OVERFLOW_FLAG;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::ID_ZERO;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::INDEX_ZERO;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::ID_MASK;
+
 
 template<int L> constexpr Real MeshEntityIdCoder_<L>::_R;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DK;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DJ;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DI;
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DA;
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::_DK;
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::_DJ;
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::_DI;
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::_DA;
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_index_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_iform_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_num_of_ele_in_cell_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_adjacent_cell_num_[4][8];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_iform_to_num_of_ele_in_cell_[];
-template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::m_id_to_shift_[];
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_id_to_shift_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_sub_index_to_id_[4][3];
 template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
 template<int L> constexpr point_type MeshEntityIdCoder_<L>::m_id_to_coordinates_shift_[];

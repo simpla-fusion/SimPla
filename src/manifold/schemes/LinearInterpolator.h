@@ -8,7 +8,7 @@
 #define SIMPLA_LINEAR_H
 
 #include "../../gtl/nTuple.h"
-#include "../../mesh/MeshEntityIdCoder.h"
+#include "../../mesh/MeshEntityId.h"
 
 namespace simpla { namespace manifold { namespace schemes
 {
@@ -57,12 +57,12 @@ private:
     std::get<1>(idx)[0])
     {
 
-        auto X = (M::_DI) << 1;
-        auto Y = (M::_DJ) << 1;
-        auto Z = (M::_DK) << 1;
+        MeshEntityId X = (M::_DI);
+        MeshEntityId Y = (M::_DJ);
+        MeshEntityId Z = (M::_DK);
 
         point_type r = std::get<1>(idx);
-        index_type s = std::get<0>(idx);
+        MeshEntityId s = std::get<0>(idx);
 
         return traits::index(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
                + traits::index(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
@@ -79,16 +79,16 @@ public:
     template<typename TF> constexpr inline traits::field_value_t<TF>
     gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == VERTEX))) const
     {
-        return gather_impl_(f, m.coordinates_global_to_local(r, 0));
+        return gather_impl_(f, m.point_global_to_local(r, 0));
     }
 
     template<typename TF> constexpr inline traits::field_value_t<TF>
     gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == EDGE))) const
     {
         return traits::field_value_t<TF>{
-                gather_impl_(f, m.coordinates_global_to_local(r, 1)),
-                gather_impl_(f, m.coordinates_global_to_local(r, 2)),
-                gather_impl_(f, m.coordinates_global_to_local(r, 4))
+                gather_impl_(f, m.point_global_to_local(r, 1)),
+                gather_impl_(f, m.point_global_to_local(r, 2)),
+                gather_impl_(f, m.point_global_to_local(r, 4))
         };
     }
 
@@ -96,16 +96,16 @@ public:
     gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == FACE))) const
     {
         return traits::field_value_t<TF>{
-                gather_impl_(f, m.coordinates_global_to_local(r, 6)),
-                gather_impl_(f, m.coordinates_global_to_local(r, 5)),
-                gather_impl_(f, m.coordinates_global_to_local(r, 3))
+                gather_impl_(f, m.point_global_to_local(r, 6)),
+                gather_impl_(f, m.point_global_to_local(r, 5)),
+                gather_impl_(f, m.point_global_to_local(r, 3))
         };
     }
 
     template<typename TF> constexpr inline traits::field_value_t<TF>
     gather(TF const &f, point_type const &x, FUNCTION_REQUIREMENT((traits::iform<TF>::value == VOLUME))) const
     {
-        return gather_impl_(f, m.coordinates_global_to_local(x, 7));
+        return gather_impl_(f, m.point_global_to_local(x, 7));
     }
 
 
@@ -116,12 +116,12 @@ private:
                   TV const &v) const
     {
 
-        auto X = (M::_DI) << 1;
-        auto Y = (M::_DJ) << 1;
-        auto Z = (M::_DK) << 1;
+        MeshEntityId X = (M::_DI);
+        MeshEntityId Y = (M::_DJ);
+        MeshEntityId Z = (M::_DK);
 
         point_type r = std::get<1>(idx);
-        index_type s = std::get<0>(idx);
+        MeshEntityId s = std::get<0>(idx);
 
         traits::index(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
         traits::index(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
@@ -140,7 +140,7 @@ private:
     scatter_(std::integral_constant<int, VERTEX>, TF &
     f, TX const &x, TV const &u) const
     {
-        scatter_impl_(f, m.coordinates_global_to_local(x, 0), u);
+        scatter_impl_(f, m.point_global_to_local(x, 0), u);
     }
 
     template<typename TF, typename TX, typename TV>
@@ -149,9 +149,9 @@ private:
     f, TX const &x, TV const &u) const
     {
 
-        scatter_impl_(f, m.coordinates_global_to_local(x, 1), u[0]);
-        scatter_impl_(f, m.coordinates_global_to_local(x, 2), u[1]);
-        scatter_impl_(f, m.coordinates_global_to_local(x, 4), u[2]);
+        scatter_impl_(f, m.point_global_to_local(x, 1), u[0]);
+        scatter_impl_(f, m.point_global_to_local(x, 2), u[1]);
+        scatter_impl_(f, m.point_global_to_local(x, 4), u[2]);
 
     }
 
@@ -161,9 +161,9 @@ private:
              TX const &x, TV const &u) const
     {
 
-        scatter_impl_(f, m.coordinates_global_to_local(x, 6), u[0]);
-        scatter_impl_(f, m.coordinates_global_to_local(x, 5), u[1]);
-        scatter_impl_(f, m.coordinates_global_to_local(x, 3), u[2]);
+        scatter_impl_(f, m.point_global_to_local(x, 6), u[0]);
+        scatter_impl_(f, m.point_global_to_local(x, 5), u[1]);
+        scatter_impl_(f, m.point_global_to_local(x, 3), u[2]);
     }
 
     template<typename TF, typename TX, typename TV>
@@ -171,7 +171,7 @@ private:
     scatter_(std::integral_constant<int, VOLUME>,
              TF &f, TX const &x, TV const &u) const
     {
-        scatter_impl_(f, m.coordinates_global_to_local(x, 7), u);
+        scatter_impl_(f, m.point_global_to_local(x, 7), u);
     }
 
 public:
