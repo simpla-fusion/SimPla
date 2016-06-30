@@ -20,7 +20,7 @@ class Cylindrical<mesh::CoRectMesh>
 {
     typedef Cylindrical<mesh::CoRectMesh> this_type;
     typedef mesh::CoRectMesh mesh_type;
-    typedef typename mesh::MeshEntityId id_type;
+    typedef mesh::MeshEntityId id_type;
 
     mesh_type const &m_;
 public:

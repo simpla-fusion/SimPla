@@ -22,7 +22,7 @@
 
 #include "MeshCommon.h"
 #include "MeshBase.h"
-#include "MeshEntityIdCoder.h"
+#include "MeshEntityId.h"
 
 namespace simpla { namespace mesh
 {
@@ -236,8 +236,8 @@ public:
 
 private:
     //TODO should use block-entity_id_range
-    parallel::concurrent_unordered_set<MeshEntityId> m_affected_entities_[4];
-    parallel::concurrent_unordered_set<MeshEntityId> m_interface_entities_[4];
+    parallel::concurrent_unordered_set <MeshEntityId> m_affected_entities_[4];
+    parallel::concurrent_unordered_set <MeshEntityId> m_interface_entities_[4];
 public:
 
     typedef typename MeshEntityIdCoder::range_type block_range_type;
@@ -383,11 +383,11 @@ public:
     virtual point_type
     point_local_to_global(MeshEntityId s, point_type const &r) const
     {
-        point_type p = m::coordinates_local_to_global(s, r);
+        point_type p = m::point(s);
 
-        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
-        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
-        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
+        p[0] = std::fma(p[0] + r[0], m_l2g_scale_[0], m_l2g_shift_[0]);
+        p[1] = std::fma(p[1] + r[1], m_l2g_scale_[1], m_l2g_shift_[1]);
+        p[2] = std::fma(p[2] + r[2], m_l2g_scale_[2], m_l2g_shift_[2]);
 
         return std::move(p);
     }
@@ -396,7 +396,7 @@ public:
     point_global_to_local(point_type const &g, int nId = 0) const
     {
 
-        return m::coordinates_global_to_local(
+        return m::point_global_to_local(
                 point_type{{
                                    std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
                                    std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
@@ -407,12 +407,12 @@ public:
     virtual index_tuple
     point_to_index(point_type const &g, int nId = 0) const
     {
-        return m::unpack_index(std::get<0>(m::coordinates_global_to_local(
-                point_type{{
-                                   std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
-                                   std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
-                                   std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
-                           }}, nId)));
+        return m::unpack_index(std::get<0>(m::point_global_to_local(
+                point_type{
+                        std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
+                        std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
+                        std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
+                }, nId)));
     };
 
     vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};

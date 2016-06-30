@@ -34,8 +34,8 @@
 //#include "../../experimental/particle_factory.h"
 
 // Solver
-#include "../field_solver/pml.h"
-#include "../field_solver/implicitPushE.h"
+#include "../problem_domain/field_solver/pml.h"
+#include "../problem_domain/field_solver/implicitPushE.h"
 #include "../particle_solver/register_Particle.h"
 
 namespace simpla

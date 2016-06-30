@@ -8,7 +8,7 @@
 #define SIMPLA_LINEAR_H
 
 #include "../../gtl/nTuple.h"
-#include "../../mesh/MeshEntityIdCoder.h"
+#include "../../mesh/MeshEntityId.h"
 
 namespace simpla { namespace manifold { namespace schemes
 {
@@ -57,12 +57,12 @@ private:
     std::get<1>(idx)[0])
     {
 
-        auto X = (M::_DI) << 1;
-        auto Y = (M::_DJ) << 1;
-        auto Z = (M::_DK) << 1;
+        MeshEntityId X{2, 0, 0, 0};
+        MeshEntityId Y{0, 2, 0, 0};
+        MeshEntityId Z{0, 0, 2, 0};
 
         point_type r = std::get<1>(idx);
-        index_type s = std::get<0>(idx);
+        MeshEntityId s = std::get<0>(idx);
 
         return traits::index(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
                + traits::index(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
@@ -86,9 +86,9 @@ public:
     gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == EDGE))) const
     {
         return traits::field_value_t<TF>{
-                gather_impl_(f, m.coordinates_global_to_local(r, 1)),
-                gather_impl_(f, m.coordinates_global_to_local(r, 2)),
-                gather_impl_(f, m.coordinates_global_to_local(r, 4))
+                gather_impl_(f, m.point_global_to_local(r, 1)),
+                gather_impl_(f, m.point_global_to_local(r, 2)),
+                gather_impl_(f, m.point_global_to_local(r, 4))
         };
     }
 
@@ -96,9 +96,9 @@ public:
     gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == FACE))) const
     {
         return traits::field_value_t<TF>{
-                gather_impl_(f, m.coordinates_global_to_local(r, 6)),
-                gather_impl_(f, m.coordinates_global_to_local(r, 5)),
-                gather_impl_(f, m.coordinates_global_to_local(r, 3))
+                gather_impl_(f, m.point_global_to_local(r, 6)),
+                gather_impl_(f, m.point_global_to_local(r, 5)),
+                gather_impl_(f, m.point_global_to_local(r, 3))
         };
     }
 
@@ -112,16 +112,15 @@ public:
 private:
     template<typename TF, typename IDX, typename TV>
     inline void
-    scatter_impl_(TF &f, IDX const &idx,
-                  TV const &v) const
+    scatter_impl_(TF &f, IDX const &idx, TV const &v) const
     {
 
-        auto X = (M::_DI) << 1;
-        auto Y = (M::_DJ) << 1;
-        auto Z = (M::_DK) << 1;
+        MeshEntityId X{2, 0, 0, 0};
+        MeshEntityId Y{0, 2, 0, 0};
+        MeshEntityId Z{0, 0, 2, 0};
 
         point_type r = std::get<1>(idx);
-        index_type s = std::get<0>(idx);
+        MeshEntityId s = std::get<0>(idx);
 
         traits::index(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
         traits::index(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
@@ -206,7 +205,7 @@ private:
     }
 //
 //    template<typename M,int IFORM,  typename TV>
-//    inline TV sample_(M const & m,std::integral_constant<int, IFORM>, id_type s,
+//    inline TV sample_(M const & m,std::integral_constant<int, IFORM>, MeshEntityId s,
 //                                       TV const &v) const { return v; }
 
 public:

@@ -3,25 +3,29 @@
 //
 
 #include "em.h"
-#include "../problem_domain/EMFluid.h"
-#include "../problem_domain/PML.h"
+#include "../../../example/em/EMFluid.h"
+#include "../../../example/em/PML.h"
+#include "../../../src/manifold/pre_define/PreDefine.h"
+
 
 namespace simpla { namespace scenario
 {
-virtual void EM::setup()
+typedef manifold::CartesianManifold mesh_type;
+
+void EM::setup(ConfigParser const &options)
 {
 
-    auto mesh_center = ctx.add_mesh<mesh_type>();
+    auto mesh_center = this->add_mesh<mesh_type>();
 
     mesh_center->setup(options["Mesh"]).name("Center").deploy();
 
 
-    ctx.add_problem_domain<EMFluid<mesh_type >>(mesh_center->id())
+    this->add_problem_domain<EMFluid<mesh_type >>(mesh_center->id())
             ->setup(options).deploy();
 
     if (options["PML"])
     {
-        ctx.extend_domain<PML<mesh_type> >(mesh_center->id(), options["PML"]["Width"].as<size_type>(5), "PML_");
+//        this->extend_domain<PML<mesh_type> >(mesh_center->id(), options["PML"]["Width"].as<size_type>(5), "PML_");
     }
 //
 //
@@ -43,8 +47,6 @@ virtual void EM::setup()
 //        }
 //
 //    }
-
-
 
 }
 }}//namespace simpla{namespace  scenario{

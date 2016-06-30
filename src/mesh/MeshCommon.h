@@ -5,6 +5,7 @@
 #ifndef SIMPLA_MESHCOMMON_H
 #define SIMPLA_MESHCOMMON_H
 
+#include <cstdint>
 
 #ifdef __cplusplus
 namespace simpla { namespace mesh
@@ -110,13 +111,21 @@ namespace simpla { namespace mesh
 //typedef size_t id_type; //!< Data type  of entity id
 
 
-typedef unsigned long MeshEntityId;
+//typedef uint64_t MeshEntityId;
+//
+//typedef int64_t MeshEntityIdDiff;
 
-typedef long MeshEntityIdDiff;
-
+union MeshEntityId
+{
+    struct
+    {
+        int16_t x, y, z;  // cell index
+        int16_t w; // node id in a cell
+    };
+    int64_t v;
+};
 
 typedef boost::uuids::uuid MeshBlockId;
-
 
 template<typename ...> struct Mesh;
 }}//namespace simpla{namespace get_mesh{

@@ -248,21 +248,20 @@ private:
         auto const &l = std::get<0>(expr.args);
 
         size_t i = M::iform(s);
-        id_type X = (i == VERTEX || i == VOLUME) ? M::_DI : M::delta_index(
-                M::dual(s));
+        id_type X = (i == VERTEX || i == VOLUME) ? M::_DI : M::delta_index(M::dual(s));
         id_type Y = M::rotate(X);
         id_type Z = M::inverse_rotate(X);
 
 
         return (
-                       get_v(l, ((s - X) - Y) - Z) +
-                       get_v(l, ((s - X) - Y) + Z) +
-                       get_v(l, ((s - X) + Y) - Z) +
-                       get_v(l, ((s - X) + Y) + Z) +
-                       get_v(l, ((s + X) - Y) - Z) +
-                       get_v(l, ((s + X) - Y) + Z) +
-                       get_v(l, ((s + X) + Y) - Z) +
-                       get_v(l, ((s + X) + Y) + Z)
+                       get_v(l, s - X - Y - Z) +
+                       get_v(l, s - X - Y + Z) +
+                       get_v(l, s - X + Y - Z) +
+                       get_v(l, s - X + Y + Z) +
+                       get_v(l, s + X - Y - Z) +
+                       get_v(l, s + X - Y + Z) +
+                       get_v(l, s + X + Y - Z) +
+                       get_v(l, s + X + Y + Z)
 
                ) * m.inv_dual_volume(s) * 0.125;
 
@@ -322,12 +321,10 @@ private:
     mapto(TF const &expr, id_type s, index_sequence<VERTEX, EDGE>) const
     {
 
-        id_type X = s & M::_DA;
+        id_type X{.v= s.v & M::_DA.v};
 
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
 
-        return (eval_(expr, s + M::_DA - X) + eval_(expr, s + M::_DA + X)) *
-               0.5;
+        return (eval_(expr, s - X) + eval_(expr, s + X)) * 0.5;
     }
 
 
@@ -336,10 +333,10 @@ private:
     mapto(Field<nTuple<TV, 3>, Others...> const &expr, id_type s, index_sequence<VERTEX, EDGE>) const
     {
         size_t n = M::sub_index(s);
-        id_type X = s & M::_DA;
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
-        return (eval_(expr, s + M::_DA - X)[n] +
-                eval_(expr, s + M::_DA + X)[n]) * 0.5;
+
+        id_type X{.v= s.v & M::_DA.v};
+
+        return (eval_(expr, s - X)[n] + eval_(expr, s + X)[n]) * 0.5;
 
     }
 
@@ -350,16 +347,15 @@ private:
     {
 
         auto const &l = expr;
-        auto X = M::delta_index(M::dual(s));
-        auto Y = M::rotate(X);
-        auto Z = M::inverse_rotate(X);
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
+        id_type X = M::delta_index(M::dual(s));
+        id_type Y = M::rotate(X);
+        id_type Z = M::inverse_rotate(X);
 
         return (
-                eval_(l, (s + M::_DA - Y - Z)) +
-                eval_(l, (s + M::_DA - Y + Z)) +
-                eval_(l, (s + M::_DA + Y - Z)) +
-                eval_(l, (s + M::_DA + Y + Z))
+                eval_(l, (s - Y - Z)) +
+                eval_(l, (s - Y + Z)) +
+                eval_(l, (s + Y - Z)) +
+                eval_(l, (s + Y + Z))
         );
     }
 
@@ -372,16 +368,15 @@ private:
 
         size_t n = M::sub_index(s);
         auto const &l = expr;
-        auto X = M::delta_index(M::dual(s));
-        auto Y = M::rotate(X);
-        auto Z = M::inverse_rotate(X);
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
+        id_type X = M::delta_index(M::dual(s));
+        id_type Y = M::rotate(X);
+        id_type Z = M::inverse_rotate(X);
 
         return (
-                eval_(l, (s + M::_DA - Y - Z))[n] +
-                eval_(l, (s + M::_DA - Y + Z))[n] +
-                eval_(l, (s + M::_DA + Y - Z))[n] +
-                eval_(l, (s + M::_DA + Y + Z))[n]
+                eval_(l, (s - Y - Z))[n] +
+                eval_(l, (s - Y + Z))[n] +
+                eval_(l, (s + Y - Z))[n] +
+                eval_(l, (s + Y + Z))[n]
         );
     }
 
@@ -392,19 +387,18 @@ private:
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
+        id_type X = m.DI(0, s);
+        id_type Y = m.DI(1, s);
+        id_type Z = m.DI(2, s);
 
-        return (eval_(l, s + M::_DA - X - Y - Z) +
-                eval_(l, s + M::_DA - X - Y + Z) +
-                eval_(l, s + M::_DA - X + Y - Z) +
-                eval_(l, s + M::_DA - X + Y + Z) +
-                eval_(l, s + M::_DA + X - Y - Z) +
-                eval_(l, s + M::_DA + X - Y + Z) +
-                eval_(l, s + M::_DA + X + Y - Z) +
-                eval_(l, s + M::_DA + X + Y + Z)
+        return (eval_(l, s - X - Y - Z) +
+                eval_(l, s - X - Y + Z) +
+                eval_(l, s - X + Y - Z) +
+                eval_(l, s - X + Y + Z) +
+                eval_(l, s + X - Y - Z) +
+                eval_(l, s + X - Y + Z) +
+                eval_(l, s + X + Y - Z) +
+                eval_(l, s + X + Y + Z)
 
         );
     }
@@ -419,21 +413,20 @@ private:
 
         auto const &l = expr;
 
-        id_type DA = M::_DA;
-        id_type X = M::_D;
-        id_type Y = X << M::ID_DIGITS;
-        id_type Z = Y << M::ID_DIGITS;
 
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
+        id_type X = M::_DI;
+        id_type Y = M::_DJ;
+        id_type Z = M::_DK;
+
 
         return nTuple<typename traits::value_type<TF>::type, 3>
                 {
-                        static_cast<typename traits::value_type<TF>::type>((eval_(l, s + M::_DA - X) +
-                                                                            eval_(l, s + M::_DA + X)) * 0.5),
-                        static_cast<typename traits::value_type<TF>::type>((eval_(l, s + M::_DA - Y) +
-                                                                            eval_(l, s + M::_DA + Y)) * 0.5),
-                        static_cast<typename traits::value_type<TF>::type>((eval_(l, s + M::_DA - Z) +
-                                                                            eval_(l, s + M::_DA + Z)) * 0.5)
+                        static_cast<typename traits::value_type<TF>::type>((eval_(l, s - X) +
+                                                                            eval_(l, s + X)) * 0.5),
+                        static_cast<typename traits::value_type<TF>::type>((eval_(l, s - Y) +
+                                                                            eval_(l, s + Y)) * 0.5),
+                        static_cast<typename traits::value_type<TF>::type>((eval_(l, s - Z) +
+                                                                            eval_(l, s + Z)) * 0.5)
 
                 };
 
@@ -448,26 +441,25 @@ private:
     {
         auto const &l = expr;
 
-        id_type X = M::_D;
-        id_type Y = X << M::ID_DIGITS;;
-        id_type Z = Y << M::ID_DIGITS;;
+        id_type X = M::_DI;
+        id_type Y = M::_DJ;
+        id_type Z = M::_DK;
 
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
 
         return nTuple<typename traits::value_type<TF>::type, 3>
                 {
-                        static_cast<typename traits::value_type<TF>::type>(eval_(l, (s + M::_DA - Y - Z)) +
-                                                                           eval_(l, (s + M::_DA - Y + Z)) +
-                                                                           eval_(l, (s + M::_DA + Y - Z)) +
-                                                                           eval_(l, (s + M::_DA + Y + Z))),
-                        static_cast<typename traits::value_type<TF>::type>(eval_(l, (s + M::_DA - Z - X)) +
-                                                                           eval_(l, (s + M::_DA - Z + X)) +
-                                                                           eval_(l, (s + M::_DA + Z - X)) +
-                                                                           eval_(l, (s + M::_DA + Z + X))),
-                        static_cast<typename traits::value_type<TF>::type>(eval_(l, (s + M::_DA - X - Y)) +
-                                                                           eval_(l, (s + M::_DA - X + Y)) +
-                                                                           eval_(l, (s + M::_DA + X - Y)) +
-                                                                           eval_(l, (s + M::_DA + X + Y)))
+                        static_cast<typename traits::value_type<TF>::type>(eval_(l, (s - Y - Z)) +
+                                                                           eval_(l, (s - Y + Z)) +
+                                                                           eval_(l, (s + Y - Z)) +
+                                                                           eval_(l, (s + Y + Z))),
+                        static_cast<typename traits::value_type<TF>::type>(eval_(l, (s - Z - X)) +
+                                                                           eval_(l, (s - Z + X)) +
+                                                                           eval_(l, (s + Z - X)) +
+                                                                           eval_(l, (s + Z + X))),
+                        static_cast<typename traits::value_type<TF>::type>(eval_(l, (s - X - Y)) +
+                                                                           eval_(l, (s - X + Y)) +
+                                                                           eval_(l, (s + X - Y)) +
+                                                                           eval_(l, (s + X + Y)))
                 };
 
 
@@ -481,20 +473,19 @@ private:
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
-        s = (s | M::FULL_OVERFLOW_FLAG) - M::_DA;
+        id_type X{s.x, 0, 0, 0};
+        id_type Y{0, s.y, 0, 0};
+        id_type Z{0, 0, s.z, 0};
 
         return (
-                       eval_(l, ((s + M::_DA - X - Y - Z))) +
-                       eval_(l, ((s + M::_DA - X - Y + Z))) +
-                       eval_(l, ((s + M::_DA - X + Y - Z))) +
-                       eval_(l, ((s + M::_DA - X + Y + Z))) +
-                       eval_(l, ((s + M::_DA + X - Y - Z))) +
-                       eval_(l, ((s + M::_DA + X - Y + Z))) +
-                       eval_(l, ((s + M::_DA + X + Y - Z))) +
-                       eval_(l, ((s + M::_DA + X + Y + Z)))
+                       eval_(l, ((s - X - Y - Z))) +
+                       eval_(l, ((s - X - Y + Z))) +
+                       eval_(l, ((s - X + Y - Z))) +
+                       eval_(l, ((s - X + Y + Z))) +
+                       eval_(l, ((s + X - Y - Z))) +
+                       eval_(l, ((s + X - Y + Z))) +
+                       eval_(l, ((s + X + Y - Z))) +
+                       eval_(l, ((s + X + Y + Z)))
 
                ) * 0.125;
     }
@@ -505,8 +496,7 @@ private:
     typename traits::value_type<TF>::type
     mapto(TF const &expr, id_type s, index_sequence<VOLUME, FACE>) const
     {
-        auto X = M::delta_index(M::dual(s));
-        s = (s | M::FULL_OVERFLOW_FLAG) - M::_DA;
+        id_type X = M::delta_index(M::dual(s));
 
         return (eval_(expr, s - X) + eval_(expr, s + X)) * 0.5;
     }
@@ -518,16 +508,16 @@ private:
     mapto(TF const &expr, id_type s, index_sequence<VOLUME, EDGE>) const
     {
         auto const &l = expr;
-        auto X = M::delta_index(s);
-        auto Y = M::rotate(X);
-        auto Z = M::inverse_rotate(X);
-        s = (s | M::FULL_OVERFLOW_FLAG) - M::_DA;
+        id_type X = M::delta_index(s);
+        id_type Y = M::rotate(X);
+        id_type Z = M::inverse_rotate(X);
+
 
         return (
-                eval_(l, s + M::_DA - Y - Z) +
-                eval_(l, s + M::_DA - Y + Z) +
-                eval_(l, s + M::_DA + Y - Z) +
-                eval_(l, s + M::_DA + Y + Z)
+                eval_(l, s - Y - Z) +
+                eval_(l, s - Y + Z) +
+                eval_(l, s + Y - Z) +
+                eval_(l, s + Y + Z)
         );
     }
 
@@ -539,19 +529,18 @@ private:
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, M::dual(s));
-        auto Y = m.DI(1, M::dual(s));
-        auto Z = m.DI(2, M::dual(s));
-        s = (s | M::FULL_OVERFLOW_FLAG) - M::_DA;
+        id_type X = m.DI(0, M::dual(s));
+        id_type Y = m.DI(1, M::dual(s));
+        id_type Z = m.DI(2, M::dual(s));
 
         return nTuple<traits::value_type_t<TF>, 3>
                 {
-                        (eval_(l, s + M::_DA - X) +
-                         eval_(l, s + M::_DA + X)) * 0.5,
-                        (eval_(l, s + M::_DA - Y) +
-                         eval_(l, s + M::_DA + Y)) * 0.5,
-                        (eval_(l, s + M::_DA - Z) +
-                         eval_(l, s + M::_DA + Z)) * 0.5
+                        (eval_(l, s - X) +
+                         eval_(l, s + X)) * 0.5,
+                        (eval_(l, s - Y) +
+                         eval_(l, s + Y)) * 0.5,
+                        (eval_(l, s - Z) +
+                         eval_(l, s + Z)) * 0.5
 
                 };
 
@@ -566,25 +555,24 @@ private:
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
-        s = (s | M::FULL_OVERFLOW_FLAG) - M::_DA;
+        id_type X = m.DI(0, s);
+        id_type Y = m.DI(1, s);
+        id_type Z = m.DI(2, s);
 
         return nTuple<typename traits::value_type<TF>::type, 3>
                 {
-                        (eval_(l, s + M::_DA - Y - Z) +
-                         eval_(l, s + M::_DA - Y + Z) +
-                         eval_(l, s + M::_DA + Y - Z) +
-                         eval_(l, s + M::_DA + Y + Z)),
-                        (eval_(l, s + M::_DA - Z - X) +
-                         eval_(l, s + M::_DA - Z + X) +
-                         eval_(l, s + M::_DA + Z - X) +
-                         eval_(l, s + M::_DA + Z + X)),
-                        (eval_(l, s + M::_DA - X - Y) +
-                         eval_(l, s + M::_DA - X + Y) +
-                         eval_(l, s + M::_DA + X - Y) +
-                         eval_(l, s + M::_DA + X + Y))
+                        (eval_(l, s - Y - Z) +
+                         eval_(l, s - Y + Z) +
+                         eval_(l, s + Y - Z) +
+                         eval_(l, s + Y + Z)),
+                        (eval_(l, s - Z - X) +
+                         eval_(l, s - Z + X) +
+                         eval_(l, s + Z - X) +
+                         eval_(l, s + Z + X)),
+                        (eval_(l, s - X - Y) +
+                         eval_(l, s - X + Y) +
+                         eval_(l, s + X - Y) +
+                         eval_(l, s + X + Y))
                 };
 
 

@@ -1,20 +1,11 @@
-/**
- * @file em_plasma.cpp
- * @author salmon
- * @date 2015-11-20.
- *
- * @example  em/em_plasma.cpp
- *    This is an example of EM plasma
- */
+//
+// Created by salmon on 16-6-30.
+//
+
 
 #include "../../src/io/IO.h"
 #include "../../src/gtl/Utilities.h"
 #include "../../src/simulation/Context.h"
-#include "../../src/manifold/pre_define/PreDefine.h"
-#include "EMFluid.h"
-#include "PML.h"
-
-typedef simpla::manifold::CartesianManifold mesh_type;
 
 using namespace simpla;
 
@@ -67,43 +58,7 @@ int main(int argc, char **argv)
     }
 
     simulation::Context ctx;
-    {
 
-        auto mesh_center = ctx.add_mesh<mesh_type>();
-
-        mesh_center->setup(options["Mesh"]).name("Center").deploy();
-
-
-        ctx.add_problem_domain<EMFluid<mesh_type >>(mesh_center->id())
-                ->setup(options).deploy();
-
-        if (options["PML"])
-        {
-            ctx.extend_domain<PML<mesh_type> >
-                    (mesh_center->id(), options["PML"]["Width"].as<size_type>(5), "PML_");
-        }
-//
-//
-//    {
-//        std::string str = options["ProblemDomain"].as<std::string>();
-//        if (str == "PIC")
-//        {
-//            problem_domain = std::make_shared<EMPIC < mesh_type>>
-//            (&mesh_center);
-//        }
-//        else if (str == "Fluid")
-//        {
-//            problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh_center);
-//
-//        }
-//        else
-//        {
-//            RUNTIME_ERROR << "Unknown problem type [" << str << "]" << std::endl;
-//        }
-//
-//    }
-
-    }
 
     ctx.print(std::cout);
 

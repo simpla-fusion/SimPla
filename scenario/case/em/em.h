@@ -5,7 +5,8 @@
 #ifndef SIMPLA_EM_SCENARIO_H
 #define SIMPLA_EM_SCENARIO_H
 
-#include "../../src/simulation/Context.h"
+#include "../../../src/simulation/Context.h"
+
 
 namespace simpla { namespace scenario
 {
@@ -16,7 +17,7 @@ class EM : public simulation::Context
 
     virtual ~EM() { }
 
-    virtual void setup();
+    virtual void setup(ConfigParser const &);
 };
 }}//namespace simpla{namespace  scenario{
 

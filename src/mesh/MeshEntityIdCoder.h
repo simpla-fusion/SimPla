@@ -61,7 +61,7 @@ namespace simpla { namespace mesh
  *  @note different get_mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
  */
 
-template<int LEVEL = 4>
+template<int I_VERSION = 0>
 struct MeshEntityIdCoder_
 {
     /// @name at_level independent

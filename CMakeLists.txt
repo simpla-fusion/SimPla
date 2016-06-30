@@ -291,5 +291,6 @@ add_subdirectory(tools)
 add_subdirectory(docs)
 #add_subdirectory(plugins)
 #add_subdirectory(applications)
+add_subdirectory(scenario)
 
  

@@ -2,9 +2,12 @@ import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import sys
 
-f1 = h5py.File("untitled0009.h5")
-step =  1
+filename = sys.argv[1]
+
+f1 = h5py.File(filename, "r")
+step = 1
 
 plt.style.use('ggplot')
 gs = gridspec.GridSpec(3, 3,
@@ -12,13 +15,13 @@ gs = gridspec.GridSpec(3, 3,
                        height_ratios=[1, 5, 1]
                        )
 
-m_levels=np.arange(-10, 10, 0.5)
+m_levels = np.arange(-10, 10, 0.5)
 
 plt.subplot(gs[0, 0]).contour(f1["/checkpoint/E/PML_6"][:, :, 0, 2, step], levels=m_levels)
 plt.subplot(gs[0, 1]).contour(f1["/checkpoint/E/PML_0"][:, :, 0, 2, step], levels=m_levels)
 plt.subplot(gs[0, 2]).contour(f1["/checkpoint/E/PML_7"][:, :, 0, 2, step], levels=m_levels)
 plt.subplot(gs[1, 0]).contour(f1["/checkpoint/E/PML_2"][:, :, 0, 2, step], levels=m_levels)
-plt.subplot(gs[1, 1]).contour(f1["/checkpoint/E/Center"][:, :, 0, 2, step],levels=m_levels)
+plt.subplot(gs[1, 1]).contour(f1["/checkpoint/E/Center"][:, :, 0, 2, step], levels=m_levels)
 plt.subplot(gs[1, 2]).contour(f1["/checkpoint/E/PML_5"][:, :, 0, 2, step], levels=m_levels)
 plt.subplot(gs[2, 0]).contour(f1["/checkpoint/E/PML_3"][:, :, 0, 2, step], levels=m_levels)
 plt.subplot(gs[2, 1]).contour(f1["/checkpoint/E/PML_1"][:, :, 0, 2, step], levels=m_levels)

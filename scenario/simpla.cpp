@@ -18,7 +18,7 @@
 #include "../core/utilities/lua_state.h"
 #include "../core/utilities/parse_command_line.h"
 #include "utilities.h"
-#include "contexts/context_factory.h"
+#include "case/context_factory.h"
 
 using namespace simpla;
 
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 					<< "Too lazy to implemented it\n"<< std::endl;
 					TheEnd(1);
 				}
-				else if( opt=="predefine")
+				else if( opt=="case")
 				{
 					context_type =string_to_value<std::string>(value);
 				}
