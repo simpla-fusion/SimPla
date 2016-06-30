@@ -84,9 +84,74 @@ int main(int argc, char **argv)
 
         if (options["PML"])
         {
-            ctx.extend_domain<PML<mesh_type> >
-                    (mesh_center->id(), options["PML"]["Width"].as<size_type>(5), "PML_");
-        }
+
+            size_type w = options["PML"]["Width"].as<size_type>(5);
+            std::string prefix = "PML_";
+
+
+            int m_flag = mesh_center->status();
+            index_tuple dims = mesh_center->dimensions();
+            int od[3];
+
+            int count = 0;
+            std::shared_ptr<mesh::MeshBase> pml_mesh[6];
+
+            pml_mesh[0] = mesh_center->clone("PML_0");
+            pml_mesh[0]->shift(index_tuple{-w, -w, -w})
+                    .stretch(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w})
+                    .deploy();
+            ctx.atlas().add_block(pml_mesh[0]);
+            ctx.atlas().add_adjacency_2(mesh_center, pml_mesh[0]);
+
+            pml_mesh[1] = mesh_center->clone("PML_1");
+            pml_mesh[1]->shift(index_tuple{dims[0], -w, -w})
+                    .stretch(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w})
+                    .deploy();
+            ctx.atlas().add_block(pml_mesh[1]);
+            ctx.atlas().add_adjacency_2(mesh_center, pml_mesh[1]);
+
+            if (dims[1] > 1)
+            {
+                pml_mesh[0] = mesh_center->clone("PML_2");
+                pml_mesh[0]->shift(index_tuple{0, -w, -w})
+                        .stretch(index_tuple{dims[0], w, dims[2] + 2 * w})
+                        .deploy();
+                ctx.atlas().add_block(pml_mesh[2]);
+                ctx.atlas().add_adjacency_2(mesh_center, pml_mesh[0]);
+
+
+                pml_mesh[1] = mesh_center->clone("PML_3");
+                pml_mesh[1]->shift(index_tuple{0, dims[1], -w})
+                        .stretch(index_tuple{dims[0], w, dims[2] + 2 * w})
+                        .deploy();
+                ctx.atlas().add_block(pml_mesh[3]);
+
+            }
+            if (dims[2] > 1)
+            {
+                pml_mesh[4] = mesh_center->clone("PML_4");
+                pml_mesh[4]->shift(index_tuple{0, 0, -w})
+                        .stretch(index_tuple{dims[0], dims[1], w})
+                        .deploy();
+                ctx.atlas().add_block(pml_mesh[2]);
+
+                pml_mesh[5] = mesh_center->clone("PML_5");
+                pml_mesh[5]->shift(index_tuple{0, 0, dims[2]})
+                        .stretch(index_tuple{dims[0], dims[1], w})
+                        .deploy();
+                ctx.atlas().add_block(pml_mesh[3]);
+
+            }
+            ctx.atlas().add_block(pml_mesh[0]);
+            ctx.atlas().add_adjacency(mesh_center->id(), pml_mesh[n]->id(), mesh::SP_MB_SYNC);
+            ctx.atlas().add_adjacency(pml_mesh[n]->id(), mesh_center->id(), mesh::SP_MB_SYNC);
+            for (int n = 0; n < 6; ++n)
+            {
+                ctx.add_domain(std::make_shared<PML<mesh_type> >(static_cast< mesh_type const *>(pml_mesh[n].get()),
+            }
+        };
+
+    }
 //
 //
 //    {
@@ -108,63 +173,100 @@ int main(int argc, char **argv)
 //
 //    }
 
-    }
+}
 
-    ctx.print(std::cout);
+ctx.
+print(std::cout);
 
-    int num_of_steps = options["number_of_steps"].as<int>(1);
+int num_of_steps = options["number_of_steps"].as<int>(1);
 
-    int step_of_check_points = options["step_of_check_point"].as<int>(1);
+int step_of_check_points = options["step_of_check_point"].as<int>(1);
 
-    Real stop_time = options["stop_time"].as<Real>(1);
-    Real dt = options["dt"].as<Real>();
+Real stop_time = options["stop_time"].as<Real>(1);
+Real dt = options["dt"].as<Real>();
 
-    io::cd("/start/");
+io::cd("/start/");
 
-    ctx.save(io::global(), 0);
+ctx.
 
-    MESSAGE << "====================================================" << std::endl;
+save(io::global(),
 
-    TheStart();
+0);
 
-    INFORM << "\t >>> Time [" << ctx.time() << "] <<< " << std::endl;
+MESSAGE
+<< "====================================================" <<
+std::endl;
 
-    Real current_time = ctx.time();
-    io::cd("/checkpoint/");
-    ctx.check_point(io::global());
+TheStart();
 
-    size_type count = 0;
+INFORM
+<< "\t >>> Time [" << ctx.
 
-    while (ctx.time() < stop_time)
-    {
+time()
 
-        ctx.run(dt);
+<< "] <<< " <<
+std::endl;
 
-        current_time = ctx.time();
+Real current_time = ctx.time();
+io::cd("/checkpoint/");
+ctx.
 
-        if (count % step_of_check_points == 0)
-        {
-            ctx.check_point(io::global());
-        }
-        INFORM << "\t >>>  [ Time = " << current_time << " Count = " << count << "] <<< " << std::endl;
+check_point(io::global());
 
-        ++count;
-    }
+size_type count = 0;
+
+while (ctx.
+
+time()
+
+< stop_time)
+{
+
+ctx.
+run(dt);
+
+current_time = ctx.time();
+
+if (count % step_of_check_points == 0)
+{
+ctx.
+
+check_point(io::global());
+
+}
+INFORM
+<< "\t >>>  [ Time = " << current_time << " Count = " << count << "] <<< " <<
+std::endl;
+
+++
+count;
+}
 
 
-    INFORM << "\t >>> Done <<< " << std::endl;
+INFORM
+<< "\t >>> Done <<< " <<
+std::endl;
 
 
-    // MESSAGE << "====================================================" << std::endl;
-    io::cd("/dump/");
-    ctx.save(io::global(), 0);
-    ctx.teardown();
+// MESSAGE << "====================================================" << std::endl;
+io::cd("/dump/");
+ctx.
 
-    TheEnd();
+save(io::global(),
 
-    io::close();
-    parallel::close();
-    logger::close();
+0);
+ctx.
+
+teardown();
+
+TheEnd();
+
+io::close();
+
+parallel::close();
+
+logger::close();
+
 }
 
 

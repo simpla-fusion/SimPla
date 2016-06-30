@@ -13,7 +13,7 @@ namespace simpla { namespace simulation
 template<typename TProb>
 void extent_span(Context *ctx, mesh::MeshBlockId center, size_type width)
 {
-    auto &atlas = ctx->get_mesh_atlas();
+    auto &atlas = ctx->atlas();
 
     int od[3];
     for (int tag = 1, tag_e = 1 << 6; tag < tag_e; tag <<= 1)

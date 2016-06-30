@@ -103,6 +103,9 @@ public:
 
     virtual point_type origin_point() const = 0;
 
+    virtual mesh::MeshBase &shift(index_tuple const &) { return *this; }
+
+    virtual mesh::MeshBase &stretch(index_tuple const &) { return *this; }
 
     virtual MeshEntityRange select(box_type const &b,
                                    MeshEntityType entityType = VERTEX,
@@ -146,12 +149,12 @@ public:
 
     virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t) const = 0;
 
-    virtual std::shared_ptr<MeshBase> clone() const { return std::shared_ptr<MeshBase>{nullptr}; };
-
-    virtual std::shared_ptr<MeshBase> extend(int const *od, size_type w = 2) const
+    virtual std::shared_ptr<MeshBase> clone(std::string const &name = "") const
     {
-        auto res = this->clone();
-        UNIMPLEMENTED;
+        auto res = std::shared_ptr<MeshBase>{nullptr};
+
+        if (name != "") { res->name(name); }
+
         return res;
     };
 

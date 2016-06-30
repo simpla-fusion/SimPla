@@ -59,7 +59,7 @@ Context::print(std::ostream &os, int indent) const
     return os;
 }
 
-mesh::Atlas &Context::get_mesh_atlas()
+mesh::Atlas &Context::atlas()
 {
     return m_pimpl_->m_atlas_;
 };

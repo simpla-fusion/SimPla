@@ -74,6 +74,19 @@ void Atlas::add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int
             get_block(first).get(), get_block(second).get(), flag)));
 }
 
+void Atlas::add_adjacency(std::shared_ptr<mesh::MeshBase> first, std::shared_ptr<mesh::MeshBase> second, int flag)
+{
+    m_adjacency_list_.emplace(std::make_pair(first->id(), std::make_shared<TransitionMap>(
+            first, second, flag)));
+}
+
+void Atlas::add_adjacency_2(std::shared_ptr<mesh::MeshBase> first, std::shared_ptr<mesh::MeshBase> second, int flag)
+{
+    add_adjacency(first, second, flag);
+    add_adjacency(second, first, flag);
+
+}
+
 
 io::IOStream &Atlas::save(io::IOStream &os) const
 {

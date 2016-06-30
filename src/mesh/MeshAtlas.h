@@ -153,6 +153,10 @@ public:
 
     void add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int flag);
 
+    void add_adjacency(std::shared_ptr<mesh::MeshBase> first, std::shared_ptr<mesh::MeshBase> second, int flag);
+
+    void add_adjacency_2(std::shared_ptr<mesh::MeshBase> first, std::shared_ptr<mesh::MeshBase> second, int flag);
+
 private:
     typedef std::multimap<mesh::MeshBlockId, std::shared_ptr<TransitionMap>> adjacency_list_t;
 

@@ -181,67 +181,83 @@ public:
 
     vector_type const &dx() const { return m_dx_; }
 
-    virtual std::shared_ptr<MeshBase> clone() const
+    virtual std::shared_ptr<MeshBase> clone(std::string const &name = "") const
     {
-        return std::make_shared<this_type>(*this);
+        auto res = std::make_shared<this_type>(*this);
+        if (name != "") { res->name(name); }
+        return res;
     }
 
-    virtual std::shared_ptr<MeshBase> extend(int const *od, size_type w = 2) const
+    virtual mesh::MeshBase &shift(index_tuple const &offset)
     {
-
-        index_tuple dims{0, 0, 0};
-        point_type lower{0, 0, 0};
-        point_type upper{0, 0, 0};
-
-        bool valid = true;
-
-        int flag = status();
-
-        for (int i = 0; i < 3; ++i)
-        {
-            if (m_dims_[i] == 1 && od[i] != 0)
-            {
-                valid = false;
-            }
-            else
-            {
-                switch (od[i])
-                {
-                    case 1:
-                        dims[i] = w;
-                        lower[i] = m_coords_upper_[i];
-                        upper[i] = m_coords_upper_[i] + m_dx_[i] * w;
-                        break;
-                    case -1:
-                        dims[i] = w;
-                        lower[i] = m_coords_lower_[i] - m_dx_[i] * w;
-                        upper[i] = m_coords_lower_[i];
-                        break;
-                    case 0:
-                        dims[i] = m_dims_[i];
-                        lower[i] = m_coords_lower_[i];
-                        upper[i] = m_coords_upper_[i];
-                        break;
-                    default:
-                        valid = false;
-                        break;
-                }
-            }
-        }
-        if (valid)
-        {
-            auto res = std::dynamic_pointer_cast<this_type>(this->clone());
-            res->dimensions(dims);
-            res->box(std::make_tuple(lower, upper));
-            res->ghost_width(ghost_width());
-            res->deploy();
-            return std::dynamic_pointer_cast<MeshBase>(res);
-        } else
-        {
-            return nullptr;
-        }
+        m_offset_ += offset;
+        m_coords_lower_ += offset * m_dx_;
+        m_coords_upper_ += offset * m_dx_;
+        return *this;
     };
 
+    virtual mesh::MeshBase &stretch(index_tuple const &dims)
+    {
+        m_dims_ = dims;
+        m_coords_upper_ = m_coords_lower_ + dims * m_dx_;
+        return *this;
+    };
+
+//    virtual std::shared_ptr<MeshBase> extend(int const *od, size_type w = 2) const
+//    {
+//
+//        index_tuple dims{0, 0, 0};
+//        point_type lower{0, 0, 0};
+//        point_type upper{0, 0, 0};
+//
+//        bool valid = true;
+//
+//        int flag = status();
+//
+//        for (int i = 0; i < 3; ++i)
+//        {
+//            if (m_dims_[i] == 1 && od[i] != 0)
+//            {
+//                valid = false;
+//            }
+//            else
+//            {
+//                switch (od[i])
+//                {
+//                    case 1:
+//                        dims[i] = w;
+//                        lower[i] = m_coords_upper_[i];
+//                        upper[i] = m_coords_upper_[i] + m_dx_[i] * w;
+//                        break;
+//                    case -1:
+//                        dims[i] = w;
+//                        lower[i] = m_coords_lower_[i] - m_dx_[i] * w;
+//                        upper[i] = m_coords_lower_[i];
+//                        break;
+//                    case 0:
+//                        dims[i] = m_dims_[i];
+//                        lower[i] = m_coords_lower_[i];
+//                        upper[i] = m_coords_upper_[i];
+//                        break;
+//                    default:
+//                        valid = false;
+//                        break;
+//                }
+//            }
+//        }
+//        if (valid)
+//        {
+//            auto res = std::dynamic_pointer_cast<this_type>(this->clone());
+//            res->dimensions(dims);
+//            res->box(std::make_tuple(lower, upper));
+//            res->ghost_width(ghost_width());
+//            res->deploy();
+//            return std::dynamic_pointer_cast<MeshBase>(res);
+//        } else
+//        {
+//            return nullptr;
+//        }
+//    };
 private:
     //TODO should use block-entity_id_range
     parallel::concurrent_unordered_set <MeshEntityId> m_affected_entities_[4];
