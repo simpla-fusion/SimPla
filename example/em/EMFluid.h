@@ -194,18 +194,12 @@ void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDoma
 {
     auto E2 = static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto B2 = static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
-
+    auto const *m2 = other.m_mesh_;
     t_map.direct_map(mesh::EDGE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2)
-                     {
-                         E1[s1] = (*E2)[s2];
-                     }
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E1[s1] = (*E2)[s2]; }
     );
     t_map.direct_map(mesh::FACE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2)
-                     {
-                         B1[s1] = (*B2)[s2];
-                     }
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B1[s1] = (*B2)[s2]; }
     );
 
 }

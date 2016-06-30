@@ -17,8 +17,9 @@ box_type box_overlap(box_type const &first, box_type const &second)
     for (int i = 0; i < 3; ++i)
     {
         lower[i] = std::max(std::get<0>(first)[i], std::get<0>(second)[i]);
-        upper[i] = std::max(std::get<1>(first)[i], std::get<1>(second)[i]);
+        upper[i] = std::min(std::get<1>(first)[i], std::get<1>(second)[i]);
     }
+
     return std::make_tuple(lower, upper);
 }
 

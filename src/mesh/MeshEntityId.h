@@ -1,5 +1,5 @@
 /**
- * @file MeshEntityIdCoder_.h
+ * @file MeshEntityId.h
  *
  * @date 2015-3-19
  * @author salmon
@@ -89,7 +89,6 @@ constexpr inline MeshEntityId operator+(MeshEntityId const &first, MeshEntityId 
             static_cast<int16_t >(first.x + second.x)
     };
 }
-
 
 constexpr inline MeshEntityId operator|(MeshEntityId const &first, MeshEntityId const &second)
 {
@@ -209,8 +208,7 @@ struct MeshEntityIdCoder_
 
     static constexpr MeshEntityId minimal_vertex(MeshEntityId s)
     {
-        return (s) - (_DA);
-
+        return MeshEntityId{.v=s.v & (~_DA.v)};
     }
 
     template<int IFORM>

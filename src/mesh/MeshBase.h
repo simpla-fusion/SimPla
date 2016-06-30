@@ -99,6 +99,11 @@ public:
 
     virtual box_type box(MeshEntityStatus entityStatus = SP_ES_VALID) const = 0;
 
+    virtual index_tuple offset() const = 0;
+
+    virtual point_type origin_point() const = 0;
+
+
     virtual MeshEntityRange select(box_type const &b,
                                    MeshEntityType entityType = VERTEX,
                                    MeshEntityStatus entityStatus = SP_ES_VALID) const = 0;
@@ -183,3 +188,4 @@ private:
 
 }}//namespace simpla{namespace get_mesh{
 #endif //SIMPLA_MESHBASE_H
+

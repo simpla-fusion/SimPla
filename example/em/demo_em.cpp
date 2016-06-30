@@ -71,8 +71,13 @@ int main(int argc, char **argv)
 
         auto mesh_center = ctx.add_mesh<mesh_type>();
 
-        mesh_center->setup(options["Mesh"]).name("Center").deploy();
+        index_tuple gw{2, 2, 2};
 
+        mesh_center->setup(options["Mesh"]).name("Center");
+
+        mesh_center->ghost_width(gw);
+
+        mesh_center->deploy();
 
         ctx.add_problem_domain<EMFluid<mesh_type >>(mesh_center->id())
                 ->setup(options).deploy();

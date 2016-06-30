@@ -156,7 +156,9 @@ public:
 
     void offset(index_tuple const &d) { m_offset_ = d; }
 
-    index_tuple const &offset() const { return m_offset_; }
+    virtual index_tuple offset() const { return m_offset_; }
+
+    virtual point_type origin_point() const { return m_coords_lower_; };
 
     void ghost_width(index_tuple const &d) { m_ghost_width_ = d; }
 
@@ -226,6 +228,7 @@ public:
             auto res = std::dynamic_pointer_cast<this_type>(this->clone());
             res->dimensions(dims);
             res->box(std::make_tuple(lower, upper));
+            res->ghost_width(ghost_width());
             res->deploy();
             return std::dynamic_pointer_cast<MeshBase>(res);
         } else
@@ -236,8 +239,8 @@ public:
 
 private:
     //TODO should use block-entity_id_range
-    parallel::concurrent_unordered_set<MeshEntityId> m_affected_entities_[4];
-    parallel::concurrent_unordered_set<MeshEntityId> m_interface_entities_[4];
+    parallel::concurrent_unordered_set <MeshEntityId> m_affected_entities_[4];
+    parallel::concurrent_unordered_set <MeshEntityId> m_interface_entities_[4];
 public:
 
     typedef typename MeshEntityIdCoder::range_type block_range_type;
@@ -303,9 +306,24 @@ public:
 
     virtual MeshEntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
     {
+        point_type x_lower, x_upper;
+
         index_tuple lower, upper;
-        lower = m_lower_ + m_dims_ * (std::get<0>(b) - m_coords_lower_) / (m_coords_upper_ - m_coords_lower_);
-        upper = m_lower_ + m_dims_ * (std::get<1>(b) - m_coords_lower_) / (m_coords_upper_ - m_coords_lower_) + 1;
+        std::tie(x_lower, x_upper) = b;
+        for (int i = 0; i < 3; ++i)
+        {
+            if (m_dims_[i] > 1)
+            {
+                lower[i] = m_lower_[i] + static_cast<index_type >((x_lower[i] - m_coords_lower_[i]) / m_dx_[i]);
+                upper[i] = m_lower_[i] + static_cast<index_type >((x_upper[i] - m_coords_lower_[i]) / m_dx_[i]);
+            }
+            else
+            {
+                lower[i] = m_lower_[i];
+                upper[i] = m_upper_[i];
+            }
+        }
+
         return MeshEntityIdCoder::make_range(lower, upper, entityType);
     }
 
@@ -358,12 +376,12 @@ public:
 
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const
     {
-        return m::max_hash(m_lower_, m_upper_, entityType);
+        return m::max_hash(m_outer_lower_, m_outer_upper_, entityType);
     }
 
     virtual size_t hash(MeshEntityId const &s) const
     {
-        return static_cast<size_t>(m::hash(s, m_lower_, m_upper_));
+        return static_cast<size_t>(m::hash(s, m_outer_lower_, m_outer_upper_));
     }
 
 
@@ -476,7 +494,7 @@ public:
 
             m_inv_dx_[i] = static_cast<Real>(1.0) / m_dx_[i];
 
-            m_ghost_width_[i] = (m_dims_[i] < m_ghost_width_[i] * 2) ? 0 : m_ghost_width_[i];
+            m_ghost_width_[i] = (m_dims_[i] > 1) ? m_ghost_width_[i] : 0;
 
             m_lower_[i] = m_ghost_width_[i];
 
@@ -575,7 +593,7 @@ public:
 
     virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t) const
     {
-        int f_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
+        int i_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
 
         nTuple<size_t, ndims + 1> f_dims, f_count;
         nTuple<ptrdiff_t, ndims + 1> f_start;
@@ -591,10 +609,10 @@ public:
         f_count[ndims] = 3;
 
 
-        data_model::DataSpace f_space(f_ndims, &f_dims[0]);
+        data_model::DataSpace f_space(i_ndims, &f_dims[0]);
         f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
 
-        m_dims = m_upper_;
+        m_dims = m_shape_;
         m_start = m_lower_;
         m_count = m_dims_;
         m_dims[ndims] = 3;
@@ -602,7 +620,7 @@ public:
         m_count[ndims] = 3;
 
 
-        data_model::DataSpace m_space(f_ndims, &f_dims[0]);
+        data_model::DataSpace m_space(i_ndims, &m_dims[0]);
         m_space.select_hyperslab(&m_start[0], nullptr, &m_count[0], nullptr);
 
         return std::forward_as_tuple(m_space, f_space);

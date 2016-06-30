@@ -11,9 +11,10 @@ namespace simpla { namespace mesh
 
 TransitionMap::TransitionMap(Chart const *p_first, Chart const *p_second, int p_flag)
         : first(p_first), second(p_second), flag(p_flag),
-          m_overlap_region_M_(gtl::box_overlap(first->box(SP_ES_LOCAL), second->box(SP_ES_OWNED)))
+          m_overlap_region_M_(gtl::box_overlap(first->box(SP_ES_VALID), second->box(SP_ES_OWNED))),
+          m_offset_(std::get<0>(second->point_global_to_local(std::get<0>(m_overlap_region_M_)))
+                    - std::get<0>(first->point_global_to_local(std::get<0>(m_overlap_region_M_))))
 {
-
 };
 
 TransitionMap::~TransitionMap() { };
@@ -22,15 +23,15 @@ TransitionMap::~TransitionMap() { };
 int TransitionMap::direct_pull_back(void *f, void const *g, size_type ele_size_in_byte,
                                     MeshEntityType entity_type) const
 {
-    first->range(m_overlap_region_M_, entity_type).foreach(
-            [&](mesh::MeshEntityId const &s)
-            {
-                memcpy(reinterpret_cast<byte_type *>(f) + first->hash(s) * ele_size_in_byte,
-                       reinterpret_cast<byte_type const *>(g) + second->hash(direct_map(s)) * ele_size_in_byte,
-                       ele_size_in_byte
-                );
-
-            });
+//    first->range(m_overlap_region_M_, entity_type).foreach(
+//            [&](mesh::MeshEntityId const &s)
+//            {
+//                memcpy(reinterpret_cast<byte_type *>(f) + first->hash(s) * ele_size_in_byte,
+//                       reinterpret_cast<byte_type const *>(g) + second->hash(direct_map(s)) * ele_size_in_byte,
+//                       ele_size_in_byte
+//                );
+//
+//            });
 }
 
 
@@ -40,7 +41,7 @@ point_type TransitionMap::map(point_type const &x) const { return x; }
 
 mesh::MeshEntityId TransitionMap::direct_map(mesh::MeshEntityId s) const
 {
-    return s;
+    return s + m_offset_;
 };
 
 MeshBlockId Atlas::add_block(std::shared_ptr<Chart> p_m)

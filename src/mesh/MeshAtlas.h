@@ -119,10 +119,12 @@ public:
     }
 
 
-private:
+//private:
 
     //TODO use geometric object replace box
     box_type m_overlap_region_M_;
+    mesh::MeshEntityId m_offset_;
+
 };
 
 

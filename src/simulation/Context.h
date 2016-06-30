@@ -110,6 +110,7 @@ public:
         auto &atlas = get_mesh_atlas();
 
         auto first = atlas.get_block(mesh_center);
+
         int m_flag = first->status();
 
         int od[3];
