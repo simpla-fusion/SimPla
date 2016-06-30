@@ -29,7 +29,7 @@ public:
 
     template<typename ValueType, size_t IFORM> using field_t =  Field <ValueType, TM, index_const<IFORM>>;;
 
-    PML(const mesh_type *mp, int const *od = nullptr);
+    PML(const mesh_type *mp, box_type const &center_box);
 
     virtual ~PML();
 
@@ -88,7 +88,7 @@ template<typename TM>
 PML<TM>::~PML() { }
 
 template<typename TM>
-PML<TM>::PML(const mesh_type *mp, int const *p_od) : base_type(mp), m(mp)
+PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m(mp)
 {
     assert(mp != nullptr);
 //

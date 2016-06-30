@@ -85,7 +85,6 @@ ProblemDomain::print(std::ostream &os, int indent) const
     auto ie = m_pimpl_->m_attr_.end();
 
     os << std::setw(indent) << " ProblemDomain={" << std::endl;
-
     os << std::setw(indent + 1) << " Type=\"" << get_class_name() << "\"," << std::endl;
 
     os << std::setw(indent + 1) << " Mesh= {" << std::endl;

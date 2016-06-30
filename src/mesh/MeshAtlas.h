@@ -50,6 +50,8 @@ struct TransitionMap
 public:
     TransitionMap(Chart const *m, Chart const *n, int flag = SP_MB_SYNC);
 
+    TransitionMap(std::shared_ptr<Chart const> m, std::shared_ptr<Chart const> n, int flag = SP_MB_SYNC);
+
     ~TransitionMap();
 
     int flag;

@@ -127,12 +127,10 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
-
-        os
-        << std::setw(indent) << " "
-        << "Topology = { Type = \"CoRectMesh\", "
-        << "Dimensions = " << dimensions() << " offset = " << offset() << " }," << std::endl
-        << std::setw(indent) << " " << "Box = " << box() << "," << std::endl;
+        os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
+        os << std::setw(indent + 1) << " " << "Topology = { Type = \"CoRectMesh\", "
+        << "Dimensions = " << dimensions() << " offset = " << offset() << " }," << std::endl;
+        os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;
 
         return os;
     }
@@ -181,13 +179,6 @@ public:
 
     vector_type const &dx() const { return m_dx_; }
 
-    virtual std::shared_ptr<MeshBase> clone(std::string const &name = "") const
-    {
-        auto res = std::make_shared<this_type>(*this);
-        if (name != "") { res->name(name); }
-        return res;
-    }
-
     virtual mesh::MeshBase &shift(index_tuple const &offset)
     {
         m_offset_ += offset;
@@ -198,66 +189,14 @@ public:
 
     virtual mesh::MeshBase &stretch(index_tuple const &dims)
     {
-        m_dims_ = dims;
+        for (int i = 0; i < 3; ++i)
+        {
+            m_dims_[i] = (m_dims_[i] == 1) ? 1 : dims[i];
+        }
         m_coords_upper_ = m_coords_lower_ + dims * m_dx_;
         return *this;
     };
 
-//    virtual std::shared_ptr<MeshBase> extend(int const *od, size_type w = 2) const
-//    {
-//
-//        index_tuple dims{0, 0, 0};
-//        point_type lower{0, 0, 0};
-//        point_type upper{0, 0, 0};
-//
-//        bool valid = true;
-//
-//        int flag = status();
-//
-//        for (int i = 0; i < 3; ++i)
-//        {
-//            if (m_dims_[i] == 1 && od[i] != 0)
-//            {
-//                valid = false;
-//            }
-//            else
-//            {
-//                switch (od[i])
-//                {
-//                    case 1:
-//                        dims[i] = w;
-//                        lower[i] = m_coords_upper_[i];
-//                        upper[i] = m_coords_upper_[i] + m_dx_[i] * w;
-//                        break;
-//                    case -1:
-//                        dims[i] = w;
-//                        lower[i] = m_coords_lower_[i] - m_dx_[i] * w;
-//                        upper[i] = m_coords_lower_[i];
-//                        break;
-//                    case 0:
-//                        dims[i] = m_dims_[i];
-//                        lower[i] = m_coords_lower_[i];
-//                        upper[i] = m_coords_upper_[i];
-//                        break;
-//                    default:
-//                        valid = false;
-//                        break;
-//                }
-//            }
-//        }
-//        if (valid)
-//        {
-//            auto res = std::dynamic_pointer_cast<this_type>(this->clone());
-//            res->dimensions(dims);
-//            res->box(std::make_tuple(lower, upper));
-//            res->ghost_width(ghost_width());
-//            res->deploy();
-//            return std::dynamic_pointer_cast<MeshBase>(res);
-//        } else
-//        {
-//            return nullptr;
-//        }
-//    };
 private:
     //TODO should use block-entity_id_range
     parallel::concurrent_unordered_set <MeshEntityId> m_affected_entities_[4];
@@ -519,7 +458,8 @@ public:
 
             m_outer_lower_[i] = -m_ghost_width_[i];
             m_outer_upper_[i] = m_dims_[i] + m_ghost_width_[i];
-            m_shape_[i] = m_upper_[i] + m_ghost_width_[i] * 2;
+
+            m_shape_[i] = m_dims_[i] + m_ghost_width_[i] * 2;
 
             m_lower_[i] = 0;
             m_upper_[i] = m_dims_[i];
@@ -622,8 +562,8 @@ public:
         nTuple<size_t, ndims + 1> m_dims, m_count;
         nTuple<ptrdiff_t, ndims + 1> m_start;
 
-        f_dims = m_dims_ + m_offset_;
-        f_start = m_offset_;
+        f_dims = m_dims_;//+ m_offset_;
+        f_start = 0;//m_offset_;
         f_count = m_dims_;
         f_dims[ndims] = 3;
         f_start[ndims] = 0;
@@ -634,7 +574,7 @@ public:
         f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
 
         m_dims = m_shape_;
-        m_start = m_lower_;
+        m_start = m_lower_ - m_outer_lower_;
         m_count = m_dims_;
         m_dims[ndims] = 3;
         m_start[ndims] = 0;

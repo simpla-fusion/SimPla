@@ -185,22 +185,23 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
-        os << std::setw(indent) << " " << "CoordinateSystem = {" << std::endl;
+//        os << std::setw(indent + 1) << " " << "CoordinateSystem = {" << std::endl;
 
         this_type::mesh_type::print(os, indent + 1);
         this_type::metric_policy::print(os, indent + 1);
         this_type::calculus_policy::print(os, indent + 1);
         this_type::interpolate_policy::print(os, indent + 1);
 
-        os << std::setw(indent) << " " << "}  -- CoordinateSystem " << std::endl;
-
-
+//        os << std::setw(indent + 1) << " " << "}  -- CoordinateSystem " << std::endl;
         return os;
     }
 
     virtual std::shared_ptr<mesh::MeshBase> clone(std::string const &name = "") const
     {
-        return std::dynamic_pointer_cast<mesh::MeshBase>(std::make_shared<this_type>(*this));
+        auto res = std::make_shared<this_type>(*this);
+        if (name != "") { res->name(name); }
+        return res;
+
     };
 
 

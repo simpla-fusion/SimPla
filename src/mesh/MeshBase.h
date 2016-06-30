@@ -149,13 +149,13 @@ public:
 
     virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t) const = 0;
 
-    virtual std::shared_ptr<MeshBase> clone(std::string const &name = "") const
+    virtual std::shared_ptr<MeshBase> clone(std::string const &name = "") const = 0;
+
+    template<typename TM>
+    std::shared_ptr<TM> clone_as(std::string const &name = "") const
     {
-        auto res = std::shared_ptr<MeshBase>{nullptr};
-
-        if (name != "") { res->name(name); }
-
-        return res;
+        assert(is_a<TM>());
+        return std::dynamic_pointer_cast<TM>(clone(name));
     };
 
     virtual std::shared_ptr<MeshBase> refine(box_type const &, int refine_ratio = 2) const
