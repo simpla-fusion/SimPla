@@ -133,7 +133,7 @@ ProblemDomain::save(io::IOStream &os, int flag) const
             if (!item.second->empty())
             {
                 os.open(item.first + "/");
-                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_OWNED), flag);
+                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_VALID), flag);
                 os.open(pwd);
             }
         }

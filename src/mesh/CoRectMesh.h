@@ -147,9 +147,9 @@ public:
 
     virtual io::IOStream &save(io::IOStream &os) const
     {
-        os.open(type_cast<std::string>(this->short_id()) + "/");
-        os.set_attribute(".dims", dimensions());
-        os.set_attribute(".box", box());
+//        os.open(type_cast<std::string>(this->short_id()) + "/");
+//        os.set_attribute(".dims", dimensions());
+//        os.set_attribute(".box", box());
         return os;
     };
 
@@ -182,9 +182,15 @@ public:
 
     virtual mesh::MeshBase &shift(index_tuple const &offset)
     {
-        m_offset_ += offset;
-        m_coords_lower_ += offset * m_dx_;
-        m_coords_upper_ += offset * m_dx_;
+        for (int i = 0; i < 3; ++i)
+        {
+            if (m_dims_[i] > 1)
+            {
+                m_offset_[i] += offset[i];
+                m_coords_lower_[i] += offset[i] * m_dx_[i];
+                m_coords_upper_[i] += offset[i] * m_dx_[i];
+            }
+        }
         return *this;
     };
 
@@ -192,9 +198,14 @@ public:
     {
         for (int i = 0; i < 3; ++i)
         {
-            m_dims_[i] = (m_dims_[i] == 1) ? 1 : dims[i];
+            if (m_dims_[i] > 1)
+            {
+                m_dims_[i] = dims[i];
+
+                m_coords_upper_[i] = m_coords_lower_[i] + dims[i] * m_dx_[i];
+            }
+
         }
-        m_coords_upper_ = m_coords_lower_ + dims * m_dx_;
         return *this;
     };
 
@@ -236,7 +247,7 @@ public:
 
     };
 
-    virtual box_type box(MeshEntityStatus status = SP_ES_VALID) const
+    virtual box_type box(MeshEntityStatus status = SP_ES_OWNED) const
     {
         box_type res;
 

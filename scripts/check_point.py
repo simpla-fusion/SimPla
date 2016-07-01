@@ -20,7 +20,7 @@ if 'PML_0' in f1[ds].keys():
 
     plt.subplot(gs[0, 1]).imshow(f1[ds + "/PML_0"][:, :, 0, o_dir, step], clim=(-200, 100))
     plt.subplot(gs[1, 0]).imshow(f1[ds + "/PML_2"][:, :, 0, o_dir, step], clim=(-200, 100))
-    plt.subplot(gs[1, 1]).imshow(f1[ds + "/Center"][:, :, 0, o_dir, step], clim=(-200, 100))
+    plt.subplot(gs[1, 1]).imshow(f1[ds + "/Center"][:, :, 0, o_dir,step], clim=(-200, 100))
     plt.subplot(gs[1, 2]).imshow(f1[ds + "/PML_3"][:, :, 0, o_dir, step], clim=(-200, 100))
     plt.subplot(gs[2, 1]).imshow(f1[ds + "/PML_1"][:, :, 0, o_dir, step], clim=(-200, 100))
 

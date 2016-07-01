@@ -271,29 +271,49 @@ private:
 
     ////***************************************************************************************************
     //! p_curl<1>
-
+    static constexpr Real m_p_curl_factor1_[3] = {0, 0, 0};
+    static constexpr Real m_p_curl_factor2_[3] = {0, 0, 0};
 
     template<typename T, size_t I>
     inline traits::value_type_t<Field<Expression<ct::P_ExteriorDerivative<I>, T>>>
     eval_(Field<Expression<ct::P_ExteriorDerivative<I>, T>> const &expr, MeshEntitId s,
           index_sequence<EDGE>) const
     {
+//        MeshEntitId X = M::delta_index(M::dual(s));
+//        MeshEntitId Y = M::rotate(X);
+//        MeshEntitId Z = M::inverse_rotate(X);
+//
+//
+//        return ((get_v(std::get<0>(expr.args), s + Y) - get_v(std::get<0>(expr.args), s - Y))
+//                - (get_v(std::get<0>(expr.args), s + Z) - get_v(std::get<0>(expr.args), s - Z))
+//               ) * m.inv_volume(s);
+
 
         return (get_v(std::get<0>(expr.args), s + M::DI(I)) -
                 get_v(std::get<0>(expr.args), s - M::DI(I))
-               ) * m.inv_volume(s) * (((I + 1) % 3 == M::sub_index(s)) ? 1 : -1);
+               ) * m.inv_volume(s) * m_p_curl_factor1_[(I + 3 - M::sub_index(s)) % 3];
 
 
     }
+
 
     template<typename T, size_t I>
     inline traits::value_type_t<Field<Expression<ct::P_CodifferentialDerivative<I>, T>>>
     eval_(Field<Expression<ct::P_CodifferentialDerivative<I>, T>> const &expr, MeshEntitId s,
           index_sequence<FACE>) const
     {
+
+//        MeshEntitId X = M::delta_index(s);
+//        MeshEntitId Y = M::rotate(X);
+//        MeshEntitId Z = M::inverse_rotate(X);
+//
+//
+//        return -((get_d(std::get<0>(expr.args), s + Y) - get_d(std::get<0>(expr.args), s - Y))
+//                 - (get_d(std::get<0>(expr.args), s + Z) - get_d(std::get<0>(expr.args), s - Z))
+//        ) * m.inv_dual_volume(s);
         return (get_v(std::get<0>(expr.args), s + M::DI(I)) -
                 get_v(std::get<0>(expr.args), s - M::DI(I))
-               ) * m.inv_dual_volume(s) * (((I + 1) % 3 == M::sub_index(s)) ? 1 : -1);
+               ) * m.inv_dual_volume(s) * m_p_curl_factor2_[(I + 3 - M::sub_index(s)) % 3];
     }
 
 ////***************************************************************************************************
@@ -312,11 +332,7 @@ private:
     inline traits::value_type_t<TF>
     mapto(TF const &expr, MeshEntitId s, index_sequence<VERTEX, EDGE>) const
     {
-
         MeshEntitId X = M::delta_index(s);
-
-//        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
-
         return (eval_(expr, s - X) + eval_(expr, s + X)) * 0.5;
     }
 
@@ -617,6 +633,23 @@ private:
     }
 
 
+    template<typename TL, typename TR, size_t I>
+    constexpr inline
+    traits::value_type_t<Field<Expression<_impl::divides, TL, TR>>>
+    eval_(Field<Expression<_impl::divides, TL, TR>> const &expr, MeshEntitId s, index_sequence<I, VERTEX>) const
+    {
+        return eval_(std::get<0>(expr.args), s) / mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
+    }
+
+    template<typename TL, typename TR, size_t I>
+    constexpr inline
+    traits::value_type_t<Field<Expression<_impl::multiplies, TL, TR>>>
+    eval_(Field<Expression<_impl::multiplies, TL, TR>> const &expr, MeshEntitId s, index_sequence<I, VERTEX>) const
+    {
+        return eval_(std::get<0>(expr.args), s) * mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
+    }
+
+
     template<typename ...T, size_t ...I>
     constexpr inline
     traits::value_type_t<Field<Expression<ct::MapTo, T...> >>
@@ -644,8 +677,8 @@ private:
 
 };// struct DiffScheme<TGeo, diff_scheme::tags::finite_volume>
 
-
-
+template<typename TM> constexpr Real  FiniteVolume<TM, std::enable_if_t<std::is_base_of<mesh::MeshEntityIdCoder, TM>::value>>::m_p_curl_factor1_[3];
+template<typename TM> constexpr Real  FiniteVolume<TM, std::enable_if_t<std::is_base_of<mesh::MeshEntityIdCoder, TM>::value>>::m_p_curl_factor2_[3];
 }}}// namespace simpla
 
 #endif /* FDM_H_ */

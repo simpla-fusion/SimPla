@@ -95,11 +95,11 @@ DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(Field)
 
 #define SP_DEF_BINOPField_NTUPLE(_OP_, _NAME_)                                                 \
 template<typename ...T1, typename T2, size_t ... N>                                            \
-Field<Expression<_impl::plus, Field<T1...>, nTuple<T2, N...> > > operator _OP_(              \
+Field<Expression<_impl::_NAME_, Field<T1...>, nTuple<T2, N...> > > operator _OP_(              \
         Field<T1...> const & l, nTuple<T2, N...> const &r)                                    \
 {return (Field<Expression<_impl::_NAME_, Field<T1...>, nTuple<T2, N...> > >(l, r));}         \
 template<typename T1, size_t ... N, typename ...T2>                                            \
-Field<Expression<_impl::plus, nTuple<T1, N...>, Field<T2...> > > operator _OP_(              \
+Field<Expression<_impl::_NAME_, nTuple<T1, N...>, Field<T2...> > > operator _OP_(              \
         nTuple<T1, N...> const & l, Field< T2...>const &r)                                    \
 {    return (Field<Expression< _impl::_NAME_,T1,Field< T2...>>>(l,r));}                       \
 

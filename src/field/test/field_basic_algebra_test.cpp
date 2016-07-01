@@ -17,7 +17,6 @@ using namespace simpla;
 
 typedef manifold::CartesianManifold mesh_type;
 
-//typedef manifold::CartesianManifold mesh_type;
 
 typedef testing::Types< //
 
@@ -32,8 +31,8 @@ typedef testing::Types< //
 //        , field_t<Vec3, mesh_type, get_mesh::VOLUME>  //
 
 > TypeParamList;
-template<typename TF> std::shared_ptr<typename TestField<TF>::mesh_type> //
-        TestField<TF>::mesh = std::make_shared<typename TestField<TF>::mesh_type>();
+//template<typename TF> std::shared_ptr<typename TestField<TF>::mesh_type> //
+//        TestField<TF>::mesh = std::make_shared<typename TestField<TF>::mesh_type>();
 
 INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList);
 

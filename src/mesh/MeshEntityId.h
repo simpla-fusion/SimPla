@@ -1032,6 +1032,7 @@ template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_iform_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_num_of_ele_in_cell_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_adjacent_cell_num_[4][8];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_iform_to_num_of_ele_in_cell_[];
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_num_to_di_[];
 template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_id_to_shift_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_sub_index_to_id_[4][3];
 template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];

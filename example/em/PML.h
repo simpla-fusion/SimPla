@@ -91,70 +91,69 @@ template<typename TM>
 PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m(mp)
 {
     assert(mp != nullptr);
-//
+
 //    properties()["DISABLE_WRITE"] = false;
-//
-//    int od[3] = {0, 0, 0};
-//
-//    if (p_od != nullptr)
-//    {
-//        od[0] = p_od[0];
-//        od[1] = p_od[1];
-//        od[2] = p_od[2];
-//    }
-//
-//    point_type xmin, xmax;
-//
-//    std::tie(xmin, xmax) = m->box();
-//
-//    LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]" << std::endl;
-//
-//    DEFINE_PHYSICAL_CONST
-//
-//    Real dB = 100, expN = 2;
-//
-//    a0.clear();
-//    a1.clear();
-//    a2.clear();
-//    s0.clear();
-//    s1.clear();
-//    s2.clear();
-//    X10.clear();
-//    X11.clear();
-//    X12.clear();
-//    X20.clear();
-//    X21.clear();
-//    X22.clear();
-//
-//    point_type ymin, ymax;
-//    std::tie(ymin, ymax) = m->box();
-//
-//    m->range(mesh::VERTEX, SP_ES_VALID).foreach(
-//            [&](mesh::MeshEntityId s)
-//            {
-//                point_type x = m->point(s);
-//
-//#define DEF(_N_)  a##_N_[s]=1;   s##_N_[s]=0;                                     \
-//
-////        if (od[_N_] ==-1)                                                         \
-////        {                                                                           \
-////            Real r = (xmax[_N_] - x[_N_]) / (xmax[_N_] - xmin[_N_]);                        \
-////            a##_N_[s] = alpha_(r, expN, dB);                                            \
-////            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmax[_N_] - xmin[_N_]);     \
-////        }                                                                           \
-////        else if (od[_N_] ==1)                                                    \
-////        {                                                                           \
-////            Real r = (x[_N_] - xmin[_N_]) / (xmax[_N_] - xmin[_N_]);                        \
-////            a##_N_[s] = alpha_(r, expN, dB);                                            \
-////            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmax[_N_] - xmin[_N_]);     \
-////        };
-//
-//                DEF(0)
-//                DEF(1)
-//                DEF(2)
-//#undef DEF
-//            }
-//    );
+
+
+//    LOGGER << "create PML solver [" << m_xmin << " , " << m_xmax << " ]" << std::endl;
+
+    DEFINE_PHYSICAL_CONST
+
+    Real dB = 100, expN = 2;
+
+    a0.clear();
+    a1.clear();
+    a2.clear();
+    s0.clear();
+    s1.clear();
+    s2.clear();
+    X10.clear();
+    X11.clear();
+    X12.clear();
+    X20.clear();
+    X21.clear();
+    X22.clear();
+
+
+    point_type m_xmin, m_xmax;
+    point_type c_xmin, c_xmax;
+
+    std::tie(m_xmin, m_xmax) = m->box();
+    std::tie(c_xmin, c_xmax) = center_box;
+    auto dims = m->dimensions();
+
+    m->range(mesh::VERTEX, SP_ES_VALID).foreach(
+            [&](mesh::MeshEntityId s)
+            {
+                point_type x = m->point(s);
+//                INFORM << x << "-" << m->box() << " - " << center_box << std::endl;
+#define DEF(_N_)     a##_N_[s]=1;   s##_N_[s]=0;                                                     \
+
+//        if(dims[_N_]>1)                                                                              \
+//        {                                                                                            \
+//                if (x[_N_] <c_xmin[_N_])                                                             \
+//                {                                                                                    \
+//                    Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
+//                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
+//                    s##_N_[s] = sigma_(r, expN, dB) / (m_xmax[_N_] - m_xmin[_N_]);  \
+//                }                                                                                    \
+//                else if (x[_N_] >c_xmax[_N_])                                                        \
+//                {                                                                                    \
+//                    Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
+//                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
+//                    s##_N_[s] = sigma_(r, expN, dB)/ (m_xmax[_N_] - m_xmin[_N_]);  \
+//                }                                                                                    \
+//        }
+
+
+                DEF(0)
+                DEF(1)
+                DEF(2)
+#undef DEF
+            }
+    );
+
+
 }
 
 template<typename TM>
@@ -165,6 +164,13 @@ void PML<TM>::deploy()
     B.clear();
     dX1.clear();
     dX2.clear();
+
+    declare_global(&X10, "X10");
+    declare_global(&dX1, "dX1");
+    declare_global(&a0, "a0");
+    declare_global(&s0, "s0");
+//    declare_global(&X22, "X22");
+
     declare_global(&E, "E");
     declare_global(&B, "B");
 }
@@ -189,17 +195,16 @@ void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain c
 template<typename TM>
 void PML<TM>::next_step(Real dt)
 {
-//    VERBOSE << "next_step:\tPML  \t [Mesh Block : " << m->box() << "] " << std::endl;
 
     DEFINE_PHYSICAL_CONST
 
-    B -= curl(E) * (dt * 0.5);
-    E += (curl(B) * speed_of_light2) * dt;
-    B -= curl(E) * (dt * 0.5);
-//    dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
-//    X10 += dX1;
-//    E += dX1;
-//
+//    B -= curl(E) * (dt);
+//    E += (curl(B) * speed_of_light2) * dt;
+
+    dX1 = (-2.0 * dt * s0 * X10 + curl(B) * speed_of_light2 * dt) / (a0 + s0 * dt);
+    X10 += dX1;
+    E += dX1;
+
 //    dX1 = (-2.0 * dt * s1 * X11 + curl_pdy(B) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
 //    X11 += dX1;
 //    E += dX1;
@@ -207,12 +212,11 @@ void PML<TM>::next_step(Real dt)
 //    dX1 = (-2.0 * dt * s2 * X12 + curl_pdz(B) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
 //    X12 += dX1;
 //    E += dX1;
-//
-//
-//    dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E) * dt) / (a0 + s0 * dt);
-//    X20 += dX2;
-//    B -= dX2;
-//
+
+    dX2 = (-2.0 * dt * s0 * X20 + curl(E) * dt) /* / (a0 + s0 * dt)*/;
+    X20 += dX2;
+    B -= dX2;
+
 //    dX2 = (-2.0 * dt * s1 * X21 + curl_pdy(E) * dt) / (a1 + s1 * dt);
 //    X21 += dX2;
 //    B -= dX2;

@@ -34,14 +34,14 @@ protected:
     {
         logger::set_stdout_level(10);
 
-        mesh = m.add<mesh_type>();
 
         index_tuple dims = {10, 1, 1};
-
-        mesh->dimensions(dims);
-//		geometry->extents(xmin, xmax);
-        mesh->deploy();
-        mesh->range(static_cast<mesh::MeshEntityType>(iform)).swap(m_range);
+        point_type xmin = {0, 0, 0};
+        point_type xmax = {1, 2, 3};
+        m.dimensions(dims);
+        m.box(xmin, xmax);
+        m.deploy();
+        m.range(static_cast<mesh::MeshEntityType>(iform)).swap(m_range);
     }
 
 public:
@@ -56,27 +56,26 @@ public:
 
 //    typedef  traits::scalar_type_t<mesh_type> scalar_type;
 
-    static constexpr int iform = traits::iform<TField>::value;
+    static constexpr size_t iform = traits::iform<TField>::value;
 
-    static std::shared_ptr<mesh_type> mesh;
 
     value_type default_value;
 
     mesh::MeshEntityRange m_range;
 
-    mesh::MeshAtlas m;
+    mesh_type m;
 
 
     field_t<value_type, mesh_type, iform> make_field() const
     {
 
-        return field_t<value_type, mesh_type, iform>(mesh.get());
+        return field_t<value_type, mesh_type, iform>(&m);
 
     };
 
-    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(mesh.get())))
+    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(&m)))
 
-    auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, mesh_type, iform>(mesh.get())))
+    auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, mesh_type, iform>(&m)))
 
 
 };
@@ -100,11 +99,12 @@ TYPED_TEST_P(TestField, assign)
 
     size_t count = 0;
 
-    for (auto s : TestFixture::m_range)
-    {
-        ++count;
-        EXPECT_LE(mod(va - f1[s]), EPSILON);
-    }
+    TestFixture::m_range.foreach(
+            [&](mesh::MeshEntityId s)
+            {
+                ++count;
+                EXPECT_LE(mod(va - f1[s]), EPSILON);
+            });
     EXPECT_EQ(count, TestFixture::m_range.size());
 }
 
@@ -123,15 +123,17 @@ TYPED_TEST_P(TestField, index)
 
     va = 2.0;
 
-    for (auto s : TestFixture::m_range)
-    {
-        f1[s] = va * TestFixture::mesh->hash(s);
-    }
+    TestFixture::m_range.foreach(
+            [&](mesh::MeshEntityId s)
+            {
+                f1[s] = va * TestFixture::m.hash(s);
+            });
 
-    for (auto s : TestFixture::m_range)
-    {
-        EXPECT_LE(mod(va * TestFixture::mesh->hash(s) - f1[s]), EPSILON);
-    }
+    TestFixture::m_range.foreach(
+            [&](mesh::MeshEntityId s)
+            {
+                EXPECT_LE(mod(va * TestFixture::m.hash(s) - f1[s]), EPSILON);
+            });
 
 }
 
@@ -160,16 +162,13 @@ TYPED_TEST_P(TestField, constant_real)
 
     LOG_CMD(f3 = -f1 * a + f2 * c - f1 / b - f1);
 
-    for (auto s : TestFixture::m_range)
-    {
-        value_type res;
-        res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
-
-        EXPECT_LE(mod(res - f3[s]), EPSILON) << res << " " << f3[s]
-//			<<res << " " << f1[s] << " " << f2[s] << " " << f3[s];
-                            ;
-    }
-
+    TestFixture::m_range.foreach(
+            [&](mesh::MeshEntityId s)
+            {
+                value_type res;
+                res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
+                EXPECT_LE(mod(res - f3[s]), EPSILON) << res << " " << f3[s];
+            });
 }
 
 TYPED_TEST_P(TestField, scalarField)
@@ -209,19 +208,11 @@ TYPED_TEST_P(TestField, scalarField)
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    for (auto s: f1.entity_id_range())
-    {
-        f1[s] = va * uniform_dist(gen);
-    }
-    for (auto s: f2.entity_id_range())
-    {
-        f2[s] = vb * uniform_dist(gen);
-    }
+    f1.entity_id_range().foreach([&](mesh::MeshEntityId s) { f1[s] = va * uniform_dist(gen); });
 
-    for (auto s:   f3.entity_id_range())
-    {
-        f3[s] = vc * uniform_dist(gen);
-    }
+    f2.entity_id_range().foreach([&](mesh::MeshEntityId s) { f2[s] = vb * uniform_dist(gen); });
+
+    f2.entity_id_range().foreach([&](mesh::MeshEntityId s) { f3[s] = vc * uniform_dist(gen); });
 
     LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
 
@@ -238,12 +229,15 @@ TYPED_TEST_P(TestField, scalarField)
  * */
     count = 0;
 
-    for (auto s : TestFixture::m_range)
-    {
-        value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
+    TestFixture::m_range.foreach(
+            [&](mesh::MeshEntityId s)
+            {
+                value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 
-        EXPECT_LE(mod(res - f4[s]), EPSILON) << "[" << (TestFixture::mesh->hash(s)) << "]" << res << " " << f4[s];
-    }
+                EXPECT_LE(mod(res - f4[s]), EPSILON)
+                                    << "[" << (TestFixture::m.hash(s)) << "]" << res << " " <<
+                                    f4[s];
+            });
 
     EXPECT_EQ(0, count) << "number of error points =" << count;
 

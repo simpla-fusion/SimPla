@@ -319,14 +319,14 @@ template<typename T>
 inline Field<Expression<ct::HodgeStar, T>>
 hodge_star(T const &f)
 {
-    return Field<Expression<ct::HodgeStar, T> >(f);
+    return Field < Expression<ct::HodgeStar, T> > (f);
 }
 
 template<typename TL, typename TR>
 inline Field<Expression<ct::Wedge, TL, TR>>
 wedge(TL const &l, TR const &r)
 {
-    return Field<Expression<ct::Wedge, TL, TR> >(l, r);
+    return Field < Expression<ct::Wedge, TL, TR> > (l, r);
 };
 
 
@@ -334,7 +334,7 @@ template<typename TL, typename TR>
 inline Field<Expression<ct::InteriorProduct, TL, TR>>
 interior_product(TL const &l, TR const &r)
 {
-    return Field<Expression<ct::InteriorProduct, TL, TR> >(l, r);
+    return Field < Expression<ct::InteriorProduct, TL, TR> > (l, r);
 };
 
 
@@ -375,7 +375,7 @@ inline Field<Expression<ct::Cross, TL, TR>>
 wedge(TL const &l, TR const &r,
       FUNCTION_REQUIREMENT(traits::iform<TL>::value == mesh::VERTEX))
 {
-    return Field<Expression<ct::Wedge, TL, TR> >(l, r);
+    return Field < Expression<ct::Wedge, TL, TR> > (l, r);
 }
 
 
@@ -395,12 +395,12 @@ DECL_RET_TYPE(hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
 template<typename ...TL, typename ...TR> inline auto
 cross(Field<TL...> const &lhs, Field<TR...> const &rhs,
       FUNCTION_REQUIREMENT((traits::iform<Field<TL... >>::value == mesh::VERTEX)))
-DECL_RET_TYPE((Field<Expression<ct::Cross, Field<TL...>, Field<TR...> > >(lhs, rhs)));
+DECL_RET_TYPE((Field < Expression<ct::Cross, Field<TL...>, Field<TR...> > > (lhs, rhs)));
 
 template<typename ...TL, typename ...TR> inline auto
 dot(Field<TL...> const &lhs, Field<TR...> const &rhs,
     FUNCTION_REQUIREMENT((traits::iform<Field<TL... >>::value == mesh::VERTEX)))
-DECL_RET_TYPE((Field<Expression<ct::Dot, Field<TL...>, Field<TR...> > >(lhs, rhs)));
+DECL_RET_TYPE((Field < Expression<ct::Dot, Field<TL...>, Field<TR...> > > (lhs, rhs)));
 
 
 template<typename TL, typename ... TR> inline auto
@@ -437,7 +437,7 @@ cross(Field<T...> const &f, nTuple<TL, 3> const &v) DECL_RET_TYPE((interior_prod
 template<size_t I, typename T> inline Field<Expression<ct::MapTo, T, index_const<I >>>
 map_to(T const &f)
 {
-    return Field<Expression<ct::MapTo, T, index_const<I >>>(f, index_const<I>());
+    return Field < Expression<ct::MapTo, T, index_const<I >> > (f, index_const<I>());
 }
 
 /** @} */
@@ -453,11 +453,11 @@ map_to(T const &f)
  */
 
 template<typename T> inline auto
-exterior_derivative(T const &f) DECL_RET_TYPE((Field<Expression<ct::ExteriorDerivative, T> >(f)))
+exterior_derivative(T const &f) DECL_RET_TYPE((Field < Expression<ct::ExteriorDerivative, T> > (f)))
 
 template<typename T> inline auto
 codifferential_derivative(T const &f)
-DECL_RET_TYPE((Field<Expression<ct::CodifferentialDerivative, T> >(f)))
+DECL_RET_TYPE((Field < Expression<ct::CodifferentialDerivative, T> > (f)))
 //
 //template<typename ... T> inline auto
 //d(Field<T...> const &f) DECL_RET_TYPE((exterior_derivative(f)))
@@ -507,47 +507,46 @@ curl(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((codifferential_derivati
 template<typename T> inline auto
 curl(T const &f) DECL_RET_TYPE((curl(f, traits::iform<T>())))
 
-template<size_t I, typename T> inline auto
-p_exterior_derivative(T const &f)
-DECL_RET_TYPE((Field<Expression<ct::P_ExteriorDerivative<I>, T>>(f)))
-
-template<size_t I, typename T> inline auto
-p_codifferential_derivative(T const &f)
-DECL_RET_TYPE((Field<Expression<ct::P_CodifferentialDerivative<I>, T>>(f)))
-
-
-template<typename T> inline auto
-curl_pdx(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<0>(f)))
-
-template<typename T> inline auto
-curl_pdx(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<0>(f)))
-
-template<typename T> inline auto
-curl_pdx(T const &f) DECL_RET_TYPE((curl_pdx(f, traits::iform<T>())))
-
-template<typename T> inline auto
-curl_pdy(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<1>(f)))
-
-template<typename T> inline auto
-curl_pdy(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<1>(f)))
-
-template<typename T> inline auto
-curl_pdy(T const &f) DECL_RET_TYPE((curl_pdy(f, traits::iform<T>())))
-
-template<typename T> inline auto
-curl_pdz(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<2>(f)))
-
-template<typename T> inline auto
-curl_pdz(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<2>(f)))
-
-template<typename T> inline auto
-curl_pdz(T const &f) DECL_RET_TYPE((curl_pdz(f, traits::iform<T>())))
+//template<size_t I, typename T> inline auto
+//p_exterior_derivative(T const &f)
+//DECL_RET_TYPE((Field<Expression<ct::P_ExteriorDerivative<I>, T>>(f)))
+//
+//template<size_t I, typename T> inline auto
+//p_codifferential_derivative(T const &f)
+//DECL_RET_TYPE((Field<Expression<ct::P_CodifferentialDerivative<I>, T>>(f)))
+//
+//
+//template<typename T> inline auto
+//curl_pdx(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<0>(f)))
+//
+//template<typename T> inline auto
+//curl_pdx(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<0>(f)))
+//
+//template<typename T> inline auto
+//curl_pdx(T const &f) DECL_RET_TYPE((curl_pdx(f, traits::iform<T>())))
+//
+//template<typename T> inline auto
+//curl_pdy(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<1>(f)))
+//
+//template<typename T> inline auto
+//curl_pdy(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<1>(f)))
+//
+//template<typename T> inline auto
+//curl_pdy(T const &f) DECL_RET_TYPE((curl_pdy(f, traits::iform<T>())))
+//
+//template<typename T> inline auto
+//curl_pdz(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<2>(f)))
+//
+//template<typename T> inline auto
+//curl_pdz(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<2>(f)))
+//
+//template<typename T> inline auto
+//curl_pdz(T const &f) DECL_RET_TYPE((curl_pdz(f, traits::iform<T>())))
 /** @} */
 
 /** @} */
 
 
-}
-// namespace simpla
+}// namespace simpla
 
 #endif /* CALCULUS_H_ */

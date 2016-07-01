@@ -320,7 +320,7 @@ public:
 //        base_type::nonblocking_sync();
 //        apply(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op);
 //        base_type::wait();
-        apply(m_mesh_->range(entity_type(), mesh::SP_ES_OWNED), op);
+        apply(m_mesh_->range(entity_type(), mesh::SP_ES_VALID), op);
 
         return *this;
     }
@@ -366,7 +366,7 @@ private:
 //        base_type::nonblocking_sync();
 //        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op, other);
 //        base_type::wait();
-        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_OWNED), op, other);
+        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_VALID), op, other);
         return *this;
     }
 
