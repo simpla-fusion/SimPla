@@ -129,7 +129,8 @@ public:
     {
         os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
         os << std::setw(indent + 1) << " " << "Topology = { Type = \"CoRectMesh\", "
-        << "Dimensions = " << dimensions() << " offset = " << offset() << " }," << std::endl;
+        << "Dimensions = " << dimensions() << " offset = " << offset() << " }," << " dx = " << dx() << " }," <<
+        std::endl;
         os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;
 
         return os;
@@ -319,8 +320,9 @@ public:
             case SP_ES_LOCAL : // = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
                 MeshEntityRange(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType)).swap(res);
                 break;
-
-
+            case SP_ES_OWNED:
+                MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType)).swap(res);
+                break;
             case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
                 MeshEntityRange(m_interface_entities_[entityType]).swap(res);
                 break;
@@ -448,26 +450,25 @@ public:
         for (int i = 0; i < ndims; ++i)
         {
 
-            m_dims_[i] = (m_dims_[i] > 0) ? m_dims_[i] : 1;
+            m_dims_[i] = (m_dims_[i] > 1) ? m_dims_[i] : 1;
 
-            m_dx_[i] = (m_coords_upper_[i] - m_coords_lower_[i]) / static_cast<Real>( m_dims_[i]);
+            m_dx_[i] = (m_dims_[i] <= 1) ? 1 : (m_coords_upper_[i] - m_coords_lower_[i]) /
+                                               static_cast<Real>( m_dims_[i]);
 
-            m_inv_dx_[i] = (m_dims_[i] > 1) ? static_cast<Real>(1.0) / m_dx_[i] : static_cast<Real>(0.0);
+            m_inv_dx_[i] = (m_dims_[i] <= 1) ? 0 : static_cast<Real>(1.0) / m_dx_[i];
 
             m_ghost_width_[i] = (m_dims_[i] > 1) ? m_ghost_width_[i] : 0;
-
-            m_outer_lower_[i] = -m_ghost_width_[i];
-            m_outer_upper_[i] = m_dims_[i] + m_ghost_width_[i];
 
             m_shape_[i] = m_dims_[i] + m_ghost_width_[i] * 2;
 
             m_lower_[i] = 0;
             m_upper_[i] = m_dims_[i];
 
+            m_outer_lower_[i] = m_lower_[i] - m_ghost_width_[i];
+            m_outer_upper_[i] = m_upper_[i] + m_ghost_width_[i];
 
             m_inner_lower_[i] = m_lower_[i] + m_ghost_width_[i];
             m_inner_upper_[i] = m_upper_[i] - m_ghost_width_[i];
-
 
             m_l2g_scale_[i] = (m_dims_[i] <= 1) ? 0 : m_dx_[i];
             m_l2g_shift_ = m_coords_lower_;
@@ -523,14 +524,14 @@ public:
         m_inv_dual_volume_[7 /*110*/] = m_inv_volume_[0];
 
 
-        m_inv_dx_[0] = (m_dims_[0] == 1) ? 0 : m_inv_dx_[0];
-        m_inv_dx_[1] = (m_dims_[1] == 1) ? 0 : m_inv_dx_[1];
-        m_inv_dx_[2] = (m_dims_[2] == 1) ? 0 : m_inv_dx_[2];
+        m_inv_dx_[0] = (m_dims_[0] <= 1) ? 0 : m_inv_dx_[0];
+        m_inv_dx_[1] = (m_dims_[1] <= 1) ? 0 : m_inv_dx_[1];
+        m_inv_dx_[2] = (m_dims_[2] <= 1) ? 0 : m_inv_dx_[2];
 
 
-        m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 0 : m_inv_dx_[0];
-        m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 0 : m_inv_dx_[1];
-        m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 0 : m_inv_dx_[2];
+        m_inv_volume_[1 /*001*/] = (m_dims_[0] <= 1) ? 0 : m_inv_dx_[0];
+        m_inv_volume_[2 /*010*/] = (m_dims_[1] <= 1) ? 0 : m_inv_dx_[1];
+        m_inv_volume_[4 /*100*/] = (m_dims_[2] <= 1) ? 0 : m_inv_dx_[2];
 
 
         int flag = 0;
@@ -552,7 +553,8 @@ public:
     }
 
 
-    virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t) const
+    virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t,
+                                                                                MeshEntityStatus status = SP_ES_OWNED) const
     {
         int i_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
 
@@ -562,24 +564,40 @@ public:
         nTuple<size_t, ndims + 1> m_dims, m_count;
         nTuple<ptrdiff_t, ndims + 1> m_start;
 
-        f_dims = m_dims_;//+ m_offset_;
-        f_start = 0;//m_offset_;
-        f_count = m_dims_;
+        switch (status)
+        {
+            case SP_ES_VALID:
+                f_dims = m_shape_;//+ m_offset_;
+                f_start = 0;//m_offset_;
+                f_count = m_shape_;
+
+                m_dims = m_shape_;
+                m_start = 0;
+                m_count = m_shape_;
+                break;
+            case SP_ES_OWNED:
+            default:
+                f_dims = m_dims_;//+ m_offset_;
+                f_start = 0;//m_offset_;
+                f_count = m_dims_;
+
+                m_dims = m_shape_;
+                m_start = m_lower_ - m_outer_lower_;
+                m_count = m_dims_;
+                break;
+
+        }
         f_dims[ndims] = 3;
         f_start[ndims] = 0;
         f_count[ndims] = 3;
 
 
-        data_model::DataSpace f_space(i_ndims, &f_dims[0]);
-        f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
-
-        m_dims = m_shape_;
-        m_start = m_lower_ - m_outer_lower_;
-        m_count = m_dims_;
         m_dims[ndims] = 3;
         m_start[ndims] = 0;
         m_count[ndims] = 3;
 
+        data_model::DataSpace f_space(i_ndims, &f_dims[0]);
+        f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
 
         data_model::DataSpace m_space(i_ndims, &m_dims[0]);
         m_space.select_hyperslab(&m_start[0], nullptr, &m_count[0], nullptr);

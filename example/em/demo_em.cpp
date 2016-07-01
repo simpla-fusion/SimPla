@@ -117,9 +117,9 @@ int main(int argc, char **argv)
                 pml_mesh[3]->stretch(index_tuple{dims[0], w, dims[2] + 2 * w});
                 pml_mesh[3]->deploy();
                 ctx.atlas().add_block(pml_mesh[3]);
-                ctx.atlas().add_adjacency_2(pml_mesh[1], mesh_center, SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[1], pml_mesh[0], SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[1], pml_mesh[1], SP_MB_SYNC);
+                ctx.atlas().add_adjacency_2(pml_mesh[3], mesh_center, SP_MB_SYNC);
+                ctx.atlas().add_adjacency_2(pml_mesh[3], pml_mesh[0], SP_MB_SYNC);
+                ctx.atlas().add_adjacency_2(pml_mesh[3], pml_mesh[1], SP_MB_SYNC);
                 ctx.add_domain(std::make_shared<PML<mesh_type> >(pml_mesh[3].get(), mesh_center->box()))->deploy();
 
             }

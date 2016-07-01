@@ -11,10 +11,13 @@ namespace simpla { namespace mesh
 
 TransitionMap::TransitionMap(Chart const *p_first, Chart const *p_second, int p_flag)
         : first(p_first), second(p_second), flag(p_flag),
-          m_overlap_region_M_(gtl::box_overlap(first->box(SP_ES_VALID), second->box(SP_ES_OWNED))),
-          m_offset_(std::get<0>(second->point_global_to_local(std::get<0>(m_overlap_region_M_)))
-                    - std::get<0>(first->point_global_to_local(std::get<0>(m_overlap_region_M_))))
+          m_overlap_region_M_(gtl::box_overlap(first->box(SP_ES_VALID), second->box(SP_ES_OWNED)))
 {
+    m_offset_.v = (std::get<0>(second->point_global_to_local(std::get<0>(m_overlap_region_M_)))
+                   - std::get<0>(first->point_global_to_local(std::get<0>(m_overlap_region_M_)))
+                  ).v & ~MeshEntityIdCoder::_DA.v;
+
+
 //    if (p_first->name() != "PML_0")
 //    {
 //        MeshEntityId s1 = std::get<0>(first->point_global_to_local(std::get<0>(m_overlap_region_M_)));

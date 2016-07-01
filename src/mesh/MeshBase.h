@@ -147,7 +147,8 @@ public:
 
     }
 
-    virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t) const = 0;
+    virtual std::tuple<data_model::DataSpace, data_model::DataSpace>
+            data_space(MeshEntityType const &t, MeshEntityStatus status = SP_ES_OWNED) const = 0;
 
     virtual std::shared_ptr<MeshBase> clone(std::string const &name = "") const = 0;
 

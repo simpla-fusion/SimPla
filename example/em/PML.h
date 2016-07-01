@@ -179,36 +179,10 @@ void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain c
 
 
     t_map.direct_map(mesh::EDGE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = (*E2)[s2]; }
-    );
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = (*E2)[s2]; });
 
     t_map.direct_map(mesh::FACE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = (*B2)[s2]; }
-    );
-
-//    if (m_mesh_->name() == "PML_0")
-//    {
-//        t_map.direct_map(mesh::EDGE,
-//                         [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2)
-//                         {
-//
-//                             INFORM << "("
-//                             << (s1.x >> 1) << ", "
-//                             << (s1.y >> 1) << ", "
-//                             << (s1.z >> 1) << " ) -( "
-//                             << (s2.x >> 1) << ", "
-//                             << (s2.y >> 1) << ", "
-//                             << (s2.z >> 1) << ") "
-//                             << "E =" << E[s1]
-//
-//                             << std::endl;
-//
-//
-//                         }
-//        );
-//
-//    }
-
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = (*B2)[s2]; });
 
 }
 
@@ -222,7 +196,6 @@ void PML<TM>::next_step(Real dt)
     B -= curl(E) * (dt * 0.5);
     E += (curl(B) * speed_of_light2) * dt;
     B -= curl(E) * (dt * 0.5);
-
 //    dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
 //    X10 += dX1;
 //    E += dX1;

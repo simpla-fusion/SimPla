@@ -7,17 +7,17 @@
 
 #ifndef FIELD_DENSE_H_
 #define FIELD_DENSE_H_
-
-
+#include "../sp_def.h"
 #include "../gtl/type_traits.h"
 #include "../mesh/MeshBase.h"
 #include "../mesh/MeshAttribute.h"
 #include "../data_model/DataSet.h"
-
-#include "FieldTraits.h"
+#include "../gtl/type_traits.h"
+//#include "FieldTraits.h"
 
 namespace simpla
 {
+template<typename ...> struct Field;
 
 
 template<typename TV, typename TManifold, size_t IFORM>
@@ -46,7 +46,7 @@ public:
     Field() : base_type(), m_mesh_(nullptr), m_data_holder_(nullptr), m_data_(nullptr) { }
 
     //create construct
-    Field(mesh::MeshBase const *m) : Field(dynamic_cast<mesh_type const *>(m)) { }
+    Field(mesh::MeshBase const *m) : Field(static_cast<mesh_type const *>(m)) { }
 
     Field(mesh_type const *m) : m_mesh_(m), m_data_holder_(nullptr), m_data_(nullptr) { }
 
@@ -141,7 +141,7 @@ public:
 
     virtual std::shared_ptr<const void> data() const { return m_data_holder_; }
 
-    virtual data_model::DataSet dataset() const
+    virtual data_model::DataSet dataset(mesh::MeshEntityStatus status = mesh::SP_ES_OWNED) const
     {
         data_model::DataSet res;
 
@@ -149,26 +149,16 @@ public:
 
         res.data = m_data_holder_;
 
-        std::tie(res.memory_space, res.data_space) = m_mesh_->data_space(entity_type());
+        std::tie(res.memory_space, res.data_space) = m_mesh_->data_space(entity_type(),status);
 
         return res;
     };
-
-    virtual data_model::DataSet dataset(mesh::MeshEntityRange const &) const
-    {
-        UNIMPLEMENTED;
-        return data_model::DataSet();
-    }
 
     virtual void dataset(data_model::DataSet const &)
     {
         UNIMPLEMENTED;
     };
 
-    virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &)
-    {
-        UNIMPLEMENTED;
-    }
 
 
 public:
@@ -233,10 +223,7 @@ public:
 
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
-          FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
-                  point_type const &,
-                  field_value_type const &)>::type, field_value_type>::value))
-    )
+          FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(point_type const &,field_value_type const &)>::type, field_value_type>::value)))
     {
         deploy();
 
@@ -329,10 +316,12 @@ public:
     {
         deploy();
 
-        apply(m_mesh_->range(entity_type(), mesh::SP_ES_NON_LOCAL), op);
-        base_type::nonblocking_sync();
-        apply(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op);
-        base_type::wait();
+//        apply(m_mesh_->range(entity_type(), mesh::SP_ES_NON_LOCAL), op);
+//        base_type::nonblocking_sync();
+//        apply(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op);
+//        base_type::wait();
+        apply(m_mesh_->range(entity_type(), mesh::SP_ES_OWNED), op);
+
         return *this;
     }
 
@@ -373,10 +362,11 @@ private:
     {
         deploy();
 
-        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_NON_LOCAL), op, other);
-        base_type::nonblocking_sync();
-        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op, other);
-        base_type::wait();
+//        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_NON_LOCAL), op, other);
+//        base_type::nonblocking_sync();
+//        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op, other);
+//        base_type::wait();
+        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_OWNED), op, other);
         return *this;
     }
 

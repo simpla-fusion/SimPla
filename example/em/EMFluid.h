@@ -176,7 +176,13 @@ EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
         J_src_range = m->range(b, mesh::EDGE);
         options["Constraints"]["J"]["Value"].as(&J_src_fun);
     }
-
+//    m_mesh_->range(mesh::EDGE, SP_ES_OWNED)
+//            .foreach([&](mesh::MeshEntityId const &s)
+//                     {
+//                         if (MeshEntityIdCoder::sub_index(s) == 2)
+//                         {                             E1[s] = m_mesh_->hash(s);
+//                         }
+//                     });
 
     return *this;
 }
@@ -196,11 +202,10 @@ void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDoma
     auto B2 = static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
     auto const *m2 = other.m_mesh_;
     t_map.direct_map(mesh::EDGE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E1[s1] = (*E2)[s2]; }
-    );
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E1[s1] = (*E2)[s2]; });
+
     t_map.direct_map(mesh::FACE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B1[s1] = (*B2)[s2]; }
-    );
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B1[s1] = (*B2)[s2]; });
 
 }
 
@@ -235,80 +240,80 @@ void EMFluid<TM>::next_step(Real dt)
     E1.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
 
-    field_t<vector_type, VERTEX> dE{m};
-
-    if (fluid_sp.size() > 0)
-    {
-
-        field_t<vector_type, VERTEX> Q{m};
-        field_t<vector_type, VERTEX> K{m};
-
-        field_t<scalar_type, VERTEX> a{m};
-        field_t<scalar_type, VERTEX> b{m};
-        field_t<scalar_type, VERTEX> c{m};
-
-        a.clear();
-        b.clear();
-        c.clear();
-
-        Q = map_to<VERTEX>(E1) - Ev;
-
-
-        for (auto &p :   fluid_sp)
-        {
-
-            Real ms = p.second.mass;
-            Real qs = p.second.charge;
-
-
-            field_t<scalar_type, VERTEX> &ns = p.second.rho1;
-
-            field_t<vector_type, VERTEX> &Js = p.second.J1;;
-
-
-            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
-
-            Q -= 0.5 * dt / epsilon0 * Js;
-
-            K = (Ev * qs * ns * 2.0 + cross(Js, B0v)) * as + Js;
-
-            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
-
-            Q -= 0.5 * dt / epsilon0 * Js;
-
-            a += qs * ns * (as / (BB * as * as + 1));
-            b += qs * ns * (as * as / (BB * as * as + 1));
-            c += qs * ns * (as * as * as / (BB * as * as + 1));
-
-
-        }
-
-        a *= 0.5 * dt / epsilon0;
-        b *= 0.5 * dt / epsilon0;
-        c *= 0.5 * dt / epsilon0;
-        a += 1;
-
-
-        LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-                     (b * b * BB + a * a));
-
-        for (auto &p :   fluid_sp)
-        {
-            Real ms = p.second.mass;
-            Real qs = p.second.charge;
-            field_t<scalar_type, VERTEX> &ns = p.second.rho1;
-            field_t<vector_type, VERTEX> &Js = p.second.J1;;
-
-
-            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
-
-            K = dE * ns * qs * as;
-            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
-        }
-        Ev += dE;
-
-        E1 += map_to<EDGE>(Ev) - E1;
-    }
+//    field_t<vector_type, VERTEX> dE{m};
+//
+//    if (fluid_sp.size() > 0)
+//    {
+//
+//        field_t<vector_type, VERTEX> Q{m};
+//        field_t<vector_type, VERTEX> K{m};
+//
+//        field_t<scalar_type, VERTEX> a{m};
+//        field_t<scalar_type, VERTEX> b{m};
+//        field_t<scalar_type, VERTEX> c{m};
+//
+//        a.clear();
+//        b.clear();
+//        c.clear();
+//
+//        Q = map_to<VERTEX>(E1) - Ev;
+//
+//
+//        for (auto &p :   fluid_sp)
+//        {
+//
+//            Real ms = p.second.mass;
+//            Real qs = p.second.charge;
+//
+//
+//            field_t<scalar_type, VERTEX> &ns = p.second.rho1;
+//
+//            field_t<vector_type, VERTEX> &Js = p.second.J1;;
+//
+//
+//            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+//
+//            Q -= 0.5 * dt / epsilon0 * Js;
+//
+//            K = (Ev * qs * ns * 2.0 + cross(Js, B0v)) * as + Js;
+//
+//            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+//
+//            Q -= 0.5 * dt / epsilon0 * Js;
+//
+//            a += qs * ns * (as / (BB * as * as + 1));
+//            b += qs * ns * (as * as / (BB * as * as + 1));
+//            c += qs * ns * (as * as * as / (BB * as * as + 1));
+//
+//
+//        }
+//
+//        a *= 0.5 * dt / epsilon0;
+//        b *= 0.5 * dt / epsilon0;
+//        c *= 0.5 * dt / epsilon0;
+//        a += 1;
+//
+//
+//        LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
+//                     (b * b * BB + a * a));
+//
+//        for (auto &p :   fluid_sp)
+//        {
+//            Real ms = p.second.mass;
+//            Real qs = p.second.charge;
+//            field_t<scalar_type, VERTEX> &ns = p.second.rho1;
+//            field_t<vector_type, VERTEX> &Js = p.second.J1;;
+//
+//
+//            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
+//
+//            K = dE * ns * qs * as;
+//            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+//        }
+//        Ev += dE;
+//
+//        E1 += map_to<EDGE>(Ev) - E1;
+//    }
 
 
     B1 -= curl(E1) * (dt * 0.5);

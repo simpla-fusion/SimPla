@@ -62,7 +62,7 @@ struct MeshAttribute : public base::Object, std::enable_shared_from_this<MeshAtt
 //
 //    virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &) = 0;
 
-    virtual data_model::DataSet dataset() const = 0;
+    virtual data_model::DataSet dataset(MeshEntityStatus s = SP_ES_OWNED) const = 0;
 
     void sync(bool is_blocking = true);
 

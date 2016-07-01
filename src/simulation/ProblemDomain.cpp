@@ -117,10 +117,7 @@ ProblemDomain::print(std::ostream &os, int indent) const
 io::IOStream &
 ProblemDomain::load(io::IOStream &is) const
 {
-    if (!m_properties_["DISABLE_LOAD"])
-    {
-        UNIMPLEMENTED;
-    }
+    if (!m_properties_["DISABLE_LOAD"]) { UNIMPLEMENTED; }
     return is;
 }
 
@@ -136,7 +133,7 @@ ProblemDomain::save(io::IOStream &os, int flag) const
             if (!item.second->empty())
             {
                 os.open(item.first + "/");
-                os.write(m_mesh_->name(), item.second->dataset(), flag);
+                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_OWNED), flag);
                 os.open(pwd);
             }
         }
