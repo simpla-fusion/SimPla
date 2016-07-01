@@ -41,7 +41,7 @@ protected:
         m.dimensions(dims);
         m.box(xmin, xmax);
         m.deploy();
-        m.range(static_cast<mesh::MeshEntityType>(iform)).swap(m_range);
+        m.range(static_cast<mesh::MeshEntityType>(iform), SP_ES_OWNED).swap(m_range);
     }
 
 public:
