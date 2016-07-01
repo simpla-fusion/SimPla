@@ -65,7 +65,6 @@ public:
 
     mesh_type m;
 
-
     field_t<value_type, mesh_type, iform> make_field() const
     {
 
@@ -99,13 +98,7 @@ TYPED_TEST_P(TestField, assign)
 
     size_t count = 0;
 
-    TestFixture::m_range.foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                ++count;
-                EXPECT_LE(mod(va - f1[s]), EPSILON);
-            });
-    EXPECT_EQ(count, TestFixture::m_range.size());
+    TestFixture::m_range.foreach([&](mesh::MeshEntityId s) { EXPECT_LE(mod(va - f1[s]), EPSILON); });
 }
 
 TYPED_TEST_P(TestField, index)
@@ -123,17 +116,10 @@ TYPED_TEST_P(TestField, index)
 
     va = 2.0;
 
-    TestFixture::m_range.foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                f1[s] = va * TestFixture::m.hash(s);
-            });
+    TestFixture::m_range.foreach([&](mesh::MeshEntityId s) { f1[s] = va * TestFixture::m.hash(s); });
 
     TestFixture::m_range.foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                EXPECT_LE(mod(va * TestFixture::m.hash(s) - f1[s]), EPSILON);
-            });
+            [&](mesh::MeshEntityId s) { EXPECT_LE(mod(va * TestFixture::m.hash(s) - f1[s]), EPSILON); });
 
 }
 

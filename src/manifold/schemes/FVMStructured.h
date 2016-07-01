@@ -632,22 +632,22 @@ private:
         return dot(eval_(std::get<0>(expr.args), s), eval_(std::get<1>(expr.args), s));
     }
 
-
-    template<typename TL, typename TR, size_t I>
-    constexpr inline
-    traits::value_type_t<Field<Expression<_impl::divides, TL, TR>>>
-    eval_(Field<Expression<_impl::divides, TL, TR>> const &expr, MeshEntitId s, index_sequence<I, VERTEX>) const
-    {
-        return eval_(std::get<0>(expr.args), s) / mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
-    }
-
-    template<typename TL, typename TR, size_t I>
-    constexpr inline
-    traits::value_type_t<Field<Expression<_impl::multiplies, TL, TR>>>
-    eval_(Field<Expression<_impl::multiplies, TL, TR>> const &expr, MeshEntitId s, index_sequence<I, VERTEX>) const
-    {
-        return eval_(std::get<0>(expr.args), s) * mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
-    }
+//
+//    template<typename TL, typename TR, size_t I>
+//    constexpr inline
+//    traits::value_type_t<Field<Expression<_impl::divides, TL, TR>>>
+//    eval_(Field<Expression<_impl::divides, TL, TR>> const &expr, MeshEntitId s, index_sequence<I, VERTEX>) const
+//    {
+//        return eval_(std::get<0>(expr.args), s) / mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
+//    }
+//
+//    template<typename TL, typename TR, size_t I>
+//    constexpr inline
+//    traits::value_type_t<Field<Expression<_impl::multiplies, TL, TR>>>
+//    eval_(Field<Expression<_impl::multiplies, TL, TR>> const &expr, MeshEntitId s, index_sequence<I, VERTEX>) const
+//    {
+//        return eval_(std::get<0>(expr.args), s) * mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
+//    }
 
 
     template<typename ...T, size_t ...I>

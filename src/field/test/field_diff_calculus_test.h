@@ -572,11 +572,7 @@ TEST_P(FETLTest, curl2)
     nTuple<Real, 3> E = {1, 2, 3};
 
     m.range(FACE).foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                f2[s] = E[m.sub_index(s)] * std::sin(q(m.point(s)));
-
-            });
+            [&](mesh::MeshEntityId s) { f2[s] = E[m.sub_index(s)] * std::sin(q(m.point(s))); });
 
 
     //f2.sync();
@@ -600,9 +596,6 @@ TEST_P(FETLTest, curl2)
                 Real sin_v = std::sin(q(x));
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-
-
-
                 switch (n)
                {
                    case  PhiAxis: // theta
@@ -619,22 +612,13 @@ TEST_P(FETLTest, curl2)
                        break;
 
                }
-
 #	else
-
                 expect = (K_real[(n + 1) % 3] * E[(n + 2) % 3] - K_real[(n + 2) % 3] * E[(n + 1) % 3]) * cos_v;
-
 #endif
                 f1b[s] = expect;
-
-
                 ++count;
-
                 variance += mod((f1[s] - expect) * (f1[s] - expect));
-
                 average += (f1[s] - expect);
-
-
             }
     );
 //#ifndef NDEBUG
