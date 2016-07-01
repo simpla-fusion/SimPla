@@ -104,13 +104,13 @@ void parallel_foreach(TRange const &r, Body const &body)
 {
     parallel_for(r, [&](TRange const &r1) { for (auto const &s: r1) { body(s); }});
 }
-
-template<typename TRange, typename Body,
-        typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x1FUL) == 0x10UL>::type * = nullptr>
-void serial_foreach(TRange const &r, Body const &body)
-{
-    UNIMPLEMENTED;
-}
+//
+//template<typename TRange, typename Body,
+//        typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x1FUL) == 0x10UL>::type * = nullptr>
+//void serial_foreach(TRange const &r, Body const &body)
+//{
+//    UNIMPLEMENTED;
+//}
 
 template<typename TRange, typename Body,
         typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x0CUL) == 0x08UL>::type * = nullptr>
@@ -131,6 +131,16 @@ template<typename TRange, typename Body,
 void serial_foreach(TRange const &r, Body const &body)
 {
     for (auto const &s: r) { body(s); }
+}
+
+template<typename TRange, typename Body>
+void foreach(TRange const &r, Body const &body)
+{
+#ifndef NDEBUG
+    serial_foreach(r, body);
+#else
+    parallel_foreach(r, body);
+#endif
 }
 }}// namespace simpla { namespace parallel
 

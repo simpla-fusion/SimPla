@@ -872,32 +872,46 @@ struct MeshEntityIdCoder_
 //        const_iterator end() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_).end(); }
 
 
-        template<typename Body>
-        void parallel_foreach(Body const &body) const
-        {
-#ifdef USE_TBB
-            tbb::parallel_for(*this, [&](range_type const &r)
-            {
-#else
-                range_type const &r = *this;
-#   ifdef  _OPENMP
-#           pragma omp parallel for
-#   endif
-#endif
-                for (index_type i = r.m_min_[0], ie = r.m_max_[0]; i < ie; ++i)
-                    for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-                        for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
-                            for (index_type n = 0, ne = m_iform_to_num_of_ele_in_cell_[r.m_iform_]; n < ne; ++n)
-                            {
-                                body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n]));
-                            }
-#ifdef USE_TBB
-            });
-#endif
-        }
+//        template<typename Body>
+//        void parallel_foreach(Body const &body) const
+//        {
+//#ifdef USE_TBB
+//            tbb::parallel_for(*this, [&](range_type const &r)
+//            {
+//#else
+//                range_type const &r = *this;
+//#   ifdef  _OPENMP
+//#           pragma omp parallel for
+//#   endif
+//#endif
+//                for (index_type i = r.m_min_[0], ie = r.m_max_[0]; i < ie; ++i)
+//                    for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
+//                        for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
+//                            for (index_type n = 0, ne = m_iform_to_num_of_ele_in_cell_[r.m_iform_]; n < ne; ++n)
+//                            {
+//                                body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n]));
+//                            }
+//#ifdef USE_TBB
+//            });
+//#endif
+//        }
+//
+//        template<typename Body>
+//        void serial_foreach(Body const &body) const
+//        {
+//            range_type const &r = *this;
+//            for (index_type i = r.m_min_[0], ie = r.m_max_[0]; i < ie; ++i)
+//                for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
+//                    for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
+//                        for (index_type n = 0, ne = m_iform_to_num_of_ele_in_cell_[r.m_iform_]; n < ne; ++n)
+//                        {
+//                            body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n]));
+//                        }
+//
+//        }
 
         template<typename Body>
-        void serial_foreach(Body const &body) const
+        void foreach(Body const &body) const
         {
             range_type const &r = *this;
             for (index_type i = r.m_min_[0], ie = r.m_max_[0]; i < ie; ++i)
@@ -907,20 +921,6 @@ struct MeshEntityIdCoder_
                         {
                             body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n]));
                         }
-
-        }
-
-        template<typename Body>
-        void foreach(Body const &body, bool auto_parallel = false) const
-        {
-//            if (auto_parallel)
-//            {
-//                parallel_foreach(body);
-//            }
-//            else
-            {
-                serial_foreach(body);
-            }
         }
 
     private:

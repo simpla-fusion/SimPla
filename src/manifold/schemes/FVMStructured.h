@@ -333,6 +333,7 @@ private:
     mapto(TF const &expr, MeshEntitId s, index_sequence<VERTEX, EDGE>) const
     {
         MeshEntitId X = M::delta_index(s);
+
         return (eval_(expr, s - X) + eval_(expr, s + X)) * 0.5;
     }
 
@@ -633,13 +634,27 @@ private:
     }
 
 //
-//    template<typename TL, typename TR, size_t I>
-//    constexpr inline
-//    traits::value_type_t<Field<Expression<_impl::divides, TL, TR>>>
-//    eval_(Field<Expression<_impl::divides, TL, TR>> const &expr, MeshEntitId s, index_sequence<I, VERTEX>) const
-//    {
-//        return eval_(std::get<0>(expr.args), s) / mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
-//    }
+    template<typename TL, typename TR, size_t I>
+    constexpr inline
+    traits::value_type_t<Field<Expression<_impl::divides, TL, TR>>>
+    eval_(Field<Expression<_impl::divides, TL, TR>> const &expr, MeshEntitId s, index_sequence<I, VERTEX>) const
+    {
+        if (mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>()) <= 0.0)
+        {
+            MeshEntitId X = M::delta_index(s);
+            VERBOSE << "("
+            << (s.x >> 1) << " , "
+            << (s.y >> 1) << " , "
+            << (s.z >> 1) << " )"
+            << MeshEntityIdCoder::node_id(s) << " "
+            << eval_(std::get<1>(expr.args), s - X) << " ,"
+            << eval_(std::get<1>(expr.args), s + X)
+            << std::endl;
+
+
+        };
+        return eval_(std::get<0>(expr.args), s) / mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
+    }
 //
 //    template<typename TL, typename TR, size_t I>
 //    constexpr inline

@@ -201,7 +201,8 @@ void PML<TM>::next_step(Real dt)
 //    B -= curl(E) * (dt);
 //    E += (curl(B) * speed_of_light2) * dt;
 
-    dX1 = (-2.0 * dt * s0 * X10 + curl(B) * speed_of_light2 * dt) / (a0 + s0 * dt);
+    dX1 = (-2.0 * dt * s0 * X10 + curl(B) * speed_of_light2 * dt)
+         / (a0/*+ s0 * dt*/);
     X10 += dX1;
     E += dX1;
 
@@ -213,7 +214,9 @@ void PML<TM>::next_step(Real dt)
 //    X12 += dX1;
 //    E += dX1;
 
-    dX2 = (-2.0 * dt * s0 * X20 + curl(E) * dt) /* / (a0 + s0 * dt)*/;
+    dX2 = (-2.0 * dt * s0 * X20 + curl(E) * dt)
+        // / (a0 + s0 * dt)
+            ;
     X20 += dX2;
     B -= dX2;
 

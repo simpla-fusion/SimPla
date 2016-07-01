@@ -67,26 +67,6 @@ public:
 
     size_t size() const { return m_holder_->size(); }
 
-
-//    iterator begin() { return m_self_->begin(); }
-//
-//    iterator end() { return m_self_->end(); }
-//
-//    iterator begin() const { return m_self_->begin(); }
-//
-//    iterator end() const { return m_self_->end(); }
-
-    //****************************************************************************
-    // TBB RangeHolder Concept End
-    //    enum op_tag { AND, OR, XOR };
-    //
-    //    MeshEntityRange op(op_tag tag, MeshEntityRange const &other) const
-    //    {
-    //        MeshEntityRange res;
-    //        res.m_self_ = m_self_->op(tag, *other.m_self_);
-    //        return std::move(res);
-    //    }
-
     template<typename T, typename ...Args,
             typename std::enable_if<!std::is_base_of<RangeBase, T>::value>::type * = nullptr>
     static MeshEntityRange create(Args &&...args)
@@ -152,14 +132,6 @@ private:
 
         virtual bool empty() const = 0;
 
-//        virtual iterator begin() const = 0;
-//
-//        virtual iterator end() const = 0;
-//
-//        virtual iterator begin() = 0;
-//
-//        virtual iterator end() = 0;
-
         template<typename T> T &as()
         {
             assert(is_a(typeid(T)));
@@ -222,20 +194,11 @@ private:
 
         virtual bool empty() const { return m_range_.empty(); }
 
-//        virtual iterator begin() const { return iterator(m_range_.begin()); }
-//
-//        virtual iterator end() const { return iterator(m_range_.end()); }
-//
-//        virtual iterator begin() { return iterator(m_range_.begin()); }
-//
-//        virtual iterator end() { return iterator(m_range_.end()); }
-
-
     public:
 
         virtual void foreach(foreach_body_type const &body) const
         {
-            parallel::parallel_foreach(m_range_, body);
+            parallel::foreach(m_range_, body);
         };
     };
 
@@ -287,20 +250,10 @@ private:
 
         virtual bool empty() const { return m_range_.empty(); }
 
-//        virtual iterator begin() const { return iterator(m_range_.begin()); }
-//
-//        virtual iterator end() const { return iterator(m_range_.end()); }
-//
-//        virtual iterator begin() { return iterator(m_range_.begin()); }
-//
-//        virtual iterator end() { return iterator(m_range_.end()); }
-
         virtual void foreach(foreach_body_type const &body) const
         {
-            parallel::serial_foreach(m_range_, body);
+            parallel::foreach(m_range_, body);
         };
-
-
     };
 };
 
