@@ -105,8 +105,8 @@ struct rank<Field<T...> > : public index_const<3> { };
 
 template<typename> class iform;
 
-template<typename TAG, typename T0, typename ... T>
-struct iform<Field<Expression<TAG, T0, T...> > > : public traits::iform<T0>::type
+template<typename TOP, typename T0, typename ... T>
+struct iform<Field<Expression<TOP, T0, T...> > > : public traits::iform<T0>::type
 {
 };
 
@@ -178,8 +178,8 @@ struct value_type<Field<Expression<TOP, T...> > >
     typedef std::result_of_t<TOP(typename value_type<T>::type ...)> type;
 };
 
-template<typename TV, typename ...Other>
-struct value_type<Field<TV, Other...> >
+template<typename TV, typename TM, size_t IFORM>
+struct value_type<Field<TV, TM, index_const<IFORM> > >
 {
     typedef TV type;
 };
@@ -507,41 +507,41 @@ curl(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((codifferential_derivati
 template<typename T> inline auto
 curl(T const &f) DECL_RET_TYPE((curl(f, traits::iform<T>())))
 
-//template<size_t I, typename T> inline auto
-//p_exterior_derivative(T const &f)
-//DECL_RET_TYPE((Field<Expression<ct::P_ExteriorDerivative<I>, T>>(f)))
-//
-//template<size_t I, typename T> inline auto
-//p_codifferential_derivative(T const &f)
-//DECL_RET_TYPE((Field<Expression<ct::P_CodifferentialDerivative<I>, T>>(f)))
-//
-//
-//template<typename T> inline auto
-//curl_pdx(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<0>(f)))
-//
-//template<typename T> inline auto
-//curl_pdx(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<0>(f)))
-//
-//template<typename T> inline auto
-//curl_pdx(T const &f) DECL_RET_TYPE((curl_pdx(f, traits::iform<T>())))
-//
-//template<typename T> inline auto
-//curl_pdy(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<1>(f)))
-//
-//template<typename T> inline auto
-//curl_pdy(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<1>(f)))
-//
-//template<typename T> inline auto
-//curl_pdy(T const &f) DECL_RET_TYPE((curl_pdy(f, traits::iform<T>())))
-//
-//template<typename T> inline auto
-//curl_pdz(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<2>(f)))
-//
-//template<typename T> inline auto
-//curl_pdz(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<2>(f)))
-//
-//template<typename T> inline auto
-//curl_pdz(T const &f) DECL_RET_TYPE((curl_pdz(f, traits::iform<T>())))
+template<size_t I, typename T> inline auto
+p_exterior_derivative(T const &f)
+DECL_RET_TYPE((Field<Expression<ct::P_ExteriorDerivative<I>, T>>(f)))
+
+template<size_t I, typename T> inline auto
+p_codifferential_derivative(T const &f)
+DECL_RET_TYPE((Field<Expression<ct::P_CodifferentialDerivative<I>, T>>(f)))
+
+
+template<typename T> inline auto
+curl_pdx(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<0>(f)))
+
+template<typename T> inline auto
+curl_pdx(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<0>(f)))
+
+template<typename T> inline auto
+curl_pdx(T const &f) DECL_RET_TYPE((curl_pdx(f, traits::iform<T>())))
+
+template<typename T> inline auto
+curl_pdy(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<1>(f)))
+
+template<typename T> inline auto
+curl_pdy(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<1>(f)))
+
+template<typename T> inline auto
+curl_pdy(T const &f) DECL_RET_TYPE((curl_pdy(f, traits::iform<T>())))
+
+template<typename T> inline auto
+curl_pdz(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<2>(f)))
+
+template<typename T> inline auto
+curl_pdz(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<2>(f)))
+
+template<typename T> inline auto
+curl_pdz(T const &f) DECL_RET_TYPE((curl_pdz(f, traits::iform<T>())))
 /** @} */
 
 /** @} */

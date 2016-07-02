@@ -128,22 +128,21 @@ PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m
                 point_type x = m->point(s);
 //                INFORM << x << "-" << m->box() << " - " << center_box << std::endl;
 #define DEF(_N_)     a##_N_[s]=1;   s##_N_[s]=0;                                                     \
-
-//        if(dims[_N_]>1)                                                                              \
-//        {                                                                                            \
-//                if (x[_N_] <c_xmin[_N_])                                                             \
-//                {                                                                                    \
-//                    Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
-//                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
-//                    s##_N_[s] = sigma_(r, expN, dB) / (m_xmax[_N_] - m_xmin[_N_]);  \
-//                }                                                                                    \
-//                else if (x[_N_] >c_xmax[_N_])                                                        \
-//                {                                                                                    \
-//                    Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
-//                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
-//                    s##_N_[s] = sigma_(r, expN, dB)/ (m_xmax[_N_] - m_xmin[_N_]);  \
-//                }                                                                                    \
-//        }
+        if(dims[_N_]>1)                                                                              \
+        {                                                                                            \
+                if (x[_N_] <c_xmin[_N_])                                                             \
+                {                                                                                    \
+                    Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
+                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
+                    s##_N_[s] = sigma_(r, expN, dB)* speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
+                }                                                                                    \
+                else if (x[_N_] >c_xmax[_N_])                                                        \
+                {                                                                                    \
+                    Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
+                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
+                    s##_N_[s] = sigma_(r, expN, dB)* speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
+                }                                                                                    \
+        }
 
 
                 DEF(0)
@@ -165,12 +164,6 @@ void PML<TM>::deploy()
     dX1.clear();
     dX2.clear();
 
-    declare_global(&X10, "X10");
-    declare_global(&dX1, "dX1");
-    declare_global(&a0, "a0");
-    declare_global(&s0, "s0");
-//    declare_global(&X22, "X22");
-
     declare_global(&E, "E");
     declare_global(&B, "B");
 }
@@ -179,11 +172,8 @@ template<typename TM>
 void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)
 {
 
-
     auto E2 = static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto B2 = static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
-
-
     t_map.direct_map(mesh::EDGE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = (*E2)[s2]; });
 
@@ -195,38 +185,27 @@ void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain c
 template<typename TM>
 void PML<TM>::next_step(Real dt)
 {
-
     DEFINE_PHYSICAL_CONST
 
-//    B -= curl(E) * (dt);
-//    E += (curl(B) * speed_of_light2) * dt;
-
-    dX1 = (-2.0 * dt * s0 * X10 + curl(B) * speed_of_light2 * dt)
-         / (a0/*+ s0 * dt*/);
+    dX1 = (X10 * (-2.0 * dt * s0) + curl_pdx(B) * (speed_of_light2 * dt)) / (a0 + s0 * dt);
     X10 += dX1;
     E += dX1;
+    dX1 = (X11 * (-2.0 * dt * s1) + curl_pdy(B) * (speed_of_light2 * dt)) / (a1 + s1 * dt);
+    X11 += dX1;
+    E += dX1;
+    dX1 = (X12 * (-2.0 * dt * s2) + curl_pdz(B) * (speed_of_light2 * dt)) / (a2 + s2 * dt);
+    X12 += dX1;
+    E += dX1;
 
-//    dX1 = (-2.0 * dt * s1 * X11 + curl_pdy(B) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
-//    X11 += dX1;
-//    E += dX1;
-//
-//    dX1 = (-2.0 * dt * s2 * X12 + curl_pdz(B) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
-//    X12 += dX1;
-//    E += dX1;
-
-    dX2 = (-2.0 * dt * s0 * X20 + curl(E) * dt)
-        // / (a0 + s0 * dt)
-            ;
+    dX2 = (X20 * (-2.0 * dt * s0) + curl_pdx(E) * dt) / (a0 + s0 * dt);
     X20 += dX2;
     B -= dX2;
-
-//    dX2 = (-2.0 * dt * s1 * X21 + curl_pdy(E) * dt) / (a1 + s1 * dt);
-//    X21 += dX2;
-//    B -= dX2;
-//
-//    dX2 = (-2.0 * dt * s2 * X22 + curl_pdz(E) * dt) / (a2 + s2 * dt);
-//    X22 += dX2;
-//    B -= dX2;
+    dX2 = (X21 * (-2.0 * dt * s1) + curl_pdy(E) * dt) / (a1 + s1 * dt);
+    X21 += dX2;
+    B -= dX2;
+    dX2 = (X22 * (-2.0 * dt * s2) + curl_pdz(E) * dt) / (a2 + s2 * dt);
+    X22 += dX2;
+    B -= dX2;
 
 }
 } //namespace simpla

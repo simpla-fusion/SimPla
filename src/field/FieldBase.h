@@ -7,6 +7,7 @@
 
 #ifndef FIELD_DENSE_H_
 #define FIELD_DENSE_H_
+
 #include "../sp_def.h"
 #include "../gtl/type_traits.h"
 #include "../mesh/MeshBase.h"
@@ -21,12 +22,12 @@ template<typename ...> struct Field;
 
 
 template<typename TV, typename TManifold, size_t IFORM>
-class Field<TV, TManifold, index_const<IFORM>> : public mesh::MeshAttribute
+class Field<TV, TManifold, std::integral_constant<size_t, IFORM>> : public mesh::MeshAttribute
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value, "TManifold is not derived from MeshBase");
 
-    typedef Field<TV, TManifold, index_const<IFORM>> this_type;
+    typedef Field<TV, TManifold, std::integral_constant<size_t, IFORM>> this_type;
 
     static constexpr mesh::MeshEntityType iform = static_cast<mesh::MeshEntityType>(IFORM);
 
@@ -149,7 +150,7 @@ public:
 
         res.data = m_data_holder_;
 
-        std::tie(res.memory_space, res.data_space) = m_mesh_->data_space(entity_type(),status);
+        std::tie(res.memory_space, res.data_space) = m_mesh_->data_space(entity_type(), status);
 
         return res;
     };
@@ -158,7 +159,6 @@ public:
     {
         UNIMPLEMENTED;
     };
-
 
 
 public:
@@ -222,14 +222,16 @@ public:
 public:
 
     template<typename TFun> this_type &
-    apply(mesh::MeshEntityRange const &r0, TFun const &op,
-          FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(point_type const &,field_value_type const &)>::type, field_value_type>::value)))
+            apply(mesh::MeshEntityRange const &r0, TFun const &op,
+    FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<
+                                 TFun(point_type const &, field_value_type const &)>::type, field_value_type>::value))
+    )
     {
         deploy();
 
         if (!r0.empty())
         {
-            parallel::parallel_foreach(
+            parallel::foreach(
                     r0, [&](mesh::MeshEntityId const &s)
                     {
                         auto x = m_mesh_->point(s);
@@ -242,16 +244,17 @@ public:
     }
 
     template<typename TFun> this_type &
-    apply(mesh::MeshEntityRange const &r0, TFun const &op,
-          FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
-                  point_type const &)>::type, field_value_type>::value))
+            apply(mesh::MeshEntityRange const &r0, TFun const &op,
+    FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<
+                                 TFun(
+                                         point_type const &)>::type, field_value_type>::value))
     )
     {
         deploy();
 
         if (!r0.empty())
         {
-            parallel::parallel_foreach(
+            parallel::foreach(
                     r0, [&](mesh::MeshEntityId const &s)
                     {
                         auto v = op(m_mesh_->point(s));
@@ -274,7 +277,7 @@ public:
 
         if (!r0.empty())
         {
-            parallel::parallel_foreach(r0, [&](mesh::MeshEntityId const &s) { get(s) = op(s); });
+            parallel::foreach(r0, [&](mesh::MeshEntityId const &s) { get(s) = op(s); });
         }
         return *this;
     }
@@ -282,14 +285,14 @@ public:
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT(
-                  (std::is_same<typename std::result_of<TFun(value_type &)>::type, void>::value)
+                  (std::is_same<typename std::result_of<TFun(value_type & )>::type, void>::value)
           ))
     {
         deploy();
 
         if (!r0.empty())
         {
-            parallel::parallel_foreach(r0, [&](mesh::MeshEntityId const &s) { op(get(s)); });
+            parallel::foreach(r0, [&](mesh::MeshEntityId const &s) { op(get(s)); });
         }
 
         return *this;
@@ -305,7 +308,7 @@ public:
 
         if (!r0.empty())
         {
-            parallel::parallel_foreach(r0, [&](mesh::MeshEntityId const &s) { get(s) = f[s]; });
+            parallel::foreach(r0, [&](mesh::MeshEntityId const &s) { get(s) = f[s]; });
         }
 
         return *this;
@@ -330,7 +333,7 @@ public:
     {
         this->deploy();
 
-        parallel::parallel_foreach(
+        parallel::foreach(
                 entity_id_range(mesh::SP_ES_VALID),
                 [&](mesh::MeshEntityId const &s) { get(s) = other; });
 
@@ -344,7 +347,7 @@ private:
     {
         if (!r.empty())
         {
-            parallel::parallel_foreach(
+            parallel::foreach(
                     r, [&](mesh::MeshEntityId const &s)
                     {
                         op(get(s), m_mesh_->eval(other, s));

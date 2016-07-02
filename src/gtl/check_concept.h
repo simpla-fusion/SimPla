@@ -427,7 +427,7 @@ template<typename, typename> struct is_indexable;
 }  // namespace traits
 
 
-#define FUNCTION_REQUIREMENT(_COND_)  std::enable_if_t<_COND_> * = nullptr
+#define FUNCTION_REQUIREMENT(_COND_)  std::enable_if_t<_COND_> *__p = nullptr
 
 }// namespace simpla
 
