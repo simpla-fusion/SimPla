@@ -133,27 +133,33 @@ TYPED_TEST_P(TestField, constant_real)
     auto f1 = TestFixture::make_field();
     auto f2 = TestFixture::make_field();
     auto f3 = TestFixture::make_field();
-
-    f3 = 1;
+    f1.deploy();
+    f2.deploy();
+    f3.deploy();
     Real a, b, c;
-    a = 1.0, b = -2.0, c = 3.0;
+    a = 1.0, b = -2.2, c = 3.0;
 
     value_type va, vb;
 
     va = 2.0;
     vb = 3.0;
+    std::mt19937 gen;
 
-    f1 = va;
-    f2 = vb;
+    std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    LOG_CMD(f3 = -f1 * a + f2 * c - f1 / b - f1);
+    f1.entity_id_range().foreach([&](mesh::MeshEntityId s) { f1[s] = va * uniform_dist(gen); });
+
+    f2.entity_id_range().foreach([&](mesh::MeshEntityId s) { f2[s] = vb * uniform_dist(gen); });
+
+
+    LOG_CMD(f3 = f1 * a + f2 * c - f1 / b - f1);
 
     TestFixture::m_range.foreach(
             [&](mesh::MeshEntityId s)
             {
                 value_type res;
-                res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
-                EXPECT_LE(mod(res - f3[s]), EPSILON) << res << " " << f3[s];
+                res = f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
+                EXPECT_LE(mod(res - f3[s]), EPSILON);
             });
 }
 
@@ -198,7 +204,7 @@ TYPED_TEST_P(TestField, scalarField)
 
     f2.entity_id_range().foreach([&](mesh::MeshEntityId s) { f2[s] = vb * uniform_dist(gen); });
 
-    f2.entity_id_range().foreach([&](mesh::MeshEntityId s) { f3[s] = vc * uniform_dist(gen); });
+    f3.entity_id_range().foreach([&](mesh::MeshEntityId s) { f3[s] = vc * uniform_dist(gen); });
 
     LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
 
@@ -213,19 +219,15 @@ TYPED_TEST_P(TestField, scalarField)
  *-f1      a f2   b
  *
  * */
-    count = 0;
 
     TestFixture::m_range.foreach(
             [&](mesh::MeshEntityId s)
             {
                 value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 
-                EXPECT_LE(mod(res - f4[s]), EPSILON)
-                                    << "[" << (TestFixture::m.hash(s)) << "]" << res << " " <<
-                                    f4[s];
+                EXPECT_LE(mod(res - f4[s]), EPSILON);
             });
 
-    EXPECT_EQ(0, count) << "number of error points =" << count;
 
 }
 

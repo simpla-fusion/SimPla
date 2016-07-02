@@ -17,7 +17,7 @@
 #include "../gtl/integer_sequence.h"
 #include "../manifold/ManifoldTraits.h"
 #include "FieldExpression.h"
-#include "../mesh/MeshEntity.h"
+#include "../mesh/MeshEntityRange.h"
 
 namespace simpla
 {

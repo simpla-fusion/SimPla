@@ -18,7 +18,7 @@
 #include "../gtl/iterator/Range.h"
 #include "../parallel/ParallelTbb.h"
 #include "MeshCommon.h"
-#include "MeshEntity.h"
+#include "MeshEntityRange.h"
 
 
 namespace simpla { namespace mesh

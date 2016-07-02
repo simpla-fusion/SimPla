@@ -9,7 +9,7 @@
 
 #include "MeshCommon.h"
 #include "MeshBase.h"
-#include "MeshEntity.h"
+#include "MeshEntityRange.h"
 #include "MeshAttribute.h"
 
 

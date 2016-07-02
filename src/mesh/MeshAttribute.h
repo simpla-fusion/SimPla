@@ -13,7 +13,7 @@
 #include "../data_model/DataSet.h"
 #include "MeshCommon.h"
 #include "MeshBase.h"
-#include "MeshEntity.h"
+#include "MeshEntityRange.h"
 
 
 namespace simpla { namespace mesh

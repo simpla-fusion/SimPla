@@ -11,7 +11,7 @@
 
 #include "MeshCommon.h"
 #include "MeshBase.h"
-#include "MeshEntity.h"
+#include "MeshEntityRange.h"
 #include "MeshEntityId.h"
 
 namespace simpla { namespace data_model { struct DataSpace; }}

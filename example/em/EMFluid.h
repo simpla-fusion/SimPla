@@ -11,7 +11,7 @@
 #include "../../src/physics/PhysicalConstants.h"
 #include "../../src/simulation/ProblemDomain.h"
 #include "../../src/mesh/Mesh.h"
-#include "../../src/mesh/MeshEntity.h"
+#include "../../src/mesh/MeshEntityRange.h"
 #include "../../src/mesh/MeshUtility.h"
 #include "../../src/manifold/Calculus.h"
 

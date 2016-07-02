@@ -174,20 +174,9 @@ private:
     constexpr inline traits::value_type_t<Field<Expression<ct::ExteriorDerivative, T>>>
     eval_(Field<Expression<ct::ExteriorDerivative, T> > const &expr, MeshEntitId s, index_sequence<FACE>) const
     {
-
-        return (get_v(std::get<0>(expr.args), s + M::_DI)
-
-                - get_v(std::get<0>(expr.args), s - M::_DI)
-
-                + get_v(std::get<0>(expr.args), s + M::_DJ)
-
-                - get_v(std::get<0>(expr.args), s - M::_DJ)
-
-                + get_v(std::get<0>(expr.args), s + M::_DK)
-
-                - get_v(std::get<0>(expr.args), s - M::_DK)
-
-
+        return (get_v(std::get<0>(expr.args), s + M::_DI) - get_v(std::get<0>(expr.args), s - M::_DI)
+                + get_v(std::get<0>(expr.args), s + M::_DJ) - get_v(std::get<0>(expr.args), s - M::_DJ)
+                + get_v(std::get<0>(expr.args), s + M::_DK) - get_v(std::get<0>(expr.args), s - M::_DK)
                ) * m.inv_volume(s);
 
     }
@@ -198,14 +187,9 @@ private:
     constexpr inline traits::value_type_t<Field<Expression<ct::CodifferentialDerivative, T>>>
     eval_(Field<Expression<ct::CodifferentialDerivative, T>> const &expr, MeshEntitId s, index_sequence<EDGE>) const
     {
-
-        return -(get_d(std::get<0>(expr.args), s + M::_DI)
-                 - get_d(std::get<0>(expr.args), s - M::_DI)
-                 + get_d(std::get<0>(expr.args), s + M::_DJ)
-                 - get_d(std::get<0>(expr.args), s - M::_DJ)
-                 + get_d(std::get<0>(expr.args), s + M::_DK)
-                 - get_d(std::get<0>(expr.args), s - M::_DK)
-
+        return -(get_d(std::get<0>(expr.args), s + M::_DI) - get_d(std::get<0>(expr.args), s - M::_DI)
+                 + get_d(std::get<0>(expr.args), s + M::_DJ) - get_d(std::get<0>(expr.args), s - M::_DJ)
+                 + get_d(std::get<0>(expr.args), s + M::_DK) - get_d(std::get<0>(expr.args), s - M::_DK)
         ) * m.inv_dual_volume(s);
     }
 
@@ -217,7 +201,6 @@ private:
         MeshEntitId X = M::delta_index(s);
         MeshEntitId Y = M::rotate(X);
         MeshEntitId Z = M::inverse_rotate(X);
-
 
         return -((get_d(std::get<0>(expr.args), s + Y) - get_d(std::get<0>(expr.args), s - Y))
                  - (get_d(std::get<0>(expr.args), s + Z) - get_d(std::get<0>(expr.args), s - Z))
@@ -634,27 +617,30 @@ private:
     }
 
 //
-    template<typename TL, typename TR, size_t I>
-    constexpr inline
-    traits::value_type_t<Field<Expression<_impl::divides, TL, TR>>>
-    eval_(Field<Expression<_impl::divides, TL, TR>> const &expr, MeshEntitId s, index_sequence<I, VERTEX>) const
-    {
-        if (mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>()) <= 0.0)
-        {
-            MeshEntitId X = M::delta_index(s);
-            VERBOSE << "("
-            << (s.x >> 1) << " , "
-            << (s.y >> 1) << " , "
-            << (s.z >> 1) << " )"
-            << MeshEntityIdCoder::node_id(s) << " "
-            << eval_(std::get<1>(expr.args), s - X) << " ,"
-            << eval_(std::get<1>(expr.args), s + X)
-            << std::endl;
-
-
-        };
-        return eval_(std::get<0>(expr.args), s) / mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
-    }
+//    template<typename TL, typename TR, size_t I>
+//    constexpr inline
+//    traits::value_type_t<Field<Expression<_impl::divides, TL, TR>>>
+//    eval_(Field<Expression<_impl::divides, TL, TR>> const &expr, MeshEntitId s, index_sequence<I, VERTEX>) const
+//    {
+//        if (abs(mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>())) < 1.0e-10)
+//        {
+//            MeshEntitId X = M::delta_index(s);
+//
+//            VERBOSE
+//            << FILE_LINE_STAMP << "("
+//            << (s.x >> 1) << " , "
+//            << (s.y >> 1) << " , "
+//            << (s.z >> 1) << " )"
+//            << "NodeID =" << MeshEntityIdCoder::node_id(s) << ", "
+//            << mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>()) << " , "
+//            << eval_(std::get<1>(expr.args), s - X) << " ,"
+//            << eval_(std::get<1>(expr.args), s + X)
+//            << std::endl;
+//
+//
+//        };
+//        return eval_(std::get<0>(expr.args), s) / mapto(std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
+//    }
 //
 //    template<typename TL, typename TR, size_t I>
 //    constexpr inline

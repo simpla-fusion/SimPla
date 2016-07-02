@@ -62,6 +62,7 @@ protected:
 
         std::tie(xmin, xmax) = box;
 
+        m.ghost_width(index_tuple{2, 2, 2});
 
         m.dimensions(dims);
 
@@ -93,12 +94,12 @@ protected:
         }
 
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        //        K_real[PhiAxis]/=xm[RAxis];
-                error = 2 * power2(K_real[RAxis] * dx[RAxis] + K_real[ZAxis] * dx[ZAxis] + K_real[PhiAxis] * dx[PhiAxis] );
-#else
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+//        //        K_real[PhiAxis]/=xm[RAxis];
+//                error = 2 * power2(K_real[RAxis] * dx[RAxis] + K_real[ZAxis] * dx[ZAxis] + K_real[PhiAxis] * dx[PhiAxis] );
+//#else
         error = 2 * power2(inner_product(K_real, dx));
-#endif
+//#endif
         one = 1;
     }
 
@@ -124,11 +125,11 @@ public:
     Real q(point_type const &x) const
     {
         Real res = 0;
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        res = K_real[RAxis] *  x[RAxis] + K_real[ZAxis] *  x[ZAxis] + K_real[PhiAxis] *  x[PhiAxis]  ;
-#else
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+//        res = K_real[RAxis] *  x[RAxis] + K_real[ZAxis] *  x[ZAxis] + K_real[PhiAxis] *  x[PhiAxis]  ;
+//#else
         res = inner_product(K_real, x);
-#endif
+//#endif
         return res;
     }
 
@@ -173,26 +174,18 @@ TEST_P(FETLTest, grad0)
             {
                 ++count;
                 int n = m.sub_index(s);
-
                 auto x = m.point(s);
-
                 value_type expect;
-
                 expect = K_real[n] * std::cos(inner_product(K_real, x))
 //                 + K_imag[n] * std::sin(inner_product(K_real, x))
                         ;
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-                if(n==PhiAxis) { expect /=x[RAxis]; }
-#endif
-
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+//                if(n==PhiAxis) { expect /=x[RAxis]; }
+//#endif
                 f1b[s] = expect;
-
                 variance += mod((f1[s] - expect) * (f1[s] - expect));
-
                 average += (f1[s] - expect);
-
-
             });
 
     EXPECT_LE(std::sqrt(variance / count), error);
@@ -208,56 +201,34 @@ TEST_P(FETLTest, grad0)
 
 TEST_P(FETLTest, grad3)
 {
-
-
     auto f2 = make_field<value_type, FACE>();
     auto f2b = make_field<value_type, FACE>();
     auto f3 = make_field<value_type, VOLUME>();
 
     f3.clear();
-
     f2.clear();
-
     f2b.clear();
 
-    m.range(VOLUME).foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                f3[s] = std::sin(q(m.point(s)));
-            });
-
-//    f3.sync();
-
+    m.range(VOLUME).foreach([&](mesh::MeshEntityId s) { f3[s] = std::sin(q(m.point(s))); });
     LOG_CMD(f2 = grad(f3));
-
     Real variance = 0;
-    value_type average = one * 0.0;
-    size_t count = 0;
+    value_type average = one * 0;
 
     m.range(FACE).foreach(
             [&](mesh::MeshEntityId s)
             {
-                ++count;
-
                 int n = m.sub_index(s);
-
                 auto x = m.point(s);
-
                 value_type expect;
-
                 expect = K_real[n] * std::cos(q(x));
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-                if(n==PhiAxis) { expect /=x[RAxis]; }
-#endif
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+//                if(n==PhiAxis) { expect /=x[RAxis]; }
+//#endif
 
                 f2b[s] = expect;
-
                 variance += mod((f2[s] - expect) * (f2[s] - expect));
-
                 average += (f2[s] - expect);
-
-
             });
 
 //#ifndef NDEBUG
@@ -267,10 +238,8 @@ TEST_P(FETLTest, grad3)
 //    LOGGER << SAVE(f2b) << std::endl;
 //#endif
 
-    EXPECT_LE(std::sqrt(variance / count), error);
-    EXPECT_LE(mod(average / count), error);
-
-
+    EXPECT_LE(std::sqrt(variance / m.range(FACE).size()), error);
+    EXPECT_LE(mod(average / m.range(FACE).size()), error);
 }
 
 TEST_P(FETLTest, diverge1)
@@ -288,33 +257,20 @@ TEST_P(FETLTest, diverge1)
 
     nTuple<Real, 3> E = {1, 2, 3};
 
-    m.range(EDGE).foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                f1[s] = E[m.sub_index(s)] * std::sin(q(m.point(s)));
-            });
-
-//    f1.sync();
+    m.range(EDGE, SP_ES_VALID).foreach(
+            [&](mesh::MeshEntityId s) { f1[s] = E[m.sub_index(s)] * std::sin(q(m.point(s))); });
 
     LOG_CMD(f0 = diverge(f1));
-
-
     Real variance = 0;
-
     value_type average;
-
     average = 0;
-
-    size_t count = 0;
-
-    m.range(VERTEX).foreach(
+    m.range(VERTEX, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId s)
             {
                 auto x = m.point(s);
 
                 Real cos_v = std::cos(q(x));
                 Real sin_v = std::sin(q(x));
-
                 value_type expect;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
@@ -328,32 +284,17 @@ TEST_P(FETLTest, diverge1)
                 expect = (K_real[0] * E[0] + K_real[1] * E[1] + K_real[2] * E[2]) * cos_v;
 #endif
                 f0b[s] = expect;
-
-
-                ++count;
-
                 variance += mod((f0[s] - expect) * (f0[s] - expect));
-
                 average += (f0[s] - expect);
-
+//                if (abs(f0[s] - expect) > 1.0e-5)
+                {
+                    VERBOSE << FILE_LINE_STAMP << expect << "," << f0[s] << "[" << (s.x >> 11) << "," << (s.y >> 1) <<
+                    "," << (s.z >> 1) << "]" << std::endl;
+                };
             });
 
-
-    EXPECT_GT(count, 0);
-
-    variance /= count;
-    average /= count;
-
-//#ifndef NDEBUG
-//    io::cd("/div1/");
-//    LOGGER << SAVE(f1) << std::endl;
-//    LOGGER << SAVE(f0) << std::endl;
-//    LOGGER << SAVE(f0b) << std::endl;
-//#endif
-
-
-    EXPECT_LE(std::sqrt(variance), error);
-    EXPECT_LE(mod(average), error);
+    EXPECT_LE(std::sqrt(variance /= m.range(VERTEX).size()), error);
+    EXPECT_LE(mod(average /= m.range(VERTEX).size()), error);
 
 }
 

@@ -12,7 +12,7 @@
 #include <list>
 #include <map>
 #include "../sp_def.h"
-#include "../mesh/MeshEntity.h"
+#include "../mesh/MeshEntityRange.h"
 #include "../mesh/MeshAttribute.h"
 #include "../mesh/MeshAtlas.h"
 #include "../io/IOStream.h"
