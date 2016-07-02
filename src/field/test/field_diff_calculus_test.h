@@ -59,38 +59,23 @@ protected:
         logger::set_stdout_level(logger::LOG_VERBOSE);
 
         std::tie(box, dims, K_real) = GetParam();
-
         std::tie(xmin, xmax) = box;
-
         m.ghost_width(index_tuple{2, 2, 2});
-
         m.dimensions(dims);
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         m.ghost_width(index_tuple({2, 0, 0}));
 #endif
         m.box(box);
-
         m.deploy();
-
         Vec3 dx = m.dx();
-
-
         point_type xm;
         xm = (std::get<0>(box) + std::get<1>(box)) * 0.5;
-
         K_imag = 0;
-
         for (int i = 0; i < ndims; ++i)
         {
-            if (dims[i] <= 1)
-            {
-                K_real[i] = 0;
-            }
-            else
-            {
-                K_real[i] /= (xmax[i] - xmin[i]);
-            }
+            if (dims[i] <= 1) { K_real[i] = 0; }
+            else { K_real[i] /= (xmax[i] - xmin[i]); }
         }
 
 
@@ -124,11 +109,10 @@ public:
 
     Real q(point_type const &x) const
     {
-        Real res = 0;
 //#ifdef CYLINDRICAL_COORDINATE_SYSTEM
 //        res = K_real[RAxis] *  x[RAxis] + K_real[ZAxis] *  x[ZAxis] + K_real[PhiAxis] *  x[PhiAxis]  ;
 //#else
-        res = inner_product(K_real, x);
+        Real res = K_real[0] * x[0] + K_real[1] * x[1] + K_real[2] * x[2];// inner_product(K_real, x);
 //#endif
         return res;
     }
@@ -149,16 +133,11 @@ TEST_P(FETLTest, grad0)
     auto f1b = make_field<value_type, EDGE>();
 
     f0.clear();
-
     f1.clear();
-
     f1b.clear();
-    m.range(VERTEX).foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                f0[s] = std::sin(q(m.point(s)));
-            });
-//    f0.sync();
+
+
+    m.range(VERTEX, SP_ES_VALID).foreach([&](mesh::MeshEntityId s) { f0[s] = std::sin(q(m.point(s))); });
 
     LOG_CMD(f1 = grad(f0));
 
@@ -166,17 +145,13 @@ TEST_P(FETLTest, grad0)
     value_type average;
     average *= 0.0;
 
-
-    size_t count = 0;
-
     m.range(EDGE).foreach(
             [&](mesh::MeshEntityId s)
             {
-                ++count;
                 int n = m.sub_index(s);
                 auto x = m.point(s);
                 value_type expect;
-                expect = K_real[n] * std::cos(inner_product(K_real, x))
+                expect = K_real[n] * std::cos(q(x))
 //                 + K_imag[n] * std::sin(inner_product(K_real, x))
                         ;
 
@@ -186,10 +161,13 @@ TEST_P(FETLTest, grad0)
                 f1b[s] = expect;
                 variance += mod((f1[s] - expect) * (f1[s] - expect));
                 average += (f1[s] - expect);
+                EXPECT_LE(abs(f1[s] - expect), error)
+                                    << expect << "," << f1[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) <<
+                                    "," << (s.z >> 1) << "]" << std::endl;
             });
 
-    EXPECT_LE(std::sqrt(variance / count), error);
-    EXPECT_LE(mod(average) / count, error);
+    EXPECT_LE(std::sqrt(variance / m.range(EDGE).size()), error);
+    EXPECT_LE(mod(average) / m.range(EDGE).size(), error);
 
 //#ifndef NDEBUG
 //    io::cd("/grad1/");
@@ -209,8 +187,10 @@ TEST_P(FETLTest, grad3)
     f2.clear();
     f2b.clear();
 
-    m.range(VOLUME).foreach([&](mesh::MeshEntityId s) { f3[s] = std::sin(q(m.point(s))); });
+    m.range(VOLUME, SP_ES_VALID).foreach([&](mesh::MeshEntityId s) { f3[s] = std::sin(q(m.point(s))); });
+
     LOG_CMD(f2 = grad(f3));
+
     Real variance = 0;
     value_type average = one * 0;
 
@@ -229,6 +209,10 @@ TEST_P(FETLTest, grad3)
                 f2b[s] = expect;
                 variance += mod((f2[s] - expect) * (f2[s] - expect));
                 average += (f2[s] - expect);
+
+                EXPECT_LE(abs(f2[s] - expect), error)
+                                    << expect << "," << f2[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) <<
+                                    "," << (s.z >> 1) << "]" << std::endl;
             });
 
 //#ifndef NDEBUG
@@ -250,15 +234,16 @@ TEST_P(FETLTest, diverge1)
     auto f0b = make_field<value_type, VERTEX>();
 
     f0.clear();
-
     f0b.clear();
-
     f1.clear();
 
-    nTuple<Real, 3> E = {1, 2, 3};
+    nTuple<Real, 3> E{1, 1, 1};
 
     m.range(EDGE, SP_ES_VALID).foreach(
-            [&](mesh::MeshEntityId s) { f1[s] = E[m.sub_index(s)] * std::sin(q(m.point(s))); });
+            [&](mesh::MeshEntityId s)
+            {
+                f1[s] = E[m.sub_index(s)] * std::sin(q(m.point(s)));
+            });
 
     LOG_CMD(f0 = diverge(f1));
     Real variance = 0;
@@ -273,29 +258,24 @@ TEST_P(FETLTest, diverge1)
                 Real sin_v = std::sin(q(x));
                 value_type expect;
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-                expect = K_real[PhiAxis] * E[PhiAxis] / x[RAxis] * cos_v
-
-                         + E[RAxis] * (K_real[RAxis] * cos_v + sin_v / x[RAxis])
-
-                         + K_real[ZAxis] * E[ZAxis] * cos_v;
-
-#else
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+//                expect = K_real[PhiAxis] * E[PhiAxis] / x[RAxis] * cos_v
+//                         + E[RAxis] * (K_real[RAxis] * cos_v + sin_v / x[RAxis])
+//                         + K_real[ZAxis] * E[ZAxis] * cos_v;
+//#else
                 expect = (K_real[0] * E[0] + K_real[1] * E[1] + K_real[2] * E[2]) * cos_v;
-#endif
+//#endif
                 f0b[s] = expect;
                 variance += mod((f0[s] - expect) * (f0[s] - expect));
                 average += (f0[s] - expect);
-//                if (abs(f0[s] - expect) > 1.0e-5)
-                {
-                    VERBOSE << FILE_LINE_STAMP << expect << "," << f0[s] << "[" << (s.x >> 11) << "," << (s.y >> 1) <<
-                    "," << (s.z >> 1) << "]" << std::endl;
-                };
+
+                EXPECT_LE(abs(f0[s] - expect), error)
+                                    << expect << "," << f0[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) <<
+                                    "," << (s.z >> 1) << "]" << std::endl;
             });
 
     EXPECT_LE(std::sqrt(variance /= m.range(VERTEX).size()), error);
     EXPECT_LE(mod(average /= m.range(VERTEX).size()), error);
-
 }
 
 TEST_P(FETLTest, diverge2)
@@ -305,25 +285,17 @@ TEST_P(FETLTest, diverge2)
     auto f3 = make_field<value_type, VOLUME>();
     auto f3b = make_field<value_type, VOLUME>();
     f3.clear();
-
     f3b.clear();
-
     f2.clear();
 
-    m.range(FACE).foreach([&](mesh::MeshEntityId s) { f2[s] = std::sin(q(m.point(s))); });
-
-    //f2.sync();
-
+    m.range(FACE, SP_ES_VALID).foreach([&](mesh::MeshEntityId s) { f2[s] = std::sin(q(m.point(s))); });
     LOG_CMD(f3 = diverge(f2));
 
     Real variance = 0;
-
     value_type average;
-
     average *= 0.0;
 
-    size_t count = 0;
-    m.range(VOLUME).foreach(
+    m.range(VOLUME, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId s)
             {
 
@@ -334,28 +306,28 @@ TEST_P(FETLTest, diverge2)
 
                 value_type expect;
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-                expect =
-                        (K_real[PhiAxis] / x[RAxis] + K_real[RAxis] + K_real[ZAxis]) * cos_v
-                        + (K_imag[PhiAxis] / x[RAxis] + K_imag[RAxis] + K_imag[ZAxis]) * sin_v;
-
-                expect += sin_v / x[RAxis];
-#else
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+//                expect =
+//                        (K_real[PhiAxis] / x[RAxis] + K_real[RAxis] + K_real[ZAxis]) * cos_v
+//                        + (K_imag[PhiAxis] / x[RAxis] + K_imag[RAxis] + K_imag[ZAxis]) * sin_v;
+//
+//                expect += sin_v / x[RAxis];
+//#else
                 expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v
                          + (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
-#endif
+//#endif
                 f3b[s] = expect;
-
-
-                ++count;
-
                 variance += mod((f3[s] - expect) * (f3[s] - expect));
-
                 average += (f3[s] - expect);
+
+
+                EXPECT_LE(abs(f3[s] - expect), error)
+                                    << expect << "," << f3[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) <<
+                                    "," << (s.z >> 1) << "]" << std::endl;
             }
     );
-    variance /= count;
-    average /= count;
+    variance /= m.range(VOLUME).size();
+    average /= m.range(VOLUME).size();
 
 
 //#ifndef NDEBUG
@@ -395,20 +367,13 @@ TEST_P(FETLTest, curl1)
 
     nTuple<Real, 3> E = {1, 1, 1};
 
-    m.range(EDGE).foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                f1[s] = E[m.sub_index(s)] *
-                        std::sin(q(m.point(s)));
-
-            });
-
-
-    // f1.sync();
+    m.range(EDGE, SP_ES_VALID).foreach([&](mesh::MeshEntityId s)
+                                       {
+                                           f1[s] = E[m.sub_index(s)] * std::sin(q(m.point(s)));
+                                       });
 
     LOG_CMD(f2 = curl(f1));
 
-    size_t count = 0;
     m.range(FACE).foreach(
             [&](mesh::MeshEntityId s)
             {
@@ -418,57 +383,52 @@ TEST_P(FETLTest, curl1)
 
                 Real cos_v = std::cos(q(x));
                 Real sin_v = std::sin(q(x));
-
                 value_type expect;
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-                //        switch (n)
-                //        {
-                //            case   RAxis:// r
-                //                expect = (K_real[PhiAxis] * E[ZAxis] / x[RAxis] - K_real[ZAxis] * E[RAxis]) * cos_v;
-                //                break;
-                //
-                //            case   ZAxis:// z
-                //                expect = (K_real[PhiAxis] * E[RAxis]  / x[RAxis] - K_real[RAxis] * E[PhiAxis]) * cos_v
-                //                      -   E[PhiAxis] * sin_v / x[RAxis];
-                //                break;
-                //
-                //            case  PhiAxis: // theta
-                //                expect = (K_real[RAxis] * E[ZAxis] - K_real[ZAxis] * E[RAxis]) * cos_v;
-                //                break;
-                //
-                //
-                //        }
-
-
-                switch (n)
-                {
-                    case  PhiAxis: // theta
-                        expect = (K_real[RAxis]*E[ZAxis] - K_real[ZAxis]*E[RAxis]) * cos_v;
-                         break;
-                    case  RAxis:// r
-                        expect = (K_real[ZAxis]*E[PhiAxis] - K_real[PhiAxis]*E[ZAxis] / x[RAxis]) * cos_v
-                         ;
-                        break;
-
-                    case ZAxis:// z
-                        expect = (K_real[PhiAxis]*E[RAxis] / x[RAxis]  - K_real[RAxis]*E[PhiAxis] ) * cos_v ;
-
-                        expect -= sin_v*E[PhiAxis]  / x[RAxis];
-                        break;
-
-                }
-#else
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+//                //        switch (n)
+//                //        {
+//                //            case   RAxis:// r
+//                //                expect = (K_real[PhiAxis] * E[ZAxis] / x[RAxis] - K_real[ZAxis] * E[RAxis]) * cos_v;
+//                //                break;
+//                //
+//                //            case   ZAxis:// z
+//                //                expect = (K_real[PhiAxis] * E[RAxis]  / x[RAxis] - K_real[RAxis] * E[PhiAxis]) * cos_v
+//                //                      -   E[PhiAxis] * sin_v / x[RAxis];
+//                //                break;
+//                //
+//                //            case  PhiAxis: // theta
+//                //                expect = (K_real[RAxis] * E[ZAxis] - K_real[ZAxis] * E[RAxis]) * cos_v;
+//                //                break;
+//                //
+//                //
+//                //        }
+//
+//
+//                switch (n)
+//                {
+//                    case  PhiAxis: // theta
+//                        expect = (K_real[RAxis]*E[ZAxis] - K_real[ZAxis]*E[RAxis]) * cos_v;
+//                         break;
+//                    case  RAxis:// r
+//                        expect = (K_real[ZAxis]*E[PhiAxis] - K_real[PhiAxis]*E[ZAxis] / x[RAxis]) * cos_v
+//                         ;
+//                        break;
+//
+//                    case ZAxis:// z
+//                        expect = (K_real[PhiAxis]*E[RAxis] / x[RAxis]  - K_real[RAxis]*E[PhiAxis] ) * cos_v ;
+//
+//                        expect -= sin_v*E[PhiAxis]  / x[RAxis];
+//                        break;
+//
+//                }
+//#else
                 expect = (K_real[(n + 1) % 3] * E[(n + 2) % 3] - K_real[(n + 2) % 3] * E[(n + 1) % 3]) * cos_v;
+//#endif
 
-#endif
-
-                ++count;
 
                 f2b[s] = expect;
-
                 variance += mod((f2[s] - expect) * (f2[s] - expect));
-
                 average += (f2[s] - expect);
 
 
@@ -482,8 +442,8 @@ TEST_P(FETLTest, curl1)
 //#endif
 
 
-    ASSERT_LE(std::sqrt(variance / count), error);
-    ASSERT_LE(mod(average / count), error);
+    ASSERT_LE(std::sqrt(variance / m.range(FACE).size()), error);
+    ASSERT_LE(mod(average / m.range(FACE).size()), error);
 
 }
 
@@ -497,69 +457,60 @@ TEST_P(FETLTest, curl2)
     auto f2b = make_field<value_type, FACE>();
 
     f1.clear();
-
     f1b.clear();
-
     f2.clear();
-
     f2b.clear();
 
     Real variance = 0;
-
     value_type average;
-
     average = 0.0;
-
     nTuple<Real, 3> E = {1, 2, 3};
 
-    m.range(FACE).foreach(
+    m.range(FACE, SP_ES_VALID).foreach(
             [&](mesh::MeshEntityId s) { f2[s] = E[m.sub_index(s)] * std::sin(q(m.point(s))); });
 
 
-    //f2.sync();
-
     LOG_CMD(f1 = curl(f2));
-
     f1b.clear();
 
-    size_t count = 0;
     m.range(EDGE).foreach(
             [&](mesh::MeshEntityId s)
             {
 
                 auto n = m.sub_index(s);
-
                 auto x = m.point(s);
-
                 value_type expect;
 
                 Real cos_v = std::cos(q(x));
                 Real sin_v = std::sin(q(x));
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-                switch (n)
-               {
-                   case  PhiAxis: // theta
-                       expect = (K_real[RAxis]*E[ZAxis] - K_real[ZAxis]*E[RAxis]) * cos_v;
-                        break;
-                   case  RAxis:// r
-                       expect = (K_real[ZAxis]*E[PhiAxis] - K_real[PhiAxis]*E[ZAxis] / x[RAxis]) * cos_v
-                        ;
-                       break;
-
-                   case ZAxis:// z
-                       expect = (K_real[PhiAxis]*E[RAxis]/ x[RAxis]  - K_real[RAxis]*E[PhiAxis] ) * cos_v ;
-                       expect -= sin_v*E[PhiAxis]  / x[RAxis];
-                       break;
-
-               }
-#	else
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+//                switch (n)
+//               {
+//                   case  PhiAxis: // theta
+//                       expect = (K_real[RAxis]*E[ZAxis] - K_real[ZAxis]*E[RAxis]) * cos_v;
+//                        break;
+//                   case  RAxis:// r
+//                       expect = (K_real[ZAxis]*E[PhiAxis] - K_real[PhiAxis]*E[ZAxis] / x[RAxis]) * cos_v
+//                        ;
+//                       break;
+//
+//                   case ZAxis:// z
+//                       expect = (K_real[PhiAxis]*E[RAxis]/ x[RAxis]  - K_real[RAxis]*E[PhiAxis] ) * cos_v ;
+//                       expect -= sin_v*E[PhiAxis]  / x[RAxis];
+//                       break;
+//
+//               }
+//#	else
                 expect = (K_real[(n + 1) % 3] * E[(n + 2) % 3] - K_real[(n + 2) % 3] * E[(n + 1) % 3]) * cos_v;
-#endif
+//#endif
                 f1b[s] = expect;
-                ++count;
                 variance += mod((f1[s] - expect) * (f1[s] - expect));
                 average += (f1[s] - expect);
+
+                EXPECT_LE(abs(f1[s] - expect), error)
+                                    << expect << "," << f1[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) <<
+                                    "," << (s.z >> 1) << "]" << std::endl;
             }
     );
 //#ifndef NDEBUG
@@ -571,8 +522,8 @@ TEST_P(FETLTest, curl2)
 //#endif
 
 
-    ASSERT_LE(std::sqrt(variance / count), error);
-    ASSERT_LE(mod(average / count), error);
+    ASSERT_LE(std::sqrt(variance / m.range(EDGE).size()), error);
+    ASSERT_LE(mod(average / m.range(EDGE).size()), error);
 
 }
 
@@ -590,16 +541,13 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 
     Real mean = 0.0;
     f0.clear();
-    m.range(VERTEX).foreach(
+    m.range(VERTEX, SP_ES_VALID).foreach(
             [&](mesh::MeshEntityId s)
             {
-
                 auto a = uniform_dist(gen);
                 f0[s] = one * a;
-
                 mean += a * a;
             });
-    //f0.sync();
 
     mean = std::sqrt(mean) * mod(one);
 
@@ -607,14 +555,12 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
     LOG_CMD(f2a = curl(f1));
     LOG_CMD(f2b = curl(grad(f0)));
 
-    size_t count = 0;
     Real variance_a = 0;
     Real variance_b = 0;
 
     m.range(FACE).foreach(
             [&](mesh::MeshEntityId s)
             {
-
                 variance_a += mod(f2a[s]);
                 variance_b += mod(f2b[s]);
             }
@@ -628,8 +574,6 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 
 TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 {
-
-
     auto f3 = make_field<value_type, VOLUME>();
     auto f1a = make_field<value_type, EDGE>();
     auto f1b = make_field<value_type, EDGE>();
@@ -640,14 +584,13 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
     Real mean = 0.0;
 
     f3.clear();
-    m.range(VOLUME).foreach(
+    m.range(VOLUME, SP_ES_VALID).foreach(
             [&](mesh::MeshEntityId s)
             {
                 auto a = uniform_dist(gen);
                 f3[s] = a * one;
                 mean += a * a;
             });
-    // f3.sync();
 
     mean = std::sqrt(mean) * mod(one);
 
@@ -684,28 +627,21 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
     f2.clear();
-
     Real mean = 0.0;
     m.range(FACE).foreach(
             [&](mesh::MeshEntityId s)
             {
                 auto a = uniform_dist(gen);
-
                 f2[s] = one * uniform_dist(gen);
-
                 mean += a * a;
             });
-//    f2.sync();
 
     mean = std::sqrt(mean) * mod(one);
 
     LOG_CMD(f1 = curl(f2));
-
     LOG_CMD(f0a = diverge(f1));
-
     LOG_CMD(f0b = diverge(curl(f2)));
 
-    size_t count = 0;
 
     Real variance_a = 0;
     Real variance_b = 0;
@@ -713,16 +649,12 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
     m.range(VERTEX).foreach(
             [&](mesh::MeshEntityId s)
             {
-
-                ++count;
-
                 variance_b += mod(f0b[s] * f0b[s]);
                 variance_a += mod(f0a[s] * f0a[s]);
-//		ASSERT_EQ((f0a[s]), (f0b[s]));
             });
 
-    ASSERT_LE(std::sqrt(variance_b / count), error);
-    ASSERT_LE(std::sqrt(variance_a / count), error);
+    ASSERT_LE(std::sqrt(variance_b / m.range(VERTEX).size()), error);
+    ASSERT_LE(std::sqrt(variance_a / m.range(VERTEX).size()), error);
 
 }
 
@@ -752,28 +684,22 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
     mean = std::sqrt(mean) * mod(one);
 
     LOG_CMD(f2 = curl(f1));
-
     LOG_CMD(f3a = diverge(f2));
-
     LOG_CMD(f3b = diverge(curl(f1)));
 
-    size_t count = 0;
 
     Real variance_a = 0;
     Real variance_b = 0;
     m.range(VOLUME).foreach(
             [&](mesh::MeshEntityId s)
             {
-                ++count;
                 variance_a += mod(f3a[s] * f3a[s]);
                 variance_b += mod(f3b[s] * f3b[s]);
-
             });
 
 
-    EXPECT_LE(std::sqrt(variance_b / count), error);
-
-    ASSERT_LE(std::sqrt(variance_a / count), error);
+    EXPECT_LE(std::sqrt(variance_b / m.range(VOLUME).size()), error);
+    ASSERT_LE(std::sqrt(variance_a / m.range(VOLUME).size()), error);
 
 }
 

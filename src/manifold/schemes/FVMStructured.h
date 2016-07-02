@@ -214,11 +214,8 @@ private:
     eval_(Field<Expression<ct::CodifferentialDerivative, T> > const &expr, MeshEntitId s, index_sequence<VOLUME>) const
     {
         MeshEntitId D = M::delta_index(M::dual(s));
-
         return -(get_d(std::get<0>(expr.args), s + D) - get_d(std::get<0>(expr.args), s - D)) *
                m.inv_dual_volume(s);
-
-
     }
 
     //! *Form<IR> => Form<N-IL>
@@ -229,10 +226,8 @@ private:
     eval_(Field<Expression<ct::HodgeStar, T>> const &expr, MeshEntitId s, index_sequence<I>) const
     {
         auto const &l = std::get<0>(expr.args);
-
-        size_t i = M::iform(s);
-        MeshEntitId X = (i == VERTEX || i == VOLUME) ? M::_DI : M::delta_index(
-                M::dual(s));
+        int i = M::iform(s);
+        MeshEntitId X = (i == VERTEX || i == VOLUME) ? M::_DI : M::delta_index(M::dual(s));
         MeshEntitId Y = M::rotate(X);
         MeshEntitId Z = M::inverse_rotate(X);
 

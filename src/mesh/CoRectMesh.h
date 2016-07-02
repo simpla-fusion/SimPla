@@ -299,7 +299,7 @@ public:
         return MeshEntityIdCoder::make_range(lower, upper, entityType);
     }
 
-    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_VALID) const
+    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_OWNED) const
     {
         MeshEntityRange res;
 
@@ -549,23 +549,17 @@ public:
 
         for (int i = 0; i < 3; ++i)
         {
-            if (m_dims_[0] == 1)
-            {
-                flag = flag | (0x3 << (i * 2));
-            }
+            if (m_dims_[0] == 1) { flag = flag | (0x3 << (i * 2)); }
 
-            if (m_ghost_width_[i] == 0)
-            {
-                flag = flag | (0x1 << (i * 2));
-            }
+            if (m_ghost_width_[i] == 0) { flag = flag | (0x1 << (i * 2)); }
 
         }
         status(flag);
     }
 
 
-    virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t,
-                                                                                MeshEntityStatus status = SP_ES_OWNED) const
+    virtual std::tuple<data_model::DataSpace, data_model::DataSpace>
+    data_space(MeshEntityType const &t, MeshEntityStatus status = SP_ES_OWNED) const
     {
         int i_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
 

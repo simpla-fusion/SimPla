@@ -117,7 +117,7 @@ struct MeshEntityIdCoder_
     /// @name at_level dependent
     /// @{
 
-    static constexpr Real _R = 0.2;
+    static constexpr Real _R = 0.5;
 
 
     static constexpr MeshEntityId _DI{0, 0, 0, 1};
@@ -271,9 +271,9 @@ struct MeshEntityIdCoder_
     static point_type point(MeshEntityId const &s)
     {
         return point_type{
-                static_cast<Real>(s.x),
-                static_cast<Real>(s.y),
-                static_cast<Real>(s.z)
+                static_cast<Real>(s.x) * _R,
+                static_cast<Real>(s.y) * _R,
+                static_cast<Real>(s.z) * _R
         };
     }
 
