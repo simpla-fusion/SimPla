@@ -12,7 +12,7 @@
 #include "../gtl/Properties.h"
 #include "../data_model/DataSet.h"
 
- 
+
 namespace simpla { namespace io
 {
 /**
@@ -90,6 +90,8 @@ public:
 //        UNIMPLEMENTED;
 //    }
 };
+
+                                                                     \
 
 }}//namespace simpla { namespace io
 

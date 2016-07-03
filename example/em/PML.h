@@ -113,6 +113,10 @@ PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m
     X20.clear();
     X21.clear();
     X22.clear();
+    E.clear();
+    B.clear();
+    dX1.clear();
+    dX2.clear();
 
 
     point_type m_xmin, m_xmax;
@@ -122,27 +126,28 @@ PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m
     std::tie(c_xmin, c_xmax) = center_box;
     auto dims = m->dimensions();
 
-    m->range(mesh::VERTEX, SP_ES_VALID).foreach(
+    m->range(mesh::VERTEX, SP_ES_ALL).foreach(
             [&](mesh::MeshEntityId s)
             {
                 point_type x = m->point(s);
 //                INFORM << x << "-" << m->box() << " - " << center_box << std::endl;
 #define DEF(_N_)     a##_N_[s]=1;   s##_N_[s]=0;                                                     \
-        if(dims[_N_]>1)                                                                              \
-        {                                                                                            \
-                if (x[_N_] <c_xmin[_N_])                                                             \
-                {                                                                                    \
-                    Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
-                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
-                    s##_N_[s] = sigma_(r, expN, dB)* speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
-                }                                                                                    \
-                else if (x[_N_] >c_xmax[_N_])                                                        \
-                {                                                                                    \
-                    Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
-                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
-                    s##_N_[s] = sigma_(r, expN, dB)* speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
-                }                                                                                    \
-        }
+
+//        if(dims[_N_]>1)                                                                              \
+//        {                                                                                            \
+//                if (x[_N_] <c_xmin[_N_])                                                             \
+//                {                                                                                    \
+//                    Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
+//                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
+//                    s##_N_[s] = sigma_(r, expN, dB)/ (m_xmax[_N_] - m_xmin[_N_]);  \
+//                }                                                                                    \
+//                else if (x[_N_] >c_xmax[_N_])                                                        \
+//                {                                                                                    \
+//                    Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
+//                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
+//                    s##_N_[s] = sigma_(r, expN, dB)/ (m_xmax[_N_] - m_xmin[_N_]);  \
+//                }                                                                                    \
+//        }
 
 
                 DEF(0)
@@ -158,15 +163,14 @@ PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m
 template<typename TM>
 void PML<TM>::deploy()
 {
-
-    E.clear();
-    B.clear();
-    dX1.clear();
-    dX2.clear();
-
     declare_global(&E, "E");
     declare_global(&B, "B");
+
+    SAVE(io::global(), a0);
+    SAVE(io::global(), s0);
+
 }
+
 
 template<typename TM>
 void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)

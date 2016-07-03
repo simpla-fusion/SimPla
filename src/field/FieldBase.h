@@ -120,7 +120,7 @@ public:
 
 
     virtual mesh::MeshEntityRange
-    entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::SP_ES_VALID) const
+    entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::SP_ES_ALL) const
     {
         assert(is_valid());
         return m_mesh_->range(entity_type(), entityStatus);
@@ -323,7 +323,7 @@ public:
 //        base_type::nonblocking_sync();
 //        apply(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op);
 //        base_type::wait();
-        apply(m_mesh_->range(entity_type(), mesh::SP_ES_VALID), op);
+        apply(m_mesh_->range(entity_type(), mesh::SP_ES_ALL), op);
 
         return *this;
     }
@@ -334,7 +334,7 @@ public:
         this->deploy();
 
         parallel::foreach(
-                entity_id_range(mesh::SP_ES_VALID),
+                entity_id_range(mesh::SP_ES_ALL),
                 [&](mesh::MeshEntityId const &s) { get(s) = other; });
 
         return *this;
@@ -369,7 +369,7 @@ private:
 //        base_type::nonblocking_sync();
 //        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op, other);
 //        base_type::wait();
-        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_VALID), op, other);
+        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_ALL), op, other);
         return *this;
     }
 

@@ -237,14 +237,7 @@ struct any
 
     template<class U> operator U() const { return as<U>(); }
 
-    template<class U> U as() const
-    {
-        U res;
-
-        as(&res);
-
-        return std::move(res);
-    }
+    template<class U> U const &as() const { return any::get<U>(); }
 
     template<class U>
     U as(U const &def_v) const

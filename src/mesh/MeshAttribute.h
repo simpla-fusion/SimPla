@@ -45,7 +45,7 @@ struct MeshAttribute : public base::Object, std::enable_shared_from_this<MeshAtt
 
     virtual std::string get_class_name() const = 0;
 
-    virtual MeshEntityRange entity_id_range(MeshEntityStatus status = SP_ES_VALID) const = 0;
+    virtual MeshEntityRange entity_id_range(MeshEntityStatus status = SP_ES_ALL) const = 0;
 
     virtual MeshEntityType entity_type() const = 0;
 

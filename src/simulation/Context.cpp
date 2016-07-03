@@ -121,11 +121,7 @@ Context::load_mesh(io::IOStream &is)
 io::IOStream &
 Context::save(io::IOStream &os, int flag) const
 {
-
-    for (auto const &item:m_pimpl_->m_domains_)
-    {
-        item.second->save(os, flag);
-    }
+    for (auto const &item:m_pimpl_->m_domains_) { item.second->save(os, flag); }
     return os;
 }
 

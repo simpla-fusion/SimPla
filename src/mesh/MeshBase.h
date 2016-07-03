@@ -97,7 +97,7 @@ public:
 
     virtual void ghost_width(index_tuple const &) = 0;
 
-    virtual box_type box(MeshEntityStatus entityStatus = SP_ES_VALID) const = 0;
+    virtual box_type box(MeshEntityStatus entityStatus = SP_ES_ALL) const = 0;
 
     virtual index_tuple offset() const = 0;
 
@@ -109,10 +109,10 @@ public:
 
     virtual MeshEntityRange select(box_type const &b,
                                    MeshEntityType entityType = VERTEX,
-                                   MeshEntityStatus entityStatus = SP_ES_VALID) const = 0;
+                                   MeshEntityStatus entityStatus = SP_ES_ALL) const = 0;
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX,
-                                  MeshEntityStatus entityStatus = SP_ES_VALID) const = 0;
+                                  MeshEntityStatus entityStatus = SP_ES_ALL) const = 0;
 
     virtual MeshEntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const = 0;
 

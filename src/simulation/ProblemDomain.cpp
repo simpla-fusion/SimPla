@@ -124,16 +124,31 @@ ProblemDomain::load(io::IOStream &is) const
 io::IOStream &
 ProblemDomain::save(io::IOStream &os, int flag) const
 {
+    auto pwd = os.pwd();
 //    if (!m_properties_["DISABLE_SAVE"])
     {
-        auto pwd = os.pwd();
+
 
         for (auto const &item:m_pimpl_->m_attr_)
         {
             if (!item.second->empty())
             {
                 os.open(item.first + "/");
-                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_VALID), flag);
+                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_ALL), flag);
+                os.open(pwd);
+            }
+        }
+    }
+    if (m_properties_["DUMP_ATTR"])
+    {
+        auto const &attr_list = m_properties_["DUMP_ATTR"].as<std::list<std::string>>();
+        for (auto const &key:attr_list)
+        {
+            auto it = m_pimpl_->m_attr_.find(key);
+            if ((it != m_pimpl_->m_attr_.end()) && !it->second->empty())
+            {
+                os.open(key + "/");
+                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_ALL), flag);
                 os.open(pwd);
             }
         }

@@ -140,11 +140,15 @@ std::string write(std::string const &url, size_t num, T const *d, size_t flag = 
 
 namespace simpla
 {
-
-
-#define SAVE(_F_) simpla::io::write(__STRING(_F_),_F_  )
-#define SAVE_APPEND(_F_) simpla::io::write(__STRING(_F_),_F_, simpla::io::SP_APPEND  )
-#define SAVE_RECORD(_F_) simpla::io::write(__STRING(_F_),_F_, simpla::io::SP_RECORD  )
+#define  SAVE_(_OS_, _F_, __FLAG__)                                                         \
+{        auto pwd = _OS_.pwd();                                                           \
+        _OS_.open( std::string("/")+__STRING(_F_)+"/");                                                         \
+        _OS_.write(_F_.mesh()->name(), _F_.dataset(mesh::SP_ES_ALL), __FLAG__);            \
+        _OS_.open(pwd);                                                                     \
+}
+#define SAVE(_OS_, _F_) SAVE_(_OS_,_F_,::simpla::io::SP_NEW)
+#define SAVE_APPEND(_F_) SAVE_(_OS_,_F_,::simpla::io::SP_APPEND  )
+#define SAVE_RECORD(_F_) SAVE_(_OS_,_F_,::simpla::io::SP_RECORD  )
 
 #ifndef NDEBUG
 #	define DEBUG_SAVE(_F_) simpla::io::write(__STRING(_F_),_F_ )

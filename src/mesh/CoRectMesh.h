@@ -219,7 +219,7 @@ public:
 
     virtual MeshEntityRange select(box_type const &other,
                                    MeshEntityType entityType = VERTEX,
-                                   MeshEntityStatus status = SP_ES_VALID) const
+                                   MeshEntityStatus status = SP_ES_ALL) const
     {
 
         point_type c_lower, c_upper;
@@ -253,7 +253,7 @@ public:
 
         switch (status)
         {
-            case SP_ES_VALID : //all valid
+            case SP_ES_ALL : //all valid
                 std::get<0>(res) = m_coords_lower_ - m_dx_ * m_ghost_width_;
                 std::get<1>(res) = m_coords_upper_ + m_dx_ * m_ghost_width_;;
                 break;
@@ -314,7 +314,7 @@ public:
          */
         switch (status)
         {
-            case SP_ES_VALID : //all valid
+            case SP_ES_ALL : //all valid
                 MeshEntityRange(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType)).swap(res);
                 break;
             case SP_ES_NON_LOCAL : // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
@@ -571,7 +571,7 @@ public:
 
         switch (status)
         {
-            case SP_ES_VALID:
+            case SP_ES_ALL:
                 f_dims = m_shape_;//+ m_offset_;
                 f_start = 0;//m_offset_;
                 f_count = m_shape_;

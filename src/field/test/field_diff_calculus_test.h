@@ -137,7 +137,7 @@ TEST_P(FETLTest, grad0)
     f1b.clear();
 
 
-    m.range(VERTEX, SP_ES_VALID).foreach([&](mesh::MeshEntityId s) { f0[s] = std::sin(q(m.point(s))); });
+    m.range(VERTEX, SP_ES_ALL).foreach([&](mesh::MeshEntityId s) { f0[s] = std::sin(q(m.point(s))); });
 
     LOG_CMD(f1 = grad(f0));
 
@@ -187,7 +187,7 @@ TEST_P(FETLTest, grad3)
     f2.clear();
     f2b.clear();
 
-    m.range(VOLUME, SP_ES_VALID).foreach([&](mesh::MeshEntityId s) { f3[s] = std::sin(q(m.point(s))); });
+    m.range(VOLUME, SP_ES_ALL).foreach([&](mesh::MeshEntityId s) { f3[s] = std::sin(q(m.point(s))); });
 
     LOG_CMD(f2 = grad(f3));
 
@@ -239,7 +239,7 @@ TEST_P(FETLTest, diverge1)
 
     nTuple<Real, 3> E{1, 1, 1};
 
-    m.range(EDGE, SP_ES_VALID).foreach(
+    m.range(EDGE, SP_ES_ALL).foreach(
             [&](mesh::MeshEntityId s)
             {
                 f1[s] = E[m.sub_index(s)] * std::sin(q(m.point(s)));
@@ -288,7 +288,7 @@ TEST_P(FETLTest, diverge2)
     f3b.clear();
     f2.clear();
 
-    m.range(FACE, SP_ES_VALID).foreach([&](mesh::MeshEntityId s) { f2[s] = std::sin(q(m.point(s))); });
+    m.range(FACE, SP_ES_ALL).foreach([&](mesh::MeshEntityId s) { f2[s] = std::sin(q(m.point(s))); });
     LOG_CMD(f3 = diverge(f2));
 
     Real variance = 0;
@@ -367,7 +367,7 @@ TEST_P(FETLTest, curl1)
 
     nTuple<Real, 3> E = {1, 1, 1};
 
-    m.range(EDGE, SP_ES_VALID).foreach([&](mesh::MeshEntityId s)
+    m.range(EDGE, SP_ES_ALL).foreach([&](mesh::MeshEntityId s)
                                        {
                                            f1[s] = E[m.sub_index(s)] * std::sin(q(m.point(s)));
                                        });
@@ -466,7 +466,7 @@ TEST_P(FETLTest, curl2)
     average = 0.0;
     nTuple<Real, 3> E = {1, 2, 3};
 
-    m.range(FACE, SP_ES_VALID).foreach(
+    m.range(FACE, SP_ES_ALL).foreach(
             [&](mesh::MeshEntityId s) { f2[s] = E[m.sub_index(s)] * std::sin(q(m.point(s))); });
 
 
@@ -541,7 +541,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 
     Real mean = 0.0;
     f0.clear();
-    m.range(VERTEX, SP_ES_VALID).foreach(
+    m.range(VERTEX, SP_ES_ALL).foreach(
             [&](mesh::MeshEntityId s)
             {
                 auto a = uniform_dist(gen);
@@ -584,7 +584,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
     Real mean = 0.0;
 
     f3.clear();
-    m.range(VOLUME, SP_ES_VALID).foreach(
+    m.range(VOLUME, SP_ES_ALL).foreach(
             [&](mesh::MeshEntityId s)
             {
                 auto a = uniform_dist(gen);
