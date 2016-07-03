@@ -154,7 +154,7 @@ void PML<TM>::extents(coordinate_tuple xmin, coordinate_tuple xmax)
 		{                                                                           \
 			Real r = (x[_N_] - xmax[_N_]) / (ymax[_N_] - xmax[_N_]);                        \
 			a##_N_[s] = alpha_(r, expN, dB);                                            \
-			s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (ymax[_N_] - xmax[_N_]);     \
+			s##_N_[s] = sigma_(r, expN, dB)  / (ymax[_N_] - xmax[_N_]);     \
 		};
 
 		DEF(0)

@@ -120,7 +120,7 @@ public:
 
 
     virtual mesh::MeshEntityRange
-    entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::SP_ES_ALL) const
+    entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::SP_ES_OWNED) const
     {
         assert(is_valid());
         return m_mesh_->range(entity_type(), entityStatus);

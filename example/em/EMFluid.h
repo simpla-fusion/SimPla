@@ -231,7 +231,7 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
 
-    B1 -= curl(E1) * (dt * 0.5);
+    B1 -= curl(E1) * (dt  );
 
     B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
@@ -315,10 +315,10 @@ void EMFluid<TM>::next_step(Real dt)
 //        E1 += map_to<EDGE>(Ev) - E1;
 //    }
 
-
-    B1 -= curl(E1) * (dt * 0.5);
-
-    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+//
+//    B1 -= curl(E1) * (dt * 0.5);
+//
+//    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
 }
 

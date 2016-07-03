@@ -163,7 +163,6 @@ Context::run(Real dt, int level)
         chart_node.second->next_step(dt);
     }
     update(level, mesh::SP_MB_COARSEN | mesh::SP_MB_SYNC);
-
     next_time_step(dt);
 };
 

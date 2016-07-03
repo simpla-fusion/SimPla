@@ -148,7 +148,12 @@ ProblemDomain::save(io::IOStream &os, int flag) const
             if ((it != m_pimpl_->m_attr_.end()) && !it->second->empty())
             {
                 os.open(key + "/");
+#ifndef NDEBUG
                 os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_ALL), flag);
+#else
+                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_OWNED), flag);
+#endif
+
                 os.open(pwd);
             }
         }
@@ -159,16 +164,15 @@ ProblemDomain::save(io::IOStream &os, int flag) const
 
 void ProblemDomain::sync(mesh::TransitionMap const &t_map, ProblemDomain const &other)
 {
+    for (auto const &item:m_pimpl_->m_attr_)
+    {
+        if (!item.second->empty())
+        {
+            t_map.direct_pull_back(item.second->data().get(), other.attribute(item.first)->data().get(),
+                                   item.second->entity_size_in_byte(), item.second->entity_type());
+        }
 
-//    for (auto const &item:m_pimpl_->m_attr_)
-//    {
-//        if (!item.second->empty())
-//        {
-//            t_map.direct_pull_back(item.second->data().get(), other.attribute(item.first)->data().get(),
-//                                   item.second->entity_size_in_byte(), item.second->entity_type());
-//        }
-//
-//    }
+    }
 }
 
 bool ProblemDomain::same_as(mesh::MeshBase const &) const
