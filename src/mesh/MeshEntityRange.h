@@ -29,15 +29,18 @@ class MeshEntityRange
 
     HAS_MEMBER_FUNCTION(range)
 
-public :
-//    typedef MeshEntityIterator iterator;
+    std::shared_ptr<MeshEntityRange> m_next_;
+    std::shared_ptr<RangeBase> m_holder_;
 
-    MeshEntityRange() : m_holder_(nullptr) { }
+public :
+
+    MeshEntityRange() : m_next_(nullptr), m_holder_(nullptr) { }
 
     //****************************************************************************
     // TBB RangeHolder Concept Begin
     template<typename TOther>
     MeshEntityRange(TOther const &other) :
+            m_next_(nullptr),
             m_holder_(std::dynamic_pointer_cast<RangeBase>(
                     std::make_shared<RangeHolder<TOther,
                             has_member_function_range<TOther>::value>>(other)))
@@ -46,17 +49,63 @@ public :
 
     template<typename ...Args>
     MeshEntityRange(this_type &other, parallel::tags::split) :
+            m_next_(nullptr),
             m_holder_(other.m_holder_->split())
     {
+        auto *p0 = &m_next_;
+        auto p1 = other.m_next_;
+        while (p1 != nullptr)
+        {
+            (*p0) = std::make_shared<MeshEntityRange>();
+            (*p0)->m_holder_ = p1->m_holder_->split();
+            (*p0)->m_next_ = nullptr;
+            p0 = &((*p0)->m_next_);
+            p1 = p1->m_next_;
+        }
+
     }
 
-    MeshEntityRange(this_type const &other) : m_holder_(
-            other.m_holder_ == nullptr ? nullptr : other.m_holder_->clone()) { }
+    MeshEntityRange(this_type const &other) :
+            m_next_(nullptr),
+            m_holder_(other.m_holder_ == nullptr ? nullptr : other.m_holder_->clone())
+    {
+        auto *p0 = &m_next_;
+        auto p1 = other.m_next_;
+        while (p1 != nullptr)
+        {
+            (*p0) = std::make_shared<MeshEntityRange>();
+            (*p0)->m_holder_ = p1->m_holder_->clone();
+            (*p0)->m_next_ = nullptr;
+            p0 = &((*p0)->m_next_);
+            p1 = p1->m_next_;
+        }
+    }
 
-    MeshEntityRange(this_type &&other) : m_holder_(other.m_holder_) { }
+    MeshEntityRange(this_type &&other) : m_holder_(other.m_holder_) { other.m_holder_ = nullptr; }
 
     ~MeshEntityRange() { }
 
+    this_type &operator=(this_type const &other) { return this_type(other).swap(*this); }
+
+    this_type &swap(this_type &other)
+    {
+        std::swap(m_holder_, other.m_holder_);
+        std::swap(m_next_, other.m_next_);
+        return *this;
+    }
+
+    void append(std::shared_ptr<MeshEntityRange> p_next)
+    {// TODO remove cycle link
+        auto p = &m_next_;
+        while (*p != nullptr) { *p = (*p)->m_next_; }
+        (*p) = p_next;
+    }
+
+    template<typename ...Args>
+    void append(Args &&... args)
+    {
+        append(std::make_shared<MeshEntityRange>(std::forward<Args>(args)...));
+    }
 
 public:
     static const bool is_splittable_in_proportion = true;
@@ -86,37 +135,26 @@ public:
         return std::move(res);
     }
 
-    this_type operator=(this_type const &other)
-    {
-        m_holder_ = other.m_holder_;
-        return *this;
-    }
+    template<typename T> T &as() { return m_holder_->as<T>(); }
 
-    this_type &swap(this_type &other)
-    {
-        std::swap(m_holder_, other.m_holder_);
-        return *this;
-    }
-
-    template<typename T> T &as()
-    {
-        return m_holder_->as<T>();
-
-    }
-
-    template<typename T> T const &as() const
-    {
-        return m_holder_->as<T>();
-    }
+    template<typename T> T const &as() const { return m_holder_->as<T>(); }
 
     typedef std::function<void(MeshEntityId const &)> foreach_body_type;
 
-    void foreach(foreach_body_type const &body) const { m_holder_->foreach(body); }
+    void foreach(foreach_body_type const &body) const
+    {
+        m_holder_->foreach(body);
+        auto p = m_next_;
+        while (p != nullptr)
+        {
+            p->m_holder_->foreach(body);
+            p = p->m_next_;
+        }
+    }
 
 
 private:
 
-    std::shared_ptr<RangeBase> m_holder_;
 
     struct RangeBase
     {

@@ -65,18 +65,11 @@ public:
 
     mesh_type m;
 
-    field_t<value_type, mesh_type, iform> make_field() const
-    {
-
-        return field_t<value_type, mesh_type, iform>(&m);
-
-    };
+    field_t<value_type, mesh_type, iform> make_field() const { return field_t<value_type, mesh_type, iform>(&m); };
 
     auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(&m)))
 
     auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, mesh_type, iform>(&m)))
-
-
 };
 
 TYPED_TEST_CASE_P(TestField);
@@ -89,13 +82,9 @@ TYPED_TEST_P(TestField, assign)
     typedef typename TestFixture::field_type field_type;
 
     auto f1 = TestFixture::make_field();
-
     value_type va;
-
     va = 2.0;
-
     f1 = va;
-
     size_t count = 0;
 
     TestFixture::m_range.foreach([&](mesh::MeshEntityId s) { EXPECT_LE(mod(va - f1[s]), EPSILON); });
