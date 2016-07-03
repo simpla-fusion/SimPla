@@ -193,14 +193,14 @@ void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDoma
 //    parallel::foreach(m_mesh_->range(mesh::EDGE, SP_ES_GHOST), [&](MeshEntityId const &s) { E1[s] = 0.0; });
 //    parallel::foreach(m_mesh_->range(mesh::FACE, SP_ES_GHOST), [&](MeshEntityId const &s) { B1[s] = 0.0; });
 
-    auto E2 = static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
-    auto B2 = static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
+    auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
+    auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
 
     t_map.direct_map(mesh::EDGE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E1[s1] = (*E2)[s2]; });
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E1[s1] = E2[s2]; });
 
     t_map.direct_map(mesh::FACE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B1[s1] = (*B2)[s2]; });
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B1[s1] = B2[s2]; });
 
 }
 
@@ -224,7 +224,7 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
 
-    B1 -= curl(E1) * (dt);
+    B1 -= curl(E1) * (dt * 0.5);
 
     B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
@@ -308,9 +308,8 @@ void EMFluid<TM>::next_step(Real dt)
 //        E1 += map_to<EDGE>(Ev) - E1;
 //    }
 //
-//    B1 -= curl(E1) * (dt * 0.5);
-//
-//    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+    B1 -= curl(E1) * (dt * 0.5);
+    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
 }
 

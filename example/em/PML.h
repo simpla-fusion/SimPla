@@ -183,36 +183,22 @@ void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain c
 
     auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
-//    if (mesh()->name() == "PML_1" && other.mesh()->name() == "Center")
-//    {
-//        t_map.direct_map(mesh::EDGE,
-//                         [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2)
-//                         {
-//                             INFORM << FILE_LINE_STAMP << "(" << (s1.x >> 1) << ", " << (s1.y >> 1) << ",  "
-//                             << (s1.z >> 1) << ")" << mesh()->hash(s1) << " => [ "
-//                             << (s2.x >> 1) << "," << (s2.y >> 1) << "," << (s2.z >> 1) << "," <<
-//                             MeshEntityIdCoder::sub_index(s2)
-//                             << "] " << mesh()->hash(s2) << "    " << E2[s2] <<
-//                             std::endl;
-//                         });
-//    }
-//    else
+
     t_map.direct_map(mesh::EDGE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = E2[s2]; });
 
-
     t_map.direct_map(mesh::FACE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = B2[s2]; });
-//    }
+
 }
 
 template<typename TM>
 void PML<TM>::next_step(Real dt)
 {
     DEFINE_PHYSICAL_CONST
-
+    B -= curl(E) * (dt * 0.5);
     E += (curl(B) * speed_of_light2) * dt;
-    B -= curl(E) * (dt);
+    B -= curl(E) * (dt * 0.5);
 
 //    dX2 = (X20 * (-2.0 * dt * s0) + curl_pdx(E) * dt) / (a0 + s0 * dt);
 //    X20 += dX2;
