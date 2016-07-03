@@ -81,9 +81,25 @@ public :
         }
     }
 
-    MeshEntityRange(this_type &&other) : m_holder_(other.m_holder_) { other.m_holder_ = nullptr; }
+    MeshEntityRange(this_type &&other) : m_holder_(other.m_holder_), m_next_(other.m_next_)
+    {
+        other.m_holder_ = nullptr;
+        other.m_next_ = nullptr;
+    }
 
     ~MeshEntityRange() { }
+
+    int num_of_block() const
+    {
+        auto p = m_next_;
+        int count = 1;
+        while (p != nullptr)
+        {
+            ++count;
+            p = p->m_next_;
+        }
+        return count;
+    }
 
     this_type &operator=(this_type const &other) { return this_type(other).swap(*this); }
 
@@ -96,9 +112,20 @@ public :
 
     void append(std::shared_ptr<MeshEntityRange> p_next)
     {// TODO remove cycle link
-        auto p = &m_next_;
-        while (*p != nullptr) { *p = (*p)->m_next_; }
-        (*p) = p_next;
+        if (p_next == nullptr || p_next->size() == 0) { return; }
+
+        if (m_holder_ == nullptr)
+        {
+            m_holder_ = p_next->m_holder_;
+            p_next = p_next->m_next_;
+        }
+
+        if (p_next != nullptr)
+        {
+            auto p = &m_next_;
+            while (*p != nullptr) { p = &((*p)->m_next_); }
+            (*p) = p_next;
+        }
     }
 
     template<typename ...Args>
@@ -114,7 +141,17 @@ public:
 
     bool empty() const { return m_holder_ == nullptr || m_holder_->empty(); }
 
-    size_t size() const { return m_holder_->size(); }
+    size_t size() const
+    {
+        size_t res = m_holder_ == nullptr ? 0 : m_holder_->size();
+        auto p = m_next_;
+        while (p != nullptr)
+        {
+            res += p->m_holder_->size();
+            p = p->m_next_;
+        }
+        return res;
+    }
 
     template<typename T, typename ...Args,
             typename std::enable_if<!std::is_base_of<RangeBase, T>::value>::type * = nullptr>
@@ -143,12 +180,15 @@ public:
 
     void foreach(foreach_body_type const &body) const
     {
-        m_holder_->foreach(body);
-        auto p = m_next_;
-        while (p != nullptr)
+        if (m_holder_ != nullptr)
         {
-            p->m_holder_->foreach(body);
-            p = p->m_next_;
+            m_holder_->foreach(body);
+            auto p = m_next_;
+            while (p != nullptr)
+            {
+                p->m_holder_->foreach(body);
+                p = p->m_next_;
+            }
         }
     }
 

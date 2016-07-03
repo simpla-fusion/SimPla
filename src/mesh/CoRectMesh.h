@@ -286,8 +286,10 @@ public:
         {
             if (m_dims_[i] > 1)
             {
-                lower[i] = m_lower_[i] + static_cast<index_type >((x_lower[i] - m_coords_lower_[i]) / m_dx_[i]);
-                upper[i] = m_lower_[i] + static_cast<index_type >((x_upper[i] - m_coords_lower_[i]) / m_dx_[i]) + 1;
+                lower[i] = m_lower_[i]
+                           + static_cast<index_type >((x_lower[i] - m_coords_lower_[i]) / m_dx_[i] - 0.5);
+                upper[i] =
+                        m_lower_[i] + static_cast<index_type >((x_upper[i] - m_coords_lower_[i]) / m_dx_[i] + 0.5);
             }
             else
             {
@@ -315,27 +317,57 @@ public:
         switch (status)
         {
             case SP_ES_ALL : //all valid
-                MeshEntityRange(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType)).swap(res);
+                res.append(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType));
                 break;
             case SP_ES_NON_LOCAL : // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
             case SP_ES_SHARED : //       = 0x04,                    0b000100 shared by two or more get_mesh blocks
                 break;
             case SP_ES_NOT_SHARED  : // = 0x08, //                       0b001000 not shared by other get_mesh blocks
                 break;
-
             case SP_ES_GHOST : // = SP_ES_SHARED | SP_ES_NOT_OWNED, //              0b000110
+                res.append(
+                        MeshEntityIdCoder::make_range(
+                                index_tuple{m_outer_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
+                                index_tuple{m_lower_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType));
+                res.append(
+                        MeshEntityIdCoder::make_range(
+                                index_tuple{m_upper_[0], m_outer_lower_[1], m_outer_lower_[2]},
+                                index_tuple{m_outer_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType));
 
+                if (m_dims_[1] > 1)
+                {
+                    res.append(
+                            MeshEntityIdCoder::make_range(
+                                    index_tuple{m_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
+                                    index_tuple{m_upper_[0], m_lower_[1], m_outer_upper_[2]}, entityType));
+                    res.append(
+                            MeshEntityIdCoder::make_range(
+                                    index_tuple{m_lower_[0], m_upper_[1], m_outer_lower_[2]},
+                                    index_tuple{m_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType));
+                }
+                if (m_dims_[2] > 1)
+                {
+                    res.append(
+                            MeshEntityIdCoder::make_range(
+                                    index_tuple{m_lower_[0], m_lower_[1], m_outer_lower_[2]},
+                                    index_tuple{m_upper_[0], m_upper_[1], m_lower_[2]}, entityType));
+                    res.append(
+                            MeshEntityIdCoder::make_range(
+                                    index_tuple{m_lower_[0], m_lower_[1], m_upper_[2]},
+                                    index_tuple{m_upper_[0], m_upper_[1], m_outer_upper_[2]}, entityType));
+                }
+                break;
             case SP_ES_DMZ: //  = 0x100,
             case SP_ES_NOT_DMZ: //  = 0x200,
 
             case SP_ES_LOCAL : // = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
-                MeshEntityRange(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType)).swap(res);
+                res.append(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType));
                 break;
             case SP_ES_OWNED:
-                MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType)).swap(res);
+                res.append(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
                 break;
             case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
-                MeshEntityRange(m_interface_entities_[entityType]).swap(res);
+                res.append(m_interface_entities_[entityType]);
                 break;
 
 

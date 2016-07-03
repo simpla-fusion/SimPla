@@ -1,7 +1,9 @@
-#LyX 2.0 created this file. For more info see http://www.lyx.org/
-\lyxformat 413
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
 \begin_document
 \begin_header
+\save_transient_properties true
+\origin unavailable
 \textclass article
 \use_default_options true
 \maintain_unincluded_children false
@@ -9,16 +11,16 @@
 \language_package default
 \inputencoding auto
 \fontencoding global
-\font_roman default
-\font_sans default
-\font_typewriter default
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
-\font_sf_scale 100
-\font_tt_scale 100
-
+\font_sf_scale 100 100
+\font_tt_scale 100 100
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -28,15 +30,24 @@
 \use_hyperref false
 \papersize default
 \use_geometry false
-\use_amsmath 1
-\use_esint 1
-\use_mhchem 1
-\use_mathdots 1
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
 \cite_engine basic
+\cite_engine_type default
+\biblio_style plain
 \use_bibtopic false
 \use_indices false
 \paperorientation portrait
 \suppress_date false
+\justification true
 \use_refstyle 1
 \index Index
 \shortcut idx
@@ -91,7 +102,23 @@ s_{\zeta}\equiv\alpha_{\zeta}+\sigma_{\zeta}/i\omega,\quad\zeta=x,y,z
 
 \end_inset
 
+
+\begin_inset Formula 
+\begin{eqnarray}
+\sigma_{\zeta}\left(\rho\right) & = & \sigma_{\zeta}^{max}\left(\frac{\rho}{\delta}\right)^{n+1}=\frac{\left(n+2\right)\ln\left(R_{0}^{-1}\right)}{2\delta}\left(\frac{\rho}{\delta}\right)^{n+1}\\
+\alpha_{\zeta}\left(\rho\right) & = & 1+\varepsilon_{\zeta}^{max}\left(\frac{\rho}{\delta}\right)^{n},\quad\rho\in\left[0,\delta\right],\:\zeta=x,y,z
+\end{eqnarray}
+
+\end_inset
+
  
+\end_layout
+
+\begin_layout Section
+Vector potential
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
 \tilde{\nabla}\times\tilde{\boldsymbol{A}}=i\omega\tilde{\boldsymbol{X}}_{1}+i\omega\tilde{\boldsymbol{Y}}_{1}+i\omega\tilde{\boldsymbol{Z}}_{1}
@@ -166,12 +193,147 @@ i\omega\tilde{\boldsymbol{Z}}_{2} & =s_{z}^{-1}\boldsymbol{e}_{z}\times\partial_
 
 \end_layout
 
+\begin_layout Section
+E,B
+\end_layout
+
 \begin_layout Standard
 \begin_inset Formula 
-\begin{eqnarray}
-\sigma_{\zeta}\left(\rho\right) & = & \sigma_{\zeta}^{max}\left(\frac{\rho}{\delta}\right)^{n+1}=\frac{\left(n+2\right)\ln\left(R_{0}^{-1}\right)}{2\delta}\left(\frac{\rho}{\delta}\right)^{n+1}\\
-\alpha_{\zeta}\left(\rho\right) & = & 1+\varepsilon_{\zeta}^{max}\left(\frac{\rho}{\delta}\right)^{n},\quad\rho\in\left[0,\delta\right],\:\zeta=x,y,z
-\end{eqnarray}
+\begin{align*}
+i\omega\tilde{B} & =-\tilde{\nabla}\times\tilde{\boldsymbol{E}}\\
+i\omega\tilde{E} & =c^{2}\tilde{\nabla}\times\tilde{\boldsymbol{B}}-c^{2}\tilde{J}
+\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\exp\left[i\left(\omega t-kx\right)\right]\to\exp\left[i\left(\omega t-\alpha_{x}kx\right)-\frac{k}{\omega}\int^{x}\sigma_{x}\left(x^{\prime}\right)dx^{\prime}\right]
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\partial_{x}\to s_{x}^{-1}\partial_{x}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+s_{\zeta}\equiv\alpha_{\zeta}+\sigma_{\zeta}/i\omega,\quad\zeta=x,y,z
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\tilde{\nabla}\equiv\boldsymbol{e}_{x}s_{x}^{-1}\partial_{x}+\boldsymbol{e}_{y}s_{y}^{-1}\partial_{y}+\boldsymbol{e}_{z}s_{z}^{-1}\partial_{z}\,.
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align}
+\tilde{\nabla}\times\tilde{\boldsymbol{E}} & =i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}=-i\omega\tilde{\boldsymbol{B}}\\
+\tilde{\nabla}\times\tilde{\boldsymbol{B}} & =i\omega\tilde{\boldsymbol{X}}_{1}+i\omega\tilde{\boldsymbol{Y}}_{1}+i\omega\tilde{\boldsymbol{Z}}_{1}=i\omega\tilde{\boldsymbol{E}}
+\end{align}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\begin{cases}
+i\omega\tilde{\boldsymbol{X}}_{1} & =s_{x}^{-1}\boldsymbol{e}_{x}\times\partial_{x}\tilde{\boldsymbol{B}}\\
+i\omega\tilde{\boldsymbol{Y}}_{1} & =s_{y}^{-1}\boldsymbol{e}_{y}\times\partial_{y}\tilde{\boldsymbol{B}}\\
+i\omega\tilde{\boldsymbol{Z}}_{1} & =s_{z}^{-1}\boldsymbol{e}_{z}\times\partial_{z}\tilde{\boldsymbol{B}}
+\end{cases}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\begin{cases}
+i\omega\tilde{\boldsymbol{X}}_{2} & =s_{x}^{-1}\boldsymbol{e}_{x}\times\partial_{x}\tilde{\boldsymbol{E}}\\
+i\omega\tilde{\boldsymbol{Y}}_{2} & =s_{y}^{-1}\boldsymbol{e}_{y}\times\partial_{y}\tilde{\boldsymbol{E}}\\
+i\omega\tilde{\boldsymbol{Z}}_{2} & =s_{z}^{-1}\boldsymbol{e}_{z}\times\partial_{z}\tilde{\boldsymbol{E}}
+\end{cases}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left(\alpha_{x}i\omega+\sigma_{x}\right)\tilde{\boldsymbol{X}}_{1}=\boldsymbol{e}_{x}\times\partial_{x}B
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+\left(\alpha_{x}\frac{X^{+}-X^{-}}{\Delta t}+\sigma_{x}\frac{X^{+}+X^{-}}{2}\right) & =\boldsymbol{e}_{x}\times\partial_{x}B\\
+\alpha_{x}\frac{\Delta X}{\Delta t}+\sigma_{x}\frac{X^{-}+\Delta X}{2} & =\boldsymbol{e}_{x}\times\partial_{x}B\\
+\left(\frac{\alpha_{x}}{\Delta t}+\frac{\sigma_{x}}{2}\right)\Delta X & =-\frac{\sigma_{x}}{2}X^{-}+\boldsymbol{e}_{x}\times\partial_{x}B
+\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\Delta B=-\left(\Delta X_{1}+\Delta Y_{1}+\Delta Z_{1}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left(\alpha_{x}\partial_{t}+\sigma_{x}\right)X_{1}=\boldsymbol{e}_{x}\times\partial_{x}\tilde{\boldsymbol{E}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left(a_{0}+s_{0}dt\right)\partial_{t}X_{10}=-2s_{0}X_{10}+c^{2}\boldsymbol{e}_{x}\times\partial_{x}B
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\partial_{t}E=\partial_{t}X_{10}+\partial_{t}X_{11}+\partial_{t}X_{12}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left(a_{0}+s_{0}dt\right)\partial_{t}X_{20}=-2s_{0}X_{20}+\boldsymbol{e}_{x}\times\partial_{x}E
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+-\partial_{t}B=\partial_{t}X_{20}+\partial_{t}X_{21}+\partial_{2}X_{12}
+\]
 
 \end_inset
 

@@ -17,19 +17,6 @@ TransitionMap::TransitionMap(Chart const *p_first, Chart const *p_second, int p_
                    - std::get<0>(first->point_global_to_local(std::get<0>(m_overlap_region_M_)))
                   ).v & ~MeshEntityIdCoder::_DA.v;
 
-
-//    if (p_first->name() != "PML_0")
-//    {
-//        MeshEntityId s1 = std::get<0>(first->point_global_to_local(std::get<0>(m_overlap_region_M_)));
-//        MeshEntityId s2 = std::get<0>(second->point_global_to_local(std::get<0>(m_overlap_region_M_)));
-//        INFORM << "name=" << p_first->name() << m_overlap_region_M_ << "   ("
-//        << (s1.x >> 1) << ","
-//        << (s1.y >> 1) << ","
-//        << (s1.z >> 1) << ")-("
-//        << (s2.x >> 1) << ","
-//        << (s2.y >> 1) << ","
-//        << (s2.z >> 1) << ")" << std::endl;
-//    }
 };
 
 TransitionMap::TransitionMap(std::shared_ptr<Chart const> m, std::shared_ptr<Chart const> n, int flag) :

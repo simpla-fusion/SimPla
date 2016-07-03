@@ -96,7 +96,7 @@ public:
     template<typename TFun>
     int direct_map(MeshEntityType entity_type, TFun const &fun) const
     {
-        parallel::parallel_foreach(
+        parallel::foreach(
                 first->range(m_overlap_region_M_, entity_type),
                 [&](mesh::MeshEntityId const &s) { fun(s, direct_map(s)); });
     }
@@ -108,7 +108,7 @@ public:
     template<typename TV>
     int direct_pull_back(TV *f, TV const *g, MeshEntityType entity_type) const
     {
-        parallel::parallel_foreach(
+        parallel::foreach(
                 first->range(m_overlap_region_M_, entity_type),
                 [&](mesh::MeshEntityId const &s) { f[first->hash(s)] = g[second->hash(direct_map(s))]; });
     }

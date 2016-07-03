@@ -49,6 +49,7 @@ std::string help_message()
 #ifdef HAS_MPI
     return MPIComm::help_message();
 #endif
+    return "";
 };
 
 

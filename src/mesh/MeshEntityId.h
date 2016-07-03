@@ -68,6 +68,7 @@ typedef union
     int64_t v;
 } MeshEntityId;
 
+
 constexpr inline bool operator==(MeshEntityId const &first, MeshEntityId const &second) { return first.v == second.v; }
 
 constexpr inline MeshEntityId operator-(MeshEntityId const &first, MeshEntityId const &second)
@@ -1039,6 +1040,14 @@ template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_adjacent_cell_ma
 template<int L> constexpr point_type MeshEntityIdCoder_<L>::m_id_to_coordinates_shift_[];
 
 typedef MeshEntityIdCoder_<> MeshEntityIdCoder;
+
+inline std::iostream &operator<<(std::iostream &os, MeshEntityId const &s)
+{
+    os << "(" << (s.x >> 1) << " , " << (s.y >> 1) << " , " << (s.z >> 1) << " , " << MeshEntityIdCoder::sub_index(s) <<
+    ")";
+    return os;
+}
+
 }//namespace  get_mesh
 }// namespace simpla
 

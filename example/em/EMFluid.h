@@ -176,14 +176,6 @@ EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
         J_src_range = m->range(b, mesh::EDGE);
         options["Constraints"]["J"]["Value"].as(&J_src_fun);
     }
-//    m_mesh_->range(mesh::EDGE, SP_ES_OWNED)
-//            .foreach([&](mesh::MeshEntityId const &s)
-//                     {
-//                         if (MeshEntityIdCoder::sub_index(s) == 2)
-//                         {                             E1[s] = m_mesh_->hash(s);
-//                         }
-//                     });
-
     return *this;
 }
 
@@ -198,9 +190,12 @@ void EMFluid<TM>::deploy()
 template<typename TM>
 void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)
 {
+//    parallel::foreach(m_mesh_->range(mesh::EDGE, SP_ES_GHOST), [&](MeshEntityId const &s) { E1[s] = 0.0; });
+//    parallel::foreach(m_mesh_->range(mesh::FACE, SP_ES_GHOST), [&](MeshEntityId const &s) { B1[s] = 0.0; });
+
     auto E2 = static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto B2 = static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
-    auto const *m2 = other.m_mesh_;
+
     t_map.direct_map(mesh::EDGE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E1[s1] = (*E2)[s2]; });
 
@@ -214,8 +209,6 @@ void EMFluid<TM>::next_step(Real dt)
 {
 
     DEFINE_PHYSICAL_CONST
-
-
     if (J_src_fun)
     {
         Real current_time = m->time();
@@ -231,7 +224,7 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
 
-    B1 -= curl(E1) * (dt  );
+    B1 -= curl(E1) * (dt);
 
     B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
@@ -314,7 +307,6 @@ void EMFluid<TM>::next_step(Real dt)
 //
 //        E1 += map_to<EDGE>(Ev) - E1;
 //    }
-
 //
 //    B1 -= curl(E1) * (dt * 0.5);
 //
