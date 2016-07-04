@@ -9,32 +9,13 @@
 namespace simpla { namespace mesh
 {
 
-TransitionMap::TransitionMap(Chart const *p_first, Chart const *p_second, int p_flag)
-        : first(p_first), second(p_second), flag(p_flag),
-          m_overlap_region_M_(gtl::box_overlap(first->box(SP_ES_ALL), second->box(SP_ES_OWNED)))
+TransitionMap::TransitionMap(Chart const *p_first, Chart const *p_second, index_box_type i_box, index_tuple offset,
+                             int p_flag)
+        : first(p_first), second(p_second), m_overlap_idx_box_(i_box), m_offset_(MeshEntityIdCoder::pack_index(offset)),
+          flag(p_flag)
 {
-
-    auto b_first = p_first->index_box(m_overlap_region_M_);
-    auto b_second = p_second->index_box(m_overlap_region_M_);
-
-    index_tuple offset;
-    offset = std::get<0>(b_second) - std::get<0>(b_first);
-    m_offset_ = MeshEntityIdCoder::pack_index(offset);
-//    if (p_first->name() == "PML_3")
-//    {
-//        VERBOSE << p_second->name() << "\t" << m_overlap_region_M_ << b_first << b_second << offset << std::endl;
-//    }
-
-
-
-//    m_offset_.v = (std::get<0>(second->point_global_to_local(std::get<0>(m_overlap_region_M_)))
-//                   - std::get<0>(first->point_global_to_local(std::get<0>(m_overlap_region_M_)))
-//                   - MeshEntityIdCoder::_DA - MeshEntityIdCoder::_DA).v & ~MeshEntityIdCoder::_DA.v;
-
 };
 
-TransitionMap::TransitionMap(std::shared_ptr<Chart const> m, std::shared_ptr<Chart const> n, int flag) :
-        TransitionMap(m.get(), n.get(), flag) { }
 
 TransitionMap::~TransitionMap() { };
 
@@ -75,22 +56,36 @@ std::shared_ptr<Chart> Atlas::get_block(mesh::MeshBlockId m_id) const
     return m_list_.at(m_id);
 }
 
-void Atlas::add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int flag)
+void Atlas::add_adjacency(std::shared_ptr<TransitionMap> t_map)
 {
-    m_adjacency_list_.emplace(std::make_pair(first, std::make_shared<TransitionMap>(
-            get_block(first).get(), get_block(second).get(), flag)));
+    m_adjacency_list_.emplace(std::make_pair(t_map->first->id(), t_map));
 }
 
-void Atlas::add_adjacency(std::shared_ptr<mesh::MeshBase> first, std::shared_ptr<mesh::MeshBase> second, int flag)
+std::shared_ptr<TransitionMap> Atlas::add_adjacency(MeshBlockId first, MeshBlockId second, int flag)
 {
-    m_adjacency_list_.emplace(std::make_pair(first->id(), std::make_shared<TransitionMap>(
-            first, second, flag)));
+    return add_adjacency(get_block(first).get(), get_block(second).get(), flag);
 }
 
-void Atlas::add_adjacency_2(std::shared_ptr<mesh::MeshBase> first, std::shared_ptr<mesh::MeshBase> second, int flag)
+std::shared_ptr<TransitionMap> Atlas::add_adjacency(const MeshBase *first, const MeshBase *second, int flag)
 {
-    add_adjacency(first, second, flag);
-    add_adjacency(second, first, flag);
+    box_type x_b_first = gtl::box_overlap(first->box(SP_ES_ALL), second->box(SP_ES_OWNED));
+    index_box_type i_b_first = first->index_box(x_b_first);
+    index_box_type i_b_second = second->index_box(x_b_first);
+    index_tuple offset;
+
+    offset = std::get<0>(i_b_second) - std::get<0>(i_b_first);
+    auto res = std::make_shared<TransitionMap>(first, second, i_b_first, offset, flag);
+    add_adjacency(res);
+    return res;
+}
+
+void Atlas::add_adjacency2(const MeshBase *first, const MeshBase *second, int flag)
+{
+    auto t0 = add_adjacency(first, second, flag);
+    auto t1 = add_adjacency(second, first, flag);
+
+    CHECK(1) << t0->m_overlap_idx_box_ << MeshEntityIdCoder::unpack_index(t0->m_offset_);
+    CHECK(2) << t1->m_overlap_idx_box_ << MeshEntityIdCoder::unpack_index(t1->m_offset_);;
 
 }
 

@@ -118,6 +118,8 @@ public:
 
     virtual MeshEntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const = 0;
 
+    virtual MeshEntityRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const = 0;
+
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const = 0;
 
     virtual size_t hash(MeshEntityId const &) const = 0;

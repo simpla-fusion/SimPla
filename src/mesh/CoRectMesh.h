@@ -285,8 +285,10 @@ public:
         {
             if (m_dims_[i] > 1)
             {
-                lower[i] = m_lower_[i] + static_cast<index_type >((x_lower[i] - m_coords_lower_[i]) / m_dx_[i]);
-                upper[i] = m_lower_[i] + static_cast<index_type >((x_upper[i] - m_coords_lower_[i]) / m_dx_[i] );
+                lower[i] = m_lower_[i] +
+                           static_cast<index_type >(std::floor((x_lower[i] - m_coords_lower_[i]) / m_dx_[i] + 0.5));
+                upper[i] = m_lower_[i] +
+                           static_cast<index_type >(std::floor((x_upper[i] - m_coords_lower_[i]) / m_dx_[i] + 0.5));
             }
             else
             {
@@ -301,7 +303,12 @@ public:
 
     virtual MeshEntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
     {
-        return MeshEntityIdCoder::make_range(index_box(b), entityType);
+        return range(index_box(b), entityType);
+    }
+
+    virtual MeshEntityRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
+    {
+        return MeshEntityIdCoder::make_range(b, entityType);
     }
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_OWNED) const

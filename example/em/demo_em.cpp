@@ -90,7 +90,7 @@ int main(int argc, char **argv)
             pml_mesh[0]->stretch(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w});
             pml_mesh[0]->deploy();
             ctx.atlas().add_block(pml_mesh[0]);
-            ctx.atlas().add_adjacency_2(mesh_center, pml_mesh[0], SP_MB_SYNC);
+            ctx.atlas().add_adjacency2(mesh_center.get(), pml_mesh[0].get(), SP_MB_SYNC);
             ctx.add_domain(std::make_shared<pml_type>(pml_mesh[0].get(), mesh_center->box()))->deploy();
 
             pml_mesh[1] = mesh_center->clone_as<mesh_type>("PML_1");
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
             pml_mesh[1]->stretch(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w});
             pml_mesh[1]->deploy();
             ctx.atlas().add_block(pml_mesh[1]);
-            ctx.atlas().add_adjacency_2(mesh_center, pml_mesh[1], SP_MB_SYNC);
+            ctx.atlas().add_adjacency2(mesh_center.get(), pml_mesh[1].get(), SP_MB_SYNC);
             ctx.add_domain(std::make_shared<pml_type>(pml_mesh[1].get(), mesh_center->box()))->deploy();
 
             if (dims[1] > 1)
@@ -108,9 +108,9 @@ int main(int argc, char **argv)
                 pml_mesh[2]->stretch(index_tuple{dims[0], w, dims[2] + 2 * w});
                 pml_mesh[2]->deploy();
                 ctx.atlas().add_block(pml_mesh[2]);
-                ctx.atlas().add_adjacency_2(pml_mesh[2], mesh_center, SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[2], pml_mesh[0], SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[2], pml_mesh[1], SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[2].get(), mesh_center.get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[2].get(), pml_mesh[0].get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[2].get(), pml_mesh[1].get(), SP_MB_SYNC);
                 ctx.add_domain(std::make_shared<pml_type>(pml_mesh[2].get(), mesh_center->box()))->deploy();
 
 
@@ -119,9 +119,9 @@ int main(int argc, char **argv)
                 pml_mesh[3]->stretch(index_tuple{dims[0], w, dims[2] + 2 * w});
                 pml_mesh[3]->deploy();
                 ctx.atlas().add_block(pml_mesh[3]);
-                ctx.atlas().add_adjacency_2(pml_mesh[3], mesh_center, SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[3], pml_mesh[0], SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[3], pml_mesh[1], SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[3].get(), mesh_center.get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[3].get(), pml_mesh[0].get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[3].get(), pml_mesh[1].get(), SP_MB_SYNC);
                 ctx.add_domain(std::make_shared<pml_type>(pml_mesh[3].get(), mesh_center->box()))->deploy();
 
             }
@@ -132,11 +132,11 @@ int main(int argc, char **argv)
                 pml_mesh[4]->stretch(index_tuple{dims[0], dims[1], w});
                 pml_mesh[4]->deploy();
                 ctx.atlas().add_block(pml_mesh[4]);
-                ctx.atlas().add_adjacency_2(pml_mesh[4], mesh_center, SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[4], pml_mesh[0], SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[4], pml_mesh[1], SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[4], pml_mesh[2], SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[4], pml_mesh[3], SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[4].get(), mesh_center.get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[0].get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[1].get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[2].get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[3].get(), SP_MB_SYNC);
                 ctx.add_domain(std::make_shared<pml_type>(pml_mesh[4].get(), mesh_center->box()))->deploy();
 
                 pml_mesh[5] = mesh_center->clone_as<mesh_type>("PML_5");
@@ -144,11 +144,11 @@ int main(int argc, char **argv)
                 pml_mesh[5]->stretch(index_tuple{dims[0], dims[1], w});
                 pml_mesh[5]->deploy();
                 ctx.atlas().add_block(pml_mesh[5]);
-                ctx.atlas().add_adjacency_2(pml_mesh[5], mesh_center, SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[5], pml_mesh[0], SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[5], pml_mesh[1], SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[5], pml_mesh[2], SP_MB_SYNC);
-                ctx.atlas().add_adjacency_2(pml_mesh[5], pml_mesh[3], SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[5].get(), mesh_center.get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[0].get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[1].get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[2].get(), SP_MB_SYNC);
+                ctx.atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[3].get(), SP_MB_SYNC);
                 ctx.add_domain(std::make_shared<pml_type>(pml_mesh[5].get(), mesh_center->box()))->deploy();
 
             }

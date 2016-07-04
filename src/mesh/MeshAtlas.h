@@ -48,14 +48,17 @@ struct TransitionMap
 {
 
 public:
-    TransitionMap(Chart const *m, Chart const *n, int flag = SP_MB_SYNC);
-
-    TransitionMap(std::shared_ptr<Chart const> m, std::shared_ptr<Chart const> n, int flag = SP_MB_SYNC);
+    TransitionMap(Chart const *m, Chart const *n, index_box_type i_box, index_tuple offset, int flag);
 
     ~TransitionMap();
 
     int flag;
 
+//private:
+
+    //TODO use geometric object replace box
+    index_box_type m_overlap_idx_box_;
+    MeshEntityId m_offset_;
     Chart const *first;
     Chart const *second;
 
@@ -85,7 +88,7 @@ public:
     template<typename Tg, typename Tf>
     void pull_back(Tg const &g, Tf *f, mesh::MeshEntityType entity_type = mesh::VERTEX) const
     {
-        first->range(m_overlap_region_M_, entity_type).foreach(
+        first->range(m_overlap_idx_box_, entity_type).foreach(
                 [&](mesh::MeshEntityId s)
                 {
 //                    (*f)[first->hash(s)] =
@@ -96,7 +99,7 @@ public:
     template<typename TFun>
     int direct_map(MeshEntityType entity_type, TFun const &body) const
     {
-        first->range(m_overlap_region_M_, entity_type).foreach(
+        first->range(m_overlap_idx_box_, entity_type).foreach(
                 [&](mesh::MeshEntityId const &s) { body(s, direct_map(s)); });
     }
 
@@ -107,7 +110,7 @@ public:
     template<typename TV>
     int direct_pull_back(TV *f, TV const *g, MeshEntityType entity_type) const
     {
-        first->range(m_overlap_region_M_, entity_type).foreach(
+        first->range(m_overlap_idx_box_, entity_type).foreach(
                 [&](mesh::MeshEntityId const &s) { f[first->hash(s)] = g[second->hash(direct_map(s))]; });
     }
 
@@ -115,12 +118,6 @@ public:
     template<typename TScalar>
     void push_forward(point_type const &x, TScalar const *v, TScalar *u) const { }
 
-
-//private:
-
-    //TODO use geometric object replace box
-    box_type m_overlap_region_M_;
-    mesh::MeshEntityId m_offset_;
 
 };
 
@@ -148,11 +145,13 @@ public:
 
     io::IOStream &load(io::IOStream &is);
 
-    void add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int flag);
+    void add_adjacency(std::shared_ptr<TransitionMap>);
 
-    void add_adjacency(std::shared_ptr<mesh::MeshBase> first, std::shared_ptr<mesh::MeshBase> second, int flag);
+    std::shared_ptr<TransitionMap> add_adjacency(const MeshBase *first, const MeshBase *second, int flag);
 
-    void add_adjacency_2(std::shared_ptr<mesh::MeshBase> first, std::shared_ptr<mesh::MeshBase> second, int flag);
+    std::shared_ptr<TransitionMap> add_adjacency(MeshBlockId first, MeshBlockId second, int flag);
+
+    void add_adjacency2(const MeshBase *first, const MeshBase *second, int flag);
 
 //#ifndef NDEBUG
 //    private:
