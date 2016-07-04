@@ -11,10 +11,10 @@
 #include "../gtl/Log.h"
 #include "../gtl/nTuple.h"
 #include "../parallel/DistributedObject.h"
+#include "../io/IOStream.h"
 
 #include "MeshCommon.h"
 #include "MeshBase.h"
-#include "../io/IOStream.h"
 
 namespace simpla { namespace mesh
 {
@@ -94,11 +94,10 @@ public:
     }
 
     template<typename TFun>
-    int direct_map(MeshEntityType entity_type, TFun const &fun) const
+    int direct_map(MeshEntityType entity_type, TFun const &body) const
     {
-        parallel::foreach(
-                first->range(m_overlap_region_M_, entity_type),
-                [&](mesh::MeshEntityId const &s) { fun(s, direct_map(s)); });
+        first->range(m_overlap_region_M_, entity_type).foreach(
+                [&](mesh::MeshEntityId const &s) { body(s, direct_map(s)); });
     }
 
 
@@ -108,8 +107,7 @@ public:
     template<typename TV>
     int direct_pull_back(TV *f, TV const *g, MeshEntityType entity_type) const
     {
-        parallel::foreach(
-                first->range(m_overlap_region_M_, entity_type),
+        first->range(m_overlap_region_M_, entity_type).foreach(
                 [&](mesh::MeshEntityId const &s) { f[first->hash(s)] = g[second->hash(direct_map(s))]; });
     }
 
@@ -156,7 +154,9 @@ public:
 
     void add_adjacency_2(std::shared_ptr<mesh::MeshBase> first, std::shared_ptr<mesh::MeshBase> second, int flag);
 
-private:
+//#ifndef NDEBUG
+//    private:
+//#endif
     typedef std::multimap<mesh::MeshBlockId, std::shared_ptr<TransitionMap>> adjacency_list_t;
 
     adjacency_list_t m_adjacency_list_;

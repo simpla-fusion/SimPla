@@ -373,7 +373,7 @@ inline auto dot(Field<TL...> const &lhs, TR const &rhs) DECL_RET_TYPE(wedge(lhs,
 template<typename TL, typename TR>
 inline Field<Expression<ct::Cross, TL, TR>>
 wedge(TL const &l, TR const &r,
-      FUNCTION_REQUIREMENT(traits::iform<TL>::value == mesh::VERTEX))
+      ENABLE_IF(traits::iform<TL>::value == mesh::VERTEX))
 {
     return Field<Expression<ct::Wedge, TL, TR> >(l, r);
 }
@@ -381,25 +381,25 @@ wedge(TL const &l, TR const &r,
 
 template<typename ...TL, typename ...TR> inline auto
 cross(Field<TL...> const &lhs, Field<TR...> const &rhs,
-      FUNCTION_REQUIREMENT((traits::iform<Field<TL... >>
-                            ::value == mesh::EDGE)))
+      ENABLE_IF((traits::iform<Field<TL... >>
+                 ::value == mesh::EDGE)))
 DECL_RET_TYPE((wedge(lhs, rhs)))
 
 
 template<typename ...TL, typename ...TR> inline auto
 cross(Field<TL...> const &lhs, Field<TR...> const &rhs,
-      FUNCTION_REQUIREMENT((traits::iform<Field<TL... >>::value == mesh::FACE)))
+      ENABLE_IF((traits::iform<Field<TL... >>::value == mesh::FACE)))
 DECL_RET_TYPE(hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
 
 
 template<typename ...TL, typename ...TR> inline auto
 cross(Field<TL...> const &lhs, Field<TR...> const &rhs,
-      FUNCTION_REQUIREMENT((traits::iform<Field<TL... >>::value == mesh::VERTEX)))
+      ENABLE_IF((traits::iform<Field<TL... >>::value == mesh::VERTEX)))
 DECL_RET_TYPE((Field<Expression<ct::Cross, Field<TL...>, Field<TR...> > >(lhs, rhs)));
 
 template<typename ...TL, typename ...TR> inline auto
 dot(Field<TL...> const &lhs, Field<TR...> const &rhs,
-    FUNCTION_REQUIREMENT((traits::iform<Field<TL... >>::value == mesh::VERTEX)))
+    ENABLE_IF((traits::iform<Field<TL... >>::value == mesh::VERTEX)))
 DECL_RET_TYPE((Field<Expression<ct::Dot, Field<TL...>, Field<TR...> > >(lhs, rhs)));
 
 

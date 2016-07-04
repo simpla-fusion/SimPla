@@ -276,7 +276,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 //		geometry.set_dimensions(dims);
 //		geometry.set_extents(xmin, xmax);
 //
-//		geometry.update();
+//		geometry.sync();
 //
 //	}
 //public:

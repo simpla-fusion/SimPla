@@ -315,7 +315,7 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::next_timestep_half(
 template<typename TM>
 void Particle<TM, ColdFluid, PolicyFluidParticle>::updateFields()
 {
-    LOGGER << "Push fluid_sp update fields[ " << get_type_as_string() << "]";
+    LOGGER << "Push fluid_sp sync fields[ " << get_type_as_string() << "]";
 
     Real dt = mesh.get_dt();
 

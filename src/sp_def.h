@@ -14,7 +14,7 @@ namespace simpla
 typedef int8_t byte_type; // int8_t
 typedef SP_REAL Real;
 typedef int Integral;
-typedef int64_t id_type;
+typedef int64_t id_type; //!< Data type of vertex's index , i.e. i,j
 typedef int64_t index_type;
 typedef uint64_t size_type;
 
@@ -24,14 +24,12 @@ typedef nTuple<Real, 3ul> vector_type;
 
 typedef std::tuple<point_type, point_type> box_type; //! two corner of rectangle (or hexahedron ) , <lower ,upper>
 
-typedef long index_type; //!< Data type of vertex's index , i.e. i,j
 
 typedef long difference_type; //!< Data type of the difference between indices,i.e.  s = i - j
 
 typedef nTuple<index_type, 3> index_tuple;
 
 typedef std::tuple<index_tuple, index_tuple> index_box_type;
-
 
 typedef boost::uuids::uuid uuid;
 /**

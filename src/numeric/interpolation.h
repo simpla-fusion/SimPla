@@ -571,7 +571,7 @@ public:
 //	 * @param ypn
 //	 */
 //	template<typename port_type>
-//	void update(port_type const &xy)
+//	void sync(port_type const &xy)
 //	{
 //		if (static_cast<void const *>(&xy) == data_)
 //			return;
@@ -628,7 +628,7 @@ public:
 //			typename container::iterator const &it,
 //			typename container::key_type const &x)
 //	{
-//		update(xy);
+//		sync(xy);
 //		const_cast<this_type const *>(this)->operator()(xy, it, x);
 //	}
 //

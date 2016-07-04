@@ -138,8 +138,8 @@ EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B0"]["Value"].as(&fun);
-            parallel::parallel_foreach(
-                    m->range(FACE), [&](mesh::MeshEntityId const &s)
+            m->range(FACE).foreach(
+                    [&](mesh::MeshEntityId const &s)
                     {
                         B0[s] = m->template sample<FACE>(s, fun(m->point(s)));
                     });
@@ -149,8 +149,8 @@ EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B1"]["Value"].as(&fun);
-            parallel::parallel_foreach(
-                    m->range(FACE), [&](mesh::MeshEntityId const &s)
+            m->range(FACE).foreach(
+                    [&](mesh::MeshEntityId const &s)
                     {
                         B1[s] = m->template sample<FACE>(s, fun(m->point(s)));
                     });
@@ -160,8 +160,8 @@ EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["E1"]["Value"].as(&fun);
-            parallel::parallel_foreach(
-                    m->range(EDGE), [&](mesh::MeshEntityId const &s)
+            m->range(EDGE).foreach(
+                    [&](mesh::MeshEntityId const &s)
                     {
                         E1[s] = m->template sample<EDGE>(s, fun(m->point(s)));
                     });
@@ -185,22 +185,38 @@ void EMFluid<TM>::deploy()
 {
     declare_global(&E1, "E");
     declare_global(&B1, "B");
-//    m_mesh_->range(mesh::EDGE, SP_ES_GHOST).foreach([&](MeshEntityId const &s) { E1[s] = 5; });
-//    m_mesh_->range(mesh::EDGE, SP_ES_OWNED).foreach([&](MeshEntityId const &s) { E1[s] += 15; });
+
+    point_type x_min, x_max;
+    std::tie(x_min, x_max) = m->box();
+    Real LX = x_max[0] - x_min[0];
+    Real LY = x_max[1] - x_min[1];
+
+
+//    m_mesh_->range(mesh::EDGE, SP_ES_OWNED).foreach(
+//            [&](MeshEntityId const &s)
+//            {
+////                if (MeshEntityIdCoder::sub_index(s) == 2)
+////                {
+////                    auto x = m->point(s);
+////                    E1[s] = std::sin(TWOPI * (x[0] - x_min[0]) / LX) *
+////                            std::sin(TWOPI * (x[1] - x_min[1]) / LY);
+////                }
+//
+//            });
+//    m_mesh_->range(mesh::EDGE, SP_ES_OWNED).foreach([&](MeshEntityId const &s) { E1[s] = m_mesh_->hash(s); });
+//    m_mesh_->range(mesh::FACE, SP_ES_OWNED).foreach([&](MeshEntityId const &s) { B1[s] = 10; });
 }
 
 template<typename TM>
 void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)
 {
-
-//    parallel::foreach(m_mesh_->range(mesh::EDGE, SP_ES_GHOST), [&](MeshEntityId const &s) { E1[s] = 0.0; });
-//    parallel::foreach(m_mesh_->range(mesh::FACE, SP_ES_GHOST), [&](MeshEntityId const &s) { B1[s] = 0.0; });
-
     auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
 
+    size_t count = 0;
     t_map.direct_map(mesh::EDGE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E1[s1] = E2[s2]; });
+
 
     t_map.direct_map(mesh::FACE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B1[s1] = B2[s2]; });
@@ -217,8 +233,8 @@ void EMFluid<TM>::next_step(Real dt)
         Real current_time = m->time();
 
         auto f = J_src_fun;
-        parallel::parallel_foreach(
-                J_src_range, [&](mesh::MeshEntityId const &s)
+        J_src_range.foreach(
+                [&](mesh::MeshEntityId const &s)
                 {
                     auto x0 = m->point(s);
                     auto v = J_src_fun(current_time, x0, J1(x0));
@@ -228,11 +244,8 @@ void EMFluid<TM>::next_step(Real dt)
 
 
     B1 -= curl(E1) * (dt * 0.5);
-
     B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
-
     E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt;
-
     E1.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
 
@@ -313,6 +326,9 @@ void EMFluid<TM>::next_step(Real dt)
 //
     B1 -= curl(E1) * (dt * 0.5);
     B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+
+//    m_mesh_->range(mesh::EDGE, SP_ES_GHOST).foreach([&](MeshEntityId const &s) { E1[s] = 0; });
+//    m_mesh_->range(mesh::FACE, SP_ES_GHOST).foreach([&](MeshEntityId const &s) { B1[s] = 0; });
 
 }
 

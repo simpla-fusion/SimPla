@@ -179,18 +179,21 @@ int main(int argc, char **argv)
     << "] <<< " <<
     std::endl;
 
-    Real current_time = ctx.time();
     io::cd("/checkpoint/");
-    ctx.check_point(io::global());
-
+//    ctx.check_point(io::global());
+    ctx.sync();
     size_type count = 0;
-
-    while (ctx.time() < stop_time)
+    while (ctx.time() <= stop_time)
     {
+//        if (count % step_of_check_points == 0)
+
         ctx.run(dt);
-        current_time = ctx.time();
-        if (count % step_of_check_points == 0) { ctx.check_point(io::global()); }
-        INFORM << "\t >>>  [ Time = " << current_time << " Count = " << count << "] <<< " << std::endl;
+        ctx.sync();
+        ctx.check_point(io::global());
+
+
+        INFORM << "\t >>>  [ Time = " << ctx.time() << " Count = " << count << "] <<< " << std::endl;
+
         ++count;
     }
 

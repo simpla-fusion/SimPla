@@ -32,7 +32,7 @@ class Range
 {
     typedef Range<_Category, _Tp, _Distance, _Pointer, _Reference> this_type;
 public:
-    typedef IteratorAdapter <_Category, _Tp, _Distance, _Pointer, _Reference> iterator;
+    typedef IteratorAdapter<_Category, _Tp, _Distance, _Pointer, _Reference> iterator;
     typedef iterator const_iterator;
 
     Range() : m_grain_size_(1) { }
@@ -52,7 +52,7 @@ public:
             m_grain_size_(other.m_grain_size_) { }
 
     Range(Range &other, tags::split,
-          FUNCTION_REQUIREMENT((std::is_same<std::random_access_iterator_tag, _Category>::value))) :
+          ENABLE_IF((std::is_same<std::random_access_iterator_tag, _Category>::value))) :
             m_begin_(other.m_begin_),
             m_end_(m_begin_ + (other.m_end_ - other.m_begin_) / 2),
             m_grain_size_(other.m_grain_size_)
@@ -61,7 +61,7 @@ public:
     }
 
     Range(Range &other, tags::proportional_split proportion,
-          FUNCTION_REQUIREMENT((std::is_same<std::random_access_iterator_tag, _Category>::value))) :
+          ENABLE_IF((std::is_same<std::random_access_iterator_tag, _Category>::value))) :
             m_begin_(other.m_begin_),
             m_end_(m_begin_ + ((other.m_end_ - other.m_begin_) * proportion.left())
                               / (proportion.left() + proportion.right())),
@@ -73,13 +73,12 @@ public:
     static const bool is_splittable = std::is_same<std::random_access_iterator_tag, _Category>::value;
     static const bool is_splittable_in_proportion = std::is_same<std::random_access_iterator_tag, _Category>::value;
 
-    bool is_divisible(FUNCTION_REQUIREMENT((std::is_same<std::random_access_iterator_tag, _Category>::value))) const
+    bool is_divisible(ENABLE_IF((std::is_same<std::random_access_iterator_tag, _Category>::value))) const
     {
         return m_end_ - m_begin_ > m_grain_size_;
     }
 
-    bool is_divisible(FUNCTION_REQUIREMENT(
-                              (!std::is_same<std::random_access_iterator_tag, _Category>::value))) const
+    bool is_divisible(ENABLE_IF((!std::is_same<std::random_access_iterator_tag, _Category>::value))) const
     {
         return false;
     }

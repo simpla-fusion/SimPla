@@ -752,13 +752,12 @@ struct MeshEntityIdCoder_
         typedef range_type this_type;
     public:
 
-//        typedef iterator const_iterator;
 
         range_type() : m_iform_(VERTEX), m_min_(), m_max_(m_min_), m_grain_size_(m_min_) { }
 
         // constructors
 
-        range_type(index_tuple const &b, index_tuple const &e, int IFORM = 0)
+        range_type(index_tuple const &b, index_tuple const &e, MeshEntityType IFORM = VERTEX)
                 : m_iform_(IFORM), m_min_(b), m_max_(e)
         {
             m_grain_size_ = 1;
@@ -776,8 +775,8 @@ struct MeshEntityIdCoder_
         {
         }
 
-        template<typename T0, typename T1, typename T2>
-        range_type(T0 const &b, T1 const &e, index_tuple const &grain_size, int IFORM = 0)
+        range_type(index_tuple const &b, index_tuple const &e, index_tuple const &grain_size,
+                   MeshEntityType IFORM = VERTEX)
                 : m_iform_(IFORM), m_min_(b), m_max_(e), m_grain_size_(grain_size)
         {
         }
@@ -837,9 +836,9 @@ struct MeshEntityIdCoder_
             std::swap(m_grain_size_, other.m_grain_size_);
         }
 
-        MeshEntityType entity_type() const { return static_cast<MeshEntityType>(m_iform_); }
+        MeshEntityType entity_type() const { return m_iform_; }
 
-        MeshEntityType index_box() const { return std::make_tuple(m_min_, m_max_); }
+        index_box_type index_box() const { return std::make_tuple(m_min_, m_max_); }
 
         // Proportional split is enabled
         static const bool is_splittable_in_proportion = true;
@@ -851,7 +850,8 @@ struct MeshEntityIdCoder_
 
         size_t size() const
         {
-            return ((m_iform_ == 0 || m_iform_ == 3) ? 1 : 3) * NProduct(m_max_ - m_min_);
+            return static_cast<size_t>(((m_iform_ == VERTEX || m_iform_ == VOLUME) ? 1 : 3)
+                                       * (m_max_[0] - m_min_[0]) * (m_max_[1] - m_min_[1]) * (m_max_[2] - m_min_[2]));
         }
 
         // access
@@ -871,8 +871,6 @@ struct MeshEntityIdCoder_
         // iterators
 //        const_iterator begin() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_); }
 //        const_iterator end() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_).end(); }
-
-
 //        template<typename Body>
 //        void parallel_foreach(Body const &body) const
 //        {
@@ -927,29 +925,20 @@ struct MeshEntityIdCoder_
     private:
 
 
-        int m_iform_;
+        MeshEntityType m_iform_;
         index_tuple m_min_, m_max_, m_grain_size_;
     };
 
 //    typedef RangeHolder<iterator> range_type;
 
-    template<typename T0, typename T1>
-    static range_type make_range(T0 const &min, T1 const &max, int iform = 0)
+    static range_type make_range(index_tuple const &min, index_tuple const &max, MeshEntityType iform = VERTEX)
     {
         return range_type(min, max, iform);
     }
 
-    template<int IFORM, typename TB>
-    static range_type make_range(TB const &b)
+    static range_type make_range(index_box_type const &b, MeshEntityType iform = VERTEX)
     {
-        return make_range(traits::get<0>(b), traits::get<1>(b), IFORM);
-    }
-
-
-    template<int IFORM, typename T0, typename T1>
-    static range_type make_range(T0 const &b, T1 const &e)
-    {
-        return make_range(b, e, IFORM);
+        return make_range(traits::get<0>(b), traits::get<1>(b), iform);
     }
 
 
@@ -971,44 +960,19 @@ struct MeshEntityIdCoder_
                 ) * num_of_ele_in_cell(s) + sub_index(s);
 
     }
-//
-//    static constexpr index_type hash(MeshEntityId s, MeshEntityId b, MeshEntityId e)
-//    {
-//        return hash(s, unpack_index(b), unpack_index(e));
-//
-//        //  return hash_((diff(s, b) + diff(e, b)), diff(e, b)) * num_of_ele_in_cell(s) + sub_index(s);
-//    }
-//
-//
-//    static constexpr index_type hash_(MeshEntityId const &s, MeshEntityId const &d)
-//    {
-//        //C-ORDER SLOW FIRST
-//
-//        return
-//
-//                (UNPACK_INDEX(s, 2) % UNPACK_INDEX(d, 2)) +
-//
-//                (
-//                        (UNPACK_INDEX(s, 1) % UNPACK_INDEX(d, 1)) +
-//                        (UNPACK_INDEX(s, 0) % UNPACK_INDEX(d, 0)) * UNPACK_INDEX(d, 1)
-//                )
-//
-//                * UNPACK_INDEX(d, 2);
-//
-//    }
+
 
     template<int IFORM>
     static constexpr size_t max_hash(MeshEntityId b, MeshEntityId e)
     {
-        return NProduct(unpack_index((e - b)))
-               * m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)];
+        return max_hash(unpack_index(e), unpack_index(b), IFORM);
     }
 
 
-    static constexpr size_t max_hash(index_tuple const &b, index_tuple const &e, int IFORM)
+    static constexpr size_t max_hash(index_tuple const &b, index_tuple const &e, MeshEntityType IFORM)
     {
-        return NProduct((e - b))
-               * m_id_to_num_of_ele_in_cell_[m_sub_index_to_id_[IFORM][0]];
+        return static_cast<size_t>((e[2] - b[2]) * (e[1] - b[1]) * (e[0] - b[0])
+                                   * m_id_to_num_of_ele_in_cell_[m_sub_index_to_id_[IFORM][0]]);
     }
 
 };
@@ -1041,12 +1005,6 @@ template<int L> constexpr point_type MeshEntityIdCoder_<L>::m_id_to_coordinates_
 
 typedef MeshEntityIdCoder_<> MeshEntityIdCoder;
 
-inline std::iostream &operator<<(std::iostream &os, MeshEntityId const &s)
-{
-    os << "(" << (s.x >> 1) << " , " << (s.y >> 1) << " , " << (s.z >> 1) << " , " << MeshEntityIdCoder::sub_index(s) <<
-    ")";
-    return os;
-}
 
 }//namespace  get_mesh
 }// namespace simpla

@@ -111,10 +111,10 @@ namespace traits
 {
 
 template<typename T, typename TI>
-auto index(T &v, integer_sequence<TI>, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value))) DECL_RET_TYPE(v)
+auto index(T &v, integer_sequence<TI>, ENABLE_IF((is_indexable<T, TI>::value))) DECL_RET_TYPE(v)
 
 template<typename T, typename TI, TI M, TI ...N>
-auto index(T &v, integer_sequence<TI, M, N...>, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value)))
+auto index(T &v, integer_sequence<TI, M, N...>, ENABLE_IF((is_indexable<T, TI>::value)))
 DECL_RET_TYPE((index(v[M], integer_sequence<TI, N...>())))
 //----------------------------------------------------------------------------------------------------------------------
 

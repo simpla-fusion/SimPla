@@ -77,13 +77,13 @@ private:
 public:
 
     template<typename TF> constexpr inline traits::field_value_t<TF>
-    gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == VERTEX))) const
+    gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == VERTEX))) const
     {
         return gather_impl_(f, m.point_global_to_local(r, 0));
     }
 
     template<typename TF> constexpr inline traits::field_value_t<TF>
-    gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == EDGE))) const
+    gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == EDGE))) const
     {
         return traits::field_value_t<TF>{
                 gather_impl_(f, m.point_global_to_local(r, 1)),
@@ -93,7 +93,7 @@ public:
     }
 
     template<typename TF> constexpr inline traits::field_value_t<TF>
-    gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == FACE))) const
+    gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == FACE))) const
     {
         return traits::field_value_t<TF>{
                 gather_impl_(f, m.point_global_to_local(r, 6)),
@@ -103,7 +103,7 @@ public:
     }
 
     template<typename TF> constexpr inline traits::field_value_t<TF>
-    gather(TF const &f, point_type const &x, FUNCTION_REQUIREMENT((traits::iform<TF>::value == VOLUME))) const
+    gather(TF const &f, point_type const &x, ENABLE_IF((traits::iform<TF>::value == VOLUME))) const
     {
         return gather_impl_(f, m.point_global_to_local(x, 7));
     }

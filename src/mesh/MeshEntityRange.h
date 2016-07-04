@@ -180,7 +180,8 @@ public:
 
     void foreach(foreach_body_type const &body) const
     {
-        if (m_holder_ != nullptr)
+
+        if (!empty())
         {
             m_holder_->foreach(body);
             auto p = m_next_;

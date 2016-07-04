@@ -276,20 +276,17 @@ public:
         return std::move(res);
     }
 
-    virtual MeshEntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
+    virtual index_box_type index_box(box_type const &b) const
     {
-        point_type x_lower, x_upper;
-
         index_tuple lower, upper;
+        point_type x_lower, x_upper;
         std::tie(x_lower, x_upper) = b;
         for (int i = 0; i < 3; ++i)
         {
             if (m_dims_[i] > 1)
             {
-                lower[i] = m_lower_[i]
-                           + static_cast<index_type >((x_lower[i] - m_coords_lower_[i]) / m_dx_[i]  );
-                upper[i] =
-                        m_lower_[i] + static_cast<index_type >((x_upper[i] - m_coords_lower_[i]) / m_dx_[i] ) ;
+                lower[i] = m_lower_[i] + static_cast<index_type >((x_lower[i] - m_coords_lower_[i]) / m_dx_[i]);
+                upper[i] = m_lower_[i] + static_cast<index_type >((x_upper[i] - m_coords_lower_[i]) / m_dx_[i] );
             }
             else
             {
@@ -298,7 +295,13 @@ public:
             }
         }
 
-        return MeshEntityIdCoder::make_range(lower, upper, entityType);
+        return std::make_tuple(lower, upper);
+
+    }
+
+    virtual MeshEntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
+    {
+        return MeshEntityIdCoder::make_range(index_box(b), entityType);
     }
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_OWNED) const
@@ -359,9 +362,22 @@ public:
                 break;
             case SP_ES_DMZ: //  = 0x100,
             case SP_ES_NOT_DMZ: //  = 0x200,
-
             case SP_ES_LOCAL : // = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
                 res.append(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType));
+                break;
+            case SP_ES_VALID:
+                index_tuple l, u;
+                l = m_outer_lower_;
+                u = m_outer_upper_;
+                for (int i = 0; i < 3; ++i)
+                {
+                    if (m_dims_[i] > 1)
+                    {
+                        l[i] += 1;
+                        u[i] -= 1;
+                    }
+                }
+                res.append(MeshEntityIdCoder::make_range(l, u, entityType));
                 break;
             case SP_ES_OWNED:
                 res.append(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
@@ -369,8 +385,6 @@ public:
             case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
                 res.append(m_interface_entities_[entityType]);
                 break;
-
-
             default:
                 UNIMPLEMENTED;
                 break;
@@ -493,19 +507,19 @@ public:
         for (int i = 0; i < ndims; ++i)
         {
 
-            m_dims_[i] = (m_dims_[i] > 1) ? m_dims_[i] : 1;
+            m_dims_[i] = (m_dims_[i] <= 1) ? 1 : m_dims_[i];
 
             m_dx_[i] = (m_dims_[i] <= 1) ? 1 : (m_coords_upper_[i] - m_coords_lower_[i]) /
                                                static_cast<Real>( m_dims_[i]);
 
             m_inv_dx_[i] = (m_dims_[i] <= 1) ? 0 : static_cast<Real>(1.0) / m_dx_[i];
 
-            m_ghost_width_[i] = (m_dims_[i] > 1) ? m_ghost_width_[i] : 0;
+            m_ghost_width_[i] = (m_dims_[i] <= 1) ? 0 : m_ghost_width_[i];
 
             m_shape_[i] = m_dims_[i] + m_ghost_width_[i] * 2;
 
-            m_lower_[i] = 0;
-            m_upper_[i] = m_dims_[i];
+            m_lower_[i] = m_ghost_width_[i];
+            m_upper_[i] = m_ghost_width_[i] + m_dims_[i];
 
             m_outer_lower_[i] = m_lower_[i] - m_ghost_width_[i];
             m_outer_upper_[i] = m_upper_[i] + m_ghost_width_[i];

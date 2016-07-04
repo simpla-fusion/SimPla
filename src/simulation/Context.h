@@ -113,7 +113,7 @@ public:
     }
 
 
-    void update(int level = 0, int flag = mesh::SP_MB_SYNC);
+    void sync(int level = 0, int flag = mesh::SP_MB_SYNC);
 
     void run(Real dt, int level = 0);
 

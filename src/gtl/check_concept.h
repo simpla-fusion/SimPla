@@ -427,8 +427,9 @@ template<typename, typename> struct is_indexable;
 }  // namespace traits
 
 
-#define FUNCTION_REQUIREMENT(_COND_)  std::enable_if_t<_COND_> *__p = nullptr
+#define ENABLE_IF(_COND_)  std::enable_if_t<_COND_> *__p = nullptr
 
+#define CHECK_FUNCTION_SIGNATURE(_RET_, _FUN_) std::enable_if_t<std::is_same<_RET_,std::result_of_t<_FUN_>>::value>*__p = nullptr
 }// namespace simpla
 
 #endif /* CORE_GPL_CHECK_CONCEPT_H_ */

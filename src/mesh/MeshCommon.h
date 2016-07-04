@@ -63,6 +63,7 @@ enum MeshEntityStatus
     SP_ES_INTERFACE = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
     SP_ES_DMZ = 0x100,
     SP_ES_NOT_DMZ = 0x200,
+    SP_ES_VALID = 0x400,
     SP_ES_UNDEFINED = 0xFFFF
 };
 #ifdef __cplusplus

@@ -223,94 +223,72 @@ public:
 
     template<typename TFun> this_type &
             apply(mesh::MeshEntityRange const &r0, TFun const &op,
-    FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<
-                                 TFun(point_type const &, field_value_type const &)>::type, field_value_type>::value))
+    CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &, field_value_type const &))
     )
     {
         deploy();
 
-        if (!r0.empty())
-        {
-            parallel::foreach(
-                    r0, [&](mesh::MeshEntityId const &s)
-                    {
-                        auto x = m_mesh_->point(s);
-                        get(s) = m_mesh_->template sample<IFORM>(s, op(x, gather(x)));
-                    }
-            );
-        }
+
+        r0.foreach(
+                [&](mesh::MeshEntityId const &s)
+                {
+                    auto x = m_mesh_->point(s);
+                    get(s) = m_mesh_->template sample<IFORM>(s, op(x, gather(x)));
+                }
+        );
+
 
         return *this;
     }
 
     template<typename TFun> this_type &
             apply(mesh::MeshEntityRange const &r0, TFun const &op,
-    FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<
-                                 TFun(
-                                         point_type const &)>::type, field_value_type>::value))
+    CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &))
     )
     {
         deploy();
 
-        if (!r0.empty())
-        {
-            parallel::foreach(
-                    r0, [&](mesh::MeshEntityId const &s)
-                    {
-                        auto v = op(m_mesh_->point(s));
-                        get(s) = m_mesh_->template sample<IFORM>(s, v);
 
-                    }
-            );
-        }
+        r0.foreach(
+                [&](mesh::MeshEntityId const &s)
+                {
+                    auto v = op(m_mesh_->point(s));
+                    get(s) = m_mesh_->template sample<IFORM>(s, v);
+
+                }
+        );
+
 
         return *this;
     }
 
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
-          FUNCTION_REQUIREMENT(
-                  (std::is_same<typename std::result_of<TFun(mesh::MeshEntityId const &)>::type, value_type>::value)
-          ))
+          CHECK_FUNCTION_SIGNATURE(value_type, TFun(mesh::MeshEntityId const &))
+    )
     {
         deploy();
-
-        if (!r0.empty())
-        {
-            parallel::foreach(r0, [&](mesh::MeshEntityId const &s) { get(s) = op(s); });
-        }
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = op(s); });
         return *this;
     }
 
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
-          FUNCTION_REQUIREMENT(
-                  (std::is_same<typename std::result_of<TFun(value_type & )>::type, void>::value)
-          ))
+          CHECK_FUNCTION_SIGNATURE(void, TFun(value_type & )))
     {
         deploy();
-
-        if (!r0.empty())
-        {
-            parallel::foreach(r0, [&](mesh::MeshEntityId const &s) { op(get(s)); });
-        }
-
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s)); });
         return *this;
     }
 
 
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &f,
-          FUNCTION_REQUIREMENT((traits::is_indexable<TFun, mesh::MeshEntityId>::value)))
+          ENABLE_IF((traits::is_indexable<TFun, mesh::MeshEntityId>::value)))
     {
 
         deploy();
-
-        if (!r0.empty())
-        {
-            parallel::foreach(r0, [&](mesh::MeshEntityId const &s) { get(s) = f[s]; });
-        }
-
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = f[s]; });
         return *this;
     }
 
@@ -323,7 +301,7 @@ public:
 //        base_type::nonblocking_sync();
 //        apply(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op);
 //        base_type::wait();
-        apply(m_mesh_->range(entity_type(), mesh::SP_ES_ALL), op);
+        apply(m_mesh_->range(entity_type(), mesh::SP_ES_VALID), op);
 
         return *this;
     }
@@ -333,9 +311,7 @@ public:
     {
         this->deploy();
 
-        parallel::foreach(
-                entity_id_range(mesh::SP_ES_ALL),
-                [&](mesh::MeshEntityId const &s) { get(s) = other; });
+        entity_id_range(mesh::SP_ES_ALL).foreach([&](mesh::MeshEntityId const &s) { get(s) = other; });
 
         return *this;
     }
@@ -345,17 +321,7 @@ private:
     template<typename TOP, typename Other> this_type &
     apply_expr(mesh::MeshEntityRange const &r, TOP const &op, Other const &other)
     {
-        if (!r.empty())
-        {
-            parallel::foreach(
-                    r, [&](mesh::MeshEntityId const &s)
-                    {
-                        op(get(s), m_mesh_->eval(other, s));
-                    }
-
-            );
-
-        }
+        r.foreach([&](mesh::MeshEntityId const &s) { op(get(s), m_mesh_->eval(other, s)); });
         return *this;
     }
 
@@ -369,7 +335,7 @@ private:
 //        base_type::nonblocking_sync();
 //        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op, other);
 //        base_type::wait();
-        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_ALL), op, other);
+        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_VALID), op, other);
         return *this;
     }
 

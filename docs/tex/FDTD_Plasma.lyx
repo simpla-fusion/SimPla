@@ -89,7 +89,7 @@ Cold plasma
 \end_layout
 
 \begin_layout Standard
-The update equation of each linear current are
+The sync equation of each linear current are
 \begin_inset Formula 
 \begin{eqnarray}
 \partial_{t}\boldsymbol{J}_{s1} & = & \frac{q_{s}}{m_{s}}\left(q_{s}n_{s0}\boldsymbol{E}_{1}+\boldsymbol{J}_{s1}\times\boldsymbol{B}_{0}\right)\,,

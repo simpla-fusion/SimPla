@@ -281,17 +281,17 @@ struct recursive_try_index_aux<0>
 };
 } // namespace _impl
 template<typename T, typename TI>
-auto index(T &v, TI s, FUNCTION_REQUIREMENT((!is_indexable<T, TI>::value))) DECL_RET_TYPE((v))
+auto index(T &v, TI s, ENABLE_IF((!is_indexable<T, TI>::value))) DECL_RET_TYPE((v))
 
 template<typename T, typename TI>
-auto index(T &v, TI s, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value))) DECL_RET_TYPE((v[s]))
+auto index(T &v, TI s, ENABLE_IF((is_indexable<T, TI>::value))) DECL_RET_TYPE((v[s]))
 
 template<typename T, typename TI>
-auto index(T &v, TI *s, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value)))
+auto index(T &v, TI *s, ENABLE_IF((is_indexable<T, TI>::value)))
 DECL_RET_TYPE((_impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v, s)))
 
 template<typename T, typename TI, size_t N>
-auto index(T &v, nTuple<TI, N> const &s, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value)))
+auto index(T &v, nTuple<TI, N> const &s, ENABLE_IF((is_indexable<T, TI>::value)))
 DECL_RET_TYPE((_impl::recursive_try_index_aux<N>::eval(v, s)))
 
 

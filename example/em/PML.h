@@ -5,8 +5,8 @@
 #ifndef SIMPLA_PML_H
 #define SIMPLA_PML_H
 
-#include "../../src/gtl/Log.h"
 #include "../../src/sp_def.h"
+#include "../../src/gtl/Log.h"
 #include "../../src/physics/PhysicalConstants.h"
 #include "../../src/field/Field.h"
 #include "../../src/manifold/Calculus.h"
@@ -27,7 +27,7 @@ class PML : public simulation::ProblemDomain
 public:
     typedef TM mesh_type;
 
-    template<typename ValueType, size_t IFORM> using field_t =  Field <ValueType, TM, index_const<IFORM>>;;
+    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, index_const<IFORM>>;;
 
     PML(const mesh_type *mp, box_type const &center_box);
 
@@ -173,26 +173,23 @@ void PML<TM>::deploy()
 //    SAVE(io::global(), a2);
 //    SAVE(io::global(), s2);
 
-//    CHECK(m_mesh_->name());
 //    int v = 1;
-//    if (m_mesh_->name() == "PML_0") { v = 1; }
-//    else if (m_mesh_->name() == "PML_1") { v = 2; }
-//    else if (m_mesh_->name() == "PML_2") { v = 3; }
-//    else if (m_mesh_->name() == "PML_3") { v = 4; }
-//    CHECK(v);
-//    m_mesh_->range(mesh::EDGE, SP_ES_OWNED).foreach([&](MeshEntityId const &s) { E[s] += 10 + v;; });
+//    if (m_mesh_->name() == "PML_0") { v = 0; }
+//    else if (m_mesh_->name() == "PML_1") { v = 1; }
+//    else if (m_mesh_->name() == "PML_2") { v = 2; }
+//    else if (m_mesh_->name() == "PML_3") { v = 3; }
+//    m_mesh_->range(mesh::EDGE, SP_ES_OWNED).foreach([&](MeshEntityId const &s) { E[s] = v; });
+//    m_mesh_->range(mesh::FACE, SP_ES_OWNED).foreach([&](MeshEntityId const &s) { B[s] = v; });
+
 }
 
 
 template<typename TM>
 void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)
 {
-
-    m_mesh_->range(mesh::EDGE, SP_ES_GHOST).foreach([&](MeshEntityId const &s) { E[s] = 0; });
-    m_mesh_->range(mesh::FACE, SP_ES_GHOST).foreach([&](MeshEntityId const &s) { B[s] = 0; });
-
     auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
+
 
     t_map.direct_map(mesh::EDGE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = E2[s2]; });
@@ -200,11 +197,13 @@ void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain c
     t_map.direct_map(mesh::FACE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = B2[s2]; });
 
+
 }
 
 template<typename TM>
 void PML<TM>::next_step(Real dt)
 {
+
     DEFINE_PHYSICAL_CONST
     B -= curl(E) * (dt * 0.5);
     E += (curl(B) * speed_of_light2) * dt;
@@ -233,6 +232,7 @@ void PML<TM>::next_step(Real dt)
 //    dX1 = (X12 * (-2.0 * dt * s0) + curl_pdz(B) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
 //    X12 += dX1;
 //    E += dX1;
+
 
 
 }

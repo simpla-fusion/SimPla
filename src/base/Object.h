@@ -65,7 +65,7 @@ namespace simpla { namespace base
  *   Pseudo-Signature 	 			| Semantics
  *   -------------------------------|--------------
  *   `bool is_valid() `  			| _true_ if PhysicalObject is valid for accessing
- *   `update()`					| allocate memory
+ *   `sync()`					| allocate memory
  *   `DataModel()`					| return the m_data set of PhysicalObject
  *   `clear()`						| set value to zero, allocate memory if empty() is _true_
  *   `T properties(std::string name)const` | get properties[name]

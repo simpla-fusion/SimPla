@@ -57,7 +57,7 @@
 *   Pseudo-Signature           | Semantics
 * ---------------------------- |----------
 * ` print(std::ostream & os) ` | print decription of object
-* ` update() `                 | update internal m_data storage and prepare for execute 'next_time_step'
+* ` update() `                 | sync internal m_data storage and prepare for execute 'next_time_step'
 * ` sync()  `                  | sync. internal m_data with other processes and threads
 *
 *

@@ -99,6 +99,8 @@ public:
 
     virtual box_type box(MeshEntityStatus entityStatus = SP_ES_ALL) const = 0;
 
+    virtual index_box_type index_box(box_type const &b) const = 0;
+
     virtual index_tuple offset() const = 0;
 
     virtual point_type origin_point() const = 0;

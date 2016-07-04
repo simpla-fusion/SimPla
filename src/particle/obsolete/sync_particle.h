@@ -29,7 +29,7 @@ void sync(Particle<Args...> *pool)
     {
         return;
     }
-    VERBOSE << "update ghosts (particle pool) ";
+    VERBOSE << "sync ghosts (particle pool) ";
 
     int num_of_neighbour = g_array.send_recv_.size();
 

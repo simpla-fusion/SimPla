@@ -13,9 +13,23 @@ TransitionMap::TransitionMap(Chart const *p_first, Chart const *p_second, int p_
         : first(p_first), second(p_second), flag(p_flag),
           m_overlap_region_M_(gtl::box_overlap(first->box(SP_ES_ALL), second->box(SP_ES_OWNED)))
 {
-    m_offset_.v = (std::get<0>(second->point_global_to_local(std::get<0>(m_overlap_region_M_)))
-                   - std::get<0>(first->point_global_to_local(std::get<0>(m_overlap_region_M_)))
-                  ).v & ~MeshEntityIdCoder::_DA.v;
+
+    auto b_first = p_first->index_box(m_overlap_region_M_);
+    auto b_second = p_second->index_box(m_overlap_region_M_);
+
+    index_tuple offset;
+    offset = std::get<0>(b_second) - std::get<0>(b_first);
+    m_offset_ = MeshEntityIdCoder::pack_index(offset);
+//    if (p_first->name() == "PML_3")
+//    {
+//        VERBOSE << p_second->name() << "\t" << m_overlap_region_M_ << b_first << b_second << offset << std::endl;
+//    }
+
+
+
+//    m_offset_.v = (std::get<0>(second->point_global_to_local(std::get<0>(m_overlap_region_M_)))
+//                   - std::get<0>(first->point_global_to_local(std::get<0>(m_overlap_region_M_)))
+//                   - MeshEntityIdCoder::_DA - MeshEntityIdCoder::_DA).v & ~MeshEntityIdCoder::_DA.v;
 
 };
 

@@ -146,7 +146,7 @@ Context::run(Real dt, int level)
     //TODO async run
 
 //#ifdef ENABLE_AMR
-//    update(level + 1, mesh::SP_MB_REFINE); //  push data to next level
+//    sync(level + 1, mesh::SP_MB_REFINE); //  push data to next level
 //    for (int i = 0; i < m_refine_ratio; ++i)
 //    {
 //        run(dt / m_refine_ratio, level + 1);
@@ -162,15 +162,14 @@ Context::run(Real dt, int level)
         };
         chart_node.second->next_step(dt);
     }
-    update(level, mesh::SP_MB_COARSEN | mesh::SP_MB_SYNC);
     next_time_step(dt);
 };
 
 
 void
-Context::update(int level, int flag)
+Context::sync(int level, int flag)
 {
-    //TODO async update
+    //TODO async sync
 
     for (auto const &mesh_chart: m_pimpl_->m_atlas_.at_level(level))
     {
@@ -178,13 +177,16 @@ Context::update(int level, int flag)
         if (this_domain != m_pimpl_->m_domains_.end())
         {
             auto r = m_pimpl_->m_atlas_.get_adjacencies(mesh_chart.first);
+
             for (auto it = std::get<0>(r), ie = std::get<1>(r); it != ie; ++it)
             {
                 auto other_domain = m_pimpl_->m_domains_.find(it->second->second->id());
-                if ((it->second->flag & flag) != 0x0 && other_domain != m_pimpl_->m_domains_.end())
+
+                if (other_domain != m_pimpl_->m_domains_.end() && (it->second->flag & flag != 0))
                 {
                     this_domain->second->sync(*(it->second), *(other_domain->second));
                 }
+
 
             };
         };
