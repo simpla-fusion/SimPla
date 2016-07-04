@@ -52,16 +52,10 @@ int main(int argc, char **argv)
     {
 
         MESSAGE << " Usage: " << argv[0] << "   <options> ..." << std::endl << std::endl;
-
         MESSAGE << " Options:" << std::endl
-
         << "\t -h,\t--help            \t, Print a usage message and exit.\n"
-
         << "\t -v,\t--version         \t, Print version information exit. \n"
-
         << std::endl;
-
-
         TheEnd(0);
 
     }
@@ -156,28 +150,20 @@ int main(int argc, char **argv)
     }
 
     ctx.print(std::cout);
-
     int num_of_steps = options["number_of_steps"].as<int>(1);
-
     int step_of_check_points = options["step_of_check_point"].as<int>(1);
-
     Real stop_time = options["stop_time"].as<Real>(1);
     Real dt = options["dt"].as<Real>();
 
     io::cd("/start/");
-
     ctx.save(io::global(), 0);
 
     MESSAGE
     << "====================================================" <<
     std::endl;
-
     TheStart();
 
-    INFORM << "\t >>> Time [" << ctx.time()
-
-    << "] <<< " <<
-    std::endl;
+    INFORM << "\t >>> Time [" << ctx.time() << "] <<< " << std::endl;
 
     io::cd("/checkpoint/");
 
@@ -189,20 +175,20 @@ int main(int argc, char **argv)
     {
 //        if (count % step_of_check_points == 0)
         ctx.run(dt);
+        ctx.check_point(io::global());
         ctx.sync();
         ctx.check_point(io::global());
         INFORM << "\t >>>  [ Time = " << ctx.time() << " Count = " << count << "] <<< " << std::endl;
         ++count;
     }
-
-
     INFORM << "\t >>> Done <<< " << std::endl;
 
 
-// MESSAGE << "====================================================" << std::endl;
     io::cd("/dump/");
-    ctx.save(io::global(), 0);
+    ctx.save(io::global(), io::SP_NEW);
     ctx.teardown();
+    MESSAGE << "====================================================" << std::endl;
+
     TheEnd();
     io::close();
     parallel::close();

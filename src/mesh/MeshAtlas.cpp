@@ -83,20 +83,16 @@ void Atlas::add_adjacency2(const MeshBase *first, const MeshBase *second, int fl
 {
     auto t0 = add_adjacency(first, second, flag);
     auto t1 = add_adjacency(second, first, flag);
-
-    CHECK(1) << t0->m_overlap_idx_box_ << MeshEntityIdCoder::unpack_index(t0->m_offset_);
-    CHECK(2) << t1->m_overlap_idx_box_ << MeshEntityIdCoder::unpack_index(t1->m_offset_);;
+//
+//    CHECK(1) << t0->m_overlap_idx_box_ << MeshEntityIdCoder::unpack_index(t0->m_offset_);
+//    CHECK(2) << t1->m_overlap_idx_box_ << MeshEntityIdCoder::unpack_index(t1->m_offset_);;
 
 }
 
 
 io::IOStream &Atlas::save(io::IOStream &os) const
 {
-
-    for (auto const &item:m_list_)
-    {
-        item.second->save(os);
-    }
+    for (auto const &item:m_list_) { item.second->save(os); }
     return os;
 }
 

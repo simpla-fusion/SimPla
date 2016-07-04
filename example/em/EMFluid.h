@@ -185,11 +185,6 @@ void EMFluid<TM>::deploy()
 {
     declare_global(&E1, "E");
     declare_global(&B1, "B");
-
-    point_type x_min, x_max;
-    std::tie(x_min, x_max) = m->box();
-    Real LX = x_max[0] - x_min[0];
-    Real LY = x_max[1] - x_min[1];
 }
 
 template<typename TM>
@@ -218,7 +213,7 @@ void EMFluid<TM>::next_step(Real dt)
 
         auto f = J_src_fun;
         J_src_range.foreach(
-                [&](mesh::MeshEntityId const &s)
+                [&](mesh::id const &s)
                 {
                     auto x0 = m->point(s);
                     auto v = J_src_fun(current_time, x0, J1(x0));
@@ -227,11 +222,11 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
 
-    B1 -= curl(E1) * (dt  );
-//    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+    B1 -= curl(E1) * (dt);
+    //    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
     E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt;
-//    E1.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
-
+    //    E1.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+//
 
 //    field_t<vector_type, VERTEX> dE{m};
 //
@@ -310,9 +305,6 @@ void EMFluid<TM>::next_step(Real dt)
 //
 //    B1 -= curl(E1) * (dt * 0.5);
 //    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
-
-//    m_mesh_->range(mesh::EDGE, SP_ES_GHOST).foreach([&](MeshEntityId const &s) { E1[s] = 0; });
-//    m_mesh_->range(mesh::FACE, SP_ES_GHOST).foreach([&](MeshEntityId const &s) { B1[s] = 0; });
 
 }
 

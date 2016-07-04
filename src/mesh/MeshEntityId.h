@@ -67,7 +67,7 @@ typedef union
     struct { int16_t w, z, y, x; };
     int64_t v;
 } MeshEntityId;
-
+typedef MeshEntityId id;
 
 constexpr inline bool operator==(MeshEntityId const &first, MeshEntityId const &second) { return first.v == second.v; }
 

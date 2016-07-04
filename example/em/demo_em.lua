@@ -45,7 +45,7 @@ LZ = 3.0 -- math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_steps = 1
+number_of_steps = 20
 dt = 0.5 * (LX / NX) / c
 --current_time = 0;
 stop_time = dt * number_of_steps;
@@ -139,7 +139,7 @@ PEC = {
 
 Constraints = {
     J = {
-        Box = { { 0.45 * LX, 0.45 * LY, 0.45 * LZ }, { 0.55 * LX, 0.55 * LY, 0.55 * LZ } },
+        Box = { { 0.5 * LX, 0.45 * LY, 0.45 * LZ }, { 1.5 * LX, 0.55 * LY, 0.55 * LZ } },
         Value = function(t, x, v)
             local tau = t * omega_ext + x[1] * TWOPI / LX
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
