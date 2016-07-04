@@ -190,21 +190,6 @@ void EMFluid<TM>::deploy()
     std::tie(x_min, x_max) = m->box();
     Real LX = x_max[0] - x_min[0];
     Real LY = x_max[1] - x_min[1];
-
-
-//    m_mesh_->range(mesh::EDGE, SP_ES_OWNED).foreach(
-//            [&](MeshEntityId const &s)
-//            {
-////                if (MeshEntityIdCoder::sub_index(s) == 2)
-////                {
-////                    auto x = m->point(s);
-////                    E1[s] = std::sin(TWOPI * (x[0] - x_min[0]) / LX) *
-////                            std::sin(TWOPI * (x[1] - x_min[1]) / LY);
-////                }
-//
-//            });
-//    m_mesh_->range(mesh::EDGE, SP_ES_OWNED).foreach([&](MeshEntityId const &s) { E1[s] = m_mesh_->hash(s); });
-//    m_mesh_->range(mesh::FACE, SP_ES_OWNED).foreach([&](MeshEntityId const &s) { B1[s] = 10; });
 }
 
 template<typename TM>
@@ -213,7 +198,6 @@ void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDoma
     auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
 
-    size_t count = 0;
     t_map.direct_map(mesh::EDGE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E1[s1] = E2[s2]; });
 
@@ -243,10 +227,10 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
 
-    B1 -= curl(E1) * (dt * 0.5);
-    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+    B1 -= curl(E1) * (dt  );
+//    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
     E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt;
-    E1.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+//    E1.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
 
 //    field_t<vector_type, VERTEX> dE{m};
@@ -324,8 +308,8 @@ void EMFluid<TM>::next_step(Real dt)
 //        E1 += map_to<EDGE>(Ev) - E1;
 //    }
 //
-    B1 -= curl(E1) * (dt * 0.5);
-    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+//    B1 -= curl(E1) * (dt * 0.5);
+//    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
 //    m_mesh_->range(mesh::EDGE, SP_ES_GHOST).foreach([&](MeshEntityId const &s) { E1[s] = 0; });
 //    m_mesh_->range(mesh::FACE, SP_ES_GHOST).foreach([&](MeshEntityId const &s) { B1[s] = 0; });

@@ -180,20 +180,18 @@ int main(int argc, char **argv)
     std::endl;
 
     io::cd("/checkpoint/");
-//    ctx.check_point(io::global());
+
     ctx.sync();
+    ctx.check_point(io::global());
+
     size_type count = 0;
     while (ctx.time() <= stop_time)
     {
 //        if (count % step_of_check_points == 0)
-
         ctx.run(dt);
         ctx.sync();
         ctx.check_point(io::global());
-
-
         INFORM << "\t >>>  [ Time = " << ctx.time() << " Count = " << count << "] <<< " << std::endl;
-
         ++count;
     }
 

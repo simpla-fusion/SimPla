@@ -142,7 +142,7 @@ public:
 //    std::shared_ptr<MeshBase> coarsen_block(mesh::MeshBlockId first, box_type const &);
 
 
-    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> const &at_level(int l = 0) const { return m_; };
+    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> const &at_level(int l = 0) const { return m_list_; };
 
     io::IOStream &save(io::IOStream &os) const;
 
@@ -161,7 +161,7 @@ public:
 
     adjacency_list_t m_adjacency_list_;
 
-    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> m_;
+    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> m_list_;
 
 public:
     auto get_adjacencies(mesh::MeshBlockId first) const DECL_RET_TYPE((this->m_adjacency_list_.equal_range(first)))

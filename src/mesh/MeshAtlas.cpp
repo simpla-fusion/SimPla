@@ -65,14 +65,14 @@ mesh::MeshEntityId TransitionMap::direct_map(mesh::MeshEntityId s) const
 
 MeshBlockId Atlas::add_block(std::shared_ptr<Chart> p_m)
 {
-    m_.emplace(std::make_pair(p_m->id(), p_m));
+    m_list_.emplace(std::make_pair(p_m->id(), p_m));
     return p_m->id();
 }
 
 std::shared_ptr<Chart> Atlas::get_block(mesh::MeshBlockId m_id) const
 {
-    assert(m_.at(m_id) != nullptr);
-    return m_.at(m_id);
+    assert(m_list_.at(m_id) != nullptr);
+    return m_list_.at(m_id);
 }
 
 void Atlas::add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int flag)
@@ -98,7 +98,7 @@ void Atlas::add_adjacency_2(std::shared_ptr<mesh::MeshBase> first, std::shared_p
 io::IOStream &Atlas::save(io::IOStream &os) const
 {
 
-    for (auto const &item:m_)
+    for (auto const &item:m_list_)
     {
         item.second->save(os);
     }

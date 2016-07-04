@@ -165,22 +165,6 @@ void PML<TM>::deploy()
 {
     declare_global(&E, "E");
     declare_global(&B, "B");
-
-//    SAVE(io::global(), a0);
-//    SAVE(io::global(), s0);
-//    SAVE(io::global(), a1);
-//    SAVE(io::global(), s1);
-//    SAVE(io::global(), a2);
-//    SAVE(io::global(), s2);
-
-//    int v = 1;
-//    if (m_mesh_->name() == "PML_0") { v = 0; }
-//    else if (m_mesh_->name() == "PML_1") { v = 1; }
-//    else if (m_mesh_->name() == "PML_2") { v = 2; }
-//    else if (m_mesh_->name() == "PML_3") { v = 3; }
-//    m_mesh_->range(mesh::EDGE, SP_ES_OWNED).foreach([&](MeshEntityId const &s) { E[s] = v; });
-//    m_mesh_->range(mesh::FACE, SP_ES_OWNED).foreach([&](MeshEntityId const &s) { B[s] = v; });
-
 }
 
 
@@ -205,9 +189,8 @@ void PML<TM>::next_step(Real dt)
 {
 
     DEFINE_PHYSICAL_CONST
-    B -= curl(E) * (dt * 0.5);
+    B -= curl(E) * (dt);
     E += (curl(B) * speed_of_light2) * dt;
-    B -= curl(E) * (dt * 0.5);
 
 //    dX2 = (X20 * (-2.0 * dt * s0) + curl_pdx(E) * dt) / (a0 + s0 * dt);
 //    X20 += dX2;
