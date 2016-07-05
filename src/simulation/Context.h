@@ -101,7 +101,7 @@ public:
     };
 
     template<typename TProb, typename ...Args>
-    std::shared_ptr<TProb> add_domain_as(mesh::MeshBlockId id, Args &&...args)
+    std::shared_ptr<TProb> add_domain_to(mesh::MeshBlockId id, Args &&...args)
     {
         return add_domain_as<TProb>(std::dynamic_pointer_cast<typename TProb::mesh_type>(get_mesh_block(id)).get(),
                                     std::forward<Args>(args)...);
@@ -110,11 +110,10 @@ public:
 
     std::shared_ptr<ProblemDomain> get_domain(mesh::MeshBlockId id) const;
 
-    template<typename TProb, typename ...Args>
-    std::shared_ptr<TProb> get_problem_domain(Args &&...args) const
+    template<typename TProb>
+    std::shared_ptr<TProb> get_domain_as(mesh::MeshBlockId id) const
     {
-        return std::dynamic_pointer_cast<TProb>(get_domain(std::forward<Args>(args)...));
-
+        return std::dynamic_pointer_cast<TProb>(get_domain(id));
     }
 
 

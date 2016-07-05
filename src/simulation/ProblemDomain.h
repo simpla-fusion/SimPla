@@ -72,7 +72,7 @@ public:
 
     virtual void sync(mesh::TransitionMap const &, ProblemDomain const &other);
 
-    std::shared_ptr<ProblemDomain> next() { return m_next_; }
+    std::shared_ptr<ProblemDomain> &next() { return m_next_; }
 
     template<typename T, typename ...Args>
     void append_as(Args &&...args)

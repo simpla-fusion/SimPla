@@ -89,17 +89,24 @@ Context::get_mesh_block(mesh::MeshBlockId id)
 }
 
 std::shared_ptr<ProblemDomain>
-Context::get_domain(mesh::MeshBlockId id) const
-{
-    return m_pimpl_->m_domains_.at(id);
-};
+Context::get_domain(mesh::MeshBlockId id) const { return m_pimpl_->m_domains_.at(id); };
 
 
 std::shared_ptr<ProblemDomain>
 Context::add_domain(std::shared_ptr<ProblemDomain> pb)
 {
-    auto id = pb->mesh()->id();
-    m_pimpl_->m_domains_.emplace(std::make_pair(pb->mesh()->id(), pb));
+    assert(pb != nullptr);
+    auto it = m_pimpl_->m_domains_.find(pb->mesh()->id());
+    if (it == m_pimpl_->m_domains_.end())
+    {
+        m_pimpl_->m_domains_.emplace(std::make_pair(pb->mesh()->id(), pb));
+    }
+    else
+    {
+        std::shared_ptr<ProblemDomain> *p = &(m_pimpl_->m_domains_[pb->mesh()->id()]);
+        while (*p != nullptr) { p = &((*p)->next()); }
+        *p = pb;
+    }
     return pb;
 }
 

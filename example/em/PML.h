@@ -91,27 +91,17 @@ PML<TM>::PML(const mesh_type *mp) : base_type(mp), m(mp)
     assert(mp != nullptr);
 
 
+}
+
+template<typename TM> PML<TM> &
+PML<TM>::setup_center_domain(box_type const &center_box)
+{
     a0.clear();
     a1.clear();
     a2.clear();
     s0.clear();
     s1.clear();
     s2.clear();
-    X10.clear();
-    X11.clear();
-    X12.clear();
-    X20.clear();
-    X21.clear();
-    X22.clear();
-    E.clear();
-    B.clear();
-    dX1.clear();
-    dX2.clear();
-}
-
-template<typename TM> PML<TM> &
-PML<TM>::setup_center_domain(box_type const &center_box)
-{
     DEFINE_PHYSICAL_CONST
     Real dB = 100, expN = 2;
     point_type m_xmin, m_xmax;
@@ -155,9 +145,18 @@ PML<TM>::setup_center_domain(box_type const &center_box)
 template<typename TM>
 void PML<TM>::deploy()
 {
+    X10.clear();
+    X11.clear();
+    X12.clear();
+    X20.clear();
+    X21.clear();
+    X22.clear();
+    E.clear();
+    B.clear();
+    dX1.clear();
+    dX2.clear();
     declare_global(&E, "E");
     declare_global(&B, "B");
-
 }
 
 

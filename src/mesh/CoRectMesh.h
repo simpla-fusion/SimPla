@@ -133,27 +133,18 @@ public:
         std::endl;
         os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;
 #ifndef NDEBUG
-        os << std::setw(indent + 1) << " "
-        << "outer lower = " << m_outer_lower_ << "," << std::endl
-        << "outer upper = " << m_outer_upper_ << "," << std::endl
-        << "      lower = " << m_lower_ << "," << std::endl
-        << "      upper = " << m_upper_ << "," << std::endl
-        << "inner lower = " << m_inner_lower_ << "," << std::endl
-        << "inner upper = " << m_inner_upper_ << "," << std::endl
-
+        os
+        << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
+        << std::setw(indent + 1) << " " << "      upper = " << m_upper_ << "," << std::endl
+        << std::setw(indent + 1) << " " << "outer lower = " << m_outer_lower_ << "," << std::endl
+        << std::setw(indent + 1) << " " << "outer upper = " << m_outer_upper_ << "," << std::endl
+        << std::setw(indent + 1) << " " << "inner lower = " << m_inner_lower_ << "," << std::endl
+        << std::setw(indent + 1) << " " << "inner upper = " << m_inner_upper_ << "," << std::endl
         << std::endl;
 #endif
         return os;
     }
 
-    template<typename TDict>
-    void setup(TDict const &dict)
-    {
-        dimensions(dict["Dimensions"].template as<index_tuple>(index_tuple{20, 20, 1}));
-        box(dict["Box"].template as<box_type>(box_type{{0, 0, 0},
-                                                       {1, 1, 1}}));
-        deploy();
-    }
 
     virtual io::IOStream &save(io::IOStream &os) const
     {
