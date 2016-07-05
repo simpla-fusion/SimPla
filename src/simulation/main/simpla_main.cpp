@@ -21,14 +21,13 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
 
-    ConfigParser options;
     logger::init(argc, argv);
-#ifndef NDEBUG
-    logger::set_stdout_level(20);
-#endif
 
     parallel::init(argc, argv);
+
+    ConfigParser options;
     options.init(argc, argv);
+
     INFORM << ShowCopyRight() << std::endl;
 
     if (options["V"] || options["version"])

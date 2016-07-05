@@ -229,6 +229,9 @@ void LoggerStreams::push(int level, std::string const &msg)
 void init(int argc, char **argv)
 {
     SingletonHolder<LoggerStreams>::instance().init(argc, argv);
+#ifndef NDEBUG
+    logger::set_stdout_level(20);
+#endif
 }
 
 void close()
