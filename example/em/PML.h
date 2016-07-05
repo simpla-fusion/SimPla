@@ -29,7 +29,9 @@ public:
 
     template<typename ValueType, size_t IFORM> using field_t =  Field <ValueType, TM, index_const<IFORM>>;;
 
-    PML(const mesh_type *mp, box_type const &center_box);
+    PML(const mesh_type *mp);
+
+    PML &setup_center_domain(box_type const &center_box);
 
     virtual ~PML();
 
@@ -84,7 +86,7 @@ template<typename TM>
 PML<TM>::~PML() { }
 
 template<typename TM>
-PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m(mp)
+PML<TM>::PML(const mesh_type *mp) : base_type(mp), m(mp)
 {
     assert(mp != nullptr);
 
@@ -105,7 +107,11 @@ PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m
     B.clear();
     dX1.clear();
     dX2.clear();
+}
 
+template<typename TM> PML<TM> &
+PML<TM>::setup_center_domain(box_type const &center_box)
+{
     DEFINE_PHYSICAL_CONST
     Real dB = 100, expN = 2;
     point_type m_xmin, m_xmax;
@@ -142,6 +148,8 @@ PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m
 #undef DEF
             }
     );
+
+    return *this;
 }
 
 template<typename TM>

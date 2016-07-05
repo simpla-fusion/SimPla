@@ -45,11 +45,11 @@ LZ = 1.0 -- math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_steps =  150
+number_of_steps =  250
 dt = 0.5 * (LX / NX) / c
 --current_time = 0;
 stop_time = dt * number_of_steps;
-step_of_check_point = 1
+step_of_check_point = 10
 Mesh =
 {
     Dimensions = { NX, NY, NZ },
@@ -122,7 +122,7 @@ Particles = {
     }
 }
 
-PML = { Width = 20 }
+PML = { Width = 50 }
 
 PEC = {
     Domain = {

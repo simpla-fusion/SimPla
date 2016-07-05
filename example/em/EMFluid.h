@@ -223,32 +223,11 @@ void EMFluid<TM>::next_step(Real dt)
     VERBOSE << m->name() << " pushing!!" << std::endl;
 
     DEFINE_PHYSICAL_CONST
-//
-//    if (m->name() == "Center")
-//    {
-//        E += 1.0;
-//    }
-//    else if (m->name() == "PML_0")
-//    {
-//        E += 2.0;
-//    }
-//    else if (m->name() == "PML_1")
-//    {
-//        E += 3.0;
-//    }
-//    else if (m->name() == "PML_2")
-//    {
-//        E += 4.0;
-//    }
-//    else if (m->name() == "PML_3")
-//    {
-//        E += 5.0;
-//    }
 
     if (m->name() == "Center")
     {
         auto dims = m->dimensions();
-        J1[MeshEntityId{0, 1, (dims[1] / 2 + 5) << 1, (dims[0] / 2 + 5) << 1}] +=
+        J1[MeshEntityId{0, 1, (dims[1] / 2 + 2) << 1, (dims[0] / 2 + 2) << 1}] +=
                 std::sin(TWOPI * m->time() / (dt * 100.0));
     }
 

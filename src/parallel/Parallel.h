@@ -136,11 +136,11 @@ void serial_foreach(TRange const &r, Body const &body)
 template<typename TRange, typename Body>
 void foreach(TRange const &r, Body const &body)
 {
-//#ifndef NDEBUG
-//    serial_foreach(r, body);
-//#else
+#ifndef NDEBUG
+    serial_foreach(r, body);
+#else
     parallel_foreach(r, body);
-//#endif
+#endif
 }
 }}// namespace simpla { namespace parallel
 
