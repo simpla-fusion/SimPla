@@ -40,6 +40,8 @@ class ProblemDomain : public base::Object
 public:
     const mesh::MeshBase *m_mesh_;
 
+    std::shared_ptr<ProblemDomain> m_next_;
+
     HAS_PROPERTIES;
 
     SP_OBJECT_HEAD(ProblemDomain, base::Object);
@@ -70,15 +72,24 @@ public:
 
     virtual void sync(mesh::TransitionMap const &, ProblemDomain const &other);
 
+    std::shared_ptr<ProblemDomain> next() { return m_next_; }
 
+    template<typename T, typename ...Args>
+    void append_as(Args &&...args)
+    {
+        append(std::make_shared<T>(mesh(), std::forward<Args>(args)...));
+    };
+
+    void append(std::shared_ptr<ProblemDomain> p_new)
+    {
+        assert(p_new->mesh()->id() == mesh()->id());
+
+        auto *p = &m_next_;
+        while (*p != nullptr) { p = &((*p)->m_next_); } // find tail
+        *p = p_new;
+    };
 
     //------------------------------------------------------------------------------------------------------------------
-    /**
-     * factory concept
-     */
-    static constexpr bool is_factory = true;
-
-
     const mesh::MeshAttribute *attribute(std::string const &s_name) const;
 
     void add_attribute(mesh::MeshAttribute *attr, std::string const &s_name);
@@ -105,8 +116,6 @@ public:
 //        add_attribute(res, s);
 //        return res;
 //    }
-
-
 
 private:
 

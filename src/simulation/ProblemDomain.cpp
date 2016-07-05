@@ -17,9 +17,9 @@ struct ProblemDomain::pimpl_s
     parallel::DistributedObject m_dist_obj_;
 };
 
-ProblemDomain::ProblemDomain() : m_mesh_(nullptr), m_pimpl_(new pimpl_s) { }
+ProblemDomain::ProblemDomain() : m_mesh_(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) { }
 
-ProblemDomain::ProblemDomain(const mesh::MeshBase *msh) : m_mesh_(msh), m_pimpl_(new pimpl_s) { };
+ProblemDomain::ProblemDomain(const mesh::MeshBase *msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) { };
 
 ProblemDomain::~ProblemDomain() { teardown(); }
 

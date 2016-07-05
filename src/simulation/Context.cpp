@@ -159,7 +159,17 @@ Context::run(Real dt, int level)
     {
         auto p_it = m_pimpl_->m_domains_.find(chart_node.second->id());
 
-        if (p_it != m_pimpl_->m_domains_.end()) { p_it->second->next_step(dt); };
+        if (p_it != m_pimpl_->m_domains_.end())
+        {
+
+            auto p = p_it->second;
+            while (p != nullptr)
+            {
+                p->next_step(dt);
+                p = p->next();
+            }
+
+        };
 
         chart_node.second->next_step(dt);
     }
