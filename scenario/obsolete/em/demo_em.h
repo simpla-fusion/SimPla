@@ -7,18 +7,11 @@
 
 #include "../../../src/simulation/Context.h"
 
+namespace simpla { namespace simulation { class Context; }}
 
 namespace simpla { namespace scenario
 {
-
-class EM : public simulation::Context
-{
-    EM() { }
-
-    virtual ~EM() { }
-
-    virtual void setup(ConfigParser const &);
-};
+void create(simulation::Context *ctx, ConfigParser const &options)
 }}//namespace simpla{namespace  scenario{
 
 #endif //SIMPLA_EM_SCENARIO_H

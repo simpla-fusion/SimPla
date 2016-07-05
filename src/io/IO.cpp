@@ -18,8 +18,10 @@
 
 namespace simpla { namespace io
 {
-void init(int argc, char **argv)
+std::shared_ptr<io::IOStream> create_from_args(int argc, char **argv)
 {
+    std::shared_ptr<io::IOStream> res(nullptr);
+
     std::string url = "untitled.h5";
     parse_cmd_line(
             argc, argv,
@@ -39,45 +41,45 @@ void init(int argc, char **argv)
 
     if (ext == ".xdmf")
     {
-        SingletonHolder<std::unique_ptr<io::IOStream>>::instance().reset(new XDMFStream);
+        res.reset(new XDMFStream);
     }
     else
     {
-        SingletonHolder<std::unique_ptr<io::IOStream>>::instance().reset(new HDF5Stream);
+        res.reset(new HDF5Stream);
     }
 
 
-    SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->current_file_name(url);
-//    SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->current_group_name("/");
+    res->current_file_name(url);
 
+    return res;
 }
-
-void close()
-{
-    SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->close();
-    SingletonHolder<std::unique_ptr<io::IOStream>>::instance().reset(nullptr);
-}
-
-IOStream &global()
-{
-    return *(SingletonHolder<std::unique_ptr<io::IOStream>>::instance());
-}
-
-std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag)
-{
-    return SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->write(url, ds, flag);
-}
-
-data_model::DataSet load(std::string const &url)
-{
-    data_model::DataSet ds;
-    SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->read(url, &ds);
-    return std::move(ds);
-}
-
-std::string cd(std::string const &url)
-{
-    return std::get<1>(SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->open(url));
-}
+//
+//void close()
+//{
+//    SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->close();
+//    SingletonHolder<std::unique_ptr<io::IOStream>>::instance().reset(nullptr);
+//}
+//
+//IOStream &global()
+//{
+//    return *(SingletonHolder<std::unique_ptr<io::IOStream>>::instance());
+//}
+//
+//std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag)
+//{
+//    return SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->write(url, ds, flag);
+//}
+//
+//data_model::DataSet load(std::string const &url)
+//{
+//    data_model::DataSet ds;
+//    SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->read(url, &ds);
+//    return std::move(ds);
+//}
+//
+//std::string cd(std::string const &url)
+//{
+//    return std::get<1>(SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->open(url));
+//}
 }}// namespace simpla//namespace io
 

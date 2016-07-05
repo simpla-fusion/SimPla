@@ -1,0 +1,1 @@
+add_library(simpla_main simpla_main.cpp)

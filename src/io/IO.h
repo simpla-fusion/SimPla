@@ -23,31 +23,31 @@ namespace simpla { namespace io
  */
 
 
-void init(int argc, char **argv);
-
-void close();
-
-IOStream &global();
-
-//std::string help_message();
-
-std::string cd(std::string const &url);
-
-
-std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag = 0UL);
-
-template<typename T>
-std::string write(std::string const &url, T const &d, size_t flag = 0UL)
-{
-    return write(url, data_model::DataSet::create(d), flag);
-}
-
-
-template<typename T>
-std::string write(std::string const &url, size_t num, T const *d, size_t flag = 0UL)
-{
-    return write(url, data_model::DataSet::create(d, num), flag);
-}
+std::shared_ptr<io::IOStream> create_from_args(int argc, char **argv);
+//
+//void close();
+//
+//IOStream &global();
+//
+////std::string help_message();
+//
+//std::string cd(std::string const &url);
+//
+//
+//std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag = 0UL);
+//
+//template<typename T>
+//std::string write(std::string const &url, T const &d, size_t flag = 0UL)
+//{
+//    return write(url, data_model::DataSet::create(d), flag);
+//}
+//
+//
+//template<typename T>
+//std::string write(std::string const &url, size_t num, T const *d, size_t flag = 0UL)
+//{
+//    return write(url, data_model::DataSet::create(d, num), flag);
+//}
 //
 //void delete_attribute(std::string const &url);
 //
@@ -137,24 +137,24 @@ std::string write(std::string const &url, size_t num, T const *d, size_t flag = 
 /** @} */
 
 }} // namespace simpla //namespace io
-
-namespace simpla
-{
-#define  SAVE_(_OS_, _F_, __FLAG__)                                                         \
-{        auto pwd = _OS_.pwd();                                                           \
-        _OS_.open( std::string("/")+__STRING(_F_)+"/");                                                         \
-        _OS_.write(_F_.mesh()->name(), _F_.dataset(mesh::SP_ES_ALL), __FLAG__);            \
-        _OS_.open(pwd);                                                                     \
-}
-#define SAVE(_OS_, _F_) SAVE_(_OS_,_F_,::simpla::io::SP_NEW)
-#define SAVE_APPEND(_F_) SAVE_(_OS_,_F_,::simpla::io::SP_APPEND  )
-#define SAVE_RECORD(_F_) SAVE_(_OS_,_F_,::simpla::io::SP_RECORD  )
-
-#ifndef NDEBUG
-#	define DEBUG_SAVE(_F_) simpla::io::write(__STRING(_F_),_F_ )
-#else
-#   define DEBUG_SAVE(_F_) ""
-#endif
-}//namespace simpla{
+//
+//namespace simpla
+//{
+//#define  SAVE_(_OS_, _F_, __FLAG__)                                                         \
+//{        auto pwd = _OS_.pwd();                                                           \
+//        _OS_.open( std::string("/")+__STRING(_F_)+"/");                                                         \
+//        _OS_.write(_F_.mesh()->name(), _F_.dataset(mesh::SP_ES_ALL), __FLAG__);            \
+//        _OS_.open(pwd);                                                                     \
+//}
+//#define SAVE(_OS_, _F_) SAVE_(_OS_,_F_,::simpla::io::SP_NEW)
+//#define SAVE_APPEND(_F_) SAVE_(_OS_,_F_,::simpla::io::SP_APPEND  )
+//#define SAVE_RECORD(_F_) SAVE_(_OS_,_F_,::simpla::io::SP_RECORD  )
+//
+//#ifndef NDEBUG
+//#	define DEBUG_SAVE(_F_) simpla::io::write(__STRING(_F_),_F_ )
+//#else
+//#   define DEBUG_SAVE(_F_) ""
+//#endif
+//}//namespace simpla{
 
 #endif /* CORE_IO_IO_H_ */

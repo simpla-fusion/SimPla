@@ -10,17 +10,17 @@
 #include "tokamak.h"
 
 #include "../../src/gtl/utilities.h"
-#include "../../src/parallel/Parallel.h"
-#include "../../src/io/IO.h"
+#include "../../../src/parallel/Parallel.h"
+#include "../../../src/io/IO.h"
 
-#include "../../src/manifold/pre_define/PreDefine.h"
+#include "../../../src/manifold/pre_define/PreDefine.h"
 //#include "../../src/particle/pre_define/PICBoris.h"
-#include "../../src/particle/pre_define/PICGyro.h"
+#include "../../../src/particle/pre_define/PICGyro.h"
 
-#include "../../tools/GEqdsk.h"
+#include "../../../tools/GEqdsk.h"
 #include "../../src/model/Constraint.h"
-#include "../../src/io/XDMFStream.h"
-#include "../../src/particle/ParticleGenerator.h"
+#include "../../../src/io/XDMFStream.h"
+#include "../../../src/particle/ParticleGenerator.h"
 
 namespace simpla
 {

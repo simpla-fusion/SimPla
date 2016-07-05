@@ -2,11 +2,9 @@
 // Created by salmon on 16-6-29.
 //
 
-
-#include "../../src/simulation/Context.h"
-#include "../../scenario/problem_domain/EMFluid.h"
-#include "../../scenario/problem_domain/PML.h"
-#include "../../src/manifold/pre_define/PreDefine.h"
+#include "../../problem_domain/EMFluid.h"
+#include "../../problem_domain/PML.h"
+#include "../../../src/manifold/pre_define/PreDefine.h"
 
 
 namespace simpla
@@ -151,4 +149,5 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
     }
 }
 
-}//namespace simpla
+}
+//namespace simpla{namespace  scenario{

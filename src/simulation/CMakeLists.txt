@@ -1,3 +1,3 @@
-SET(APPLICATION_SRC application.cpp application_main.cpp Context.cpp TimeDependentSolver.cpp)
-
-add_library(simulation Context.cpp ProblemDomain.cpp)
+FILE(GLOB simulation_SRC ./*.cpp)
+add_library(simulation ${simulation_SRC})
+add_subdirectory(main)
