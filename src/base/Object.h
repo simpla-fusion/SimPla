@@ -109,11 +109,7 @@ public:
 
     std::string name() const { return m_name_ == "" ? type_cast<std::string>(short_id()) : m_name_; };
 
-    Object &name(std::string const &s)
-    {
-        m_name_ = s;
-        return *this;
-    };
+    Object &name(std::string const &s){ m_name_ = s; return *this;};
 
     boost::uuids::uuid uuid() const { return m_uuid_; }
 

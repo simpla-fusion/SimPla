@@ -98,8 +98,8 @@ Context::get_domain(mesh::MeshBlockId id) const
 std::shared_ptr<ProblemDomain>
 Context::add_domain(std::shared_ptr<ProblemDomain> pb)
 {
-    auto id = pb->m_mesh_->id();
-    m_pimpl_->m_domains_.emplace(std::make_pair(pb->m_mesh_->id(), pb));
+    auto id = pb->mesh()->id();
+    m_pimpl_->m_domains_.emplace(std::make_pair(pb->mesh()->id(), pb));
     return pb;
 }
 
@@ -153,13 +153,14 @@ Context::run(Real dt, int level)
 //    }
 //#endif
 
+
+
     for (auto const &chart_node: m_pimpl_->m_atlas_.at_level(level))
     {
-        for (auto p_it = m_pimpl_->m_domains_.find(chart_node.second->id());
-             p_it != m_pimpl_->m_domains_.end(); ++p_it)
-        {
-            p_it->second->next_step(dt);
-        };
+        auto p_it = m_pimpl_->m_domains_.find(chart_node.second->id());
+
+        if (p_it != m_pimpl_->m_domains_.end()) { p_it->second->next_step(dt); };
+
         chart_node.second->next_step(dt);
     }
     next_time_step(dt);

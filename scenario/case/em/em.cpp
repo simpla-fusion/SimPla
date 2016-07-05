@@ -20,7 +20,7 @@ void EM::setup(ConfigParser const &options)
     mesh_center->setup(options["Mesh"]).name("Center").deploy();
 
 
-    this->add_problem_domain<EMFluid<mesh_type >>(mesh_center->id())
+    this->add_domain_as<EMFluid<mesh_type >>(mesh_center->id())
             ->setup(options).deploy();
 
     if (options["PML"])

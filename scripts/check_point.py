@@ -13,15 +13,18 @@ step = int(sys.argv[4])
 
 if 'PML_0' in f1[ds].keys():
     # plt.style.use('ggplot')
-    gs = gridspec.GridSpec(3, 3, width_ratios=[54, 94, 54], height_ratios=[24, 54, 24], wspace=0, hspace=0)
-    levels = np.arange(-1, 10, 1)
+    gs = gridspec.GridSpec(3, 3, width_ratios=[20, 50, 20], height_ratios=[20, 50, 20], wspace=0, hspace=0)
+
+    l_min = np.min(f1[ds + "/Center"][:, :, 0, o_dir, step])
+    l_max = np.max(f1[ds + "/Center"][:, :, 0, o_dir, step])
+    levels = np.arange(l_min, l_max, (l_max - l_min) / 50.0)
     cmap = plt.get_cmap('Set1')
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
-    plt.subplot(gs[2, :]).pcolorfast(f1[ds + "/PML_0"][5:-5, 5:-5, 0, o_dir, step], clim=[-200, 200])
-    plt.subplot(gs[1, 0]).pcolorfast(f1[ds + "/PML_2"][5:-5, 5:-5, 0, o_dir, step], clim=[-200, 200])
-    plt.subplot(gs[1, 1]).pcolorfast(f1[ds +"/Center"][5:-5, 5:-5, 0, o_dir, step], clim=[-200, 200])
-    plt.subplot(gs[1, 2]).pcolorfast(f1[ds + "/PML_3"][5:-5, 5:-5, 0, o_dir, step], clim=[-200, 200])
-    plt.subplot(gs[0, :]).pcolorfast(f1[ds + "/PML_1"][5:-5, 5:-5, 0, o_dir, step], clim=[-200, 200])
+    plt.subplot(gs[2, :]).contour(f1[ds + "/PML_0"][5:-5, 5:-5, 0, o_dir, step], clim=[-0.5, 0.5], levels=levels)
+    plt.subplot(gs[1, 0]).contour(f1[ds + "/PML_2"][5:-5, 5:-5, 0, o_dir, step], clim=[-0.5, 0.5], levels=levels)
+    plt.subplot(gs[1, 1]).contour(f1[ds + "/Center"][5:-5, 5:-5, 0, o_dir, step], clim=[-0.5, 0.5], levels=levels)
+    plt.subplot(gs[1, 2]).contour(f1[ds + "/PML_3"][5:-5, 5:-5, 0, o_dir, step], clim=[-0.5, 0.5], levels=levels)
+    plt.subplot(gs[0, :]).contour(f1[ds + "/PML_1"][5:-5, 5:-5, 0, o_dir, step], clim=[-0.5, 0.5], levels=levels)
 
     for i, ax in enumerate(plt.gcf().axes):
         # ax.text(0.5, 0.5, "ax%d" % (i+1), va="center", ha="center")

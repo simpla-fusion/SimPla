@@ -80,17 +80,18 @@ public:
     typedef field_t<scalar_type, VERTEX> TRho;
     typedef field_t<vector_type, VERTEX> TJv;
 
-    field_t<scalar_type, EDGE> E0/*   */{m};
-    field_t<scalar_type, FACE> B0/*   */{m};
-    field_t<vector_type, VERTEX> B0v/**/{m};
-    field_t<scalar_type, VERTEX> BB/* */{m};
-    field_t<vector_type, VERTEX> Ev/* */{m};
-    field_t<vector_type, VERTEX> Bv/* */{m};
-    field_t<scalar_type, FACE> B1/*   */{m};
-    field_t<scalar_type, EDGE> E1/*   */{m};
-    field_t<scalar_type, EDGE> J1/*   */{m};
+//    field_t<scalar_type, VERTEX> rho0{m};
+//    field_t<scalar_type, EDGE> E0/*   */{m};
+//    field_t<scalar_type, FACE> B0/*   */{m};
+//    field_t<vector_type, VERTEX> B0v/**/{m};
+//    field_t<scalar_type, VERTEX> BB/* */{m};
+//    field_t<vector_type, VERTEX> Ev/* */{m};
+//    field_t<vector_type, VERTEX> Bv/* */{m};
+//
+    field_t<scalar_type, FACE> B/*   */{m};
+    field_t<scalar_type, EDGE> E/*   */{m};
+    field_t<scalar_type, EDGE> J1/*  */{m};
 
-    field_t<scalar_type, VERTEX> rho0{m};
 
     struct fluid_s
     {
@@ -106,13 +107,9 @@ public:
     add_particle(std::string const &name, Real mass, Real charge)
     {
         return fluid_sp.emplace(
-                std::make_pair(name,
-                               fluid_s{mass, charge,
-                                       TRho{*this, "n_" + name},
-                                       TJv{*this, "J_" + name}}));
+                std::make_pair(name, fluid_s{mass, charge, TRho{*this, "n_" + name}, TJv{*this, "J_" + name}}));
 
     }
-
 
 };
 
@@ -122,38 +119,26 @@ EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
     if (options["Constraints"]["J"])
     {
         options["Constraints"]["J"]["Value"].as(&J_src_fun);
-
         mesh::select(*m, m->range(EDGE), options["Constraints"]["J"]["Box"].as<box_type>()).swap(J_src_range);
-
     }
 
-    J1.clear();
-    B1.clear();
-    E1.clear();
-    B0.clear();
 
     if (options["InitValue"])
     {
-        if (options["InitValue"]["B0"])
-        {
-            std::function<vector_type(point_type const &)> fun;
-            options["InitValue"]["B0"]["Value"].as(&fun);
-            m->range(FACE).foreach(
-                    [&](mesh::MeshEntityId const &s)
-                    {
-                        B0[s] = m->template sample<FACE>(s, fun(m->point(s)));
-                    });
-        }
+//        if (options["InitValue"]["B0"])
+//        {
+//            std::function<vector_type(point_type const &)> fun;
+//            options["InitValue"]["B0"]["Value"].as(&fun);
+//            m->range(FACE).foreach(
+//                    [&](mesh::MeshEntityId const &s) { B0[s] = m->template sample<FACE>(s, fun(m->point(s))); });
+//        }
 
         if (options["InitValue"]["B1"])
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B1"]["Value"].as(&fun);
             m->range(FACE).foreach(
-                    [&](mesh::MeshEntityId const &s)
-                    {
-                        B1[s] = m->template sample<FACE>(s, fun(m->point(s)));
-                    });
+                    [&](mesh::MeshEntityId const &s) { B[s] = m->template sample<FACE>(s, fun(m->point(s))); });
         }
 
         if (options["InitValue"]["E1"])
@@ -161,10 +146,7 @@ EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["E1"]["Value"].as(&fun);
             m->range(EDGE).foreach(
-                    [&](mesh::MeshEntityId const &s)
-                    {
-                        E1[s] = m->template sample<EDGE>(s, fun(m->point(s)));
-                    });
+                    [&](mesh::MeshEntityId const &s) { E[s] = m->template sample<EDGE>(s, fun(m->point(s))); });
         }
     }
 
@@ -172,8 +154,11 @@ EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
     {
         box_type b{{0, 0, 0},
                    {0, 0, 0}};
+
         options["Constraints"]["J"]["Box"].as(&b);
+
         J_src_range = m->range(b, mesh::EDGE);
+
         options["Constraints"]["J"]["Value"].as(&J_src_fun);
     }
     return *this;
@@ -183,8 +168,36 @@ EMFluid<TM> &EMFluid<TM>::setup(ConfigParser const &options)
 template<typename TM>
 void EMFluid<TM>::deploy()
 {
-    declare_global(&E1, "E");
-    declare_global(&B1, "B");
+
+    J1.clear();
+    B.clear();
+    E.clear();
+
+
+    declare_global(&E, "E");
+    declare_global(&B, "B");
+
+//    VERBOSE << m->name() << " data =" << E.data().get() << std::endl;
+//    if (m->name() == "Center")
+//    {
+//        E = 10;
+//    }
+//    else if (m->name() == "PML_0")
+//    {
+//        E = 20;
+//    }
+//    else if (m->name() == "PML_1")
+//    {
+//        E = 30;
+//    }
+//    else if (m->name() == "PML_2")
+//    {
+//        E = 40;
+//    }
+//    else if (m->name() == "PML_3")
+//    {
+//        E = 50;
+//    }
 }
 
 template<typename TM>
@@ -193,12 +206,13 @@ void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDoma
     auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
 
+
     t_map.direct_map(mesh::EDGE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E1[s1] = E2[s2]; });
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = E2[s2]; });
 
 
     t_map.direct_map(mesh::FACE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B1[s1] = B2[s2]; });
+                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = B2[s2]; });
 
 }
 
@@ -206,28 +220,62 @@ template<typename TM>
 void EMFluid<TM>::next_step(Real dt)
 {
 
-    DEFINE_PHYSICAL_CONST
-    if (J_src_fun)
-    {
-        Real current_time = m->time();
+    VERBOSE << m->name() << " pushing!!" << std::endl;
 
-        auto f = J_src_fun;
-        J_src_range.foreach(
-                [&](mesh::id const &s)
-                {
-                    auto x0 = m->point(s);
-                    auto v = J_src_fun(current_time, x0, J1(x0));
-                    J1[s] += m->template sample<EDGE>(s, v);
-                });
+    DEFINE_PHYSICAL_CONST
+//
+//    if (m->name() == "Center")
+//    {
+//        E += 1.0;
+//    }
+//    else if (m->name() == "PML_0")
+//    {
+//        E += 2.0;
+//    }
+//    else if (m->name() == "PML_1")
+//    {
+//        E += 3.0;
+//    }
+//    else if (m->name() == "PML_2")
+//    {
+//        E += 4.0;
+//    }
+//    else if (m->name() == "PML_3")
+//    {
+//        E += 5.0;
+//    }
+
+    if (m->name() == "Center")
+    {
+        auto dims = m->dimensions();
+        J1[MeshEntityId{0, 1, (dims[1] / 2 + 5) << 1, (dims[0] / 2 + 5) << 1}] +=
+                std::sin(TWOPI * m->time() / (dt * 100.0));
     }
 
+    B -= curl(E) * (dt);
 
-    B1 -= curl(E1) * (dt);
-    //    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
-    E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt;
-    //    E1.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
+
+//    if (J_src_fun)
+//    {
+//        Real current_time = m->time();
 //
-
+//        auto f = J_src_fun;
+//        J_src_range.foreach(
+//                [&](mesh::id const &s)
+//                {
+//                    auto x0 = m->point(s);
+//                    auto v = J_src_fun(current_time, x0, J1(x0));
+//                    J1[s] += m->template sample<EDGE>(s, v);
+//                });
+//    }
+//
+//
+//    B1 -= curl(E1) * (dt*0.5);
+//    B1.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+//    E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt;
+//    E1.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+//
 //    field_t<vector_type, VERTEX> dE{m};
 //
 //    if (fluid_sp.size() > 0)

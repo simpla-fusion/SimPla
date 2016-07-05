@@ -38,32 +38,34 @@ public:
 protected:
     mesh_type const *m_mesh_;
     std::shared_ptr<void> m_data_holder_;
-    value_type *m_data_;
+//    value_type *m_data_;
 public:
 
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-    Field() : base_type(), m_mesh_(nullptr), m_data_holder_(nullptr), m_data_(nullptr) { }
+    Field() : base_type(), m_mesh_(nullptr), m_data_holder_(nullptr)
+//            , m_data_(nullptr)
+    { }
 
     //create construct
     Field(mesh::MeshBase const *m) : Field(static_cast<mesh_type const *>(m)) { }
 
-    Field(mesh_type const *m) : m_mesh_(m), m_data_holder_(nullptr), m_data_(nullptr) { }
+    Field(mesh_type const *m) : m_mesh_(m), m_data_holder_(nullptr)
+//            , m_data_(nullptr)
+    { }
 
     //copy construct
-    Field(this_type const &other) : m_mesh_(other.m_mesh_), m_data_holder_(other.m_data_holder_),
-                                    m_data_(other.m_data_) { }
+    Field(this_type const &other) : m_mesh_(other.m_mesh_), m_data_holder_(other.m_data_holder_)
+//            ,m_data_(other.m_data_)
+    { }
 
-    //factory construct
-    template<typename TFactory, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
-    Field(TFactory &factory, std::string const &s_name = "") : Field(factory.mesh())
-    {
-        if (s_name != "")
-        {
-            factory.add_attribute(this, s_name);
-        }
-    }
+//    //factory construct
+//    template<typename TFactory, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
+//    Field(TFactory &factory, std::string const &s_name = "") : Field(factory.mesh())
+//    {
+//        if (s_name != "") { factory.add_attribute(this, s_name); }
+//    }
 
 
     virtual ~Field() { }
@@ -71,28 +73,30 @@ public:
     virtual void swap(this_type &other)
     {
         std::swap(m_mesh_, other.m_mesh_);
-        std::swap(m_data_, other.m_data_);
+//        std::swap(m_data_, other.m_data_);
         std::swap(m_data_holder_, other.m_data_holder_);
     }
 
     virtual void deploy()
     {
-        if (m_data_ == nullptr)
-        {
-            if (m_data_holder_ == nullptr)
-            {
-                m_data_holder_ = sp_alloc_memory(size_in_byte());
-            }
+        if (m_data_holder_ == nullptr) { m_data_holder_ = sp_alloc_memory(size_in_byte()); }
 
-            m_data_ = reinterpret_cast<value_type *>(m_data_holder_.get());
-
-        }
+//        if (m_data_ == nullptr)
+//        {
+//            if (m_data_holder_ == nullptr)
+//            {
+//                m_data_holder_ = sp_alloc_memory(size_in_byte());
+//            }
+//
+//            m_data_ = reinterpret_cast<value_type *>(m_data_holder_.get());
+//
+//        }
     }
 
     virtual void clear()
     {
         deploy();
-        memset(m_data_, 0, size_in_byte());
+        memset(m_data_holder_.get(), 0, size_in_byte());
     }
 
     virtual std::ostream &print(std::ostream &os, int indent) const
@@ -116,7 +120,7 @@ public:
 
     virtual bool is_valid() const { return m_mesh_ != nullptr; }
 
-    virtual bool empty() const { return (!is_valid()) || (m_data_ == nullptr); }
+    virtual bool empty() const { return (!is_valid()) || (m_data_holder_ == nullptr); }
 
 
     virtual mesh::MeshEntityRange
@@ -166,34 +170,35 @@ public:
  *  @{*/
     this_type &operator=(this_type const &other) { return apply_expr(_impl::_assign(), other); }
 
-    template<typename Other>
-    inline this_type &
+    template<typename Other> inline this_type &
     operator=(Other const &other) { return apply_expr(_impl::_assign(), other); }
 
-    template<typename Other>
-    inline this_type &
-    operator+=(Other const &other) { return apply_expr(_impl::plus_assign(), other); }
+    template<typename Other> inline this_type &
+    operator+=(Other const &other)
+    {
+//        return apply_expr(_impl::plus_assign(), other);
+        m_mesh_->range(entity_type(), mesh::SP_ES_VALID).foreach(
+                [&](mesh::MeshEntityId const &s) { get(s) += m_mesh_->eval(other, s); });
+        return *this;
+    }
 
-    template<typename Other>
-    inline this_type &
+    template<typename Other> inline this_type &
     operator-=(Other const &other) { return apply_expr(_impl::minus_assign(), other); }
 
-    template<typename Other>
-    inline this_type &
+    template<typename Other> inline this_type &
     operator*=(Other const &other) { return apply_expr(_impl::multiplies_assign(), other); }
 
-    template<typename Other>
-    inline this_type &
+    template<typename Other> inline this_type &
     operator/=(Other const &other) { return apply_expr(_impl::divides_assign(), other); }
 
     inline value_type &get(mesh::MeshEntityId const &s)
     {
-        return m_data_[m_mesh_->hash(s)];
+        return reinterpret_cast<value_type *>(m_data_holder_.get())[m_mesh_->hash(s)];
     }
 
     inline value_type const &get(mesh::MeshEntityId const &s) const
     {
-        return m_data_[m_mesh_->hash(s)];
+        return reinterpret_cast<value_type *>(m_data_holder_.get())[m_mesh_->hash(s)];
     }
 
     inline value_type &operator[](mesh::MeshEntityId const &s) { return get(s); }

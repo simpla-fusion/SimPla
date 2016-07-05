@@ -30,7 +30,10 @@ public:
     SP_OBJECT_HEAD(MeshBase, base::Object);
 
 
-    MeshBase() : m_level_(0), m_status_flag_(0) { }
+    MeshBase() : m_level_(0), m_status_flag_(0), m_time_(0) { }
+
+    MeshBase(MeshBase const &other) : m_level_(other.m_level_), m_status_flag_(other.m_status_flag_), m_time_(
+            other.m_time_) { }
 
     virtual    ~MeshBase() { }
 
@@ -185,9 +188,12 @@ public:
 
     void next_step(Real dt)
     {
-        VERBOSE << " Mesh [ " << name() << " ] next time step, time = " << m_time_ / dt << " ." << std::endl;
+        VERBOSE << " Mesh [ " << name() << " ] next time step, time = " << m_time_ << " dt = " << dt << std::endl;
+
         m_time_ += dt;
+        base::Object::touch();
     };
+
 
 private:
     Real m_time_ = 0.0;

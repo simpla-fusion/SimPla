@@ -29,7 +29,7 @@ void extent_span(Context *ctx, mesh::MeshBlockId center, size_type width)
         }
         auto id = atlas.extent_block(center, od, width);
 
-        ctx->add_problem_domain<TProb>(id, od);
+        ctx->add_domain_as<TProb>(id, od);
     }
 
 

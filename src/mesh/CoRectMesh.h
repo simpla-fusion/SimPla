@@ -113,7 +113,7 @@ public:
 
     Mesh() { }
 
-    Mesh(this_type const &other)
+    Mesh(this_type const &other) : MeshBase(other)
     {
         m_dims_ = other.m_dims_;
         m_coords_lower_ = other.m_coords_lower_;
@@ -132,7 +132,17 @@ public:
         << "Dimensions = " << dimensions() << " offset = " << offset() << " }," << " dx = " << dx() << " }," <<
         std::endl;
         os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;
+#ifndef NDEBUG
+        os << std::setw(indent + 1) << " "
+        << "outer lower = " << m_outer_lower_ << "," << std::endl
+        << "outer upper = " << m_outer_upper_ << "," << std::endl
+        << "      lower = " << m_lower_ << "," << std::endl
+        << "      upper = " << m_upper_ << "," << std::endl
+        << "inner lower = " << m_inner_lower_ << "," << std::endl
+        << "inner upper = " << m_inner_upper_ << "," << std::endl
 
+        << std::endl;
+#endif
         return os;
     }
 

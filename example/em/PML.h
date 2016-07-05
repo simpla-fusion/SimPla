@@ -68,8 +68,6 @@ public:
 
 
 private:
-
-
     inline Real sigma_(Real r, Real expN, Real dB)
     {
         return static_cast<Real>((0.5 * (expN + 2.0) * 0.1 * dB * std::pow(r, expN + 1.0)));
@@ -79,8 +77,6 @@ private:
     {
         return static_cast<Real>(1.0 + 2.0 * std::pow(r, expN));
     }
-
-
 };
 
 
@@ -91,9 +87,7 @@ template<typename TM>
 PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m(mp)
 {
     assert(mp != nullptr);
-    DEFINE_PHYSICAL_CONST
 
-    Real dB = 100, expN = 2;
 
     a0.clear();
     a1.clear();
@@ -111,42 +105,43 @@ PML<TM>::PML(const mesh_type *mp, box_type const &center_box) : base_type(mp), m
     B.clear();
     dX1.clear();
     dX2.clear();
-//
-//
-//    point_type m_xmin, m_xmax;
-//    point_type c_xmin, c_xmax;
-//
-//    std::tie(m_xmin, m_xmax) = m->box();
-//    std::tie(c_xmin, c_xmax) = center_box;
-//    auto dims = m->dimensions();
-//
-//    m->range(mesh::VERTEX, SP_ES_ALL).foreach(
-//            [&](mesh::MeshEntityId s)
-//            {
-//                point_type x = m->point(s);
-////                INFORM << x << "-" << m->box() << " - " << center_box << std::endl;
-//#define DEF(_N_)     a##_N_[s]=1;   s##_N_[s]=0;                                                     \
-////        if(dims[_N_]>1)                                                                              \
-////        {                                                                                            \
-////                if (x[_N_] <c_xmin[_N_])                                                             \
-////                {                                                                                    \
-////                    Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
-////                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
-////                    s##_N_[s] = sigma_(r, expN, dB) * speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
-////                }                                                                                    \
-////                else if (x[_N_] >c_xmax[_N_])                                                        \
-////                {                                                                                    \
-////                    Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
-////                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
-////                    s##_N_[s] = sigma_(r, expN, dB) * speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
-////                }                                                                                    \
-////        }
-//                DEF(0)
-//                DEF(1)
-//                DEF(2)
-//#undef DEF
-//            }
-//    );
+
+    DEFINE_PHYSICAL_CONST
+    Real dB = 100, expN = 2;
+    point_type m_xmin, m_xmax;
+    point_type c_xmin, c_xmax;
+
+    std::tie(m_xmin, m_xmax) = m->box();
+    std::tie(c_xmin, c_xmax) = center_box;
+    auto dims = m->dimensions();
+
+    m->range(mesh::VERTEX, SP_ES_ALL).foreach(
+            [&](mesh::MeshEntityId s)
+            {
+                point_type x = m->point(s);
+
+#define DEF(_N_)     a##_N_[s]=1;   s##_N_[s]=0;                                                     \
+        if(dims[_N_]>1)                                                                              \
+        {                                                                                            \
+                if (x[_N_] <c_xmin[_N_])                                                             \
+                {                                                                                    \
+                    Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
+                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
+                    s##_N_[s] = sigma_(r, expN, dB) * speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
+                }                                                                                    \
+                else if (x[_N_] >c_xmax[_N_])                                                        \
+                {                                                                                    \
+                    Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
+                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
+                    s##_N_[s] = sigma_(r, expN, dB) * speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
+                }                                                                                    \
+        }
+                DEF(0)
+                DEF(1)
+                DEF(2)
+#undef DEF
+            }
+    );
 }
 
 template<typename TM>
@@ -154,6 +149,7 @@ void PML<TM>::deploy()
 {
     declare_global(&E, "E");
     declare_global(&B, "B");
+
 }
 
 
@@ -162,6 +158,7 @@ void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain c
 {
     auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
+
 
     t_map.direct_map(mesh::EDGE,
                      [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = E2[s2]; });
@@ -176,32 +173,30 @@ template<typename TM>
 void PML<TM>::next_step(Real dt)
 {
     DEFINE_PHYSICAL_CONST
-    B -= curl(E) * (dt);
-    E += (curl(B) * speed_of_light2) * dt;
 
-//    dX2 = (X20 * (-2.0 * dt * s0) + curl_pdx(E) * dt) / (a0 + s0 * dt);
-//    X20 += dX2;
-//    B -= dX2;
-//
-//    dX2 = (X21 * (-2.0 * dt * s0) + curl_pdy(E) * dt) / (a1 + s1 * dt);
-//    X21 += dX2;
-//    B -= dX2;
-//
-//    dX2 = (X22 * (-2.0 * dt * s0) + curl_pdz(E) * dt) / (a2 + s2 * dt);
-//    X22 += dX2;
-//    B -= dX2;
-//
-//    dX1 = (X10 * (-2.0 * dt * s0) + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
-//    X10 += dX1;
-//    E += dX1;
-//
-//    dX1 = (X11 * (-2.0 * dt * s0) + curl_pdy(B) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
-//    X11 += dX1;
-//    E += dX1;
-//
-//    dX1 = (X12 * (-2.0 * dt * s0) + curl_pdz(B) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
-//    X12 += dX1;
-//    E += dX1;
+    dX2 = (X20 * (-2.0 * dt * s0) + curl_pdx(E) * dt) / (a0 + s0 * dt);
+    X20 += dX2;
+    B -= dX2;
+
+    dX2 = (X21 * (-2.0 * dt * s0) + curl_pdy(E) * dt) / (a1 + s1 * dt);
+    X21 += dX2;
+    B -= dX2;
+
+    dX2 = (X22 * (-2.0 * dt * s0) + curl_pdz(E) * dt) / (a2 + s2 * dt);
+    X22 += dX2;
+    B -= dX2;
+
+    dX1 = (X10 * (-2.0 * dt * s0) + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
+    X10 += dX1;
+    E += dX1;
+
+    dX1 = (X11 * (-2.0 * dt * s0) + curl_pdy(B) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
+    X11 += dX1;
+    E += dX1;
+
+    dX1 = (X12 * (-2.0 * dt * s0) + curl_pdz(B) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
+    X12 += dX1;
+    E += dX1;
 }
 } //namespace simpla
 
