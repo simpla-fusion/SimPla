@@ -36,9 +36,9 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "-std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0  -fPIC ")
 
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-    SET(CMAKE_CXX_FLAGS "-std=c++11")
+    SET(CMAKE_CXX_FLAGS "-std=c++11  -fPIC ")
 else ()
-    SET(CMAKE_CXX_FLAGS "-std=c++11   ")
+    SET(CMAKE_CXX_FLAGS "-std=c++11  -fPIC   ")
 endif ()
 
 #include(FindPackageHandleStandardArgs)
@@ -278,14 +278,13 @@ MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
 ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\")
 
 # workaround for CLion 1.0.x
-FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
+FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/src/*.h)
 add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp tools/geqdsk_convert.cpp)
 
 ADD_CUSTOM_TARGET(alltest)
 
 
 add_subdirectory(src)
-add_subdirectory(sp_lite)
 add_subdirectory(example)
 add_subdirectory(tools)
 add_subdirectory(docs)

@@ -8,9 +8,6 @@
 #ifndef SPFIELD_H_
 #define SPFIELD_H_
 #include "sp_def.h"
-#include "spIOStream.h"
-#include "spMPI.h"
-
 #include "spObject.h"
 #include "spMesh.h"
 

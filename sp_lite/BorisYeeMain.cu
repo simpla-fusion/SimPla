@@ -6,12 +6,12 @@
  */
 
 #include <stdio.h>
+
 #include "sp_def.h"
 
 #include "spMesh.h"
 #include "spField.h"
 #include "spParticle.h"
-#include "spIOStream.h"
 
 #include "Boris.h"
 #include "BorisYee.h"

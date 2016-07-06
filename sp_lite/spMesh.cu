@@ -7,7 +7,6 @@
 #include <assert.h>
 #include "sp_def.h"
 #include "spMesh.h"
-#include "spSimPlaWrap.h"
 
 void spMeshCreate(spMesh **ctx)
 {

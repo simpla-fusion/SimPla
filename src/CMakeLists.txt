@@ -39,3 +39,14 @@ TARGET_LINK_LIBRARIES(simpla_lib
         simulation
         )
 
+add_library(sp_cwrap SHARED sp_cwrap.cpp)
+TARGET_LINK_LIBRARIES(sp_cwrap ${MPI_C_LIBRARIES} ${HDF5_C_LIBRARIES} ${HDF5_HL_LIBRARIES} ${TBB_LIBRARIES} ${LUA_LIBRARIES}
+        base
+        task_flow
+        mesh
+        data_model io
+        parallel
+        physics
+        #        geometry
+        utilities
+        simulation)

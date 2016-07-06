@@ -5,12 +5,15 @@
 #include "Boris.h"
 #include <stdio.h>
 #include <assert.h>
+#include "../src/sp_cwrap.h"
 
 #include "sp_def.h"
 #include "spField.h"
 #include "spMesh.h"
 #include "spParticle.h"
 #include "spPage.h"
+
+
 
 /******************************************************************************************/
 

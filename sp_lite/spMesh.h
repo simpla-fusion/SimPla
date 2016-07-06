@@ -9,7 +9,6 @@
 #define SPMESH_H_
 #include "sp_def.h"
 #include "spObject.h"
-#include "spMPI.h"
 
 struct spMesh_s
 {
@@ -32,7 +31,8 @@ struct spMesh_s
 	dim3 private_block;
 	dim3 threadsPerBlock;
 
-	spMPI * mpi_comm;
+	spDistributedObject * dist_obj;
+
 };
 
 typedef struct spMesh_s spMesh;
