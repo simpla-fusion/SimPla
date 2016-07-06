@@ -49,7 +49,7 @@ typedef byte_type spEntity;
 typedef struct spPage_s
 {
 	SP_PAGE_HEAD
-	byte_type *data[];
+	void *data;
 } spPage;
 //
 ///***************************************************************************/

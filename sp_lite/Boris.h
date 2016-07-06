@@ -23,7 +23,7 @@ struct boris_page_s
 	Real *vy;
 	Real *vz;
 
-	Real*f;
+	Real *f;
 	Real *w;
 };
 

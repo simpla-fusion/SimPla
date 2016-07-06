@@ -94,6 +94,7 @@ int main(int argc, char **argv)
     spFieldDestroy(&fRho);
     spParticleDestroy(&ps);
     spMeshDestroy(&mesh);
+
     spIOStreamDestroy(&os);
 
     spParallelFinalize();
