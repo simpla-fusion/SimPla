@@ -14,7 +14,7 @@
 
 /******************************************************************************************/
 
-void spBorisYeeInitializeParticle(spParticle *sp, size_type NUM_OF_PIC)
+void spBorisYeeInitializeParticle(spParticle *sp, int NUM_OF_PIC)
 {
 	assert(sp != 0x0);
 
@@ -28,6 +28,7 @@ void spBorisYeeInitializeParticle(spParticle *sp, size_type NUM_OF_PIC)
 	spParticleAddAttribute(sp, "w", SP_TYPE_Real, sizeof(Real));
 
 	spParticleDeploy(sp, NUM_OF_PIC);
+	spParticleInitialize(sp);
 	spParticleSync(sp);
 
 }
@@ -49,8 +50,8 @@ __constant__ float3 mesh_inv_dv;
 #define IX  1
 #define IY  CACHE_EXTENT_X
 #define IZ  CACHE_EXTENT_X*CACHE_EXTENT_Y
-__device__
-void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
+__device__ void
+ cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 {
 
 	*v = *v
@@ -70,7 +71,8 @@ void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 #undef IY
 #undef IZ
 
-__global__ void spUpdateParticle_push_Boris_Kernel(spPage** buckets, const Real *fE, const Real *fB)
+__global__ void
+spUpdateParticle_push_Boris_Kernel(spPage** buckets, const Real *fE, const Real *fB)
 {
 
 	__shared__ Real tE[24], tB[3 * 8];
@@ -200,7 +202,8 @@ __global__ void spUpdateParticle_push_Boris_Kernel(spPage** buckets, const Real 
 
 }
 
-__global__ void spUpdateParticle_sort_Boris_kernel(spPage ** buckets)
+__global__ void
+spUpdateParticle_sort_Boris_kernel(spPage ** buckets)
 {
 
 #define MESH_ID (blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x)

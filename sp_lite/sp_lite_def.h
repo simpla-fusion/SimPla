@@ -7,10 +7,10 @@
 
 #ifndef SP_DEF_LITE_H_
 #define SP_DEF_LITE_H_
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <cuda.h>
 #include "../src/sp_cwrap.h"
 
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
@@ -26,7 +26,13 @@ typedef uint64_t size_type;
 #define SP_SUCCESS 0
 #define SP_FAILED  1
 
-#ifdef __CUDACC__
+#ifndef __CUDACC__
+typedef struct { int x, y, z; } int3;
+typedef struct { int x, y, z, w; } int4;
+typedef struct { float x, y, z; } float3;
+typedef struct { float x, y, z, w; } float4;
+typedef struct { size_t x, y, z; } dim3;
+#else  //__CUDACC__
 
 #ifndef NUMBER_OF_THREADS_PER_BLOCK
 #	define NUMBER_OF_THREADS_PER_BLOCK 128
@@ -50,40 +56,41 @@ typedef uint64_t size_type;
 #endif
 
 #	define CUDA_CHECK_RETURN(_CMD_) {											\
-	cudaError_t _m_cudaStat = _CMD_;										\
-	if (_m_cudaStat != cudaSuccess) {										\
-		fprintf(stderr, "Error [code=0x%x] %s at line %d in file %s\n",					\
-				_m_cudaStat,cudaGetErrorString(_m_cudaStat), __LINE__, __FILE__);		\
-		exit(1);															\
-	} }
+    cudaError_t _m_cudaStat = _CMD_;										\
+    if (_m_cudaStat != cudaSuccess) {										\
+        fprintf(stderr, "Error [code=0x%x] %s at line %d in file %s\n",					\
+                _m_cudaStat,cudaGetErrorString(_m_cudaStat), __LINE__, __FILE__);		\
+        exit(1);															\
+    } }
 
 //#define CUDA_CHECK_RETURN(_CMD_) _CMD_;
 
 #if !defined(__CUDA_ARCH__)
 #define CUDA_CHECK(_CMD_)  											\
-		 printf(  "[line %d in file %s]\n %s = %d \n",					\
-				 __LINE__, __FILE__,__STRING(_CMD_),(_CMD_));
+         printf(  "[line %d in file %s]\n %s = %d \n",					\
+                 __LINE__, __FILE__,__STRING(_CMD_),(_CMD_));
 #else
 #	define CUDA_CHECK(_CMD_) printf(  "[line %d in file %s : block=[%i,%i,%i] thread=[%i,%i,%i] ]\t %s = %x\n",					\
-		 __LINE__, __FILE__,blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x , threadIdx.y, threadIdx.z, __STRING(_CMD_),(_CMD_));
+         __LINE__, __FILE__,blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x , threadIdx.y, threadIdx.z, __STRING(_CMD_),(_CMD_));
 #endif
 #define DONE	 	printf( "====== DONE ======\n" );
 #define CHECK	 	printf( "[ line %d in file%s]====== CHECK ======\n", __LINE__, __FILE__ );
 
 MC_HOST_DEVICE inline int sp_is_device_ptr(void const *p)
 {
-	cudaPointerAttributes attribute;
-	CUDA_CHECK(cudaPointerGetAttributes(&attribute, p));
-	return (attribute.device == cudaMemoryTypeDevice);
+    cudaPointerAttributes attribute;
+    CUDA_CHECK(cudaPointerGetAttributes(&attribute, p));
+    return (attribute.device == cudaMemoryTypeDevice);
 
 }
 MC_HOST_DEVICE inline int sp_pointer_type(void const *p)
 {
-	cudaPointerAttributes attribute;
-	CUDA_CHECK(cudaPointerGetAttributes(&attribute, p));
-	return (attribute.device);
+    cudaPointerAttributes attribute;
+    CUDA_CHECK(cudaPointerGetAttributes(&attribute, p));
+    return (attribute.device);
 
 }
+
 
 #endif //__CUDACC__
 #endif /* SP_DEF_LITE_H_ */

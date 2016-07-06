@@ -24,8 +24,8 @@ ENDIF (HDF5_FOUND)
 
 FIND_PACKAGE(CUDA 7.5 REQUIRED)
 
-#FILE(GLOB sp_lite_SRC ./*.c)
-#add_library(sp_lite ${sp_lite_SRC})
+FILE(GLOB sp_lite_SRC ./*.c)
+add_library(sp_lite ${sp_lite_SRC})
 
 ADD_DEFINITIONS(-DUSE_CUDA -DENABLE_SOA -DNUMBER_OF_THREADS_PER_BLOCK=256)
 SET(CUDA_NVCC_FLAGS -DENABLE_SOA --maxrregcount=32)
