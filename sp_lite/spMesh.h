@@ -12,24 +12,24 @@
 
 struct spMesh_s
 {
-	float3 dx;
+	float dx[3];
 
 	int ndims;
 
-	dim3 x_lower;
-	dim3 x_upper;
-	dim3 dims;
+	size_t dims[3];
+	size_t x_lower[3];
+	size_t x_upper[3];
 
-	int4 offset;
-	int4 count;
+	int offset[4];
+	int count[4];
 
 	size_type number_of_idx;
 	size_type *cell_idx;
 
 	size_type number_of_shared_blocks;
-	dim3 *shared_blocks;
-	dim3 private_block;
-	dim3 threadsPerBlock;
+	size_t *shared_blocks;
+	size_t private_block[3];
+	size_t threadsPerBlock[3];
 
 	spDistributedObject * dist_obj;
 
@@ -49,7 +49,11 @@ void spMeshRead(spMesh *ctx, char const name[], int flag);
 
 size_type spMeshGetNumberOfEntity(spMesh const *, int iform);
 
-__constant__ int3 SP_NEIGHBOUR_OFFSET[27];
-__constant__ unsigned int SP_NEIGHBOUR_OFFSET_flag[27];
+int SP_NEIGHBOUR_OFFSET[27][3];
+unsigned int SP_NEIGHBOUR_OFFSET_flag[27];
 
+#ifdef __CUDACC__
+__constant__ int3 SP_NEIGHBOUR_OFFSET_DEVICE[27];
+__constant__ unsigned int SP_NEIGHBOUR_OFFSET_flag_DEVICE[27];
+#endif
 #endif /* SPMESH_H_ */

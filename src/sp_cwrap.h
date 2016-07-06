@@ -27,7 +27,7 @@ void spDataTypeCreate(spDataType **);
 
 void spDataTypeDestroy(spDataType **);
 
-bool spDataTypeIsValid(spDataType const *);
+int spDataTypeIsValid(spDataType const *);
 
 void spDataTypeExtent(spDataType *, int rank, size_t const *d);
 
@@ -67,7 +67,7 @@ void spDistributedObjectAddSendLink(spDistributedObject *, size_t id, const ptrd
 
 void spDistributedObjectAddRecvLink(spDistributedObject *, size_t id, const ptrdiff_t offset[3], spDataSet *);
 
-bool spDistributedObjectIsReady(spDistributedObject const *);
+int spDistributedObjectIsReady(spDistributedObject const *);
 
 struct spIOStream_s;
 typedef struct spIOStream_s spIOStream;

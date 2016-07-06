@@ -28,7 +28,6 @@ void spBorisYeeInitializeParticle(spParticle *sp, size_type NUM_OF_PIC)
 	spParticleAddAttribute(sp, "w", SP_TYPE_Real, sizeof(Real));
 
 	spParticleDeploy(sp, NUM_OF_PIC);
-
 	spParticleSync(sp);
 
 }
@@ -220,9 +219,9 @@ __global__ void spUpdateParticle_sort_Boris_kernel(spPage ** buckets)
 	{
 
 		struct boris_page_s * pg = (struct boris_page_s *) buckets[ //
-				((blockIdx.x + SP_NEIGHBOUR_OFFSET[i].x + gridDim.x) % gridDim.x)
-						+ (((blockIdx.y + SP_NEIGHBOUR_OFFSET[i].y + gridDim.y) % gridDim.y)
-								+ ((blockIdx.z + SP_NEIGHBOUR_OFFSET[i].z + gridDim.z) % gridDim.z) * gridDim.y)
+				((blockIdx.x + SP_NEIGHBOUR_OFFSET_DEVICE[i].x + gridDim.x) % gridDim.x)
+						+ (((blockIdx.y + SP_NEIGHBOUR_OFFSET_DEVICE[i].y + gridDim.y) % gridDim.y)
+								+ ((blockIdx.z + SP_NEIGHBOUR_OFFSET_DEVICE[i].z + gridDim.z) % gridDim.z) * gridDim.y)
 								* gridDim.x];
 
 		assert(pg != 0x0);
@@ -238,7 +237,7 @@ __global__ void spUpdateParticle_sort_Boris_kernel(spPage ** buckets)
 			for (int s = threadIdx.x; s < SP_NUMBER_OF_ENTITIES_IN_PAGE; s += blockDim.x)
 			{
 
-				if ((src_flag) & 0x3F == SP_NEIGHBOUR_OFFSET_flag[i])
+				if ((src_flag) & 0x3F == SP_NEIGHBOUR_OFFSET_flag_DEVICE[i])
 				{
 
 					unsigned int tail = atomicAdd(&dest_tail, 1);
@@ -318,7 +317,7 @@ __global__ void spUpdateParticle_scatter_Boris_kernel(spPage ** buckets, Real *f
 void spBorisYeeUpdateParticle(spParticle *pg, Real dt, const spField *fE, const spField *fB, spField *fRho, spField *fJ)
 {
 
-	float3 t_inv_dv = make_float3(dt / pg->m->dx.x, dt / pg->m->dx.y, dt / pg->m->dx.z);
+	float3 t_inv_dv = make_float3(dt / pg->m->dx[0], dt / pg->m->dx[1], dt / pg->m->dx[2]);
 
 	Real t_cmr_dt = 0.5 * dt * pg->charge / pg->mass;
 
@@ -326,12 +325,16 @@ void spBorisYeeUpdateParticle(spParticle *pg, Real dt, const spField *fE, const 
 
 	cudaMemcpyToSymbol(&cmr_dt, &t_cmr_dt, sizeof(Real), cudaMemcpyDefault);
 
-	spUpdateParticle_push_Boris_Kernel<<<pg->m->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets,
+	dim3 dims;
+	dims.x = pg->m->dims[0];
+	dims.y = pg->m->dims[1];
+	dims.z = pg->m->dims[2];
+	spUpdateParticle_push_Boris_Kernel<<<dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets,
 			((Real*) fE->device_data), ((Real*) fB->device_data));
 
-	spUpdateParticle_sort_Boris_kernel<<<pg->m->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets);
+	spUpdateParticle_sort_Boris_kernel<<<dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets);
 
-	spUpdateParticle_scatter_Boris_kernel<<<pg->m->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets,
+	spUpdateParticle_scatter_Boris_kernel<<<dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets,
 			((Real*) fRho->device_data), ((Real*) fJ->device_data));
 
 	cudaDeviceSynchronize();        //wait for iteration to finish
@@ -348,11 +351,15 @@ __global__ void spUpdateField_Yee_kernel(const Real *fJ, Real *fE, Real *fB)
 }
 void spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB)
 {
-	spUpdateField_Yee_kernel<<<ctx->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(((Real*) fJ->device_data),
+	dim3 dims;
+	dims.x = ctx->dims[0];
+	dims.y = ctx->dims[1];
+	dims.z = ctx->dims[2];
+	spUpdateField_Yee_kernel<<<dims, NUMBER_OF_THREADS_PER_BLOCK>>>(((Real*) fJ->device_data),
 			((Real*) fE->device_data), ((Real*) fB->device_data));
 
 	cudaDeviceSynchronize();        //wait for iteration to finish
-	spFieldSync( fE);
-	spFieldSync( fB);
+	spFieldSync(fE);
+	spFieldSync(fB);
 }
 

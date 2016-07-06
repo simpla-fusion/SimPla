@@ -1,49 +1,17 @@
 /*
- * spParticle.c
+ * spParticleKernel.cu
  *
- *  Created on: 2016年6月15日
+ *  Created on: 2016年7月6日
  *      Author: salmon
  */
-#include "sp_lite_def.h"
-#include "spMesh.h"
 #include "spParticle.h"
 #include "spPage.h"
-
-void spParticleCreate(const spMesh *mesh, spParticle **sp)
-{
-	*sp = (spParticle*) malloc(sizeof(spParticle));
-
-	(*sp)->m = mesh;
-	(*sp)->number_of_attrs = 0;
-	(*sp)->data = 0x0;
-	(*sp)->m_free_page = 0x0;
-	(*sp)->m_pages_holder = 0x0;
-	(*sp)->buckets = 0x0;
-
-}
-
-void spParticleDestroy(spParticle **sp)
-{
-	CUDA_CHECK_RETURN(cudaFree((*sp)->data));
-	CUDA_CHECK_RETURN(cudaFree((*sp)->buckets));
-	CUDA_CHECK_RETURN(cudaFree((*sp)->m_pages_holder));
-	free(*sp);
-	*sp = 0x0;
-}
-struct spParticleAttrEntity_s* spParticleAddAttribute(spParticle *pg, char const *name, int type_tag, int size_in_byte)
-{
-	struct spParticleAttrEntity_s* res = &(pg->attrs[pg->number_of_attrs]);
-	++pg->number_of_attrs;
-	strcpy(res->name, name);
-	res->type_tag = type_tag;
-	res->size_in_byte = size_in_byte;
-	return res;
-}
+#include "spMesh.h"
 
 __global__ void spInitializeParticle_Kernel(spPage** buckets, spPage * pages, void * data, int num_of_attrs,
 		struct spParticleAttrEntity_s * particle_attrs, int number_of_pages_per_cell)
 {
-	if (data == 0x0)
+	if (data == NULL)
 	{
 		return;
 	}
@@ -69,7 +37,7 @@ __global__ void spInitializeParticle_Kernel(spPage** buckets, spPage * pages, vo
 								* (MESH_ID * number_of_pages_per_cell + i);
 			}
 			(*t)->flag = MESH_ID << 6;
-			(*t)->next = 0x0;
+			(*t)->next = NULL;
 			t = &((*t)->next);
 		}
 	}
@@ -95,9 +63,9 @@ void spParticleDeploy(spParticle *sp, size_type PIC)
 
 	size_type page_size_in_byte = (sizeof(spPage) + sp->number_of_attrs * sizeof(void*));
 
-	CUDA_CHECK_RETURN(cudaMalloc(&(sp->m_pages_holder), sp->max_number_of_pages * page_size_in_byte));
+	CUDA_CHECK_RETURN(cudaMalloc((void** )(&(sp->m_pages_holder)), sp->max_number_of_pages * page_size_in_byte));
 
-	CUDA_CHECK_RETURN(cudaMalloc(&(sp->buckets), number_of_cell * sizeof(spPage*)));
+	CUDA_CHECK_RETURN(cudaMalloc((void** )(&(sp->buckets)), number_of_cell * sizeof(spPage*)));
 
 	size_type total_size = 0;
 
@@ -109,27 +77,22 @@ void spParticleDeploy(spParticle *sp, size_type PIC)
 
 	CUDA_CHECK_RETURN(cudaMalloc((void** )(&(sp->data)), total_size));
 
-	struct spParticleAttrEntity_s * particle_attrs = 0x0;
+	struct spParticleAttrEntity_s * particle_attrs = NULL;
 
 	CUDA_CHECK_RETURN(cudaMalloc((void** )(&particle_attrs), sizeof(sp->attrs)));
 
 	CUDA_CHECK_RETURN(cudaMemcpy((void* )particle_attrs, (sp->attrs), sizeof(sp->attrs), cudaMemcpyDefault));
 
-	spInitializeParticle_Kernel<<<sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(sp->buckets, sp->m_pages_holder, sp->data,
+	dim3 dims;
+	dims.x = sp->m->dims[0];
+	dims.y = sp->m->dims[1];
+	dims.z = sp->m->dims[2];
+
+	spInitializeParticle_Kernel<<<dims, NUMBER_OF_THREADS_PER_BLOCK>>>(sp->buckets, sp->m_pages_holder, sp->data,
 			sp->number_of_attrs, particle_attrs, number_of_pages_per_cell);
 
 	cudaDeviceSynchronize();        //wait for iteration to finish
 
 	CUDA_CHECK_RETURN(cudaFree((void* )particle_attrs));
 
-}
-void spParticleWrite(spParticle const*f, char const name[], int flag)
-{
-}
-void spParticleRead(spParticle *f, char const url[], int flag)
-{
-
-}
-void spParticleSync(spParticle *f)
-{
 }

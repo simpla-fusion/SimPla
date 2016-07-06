@@ -4,6 +4,7 @@
  *  Created on: 2016年6月15日
  *      Author: salmon
  */
+#include <cuda.h>
 
 #include <stdio.h>
 
@@ -28,12 +29,12 @@ int main(int argc, char **argv)
 	spField *fJ = 0x0;
 
 	spMeshCreate(&mesh);
-	mesh->dims.x = 0x8;
-	mesh->dims.y = 0x8;
-	mesh->dims.z = 0x8;
-	mesh->dx.x = 1;
-	mesh->dx.y = 1;
-	mesh->dx.z = 1;
+	mesh->dims[0] = 0x8;
+	mesh->dims[1] = 0x8;
+	mesh->dims[2] = 0x8;
+	mesh->dx[0] = 1;
+	mesh->dx[1] = 1;
+	mesh->dx[2] = 1;
 	spMeshDeploy(mesh);
 
 	spFieldCreate(mesh, &fE, 1);
@@ -96,6 +97,6 @@ int main(int argc, char **argv)
 	spIOStreamDestroy(&os);
 
 	CUDA_CHECK_RETURN(cudaDeviceReset());
-	DONE
-	return 0;
+//	DONE
+	;
 }

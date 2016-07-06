@@ -33,7 +33,7 @@ void spFieldDestroy(spField **f)
 	{
 		if ((**f).device_data != NULL)
 		{
-			CUDA_CHECK_RETURN(cudaFree((void** )((**f).device_data)))
+			CUDA_CHECK_RETURN(cudaFree((void** )((**f).device_data)));
 		};
 
 		if ((**f).host_data != NULL)

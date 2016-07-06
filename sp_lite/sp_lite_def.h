@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <cuda.h>
 #include "../src/sp_cwrap.h"
 
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
@@ -25,8 +26,7 @@ typedef uint64_t size_type;
 #define SP_SUCCESS 0
 #define SP_FAILED  1
 
-
-//#ifdef __CUDACC__
+#ifdef __CUDACC__
 
 #ifndef NUMBER_OF_THREADS_PER_BLOCK
 #	define NUMBER_OF_THREADS_PER_BLOCK 128
@@ -49,7 +49,7 @@ typedef uint64_t size_type;
 
 #endif
 
-#define CUDA_CHECK_RETURN(_CMD_) {											\
+#	define CUDA_CHECK_RETURN(_CMD_) {											\
 	cudaError_t _m_cudaStat = _CMD_;										\
 	if (_m_cudaStat != cudaSuccess) {										\
 		fprintf(stderr, "Error [code=0x%x] %s at line %d in file %s\n",					\
@@ -70,19 +70,20 @@ typedef uint64_t size_type;
 #define DONE	 	printf( "====== DONE ======\n" );
 #define CHECK	 	printf( "[ line %d in file%s]====== CHECK ======\n", __LINE__, __FILE__ );
 
-inline bool sp_is_device_ptr(void const *p)
+MC_HOST_DEVICE inline int sp_is_device_ptr(void const *p)
 {
 	cudaPointerAttributes attribute;
-	CUDA_CHECK_RETURN(cudaPointerGetAttributes(&attribute, p));
+	CUDA_CHECK(cudaPointerGetAttributes(&attribute, p));
 	return (attribute.device == cudaMemoryTypeDevice);
 
 }
-inline int sp_pointer_type(void const *p)
+MC_HOST_DEVICE inline int sp_pointer_type(void const *p)
 {
 	cudaPointerAttributes attribute;
-	CUDA_CHECK_RETURN(cudaPointerGetAttributes(&attribute, p));
+	CUDA_CHECK(cudaPointerGetAttributes(&attribute, p));
 	return (attribute.device);
 
 }
-//#endif //__CUDACC__
+
+#endif //__CUDACC__
 #endif /* SP_DEF_LITE_H_ */
