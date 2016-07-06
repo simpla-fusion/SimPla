@@ -278,7 +278,7 @@ MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
 ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\")
 
 # workaround for CLion 1.0.x
-FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/src/*.h)
+FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h )
 add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp tools/geqdsk_convert.cpp)
 
 ADD_CUSTOM_TARGET(alltest)
@@ -288,8 +288,9 @@ add_subdirectory(src)
 add_subdirectory(example)
 add_subdirectory(tools)
 add_subdirectory(docs)
-#add_subdirectory(plugins)
+
 #add_subdirectory(applications)
 add_subdirectory(scenario)
 
+add_subdirectory(sp_lite)
  

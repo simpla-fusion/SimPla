@@ -7,28 +7,31 @@
 
 #ifndef SPFIELD_H_
 #define SPFIELD_H_
-#include "sp_def.h"
+#include "sp_lite_def.h"
 #include "spObject.h"
-#include "spMesh.h"
+//#include "spMesh.h"
 
 typedef struct spField_s
 {
 	SP_OBJECT_HEAD
+	const struct spMesh_s * m;
 	int iform;
 	Real * device_data;
 	Real * host_data;
 } spField;
 
-void spFieldCreate(const spMesh *ctx, spField **f, int iform);
+void spFieldCreate(const struct spMesh_s *ctx, spField **f, int iform);
 
 void spFieldDestroy(spField **f);
 
-void spFieldClear(spMesh const *mesh, spField *f);
+void spFieldDeploy(spField *f);
 
-int spFieldWrite(spMesh const *ctx, spField *f, spIOStream * file, char const name[], int flag);
+void spFieldClear(spField *f);
 
-int spFieldRead(spMesh const *ctx, spField **f, spIOStream * file, char const name[], int flag);
+void spFieldWrite(spField *f, spIOStream * os, char const name[], int flag);
 
-int spSyncField(spMesh const *ctx, spField *f);
+void spFieldRead(spField * f, spIOStream * os, char const name[], int flag);
+
+void spFieldSync(spField *f);
 
 #endif /* SPFIELD_H_ */

@@ -7,10 +7,10 @@
 
 #ifndef BORIS_H_
 #define BORIS_H_
-#include "sp_def.h"
+#include "sp_lite_def.h"
 #include "spParticle.h" //for POINT_HEAD
 #include "spMesh.h" //for POINT_HEAD
-
+#include "spPage.h"
 struct boris_page_s
 {
 	SP_PAGE_HEAD

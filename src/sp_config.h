@@ -10,10 +10,10 @@
 
 #include <stdint.h>
 
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#endif
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 #define  COPYRIGHT "All rights reserved. (2016 )"
@@ -24,10 +24,10 @@
 #   define  SP_REAL double
 #endif
 
-//
-//#ifdef __cplusplus
-//};
-//#endif
+
+#ifdef __cplusplus
+};
+#endif
 
 
 #endif /* SIMPLA_DEFS_H_ */

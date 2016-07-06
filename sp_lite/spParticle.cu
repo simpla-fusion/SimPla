@@ -4,15 +4,16 @@
  *  Created on: 2016年6月15日
  *      Author: salmon
  */
-#include "sp_def.h"
+#include "sp_lite_def.h"
 #include "spMesh.h"
 #include "spParticle.h"
 #include "spPage.h"
 
-void spParticleCreate(const spMesh *mesh, sp_particle_type **sp)
+void spParticleCreate(const spMesh *mesh, spParticle **sp)
 {
-	*sp = (sp_particle_type*) malloc(sizeof(sp_particle_type));
+	*sp = (spParticle*) malloc(sizeof(spParticle));
 
+	(*sp)->m = mesh;
 	(*sp)->number_of_attrs = 0;
 	(*sp)->data = 0x0;
 	(*sp)->m_free_page = 0x0;
@@ -21,22 +22,22 @@ void spParticleCreate(const spMesh *mesh, sp_particle_type **sp)
 
 }
 
-void spParticleDestroy(sp_particle_type **sp)
+void spParticleDestroy(spParticle **sp)
 {
-
 	CUDA_CHECK_RETURN(cudaFree((*sp)->data));
 	CUDA_CHECK_RETURN(cudaFree((*sp)->buckets));
 	CUDA_CHECK_RETURN(cudaFree((*sp)->m_pages_holder));
 	free(*sp);
 	*sp = 0x0;
 }
-int spParticleAddAttribute(sp_particle_type *pg, char const *name, int type_tag, int size_in_byte)
+struct spParticleAttrEntity_s* spParticleAddAttribute(spParticle *pg, char const *name, int type_tag, int size_in_byte)
 {
-	strcpy(pg->attrs[pg->number_of_attrs].name, name);
-	pg->attrs[pg->number_of_attrs].type_tag = type_tag;
-	pg->attrs[pg->number_of_attrs].size_in_byte = size_in_byte;
+	struct spParticleAttrEntity_s* res = &(pg->attrs[pg->number_of_attrs]);
 	++pg->number_of_attrs;
-	return pg->number_of_attrs;
+	strcpy(res->name, name);
+	res->type_tag = type_tag;
+	res->size_in_byte = size_in_byte;
+	return res;
 }
 
 __global__ void spInitializeParticle_Kernel(spPage** buckets, spPage * pages, void * data, int num_of_attrs,
@@ -77,14 +78,14 @@ __global__ void spInitializeParticle_Kernel(spPage** buckets, spPage * pages, vo
 
 }
 
-void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp, size_type PIC)
+void spParticleDeploy(spParticle *sp, size_type PIC)
 {
 	if (sp->number_of_attrs <= 0)
 	{
 		return;
 	}
 
-	size_type number_of_cell = spMeshGetNumberOfEntity(mesh, 3/*volume*/);
+	size_type number_of_cell = spMeshGetNumberOfEntity(sp->m, 3/*volume*/);
 
 	size_type number_of_pages_per_cell = (PIC * 3 / SP_NUMBER_OF_ENTITIES_IN_PAGE) / 2;
 
@@ -114,7 +115,7 @@ void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp, size_type PI
 
 	CUDA_CHECK_RETURN(cudaMemcpy((void* )particle_attrs, (sp->attrs), sizeof(sp->attrs), cudaMemcpyDefault));
 
-	spInitializeParticle_Kernel<<<mesh->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(sp->buckets, sp->m_pages_holder, sp->data,
+	spInitializeParticle_Kernel<<<sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(sp->buckets, sp->m_pages_holder, sp->data,
 			sp->number_of_attrs, particle_attrs, number_of_pages_per_cell);
 
 	cudaDeviceSynchronize();        //wait for iteration to finish
@@ -122,11 +123,13 @@ void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp, size_type PI
 	CUDA_CHECK_RETURN(cudaFree((void* )particle_attrs));
 
 }
-int spParticleWrite(spMesh const *ctx, sp_particle_type const*f, char const name[], int flag)
+void spParticleWrite(spParticle const*f, char const name[], int flag)
 {
-	return 0;
 }
-int spParticleSync(spMesh const *ctx, sp_particle_type *f)
+void spParticleRead(spParticle *f, char const url[], int flag)
 {
-	return 0;
+
+}
+void spParticleSync(spParticle *f)
+{
 }

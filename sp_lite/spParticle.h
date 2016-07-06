@@ -8,23 +8,23 @@
 #ifndef SPPARTICLE_H_
 #define SPPARTICLE_H_
 
-#include "sp_def.h"
-#include "spPage.h"
-#include "spMesh.h"
+#include "sp_lite_def.h"
 
 #define SP_MAX_NUMBER_OF_PARTICLE_ATTR 32
 
+struct spPage_s;
+struct spMesh_s;
 struct spParticleAttrEntity_s
 {
+	int type_tag;
 	size_type size_in_byte;
-	size_type type_tag;
 	size_type addr_offset;
 	char name[255];
 };
 
-struct spParticleSpecies_s
+struct spParticle_s
 {
-
+	struct spMesh_s const * m;
 	Real mass;
 	Real charge;
 
@@ -35,26 +35,27 @@ struct spParticleSpecies_s
 	struct spParticleAttrEntity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
 	void *data;
-	spPage *m_free_page;
-	spPage *m_pages_holder;
-	spPage ** buckets;
+	struct spPage_s *m_free_page;
+	struct spPage_s *m_pages_holder;
+	struct spPage_s **buckets;
 
 };
 
-typedef struct spParticleSpecies_s sp_particle_type;
+typedef struct spParticle_s spParticle;
 
-void spParticleCreate(const spMesh *ctx, sp_particle_type **pg);
+void spParticleCreate(const struct spMesh_s *ctx, struct spParticle_s **pg);
 
-void spParticleDestroy(sp_particle_type **sp);
+void spParticleDestroy(struct spParticle_s **sp);
 
-int spParticleAddAttribute(sp_particle_type *pg, char const *name, int type_tag, int size_in_byte);
+struct spParticleAttrEntity_s * spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag,
+		int size_in_byte);
 
-void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp, size_type PIC);
+void spParticleDeploy(struct spParticle_s *sp, size_type PIC);
 
-int spParticleWrite(spMesh const *ctx, sp_particle_type const*f, char const url[], int flag);
+void spParticleWrite(struct spParticle_s const *f, char const url[], int flag);
 
-int spParticleRead(spMesh const *ctx, sp_particle_type **f, char const url[], int flag);
+void spParticleRead(struct spParticle_s *f, char const url[], int flag);
 
-int spParticleSync(spMesh const *ctx, sp_particle_type * f);
+void spParticleSync(struct spParticle_s *f);
 
 #endif /* SPPARTICLE_H_ */

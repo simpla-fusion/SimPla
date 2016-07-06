@@ -7,7 +7,7 @@
 
 #ifndef SPMESH_H_
 #define SPMESH_H_
-#include "sp_def.h"
+#include "sp_lite_def.h"
 #include "spObject.h"
 
 struct spMesh_s
@@ -43,9 +43,9 @@ void spMeshDestroy(spMesh **ctx);
 
 void spMeshDeploy(spMesh *self);
 
-int spMeshWrite(const spMesh *ctx, const char *name, int flag);
+void spMeshWrite(const spMesh *ctx, const char *name, int flag);
 
-int spMeshRead(spMesh *ctx, char const name[], int flag);
+void spMeshRead(spMesh *ctx, char const name[], int flag);
 
 size_type spMeshGetNumberOfEntity(spMesh const *, int iform);
 

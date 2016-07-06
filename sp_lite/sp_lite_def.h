@@ -5,8 +5,8 @@
  *      Author: salmon
  */
 
-#ifndef SP_DEF_H_
-#define SP_DEF_H_
+#ifndef SP_DEF_LITE_H_
+#define SP_DEF_LITE_H_
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -26,7 +26,7 @@ typedef uint64_t size_type;
 #define SP_FAILED  1
 
 
-#ifdef __CUDACC__
+//#ifdef __CUDACC__
 
 #ifndef NUMBER_OF_THREADS_PER_BLOCK
 #	define NUMBER_OF_THREADS_PER_BLOCK 128
@@ -84,5 +84,5 @@ inline int sp_pointer_type(void const *p)
 	return (attribute.device);
 
 }
-#endif //__CUDACC__
-#endif /* SP_DEF_H_ */
+//#endif //__CUDACC__
+#endif /* SP_DEF_LITE_H_ */

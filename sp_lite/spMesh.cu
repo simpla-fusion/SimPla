@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 #include <assert.h>
-#include "sp_def.h"
+#include "sp_lite_def.h"
 #include "spMesh.h"
 
 void spMeshCreate(spMesh **ctx)

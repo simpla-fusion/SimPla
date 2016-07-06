@@ -1,13 +1,13 @@
-cmake_minimum_required(VERSION 2.8)
-SET(CMAKE_VERBOSE_MAKEFILE ON)
-
-PROJECT(sp_lite C CXX)
+#cmake_minimum_required(VERSION 2.8)
+#SET(CMAKE_VERBOSE_MAKEFILE ON)
+#
+#PROJECT(sp_lite C)
 
 FIND_PACKAGE(MPI)
 
 
 IF (MPI_FOUND)
-    INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH}) 
+    INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
 ENDIF (MPI_FOUND)
 
 SET(HDF5_PREFER_PARALLEL ON)
@@ -24,12 +24,12 @@ ENDIF (HDF5_FOUND)
 
 FIND_PACKAGE(CUDA 7.5 REQUIRED)
 
-FILE(GLOB sp_lite_SRC ./*.c)
-add_library(sp_lite ${sp_lite_SRC})
+#FILE(GLOB sp_lite_SRC ./*.c)
+#add_library(sp_lite ${sp_lite_SRC})
 
 ADD_DEFINITIONS(-DUSE_CUDA -DENABLE_SOA -DNUMBER_OF_THREADS_PER_BLOCK=256)
 SET(CUDA_NVCC_FLAGS -DENABLE_SOA --maxrregcount=32)
-FILE(GLOB sp_boris_yee_SRC   ./*.cu)
+FILE(GLOB sp_boris_yee_SRC ./*.cu)
 CUDA_ADD_EXECUTABLE(sp_boris_yee ${sp_boris_yee_SRC})
-TARGET_LINK_LIBRARIES(sp_boris_yee    sp_lite)
+TARGET_LINK_LIBRARIES(sp_boris_yee sp_lite)
 
