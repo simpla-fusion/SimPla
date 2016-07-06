@@ -9,7 +9,7 @@
 #include "spParticle.h"
 #include "spPage.h"
 
-void spCreateParticle(const spMesh *mesh, sp_particle_type **sp)
+void spParticleCreate(const spMesh *mesh, sp_particle_type **sp)
 {
 	*sp = (sp_particle_type*) malloc(sizeof(sp_particle_type));
 
@@ -21,7 +21,7 @@ void spCreateParticle(const spMesh *mesh, sp_particle_type **sp)
 
 }
 
-void spDestroyParticle(sp_particle_type **sp)
+void spParticleDestroy(sp_particle_type **sp)
 {
 
 	CUDA_CHECK_RETURN(cudaFree((*sp)->data));
@@ -59,7 +59,7 @@ __global__ void spInitializeParticle_Kernel(spPage** buckets, spPage * pages, vo
 
 		for (int i = 0; i < number_of_pages_per_cell; ++i)
 		{
-			(*t) = (spPage *) (page_offset + page_size_in_byte * i);
+			(*t) = (spPage *) ((byte_type*) (page_offset) + page_size_in_byte * i);
 
 			for (int j = 0; j < num_of_attrs; ++j)
 			{
@@ -122,11 +122,11 @@ void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp, size_type PI
 	CUDA_CHECK_RETURN(cudaFree((void* )particle_attrs));
 
 }
-int spWriteParticle(spMesh const *ctx, sp_particle_type const*f, char const name[], int flag)
+int spParticleWrite(spMesh const *ctx, sp_particle_type const*f, char const name[], int flag)
 {
 	return 0;
 }
-int spSyncParticle(spMesh const *ctx, sp_particle_type *f)
+int spParticleSync(spMesh const *ctx, sp_particle_type *f)
 {
 	return 0;
 }

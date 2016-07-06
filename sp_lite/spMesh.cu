@@ -9,16 +9,16 @@
 #include "spMesh.h"
 #include "spSimPlaWrap.h"
 
-void spCreateMesh(spMesh **ctx)
+void spMeshCreate(spMesh **ctx)
 {
 	*ctx = (spMesh *) malloc(sizeof(spMesh));
 
 }
-void spDestroyMesh(spMesh **ctx)
+void spMeshDestroy(spMesh **ctx)
 {
 	free(*ctx);
 }
-void spInitializeMesh(spMesh *self)
+void spMeshDeploy(spMesh *self)
 {
 	self->ndims = 3;
 	self->offset.x = 0;

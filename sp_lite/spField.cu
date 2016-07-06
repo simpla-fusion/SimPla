@@ -9,11 +9,10 @@
 #include "spMesh.h"
 #include "spField.h"
 #include "spObject.h"
-#include "spSimPlaWrap.h"
 
-MC_HOST void spCreateField(const spMesh *mesh, sp_field_type **f, int iform)
+void spFieldCreate(const spMesh *mesh, spField **f, int iform)
 {
-	spCreateObject((spObject **) f, sizeof(sp_field_type));
+	spObjectCreate((spObject **) f, sizeof(spField));
 //	*f = (sp_field_type *) malloc(sizeof(sp_field_type));
 	(*f)->iform = iform;
 	(*f)->host_data = 0x0;
@@ -27,7 +26,7 @@ MC_HOST void spCreateField(const spMesh *mesh, sp_field_type **f, int iform)
 
 }
 
-MC_HOST void spDestroyField(sp_field_type **f)
+void spFieldDestroy(spField **f)
 {
 	if (f != 0x0 && *f != 0x0)
 	{
@@ -43,7 +42,7 @@ MC_HOST void spDestroyField(sp_field_type **f)
 		*f = 0x0;
 	}
 }
-MC_HOST void spClearField(spMesh const *mesh, sp_field_type *f)
+void spFieldClear(spMesh const *mesh, spField *f)
 {
 	size_type num_of_entities = spMeshGetNumberOfEntity(mesh, f->iform);
 
@@ -53,18 +52,17 @@ MC_HOST void spClearField(spMesh const *mesh, sp_field_type *f)
 	}
 }
 
-MC_HOST int spWriteField(spMesh const *mesh, sp_field_type *f, char const url[], int flag)
+int spFieldWrite(spMesh const *mesh, spField *f, spIOStream * file, char const url[], int flag)
 {
 //	size_type num_of_entities = spMeshGetNumberOfEntity(mesh, f->iform);
 //	assert(f->host_data != 0);
-//	CUDA_CHECK_RETURN(
-//			cudaMemcpy((void* ) (f->host_data), (void* ) (f->device_data), num_of_entities * sizeof(Real),
+//	CUDA_CHECK_RETURN(cudaMemcpy((void* ) (f->host_data), (void* ) (f->device_data), num_of_entities * sizeof(Real),
 //					cudaMemcpyDeviceToHost));
 //	int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;
 //	hdf5_write_field(url, (void*) f->host_data, ndims, mesh->dims, mesh->offset, mesh->count, flag);
 	return 0;
 }
-MC_HOST int spSyncField(spMesh const *mesh, sp_field_type *f)
+int spSyncField(spMesh const *mesh, spField *f)
 {
 	return 0;
 }

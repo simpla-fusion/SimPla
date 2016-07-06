@@ -43,18 +43,18 @@ struct spParticleSpecies_s
 
 typedef struct spParticleSpecies_s sp_particle_type;
 
-void spCreateParticle(const spMesh *ctx, sp_particle_type **pg);
+void spParticleCreate(const spMesh *ctx, sp_particle_type **pg);
 
-void spDestroyParticle(sp_particle_type **sp);
+void spParticleDestroy(sp_particle_type **sp);
 
 int spParticleAddAttribute(sp_particle_type *pg, char const *name, int type_tag, int size_in_byte);
 
 void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp, size_type PIC);
 
-int spWriteParticle(spMesh const *ctx, sp_particle_type const*f, char const url[], int flag);
+int spParticleWrite(spMesh const *ctx, sp_particle_type const*f, char const url[], int flag);
 
-int spReadParticle(spMesh const *ctx, sp_particle_type **f, char const url[], int flag);
+int spParticleRead(spMesh const *ctx, sp_particle_type **f, char const url[], int flag);
 
-int spSyncParticle(spMesh const *ctx, sp_particle_type * f);
+int spParticleSync(spMesh const *ctx, sp_particle_type * f);
 
 #endif /* SPPARTICLE_H_ */

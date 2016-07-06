@@ -17,7 +17,7 @@ typedef struct spObject_s
 } spObject;
 #define SP_OBJECT_HEAD	struct spObject_s * device_self;size_type size_in_byte;
 
-MC_HOST extern inline void spFree(void **p)
+ extern inline void spFree(void **p)
 {
 	if (p != 0x0 && *p != 0x0)
 	{
@@ -35,14 +35,14 @@ MC_HOST extern inline void spFree(void **p)
 
 }
 
-MC_HOST extern inline void spCreateObject(spObject ** obj, size_type size_in_byte)
+ extern inline void spObjectCreate(spObject ** obj, size_type size_in_byte)
 {
 	*obj = (spObject *) malloc(size_in_byte);
 	(*obj)->size_in_byte = size_in_byte;
 	CUDA_CHECK_RETURN(cudaMalloc(&((*obj)->device_self), size_in_byte));
 
 }
-MC_HOST extern inline void spDestroyObject(spObject ** obj)
+ extern inline void spObjectDestroy(spObject ** obj)
 {
 	if (obj != 0x0 && *obj != 0x0)
 	{
@@ -52,7 +52,7 @@ MC_HOST extern inline void spDestroyObject(spObject ** obj)
 	*obj = 0x0;
 }
 
-MC_HOST extern inline void spObjectHostToDevice(spObject * obj)
+ extern inline void spObjectHostToDevice(spObject * obj)
 {
 	spObject * tmp = obj->device_self;
 	obj->device_self = 0x0;
@@ -60,7 +60,7 @@ MC_HOST extern inline void spObjectHostToDevice(spObject * obj)
 	obj->device_self = tmp;
 
 }
-MC_HOST inline void spObjectDeviceToHost(spObject * obj)
+ inline void spObjectDeviceToHost(spObject * obj)
 {
 	if (obj != 0x0 && obj->device_self != 0x0)
 	{
@@ -69,7 +69,7 @@ MC_HOST inline void spObjectDeviceToHost(spObject * obj)
 		obj->device_self = tmp;
 	}
 }
-MC_HOST extern inline spObject * spObject_device_(spObject * obj)
+ extern inline spObject * spObject_device_(spObject * obj)
 {
 	spObjectHostToDevice(obj);
 

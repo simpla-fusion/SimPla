@@ -14,7 +14,7 @@
 
 /******************************************************************************************/
 
-void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *sp, size_type NUM_OF_PIC)
+void spBorisYeeInitializeParticle(spMesh *ctx, sp_particle_type *sp, size_type NUM_OF_PIC)
 {
 	assert(sp != 0x0);
 
@@ -29,11 +29,16 @@ void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *sp, size_type 
 
 	spParticleInitialize(ctx, sp, NUM_OF_PIC);
 
-	spSyncParticle(ctx, sp);
+	spParticleSync(ctx, sp);
 
 }
 
 /******************************************************************************************/
+
+__constant__ Real cmr_dt;
+__constant__ int3 mesh_offset;
+__constant__ int SP_MESH_NUM_OF_ENTITY_IN_GRID;
+__constant__ float3 mesh_inv_dv;
 
 #define ll 0
 #define rr 1.0
@@ -196,10 +201,6 @@ __global__ void spUpdateParticle_push_Boris_Kernel(spPage** buckets, const Real 
 
 }
 
-__constant__ Real cmr_dt;
-__constant__ int3 mesh_offset;
-__constant__ int SP_MESH_NUM_OF_ENTITY_IN_GRID;
-__constant__ float3 mesh_inv_dv;
 __global__ void spUpdateParticle_sort_Boris_kernel(spPage ** buckets)
 {
 
@@ -314,8 +315,8 @@ __global__ void spUpdateParticle_scatter_Boris_kernel(spPage ** buckets, Real *f
 
 }
 
-void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const sp_field_type *fE,
-		const sp_field_type *fB, sp_field_type *fRho, sp_field_type *fJ)
+void spBorisYeeUpdateParticle(spMesh *ctx, Real dt, sp_particle_type *pg, const spField *fE,
+		const spField *fB, spField *fRho, spField *fJ)
 {
 
 	float3 t_inv_dv = make_float3(dt / ctx->dx.x, dt / ctx->dx.y, dt / ctx->dx.z);
@@ -336,7 +337,7 @@ void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const
 
 	cudaDeviceSynchronize();        //wait for iteration to finish
 
-	spSyncParticle(ctx, pg);
+	spParticleSync(ctx, pg);
 	spSyncField(ctx, fJ);
 	spSyncField(ctx, fRho);
 
@@ -346,8 +347,8 @@ void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const
 __global__ void spUpdateField_Yee_kernel(const Real *fJ, Real *fE, Real *fB)
 {
 }
-void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type *fRho, const sp_field_type *fJ, sp_field_type *fE,
-		sp_field_type *fB)
+void spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE,
+		spField *fB)
 {
 	spUpdateField_Yee_kernel<<<ctx->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(((Real*) fJ->device_data),
 			((Real*) fE->device_data), ((Real*) fB->device_data));

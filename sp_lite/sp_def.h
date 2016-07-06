@@ -20,16 +20,10 @@ typedef int Integral;
 typedef int64_t id_type;
 typedef int64_t index_type;
 typedef uint64_t size_type;
-enum
-{
-	SP_TYPE_float, SP_TYPE_double, SP_TYPE_int, SP_TYPE_long, SP_TYPE_OPAQUE
-};
-#define SP_TYPE_Real SP_TYPE_float
 
-enum
-{
-	SP_FILE_NEW = 1UL << 1, SP_FILE_APPEND = 1UL << 2, SP_FILE_BUFFER = (1UL << 3), SP_FILE_RECORD = (1UL << 4)
-};
+#define SP_SUCCESS 0
+#define SP_FAILED  1
+
 
 #ifdef __CUDACC__
 

@@ -9,6 +9,7 @@
 #define SPMESH_H_
 #include "sp_def.h"
 #include "spObject.h"
+#include "spMPI.h"
 
 struct spMesh_s
 {
@@ -30,19 +31,21 @@ struct spMesh_s
 	dim3 *shared_blocks;
 	dim3 private_block;
 	dim3 threadsPerBlock;
+
+	spMPI * mpi_comm;
 };
 
 typedef struct spMesh_s spMesh;
 
-void spCreateMesh(spMesh **ctx);
+void spMeshCreate(spMesh **ctx);
 
-void spDestroyMesh(spMesh **ctx);
+void spMeshDestroy(spMesh **ctx);
 
-void spInitializeMesh(spMesh *self);
+void spMeshDeploy(spMesh *self);
 
-int spWriteMesh(const spMesh *ctx, const char *name, int flag);
+int spMeshWrite(const spMesh *ctx, const char *name, int flag);
 
-int spReadMesh(spMesh *ctx, char const name[], int flag);
+int spMeshRead(spMesh *ctx, char const name[], int flag);
 
 size_type spMeshGetNumberOfEntity(spMesh const *, int iform);
 

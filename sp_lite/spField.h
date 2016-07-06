@@ -8,6 +8,9 @@
 #ifndef SPFIELD_H_
 #define SPFIELD_H_
 #include "sp_def.h"
+#include "spIOStream.h"
+#include "spMPI.h"
+
 #include "spObject.h"
 #include "spMesh.h"
 
@@ -17,18 +20,18 @@ typedef struct spField_s
 	int iform;
 	Real * device_data;
 	Real * host_data;
-} sp_field_type;
+} spField;
 
-MC_HOST void spCreateField(const spMesh *ctx, sp_field_type **f, int iform);
+void spFieldCreate(const spMesh *ctx, spField **f, int iform);
 
-MC_HOST void spDestroyField(sp_field_type **f);
+void spFieldDestroy(spField **f);
 
-MC_HOST void spClearField(spMesh const *mesh, sp_field_type *f);
+void spFieldClear(spMesh const *mesh, spField *f);
 
-MC_HOST int spWriteField(spMesh const *ctx, sp_field_type *f, char const name[], int flag);
+int spFieldWrite(spMesh const *ctx, spField *f, spIOStream * file, char const name[], int flag);
 
-MC_HOST int spReadField(spMesh const *ctx, sp_field_type **f, char const name[], int flag);
+int spFieldRead(spMesh const *ctx, spField **f, spIOStream * file, char const name[], int flag);
 
-MC_HOST int spSyncField(spMesh const *ctx, sp_field_type *f);
+int spSyncField(spMesh const *ctx, spField *f);
 
 #endif /* SPFIELD_H_ */
