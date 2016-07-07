@@ -9,7 +9,16 @@
 #define SPMESH_H_
 
 #include "sp_lite_def.h"
+#include "spParallel.h"
 #include "spObject.h"
+
+union MeshEntityId_u
+{
+    struct { int16_t w, z, y, x; };
+    int64_t v;
+
+};
+typedef union MeshEntityId_u MeshEntityId;
 
 struct spMesh_s
 {
@@ -18,11 +27,9 @@ struct spMesh_s
     int ndims;
 
     dim3 dims;
-    dim3 x_lower;
-    dim3 x_upper;
+    dim3 i_lower;
+    dim3 i_upper;
 
-    int4 offset;
-    int4 count;
 
     size_type number_of_idx;
     size_type *cell_idx;

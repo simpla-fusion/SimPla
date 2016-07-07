@@ -12,9 +12,13 @@
 
 enum
 {
-    SP_TYPE_float, SP_TYPE_double, SP_TYPE_int, SP_TYPE_long, SP_TYPE_OPAQUE
+    SP_TYPE_float, SP_TYPE_double, SP_TYPE_int, SP_TYPE_long, SP_TYPE_int64_t, SP_TYPE_OPAQUE
 };
+
 #define SP_TYPE_Real SP_TYPE_float
+
+#define SP_TYPE_int64_t  SP_TYPE_MeshEntityId
+
 enum
 {
     SP_FILE_NEW = 1UL << 1, SP_FILE_APPEND = 1UL << 2, SP_FILE_BUFFER = (1UL << 3), SP_FILE_RECORD = (1UL << 4)
@@ -76,7 +80,9 @@ void spIOStreamCreate(spIOStream **);
 
 void spIOStreamDestroy(spIOStream **);
 
-void spIOStreamOpen(spIOStream *, char const url[], int flag);
+void spIOStreamPWD(spIOStream *, char url[]);
+
+void spIOStreamOpen(spIOStream *, const char url[]);
 
 void spIOStreamClose(spIOStream *);
 
@@ -84,7 +90,7 @@ void spIOStreamWrite(spIOStream *, char const name[], spDataSet const *);
 
 void spIOStreamRead(spIOStream *, char const name[], spDataSet const *);
 
-void hdf5_write_field(spIOStream *, char const name[], //
-                      void *d, int ndims, size_t const *dims, size_t const *start, size_t const *count, int flag);
+void spIOStreamWriteSimple(spIOStream *, const char *name, //
+                           void *d, int ndims, size_t const *dims, size_t const *start, size_t const *count, int flag);
 
 #endif /* SPSIMPLAWRAP_H_ */

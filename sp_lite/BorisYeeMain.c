@@ -4,7 +4,7 @@
  *  Created on: 2016年6月15日
  *      Author: salmon
  */
-//#include <cuda.h>
+#include <assert.h>
 
 #include <stdio.h>
 
@@ -14,8 +14,12 @@
 #include "spMesh.h"
 #include "spField.h"
 #include "spParticle.h"
-#include "Boris.h"
+
 #include "BorisYee.h"
+#include "spPage.h"
+
+
+
 
 int main(int argc, char **argv)
 {
@@ -59,7 +63,7 @@ int main(int argc, char **argv)
 
     spIOStreamCreate(&os);
 
-    spIOStreamOpen(os, "untitled.h5", SP_FILE_NEW);
+    spIOStreamOpen(os, "untitled.h5");
 
     spFieldWrite(fE, os, "/start/E", SP_FILE_NEW);
     spFieldWrite(fB, os, "/start/B", SP_FILE_NEW);
@@ -80,7 +84,7 @@ int main(int argc, char **argv)
         --count;
     }
     printf("======  The End ======\n");
-    spParallelGlobalSync();
+    spParallelThreadSync();
 
 //	spFieldWrite( fE, "/dump/E", SP_FILE_NEW);
 //	spFieldWrite( fB, "/dump/B", SP_FILE_NEW);

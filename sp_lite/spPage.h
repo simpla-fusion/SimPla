@@ -44,12 +44,13 @@ typedef unsigned int bucket_entity_flag_t;
  *               11             00              01
  * ---------+------------+-------@--------+-------------+---------------
  */
-typedef byte_type spEntity;
-#define SP_PAGE_HEAD struct spPage_s *next;	bucket_entity_flag_t flag;
+
+#define SP_PAGE_HEAD struct spPage_s *next;  int tail; void *data;
+
 typedef struct spPage_s
 {
-	SP_PAGE_HEAD
-	void *data;
+    SP_PAGE_HEAD
+    void __other[];
 } spPage;
 //
 ///***************************************************************************/

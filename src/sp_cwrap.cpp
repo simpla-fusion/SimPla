@@ -60,7 +60,7 @@ void spIOStreamCreate(spIOStream **) { }
 
 void spIOStreamDestroy(spIOStream **) { };
 
-void spIOStreamOpen(spIOStream *, char const url[], int flag) { }
+void spIOStreamOpen(spIOStream *, const char url[]) { }
 
 void spIOStreamClose(spIOStream *) { }
 
@@ -68,8 +68,8 @@ void spIOStreamWrite(spIOStream *, char const name[], spDataSet const *) { }
 
 void spIOStreamRead(spIOStream *, char const name[], spDataSet const *) { }
 
-void hdf5_write_field(spIOStream *, char const name[], //
-                      void *d, int ndims, size_t const *dims, size_t const *start, size_t const *count, int flag) { }
+void spIOStreamWriteSimple(spIOStream *, const char *name, //
+                           void *d, int ndims, size_t const *dims, size_t const *start, size_t const *count, int flag) { }
 
 
 struct spDistributedObject_s;

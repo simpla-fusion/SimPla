@@ -16,7 +16,7 @@ void spParallelFinalize()
 
 }
 
-void spParallelGlobalSync()
+void spParallelThreadSync()
 {
     CUDA_CHECK_RETURN(cudaDeviceSynchronize()); // Wait for the GPU launched work to complete
 }
@@ -30,7 +30,10 @@ void spParallelDeviceMalloc(void **p, size_type s)
 
 void spParallelDeviceFree(void *p)
 {
-    CUDA_CHECK_RETURN(cudaFree(p));
+    if (p != NULL)
+    {
+        CUDA_CHECK_RETURN(cudaFree(p));
+    }
 }
 
 void spParallelMemcpy(void *dest, void const *src, size_type s)
@@ -49,5 +52,27 @@ void spParallelMemcpyToSymbol(void *dest, void const *src, size_type s)
 void spParallelMemset(void *dest, byte_type v, size_type s)
 {
     CUDA_CHECK_RETURN(cudaMemset(dest, v, s));
+}
+
+MC_HOST_DEVICE inline int sp_is_device_ptr(void const *p)
+{
+    cudaPointerAttributes attribute;
+    CUDA_CHECK(cudaPointerGetAttributes(&attribute, p));
+    return (attribute.device == cudaMemoryTypeDevice);
 
 }
+
+MC_HOST_DEVICE inline int sp_pointer_type(void const *p)
+{
+    cudaPointerAttributes attribute;
+    CUDA_CHECK(cudaPointerGetAttributes(&attribute, p));
+    return (attribute.device);
+
+}
+
+MC_DEVICE void spParallelSyncThreads() { __syncthreads(); }
+
+
+MC_DEVICE float spAtomicAdd(float *v, float d) { return atomicAdd(v, d); }
+
+MC_DEVICE int spAtomicAdd(int *, int) { return atomicAdd(v, d); }

@@ -17,13 +17,6 @@ void spFieldCreate(const spMesh *mesh, spField **f, int iform)
     (*f)->iform = iform;
     (*f)->host_data = NULL;
     (*f)->device_data = NULL;
-
-    size_type num_of_entities = spMeshGetNumberOfEntity(mesh, iform);
-
-    spParallelDeviceMalloc((void **) &((*f)->device_data), num_of_entities * sizeof(Real));
-
-    (*f)->host_data = (Real *) malloc(num_of_entities * sizeof(Real));
-
 }
 
 void spFieldDestroy(spField **f)
@@ -43,24 +36,52 @@ void spFieldDestroy(spField **f)
     }
 }
 
-void spFieldClear(spField *f)
+void spFieldDeploy(spField *f)
 {
-    size_type num_of_entities = spMeshGetNumberOfEntity(f->m, f->iform);
-
-    if (f->device_data != NULL)
+    if (f->device_data == NULL)
     {
-        spParallelMemset(f->device_data, 0, num_of_entities * sizeof(Real));
+        size_type num_of_entities = spMeshGetNumberOfEntity(f->m, f->iform);
+        spParallelDeviceMalloc((void **) &(f->device_data), num_of_entities * sizeof(Real));
     }
 }
 
-void spFieldWrite(spField *f, spIOStream *file, char const url[], int flag)
+void spFieldClear(spField *f)
 {
-//	size_type num_of_entities = spMeshGetNumberOfEntity(mesh, f->iform);
-//	assert(f->host_data != 0);
-//	CUDA_CHECK_RETURN(cudaMemcpy((void* ) (f->host_data), (void* ) (f->device_data), num_of_entities * sizeof(Real),
-//					cudaMemcpyDeviceToHost));
-//	int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;
-//	hdf5_write_field(url, (void*) f->host_data, ndims, mesh->dims, mesh->offset, mesh->count, flag);
+    spFieldDeploy(f);
+    size_type num_of_entities = spMeshGetNumberOfEntity(f->m, f->iform);
+    spParallelMemset(f->device_data, 0, num_of_entities * sizeof(Real));
+}
+
+void spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
+{
+    size_type size_in_byte = spMeshGetNumberOfEntity(f->m, f->iform) * sizeof(Real);
+
+    void *f_host = malloc(size_in_byte);
+
+    spParallelMemcpy((f_host), (void *) (f->device_data), size_in_byte);
+
+    int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;
+
+    size_type shape[4];
+    size_type start[4];
+    size_type count[4];
+
+    shape[0] = f->m->dims.x;
+    shape[1] = f->m->dims.y;
+    shape[2] = f->m->dims.z;
+    shape[3] = 3;
+    start[0] = f->m->i_lower.x;
+    start[1] = f->m->i_lower.y;
+    start[2] = f->m->i_lower.z;
+    start[3] = 0;
+    count[0] = f->m->i_upper.x - f->m->i_lower.x;
+    count[1] = f->m->i_upper.y - f->m->i_lower.y;
+    count[2] = f->m->i_upper.z - f->m->i_lower.z;
+    count[3] = 3;
+
+    spIOStreamWriteSimple(os, name, f_host, ndims, shape, start, count, flag);
+
+    free(f_host);
 
 }
 
