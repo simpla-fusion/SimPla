@@ -49,9 +49,10 @@ typedef unsigned int bucket_entity_flag_t;
 
 typedef struct spPage_s
 {
-    SP_PAGE_HEAD
-    void __other[];
+	SP_PAGE_HEAD
+	byte_type __other[];
 } spPage;
+
 //
 ///***************************************************************************/
 ///**

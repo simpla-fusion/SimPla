@@ -79,7 +79,7 @@ void spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     count[2] = f->m->i_upper.z - f->m->i_lower.z;
     count[3] = 3;
 
-    spIOStreamWriteSimple(os, name, f_host, ndims, shape, start, count, flag);
+//    spIOStreamWriteSimple(os, name, f_host, ndims, shape, start, count, flag);
 
     free(f_host);
 
