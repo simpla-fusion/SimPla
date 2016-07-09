@@ -21,7 +21,7 @@ struct boris_s
 	Real w;
 };
 
-void spBorisYeeInitializeParticle(spParticle *pg, int NUM_OF_PIC);
+void spBorisYeeInitializeParticle(spParticle *pg, size_type NUM_OF_PIC);
 
 void spBorisYeeUpdateParticle(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho,
 		spField *fJ);

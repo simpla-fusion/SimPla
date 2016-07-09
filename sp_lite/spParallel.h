@@ -120,6 +120,7 @@ MC_DEVICE unsigned int spParallelBlockNum();
 MC_HOST void spParallelMemcpy(void *, void const *, size_type);
 
 #define spAtomicAdd(_ADDR_,_V_) atomicAdd(_ADDR_,_V_)
+#define spAtomicSub(_ADDR_,_V_) atomicSub(_ADDR_,_V_)
 
 #define spParallelSyncThreads __syncthreads
 

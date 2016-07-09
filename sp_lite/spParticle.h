@@ -40,7 +40,7 @@ struct spParticle_s
 	struct spParticleAttrEntity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
 	void *data;
-	struct spPage_s *m_page_pool_;
+	struct spPage_s *m_page_pool_; //DEVICE
 	struct spPage_s *m_pages_holder;
 	struct spPage_s **buckets;
 
@@ -58,7 +58,7 @@ struct spParticlePoint_s
 #define SP_MP_FINISHED 0xFFFF
 
 MC_DEVICE extern int spParticleMapAndPack(spPage **dest, spPage const **src, int *d_tail, int *g_d_tail, int *s_tail,
-		int *g_s_tail, /*spPage **pool,*/MeshEntityId tag);
+		int *g_s_tail, spPage **pool, MeshEntityId tag);
 
 #define ADD_PARTICLE_ATTRIBUTE(_SP_, _S_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_), offsetof(_S_,_N_));
 

@@ -13,6 +13,7 @@
 // digits of bucket_page_status_flag_t
 #define SP_NUMBER_OF_ENTITIES_IN_PAGE 128
 
+
 typedef unsigned int bucket_entity_flag_t;
 
 /**

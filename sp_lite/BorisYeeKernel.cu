@@ -11,6 +11,88 @@
 #include "spPage.h"
 #include "BorisYee.h"
 
+MC_DEVICE spPage *spPageAtomicNext(spPage **pp)
+{
+	spPage *assumed;
+	spPage *old = *pp;
+	do
+	{
+		assumed = old;
+		old = (spPage *) (atomicCAS((unsigned long long *) pp, (unsigned long long) assumed,
+				(unsigned long long) (old->next)));
+// Note: uses integer comparison to avoid hang in case of NaN (since NaN !=        NaN)
+	} while (assumed != old);
+	return (old);
+
+}
+
+MC_GLOBAL void spBorisleInitializeParticKernel(spPage **bucket, spPage ** pool, size_type PIC)
+{
+
+	size_type block_num = spParallelBlockNum();
+
+//	while (PIC > 0)
+//	{
+//		spParallelSyncThreads();
+//
+//		if (spParallelThreadNum() == 0)
+//		{
+//			if (spParallelBlockNum() == 0)
+//			{
+//				CUDA_CHECK(spParallelThreadNum());
+//			}
+//			spPage * t = spPageAtomicNext(pool);
+//
+//			CUDA_CHECK(t);
+//
+//			t->next = bucket[block_num];
+//
+//			bucket[block_num] = t;
+//
+//			PIC -= SP_NUMBER_OF_ENTITIES_IN_PAGE;
+//		}
+//		spParallelSyncThreads();
+//
+//		spPage *pg = bucket[block_num];
+//
+//		for (int s = spParallelThreadNum(); s < SP_NUMBER_OF_ENTITIES_IN_PAGE && s < PIC; s += spParallelNumOfThreads())
+//		{
+//			P_GET((pg)->data, struct boris_s, Real, rx, s) = 0.5;
+//			P_GET((pg)->data, struct boris_s, Real, ry, s) = 0.5;
+//			P_GET((pg)->data, struct boris_s, Real, rz, s) = 0.5;
+//			P_GET((pg)->data, struct boris_s, Real, vx, s) = 1;
+//			P_GET((pg)->data, struct boris_s, Real, vy, s) = 1;
+//			P_GET((pg)->data, struct boris_s, Real, vz, s) = 1;
+//		}
+//
+//	}
+
+}
+
+void spBorisYeeInitializeParticle(spParticle *sp, size_type NUM_OF_PIC)
+{
+	ADD_PARTICLE_ATTRIBUTE(sp, struct boris_s, Real, vx);
+	ADD_PARTICLE_ATTRIBUTE(sp, struct boris_s, Real, vy);
+	ADD_PARTICLE_ATTRIBUTE(sp, struct boris_s, Real, vz);
+	ADD_PARTICLE_ATTRIBUTE(sp, struct boris_s, Real, f);
+	ADD_PARTICLE_ATTRIBUTE(sp, struct boris_s, Real, w);
+
+	spParticleDeploy(sp, NUM_OF_PIC);
+
+	spBorisleInitializeParticKernel<<<sp->m->dims,NUMBER_OF_THREADS_PER_BLOCK>>>(sp->buckets, &(sp->m_page_pool_), NUM_OF_PIC);
+
+	/*    @formatter:off */
+
+//	spUpdateParticleBorisScatterBlockKernel<<< sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
+//			(fRho->device_data), ( fJ->device_data));
+	/*    @formatter:on */
+
+	spParallelDeviceSync();        //wait for iteration to finish
+
+	spParticleSync(sp);
+
+}
+
 /******************************************************************************************/
 
 MC_CONSTANT Real cmr_dt;
@@ -49,7 +131,8 @@ MC_DEVICE void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 #undef IY
 #undef IZ
 
-MC_GLOBAL void spUpdateParticleBorisPushKernel(spPage **pg, const Real *tE, const Real *tB, Real3 inv_dv, Real cmr_dt)
+MC_GLOBAL void spBorisYeeUpdateParticleKernel(spPage **pg, spPage ** pool, const Real *tE, const Real *tB, Real3 inv_dv,
+		Real cmr_dt)
 {
 
 	spPage *dest, *src;
@@ -75,7 +158,7 @@ MC_GLOBAL void spUpdateParticleBorisPushKernel(spPage **pg, const Real *tE, cons
 	dest = pg[block_idx.x + (block_idx.y * grid_dims.z + block_idx.z) * grid_dims.z];
 
 	for (int d_tail = 0, s_tail = 0;
-			spParticleMapAndPack(&dest, (const spPage **) &src, &d_tail, &g_d_tail, &s_tail, &g_s_tail, tag)
+			spParticleMapAndPack(&dest, (const spPage **) &src, &d_tail, &g_d_tail, &s_tail, &g_s_tail, pool, tag)
 					!= SP_MP_FINISHED;)
 	{
 
@@ -159,14 +242,15 @@ MC_GLOBAL void spUpdateParticleBorisPushKernel(spPage **pg, const Real *tE, cons
 void spBorisYeeUpdateParticle(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho, spField *fJ)
 {
 
-	float3 inv_dv;
+	Real3 inv_dv;
 	inv_dv.x = dt / sp->m->dx.x;
 	inv_dv.y = dt / sp->m->dx.y;
 	inv_dv.z = dt / sp->m->dx.z;
 
 	Real cmr_dt = dt * sp->charge / sp->mass;
 
-	spUpdateParticleBorisPushKernel<<<sp->m->dims,NUMBER_OF_THREADS_PER_BLOCK>>>(sp->buckets,fE->device_data,fB->device_data,inv_dv,cmr_dt);
+	spBorisYeeUpdateParticleKernel<<<sp->m->dims,NUMBER_OF_THREADS_PER_BLOCK>>>(sp->buckets,&(sp->m_page_pool_),
+			(Real const *) fE->device_data,(Real const *)fB->device_data,inv_dv,cmr_dt);
 
 	/*    @formatter:off */
 
