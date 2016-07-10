@@ -57,9 +57,7 @@ int main(int argc, char **argv)
 	spIOStream *os = NULL;
 
 	spIOStreamCreate(&os);
-
 	spIOStreamOpen(os, "untitled.h5");
-
 	spIOStreamOpen(os, "/start/");
 
 	spFieldWrite(fE, os, "E", SP_FILE_NEW);

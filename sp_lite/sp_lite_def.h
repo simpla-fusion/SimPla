@@ -26,6 +26,7 @@ typedef uint64_t size_type;
 #define SP_SUCCESS 0
 #define SP_FAILED  1
 #define DONE        printf( "====== DONE ======\n" );
-#define CHECK        printf( "[ line %d in file%s]====== CHECK ======\n", __LINE__, __FILE__ );
+#define CHECK(_MSG_)        printf( "%s:%d:0:%s: %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_) );
+#define CHECK_INT(_MSG_)    printf( "%s:%d:0:%s: %s = %d \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(int)(_MSG_) );
 
 #endif /* SP_DEF_LITE_H_ */
