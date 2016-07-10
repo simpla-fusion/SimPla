@@ -20,18 +20,32 @@ void spParallelDeviceSync()
 {
 	CUDA_CHECK_RETURN(cudaDeviceSynchronize()); // Wait for the GPU launched work to complete
 }
+void spParallelHostMalloc(void **p, size_type s)
+{
+	CUDA_CHECK_RETURN(cudaHostAlloc(p, s, cudaHostAllocDefault););
 
-void spParallelDeviceMalloc(void **p, size_type s)
+}
+
+void spParallelHostFree(void **p)
+{
+	if (*p != NULL)
+	{
+		cudaFreeHost(*p);
+		*p = NULL;
+	}
+}
+MC_HOST void spParallelDeviceMalloc(void **p, size_type s)
 {
 	CUDA_CHECK_RETURN(cudaMalloc(p, s));
 
 }
 
-void spParallelDeviceFree(void *p)
+MC_HOST void spParallelDeviceFree(void **p)
 {
-	if (p != NULL)
+	if (*p != NULL)
 	{
-		CUDA_CHECK_RETURN(cudaFree(p));
+		CUDA_CHECK_RETURN(cudaFree(*p));
+		*p = NULL;
 	}
 }
 MC_HOST void spParallelMemcpy(void *dest, void const *src, size_type s)

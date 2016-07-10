@@ -13,6 +13,7 @@
 
 #include "../data_model/DataSet.h"
 #include "../data_model/DataType.h"
+#include "IOStream.h"
 #include "HDF5Stream.h"
 
 namespace simpla { namespace io

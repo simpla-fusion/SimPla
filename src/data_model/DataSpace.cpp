@@ -104,7 +104,7 @@ DataSpace DataSpace::create_simple(int ndims, const size_t *dims)
 
 std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_t count)
 {
-    ptrdiff_t offset = 0;
+    size_t offset = 0;
     size_t total_count = count;
     std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
     DataSpace memory_space = data_model::DataSpace::create_simple(1, &count);
@@ -256,7 +256,7 @@ void DataSpace::select_points(size_t num, const size_t *tags)
     );
 }
 
-DataSpace &DataSpace::select_hyperslab(const ptrdiff_t *start,
+DataSpace &DataSpace::select_hyperslab(const size_t *start,
                                        size_t const *_stride,
                                        size_t const *count,
                                        size_t const *_block)

@@ -7,6 +7,10 @@
 
 #include "sp_lite_def.h"
 
+#ifndef NUMBER_OF_THREADS_PER_BLOCK
+#	define NUMBER_OF_THREADS_PER_BLOCK 128
+#endif //NUMBER_OF_THREADS_PER_BLOCK
+
 #ifndef __CUDACC__
 typedef struct
 {	int x, y, z;}int3;
@@ -28,8 +32,6 @@ typedef struct
 #define MC_SHARED
 #define MC_CONSTANT static
 #define MC_GLOBAL
-
-#define NUMBER_OF_THREADS_PER_BLOCK 1
 
 #define CUDA_CHECK_RETURN(_CMD_) _CMD_
 
@@ -54,10 +56,6 @@ typedef struct
 #else  //__CUDACC__
 
 typedef float3 Real3;
-
-#ifndef NUMBER_OF_THREADS_PER_BLOCK
-#	define NUMBER_OF_THREADS_PER_BLOCK 128
-#endif //NUMBER_OF_THREADS_PER_BLOCK
 
 #define MC_HOST_DEVICE __host__ __device__
 #define MC_HOST __host__
@@ -91,9 +89,13 @@ MC_HOST void spParallelFinalize();
 
 MC_HOST void spParallelDeviceSync();
 
+MC_HOST void spParallelHostMalloc(void **, size_type s);
+
+MC_HOST void spParallelHostFree(void **);
+
 MC_HOST void spParallelDeviceMalloc(void **, size_type s);
 
-MC_HOST void spParallelDeviceFree(void *);
+MC_HOST void spParallelDeviceFree(void **);
 
 MC_HOST void spParallelMemcpy(void *dest, void const *src, size_type s);
 

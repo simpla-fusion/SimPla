@@ -28,9 +28,9 @@ void spFieldDeploy(spField *f);
 
 void spFieldClear(spField *f);
 
-//void spFieldWrite(spField *f, spIOStream * os, char const name[], int flag);
-//
-//void spFieldRead(spField * f, spIOStream * os, char const name[], int flag);
+void spFieldWrite(spField *f, spIOStream * os, char const name[], int flag);
+
+void spFieldRead(spField * f, spIOStream * os, char const name[], int flag);
 
 void spFieldSync(spField *f);
 

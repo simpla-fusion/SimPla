@@ -20,7 +20,7 @@ void spParticleCreate(const spMesh *mesh, spParticle **sp)
 
 	(*sp)->m = mesh;
 	(*sp)->iform = VERTEX;
-	(*sp)->number_of_attrs = 0;
+	(*sp)->num_of_attrs = 0;
 	(*sp)->m_page_pool_ = NULL;
 	(*sp)->m_pages_ = NULL;
 	(*sp)->m_buckets_ = NULL;
@@ -68,8 +68,8 @@ void spParticleDeploy(spParticle *sp, int PIC)
 	size_type num_page_per_cel = (size_type) (PIC * 3 / SP_NUMBER_OF_ENTITIES_IN_PAGE) / 2 + 1;
 	sp->number_of_pages = number_of_cell * num_page_per_cel;
 
-	sp->entity_size_in_byte = (size_type) (sp->attrs[sp->number_of_attrs - 1].size_in_byte
-			+ sp->attrs[sp->number_of_attrs - 1].offsetof);
+	sp->entity_size_in_byte = (size_type) (sp->attrs[sp->num_of_attrs - 1].size_in_byte
+			+ sp->attrs[sp->num_of_attrs - 1].offsetof);
 
 	sp->page_size_in_byte = sizeof(struct spParticlePage_s) + sp->entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
 
@@ -93,9 +93,9 @@ void spParticleDeploy(spParticle *sp, int PIC)
 void spParticleDestroy(spParticle **sp)
 {
 
-	spParallelDeviceFree((void *) ((*sp)->m_buckets_));
-	spParallelDeviceFree((void *) ((*sp)->m_page_pool_));
-	spParallelDeviceFree((void *) ((*sp)->m_pages_));
+	spParallelDeviceFree((void **) &((*sp)->m_buckets_));
+	spParallelDeviceFree((void **) &((*sp)->m_page_pool_));
+	spParallelDeviceFree((void **) &((*sp)->m_pages_));
 
 	free(*sp);
 	*sp = NULL;
@@ -104,23 +104,23 @@ void spParticleDestroy(spParticle **sp)
 struct spParticleAttrEntity_s *spParticleAddAttribute(spParticle *pg, char const *name, int type_tag,
 		size_type size_in_byte, int offset)
 {
-	struct spParticleAttrEntity_s *res = &(pg->attrs[pg->number_of_attrs]);
+	struct spParticleAttrEntity_s *res = &(pg->attrs[pg->num_of_attrs]);
 	strcpy(res->name, name);
 	res->type_tag = type_tag;
 	res->size_in_byte = size_in_byte;
 	if (offset == -1)
 	{
-		if (pg->number_of_attrs == 0)
+		if (pg->num_of_attrs == 0)
 		{
 			offset = 0;
 		}
 		else
 		{
-			offset = pg->attrs[pg->number_of_attrs - 1].offsetof + pg->attrs[pg->number_of_attrs - 1].size_in_byte;
+			offset = pg->attrs[pg->num_of_attrs - 1].offsetof + pg->attrs[pg->num_of_attrs - 1].size_in_byte;
 		}
 	}
 	res->offsetof = offset;
-	++pg->number_of_attrs;
+	++pg->num_of_attrs;
 	return res;
 }
 
@@ -138,14 +138,108 @@ struct spParticleAttrEntity_s *spParticleAddAttribute(spParticle *pg, char const
 //	return res;
 //}
 
-void spParticleWrite(spParticle const *f, spIOStream *os, const char name[], int flag)
+MC_GLOBAL void spParticleDumpKernel(dim3 dims, dim3 start, spParticlePage **buckets, spParticlePage** pages_device,
+		MeshEntityId * ids_device, int * res)
 {
-//	char curr_path[2048];
-//
-//	spIOStreamPWD(os, curr_path);
-//	spIOStreamOpen(os, name);
-//
-//	spIOStreamOpen(os, curr_path);
+	MC_SHARED int count;
+
+	spParallelSyncThreads();
+
+	if (spParallelBlockNum() == 0 && spParallelThreadNum() == 0)
+	{
+		count = 0;
+	}
+	spParallelSyncThreads();
+
+	dim3 block_idx = spParallelBlockIdx();
+	MeshEntityId id;
+	id.x = start.x + block_idx.x;
+	id.y = start.y + block_idx.y;
+	id.z = start.z + block_idx.z;
+
+	spParticlePage * pg = buckets[id.x + (id.y + id.z * dims.y) * dims.y];
+	while (pg != NULL)
+	{
+		int pos = spAtomicAdd(&count, 1);
+		pages_device[pos] = pg;
+		ids_device[pos] = id;
+		pg = pg->next;
+	}
+
+	spParallelSyncThreads();
+	if (spParallelBlockNum() == 0 && spParallelThreadNum() == 0)
+	{
+		*res = count;
+	}
+	spParallelSyncThreads();
+
+}
+void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], int flag)
+{
+	char curr_path[2048];
+
+	spIOStreamPWD(os, curr_path);
+	spIOStreamOpen(os, name);
+
+	spParticlePage** pages_device;
+	spParticlePage** pages_host;
+	MeshEntityId * ids_device;
+	MeshEntityId * ids_host;
+
+	spParallelDeviceMalloc((void**) (&pages_device), sp->number_of_pages * sizeof(spPage*));
+	spParallelDeviceMalloc((void**) (&ids_device), sp->number_of_pages * sizeof(MeshEntityId));
+
+	spParallelHostMalloc((void**) (&pages_host), sp->number_of_pages * sizeof(spPage*));
+	spParallelHostMalloc((void**) (&ids_host), sp->number_of_pages * sizeof(MeshEntityId));
+
+	int *num_of_pages_device;
+	int num_of_pages;
+
+	spParallelDeviceMalloc((void**) (&num_of_pages_device), sizeof(int));
+
+	spParticleDumpKernel<<<sp->m->dims,1>>>(sp->m->dims,sp->m->offset, sp->m_buckets_,pages_device,
+			ids_device, num_of_pages_device);
+
+	spParallelMemcpy((void*) (&num_of_pages), (void*) (num_of_pages_device), sizeof(int));
+
+	spParallelMemcpy((void*) (pages_host), (void*) (pages_device), sp->number_of_pages * sizeof(spPage*));
+	spParallelMemcpy((void*) (ids_host), (void*) (ids_device), sp->number_of_pages * sizeof(MeshEntityId));
+
+	spParallelDeviceFree((void**) &pages_device);
+	spParallelDeviceFree((void**) &ids_device);
+
+	int ndims = 2;
+
+	size_type dims[2];
+	size_type start[2];
+	size_type count[2];
+	dims[0] = num_of_pages;
+	dims[1] = SP_NUMBER_OF_ENTITIES_IN_PAGE;
+	start[0] = 0;
+	start[1] = 0;
+
+	spIOStreamWriteSimple(os, "MeshId", (int) SP_TYPE_MeshEntityId, ids_host, 1, dims, start, dims, (int) flag);
+
+	for (int i = 0; i < sp->num_of_attrs; ++i)
+	{
+		void *d;
+		size_type page_size_in_byte = sp->attrs[i].size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
+		spParallelHostMalloc(&d, num_of_pages * page_size_in_byte);
+
+		for (int j = 0; j < num_of_pages; ++j)
+		{
+			spParallelMemcpy((void*) ((byte_type*) (d) + j * page_size_in_byte),
+					(void const *) (pages_host[j]) + sizeof(spParticlePage), page_size_in_byte);
+		}
+
+		spIOStreamWriteSimple(os, sp->attrs[i].name, sp->attrs[i].type_tag, d, ndims, dims, start, dims, (int) flag);
+
+		spParallelHostFree(&d);
+	}
+
+	spParallelHostFree((void**) &ids_host);
+	spParallelHostFree((void**) &pages_host);
+	spIOStreamOpen(os, curr_path);
 
 }
 

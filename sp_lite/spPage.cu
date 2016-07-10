@@ -10,9 +10,9 @@
 
 MC_DEVICE spPage* spPageAtomicPop(spPage **pg)
 {
-	spPage_s * old = (*pg);
-	spPage_s ** address_as_ull = pg;
-	spPage_s *assumed, *next;
+	spPage * old = (*pg);
+	spPage ** address_as_ull = pg;
+	spPage *assumed, *next;
 	assert(sizeof(unsigned long long int) == sizeof(struct spPapge_s *));
 	do
 	{
@@ -35,7 +35,7 @@ MC_DEVICE spPage* spPageAtomicPop(spPage **pg)
 
 MC_DEVICE spPage* spPageAtomicPush(spPage **pg, spPage* v)
 {
-	spPage_s * old = (*pg);
+	spPage * old = (*pg);
 //	spPage_s ** address_as_ull = pg;
 //	spPage_s *assumed, *next;
 //	assert(sizeof(unsigned long long int) == sizeof(struct spPapge_s *));

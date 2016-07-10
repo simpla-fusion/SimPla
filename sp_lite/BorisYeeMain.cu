@@ -54,38 +54,41 @@ int main(int argc, char **argv)
 	int count = 5;
 	Real dt = 1.0;
 
-//	spIOStream *os = NULL;
-//
-//	spIOStreamCreate(&os);
-//
-//	spIOStreamOpen(os, "untitled.h5");
-//
-//	spFieldWrite(fE, os, "/start/E", SP_FILE_NEW);
-//	spFieldWrite(fB, os, "/start/B", SP_FILE_NEW);
-//	spFieldWrite(fJ, os, "/start/J", SP_FILE_NEW);
-//	spFieldWrite(fRho, os, "/start/rho", SP_FILE_NEW);
+	spIOStream *os = NULL;
 
-	while (count > 0)
-	{
-		printf("====== REMINED STEP= %i ======\n", count);
-		spBorisYeeUpdateParticle(ps, dt, fE, fB, fRho, fJ);
-////		spUpdateField_Yee( dt, fRho, fJ, fE, fB);
+	spIOStreamCreate(&os);
+
+	spIOStreamOpen(os, "untitled.h5");
+
+	spIOStreamOpen(os, "/start/");
+
+	spFieldWrite(fE, os, "E", SP_FILE_NEW);
+	spFieldWrite(fB, os, "B", SP_FILE_NEW);
+	spFieldWrite(fJ, os, "J", SP_FILE_NEW);
+	spFieldWrite(fRho, os, "rho", SP_FILE_NEW);
+	spIOStreamOpen(os, "/checkpoint/");
+//	while (count > 0)
+//	{
+//		printf("====== REMINED STEP= %i ======\n", count);
+//		spBorisYeeUpdateParticle(ps, dt, fE, fB, fRho, fJ);
+//////		spUpdateField_Yee( dt, fRho, fJ, fE, fB);
+//////
+//	spFieldWrite(fE, os, "E", SP_FILE_RECORD);
+//	spFieldWrite(fB, os, "B", SP_FILE_RECORD);
+//	spFieldWrite(fJ, os, "J", SP_FILE_RECORD);
+//	spFieldWrite(fRho, os, "rho", SP_FILE_RECORD);
 ////
-////		spFieldWrite( fE, "/checkpoint/E", SP_FILE_RECORD);
-////		spFieldWrite( fB, "/checkpoint/B", SP_FILE_RECORD);
-////		spFieldWrite( fJ, "/checkpoint/J", SP_FILE_RECORD);
-////		spFieldWrite( fRho, "/checkpoint/rho", SP_FILE_RECORD);
-//
-		--count;
-	}
+//		--count;
+//	}
 	printf("======  The End ======\n");
 	spParallelDeviceSync();
+	spIOStreamOpen(os, "/dump/");
 
-//	spFieldWrite( fE, "/dump/E", SP_FILE_NEW);
-//	spFieldWrite( fB, "/dump/B", SP_FILE_NEW);
-//	spFieldWrite( fJ, "/dump/J", SP_FILE_NEW);
-//	spFieldWrite( fRho, "/dump/rho", SP_FILE_NEW);
-//	spParticleWrite( ps, "/dump/H", SP_FILE_NEW);
+	spFieldWrite(fE, os, "E", SP_FILE_NEW);
+	spFieldWrite(fB, os, "B", SP_FILE_NEW);
+	spFieldWrite(fJ, os, "J", SP_FILE_NEW);
+	spFieldWrite(fRho, os, "rho", SP_FILE_NEW);
+	spParticleWrite(ps, os, "H", SP_FILE_NEW);
 
 	spFieldDestroy(&fE);
 	spFieldDestroy(&fB);
@@ -94,7 +97,7 @@ int main(int argc, char **argv)
 	spParticleDestroy(&ps);
 	spMeshDestroy(&mesh);
 
-//	spIOStreamDestroy(&os);
+	spIOStreamDestroy(&os);
 
 	spParallelFinalize();
 

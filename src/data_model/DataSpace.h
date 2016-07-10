@@ -85,7 +85,7 @@ public:
 
 
     // TODO complete support H5Sselect_hyperslab:H5S_seloper_t
-    DataSpace &select_hyperslab(const ptrdiff_t *start,
+    DataSpace &select_hyperslab(const size_t *start,
                                 size_t const *_stride,
                                 size_t const *count,
                                 size_t const *_block);

@@ -1,7 +1,7 @@
-#cmake_minimum_required(VERSION 2.8)
-#SET(CMAKE_VERBOSE_MAKEFILE ON)
-#
-#PROJECT(sp_lite C)
+cmake_minimum_required(VERSION 2.8)
+SET(CMAKE_VERBOSE_MAKEFILE ON)
+
+PROJECT(sp_lite C CXX)
 
 FIND_PACKAGE(MPI)
 
@@ -24,12 +24,12 @@ ENDIF (HDF5_FOUND)
 
 FIND_PACKAGE(CUDA 7.5 REQUIRED)
 
-FILE(GLOB sp_lite_SRC ./*.c)
-add_library(sp_lite ${sp_lite_SRC})
+SET(CUDA_SEPARABLE_COMPILATION ON)
 
 ADD_DEFINITIONS(-DUSE_CUDA -DENABLE_SOA -DNUMBER_OF_THREADS_PER_BLOCK=256)
-SET(CUDA_NVCC_FLAGS -DENABLE_SOA --maxrregcount=32)
-FILE(GLOB sp_boris_yee_SRC ./*.cu)
-CUDA_ADD_EXECUTABLE(sp_boris_yee ${sp_boris_yee_SRC})
-TARGET_LINK_LIBRARIES(sp_boris_yee sp_lite)
 
+FILE(GLOB sp_lite_SRC ./*.cu)
+
+CUDA_ADD_EXECUTABLE(sp_lite ${sp_lite_SRC})
+
+TARGET_LINK_LIBRARIES(sp_lite ${CMAKE_CURRENT_BINARY_DIR}/libsp_cwrap.so)

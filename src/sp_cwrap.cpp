@@ -12,13 +12,12 @@
 #include "../src/data_model/DataSet.h"
 #include "../src/data_model/DataType.h"
 #include "../src/data_model/DataSpace.h"
+#include "sp_cwrap.h"
 
 //#include "spSimPlaWrap.h"
 //#include "sp_def.h"
 
 using namespace simpla;
-
-
 
 struct spDataType_s;
 typedef struct spDataType_s spDataType;
@@ -27,7 +26,7 @@ void spDataTypeCreate(spDataType **) { }
 
 void spDataTypeDestroy(spDataType **) { }
 
-bool spDataTypeIsValid(spDataType const *) { }
+int spDataTypeIsValid(spDataType const *) { return true; }
 
 void spDataTypeExtent(spDataType *, int rank, size_t const *d) { }
 
@@ -53,23 +52,77 @@ void spDataSetCreate(spDataSet **, void *d, spDataType const *dtype, spDataSpace
 void spDataSetDestroy(spDataSet *) { }
 
 
-struct spIOStream_s;
+struct spIOStream_s
+{
+    std::shared_ptr<io::IOStream> m_stream_;
+};
 typedef struct spIOStream_s spIOStream;
 
-void spIOStreamCreate(spIOStream **) { }
+void spIOStreamCreate(spIOStream **os)
+{
+    *os = new spIOStream;
+    (*os)->m_stream_ = std::make_shared<io::HDF5Stream>();
 
-void spIOStreamDestroy(spIOStream **) { };
+}
 
-void spIOStreamOpen(spIOStream *, const char url[]) { }
+void spIOStreamDestroy(spIOStream **os)
+{
+    if (*os != nullptr) { delete *os; };
+    *os = nullptr;
+};
 
-void spIOStreamClose(spIOStream *) { }
+void spIOStreamPWD(spIOStream *os, char url[])
+{
+    strcpy(url, os->m_stream_->pwd().c_str());
+};
+
+void spIOStreamOpen(spIOStream *os, const char url[])
+{
+    os->m_stream_->open(url);
+}
+
+void spIOStreamClose(spIOStream *os) { os->m_stream_->close(); }
 
 void spIOStreamWrite(spIOStream *, char const name[], spDataSet const *) { }
 
 void spIOStreamRead(spIOStream *, char const name[], spDataSet const *) { }
 
-void spIOStreamWriteSimple(spIOStream *, const char *name, //
-                           void *d, int ndims, size_t const *dims, size_t const *start, size_t const *count, int flag) { }
+void spIOStreamWriteSimple(spIOStream *os, const char *url, int d_type,//
+                           void *d, int ndims, size_t const *dims, size_t const *start, size_t const *count,
+                           int flag)
+{
+
+    simpla::data_model::DataSet dset;
+    dset.data_space = data_model::DataSpace(ndims, &count[0]);
+    dset.memory_space = data_model::DataSpace(ndims, &dims[0]);
+    dset.memory_space.select_hyperslab(&start[0], nullptr, &count[0], nullptr);
+    switch (d_type)
+    {
+        case SP_TYPE_float:
+            dset.data_type = data_model::DataType::create<float>();
+            break;
+        case SP_TYPE_double:
+            dset.data_type = data_model::DataType::create<double>();
+            break;
+
+        case SP_TYPE_int:
+            dset.data_type = data_model::DataType::create<int>();
+            break;
+
+        case SP_TYPE_long:
+            dset.data_type = data_model::DataType::create<long>();
+            break;
+        case SP_TYPE_int64_t:
+            dset.data_type = data_model::DataType::create<int64_t>();
+            break;
+        default:
+            break;
+    }
+
+    dset.data = std::shared_ptr<void>(d, tags::do_nothing());
+
+    INFORM << os->m_stream_->write(url, dset, flag) << std::endl;
+}
 
 
 struct spDistributedObject_s;
@@ -103,7 +156,7 @@ void spDistributeObjectWait(struct spDistributedObject_s *obj)
     obj->self.wait();
 }
 
-void hdf5_write_field(char const url[], void *d, int ndims, size_type const *dims, ptrdiff_t const *offset,
+void hdf5_write_field(const char *url, void *d, int ndims, size_type const *dims, const size_type *offset,
                       size_type const *count, int flag)
 {
     simpla::data_model::DataSet dset;
@@ -124,4 +177,4 @@ void spDistributedObjectAddSendLink(spDistributedObject *, size_t id, const ptrd
 
 void spDistributedObjectAddRecvLink(spDistributedObject *, size_t id, const ptrdiff_t offset[3], spDataSet *) { }
 
-bool spDistributedObjectIsReady(spDistributedObject const *) { }
+int spDistributedObjectIsReady(spDistributedObject const *) { return true; }

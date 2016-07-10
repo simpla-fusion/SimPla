@@ -46,7 +46,7 @@ struct spParticle_s
 	int iform;
 	Real mass;
 	Real charge;
-	int number_of_attrs;
+	int num_of_attrs;
 	struct spParticleAttrEntity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
 	size_type number_of_pages;
@@ -89,9 +89,9 @@ void *spParticleGetAttribute(spParticle *sp, char const *name);
 
 void spParticleDeploy(struct spParticle_s *sp, int PIC);
 
-//void spParticleWrite(spParticle const *f, spIOStream *os, const char url[], int flag);
-//
-//void spParticleRead(struct spParticle_s *f, spIOStream *os, char const url[], int flag);
+void spParticleWrite(spParticle const *f, spIOStream *os, const char url[], int flag);
+
+void spParticleRead(struct spParticle_s *f, spIOStream *os, char const url[], int flag);
 
 void spParticleSync(struct spParticle_s *f);
 

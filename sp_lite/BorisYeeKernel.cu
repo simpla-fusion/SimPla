@@ -3,7 +3,7 @@
 //
 
 #include <assert.h>
-#include <cmath>
+#include <math.h>
 #include "sp_lite_def.h"
 #include "spField.h"
 #include "spMesh.h"
@@ -16,41 +16,33 @@ MC_GLOBAL void spBorisleInitializeParticKernel(spParticlePage **bucket, spPartic
 
 	size_type block_num = spParallelBlockNum();
 
-//	while (PIC > 0)
-//	{
-//		spParallelSyncThreads();
-//
-//		if (spParallelThreadNum() == 0)
-//		{
-//			if (spParallelBlockNum() == 0)
-//			{
-//				CUDA_CHECK(spParallelThreadNum());
-//			}
-//			spParticlePage * t = spParticlePageAtomicNext(pool);
-//
-//			CUDA_CHECK(t);
-//
-//			t->next = bucket[block_num];
-//
-//			bucket[block_num] = t;
-//
-//			PIC -= SP_NUMBER_OF_ENTITIES_IN_PAGE;
-//		}
-//		spParallelSyncThreads();
-//
-//		spParticlePage *pg = bucket[block_num];
-//
-//		for (int s = spParallelThreadNum(); s < SP_NUMBER_OF_ENTITIES_IN_PAGE && s < PIC; s += spParallelNumOfThreads())
-//		{
-//			P_GET((pg)->data, struct boris_s, Real, rx, s) = 0.5;
-//			P_GET((pg)->data, struct boris_s, Real, ry, s) = 0.5;
-//			P_GET((pg)->data, struct boris_s, Real, rz, s) = 0.5;
-//			P_GET((pg)->data, struct boris_s, Real, vx, s) = 1;
-//			P_GET((pg)->data, struct boris_s, Real, vy, s) = 1;
-//			P_GET((pg)->data, struct boris_s, Real, vz, s) = 1;
-//		}
-//
-//	}
+	while (PIC > 0)
+	{
+		spParallelSyncThreads();
+
+		if (spParallelThreadNum() == 0)
+		{
+			spParticlePage * t = (spParticlePage *) spPageAtomicPop((spPage**) pool);
+			t->next = bucket[block_num];
+			bucket[block_num] = t;
+		}
+		spParallelSyncThreads();
+
+		spParticlePage *pg = bucket[block_num];
+
+		int s = spParallelThreadNum();
+
+		if (s < PIC)
+		{
+			P_GET((pg)->data, struct boris_s, Real, rx, s) = 0.5;
+			P_GET((pg)->data, struct boris_s, Real, ry, s) = 0.5;
+			P_GET((pg)->data, struct boris_s, Real, rz, s) = 0.5;
+			P_GET((pg)->data, struct boris_s, Real, vx, s) = 1;
+			P_GET((pg)->data, struct boris_s, Real, vy, s) = 1;
+			P_GET((pg)->data, struct boris_s, Real, vz, s) = 1;
+		}
+		PIC -= SP_NUMBER_OF_ENTITIES_IN_PAGE;
+	}
 
 }
 
