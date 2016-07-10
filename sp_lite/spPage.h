@@ -13,7 +13,6 @@
 // digits of bucket_page_status_flag_t
 #define SP_NUMBER_OF_ENTITIES_IN_PAGE 128
 
-
 typedef unsigned int bucket_entity_flag_t;
 
 /**
@@ -46,14 +45,16 @@ typedef unsigned int bucket_entity_flag_t;
  * ---------+------------+-------@--------+-------------+---------------
  */
 
-#define SP_PAGE_HEAD struct spPage_s *next;  int tail; void *data;
+#define SP_PAGE_HEAD(_CLASS_NAME_)   _CLASS_NAME_ *next;
 
 typedef struct spPage_s
 {
-	SP_PAGE_HEAD
+	SP_PAGE_HEAD(struct spPage_s)
 	byte_type __other[];
 } spPage;
 
+MC_DEVICE spPage* spPageAtomicPop(spPage **pg);
+MC_DEVICE spPage* spPageAtomicPush(spPage **pg, spPage*v);
 //
 ///***************************************************************************/
 ///**

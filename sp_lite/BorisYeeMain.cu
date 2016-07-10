@@ -49,7 +49,6 @@ int main(int argc, char **argv)
 
 	int NUMBER_OF_PIC = 256;
 	spParticleCreate(mesh, &ps);
-
 	spBorisYeeInitializeParticle(ps, NUMBER_OF_PIC);
 
 	int count = 5;

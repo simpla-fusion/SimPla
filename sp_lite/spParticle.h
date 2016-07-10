@@ -16,6 +16,22 @@
 
 struct spPage_s;
 struct spMesh_s;
+
+#define SP_PARTICLE_POINT_HEAD  MeshEntityId flag; Real rx;Real ry;Real rz;
+
+typedef struct spParticlePoint_s
+{
+	SP_PARTICLE_POINT_HEAD
+	byte_type __others[];
+} spParticlePoint;
+
+typedef struct spParticlePage_s
+{
+	SP_PAGE_HEAD(struct spParticlePage_s)
+	MeshEntityId id;
+	byte_type data[];
+} spParticlePage;
+
 struct spParticleAttrEntity_s
 {
 	int type_tag;
@@ -27,38 +43,27 @@ struct spParticleAttrEntity_s
 struct spParticle_s
 {
 	struct spMesh_s const *m;
-
 	int iform;
 	Real mass;
 	Real charge;
-
-	size_type max_number_of_pages;
-	size_type entity_size_in_byte;
-	size_type page_size_in_byte;
-
 	int number_of_attrs;
 	struct spParticleAttrEntity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
-	void *data;
-	struct spPage_s *m_page_pool_; //DEVICE
-	struct spPage_s *m_pages_holder;
-	struct spPage_s **buckets;
+	size_type number_of_pages;
+	size_type entity_size_in_byte;
+	size_type page_size_in_byte;
 
+	struct spParticlePage_s *m_pages_;
+	struct spParticlePage_s **m_page_pool_; //DEVICE
+	struct spParticlePage_s **m_buckets_;
 };
 
-#define SP_PARTICLE_POINT_HEAD  MeshEntityId flag; Real rx;Real ry;Real rz;
-
-struct spParticlePoint_s
-{
-	SP_PARTICLE_POINT_HEAD
-	byte_type __others[];
-};
 #define SP_MP_SUCCESS SP_SUCCESS
 #define SP_MP_ERROR_POOL_IS_OVERFLOW 0xF000|0x1
 #define SP_MP_FINISHED 0xFFFF
 
-MC_DEVICE extern int spParticleMapAndPack(spPage **dest, spPage const **src, int *d_tail, int *g_d_tail, int *s_tail,
-		int *g_s_tail, spPage **pool, MeshEntityId tag);
+MC_DEVICE extern int spParticleMapAndPack(spParticlePage **dest, spParticlePage **src, int *d_tail, int *g_d_tail,
+		int *s_tail, int *g_s_tail, spParticlePage **pool, MeshEntityId tag);
 
 #define ADD_PARTICLE_ATTRIBUTE(_SP_, _S_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_), offsetof(_S_,_N_));
 
