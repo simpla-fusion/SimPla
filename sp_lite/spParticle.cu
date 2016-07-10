@@ -83,7 +83,8 @@ void spParticleDeploy(spParticle *sp, int PIC)
 
 	spParallelMemset((void *) ((sp->m_buckets_)), 0x0, sizeof(spPage*) * number_of_cell);
 
-	spParticleDeployKernel<<<sp->m->dims,NUMBER_OF_THREADS_PER_BLOCK>>>(sp->m_pages_, sp->number_of_pages,sp->page_size_in_byte );
+	spParticleDeployKernel<<<sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(sp->m_pages_, sp->number_of_pages,
+			sp->page_size_in_byte);
 
 	spParallelDeviceSync();        //wait for iteration to finish
 
@@ -138,14 +139,15 @@ struct spParticleAttrEntity_s *spParticleAddAttribute(spParticle *pg, char const
 //	return res;
 //}
 
-MC_GLOBAL void spParticleCountKernel(dim3 dim, spParticlePage **buckets, int * res)
+MC_GLOBAL void spParticleCountKernel(dim3 dim, dim3 offset, dim3 count, spParticlePage **buckets,
+		int * page_count_device)
 {
-
 	dim3 idx = spParallelBlockIdx();
 
-	if (dim.x > idx.x && dim.y > idx.y && dim.z > idx.z)
+	if (count.x > idx.x && count.y > idx.y && count.z > idx.z)
 	{
-		size_type pos = idx.x + (idx.y + idx.z * dim.y) * dim.y;
+		size_type pos = idx.x + offset.x + (idx.y + offset.y + (idx.z + offset.z) * dim.y) * dim.x;
+		size_type pos2 = idx.x + (idx.y + idx.z * count.y) * count.x;
 
 		int count = 0;
 
@@ -157,14 +159,12 @@ MC_GLOBAL void spParticleCountKernel(dim3 dim, spParticlePage **buckets, int * r
 			pg = pg->next;
 		}
 
-		res[pos] = count;
+		page_count_device[pos2] = count;
 	}
 }
 MC_GLOBAL void spParticleDumpKernel(int const * offset, spParticlePage **buckets, void** page_data_ptr_device,
-		MeshEntityId * page_id_device, int * res)
+		MeshEntityId * page_id_device)
 {
-	int count = 0;
-
 	int pos = offset[spParallelBlockNum()];
 
 	spParticlePage * pg = buckets[spParallelBlockNum()];
@@ -182,34 +182,19 @@ MC_GLOBAL void spParticleDumpKernel(int const * offset, spParticlePage **buckets
 		pg = pg->next;
 	}
 }
-
-/*****************************************************************************************/
-/*  2016-07-10 Salmon
- *  TODO
- *   1. page counting need optimize
- *   2. parallel write incorrect, need calculate global offset (file dataspace) before write
- *
- */
-void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], int flag)
+size_type spParticleCopyOut(spParticle const *sp, dim3 offset, dim3 count, MeshEntityId ** page_id_host,
+		void*** page_data_ptr_host)
 {
+	size_type num_of_pages = 0;
 
-	char curr_path[2048];
-	char new_path[2048];
-	strcpy(new_path, name);
-	new_path[strlen(name)] = '/';
-	new_path[strlen(name) + 1] = '\0';
-
-	spIOStreamPWD(os, curr_path);
-	spIOStreamOpen(os, new_path);
-
-	size_type number_of_cell = spMeshGetNumberOfEntity(sp->m, sp->iform/*volume*/);
+	size_type number_of_cell = (count.x) * (count.y) * (count.z);
 
 	int *page_count_device;
+
 	spParallelDeviceMalloc((void**) (&page_count_device), number_of_cell * sizeof(int));
 
-	spParticleCountKernel<<<sp->m->dims,1>>>( sp->m->dims, sp->m_buckets_, page_count_device);
+	spParticleCountKernel<<<count, 1>>>(sp->m->dims, offset, count, sp->m_buckets_, page_count_device);
 
-	size_type num_of_pages = 0;
 	int *page_count_host;
 
 	spParallelHostMalloc((void**) (&page_count_host), number_of_cell * sizeof(int));
@@ -228,32 +213,61 @@ void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], in
 	/*****************************************************************************************/
 
 	void** page_data_ptr_device;
-	void** page_data_ptr_host;
+
 	MeshEntityId * page_id_device;
-	MeshEntityId * page_id_host;
 
 	spParallelDeviceMalloc((void**) (&page_data_ptr_device), sp->number_of_pages * sizeof(spPage*));
 	spParallelDeviceMalloc((void**) (&page_id_device), sp->number_of_pages * sizeof(MeshEntityId));
 
-	spParticleDumpKernel<<<sp->m->dims,1>>>( page_count_device ,sp->m_buckets_,page_data_ptr_device, page_id_device, page_count_device);
+	spParticleDumpKernel<<<sp->m->dims, 1>>>(page_count_device, sp->m_buckets_, page_data_ptr_device, page_id_device);
 
 	spParallelDeviceFree((void**) &page_count_device);
 
-	spParallelHostMalloc((void**) (&page_data_ptr_host), sp->number_of_pages * sizeof(spPage*));
-	spParallelMemcpy((void*) (page_data_ptr_host), (void*) (page_data_ptr_device),
+	spParallelHostMalloc((void**) (page_data_ptr_host), sp->number_of_pages * sizeof(spPage*));
+	spParallelMemcpy((void*) (*page_data_ptr_host), (void*) (page_data_ptr_device),
 			sp->number_of_pages * sizeof(spPage*));
 	spParallelDeviceFree((void**) &page_data_ptr_device);
 
-	spParallelHostMalloc((void**) (&page_id_host), sp->number_of_pages * sizeof(MeshEntityId));
-	spParallelMemcpy((void*) (page_id_host), (void*) (page_id_device), sp->number_of_pages * sizeof(MeshEntityId));
+	spParallelHostMalloc((void**) (page_id_host), sp->number_of_pages * sizeof(MeshEntityId));
+	spParallelMemcpy((void*) (*page_id_host), (void*) (page_id_device), sp->number_of_pages * sizeof(MeshEntityId));
 	spParallelDeviceFree((void**) &page_id_device);
 
-	size_type dims[2];
+	return num_of_pages;
+}
 
-	dims[0] = num_of_pages;
-	dims[1] = SP_NUMBER_OF_ENTITIES_IN_PAGE;
+/*****************************************************************************************/
+/*  2016-07-10 Salmon
+ *  TODO
+ *   1. page counting need optimize
+ *   2. parallel write incorrect, need calculate global offset (file dataspace) before write
+ *
+ */
+void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], int flag)
+{
+	size_type num_of_pages = 0;
+	void** page_data_ptr_host;
+	MeshEntityId * page_id_host;
 
-	spIOStreamWriteSimple(os, "MeshId", (int) SP_TYPE_MeshEntityId, page_id_host, 1, dims, NULL, dims, (int) flag);
+	char curr_path[2048];
+	char new_path[2048];
+	strcpy(new_path, name);
+	new_path[strlen(name)] = '/';
+	new_path[strlen(name) + 1] = '\0';
+
+	spIOStreamPWD(os, curr_path);
+	spIOStreamOpen(os, new_path);
+	dim3 count;
+	count.x = sp->m->i_upper.x - sp->m->i_lower.x;
+	count.y = sp->m->i_upper.y - sp->m->i_lower.y;
+	count.z = sp->m->i_upper.z - sp->m->i_lower.z;
+	num_of_pages = spParticleCopyOut(sp, sp->m->i_lower, count, &page_id_host, &page_data_ptr_host);
+
+	size_type f_dims[2];
+
+	f_dims[0] = num_of_pages;
+	f_dims[1] = SP_NUMBER_OF_ENTITIES_IN_PAGE;
+
+	spIOStreamWriteSimple(os, "MeshId", (int) SP_TYPE_MeshEntityId, page_id_host, 1, f_dims, NULL, f_dims, (int) flag);
 
 	for (int i = 0; i < sp->num_of_attrs; ++i)
 	{
@@ -265,10 +279,10 @@ void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], in
 		for (int j = 0; j < num_of_pages; ++j)
 		{
 			spParallelMemcpy((void*) ((byte_type*) (d) + j * page_size_in_byte),
-					(page_data_ptr_host[j] + offset_in_byte), page_size_in_byte);
+					(void*) ((byte_type*) (page_data_ptr_host[j]) + offset_in_byte), page_size_in_byte);
 		}
 
-		spIOStreamWriteSimple(os, sp->attrs[i].name, sp->attrs[i].type_tag, d, 2, dims, NULL, dims, (int) flag);
+		spIOStreamWriteSimple(os, sp->attrs[i].name, sp->attrs[i].type_tag, d, 2, f_dims, NULL, f_dims, (int) flag);
 
 		spParallelHostFree(&d);
 	}
