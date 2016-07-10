@@ -34,12 +34,13 @@ MC_GLOBAL void spBorisleInitializeParticKernel(spParticlePage **bucket, spPartic
 
 		if (s < PIC)
 		{
-			P_GET((pg)->data, struct boris_s, Real, rx, s) = 0.5;
-			P_GET((pg)->data, struct boris_s, Real, ry, s) = 0.5;
-			P_GET((pg)->data, struct boris_s, Real, rz, s) = 0.5;
+			P_GET_FLAG((pg)->data, s).v = 0;
+			P_GET((pg)->data, struct boris_s, Real, rx, s) = 0.15;
+			P_GET((pg)->data, struct boris_s, Real, ry, s) = 0.25;
+			P_GET((pg)->data, struct boris_s, Real, rz, s) = 0.35;
 			P_GET((pg)->data, struct boris_s, Real, vx, s) = 1;
-			P_GET((pg)->data, struct boris_s, Real, vy, s) = 1;
-			P_GET((pg)->data, struct boris_s, Real, vz, s) = 1;
+			P_GET((pg)->data, struct boris_s, Real, vy, s) = 2;
+			P_GET((pg)->data, struct boris_s, Real, vz, s) = 3;
 		}
 		PIC -= SP_NUMBER_OF_ENTITIES_IN_PAGE;
 	}

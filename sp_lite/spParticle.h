@@ -67,14 +67,14 @@ MC_DEVICE extern int spParticleMapAndPack(spParticlePage **dest, spParticlePage 
 
 #define ADD_PARTICLE_ATTRIBUTE(_SP_, _S_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_), offsetof(_S_,_N_));
 
-#ifdef PARTICLE_IS_AOS
-#   define P_GET(_PG_, _N_, _S_) _PG_[_S_]._N_
-#   define P_GETp(_D_, _STRUCT_, _T_, _N_, _S_) (_STRUCT_*)((byte_type*) (_D_)+sizeof(_STRUCT_)*SP_NUMBER_OF_ENTITIES_IN_PAGE)->_N_
-#else
+//#ifdef PARTICLE_IS_AOS
+//#   define P_GET(_PG_, _N_, _S_) _PG_[_S_]._N_
+//#   define P_GETp(_D_, _STRUCT_, _T_, _N_, _S_) (_STRUCT_*)((byte_type*) (_D_)+sizeof(_STRUCT_)*SP_NUMBER_OF_ENTITIES_IN_PAGE)->_N_
+//#else
 #   define P_GET(_D_, _STRUCT_, _T_, _N_, _S_) *(_T_*)((byte_type*) (_D_)+offsetof(_STRUCT_,_N_)*SP_NUMBER_OF_ENTITIES_IN_PAGE+sizeof(_T_)*_S_)
 #   define P_GET_FLAG(_D_, _S_) (*(MeshEntityId*)((byte_type*) (_D_)+offsetof(struct spParticlePoint_s,flag)*SP_NUMBER_OF_ENTITIES_IN_PAGE+sizeof(MeshEntityId)*_S_))
 
-#endif
+//#endif
 
 typedef struct spParticle_s spParticle;
 
