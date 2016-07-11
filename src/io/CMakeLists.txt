@@ -1,7 +1,5 @@
 FILE(GLOB io_SRC ./*.cpp)
-link_directories(${HDF5_LIBRARY_DIRS})
 add_library(io ${io_SRC})
-target_link_libraries(io ${HDF5_C_LIBRARIES} data_model)
 
 #find_package(VTK COMPONENTS
 #        vtkCommonCore

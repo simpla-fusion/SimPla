@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "../data_model/DataType.h"
+#include "DataType.h"
 
 #include <algorithm>
 #include <iterator>

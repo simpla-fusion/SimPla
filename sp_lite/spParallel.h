@@ -12,19 +12,13 @@
 #endif //NUMBER_OF_THREADS_PER_BLOCK
 
 #ifndef __CUDACC__
-typedef struct
-{	int x, y, z;}int3;
-typedef struct
-{	int x, y, z, w;}int4;
-typedef struct
-{	float x, y, z;}float3;
-typedef struct
-{	float x, y, z, w;}float4;
-typedef struct
-{	size_t x, y, z;}dim3;
+typedef struct { int x, y, z; } int3;
+typedef struct { int x, y, z, w; } int4;
+typedef struct { float x, y, z; } float3;
+typedef struct { float x, y, z, w; } float4;
+typedef struct { size_t x, y, z; } dim3;
 
-typedef struct
-{	Real x, y, z;}Real3;
+typedef struct { Real x, y, z; } Real3;
 
 #define MC_HOST_DEVICE
 #define MC_HOST
@@ -52,6 +46,7 @@ typedef struct
 #define MC_FOREACH_BLOCK_ID(__BLOCK_ID__) size_type __BLOCK_ID__=0;
 
 //#define spAtomicAdd(_ADDR_, _VAL_)  (*_ADDR_*=_VAL_)
+#define LOAD_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_(__VA_ARGS__)
 
 #else  //__CUDACC__
 
@@ -67,7 +62,7 @@ typedef float3 Real3;
 #define CUDA_CHECK_RETURN(_CMD_) {											\
     cudaError_t _m_cudaStat = _CMD_;										\
     if (_m_cudaStat != cudaSuccess) {										\
-    	 printf("Error [code=0x%x] %s at line %d in file %s\n",					\
+         printf("Error [code=0x%x] %s at line %d in file %s\n",					\
                 _m_cudaStat,cudaGetErrorString(_m_cudaStat), __LINE__, __FILE__);		\
         exit(1);															\
     } }
@@ -80,8 +75,10 @@ typedef float3 Real3;
 #	define CUDA_CHECK(_CMD_) printf(  "[line %d in file %s : block=[%i,%i,%i] thread=[%i,%i,%i] ]\t %s = %d\n",					\
          __LINE__, __FILE__,blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x , threadIdx.y, threadIdx.z, __STRING(_CMD_),(_CMD_));
 #endif
+#define LOAD_KERNEL(_FUN_,_DIMS_,_N_THREADS_,...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
 
 #endif //__CUDACC__
+
 
 MC_HOST void spParallelInitialize();
 
@@ -121,8 +118,8 @@ MC_DEVICE unsigned int spParallelBlockNum();
 
 MC_HOST void spParallelMemcpy(void *, void const *, size_type);
 
-#define spAtomicAdd(_ADDR_,_V_) atomicAdd(_ADDR_,_V_)
-#define spAtomicSub(_ADDR_,_V_) atomicSub(_ADDR_,_V_)
+#define spAtomicAdd(_ADDR_, _V_) atomicAdd(_ADDR_,_V_)
+#define spAtomicSub(_ADDR_, _V_) atomicSub(_ADDR_,_V_)
 
 #define spParallelSyncThreads __syncthreads
 
@@ -139,8 +136,8 @@ MC_HOST void spParallelMemcpy(void *, void const *, size_type);
 #define spParallelNumOfBlocks() ( gridDim.x * gridDim.y * gridDim.z)
 
 #define spParallelBlockNumShift(shift)  ((blockIdx.x + shift.x + gridDim.x) % gridDim.x \
-		                               + ((blockIdx.y + shift.y + gridDim.y) % gridDim.y) * gridDim.x	\
-		                               + ((blockIdx.z + shift.z + gridDim.z) % gridDim.z) * gridDim.y * gridDim.x )
+                                       + ((blockIdx.y + shift.y + gridDim.y) % gridDim.y) * gridDim.x    \
+                                       + ((blockIdx.z + shift.z + gridDim.z) % gridDim.z) * gridDim.y * gridDim.x )
 
 #define spParallelThreadNum()  (threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y)
 

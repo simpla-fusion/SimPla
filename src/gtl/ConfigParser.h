@@ -16,6 +16,10 @@
 
 #include "type_cast.h"
 #include "LuaObject.h"
+#include "LuaObject.h"
+#include "LuaObjectExt.h"
+#include "ConfigParser.h"
+#include "parse_command_line.h"
 #include "../sp_def.h"
 
 namespace simpla

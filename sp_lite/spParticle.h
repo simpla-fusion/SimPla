@@ -36,7 +36,7 @@ struct spParticleAttrEntity_s
 {
 	int type_tag;
 	size_type size_in_byte;
-	size_type offsetof;
+	size_type offset;
 	char name[255];
 };
 
@@ -83,7 +83,7 @@ void spParticleCreate(const struct spMesh_s *ctx, struct spParticle_s **pg);
 void spParticleDestroy(struct spParticle_s **sp);
 
 struct spParticleAttrEntity_s *spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag,
-		size_type size_in_byte, int offsetof);
+													  size_type size_in_byte, size_type offsetof);
 
 void *spParticleGetAttribute(spParticle *sp, char const *name);
 

@@ -19,7 +19,7 @@
 
 #include "../gtl/nTuple.h"
 #include "../gtl/design_pattern/SingletonHolder.h"
-#include "../gtl/Utilities.h"
+//#include "../gtl/Utilities.h"
 
 namespace simpla { namespace parallel
 {
@@ -61,7 +61,7 @@ public:
 
     void topology(nTuple<int, 3> const &d);
 
-    int get_neighbour(nTuple<ptrdiff_t, 3> const &d) const;
+    int get_neighbour(nTuple<int, 3> const &d) const;
 
     nTuple<int, 3> coordinate(int rank = -1) const;
 
@@ -69,7 +69,7 @@ public:
 
     int get_rank(nTuple<int, 3> const &d) const;
 
-    std::tuple<int, int, int> make_send_recv_tag(size_t prefix, const nTuple<ptrdiff_t, 3> &offset);
+    std::tuple<int, int, int> make_send_recv_tag(size_t prefix, const nTuple<int, 3> &offset);
 
 private:
     struct pimpl_s;

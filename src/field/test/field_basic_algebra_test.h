@@ -14,15 +14,16 @@
 
 #include <gtest/gtest.h>
 
-#include "../../gtl/macro.h"
 #include "../../sp_def.h"
+#include "../../gtl/macro.h"
 #include "../../gtl/type_traits.h"
 #include "../../gtl/Log.h"
-#include "../../manifold/ManifoldTraits.h"
+
 #include "../../field/Field.h"
 #include "../../field/FieldTraits.h"
 #include "../../field/FieldExpression.h"
 #include "../../mesh/CoRectMesh.h"
+#include "../../manifold/ManifoldTraits.h"
 
 using namespace simpla;
 
@@ -82,6 +83,7 @@ TYPED_TEST_P(TestField, assign)
     typedef typename TestFixture::field_type field_type;
 
     auto f1 = TestFixture::make_field();
+    f1.clear();
     value_type va;
     va = 2.0;
     f1 = va;

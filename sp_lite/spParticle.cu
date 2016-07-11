@@ -1,12 +1,12 @@
 /**
- * spParticle.c
+ * @file spParticle.c
  *
  *  Created on: 2016年6月15日
  *      Author: salmon
  */
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include "sp_lite_def.h"
 #include "spParallel.h"
 
@@ -16,223 +16,211 @@
 
 void spParticleCreate(const spMesh *mesh, spParticle **sp)
 {
-	*sp = (spParticle *) malloc(sizeof(spParticle));
+    *sp = (spParticle *) malloc(sizeof(spParticle));
 
-	(*sp)->m = mesh;
-	(*sp)->iform = VERTEX;
-	(*sp)->num_of_attrs = 0;
-	(*sp)->m_page_pool_ = NULL;
-	(*sp)->m_pages_ = NULL;
-	(*sp)->m_buckets_ = NULL;
+    (*sp)->m = mesh;
+    (*sp)->iform = VERTEX;
+    (*sp)->num_of_attrs = 0;
+    (*sp)->m_page_pool_ = NULL;
+    (*sp)->m_pages_ = NULL;
+    (*sp)->m_buckets_ = NULL;
 
-	ADD_PARTICLE_ATTRIBUTE((*sp), struct spParticlePoint_s, int, flag);
-	ADD_PARTICLE_ATTRIBUTE((*sp), struct spParticlePoint_s, Real, rx);
-	ADD_PARTICLE_ATTRIBUTE((*sp), struct spParticlePoint_s, Real, ry);
-	ADD_PARTICLE_ATTRIBUTE((*sp), struct spParticlePoint_s, Real, rz);
+    ADD_PARTICLE_ATTRIBUTE((*sp), struct spParticlePoint_s, int, flag);
+    ADD_PARTICLE_ATTRIBUTE((*sp), struct spParticlePoint_s, Real, rx);
+    ADD_PARTICLE_ATTRIBUTE((*sp), struct spParticlePoint_s, Real, ry);
+    ADD_PARTICLE_ATTRIBUTE((*sp), struct spParticlePoint_s, Real, rz);
 
 }
 
 MC_GLOBAL void spParticleDeployKernel(spParticlePage *pg, size_type num_of_pages, size_type size_of_page_in_byte)
 {
-	size_type offset = spParallelBlockNum() * spParallelNumOfThreads() + spParallelThreadNum();
-	for (size_type pos = offset; pos < offset + spParallelNumOfThreads() && pos < num_of_pages; pos +=
-	spParallelNumOfThreads())
-	{
-		((struct spParticlePage_s *) ((byte_type*) (pg) + pos * size_of_page_in_byte))->next =
-				(struct spParticlePage_s *) ((byte_type*) (pg) + (pos + 1) * size_of_page_in_byte);
-		((spParticlePage *) ((byte_type*) (pg) + pos * size_of_page_in_byte))->id.v = 0;
-	}
+    size_type offset = spParallelBlockNum() * spParallelNumOfThreads() + spParallelThreadNum();
+    for (size_type pos = offset; pos < offset + spParallelNumOfThreads() && pos < num_of_pages;
+         pos += spParallelNumOfThreads())
+    {
+        ((spParticlePage *) ((byte_type *) (pg) + pos * size_of_page_in_byte))->next =
+                (struct spParticlePage_s *) ((byte_type *) (pg) + (pos + 1) * size_of_page_in_byte);
+
+        ((spParticlePage *) ((byte_type *) (pg) + pos * size_of_page_in_byte))->id.v = 0;
+    }
 }
 
 MC_GLOBAL void spParticleTestAtomicPageOp(spParticlePage **pg)
 {
-	MC_SHARED spPage * p;
-	spParallelSyncThreads();
-	if (spParallelThreadNum() == 0)
-	{
-		p = (spPage*) (*pg);
-	}
-	spParallelSyncThreads();
-	spPage * res = spPageAtomicPop(&p);
-	CUDA_CHECK(res);
-	if (spParallelThreadNum() == 0)
-	{
-		(*pg) = (spParticlePage*) p;
-	}
+    MC_SHARED spPage *p;
+
+    spParallelSyncThreads();
+
+    if (spParallelThreadNum() == 0) { p = (spPage *) (*pg); }
+
+    spParallelSyncThreads();
+
+    spPage *res = spPageAtomicPop(&p);
+
+    if (spParallelThreadNum() == 0) { (*pg) = (spParticlePage *) p; }
 
 }
+
 void spParticleDeploy(spParticle *sp, int PIC)
 {
-	size_type number_of_cell = spMeshGetNumberOfEntity(sp->m, sp->iform/*volume*/);
+    size_type number_of_cell = spMeshGetNumberOfEntity(sp->m, sp->iform/*volume*/);
 
-	size_type num_page_per_cel = (size_type) (PIC * 3 / SP_NUMBER_OF_ENTITIES_IN_PAGE) / 2 + 1;
-	sp->number_of_pages = number_of_cell * num_page_per_cel;
+    size_type num_page_per_cel = (size_type) (PIC * 3 / SP_NUMBER_OF_ENTITIES_IN_PAGE) / 2 + 1;
 
-	sp->entity_size_in_byte = (size_type) (sp->attrs[sp->num_of_attrs - 1].size_in_byte
-			+ sp->attrs[sp->num_of_attrs - 1].offsetof);
+    sp->number_of_pages = number_of_cell * num_page_per_cel;
 
-	sp->page_size_in_byte = sizeof(struct spParticlePage_s) + sp->entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
+    sp->entity_size_in_byte = (size_type) (sp->attrs[sp->num_of_attrs - 1].size_in_byte
+                                           + sp->attrs[sp->num_of_attrs - 1].offset);
 
-	spParallelDeviceMalloc((void **) (&(sp->m_pages_)), sp->number_of_pages * sp->page_size_in_byte);
+    sp->page_size_in_byte = sizeof(struct spParticlePage_s) + sp->entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
 
-	spParallelDeviceMalloc((void **) (&(sp->m_page_pool_)), sizeof(spPage*));
+    spParallelDeviceMalloc((void **) (&(sp->m_pages_)), sp->number_of_pages * sp->page_size_in_byte);
 
-	spParallelMemcpy((void *) (sp->m_page_pool_), (void const*) &(sp->m_pages_), sizeof(spPage*));
+    spParallelDeviceMalloc((void **) (&(sp->m_page_pool_)), sizeof(spPage *));
 
-	spParallelDeviceMalloc((void **) (&(sp->m_buckets_)), sizeof(spPage*) * number_of_cell);
+    spParallelMemcpy((void *) (sp->m_page_pool_), (void const *) &(sp->m_pages_), sizeof(spPage *));
 
-	spParallelMemset((void *) ((sp->m_buckets_)), 0x0, sizeof(spPage*) * number_of_cell);
+    spParallelDeviceMalloc((void **) (&(sp->m_buckets_)), sizeof(spPage *) * number_of_cell);
 
-	spParticleDeployKernel<<<sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(sp->m_pages_, sp->number_of_pages,
-			sp->page_size_in_byte);
+    spParallelMemset((void *) ((sp->m_buckets_)), 0x0, sizeof(spPage *) * number_of_cell);
 
-	spParallelDeviceSync();        //wait for iteration to finish
+    LOAD_KERNEL(spParticleDeployKernel, sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK, sp->m_pages_, sp->number_of_pages,
+                sp->page_size_in_byte);
 
-	DONE
+    spParallelDeviceSync();        //wait for iteration to finish
+
+    DONE
 }
 
 void spParticleDestroy(spParticle **sp)
 {
 
-	spParallelDeviceFree((void **) &((*sp)->m_buckets_));
-	spParallelDeviceFree((void **) &((*sp)->m_page_pool_));
-	spParallelDeviceFree((void **) &((*sp)->m_pages_));
+    spParallelDeviceFree((void **) &((*sp)->m_buckets_));
+    spParallelDeviceFree((void **) &((*sp)->m_page_pool_));
+    spParallelDeviceFree((void **) &((*sp)->m_pages_));
 
-	free(*sp);
-	*sp = NULL;
+    free(*sp);
+    *sp = NULL;
 }
 
 struct spParticleAttrEntity_s *spParticleAddAttribute(spParticle *pg, char const *name, int type_tag,
-		size_type size_in_byte, int offset)
+                                                      size_type size_in_byte, size_type offset)
 {
-	struct spParticleAttrEntity_s *res = &(pg->attrs[pg->num_of_attrs]);
-	strcpy(res->name, name);
-	res->type_tag = type_tag;
-	res->size_in_byte = size_in_byte;
-	if (offset == -1)
-	{
-		if (pg->num_of_attrs == 0)
-		{
-			offset = 0;
-		}
-		else
-		{
-			offset = pg->attrs[pg->num_of_attrs - 1].offsetof + pg->attrs[pg->num_of_attrs - 1].size_in_byte;
-		}
-	}
-	res->offsetof = offset;
-	++pg->num_of_attrs;
-	return res;
+    struct spParticleAttrEntity_s *res = &(pg->attrs[pg->num_of_attrs]);
+    strcpy(res->name, name);
+    res->type_tag = type_tag;
+    res->size_in_byte = size_in_byte;
+    if (offset == size_type(-1))
+    {
+        if (pg->num_of_attrs == 0) { offset = 0; }
+        else
+        {
+            offset = (pg->attrs[pg->num_of_attrs - 1].offset
+                      + pg->attrs[pg->num_of_attrs - 1].size_in_byte);
+        }
+    }
+    res->offset = offset;
+    ++pg->num_of_attrs;
+    return res;
 }
-
-//void *spParticleGetAttribute(spParticle *sp, char const *name)
-//{
-//	void *res = NULL;
-//	for (int i = 0; i < sp->number_of_attrs; ++i)
-//	{
-//		if (strcmp(sp->attrs[i].name, name) > 0)
-//		{
-//			res = (byte_type*) (sp->data) + sp->attrs[i].offsetof * sp->number_of_pages * SP_NUMBER_OF_ENTITIES_IN_PAGE;
-//		}
-//	}
-//
-//	return res;
-//}
 
 MC_GLOBAL void spParticleCountKernel(dim3 dim, dim3 offset, dim3 count, spParticlePage **buckets,
-		int * page_count_device)
+                                     size_type *page_count_device)
 {
-	dim3 idx = spParallelBlockIdx();
+    dim3 idx = spParallelBlockIdx();
 
-	if (count.x > idx.x && count.y > idx.y && count.z > idx.z)
-	{
-		size_type pos = idx.x + offset.x + (idx.y + offset.y + (idx.z + offset.z) * dim.y) * dim.x;
-		size_type pos2 = idx.x + (idx.y + idx.z * count.y) * count.x;
+    if (count.x > idx.x && count.y > idx.y && count.z > idx.z)
+    {
+        size_type pos = idx.x + offset.x + (idx.y + offset.y + (idx.z + offset.z) * dim.y) * dim.x;
+        size_type pos2 = idx.x + (idx.y + idx.z * count.y) * count.x;
 
-		int count = 0;
+        size_type pg_count = 0;
 
-		spParticlePage * pg = buckets[pos];
+        spParticlePage *pg = buckets[pos];
 
-		while (pg != NULL)
-		{
-			++count;
-			pg = pg->next;
-		}
+        while (pg != NULL)
+        {
+            ++pg_count;
+            pg = pg->next;
+        }
 
-		page_count_device[pos2] = count;
-	}
+        page_count_device[pos2] = pg_count;
+    }
 }
-MC_GLOBAL void spParticleDumpKernel(int const * offset, spParticlePage **buckets, void** page_data_ptr_device,
-		MeshEntityId * page_id_device)
+
+MC_GLOBAL void spParticleDumpKernel(const size_type *offset, spParticlePage **buckets, void **page_data_ptr_device,
+                                    MeshEntityId *page_id_device)
 {
-	int pos = offset[spParallelBlockNum()];
+    size_type pos = offset[spParallelBlockNum()];
 
-	spParticlePage * pg = buckets[spParallelBlockNum()];
+    spParticlePage *pg = buckets[spParallelBlockNum()];
 
-	while (pg != NULL)
-	{
-		page_data_ptr_device[pos] = pg->data;
-		dim3 idx = spParallelBlockIdx();
-		page_id_device[pos].w = 0;
-		page_id_device[pos].x = idx.x;
-		page_id_device[pos].y = idx.y;
-		page_id_device[pos].z = idx.z;
+    while (pg != NULL)
+    {
+        page_data_ptr_device[pos] = pg->data;
+        dim3 idx = spParallelBlockIdx();
+        page_id_device[pos].w = 0;
+        page_id_device[pos].x = (int16_t) idx.x;
+        page_id_device[pos].y = (int16_t) idx.y;
+        page_id_device[pos].z = (int16_t) idx.z;
 
-		++pos;
-		pg = pg->next;
-	}
+        ++pos;
+        pg = pg->next;
+    }
 }
-size_type spParticleCopyOut(spParticle const *sp, dim3 offset, dim3 count, MeshEntityId ** page_id_host,
-		void*** page_data_ptr_host)
+
+size_type spParticleCopyOut(spParticle const *sp, dim3 offset, dim3 count, MeshEntityId **page_id_host,
+                            void ***page_data_ptr_host)
 {
-	size_type num_of_pages = 0;
+    size_type num_of_pages = 0;
 
-	size_type number_of_cell = (count.x) * (count.y) * (count.z);
+    size_type number_of_cell = (count.x) * (count.y) * (count.z);
 
-	int *page_count_device;
+    size_type *page_count_device;
 
-	spParallelDeviceMalloc((void**) (&page_count_device), number_of_cell * sizeof(int));
+    spParallelDeviceMalloc((void **) (&page_count_device), number_of_cell * sizeof(size_type));
 
-	spParticleCountKernel<<<count, 1>>>(sp->m->dims, offset, count, sp->m_buckets_, page_count_device);
+    LOAD_KERNEL(spParticleCountKernel, count, 1, sp->m->dims, offset, count, sp->m_buckets_, page_count_device);
 
-	int *page_count_host;
+    size_type *page_count_host;
 
-	spParallelHostMalloc((void**) (&page_count_host), number_of_cell * sizeof(int));
+    spParallelHostMalloc((void **) (&page_count_host), number_of_cell * sizeof(size_type));
 
-	spParallelMemcpy((void*) (page_count_host), (void*) (page_count_device), number_of_cell * sizeof(int));
+    spParallelMemcpy((void *) (page_count_host), (void *) (page_count_device), number_of_cell * sizeof(size_type));
 
-	for (int i = 0; i < number_of_cell; ++i)
-	{
-		size_type old = num_of_pages;
-		num_of_pages += page_count_host[i];
-		page_count_host[i] = old;
-	}
-	spParallelMemcpy((void*) (page_count_device), (void*) (page_count_host), number_of_cell * sizeof(int));
+    for (int i = 0; i < number_of_cell; ++i)
+    {
+        size_type old = num_of_pages;
+        num_of_pages += page_count_host[i];
+        page_count_host[i] = old;
+    }
+    spParallelMemcpy((void *) (page_count_device), (void *) (page_count_host), number_of_cell * sizeof(size_type));
 
-	spParallelHostFree((void**) &page_count_host);
-	/*****************************************************************************************/
+    spParallelHostFree((void **) &page_count_host);
+    /*****************************************************************************************/
 
-	void** page_data_ptr_device;
+    void **page_data_ptr_device;
 
-	MeshEntityId * page_id_device;
+    MeshEntityId *page_id_device;
 
-	spParallelDeviceMalloc((void**) (&page_data_ptr_device), sp->number_of_pages * sizeof(spPage*));
-	spParallelDeviceMalloc((void**) (&page_id_device), sp->number_of_pages * sizeof(MeshEntityId));
+    spParallelDeviceMalloc((void **) (&page_data_ptr_device), sp->number_of_pages * sizeof(spPage *));
+    spParallelDeviceMalloc((void **) (&page_id_device), sp->number_of_pages * sizeof(MeshEntityId));
 
-	spParticleDumpKernel<<<sp->m->dims, 1>>>(page_count_device, sp->m_buckets_, page_data_ptr_device, page_id_device);
+    LOAD_KERNEL(spParticleDumpKernel, sp->m->dims, 1, page_count_device, sp->m_buckets_, page_data_ptr_device,
+                page_id_device);
 
-	spParallelDeviceFree((void**) &page_count_device);
+    spParallelDeviceFree((void **) &page_count_device);
 
-	spParallelHostMalloc((void**) (page_data_ptr_host), sp->number_of_pages * sizeof(spPage*));
-	spParallelMemcpy((void*) (*page_data_ptr_host), (void*) (page_data_ptr_device),
-			sp->number_of_pages * sizeof(spPage*));
-	spParallelDeviceFree((void**) &page_data_ptr_device);
+    spParallelHostMalloc((void **) (page_data_ptr_host), sp->number_of_pages * sizeof(spPage *));
+    spParallelMemcpy((void *) (*page_data_ptr_host), (void *) (page_data_ptr_device),
+                     sp->number_of_pages * sizeof(spPage *));
+    spParallelDeviceFree((void **) &page_data_ptr_device);
 
-	spParallelHostMalloc((void**) (page_id_host), sp->number_of_pages * sizeof(MeshEntityId));
-	spParallelMemcpy((void*) (*page_id_host), (void*) (page_id_device), sp->number_of_pages * sizeof(MeshEntityId));
-	spParallelDeviceFree((void**) &page_id_device);
+    spParallelHostMalloc((void **) (page_id_host), sp->number_of_pages * sizeof(MeshEntityId));
+    spParallelMemcpy((void *) (*page_id_host), (void *) (page_id_device), sp->number_of_pages * sizeof(MeshEntityId));
+    spParallelDeviceFree((void **) &page_id_device);
 
-	return num_of_pages;
+    return num_of_pages;
 }
 
 /*****************************************************************************************/
@@ -244,53 +232,53 @@ size_type spParticleCopyOut(spParticle const *sp, dim3 offset, dim3 count, MeshE
  */
 void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], int flag)
 {
-	size_type num_of_pages = 0;
-	void** page_data_ptr_host;
-	MeshEntityId * page_id_host;
+    size_type num_of_pages = 0;
+    void **page_data_ptr_host;
+    MeshEntityId *page_id_host;
 
-	char curr_path[2048];
-	char new_path[2048];
-	strcpy(new_path, name);
-	new_path[strlen(name)] = '/';
-	new_path[strlen(name) + 1] = '\0';
+    char curr_path[2048];
+    char new_path[2048];
+    strcpy(new_path, name);
+    new_path[strlen(name)] = '/';
+    new_path[strlen(name) + 1] = '\0';
 
-	spIOStreamPWD(os, curr_path);
-	spIOStreamOpen(os, new_path);
-	dim3 count;
-	count.x = sp->m->i_upper.x - sp->m->i_lower.x;
-	count.y = sp->m->i_upper.y - sp->m->i_lower.y;
-	count.z = sp->m->i_upper.z - sp->m->i_lower.z;
-	num_of_pages = spParticleCopyOut(sp, sp->m->i_lower, count, &page_id_host, &page_data_ptr_host);
+    spIOStreamPWD(os, curr_path);
+    spIOStreamOpen(os, new_path);
+    dim3 count;
+    count.x = sp->m->i_upper.x - sp->m->i_lower.x;
+    count.y = sp->m->i_upper.y - sp->m->i_lower.y;
+    count.z = sp->m->i_upper.z - sp->m->i_lower.z;
+    num_of_pages = spParticleCopyOut(sp, sp->m->i_lower, count, &page_id_host, &page_data_ptr_host);
 
-	size_type f_dims[2];
+    size_type f_dims[2];
 
-	f_dims[0] = num_of_pages;
-	f_dims[1] = SP_NUMBER_OF_ENTITIES_IN_PAGE;
+    f_dims[0] = num_of_pages;
+    f_dims[1] = SP_NUMBER_OF_ENTITIES_IN_PAGE;
 
-	spIOStreamWriteSimple(os, "MeshId", (int) SP_TYPE_MeshEntityId, page_id_host, 1, f_dims, NULL, f_dims, (int) flag);
+    spIOStreamWriteSimple(os, "MeshId", (int) SP_TYPE_MeshEntityId, page_id_host, 1, f_dims, NULL, f_dims, flag);
 
-	for (int i = 0; i < sp->num_of_attrs; ++i)
-	{
-		void *d;
-		size_type page_size_in_byte = sp->attrs[i].size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
-		size_type offset_in_byte = sp->attrs[i].offsetof * SP_NUMBER_OF_ENTITIES_IN_PAGE;
-		spParallelHostMalloc(&d, num_of_pages * page_size_in_byte);
+    for (int i = 0; i < sp->num_of_attrs; ++i)
+    {
+        void *d;
+        size_type page_size_in_byte = sp->attrs[i].size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
+        size_type offset_in_byte = sp->attrs[i].offset * SP_NUMBER_OF_ENTITIES_IN_PAGE;
+        spParallelHostMalloc(&d, num_of_pages * page_size_in_byte);
 
-		for (int j = 0; j < num_of_pages; ++j)
-		{
-			spParallelMemcpy((void*) ((byte_type*) (d) + j * page_size_in_byte),
-					(void*) ((byte_type*) (page_data_ptr_host[j]) + offset_in_byte), page_size_in_byte);
-		}
+        for (int j = 0; j < num_of_pages; ++j)
+        {
+            spParallelMemcpy((void *) ((byte_type *) (d) + j * page_size_in_byte),
+                             (void *) ((byte_type *) (page_data_ptr_host[j]) + offset_in_byte), page_size_in_byte);
+        }
 
-		spIOStreamWriteSimple(os, sp->attrs[i].name, sp->attrs[i].type_tag, d, 2, f_dims, NULL, f_dims, (int) flag);
+        spIOStreamWriteSimple(os, sp->attrs[i].name, sp->attrs[i].type_tag, d, 2, f_dims, NULL, f_dims, flag);
 
-		spParallelHostFree(&d);
-	}
+        spParallelHostFree(&d);
+    }
 
-	spParallelHostFree((void**) &page_id_host);
-	spParallelHostFree((void**) &page_data_ptr_host);
+    spParallelHostFree((void **) &page_id_host);
+    spParallelHostFree((void **) &page_data_ptr_host);
 
-	spIOStreamOpen(os, curr_path);
+    spIOStreamOpen(os, curr_path);
 
 }
 
@@ -301,6 +289,7 @@ void spParticleRead(spParticle *f, char const url[], int flag)
 
 void spParticleSync(spParticle *f)
 {
+
 }
 //
 //MC_DEVICE int spPageInsert(spPage **dest, spPage **pool, int *d_tail, int *g_d_tail)
@@ -410,72 +399,72 @@ void spParticleSync(spParticle *f)
 //}
 
 MC_DEVICE int spParticleMapAndPack(spParticlePage **dest, spParticlePage **src, int *d_tail, int *g_d_tail, int *s_tail,
-		int *g_s_tail, spParticlePage **pool, MeshEntityId tag)
+                                   int *g_s_tail, spParticlePage **pool, MeshEntityId tag)
 {
 
-	while (*src != NULL)
-	{
-		if ((*dest) != NULL)
-		{
-			while ((*d_tail = spAtomicAdd(g_d_tail, 1)) < SP_NUMBER_OF_ENTITIES_IN_PAGE)
-			{
-				if ((P_GET_FLAG((*dest)->data, *d_tail).v == 0))
-				{
-					break;
-				}
-			}
+    while (*src != NULL)
+    {
+        if ((*dest) != NULL)
+        {
+            while ((*d_tail = spAtomicAdd(g_d_tail, 1)) < SP_NUMBER_OF_ENTITIES_IN_PAGE)
+            {
+                if ((P_GET_FLAG((*dest)->data, *d_tail).v == 0))
+                {
+                    break;
+                }
+            }
 
-			if (*d_tail < SP_NUMBER_OF_ENTITIES_IN_PAGE)
-			{
-				while (((*s_tail = spAtomicAdd(g_s_tail, 1)) < SP_NUMBER_OF_ENTITIES_IN_PAGE))
-				{
-					if (P_GET_FLAG((*src)->data, *s_tail).v == tag.v)
-					{
-						return SP_MP_SUCCESS;
-					}
-				}
-			}
-		}
-		spParallelSyncThreads();
-		if ((*dest) == NULL)
-		{
+            if (*d_tail < SP_NUMBER_OF_ENTITIES_IN_PAGE)
+            {
+                while (((*s_tail = spAtomicAdd(g_s_tail, 1)) < SP_NUMBER_OF_ENTITIES_IN_PAGE))
+                {
+                    if (P_GET_FLAG((*src)->data, *s_tail).v == tag.v)
+                    {
+                        return SP_MP_SUCCESS;
+                    }
+                }
+            }
+        }
+        spParallelSyncThreads();
+        if ((*dest) == NULL)
+        {
 
-			if (spParallelThreadNum() == 0)
-			{
-				*dest = *pool;
-				*pool = (*pool)->next;
-				if (*dest != NULL)
-				{
-					(*dest)->next = NULL;
-				}
-				*g_d_tail = 0;
-			}
-		}
-		else if (*d_tail >= SP_NUMBER_OF_ENTITIES_IN_PAGE)
-		{
-			dest = &((*dest)->next);
-			if (spParallelThreadNum() == 0)
-			{
-				*g_d_tail = 0;
-			}
-		}
-		else if (*s_tail >= SP_NUMBER_OF_ENTITIES_IN_PAGE)
-		{
-			src = &((*src)->next);
-			if (spParallelThreadNum() == 0)
-			{
-				*g_s_tail = 0;
-			}
-		}
+            if (spParallelThreadNum() == 0)
+            {
+                *dest = *pool;
+                *pool = (*pool)->next;
+                if (*dest != NULL)
+                {
+                    (*dest)->next = NULL;
+                }
+                *g_d_tail = 0;
+            }
+        }
+        else if (*d_tail >= SP_NUMBER_OF_ENTITIES_IN_PAGE)
+        {
+            dest = &((*dest)->next);
+            if (spParallelThreadNum() == 0)
+            {
+                *g_d_tail = 0;
+            }
+        }
+        else if (*s_tail >= SP_NUMBER_OF_ENTITIES_IN_PAGE)
+        {
+            src = &((*src)->next);
+            if (spParallelThreadNum() == 0)
+            {
+                *g_s_tail = 0;
+            }
+        }
 
-		spParallelSyncThreads();
+        spParallelSyncThreads();
 
-		if (*dest == NULL)
-		{
-			return SP_MP_ERROR_POOL_IS_OVERFLOW;
-		}
-	}
+        if (*dest == NULL)
+        {
+            return SP_MP_ERROR_POOL_IS_OVERFLOW;
+        }
+    }
 
-	return SP_MP_FINISHED;
+    return SP_MP_FINISHED;
 
 }

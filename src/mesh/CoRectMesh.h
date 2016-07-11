@@ -212,8 +212,8 @@ public:
 
 private:
     //TODO should use block-entity_id_range
-    parallel::concurrent_unordered_set <MeshEntityId> m_affected_entities_[4];
-    parallel::concurrent_unordered_set <MeshEntityId> m_interface_entities_[4];
+    parallel::concurrent_unordered_set<MeshEntityId> m_affected_entities_[4];
+    parallel::concurrent_unordered_set<MeshEntityId> m_interface_entities_[4];
 public:
 
     typedef typename MeshEntityIdCoder::range_type block_range_type;
@@ -379,7 +379,7 @@ public:
                 u = m_outer_upper_;
                 for (int i = 0; i < 3; ++i)
                 {
-                    if (m_dims_[i] > 1)
+                    if (m_dims_[i] > 1 && m_ghost_width_[i] != 0)
                     {
                         l[i] += 1;
                         u[i] -= 1;
@@ -618,10 +618,10 @@ public:
         int i_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
 
         nTuple<size_t, ndims + 1> f_dims, f_count;
-        nTuple<ptrdiff_t, ndims + 1> f_start;
+        nTuple<size_type, ndims + 1> f_start;
 
         nTuple<size_t, ndims + 1> m_dims, m_count;
-        nTuple<ptrdiff_t, ndims + 1> m_start;
+        nTuple<size_type, ndims + 1> m_start;
 
         switch (status)
         {

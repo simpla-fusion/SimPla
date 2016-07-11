@@ -10,13 +10,13 @@
 
 namespace std
 {
-/// Alias template for aligned_storage
-template<size_t _Len, size_t _Align =
-__alignof__(typename __aligned_storage_msa<_Len>::__type)>
-using aligned_storage_t = typename aligned_storage<_Len, _Align>::type;
-
-template<size_t _Len, typename... _Types>
-using aligned_union_t = typename aligned_union<_Len, _Types...>::type;
+///// Alias template for aligned_storage
+//template<size_t _Len, size_t _Align =
+//__alignof__(typename __aligned_storage_msa<_Len>::__type)>
+//using aligned_storage_t = typename aligned_storage<_Len, _Align>::type;
+//
+//template<size_t _Len, typename... _Types>
+//using aligned_union_t = typename aligned_union<_Len, _Types...>::type;
 
 /// Alias template for decay
 template<typename _Tp>

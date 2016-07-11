@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 2.8)
-SET(CMAKE_VERBOSE_MAKEFILE ON)
-
-PROJECT(sp_lite C CXX)
-
-FIND_PACKAGE(MPI)
+#cmake_minimum_required(VERSION 2.8)
+#SET(CMAKE_VERBOSE_MAKEFILE ON)
+#
+#PROJECT(sp_lite C CXX)
+#
+#FIND_PACKAGE(MPI)
 
 
 IF (MPI_FOUND)
@@ -28,8 +28,10 @@ SET(CUDA_SEPARABLE_COMPILATION ON)
 
 ADD_DEFINITIONS(-DUSE_CUDA -DENABLE_SOA -DNUMBER_OF_THREADS_PER_BLOCK=256)
 
+LINK_DIRECTORIES("/home/salmon/workspace/build/SimPla/lib/")
+
 FILE(GLOB sp_lite_SRC ./*.cu)
 
 CUDA_ADD_EXECUTABLE(sp_lite ${sp_lite_SRC})
 
-TARGET_LINK_LIBRARIES(sp_lite ${CMAKE_CURRENT_BINARY_DIR}/libsp_cwrap.so)
+TARGET_LINK_LIBRARIES(sp_lite  sp_cwrap )

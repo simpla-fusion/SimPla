@@ -6,6 +6,8 @@
 
 #include "DistributedObject.h"
 
+#include "../gtl/MemoryPool.h"
+
 #include "MPIComm.h"
 #include "MPIAuxFunctions.h"
 #include "MPIUpdate.h"
@@ -37,14 +39,14 @@ struct DistributedObject::pimpl_s
     {
         int tag;
         int dest;
-        nTuple<ptrdiff_t, 3> shift;
+        nTuple<int, 3> shift;
         data_model::DataSet *data_set;
     };
     struct send_link_s
     {
         int tag;
         int dest;
-        nTuple<ptrdiff_t, 3> shift;
+        nTuple<int, 3> shift;
         data_model::DataSet const *data_set;
     };
 
@@ -55,9 +57,9 @@ struct DistributedObject::pimpl_s
     std::vector<MPI_Request> m_mpi_requests_;
 
 
-    void add_send_link(size_t id, const nTuple<ptrdiff_t, 3> &shift, const data_model::DataSet *ds);
+    void add_send_link(size_t id, const nTuple<int, 3> &shift, const data_model::DataSet *ds);
 
-    void add_recv_link(size_t id, const nTuple<ptrdiff_t, 3> &shift, data_model::DataSet *ds);
+    void add_recv_link(size_t id, const nTuple<int, 3> &shift, data_model::DataSet *ds);
 
 
 };
@@ -75,7 +77,7 @@ void DistributedObject::pimpl_s::clear()
     m_mpi_requests_.clear();
 }
 
-void DistributedObject::pimpl_s::add_send_link(size_t id, const nTuple<ptrdiff_t, 3> &shift,
+void DistributedObject::pimpl_s::add_send_link(size_t id, const nTuple<int, 3> &shift,
                                                const data_model::DataSet *ds)
 {
     int dest_id;
@@ -88,7 +90,7 @@ void DistributedObject::pimpl_s::add_send_link(size_t id, const nTuple<ptrdiff_t
 
 };
 
-void DistributedObject::pimpl_s::add_recv_link(size_t id, const nTuple<ptrdiff_t, 3> &shift, data_model::DataSet *ds)
+void DistributedObject::pimpl_s::add_recv_link(size_t id, const nTuple<int, 3> &shift, data_model::DataSet *ds)
 {
     int dest_id;
     int recv_tag;
@@ -367,13 +369,13 @@ void DistributedObject::wait() { pimpl_->wait(); }
 bool DistributedObject::is_ready() const { return pimpl_->is_ready(); }
 
 
-void DistributedObject::add_send_link(size_t id, const nTuple<ptrdiff_t, 3> &offset, const data_model::DataSet *ds)
+void DistributedObject::add_send_link(size_t id, const nTuple<int, 3> &offset, const data_model::DataSet *ds)
 {
     return pimpl_->add_send_link(id, offset, ds);
 
 };
 
-void DistributedObject::add_recv_link(size_t id, const nTuple<ptrdiff_t, 3> &offset, data_model::DataSet *ds)
+void DistributedObject::add_recv_link(size_t id, const nTuple<int, 3> &offset, data_model::DataSet *ds)
 {
     return pimpl_->add_recv_link(id, offset, ds);
 }

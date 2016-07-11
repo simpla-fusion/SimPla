@@ -13,8 +13,6 @@
 #include "../mesh/MeshBase.h"
 #include "../mesh/MeshAttribute.h"
 #include "../data_model/DataSet.h"
-#include "../gtl/type_traits.h"
-//#include "FieldTraits.h"
 
 namespace simpla
 {
@@ -227,8 +225,8 @@ public:
 public:
 
     template<typename TFun> this_type &
-            apply(mesh::MeshEntityRange const &r0, TFun const &op,
-    CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &, field_value_type const &))
+    apply(mesh::MeshEntityRange const &r0, TFun const &op,
+          CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &, field_value_type const &))
     )
     {
         deploy();
@@ -247,8 +245,8 @@ public:
     }
 
     template<typename TFun> this_type &
-            apply(mesh::MeshEntityRange const &r0, TFun const &op,
-    CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &))
+    apply(mesh::MeshEntityRange const &r0, TFun const &op,
+          CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &))
     )
     {
         deploy();

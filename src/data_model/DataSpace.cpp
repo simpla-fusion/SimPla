@@ -10,7 +10,7 @@
 #include <tuple>
 
 #include "../gtl/nTuple.h"
-#include "../gtl/Utilities.h"
+//#include "../gtl/Utilities.h"
 #include "../parallel/Parallel.h"
 #include "../parallel/MPIUpdate.h"
 #include "DataSpace.h"
@@ -43,7 +43,7 @@ struct DataSpace::pimpl_s
      */
 
     data_shape_s m_d_shape_;
-    std::vector<size_t> m_selected_points_;
+    std::vector<size_type> m_selected_points_;
     // index_tuple m_local_dimensions_;
     // index_tuple m_local_offset_;
 
@@ -53,7 +53,7 @@ struct DataSpace::pimpl_s
 
 DataSpace::DataSpace() : m_pimpl_{new pimpl_s} { }
 
-DataSpace::DataSpace(int ndims, size_t const *dims) :
+DataSpace::DataSpace(int ndims, size_type const *dims) :
         m_pimpl_(new pimpl_s)
 {
 
@@ -97,15 +97,15 @@ void DataSpace::swap(DataSpace &other)
     std::swap(m_pimpl_, other.m_pimpl_);
 }
 
-DataSpace DataSpace::create_simple(int ndims, const size_t *dims)
+DataSpace DataSpace::create_simple(int ndims, const size_type *dims)
 {
     return std::move(DataSpace(ndims, dims));
 }
 
-std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_t count)
+std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_type count)
 {
-    size_t offset = 0;
-    size_t total_count = count;
+    size_type offset = 0;
+    size_type total_count = count;
     std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
     DataSpace memory_space = data_model::DataSpace::create_simple(1, &count);
 
@@ -117,21 +117,21 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_t count
 
 //
 //std::tuple<DataSpace, DataSpace>  DataSpace::create(
-//        size_t rank,
-//        size_t const *dims,
-//        size_t const *start,
-//        size_t const *_stride,
-//        size_t const *count,
-//        size_t const *_block)
+//        size_type rank,
+//        size_type const *dims,
+//        size_type const *start,
+//        size_type const *_stride,
+//        size_type const *count,
+//        size_type const *_block)
 //{
 //
 //    DataSpace data_space, memory_space;
 //
 //    if (dims == nullptr && start == nullptr)
 //    {
-//        size_t count = rank;
-//        size_t offset = 0;
-//        size_t total_count = count;
+//        size_type count = rank;
+//        size_type offset = 0;
+//        size_type total_count = count;
 //
 //        std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
 //
@@ -159,9 +159,26 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_t count
 
 bool DataSpace::is_valid() const
 {
-    return (!!(m_pimpl_))
-           &&
-           (std::get<2>(m_pimpl_->m_d_shape_) + std::get<4>(m_pimpl_->m_d_shape_) <= std::get<1>(m_pimpl_->m_d_shape_));
+    bool res = m_pimpl_ != nullptr;
+    if (res)
+    {
+        int ndims = std::get<0>(m_pimpl_->m_d_shape_);
+        index_tuple t_dims = std::get<1>(m_pimpl_->m_d_shape_);
+        index_tuple t_start = std::get<2>(m_pimpl_->m_d_shape_);
+        index_tuple t_count = std::get<4>(m_pimpl_->m_d_shape_);
+
+        for (int i = 0; i < ndims; ++i)
+        {
+            if (t_start[i] + t_count[i] > t_dims[i])
+            {
+                res = false;
+                break;
+            };
+        }
+    }
+
+
+    return res;
 }
 
 bool DataSpace::is_simple() const
@@ -181,9 +198,9 @@ DataSpace::data_shape_s &DataSpace::shape()
     return m_pimpl_->m_d_shape_;
 }
 
-size_t DataSpace::size() const
+size_type DataSpace::size() const
 {
-    size_t s = 1;
+    size_type s = 1;
 
     int ndims = std::get<0>(m_pimpl_->m_d_shape_);
 
@@ -196,7 +213,7 @@ size_t DataSpace::size() const
     return s;
 }
 
-size_t DataSpace::num_of_elements() const
+size_type DataSpace::num_of_elements() const
 {
 
     if (!is_simple())
@@ -205,7 +222,7 @@ size_t DataSpace::num_of_elements() const
     }
     else
     {
-        size_t s = 1;
+        size_type s = 1;
 
         int ndims = std::get<0>(m_pimpl_->m_d_shape_);
 
@@ -218,11 +235,11 @@ size_t DataSpace::num_of_elements() const
 
 }
 
-std::vector<size_t> const &DataSpace::selected_points() const { return m_pimpl_->m_selected_points_; };
+std::vector<size_type> const &DataSpace::selected_points() const { return m_pimpl_->m_selected_points_; };
 
-std::vector<size_t> &DataSpace::selected_points() { return m_pimpl_->m_selected_points_; };
+std::vector<size_type> &DataSpace::selected_points() { return m_pimpl_->m_selected_points_; };
 
-void DataSpace::select_point(const size_t *idx)
+void DataSpace::select_point(const size_type *idx)
 {
     int ndims = std::get<0>(m_pimpl_->m_d_shape_);
 
@@ -230,23 +247,23 @@ void DataSpace::select_point(const size_t *idx)
 
 }
 
-void DataSpace::select_point(size_t pos) { m_pimpl_->m_selected_points_.push_back(pos); }
+void DataSpace::select_point(size_type pos) { m_pimpl_->m_selected_points_.push_back(pos); }
 
 
-void DataSpace::select_points(size_t num, const size_t *tags)
+void DataSpace::select_points(size_type num, const size_type *tags)
 {
     int ndims = std::get<0>(this->shape());
 
-    size_t head = m_pimpl_->m_selected_points_.size();
-    size_t tail = head + num;
+    size_type head = m_pimpl_->m_selected_points_.size();
+    size_type tail = head + num;
     m_pimpl_->m_selected_points_.resize(tail);
     parallel::parallel_for(
-            parallel::blocked_range<size_t>(head, tail),
-            [&](parallel::blocked_range<size_t> const &r)
+            parallel::blocked_range<size_type>(head, tail),
+            [&](parallel::blocked_range<size_type> const &r)
             {
-                for (size_t i = r.begin(), ie = r.end(); i != ie; ++i)
+                for (size_type i = r.begin(), ie = r.end(); i != ie; ++i)
                 {
-                    for (size_t j = 0; j < ndims; ++j)
+                    for (size_type j = 0; j < ndims; ++j)
                     {
                         m_pimpl_->m_selected_points_[i * ndims + j] = tags[(i - head) * ndims + j];
                     }
@@ -256,10 +273,10 @@ void DataSpace::select_points(size_t num, const size_t *tags)
     );
 }
 
-DataSpace &DataSpace::select_hyperslab(const size_t *start,
-                                       size_t const *_stride,
-                                       size_t const *count,
-                                       size_t const *_block)
+DataSpace &DataSpace::select_hyperslab(size_type const *start,
+                                       size_type const *_stride,
+                                       size_type const *count,
+                                       size_type const *_block)
 {
     if (!is_valid()) { RUNTIME_ERROR << ("data_space is invalid!"); }
 
@@ -326,9 +343,9 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //}
 //
 //
-//size_t data_space::local_memory_size() const
+//size_type data_space::local_memory_size() const
 //{
-//	size_t s = 1;
+//	size_type s = 1;
 //
 //	for (int i = 0; i < m_self_->m_d_shape_.ndims; ++i)
 //	{
@@ -337,8 +354,8 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	return s;
 //}
 //
-//data_space &data_space::set_local_shape(size_t const *local_dimensions =
-//nullptr, size_t const *local_offset = nullptr)
+//data_space &data_space::set_local_shape(size_type const *local_dimensions =
+//nullptr, size_type const *local_offset = nullptr)
 //{
 //
 //	if (local_offset != nullptr)
@@ -364,8 +381,8 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	return *this;
 //}
 //
-//void data_space::decompose(size_t ndims, size_t const * proc_dims,
-//		size_t const * proc_coord)
+//void data_space::decompose(size_type ndims, size_type const * proc_dims,
+//		size_type const * proc_coord)
 //{
 //	if (!is_valid())
 //	{
@@ -375,7 +392,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	{
 //		THROW_EXCEPTION_RUNTIME_ERROR("data_space is too small to decompose!");
 //	}
-//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> offset, count;
+//	nTuple<size_type, MAX_NDIMS_OF_ARRAY> offset, count;
 //	offset = 0;
 //	count = m_self_->m_count_;
 //
@@ -404,10 +421,10 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	m_self_->m_offset_ = m_self_->m_ghost_width_ * m_self_->m_stride_;
 //}
 //
-//void decomposer_(size_t num_process, size_t process_num, size_t gw,
-//		size_t ndims, size_t const *global_start, size_t const * global_count,
-//		size_t * local_outer_start, size_t * local_outer_count,
-//		size_t * local_inner_start, size_t * local_inner_count)
+//void decomposer_(size_type num_process, size_type process_num, size_type gw,
+//		size_type ndims, size_type const *global_start, size_type const * global_count,
+//		size_type * local_outer_start, size_type * local_outer_count,
+//		size_type * local_inner_start, size_type * local_inner_count)
 //{
 //
 //	for (int i = 0; i < ndims; ++i)
@@ -422,7 +439,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //		return;
 //
 //	int n = 0;
-//	size_t L = 0;
+//	size_type L = 0;
 //	for (int i = 0; i < ndims; ++i)
 //	{
 //		if (global_count[i] > L)
@@ -489,7 +506,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 ////
 ////		sub_array_s remote;
 ////
-////		for (unsigned size_t s = 0, s_e = (1UL << (ndims_ * 2)); s < s_e; ++s)
+////		for (unsigned size_type s = 0, s_e = (1UL << (ndims_ * 2)); s < s_e; ++s)
 ////		{
 ////			remote = node;
 ////
@@ -546,7 +563,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //}
 
 //bool data_space::sync(std::shared_ptr<void> m_data, DataType const & DataType,
-//		size_t flag)
+//		size_type flag)
 //{
 //#if  !NO_MPI || USE_MPI
 //	if (!GLOBAL_COMM.is_valid() || m_self_->send_recv_.size() == 0)

@@ -7,6 +7,7 @@
 #include "IOStream.h"
 #include "../parallel/MPIComm.h"
 #include "../parallel/MPIAuxFunctions.h"
+#include "../gtl/MiscUtilities.h"
 
 namespace simpla { namespace io
 {

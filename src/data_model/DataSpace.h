@@ -34,7 +34,7 @@ public:
     SP_OBJECT_HEAD(DataSpace, base::Object);
 
 
-    typedef nTuple <size_t, MAX_NDIMS_OF_ARRAY> index_tuple;
+    typedef nTuple <size_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
 
     typedef std::tuple<
@@ -49,7 +49,7 @@ public:
     // Creates a null data_space
     DataSpace();
 
-    DataSpace(int rank, size_t const *dims);
+    DataSpace(int rank, size_type const *dims);
 
 
     // Copy constructor: makes a copy of the original data_space object.
@@ -71,11 +71,11 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
-    static DataSpace create_simple(int rank, const size_t *dims = nullptr);
+    static DataSpace create_simple(int rank, const size_type *dims = nullptr);
 
-    static std::tuple<DataSpace, DataSpace> create_simple_unordered(size_t size);
+    static std::tuple<DataSpace, DataSpace> create_simple_unordered(size_type size);
 
-//    static std::tuple<DataSpace, DataSpace> create(size_t rank,
+//    static std::tuple<DataSpace, DataSpace> create(size_type rank,
 //                                                   index_type const *dims = nullptr,
 //                                                   index_type const *start = nullptr,
 //                                                   index_type const *_stride = nullptr,
@@ -85,10 +85,10 @@ public:
 
 
     // TODO complete support H5Sselect_hyperslab:H5S_seloper_t
-    DataSpace &select_hyperslab(const size_t *start,
-                                size_t const *_stride,
-                                size_t const *count,
-                                size_t const *_block);
+    DataSpace &select_hyperslab(const size_type *start,
+                                size_type const *_stride,
+                                size_type const *count,
+                                size_type const *_block);
 
     void clear_selected();
 
@@ -98,15 +98,15 @@ public:
 
     bool is_full() const;
 
-    std::vector<size_t> const &selected_points() const;
+    std::vector<size_type> const &selected_points() const;
 
-    std::vector<size_t> &selected_points();
+    std::vector<size_type> &selected_points();
 
-    void select_point(const size_t *idx);
+    void select_point(const size_type *idx);
 
-    void select_point(size_t pos);
+    void select_point(size_type pos);
 
-    void select_points(size_t num, const size_t *b);
+    void select_points(size_type num, const size_type *b);
 
 
     /**
@@ -116,9 +116,9 @@ public:
 
     data_shape_s &shape();
 
-    size_t size() const;
+    size_type size() const;
 
-    size_t num_of_elements() const;
+    size_type num_of_elements() const;
 
 private:
     struct pimpl_s;

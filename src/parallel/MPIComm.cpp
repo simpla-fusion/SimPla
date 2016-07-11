@@ -13,7 +13,11 @@
 #include <memory>
 #include <string>
 
-#include "../gtl/Utilities.h"
+#include "../gtl/nTuple.h"
+#include "../gtl/nTupleExt.h"
+#include "../gtl/Log.h"
+
+//#include "../gtl/Utilities.h"
 
 namespace simpla { namespace parallel
 {
@@ -87,27 +91,26 @@ void MPIComm::init(int argc, char **argv)
 
     topology(nTuple<int, 3>({pimpl_->m_num_process_, 1, 1}));
 
-    parse_cmd_line(argc, argv,
-
-                   [&](std::string const &opt, std::string const &value) -> int
-                   {
-
-//		if( opt=="number_of_threads")
-//		{
-////			string_to_value(value,&m_num_threads_);
-//		}
-//		else
-
-                       if (opt == "mpi_topology")
-                       {
-                           topology(type_cast<nTuple<int, 3 >>(value));
-                       }
-
-                       return CONTINUE;
-
-                   }
-
-    );
+//    parse_cmd_line(argc, argv,
+//
+//                   [&](std::string const &opt, std::string const &value) -> int
+//                   {
+//
+////		if( opt=="number_of_threads")
+////		{
+//////			string_to_value(value,&m_num_threads_);
+////		}
+////		else
+//
+//                       if (opt == "mpi_topology")
+//                       {
+//                           topology(type_cast<nTuple<int, 3 >>(value));
+//                       }
+//
+//                       return CONTINUE;
+//
+//                   }
+//    );
 
     VERBOSE << "MPI communicator is initialized!" << std::endl;
 }
@@ -163,8 +166,7 @@ bool MPIComm::is_valid() const
            && num_of_process() > 1;
 }
 
-std::tuple<int, int, int> MPIComm::make_send_recv_tag(size_t prefix,
-                                                      const nTuple<ptrdiff_t, 3> &offset)
+std::tuple<int, int, int> MPIComm::make_send_recv_tag(size_t prefix, const nTuple<int, 3> &offset)
 {
 
     int dest_id = get_neighbour(offset);
@@ -202,10 +204,12 @@ nTuple<int, 3> MPIComm::coordinate(int rank) const
     return std::move(coord);
 }
 
-int MPIComm::get_neighbour(nTuple<ptrdiff_t, 3> const &d) const
+int MPIComm::get_neighbour(nTuple<int, 3> const &d) const
 {
-
-    return (!pimpl_) ? 0 : get_rank(pimpl_->m_topology_coord_ + d);
+    nTuple<int, 3> t;
+    t = pimpl_->m_topology_coord_;
+    t += d;
+    return (!pimpl_) ? 0 : get_rank(t);
 
 //			(((m_self_->m_topology_coord_[0] + m_self_->m_topology_dims_[0] + d[0])
 //					% m_self_->m_topology_dims_[0])

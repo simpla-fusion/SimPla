@@ -11,12 +11,11 @@
 #include <stddef.h>
 #include <limits>
 #include <tuple>
-
-#include "../gtl/nTuple.h"
 #include "../sp_def.h"
+#include "../gtl/Log.h"
+#include "../gtl/nTuple.h"
 #include "../gtl/IteratorBlock.h"
 #include "../gtl/iterator/Range.h"
-#include "../parallel/ParallelTbb.h"
 #include "MeshCommon.h"
 #include "MeshEntityRange.h"
 
@@ -489,7 +488,8 @@ struct MeshEntityIdCoder_
 
             };
 
-    static constexpr MeshEntityId m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
+    static constexpr MeshEntityId
+            m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
             {
                     //To VERTEX
                     {
@@ -1000,7 +1000,9 @@ template<int L> constexpr int MeshEntityIdCoder_<L>::m_iform_to_num_of_ele_in_ce
 template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_num_to_di_[];
 template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_id_to_shift_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_sub_index_to_id_[4][3];
-template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
+template<int L> constexpr MeshEntityId
+        MeshEntityIdCoder_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][
+        MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
 template<int L> constexpr point_type MeshEntityIdCoder_<L>::m_id_to_coordinates_shift_[];
 
 typedef MeshEntityIdCoder_<> MeshEntityIdCoder;

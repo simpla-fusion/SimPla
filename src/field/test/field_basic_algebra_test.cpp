@@ -22,10 +22,10 @@ typedef testing::Types< //
         , field_t<Real, mesh_type, mesh::FACE>//
         , field_t<Real, mesh_type, mesh::VOLUME>//
 
-        , field_t<Vec3, mesh_type, mesh::VERTEX>//
-        , field_t<Vec3, mesh_type, mesh::EDGE> //
-        , field_t<Vec3, mesh_type, mesh::FACE> //
-        , field_t<Vec3, mesh_type, mesh::VOLUME>  //
+//        , field_t<Vec3, mesh_type, mesh::VERTEX>//
+//        , field_t<Vec3, mesh_type, mesh::EDGE> //
+//        , field_t<Vec3, mesh_type, mesh::FACE> //
+//        , field_t<Vec3, mesh_type, mesh::VOLUME>  //
 
 > TypeParamList;
 
