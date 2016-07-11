@@ -1,5 +1,11 @@
 FILE(GLOB io_SRC ./*.cpp)
 add_library(io ${io_SRC})
+target_link_libraries(io
+        /usr/lib/x86_64-linux-gnu/hdf5/openmpi/lib/libhdf5.a
+        /usr/lib/x86_64-linux-gnu/hdf5/openmpi/lib/libhdf5_hl.a
+        /usr/lib/x86_64-linux-gnu/libsz.a
+        /usr/lib/x86_64-linux-gnu/libz.a
+        /usr/lib/x86_64-linux-gnu/libaec.a m dl)
 
 #find_package(VTK COMPONENTS
 #        vtkCommonCore

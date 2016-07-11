@@ -25,9 +25,8 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 
 SET(ARCH intel64)
 
-#SET(CMAKE_C_COMPILER /usr/bin/gcc-4.8)
-#
-#SET(CMAKE_CXX_COMPILER /usr/bin/g++-4.8)
+#SET(CMAKE_C_COMPILER /usr/bin/gcc)
+#SET(CMAKE_CXX_COMPILER /usr/bin/g++)
 
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
@@ -283,6 +282,7 @@ ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\")
 # workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
 add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp tools/geqdsk_convert.cpp)
+
 
 ADD_CUSTOM_TARGET(alltest)
 

@@ -401,14 +401,14 @@ public:
     };
 
 
-    virtual size_t max_hash(MeshEntityType entityType = VERTEX) const
+    virtual size_type max_hash(MeshEntityType entityType = VERTEX) const
     {
         return m::max_hash(m_outer_lower_, m_outer_upper_, entityType);
     }
 
-    virtual size_t hash(MeshEntityId const &s) const
+    virtual size_type hash(MeshEntityId const &s) const
     {
-        return static_cast<size_t>(m::hash(s, m_outer_lower_, m_outer_upper_));
+        return static_cast<size_type>(m::hash(s, m_outer_lower_, m_outer_upper_));
     }
 
 
@@ -617,10 +617,10 @@ public:
     {
         int i_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
 
-        nTuple<size_t, ndims + 1> f_dims, f_count;
+        nTuple<size_type, ndims + 1> f_dims, f_count;
         nTuple<size_type, ndims + 1> f_start;
 
-        nTuple<size_t, ndims + 1> m_dims, m_count;
+        nTuple<size_type, ndims + 1> m_dims, m_count;
         nTuple<size_type, ndims + 1> m_start;
 
         switch (status)
