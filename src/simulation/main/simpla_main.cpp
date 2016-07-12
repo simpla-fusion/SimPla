@@ -53,7 +53,9 @@ int main(int argc, char **argv)
 
     create_scenario(&ctx, options);
 
+    std::cout << "Context = {" << std::endl;
     ctx.print(std::cout);
+    std::cout << std::endl << " }" << std::endl;
 
     int num_of_steps = options["number_of_steps"].as<int>(1);
     int step_of_check_points = options["step_of_check_point"].as<int>(1);

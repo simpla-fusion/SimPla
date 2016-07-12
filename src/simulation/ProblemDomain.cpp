@@ -84,31 +84,21 @@ ProblemDomain::print(std::ostream &os, int indent) const
     auto it = m_pimpl_->m_attr_.begin();
     auto ie = m_pimpl_->m_attr_.end();
 
-    os << std::setw(indent) << " ProblemDomain={" << std::endl;
-    os << std::setw(indent + 1) << " Type=\"" << get_class_name() << "\"," << std::endl;
+    os << std::setw(indent + 1) << " " << " Type=\"" << get_class_name() << "\"," << std::endl;
 
-    os << std::setw(indent + 1) << " Mesh= {" << std::endl;
+    os << std::setw(indent + 1) << " " << " Mesh= {" << std::endl;
     m_mesh_->print(os, indent + 2);
-    os << std::setw(indent + 1) << " }," << std::endl;
+    os << std::setw(indent + 1) << " " << " }," << std::endl;
 
 //    os << std::setw(indent + 1) << " time =" << m_self_->m_time_ << ", dt =" << m_self_->m_dt_ << "," << std::endl;
 
 
-    os << std::setw(indent + 1) << " Attributes= {  ";
+    os << std::setw(indent + 1) << " " << " Attributes= {";
 
-
-    for (auto const &item:m_pimpl_->m_attr_)
-    {
-        os << " " << item.first;
-//        os << "={";
-//        item.second->print(os, indent + 2);
-//        os << "}";
-        os << ",";
-    }
+    for (auto const &item:m_pimpl_->m_attr_) { os << " " << item.first << ","; }
 
     os << "}," << std::endl;
 
-    os << std::setw(indent) << "}," << std::endl;
 
     return os;
 }

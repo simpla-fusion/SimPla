@@ -25,7 +25,33 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
     center_mesh->deploy();
 
     auto center_domain = ctx->add_domain_to<EMFluid<mesh_type >>(center_mesh->id());
+
+    for (auto const &item:options["Particles"])
+    {
+        auto sp = center_domain->add_particle(std::get<0>(item).template as<std::string>(),
+                                              std::get<1>(item)["Charge"].template as<Real>(1.0),
+                                              std::get<1>(item)["Mass"].template as<Real>(1.0));
+        sp->rho.clear();
+        sp->J.clear();
+        if (std::get<1>(item)["Density"])
+        {
+            auto r = center_mesh->range(std::get<1>(item)["Box"].as<box_type>(), VERTEX);
+            std::function<Real(point_type const &)> g_obj;
+            std::get<1>(item)["Shape"].as(&g_obj);
+
+            std::function<Real(point_type const &)> density;
+            std::get<1>(item)["Density"].as(&density);
+            r.foreach([&](MeshEntityId const &s)
+                      {
+                          auto x = center_mesh->point(s);
+                          if (g_obj(x) <= 0) { sp->rho[s] = density(x); }
+                      });
+        }
+    }
+
     center_domain->deploy();
+
+
     if (options["InitValue"])
     {
         if (options["InitValue"]["B0"])

@@ -51,6 +51,9 @@ public:
 
     virtual void sync(mesh::TransitionMap const &, simulation::ProblemDomain const &other);
 
+
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const;
+
     MeshEntityRange limiter_boundary;
     MeshEntityRange vertex_boundary;
     MeshEntityRange edge_boundary;
@@ -95,10 +98,13 @@ public:
 
     std::map<std::string, fluid_s> m_fluid_sp_;
 
-    std::pair<typename std::map<std::string, fluid_s>::iterator, bool>
+    fluid_s *
     add_particle(std::string const &name, Real mass, Real charge)
     {
-        return m_fluid_sp_.emplace(std::make_pair(name, fluid_s{mass, charge, TRho{m}, TJv{m}}));
+        auto ins_res = m_fluid_sp_.emplace(std::make_pair(name, fluid_s{mass, charge, TRho{m}, TJv{m}}));
+        fluid_s *res = nullptr;
+        if (std::get<1>(ins_res)) { res = &(std::get<0>(ins_res)->second); }
+        return res;
     }
 
 };
@@ -130,6 +136,22 @@ void EMFluid<TM>::deploy()
     }
 
 }
+
+template<typename TM> std::ostream &
+EMFluid<TM>::print(std::ostream &os, int indent) const
+{
+    simulation::ProblemDomain::print(os, indent);
+    os << std::setw(indent + 1) << " " << " ParticleAttribute= { " << std::endl;
+    for (auto &sp:m_fluid_sp_)
+    {
+        os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second.mass << " , Charge = " <<
+        sp.second.charge << "}," << std::endl;
+    }
+    os << std::setw(indent + 1) << " " << " }, " << std::endl;
+    return os;
+
+}
+
 
 template<typename TM>
 void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)
@@ -170,8 +192,9 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
 
-    B -= curl(E) * (dt);
+    B -= curl(E) * (dt * 0.5);
     B.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     E.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
@@ -229,8 +252,8 @@ void EMFluid<TM>::next_step(Real dt)
         a += 1;
 
 
-        LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-                     (b * b * BB + a * a));
+        dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
+             (b * b * BB + a * a);
 
         for (auto &p :   m_fluid_sp_)
         {
@@ -250,8 +273,8 @@ void EMFluid<TM>::next_step(Real dt)
         E += map_to<EDGE>(Ev) - E;
     }
 
-//    B -= curl(E) * (dt * 0.5);
-//    B.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+    B -= curl(E) * (dt * 0.5);
+    B.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 }
 
 

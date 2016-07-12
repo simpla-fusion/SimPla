@@ -50,12 +50,16 @@ Context::teardown()
 std::ostream &
 Context::print(std::ostream &os, int indent) const
 {
-    os << "{" << std::endl;
+    os << std::setw(indent) << " " << " ProblemDomain = {" << std::endl;
     for (auto const &item:m_pimpl_->m_domains_)
     {
-        item.second->print(os, indent + 1);
+        os << std::setw(indent + 1) << " " << "{" << std::endl;
+
+        item.second->print(os, indent + 2);
+
+        os << std::setw(indent + 1) << " " << "}," << std::endl;
     }
-    os << "}" << std::endl;
+    os << std::setw(indent) << " " << " }," << std::endl;
     return os;
 }
 

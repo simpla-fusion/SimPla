@@ -39,13 +39,13 @@ rhoe = vTe / omega_ce -- m
 NX = 50
 NY = 50
 NZ = 1
-LX = TWOPI/100.0 --m --100000*rhoi --0.6
-LY = TWOPI/100.0 --2.0*math.pi/k0
+LX = 2.0 --m --100000*rhoi --0.6
+LY = 2.0 --2.0*math.pi/k0
 LZ = 1.0 -- math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_steps =  250
+number_of_steps = 5
 dt = 0.5 * (LX / NX) / c
 --current_time = 0;
 stop_time = dt * number_of_steps;
@@ -77,48 +77,35 @@ InitValue = {
             return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
         end
     },
-    --  phi=
-    --  {
-    --    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
-    --
-    --    Value=function(x,t)
-    --      -- print(x[1],x[2],x[3])
-    --      return   math.sin(x[1]*0.92*math.pi)*math.sin(x[2]*0.02*math.pi)
-    --    end
-    --
-    --  }
-    --    E1 = {
-    --        Value = function(x)
-    --            local tau = x[1] * TWOPI / LX + x[2] * TWOPI / LY + x[3] * TWOPI / LZ
-    --
-    --            return {
-    --                math.sin(tau),
-    --                math.sin(tau + TWOPI / 3.0),
-    --                math.sin(tau + TWOPI * 2.0 / 3.0)
-    --            }
-    --        end
-    --    },
 }
+
+R = function(x)
+    return math.sqrt((x[1] - LX / 2) * (x[1] - LX / 2) + (x[2] - LY / 2) * (x[2] - LY / 2) + (x[3] - LZ / 2) * (x[3] - LZ / 2)) / (LX / 2.0)
+end
+
 Particles = {
-    H = {
-        mass = mp,
-        charge = qe,
-        T = Ti,
-        pic = 2,
-        Type = "Boris",
-        IsParticle = true,
-        --  DisableCheckPoint = true,
-        DisableXDMFOutput = true,
-        V0 = { 1, 2, 3 },
-    },
+    --    H = {
+    --        mass = mp,
+    --        charge = qe,
+    --        T = Ti,
+    --        pic = 2,
+    --        Type = "Boris",
+    --        IsParticle = true,
+    --        --  DisableCheckPoint = true,
+    --        DisableXDMFOutput = true,
+    --        V0 = { 1, 2, 3 },
+    --    },
     ele = {
-        mass = me,
-        charge = -qe,
-        T = Te,
-        pic = PIC,
-        --        Density = function(t, x)
-        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
-        --        end
+        Mass = me,
+        Charge = -qe,
+        Type = "Fluid",
+        Box = { { 0, 0, 0 }, { LX, LY, LZ } },
+        Shape = function(x)
+            return R(x) - 1.0
+        end,
+        Density = function(x)
+            return (1.0 - math.cos(R(x) * math.pi * 2.0))
+        end
     }
 }
 
@@ -143,6 +130,7 @@ Constraints = {
         Value = function(t, x, v)
             local tau = t * omega_ext + x[1] * TWOPI / LX
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
+
             return { 0, 0, amp }
         end
     },
