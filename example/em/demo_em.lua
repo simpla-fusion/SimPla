@@ -73,14 +73,14 @@ domain_center = {
         Points = { { 0.1, 0.1, 0 }, { 0.2, 0.2, 0 }, { 0.3, 0.4, 0 } }
     },
 }
---
---InitValue = {
---    B0 = {
---        Value = function(x)
---            return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
---        end
---    },
---}
+
+InitValue = {
+    B0 = {
+        Value = function(x)
+            return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
+        end
+    },
+}
 
 R = function(x)
     return math.sqrt((x[1] - LX / 2.0) * (x[1] - LX / 2.0) + (x[2] - LY / 2.0) * (x[2] - LY / 2.0)) / (LX / 4.0)
