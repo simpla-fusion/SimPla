@@ -19,7 +19,7 @@ extern "C"
 #define  COPYRIGHT "All rights reserved. (2016 )"
 
 #ifndef USE_DOUBLE
-#   define  SP_REAL float
+#   define  SP_REAL double
 #else
 #   define  SP_REAL double
 #endif

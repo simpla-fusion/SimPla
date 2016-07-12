@@ -21,7 +21,7 @@ using namespace mesh;
 
 
 template<typename TM>
-class EMFluid : public simulation::ProblemDomain
+class EMFluid: public simulation::ProblemDomain
 {
     typedef EMFluid<TM> this_type;
     typedef simulation::ProblemDomain base_type;
@@ -40,17 +40,16 @@ public:
     typedef typename mesh_type::scalar_type scalar_type;
     mesh_type const *m;
 
-    EMFluid(const mesh_type *mp) : base_type(mp), m(mp) { }
+    EMFluid(const mesh_type *mp)
+        : base_type(mp), m(mp) { }
 
     virtual ~EMFluid() { }
-
 
     virtual void deploy();
 
     virtual void next_step(Real dt);
 
     virtual void sync(mesh::TransitionMap const &, simulation::ProblemDomain const &other);
-
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
@@ -63,11 +62,12 @@ public:
     MeshEntityRange plasma_region_vertex;
 
 
-    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
+    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType,
+                                                                      TM,
+                                                                      std::integral_constant<size_t, IFORM> >;;
 
     MeshEntityRange J_src_range;
     std::function<Vec3(Real, point_type const &, vector_type const &v)> J_src_fun;
-
 
     typedef field_t<scalar_type, FACE> TB;
     typedef field_t<scalar_type, EDGE> TE;
@@ -82,11 +82,11 @@ public:
     field_t<scalar_type, VERTEX> BB/* */{m};
     field_t<vector_type, VERTEX> Ev/* */{m};
     field_t<vector_type, VERTEX> Bv/* */{m};
+    field_t<vector_type, VERTEX> dE{m};
 //
     field_t<scalar_type, FACE> B/*   */{m};
     field_t<scalar_type, EDGE> E/*   */{m};
     field_t<scalar_type, EDGE> J1/*  */{m};
-
 
     struct fluid_s
     {
@@ -109,17 +109,16 @@ public:
 
 };
 
-
 template<typename TM>
 void EMFluid<TM>::deploy()
 {
     rho0.clear();
     E0.clear();
     B0.clear();
-    B0v.clear();
     BB.clear();
+
     Ev.clear();
-    Bv.clear();
+
 
     J1.clear();
     B.clear();
@@ -128,6 +127,9 @@ void EMFluid<TM>::deploy()
 
     declare_global(&E, "E");
     declare_global(&B, "B");
+
+    declare_global(&Ev, "Ev");
+    declare_global(&dE, "dE");
 
     for (auto &sp:m_fluid_sp_)
     {
@@ -145,13 +147,12 @@ EMFluid<TM>::print(std::ostream &os, int indent) const
     for (auto &sp:m_fluid_sp_)
     {
         os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second.mass << " , Charge = " <<
-        sp.second.charge << "}," << std::endl;
+            sp.second.charge << "}," << std::endl;
     }
     os << std::setw(indent + 1) << " " << " }, " << std::endl;
     return os;
 
 }
-
 
 template<typename TM>
 void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)
@@ -183,12 +184,12 @@ void EMFluid<TM>::next_step(Real dt)
 
         auto f = J_src_fun;
         J_src_range.foreach(
-                [&](mesh::id const &s)
-                {
-                    auto x0 = m->point(s);
-                    auto v = J_src_fun(current_time, x0, J1(x0));
-                    J1[s] += m->template sample<EDGE>(s, v);
-                });
+            [&](mesh::id const &s)
+            {
+                auto x0 = m->point(s);
+                auto v = J_src_fun(current_time, x0, J1(x0));
+                J1[s] += m->template sample<EDGE>(s, v);
+            });
     }
 
 
@@ -198,10 +199,15 @@ void EMFluid<TM>::next_step(Real dt)
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     E.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
-    field_t<vector_type, VERTEX> dE{m};
 
     if (m_fluid_sp_.size() > 0)
     {
+        if (Ev.empty()) { Ev = map_to<VERTEX>(E); }
+        if (B0v.empty())
+        {
+            B0v = map_to<VERTEX>(B0);
+            BB = dot(B0v, B0v);
+        }
 
         field_t<vector_type, VERTEX> Q{m};
         field_t<vector_type, VERTEX> K{m};
@@ -217,17 +223,15 @@ void EMFluid<TM>::next_step(Real dt)
         Q = map_to<VERTEX>(E) - Ev;
 
 
-        for (auto &p :   m_fluid_sp_)
+        for (auto &p :m_fluid_sp_)
         {
 
             Real ms = p.second.mass;
             Real qs = p.second.charge;
 
-
             field_t<scalar_type, VERTEX> &ns = p.second.rho;
 
             field_t<vector_type, VERTEX> &Js = p.second.J;
-
 
             Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
@@ -243,9 +247,7 @@ void EMFluid<TM>::next_step(Real dt)
             b += qs * ns * (as * as / (BB * as * as + 1));
             c += qs * ns * (as * as * as / (BB * as * as + 1));
 
-
         }
-
         a *= 0.5 * dt / epsilon0;
         b *= 0.5 * dt / epsilon0;
         c *= 0.5 * dt / epsilon0;
@@ -253,15 +255,14 @@ void EMFluid<TM>::next_step(Real dt)
 
 
         dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-             (b * b * BB + a * a);
+            (b * b * BB + a * a);
 
-        for (auto &p :   m_fluid_sp_)
+        for (auto &p : m_fluid_sp_)
         {
             Real ms = p.second.mass;
             Real qs = p.second.charge;
             field_t<scalar_type, VERTEX> &ns = p.second.rho;
             field_t<vector_type, VERTEX> &Js = p.second.J;
-
 
             Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
@@ -276,7 +277,6 @@ void EMFluid<TM>::next_step(Real dt)
     B -= curl(E) * (dt * 0.5);
     B.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 }
-
 
 }//namespace simpla  {
 #endif //SIMPLA_EM_FLUID_H

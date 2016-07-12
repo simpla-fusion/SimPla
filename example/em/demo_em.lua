@@ -19,16 +19,17 @@ Tesla = 1.0 -- Tesla
 PI = 3.141592653589793
 TWOPI = PI * 2
 k_B = 1.3806488e-23 --Boltzmann_constant
+epsilon0 = 8.8542e-12
 --
 
 k_parallel = 18
 Btor = 2.0 * Tesla
 Ti = 0.03 * KeV
 Te = 0.05 * KeV
-N0 = 1.0e17 -- m^-3
+N0 = 1.0e19 -- m^-3
 
 
-omega_ci = 10 * qe * Btor / mp -- e/m_p B0 rad/s
+omega_ci = qe * Btor / mp -- e/m_p B0 rad/s
 vTi = math.sqrt(k_B * Ti * 2 / mp)
 rhoi = vTi / omega_ci -- m
 
@@ -36,16 +37,18 @@ omega_ce = qe * Btor / me -- e/m_p B0 rad/s
 vTe = math.sqrt(k_B * Te * 2 / me)
 rhoe = vTe / omega_ce -- m
 
+omega_pe = math.sqrt(N0 * qe * qe / me / epsilon0)
+
 NX = 50
 NY = 50
 NZ = 1
-LX = 2.0 --m --100000*rhoi --0.6
-LY = 2.0 --2.0*math.pi/k0
+LX = 0.10 --m --100000*rhoi --0.6
+LY = 0.10 --2.0*math.pi/k0
 LZ = 1.0 -- math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_steps = 250
+number_of_steps = 200
 dt = 0.5 * (LX / NX) / c
 --current_time = 0;
 stop_time = dt * number_of_steps;
@@ -56,7 +59,7 @@ Mesh =
     Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
     dt = 0.5 * (LX / NX) / c
 }
-omega_ext = omega_ci * 1.9
+omega_ext = omega_pe * 0.8
 
 
 --domain_center=function( x  )
@@ -70,17 +73,17 @@ domain_center = {
         Points = { { 0.1, 0.1, 0 }, { 0.2, 0.2, 0 }, { 0.3, 0.4, 0 } }
     },
 }
-
-InitValue = {
-    B0 = {
-        Value = function(x)
-            return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
-        end
-    },
-}
+--
+--InitValue = {
+--    B0 = {
+--        Value = function(x)
+--            return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
+--        end
+--    },
+--}
 
 R = function(x)
-    return math.sqrt((x[1] - LX / 2) * (x[1] - LX / 2) + (x[2] - LY / 2) * (x[2] - LY / 2) + (x[3] - LZ / 2) * (x[3] - LZ / 2)) / (LX / 2.0)
+    return math.sqrt((x[1] - LX / 2.0) * (x[1] - LX / 2.0) + (x[2] - LY / 2.0) * (x[2] - LY / 2.0)) / (LX / 4.0)
 end
 
 Particles = {
@@ -101,10 +104,10 @@ Particles = {
         Type = "Fluid",
         Box = { { 0, 0, 0 }, { LX, LY, LZ } },
         Shape = function(x)
-            return R(x) - 0.2
+            return R(x) - 1
         end,
         Density = function(x)
-            return N0 * (1.0 - math.cos(R(x) * math.pi * 2.0))
+            return N0 * (1.0 - math.cos((1.0 - R(x)) * math.pi * 0.5))
         end
     }
 }
@@ -114,7 +117,7 @@ PML = { Width = 50 }
 
 Constraints = {
     J = {
-        Box = { { 0.45 * LX, 0.45 * LY, 0.45 * LZ }, { 0.55 * LX, 0.55 * LY, 0.55 * LZ } },
+        Box = { { 0.05 * LX, 0.45 * LY, 0.45 * LZ }, { 0.1 * LX, 0.55 * LY, 0.55 * LZ } },
         Value = function(t, x, v)
             local tau = t * omega_ext + x[1] * TWOPI / LX
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))

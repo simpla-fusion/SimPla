@@ -11,7 +11,6 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include "../sp_def.h"
 #include "../gtl/MemoryPool.h"
 #include "Constants.h"
 
@@ -50,12 +49,12 @@ public:
         {
 
             SetBaseUnit(dict["Type"].template as<std::string>(), //
-                        dict["m"].template as<Real>(1.0), //
-                        dict["s"].template as<Real>(1.0), //
-                        dict["kg"].template as<Real>(1.0), //
-                        dict["C"].template as<Real>(1.0), //
-                        dict["K"].template as<Real>(1.0), //
-                        dict["mol"].template as<Real>(1.0));
+                        dict["m"].template as<double>(1.0), //
+                        dict["s"].template as<double>(1.0), //
+                        dict["kg"].template as<double>(1.0), //
+                        dict["C"].template as<double>(1.0), //
+                        dict["K"].template as<double>(1.0), //
+                        dict["mol"].template as<double>(1.0));
         }
     }
 
@@ -63,14 +62,14 @@ public:
 
     virtual std::ostream &print(std::ostream &os) const;
 
-    void SetBaseUnit(std::string const &type_name = "SI", Real pm = 1,
-                     Real ps = 1, Real pkg = 1, Real pC = 1, Real pK = 1,
-                     Real pMol = 1);
+    void SetBaseUnit(std::string const &type_name = "SI", double pm = 1,
+                     double ps = 1, double pkg = 1, double pC = 1, double pK = 1,
+                     double pMol = 1);
 
-    inline Real operator[](std::string const &s) const
+    inline double operator[](std::string const &s) const
     {
 //
-//		std::map<std::string, Real>::const_iterator it = q_.find(s);
+//		std::map<std::string, double>::const_iterator it = q_.find(s);
 //
 //		if (it != q_.end())
 //		{
@@ -91,18 +90,18 @@ public:
     }
 
 private:
-    std::map<std::string, Real> q_; //physical quantity
+    std::map<std::string, double> q_; //physical quantity
     std::map<std::string, std::string> unitSymbol_;
 
     std::string type_;
 
 //SI PlaceHolder unit
-    Real m_; //<< length [meter]
-    Real s_;    //<< time	[second]
-    Real kg_; //<< mass	[kilgram]
-    Real C_;    //<< electric charge	[coulomb]
-    Real K_;    //<< temperature [kelvin]
-    Real mol_;    //<< amount of substance [mole]
+    double m_; //<< length [meter]
+    double s_;    //<< time	[second]
+    double kg_; //<< mass	[kilgram]
+    double C_;    //<< electric charge	[coulomb]
+    double K_;    //<< temperature [kelvin]
+    double mol_;    //<< amount of substance [mole]
 
 };
 
@@ -116,13 +115,13 @@ std::ostream &operator<<(std::ostream &os, PhysicalConstants const &self);
  * @{
  */
 #define DEFINE_PHYSICAL_CONST                                               \
-const Real mu0 = CONSTANTS["permeability of free space"];                            \
-const Real epsilon0 = CONSTANTS["permittivity of free space"];                       \
-const Real speed_of_light = CONSTANTS["speed of light"];                             \
-const Real speed_of_light2 =  speed_of_light*speed_of_light;                         \
-const Real proton_mass = CONSTANTS["proton mass"];                                   \
-const Real elementary_charge = CONSTANTS["elementary charge"];                       \
-const Real boltzmann_constant = CONSTANTS["Boltzmann constant"];
+const double mu0 = CONSTANTS["permeability of free space"];                            \
+const double epsilon0 = CONSTANTS["permittivity of free space"];                       \
+const double speed_of_light = CONSTANTS["speed of light"];                             \
+const double speed_of_light2 =  speed_of_light*speed_of_light;                         \
+const double proton_mass = CONSTANTS["proton mass"];                                   \
+const double elementary_charge = CONSTANTS["elementary charge"];                       \
+const double boltzmann_constant = CONSTANTS["Boltzmann constant"];
 //! @}
 
 }// namespace simpla

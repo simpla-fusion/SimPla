@@ -108,7 +108,11 @@ public :
         return count;
     }
 
-    this_type &operator=(this_type const &other) { return this_type(other).swap(*this); }
+    this_type &operator=(this_type const &other)
+    {
+        this_type(other).swap(*this);
+        return *this;
+    }
 
     this_type &swap(this_type &other)
     {

@@ -4,10 +4,9 @@
  *  created on: 2012-10-17
  *      Author: salmon
  */
+#include <iomanip>
 
 #include "PhysicalConstants.h"
-
-#include <iomanip>
 #include "Constants.h"
 
 namespace simpla
@@ -51,8 +50,8 @@ std::ostream &operator<<(std::ostream &os, PhysicalConstants const &self)
     return self.save(os);
 }
 
-void PhysicalConstants::SetBaseUnit(std::string const &type, Real pm, Real ps, Real pkg, Real pC, Real pK,
-                                    Real pMol)
+void PhysicalConstants::SetBaseUnit(std::string const &type, double pm, double ps, double pkg, double pC, double pK,
+                                    double pMol)
 {
     type_ = type;
 

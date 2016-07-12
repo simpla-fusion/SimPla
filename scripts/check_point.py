@@ -17,8 +17,12 @@ if 'PML_0' in f1[ds].keys():
 
     l_min = np.min(f1[ds + "/Center"][:, :, 0, o_dir, step])
     l_max = np.max(f1[ds + "/Center"][:, :, 0, o_dir, step])
-    levels = np.arange(l_min, l_max, (l_max - l_min) / 50.0)
+    levels = np.arange(l_min, l_max, (l_max - l_min) / 20.0)
+
     cmap = plt.get_cmap('Set1')
+
+    plt.subplot(gs[1, 1]).pcolor(f1["/start/ele_rho/Center"][ : ,  : , 0])
+
     plt.subplot(gs[2, :]).contour(f1[ds + "/PML_0"][ : ,  : , 0, o_dir, step], clim=[-0.5, 0.5], levels=levels)
     plt.subplot(gs[1, 0]).contour(f1[ds + "/PML_2"][ : ,  : , 0, o_dir, step], clim=[-0.5, 0.5], levels=levels)
     plt.subplot(gs[1, 1]).contour(f1[ds +"/Center"][ : ,  : , 0, o_dir, step], clim=[-0.5, 0.5], levels=levels)

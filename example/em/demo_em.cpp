@@ -29,8 +29,8 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
     for (auto const &item:options["Particles"])
     {
         auto sp = center_domain->add_particle(std::get<0>(item).template as<std::string>(),
-                                              std::get<1>(item)["Charge"].template as<Real>(1.0),
-                                              std::get<1>(item)["Mass"].template as<Real>(1.0));
+                                              std::get<1>(item)["Mass"].template as<Real>(1.0),
+                                              std::get<1>(item)["Charge"].template as<Real>(1.0));
         sp->rho.clear();
         sp->J.clear();
         if (std::get<1>(item)["Density"])
