@@ -12,7 +12,7 @@
 #include "../../src/simulation/ProblemDomain.h"
 #include "../../src/mesh/Mesh.h"
 #include "../../src/mesh/MeshEntityRange.h"
-#include "../../src/mesh/MeshUtility.h"
+#include "../../src/mesh/MeshModel.h"
 #include "../../src/manifold/Calculus.h"
 
 namespace simpla

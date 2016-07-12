@@ -8,8 +8,6 @@
 #define SIMPLA_CONSTRAINT_H
 
 #include "../parallel/Parallel.h"
-#include "../geometry/GeoObject.h"
-#include "../geometry/GeoAlgorithm.h"
 #include "../manifold/ManifoldTraits.h"
 
 namespace simpla { namespace model

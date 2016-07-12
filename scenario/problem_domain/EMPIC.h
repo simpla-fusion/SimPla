@@ -13,7 +13,7 @@
 #include "../../src/particle/Particle.h"
 //#include "../../src/particle/pre_define/BorisParticle.h"
 #include "../../src/particle/ParticleGenerator.h"
-#include "../../src/mesh/MeshUtility.h"
+#include "../../src/mesh/MeshModel.h"
 #include "BorisYee.h"
 
 namespace simpla

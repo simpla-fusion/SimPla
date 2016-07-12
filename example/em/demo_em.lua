@@ -45,7 +45,7 @@ LZ = 1.0 -- math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_steps = 5
+number_of_steps = 250
 dt = 0.5 * (LX / NX) / c
 --current_time = 0;
 stop_time = dt * number_of_steps;
@@ -101,7 +101,7 @@ Particles = {
         Type = "Fluid",
         Box = { { 0, 0, 0 }, { LX, LY, LZ } },
         Shape = function(x)
-            return R(x) - 1.0
+            return R(x) - 0.5
         end,
         Density = function(x)
             return (1.0 - math.cos(R(x) * math.pi * 2.0))
@@ -111,18 +111,6 @@ Particles = {
 
 PML = { Width = 50 }
 
-PEC = {
-    Domain = {
-        Box = { { 0, 0, 0 }, { LX, LY, 0 } },
-        IsSurface = true,
-        Object = function(v)
-            d1 = ((v[1] - LX / 2) * (v[1] - LX / 2) + (v[2] - LY / 2) * (v[2] - LY / 2)) - LY * LY * 0.04
-            d2 = math.max(math.abs(v[1] - LX * 0.6) - 2, math.abs(v[2] - LY * 0.6) - 2)
-            -- print(v[1], v[2], v[3])
-            return math.min(d1, d2)
-        end
-    }
-}
 
 Constraints = {
     J = {
@@ -134,4 +122,15 @@ Constraints = {
             return { 0, 0, amp }
         end
     },
+    PEC = {
+        Domain = {
+            Box = { { 0, 0, 0 }, { LX, LY, 0 } },
+            Shape = function(v)
+                d1 = ((v[1] - LX / 2) * (v[1] - LX / 2) + (v[2] - LY / 2) * (v[2] - LY / 2)) - LY * LY * 0.04
+                d2 = math.max(math.abs(v[1] - LX * 0.6) - 2, math.abs(v[2] - LY * 0.6) - 2)
+                -- print(v[1], v[2], v[3])
+                return math.min(d1, d2)
+            end
+        }
+    }
 }

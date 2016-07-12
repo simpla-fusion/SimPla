@@ -52,7 +52,8 @@ enum MeshEntityType
 enum MeshEntityStatus
 {
     SP_ES_NULL = 0x00, //                          0b000000
-    SP_ES_ALL = 0x0F, //                            0b001111 SP_ES_NOT_SHARED| SP_ES_SHARED | SP_ES_OWNED | SP_ES_NOT_OWNED
+    SP_ES_ALL =
+    0x0F, //                            0b001111 SP_ES_NOT_SHARED| SP_ES_SHARED | SP_ES_OWNED | SP_ES_NOT_OWNED
     SP_ES_OWNED = 0x01, //                            0b000001 owned by local get_mesh block
     SP_ES_NOT_OWNED = 0x02, //                        0b000010 not owned by local get_mesh block
     SP_ES_SHARED = 0x04, //                           0b000100 shared by two or more get_mesh blocks
@@ -66,6 +67,9 @@ enum MeshEntityStatus
     SP_ES_VALID = 0x400,
     SP_ES_UNDEFINED = 0xFFFF
 };
+
+
+
 #ifdef __cplusplus
 };//extern "C"{
 }};//namespace mesh{namespace mesh{
@@ -113,7 +117,6 @@ namespace simpla { namespace mesh
 
 
 typedef boost::uuids::uuid MeshBlockId;
-
 
 template<typename ...> struct Mesh;
 }}//namespace simpla{namespace get_mesh{
