@@ -101,10 +101,10 @@ Particles = {
         Type = "Fluid",
         Box = { { 0, 0, 0 }, { LX, LY, LZ } },
         Shape = function(x)
-            return R(x) - 0.5
+            return R(x) - 0.2
         end,
         Density = function(x)
-            return (1.0 - math.cos(R(x) * math.pi * 2.0))
+            return N0 * (1.0 - math.cos(R(x) * math.pi * 2.0))
         end
     }
 }

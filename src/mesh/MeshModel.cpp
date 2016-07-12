@@ -16,13 +16,17 @@ struct Model::pimpl_s
     struct MeshEntityIdHasher
     {
         int64_t operator()(const MeshEntityId &s) const { return s.v; }
+        int64_t hash(const MeshEntityId &s) const { return s.v; }
     };
 
-    typedef parallel::concurrent_hash_map<int64_t, Real> cache_type;
+    typedef parallel::concurrent_hash_map<MeshEntityId, Real> cache_type;
 
     cache_type m_vertex_cache;
+    typedef parallel::concurrent_hash_map<MeshEntityId, int> volume_cache_type;
 
-    parallel::concurrent_hash_map<int64_t, int> m_volume_cache;
+    typedef parallel::concurrent_unordered_set<MeshEntityId> set_type;
+
+    volume_cache_type m_volume_cache;
 
 };
 
@@ -43,7 +47,7 @@ void Model::add(MeshEntityRange const &r, distance_fun_t const distance)
 
             typename pimpl_s::cache_type::accessor acc;
 
-            if (!(m_pimpl_->m_vertex_cache.insert(acc, s.v))) { acc->second = std::min(-d, acc->second); }
+            if (!(m_pimpl_->m_vertex_cache.insert(acc, s))) { acc->second = std::min(-d, acc->second); }
         }
     );
 
@@ -60,7 +64,7 @@ void Model::remove(MeshEntityRange const &r, distance_fun_t const distance)
 
             typename pimpl_s::cache_type::accessor acc;
 
-            if (!(m_pimpl_->m_vertex_cache.insert(acc, s.v))) { acc->second = std::max(d, acc->second); }
+            if (!(m_pimpl_->m_vertex_cache.insert(acc, s))) { acc->second = std::max(d, acc->second); }
         }
     );
 
@@ -70,8 +74,8 @@ void Model::deploy()
     m->range(VOLUME).foreach(
         [&](MeshEntityId const &s)
         {
-            parallel::concurrent_hash_map<int64_t, int>::accessor acc;
-            m_pimpl_->m_volume_cache.insert(acc, s.v);
+            typename pimpl_s::volume_cache_type::accessor acc;
+            m_pimpl_->m_volume_cache.insert(acc, s);
             acc->second = check(s);
         }
     );
@@ -88,7 +92,7 @@ int Model::check(MeshEntityId const &s)
     {
         typename pimpl_s::cache_type::const_accessor acc;
 
-        if (m_pimpl_->m_vertex_cache.find(acc, p[i].v)) { if (acc->second <= 0.0) { ++num_of_inside_vertex; }}
+        if (m_pimpl_->m_vertex_cache.find(acc, p[i])) { if (acc->second <= 0.0) { ++num_of_inside_vertex; }}
     }
 
     int res = INSIDE;
@@ -105,7 +109,8 @@ int Model::check(MeshEntityId const &s)
  */
 MeshEntityRange  Model::surface(MeshEntityType iform, int flag)
 {
-    parallel::concurrent_unordered_set<int64_t> res;
+    auto res_holder = MeshEntityRange::create<typename pimpl_s::set_type>();
+    typename pimpl_s::set_type &res = res_holder.as<typename pimpl_s::set_type>();
 
     switch (iform)
     {
@@ -122,7 +127,7 @@ MeshEntityRange  Model::surface(MeshEntityType iform, int flag)
 
                     for (int i = 0; i < num; ++i)
                     {
-                        if ((check(p[i]) & flag) != 0) { res.insert(v_item.first); }
+                        if ((check(p[i]) & flag) != 0) { res.insert(INT_2_ENTITY_ID(v_item.first)); }
                     }
                 }
             }
@@ -130,64 +135,75 @@ MeshEntityRange  Model::surface(MeshEntityType iform, int flag)
         case VOLUME:
             for (auto const &v_item:m_pimpl_->m_volume_cache)
             {
-                if (v_item.second == ON_SURFACE)
-                {
-                    res.insert(v_item.first);
-                }
+                if (v_item.second == ON_SURFACE) { res.insert(INT_2_ENTITY_ID(v_item.first)); }
             }
             break;
         default: // case VERTEX:
             break;
     }
-    return std::move(MeshEntityRange(std::move(res)));
+    return std::move(res_holder);
 
 }
 
 MeshEntityRange Model::inside(MeshEntityType iform)
 {
-    parallel::concurrent_unordered_set<int64_t> res;
+    auto res_holder = MeshEntityRange::create<typename pimpl_s::set_type>();
+    typename pimpl_s::set_type &res = res_holder.as<typename pimpl_s::set_type>();
 
     switch (iform)
     {
         case VERTEX:
-            for (auto const &v_item:m_pimpl_->m_vertex_cache) { if (v_item.second <= 0) { res.insert(v_item.first); }}
+            for (auto const &v_item:m_pimpl_->m_vertex_cache)
+            {
+                if (v_item.second <= 0)
+                {
+                    res.insert(INT_2_ENTITY_ID(v_item.first));
+                }
+            }
             break;
         case EDGE:
         case FACE:
-            m->range(iform).foreach([&](MeshEntityId const &s) { if (check(s) == INSIDE) { res.insert(s.v); }});
+            m->range(iform).foreach([&](MeshEntityId const &s) { if (check(s) == INSIDE) { res.insert(s); }});
             break;
         default:// case VOLUME:
             for (auto const &v_item:m_pimpl_->m_volume_cache)
             {
-                if (v_item.second == INSIDE) { res.insert(v_item.first); }
+                if (v_item.second == INSIDE) { res.insert(INT_2_ENTITY_ID(v_item.first)); }
             }
             break;
 
     }
-    return std::move(MeshEntityRange(std::move(res)));
+    return std::move(res_holder);
 }
 MeshEntityRange Model::outside(MeshEntityType iform)
 {
-    parallel::concurrent_unordered_set<int64_t> res;
+    auto res_holder = MeshEntityRange::create<typename pimpl_s::set_type>();
+    typename pimpl_s::set_type &res = res_holder.as<typename pimpl_s::set_type>();
 
     switch (iform)
     {
         case VERTEX:
-            for (auto const &v_item:m_pimpl_->m_vertex_cache) { if (v_item.second > 0) { res.insert(v_item.first); }}
+            for (auto const &v_item:m_pimpl_->m_vertex_cache)
+            {
+                if (v_item.second > 0)
+                {
+                    res.insert(INT_2_ENTITY_ID(v_item.first));
+                }
+            }
             break;
         case EDGE:
         case FACE:
-            m->range(iform).foreach([&](MeshEntityId const &s) { if (check(s) == OUTSIDE) { res.insert(s.v); }});
+            m->range(iform).foreach([&](MeshEntityId const &s) { if (check(s) == OUTSIDE) { res.insert(s); }});
             break;
         default:// case VOLUME:
             for (auto const &v_item:m_pimpl_->m_volume_cache)
             {
-                if (v_item.second == OUTSIDE) { res.insert(v_item.first); }
+                if (v_item.second == OUTSIDE) { res.insert(INT_2_ENTITY_ID(v_item.first)); }
             }
             break;
 
     }
-    return std::move(MeshEntityRange(std::move(res)));
+    return std::move(res_holder);
 }
 
 }}//namespace simpla{namespace get_mesh{

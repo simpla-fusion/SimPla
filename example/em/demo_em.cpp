@@ -103,7 +103,7 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
     {
         mesh::Model model(center_mesh.get());
 
-        std::function<vector_type(point_type const &)> shape_fun;
+        std::function<Real(point_type const &)> shape_fun;
 
         options["Constraints"]["PEC"]["Shape"].as(&shape_fun);
 

@@ -34,23 +34,25 @@ class MeshEntityRange
 
 public :
 
-    MeshEntityRange() : m_next_(nullptr), m_holder_(nullptr) { }
+    MeshEntityRange()
+        : m_next_(nullptr), m_holder_(nullptr) { }
 
     //****************************************************************************
     // TBB RangeHolder Concept Begin
     template<typename TOther>
-    MeshEntityRange(TOther const &other) :
-            m_next_(nullptr),
-            m_holder_(std::dynamic_pointer_cast<RangeBase>(
-                    std::make_shared<RangeHolder<TOther,
-                            has_member_function_range<TOther>::value>>(other)))
+    MeshEntityRange(TOther const &other)
+        : m_next_(nullptr),
+          m_holder_(std::dynamic_pointer_cast<RangeBase>(
+              std::make_shared<RangeHolder<TOther,
+                                           has_member_function_range<TOther>::value>>(other)))
     {
     }
 
     template<typename ...Args>
-    MeshEntityRange(this_type &other, parallel::tags::split) :
-            m_next_(nullptr),
-            m_holder_(other.m_holder_->split())
+    MeshEntityRange(this_type &other, parallel::tags::split)
+        :
+        m_next_(nullptr),
+        m_holder_(other.m_holder_->split())
     {
         auto *p0 = &m_next_;
         auto p1 = other.m_next_;
@@ -65,9 +67,10 @@ public :
 
     }
 
-    MeshEntityRange(this_type const &other) :
-            m_next_(nullptr),
-            m_holder_(other.m_holder_ == nullptr ? nullptr : other.m_holder_->clone())
+    MeshEntityRange(this_type const &other)
+        :
+        m_next_(nullptr),
+        m_holder_(other.m_holder_ == nullptr ? nullptr : other.m_holder_->clone())
     {
         auto *p0 = &m_next_;
         auto p1 = other.m_next_;
@@ -81,13 +84,17 @@ public :
         }
     }
 
-    MeshEntityRange(this_type &&other) : m_holder_(other.m_holder_), m_next_(other.m_next_)
+    MeshEntityRange(this_type &&other)
+        : m_holder_(other.m_holder_), m_next_(other.m_next_)
     {
         other.m_holder_ = nullptr;
         other.m_next_ = nullptr;
     }
 
     ~MeshEntityRange() { }
+
+    template<typename T> T &as() { return m_holder_->template as<T>(); }
+    template<typename T> T const &as() const { return m_holder_->template as<T>(); }
 
     int num_of_block() const
     {
@@ -154,27 +161,23 @@ public:
     }
 
     template<typename T, typename ...Args,
-            typename std::enable_if<!std::is_base_of<RangeBase, T>::value>::type * = nullptr>
+        typename std::enable_if<!std::is_base_of<RangeBase, T>::value>::type * = nullptr>
     static MeshEntityRange create(Args &&...args)
     {
         MeshEntityRange res;
         res.m_holder_ = std::dynamic_pointer_cast<RangeBase>(
-                RangeHolder<T, has_member_function_range<T>::value>::create(std::forward<Args>(args)...));
+            RangeHolder<T, has_member_function_range<T>::value>::create(std::forward<Args>(args)...));
         return std::move(res);
     }
 
     template<typename T, typename ...Args,
-            typename std::enable_if<std::is_base_of<RangeBase, T>::value>::type * = nullptr>
+        typename std::enable_if<std::is_base_of<RangeBase, T>::value>::type * = nullptr>
     static MeshEntityRange create(Args &&...args)
     {
         MeshEntityRange res;
         res.m_holder_ = std::dynamic_pointer_cast<RangeBase>(std::make_shared<T>(std::forward<Args>(args)...));
         return std::move(res);
     }
-
-    template<typename T> T &as() { return m_holder_->as<T>(); }
-
-    template<typename T> T const &as() const { return m_holder_->as<T>(); }
 
     typedef std::function<void(MeshEntityId const &)> foreach_body_type;
 
@@ -215,7 +218,7 @@ private:
         {
             assert(is_a(typeid(T)));
 
-            return std::dynamic_pointer_cast<RangeHolder<T, has_member_function_range<T>::value> *>(this)->self();
+            return static_cast<RangeHolder<T, has_member_function_range<T>::value> * >(this)->self();
 
         }
 
@@ -223,25 +226,25 @@ private:
         {
             assert(is_a(typeid(T)));
 
-            return std::dynamic_pointer_cast<RangeHolder<T, has_member_function_range<T>::value> const *>(this)->self();
+            return static_cast<RangeHolder<T, has_member_function_range<T>::value> const *>(this)->self();
         }
-
 
         virtual void foreach(foreach_body_type const &body) const = 0;
     };
 
-
     template<typename TOtherRange>
-    struct RangeHolder<TOtherRange, false> : public RangeBase
+    struct RangeHolder<TOtherRange, false>: public RangeBase
     {
         typedef RangeHolder<TOtherRange, false> this_type;
         TOtherRange m_range_;
     public:
 
-        RangeHolder(TOtherRange const &other) : m_range_(other) { }
+        RangeHolder(TOtherRange const &other)
+            : m_range_(other) { }
 
         template<typename ...Args>
-        RangeHolder(this_type &other, Args &&...args) : m_range_(other.m_range_, std::forward<Args>(args)...) { }
+        RangeHolder(this_type &other, Args &&...args)
+            : m_range_(other.m_range_, std::forward<Args>(args)...) { }
 
         virtual  ~RangeHolder() { }
 
@@ -281,22 +284,21 @@ private:
         };
     };
 
-
     template<typename TContainer>
-    struct RangeHolder<TContainer, true> : public RangeBase
+    struct RangeHolder<TContainer, true>: public RangeBase
     {
         typedef typename TContainer::const_range_type range_type;
         typedef RangeHolder<TContainer, true> this_type;
-        TContainer const *m_container_;
+        TContainer *m_container_;
         range_type m_range_;
     public:
 
-        RangeHolder(TContainer const &other) :
-                m_container_(&other), m_range_(m_container_->range()) { }
+        RangeHolder(TContainer const &other)
+            : m_container_(new TContainer(other)), m_range_(m_container_->range()) { }
 
         template<typename ...Args>
-        RangeHolder(this_type &other, Args &&...args) :
-                m_container_(other.m_container_), m_range_(other.m_range_, std::forward<Args>(args)...) { }
+        RangeHolder(this_type &other, Args &&...args)
+            : m_container_(other.m_container_), m_range_(other.m_range_, std::forward<Args>(args)...) { }
 
         virtual  ~RangeHolder() { }
 
@@ -306,9 +308,9 @@ private:
             return std::shared_ptr<this_type>(new this_type{TContainer(std::forward<Args>(args)...)});
         }
 
-        range_type &self() { return m_range_; }
+        TContainer &self() { return *m_container_; }
 
-        range_type const &self() const { return m_range_; }
+        TContainer const &self() const { return *m_container_; }
 
         virtual std::shared_ptr<RangeBase> clone() const
         {
