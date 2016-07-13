@@ -7,6 +7,7 @@ SIMPla {#mainpage}
 
 
   Requirement:
+  --------------
   - C++ 11,
     - Expression Template (Field, nTuple), need  gcc >=5
     - others,  need gcc >= 4.8
@@ -17,15 +18,25 @@ SIMPla {#mainpage}
   - Lua >5.2 , for lua_parser
   - CMake 3.5.1, for building
 
+
   Optional:
+  --------------
   - google test , for unit test
   - CUDA 8, for sp_lite
   - liboce >0.17 for modeling
+  - h5py, matplotlib, to display result
 
+  Build:
+  --------------
+    $mkdir build
+    $cd build
+    $cmake ../<src dir>/ -DCMAKE_BUILD_TYPE=Release
+    $make <target>
 
 
 
 # Document {#detail}
+========================================
 
  - @subpage install
  - @subpage general_conversions
