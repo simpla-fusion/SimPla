@@ -8,14 +8,13 @@
 #include "Log.h"
 
 #include <chrono>
-#include <cstdlib>
-#include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 
 #include "design_pattern/SingletonHolder.h"
-#include "parse_command_line.h"
 
 namespace simpla { namespace logger
 {
@@ -24,7 +23,7 @@ namespace simpla { namespace logger
  *  @ingroup Logging
  *  \brief Logging stream, should be used  as a singleton
  */
-struct LoggerStreams //: public SingletonHolder<LoggerStreams>
+struct LoggerStreams
 {
     static constexpr unsigned int DEFAULT_LINE_WIDTH = 120;
 
