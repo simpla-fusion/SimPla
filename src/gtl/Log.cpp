@@ -33,27 +33,19 @@ struct LoggerStreams //: public SingletonHolder<LoggerStreams>
 
     int mpi_rank_ = 0, mpi_size_ = 1;
 
-
     LoggerStreams(int level = LOG_INFORM)
-            : m_std_out_level_(level), line_width_(DEFAULT_LINE_WIDTH)
-    {
-    }
+        : m_std_out_level_(level), line_width_(DEFAULT_LINE_WIDTH) { }
 
-    ~LoggerStreams()
-    {
-        close();
-    }
+    ~LoggerStreams() { close(); }
 
-    void init(int argc, char **argv);
+    void init();
 
     void close();
 
-    static std::string help_message();
-
     inline void open_file(std::string const &name)
     {
-        if (fs.is_open())
-            fs.close();
+
+        if (fs.is_open()) fs.close();
 
         fs.open(name.c_str(), std::ios_base::trunc);
     }
@@ -79,7 +71,7 @@ struct LoggerStreams //: public SingletonHolder<LoggerStreams>
     {
 
         auto now = std::chrono::system_clock::to_time_t(
-                std::chrono::system_clock::now());
+            std::chrono::system_clock::now());
 
         char mtstr[100];
         std::strftime(mtstr, 100, "%F %T", std::localtime(&now));
@@ -94,46 +86,7 @@ private:
 
 };
 
-void LoggerStreams::init(int argc, char **argv)
-{
-
-    parse_cmd_line(argc, argv,
-
-                   [&, this](std::string const &opt, std::string const &value) -> int
-                   {
-                       if (opt == "log")
-                       {
-                           this->open_file(value);
-                       }
-                       else if (opt == "V" || opt == "verbose")
-                       {
-                           this->set_stdout_level(std::atoi(value.c_str()));
-                       }
-                       else if (opt == "quiet")
-                       {
-                           this->set_stdout_level(LOG_INFORM - 1);
-                       }
-                       else if (opt == "log_width")
-                       {
-                           this->set_line_width(std::atoi(value.c_str()));
-                       }
-
-                       return CONTINUE;
-                   }
-
-    );
-
-    is_opened_ = true;
-
-    VERBOSE << "LoggerStream is initialized!" << std::endl;
-
-}
-
-std::string LoggerStreams::help_message()
-{
-    return "\t-V,\t--verbose <NUM> \t, Verbose mode.  Print debugging messages, \n"
-            "\t\t\t\t\t   <-10 means quiet, >10 means print as much as it can. default=0 \n";
-}
+void LoggerStreams::init() { is_opened_ = true; }
 
 void LoggerStreams::close()
 {
@@ -141,12 +94,8 @@ void LoggerStreams::close()
     if (is_opened_)
     {
         VERBOSE << "LoggerStream is closed!" << std::endl;
-        if (m_std_out_level_ >= LOG_INFORM && mpi_rank_ == 0)
-            std::cout << std::endl;
-
-        if (fs.is_open())
-            fs.close();
-
+        if (m_std_out_level_ >= LOG_INFORM && mpi_rank_ == 0) { std::cout << std::endl; }
+        if (fs.is_open()) { fs.close(); }
         is_opened_ = false;
     }
 
@@ -155,9 +104,7 @@ void LoggerStreams::close()
 void LoggerStreams::push(int level, std::string const &msg)
 {
 
-    if (msg == ""
-        || ((level == LOG_INFORM || level == LOG_MESSAGE) && mpi_rank_ > 0))
-        return;
+    if (msg == "" || ((level == LOG_INFORM || level == LOG_MESSAGE) && mpi_rank_ > 0)) return;
 
     std::ostringstream prefix;
 
@@ -225,24 +172,15 @@ void LoggerStreams::push(int level, std::string const &msg)
 
 }
 
-
-void init(int argc, char **argv)
+void open_file(std::string const &file_name)
 {
-    SingletonHolder<LoggerStreams>::instance().init(argc, argv);
-#ifndef NDEBUG
-    logger::set_stdout_level(20);
-#endif
+    return SingletonHolder<LoggerStreams>::instance().open_file(file_name);
 }
-
 void close()
 {
     SingletonHolder<LoggerStreams>::instance().close();
 }
 
-std::string help_message()
-{
-    return LoggerStreams::help_message();
-}
 
 void set_stdout_level(int l)
 {
@@ -254,17 +192,20 @@ void set_mpi_comm(int r, int s)
     SingletonHolder<LoggerStreams>::instance().mpi_rank_ = r;
     SingletonHolder<LoggerStreams>::instance().mpi_size_ = s;
 }
-
+void set_line_width(int lw)
+{
+    return SingletonHolder<LoggerStreams>::instance().set_line_width(lw);
+}
 int get_line_width()
 {
     return SingletonHolder<LoggerStreams>::instance().get_line_width();
 }
 
-Logger::Logger() : base_type(), m_level_(0), current_line_char_count_(0), endl_(true) { }
-
+Logger::Logger()
+    : base_type(), m_level_(0), current_line_char_count_(0), endl_(true) { }
 
 Logger::Logger(int lv)
-        : m_level_(lv), current_line_char_count_(0), endl_(true)
+    : m_level_(lv), current_line_char_count_(0), endl_(true)
 {
     base_type::operator<<(std::boolalpha);
 
@@ -298,7 +239,6 @@ int Logger::get_buffer_length() const
     return static_cast<int>(this->str().size());
 }
 
-
 void Logger::flush()
 {
 
@@ -311,10 +251,10 @@ void Logger::surffix(std::string const &s)
 {
     (*this) << std::setfill('.')
 
-    << std::setw(SingletonHolder<LoggerStreams>::instance().get_line_width()
-                 - current_line_char_count_)
+        << std::setw(SingletonHolder<LoggerStreams>::instance().get_line_width()
+                         - current_line_char_count_)
 
-    << std::right << s << std::left << std::endl;
+        << std::right << s << std::left << std::endl;
 
     flush();
 }
@@ -327,7 +267,6 @@ void Logger::endl()
 }
 
 void Logger::not_endl() { endl_ = false; }
-
 
 }  // namespace logger
 }

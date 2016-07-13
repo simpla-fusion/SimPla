@@ -23,6 +23,7 @@
 #include <sstream>
 #include <string>
 #include <memory>
+#include "check_concept.h"
 
 namespace simpla
 {
@@ -30,18 +31,17 @@ namespace logger
 {
 
 
-void init(int argc, char **argv);
+void open_file(std::string const &file_name);
 
 void close();
 
-std::string help_message();
-
 void set_stdout_level(int l);
 
-void set_mpi_comm(int rank = 0, int size = 1);
+void set_line_width(int lw);
 
 int get_line_width();
 
+void set_mpi_comm(int rank = 0, int size = 1);
 
 /**
  * @ingroup utilities
@@ -75,7 +75,7 @@ enum tags
  *
  *  @brief log message m_buffer,
  */
-class Logger : public std::ostringstream
+class Logger: public std::ostringstream
 {
 
     typedef std::ostringstream base_type;
@@ -87,9 +87,7 @@ public:
 
     ~Logger();
 
-
     int get_buffer_length() const;
-
 
     void flush();
 
@@ -99,13 +97,36 @@ public:
 
     void not_endl();
 
+private:
+    HAS_MEMBER_FUNCTION(print);
+public:
+
     template<typename T>
-    inline this_type &push(T const &value)
+    inline this_type &push(T const &value,
+                           std::enable_if_t<!has_member_function_print<T, std::ostream &>::value> *__p = nullptr
+    )
     {
 
         current_line_char_count_ -= get_buffer_length();
 
         *dynamic_cast<base_type *>(this) << (value);
+
+        current_line_char_count_ += get_buffer_length();
+
+        if (current_line_char_count_ > get_line_width()) { endl(); }
+
+        return *this;
+    }
+
+    template<typename T>
+    inline this_type &push(T const &value,
+                           std::enable_if_t<has_member_function_print<T, std::ostream &>::value> *__p = nullptr
+    )
+    {
+
+        current_line_char_count_ -= get_buffer_length();
+
+        value.print(*dynamic_cast<base_type *>(this));
 
         current_line_char_count_ += get_buffer_length();
 
@@ -266,12 +287,10 @@ inline std::string ShowBit(unsigned long s)
     return std::bitset<64>(s).to_string();
 }
 
-
 inline std::ostringstream &_make_error_msg(std::ostringstream &os)
 {
     return os;
 }
-
 
 template<typename T>
 std::ostringstream &_make_msg(std::ostringstream &os, T const &first)
@@ -286,7 +305,6 @@ std::ostringstream &_make_msg(std::ostringstream &os, T const &first, Others con
     _make_msg(os, (first));
     return _make_msg(os, (others)...);
 }
-
 
 template<typename ...Others>
 std::string make_msg(Others const &...others)
@@ -417,10 +435,10 @@ std::string make_msg(Others const &...others)
 
 #define INFORM2(_MSG_) logger::Logger(logger::LOG_INFORM)<<__STRING(_MSG_)<<" = "<<_MSG_;
 
-#define DOUBLELINE  std::setw(80) << std::setfill('=') << "="
-#define SINGLELINE  std::setw(80) << std::setfill('-') << "-"
+#define DOUBLELINE std::setw(logger::get_line_width()) << std::setfill('=') << "="
+#define SINGLELINE std::setw(logger::get_line_width()) << std::setfill('-') << "-"
 
-#define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
+#define SEPERATOR(_C_) std::setw(logger::get_line_width()) << std::setfill(_C_) << _C_
 #define CMD VERBOSE<<"CMD:\t"
 
 #define LOG_CMD(_CMD_) try{logger::Logger __logger(logger::LOG_VERBOSE);__logger<<"CMD:\t"<<std::string(__STRING(_CMD_));_CMD_;__logger<<DONE;}catch (std::exception const &error){ RUNTIME_ERROR<<("[",__STRING(_CMD_), "]",error.what())<<std::endl;}
