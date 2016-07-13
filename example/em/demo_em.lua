@@ -4,9 +4,9 @@
 -- Time: 3:53 PM
 --
 
-ProblemDomain = "PIC" --"Fluid"
+ProblemDomain = "EMFluid"
 
-Description = "For Cold Plasma Dispersion" -- description or other text things.
+Description = "Cold Plasma Fluid Model" -- description or other text things.
 
 -- SI Unit System
 c = 299792458 -- m/s
@@ -45,34 +45,26 @@ NZ = 1
 LX = 0.10 --m --100000*rhoi --0.6
 LY = 0.10 --2.0*math.pi/k0
 LZ = 1.0 -- math.pi * 0.25 -- 2.0*math.pi/18
-GW = 5
-PIC = 100
-GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
+
 number_of_steps = 200
-dt = 0.5 * (LX / NX) / c
---current_time = 0;
-stop_time = dt * number_of_steps;
+
 step_of_check_point = 10
-Mesh =
-{
-    Dimensions = { NX, NY, NZ },
-    Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
-    dt = 0.5 * (LX / NX) / c
-}
+
+
 omega_ext = omega_pe * 0.8
 
 
---domain_center=function( x  )
---   return (x[0]-0.5)*( x[0]-0.5 ) +( x[1]-0.5 )*( x[1]-0.5 ) < 0.01
---end
-domain_center = {
-    --    Rectangle={{0.1,0.1,0},{0.2,0.2,0}} ,
-    Polyline = {
-        OnlyEdge = false,
-        ZAXIS = 2,
-        Points = { { 0.1, 0.1, 0 }, { 0.2, 0.2, 0 }, { 0.3, 0.4, 0 } }
-    },
+Mesh =
+{
+    Dimensions = { NX, NY, NZ }, -- Dimensions[?]=1 => ignored dimension
+    GhostWidth = { 2, 2, 2 },    -- GhostWidth[?]=0 => cycle boundary
+    Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
 }
+
+dt = 0.5 * (LX / NX) / c
+
+PML = { Width = 50 }
+
 
 InitValue = {
     B0 = {
@@ -112,16 +104,14 @@ Particles = {
     }
 }
 
-PML = { Width = 50 }
 
 
 Constraints = {
-    J = {
+    J = { -- current source
         Box = { { 0.05 * LX, 0.45 * LY, 0.45 * LZ }, { 0.1 * LX, 0.55 * LY, 0.55 * LZ } },
         Value = function(t, x, v)
             local tau = t * omega_ext + x[1] * TWOPI / LX
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
-
             return { 0, 0, amp }
         end
     },

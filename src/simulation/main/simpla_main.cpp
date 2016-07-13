@@ -41,9 +41,9 @@ int main(int argc, char **argv)
 
         MESSAGE << " Usage: " << argv[0] << "   <options> ..." << std::endl << std::endl;
         MESSAGE << " Options:" << std::endl
-        << "\t -h,\t--help            \t, Print a usage message and exit.\n"
-        << "\t -v,\t--version         \t, Print version information exit. \n"
-        << std::endl;
+            << "\t -h,\t--help            \t, Print a usage message and exit.\n"
+            << "\t -v,\t--version         \t, Print version information exit. \n"
+            << std::endl;
         TheEnd(0);
 
     }
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 
     int num_of_steps = options["number_of_steps"].as<int>(1);
     int step_of_check_points = options["step_of_check_point"].as<int>(1);
-    Real stop_time = options["stop_time"].as<Real>(1);
+
     Real dt = options["dt"].as<Real>();
 
     os->open("/start/");
@@ -78,7 +78,8 @@ int main(int argc, char **argv)
     ctx.check_point(*os);
 
     size_type count = 0;
-    while (ctx.time() <= stop_time)
+
+    while (count <= num_of_steps)
     {
 
         ctx.run(dt);
