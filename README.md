@@ -28,6 +28,7 @@ SIMPla {#mainpage}
 
   Build:
   --------------
+
     $mkdir build
     $cd build
     $cmake ../<src dir>/ -DCMAKE_BUILD_TYPE=Release

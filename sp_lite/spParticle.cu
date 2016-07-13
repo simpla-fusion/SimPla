@@ -39,7 +39,7 @@ MC_GLOBAL void spParticleDeployKernel(spParticlePage *pg, size_type num_of_pages
          pos += spParallelNumOfThreads())
     {
         ((spParticlePage *) ((byte_type *) (pg) + pos * size_of_page_in_byte))->next =
-                (struct spParticlePage_s *) ((byte_type *) (pg) + (pos + 1) * size_of_page_in_byte);
+            (struct spParticlePage_s *) ((byte_type *) (pg) + (pos + 1) * size_of_page_in_byte);
 
         ((spParticlePage *) ((byte_type *) (pg) + pos * size_of_page_in_byte))->id.v = 0;
     }
@@ -47,7 +47,7 @@ MC_GLOBAL void spParticleDeployKernel(spParticlePage *pg, size_type num_of_pages
 
 MC_GLOBAL void spParticleTestAtomicPageOp(spParticlePage **pg)
 {
-    MC_SHARED spPage *p;
+    MC_SHARED spPage * p;
 
     spParallelSyncThreads();
 
@@ -55,7 +55,7 @@ MC_GLOBAL void spParticleTestAtomicPageOp(spParticlePage **pg)
 
     spParallelSyncThreads();
 
-    spPage *res = spPageAtomicPop(&p);
+    spPage * res = spPageAtomicPop(&p);
 
     if (spParallelThreadNum() == 0) { (*pg) = (spParticlePage *) p; }
 
@@ -70,7 +70,7 @@ void spParticleDeploy(spParticle *sp, int PIC)
     sp->number_of_pages = number_of_cell * num_page_per_cel;
 
     sp->entity_size_in_byte = (size_type) (sp->attrs[sp->num_of_attrs - 1].size_in_byte
-                                           + sp->attrs[sp->num_of_attrs - 1].offset);
+        + sp->attrs[sp->num_of_attrs - 1].offset);
 
     sp->page_size_in_byte = sizeof(struct spParticlePage_s) + sp->entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
 
@@ -116,7 +116,7 @@ struct spParticleAttrEntity_s *spParticleAddAttribute(spParticle *pg, char const
         else
         {
             offset = (pg->attrs[pg->num_of_attrs - 1].offset
-                      + pg->attrs[pg->num_of_attrs - 1].size_in_byte);
+                + pg->attrs[pg->num_of_attrs - 1].size_in_byte);
         }
     }
     res->offset = offset;
@@ -286,10 +286,23 @@ void spParticleRead(spParticle *f, char const url[], int flag)
 {
 
 }
-
+void spParticleSync(spParticle *f, spDistributedObject *distobj, dim3 offset, dim3 count,)
+{
+    size_type num_of_pages = 0;
+    void **page_data_ptr_host;
+    MeshEntityId *page_id_host;
+}
 void spParticleSync(spParticle *f)
 {
+    spDistributedObject *distobj;
 
+    spDistributedObjectCreate(&distobj);
+
+    size_type num_of_pages = 0;
+    void **page_data_ptr_host;
+    MeshEntityId *page_id_host;
+
+    spDistributedObjectDestroy(&distobj);
 }
 //
 //MC_DEVICE int spPageInsert(spPage **dest, spPage **pool, int *d_tail, int *g_d_tail)
@@ -408,61 +421,42 @@ MC_DEVICE int spParticleMapAndPack(spParticlePage **dest, spParticlePage **src, 
         {
             while ((*d_tail = spAtomicAdd(g_d_tail, 1)) < SP_NUMBER_OF_ENTITIES_IN_PAGE)
             {
-                if ((P_GET_FLAG((*dest)->data, *d_tail).v == 0))
-                {
-                    break;
-                }
+                if ((P_GET_FLAG((*dest)->data, *d_tail).v == 0)) { break; }
             }
 
             if (*d_tail < SP_NUMBER_OF_ENTITIES_IN_PAGE)
             {
                 while (((*s_tail = spAtomicAdd(g_s_tail, 1)) < SP_NUMBER_OF_ENTITIES_IN_PAGE))
                 {
-                    if (P_GET_FLAG((*src)->data, *s_tail).v == tag.v)
-                    {
-                        return SP_MP_SUCCESS;
-                    }
+                    if (P_GET_FLAG((*src)->data, *s_tail).v == tag.v) { return SP_MP_SUCCESS; }
                 }
             }
         }
         spParallelSyncThreads();
         if ((*dest) == NULL)
         {
-
             if (spParallelThreadNum() == 0)
             {
                 *dest = *pool;
                 *pool = (*pool)->next;
-                if (*dest != NULL)
-                {
-                    (*dest)->next = NULL;
-                }
+                if (*dest != NULL) { (*dest)->next = NULL; }
                 *g_d_tail = 0;
             }
         }
         else if (*d_tail >= SP_NUMBER_OF_ENTITIES_IN_PAGE)
         {
             dest = &((*dest)->next);
-            if (spParallelThreadNum() == 0)
-            {
-                *g_d_tail = 0;
-            }
+            if (spParallelThreadNum() == 0) { *g_d_tail = 0; }
         }
         else if (*s_tail >= SP_NUMBER_OF_ENTITIES_IN_PAGE)
         {
             src = &((*src)->next);
-            if (spParallelThreadNum() == 0)
-            {
-                *g_s_tail = 0;
-            }
+            if (spParallelThreadNum() == 0) { *g_s_tail = 0; }
         }
 
         spParallelSyncThreads();
 
-        if (*dest == NULL)
-        {
-            return SP_MP_ERROR_POOL_IS_OVERFLOW;
-        }
+        if (*dest == NULL) { return SP_MP_ERROR_POOL_IS_OVERFLOW; }
     }
 
     return SP_MP_FINISHED;

@@ -72,6 +72,11 @@ InitValue = {
             return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
         end
     },
+    E1 = {
+        Value = function(x)
+            return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
+        end
+    },
 }
 
 R = function(x)
@@ -99,7 +104,7 @@ Particles = {
             return R(x) - 1
         end,
         Density = function(x)
-            return N0 * (1.0 - math.cos((1.0 - R(x)) * math.pi * 0.5))
+            return N0 -- * (1.0 - math.cos((1.0 - R(x)) * math.pi * 0.5))
         end
     }
 }
@@ -107,14 +112,14 @@ Particles = {
 
 
 Constraints = {
-    J = { -- current source
-        Box = { { 0.05 * LX, 0.45 * LY, 0.45 * LZ }, { 0.1 * LX, 0.55 * LY, 0.55 * LZ } },
-        Value = function(t, x, v)
-            local tau = t * omega_ext + x[1] * TWOPI / LX
-            local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
-            return { 0, 0, amp }
-        end
-    },
+--    J = { -- current source
+--        Box = { { 0.05 * LX, 0.45 * LY, 0.45 * LZ }, { 0.1 * LX, 0.55 * LY, 0.55 * LZ } },
+--        Value = function(t, x, v)
+--            local tau = t * omega_ext + x[1] * TWOPI / LX
+--            local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
+--            return { 0, 0, amp }
+--        end
+--    },
     PEC = {
         Domain = {
             Box = { { 0, 0, 0 }, { LX, LY, 0 } },
