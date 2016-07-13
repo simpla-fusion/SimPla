@@ -59,7 +59,7 @@ enum
  *			else if(opt=="help")
  *			{
  *				INFORM
- *				<< ShowCopyRight() << std::endl
+ *				<< ShowLogo() << std::endl
  *				<< "Too lazy to write a complete help information\n"<< std::endl;
  *				TheEnd(0);
  *			}

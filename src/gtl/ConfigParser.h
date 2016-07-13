@@ -16,7 +16,6 @@
 
 #include "type_cast.h"
 #include "LuaObject.h"
-#include "LuaObject.h"
 #include "LuaObjectExt.h"
 #include "ConfigParser.h"
 #include "parse_command_line.h"
@@ -37,37 +36,38 @@ struct ConfigParser
 
     ~ConfigParser();
 
-    std::string init(int argc, char **argv);
+    void parse(std::string const &url, std::string const &prologue = "", std::string const &epilogue = "");
 
-    struct DictObject : public lua::LuaObject
+    void add(std::string const &k, std::string const &v);
+    struct DictObject: public lua::LuaObject
     {
         DictObject()
-                : lua::LuaObject(), m_value_("")
+            : lua::LuaObject(), m_value_("")
         {
 
         }
 
         DictObject(DictObject const &other)
-                : lua::LuaObject(other), m_value_(other.m_value_)
+            : lua::LuaObject(other), m_value_(other.m_value_)
         {
 
         }
 
         DictObject(DictObject &&other)
-                : lua::LuaObject(other), m_value_(other.m_value_)
+            : lua::LuaObject(other), m_value_(other.m_value_)
         {
 
         }
 
         DictObject(lua::LuaObject const &lua_obj)
-                : lua::LuaObject(lua_obj), m_value_("")
+            : lua::LuaObject(lua_obj), m_value_("")
         {
 
         }
 
         DictObject(std::string const &value)
-                : /*lua::GeoObject(),*/
-                m_value_(value)
+            : /*lua::GeoObject(),*/
+            m_value_(value)
         {
         }
 

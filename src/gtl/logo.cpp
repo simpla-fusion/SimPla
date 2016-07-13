@@ -44,11 +44,6 @@ std::string ShowVersion()
     return IDENTIFY;
 }
 
-std::string ShowCopyRight()
-{
-    return SIMPLA_LOGO;
-}
-
 void TheStart(int flag)
 {
     switch (flag)

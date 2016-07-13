@@ -10,33 +10,15 @@
 #include <string>
 #include <tuple>
 
-#include "../data_model/DataSet.h"
-#include "../gtl/design_pattern/SingletonHolder.h"
-#include "../gtl/parse_command_line.h"
 #include "HDF5Stream.h"
 #include "XDMFStream.h"
 
 namespace simpla { namespace io
 {
-std::shared_ptr<io::IOStream> create_from_args(int argc, char **argv)
+std::shared_ptr<io::IOStream> create_from_output_url(std::string const &url)
 {
     std::shared_ptr<io::IOStream> res(nullptr);
 
-    std::string url = "untitled.h5";
-    parse_cmd_line(
-            argc, argv,
-            [&](std::string const &opt, std::string const &value) -> int
-            {
-                if (opt == "o")
-                {
-                    url = value;
-
-                    return TERMINATE;
-                }
-                return CONTINUE;
-            }
-
-    );
     std::string ext = url.substr(url.find_last_of('.'));
 
     if (ext == ".xdmf")

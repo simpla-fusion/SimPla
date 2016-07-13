@@ -25,82 +25,183 @@ int main(int argc, char **argv)
 
     parallel::init(argc, argv);
 
+
+    std::shared_ptr<io::IOStream> os;
+
     ConfigParser options;
-    options.init(argc, argv);
 
-    INFORM << ShowCopyRight() << std::endl;
-
-    if (options["V"] || options["version"])
     {
-        MESSAGE << "SIMPla " << ShowVersion();
-        TheEnd(0);
-        return TERMINATE;
-    }
-    else if (options["h"] || options["help"])
-    {
+        std::string output_file = "simpla.h5";
 
-        MESSAGE << " Usage: " << argv[0] << "   <options> ..." << std::endl << std::endl;
-        MESSAGE << " Options:" << std::endl
-            << "\t -h,\t--help            \t, Print a usage message and exit.\n"
-            << "\t -v,\t--version         \t, Print version information exit. \n"
-            << std::endl;
-        TheEnd(0);
+        std::string conf_file(argv[0]);
+        std::string conf_prologue = "";
+        std::string conf_epilogue = "";
 
+        conf_file += ".lua";
+
+        simpla::parse_cmd_line(
+            argc, argv,
+            [&](std::string const &opt, std::string const &value) -> int
+            {
+                if (opt == "i" || opt == "input") { conf_file = value; }
+                else if (opt == "prologue") { conf_epilogue = value; }
+                else if (opt == "e" || opt == "execute" || opt == "epilogue") { conf_epilogue = value; }
+                else if (opt == "o" || opt == "output") { output_file = value; }
+                else if (opt == "V" || opt == "version")
+                {
+                    MESSAGE << "SIMPla " << ShowVersion();
+                    TheEnd(0);
+                    return TERMINATE;
+                }
+
+                else if (opt == "h" || opt == "help")
+                {
+                    /* @formatter:off */
+                    MESSAGE
+                        << ShowLogo() << std::endl
+                        << " Usage: " << argv[0] << "   <options> ..." << std::endl
+                        << std::endl
+                        << " Options:" << std::endl
+                        <<std::left<< std::setw(20) << "  -h, --help "     << ": Print a usage message and exit." << std::endl
+                        <<std::left<< std::setw(20) << "  -v, --version "  << ": Print version information exit. " << std::endl
+                        <<std::left<< std::setw(20) << "  -o, --output  "  << ": Output file name (default: simpla.h5)." << std::endl
+                        <<std::left<< std::setw(20) << "  -i, --input  "   << ": Input configure file (default:" + conf_file + ")" << std::endl
+                        <<std::left<< std::setw(20) << "  -p, --prologue " << ": Execute Lua script before configure file is load" << std::endl
+                        <<std::left<< std::setw(20) << "  -e, --epilogue " << ": Execute Lua script after configure file is load" << std::endl
+                        << std::endl;
+                    /* @formatter:on*/
+                    TheEnd(0);
+                    return TERMINATE;
+                }
+                else { options.add(opt, (value == "") ? "true" : value); }
+
+                return CONTINUE;
+
+            }
+
+
+        );
+
+
+        INFORM << ShowLogo() << std::endl;
+
+
+        options.parse(conf_file, conf_prologue, conf_epilogue);
+
+        os = io::create_from_output_url(output_file);
     }
-    std::shared_ptr<io::IOStream> os = io::create_from_args(argc, argv);
 
     simulation::Context ctx;
 
-    create_scenario(&ctx, options);
+    create_scenario(&ctx, options
 
-    std::cout << "Context = {" << std::endl;
-    ctx.print(std::cout);
-    std::cout << std::endl << " }" << std::endl;
+    );
+
+    std::cout << "Context = {" <<
+
+        std::endl;
+
+    ctx.
+
+        print(std::cout);
+
+    std::cout << std::endl << " }" <<
+
+        std::endl;
 
     int num_of_steps = options["number_of_steps"].as<int>(1);
+
     int step_of_check_points = options["step_of_check_point"].as<int>(1);
 
     Real dt = options["dt"].as<Real>();
 
     os->open("/start/");
 
-    ctx.save(*os);
+    ctx.
 
-    MESSAGE << "====================================================" << std::endl;
+        save(*os);
+
+    MESSAGE
+
+        << "====================================================" <<
+
+        std::endl;
 
     TheStart();
 
-    INFORM << "\t >>> Time [" << ctx.time() << "] <<< " << std::endl;
+    INFORM
+
+        << "\t >>> Time [" << ctx.
+        time()
+        << "] <<< " <<
+
+        std::endl;
 
     os->open("/checkpoint/");
 
-    ctx.sync();
-    ctx.check_point(*os);
+    ctx.
+        sync();
+    ctx.
+
+        check_point(*os);
 
     size_type count = 0;
 
     while (count <= num_of_steps)
     {
 
-        ctx.run(dt);
+        ctx.
 
-        ctx.sync();
+            run(dt);
 
-        if (count % step_of_check_points == 0) { ctx.check_point(*os); }
+        ctx.
+            sync();
 
-        INFORM << "\t >>>  [ Time = " << ctx.time() << " Count = " << count << "] <<< " << std::endl;
+        if (count % step_of_check_points == 0)
+        {
+            ctx.
 
-        ++count;
+                check_point(*os);
+
+        }
+
+        INFORM
+
+            << "\t >>>  [ Time = " << ctx.
+            time()
+            << " Count = " << count << "] <<< " <<
+
+            std::endl;
+
+        ++
+
+            count;
+
     }
-    INFORM << "\t >>> Done <<< " << std::endl;
 
+    INFORM
+
+        << "\t >>> Done <<< " <<
+
+        std::endl;
 
     os->open("/dump/");
-    ctx.save(*os);
-    ctx.teardown();
-    MESSAGE << "====================================================" << std::endl;
+    ctx.
+
+        save(*os);
+
+    ctx.
+        teardown();
+
+    MESSAGE
+
+        << "====================================================" <<
+
+        std::endl;
+
     TheEnd();
-    os->close();
+    os->
+        close();
     parallel::close();
     logger::close();
 

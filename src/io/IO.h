@@ -24,7 +24,7 @@ namespace simpla { namespace io
  */
 
 
-std::shared_ptr<io::IOStream> create_from_args(int argc, char **argv);
+std::shared_ptr<io::IOStream> create_from_output_url(std::string const &url);
 //
 //void close();
 //

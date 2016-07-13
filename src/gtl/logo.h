@@ -14,7 +14,7 @@ namespace simpla
 
 std::string ShowLogo();
 std::string ShowVersion();
-std::string ShowCopyRight();
+std::string ShowLogo();
 
 void TheStart(int flag = 1);
 void TheEnd(int flag = 1);
