@@ -80,7 +80,7 @@ typedef float3 Real3;
 #endif //__CUDACC__
 
 
-MC_HOST void spParallelInitialize();
+MC_HOST void spParallelInitialize(int argc, char **argv);
 
 MC_HOST void spParallelFinalize();
 
@@ -142,5 +142,16 @@ MC_HOST void spParallelMemcpy(void *, void const *, size_type);
 #define spParallelThreadNum()  (threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y)
 
 #define spParallelNumOfThreads() (  blockDim.x * blockDim.y * blockDim.z)
+
+
+#define MPI_ERROR(_CMD_)                                               \
+{                                                                          \
+    int _mpi_error_code_ = _CMD_;                                    \
+    if (_mpi_error_code_ != MPI_SUCCESS)                       \
+    {                                                                      \
+        char _error_msg[MPI_MAX_ERROR_STRING];                             \
+        MPI_Error_string(_mpi_error_code_, _error_msg, nullptr);           \
+    }                                                                      \
+}
 
 #endif //SIMPLA_SPPARALLEL_H

@@ -7,10 +7,11 @@
 
 #ifndef CORE_PARTICLE_SYNC_PARTICLE_H_
 #define CORE_PARTICLE_SYNC_PARTICLE_H_
+#include <vector>
+#include <mpi.h>
 
- #include <mpi.h>
-
-namespace simpla {
+namespace simpla
+{
 template<typename ...> class Particle;
 
 template<typename ... Args>
@@ -43,10 +44,8 @@ void sync(Particle<Args...> *pool)
     {
 
         size_t num = 0;
-        for (auto s : pool->mesh().select_inner(item.send_begin, item.send_end))
-        {
-            num += pool->get(s).size();
-        }
+
+        for (auto s : pool->mesh().select_inner(item.send_begin, item.send_end)) { num += pool->get(s).size(); }
 
         buffer[count].resize(num);
 
@@ -78,12 +77,11 @@ void sync(Particle<Args...> *pool)
         // When probe returns, the status object has the size and other
         // attributes of the incoming message. Get the size of the message
         int mem_size = 0;
+
         MPI_Get_count(&status, MPI_BYTE, &mem_size);
 
-        if (mem_size == MPI_UNDEFINED)
-        {
-            RUNTIME_ERROR("Update Ghosts particle fail");
-        }
+        if (mem_size == MPI_UNDEFINED) { RUNTIME_ERROR("Update Ghosts particle fail"); }
+
         buffer[count].resize(mem_size / sizeof(value_type));
 
         MPI_Irecv(&buffer[count][0], buffer[count].size() * sizeof(value_type),
@@ -103,20 +101,12 @@ void sync(Particle<Args...> *pool)
         bool flag = true;
         for (int n = 0; n < 3; ++n)
         {
-            if (g_array.send_recv_[i].recv_begin[n]
-                < pool->mesh().global_begin_[n])
-            {
-                extents[n] = xmin[n] - xmax[n];
-            }
-            else if (g_array.send_recv_[i].recv_begin[n]
-                     >= pool->mesh().global_end_[n])
+            if (g_array.send_recv_[i].recv_begin[n] < pool->mesh().global_begin_[n]) { extents[n] = xmin[n] - xmax[n]; }
+            else if (g_array.send_recv_[i].recv_begin[n] >= pool->mesh().global_end_[n])
             {
                 extents[n] = xmax[n] - xmin[n];
             }
-            else
-            {
-                extents[n] = 0;
-            }
+            else { extents[n] = 0; }
 
         }
 

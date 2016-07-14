@@ -15,14 +15,9 @@
 namespace simpla
 {
 
-MPIDataType::MPIDataType()
-{
-}
+MPIDataType::MPIDataType() { }
 
-MPIDataType::MPIDataType(MPIDataType const &other)
-{
-    MPI_ERROR(MPI_Type_dup(other.type(), &m_type_));
-}
+MPIDataType::MPIDataType(MPIDataType const &other) {MPI_ERROR(MPI_Type_dup(other.type(), &m_type_)); }
 
 void MPIDataType::swap(MPIDataType &other)
 {
@@ -30,13 +25,7 @@ void MPIDataType::swap(MPIDataType &other)
     std::swap(is_commited_, other.is_commited_);
 }
 
-MPIDataType::~MPIDataType()
-{
-    if (is_commited_)
-    {
-        MPI_ERROR(MPI_Type_free(&m_type_));
-    }
-}
+MPIDataType::~MPIDataType() { if (is_commited_) {MPI_ERROR(MPI_Type_free(&m_type_)); }}
 
 MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
                                 int ndims, //
@@ -98,48 +87,29 @@ MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
         }
 
         MPI_Type_create_struct(        //
-                static_cast<int>(array_of_block_lengths.size()),        //
-                &array_of_block_lengths[0],        //
-                &array_of_displacements[0],        //
-                &array_of_types[0], &res_type);
+            static_cast<int>(array_of_block_lengths.size()),        //
+            &array_of_block_lengths[0],        //
+            &array_of_displacements[0],        //
+            &array_of_types[0], &res_type);
 
     }
-    else if (data_type.template is_same<int>())
-    {
-        res_type = MPI_INT;
-    }
-    else if (data_type.template is_same<long>())
-    {
-        res_type = MPI_LONG;
-    }
-    else if (data_type.template is_same<unsigned int>())
-    {
-        res_type = MPI_UNSIGNED;
-    }
-    else if (data_type.template is_same<unsigned long>())
-    {
-        res_type = MPI_UNSIGNED_LONG;
-    }
-    else if (data_type.template is_same<float>())
-    {
-        res_type = MPI_FLOAT;
-    }
-    else if (data_type.template is_same<double>())
-    {
-        res_type = MPI_DOUBLE;
-    }
-    else if (data_type.template is_same<long double>())
-    {
-        res_type = MPI_LONG_DOUBLE;
-    }
-    else if (data_type.template is_same<std::complex<double>>())
-    {
-        res_type = MPI_2DOUBLE_COMPLEX;
-    }
-    else if (data_type.template is_same<std::complex<float>>())
-    {
-        res_type = MPI_2COMPLEX;
-    }
+    else if (data_type.template is_same<int>()) { res_type = MPI_INT; }
+
+    else if (data_type.template is_same<long>()) { res_type = MPI_LONG; }
+
+    else if (data_type.template is_same<unsigned int>()) { res_type = MPI_UNSIGNED; }
+
+    else if (data_type.template is_same<unsigned long>()) { res_type = MPI_UNSIGNED_LONG; }
+
+    else if (data_type.template is_same<float>()) { res_type = MPI_FLOAT; }
+
+    else if (data_type.template is_same<double>()) { res_type = MPI_DOUBLE; }
+
+    else if (data_type.template is_same<long double>()) { res_type = MPI_LONG_DOUBLE; }
+
+    else if (data_type.template is_same<std::complex<double>>()) { res_type = MPI_2DOUBLE_COMPLEX; }
+
+    else if (data_type.template is_same<std::complex<float>>()) { res_type = MPI_2COMPLEX; }
     else
     {
         THROW_EXCEPTION_RUNTIME_ERROR("Cannot create MPI DataType:" + data_type.name());
@@ -158,28 +128,11 @@ MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
 
         MPIDataType old_type = MPIDataType::create(data_type.element_type());
 
-        if (p_dims != nullptr)
-        {
-            l_dims = p_dims;
-        }
+        if (p_dims != nullptr) { l_dims = p_dims; }
 
-        if (p_start == nullptr)
-        {
-            l_offset = 0;
-        }
-        else
-        {
-            l_offset = p_start;
-        }
+        if (p_start == nullptr) { l_offset = 0; } else { l_offset = p_start; }
 
-        if (p_count == nullptr)
-        {
-            l_count = l_dims;
-        }
-        else
-        {
-            l_count = p_count;
-        }
+        if (p_count == nullptr) { l_count = l_dims; } else { l_count = p_count; }
 
 //        if (p_stride != nullptr || p_block != nullptr)
 //        {
@@ -202,10 +155,7 @@ MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
                                  (c_order_array ? MPI_ORDER_C : MPI_ORDER_FORTRAN),
                                  ele_type, &res_type);
 
-        if (!is_predefined)
-        {
-            MPI_Type_free(&ele_type);
-        }
+        if (!is_predefined) { MPI_Type_free(&ele_type); }
         is_predefined = false;
     }
 

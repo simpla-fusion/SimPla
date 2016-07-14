@@ -21,41 +21,41 @@ struct spMesh_s;
 
 typedef struct spParticlePoint_s
 {
-	SP_PARTICLE_POINT_HEAD
-	byte_type __others[];
+    SP_PARTICLE_POINT_HEAD
+    byte_type __others[];
 } spParticlePoint;
 
 typedef struct spParticlePage_s
 {
-	SP_PAGE_HEAD(struct spParticlePage_s)
-	MeshEntityId id;
-	byte_type data[];
+    SP_PAGE_HEAD(struct spParticlePage_s)
+    MeshEntityId id;
+    byte_type data[];
 } spParticlePage;
 
 struct spParticleAttrEntity_s
 {
-	int type_tag;
-	size_type size_in_byte;
-	size_type offset;
-	char name[255];
+    int type_tag;
+    size_type size_in_byte;
+    size_type offset;
+    char name[255];
 };
 
 struct spParticle_s
 {
-	struct spMesh_s const *m;
-	int iform;
-	Real mass;
-	Real charge;
-	int num_of_attrs;
-	struct spParticleAttrEntity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
+    struct spMesh_s const *m;
+    int iform;
+    Real mass;
+    Real charge;
+    int num_of_attrs;
+    struct spParticleAttrEntity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
-	size_type number_of_pages;
-	size_type entity_size_in_byte;
-	size_type page_size_in_byte;
+    size_type number_of_pages;
+    size_type entity_size_in_byte;
+    size_type page_size_in_byte;
 
-	struct spParticlePage_s *m_pages_;
-	struct spParticlePage_s **m_page_pool_; //DEVICE
-	struct spParticlePage_s **m_buckets_;
+    struct spParticlePage_s *m_pages_;
+    struct spParticlePage_s **m_page_pool_; //DEVICE
+    struct spParticlePage_s **m_buckets_;
 };
 
 #define SP_MP_SUCCESS SP_SUCCESS
@@ -63,7 +63,7 @@ struct spParticle_s
 #define SP_MP_FINISHED 0xFFFF
 
 MC_DEVICE extern int spParticleMapAndPack(spParticlePage **dest, spParticlePage **src, int *d_tail, int *g_d_tail,
-		int *s_tail, int *g_s_tail, spParticlePage **pool, MeshEntityId tag);
+                                          int *s_tail, int *g_s_tail, spParticlePage **pool, MeshEntityId tag);
 
 #define ADD_PARTICLE_ATTRIBUTE(_SP_, _S_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_), offsetof(_S_,_N_));
 
@@ -83,7 +83,7 @@ void spParticleCreate(const struct spMesh_s *ctx, struct spParticle_s **pg);
 void spParticleDestroy(struct spParticle_s **sp);
 
 struct spParticleAttrEntity_s *spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag,
-													  size_type size_in_byte, size_type offsetof);
+                                                      size_type size_in_byte, size_type offsetof);
 
 void *spParticleGetAttribute(spParticle *sp, char const *name);
 
@@ -93,7 +93,13 @@ void spParticleWrite(spParticle const *f, spIOStream *os, const char url[], int 
 
 void spParticleRead(struct spParticle_s *f, spIOStream *os, char const url[], int flag);
 
+struct spParticleSyncStatus_s;
+
 void spParticleSync(struct spParticle_s *f);
+
+void spParticleStart(struct spParticle_s *f, struct spParticleSyncStatus_s **);
+
+void spParticleEnd(struct spParticle_s *f, struct spParticleSyncStatus_s **);
 
 void spParticleInitialize(spParticle *sp);
 

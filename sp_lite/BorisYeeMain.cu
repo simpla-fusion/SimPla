@@ -19,7 +19,7 @@
 
 int main(int argc, char **argv)
 {
-	spParallelInitialize();
+	spParallelInitialize(0, nullptr);
 
 	spMesh *mesh;
 	spParticle *ps = 0x0;
