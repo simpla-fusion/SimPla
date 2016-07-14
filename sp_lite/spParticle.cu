@@ -42,7 +42,7 @@ MC_GLOBAL void spParticleDeployKernel(spParticlePage *pg, size_type num_of_pages
          pos += spParallelNumOfThreads())
     {
         ((spParticlePage *) ((byte_type *) (pg) + pos * size_of_page_in_byte))->next =
-            (struct spParticlePage_s *) ((byte_type *) (pg) + (pos + 1) * size_of_page_in_byte);
+                (struct spParticlePage_s *) ((byte_type *) (pg) + (pos + 1) * size_of_page_in_byte);
 
         ((spParticlePage *) ((byte_type *) (pg) + pos * size_of_page_in_byte))->id.v = 0;
     }
@@ -73,7 +73,7 @@ void spParticleDeploy(spParticle *sp, int PIC)
     sp->number_of_pages = number_of_cell * num_page_per_cel;
 
     sp->entity_size_in_byte = (size_type) (sp->attrs[sp->num_of_attrs - 1].size_in_byte
-        + sp->attrs[sp->num_of_attrs - 1].offset);
+                                           + sp->attrs[sp->num_of_attrs - 1].offset);
 
     sp->page_size_in_byte = sizeof(struct spParticlePage_s) + sp->entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
 
@@ -119,13 +119,14 @@ struct spParticleAttrEntity_s *spParticleAddAttribute(spParticle *pg, char const
         else
         {
             offset = (pg->attrs[pg->num_of_attrs - 1].offset
-                + pg->attrs[pg->num_of_attrs - 1].size_in_byte);
+                      + pg->attrs[pg->num_of_attrs - 1].size_in_byte);
         }
     }
     res->offset = offset;
     ++pg->num_of_attrs;
     return res;
 }
+
 enum { SP_COPY_OUT_ONLY_DATA = 1, SP_COPY_OUT_WHOLE_PAGE = 2 };
 
 MC_GLOBAL void spParticleCountKernel(dim3 dim, dim3 offset, dim3 count, spParticlePage **buckets,
@@ -322,61 +323,69 @@ void spParticleSyncStatusCreate(struct spParticleSyncStatus_s **p, int num_of_se
 
     (*p)->count_of_eof = 0;
 }
+
 void spParticleSyncStatusDestroy(struct spParticleSyncStatus_s **p)
 {
-    free((*p)->recv_requests);
-    free((*p)->send_requests);
-    free((*p)->recv_buff);
-    free((*p)->recv_count);
+    spParallelHostFree((void **) &((*p)->recv_requests));
+    spParallelHostFree((void **) &((*p)->send_requests));
+    spParallelHostFree((void **) &((*p)->recv_buff));
+    spParallelHostFree((void **) &((*p)->recv_count));
 }
+
 void spParticleSyncStart(spParticle *sp, struct spParticleSyncStatus_s **reqs)
 {
-//
-//    size_type num_of_pages = 0;
-//    void **page_ptr_host;
-//    MeshEntityId *page_id_host;
-//    dim3 count;
-//    count.x = sp->m->i_lower.x - sp->m->offset.x;
-//    count.y = sp->m->i_upper.y - sp->m->i_lower.y;
-//    count.z = sp->m->i_upper.z - sp->m->i_lower.z;
-//
-//    num_of_pages = spParticleGetDevicePtrOfPage(sp, sp->m->i_lower, count, &page_id_host,
-//                                                &page_ptr_host, SP_COPY_OUT_WHOLE_PAGE);
-//
-//    spParticleSyncStatusCreate(reqs, (int) num_of_pages, 6);
-//
-//
-//    int dest, tag;
-//    for (int i = 0; i < num_of_pages; ++i)
-//    {
-//        MPI_ERROR(MPI_Isend(page_ptr_host[i],
-//                            (int) (sp->page_size_in_byte),
-//                            MPI_BYTE,
-//                            dest,
-//                            tag,
-//                            MPI_COMM_WORLD,
-//                            &((*reqs)->send_requests[i])));
-//    }
-//
-//    MPI_ERROR(MPI_Isend(NULL, 0, MPI_BYTE, dest, tag, MPI_COMM_WORLD, &((*reqs)->send_requests[num_of_pages])));
-//
-//
-//    for (int i = 0; i < (*reqs)->num_of_recv; ++i)
-//    {
-//        MPI_ERROR(MPI_Irecv((void *) ((*reqs)->recv_buff[i]),
-//                            (int) (sp->page_size_in_byte),
-//                            MPI_BYTE,
-//                            MPI_ANY_SOURCE,
-//                            MPI_ANY_TAG,
-//                            MPI_COMM_WORLD,
-//                            &((*reqs)->recv_requests[i])));
-//    }
-//
-//    (*reqs)->count_of_eof = 0;
-//
-//    spParallelHostFree((void **) &page_ptr_host);
-//    spParallelHostFree((void **) &page_id_host);
+
+    size_type num_of_pages = 0;
+    void **page_ptr_host;
+    MeshEntityId *page_id_host;
+    dim3 count;
+    count.x = sp->m->i_lower.x - sp->m->offset.x;
+    count.y = sp->m->i_upper.y - sp->m->i_lower.y;
+    count.z = sp->m->i_upper.z - sp->m->i_lower.z;
+    CHECK("START SYNC");
+    num_of_pages = spParticleGetDevicePtrOfPage(sp, sp->m->i_lower, count, &page_id_host,
+                                                &page_ptr_host, SP_COPY_OUT_WHOLE_PAGE);
+    CHECK("START SYNC");
+    spParticleSyncStatusCreate(reqs, (int) num_of_pages, 6);
+    CHECK("START SYNC");
+
+
+    int dest = 0, tag = 0;
+    for (int i = 0; i < num_of_pages; ++i)
+    {
+        MPI_ERROR(MPI_Isend(page_ptr_host[i],
+                            (int) (sp->page_size_in_byte),
+                            MPI_BYTE,
+                            dest,
+                            tag,
+                            MPI_COMM_WORLD,
+                            &((*reqs)->send_requests[i])));
+    }
+    CHECK("START SYNC");
+
+    MPI_ERROR(MPI_Isend(NULL, 0, MPI_BYTE, dest, tag, MPI_COMM_WORLD, &((*reqs)->send_requests[num_of_pages])));
+    CHECK("START SYNC");
+
+
+    for (int i = 0; i < (*reqs)->num_of_recv; ++i)
+    {
+        MPI_ERROR(MPI_Irecv((void *) ((*reqs)->recv_buff[i]),
+                            (int) (sp->page_size_in_byte),
+                            MPI_BYTE,
+                            MPI_ANY_SOURCE,
+                            MPI_ANY_TAG,
+                            MPI_COMM_WORLD,
+                            &((*reqs)->recv_requests[i])));
+    }
+    CHECK("START SYNC");
+
+    (*reqs)->count_of_eof = 0;
+    CHECK("START SYNC");
+
+    spParallelHostFree((void **) &page_ptr_host);
+    spParallelHostFree((void **) &page_id_host);
 }
+
 void spParticleSyncEnd(spParticle *sp, struct spParticleSyncStatus_s **reqs)
 {
 
@@ -420,12 +429,16 @@ void spParticleSyncEnd(spParticle *sp, struct spParticleSyncStatus_s **reqs)
     spParticleSyncStatusDestroy(reqs);
 
 }
+
 void spParticleSync(spParticle *sp)
 {
     struct spParticleSyncStatus_s *reqs;
+    CHECK("START SYNC");
     spParticleSyncStart(sp, &reqs);
-
+    CHECK("STOP SYNC");
     spParticleSyncEnd(sp, &reqs);
+    CHECK("DESTROY STATUS");
+    spParticleSyncStatusDestroy(&reqs);
 
 }
 //

@@ -7,7 +7,7 @@
 #include <mpi.h>
 
 // CUDA runtime
-#include <cuda_runtime.h>
+#include </usr/local/cuda/include/cuda_runtime.h>
 
 void spParallelInitialize(int argc, char **argv)
 {
@@ -35,6 +35,7 @@ void spParallelDeviceSync()
 {
     CUDA_CHECK_RETURN(cudaDeviceSynchronize()); // Wait for the GPU launched work to complete
 }
+
 void spParallelHostMalloc(void **p, size_type s)
 {
     CUDA_CHECK_RETURN(cudaHostAlloc(p, s, cudaHostAllocDefault););
@@ -49,10 +50,10 @@ void spParallelHostFree(void **p)
         *p = NULL;
     }
 }
+
 MC_HOST void spParallelDeviceMalloc(void **p, size_type s)
 {
     CUDA_CHECK_RETURN(cudaMalloc(p, s));
-
 }
 
 MC_HOST void spParallelDeviceFree(void **p)
@@ -63,6 +64,7 @@ MC_HOST void spParallelDeviceFree(void **p)
         *p = NULL;
     }
 }
+
 MC_HOST void spParallelMemcpy(void *dest, void const *src, size_type s)
 {
     CUDA_CHECK_RETURN(cudaMemcpy(dest, src, s, cudaMemcpyDefault));
