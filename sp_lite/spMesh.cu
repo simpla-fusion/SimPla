@@ -12,31 +12,31 @@
 
 void spMeshCreate(spMesh **ctx)
 {
-	*ctx = (spMesh *) malloc(sizeof(spMesh));
+    *ctx = (spMesh *) malloc(sizeof(spMesh));
 }
 
 void spMeshDestroy(spMesh **ctx)
 {
-	free(*ctx);
-	*ctx = NULL;
+    free(*ctx);
+    *ctx = NULL;
 }
 
 void spMeshDeploy(spMesh *self)
 {
-	self->ndims = 3;
-	self->offset.x = 0;
-	self->offset.y = 0;
-	self->offset.z = 0;
+    self->ndims = 3;
+    self->offset.x = 0;
+    self->offset.y = 0;
+    self->offset.z = 0;
 //	self->offset.w = 0;
 //	self->count.x = self->dims.x;
 //	self->count.y = self->dims.y;
 //	self->count.z = self->dims.z;
-	self->i_lower.x = 0;
-	self->i_lower.y = 0;
-	self->i_lower.z = 0;
-	self->i_upper.x = self->dims.x;
-	self->i_upper.y = self->dims.y;
-	self->i_upper.z = self->dims.z;
+    self->i_lower.x = 0;
+    self->i_lower.y = 0;
+    self->i_lower.z = 0;
+    self->i_upper.x = self->dims.x;
+    self->i_upper.y = self->dims.y;
+    self->i_upper.z = self->dims.z;
 
 //	self->dims.w = 3;
 //	self->offset.w = 0;
@@ -51,33 +51,33 @@ void spMeshDeploy(spMesh *self)
 //	self->private_block.y = self->dims.y;
 //	self->private_block.z = self->dims.z;
 
-	/**          -1
-	 *
-	 *    -1     0    1
-	 *
-	 *           1
-	 */
-	/**
-	 *\verbatim
-	 *                ^y
-	 *               /
-	 *        z     /
-	 *        ^    /
-	 *    PIXEL0 110-------------111 VOXEL
-	 *        |  /|              /|
-	 *        | / |             / |
-	 *        |/  |    PIXEL1  /  |
-	 * EDGE2 100--|----------101  |
-	 *        | m |           |   |
-	 *        |  010----------|--011 PIXEL2
-	 *        |  / EDGE1      |  /
-	 *        | /             | /
-	 *        |/              |/
-	 *       000-------------001---> x
-	 *                       EDGE0
-	 *
-	 *\endverbatim
-	 */
+    /**          -1
+     *
+     *    -1     0    1
+     *
+     *           1
+     */
+    /**
+     *\verbatim
+     *                ^y
+     *               /
+     *        z     /
+     *        ^    /
+     *    PIXEL0 110-------------111 VOXEL
+     *        |  /|              /|
+     *        | / |             / |
+     *        |/  |    PIXEL1  /  |
+     * EDGE2 100--|----------101  |
+     *        | m |           |   |
+     *        |  010----------|--011 PIXEL2
+     *        |  / EDGE1      |  /
+     *        | /             | /
+     *        |/              |/
+     *       000-------------001---> x
+     *                       EDGE0
+     *
+     *\endverbatim
+     */
 //	int3 neighbour_offset[27];
 //	int neighbour_flag[27];
 //	int count = 0;
@@ -98,6 +98,14 @@ void spMeshDeploy(spMesh *self)
 
 size_t spMeshGetNumberOfEntity(spMesh const *self, int iform)
 {
-	return self->dims.x * self->dims.y * self->dims.z * ((iform == 0 || iform == 3) ? 1 : 3);
+    return self->dims.x * self->dims.y * self->dims.z * ((iform == 0 || iform == 3) ? 1 : 3);
 }
+Real3 spMeshPoint(spMesh const *m, MeshEntityId id)
+{
+    Real3 res;
+    res.x = m->x_lower.x + m->dx.x * (id.x - m->i_lower.x);
+    res.y = m->x_lower.y + m->dx.y * (id.y - m->i_lower.y);
+    res.z = m->x_lower.z + m->dx.z * (id.z - m->i_lower.z);
+    return res;
+};
 

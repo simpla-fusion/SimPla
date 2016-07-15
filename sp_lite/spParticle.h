@@ -42,6 +42,7 @@ struct spParticleAttrEntity_s
 
 struct spParticle_s
 {
+    size_type id;
     struct spMesh_s const *m;
     int iform;
     Real mass;

@@ -16,6 +16,7 @@
 #include "../gtl/nTuple.h"
 #include "../gtl/nTupleExt.h"
 #include "../gtl/Log.h"
+#include "../sp_def.h"
 
 //#include "../gtl/Utilities.h"
 
@@ -29,7 +30,7 @@ struct MPIComm::pimpl_s
 
     int m_process_num_;
 
-    int m_object_id_count_;
+    size_type m_object_id_count_;
 
     nTuple<int, NDIMS> m_topology_dims_;
 
@@ -42,12 +43,12 @@ struct MPIComm::pimpl_s
 constexpr int MPIComm::NDIMS;
 
 MPIComm::MPIComm()
-        : pimpl_(nullptr)
+    : pimpl_(nullptr)
 {
 }
 
 MPIComm::MPIComm(int argc, char **argv)
-        : pimpl_(nullptr)
+    : pimpl_(nullptr)
 {
     init(argc, argv);
 }
@@ -119,11 +120,11 @@ std::string MPIComm::help_message()
 {
     return
         //"\t--number_of_threads <NUMBER>  \t, Number of threads \n"
-            "\t--mpi_topology <NX NY NZ>    \t, Set Topology of mpi communicator. \n";
+        "\t--mpi_topology <NX NY NZ>    \t, Set Topology of mpi communicator. \n";
 
 }
 
-int MPIComm::generate_object_id()
+size_type MPIComm::generate_object_id()
 {
     if (!pimpl_)
     {
@@ -163,7 +164,7 @@ void MPIComm::barrier()
 bool MPIComm::is_valid() const
 {
     return ((!!pimpl_) && pimpl_->m_comm_ != MPI_COMM_NULL)
-           && num_of_process() > 1;
+        && num_of_process() > 1;
 }
 
 std::tuple<int, int, int> MPIComm::make_send_recv_tag(size_t prefix, const nTuple<int, 3> &offset)
@@ -184,7 +185,6 @@ std::tuple<int, int, int> MPIComm::make_send_recv_tag(size_t prefix, const nTupl
     return std::make_tuple(dest_id, send_tag, recv_tag);
 }
 
-
 nTuple<int, 3> MPIComm::coordinate(int rank) const
 {
     if (!pimpl_)
@@ -199,17 +199,24 @@ nTuple<int, 3> MPIComm::coordinate(int rank) const
     nTuple<int, 3> coord;
     coord[2] = rank / pimpl_->m_topology_strides_[2];
     coord[1] = (rank - (coord[2] * pimpl_->m_topology_strides_[2]))
-               / pimpl_->m_topology_strides_[1];
+        / pimpl_->m_topology_strides_[1];
     coord[0] = rank % pimpl_->m_topology_dims_[0];
     return std::move(coord);
 }
 
 int MPIComm::get_neighbour(nTuple<int, 3> const &d) const
 {
-    nTuple<int, 3> t;
-    t = pimpl_->m_topology_coord_;
-    t += d;
-    return (!pimpl_) ? 0 : get_rank(t);
+    if (pimpl_ != nullptr)
+    {
+        nTuple<int, 3> t;
+        t = pimpl_->m_topology_coord_ + d;
+
+        return get_rank(t);
+    }
+    else
+    {
+        return 0;
+    }
 
 //			(((m_self_->m_topology_coord_[0] + m_self_->m_topology_dims_[0] + d[0])
 //					% m_self_->m_topology_dims_[0])
@@ -250,7 +257,7 @@ void MPIComm::topology(nTuple<int, 3> const &d)
     if (d[0] * d[1] * d[2] != pimpl_->m_num_process_)
     {
         VERBOSE << " processor number=" << pimpl_->m_num_process_ <<
-        " topology=" << d << std::endl;
+            " topology=" << d << std::endl;
         THROW_EXCEPTION_RUNTIME_ERROR("MPI Topology is invalid!");
     }
 
@@ -259,7 +266,7 @@ void MPIComm::topology(nTuple<int, 3> const &d)
     pimpl_->m_topology_strides_[0] = 1;
     pimpl_->m_topology_strides_[1] = pimpl_->m_topology_dims_[0];
     pimpl_->m_topology_strides_[2] = pimpl_->m_topology_dims_[1]
-                                     * pimpl_->m_topology_strides_[1];
+        * pimpl_->m_topology_strides_[1];
 
     pimpl_->m_topology_coord_ = coordinate(pimpl_->m_process_num_);
 }
@@ -279,21 +286,20 @@ int MPIComm::get_rank() const
 
 int MPIComm::get_rank(nTuple<int, 3> const &d) const
 {
-
     return (!pimpl_) ?
            0 :
            (
 
-                   ((d[0] + pimpl_->m_topology_dims_[0]) % pimpl_->m_topology_dims_[0])
+               ((d[0] + pimpl_->m_topology_dims_[0]) % pimpl_->m_topology_dims_[0])
                    * pimpl_->m_topology_strides_[0]
 
                    + ((d[1] + pimpl_->m_topology_dims_[1])
-                      % pimpl_->m_topology_dims_[1])
-                     * pimpl_->m_topology_strides_[1]
+                       % pimpl_->m_topology_dims_[1])
+                       * pimpl_->m_topology_strides_[1]
 
                    + ((d[2] + pimpl_->m_topology_dims_[2])
-                      % pimpl_->m_topology_dims_[2])
-                     * pimpl_->m_topology_strides_[2]
+                       % pimpl_->m_topology_dims_[2])
+                       * pimpl_->m_topology_strides_[2]
 
            );
 }

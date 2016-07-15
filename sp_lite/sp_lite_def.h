@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "../src/sp_cwrap.h"
+#include "../src/sp_capi.h"
 
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 #define  COPYRIGHT "All rights reserved. (2016 )"

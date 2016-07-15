@@ -11,15 +11,12 @@
 
 void spParallelInitialize(int argc, char **argv)
 {
-    int process_num;
-    int num_of_process;
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &num_of_process);
-    MPI_Comm_rank(MPI_COMM_WORLD, &process_num);
+
+    spMPIInitialize(argc, argv);
 
     int num_of_device = 0;
     CUDA_CHECK_RETURN(cudaGetDeviceCount(&num_of_device));
-    CUDA_CHECK_RETURN(cudaSetDevice(process_num % num_of_device));
+    CUDA_CHECK_RETURN(cudaSetDevice(spMPIProcessNum() % num_of_device));
     CUDA_CHECK_RETURN(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
     CUDA_CHECK_RETURN(cudaGetLastError());
 }
@@ -27,7 +24,7 @@ void spParallelInitialize(int argc, char **argv)
 void spParallelFinalize()
 {
     CUDA_CHECK_RETURN(cudaDeviceReset());
-    MPI_Finalize();
+    spMPIFinialize();
 
 }
 

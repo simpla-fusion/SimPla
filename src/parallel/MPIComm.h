@@ -19,6 +19,7 @@
 
 #include "../gtl/nTuple.h"
 #include "../gtl/design_pattern/SingletonHolder.h"
+#include "../sp_def.h"
 //#include "../gtl/Utilities.h"
 
 namespace simpla { namespace parallel
@@ -54,7 +55,7 @@ public:
 
     int num_of_process() const;
 
-    int generate_object_id();
+    size_type generate_object_id();
 
 
     nTuple<int, 3> topology() const;

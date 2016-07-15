@@ -10,6 +10,8 @@
 
 #include "stddef.h"
 
+#include <mpi.h>
+
 enum
 {
     SP_TYPE_float, SP_TYPE_double, SP_TYPE_int, SP_TYPE_long, SP_TYPE_int64_t, SP_TYPE_OPAQUE
@@ -25,6 +27,7 @@ enum
 };
 
 struct spDataType_s;
+
 typedef struct spDataType_s spDataType;
 
 void spDataTypeCreate(spDataType **);
@@ -38,6 +41,7 @@ void spDataTypeExtent(spDataType *, int rank, size_t const *d);
 void spDataTypePushBack(spDataType *, spDataType const *, char const name[]);
 
 struct spDataSpace_s;
+
 typedef struct spDataSpace_s spDataSpace;
 
 void spDataSpaceCreateSimple(spDataSpace **, int ndims, size_t const *dims);
@@ -49,6 +53,7 @@ void spDataSpaceDestroy(spDataSpace **);
 void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *offset, size_t const *count);
 
 struct spDataSet_s;
+
 typedef struct spDataSet_s spDataSet;
 
 void spDataSetCreate(spDataSet **, void *d, spDataType const *dtype, spDataSpace const *mspace,
@@ -57,6 +62,7 @@ void spDataSetCreate(spDataSet **, void *d, spDataType const *dtype, spDataSpace
 void spDataSetDestroy(spDataSet *);
 
 struct spDistributedObject_s;
+
 typedef struct spDistributedObject_s spDistributedObject;
 
 void spDistributedObjectCreate(spDistributedObject **);
@@ -74,6 +80,7 @@ void spDistributedObjectAddRecvLink(spDistributedObject *, size_t id, const ptrd
 int spDistributedObjectIsReady(spDistributedObject const *);
 
 struct spIOStream_s;
+
 typedef struct spIOStream_s spIOStream;
 
 void spIOStreamCreate(spIOStream **);
@@ -92,5 +99,37 @@ void spIOStreamRead(spIOStream *, char const name[], spDataSet const *);
 
 void spIOStreamWriteSimple(spIOStream *, const char *name, int d_type,//
                            void *d, int ndims, size_t const *dims, size_t const *start, size_t const *count, int flag);
+
+void spMPIInitialize(int argc, char **argv);
+
+void spMPIFinialize();
+
+MPI_Comm spMPIComm();
+
+MPI_Info spMPIInfo();
+
+void spMPIBarrier();
+
+int spMPIIsValid();
+
+int spMPIProcessNum();
+
+int spMPINumOfProcess();
+
+size_t spMPIGenerateObjectId();
+
+void spMPIGetTopology(int *);
+
+void spMPISetTopology(int *);
+
+int spMPIGetNeighbour(int *);
+
+void spMPICoordinate(int rank, int *);
+
+int spMPIGetRank();
+
+int spMPIGetRankCart(int const *);
+
+void spMPIMakeSendRecvTag(size_t prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag);
 
 #endif /* SPSIMPLAWRAP_H_ */

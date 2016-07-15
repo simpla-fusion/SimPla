@@ -31,5 +31,5 @@ TARGET_LINK_LIBRARIES(simpla_lib
         simulation
         )
 
-add_library(sp_cwrap sp_cwrap.cpp)
-TARGET_LINK_LIBRARIES(sp_cwrap base data_model io parallel utilities)
+add_library(sp_capi sp_capi.cpp)
+TARGET_LINK_LIBRARIES(sp_capi base data_model io parallel utilities)

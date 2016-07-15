@@ -7,12 +7,15 @@
 
 #include <memory>
 #include "../src/io/IO.h"
+
 #include "../src/parallel/DistributedObject.h"
+
+#include "../src/parallel/MPIComm.h"
 
 #include "../src/data_model/DataSet.h"
 #include "../src/data_model/DataType.h"
 #include "../src/data_model/DataSpace.h"
-#include "sp_cwrap.h"
+#include "sp_capi.h"
 
 //#include "spSimPlaWrap.h"
 //#include "sp_def.h"
@@ -20,6 +23,7 @@
 using namespace simpla;
 
 struct spDataType_s;
+
 typedef struct spDataType_s spDataType;
 
 void spDataTypeCreate(spDataType **) { }
@@ -33,6 +37,7 @@ void spDataTypeExtent(spDataType *, int rank, size_t const *d) { }
 void spDataTypePushBack(spDataType *, spDataType const *, char const name[]) { }
 
 struct spDataSpace_s;
+
 typedef struct spDataSpace_s spDataSpace;
 
 void spDataSpaceCreateSimple(spDataSpace **, int ndims, size_t const *dims) { }
@@ -44,6 +49,7 @@ void spDataSpaceDestroy(spDataSpace **) { }
 void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *offset, size_t const *count) { }
 
 struct spDataSet_s;
+
 typedef struct spDataSet_s spDataSet;
 
 void spDataSetCreate(spDataSet **, void *d, spDataType const *dtype, spDataSpace const *mspace,
@@ -51,11 +57,11 @@ void spDataSetCreate(spDataSet **, void *d, spDataType const *dtype, spDataSpace
 
 void spDataSetDestroy(spDataSet *) { }
 
-
 struct spIOStream_s
 {
     std::shared_ptr<io::IOStream> m_stream_;
 };
+
 typedef struct spIOStream_s spIOStream;
 
 void spIOStreamCreate(spIOStream **os)
@@ -124,11 +130,6 @@ void spIOStreamWriteSimple(spIOStream *os, const char *url, int d_type,//
     INFORM << os->m_stream_->write(url, dset, flag) << std::endl;
 }
 
-
-struct spDistributedObject_s;
-typedef struct spDistributedObject_s spDistributedObject;
-
-
 struct spDistributedObject_s
 {
     simpla::parallel::DistributedObject self;
@@ -172,9 +173,106 @@ void hdf5_write_field(const char *url, void *d, int ndims, size_type const *dims
 
 }
 
-
 void spDistributedObjectAddSendLink(spDistributedObject *, size_t id, const ptrdiff_t offset[3], const spDataSet *) { }
 
 void spDistributedObjectAddRecvLink(spDistributedObject *, size_t id, const ptrdiff_t offset[3], spDataSet *) { }
 
 int spDistributedObjectIsReady(spDistributedObject const *) { return true; }
+
+void spMPIInitialize(int argc, char **argv) { GLOBAL_COMM.init(argc, argv); };
+
+void spMPIFinialize() { GLOBAL_COMM.close(); }
+
+MPI_Comm spMPIComm() { return GLOBAL_COMM.comm(); }
+
+MPI_Info spMPIInfo() { return GLOBAL_COMM.info(); }
+
+void spMPIBarrier() { return GLOBAL_COMM.barrier(); }
+
+int spMPIIsValid() { return (int) (GLOBAL_COMM.is_valid()); }
+
+int spMPIProcessNum() { return (GLOBAL_COMM.process_num()); }
+
+int spMPINumOfProcess() { return (GLOBAL_COMM.num_of_process()); }
+
+size_type spMPIGenerateObjectId() { return (GLOBAL_COMM.generate_object_id()); }
+
+void spMPIGetTopology(int *d)
+{
+    auto res = GLOBAL_COMM.topology();
+    if (d != nullptr)
+    {
+        d[0] = res[0];
+        d[1] = res[1];
+        d[2] = res[2];
+    }
+}
+
+void spMPISetTopology(int *r)
+{
+    nTuple<int, 3> d;
+    if (r != nullptr)
+    {
+        d[0] = r[0];
+        d[1] = r[1];
+        d[2] = r[2];
+
+        GLOBAL_COMM.topology(d);
+
+    }
+};
+
+int spMPIGetNeighbour(int *r)
+{
+    nTuple<int, 3> d{0, 0, 0};
+    if (r != nullptr)
+    {
+        d[0] = r[0];
+        d[1] = r[1];
+        d[2] = r[2];
+
+    }
+    return GLOBAL_COMM.get_neighbour(d);
+}
+
+void spMPICoordinate(int rank, int *d)
+{
+    auto r = GLOBAL_COMM.coordinate(rank);
+    if (d != nullptr)
+    {
+        d[0] = r[0];
+        d[1] = r[1];
+        d[2] = r[2];
+    }
+}
+
+int spMPIGetRank()
+{
+    return GLOBAL_COMM.get_rank();
+}
+
+int spMPIGetRankCart(int const *r)
+{
+    nTuple<int, 3> d{0, 0, 0};
+    if (r != nullptr)
+    {
+        d[0] = r[0];
+        d[1] = r[1];
+        d[2] = r[2];
+
+    }
+    return GLOBAL_COMM.get_rank(d);
+};
+
+void spMPIMakeSendRecvTag(size_t prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag)
+{
+    nTuple<int, 3> d{0, 0, 0};
+    if (offset != nullptr)
+    {
+        d[0] = offset[0];
+        d[1] = offset[1];
+        d[2] = offset[2];
+
+    }
+    std::tie(*dest_id, *send_tag, *recv_tag) = GLOBAL_COMM.make_send_recv_tag(prefix, d);
+}
