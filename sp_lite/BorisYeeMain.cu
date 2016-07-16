@@ -33,8 +33,8 @@ int main(int argc, char **argv)
     dim3 dims;
     dim3 gw;
     dims.x = 0x8;
-    dims.y = 0x8;
-    dims.z = 0x8;
+    dims.y = 0x10;
+    dims.z = 0x20;
     gw.x = 0x2;
     gw.y = 0x2;
     gw.z = 0x2;
@@ -64,8 +64,9 @@ int main(int argc, char **argv)
     spFieldClear(fB);
     spFieldClear(fJ);
     spFieldClear(fRho);
+    size_type NUMBER_OF_PIC = 256;
 
-    int NUMBER_OF_PIC = 256;
+
     spParticleCreate(mesh, &ps);
     spBorisYeeInitializeParticle(ps, NUMBER_OF_PIC);
 
@@ -77,6 +78,7 @@ int main(int argc, char **argv)
     spIOStreamCreate(&os);
     spIOStreamOpen(os, "untitled.h5");
     spIOStreamOpen(os, "/start/");
+
 
     spFieldWrite(fE, os, "E", SP_FILE_NEW);
     spFieldWrite(fB, os, "B", SP_FILE_NEW);
@@ -117,6 +119,5 @@ int main(int argc, char **argv)
 
     spParallelFinalize();
 
-//	DONE
-    ;
+    DONE
 }

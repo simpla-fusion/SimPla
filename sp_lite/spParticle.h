@@ -28,7 +28,7 @@ typedef struct spParticlePage_s
 {
     SP_PAGE_HEAD(struct spParticlePage_s)
     MeshEntityId id;
-    int offset;
+    size_type offset;
 } spParticlePage;
 
 
@@ -46,7 +46,7 @@ void spParticleDestroy(struct spParticle_s **sp);
 void spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag,
                             int size_in_byte, int offset);
 
-void spParticleDeploy(struct spParticle_s *sp, int PIC);
+void spParticleDeploy(struct spParticle_s *sp, size_type PIC);
 
 spParticlePage **spParticleBuckets(spParticle *);
 

@@ -33,7 +33,7 @@ void spParallelDeviceSync()
     CUDA_CHECK_RETURN(cudaDeviceSynchronize()); // Wait for the GPU launched work to complete
 }
 
-void spParallelHostMalloc(void **p, int s)
+void spParallelHostMalloc(void **p, size_type s)
 {
     CUDA_CHECK_RETURN(cudaHostAlloc(p, s, cudaHostAllocDefault););
 

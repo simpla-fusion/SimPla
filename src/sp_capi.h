@@ -126,7 +126,7 @@ int spMPIProcessNum();
 
 int spMPINumOfProcess();
 
-int spMPIGenerateObjectId();
+size_type spMPIGenerateObjectId();
 
 void spMPIGetTopology(int *);
 
@@ -140,6 +140,6 @@ int spMPIGetRank();
 
 int spMPIGetRankCart(int const *);
 
-void spMPIMakeSendRecvTag(int prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag);
+void spMPIMakeSendRecvTag(size_type prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag);
 
 #endif /* SPSIMPLAWRAP_H_ */

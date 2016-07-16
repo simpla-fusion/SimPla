@@ -92,7 +92,7 @@ MC_HOST void spParallelFinalize();
 
 MC_HOST void spParallelDeviceSync();
 
-MC_HOST void spParallelHostMalloc(void **, int s);
+MC_HOST void spParallelHostMalloc(void **, size_type s);
 
 MC_HOST void spParallelHostFree(void **);
 
@@ -107,7 +107,7 @@ MC_HOST void spParallelHostFree(void **);
 
 #define spParallelDeviceFree(_P_)      if (*_P_ != NULL) { CUDA_CHECK_RETURN(cudaFree(*_P_)); *_P_ = NULL;   };
 
-#define spParallelMemcpy(_D_, _S_, _N_) CUDA_CHECK_RETURN(cudaMemcpy(_D_, _S_,(size_t)(_N_), cudaMemcpyDefault));
+#define spParallelMemcpy(_D_, _S_, _N_) CUDA_CHECK_RETURN(cudaMemcpy(_D_, _S_,(_N_), cudaMemcpyDefault));
 
 #define  spParallelMemcpyToSymbol(_D_, _S_, _N_)    CUDA_CHECK_RETURN(cudaMemcpyToSymbol(_D_, _S_, _N_));
 
@@ -143,7 +143,7 @@ MC_DEVICE unsigned int spParallelBlockNum();
 
 #define spParallelGridDims()  gridDim
 
-#define spParallelBlockNum()  ( blockIdx.x + (blockIdx.y * gridDim.z + blockIdx.z) * gridDim.z)
+#define spParallelBlockNum()  ( blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x)
 
 #define spParallelNumOfBlocks() ( gridDim.x * gridDim.y * gridDim.z)
 

@@ -48,9 +48,9 @@ void spMeshGetBox(spMesh const *m, Real3 *lower, Real3 *upper);
 
 void spMeshGetDomain(spMesh const *m, int tag, dim3 *lower, dim3 *upper, dim3 *offset);
 
-int spMeshGetNumberOfEntity(spMesh const *, int iform);
+size_type spMeshGetNumberOfEntity(spMesh const *, int iform);
 
-int spMeshHash(spMesh const *, MeshEntityId, int iform);
+size_type spMeshHash(spMesh const *, MeshEntityId, int iform);
 
 Real3 spMeshPoint(spMesh const *, MeshEntityId id);
 

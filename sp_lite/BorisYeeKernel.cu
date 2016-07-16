@@ -27,10 +27,7 @@ spBorisInitializeParticleKernel(boris_data *d, spParticlePage **bucket, spPartic
         }
         spParallelSyncThreads();
 
-        spParticlePage *pg = bucket[block_num];
-
-        int s = spParallelThreadNum();
-
+        int s = bucket[block_num]->offset + spParallelThreadNum();
         if (s < PIC)
         {
             d->id[s].v = 0;
@@ -56,23 +53,20 @@ void spBorisYeeInitializeParticle(spParticle *sp, size_type NUM_OF_PIC)
     spParticleDeploy(sp, NUM_OF_PIC);
 
 
-    dim3 dims = spMeshGetDims(spParticleMesh(sp));
-
     LOAD_KERNEL(spBorisInitializeParticleKernel,
-                dims,
+                spMeshGetShape(spParticleMesh(sp)),
                 NUMBER_OF_THREADS_PER_BLOCK,
                 (boris_data *) spParticleAttributeDeviceData(sp),
                 spParticleBuckets(sp),
                 spParticlePagePool(sp),
                 NUM_OF_PIC);
+    CHECK(Waaa)
 
 
 //	spUpdateParticleBorisScatterBlockKernel<<< sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
 //			(fRho->device_data), ( fJ->device_data));
 
-
     spParallelDeviceSync();        //wait for iteration to finish
-
     spParticleSync(sp);
 
 }

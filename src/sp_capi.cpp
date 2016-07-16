@@ -203,7 +203,7 @@ int spMPIProcessNum() { return (GLOBAL_COMM.process_num()); }
 
 int spMPINumOfProcess() { return (GLOBAL_COMM.num_of_process()); }
 
-int spMPIGenerateObjectId() { return (GLOBAL_COMM.generate_object_id()); }
+size_type spMPIGenerateObjectId() { return (GLOBAL_COMM.generate_object_id()); }
 
 void spMPIGetTopology(int *d)
 {
@@ -272,7 +272,7 @@ int spMPIGetRankCart(int const *r)
     return GLOBAL_COMM.get_rank(d);
 };
 
-void spMPIMakeSendRecvTag(int prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag)
+void spMPIMakeSendRecvTag(size_type prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag)
 {
     nTuple<int, 3> d{0, 0, 0};
     if (offset != nullptr)

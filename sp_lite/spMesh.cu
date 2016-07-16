@@ -129,7 +129,7 @@ void spMeshDeploy(spMesh *self)
 //	spParallelMemcpyToSymbol(SP_NEIGHBOUR_OFFSET_flag, neighbour_flag, sizeof(neighbour_flag));
 }
 
-int spMeshGetNumberOfEntity(spMesh const *self, int iform)
+size_type spMeshGetNumberOfEntity(spMesh const *self, int iform)
 {
     return self->dims.x * self->dims.y * self->dims.z * ((iform == 0 || iform == 3) ? 1 : 3);
 }
@@ -177,7 +177,7 @@ void spMeshGetDomain(spMesh const *m, int tag, dim3 *lower, dim3 *upper, dim3 *o
 };
 
 
-int spMeshHash(spMesh const *m, MeshEntityId id, int iform)
+size_type spMeshHash(spMesh const *m, MeshEntityId id, int iform)
 {
     return 0;
 };
