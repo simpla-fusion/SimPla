@@ -47,9 +47,9 @@ std::shared_ptr<io::IOStream> create_from_output_url(std::string const &url)
 //    return *(SingletonHolder<std::unique_ptr<io::IOStream>>::instance());
 //}
 //
-//std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag)
+//std::string write(std::string const &url, data_model::DataSet const &ds, size_t id)
 //{
-//    return SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->write(url, ds, flag);
+//    return SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->write(url, ds, id);
 //}
 //
 //data_model::DataSet load(std::string const &url)

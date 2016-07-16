@@ -36,26 +36,26 @@ public:
 protected:
     mesh_type const *m_mesh_;
     std::shared_ptr<void> m_data_holder_;
-//    value_type *m_data_;
+//    value_type *m_data_device_;
 public:
 
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
     Field() : base_type(), m_mesh_(nullptr), m_data_holder_(nullptr)
-//            , m_data_(nullptr)
+//            , m_data_device_(nullptr)
     { }
 
     //create construct
     Field(mesh::MeshBase const *m) : Field(static_cast<mesh_type const *>(m)) { }
 
     Field(mesh_type const *m) : m_mesh_(m), m_data_holder_(nullptr)
-//            , m_data_(nullptr)
+//            , m_data_device_(nullptr)
     { }
 
     //copy construct
     Field(this_type const &other) : m_mesh_(other.m_mesh_), m_data_holder_(other.m_data_holder_)
-//            ,m_data_(other.m_data_)
+//            ,m_data_device_(other.m_data_device_)
     { }
 
 //    //factory construct
@@ -71,7 +71,7 @@ public:
     virtual void swap(this_type &other)
     {
         std::swap(m_mesh_, other.m_mesh_);
-//        std::swap(m_data_, other.m_data_);
+//        std::swap(m_data_device_, other.m_data_device_);
         std::swap(m_data_holder_, other.m_data_holder_);
     }
 
@@ -79,14 +79,14 @@ public:
     {
         if (m_data_holder_ == nullptr) { m_data_holder_ = sp_alloc_memory(size_in_byte()); }
 
-//        if (m_data_ == nullptr)
+//        if (m_data_device_ == nullptr)
 //        {
 //            if (m_data_holder_ == nullptr)
 //            {
 //                m_data_holder_ = sp_alloc_memory(size_in_byte());
 //            }
 //
-//            m_data_ = reinterpret_cast<value_type *>(m_data_holder_.get());
+//            m_data_device_ = reinterpret_cast<value_type *>(m_data_holder_.get());
 //
 //        }
     }

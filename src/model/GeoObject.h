@@ -45,7 +45,7 @@ public:
 
 
     /**
-     * return flag= 0b543210
+     * return id= 0b543210
      */
     template<typename ...Others>
     inline int within(point_type const &b, Others &&...others) const

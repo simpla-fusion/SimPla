@@ -9,6 +9,7 @@
 #define SPSIMPLAWRAP_H_
 
 #include "stddef.h"
+#include "sp_config.h"
 
 #include <mpi.h>
 
@@ -36,7 +37,7 @@ void spDataTypeDestroy(spDataType **);
 
 int spDataTypeIsValid(spDataType const *);
 
-void spDataTypeExtent(spDataType *, int rank, size_t const *d);
+void spDataTypeExtent(spDataType *, int rank, int const *d);
 
 void spDataTypePushBack(spDataType *, spDataType const *, char const name[]);
 
@@ -44,13 +45,13 @@ struct spDataSpace_s;
 
 typedef struct spDataSpace_s spDataSpace;
 
-void spDataSpaceCreateSimple(spDataSpace **, int ndims, size_t const *dims);
+void spDataSpaceCreateSimple(spDataSpace **, int ndims, int const *dims);
 
-void spDataSpaceCreateUnordered(spDataSpace **, size_t num);
+void spDataSpaceCreateUnordered(spDataSpace **, int num);
 
 void spDataSpaceDestroy(spDataSpace **);
 
-void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *offset, size_t const *count);
+void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *offset, int const *count);
 
 struct spDataSet_s;
 
@@ -73,9 +74,9 @@ void spDistributedObjectNonblockingSync(spDistributedObject *);
 
 void spDistributedObjectWait(spDistributedObject *);
 
-void spDistributedObjectAddSendLink(spDistributedObject *, size_t id, const ptrdiff_t offset[3], const spDataSet *);
+void spDistributedObjectAddSendLink(spDistributedObject *, int id, const ptrdiff_t offset[3], const spDataSet *);
 
-void spDistributedObjectAddRecvLink(spDistributedObject *, size_t id, const ptrdiff_t offset[3], spDataSet *);
+void spDistributedObjectAddRecvLink(spDistributedObject *, int id, const ptrdiff_t offset[3], spDataSet *);
 
 int spDistributedObjectIsReady(spDistributedObject const *);
 
@@ -97,8 +98,17 @@ void spIOStreamWrite(spIOStream *, char const name[], spDataSet const *);
 
 void spIOStreamRead(spIOStream *, char const name[], spDataSet const *);
 
-void spIOStreamWriteSimple(spIOStream *, const char *name, int d_type,//
-                           void *d, int ndims, size_t const *dims, size_t const *start, size_t const *count, int flag);
+void spIOStreamWriteSimple(spIOStream *,
+                           const char *name,
+                           int d_type,
+                           void *d,
+                           int ndims,
+                           size_type const *dims,
+                           size_type const *start,
+                           size_type const *stride,
+                           size_type const *count,
+                           size_type const *block,
+                           int flag);
 
 void spMPIInitialize(int argc, char **argv);
 
@@ -116,7 +126,7 @@ int spMPIProcessNum();
 
 int spMPINumOfProcess();
 
-size_t spMPIGenerateObjectId();
+int spMPIGenerateObjectId();
 
 void spMPIGetTopology(int *);
 
@@ -130,6 +140,6 @@ int spMPIGetRank();
 
 int spMPIGetRankCart(int const *);
 
-void spMPIMakeSendRecvTag(size_t prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag);
+void spMPIMakeSendRecvTag(int prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag);
 
 #endif /* SPSIMPLAWRAP_H_ */

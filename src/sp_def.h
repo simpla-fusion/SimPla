@@ -5,18 +5,12 @@
 #ifndef SIMPLA_SP_DEF_H
 #define SIMPLA_SP_DEF_H
 
-#include "gtl/nTuple.h"
 #include "sp_config.h"
+#include "gtl/nTuple.h"
 #include <boost/uuid/uuid.hpp>
 
 namespace simpla
 {
-typedef int8_t byte_type; // int8_t
-typedef SP_REAL Real;
-typedef int Integral;
-typedef int64_t id_type; //!< Data type of vertex's index , i.e. i,j
-typedef int64_t index_type;
-typedef uint64_t size_type;
 
 typedef nTuple<Real, 3ul> point_type; //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
 
@@ -65,8 +59,11 @@ enum ArrayOrder
 };
 
 typedef Real scalar_type;
+
 typedef std::complex<Real> Complex;
+
 typedef nTuple<Real, 3> Vec3;
+
 typedef nTuple<Real, 3> Covec3;
 
 typedef nTuple<Integral, 3> IVec3;
@@ -74,12 +71,17 @@ typedef nTuple<Integral, 3> IVec3;
 typedef nTuple<Real, 3> RVec3;
 
 typedef nTuple<Complex, 3> CVec3;
+
 static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 
 static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
+
 static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 8;
+
 static constexpr unsigned int CARTESIAN_XAXIS = 0;
+
 static constexpr unsigned int CARTESIAN_YAXIS = 1;
+
 static constexpr unsigned int CARTESIAN_ZAXIS = 2;
 
 template<typename> struct has_PlaceHolder { static constexpr bool value = false; };

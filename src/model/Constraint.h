@@ -42,7 +42,7 @@ template<typename TM> using Surface=Constraint<TM, Real, typename TM::point_type
 template<typename TM> using CellCache = Surface<TM>;
 
 /**
- *  flag = 0  union
+ *  id = 0  union
  *         1  intersection
  *       -1  Difference
  */
@@ -103,7 +103,7 @@ enum
 };
 
 /**
- *  flag < 0 out of surface
+ *  id < 0 out of surface
  *       = 0 on surface
  *       > 0 in surface
  */

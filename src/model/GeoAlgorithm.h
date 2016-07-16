@@ -125,7 +125,7 @@ auto bound_box(T0 const &p0, T1 const &p1) -> std::tuple<decltype(*p0), decltype
  * @param P1
  * @param Q0 [Q0,Q1) line segment two
  * @param Q1
- * @param flag 0: line to line
+ * @param id 0: line to line
  *             1: line segment to line segment
  * @return < s,t>
  *         nearest point P= P0*(1-s)+ P1*s ,and Q= Q0*(1-t)+t*Q1,
@@ -178,7 +178,7 @@ std::tuple<Real, Real> nearest_point_line_to_line(T0 const &P0, T1 const &P1,
  * @param Q0
  * @param Q1
  * @param Q2
- * @param flag  0 means point to plane
+ * @param id  0 means point to plane
  *              1 means point to triangle
  *              2 means point to rectangle
  * @return <dist,u,v >
@@ -201,7 +201,7 @@ std::tuple<Real, Real, Real> distance_from_point_to_plane(T0 const &P0,
  * @param Q0
  * @param Q1
  * @param Q2
- * @param flag  0 means line to plane
+ * @param id  0 means line to plane
  *              1 means line segment to triangle
  *              2 means line segment to rectangle
  *

@@ -149,11 +149,11 @@ private:
 //        private:
 //
 //            index_type carray_(index_type *self, index_type min, index_type max,
-//                               index_type flag = 0)
+//                               index_type id = 0)
 //            {
 //
 //                auto div = std::div(
-//                        static_cast<long>(*self + flag * (_D << 1) + max
+//                        static_cast<long>(*self + id * (_D << 1) + max
 //                                          - min * 2), static_cast<long>(max - min));
 //
 //                *self = static_cast<id_type>(div.rem + min);
@@ -162,7 +162,7 @@ private:
 //            }
 //
 //            index_type carray(id_type *self, id_type xmin, id_type xmax,
-//                              index_type flag = 0)
+//                              index_type id = 0)
 //            {
 //                index_tuple idx, min, max;
 //
@@ -170,12 +170,12 @@ private:
 //                min = unpack(xmin);
 //                max = unpack(xmax);
 //
-//                flag = carray_(&idx[0], min[0], max[0], flag);
-//                flag = carray_(&idx[1], min[1], max[1], flag);
-//                flag = carray_(&idx[2], min[2], max[2], flag);
+//                id = carray_(&idx[0], min[0], max[0], id);
+//                id = carray_(&idx[1], min[1], max[1], id);
+//                id = carray_(&idx[2], min[2], max[2], id);
 //
-//                *self = pack(idx) | (std::abs(flag) << (FULL_DIGITS - 1));
-//                return flag;
+//                *self = pack(idx) | (std::abs(id) << (FULL_DIGITS - 1));
+//                return id;
 //            }
 //
 //        public:

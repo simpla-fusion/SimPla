@@ -35,19 +35,19 @@ std::shared_ptr<io::IOStream> create_from_output_url(std::string const &url);
 //std::string cd(std::string const &url);
 //
 //
-//std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag = 0UL);
+//std::string write(std::string const &url, data_model::DataSet const &ds, size_t id = 0UL);
 //
 //template<typename T>
-//std::string write(std::string const &url, T const &d, size_t flag = 0UL)
+//std::string write(std::string const &url, T const &d, size_t id = 0UL)
 //{
-//    return write(url, data_model::DataSet::create(d), flag);
+//    return write(url, data_model::DataSet::create(d), id);
 //}
 //
 //
 //template<typename T>
-//std::string write(std::string const &url, size_t num, T const *d, size_t flag = 0UL)
+//std::string write(std::string const &url, size_t num, T const *d, size_t id = 0UL)
 //{
-//    return write(url, data_model::DataSet::create(d, num), flag);
+//    return write(url, data_model::DataSet::create(d, num), id);
 //}
 //
 //void delete_attribute(std::string const &url);
@@ -79,7 +79,7 @@ std::shared_ptr<io::IOStream> create_from_output_url(std::string const &url);
 //
 //template<typename ...T>
 //std::string write(std::string const & name, std::tuple<T...> const & d,
-//		size_t flag = 0UL)
+//		size_t id = 0UL)
 //{
 //	return std::move(save_tuple_impl(name, d,
 //
@@ -104,12 +104,12 @@ std::shared_ptr<io::IOStream> create_from_output_url(std::string const &url);
 //}
 //
 //template<typename TV> std::string write(std::string const & name,
-//		std::vector<TV>const & d, size_t flag = 0UL)
+//		std::vector<TV>const & d, size_t id = 0UL)
 //{
 //
 //	size_t s = d.size();
 //	return GLOBAL_DATA_STREAM.write(name, &d[0], make_datatype<TV>(), 1,
-//			nullptr, &s, nullptr, nullptr, nullptr, nullptr, flag);
+//			nullptr, &s, nullptr, nullptr, nullptr, nullptr, id);
 //}
 //
 //template<typename TL, typename TR, typename ... Args> std::string write(

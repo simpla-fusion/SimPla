@@ -311,16 +311,16 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 }
 //bool data_space::is_distributed() const
 //{
-//	bool flag = false;
+//	bool id = false;
 //	for (int i = 0; i < m_self_->m_d_shape_.ndims; ++i)
 //	{
 //		if (m_self_->m_d_shape_.dimensions[i] != m_self_->m_local_dimensions_[i])
 //		{
-//			flag = true;
+//			id = true;
 //			break;
 //		};
 //	}
-//	return flag;
+//	return id;
 //}
 
 
@@ -538,13 +538,13 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 ////						local_inner_shape_.count, remote.outer_offset,
 ////						remote.outer_count);
 ////
-////				bool flag = f_inner && f_outer;
+////				bool id = f_inner && f_outer;
 ////
 ////				for (int i = 0; i < ndims_; ++i)
 ////				{
-////					flag = flag && (remote.outer_count[i] != 0);
+////					id = id && (remote.outer_count[i] != 0);
 ////				}
-////				if (flag)
+////				if (id)
 ////				{
 ////					send_recv_.emplace_back(
 ////							send_recv_s(
@@ -563,7 +563,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //}
 
 //bool data_space::sync(std::shared_ptr<void> m_data, DataType const & DataType,
-//		size_type flag)
+//		size_type id)
 //{
 //#if  !NO_MPI || USE_MPI
 //	if (!GLOBAL_COMM.is_valid() || m_self_->send_recv_.size() == 0)

@@ -1039,7 +1039,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
     return "UNIMPLEMENTED";
 }
 //hid_t HDF5Stream::pimpl_s::create_h5_dataset(dataset const & ds,
-//		size_t flag) const
+//		size_t id) const
 //{
 //
 //	h5_dataset res;
@@ -1048,7 +1048,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //	res.DataType = ds.DataType;
 //
-//	res.flag = flag;
+//	res.id = id;
 //
 //	res.ndims = ds.data_space.num_of_dims();
 //
@@ -1059,7 +1059,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //	std::tie(res.start, res.count, res.stride, res.block) =
 //			ds.data_space.shape();
 //
-//	if ((flag & SP_UNORDER) == SP_UNORDER)
+//	if ((id & SP_UNORDER) == SP_UNORDER)
 //	{
 //		std::tie(res.f_start[0], res.f_count[0]) = sync_global_location(
 //				res.f_count[0]);
@@ -1090,16 +1090,16 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //	if (properties["Enable Compact Storage"].as<bool>(false))
 //	{
-//		res.flag |= SP_APPEND;
+//		res.id |= SP_APPEND;
 //	}
 //
 //	if (properties["Force Record Storage"].as<bool>(false))
 //	{
-//		res.flag |= SP_RECORD;
+//		res.id |= SP_RECORD;
 //	}
 //	if (properties["Force Write CellCache"].as<bool>(false))
 //	{
-//		res.flag |= SP_CACHE;
+//		res.id |= SP_CACHE;
 //	}
 //	return std::move(res);
 //
@@ -1107,17 +1107,17 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 
 //std::string HDF5Stream::pimpl_s::write(std::string const &url, h5_dataset ds)
 //{
-//	if ((ds.flag & (SP_UNORDER)) == (SP_UNORDER))
+//	if ((ds.id & (SP_UNORDER)) == (SP_UNORDER))
 //	{
 //		return write_array(url, ds);
 //	}
 //
-//	if ((ds.flag & SP_RECORD) == SP_RECORD)
+//	if ((ds.id & SP_RECORD) == SP_RECORD)
 //	{
 //		convert_record_dataset(&ds);
 //	}
 //
-//	if ((ds.flag & SP_CACHE) == SP_CACHE)
+//	if ((ds.id & SP_CACHE) == SP_CACHE)
 //	{
 //		return write_cache(url, ds);
 //	}
@@ -1157,7 +1157,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //	++pds->ndims;
 //
-//	pds->flag |= SP_APPEND;
+//	pds->id |= SP_APPEND;
 //
 //}
 
@@ -1169,7 +1169,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //	std::tie(filename, grp_name, dsname, std::ignore) = parser_url(p_url);
 //
-//	cd(filename, grp_name, ds.flag);
+//	cd(filename, grp_name, ds.id);
 //
 //	std::string url = pwd() + dsname;
 //
@@ -1197,7 +1197,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //			item = ds;
 //
-//			item.flag |= SP_APPEND;
+//			item.id |= SP_APPEND;
 //
 //			item.ndims = ds.ndims;
 //

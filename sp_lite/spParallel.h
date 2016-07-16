@@ -6,16 +6,22 @@
 #define SIMPLA_SPPARALLEL_H
 
 #include "sp_lite_def.h"
+#include "../../../../../usr/local/cuda/include/cuda_runtime_api.h"
 
 #ifndef NUMBER_OF_THREADS_PER_BLOCK
 #	define NUMBER_OF_THREADS_PER_BLOCK 128
 #endif //NUMBER_OF_THREADS_PER_BLOCK
 
 #ifndef __CUDACC__
+
 typedef struct { int x, y, z; } int3;
+
 typedef struct { int x, y, z, w; } int4;
+
 typedef struct { float x, y, z; } float3;
+
 typedef struct { float x, y, z, w; } float4;
+
 typedef struct { size_t x, y, z; } dim3;
 
 typedef struct { Real x, y, z; } Real3;
@@ -86,19 +92,26 @@ MC_HOST void spParallelFinalize();
 
 MC_HOST void spParallelDeviceSync();
 
-MC_HOST void spParallelHostMalloc(void **, size_type s);
+MC_HOST void spParallelHostMalloc(void **, int s);
 
 MC_HOST void spParallelHostFree(void **);
 
-MC_HOST void spParallelDeviceMalloc(void **, size_type s);
+//MC_HOST void spParallelDeviceMalloc(void **, size_type s);
+//MC_HOST void spParallelDeviceFree(void **);
+//MC_HOST void spParallelMemcpy(void *dest, void const *src, size_type s);
+//MC_HOST void spParallelMemcpyToSymbol(void *dest, void const *src, size_type s);
+//MC_HOST void spParallelMemset(void *dest, byte_type v, size_type s);
+//MC_HOST void spParallelMemcpy(void *, void const *, size_type);
 
-MC_HOST void spParallelDeviceFree(void **);
+#define spParallelDeviceMalloc(_P_, _S_)      CUDA_CHECK_RETURN(cudaMalloc(_P_, _S_));
 
-MC_HOST void spParallelMemcpy(void *dest, void const *src, size_type s);
+#define spParallelDeviceFree(_P_)      if (*_P_ != NULL) { CUDA_CHECK_RETURN(cudaFree(*_P_)); *_P_ = NULL;   };
 
-MC_HOST void spParallelMemcpyToSymbol(void *dest, void const *src, size_type s);
+#define spParallelMemcpy(_D_, _S_, _N_) CUDA_CHECK_RETURN(cudaMemcpy(_D_, _S_,(size_t)(_N_), cudaMemcpyDefault));
 
-MC_HOST void spParallelMemset(void *dest, byte_type v, size_type s);
+#define  spParallelMemcpyToSymbol(_D_, _S_, _N_)    CUDA_CHECK_RETURN(cudaMemcpyToSymbol(_D_, _S_, _N_));
+
+#define spParallelMemset(_D_, _V_, _N_)  CUDA_CHECK_RETURN(cudaMemset(_D_, _V_, _N_));
 
 MC_HOST_DEVICE int sp_is_device_ptr(void const *p);
 
@@ -116,7 +129,6 @@ MC_DEVICE unsigned int spParallelNumOfBlocks();
 
 MC_DEVICE unsigned int spParallelBlockNum();
 
-MC_HOST void spParallelMemcpy(void *, void const *, size_type);
 
 #define spAtomicAdd(_ADDR_, _V_) atomicAdd(_ADDR_,_V_)
 #define spAtomicSub(_ADDR_, _V_) atomicSub(_ADDR_,_V_)

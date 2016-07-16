@@ -27,7 +27,7 @@ class polygon_clip
 	size_t NOSEGM = 0; /* segment was rejected */
 	size_t SEGM = 1; /* segment is at least partially visible */
 	size_t CLIP = 2; /* segment was clipped */
-	size_t TWOBITS = 10; /* flag for 2-bit code */
+	size_t TWOBITS = 10; /* id for 2-bit code */
 
 	/* Two lookup tables for finding turning point.
 	 Tcc is used to compute a correct offset.

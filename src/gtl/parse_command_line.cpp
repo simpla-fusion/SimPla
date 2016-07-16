@@ -41,7 +41,7 @@ void parse_cmd_line(int argc, char **argv,
 		char * str = argv[i];
 
 		if (str[0] == '-'
-				&& ((str[1] < '0' || str[1] > '9') && (str[1] != '.'))) // is configure flag
+				&& ((str[1] < '0' || str[1] > '9') && (str[1] != '.'))) // is configure id
 		{
 			if (opt != "" || value != "")
 			{
@@ -53,11 +53,11 @@ void parse_cmd_line(int argc, char **argv,
 				value = "";
 			}
 
-			if (str[1] == '-') // is long configure flag
+			if (str[1] == '-') // is long configure id
 			{
 				opt = str + 2;
 			}
-			else // is short configure flag
+			else // is short configure id
 			{
 				opt = str[1];
 				if (str[2] != '\0')

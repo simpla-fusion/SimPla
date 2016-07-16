@@ -116,20 +116,20 @@ MC_DEVICE spPage *spPageAtomicPush(spPage **pg, spPage *v);
 // **/
 //
 ///**
-// *  set page flag=0, do not change the capacity of pages
+// *  set page id=0, do not change the capacity of pages
 // */
 //MC_HOST_DEVICE void spEntityClear(spPage *p);
 //
-//MC_HOST_DEVICE spEntity *spEntityInsertWithHint(spPage **p, bucket_entity_flag_t *flag, size_type entity_size_in_byte);
+//MC_HOST_DEVICE spEntity *spEntityInsertWithHint(spPage **p, bucket_entity_flag_t *id, size_type entity_size_in_byte);
 //
-//MC_HOST_DEVICE spEntity *spEntityAtomicInsert(spPage **pg, bucket_entity_flag_t *flag, size_type entity_size_in_byte);
+//MC_HOST_DEVICE spEntity *spEntityAtomicInsert(spPage **pg, bucket_entity_flag_t *id, size_type entity_size_in_byte);
 ///**
 // * clear page, and fill N entities to page
 // * @return number of remained entities.
 // */
 //MC_HOST_DEVICE size_type spEntityFill(spPage *p, size_type num, const byte_type *src, size_type entity_size_in_byte);
 //
-//MC_HOST_DEVICE void spEntityRemove(spPage *p, bucket_entity_flag_t flag);
+//MC_HOST_DEVICE void spEntityRemove(spPage *p, bucket_entity_flag_t id);
 //
 //MC_HOST_DEVICE void spEntityCopyIf(spPage *src, spPage **dest, id_type tag);
 //
@@ -218,7 +218,7 @@ MC_DEVICE spPage *spPageAtomicPush(spPage **pg, spPage *v);
 //	int count = 0;
 //	while (p != 0x0)
 //	{
-//		count += (p->flag != 0x0) ? 1 : 0;
+//		count += (p->id != 0x0) ? 1 : 0;
 //		p = p->next;
 //	}
 //
@@ -236,7 +236,7 @@ MC_DEVICE spPage *spPageAtomicPush(spPage **pg, spPage *v);
 //		int count = 0;
 //		while (p != 0x0)
 //		{
-//			count += ((p->flag + 1) != 0x0) ? 1 : 0;
+//			count += ((p->id + 1) != 0x0) ? 1 : 0;
 //			p = p->next;
 //		}
 //		return count;
@@ -267,7 +267,7 @@ MC_DEVICE spPage *spPageAtomicPush(spPage **pg, spPage *v);
 //	size_type res = 0;
 //	while (p != 0x0)
 //	{
-//		res += bit_count64(p->flag);
+//		res += bit_count64(p->id);
 //		p = p->next;
 //	}
 //	return res;
@@ -286,103 +286,103 @@ MC_DEVICE spPage *spPageAtomicPush(spPage **pg, spPage *v);
 //{
 //	while (p != 0x0)
 //	{
-//		p->flag = 0x0;
+//		p->id = 0x0;
 //		p = p->next;
 //	}
 //}
 ///**
-// *  @return if success then return pointer to the first blank entity, and set flag to 1
+// *  @return if success then return pointer to the first blank entity, and set id to 1
 // *                     else return 0x0
 // */
 //MC_HOST_DEVICE   spEntity *
 //spEntityInsert(spPage *pg, size_type entity_size_in_byte)
 //{
 //	spPage *t = pg;
-//	bucket_entity_flag_t flag = 0x0;
-//	return spEntityInsertWithHint(&t, &flag, entity_size_in_byte);
+//	bucket_entity_flag_t id = 0x0;
+//	return spEntityInsertWithHint(&t, &id, entity_size_in_byte);
 //}
 ///**
 // *  find first blank entity
-// *  @param  flag  search from the 'flag'
-// *           (default: flag=0x0, start from beginning),
+// *  @param  id  search from the 'id'
+// *           (default: id=0x0, start from beginning),
 // *
-// *  @return if success then *p point to the page of result, flag point the position of result
-// *                           and set flag to 1
-// *                     else return 0x0, *p ,flag is undefined
+// *  @return if success then *p point to the page of result, id point the position of result
+// *                           and set id to 1
+// *                     else return 0x0, *p ,id is undefined
 // *
 // */
 //MC_HOST_DEVICE   spEntity *
-//spEntityInsertWithHint(spPage **pg, bucket_entity_flag_t *flag, size_type entity_size_in_byte)
+//spEntityInsertWithHint(spPage **pg, bucket_entity_flag_t *id, size_type entity_size_in_byte)
 //{
 ////	byte_type *res = 0x0;
-////	if (*flag == 0x0)
+////	if (*id == 0x0)
 ////	{
-////		*flag = 0x1;
+////		*id = 0x1;
 ////	}
 ////
 ////	while ((*pg) != 0)
 ////	{
 //////		res = (*pg)->data;
 ////
-////		while (((*pg)->flag + 1 != 0x0) && *flag != 0x0)
+////		while (((*pg)->id + 1 != 0x0) && *id != 0x0)
 ////		{
-////			if (((*pg)->flag & *flag) == 0x0)
+////			if (((*pg)->id & *id) == 0x0)
 ////			{
-////				(*pg)->flag |= *flag;
+////				(*pg)->id |= *id;
 ////				goto RETURN;
 ////			}
 ////
 ////			res += entity_size_in_byte;
-////			*flag <<= 1;
+////			*id <<= 1;
 ////
 ////		}
 ////
-////		*flag = 0x1;
+////		*id = 0x1;
 ////		pg = &(*pg)->next;
 ////
 ////	}
 //	RETURN: return (spEntity *) res;
 //}
 /**
- *  @return first entity after 'flag' , if flag=0x0 start from beginning
+ *  @return first entity after 'id' , if id=0x0 start from beginning
  *
  */
 //MC_HOST_DEVICE   spEntity *
-//spEntityNext(spPage **pg, bucket_entity_flag_t *flag, size_type entity_size_in_byte)
+//spEntityNext(spPage **pg, bucket_entity_flag_t *id, size_type entity_size_in_byte)
 //{
 //
 //	byte_type *res = 0x0;
-//	if (*flag == 0x0)
+//	if (*id == 0x0)
 //	{
-//		*flag = 0x1;
+//		*id = 0x1;
 //	}
 //
 //	while ((*pg) != 0)
 //	{
 //		res = (*pg)->data;
 //
-//		while (((*pg)->flag != 0x0) && *flag != 0x0)
+//		while (((*pg)->id != 0x0) && *id != 0x0)
 //		{
-//			if (((*pg)->flag & *flag) != 0x0)
+//			if (((*pg)->id & *id) != 0x0)
 //			{
 //				goto RETURN;
 //			}
 //
 //			res += entity_size_in_byte;
-//			*flag <<= 1;
+//			*id <<= 1;
 //
 //		}
 //
-//		*flag = 0x1;
+//		*id = 0x1;
 //		pg = &(*pg)->next;
 //
 //	}
 //	RETURN: return (spEntity *) res;
 //}
 //
-//MC_HOST_DEVICE   void spEntityRemove(spPage *p, bucket_entity_flag_t flag)
+//MC_HOST_DEVICE   void spEntityRemove(spPage *p, bucket_entity_flag_t id)
 //{
-//	p->flag &= (~flag);
+//	p->id &= (~id);
 //}
 //
 //#ifndef DEFAULT_COPY
@@ -400,7 +400,7 @@ MC_DEVICE spPage *spPageAtomicPush(spPage **pg, spPage *v);
 ////
 ////	for (spEntity *p; (p = spEntityNext(&pg, &read_flag, entity_size_in_byte)) != 0x0;)
 ////	{
-//////		if ((p->flag & 0x3F) == tag)
+//////		if ((p->id & 0x3F) == tag)
 //////		{
 //////			++count;
 //////		}
@@ -430,7 +430,7 @@ MC_DEVICE spPage *spPageAtomicPush(spPage **pg, spPage *v);
 //////
 //////			DEFAULT_COPY(p0, p1);
 //////			p1->tag &= ~(0x3F); // clear tag
-//////			write_buffer->flag |= write_flag;
+//////			write_buffer->id |= write_flag;
 //////			write_flag <<= 1;
 //////			p1 = (spEntity *) (((byte_type *) p1) + entity_size_in_byte);
 //////

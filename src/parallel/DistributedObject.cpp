@@ -273,7 +273,7 @@ void DistributedObject::pimpl_s::sync()
 //
 //            std::tie(xmin, xmax) = pool->mesh().get_extents();
 //
-//            bool flag = true;
+//            bool id = true;
 //            for (int n = 0; n < 3; ++n)
 //            {
 //                if (g_array.send_recv_[i].recv_begin[n]

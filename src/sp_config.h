@@ -9,7 +9,7 @@
 #define SIMPLA_DEFS_H_
 
 #include <stdint.h>
-
+#include <stdlib.h>
 #ifdef __cplusplus
 extern "C"
 {
@@ -24,6 +24,21 @@ extern "C"
 #   define  SP_REAL double
 #endif
 
+typedef size_t size_type;
+
+typedef int8_t byte_type; // int8_t
+
+typedef SP_REAL Real;
+
+typedef int Integral;
+
+typedef int64_t id_type; //!< Data type of vertex's index , i.e. i,j
+
+typedef int64_t index_type;
+
+
+#define SP_SUCCESS 0
+#define SP_FAILED  1
 
 #ifdef __cplusplus
 };

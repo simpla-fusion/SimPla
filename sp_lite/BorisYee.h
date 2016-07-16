@@ -9,22 +9,23 @@
 #include "spMesh.h"
 #include "spField.h"
 
-struct boris_s
+
+typedef struct boris_data_s
 {
-	SP_PARTICLE_POINT_HEAD
+    SP_PARTICLE_DATA_HEAD
 
-	Real vx;
-	Real vy;
-	Real vz;
+    Real *vx;
+    Real *vy;
+    Real *vz;
 
-	Real f;
-	Real w;
-};
+    Real *f;
+    Real *w;
+} boris_data;
 
 void spBorisYeeInitializeParticle(spParticle *pg, size_type NUM_OF_PIC);
 
 void spBorisYeeUpdateParticle(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho,
-		spField *fJ);
+                              spField *fJ);
 
 void spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB);
 

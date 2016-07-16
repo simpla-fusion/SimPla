@@ -63,13 +63,13 @@ template<typename TP>
 void ImplicitPushE<TM>::next_timestep(field<scalar_type, EDGE> *pdE)
 {
 //	{
-//		bool flag = false;
+//		bool id = false;
 //		for (auto &p : m_fluid_sp_)
 //		{
-//			flag |= (p.second->is_implicit());
+//			id |= (p.second->is_implicit());
 //		}
 //
-//		if (!flag)
+//		if (!id)
 //			return;
 //	}
 //

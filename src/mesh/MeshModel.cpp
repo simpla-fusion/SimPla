@@ -103,7 +103,7 @@ int Model::check(MeshEntityId const &s)
     return res;
 };
 /**
- *  flag < 0 out of surface
+ *  id < 0 out of surface
  *       = 0 on surface
  *       > 0 in surface
  */

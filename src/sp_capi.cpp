@@ -32,7 +32,7 @@ void spDataTypeDestroy(spDataType **) { }
 
 int spDataTypeIsValid(spDataType const *) { return true; }
 
-void spDataTypeExtent(spDataType *, int rank, size_t const *d) { }
+void spDataTypeExtent(spDataType *, int rank, int const *d) { }
 
 void spDataTypePushBack(spDataType *, spDataType const *, char const name[]) { }
 
@@ -40,13 +40,13 @@ struct spDataSpace_s;
 
 typedef struct spDataSpace_s spDataSpace;
 
-void spDataSpaceCreateSimple(spDataSpace **, int ndims, size_t const *dims) { }
+void spDataSpaceCreateSimple(spDataSpace **, int ndims, int const *dims) { }
 
-void spDataSpaceCreateUnordered(spDataSpace **, size_t num) { }
+void spDataSpaceCreateUnordered(spDataSpace **, int num) { }
 
 void spDataSpaceDestroy(spDataSpace **) { }
 
-void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *offset, size_t const *count) { }
+void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *offset, int const *count) { }
 
 struct spDataSet_s;
 
@@ -93,15 +93,23 @@ void spIOStreamWrite(spIOStream *, char const name[], spDataSet const *) { }
 
 void spIOStreamRead(spIOStream *, char const name[], spDataSet const *) { }
 
-void spIOStreamWriteSimple(spIOStream *os, const char *url, int d_type,//
-                           void *d, int ndims, size_t const *dims, size_t const *start, size_t const *count,
+void spIOStreamWriteSimple(spIOStream *os,
+                           const char *url,
+                           int d_type,
+                           void *d,
+                           int ndims,
+                           size_type const *dims,
+                           size_type const *start,
+                           size_type const *stride,
+                           size_type const *count,
+                           size_type const *block,
                            int flag)
 {
 
     simpla::data_model::DataSet dset;
-    dset.data_space = data_model::DataSpace(ndims, &count[0]);
-    dset.memory_space = data_model::DataSpace(ndims, &dims[0]);
-    dset.memory_space.select_hyperslab(&start[0], nullptr, &count[0], nullptr);
+    dset.data_space = data_model::DataSpace(ndims, count);
+    dset.memory_space = data_model::DataSpace(ndims, dims);
+    dset.memory_space.select_hyperslab(start, stride, count, block);
     switch (d_type)
     {
         case SP_TYPE_float:
@@ -169,13 +177,13 @@ void hdf5_write_field(const char *url, void *d, int ndims, size_type const *dims
     dset.data_type = data_model::DataType::create<Real>();
     dset.data = std::shared_ptr<void>(reinterpret_cast<void *>(d), tags::do_nothing());
 
-//	simpla::io::write(url, dset, flag);
+//	simpla::io::write(url, dset, id);
 
 }
 
-void spDistributedObjectAddSendLink(spDistributedObject *, size_t id, const ptrdiff_t offset[3], const spDataSet *) { }
+void spDistributedObjectAddSendLink(spDistributedObject *, int id, const ptrdiff_t offset[3], const spDataSet *) { }
 
-void spDistributedObjectAddRecvLink(spDistributedObject *, size_t id, const ptrdiff_t offset[3], spDataSet *) { }
+void spDistributedObjectAddRecvLink(spDistributedObject *, int id, const ptrdiff_t offset[3], spDataSet *) { }
 
 int spDistributedObjectIsReady(spDistributedObject const *) { return true; }
 
@@ -195,7 +203,7 @@ int spMPIProcessNum() { return (GLOBAL_COMM.process_num()); }
 
 int spMPINumOfProcess() { return (GLOBAL_COMM.num_of_process()); }
 
-size_type spMPIGenerateObjectId() { return (GLOBAL_COMM.generate_object_id()); }
+int spMPIGenerateObjectId() { return (GLOBAL_COMM.generate_object_id()); }
 
 void spMPIGetTopology(int *d)
 {
@@ -264,7 +272,7 @@ int spMPIGetRankCart(int const *r)
     return GLOBAL_COMM.get_rank(d);
 };
 
-void spMPIMakeSendRecvTag(size_t prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag)
+void spMPIMakeSendRecvTag(int prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag)
 {
     nTuple<int, 3> d{0, 0, 0};
     if (offset != nullptr)

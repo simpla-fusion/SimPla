@@ -5,77 +5,86 @@
 #include <assert.h>
 #include <math.h>
 #include "sp_lite_def.h"
-#include "spField.h"
-#include "spMesh.h"
+#include "spParallel.h"
 #include "spParticle.h"
-#include "spPage.h"
 #include "BorisYee.h"
 
-MC_GLOBAL void spBorisleInitializeParticKernel(spParticlePage **bucket, spParticlePage ** pool, size_type PIC)
+MC_GLOBAL void
+spBorisInitializeParticleKernel(boris_data *d, spParticlePage **bucket, spParticlePage **pool, size_type PIC)
 {
 
-	size_type block_num = spParallelBlockNum();
+    size_type block_num = spParallelBlockNum();
 
-	while (PIC > 0)
-	{
-		spParallelSyncThreads();
+    while (PIC > 0)
+    {
+        spParallelSyncThreads();
 
-		if (spParallelThreadNum() == 0)
-		{
-			spParticlePage * t = (spParticlePage *) spPageAtomicPop((spPage**) pool);
-			t->next = bucket[block_num];
-			bucket[block_num] = t;
-		}
-		spParallelSyncThreads();
+        if (spParallelThreadNum() == 0)
+        {
+            spParticlePage *t = (spParticlePage *) spPageAtomicPop((spPage **) pool);
+            t->next = bucket[block_num];
+            bucket[block_num] = t;
+        }
+        spParallelSyncThreads();
 
-		spParticlePage *pg = bucket[block_num];
+        spParticlePage *pg = bucket[block_num];
 
-		int s = spParallelThreadNum();
+        int s = spParallelThreadNum();
 
-		if (s < PIC)
-		{
-			P_GET_FLAG((pg)->data, s).v = 0;
-			P_GET((pg)->data, struct boris_s, Real, rx, s) = 0.15;
-			P_GET((pg)->data, struct boris_s, Real, ry, s) = 0.25;
-			P_GET((pg)->data, struct boris_s, Real, rz, s) = 0.35;
-			P_GET((pg)->data, struct boris_s, Real, vx, s) = 1;
-			P_GET((pg)->data, struct boris_s, Real, vy, s) = 2;
-			P_GET((pg)->data, struct boris_s, Real, vz, s) = 3;
-		}
-		PIC -= SP_NUMBER_OF_ENTITIES_IN_PAGE;
-	}
+        if (s < PIC)
+        {
+            d->id[s].v = 0;
+            d->rx[s] = 0.15;
+            d->ry[s] = 0.25;
+            d->rz[s] = 0.35;
+            d->vx[s] = 1;
+            d->vy[s] = 2;
+            d->vz[s] = 3;
+        }
+        PIC -= SP_NUMBER_OF_ENTITIES_IN_PAGE;
+    }
 
 }
-
 void spBorisYeeInitializeParticle(spParticle *sp, size_type NUM_OF_PIC)
 {
-	ADD_PARTICLE_ATTRIBUTE(sp, struct boris_s, Real, vx);
-	ADD_PARTICLE_ATTRIBUTE(sp, struct boris_s, Real, vy);
-	ADD_PARTICLE_ATTRIBUTE(sp, struct boris_s, Real, vz);
-	ADD_PARTICLE_ATTRIBUTE(sp, struct boris_s, Real, f);
-	ADD_PARTICLE_ATTRIBUTE(sp, struct boris_s, Real, w);
+    ADD_PARTICLE_ATTRIBUTE(sp, Real, vx);
+    ADD_PARTICLE_ATTRIBUTE(sp, Real, vy);
+    ADD_PARTICLE_ATTRIBUTE(sp, Real, vz);
+    ADD_PARTICLE_ATTRIBUTE(sp, Real, f);
+    ADD_PARTICLE_ATTRIBUTE(sp, Real, w);
 
-	spParticleDeploy(sp, NUM_OF_PIC);
+    spParticleDeploy(sp, NUM_OF_PIC);
 
-	spBorisleInitializeParticKernel<<<sp->m->dims,NUMBER_OF_THREADS_PER_BLOCK>>>(sp->m_buckets_, (sp->m_page_pool_), NUM_OF_PIC);
 
-	/*    @formatter:off */
+    dim3 dims = spMeshGetDims(spParticleMesh(sp));
+
+    LOAD_KERNEL(spBorisInitializeParticleKernel,
+                dims,
+                NUMBER_OF_THREADS_PER_BLOCK,
+                (boris_data *) spParticleAttributeDeviceData(sp),
+                spParticleBuckets(sp),
+                spParticlePagePool(sp),
+                NUM_OF_PIC);
+
 
 //	spUpdateParticleBorisScatterBlockKernel<<< sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
 //			(fRho->device_data), ( fJ->device_data));
-	/*    @formatter:on */
 
-	spParallelDeviceSync();        //wait for iteration to finish
 
-	spParticleSync(sp);
+    spParallelDeviceSync();        //wait for iteration to finish
+
+    spParticleSync(sp);
 
 }
 
 /******************************************************************************************/
 
 MC_CONSTANT Real cmr_dt;
+
 MC_CONSTANT int3 mesh_offset;
+
 MC_CONSTANT int SP_MESH_NUM_OF_ENTITY_IN_GRID;
+
 MC_CONSTANT float3 mesh_inv_dv;
 
 #define ll 0
@@ -92,15 +101,15 @@ MC_CONSTANT float3 mesh_inv_dv;
 MC_DEVICE void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 {
 
-	*v = *v
-			+ (f[IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
-					+ f[IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
-					+ f[IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
-					+ f[IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
-					+ f[IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
-					+ f[IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
-					+ f[IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
-					+ f[0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
+    *v = *v
+        + (f[IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
+            + f[IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
+            + f[IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
+            + f[IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
+            + f[IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
+            + f[IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
+            + f[IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
+            + f[0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
 }
 
 #undef ll
@@ -109,139 +118,141 @@ MC_DEVICE void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 #undef IY
 #undef IZ
 
-MC_GLOBAL void spBorisYeeUpdateParticleKernel(spParticlePage **pg, spParticlePage ** pool, const Real *tE,
-		const Real *tB, Real3 inv_dv, Real cmr_dt)
+MC_GLOBAL void spBorisYeeUpdateParticleKernel(boris_data *d,
+                                              spParticlePage **bucket,
+                                              spParticlePage **pool,
+                                              const Real *tE,
+                                              const Real *tB,
+                                              Real3 inv_dv,
+                                              Real cmr_dt)
 {
 
-	spParticlePage *dest, *src;
-	MC_SHARED int g_d_tail, g_s_tail;
-	MeshEntityId tag;
+    spParticlePage *dest, *src;
+    MC_SHARED int g_d_tail, g_s_tail;
+    MeshEntityId tag;
 
-	spParallelSyncThreads();
+    spParallelSyncThreads();
 
-	if (spParallelThreadNum() == 0)
-	{
-		g_s_tail = 0;
-		g_d_tail = 0;
-	}
-	spParallelSyncThreads();
+    if (spParallelThreadNum() == 0)
+    {
+        g_s_tail = 0;
+        g_d_tail = 0;
+    }
+    spParallelSyncThreads();
 
-	dim3 block_idx = spParallelBlockIdx();
-	dim3 grid_dims = spParallelGridDims();
+    dim3 block_idx = spParallelBlockIdx();
+    dim3 grid_dims = spParallelGridDims();
 
-	tag.x = (int16_t) (block_idx.x);
-	tag.y = (int16_t) (block_idx.y);
-	tag.z = (int16_t) (block_idx.z);
-	src = pg[block_idx.x + (block_idx.y * grid_dims.z + block_idx.z) * grid_dims.z];
-	dest = pg[block_idx.x + (block_idx.y * grid_dims.z + block_idx.z) * grid_dims.z];
+    tag.x = (int16_t) (block_idx.x);
+    tag.y = (int16_t) (block_idx.y);
+    tag.z = (int16_t) (block_idx.z);
+    src = bucket[block_idx.x + (block_idx.y * grid_dims.z + block_idx.z) * grid_dims.z];
+    dest = bucket[block_idx.x + (block_idx.y * grid_dims.z + block_idx.z) * grid_dims.z];
 
-	for (int d_tail = 0, s_tail = 0;
-			spParticleMapAndPack(&dest, &src, &d_tail, &g_d_tail, &s_tail, &g_s_tail, pool, tag) != SP_MP_FINISHED;)
-	{
+    for (int d_tail = 0, s_tail = 0;
+//         spParticleMapAndPack(nullptr, &dest, &src, &d_tail, &g_d_tail, &s_tail, &g_s_tail, pool, tag)!= SP_MP_FINISHED
+        ;)
+    {
 
-		MeshEntityId old_id = P_GET_FLAG(src->data, s_tail);
-		Real rx = P_GET((src)->data, struct boris_s, Real, rx, s_tail);
-		Real ry = P_GET((src)->data, struct boris_s, Real, ry, s_tail);
-		Real rz = P_GET((src)->data, struct boris_s, Real, rz, s_tail);
-		Real vx = P_GET((src)->data, struct boris_s, Real, vx, s_tail);
-		Real vy = P_GET((src)->data, struct boris_s, Real, vy, s_tail);
-		Real vz = P_GET((src)->data, struct boris_s, Real, vz, s_tail);
+        MeshEntityId old_id = d->id[s_tail];;
+        Real rx = d->rx[s_tail];
+        Real ry = d->ry[s_tail];
+        Real rz = d->rz[s_tail];
+        Real vx = d->vx[s_tail];
+        Real vy = d->vy[s_tail];
+        Real vz = d->vz[s_tail];
 
-		Real ax, ay, az;
-		Real tx, ty, tz;
+        Real ax, ay, az;
+        Real tx, ty, tz;
 
-		Real tt;
+        Real tt;
 
-		cache_gather(&ax, tE + 8 * 0, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
-		cache_gather(&ay, tE + 8 * 1, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
-		cache_gather(&az, tE + 8 * 2, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
+        cache_gather(&ax, tE + 8 * 0, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
+        cache_gather(&ay, tE + 8 * 1, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
+        cache_gather(&az, tE + 8 * 2, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
 
-		cache_gather(&tx, tB + 8 * 0, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
-		cache_gather(&ty, tB + 8 * 1, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
-		cache_gather(&tz, tB + 8 * 2, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
+        cache_gather(&tx, tB + 8 * 0, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
+        cache_gather(&ty, tB + 8 * 1, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
+        cache_gather(&tz, tB + 8 * 2, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
 
-		ax *= cmr_dt;
-		ay *= cmr_dt;
-		az *= cmr_dt;
+        ax *= cmr_dt;
+        ay *= cmr_dt;
+        az *= cmr_dt;
 
-		tx *= cmr_dt;
-		ty *= cmr_dt;
-		tz *= cmr_dt;
+        tx *= cmr_dt;
+        ty *= cmr_dt;
+        tz *= cmr_dt;
 
-		rx += vx * 0.5 * inv_dv.x;
-		ry += vy * 0.5 * inv_dv.y;
-		rz += vz * 0.5 * inv_dv.z;
+        rx += vx * 0.5 * inv_dv.x;
+        ry += vy * 0.5 * inv_dv.y;
+        rz += vz * 0.5 * inv_dv.z;
 
-		vx += ax;
-		vy += ay;
-		vz += az;
+        vx += ax;
+        vy += ay;
+        vz += az;
 
-		Real v_x, v_y, v_z;
+        Real v_x, v_y, v_z;
 
-		v_x = vx + (vy * tz - vz * ty);
-		v_y = vy + (vz * tx - vx * tz);
-		v_z = vz + (vx * ty - vy * tx);
+        v_x = vx + (vy * tz - vz * ty);
+        v_y = vy + (vz * tx - vx * tz);
+        v_z = vz + (vx * ty - vy * tx);
 
-		tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
+        tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
 
-		vx += ax + (v_y * tz - v_z * ty) * tt;
-		vy += ax + (v_z * tx - v_x * tz) * tt;
-		vz += ax + (v_x * ty - v_y * tx) * tt;
+        vx += ax + (v_y * tz - v_z * ty) * tt;
+        vy += ax + (v_z * tx - v_x * tz) * tt;
+        vz += ax + (v_x * ty - v_y * tx) * tt;
 
-		rx += vx * 0.5 * mesh_inv_dv.x;
-		ry += vy * 0.5 * mesh_inv_dv.y;
-		rz += vz * 0.5 * mesh_inv_dv.z;
-		MeshEntityId id;
+        rx += vx * 0.5 * mesh_inv_dv.x;
+        ry += vy * 0.5 * mesh_inv_dv.y;
+        rz += vz * 0.5 * mesh_inv_dv.z;
+        MeshEntityId id;
 
-		/*    @formatter:off */
-		id.x = (int16_t) (floor(rx));
-		rx -= (Real) (id.x);
-		id.y = (int16_t) (floor(ry));
-		ry -= (Real) (id.y);
-		id.z = (int16_t) (floor(rz));
-		rz -= (Real) (id.z);
+        /*    @formatter:off */
+		id.x = (int16_t) (floor(rx));rx -= (Real) (id.x);
+		id.y = (int16_t) (floor(ry));ry -= (Real) (id.y);
+		id.z = (int16_t) (floor(rz));rz -= (Real) (id.z);
+
 		id.x += old_id.x;
 		id.y += old_id.y;
 		id.z += old_id.z;
 		/*    @formatter:on */
-		P_GET_FLAG(dest->data, d_tail) = id;
-		P_GET((dest)->data, struct boris_s, Real, rx, d_tail) = rx;
-		P_GET((dest)->data, struct boris_s, Real, ry, d_tail) = ry;
-		P_GET((dest)->data, struct boris_s, Real, rz, d_tail) = rz;
-		P_GET((dest)->data, struct boris_s, Real, vx, d_tail) = vx;
-		P_GET((dest)->data, struct boris_s, Real, vy, d_tail) = vy;
-		P_GET((dest)->data, struct boris_s, Real, vz, d_tail) = vz;
-	}
+        d->id[d_tail] = id;
+        d->rx[d_tail] = rx;
+        d->ry[d_tail] = ry;
+        d->rz[d_tail] = rz;
+        d->vx[d_tail] = vx;
+        d->vy[d_tail] = vy;
+        d->vz[d_tail] = vz;
+    }
 
-}
-;
-
-void spBorisYeeUpdateParticle(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho, spField *fJ)
-{
-
-	Real3 inv_dv;
-	inv_dv.x = dt / sp->m->dx.x;
-	inv_dv.y = dt / sp->m->dx.y;
-	inv_dv.z = dt / sp->m->dx.z;
-
-	Real cmr_dt = dt * sp->charge / sp->mass;
-
-	spBorisYeeUpdateParticleKernel<<<sp->m->dims,NUMBER_OF_THREADS_PER_BLOCK>>>(sp->m_buckets_,sp->m_page_pool_,
-			(Real const *) fE->device_data,(Real const *)fB->device_data,inv_dv,cmr_dt);
-
-	/*    @formatter:off */
-
-//	spUpdateParticleBorisScatterBlockKernel<<< sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
-//			(fRho->device_data), ( fJ->device_data));
-	/*    @formatter:on */
-
-	spParallelDeviceSync();        //wait for iteration to finish
-
-	spParticleSync(sp);
-	spFieldSync(fJ);
-	spFieldSync(fRho);
-
-}
+};
+//void spBorisYeeUpdateParticle(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho, spField *fJ)
+//{
+//
+//    Real3 inv_dv;
+//    inv_dv.x = dt / sp->m->dx.x;
+//    inv_dv.y = dt / sp->m->dx.y;
+//    inv_dv.z = dt / sp->m->dx.z;
+//
+//    Real cmr_dt = dt * sp->charge / sp->mass;
+//
+//    spBorisYeeUpdateParticleKernel << < sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >> > (sp->m_buckets_, sp->m_page_pool_,
+//        (Real const *) fE->device_data, (Real const *) fB->device_data, inv_dv, cmr_dt);
+//
+//    /*    @formatter:off */
+//
+////	spUpdateParticleBorisScatterBlockKernel<<< sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
+////			(fRho->device_data), ( fJ->device_data));
+//	/*    @formatter:on */
+//
+//    spParallelDeviceSync();        //wait for iteration to finish
+//
+//    spParticleSync(sp);
+//    spFieldSync(fJ);
+//    spFieldSync(fRho);
+//
+//}
 //MC_GLOBAL void spUpdateParticleBorisPushBlockKernel(spParticlePage **buckets, const Real *fE, const Real *fB, Real3 inv_dv,
 //		Real cmr_dt)
 //{

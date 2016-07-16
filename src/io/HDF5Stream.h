@@ -40,7 +40,7 @@ public:
      *	  change the working path (file/group) of m_data stream ,
      *
      * @param url_hint  <filename>:<group name>/<data_model name>
-     * @param flag SP_APPEND|SP_RECORD ...
+     * @param id SP_APPEND|SP_RECORD ...
      * @return  if data_model exists ,return <true,data_model name>
      *         else return ,return <false,data_model name>
      *         if <data_model name>=="" return <false,"">
@@ -76,7 +76,7 @@ public:
      * write data_model to url
      * @param url             data_model name or path
      * @param ds		  	   m_data set
-     * @param flag             flag to define the operation
+     * @param id             id to define the operation
      * @return
      */
 
@@ -90,7 +90,7 @@ public:
      * 	read m_data set from url
      * @param url
      * @param ds
-     * @param flag
+     * @param id
      * @return
      */
     virtual std::string read(std::string const &url, data_model::DataSet *ds, int flag = 0UL);
