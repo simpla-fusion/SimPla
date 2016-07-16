@@ -18,10 +18,10 @@ extern "C"
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 #define  COPYRIGHT "All rights reserved. (2016 )"
 
-#ifndef USE_DOUBLE
+#ifndef USE_FLOAT_REAL
 #   define  SP_REAL double
 #else
-#   define  SP_REAL double
+#   define  SP_REAL float
 #endif
 
 typedef size_t size_type;

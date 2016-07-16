@@ -36,7 +36,10 @@ void spDataTypeExtent(spDataType *, int rank, int const *d) { }
 
 void spDataTypePushBack(spDataType *, spDataType const *, char const name[]) { }
 
-struct spDataSpace_s;
+struct spDataSpace_s
+{
+    simpla::data_model::DataSpace self;
+};
 
 typedef struct spDataSpace_s spDataSpace;
 

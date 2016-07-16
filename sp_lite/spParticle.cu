@@ -86,7 +86,7 @@ void spParticleCreate(const spMesh *mesh, spParticle **sp)
     (*sp)->m_pages_ = NULL;
     (*sp)->m_buckets_ = NULL;
 
-    ADD_PARTICLE_ATTRIBUTE((*sp), int, flag);
+    ADD_PARTICLE_ATTRIBUTE((*sp), int64_t, flag);
     ADD_PARTICLE_ATTRIBUTE((*sp), Real, rx);
     ADD_PARTICLE_ATTRIBUTE((*sp), Real, ry);
     ADD_PARTICLE_ATTRIBUTE((*sp), Real, rz);
@@ -390,51 +390,39 @@ void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], in
 
     if (num_of_pages > 0)
     {
+        size_type num_of_entities = (size_type) (SP_NUMBER_OF_ENTITIES_IN_PAGE * num_of_pages);
 
 
-        int num_of_entities = SP_NUMBER_OF_ENTITIES_IN_PAGE * num_of_pages;
-
-        for (int i = 1, ie = sp->num_of_attrs; i < ie; ++i)
+        for (int i = 0, ie = sp->num_of_attrs; i < ie; ++i)
         {
             void *write_buffer;
 
             int page_size_in_byte = sp->attrs[i].size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
 
-            spParallelHostMalloc(&write_buffer, sp->max_num_of_entities * sp->attrs[i].size_in_byte);
+            spParallelHostMalloc(&write_buffer, num_of_entities * sp->attrs[i].size_in_byte);
 
-            spParallelMemcpy(write_buffer,
-                             sp->m_data_host_.attrs[i],
-                             sp->max_num_of_entities * sp->attrs[i].size_in_byte);
-
-            for (int s = 0; s < num_of_pages; ++s)
+            for (int j = 0; j < num_of_pages; ++j)
             {
-
-//            int num = SP_NUMBER_OF_ENTITIES_IN_PAGE;
-//
-//            Real3 x0 = spMeshPoint(sp->m, write_buffer->id);
-//
-//            for (int j = 0, je = SP_NUMBER_OF_ENTITIES_IN_PAGE; j < je; ++j)
-//            {
-//                P_GET(write_buffer, struct spParticlePoint_s, Real, rx, j) += x0.x;
-//                P_GET(write_buffer, struct spParticlePoint_s, Real, ry, j) += x0.y;
-//                P_GET(write_buffer, struct spParticlePoint_s, Real, rz, j) += x0.z;
-//            }
+                spParallelMemcpy(write_buffer + j * page_size_in_byte,
+                                 sp->m_data_host_.attrs[i] + j * page_size_in_byte,
+                                 page_size_in_byte);
             }
 
 
-            int start = 0;
+            size_type start = 0;
 
-//            spIOStreamWriteSimple(os,
-//                                  sp->attrs[i].name,
-//                                  sp->attrs[i].type_tag,
-//                                  write_buffer,
-//                                  1,
-//                                  &num_of_entities,
-//                                  &start,
-//                                  NULL,
-//                                  &num_of_entities,
-//                                  NULL,
-//                                  SP_FILE_APPEND);
+            spIOStreamWriteSimple(os,
+                                  sp->attrs[i].name,
+                                  sp->attrs[i].type_tag,
+                                  write_buffer,
+                                  1,
+                                  &num_of_entities,
+                                  &start,
+                                  NULL,
+                                  &num_of_entities,
+                                  NULL,
+                                  SP_FILE_APPEND);
+
             spParallelHostFree(&write_buffer);
 
         }

@@ -18,7 +18,11 @@ enum
     SP_TYPE_float, SP_TYPE_double, SP_TYPE_int, SP_TYPE_long, SP_TYPE_int64_t, SP_TYPE_OPAQUE
 };
 
-#define SP_TYPE_Real SP_TYPE_float
+#ifndef USE_FLOAT_REAL
+#   define SP_TYPE_Real SP_TYPE_double
+#else
+#   define SP_TYPE_Real SP_TYPE_float
+#endif
 
 #define SP_TYPE_MeshEntityId SP_TYPE_int64_t
 
