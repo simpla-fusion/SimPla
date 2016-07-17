@@ -176,15 +176,14 @@ void spMeshGetBox(spMesh const *m, Real *lower, Real *upper)
 
 int spMeshGetDomain(spMesh const *m, int tag, size_type *lower, size_type *upper, int *o)
 {
-    if (tag == 13) { return 0; }
 
     int is_valid = 1;
 
     int offset[3];
 
     offset[0] = (tag % 3) - 1;
-    offset[1] = (tag % 9) / 3 - 1;
-    offset[2] = tag / 9 - 1;
+    offset[1] = (tag / 3) % 3 - 1;
+    offset[2] = (tag / 9) % 3 - 1;
 
     for (int i = 0; i < 3; ++i)
     {
@@ -208,6 +207,7 @@ int spMeshGetDomain(spMesh const *m, int tag, size_type *lower, size_type *upper
     }
 
     if (o != NULL) { for (int i = 0; i < 3; ++i) { o[i] = offset[i]; }}
+
     return is_valid;
 };
 

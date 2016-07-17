@@ -110,7 +110,8 @@ void spIOStreamWriteSimple(spIOStream *os,
 {
 
     simpla::data_model::DataSet dset;
-    dset.data_space = data_model::DataSpace(ndims, count);
+
+    dset.data_space = data_model::DataSpace(ndims, (count != NULL) ? count : dims);
     dset.memory_space = data_model::DataSpace(ndims, dims);
     dset.memory_space.select_hyperslab(start, stride, count, block);
     switch (d_type)

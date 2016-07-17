@@ -46,6 +46,7 @@ void spMeshSetBox(spMesh *m, Real const *lower, Real const *upper);
 
 void spMeshGetBox(spMesh const *m, Real *lower, Real *upper);
 
+#define SP_DOMAIN_CENTER 13
 int spMeshGetDomain(spMesh const *m, int tag, size_type *lower, size_type *upper, int *offset);
 
 size_type spMeshGetNumberOfEntity(spMesh const *, int iform);

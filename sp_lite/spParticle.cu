@@ -274,12 +274,12 @@ MC_GLOBAL void spParticlePageExpandKernel(dim3 dims, dim3 lower,
         }
     }
 }
-int spParticlePageExpand(spParticle const *sp,
-                         size_type const *lower,
-                         size_type const *upper,
-                         size_type max_num_of_pages,
-                         MeshEntityId **out_id_host,
-                         int **out_offset_host)
+size_type spParticlePageExpand(spParticle const *sp,
+                               size_type const *lower,
+                               size_type const *upper,
+                               size_type max_num_of_pages,
+                               MeshEntityId **out_id_host,
+                               int **out_offset_host)
 {
 
     size_type count[3];
@@ -295,7 +295,6 @@ int spParticlePageExpand(spParticle const *sp,
 
     max_num_of_pages = num_of_cell * 2;
 
-    int num_of_page = 0;
 
     MeshEntityId *out_id_device;
 
@@ -319,7 +318,7 @@ int spParticlePageExpand(spParticle const *sp,
                 out_id_device,
                 out_offset_device,
                 num_of_page_device);
-
+    int num_of_page = 0;
     spParallelMemcpy((void *) (&num_of_page), (void *) (num_of_page_device), sizeof(int));
 
     spParallelDeviceFree((void **) (&num_of_page_device));
@@ -342,7 +341,7 @@ int spParticlePageExpand(spParticle const *sp,
 
     spParallelDeviceFree((void **) (&out_offset_device));
 
-    return num_of_page;
+    return (size_type) num_of_page;
 }
 
 
@@ -374,20 +373,30 @@ void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], in
     int *page_offset_host = NULL;
 
     size_type lower[3], upper[3];
-    spMeshGetDomain(sp->m, 0, lower, upper, NULL);
-    int num_of_pages =
-        spParticlePageExpand(
-            sp, lower, upper,
-            sp->max_number_of_pages,
-            &page_id_host,
-            &page_offset_host);
+
+    spMeshGetDomain(sp->m, SP_DOMAIN_CENTER, lower, upper, NULL);
+
+    size_type num_of_pages = spParticlePageExpand(sp, lower, upper,
+                                                  sp->max_number_of_pages, &page_id_host, &page_offset_host);
 
 
     if (num_of_pages > 0)
     {
         size_type num_of_entities = (size_type) (SP_NUMBER_OF_ENTITIES_IN_PAGE * num_of_pages);
 
+        size_type count[2] = {num_of_pages, SP_NUMBER_OF_ENTITIES_IN_PAGE};
 
+        spIOStreamWriteSimple(os,
+                              "id",
+                              SP_TYPE_int64_t,
+                              page_id_host,
+                              1,
+                              count,
+                              NULL,
+                              NULL,
+                              NULL,
+                              NULL,
+                              SP_FILE_APPEND);
         for (int i = 0, ie = sp->num_of_attrs; i < ie; ++i)
         {
             void *write_buffer;
@@ -404,17 +413,15 @@ void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], in
             }
 
 
-            size_type start = 0;
-
             spIOStreamWriteSimple(os,
                                   sp->attrs[i].name,
                                   sp->attrs[i].type_tag,
                                   write_buffer,
-                                  1,
-                                  &num_of_entities,
-                                  &start,
+                                  2,
+                                  count,
                                   NULL,
-                                  &num_of_entities,
+                                  NULL,
+                                  NULL,
                                   NULL,
                                   SP_FILE_APPEND);
 
@@ -584,6 +591,8 @@ void spParticleSyncStart(spParticle *sp)
 //        if (spMPIGetNeighbour(offset) == spMPIGetRank()) { continue; }
         int dest = 0, send_tag = 0, recv_tag;
 
+        spMPIMakeSendRecvTag(sp->id * SP_MAX_NUMBER_OF_PARTICLE_ATTR, offset, &dest, &send_tag, &recv_tag);
+
 
         MPI_ERROR(MPI_Isend(
             sp->sync_reqs.page_id_send_buffer[i],
@@ -609,7 +618,7 @@ void spParticleSyncStart(spParticle *sp)
         for (int s = 0; s < sp->num_of_attrs; ++s)
         {
 
-            spMPIMakeSendRecvTag(sp->id * SP_MAX_NUMBER_OF_PARTICLE_ATTR + s, offset, &dest, &send_tag, &recv_tag);
+            spMPIMakeSendRecvTag(sp->id * SP_MAX_NUMBER_OF_PARTICLE_ATTR + s + 1, offset, &dest, &send_tag, &recv_tag);
 
             MPI_Datatype send_datatype;
 
@@ -683,9 +692,9 @@ void spParticleSyncEnd(spParticle *sp)
 
 void spParticleSync(spParticle *sp)
 {
-    spParticleSyncStart(sp);
-
-    spParticleSyncEnd(sp);
+//    spParticleSyncStart(sp);
+//
+//    spParticleSyncEnd(sp);
 }
 //
 //MC_DEVICE int spPageInsert(spPage **dest, spPage **pool, int *d_tail, int *g_d_tail)
