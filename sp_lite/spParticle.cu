@@ -575,7 +575,7 @@ void spParticleSyncStart(spParticle *sp)
 
 
     sp->sync_reqs.num_reqs = 0;
-    CHECK_INT(sp->num_of_attrs)
+
     for (int i = 0; i < MAX_NUM_OF_NEIGHBOUR; ++i)
     {
 
@@ -637,25 +637,24 @@ void spParticleSyncStart(spParticle *sp)
 
         }
     }
-    CHECK_INT(sp->sync_reqs.num_reqs);
 }
 
 void spParticleSyncEnd(spParticle *sp)
 {
     MPI_Waitall(sp->sync_reqs.num_reqs, sp->sync_reqs.requests, MPI_STATUS_IGNORE);
 
-    for (int j = 0; j < MAX_NUM_OF_NEIGHBOUR; ++j)
-    {
-        for (int i = 0; i < sp->sync_reqs.num_of_pages_send[j]; ++i)
-        {
-            spParallelHostFree((void **) &(sp->sync_reqs.page_offset_send[i]));
-        }
-        for (int i = 0; i < sp->sync_reqs.num_of_pages_recv[j]; ++i)
-        {
-            spParallelHostFree((void **) &(sp->sync_reqs.page_offset_recv[i]));
-        }
-
-    }
+//    for (int j = 0; j < MAX_NUM_OF_NEIGHBOUR; ++j)
+//    {
+//        for (int i = 0; i < sp->sync_reqs.num_of_pages_send[j]; ++i)
+//        {
+//            spParallelHostFree((void **) &(sp->sync_reqs.page_offset_send[i]));
+//        }
+//        for (int i = 0; i < sp->sync_reqs.num_of_pages_recv[j]; ++i)
+//        {
+//            spParallelHostFree((void **) &(sp->sync_reqs.page_offset_recv[i]));
+//        }
+//
+//    }
 }
 
 void spParticleSync(spParticle *sp)
