@@ -20,33 +20,33 @@ void spParallelInitialize(int argc, char **argv)
     CUDA_CHECK_RETURN(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
     CUDA_CHECK_RETURN(cudaGetLastError());
 }
-
-void spParallelFinalize()
-{
-    CUDA_CHECK_RETURN(cudaDeviceReset());
-    spMPIFinialize();
-
-}
-
-void spParallelDeviceSync()
-{
-    CUDA_CHECK_RETURN(cudaDeviceSynchronize()); // Wait for the GPU launched work to complete
-}
-
-void spParallelHostMalloc(void **p, size_type s)
-{
-    CUDA_CHECK_RETURN(cudaHostAlloc(p, s, cudaHostAllocDefault););
-
-}
-
-void spParallelHostFree(void **p)
-{
-    if (*p != NULL)
-    {
-        cudaFreeHost(*p);
-        *p = NULL;
-    }
-}
+//
+//void spParallelFinalize()
+//{
+//    CUDA_CHECK_RETURN(cudaDeviceReset());
+//    spMPIFinialize();
+//
+//}
+//
+//void spParallelDeviceSync()
+//{
+//    CUDA_CHECK_RETURN(cudaDeviceSynchronize()); // Wait for the GPU launched work to complete
+//}
+//
+//void spParallelHostMalloc(void **p, size_type s)
+//{
+//    CUDA_CHECK_RETURN(cudaHostAlloc(p, s, cudaHostAllocDefault););
+//
+//}
+//
+//void spParallelHostFree(void **p)
+//{
+//    if (*p != NULL)
+//    {
+//        cudaFreeHost(*p);
+//        *p = NULL;
+//    }
+//}
 
 //MC_HOST void spParallelDeviceMalloc(void **p, int s)
 //{

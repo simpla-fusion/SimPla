@@ -32,27 +32,27 @@ void spMeshDestroy(spMesh **ctx);
 
 void spMeshDeploy(spMesh *self);
 
-void spMeshSetDims(spMesh *m, dim3);
+void spMeshSetDims(spMesh *m, size_type const *);
 
-dim3 spMeshGetDims(spMesh const *m);
+size_type const *spMeshGetDims(spMesh const *m);
 
-dim3 spMeshGetShape(spMesh const *m);
+size_type const *spMeshGetShape(spMesh const *m);
 
-void spMeshSetGhostWidth(spMesh *m, dim3);
+void spMeshSetGhostWidth(spMesh *m, size_type const *);
 
-dim3 spMeshGetGhostWidth(spMesh const *m, dim3 *);
+size_type const *spMeshGetGhostWidth(spMesh const *m);
 
-void spMeshSetBox(spMesh *m, Real3 lower, Real3 upper);
+void spMeshSetBox(spMesh *m, Real const *lower, Real const *upper);
 
-void spMeshGetBox(spMesh const *m, Real3 *lower, Real3 *upper);
+void spMeshGetBox(spMesh const *m, Real *lower, Real *upper);
 
-void spMeshGetDomain(spMesh const *m, int tag, dim3 *lower, dim3 *upper, dim3 *offset);
+int spMeshGetDomain(spMesh const *m, int tag, size_type *lower, size_type *upper, int *offset);
 
 size_type spMeshGetNumberOfEntity(spMesh const *, int iform);
 
 size_type spMeshHash(spMesh const *, MeshEntityId, int iform);
 
-Real3 spMeshPoint(spMesh const *, MeshEntityId id);
+void spMeshPoint(spMesh const *, MeshEntityId id, Real *);
 
 void spMeshWrite(const spMesh *ctx, const char *name, int flag);
 

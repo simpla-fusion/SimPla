@@ -51,39 +51,31 @@ void spFieldClear(spField *f)
 
 void spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
 {
-    int size_in_byte = spMeshGetNumberOfEntity(f->m, f->iform) * sizeof(Real);
+    size_type size_in_byte = spMeshGetNumberOfEntity(f->m, f->iform) * sizeof(Real);
 
     void *f_host;
     spParallelHostMalloc(&f_host, size_in_byte);
     spParallelMemcpy((f_host), (void *) (f->device_data), size_in_byte);
+
     int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;
+
     size_type shape[4];
     size_type start[4];
     size_type count[4];
 
-    dim3 d_shape, lower, upper;
+    spMeshGetDomain(f->m, 0, start, count, NULL);
 
-    d_shape = spMeshGetShape(f->m);
-
-
-    shape[0] = d_shape.x;
-    shape[1] = d_shape.y;
-    shape[2] = d_shape.z;
+    for (int i = 0; i < 3; ++i)
+    {
+        shape[i] = spMeshGetShape(f->m)[i];
+        count[i] -= start[i];
+    }
     shape[3] = 3;
-
-    spMeshGetDomain(f->m, 0, &lower, &upper, NULL);
-
-    start[0] = lower.x;
-    start[1] = lower.y;
-    start[2] = lower.z;
     start[3] = 0;
-
-    count[0] = upper.x - lower.x;
-    count[1] = upper.y - lower.y;
-    count[2] = upper.z - lower.z;
     count[3] = 3;
+
     spIOStreamWriteSimple(os, name, SP_TYPE_Real, f_host, ndims, shape, start, NULL, count, NULL, flag);
-//	free(f_host);
+
     spParallelHostFree(&f_host);
 }
 

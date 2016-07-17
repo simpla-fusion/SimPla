@@ -16,50 +16,53 @@ struct spMesh_s
 
     int ndims;
 
-    dim3 dims;
-    dim3 shape;
-    dim3 ghost_width;
-
-    dim3 offset;
-    dim3 i_lower;
-    dim3 i_upper;
-    Real3 x_lower;
-    Real3 x_upper;
-    Real3 dx;
+    size_type dims[4];
+    size_type shape[4];
+    size_type ghost_width[4];
+    size_type offset[4];
+    size_type i_lower[4];
+    size_type i_upper[4];
+    Real x_lower[4];
+    Real x_upper[4];
+    Real dx[4];
 };
 
 void spMeshCreate(spMesh **m)
 {
     *m = (spMesh *) malloc(sizeof(spMesh));
-    (*m)->shape.x = 1;
-    (*m)->shape.y = 1;
-    (*m)->shape.z = 1;
+    (*m)->shape[0] = 1;
+    (*m)->shape[1] = 1;
+    (*m)->shape[2] = 1;
+    (*m)->shape[3] = 3;
 
-    (*m)->dims.x = 1;
-    (*m)->dims.y = 1;
-    (*m)->dims.z = 1;
+    (*m)->dims[0] = 1;
+    (*m)->dims[1] = 1;
+    (*m)->dims[2] = 1;
+    (*m)->dims[3] = 3;
 
-    (*m)->ghost_width.x = 0;
-    (*m)->ghost_width.y = 0;
-    (*m)->ghost_width.z = 0;
+    (*m)->ghost_width[0] = 0;
+    (*m)->ghost_width[1] = 0;
+    (*m)->ghost_width[2] = 0;
 
-    (*m)->i_lower.x = 0;
-    (*m)->i_lower.y = 0;
-    (*m)->i_lower.z = 0;
-
-
-    (*m)->i_upper.x = 1;
-    (*m)->i_upper.y = 1;
-    (*m)->i_upper.z = 1;
+    (*m)->i_lower[0] = 0;
+    (*m)->i_lower[1] = 0;
+    (*m)->i_lower[2] = 0;
+    (*m)->i_lower[3] = 0;
 
 
-    (*m)->x_lower.x = 0;
-    (*m)->x_lower.y = 0;
-    (*m)->x_lower.z = 0;
+    (*m)->i_upper[0] = 1;
+    (*m)->i_upper[1] = 1;
+    (*m)->i_upper[2] = 1;
+    (*m)->i_upper[3] = 3;
 
-    (*m)->x_upper.x = 1;
-    (*m)->x_upper.y = 1;
-    (*m)->x_upper.z = 1;
+
+    (*m)->x_lower[0] = 0;
+    (*m)->x_lower[1] = 0;
+    (*m)->x_lower[2] = 0;
+
+    (*m)->x_upper[0] = 1;
+    (*m)->x_upper[1] = 1;
+    (*m)->x_upper[2] = 1;
 }
 void spMeshDestroy(spMesh **ctx)
 {
@@ -71,19 +74,21 @@ void spMeshDeploy(spMesh *self)
 {
 
     self->ndims = 3;
-    self->shape.x = self->ghost_width.x * 2 + self->dims.x;
-    self->shape.y = self->ghost_width.y * 2 + self->dims.y;
-    self->shape.z = self->ghost_width.z * 2 + self->dims.z;
+    for (int i = 0; i < 3; ++i)
+    {
+        if (self->dims[i] <= 1)
+        {
+            self->ghost_width[i] = 0;
+            self->dims[i] = 1;
+        }
 
-    self->i_lower.x = self->ghost_width.x;
-    self->i_lower.y = self->ghost_width.y;
-    self->i_lower.z = self->ghost_width.z;
+        self->shape[i] = self->dims[i] + self->ghost_width[i] * 2;
 
-    self->i_upper.x = self->dims.x + self->ghost_width.x;
-    self->i_upper.y = self->dims.y + self->ghost_width.y;
-    self->i_upper.z = self->dims.z + self->ghost_width.z;
+        self->i_lower[i] = self->ghost_width[i];
 
+        self->i_upper[i] = self->dims[i] + self->ghost_width[i];
 
+    }
     /**          -1
      *
      *    -1     0    1
@@ -131,49 +136,75 @@ void spMeshDeploy(spMesh *self)
 
 size_type spMeshGetNumberOfEntity(spMesh const *self, int iform)
 {
-    return self->dims.x * self->dims.y * self->dims.z * ((iform == 0 || iform == 3) ? 1 : 3);
+    return self->dims[0] * self->dims[1] * self->dims[2] * ((iform == 0 || iform == 3) ? 1 : 3);
 }
-Real3 spMeshPoint(spMesh const *m, MeshEntityId id)
+void spMeshPoint(spMesh const *m, MeshEntityId id, Real *res)
 {
-    Real3 res;
-    res.x = m->x_lower.x + m->dx.x * (id.x - (m->i_lower.x << 1)) * 0.5;
-    res.y = m->x_lower.y + m->dx.y * (id.y - (m->i_lower.y << 1)) * 0.5;
-    res.z = m->x_lower.z + m->dx.z * (id.z - (m->i_lower.z << 1)) * 0.5;
-    return res;
+    res[0] = m->x_lower[0] + m->dx[0] * (id.x - (m->i_lower[0] << 1)) * 0.5;
+    res[1] = m->x_lower[1] + m->dx[1] * (id.y - (m->i_lower[1] << 1)) * 0.5;
+    res[2] = m->x_lower[2] + m->dx[2] * (id.z - (m->i_lower[2] << 1)) * 0.5;
 };
 
-void spMeshSetDims(spMesh *m, dim3 dims) { m->dims = dims; };
+void spMeshSetDims(spMesh *m, size_type const *dims) { for (int i = 0; i < 3; ++i) { m->dims[i] = dims[i]; }};
 
-dim3 spMeshGetDims(spMesh const *m) { return m->dims; };
+size_type const *spMeshGetDims(spMesh const *m) { return m->dims; };
 
-dim3 spMeshGetShape(spMesh const *m) { return m->shape; };
+size_type const *spMeshGetShape(spMesh const *m) { return m->shape; };
 
-void spMeshSetGhostWidth(spMesh *m, dim3 gw) { m->ghost_width = gw; };
+void spMeshSetGhostWidth(spMesh *m, size_type const *gw) { for (int i = 0; i < 3; ++i) { m->ghost_width[i] = gw[i]; }};
 
-dim3 spMeshGetGhostWidth(spMesh const *m) { return m->ghost_width; };
+size_type const *spMeshGetGhostWidth(spMesh const *m) { return m->ghost_width; };
 
-void spMeshSetBox(spMesh *m, Real3 lower, Real3 upper)
+void spMeshSetBox(spMesh *m, Real const *lower, Real const *upper)
 {
-    m->x_lower = lower;
-    m->x_upper = upper;
-};
-
-void spMeshGetBox(spMesh const *m, Real3 *lower, Real3 *upper)
-{
-    *lower = m->x_lower;
-    *upper = m->x_upper;
-};
-
-void spMeshGetDomain(spMesh const *m, int tag, dim3 *lower, dim3 *upper, dim3 *offset)
-{
-    *lower = m->i_lower;
-    *upper = m->i_upper;
-    if (offset != NULL)
+    for (int i = 0; i < 3; ++i)
     {
-        offset->x = 0;
-        offset->y = 0;
-        offset->z = 0;
+        m->x_lower[i] = lower[i];
+        m->x_upper[i] = upper[i];
     }
+};
+
+void spMeshGetBox(spMesh const *m, Real *lower, Real *upper)
+{
+
+    for (int i = 0; i < 3; ++i)
+    {
+        lower[i] = m->x_lower[i];
+        upper[i] = m->x_upper[i];
+    }
+};
+
+int spMeshGetDomain(spMesh const *m, int tag, size_type *lower, size_type *upper, int *offset)
+{
+    int is_valid = 1;
+
+    offset[0] = (tag % 3) - 1;
+    offset[1] = (tag % 9) / 3 - 1;
+    offset[2] = tag / 9 - 1;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        switch (offset[i])
+        {
+            case -1:
+                lower[i] = 0;
+                upper[i] = m->i_lower[i];
+                if (m->ghost_width[i] == 0) { is_valid = 0; }
+                break;
+            case 1:
+                lower[i] = m->i_upper[i];
+                upper[i] = m->shape[i];
+                if (m->ghost_width[i] == 0) { is_valid = 0; }
+                break;
+            default: //0
+                lower[i] = m->i_lower[i];
+                upper[i] = m->i_upper[i];
+                break;
+        }
+    }
+
+
+    return is_valid;
 };
 
 

@@ -156,6 +156,15 @@ MC_DEVICE unsigned int spParallelBlockNum();
 #define spParallelNumOfThreads() (  blockDim.x * blockDim.y * blockDim.z)
 
 
+#define  spParallelFinalize()   {  CUDA_CHECK_RETURN(cudaDeviceReset());   spMPIFinialize();}
+
+#define spParallelDeviceSync()    CUDA_CHECK_RETURN(cudaDeviceSynchronize())
+
+#define spParallelHostMalloc(_P_, _S_)    CUDA_CHECK_RETURN(cudaHostAlloc(_P_, _S_, cudaHostAllocDefault))
+
+#define spParallelHostFree(_P_)  if (*_P_ != NULL) { cudaFreeHost(*_P_);  *_P_ = NULL; }
+
+
 #define MPI_ERROR(_CMD_)                                               \
 {                                                                          \
     int _mpi_error_code_ = _CMD_;                                    \
@@ -166,4 +175,11 @@ MC_DEVICE unsigned int spParallelBlockNum();
     }                                                                      \
 }
 
+extern inline dim3 sizeType2Dim3(size_type const *v)
+{
+    dim3 res;
+    res.x = v[0];
+    res.y = v[1];
+    res.z = v[2];
+}
 #endif //SIMPLA_SPPARALLEL_H

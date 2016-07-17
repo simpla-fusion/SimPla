@@ -30,26 +30,17 @@ int main(int argc, char **argv)
 
     spMeshCreate(&mesh);
 
-    dim3 dims;
-    dim3 gw;
-    dims.x = 0x8;
-    dims.y = 0x10;
-    dims.z = 0x20;
-    gw.x = 0x2;
-    gw.y = 0x2;
-    gw.z = 0x2;
+    size_type dims[3] = {0x8, 0x10, 0x4};
+
+    size_type gw[3] = {0x2, 0x2, 0x2};
 
     spMeshSetDims(mesh, dims);
 
     spMeshSetGhostWidth(mesh, gw);
 
-    Real3 lower, upper;
-    lower.x = 0;
-    lower.y = 0;
-    lower.z = 0;
-    upper.x = 0;
-    upper.y = 0;
-    upper.z = 0;
+    Real lower[3] = {0, 0, 0};
+    Real upper[3] = {1, 1, 1};
+
 
     spMeshSetBox(mesh, lower, upper);
 

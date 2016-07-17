@@ -26,9 +26,10 @@ typedef struct spParticleData_s
 struct spParticleAttrEntity_s
 {
     int type_tag;
-    int size_in_byte;
-    int offset;
+    size_type size_in_byte;
+    size_type offset;
     char name[255];
+    void *data;
 };
 #define MAX_NUM_OF_NEIGHBOUR 27
 
@@ -58,18 +59,15 @@ struct spParticle_s
     struct spMesh_s const *m;
     int iform;
 
-    int num_of_attrs;
-
-    struct spParticleAttrEntity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
-
     size_type max_num_of_entities;
-    struct spParticleData_s *m_data_device_; //DEVICE
-    struct spParticleData_s m_data_host_; //DEVICE
+    int num_of_attrs;
+    struct spParticleAttrEntity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
+    struct spParticleData_s *m_data_device_; // DEVICE
 
     size_type number_of_pages;
     struct spParticlePage_s *m_pages_;
-    struct spParticlePage_s **m_page_pool_; //DEVICE
-    struct spParticlePage_s **m_buckets_;
+    struct spParticlePage_s **m_page_pool_;  // DEVICE
+    struct spParticlePage_s **m_buckets_;  // DEVICE
 
     struct spParticleSyncStatus_s sync_reqs;
 };
@@ -95,7 +93,7 @@ void spParticleCreate(const spMesh *mesh, spParticle **sp)
 
 void *spParticleAttributeData(struct spParticle_s *pg, int i)
 {
-    return i < pg->num_of_attrs ? pg->m_data_host_.attrs[i] : NULL;
+    return i < pg->num_of_attrs ? pg->attrs[i].data : NULL;
 };
 
 void **spParticleAttributeDeviceData(struct spParticle_s *pg)
@@ -108,7 +106,7 @@ int spParticleGetibuteTypeTag(struct spParticle_s *pg, int i)
     return i < pg->num_of_attrs ? pg->attrs[i].type_tag : 0;
 };
 
-int spParticleAttibuteSizeInByte(struct spParticle_s *pg, int i)
+size_type spParticleAttibuteSizeInByte(struct spParticle_s *pg, int i)
 {
     return i < pg->num_of_attrs ? pg->attrs[i].size_in_byte : 0;
 }
@@ -154,18 +152,21 @@ void spParticleDeploy(spParticle *sp, size_type PIC)
 
     sp->number_of_pages = number_of_cell * num_page_per_cell;
 
+    void *t_data[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
+
     sp->max_num_of_entities = sp->number_of_pages * SP_NUMBER_OF_ENTITIES_IN_PAGE;
     {
 
         for (int i = 0; i < sp->num_of_attrs; ++i)
         {
-            spParallelDeviceMalloc(&(sp->m_data_host_.attrs[i]), sp->attrs[i].size_in_byte * sp->max_num_of_entities);
-            spParallelMemset((sp->m_data_host_.attrs[i]), 0, sp->attrs[i].size_in_byte * sp->max_num_of_entities);
+            spParallelDeviceMalloc(&(sp->attrs[i].data), sp->attrs[i].size_in_byte * sp->max_num_of_entities);
+            spParallelMemset((sp->attrs[i].data), 0, sp->attrs[i].size_in_byte * sp->max_num_of_entities);
+            t_data[i] = sp->attrs[i].data;
         }
 
         spParallelDeviceMalloc((void **) (&(sp->m_data_device_)), sizeof(spParticleData));
 
-        spParallelMemcpy((void *) (sp->m_data_device_), &(sp->m_data_host_), sizeof(void *) * sp->num_of_attrs);
+        spParallelMemcpy((void *) (sp->m_data_device_), (t_data), sizeof(void *) * sp->num_of_attrs);
     }
 
     spParallelDeviceMalloc((void **) (&(sp->m_pages_)), sp->number_of_pages * sizeof(spParticlePage));
@@ -178,9 +179,9 @@ void spParticleDeploy(spParticle *sp, size_type PIC)
 
     spParallelMemset((void *) ((sp->m_buckets_)), 0x0, sizeof(spPage *) * number_of_cell);
 
+
     LOAD_KERNEL(spParticleDeployKernel,
-                spMeshGetShape(sp->m),
-                NUMBER_OF_THREADS_PER_BLOCK,
+                sizeType2Dim3(spMeshGetShape(sp->m)), NUMBER_OF_THREADS_PER_BLOCK,
                 sp->m_buckets_,
                 sp->m_pages_,
                 sp->number_of_pages);
@@ -193,7 +194,7 @@ void spParticleDeploy(spParticle *sp, size_type PIC)
 void spParticleDestroy(spParticle **sp)
 {
 
-    for (int i = 0; i < (*sp)->num_of_attrs; ++i) { spParallelDeviceFree(&((*sp)->m_data_host_.attrs[i])); }
+    for (int i = 0; i < (*sp)->num_of_attrs; ++i) { spParallelDeviceFree(&((*sp)->attrs[i].data)); }
 
     spParallelDeviceFree((void **) &((*sp)->m_data_device_));
     spParallelDeviceFree((void **) &((*sp)->m_buckets_));
@@ -212,8 +213,8 @@ spMesh const *spParticleMesh(spParticle const *sp) { return sp->m; };
 void spParticleAddAttribute(struct spParticle_s *pg,
                             char const *name,
                             int type_tag,
-                            int size_in_byte,
-                            int offset)
+                            size_type size_in_byte,
+                            size_type offset)
 {
     strcpy(pg->attrs[pg->num_of_attrs].name, name);
     pg->attrs[pg->num_of_attrs].type_tag = type_tag;
@@ -229,33 +230,34 @@ void spParticleAddAttribute(struct spParticle_s *pg,
     }
     pg->attrs[pg->num_of_attrs].offset = offset;
     ++pg->num_of_attrs;
+    assert(pg->num_of_attrs < SP_MAX_NUMBER_OF_PARTICLE_ATTR);
 }
 
 enum { SP_COPY_OUT_ONLY_DATA = 1, SP_COPY_OUT_WHOLE_PAGE = 2 };
 
-MC_GLOBAL void spParticleCountKernel(dim3 dim, dim3 offset, dim3 count, spParticlePage **buckets,
-                                     int *page_count_device)
-{
-    dim3 idx = spParallelBlockIdx();
-
-    if (count.x > idx.x && count.y > idx.y && count.z > idx.z)
-    {
-        int pos = idx.x + offset.x + (idx.y + offset.y + (idx.z + offset.z) * dim.y) * dim.x;
-        int pos2 = idx.x + (idx.y + idx.z * count.y) * count.x;
-
-        int pg_count = 0;
-
-        spParticlePage *pg = buckets[pos];
-
-        while (pg != NULL)
-        {
-            ++pg_count;
-            pg = pg->next;
-        }
-
-        page_count_device[pos2] = pg_count;
-    }
-}
+//MC_GLOBAL void spParticleCountKernel(dim3 dim, dim3 offset, dim3 count, spParticlePage **buckets,
+//                                     int *page_count_device)
+//{
+//    dim3 idx = spParallelBlockIdx();
+//
+//    if (count.x > idx.x && count.y > idx.y && count.z > idx.z)
+//    {
+//        int pos = idx.x + offset.x + (idx.y + offset.y + (idx.z + offset.z) * dim.y) * dim.x;
+//        int pos2 = idx.x + (idx.y + idx.z * count.y) * count.x;
+//
+//        int pg_count = 0;
+//
+//        spParticlePage *pg = buckets[pos];
+//
+//        while (pg != NULL)
+//        {
+//            ++pg_count;
+//            pg = pg->next;
+//        }
+//
+//        page_count_device[pos2] = pg_count;
+//    }
+//}
 
 
 MC_GLOBAL void spParticlePageExpandKernel(dim3 dims, dim3 lower,
@@ -284,19 +286,21 @@ MC_GLOBAL void spParticlePageExpandKernel(dim3 dims, dim3 lower,
     }
 }
 int spParticlePageExpand(spParticle const *sp,
-                         dim3 lower,
-                         dim3 upper,
+                         size_type const *lower,
+                         size_type const *upper,
                          size_type max_num_of_pages,
                          MeshEntityId **out_id_host,
                          int **out_offset_host)
 {
 
-    dim3 count;
-    count.x = (upper.x - lower.x);
-    count.y = (upper.y - lower.y);
-    count.z = (upper.z - lower.z);
+    size_type count[3];
+    for (int i = 0; i < 3; ++i)
+    {
+        count[i] = (upper[i] - lower[i]);
+    }
 
-    size_type num_of_cell = count.x * count.y * count.z;
+
+    size_type num_of_cell = count[0] * count[1] * count[2];
 
     if (num_of_cell == 0) { return 0; }
 
@@ -319,7 +323,9 @@ int spParticlePageExpand(spParticle const *sp,
     spParallelDeviceMalloc((void **) (&out_offset_device), max_num_of_pages * sizeof(int));
 
     LOAD_KERNEL(spParticlePageExpandKernel,
-                count, 1, spMeshGetShape(sp->m), lower,
+                sizeType2Dim3(count), 1,
+                sizeType2Dim3(spMeshGetShape(sp->m)),
+                sizeType2Dim3(lower),
                 sp->m_buckets_,
                 out_id_device,
                 out_offset_device,
@@ -378,8 +384,8 @@ void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], in
     MeshEntityId *page_id_host = NULL;
     int *page_offset_host = NULL;
 
-    dim3 lower, upper;
-    spMeshGetDomain(sp->m, 0, &lower, &upper, NULL);
+    size_type lower[3], upper[3];
+    spMeshGetDomain(sp->m, 0, lower, upper, NULL);
     int num_of_pages =
         spParticlePageExpand(
             sp, lower, upper,
@@ -397,14 +403,14 @@ void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], in
         {
             void *write_buffer;
 
-            int page_size_in_byte = sp->attrs[i].size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
+            size_type page_size_in_byte = sp->attrs[i].size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
 
             spParallelHostMalloc(&write_buffer, num_of_entities * sp->attrs[i].size_in_byte);
 
             for (int j = 0; j < num_of_pages; ++j)
             {
                 spParallelMemcpy(write_buffer + j * page_size_in_byte,
-                                 sp->m_data_host_.attrs[i] + j * page_size_in_byte,
+                                 sp->attrs[i].data + j * page_size_in_byte,
                                  page_size_in_byte);
             }
 
@@ -518,14 +524,16 @@ void spParticleSyncStart(spParticle *sp)
 
     for (int i = 0; i < MAX_NUM_OF_NEIGHBOUR; ++i)
     {
+
+        size_type lower[3], upper[3];
+
+        int offset[3];
+
+        if (spMeshGetDomain(sp->m, i, lower, upper, offset) == 0) { continue; }
+
         int dest = 0, send_tag = 0, recv_tag;
 
-        dim3 lower, upper, offset;
-
-        spMeshGetDomain(sp->m, i, &lower, &upper, &offset);
-
-        int i_offset[3] = {offset.x, offset.y, offset.z};
-        spMPIMakeSendRecvTag(sp->id, i_offset, &dest, &send_tag, &recv_tag);
+        spMPIMakeSendRecvTag(sp->id, offset, &dest, &send_tag, &recv_tag);
 
         sp->sync_reqs.page_id_send_buffer[i] = NULL;
 
@@ -567,18 +575,20 @@ void spParticleSyncStart(spParticle *sp)
 
 
     sp->sync_reqs.num_reqs = 0;
-    for (int s = 0; s < sp->num_of_attrs; ++s)
-        for (int i = 0; i < MAX_NUM_OF_NEIGHBOUR; ++i)
+    CHECK_INT(sp->num_of_attrs)
+    for (int i = 0; i < MAX_NUM_OF_NEIGHBOUR; ++i)
+    {
+
+        size_type lower[3], upper[3];
+        int offset[3];
+
+        if (spMeshGetDomain(sp->m, i, lower, upper, offset) == 0) { continue; }
+
+        for (int s = 0; s < sp->num_of_attrs; ++s)
         {
             int dest = 0, send_tag = 0, recv_tag;
 
-            dim3 lower, upper, offset;
-
-            spMeshGetDomain(sp->m, i, &lower, &upper, &offset);
-
-            int i_offset[3] = {offset.x, offset.y, offset.z};
-
-            spMPIMakeSendRecvTag(sp->id, i_offset, &dest, &send_tag, &recv_tag);
+            spMPIMakeSendRecvTag(sp->id, offset, &dest, &send_tag, &recv_tag);
 
             MPI_Datatype send_datatype;
 
@@ -591,7 +601,7 @@ void spParticleSyncStart(spParticle *sp)
 
 
             MPI_ERROR(MPI_Isend(
-                sp->m_data_device_->attrs[s],
+                sp->attrs[s].data,
                 1,
                 send_datatype,
                 dest,
@@ -613,7 +623,7 @@ void spParticleSyncStart(spParticle *sp)
                 &recv_datatype);
 
             MPI_ERROR(MPI_Irecv(
-                sp->m_data_device_->attrs[s],
+                sp->attrs[s].data,
                 1,
                 recv_datatype,
                 dest,
@@ -626,7 +636,8 @@ void spParticleSyncStart(spParticle *sp)
             MPI_ERROR(MPI_Type_free(&recv_datatype));
 
         }
-
+    }
+    CHECK_INT(sp->sync_reqs.num_reqs);
 }
 
 void spParticleSyncEnd(spParticle *sp)

@@ -52,15 +52,19 @@ void spBorisYeeInitializeParticle(spParticle *sp, size_type NUM_OF_PIC)
 
     spParticleDeploy(sp, NUM_OF_PIC);
 
+    dim3 blocks;
 
+    size_type const *shape = spMeshGetShape(spParticleMesh(sp));
+    blocks.x = shape[0];
+    blocks.y = shape[1];
+    blocks.z = shape[2];
     LOAD_KERNEL(spBorisInitializeParticleKernel,
-                spMeshGetShape(spParticleMesh(sp)),
+                blocks,
                 NUMBER_OF_THREADS_PER_BLOCK,
                 (boris_data *) spParticleAttributeDeviceData(sp),
                 spParticleBuckets(sp),
                 spParticlePagePool(sp),
                 NUM_OF_PIC);
-    CHECK(Waaa)
 
 
 //	spUpdateParticleBorisScatterBlockKernel<<< sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,

@@ -12,7 +12,7 @@
 #include "spPage.h"
 #include "spMesh.h"
 
-#define SP_MAX_NUMBER_OF_PARTICLE_ATTR 32
+#define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
 
 struct spPage_s;
 struct spMesh_s;
@@ -32,7 +32,7 @@ typedef struct spParticlePage_s
 } spParticlePage;
 
 
-#define ADD_PARTICLE_ATTRIBUTE(_SP_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_),int(-1));
+#define ADD_PARTICLE_ATTRIBUTE(_SP_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_),0ul-1);
 
 
 typedef struct spParticle_s spParticle;
@@ -44,7 +44,7 @@ void spParticleInitialize(spParticle *sp);
 void spParticleDestroy(struct spParticle_s **sp);
 
 void spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag,
-                            int size_in_byte, int offset);
+                            size_type size_in_byte, size_type offset);
 
 void spParticleDeploy(struct spParticle_s *sp, size_type PIC);
 
@@ -60,7 +60,7 @@ void **spParticleAttributeDeviceData(struct spParticle_s *pg);
 
 int spParticleGetibuteTypeTag(struct spParticle_s *pg, int i);
 
-int spParticleAttibuteSizeInByte(struct spParticle_s *pg, int i);
+size_type spParticleAttibuteSizeInByte(struct spParticle_s *pg, int i);
 
 void spParticleAttributeName(struct spParticle_s *pg, int i, char *name);
 
