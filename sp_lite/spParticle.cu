@@ -256,14 +256,14 @@ MC_GLOBAL void spParticlePageExpandKernel(dim3 dims, dim3 lower,
         MeshEntityId id;
 
         id.x = spParallelBlockIdx().x + lower.x;
-        id.y = spParallelBlockIdx().x + lower.y;
-        id.z = spParallelBlockIdx().x + lower.z;
+        id.y = spParallelBlockIdx().y + lower.y;
+        id.z = spParallelBlockIdx().z + lower.z;
         id.w = 0;
         spParticlePage *pg = buckets[id.x + (id.y + id.z * dims.y) * dims.x];
 
-        id.x <<= 1;
-        id.y <<= 1;
-        id.z <<= 1;
+        id.x = (id.x << 1) + 1;
+        id.y = (id.y << 1) + 1;
+        id.z = (id.z << 1) + 1;
 
         while (pg != NULL)
         {
@@ -318,7 +318,9 @@ size_type spParticlePageExpand(spParticle const *sp,
                 out_id_device,
                 out_offset_device,
                 num_of_page_device);
+
     int num_of_page = 0;
+
     spParallelMemcpy((void *) (&num_of_page), (void *) (num_of_page_device), sizeof(int));
 
     spParallelDeviceFree((void **) (&num_of_page_device));
@@ -539,7 +541,7 @@ void spParticleSyncStart(spParticle *sp)
 
         spMPIMakeSendRecvTag(sp->id, offset, &dest, &send_tag, &recv_tag);
 
-        sp->sync_reqs.num_of_pages_send[i] =
+        sp->sync_reqs.num_of_pages_send[i] = (int)
             spParticlePageExpand(sp, lower, upper,
                                  1024,
                                  &(sp->sync_reqs.page_id_send_buffer[i]),
