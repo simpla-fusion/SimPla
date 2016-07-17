@@ -27,7 +27,6 @@ struct spParticle_s;
 typedef struct spParticlePage_s
 {
     SP_PAGE_HEAD(struct spParticlePage_s)
-    MeshEntityId id;
     size_type offset;
 } spParticlePage;
 

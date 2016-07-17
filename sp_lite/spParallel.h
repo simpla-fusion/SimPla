@@ -165,13 +165,14 @@ MC_DEVICE unsigned int spParallelBlockNum();
 #define spParallelHostFree(_P_)  if (*_P_ != NULL) { cudaFreeHost(*_P_);  *_P_ = NULL; }
 
 
-#define MPI_ERROR(_CMD_)                                               \
+#define MPI_ERROR(_CMD_)                                                   \
 {                                                                          \
-    int _mpi_error_code_ = _CMD_;                                    \
-    if (_mpi_error_code_ != MPI_SUCCESS)                       \
+    int _mpi_error_code_ = _CMD_;                                          \
+    if (_mpi_error_code_ != MPI_SUCCESS)                                   \
     {                                                                      \
         char _error_msg[MPI_MAX_ERROR_STRING];                             \
         MPI_Error_string(_mpi_error_code_, _error_msg, nullptr);           \
+        ERROR(_error_msg);                                                 \
     }                                                                      \
 }
 
@@ -181,5 +182,6 @@ extern inline dim3 sizeType2Dim3(size_type const *v)
     res.x = v[0];
     res.y = v[1];
     res.z = v[2];
+    return res;
 }
 #endif //SIMPLA_SPPARALLEL_H

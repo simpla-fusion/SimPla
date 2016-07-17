@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
     spMeshCreate(&mesh);
 
-    size_type dims[3] = {0x8, 0x10, 0x1};
+    size_type dims[3] = {0x8, 0x1, 0x1};
 
     size_type gw[3] = {0x2, 0x2, 0x2};
 
