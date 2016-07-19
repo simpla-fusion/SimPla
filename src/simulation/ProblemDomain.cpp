@@ -127,7 +127,7 @@ ProblemDomain::save(io::IOStream &os, int flag) const
 #ifndef NDEBUG
                 os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_ALL), flag);
 #else
-                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_OWNED), id);
+                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_OWNED), flag);
 #endif
                 os.open(pwd);
             }
@@ -145,7 +145,7 @@ ProblemDomain::save(io::IOStream &os, int flag) const
 #ifndef NDEBUG
                 os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_ALL), flag);
 #else
-                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_OWNED), id);
+                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_OWNED), flag);
 #endif
 
                 os.open(pwd);

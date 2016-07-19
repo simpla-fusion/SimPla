@@ -694,9 +694,8 @@ void spParticleSyncEnd(spParticle *sp)
 
 void spParticleSync(spParticle *sp)
 {
-//    spParticleSyncStart(sp);
-//
-//    spParticleSyncEnd(sp);
+    spParticleSyncStart(sp);
+    spParticleSyncEnd(sp);
 }
 //
 //MC_DEVICE int spPageInsert(spPage **dest, spPage **pool, int *d_tail, int *g_d_tail)
