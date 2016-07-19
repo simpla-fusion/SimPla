@@ -208,10 +208,11 @@ int MPIComm::get_neighbour(nTuple<int, 3> const &d) const
 {
     if (pimpl_ != nullptr)
     {
-        nTuple<int, 3> t;
-        t = pimpl_->m_topology_coord_ + d;
-
-        return get_rank(t);
+        return get_rank(nTuple<int, 3> {
+            pimpl_->m_topology_coord_[0] + d[0],
+            pimpl_->m_topology_coord_[1] + d[1],
+            pimpl_->m_topology_coord_[2] + d[2]}
+        );
     }
     else
     {

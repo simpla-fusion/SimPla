@@ -62,9 +62,7 @@ public:
     MeshEntityRange plasma_region_vertex;
 
 
-    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType,
-                                                                      TM,
-                                                                      std::integral_constant<size_t, IFORM> >;;
+    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM,std::integral_constant<size_t, IFORM> >;;
 
     MeshEntityRange J_src_range;
     std::function<Vec3(Real, point_type const &, vector_type const &v)> J_src_fun;

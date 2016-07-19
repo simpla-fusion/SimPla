@@ -38,20 +38,24 @@ struct Expression<TOP, Args...>
 
     TOP m_op_;
 
-    Expression(this_type const &that) : args(that.args), m_op_(that.m_op_) { }
+    Expression(this_type const &that)
+        : args(that.args), m_op_(that.m_op_) { }
 
-    Expression(this_type &&that) : args(that.args), m_op_(that.m_op_) { }
+    Expression(this_type &&that)
+        : args(that.args), m_op_(that.m_op_) { }
 
-    Expression(Args const &... pargs) : args(pargs ...), m_op_() { }
+    Expression(Args const &... pargs)
+        : args(pargs ...), m_op_() { }
 
-    Expression(TOP op, Args const &... pargs) : args(pargs ...), m_op_(op) { }
+    Expression(TOP op, Args const &... pargs)
+        : args(pargs ...), m_op_(op) { }
 
     ~Expression() { }
 
 };
 
 template<typename TOP, typename TL, typename TR>
-class BooleanExpression<TOP, TL, TR> : public Expression<TOP, TL, TR>
+class BooleanExpression<TOP, TL, TR>: public Expression<TOP, TL, TR>
 {
     using Expression<TOP, TL, TR>::Expression;
 
@@ -59,7 +63,7 @@ class BooleanExpression<TOP, TL, TR> : public Expression<TOP, TL, TR>
 };
 
 template<typename TOP, typename TL>
-class BooleanExpression<TOP, TL> : public Expression<TOP, TL>
+class BooleanExpression<TOP, TL>: public Expression<TOP, TL>
 {
     using Expression<TOP, TL>::Expression;
 
@@ -74,20 +78,23 @@ struct AssignmentExpression<TOP, TL, TR>
     typename traits::reference<TR>::type rhs;
     TOP op_;
 
-    AssignmentExpression(this_type const &that) : lhs(that.lhs), rhs(that.rhs), op_(that.op_) { }
+    AssignmentExpression(this_type const &that)
+        : lhs(that.lhs), rhs(that.rhs), op_(that.op_) { }
 
-    AssignmentExpression(this_type &&that) : lhs(that.lhs), rhs(that.rhs), op_(that.op_) { }
+    AssignmentExpression(this_type &&that)
+        : lhs(that.lhs), rhs(that.rhs), op_(that.op_) { }
 
-    AssignmentExpression(TL &l, TR const &r) : lhs(l), rhs(r), op_() { }
+    AssignmentExpression(TL &l, TR const &r)
+        : lhs(l), rhs(r), op_() { }
 
-    AssignmentExpression(TOP op, TL &l, TR const &r) : lhs(l), rhs(r), op_(op) { }
+    AssignmentExpression(TOP op, TL &l, TR const &r)
+        : lhs(l), rhs(r), op_(op) { }
 
     ~AssignmentExpression() { }
 
     template<typename IndexType>
     inline auto operator[](IndexType const &s) const
     DECL_RET_TYPE (((op_(traits::index(lhs, s), traits::index(rhs, s)))))
-
 
 };
 
@@ -96,15 +103,9 @@ namespace traits
 
 template<typename T> struct is_expresson { static constexpr bool value = false; };
 template<typename ...T, template<typename ...> class F>
-struct is_expresson<F<Expression<T...> > >
-{
-    static constexpr bool value = true;
-};
+struct is_expresson<F<Expression<T...> > > { static constexpr bool value = true; };
 
-template<typename ...T> struct is_expresson<Expression<T...> >
-{
-    static constexpr bool value = true;
-};
+template<typename ...T> struct is_expresson<Expression<T...> > { static constexpr bool value = true; };
 }
 // namespace traits
 namespace _impl
@@ -239,25 +240,16 @@ DEF_ASSIGN_OP(modulus_assign, %=)
 struct _assign
 {
     template<typename TL, typename TR>
-    void operator()(TL &l, TR const &r) const
-    {
-        l = r;
-    }
+    void operator()(TL &l, TR const &r) const { l = r; }
 
     template<typename TL, typename TR, typename TI>
-    void operator()(TL &l, TR const &r, TI const &s) const
-    {
-        traits::index(l, s) = traits::index(r, s);
-    }
+    void operator()(TL &l, TR const &r, TI const &s) const { traits::index(l, s) = traits::index(r, s); }
 };
 
 struct equal_to
 {
     template<typename TL, typename TR>
-    constexpr bool operator()(TL const &l, TR const &r) const
-    {
-        return l == r;
-    }
+    constexpr bool operator()(TL const &l, TR const &r) const { return l == r; }
 
     constexpr bool operator()(double l, double r) const
     {
@@ -265,14 +257,9 @@ struct equal_to
     }
 };
 
-template<typename TOP> struct op_traits
-{
-    typedef logical_and type;
-};
-template<> struct op_traits<not_equal_to>
-{
-    typedef logical_or type;
-};
+template<typename TOP> struct op_traits { typedef logical_and type; };
+
+template<> struct op_traits<not_equal_to> { typedef logical_or type; };
 
 #define DEF_STD_BINARY_FUNCTION(_NAME_)                                                               \
 struct _##_NAME_                                                                             \
@@ -352,17 +339,14 @@ struct _pow2
 
     template<typename TL> static constexpr auto eval(TL const &l) DECL_RET_TYPE ((l * l))
 
-
     template<typename TL, typename TI>
     static constexpr auto eval(TL const &l, TI const &s) DECL_RET_TYPE ((_pow2::eval(traits::index(l, s))))
 
     template<typename TL>
     constexpr TL operator()(TL const &l) const { return _pow2::eval(l); }
 
-
     template<typename TL, typename TI>
     constexpr auto operator()(TL const &l, TI const &s) const DECL_RET_TYPE ((_pow2(traits::index(l, s))))
-
 
 };
 
@@ -373,15 +357,12 @@ struct _identify
     template<typename TL>
     constexpr TL operator()(TL const &l) const { return _identify::eval(l); }
 
-
     template<typename TL, typename TI>
     constexpr auto operator()(TL const &l, TI const &s) const
     -> decltype(_pow2::eval(traits::index(l, s))) { return _identify::eval(traits::index(l, s)); }
 
-
     template<typename TL>
     static constexpr TL const &eval(TL const &l) { return l; }
-
 
     template<typename TL, typename TI>
     static constexpr auto eval(TL const &l, TI const &s)

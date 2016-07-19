@@ -4,12 +4,72 @@
 
 #include <assert.h>
 #include <math.h>
+extern "C" {
+
+
 #include "sp_lite_def.h"
+
 #include "spParallel.h"
+#include "spParallel.cu.h"
+
 #include "spParticle.h"
 #include "BorisYee.h"
 
-MC_GLOBAL void
+}
+
+__device__ extern inline spPage *spPageAtomicPush(spPage **pg, spPage *v)
+{
+    spPage *old = (*pg);
+//	spPage_s ** address_as_ull = pg;
+//	spPage_s *assumed, *next;
+//	assert(sizeof(unsigned long long int) == sizeof(struct spPapge_s *));
+//	do
+//	{
+//		if (old == NULL)
+//		{
+//			break;
+//		}
+//
+//		assumed = old;
+//
+//		next = (spPage*) (old->next);
+//
+//		old = (spPage*) atomicCAS((unsigned long long int*) address_as_ull, (unsigned long long int) (assumed),
+//				(unsigned long long int) (next));
+//	} while (assumed != old);
+
+    return
+
+        old;
+
+}
+__device__ extern inline spPage *spPageAtomicPop(spPage **pg)
+{
+    spPage *old = (*pg);
+    spPage **address_as_ull = pg;
+    spPage *assumed, *next;
+    assert(sizeof(unsigned long long int) == sizeof(struct spPapge_s *));
+    do
+    {
+        if (old == NULL)
+        {
+            break;
+        }
+
+        assumed = old;
+
+        next = (spPage *) (old->next);
+
+        old = (spPage *) atomicCAS((unsigned long long int *) address_as_ull, (unsigned long long int) (assumed),
+                                   (unsigned long long int) (next));
+    }
+    while (assumed != old);
+
+    return old;
+
+}
+
+__global__ void
 spBorisInitializeParticleKernel(boris_data *d, spParticlePage **bucket, spParticlePage **pool, size_type PIC)
 {
 
@@ -17,7 +77,7 @@ spBorisInitializeParticleKernel(boris_data *d, spParticlePage **bucket, spPartic
 
     while (PIC > 0)
     {
-        spParallelSyncThreads();
+        __syncthreads();
 
         if (spParallelThreadNum() == 0)
         {
@@ -25,7 +85,7 @@ spBorisInitializeParticleKernel(boris_data *d, spParticlePage **bucket, spPartic
             t->next = bucket[block_num];
             bucket[block_num] = t;
         }
-        spParallelSyncThreads();
+        __syncthreads();
 
         int s = bucket[block_num]->offset + spParallelThreadNum();
         if (s < PIC)
@@ -72,13 +132,13 @@ void spBorisYeeInitializeParticle(spParticle *sp, size_type NUM_OF_PIC)
 
 /******************************************************************************************/
 
-MC_CONSTANT Real cmr_dt;
+__constant__ Real cmr_dt;
 
-MC_CONSTANT int3 mesh_offset;
+__constant__ int3 mesh_offset;
 
-MC_CONSTANT int SP_MESH_NUM_OF_ENTITY_IN_GRID;
+__constant__ int SP_MESH_NUM_OF_ENTITY_IN_GRID;
 
-MC_CONSTANT float3 mesh_inv_dv;
+__constant__ float3 mesh_inv_dv;
 
 #define ll 0
 #define rr 1
@@ -91,7 +151,7 @@ MC_CONSTANT float3 mesh_inv_dv;
 #define IY  CACHE_EXTENT_X
 #define IZ  CACHE_EXTENT_X*CACHE_EXTENT_Y
 
-MC_DEVICE void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
+__device__ void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 {
 
     *v = *v
@@ -111,30 +171,30 @@ MC_DEVICE void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 #undef IY
 #undef IZ
 
-MC_GLOBAL void spBorisYeeUpdateParticleKernel(boris_data *d,
-                                              spParticlePage **bucket,
-                                              spParticlePage **pool,
-                                              const Real *tE,
-                                              const Real *tB,
-                                              Real3 inv_dv,
-                                              Real cmr_dt)
+__global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
+                                               spParticlePage **bucket,
+                                               spParticlePage **pool,
+                                               const Real *tE,
+                                               const Real *tB,
+                                               Real3 inv_dv,
+                                               Real cmr_dt)
 {
 
     spParticlePage *dest, *src;
-    MC_SHARED int g_d_tail, g_s_tail;
+    __shared__ int g_d_tail, g_s_tail;
     MeshEntityId tag;
 
-    spParallelSyncThreads();
+    __syncthreads();
 
     if (spParallelThreadNum() == 0)
     {
         g_s_tail = 0;
         g_d_tail = 0;
     }
-    spParallelSyncThreads();
+    __syncthreads();
 
-    dim3 block_idx = spParallelBlockIdx();
-    dim3 grid_dims = spParallelGridDims();
+    dim3 block_idx =blockIndx;
+    dim3 grid_dims = gridDims;
 
     tag.x = (int16_t) (block_idx.x);
     tag.y = (int16_t) (block_idx.y);
@@ -246,12 +306,12 @@ MC_GLOBAL void spBorisYeeUpdateParticleKernel(boris_data *d,
 //    spFieldSync(fRho);
 //
 //}
-//MC_GLOBAL void spUpdateParticleBorisPushBlockKernel(spParticlePage **buckets, const Real *fE, const Real *fB, Real3 inv_dv,
+//__global__ void spUpdateParticleBorisPushBlockKernel(spParticlePage **buckets, const Real *fE, const Real *fB, Real3 inv_dv,
 //		Real cmr_dt)
 //{
 //
 //
-//	MC_SHARED Real tE[24], tB[3 * 8];
+//	__shared__ Real tE[24], tB[3 * 8];
 //
 //
 //
@@ -296,13 +356,13 @@ MC_GLOBAL void spBorisYeeUpdateParticleKernel(boris_data *d,
 //	}
 //}
 //
-//MC_DEVICE void spUpdateParticleBorisSortThreadKernel(int THREAD_ID, spParticlePage **dest, spParticlePage const *src, MeshEntityId tag)
+//__device__ void spUpdateParticleBorisSortThreadKernel(int THREAD_ID, spParticlePage **dest, spParticlePage const *src, MeshEntityId tag)
 //{
 //    int s_tail = 0; // return current value and s_tail+=1 equiv. s_tail++
 //    int d_tail = 0;
 //
-//    MC_SHARED int ps_tail;
-//    MC_SHARED int pd_tail;
+//    __shared__ int ps_tail;
+//    __shared__ int pd_tail;
 //    if (THREAD_ID == 0)
 //    {
 //        if ((*dest) == NULL)
@@ -384,7 +444,7 @@ MC_GLOBAL void spBorisYeeUpdateParticleKernel(boris_data *d,
 //    }
 //}
 //
-//MC_GLOBAL void spUpdateParticleBorisSortBlockKernel(spParticlePage **dest_buckets, spParticlePage const **src_buckets)
+//__global__ void spUpdateParticleBorisSortBlockKernel(spParticlePage **dest_buckets, spParticlePage const **src_buckets)
 //{
 //    /*    @formatter:off */
 //    MC_FOREACH_BLOCK(THREAD_IDX, BLOCK_DIM, BLOCK_IDX, GRID_DIM)
@@ -414,7 +474,7 @@ MC_GLOBAL void spBorisYeeUpdateParticleKernel(boris_data *d,
 //                    while (src != 0x0)
 //                    {
 //                        spUpdateParticleBorisSortThreadKernel(THREAD_IDX.x, BLOCK_DIM.x, dest, src, dest_id);
-//                        spParallelSyncThreads();
+//                       __syncthreads();
 //
 //                        src = (src->next);
 //                    }
@@ -423,7 +483,7 @@ MC_GLOBAL void spBorisYeeUpdateParticleKernel(boris_data *d,
 //    }
 //}
 //
-//MC_GLOBAL void spUpdateParticleBorisScatterBlockKernel(spParticlePage **buckets, Real *fRho, Real *fJ)
+//__global__ void spUpdateParticleBorisScatterBlockKernel(spParticlePage **buckets, Real *fRho, Real *fJ)
 //{
 //    float4 J4;
 //    J4.x = 0;
@@ -482,7 +542,7 @@ MC_GLOBAL void spBorisYeeUpdateParticleKernel(boris_data *d,
 //
 ///***************************************************************************************************************/
 //
-//MC_GLOBAL void spUpdateField_Yee_kernel(const Real *fJ, Real *fE, Real *fB)
+//__global__ void spUpdateField_Yee_kernel(const Real *fJ, Real *fE, Real *fB)
 //{
 //}
 //

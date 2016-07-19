@@ -60,10 +60,87 @@ namespace simpla
  *    @endcode}
  **/
 /// n-dimensional primary type
-template<typename, size_t ...> struct nTuple;
+template<typename, size_t ...I> struct nTuple;
 
 template<typename ...> class Expression;
 
+namespace detail
+{
+
+template<typename   ...T>
+traits::value_type_t<nTuple<Expression<T...>>> get(nTuple<Expression<T...>> const &v, int i) { return v[i]; }
+template<typename TV, size_t I0, size_t ...I> TV const &get(nTuple<TV, I0, I...> const &v, int i) { return (v[i]); }
+template<typename TOther> TOther const &get(TOther const *v, int i) { return v[i]; };
+template<typename TOther> TOther const &get(TOther const &v, int i) { return v; };
+
+}
+
+template<typename TOP, typename ... Args>
+struct nTuple<Expression<TOP, Args...>>: public Expression<TOP, Args...>
+{
+    typedef nTuple<Expression<TOP, Args...>> this_type;
+
+    using Expression<TOP, Args...>::m_op_;
+    using Expression<TOP, Args...>::args;
+    using Expression<TOP, Args...>::Expression;
+
+    static constexpr size_t _N = traits::extent<this_type>::value;
+    //std::max<traits::extent<Args>::value...>::value;
+
+    typedef std::result_of_t<TOP(typename traits::value_type<Args>::type...)> value_type;
+
+    template<typename U, size_t ..._I>
+    operator nTuple<U, _I...>() const
+    {
+        nTuple<U, _I...> res;
+        res = *this;
+        return std::move(res);
+    }
+
+
+private:
+    template<size_t ... index>
+    value_type _invoke_helper(int s, index_sequence<index...>) const
+    {
+        return m_op_(detail::get(std::get<index>(args), s)...);
+    }
+
+public:
+    inline value_type at(int s) const { return (_invoke_helper(s, index_sequence_for<Args...>())); }
+
+    inline value_type operator[](int s) const { return at(s); }
+
+};
+//
+
+template<typename TOP, typename ... T>
+struct nTuple<BooleanExpression<TOP, T...> >
+    : public nTuple<Expression<TOP, T...> >
+{
+    typedef nTuple<BooleanExpression<TOP, T...>>
+        this_type;
+
+    using nTuple<Expression<TOP, T...>>::at;
+    using nTuple<Expression<TOP, T...>>::nTuple;
+
+    operator bool() const
+    {
+        static constexpr size_t N = mpl::max<int, traits::extent<T, 0>::type::value...>::value;
+
+        bool res = static_cast<bool>(at(0));
+
+        if (N > 1)
+        {
+            for (size_t s = 1; s < N; ++s)
+            {
+                res = typename _impl::op_traits<TOP>::type()(res,
+                                                             static_cast<bool>(at(s)));
+            }
+        }
+        return res;
+    }
+
+};
 
 template<typename TV> struct nTuple<TV>
 {
@@ -92,7 +169,7 @@ public:
 
 
     template<typename Op, typename TR>
-    void assign(Op const &op, TR const &rhs) { op(data_, traits::index(rhs, 0)); }
+    void assign(Op const &op, TR const &rhs) { op(data_, detail::get(rhs, 0)); }
 
 public:
 
@@ -144,7 +221,6 @@ public:
 
     value_type const &operator[](size_t s) const { return data_[s]; }
 
-
     value_type &at(size_t s) { return data_[s]; }
 
     value_type const &at(size_t s) const { return data_[s]; }
@@ -153,117 +229,37 @@ private:
 
 
     template<typename Op, typename TR>
-    void assign(Op const &op, TR const &rhs) { for (size_t s = 0; s < N; ++s) { op(data_[s], traits::index(rhs, s)); }}
-
+    void assign(Op const &op, TR const &rhs) { for (size_t s = 0; s < N; ++s) { op(data_[s], detail::get(rhs, s)); }}
 public:
 
     template<typename TR> inline this_type &operator=(TR const &rhs)
     {
-        assign(_impl::_assign(), rhs);
+        for (int i = 0; i < N; ++i) { data_[i] = detail::get(rhs, i); };
         return (*this);
     }
 
     template<typename TR> inline this_type &operator+=(TR const &rhs)
     {
-        assign(_impl::plus_assign(), rhs);
+        for (int i = 0; i < N; ++i) { data_[i] += detail::get(rhs, i); };
         return (*this);
     }
 
     template<typename TR> inline this_type &operator-=(TR const &rhs)
     {
-        assign(_impl::minus_assign(), rhs);
+        for (int i = 0; i < N; ++i) { data_[i] -= detail::get(rhs, i); };
         return (*this);
     }
 
     template<typename TR> inline this_type &operator*=(TR const &rhs)
     {
-        assign(_impl::multiplies_assign(), rhs);
+        for (int i = 0; i < N; ++i) { data_[i] *= detail::get(rhs, i); };
         return (*this);
     }
 
     template<typename TR> inline this_type &operator/=(TR const &rhs)
     {
-        assign(_impl::divides_assign(), rhs);
+        for (int i = 0; i < N; ++i) { data_[i] /= detail::get(rhs, i); };
         return (*this);
-    }
-
-
-};
-
-template<typename TOP, typename ... Args>
-struct nTuple<Expression<TOP, Args...>> : public Expression<TOP, Args...>
-{
-    typedef nTuple<Expression<TOP, Args...>> this_type;
-
-    using Expression<TOP, Args...>::m_op_;
-    using Expression<TOP, Args...>::args;
-    using Expression<TOP, Args...>::Expression;
-
-    static constexpr size_t _N = traits::extent<this_type>::value;//std::max<traits::extent<Args>::value...>::value;
-
-    template<typename U, size_t ..._I>
-    operator nTuple<U, _I...>() const
-    {
-        nTuple<U, _I...> res;
-        res = *this;
-        return std::move(res);
-    }
-
-
-    template<typename ID>
-    inline auto operator[](ID const &s) const DECL_RET_TYPE (at(s))
-
-private:
-    template<typename ID, size_t ... index>
-    auto _invoke_helper(ID s, index_sequence<index...>) const DECL_RET_TYPE(
-            m_op_(traits::index(std::get<index>(args), s)...))
-
-public:
-    template<typename ID>
-    auto at(ID const &s) const
-    -> decltype(_invoke_helper(s, index_sequence_for<Args...>()))
-    {
-        return (_invoke_helper(s, index_sequence_for<Args...>()));
-    }
-
-
-    template<typename ID>
-    inline auto operator[](ID const &s) const
-    -> decltype(_invoke_helper(s, index_sequence_for<Args...>()))
-    {
-        return (_invoke_helper(s, index_sequence_for<Args...>()));
-    }
-
-
-};
-//
-
-template<typename TOP, typename ... T>
-struct nTuple<BooleanExpression<TOP, T...> >
-        : public nTuple<Expression<TOP, T...> >
-{
-    typedef nTuple<BooleanExpression<TOP, T...>>
-            this_type;
-
-    using nTuple<Expression<TOP, T...>>::at;
-    using nTuple<Expression<TOP, T...>>::nTuple;
-
-    operator bool() const
-    {
-        static constexpr size_t N = mpl::max<int,
-                traits::extent<T, 0>::type::value...>::value;
-
-        bool res = static_cast<bool>(at(0));
-
-        if (N > 1)
-        {
-            for (size_t s = 1; s < N; ++s)
-            {
-                res = typename _impl::op_traits<TOP>::type()(res,
-                                                             static_cast<bool>(at(s)));
-            }
-        }
-        return res;
     }
 
 };
@@ -281,7 +277,6 @@ template<typename T, size_t N> struct key_type<nTuple<T, N >> { typedef size_t t
 template<typename TV, size_t N>
 struct value_type<nTuple<TV, N> > { typedef traits::value_type_t<TV> type; };
 
-
 template<typename TOP, typename ... T>
 struct value_type<nTuple<Expression<TOP, T...> > >
 {
@@ -291,13 +286,13 @@ struct value_type<nTuple<Expression<TOP, T...> > >
 
 template<typename T> struct rank;
 
-template<typename T, size_t N> struct rank<nTuple<T, N>> : public index_const<rank<T>::value + 1> { };
+template<typename T, size_t N> struct rank<nTuple<T, N>>: public index_const<rank<T>::value + 1> { };
 
-template<typename TV, size_t N> struct extent<TV, N> : public index_const<0> { };
+template<typename TV, size_t N> struct extent<TV, N>: public index_const<0> { };
 
-template<typename TV, size_t M, size_t N> struct extent<nTuple<TV, M>, N> : public extent<TV, N + 1> { };
+template<typename TV, size_t M, size_t N> struct extent<nTuple<TV, M>, N>: public extent<TV, N + 1> { };
 
-template<typename TV, size_t M> struct extent<nTuple<TV, M>, 0> : public index_const<M> { };
+template<typename TV, size_t M> struct extent<nTuple<TV, M>, 0>: public index_const<M> { };
 
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -306,7 +301,6 @@ namespace _impl
 {
 template<typename ...> struct expr_extents_helper;
 template<typename ...> struct longest_seq;
-
 
 /**
  * integer sequence of the number of element along all dimensions
@@ -320,7 +314,6 @@ struct make_extents<T[N]>
 {
     typedef traits::seq_concat<index_sequence<N>, typename make_extents<T>::type> type;
 };
-
 
 template<typename T, size_t N>
 struct make_extents<nTuple<T, N>>
@@ -346,14 +339,13 @@ struct longest_seq<index_sequence<>, index_sequence<N...> >
     typedef index_sequence<N...> type;
 };
 
-
 template<size_t ...N, size_t ...M>
 struct longest_seq<index_sequence<N...>, index_sequence<M...> >
 {
 
 
     typedef std::conditional_t<(sizeof...(N) < sizeof...(M)), index_sequence<N...>,
-            index_sequence<M...> > type;
+                               index_sequence<M...> > type;
 };
 
 template<typename TOP>
@@ -370,9 +362,8 @@ template<typename TOP, typename First, typename ...Others>
 struct expr_extents_helper<Expression<TOP, First, Others...>>
 {
     typedef typename longest_seq<typename make_extents<First>::type,
-            typename make_extents<Others>::type...>::type type;
+                                 typename make_extents<Others>::type...>::type type;
 };
-
 
 }// namespace _impl
 template<typename T> using extents=typename _impl::make_extents<T>::type;
@@ -414,7 +405,6 @@ struct make_primary_nTuple<TV, integer_sequence<TI>>
 template<typename ... T> using make_pod_array_t = typename make_pod_array<T...>::type;
 template<typename ... T> using make_primary_nTuple_t = typename make_primary_nTuple<T...>::type;
 
-
 }// namespace _impl
 
 template<typename T, int ...N>
@@ -422,11 +412,11 @@ struct primary_type<nTuple<T, N...>>
 {
     typedef _impl::make_primary_nTuple_t<
 
-            traits::value_type_t<nTuple<T, N...>>,
+        traits::value_type_t<nTuple<T, N...>>,
 
-            traits::extents<nTuple<T, N...>>
+        traits::extents<nTuple<T, N...>>
     >
-            type;
+        type;
 
 };
 
@@ -437,10 +427,10 @@ struct pod_type<nTuple<T, N...>>
 {
     typedef _impl::make_pod_array_t<
 
-            traits::value_type_t<nTuple<T, N...>>,
+        traits::value_type_t<nTuple<T, N...>>,
 
-            traits::extents<nTuple<T, N...>>>
-            type;
+        traits::extents<nTuple<T, N...>>>
+        type;
 
 };
 //---------------------------------------------------------------------------------------------------------------------
@@ -477,7 +467,6 @@ assigne_nTuple_helper(nTuple<T, M...> &lhs, std::integral_constant<int, 0> const
 {
 }
 
-
 template<typename T, size_t N, size_t ...M, size_t I, typename T0, typename ...Others> void
 assigne_nTuple_helper(nTuple<T, N, M...> &lhs, std::integral_constant<int, I> const, T0 const &a0,
                       Others &&... others)
@@ -486,7 +475,6 @@ assigne_nTuple_helper(nTuple<T, N, M...> &lhs, std::integral_constant<int, I> co
 
     assigne_nTuple_helper(lhs, std::integral_constant<int, I - 1>(), std::forward<Others>(others)...);
 }
-
 
 }//namespace _impl{
 
@@ -525,7 +513,7 @@ template<typename T> inline auto determinant(nTuple<T, 4> const &m) DECL_RET_TYP
 
 template<typename T> inline auto determinant(Matrix<T, 3, 3> const &m)
 DECL_RET_TYPE((
-                      m[0][0] * m[1][1] * m[2][2] -
+                  m[0][0] * m[1][1] * m[2][2] -
                       m[0][2] * m[1][1] * m[2][0] +
                       m[0][1] * m[1][2] * m[2][0] -
                       m[0][1] * m[1][0] * m[2][2] +
@@ -535,37 +523,40 @@ DECL_RET_TYPE((
 template<typename T>
 inline auto determinant(Matrix<T, 4, 4> const &m)
 DECL_RET_TYPE((
-                      m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0]//
+                  m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0]//
                       - m[0][3] * m[1][1] * m[2][2] * m[3][0] + m[0][1] * m[1][3]//
-                                                                * m[2][2] * m[3][0] +
+                      * m[2][2] * m[3][0] +
                       m[0][2] * m[1][1] * m[2][3] * m[3][0] -
                       m[0][1]//
-                      * m[1][2] * m[2][3] * m[3][0] - m[0][3] * m[1][2] * m[2][0] * m[3][1]//
+                          * m[1][2] * m[2][3] * m[3][0] - m[0][3] * m[1][2] * m[2][0] * m[3][1]//
                       + m[0][2] * m[1][3] * m[2][0] * m[3][1] + m[0][3] * m[1][0] * m[2][2]//
-                                                                * m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1] -
+                      * m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1] -
                       m[0][2] * m[1][0]//
-                      * m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1] + m[0][3]//
-                                                                                    * m[1][1] * m[2][0] * m[3][2] -
+                          * m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1] + m[0][3]//
+                      * m[1][1] * m[2][0] * m[3][2] -
                       m[0][1] * m[1][3] * m[2][0] * m[3][2]//
                       - m[0][3] * m[1][0] * m[2][1] * m[3][2] + m[0][0] * m[1][3] * m[2][1]//
-                                                                * m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2] -
+                      * m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2] -
                       m[0][0] * m[1][1]//
-                      * m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3] + m[0][1]//
-                                                                                    * m[1][2] * m[2][0] * m[3][3] +
+                          * m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3] + m[0][1]//
+                      * m[1][2] * m[2][0] * m[3][3] +
                       m[0][2] * m[1][0] * m[2][1] * m[3][3]//
                       - m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2]//
-                                                                * m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
+                      * m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
               ))
 
 template<typename T1, size_t ... N1, typename T2, size_t ... N2>
 inline auto cross(nTuple<T1, N1...> const &l, nTuple<T2, N2...> const &r)
 DECL_RET_TYPE((
-                      nTuple<decltype(traits::index(l, 0) * traits::index(r, 0)), 3> {
+                  nTuple<decltype(detail::get(l, 0) * detail::get(r, 0)), 3> {
 
-                              traits::index(l, 1) * traits::index(r, 2) - traits::index(l, 2) * traits::index(r, 1),
-                              traits::index(l, 2) * traits::index(r, 0) - traits::index(l, 0) * traits::index(r, 2),
-                              traits::index(l, 0) * traits::index(r, 1) - traits::index(l, 1) * traits::index(r, 0)
-                      }
+                      detail::get(l, 1) * detail::get(r, 2)
+                          - detail::get(l, 2) * detail::get(r, 1),
+                      detail::get(l, 2) * detail::get(r, 0)
+                          - detail::get(l, 0) * detail::get(r, 2),
+                      detail::get(l, 0) * detail::get(r, 1)
+                          - detail::get(l, 1) * detail::get(r, 0)
+                  }
               ))
 //----------------------------------------------------------------------------------------------------------------------
 //template<typename T, size_t ...N>
@@ -668,45 +659,28 @@ reduce(TOP const &op, T const &v) { return v; }
 
 template<typename TOP, typename T, size_t N0, size_t ...N>
 traits::value_type_t<nTuple<T, N0, N...>>
-reduce(TOP const
-       &op,
-       nTuple<T, N0, N...> const &v
-)
+reduce(TOP const &op, nTuple<T, N0, N...> const &v)
 {
     static constexpr size_t n = N0;
 
-    traits::value_type_t<nTuple<T, N0, N...> >
-            res = reduce(op,
-                         traits::index(v, 0));
+    traits::value_type_t<nTuple<T, N0, N...> > res = reduce(op, detail::get(v, 0));
     if (n > 1)
     {
-        for (
-                size_t s = 1;
-                s < n;
-                ++s)
-        {
-            res = op(res, reduce(op, traits::index(v, s)));
-        }
+        for (size_t s = 1; s < n; ++s) { res = op(res, reduce(op, detail::get(v, s))); }
     }
     return
-            res;
+        res;
 }
 
 template<typename TOP, typename ...T>
 traits::value_type_t<nTuple<Expression<T...> > >
-reduce(TOP const
-       &op,
-       nTuple<Expression<T...>> const &v
-)
+reduce(TOP const &op, nTuple<Expression<T...>> const &v)
 {
     traits::primary_type_t<nTuple<Expression<T...> > >
-            res = v;
+        res = v;
 
-    return
-            reduce(op, res
-            );
+    return reduce(op, res);
 }
-
 
 template<typename TOP, typename ...Args>
 void for_each(TOP const &op, index_sequence<>, Args &&... args)
@@ -720,7 +694,7 @@ void for_each(TOP const &op, index_sequence<N, M...>,
 {
     for (size_t s = 0; s < N; ++s)
     {
-        for_each(op, index_sequence<M...>(), traits::index(std::forward<Args>(args), s)...);
+        for_each(op, index_sequence<M...>(), detail::get(std::forward<Args>(args), s)...);
     }
 
 }
@@ -728,7 +702,6 @@ void for_each(TOP const &op, index_sequence<N, M...>,
 template<typename TR, typename T, size_t ... N>
 auto inner_product(nTuple<T, N...> const &l, TR const &r)
 DECL_RET_TYPE((reduce(_impl::plus(), l * r)))
-
 
 inline constexpr double dot(double const &l, double const &r) { return r * l; }
 
@@ -769,7 +742,7 @@ void swap(simpla::nTuple<T, N, M...> &l, simpla::nTuple<T, N, M...> &r)
 {
     for (size_t s = 0; s < N; ++s)
     {
-        swap(simpla::traits::index(l, s), simpla::traits::index(r, s));
+        swap(simpla::detail::get(l, s), simpla::detail::get(r, s));
     }
 }
 
@@ -780,7 +753,7 @@ void swap(simpla::nTuple<T, N, M...> &l,
 
     for (size_t s = 0; s < N; ++s)
     {
-        swap(simpla::traits::index(l, s), simpla::traits::index(r, s));
+        swap(simpla::detail::get(l, s), simpla::detail::get(r, s));
     }
 }
 
