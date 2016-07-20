@@ -9,49 +9,48 @@
 #define SPPARTICLE_H_
 
 #include "sp_lite_def.h"
-#include "spPage.h"
 #include "spMesh.h"
+#include "spPage.h"
 
-#define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
 
 struct spPage_s;
 struct spMesh_s;
 
-
-#define SP_PARTICLE_DATA_HEAD     MeshEntityId * id; Real * rx;Real* ry;Real* rz;
-
-struct spParticleData_s;
-
 struct spParticle_s;
-
-typedef struct spParticlePage_s
-{
-    SP_PAGE_HEAD(struct spParticlePage_s)
-    size_type offset;
-} spParticlePage;
-
-
-#define ADD_PARTICLE_ATTRIBUTE(_SP_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_),0ul-1);
-
 
 typedef struct spParticle_s spParticle;
 
-void spParticleCreate(const struct spMesh_s *ctx, struct spParticle_s **pg);
 
-void spParticleInitialize(spParticle *sp);
+#define SP_PARTICLE_DATA_HEAD     MeshEntityId * id; Real * rx;Real* ry;Real* rz;
+
+struct spParticleData_s
+{
+    SP_PARTICLE_DATA_HEAD
+    void *attrs[];
+};
+
+void spParticleCreate(const struct spMesh_s *ctx, struct spParticle_s **pg);
 
 void spParticleDestroy(struct spParticle_s **sp);
 
-void spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag,
-                            size_type size_in_byte, size_type offset);
-
 void spParticleDeploy(struct spParticle_s *sp, size_type PIC);
 
-spParticlePage **spParticleBuckets(spParticle *);
-
-spParticlePage **spParticlePagePool(spParticle *);
-
 spMesh const *spParticleMesh(spParticle const *sp);
+
+size_type **spParticleBuckets(spParticle *);
+
+size_type **spParticlePagePool(spParticle *);
+
+Real spParticleMass(spParticle const *);
+
+Real spParticleCharge(spParticle const *);
+
+#define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
+
+#define ADD_PARTICLE_ATTRIBUTE(_SP_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_),0ul-1);
+
+void spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag,
+                            size_type size_in_byte, size_type offset);
 
 void *spParticleAttributeData(struct spParticle_s *pg, int i);
 
@@ -69,9 +68,9 @@ void spParticleRead(struct spParticle_s *f, spIOStream *os, char const url[], in
 
 void spParticleSync(struct spParticle_s *f);
 
-void spParticleStart(struct spParticle_s *f);
+void spParticleSyncStart(struct spParticle_s *f);
 
-void spParticleEnd(struct spParticle_s *f);
+void spParticleSyncEnd(struct spParticle_s *f);
 
 
 #endif /* SPPARTICLE_H_ */

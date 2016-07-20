@@ -38,14 +38,17 @@ void spFieldDeploy(spField *f)
     if (f->device_data == NULL)
     {
         size_type num_of_entities = spMeshGetNumberOfEntity(f->m, f->iform);
-        spParallelDeviceMalloc((void **) &(f->device_data), num_of_entities * sizeof(Real));
+
+        spParallelDeviceAlloc((void **) &(f->device_data), num_of_entities * sizeof(Real));
     }
 }
 
 void spFieldClear(spField *f)
 {
     spFieldDeploy(f);
+
     size_type num_of_entities = spMeshGetNumberOfEntity(f->m, f->iform);
+
     spParallelMemset(f->device_data, 0, num_of_entities * sizeof(Real));
 }
 
@@ -54,7 +57,9 @@ void spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     size_type size_in_byte = spMeshGetNumberOfEntity(f->m, f->iform) * sizeof(Real);
 
     void *f_host;
-    spParallelHostMalloc(&f_host, size_in_byte);
+
+    spParallelHostAlloc(&f_host, size_in_byte);
+
     spParallelMemcpy((f_host), (void *) (f->device_data), size_in_byte);
 
     int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;

@@ -139,9 +139,11 @@ int spMPIGetNeighbour(int *);
 
 void spMPICoordinate(int rank, int *);
 
-int spMPIGetRank();
+int spMPIRank();
 
 int spMPIGetRankCart(int const *);
+
+int spMPINumOfNeighbour();
 
 void spMPIMakeSendRecvTag(size_type prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag);
 

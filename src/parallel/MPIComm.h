@@ -41,8 +41,6 @@ public:
 
     void close();
 
-    static std::string help_message();
-
     MPI_Comm comm();
 
     MPI_Info info();
@@ -57,20 +55,19 @@ public:
 
     size_type generate_object_id();
 
+    int const *dims() const;
 
-    nTuple<int, 3> topology() const;
+    int get_num_neighbours() const;
 
-    void topology(nTuple<int, 3> const &d);
+    int get_neighbour(const int *d) const;
 
-    int get_neighbour(nTuple<int, 3> const &d) const;
-
-    nTuple<int, 3> coordinate(int rank = -1) const;
+    void coordinate(int rank = 0, int *coord = nullptr) const;
 
     int get_rank() const;
 
-    int get_rank(nTuple<int, 3> const &d) const;
+    int get_rank(int const *d) const;
 
-    std::tuple<int, int, int> make_send_recv_tag(size_t prefix, const nTuple<int, 3> &offset);
+//    std::tuple<int, int, int> make_send_recv_tag(size_t prefix, const nTuple<int, 3> &offset);
 
 private:
     struct pimpl_s;

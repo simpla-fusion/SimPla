@@ -10,7 +10,6 @@ extern "C" {
 #include "sp_lite_def.h"
 
 #include "spParallel.h"
-#include "spParallel.cu.h"
 
 #include "spParticle.h"
 #include "BorisYee.h"
@@ -73,62 +72,37 @@ __global__ void
 spBorisInitializeParticleKernel(boris_data *d, spParticlePage **bucket, spParticlePage **pool, size_type PIC)
 {
 
-    size_type block_num = spParallelBlockNum();
-
-    while (PIC > 0)
-    {
-        __syncthreads();
-
-        if (spParallelThreadNum() == 0)
-        {
-            spParticlePage *t = (spParticlePage *) spPageAtomicPop((spPage **) pool);
-            t->next = bucket[block_num];
-            bucket[block_num] = t;
-        }
-        __syncthreads();
-
-        int s = bucket[block_num]->offset + spParallelThreadNum();
-        if (s < PIC)
-        {
-            d->id[s].v = 0;
-            d->rx[s] = 0.15;
-            d->ry[s] = 0.25;
-            d->rz[s] = 0.35;
-            d->vx[s] = 1;
-            d->vy[s] = 2;
-            d->vz[s] = 3;
-        }
-        PIC -= SP_NUMBER_OF_ENTITIES_IN_PAGE;
-    }
-
-}
-void spBorisYeeInitializeParticle(spParticle *sp, size_type NUM_OF_PIC)
-{
-    ADD_PARTICLE_ATTRIBUTE(sp, Real, vx);
-    ADD_PARTICLE_ATTRIBUTE(sp, Real, vy);
-    ADD_PARTICLE_ATTRIBUTE(sp, Real, vz);
-    ADD_PARTICLE_ATTRIBUTE(sp, Real, f);
-    ADD_PARTICLE_ATTRIBUTE(sp, Real, w);
-
-    spParticleDeploy(sp, NUM_OF_PIC);
-
-
-    LOAD_KERNEL(spBorisInitializeParticleKernel,
-                sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
-                NUMBER_OF_THREADS_PER_BLOCK,
-                (boris_data *) spParticleAttributeDeviceData(sp),
-                spParticleBuckets(sp),
-                spParticlePagePool(sp),
-                NUM_OF_PIC);
-
-
-//	spUpdateParticleBorisScatterBlockKernel<<< sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
-//			(fRho->device_data), ( fJ->device_data));
-
-    spParallelDeviceSync();        //wait for iteration to finish
-    spParticleSync(sp);
+//    size_type block_num = spParallelBlockNum();
+//
+//    while (PIC > 0)
+//    {
+//        __syncthreads();
+//
+//        if ((threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y) == 0)
+//        {
+//            spParticlePage *t = (spParticlePage *) spPageAtomicPop((spPage **) pool);
+//            t->next = bucket[block_num];
+//            bucket[block_num] = t;
+//        }
+//        __syncthreads();
+//
+//        int s = bucket[block_num]->offset
+//            + (threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y);
+//        if (s < PIC)
+//        {
+//            d->id[s].v = 0;
+//            d->rx[s] = 0.15;
+//            d->ry[s] = 0.25;
+//            d->rz[s] = 0.35;
+//            d->vx[s] = 1;
+//            d->vy[s] = 2;
+//            d->vz[s] = 3;
+//        }
+//        PIC -= SP_NUMBER_OF_ENTITIES_IN_PAGE;
+//    }
 
 }
+
 
 /******************************************************************************************/
 
@@ -176,7 +150,7 @@ __global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
                                                spParticlePage **pool,
                                                const Real *tE,
                                                const Real *tB,
-                                               Real3 inv_dv,
+                                               float3 inv_dv,
                                                Real cmr_dt)
 {
 
@@ -186,15 +160,15 @@ __global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
 
     __syncthreads();
 
-    if (spParallelThreadNum() == 0)
+    if ((threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y) == 0)
     {
         g_s_tail = 0;
         g_d_tail = 0;
     }
     __syncthreads();
 
-    dim3 block_idx =blockIndx;
-    dim3 grid_dims = gridDims;
+    dim3 block_idx = blockIdx;
+    dim3 grid_dims = gridDim;
 
     tag.x = (int16_t) (block_idx.x);
     tag.y = (int16_t) (block_idx.y);

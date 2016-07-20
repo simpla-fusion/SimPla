@@ -210,7 +210,7 @@ size_type spMPIGenerateObjectId() { return (GLOBAL_COMM.generate_object_id()); }
 
 void spMPIGetTopology(int *d)
 {
-    auto res = GLOBAL_COMM.topology();
+    auto res = GLOBAL_COMM.dims();
     if (d != nullptr)
     {
         d[0] = res[0];
@@ -228,7 +228,7 @@ void spMPISetTopology(int *r)
         d[1] = r[1];
         d[2] = r[2];
 
-        GLOBAL_COMM.topology(d);
+        GLOBAL_COMM.dims(d);
 
     }
 };
@@ -257,7 +257,7 @@ void spMPICoordinate(int rank, int *d)
     }
 }
 
-int spMPIGetRank()
+int spMPIRank()
 {
     return GLOBAL_COMM.get_rank();
 }
@@ -287,3 +287,7 @@ void spMPIMakeSendRecvTag(size_type prefix, int const *offset, int *dest_id, int
     }
     std::tie(*dest_id, *send_tag, *recv_tag) = GLOBAL_COMM.make_send_recv_tag(prefix, d);
 }
+int spMPINumOfNeighbour()
+{
+    return GLOBAL_COMM.get_num_neighbours();
+};

@@ -10,7 +10,6 @@
 
 #include "sp_lite_def.h"
 #include "spParallel.h"
-#include "spObject.h"
 
 enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3 };
 

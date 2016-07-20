@@ -25,4 +25,8 @@
 #define CHECK_INT(_MSG_)    printf( "%s:%d:0:%s: %s = 0x%lx \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(long)(_MSG_) );
 #define CHECK_STR(_MSG_)    printf( "%s:%d:0:%s: %s = %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_), (_MSG_) );
 
+
+#define SP_NUMBER_OF_ENTITIES_IN_PAGE 128
+
+
 #endif /* SP_DEF_LITE_H_ */

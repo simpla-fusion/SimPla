@@ -88,7 +88,7 @@ namespace simpla { namespace mesh
  *  Concept:
  *  - Mesh<> know local information of topology and vertex coordinates, and
  *  - only explicitly store vertex adjacencies;
- *  - Mesh<> do not know global coordinates, topology;
+ *  - Mesh<> do not know global coordinates, dims;
  *  - Mesh<> do not know metric;
  *
  *  ## Summary

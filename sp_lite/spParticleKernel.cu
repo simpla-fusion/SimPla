@@ -6,11 +6,12 @@
  */
 #include <assert.h>
 #include <stdlib.h>
+#include "../../../../../usr/local/cuda/include/device_launch_parameters.h"
 extern "C"
 {
 #include "sp_lite_def.h"
 #include "spParallel.h"
-#include "spParallel.cu.h"
+#include "spParallelCUDA.h"
 #include "spMesh.h"
 #include "spPage.h"
 #include "spParticle.h"
@@ -71,15 +72,15 @@ extern "C"
 //}
 __global__ void spParticleDeployKernel(spParticlePage **bucket, spParticlePage *pg, size_type num_of_pages)
 {
-    size_type offset = spParallelBlockNum() * spParallelNumOfThreads() + spParallelThreadNum();
-    for (size_type pos = offset; pos < offset + spParallelNumOfThreads() && pos < num_of_pages;
-         pos += spParallelNumOfThreads())
-    {
-        pg[pos].next = &(pg[pos + 1]);
-        pg[pos].offset = pos * SP_NUMBER_OF_ENTITIES_IN_PAGE;
-    }
-
-    if (spParallelThreadNum() == 0) { bucket[spParallelBlockNum()] = NULL; }
+//    size_type offset = spParallelBlockNum() * spParallelNumOfThreads() + spParallelThreadNum();
+//    for (size_type pos = offset; pos < offset + spParallelNumOfThreads() && pos < num_of_pages;
+//         pos += spParallelNumOfThreads())
+//    {
+//        pg[pos].next = &(pg[pos + 1]);
+//        pg[pos].offset = pos * SP_NUMBER_OF_ENTITIES_IN_PAGE;
+//    }
+//
+//    if (spParallelThreadNum() == 0) { bucket[spParallelBlockNum()] = NULL; }
 }
 
 __global__ void spParticlePageExpandKernel(dim3 dims, dim3 lower,
@@ -87,27 +88,26 @@ __global__ void spParticlePageExpandKernel(dim3 dims, dim3 lower,
                                            int *out_offset,
                                            int *num)
 {
-    if (spParallelThreadNum() == 0)
+
+    MeshEntityId id;
+
+    id.x = blockIdx.x + lower.x;
+    id.y = blockIdx.y + lower.y;
+    id.z = blockIdx.z + lower.z;
+    id.w = 0;
+    spParticlePage *pg = buckets[id.x + (id.y + id.z * dims.y) * dims.x];
+
+    id.x = (id.x << 1) + 1;
+    id.y = (id.y << 1) + 1;
+    id.z = (id.z << 1) + 1;
+
+    while (pg != NULL)
     {
-        MeshEntityId id;
-
-        id.x = blockIdx.x + lower.x;
-        id.y = blockIdx.y + lower.y;
-        id.z = blockIdx.z + lower.z;
-        id.w = 0;
-        spParticlePage *pg = buckets[id.x + (id.y + id.z * dims.y) * dims.x];
-
-        id.x = (id.x << 1) + 1;
-        id.y = (id.y << 1) + 1;
-        id.z = (id.z << 1) + 1;
-
-        while (pg != NULL)
-        {
-            int s = atomicAdd(num, 1);
-            out_offset[s] = (int) (pg->offset);
-            pg = pg->next;
-        }
+        int s = atomicAdd(num, 1);
+        out_offset[s] = (int) (pg->offset);
+        pg = pg->next;
     }
+
 }
 size_type spParticlePageExpand(spParticle *sp,
                                size_type const *lower,
@@ -130,12 +130,12 @@ size_type spParticlePageExpand(spParticle *sp,
 
     int *num_of_page_device = NULL;
 
-    spParallelDeviceMalloc((void **) (&num_of_page_device), sizeof(int));
+    spParallelDeviceAlloc((void **) (&num_of_page_device), sizeof(int));
 
     spParallelMemset((void *) (num_of_page_device), 0, sizeof(int));
 
 
-    spParallelDeviceMalloc((void **) (&out_offset_device), max_num_of_pages * sizeof(int));
+    spParallelDeviceAlloc((void **) (&out_offset_device), max_num_of_pages * sizeof(int));
 
     LOAD_KERNEL(spParticlePageExpandKernel,
                 sizeType2Dim3(count), 1,
@@ -154,7 +154,7 @@ size_type spParticlePageExpand(spParticle *sp,
 
     if (num_of_page > 0)
     {
-        spParallelHostMalloc((void **) (out_offset_host), sizeof(int) * num_of_page);
+        spParallelHostAlloc((void **) (out_offset_host), sizeof(int) * num_of_page);
         spParallelMemcpy((void *) (*out_offset_host), (void *) (out_offset_device), num_of_page * sizeof(int));
     }
 
@@ -183,11 +183,11 @@ void spParticlePopPages(spParticle *sp, int num, spParticlePage **page_ptr_host,
     spParticlePage **page_data_ptr_device;
 
 
-    spParallelDeviceMalloc((void **) (&page_data_ptr_device), num * sizeof(spPage *));
+    spParallelDeviceAlloc((void **) (&page_data_ptr_device), num * sizeof(spPage *));
 
     LOAD_KERNEL(spParticlePopPageKernel, 1, 1, spParticlePagePool(sp), num, page_data_ptr_device);
 
-    spParallelHostMalloc((void **) (page_ptr_host), num * sizeof(spPage *));
+    spParallelHostAlloc((void **) (page_ptr_host), num * sizeof(spPage *));
 
     spParallelMemcpy((void *) (*page_ptr_host),
                      (void *) (page_data_ptr_device),

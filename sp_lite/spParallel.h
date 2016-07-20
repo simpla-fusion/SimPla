@@ -13,38 +13,14 @@ void spParallelInitialize(int argc, char **argv);
 
 void spParallelFinalize();
 
-//void spParallelDeviceSync();
-//
-//void spParallelHostMalloc(void **, size_type s);
-//
-//void spParallelHostFree(void **);
 
+#ifdef HAS_CUDA
+#   include "spParallelCUDA.h"
+#else
+#   include "spParallelCPU.h"
+#endif
 
-#ifndef DISABLE_CUDA
-#define CUDA_CHECK_RETURN(_CMD_) {                                            \
-    cudaError_t _m_cudaStat = _CMD_;                                        \
-    if (_m_cudaStat != cudaSuccess) {                                        \
-         printf("Error [code=0x%x] %s at line %d in file %s\n",                    \
-                _m_cudaStat,cudaGetErrorString(_m_cudaStat), __LINE__, __FILE__);        \
-        exit(1);                                                            \
-    } }
-#define spParallelDeviceMalloc(_P_, _S_)      CUDA_CHECK_RETURN(cudaMalloc(_P_, _S_));
-
-#define spParallelDeviceFree(_P_)      if (*_P_ != NULL) { CUDA_CHECK_RETURN(cudaFree(*_P_)); *_P_ = NULL;   };
-
-#define spParallelMemcpy(_D_, _S_, _N_) CUDA_CHECK_RETURN(cudaMemcpy(_D_, _S_,(_N_), cudaMemcpyDefault));
-
-#define  spParallelMemcpyToSymbol(_D_, _S_, _N_)    CUDA_CHECK_RETURN(cudaMemcpyToSymbol(_D_, _S_, _N_));
-
-#define spParallelMemset(_D_, _V_, _N_)  CUDA_CHECK_RETURN(cudaMemset(_D_, _V_, _N_));
-
-#define spParallelDeviceSync()    CUDA_CHECK_RETURN(cudaDeviceSynchronize())
-
-#define spParallelHostMalloc(_P_, _S_)    CUDA_CHECK_RETURN(cudaHostAlloc(_P_, _S_, cudaHostAllocDefault))
-
-#define spParallelHostFree(_P_)  if (*_P_ != NULL) { cudaFreeHost(*_P_);  *_P_ = NULL; }
-#endif // DISABLE_CUDA
-
+void spMPIDataTypeCreate(int count, int *array_of_displacements, int type_tag, MPI_Datatype *new_type);
 
 #define MPI_ERROR(_CMD_)                                                   \
 {                                                                          \

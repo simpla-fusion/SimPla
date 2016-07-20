@@ -20,11 +20,9 @@ namespace simpla { namespace parallel
 
 std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count);
 
-
 void wait_all_request(std::vector<MPI_Request> &requests);
 
 std::tuple<int, int, int> get_mpi_tag(int obj_id, int const *coord);
-
 
 
 //template<typename Integral>

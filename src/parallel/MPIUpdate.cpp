@@ -69,6 +69,8 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 }
 
 
+
+
 //
 //void wait_all_request(std::vector<MPI_Request> &requests)
 //{

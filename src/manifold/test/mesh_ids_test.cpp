@@ -148,7 +148,7 @@ TEST(GeometryTest, MeshIDs)
 //
 //TEST(GeometryTest, Geometry)
 //{
-//    Geometry < Metric < coordinate_system::Cylindrical < 2 >> , topology::RectMesh<>>
+//    Geometry < Metric < coordinate_system::Cylindrical < 2 >> , dims::RectMesh<>>
 //    g;
 //
 //    nTuple<size_t, 3> dim = {1, 100, 1};

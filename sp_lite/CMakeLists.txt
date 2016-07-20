@@ -33,8 +33,11 @@ INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIRS})
 SET(CUDA_SEPARABLE_COMPILATION ON)
 ADD_DEFINITIONS(-DUSE_CUDA -DENABLE_SOA -DNUMBER_OF_THREADS_PER_BLOCK=256)
 FILE(GLOB sp_lite_SRC_CU ./*.cu)
+CUDA_ADD_LIBRARY(sp_lite_cu ${sp_lite_SRC_CU})
+
+
 FILE(GLOB sp_lite_SRC ./*.c)
-
-
-CUDA_ADD_EXECUTABLE(sp_lite ${sp_lite_SRC} ${sp_lite_SRC_CU})
-TARGET_LINK_LIBRARIES(sp_lite sp_capi)
+ADD_EXECUTABLE(sp_lite ${sp_lite_SRC})
+TARGET_LINK_LIBRARIES(sp_lite sp_capi
+#        sp_lite_cu
+        )

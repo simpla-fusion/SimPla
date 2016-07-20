@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 //	while (count > 0)
 //	{
 //		printf("====== REMINED STEP= %i ======\n", count);
-//		spBorisYeeUpdateParticle(ps, dt, fE, fB, fRho, fJ);
+		spBorisYeeUpdateParticle(ps, dt, fE, fB, fRho, fJ);
 //////		spUpdateField_Yee( dt, fRho, fJ, fE, fB);
 //////
 //	spFieldWrite(fE, os, "E", SP_FILE_RECORD);

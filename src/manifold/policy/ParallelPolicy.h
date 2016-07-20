@@ -93,7 +93,7 @@ void ParallelPolicy<TMesh>::deploy()
 
     if (GLOBAL_COMM.is_valid())
     {
-        m_mesh_.decompose(GLOBAL_COMM.topology(),
+        m_mesh_.decompose(GLOBAL_COMM.dims(),
                           GLOBAL_COMM.coordinate());
     }
 }
