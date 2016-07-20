@@ -1,12 +1,12 @@
-/*
- * spField.cu
- *
- *  Created on: 2016年6月15日
- *      Author: salmon
- */
-#include <stdlib.h>
-#include "spParallel.h"
+//
+// Created by salmon on 16-7-20.
+//
+
+
 #include "sp_lite_def.h"
+#include <stdlib.h>
+
+#include "spParallel.h"
 #include "spMesh.h"
 #include "spField.h"
 

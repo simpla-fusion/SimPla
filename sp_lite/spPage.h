@@ -53,8 +53,7 @@ typedef struct spPage_s
     byte_type __other[];
 } spPage;
 
-MC_DEVICE spPage *spPageAtomicPop(spPage **pg);
-MC_DEVICE spPage *spPageAtomicPush(spPage **pg, spPage *v);
+
 //
 ///***************************************************************************/
 ///**

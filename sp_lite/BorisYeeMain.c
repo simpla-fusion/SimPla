@@ -15,11 +15,10 @@
 #include "spParticle.h"
 
 #include "BorisYee.h"
-#include "spPage.h"
 
 int main(int argc, char **argv)
 {
-    spParallelInitialize(0, nullptr);
+    spParallelInitialize(0, NULL);
 
     spMesh *mesh;
     spParticle *ps = 0x0;

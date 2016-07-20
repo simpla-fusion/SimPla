@@ -7,18 +7,17 @@
 
 #include <memory>
 #include "../src/io/IO.h"
-
 #include "../src/parallel/DistributedObject.h"
-
 #include "../src/parallel/MPIComm.h"
-
 #include "../src/data_model/DataSet.h"
 #include "../src/data_model/DataType.h"
 #include "../src/data_model/DataSpace.h"
-#include "sp_capi.h"
 
-//#include "spSimPlaWrap.h"
-//#include "sp_def.h"
+extern "C"
+{
+#include "sp_capi.h"
+};
+
 
 using namespace simpla;
 
