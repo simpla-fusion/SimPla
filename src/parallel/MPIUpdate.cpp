@@ -16,8 +16,12 @@ namespace simpla { namespace parallel
 {
 
 
+
 /**
- * @param pos in {0,count} out {begin,shape}
+ *
+ * @param mpi_comm
+ * @param count
+ * @return
  */
 std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 {
@@ -68,7 +72,19 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 
     return std::make_tuple(begin, count);
 }
-
+/**
+ *  Ref. T. Hoefler and J. L. Traff, "Sparse collective operations for MPI,"
+ *  Parallel & Distributed Processing, 2009. IPDPS 2009. IEEE International Symposium on, Rome, 2009, pp. 1-8.
+doi: 10.1109/IPDPS.2009.5160935
+ * @param buffer
+ * @param ndims
+ * @param dims
+ * @param start
+ * @param count
+ * @param tag
+ * @param ele_type
+ * @param comm
+ */
 void ndarray_update_ghost(void *buffer,
                           int ndims,
                           size_type const *dims,
