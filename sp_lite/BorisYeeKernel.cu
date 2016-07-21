@@ -264,12 +264,12 @@ __global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
 //
 //    Real cmr_dt = dt * sp->charge / sp->mass;
 //
-//    spBorisYeeUpdateParticleKernel << < sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >> > (sp->m_buckets_, sp->m_page_pool_,
+//    spBorisYeeUpdateParticleKernel << < sp->m->topology_dims, NUMBER_OF_THREADS_PER_BLOCK >> > (sp->m_buckets_, sp->m_page_pool_,
 //        (Real const *) fE->device_data, (Real const *) fB->device_data, inv_dv, cmr_dt);
 //
 //    /*    @formatter:off */
 //
-////	spUpdateParticleBorisScatterBlockKernel<<< sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
+////	spUpdateParticleBorisScatterBlockKernel<<< sp->m->topology_dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
 ////			(fRho->device_data), ( fJ->device_data));
 //	/*    @formatter:on */
 //
@@ -525,7 +525,7 @@ __global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
 //
 //    /*    @formatter:off */
 //
-//    spUpdateField_Yee_kernel<<< ctx->dims, NUMBER_OF_THREADS_PER_BLOCK >>> (((Real *) fJ->device_data),
+//    spUpdateField_Yee_kernel<<< ctx->topology_dims, NUMBER_OF_THREADS_PER_BLOCK >>> (((Real *) fJ->device_data),
 //            ((Real *) fE->device_data), ((Real *) fB->device_data));
 //    /*    @formatter:on */
 //

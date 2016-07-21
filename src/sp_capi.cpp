@@ -138,7 +138,7 @@ void spIOStreamWriteSimple(spIOStream *os,
 
     dset.data = std::shared_ptr<void>(d, tags::do_nothing());
 
-    INFORM << os->m_stream_->write(url, dset, flag) << std::endl;
+    MESSAGE << os->m_stream_->write(url, dset, flag) << std::endl;
 }
 
 struct spDistributedObject_s
@@ -204,90 +204,24 @@ int spMPIIsValid() { return (int) (GLOBAL_COMM.is_valid()); }
 
 int spMPIProcessNum() { return (GLOBAL_COMM.process_num()); }
 
+int spMPIRank() { return GLOBAL_COMM.process_num(); }
+
 int spMPINumOfProcess() { return (GLOBAL_COMM.num_of_process()); }
+
+int spMPISize() { return GLOBAL_COMM.num_of_process(); }
 
 size_type spMPIGenerateObjectId() { return (GLOBAL_COMM.generate_object_id()); }
 
-void spMPIGetTopology(int *d)
-{
-    auto res = GLOBAL_COMM.dims();
-    if (d != nullptr)
-    {
-        d[0] = res[0];
-        d[1] = res[1];
-        d[2] = res[2];
-    }
-}
+int spMPITopologyNumOfDims() { return GLOBAL_COMM.topology_num_of_dims(); }
 
-void spMPISetTopology(int *r)
-{
-    nTuple<int, 3> d;
-    if (r != nullptr)
-    {
-        d[0] = r[0];
-        d[1] = r[1];
-        d[2] = r[2];
+int const *spMPITopologyDims() { return GLOBAL_COMM.topology_dims(); }
 
-        GLOBAL_COMM.dims(d);
+int spMPITopologyNumOfNeighbours() { return GLOBAL_COMM.topology_num_of_neighbours(); }
 
-    }
-};
+int const *spMPITopologyNeighbours() { return GLOBAL_COMM.topology_neighbours(); }
 
-int spMPIGetNeighbour(int *r)
-{
-    nTuple<int, 3> d{0, 0, 0};
-    if (r != nullptr)
-    {
-        d[0] = r[0];
-        d[1] = r[1];
-        d[2] = r[2];
+void spMPITopologyCoordinate(int rank, int *d) { GLOBAL_COMM.topology_coordinate(rank, d); }
 
-    }
-    return GLOBAL_COMM.get_neighbour(d);
-}
+int spMPITopologyRank(int const *d) { return GLOBAL_COMM.get_rank(d); };
 
-void spMPICoordinate(int rank, int *d)
-{
-    auto r = GLOBAL_COMM.coordinate(rank);
-    if (d != nullptr)
-    {
-        d[0] = r[0];
-        d[1] = r[1];
-        d[2] = r[2];
-    }
-}
 
-int spMPIRank()
-{
-    return GLOBAL_COMM.get_rank();
-}
-
-int spMPIGetRankCart(int const *r)
-{
-    nTuple<int, 3> d{0, 0, 0};
-    if (r != nullptr)
-    {
-        d[0] = r[0];
-        d[1] = r[1];
-        d[2] = r[2];
-
-    }
-    return GLOBAL_COMM.get_rank(d);
-};
-
-void spMPIMakeSendRecvTag(size_type prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag)
-{
-    nTuple<int, 3> d{0, 0, 0};
-    if (offset != nullptr)
-    {
-        d[0] = offset[0];
-        d[1] = offset[1];
-        d[2] = offset[2];
-
-    }
-    std::tie(*dest_id, *send_tag, *recv_tag) = GLOBAL_COMM.make_send_recv_tag(prefix, d);
-}
-int spMPINumOfNeighbour()
-{
-    return GLOBAL_COMM.get_num_neighbours();
-};

@@ -118,7 +118,7 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_type co
 //
 //std::tuple<DataSpace, DataSpace>  DataSpace::create(
 //        size_type rank,
-//        size_type const *dims,
+//        size_type const *topology_dims,
 //        size_type const *start,
 //        size_type const *_stride,
 //        size_type const *count,
@@ -127,7 +127,7 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_type co
 //
 //    DataSpace data_space, memory_space;
 //
-//    if (dims == nullptr && start == nullptr)
+//    if (topology_dims == nullptr && start == nullptr)
 //    {
 //        size_type count = rank;
 //        size_type offset = 0;
@@ -142,9 +142,9 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_type co
 //    }
 //    else
 //    {
-//        if (dims != nullptr)
+//        if (topology_dims != nullptr)
 //        {
-//            data_space = DataSpace::create_simple(static_cast<int>(rank), dims);
+//            data_space = DataSpace::create_simple(static_cast<int>(rank), topology_dims);
 //            memory_space = data_space;
 //        }
 //        else
@@ -388,7 +388,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	{
 //		THROW_EXCEPTION_RUNTIME_ERROR("data_space is invalid!");
 //	}
-//	if (ndims > m_self_->m_ndims_)
+//	if (ndims > m_self_->m_topology_ndims_)
 //	{
 //		THROW_EXCEPTION_RUNTIME_ERROR("data_space is too small to decompose!");
 //	}

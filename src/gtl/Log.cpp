@@ -103,7 +103,7 @@ void LoggerStreams::close()
 void LoggerStreams::push(int level, std::string const &msg)
 {
 
-    if (msg == "" || ((level == LOG_INFORM || level == LOG_MESSAGE) && mpi_rank_ > 0)) return;
+    if (msg == "" || ((level == LOG_MESSAGE) && mpi_rank_ > 0)) return;
 
     std::ostringstream prefix;
 
@@ -135,12 +135,10 @@ void LoggerStreams::push(int level, std::string const &msg)
         default:
             break;
     }
-    if (mpi_size_ > 1)
-    {
-        prefix << "[" << mpi_rank_ << "/" << mpi_size_ << "]";
-    }
 
     prefix << "[" << time_stamp() << "] ";
+
+    if (mpi_size_ > 1) { prefix << "[" << mpi_rank_ << "/" << mpi_size_ << "]"; }
 
     if (level <= m_std_out_level_)
     {
@@ -150,16 +148,16 @@ void LoggerStreams::push(int level, std::string const &msg)
             case LOG_OUT_RANGE_ERROR:
             case LOG_LOGIC_ERROR:
             case LOG_ERROR:
-                std::cerr << "\e[1;31m" << prefix.str() << "\e[1;37m" << msg << "\e[0m" << surfix;
+                std::cerr << "\e[1;31m" << std::setw(35) << prefix.str() << "\e[1;37m" << msg << "\e[0m" << surfix;
                 break;
             case LOG_WARNING:
-                std::cerr << "\e[1;32m" << prefix.str() << "\e[1;37m" << msg << "\e[0m" << surfix;
+                std::cerr << "\e[1;32m" << std::setw(35) << prefix.str() << "\e[1;37m" << msg << "\e[0m" << surfix;
                 break;
             case LOG_MESSAGE:
                 std::cout << msg;
                 break;
             default:
-                std::cout << prefix.str() << msg << surfix;
+                std::cout << std::setw(35) << std::left << prefix.str() << msg << surfix;
         }
 
     }
@@ -179,7 +177,6 @@ void close()
 {
     SingletonHolder<LoggerStreams>::instance().close();
 }
-
 
 void set_stdout_level(int l)
 {

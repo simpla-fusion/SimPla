@@ -26,6 +26,9 @@
 #define CHECK_STR(_MSG_)    printf( "%s:%d:0:%s: %s = %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_), (_MSG_) );
 
 
+#define SP_FALSE 0
+#define SP_TRUE  1
+
 #define SP_NUMBER_OF_ENTITIES_IN_PAGE 128
 
 

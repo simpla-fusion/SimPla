@@ -10,6 +10,7 @@
 #include "DistributedObject.h"
 #include "../data_model/DataSet.h"
 #include "../gtl/Log.h"
+#include <cassert>
 
 namespace simpla { namespace parallel
 {
@@ -68,7 +69,307 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
     return std::make_tuple(begin, count);
 }
 
+void ndarray_update_ghost(void *buffer,
+                          int ndims,
+                          size_type const *dims,
+                          size_type const *start,
+                          size_type const *,
+                          size_type const *count,
+                          size_type const *,
+                          int tag,
+                          MPI_Datatype ele_type,
+                          MPI_Comm comm)
+{
 
+
+    {
+        int topo_type;
+        MPI_Topo_test(comm, &topo_type);
+        assert(topo_type == MPI_CART);
+    }
+
+    int mpi_topology_ndims = 0;
+
+    MPI_Datatype d_type[3];
+    MPI_Type_contiguous(3, MPI_INT, &d_type[0]);
+    MPI_Type_commit(&d_type[0]);
+
+    MPI_Type_vector(5, 1, 5, MPI_INT, &d_type[1]);
+    MPI_Type_commit(&d_type[1]);
+
+
+    MPI_Cartdim_get(comm, &mpi_topology_ndims);
+
+    int sizes[mpi_topology_ndims];
+    MPI_Aint send_displaces[mpi_topology_ndims * 2];
+    MPI_Aint recv_displaces[mpi_topology_ndims * 2];
+
+    for (int i = 0; i < mpi_topology_ndims; ++i)
+    {
+        int r0, r1;
+
+        MPI_Cart_shift(comm, i, 1, &r0, &r1);
+
+        MPI_Sendrecv(buffer + send_displaces[i * 2], 1, d_type[i], r0, tag,
+                     buffer + recv_displaces[i * 2], 1, d_type[i], r1, tag,
+                     comm, MPI_STATUS_IGNORE);
+
+        MPI_Sendrecv(buffer + send_displaces[i * 2 + 1], 1, d_type[i], r1, tag,
+                     buffer + recv_displaces[i * 2 + 1], 1, d_type[i], r0, tag,
+                     comm, MPI_STATUS_IGNORE);
+    }
+
+
+
+//    MPI_Datatype x_dir_type;
+//    MPI_Type_contiguous(3, MPI_INT, &x_dir_type);
+//    MPI_Type_commit(&x_dir_type);
+//    MPI_Datatype y_dir_type;
+//    MPI_Type_vector(5, 1, 5, MPI_INT, &y_dir_type);
+//    MPI_Type_commit(&y_dir_type);
+//    int sizes[4] = {1, 1, 1, 1};
+//    int s = sizeof(int);
+//    MPI_Aint send_displs[4] = {5 * s, 15 * s, 6 * s, 8 * s};
+//    MPI_Aint recv_displs[4] = {0 * s, 20 * s, 5 * s, 9 * s};
+//    MPI_Datatype send_type[4] = {x_dir_type, x_dir_type, y_dir_type, y_dir_type};
+//    MPI_Datatype recv_type[4] = {x_dir_type, x_dir_type, y_dir_type, y_dir_type};
+//
+
+
+    //******************************************************************************************************************
+    // Async
+//    int r0, r1;
+//    MPI_Request requests[4];
+//
+//    MPI_Cart_shift(spMPIComm(), 0, 1, &r0, &r1);
+//    MPI_Isend(buffer + 6,
+//              1,
+//              x_dir_type,
+//              r0,
+//              1,
+//              spMPIComm(), &requests[0]);
+//    MPI_Irecv(buffer + 1,
+//              1,
+//              x_dir_type,
+//              r0,
+//              1,
+//              spMPIComm(), &requests[1]);
+//
+//    MPI_Isend(buffer + 16,
+//              1,
+//              x_dir_type,
+//              r1,
+//              1,
+//              spMPIComm(), &requests[2]);
+//    MPI_Irecv(buffer + 21,
+//              1,
+//              x_dir_type,
+//              r1,
+//              1,
+//              spMPIComm(), &requests[3]);
+//
+//    MPI_Waitall(4, requests, MPI_STATUS_IGNORE);
+//
+//    MPI_Cart_shift(spMPIComm(), 1, 1, &r0, &r1);
+//
+//    MPI_Isend(buffer + 1,
+//              1,
+//              y_dir_type,
+//              r0,
+//              1,
+//              spMPIComm(), &requests[0]);
+//    MPI_Irecv(buffer + 0,
+//              1,
+//              y_dir_type,
+//              r0,
+//              1,
+//              spMPIComm(), &requests[1]);
+//
+//    MPI_Isend(buffer + 3,
+//              1,
+//              y_dir_type,
+//              r1,
+//              1,
+//              spMPIComm(), &requests[2]);
+//    MPI_Irecv(buffer + 4,
+//              1,
+//              y_dir_type,
+//              r1,
+//              1,
+//              spMPIComm(), &requests[3]);
+//
+//    MPI_Waitall(4, requests, MPI_STATUS_IGNORE);
+    //******************************************************************************************************************
+
+//    int buffer[9] = {
+//        0, 0, 0,
+//        0, rank, 0,
+//        0, 0, 0
+//
+//    };
+//
+//    int num_of_neighbour = spMPITopologyNumOfNeighbours();
+//
+//    MPI_Datatype x_dir_type;
+//    MPI_Type_contiguous(1, MPI_INT, &x_dir_type);
+//    MPI_Type_commit(&x_dir_type);
+//    MPI_Datatype y_dir_type;
+//    MPI_Type_vector(3, 1, 3, MPI_INT, &y_dir_type);
+//    MPI_Type_commit(&y_dir_type);
+//    int sizes[4] = {1, 1, 1, 1};
+//    int s = sizeof(int);
+//    MPI_Aint send_displs[4] = {3 * s, 3 * s, 1 * s, 1 * s};
+//    MPI_Aint recv_displs[4] = {1 * s, 7 * s, 0 * s, 2 * s};
+//    MPI_Datatype send_type[4] = {x_dir_type, x_dir_type, y_dir_type, y_dir_type};
+//    MPI_Datatype recv_type[4] = {x_dir_type, x_dir_type, y_dir_type, y_dir_type};
+//
+////    MPI_Neighbor_alltoallw(buffer, sizes, send_displs, send_type,
+////                           buffer, sizes, recv_displs, recv_type, spMPIComm());
+//
+//
+//    int r0, r1;
+//    MPI_Cart_shift(spMPIComm(), 0, 1, &r0, &r1);
+//    MPI_Sendrecv(buffer + 4,
+//                 1,
+//                 x_dir_type,
+//                 r0,
+//                 1,
+//                 buffer + 1,
+//                 1,
+//                 x_dir_type,
+//                 r1,
+//                 1,
+//                 spMPIComm(),
+//                 MPI_STATUS_IGNORE);
+//    MPI_Cart_shift(spMPIComm(), 0, -1, &r0, &r1);
+//    MPI_Sendrecv(buffer + 4,
+//                 1,
+//                 x_dir_type,
+//                 r0,
+//                 1,
+//                 buffer + 7,
+//                 1,
+//                 x_dir_type,
+//                 r1,
+//                 1,
+//                 spMPIComm(),
+//                 MPI_STATUS_IGNORE);
+//
+//
+//    MPI_Cart_shift(spMPIComm(), 1, 1, &r0, &r1);
+//    MPI_Sendrecv(buffer + 1,
+//                 1,
+//                 y_dir_type,
+//                 r0,
+//                 1,
+//                 buffer + 0,
+//                 1,
+//                 y_dir_type,
+//                 r1,
+//                 1,
+//                 spMPIComm(),
+//                 MPI_STATUS_IGNORE);
+//    MPI_Cart_shift(spMPIComm(), 1, -1, &r0, &r1);
+//    MPI_Sendrecv(buffer + 1,
+//                 1,
+//                 y_dir_type,
+//                 r0,
+//                 1,
+//                 buffer + 2,
+//                 1,
+//                 y_dir_type,
+//                 r1,
+//                 1,
+//                 spMPIComm(),
+//                 MPI_STATUS_IGNORE);
+//
+//
+//    printf("\n"
+//               "[%d/%d/%d] \t  %d,%d,%d  \n"
+//               "           \t  %d,%d,%d  \n"
+//               "           \t  %d,%d,%d  \n", rank, size, num_of_neighbour,
+//           buffer[0], buffer[1], buffer[2],
+//           buffer[3], buffer[4], buffer[5],
+//           buffer[6], buffer[7], buffer[8]
+//    );
+
+
+
+
+
+
+//    int rank = spMPIRank();
+//    int size = spMPISize();
+//    int buffer[25] = {
+//        rank, rank, rank, rank, rank,
+//        rank, rank, rank, rank, rank,
+//        rank, rank, rank, rank, rank,
+//        rank, rank, rank, rank, rank,
+//        rank, rank, rank, rank, rank
+//    };
+//    MPI_Datatype d_type[3];
+//    MPI_Type_contiguous(3, MPI_INT, &d_type[0]);
+//    MPI_Type_commit(&d_type[0]);
+//
+//    MPI_Type_vector(5, 1, 5, MPI_INT, &d_type[1]);
+//    MPI_Type_commit(&d_type[1]);
+//
+////    MPI_Type_vector(5, 1, 5, MPI_INT, &d_type[2]);
+////    MPI_Type_commit(&d_type[2]);
+//
+//    int sizes[3] = {1, 1, 1};
+//    MPI_Aint send_displs[6] = {6, 16, 1, 3, 0, 0};
+//    MPI_Aint recv_displs[6] = {1, 21, 0, 4, 0, 0};
+//    int tag = 1;
+//
+//    for (int i = 0; i < 2; ++i)
+//    {
+//        int r0, r1;
+//
+//
+//        MPI_Cart_shift(spMPIComm(), i, 1, &r0, &r1);
+//
+//        MPI_Sendrecv(buffer + send_displs[i * 2], sizes[i], d_type[i], r0, tag,
+//                     buffer + recv_displs[i * 2], sizes[i], d_type[i], r1, tag,
+//                     spMPIComm(), MPI_STATUS_IGNORE);
+//
+//        MPI_Sendrecv(buffer + send_displs[i * 2 + 1], sizes[i], d_type[i], r1, tag,
+//                     buffer + recv_displs[i * 2 + 1], sizes[i], d_type[i], r0, tag,
+//                     spMPIComm(), MPI_STATUS_IGNORE);
+//    }
+//
+////    MPI_Cart_shift(spMPIComm(), 1, 1, &r0, &r1);
+////
+////    MPI_Sendrecv(buffer + 1, 1, y_dir_type, r0, tag,
+////                 buffer + 0, 1, y_dir_type, r1, tag,
+////                 spMPIComm(), MPI_STATUS_IGNORE);
+////
+////    MPI_Sendrecv(buffer + 3, 1, y_dir_type, r1, tag,
+////                 buffer + 4, 1, y_dir_type, r0, tag,
+////                 spMPIComm(), MPI_STATUS_IGNORE);
+//
+//
+//    printf("\n"
+//               "[%d/%d/%d] \t  %d,%d,%d,%d,%d \n"
+//               "           \t  %d,%d,%d,%d,%d \n"
+//               "           \t  %d,%d,%d,%d,%d \n"
+//               "           \t  %d,%d,%d,%d,%d \n"
+//               "           \t  %d,%d,%d,%d,%d \n", rank, size, num_of_neighbour,
+//           buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
+//           buffer[5], buffer[6], buffer[7], buffer[8], buffer[9],
+//           buffer[10], buffer[11], buffer[12], buffer[13], buffer[14],
+//           buffer[15], buffer[16], buffer[17], buffer[18], buffer[19],
+//           buffer[20], buffer[21], buffer[22], buffer[23], buffer[24]
+//    );
+
+
+
+
+
+
+
+
+};
 
 
 //

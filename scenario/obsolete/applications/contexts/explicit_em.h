@@ -306,7 +306,7 @@ void ExplicitEMContext<TM>::load(TDict const &dict)
 //
 //			for (int i = 0; i < model->NDIMS; ++i)
 //			{
-//				if (dims[i] <= 1)
+//				if (topology_dims[i] <= 1)
 //				{
 //					min1[i] = min2[i];
 //					max1[i] = max2[i];

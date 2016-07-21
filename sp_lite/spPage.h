@@ -38,7 +38,7 @@ typedef unsigned int bucket_entity_flag_t;
  * -------+------------+---------------+---------------+---------------
  *        |   000110   |    000100     |   000101      |
  *
- *  r    : local coordinate r\in [0,1]
+ *  r    : local topology_coordinate r\in [0,1]
  *
  *
  *               11             00              01

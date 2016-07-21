@@ -29,7 +29,7 @@ namespace simpla { namespace geometry
  */
 
 /**
- *  coordinate system
+ *  topology_coordinate system
  */
 namespace coordinate_system
 {
@@ -114,7 +114,7 @@ struct dimension<coordinate_system::Cartesian<N>>
 template<typename> struct is_homogeneous;
 
 /**
- * if coordinate system is state-less value=true
+ * if topology_coordinate system is state-less value=true
  *  else value = false
  */
 template<typename CS> struct is_homogeneous

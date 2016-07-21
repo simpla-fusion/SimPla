@@ -106,9 +106,9 @@ TEST(GeometryTest, MeshIDs)
 //{
 //    RectMesh t;
 //
-//    nTuple<size_t, 3> dims = {5, 5, 5};
+//    nTuple<size_t, 3> topology_dims = {5, 5, 5};
 //
-//    t.dimensions(dims);
+//    t.dimensions(topology_dims);
 //
 //    t.save_mesh();
 //
@@ -148,7 +148,7 @@ TEST(GeometryTest, MeshIDs)
 //
 //TEST(GeometryTest, Geometry)
 //{
-//    Geometry < Metric < coordinate_system::Cylindrical < 2 >> , dims::RectMesh<>>
+//    Geometry < Metric < coordinate_system::Cylindrical < 2 >> , topology_dims::RectMesh<>>
 //    g;
 //
 //    nTuple<size_t, 3> dim = {1, 100, 1};

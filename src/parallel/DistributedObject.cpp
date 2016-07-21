@@ -82,10 +82,10 @@ void DistributedObject::pimpl_s::add_send_link(size_t id, const nTuple<int, 3> &
 {
     int dest_id;
     int send_tag;
-    std::tie(dest_id, send_tag, std::ignore) = GLOBAL_COMM.make_send_recv_tag(id, shift);
-
-    m_send_links_.emplace(
-            std::make_pair(id, send_link_s{send_tag, dest_id, {shift[0], shift[1], shift[2]}, ds}));
+//    std::tie(dest_id, send_tag, std::ignore) = GLOBAL_COMM.make_send_recv_tag(id, shift);
+//
+//    m_send_links_.emplace(
+//            std::make_pair(id, send_link_s{send_tag, dest_id, {shift[0], shift[1], shift[2]}, ds}));
 
 
 };
@@ -94,10 +94,10 @@ void DistributedObject::pimpl_s::add_recv_link(size_t id, const nTuple<int, 3> &
 {
     int dest_id;
     int recv_tag;
-    std::tie(dest_id, recv_tag, std::ignore) = GLOBAL_COMM.make_send_recv_tag(id, shift);
-
-    m_recv_links_.emplace(
-            std::make_pair(id, recv_link_s{recv_tag, dest_id, {shift[0], shift[1], shift[2]}, ds}));
+//    std::tie(dest_id, recv_tag, std::ignore) = GLOBAL_COMM.make_send_recv_tag(id, shift);
+//
+//    m_recv_links_.emplace(
+//            std::make_pair(id, recv_link_s{recv_tag, dest_id, {shift[0], shift[1], shift[2]}, ds}));
 
 }
 

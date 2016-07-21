@@ -21,7 +21,7 @@ extern "C"
  *               11             00              01
  * ---------+------------+-------@--------+-------------+---------------
  *r=       -1.5         -0.5     0       0.5           1.5
- *  particle only storage local relative coordinate in cell  ,
+ *  particle only storage local relative topology_coordinate in cell  ,
  *  cell id is storage in the page
  */
 //#define POINT_HEAD  SP_ENTITY_HEAD  Real r[3];

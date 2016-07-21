@@ -149,7 +149,7 @@ public:
     virtual io::IOStream &save(io::IOStream &os) const
     {
 //        os.open(type_cast<std::string>(this->short_id()) + "/");
-//        os.set_attribute(".dims", dimensions());
+//        os.set_attribute(".topology_dims", dimensions());
 //        os.set_attribute(".box", box());
         return os;
     };

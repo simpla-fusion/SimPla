@@ -19,7 +19,7 @@ namespace simpla { namespace geometry
 /**
  * @ingroup  coordinate_system
  * @{
- *  Metric of  Cartesian coordinate system
+ *  Metric of  Cartesian topology_coordinate system
  */
 struct CartesianMetric
 {

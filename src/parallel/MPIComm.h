@@ -29,7 +29,6 @@ class MPIComm
 {
 
 public:
-    static constexpr int NDIMS = 3;
 
     MPIComm();
 
@@ -55,13 +54,19 @@ public:
 
     size_type generate_object_id();
 
-    int const *dims() const;
+    int topology_num_of_dims() const;
 
-    int get_num_neighbours() const;
+    void topology_num_of_dims(int n);
 
-    int get_neighbour(const int *d) const;
+    int const *topology_dims() const;
 
-    void coordinate(int rank = 0, int *coord = nullptr) const;
+    int topology_num_of_neighbours() const;
+
+    int const *topology_neighbours() const;
+
+    int topology_neighbour(const int *d) const;
+
+    void topology_coordinate(int rank = 0, int *coord = nullptr) const;
 
     int get_rank() const;
 

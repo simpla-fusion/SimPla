@@ -24,6 +24,16 @@ void wait_all_request(std::vector<MPI_Request> &requests);
 
 std::tuple<int, int, int> get_mpi_tag(int obj_id, int const *coord);
 
+void ndarray_update_ghost(void *buffer,
+                          int ndims,
+                          size_type const *dims,
+                          size_type const *start,
+                          size_type const *,
+                          size_type const *count,
+                          size_type const *,
+                          int tag,
+                          MPI_Datatype ele_type,
+                          MPI_Comm comm);
 
 //template<typename Integral>
 //std::tuple<Integral, Integral> sync_global_location(MPIComm &mpi_comm, Integral count)

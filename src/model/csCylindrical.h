@@ -29,7 +29,7 @@ using CylindricalMetric= Metric<geometry::coordinate_system::Cylindrical<2> >;
 
 /** @ingroup   coordinate_system
  ** @{
- *  Metric of  Cylindrical coordinate system
+ *  Metric of  Cylindrical topology_coordinate system
  */
 template<int IPhiAxis>
 struct Metric<coordinate_system::template Cylindrical<IPhiAxis> >

@@ -126,25 +126,24 @@ void spMPIBarrier();
 int spMPIIsValid();
 
 int spMPIProcessNum();
-
 int spMPINumOfProcess();
+
+int spMPIRank();
+int spMPISize();
 
 size_type spMPIGenerateObjectId();
 
-void spMPIGetTopology(int *);
+int spMPITopologyNumOfDims();
 
-void spMPISetTopology(int *);
+int const *spMPITopologyDims();
 
-int spMPIGetNeighbour(int *);
+int spMPITopologyNumOfNeighbours();
 
-void spMPICoordinate(int rank, int *);
+int const *spMPITopologyNeighbours();
 
-int spMPIRank();
+void spMPITopologyCoordinate(int rank, int *);
 
-int spMPIGetRankCart(int const *);
+int spMPITopologyRank(int const *);
 
-int spMPINumOfNeighbour();
-
-void spMPIMakeSendRecvTag(size_type prefix, int const *offset, int *dest_id, int *send_tag, int *recv_tag);
 
 #endif /* SPSIMPLAWRAP_H_ */

@@ -259,7 +259,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 //
 //		xmax = std::get<1>(param);
 //
-//		dims = std::get<2>(param);
+//		topology_dims = std::get<2>(param);
 //
 //		K_real = std::get<3>(param);
 //
@@ -267,15 +267,15 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 //
 //		for (int i = 0; i < NDIMS; ++i)
 //		{
-//			if (dims[i] <= 1 || (xmax[i] <= xmin[i]))
+//			if (topology_dims[i] <= 1 || (xmax[i] <= xmin[i]))
 //			{
-//				dims[i] = 1;
+//				topology_dims[i] = 1;
 //				K_real[i] = 0.0;
 //				xmax[i] = xmin[i];
 //			}
 //		}
 //
-//		geometry.set_dimensions(dims);
+//		geometry.set_dimensions(topology_dims);
 //		geometry.set_extents(xmin, xmax);
 //
 //		geometry.sync();
@@ -297,7 +297,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 //
 //	nTuple<NDIMS, Real> xmax;
 //
-//	nTuple<NDIMS, size_t> dims;
+//	nTuple<NDIMS, size_t> topology_dims;
 //
 //	nTuple<3, Real> K_real; // @NOTE must   k = n TWOPI, period condition
 //

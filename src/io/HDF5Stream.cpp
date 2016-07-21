@@ -667,13 +667,13 @@ void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &
 
         auto &d_shape = item.data_space.shape();
         int &d_ndims = std::get<0>(d_shape);
-        std::get<1>(d_shape)[d_ndims - 1] = 0; //dims
+        std::get<1>(d_shape)[d_ndims - 1] = 0; //topology_dims
         std::get<4>(d_shape)[d_ndims - 1] = 0; //count
 
 
         auto &m_shape = item.memory_space.shape();
         int m_ndims = std::get<0>(m_shape);
-        std::get<1>(m_shape)[m_ndims - 1] = 0; //dims
+        std::get<1>(m_shape)[m_ndims - 1] = 0; //topology_dims
         std::get<4>(m_shape)[m_ndims - 1] = 0; //count
 
 
@@ -693,7 +693,7 @@ void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &
 
             ++d_ndims;
 
-            std::get<1>(d_shape)[d_ndims - 1] = 0; //dims
+            std::get<1>(d_shape)[d_ndims - 1] = 0; //topology_dims
             std::get<2>(d_shape)[d_ndims - 1] = 0; //start
             std::get<3>(d_shape)[d_ndims - 1] = 1; //stride
             std::get<4>(d_shape)[d_ndims - 1] = 0; //count
@@ -705,7 +705,7 @@ void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &
             std::get<1>(m_shape) = std::get<4>(m_shape);
             ++m_ndims;
 
-            std::get<1>(m_shape)[m_ndims - 1] = pimpl_s::DEFAULT_MAX_BUFFER_DEPTH; //dims
+            std::get<1>(m_shape)[m_ndims - 1] = pimpl_s::DEFAULT_MAX_BUFFER_DEPTH; //topology_dims
             std::get<2>(m_shape)[m_ndims - 1] = 0; //start
             std::get<3>(m_shape)[m_ndims - 1] = 1; //stride
             std::get<4>(m_shape)[m_ndims - 1] = 0; //count
@@ -1050,7 +1050,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //	res.id = id;
 //
-//	res.ndims = ds.data_space.num_of_dims();
+//	res.ndims = ds.data_space.topology_num_of_dims();
 //
 //	std::tie(res.f_start, res.f_count) = ds.data_space.global_shape();
 //

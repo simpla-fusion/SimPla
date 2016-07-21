@@ -542,7 +542,7 @@ bool box_intersection(TL const &l, TR *r)
 //////	typedef typename TSurface::plane_type plane_type;
 ////
 //////	auto extent = geometry.get_extents();
-//////	auto dims = geometry.get_dimensions();
+//////	auto topology_dims = geometry.get_dimensions();
 //////	auto xmin = extent.first;
 //////	auto xmax = extent.second;
 //////	auto d = geometry.get_dx();

@@ -26,7 +26,7 @@ void spBorisYeeInitializeParticle(spParticle *sp, size_type NUM_OF_PIC)
 //                NUM_OF_PIC);
 
 
-//	spUpdateParticleBorisScatterBlockKernel<<< sp->m->dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
+//	spUpdateParticleBorisScatterBlockKernel<<< sp->m->topology_dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
 //			(fRho->device_data), ( fJ->device_data));
 
     spParallelDeviceSync();        //wait for iteration to finish
