@@ -64,6 +64,7 @@ void spMeshCreate(spMesh **m)
     (*m)->x_upper[1] = 1;
     (*m)->x_upper[2] = 1;
 }
+
 void spMeshDestroy(spMesh **ctx)
 {
     free(*ctx);
@@ -134,10 +135,11 @@ void spMeshDeploy(spMesh *self)
 //	spParallelMemcpyToSymbol(SP_NEIGHBOUR_OFFSET_flag, neighbour_flag, sizeof(neighbour_flag));
 }
 
-size_type spMeshGetNumberOfEntity(spMesh const *self, int iform)
+size_type spMeshNumberOfEntity(spMesh const *self, int tag, int iform)
 {
     return self->dims[0] * self->dims[1] * self->dims[2] * ((iform == 0 || iform == 3) ? 1 : 3);
 }
+
 void spMeshPoint(spMesh const *m, MeshEntityId id, Real *res)
 {
     res[0] = m->x_lower[0] + m->dx[0] * (id.x - (m->i_lower[0] << 1)) * 0.5;

@@ -13,7 +13,6 @@ void spParallelFinalize();
 
 
 #ifdef HAS_CUDA
-#include </usr/local/cuda/include/cuda_runtime.h>
 #   include "spParallelCUDA.h"
 #else
 #   include "spParallelCPU.h"
@@ -44,14 +43,14 @@ int spMPINeighborAllToAllCart(const void *send_buffer,
                               MPI_Datatype const *recv_types,
                               MPI_Comm comm);
 
-int spNdArrayUpdateHalo(void *buffer,
-                        int ndims,
-                        const size_type *dims,
-                        const size_type *start,
-                        const size_type *,
-                        const size_type *count,
-                        const size_type *,
-                        MPI_Datatype ele_type,
-                        MPI_Comm comm);
+int spMPIUpdateNdArrayHalo(void *buffer,
+                           int ndims,
+                           const size_type *dims,
+                           const size_type *start,
+                           const size_type *,
+                           const size_type *count,
+                           const size_type *,
+                           MPI_Datatype ele_type,
+                           MPI_Comm comm);
 
 #endif //SIMPLA_SPPARALLEL_H

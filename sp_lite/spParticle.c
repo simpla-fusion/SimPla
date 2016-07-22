@@ -57,53 +57,57 @@ struct spParticle_s
 
     size_type max_number_of_pages;
     struct MeshEntityId *m_ids_;
-    size_type *m_pages_;
+    size_type *m_pages_list_head_;
     size_type **m_page_pool_;  // DEVICE
-    size_type **m_buckets_;  // DEVICE
+    size_type **m_base_manifold_;  // DEVICE
+    size_type *m_filber_page_count_; // DEVICE
 
     struct spParticleSyncStatus_s sync_reqs;
 };
 
 void spParticleCreate(const spMesh *mesh, spParticle **sp)
 {
-//    *sp = (spParticle *) malloc(sizeof(spParticle));
-//
-//    (*sp)->id = spMPIGenerateObjectId();
-//    (*sp)->m = mesh;
-//    (*sp)->iform = VERTEX;
-//    (*sp)->num_of_attrs = 0;
-//    (*sp)->m_page_pool_ = NULL;
-//    (*sp)->m_pages_ = NULL;
-//    (*sp)->m_buckets_ = NULL;
-//
-//    ADD_PARTICLE_ATTRIBUTE((*sp), int64_t, flag);
-//    ADD_PARTICLE_ATTRIBUTE((*sp), Real, rx);
-//    ADD_PARTICLE_ATTRIBUTE((*sp), Real, ry);
-//    ADD_PARTICLE_ATTRIBUTE((*sp), Real, rz);
+    *sp = (spParticle *) malloc(sizeof(spParticle));
+
+    (*sp)->id = spMPIGenerateObjectId();
+    (*sp)->m = mesh;
+    (*sp)->iform = VERTEX;
+    (*sp)->num_of_attrs = 0;
+    (*sp)->m_page_pool_ = NULL;
+    (*sp)->m_base_manifold_ = NULL;
+    (*sp)->m_filber_page_count_ = NULL;
+
+    ADD_PARTICLE_ATTRIBUTE((*sp), int64_t, flag);
+    ADD_PARTICLE_ATTRIBUTE((*sp), Real, rx);
+    ADD_PARTICLE_ATTRIBUTE((*sp), Real, ry);
+    ADD_PARTICLE_ATTRIBUTE((*sp), Real, rz);
 
 }
 
 void spParticleDestroy(spParticle **sp)
 {
 
-//    for (int i = 0; i < (*sp)->num_of_attrs; ++i) { spParallelDeviceFree(&((*sp)->attrs[i].data)); }
-//
-//    spParallelDeviceFree((void **) &((*sp)->m_data_device_));
-//    spParallelDeviceFree((void **) &((*sp)->m_buckets_));
-//    spParallelDeviceFree((void **) &((*sp)->m_page_pool_));
-//    spParallelDeviceFree((void **) &((*sp)->m_pages_));
-//
-//    free(*sp);
-//    *sp = NULL;
+    for (int i = 0; i < (*sp)->num_of_attrs; ++i) { spParallelDeviceFree(&((*sp)->attrs[i].data)); }
+
+    spParallelDeviceFree((void **) &((*sp)->m_data_device_));
+    spParallelDeviceFree((void **) &((*sp)->m_page_pool_));
+    spParallelDeviceFree((void **) &((*sp)->m_base_manifold_));
+    spParallelDeviceFree((void **) &((*sp)->m_filber_page_count_));
+
+    free(*sp);
+    *sp = NULL;
 }
 
 void spParticleDeploy(spParticle *sp, size_type PIC)
 {
-    size_type number_of_cell = spMeshGetNumberOfEntity(sp->m, sp->iform/*volume*/);
+    size_type number_of_cell = spMeshNumberOfEntity(sp->m, SP_DOMAIN_ALL, sp->iform/*volume*/);
+    spParallelDeviceAlloc((void **) (&(sp->m_base_manifold_)), sizeof(size_type *) * number_of_cell);
+    spParallelMemset((void *) ((sp->m_base_manifold_)), 0x0, sizeof(spPage *) * number_of_cell);
+    spParallelDeviceAlloc((void **) (&(sp->m_filber_page_count_)), sizeof(size_type) * number_of_cell);
+    spParallelMemset((void *) ((sp->m_filber_page_count_)), 0x0, sizeof(spPage *) * number_of_cell);
 
-    size_type num_page_per_cell = PIC * 2 / SP_NUMBER_OF_ENTITIES_IN_PAGE + 1;
 
-    sp->max_number_of_pages = number_of_cell * num_page_per_cell;
+    sp->max_number_of_pages = number_of_cell * (PIC * 2 / SP_NUMBER_OF_ENTITIES_IN_PAGE + 1);
 
     void *t_data[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
@@ -118,19 +122,9 @@ void spParticleDeploy(spParticle *sp, size_type PIC)
         }
 
         spParallelDeviceAlloc((void **) (&(sp->m_data_device_)), sizeof(void **));
-
         spParallelMemcpy((void *) (sp->m_data_device_), (t_data), sizeof(void *) * sp->num_of_attrs);
     }
 
-    spParallelDeviceAlloc((void **) (&(sp->m_pages_)), sp->max_number_of_pages * sizeof(size_type));
-
-    spParallelDeviceAlloc((void **) (&(sp->m_page_pool_)), sizeof(spPage *));
-
-    spParallelMemcpy((void *) (sp->m_page_pool_), (void const *) &(sp->m_pages_), sizeof(spPage *));
-
-    spParallelDeviceAlloc((void **) (&(sp->m_buckets_)), sizeof(spPage *) * number_of_cell);
-
-    spParallelMemset((void *) ((sp->m_buckets_)), 0x0, sizeof(spPage *) * number_of_cell);
 
 
 //    LOAD_KERNEL(spParticleDeployKernel,
@@ -165,7 +159,7 @@ void spParticleAddAttribute(struct spParticle_s *pg,
         else
         {
             offset = (pg->attrs[pg->num_of_attrs - 1].offset
-                + pg->attrs[pg->num_of_attrs - 1].size_in_byte);
+                      + pg->attrs[pg->num_of_attrs - 1].size_in_byte);
         }
     }
     pg->attrs[pg->num_of_attrs].offset = offset;
@@ -197,14 +191,13 @@ void spParticleAttributeName(struct spParticle_s *pg, int i, char *name)
 {
     if (i < pg->num_of_attrs) { strcpy(name, pg->attrs[i].name); }
 }
+
 /**
  *
  * @param sp
  */
 void spParticleSync(spParticle *sp)
 {
-
-
 
 
 //    MPI_Comm comm = spMPIComm();
@@ -514,6 +507,7 @@ void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], in
 //    spIOStreamOpen(os, curr_path);
 
 }
+
 void spParticleRead(struct spParticle_s *f, spIOStream *os, char const url[], int flag)
 {
 

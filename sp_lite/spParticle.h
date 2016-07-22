@@ -13,7 +13,8 @@
 #include "spPage.h"
 
 
-struct spPage_s;
+typedef size_type **spPageHaed;
+
 struct spMesh_s;
 
 struct spParticle_s;

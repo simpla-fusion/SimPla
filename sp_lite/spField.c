@@ -37,7 +37,7 @@ void spFieldDeploy(spField *f)
 {
     if (f->device_data == NULL)
     {
-        size_type num_of_entities = spMeshGetNumberOfEntity(f->m, f->iform);
+        size_type num_of_entities = spMeshNumberOfEntity(f->m, f->iform);
 
         spParallelDeviceAlloc((void **) &(f->device_data), num_of_entities * f->type_size_in_byte);
     }
@@ -47,14 +47,14 @@ void spFieldClear(spField *f)
 {
     spFieldDeploy(f);
 
-    size_type num_of_entities = spMeshGetNumberOfEntity(f->m, f->iform);
+    size_type num_of_entities = spMeshNumberOfEntity(f->m, f->iform);
 
     spParallelMemset(f->device_data, 0, num_of_entities * sizeof(Real));
 }
 
 void spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
 {
-    size_type size_in_byte = spMeshGetNumberOfEntity(f->m, f->iform) * sizeof(Real);
+    size_type size_in_byte = spMeshNumberOfEntity(f->m, f->iform) * sizeof(Real);
 
     void *f_host;
 
@@ -102,7 +102,7 @@ void spFieldSync(spField *f)
     count[3] = 3;
     MPI_Datatype mpi_dtype;
     spMPIDataTypeCreate(f->type_tag, f->type_size_in_byte, &mpi_dtype);
-    spNdArrayUpdateHalo(f->device_data, ndims, spMeshGetShape(f->m), start, NULL, count, NULL, mpi_dtype, spMPIComm());
+    spMPIUpdateNdArrayHalo(f->device_data, ndims, spMeshGetShape(f->m), start, NULL, count, NULL, mpi_dtype, spMPIComm());
     MPI_Type_free(&mpi_dtype);
 
 }

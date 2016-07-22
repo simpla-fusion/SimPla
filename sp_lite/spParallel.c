@@ -69,26 +69,26 @@ int testNdArrayUpdateHalo()
     int size = spMPISize();
 
     int buffer[25] = {
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank
+            rank, rank, rank, rank, rank,
+            rank, rank, rank, rank, rank,
+            rank, rank, rank, rank, rank,
+            rank, rank, rank, rank, rank,
+            rank, rank, rank, rank, rank
     };
 
     size_type dims[2] = {5, 5};
     size_type start[2] = {1, 1};
     size_type count[2] = {3, 3};
 
-    spNdArrayUpdateHalo(buffer, 2, dims, start, NULL, count, NULL, MPI_INT, comm);
+    spMPIUpdateNdArrayHalo(buffer, 2, dims, start, NULL, count, NULL, MPI_INT, comm);
 
 
     printf("\n"
-               "[%d/%d/%d] \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n", rank, size, 6,
+                   "[%d/%d/%d] \t  %d,%d,%d,%d,%d \n"
+                   "           \t  %d,%d,%d,%d,%d \n"
+                   "           \t  %d,%d,%d,%d,%d \n"
+                   "           \t  %d,%d,%d,%d,%d \n"
+                   "           \t  %d,%d,%d,%d,%d \n", rank, size, 6,
            buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
            buffer[5], buffer[6], buffer[7], buffer[8], buffer[9],
            buffer[10], buffer[11], buffer[12], buffer[13], buffer[14],
@@ -97,15 +97,15 @@ int testNdArrayUpdateHalo()
     );
 }
 
-int spNdArrayUpdateHalo(void *buffer,
-                        int ndims,
-                        const size_type *shape,
-                        const size_type *start,
-                        const size_type *stride,
-                        const size_type *count,
-                        const size_type *block,
-                        MPI_Datatype ele_type,
-                        MPI_Comm comm)
+int spMPIUpdateNdArrayHalo(void *buffer,
+                           int ndims,
+                           const size_type *shape,
+                           const size_type *start,
+                           const size_type *stride,
+                           const size_type *count,
+                           const size_type *block,
+                           MPI_Datatype ele_type,
+                           MPI_Comm comm)
 {
     {
         int tope_type = MPI_CART;
@@ -246,6 +246,69 @@ int spNdArrayUpdateHalo(void *buffer,
 
 }
 
+int spUpdateIndexdBlock(void const *send_buffer,
+                        int const *send_disp_s[],
+                        int const send_block_count[],
+                        void *recv_buffer,
+                        int const *recv_disp_s[],
+                        int const recv_block_count[],
+                        int block_length,
+                        MPI_Datatype ele_type,
+                        MPI_Comm comm)
+{
+    int tag = 0;
+    int mpi_topology_ndims = 0;
+    MPI_ERROR(MPI_Cartdim_get(comm, &mpi_topology_ndims));
+    int num_of_neighbour = mpi_topology_ndims * 2;
+    int mpi_sendrecv_count[num_of_neighbour];
+    MPI_Aint send_displs[num_of_neighbour], recv_displs[num_of_neighbour];
+
+    MPI_Datatype send_types[num_of_neighbour];
+    MPI_Datatype recv_types[num_of_neighbour];
+
+    for (int i = 0; i < mpi_topology_ndims; ++i)
+    {
+        MPI_Type_create_indexed_block(send_block_count[2 * i + 0],
+                                      block_length,
+                                      send_disp_s[2 * i + 0],
+                                      ele_type,
+                                      &send_types[2 * i + 0]);
+
+        MPI_Type_create_indexed_block(send_block_count[2 * i + 1],
+                                      block_length,
+                                      send_disp_s[2 * i + 1],
+                                      ele_type,
+                                      &send_types[2 * i + 1]);
+
+        MPI_Type_create_indexed_block(recv_block_count[2 * i + 0],
+                                      block_length,
+                                      send_disp_s[2 * i + 0],
+                                      ele_type,
+                                      &recv_types[2 * i + 0]);
+
+        MPI_Type_create_indexed_block(recv_block_count[2 * i + 1],
+                                      block_length,
+                                      send_disp_s[2 * i + 1],
+                                      ele_type,
+                                      &recv_types[2 * i + 1]);
+
+
+        mpi_sendrecv_count[2 * i + 0] = mpi_sendrecv_count[2 * i + 1] = 1;
+        send_displs[2 * i + 0] = recv_displs[2 * i + 0] = 0;
+        send_displs[2 * i + 1] = recv_displs[2 * i + 1] = 0;
+    }
+
+    spMPINeighborAllToAllCart(send_buffer, mpi_sendrecv_count, send_displs, send_types,
+                              recv_buffer, mpi_sendrecv_count, recv_displs, recv_types, comm);
+
+    for (int i = 0; i < num_of_neighbour; ++i)
+    {
+        MPI_Type_free(&send_types[i]);
+        MPI_Type_free(&recv_types[i]);
+    }
+
+}
+
 /**
  * MPI_Neighbor_alltoallw
  *
@@ -281,32 +344,32 @@ int spMPINeighborAllToAllCart(const void *send_buffer,
         MPI_ERROR(MPI_Cart_shift(comm, d, 1, &r0, &r1));
 
         MPI_ERROR(MPI_Sendrecv(
-            (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
-            send_counts[d],
-            send_types[d * 2 + 0],
-            r0,
-            tag,
-            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
-            recv_counts[d],
-            recv_types[d * 2 + 0],
-            r1,
-            tag,
-            comm,
-            MPI_STATUS_IGNORE));
+                (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
+                send_counts[d],
+                send_types[d * 2 + 0],
+                r0,
+                tag,
+                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
+                recv_counts[d],
+                recv_types[d * 2 + 0],
+                r1,
+                tag,
+                comm,
+                MPI_STATUS_IGNORE));
 
         MPI_ERROR(MPI_Sendrecv(
-            (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
-            send_counts[d],
-            send_types[d * 2 + 1],
-            r1,
-            tag,
-            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
-            recv_counts[d],
-            recv_types[d * 2 + 1],
-            r0,
-            tag,
-            comm,
-            MPI_STATUS_IGNORE));
+                (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
+                send_counts[d],
+                send_types[d * 2 + 1],
+                r1,
+                tag,
+                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
+                recv_counts[d],
+                recv_types[d * 2 + 1],
+                r0,
+                tag,
+                comm,
+                MPI_STATUS_IGNORE));
     }
 
     return MPI_SUCCESS;

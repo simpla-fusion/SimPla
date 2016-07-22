@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <math.h>
 extern "C" {
+#include </usr/local/cuda/include/cuda_runtime.h>
 
 
 #include "sp_lite_def.h"
@@ -167,14 +168,13 @@ __global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
     }
     __syncthreads();
 
-    dim3 block_idx = blockIdx;
-    dim3 grid_dims = gridDim;
+
 
     tag.x = (int16_t) (block_idx.x);
     tag.y = (int16_t) (block_idx.y);
     tag.z = (int16_t) (block_idx.z);
-    src = bucket[block_idx.x + (block_idx.y * grid_dims.z + block_idx.z) * grid_dims.z];
-    dest = bucket[block_idx.x + (block_idx.y * grid_dims.z + block_idx.z) * grid_dims.z];
+    src = bucket[blockIdx.x + (blockIdx.y * gridDim.z + blockIdx.z) * gridDim.z];
+    dest = bucket[blockIdx.x + (blockIdx.y * gridDim.z + blockIdx.z) * gridDim.z];
 
     for (int d_tail = 0, s_tail = 0;
 //         spParticleMapAndPack(nullptr, &dest, &src, &d_tail, &g_d_tail, &s_tail, &g_s_tail, pool, tag)!= SP_MP_FINISHED
