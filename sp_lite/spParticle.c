@@ -197,83 +197,118 @@ void spParticleAttributeName(struct spParticle_s *pg, int i, char *name)
 {
     if (i < pg->num_of_attrs) { strcpy(name, pg->attrs[i].name); }
 }
-
-void spParticleSyncStart(spParticle *sp)
+/**
+ *
+ * @param sp
+ */
+void spParticleSync(spParticle *sp)
 {
-    int num_of_neighbour = spMPITopologyNumOfNeighbours();
-
-//    MPI_Neighbor_allgather(&rank, 1, MPI_INT, buffer, 1, MPI_INT, spMPIComm());
 
     MPI_Comm comm = spMPIComm();
 
-    {
-        int topo_type;
-        MPI_Topo_test(comm, &topo_type);
-        assert(topo_type == MPI_CART);
-    }
+    int rank = spMPIRank();
 
-    int mpi_topology_ndims = 0;
+    int size = spMPISize();
 
+    int buffer[25] = {
+        rank, rank, rank, rank, rank,
+        rank, rank, rank, rank, rank,
+        rank, rank, rank, rank, rank,
+        rank, rank, rank, rank, rank,
+        rank, rank, rank, rank, rank
+    };
 
-    MPI_Cartdim_get(comm, &mpi_topology_ndims);
+    size_type dims[2] = {5, 5};
+    size_type start[2] = {1, 1};
+    size_type count[2] = {3, 3};
 
-    for (int i = 0; i < mpi_topology_ndims; ++i)
-    {
-
-        int r0, r1;
-        MPI_Cart_shift(spMPIComm(), 0, 1, &r0, &r1);
-
-        int request_count = 0;
-        MPI_Request requests[sp->num_of_attrs * 4];
-        int sizes[mpi_topology_ndims];
-
-        MPI_Aint send_displaces[mpi_topology_ndims * 2];
-        MPI_Aint recv_displaces[mpi_topology_ndims * 2];
+    spNdArrayUpdateHalo(buffer, 2, dims, start, NULL, count, NULL, MPI_INT, comm);
 
 
-        for (int j = 0; j < sp->num_of_attrs; ++j)
-        {
+    printf("\n"
+               "[%d/%d/%d] \t  %d,%d,%d,%d,%d \n"
+               "           \t  %d,%d,%d,%d,%d \n"
+               "           \t  %d,%d,%d,%d,%d \n"
+               "           \t  %d,%d,%d,%d,%d \n"
+               "           \t  %d,%d,%d,%d,%d \n", rank, size, 6,
+           buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
+           buffer[5], buffer[6], buffer[7], buffer[8], buffer[9],
+           buffer[10], buffer[11], buffer[12], buffer[13], buffer[14],
+           buffer[15], buffer[16], buffer[17], buffer[18], buffer[19],
+           buffer[20], buffer[21], buffer[22], buffer[23], buffer[24]
+    );
 
-            MPI_Isend(send_displaces[i * 2],
-                      1,
-                      x_dir_type,
-                      r0,
-                      j,
-                      spMPIComm(), &requests[request_count]);
-            ++request_count;
 
-            MPI_Irecv(recv_displaces[i * 2],
-                      1,
-                      x_dir_type,
-                      r0,
-                      j,
-                      spMPIComm(), &requests[request_count]);
-
-            ++request_count;
-
-            MPI_Isend(send_displaces[i * 2 + 1],
-                      1,
-                      x_dir_type,
-                      r1,
-                      j,
-                      spMPIComm(), &requests[request_count]);
-
-            ++request_count;
-            MPI_Irecv(recv_displaces[i * 2 + 1],
-                      1,
-                      x_dir_type,
-                      r1,
-                      j,
-                      spMPIComm(), &requests[request_count]);
-            ++request_count;
-        }
-
-        MPI_Waitall(request_count, requests, MPI_STATUS_IGNORE);
-
-    }
-
-//    free(buffer);
-
+//    MPI_Comm comm = spMPIComm();
+//
+//    {
+//        int topo_type;
+//        MPI_Topo_test(comm, &topo_type);
+//        assert(topo_type == MPI_CART);
+//    }
+//
+//    int mpi_topology_ndims = 0;
+//
+//
+//    MPI_Cartdim_get(comm, &mpi_topology_ndims);
+//
+//    for (int i = 0; i < mpi_topology_ndims; ++i)
+//    {
+//
+//        int r0, r1;
+//        MPI_Cart_shift(spMPIComm(), 0, 1, &r0, &r1);
+//
+//        int request_count = 0;
+//        MPI_Request requests[sp->num_of_attrs * 4];
+//        int sizes[mpi_topology_ndims];
+//
+//        MPI_Aint send_displaces[mpi_topology_ndims * 2];
+//        MPI_Aint recv_displaces[mpi_topology_ndims * 2];
+//
+//
+//        for (int j = 0; j < sp->num_of_attrs; ++j)
+//        {
+//
+//            MPI_Isend(send_displaces[i * 2],
+//                      1,
+//                      x_dir_type,
+//                      r0,
+//                      j,
+//                      spMPIComm(), &requests[request_count]);
+//            ++request_count;
+//
+//            MPI_Irecv(recv_displaces[i * 2],
+//                      1,
+//                      x_dir_type,
+//                      r0,
+//                      j,
+//                      spMPIComm(), &requests[request_count]);
+//
+//            ++request_count;
+//
+//            MPI_Isend(send_displaces[i * 2 + 1],
+//                      1,
+//                      x_dir_type,
+//                      r1,
+//                      j,
+//                      spMPIComm(), &requests[request_count]);
+//
+//            ++request_count;
+//            MPI_Irecv(recv_displaces[i * 2 + 1],
+//                      1,
+//                      x_dir_type,
+//                      r1,
+//                      j,
+//                      spMPIComm(), &requests[request_count]);
+//            ++request_count;
+//        }
+//
+//        MPI_Waitall(request_count, requests, MPI_STATUS_IGNORE);
+//
+//    }
+//
+//    free(send_buffer);
+//
 //    int num_of_pages_send[MAX_NUM_OF_NEIGHBOUR];
 //    int num_of_pages_recv[MAX_NUM_OF_NEIGHBOUR];
 //
@@ -298,13 +333,13 @@ void spParticleSyncStart(spParticle *sp)
 //        int offset[3];
 //
 //        if (spMeshGetDomain(sp->m, i, lower, upper, offset) == 0) { continue; }
-////        if (spMPITopologyNeighbours(offset) == spMPIRank()) { continue; }
+//       if (spMPITopologyNeighbours(offset) == spMPIRank()) { continue; }
 //
 //        int dest = 0, send_tag = 0, recv_tag;
 //
 //        spMPIMakeSendRecvTag(sp->id, offset, &dest, &send_tag, &recv_tag);
 //
-////        num_of_pages_send[i] = (int) spParticlePageExpand(sp, lower, upper, 1024, &(page_offset_send[i]));
+//        num_of_pages_send[i] = (int) spParticlePageExpand(sp, lower, upper, 1024, &(page_offset_send[i]));
 //
 //
 //        MPI_ERROR(MPI_Isend(&(num_of_pages_send[i]),
@@ -328,7 +363,7 @@ void spParticleSyncStart(spParticle *sp)
 //    }
 //
 //    MPI_ERROR(MPI_Waitall(sp->sync_reqs.num_reqs, sp->sync_reqs.requests, MPI_STATUS_IGNORE));
-
+//
 //
 //    for (int i = 0; i < MAX_NUM_OF_NEIGHBOUR; ++i)
 //    {
@@ -404,17 +439,6 @@ void spParticleSyncStart(spParticle *sp)
 //    }
 }
 
-void spParticleSyncEnd(spParticle *sp)
-{
-//    MPI_Waitall(sp->sync_reqs.num_reqs, sp->sync_reqs.requests, MPI_STATUS_IGNORE);
-
-}
-
-void spParticleSync(spParticle *sp)
-{
-    spParticleSyncStart(sp);
-    spParticleSyncEnd(sp);
-}
 
 
 

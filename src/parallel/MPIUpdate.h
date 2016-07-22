@@ -24,6 +24,15 @@ void wait_all_request(std::vector<MPI_Request> &requests);
 
 std::tuple<int, int, int> get_mpi_tag(int obj_id, int const *coord);
 
+int sp_MPI_Neighbor_alltoall_cart(const void *send_buffer,
+                                  const int send_counts[],
+                                  const MPI_Aint send_displs[],
+                                  const MPI_Datatype send_types[],
+                                  void *recv_buffer,
+                                  const int recv_counts[],
+                                  const MPI_Aint recv_displs[],
+                                  const MPI_Datatype recv_types[],
+                                  MPI_Comm comm);
 void ndarray_update_ghost(void *buffer,
                           int ndims,
                           size_type const *dims,
@@ -34,7 +43,6 @@ void ndarray_update_ghost(void *buffer,
                           int tag,
                           MPI_Datatype ele_type,
                           MPI_Comm comm);
-
 //template<typename Integral>
 //std::tuple<Integral, Integral> sync_global_location(MPIComm &mpi_comm, Integral count)
 //{

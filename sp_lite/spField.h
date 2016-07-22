@@ -13,11 +13,13 @@
 
 typedef struct spField_s
 {
-	SP_OBJECT_HEAD
-	const struct spMesh_s * m;
-	int iform;
-	Real * device_data;
-	Real * host_data;
+    SP_OBJECT_HEAD
+    const struct spMesh_s *m;
+    int iform;
+    int type_tag;
+    int type_size_in_byte;
+    Real *device_data;
+    Real *host_data;
 } spField;
 
 void spFieldCreate(const struct spMesh_s *ctx, spField **f, int iform);
@@ -28,9 +30,9 @@ void spFieldDeploy(spField *f);
 
 void spFieldClear(spField *f);
 
-void spFieldWrite(spField *f, spIOStream * os, char const name[], int flag);
+void spFieldWrite(spField *f, spIOStream *os, char const name[], int flag);
 
-void spFieldRead(spField * f, spIOStream * os, char const name[], int flag);
+void spFieldRead(spField *f, spIOStream *os, char const name[], int flag);
 
 void spFieldSync(spField *f);
 

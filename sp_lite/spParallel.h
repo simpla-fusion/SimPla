@@ -20,7 +20,6 @@ void spParallelFinalize();
 #   include "spParallelCPU.h"
 #endif
 
-void spMPIDataTypeCreate(int count, int *array_of_displacements, int type_tag, MPI_Datatype *new_type);
 
 #define MPI_ERROR(_CMD_)                                                   \
 {                                                                          \
@@ -33,5 +32,27 @@ void spMPIDataTypeCreate(int count, int *array_of_displacements, int type_tag, M
     }                                                                      \
 }
 
+
+int spMPIDataTypeCreate(int type_tag, int typesize_in_byte, MPI_Datatype *new_type);
+
+int spMPINeighborAllToAllCart(const void *send_buffer,
+                              const int *send_counts,
+                              const MPI_Aint *send_displs,
+                              MPI_Datatype const *send_types,
+                              void *recv_buffer,
+                              const int *recv_counts,
+                              const MPI_Aint *recv_displs,
+                              MPI_Datatype const *recv_types,
+                              MPI_Comm comm);
+
+int spNdArrayUpdateHalo(void *buffer,
+                        int ndims,
+                        const size_type *dims,
+                        const size_type *start,
+                        const size_type *,
+                        const size_type *count,
+                        const size_type *,
+                        MPI_Datatype ele_type,
+                        MPI_Comm comm);
 
 #endif //SIMPLA_SPPARALLEL_H

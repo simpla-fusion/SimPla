@@ -69,55 +69,42 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
     return std::make_tuple(begin, count);
 }
 
-void ndarray_update_ghost(void *buffer,
-                          int ndims,
-                          size_type const *dims,
-                          size_type const *start,
-                          size_type const *,
-                          size_type const *count,
-                          size_type const *,
-                          int tag,
-                          MPI_Datatype ele_type,
-                          MPI_Comm comm)
-{
-
-
-    {
-        int topo_type;
-        MPI_Topo_test(comm, &topo_type);
-        assert(topo_type == MPI_CART);
-    }
-
-    int mpi_topology_ndims = 0;
-
-    MPI_Datatype d_type[3];
-    MPI_Type_contiguous(3, MPI_INT, &d_type[0]);
-    MPI_Type_commit(&d_type[0]);
-
-    MPI_Type_vector(5, 1, 5, MPI_INT, &d_type[1]);
-    MPI_Type_commit(&d_type[1]);
-
-
-    MPI_Cartdim_get(comm, &mpi_topology_ndims);
-
-    int sizes[mpi_topology_ndims];
-    MPI_Aint send_displaces[mpi_topology_ndims * 2];
-    MPI_Aint recv_displaces[mpi_topology_ndims * 2];
-
-    for (int i = 0; i < mpi_topology_ndims; ++i)
-    {
-        int r0, r1;
-
-        MPI_Cart_shift(comm, i, 1, &r0, &r1);
-
-        MPI_Sendrecv(buffer + send_displaces[i * 2], 1, d_type[i], r0, tag,
-                     buffer + recv_displaces[i * 2], 1, d_type[i], r1, tag,
-                     comm, MPI_STATUS_IGNORE);
-
-        MPI_Sendrecv(buffer + send_displaces[i * 2 + 1], 1, d_type[i], r1, tag,
-                     buffer + recv_displaces[i * 2 + 1], 1, d_type[i], r0, tag,
-                     comm, MPI_STATUS_IGNORE);
-    }
+//    {
+//        int topo_type;
+//        MPI_Topo_test(comm, &topo_type);
+//        assert(topo_type == MPI_CART);
+//    }
+//
+//    int mpi_topology_ndims = 0;
+//
+//    MPI_Datatype d_type[3];
+//    MPI_Type_contiguous(3, MPI_INT, &d_type[0]);
+//    MPI_Type_commit(&d_type[0]);
+//
+//    MPI_Type_vector(5, 1, 5, MPI_INT, &d_type[1]);
+//    MPI_Type_commit(&d_type[1]);
+//
+//
+//    MPI_Cartdim_get(comm, &mpi_topology_ndims);
+//
+//    int sizes[mpi_topology_ndims];
+//    MPI_Aint send_displaces[mpi_topology_ndims * 2];
+//    MPI_Aint recv_displaces[mpi_topology_ndims * 2];
+//
+//    for (int i = 0; i < mpi_topology_ndims; ++i)
+//    {
+//        int r0, r1;
+//
+//        MPI_Cart_shift(comm, i, 1, &r0, &r1);
+//
+//        MPI_Sendrecv(buffer + send_displaces[i * 2], 1, d_type[i], r0, tag,
+//                     buffer + recv_displaces[i * 2], 1, d_type[i], r1, tag,
+//                     comm, MPI_STATUS_IGNORE);
+//
+//        MPI_Sendrecv(buffer + send_displaces[i * 2 + 1], 1, d_type[i], r1, tag,
+//                     buffer + recv_displaces[i * 2 + 1], 1, d_type[i], r0, tag,
+//                     comm, MPI_STATUS_IGNORE);
+//    }
 
 
 
@@ -136,8 +123,8 @@ void ndarray_update_ghost(void *buffer,
 //
 
 
-    //******************************************************************************************************************
-    // Async
+//******************************************************************************************************************
+// Async
 //    int r0, r1;
 //    MPI_Request requests[4];
 //
@@ -199,7 +186,7 @@ void ndarray_update_ghost(void *buffer,
 //              spMPIComm(), &requests[3]);
 //
 //    MPI_Waitall(4, requests, MPI_STATUS_IGNORE);
-    //******************************************************************************************************************
+//******************************************************************************************************************
 
 //    int buffer[9] = {
 //        0, 0, 0,
@@ -364,12 +351,6 @@ void ndarray_update_ghost(void *buffer,
 
 
 
-
-
-
-
-
-};
 
 
 //

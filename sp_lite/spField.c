@@ -15,19 +15,19 @@ void spFieldCreate(const spMesh *mesh, spField **f, int iform)
     *f = (spField *) malloc(sizeof(spField));
     (*f)->m = mesh;
     (*f)->iform = iform;
+    (*f)->type_tag = SP_TYPE_Real;
+    (*f)->type_size_in_byte = sizeof(Real);
     (*f)->host_data = NULL;
     (*f)->device_data = NULL;
+
 }
 
 void spFieldDestroy(spField **f)
 {
     if (f != NULL && *f != NULL)
     {
-
         spParallelDeviceFree((void **) (&((**f).device_data)));
-
         spParallelHostFree((void **) (&((**f).host_data)));
-
         free(*f);
         *f = NULL;
     }
@@ -39,7 +39,7 @@ void spFieldDeploy(spField *f)
     {
         size_type num_of_entities = spMeshGetNumberOfEntity(f->m, f->iform);
 
-        spParallelDeviceAlloc((void **) &(f->device_data), num_of_entities * sizeof(Real));
+        spParallelDeviceAlloc((void **) &(f->device_data), num_of_entities * f->type_size_in_byte);
     }
 }
 
@@ -91,5 +91,18 @@ void spFieldRead(spField *f, spIOStream *os, char const name[], int flag)
 
 void spFieldSync(spField *f)
 {
+
+    size_type start[4];
+    size_type count[4];
+
+    int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;
+
+    spMeshGetDomain(f->m, SP_DOMAIN_CENTER, start, count, NULL);
+    start[3] = 0;
+    count[3] = 3;
+    MPI_Datatype mpi_dtype;
+    spMPIDataTypeCreate(f->type_tag, f->type_size_in_byte, &mpi_dtype);
+    spNdArrayUpdateHalo(f->device_data, ndims, spMeshGetShape(f->m), start, NULL, count, NULL, mpi_dtype, spMPIComm());
+    MPI_Type_free(&mpi_dtype);
 
 }
