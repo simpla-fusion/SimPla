@@ -233,8 +233,8 @@ int spMPIUpdateNdArrayHalo(void *buffer,
     }
 
 
-    spMPINeighborAllToAllCart(buffer, mpi_sendrecv_count, send_displs, send_types,
-                              buffer, mpi_sendrecv_count, recv_displs, recv_types, comm);
+    spMPINeighborAllToAll(buffer, mpi_sendrecv_count, send_displs, send_types,
+                          buffer, mpi_sendrecv_count, recv_displs, recv_types, comm);
 
     for (int i = 0; i < num_of_neighbour; ++i)
     {
@@ -246,15 +246,15 @@ int spMPIUpdateNdArrayHalo(void *buffer,
 
 }
 
-int spUpdateIndexdBlock(void const *send_buffer,
-                        int const *send_disp_s[],
-                        int const send_block_count[],
-                        void *recv_buffer,
-                        int const *recv_disp_s[],
-                        int const recv_block_count[],
-                        int block_length,
-                        MPI_Datatype ele_type,
-                        MPI_Comm comm)
+int spUpdateIndexedBlock(void const *send_buffer,
+                         const int **send_disp_s,
+                         const int *send_block_count,
+                         void *recv_buffer,
+                         const int **recv_disp_s,
+                         const int *recv_block_count,
+                         int block_length,
+                         MPI_Datatype ele_type,
+                         MPI_Comm comm)
 {
     int tag = 0;
     int mpi_topology_ndims = 0;
@@ -298,15 +298,15 @@ int spUpdateIndexdBlock(void const *send_buffer,
         send_displs[2 * i + 1] = recv_displs[2 * i + 1] = 0;
     }
 
-    spMPINeighborAllToAllCart(send_buffer, mpi_sendrecv_count, send_displs, send_types,
-                              recv_buffer, mpi_sendrecv_count, recv_displs, recv_types, comm);
+    spMPINeighborAllToAll(send_buffer, mpi_sendrecv_count, send_displs, send_types,
+                          recv_buffer, mpi_sendrecv_count, recv_displs, recv_types, comm);
 
     for (int i = 0; i < num_of_neighbour; ++i)
     {
         MPI_Type_free(&send_types[i]);
         MPI_Type_free(&recv_types[i]);
     }
-
+    return MPI_SUCCESS;
 }
 
 /**
@@ -323,16 +323,21 @@ int spUpdateIndexdBlock(void const *send_buffer,
  * @param comm
  * @return
  */
-int spMPINeighborAllToAllCart(const void *send_buffer,
-                              const int *send_counts,
-                              const MPI_Aint *send_displs,
-                              MPI_Datatype const *send_types,
-                              void *recv_buffer,
-                              const int *recv_counts,
-                              const MPI_Aint *recv_displs,
-                              MPI_Datatype const *recv_types,
-                              MPI_Comm comm)
+int spMPINeighborAllToAll(const void *send_buffer,
+                          const int *send_counts,
+                          const MPI_Aint *send_displs,
+                          MPI_Datatype const *send_types,
+                          void *recv_buffer,
+                          const int *recv_counts,
+                          const MPI_Aint *recv_displs,
+                          MPI_Datatype const *recv_types,
+                          MPI_Comm comm)
 {
+    {
+        int tope_type = MPI_CART;
+        MPI_ERROR(MPI_Topo_test(comm, &tope_type));
+        assert(tope_type == MPI_CART);
+    }
     int tag = 0;
     int mpi_topology_ndims = 0;
     MPI_ERROR(MPI_Cartdim_get(comm, &mpi_topology_ndims));

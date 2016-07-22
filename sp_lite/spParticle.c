@@ -53,7 +53,7 @@ struct spParticle_s
 
     struct spParticleAttrEntity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
-    struct spParticleData_s *m_data_device_; // DEVICE
+    void **m_data_device_; // DEVICE
 
     size_type max_number_of_pages;
     struct MeshEntityId *m_ids_;
@@ -198,8 +198,31 @@ void spParticleAttributeName(struct spParticle_s *pg, int i, char *name)
  */
 void spParticleSync(spParticle *sp)
 {
+    int **send_disp_s = NULL;
+    int *send_block_count = NULL;
+    int **recv_disp_s = NULL;
+    int *recv_block_count = NULL;
+    int block_length = SP_NUMBER_OF_ENTITIES_IN_PAGE;
+    MPI_Comm comm = spMPIComm();
 
+    for (int i = 0; i < sp->num_of_attrs; ++i)
+    {
+        MPI_Datatype ele_type;
 
+        spMPIDataTypeCreate(sp->attrs[i].type_tag, (int) (sp->attrs[i].size_in_byte), &ele_type);
+
+        spUpdateIndexedBlock(sp->m_data_device_[i],
+                             (int const **) send_disp_s,
+                             send_block_count,
+                             sp->m_data_device_[i],
+                             (int const **) recv_disp_s,
+                             recv_block_count,
+                             block_length,
+                             ele_type,
+                             comm);
+
+        MPI_Type_free(&ele_type);
+    }
 //    MPI_Comm comm = spMPIComm();
 //
 //    {
