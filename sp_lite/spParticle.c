@@ -204,39 +204,7 @@ void spParticleAttributeName(struct spParticle_s *pg, int i, char *name)
 void spParticleSync(spParticle *sp)
 {
 
-    MPI_Comm comm = spMPIComm();
 
-    int rank = spMPIRank();
-
-    int size = spMPISize();
-
-    int buffer[25] = {
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank
-    };
-
-    size_type dims[2] = {5, 5};
-    size_type start[2] = {1, 1};
-    size_type count[2] = {3, 3};
-
-    spNdArrayUpdateHalo(buffer, 2, dims, start, NULL, count, NULL, MPI_INT, comm);
-
-
-    printf("\n"
-               "[%d/%d/%d] \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n", rank, size, 6,
-           buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
-           buffer[5], buffer[6], buffer[7], buffer[8], buffer[9],
-           buffer[10], buffer[11], buffer[12], buffer[13], buffer[14],
-           buffer[15], buffer[16], buffer[17], buffer[18], buffer[19],
-           buffer[20], buffer[21], buffer[22], buffer[23], buffer[24]
-    );
 
 
 //    MPI_Comm comm = spMPIComm();

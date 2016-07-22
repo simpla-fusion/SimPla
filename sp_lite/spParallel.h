@@ -6,8 +6,6 @@
 #define SIMPLA_SPPARALLEL_H
 
 #include "sp_lite_def.h"
-#include </usr/local/cuda/include/cuda_runtime.h>
-
 
 void spParallelInitialize(int argc, char **argv);
 
@@ -15,6 +13,7 @@ void spParallelFinalize();
 
 
 #ifdef HAS_CUDA
+#include </usr/local/cuda/include/cuda_runtime.h>
 #   include "spParallelCUDA.h"
 #else
 #   include "spParallelCPU.h"
@@ -33,7 +32,7 @@ void spParallelFinalize();
 }
 
 
-int spMPIDataTypeCreate(int type_tag, int typesize_in_byte, MPI_Datatype *new_type);
+int spMPIDataTypeCreate(int type_tag, int type_size_in_byte, MPI_Datatype *new_type);
 
 int spMPINeighborAllToAllCart(const void *send_buffer,
                               const int *send_counts,
