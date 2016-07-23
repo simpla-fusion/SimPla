@@ -64,7 +64,6 @@ struct spParticle_s
 
     size_type m_size_of_fiber_;
     size_type m_length_of_fiber_;
-
     MPI_Datatype m_fiber_mpi_type_;
     hid_t m_fiber_hdf5_type;
 
@@ -105,7 +104,6 @@ int spParticleDestroy(spParticle **sp)
         if ((*sp)->m_fiber_mpi_type_ != MPI_DATATYPE_NULL) { MPI_Type_free(&((*sp)->m_fiber_mpi_type_)); }
 
         if ((*sp)->m_fiber_hdf5_type != H5T_NO_CLASS) { H5Tclose((*sp)->m_fiber_hdf5_type); }
-
         spParallelHostFree(sp);
 
     }

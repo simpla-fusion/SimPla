@@ -37,14 +37,6 @@ int spBorisYeeParticleCreate(spMesh const *m, spParticle **sp)
     return SP_SUCCESS;
 }
 
-//int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho,
-//                             spField *fJ)
-//{
-//    if (sp == NULL) { return SP_FAILED; }
-//    int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho, spField *fJ)
-//
-//    return SP_SUCCESS;
-//};
 
 int spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB)
 {
