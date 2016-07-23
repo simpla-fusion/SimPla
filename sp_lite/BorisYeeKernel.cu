@@ -6,7 +6,8 @@
 #include <math.h>
 extern "C" {
 #include </usr/local/cuda/include/cuda_runtime.h>
-
+#include </usr/local/cuda/include/device_launch_parameters.h>
+#include </usr/local/cuda/include/device_functions_decls.h>
 
 #include "sp_lite_def.h"
 

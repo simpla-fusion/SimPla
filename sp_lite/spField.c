@@ -9,6 +9,7 @@
 #include "spParallel.h"
 #include "spMesh.h"
 #include "spField.h"
+#include "spIO.h"
 
 void spFieldCreate(const spMesh *mesh, spField **f, int iform)
 {
@@ -79,7 +80,7 @@ void spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     start[3] = 0;
     count[3] = 3;
 
-    spIOStreamWriteSimple(os, name, SP_TYPE_Real, f_host, ndims, shape, start, NULL, count, NULL, flag);
+    spIOWriteSimple(os, name, SP_TYPE_Real, f_host, ndims, shape, start, NULL, count, NULL, flag);
 
     spParallelHostFree(&f_host);
 }
@@ -97,21 +98,19 @@ void spFieldSync(spField *f)
     size_type shape[4];
 
     int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;
+
     spMeshDomain(f->m, SP_DOMAIN_CENTER, start, count, shape, NULL);
+
     start[3] = 0;
     count[3] = 3;
     shape[3] = 3;
+
     MPI_Datatype mpi_dtype;
+
     spMPIDataTypeCreate(f->type_tag, f->type_size_in_byte, &mpi_dtype);
-    spMPIUpdateNdArrayHalo(f->device_data,
-                           ndims,
-                           shape,
-                           start,
-                           NULL,
-                           count,
-                           NULL,
-                           mpi_dtype,
-                           spMPIComm());
+
+    spMPIUpdateNdArrayHalo(f->device_data, ndims, shape, start, NULL, count, NULL, mpi_dtype, spMPIComm());
+
     MPI_Type_free(&mpi_dtype);
 
 }

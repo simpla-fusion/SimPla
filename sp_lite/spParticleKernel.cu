@@ -140,12 +140,13 @@ spParticleDumpPageCount(size_type const *page_count, dim3 dims, dim3 offset, siz
         page_count[offset.x + THREAD_X + (offset.y + THREAD_Y + (offset.z + THREAD_Z) * dims.y) * dims.x];
 }
 __global__ void
-spParticleDumpPageOffset(spParticlePage const **base,
-                         size_type *page_offset,
-                         dim3 dims,
-                         dim3 offset,
-                         spParticlePage const *root,
-                         size_type *out)
+spParticleDumpPageOffsetKernel(spParticlePage const **base,
+                               size_type *page_offset,
+                               dim3 dims,
+                               dim3 offset,
+                               spParticlePage const *root,
+                               MeshEntityId *page_id,
+                               size_type *out)
 {
     size_type it = THREAD_X + (THREAD_Y + THREAD_Z * DIMS_X) * DIMS_Y;
 
@@ -164,6 +165,7 @@ spParticleGetPageOffset(spParticle *sp,
                         size_type const lower[3],
                         size_type const upper[3],
                         size_type *num_of_page,
+                        MeshEntityId **page_id,
                         size_type **data_displs)
 {
 
@@ -174,6 +176,7 @@ spParticleGetPageOffset(spParticle *sp,
     count[1] = upper[1] - lower[1];
     count[2] = upper[2] - lower[2];
 
+
     size_type *page_offset_d;
 
     size_type *page_offset_h;
@@ -181,8 +184,7 @@ spParticleGetPageOffset(spParticle *sp,
     size_type num_of_cell = count[0] * count[1] * count[2];
 
     spParallelDeviceAlloc(&page_offset_d, sizeof(size_type) * num_of_cell);
-
-    spParallelHostAlloc(&page_offset_d, sizeof(size_type) * num_of_cell + 1);
+    spParallelHostAlloc(&page_offset_h, sizeof(size_type) * num_of_cell + 1);
 
     LOAD_KERNEL(spParticleDumpPageCount,
                 sizeType2Dim3(count), 1,
@@ -202,25 +204,32 @@ spParticleGetPageOffset(spParticle *sp,
     *num_of_page = page_offset_h[num_of_cell];
 
     size_type *disp_d;
+    MeshEntityId *page_id_d;
 
     spParallelDeviceAlloc(&disp_d, sizeof(size_type) * (*num_of_page));
+    spParallelDeviceAlloc(&page_id_d, sizeof(MeshEntityId) * (*num_of_page));
 
 
-    LOAD_KERNEL(spParticleDumpPageOffset,
+    LOAD_KERNEL(spParticleDumpPageOffsetKernel,
                 sizeType2Dim3(count), 1,
                 (spParticlePage const **) spParticleBaseField(sp),
                 page_offset_d,
                 sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
                 sizeType2Dim3(lower),
                 (spParticlePage const *) spParticleDataRoot(sp),
+                page_id_d,
                 disp_d);
 
 
     spParallelHostAlloc(data_displs, sizeof(size_type) * (*num_of_page));
+    spParallelMemcpy(*data_displs, disp_d, sizeof(size_type) * (*num_of_page));
 
-    spParallelMemcpy(*data_displs, disp_d, sizeof(size_type) * num_of_cell);
+
+    spParallelHostAlloc(page_id, sizeof(MeshEntityId) * (*num_of_page));
+    spParallelMemcpy(*page_id, page_id_d, sizeof(MeshEntityId) * (*num_of_page));
 
     spParallelDeviceFree(&disp_d);
+    spParallelDeviceFree(&page_id_d);
     spParallelDeviceFree(&page_offset_d);
     spParallelHostFree(&page_offset_h);
 

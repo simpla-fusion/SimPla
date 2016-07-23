@@ -32,7 +32,7 @@ void spParallelFinalize();
 
 int spMPITopologyNDims();
 
-int spMPIDataTypeCreate(int type_tag, int type_size_in_byte, MPI_Datatype *new_type);
+int spMPIDataTypeCreate(int type_tag, size_type type_size_in_byte, MPI_Datatype *new_type);
 
 int spMPINeighborAllToAll(const void *send_buffer,
                           const int *send_counts,

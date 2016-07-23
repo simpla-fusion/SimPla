@@ -15,7 +15,7 @@ int spBorisYeeParticleCreate(spMesh const *m, spParticle **sp)
 
     // particle page head
 
-    SP_PARTICLE_ATTR_HEAD((*sp), boris_particle)
+    SP_PARTICLE_ADD_ATTR_HEAD((*sp), boris_particle)
     SP_PARTICLE_ADD_ATTR((*sp), boris_particle, Real, vz);
     SP_PARTICLE_ADD_ATTR((*sp), boris_particle, Real, vz);
     SP_PARTICLE_ADD_ATTR((*sp), boris_particle, Real, vz);

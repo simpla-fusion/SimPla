@@ -38,7 +38,7 @@ int spMPITopologyNDims()
     return mpi_topology_ndims;
 };
 
-int spMPIDataTypeCreate(int type_tag, int type_size_in_byte, MPI_Datatype *new_type)
+int spMPIDataTypeCreate(int type_tag, size_type type_size_in_byte, MPI_Datatype *new_type)
 {
     *new_type = MPI_BYTE;
     switch (type_tag)
