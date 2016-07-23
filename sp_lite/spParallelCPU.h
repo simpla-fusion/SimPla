@@ -4,6 +4,7 @@
 
 #ifndef SIMPLA_SPPARALLELCPU_H
 #define SIMPLA_SPPARALLELCPU_H
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -25,5 +26,8 @@
 
 #define spParallelDeviceSync()  {MPI_Barrier(MPI_COMM_WORLD);}
 
-
+typedef struct Real3_s
+{
+    Real x, y, z;
+} Real3;
 #endif //SIMPLA_SPPARALLELCPU_H

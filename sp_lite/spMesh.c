@@ -176,6 +176,13 @@ void spMeshGetBox(spMesh const *m, Real *lower, Real *upper)
     }
 };
 
+void spMeshGetDx(spMesh const *m, Real *dx)
+{
+    dx[0] = m->dx[0];
+    dx[1] = m->dx[1];
+    dx[2] = m->dx[2];
+}
+
 int spMeshDomain(spMesh const *m, int tag, size_type *shape, size_type *lower, size_type *upper, int *o)
 {
 

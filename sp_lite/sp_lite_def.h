@@ -29,7 +29,6 @@
 #define SP_FALSE 0
 #define SP_TRUE  1
 
-#define SP_NUMBER_OF_ENTITIES_IN_PAGE 128
 
 
 #endif /* SP_DEF_LITE_H_ */

@@ -13,9 +13,11 @@
 #ifndef NUMBER_OF_THREADS_PER_BLOCK
 #	define NUMBER_OF_THREADS_PER_BLOCK 128
 #endif //NUMBER_OF_THREADS_PER_BLOCK
-
-
-
+#ifdef USE_FLOAT_REAL
+typedef float3 Real3;
+#else
+typedef double3 Real3;
+#endif
 //#define spParallelBlockNum()  ( blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x)
 //
 //#define spParallelNumOfBlocks() ( gridDim.x * gridDim.y * gridDim.z)
@@ -72,4 +74,6 @@ extern inline dim3 sizeType2Dim3(size_type const *v)
     res.z = (int) v[2];
     return res;
 }
+
+
 #endif //SIMPLA_SPPARALLEL_CU_H
