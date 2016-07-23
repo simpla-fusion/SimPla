@@ -4,6 +4,7 @@
 
 #ifndef SIMPLA_SPIO_H
 #define SIMPLA_SPIO_H
+
 #include "sp_lite_def.h"
 #include <H5Ipublic.h>
 #include <hdf5.h>
@@ -18,17 +19,4 @@ void spIOWriteSimple(spIOStream *os, const char *url,
                      size_type const *block,
                      int flag);
 
-void spIOWriteIndexedBlockSimple(
-    spIOStream *os,
-    int num,
-    const char **url,
-    int d_type[],
-    void **d,
-    int num_of_block,
-    size_type block_length,
-    size_type const *offset,
-    int flag)
-{
-
-};
 #endif //SIMPLA_SPIO_H

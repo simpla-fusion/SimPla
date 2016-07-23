@@ -34,7 +34,6 @@ int spBorisYeeParticleCreate(spMesh const *m, spParticle **sp)
 //	spUpdateParticleBorisScatterBlockKernel<<< sp->m->topology_dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
 //			(fRho->device_data), ( fJ->device_data));
 
-
     return SP_SUCCESS;
 }
 
@@ -45,6 +44,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 
     return SP_SUCCESS;
 };
+
 int spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB)
 {
     if (ctx == NULL) { return SP_FAILED; }
