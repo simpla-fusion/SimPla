@@ -10,21 +10,20 @@
 #include "spField.h"
 
 
-typedef struct boris_data_s
+typedef struct boris_particle_s
 {
-    SP_PARTICLE_DATA_HEAD
+    SP_PARTICLE_HEAD
+    SP_PARTICLE_ATTR(Real, vx)
+    SP_PARTICLE_ATTR(Real, vy)
+    SP_PARTICLE_ATTR(Real, vz)
+    SP_PARTICLE_ATTR(Real, f)
+    SP_PARTICLE_ATTR(Real, w)
 
-    Real *vx;
-    Real *vy;
-    Real *vz;
+} boris_particle;
 
-    Real *f;
-    Real *w;
-} boris_data;
+void spBorisYeeParticleCreate(spParticle **sp, spMesh const *m, size_type NUM_OF_PIC);
 
-void spBorisYeeInitializeParticle(spParticle *pg, size_type NUM_OF_PIC);
-
-void spBorisYeeUpdateParticle(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho,
+void spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho,
                               spField *fJ);
 
 void spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB);

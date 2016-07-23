@@ -38,6 +38,4 @@ CUDA_ADD_LIBRARY(sp_lite_cu ${sp_lite_SRC_CU})
 
 FILE(GLOB sp_lite_SRC ./*.c)
 ADD_EXECUTABLE(sp_lite ${sp_lite_SRC})
-TARGET_LINK_LIBRARIES(sp_lite sp_capi
-#        sp_lite_cu
-        )
+TARGET_LINK_LIBRARIES(sp_lite sp_capi sp_lite_cu)

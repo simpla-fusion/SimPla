@@ -54,11 +54,8 @@ int main(int argc, char **argv)
     spFieldClear(fB);
     spFieldClear(fJ);
     spFieldClear(fRho);
-    size_type NUMBER_OF_PIC = 256;
 
-
-    spParticleCreate(mesh, &ps);
-    spBorisYeeInitializeParticle(ps, NUMBER_OF_PIC);
+    spBorisYeeParticleCreate(&ps, mesh, 256 /* NUMBER_OF_PIC*/);
 
     int count = 5;
     Real dt = 1.0;
@@ -78,7 +75,7 @@ int main(int argc, char **argv)
 //	while (count > 0)
 //	{
 //		printf("====== REMINED STEP= %i ======\n", count);
-		spBorisYeeUpdateParticle(ps, dt, fE, fB, fRho, fJ);
+    spBorisYeeParticleUpdate(ps, dt, fE, fB, fRho, fJ);
 //////		spUpdateField_Yee( dt, fRho, fJ, fE, fB);
 //////
 //	spFieldWrite(fE, os, "E", SP_FILE_RECORD);

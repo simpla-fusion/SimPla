@@ -70,7 +70,7 @@ __device__ extern inline spPage *spPageAtomicPop(spPage **pg)
 }
 
 __global__ void
-spBorisInitializeParticleKernel(boris_data *d, spParticlePage **bucket, spParticlePage **pool, size_type PIC)
+spBorisInitializeParticleKernel(boris_particle *d, spParticlePage **bucket, spParticlePage **pool, size_type PIC)
 {
 
 //    size_type block_num = spParallelBlockNum();
@@ -146,7 +146,7 @@ __device__ void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 #undef IY
 #undef IZ
 
-__global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
+__global__ void spBorisYeeUpdateParticleKernel(boris_particle *d,
                                                spParticlePage **bucket,
                                                spParticlePage **pool,
                                                const Real *tE,
@@ -169,10 +169,9 @@ __global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
     __syncthreads();
 
 
-
-    tag.x = (int16_t) (block_idx.x);
-    tag.y = (int16_t) (block_idx.y);
-    tag.z = (int16_t) (block_idx.z);
+    tag.x = (int16_t) (blockIdx.x);
+    tag.y = (int16_t) (blockIdx.y);
+    tag.z = (int16_t) (blockIdx.z);
     src = bucket[blockIdx.x + (blockIdx.y * gridDim.z + blockIdx.z) * gridDim.z];
     dest = bucket[blockIdx.x + (blockIdx.y * gridDim.z + blockIdx.z) * gridDim.z];
 
@@ -181,7 +180,7 @@ __global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
         ;)
     {
 
-        MeshEntityId old_id = d->id[s_tail];;
+        MeshEntityId old_id = d->flag[s_tail];
         Real rx = d->rx[s_tail];
         Real ry = d->ry[s_tail];
         Real rz = d->rz[s_tail];
@@ -244,7 +243,7 @@ __global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
 		id.y += old_id.y;
 		id.z += old_id.z;
 		/*    @formatter:on */
-        d->id[d_tail] = id;
+        d->flag[d_tail] = id;
         d->rx[d_tail] = rx;
         d->ry[d_tail] = ry;
         d->rz[d_tail] = rz;
@@ -254,7 +253,7 @@ __global__ void spBorisYeeUpdateParticleKernel(boris_data *d,
     }
 
 };
-//void spBorisYeeUpdateParticle(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho, spField *fJ)
+//void spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho, spField *fJ)
 //{
 //
 //    Real3 inv_dv;

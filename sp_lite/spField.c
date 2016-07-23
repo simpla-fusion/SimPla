@@ -68,7 +68,7 @@ void spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     size_type start[4];
     size_type count[4];
 
-    spMeshGetDomain(f->m, SP_DOMAIN_CENTER, start, count, NULL);
+    spMeshDomain(f->m, SP_DOMAIN_CENTER, NULL, start, count, NULL);
 
     for (int i = 0; i < 3; ++i)
     {
@@ -96,7 +96,7 @@ void spFieldSync(spField *f)
     size_type count[4];
 
     int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;
-    spMeshGetDomain(f->m, SP_DOMAIN_CENTER, start, count, NULL);
+    spMeshDomain(f->m, SP_DOMAIN_CENTER, NULL, start, count, NULL);
     start[3] = 0;
     count[3] = 3;
     MPI_Datatype mpi_dtype;

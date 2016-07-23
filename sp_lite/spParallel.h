@@ -12,12 +12,10 @@ void spParallelInitialize(int argc, char **argv);
 void spParallelFinalize();
 
 
-#ifdef HAS_CUDA
-#   include "spParallelCUDA.h"
-#else
-
+#ifndef __CUDACC__
 #   include "spParallelCPU.h"
-
+#else
+#   include "spParallelCUDA.h"
 #endif
 
 

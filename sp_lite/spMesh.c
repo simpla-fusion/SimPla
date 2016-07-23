@@ -176,10 +176,10 @@ void spMeshGetBox(spMesh const *m, Real *lower, Real *upper)
     }
 };
 
-int spMeshGetDomain(spMesh const *m, int tag, size_type *lower, size_type *upper, int *o)
+int spMeshDomain(spMesh const *m, int tag, size_type *shape, size_type *lower, size_type *upper, int *o)
 {
 
-    int is_valid = 1;
+    int success = SP_SUCCESS;
 
     int offset[3];
 
@@ -194,12 +194,12 @@ int spMeshGetDomain(spMesh const *m, int tag, size_type *lower, size_type *upper
             case -1:
                 lower[i] = 0;
                 upper[i] = m->i_lower[i];
-                if (m->ghost_width[i] == 0) { is_valid = 0; }
+                if (m->ghost_width[i] == 0) { success = SP_FAILED; }
                 break;
             case 1:
                 lower[i] = m->i_upper[i];
                 upper[i] = m->shape[i];
-                if (m->ghost_width[i] == 0) { is_valid = 0; }
+                if (m->ghost_width[i] == 0) { success = SP_FAILED; }
                 break;
             default: //0
                 lower[i] = m->i_lower[i];
@@ -209,8 +209,8 @@ int spMeshGetDomain(spMesh const *m, int tag, size_type *lower, size_type *upper
     }
 
     if (o != NULL) { for (int i = 0; i < 3; ++i) { o[i] = offset[i]; }}
-
-    return is_valid;
+    if (shape != NULL) { for (int i = 0; i < 3; ++i) { shape[i] = m->shape[i]; }}
+    return success;
 };
 
 

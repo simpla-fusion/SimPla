@@ -8,10 +8,17 @@
 #ifndef SPPARTICLE_H_
 #define SPPARTICLE_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "sp_lite_def.h"
 #include "spMesh.h"
 #include "spPage.h"
 
+#ifdef __cplusplus
+}
+#endif
 
 typedef size_type **spPageHaed;
 
@@ -21,20 +28,44 @@ struct spParticle_s;
 
 typedef struct spParticle_s spParticle;
 
+#define SP_PARTICLE_HEAD                                \
+     SP_PAGE_HEAD(struct spParticlePage_s)              \
+     MeshEntityId  flag[SP_NUMBER_OF_ENTITIES_IN_PAGE]; \
+     Real  rx[SP_NUMBER_OF_ENTITIES_IN_PAGE];           \
+     Real  ry[SP_NUMBER_OF_ENTITIES_IN_PAGE];           \
+     Real  rz[SP_NUMBER_OF_ENTITIES_IN_PAGE];
 
-#define SP_PARTICLE_DATA_HEAD     MeshEntityId * id; Real * rx;Real* ry;Real* rz;
+#define SP_PARTICLE_ATTR(_T_, _N_)       _T_ _N_[SP_NUMBER_OF_ENTITIES_IN_PAGE];
 
-struct spParticleData_s
+#define SP_PARTICLE_ATTR_HEAD(_SP_, _CLS_)  \
+     spParticleAddAttribute(_SP_, "flag", SP_TYPE_int64_t, sizeof(int64_t), offsetof(_CLS_, flag));  \
+     spParticleAddAttribute(_SP_, "rx", SP_TYPE_Real, sizeof(Real), offsetof(_CLS_, rx));            \
+     spParticleAddAttribute(_SP_, "ry", SP_TYPE_Real, sizeof(Real), offsetof(_CLS_, ry));            \
+     spParticleAddAttribute(_SP_, "rz", SP_TYPE_Real, sizeof(Real), offsetof(_CLS_, rz));
+
+#define SP_PARTICLE_ADD_ATTR(_SP_, _CLS_, _T_, _N_)  \
+     spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_), offsetof(_CLS_, _N_));  \
+
+
+typedef struct spParticlePage_s
 {
-    SP_PARTICLE_DATA_HEAD
-    void *attrs[];
-};
+    SP_PARTICLE_HEAD
+    byte_type __others[];
+} spParticlePage;
 
-void spParticleCreate(const struct spMesh_s *ctx, struct spParticle_s **pg);
+int spParticleCreate(spParticle **pg, const spMesh *ctx);
 
-void spParticleDestroy(struct spParticle_s **sp);
+int spParticleDestroy(spParticle **sp);
 
-void spParticleDeploy(struct spParticle_s *sp, size_type PIC);
+int spParticleDeploy(spParticle *sp, size_type PIC);
+
+int spParticlePushPageToField(spParticlePage **b,
+                              spParticlePage **pool,
+                              size_type const *shape,
+                              size_type const *lower,
+                              size_type const *upper,
+                              size_type const *num_of_page,
+                              size_type default_num_page);
 
 spMesh const *spParticleMesh(spParticle const *sp);
 
@@ -50,8 +81,8 @@ Real spParticleCharge(spParticle const *);
 
 #define ADD_PARTICLE_ATTRIBUTE(_SP_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_),0ul-1);
 
-void spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag,
-                            size_type size_in_byte, size_type offset);
+int spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag,
+                           size_type size_in_byte, size_type offset);
 
 void *spParticleAttributeData(struct spParticle_s *pg, int i);
 
