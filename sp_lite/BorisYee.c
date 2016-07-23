@@ -6,9 +6,12 @@
 
 #include "BorisYee.h"
 
-void spBorisYeeParticleCreate(spParticle **sp, spMesh const *m, size_type NUM_OF_PIC)
+int spBorisYeeParticleCreate(spMesh const *m, spParticle **sp)
 {
-    spParticleCreate(sp, m);
+    if (sp == NULL) { return SP_FAILED; }
+
+
+    spParticleCreate(m, sp);
 
     // particle page head
 
@@ -18,10 +21,6 @@ void spBorisYeeParticleCreate(spParticle **sp, spMesh const *m, size_type NUM_OF
     SP_PARTICLE_ADD_ATTR((*sp), boris_particle, Real, vz);
     SP_PARTICLE_ADD_ATTR((*sp), boris_particle, Real, f);
     SP_PARTICLE_ADD_ATTR((*sp), boris_particle, Real, w);
-
-
-    spParticleDeploy(*sp, NUM_OF_PIC);
-
 
 //    LOAD_KERNEL(spBorisInitializeParticleKernel,
 //                sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
@@ -36,15 +35,19 @@ void spBorisYeeParticleCreate(spParticle **sp, spMesh const *m, size_type NUM_OF
 //			(fRho->device_data), ( fJ->device_data));
 
 
-
+    return SP_SUCCESS;
 }
 
-void spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho,
-                              spField *fJ)
+int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho,
+                             spField *fJ)
 {
+    if (sp == NULL) { return SP_FAILED; }
 
+    return SP_SUCCESS;
 };
-void spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB)
+int spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB)
 {
+    if (ctx == NULL) { return SP_FAILED; }
 
+    return SP_SUCCESS;
 }

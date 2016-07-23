@@ -18,32 +18,29 @@
 
 int main(int argc, char **argv)
 {
-    spParallelInitialize(0, NULL);
+    spParallelInitialize(argc, argv);
+
+    spIOStream *os = NULL;
+    spIOStreamCreate(&os);
+    spIOStreamOpen(os, "untitled.h5");
 
     spMesh *mesh;
-    spParticle *ps = 0x0;
-    spField *fE = 0x0;
-    spField *fB = 0x0;
-    spField *fRho = 0x0;
-    spField *fJ = 0x0;
-
     spMeshCreate(&mesh);
 
-    size_type dims[3] = {0x8, 0x1, 0x1};
-
+    size_type dims[3] = {0x8, 0x8, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
-
-    spMeshSetDims(mesh, dims);
-
-    spMeshSetGhostWidth(mesh, gw);
-
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
 
-
+    spMeshSetDims(mesh, dims);
+    spMeshSetGhostWidth(mesh, gw);
     spMeshSetBox(mesh, lower, upper);
-
     spMeshDeploy(mesh);
+
+    spField *fE = NULL;
+    spField *fB = NULL;
+    spField *fRho = NULL;
+    spField *fJ = NULL;
 
     spFieldCreate(mesh, &fE, 1);
     spFieldCreate(mesh, &fB, 2);
@@ -55,36 +52,39 @@ int main(int argc, char **argv)
     spFieldClear(fJ);
     spFieldClear(fRho);
 
-    spBorisYeeParticleCreate(&ps, mesh, 256 /* NUMBER_OF_PIC*/);
+
+    spParticle *sp = NULL;
+
+    spBorisYeeParticleCreate(mesh, &sp);
+
+    spParticleDeploy(sp, 256/* number of PIC */);
 
     int count = 5;
+
     Real dt = 1.0;
 
-    spIOStream *os = NULL;
-
-    spIOStreamCreate(&os);
-    spIOStreamOpen(os, "untitled.h5");
     spIOStreamOpen(os, "/start/");
-
 
     spFieldWrite(fE, os, "E", SP_FILE_NEW);
     spFieldWrite(fB, os, "B", SP_FILE_NEW);
     spFieldWrite(fJ, os, "J", SP_FILE_NEW);
     spFieldWrite(fRho, os, "rho", SP_FILE_NEW);
+
     spIOStreamOpen(os, "/checkpoint/");
-//	while (count > 0)
-//	{
+
+    while (count > 0)
+    {
 //		printf("====== REMINED STEP= %i ======\n", count);
-    spBorisYeeParticleUpdate(ps, dt, fE, fB, fRho, fJ);
-//////		spUpdateField_Yee( dt, fRho, fJ, fE, fB);
-//////
-//	spFieldWrite(fE, os, "E", SP_FILE_RECORD);
-//	spFieldWrite(fB, os, "B", SP_FILE_RECORD);
-//	spFieldWrite(fJ, os, "J", SP_FILE_RECORD);
-//	spFieldWrite(fRho, os, "rho", SP_FILE_RECORD);
-////
-//		--count;
-//	}
+        spBorisYeeParticleUpdate(sp, dt, fE, fB, fRho, fJ);
+        spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB);
+
+        spFieldWrite(fE, os, "E", SP_FILE_RECORD);
+        spFieldWrite(fB, os, "B", SP_FILE_RECORD);
+        spFieldWrite(fJ, os, "J", SP_FILE_RECORD);
+        spFieldWrite(fRho, os, "rho", SP_FILE_RECORD);
+
+        --count;
+    }
     printf("======  The End ======\n");
     spParallelDeviceSync();
     spIOStreamOpen(os, "/dump/");
@@ -93,13 +93,16 @@ int main(int argc, char **argv)
     spFieldWrite(fB, os, "B", SP_FILE_NEW);
     spFieldWrite(fJ, os, "J", SP_FILE_NEW);
     spFieldWrite(fRho, os, "rho", SP_FILE_NEW);
-    spParticleWrite(ps, os, "H", SP_FILE_NEW);
+
+    spParticleWrite(sp, os, "H", SP_FILE_NEW);
 
     spFieldDestroy(&fE);
     spFieldDestroy(&fB);
     spFieldDestroy(&fJ);
     spFieldDestroy(&fRho);
-    spParticleDestroy(&ps);
+
+    spParticleDestroy(&sp);
+
     spMeshDestroy(&mesh);
 
     spIOStreamDestroy(&os);

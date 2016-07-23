@@ -6,6 +6,7 @@
  */
 
 #include <memory>
+#include <cassert>
 #include "../src/io/IO.h"
 #include "../src/parallel/DistributedObject.h"
 #include "../src/parallel/MPIComm.h"
@@ -25,15 +26,15 @@ struct spDataType_s;
 
 typedef struct spDataType_s spDataType;
 
-void spDataTypeCreate(spDataType **) { }
+void spDataTypeCreate(spDataType **) {}
 
-void spDataTypeDestroy(spDataType **) { }
+void spDataTypeDestroy(spDataType **) {}
 
 int spDataTypeIsValid(spDataType const *) { return true; }
 
-void spDataTypeExtent(spDataType *, int rank, int const *d) { }
+void spDataTypeExtent(spDataType *, int rank, int const *d) {}
 
-void spDataTypePushBack(spDataType *, spDataType const *, char const name[]) { }
+void spDataTypePushBack(spDataType *, spDataType const *, char const name[]) {}
 
 struct spDataSpace_s
 {
@@ -42,22 +43,22 @@ struct spDataSpace_s
 
 typedef struct spDataSpace_s spDataSpace;
 
-void spDataSpaceCreateSimple(spDataSpace **, int ndims, int const *dims) { }
+void spDataSpaceCreateSimple(spDataSpace **, int ndims, int const *dims) {}
 
-void spDataSpaceCreateUnordered(spDataSpace **, int num) { }
+void spDataSpaceCreateUnordered(spDataSpace **, int num) {}
 
-void spDataSpaceDestroy(spDataSpace **) { }
+void spDataSpaceDestroy(spDataSpace **) {}
 
-void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *offset, int const *count) { }
+void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *offset, int const *count) {}
 
 struct spDataSet_s;
 
 typedef struct spDataSet_s spDataSet;
 
 void spDataSetCreate(spDataSet **, void *d, spDataType const *dtype, spDataSpace const *mspace,
-                     spDataSpace const *fspace) { }
+                     spDataSpace const *fspace) {}
 
-void spDataSetDestroy(spDataSet *) { }
+void spDataSetDestroy(spDataSet *) {}
 
 struct spIOStream_s
 {
@@ -86,14 +87,15 @@ void spIOStreamPWD(spIOStream *os, char url[])
 
 void spIOStreamOpen(spIOStream *os, const char url[])
 {
+    assert(os->m_stream_ != nullptr);
     os->m_stream_->open(url);
 }
 
 void spIOStreamClose(spIOStream *os) { os->m_stream_->close(); }
 
-void spIOStreamWrite(spIOStream *, char const name[], spDataSet const *) { }
+void spIOStreamWrite(spIOStream *, char const name[], spDataSet const *) {}
 
-void spIOStreamRead(spIOStream *, char const name[], spDataSet const *) { }
+void spIOStreamRead(spIOStream *, char const name[], spDataSet const *) {}
 
 void spIOStreamWriteSimple(spIOStream *os,
                            const char *url,
@@ -184,9 +186,9 @@ void hdf5_write_field(const char *url, void *d, int ndims, size_type const *dims
 
 }
 
-void spDistributedObjectAddSendLink(spDistributedObject *, int id, const ptrdiff_t offset[3], const spDataSet *) { }
+void spDistributedObjectAddSendLink(spDistributedObject *, int id, const ptrdiff_t offset[3], const spDataSet *) {}
 
-void spDistributedObjectAddRecvLink(spDistributedObject *, int id, const ptrdiff_t offset[3], spDataSet *) { }
+void spDistributedObjectAddRecvLink(spDistributedObject *, int id, const ptrdiff_t offset[3], spDataSet *) {}
 
 int spDistributedObjectIsReady(spDistributedObject const *) { return true; }
 

@@ -46,11 +46,11 @@ int spMPINeighborAllToAll(const void *send_buffer,
 
 int spMPIUpdateNdArrayHalo(void *buffer,
                            int ndims,
-                           const size_type *dims,
-                           const size_type *start,
-                           const size_type *,
-                           const size_type *count,
-                           const size_type *,
+                           const size_type dims[],
+                           const size_type start[],
+                           const size_type [],
+                           const size_type count[],
+                           const size_type [],
                            MPI_Datatype ele_type,
                            MPI_Comm comm);
 

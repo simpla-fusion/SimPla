@@ -179,33 +179,54 @@ void spMeshGetBox(spMesh const *m, Real *lower, Real *upper)
 int spMeshDomain(spMesh const *m, int tag, size_type *shape, size_type *lower, size_type *upper, int *o)
 {
 
+
     int success = SP_SUCCESS;
+    int offset[3] = {0, 0, 0};
 
-    int offset[3];
-
-    offset[0] = (tag % 3) - 1;
-    offset[1] = (tag / 3) % 3 - 1;
-    offset[2] = (tag / 9) % 3 - 1;
-
-    for (int i = 0; i < 3; ++i)
+    switch (tag)
     {
-        switch (offset[i])
-        {
-            case -1:
+        case SP_DOMAIN_ALL:
+            for (int i = 0; i < 3; ++i)
+            {
                 lower[i] = 0;
-                upper[i] = m->i_lower[i];
-                if (m->ghost_width[i] == 0) { success = SP_FAILED; }
-                break;
-            case 1:
-                lower[i] = m->i_upper[i];
                 upper[i] = m->shape[i];
-                if (m->ghost_width[i] == 0) { success = SP_FAILED; }
-                break;
-            default: //0
+            }
+            break;
+        case SP_DOMAIN_CENTER:
+            for (int i = 0; i < 3; ++i)
+            {
                 lower[i] = m->i_lower[i];
                 upper[i] = m->i_upper[i];
-                break;
-        }
+            }
+
+            break;
+        default:
+
+
+            offset[0] = (tag % 3) - 1;
+            offset[1] = (tag / 3) % 3 - 1;
+            offset[2] = (tag / 9) % 3 - 1;
+
+            for (int i = 0; i < 3; ++i)
+            {
+                switch (offset[i])
+                {
+                    case -1:
+                        lower[i] = 0;
+                        upper[i] = m->i_lower[i];
+                        if (m->ghost_width[i] == 0) { success = SP_FAILED; }
+                        break;
+                    case 1:
+                        lower[i] = m->i_upper[i];
+                        upper[i] = m->shape[i];
+                        if (m->ghost_width[i] == 0) { success = SP_FAILED; }
+                        break;
+                    default: //0
+                        lower[i] = m->i_lower[i];
+                        upper[i] = m->i_upper[i];
+                        break;
+                }
+            }
     }
 
     if (o != NULL) { for (int i = 0; i < 3; ++i) { o[i] = offset[i]; }}

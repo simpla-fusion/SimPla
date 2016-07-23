@@ -21,11 +21,11 @@ typedef struct boris_particle_s
 
 } boris_particle;
 
-void spBorisYeeParticleCreate(spParticle **sp, spMesh const *m, size_type NUM_OF_PIC);
+int spBorisYeeParticleCreate(spMesh const *m, spParticle **sp);
 
-void spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho,
-                              spField *fJ);
+int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho,
+                             spField *fJ);
 
-void spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB);
+int spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB);
 
 #endif //SIMPLA_BORISYEE_H

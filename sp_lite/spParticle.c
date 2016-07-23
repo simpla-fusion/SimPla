@@ -72,7 +72,7 @@ struct spParticle_s
 
 };
 
-int spParticleCreate(spParticle **sp, const spMesh *mesh)
+int spParticleCreate(const spMesh *mesh, spParticle **sp)
 {
     spParallelHostAlloc(sp, sizeof(spParticle));
 
@@ -90,7 +90,6 @@ int spParticleDeploy(spParticle *sp, size_type PIC)
     size_type number_of_cell = spMeshNumberOfEntity(sp->m, SP_DOMAIN_ALL, sp->iform);
 
     spParallelDeviceAlloc((void **) (&(sp->m_base_)), sizeof(spParticlePage *) * number_of_cell);
-
     spParallelMemset((void *) ((sp->m_base_)), 0x0, sizeof(spParticlePage *) * number_of_cell);
 
 
@@ -118,27 +117,23 @@ int spParticleDeploy(spParticle *sp, size_type PIC)
 
     spParallelMemcpy((void *) (sp->m_page_pool_), sp->m_data_root_, sizeof(spParticlePage *));
 
-    spParallelDeviceAlloc((void **) (&(sp->m_page_count_)), sizeof(int) * number_of_cell);
+    spParallelDeviceAlloc((void **) (&(sp->m_page_count_)), sizeof(size_type) * number_of_cell);
 
-    spParallelMemset((void *) ((sp->m_page_count_)),
-                     (PIC / sp->m_num_of_entities_in_page_ + 1),
-                     sizeof(spParticlePage *) * number_of_cell);
-
-    spParticleResizePageLink(sp);
+    spParallelMemset((void *) ((sp->m_page_count_)), 0, sizeof(size_type) * number_of_cell);
 
     return SP_SUCCESS;
-
 }
 
 int spParticleDestroy(spParticle **sp)
 {
+    if (*sp != NULL)
+    {
+        spParallelDeviceFree((void **) &((*sp)->m_data_root_));
+        spParallelDeviceFree((void **) &((*sp)->m_base_));
+        spParallelDeviceFree((void **) &((*sp)->m_page_pool_));
 
-    spParallelDeviceFree((void **) &((*sp)->m_data_root_));
-    spParallelDeviceFree((void **) &((*sp)->m_base_));
-    spParallelDeviceFree((void **) &((*sp)->m_page_pool_));
-
-    spParallelHostFree(sp);
-
+        spParallelHostFree(sp);
+    }
     return SP_SUCCESS;
 }
 
@@ -545,19 +540,16 @@ void spParticleSync(spParticle *sp)
 //    }
 }
 
-
-
-
-/*****************************************************************************************/
-/*  2016-07-10 Salmon
+/*****************************************************************************************
+ **  2016-07-10 Salmon
  *  TODO
  *   1. page counting need optimize
  *   2. parallel write incorrect, need calculate global offset (file dataspace) before write
  *
  */
-void spParticleWrite(spParticle const *sp, spIOStream *os, const char name[], int flag)
+int spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag)
 {
-
+    if (sp == NULL) { return SP_FAILED; }
 //    char curr_path[2048];
 //    char new_path[2048];
 //    strcpy(new_path, name);

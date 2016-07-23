@@ -115,14 +115,16 @@ int testNdArrayUpdateHalo()
 
 int spMPIUpdateNdArrayHalo(void *buffer,
                            int ndims,
-                           const size_type *shape,
-                           const size_type *start,
-                           const size_type *stride,
-                           const size_type *count,
-                           const size_type *block,
+                           const size_type shape[],
+                           const size_type start[],
+                           const size_type stride[],
+                           const size_type count[],
+                           const size_type block[],
                            MPI_Datatype ele_type,
                            MPI_Comm comm)
 {
+    if (comm == MPI_COMM_NULL) { return SP_FAILED; }
+    else
     {
         int tope_type = MPI_CART;
         MPI_ERROR(MPI_Topo_test(comm, &tope_type));
@@ -272,11 +274,18 @@ int spUpdateIndexedBlock(void const *send_buffer,
                          MPI_Datatype ele_type,
                          MPI_Comm comm)
 {
+    if (comm == MPI_COMM_NULL) { return SP_FAILED; }
+
     int tag = 0;
+
     int mpi_topology_ndims = 0;
+
     MPI_ERROR(MPI_Cartdim_get(comm, &mpi_topology_ndims));
+
     int num_of_neighbour = mpi_topology_ndims * 2;
+
     int mpi_sendrecv_count[num_of_neighbour];
+
     MPI_Aint send_displs[num_of_neighbour], recv_displs[num_of_neighbour];
 
     MPI_Datatype send_types[num_of_neighbour];
@@ -286,8 +295,8 @@ int spUpdateIndexedBlock(void const *send_buffer,
     {
         int *disp = NULL;
 
-#define CPY(_COUNT_, _P_)                                                                                          \
-        free(disp);disp = malloc(send_block_count[2 * i + 0] * sizeof(int));                                                  \
+#define CPY(_COUNT_, _P_)                                                         \
+        free(disp);disp = malloc(send_block_count[2 * i + 0] * sizeof(int));      \
         for (size_type s = 0; s < _COUNT_; ++s) { disp[s] = (int) (_P_[s]); }
 
         CPY(send_block_count[2 * i + 0], send_disp_s[2 * i + 0]);
@@ -351,10 +360,15 @@ int spMPINeighborAllToAll(const void *send_buffer,
                           MPI_Datatype const *recv_types,
                           MPI_Comm comm)
 {
+    if (comm == MPI_COMM_NULL) { return SP_FAILED; }
+    else
     {
         int tope_type = MPI_CART;
+
         MPI_ERROR(MPI_Topo_test(comm, &tope_type));
-        assert(tope_type == MPI_CART);
+
+        if (tope_type != MPI_CART);
+        { return SP_FAILED; }
     }
     int tag = 0;
     int mpi_topology_ndims = 0;

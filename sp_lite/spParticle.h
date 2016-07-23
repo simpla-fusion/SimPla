@@ -56,7 +56,7 @@ typedef struct spParticlePage_s
     byte_type __others[];
 } spParticlePage;
 
-int spParticleCreate(spParticle **pg, const spMesh *ctx);
+int spParticleCreate(const spMesh *ctx, spParticle **pg);
 
 int spParticleDestroy(spParticle **sp);
 
@@ -97,7 +97,7 @@ size_type spParticleAttibuteSizeInByte(struct spParticle_s *pg, int i);
 
 void spParticleAttributeName(struct spParticle_s *pg, int i, char *name);
 
-void spParticleWrite(spParticle const *f, spIOStream *os, const char url[], int flag);
+int spParticleWrite(spParticle const *f, spIOStream *os, const char *url, int flag);
 
 void spParticleRead(struct spParticle_s *f, spIOStream *os, char const url[], int flag);
 
