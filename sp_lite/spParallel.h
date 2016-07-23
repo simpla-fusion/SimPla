@@ -30,6 +30,7 @@ void spParallelFinalize();
     }                                                                      \
 }
 
+int spMPITopologyNDims();
 
 int spMPIDataTypeCreate(int type_tag, int type_size_in_byte, MPI_Datatype *new_type);
 
@@ -54,12 +55,12 @@ int spMPIUpdateNdArrayHalo(void *buffer,
                            MPI_Comm comm);
 
 int spUpdateIndexedBlock(void const *send_buffer,
-                         const int **send_disp_s,
-                         const int *send_block_count,
+                         const size_type **send_disp_s,
+                         const size_type *send_block_count,
                          void *recv_buffer,
-                         const int **recv_disp_s,
-                         const int *recv_block_count,
-                         int block_length,
+                         const size_type **recv_disp_s,
+                         const size_type *recv_block_count,
+                         size_type block_length,
                          MPI_Datatype ele_type,
                          MPI_Comm comm);
 

@@ -26,50 +26,206 @@ extern "C" {
 }
 #endif
 
-__global__ void spParticlePushPageToFieldKernel(spParticlePage **base,
-                                                spParticlePage **pool,
-                                                dim3 dims,
-                                                dim3 offset,
-                                                size_type const *num_of_pages,
-                                                size_type default_num_page)
+
+__global__ void
+spParticleUpdatePageCountKernel(spParticlePage **b, // device
+                                size_type *page_count,// device
+                                dim3 dims, dim3 offset
+
+)
+{
+    size_type pos = offset.x + THREAD_X + (THREAD_Y + THREAD_Z * dims.y) * dims.x;
+    spParticlePage **p = &b[pos];
+    size_type count = 0;
+    while (*p != NULL)
+    {
+        p = &((*p)->next);
+        ++count;
+    }
+    page_count[pos] = count;
+
+}
+__global__ void
+spParticleResizePageLinkKernel(spParticlePage **base,
+                               spParticlePage **pool,
+                               size_type const *num_of_pages,
+                               dim3 dims,
+                               dim3 offset)
 {
     size_type pos = offset.x + THREAD_X + (THREAD_Y + THREAD_Z * dims.y) * dims.x;
 
-    spPageLinkResize((spPage **) &base[pos],
-                     (spPage **) pool,
-                     (num_of_pages == NULL) ? default_num_page : num_of_pages[pos]);
+    spPageLinkResize((spPage **) &base[pos], (spPage **) pool, num_of_pages[pos]);
 }
+
 int
-spParticlePushPageToField(spParticlePage **b, // device
-                          spParticlePage **pool,// device
-                          size_type const *shape,
-                          size_type const *lower,
-                          size_type const *upper,
-                          size_type const *num_of_pages, // device or null
-                          size_type default_num_page)
+spParticleResizePageLink(spParticle *sp)
 {
+    size_type shape[3], lower[3], upper[3], count[3];
 
-    dim3 count;
-    count.x = (unsigned int) (upper[0] - lower[0]);
-    count.y = (unsigned int) (upper[1] - lower[1]);
-    count.z = (unsigned int) (upper[2] - lower[2]);
+    spMeshDomain(spParticleMesh(sp), SP_DOMAIN_ALL, lower, upper, shape, NULL);
 
-    LOAD_KERNEL(
-        spParticlePushPageToFieldKernel,
-        count,
-        1,
-        b,
-        pool,
-        sizeType2Dim3(shape),
-        sizeType2Dim3(lower),
-        num_of_pages,
-        default_num_page);
+    count[0] = upper[0] - lower[0];
+    count[1] = upper[1] - lower[1];
+    count[2] = upper[2] - lower[2];
+
+    LOAD_KERNEL(spParticleUpdatePageCountKernel,
+                sizeType2Dim3(count), 1,
+                spParticleBaseField(sp),
+                spParticlePageCount(sp),
+                sizeType2Dim3(shape),
+                sizeType2Dim3(lower)
+    );
+
+
+    spMPIUpdateNdArrayHalo(spParticlePageCount(sp), 3, shape,
+                           lower, NULL, count, NULL, MPI_INT, spMPIComm());
+
+    LOAD_KERNEL(spParticleResizePageLinkKernel,
+                sizeType2Dim3(count), 1,
+                spParticleBaseField(sp),
+                spParticlePagePool(sp),
+                spParticlePageCount(sp),
+                sizeType2Dim3(shape),
+                sizeType2Dim3(lower)
+    );
+
     return SP_SUCCESS;
 }
-void spParticleInitialize(spParticle *sp)
+
+__global__ void
+spParticleInitializeKernel(spParticlePage **base,
+                           dim3 dims,
+                           dim3 offset)
 {
+    spParticlePage **p = &base[offset.x + blockIdx.x + (blockIdx.y + blockIdx.z * dims.y) * dims.x];
+
+    int s = threadIdx.x + (threadIdx.y + threadIdx.z * blockDim.y) * blockDim.x;
+
+    while (*p != NULL)
+    {
+        (*p)->flag[s].v = 0;
+        (*p)->rx[s] = 1.0;
+        (*p)->ry[s] = 1.0;
+        (*p)->rz[s] = 1.0;
+
+        p = &((*p)->next);
+    }
 
 }
+int spParticleInitialize(spParticle *sp)
+{
+    spParticleResizePageLink(sp);
+
+    size_type shape[3], lower[3], upper[3], count[3];
+
+    spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, lower, upper, shape, NULL);
+
+    count[0] = upper[0] - lower[0];
+    count[1] = upper[1] - lower[1];
+    count[2] = upper[2] - lower[2];
+    LOAD_KERNEL(spParticleInitializeKernel,
+                sizeType2Dim3(count), spParticleNumOfEntitiesInPage(sp),
+                spParticleBaseField(sp),
+                sizeType2Dim3(shape),
+                sizeType2Dim3(lower)
+    );
+
+    spParticleSync(sp);
+    return SP_SUCCESS;
+}
+__global__ void
+spParticleDumpPageCount(size_type const *page_count, dim3 dims, dim3 offset, size_type *out)
+{
+    out[THREAD_X + (THREAD_Y + THREAD_Z * DIMS_X) * DIMS_Y] =
+        page_count[offset.x + THREAD_X + (offset.y + THREAD_Y + (offset.z + THREAD_Z) * dims.y) * dims.x];
+}
+__global__ void
+spParticleDumpPageOffset(spParticlePage const **base,
+                         size_type *page_offset,
+                         dim3 dims,
+                         dim3 offset,
+                         spParticlePage const *root,
+                         size_type *out)
+{
+    size_type it = THREAD_X + (THREAD_Y + THREAD_Z * DIMS_X) * DIMS_Y;
+
+    spParticlePage const **p = &base[offset.x + blockIdx.x + (blockIdx.y + blockIdx.z * dims.y) * dims.x];
+    size_type displ = page_offset[it];
+
+    while (*p != NULL)
+    {
+        out[displ] = size_t(*p) - size_t(root);
+        p = (spParticlePage const **) (&((*p)->next));
+        ++displ;
+    }
+}
+int
+spParticleGetPageOffset(spParticle *sp,
+                        size_type const lower[3],
+                        size_type const upper[3],
+                        size_type *num_of_page,
+                        size_type **data_displs)
+{
+
+    size_type count[3];
+
+
+    count[0] = upper[0] - lower[0];
+    count[1] = upper[1] - lower[1];
+    count[2] = upper[2] - lower[2];
+
+    size_type *page_offset_d;
+
+    size_type *page_offset_h;
+
+    size_type num_of_cell = count[0] * count[1] * count[2];
+
+    spParallelDeviceAlloc(&page_offset_d, sizeof(size_type) * num_of_cell);
+
+    spParallelHostAlloc(&page_offset_d, sizeof(size_type) * num_of_cell + 1);
+
+    LOAD_KERNEL(spParticleDumpPageCount,
+                sizeType2Dim3(count), 1,
+                spParticlePageCount(sp),
+                sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
+                sizeType2Dim3(lower),
+                page_offset_d);
+
+    spParallelMemcpy(page_offset_h + 1, page_offset_d, sizeof(size_type) * num_of_cell);
+
+    page_offset_h[0] = 0;
+
+    for (size_type s = 1; s <= num_of_cell; ++s) { page_offset_h[s] += page_offset_h[s - 1]; }
+
+    spParallelMemcpy(page_offset_d, page_offset_h, sizeof(size_type) * num_of_cell);
+
+    *num_of_page = page_offset_h[num_of_cell];
+
+    size_type *disp_d;
+
+    spParallelDeviceAlloc(&disp_d, sizeof(size_type) * (*num_of_page));
+
+
+    LOAD_KERNEL(spParticleDumpPageOffset,
+                sizeType2Dim3(count), 1,
+                (spParticlePage const **) spParticleBaseField(sp),
+                page_offset_d,
+                sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
+                sizeType2Dim3(lower),
+                (spParticlePage const *) spParticleDataRoot(sp),
+                disp_d);
+
+
+    spParallelHostAlloc(data_displs, sizeof(size_type) * (*num_of_page));
+
+    spParallelMemcpy(*data_displs, disp_d, sizeof(size_type) * num_of_cell);
+
+    spParallelDeviceFree(&disp_d);
+    spParallelDeviceFree(&page_offset_d);
+    spParallelHostFree(&page_offset_h);
+
+    return SP_SUCCESS;
+};
 
 //__global__ void spParticleDeployKernel(spParticlePage **bucket, spParticlePage *pg, size_type num_of_pages)
 //{

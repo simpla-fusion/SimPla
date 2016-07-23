@@ -69,7 +69,7 @@ __device__ spPage *spPageAtomicPop(spPage **pg)
 
 __device__ void spPageLinkResize(spPage **p, spPage **pool, size_type max)
 {
-    size_type count = 0;
+    int count = 0;
 
     while (count < max)
     {

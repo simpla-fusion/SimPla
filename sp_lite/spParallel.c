@@ -21,6 +21,22 @@ void spParallelFinalize()
     CUDA_CHECK_RETURN(cudaDeviceReset());
     spMPIFinialize();
 }
+int spMPITopologyNDims()
+{
+    MPI_Comm comm = spMPIComm();
+    {
+        int tope_type = MPI_CART;
+        MPI_ERROR(MPI_Topo_test(comm, &tope_type));
+        assert(tope_type == MPI_CART);
+    }
+
+
+    int mpi_topology_ndims = 0;
+
+    MPI_Cartdim_get(comm, &mpi_topology_ndims);
+
+    return mpi_topology_ndims;
+};
 
 int spMPIDataTypeCreate(int type_tag, int type_size_in_byte, MPI_Datatype *new_type)
 {
@@ -69,11 +85,11 @@ int testNdArrayUpdateHalo()
     int size = spMPISize();
 
     int buffer[25] = {
-            rank, rank, rank, rank, rank,
-            rank, rank, rank, rank, rank,
-            rank, rank, rank, rank, rank,
-            rank, rank, rank, rank, rank,
-            rank, rank, rank, rank, rank
+        rank, rank, rank, rank, rank,
+        rank, rank, rank, rank, rank,
+        rank, rank, rank, rank, rank,
+        rank, rank, rank, rank, rank,
+        rank, rank, rank, rank, rank
     };
 
     size_type dims[2] = {5, 5};
@@ -84,11 +100,11 @@ int testNdArrayUpdateHalo()
 
 
     printf("\n"
-                   "[%d/%d/%d] \t  %d,%d,%d,%d,%d \n"
-                   "           \t  %d,%d,%d,%d,%d \n"
-                   "           \t  %d,%d,%d,%d,%d \n"
-                   "           \t  %d,%d,%d,%d,%d \n"
-                   "           \t  %d,%d,%d,%d,%d \n", rank, size, 6,
+               "[%d/%d/%d] \t  %d,%d,%d,%d,%d \n"
+               "           \t  %d,%d,%d,%d,%d \n"
+               "           \t  %d,%d,%d,%d,%d \n"
+               "           \t  %d,%d,%d,%d,%d \n"
+               "           \t  %d,%d,%d,%d,%d \n", rank, size, 6,
            buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
            buffer[5], buffer[6], buffer[7], buffer[8], buffer[9],
            buffer[10], buffer[11], buffer[12], buffer[13], buffer[14],
@@ -247,12 +263,12 @@ int spMPIUpdateNdArrayHalo(void *buffer,
 }
 
 int spUpdateIndexedBlock(void const *send_buffer,
-                         const int **send_disp_s,
-                         const int *send_block_count,
+                         const size_type **send_disp_s,
+                         const size_type *send_block_count,
                          void *recv_buffer,
-                         const int **recv_disp_s,
-                         const int *recv_block_count,
-                         int block_length,
+                         const size_type **recv_disp_s,
+                         const size_type *recv_block_count,
+                         size_type block_length,
                          MPI_Datatype ele_type,
                          MPI_Comm comm)
 {
@@ -268,30 +284,32 @@ int spUpdateIndexedBlock(void const *send_buffer,
 
     for (int i = 0; i < mpi_topology_ndims; ++i)
     {
-        MPI_Type_create_indexed_block(send_block_count[2 * i + 0],
-                                      block_length,
-                                      send_disp_s[2 * i + 0],
-                                      ele_type,
-                                      &send_types[2 * i + 0]);
+        int *disp = NULL;
 
-        MPI_Type_create_indexed_block(send_block_count[2 * i + 1],
-                                      block_length,
-                                      send_disp_s[2 * i + 1],
-                                      ele_type,
-                                      &send_types[2 * i + 1]);
+#define CPY(_COUNT_, _P_)                                                                                          \
+        free(disp);disp = malloc(send_block_count[2 * i + 0] * sizeof(int));                                                  \
+        for (size_type s = 0; s < _COUNT_; ++s) { disp[s] = (int) (_P_[s]); }
 
-        MPI_Type_create_indexed_block(recv_block_count[2 * i + 0],
-                                      block_length,
-                                      send_disp_s[2 * i + 0],
-                                      ele_type,
-                                      &recv_types[2 * i + 0]);
+        CPY(send_block_count[2 * i + 0], send_disp_s[2 * i + 0]);
+        MPI_Type_create_indexed_block((int) send_block_count[2 * i + 0], (int) block_length,
+                                      disp, ele_type, &send_types[2 * i + 0]);
 
-        MPI_Type_create_indexed_block(recv_block_count[2 * i + 1],
-                                      block_length,
-                                      send_disp_s[2 * i + 1],
-                                      ele_type,
-                                      &recv_types[2 * i + 1]);
+        CPY(send_block_count[2 * i + 1], send_disp_s[2 * i + 1]);
+        MPI_Type_create_indexed_block((int) send_block_count[2 * i + 1], (int) block_length,
+                                      disp, ele_type, &send_types[2 * i + 1]);
 
+
+        CPY(recv_block_count[2 * i + 0], recv_disp_s[2 * i + 0]);
+        MPI_Type_create_indexed_block((int) recv_block_count[2 * i + 0], (int) block_length,
+                                      disp, ele_type, &recv_types[2 * i + 0]);
+
+
+        CPY(recv_block_count[2 * i + 1], recv_disp_s[2 * i + 1]);
+        MPI_Type_create_indexed_block((int) recv_block_count[2 * i + 1], (int) block_length,
+                                      disp, ele_type, &recv_types[2 * i + 1]);
+
+        free(disp);
+#undef CPY
 
         mpi_sendrecv_count[2 * i + 0] = mpi_sendrecv_count[2 * i + 1] = 1;
         send_displs[2 * i + 0] = recv_displs[2 * i + 0] = 0;
@@ -349,32 +367,32 @@ int spMPINeighborAllToAll(const void *send_buffer,
         MPI_ERROR(MPI_Cart_shift(comm, d, 1, &r0, &r1));
 
         MPI_ERROR(MPI_Sendrecv(
-                (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
-                send_counts[d],
-                send_types[d * 2 + 0],
-                r0,
-                tag,
-                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
-                recv_counts[d],
-                recv_types[d * 2 + 0],
-                r1,
-                tag,
-                comm,
-                MPI_STATUS_IGNORE));
+            (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
+            send_counts[d],
+            send_types[d * 2 + 0],
+            r0,
+            tag,
+            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
+            recv_counts[d],
+            recv_types[d * 2 + 0],
+            r1,
+            tag,
+            comm,
+            MPI_STATUS_IGNORE));
 
         MPI_ERROR(MPI_Sendrecv(
-                (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
-                send_counts[d],
-                send_types[d * 2 + 1],
-                r1,
-                tag,
-                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
-                recv_counts[d],
-                recv_types[d * 2 + 1],
-                r0,
-                tag,
-                comm,
-                MPI_STATUS_IGNORE));
+            (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
+            send_counts[d],
+            send_types[d * 2 + 1],
+            r1,
+            tag,
+            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
+            recv_counts[d],
+            recv_types[d * 2 + 1],
+            r0,
+            tag,
+            comm,
+            MPI_STATUS_IGNORE));
     }
 
     return MPI_SUCCESS;

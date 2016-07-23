@@ -67,9 +67,9 @@
 extern inline dim3 sizeType2Dim3(size_type const *v)
 {
     dim3 res;
-    res.x = v[0];
-    res.y = v[1];
-    res.z = v[2];
+    res.x = (int) v[0];
+    res.y = (int) v[1];
+    res.z = (int) v[2];
     return res;
 }
 #endif //SIMPLA_SPPARALLEL_CU_H

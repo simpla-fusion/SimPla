@@ -20,13 +20,16 @@ extern "C" {
 }
 #endif
 
-typedef size_type **spPageHaed;
 
 struct spMesh_s;
 
 struct spParticle_s;
 
 typedef struct spParticle_s spParticle;
+
+#ifndef SP_MAX_NUMBER_OF_PARTICLE_ATTR
+#    define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
+#endif
 
 #define SP_PARTICLE_HEAD                                \
      SP_PAGE_HEAD(struct spParticlePage_s)              \
@@ -59,25 +62,25 @@ int spParticleDestroy(spParticle **sp);
 
 int spParticleDeploy(spParticle *sp, size_type PIC);
 
-int spParticlePushPageToField(spParticlePage **b,
-                              spParticlePage **pool,
-                              size_type const *shape,
-                              size_type const *lower,
-                              size_type const *upper,
-                              size_type const *num_of_page,
-                              size_type default_num_page);
+int spParticleResizePageLink(spParticle *sp);
 
 spMesh const *spParticleMesh(spParticle const *sp);
 
-size_type **spParticleBuckets(spParticle *);
+spParticlePage *spParticleDataRoot(spParticle *sp);
 
-size_type **spParticlePagePool(spParticle *);
+spParticlePage **spParticleBaseField(spParticle *sp);
+
+spParticlePage **spParticlePagePool(spParticle *sp);
+
+size_type *spParticlePageCount(spParticle *sp);
+
+size_type spParticleCountPageNum(spParticle *sp, int domain_tag, size_type *displs);
 
 Real spParticleMass(spParticle const *);
 
 Real spParticleCharge(spParticle const *);
 
-#define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
+size_type spParticleNumOfEntitiesInPage(spParticle const *);
 
 #define ADD_PARTICLE_ATTRIBUTE(_SP_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_),0ul-1);
 
@@ -100,9 +103,12 @@ void spParticleRead(struct spParticle_s *f, spIOStream *os, char const url[], in
 
 void spParticleSync(struct spParticle_s *f);
 
-void spParticleSyncStart(struct spParticle_s *f);
+int spParticleResizePageLink(spParticle *sp);
 
-void spParticleSyncEnd(struct spParticle_s *f);
-
-
+int
+spParticleGetPageOffset(spParticle *sp,
+                        size_type const lower[3],
+                        size_type const upper[3],
+                        size_type *num_of_page,
+                        size_type **data_displs);
 #endif /* SPPARTICLE_H_ */
