@@ -97,7 +97,7 @@ public:
 
     void swap(Object &other);
 
-    virtual void deploy() { }
+    virtual void deploy() {}
 
     virtual bool is_a(std::type_info const &info) const;
 
@@ -107,9 +107,13 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
-    std::string name() const { return m_name_ == "" ? type_cast<std::string>(short_id()) : m_name_; };
+    virtual std::string name() const { return m_name_ == "" ? type_cast<std::string>(short_id()) : m_name_; };
 
-    Object &name(std::string const &s){ m_name_ = s; return *this;};
+    Object &name(std::string const &s)
+    {
+        m_name_ = s;
+        return *this;
+    };
 
     boost::uuids::uuid uuid() const { return m_uuid_; }
 

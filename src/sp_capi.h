@@ -12,9 +12,10 @@
 #include "sp_config.h"
 
 #include <mpi.h>
+#include <H5Ipublic.h>
 enum
 {
-    SP_TYPE_float, SP_TYPE_double, SP_TYPE_int, SP_TYPE_long, SP_TYPE_int64_t, SP_TYPE_OPAQUE
+    SP_TYPE_NULL, SP_TYPE_float, SP_TYPE_double, SP_TYPE_int, SP_TYPE_long, SP_TYPE_int64_t, SP_TYPE_OPAQUE
 };
 
 #ifndef USE_FLOAT_REAL
@@ -34,15 +35,32 @@ struct spDataType_s;
 
 typedef struct spDataType_s spDataType;
 
-void spDataTypeCreate(spDataType **);
+void spDataTypeCreate(spDataType **, int type_tag);
 
 void spDataTypeDestroy(spDataType **);
 
+int spDataTypeCopy(spDataType *, spDataType const *);
+
+size_type spDataTypeSizeInByte(spDataType const *dtype);
+
+void spDataTypeSetSizeInByte(spDataType *dtype, size_type s);
+
 int spDataTypeIsValid(spDataType const *);
 
-void spDataTypeExtent(spDataType *, int rank, int const *d);
+int spDataTypeExtent(spDataType *, int rank, const size_type *d);
 
-void spDataTypePushBack(spDataType *, spDataType const *, char const name[]);
+int spDataTypeAdd(spDataType *dtype, size_type offset, char const *name, spDataType const *other);
+
+int spDataTypeAddArray(spDataType *dtype,
+                       size_type offset,
+                       char const *name,
+                       int type_tag,
+                       size_type n,
+                       size_type const *dims);
+
+MPI_Datatype const *spDataTypeMPIType(struct spDataType_s const *);
+
+hid_t spDataTypeHDF5Type(struct spDataType_s const *);
 
 struct spDataSpace_s;
 
@@ -103,7 +121,7 @@ void spIOStreamRead(spIOStream *, char const name[], spDataSet const *);
 
 void spIOStreamWriteSimple(spIOStream *,
                            const char *name,
-                           int d_type,
+                           struct spDataType_s const *d_type,
                            void *d,
                            int ndims,
                            size_type const *dims,

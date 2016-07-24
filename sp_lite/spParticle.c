@@ -2,6 +2,8 @@
 // Created by salmon on 16-7-20.
 //
 #include "sp_lite_def.h"
+#include "../src/sp_capi.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -9,30 +11,21 @@
 
 
 #include "spParallel.h"
-#include "spIO.h"
 #include "spMesh.h"
 #include "spObject.h"
 #include "spParticle.h"
 
 
-struct spParticleAttrEntity_s
-{
-    int type_tag;
-    size_type size_in_byte;
-    size_type offset;
-    char name[255];
-};
+#ifndef SP_MAX_NUMBER_OF_PARTICLE_ATTR
+#    define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
+#endif
+
+
 typedef struct spParticleFiber_s
 {
     SP_PARTICLE_HEAD
     byte_type __other[];
 } spParticleFiber;
-
-typedef struct spParticleLinkNode_s
-{
-    SP_PAGE_HEAD(struct spParticleLink_s)
-    spParticleFiber *data;
-} spParticleLinkNode;
 
 /**
  *   Particle (phase space distribution function):
@@ -56,29 +49,26 @@ struct spParticle_s
     struct spMesh_s const *m;
 
     int iform;
-    int m_num_of_attrs_;
-
-    struct spParticleAttrEntity_s m_attrs_[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
     spParticleFiber *m_data_root_;// DEVICE
 
     size_type m_size_of_fiber_;
     size_type m_length_of_fiber_;
-    MPI_Datatype m_fiber_mpi_type_;
-    hid_t m_fiber_hdf5_type;
 
+    spDataType *m_data_type_desc_;
 };
 
-int spParticleCreate(const spMesh *mesh, spParticle **sp)
+int spParticleCreate(spParticle **sp, const spMesh *mesh, spDataType const *dtype)
 {
     spParallelHostAlloc(sp, sizeof(spParticle));
 
     (*sp)->id = spMPIGenerateObjectId();
     (*sp)->m = mesh;
     (*sp)->iform = VOLUME;
-    (*sp)->m_num_of_attrs_ = 0;
-    (*sp)->m_fiber_mpi_type_ = MPI_DATATYPE_NULL;
-    (*sp)->m_fiber_hdf5_type = H5T_NO_CLASS;
+
+
+    spDataTypeCreate(&((*sp)->m_data_type_desc_), SP_TYPE_NULL);
+    spDataTypeCopy((*sp)->m_data_type_desc_, dtype);
 
     return SP_SUCCESS;
 
@@ -92,6 +82,7 @@ int spParticleDeploy(spParticle *sp, size_type PIC)
 
     spParallelDeviceAlloc((void **) &(sp->m_data_root_), sp->m_size_of_fiber_ * number_of_cell);
 
+
     return SP_SUCCESS;
 }
 
@@ -101,16 +92,18 @@ int spParticleDestroy(spParticle **sp)
     {
         spParallelDeviceFree((void **) &((*sp)->m_data_root_));
 
-        if ((*sp)->m_fiber_mpi_type_ != MPI_DATATYPE_NULL) { MPI_Type_free(&((*sp)->m_fiber_mpi_type_)); }
+        spDataTypeDestroy(&((*sp)->m_data_type_desc_));
 
-        if ((*sp)->m_fiber_hdf5_type != H5T_NO_CLASS) { H5Tclose((*sp)->m_fiber_hdf5_type); }
         spParallelHostFree(sp);
 
     }
     return SP_SUCCESS;
 }
+spDataType const *spParticleDataTypeDesc(spParticle const *sp) { return sp->m_data_type_desc_; }
 
-spParticleFiber *spParticleData(spParticle *sp) { return sp->m_data_root_; };
+void *spParticleData(spParticle *sp) { return sp->m_data_root_; };
+
+void const *spParticleDataConst(spParticle *sp) { return sp->m_data_root_; };
 
 size_type spParticleFiberLength(spParticle const *sp) { return sp->m_length_of_fiber_; };
 
@@ -120,36 +113,36 @@ Real spParticleMass(spParticle const *sp) { return sp->mass; }
 
 Real spParticleCharge(spParticle const *sp) { return sp->charge; }
 
-void spParticleSizeOfEntity(struct spParticle_s *sp, size_type size_in_byte)
-{
-    sp->m_size_of_fiber_ = size_in_byte;
-}
-
-int spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag, size_type size_in_byte,
-                           size_type offset)
-{
-    strcpy(pg->m_attrs_[pg->m_num_of_attrs_].name, name);
-
-    pg->m_attrs_[pg->m_num_of_attrs_].type_tag = type_tag;
-
-    pg->m_attrs_[pg->m_num_of_attrs_].size_in_byte = size_in_byte;
-
-    pg->m_attrs_[pg->m_num_of_attrs_].offset = offset;
-
-    ++pg->m_num_of_attrs_;
-
-    assert(pg->m_num_of_attrs_ < SP_MAX_NUMBER_OF_PARTICLE_ATTR);
-
-    return SP_SUCCESS;
-}
-
-int spParticleNumberOfAttributes(struct spParticle_s const *sp) { return sp->m_num_of_attrs_; }
+//void spParticleSizeOfEntity(struct spParticle_s *sp, size_type size_in_byte)
+//{
+//    sp->m_size_of_fiber_ = size_in_byte;
+//}
+//
+//int spParticleAddAttribute(struct spParticle_s *pg, char const *name, int type_tag, size_type size_in_byte,
+//                           size_type offset)
+//{
+//    strcpy(pg->m_attrs_[pg->m_num_of_attrs_].name, name);
+//
+//    pg->m_attrs_[pg->m_num_of_attrs_].type_tag = type_tag;
+//
+//    pg->m_attrs_[pg->m_num_of_attrs_].size_in_byte = size_in_byte;
+//
+//    pg->m_attrs_[pg->m_num_of_attrs_].offset = offset;
+//
+//    ++pg->m_num_of_attrs_;
+//
+//    assert(pg->m_num_of_attrs_ < SP_MAX_NUMBER_OF_PARTICLE_ATTR);
+//
+//    return SP_SUCCESS;
+//}
+//
+//int spParticleNumberOfAttributes(struct spParticle_s const *sp) { return sp->m_num_of_attrs_; }
 
 /**
  *
  * @param sp
  */
-void spParticleSync(spParticle *sp)
+int spParticleSync(spParticle *sp)
 {
     int ndims = 3;
 
@@ -158,9 +151,9 @@ void spParticleSync(spParticle *sp)
 
     for (int i = 0; i < 3; ++i) { count[i] -= start[i]; }
 
-    spMPIUpdateNdArrayHalo(sp->m_data_root_,
-                           ndims, dims, start, NULL, count, NULL, sp->m_fiber_mpi_type_, spMPIComm());
+    spParallelUpdateNdArrayHalo(sp->m_data_root_, ndims, dims, start, NULL, count, NULL, sp->m_data_type_desc_);
 
+    return SP_SUCCESS;
 
 }
 
@@ -188,16 +181,17 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
     spParallelHostAlloc(&buffer, sp->m_size_of_fiber_ * num_of_cell);
     spParallelMemcpy(buffer, sp->m_data_root_, sp->m_size_of_fiber_ * num_of_cell);
 
-    spIOWriteSimple(os, name, sp->m_fiber_hdf5_type, buffer,
-                    ndims + 1, dims, start, NULL, count, NULL, flag);
+    spIOStreamWriteSimple(os, name, sp->m_data_type_desc_, buffer,
+                          ndims + 1, dims, start, NULL, count, NULL, flag);
 
     spParallelHostFree(&buffer);
 
+    return SP_SUCCESS;
 
 }
 
-void spParticleRead(struct spParticle_s *f, spIOStream *os, char const url[], int flag)
+int spParticleRead(struct spParticle_s *f, spIOStream *os, const char *url, int flag)
 {
-
+    return SP_SUCCESS;
 }
 

@@ -6,7 +6,7 @@
 
 void spIOWriteSimple(spIOStream *os,
                      const char *url,
-                     hid_t d_type,
+                     struct spDataType_s const *d_type,
                      void *d,
                      int ndims,
                      size_type const *dims,

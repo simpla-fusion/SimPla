@@ -5,9 +5,8 @@
 #ifndef SIMPLA_BORISYEE_H
 #define SIMPLA_BORISYEE_H
 
+#include "sp_lite_def.h"
 #include "spParticle.h"
-#include "spMesh.h"
-#include "spField.h"
 
 
 typedef struct boris_particle_s
@@ -21,11 +20,23 @@ typedef struct boris_particle_s
 
 } boris_particle;
 
-int spBorisYeeParticleCreate(spMesh const *m, spParticle **sp);
+struct spMesh_s;
+struct spField_s;
 
-int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho,
-                             spField *fJ);
+int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m);
 
-int spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB);
+int spBorisYeeParticleUpdate(spParticle *sp,
+                             Real dt,
+                             const struct spField_s *fE,
+                             const struct spField_s *fB,
+                             struct spField_s *fRho,
+                             struct spField_s *fJ);
+
+int spUpdateField_Yee(struct spMesh_s const *ctx,
+                      Real dt,
+                      const struct spField_s *fRho,
+                      const struct spField_s *fJ,
+                      struct spField_s *fE,
+                      struct spField_s *fB);
 
 #endif //SIMPLA_BORISYEE_H

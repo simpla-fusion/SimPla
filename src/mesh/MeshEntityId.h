@@ -61,17 +61,8 @@ namespace simpla { namespace mesh
  */
 
 
-typedef union
-{
-    struct { int16_t w, z, y, x; };
-    int64_t v;
+typedef MeshEntityId64 MeshEntityId;
 
-    operator size_t() const { return static_cast<size_t>(v); }
-    operator int64_t() const { return v; }
-
-} MeshEntityId;
-
-typedef MeshEntityId id;
 
 #define INT_2_ENTITY_ID(_V_) ( *reinterpret_cast<MeshEntityId const *>(&(_V_)))
 
@@ -172,14 +163,14 @@ struct MeshEntityIdCoder_
 
     static constexpr point_type m_id_to_coordinates_shift_[] = {
 
-        {0, 0, 0},            // 000
-        {_R, 0, 0},           // 001
-        {0, _R, 0},           // 010
-        {0, 0, _R},           // 011
+        {0,  0,  0},            // 000
+        {_R, 0,  0},           // 001
+        {0,  _R, 0},           // 010
+        {0,  0,  _R},           // 011
         {_R, _R, 0},          // 100
-        {_R, 0, _R},          // 101
-        {0, _R, _R},          // 110
-        {0, _R, _R},          // 111
+        {_R, 0,  _R},          // 101
+        {0,  _R, _R},          // 110
+        {0,  _R, _R},          // 111
 
     };
     static constexpr int m_iform_to_num_of_ele_in_cell_[] = {
@@ -644,7 +635,7 @@ struct MeshEntityIdCoder_
                     _DA - _DI    //
                 },
                 /* 011*/
-                {_DA},
+                {   _DA},
                 /* 100*/
                 {//
                     _DA - _DI,         //
@@ -752,7 +743,7 @@ struct MeshEntityIdCoder_
 
 
         range_type()
-            : m_iform_(VERTEX), m_min_(), m_max_(m_min_), m_grain_size_(m_min_) { }
+            : m_iform_(VERTEX), m_min_(), m_max_(m_min_), m_grain_size_(m_min_) {}
 
         // constructors
 
@@ -821,7 +812,7 @@ struct MeshEntityIdCoder_
             r.m_min_[n] = m_max_[n];
         }
 
-        ~range_type() { }
+        ~range_type() {}
 
         void swap(this_type &other)
         {

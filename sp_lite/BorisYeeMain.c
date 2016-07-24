@@ -42,10 +42,10 @@ int main(int argc, char **argv)
     spField *fRho = NULL;
     spField *fJ = NULL;
 
-    spFieldCreate(mesh, &fE, 1);
-    spFieldCreate(mesh, &fB, 2);
-    spFieldCreate(mesh, &fJ, 1);
-    spFieldCreate(mesh, &fRho, 0);
+    spFieldCreate(&fE, mesh, 1);
+    spFieldCreate(&fB, mesh, 2);
+    spFieldCreate(&fJ, mesh, 1);
+    spFieldCreate(&fRho, mesh, 0);
 
     spFieldClear(fE);
     spFieldClear(fB);
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 
     spParticle *sp = NULL;
 
-    spBorisYeeParticleCreate(mesh, &sp);
+    spBorisYeeParticleCreate(&sp, mesh);
     spParticleDeploy(sp, 256/* number of PIC */);
 
     int count = 5;

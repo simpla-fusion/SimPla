@@ -77,7 +77,7 @@
 //    );
 //
 //
-//    spMPIUpdateNdArrayHalo(spParticlePageCount(sp), 3, shape,
+//    spParallelUpdateNdArrayHalo(spParticlePageCount(sp), 3, shape,
 //                           lower, NULL, count, NULL, MPI_INT, spMPIComm());
 //
 //    LOAD_KERNEL(spParticleResizePageLinkKernel,

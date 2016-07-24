@@ -8,9 +8,10 @@
 #include "sp_lite_def.h"
 #include <H5Ipublic.h>
 #include <hdf5.h>
+#include "../src/sp_capi.h"
 
 void spIOWriteSimple(spIOStream *os, const char *url,
-                     int d_type,
+                     struct spDataType_s const *d_type,
                      void *d, int ndims,
                      size_type const *dims,
                      size_type const *start,

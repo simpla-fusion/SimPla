@@ -21,6 +21,20 @@ void spParallelFinalize()
     CUDA_CHECK_RETURN(cudaDeviceReset());
     spMPIFinialize();
 }
+
+
+#define MPI_ERROR(_CMD_)                                                   \
+{                                                                          \
+    int _mpi_error_code_ = _CMD_;                                          \
+    if (_mpi_error_code_ != MPI_SUCCESS)                                   \
+    {                                                                      \
+        char _error_msg[MPI_MAX_ERROR_STRING];                             \
+        MPI_Error_string(_mpi_error_code_, _error_msg, NULL);           \
+        ERROR(_error_msg);                                                 \
+    }                                                                      \
+}
+
+
 int spMPITopologyNDims()
 {
     MPI_Comm comm = spMPIComm();
@@ -38,91 +52,132 @@ int spMPITopologyNDims()
     return mpi_topology_ndims;
 };
 
-int spMPIDataTypeCreate(int type_tag, size_type type_size_in_byte, MPI_Datatype *new_type)
+/**
+ * MPI_Neighbor_alltoallw
+ *
+ * @param send_buffer
+ * @param send_counts
+ * @param send_displs
+ * @param send_types
+ * @param recv_buffer
+ * @param recv_counts
+ * @param recv_displs
+ * @param recv_types
+ * @param comm
+ * @return
+ */
+int spMPINeighborAllToAll(const void *send_buffer,
+                          const int *send_counts,
+                          const MPI_Aint *send_displs,
+                          MPI_Datatype const *send_types,
+                          void *recv_buffer,
+                          const int *recv_counts,
+                          const MPI_Aint *recv_displs,
+                          MPI_Datatype const *recv_types,
+                          MPI_Comm comm)
 {
-    *new_type = MPI_BYTE;
-    switch (type_tag)
+    if (comm == MPI_COMM_NULL) { return SP_FAILED; }
+    else
     {
-        case SP_TYPE_float:
-            *new_type = MPI_FLOAT;
-            break;
-        case SP_TYPE_double:
-            *new_type = MPI_DOUBLE;
-            break;
+        int tope_type = MPI_CART;
 
-        case SP_TYPE_int:
-            *new_type = MPI_INT;
-            break;
+        MPI_ERROR(MPI_Topo_test(comm, &tope_type));
 
-        case SP_TYPE_long:
-            *new_type = MPI_LONG;
-            break;
-        case SP_TYPE_int64_t:
-            *new_type = MPI_INT64_T;
-            break;
-        default:
-            *new_type = MPI_DATATYPE_NULL;
-            break;
-    }
-    if (*new_type != MPI_DATATYPE_NULL)
-    {
-        MPI_Count t_size = 0;
-        MPI_ERROR(MPI_Type_size_x(*new_type, &t_size));
-        assert(t_size == type_size_in_byte);
+        if (tope_type != MPI_CART) { return SP_FAILED; }
     }
 
+    int tag = 0;
+
+    int mpi_topology_ndims = 0;
+
+    MPI_ERROR(MPI_Cartdim_get(comm, &mpi_topology_ndims));
+
+    for (int d = 0; d < mpi_topology_ndims; ++d)
+    {
+        int r0, r1;
+
+        MPI_ERROR(MPI_Cart_shift(comm, d, 1, &r0, &r1));
+
+        MPI_ERROR(MPI_Sendrecv(
+            (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
+            send_counts[d],
+            send_types[d * 2 + 0],
+            r0,
+            tag,
+            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
+            recv_counts[d],
+            recv_types[d * 2 + 0],
+            r1,
+            tag,
+            comm,
+            MPI_STATUS_IGNORE));
+
+        MPI_ERROR(MPI_Sendrecv(
+            (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
+            send_counts[d],
+            send_types[d * 2 + 1],
+            r1,
+            tag,
+            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
+            recv_counts[d],
+            recv_types[d * 2 + 1],
+            r0,
+            tag,
+            comm,
+            MPI_STATUS_IGNORE));
+    }
 
     return MPI_SUCCESS;
 
 }
+//
+//int testNdArrayUpdateHalo()
+//{
+//    MPI_Comm comm = spMPIComm();
+//
+//    int rank = spMPIRank();
+//
+//    int size = spMPISize();
+//
+//    int buffer[25] = {
+//        rank, rank, rank, rank, rank,
+//        rank, rank, rank, rank, rank,
+//        rank, rank, rank, rank, rank,
+//        rank, rank, rank, rank, rank,
+//        rank, rank, rank, rank, rank
+//    };
+//
+//    size_type dims[2] = {5, 5};
+//    size_type start[2] = {1, 1};
+//    size_type count[2] = {3, 3};
+//
+//    spParallelUpdateNdArrayHalo(buffer, 2, dims, start, NULL, count, NULL, MPI_INT);
+//
+//
+//    printf("\n"
+//               "[%d/%d/%d] \t  %d,%d,%d,%d,%d \n"
+//               "           \t  %d,%d,%d,%d,%d \n"
+//               "           \t  %d,%d,%d,%d,%d \n"
+//               "           \t  %d,%d,%d,%d,%d \n"
+//               "           \t  %d,%d,%d,%d,%d \n", rank, size, 6,
+//           buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
+//           buffer[5], buffer[6], buffer[7], buffer[8], buffer[9],
+//           buffer[10], buffer[11], buffer[12], buffer[13], buffer[14],
+//           buffer[15], buffer[16], buffer[17], buffer[18], buffer[19],
+//           buffer[20], buffer[21], buffer[22], buffer[23], buffer[24]
+//    );
+//}
 
-int testNdArrayUpdateHalo()
+int spParallelUpdateNdArrayHalo(void *buffer, int ndims,
+                                const size_type *shape,
+                                const size_type *start,
+                                const size_type *stride,
+                                const size_type *count,
+                                const size_type *block,
+                                const struct spDataType_s *data_desc)
 {
     MPI_Comm comm = spMPIComm();
 
-    int rank = spMPIRank();
-
-    int size = spMPISize();
-
-    int buffer[25] = {
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank,
-        rank, rank, rank, rank, rank
-    };
-
-    size_type dims[2] = {5, 5};
-    size_type start[2] = {1, 1};
-    size_type count[2] = {3, 3};
-
-    spMPIUpdateNdArrayHalo(buffer, 2, dims, start, NULL, count, NULL, MPI_INT, comm);
-
-
-    printf("\n"
-               "[%d/%d/%d] \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n"
-               "           \t  %d,%d,%d,%d,%d \n", rank, size, 6,
-           buffer[0], buffer[1], buffer[2], buffer[3], buffer[4],
-           buffer[5], buffer[6], buffer[7], buffer[8], buffer[9],
-           buffer[10], buffer[11], buffer[12], buffer[13], buffer[14],
-           buffer[15], buffer[16], buffer[17], buffer[18], buffer[19],
-           buffer[20], buffer[21], buffer[22], buffer[23], buffer[24]
-    );
-}
-
-int spMPIUpdateNdArrayHalo(void *buffer,
-                           int ndims,
-                           const size_type shape[],
-                           const size_type start[],
-                           const size_type stride[],
-                           const size_type count[],
-                           const size_type block[],
-                           MPI_Datatype ele_type,
-                           MPI_Comm comm)
-{
     if (comm == MPI_COMM_NULL) { return SP_FAILED; }
     else
     {
@@ -131,6 +186,7 @@ int spMPIUpdateNdArrayHalo(void *buffer,
         assert(tope_type == MPI_CART);
     }
 
+    MPI_Datatype ele_type = *spDataTypeMPIType(data_desc);
 
     int mpi_topology_ndims = 0;
 
@@ -334,81 +390,4 @@ int spUpdateIndexedBlock(void const *send_buffer,
         MPI_Type_free(&recv_types[i]);
     }
     return MPI_SUCCESS;
-}
-
-/**
- * MPI_Neighbor_alltoallw
- *
- * @param send_buffer
- * @param send_counts
- * @param send_displs
- * @param send_types
- * @param recv_buffer
- * @param recv_counts
- * @param recv_displs
- * @param recv_types
- * @param comm
- * @return
- */
-int spMPINeighborAllToAll(const void *send_buffer,
-                          const int *send_counts,
-                          const MPI_Aint *send_displs,
-                          MPI_Datatype const *send_types,
-                          void *recv_buffer,
-                          const int *recv_counts,
-                          const MPI_Aint *recv_displs,
-                          MPI_Datatype const *recv_types,
-                          MPI_Comm comm)
-{
-    if (comm == MPI_COMM_NULL) { return SP_FAILED; }
-    else
-    {
-        int tope_type = MPI_CART;
-
-        MPI_ERROR(MPI_Topo_test(comm, &tope_type));
-
-        if (tope_type != MPI_CART);
-        { return SP_FAILED; }
-    }
-    int tag = 0;
-    int mpi_topology_ndims = 0;
-    MPI_ERROR(MPI_Cartdim_get(comm, &mpi_topology_ndims));
-
-    for (int d = 0; d < mpi_topology_ndims; ++d)
-    {
-        int r0, r1;
-
-        MPI_ERROR(MPI_Cart_shift(comm, d, 1, &r0, &r1));
-
-        MPI_ERROR(MPI_Sendrecv(
-            (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
-            send_counts[d],
-            send_types[d * 2 + 0],
-            r0,
-            tag,
-            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
-            recv_counts[d],
-            recv_types[d * 2 + 0],
-            r1,
-            tag,
-            comm,
-            MPI_STATUS_IGNORE));
-
-        MPI_ERROR(MPI_Sendrecv(
-            (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
-            send_counts[d],
-            send_types[d * 2 + 1],
-            r1,
-            tag,
-            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
-            recv_counts[d],
-            recv_types[d * 2 + 1],
-            r0,
-            tag,
-            comm,
-            MPI_STATUS_IGNORE));
-    }
-
-    return MPI_SUCCESS;
-
 }

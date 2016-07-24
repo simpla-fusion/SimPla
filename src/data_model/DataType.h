@@ -20,11 +20,11 @@
 #include "../gtl/nTuple.h"
 #include "../gtl/type_traits.h"
 #include "../base/Object.h"
+#include "../sp_config.h"
 
 namespace simpla { namespace traits
 {
 template<typename T> struct rank;
-
 
 template<typename T> struct value_type;
 }}//namespace simpla{namespace traits
@@ -44,13 +44,13 @@ namespace simpla { namespace data_model
  *        doc/reference/xdr/
  *
  */
-struct DataType : public base::Object
+struct DataType: public base::Object
 {
     SP_OBJECT_HEAD(DataType, base::Object);
 
     DataType();
 
-    DataType(std::type_index t_index, size_t ele_size_in_byte, int ndims = 0, size_t const *dims = nullptr,
+    DataType(std::type_index t_index, size_type ele_size_in_byte, int ndims = 0, size_type const *dims = nullptr,
              std::string name = "");
 
     DataType(const DataType &other);
@@ -67,24 +67,25 @@ struct DataType : public base::Object
 
     bool is_valid() const;
 
-    std::string name() const;
+    virtual std::string name() const;
 
+    size_type number_of_entities() const;
 
-    size_t size() const;
+    void size_in_byte(size_type);
 
-    size_t size_in_byte() const;
+    size_type size_in_byte() const;
 
-    size_t ele_size_in_byte() const;
+    size_type ele_size_in_byte() const;
 
     int rank() const;
 
     DataType element_type() const;
 
-    size_t extent(int n) const;
+    size_type extent(int n) const;
 
-    void extent(size_t *d) const;
+    void extent(size_type *d) const;
 
-    void extent(int rank, size_t const *d);
+    void extent(int rank, const size_type *d);
 
     std::vector<size_t> const &extents() const;
 
@@ -98,18 +99,14 @@ struct DataType : public base::Object
 
     template<typename T> bool is_same() const { return is_same(std::type_index(typeid(T))); }
 
-    void push_back(DataType &&dtype, std::string const &name, int pos = -1);
+    int push_back(DataType const &dtype, std::string const &name, size_type offset = -1);
 
     std::vector<std::tuple<DataType, std::string, int>> const &members() const;
 
 private:
     template<typename T> struct create_helper;
 public:
-    template<typename T>
-    static DataType create(std::string const &s_name = "")
-    {
-        return create_helper<T>::create();
-    }
+    template<typename T> static DataType create(std::string const &s_name = "") { return create_helper<T>::create(); }
 
 private:
     struct pimpl_s;
@@ -135,18 +132,17 @@ private:
 
         typedef typename traits::value_type<obj_type>::type element_type;
 
-        size_t ele_size_in_byte = sizeof(element_type) / sizeof(char);
+        size_type ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
         nTuple<size_t, 10> d;
 
         d = traits::seq_value<traits::extents<obj_type> >::value;
 
         return std::move(
-                DataType(std::type_index(typeid(element_type)),
-                         ele_size_in_byte, ::simpla::traits::rank<obj_type>::value, &d[0], name)
+            DataType(std::type_index(typeid(element_type)),
+                     ele_size_in_byte, ::simpla::traits::rank<obj_type>::value, &d[0], name)
 
         );
-
 
     }
 
@@ -158,10 +154,9 @@ public:
                        std::integral_constant<bool, has_static_member_function_data_type<traits::type_id<T>>::value>());
     }
 
-
 };
 
-template<typename T, size_t N>
+template<typename T, size_type N>
 struct DataType::create_helper<T[N]>
 {
 
@@ -171,19 +166,19 @@ struct DataType::create_helper<T[N]>
 
         typedef typename traits::value_type<obj_type>::type element_type;
 
-        size_t ele_size_in_byte = sizeof(element_type) / sizeof(char);
+        size_type ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
-        size_t d = N;
+        size_type d = N;
 
         return std::move(
-                DataType(std::type_index(typeid(element_type)),
-                         ele_size_in_byte, 1, &d, name)
+            DataType(std::type_index(typeid(element_type)),
+                     ele_size_in_byte, 1, &d, name)
 
         );
     }
 };
 
-template<typename T, size_t N, size_t M>
+template<typename T, size_type N, size_type M>
 struct DataType::create_helper<T[N][M]>
 {
 
@@ -193,13 +188,13 @@ struct DataType::create_helper<T[N][M]>
 
         typedef typename traits::value_type<obj_type>::type element_type;
 
-        size_t ele_size_in_byte = sizeof(element_type) / sizeof(char);
+        size_type ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
-        size_t d[] = {N, M};
+        size_type d[] = {N, M};
 
         return std::move(
-                DataType(std::type_index(typeid(element_type)),
-                         ele_size_in_byte, 2, d, name)
+            DataType(std::type_index(typeid(element_type)),
+                     ele_size_in_byte, 2, d, name)
 
         );
     }

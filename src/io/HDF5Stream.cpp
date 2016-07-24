@@ -48,10 +48,8 @@ struct HDF5Stream::pimpl_s
 
     ~pimpl_s();
 
-
     hid_t base_file_id_ = -1;
     hid_t base_group_id_ = -1;
-
 
     void set_attribute(hid_t loc_id, std::string const &name, any const &v);
 
@@ -65,10 +63,10 @@ struct HDF5Stream::pimpl_s
 
     std::map<std::string, data_model::DataSet> m_buffer_map_;
 
-
 };
 
-HDF5Stream::HDF5Stream() : m_pimpl_(new pimpl_s) { }
+HDF5Stream::HDF5Stream()
+    : m_pimpl_(new pimpl_s) {}
 
 HDF5Stream::~HDF5Stream() { close(); }
 
@@ -123,7 +121,7 @@ std::tuple<bool, std::string> HDF5Stream::open(std::string const &url, int flag)
         if (GLOBAL_COMM.process_num() == 0)
         {
             obj_name =
-                    obj_name +
+                obj_name +
 
                     AutoIncrease([&](std::string const &s) -> bool
                                  {
@@ -144,7 +142,6 @@ std::tuple<bool, std::string> HDF5Stream::open(std::string const &url, int flag)
 
     return std::make_tuple(is_existed, obj_name);
 }
-
 
 void HDF5Stream::set_attribute(std::string const &url, Properties const &any_v)
 {
@@ -310,14 +307,12 @@ void HDF5Stream::close_file()
         VERBOSE << "File [" << IOStream::current_file_name() << "] is closed!" << std::endl;
     }
 
-
 }
 
 void HDF5Stream::close()
 {
     close_file();
 }
-
 
 void HDF5Stream::open_file(std::string const &fname, bool is_append)
 {
@@ -352,7 +347,6 @@ void HDF5Stream::open_file(std::string const &fname, bool is_append)
     IOStream::current_file_name(filename);
 
     VERBOSE << "File [" << filename << "] is opened!" << std::endl;
-
 
 }
 
@@ -484,9 +478,9 @@ data_model::DataType convert_data_type_h5_to_sp(hid_t t_id)
         for (int i = 0, num = H5Tget_nmembers(t_id); i < num; ++i)
         {
             dtype.push_back(
-                    convert_data_type_h5_to_sp(H5Tget_member_type(t_id, i)),
-                    std::string(H5Tget_member_name(t_id, i)),
-                    static_cast<int>(  H5Tget_member_offset(t_id, i)));
+                convert_data_type_h5_to_sp(H5Tget_member_type(t_id, i)),
+                std::string(H5Tget_member_name(t_id, i)),
+                static_cast<int>(  H5Tget_member_offset(t_id, i)));
         }
 
     }
@@ -565,7 +559,7 @@ data_model::DataType convert_data_type_h5_to_sp(hid_t t_id)
     if (bad_cast_error)
     {
         logger::Logger(logger::LOG_ERROR) << "H5 DataType convert to sp.DataType failed!"
-        << std::endl;
+                                          << std::endl;
         throw std::bad_cast();
     }
 
@@ -652,7 +646,6 @@ data_model::DataSpace convert_data_space_h5_to_sp(hid_t)
     return data_model::DataSpace();
 }
 
-
 void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &ds)
 {
 
@@ -730,12 +723,10 @@ void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &
         auto &d_shape = item.data_space.shape();
         int d_ndims = std::get<0>(d_shape);
 
-
         auto &m_shape = item.memory_space.shape();
         int m_ndims = std::get<0>(m_shape);
 
-
-        size_t dtype_size = item.data_type.size();
+        size_t dtype_size = item.data_type.number_of_entities();
 
 
         if (ds.memory_space.is_simple())
@@ -744,7 +735,6 @@ void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &
             auto const &src_shape = ds.memory_space.shape();
 
             size_t num_element = ds.memory_space.num_of_elements();
-
 
             int src_ndims = std::get<0>(src_shape);
             auto src_dims = std::get<1>(src_shape);
@@ -813,7 +803,6 @@ void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &
                 if (n >= ndims) { break; }
             }
 
-
         }
         else
         {
@@ -860,7 +849,6 @@ std::string HDF5Stream::write_buffer(std::string const &url, bool is_forced_flus
 
     return res;
 
-
 }
 
 void HDF5Stream::flush()
@@ -893,17 +881,17 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
     if (!ds.is_valid())
     {
         WARNING << "Invalid dataset! "
-        << "[ URL = \"" << url << "\","
-        << " Data is " << ((ds.data != nullptr) ? "not" : " ") << " empty. "
-        << " Datatype is " << ((ds.data_type.is_valid()) ? "" : "not") << " valid. "
-        << " Data Space is " << ((ds.data_space.is_valid()) ? "" : "not")
-        << " valid. size=" << ds.data_space.num_of_elements()
-        << " Memory Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid.  size=" <<
-        ds.memory_space.num_of_elements()
-        << " Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid."
-        << " ]"
+                << "[ URL = \"" << url << "\","
+                << " Data is " << ((ds.data != nullptr) ? "not" : " ") << " empty. "
+                << " Datatype is " << ((ds.data_type.is_valid()) ? "" : "not") << " valid. "
+                << " Data Space is " << ((ds.data_space.is_valid()) ? "" : "not")
+                << " valid. size=" << ds.data_space.num_of_elements()
+                << " Memory Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid.  size=" <<
+                ds.memory_space.num_of_elements()
+                << " Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid."
+                << " ]"
 
-        << std::endl;
+                << std::endl;
         return "";
     }
 

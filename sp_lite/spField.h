@@ -8,32 +8,48 @@
 #ifndef SPFIELD_H_
 #define SPFIELD_H_
 #include "sp_lite_def.h"
-#include "spObject.h"
-//#include "spMesh.h"
 
-typedef struct spField_s
-{
-    SP_OBJECT_HEAD
-    const struct spMesh_s *m;
-    int iform;
-    int type_tag;
-    int type_size_in_byte;
-    Real *device_data;
-    Real *host_data;
-} spField;
 
-void spFieldCreate(const struct spMesh_s *ctx, spField **f, int iform);
+struct spMesh_s;
 
-void spFieldDestroy(spField **f);
+struct spDataType_s;
+struct spIOStream_s;
+struct spField_s;
 
-void spFieldDeploy(spField *f);
+typedef struct spField_s spField;
 
-void spFieldClear(spField *f);
+int spFieldCreate(spField **f, const struct spMesh_s *m, int iform);
 
-void spFieldWrite(spField *f, spIOStream *os, char const name[], int flag);
+int spFieldDestroy(spField **f);
 
-void spFieldRead(spField *f, spIOStream *os, char const name[], int flag);
+int spFieldDeploy(spField *f);
 
-void spFieldSync(spField *f);
+size_type spFieldId(spField const *f);
+
+struct spMesh_s const *spFieldMesh(spField const *f);
+
+struct spDataType_s const *spFieldDataType(spField const *f);
+
+int spFieldForm(spField const *f);
+
+void *spFieldData(spField *f);
+
+void *spFieldDeviceData(spField *f);
+
+void *spFieldHostData(spField *f);
+
+void const *spFieldDataConst(spField const *f);
+
+void const *spFieldDeviceDataConst(spField const *f);
+
+void const *spFieldHostDataConst(spField const *f);
+
+int spFieldClear(spField *f);
+
+int spFieldWrite(spField *f, struct spIOStream_s *os, char const name[], int flag);
+
+int spFieldRead(spField *f, struct spIOStream_s *os, char const name[], int flag);
+
+int spFieldSync(spField *f);
 
 #endif /* SPFIELD_H_ */

@@ -13,14 +13,6 @@
 
 enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3 };
 
-union MeshEntityId_u
-{
-    struct { int16_t w, z, y, x; };
-    int64_t v;
-};
-
-typedef union MeshEntityId_u MeshEntityId;
-
 struct spMesh_s;
 
 typedef struct spMesh_s spMesh;

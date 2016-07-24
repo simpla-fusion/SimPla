@@ -11,10 +11,13 @@ extern "C" {
 #include "sp_lite_def.h"
 
 #include "spParallel.h"
-
-#include "spParticle.h"
-#include "BorisYee.h"
 #include "spParallelCUDA.h"
+
+#include "spMesh.h"
+#include "spParticle.h"
+#include "spField.h"
+
+#include "BorisYee.h"
 
 }
 //
@@ -22,17 +25,17 @@ __global__ void
 spBorisInitializeParticleKernel(void *data, size_type entity_size_in_byte)
 {
 
-    boris_particle *d = (boris_particle *) (data + blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
+    boris_particle
+        *d = (boris_particle *) ((byte_type *) (data) + blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
     int s = (threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y);
 
-    d->flag[s].v = 0;
+    d->id[s] = 0;
     d->rx[s] = 0.15;
     d->ry[s] = 0.25;
     d->rz[s] = 0.35;
     d->vx[s] = 1;
     d->vy[s] = 2;
     d->vz[s] = 3;
-
 
 }
 
@@ -62,7 +65,7 @@ __device__ void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 {
 
     *v = *v
-         + (f[IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
+        + (f[IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
             + f[IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
             + f[IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
             + f[IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
@@ -85,18 +88,21 @@ __global__ void spBorisYeeUpdateParticleKernel(void *data,
                                                Real cmr_dt,
                                                int3 offset)
 {
-    boris_particle *d = (boris_particle *) (data + blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
-    boris_particle *s = (boris_particle *) (data +
-                                            (blockIdx.x + offset.x + gridDim.x) % gridDim.x +
-                                            (blockIdx.y + offset.y + gridDim.y) % gridDim.y * gridDim.x +
-                                            (blockIdx.z + offset.z + gridDim.z) % gridDim.z * gridDim.y * gridDim.x);
+    boris_particle
+        *d = (boris_particle *) ((byte_type *) (data) + blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
+    boris_particle *s = (boris_particle *) ((byte_type *) (data) +
+        (blockIdx.x + offset.x + gridDim.x) % gridDim.x +
+        (blockIdx.y + offset.y + gridDim.y) % gridDim.y * gridDim.x +
+        (blockIdx.z + offset.z + gridDim.z) % gridDim.z * gridDim.y * gridDim.x);
 
     int s_tail = (threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y);
-    __shared__ int d_tail;
+    __shared__
+    int d_tail;
     __syncthreads();
     if (s_tail == 0) { d_tail = 0; }
     __syncthreads();
-    MeshEntityId old_id = s->flag[s_tail];
+    MeshEntityShortId old_id;
+    old_id.v = s->id[s_tail];
     if (old_id.x == offset.x && old_id.y == offset.y && old_id.z == offset.z)
     {
         Real rx = s->rx[s_tail];
@@ -106,7 +112,7 @@ __global__ void spBorisYeeUpdateParticleKernel(void *data,
         Real vy = s->vy[s_tail];
         Real vz = s->vz[s_tail];
 
-        s->flag[s_tail].v = 0xFF; // TODO this should be atomic
+        s->id[s_tail] = 0xFF; // TODO this should be atomic
 
         Real ax, ay, az;
         Real tx, ty, tz;
@@ -168,11 +174,11 @@ __global__ void spBorisYeeUpdateParticleKernel(void *data,
         while (1)
         {
             s = atomicAdd(&d_tail, 1);
-            if (d->flag[s].v != 0xFF) break;
+            if (d->id[s] != 0xFF) break;
         }
 
 
-        d->flag[s] = id;
+        d->id[s] = id.v;
         d->rx[s] = rx;
         d->ry[s] = ry;
         d->rz[s] = rz;
@@ -209,8 +215,8 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
                             sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
                             spParticleFiberLength(sp),
                             spParticleData(sp),
-                            (Real const *) fE->device_data,
-                            (Real const *) fB->device_data,
+                            (Real const *) spFieldDeviceDataConst(fE),
+                            (Real const *) spFieldDeviceDataConst(fB),
                             inv_dv, cmr_dt, offset);
             }
 
@@ -454,7 +460,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //    spFieldSync(fRho);
 //
 //}
- //__global__ void spUpdateParticleBorisPushBlockKernel(spParticlePage **buckets, const Real *fE, const Real *fB, Real3 inv_dv,
+//__global__ void spUpdateParticleBorisPushBlockKernel(spParticlePage **buckets, const Real *fE, const Real *fB, Real3 inv_dv,
 //		Real cmr_dt)
 //{
 //
