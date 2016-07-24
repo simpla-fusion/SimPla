@@ -160,19 +160,21 @@ int spParticleSync(spParticle *sp)
 {
     int ndims = 3;
 
-    size_type count[ndims], start[ndims], dims[ndims];
+    size_type count[ndims + 1], start[ndims + 1], dims[ndims + 1];
 
     SP_CHECK_RETURN(spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, dims, start, count, NULL));
 
     for (int i = 0; i < 3; ++i) { count[i] -= start[i]; }
-
+    count[ndims] = spParticleMaxFiberLength(sp);
+    start[ndims] = 0;
+    dims[ndims] = spParticleMaxFiberLength(sp);
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
 
 
         SP_CHECK_RETURN(spParallelUpdateNdArrayHalo(sp->m_attrs_[i].data,
                                                     sp->m_attrs_[i].data_type,
-                                                    ndims,
+                                                    ndims + 1,
                                                     dims,
                                                     start,
                                                     NULL,

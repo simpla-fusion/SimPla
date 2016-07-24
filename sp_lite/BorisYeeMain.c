@@ -71,19 +71,19 @@ int main(int argc, char **argv)
 
     SP_CHECK_RETURN(spIOStreamOpen(os, "/checkpoint/"));
 
-//    while (count > 0)
-//    {
-////		printf("====== REMINED STEP= %i ======\n", count);
-//        SP_CHECK_RETURN(spBorisYeeParticleUpdate(sp, dt, fE, fB, fRho, fJ));
-//        SP_CHECK_RETURN(spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB));
-//
-//        SP_CHECK_RETURN(spFieldWrite(fE, os, "E", SP_FILE_RECORD));
-//        SP_CHECK_RETURN(spFieldWrite(fB, os, "B", SP_FILE_RECORD));
-//        SP_CHECK_RETURN(spFieldWrite(fJ, os, "J", SP_FILE_RECORD));
-//        SP_CHECK_RETURN(spFieldWrite(fRho, os, "rho", SP_FILE_RECORD));
-//
-//        --count;
-//    }
+    while (count > 0)
+    {
+//		printf("====== REMINED STEP= %i ======\n", count);
+        SP_CHECK_RETURN(spBorisYeeParticleUpdate(sp, dt, fE, fB, fRho, fJ));
+        SP_CHECK_RETURN(spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB));
+
+        SP_CHECK_RETURN(spFieldWrite(fE, os, "E", SP_FILE_RECORD));
+        SP_CHECK_RETURN(spFieldWrite(fB, os, "B", SP_FILE_RECORD));
+        SP_CHECK_RETURN(spFieldWrite(fJ, os, "J", SP_FILE_RECORD));
+        SP_CHECK_RETURN(spFieldWrite(fRho, os, "rho", SP_FILE_RECORD));
+
+        --count;
+    }
     printf("======  The End ======\n");
     spParallelDeviceSync();
     SP_CHECK_RETURN(spIOStreamOpen(os, "/dump/"));

@@ -158,13 +158,13 @@ __global__ void spBorisYeeUpdateParticleKernel(void *data,
         rx += vx * 0.5 * mesh_inv_dv.x;
         ry += vy * 0.5 * mesh_inv_dv.y;
         rz += vz * 0.5 * mesh_inv_dv.z;
-        MeshEntityId id;
+        MeshEntityShortId id;
 
-        id.x = (int16_t) (floor(rx));
+        id.x = (int8_t) (floor(rx));
         rx -= (Real) (id.x);
-        id.y = (int16_t) (floor(ry));
+        id.y = (int8_t) (floor(ry));
         ry -= (Real) (id.y);
-        id.z = (int16_t) (floor(rz));
+        id.z = (int8_t) (floor(rz));
         rz -= (Real) (id.z);
 
         id.x += old_id.x;
