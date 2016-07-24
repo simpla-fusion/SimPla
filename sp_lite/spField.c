@@ -57,9 +57,8 @@ int spFieldDeploy(spField *f)
     if (f->device_data == NULL)
     {
         size_type num_of_entities = spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform);
-
-        spParallelDeviceAlloc((void **) &(f->device_data),
-                              num_of_entities * spDataTypeSizeInByte(f->m_data_type_desc_));
+        size_type s = spDataTypeSizeInByte(f->m_data_type_desc_);
+        spParallelDeviceAlloc((void **) &(f->device_data), num_of_entities * s);
     }
     return SP_SUCCESS;
 }
@@ -148,5 +147,7 @@ int spFieldSync(spField *f)
     shape[3] = 3;
 
     spParallelUpdateNdArrayHalo(f->device_data, ndims, shape, start, NULL, count, NULL, f->m_data_type_desc_);
+
+    return SP_SUCCESS;
 
 }

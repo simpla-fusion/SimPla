@@ -27,7 +27,7 @@ struct spMesh_s
     Real dx[4];
 };
 
-void spMeshCreate(spMesh **m)
+int spMeshCreate(spMesh **m)
 {
     *m = (spMesh *) malloc(sizeof(spMesh));
     (*m)->shape[0] = 1;
@@ -63,15 +63,18 @@ void spMeshCreate(spMesh **m)
     (*m)->x_upper[0] = 1;
     (*m)->x_upper[1] = 1;
     (*m)->x_upper[2] = 1;
+
+    return SP_SUCCESS;
 }
 
-void spMeshDestroy(spMesh **ctx)
+int spMeshDestroy(spMesh **ctx)
 {
     free(*ctx);
     *ctx = NULL;
+    return SP_SUCCESS;
 }
 
-void spMeshDeploy(spMesh *self)
+int spMeshDeploy(spMesh *self)
 {
 
     self->ndims = 3;
@@ -89,6 +92,7 @@ void spMeshDeploy(spMesh *self)
 
         self->i_upper[i] = self->dims[i] + self->ghost_width[i];
 
+        self->dx[i] = (self->x_upper[i] - self->x_lower[i]) / self->dims[i];
     }
     /**          -1
      *
@@ -133,6 +137,9 @@ void spMeshDeploy(spMesh *self)
 //	assert(count == 27);
 //	spParallelMemcpyToSymbol(SP_NEIGHBOUR_OFFSET, neighbour_offset, sizeof(neighbour_offset));
 //	spParallelMemcpyToSymbol(SP_NEIGHBOUR_OFFSET_flag, neighbour_flag, sizeof(neighbour_flag));
+
+    return SP_SUCCESS;
+
 }
 
 size_type spMeshNumberOfEntity(spMesh const *self, int tag, int iform)
@@ -147,26 +154,36 @@ void spMeshPoint(spMesh const *m, MeshEntityId id, Real *res)
     res[2] = m->x_lower[2] + m->dx[2] * (id.z - (m->i_lower[2] << 1)) * 0.5;
 };
 
-void spMeshSetDims(spMesh *m, size_type const *dims) { for (int i = 0; i < 3; ++i) { m->dims[i] = dims[i]; }};
+int spMeshSetDims(spMesh *m, size_type const *dims)
+{
+    for (int i = 0; i < 3; ++i) { m->dims[i] = dims[i]; }
+    return SP_SUCCESS;
+};
 
 size_type const *spMeshGetDims(spMesh const *m) { return m->dims; };
 
 size_type const *spMeshGetShape(spMesh const *m) { return m->shape; };
 
-void spMeshSetGhostWidth(spMesh *m, size_type const *gw) { for (int i = 0; i < 3; ++i) { m->ghost_width[i] = gw[i]; }};
+int spMeshSetGhostWidth(spMesh *m, size_type const *gw)
+{
+    for (int i = 0; i < 3; ++i) { m->ghost_width[i] = gw[i]; }
+    return SP_SUCCESS;
+};
 
 size_type const *spMeshGetGhostWidth(spMesh const *m) { return m->ghost_width; };
 
-void spMeshSetBox(spMesh *m, Real const *lower, Real const *upper)
+int spMeshSetBox(spMesh *m, Real const *lower, Real const *upper)
 {
     for (int i = 0; i < 3; ++i)
     {
         m->x_lower[i] = lower[i];
         m->x_upper[i] = upper[i];
     }
+    return SP_SUCCESS;
+
 };
 
-void spMeshGetBox(spMesh const *m, Real *lower, Real *upper)
+int spMeshGetBox(spMesh const *m, Real *lower, Real *upper)
 {
 
     for (int i = 0; i < 3; ++i)
@@ -174,13 +191,17 @@ void spMeshGetBox(spMesh const *m, Real *lower, Real *upper)
         lower[i] = m->x_lower[i];
         upper[i] = m->x_upper[i];
     }
+    return SP_SUCCESS;
+
 };
 
-void spMeshGetDx(spMesh const *m, Real *dx)
+int spMeshGetDx(spMesh const *m, Real *dx)
 {
     dx[0] = m->dx[0];
     dx[1] = m->dx[1];
     dx[2] = m->dx[2];
+    return SP_SUCCESS;
+
 }
 
 int spMeshDomain(spMesh const *m, int tag, size_type *shape, size_type *lower, size_type *upper, int *o)

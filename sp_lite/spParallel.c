@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "spParallel.h"
 
-void spParallelInitialize(int argc, char **argv)
+int spParallelInitialize(int argc, char **argv)
 {
 
     spMPIInitialize(argc, argv);
@@ -14,12 +14,16 @@ void spParallelInitialize(int argc, char **argv)
     CUDA_CHECK_RETURN(cudaSetDevice(spMPIProcessNum() % num_of_device));
     CUDA_CHECK_RETURN(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
     CUDA_CHECK_RETURN(cudaGetLastError());
+    return SP_SUCCESS;
+
 }
 
-void spParallelFinalize()
+int spParallelFinalize()
 {
     CUDA_CHECK_RETURN(cudaDeviceReset());
     spMPIFinialize();
+    return SP_SUCCESS;
+
 }
 
 
@@ -127,7 +131,7 @@ int spMPINeighborAllToAll(const void *send_buffer,
             MPI_STATUS_IGNORE));
     }
 
-    return MPI_SUCCESS;
+    return SP_SUCCESS;
 
 }
 //
@@ -186,11 +190,13 @@ int spParallelUpdateNdArrayHalo(void *buffer, int ndims,
         assert(tope_type == MPI_CART);
     }
 
-    MPI_Datatype ele_type = *spDataTypeMPIType(data_desc);
+    MPI_Datatype const ele_type = *spDataTypeMPIType(data_desc);
+
+    if (ele_type == MPI_DATATYPE_NULL) { return SP_FAILED; }
 
     int mpi_topology_ndims = 0;
 
-    MPI_Cartdim_get(comm, &mpi_topology_ndims);
+    MPI_ERROR(MPI_Cartdim_get(comm, &mpi_topology_ndims));
 
     assert(mpi_topology_ndims <= ndims);
 
@@ -221,7 +227,7 @@ int spParallelUpdateNdArrayHalo(void *buffer, int ndims,
 
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
-        mpi_sendrecv_count[d] = mpi_sendrecv_count[2 * d + 1] = 1;
+        mpi_sendrecv_count[2 * d] = mpi_sendrecv_count[2 * d + 1] = 1;
 
         for (int i = 0; i < ndims; ++i)
         {
@@ -264,41 +270,41 @@ int spParallelUpdateNdArrayHalo(void *buffer, int ndims,
         }
 
 
-        MPI_Type_create_subarray(ndims,
-                                 dims,
-                                 s_count_lower,
-                                 s_start_lower,
-                                 MPI_ORDER_C,
-                                 ele_type,
-                                 &send_types[2 * d + 0]);
-        MPI_Type_create_subarray(ndims,
-                                 dims,
-                                 s_count_upper,
-                                 s_start_upper,
-                                 MPI_ORDER_C,
-                                 ele_type,
-                                 &send_types[2 * d + 1]);
+        MPI_ERROR(MPI_Type_create_subarray(ndims,
+                                           dims,
+                                           s_count_lower,
+                                           s_start_lower,
+                                           MPI_ORDER_C,
+                                           ele_type,
+                                           &send_types[2 * d + 0]));
+        MPI_ERROR(MPI_Type_create_subarray(ndims,
+                                           dims,
+                                           s_count_upper,
+                                           s_start_upper,
+                                           MPI_ORDER_C,
+                                           ele_type,
+                                           &send_types[2 * d + 1]));
 
 
-        MPI_Type_create_subarray(ndims,
-                                 dims,
-                                 r_count_lower,
-                                 r_start_lower,
-                                 MPI_ORDER_C,
-                                 ele_type,
-                                 &recv_types[2 * d + 0]);
-        MPI_Type_create_subarray(ndims,
-                                 dims,
-                                 r_count_upper,
-                                 r_start_upper,
-                                 MPI_ORDER_C,
-                                 ele_type,
-                                 &recv_types[2 * d + 1]);
+        MPI_ERROR(MPI_Type_create_subarray(ndims,
+                                           dims,
+                                           r_count_lower,
+                                           r_start_lower,
+                                           MPI_ORDER_C,
+                                           ele_type,
+                                           &recv_types[2 * d + 0]));
+        MPI_ERROR(MPI_Type_create_subarray(ndims,
+                                           dims,
+                                           r_count_upper,
+                                           r_start_upper,
+                                           MPI_ORDER_C,
+                                           ele_type,
+                                           &recv_types[2 * d + 1]));
 
-        MPI_Type_commit(&(send_types[2 * d + 0]));
-        MPI_Type_commit(&(send_types[2 * d + 1]));
-        MPI_Type_commit(&(recv_types[2 * d + 0]));
-        MPI_Type_commit(&(recv_types[2 * d + 1]));
+        MPI_ERROR(MPI_Type_commit(&(send_types[2 * d + 0])));
+        MPI_ERROR(MPI_Type_commit(&(send_types[2 * d + 1])));
+        MPI_ERROR(MPI_Type_commit(&(recv_types[2 * d + 0])));
+        MPI_ERROR(MPI_Type_commit(&(recv_types[2 * d + 1])));
 
         send_displs[2 * d + 0] = 0;
         send_displs[2 * d + 1] = 0;
@@ -307,13 +313,13 @@ int spParallelUpdateNdArrayHalo(void *buffer, int ndims,
     }
 
 
-    spMPINeighborAllToAll(buffer, mpi_sendrecv_count, send_displs, send_types,
-                          buffer, mpi_sendrecv_count, recv_displs, recv_types, comm);
+    SP_CHECK_RETURN(spMPINeighborAllToAll(buffer, mpi_sendrecv_count, send_displs, send_types,
+                                          buffer, mpi_sendrecv_count, recv_displs, recv_types, comm));
 
     for (int i = 0; i < num_of_neighbour; ++i)
     {
-        MPI_Type_free(&send_types[i]);
-        MPI_Type_free(&recv_types[i]);
+        MPI_ERROR(MPI_Type_free(&send_types[i]));
+        MPI_ERROR(MPI_Type_free(&recv_types[i]));
     }
 
     return MPI_SUCCESS;

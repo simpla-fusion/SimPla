@@ -52,24 +52,18 @@ struct spParticle_s
 
     spParticleFiber *m_data_root_;// DEVICE
 
-    size_type m_size_of_fiber_;
-    size_type m_length_of_fiber_;
-
     spDataType *m_data_type_desc_;
 };
 
-int spParticleCreate(spParticle **sp, const spMesh *mesh, spDataType const *dtype)
+int spParticleCreate(spParticle **sp, const spMesh *mesh)
 {
     spParallelHostAlloc(sp, sizeof(spParticle));
 
     (*sp)->id = spMPIGenerateObjectId();
     (*sp)->m = mesh;
     (*sp)->iform = VOLUME;
-
-
+    (*sp)->m_data_type_desc_ = NULL;
     spDataTypeCreate(&((*sp)->m_data_type_desc_), SP_TYPE_NULL);
-    spDataTypeCopy((*sp)->m_data_type_desc_, dtype);
-
     return SP_SUCCESS;
 
 }
@@ -78,10 +72,7 @@ int spParticleDeploy(spParticle *sp, size_type PIC)
 {
     size_type number_of_cell = spMeshNumberOfEntity(sp->m, SP_DOMAIN_ALL, sp->iform);
 
-    sp->m_length_of_fiber_ = (PIC * 2);
-
-    spParallelDeviceAlloc((void **) &(sp->m_data_root_), sp->m_size_of_fiber_ * number_of_cell);
-
+    spParallelDeviceAlloc((void **) &(sp->m_data_root_), spDataTypeSizeInByte(sp->m_data_type_desc_) * number_of_cell);
 
     return SP_SUCCESS;
 }
@@ -92,20 +83,18 @@ int spParticleDestroy(spParticle **sp)
     {
         spParallelDeviceFree((void **) &((*sp)->m_data_root_));
 
-        spDataTypeDestroy(&((*sp)->m_data_type_desc_));
+        SP_CHECK_RETURN(spDataTypeDestroy(&((*sp)->m_data_type_desc_)));
 
         spParallelHostFree(sp);
 
     }
     return SP_SUCCESS;
 }
-spDataType const *spParticleDataTypeDesc(spParticle const *sp) { return sp->m_data_type_desc_; }
+spDataType *spParticleDataTypeDesc(spParticle *sp) { return sp->m_data_type_desc_; }
 
 void *spParticleData(spParticle *sp) { return sp->m_data_root_; };
 
 void const *spParticleDataConst(spParticle *sp) { return sp->m_data_root_; };
-
-size_type spParticleFiberLength(spParticle const *sp) { return sp->m_length_of_fiber_; };
 
 spMesh const *spParticleMesh(spParticle const *sp) { return sp->m; };
 
@@ -147,11 +136,19 @@ int spParticleSync(spParticle *sp)
     int ndims = 3;
 
     size_type count[ndims], start[ndims], dims[ndims];
-    spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, start, count, dims, NULL);
+
+    SP_CHECK_RETURN(spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, dims, start, count, NULL));
 
     for (int i = 0; i < 3; ++i) { count[i] -= start[i]; }
 
-    spParallelUpdateNdArrayHalo(sp->m_data_root_, ndims, dims, start, NULL, count, NULL, sp->m_data_type_desc_);
+    SP_CHECK_RETURN(spParallelUpdateNdArrayHalo(sp->m_data_root_,
+                                                ndims,
+                                                dims,
+                                                start,
+                                                NULL,
+                                                count,
+                                                NULL,
+                                                sp->m_data_type_desc_));
 
     return SP_SUCCESS;
 
@@ -174,15 +171,21 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
     size_type num_of_cell = spMeshNumberOfEntity(sp->m, SP_DOMAIN_ALL, sp->iform);
 
     size_type count[ndims], start[ndims], dims[ndims];
-    spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, start, count, dims, NULL);
+
+    SP_CHECK_RETURN(spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, dims, start, count, NULL));
+
     for (int i = 0; i < 3; ++i) { count[i] -= start[i]; }
 
     void *buffer;
-    spParallelHostAlloc(&buffer, sp->m_size_of_fiber_ * num_of_cell);
-    spParallelMemcpy(buffer, sp->m_data_root_, sp->m_size_of_fiber_ * num_of_cell);
 
-    spIOStreamWriteSimple(os, name, sp->m_data_type_desc_, buffer,
-                          ndims + 1, dims, start, NULL, count, NULL, flag);
+    size_type size_in_byte = spDataTypeSizeInByte(sp->m_data_type_desc_);
+
+    spParallelHostAlloc(&buffer, size_in_byte * num_of_cell);
+
+    spParallelMemcpy(buffer, sp->m_data_root_, size_in_byte * num_of_cell);
+
+    SP_CHECK_RETURN(spIOStreamWriteSimple(os, name, sp->m_data_type_desc_, buffer,
+                                          ndims, dims, start, NULL, count, NULL, flag));
 
     spParallelHostFree(&buffer);
 

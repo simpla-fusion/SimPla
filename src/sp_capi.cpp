@@ -8,7 +8,7 @@
 #include <memory>
 #include <cassert>
 #include "../src/io/IO.h"
-#include "../src/parallel/DistributedObject.h"
+//#include "../src/parallel/DistributedObject.h"
 #include "../src/parallel/MPIComm.h"
 #include "../src/data_model/DataSet.h"
 #include "../src/data_model/DataType.h"
@@ -32,7 +32,7 @@ struct spDataType_s
 
 };
 
-void spDataTypeCreate(spDataType **dtype, int type_tag)
+int spDataTypeCreate(spDataType **dtype, int type_tag)
 {
     if (dtype != nullptr)
     {
@@ -60,20 +60,26 @@ void spDataTypeCreate(spDataType **dtype, int type_tag)
             default:
                 break;
         }
-
     }
+    return SP_SUCCESS;
+
 }
 
-void spDataTypeDestroy(spDataType **dtype)
+int spDataTypeDestroy(spDataType **dtype)
 {
     if (dtype != nullptr)
     {
         delete *dtype;
         *dtype = nullptr;
     }
+    return SP_SUCCESS;
 }
 
-int spDataTypeCopy(spDataType *first, spDataType const *second) { first->self = second->self; };
+int spDataTypeCopy(spDataType *first, spDataType const *second)
+{
+    first->self = second->self;
+    first->m_mpi_type_ = second->m_mpi_type_;
+};
 
 size_type spDataTypeSizeInByte(spDataType const *dtype) { return dtype->self.size_in_byte(); }
 
@@ -113,6 +119,16 @@ int spDataTypeAddArray(spDataType *dtype,
     return SP_SUCCESS;
 }
 
+int spDataTypeUpdate(spDataType *dtype)
+{
+    if (dtype->m_mpi_type_.type() == MPI_DATATYPE_NULL)
+    {
+        dtype->m_mpi_type_ = simpla::MPIDataType::create((dtype)->self);
+
+    }
+    return SP_SUCCESS;
+}
+
 MPI_Datatype const *spDataTypeMPIType(struct spDataType_s const *dtype) { return &(dtype->m_mpi_type_.type()); };
 
 struct spDataSpace_s { simpla::data_model::DataSpace self; };
@@ -140,47 +156,57 @@ struct spIOStream_s { std::shared_ptr<simpla::io::IOStream> self; };
 
 typedef struct spIOStream_s spIOStream;
 
-void spIOStreamCreate(spIOStream **os)
+int spIOStreamCreate(spIOStream **os)
 {
     *os = new spIOStream;
     (*os)->self = std::make_shared<simpla::io::HDF5Stream>();
-
+    return SP_SUCCESS;
 }
 
-void spIOStreamDestroy(spIOStream **os)
+int spIOStreamDestroy(spIOStream **os)
 {
     if (*os != nullptr) { delete *os; };
     *os = nullptr;
+    return SP_SUCCESS;
+
 };
 
-void spIOStreamPWD(spIOStream *os, char url[])
+int spIOStreamPWD(spIOStream *os, char *url)
 {
     strcpy(url, os->self->pwd().c_str());
+    return SP_SUCCESS;
+
 };
 
-void spIOStreamOpen(spIOStream *os, const char url[])
+int spIOStreamOpen(spIOStream *os, const char *url)
 {
     assert(os->self != nullptr);
     os->self->open(url);
+    return SP_SUCCESS;
+
 }
 
-void spIOStreamClose(spIOStream *os) { os->self->close(); }
+int spIOStreamClose(spIOStream *os)
+{
+    os->self->close();
+    return SP_SUCCESS;
+}
 
-void spIOStreamWrite(spIOStream *, char const name[], spDataSet const *) {}
+int spIOStreamWrite(spIOStream *, const char *name, spDataSet const *) { return SP_SUCCESS; }
 
-void spIOStreamRead(spIOStream *, char const name[], spDataSet const *) {}
+int spIOStreamRead(spIOStream *, const char *name, spDataSet const *) { return SP_SUCCESS; }
 
-void spIOStreamWriteSimple(spIOStream *os,
-                           const char *url,
-                           struct spDataType_s const *d_type,
-                           void *d,
-                           int ndims,
-                           size_type const *dims,
-                           size_type const *start,
-                           size_type const *stride,
-                           size_type const *count,
-                           size_type const *block,
-                           int flag)
+int spIOStreamWriteSimple(spIOStream *os,
+                          const char *url,
+                          struct spDataType_s const *d_type,
+                          void *d,
+                          int ndims,
+                          size_type const *dims,
+                          size_type const *start,
+                          size_type const *stride,
+                          size_type const *count,
+                          size_type const *block,
+                          int flag)
 {
 
     simpla::data_model::DataSet dset;
@@ -189,82 +215,49 @@ void spIOStreamWriteSimple(spIOStream *os,
     dset.data_space = simpla::data_model::DataSpace(ndims, (count != NULL) ? count : dims);
     dset.memory_space = simpla::data_model::DataSpace(ndims, dims);
     dset.memory_space.select_hyperslab(start, stride, count, block);
-//    switch (d_type)
-//    {
-//        case SP_TYPE_float:
-//            dset.data_type = simpla::data_model::DataType::create<float>();
-//            break;
-//        case SP_TYPE_double:
-//            dset.data_type = simpla::data_model::DataType::create<double>();
-//            break;
-//
-//        case SP_TYPE_int:
-//            dset.data_type = simpla::data_model::DataType::create<int>();
-//            break;
-//
-//        case SP_TYPE_long:
-//            dset.data_type = simpla::data_model::DataType::create<long>();
-//            break;
-//        case SP_TYPE_int64_t:
-//            dset.data_type = simpla::data_model::DataType::create<int64_t>();
-//            break;
-//        default:
-//            break;
-//    }
 
     dset.data = std::shared_ptr<void>(d, simpla::tags::do_nothing());
 
     MESSAGE << os->self->write(url, dset, flag) << std::endl;
-}
-
-struct spDistributedObject_s
-{
-    simpla::parallel::DistributedObject self;
-};
-
-void spDistributeObjectCreate(struct spDistributedObject_s **obj)
-{
-    *obj = new struct spDistributedObject_s;
+    return SP_SUCCESS;
 
 }
-
-void spDistributeObjectDestroy(struct spDistributedObject_s **obj)
-{
-    delete *obj;
-    *obj = 0x0;
-}
-
-void spDistributeObjectNonblockingSync(struct spDistributedObject_s *obj)
-{
-    obj->self.sync();
-}
-
-void spDistributeObjectWait(struct spDistributedObject_s *obj)
-{
-    obj->self.wait();
-}
-
-void hdf5_write_field(const char *url, void *d, int ndims, size_type const *dims, const size_type *offset,
-                      size_type const *count, int flag)
-{
-    simpla::data_model::DataSet dset;
-    simpla::data_model::DataSpace d_space(ndims, &count[0]);
-    simpla::data_model::DataSpace m_space(ndims, &dims[0]);
-    m_space.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
-    dset.memory_space = m_space;
-    dset.data_space = d_space;
-    dset.data_type = simpla::data_model::DataType::create<Real>();
-    dset.data = std::shared_ptr<void>(reinterpret_cast<void *>(d), simpla::tags::do_nothing());
-
-//	simpla::io::write(url, dset, id);
-
-}
-
-void spDistributedObjectAddSendLink(spDistributedObject *, int id, const ptrdiff_t offset[3], const spDataSet *) {}
-
-void spDistributedObjectAddRecvLink(spDistributedObject *, int id, const ptrdiff_t offset[3], spDataSet *) {}
-
-int spDistributedObjectIsReady(spDistributedObject const *) { return true; }
+//
+//struct spDistributedObject_s { simpla::parallel::DistributedObject self; };
+//
+//void spDistributeObjectCreate(struct spDistributedObject_s **obj) { *obj = new struct spDistributedObject_s; }
+//
+//void spDistributeObjectDestroy(struct spDistributedObject_s **obj)
+//{
+//    delete *obj;
+//    *obj = 0x0;
+//}
+//
+//void spDistributeObjectNonblockingSync(struct spDistributedObject_s *obj) { obj->self.sync(); }
+//
+//void spDistributeObjectWait(struct spDistributedObject_s *obj) { obj->self.wait(); }
+//
+//void hdf5_write_field(const char *url, void *d, int ndims, size_type const *dims, const size_type *offset,
+//                      size_type const *count, int flag)
+//{
+//    simpla::data_model::DataSet dset;
+//    simpla::data_model::DataSpace d_space(ndims, &count[0]);
+//    simpla::data_model::DataSpace m_space(ndims, &dims[0]);
+//    m_space.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
+//    dset.memory_space = m_space;
+//    dset.data_space = d_space;
+//    dset.data_type = simpla::data_model::DataType::create<Real>();
+//    dset.data = std::shared_ptr<void>(reinterpret_cast<void *>(d), simpla::tags::do_nothing());
+//
+////	simpla::io::write(url, dset, id);
+//
+//}
+//
+//void spDistributedObjectAddSendLink(spDistributedObject *, int id, const ptrdiff_t offset[3], const spDataSet *) {}
+//
+//void spDistributedObjectAddRecvLink(spDistributedObject *, int id, const ptrdiff_t offset[3], spDataSet *) {}
+//
+//int spDistributedObjectIsReady(spDistributedObject const *) { return true; }
 
 void spMPIInitialize(int argc, char **argv) { GLOBAL_COMM.init(argc, argv); };
 

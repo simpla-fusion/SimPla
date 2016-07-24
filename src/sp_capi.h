@@ -35,9 +35,9 @@ struct spDataType_s;
 
 typedef struct spDataType_s spDataType;
 
-void spDataTypeCreate(spDataType **, int type_tag);
+int spDataTypeCreate(spDataType **, int type_tag);
 
-void spDataTypeDestroy(spDataType **);
+int spDataTypeDestroy(spDataType **);
 
 int spDataTypeCopy(spDataType *, spDataType const *);
 
@@ -58,9 +58,9 @@ int spDataTypeAddArray(spDataType *dtype,
                        size_type n,
                        size_type const *dims);
 
-MPI_Datatype const *spDataTypeMPIType(struct spDataType_s const *);
+int spDataTypeUpdate(spDataType *dtype);
 
-hid_t spDataTypeHDF5Type(struct spDataType_s const *);
+MPI_Datatype const *spDataTypeMPIType(struct spDataType_s const *);
 
 struct spDataSpace_s;
 
@@ -105,31 +105,31 @@ struct spIOStream_s;
 
 typedef struct spIOStream_s spIOStream;
 
-void spIOStreamCreate(spIOStream **);
+int spIOStreamCreate(spIOStream **);
 
-void spIOStreamDestroy(spIOStream **);
+int spIOStreamDestroy(spIOStream **);
 
-void spIOStreamPWD(spIOStream *, char url[]);
+int spIOStreamPWD(spIOStream *, char *url);
 
-void spIOStreamOpen(spIOStream *, const char url[]);
+int spIOStreamOpen(spIOStream *, const char *url);
 
-void spIOStreamClose(spIOStream *);
+int spIOStreamClose(spIOStream *);
 
-void spIOStreamWrite(spIOStream *, char const name[], spDataSet const *);
+int spIOStreamWrite(spIOStream *, const char *name, spDataSet const *);
 
-void spIOStreamRead(spIOStream *, char const name[], spDataSet const *);
+int spIOStreamRead(spIOStream *, const char *name, spDataSet const *);
 
-void spIOStreamWriteSimple(spIOStream *,
-                           const char *name,
-                           struct spDataType_s const *d_type,
-                           void *d,
-                           int ndims,
-                           size_type const *dims,
-                           size_type const *start,
-                           size_type const *stride,
-                           size_type const *count,
-                           size_type const *block,
-                           int flag);
+int spIOStreamWriteSimple(spIOStream *,
+                          const char *name,
+                          struct spDataType_s const *d_type,
+                          void *d,
+                          int ndims,
+                          size_type const *dims,
+                          size_type const *start,
+                          size_type const *stride,
+                          size_type const *count,
+                          size_type const *block,
+                          int flag);
 
 void spMPIInitialize(int argc, char **argv);
 

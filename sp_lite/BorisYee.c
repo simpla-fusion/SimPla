@@ -14,6 +14,10 @@ int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
 {
     if (sp == NULL) { return SP_FAILED; }
 
+    SP_CHECK_RETURN(spParticleCreate(sp, m));
+
+    spDataType *data_desc = spParticleDataTypeDesc(*sp);
+
     SP_PARTICLE_CREATE_DATA_DESC(data_desc, struct boris_particle_s);
     SP_PARTICLE_CREATE_DATA_DESC_ADD(data_desc, struct boris_particle_s, Real, vx);
     SP_PARTICLE_CREATE_DATA_DESC_ADD(data_desc, struct boris_particle_s, Real, vy);
@@ -32,9 +36,8 @@ int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
 //	spUpdateParticleBorisScatterBlockKernel<<< sp->m->topology_dims, NUMBER_OF_THREADS_PER_BLOCK >>>(sp->buckets,
 //			(fRho->device_data), ( fJ->device_data));
 
-    spParticleCreate(sp, m, data_desc);
+    spDataTypeUpdate(data_desc);
 
-    spDataTypeDestroy(&data_desc);
 
     return SP_SUCCESS;
 }

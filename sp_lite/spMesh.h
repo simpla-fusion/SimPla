@@ -17,30 +17,30 @@ struct spMesh_s;
 
 typedef struct spMesh_s spMesh;
 
-void spMeshCreate(spMesh **ctx);
+int spMeshCreate(spMesh **ctx);
 
-void spMeshDestroy(spMesh **ctx);
+int spMeshDestroy(spMesh **ctx);
 
-void spMeshDeploy(spMesh *self);
+int spMeshDeploy(spMesh *self);
 
-void spMeshSetDims(spMesh *m, size_type const *);
+int spMeshSetDims(spMesh *m, size_type const *);
 
 size_type const *spMeshGetDims(spMesh const *m);
 
 size_type const *spMeshGetShape(spMesh const *m);
 
-void spMeshSetGhostWidth(spMesh *m, size_type const *);
+int spMeshSetGhostWidth(spMesh *m, size_type const *);
 
 size_type const *spMeshGetGhostWidth(spMesh const *m);
 
-void spMeshSetBox(spMesh *m, Real const *lower, Real const *upper);
+int spMeshSetBox(spMesh *m, Real const *lower, Real const *upper);
 
-void spMeshGetBox(spMesh const *m, Real *lower, Real *upper);
+int spMeshGetBox(spMesh const *m, Real *lower, Real *upper);
 
 #define SP_DOMAIN_CENTER 13
 #define SP_DOMAIN_ALL 0xFF
 
-void spMeshGetDx(spMesh const *m, Real *dx);
+int spMeshGetDx(spMesh const *m, Real *dx);
 
 int spMeshDomain(spMesh const *m, int tag, size_type *shape, size_type *lower, size_type *upper, int *offset);
 

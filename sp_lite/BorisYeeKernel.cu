@@ -206,19 +206,19 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
     dims.y = (int) spMeshGetShape(spParticleMesh(sp))[1];
     dims.z = (int) spMeshGetShape(spParticleMesh(sp))[2];
 
-    int3 offset;
-    for (offset.x = -1; offset.x <= 1; ++offset.x)
-        for (offset.y = -1; offset.y <= 1; ++offset.y)
-            for (offset.z = -1; offset.z <= 1; ++offset.z)
-            {
-                LOAD_KERNEL(spBorisYeeUpdateParticleKernel,
-                            sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
-                            spParticleFiberLength(sp),
-                            spParticleData(sp),
-                            (Real const *) spFieldDeviceDataConst(fE),
-                            (Real const *) spFieldDeviceDataConst(fB),
-                            inv_dv, cmr_dt, offset);
-            }
+//    int3 offset;
+//    for (offset.x = -1; offset.x <= 1; ++offset.x)
+//        for (offset.y = -1; offset.y <= 1; ++offset.y)
+//            for (offset.z = -1; offset.z <= 1; ++offset.z)
+//            {
+//                LOAD_KERNEL(spBorisYeeUpdateParticleKernel,
+//                            sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
+//                            spParticleFiberLength(sp),
+//                            spParticleData(sp),
+//                            (Real const *) spFieldDeviceDataConst(fE),
+//                            (Real const *) spFieldDeviceDataConst(fB),
+//                            inv_dv, cmr_dt, offset);
+//            }
 
 //    LOAD_KERNEL(spUpdateParticleBorisScatterBlockKernel,
 //                sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
@@ -226,11 +226,11 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //                spParticleData(sp),
 //                (fRho->device_data), (fJ->device_data));
 
-    spParallelDeviceSync();        //wait for iteration to finish
+//    spParallelDeviceSync();        //wait for iteration to finish
 
-    spParticleSync(sp);
-    spFieldSync(fJ);
-    spFieldSync(fRho);
+    SP_CHECK_RETURN(spParticleSync(sp));
+    SP_CHECK_RETURN(spFieldSync(fJ));
+    SP_CHECK_RETURN(spFieldSync(fRho));
     return SP_SUCCESS;
 }
 //

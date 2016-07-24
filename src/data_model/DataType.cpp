@@ -25,7 +25,6 @@ struct DataType::pimpl_s
     ~pimpl_s();
 
     size_type m_size_in_byte_ = 0;
-
     size_type m_ele_size_in_byte_ = 0;
     std::type_index m_t_index_;
     std::string m_name_;
@@ -50,14 +49,16 @@ DataType::pimpl_s::pimpl_s()
     : m_t_index_(std::type_index(typeid(void))) {}
 
 DataType::pimpl_s::pimpl_s(pimpl_s const &other)
-    : m_ele_size_in_byte_(other.m_ele_size_in_byte_),
+    : m_size_in_byte_(other.m_size_in_byte_),
+      m_ele_size_in_byte_(other.m_ele_size_in_byte_),
       m_t_index_(other.m_t_index_),
       m_name_(other.m_name_),
       m_extents_(other.m_extents_),
       m_members_(other.m_members_) {}
 
 DataType::pimpl_s::pimpl_s(pimpl_s &&other)
-    : m_ele_size_in_byte_(other.m_ele_size_in_byte_),
+    : m_size_in_byte_(other.m_size_in_byte_),
+      m_ele_size_in_byte_(other.m_ele_size_in_byte_),
       m_t_index_(other.m_t_index_),
       m_name_(other.m_name_),
       m_extents_(other.m_extents_),
@@ -67,19 +68,24 @@ DataType::pimpl_s::~pimpl_s() {}
 
 DataType::DataType(std::type_index t_index, size_type ele_size_in_byte,
                    int ndims, size_type const *dims, std::string name)
-    :
-    pimpl_(new pimpl_s)
+    : pimpl_(new pimpl_s)
 {
     pimpl_->m_t_index_ = (t_index);
     pimpl_->m_ele_size_in_byte_ = (ele_size_in_byte);
     pimpl_->m_name_ = (name);
+    pimpl_->m_size_in_byte_ = (ele_size_in_byte);
 
     if (ndims > 0 && dims != nullptr)
     {
         pimpl_->m_extents_.resize(ndims);
 
-        for (int i = 0; i < ndims; ++i) { pimpl_->m_extents_[i] = dims[i]; }
+        for (int i = 0; i < ndims; ++i)
+        {
+            pimpl_->m_extents_[i] = dims[i];
+            pimpl_->m_size_in_byte_ *= dims[i];
+        }
     }
+
 
     if (pimpl_->m_name_ == "")
     {
@@ -130,7 +136,8 @@ std::string DataType::name() const
 
 bool DataType::is_valid() const
 {
-    return pimpl_->m_t_index_ != std::type_index(typeid(void));
+    return pimpl_ != nullptr;
+//    return pimpl_->m_t_index_ != std::type_index(typeid(void));
 }
 
 size_type DataType::ele_size_in_byte() const

@@ -15,7 +15,8 @@
 namespace simpla
 {
 
-MPIDataType::MPIDataType() { }
+MPIDataType::MPIDataType()
+    : m_type_(MPI_DATATYPE_NULL) {}
 
 MPIDataType::MPIDataType(MPIDataType const &other) {MPI_ERROR(MPI_Type_dup(other.type(), &m_type_)); }
 

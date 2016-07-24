@@ -8,9 +8,9 @@
 #include "sp_lite_def.h"
 #include "../src/sp_capi.h"
 
-void spParallelInitialize(int argc, char **argv);
+int spParallelInitialize(int argc, char **argv);
 
-void spParallelFinalize();
+int spParallelFinalize();
 
 
 #ifndef __CUDACC__

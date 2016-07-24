@@ -12,7 +12,7 @@
 #include "sp_lite_def.h"
 
 
-#define SP_NUMBER_OF_ENTITIES_IN_PAGE 128
+#define SP_NUMBER_OF_ENTITIES_IN_PAGE 16
 
 #define SP_PARTICLE_HEAD                                \
      int   id[SP_NUMBER_OF_ENTITIES_IN_PAGE];           \
@@ -27,8 +27,6 @@
     spDataTypeAddArray(_DESC_,offsetof(_CLS_,_N_), __STRING(_N_), SP_TYPE_##_T_,SP_NUMBER_OF_ENTITIES_IN_PAGE,NULL );
 
 #define SP_PARTICLE_CREATE_DATA_DESC(_DESC_, _CLS_)     \
-    spDataType *data_desc;                                   \
-    spDataTypeCreate(&data_desc, SP_TYPE_NULL);              \
     spDataTypeSetSizeInByte(_DESC_, sizeof(_CLS_));          \
     SP_PARTICLE_CREATE_DATA_DESC_ADD(_DESC_,_CLS_,int ,id)   \
     SP_PARTICLE_CREATE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rx)  \
@@ -44,7 +42,7 @@ struct spParticle_s;
 
 typedef struct spParticle_s spParticle;
 
-int spParticleCreate(spParticle **sp, struct spMesh_s const *m, struct spDataType_s const *);
+int spParticleCreate(spParticle **sp, struct spMesh_s const *m);
 
 int spParticleDestroy(spParticle **sp);
 
@@ -54,15 +52,13 @@ Real spParticleMass(spParticle const *);
 
 Real spParticleCharge(spParticle const *);
 
-struct spDataType_s const *spParticleDataTypeDesc(spParticle const *sp);
+struct spDataType_s *spParticleDataTypeDesc(spParticle *sp);
 
 struct spMesh_s const *spParticleMesh(spParticle const *sp);
 
 void *spParticleData(spParticle *sp);
 
 void const *spParticleDataConst(spParticle *sp);
-
-size_type spParticleFiberLength(spParticle const *);
 
 int spParticleWrite(spParticle const *sp, struct spIOStream_s *os, const char *url, int flag);
 
