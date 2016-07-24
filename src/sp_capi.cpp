@@ -32,7 +32,7 @@ struct spDataType_s
 
 };
 
-int spDataTypeCreate(spDataType **dtype, int type_tag)
+int spDataTypeCreate(spDataType **dtype, int type_tag, size_type s)
 {
     if (dtype != nullptr)
     {
@@ -58,6 +58,7 @@ int spDataTypeCreate(spDataType **dtype, int type_tag)
                 (*dtype)->self = simpla::data_model::DataType::create<int64_t>();
                 break;
             default:
+                (*dtype)->self.size_in_byte(s);
                 break;
         }
     }
@@ -67,7 +68,7 @@ int spDataTypeCreate(spDataType **dtype, int type_tag)
 
 int spDataTypeDestroy(spDataType **dtype)
 {
-    if (dtype != nullptr)
+    if (dtype != nullptr && *dtype != nullptr)
     {
         delete *dtype;
         *dtype = nullptr;
@@ -82,8 +83,6 @@ int spDataTypeCopy(spDataType *first, spDataType const *second)
 };
 
 size_type spDataTypeSizeInByte(spDataType const *dtype) { return dtype->self.size_in_byte(); }
-
-void spDataTypeSetSizeInByte(spDataType *dtype, size_type s) { dtype->self.size_in_byte(s); }
 
 int spDataTypeIsValid(spDataType const *dtype) { return dtype->self.is_valid(); }
 
@@ -108,7 +107,7 @@ int spDataTypeAddArray(spDataType *dtype,
 {
     spDataType *ele;
 
-    spDataTypeCreate(&ele, type_tag);
+    spDataTypeCreate(&ele, type_tag, 0);
 
     if (dims == nullptr) { spDataTypeExtent(ele, 1, &n); } else { spDataTypeExtent(ele, n, dims); }
 

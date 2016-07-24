@@ -11,7 +11,7 @@
 #include "sp_lite_def.h"
 #include "spParallel.h"
 // digits of bucket_page_status_flag_t
-#define SP_NUMBER_OF_ENTITIES_IN_PAGE 128
+#define SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE 128
 
 typedef unsigned int bucket_entity_flag_t;
 
@@ -274,7 +274,7 @@ typedef struct spPage_s
 //
 //MC_HOST_DEVICE size_type spPageCapacity(spPage const *p)
 //{
-//	return spPageSize(p) * SP_NUMBER_OF_ENTITIES_IN_PAGE;
+//	return spPageSize(p) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
 //}
 //
 ///***************************************************************************/

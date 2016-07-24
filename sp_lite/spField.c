@@ -34,7 +34,7 @@ int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform)
     (*f)->host_data = NULL;
     (*f)->device_data = NULL;
 
-    spDataTypeCreate(&((*f)->m_data_type_desc_), SP_TYPE_Real);
+    spDataTypeCreate(&((*f)->m_data_type_desc_), SP_TYPE_Real, 0);
 
     return SP_SUCCESS;
 }
@@ -146,7 +146,7 @@ int spFieldSync(spField *f)
     count[3] = 3;
     shape[3] = 3;
 
-    spParallelUpdateNdArrayHalo(f->device_data, ndims, shape, start, NULL, count, NULL, f->m_data_type_desc_);
+    spParallelUpdateNdArrayHalo(f->device_data, f->m_data_type_desc_, ndims, shape, start, NULL, count, NULL);
 
     return SP_SUCCESS;
 

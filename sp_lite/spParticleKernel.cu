@@ -368,7 +368,7 @@
 //	{
 //		if ((*dest) != NULL)
 //		{
-//			while ((*d_tail = atomicAdd(g_d_tail, 1)) < SP_NUMBER_OF_ENTITIES_IN_PAGE)
+//			while ((*d_tail = atomicAdd(g_d_tail, 1)) < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //			{
 //				if ((P_GET_FLAG((*dest)->data, *d_tail).v == 0))
 //				{
@@ -393,7 +393,7 @@
 //			}
 //
 //		}
-//		else if (*d_tail >= SP_NUMBER_OF_ENTITIES_IN_PAGE)
+//		else if (*d_tail >= SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //		{
 //			dest = &((*dest)->next);
 //			if (*dest != NULL)
@@ -419,7 +419,7 @@
 //
 //	while ((*dest) != NULL)
 //	{
-//		while ((*d_tail = atomicAdd(g_d_tail, 1)) < SP_NUMBER_OF_ENTITIES_IN_PAGE)
+//		while ((*d_tail = atomicAdd(g_d_tail, 1)) < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //		{
 //			if ((P_GET_FLAG((*dest)->data, *d_tail).v & MASK == tag & MASK))
 //			{
@@ -483,14 +483,14 @@
 //    {
 //        if ((*dest) != NULL)
 //        {
-//            while ((*d_tail = atomicAdd(g_d_tail, 1)) < SP_NUMBER_OF_ENTITIES_IN_PAGE)
+//            while ((*d_tail = atomicAdd(g_d_tail, 1)) < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //            {
 //                if ((data->flag[(*dest)->offset].v == 0)) { break; }
 //            }
 //
-//            if (*d_tail < SP_NUMBER_OF_ENTITIES_IN_PAGE)
+//            if (*d_tail < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //            {
-//                while (((*s_tail = atomicAdd(g_s_tail, 1)) < SP_NUMBER_OF_ENTITIES_IN_PAGE))
+//                while (((*s_tail = atomicAdd(g_s_tail, 1)) < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE))
 //                {
 //                    if (P_GET_FLAG((*src)->data, *s_tail).v == tag.v) { return SP_MP_SUCCESS; }
 //                }
@@ -507,12 +507,12 @@
 //                *g_d_tail = 0;
 //            }
 //        }
-//        else if (*d_tail >= SP_NUMBER_OF_ENTITIES_IN_PAGE)
+//        else if (*d_tail >= SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //        {
 //            dest = &((*dest)->next);
 //            if (spParallelThreadNum() == 0) { *g_d_tail = 0; }
 //        }
-//        else if (*s_tail >= SP_NUMBER_OF_ENTITIES_IN_PAGE)
+//        else if (*s_tail >= SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //        {
 //            src = &((*src)->next);
 //            if (spParallelThreadNum() == 0) { *g_s_tail = 0; }

@@ -35,7 +35,7 @@ struct spDataType_s;
 
 typedef struct spDataType_s spDataType;
 
-int spDataTypeCreate(spDataType **, int type_tag);
+int spDataTypeCreate(spDataType **, int type_tag, size_type s);
 
 int spDataTypeDestroy(spDataType **);
 

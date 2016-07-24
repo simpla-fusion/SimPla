@@ -144,7 +144,18 @@ int spMeshDeploy(spMesh *self)
 
 size_type spMeshNumberOfEntity(spMesh const *self, int tag, int iform)
 {
-    return self->dims[0] * self->dims[1] * self->dims[2] * ((iform == 0 || iform == 3) ? 1 : 3);
+    size_type res = ((iform == 0 || iform == 3) ? 1 : 3);
+    switch (tag)
+    {
+        case SP_DOMAIN_CENTER:
+            res *= self->dims[0] * self->dims[1] * self->dims[2];
+        case SP_DOMAIN_ALL:
+
+        default:
+            res *= self->shape[0] * self->shape[1] * self->shape[2];
+            break;
+    }
+    return res;
 }
 
 void spMeshPoint(spMesh const *m, MeshEntityId id, Real *res)

@@ -172,13 +172,14 @@ int spMPINeighborAllToAll(const void *send_buffer,
 //    );
 //}
 
-int spParallelUpdateNdArrayHalo(void *buffer, int ndims,
+int spParallelUpdateNdArrayHalo(void *buffer,
+                                const struct spDataType_s *data_desc,
+                                int ndims,
                                 const size_type *shape,
                                 const size_type *start,
                                 const size_type *stride,
                                 const size_type *count,
-                                const size_type *block,
-                                const struct spDataType_s *data_desc)
+                                const size_type *block)
 {
     MPI_Comm comm = spMPIComm();
 

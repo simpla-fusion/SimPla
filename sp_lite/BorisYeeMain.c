@@ -56,7 +56,7 @@ int main(int argc, char **argv)
     spParticle *sp = NULL;
 
     SP_CHECK_RETURN(spBorisYeeParticleCreate(&sp, mesh));
-    SP_CHECK_RETURN(spParticleDeploy(sp, 256/* number of PIC */));
+    SP_CHECK_RETURN(spParticleDeploy(sp));
 
     int count = 5;
 

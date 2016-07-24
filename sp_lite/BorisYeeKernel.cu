@@ -532,9 +532,9 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //    while (src != NULL)
 //    {
 //
-//        if (THREAD_ID < SP_NUMBER_OF_ENTITIES_IN_PAGE - d_tail) // guarantee d_tail <SP_NUMBER_OF_ENTITIES_IN_PAGE
+//        if (THREAD_ID < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE - d_tail) // guarantee d_tail <SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE
 //        {
-//            while ((s_tail < SP_NUMBER_OF_ENTITIES_IN_PAGE))
+//            while ((s_tail < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE))
 //            {
 //                s_tail = spAtomicInc(&ps_tail, 1);
 //                if (P_GET_FLAG(src->data, s_tail).v == tag.v)
@@ -543,7 +543,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //                    break;
 //                }
 //            }
-//            if (s_tail < SP_NUMBER_OF_ENTITIES_IN_PAGE)
+//            if (s_tail < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //            {
 //                P_GET_FLAG((*dest)->data, d_tail) = 0;
 //                P_GET((*dest)->data, struct boris_s, Real, rx, d_tail) =
@@ -566,11 +566,11 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //            }
 //        }
 //        spParallelThreadSync();
-//        if (d_tail == SP_NUMBER_OF_ENTITIES_IN_PAGE)
+//        if (d_tail == SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //        {
 //            if (THREAD_ID == 0)
 //            {
-//                (*dest)->tail = SP_NUMBER_OF_ENTITIES_IN_PAGE;
+//                (*dest)->tail = SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
 //
 //            }
 //
@@ -588,7 +588,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //
 //
 //        }
-//        if (s_tail == SP_NUMBER_OF_ENTITIES_IN_PAGE)
+//        if (s_tail == SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //        {
 //            src = src->next;
 //            if (THREAD_ID == 0) { ps_tail = 0; }
@@ -656,7 +656,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //            // FIXME THIS IS WRONG!!!
 //
 //
-//            for (size_type s = THREAD_IDX.x; s < SP_NUMBER_OF_ENTITIES_IN_PAGE; s += BLOCK_DIM.x)
+//            for (size_type s = THREAD_IDX.x; s < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE; s += BLOCK_DIM.x)
 //            {
 //
 //                if (P_GET(pg->data, struct boris_s, MeshEntityId, id, s).v == 0x0)

@@ -20,10 +20,14 @@ int spParallelFinalize();
 #endif
 struct spDataType_s;
 
-int spParallelUpdateNdArrayHalo(void *buffer, int ndims,
-                                const size_type *dims, const size_type *start, const size_type *,
-                                const size_type *count, const size_type *,
-                                struct spDataType_s const *ele_type);
+int spParallelUpdateNdArrayHalo(void *buffer,
+                                const struct spDataType_s *ele_type,
+                                int ndims,
+                                const size_type *dims,
+                                const size_type *start,
+                                const size_type *,
+                                const size_type *count,
+                                const size_type *);
 
 
 #endif //SIMPLA_SPPARALLEL_H

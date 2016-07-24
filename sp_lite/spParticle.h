@@ -12,26 +12,25 @@
 #include "sp_lite_def.h"
 
 
-#define SP_NUMBER_OF_ENTITIES_IN_PAGE 16
+#define SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE 256
 
 #define SP_PARTICLE_HEAD                                \
-     int   id[SP_NUMBER_OF_ENTITIES_IN_PAGE];           \
-     Real  rx[SP_NUMBER_OF_ENTITIES_IN_PAGE];           \
-     Real  ry[SP_NUMBER_OF_ENTITIES_IN_PAGE];           \
-     Real  rz[SP_NUMBER_OF_ENTITIES_IN_PAGE];
+     int   id[SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE];           \
+     Real  rx[SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE];           \
+     Real  ry[SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE];           \
+     Real  rz[SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE];
 
-#define SP_PARTICLE_ATTR(_T_, _N_)       _T_ _N_[SP_NUMBER_OF_ENTITIES_IN_PAGE];
+#define SP_PARTICLE_ATTR(_T_, _N_)       _T_ _N_[SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE];
 
 
-#define SP_PARTICLE_CREATE_DATA_DESC_ADD(_DESC_, _CLS_, _T_, _N_)                           \
-    spDataTypeAddArray(_DESC_,offsetof(_CLS_,_N_), __STRING(_N_), SP_TYPE_##_T_,SP_NUMBER_OF_ENTITIES_IN_PAGE,NULL );
+#define SP_PARTICLE_DATA_DESC_ADD(_DESC_, _CLS_, _T_, _N_)                           \
+    spParticleAddAttribute(_DESC_, __STRING(_N_), SP_TYPE_##_T_,sizeof(_T_),offsetof(_CLS_,_N_));
 
 #define SP_PARTICLE_CREATE_DATA_DESC(_DESC_, _CLS_)     \
-    spDataTypeSetSizeInByte(_DESC_, sizeof(_CLS_));          \
-    SP_PARTICLE_CREATE_DATA_DESC_ADD(_DESC_,_CLS_,int ,id)   \
-    SP_PARTICLE_CREATE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rx)  \
-    SP_PARTICLE_CREATE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,ry)  \
-    SP_PARTICLE_CREATE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rz)
+    SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,int ,id)   \
+    SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rx)  \
+    SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,ry)  \
+    SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rz)
 
 
 struct spDataType_s;
@@ -46,19 +45,23 @@ int spParticleCreate(spParticle **sp, struct spMesh_s const *m);
 
 int spParticleDestroy(spParticle **sp);
 
-int spParticleDeploy(spParticle *sp, size_type PIC);
+int spParticleDeploy(spParticle *sp);
 
 Real spParticleMass(spParticle const *);
 
 Real spParticleCharge(spParticle const *);
 
-struct spDataType_s *spParticleDataTypeDesc(spParticle *sp);
+int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset);
 
 struct spMesh_s const *spParticleMesh(spParticle const *sp);
 
-void *spParticleData(spParticle *sp);
+int spParticlePIC(spParticle *sp, size_type s);
 
-void const *spParticleDataConst(spParticle *sp);
+size_type spParticleMaxFiberLength(const spParticle *sp);
+
+void **spParticleData(spParticle *sp);
+
+void const **spParticleDataConst(spParticle const *sp);
 
 int spParticleWrite(spParticle const *sp, struct spIOStream_s *os, const char *url, int flag);
 
