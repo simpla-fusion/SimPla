@@ -151,11 +151,11 @@ int spMPINeighborAllToAll(const void *send_buffer,
 //        rank, rank, rank, rank, rank
 //    };
 //
-//    size_type dims[2] = {5, 5};
+//    size_type local_dims[2] = {5, 5};
 //    size_type start[2] = {1, 1};
 //    size_type count[2] = {3, 3};
 //
-//    spParallelUpdateNdArrayHalo(buffer, 2, dims, start, NULL, count, NULL, MPI_INT);
+//    spParallelUpdateNdArrayHalo(buffer, 2, local_dims, start, NULL, count, NULL, MPI_INT);
 //
 //
 //    printf("\n"

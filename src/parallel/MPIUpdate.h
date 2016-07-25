@@ -97,7 +97,7 @@ void ndarray_update_ghost(void *buffer,
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count;
 //};
 //
-//void make_dist_connection(int ndims, size_t const *offset, size_t const *stride,
+//void make_dist_connection(int ndims, size_t const *global_start, size_t const *stride,
 //		size_t const *count, size_t const *block, size_t const *ghost_width,
 //		std::vector<dist_sync_connection> *dist_connect);
 //

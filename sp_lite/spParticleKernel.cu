@@ -30,11 +30,11 @@
 //__global__ void
 //spParticleUpdatePageCountKernel(spParticlePage **b, // device
 //                                size_type *page_count,// device
-//                                dim3 dims, dim3 offset
+//                                dim3 local_dims, dim3 global_start
 //
 //)
 //{
-//    size_type pos = offset.x + THREAD_X + (THREAD_Y + THREAD_Z * dims.y) * dims.x;
+//    size_type pos = global_start.x + THREAD_X + (THREAD_Y + THREAD_Z * local_dims.y) * local_dims.x;
 //    spParticlePage **p = &b[pos];
 //    size_type count = 0;
 //    while (*p != NULL)
@@ -49,10 +49,10 @@
 //spParticleResizePageLinkKernel(spParticlePage **base,
 //                               spParticlePage **pool,
 //                               size_type const *num_of_pages,
-//                               dim3 dims,
-//                               dim3 offset)
+//                               dim3 local_dims,
+//                               dim3 global_start)
 //{
-//    size_type pos = offset.x + THREAD_X + (THREAD_Y + THREAD_Z * dims.y) * dims.x;
+//    size_type pos = global_start.x + THREAD_X + (THREAD_Y + THREAD_Z * local_dims.y) * local_dims.x;
 //
 //    spPageLinkResize((spPage **) &base[pos], (spPage **) pool, num_of_pages[pos]);
 //}
@@ -60,9 +60,9 @@
 //int
 //spParticleResizePageLink(spParticle *sp)
 //{
-//    size_type shape[3], lower[3], upper[3], count[3];
+//    size_type global_dims[3], lower[3], upper[3], count[3];
 //
-//    spMeshDomain(spParticleMesh(sp), SP_DOMAIN_ALL, lower, upper, shape, NULL);
+//    spMeshDomain(spParticleMesh(sp), SP_DOMAIN_ALL, lower, upper, global_dims, NULL);
 //
 //    count[0] = upper[0] - lower[0];
 //    count[1] = upper[1] - lower[1];
@@ -72,12 +72,12 @@
 //                sizeType2Dim3(count), 1,
 //                spParticleBaseField(sp),
 //                spParticlePageCount(sp),
-//                sizeType2Dim3(shape),
+//                sizeType2Dim3(global_dims),
 //                sizeType2Dim3(lower)
 //    );
 //
 //
-//    spParallelUpdateNdArrayHalo(spParticlePageCount(sp), 3, shape,
+//    spParallelUpdateNdArrayHalo(spParticlePageCount(sp), 3, global_dims,
 //                           lower, NULL, count, NULL, MPI_INT, spMPIComm());
 //
 //    LOAD_KERNEL(spParticleResizePageLinkKernel,
@@ -85,7 +85,7 @@
 //                spParticleBaseField(sp),
 //                spParticlePagePool(sp),
 //                spParticlePageCount(sp),
-//                sizeType2Dim3(shape),
+//                sizeType2Dim3(global_dims),
 //                sizeType2Dim3(lower)
 //    );
 //
@@ -94,10 +94,10 @@
 //
 //__global__ void
 //spParticleInitializeKernel(spParticlePage **base,
-//                           dim3 dims,
-//                           dim3 offset)
+//                           dim3 local_dims,
+//                           dim3 global_start)
 //{
-//    spParticlePage **p = &base[offset.x + blockIdx.x + (blockIdx.y + blockIdx.z * dims.y) * dims.x];
+//    spParticlePage **p = &base[global_start.x + blockIdx.x + (blockIdx.y + blockIdx.z * local_dims.y) * local_dims.x];
 //
 //    int s = threadIdx.x + (threadIdx.y + threadIdx.z * blockDim.y) * blockDim.x;
 //
@@ -116,9 +116,9 @@
 //{
 //    spParticleResizePageLink(sp);
 //
-//    size_type shape[3], lower[3], upper[3], count[3];
+//    size_type global_dims[3], lower[3], upper[3], count[3];
 //
-//    spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, lower, upper, shape, NULL);
+//    spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, lower, upper, global_dims, NULL);
 //
 //    count[0] = upper[0] - lower[0];
 //    count[1] = upper[1] - lower[1];
@@ -126,7 +126,7 @@
 //    LOAD_KERNEL(spParticleInitializeKernel,
 //                sizeType2Dim3(count), spParticleNumOfEntitiesInPage(sp),
 //                spParticleBaseField(sp),
-//                sizeType2Dim3(shape),
+//                sizeType2Dim3(global_dims),
 //                sizeType2Dim3(lower)
 //    );
 //
@@ -134,23 +134,23 @@
 //    return SP_SUCCESS;
 //}
 //__global__ void
-//spParticleDumpPageCount(size_type const *page_count, dim3 dims, dim3 offset, size_type *out)
+//spParticleDumpPageCount(size_type const *page_count, dim3 local_dims, dim3 global_start, size_type *out)
 //{
 //    out[THREAD_X + (THREAD_Y + THREAD_Z * DIMS_X) * DIMS_Y] =
-//        page_count[offset.x + THREAD_X + (offset.y + THREAD_Y + (offset.z + THREAD_Z) * dims.y) * dims.x];
+//        page_count[global_start.x + THREAD_X + (global_start.y + THREAD_Y + (global_start.z + THREAD_Z) * local_dims.y) * local_dims.x];
 //}
 //__global__ void
 //spParticleDumpPageOffsetKernel(spParticlePage const **base,
 //                               size_type *page_offset,
-//                               dim3 dims,
-//                               dim3 offset,
+//                               dim3 local_dims,
+//                               dim3 global_start,
 //                               spParticlePage const *root,
 //                               MeshEntityId *page_id,
 //                               size_type *out)
 //{
 //    size_type it = THREAD_X + (THREAD_Y + THREAD_Z * DIMS_X) * DIMS_Y;
 //
-//    spParticlePage const **p = &base[offset.x + blockIdx.x + (blockIdx.y + blockIdx.z * dims.y) * dims.x];
+//    spParticlePage const **p = &base[global_start.x + blockIdx.x + (blockIdx.y + blockIdx.z * local_dims.y) * local_dims.x];
 //    size_type displ = page_offset[it];
 //
 //    while (*p != NULL)
@@ -248,7 +248,7 @@
 ////    if (spParallelThreadNum() == 0) { bucket[spParallelBlockNum()] = NULL; }
 //}
 
-//__global__ void spParticlePageExpandKernel(dim3 dims, dim3 lower,
+//__global__ void spParticlePageExpandKernel(dim3 local_dims, dim3 lower,
 //                                           spParticlePage **buckets,
 //                                           int *out_offset,
 //                                           int *num)
@@ -260,7 +260,7 @@
 //    id.y = blockIdx.y + lower.y;
 //    id.z = blockIdx.z + lower.z;
 //    id.w = 0;
-//    spParticlePage *pg = buckets[id.x + (id.y + id.z * dims.y) * dims.x];
+//    spParticlePage *pg = buckets[id.x + (id.y + id.z * local_dims.y) * local_dims.x];
 //
 //    id.x = (id.x << 1) + 1;
 //    id.y = (id.y << 1) + 1;
@@ -269,7 +269,7 @@
 //    while (pg != NULL)
 //    {
 //        int s = atomicAdd(num, 1);
-//        out_offset[s] = (int) (pg->offset);
+//        out_offset[s] = (int) (pg->global_start);
 //        pg = pg->next;
 //    }
 //
@@ -485,7 +485,7 @@
 //        {
 //            while ((*d_tail = atomicAdd(g_d_tail, 1)) < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)
 //            {
-//                if ((data->flag[(*dest)->offset].v == 0)) { break; }
+//                if ((data->flag[(*dest)->global_start].v == 0)) { break; }
 //            }
 //
 //            if (*d_tail < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE)

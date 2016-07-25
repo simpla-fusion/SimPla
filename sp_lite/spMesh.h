@@ -23,11 +23,11 @@ int spMeshDestroy(spMesh **ctx);
 
 int spMeshDeploy(spMesh *self);
 
+int spMeshNDims(spMesh const *m);
+
 int spMeshSetDims(spMesh *m, size_type const *);
 
 size_type const *spMeshGetDims(spMesh const *m);
-
-size_type const *spMeshGetShape(spMesh const *m);
 
 int spMeshSetGhostWidth(spMesh *m, size_type const *);
 
@@ -42,7 +42,9 @@ int spMeshGetBox(spMesh const *m, Real *lower, Real *upper);
 
 int spMeshGetDx(spMesh const *m, Real *dx);
 
-int spMeshDomain(spMesh const *m, int tag, size_type *shape, size_type *lower, size_type *upper, int *offset);
+int spMeshDomain(spMesh const *m, int tag, size_type *shape, size_type *lower, size_type *upper);
+
+int spMeshGlobalDomain(spMesh const *m, size_type *dims, size_type *start);
 
 size_type spMeshNumberOfEntity(spMesh const *, int domain_tag, int iform);
 

@@ -72,7 +72,7 @@ DataSpace::DataSpace(const DataSpace &other) :
 {
     // m_self_->m_d_shape_.ndims = other.m_self_->m_d_shape_.ndims;
     // m_self_->m_d_shape_.dimensions = other.m_self_->m_d_shape_.dimensions;
-    // m_self_->m_d_shape_.offset = other.m_self_->m_d_shape_.offset;
+    // m_self_->m_d_shape_.global_start = other.m_self_->m_d_shape_.global_start;
     // m_self_->m_d_shape_.count = other.m_self_->m_d_shape_.count;
     // m_self_->m_d_shape_.stride = other.m_self_->m_d_shape_.stride;
     // m_self_->m_d_shape_.block = other.m_self_->m_d_shape_.block;
@@ -130,13 +130,13 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_type co
 //    if (topology_dims == nullptr && start == nullptr)
 //    {
 //        size_type count = rank;
-//        size_type offset = 0;
+//        size_type global_start = 0;
 //        size_type total_count = count;
 //
-//        std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
+//        std::tie(global_start, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
 //
 //        data_space = DataSpace::create_simple(1, &total_count);
-//        data_space.select_hyperslab(&offset, nullptr, &count, nullptr);
+//        data_space.select_hyperslab(&global_start, nullptr, &count, nullptr);
 //        memory_space = DataSpace::create_simple(1, &count);
 //
 //    }
@@ -332,7 +332,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //
 //	res.dimensions = m_self_->m_local_dimensions_;
 //
-//	res.offset = m_self_->m_d_shape_.offset - m_self_->m_local_offset_;
+//	res.global_start = m_self_->m_d_shape_.global_start - m_self_->m_local_offset_;
 //
 //	return std::move(res);
 //}
@@ -365,7 +365,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	}
 //	else
 //	{
-//		m_self_->m_local_offset_ = m_self_->m_d_shape_.offset;
+//		m_self_->m_local_offset_ = m_self_->m_d_shape_.global_start;
 //
 //	}
 //
@@ -392,16 +392,16 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	{
 //		THROW_EXCEPTION_RUNTIME_ERROR("data_space is too small to decompose!");
 //	}
-//	nTuple<size_type, MAX_NDIMS_OF_ARRAY> offset, count;
-//	offset = 0;
+//	nTuple<size_type, MAX_NDIMS_OF_ARRAY> global_start, count;
+//	global_start = 0;
 //	count = m_self_->m_count_;
 //
 //	for (int n = 0; n < ndims; ++n)
 //	{
 //
-//		offset[n] = m_self_->m_count_[n] * proc_coord[n] / proc_dims[n];
+//		global_start[n] = m_self_->m_count_[n] * proc_coord[n] / proc_dims[n];
 //		count[n] = m_self_->m_count_[n] * (proc_coord[n] + 1) / proc_dims[n]
-//				- offset[n];
+//				- global_start[n];
 //
 //		if (count[n] <= 0)
 //		{
@@ -414,7 +414,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //		}
 //	}
 //
-//	select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
+//	select_hyperslab(&global_start[0], nullptr, &count[0], nullptr);
 //
 //	m_self_->m_dimensions_ = (m_self_->m_count_ + m_self_->m_ghost_width_ * 2)
 //			* m_self_->m_stride_;
@@ -581,14 +581,14 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	{
 //
 //		MPIDataType send_type = MPIDataType::create(DataType, m_self_->local_shape_.ndims ,
-//		&m_self_->local_shape_.dimensions[0], & item.send.offset[0],
+//		&m_self_->local_shape_.dimensions[0], & item.send.global_start[0],
 //		&item.send.stride[0], &item.send.count[0], &item.send.block[0]);
 //
 //		dims_type recv_offset;
-//		recv_offset = item.recv.offset - m_self_->local_shape_.offset;
+//		recv_offset = item.recv.global_start - m_self_->local_shape_.global_start;
 //
 //		MPIDataType recv_type = MPIDataType::create(DataType, m_self_->local_shape_.ndims ,
-//		&m_self_->local_shape_.dimensions[0], & item.recv.offset[0],
+//		&m_self_->local_shape_.dimensions[0], & item.recv.global_start[0],
 //		&item.recv.stride[0], &item.recv.count[0], &item.recv.block[0]);
 //
 //		MPI_Isend(m_data.get(), 1, send_type.type(), item.dest, item.send_tag,

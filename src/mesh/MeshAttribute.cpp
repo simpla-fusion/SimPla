@@ -45,7 +45,7 @@ void MeshAttribute::sync(bool is_blocking)
     //
     //
     //    std::tie(ndims, dimensions, start, std::ignore, count, std::ignore)
-    //            = ds->memory_space.shape();
+    //            = ds->memory_space.global_dims();
     //
     //
     //    ASSERT(start + count <= dimensions);
