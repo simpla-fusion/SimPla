@@ -25,6 +25,11 @@ int spParallelFinalize()
     return SP_SUCCESS;
 
 }
+int spParallelGlobalBarrier()
+{
+    spMPIBarrier();
+    return SP_SUCCESS;
+};
 
 
 #define MPI_ERROR(_CMD_)                                                   \
@@ -38,23 +43,6 @@ int spParallelFinalize()
     }                                                                      \
 }
 
-
-int spMPITopologyNDims()
-{
-    MPI_Comm comm = spMPIComm();
-    {
-        int tope_type = MPI_CART;
-        MPI_ERROR(MPI_Topo_test(comm, &tope_type));
-        assert(tope_type == MPI_CART);
-    }
-
-
-    int mpi_topology_ndims = 0;
-
-    MPI_Cartdim_get(comm, &mpi_topology_ndims);
-
-    return mpi_topology_ndims;
-};
 
 /**
  * MPI_Neighbor_alltoallw
@@ -151,11 +139,11 @@ int spMPINeighborAllToAll(const void *send_buffer,
 //        rank, rank, rank, rank, rank
 //    };
 //
-//    size_type dims[2] = {5, 5};
+//    size_type local_dims[2] = {5, 5};
 //    size_type start[2] = {1, 1};
 //    size_type count[2] = {3, 3};
 //
-//    spParallelUpdateNdArrayHalo(buffer, 2, dims, start, NULL, count, NULL, MPI_INT);
+//    spParallelUpdateNdArrayHalo(buffer, 2, local_dims, start, NULL, count, NULL, MPI_INT);
 //
 //
 //    printf("\n"
@@ -183,7 +171,7 @@ int spParallelUpdateNdArrayHalo(void *buffer,
 {
     MPI_Comm comm = spMPIComm();
 
-    if (comm == MPI_COMM_NULL) { return SP_FAILED; }
+    if (comm == MPI_COMM_NULL) { return SP_SUCCESS; }
     else
     {
         int tope_type = MPI_CART;

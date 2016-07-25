@@ -63,7 +63,6 @@ int spDataTypeCreate(spDataType **dtype, int type_tag, size_type s)
         }
     }
     return SP_SUCCESS;
-
 }
 
 int spDataTypeDestroy(spDataType **dtype)
@@ -120,7 +119,7 @@ int spDataTypeAddArray(spDataType *dtype,
 
 int spDataTypeUpdate(spDataType *dtype)
 {
-    if (dtype->m_mpi_type_.type() == MPI_DATATYPE_NULL)
+    if (spMPIComm() != MPI_COMM_NULL && dtype->m_mpi_type_.type() == MPI_DATATYPE_NULL)
     {
         dtype->m_mpi_type_ = simpla::MPIDataType::create((dtype)->self);
 
@@ -130,26 +129,26 @@ int spDataTypeUpdate(spDataType *dtype)
 
 MPI_Datatype const *spDataTypeMPIType(struct spDataType_s const *dtype) { return &(dtype->m_mpi_type_.type()); };
 
-struct spDataSpace_s { simpla::data_model::DataSpace self; };
-
-typedef struct spDataSpace_s spDataSpace;
-
-void spDataSpaceCreateSimple(spDataSpace **, int ndims, int const *dims) {}
-
-void spDataSpaceCreateUnordered(spDataSpace **, int num) {}
-
-void spDataSpaceDestroy(spDataSpace **) {}
-
-void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *offset, int const *count) {}
-
-struct spDataSet_s;
-
-typedef struct spDataSet_s spDataSet;
-
-void spDataSetCreate(spDataSet **, void *d, spDataType const *dtype, spDataSpace const *mspace,
-                     spDataSpace const *fspace) {}
-
-void spDataSetDestroy(spDataSet *) {}
+//struct spDataSpace_s { simpla::data_model::DataSpace self; };
+//
+//typedef struct spDataSpace_s spDataSpace;
+//
+//void spDataSpaceCreateSimple(spDataSpace **, int ndims, int const *local_dims) {}
+//
+//void spDataSpaceCreateUnordered(spDataSpace **, int num) {}
+//
+//void spDataSpaceDestroy(spDataSpace **) {}
+//
+//void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *global_start, int const *count) {}
+//
+//struct spDataSet_s;
+//
+//typedef struct spDataSet_s spDataSet;
+//
+//void spDataSetCreate(spDataSet **, void *d, spDataType const *dtype, spDataSpace const *mspace,
+//                     spDataSpace const *fspace) {}
+//
+//void spDataSetDestroy(spDataSet *) {}
 
 struct spIOStream_s { std::shared_ptr<simpla::io::IOStream> self; };
 
@@ -191,9 +190,9 @@ int spIOStreamClose(spIOStream *os)
     return SP_SUCCESS;
 }
 
-int spIOStreamWrite(spIOStream *, const char *name, spDataSet const *) { return SP_SUCCESS; }
-
-int spIOStreamRead(spIOStream *, const char *name, spDataSet const *) { return SP_SUCCESS; }
+//int spIOStreamWrite(spIOStream *, const char *name, spDataSet const *, int tag) { return SP_SUCCESS; }
+//
+//int spIOStreamRead(spIOStream *, const char *name, spDataSet const *, int tag) { return SP_SUCCESS; }
 
 int spIOStreamWriteSimple(spIOStream *os,
                           const char *url,
@@ -205,13 +204,16 @@ int spIOStreamWriteSimple(spIOStream *os,
                           size_type const *stride,
                           size_type const *count,
                           size_type const *block,
+                          size_type const *g_dims,
+                          size_type const *g_start,
                           int flag)
 {
 
     simpla::data_model::DataSet dset;
 
     dset.data_type = d_type->self;
-    dset.data_space = simpla::data_model::DataSpace(ndims, (count != NULL) ? count : dims);
+    dset.data_space = simpla::data_model::DataSpace(ndims, (g_dims != NULL) ? g_dims : dims);
+    dset.data_space.select_hyperslab((g_start != NULL) ? g_start : start, stride, count, block);
     dset.memory_space = simpla::data_model::DataSpace(ndims, dims);
     dset.memory_space.select_hyperslab(start, stride, count, block);
 
@@ -221,42 +223,6 @@ int spIOStreamWriteSimple(spIOStream *os,
     return SP_SUCCESS;
 
 }
-//
-//struct spDistributedObject_s { simpla::parallel::DistributedObject self; };
-//
-//void spDistributeObjectCreate(struct spDistributedObject_s **obj) { *obj = new struct spDistributedObject_s; }
-//
-//void spDistributeObjectDestroy(struct spDistributedObject_s **obj)
-//{
-//    delete *obj;
-//    *obj = 0x0;
-//}
-//
-//void spDistributeObjectNonblockingSync(struct spDistributedObject_s *obj) { obj->self.sync(); }
-//
-//void spDistributeObjectWait(struct spDistributedObject_s *obj) { obj->self.wait(); }
-//
-//void hdf5_write_field(const char *url, void *d, int ndims, size_type const *dims, const size_type *offset,
-//                      size_type const *count, int flag)
-//{
-//    simpla::data_model::DataSet dset;
-//    simpla::data_model::DataSpace d_space(ndims, &count[0]);
-//    simpla::data_model::DataSpace m_space(ndims, &dims[0]);
-//    m_space.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
-//    dset.memory_space = m_space;
-//    dset.data_space = d_space;
-//    dset.data_type = simpla::data_model::DataType::create<Real>();
-//    dset.data = std::shared_ptr<void>(reinterpret_cast<void *>(d), simpla::tags::do_nothing());
-//
-////	simpla::io::write(url, dset, id);
-//
-//}
-//
-//void spDistributedObjectAddSendLink(spDistributedObject *, int id, const ptrdiff_t offset[3], const spDataSet *) {}
-//
-//void spDistributedObjectAddRecvLink(spDistributedObject *, int id, const ptrdiff_t offset[3], spDataSet *) {}
-//
-//int spDistributedObjectIsReady(spDistributedObject const *) { return true; }
 
 void spMPIInitialize(int argc, char **argv) { GLOBAL_COMM.init(argc, argv); };
 
@@ -264,32 +230,40 @@ void spMPIFinialize() { GLOBAL_COMM.close(); }
 
 MPI_Comm spMPIComm() { return GLOBAL_COMM.comm(); }
 
-MPI_Info spMPIInfo() { return GLOBAL_COMM.info(); }
-
-void spMPIBarrier() { return GLOBAL_COMM.barrier(); }
-
-int spMPIIsValid() { return (int) (GLOBAL_COMM.is_valid()); }
-
-int spMPIProcessNum() { return (GLOBAL_COMM.process_num()); }
-
-int spMPIRank() { return GLOBAL_COMM.process_num(); }
-
-int spMPINumOfProcess() { return (GLOBAL_COMM.num_of_process()); }
-
-int spMPISize() { return GLOBAL_COMM.num_of_process(); }
-
 size_type spMPIGenerateObjectId() { return (GLOBAL_COMM.generate_object_id()); }
 
-int spMPITopologyNumOfDims() { return GLOBAL_COMM.topology_num_of_dims(); }
+//
+//MPI_Info spMPIInfo() { return GLOBAL_COMM.info(); }
+//
+void spMPIBarrier() { return GLOBAL_COMM.barrier(); }
+//
+//int spMPIIsValid() { return (int) (GLOBAL_COMM.is_valid()); }
+//
+//int spMPIProcessNum() { return (GLOBAL_COMM.process_num()); }
+//
+int spMPIRank() { return GLOBAL_COMM.process_num(); }
+//
+//int spMPINumOfProcess() { return (GLOBAL_COMM.num_of_process()); }
+//
+int spMPISize() { return GLOBAL_COMM.num_of_process(); }
 
-int const *spMPITopologyDims() { return GLOBAL_COMM.topology_dims(); }
+int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord)
+{
+    return GLOBAL_COMM.topology(mpi_topo_ndims, mpi_topo_dims, periods, mpi_topo_coord);
+};
 
-int spMPITopologyNumOfNeighbours() { return GLOBAL_COMM.topology_num_of_neighbours(); }
-
-int const *spMPITopologyNeighbours() { return GLOBAL_COMM.topology_neighbours(); }
-
-void spMPITopologyCoordinate(int rank, int *d) { GLOBAL_COMM.topology_coordinate(rank, d); }
-
-int spMPITopologyRank(int const *d) { return GLOBAL_COMM.get_rank(d); };
+//
+//
+//int spMPITopologyNumOfDims() { return GLOBAL_COMM.topology_num_of_dims(); }
+//
+//int const *spMPITopologyDims() { return GLOBAL_COMM.topology_dims(); }
+//
+//int spMPITopologyNumOfNeighbours() { return GLOBAL_COMM.topology_num_of_neighbours(); }
+//
+//int const *spMPITopologyNeighbours() { return GLOBAL_COMM.topology_neighbours(); }
+//
+//void spMPITopologyCoordinate(int rank, int *d) { GLOBAL_COMM.topology_coordinate(rank, d); }
+//
+//int spMPITopologyRank(int const *d) { return GLOBAL_COMM.rank(d); };
 
 

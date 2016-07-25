@@ -52,6 +52,7 @@ int main(int argc, char **argv)
     SP_CHECK_RETURN(spFieldClear(fJ));
     SP_CHECK_RETURN(spFieldClear(fRho));
 
+    SP_CHECK_RETURN(spFieldFill(fE, spMPIRank()));
 
     spParticle *sp = NULL;
 
@@ -84,8 +85,11 @@ int main(int argc, char **argv)
 
         --count;
     }
+
     printf("======  The End ======\n");
+
     spParallelDeviceSync();
+
     SP_CHECK_RETURN(spIOStreamOpen(os, "/dump/"));
 
     SP_CHECK_RETURN(spFieldWrite(fE, os, "E", SP_FILE_NEW));

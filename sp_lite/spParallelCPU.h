@@ -24,10 +24,11 @@
 
 #define spParallelMemset(_D_, _V_, _N_)  (memset(_D_, _V_, _N_));
 
-#define spParallelDeviceSync()  {MPI_Barrier(MPI_COMM_WORLD);}
+#define spParallelDeviceSync()  {SP_CHECK_RETURN(spParallelGlobalBarrier());}
 
 typedef struct Real3_s
 {
     Real x, y, z;
 } Real3;
+
 #endif //SIMPLA_SPPARALLELCPU_H

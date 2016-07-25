@@ -29,7 +29,7 @@
 #define ADD_PARTICLE_ATTRIBUTE(_SP_, _T_, _N_) spParticleAddAttribute(_SP_, __STRING(_N_), SP_TYPE_##_T_, sizeof(_T_),0ul-1);
 
 //int spParticleAddAttribute(struct spParticle_s *pg, char const *name, int data_type, size_type size_in_byte,
-//                           size_type offset);
+//                           size_type global_start);
 //int spParticleNumberOfAttributes(struct spParticle_s const *sp);
 
 #endif //SIMPLA_SPDATAMODEL_H

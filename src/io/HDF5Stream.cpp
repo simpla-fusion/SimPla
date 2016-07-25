@@ -1045,7 +1045,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //	std::tie(res.m_start, res.m_count) = ds.data_space.local_shape();
 //
 //	std::tie(res.start, res.count, res.stride, res.block) =
-//			ds.data_space.shape();
+//			ds.data_space.global_dims();
 //
 //	if ((id & SP_UNORDER) == SP_UNORDER)
 //	{

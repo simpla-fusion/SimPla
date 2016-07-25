@@ -46,6 +46,8 @@ void const *spFieldHostDataConst(spField const *f);
 
 int spFieldClear(spField *f);
 
+int spFieldFill(spField *f, Real v);
+
 int spFieldWrite(spField *f, struct spIOStream_s *os, char const name[], int flag);
 
 int spFieldRead(spField *f, struct spIOStream_s *os, char const name[], int flag);

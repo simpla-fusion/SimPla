@@ -162,12 +162,14 @@ int spParticleSync(spParticle *sp)
 
     size_type count[ndims + 1], start[ndims + 1], dims[ndims + 1];
 
-    SP_CHECK_RETURN(spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, dims, start, count, NULL));
+    SP_CHECK_RETURN(spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, dims, start, count));
 
-    for (int i = 0; i < 3; ++i) { count[i] -= start[i]; }
     count[ndims] = spParticleMaxFiberLength(sp);
+
     start[ndims] = 0;
+
     dims[ndims] = spParticleMaxFiberLength(sp);
+
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
 
@@ -208,19 +210,23 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
     if (sp == NULL) { return SP_FAILED; }
 
-    int ndims = 3;
+    int ndims = spMeshNDims(spParticleMesh(sp));
 
     size_type num_of_cell = spMeshNumberOfEntity(sp->m, SP_DOMAIN_ALL, sp->iform);
 
     size_type count[ndims + 1], start[ndims + 1], dims[ndims + 1];
+    size_type g_dims[ndims + 1];
+    size_type g_start[ndims + 1];
 
-    SP_CHECK_RETURN(spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, dims, start, count, NULL));
+    SP_CHECK_RETURN(spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, dims, start, count));
 
-    for (int i = 0; i < 3; ++i) { count[i] -= start[i]; }
+    spMeshGlobalDomain(spParticleMesh(sp), g_dims, g_start);
 
-    count[ndims] = spParticleMaxFiberLength(sp);
-    start[ndims] = 0;
     dims[ndims] = spParticleMaxFiberLength(sp);
+    g_dims[ndims] = spParticleMaxFiberLength(sp);
+    g_start[ndims] = 0;
+    start[ndims] = 0;
+    count[ndims] = spParticleMaxFiberLength(sp);
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
@@ -234,8 +240,19 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
         spParallelMemcpy(buffer, sp->m_attrs_[i].data, size_in_byte);
 
-        SP_CHECK_RETURN(spIOStreamWriteSimple(os, sp->m_attrs_[i].name, sp->m_attrs_[i].data_type, buffer,
-                                              ndims + 1, dims, start, NULL, count, NULL, flag));
+        SP_CHECK_RETURN(spIOStreamWriteSimple(os,
+                                              sp->m_attrs_[i].name,
+                                              sp->m_attrs_[i].data_type,
+                                              buffer,
+                                              ndims + 1,
+                                              dims,
+                                              start,
+                                              NULL,
+                                              count,
+                                              NULL,
+                                              g_dims,
+                                              g_start,
+                                              flag));
         spParallelHostFree(&buffer);
     }
 

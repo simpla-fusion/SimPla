@@ -56,7 +56,7 @@ std::string help_message()
 
 
 ///**
-// * @param pos in {0,count} out {begin,shape}
+// * @param pos in {0,count} out {begin,global_dims}
 // */
 //template<typename Integral>
 //std::tuple<Integral, Integral> sync_global_location(Integral count)
@@ -69,7 +69,7 @@ std::string help_message()
 //		auto communicator = GLOBAL_COMM.comm();
 //
 //		int num_of_process = GLOBAL_COMM.get_size();
-//		int porcess_number = GLOBAL_COMM.get_rank();
+//		int porcess_number = GLOBAL_COMM.rank();
 //
 //		MPIDataType m_type;
 //

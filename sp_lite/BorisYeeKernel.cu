@@ -4,6 +4,7 @@
 //
 #include <assert.h>
 #include <math.h>
+#include "../../../../../usr/local/cuda/include/device_launch_parameters.h"
 
 extern "C" {
 
@@ -96,8 +97,7 @@ __global__ void spBorisYeeUpdateParticleKernel(void *data,
         (blockIdx.z + offset.z + gridDim.z) % gridDim.z * gridDim.y * gridDim.x);
 
     int s_tail = (threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y);
-    __shared__
-    int d_tail;
+    __shared__ int d_tail;
     __syncthreads();
     if (s_tail == 0) { d_tail = 0; }
     __syncthreads();
@@ -192,7 +192,9 @@ __global__ void spBorisYeeUpdateParticleKernel(void *data,
 int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho, spField *fJ)
 {
     Real dx[3];
+
     Real3 inv_dv;
+
     spMeshGetDx(spParticleMesh(sp), dx);
 
     inv_dv.x = dt / dx[0];
@@ -201,15 +203,14 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 
     Real cmr_dt = dt * spParticleCharge(sp) / spParticleMass(sp);
 
-    dim3 dims;
-    dims.x = (int) spMeshGetShape(spParticleMesh(sp))[0];
-    dims.y = (int) spMeshGetShape(spParticleMesh(sp))[1];
-    dims.z = (int) spMeshGetShape(spParticleMesh(sp))[2];
+    dim3 dims = sizeType2Dim3(spMeshGetDims(spParticleMesh(sp)));
 
-//    int3 offset;
-//    for (offset.x = -1; offset.x <= 1; ++offset.x)
-//        for (offset.y = -1; offset.y <= 1; ++offset.y)
-//            for (offset.z = -1; offset.z <= 1; ++offset.z)
+
+
+//    int3 global_start;
+//    for (global_start.x = -1; global_start.x <= 1; ++global_start.x)
+//        for (global_start.y = -1; global_start.y <= 1; ++global_start.y)
+//            for (global_start.z = -1; global_start.z <= 1; ++global_start.z)
 //            {
 //                LOAD_KERNEL(spBorisYeeUpdateParticleKernel,
 //                            sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
@@ -217,7 +218,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //                            spParticleData(sp),
 //                            (Real const *) spFieldDeviceDataConst(fE),
 //                            (Real const *) spFieldDeviceDataConst(fB),
-//                            inv_dv, cmr_dt, offset);
+//                            inv_dv, cmr_dt, global_start);
 //            }
 
 //    LOAD_KERNEL(spUpdateParticleBorisScatterBlockKernel,

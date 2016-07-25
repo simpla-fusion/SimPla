@@ -40,7 +40,7 @@ public:
 
     void close();
 
-    MPI_Comm comm();
+    MPI_Comm comm() const;
 
     MPI_Info info();
 
@@ -54,25 +54,15 @@ public:
 
     size_type generate_object_id();
 
-    int topology_num_of_dims() const;
+    int topology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord) const;
 
-    void topology_num_of_dims(int n);
+    int rank() const;
 
-    int const *topology_dims() const;
-
-    int topology_num_of_neighbours() const;
-
-    int const *topology_neighbours() const;
-
-    int topology_neighbour(const int *d) const;
-
-    void topology_coordinate(int rank = 0, int *coord = nullptr) const;
-
-    int get_rank() const;
+    int size() const;
 
     int get_rank(int const *d) const;
 
-//    std::tuple<int, int, int> make_send_recv_tag(size_t prefix, const nTuple<int, 3> &offset);
+//    std::tuple<int, int, int> make_send_recv_tag(size_t prefix, const nTuple<int, 3> &global_start);
 
 private:
     struct pimpl_s;
@@ -91,6 +81,7 @@ private:
          THROW_EXCEPTION_RUNTIME_ERROR(_error_msg);                \
     }                                                              \
 }
+
 }}//namespace simpla{namespace parallel{
 
 
