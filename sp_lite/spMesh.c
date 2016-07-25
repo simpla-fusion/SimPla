@@ -88,8 +88,6 @@ int spMeshDeploy(spMesh *self)
 
     self->ndims = 3;
 
-    CHECK_INT(mpi_topo_ndims);
-
     for (int i = 0; i < 3; ++i)
     {
 
@@ -171,13 +169,12 @@ int spMeshDeploy(spMesh *self)
 
 size_type spMeshNumberOfEntity(spMesh const *self, int tag, int iform)
 {
-    size_type res = ((iform == 0 || iform == 3) ? 1 : 3);
+    size_type res = (iform == 0 || iform == 3) ? 1 : 3;
     switch (tag)
     {
         case SP_DOMAIN_CENTER:
             res *= self->local_count[0] * self->local_count[1] * self->local_count[2];
         case SP_DOMAIN_ALL:
-
         default:
             res *= self->local_dims[0] * self->local_dims[1] * self->local_dims[2];
             break;

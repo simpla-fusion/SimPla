@@ -19,27 +19,20 @@ struct MPIComm::pimpl_s
 {
     static constexpr int MAX_NUM_OF_DIMS = 3;
 
-    MPI_Comm m_comm_;
+    MPI_Comm m_comm_ = MPI_COMM_NULL;
 
-    size_type m_object_id_count_;
+    size_type m_object_id_count_ = 0;
 
     int m_topology_ndims_ = 2;
 
-    int m_topology_dims_[MAX_NUM_OF_DIMS];
+    int m_topology_dims_[3] = {0, 0, 0};
 };
+
 MPIComm::MPIComm()
-    : pimpl_(new pimpl_s)
-{
-    pimpl_->m_comm_ = MPI_COMM_NULL;
-    pimpl_->m_object_id_count_ = 0;
-    pimpl_->m_topology_ndims_ = 2;
-    for (int i = 0; i < pimpl_->m_topology_ndims_; ++i) { pimpl_->m_topology_dims_[i] = 0; }
-}
+    : pimpl_(new pimpl_s) {}
+
 MPIComm::MPIComm(int argc, char **argv)
-    : MPIComm()
-{
-    init(argc, argv);
-}
+    : MPIComm() { init(argc, argv); }
 
 MPIComm::~MPIComm() { close(); }
 
@@ -89,44 +82,21 @@ void MPIComm::init(int argc, char **argv)
     }
     else
     {
+        int m_topology_coord_[3] = {0, 0, 0};
 
-        int MAX_NUM_OF_NEIGHBOURS = 27;
+        MPI_ERROR(MPI_Dims_create(m_num_process_, 2, pimpl_->m_topology_dims_));
 
-        int m_process_num_;
+        int periods[pimpl_->m_topology_ndims_];
 
-        int m_topology_coord_[3];
+        for (int i = 0; i < pimpl_->m_topology_ndims_; ++i) { periods[i] = true; }
 
-        int m_topology_num_of_neighbour_;
+        MPI_ERROR(MPI_Cart_create(MPI_COMM_WORLD, pimpl_->m_topology_ndims_,
+                                  pimpl_->m_topology_dims_, periods, 0, &pimpl_->m_comm_));
 
-        int m_topology_neighbours_[MAX_NUM_OF_NEIGHBOURS];
-
-        CHECK(m_num_process_);
-
-        CHECK(pimpl_->m_topology_ndims_);
-
-        for (int i = 0; i < m_topology_ndims_; ++i) { m_topology_dims_[i] = 0; }
-
-        MPI_ERROR(MPI_Dims_create(m_num_process_, 2, m_topology_dims_));
-
-        CHECK(m_topology_dims_[0]);
-        CHECK(m_topology_dims_[1]);
-
-        int periods[m_topology_ndims_];
-        for (int i = 0; i < m_topology_ndims_; ++i) { periods[i] = true; }
-        MPI_ERROR(MPI_Cart_create(MPI_COMM_WORLD, m_topology_ndims_,
-                                  m_topology_dims_,
-                                  periods, 0,
-                                  &pimpl_->m_comm_));
-
-
-//        pimpl_->m_topology_num_of_neighbour_ = 2 * pimpl_->m_topology_ndims_;
-//
-//
-//        MPI_ERROR(MPI_Comm_rank(pimpl_->m_comm_, &pimpl_->m_process_num_));
 
         logger::set_mpi_comm(rank(), size());
 
-        MPI_ERROR(MPI_Cart_coords(comm(), size(), m_topology_ndims_, m_topology_coord_));
+        MPI_ERROR(MPI_Cart_coords(comm(), rank(), pimpl_->m_topology_ndims_, m_topology_coord_));
 
 
         INFORM << "MPI communicator is initialized! "
@@ -135,9 +105,9 @@ void MPIComm::init(int argc, char **argv)
                << m_topology_coord_[1] << ","
                << m_topology_coord_[2]
                << ")/("
-               << m_topology_dims_[0] << ","
-               << m_topology_dims_[1] << ","
-               << m_topology_dims_[2]
+               << pimpl_->m_topology_dims_[0] << ","
+               << pimpl_->m_topology_dims_[1] << ","
+               << pimpl_->m_topology_dims_[2]
                << ")]" << std::endl;
     }
 }

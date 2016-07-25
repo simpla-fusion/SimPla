@@ -21,7 +21,8 @@
 #define CHECK(_MSG_)        printf( "%s:%d:0:%s: %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_) );
 #define ERROR(_MSG_)        printf( "%s:%d:0:%s: %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__, _MSG_);exit(-1);
 
-#define CHECK_INT(_MSG_)    printf( "%s:%d:0:%s: %s = 0x%lx \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(long)(_MSG_) );
+#define CHECK_FLOAT(_MSG_)    printf( "%s:%d:0:%s: %s =%f \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(Real)(_MSG_) );
+#define CHECK_INT(_MSG_)    printf( "%s:%d:0:%s: %s = 0x%ld \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(long)(_MSG_) );
 #define CHECK_STR(_MSG_)    printf( "%s:%d:0:%s: %s = %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_), (_MSG_) );
 #define SP_CHECK_RETURN(_CMD_)                                                                                        \
 {                                                                                                                    \

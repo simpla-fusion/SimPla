@@ -234,6 +234,19 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
     SP_CHECK_RETURN(spFieldSync(fRho));
     return SP_SUCCESS;
 }
+
+int spUpdateField_Yee(struct spMesh_s const *m,
+                      Real dt,
+                      const struct spField_s *fRho,
+                      const struct spField_s *fJ,
+                      struct spField_s *fE,
+                      struct spField_s *fB)
+{
+    if (m == NULL) { return SP_FAILED; }
+
+    return SP_SUCCESS;
+}
+
 //
 //#include <assert.h>
 //#include <math.h>

@@ -13,7 +13,7 @@ int spParallelInitialize(int argc, char **argv);
 int spParallelFinalize();
 
 
-#ifndef __CUDACC__
+#ifndef USE_CUDA
 #   include "spParallelCPU.h"
 #else
 #   include "spParallelCUDA.h"
@@ -30,5 +30,9 @@ int spParallelUpdateNdArrayHalo(void *buffer,
                                 const size_type *);
 
 int spParallelGlobalBarrier();
+
+int spParallelDeviceFillInt(int *d, int v, size_type s);
+
+int spParallelDeviceFillReal(Real *d, Real v, size_type s);
 
 #endif //SIMPLA_SPPARALLEL_H

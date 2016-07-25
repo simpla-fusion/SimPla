@@ -71,7 +71,7 @@ struct spParticle_s
 
 int spParticleCreate(spParticle **sp, const spMesh *mesh)
 {
-    spParallelHostAlloc(sp, sizeof(spParticle));
+    spParallelHostAlloc((void **) sp, sizeof(spParticle));
 
     (*sp)->id = spMPIGenerateObjectId();
     (*sp)->m = mesh;

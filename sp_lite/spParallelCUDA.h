@@ -8,15 +8,15 @@
 
 #include "sp_lite_def.h"
 #include </usr/local/cuda/include/cuda_runtime.h>
+#include </usr/local/cuda/include/device_launch_parameters.h>
 
 
-#ifndef NUMBER_OF_THREADS_PER_BLOCK
-#	define NUMBER_OF_THREADS_PER_BLOCK 128
-#endif //NUMBER_OF_THREADS_PER_BLOCK
 #ifdef USE_FLOAT_REAL
 typedef float3 Real3;
 #else
+
 typedef double3 Real3;
+
 #endif
 //#define spParallelBlockNum()  ( blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x)
 //
@@ -57,7 +57,7 @@ typedef double3 Real3;
 
 #define spParallelMemset(_D_, _V_, _N_)  SP_PARALLEL_CHECK_RETURN(cudaMemset(_D_, _V_, _N_));
 
-#define spParallelDeviceSync()    SP_PARALLEL_CHECK_RETURN(cudaDeviceSynchronize())
+#define spParallelDeviceSync()   {SP_CHECK_RETURN(spParallelGlobalBarrier()); SP_PARALLEL_CHECK_RETURN(cudaDeviceSynchronize())}
 
 #define spParallelHostAlloc(_P_, _S_)    SP_PARALLEL_CHECK_RETURN(cudaHostAlloc(_P_, _S_, cudaHostAllocDefault))
 
@@ -66,14 +66,8 @@ typedef double3 Real3;
 
 #define LOAD_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
 
-extern inline dim3 sizeType2Dim3(size_type const *v)
-{
-    dim3 res;
-    res.x = (int) v[0];
-    res.y = (int) v[1];
-    res.z = (int) v[2];
-    return res;
-}
+
+dim3 sizeType2Dim3(size_type const *v);
 
 
 #endif //SIMPLA_SPPARALLEL_CU_H

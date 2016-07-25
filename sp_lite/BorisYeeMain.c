@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     SP_CHECK_RETURN(spFieldClear(fJ));
     SP_CHECK_RETURN(spFieldClear(fRho));
 
-    SP_CHECK_RETURN(spFieldFill(fE, spMPIRank()));
+    SP_CHECK_RETURN(spFieldFill(fRho, spMPIRank() + 1));
 
     spParticle *sp = NULL;
 

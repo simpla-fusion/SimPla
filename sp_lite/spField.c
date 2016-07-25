@@ -2,14 +2,11 @@
 // Created by salmon on 16-7-20.
 //
 
-
 #include "sp_lite_def.h"
-#include <stdlib.h>
 #include "spObject.h"
 #include "spParallel.h"
 #include "spMesh.h"
 #include "spField.h"
-#include "spIO.h"
 
 typedef struct spField_s
 {
@@ -21,8 +18,8 @@ typedef struct spField_s
 
     struct spDataType_s *m_data_type_desc_;
 
-    Real *device_data;
-    Real *host_data;
+    void *device_data;
+    void *host_data;
 } spField;
 
 int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform)
@@ -56,9 +53,10 @@ int spFieldDeploy(spField *f)
 {
     if (f->device_data == NULL)
     {
-        size_type num_of_entities = spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform);
-        size_type s = spDataTypeSizeInByte(f->m_data_type_desc_);
-        spParallelDeviceAlloc((void **) &(f->device_data), num_of_entities * s);
+        size_type s =
+//            spDataTypeSizeInByte(f->m_data_type_desc_)
+            sizeof(Real) * spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform);
+        spParallelDeviceAlloc(&(f->device_data), s);
     }
     return SP_SUCCESS;
 }
@@ -88,21 +86,18 @@ int spFieldClear(spField *f)
     spFieldDeploy(f);
 
     size_type num_of_entities = spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform);
-
+    spParallelDeviceSync();
     spParallelMemset(f->device_data, 0, num_of_entities * sizeof(Real));
+    spParallelDeviceSync();
+
     return SP_SUCCESS;
 }
 int spFieldFill(spField *f, Real v)
 {
     spFieldDeploy(f);
 
-    size_type num_of_entities = spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform);
+    return spParallelDeviceFillReal(f->device_data, v, spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform));
 
-    int iv = *(int *) (&v);
-    CHECK_INT(iv);
-    spParallelMemset(f->device_data, iv, num_of_entities * sizeof(Real));
-
-    return SP_SUCCESS;
 }
 int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
 {
@@ -113,7 +108,6 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     spParallelHostAlloc(&f_host, size_in_byte);
 
     spParallelMemcpy((f_host), (void *) (f->device_data), size_in_byte);
-
     int ndims = spMeshNDims(spFieldMesh(f));
 
     size_type l_dims[ndims + 1];

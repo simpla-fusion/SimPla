@@ -241,7 +241,7 @@ void spMPIBarrier() { return GLOBAL_COMM.barrier(); }
 //
 //int spMPIProcessNum() { return (GLOBAL_COMM.process_num()); }
 //
-int spMPIRank() { return GLOBAL_COMM.process_num(); }
+int spMPIRank() { return GLOBAL_COMM.rank(); }
 //
 //int spMPINumOfProcess() { return (GLOBAL_COMM.num_of_process()); }
 //
