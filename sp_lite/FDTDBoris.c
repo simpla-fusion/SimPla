@@ -6,7 +6,7 @@
 
 #include "../src/sp_capi.h"
 
-#include "BorisYee.h"
+#include "FDTDBoris.h"
 #include "spMesh.h"
 #include "spField.h"
 

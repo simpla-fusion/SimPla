@@ -18,7 +18,7 @@ extern "C" {
 #include "spParticle.h"
 #include "spField.h"
 
-#include "BorisYee.h"
+#include "FDTDBoris.h"
 
 }
 //
@@ -234,16 +234,33 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
     SP_CHECK_RETURN(spFieldSync(fRho));
     return SP_SUCCESS;
 }
+__global__ void spUpdateFieldYeeKernel(Real dt, Real3 dx,
+                                       Real const *fRho,
+                                       Real const *fJ,
+                                       Real *fE,
+                                       Real *fB)
+{
 
-int spUpdateField_Yee(struct spMesh_s const *m,
-                      Real dt,
-                      const struct spField_s *fRho,
-                      const struct spField_s *fJ,
-                      struct spField_s *fE,
-                      struct spField_s *fB)
+}
+int spUpdateFieldYee(struct spMesh_s const *m,
+                     Real dt,
+                     const struct spField_s *fRho,
+                     const struct spField_s *fJ,
+                     struct spField_s *fE,
+                     struct spField_s *fB)
 {
     if (m == NULL) { return SP_FAILED; }
 
+    dim3 block_dim, thread_dim;
+    Real3 dx;
+    LOAD_KERNEL(spUpdateFieldYeeKernel,
+                block_dim, thread_dim,
+                dx, dt,
+                spFieldDeviceDataConst(fRho),
+                spFieldDeviceDataConst(fJ),
+                spFieldDeviceData(fE),
+                spFieldDeviceData(fB),
+    );
     return SP_SUCCESS;
 }
 
@@ -714,7 +731,7 @@ int spUpdateField_Yee(struct spMesh_s const *m,
 //{
 //}
 //
-//void spUpdateField_Yee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB)
+//void spUpdateFieldYee(spMesh *ctx, Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB)
 //{
 //
 //    /*    @formatter:off */

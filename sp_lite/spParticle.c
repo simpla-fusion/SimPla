@@ -222,9 +222,10 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
     spMeshGlobalDomain(spParticleMesh(sp), g_dims, g_start);
 
-    dims[ndims] = spParticleMaxFiberLength(sp);
-    g_dims[ndims] = spParticleMaxFiberLength(sp);
     g_start[ndims] = 0;
+    g_dims[ndims] = spParticleMaxFiberLength(sp);
+
+    dims[ndims] = spParticleMaxFiberLength(sp);
     start[ndims] = 0;
     count[ndims] = spParticleMaxFiberLength(sp);
 
@@ -240,19 +241,9 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
         spParallelMemcpy(buffer, sp->m_attrs_[i].data, size_in_byte);
 
-        SP_CHECK_RETURN(spIOStreamWriteSimple(os,
-                                              sp->m_attrs_[i].name,
-                                              sp->m_attrs_[i].data_type,
-                                              buffer,
-                                              ndims + 1,
-                                              dims,
-                                              start,
-                                              NULL,
-                                              count,
-                                              NULL,
-                                              g_dims,
-                                              g_start,
-                                              flag));
+        SP_CHECK_RETURN(spIOStreamWriteSimple(os, sp->m_attrs_[i].name, sp->m_attrs_[i].data_type,
+                                              buffer, ndims + 1, dims, start, NULL, count, NULL,
+                                              g_dims, g_start, flag));
         spParallelHostFree(&buffer);
     }
 

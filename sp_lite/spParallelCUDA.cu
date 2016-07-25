@@ -26,9 +26,6 @@ void spParallelDeviceFillRealKernel(Real *d, Real v, size_type max)
 };
 int spParallelDeviceFillReal(Real *d, Real v, size_type s)
 {
-
-
     LOAD_KERNEL(spParallelDeviceFillRealKernel, 16, 256, d, v, s);
-
     return SP_SUCCESS;
 };

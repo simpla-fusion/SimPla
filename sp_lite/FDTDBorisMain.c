@@ -14,7 +14,7 @@
 #include "spField.h"
 #include "spParticle.h"
 
-#include "BorisYee.h"
+#include "FDTDBoris.h"
 
 int main(int argc, char **argv)
 {
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     {
 //		printf("====== REMINED STEP= %i ======\n", count);
         SP_CHECK_RETURN(spBorisYeeParticleUpdate(sp, dt, fE, fB, fRho, fJ));
-        SP_CHECK_RETURN(spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB));
+        SP_CHECK_RETURN(spUpdateFieldYee(mesh, dt, fRho, fJ, fE, fB));
 
         SP_CHECK_RETURN(spFieldWrite(fE, os, "E", SP_FILE_RECORD));
         SP_CHECK_RETURN(spFieldWrite(fB, os, "B", SP_FILE_RECORD));
