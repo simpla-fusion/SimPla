@@ -62,10 +62,7 @@ struct MPIDataType
         return create(data_model::DataType::create<T>(), std::forward<Others>(others)...);
     }
 
-    MPI_Datatype const &type(...) const
-    {
-        return m_type_;
-    }
+    MPI_Datatype const &type(...) const { return m_type_; }
 
     size_t size() const;
 

@@ -17,7 +17,11 @@ typedef struct spObject_s
     byte_type __others[];
 } spObject;
 
-void spObjectCreate(spObject **obj, size_t s_in_byte);
-void spObjectDestroy(spObject **obj);
+int spObjectCreate(spObject **obj, size_t s_in_byte);
+
+int spObjectDestroy(spObject **obj);
+
+size_type spObjectId(spObject const *f);
+
 
 #endif /* SPOBJECT_H_ */

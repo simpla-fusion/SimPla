@@ -58,9 +58,7 @@ int spDataTypeAddArray(spDataType *dtype,
                        size_type n,
                        size_type const *dims);
 
-int spDataTypeUpdate(spDataType *dtype);
-
-MPI_Datatype const *spDataTypeMPIType(struct spDataType_s const *);
+MPI_Datatype spDataTypeMPIType(struct spDataType_s const *);
 //
 //struct spDataSpace_s;
 //
@@ -133,15 +131,20 @@ int spIOStreamWriteSimple(spIOStream *,
                           size_type const *g_start,
                           int flag);
 
-void spMPIInitialize(int argc, char **argv);
+int spMPIInitialize(int argc, char **argv);
 
-void spMPIFinialize();
+int spMPIFinalize();
 
 MPI_Comm spMPIComm();
+
 size_type spMPIGenerateObjectId();
-void spMPIBarrier();
+
+int spMPIBarrier();
+
 int spMPIRank();
+
 int spMPISize();
+
 int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord);
 
 

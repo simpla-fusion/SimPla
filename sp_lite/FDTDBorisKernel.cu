@@ -195,7 +195,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 
     Real3 inv_dv;
 
-    spMeshGetDx(spParticleMesh(sp), dx);
+    spMeshGetDx(spMeshAttrMesh((spMeshAttr const *) sp), dx);
 
     inv_dv.x = dt / dx[0];
     inv_dv.y = dt / dx[1];
@@ -203,7 +203,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 
     Real cmr_dt = dt * spParticleCharge(sp) / spParticleMass(sp);
 
-    dim3 dims = sizeType2Dim3(spMeshGetDims(spParticleMesh(sp)));
+    dim3 dims = sizeType2Dim3(spMeshGetDims(spMeshAttrMesh((spMeshAttr const *) sp)));
 
 
 
@@ -213,7 +213,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //            for (global_start.z = -1; global_start.z <= 1; ++global_start.z)
 //            {
 //                LOAD_KERNEL(spBorisYeeUpdateParticleKernel,
-//                            sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
+//                            sizeType2Dim3(spMeshArrayShape(spParticleMesh(sp))),
 //                            spParticleFiberLength(sp),
 //                            spParticleData(sp),
 //                            (Real const *) spFieldDeviceDataConst(fE),
@@ -222,7 +222,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //            }
 
 //    LOAD_KERNEL(spUpdateParticleBorisScatterBlockKernel,
-//                sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
+//                sizeType2Dim3(spMeshArrayShape(spParticleMesh(sp))),
 //                spParticleFiberLength(sp),
 //                spParticleData(sp),
 //                (fRho->device_data), (fJ->device_data));
@@ -236,9 +236,16 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 }
 __global__ void spUpdateFieldYeeKernel(Real dt, Real3 dx,
                                        Real const *fRho,
-                                       Real const *fJ,
-                                       Real *fE,
-                                       Real *fB)
+                                       Real const *fJx,
+                                       Real const *fJy,
+                                       Real const *fJz,
+                                       Real *fEx,
+                                       Real *fEy,
+                                       Real *fEz,
+                                       Real *fBx,
+                                       Real *fBy,
+                                       Real *fBz
+)
 {
 
 }
@@ -255,11 +262,17 @@ int spUpdateFieldYee(struct spMesh_s const *m,
     Real3 dx;
     LOAD_KERNEL(spUpdateFieldYeeKernel,
                 block_dim, thread_dim,
-                dx, dt,
-                spFieldDeviceDataConst(fRho),
-                spFieldDeviceDataConst(fJ),
-                spFieldDeviceData(fE),
-                spFieldDeviceData(fB),
+                dt, dx,
+                (const Real *) spFieldDeviceDataConst(fRho),
+                (const Real *) spFieldDeviceDataConst(fJ),
+                (const Real *) spFieldDeviceDataConst(fJ),
+                (const Real *) spFieldDeviceDataConst(fJ),
+                (Real *) spFieldDeviceData(fE),
+                (Real *) spFieldDeviceData(fE),
+                (Real *) spFieldDeviceData(fE),
+                (Real *) spFieldDeviceData(fB),
+                (Real *) spFieldDeviceData(fB),
+                (Real *) spFieldDeviceData(fB)
     );
     return SP_SUCCESS;
 }

@@ -880,15 +880,14 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
 
     if (!ds.is_valid())
     {
-        WARNING << "Invalid dataset! "
-                << "[ URL = \"" << url << "\","
-                << " Data is " << ((ds.data != nullptr) ? "not" : " ") << " empty. "
-                << " Datatype is " << ((ds.data_type.is_valid()) ? "" : "not") << " valid. "
-                << " Data Space is " << ((ds.data_space.is_valid()) ? "" : "not")
-                << " valid. size=" << ds.data_space.num_of_elements()
-                << " Memory Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid.  size=" <<
-                ds.memory_space.num_of_elements()
-                << " Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid."
+        WARNING << "Invalid Data Set! "
+                << "[ URL = \"" << url << "\"," << std::endl
+                << " Data is " << ((ds.data != nullptr) ? "valid" : "invalid ") << ". " << std::endl
+                << " DataType is " << ((ds.data_type.is_valid()) ? "valid" : "invalid") << ". " << std::endl
+                << " File Space is " << ((ds.data_space.is_valid()) ? "valid" : "invalid") << ". size="
+                << ds.data_space.num_of_elements() << ". " << std::endl
+                << " Memory Space is " << ((ds.memory_space.is_valid()) ? "valid" : "invalid") << ".  size="
+                << ds.memory_space.num_of_elements() << ". " << std::endl
                 << " ]"
 
                 << std::endl;

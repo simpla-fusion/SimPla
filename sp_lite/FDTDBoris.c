@@ -26,7 +26,7 @@ int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
 
 
 //    LOAD_KERNEL(spBorisInitializeParticleKernel,
-//                sizeType2Dim3(spMeshGetShape(spParticleMesh(sp))),
+//                sizeType2Dim3(spMeshArrayShape(spParticleMesh(sp))),
 //                NUMBER_OF_THREADS_PER_BLOCK,
 //                (boris_particle *) spParticleAttributeDeviceData(sp),
 //                spParticleBuckets(sp),

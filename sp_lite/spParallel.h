@@ -27,7 +27,8 @@ int spParallelUpdateNdArrayHalo(void *buffer,
                                 const size_type *start,
                                 const size_type *,
                                 const size_type *count,
-                                const size_type *);
+                                const size_type *,
+                                int mpi_sync_start_dims);
 
 int spParallelGlobalBarrier();
 

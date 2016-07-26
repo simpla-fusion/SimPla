@@ -49,7 +49,7 @@ typedef double3 Real3;
     } }
 #define spParallelDeviceAlloc(_P_, _S_)      SP_PARALLEL_CHECK_RETURN(cudaMalloc(_P_, _S_));
 
-#define spParallelDeviceFree(_P_)      if (*_P_ != NULL) { SP_PARALLEL_CHECK_RETURN(cudaFree(*_P_)); *_P_ = NULL;   };
+#define spParallelDeviceFree(_P_)      {if (*_P_ != NULL) { SP_PARALLEL_CHECK_RETURN(cudaFree(*_P_)); *_P_ = NULL;   }};
 
 #define spParallelMemcpy(_D_, _S_, _N_) SP_PARALLEL_CHECK_RETURN(cudaMemcpy(_D_, _S_,(_N_), cudaMemcpyDefault));
 

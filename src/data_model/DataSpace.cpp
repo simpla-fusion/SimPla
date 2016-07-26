@@ -51,10 +51,12 @@ struct DataSpace::pimpl_s
 
 //===================================================================
 
-DataSpace::DataSpace() : m_pimpl_{new pimpl_s} { }
+DataSpace::DataSpace()
+    : m_pimpl_{new pimpl_s} {}
 
-DataSpace::DataSpace(int ndims, size_type const *dims) :
-        m_pimpl_(new pimpl_s)
+DataSpace::DataSpace(int ndims, size_type const *dims)
+    :
+    m_pimpl_(new pimpl_s)
 {
 
     std::get<0>(m_pimpl_->m_d_shape_)/*ndims      */ = ndims;
@@ -64,11 +66,11 @@ DataSpace::DataSpace(int ndims, size_type const *dims) :
     std::get<4>(m_pimpl_->m_d_shape_)/*count      */ = dims;
     std::get<5>(m_pimpl_->m_d_shape_)/*block      */ = 1;
 
-
 }
 
-DataSpace::DataSpace(const DataSpace &other) :
-        m_pimpl_(new pimpl_s)
+DataSpace::DataSpace(const DataSpace &other)
+    :
+    m_pimpl_(new pimpl_s)
 {
     // m_self_->m_d_shape_.ndims = other.m_self_->m_d_shape_.ndims;
     // m_self_->m_d_shape_.dimensions = other.m_self_->m_d_shape_.dimensions;
@@ -85,8 +87,8 @@ DataSpace::DataSpace(const DataSpace &other) :
 
 }
 
-DataSpace::DataSpace(DataSpace &&other) : m_pimpl_(other.m_pimpl_) { }
-
+DataSpace::DataSpace(DataSpace &&other)
+    : m_pimpl_(other.m_pimpl_) {}
 
 DataSpace::~DataSpace()
 {
@@ -159,7 +161,7 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_type co
 
 bool DataSpace::is_valid() const
 {
-    bool res = m_pimpl_ != nullptr;
+    bool res = (m_pimpl_ != nullptr);
     if (res)
     {
         int ndims = std::get<0>(m_pimpl_->m_d_shape_);
@@ -249,7 +251,6 @@ void DataSpace::select_point(const size_type *idx)
 
 void DataSpace::select_point(size_type pos) { m_pimpl_->m_selected_points_.push_back(pos); }
 
-
 void DataSpace::select_points(size_type num, const size_type *tags)
 {
     int ndims = std::get<0>(this->shape());
@@ -258,17 +259,17 @@ void DataSpace::select_points(size_type num, const size_type *tags)
     size_type tail = head + num;
     m_pimpl_->m_selected_points_.resize(tail);
     parallel::parallel_for(
-            parallel::blocked_range<size_type>(head, tail),
-            [&](parallel::blocked_range<size_type> const &r)
+        parallel::blocked_range<size_type>(head, tail),
+        [&](parallel::blocked_range<size_type> const &r)
+        {
+            for (size_type i = r.begin(), ie = r.end(); i != ie; ++i)
             {
-                for (size_type i = r.begin(), ie = r.end(); i != ie; ++i)
+                for (size_type j = 0; j < ndims; ++j)
                 {
-                    for (size_type j = 0; j < ndims; ++j)
-                    {
-                        m_pimpl_->m_selected_points_[i * ndims + j] = tags[(i - head) * ndims + j];
-                    }
+                    m_pimpl_->m_selected_points_[i * ndims + j] = tags[(i - head) * ndims + j];
                 }
             }
+        }
 
     );
 }

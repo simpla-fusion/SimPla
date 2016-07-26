@@ -11,6 +11,23 @@
 #include "spParallel.h"
 
 
+int spMeshAttrCreate(spMeshAttr **f, size_type size, spMesh const *mesh, int iform)
+{
+    SP_CHECK_RETURN(spObjectCreate((spObject **) (f), size));
+    (*f)->m = mesh;
+    (*f)->iform = iform;
+    return SP_SUCCESS;
+};
+
+int spMeshAttrDestroy(spMeshAttr **f)
+{
+    SP_CHECK_RETURN(spObjectDestroy((spObject **) (f)));
+    return SP_SUCCESS;
+};
+spMesh const *spMeshAttrMesh(spMeshAttr const *f) { return f->m; }
+
+int spMeshAttrForm(spMeshAttr const *f) { return f->iform; };
+
 struct spMesh_s
 {
 
@@ -237,7 +254,7 @@ int spMeshGetDx(spMesh const *m, Real *dx)
 
 }
 
-int spMeshDomain(spMesh const *m, int tag, size_type *dims, size_type *start, size_type *count)
+int spMeshLocalDomain(spMesh const *m, int tag, size_type *dims, size_type *start, size_type *count)
 {
 
     int success = SP_SUCCESS;
@@ -294,13 +311,87 @@ int spMeshDomain(spMesh const *m, int tag, size_type *dims, size_type *start, si
     return success;
 };
 
-int spMeshGlobalDomain(spMesh const *m, size_type *dims, size_type *start)
+int spMeshGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset)
 {
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < m->ndims; ++i)
     {
         dims[i] = m->global_dims[i];
-        start[i] = m->global_start[i];
+        offset[i] = m->global_start[i] - m->local_start[i];
     }
+    return SP_SUCCESS;
+};
+
+
+int spMeshArrayShape(spMesh const *m,
+                     int domain_tag,
+                     int attr_ndims,
+                     size_type const *attr_dims,
+                     int *array_ndims,
+                     int *start_mesh_dim,
+                     size_type *g_dims,
+                     size_type *g_start,
+                     size_type *l_dims,
+                     size_type *l_start,
+                     size_type *l_count,
+                     int is_soa)
+{
+
+
+    int mesh_ndims = spMeshNDims(m);
+
+
+    *array_ndims = spMeshNDims(m) + attr_ndims;
+
+    if (is_soa == SP_TRUE)
+    {
+        for (int i = 0; i < attr_ndims; ++i)
+        {
+            l_dims[i] = attr_dims[i];
+            l_start[i] = 0;
+            l_count[i] = attr_dims[i];
+        }
+        *start_mesh_dim = attr_ndims;
+    }
+    else
+    {
+        for (int i = 0; i < attr_ndims; ++i)
+        {
+            l_dims[mesh_ndims + i] = attr_dims[i];
+            l_start[mesh_ndims + i] = 0;
+            l_count[mesh_ndims + i] = attr_dims[i];
+        }
+        *start_mesh_dim = 0;
+
+    }
+
+
+    SP_CHECK_RETURN(spMeshLocalDomain(m,
+                                      domain_tag,
+                                      l_dims + (*start_mesh_dim),
+                                      l_start + (*start_mesh_dim),
+                                      l_count + (*start_mesh_dim)));
+
+
+    if (g_dims != NULL && g_start != NULL)
+    {
+        for (int i = 0; i < *array_ndims; ++i)
+        {
+            g_dims[i] = l_dims[i];
+            g_start[i] = l_start[i];
+        }
+
+        ptrdiff_t offset[*array_ndims];
+
+        SP_CHECK_RETURN(spMeshGlobalOffset(m, g_dims + (*start_mesh_dim), offset + (*start_mesh_dim)));
+
+        for (int i = 0; i < mesh_ndims; ++i)
+        {
+            g_start[*start_mesh_dim + i] += offset[*start_mesh_dim + i];
+        }
+    };
+
+    return SP_SUCCESS;
+
 };
 
 size_type spMeshHash(spMesh const *m, MeshEntityId id, int iform)
@@ -309,6 +400,13 @@ size_type spMeshHash(spMesh const *m, MeshEntityId id, int iform)
 };
 
 
-void spMeshWrite(const spMesh *ctx, const char *name, int flag);
+int spMeshWrite(const spMesh *ctx, const char *name, int flag)
+{
+    return SP_SUCCESS;
+};
 
-void spMeshRead(spMesh *ctx, char const name[], int flag);
+int spMeshRead(spMesh *ctx, const char *name, int flag)
+{
+    return SP_SUCCESS;
+
+}

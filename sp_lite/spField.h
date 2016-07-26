@@ -18,31 +18,22 @@ struct spField_s;
 
 typedef struct spField_s spField;
 
-int spFieldCreate(spField **f, const struct spMesh_s *m, int iform);
+int spFieldCreate(spField **f, const struct spMesh_s *m, int iform, int type_tag);
 
 int spFieldDestroy(spField **f);
 
 int spFieldDeploy(spField *f);
 
-size_type spFieldId(spField const *f);
-
-struct spMesh_s const *spFieldMesh(spField const *f);
-
 struct spDataType_s const *spFieldDataType(spField const *f);
 
-int spFieldForm(spField const *f);
-
 void *spFieldData(spField *f);
+int spFieldUseSoA(spField const *f);
 
 void *spFieldDeviceData(spField *f);
 
-void *spFieldHostData(spField *f);
+const void *spFieldDataConst(spField const *f);
 
-void const *spFieldDataConst(spField const *f);
-
-void const *spFieldDeviceDataConst(spField const *f);
-
-void const *spFieldHostDataConst(spField const *f);
+const void *spFieldDeviceDataConst(spField const *f);
 
 int spFieldClear(spField *f);
 

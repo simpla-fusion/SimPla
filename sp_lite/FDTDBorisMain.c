@@ -42,10 +42,10 @@ int main(int argc, char **argv)
     spField *fRho = NULL;
     spField *fJ = NULL;
 
-    SP_CHECK_RETURN(spFieldCreate(&fE, mesh, 1));
-    SP_CHECK_RETURN(spFieldCreate(&fB, mesh, 2));
-    SP_CHECK_RETURN(spFieldCreate(&fJ, mesh, 1));
-    SP_CHECK_RETURN(spFieldCreate(&fRho, mesh, 0));
+    SP_CHECK_RETURN(spFieldCreate(&fE, mesh, 1, SP_TYPE_Real));
+    SP_CHECK_RETURN(spFieldCreate(&fB, mesh, 2, SP_TYPE_Real));
+    SP_CHECK_RETURN(spFieldCreate(&fJ, mesh, 1, SP_TYPE_Real));
+    SP_CHECK_RETURN(spFieldCreate(&fRho, mesh, 0, SP_TYPE_Real));
 
     SP_CHECK_RETURN(spFieldClear(fE));
     SP_CHECK_RETURN(spFieldClear(fB));
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
     SP_CHECK_RETURN(spFieldClear(fRho));
 
     SP_CHECK_RETURN(spFieldFill(fRho, spMPIRank() + 1));
-
+    SP_CHECK_RETURN(spFieldFill(fE, spMPIRank() + 1));
     spParticle *sp = NULL;
 
     SP_CHECK_RETURN(spBorisYeeParticleCreate(&sp, mesh));

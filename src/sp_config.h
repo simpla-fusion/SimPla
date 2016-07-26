@@ -20,9 +20,14 @@
 #   define  SP_REAL float
 #endif
 
-#define SP_SUCCESS 0
 
-#define SP_FAILED  1
+#define SP_TRUE 1
+
+#define SP_FALSE  0
+
+#define SP_SUCCESS 1
+
+#define SP_FAILED  0
 
 typedef size_t size_type;
 

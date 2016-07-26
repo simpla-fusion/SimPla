@@ -33,7 +33,7 @@ int spParallelFinalize()
 {
 
     SP_PARALLEL_CHECK_RETURN(cudaDeviceReset());
-    spMPIFinialize();
+    spMPIFinalize();
     return SP_SUCCESS;
 
 }
@@ -173,13 +173,14 @@ int spMPINeighborAllToAll(const void *send_buffer,
 //}
 
 int spParallelUpdateNdArrayHalo(void *buffer,
-                                const struct spDataType_s *data_desc,
+                                const spDataType *data_desc,
                                 int ndims,
                                 const size_type *shape,
                                 const size_type *start,
                                 const size_type *stride,
                                 const size_type *count,
-                                const size_type *block)
+                                const size_type *block,
+                                int mpi_sync_start_dims)
 {
     MPI_Comm comm = spMPIComm();
 
@@ -191,7 +192,7 @@ int spParallelUpdateNdArrayHalo(void *buffer,
         assert(tope_type == MPI_CART);
     }
 
-    MPI_Datatype const ele_type = *spDataTypeMPIType(data_desc);
+    MPI_Datatype ele_type = spDataTypeMPIType(data_desc);
 
     if (ele_type == MPI_DATATYPE_NULL) { return SP_FAILED; }
 
@@ -232,19 +233,19 @@ int spParallelUpdateNdArrayHalo(void *buffer,
 
         for (int i = 0; i < ndims; ++i)
         {
-            if (i < d)
+            if (i >= mpi_sync_start_dims && i < d + mpi_sync_start_dims)
             {
-                s_count_lower[i] = (int) dims[i];
+                s_count_lower[i] = dims[i];
                 s_start_lower[i] = 0;
-                s_count_upper[i] = (int) dims[i];
+                s_count_upper[i] = dims[i];
                 s_start_upper[i] = 0;
 
-                r_count_lower[i] = (int) dims[i];
+                r_count_lower[i] = dims[i];
                 r_start_lower[i] = 0;
-                r_count_upper[i] = (int) dims[i];
+                r_count_upper[i] = dims[i];
                 r_start_upper[i] = 0;
             }
-            else if (i == d)
+            else if (i == d + mpi_sync_start_dims)
             {
                 s_count_lower[i] = (int) start[i];
                 s_start_lower[i] = (int) start[i];
@@ -323,7 +324,7 @@ int spParallelUpdateNdArrayHalo(void *buffer,
         MPI_ERROR(MPI_Type_free(&recv_types[i]));
     }
 
-    return MPI_SUCCESS;
+    return SP_SUCCESS;
 
 }
 

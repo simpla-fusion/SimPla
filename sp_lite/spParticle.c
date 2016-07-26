@@ -9,11 +9,10 @@
 #include <assert.h>
 #include <mpi.h>
 
-
-#include "spParallel.h"
-#include "spMesh.h"
 #include "spObject.h"
+#include "spMesh.h"
 #include "spParticle.h"
+#include "spParallel.h"
 
 
 #ifndef SP_MAX_NUMBER_OF_PARTICLE_ATTR
@@ -49,14 +48,10 @@ typedef struct spParticleAttrEntity_s
  */
 struct spParticle_s
 {
-    SP_OBJECT_HEAD
+    SP_MESH_ATTR_HEAD
 
     Real mass;
     Real charge;
-
-    struct spMesh_s const *m;
-
-    int iform;
 
     int m_num_of_attrs_;
 
@@ -71,11 +66,8 @@ struct spParticle_s
 
 int spParticleCreate(spParticle **sp, const spMesh *mesh)
 {
-    spParallelHostAlloc((void **) sp, sizeof(spParticle));
+    SP_CHECK_RETURN(spMeshAttrCreate((spMeshAttr **) sp, sizeof(spParticle), mesh, VOLUME));
 
-    (*sp)->id = spMPIGenerateObjectId();
-    (*sp)->m = mesh;
-    (*sp)->iform = VOLUME;
     (*sp)->m_max_fiber_length_ = SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
     (*sp)->m_num_of_attrs_ = 0;
     (*sp)->m_data_root_ = NULL;
@@ -83,11 +75,27 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     return SP_SUCCESS;
 
 }
+int spParticleDestroy(spParticle **sp)
+{
+    if (*sp != NULL)
+    {
+        spParallelDeviceFree((void **) &((*sp)->m_data_root_));
 
+        for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i)
+        {
+            spParallelDeviceFree(&((*sp)->m_attrs_[i].data));
+            SP_CHECK_RETURN(spDataTypeDestroy(&((*sp)->m_attrs_[i].data_type)));
+        }
+
+    }
+    SP_CHECK_RETURN(spMeshAttrDestroy((spMeshAttr **) sp));
+
+
+    return SP_SUCCESS;
+}
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset)
 {
-    spDataTypeCreate(&(sp->m_attrs_[sp->m_num_of_attrs_].data_type), tag, size);
-    spDataTypeUpdate(sp->m_attrs_[sp->m_num_of_attrs_].data_type);
+    SP_CHECK_RETURN(spDataTypeCreate(&(sp->m_attrs_[sp->m_num_of_attrs_].data_type), tag, size));
 
     sp->m_attrs_[sp->m_num_of_attrs_].offset = offset;
     strcpy(sp->m_attrs_[sp->m_num_of_attrs_].name, name);
@@ -103,11 +111,13 @@ int spParticleDeploy(spParticle *sp)
 
     void *attr_data[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
+
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
         spParallelDeviceAlloc(&(sp->m_attrs_[i].data),
                               spDataTypeSizeInByte(sp->m_attrs_[i].data_type)
                                   * number_of_cell * sp->m_max_fiber_length_);
+
         attr_data[i] = sp->m_attrs_[i].data;
     }
 
@@ -116,23 +126,6 @@ int spParticleDeploy(spParticle *sp)
     return SP_SUCCESS;
 }
 
-int spParticleDestroy(spParticle **sp)
-{
-    if (*sp != NULL)
-    {
-        spParallelDeviceFree((void **) &((*sp)->m_data_root_));
-
-        for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i)
-        {
-            spParallelDeviceFree(&((*sp)->m_attrs_[i].data));
-            spDataTypeDestroy(&((*sp)->m_attrs_[i].data_type));
-        }
-
-        spParallelHostFree(sp);
-
-    }
-    return SP_SUCCESS;
-}
 int spParticlePIC(spParticle *sp, size_type pic)
 {
     sp->m_max_fiber_length_ =
@@ -158,30 +151,27 @@ int spParticleNumberOfAttributes(struct spParticle_s const *sp) { return sp->m_n
  */
 int spParticleSync(spParticle *sp)
 {
-    int ndims = 3;
 
-    size_type count[ndims + 1], start[ndims + 1], dims[ndims + 1];
 
-    SP_CHECK_RETURN(spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, dims, start, count));
+    spMesh const *m = spMeshAttrMesh((spMeshAttr const *) sp);
+    int iform = spMeshAttrForm((spMeshAttr const *) sp);
+    int ndims = spMeshNDims(m);
+    int array_ndims, mesh_start_dim;
 
-    count[ndims] = spParticleMaxFiberLength(sp);
+    size_type l_dims[ndims + 1];
+    size_type l_start[ndims + 1];
+    size_type l_count[ndims + 1];
 
-    start[ndims] = 0;
+    size_type num_of_entities = spParticleMaxFiberLength(sp);
 
-    dims[ndims] = spParticleMaxFiberLength(sp);
+    SP_CHECK_RETURN(spMeshArrayShape(m, SP_DOMAIN_CENTER, 1, &num_of_entities,
+                                     &array_ndims, &mesh_start_dim, NULL, NULL, l_dims, l_start, l_count, SP_FALSE));
+
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
-
-
-        SP_CHECK_RETURN(spParallelUpdateNdArrayHalo(sp->m_attrs_[i].data,
-                                                    sp->m_attrs_[i].data_type,
-                                                    ndims + 1,
-                                                    dims,
-                                                    start,
-                                                    NULL,
-                                                    count,
-                                                    NULL));
+        SP_CHECK_RETURN(spParallelUpdateNdArrayHalo(sp->m_attrs_[i].data, sp->m_attrs_[i].data_type,
+                                                    array_ndims, l_dims, l_start, NULL, l_count, NULL, 0));
     }
     return SP_SUCCESS;
 
@@ -197,6 +187,8 @@ int spParticleSync(spParticle *sp)
 int
 spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag)
 {
+    if (sp == NULL) { return SP_FAILED; }
+
     char curr_path[2048];
     char new_path[2048];
     strcpy(new_path, name);
@@ -208,42 +200,53 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
     SP_CHECK_RETURN(spIOStreamOpen(os, new_path));
 
 
-    if (sp == NULL) { return SP_FAILED; }
+    spMesh const *m = spMeshAttrMesh((spMeshAttr const *) sp);
 
-    int ndims = spMeshNDims(spParticleMesh(sp));
+    int iform = spMeshAttrForm((spMeshAttr const *) sp);
 
-    size_type num_of_cell = spMeshNumberOfEntity(sp->m, SP_DOMAIN_ALL, sp->iform);
+    int ndims = spMeshNDims(m);
 
-    size_type count[ndims + 1], start[ndims + 1], dims[ndims + 1];
+    int array_ndims, mesh_start_dim;
+
+    size_type l_dims[ndims + 1];
+    size_type l_start[ndims + 1];
+    size_type l_count[ndims + 1];
+
     size_type g_dims[ndims + 1];
     size_type g_start[ndims + 1];
 
-    SP_CHECK_RETURN(spMeshDomain(spParticleMesh(sp), SP_DOMAIN_CENTER, dims, start, count));
+    size_type num_of_entities = spParticleMaxFiberLength(sp);
 
-    spMeshGlobalDomain(spParticleMesh(sp), g_dims, g_start);
+    spMeshArrayShape(m, SP_DOMAIN_CENTER, 1, &num_of_entities,
+                     &array_ndims, &mesh_start_dim, g_dims, g_start, l_dims, l_start, l_count,
+                     SP_FALSE);
 
-    g_start[ndims] = 0;
-    g_dims[ndims] = spParticleMaxFiberLength(sp);
-
-    dims[ndims] = spParticleMaxFiberLength(sp);
-    start[ndims] = 0;
-    count[ndims] = spParticleMaxFiberLength(sp);
+    num_of_entities *= spMeshNumberOfEntity(m, SP_DOMAIN_ALL, iform);
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
         void *buffer = NULL;
 
-        size_type size_in_byte = spDataTypeSizeInByte(sp->m_attrs_[i].data_type);
-
-        size_in_byte *= spParticleMaxFiberLength(sp) * num_of_cell;
+        size_type size_in_byte = spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * num_of_entities;
 
         spParallelHostAlloc(&buffer, size_in_byte);
 
         spParallelMemcpy(buffer, sp->m_attrs_[i].data, size_in_byte);
 
-        SP_CHECK_RETURN(spIOStreamWriteSimple(os, sp->m_attrs_[i].name, sp->m_attrs_[i].data_type,
-                                              buffer, ndims + 1, dims, start, NULL, count, NULL,
-                                              g_dims, g_start, flag));
+        SP_CHECK_RETURN(spIOStreamWriteSimple(os,
+                                              sp->m_attrs_[i].name,
+                                              sp->m_attrs_[i].data_type,
+                                              buffer,
+                                              array_ndims,
+                                              l_dims,
+                                              l_start,
+                                              NULL,
+                                              l_count,
+                                              NULL,
+                                              g_dims,
+                                              g_start,
+                                              flag));
+
         spParallelHostFree(&buffer);
     }
 

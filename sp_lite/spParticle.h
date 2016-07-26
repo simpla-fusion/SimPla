@@ -53,8 +53,6 @@ Real spParticleCharge(spParticle const *);
 
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset);
 
-struct spMesh_s const *spParticleMesh(spParticle const *sp);
-
 int spParticlePIC(spParticle *sp, size_type s);
 
 size_type spParticleMaxFiberLength(const spParticle *sp);

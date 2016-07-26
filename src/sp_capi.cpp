@@ -117,17 +117,14 @@ int spDataTypeAddArray(spDataType *dtype,
     return SP_SUCCESS;
 }
 
-int spDataTypeUpdate(spDataType *dtype)
+MPI_Datatype spDataTypeMPIType(struct spDataType_s const *dtype)
 {
-    if (spMPIComm() != MPI_COMM_NULL && dtype->m_mpi_type_.type() == MPI_DATATYPE_NULL)
-    {
-        dtype->m_mpi_type_ = simpla::MPIDataType::create((dtype)->self);
+    MPI_Datatype res = MPI_DATATYPE_NULL;
 
-    }
-    return SP_SUCCESS;
-}
+    if (spMPIComm() != MPI_COMM_NULL) { MPI_Type_dup(simpla::MPIDataType::create((dtype)->self).type(), &res); }
 
-MPI_Datatype const *spDataTypeMPIType(struct spDataType_s const *dtype) { return &(dtype->m_mpi_type_.type()); };
+    return (res);
+};
 
 //struct spDataSpace_s { simpla::data_model::DataSpace self; };
 //
@@ -224,18 +221,27 @@ int spIOStreamWriteSimple(spIOStream *os,
 
 }
 
-void spMPIInitialize(int argc, char **argv) { GLOBAL_COMM.init(argc, argv); };
+int spMPIInitialize(int argc, char **argv)
+{
+    GLOBAL_COMM.init(argc, argv);
+    return SP_SUCCESS;
+};
 
-void spMPIFinialize() { GLOBAL_COMM.close(); }
+int spMPIFinalize()
+{
+    GLOBAL_COMM.close();
+    return SP_SUCCESS;
+}
 
 MPI_Comm spMPIComm() { return GLOBAL_COMM.comm(); }
 
 size_type spMPIGenerateObjectId() { return (GLOBAL_COMM.generate_object_id()); }
 
-//
-//MPI_Info spMPIInfo() { return GLOBAL_COMM.info(); }
-//
-void spMPIBarrier() { return GLOBAL_COMM.barrier(); }
+int spMPIBarrier()
+{
+    GLOBAL_COMM.barrier();
+    return SP_SUCCESS;
+}
 //
 //int spMPIIsValid() { return (int) (GLOBAL_COMM.is_valid()); }
 //
