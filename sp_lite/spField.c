@@ -64,7 +64,7 @@ int spFieldDeploy(spField *f)
     return SP_SUCCESS;
 }
 
-int spFieldUseSoA(spField const *f) { return f->is_soa; }
+int spFieldIsSoA(spField const *f) { return f->is_soa; }
 
 spDataType const *spFieldDataType(spField const *f) { return f->m_data_type_desc_; };
 
@@ -75,6 +75,50 @@ void *spFieldDeviceData(spField *f) { return f->device_data; }
 const void *spFieldDataConst(spField const *f) { return spFieldDeviceDataConst(f); }
 
 const void *spFieldDeviceDataConst(spField const *f) { return f->device_data; }
+
+int spFieldNumberOfSub(spField const *f)
+{
+    int iform = spMeshAttrForm((spMeshAttr const *) f);
+
+    return (iform == VERTEX || iform == VOLUME) ? 1 : 3;
+}
+
+int spFieldSubArray(spField *f, int domain_tag, void **data, size_type *stride)
+{
+
+    spMesh const *m = spMeshAttrMesh((spMeshAttr const *) f);
+
+    int iform = spMeshAttrForm((spMeshAttr const *) f);
+
+    size_type ele_size_in_byte = spDataTypeSizeInByte(spFieldDataType(f));
+
+    size_type dims[4], start[4], count[4];
+
+    spMeshLocalDomain(m, domain_tag, dims, start, count);
+
+    void *data_root = spFieldData(f);
+
+    size_type head = ele_size_in_byte * (start[0] + start[1] * dims[0] + start[2] * dims[0] * dims[1]);
+
+    int num_of_sub = spFieldNumberOfSub(f);
+
+    if (num_of_sub == 1) { *data = spFieldData(f) + head; }
+    else
+    {
+        size_type offset = ele_size_in_byte * spMeshNumberOfEntity(m, SP_DOMAIN_ALL, VERTEX);
+        if (spFieldIsSoA(f))
+        {
+            for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * offset + head; }
+            if (stride != NULL) { *stride = 1; }
+        }
+        else
+        {
+            for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * ele_size_in_byte + head * num_of_sub; }
+            if (stride != NULL) { *stride = (size_type) num_of_sub; }
+        }
+    }
+    return SP_SUCCESS;
+};
 
 int spFieldClear(spField *f)
 {
@@ -125,7 +169,7 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
                      &array_ndims, &mesh_start_dim,
                      g_dims, g_start,
                      l_dims, l_start, l_count,
-                     spFieldUseSoA(f));
+                     spFieldIsSoA(f));
 
     spIOStreamWriteSimple(os,
                           name,
@@ -165,7 +209,7 @@ int spFieldSync(spField *f)
     size_type num_of_sub = 3;
 
     spMeshArrayShape(m, SP_DOMAIN_CENTER, (iform == VERTEX || iform == VOLUME) ? 0 : 1, &num_of_sub,
-                     &array_ndims, &mesh_start_dim, NULL, NULL, l_dims, l_start, l_count, spFieldUseSoA(f));
+                     &array_ndims, &mesh_start_dim, NULL, NULL, l_dims, l_start, l_count, spFieldIsSoA(f));
 
 
     spParallelUpdateNdArrayHalo(spFieldDeviceData(f), spFieldDataType(f),

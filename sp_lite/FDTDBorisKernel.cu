@@ -234,19 +234,41 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
     SP_CHECK_RETURN(spFieldSync(fRho));
     return SP_SUCCESS;
 }
-__global__ void spUpdateFieldYeeKernel(Real dt, Real3 dx,
-                                       Real const *fRho,
-                                       Real const *fJx,
-                                       Real const *fJy,
-                                       Real const *fJz,
-                                       Real *fEx,
-                                       Real *fEy,
-                                       Real *fEz,
-                                       Real *fBx,
-                                       Real *fBy,
-                                       Real *fBz
+
+#define speed_of_light2 8.987551787368176e+16
+#define    epsilon0     8.8542e-12
+__global__ void spUpdateFieldYeeKernel(Real dt, Real3 dt_inv,
+                                       Real const *Rho,
+                                       Real const *Jx,
+                                       Real const *Jy,
+                                       Real const *Jz,
+                                       Real *Ex,
+                                       Real *Ey,
+                                       Real *Ez,
+                                       Real *Bx,
+                                       Real *By,
+                                       Real *Bz
 )
 {
+    size_type x = threadIdx.x + blockIdx.x * blockDim.x;
+    size_type y = threadIdx.y + blockIdx.y * blockDim.y;
+    size_type z = threadIdx.z + blockIdx.z * blockDim.z;
+    size_type Ix = 1;
+    size_type Iy = gridDim.x * blockDim.x * Ix;
+    size_type Iz = gridDim.y * blockDim.y * Iy;
+
+    size_type s = x * Ix + y * Iy + z * Iz;
+
+    Ex[s] += ((Bz[s + Iy] - Bz[s]) * dt_inv.y - (By[s + Iz] - By[s]) * dt_inv.z) * speed_of_light2
+        - Jx[s] / epsilon0 * dt;
+    Ey[s] += ((Bx[s + Iz] - Bx[s]) * dt_inv.z - (Bz[s + Ix] - Bz[s]) * dt_inv.x) * speed_of_light2
+        - Jy[s] / epsilon0 * dt;
+    Ez[s] += ((By[s + Ix] - By[s]) * dt_inv.x - (Bx[s + Iy] - Bx[s]) * dt_inv.y) * speed_of_light2
+        - Jz[s] / epsilon0 * dt;
+
+    Bx[s] -= (Ez[s] - Ez[s - Iy]) * dt_inv.y - (Ey[s] - Ey[s - Iz]) * dt_inv.z;
+    By[s] -= (Ex[s] - Ex[s - Iz]) * dt_inv.z - (Ez[s] - Ez[s - Ix]) * dt_inv.x;
+    Bz[s] -= (Ey[s] - Ey[s - Ix]) * dt_inv.x - (Ex[s] - Ex[s - Iy]) * dt_inv.y;
 
 }
 int spUpdateFieldYee(struct spMesh_s const *m,
@@ -258,21 +280,36 @@ int spUpdateFieldYee(struct spMesh_s const *m,
 {
     if (m == NULL) { return SP_FAILED; }
 
+    assert(spFieldIsSoA(fRho));
+    assert(spFieldIsSoA(fJ));
+    assert(spFieldIsSoA(fE));
+    assert(spFieldIsSoA(fB));
     dim3 block_dim, thread_dim;
+
+    size_type dims[4], start[4], count[4];
+
+    spMeshLocalDomain(m, SP_DOMAIN_CENTER, dims, start, count);
+
     Real3 dx;
-    LOAD_KERNEL(spUpdateFieldYeeKernel,
-                block_dim, thread_dim,
+
+    Real *rho, *J[3], *E[3], *B[3];
+
+    spFieldSubArray((spField *) fRho, SP_DOMAIN_CENTER, (void **) &rho, NULL);
+
+    spFieldSubArray((spField *) fJ, SP_DOMAIN_CENTER, (void **) J, NULL);
+
+    spFieldSubArray(fE, SP_DOMAIN_CENTER, (void **) E, NULL);
+
+    spFieldSubArray(fB, SP_DOMAIN_CENTER, (void **) B, NULL);
+
+    LOAD_KERNEL(spUpdateFieldYeeKernel, sizeType2Dim3(count), 1,
                 dt, dx,
-                (const Real *) spFieldDeviceDataConst(fRho),
-                (const Real *) spFieldDeviceDataConst(fJ),
-                (const Real *) spFieldDeviceDataConst(fJ),
-                (const Real *) spFieldDeviceDataConst(fJ),
-                (Real *) spFieldDeviceData(fE),
-                (Real *) spFieldDeviceData(fE),
-                (Real *) spFieldDeviceData(fE),
-                (Real *) spFieldDeviceData(fB),
-                (Real *) spFieldDeviceData(fB),
-                (Real *) spFieldDeviceData(fB)
+                (const Real *) rho,
+                (const Real *) J[0],
+                (const Real *) J[1],
+                (const Real *) J[2],
+                E[0], E[1], E[2],
+                B[0], B[1], B[2]
     );
     return SP_SUCCESS;
 }
