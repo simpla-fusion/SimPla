@@ -3,6 +3,9 @@
 //
 
 #include "sp_lite_def.h"
+
+#include <assert.h>
+
 #include "spObject.h"
 #include "spParallel.h"
 #include "spMesh.h"
@@ -216,4 +219,28 @@ int spFieldSync(spField *f)
                                 array_ndims, l_dims, l_start, NULL, l_count, NULL, mesh_start_dim);
     return SP_SUCCESS;
 
+}
+int spFeildAssign(spField *f, size_type num_of_points, size_type **points, Real const **v)
+{
+    spMesh const *m = spMeshAttrMesh((spMeshAttr const *) f);
+
+    if (spFieldIsSoA(f))
+    {
+        int num_of_sub = spFieldNumberOfSub(f);
+
+        Real *data[num_of_sub];
+
+        spFieldSubArray(f, SP_DOMAIN_CENTER, (void **) data, NULL);
+
+        size_type strides[3];
+
+        SP_CHECK_RETURN(spMeshGetStrides(m, strides));
+
+        spParallelAssign(num_of_sub, num_of_points, points, strides, (Real **) data, v);
+
+    }
+    else
+    {
+        UNIMPLEMENTED;
+    }
 }

@@ -320,7 +320,16 @@ int spMeshGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset)
     }
     return SP_SUCCESS;
 };
-
+int spMeshGetStrides(spMesh const *m, size_type *res)
+{
+    if (res != NULL)
+    {
+        res[0] = 1;
+        res[1] = m->local_dims[0];
+        res[2] = m->local_dims[0] * m->local_dims[1];
+    }
+    return SP_SUCCESS;
+}
 
 int spMeshArrayShape(spMesh const *m,
                      int domain_tag,

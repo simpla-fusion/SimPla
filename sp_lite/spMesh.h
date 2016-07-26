@@ -59,6 +59,8 @@ int spMeshGetBox(spMesh const *m, Real *lower, Real *upper);
 
 int spMeshGetDx(spMesh const *m, Real *dx);
 
+int spMeshGetStrides(spMesh const *m, size_type *res);
+
 int spMeshLocalDomain(spMesh const *m, int tag, size_type *dims, size_type *start, size_type *count);
 
 int spMeshGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset);
