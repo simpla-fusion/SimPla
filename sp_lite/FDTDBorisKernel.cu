@@ -240,7 +240,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 #define    epsilon0     8.8542e-12
 
 __global__ void spUpdateFieldYeeKernel(Real dt, Real3 dt_inv,
-                                       dim3 N, dim3 I, int rank,
+                                       dim3 N, dim3 I,
                                        Real const *Rho,
                                        Real const *Jx,
                                        Real const *Jy,
@@ -269,9 +269,9 @@ __global__ void spUpdateFieldYeeKernel(Real dt, Real3 dt_inv,
             ((By[s + I.x] - By[s]) * dt_inv.x - (Bx[s + I.y] - Bx[s]) * dt_inv.y) * speed_of_light2 -
             Jz[s] / epsilon0 * dt;
 
-    Bx[s] /*= rank * 100 + s;//*/-= (Ez[s] - Ez[s - I.y]) * dt_inv.y - (Ey[s] - Ey[s - I.z]) * dt_inv.z;
-    By[s] /*= rank * 100 + s;//*/-= (Ex[s] - Ex[s - I.z]) * dt_inv.z - (Ez[s] - Ez[s - I.x]) * dt_inv.x;
-    Bz[s] /*= rank * 100 + s;//*/-= (Ey[s] - Ey[s - I.x]) * dt_inv.x - (Ex[s] - Ex[s - I.y]) * dt_inv.y;
+    Bx[s] -= (Ez[s] - Ez[s - I.y]) * dt_inv.y - (Ey[s] - Ey[s - I.z]) * dt_inv.z;
+    By[s] -= (Ex[s] - Ex[s - I.z]) * dt_inv.z - (Ez[s] - Ez[s - I.x]) * dt_inv.x;
+    Bz[s] -= (Ey[s] - Ey[s - I.x]) * dt_inv.x - (Ex[s] - Ex[s - I.y]) * dt_inv.y;
 
 }
 
@@ -316,7 +316,7 @@ int spUpdateFieldYee(struct spMesh_s const *m,
     spFieldSubArray(fB, (void **) B);
 
     LOAD_KERNEL(spUpdateFieldYeeKernel, sizeType2Dim3(dims), 1,
-                dt, real2Real3(dt_inv), sizeType2Dim3(dims), sizeType2Dim3(strides), spMPIRank(),
+                dt, real2Real3(dt_inv), sizeType2Dim3(dims), sizeType2Dim3(strides),
                 (const Real *) rho,
                 (const Real *) J[0],
                 (const Real *) J[1],
@@ -325,60 +325,15 @@ int spUpdateFieldYee(struct spMesh_s const *m,
                 B[0], B[1], B[2]
     );
 
-//    if (spMPIRank() == 0)
-//    {
-//        Real tmp[64];
-//        spParallelMemcpy(tmp, B[1], 64 * sizeof(Real));
-//
-//        for (int i = 0; i < 8; ++i)
-//        {
-//            for (int j = 0; j < 8; ++j)
-//            {
-//                printf("%d \t", (int) tmp[i * 8 + j]);
-//            }
-//            printf("\n");
-//
-//        }
-//        printf("---------------------------\n");
-//    }
     spFieldSync(fE);
     spFieldSync(fB);
-//    if (spMPIRank() == 0)
-//    {
-//        Real tmp[64];
-//        spParallelMemcpy(tmp, B[1], 64 * sizeof(Real));
-//
-//        for (int i = 0; i < 8; ++i)
-//        {
-//            for (int j = 0; j < 8; ++j)
-//            {
-//                printf("%d \t", (int) tmp[i * 8 + j]);
-//            }
-//            printf("\n");
-//        }
-//        printf("---------------------------\n");
-//    }
+
     return SP_SUCCESS;
 }
 
-//
-//#include <assert.h>
-//#include <math.h>
-//
-//extern "C" {
-//#include </usr/local/cuda/include/cuda_runtime.h>
-//#include </usr/local/cuda/include/device_launch_parameters.h>
-//#include </usr/local/cuda/include/device_functions_decls.h>
-//
-//#include "sp_lite_def.h"
-//
-//#include "spParallel.h"
-//
-//#include "spParticle.h"
-//#include "BorisYee.h"
-//
-//}
-//
+
+
+
 //__global__ void
 //spBorisInitializeParticleKernel(boris_particle *d, spParticleFiber **bucket, size_type PIC)
 //{
