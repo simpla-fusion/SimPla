@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     int count = argc < 2 ? 100 : atoi(argv[1]);
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
 
-    size_type dims[3] = {0x10, 0x10, 0x1};
+    size_type dims[3] = {0x100, 0x100, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
@@ -58,7 +58,6 @@ int main(int argc, char **argv)
     SP_CHECK_RETURN(spMeshDeploy(mesh));
 
     if (isnan(dt)) { dt = spMeshCFLDt(mesh, 299792458.0/* speed_of_light*/); }
-    CHECK_FLOAT(dt);
     /*****************************************************************************************************************/
 
     spField *fE = NULL;
@@ -99,7 +98,10 @@ int main(int argc, char **argv)
 
     while (count > 0)
     {
-        printf("====== REMINED STEP= %i ======\n", count);
+        spParallelDeviceSync();
+
+        if (spMPIRank() == 0) { printf("====== REMINED STEP= %i ======\n", count); }
+
 
         SP_CHECK_RETURN(spFieldClear(fJ));
 
@@ -107,16 +109,18 @@ int main(int argc, char **argv)
 
         SP_CHECK_RETURN(spUpdateFieldYee(mesh, dt, fRho, fJ, fE, fB));
 
+
         if (count % check_point == 0)
         {
-            spParallelDeviceSync();
             SP_CHECK_RETURN(spFieldWrite(fE, os, "E", SP_FILE_RECORD));
             SP_CHECK_RETURN(spFieldWrite(fB, os, "B", SP_FILE_RECORD));
             SP_CHECK_RETURN(spFieldWrite(fJ, os, "J", SP_FILE_RECORD));
             SP_CHECK_RETURN(spFieldWrite(fRho, os, "rho", SP_FILE_RECORD));
-            spParallelDeviceSync();
         }
+
+
         --count;
+
     }
 
     printf("======  The End ======\n");

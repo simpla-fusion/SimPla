@@ -282,19 +282,19 @@ int spParallelUpdateNdArrayHalo(void *buffer,
 
         MPI_ERROR(MPI_Type_create_subarray(ndims,
                                            dims,
-                                           s_count_lower,
-                                           s_start_lower,
-                                           MPI_ORDER_C,
-                                           ele_type,
-                                           &send_types[2 * d + 0]));
-        MPI_ERROR(MPI_Type_create_subarray(ndims,
-                                           dims,
                                            s_count_upper,
                                            s_start_upper,
                                            MPI_ORDER_C,
                                            ele_type,
-                                           &send_types[2 * d + 1]));
+                                           &send_types[2 * d + 0]));
 
+        MPI_ERROR(MPI_Type_create_subarray(ndims,
+                                           dims,
+                                           s_count_lower,
+                                           s_start_lower,
+                                           MPI_ORDER_C,
+                                           ele_type,
+                                           &send_types[2 * d + 1]));
 
         MPI_ERROR(MPI_Type_create_subarray(ndims,
                                            dims,

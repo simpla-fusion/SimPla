@@ -7,12 +7,12 @@
 
 #include <memory>
 #include <cassert>
-#include "../src/io/IO.h"
-//#include "../src/parallel/DistributedObject.h"
-#include "../src/parallel/MPIComm.h"
-#include "../src/data_model/DataSet.h"
-#include "../src/data_model/DataType.h"
-#include "../src/data_model/DataSpace.h"
+#include "gtl/logo.h"
+#include "io/IO.h"
+#include "parallel/MPIComm.h"
+#include "data_model/DataSet.h"
+#include "data_model/DataType.h"
+#include "data_model/DataSpace.h"
 
 extern "C"
 {
@@ -23,7 +23,7 @@ extern "C"
 
 using namespace simpla;
 
-
+void ShowSimPlaLogo() { MESSAGE << ShowLogo(); };
 struct spDataType_s
 {
     simpla::data_model::DataType self;

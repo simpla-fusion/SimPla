@@ -48,7 +48,7 @@ int spFieldSync(spField *f);
 
 int spFieldNumberOfSub(spField const *f);
 
-int spFieldSubArray(spField *f, int domain_tag, void **data, size_type *stride);
+int spFieldSubArray(spField *f, void **data);
 
 int spFieldAssign(spField *f, int num, size_type const *offset, Real const **v);
 
