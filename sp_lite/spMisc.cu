@@ -105,15 +105,16 @@ int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
             alpha0[7] = dims[1] == 1 ? HALFPI : (k[1] * x0[1]);
             alpha0[8] = dims[2] == 1 ? HALFPI : (k[2] * x0[2]);
     };
-    SP_CHECK_RETURN(spFieldSubArray(f, SP_DOMAIN_CENTER, (void **) data, NULL));
+    SP_CHECK_RETURN(spFieldSubArray(f, (void **) data));
 
 
     for (int i = 0; i < num_of_sub; ++i)
     {
-        CHECK_FLOAT(amp[i]);
         LOAD_KERNEL(spFieldAssignValueSinKernel, sizeType2Dim3(count), 1,
                     data[i], sizeType2Dim3(strides), real2Real3(k_dx), real2Real3(alpha0 + i * 3), amp[i]);
     }
+
+    SP_CHECK_RETURN(spFieldSync(f));
 
     return SP_SUCCESS;
 };

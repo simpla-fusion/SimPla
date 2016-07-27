@@ -62,6 +62,7 @@ struct spMesh_s
     Real x_local_lower[4];
     Real x_local_upper[4];
     Real dx[4];
+    Real inv_dx[4];
 };
 
 int spMeshCreate(spMesh **m)
@@ -166,6 +167,9 @@ int spMeshDeploy(spMesh *self)
         self->x_local_lower[i] = self->x_global_lower[i] + self->global_start[i] * self->dx[i];
 
         self->x_local_upper[i] = self->x_local_lower[i] + self->local_count[i] * self->dx[i];
+
+        self->inv_dx[i] = (self->global_dims[i] <= 1) ? 0 : 1.0 / self->dx[i];
+
     }
 
     /**          -1
@@ -297,6 +301,7 @@ int spMeshGetGlobalBox(spMesh const *m, Real *lower, Real *upper)
 Real const *spMeshGetLocalOrigin(spMesh const *m) { return m->x_local_lower; }
 Real const *spMeshGetGlobalOrigin(spMesh const *m) { return m->x_global_lower; }
 Real const *spMeshGetDx(spMesh const *m) { return m->dx; }
+Real const *spMeshGetInvDx(spMesh const *m) { return m->inv_dx; }
 
 int spMeshGetLocalBox(spMesh const *m, int tag, Real *lower, Real *upper)
 {
@@ -383,9 +388,9 @@ int spMeshGetStrides(spMesh const *m, size_type *res)
 {
     if (res != NULL)
     {
-        res[0] = 1;
-        res[1] = m->local_dims[0];
-        res[2] = m->local_dims[0] * m->local_dims[1];
+        res[2] = (m->global_dims[2] == 1) ? 0 : 1;
+        res[1] = (m->global_dims[1] == 1) ? 0 : m->local_dims[2];
+        res[0] = (m->global_dims[0] == 1) ? 0 : m->local_dims[2] * m->local_dims[1];
     }
     return SP_SUCCESS;
 }

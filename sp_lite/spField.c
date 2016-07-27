@@ -86,7 +86,7 @@ int spFieldNumberOfSub(spField const *f)
     return (iform == VERTEX || iform == VOLUME) ? 1 : 3;
 }
 
-int spFieldSubArray(spField *f, int domain_tag, void **data, size_type *stride)
+int spFieldSubArray(spField *f, void **data)
 {
 
     spMesh const *m = spMeshAttrMesh((spMeshAttr const *) f);
@@ -97,28 +97,19 @@ int spFieldSubArray(spField *f, int domain_tag, void **data, size_type *stride)
 
     size_type dims[4], start[4], count[4];
 
-    spMeshLocalDomain(m, domain_tag, dims, start, count);
-
     void *data_root = spFieldData(f);
-
-    size_type head = ele_size_in_byte * (start[0] + start[1] * dims[0] + start[2] * dims[0] * dims[1]);
 
     int num_of_sub = spFieldNumberOfSub(f);
 
-    if (num_of_sub == 1) { *data = spFieldData(f) + head; }
+    if (num_of_sub == 1) { *data = spFieldData(f); }
     else
     {
+        assert (spFieldIsSoA(f));
+
         size_type offset = ele_size_in_byte * spMeshNumberOfEntity(m, SP_DOMAIN_ALL, VERTEX);
-        if (spFieldIsSoA(f))
-        {
-            for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * offset + head; }
-            if (stride != NULL) { *stride = 1; }
-        }
-        else
-        {
-            for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * ele_size_in_byte + head * num_of_sub; }
-            if (stride != NULL) { *stride = (size_type) num_of_sub; }
-        }
+
+        for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * offset; }
+
     }
     return SP_SUCCESS;
 };
@@ -239,7 +230,7 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real c
 
         Real *data[num_of_sub];
 
-        SP_CHECK_RETURN(spFieldSubArray(f, SP_DOMAIN_CENTER, (void **) data, NULL));
+        SP_CHECK_RETURN(spFieldSubArray(f, (void **) data));
 
         for (int i = 0; i < num_of_sub; ++i) {SP_CHECK_RETURN(spParallelAssign(num_of_points, offset, data[i], v[i])); }
     }

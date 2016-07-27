@@ -7,12 +7,12 @@
 
 #include <memory>
 #include <cassert>
-#include "../src/io/IO.h"
-//#include "../src/parallel/DistributedObject.h"
-#include "../src/parallel/MPIComm.h"
-#include "../src/data_model/DataSet.h"
-#include "../src/data_model/DataType.h"
-#include "../src/data_model/DataSpace.h"
+#include "gtl/logo.h"
+#include "io/IO.h"
+#include "parallel/MPIComm.h"
+#include "data_model/DataSet.h"
+#include "data_model/DataType.h"
+#include "data_model/DataSpace.h"
 
 extern "C"
 {
@@ -23,7 +23,7 @@ extern "C"
 
 using namespace simpla;
 
-
+void ShowSimPlaLogo() { MESSAGE << ShowLogo() << std::endl; };
 struct spDataType_s
 {
     simpla::data_model::DataType self;
@@ -126,27 +126,6 @@ MPI_Datatype spDataTypeMPIType(struct spDataType_s const *dtype)
     return (res);
 };
 
-//struct spDataSpace_s { simpla::data_model::DataSpace self; };
-//
-//typedef struct spDataSpace_s spDataSpace;
-//
-//void spDataSpaceCreateSimple(spDataSpace **, int ndims, int const *local_dims) {}
-//
-//void spDataSpaceCreateUnordered(spDataSpace **, int num) {}
-//
-//void spDataSpaceDestroy(spDataSpace **) {}
-//
-//void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *global_start, int const *count) {}
-//
-//struct spDataSet_s;
-//
-//typedef struct spDataSet_s spDataSet;
-//
-//void spDataSetCreate(spDataSet **, void *d, spDataType const *dtype, spDataSpace const *mspace,
-//                     spDataSpace const *fspace) {}
-//
-//void spDataSetDestroy(spDataSet *) {}
-
 struct spIOStream_s { std::shared_ptr<simpla::io::IOStream> self; };
 
 typedef struct spIOStream_s spIOStream;
@@ -187,10 +166,6 @@ int spIOStreamClose(spIOStream *os)
     return SP_SUCCESS;
 }
 
-//int spIOStreamWrite(spIOStream *, const char *name, spDataSet const *, int tag) { return SP_SUCCESS; }
-//
-//int spIOStreamRead(spIOStream *, const char *name, spDataSet const *, int tag) { return SP_SUCCESS; }
-
 int spIOStreamWriteSimple(spIOStream *os,
                           const char *url,
                           struct spDataType_s const *d_type,
@@ -216,7 +191,7 @@ int spIOStreamWriteSimple(spIOStream *os,
 
     dset.data = std::shared_ptr<void>(d, simpla::tags::do_nothing());
 
-    MESSAGE << os->self->write(url, dset, flag) << std::endl;
+    VERBOSE << os->self->write(url, dset, flag) << std::endl;
     return SP_SUCCESS;
 
 }
@@ -242,15 +217,9 @@ int spMPIBarrier()
     GLOBAL_COMM.barrier();
     return SP_SUCCESS;
 }
-//
-//int spMPIIsValid() { return (int) (GLOBAL_COMM.is_valid()); }
-//
-//int spMPIProcessNum() { return (GLOBAL_COMM.process_num()); }
-//
+
 int spMPIRank() { return GLOBAL_COMM.rank(); }
-//
-//int spMPINumOfProcess() { return (GLOBAL_COMM.num_of_process()); }
-//
+
 int spMPISize() { return GLOBAL_COMM.num_of_process(); }
 
 int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord)

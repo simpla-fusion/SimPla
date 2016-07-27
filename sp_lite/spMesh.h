@@ -65,6 +65,7 @@ Real const *spMeshGetLocalOrigin(spMesh const *m);
 Real const *spMeshGetGlobalOrigin(spMesh const *m);
 
 Real const *spMeshGetDx(spMesh const *m);
+Real const *spMeshGetInvDx(spMesh const *m) ;
 
 int spMeshGetLocalBox(spMesh const *m, int tag, Real *lower, Real *upper);
 

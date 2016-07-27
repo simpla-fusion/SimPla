@@ -91,7 +91,7 @@ void MPIComm::init(int argc, char **argv)
         for (int i = 0; i < pimpl_->m_topology_ndims_; ++i) { periods[i] = true; }
 
         MPI_ERROR(MPI_Cart_create(MPI_COMM_WORLD, pimpl_->m_topology_ndims_,
-                                  pimpl_->m_topology_dims_, periods, 0, &pimpl_->m_comm_));
+                                  pimpl_->m_topology_dims_, periods, MPI_ORDER_C, &pimpl_->m_comm_));
 
 
         logger::set_mpi_comm(rank(), size());
@@ -99,16 +99,16 @@ void MPIComm::init(int argc, char **argv)
         MPI_ERROR(MPI_Cart_coords(comm(), rank(), pimpl_->m_topology_ndims_, m_topology_coord_));
 
 
-        INFORM << "MPI communicator is initialized! "
+        VERBOSE << "MPI communicator is initialized! "
             "[("
-               << m_topology_coord_[0] << ","
-               << m_topology_coord_[1] << ","
-               << m_topology_coord_[2]
-               << ")/("
-               << pimpl_->m_topology_dims_[0] << ","
-               << pimpl_->m_topology_dims_[1] << ","
-               << pimpl_->m_topology_dims_[2]
-               << ")]" << std::endl;
+                << m_topology_coord_[0] << ","
+                << m_topology_coord_[1] << ","
+                << m_topology_coord_[2]
+                << ")/("
+                << pimpl_->m_topology_dims_[0] << ","
+                << pimpl_->m_topology_dims_[1] << ","
+                << pimpl_->m_topology_dims_[2]
+                << ")]" << std::endl;
     }
 }
 
@@ -157,7 +157,7 @@ void MPIComm::close()
 {
     if (pimpl_ != nullptr && pimpl_->m_comm_ != MPI_COMM_NULL)
     {
-        INFORM << "MPI Communicator is closed!" << std::endl;
+        VERBOSE << "MPI Communicator is closed!" << std::endl;
 
         MPI_ERROR(MPI_Finalize());
 
