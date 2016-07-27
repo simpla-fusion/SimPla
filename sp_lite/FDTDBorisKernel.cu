@@ -27,7 +27,8 @@ spBorisInitializeParticleKernel(void *data, size_type entity_size_in_byte)
 {
 
     boris_particle
-        *d = (boris_particle *) ((byte_type *) (data) + blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
+            *d = (boris_particle *) ((byte_type *) (data) + blockIdx.x +
+                                     (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
     int s = (threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y);
 
     d->id[s] = 0;
@@ -66,7 +67,7 @@ __device__ void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 {
 
     *v = *v
-        + (f[IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
+         + (f[IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
             + f[IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
             + f[IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
             + f[IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
@@ -90,11 +91,12 @@ __global__ void spBorisYeeUpdateParticleKernel(void *data,
                                                int3 offset)
 {
     boris_particle
-        *d = (boris_particle *) ((byte_type *) (data) + blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
+            *d = (boris_particle *) ((byte_type *) (data) + blockIdx.x +
+                                     (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
     boris_particle *s = (boris_particle *) ((byte_type *) (data) +
-        (blockIdx.x + offset.x + gridDim.x) % gridDim.x +
-        (blockIdx.y + offset.y + gridDim.y) % gridDim.y * gridDim.x +
-        (blockIdx.z + offset.z + gridDim.z) % gridDim.z * gridDim.y * gridDim.x);
+                                            (blockIdx.x + offset.x + gridDim.x) % gridDim.x +
+                                            (blockIdx.y + offset.y + gridDim.y) % gridDim.y * gridDim.x +
+                                            (blockIdx.z + offset.z + gridDim.z) % gridDim.z * gridDim.y * gridDim.x);
 
     int s_tail = (threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y);
     __shared__ int d_tail;
@@ -236,8 +238,9 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 
 #define speed_of_light2 8.987551787368176e+16
 #define    epsilon0     8.8542e-12
+
 __global__ void spUpdateFieldYeeKernel(Real dt, Real3 dt_inv,
-                                       dim3 N, dim3 I,
+                                       dim3 N, dim3 I, int rank,
                                        Real const *Rho,
                                        Real const *Jx,
                                        Real const *Jy,
@@ -257,17 +260,21 @@ __global__ void spUpdateFieldYeeKernel(Real dt, Real3 dt_inv,
     size_type s = x * I.x + y * I.y + z * I.z;
 
     Ex[s] +=
-        ((Bz[s + I.y] - Bz[s]) * dt_inv.y - (By[s + I.z] - By[s]) * dt_inv.z) * speed_of_light2 - Jx[s] / epsilon0 * dt;
+            ((Bz[s + I.y] - Bz[s]) * dt_inv.y - (By[s + I.z] - By[s]) * dt_inv.z) * speed_of_light2 -
+            Jx[s] / epsilon0 * dt;
     Ey[s] +=
-        ((Bx[s + I.z] - Bx[s]) * dt_inv.z - (Bz[s + I.x] - Bz[s]) * dt_inv.x) * speed_of_light2 - Jy[s] / epsilon0 * dt;
+            ((Bx[s + I.z] - Bx[s]) * dt_inv.z - (Bz[s + I.x] - Bz[s]) * dt_inv.x) * speed_of_light2 -
+            Jy[s] / epsilon0 * dt;
     Ez[s] +=
-        ((By[s + I.x] - By[s]) * dt_inv.x - (Bx[s + I.y] - Bx[s]) * dt_inv.y) * speed_of_light2 - Jz[s] / epsilon0 * dt;
+            ((By[s + I.x] - By[s]) * dt_inv.x - (Bx[s + I.y] - Bx[s]) * dt_inv.y) * speed_of_light2 -
+            Jz[s] / epsilon0 * dt;
 
-    Bx[s] -= (Ez[s] - Ez[s - I.y]) * dt_inv.y - (Ey[s] - Ey[s - I.z]) * dt_inv.z;
-    By[s] -= (Ex[s] - Ex[s - I.z]) * dt_inv.z - (Ez[s] - Ez[s - I.x]) * dt_inv.x;
-    Bz[s] -= (Ey[s] - Ey[s - I.x]) * dt_inv.x - (Ex[s] - Ex[s - I.y]) * dt_inv.y;
+    Bx[s] /*= rank * 100 + s;//*/-= (Ez[s] - Ez[s - I.y]) * dt_inv.y - (Ey[s] - Ey[s - I.z]) * dt_inv.z;
+    By[s] /*= rank * 100 + s;//*/-= (Ex[s] - Ex[s - I.z]) * dt_inv.z - (Ez[s] - Ez[s - I.x]) * dt_inv.x;
+    Bz[s] /*= rank * 100 + s;//*/-= (Ey[s] - Ey[s - I.x]) * dt_inv.x - (Ex[s] - Ex[s - I.y]) * dt_inv.y;
 
 }
+
 int spUpdateFieldYee(struct spMesh_s const *m,
                      Real dt,
                      const struct spField_s *fRho,
@@ -309,7 +316,7 @@ int spUpdateFieldYee(struct spMesh_s const *m,
     spFieldSubArray(fB, (void **) B);
 
     LOAD_KERNEL(spUpdateFieldYeeKernel, sizeType2Dim3(dims), 1,
-                dt, real2Real3(dt_inv), sizeType2Dim3(dims), sizeType2Dim3(strides),
+                dt, real2Real3(dt_inv), sizeType2Dim3(dims), sizeType2Dim3(strides), spMPIRank(),
                 (const Real *) rho,
                 (const Real *) J[0],
                 (const Real *) J[1],
@@ -318,11 +325,39 @@ int spUpdateFieldYee(struct spMesh_s const *m,
                 B[0], B[1], B[2]
     );
 
-    spParallelDeviceSync();
+//    if (spMPIRank() == 0)
+//    {
+//        Real tmp[64];
+//        spParallelMemcpy(tmp, B[1], 64 * sizeof(Real));
+//
+//        for (int i = 0; i < 8; ++i)
+//        {
+//            for (int j = 0; j < 8; ++j)
+//            {
+//                printf("%d \t", (int) tmp[i * 8 + j]);
+//            }
+//            printf("\n");
+//
+//        }
+//        printf("---------------------------\n");
+//    }
     spFieldSync(fE);
     spFieldSync(fB);
-    spParallelDeviceSync();
-
+//    if (spMPIRank() == 0)
+//    {
+//        Real tmp[64];
+//        spParallelMemcpy(tmp, B[1], 64 * sizeof(Real));
+//
+//        for (int i = 0; i < 8; ++i)
+//        {
+//            for (int j = 0; j < 8; ++j)
+//            {
+//                printf("%d \t", (int) tmp[i * 8 + j]);
+//            }
+//            printf("\n");
+//        }
+//        printf("---------------------------\n");
+//    }
     return SP_SUCCESS;
 }
 

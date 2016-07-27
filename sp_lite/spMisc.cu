@@ -21,12 +21,14 @@ void spFieldAssignValueSinKernel(Real *data, dim3 strides, Real3 k_dx, Real3 alp
     size_type s = x * strides.x + y * strides.y + z * strides.z;
 
     data[s] = amp *
-        sin(k_dx.x * Real(x) + alpha0.x) *
-        sin(k_dx.y * Real(y) + alpha0.y) *
-        sin(k_dx.z * Real(z) + alpha0.z);
+              cos(k_dx.x * Real(x) + alpha0.x) *
+              cos(k_dx.y * Real(y) + alpha0.y) *
+              cos(k_dx.z * Real(z) + alpha0.z);
 
 }
+
 #define HALFPI (3.1415926*0.5)
+
 int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
 {
 
@@ -36,21 +38,18 @@ int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
     int num_of_sub = spFieldNumberOfSub(f);
 
     Real *data[num_of_sub];
-
     dim3 block_dim, thread_dim;
-
     size_type dims[4], start[4], count[4];
 
     SP_CHECK_RETURN(spMeshLocalDomain(m, SP_DOMAIN_CENTER, dims, start, count));
 
-
     size_type strides[4];
 
     Real const *x0 = spMeshGetLocalOrigin(m);
-
     Real const *dx = spMeshGetDx(m);
+    SP_CHECK_RETURN(spMeshGetStrides(m, strides));
 
-    spMeshGetStrides(m, strides);
+    size_type offset = start[0] * strides[0] + start[1] * strides[1] + start[2] * strides[2];
 
     Real k_dx[3] = {k[0] * dx[0], k[1] * dx[1], k[2] * dx[2]};
 
@@ -105,17 +104,16 @@ int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
             alpha0[7] = dims[1] == 1 ? HALFPI : (k[1] * x0[1]);
             alpha0[8] = dims[2] == 1 ? HALFPI : (k[2] * x0[2]);
     };
-    SP_CHECK_RETURN(spFieldSubArray(f, (void **) data));
 
+    SP_CHECK_RETURN(spFieldSubArray(f, (void **) data));
 
     for (int i = 0; i < num_of_sub; ++i)
     {
         LOAD_KERNEL(spFieldAssignValueSinKernel, sizeType2Dim3(count), 1,
-                    data[i], sizeType2Dim3(strides), real2Real3(k_dx), real2Real3(alpha0 + i * 3), amp[i]);
+                    data[i] + offset, sizeType2Dim3(strides), real2Real3(k_dx), real2Real3(alpha0 + i * 3), amp[i]);
     }
-    spParallelDeviceSync();
+
     SP_CHECK_RETURN(spFieldSync(f));
-    spParallelDeviceSync();
 
     return SP_SUCCESS;
 };
