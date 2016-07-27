@@ -17,7 +17,7 @@
 #define  COPYRIGHT "All rights reserved. (2016 )"
 
 
-#define DONE        printf( "====== DONE ======\n" );
+#define DONE       if(spMPIRank()==0){ printf( "====== DONE ======\n" );}
 #define CHECK(_MSG_)        printf( "%s:%d:0:%s: %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_) );
 #define ERROR(_MSG_)        printf( "%s:%d:0:%s: %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__, _MSG_);exit(-1);
 #define UNIMPLEMENTED       printf( "%s:%d:0:%s: UNIMPLEMENTED!! \n", __FILE__, __LINE__,__PRETTY_FUNCTION__ );

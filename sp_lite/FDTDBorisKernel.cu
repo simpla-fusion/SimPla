@@ -237,7 +237,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 #define speed_of_light2 8.987551787368176e+16
 #define    epsilon0     8.8542e-12
 __global__ void spUpdateFieldYeeKernel(Real dt, Real3 dt_inv,
-                                       dim3 N, dim3 I, int rank,
+                                       dim3 N, dim3 I,
                                        Real const *Rho,
                                        Real const *Jx,
                                        Real const *Jy,
@@ -309,7 +309,7 @@ int spUpdateFieldYee(struct spMesh_s const *m,
     spFieldSubArray(fB, (void **) B);
 
     LOAD_KERNEL(spUpdateFieldYeeKernel, sizeType2Dim3(dims), 1,
-                dt, real2Real3(dt_inv), sizeType2Dim3(dims), sizeType2Dim3(strides), spMPIRank(),
+                dt, real2Real3(dt_inv), sizeType2Dim3(dims), sizeType2Dim3(strides),
                 (const Real *) rho,
                 (const Real *) J[0],
                 (const Real *) J[1],
@@ -318,9 +318,10 @@ int spUpdateFieldYee(struct spMesh_s const *m,
                 B[0], B[1], B[2]
     );
 
-
+    spParallelDeviceSync();
     spFieldSync(fE);
     spFieldSync(fB);
+    spParallelDeviceSync();
 
     return SP_SUCCESS;
 }

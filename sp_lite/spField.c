@@ -158,25 +158,13 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     size_type num_of_sub = 3;
     SP_CHECK_RETURN(spMeshArrayShape(m, SP_DOMAIN_CENTER,
                                      (iform == VERTEX || iform == VOLUME) ? 0 : 1,
-                                     &num_of_sub,
-                                     &array_ndims, &mesh_start_dim,
-                                     g_dims, g_start,
-                                     l_dims, l_start, l_count,
-                                     spFieldIsSoA(f)));
+                                     &num_of_sub, &array_ndims, &mesh_start_dim,
+                                     g_dims, g_start, l_dims, l_start, l_count, spFieldIsSoA(f)));
 
-    SP_CHECK_RETURN(spIOStreamWriteSimple(os,
-                                          name,
-                                          spFieldDataType(f),
-                                          f_host,
-                                          array_ndims,
-                                          l_dims,
-                                          l_start,
-                                          NULL,
-                                          l_count,
-                                          NULL,
-                                          g_dims,
-                                          g_start,
-                                          flag));
+    SP_CHECK_RETURN(spIOStreamWriteSimple(os, name, spFieldDataType(f),
+                                          f_host, array_ndims, l_dims,
+                                          l_start, NULL, l_count, NULL,
+                                          g_dims, g_start, flag));
 
     spParallelHostFree(&f_host);
 
@@ -201,18 +189,10 @@ int spFieldSync(spField *f)
 
     size_type num_of_sub = 3;
 
-    SP_CHECK_RETURN(spMeshArrayShape(m,
-                                     SP_DOMAIN_CENTER,
+    SP_CHECK_RETURN(spMeshArrayShape(m, SP_DOMAIN_CENTER,
                                      (iform == VERTEX || iform == VOLUME) ? 0 : 1,
-                                     &num_of_sub,
-                                     &array_ndims,
-                                     &mesh_start_dim,
-                                     NULL,
-                                     NULL,
-                                     l_dims,
-                                     l_start,
-                                     l_count,
-                                     spFieldIsSoA(f)));
+                                     &num_of_sub, &array_ndims, &mesh_start_dim, NULL, NULL,
+                                     l_dims, l_start, l_count, spFieldIsSoA(f)));
 
 
     SP_CHECK_RETURN(spParallelUpdateNdArrayHalo(spFieldDeviceData(f), spFieldDataType(f),

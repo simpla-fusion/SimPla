@@ -100,12 +100,7 @@ int main(int argc, char **argv)
 
     for (int count = 0; count < num_of_steps; ++count)
     {
-
-
         spParallelDeviceSync();
-
-        if (spMPIRank() == 0) { printf("====== STEP = %i ======\n", count); }
-
 
         SP_CHECK_RETURN(spFieldClear(fJ));
 
@@ -113,9 +108,13 @@ int main(int argc, char **argv)
 
         SP_CHECK_RETURN(spUpdateFieldYee(mesh, dt, fRho, fJ, fE, fB));
 
+        spParallelDeviceSync();
+
 
         if (count % check_point == 0)
         {
+            if (spMPIRank() == 0) { printf("====== STEP = %i ======\n", count); }
+
             SP_CHECK_RETURN(spFieldWrite(fE, os, "E", SP_FILE_RECORD));
             SP_CHECK_RETURN(spFieldWrite(fB, os, "B", SP_FILE_RECORD));
             SP_CHECK_RETURN(spFieldWrite(fJ, os, "J", SP_FILE_RECORD));
@@ -124,7 +123,6 @@ int main(int argc, char **argv)
 
     }
 
-    printf("======  The End ======\n");
 
     spParallelDeviceSync();
 
@@ -145,9 +143,10 @@ int main(int argc, char **argv)
 
     SP_CHECK_RETURN(spMeshDestroy(&mesh));
 
-    SP_CHECK_RETURN(spIOStreamDestroy(&os));
+    DONE
 
+
+    SP_CHECK_RETURN(spIOStreamDestroy(&os));
     SP_CHECK_RETURN(spParallelFinalize());
 
-    DONE
 }

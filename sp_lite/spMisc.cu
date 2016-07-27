@@ -113,8 +113,9 @@ int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
         LOAD_KERNEL(spFieldAssignValueSinKernel, sizeType2Dim3(count), 1,
                     data[i], sizeType2Dim3(strides), real2Real3(k_dx), real2Real3(alpha0 + i * 3), amp[i]);
     }
-
+    spParallelDeviceSync();
     SP_CHECK_RETURN(spFieldSync(f));
+    spParallelDeviceSync();
 
     return SP_SUCCESS;
 };
