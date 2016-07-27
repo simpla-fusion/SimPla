@@ -6,9 +6,12 @@
  */
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 #include "sp_lite_def.h"
 #include "spMesh.h"
 #include "spParallel.h"
+
+
 MeshEntityId spMeshEntityIdFromArray(size_type const *s)
 {
     MeshEntityId id;
@@ -236,6 +239,27 @@ void spMeshPoint(spMesh const *m, MeshEntityId id, Real *res)
 };
 
 int spMeshNDims(spMesh const *m) { return m->ndims; };
+
+
+Real spMeshCFLDtv(spMesh const *m, Real const *speed)
+{
+    Real const *dx = m->dx;
+
+    Real res = 0;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        res += m->global_dims[i] <= 1 ? 0 : (speed[i] / dx[i]) * (speed[i] / dx[i]);
+
+    }
+    return (Real) (0.5 / sqrt((double) (res)));
+};
+
+Real spMeshCFLDt(spMesh const *m, Real speed)
+{
+    Real v[3] = {speed, speed, speed};
+    return spMeshCFLDtv(m, v);
+}
 
 int spMeshSetDims(spMesh *m, size_type const *dims)
 {

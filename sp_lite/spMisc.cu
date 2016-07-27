@@ -55,9 +55,7 @@ int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
     Real k_dx[3] = {k[0] * dx[0], k[1] * dx[1], k[2] * dx[2]};
 
     Real alpha0[9];
-    CHECK_INT(dims[0])
-    CHECK_INT(dims[1])
-    CHECK_INT(dims[2])
+
     switch (iform)
     {
         case EDGE:
@@ -112,6 +110,7 @@ int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
 
     for (int i = 0; i < num_of_sub; ++i)
     {
+        CHECK_FLOAT(amp[i]);
         LOAD_KERNEL(spFieldAssignValueSinKernel, sizeType2Dim3(count), 1,
                     data[i], sizeType2Dim3(strides), real2Real3(k_dx), real2Real3(alpha0 + i * 3), amp[i]);
     }

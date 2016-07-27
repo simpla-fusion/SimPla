@@ -22,7 +22,7 @@
 #define ERROR(_MSG_)        printf( "%s:%d:0:%s: %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__, _MSG_);exit(-1);
 #define UNIMPLEMENTED       printf( "%s:%d:0:%s: UNIMPLEMENTED!! \n", __FILE__, __LINE__,__PRETTY_FUNCTION__ );
 
-#define CHECK_FLOAT(_MSG_)    printf( "%s:%d:0:%s: %s =%f \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(Real)(_MSG_) );
+#define CHECK_FLOAT(_MSG_)    printf( "%s:%d:0:%s: %s =%e \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(Real)(_MSG_) );
 #define CHECK_INT(_MSG_)    printf( "%s:%d:0:%s: %s = %ld \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(long)(_MSG_) );
 #define CHECK_STR(_MSG_)    printf( "%s:%d:0:%s: %s = %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_), (_MSG_) );
 #define SP_CHECK_RETURN(_CMD_)                                                                                        \
@@ -38,5 +38,6 @@ typedef MeshEntityId64 MeshEntityId;
 
 typedef MeshEntityId32 MeshEntityShortId;
 
+#define TWOPI (3.141592653589793*2.0)
 
 #endif /* SP_DEF_LITE_H_ */

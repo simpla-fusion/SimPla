@@ -46,6 +46,10 @@ int spMeshDeploy(spMesh *self);
 
 int spMeshNDims(spMesh const *m);
 
+Real spMeshCFLDtv(spMesh const *m, Real const *speed);
+
+Real spMeshCFLDt(spMesh const *m, Real const speed);
+
 int spMeshSetDims(spMesh *m, size_type const *);
 
 size_type const *spMeshGetDims(spMesh const *m);
