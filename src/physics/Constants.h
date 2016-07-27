@@ -26,7 +26,7 @@ constexpr double SI_speed_of_light = 299792458.0;
 constexpr double SI_permeability_of_free_space = 4.0e-7 * PI;
 
 constexpr double SI_permittivity_of_free_space =
-    1.0 / (SI_speed_of_light * SI_speed_of_light * SI_permeability_of_free_space);
+        1.0 / (SI_speed_of_light * SI_speed_of_light * SI_permeability_of_free_space);
 
 constexpr double SI_gravitational_constant = 6.67384e-11;
 

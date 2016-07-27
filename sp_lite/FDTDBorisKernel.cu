@@ -202,7 +202,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
     inv_dv.y = dt / dx[1];
     inv_dv.z = dt / dx[2];
 
-    Real cmr_dt = dt * spParticleCharge(sp) / spParticleMass(sp);
+    Real cmr_dt = dt * spParticleGetCharge(sp) / spParticleGetMass(sp);
 
     dim3 dims = sizeType2Dim3(spMeshGetDims(spMeshAttrMesh((spMeshAttr const *) sp)));
 

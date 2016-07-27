@@ -24,6 +24,7 @@ struct spMesh_s;
 struct spField_s;
 
 int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m);
+int spBorisYeeParticleInitialize(spParticle *sp, int PIC, Real n0, Real T0);
 
 int spBorisYeeParticleUpdate(spParticle *sp,
                              Real dt,

@@ -47,9 +47,13 @@ int spParticleDestroy(spParticle **sp);
 
 int spParticleDeploy(spParticle *sp);
 
-Real spParticleMass(spParticle const *);
+int spParticleSetMass(spParticle *, Real m);
 
-Real spParticleCharge(spParticle const *);
+int spParticleSetCharge(spParticle *, Real e);
+
+Real spParticleGetMass(spParticle const *);
+
+Real spParticleGetCharge(spParticle const *);
 
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset);
 

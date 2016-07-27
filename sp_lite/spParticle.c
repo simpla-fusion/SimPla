@@ -75,6 +75,7 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     return SP_SUCCESS;
 
 }
+
 int spParticleDestroy(spParticle **sp)
 {
     if (*sp != NULL)
@@ -93,6 +94,7 @@ int spParticleDestroy(spParticle **sp)
 
     return SP_SUCCESS;
 }
+
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset)
 {
     SP_CHECK_RETURN(spDataTypeCreate(&(sp->m_attrs_[sp->m_num_of_attrs_].data_type), tag, size));
@@ -103,6 +105,7 @@ int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type
 
     ++(sp->m_num_of_attrs_);
 }
+
 int spParticleDeploy(spParticle *sp)
 {
     size_type number_of_cell = spMeshNumberOfEntity(sp->m, SP_DOMAIN_ALL, sp->iform);
@@ -116,7 +119,7 @@ int spParticleDeploy(spParticle *sp)
     {
         spParallelDeviceAlloc(&(sp->m_attrs_[i].data),
                               spDataTypeSizeInByte(sp->m_attrs_[i].data_type)
-                                  * number_of_cell * sp->m_max_fiber_length_);
+                              * number_of_cell * sp->m_max_fiber_length_);
 
         attr_data[i] = sp->m_attrs_[i].data;
     }
@@ -129,7 +132,7 @@ int spParticleDeploy(spParticle *sp)
 int spParticlePIC(spParticle *sp, size_type pic)
 {
     sp->m_max_fiber_length_ =
-        (2 * pic / SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE + 1) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
+            (2 * pic / SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE + 1) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
     return SP_SUCCESS;
 }
 
@@ -139,9 +142,22 @@ void **spParticleData(spParticle *sp) { return sp->m_data_root_; };
 
 spMesh const *spParticleMesh(spParticle const *sp) { return sp->m; };
 
-Real spParticleMass(spParticle const *sp) { return sp->mass; }
+int spParticleSetMass(spParticle *sp, Real m)
+{
+    sp->mass = m;
+    return SP_SUCCESS;
+}
 
-Real spParticleCharge(spParticle const *sp) { return sp->charge; }
+int spParticleSetCharge(spParticle *sp, Real e)
+{
+    sp->charge = e;
+    return SP_SUCCESS;
+}
+
+
+Real spParticleGetMass(spParticle const *sp) { return sp->mass; }
+
+Real spParticleGetCharge(spParticle const *sp) { return sp->charge; }
 
 int spParticleNumberOfAttributes(struct spParticle_s const *sp) { return sp->m_num_of_attrs_; }
 
