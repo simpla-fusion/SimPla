@@ -26,6 +26,10 @@ typedef struct spMeshAttr_s
     byte_type __others[];
 } spMeshAttr;
 
+MeshEntityId spMeshEntityIdFromArray(size_type const *s);
+
+MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s);
+
 int spMeshAttrCreate(spMeshAttr **f, size_type size, spMesh const *mesh, int iform);
 
 int spMeshAttrDestroy(spMeshAttr **f);
@@ -52,12 +56,19 @@ size_type const *spMeshGetGhostWidth(spMesh const *m);
 
 int spMeshSetBox(spMesh *m, Real const *lower, Real const *upper);
 
-int spMeshGetBox(spMesh const *m, Real *lower, Real *upper);
+Real const *spMeshGetLocalOrigin(spMesh const *m);
+
+Real const *spMeshGetGlobalOrigin(spMesh const *m);
+
+Real const *spMeshGetDx(spMesh const *m);
+
+int spMeshGetLocalBox(spMesh const *m, int tag, Real *lower, Real *upper);
+
+int spMeshGetGlobalBox(spMesh const *m, Real *lower, Real *upper);
 
 #define SP_DOMAIN_CENTER 13
 #define SP_DOMAIN_ALL 0xFF
 
-int spMeshGetDx(spMesh const *m, Real *dx);
 
 int spMeshGetStrides(spMesh const *m, size_type *res);
 

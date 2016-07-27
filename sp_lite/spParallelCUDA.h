@@ -68,12 +68,9 @@ typedef double3 Real3;
 
 
 dim3 sizeType2Dim3(size_type const *v);
+Real3 real2Real3(Real const *v);
 
-int spParallelAssign(int num_of_sub,
-                     size_type num_of_point,
-                     size_type *points[3],
-                     size_type const *strides,
-                     Real **d,
-                     Real const **v);
+int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v);
+
 
 #endif //SIMPLA_SPPARALLEL_CU_H

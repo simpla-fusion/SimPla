@@ -27,6 +27,7 @@ int spFieldDeploy(spField *f);
 struct spDataType_s const *spFieldDataType(spField const *f);
 
 void *spFieldData(spField *f);
+
 int spFieldIsSoA(spField const *f);
 
 void *spFieldDeviceData(spField *f);
@@ -48,5 +49,7 @@ int spFieldSync(spField *f);
 int spFieldNumberOfSub(spField const *f);
 
 int spFieldSubArray(spField *f, int domain_tag, void **data, size_type *stride);
+
+int spFieldAssign(spField *f, int num, size_type const *offset, Real const **v);
 
 #endif /* SPFIELD_H_ */

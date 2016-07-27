@@ -12,6 +12,14 @@ dim3 sizeType2Dim3(size_type const *v)
     res.z = (int) v[2];
     return res;
 }
+Real3 real2Real3(Real const *v)
+{
+    Real3 res;
+    res.x = (Real) v[0];
+    res.y = (Real) v[1];
+    res.z = (Real) v[2];
+    return res;
+}
 
 int spParallelInitialize(int argc, char **argv)
 {

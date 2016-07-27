@@ -9,7 +9,21 @@
 #include "sp_lite_def.h"
 #include "spMesh.h"
 #include "spParallel.h"
-
+MeshEntityId spMeshEntityIdFromArray(size_type const *s)
+{
+    MeshEntityId id;
+    id.x = (int16_t) (s[0]);
+    id.y = (int16_t) (s[1]);
+    id.z = (int16_t) (s[2]);
+    return id;
+}
+MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s)
+{
+    id.x += (int16_t) (s[0] * 2);
+    id.y += (int16_t) (s[1] * 2);
+    id.z += (int16_t) (s[2] * 2);
+    return id;
+}
 
 int spMeshAttrCreate(spMeshAttr **f, size_type size, spMesh const *mesh, int iform)
 {
@@ -40,8 +54,10 @@ struct spMesh_s
     size_type global_dims[4];
     size_type global_start[4];
 
-    Real x_lower[4];
-    Real x_upper[4];
+    Real x_global_lower[4];
+    Real x_global_upper[4];
+    Real x_local_lower[4];
+    Real x_local_upper[4];
     Real dx[4];
 };
 
@@ -76,13 +92,22 @@ int spMeshCreate(spMesh **m)
     (*m)->local_count[3] = 3;
 
 
-    (*m)->x_lower[0] = 0;
-    (*m)->x_lower[1] = 0;
-    (*m)->x_lower[2] = 0;
+    (*m)->x_global_lower[0] = 0;
+    (*m)->x_global_lower[1] = 0;
+    (*m)->x_global_lower[2] = 0;
 
-    (*m)->x_upper[0] = 1;
-    (*m)->x_upper[1] = 1;
-    (*m)->x_upper[2] = 1;
+    (*m)->x_global_upper[0] = 1;
+    (*m)->x_global_upper[1] = 1;
+    (*m)->x_global_upper[2] = 1;
+
+
+    (*m)->x_local_lower[0] = 0;
+    (*m)->x_local_lower[1] = 0;
+    (*m)->x_local_lower[2] = 0;
+
+    (*m)->x_local_upper[0] = 1;
+    (*m)->x_local_upper[1] = 1;
+    (*m)->x_local_upper[2] = 1;
 
     return SP_SUCCESS;
 }
@@ -133,7 +158,11 @@ int spMeshDeploy(spMesh *self)
 
         self->local_dims[i] = self->local_count[i] + self->ghost_width[i] * 2;
 
-        self->dx[i] = (self->x_upper[i] - self->x_lower[i]) / self->global_dims[i];
+        self->dx[i] = (self->x_global_upper[i] - self->x_global_lower[i]) / self->global_dims[i];
+
+        self->x_local_lower[i] = self->x_global_lower[i] + self->global_start[i] * self->dx[i];
+
+        self->x_local_upper[i] = self->x_local_lower[i] + self->local_count[i] * self->dx[i];
     }
 
     /**          -1
@@ -201,9 +230,9 @@ size_type spMeshNumberOfEntity(spMesh const *self, int tag, int iform)
 
 void spMeshPoint(spMesh const *m, MeshEntityId id, Real *res)
 {
-    res[0] = m->x_lower[0] + m->dx[0] * (id.x - (m->local_start[0] << 1)) * 0.5;
-    res[1] = m->x_lower[1] + m->dx[1] * (id.y - (m->local_start[1] << 1)) * 0.5;
-    res[2] = m->x_lower[2] + m->dx[2] * (id.z - (m->local_start[2] << 1)) * 0.5;
+    res[0] = m->x_local_lower[0] + m->dx[0] * (id.x - (m->local_start[0] << 1)) * 0.5;
+    res[1] = m->x_local_lower[1] + m->dx[1] * (id.y - (m->local_start[1] << 1)) * 0.5;
+    res[2] = m->x_local_lower[2] + m->dx[2] * (id.z - (m->local_start[2] << 1)) * 0.5;
 };
 
 int spMeshNDims(spMesh const *m) { return m->ndims; };
@@ -226,33 +255,39 @@ int spMeshSetBox(spMesh *m, Real const *lower, Real const *upper)
 {
     for (int i = 0; i < 3; ++i)
     {
-        m->x_lower[i] = lower[i];
-        m->x_upper[i] = upper[i];
+        m->x_global_lower[i] = lower[i];
+        m->x_global_upper[i] = upper[i];
     }
     return SP_SUCCESS;
 
 };
-
-int spMeshGetBox(spMesh const *m, Real *lower, Real *upper)
+int spMeshGetGlobalBox(spMesh const *m, Real *lower, Real *upper)
 {
-
     for (int i = 0; i < 3; ++i)
     {
-        lower[i] = m->x_lower[i];
-        upper[i] = m->x_upper[i];
+        lower[i] = m->x_global_lower[i];
+        upper[i] = m->x_global_upper[i];
     }
-    return SP_SUCCESS;
+}
 
+Real const *spMeshGetLocalOrigin(spMesh const *m) { return m->x_local_lower; }
+Real const *spMeshGetGlobalOrigin(spMesh const *m) { return m->x_global_lower; }
+Real const *spMeshGetDx(spMesh const *m) { return m->dx; }
+
+int spMeshGetLocalBox(spMesh const *m, int tag, Real *lower, Real *upper)
+{
+    size_type start[3], count[3], dims[3];
+    spMeshLocalDomain(m, SP_DOMAIN_CENTER, dims, start, count);
+
+    MeshEntityId id = spMeshEntityIdFromArray(start);
+
+    spMeshPoint(m, id, lower);
+
+    spMeshPoint(m, spMeshEntityIdShift(id, count), upper);
+
+    return SP_SUCCESS;
 };
 
-int spMeshGetDx(spMesh const *m, Real *dx)
-{
-    dx[0] = m->dx[0];
-    dx[1] = m->dx[1];
-    dx[2] = m->dx[2];
-    return SP_SUCCESS;
-
-}
 
 int spMeshLocalDomain(spMesh const *m, int tag, size_type *dims, size_type *start, size_type *count)
 {

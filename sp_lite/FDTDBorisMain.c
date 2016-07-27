@@ -13,8 +13,11 @@
 #include "spMesh.h"
 #include "spField.h"
 #include "spParticle.h"
+#include "spMisc.h"
 
 #include "FDTDBoris.h"
+
+#define TWOPI 3.141592653589793*2.0
 
 int main(int argc, char **argv)
 {
@@ -27,7 +30,7 @@ int main(int argc, char **argv)
     spMesh *mesh;
     SP_CHECK_RETURN(spMeshCreate(&mesh));
 
-    size_type dims[3] = {0x8, 0x8, 0x1};
+    size_type dims[3] = {0x100, 0x100, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
@@ -47,17 +50,22 @@ int main(int argc, char **argv)
     SP_CHECK_RETURN(spFieldCreate(&fJ, mesh, 1, SP_TYPE_Real));
     SP_CHECK_RETURN(spFieldCreate(&fRho, mesh, 0, SP_TYPE_Real));
 
+    Real amp[3] = {1.0, 2.0, 3.0};
+    Real k[3] = {TWOPI / (upper[0] - lower[0]), TWOPI / (upper[0] - lower[0]), 0};
+
+
     SP_CHECK_RETURN(spFieldClear(fE));
     SP_CHECK_RETURN(spFieldClear(fB));
     SP_CHECK_RETURN(spFieldClear(fJ));
     SP_CHECK_RETURN(spFieldClear(fRho));
 
-    SP_CHECK_RETURN(spFieldFill(fRho, spMPIRank() + 1));
-    SP_CHECK_RETURN(spFieldFill(fE, spMPIRank() + 1));
+
+    SP_CHECK_RETURN(spFieldAssignValueSin(fE, k, amp));
+
     spParticle *sp = NULL;
 
-    SP_CHECK_RETURN(spBorisYeeParticleCreate(&sp, mesh));
-    SP_CHECK_RETURN(spParticleDeploy(sp));
+//    SP_CHECK_RETURN(spBorisYeeParticleCreate(&sp, mesh));
+//    SP_CHECK_RETURN(spParticleDeploy(sp));
 
     int count = 5;
 
@@ -96,14 +104,14 @@ int main(int argc, char **argv)
     SP_CHECK_RETURN(spFieldWrite(fB, os, "B", SP_FILE_NEW));
     SP_CHECK_RETURN(spFieldWrite(fJ, os, "J", SP_FILE_NEW));
     SP_CHECK_RETURN(spFieldWrite(fRho, os, "rho", SP_FILE_NEW));
-    SP_CHECK_RETURN(spParticleWrite(sp, os, "H", SP_FILE_NEW));
+//    SP_CHECK_RETURN(spParticleWrite(sp, os, "H", SP_FILE_NEW));
 
     SP_CHECK_RETURN(spFieldDestroy(&fE));
     SP_CHECK_RETURN(spFieldDestroy(&fB));
     SP_CHECK_RETURN(spFieldDestroy(&fJ));
     SP_CHECK_RETURN(spFieldDestroy(&fRho));
 
-    SP_CHECK_RETURN(spParticleDestroy(&sp));
+//    SP_CHECK_RETURN(spParticleDestroy(&sp));
 
     SP_CHECK_RETURN(spMeshDestroy(&mesh));
 

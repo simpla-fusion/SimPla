@@ -191,11 +191,10 @@ __global__ void spBorisYeeUpdateParticleKernel(void *data,
 
 int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho, spField *fJ)
 {
-    Real dx[3];
 
     Real3 inv_dv;
 
-    spMeshGetDx(spMeshAttrMesh((spMeshAttr const *) sp), dx);
+    Real const *dx = spMeshGetDx(spMeshAttrMesh((spMeshAttr const *) sp));
 
     inv_dv.x = dt / dx[0];
     inv_dv.y = dt / dx[1];

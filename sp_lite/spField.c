@@ -125,7 +125,7 @@ int spFieldSubArray(spField *f, int domain_tag, void **data, size_type *stride)
 
 int spFieldClear(spField *f)
 {
-    spFieldDeploy(f);
+    SP_CHECK_RETURN(spFieldDeploy(f));
 
     size_type s = spDataTypeSizeInByte(f->m_data_type_desc_)
         * spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform);
@@ -152,7 +152,6 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     void *f_host;
 
     spParallelHostAlloc(&f_host, size_in_byte);
-
     spParallelMemcpy((f_host), spFieldData(f), size_in_byte);
 
     int ndims = spMeshNDims(m);
@@ -166,27 +165,27 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     size_type g_start[ndims + 1];
 
     size_type num_of_sub = 3;
-    spMeshArrayShape(m, SP_DOMAIN_CENTER,
-                     (iform == VERTEX || iform == VOLUME) ? 0 : 1,
-                     &num_of_sub,
-                     &array_ndims, &mesh_start_dim,
-                     g_dims, g_start,
-                     l_dims, l_start, l_count,
-                     spFieldIsSoA(f));
+    SP_CHECK_RETURN(spMeshArrayShape(m, SP_DOMAIN_CENTER,
+                                     (iform == VERTEX || iform == VOLUME) ? 0 : 1,
+                                     &num_of_sub,
+                                     &array_ndims, &mesh_start_dim,
+                                     g_dims, g_start,
+                                     l_dims, l_start, l_count,
+                                     spFieldIsSoA(f)));
 
-    spIOStreamWriteSimple(os,
-                          name,
-                          spFieldDataType(f),
-                          f_host,
-                          array_ndims,
-                          l_dims,
-                          l_start,
-                          NULL,
-                          l_count,
-                          NULL,
-                          g_dims,
-                          g_start,
-                          flag);
+    SP_CHECK_RETURN(spIOStreamWriteSimple(os,
+                                          name,
+                                          spFieldDataType(f),
+                                          f_host,
+                                          array_ndims,
+                                          l_dims,
+                                          l_start,
+                                          NULL,
+                                          l_count,
+                                          NULL,
+                                          g_dims,
+                                          g_start,
+                                          flag));
 
     spParallelHostFree(&f_host);
 
@@ -211,16 +210,26 @@ int spFieldSync(spField *f)
 
     size_type num_of_sub = 3;
 
-    spMeshArrayShape(m, SP_DOMAIN_CENTER, (iform == VERTEX || iform == VOLUME) ? 0 : 1, &num_of_sub,
-                     &array_ndims, &mesh_start_dim, NULL, NULL, l_dims, l_start, l_count, spFieldIsSoA(f));
+    SP_CHECK_RETURN(spMeshArrayShape(m,
+                                     SP_DOMAIN_CENTER,
+                                     (iform == VERTEX || iform == VOLUME) ? 0 : 1,
+                                     &num_of_sub,
+                                     &array_ndims,
+                                     &mesh_start_dim,
+                                     NULL,
+                                     NULL,
+                                     l_dims,
+                                     l_start,
+                                     l_count,
+                                     spFieldIsSoA(f)));
 
 
-    spParallelUpdateNdArrayHalo(spFieldDeviceData(f), spFieldDataType(f),
-                                array_ndims, l_dims, l_start, NULL, l_count, NULL, mesh_start_dim);
+    SP_CHECK_RETURN(spParallelUpdateNdArrayHalo(spFieldDeviceData(f), spFieldDataType(f),
+                                                array_ndims, l_dims, l_start, NULL, l_count, NULL, mesh_start_dim));
     return SP_SUCCESS;
 
 }
-int spFeildAssign(spField *f, size_type num_of_points, size_type **points, Real const **v)
+int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real const **v)
 {
     spMesh const *m = spMeshAttrMesh((spMeshAttr const *) f);
 
@@ -230,14 +239,9 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type **points, Real 
 
         Real *data[num_of_sub];
 
-        spFieldSubArray(f, SP_DOMAIN_CENTER, (void **) data, NULL);
+        SP_CHECK_RETURN(spFieldSubArray(f, SP_DOMAIN_CENTER, (void **) data, NULL));
 
-        size_type strides[3];
-
-        SP_CHECK_RETURN(spMeshGetStrides(m, strides));
-
-        spParallelAssign(num_of_sub, num_of_points, points, strides, (Real **) data, v);
-
+        for (int i = 0; i < num_of_sub; ++i) {SP_CHECK_RETURN(spParallelAssign(num_of_points, offset, data[i], v[i])); }
     }
     else
     {
