@@ -102,10 +102,8 @@ int main(int argc, char **argv)
     SP_CALL(spFieldWrite(fB, os, "B", SP_FILE_NEW));
     SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_NEW));
     SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_NEW));
-<<<<<<< HEAD
+
     SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
-=======
->>>>>>> 2e9eded5bf62354a4eaba5fdca2d0fe0ef1b231f
 
     SP_CALL(spIOStreamOpen(os, "/checkpoint/"));
 
@@ -130,7 +128,6 @@ int main(int argc, char **argv)
     }
 
     SP_CALL(spIOStreamOpen(os, "/dump/"));
-<<<<<<< HEAD
 
     SP_CALL(spFieldWrite(fE, os, "E", SP_FILE_NEW));
     SP_CALL(spFieldWrite(fB, os, "B", SP_FILE_NEW));
@@ -148,31 +145,12 @@ int main(int argc, char **argv)
     SP_CALL(spMeshDestroy(&mesh));
 
     SP_CALL(spIOStreamDestroy(&os));
-=======
 
-    SP_CALL(spFieldWrite(fE, os, "E", SP_FILE_NEW));
-    SP_CALL(spFieldWrite(fB, os, "B", SP_FILE_NEW));
-    SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_NEW));
-    SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_NEW));
-    SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
-
-    SP_CALL(spFieldDestroy(&fE));
-    SP_CALL(spFieldDestroy(&fB));
-    SP_CALL(spFieldDestroy(&fJ));
-    SP_CALL(spFieldDestroy(&fRho));
-
-    SP_CALL(spParticleDestroy(&sp));
-
-    SP_CALL(spMeshDestroy(&mesh));
->>>>>>> 2e9eded5bf62354a4eaba5fdca2d0fe0ef1b231f
 
     DONE
 
 
-<<<<<<< HEAD
-=======
     SP_CALL(spIOStreamDestroy(&os));
->>>>>>> 2e9eded5bf62354a4eaba5fdca2d0fe0ef1b231f
     SP_CALL(spParallelFinalize());
 
 }
