@@ -10,5 +10,6 @@
 #define SI_elementary_charge    1.60217656e-19
 #define SI_electron_mass        9.10938291e-31
 #define SI_proton_mass          1.672621777e-27
+#define SI_Boltzmann_constant   1.3806488e-23
 
 #endif //SIMPLA_SPPHYSICALCONSTANTS_H

@@ -25,20 +25,20 @@ Real3 real2Real3(Real const *v)
 int spParallelDeviceInitialize(int argc, char **argv)
 {
     int num_of_device = 0;
-    SP_PARALLEL_CHECK_RETURN(cudaGetDeviceCount(&num_of_device));
-    SP_PARALLEL_CHECK_RETURN(cudaSetDevice(spMPIRank() % num_of_device));
-    SP_PARALLEL_CHECK_RETURN(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
-    SP_PARALLEL_CHECK_RETURN(cudaGetLastError());
+    SP_CUDA_CALL(cudaGetDeviceCount(&num_of_device));
+    SP_CUDA_CALL(cudaSetDevice(spMPIRank() % num_of_device));
+    SP_CUDA_CALL(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
+    SP_CUDA_CALL(cudaGetLastError());
 }
 
 int spParallelDeviceFinalize()
 {
-    SP_PARALLEL_CHECK_RETURN(cudaDeviceReset());
+    SP_CUDA_CALL(cudaDeviceReset());
 }
 
 int spParallelDeviceAlloc(void **p, size_type s)
 {
-    SP_PARALLEL_CHECK_RETURN(cudaMalloc(p, s));
+    SP_CUDA_CALL(cudaMalloc(p, s));
     return SP_SUCCESS;
 }
 
@@ -46,7 +46,7 @@ int spParallelDeviceFree(void **_P_)
 {
     if (*_P_ != NULL)
     {
-        SP_PARALLEL_CHECK_RETURN(cudaFree(*_P_));
+        SP_CUDA_CALL(cudaFree(*_P_));
         *_P_ = NULL;
     }
     return SP_SUCCESS;
@@ -54,32 +54,32 @@ int spParallelDeviceFree(void **_P_)
 
 int spParallelMemcpy(void *dest, void const *src, size_type s)
 {
-    SP_PARALLEL_CHECK_RETURN(cudaMemcpy(dest, src, s, cudaMemcpyDefault));
+    SP_CUDA_CALL(cudaMemcpy(dest, src, s, cudaMemcpyDefault));
     return SP_SUCCESS;
 }
 
 int spParallelMemcpyToSymbol(void **dest, void const **src, size_type s)
 {
-    SP_PARALLEL_CHECK_RETURN(cudaMemcpyToSymbol(dest, src, s, cudaMemcpyDefault));
+    SP_CUDA_CALL(cudaMemcpyToSymbol(dest, src, s, cudaMemcpyDefault));
     return SP_SUCCESS;
 }
 
 int spParallelMemset(void *dest, int v, size_type s)
 {
-    SP_PARALLEL_CHECK_RETURN(cudaMemset(dest, v, s));
+    SP_CUDA_CALL(cudaMemset(dest, v, s));
     return SP_SUCCESS;
 }
 
 int spParallelDeviceSync()
 {
-    SP_CHECK_RETURN(spParallelGlobalBarrier());
-    SP_PARALLEL_CHECK_RETURN(cudaDeviceSynchronize());
+    SP_CALL(spParallelGlobalBarrier());
+    SP_CUDA_CALL(cudaDeviceSynchronize());
     return SP_SUCCESS;
 }
 
 int spParallelHostAlloc(void **p, size_type s)
 {
-    SP_PARALLEL_CHECK_RETURN(cudaHostAlloc(p, s, cudaHostAllocDefault));
+    SP_CUDA_CALL(cudaHostAlloc(p, s, cudaHostAllocDefault));
     return SP_SUCCESS;
 };
 
@@ -101,7 +101,7 @@ void spParallelDeviceFillIntKernel(int *d, int v, size_type max)
 };
 int spParallelDeviceFillInt(int *d, int v, size_type s)
 {
-    LOAD_KERNEL(spParallelDeviceFillIntKernel, 16, 256, d, v, s);
+    CALL_KERNEL(spParallelDeviceFillIntKernel, 16, 256, d, v, s);
 
     return SP_SUCCESS;
 };
@@ -113,7 +113,7 @@ void spParallelDeviceFillRealKernel(Real *d, Real v, size_type max)
 };
 int spParallelDeviceFillReal(Real *d, Real v, size_type s)
 {
-    LOAD_KERNEL(spParallelDeviceFillRealKernel, 16, 256, d, v, s);
+    CALL_KERNEL(spParallelDeviceFillRealKernel, 16, 256, d, v, s);
     return SP_SUCCESS;
 };
 
@@ -132,6 +132,28 @@ void spParallelAssignKernel(size_type max, size_type const *offset, Real *d, Rea
 
 int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v)
 {
-    LOAD_KERNEL(spParallelAssignKernel, 16, 256, num_of_point, offset, d, v);
+    CALL_KERNEL(spParallelAssignKernel, 16, 256, num_of_point, offset, d, v);
     return SP_SUCCESS;
 };
+
+
+int spRandomUniformN(Real **data, int num_of_dims, size_type num_of_sample, Real const *lower, Real const *upper)
+{
+    return SP_SUCCESS;
+};
+
+/**
+ *  \f[
+ *      f\left(v\right)\equiv\frac{1}{\sqrt{\left(2\pi\sigma\right)^{3}}}\exp\left(-\frac{\left(v-u\right)^{2}}{\sigma^{2}}\right)
+ *  \f]
+ * @param data
+ * @param num_of_sample
+ * @param u0
+ * @param sigma
+ * @return
+ */
+int spRandomNormal3(Real **data, size_type num_of_sample, Real const *u0, Real sigma)
+{
+    return SP_SUCCESS;
+
+}

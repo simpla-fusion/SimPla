@@ -27,7 +27,7 @@ typedef struct spField_s
 
 int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_tag)
 {
-    SP_CHECK_RETURN(spMeshAttrCreate((spMeshAttr **) f, sizeof(spField), mesh, iform));
+    SP_CALL(spMeshAttrCreate((spMeshAttr **) f, sizeof(spField), mesh, iform));
 
     (*f)->m = mesh;
     (*f)->iform = iform;
@@ -35,7 +35,7 @@ int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_
     (*f)->device_data = NULL;
 
 
-    SP_CHECK_RETURN(spDataTypeCreate(&((*f)->m_data_type_desc_), type_tag, 0));
+    SP_CALL(spDataTypeCreate(&((*f)->m_data_type_desc_), type_tag, 0));
 
     return SP_SUCCESS;
 }
@@ -47,10 +47,10 @@ int spFieldDestroy(spField **f)
 
         spParallelDeviceFree(&((**f).device_data));
 
-        SP_CHECK_RETURN(spDataTypeDestroy(&((*f)->m_data_type_desc_)));
+        SP_CALL(spDataTypeDestroy(&((*f)->m_data_type_desc_)));
     }
 
-    SP_CHECK_RETURN(spMeshAttrDestroy((spMeshAttr **) f));
+    SP_CALL(spMeshAttrDestroy((spMeshAttr **) f));
 
     return SP_SUCCESS;
 }
@@ -116,7 +116,7 @@ int spFieldSubArray(spField *f, void **data)
 
 int spFieldClear(spField *f)
 {
-    SP_CHECK_RETURN(spFieldDeploy(f));
+    SP_CALL(spFieldDeploy(f));
 
     size_type s = spDataTypeSizeInByte(f->m_data_type_desc_)
         * spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform);
@@ -156,12 +156,12 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     size_type g_start[ndims + 1];
 
     size_type num_of_sub = 3;
-    SP_CHECK_RETURN(spMeshArrayShape(m, SP_DOMAIN_CENTER,
+    SP_CALL(spMeshArrayShape(m, SP_DOMAIN_CENTER,
                                      (iform == VERTEX || iform == VOLUME) ? 0 : 1,
                                      &num_of_sub, &array_ndims, &mesh_start_dim,
                                      g_dims, g_start, l_dims, l_start, l_count, spFieldIsSoA(f)));
 
-    SP_CHECK_RETURN(spIOStreamWriteSimple(os, name, spFieldDataType(f),
+    SP_CALL(spIOStreamWriteSimple(os, name, spFieldDataType(f),
                                           f_host, array_ndims, l_dims,
                                           l_start, NULL, l_count, NULL,
                                           g_dims, g_start, flag));
@@ -189,13 +189,13 @@ int spFieldSync(spField *f)
 
     size_type num_of_sub = 3;
 
-    SP_CHECK_RETURN(spMeshArrayShape(m, SP_DOMAIN_CENTER,
+    SP_CALL(spMeshArrayShape(m, SP_DOMAIN_CENTER,
                                      (iform == VERTEX || iform == VOLUME) ? 0 : 1,
                                      &num_of_sub, &array_ndims, &mesh_start_dim, NULL, NULL,
                                      l_dims, l_start, l_count, spFieldIsSoA(f)));
 
 
-    SP_CHECK_RETURN(spParallelUpdateNdArrayHalo(spFieldDeviceData(f), spFieldDataType(f),
+    SP_CALL(spParallelUpdateNdArrayHalo(spFieldDeviceData(f), spFieldDataType(f),
                                                 array_ndims, l_dims, l_start, NULL, l_count, NULL, mesh_start_dim));
     return SP_SUCCESS;
 
@@ -210,9 +210,9 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real c
 
         Real *data[num_of_sub];
 
-        SP_CHECK_RETURN(spFieldSubArray(f, (void **) data));
+        SP_CALL(spFieldSubArray(f, (void **) data));
 
-        for (int i = 0; i < num_of_sub; ++i) {SP_CHECK_RETURN(spParallelAssign(num_of_points, offset, data[i], v[i])); }
+        for (int i = 0; i < num_of_sub; ++i) {SP_CALL(spParallelAssign(num_of_points, offset, data[i], v[i])); }
     }
     else
     {

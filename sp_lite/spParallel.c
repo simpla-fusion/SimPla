@@ -302,7 +302,7 @@ int spParallelUpdateNdArrayHalo(void *buffer,
     }
 
 
-    SP_CHECK_RETURN(spMPINeighborAllToAll(buffer, mpi_sendrecv_count, send_displs, send_types,
+    SP_CALL(spMPINeighborAllToAll(buffer, mpi_sendrecv_count, send_displs, send_types,
                                           buffer, mpi_sendrecv_count, recv_displs, recv_types, comm));
 
     for (int i = 0; i < num_of_neighbour; ++i)

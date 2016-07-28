@@ -30,7 +30,7 @@ MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s)
 
 int spMeshAttrCreate(spMeshAttr **f, size_type size, spMesh const *mesh, int iform)
 {
-    SP_CHECK_RETURN(spObjectCreate((spObject **) (f), size));
+    SP_CALL(spObjectCreate((spObject **) (f), size));
     (*f)->m = mesh;
     (*f)->iform = iform;
     return SP_SUCCESS;
@@ -38,7 +38,7 @@ int spMeshAttrCreate(spMeshAttr **f, size_type size, spMesh const *mesh, int ifo
 
 int spMeshAttrDestroy(spMeshAttr **f)
 {
-    SP_CHECK_RETURN(spObjectDestroy((spObject **) (f)));
+    SP_CALL(spObjectDestroy((spObject **) (f)));
     return SP_SUCCESS;
 };
 spMesh const *spMeshAttrMesh(spMeshAttr const *f) { return f->m; }
@@ -438,7 +438,7 @@ int spMeshArrayShape(spMesh const *m,
     }
 
 
-    SP_CHECK_RETURN(spMeshLocalDomain(m,
+    SP_CALL(spMeshLocalDomain(m,
                                       domain_tag,
                                       l_dims + (*start_mesh_dim),
                                       l_start + (*start_mesh_dim),
@@ -455,7 +455,7 @@ int spMeshArrayShape(spMesh const *m,
 
         ptrdiff_t offset[*array_ndims];
 
-        SP_CHECK_RETURN(spMeshGlobalOffset(m, g_dims + (*start_mesh_dim), offset + (*start_mesh_dim)));
+        SP_CALL(spMeshGlobalOffset(m, g_dims + (*start_mesh_dim), offset + (*start_mesh_dim)));
 
         for (int i = 0; i < mesh_ndims; ++i)
         {

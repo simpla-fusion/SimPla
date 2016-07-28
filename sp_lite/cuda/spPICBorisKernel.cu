@@ -210,26 +210,26 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //        for (global_start.y = -1; global_start.y <= 1; ++global_start.y)
 //            for (global_start.z = -1; global_start.z <= 1; ++global_start.z)
 //            {
-//                LOAD_KERNEL(spBorisYeeUpdateParticleKernel,
+//                CALL_KERNEL(spBorisYeeUpdateParticleKernel,
 //                            sizeType2Dim3(spMeshArrayShape(spParticleMesh(sp))),
 //                            spParticleFiberLength(sp),
-//                            spParticleData(sp),
+//                            spParticleDeviceData(sp),
 //                            (Real const *) spFieldDeviceDataConst(fE),
 //                            (Real const *) spFieldDeviceDataConst(fB),
 //                            inv_dv, cmr_dt, global_start);
 //            }
 
-//    LOAD_KERNEL(spUpdateParticleBorisScatterBlockKernel,
+//    CALL_KERNEL(spUpdateParticleBorisScatterBlockKernel,
 //                sizeType2Dim3(spMeshArrayShape(spParticleMesh(sp))),
 //                spParticleFiberLength(sp),
-//                spParticleData(sp),
+//                spParticleDeviceData(sp),
 //                (fRho->device_data), (fJ->device_data));
 
 //    spParallelDeviceSync();        //wait for iteration to finish
 
-    SP_CHECK_RETURN(spParticleSync(sp));
-    SP_CHECK_RETURN(spFieldSync(fJ));
-    SP_CHECK_RETURN(spFieldSync(fRho));
+    SP_CALL(spParticleSync(sp));
+    SP_CALL(spFieldSync(fJ));
+    SP_CALL(spFieldSync(fRho));
     return SP_SUCCESS;
 }
 

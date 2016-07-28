@@ -24,7 +24,7 @@
 
 int main(int argc, char **argv)
 {
-    SP_CHECK_RETURN(spParallelInitialize(argc, argv));
+    SP_CALL(spParallelInitialize(argc, argv));
 
     ShowSimPlaLogo();
 
@@ -32,10 +32,10 @@ int main(int argc, char **argv)
 
     int num_of_steps = argc < 2 ? 100 : atoi(argv[1]);
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
-    int PIC = 256;
+    size_type PIC = 256;
     Real n0 = 1.0e18;
     Real T0 = 0.026;
-    size_type dims[3] = {0x100, 0x100, 0x1};
+    size_type dims[3] = {0x80, 0x80, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
@@ -48,18 +48,18 @@ int main(int argc, char **argv)
     /*****************************************************************************************************************/
 
     spIOStream *os = NULL;
-    SP_CHECK_RETURN(spIOStreamCreate(&os));
-    SP_CHECK_RETURN(spIOStreamOpen(os, out_file));
+    SP_CALL(spIOStreamCreate(&os));
+    SP_CALL(spIOStreamOpen(os, out_file));
 
     /*****************************************************************************************************************/
 
     spMesh *mesh;
 
-    SP_CHECK_RETURN(spMeshCreate(&mesh));
-    SP_CHECK_RETURN(spMeshSetDims(mesh, dims));
-    SP_CHECK_RETURN(spMeshSetGhostWidth(mesh, gw));
-    SP_CHECK_RETURN(spMeshSetBox(mesh, lower, upper));
-    SP_CHECK_RETURN(spMeshDeploy(mesh));
+    SP_CALL(spMeshCreate(&mesh));
+    SP_CALL(spMeshSetDims(mesh, dims));
+    SP_CALL(spMeshSetGhostWidth(mesh, gw));
+    SP_CALL(spMeshSetBox(mesh, lower, upper));
+    SP_CALL(spMeshDeploy(mesh));
 
     if (isnan(dt)) { dt = spMeshCFLDt(mesh, 299792458.0/* speed_of_light*/); }
     /*****************************************************************************************************************/
@@ -69,80 +69,85 @@ int main(int argc, char **argv)
     spField *fRho = NULL;
     spField *fJ = NULL;
 
-    SP_CHECK_RETURN(spFieldCreate(&fE, mesh, EDGE, SP_TYPE_Real));
-    SP_CHECK_RETURN(spFieldCreate(&fB, mesh, FACE, SP_TYPE_Real));
-    SP_CHECK_RETURN(spFieldCreate(&fJ, mesh, EDGE, SP_TYPE_Real));
-    SP_CHECK_RETURN(spFieldCreate(&fRho, mesh, VERTEX, SP_TYPE_Real));
+    SP_CALL(spFieldCreate(&fE, mesh, EDGE, SP_TYPE_Real));
+    SP_CALL(spFieldCreate(&fB, mesh, FACE, SP_TYPE_Real));
+    SP_CALL(spFieldCreate(&fJ, mesh, EDGE, SP_TYPE_Real));
+    SP_CALL(spFieldCreate(&fRho, mesh, VERTEX, SP_TYPE_Real));
 
 
-    SP_CHECK_RETURN(spFieldClear(fE));
-    SP_CHECK_RETURN(spFieldClear(fB));
-    SP_CHECK_RETURN(spFieldClear(fJ));
-    SP_CHECK_RETURN(spFieldClear(fRho));
+    SP_CALL(spFieldClear(fE));
+    SP_CALL(spFieldClear(fB));
+    SP_CALL(spFieldClear(fJ));
+    SP_CALL(spFieldClear(fRho));
 
 
-    SP_CHECK_RETURN(spFieldAssignValueSin(fE, k, amp));
+    SP_CALL(spFieldAssignValueSin(fE, k, amp));
     /*****************************************************************************************************************/
 
     spParticle *sp = NULL;
 
-    SP_CHECK_RETURN(spBorisYeeParticleCreate(&sp, mesh));
-    SP_CHECK_RETURN(spParticleSetMass(sp, SI_electron_mass));
-    SP_CHECK_RETURN(spParticleSetCharge(sp, SI_elementary_charge));
-    SP_CHECK_RETURN(spBorisYeeParticleInitialize(sp, PIC, n0, T0));
+    SP_CALL(spBorisYeeParticleCreate(&sp, mesh));
+
+    SP_CALL(spParticleSetMass(sp, SI_electron_mass));
+    SP_CALL(spParticleSetCharge(sp, SI_elementary_charge));
+    SP_CALL(spParticleSetPIC(sp, PIC));
+
+    SP_CALL(spBorisYeeParticleInitialize(sp, n0, T0));
 
     /*****************************************************************************************************************/
 
-    SP_CHECK_RETURN(spIOStreamOpen(os, "/start/"));
+    SP_CALL(spIOStreamOpen(os, "/start/"));
 
-    SP_CHECK_RETURN(spFieldWrite(fE, os, "E", SP_FILE_NEW));
-    SP_CHECK_RETURN(spFieldWrite(fB, os, "B", SP_FILE_NEW));
-    SP_CHECK_RETURN(spFieldWrite(fJ, os, "J", SP_FILE_NEW));
-    SP_CHECK_RETURN(spFieldWrite(fRho, os, "rho", SP_FILE_NEW));
+    SP_CALL(spFieldWrite(fE, os, "E", SP_FILE_NEW));
+    SP_CALL(spFieldWrite(fB, os, "B", SP_FILE_NEW));
+    SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_NEW));
+    SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_NEW));
+    SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
 
-    SP_CHECK_RETURN(spIOStreamOpen(os, "/checkpoint/"));
+    SP_CALL(spIOStreamOpen(os, "/checkpoint/"));
 
     for (int count = 0; count < num_of_steps; ++count)
     {
 
-        SP_CHECK_RETURN(spFieldClear(fJ));
-        SP_CHECK_RETURN(spBorisYeeParticleUpdate(sp, dt, fE, fB, fRho, fJ));
-        SP_CHECK_RETURN(spUpdateFieldFDTD(mesh, dt, fRho, fJ, fE, fB));
+        SP_CALL(spFieldClear(fJ));
+        SP_CALL(spBorisYeeParticleUpdate(sp, dt, fE, fB, fRho, fJ));
+        SP_CALL(spUpdateFieldFDTD(mesh, dt, fRho, fJ, fE, fB));
 
 
         if (count % check_point == 0)
         {
             if (spMPIRank() == 0) { printf("====== STEP = %i ======\n", count); }
 
-            SP_CHECK_RETURN(spFieldWrite(fE, os, "E", SP_FILE_RECORD));
-            SP_CHECK_RETURN(spFieldWrite(fB, os, "B", SP_FILE_RECORD));
-            SP_CHECK_RETURN(spFieldWrite(fJ, os, "J", SP_FILE_RECORD));
-            SP_CHECK_RETURN(spFieldWrite(fRho, os, "rho", SP_FILE_RECORD));
+            SP_CALL(spFieldWrite(fE, os, "E", SP_FILE_RECORD));
+            SP_CALL(spFieldWrite(fB, os, "B", SP_FILE_RECORD));
+            SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_RECORD));
+            SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_RECORD));
         }
 
     }
 
-    SP_CHECK_RETURN(spIOStreamOpen(os, "/dump/"));
+    SP_CALL(spIOStreamOpen(os, "/dump/"));
 
-    SP_CHECK_RETURN(spFieldWrite(fE, os, "E", SP_FILE_NEW));
-    SP_CHECK_RETURN(spFieldWrite(fB, os, "B", SP_FILE_NEW));
-    SP_CHECK_RETURN(spFieldWrite(fJ, os, "J", SP_FILE_NEW));
-    SP_CHECK_RETURN(spFieldWrite(fRho, os, "rho", SP_FILE_NEW));
-    SP_CHECK_RETURN(spParticleWrite(sp, os, "H", SP_FILE_NEW));
+    SP_CALL(spFieldWrite(fE, os, "E", SP_FILE_NEW));
+    SP_CALL(spFieldWrite(fB, os, "B", SP_FILE_NEW));
+    SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_NEW));
+    SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_NEW));
 
-    SP_CHECK_RETURN(spFieldDestroy(&fE));
-    SP_CHECK_RETURN(spFieldDestroy(&fB));
-    SP_CHECK_RETURN(spFieldDestroy(&fJ));
-    SP_CHECK_RETURN(spFieldDestroy(&fRho));
+    SP_CALL(spFieldDestroy(&fE));
+    SP_CALL(spFieldDestroy(&fB));
+    SP_CALL(spFieldDestroy(&fJ));
+    SP_CALL(spFieldDestroy(&fRho));
 
-    SP_CHECK_RETURN(spParticleDestroy(&sp));
+    SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
+    SP_CALL(spParticleDestroy(&sp));
 
-    SP_CHECK_RETURN(spMeshDestroy(&mesh));
+    SP_CALL(spMeshDestroy(&mesh));
+
+    SP_CALL(spIOStreamDestroy(&os));
 
     DONE
 
 
-    SP_CHECK_RETURN(spIOStreamDestroy(&os));
-    SP_CHECK_RETURN(spParallelFinalize());
+    SP_CALL(spParallelFinalize());
 
 }

@@ -41,20 +41,20 @@ __global__ void spUpdateFieldFDTDKernel(Real dt, Real3 dt_inv,
     size_type z = (threadIdx.z + blockIdx.z * blockDim.z + N.z) % N.z;
 
     size_type s = x * I.x + y * I.y + z * I.z;
+    Bx[s] -= ((Ez[s] - Ez[s - I.y]) * dt_inv.y - (Ey[s] - Ey[s - I.z]) * dt_inv.z) * 0.5;
+    By[s] -= ((Ex[s] - Ex[s - I.z]) * dt_inv.z - (Ez[s] - Ez[s - I.x]) * dt_inv.x) * 0.5;
+    Bz[s] -= ((Ey[s] - Ey[s - I.x]) * dt_inv.x - (Ex[s] - Ex[s - I.y]) * dt_inv.y) * 0.5;
 
-    Ex[s] +=
-        ((Bz[s + I.y] - Bz[s]) * dt_inv.y - (By[s + I.z] - By[s]) * dt_inv.z) * speed_of_light2 -
-            Jx[s] / epsilon0 * dt;
-    Ey[s] +=
-        ((Bx[s + I.z] - Bx[s]) * dt_inv.z - (Bz[s + I.x] - Bz[s]) * dt_inv.x) * speed_of_light2 -
-            Jy[s] / epsilon0 * dt;
-    Ez[s] +=
-        ((By[s + I.x] - By[s]) * dt_inv.x - (Bx[s + I.y] - Bx[s]) * dt_inv.y) * speed_of_light2 -
-            Jz[s] / epsilon0 * dt;
+    Ex[s] += ((Bz[s + I.y] - Bz[s]) * dt_inv.y - (By[s + I.z] - By[s]) * dt_inv.z) * speed_of_light2 -
+        Jx[s] / epsilon0 * dt;
+    Ey[s] += ((Bx[s + I.z] - Bx[s]) * dt_inv.z - (Bz[s + I.x] - Bz[s]) * dt_inv.x) * speed_of_light2 -
+        Jy[s] / epsilon0 * dt;
+    Ez[s] += ((By[s + I.x] - By[s]) * dt_inv.x - (Bx[s + I.y] - Bx[s]) * dt_inv.y) * speed_of_light2 -
+        Jz[s] / epsilon0 * dt;
 
-    Bx[s] -= (Ez[s] - Ez[s - I.y]) * dt_inv.y - (Ey[s] - Ey[s - I.z]) * dt_inv.z;
-    By[s] -= (Ex[s] - Ex[s - I.z]) * dt_inv.z - (Ez[s] - Ez[s - I.x]) * dt_inv.x;
-    Bz[s] -= (Ey[s] - Ey[s - I.x]) * dt_inv.x - (Ex[s] - Ex[s - I.y]) * dt_inv.y;
+    Bx[s] -= ((Ez[s] - Ez[s - I.y]) * dt_inv.y - (Ey[s] - Ey[s - I.z]) * dt_inv.z) * 0.5;
+    By[s] -= ((Ex[s] - Ex[s - I.z]) * dt_inv.z - (Ez[s] - Ez[s - I.x]) * dt_inv.x) * 0.5;
+    Bz[s] -= ((Ey[s] - Ey[s - I.x]) * dt_inv.x - (Ex[s] - Ex[s - I.y]) * dt_inv.y) * 0.5;
 
 }
 
@@ -98,7 +98,7 @@ int spUpdateFieldFDTD(struct spMesh_s const *m,
 
     spFieldSubArray(fB, (void **) B);
 
-    LOAD_KERNEL(spUpdateFieldFDTDKernel, sizeType2Dim3(dims), 1,
+    CALL_KERNEL(spUpdateFieldFDTDKernel, sizeType2Dim3(dims), 1,
                 dt, real2Real3(dt_inv), sizeType2Dim3(dims), sizeType2Dim3(strides),
                 (const Real *) rho,
                 (const Real *) J[0],
