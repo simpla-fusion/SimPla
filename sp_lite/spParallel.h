@@ -32,6 +32,10 @@ int spParallelMemset(void *, int v, size_type);
 
 int spParallelDeviceSync();
 
+int spParallelGlobalBarrier();
+
+int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v);
+
 int spParallelUpdateNdArrayHalo(void *buffer,
                                 const struct spDataType_s *ele_type,
                                 int ndims,
@@ -41,10 +45,6 @@ int spParallelUpdateNdArrayHalo(void *buffer,
                                 const size_type *count,
                                 const size_type *,
                                 int mpi_sync_start_dims);
-
-int spParallelGlobalBarrier();
-
-int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v);
 
 int spParallelDeviceFillInt(int *d, int v, size_type s);
 

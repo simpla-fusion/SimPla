@@ -24,7 +24,7 @@ ENDIF (HDF5_FOUND)
 
 
 add_subdirectory(cpu)
-add_subdirectory(gpu)
+add_subdirectory(cuda)
 
 FILE(GLOB sp_lite_SRC ./*.c)
 

@@ -9,6 +9,8 @@
 #include <math.h>
 
 #include "sp_lite_def.h"
+#include "spPhysicalConstants.h"
+
 #include "spParallel.h"
 
 #include "spMesh.h"
@@ -19,7 +21,6 @@
 #include "spFDTD.h"
 
 #include "spMisc.h"
-#include "spPhysicalConstants.h"
 
 int main(int argc, char **argv)
 {
@@ -103,13 +104,10 @@ int main(int argc, char **argv)
 
     for (int count = 0; count < num_of_steps; ++count)
     {
-        spParallelDeviceSync();
 
         SP_CHECK_RETURN(spFieldClear(fJ));
         SP_CHECK_RETURN(spBorisYeeParticleUpdate(sp, dt, fE, fB, fRho, fJ));
         SP_CHECK_RETURN(spUpdateFieldFDTD(mesh, dt, fRho, fJ, fE, fB));
-
-        spParallelDeviceSync();
 
 
         if (count % check_point == 0)
@@ -123,9 +121,6 @@ int main(int argc, char **argv)
         }
 
     }
-
-
-    spParallelDeviceSync();
 
     SP_CHECK_RETURN(spIOStreamOpen(os, "/dump/"));
 
