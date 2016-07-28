@@ -19,13 +19,13 @@ int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
     Real *data[num_of_sub];
     size_type dims[4], start[4], count[4];
 
-    SP_CHECK_RETURN(spMeshLocalDomain(m, SP_DOMAIN_CENTER, dims, start, count));
+    SP_CALL(spMeshLocalDomain(m, SP_DOMAIN_CENTER, dims, start, count));
 
     size_type strides[4];
 
     Real const *x0 = spMeshGetLocalOrigin(m);
     Real const *dx = spMeshGetDx(m);
-    SP_CHECK_RETURN(spMeshGetStrides(m, strides));
+    SP_CALL(spMeshGetStrides(m, strides));
 
     size_type offset = start[0] * strides[0] + start[1] * strides[1] + start[2] * strides[2];
 
@@ -83,7 +83,7 @@ int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
             alpha0[8] = dims[2] == 1 ? HALFPI : (k[2] * x0[2]);
     };
 
-    SP_CHECK_RETURN(spFieldSubArray(f, (void **) data));
+    SP_CALL(spFieldSubArray(f, (void **) data));
 
     size_type num_of_threads = 1;
 
@@ -98,7 +98,7 @@ int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
                                     amp[i]);
     }
 
-    SP_CHECK_RETURN(spFieldSync(f));
+    SP_CALL(spFieldSync(f));
 
     return SP_SUCCESS;
 };

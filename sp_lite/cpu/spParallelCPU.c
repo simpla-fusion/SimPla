@@ -52,7 +52,7 @@ int spParallelMemset(void *dest, int v, size_type s)
 
 int spParallelDeviceSync()
 {
-    SP_CHECK_RETURN(spParallelGlobalBarrier());
+    SP_CALL(spParallelGlobalBarrier());
     return SP_SUCCESS;
 }
 
