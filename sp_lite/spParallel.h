@@ -12,13 +12,25 @@ int spParallelInitialize(int argc, char **argv);
 
 int spParallelFinalize();
 
+int spParallelDeviceInitialize(int argc, char **argv);
 
-#ifndef USE_CUDA
-#   include "spParallelCPU.h"
-#else
-#   include "spParallelCUDA.h"
-#endif
-struct spDataType_s;
+int spParallelDeviceFinalize();
+
+int spParallelDeviceAlloc(void **, size_type);
+
+int spParallelDeviceFree(void **);
+
+int spParallelHostAlloc(void **, size_type);
+
+int spParallelHostFree(void **);
+
+int spParallelMemcpy(void *, void const *, size_type);
+
+int spParallelMemcpyToSymbol(void *, void const *, size_type);
+
+int spParallelMemset(void *, int v, size_type);
+
+int spParallelDeviceSync();
 
 int spParallelUpdateNdArrayHalo(void *buffer,
                                 const struct spDataType_s *ele_type,
@@ -31,6 +43,8 @@ int spParallelUpdateNdArrayHalo(void *buffer,
                                 int mpi_sync_start_dims);
 
 int spParallelGlobalBarrier();
+
+int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v);
 
 int spParallelDeviceFillInt(int *d, int v, size_type s);
 

@@ -4,43 +4,22 @@
 #include <assert.h>
 #include "spParallel.h"
 
-dim3 sizeType2Dim3(size_type const *v)
-{
-    dim3 res;
-    res.x = (int) v[0];
-    res.y = (int) v[1];
-    res.z = (int) v[2];
-    return res;
-}
-Real3 real2Real3(Real const *v)
-{
-    Real3 res;
-    res.x = (Real) v[0];
-    res.y = (Real) v[1];
-    res.z = (Real) v[2];
-    return res;
-}
 
 int spParallelInitialize(int argc, char **argv)
 {
 
     spMPIInitialize(argc, argv);
 
-    int num_of_device = 0;
-    SP_PARALLEL_CHECK_RETURN(cudaGetDeviceCount(&num_of_device));
-    SP_PARALLEL_CHECK_RETURN(cudaSetDevice(spMPIRank() % num_of_device));
-    SP_PARALLEL_CHECK_RETURN(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
+    spParallelDeviceInitialize(argc, argv);
 
-
-    SP_PARALLEL_CHECK_RETURN(cudaGetLastError());
     return SP_SUCCESS;
 
 }
 
 int spParallelFinalize()
 {
+    spParallelDeviceFinalize();
 
-    SP_PARALLEL_CHECK_RETURN(cudaDeviceReset());
     spMPIFinalize();
     return SP_SUCCESS;
 

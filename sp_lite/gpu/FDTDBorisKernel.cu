@@ -2,24 +2,21 @@
 // Created by salmon on 16-6-14.
 //
 //
-#include <assert.h>
-#include <math.h>
-#include "../../../../../usr/local/cuda/include/device_launch_parameters.h"
+
 
 extern "C" {
+#include <assert.h>
+#include <math.h>
+#include </usr/local/cuda/include/device_launch_parameters.h>
 
+#include "../sp_lite_def.h"
+#include "../spParallel.h"
+#include "../spMesh.h"
+#include "../spParticle.h"
+#include "../spField.h"
+#include "../FDTDBoris.h"
 
-#include "sp_lite_def.h"
-
-#include "spParallel.h"
 #include "spParallelCUDA.h"
-
-#include "spMesh.h"
-#include "spParticle.h"
-#include "spField.h"
-
-#include "FDTDBoris.h"
-
 }
 //
 __global__ void
@@ -27,8 +24,8 @@ spBorisInitializeParticleKernel(void *data, size_type entity_size_in_byte)
 {
 
     boris_particle
-            *d = (boris_particle *) ((byte_type *) (data) + blockIdx.x +
-                                     (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
+        *d = (boris_particle *) ((byte_type *) (data) + blockIdx.x +
+        (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
     int s = (threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y);
 
     d->id[s] = 0;
@@ -67,7 +64,7 @@ __device__ void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 {
 
     *v = *v
-         + (f[IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
+        + (f[IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
             + f[IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
             + f[IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
             + f[IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
@@ -91,12 +88,12 @@ __global__ void spBorisYeeUpdateParticleKernel(void *data,
                                                int3 offset)
 {
     boris_particle
-            *d = (boris_particle *) ((byte_type *) (data) + blockIdx.x +
-                                     (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
+        *d = (boris_particle *) ((byte_type *) (data) + blockIdx.x +
+        (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x);
     boris_particle *s = (boris_particle *) ((byte_type *) (data) +
-                                            (blockIdx.x + offset.x + gridDim.x) % gridDim.x +
-                                            (blockIdx.y + offset.y + gridDim.y) % gridDim.y * gridDim.x +
-                                            (blockIdx.z + offset.z + gridDim.z) % gridDim.z * gridDim.y * gridDim.x);
+        (blockIdx.x + offset.x + gridDim.x) % gridDim.x +
+        (blockIdx.y + offset.y + gridDim.y) % gridDim.y * gridDim.x +
+        (blockIdx.z + offset.z + gridDim.z) % gridDim.z * gridDim.y * gridDim.x);
 
     int s_tail = (threadIdx.x + threadIdx.y * blockDim.x + threadIdx.z * blockDim.x * blockDim.y);
     __shared__ int d_tail;
@@ -260,13 +257,13 @@ __global__ void spUpdateFieldYeeKernel(Real dt, Real3 dt_inv,
     size_type s = x * I.x + y * I.y + z * I.z;
 
     Ex[s] +=
-            ((Bz[s + I.y] - Bz[s]) * dt_inv.y - (By[s + I.z] - By[s]) * dt_inv.z) * speed_of_light2 -
+        ((Bz[s + I.y] - Bz[s]) * dt_inv.y - (By[s + I.z] - By[s]) * dt_inv.z) * speed_of_light2 -
             Jx[s] / epsilon0 * dt;
     Ey[s] +=
-            ((Bx[s + I.z] - Bx[s]) * dt_inv.z - (Bz[s + I.x] - Bz[s]) * dt_inv.x) * speed_of_light2 -
+        ((Bx[s + I.z] - Bx[s]) * dt_inv.z - (Bz[s + I.x] - Bz[s]) * dt_inv.x) * speed_of_light2 -
             Jy[s] / epsilon0 * dt;
     Ez[s] +=
-            ((By[s + I.x] - By[s]) * dt_inv.x - (Bx[s + I.y] - Bx[s]) * dt_inv.y) * speed_of_light2 -
+        ((By[s + I.x] - By[s]) * dt_inv.x - (Bx[s + I.y] - Bx[s]) * dt_inv.y) * speed_of_light2 -
             Jz[s] / epsilon0 * dt;
 
     Bx[s] -= (Ez[s] - Ez[s - I.y]) * dt_inv.y - (Ey[s] - Ey[s - I.z]) * dt_inv.z;
