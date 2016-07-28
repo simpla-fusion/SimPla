@@ -125,7 +125,12 @@ int spParticleDeploy(spParticle *sp)
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
         spParallelDeviceAlloc(&(sp->m_attrs_[i].data),
+<<<<<<< HEAD
                               spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * number_of_entities);
+=======
+                              spDataTypeSizeInByte(sp->m_attrs_[i].data_type)
+                                  * number_of_cell * sp->m_max_fiber_length_);
+>>>>>>> 2e9eded5bf62354a4eaba5fdca2d0fe0ef1b231f
 
         sp->m_data_root_[i] = sp->m_attrs_[i].data;
     }
@@ -137,10 +142,15 @@ int spParticleDeploy(spParticle *sp)
 
 size_type spParticleNumberOfEntities(spParticle const *sp)
 {
+<<<<<<< HEAD
     spMesh const *m = spMeshAttrMesh((spMeshAttr *) (sp));
     size_type s = spParticleMaxFiberLength(sp);
     size_type n = spMeshNumberOfEntity(m, SP_DOMAIN_ALL, spMeshAttrForm((spMeshAttr *) (sp)));
     return n * spParticleMaxFiberLength(sp);
+=======
+    return spMeshNumberOfEntity(spMeshAttrMesh((spMeshAttr *) (sp)), SP_DOMAIN_ALL,
+                                spMeshAttrForm((spMeshAttr *) (sp))) * spParticleMaxFiberLength(sp);
+>>>>>>> 2e9eded5bf62354a4eaba5fdca2d0fe0ef1b231f
 }
 int spParticleInitialize(spParticle *sp)
 {
@@ -148,7 +158,11 @@ int spParticleInitialize(spParticle *sp)
 
     spParticleFiber *data = (spParticleFiber *) spParticleData(sp);
 
+<<<<<<< HEAD
     SP_CALL(spParallelMemset(data->id, 0, number_of_entities * sizeof(int)));
+=======
+    SP_CALL(spParallelMemset(data->id, 0, number_of_entities * sizeof(MeshEntityId)));
+>>>>>>> 2e9eded5bf62354a4eaba5fdca2d0fe0ef1b231f
 
     Real lower[3] = {0, 0, 0};
 
@@ -163,7 +177,11 @@ int spParticleInitialize(spParticle *sp)
 int spParticleSetPIC(spParticle *sp, size_type pic)
 {
     sp->m_max_fiber_length_ =
+<<<<<<< HEAD
         (3 * pic / SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE / 2 + 1) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
+=======
+        (2 * pic / SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE + 1) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
+>>>>>>> 2e9eded5bf62354a4eaba5fdca2d0fe0ef1b231f
     return SP_SUCCESS;
 }
 
