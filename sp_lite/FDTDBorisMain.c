@@ -14,10 +14,12 @@
 #include "spMesh.h"
 #include "spField.h"
 #include "spParticle.h"
+
+#include "spPICBoris.h"
+#include "spFDTD.h"
+
 #include "spMisc.h"
-
-#include "FDTDBoris.h"
-
+#include "spPhysicalConstants.h"
 
 int main(int argc, char **argv)
 {
@@ -82,12 +84,10 @@ int main(int argc, char **argv)
     /*****************************************************************************************************************/
 
     spParticle *sp = NULL;
-    Real SI_elementary_charge = 1.60217656e-19;
-    Real SI_electron_mass = 9.10938291e-31;
-    Real SI_proton_mass = 1.672621777e-27;
+
     SP_CHECK_RETURN(spBorisYeeParticleCreate(&sp, mesh));
-    SP_CHECK_RETURN(spParticleSetMass(&sp, SI_electron_mass));
-    SP_CHECK_RETURN(spParticleSetCharge(&sp, SI_elementary_charge));
+    SP_CHECK_RETURN(spParticleSetMass(sp, SI_electron_mass));
+    SP_CHECK_RETURN(spParticleSetCharge(sp, SI_elementary_charge));
     SP_CHECK_RETURN(spBorisYeeParticleInitialize(sp, PIC, n0, T0));
 
     /*****************************************************************************************************************/
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 
         SP_CHECK_RETURN(spFieldClear(fJ));
         SP_CHECK_RETURN(spBorisYeeParticleUpdate(sp, dt, fE, fB, fRho, fJ));
-        SP_CHECK_RETURN(spUpdateFieldYee(mesh, dt, fRho, fJ, fE, fB));
+        SP_CHECK_RETURN(spUpdateFieldFDTD(mesh, dt, fRho, fJ, fE, fB));
 
         spParallelDeviceSync();
 
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
     SP_CHECK_RETURN(spFieldDestroy(&fJ));
     SP_CHECK_RETURN(spFieldDestroy(&fRho));
 
-//    SP_CHECK_RETURN(spParticleDestroy(&sp));
+    SP_CHECK_RETURN(spParticleDestroy(&sp));
 
     SP_CHECK_RETURN(spMeshDestroy(&mesh));
 

@@ -33,11 +33,5 @@ int spBorisYeeParticleUpdate(spParticle *sp,
                              struct spField_s *fRho,
                              struct spField_s *fJ);
 
-int spUpdateFieldYee(struct spMesh_s const *ctx,
-                     Real dt,
-                     const struct spField_s *fRho,
-                     const struct spField_s *fJ,
-                     struct spField_s *fE,
-                     struct spField_s *fB);
 
 #endif //SIMPLA_BORISYEE_H
