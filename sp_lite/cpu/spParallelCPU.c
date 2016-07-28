@@ -72,3 +72,14 @@ int spParallelHostFree(void **p)
 
     return SP_SUCCESS;
 }
+int spParallelDeviceFillReal(Real *d, Real v, size_type s)
+{
+    for (int i = 0; i < s; ++i) { d[s] = v; }
+    return SP_SUCCESS;
+};
+
+int spParallelDeviceFillInt(int *d, int v, size_type s)
+{
+    for (int i = 0; i < s; ++i) { d[s] = v; }
+    return SP_SUCCESS;
+};

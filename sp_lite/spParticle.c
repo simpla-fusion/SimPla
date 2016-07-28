@@ -229,13 +229,7 @@ int spParticleSync(spParticle *sp)
 
 }
 
-/*****************************************************************************************
- **  2016-07-10 Salmon
- *  TODO
- *   1. page counting need optimize
- *   2. parallel write incorrect, need calculate global offset (file dataspace) before write
- *
- */
+
 int
 spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag)
 {

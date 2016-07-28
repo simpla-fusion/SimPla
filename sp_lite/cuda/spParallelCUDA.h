@@ -11,6 +11,9 @@
 //#include </usr/local/cuda/include/curand_kernel.h>
 #include </usr/local/cuda/include/device_launch_parameters.h>
 #include </usr/local/cuda/include/cuda_runtime_api.h>
+#include </usr/local/cuda/include/cuda.h>
+#include </usr/local/cuda/include/curand_kernel.h>
+
 
 #if !defined(__CUDA_ARCH__)
 #define CUDA_CALL(_CMD_)                                            \

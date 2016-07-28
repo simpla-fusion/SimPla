@@ -137,23 +137,3 @@ int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real co
 };
 
 
-int spRandomUniformN(Real **data, int num_of_dims, size_type num_of_sample, Real const *lower, Real const *upper)
-{
-    return SP_SUCCESS;
-};
-
-/**
- *  \f[
- *      f\left(v\right)\equiv\frac{1}{\sqrt{\left(2\pi\sigma\right)^{3}}}\exp\left(-\frac{\left(v-u\right)^{2}}{\sigma^{2}}\right)
- *  \f]
- * @param data
- * @param num_of_sample
- * @param u0
- * @param sigma
- * @return
- */
-int spRandomNormal3(Real **data, size_type num_of_sample, Real const *u0, Real sigma)
-{
-    return SP_SUCCESS;
-
-}

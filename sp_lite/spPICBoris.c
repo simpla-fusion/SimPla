@@ -27,7 +27,6 @@ int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
     SP_PARTICLE_DATA_DESC_ADD((*sp), struct boris_particle_s, Real, f);
     SP_PARTICLE_DATA_DESC_ADD((*sp), struct boris_particle_s, Real, w);
 
-
 }
 
 int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0)
@@ -36,7 +35,7 @@ int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0)
 
     size_type number_of_entities = spParticleNumberOfEntities(sp);
 
-    spParticleInitialize(sp);
+    SP_CALL(spParticleInitialize(sp));
 
     struct boris_particle_s *data = (struct boris_particle_s *) spParticleData(sp);
 
@@ -44,11 +43,11 @@ int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0)
 
     Real u[3] = {0, 0, 0};
 
-    spRandomNormal3(v, number_of_entities, u, sqrt(2.0 * T0 * SI_Boltzmann_constant / spParticleGetMass(sp)));
+    SP_CALL(spRandomNormal3(v, number_of_entities, u, sqrt(2.0 * T0 * SI_Boltzmann_constant / spParticleGetMass(sp))));
 
-    spParallelMemset(data->f, 0, number_of_entities * sizeof(Real));
+    SP_CALL(spParallelDeviceFillReal(data->f, n0, number_of_entities));
 
-    spParallelMemset(data->w, 0, number_of_entities * sizeof(Real));
+    SP_CALL(spParallelMemset(data->w, 0, number_of_entities * sizeof(Real)));
 
     return SP_SUCCESS;
 }
