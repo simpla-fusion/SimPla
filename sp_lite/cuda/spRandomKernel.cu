@@ -6,9 +6,14 @@ extern "C"
 #include <stdio.h>
 #include <stdlib.h>
 #include "spParallelCUDA.h"
+}
+
+#include</usr/local/cuda/include/cuda.h>
+#include </usr/local/cuda/include/device_launch_parameters.h>
+#include </usr/local/cuda/include/cuda_runtime_api.h>
+#include </usr/local/cuda/include/curand_kernel.h>
 
 #include </usr/local/cuda/include/curand.h>
-}
 
 
 #define THREADS_PER_BLOCK 64
@@ -48,7 +53,7 @@ setup_kernel(unsigned long long *sobolDirectionVectors,
 
 /**
  * This kernel generates random 6D points and increments a counter if
- * a point is within a unit sphere   
+ * a point is within a unit sphere
  *  \f[
  *      f\left(v\right)\equiv\frac{1}{\sqrt{\left(2\pi\sigma\right)^{3}}}\exp\left(-\frac{\left(v-u\right)^{2}}{\sigma^{2}}\right)
  *  \f]
@@ -149,11 +154,15 @@ int spRandomSobolDestroy(spRandomSobolSequences **gen)
 
     return spParallelHostFree((void **) gen);
 }
+
 int
 spRandomUniformNormal6(spRandomSobolSequences *gen, Real **data, size_type num_of_sample, Real const *u0, Real sigma)
 {
+    Real3 min;
+    Real3 length;
     /* @formatter:off */
-    generate_kernel<<<BLOCK_COUNT, THREADS_PER_BLOCK>>>(gen->devSobol64States, num_of_sample, data);
+    generate_kernel<<<BLOCK_COUNT, THREADS_PER_BLOCK>>>(gen->devSobol64States, data,0, num_of_sample  ,   min,   length,
+            real2Real3(u0),   sigma);
     /* @formatter:on */
     return EXIT_SUCCESS;
 }

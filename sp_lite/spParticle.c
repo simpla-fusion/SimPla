@@ -159,7 +159,7 @@ int spParticleInitialize(spParticle *sp)
 
     Real *r[3] = {data->rx, data->ry, data->rz};
 
-    SP_CALL(spRandomUniformN(r, 3, number_of_entities, lower, upper));
+//    SP_CALL(spRandomUniformN(r, 3, number_of_entities, lower, upper));
 
 }
 

@@ -62,7 +62,9 @@ Real spParticleGetCharge(spParticle const *);
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset);
 
 char const *spParticleAttributeName(spParticle *sp, int i);
+
 size_type spParticleAttributeTypeSizeInByte(spParticle *sp, int i);
+
 void *spParticleAttributeData(spParticle *sp, int i);
 
 size_type spParticleNumberOfEntities(spParticle const *sp);

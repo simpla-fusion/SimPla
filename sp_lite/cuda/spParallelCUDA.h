@@ -7,12 +7,7 @@
 
 #include "../sp_lite_def.h"
 #include "../spParallel.h"
-#include </usr/local/cuda/include/cuda.h>
-//#include </usr/local/cuda/include/curand_kernel.h>
-#include </usr/local/cuda/include/device_launch_parameters.h>
-#include </usr/local/cuda/include/cuda_runtime_api.h>
-#include </usr/local/cuda/include/cuda.h>
-#include </usr/local/cuda/include/curand_kernel.h>
+#include "../../../../../../usr/local/cuda/include/vector_types.h"
 
 
 #if !defined(__CUDA_ARCH__)
@@ -40,11 +35,14 @@
 #ifdef USE_FLOAT_REAL
 typedef float3 Real3;
 #else
-typedef double3 Real3;
+typedef float3 Real3;
 #endif
 
 dim3 sizeType2Dim3(size_type const *v);
 
 Real3 real2Real3(Real const *v);
+
+
+#define DEVICE_INLINE __inline__ __attribute__((always_inline)) __device__
 
 #endif //SIMPLA_SPPARALLEL_CU_H

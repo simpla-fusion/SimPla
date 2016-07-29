@@ -43,7 +43,7 @@ int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0)
 
     Real u[3] = {0, 0, 0};
 
-    SP_CALL(spRandomNormal3(v, number_of_entities, u, sqrt(2.0 * T0 * SI_Boltzmann_constant / spParticleGetMass(sp))));
+//    SP_CALL(spRandomUniformNormal6(v, number_of_entities, u, sqrt(2.0 * T0 * SI_Boltzmann_constant / spParticleGetMass(sp))));
 
     SP_CALL(spParallelDeviceFillReal(data->f, n0, number_of_entities));
 
