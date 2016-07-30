@@ -8,6 +8,7 @@ extern "C"
 #include "spParallelCUDA.h"
 }
 
+#include "../spRandom.h"
 #include</usr/local/cuda/include/cuda.h>
 #include </usr/local/cuda/include/device_launch_parameters.h>
 #include </usr/local/cuda/include/cuda_runtime_api.h>
@@ -32,7 +33,9 @@ extern "C"
 /**
  * This kernel initializes state per thread for each of x, y, and z,vx,vy,vz
  */
-__global__ void
+__global__
+
+void
 setup_kernel(unsigned long long *sobolDirectionVectors,
              unsigned long long *sobolScrambleConstants,
              int num_of_dim, size_type offset,
@@ -64,7 +67,9 @@ setup_kernel(unsigned long long *sobolDirectionVectors,
  * @return
  */
 
-__global__ void
+__global__
+
+void
 generate_kernel(curandStateScrambledSobol64 *state,
                 Real **data, size_type offset, size_type num, Real3 min, Real3 length, Real3 u0, Real vT)
 {
@@ -86,18 +91,18 @@ generate_kernel(curandStateScrambledSobol64 *state,
 
 }
 
-typedef struct spRandomSobolSequences_s
+typedef struct spRandomGenerator_s
 {
     curandStateScrambledSobol64 *devSobol64States;
 
     unsigned long long int *devDirectionVectors64;
     unsigned long long int *devScrambleConstants64;
     long long int *devResults, *hostResults;
-} spRandomSobolSequences;
+} spRandomGenerator;
 
-int spRandomSobolCreate(spRandomSobolSequences **gen, int num_of_dimension, size_type offset)
+int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimension, size_type offset)
 {
-    SP_CALL(spParallelHostAlloc((void **) gen, sizeof(spRandomSobolSequences)));
+    SP_CALL(spParallelHostAlloc((void **) gen, sizeof(spRandomGenerator)));
 
 
     curandDirectionVectors64_t *hostVectors64;
@@ -145,24 +150,40 @@ int spRandomSobolCreate(spRandomSobolSequences **gen, int num_of_dimension, size
     return SP_SUCCESS;
 }
 
-int spRandomSobolDestroy(spRandomSobolSequences **gen)
+int spRandomGeneratorDestroy(spRandomGenerator **gen)
 {
     CUDA_CALL(cudaFree((*gen)->devSobol64States));
     CUDA_CALL(cudaFree((*gen)->devDirectionVectors64));
     CUDA_CALL(cudaFree((*gen)->devScrambleConstants64));
-
-
     return spParallelHostFree((void **) gen);
 }
 
+/**
+ * data[i][s]=a*dist(rand())+b;
+ * @param gen
+ * @param data
+ * @param num_of_dimension
+ * @param num_of_sample
+ * @param u0
+ * @param sigma
+ * @return
+ */
 int
-spRandomUniformNormal6(spRandomSobolSequences *gen, Real **data, size_type num_of_sample, Real const *u0, Real sigma)
+spRandomGenerateSimple(spRandomGenerator *gen, Real **data,size_type num_of_sample, int num_of_dimension,
+                       int const *dist_types, Real const *a, Real const *b)
 {
     Real3 min;
     Real3 length;
     /* @formatter:off */
-    generate_kernel<<<BLOCK_COUNT, THREADS_PER_BLOCK>>>(gen->devSobol64States, data,0, num_of_sample  ,   min,   length,
-            real2Real3(u0),   sigma);
+//    generate_kernel<<<BLOCK_COUNT, THREADS_PER_BLOCK>>>(gen->devSobol64States, data,0, num_of_sample  ,   min,   length,
+//            real2Real3(u0),   sigma);
     /* @formatter:on */
     return EXIT_SUCCESS;
+}
+
+int
+spRandomUniformNormal(spRandomGenerator *gen, Real **data, size_type num_of_sample, int num_of_dimension,
+                      Real const *a, Real const *b)
+{
+
 }

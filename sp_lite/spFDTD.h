@@ -24,15 +24,9 @@ int spUpdateFieldFDTD(struct spMesh_s const *ctx,
 static DEVICE_INLINE void spFDTDMaxwell(size_type s, dim3 I,
                                         Real dt, Real3 dt_inv,
                                         Real const *Rho,
-                                        Real const *Jx,
-                                        Real const *Jy,
-                                        Real const *Jz,
-                                        Real *Ex,
-                                        Real *Ey,
-                                        Real *Ez,
-                                        Real *Bx,
-                                        Real *By,
-                                        Real *Bz
+                                        Real const *Jx, Real const *Jy, Real const *Jz,
+                                        Real *Ex, Real *Ey, Real *Ez,
+                                        Real *Bx, Real *By, Real *Bz
 )
 {
 

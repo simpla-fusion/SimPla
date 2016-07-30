@@ -13,6 +13,7 @@
 #include "spField.h"
 #include "spParallel.h"
 #include "spPhysicalConstants.h"
+#include "spRandom.h"
 
 
 int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
@@ -48,6 +49,18 @@ int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0)
     SP_CALL(spParallelDeviceFillReal(data->f, n0, number_of_entities));
 
     SP_CALL(spParallelMemset(data->w, 0, number_of_entities * sizeof(Real)));
+
+    spRandomGenerator *sp_gen;
+    size_type offset;
+    spRandomGeneratorCreate(&sp_gen, SP_RAND_SOBOL, 6, offset);
+    Real3 min;
+    Real3 length;
+    int dist_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_SOBOL, SP_RAND_SOBOL, SP_RAND_SOBOL};
+    Real a[6] = {1, 1, 1, 1, 1, 1};
+    Real b[6] = {0, 0, 0, 0, 0, 0};
+
+    spRandomUniformNormal(sp_gen, (Real **) (spParticleDeviceData(sp) + 1), number_of_entities, 6, a, b);
+    spRandomGeneratorDestroy(&sp_gen);
 
     return SP_SUCCESS;
 }

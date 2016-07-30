@@ -13,6 +13,7 @@ extern "C" {
 #include "../spField.h"
 #include "../spPICBoris.h"
 #include "spParallelCUDA.h"
+#include "../spRandom.h"
 }
 //
 
@@ -42,18 +43,7 @@ spBorisInitializeParticleKernel(void **data)
 }
 
 
-int
-spBorisInitializeParticle(spParticle *sp, size_type num_of_sample, Real const *u0, Real sigma)
-{
-//    spRandomSobolSequences *gen;
-//    Real3 min;
-//    Real3 length;
-//    /* @formatter:off */
-//    generate_kernel<<<BLOCK_COUNT, THREADS_PER_BLOCK>>>(gen->devSobol64States, spParticleData(sp),0, num_of_sample  ,   min,   length,
-//            real2Real3(u0),   sigma);
-//    /* @formatter:on */
-    return EXIT_SUCCESS;
-}
+
 /******************************************************************************************/
 
 
