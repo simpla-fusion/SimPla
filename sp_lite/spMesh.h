@@ -65,7 +65,8 @@ Real const *spMeshGetLocalOrigin(spMesh const *m);
 Real const *spMeshGetGlobalOrigin(spMesh const *m);
 
 Real const *spMeshGetDx(spMesh const *m);
-Real const *spMeshGetInvDx(spMesh const *m) ;
+
+Real const *spMeshGetInvDx(spMesh const *m);
 
 int spMeshGetLocalBox(spMesh const *m, int tag, Real *lower, Real *upper);
 
@@ -78,6 +79,8 @@ int spMeshGetGlobalBox(spMesh const *m, Real *lower, Real *upper);
 int spMeshGetStrides(spMesh const *m, size_type *res);
 
 int spMeshLocalDomain(spMesh const *m, int tag, size_type *dims, size_type *start, size_type *count);
+
+int spMeshLocalDomain2(spMesh const *m, int tag, size_type *min, size_type *max, size_type *stride);
 
 int spMeshGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset);
 

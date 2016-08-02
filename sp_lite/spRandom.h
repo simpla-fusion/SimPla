@@ -10,17 +10,26 @@
 struct spRandomGenerator_s;
 
 typedef struct spRandomGenerator_s spRandomGenerator;
-
-enum { SP_RAND_UNIFORM = 0, SP_RAND_SOBOL };
+enum { SP_RAND_GEN_SOBOL };
+enum { SP_RAND_UNIFORM = 0x1, SP_RAND_NORMAL = 0x10 };
 
 int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimension, size_type offset);
 
 int spRandomGeneratorDestroy(spRandomGenerator **gen);
 
-int spRandomGenerateSimple(spRandomGenerator *gen, Real **data, size_type num_of_sample, int num_of_dimension,
-                           int const *dist_types, Real const *a, Real const *b);
+int spRandomGeneratorSetNumOfDimensions(spRandomGenerator *gen, int n);
 
-int spRandomUniformNormal(spRandomGenerator *gen, Real **data, size_type num_of_sample, int num_of_dimension,
-                          Real const *a, Real const *b);
+int spRandomGeneratorGetNumOfDimensions(spRandomGenerator const *gen);
+
+int spRandomGeneratorSetThreadBlocks(spRandomGenerator *gen, size_type const *blocks, size_type const *threads);
+
+int spRandomGeneratorGetThreadBlocks(spRandomGenerator *gen, size_type *blocks, size_type *threads);
+
+size_type spRandomGeneratorGetNumOfThreads(spRandomGenerator const *gen);
+
+int spRandomDistributionInCell(spRandomGenerator *gen, int const *dist_types, Real **data,
+                               size_type const *min, size_type const *max, size_type const *strides,
+                               size_type num_per_cell);
+
 
 #endif //SIMPLA_SPRANDOM_H

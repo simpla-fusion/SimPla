@@ -20,6 +20,7 @@ MeshEntityId spMeshEntityIdFromArray(size_type const *s)
     id.z = (int16_t) (s[2]);
     return id;
 }
+
 MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s)
 {
     id.x += (int16_t) (s[0] * 2);
@@ -41,6 +42,7 @@ int spMeshAttrDestroy(spMeshAttr **f)
     SP_CALL(spObjectDestroy((spObject **) (f)));
     return SP_SUCCESS;
 };
+
 spMesh const *spMeshAttrMesh(spMeshAttr const *f) { return f->m; }
 
 int spMeshAttrForm(spMeshAttr const *f) { return f->iform; };
@@ -149,7 +151,7 @@ int spMeshDeploy(spMesh *self)
             self->global_start[i] = self->global_dims[i] * mpi_topo_coords[i] / mpi_topo_dims[i];
 
             self->local_count[i] =
-                self->global_dims[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->global_start[i];
+                    self->global_dims[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->global_start[i];
         }
         else
         {
@@ -270,6 +272,7 @@ int spMeshSetDims(spMesh *m, size_type const *dims)
     for (int i = 0; i < m->ndims; ++i) { m->global_dims[i] = dims[i]; }
     return SP_SUCCESS;
 };
+
 size_type const *spMeshGetDims(spMesh const *m) { return m->local_dims; }
 
 int spMeshSetGhostWidth(spMesh *m, size_type const *gw)
@@ -289,6 +292,7 @@ int spMeshSetBox(spMesh *m, Real const *lower, Real const *upper)
     return SP_SUCCESS;
 
 };
+
 int spMeshGetGlobalBox(spMesh const *m, Real *lower, Real *upper)
 {
     for (int i = 0; i < 3; ++i)
@@ -299,8 +303,11 @@ int spMeshGetGlobalBox(spMesh const *m, Real *lower, Real *upper)
 }
 
 Real const *spMeshGetLocalOrigin(spMesh const *m) { return m->x_local_lower; }
+
 Real const *spMeshGetGlobalOrigin(spMesh const *m) { return m->x_global_lower; }
+
 Real const *spMeshGetDx(spMesh const *m) { return m->dx; }
+
 Real const *spMeshGetInvDx(spMesh const *m) { return m->inv_dx; }
 
 int spMeshGetLocalBox(spMesh const *m, int tag, Real *lower, Real *upper)
@@ -375,6 +382,11 @@ int spMeshLocalDomain(spMesh const *m, int tag, size_type *dims, size_type *star
     return success;
 };
 
+int spMeshLocalDomain2(spMesh const *m, int tag, size_type *min, size_type *max, size_type *stride)
+{
+
+}
+
 int spMeshGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset)
 {
     for (int i = 0; i < m->ndims; ++i)
@@ -384,6 +396,7 @@ int spMeshGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset)
     }
     return SP_SUCCESS;
 };
+
 int spMeshGetStrides(spMesh const *m, size_type *res)
 {
     if (res != NULL)
@@ -439,10 +452,10 @@ int spMeshArrayShape(spMesh const *m,
 
 
     SP_CALL(spMeshLocalDomain(m,
-                                      domain_tag,
-                                      l_dims + (*start_mesh_dim),
-                                      l_start + (*start_mesh_dim),
-                                      l_count + (*start_mesh_dim)));
+                              domain_tag,
+                              l_dims + (*start_mesh_dim),
+                              l_start + (*start_mesh_dim),
+                              l_count + (*start_mesh_dim)));
 
 
     if (g_dims != NULL && g_start != NULL)

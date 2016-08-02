@@ -14,6 +14,7 @@
 #include "spParticle.h"
 #include "spParallel.h"
 
+#include "spRandom.h"
 
 #ifndef SP_MAX_NUMBER_OF_PARTICLE_ATTR
 #    define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
@@ -106,18 +107,24 @@ int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type
 
     ++(sp->m_num_of_attrs_);
 }
-char const *spParticleAttributeName(spParticle *sp, int i) { return sp->m_attrs_[i].name; };
 
-size_type spParticleAttributeTypeSizeInByte(spParticle *sp, int i)
+int spParticleGetNumberOfAttributes(spParticle const *sp)
+{
+    return sp->m_num_of_attrs_;
+}
+
+char const *spParticleGetAttributeName(spParticle *sp, int i) { return sp->m_attrs_[i].name; };
+
+size_type spParticleGetAttributeTypeSizeInByte(spParticle *sp, int i)
 {
     return spDataTypeSizeInByte(sp->m_attrs_[i].data_type);
 };
 
-void *spParticleAttributeData(spParticle *sp, int i) { return sp->m_attrs_[i].data; }
+void *spParticleGetAttributeData(spParticle *sp, int i) { return sp->m_attrs_[i].data; }
 
 int spParticleDeploy(spParticle *sp)
 {
-    size_type number_of_entities = spParticleNumberOfEntities(sp);
+    size_type number_of_entities = spParticleGetNumberOfEntities(sp);
 
     assert (sp->m_max_fiber_length_ > 0);
 
@@ -136,46 +143,70 @@ int spParticleDeploy(spParticle *sp)
     return SP_SUCCESS;
 }
 
-size_type spParticleNumberOfEntities(spParticle const *sp)
+size_type spParticleGetNumberOfEntities(spParticle const *sp)
 {
     spMesh const *m = spMeshAttrMesh((spMeshAttr *) (sp));
-    size_type s = spParticleMaxFiberLength(sp);
+    size_type s = spParticleGetMaxFiberLength(sp);
     size_type n = spMeshNumberOfEntity(m, SP_DOMAIN_ALL, spMeshAttrForm((spMeshAttr *) (sp)));
-    return n * spParticleMaxFiberLength(sp);
+    return n * spParticleGetMaxFiberLength(sp);
 
 }
-int spParticleInitialize(spParticle *sp)
+
+int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_types)
 {
-    size_type number_of_entities = spParticleNumberOfEntities(sp);
+    spMesh const *m = spMeshAttrMesh((spMeshAttr *) sp);
 
-    spParticleFiber *data = (spParticleFiber *) spParticleData(sp);
+    int iform = spMeshAttrForm((spMeshAttr *) sp);
 
-    SP_CALL(spParallelMemset(data->id, 0, number_of_entities * sizeof(int)));
+    size_type max_number_of_entities = spParticleGetNumberOfEntities(sp);
+
+    int num_of_dimensions = spParticleGetNumberOfAttributes(sp);
+
+    int l_dist_types[num_of_dimensions];
+    for (int i = 0; i < num_of_dimensions - 1; ++i)
+    {
+        l_dist_types[i] = dist_types == NULL ? SP_RAND_UNIFORM : dist_types[i];
+    }
+
+    spParticleFiber *data = (spParticleFiber *) spParticleGetData(sp);
+
+    SP_CALL(spParallelMemset(data->id, 0, max_number_of_entities * sizeof(int)));
+
+    size_type x_min[3], x_max[3], strides[3];
+    spMeshLocalDomain2(m, SP_DOMAIN_CENTER, x_min, x_max, strides);
+    strides[0] *= spParticleGetMaxFiberLength(sp);
+    strides[1] *= spParticleGetMaxFiberLength(sp);
+    strides[2] *= spParticleGetMaxFiberLength(sp);
 
 
-    Real lower[3] = {0, 0, 0};
+    size_type offset = 0;// spMeshNumberOfEntity(m, SP_DOMAIN_CENTER, iform) * num_of_pic;
 
-    Real upper[3] = {1, 1, 1};
+//        spParallelScan(&offset);
+    spRandomGenerator *sp_gen;
+    spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, num_of_dimensions, offset);
 
-    Real *r[3] = {data->rx, data->ry, data->rz};
+    spRandomDistributionInCell(sp_gen, l_dist_types,
+                               (Real **) (spParticleGetDeviceData(sp) + 1),
+                               x_min, x_max, strides, max_number_of_entities);
 
-//    SP_CALL(spRandomUniformN(r, 3, number_of_entities, lower, upper));
+    spRandomGeneratorDestroy(&sp_gen);
+
 
 }
 
 int spParticleSetPIC(spParticle *sp, size_type pic)
 {
     sp->m_max_fiber_length_ =
-        (3 * pic / SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE / 2 + 1) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
+            (3 * pic / SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE / 2 + 1) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
 
     return SP_SUCCESS;
 }
 
-size_type spParticleMaxFiberLength(const spParticle *sp) { return sp->m_max_fiber_length_; }
+size_type spParticleGetMaxFiberLength(const spParticle *sp) { return sp->m_max_fiber_length_; }
 
-void **spParticleDeviceData(spParticle *sp) { return sp->m_data_root_device_; };
+void **spParticleGetDeviceData(spParticle *sp) { return sp->m_data_root_device_; };
 
-void **spParticleData(spParticle *sp) { return sp->m_data_root_; };
+void **spParticleGetData(spParticle *sp) { return sp->m_data_root_; };
 
 spMesh const *spParticleMesh(spParticle const *sp) { return sp->m; };
 
@@ -214,7 +245,7 @@ int spParticleSync(spParticle *sp)
     size_type l_start[ndims + 1];
     size_type l_count[ndims + 1];
 
-    size_type num_of_entities = spParticleMaxFiberLength(sp);
+    size_type num_of_entities = spParticleGetMaxFiberLength(sp);
 
     SP_CALL(spMeshArrayShape(m, SP_DOMAIN_CENTER, 1, &num_of_entities,
                              &array_ndims, &mesh_start_dim, NULL, NULL, l_dims, l_start, l_count, SP_FALSE));
@@ -261,7 +292,7 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
     size_type g_dims[ndims + 1];
     size_type g_start[ndims + 1];
 
-    size_type num_of_entities = spParticleMaxFiberLength(sp);
+    size_type num_of_entities = spParticleGetMaxFiberLength(sp);
 
     spMeshArrayShape(m, SP_DOMAIN_CENTER, 1, &num_of_entities,
                      &array_ndims, &mesh_start_dim, g_dims, g_start, l_dims, l_start, l_count,

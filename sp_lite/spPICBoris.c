@@ -15,7 +15,6 @@
 #include "spPhysicalConstants.h"
 #include "spRandom.h"
 
-
 int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
 {
     if (sp == NULL) { return SP_FAILED; }
@@ -30,37 +29,22 @@ int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
 
 }
 
-int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0)
+int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0, size_type num_pic)
 {
     SP_CALL(spParticleDeploy(sp));
 
-    size_type number_of_entities = spParticleNumberOfEntities(sp);
+    size_type max_number_of_entities = spParticleGetNumberOfEntities(sp);
 
-    SP_CALL(spParticleInitialize(sp));
+    int dist_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
 
-    struct boris_particle_s *data = (struct boris_particle_s *) spParticleData(sp);
+    SP_CALL(spParticleInitialize(sp, num_pic, dist_type));
 
-    Real *v[3] = {data->vx, data->vx, data->vx};
+    boris_particle *data = (boris_particle *) spParticleGetDeviceData(sp);
+//    Real *v[3] = {data->vx, data->vx, data->vx};
+//    Real u[3] = {0, 0, 0};
+//    SP_CALL(spRandomUniformNormal6(v, max_number_of_entities, u, sqrt(2.0 * T0 * SI_Boltzmann_constant / spParticleGetMass(sp))));
+    SP_CALL(spParallelDeviceFillReal(data->f, n0, max_number_of_entities));
 
-    Real u[3] = {0, 0, 0};
-
-//    SP_CALL(spRandomUniformNormal6(v, number_of_entities, u, sqrt(2.0 * T0 * SI_Boltzmann_constant / spParticleGetMass(sp))));
-
-    SP_CALL(spParallelDeviceFillReal(data->f, n0, number_of_entities));
-
-    SP_CALL(spParallelMemset(data->w, 0, number_of_entities * sizeof(Real)));
-
-    spRandomGenerator *sp_gen;
-    size_type offset;
-    spRandomGeneratorCreate(&sp_gen, SP_RAND_SOBOL, 6, offset);
-    Real3 min;
-    Real3 length;
-    int dist_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_SOBOL, SP_RAND_SOBOL, SP_RAND_SOBOL};
-    Real a[6] = {1, 1, 1, 1, 1, 1};
-    Real b[6] = {0, 0, 0, 0, 0, 0};
-
-    spRandomUniformNormal(sp_gen, (Real **) (spParticleDeviceData(sp) + 1), number_of_entities, 6, a, b);
-    spRandomGeneratorDestroy(&sp_gen);
-
+    SP_CALL(spParallelMemset(data->w, 0, max_number_of_entities * sizeof(Real)));
     return SP_SUCCESS;
 }

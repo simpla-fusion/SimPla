@@ -50,7 +50,6 @@ int spParallelDeviceFillInt(int *d, int v, size_type s);
 
 int spParallelDeviceFillReal(Real *d, Real v, size_type s);
 
-int spRandomUniformN(Real **data, int num_of_dims, size_type num_of_sample, Real const *lower, Real const *upper);
 
 /**
  *  \f[

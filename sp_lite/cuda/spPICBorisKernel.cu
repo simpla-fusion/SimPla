@@ -142,7 +142,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //                CALL_KERNEL(spBorisYeeUpdateParticleKernel,
 //                            sizeType2Dim3(spMeshArrayShape(spParticleMesh(sp))),
 //                            spParticleFiberLength(sp),
-//                            spParticleDeviceData(sp),
+//                            spParticleGetDeviceData(sp),
 //                            (Real const *) spFieldDeviceDataConst(fE),
 //                            (Real const *) spFieldDeviceDataConst(fB),
 //                            inv_dv, cmr_dt, global_start);
@@ -151,7 +151,7 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //    CALL_KERNEL(spUpdateParticleBorisScatterBlockKernel,
 //                sizeType2Dim3(spMeshArrayShape(spParticleMesh(sp))),
 //                spParticleFiberLength(sp),
-//                spParticleDeviceData(sp),
+//                spParticleGetDeviceData(sp),
 //                (fRho->device_data), (fJ->device_data));
 
 //    spParallelDeviceSync();        //wait for iteration to finish
@@ -567,7 +567,6 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
 //        while (pg != 0x0)
 //        {
 //
-//            // FIXME THIS IS WRONG!!!
 //
 //
 //            for (size_type s = THREAD_IDX.x; s < SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE; s += BLOCK_DIM.x)
