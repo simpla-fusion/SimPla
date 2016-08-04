@@ -27,9 +27,9 @@ int spRandomGeneratorGetThreadBlocks(spRandomGenerator *gen, size_type *blocks, 
 
 size_type spRandomGeneratorGetNumOfThreads(spRandomGenerator const *gen);
 
-int spRandomDistributionInCell(spRandomGenerator *gen, int const *dist_types, Real **data,
-                               size_type const *min, size_type const *max, size_type const *strides,
-                               size_type num_per_cell);
+int spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, Real **data,
+                                    size_type const *min, size_type const *max, size_type const *strides,
+                                    size_type num_per_cell);
 
 
 #endif //SIMPLA_SPRANDOM_H

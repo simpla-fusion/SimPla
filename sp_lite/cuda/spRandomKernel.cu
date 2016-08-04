@@ -32,8 +32,8 @@ typedef struct spRandomGenerator_s
     unsigned long long int *devScrambleConstants64;
 
     int num_of_dimensions;
-    dim3 blocks;
-    dim3 threads;
+    size_type blocks[3];
+    size_type threads[3];
     size_type num_of_threads;
 } spRandomGenerator;
 
@@ -134,7 +134,8 @@ int spRandomGeneratorDestroy(spRandomGenerator **gen)
 {
     if (gen != NULL && *gen != NULL && (*gen)->devSobol64States != NULL)
     {
-        SP_CUDA_CALL(cudaFree((*gen)->devSobol64States));
+        CHECK_INT((*gen)->devSobol64States);
+        SP_CUDA_CALL(cudaFree((void *) ((*gen)->devSobol64States)));
         SP_CUDA_CALL(cudaFree((*gen)->devDirectionVectors64));
         SP_CUDA_CALL(cudaFree((*gen)->devScrambleConstants64));
     }
@@ -154,20 +155,23 @@ int spRandomGeneratorGetNumOfDimensions(spRandomGenerator const *gen)
 
 int spRandomGeneratorSetThreadBlocks(spRandomGenerator *gen, size_type const *blocks, size_type const *threads)
 {
-    gen->blocks = sizeType2Dim3(blocks);
-    gen->threads = sizeType2Dim3(threads);
-
+    gen->blocks[0] = blocks[0];
+    gen->blocks[1] = blocks[1];
+    gen->blocks[2] = blocks[2];
+    gen->threads[0] = threads[0];
+    gen->threads[1] = threads[1];
+    gen->threads[2] = threads[2];
     gen->num_of_threads = blocks[0] * blocks[1] * blocks[2] * threads[0] * threads[1] * threads[2];
 }
 
 int spRandomGeneratorGetThreadBlocks(spRandomGenerator *gen, size_type *blocks, size_type *threads)
 {
-    blocks[0] = gen->blocks.x;
-    blocks[1] = gen->blocks.y;
-    blocks[2] = gen->blocks.z;
-    threads[0] = gen->threads.x;
-    threads[1] = gen->threads.y;
-    threads[2] = gen->threads.z;
+    blocks[0] = gen->blocks[0];
+    blocks[1] = gen->blocks[1];
+    blocks[2] = gen->blocks[2];
+    threads[0] = gen->threads[0];
+    threads[1] = gen->threads[1];
+    threads[2] = gen->threads[2];
 
     return SP_SUCCESS;
 }
@@ -188,22 +192,24 @@ spRandomDistributionInCellUniformKernel(curandStateScrambledSobol64 *state, Real
             (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
             (threadIdx.z + blockIdx.z * blockDim.z) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
 
+    size_type threadId = (threadIdx.x) +
+                         (threadIdx.y) * blockDim.x +
+                         (threadIdx.z) * blockDim.x * blockDim.y;
+
     curandStateScrambledSobol64 local_state = state[total_thread_id];
 
     size_type num_of_thread = blockDim.z * blockDim.x * blockDim.y;
 
-    for (int x = blockIdx.x + min.x; x < max.x; ++x)
-        for (int y = blockIdx.y + min.y; y < max.y; ++y)
-            for (int z = blockIdx.z + min.z; z < max.z; ++z)
+    for (int x = blockIdx.x + min.x; x < max.x; x += gridDim.x)
+        for (int y = blockIdx.y + min.y; y < max.y; y += gridDim.y)
+            for (int z = blockIdx.z + min.z; z < max.z; z += gridDim.z)
             {
-                Real *local_data = data +
-                                   (blockIdx.x + min.x) * strides.x +
-                                   (blockIdx.y + min.y) * strides.y +
-                                   (blockIdx.z + min.z) * strides.z;
+                size_type s0 = threadId + x * strides.x + y * strides.y + z * strides.z;
+
                 /* Generate quasi-random double precision coordinates */
                 for (size_type s = 0; s < num; s += num_of_thread)
                 {
-                    local_data[s] = curand_uniform(&local_state);
+                    data[s0 + s] = curand_uniform(&local_state);
                 }
             }
 
@@ -221,22 +227,24 @@ spRandomDistributionInCellNormalKernel(curandStateScrambledSobol64 *state, Real 
             (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
             (threadIdx.z + blockIdx.z * blockDim.z) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
 
+    size_type threadId = (threadIdx.x) +
+                         (threadIdx.y) * blockDim.x +
+                         (threadIdx.z) * blockDim.x * blockDim.y;
+
     curandStateScrambledSobol64 local_state = state[total_thread_id];
 
     size_type num_of_thread = blockDim.z * blockDim.x * blockDim.y;
 
-    for (int x = blockIdx.x + min.x; x < max.x; ++x)
-        for (int y = blockIdx.y + min.y; y < max.y; ++y)
-            for (int z = blockIdx.z + min.z; z < max.z; ++z)
+    for (int x = blockIdx.x + min.x; x < max.x; x += gridDim.x)
+        for (int y = blockIdx.y + min.y; y < max.y; y += gridDim.y)
+            for (int z = blockIdx.z + min.z; z < max.z; z += gridDim.z)
             {
-                Real *local_data = data +
-                                   (blockIdx.x + min.x) * strides.x +
-                                   (blockIdx.y + min.y) * strides.y +
-                                   (blockIdx.z + min.z) * strides.z;
+                size_type s0 = threadId + x * strides.x + y * strides.y + z * strides.z;
+
                 /* Generate quasi-random double precision coordinates */
                 for (size_type s = 0; s < num; s += num_of_thread)
                 {
-                    local_data[s] = curand_normal(&local_state);
+                    data[s0 + s] = curand_normal(&local_state);
                 }
             }
 
@@ -255,16 +263,36 @@ spRandomDistributionInCellNormalKernel(curandStateScrambledSobol64 *state, Real 
  * @return
  */
 int
-spRandomDistributionInCell(spRandomGenerator *gen, int const *dist_types, Real **data,
-                           size_type const *min, size_type const *max, size_type const *strides,
-                           size_type num_per_cell)
+spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, Real **data,
+                                size_type const *min, size_type const *max, size_type const *strides,
+                                size_type num_per_cell)
 {
     size_type s_blocks[3], s_threads[3];
+
     spRandomGeneratorGetThreadBlocks(gen, s_blocks, s_threads);
 
     dim3 blocks = sizeType2Dim3(s_blocks), threads = sizeType2Dim3(s_threads);
+
+    CHECK_INT(s_blocks[0]);
+    CHECK_INT(s_blocks[1]);
+    CHECK_INT(s_blocks[2]);
+    CHECK_INT(s_threads[0]);
+    CHECK_INT(s_threads[1]);
+    CHECK_INT(s_threads[2]);
+    CHECK_INT(min[0]);
+    CHECK_INT(min[1]);
+    CHECK_INT(min[2]);
+    CHECK_INT(max[0]);
+    CHECK_INT(max[1]);
+    CHECK_INT(max[2]);
+    CHECK_INT(strides[0]);
+    CHECK_INT(strides[1]);
+    CHECK_INT(strides[2]);
+
+
     for (int n = 0; n < spRandomGeneratorGetNumOfDimensions(gen); ++n)
     {
+        CHECK_INT(n);
         switch (dist_types[n])
         {
             case SP_RAND_NORMAL:

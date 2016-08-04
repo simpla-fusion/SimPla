@@ -377,13 +377,21 @@ int spMeshLocalDomain(spMesh const *m, int tag, size_type *dims, size_type *star
             }
     }
 
-//    if (o != NULL) { for (int i = 0; i < 3; ++i) { o[i] = global_start[i]; }}
     if (dims != NULL) { for (int i = 0; i < 3; ++i) { dims[i] = m->local_dims[i]; }}
     return success;
 };
 
 int spMeshLocalDomain2(spMesh const *m, int tag, size_type *min, size_type *max, size_type *stride)
 {
+    for (int i = 0; i < 3; ++i)
+    {
+        min[i] = m->local_start[i];
+        max[i] = min[i] + m->local_count[i];
+    }
+    stride[0] = 1;
+    stride[1] = m->local_dims[0];
+    stride[2] = stride[1] * m->local_dims[1];
+
 
 }
 
@@ -408,10 +416,8 @@ int spMeshGetStrides(spMesh const *m, size_type *res)
     return SP_SUCCESS;
 }
 
-int spMeshArrayShape(spMesh const *m,
-                     int domain_tag,
-                     int attr_ndims,
-                     size_type const *attr_dims,
+int spMeshArrayShape(spMesh const *m, int domain_tag,
+                     int attr_ndims, size_type const *attr_dims,
                      int *array_ndims,
                      int *start_mesh_dim,
                      size_type *g_dims,
@@ -447,12 +453,10 @@ int spMeshArrayShape(spMesh const *m,
             l_count[mesh_ndims + i] = attr_dims[i];
         }
         *start_mesh_dim = 0;
-
     }
 
 
-    SP_CALL(spMeshLocalDomain(m,
-                              domain_tag,
+    SP_CALL(spMeshLocalDomain(m, domain_tag,
                               l_dims + (*start_mesh_dim),
                               l_start + (*start_mesh_dim),
                               l_count + (*start_mesh_dim)));
@@ -470,10 +474,7 @@ int spMeshArrayShape(spMesh const *m,
 
         SP_CALL(spMeshGlobalOffset(m, g_dims + (*start_mesh_dim), offset + (*start_mesh_dim)));
 
-        for (int i = 0; i < mesh_ndims; ++i)
-        {
-            g_start[*start_mesh_dim + i] += offset[*start_mesh_dim + i];
-        }
+        for (int i = 0; i < mesh_ndims; ++i) { g_start[*start_mesh_dim + i] += offset[*start_mesh_dim + i]; }
     };
 
     return SP_SUCCESS;

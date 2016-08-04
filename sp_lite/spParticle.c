@@ -125,7 +125,7 @@ void *spParticleGetAttributeData(spParticle *sp, int i) { return sp->m_attrs_[i]
 int spParticleDeploy(spParticle *sp)
 {
     size_type number_of_entities = spParticleGetNumberOfEntities(sp);
-
+    CHECK_INT(number_of_entities);
     assert (sp->m_max_fiber_length_ > 0);
 
 
@@ -184,11 +184,12 @@ int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_t
 
 //        spParallelScan(&offset);
     spRandomGenerator *sp_gen;
-    spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, num_of_dimensions, offset);
 
-    spRandomDistributionInCell(sp_gen, l_dist_types,
-                               (Real **) (spParticleGetData(sp) + 1),
-                               x_min, x_max, strides, max_number_of_entities);
+    spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, offset);
+
+    spRandomMultiDistributionInCell(sp_gen, l_dist_types,
+                                    (Real **) (spParticleGetData(sp) + 1),
+                                    x_min, x_max, strides, num_of_pic);
 
     spRandomGeneratorDestroy(&sp_gen);
 
