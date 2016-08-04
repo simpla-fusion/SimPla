@@ -273,23 +273,6 @@ spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, R
 
     dim3 blocks = sizeType2Dim3(s_blocks), threads = sizeType2Dim3(s_threads);
 
-    CHECK_INT(s_blocks[0]);
-    CHECK_INT(s_blocks[1]);
-    CHECK_INT(s_blocks[2]);
-    CHECK_INT(s_threads[0]);
-    CHECK_INT(s_threads[1]);
-    CHECK_INT(s_threads[2]);
-    CHECK_INT(min[0]);
-    CHECK_INT(min[1]);
-    CHECK_INT(min[2]);
-    CHECK_INT(max[0]);
-    CHECK_INT(max[1]);
-    CHECK_INT(max[2]);
-    CHECK_INT(strides[0]);
-    CHECK_INT(strides[1]);
-    CHECK_INT(strides[2]);
-
-
     for (int n = 0; n < spRandomGeneratorGetNumOfDimensions(gen); ++n)
     {
         CHECK_INT(n);
