@@ -256,7 +256,7 @@ struct iterator
 #else
 		++self_[0];
 
-		for (int i = 0; i < ndims - 1; ++i)
+		for (int i = 0; i < m_ndims_ - 1; ++i)
 		{
 			if (self_[i] >= end_[i])
 			{
@@ -289,7 +289,7 @@ struct iterator
 
 		++self_[0];
 
-		for (int i = 0; i < ndims; ++i)
+		for (int i = 0; i < m_ndims_; ++i)
 		{
 			if (self_[i] < begin_[i])
 			{

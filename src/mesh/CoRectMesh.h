@@ -129,7 +129,7 @@ public:
     {
         os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
         os << std::setw(indent + 1) << " " << "Topology = { Type = \"CoRectMesh\", "
-        << "Dimensions = " << dimensions() << " global_start = " << offset() << " }," << " dx = " << dx() << " }," <<
+        << "Dimensions = " << dimensions() << " m_global_start_ = " << offset() << " }," << " dx = " << dx() << " }," <<
         std::endl;
         os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;
 #ifndef NDEBUG

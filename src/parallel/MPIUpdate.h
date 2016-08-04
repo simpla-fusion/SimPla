@@ -97,13 +97,13 @@ void ndarray_update_ghost(void *buffer,
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count;
 //};
 //
-//void make_dist_connection(int ndims, size_t const *global_start, size_t const *stride,
-//		size_t const *count, size_t const *block, size_t const *ghost_width,
+//void make_dist_connection(int m_ndims_, size_t const *m_global_start_, size_t const *stride,
+//		size_t const *count, size_t const *block, size_t const *m_ghost_width_,
 //		std::vector<dist_sync_connection> *dist_connect);
 //
-//void get_ghost_shape(int ndims, size_t const *l_offset,
+//void get_ghost_shape(int m_ndims_, size_t const *l_offset,
 //		size_t const *l_stride, size_t const *l_count, size_t const *l_block,
-//		size_t const *ghost_width,
+//		size_t const *m_ghost_width_,
 //		std::vector<dist_sync_connection> *dist_connect);
 
 }}//namespace simpla{namespace parallel

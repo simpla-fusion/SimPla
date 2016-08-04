@@ -27,7 +27,7 @@ typedef struct spField_s
 
 int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_tag)
 {
-    SP_CALL(spMeshAttrCreate((spMeshAttr **) f, sizeof(spField), mesh, iform));
+    SP_CALL(spMeshAttributeCreate((spMeshAttribute **) f, sizeof(spField), mesh, iform));
 
     (*f)->m = mesh;
     (*f)->iform = iform;
@@ -50,7 +50,7 @@ int spFieldDestroy(spField **f)
         SP_CALL(spDataTypeDestroy(&((*f)->m_data_type_desc_)));
     }
 
-    SP_CALL(spMeshAttrDestroy((spMeshAttr **) f));
+    SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) f));
 
     return SP_SUCCESS;
 }
@@ -60,7 +60,8 @@ int spFieldDeploy(spField *f)
 
     if (f->device_data == NULL)
     {
-        size_type s = spDataTypeSizeInByte(f->m_data_type_desc_) * spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform);
+        size_type s = spDataTypeSizeInByte(f->m_data_type_desc_) *
+                spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 
         spParallelDeviceAlloc((void **) &(f->device_data), s);
     }
@@ -81,7 +82,7 @@ const void *spFieldDeviceDataConst(spField const *f) { return f->device_data; }
 
 int spFieldNumberOfSub(spField const *f)
 {
-    int iform = spMeshAttrForm((spMeshAttr const *) f);
+    int iform = spMeshAttributeForm((spMeshAttribute const *) f);
 
     return (iform == VERTEX || iform == VOLUME) ? 1 : 3;
 }
@@ -89,9 +90,9 @@ int spFieldNumberOfSub(spField const *f)
 int spFieldSubArray(spField *f, void **data)
 {
 
-    spMesh const *m = spMeshAttrMesh((spMeshAttr const *) f);
+    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) f);
 
-    int iform = spMeshAttrForm((spMeshAttr const *) f);
+    int iform = spMeshAttributeForm((spMeshAttribute const *) f);
 
     size_type ele_size_in_byte = spDataTypeSizeInByte(spFieldDataType(f));
 
@@ -106,7 +107,7 @@ int spFieldSubArray(spField *f, void **data)
     {
         assert (spFieldIsSoA(f));
 
-        size_type offset = ele_size_in_byte * spMeshNumberOfEntity(m, SP_DOMAIN_ALL, VERTEX);
+        size_type offset = ele_size_in_byte * spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, VERTEX);
 
         for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * offset; }
 
@@ -119,7 +120,7 @@ int spFieldClear(spField *f)
     SP_CALL(spFieldDeploy(f));
 
     size_type s = spDataTypeSizeInByte(f->m_data_type_desc_)
-        * spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform);
+        * spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 
     spParallelMemset(f->device_data, 0, s);
 
@@ -129,15 +130,15 @@ int spFieldFill(spField *f, Real v)
 {
     spFieldDeploy(f);
 
-    return spParallelDeviceFillReal(f->device_data, v, spMeshNumberOfEntity(f->m, SP_DOMAIN_ALL, f->iform));
+    return spParallelDeviceFillReal(f->device_data, v, spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform));
 
 }
 int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
 {
-    spMesh const *m = spMeshAttrMesh((spMeshAttr const *) f);
-    int iform = spMeshAttrForm((spMeshAttr const *) f);
+    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) f);
+    int iform = spMeshAttributeForm((spMeshAttribute const *) f);
 
-    size_type size_in_byte = spMeshNumberOfEntity(m, SP_DOMAIN_ALL, iform) *
+    size_type size_in_byte = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform) *
         spDataTypeSizeInByte(spFieldDataType(f));
 
     void *f_host;
@@ -145,7 +146,7 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     spParallelHostAlloc(&f_host, size_in_byte);
     spParallelMemcpy((f_host), spFieldData(f), size_in_byte);
 
-    int ndims = spMeshNDims(m);
+    int ndims = spMeshGetNDims(m);
     int array_ndims, mesh_start_dim;
 
     size_type l_dims[ndims + 1];
@@ -156,10 +157,10 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     size_type g_start[ndims + 1];
 
     size_type num_of_sub = 3;
-    SP_CALL(spMeshArrayShape(m, SP_DOMAIN_CENTER,
-                                     (iform == VERTEX || iform == VOLUME) ? 0 : 1,
-                                     &num_of_sub, &array_ndims, &mesh_start_dim,
-                                     g_dims, g_start, l_dims, l_start, l_count, spFieldIsSoA(f)));
+    SP_CALL(spMeshGetGlobalArrayShape(m, SP_DOMAIN_CENTER,
+                                      (iform == VERTEX || iform == VOLUME) ? 0 : 1,
+                                      &num_of_sub, &array_ndims, &mesh_start_dim,
+                                      g_dims, g_start, l_dims, l_start, l_count, spFieldIsSoA(f)));
 
     SP_CALL(spIOStreamWriteSimple(os, name, spFieldDataType(f),
                                           f_host, array_ndims, l_dims,
@@ -178,9 +179,9 @@ int spFieldRead(spField *f, spIOStream *os, char const name[], int flag)
 
 int spFieldSync(spField *f)
 {
-    spMesh const *m = spMeshAttrMesh((spMeshAttr const *) f);
-    int iform = spMeshAttrForm((spMeshAttr const *) f);
-    int ndims = spMeshNDims(m);
+    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) f);
+    int iform = spMeshAttributeForm((spMeshAttribute const *) f);
+    int ndims = spMeshGetNDims(m);
     int array_ndims, mesh_start_dim;
 
     size_type l_dims[ndims + 1];
@@ -189,10 +190,10 @@ int spFieldSync(spField *f)
 
     size_type num_of_sub = 3;
 
-    SP_CALL(spMeshArrayShape(m, SP_DOMAIN_CENTER,
-                                     (iform == VERTEX || iform == VOLUME) ? 0 : 1,
-                                     &num_of_sub, &array_ndims, &mesh_start_dim, NULL, NULL,
-                                     l_dims, l_start, l_count, spFieldIsSoA(f)));
+    SP_CALL(spMeshGetGlobalArrayShape(m, SP_DOMAIN_CENTER,
+                                      (iform == VERTEX || iform == VOLUME) ? 0 : 1,
+                                      &num_of_sub, &array_ndims, &mesh_start_dim, NULL, NULL,
+                                      l_dims, l_start, l_count, spFieldIsSoA(f)));
 
 
     SP_CALL(spParallelUpdateNdArrayHalo(spFieldDeviceData(f), spFieldDataType(f),
@@ -202,7 +203,7 @@ int spFieldSync(spField *f)
 }
 int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real const **v)
 {
-    spMesh const *m = spMeshAttrMesh((spMeshAttr const *) f);
+    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) f);
 
     if (spFieldIsSoA(f))
     {

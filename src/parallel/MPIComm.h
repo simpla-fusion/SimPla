@@ -62,7 +62,7 @@ public:
 
     int get_rank(int const *d) const;
 
-//    std::tuple<int, int, int> make_send_recv_tag(size_t prefix, const nTuple<int, 3> &global_start);
+//    std::tuple<int, int, int> make_send_recv_tag(size_t prefix, const nTuple<int, 3> &m_global_start_);
 
 private:
     struct pimpl_s;

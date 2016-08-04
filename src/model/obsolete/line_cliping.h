@@ -30,7 +30,7 @@ class polygon_clip
 	size_t TWOBITS = 10; /* id for 2-bit code */
 
 	/* Two lookup tables for finding turning point.
-	 Tcc is used to compute a correct global_start.
+	 Tcc is used to compute a correct m_global_start_.
 	 Cra gives an index into the clipRegion array for turning point coordinates. */
 	size_t Tcc[15] =
 	{ 0, -3, -6, 1, 3, 0, 1, 0, 6, 1, 0, 0, 1, 0, 0, 0 };

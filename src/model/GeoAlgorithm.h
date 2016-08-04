@@ -484,12 +484,12 @@ bool box_intersection(TL const &l, TR *r)
 //}
 //
 //template<typename TI>
-//bool clipping(int ndims, TI const * l_begin, TI const * l_end, TI * r_begin,
+//bool clipping(int m_ndims_, TI const * l_begin, TI const * l_end, TI * r_begin,
 //		TI * r_end)
 //{
 //	bool has_overlap = false;
 //
-//	for (int i = 0; i < ndims; ++i)
+//	for (int i = 0; i < m_ndims_; ++i)
 //	{
 //		if (r_end[i] <= l_begin[i] || r_begin[i] >= l_end[i])
 //			return false;

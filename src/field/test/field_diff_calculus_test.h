@@ -64,7 +64,7 @@ protected:
         m.dimensions(dims);
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        m.ghost_width(index_tuple({2, 0, 0}));
+        m.m_ghost_width_(index_tuple({2, 0, 0}));
 #endif
         m.box(box);
         m.deploy();

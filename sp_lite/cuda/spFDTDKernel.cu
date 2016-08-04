@@ -89,27 +89,24 @@ int spUpdateFieldFDTD(struct spMesh_s const *m,
     dim3 block_dim, thread_dim;
 
     size_type dims[4], start[4], count[4];
-
-    spMeshLocalDomain(m, SP_DOMAIN_ALL, dims, start, count);
-
     size_type strides[3];
-
-    spMeshGetStrides(m, strides);
-
-    Real const *inv_dx = spMeshGetInvDx(m);
+    Real inv_dx[3];
+    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_ALL, dims, start, count));
+    SP_CALL(spMeshGetStrides(m, strides));
+    SP_CALL(spMeshGetInvDx(m, inv_dx));
 
     Real dt_inv[3] = {dt * inv_dx[0], dt * inv_dx[1], dt * inv_dx[2]};
 
     Real *rho, *J[3], *E[3], *B[3];
 
 
-    spFieldSubArray((spField *) fRho, (void **) &rho);
+    SP_CALL(spFieldSubArray((spField *) fRho, (void **) &rho));
 
-    spFieldSubArray((spField *) fJ, (void **) J);
+    SP_CALL(spFieldSubArray((spField *) fJ, (void **) J));
 
-    spFieldSubArray(fE, (void **) E);
+    SP_CALL(spFieldSubArray(fE, (void **) E));
 
-    spFieldSubArray(fB, (void **) B);
+    SP_CALL(spFieldSubArray(fB, (void **) B));
 
     CALL_KERNEL(spUpdateFieldFDTDKernel, sizeType2Dim3(dims), 1,
                 dt, real2Real3(dt_inv), sizeType2Dim3(dims), sizeType2Dim3(strides),

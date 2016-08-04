@@ -38,7 +38,7 @@ public:
 
 
     typedef std::tuple<
-            int // ndims
+            int // m_ndims_
             , index_tuple // dimensions
             , index_tuple // start
             , index_tuple // stride

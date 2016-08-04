@@ -35,7 +35,7 @@ void MeshAttribute::sync(bool is_blocking)
     //
     //    typedef typename data_model::DataSpace::index_tuple index_tuple;
     //
-    //    int ndims;
+    //    int m_ndims_;
     //    index_tuple dimensions;
     //    index_tuple start;
     ////    index_tuple stride;
@@ -44,13 +44,13 @@ void MeshAttribute::sync(bool is_blocking)
     //
     //
     //
-    //    std::tie(ndims, dimensions, start, std::ignore, count, std::ignore)
-    //            = ds->memory_space.global_dims();
+    //    std::tie(m_ndims_, dimensions, start, std::ignore, count, std::ignore)
+    //            = ds->memory_space.m_global_dims_();
     //
     //
     //    ASSERT(start + count <= dimensions);
     //
-    //    index_tuple ghost_width = start;
+    //    index_tuple m_ghost_width_ = start;
     //
     //
     //    nTuple<ptrdiff_t, 3> send_offset;
@@ -58,13 +58,13 @@ void MeshAttribute::sync(bool is_blocking)
     //    nTuple<ptrdiff_t, 3> recv_offset;
     //    nTuple<size_t, 3> recv_count;
     //
-    //    for (unsigned int tag = 0, tag_e = (1U << (ndims * 2)); tag < tag_e; ++tag)
+    //    for (unsigned int tag = 0, tag_e = (1U << (m_ndims_ * 2)); tag < tag_e; ++tag)
     //    {
     //        nTuple<int, 3> coord_offset;
     //
     //        bool tag_is_valid = true;
     //
-    //        for (int n = 0; n < ndims; ++n)
+    //        for (int n = 0; n < m_ndims_; ++n)
     //        {
     //            if (((tag >> (n * 2)) & 3UL) == 3UL)
     //            {
@@ -86,17 +86,17 @@ void MeshAttribute::sync(bool is_blocking)
     //                case -1: //left
     //
     //                    send_offset[n] = start[n];
-    //                    send_count[n] = ghost_width[n];
-    //                    recv_offset[n] = start[n] - ghost_width[n];
-    //                    recv_count[n] = ghost_width[n];
+    //                    send_count[n] = m_ghost_width_[n];
+    //                    recv_offset[n] = start[n] - m_ghost_width_[n];
+    //                    recv_count[n] = m_ghost_width_[n];
     //
     //
     //                    break;
     //                case 1: //right
-    //                    send_offset[n] = start[n] + count[n] - ghost_width[n];
-    //                    send_count[n] = ghost_width[n];
+    //                    send_offset[n] = start[n] + count[n] - m_ghost_width_[n];
+    //                    send_count[n] = m_ghost_width_[n];
     //                    recv_offset[n] = start[n] + count[n];
-    //                    recv_count[n] = ghost_width[n];
+    //                    recv_count[n] = m_ghost_width_[n];
     //
     //                    break;
     //                default:

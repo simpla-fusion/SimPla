@@ -134,7 +134,6 @@ int spRandomGeneratorDestroy(spRandomGenerator **gen)
 {
     if (gen != NULL && *gen != NULL && (*gen)->devSobol64States != NULL)
     {
-        CHECK_INT((*gen)->devSobol64States);
         SP_CUDA_CALL(cudaFree((void *) ((*gen)->devSobol64States)));
         SP_CUDA_CALL(cudaFree((*gen)->devDirectionVectors64));
         SP_CUDA_CALL(cudaFree((*gen)->devScrambleConstants64));
@@ -183,8 +182,7 @@ size_type spRandomGeneratorGetNumOfThreads(spRandomGenerator const *gen)
 
 __global__ void
 spRandomDistributionInCellUniformKernel(curandStateScrambledSobol64 *state, Real *data, dim3 min, dim3 max,
-                                        dim3 strides,
-                                        size_type num)
+                                        dim3 strides, size_type num)
 {
 
     size_type total_thread_id =
@@ -207,10 +205,7 @@ spRandomDistributionInCellUniformKernel(curandStateScrambledSobol64 *state, Real
                 size_type s0 = threadId + x * strides.x + y * strides.y + z * strides.z;
 
                 /* Generate quasi-random double precision coordinates */
-                for (size_type s = 0; s < num; s += num_of_thread)
-                {
-                    data[s0 + s] = curand_uniform(&local_state);
-                }
+                for (size_type s = 0; s < num; s += num_of_thread) { data[s0 + s] = curand_uniform(&local_state); }
             }
 
     state[total_thread_id] = local_state;
@@ -273,26 +268,8 @@ spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, R
 
     dim3 blocks = sizeType2Dim3(s_blocks), threads = sizeType2Dim3(s_threads);
 
-    CHECK_INT(s_blocks[0]);
-    CHECK_INT(s_blocks[1]);
-    CHECK_INT(s_blocks[2]);
-    CHECK_INT(s_threads[0]);
-    CHECK_INT(s_threads[1]);
-    CHECK_INT(s_threads[2]);
-    CHECK_INT(min[0]);
-    CHECK_INT(min[1]);
-    CHECK_INT(min[2]);
-    CHECK_INT(max[0]);
-    CHECK_INT(max[1]);
-    CHECK_INT(max[2]);
-    CHECK_INT(strides[0]);
-    CHECK_INT(strides[1]);
-    CHECK_INT(strides[2]);
-
-
     for (int n = 0; n < spRandomGeneratorGetNumOfDimensions(gen); ++n)
     {
-        CHECK_INT(n);
         switch (dist_types[n])
         {
             case SP_RAND_NORMAL:

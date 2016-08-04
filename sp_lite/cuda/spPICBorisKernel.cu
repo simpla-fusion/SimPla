@@ -119,37 +119,34 @@ __global__ void spBorisYeeUpdateParticleKernel(void *data,
 
 int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const spField *fB, spField *fRho, spField *fJ)
 {
-
-    Real3 inv_dv;
-
-    Real const *dx = spMeshGetDx(spMeshAttrMesh((spMeshAttr const *) sp));
-
-    inv_dv.x = dt / dx[0];
-    inv_dv.y = dt / dx[1];
-    inv_dv.z = dt / dx[2];
-
     Real cmr_dt = dt * spParticleGetCharge(sp) / spParticleGetMass(sp);
 
-    dim3 dims = sizeType2Dim3(spMeshGetDims(spMeshAttrMesh((spMeshAttr const *) sp)));
+    Real inv_dv[3];
+    Real dx[3];
+    size_type dims[3];
+
+    SP_CALL(spMeshGetDx(spMeshAttributeMesh((spMeshAttribute const *) sp), dx));
+    SP_CALL(spMeshGetInvDx(spMeshAttributeMesh((spMeshAttribute const *) sp), inv_dv));
+    SP_CALL(spMeshGetDims(spMeshAttributeMesh((spMeshAttribute const *) sp), dims));
 
 
 
-//    int3 global_start;
-//    for (global_start.x = -1; global_start.x <= 1; ++global_start.x)
-//        for (global_start.y = -1; global_start.y <= 1; ++global_start.y)
-//            for (global_start.z = -1; global_start.z <= 1; ++global_start.z)
+//    int3 m_global_start_;
+//    for (m_global_start_.x = -1; m_global_start_.x <= 1; ++m_global_start_.x)
+//        for (m_global_start_.y = -1; m_global_start_.y <= 1; ++m_global_start_.y)
+//            for (m_global_start_.z = -1; m_global_start_.z <= 1; ++m_global_start_.z)
 //            {
 //                CALL_KERNEL(spBorisYeeUpdateParticleKernel,
-//                            sizeType2Dim3(spMeshArrayShape(spParticleMesh(sp))),
+//                            sizeType2Dim3(spMeshGetGlobalArrayShape(spParticleMesh(sp))),
 //                            spParticleFiberLength(sp),
 //                            spParticleGetDeviceData(sp),
 //                            (Real const *) spFieldDeviceDataConst(fE),
 //                            (Real const *) spFieldDeviceDataConst(fB),
-//                            inv_dv, cmr_dt, global_start);
+//                            inv_dv, cmr_dt, m_global_start_);
 //            }
 
 //    CALL_KERNEL(spUpdateParticleBorisScatterBlockKernel,
-//                sizeType2Dim3(spMeshArrayShape(spParticleMesh(sp))),
+//                sizeType2Dim3(spMeshGetGlobalArrayShape(spParticleMesh(sp))),
 //                spParticleFiberLength(sp),
 //                spParticleGetDeviceData(sp),
 //                (fRho->device_data), (fJ->device_data));

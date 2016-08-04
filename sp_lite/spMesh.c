@@ -29,7 +29,7 @@ MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s)
     return id;
 }
 
-int spMeshAttrCreate(spMeshAttr **f, size_type size, spMesh const *mesh, int iform)
+int spMeshAttributeCreate(spMeshAttribute **f, size_type size, spMesh const *mesh, int iform)
 {
     SP_CALL(spObjectCreate((spObject **) (f), size));
     (*f)->m = mesh;
@@ -37,32 +37,32 @@ int spMeshAttrCreate(spMeshAttr **f, size_type size, spMesh const *mesh, int ifo
     return SP_SUCCESS;
 };
 
-int spMeshAttrDestroy(spMeshAttr **f)
+int spMeshAttributeDestroy(spMeshAttribute **f)
 {
     SP_CALL(spObjectDestroy((spObject **) (f)));
     return SP_SUCCESS;
 };
 
-spMesh const *spMeshAttrMesh(spMeshAttr const *f) { return f->m; }
+spMesh const *spMeshAttributeMesh(spMeshAttribute const *f) { return f->m; }
 
-int spMeshAttrForm(spMeshAttr const *f) { return f->iform; };
+int spMeshAttributeForm(spMeshAttribute const *f) { return f->iform; };
 
 struct spMesh_s
 {
 
-    int ndims;
-    size_type ghost_width[4];
-    size_type local_dims[4];
-    size_type local_start[4];
-    size_type local_count[4];
+    int m_ndims_;
+    size_type m_ghost_width_[4];
+    size_type m_dims_[4];
+    size_type m_start_[4];
+    size_type m_count_[4];
 
-    size_type global_dims[4];
-    size_type global_start[4];
+    size_type m_global_dims_[4];
+    size_type m_global_start_[4];
 
-    Real x_global_lower[4];
-    Real x_global_upper[4];
-    Real x_local_lower[4];
-    Real x_local_upper[4];
+    Real m_global_coord_lower_[4];
+    Real m_global_coord_upper[4];
+    Real m_coord_lower[4];
+    Real m_coord_upper[4];
     Real dx[4];
     Real inv_dx[4];
 };
@@ -70,50 +70,50 @@ struct spMesh_s
 int spMeshCreate(spMesh **m)
 {
     *m = (spMesh *) malloc(sizeof(spMesh));
-    (*m)->ndims = 3;
+    (*m)->m_ndims_ = 3;
 
-    (*m)->global_dims[0] = 1;
-    (*m)->global_dims[1] = 1;
-    (*m)->global_dims[2] = 1;
-    (*m)->global_dims[3] = 3;
+    (*m)->m_global_dims_[0] = 1;
+    (*m)->m_global_dims_[1] = 1;
+    (*m)->m_global_dims_[2] = 1;
+    (*m)->m_global_dims_[3] = 3;
 
-    (*m)->local_dims[0] = 1;
-    (*m)->local_dims[1] = 1;
-    (*m)->local_dims[2] = 1;
-    (*m)->local_dims[3] = 3;
+    (*m)->m_dims_[0] = 1;
+    (*m)->m_dims_[1] = 1;
+    (*m)->m_dims_[2] = 1;
+    (*m)->m_dims_[3] = 3;
 
-    (*m)->ghost_width[0] = 0;
-    (*m)->ghost_width[1] = 0;
-    (*m)->ghost_width[2] = 0;
+    (*m)->m_ghost_width_[0] = 0;
+    (*m)->m_ghost_width_[1] = 0;
+    (*m)->m_ghost_width_[2] = 0;
 
-    (*m)->local_start[0] = 0;
-    (*m)->local_start[1] = 0;
-    (*m)->local_start[2] = 0;
-    (*m)->local_start[3] = 0;
-
-
-    (*m)->local_count[0] = 1;
-    (*m)->local_count[1] = 1;
-    (*m)->local_count[2] = 1;
-    (*m)->local_count[3] = 3;
+    (*m)->m_start_[0] = 0;
+    (*m)->m_start_[1] = 0;
+    (*m)->m_start_[2] = 0;
+    (*m)->m_start_[3] = 0;
 
 
-    (*m)->x_global_lower[0] = 0;
-    (*m)->x_global_lower[1] = 0;
-    (*m)->x_global_lower[2] = 0;
-
-    (*m)->x_global_upper[0] = 1;
-    (*m)->x_global_upper[1] = 1;
-    (*m)->x_global_upper[2] = 1;
+    (*m)->m_count_[0] = 1;
+    (*m)->m_count_[1] = 1;
+    (*m)->m_count_[2] = 1;
+    (*m)->m_count_[3] = 3;
 
 
-    (*m)->x_local_lower[0] = 0;
-    (*m)->x_local_lower[1] = 0;
-    (*m)->x_local_lower[2] = 0;
+    (*m)->m_global_coord_lower_[0] = 0;
+    (*m)->m_global_coord_lower_[1] = 0;
+    (*m)->m_global_coord_lower_[2] = 0;
 
-    (*m)->x_local_upper[0] = 1;
-    (*m)->x_local_upper[1] = 1;
-    (*m)->x_local_upper[2] = 1;
+    (*m)->m_global_coord_upper[0] = 1;
+    (*m)->m_global_coord_upper[1] = 1;
+    (*m)->m_global_coord_upper[2] = 1;
+
+
+    (*m)->m_coord_lower[0] = 0;
+    (*m)->m_coord_lower[1] = 0;
+    (*m)->m_coord_lower[2] = 0;
+
+    (*m)->m_coord_upper[0] = 1;
+    (*m)->m_coord_upper[1] = 1;
+    (*m)->m_coord_upper[2] = 1;
 
     return SP_SUCCESS;
 }
@@ -134,43 +134,43 @@ int spMeshDeploy(spMesh *self)
 
     spMPITopology(&mpi_topo_ndims, mpi_topo_dims, mpi_topo_periods, mpi_topo_coords);
 
-    self->ndims = 3;
+    self->m_ndims_ = 3;
 
     for (int i = 0; i < 3; ++i)
     {
 
-        if (self->global_dims[i] <= 1)
+        if (self->m_global_dims_[i] <= 1)
         {
-            self->ghost_width[i] = 0;
+            self->m_ghost_width_[i] = 0;
 
-            self->global_dims[i] = 1;
+            self->m_global_dims_[i] = 1;
         }
 
         if (i < mpi_topo_ndims)
         {
-            self->global_start[i] = self->global_dims[i] * mpi_topo_coords[i] / mpi_topo_dims[i];
+            self->m_global_start_[i] = self->m_global_dims_[i] * mpi_topo_coords[i] / mpi_topo_dims[i];
 
-            self->local_count[i] =
-                    self->global_dims[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->global_start[i];
+            self->m_count_[i] =
+                    self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
         }
         else
         {
-            self->global_start[i] = 0;
+            self->m_global_start_[i] = 0;
 
-            self->local_count[i] = self->global_dims[i];
+            self->m_count_[i] = self->m_global_dims_[i];
         }
 
-        self->local_start[i] = self->ghost_width[i];
+        self->m_start_[i] = self->m_ghost_width_[i];
 
-        self->local_dims[i] = self->local_count[i] + self->ghost_width[i] * 2;
+        self->m_dims_[i] = self->m_count_[i] + self->m_ghost_width_[i] * 2;
 
-        self->dx[i] = (self->x_global_upper[i] - self->x_global_lower[i]) / self->global_dims[i];
+        self->dx[i] = (self->m_global_coord_upper[i] - self->m_global_coord_lower_[i]) / self->m_global_dims_[i];
 
-        self->x_local_lower[i] = self->x_global_lower[i] + self->global_start[i] * self->dx[i];
+        self->m_coord_lower[i] = self->m_global_coord_lower_[i] + self->m_global_start_[i] * self->dx[i];
 
-        self->x_local_upper[i] = self->x_local_lower[i] + self->local_count[i] * self->dx[i];
+        self->m_coord_upper[i] = self->m_coord_lower[i] + self->m_count_[i] * self->dx[i];
 
-        self->inv_dx[i] = (self->global_dims[i] <= 1) ? 0 : 1.0 / self->dx[i];
+        self->inv_dx[i] = (self->m_global_dims_[i] <= 1) ? 0 : 1.0 / self->dx[i];
 
     }
 
@@ -222,29 +222,31 @@ int spMeshDeploy(spMesh *self)
 
 }
 
-size_type spMeshNumberOfEntity(spMesh const *self, int tag, int iform)
+size_type spMeshGetNumberOfEntities(spMesh const *self, int tag, int iform)
 {
     size_type res = (iform == 0 || iform == 3) ? 1 : 3;
     switch (tag)
     {
         case SP_DOMAIN_CENTER:
-            res *= self->local_count[0] * self->local_count[1] * self->local_count[2];
+            res *= self->m_count_[0] * self->m_count_[1] * self->m_count_[2];
         case SP_DOMAIN_ALL:
         default:
-            res *= self->local_dims[0] * self->local_dims[1] * self->local_dims[2];
+            res *= self->m_dims_[0] * self->m_dims_[1] * self->m_dims_[2];
             break;
     }
-    return res;
+
+    return
+            res;
 }
 
 void spMeshPoint(spMesh const *m, MeshEntityId id, Real *res)
 {
-    res[0] = m->x_local_lower[0] + m->dx[0] * (id.x - (m->local_start[0] << 1)) * 0.5;
-    res[1] = m->x_local_lower[1] + m->dx[1] * (id.y - (m->local_start[1] << 1)) * 0.5;
-    res[2] = m->x_local_lower[2] + m->dx[2] * (id.z - (m->local_start[2] << 1)) * 0.5;
+    res[0] = m->m_coord_lower[0] + m->dx[0] * (id.x - (m->m_start_[0] << 1)) * 0.5;
+    res[1] = m->m_coord_lower[1] + m->dx[1] * (id.y - (m->m_start_[1] << 1)) * 0.5;
+    res[2] = m->m_coord_lower[2] + m->dx[2] * (id.z - (m->m_start_[2] << 1)) * 0.5;
 };
 
-int spMeshNDims(spMesh const *m) { return m->ndims; };
+int spMeshGetNDims(spMesh const *m) { return m->m_ndims_; };
 
 
 Real spMeshCFLDtv(spMesh const *m, Real const *speed)
@@ -255,7 +257,7 @@ Real spMeshCFLDtv(spMesh const *m, Real const *speed)
 
     for (int i = 0; i < 3; ++i)
     {
-        res += m->global_dims[i] <= 1 ? 0 : (speed[i] / dx[i]) * (speed[i] / dx[i]);
+        res += m->m_global_dims_[i] <= 1 ? 0 : (speed[i] / dx[i]) * (speed[i] / dx[i]);
 
     }
     return (Real) (0.5 / sqrt((double) (res)));
@@ -267,53 +269,52 @@ Real spMeshCFLDt(spMesh const *m, Real speed)
     return spMeshCFLDtv(m, v);
 }
 
-int spMeshSetDims(spMesh *m, size_type const *dims)
-{
-    for (int i = 0; i < m->ndims; ++i) { m->global_dims[i] = dims[i]; }
-    return SP_SUCCESS;
-};
+#define GET_VEC3(_RES_, _ATTR_)                                   \
+if (_RES_ == NULL) { return SP_FAILED; }                           \
+else { for (int i = 0; i < 3; ++i) { _RES_[i] = m->_ATTR_[i]; }}       \
+return SP_SUCCESS;                                               \
 
-size_type const *spMeshGetDims(spMesh const *m) { return m->local_dims; }
+#define SET_VEC3(_RES_, _ATTR_)                                   \
+if (_RES_ == NULL) { return SP_FAILED; }                             \
+for (int i = 0; i < 3; ++i) { m->_ATTR_[i] = _RES_[i]; }     \
+return SP_SUCCESS;                                                \
 
-int spMeshSetGhostWidth(spMesh *m, size_type const *gw)
-{
-    for (int i = 0; i < 3; ++i) { m->ghost_width[i] = gw[i]; }
-    return SP_SUCCESS;
-};
 
+int spMeshSetDims(spMesh *m, size_type const *v) { SET_VEC3(v, m_global_dims_) }
+
+int spMeshGetDims(spMesh const *m, size_type *v) { GET_VEC3(v, m_global_dims_) }
+
+
+int spMeshSetGhostWidth(spMesh *m, size_type const *v) { SET_VEC3(v, m_ghost_width_) }
+
+int spMeshGetGhostWidth(spMesh const *m, size_type *res) { GET_VEC3(res, m_ghost_width_) }
+
+int spMeshGetOrigin(spMesh const *m, Real *res) { GET_VEC3(res, m_coord_lower) }
+
+int spMeshGetGlobalOrigin(spMesh const *m, Real *res) { GET_VEC3(res, m_global_coord_lower_) }
+
+int spMeshGetDx(spMesh const *m, Real *res) { GET_VEC3(res, dx) }
+
+int spMeshGetInvDx(spMesh const *m, Real *res) { GET_VEC3(res, inv_dx) }
+
+#undef GET_VEC3
+#undef SET_VEC3
 
 int spMeshSetBox(spMesh *m, Real const *lower, Real const *upper)
 {
     for (int i = 0; i < 3; ++i)
     {
-        m->x_global_lower[i] = lower[i];
-        m->x_global_upper[i] = upper[i];
+        m->m_global_coord_lower_[i] = lower[i];
+        m->m_global_coord_upper[i] = upper[i];
     }
     return SP_SUCCESS;
 
 };
 
-int spMeshGetGlobalBox(spMesh const *m, Real *lower, Real *upper)
-{
-    for (int i = 0; i < 3; ++i)
-    {
-        lower[i] = m->x_global_lower[i];
-        upper[i] = m->x_global_upper[i];
-    }
-}
-
-Real const *spMeshGetLocalOrigin(spMesh const *m) { return m->x_local_lower; }
-
-Real const *spMeshGetGlobalOrigin(spMesh const *m) { return m->x_global_lower; }
-
-Real const *spMeshGetDx(spMesh const *m) { return m->dx; }
-
-Real const *spMeshGetInvDx(spMesh const *m) { return m->inv_dx; }
-
-int spMeshGetLocalBox(spMesh const *m, int tag, Real *lower, Real *upper)
+int spMeshGetBox(spMesh const *m, int tag, Real *lower, Real *upper)
 {
     size_type start[3], count[3], dims[3];
-    spMeshLocalDomain(m, SP_DOMAIN_CENTER, dims, start, count);
+    spMeshGetDomain(m, SP_DOMAIN_CENTER, dims, start, count);
 
     MeshEntityId id = spMeshEntityIdFromArray(start);
 
@@ -325,7 +326,7 @@ int spMeshGetLocalBox(spMesh const *m, int tag, Real *lower, Real *upper)
 };
 
 
-int spMeshLocalDomain(spMesh const *m, int tag, size_type *dims, size_type *start, size_type *count)
+int spMeshGetDomain(spMesh const *m, int tag, size_type *dims, size_type *start, size_type *count)
 {
 
     int success = SP_SUCCESS;
@@ -337,14 +338,14 @@ int spMeshLocalDomain(spMesh const *m, int tag, size_type *dims, size_type *star
             for (int i = 0; i < 3; ++i)
             {
                 start[i] = 0;
-                count[i] = m->local_dims[i];
+                count[i] = m->m_dims_[i];
             }
             break;
         case SP_DOMAIN_CENTER:
             for (int i = 0; i < 3; ++i)
             {
-                start[i] = m->local_start[i];
-                count[i] = m->local_count[i];
+                start[i] = m->m_start_[i];
+                count[i] = m->m_count_[i];
             }
 
             break;
@@ -361,78 +362,99 @@ int spMeshLocalDomain(spMesh const *m, int tag, size_type *dims, size_type *star
                 {
                     case -1:
                         start[i] = 0;
-                        count[i] = m->ghost_width[i];
-                        if (m->ghost_width[i] == 0) { success = SP_FAILED; }
+                        count[i] = m->m_ghost_width_[i];
+                        if (m->m_ghost_width_[i] == 0) { success = SP_FAILED; }
                         break;
                     case 1:
-                        start[i] = m->local_count[i] + m->local_start[i];
-                        count[i] = m->local_dims[i] - start[i];
-                        if (m->ghost_width[i] == 0) { success = SP_FAILED; }
+                        start[i] = m->m_count_[i] + m->m_start_[i];
+                        count[i] = m->m_dims_[i] - start[i];
+                        if (m->m_ghost_width_[i] == 0) { success = SP_FAILED; }
                         break;
                     default: //0
-                        start[i] = m->local_start[i];
-                        count[i] = m->local_count[i];
+                        start[i] = m->m_start_[i];
+                        count[i] = m->m_count_[i];
                         break;
                 }
             }
     }
 
-    if (dims != NULL) { for (int i = 0; i < 3; ++i) { dims[i] = m->local_dims[i]; }}
-    return success;
+    if (dims != NULL)
+    {
+        for (
+                int i = 0;
+                i < 3; ++i)
+        {
+            dims[i] = m->m_dims_[i];
+        }
+    }
+    return
+            success;
 };
 
-int spMeshLocalDomain2(spMesh const *m, int tag, size_type *min, size_type *max, size_type *stride)
+int spMeshGetArrayShape(spMesh const *m, int tag, size_type *min, size_type *max, size_type *stride)
 {
-    for (int i = 0; i < 3; ++i)
+    switch (tag)
     {
-        min[i] = m->local_start[i];
-        max[i] = min[i] + m->local_count[i];
+        case SP_DOMAIN_ALL:
+            for (int i = 0; i < 3; ++i)
+            {
+                min[i] = 0;
+                max[i] = min[i] + m->m_dims_[i];
+            }
+            break;
+        case SP_DOMAIN_CENTER:
+        default:
+            for (int i = 0; i < 3; ++i)
+            {
+                min[i] = m->m_start_[i];
+                max[i] = min[i] + m->m_count_[i];
+            }
+            break;
     }
-    stride[0] = 1;
-    stride[1] = m->local_dims[0];
-    stride[2] = stride[1] * m->local_dims[1];
 
-
+    spMeshGetStrides(m, stride
+    );
 }
 
-int spMeshGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset)
-{
-    for (int i = 0; i < m->ndims; ++i)
-    {
-        dims[i] = m->global_dims[i];
-        offset[i] = m->global_start[i] - m->local_start[i];
-    }
-    return SP_SUCCESS;
-};
 
 int spMeshGetStrides(spMesh const *m, size_type *res)
 {
     if (res != NULL)
     {
-        res[2] = (m->global_dims[2] == 1) ? 0 : 1;
-        res[1] = (m->global_dims[1] == 1) ? 0 : m->local_dims[2];
-        res[0] = (m->global_dims[0] == 1) ? 0 : m->local_dims[2] * m->local_dims[1];
+        res[2] = (m->m_global_dims_[2] == 1) ? 0 : 1;
+        res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[2];
+        res[0] = (m->m_global_dims_[0] == 1) ? 0 : m->m_dims_[2] * m->m_dims_[1];
     }
     return SP_SUCCESS;
 }
 
-int spMeshArrayShape(spMesh const *m, int domain_tag,
-                     int attr_ndims, size_type const *attr_dims,
-                     int *array_ndims,
-                     int *start_mesh_dim,
-                     size_type *g_dims,
-                     size_type *g_start,
-                     size_type *l_dims,
-                     size_type *l_start,
-                     size_type *l_count,
-                     int is_soa)
+int spMeshGetGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset)
+{
+    for (int i = 0; i < m->m_ndims_; ++i)
+    {
+        dims[i] = m->m_global_dims_[i];
+        offset[i] = m->m_global_start_[i] - m->m_start_[i];
+    }
+    return SP_SUCCESS;
+};
+
+int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
+                              int attr_ndims, size_type const *attr_dims,
+                              int *array_ndims,
+                              int *start_mesh_dim,
+                              size_type *g_dims,
+                              size_type *g_start,
+                              size_type *l_dims,
+                              size_type *l_start,
+                              size_type *l_count,
+                              int is_soa)
 {
 
 
-    int mesh_ndims = spMeshNDims(m);
+    int mesh_ndims = spMeshGetNDims(m);
 
 
-    *array_ndims = spMeshNDims(m) + attr_ndims;
+    *array_ndims = spMeshGetNDims(m) + attr_ndims;
 
     if (is_soa == SP_TRUE)
     {
@@ -456,10 +478,10 @@ int spMeshArrayShape(spMesh const *m, int domain_tag,
     }
 
 
-    SP_CALL(spMeshLocalDomain(m, domain_tag,
-                              l_dims + (*start_mesh_dim),
-                              l_start + (*start_mesh_dim),
-                              l_count + (*start_mesh_dim)));
+    SP_CALL(spMeshGetDomain(m, domain_tag,
+                            l_dims + (*start_mesh_dim),
+                            l_start + (*start_mesh_dim),
+                            l_count + (*start_mesh_dim)));
 
 
     if (g_dims != NULL && g_start != NULL)
@@ -472,7 +494,7 @@ int spMeshArrayShape(spMesh const *m, int domain_tag,
 
         ptrdiff_t offset[*array_ndims];
 
-        SP_CALL(spMeshGlobalOffset(m, g_dims + (*start_mesh_dim), offset + (*start_mesh_dim)));
+        SP_CALL(spMeshGetGlobalOffset(m, g_dims + (*start_mesh_dim), offset + (*start_mesh_dim)));
 
         for (int i = 0; i < mesh_ndims; ++i) { g_start[*start_mesh_dim + i] += offset[*start_mesh_dim + i]; }
     };

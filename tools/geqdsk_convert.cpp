@@ -206,7 +206,7 @@ int main(int argc, char **argv)
     Handle(XCAFApp_Application) anApp = XCAFApp_Application::GetApplication();
     anApp->NewDocument("MDTV-XCAF", aDoc);
 
-    // Create label and add our global_dims
+    // Create label and add our m_global_dims_
     Handle (XCAFDoc_ShapeTool) myShapeTool = XCAFDoc_DocumentTool::ShapeTool(aDoc->Main());
     TDF_Label aLabel = myShapeTool->NewShape();
     myShapeTool->SetShape(aLabel, shape);

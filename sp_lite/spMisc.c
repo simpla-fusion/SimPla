@@ -6,25 +6,29 @@
 #include "spParallel.h"
 #include "spField.h"
 #include "spMesh.h"
+
 #define HALFPI (3.1415926*0.5)
 
 int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
 {
 
-    spMesh const *m = spMeshAttrMesh((spMeshAttr const *) f);
-    int iform = spMeshAttrForm((spMeshAttr const *) f);
-    int ndims = spMeshNDims(m);
+    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) f);
+    int iform = spMeshAttributeForm((spMeshAttribute const *) f);
+    int ndims = spMeshGetNDims(m);
     int num_of_sub = spFieldNumberOfSub(f);
 
     Real *data[num_of_sub];
     size_type dims[4], start[4], count[4];
 
-    SP_CALL(spMeshLocalDomain(m, SP_DOMAIN_CENTER, dims, start, count));
+    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, dims, start, count));
 
     size_type strides[4];
 
-    Real const *x0 = spMeshGetLocalOrigin(m);
-    Real const *dx = spMeshGetDx(m);
+    Real x0[3];
+    spMeshGetOrigin(m, x0);
+    Real dx[3];
+    spMeshGetDx(m, dx);
+
     SP_CALL(spMeshGetStrides(m, strides));
 
     size_type offset = start[0] * strides[0] + start[1] * strides[1] + start[2] * strides[2];

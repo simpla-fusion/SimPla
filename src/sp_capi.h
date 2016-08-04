@@ -67,13 +67,13 @@ MPI_Datatype spDataTypeMPIType(struct spDataType_s const *);
 //
 //typedef struct spDataSpace_s spDataSpace;
 //
-//void spDataSpaceCreateSimple(spDataSpace **, int ndims, int const *local_dims);
+//void spDataSpaceCreateSimple(spDataSpace **, int m_ndims_, int const *m_dims_);
 //
 //void spDataSpaceCreateUnordered(spDataSpace **, int num);
 //
 //void spDataSpaceDestroy(spDataSpace **);
 //
-//void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *global_start, int const *count);
+//void spDataSpaceSelectHyperslab(spDataSpace *, ptrdiff_t const *m_global_start_, int const *count);
 //
 //struct spDataSet_s;
 //
@@ -96,9 +96,9 @@ MPI_Datatype spDataTypeMPIType(struct spDataType_s const *);
 //
 //void spDistributedObjectWait(spDistributedObject *);
 //
-//void spDistributedObjectAddSendLink(spDistributedObject *, int id, const ptrdiff_t global_start[3], const spDataSet *);
+//void spDistributedObjectAddSendLink(spDistributedObject *, int id, const ptrdiff_t m_global_start_[3], const spDataSet *);
 //
-//void spDistributedObjectAddRecvLink(spDistributedObject *, int id, const ptrdiff_t global_start[3], spDataSet *);
+//void spDistributedObjectAddRecvLink(spDistributedObject *, int id, const ptrdiff_t m_global_start_[3], spDataSet *);
 //
 //int spDistributedObjectIsReady(spDistributedObject const *);
 

@@ -451,9 +451,9 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //}
 //
 //
-//void get_ghost_shape(int ndims, size_t const *l_offset,
+//void get_ghost_shape(int m_ndims_, size_t const *l_offset,
 //		size_t const *l_stride, size_t const *l_count, size_t const *l_block,
-//		size_t const *ghost_width,
+//		size_t const *m_ghost_width_,
 //		std::vector<dist_sync_connection> *dist_connect)
 //{
 //	dist_connect->clear();
@@ -461,13 +461,13 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
 //
-//	for (unsigned int tag = 0, tag_e = (1U << (ndims * 2)); tag < tag_e; ++tag)
+//	for (unsigned int tag = 0, tag_e = (1U << (m_ndims_ * 2)); tag < tag_e; ++tag)
 //	{
 //		nTuple<int, 3> coords_shift;
 //
 //		bool tag_is_valid = true;
 //
-//		for (int n = 0; n < ndims; ++n)
+//		for (int n = 0; n < m_ndims_; ++n)
 //		{
 //			if (((tag >> (n * 2)) & 3UL) == 3UL)
 //			{
@@ -487,18 +487,18 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //				break;
 //			case -1: //left
 //
-//				send_count[n] = ghost_width[n];
+//				send_count[n] = m_ghost_width_[n];
 //				send_offset[n] = l_offset[n];
 //
-//				recv_count[n] = ghost_width[n];
-//				recv_offset[n] = l_offset[n] - ghost_width[n];
+//				recv_count[n] = m_ghost_width_[n];
+//				recv_offset[n] = l_offset[n] - m_ghost_width_[n];
 //
 //				break;
 //			case 1: //right
-//				send_count[n] = ghost_width[n];
-//				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
+//				send_count[n] = m_ghost_width_[n];
+//				send_offset[n] = l_offset[n] + l_count[n] - m_ghost_width_[n];
 //
-//				recv_count[n] = ghost_width[n];
+//				recv_count[n] = m_ghost_width_[n];
 //				recv_offset[n] = l_offset[n] + l_count[n];
 //				break;
 //			default:

@@ -1037,14 +1037,14 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //	res.id = id;
 //
-//	res.ndims = ds.data_space.topology_num_of_dims();
+//	res.m_ndims_ = ds.data_space.topology_num_of_dims();
 //
 //	std::tie(res.f_start, res.f_count) = ds.data_space.global_shape();
 //
 //	std::tie(res.m_start, res.m_count) = ds.data_space.local_shape();
 //
 //	std::tie(res.start, res.count, res.stride, res.block) =
-//			ds.data_space.global_dims();
+//			ds.data_space.m_global_dims_();
 //
 //	if ((id & SP_UNORDER) == SP_UNORDER)
 //	{
@@ -1054,25 +1054,25 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //		res.f_stride[0] = res.f_count[0];
 //	}
 //
-//	if (ds.DataType.ndims > 0)
+//	if (ds.DataType.m_ndims_ > 0)
 //	{
-//		for (int j = 0; j < ds.DataType.ndims; ++j)
+//		for (int j = 0; j < ds.DataType.m_ndims_; ++j)
 //		{
 //
-//			res.f_count[res.ndims + j] = ds.DataType.dimensions_[j];
-//			res.f_start[res.ndims + j] = 0;
-//			res.f_stride[res.ndims + j] = res.f_count[res.ndims + j];
+//			res.f_count[res.m_ndims_ + j] = ds.DataType.dimensions_[j];
+//			res.f_start[res.m_ndims_ + j] = 0;
+//			res.f_stride[res.m_ndims_ + j] = res.f_count[res.m_ndims_ + j];
 //
-//			res.m_count[res.ndims + j] = ds.DataType.dimensions_[j];
-//			res.m_start[res.ndims + j] = 0;
-//			res.m_stride[res.ndims + j] = res.m_count[res.ndims + j];
+//			res.m_count[res.m_ndims_ + j] = ds.DataType.dimensions_[j];
+//			res.m_start[res.m_ndims_ + j] = 0;
+//			res.m_stride[res.m_ndims_ + j] = res.m_count[res.m_ndims_ + j];
 //
-//			res.count[res.ndims + j] = 1;
-//			res.block[res.ndims + j] = ds.DataType.dimensions_[j];
+//			res.count[res.m_ndims_ + j] = 1;
+//			res.block[res.m_ndims_ + j] = ds.DataType.dimensions_[j];
 //
 //		}
 //
-//		res.ndims += ds.DataType.ndims;
+//		res.m_ndims_ += ds.DataType.m_ndims_;
 //	}
 //
 //	if (properties["Enable Compact Storage"].as<bool>(false))
@@ -1117,7 +1117,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 
 //void HDF5Stream::pimpl_s::convert_record_dataset(h5_dataset *pds) const
 //{
-//	for (int i = pds->ndims; i > 0; --i)
+//	for (int i = pds->m_ndims_; i > 0; --i)
 //	{
 //
 //		pds->f_count[i] = pds->f_count[i - 1];
@@ -1142,7 +1142,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //	pds->count[0] = 1;
 //	pds->block[0] = 1;
 //
-//	++pds->ndims;
+//	++pds->m_ndims_;
 //
 //	pds->id |= SP_APPEND;
 //
@@ -1163,7 +1163,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //	if (cache_.find(url) == cache_.end())
 //	{
 //		size_t cache_memory_size = ds.DataType.ele_size_in_byte_;
-//		for (int i = 0; i < ds.ndims; ++i)
+//		for (int i = 0; i < ds.m_ndims_; ++i)
 //		{
 //			cache_memory_size *= ds.m_count[i];
 //		}
@@ -1186,7 +1186,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //			item.id |= SP_APPEND;
 //
-//			item.ndims = ds.ndims;
+//			item.m_ndims_ = ds.m_ndims_;
 //
 //			item.count[0] = 0;
 //			item.m_count[0] = item.m_stride[0] * cache_depth + item.m_start[0];
@@ -1199,7 +1199,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //	size_t memory_size = ds.DataType.ele_size_in_byte_ * item.m_stride[0];
 //
-//	for (int i = 1; i < item.ndims; ++i)
+//	for (int i = 1; i < item.m_ndims_; ++i)
 //	{
 //		memory_size *= item.m_count[i];
 //	}
