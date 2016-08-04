@@ -63,21 +63,17 @@ int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type
 
 int spParticleGetNumberOfAttributes(spParticle const *sp);
 
-char const *spParticleGetAttributeName(spParticle *sp, int i);
+int spParticleGetAttributeName(spParticle *sp, int i, char *);
 
 size_type spParticleGetAttributeTypeSizeInByte(spParticle *sp, int i);
 
 void *spParticleGetAttributeData(spParticle *sp, int i);
 
+int spParticleGetAllAttributeData(spParticle *sp, void **res);
+
 size_type spParticleGetNumberOfEntities(spParticle const *sp);
 
 size_type spParticleGetMaxFiberLength(const spParticle *sp);
-
-void **spParticleGetDeviceData(spParticle *sp);
-
-void **spParticleGetData(spParticle *sp);
-
-void const **spParticleGetDataConst(spParticle const *sp);
 
 int spParticleWrite(spParticle const *sp, struct spIOStream_s *os, const char *url, int flag);
 

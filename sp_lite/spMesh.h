@@ -34,9 +34,9 @@ int spMeshAttributeCreate(spMeshAttribute **f, size_type size, spMesh const *mes
 
 int spMeshAttributeDestroy(spMeshAttribute **f);
 
-spMesh const *spMeshAttributeMesh(spMeshAttribute const *f);
+spMesh const *spMeshAttributeGetMesh(spMeshAttribute const *f);
 
-int spMeshAttributeForm(spMeshAttribute const *f);
+int spMeshAttributeGetForm(spMeshAttribute const *f);
 
 int spMeshCreate(spMesh **ctx);
 

@@ -2,25 +2,13 @@
 // Created by salmon on 16-7-25.
 //
 
+#include </usr/local/cuda/include/cuda_runtime_api.h>
+#include "../../../../../../usr/local/cuda/include/device_launch_parameters.h"
+
 extern "C" {
 #include "spParallelCUDA.h"
 }
-dim3 sizeType2Dim3(size_type const *v)
-{
-    dim3 res;
-    res.x = (int) v[0];
-    res.y = (int) v[1];
-    res.z = (int) v[2];
-    return res;
-}
-Real3 real2Real3(Real const *v)
-{
-    Real3 res;
-    res.x = (Real) v[0];
-    res.y = (Real) v[1];
-    res.z = (Real) v[2];
-    return res;
-}
+
 
 int spParallelDeviceInitialize(int argc, char **argv)
 {
@@ -29,11 +17,14 @@ int spParallelDeviceInitialize(int argc, char **argv)
     SP_CUDA_CALL(cudaSetDevice(spMPIRank() % num_of_device));
     SP_CUDA_CALL(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
     SP_CUDA_CALL(cudaGetLastError());
+    return SP_SUCCESS;
 }
 
 int spParallelDeviceFinalize()
 {
     SP_CUDA_CALL(cudaDeviceReset());
+    return SP_SUCCESS;
+
 }
 
 int spParallelDeviceAlloc(void **p, size_type s)
@@ -99,6 +90,7 @@ void spParallelDeviceFillIntKernel(int *d, int v, size_type max)
 {
     for (size_t s = threadIdx.x + blockIdx.x * blockDim.x; s < max; s += gridDim.x * blockDim.x) { d[s] = v; }
 };
+
 int spParallelDeviceFillInt(int *d, int v, size_type s)
 {
     CALL_KERNEL(spParallelDeviceFillIntKernel, 16, 256, d, v, s);
@@ -111,6 +103,7 @@ void spParallelDeviceFillRealKernel(Real *d, Real v, size_type max)
 {
     for (size_type s = threadIdx.x + blockIdx.x * blockDim.x; s < max; s += gridDim.x * blockDim.x) { d[s] = v; }
 };
+
 int spParallelDeviceFillReal(Real *d, Real v, size_type s)
 {
     CALL_KERNEL(spParallelDeviceFillRealKernel, 16, 256, d, v, s);
@@ -125,8 +118,8 @@ void spParallelAssignKernel(size_type max, size_type const *offset, Real *d, Rea
     size_type num_of_thread = blockDim.x * gridDim.x * blockDim.x * gridDim.x * blockDim.x * gridDim.x;
 
     for (size_type s = (threadIdx.x + blockIdx.x * blockDim.x) +
-        (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
-        (threadIdx.x + blockIdx.x * blockDim.x) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
+                       (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
+                       (threadIdx.x + blockIdx.x * blockDim.x) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
          s < max; s += num_of_thread) { d[offset[s]] = v[s]; }
 };
 

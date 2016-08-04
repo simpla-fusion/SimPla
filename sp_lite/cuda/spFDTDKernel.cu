@@ -2,22 +2,16 @@
 // Created by salmon on 16-7-28.
 //
 extern "C" {
-
-#include "../spFDTD.h"
-
 #include <assert.h>
-#include <math.h>
-#include </usr/local/cuda/include/device_launch_parameters.h>
 
 #include "../sp_lite_def.h"
-#include "../spParallel.h"
+#include "../spFDTD.h"
+#include "../spFDTD_device.h"
 #include "../spMesh.h"
 #include "../spField.h"
-
-
-#include "../spPhysicalConstants.h"
-
 #include "spParallelCUDA.h"
+#include </usr/local/cuda/include/device_launch_parameters.h>
+
 }
 
 
@@ -108,8 +102,12 @@ int spUpdateFieldFDTD(struct spMesh_s const *m,
 
     SP_CALL(spFieldSubArray(fB, (void **) B));
 
-    CALL_KERNEL(spUpdateFieldFDTDKernel, sizeType2Dim3(dims), 1,
-                dt, real2Real3(dt_inv), sizeType2Dim3(dims), sizeType2Dim3(strides),
+    CALL_KERNEL(spUpdateFieldFDTDKernel,
+                sizeType2Dim3(dims), 1,
+                dt,
+                real2Real3(dt_inv),
+                sizeType2Dim3(dims),
+                sizeType2Dim3(strides),
                 (const Real *) rho,
                 (const Real *) J[0],
                 (const Real *) J[1],

@@ -6,14 +6,15 @@
 extern "C" {
 #include <assert.h>
 #include <math.h>
+
 #include "../sp_lite_def.h"
-#include "../spParallel.h"
+
+#include "spParallelCUDA.h"
+
 #include "../spMesh.h"
 #include "../spParticle.h"
 #include "../spField.h"
-#include "../spPICBoris.h"
-#include "spParallelCUDA.h"
-#include "../spRandom.h"
+#include "../spPICBoris_device.h"
 }
 //
 
@@ -125,9 +126,9 @@ int spBorisYeeParticleUpdate(spParticle *sp, Real dt, const spField *fE, const s
     Real dx[3];
     size_type dims[3];
 
-    SP_CALL(spMeshGetDx(spMeshAttributeMesh((spMeshAttribute const *) sp), dx));
-    SP_CALL(spMeshGetInvDx(spMeshAttributeMesh((spMeshAttribute const *) sp), inv_dv));
-    SP_CALL(spMeshGetDims(spMeshAttributeMesh((spMeshAttribute const *) sp), dims));
+    SP_CALL(spMeshGetDx(spMeshAttributeGetMesh((spMeshAttribute const *) sp), dx));
+    SP_CALL(spMeshGetInvDx(spMeshAttributeGetMesh((spMeshAttribute const *) sp), inv_dv));
+    SP_CALL(spMeshGetDims(spMeshAttributeGetMesh((spMeshAttribute const *) sp), dims));
 
 
 

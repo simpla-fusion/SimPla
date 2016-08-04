@@ -59,10 +59,6 @@ struct spParticle_s
     size_type m_max_fiber_length_;
 
     spParticleAttrEntity m_attrs_[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
-    void *m_data_root_[SP_MAX_NUMBER_OF_PARTICLE_ATTR];// DEVICE
-    void **m_data_root_device_;// DEVICE
-
-
 
 };
 
@@ -72,7 +68,6 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
 
     (*sp)->m_max_fiber_length_ = SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
     (*sp)->m_num_of_attrs_ = 0;
-    (*sp)->m_data_root_device_ = NULL;
 
     return SP_SUCCESS;
 
@@ -82,8 +77,6 @@ int spParticleDestroy(spParticle **sp)
 {
     if (*sp != NULL)
     {
-        spParallelDeviceFree((void **) &((*sp)->m_data_root_device_));
-
         for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i)
         {
             spParallelDeviceFree(&((*sp)->m_attrs_[i].data));
@@ -108,12 +101,13 @@ int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type
     ++(sp->m_num_of_attrs_);
 }
 
-int spParticleGetNumberOfAttributes(spParticle const *sp)
-{
-    return sp->m_num_of_attrs_;
-}
+int spParticleGetNumberOfAttributes(spParticle const *sp) { return sp->m_num_of_attrs_; }
 
-char const *spParticleGetAttributeName(spParticle *sp, int i) { return sp->m_attrs_[i].name; };
+int spParticleGetAttributeName(spParticle *sp, int i, char *name)
+{
+    strcpy(name, sp->m_attrs_[i].name);
+    return SP_SUCCESS;
+};
 
 size_type spParticleGetAttributeTypeSizeInByte(spParticle *sp, int i)
 {
@@ -136,50 +130,45 @@ int spParticleDeploy(spParticle *sp)
 
         spParallelMemset((sp->m_attrs_[i].data), 0,
                          spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * number_of_entities);
-        sp->m_data_root_[i] = sp->m_attrs_[i].data;
     }
 
-    spParallelDeviceAlloc((void **) &(sp->m_data_root_device_), sizeof(void *) * sp->m_num_of_attrs_);
-    spParallelMemcpy((void *) (sp->m_data_root_device_), sp->m_data_root_, sizeof(void *) * sp->m_num_of_attrs_);
+//    spParallelDeviceAlloc((void **) &(sp->m_data_root_device_), sizeof(void *) * sp->m_num_of_attrs_);
+//    spParallelMemcpy((void *) (sp->m_data_root_device_), sp->m_data_root_, sizeof(void *) * sp->m_num_of_attrs_);
     return SP_SUCCESS;
 }
 
 size_type spParticleGetNumberOfEntities(spParticle const *sp)
 {
-    spMesh const *m = spMeshAttributeMesh((spMeshAttribute *) (sp));
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) (sp));
     size_type s = spParticleGetMaxFiberLength(sp);
     size_type n = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL,
-                                            spMeshAttributeForm((spMeshAttribute
-                                            *) (sp)));
-return
-n *spParticleGetMaxFiberLength(sp);
+                                            spMeshAttributeGetForm((spMeshAttribute *) (sp)));
+    return n * spParticleGetMaxFiberLength(sp);
 
 }
 
 int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_types)
 {
-    spMesh const *m = spMeshAttributeMesh((spMeshAttribute *)
-                                                  sp);
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
 
-    int iform = spMeshAttributeForm((spMeshAttribute *)
-                                            sp);
+    int iform = spMeshAttributeGetForm((spMeshAttribute *) sp);
 
     size_type max_number_of_entities = spParticleGetNumberOfEntities(sp);
 
     int num_of_dimensions = spParticleGetNumberOfAttributes(sp);
 
     int l_dist_types[num_of_dimensions];
-    for (int i = 0; i < num_of_dimensions - 1; ++i)
-    {
-        l_dist_types[i] = dist_types == NULL ? SP_RAND_UNIFORM : dist_types[i];
-    }
 
-    spParticleFiber *data = (spParticleFiber *) spParticleGetData(sp);
+    for (int i = 0; i < 6; ++i) { l_dist_types[i] = dist_types == NULL ? SP_RAND_UNIFORM : dist_types[i]; }
 
-    SP_CALL(spParallelMemset(data->id, 0, max_number_of_entities * sizeof(int)));
+    void *data[spParticleGetNumberOfAttributes(sp)];
+
+    SP_CALL(spParticleGetAllAttributeData(sp, data));
+
+    SP_CALL(spParallelMemset(((spParticleFiber *) data)->id, 0, max_number_of_entities * sizeof(int)));
 
     size_type x_min[3], x_max[3], strides[3];
-    spMeshGetArrayShape(m, SP_DOMAIN_CENTER, x_min, x_max, strides);
+    SP_CALL(spMeshGetArrayShape(m, SP_DOMAIN_CENTER, x_min, x_max, strides));
     strides[0] *= spParticleGetMaxFiberLength(sp);
     strides[1] *= spParticleGetMaxFiberLength(sp);
     strides[2] *= spParticleGetMaxFiberLength(sp);
@@ -190,13 +179,15 @@ int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_t
 //        spParallelScan(&offset);
     spRandomGenerator *sp_gen;
 
-    spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, offset);
+    SP_CALL(spParticleGetAllAttributeData(sp, data));
 
-    spRandomMultiDistributionInCell(sp_gen, l_dist_types,
-                                    (Real **) (spParticleGetData(sp) + 1),
-                                    x_min, x_max, strides, num_of_pic);
+    SP_CALL(spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, offset));
 
-    spRandomGeneratorDestroy(&sp_gen);
+    SP_CALL(spRandomMultiDistributionInCell(sp_gen, l_dist_types,
+                                            (Real **) (data + 1),
+                                            x_min, x_max, strides, num_of_pic));
+
+    SP_CALL(spRandomGeneratorDestroy(&sp_gen));
 
 
 }
@@ -211,9 +202,14 @@ int spParticleSetPIC(spParticle *sp, size_type pic)
 
 size_type spParticleGetMaxFiberLength(const spParticle *sp) { return sp->m_max_fiber_length_; }
 
-void **spParticleGetDeviceData(spParticle *sp) { return sp->m_data_root_device_; };
-
-void **spParticleGetData(spParticle *sp) { return sp->m_data_root_; };
+int spParticleGetAllAttributeData(spParticle *sp, void **res)
+{
+    for (int i = 0, ie = spParticleGetNumberOfAttributes(sp); i < ie; ++i)
+    {
+        res[i] = spParticleGetAttributeData(sp, i);
+    }
+    return SP_SUCCESS;
+};
 
 spMesh const *spParticleMesh(spParticle const *sp) { return sp->m; };
 
@@ -233,7 +229,6 @@ Real spParticleGetMass(spParticle const *sp) { return sp->mass; }
 
 Real spParticleGetCharge(spParticle const *sp) { return sp->charge; }
 
-int spParticleNumberOfAttributes(struct spParticle_s const *sp) { return sp->m_num_of_attrs_; }
 
 /**
  *
@@ -243,8 +238,8 @@ int spParticleSync(spParticle *sp)
 {
 
 
-    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) sp);
-    int iform = spMeshAttributeForm((spMeshAttribute const *) sp);
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
+    int iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
     int ndims = spMeshGetNDims(m);
     int array_ndims, mesh_start_dim;
 
@@ -284,9 +279,9 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
     SP_CALL(spIOStreamOpen(os, new_path));
 
 
-    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) sp);
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
 
-    int iform = spMeshAttributeForm((spMeshAttribute const *) sp);
+    int iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
 
     int ndims = spMeshGetNDims(m);
 
@@ -307,40 +302,40 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
     num_of_entities *= spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
 
-for (
-int i = 0;
-i < sp->
-m_num_of_attrs_;
-++i)
-{
-void *buffer = NULL;
+    for (
+            int i = 0;
+            i < sp->
+                    m_num_of_attrs_;
+            ++i)
+    {
+        void *buffer = NULL;
 
-size_type size_in_byte = spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * num_of_entities;
+        size_type size_in_byte = spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * num_of_entities;
 
-spParallelHostAlloc(&buffer, size_in_byte);
+        spParallelHostAlloc(&buffer, size_in_byte);
 
-spParallelMemcpy(buffer, sp
-->m_attrs_[i].data, size_in_byte);
+        spParallelMemcpy(buffer, sp
+                ->m_attrs_[i].data, size_in_byte);
 
-SP_CALL(spIOStreamWriteSimple(os,
-                              sp->m_attrs_[i].name,
-                              sp->m_attrs_[i].data_type,
-                              buffer,
-                              array_ndims,
-                              l_dims,
-                              l_start,
-                              NULL,
-                              l_count,
-                              NULL,
-                              g_dims,
-                              g_start,
-                              flag));
+        SP_CALL(spIOStreamWriteSimple(os,
+                                      sp->m_attrs_[i].name,
+                                      sp->m_attrs_[i].data_type,
+                                      buffer,
+                                      array_ndims,
+                                      l_dims,
+                                      l_start,
+                                      NULL,
+                                      l_count,
+                                      NULL,
+                                      g_dims,
+                                      g_start,
+                                      flag));
 
-spParallelHostFree(&buffer);
-}
+        spParallelHostFree(&buffer);
+    }
 
-SP_CALL(spIOStreamOpen(os, curr_path));
-return SP_SUCCESS;
+    SP_CALL(spIOStreamOpen(os, curr_path));
+    return SP_SUCCESS;
 
 }
 

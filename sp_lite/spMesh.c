@@ -43,9 +43,9 @@ int spMeshAttributeDestroy(spMeshAttribute **f)
     return SP_SUCCESS;
 };
 
-spMesh const *spMeshAttributeMesh(spMeshAttribute const *f) { return f->m; }
+spMesh const *spMeshAttributeGetMesh(spMeshAttribute const *f) { return f->m; }
 
-int spMeshAttributeForm(spMeshAttribute const *f) { return f->iform; };
+int spMeshAttributeGetForm(spMeshAttribute const *f) { return f->iform; };
 
 struct spMesh_s
 {

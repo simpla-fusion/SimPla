@@ -82,7 +82,7 @@ const void *spFieldDeviceDataConst(spField const *f) { return f->device_data; }
 
 int spFieldNumberOfSub(spField const *f)
 {
-    int iform = spMeshAttributeForm((spMeshAttribute const *) f);
+    int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
 
     return (iform == VERTEX || iform == VOLUME) ? 1 : 3;
 }
@@ -90,9 +90,9 @@ int spFieldNumberOfSub(spField const *f)
 int spFieldSubArray(spField *f, void **data)
 {
 
-    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) f);
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
 
-    int iform = spMeshAttributeForm((spMeshAttribute const *) f);
+    int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
 
     size_type ele_size_in_byte = spDataTypeSizeInByte(spFieldDataType(f));
 
@@ -135,8 +135,8 @@ int spFieldFill(spField *f, Real v)
 }
 int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
 {
-    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) f);
-    int iform = spMeshAttributeForm((spMeshAttribute const *) f);
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
+    int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
 
     size_type size_in_byte = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform) *
         spDataTypeSizeInByte(spFieldDataType(f));
@@ -179,8 +179,8 @@ int spFieldRead(spField *f, spIOStream *os, char const name[], int flag)
 
 int spFieldSync(spField *f)
 {
-    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) f);
-    int iform = spMeshAttributeForm((spMeshAttribute const *) f);
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
+    int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
     int ndims = spMeshGetNDims(m);
     int array_ndims, mesh_start_dim;
 
@@ -203,7 +203,7 @@ int spFieldSync(spField *f)
 }
 int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real const **v)
 {
-    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) f);
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
 
     if (spFieldIsSoA(f))
     {

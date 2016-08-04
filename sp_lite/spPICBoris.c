@@ -39,12 +39,12 @@ int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0, size_type num
 
     SP_CALL(spParticleInitialize(sp, num_pic, dist_type));
 
-    boris_particle *data = (boris_particle *) spParticleGetData(sp);
+    void *data[spParticleGetNumberOfAttributes(sp)];
+    SP_CALL(spParticleGetAllAttributeData(sp, data));
 //    Real *v[3] = {data->vx, data->vx, data->vx};
 //    Real u[3] = {0, 0, 0};
 //    SP_CALL(spRandomUniformNormal6(v, max_number_of_entities, u, sqrt(2.0 * T0 * SI_Boltzmann_constant / spParticleGetMass(sp))));
-    SP_CALL(spParallelDeviceFillReal(data->f, n0, max_number_of_entities));
-
-    SP_CALL(spParallelMemset(data->w, 0, max_number_of_entities * sizeof(Real)));
+    SP_CALL(spParallelDeviceFillReal(((boris_particle *) data)->f, n0, max_number_of_entities));
+    SP_CALL(spParallelMemset(((boris_particle *) data)->w, 0, max_number_of_entities * sizeof(Real)));
     return SP_SUCCESS;
 }

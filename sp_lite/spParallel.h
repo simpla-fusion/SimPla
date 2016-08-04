@@ -63,4 +63,6 @@ int spParallelDeviceFillReal(Real *d, Real v, size_type s);
  */
 int spRandomNormal3(Real **data, size_type num_of_sample, Real const *u0, Real sigma);
 
+
+
 #endif //SIMPLA_SPPARALLEL_H

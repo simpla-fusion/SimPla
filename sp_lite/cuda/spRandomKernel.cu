@@ -147,10 +147,7 @@ int spRandomGeneratorSetNumOfDimensions(spRandomGenerator *gen, int n)
     return SP_SUCCESS;
 }
 
-int spRandomGeneratorGetNumOfDimensions(spRandomGenerator const *gen)
-{
-    return gen->num_of_dimensions;
-}
+int spRandomGeneratorGetNumOfDimensions(spRandomGenerator const *gen) { return gen->num_of_dimensions; }
 
 int spRandomGeneratorSetThreadBlocks(spRandomGenerator *gen, size_type const *blocks, size_type const *threads)
 {
@@ -161,6 +158,7 @@ int spRandomGeneratorSetThreadBlocks(spRandomGenerator *gen, size_type const *bl
     gen->threads[1] = threads[1];
     gen->threads[2] = threads[2];
     gen->num_of_threads = blocks[0] * blocks[1] * blocks[2] * threads[0] * threads[1] * threads[2];
+    return SP_SUCCESS;
 }
 
 int spRandomGeneratorGetThreadBlocks(spRandomGenerator *gen, size_type *blocks, size_type *threads)
@@ -171,14 +169,10 @@ int spRandomGeneratorGetThreadBlocks(spRandomGenerator *gen, size_type *blocks, 
     threads[0] = gen->threads[0];
     threads[1] = gen->threads[1];
     threads[2] = gen->threads[2];
-
     return SP_SUCCESS;
 }
 
-size_type spRandomGeneratorGetNumOfThreads(spRandomGenerator const *gen)
-{
-    return gen->num_of_threads;
-}
+size_type spRandomGeneratorGetNumOfThreads(spRandomGenerator const *gen) { return gen->num_of_threads; }
 
 __global__ void
 spRandomDistributionInCellUniformKernel(curandStateScrambledSobol64 *state, Real *data, dim3 min, dim3 max,

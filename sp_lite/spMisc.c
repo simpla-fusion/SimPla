@@ -12,8 +12,8 @@
 int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
 {
 
-    spMesh const *m = spMeshAttributeMesh((spMeshAttribute const *) f);
-    int iform = spMeshAttributeForm((spMeshAttribute const *) f);
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
+    int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
     int ndims = spMeshGetNDims(m);
     int num_of_sub = spFieldNumberOfSub(f);
 
