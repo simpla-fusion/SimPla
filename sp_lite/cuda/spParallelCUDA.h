@@ -15,7 +15,7 @@
          printf(  "[line %d in file %s]\n %s = %d \n",                    \
                  __LINE__, __FILE__,__STRING(_CMD_),(_CMD_));
 #else
-#	define CUDA_CALL(_CMD_) printf(  "[line %d in file %s : block=[%i,%i,%i] thread=[%i,%i,%i] ]\t %s = %d\n",					\
+#define CUDA_CALL(_CMD_) printf(  "[line %d in file %s : block=[%i,%i,%i] thread=[%i,%i,%i] ]\t %s = %d\n",					\
          __LINE__, __FILE__,blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x , threadIdx.y, threadIdx.z, __STRING(_CMD_),(_CMD_));
 #endif
 

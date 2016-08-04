@@ -134,7 +134,8 @@ int spParticleDeploy(spParticle *sp)
         spParallelDeviceAlloc(&(sp->m_attrs_[i].data),
                               spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * number_of_entities);
 
-
+        spParallelMemset((sp->m_attrs_[i].data), 0,
+                         spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * number_of_entities);
         sp->m_data_root_[i] = sp->m_attrs_[i].data;
     }
 
@@ -186,7 +187,7 @@ int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_t
     spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, num_of_dimensions, offset);
 
     spRandomDistributionInCell(sp_gen, l_dist_types,
-                               (Real **) (spParticleGetDeviceData(sp) + 1),
+                               (Real **) (spParticleGetData(sp) + 1),
                                x_min, x_max, strides, max_number_of_entities);
 
     spRandomGeneratorDestroy(&sp_gen);
