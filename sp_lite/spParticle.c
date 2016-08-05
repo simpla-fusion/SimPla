@@ -165,7 +165,7 @@ int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_t
 
     SP_CALL(spParticleGetAllAttributeData(sp, data));
 
-    SP_CALL(spParallelMemset(((spParticleFiber *) data)->id, 0, max_number_of_entities * sizeof(int)));
+//    SP_CALL(spParallelMemset(((spParticleFiber *) data)->id, 0, max_number_of_entities * sizeof(int)));
 
     size_type x_min[3], x_max[3], strides[3];
     SP_CALL(spMeshGetArrayShape(m, SP_DOMAIN_CENTER, x_min, x_max, strides));
@@ -178,8 +178,6 @@ int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_t
 
 //        spParallelScan(&offset);
     spRandomGenerator *sp_gen;
-
-    SP_CALL(spParticleGetAllAttributeData(sp, data));
 
     SP_CALL(spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, offset));
 

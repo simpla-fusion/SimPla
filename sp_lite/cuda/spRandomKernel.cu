@@ -59,7 +59,7 @@ spRandomGeneratorSobolSetupKernel(unsigned long long *sobolDirectionVectors,
         curand_init(sobolDirectionVectors + VECTOR_SIZE * (id * num_of_dim + i),
                     sobolScrambleConstants[id * num_of_dim + i],
                     offset,
-                    &(state[id]));
+                    &(state[id * num_of_dim + i]));
     }
 
 }
@@ -74,7 +74,8 @@ int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimens
         spRandomGeneratorSetThreadBlocks(*gen, blocks, threads);
         spRandomGeneratorSetNumOfDimensions(*gen, num_of_dimension);
     }
-
+    int n_dims = spRandomGeneratorGetNumOfDimensions(*gen);
+    size_type n_threads = spRandomGeneratorGetNumOfThreads(*gen);
     curandDirectionVectors64_t *hostVectors64;
     unsigned long long int *hostScrambleConstants64;
 
@@ -87,43 +88,38 @@ int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimens
 
     /* Allocate memory for 3 states per thread (x, y, z), each state to get a unique dimension */
     SP_CUDA_CALL(cudaMalloc((void **) &((*gen)->devSobol64States),
-                            spRandomGeneratorGetNumOfThreads(*gen) *
-                            spRandomGeneratorGetNumOfDimensions(*gen) *
+                            n_threads * n_dims *
                             sizeof(curandStateScrambledSobol64)));
 
     /* Allocate memory and copy 3 sets of vectors per thread to the device */
 
     SP_CUDA_CALL(cudaMalloc((void **) &((*gen)->devDirectionVectors64),
-                            spRandomGeneratorGetNumOfThreads(*gen) *
-                            spRandomGeneratorGetNumOfDimensions(*gen) * VECTOR_SIZE * sizeof(long long int)));
-    size_type t = spRandomGeneratorGetNumOfThreads(*gen) *
-                  spRandomGeneratorGetNumOfDimensions(*gen);
+                            n_threads * n_dims * VECTOR_SIZE * sizeof(long long int)));
+
     SP_CUDA_CALL(cudaMemcpy((*gen)->devDirectionVectors64, hostVectors64,
-                            t * VECTOR_SIZE * sizeof(long long int),
+                            n_threads * n_dims * VECTOR_SIZE * sizeof(long long int),
                             cudaMemcpyHostToDevice));
 
     /* Allocate memory and copy 6 scramble constants (one costant per dimension)
        per thread to the device */
 
     SP_CUDA_CALL(cudaMalloc((void **) &((*gen)->devScrambleConstants64),
-                            spRandomGeneratorGetNumOfThreads(*gen) *
-                            spRandomGeneratorGetNumOfDimensions(*gen) * sizeof(long long int)));
+                            n_threads * n_dims * sizeof(long long int)));
 
     SP_CUDA_CALL(cudaMemcpy((*gen)->devScrambleConstants64, hostScrambleConstants64,
-                            spRandomGeneratorGetNumOfThreads(*gen) *
-                            spRandomGeneratorGetNumOfDimensions(*gen) * sizeof(long long int),
+                            n_threads * n_dims * sizeof(long long int),
                             cudaMemcpyHostToDevice));
 
     {
         size_type s_blocks[3], s_threads[3];
         spRandomGeneratorGetThreadBlocks(*gen, s_blocks, s_threads);
-        dim3 blocks = sizeType2Dim3(s_blocks), threads = sizeType2Dim3(s_threads);
         /* @formatter:off */
         /* Initialize the states */
-         spRandomGeneratorSobolSetupKernel<<<blocks, threads>>>((*gen)->devDirectionVectors64,
-       (*gen)-> devScrambleConstants64,
-        spRandomGeneratorGetNumOfDimensions(*gen) ,offset,
-       (*gen)-> devSobol64States
+         spRandomGeneratorSobolSetupKernel<<<sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads)>>>(
+                 (*gen)->devDirectionVectors64,
+                 (*gen)-> devScrambleConstants64,
+                 spRandomGeneratorGetNumOfDimensions(*gen) ,offset,
+                 (*gen)-> devSobol64States
         );
        /* @formatter:on */
     }
@@ -231,10 +227,7 @@ spRandomDistributionInCellNormalKernel(curandStateScrambledSobol64 *state, Real 
                 size_type s0 = threadId + x * strides.x + y * strides.y + z * strides.z;
 
                 /* Generate quasi-random double precision coordinates */
-                for (size_type s = 0; s < num; s += num_of_thread)
-                {
-                    data[s0 + s] = curand_normal(&local_state);
-                }
+                for (size_type s = 0; s < num; s += num_of_thread) { data[s0 + s] = curand_normal(&local_state); }
             }
 
     state[total_thread_id] = local_state;
@@ -257,29 +250,28 @@ spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, R
                                 size_type num_per_cell)
 {
     size_type s_blocks[3], s_threads[3];
-
     spRandomGeneratorGetThreadBlocks(gen, s_blocks, s_threads);
 
     dim3 blocks = sizeType2Dim3(s_blocks), threads = sizeType2Dim3(s_threads);
-
-    for (int n = 0; n < spRandomGeneratorGetNumOfDimensions(gen); ++n)
+    int n_dims = spRandomGeneratorGetNumOfDimensions(gen);
+    size_type n_threads = spRandomGeneratorGetNumOfThreads(gen);
+    for (int n = 0; n < n_dims; ++n)
     {
         switch (dist_types[n])
         {
             case SP_RAND_NORMAL:
                 /* @formatter:off */
                 spRandomDistributionInCellNormalKernel<<<blocks, threads>>>(
-                        gen->devSobol64States+n*spRandomGeneratorGetNumOfThreads(gen),
+                        gen->devSobol64States+n*n_threads,
                         data[n],sizeType2Dim3(min),sizeType2Dim3(max),sizeType2Dim3(strides),num_per_cell);
                 /* @formatter:on */
                 break;
             case SP_RAND_UNIFORM:
             default:
                 /* @formatter:off */
-             spRandomDistributionInCellUniformKernel<<<blocks, threads>>>(
-                        gen->devSobol64States+n*spRandomGeneratorGetNumOfThreads(gen),
+                spRandomDistributionInCellUniformKernel<<<blocks, threads>>>(
+                        gen->devSobol64States+n*n_threads,
                         data[n] ,sizeType2Dim3(min),sizeType2Dim3(max),sizeType2Dim3(strides),num_per_cell);
-
                 /* @formatter:off */
                 break;
         }
