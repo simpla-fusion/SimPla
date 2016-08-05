@@ -65,12 +65,12 @@ __global__ void spUpdateFieldFDTDKernel(Real dt, Real3 dt_inv,
 
 }
 
-int spUpdateFieldFDTD(struct spMesh_s const *m,
-                      Real dt,
-                      const struct spField_s *fRho,
-                      const struct spField_s *fJ,
-                      struct spField_s *fE,
-                      struct spField_s *fB)
+int spFDTDUpdate(struct spMesh_s const *m,
+                 Real dt,
+                 const struct spField_s *fRho,
+                 const struct spField_s *fJ,
+                 struct spField_s *fE,
+                 struct spField_s *fB)
 {
     if (m == NULL) { return SP_FAILED; }
 
@@ -102,7 +102,7 @@ int spUpdateFieldFDTD(struct spMesh_s const *m,
 
     SP_CALL(spFieldSubArray(fB, (void **) B));
 
-    CALL_KERNEL(spUpdateFieldFDTDKernel,
+    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernel,
                 sizeType2Dim3(dims), 1,
                 dt,
                 real2Real3(dt_inv),

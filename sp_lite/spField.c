@@ -61,7 +61,7 @@ int spFieldDeploy(spField *f)
     if (f->device_data == NULL)
     {
         size_type s = spDataTypeSizeInByte(f->m_data_type_desc_) *
-                spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
+                      spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 
         spParallelDeviceAlloc((void **) &(f->device_data), s);
     }
@@ -103,14 +103,16 @@ int spFieldSubArray(spField *f, void **data)
     int num_of_sub = spFieldNumberOfSub(f);
 
     if (num_of_sub == 1) { *data = spFieldData(f); }
-    else
+    else if (spFieldIsSoA(f))
     {
-        assert (spFieldIsSoA(f));
-
         size_type offset = ele_size_in_byte * spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, VERTEX);
 
         for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * offset; }
 
+    }
+    else
+    {
+        for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * ele_size_in_byte; }
     }
     return SP_SUCCESS;
 };
@@ -120,12 +122,13 @@ int spFieldClear(spField *f)
     SP_CALL(spFieldDeploy(f));
 
     size_type s = spDataTypeSizeInByte(f->m_data_type_desc_)
-        * spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
+                  * spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 
     spParallelMemset(f->device_data, 0, s);
 
     return SP_SUCCESS;
 }
+
 int spFieldFill(spField *f, Real v)
 {
     spFieldDeploy(f);
@@ -133,13 +136,14 @@ int spFieldFill(spField *f, Real v)
     return spParallelDeviceFillReal(f->device_data, v, spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform));
 
 }
+
 int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
 {
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
 
     size_type size_in_byte = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform) *
-        spDataTypeSizeInByte(spFieldDataType(f));
+                             spDataTypeSizeInByte(spFieldDataType(f));
 
     void *f_host;
 
@@ -163,9 +167,9 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
                                       g_dims, g_start, l_dims, l_start, l_count, spFieldIsSoA(f)));
 
     SP_CALL(spIOStreamWriteSimple(os, name, spFieldDataType(f),
-                                          f_host, array_ndims, l_dims,
-                                          l_start, NULL, l_count, NULL,
-                                          g_dims, g_start, flag));
+                                  f_host, array_ndims, l_dims,
+                                  l_start, NULL, l_count, NULL,
+                                  g_dims, g_start, flag));
 
     spParallelHostFree(&f_host);
 
@@ -197,10 +201,11 @@ int spFieldSync(spField *f)
 
 
     SP_CALL(spParallelUpdateNdArrayHalo(spFieldDeviceData(f), spFieldDataType(f),
-                                                array_ndims, l_dims, l_start, NULL, l_count, NULL, mesh_start_dim));
+                                        array_ndims, l_dims, l_start, NULL, l_count, NULL, mesh_start_dim));
     return SP_SUCCESS;
 
 }
+
 int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real const **v)
 {
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);

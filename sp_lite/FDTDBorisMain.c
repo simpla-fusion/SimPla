@@ -86,13 +86,13 @@ int main(int argc, char **argv)
 
     spParticle *sp = NULL;
 
-    SP_CALL(spBorisYeeParticleCreate(&sp, mesh));
+    SP_CALL(spParticleCreateBorisYee(&sp, mesh));
 
     SP_CALL(spParticleSetMass(sp, SI_electron_mass));
     SP_CALL(spParticleSetCharge(sp, SI_elementary_charge));
-    SP_CALL(spParticleSetPIC(sp, PIC));
+    SP_CALL(spParticleSetPIC(sp, PIC, 0));
 
-    SP_CALL(spBorisYeeParticleInitialize(sp, n0, T0, 128));
+    SP_CALL(spParticleInitializeBorisYee(sp, n0, T0, 0));
 
     /*****************************************************************************************************************/
 
@@ -111,8 +111,8 @@ int main(int argc, char **argv)
     {
 
         SP_CALL(spFieldClear(fJ));
-        SP_CALL(spBorisYeeParticleUpdate(sp, dt, fE, fB, fRho, fJ));
-        SP_CALL(spUpdateFieldFDTD(mesh, dt, fRho, fJ, fE, fB));
+        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
+        SP_CALL(spFDTDUpdate(mesh, dt, fRho, fJ, fE, fB));
 
 
         if (count % check_point == 0)
@@ -146,9 +146,7 @@ int main(int argc, char **argv)
 
     SP_CALL(spIOStreamDestroy(&os));
 
-
     DONE
-
 
     SP_CALL(spIOStreamDestroy(&os));
     SP_CALL(spParallelFinalize());

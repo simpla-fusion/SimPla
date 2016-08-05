@@ -47,9 +47,11 @@ int spParticleDestroy(spParticle **sp);
 
 int spParticleDeploy(spParticle *sp);
 
-int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_types);
+int spParticleInitialize(spParticle *sp, int const *dist_types);
 
-int spParticleSetPIC(spParticle *sp, size_type s);
+int spParticleSetPIC(spParticle *sp, size_type pic, size_type max_pic);
+
+size_type spParticleGetPIC(spParticle const *sp);
 
 int spParticleSetMass(spParticle *, Real m);
 
@@ -71,9 +73,11 @@ void *spParticleGetAttributeData(spParticle *sp, int i);
 
 int spParticleGetAllAttributeData(spParticle *sp, void **res);
 
+int spParticleGetAllAttributeData_device(spParticle *sp, void ***device_data);
+
 size_type spParticleGetNumberOfEntities(spParticle const *sp);
 
-size_type spParticleGetMaxFiberLength(const spParticle *sp);
+size_type spParticleGetMaxPIC(const spParticle *sp);
 
 int spParticleWrite(spParticle const *sp, struct spIOStream_s *os, const char *url, int flag);
 

@@ -32,7 +32,7 @@ void spFieldAssignValueSinKernel(size_type const *block,
                                  Real const *alpha0,
                                  Real amp)
 {
-    CALL_KERNEL(spFieldAssignValueSinKernel_g, sizeType2Dim3(block),
+    SP_DEVICE_CALL_KERNEL(spFieldAssignValueSinKernel_g, sizeType2Dim3(block),
                 sizeType2Dim3(thread),
                 data,
                 sizeType2Dim3(strides),

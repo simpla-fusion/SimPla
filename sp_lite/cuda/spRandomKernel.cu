@@ -43,7 +43,7 @@ typedef struct spRandomGenerator_s
 /**
  * This kernel initializes state per thread for each of x, y, and z,vx,vy,vz
  */
-__global__ void
+SP_DEVICE_GLOBAL void
 spRandomGeneratorSobolSetupKernel(unsigned long long *sobolDirectionVectors,
                                   unsigned long long *sobolScrambleConstants,
                                   int num_of_dim, size_type offset,
@@ -170,7 +170,7 @@ int spRandomGeneratorGetThreadBlocks(spRandomGenerator *gen, size_type *blocks, 
 
 size_type spRandomGeneratorGetNumOfThreads(spRandomGenerator const *gen) { return gen->num_of_threads; }
 
-__global__ void
+SP_DEVICE_GLOBAL void
 spRandomDistributionInCellUniformKernel(curandStateScrambledSobol64 *state, Real *data, dim3 min, dim3 max,
                                         dim3 strides, size_type num)
 {
@@ -202,7 +202,7 @@ spRandomDistributionInCellUniformKernel(curandStateScrambledSobol64 *state, Real
 }
 
 
-__global__ void
+SP_DEVICE_GLOBAL void
 spRandomDistributionInCellNormalKernel(curandStateScrambledSobol64 *state, Real *data, dim3 min, dim3 max, dim3 strides,
                                        size_type num)
 {
@@ -252,7 +252,6 @@ spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, R
     size_type s_blocks[3], s_threads[3];
     spRandomGeneratorGetThreadBlocks(gen, s_blocks, s_threads);
 
-    dim3 blocks = sizeType2Dim3(s_blocks), threads = sizeType2Dim3(s_threads);
     int n_dims = spRandomGeneratorGetNumOfDimensions(gen);
     size_type n_threads = spRandomGeneratorGetNumOfThreads(gen);
     for (int n = 0; n < n_dims; ++n)
@@ -260,19 +259,20 @@ spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, R
         switch (dist_types[n])
         {
             case SP_RAND_NORMAL:
-                /* @formatter:off */
-                spRandomDistributionInCellNormalKernel<<<blocks, threads>>>(
-                        gen->devSobol64States+n*n_threads,
-                        data[n],sizeType2Dim3(min),sizeType2Dim3(max),sizeType2Dim3(strides),num_per_cell);
-                /* @formatter:on */
+
+                SP_DEVICE_CALL_KERNEL(spRandomDistributionInCellNormalKernel,
+                                      sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads),
+                                      gen->devSobol64States + n * n_threads,
+                                      data[n],
+                                      sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides), num_per_cell);
                 break;
             case SP_RAND_UNIFORM:
             default:
-                /* @formatter:off */
-                spRandomDistributionInCellUniformKernel<<<blocks, threads>>>(
-                        gen->devSobol64States+n*n_threads,
-                        data[n] ,sizeType2Dim3(min),sizeType2Dim3(max),sizeType2Dim3(strides),num_per_cell);
-                /* @formatter:off */
+                SP_DEVICE_CALL_KERNEL(spRandomDistributionInCellUniformKernel,
+                                      sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads),
+                                      gen->devSobol64States + n * n_threads,
+                                      data[n],
+                                      sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides), num_per_cell);
                 break;
         }
     }

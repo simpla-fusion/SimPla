@@ -93,7 +93,7 @@ void spParallelDeviceFillIntKernel(int *d, int v, size_type max)
 
 int spParallelDeviceFillInt(int *d, int v, size_type s)
 {
-    CALL_KERNEL(spParallelDeviceFillIntKernel, 16, 256, d, v, s);
+    SP_DEVICE_CALL_KERNEL(spParallelDeviceFillIntKernel, 16, 256, d, v, s);
 
     return SP_SUCCESS;
 };
@@ -106,7 +106,7 @@ void spParallelDeviceFillRealKernel(Real *d, Real v, size_type max)
 
 int spParallelDeviceFillReal(Real *d, Real v, size_type s)
 {
-    CALL_KERNEL(spParallelDeviceFillRealKernel, 16, 256, d, v, s);
+    SP_DEVICE_CALL_KERNEL(spParallelDeviceFillRealKernel, 16, 256, d, v, s);
     return SP_SUCCESS;
 };
 
@@ -125,7 +125,7 @@ void spParallelAssignKernel(size_type max, size_type const *offset, Real *d, Rea
 
 int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v)
 {
-    CALL_KERNEL(spParallelAssignKernel, 16, 256, num_of_point, offset, d, v);
+    SP_DEVICE_CALL_KERNEL(spParallelAssignKernel, 16, 256, num_of_point, offset, d, v);
     return SP_SUCCESS;
 };
 

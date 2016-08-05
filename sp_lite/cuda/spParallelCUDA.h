@@ -10,7 +10,7 @@
 #include "../../../../../../usr/local/cuda/include/vector_types.h"
 #include "../../../../../../usr/local/cuda/include/cuda_device_runtime_api.h"
 
-
+#define  SP_DEVICE_GLOBAL __global__
 #if !defined(__CUDA_ARCH__)
 #define CUDA_CALL(_CMD_)                                            \
          printf(  "[line %d in file %s]\n %s = %d \n",                    \
@@ -29,9 +29,9 @@
     } }
 
 
-#define CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
+#define SP_DEVICE_CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
 
-//int CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
+//int SP_DEVICE_CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
 
 #ifdef USE_FLOAT_REAL
 typedef float3 Real3;

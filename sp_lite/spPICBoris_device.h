@@ -13,52 +13,47 @@
 
 #define ll 0
 #define rr 1
-#define RADIUS 2
-#define CACHE_EXTENT_X RADIUS*2
-#define CACHE_EXTENT_Y RADIUS*2
-#define CACHE_EXTENT_Z RADIUS*2
-#define CACHE_SIZE (CACHE_EXTENT_X*CACHE_EXTENT_Y*CACHE_EXTENT_Z)
-#define IX  1
-#define IY  CACHE_EXTENT_X
-#define IZ  CACHE_EXTENT_X*CACHE_EXTENT_Y
 
-static DEVICE_INLINE void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
+
+static DEVICE_INLINE void
+cache_gather(Real *v, Real const *f, size_type s, size_type IX, size_type IY, size_type IZ, Real rx, Real ry, Real rz)
 {
 
     *v = *v
-         + (f[IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
-            + f[IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
-            + f[IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
-            + f[IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
-            + f[IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
-            + f[IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
-            + f[IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
-            + f[0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
+         + (f[s + IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
+            + f[s + IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
+            + f[s + IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
+            + f[s + IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
+            + f[s + IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
+            + f[s + IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
+            + f[s + IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
+            + f[s + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
 }
 
 #undef ll
 #undef rr
-#undef IX
-#undef IY
-#undef IZ
+
 
 static DEVICE_INLINE void spBoris(Real cmr_dt, Real3 mesh_inv_dv,
+                                  size_type s, size_type IX, size_type IY, size_type IZ,
+                                  Real *rho, Real *Jx, Real *Jy, Real *Jz,
                                   const Real *Ex, const Real *Ey, const Real *Ez,
                                   const Real *Bx, const Real *By, const Real *Bz,
                                   Real *rx, Real *ry, Real *rz,
-                                  Real *vx, Real *vy, Real *vz)
+                                  Real *vx, Real *vy, Real *vz,
+                                  Real *f, Real *w)
 {
     Real ax, ay, az;
     Real tx, ty, tz;
 
     Real tt;
 
-    cache_gather(&ax, Ex, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
-    cache_gather(&ay, Ey, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
-    cache_gather(&az, Ez, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
-    cache_gather(&tx, Bx, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
-    cache_gather(&ty, By, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
-    cache_gather(&tz, Bz, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
+    cache_gather(&ax, Ex, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
+    cache_gather(&ay, Ey, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
+    cache_gather(&az, Ez, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
+    cache_gather(&tx, Bx, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
+    cache_gather(&ty, By, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
+    cache_gather(&tz, Bz, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
 
     ax *= cmr_dt;
     ay *= cmr_dt;

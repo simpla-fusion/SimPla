@@ -13,9 +13,8 @@
 #include "spField.h"
 #include "spParallel.h"
 #include "spPhysicalConstants.h"
-#include "spRandom.h"
 
-int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
+int spParticleCreateBorisYee(spParticle **sp, struct spMesh_s const *m)
 {
     if (sp == NULL) { return SP_FAILED; }
 
@@ -29,22 +28,6 @@ int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
 
 }
 
-int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0, size_type num_pic)
-{
-    SP_CALL(spParticleDeploy(sp));
+int spParticleDestroyBorisYee(spParticle **sp) { return spParticleDestroy(sp); }
 
-    size_type max_number_of_entities = spParticleGetNumberOfEntities(sp);
 
-    int dist_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
-
-    SP_CALL(spParticleInitialize(sp, num_pic, dist_type));
-
-    void *data[spParticleGetNumberOfAttributes(sp)];
-    SP_CALL(spParticleGetAllAttributeData(sp, data));
-//    Real *v[3] = {data->vx, data->vx, data->vx};
-//    Real u[3] = {0, 0, 0};
-//    SP_CALL(spRandomUniformNormal6(v, max_number_of_entities, u, sqrt(2.0 * T0 * SI_Boltzmann_constant / spParticleGetMass(sp))));
-    SP_CALL(spParallelDeviceFillReal(((boris_particle *) data)->f, n0, max_number_of_entities));
-    SP_CALL(spParallelMemset(((boris_particle *) data)->w, 0, max_number_of_entities * sizeof(Real)));
-    return SP_SUCCESS;
-}
