@@ -103,8 +103,8 @@ void spMeshPoint(spMesh const *, MeshEntityId id, Real *);
 
 /** Geometry End */
 
-int spMeshWrite(const spMesh *ctx, const char *name, int flag);
+int spMeshWrite(const spMesh *ctx, const char *name);
 
-int spMeshRead(spMesh *ctx, const char *name, int flag);
+int spMeshRead(spMesh *ctx, const char *name);
 
 #endif /* SPMESH_H_ */

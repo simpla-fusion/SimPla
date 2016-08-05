@@ -224,19 +224,19 @@ int spMeshDeploy(spMesh *self)
 
 size_type spMeshGetNumberOfEntities(spMesh const *self, int tag, int iform)
 {
-    size_type res = (iform == 0 || iform == 3) ? 1 : 3;
+    size_type res = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
     switch (tag)
     {
         case SP_DOMAIN_CENTER:
             res *= self->m_count_[0] * self->m_count_[1] * self->m_count_[2];
+            break;
         case SP_DOMAIN_ALL:
         default:
             res *= self->m_dims_[0] * self->m_dims_[1] * self->m_dims_[2];
             break;
     }
 
-    return
-            res;
+    return res;
 }
 
 void spMeshPoint(spMesh const *m, MeshEntityId id, Real *res)
@@ -387,8 +387,7 @@ int spMeshGetDomain(spMesh const *m, int tag, size_type *dims, size_type *start,
             dims[i] = m->m_dims_[i];
         }
     }
-    return
-            success;
+    return success;
 };
 
 int spMeshGetArrayShape(spMesh const *m, int tag, size_type *min, size_type *max, size_type *stride)
@@ -412,8 +411,7 @@ int spMeshGetArrayShape(spMesh const *m, int tag, size_type *min, size_type *max
             break;
     }
 
-    spMeshGetStrides(m, stride
-    );
+    spMeshGetStrides(m, stride);
 }
 
 
@@ -449,10 +447,7 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
                               size_type *l_count,
                               int is_soa)
 {
-
-
     int mesh_ndims = spMeshGetNDims(m);
-
 
     *array_ndims = spMeshGetNDims(m) + attr_ndims;
 
@@ -503,19 +498,8 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
 
 };
 
-size_type spMeshHash(spMesh const *m, MeshEntityId id, int iform)
-{
-    return 0;
-};
+size_type spMeshHash(spMesh const *m, MeshEntityId id, int iform) { return 0; };
 
+int spMeshWrite(const spMesh *ctx, const char *name) { return SP_FAILED; };
 
-int spMeshWrite(const spMesh *ctx, const char *name, int flag)
-{
-    return SP_SUCCESS;
-};
-
-int spMeshRead(spMesh *ctx, const char *name, int flag)
-{
-    return SP_SUCCESS;
-
-}
+int spMeshRead(spMesh *ctx, const char *name) { return SP_FAILED; }

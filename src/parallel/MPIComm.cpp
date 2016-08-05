@@ -58,7 +58,7 @@ int MPIComm::size() const
 int MPIComm::get_rank(int const *d) const
 {
     int res = 0;
-    MPI_ERROR(MPI_Cart_rank(pimpl_->m_comm_, d, &res));
+    MPI_CALL(MPI_Cart_rank(pimpl_->m_comm_, d, &res));
     return res;
 }
 
@@ -67,11 +67,11 @@ void MPIComm::init(int argc, char **argv)
 
     pimpl_->m_object_id_count_ = 0;
 
-    MPI_ERROR(MPI_Init(&argc, &argv));
+    MPI_CALL(MPI_Init(&argc, &argv));
 
     int m_num_process_;
 
-    MPI_ERROR(MPI_Comm_size(MPI_COMM_WORLD, &m_num_process_));
+    MPI_CALL(MPI_Comm_size(MPI_COMM_WORLD, &m_num_process_));
 
 
     if (m_num_process_ <= 1)
@@ -84,19 +84,19 @@ void MPIComm::init(int argc, char **argv)
     {
         int m_topology_coord_[3] = {0, 0, 0};
 
-        MPI_ERROR(MPI_Dims_create(m_num_process_, 2, pimpl_->m_topology_dims_));
+        MPI_CALL(MPI_Dims_create(m_num_process_, 2, pimpl_->m_topology_dims_));
 
         int periods[pimpl_->m_topology_ndims_];
 
         for (int i = 0; i < pimpl_->m_topology_ndims_; ++i) { periods[i] = true; }
 
-        MPI_ERROR(MPI_Cart_create(MPI_COMM_WORLD, pimpl_->m_topology_ndims_,
+        MPI_CALL(MPI_Cart_create(MPI_COMM_WORLD, pimpl_->m_topology_ndims_,
                                   pimpl_->m_topology_dims_, periods, MPI_ORDER_C, &pimpl_->m_comm_));
 
 
         logger::set_mpi_comm(rank(), size());
 
-        MPI_ERROR(MPI_Cart_coords(comm(), rank(), pimpl_->m_topology_ndims_, m_topology_coord_));
+        MPI_CALL(MPI_Cart_coords(comm(), rank(), pimpl_->m_topology_ndims_, m_topology_coord_));
 
 
         VERBOSE << "MPI communicator is initialized! "
@@ -141,12 +141,12 @@ int MPIComm::topology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int
     if (comm() != MPI_COMM_NULL)
     {
         int tope_type = MPI_CART;
-        MPI_ERROR(MPI_Topo_test(comm(), &tope_type));
+        MPI_CALL(MPI_Topo_test(comm(), &tope_type));
         if (tope_type == MPI_CART);
         {
-            MPI_ERROR(MPI_Cartdim_get(comm(), mpi_topo_ndims));
+            MPI_CALL(MPI_Cartdim_get(comm(), mpi_topo_ndims));
 
-            MPI_ERROR(MPI_Cart_get(comm(), *mpi_topo_ndims, mpi_topo_dims, periods, mpi_topo_coord));
+            MPI_CALL(MPI_Cart_get(comm(), *mpi_topo_ndims, mpi_topo_dims, periods, mpi_topo_coord));
         }
     }
     return SP_SUCCESS;
@@ -159,7 +159,7 @@ void MPIComm::close()
     {
         VERBOSE << "MPI Communicator is closed!" << std::endl;
 
-        MPI_ERROR(MPI_Finalize());
+        MPI_CALL(MPI_Finalize());
 
         pimpl_->m_comm_ = MPI_COMM_NULL;
 

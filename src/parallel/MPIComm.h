@@ -71,7 +71,7 @@ private:
 
 #define GLOBAL_COMM   SingletonHolder<::simpla::parallel::MPIComm>::instance()
 
-#define MPI_ERROR(_CMD_)                                           \
+#define MPI_CALL(_CMD_)                                           \
 {                                                                  \
     int _mpi_error_code_ = _CMD_;                                  \
     if (_mpi_error_code_ != MPI_SUCCESS)                           \

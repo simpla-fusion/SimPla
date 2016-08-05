@@ -13,6 +13,11 @@ typedef struct spRandomGenerator_s spRandomGenerator;
 enum { SP_RAND_GEN_SOBOL };
 enum { SP_RAND_UNIFORM = 0x1, SP_RAND_NORMAL = 0x10 };
 
+/**
+ *  \f[
+ *      f\left(v\right)\equiv\frac{1}{\sqrt{\left(2\pi\sigma\right)^{3}}}\exp\left(-\frac{\left(v-u\right)^{2}}{\sigma^{2}}\right)
+ *  \f]
+ */
 int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimension, size_type offset);
 
 int spRandomGeneratorDestroy(spRandomGenerator **gen);

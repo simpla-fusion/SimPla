@@ -122,7 +122,7 @@ void DistributedObject::pimpl_s::sync()
                             item.second.data_set->memory_space).
                 swap(m_mpi_dtype_[count]);
 
-        MPI_ERROR(MPI_Isend(item.second.data_set->data.get(), 1,
+        MPI_CALL(MPI_Isend(item.second.data_set->data.get(), 1,
                             m_mpi_dtype_[count].type(),
                             item.second.dest, item.second.tag,
                             GLOBAL_COMM.comm(),
@@ -145,7 +145,7 @@ void DistributedObject::pimpl_s::sync()
         {
             MPI_Status status;
 
-            MPI_ERROR(MPI_Probe(dest_id, recv_tag, GLOBAL_COMM.comm(), &status));
+            MPI_CALL(MPI_Probe(dest_id, recv_tag, GLOBAL_COMM.comm(), &status));
 
             // When probe returns, the status object has the size and other
             // attributes of the incoming message. Get the size of the message
@@ -154,7 +154,7 @@ void DistributedObject::pimpl_s::sync()
 
             auto m_dtype = MPIDataType::create(ds->data_type);
 
-            MPI_ERROR(MPI_Get_count(&status, m_dtype.type(), &recv_num));
+            MPI_CALL(MPI_Get_count(&status, m_dtype.type(), &recv_num));
 
             if (recv_num == MPI_UNDEFINED)
             {
@@ -172,7 +172,7 @@ void DistributedObject::pimpl_s::sync()
             MPIDataType::create(ds->data_type).swap(m_mpi_dtype_[count]);
 
             ASSERT(ds->data.get() != nullptr);
-            MPI_ERROR(MPI_Irecv(ds->data.get(), recv_num,
+            MPI_CALL(MPI_Irecv(ds->data.get(), recv_num,
                                 m_mpi_dtype_[count].type(),
                                 dest_id, recv_tag, GLOBAL_COMM.comm(),
                                 &(m_mpi_requests_[count])));
@@ -182,7 +182,7 @@ void DistributedObject::pimpl_s::sync()
         {
             ASSERT(ds->data.get() != nullptr);
             MPIDataType::create(ds->data_type, ds->memory_space).swap(m_mpi_dtype_[count]);
-            MPI_ERROR(MPI_Irecv(ds->data.get(), 1,
+            MPI_CALL(MPI_Irecv(ds->data.get(), 1,
                                 m_mpi_dtype_[count].type(),
                                 dest_id, recv_tag, GLOBAL_COMM.comm(),
                                 &(m_mpi_requests_[count])));
@@ -345,7 +345,7 @@ bool DistributedObject::pimpl_s::is_ready() const
 
         MPI_Request *array_of_requests = &(const_cast<pimpl_s *>(this)->m_mpi_requests_[0]);
 
-        MPI_ERROR(MPI_Testall(count, array_of_requests, &flag, MPI_STATUSES_IGNORE));
+        MPI_CALL(MPI_Testall(count, array_of_requests, &flag, MPI_STATUSES_IGNORE));
 
         return flag != 0;
     }

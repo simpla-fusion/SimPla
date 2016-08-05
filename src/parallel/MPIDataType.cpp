@@ -18,7 +18,7 @@ namespace simpla
 MPIDataType::MPIDataType()
     : m_type_(MPI_DATATYPE_NULL) {}
 
-MPIDataType::MPIDataType(MPIDataType const &other) {MPI_ERROR(MPI_Type_dup(other.type(), &m_type_)); }
+MPIDataType::MPIDataType(MPIDataType const &other) {MPI_CALL(MPI_Type_dup(other.type(), &m_type_)); }
 
 void MPIDataType::swap(MPIDataType &other)
 {
@@ -26,7 +26,7 @@ void MPIDataType::swap(MPIDataType &other)
     std::swap(is_commited_, other.is_commited_);
 }
 
-MPIDataType::~MPIDataType() { if (is_commited_) {MPI_ERROR(MPI_Type_free(&m_type_)); }}
+MPIDataType::~MPIDataType() { if (is_commited_) {MPI_CALL(MPI_Type_free(&m_type_)); }}
 
 MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
                                 int ndims, //
@@ -162,7 +162,7 @@ MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
 
     if (!is_predefined)
     {
-        MPI_ERROR(MPI_Type_commit(&res_type));
+        MPI_CALL(MPI_Type_commit(&res_type));
     }
 
     MPIDataType res;
@@ -197,7 +197,7 @@ MPIDataType MPIDataType::create(data_model::DataType const &data_type, data_mode
 size_t MPIDataType::size() const
 {
     int s = 0;
-    MPI_ERROR(MPI_Type_size(m_type_, &s));
+    MPI_CALL(MPI_Type_size(m_type_, &s));
     return static_cast<size_t>(s);
 }
 }  // namespace simpla

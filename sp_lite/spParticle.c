@@ -173,10 +173,10 @@ int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_t
     strides[1] *= spParticleGetMaxFiberLength(sp);
     strides[2] *= spParticleGetMaxFiberLength(sp);
 
+    size_type offset = spMeshGetNumberOfEntities(m, SP_DOMAIN_CENTER, iform) * num_of_pic;
 
-    size_type offset = 0;// spMeshGetNumberOfEntities(m, SP_DOMAIN_CENTER, iform) * num_of_pic;
+    spParallelScan(&offset, 1);
 
-//        spParallelScan(&offset);
     spRandomGenerator *sp_gen;
 
     SP_CALL(spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, offset));

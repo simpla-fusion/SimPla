@@ -50,19 +50,7 @@ int spParallelDeviceFillInt(int *d, int v, size_type s);
 
 int spParallelDeviceFillReal(Real *d, Real v, size_type s);
 
-
-/**
- *  \f[
- *      f\left(v\right)\equiv\frac{1}{\sqrt{\left(2\pi\sigma\right)^{3}}}\exp\left(-\frac{\left(v-u\right)^{2}}{\sigma^{2}}\right)
- *  \f]
- * @param data
- * @param num_of_sample
- * @param u0
- * @param sigma
- * @return
- */
-int spRandomNormal3(Real **data, size_type num_of_sample, Real const *u0, Real sigma);
-
+int spParallelScan(size_type *, size_type num);
 
 
 #endif //SIMPLA_SPPARALLEL_H

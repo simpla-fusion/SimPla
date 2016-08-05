@@ -358,7 +358,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //{
 //	if (!requests.empty())
 //	{
-//		MPI_ERROR(MPI_Waitall(requests.size(), const_cast<MPI_Request *>(&(requests[0])), MPI_STATUSES_IGNORE));
+//		MPI_CALL(MPI_Waitall(requests.size(), const_cast<MPI_Request *>(&(requests[0])), MPI_STATUSES_IGNORE));
 //
 //		requests.clear();
 //	}
@@ -373,7 +373,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //	{
 //		MPI_Request req;
 //
-//		MPI_ERROR(MPI_Isend(m_data, 1, item.send_type.type(), item.dest,
+//		MPI_CALL(MPI_Isend(m_data, 1, item.send_type.type(), item.dest,
 //				item.send_tag, mpi_comm.comm(), &req));
 //
 //		requests.push_back(std::move(req));
@@ -382,7 +382,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //	{
 //		MPI_Request req;
 //
-//		MPI_ERROR(MPI_Irecv(m_data, 1, item.recv_type.type(), item.dest,
+//		MPI_CALL(MPI_Irecv(m_data, 1, item.recv_type.type(), item.dest,
 //				item.recv_tag, mpi_comm.comm(), &req));
 //
 //		requests.push_back(std::move(req));
@@ -408,7 +408,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //
 //		MPI_Request send_req;
 //
-//		MPI_ERROR(MPI_Isend(item.send_data.get(), item.send_size, mpi_data_type.type(), dest, send_tag, mpi_comm.comm(),
+//		MPI_CALL(MPI_Isend(item.send_data.get(), item.send_size, mpi_data_type.type(), dest, send_tag, mpi_comm.comm(),
 //				&send_req));
 //
 //		requests.push_back(std::move(send_req));
@@ -422,13 +422,13 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //
 //		MPI_Status status;
 //
-//		MPI_ERROR(MPI_Probe(dest, recv_tag, mpi_comm.comm(), &status));
+//		MPI_CALL(MPI_Probe(dest, recv_tag, mpi_comm.comm(), &status));
 //
 //		// When probe returns, the status object has the size and other
 //		// attributes of the incoming message. Get the size of the message
 //		int recv_num = 0;
 //
-//		MPI_ERROR(MPI_Get_count(&status, mpi_data_type.type(), &recv_num));
+//		MPI_CALL(MPI_Get_count(&status, mpi_data_type.type(), &recv_num));
 //
 //		if (recv_num == MPI_UNDEFINED)
 //		{
@@ -440,7 +440,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //		item.recv_size = recv_num;
 //
 //		MPI_Request recv_req;
-//		MPI_ERROR(
+//		MPI_CALL(
 //				MPI_Irecv(item.recv_data.get(), item.recv_size, mpi_data_type.type(), > dest, recv_tag,
 //						mpi_comm.comm(), &recv_req));
 //
