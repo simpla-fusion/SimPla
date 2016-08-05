@@ -102,7 +102,7 @@ int spUpdateFieldFDTD(struct spMesh_s const *m,
 
     SP_CALL(spFieldSubArray(fB, (void **) B));
 
-    CALL_KERNEL(spUpdateFieldFDTDKernel,
+    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernel,
                 sizeType2Dim3(dims), 1,
                 dt,
                 real2Real3(dt_inv),

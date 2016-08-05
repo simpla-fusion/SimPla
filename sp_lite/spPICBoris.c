@@ -15,7 +15,7 @@
 #include "spPhysicalConstants.h"
 #include "spRandom.h"
 
-int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
+int spParticleCreateBorisYee(spParticle **sp, struct spMesh_s const *m)
 {
     if (sp == NULL) { return SP_FAILED; }
 
@@ -29,7 +29,9 @@ int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m)
 
 }
 
-int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0, size_type num_pic)
+int spParticleDestroyBorisYee(spParticle **sp) { return spParticleDestroy(sp); }
+
+int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 {
     SP_CALL(spParticleDeploy(sp));
 
@@ -37,9 +39,10 @@ int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0, size_type num
 
     int dist_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
 
-    SP_CALL(spParticleInitialize(sp, num_pic, dist_type));
+    SP_CALL(spParticleInitialize(sp, dist_type));
 
     void *data[spParticleGetNumberOfAttributes(sp)];
+
     SP_CALL(spParticleGetAllAttributeData(sp, data));
 //    Real *v[3] = {data->vx, data->vx, data->vx};
 //    Real u[3] = {0, 0, 0};

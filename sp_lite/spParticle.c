@@ -54,10 +54,9 @@ struct spParticle_s
     Real mass;
     Real charge;
 
-    int m_num_of_attrs_;
-
+    size_type m_pic_;
     size_type m_max_fiber_length_;
-
+    int m_num_of_attrs_;
     spParticleAttrEntity m_attrs_[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
 };
@@ -67,7 +66,10 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     SP_CALL(spMeshAttributeCreate((spMeshAttribute **) sp, sizeof(spParticle), mesh, VOLUME));
 
     (*sp)->m_max_fiber_length_ = SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
+    (*sp)->m_pic_ = SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE * 2 / 3;
     (*sp)->m_num_of_attrs_ = 0;
+    (*sp)->charge = 1;
+    (*sp)->mass = 1;
 
     return SP_SUCCESS;
 
@@ -147,11 +149,14 @@ size_type spParticleGetNumberOfEntities(spParticle const *sp)
 
 }
 
-int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_types)
+int spParticleInitialize(spParticle *sp, int const *dist_types)
 {
+
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
 
     int iform = spMeshAttributeGetForm((spMeshAttribute *) sp);
+
+    size_type num_of_pic = spParticleGetPIC(sp);
 
     size_type max_number_of_entities = spParticleGetNumberOfEntities(sp);
 
@@ -165,7 +170,7 @@ int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_t
 
     SP_CALL(spParticleGetAllAttributeData(sp, data));
 
-//    SP_CALL(spParallelMemset(((spParticleFiber *) data)->id, 0, max_number_of_entities * sizeof(int)));
+    SP_CALL(spParallelMemset(((spParticleFiber *) data)->id, -1, max_number_of_entities * sizeof(int)));
 
     size_type x_min[3], x_max[3], strides[3];
     SP_CALL(spMeshGetArrayShape(m, SP_DOMAIN_CENTER, x_min, x_max, strides));
@@ -192,10 +197,17 @@ int spParticleInitialize(spParticle *sp, size_type num_of_pic, int const *dist_t
 
 int spParticleSetPIC(spParticle *sp, size_type pic)
 {
+    sp->m_pic_ = pic;
+
     sp->m_max_fiber_length_ =
             (3 * pic / SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE / 2 + 1) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
 
     return SP_SUCCESS;
+}
+
+size_type spParticleGetPIC(spParticle const *sp)
+{
+    return sp->m_pic_;
 }
 
 size_type spParticleGetMaxFiberLength(const spParticle *sp) { return sp->m_max_fiber_length_; }

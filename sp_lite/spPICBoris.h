@@ -23,11 +23,13 @@ typedef struct boris_particle_s
 struct spMesh_s;
 struct spField_s;
 
-int spBorisYeeParticleCreate(spParticle **sp, struct spMesh_s const *m);
+int spParticleCreateBorisYee(spParticle **sp, struct spMesh_s const *m);
 
-int spBorisYeeParticleInitialize(spParticle *sp, Real n0, Real T0, size_type num_pic);
+int spParticleDestroyBorisYee(spParticle **sp);
 
-int spBorisYeeParticleUpdate(spParticle *sp,
+int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0);
+
+int spParticleUpdateBorisYee(spParticle *sp,
                              Real dt,
                              const struct spField_s *fE,
                              const struct spField_s *fB,

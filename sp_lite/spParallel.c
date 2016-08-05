@@ -9,9 +9,7 @@ int spParallelInitialize(int argc, char **argv)
 {
 
     spMPIInitialize(argc, argv);
-
     spParallelDeviceInitialize(argc, argv);
-
     return SP_SUCCESS;
 
 }
@@ -19,7 +17,6 @@ int spParallelInitialize(int argc, char **argv)
 int spParallelFinalize()
 {
     spParallelDeviceFinalize();
-
     spMPIFinalize();
     return SP_SUCCESS;
 
