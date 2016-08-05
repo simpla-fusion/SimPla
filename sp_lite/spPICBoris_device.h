@@ -9,6 +9,7 @@
 #include "sp_lite_def.h"
 #include "spPICBoris.h"
 #include "spParallel_device.h"
+#include "../../../../../usr/local/cuda/include/host_defines.h"
 
 
 #define ll 0
@@ -30,6 +31,20 @@ cache_gather(Real *v, Real const *f, size_type s, size_type IX, size_type IY, si
             + f[s + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
 }
 
+static DEVICE_INLINE void
+cache_scatter(Real v, Real *f, size_type s, size_type IX, size_type IY, size_type IZ, Real rx, Real ry, Real rz)
+{
+    atomicAdd(&f[s + IX + IY + IZ /**/], (v * (rx - ll) * (ry - ll) * (rz - ll)));
+    atomicAdd(&f[s + IX + IY /*     */], (v * (rx - ll) * (ry - ll) * (rr - rz)));
+    atomicAdd(&f[s + IX + IZ /*     */], (v * (rx - ll) * (rr - ry) * (rz - ll)));
+    atomicAdd(&f[s + IX /*          */], (v * (rx - ll) * (rr - ry) * (rr - rz)));
+    atomicAdd(&f[s + IY + IZ /*     */], (v * (rr - rx) * (ry - ll) * (rz - ll)));
+    atomicAdd(&f[s + IY /*          */], (v * (rr - rx) * (ry - ll) * (rr - rz)));
+    atomicAdd(&f[s + IZ /*          */], (v * (rr - rx) * (rr - ry) * (rz - ll)));
+    atomicAdd(&f[s + 0 /*           */], (v * (rr - rx) * (rr - ry) * (rr - rz)));
+}
+
+
 #undef ll
 #undef rr
 
@@ -43,49 +58,54 @@ static DEVICE_INLINE void spBoris(Real cmr_dt, Real3 mesh_inv_dv,
                                   Real *vx, Real *vy, Real *vz,
                                   Real *f, Real *w)
 {
-    Real ax, ay, az;
-    Real tx, ty, tz;
+//    Real ax, ay, az;
+//    Real tx, ty, tz;
+//
+//    Real tt;
+//
+//    cache_gather(&ax, Ex, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
+//    cache_gather(&ay, Ey, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
+//    cache_gather(&az, Ez, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
+//    cache_gather(&tx, Bx, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
+//    cache_gather(&ty, By, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
+//    cache_gather(&tz, Bz, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
+//
+//    ax *= cmr_dt;
+//    ay *= cmr_dt;
+//    az *= cmr_dt;
+//
+//    tx *= cmr_dt;
+//    ty *= cmr_dt;
+//    tz *= cmr_dt;
+//
+//    *rx += *vx * 0.5 * mesh_inv_dv.x;
+//    *ry += *vy * 0.5 * mesh_inv_dv.y;
+//    *rz += *vz * 0.5 * mesh_inv_dv.z;
+//
+//    *vx += ax;
+//    *vy += ay;
+//    *vz += az;
+//
+//    Real v_x, v_y, v_z;
+//
+//    v_x = *vx + (*vy * tz - *vz * ty);
+//    v_y = *vy + (*vz * tx - *vx * tz);
+//    v_z = *vz + (*vx * ty - *vy * tx);
+//
+//    tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
+//
+//    *vx += ax + (v_y * tz - v_z * ty) * tt;
+//    *vy += ax + (v_z * tx - v_x * tz) * tt;
+//    *vz += ax + (v_x * ty - v_y * tx) * tt;
+//
+//    *rx += *vx * 0.5 * mesh_inv_dv.x;
+//    *ry += *vy * 0.5 * mesh_inv_dv.y;
+//    *rz += *vz * 0.5 * mesh_inv_dv.z;
 
-    Real tt;
-
-    cache_gather(&ax, Ex, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
-    cache_gather(&ay, Ey, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
-    cache_gather(&az, Ez, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
-    cache_gather(&tx, Bx, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
-    cache_gather(&ty, By, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
-    cache_gather(&tz, Bz, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
-
-    ax *= cmr_dt;
-    ay *= cmr_dt;
-    az *= cmr_dt;
-
-    tx *= cmr_dt;
-    ty *= cmr_dt;
-    tz *= cmr_dt;
-
-    *rx += *vx * 0.5 * mesh_inv_dv.x;
-    *ry += *vy * 0.5 * mesh_inv_dv.y;
-    *rz += *vz * 0.5 * mesh_inv_dv.z;
-
-    *vx += ax;
-    *vy += ay;
-    *vz += az;
-
-    Real v_x, v_y, v_z;
-
-    v_x = *vx + (*vy * tz - *vz * ty);
-    v_y = *vy + (*vz * tx - *vx * tz);
-    v_z = *vz + (*vx * ty - *vy * tx);
-
-    tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
-
-    *vx += ax + (v_y * tz - v_z * ty) * tt;
-    *vy += ax + (v_z * tx - v_x * tz) * tt;
-    *vz += ax + (v_x * ty - v_y * tx) * tt;
-
-    *rx += *vx * 0.5 * mesh_inv_dv.x;
-    *ry += *vy * 0.5 * mesh_inv_dv.y;
-    *rz += *vz * 0.5 * mesh_inv_dv.z;
+    cache_scatter((*f) * (*w)  /*        */  , rho, s, IX, IY, IZ, *rx, *ry, *rz);
+    cache_scatter((*f) * (*w)  /*   */* (*vx), Jx, s, IX, IY, IZ, *rx, *ry, *rz);
+    cache_scatter((*f) * (*w)  /*   */* (*vy), Jy, s, IX, IY, IZ, *rx, *ry, *rz);
+    cache_scatter((*f) * (*w)  /*   */* (*vz), Jz, s, IX, IY, IZ, *rx, *ry, *rz);
 }
 
 #endif //SIMPLA_SPBORIS_DEVICE_H

@@ -11,15 +11,13 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 #define  COPYRIGHT "All rights reserved. (2016 )"
 
-#ifndef USE_FLOAT_REAL
-#   define  SP_REAL double
-#else
-#   define  SP_REAL float
-#endif
 
+#define  SP_REAL float
+#define REAL_IS_FLOAT 1
 
 #define SP_TRUE 1
 

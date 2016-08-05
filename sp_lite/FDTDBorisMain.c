@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 
     for (int count = 0; count < num_of_steps; ++count)
     {
-
+        SP_CALL(spFieldClear(fRho));
         SP_CALL(spFieldClear(fJ));
         SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
         SP_CALL(spFDTDUpdate(mesh, dt, fRho, fJ, fE, fB));

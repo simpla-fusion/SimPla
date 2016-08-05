@@ -38,10 +38,10 @@ typedef float3 Real3;
 #else
 typedef double3 Real3;
 #endif
-#define DEVICE_INLINE __inline__ __attribute__((always_inline)) __device__ __host__
+#define DEVICE_INLINE __inline__ __attribute__((always_inline)) __device__
 
 
-DEVICE_INLINE dim3 sizeType2Dim3(size_type const *v)
+DEVICE_INLINE __host__ dim3 sizeType2Dim3(size_type const *v)
 {
     dim3 res;
     res.x = (int) v[0];
@@ -50,7 +50,7 @@ DEVICE_INLINE dim3 sizeType2Dim3(size_type const *v)
     return res;
 }
 
-DEVICE_INLINE Real3 real2Real3(Real const *v)
+DEVICE_INLINE __host__ Real3 real2Real3(Real const *v)
 {
     Real3 res;
     res.x = (Real) v[0];
