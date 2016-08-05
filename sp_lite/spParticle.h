@@ -53,6 +53,8 @@ int spParticleSetPIC(spParticle *sp, size_type pic, size_type max_pic);
 
 size_type spParticleGetPIC(spParticle const *sp);
 
+size_type spParticleGetPIC(spParticle const *sp);
+
 int spParticleSetMass(spParticle *, Real m);
 
 int spParticleSetCharge(spParticle *, Real e);
