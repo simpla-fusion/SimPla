@@ -115,6 +115,9 @@ typedef struct
     Real *J[3];
     Real *E[3];
     Real *B[3];
+    cudaArray_t aE[3];
+    cudaArray_t aB[3];
+
     int min[3];
     int max[3];
     int strides[3];
@@ -331,12 +334,23 @@ int spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const s
         update_param.max[i] = (int) max[i];
         update_param.strides[i] = (int) strides[i];
     }
-//    size_type dims[3];
-//    spMeshGetDims(m, dims);                  //
-//    struct cudaChannelFormatDesc desc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);  //
-//    struct cudaExtent extent = {dims[0], dims[1], dims[2]};
-//    cudaMalloc3DArray(&update_param.E[0], &desc, extent);
-//    cudaMemcpy3D(update_param.E[0]);
+    size_type dims[3];
+    spMeshGetDims(m, dims);                  //
+    struct cudaChannelFormatDesc desc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);  //
+    struct cudaExtent extent = {dims[0], dims[1], dims[2]};
+    for (int j = 0; j < 3; ++j)
+    {
+        SP_CUDA_CALL(cudaMalloc3DArray(&update_param.aE[j], &desc, extent));
+        SP_CUDA_CALL(cudaMalloc3DArray(&update_param.aB[j], &desc, extent));
+
+//        SP_CUDA_CALL(cudaMemcpyToArray(update_param.aE[j], 0, 0, (void const *) update_param.E[j],
+//                                       dims[0] * dims[1] * dims[2] * sizeof(Real), cudaMemcpyDefault));
+//        SP_CUDA_CALL(cudaMemcpyToArray(update_param.aB[j], 0, 0, (void const *) update_param.B[j],
+//                                       dims[0] * dims[1] * dims[2] * sizeof(Real), cudaMemcpyDefault));
+
+
+    }
+
     SP_CALL(spParticleGetAllAttributeData(sp, update_param.data));
     SP_CALL(spFieldSubArray(fRho, (void **) &update_param.rho));
     SP_CALL(spFieldSubArray(fJ, (void **) update_param.J));
@@ -354,8 +368,11 @@ int spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const s
     SP_DEVICE_CALL_KERNEL(spBorisYeeUpdateParticleKernel, sizeType2Dim3(blocks), sizeType2Dim3(threads));
 
     SP_DEVICE_CALL_KERNEL(spParticleBorisYeeGatherKernel, sizeType2Dim3(blocks), sizeType2Dim3(threads));
-
-
+    for (int j = 0; j < 3; ++j)
+    {
+        SP_CUDA_CALL(cudaFreeArray(update_param.aE[j]));
+        SP_CUDA_CALL(cudaFreeArray(update_param.aB[j]));
+    }
     SP_CALL(spParticleSync(sp));
     SP_CALL(spFieldSync(fJ));
     SP_CALL(spFieldSync(fRho));
