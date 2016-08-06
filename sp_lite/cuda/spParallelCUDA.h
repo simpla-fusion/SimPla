@@ -9,7 +9,7 @@
 #include "../spParallel.h"
 
 #define SP_DEFAULT_BLOCKS  128
-#define SP_DEFAULT_THREADS 64
+#define SP_DEFAULT_THREADS 128
 #define  SP_DEVICE_GLOBAL __global__
 #if !defined(__CUDA_ARCH__)
 #define CUDA_CALL(_CMD_)                                            \
