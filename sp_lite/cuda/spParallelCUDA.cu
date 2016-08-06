@@ -49,7 +49,7 @@ int spParallelMemcpy(void *dest, void const *src, size_type s)
     return SP_SUCCESS;
 }
 
-int spParallelMemcpyToSymbol(void **dest, void const **src, size_type s)
+int spParallelMemcpyToSymbol(void *dest, void const *src, size_type s)
 {
     SP_CUDA_CALL(cudaMemcpyToSymbol(dest, src, s, cudaMemcpyDefault));
     return SP_SUCCESS;

@@ -7,9 +7,9 @@
 
 #include "../sp_lite_def.h"
 #include "../spParallel.h"
-#include "../../../../../../usr/local/cuda/include/vector_types.h"
-#include "../../../../../../usr/local/cuda/include/cuda_device_runtime_api.h"
 
+#define SP_DEFAULT_BLOCKS  128
+#define SP_DEFAULT_THREADS 64
 #define  SP_DEVICE_GLOBAL __global__
 #if !defined(__CUDA_ARCH__)
 #define CUDA_CALL(_CMD_)                                            \
@@ -28,7 +28,6 @@
         exit(1);                                                            \
     } }
 
-
 #define SP_DEVICE_CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
 
 //int SP_DEVICE_CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
@@ -40,8 +39,9 @@ typedef double3 Real3;
 #endif
 #define DEVICE_INLINE __inline__ __attribute__((always_inline)) __device__
 
+DEVICE_INLINE __host__
 
-DEVICE_INLINE __host__ dim3 sizeType2Dim3(size_type const *v)
+dim3 sizeType2Dim3(size_type const *v)
 {
     dim3 res;
     res.x = (int) v[0];
@@ -50,7 +50,9 @@ DEVICE_INLINE __host__ dim3 sizeType2Dim3(size_type const *v)
     return res;
 }
 
-DEVICE_INLINE __host__ Real3 real2Real3(Real const *v)
+DEVICE_INLINE __host__
+
+Real3 real2Real3(Real const *v)
 {
     Real3 res;
     res.x = (Real) v[0];

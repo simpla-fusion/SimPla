@@ -1,7 +1,8 @@
 //
 // Created by salmon on 16-7-28.
 //
-extern "C" {
+extern "C"
+{
 #include <assert.h>
 
 #include "../sp_lite_def.h"
@@ -9,45 +10,18 @@ extern "C" {
 #include "../spFDTD_device.h"
 #include "../spMesh.h"
 #include "../spField.h"
-#include "spParallelCUDA.h"
-#include </usr/local/cuda/include/device_launch_parameters.h>
 
 }
 
-
-
-__global__ void spUpdateFieldFDTDKernel(Real dt, Real3 dt_inv,
-                                        dim3 N, dim3 I,
-                                        Real const *Rho,
-                                        Real const *Jx,
-                                        Real const *Jy,
-                                        Real const *Jz,
-                                        Real *Ex,
-                                        Real *Ey,
-                                        Real *Ez,
-                                        Real *Bx,
-                                        Real *By,
-                                        Real *Bz
-)
+__global__ void spUpdateFieldFDTDKernel(Real dt, Real3 dt_inv, dim3 N, dim3 I, Real const *Rho, Real const *Jx,
+		Real const *Jy, Real const *Jz, Real *Ex, Real *Ey, Real *Ez, Real *Bx, Real *By, Real *Bz)
 {
-    size_type x = (threadIdx.x + blockIdx.x * blockDim.x + N.x) % N.x;
-    size_type y = (threadIdx.y + blockIdx.y * blockDim.y + N.y) % N.y;
-    size_type z = (threadIdx.z + blockIdx.z * blockDim.z + N.z) % N.z;
+	size_type x = (threadIdx.x + blockIdx.x * blockDim.x + N.x) % N.x;
+	size_type y = (threadIdx.y + blockIdx.y * blockDim.y + N.y) % N.y;
+	size_type z = (threadIdx.z + blockIdx.z * blockDim.z + N.z) % N.z;
 
-    size_type s = x * I.x + y * I.y + z * I.z;
-    spFDTDMaxwell(s, I,
-                  dt, dt_inv,
-                  Rho,
-                  Jx,
-                  Jy,
-                  Jz,
-                  Ex,
-                  Ey,
-                  Ez,
-                  Bx,
-                  By,
-                  Bz
-    );
+	size_type s = x * I.x + y * I.y + z * I.z;
+	spFDTDMaxwell(s, I, dt, dt_inv, Rho, Jx, Jy, Jz, Ex, Ey, Ez, Bx, By, Bz);
 //    Bx[s] -= ((Ez[s] - Ez[s - I.y]) * dt_inv.y - (Ey[s] - Ey[s - I.z]) * dt_inv.z) * 0.5;
 //    By[s] -= ((Ex[s] - Ex[s - I.z]) * dt_inv.z - (Ez[s] - Ez[s - I.x]) * dt_inv.x) * 0.5;
 //    Bz[s] -= ((Ey[s] - Ey[s - I.x]) * dt_inv.x - (Ex[s] - Ex[s - I.y]) * dt_inv.y) * 0.5;
@@ -65,59 +39,47 @@ __global__ void spUpdateFieldFDTDKernel(Real dt, Real3 dt_inv,
 
 }
 
-int spFDTDUpdate(struct spMesh_s const *m,
-                 Real dt,
-                 const struct spField_s *fRho,
-                 const struct spField_s *fJ,
-                 struct spField_s *fE,
-                 struct spField_s *fB)
+int spFDTDUpdate(struct spMesh_s const *m, Real dt, const struct spField_s *fRho, const struct spField_s *fJ,
+		struct spField_s *fE, struct spField_s *fB)
 {
-    if (m == NULL) { return SP_FAILED; }
+	if (m == NULL)
+	{
+		return SP_FAILED;
+	}
 
-    assert(spFieldIsSoA(fRho));
-    assert(spFieldIsSoA(fJ));
-    assert(spFieldIsSoA(fE));
-    assert(spFieldIsSoA(fB));
+	assert(spFieldIsSoA(fRho));
+	assert(spFieldIsSoA(fJ));
+	assert(spFieldIsSoA(fE));
+	assert(spFieldIsSoA(fB));
 
+	dim3 block_dim, thread_dim;
 
-    dim3 block_dim, thread_dim;
+	size_type dims[4], start[4], count[4];
+	size_type strides[3];
+	Real inv_dx[3];
+	SP_CALL(spMeshGetDomain(m, SP_DOMAIN_ALL, dims, start, count));
+	SP_CALL(spMeshGetStrides(m, strides));
+	SP_CALL(spMeshGetInvDx(m, inv_dx));
 
-    size_type dims[4], start[4], count[4];
-    size_type strides[3];
-    Real inv_dx[3];
-    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_ALL, dims, start, count));
-    SP_CALL(spMeshGetStrides(m, strides));
-    SP_CALL(spMeshGetInvDx(m, inv_dx));
+	Real dt_inv[3] =
+	{ dt * inv_dx[0], dt * inv_dx[1], dt * inv_dx[2] };
 
-    Real dt_inv[3] = {dt * inv_dx[0], dt * inv_dx[1], dt * inv_dx[2]};
+	Real *rho, *J[3], *E[3], *B[3];
 
-    Real *rho, *J[3], *E[3], *B[3];
+	SP_CALL(spFieldSubArray((spField * ) fRho, (void ** ) &rho));
 
+	SP_CALL(spFieldSubArray((spField * ) fJ, (void ** ) J));
 
-    SP_CALL(spFieldSubArray((spField *) fRho, (void **) &rho));
+	SP_CALL(spFieldSubArray(fE, (void ** ) E));
 
-    SP_CALL(spFieldSubArray((spField *) fJ, (void **) J));
+	SP_CALL(spFieldSubArray(fB, (void ** ) B));
 
-    SP_CALL(spFieldSubArray(fE, (void **) E));
+	SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernel, sizeType2Dim3(dims), 1, dt, real2Real3(dt_inv), sizeType2Dim3(dims),
+			sizeType2Dim3(strides), (const Real * ) rho, (const Real * ) J[0], (const Real * ) J[1],
+			(const Real * ) J[2], E[0], E[1], E[2], B[0], B[1], B[2]);
 
-    SP_CALL(spFieldSubArray(fB, (void **) B));
+	spFieldSync(fE);
+	spFieldSync(fB);
 
-    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernel,
-                sizeType2Dim3(dims), 1,
-                dt,
-                real2Real3(dt_inv),
-                sizeType2Dim3(dims),
-                sizeType2Dim3(strides),
-                (const Real *) rho,
-                (const Real *) J[0],
-                (const Real *) J[1],
-                (const Real *) J[2],
-                E[0], E[1], E[2],
-                B[0], B[1], B[2]
-    );
-
-    spFieldSync(fE);
-    spFieldSync(fB);
-
-    return SP_SUCCESS;
+	return SP_SUCCESS;
 }
