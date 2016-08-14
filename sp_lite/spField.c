@@ -19,7 +19,7 @@ typedef struct spField_s
 
     struct spDataType_s *m_data_type_desc_;
 
-    void *device_data;
+    void *m_data_;
 
     int is_soa;
 
@@ -32,7 +32,7 @@ int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_
     (*f)->m = mesh;
     (*f)->iform = iform;
     (*f)->is_soa = SP_TRUE;
-    (*f)->device_data = NULL;
+    (*f)->m_data_ = NULL;
 
 
     SP_CALL(spDataTypeCreate(&((*f)->m_data_type_desc_), type_tag, 0));
@@ -44,8 +44,7 @@ int spFieldDestroy(spField **f)
 {
     if (f != NULL && *f != NULL)
     {
-
-        spParallelDeviceFree(&((**f).device_data));
+        spParallelDeviceFree(&((**f).m_data_));
 
         SP_CALL(spDataTypeDestroy(&((*f)->m_data_type_desc_)));
     }
@@ -58,12 +57,12 @@ int spFieldDestroy(spField **f)
 int spFieldDeploy(spField *f)
 {
 
-    if (f->device_data == NULL)
+    if (f->m_data_ == NULL)
     {
         size_type s = spDataTypeSizeInByte(f->m_data_type_desc_) *
                       spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 
-        spParallelDeviceAlloc((void **) &(f->device_data), s);
+        spParallelDeviceAlloc((void **) &(f->m_data_), s);
     }
     return SP_SUCCESS;
 }
@@ -74,11 +73,11 @@ spDataType const *spFieldDataType(spField const *f) { return f->m_data_type_desc
 
 void *spFieldData(spField *f) { return spFieldDeviceData(f); }
 
-void *spFieldDeviceData(spField *f) { return f->device_data; }
+void *spFieldDeviceData(spField *f) { return f->m_data_; }
 
 const void *spFieldDataConst(spField const *f) { return spFieldDeviceDataConst(f); }
 
-const void *spFieldDeviceDataConst(spField const *f) { return f->device_data; }
+const void *spFieldDeviceDataConst(spField const *f) { return f->m_data_; }
 
 int spFieldNumberOfSub(spField const *f)
 {
@@ -124,7 +123,7 @@ int spFieldClear(spField *f)
     size_type s = spDataTypeSizeInByte(f->m_data_type_desc_)
                   * spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 
-    spParallelMemset(f->device_data, 0, s);
+    spParallelMemset(f->m_data_, 0, s);
 
     return SP_SUCCESS;
 }
@@ -133,7 +132,7 @@ int spFieldFill(spField *f, Real v)
 {
     spFieldDeploy(f);
 
-    return spParallelDeviceFillReal(f->device_data, v, spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform));
+    return spParallelDeviceFillReal(f->m_data_, v, spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform));
 
 }
 

@@ -7,15 +7,15 @@ extern "C" {
 #include <assert.h>
 #include <math.h>
 
-#include "../sp_lite_def.h"
-#include "../spMesh.h"
-#include "../spParticle.h"
-#include "../spField.h"
-#include "../spPICBoris.h"
-#include "../spPICBoris_device.h"
+#include "../../sp_lite_def.h"
+#include "../../spMesh.h"
+#include "../../spParticle.h"
+#include "../../spField.h"
+#include "../../spPICBoris.h"
+#include "../spPICBoris.impl.h"
 
-#include "../spRandom.h"
-#include "../spPhysicalConstants.h"
+#include "../../spRandom.h"
+#include "../../spPhysicalConstants.h"
 
 #include "spParallelCUDA.h"
 
@@ -86,7 +86,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0, int do_import
     strides[2] *= spParticleGetMaxPIC(sp);
 
     size_type blocks[3] = {16, 1, 1};
-    size_type threads[3]{SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE, 1, 1};
+    size_type threads[3] = {SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE, 1, 1};
 
     void **device_data;
 
@@ -313,10 +313,10 @@ spParticleBorisYeeGatherKernel()
 
                 s0 = x * g_boris_param.strides[0] + y * g_boris_param.strides[1] + z * g_boris_param.strides[2];
 
-                atomicAdd((float *) &g_boris_param.rho[s0], rho);
-                atomicAdd((float *) &g_boris_param.J[0][s0], Jx);
-                atomicAdd((float *) &g_boris_param.J[1][s0], Jy);
-                atomicAdd((float *) &g_boris_param.J[2][s0], Jz);
+                atomicAdd(&g_boris_param.rho[s0], rho);
+                atomicAdd(&g_boris_param.J[0][s0], Jx);
+                atomicAdd(&g_boris_param.J[1][s0], Jy);
+                atomicAdd(&g_boris_param.J[2][s0], Jz);
 
 
             }
@@ -343,20 +343,6 @@ int spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const s
     size_type field_size = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, spMeshAttributeGetForm((spMeshAttribute const *) fE));
     assert(field_size < SP_CONSTANT_FIELD_SIZE);
     size_type dims[3];
-//    spMeshGetDims(m, dims);                  //
-//    struct cudaChannelFormatDesc desc = cudaCreateChannelDesc(32, 0, 0, 0, cudaChannelFormatKindFloat);  //
-//    struct cudaExtent extent = {dims[0], dims[1], dims[2]};
-
-//        SP_CUDA_CALL(cudaMalloc3DArray(&update_param.aE[j], &desc, extent));
-//        SP_CUDA_CALL(cudaMalloc3DArray(&update_param.aB[j], &desc, extent));
-
-//        SP_CUDA_CALL(cudaMemcpyToArray(update_param.aE[j], 0, 0, (void const *) update_param.E[j],
-//                                       dims[0] * dims[1] * dims[2] * sizeof(Real), cudaMemcpyDefault));
-//        SP_CUDA_CALL(cudaMemcpyToArray(update_param.aB[j], 0, 0, (void const *) update_param.B[j],
-//                                       dims[0] * dims[1] * dims[2] * sizeof(Real), cudaMemcpyDefault));
-
-
-
 
     SP_CALL(spParticleGetAllAttributeData(sp, update_param.data));
     SP_CALL(spFieldSubArray(fRho, (void **) &update_param.rho));
@@ -371,19 +357,15 @@ int spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const s
     cudaMemcpyToSymbol((void const *) Bx, (void const *) update_param.B[0], field_size * sizeof(Real));
     cudaMemcpyToSymbol((void const *) By, (void const *) update_param.B[1], field_size * sizeof(Real));
     cudaMemcpyToSymbol((void const *) Bz, (void const *) update_param.B[2], field_size * sizeof(Real));
+
     SP_CUDA_CALL(cudaMemcpyToSymbol(g_boris_param, &update_param, sizeof(boris_update_param)));
 
-//    SP_CALL(spParallelMemcpyToSymbol((void *) &g_boris_param, &update_param, sizeof(boris_update_param)));
     size_type blocks[3] = {SP_DEFAULT_BLOCKS / 16, 16, 1};
     size_type threads[3] = {SP_DEFAULT_THREADS, 1, 1};
 
     SP_DEVICE_CALL_KERNEL(spBorisYeeUpdateParticleKernel, sizeType2Dim3(blocks), sizeType2Dim3(threads));
     SP_DEVICE_CALL_KERNEL(spParticleBorisYeeGatherKernel, sizeType2Dim3(blocks), sizeType2Dim3(threads));
-//    for (int j = 0; j < 3; ++j)
-//    {
-//        SP_CUDA_CALL(cudaFreeArray(update_param.aE[j]));
-//        SP_CUDA_CALL(cudaFreeArray(update_param.aB[j]));
-//    }
+
     SP_CALL(spParticleSync(sp));
     SP_CALL(spFieldSync(fJ));
     SP_CALL(spFieldSync(fRho));

@@ -6,10 +6,10 @@
 #define SIMPLA_SPBORIS_DEVICE_H
 
 
-#include "sp_lite_def.h"
-#include "spPICBoris.h"
-#include "spParallel_device.h"
-#include "../../../../../usr/local/cuda/include/host_defines.h"
+#include "../sp_lite_def.h"
+#include "../spPICBoris.h"
+#include "spParallelDevice.h"
+#include "../../../../../../usr/local/cuda/include/host_defines.h"
 
 
 #define ll 0
@@ -18,7 +18,7 @@
 #define   IY   3
 #define   IZ   9
 
-static DEVICE_INLINE void
+static INLINE DEVICE void
 cache_gather(Real *v, Real const *f, size_type s_c, Real rx, Real ry, Real rz)
 {
 
@@ -33,7 +33,7 @@ cache_gather(Real *v, Real const *f, size_type s_c, Real rx, Real ry, Real rz)
             + f[s_c + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
 }
 
-static DEVICE_INLINE void
+static INLINE DEVICE void
 cache_scatter(Real v, Real *f, Real rx, Real ry, Real rz, size_type s_c)
 {
     atomicAdd(&f[s_c + IX + IY + IZ /**/], (v * (rx - ll) * (ry - ll) * (rz - ll)));
@@ -54,7 +54,7 @@ cache_scatter(Real v, Real *f, Real rx, Real ry, Real rz, size_type s_c)
 #undef   IZ
 #undef  s_c
 
-static DEVICE_INLINE void spBoris(Real cmr_dt, Real3 mesh_inv_dv,
+static INLINE DEVICE void spBoris(Real cmr_dt, Real3 mesh_inv_dv,
                                   size_type s, size_type IX, size_type IY, size_type IZ,
                                   Real *rho, Real *Jx, Real *Jy, Real *Jz,
                                   const Real *Ex, const Real *Ey, const Real *Ez,

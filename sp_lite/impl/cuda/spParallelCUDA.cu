@@ -3,7 +3,7 @@
 //
 
 #include </usr/local/cuda/include/cuda_runtime_api.h>
-#include "../../../../../../usr/local/cuda/include/device_launch_parameters.h"
+#include "../../../../../../../usr/local/cuda/include/device_launch_parameters.h"
 
 extern "C" {
 #include "spParallelCUDA.h"

@@ -7,7 +7,8 @@ extern "C"
 #include <stdlib.h>
 #include <assert.h>
 #include "spParallelCUDA.h"
-#include "../spRandom.h"
+#include "../../spRandom.h"
+#include "../spParallelDevice.h"
 
 }
 

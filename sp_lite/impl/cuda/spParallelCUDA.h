@@ -5,8 +5,8 @@
 #ifndef SIMPLA_SPPARALLEL_CU_H
 #define SIMPLA_SPPARALLEL_CU_H
 
-#include "../sp_lite_def.h"
-#include "../spParallel.h"
+#include "../../sp_lite_def.h"
+#include "../../spParallel.h"
 
 #define SP_DEFAULT_BLOCKS  128
 #define SP_DEFAULT_THREADS 128
@@ -28,7 +28,9 @@
         exit(1);                                                            \
     } }
 
-#define SP_DEVICE_CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
+#define SP_DEVICE_CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_)>>>(__VA_ARGS__)
+
+#define SP_DEVICE_DECLARE_KERNEL(_FUN_, ...) __global__ void _FUN_( __VA_ARGS__)
 
 //int SP_DEVICE_CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
 
@@ -37,28 +39,9 @@ typedef float3 Real3;
 #else
 typedef double3 Real3;
 #endif
-#define DEVICE_INLINE __inline__ __attribute__((always_inline)) __device__
+#define INLINE __inline__ __attribute__((always_inline))
+#define DEVICE __device__
+#define HOST __host__
 
-DEVICE_INLINE __host__
-
-dim3 sizeType2Dim3(size_type const *v)
-{
-    dim3 res;
-    res.x = (int) v[0];
-    res.y = (int) v[1];
-    res.z = (int) v[2];
-    return res;
-}
-
-DEVICE_INLINE __host__
-
-Real3 real2Real3(Real const *v)
-{
-    Real3 res;
-    res.x = (Real) v[0];
-    res.y = (Real) v[1];
-    res.z = (Real) v[2];
-    return res;
-}
 
 #endif //SIMPLA_SPPARALLEL_CU_H

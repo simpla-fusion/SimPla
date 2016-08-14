@@ -23,11 +23,13 @@ IF (HDF5_FOUND)
 ENDIF (HDF5_FOUND)
 
 
-add_subdirectory(cpu)
-add_subdirectory(cuda)
+add_subdirectory(impl)
 
 FILE(GLOB sp_lite_SRC ./*.c)
 
-ADD_EXECUTABLE(sp_lite ${sp_lite_SRC})
+ADD_EXECUTABLE(sp_boris ${sp_lite_SRC})
 
-TARGET_LINK_LIBRARIES(sp_lite sp_capi sp_lite_cu)
+TARGET_LINK_LIBRARIES(sp_boris sp_capi sp_lite_cpu)
+
+ADD_EXECUTABLE(sp_boris_gpu ${sp_lite_SRC})
+TARGET_LINK_LIBRARIES(sp_boris_gpu sp_capi sp_lite_cuda)

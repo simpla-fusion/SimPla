@@ -15,6 +15,6 @@ IF (CUDA_FOUND)
 
     FILE(GLOB sp_lite_SRC_CU ./*.cu)
 
-    CUDA_ADD_LIBRARY(sp_lite_cu ${sp_lite_SRC_CU})
-    TARGET_LINK_LIBRARIES(sp_lite_cu ${CUDA_curand_LIBRARY})
+    CUDA_ADD_LIBRARY(sp_lite_cuda ${sp_lite_SRC_CU})
+    TARGET_LINK_LIBRARIES(sp_lite_cuda ${CUDA_curand_LIBRARY})
 ENDIF (CUDA_FOUND)
