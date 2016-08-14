@@ -6,4 +6,6 @@ extern "C"
 {
 #include "spParallelCUDA.h"
 #include "../spFDTD.impl.h"
+#include "../spPICBoris.impl.h"
+
 }
