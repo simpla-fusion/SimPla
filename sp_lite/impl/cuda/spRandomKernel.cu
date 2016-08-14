@@ -8,7 +8,7 @@ extern "C"
 #include <assert.h>
 #include "spParallelCUDA.h"
 #include "../../spRandom.h"
-#include "../spParallelDevice.h"
+#include "../spParallel.impl.h"
 
 }
 

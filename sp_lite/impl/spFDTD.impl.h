@@ -11,8 +11,7 @@
 #include "../spPhysicalConstants.h"
 #include "../spMesh.h"
 #include "../spField.h"
-#include "../spParallel.h"
-#include "spParallelDevice.h"
+#include "spParallel.impl.h"
 
 
 struct spMesh_s;

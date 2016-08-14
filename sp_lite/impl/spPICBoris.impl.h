@@ -8,7 +8,7 @@
 
 #include "../sp_lite_def.h"
 #include "../spPICBoris.h"
-#include "spParallelDevice.h"
+#include "spParallel.impl.h"
 #include "../../../../../../usr/local/cuda/include/host_defines.h"
 
 

@@ -7,7 +7,7 @@ extern "C" {
 #include "../../spMisc.h"
 
 #include <math.h>
-#include "../spParallelDevice.h"
+#include "../spParallel.impl.h"
 
 }
 

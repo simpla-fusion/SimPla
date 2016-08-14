@@ -5,6 +5,8 @@
 #ifndef SIMPLA_SPPARALLELDEVICE_H
 #define SIMPLA_SPPARALLELDEVICE_H
 
+#include "../spParallel.h"
+
 #ifdef __CUDACC__
 #   include "cuda/spParallelCUDA.h"
 #else
