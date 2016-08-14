@@ -17,10 +17,9 @@
 #define   IX   1
 #define   IY   3
 #define   IZ   9
-#define  s_c  13
 
 static DEVICE_INLINE void
-cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
+cache_gather(Real *v, Real const *f, size_type s_c, Real rx, Real ry, Real rz)
 {
 
     *v = *v
@@ -35,7 +34,7 @@ cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 }
 
 static DEVICE_INLINE void
-cache_scatter(Real v, Real *f, Real rx, Real ry, Real rz)
+cache_scatter(Real v, Real *f, Real rx, Real ry, Real rz, size_type s_c)
 {
     atomicAdd(&f[s_c + IX + IY + IZ /**/], (v * (rx - ll) * (ry - ll) * (rz - ll)));
     atomicAdd(&f[s_c + IX + IY /*     */], (v * (rx - ll) * (ry - ll) * (rr - rz)));
@@ -69,12 +68,12 @@ static DEVICE_INLINE void spBoris(Real cmr_dt, Real3 mesh_inv_dv,
 
     Real tt;
 
-    cache_gather(&ax, Ex, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
-    cache_gather(&ay, Ey, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
-    cache_gather(&az, Ez, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
-    cache_gather(&tx, Bx, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
-    cache_gather(&ty, By, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
-    cache_gather(&tz, Bz, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
+    cache_gather(&ax, Ex, 0, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
+    cache_gather(&ay, Ey, 0, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
+    cache_gather(&az, Ez, 0, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
+    cache_gather(&tx, Bx, 0, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
+    cache_gather(&ty, By, 0, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
+    cache_gather(&tz, Bz, 0, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
 
     ax *= cmr_dt;
     ay *= cmr_dt;
@@ -108,10 +107,10 @@ static DEVICE_INLINE void spBoris(Real cmr_dt, Real3 mesh_inv_dv,
     *ry += *vy * 0.5 * mesh_inv_dv.y;
     *rz += *vz * 0.5 * mesh_inv_dv.z;
 
-    cache_scatter((*f) * (*w)  /*        */  , rho, *rx, *ry, *rz);
-    cache_scatter((*f) * (*w)  /*   */* (*vx), Jx, *rx, *ry, *rz);
-    cache_scatter((*f) * (*w)  /*   */* (*vy), Jy, *rx, *ry, *rz);
-    cache_scatter((*f) * (*w)  /*   */* (*vz), Jz, *rx, *ry, *rz);
+    cache_scatter((*f) * (*w), rho, *rx, *ry, *rz, 0);
+    cache_scatter((*f) * (*w)  /*   */* (*vx), Jx, *rx, *ry, *rz, 0);
+    cache_scatter((*f) * (*w)  /*   */* (*vy), Jy, *rx, *ry, *rz, 0);
+    cache_scatter((*f) * (*w)  /*   */* (*vz), Jz, *rx, *ry, *rz, 0);
 }
 
 #endif //SIMPLA_SPBORIS_DEVICE_H

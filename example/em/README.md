@@ -17,5 +17,5 @@ Build:
 Usage:
 ----------------------
     $./demo_em -i demo.lua
-    $python ./simpla.h5  "/checkpoint/E"  2 -1&
+    $python check_point.py ./simpla.h5  "/checkpoint/E"  2 -1&
 
