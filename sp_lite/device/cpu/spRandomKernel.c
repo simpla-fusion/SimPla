@@ -8,19 +8,12 @@
 #include <assert.h>
 #include "../../spRandom.h"
 #include "../../spParallel.h"
-
-
-
-
-
 /* Number of 64-bit vectors per dimension */
 #define VECTOR_SIZE 64
 
 
 typedef struct spRandomGenerator_s
 {
-
-
     int num_of_dimensions;
     size_type blocks[3];
     size_type threads[3];

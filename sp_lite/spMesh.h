@@ -22,7 +22,6 @@ typedef struct spMesh_s const *spMesh_const_t;
 
 typedef struct spMeshAttribute_s
 {
-
     SP_MESH_ATTR_HEAD
     byte_type __others[];
 } spMeshAttribute;

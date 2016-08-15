@@ -8,7 +8,7 @@ extern "C"
 #include <assert.h>
 #include "spParallelCUDA.h"
 #include "../../spRandom.h"
-#include "../spParallel.impl.h"
+#include "../sp_device.h"
 
 }
 
@@ -88,26 +88,26 @@ int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimens
 
 
     /* Allocate memory for 3 states per thread (x, y, z), each state to get a unique dimension */
-    SP_CUDA_CALL(cudaMalloc((void **) &((*gen)->devSobol64States),
+    SP_DEVICE_CALL(cudaMalloc((void **) &((*gen)->devSobol64States),
                             n_threads * n_dims *
                             sizeof(curandStateScrambledSobol64)));
 
     /* Allocate memory and copy 3 sets of vectors per thread to the device */
 
-    SP_CUDA_CALL(cudaMalloc((void **) &((*gen)->devDirectionVectors64),
+    SP_DEVICE_CALL(cudaMalloc((void **) &((*gen)->devDirectionVectors64),
                             n_threads * n_dims * VECTOR_SIZE * sizeof(long long int)));
 
-    SP_CUDA_CALL(cudaMemcpy((*gen)->devDirectionVectors64, hostVectors64,
+    SP_DEVICE_CALL(cudaMemcpy((*gen)->devDirectionVectors64, hostVectors64,
                             n_threads * n_dims * VECTOR_SIZE * sizeof(long long int),
                             cudaMemcpyHostToDevice));
 
     /* Allocate memory and copy 6 scramble constants (one costant per dimension)
        per thread to the device */
 
-    SP_CUDA_CALL(cudaMalloc((void **) &((*gen)->devScrambleConstants64),
+    SP_DEVICE_CALL(cudaMalloc((void **) &((*gen)->devScrambleConstants64),
                             n_threads * n_dims * sizeof(long long int)));
 
-    SP_CUDA_CALL(cudaMemcpy((*gen)->devScrambleConstants64, hostScrambleConstants64,
+    SP_DEVICE_CALL(cudaMemcpy((*gen)->devScrambleConstants64, hostScrambleConstants64,
                             n_threads * n_dims * sizeof(long long int),
                             cudaMemcpyHostToDevice));
 
@@ -131,9 +131,9 @@ int spRandomGeneratorDestroy(spRandomGenerator **gen)
 {
     if (gen != NULL && *gen != NULL && (*gen)->devSobol64States != NULL)
     {
-        SP_CUDA_CALL(cudaFree((void *) ((*gen)->devSobol64States)));
-        SP_CUDA_CALL(cudaFree((*gen)->devDirectionVectors64));
-        SP_CUDA_CALL(cudaFree((*gen)->devScrambleConstants64));
+        SP_DEVICE_CALL(cudaFree((void *) ((*gen)->devSobol64States)));
+        SP_DEVICE_CALL(cudaFree((*gen)->devDirectionVectors64));
+        SP_DEVICE_CALL(cudaFree((*gen)->devScrambleConstants64));
     }
     return spParallelHostFree((void **) gen);
 }

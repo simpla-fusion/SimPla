@@ -6,15 +6,11 @@
 #define SIMPLA_SPMISC_H
 
 #include "sp_lite_def.h"
-#include "spField.h"
+
+struct spField_s;
+
+typedef struct spField_s spField;
 
 int spFieldAssignValueSin(spField *, Real const *k, Real const *amp);
-void spFieldAssignValueSinKernel(size_type const *block,
-                                 size_type const *thread,
-                                 Real *data,
-                                 size_type const *strides,
-                                 Real const *k_dx,
-                                 Real const *alpha0,
-                                 Real amp);
 
 #endif //SIMPLA_SPMISC_H

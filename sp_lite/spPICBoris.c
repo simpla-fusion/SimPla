@@ -28,6 +28,9 @@ int spParticleCreateBorisYee(spParticle **sp, struct spMesh_s const *m)
 
 }
 
-int spParticleDestroyBorisYee(spParticle **sp) { return spParticleDestroy(sp); }
+int spParticleDestroyBorisYee(spParticle **sp)
+{
+    return spParticleDestroy(sp);
+}
 
 

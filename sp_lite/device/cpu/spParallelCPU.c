@@ -6,10 +6,25 @@
 #include "../../spParallel.h"
 #include "spParallelCPU.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 int spParallelDeviceInitialize(int argc, char **argv) { return SP_SUCCESS; }
 
 int spParallelDeviceFinalize() { return SP_SUCCESS; }
+
+int spParallelDefaultNumOfThreads()
+{
+
+#ifdef _OPENMP
+    return omp_get_num_procs();
+#else
+    return 1;
+#endif
+};
+
+int spParallelDefaultNumOfBlocks() { return 1; };
 
 int spParallelDeviceAlloc(void **p, size_type s)
 {
@@ -33,9 +48,9 @@ int spParallelMemcpy(void *dest, void const *src, size_type s)
     return SP_SUCCESS;
 }
 
-int spParallelMemcpyToSymbol(void *dest, void const *src, size_type s)
+int spParallelMemcpyToCache(const void *dest, void const *src, size_type s)
 {
-    memcpy(dest, src, s);
+    memcpy((void *) dest, src, s);
     return SP_SUCCESS;
 }
 
@@ -67,7 +82,6 @@ int spParallelHostFree(void **p)
     }
     return SP_SUCCESS;
 }
-
 
 int spParallelDeviceFillInt(int *d, int v, size_type s)
 {
