@@ -13,7 +13,7 @@ int spObjectCreate(spObject **obj, size_t s_in_byte)
 {
     spParallelHostAlloc((void **) obj, s_in_byte);
 
-//    *obj = (spObject *) malloc(s_in_byte);
+    *obj = (spObject *) malloc(s_in_byte);
 
     (*obj)->id = spMPIGenerateObjectId();
 

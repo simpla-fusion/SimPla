@@ -26,7 +26,7 @@ int spParallelHostFree(void **);
 
 int spParallelMemcpy(void *, void const *, size_type);
 
-int spParallelMemcpyToSymbol(void *, void const *, size_type);
+int spParallelMemcpyToCache(const void *, void const *, size_type);
 
 int spParallelMemset(void *, int v, size_type);
 
@@ -52,5 +52,8 @@ int spParallelDeviceFillReal(Real *d, Real v, size_type s);
 
 int spParallelScan(size_type *, size_type num);
 
+int spParallelDefaultNumOfThreads();
+
+int spParallelDefaultNumOfBlocks();
 
 #endif //SIMPLA_SPPARALLEL_H

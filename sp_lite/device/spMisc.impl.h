@@ -1,11 +1,27 @@
 //
-// Created by salmon on 16-7-27.
+// Created by salmon on 16-8-15.
 //
-#include "sp_lite_def.h"
-#include "spMisc.h"
-#include "spParallel.h"
-#include "spField.h"
-#include "spMesh.h"
+
+#ifndef SIMPLA_SPMISC_IMPL_H
+#define SIMPLA_SPMISC_IMPL_H
+
+
+#include "../spMisc.h"
+#include "sp_device.h"
+#include <math.h>
+
+
+SP_DEVICE_DECLARE_KERNEL(spFieldAssignValueSinKernel_g, Real *data, dim3 strides, Real3 k_dx, Real3 alpha0, Real amp)
+{
+    size_type x = threadIdx.x + blockIdx.x * blockDim.x;
+    size_type y = threadIdx.y + blockIdx.y * blockDim.y;
+    size_type z = threadIdx.z + blockIdx.z * blockDim.z;
+
+    size_type s = x * strides.x + y * strides.y + z * strides.z;
+
+    data[s] = amp * (Real) (cos(k_dx.x * (x) + alpha0.x) * cos(k_dx.y * (y) + alpha0.y) * cos(k_dx.z * (z) + alpha0.z));
+}
+
 
 #define HALFPI (3.1415926*0.5)
 
@@ -89,20 +105,28 @@ int spFieldAssignValueSin(spField *f, Real const *k, Real const *amp)
 
     SP_CALL(spFieldSubArray(f, (void **) data));
 
-    size_type num_of_threads = 1;
+    dim3 gridDim = sizeType2Dim3(count);
+
+    dim3 blockDim = {1, 1, 1};
 
     for (int i = 0; i < num_of_sub; ++i)
     {
-        spFieldAssignValueSinKernel(count,
-                                    &num_of_threads,
-                                    data[i] + offset,
-                                    (strides),
-                                    (k_dx),
-                                    (alpha0 + i * 3),
-                                    amp[i]);
+        dim3 t_strides = sizeType2Dim3(strides);
+        Real3 t_k_dx = real2Real3(k_dx);
+        Real3 t_alpha0 = real2Real3(alpha0 + i * 3);
+
+        SP_DEVICE_CALL_KERNEL(spFieldAssignValueSinKernel_g,
+                              sizeType2Dim3(count), blockDim,
+                              data[i] + offset,
+                              t_strides, t_k_dx, t_alpha0,
+                              amp[i]
+        );
     }
 
     SP_CALL(spFieldSync(f));
 
     return SP_SUCCESS;
 };
+
+
+#endif //SIMPLA_SPMISC_IMPL_H

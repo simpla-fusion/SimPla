@@ -13,23 +13,34 @@ extern "C" {
 int spParallelDeviceInitialize(int argc, char **argv)
 {
     int num_of_device = 0;
-    SP_CUDA_CALL(cudaGetDeviceCount(&num_of_device));
-    SP_CUDA_CALL(cudaSetDevice(spMPIRank() % num_of_device));
-    SP_CUDA_CALL(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
-    SP_CUDA_CALL(cudaGetLastError());
+    SP_DEVICE_CALL(cudaGetDeviceCount(&num_of_device));
+    SP_DEVICE_CALL(cudaSetDevice(spMPIRank() % num_of_device));
+    SP_DEVICE_CALL(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
+    SP_DEVICE_CALL(cudaGetLastError());
     return SP_SUCCESS;
 }
 
 int spParallelDeviceFinalize()
 {
-    SP_CUDA_CALL(cudaDeviceReset());
+    SP_DEVICE_CALL(cudaDeviceReset());
     return SP_SUCCESS;
 
 }
 
+#define SP_DEFAULT_BLOCKS  128
+#define SP_DEFAULT_THREADS 128
+
+int spParallelDefaultNumOfThreads()
+{
+    return SP_DEFAULT_THREADS;
+};
+int spParallelDefaultNumOfBlocks()
+{
+    return SP_DEFAULT_BLOCKS;
+};
 int spParallelDeviceAlloc(void **p, size_type s)
 {
-    SP_CUDA_CALL(cudaMalloc(p, s));
+    SP_DEVICE_CALL(cudaMalloc(p, s));
     return SP_SUCCESS;
 }
 
@@ -37,7 +48,7 @@ int spParallelDeviceFree(void **_P_)
 {
     if (*_P_ != NULL)
     {
-        SP_CUDA_CALL(cudaFree(*_P_));
+        SP_DEVICE_CALL(cudaFree(*_P_));
         *_P_ = NULL;
     }
     return SP_SUCCESS;
@@ -45,32 +56,32 @@ int spParallelDeviceFree(void **_P_)
 
 int spParallelMemcpy(void *dest, void const *src, size_type s)
 {
-    SP_CUDA_CALL(cudaMemcpy(dest, src, s, cudaMemcpyDefault));
+    SP_DEVICE_CALL(cudaMemcpy(dest, src, s, cudaMemcpyDefault));
     return SP_SUCCESS;
 }
 
-int spParallelMemcpyToSymbol(void *dest, void const *src, size_type s)
+int spParallelMemcpyToCache(const void *dest, void const *src, size_type s)
 {
-    SP_CUDA_CALL(cudaMemcpyToSymbol(dest, src, s, cudaMemcpyDefault));
+    SP_DEVICE_CALL(cudaMemcpyToSymbol(dest, src, s, cudaMemcpyDefault));
     return SP_SUCCESS;
 }
 
 int spParallelMemset(void *dest, int v, size_type s)
 {
-    SP_CUDA_CALL(cudaMemset(dest, v, s));
+    SP_DEVICE_CALL(cudaMemset(dest, v, s));
     return SP_SUCCESS;
 }
 
 int spParallelDeviceSync()
 {
     SP_CALL(spParallelGlobalBarrier());
-    SP_CUDA_CALL(cudaDeviceSynchronize());
+    SP_DEVICE_CALL(cudaDeviceSynchronize());
     return SP_SUCCESS;
 }
 
 int spParallelHostAlloc(void **p, size_type s)
 {
-    SP_CUDA_CALL(cudaHostAlloc(p, s, cudaHostAllocDefault));
+    SP_DEVICE_CALL(cudaHostAlloc(p, s, cudaHostAllocDefault));
     return SP_SUCCESS;
 };
 
@@ -118,8 +129,8 @@ void spParallelAssignKernel(size_type max, size_type const *offset, Real *d, Rea
     size_type num_of_thread = blockDim.x * gridDim.x * blockDim.x * gridDim.x * blockDim.x * gridDim.x;
 
     for (size_type s = (threadIdx.x + blockIdx.x * blockDim.x) +
-                       (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
-                       (threadIdx.x + blockIdx.x * blockDim.x) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
+        (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
+        (threadIdx.x + blockIdx.x * blockDim.x) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
          s < max; s += num_of_thread) { d[offset[s]] = v[s]; }
 };
 

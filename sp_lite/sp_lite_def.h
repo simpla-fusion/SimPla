@@ -25,6 +25,7 @@
 #define CHECK_FLOAT(_MSG_)    printf( "%s:%d:0:%s: %s =%e \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(Real)(_MSG_) );
 #define CHECK_INT(_MSG_)    printf( "%s:%d:0:%s: %s = %ld \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(long)(_MSG_) );
 #define CHECK_STR(_MSG_)    printf( "%s:%d:0:%s: %s = %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_), (_MSG_) );
+
 #define SP_CALL(_CMD_)                                                                                        \
 {                                                                                                                    \
    int _return_code=_CMD_;                                                                                            \
@@ -34,10 +35,16 @@
    }                                                                                                                 \
 }
 
+
 typedef MeshEntityId64 MeshEntityId;
 
 typedef MeshEntityId32 MeshEntityShortId;
 
 #define TWOPI (3.141592653589793*2.0)
+
+
+#define MIN(_A_, _B_) (_A_<_B_)?_A_:_B_
+
+#define MAX(_A_, _B_) (_A_>_B_)?_A_:_B_
 
 #endif /* SP_DEF_LITE_H_ */

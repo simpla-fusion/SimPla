@@ -2177,7 +2177,7 @@ def _DropCommonSuffixes(filename):
     The filename with the common suffix removed.
   """
   for suffix in ('test.cc', 'regtest.cc', 'unittest.cc',
-                 'inl.h', 'impl.h', 'internal.h'):
+                 'inl.h', 'device.h', 'internal.h'):
     if (filename.endswith(suffix) and len(filename) > len(suffix) and
         filename[-len(suffix) - 1] in ('-', '_')):
       return filename[:-len(suffix) - 1]
