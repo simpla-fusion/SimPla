@@ -16,20 +16,19 @@
 #define rr 1
 
 
-INLINE __device__ void
-cache_gather(Real *v,
-             Real const *f,
-             size_type s_c,
-             size_type IX,
-             size_type IY,
-             size_type IZ,
-             Real rx,
-             Real ry,
-             Real rz)
+INLINE __device__ Real
+cache_gather(
+        Real const *f,
+        size_type s_c,
+        size_type IX,
+        size_type IY,
+        size_type IZ,
+        Real rx,
+        Real ry,
+        Real rz)
 {
 
-    *v = *v
-        + (f[s_c + IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
+    return (f[s_c + IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
             + f[s_c + IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
             + f[s_c + IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
             + f[s_c + IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
@@ -58,72 +57,13 @@ cache_scatter(Real v, Real *f, Real rx, Real ry, Real rz, size_type s_c)
 
 #undef  s_c
 
-INLINE __device__ void spBoris(Real cmr_dt, Real3 mesh_inv_dv,
-                               size_type s, size_type IX, size_type IY, size_type IZ,
-                               Real *rho, Real *Jx, Real *Jy, Real *Jz,
-                               const Real *Ex, const Real *Ey, const Real *Ez,
-                               const Real *Bx, const Real *By, const Real *Bz,
-                               Real *rx, Real *ry, Real *rz,
-                               Real *vx, Real *vy, Real *vz,
-                               Real *f, Real *w)
-{
-    Real ax, ay, az;
-    Real tx, ty, tz;
-
-    Real tt;
-
-    cache_gather(&ax, Ex, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
-    cache_gather(&ay, Ey, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
-    cache_gather(&az, Ez, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
-    cache_gather(&tx, Bx, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
-    cache_gather(&ty, By, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
-    cache_gather(&tz, Bz, s, IX, IY, IZ, *rx, *ry, *rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
-
-    ax *= cmr_dt;
-    ay *= cmr_dt;
-    az *= cmr_dt;
-
-    tx *= cmr_dt;
-    ty *= cmr_dt;
-    tz *= cmr_dt;
-
-    *rx += *vx * 0.5 * mesh_inv_dv.x;
-    *ry += *vy * 0.5 * mesh_inv_dv.y;
-    *rz += *vz * 0.5 * mesh_inv_dv.z;
-
-    *vx += ax;
-    *vy += ay;
-    *vz += az;
-
-    Real v_x, v_y, v_z;
-
-    v_x = *vx + (*vy * tz - *vz * ty);
-    v_y = *vy + (*vz * tx - *vx * tz);
-    v_z = *vz + (*vx * ty - *vy * tx);
-
-    tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
-
-    *vx += ax + (v_y * tz - v_z * ty) * tt;
-    *vy += ax + (v_z * tx - v_x * tz) * tt;
-    *vz += ax + (v_x * ty - v_y * tx) * tt;
-
-    *rx += *vx * 0.5 * mesh_inv_dv.x;
-    *ry += *vy * 0.5 * mesh_inv_dv.y;
-    *rz += *vz * 0.5 * mesh_inv_dv.z;
-
-    cache_scatter((*f) * (*w), rho, *rx, *ry, *rz, 0);
-    cache_scatter((*f) * (*w)  /*   */* (*vx), Jx, *rx, *ry, *rz, 0);
-    cache_scatter((*f) * (*w)  /*   */* (*vy), Jy, *rx, *ry, *rz, 0);
-    cache_scatter((*f) * (*w)  /*   */* (*vz), Jz, *rx, *ry, *rz, 0);
-}
-
 SP_DEVICE_DECLARE_KERNEL(spParticleInitializeBorisYeeKernel,
                          boris_particle *sp, dim3 min, dim3 max, dim3 strides, size_type pic, Real vT,
                          Real f0, int uniform_sample)
 {
     size_type threadId = (threadIdx.x) +
-        (threadIdx.y) * blockDim.x +
-        (threadIdx.z) * blockDim.x * blockDim.y;
+                         (threadIdx.y) * blockDim.x +
+                         (threadIdx.z) * blockDim.x * blockDim.y;
 
     size_type num_of_thread = blockDim.z * blockDim.x * blockDim.y;
     for (int x = blockIdx.x + min.x; x < max.x; x += gridDim.x)
@@ -140,8 +80,8 @@ SP_DEVICE_DECLARE_KERNEL(spParticleInitializeBorisYeeKernel,
                     if (uniform_sample > 0)
                     {
                         sp->f[s0 + s] *= exp(-sp->vx[s0 + s] * sp->vx[s0 + s]
-                                                 - sp->vy[s0 + s] * sp->vy[s0 + s]
-                                                 - sp->vz[s0 + s] * sp->vz[s0 + s]
+                                             - sp->vy[s0 + s] * sp->vy[s0 + s]
+                                             - sp->vz[s0 + s] * sp->vz[s0 + s]
                         );
                     }
 
@@ -163,7 +103,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0, int do_import
     size_type max_number_of_entities = spParticleGetNumberOfEntities(sp);
 
     int dist_type[6] =
-        {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
+            {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
 
     SP_CALL(spParticleInitialize(sp, dist_type));
 
@@ -233,101 +173,91 @@ struct boris_p_s
 
 __constant__ boris_update_param g_boris_param;
 
-#define  SP_CONSTANT_FIELD_SIZE   0x800
+#define  SP_CONSTANT_FIELD_TILE_SIZE  0x20
+#define  SP_CONSTANT_FIELD_SIZE   SP_CONSTANT_FIELD_TILE_SIZE*SP_CONSTANT_FIELD_TILE_SIZE*SP_CONSTANT_FIELD_TILE_SIZE
 
 __constant__ Real Ex[SP_CONSTANT_FIELD_SIZE];
-
 __constant__ Real Ey[SP_CONSTANT_FIELD_SIZE];
-
 __constant__ Real Ez[SP_CONSTANT_FIELD_SIZE];
-
 __constant__ Real Bx[SP_CONSTANT_FIELD_SIZE];
-
 __constant__ Real By[SP_CONSTANT_FIELD_SIZE];
-
 __constant__ Real Bz[SP_CONSTANT_FIELD_SIZE];
 
 SP_DEVICE_DECLARE_KERNEL (spBorisYeeUpdateParticleKernel,
                           boris_particle *sp,
-                          size_type s_start,
-                          dim3 count, dim3 strd,
+                          size_type s0, dim3 strd,
                           size_type num_pic,
                           Real cmr_dt,
                           Real3 inv_dv)
 {
+    for (size_type s = s0 * num_pic + threadIdx.x,
+                 se = s + num_pic; s < se; s += blockDim.x)
+    {
 
-    for (size_type x = 0; x < count.x; ++x)
-        for (size_type y = 0; y < count.y; ++y)
-            for (size_type z = 0; z < count.z; ++z)
-            {
-                for (size_type s0 = (s_start + x * strd.x + y * strd.y + z * strd.z), s = s0 * num_pic + threadIdx.x,
-                         se = s + num_pic; s < se; s += blockDim.x)
-                {
+        Real rx = sp->rx[s];
+        Real ry = sp->ry[s];
+        Real rz = sp->rz[s];
+        Real vx = sp->vx[s];
+        Real vy = sp->vy[s];
+        Real vz = sp->vz[s];
+        Real f = sp->f[s];
+        Real w = sp->w[s];
 
-                    Real rx = sp->rx[s];
-                    Real ry = sp->ry[s];
-                    Real rz = sp->rz[s];
-                    Real vx = sp->vx[s];
-                    Real vy = sp->vy[s];
-                    Real vz = sp->vz[s];
-                    Real f = sp->f[s];
-                    Real w = sp->w[s];
+        Real ax, ay, az;
+        Real tx, ty, tz;
 
-                    Real ax, ay, az;
-                    Real tx, ty, tz;
+        Real tt;
 
-                    Real tt;
+        ax = cache_gather(Ex, s0, strd.x, strd.y, strd.z, rx - 0.5f, ry, rz);
+        ay = cache_gather(Ey, s0, strd.x, strd.y, strd.z, rx, ry - 0.5f, rz);
+        az = cache_gather(Ez, s0, strd.x, strd.y, strd.z, rx, ry, rz - 0.5f);
+        tx = cache_gather(Bx, s0, strd.x, strd.y, strd.z, rx, ry - 0.5f, rz - 0.5f);
+        ty = cache_gather(By, s0, strd.x, strd.y, strd.z, rx - 0.5f, ry, rz - 0.5f);
+        tz = cache_gather(Bz, s0, strd.x, strd.y, strd.z, rx - 0.5f, ry - 0.5f, rz);
 
-//                    cache_gather(&ax, Ex, s0, strd.x, strd.y, strd.z, rx, ry, rz);
-//                    cache_gather(&ay, Ey, s0, strd.x, strd.y, strd.z, rx, ry, rz);
-//                    cache_gather(&az, Ez, s0, strd.x, strd.y, strd.z, rx, ry, rz);
-//                    cache_gather(&tx, Bx, s0, strd.x, strd.y, strd.z, rx, ry, rz);
-//                    cache_gather(&ty, By, s0, strd.x, strd.y, strd.z, rx, ry, rz);
-//                    cache_gather(&tz, Bz, s0, strd.x, strd.y, strd.z, rx, ry, rz);
+        ax *= cmr_dt;
+        ay *= cmr_dt;
+        az *= cmr_dt;
 
-                    ax *= cmr_dt;
-                    ay *= cmr_dt;
-                    az *= cmr_dt;
+        tx *= cmr_dt;
+        ty *= cmr_dt;
+        tz *= cmr_dt;
 
-                    tx *= cmr_dt;
-                    ty *= cmr_dt;
-                    tz *= cmr_dt;
+        rx += vx * 0.5 * inv_dv.x;
+        ry += vy * 0.5 * inv_dv.y;
+        rz += vz * 0.5 * inv_dv.z;
 
-                    rx += vx * 0.5 * inv_dv.x;
-                    ry += vy * 0.5 * inv_dv.y;
-                    rz += vz * 0.5 * inv_dv.z;
+        vx += ax;
+        vy += ay;
+        vz += az;
 
-                    vx += ax;
-                    vy += ay;
-                    vz += az;
+        Real v_x, v_y, v_z;
 
-                    Real v_x, v_y, v_z;
+        v_x = vx + (vy * tz - vz * ty);
+        v_y = vy + (vz * tx - vx * tz);
+        v_z = vz + (vx * ty - vy * tx);
 
-                    v_x = vx + (vy * tz - vz * ty);
-                    v_y = vy + (vz * tx - vx * tz);
-                    v_z = vz + (vx * ty - vy * tx);
+        tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
 
-                    tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
-
-                    vx += ax + (v_y * tz - v_z * ty) * tt;
-                    vy += ax + (v_z * tx - v_x * tz) * tt;
-                    vz += ax + (v_x * ty - v_y * tx) * tt;
-                    rx += vx * 0.5 * inv_dv.x;
-                    ry += vy * 0.5 * inv_dv.y;
-                    rz += vz * 0.5 * inv_dv.z;
+        vx += ax + (v_y * tz - v_z * ty) * tt;
+        vy += ax + (v_z * tx - v_x * tz) * tt;
+        vz += ax + (v_x * ty - v_y * tx) * tt;
+        rx += vx * 0.5 * inv_dv.x;
+        ry += vy * 0.5 * inv_dv.y;
+        rz += vz * 0.5 * inv_dv.z;
 
 
-                    sp->id[s] = 0;
-                    sp->rx[s] = rx;
-                    sp->ry[s] = ry;
-                    sp->rz[s] = rz;
-                    sp->vx[s] = vx;
-                    sp->vy[s] = vy;
-                    sp->vz[s] = vz;
-                    sp->f[s] = f;
-                    sp->w[s] = w;
-                }
-            }
+        sp->id[s] = 0;
+        sp->rx[s] = rx;
+        sp->ry[s] = ry;
+        sp->rz[s] = rz;
+        sp->vx[s] = vx;
+        sp->vy[s] = vy;
+        sp->vz[s] = vz;
+        sp->f[s] = f;
+        sp->w[s] = w;
+    }
+
 
 };
 
@@ -353,9 +283,9 @@ SP_DEVICE_DECLARE_KERNEL (spParticleBorisYeeGatherKernel,
         {
             if (sp->id[s] != 0) { continue; }
             Real w = sp->w[s] * sp->f[s]
-                * (1 - sp->rx[s])
-                * (1 - sp->ry[s])
-                * (1 - sp->rz[s]);
+                     * (1 - sp->rx[s])
+                     * (1 - sp->ry[s])
+                     * (1 - sp->rz[s]);
             rho += w;
             Jx += w * sp->vx[s];
             Jy += w * sp->vy[s];
@@ -379,72 +309,57 @@ int spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const s
 {
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
 
-    boris_update_param update_param;
-    update_param.max_pic = (int) spParticleGetMaxPIC(sp);
-    update_param.cmr_dt = dt * spParticleGetCharge(sp) / spParticleGetMass(sp);
+
     size_type min[3], max[3], strides[3];
     Real inv_dv[3];
     SP_CALL(spMeshGetInvDx(m, inv_dv));
     SP_CALL(spMeshGetArrayShape(m, SP_DOMAIN_ALL, min, max, strides));
-    for (int i = 0; i < 3; ++i)
-    {
-        inv_dv[i] *= dt;
-
-    }
-
-    size_type field_size = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL,
-                                                     spMeshAttributeGetForm((spMeshAttribute const *) fE));
-    assert(field_size < SP_CONSTANT_FIELD_SIZE);
-
-    SP_CALL(spParticleGetAllAttributeData(sp, update_param.data));
-    SP_CALL(spFieldSubArray(fRho, (void **) &update_param.rho));
-    SP_CALL(spFieldSubArray(fJ, (void **) update_param.J));
-    SP_CALL(spFieldSubArray((spField *) fE, (void **) update_param.E));
-    SP_CALL(spFieldSubArray((spField *) fB, (void **) update_param.B));
+    for (int i = 0; i < 3; ++i) { inv_dv[i] *= dt; }
 
 
-    dim3 gridDim = {(size_type) spParallelDefaultNumOfBlocks(), 1, 1};
+    void *data[SP_MAX_NUM_OF_PARTICLE_ATTR];
+    Real *rho;
+    Real *J[3];
+    Real *E[3];
+    Real *B[3];
+
+    SP_CALL(spParticleGetAllAttributeData(sp, data));
+    SP_CALL(spFieldSubArray(fRho, (void **) &rho));
+    SP_CALL(spFieldSubArray(fJ, (void **) J));
+    SP_CALL(spFieldSubArray((spField *) fE, (void **) E));
+    SP_CALL(spFieldSubArray((spField *) fB, (void **) B));
+
+    dim3 tile_dim = {SP_CONSTANT_FIELD_TILE_SIZE, SP_CONSTANT_FIELD_TILE_SIZE, SP_CONSTANT_FIELD_TILE_SIZE};
     dim3 blockDim = {(size_type) spParallelDefaultNumOfThreads(), 1, 1};
 
-    for (size_type x = min[0]; x < max[0]; x += gridDim.x)
-        for (size_type y = min[1]; y < max[1]; y += gridDim.y)
-            for (size_type z = min[2]; z < max[2]; z += gridDim.z)
+
+    for (size_type x = min[0]; x < max[0]; x += tile_dim.x)
+        for (size_type y = min[1]; y < max[1]; y += tile_dim.y)
+            for (size_type z = min[2]; z < max[2]; z += tile_dim.z)
             {
+                dim3 count;
+                count.x = MIN(max[0] - x, tile_dim.x);
+                count.y = MIN(max[1] - y, tile_dim.y);
+                count.z = MIN(max[2] - z, tile_dim.z);
+                size_type field_size = count.x * count.y * count.z * sizeof(Real);
+
                 size_type s0 = x * strides[0] + y * strides[1] + z * strides[2];
 
-                dim3 count;
-                count.x = MIN(max[0] - x, gridDim.x);
-                count.y = MIN(max[1] - y, gridDim.y);
-                count.z = MIN(max[2] - z, gridDim.z);
-
-                SP_CALL(spParallelMemcpyToCache((void const *) Ex,
-                                                (void const *) update_param.E[0],
-                                                field_size * sizeof(Real)));
-                SP_CALL(spParallelMemcpyToCache((void const *) Ey,
-                                                (void const *) update_param.E[1],
-                                                field_size * sizeof(Real)));
-                SP_CALL(spParallelMemcpyToCache((void const *) Ez,
-                                                (void const *) update_param.E[2],
-                                                field_size * sizeof(Real)));
-                SP_CALL(spParallelMemcpyToCache((void const *) Bx,
-                                                (void const *) update_param.B[0],
-                                                field_size * sizeof(Real)));
-                SP_CALL(spParallelMemcpyToCache((void const *) By,
-                                                (void const *) update_param.B[1],
-                                                field_size * sizeof(Real)));
-                SP_CALL(spParallelMemcpyToCache((void const *) Bz,
-                                                (void const *) update_param.B[2],
-                                                field_size * sizeof(Real)));
+                SP_CALL(spParallelMemcpyToCache((void const *) Ex, (void const *) (E[0]), field_size));
+                SP_CALL(spParallelMemcpyToCache((void const *) Ey, (void const *) (E[1]), field_size));
+                SP_CALL(spParallelMemcpyToCache((void const *) Ez, (void const *) (E[2]), field_size));
+                SP_CALL(spParallelMemcpyToCache((void const *) Bx, (void const *) (B[0]), field_size));
+                SP_CALL(spParallelMemcpyToCache((void const *) By, (void const *) (B[1]), field_size));
+                SP_CALL(spParallelMemcpyToCache((void const *) Bz, (void const *) (B[2]), field_size));
 
 
                 SP_DEVICE_CALL_KERNEL(spBorisYeeUpdateParticleKernel,
-                                      (gridDim),
-                                      (blockDim),
-                                      (boris_particle *) sp, s0, count, sizeType2Dim3(strides),
+                                      (count), (blockDim),
+                                      (boris_particle *) data,
+                                      s0, sizeType2Dim3(strides),
                                       spParticleGetMaxPIC(sp),
                                       dt * spParticleGetCharge(sp) / spParticleGetMass(sp),
                                       real2Real3(inv_dv)
-
                 );
             }
 
