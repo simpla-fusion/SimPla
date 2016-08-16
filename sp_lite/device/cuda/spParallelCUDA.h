@@ -36,6 +36,7 @@
 
 
 #define INLINE __inline__ __attribute__((always_inline))
+#define __register__
 
 //#define __device__ __device__
 //#define __host__ __host__

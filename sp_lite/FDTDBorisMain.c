@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     size_type PIC = 256;
     Real n0 = 1.0e18;
     Real T0 = 0.026;
-    size_type dims[3] = {0x100, 0x100, 0x1};
+    size_type dims[3] = {0x20, 0x20, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 
     SP_CALL(spFieldAssignValueSin(fE, k, amp));
 
-//    SP_CALL(spParticleInitializeBorisYee(sp, n0, T0, 0));
+    SP_CALL(spParticleInitializeBorisYee(sp, n0, T0, 0));
 
     /*****************************************************************************************************************/
 
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_NEW));
     SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_NEW));
 
-//    SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
+    SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
 
     SP_CALL(spIOStreamOpen(os, "/checkpoint/"));
 
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
     {
         SP_CALL(spFieldClear(fRho));
         SP_CALL(spFieldClear(fJ));
-//        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
+        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
         SP_CALL(spFDTDUpdate(mesh, dt, fRho, fJ, fE, fB));
 
 
@@ -138,8 +138,8 @@ int main(int argc, char **argv)
     SP_CALL(spFieldDestroy(&fJ));
     SP_CALL(spFieldDestroy(&fRho));
 
-//    SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
-//    SP_CALL(spParticleDestroy(&sp));
+    SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
+    SP_CALL(spParticleDestroy(&sp));
     SP_CALL(spMeshDestroy(&mesh));
     SP_CALL(spIOStreamDestroy(&os));
 

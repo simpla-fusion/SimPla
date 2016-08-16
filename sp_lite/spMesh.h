@@ -14,8 +14,11 @@
 enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3 };
 enum { SP_DOMAIN_CENTER = 13, SP_DOMAIN_ALL = 0xFF };
 struct spMesh_s;
+
 typedef struct spMesh_s spMesh;
+
 typedef struct spMesh_s *spMesh_t;
+
 typedef struct spMesh_s const *spMesh_const_t;
 
 #define SP_MESH_ATTR_HEAD  SP_OBJECT_HEAD const spMesh *m; int iform;
@@ -25,7 +28,9 @@ typedef struct spMeshAttribute_s
     SP_MESH_ATTR_HEAD
     byte_type __others[];
 } spMeshAttribute;
+
 typedef struct spMeshAttribute_s *spMeshAttribute_t;
+
 typedef struct spMeshAttribute_s const *spMeshAttribute_const_t;
 
 MeshEntityId spMeshEntityIdFromArray(size_type const *s);
@@ -102,6 +107,11 @@ int spMeshGetGlobalOrigin(spMesh_const_t m, Real *origin);
 size_type spMeshHash(spMesh_const_t, MeshEntityId, int iform);
 
 void spMeshPoint(spMesh_const_t, MeshEntityId id, Real *);
+
+__inline__ size_type spMeshSFC(size_type const *d, size_type const *strides)
+{
+    return d[0] * strides[0] + d[1] * strides[1] + d[2] * strides[2];
+}
 
 /** Geometry End */
 

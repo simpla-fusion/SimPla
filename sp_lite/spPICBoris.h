@@ -27,7 +27,7 @@ int spParticleCreateBorisYee(spParticle **sp, struct spMesh_s const *m);
 
 int spParticleDestroyBorisYee(spParticle **sp);
 
-int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0, int do_import_sample);
+int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0, int do_important_sample);
 
 int spParticleUpdateBorisYee(spParticle *sp,
                              Real dt,

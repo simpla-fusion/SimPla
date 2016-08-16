@@ -1065,7 +1065,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //			res.m_count[res.m_ndims_ + j] = ds.DataType.dimensions_[j];
 //			res.m_start[res.m_ndims_ + j] = 0;
-//			res.m_stride[res.m_ndims_ + j] = res.m_count[res.m_ndims_ + j];
+//			res.mesh_strides[res.m_ndims_ + j] = res.m_count[res.m_ndims_ + j];
 //
 //			res.count[res.m_ndims_ + j] = 1;
 //			res.block[res.m_ndims_ + j] = ds.DataType.dimensions_[j];
@@ -1125,7 +1125,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //		pds->f_stride[i] = pds->f_stride[i - 1];
 //		pds->m_count[i] = pds->m_count[i - 1];
 //		pds->m_start[i] = pds->m_start[i - 1];
-//		pds->m_stride[i] = pds->m_stride[i - 1];
+//		pds->mesh_strides[i] = pds->mesh_strides[i - 1];
 //		pds->count[i] = pds->count[i - 1];
 //		pds->block[i] = pds->block[i - 1];
 //
@@ -1137,7 +1137,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //
 //	pds->m_count[0] = 1;
 //	pds->m_start[0] = 0;
-//	pds->m_stride[0] = 1;
+//	pds->mesh_strides[0] = 1;
 //
 //	pds->count[0] = 1;
 //	pds->block[0] = 1;
@@ -1189,7 +1189,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //			item.m_ndims_ = ds.m_ndims_;
 //
 //			item.count[0] = 0;
-//			item.m_count[0] = item.m_stride[0] * cache_depth + item.m_start[0];
+//			item.m_count[0] = item.mesh_strides[0] * cache_depth + item.m_start[0];
 //			item.f_count[0] = item.f_stride[0] * cache_depth + item.f_start[0];
 //
 //		}
@@ -1197,7 +1197,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //	auto & m_data = std::get<0>(cache_[url]);
 //	auto & item = std::get<1>(cache_[url]);
 //
-//	size_t memory_size = ds.DataType.ele_size_in_byte_ * item.m_stride[0];
+//	size_t memory_size = ds.DataType.ele_size_in_byte_ * item.mesh_strides[0];
 //
 //	for (int i = 1; i < item.m_ndims_; ++i)
 //	{
@@ -1234,7 +1234,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, in
 //	hsize_t t_f_shape = item.f_count[0];
 //	hsize_t t_m_shape = item.m_count[0];
 //
-//	item.m_count[0] = item.count[0] * item.m_stride[0] + item.m_start[0];
+//	item.m_count[0] = item.count[0] * item.mesh_strides[0] + item.m_start[0];
 //	item.f_count[0] = item.count[0] * item.f_stride[0] + item.f_start[0];
 //
 //	auto res = write_array(url, item);
