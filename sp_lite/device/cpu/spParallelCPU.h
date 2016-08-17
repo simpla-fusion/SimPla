@@ -42,5 +42,14 @@ typedef struct { size_type x, y, z; } dim3;
 
 #define SP_DEVICE_CALL(_CMD_)  SP_CALL(_CMD_)
 
-
+INLINE dim3 spParallelDeviceGridDim()
+{
+    dim3 l_gridDim = {16, 16, 1};
+    return l_gridDim;
+}
+INLINE dim3 spParallelDeviceBlockDim()
+{
+    dim3 l_blockDim = {128, 1, 1};
+    return l_blockDim;
+}
 #endif //SIMPLA_SPPARALLELCPU_H

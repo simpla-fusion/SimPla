@@ -137,7 +137,7 @@ size_type spParticleGetNumberOfEntities(spParticle const *sp)
 {
     return spMeshGetNumberOfEntities(spMeshAttributeGetMesh((spMeshAttribute *) (sp)), SP_DOMAIN_ALL,
                                      spMeshAttributeGetForm((spMeshAttribute *) (sp)))
-           * spParticleGetMaxPIC(sp);
+        * spParticleGetMaxPIC(sp);
 }
 
 int spParticleInitialize(spParticle *sp, int const *dist_types)
@@ -183,7 +183,6 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spRandomGeneratorDestroy(&sp_gen));
 
-
 }
 
 int spParticleSetPIC(spParticle *sp, size_type pic, size_type max_pic)
@@ -192,8 +191,8 @@ int spParticleSetPIC(spParticle *sp, size_type pic, size_type max_pic)
 
     if (max_pic == 0)
     {
-        sp->m_max_pic_ =
-                (size_type) (pic / SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE + 1) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
+        sp->m_max_pic_ = 256;
+        //(size_type) (pic / SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE + 1) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
     }
     return SP_SUCCESS;
 }
@@ -238,7 +237,6 @@ Real spParticleGetMass(spParticle const *sp) { return sp->mass; }
 
 Real spParticleGetCharge(spParticle const *sp) { return sp->charge; }
 
-
 /**
  *
  * @param sp
@@ -270,7 +268,6 @@ int spParticleSync(spParticle *sp)
     return SP_SUCCESS;
 
 }
-
 
 int
 spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag)
@@ -312,10 +309,10 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
     num_of_entities *= spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
 
     for (
-            int i = 0;
-            i < sp->
-                    m_num_of_attrs_;
-            ++i)
+        int i = 0;
+        i < sp->
+            m_num_of_attrs_;
+        ++i)
     {
         void *buffer = NULL;
 
@@ -324,7 +321,7 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
         spParallelHostAlloc(&buffer, size_in_byte);
 
         spParallelMemcpy(buffer, sp
-                ->m_attrs_[i].data, size_in_byte);
+            ->m_attrs_[i].data, size_in_byte);
 
         SP_CALL(spIOStreamWriteSimple(os,
                                       sp->m_attrs_[i].name,

@@ -151,7 +151,7 @@ int spMeshDeploy(spMesh *self)
             self->m_global_start_[i] = self->m_global_dims_[i] * mpi_topo_coords[i] / mpi_topo_dims[i];
 
             self->m_count_[i] =
-                    self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
+                self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
         }
         else
         {
@@ -284,7 +284,6 @@ int spMeshSetDims(spMesh *m, size_type const *v) { SET_VEC3(v, m_global_dims_) }
 
 int spMeshGetDims(spMesh const *m, size_type *v) { GET_VEC3(v, m_global_dims_) }
 
-
 int spMeshSetGhostWidth(spMesh *m, size_type const *v) { SET_VEC3(v, m_ghost_width_) }
 
 int spMeshGetGhostWidth(spMesh const *m, size_type *res) { GET_VEC3(res, m_ghost_width_) }
@@ -378,15 +377,8 @@ int spMeshGetDomain(spMesh const *m, int tag, size_type *dims, size_type *start,
             }
     }
 
-    if (dims != NULL)
-    {
-        for (
-                int i = 0;
-                i < 3; ++i)
-        {
-            dims[i] = m->m_dims_[i];
-        }
-    }
+    if (dims != NULL) { for (int i = 0; i < 3; ++i) { dims[i] = m->m_dims_[i]; }}
+
     return success;
 };
 
@@ -413,7 +405,6 @@ int spMeshGetArrayShape(spMesh const *m, int tag, size_type *min, size_type *max
 
     spMeshGetStrides(m, stride);
 }
-
 
 int spMeshGetStrides(spMesh const *m, size_type *res)
 {

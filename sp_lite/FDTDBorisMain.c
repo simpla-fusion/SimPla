@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     size_type PIC = 256;
     Real n0 = 1.0e18;
     Real T0 = 0.026;
-    size_type dims[3] = {0x20, 0x20, 0x1};
+    size_type dims[3] = {0x100, 0x100, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
@@ -140,6 +140,8 @@ int main(int argc, char **argv)
 
     SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
     SP_CALL(spParticleDestroy(&sp));
+
+
     SP_CALL(spMeshDestroy(&mesh));
     SP_CALL(spIOStreamDestroy(&os));
 

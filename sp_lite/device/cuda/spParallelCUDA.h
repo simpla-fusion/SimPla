@@ -41,5 +41,14 @@
 //#define __device__ __device__
 //#define __host__ __host__
 
-
+INLINE dim3 spParallelDeviceGridDim()
+{
+    dim3 l_gridDim = {0x40, 0x40, 1};
+    return l_gridDim;
+}
+INLINE dim3 spParallelDeviceBlockDim()
+{
+    dim3 l_blockDim = {128, 1, 1};
+    return l_blockDim;
+}
 #endif //SIMPLA_SPPARALLEL_CU_H
