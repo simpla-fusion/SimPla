@@ -17,6 +17,7 @@ int spParallelDeviceInitialize(int argc, char **argv)
     SP_DEVICE_CALL(cudaSetDevice(spMPIRank() % num_of_device));
     SP_DEVICE_CALL(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
     SP_DEVICE_CALL(cudaGetLastError());
+//    SP_DEVICE_CALL(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
     return SP_SUCCESS;
 }
 

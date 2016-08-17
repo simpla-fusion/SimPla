@@ -38,14 +38,14 @@ INLINE __device__ void
 cache_scatter(Real v, Real *f, Real rx, Real ry, Real rz)
 {
     static const int s_c = 13, IX = 1, IY = 3, IZ = 9;
-//    atomicAdd(&f[s_c + IX + IY + IZ /**/], (v * (rx - ll) * (ry - ll) * (rz - ll)));
-//    atomicAdd(&f[s_c + IX + IY /*     */], (v * (rx - ll) * (ry - ll) * (rr - rz)));
-//    atomicAdd(&f[s_c + IX + IZ /*     */], (v * (rx - ll) * (rr - ry) * (rz - ll)));
-//    atomicAdd(&f[s_c + IX /*          */], (v * (rx - ll) * (rr - ry) * (rr - rz)));
-//    atomicAdd(&f[s_c + IY + IZ /*     */], (v * (rr - rx) * (ry - ll) * (rz - ll)));
-//    atomicAdd(&f[s_c + IY /*          */], (v * (rr - rx) * (ry - ll) * (rr - rz)));
-//    atomicAdd(&f[s_c + IZ /*          */], (v * (rr - rx) * (rr - ry) * (rz - ll)));
-//    atomicAdd(&f[s_c + 0 /*           */], (v * (rr - rx) * (rr - ry) * (rr - rz)));
+    f[s_c + IX + IY + IZ /**/] += (v * (rx - ll) * (ry - ll) * (rz - ll));
+    f[s_c + IX + IY /*     */] += (v * (rx - ll) * (ry - ll) * (rr - rz));
+    f[s_c + IX + IZ /*     */] += (v * (rx - ll) * (rr - ry) * (rz - ll));
+    f[s_c + IX /*          */] += (v * (rx - ll) * (rr - ry) * (rr - rz));
+    f[s_c + IY + IZ /*     */] += (v * (rr - rx) * (ry - ll) * (rz - ll));
+    f[s_c + IY /*          */] += (v * (rr - rx) * (ry - ll) * (rr - rz));
+    f[s_c + IZ /*          */] += (v * (rr - rx) * (rr - ry) * (rz - ll));
+    f[s_c + 0 /*           */] += (v * (rr - rx) * (rr - ry) * (rr - rz));
 }
 
 
@@ -222,7 +222,7 @@ __device__ INLINE void spParticleMoveBoris(boris_p *p,
 
 SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                           boris_particle *sp, size_type num_pic,
-                          dim3 strides, dim3 max, dim3 strides,
+                          dim3 min, dim3 max, dim3 strides,
                           Real const *Ex, Real const *Ey, Real const *Ez,
                           Real const *Bx, Real const *By, Real const *Bz,
                           Real dt, Real cmr, Real3 inv_dx)
@@ -361,7 +361,6 @@ int spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const s
                           sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides),
                           E[0], E[1], E[2], B[0], B[1], B[2],
                           dt, spParticleGetCharge(sp) / spParticleGetMass(sp), real2Real3(inv_dx)
-    //c_Ex, c_Ey, c_Ez,c_Bx, c_By, c_Bz
     );
 
 

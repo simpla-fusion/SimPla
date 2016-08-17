@@ -9,7 +9,7 @@ IF (CUDA_FOUND)
 
     SET(CUDA_SEPARABLE_COMPILATION ON)
 
-    SET(CUDA_NVCC_FLAGS -arch=sm_30 -maxrregcount=32 -lineinfo)
+    SET(CUDA_NVCC_FLAGS -arch=sm_30 -maxrregcount=32  -lineinfo   )
 
     ADD_DEFINITIONS(-DUSE_CUDA -DNUMBER_OF_THREADS_PER_BLOCK=256)
 
