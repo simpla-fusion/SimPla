@@ -222,7 +222,7 @@ __device__ INLINE void spParticleMoveBoris(boris_p *p,
 
 SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                           boris_particle *sp, size_type num_pic,
-                          dim3 min, dim3 max, dim3 mesh_strides,
+                          dim3 strides, dim3 max, dim3 strides,
                           Real const *Ex, Real const *Ey, Real const *Ez,
                           Real const *Bx, Real const *By, Real const *Bz,
                           Real dt, Real cmr, Real3 inv_dx)
@@ -238,7 +238,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
             for (size_type z = min.z + blockIdx.z; z < max.z; z += gridDim.z)
             {
 
-                size_type s0 = x * mesh_strides.x + y * mesh_strides.y + z * mesh_strides.z;
+                size_type s0 = x * strides.x + y * strides.y + z * strides.z;
 #ifdef __CUDACC__
                 __syncthreads();
 #endif
@@ -251,7 +251,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                             for (int k = -1; k < 1; ++k)
                             {
                                 int s1 = 13 + i + j * 3 + k * 9;
-                                int s2 = (int) (s0 + i * mesh_strides.x + j * mesh_strides.y + k * mesh_strides.z);
+                                int s2 = (int) (s0 + i * strides.x + j * strides.y + k * strides.z);
 
                                 cE[s1] = Ex[s2];
                                 cB[s1] = Bx[s2];
@@ -265,12 +265,16 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                 else if (threadId < 27 * 3)
                 {
                     int s2 = (int) (s0 +
-                        ((threadId % 3) - 1) * mesh_strides.x +
-                        ((threadId / 3) % 3 - 1) * mesh_strides.y +
-                        ((threadId / 9) - 1) * mesh_strides.z);
+                        ((threadId % 3) - 1) * strides.x +
+                        ((threadId / 3) % 3 - 1) * strides.y +
+                        ((threadId / 9) - 1) * strides.z);
 
                     cE[threadId] = Ex[s2];
                     cB[threadId] = Bx[s2];
+                    cE[threadId + 27] = Ey[s2];
+                    cB[threadId + 27] = By[s2];
+                    cE[threadId + 54] = Ez[s2];
+                    cB[threadId + 54] = Bz[s2];
                 }
 
 #ifdef __CUDACC__
@@ -289,41 +293,39 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 };
 
 SP_DEVICE_DECLARE_KERNEL (spParticleGatherBorisYeeKernel,
-                          boris_particle *sp,
-                          size_type s0, dim3 strd,
-                          size_type num_pic)
+                          boris_particle *sp, size_type num_pic,
+                          dim3 min, dim3 max, dim3 strides,
+                          Real *fJx, Real *fJy, Real *fJz, Real *fRho)
 {
-    Real Jx, Jy, Jz, rho;
+    size_type threadId = threadIdx.x * blockDim.x + threadIdx.y * blockDim.y + threadIdx.z * blockDim.z;
+    size_type num_of_thread = blockDim.x * blockDim.x * blockDim.x;
 
-    for (size_type s = s0 * num_pic + threadIdx.x,
-             se = s + num_pic; s < se; s += blockDim.x)
-    {
+    for (size_type x = min.x + blockIdx.x; x < max.x; x += gridDim.x)
+        for (size_type y = min.y + blockIdx.y; y < max.y; y += gridDim.y)
+            for (size_type z = min.z + blockIdx.z; z < max.z; z += gridDim.z)
+            {
 
-        rho = 0;
-        Jx = 0;
-        Jy = 0;
-        Jz = 0;
+                size_type s0 = x * strides.x + y * strides.y + z * strides.z;
 
+                Real Jx = 0, Jy = 0, Jz = 0, rho = 0;
+                for (size_type s = s0 * num_pic + threadId, se = (s0 + 1) * num_pic; s < se; s += num_of_thread)
+                {
+                    if (sp->id[s] != 0) { continue; }
+                    Real w = sp->w[s] * sp->f[s]
+                        * (1 - sp->rx[s])
+                        * (1 - sp->ry[s])
+                        * (1 - sp->rz[s]);
+                    rho += w;
+                    Jx += w * sp->vx[s];
+                    Jy += w * sp->vy[s];
+                    Jz += w * sp->vz[s];
 
-        {
-            if (sp->id[s] != 0) { continue; }
-            Real w = sp->w[s] * sp->f[s]
-                * (1 - sp->rx[s])
-                * (1 - sp->ry[s])
-                * (1 - sp->rz[s]);
-            rho += w;
-            Jx += w * sp->vx[s];
-            Jy += w * sp->vy[s];
-            Jz += w * sp->vz[s];
-        }
-//                 if (threadId == 0)
-//                atomicAdd(&g_boris_param.rho[s0], rho);
-//                atomicAdd(&g_boris_param.J[0][s0], Jx);
-//                atomicAdd(&g_boris_param.J[1][s0], Jy);
-//                atomicAdd(&g_boris_param.J[2][s0], Jz);
-
-
-    }
+                }
+                fJx[s0] += Jx;
+                fJy[s0] += Jy;
+                fJz[s0] += Jz;
+                fRho[s0] += rho;
+            }
 
 };
 
@@ -363,7 +365,10 @@ int spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const s
     );
 
 
-//    SP_DEVICE_CALL_KERNEL(spParticleGatherBorisYeeKernel, (gridDim), (blockDim), NULL);
+    SP_DEVICE_CALL_KERNEL(spParticleGatherBorisYeeKernel, spParallelDeviceGridDim(), spParallelDeviceBlockDim(),
+                          (boris_particle *) p_device_data, spParticleGetMaxPIC(sp),
+                          sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides),
+                          J[0], J[1], J[2], rho);
     spParallelDeviceFree((void **) &p_device_data);
 
     SP_CALL(spParticleSync(sp));
