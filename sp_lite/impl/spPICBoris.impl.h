@@ -238,7 +238,6 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
             for (size_type z = min.z + blockIdx.z; z < max.z; z += gridDim.z)
             {
 
-                size_type s0 = x * strides.x + y * strides.y + z * strides.z;
 #ifdef __CUDACC__
                 __syncthreads();
 #endif
@@ -251,7 +250,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                             for (int k = -1; k < 1; ++k)
                             {
                                 int s1 = 13 + i + j * 3 + k * 9;
-                                int s2 = (int) (s0 + i * strides.x + j * strides.y + k * strides.z);
+                                int s2 = (int) ((x + i) * strides.x + (x + j) * strides.y + (x + k) * strides.z);
 
                                 cE[s1] = Ex[s2];
                                 cB[s1] = Bx[s2];
@@ -264,10 +263,10 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                 }
                 else if (threadId < 27 * 3)
                 {
-                    int s2 = (int) (s0 +
-                        ((threadId % 3) - 1) * strides.x +
-                        ((threadId / 3) % 3 - 1) * strides.y +
-                        ((threadId / 9) - 1) * strides.z);
+                    size_type s2 =
+                        strides.x * (x + (threadId % 3) - 1) +
+                            strides.y * (y + (threadId / 3) % 3 - 1) +
+                            strides.z * (z + (threadId / 9) - 1);
 
                     cE[threadId] = Ex[s2];
                     cB[threadId] = Bx[s2];
@@ -280,6 +279,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 #ifdef __CUDACC__
                 __syncthreads();
 #endif
+                size_type s0 = x * strides.x + y * strides.y + z * strides.z;
 
                 for (size_type s = s0 * num_pic + threadId, se = (s0 + 1) * num_pic; s < se; s += num_of_thread)
                 {
