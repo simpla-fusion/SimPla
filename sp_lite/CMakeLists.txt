@@ -25,8 +25,10 @@ add_subdirectory(device)
 
 FILE(GLOB sp_lite_SRC ./*.c)
 
-ADD_EXECUTABLE(sp_boris ${sp_lite_SRC})
-TARGET_LINK_LIBRARIES(sp_boris sp_capi sp_lite_cpu )
+ADD_EXECUTABLE(sp_boris_mt ${sp_lite_SRC})
+TARGET_LINK_LIBRARIES(sp_boris_mt sp_capi sp_lite_openmp)
+target_compile_options(sp_boris_mt PUBLIC -fopenmp)
+target_link_libraries(sp_boris_mt -fopenmp)
 
 IF (ENABLE_CUDA)
     ADD_EXECUTABLE(sp_boris_gpu ${sp_lite_SRC})

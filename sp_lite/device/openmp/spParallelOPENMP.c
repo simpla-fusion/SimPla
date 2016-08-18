@@ -4,11 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../../spParallel.h"
-#include "spParallelCPU.h"
+#include "spParallelOPENMP.h"
 
-#ifdef _OPENMP
 #include <omp.h>
-#endif
 
 int spParallelDeviceInitialize(int argc, char **argv) { return SP_SUCCESS; }
 

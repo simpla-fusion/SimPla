@@ -2,8 +2,8 @@
 // Created by salmon on 16-7-20.
 //
 
-#ifndef SIMPLA_SPPARALLELCPU_H
-#define SIMPLA_SPPARALLELCPU_H
+#ifndef SIMPLA_SPPARALLELOPENMP_H
+#define SIMPLA_SPPARALLELOPENMP_H
 
 #include <stdlib.h>
 #include <string.h>
@@ -52,4 +52,4 @@ INLINE dim3 spParallelDeviceBlockDim()
     dim3 l_blockDim = {128, 1, 1};
     return l_blockDim;
 }
-#endif //SIMPLA_SPPARALLELCPU_H
+#endif //SIMPLA_SPPARALLELOPENMP_H

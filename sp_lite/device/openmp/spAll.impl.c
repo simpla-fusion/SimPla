@@ -3,7 +3,7 @@
 //
 
 
-#include "spParallelCPU.h"
+#include "spParallelOPENMP.h"
 #include "../spFDTD.impl.h"
 #include "../spPICBoris.impl.h"
 #include "../spMisc.impl.h"

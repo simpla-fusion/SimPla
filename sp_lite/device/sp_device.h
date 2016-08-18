@@ -11,7 +11,7 @@
 #   include "cuda/spParallelCUDA.h"
 #else
 
-#   include "cpu/spParallelCPU.h"
+#   include "openmp/spParallelOPENMP.h"
 
 #endif
 
