@@ -4,6 +4,5 @@
 
 
 #include "spParallelOPENMP.h"
-#include "../spFDTD.impl.h"
-#include "../spPICBoris.impl.h"
+#include "../spBorisFDTD.impl.h"
 #include "../spMisc.impl.h"

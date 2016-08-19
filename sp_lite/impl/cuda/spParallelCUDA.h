@@ -7,6 +7,7 @@
 
 #include "../../sp_lite_def.h"
 #include "../../spParallel.h"
+#include <device_functions.h>
 
 
 #define  SP_DEVICE_GLOBAL __global__

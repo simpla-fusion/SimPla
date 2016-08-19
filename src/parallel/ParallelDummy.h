@@ -53,8 +53,8 @@ void parallel_for(Range const &range, Body const &op)
 
 ///**
 // *
-// * @param entity_id_range RangeHolder Concept
-// * @param op std::function<void(*RangeHolder::iterator)>
+// * @sp_ctx_d entity_id_range RangeHolder Concept
+// * @sp_ctx_d op std::function<void(*RangeHolder::iterator)>
 // */
 //template<typename RangeHolder, typename Body>
 //void parallel_foreach(RangeHolder const &entity_id_range, Body const &body)

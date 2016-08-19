@@ -57,6 +57,13 @@ struct spParticle_s
     int m_num_of_attrs_;
     spParticleAttrEntity m_attrs_[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
+    size_type m_page_size_;
+    size_type m_number_of_pages_;
+    size_type *m_page_head_;
+
+    void **m_current_data_;
+    void **m_next_data_;
+
 };
 
 int spParticleCreate(spParticle **sp, const spMesh *mesh)
@@ -210,13 +217,16 @@ int spParticleGetAllAttributeData(spParticle *sp, void **res)
     return SP_SUCCESS;
 };
 
-int spParticleGetAllAttributeData_device(spParticle *sp, void ***device_data)
+int spParticleGetAllAttributeData_device(spParticle *sp, void ***current_data, void ***next_data)
 {
-    void *data[spParticleGetNumberOfAttributes(sp)];
-    SP_CALL(spParticleGetAllAttributeData(sp, data));
+//    void *data[spParticleGetNumberOfAttributes(sp)];
+//    SP_CALL(spParticleGetAllAttributeData(sp, data));
+//    SP_CALL(spParallelDeviceAlloc((void **) current_data, spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
+//    SP_CALL(spParallelMemcpy(*current_data, data, spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
 
-    SP_CALL(spParallelDeviceAlloc((void **) device_data, spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
-    SP_CALL(spParallelMemcpy(*device_data, data, spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
+    if (current_data != NULL) { *current_data = sp->m_current_data_; }
+
+    if (next_data != NULL) { *next_data = sp->m_next_data_; }
 }
 
 spMesh const *spParticleMesh(spParticle const *sp) { return sp->m; };
@@ -237,6 +247,15 @@ Real spParticleGetMass(spParticle const *sp) { return sp->mass; }
 
 Real spParticleGetCharge(spParticle const *sp) { return sp->charge; }
 
+int spParticleUpdate(spParticle *sp)
+{
+    void **tmp = sp->m_current_data_;
+    sp->m_current_data_ = sp->m_next_data_;
+    sp->m_next_data_ = tmp;
+
+    return spParticleSync(sp);
+
+}
 /**
  *
  * @param sp

@@ -75,7 +75,7 @@ void *spParticleGetAttributeData(spParticle *sp, int i);
 
 int spParticleGetAllAttributeData(spParticle *sp, void **res);
 
-int spParticleGetAllAttributeData_device(spParticle *sp, void ***device_data);
+int spParticleGetAllAttributeData_device(spParticle *sp, void ***current_data, void ***next_data);
 
 size_type spParticleGetNumberOfEntities(spParticle const *sp);
 
@@ -84,6 +84,8 @@ size_type spParticleGetMaxPIC(const spParticle *sp);
 int spParticleWrite(spParticle const *sp, struct spIOStream_s *os, const char *url, int flag);
 
 int spParticleRead(spParticle *sp, struct spIOStream_s *os, const char *url, int flag);
+
+int spParticleUpdate(spParticle *sp);
 
 int spParticleSync(spParticle *sp);
 

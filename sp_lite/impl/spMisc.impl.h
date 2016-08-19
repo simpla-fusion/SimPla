@@ -10,6 +10,9 @@
 #include "sp_device.h"
 #include <math.h>
 
+#include "../spMesh.h"
+#include "../spField.h"
+
 
 SP_DEVICE_DECLARE_KERNEL(spFieldAssignValueSinKernel_g, Real *data, dim3 strides, Real3 k_dx, Real3 alpha0, Real amp)
 {

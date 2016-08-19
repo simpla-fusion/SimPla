@@ -5,8 +5,12 @@
 extern "C"
 {
 #include "spParallelCUDA.h"
+#include "../spMisc.impl.h"
 #include "../spFDTD.impl.h"
 #include "../spPICBoris.impl.h"
-#include "../spMisc.impl.h"
+
+__constant__ spContext sp_ctx_d;
+
+spContext sp_ctx;
 
 }
