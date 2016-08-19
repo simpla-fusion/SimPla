@@ -92,7 +92,7 @@ int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimens
                             n_threads * n_dims *
                             sizeof(curandStateScrambledSobol64)));
 
-    /* Allocate memory and copy 3 sets of vectors per thread to the impl */
+    /* Allocate memory and copy 3 sets of vectors per thread to the detail */
 
     SP_DEVICE_CALL(cudaMalloc((void **) &((*gen)->devDirectionVectors64),
                             n_threads * n_dims * VECTOR_SIZE * sizeof(long long int)));
@@ -102,7 +102,7 @@ int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimens
                             cudaMemcpyHostToDevice));
 
     /* Allocate memory and copy 6 scramble constants (one costant per dimension)
-       per thread to the impl */
+       per thread to the detail */
 
     SP_DEVICE_CALL(cudaMalloc((void **) &((*gen)->devScrambleConstants64),
                             n_threads * n_dims * sizeof(long long int)));

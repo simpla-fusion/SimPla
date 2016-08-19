@@ -11,7 +11,13 @@
 
 typedef struct { float x, y, z; } float3;
 
-typedef struct { size_type x, y, z; } dim3;
+typedef struct { int x, y, z; } int3;
+
+typedef struct { unsigned int x, y, z; } uint3;
+
+typedef uint3 dim3;
+
+#define SP_NUM_OF_THREADS_PER_BLOCK 1
 
 #define INLINE  static inline
 #define __device__
@@ -52,4 +58,7 @@ INLINE dim3 spParallelDeviceBlockDim()
     dim3 l_blockDim = {128, 1, 1};
     return l_blockDim;
 }
+INLINE unsigned int __umul24(unsigned int a, unsigned int b) { return a * b; }
+INLINE int __mul24(int a, int b) { return a * b; }
+
 #endif //SIMPLA_SPPARALLELOPENMP_H

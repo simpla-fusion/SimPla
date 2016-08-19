@@ -21,7 +21,7 @@ IF (HDF5_IS_PARALLEL)
     ADD_DEFINITIONS(-DUSE_PARALLEL_IO -DH5_HAVE_PARALLEL)
 ENDIF (HDF5_IS_PARALLEL)
 
-add_subdirectory(impl)
+add_subdirectory(detail)
 
 FILE(GLOB sp_lite_SRC ./*.c)
 

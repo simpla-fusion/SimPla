@@ -29,8 +29,8 @@ int spParticleDestroyBorisYee(spParticle **sp);
 
 int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0, int do_important_sample);
 
-int spParticleUpdateBorisYee(spParticle *sp,
-                             Real dt,
+int spParticleUpdateBorisYee(Real dt,
+                             spParticle *sp,
                              const struct spField_s *fE,
                              const struct spField_s *fB,
                              struct spField_s *fRho,

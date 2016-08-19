@@ -65,6 +65,8 @@ struct spMesh_s
     Real m_coord_upper[4];
     Real dx[4];
     Real inv_dx[4];
+
+    size_type strides[3];
 };
 
 int spMeshCreate(spMesh **m)

@@ -7,7 +7,13 @@
 
 #include "../../sp_lite_def.h"
 #include "../../spParallel.h"
+#include <device_functions.h>
 
+#ifdef NUM_OF_THREADS_PER_BLOCK
+#   define SP_NUM_OF_THREADS_PER_BLOCK NUM_OF_THREADS_PER_BLOCK
+#else
+#   define SP_NUM_OF_THREADS_PER_BLOCK 128
+#endif
 
 #define  SP_DEVICE_GLOBAL __global__
 #if !defined(__CUDA_ARCH__)

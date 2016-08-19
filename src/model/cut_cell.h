@@ -67,8 +67,8 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 
 ///**
 // *   for cut-cell
-// * @param s0
-// * @param s1
+// * @sp_ctx_d s0
+// * @sp_ctx_d s1
 // * @return
 // */
 //static constexpr id_type out_code(id_type c, id_type s)
@@ -92,10 +92,10 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 // *
 // *
 // *  line intersection face
-// * @param x0
-// * @param x1
-// * @param res
-// * @param node_id id of cell
+// * @sp_ctx_d x0
+// * @sp_ctx_d x1
+// * @sp_ctx_d res
+// * @sp_ctx_d node_id id of cell
 // */
 //template<typename TRes>
 //static void cut_cell(coordinates_type const & x0, coordinates_type const & x1,
@@ -106,11 +106,11 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 // */
 ///**
 // * triangle intersection edge
-// * @param x0
-// * @param x1
-// * @param x2
-// * @param res
-// * @param node_id id of cell
+// * @sp_ctx_d x0
+// * @sp_ctx_d x1
+// * @sp_ctx_d x2
+// * @sp_ctx_d res
+// * @sp_ctx_d node_id id of cell
 // */
 //template<typename TX, typename TRes>
 //static void cut_cell(TX const & x0, TX const & x1, TX const & x2, TRes*res,

@@ -31,11 +31,11 @@ int spParallelDeviceFinalize()
 #define SP_DEFAULT_BLOCKS  128
 #define SP_DEFAULT_THREADS 128
 
-int spParallelDefaultNumOfThreads()
+int spParallelGridDim()
 {
     return SP_DEFAULT_THREADS;
 };
-int spParallelDefaultNumOfBlocks()
+int spParallelBlockDim()
 {
     return SP_DEFAULT_BLOCKS;
 };

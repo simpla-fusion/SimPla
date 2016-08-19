@@ -15,9 +15,9 @@
 #include "spFDTD.h"
 #include "spMisc.h"
 
-#include "spPhysicalConstants.h"
 #include "spParticle.h"
 #include "spPICBoris.h"
+#include "spContext.h"
 
 
 int main(int argc, char **argv)
@@ -59,7 +59,12 @@ int main(int argc, char **argv)
     SP_CALL(spMeshSetBox(mesh, lower, upper));
     SP_CALL(spMeshDeploy(mesh));
 
+
     if (isnan(dt)) { dt = spMeshCFLDt(mesh, 299792458.0/* speed_of_light*/); }
+
+
+    SP_CALL(spContextSetup(mesh));
+
     /*****************************************************************************************************************/
 
     spField *fE = NULL;
@@ -110,8 +115,10 @@ int main(int argc, char **argv)
     {
         SP_CALL(spFieldClear(fRho));
         SP_CALL(spFieldClear(fJ));
-        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
-        SP_CALL(spFDTDUpdate(mesh, dt, fRho, fJ, fE, fB));
+
+        SP_CALL(spParticleUpdateBorisYee(dt, sp, fE, fB, fRho, fJ));
+
+        SP_CALL(spFDTDUpdate(dt, fRho, fJ, fE, fB));
 
 
         if (count % check_point == 0)
@@ -143,6 +150,7 @@ int main(int argc, char **argv)
 
 
     SP_CALL(spMeshDestroy(&mesh));
+
     SP_CALL(spIOStreamDestroy(&os));
 
     DONE

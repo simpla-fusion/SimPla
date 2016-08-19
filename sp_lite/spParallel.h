@@ -52,8 +52,8 @@ int spParallelDeviceFillReal(Real *d, Real v, size_type s);
 
 int spParallelScan(size_type *, size_type num);
 
-int spParallelDefaultNumOfThreads();
+int spParallelGridDim();
 
-int spParallelDefaultNumOfBlocks();
+int spParallelBlockDim();
 
 #endif //SIMPLA_SPPARALLEL_H
