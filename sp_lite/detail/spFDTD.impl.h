@@ -30,15 +30,28 @@ typedef struct
 {
     uint3 min;
     uint3 max;
-    uint3 strides;
     float3 inv_dx;
+    uint3 strides;
 
-    uint3 grid_dim;
-    uint3 block_dim;
+} _spFDTDParam;
 
-} spUpdateFieldFDTDKernelParam;
+__constant__ _spFDTDParam _fdtd_param;
 
-__constant__ spUpdateFieldFDTDKernelParam _fdtd_param;
+int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *block_dim)
+{
+    _spFDTDParam param;
+    size_type min[3], max[3], strides[3];
+    Real inv_dx[3];
+    SP_CALL(spMeshGetArrayShape(m, tag, min, max, strides));
+    SP_CALL(spMeshGetInvDx(m, inv_dx));
+    param.min = sizeType2Dim3(min);
+    param.max = sizeType2Dim3(max);
+    param.strides = sizeType2Dim3(strides);
+    param.inv_dx = real2Real3(inv_dx);
+    SP_CALL(spParallelMemcpyToCache(&_pic_param, &param, sizeof(_spFDTDParam)));
+    SP_CALL(spMeshThreadBlockDecompose(m, SP_NUM_OF_THREADS_PER_BLOCK, grid_dim, block_dim));
+
+}
 
 SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernel, Real dt,
                           Real const *Rho, Real const *Jx, Real const *Jy, Real const *Jz,
@@ -116,16 +129,12 @@ int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, s
     SP_CALL(spFieldSubArray(fB, (void **) B));
 
 
-    uint3 grid_dim;
+    size_type grid_dim[3], block_dim[3];
 
-    uint3 block_dim = {SP_NUM_OF_THREADS_PER_BLOCK, 1, 1};
+    spFDTDSetupParam(spMeshAttributeGetMesh((spMeshAttribute *) fE), SP_DOMAIN_ALL, grid_dim, block_dim);
 
-    _spPICBorisParam param;
-
-    spParallelMemcpyToCache(&_pic_param, &param, sizeof(_spPICBorisParam));
-
-    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernel, grid_dim, block_dim, dt,
-                          (const Real *) rho, (const Real *) J[0], (const Real *) J[1], (const Real *) J[2],
+    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+                          dt, (const Real *) rho, (const Real *) J[0], (const Real *) J[1], (const Real *) J[2],
                           E[0], E[1], E[2], B[0], B[1], B[2]);
     spFieldSync(fE);
     spFieldSync(fB);

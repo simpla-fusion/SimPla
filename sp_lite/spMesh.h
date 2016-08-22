@@ -108,6 +108,11 @@ size_type spMeshHash(spMesh_const_t, MeshEntityId, int iform);
 
 void spMeshPoint(spMesh_const_t, MeshEntityId id, Real *);
 
+int spMeshThreadBlockDecompose(spMesh const *m,
+                               size_type num_of_threads_per_block,
+                               size_type *grid_dim,
+                               size_type *block_dim);
+
 __inline__ size_type spMeshSFC(size_type const *d, size_type const *strides)
 {
     return d[0] * strides[0] + d[1] * strides[1] + d[2] * strides[2];
