@@ -253,15 +253,15 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 //	void SetUp()
 //	{
 //		LOGGER.set_stdout_level(LOG_INFORM);
-//		auto sp_ctx_d = GetParam();
+//		auto _fdtd_param = GetParam();
 //
-//		xmin = std::get<0>(sp_ctx_d);
+//		xmin = std::get<0>(_fdtd_param);
 //
-//		xmax = std::get<1>(sp_ctx_d);
+//		xmax = std::get<1>(_fdtd_param);
 //
-//		topology_dims = std::get<2>(sp_ctx_d);
+//		topology_dims = std::get<2>(_fdtd_param);
 //
-//		K_real = std::get<3>(sp_ctx_d);
+//		K_real = std::get<3>(_fdtd_param);
 //
 //		SetDefaultValue(&default_value);
 //

@@ -62,8 +62,8 @@ void parallel_for(TRange & range, std::function<TRange &> const & fun, size_t gr
 // *  @ingroup MULTICORE
 // *
 // * \brief Parallel for each
-// * @sp_ctx_d r
-// * @sp_ctx_d fun
+// * @_fdtd_param r
+// * @_fdtd_param fun
 // */
 template<typename TRange, typename TF>
 void parallel_for_each(TRange & range, TF const & fun, size_t grain_size = 0)

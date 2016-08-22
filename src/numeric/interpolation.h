@@ -565,10 +565,10 @@ public:
 //	 ypn are equal to 1 1099 or larger, the routine is signaled to set the corresponding boundary
 //	 condition for a natural spline, with zero second derivative on that boundary; otherwise, they are
 //	 the values of the first derivatives at the endpoints.
-//	 * @sp_ctx_d xv
-//	 * @sp_ctx_d yv
-//	 * @sp_ctx_d yp1
-//	 * @sp_ctx_d ypn
+//	 * @_fdtd_param xv
+//	 * @_fdtd_param yv
+//	 * @_fdtd_param yp1
+//	 * @_fdtd_param ypn
 //	 */
 //	template<typename port_type>
 //	void sync(port_type const &xy)
@@ -618,8 +618,8 @@ public:
 //	/**
 //	 * Given a value x, and using pointers to m_data xx and yy, and the stored vector of second derivatives
 //	 y2, this routine returns the cubic spline interpolated value y.
-//	 * @sp_ctx_d jl
-//	 * @sp_ctx_d x
+//	 * @_fdtd_param jl
+//	 * @_fdtd_param x
 //	 * @return
 //	 */
 //

@@ -7,7 +7,6 @@
 
 #include "../../sp_lite_def.h"
 #include "../../spParallel.h"
-#include <device_functions.h>
 
 #ifdef NUM_OF_THREADS_PER_BLOCK
 #   define SP_NUM_OF_THREADS_PER_BLOCK NUM_OF_THREADS_PER_BLOCK
@@ -44,17 +43,4 @@
 #define INLINE __inline__ __attribute__((always_inline))
 #define __register__
 
-//#define __device__ __device__
-//#define __host__ __host__
-
-INLINE dim3 spParallelDeviceGridDim()
-{
-    dim3 l_gridDim = {0x40, 0x40, 1};
-    return l_gridDim;
-}
-INLINE dim3 spParallelDeviceBlockDim()
-{
-    dim3 l_blockDim = {128, 1, 1};
-    return l_blockDim;
-}
 #endif //SIMPLA_SPPARALLEL_CU_H

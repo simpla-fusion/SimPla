@@ -594,11 +594,11 @@ bool box_intersection(TL const &l, TR *r)
 ///**
 // * decompose a N-dimensional block entity_id_range [b,e) into 'num_part' parts,
 // * and return the 'proc_num'th part [ob,oe)
-// * @sp_ctx_d b minus index of block entity_id_range
-// * @sp_ctx_d e maxim index of block entity_id_range
-// * @sp_ctx_d num_part
-// * @sp_ctx_d part_num
-// * @sp_ctx_d decompose_method select decompose algorithm (UNIMPLEMENTED)
+// * @_fdtd_param b minus index of block entity_id_range
+// * @_fdtd_param e maxim index of block entity_id_range
+// * @_fdtd_param num_part
+// * @_fdtd_param part_num
+// * @_fdtd_param decompose_method select decompose algorithm (UNIMPLEMENTED)
 // * @return  the 'proc_num'th part [ob,oe)
 // * if 'num_part==0' return [b,e)
 // */

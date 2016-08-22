@@ -17,6 +17,7 @@ typedef struct { unsigned int x, y, z; } uint3;
 
 typedef uint3 dim3;
 
+
 #define SP_NUM_OF_THREADS_PER_BLOCK 1
 
 #define INLINE  static inline
@@ -48,16 +49,7 @@ typedef uint3 dim3;
 
 #define SP_DEVICE_CALL(_CMD_)  SP_CALL(_CMD_)
 
-INLINE dim3 spParallelDeviceGridDim()
-{
-    dim3 l_gridDim = {16, 16, 1};
-    return l_gridDim;
-}
-INLINE dim3 spParallelDeviceBlockDim()
-{
-    dim3 l_blockDim = {128, 1, 1};
-    return l_blockDim;
-}
+
 INLINE unsigned int __umul24(unsigned int a, unsigned int b) { return a * b; }
 INLINE int __mul24(int a, int b) { return a * b; }
 

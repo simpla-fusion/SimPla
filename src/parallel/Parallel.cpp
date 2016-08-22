@@ -56,7 +56,7 @@ std::string help_message()
 
 
 ///**
-// * @sp_ctx_d pos in {0,count} out {begin,m_global_dims_}
+// * @_fdtd_param pos in {0,count} out {begin,m_global_dims_}
 // */
 //template<typename Integral>
 //std::tuple<Integral, Integral> sync_global_location(Integral count)

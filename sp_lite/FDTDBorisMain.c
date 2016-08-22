@@ -17,7 +17,6 @@
 
 #include "spParticle.h"
 #include "spPICBoris.h"
-#include "spContext.h"
 
 
 int main(int argc, char **argv)
@@ -61,9 +60,6 @@ int main(int argc, char **argv)
 
 
     if (isnan(dt)) { dt = spMeshCFLDt(mesh, 299792458.0/* speed_of_light*/); }
-
-
-    SP_CALL(spContextSetup(mesh));
 
     /*****************************************************************************************************************/
 
