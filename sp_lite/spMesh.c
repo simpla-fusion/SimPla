@@ -405,16 +405,17 @@ int spMeshGetArrayShape(spMesh const *m, int tag, size_type *min, size_type *max
             break;
     }
 
-    spMeshGetStrides(m, stride);
+    return spMeshGetStrides(m, stride);
+
 }
 
 int spMeshGetStrides(spMesh const *m, size_type *res)
 {
     if (res != NULL)
     {
-        res[2] = (m->m_global_dims_[2] == 1) ? 0 : 1;
-        res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[2];
-        res[0] = (m->m_global_dims_[0] == 1) ? 0 : m->m_dims_[2] * m->m_dims_[1];
+        res[0] = (m->m_global_dims_[0] == 1) ? 0 : 1;
+        res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[0];
+        res[2] = (m->m_global_dims_[2] == 1) ? 0 : m->m_dims_[0] * m->m_dims_[1];
     }
     return SP_SUCCESS;
 }

@@ -73,43 +73,34 @@ void MPIComm::init(int argc, char **argv)
 
     MPI_CALL(MPI_Comm_size(MPI_COMM_WORLD, &m_num_process_));
 
+    int m_topology_coord_[3] = {0, 0, 0};
 
-    if (m_num_process_ <= 1)
-    {
-        pimpl_->m_comm_ = MPI_COMM_NULL;
-        MPI_Finalize();
+    MPI_CALL(MPI_Dims_create(m_num_process_, 2, pimpl_->m_topology_dims_));
 
-    }
-    else
-    {
-        int m_topology_coord_[3] = {0, 0, 0};
+    int periods[pimpl_->m_topology_ndims_];
 
-        MPI_CALL(MPI_Dims_create(m_num_process_, 2, pimpl_->m_topology_dims_));
+    for (int i = 0; i < pimpl_->m_topology_ndims_; ++i) { periods[i] = true; }
 
-        int periods[pimpl_->m_topology_ndims_];
-
-        for (int i = 0; i < pimpl_->m_topology_ndims_; ++i) { periods[i] = true; }
-
-        MPI_CALL(MPI_Cart_create(MPI_COMM_WORLD, pimpl_->m_topology_ndims_,
-                                  pimpl_->m_topology_dims_, periods, MPI_ORDER_C, &pimpl_->m_comm_));
+    MPI_CALL(MPI_Cart_create(MPI_COMM_WORLD, pimpl_->m_topology_ndims_,
+                             pimpl_->m_topology_dims_, periods, MPI_ORDER_C, &pimpl_->m_comm_));
 
 
-        logger::set_mpi_comm(rank(), size());
+    logger::set_mpi_comm(rank(), size());
 
-        MPI_CALL(MPI_Cart_coords(comm(), rank(), pimpl_->m_topology_ndims_, m_topology_coord_));
+    MPI_CALL(MPI_Cart_coords(comm(), rank(), pimpl_->m_topology_ndims_, m_topology_coord_));
 
 
-        VERBOSE << "MPI communicator is initialized! "
-            "[("
-                << m_topology_coord_[0] << ","
-                << m_topology_coord_[1] << ","
-                << m_topology_coord_[2]
-                << ")/("
-                << pimpl_->m_topology_dims_[0] << ","
-                << pimpl_->m_topology_dims_[1] << ","
-                << pimpl_->m_topology_dims_[2]
-                << ")]" << std::endl;
-    }
+    VERBOSE << "MPI communicator is initialized! "
+        "[("
+            << m_topology_coord_[0] << ","
+            << m_topology_coord_[1] << ","
+            << m_topology_coord_[2]
+            << ")/("
+            << pimpl_->m_topology_dims_[0] << ","
+            << pimpl_->m_topology_dims_[1] << ","
+            << pimpl_->m_topology_dims_[2]
+            << ")]" << std::endl;
+
 }
 
 size_type MPIComm::generate_object_id()
@@ -138,17 +129,19 @@ int MPIComm::topology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int
 {
     *mpi_topo_ndims = 0;
 
-    if (comm() != MPI_COMM_NULL)
-    {
-        int tope_type = MPI_CART;
-        MPI_CALL(MPI_Topo_test(comm(), &tope_type));
-        if (tope_type == MPI_CART);
-        {
-            MPI_CALL(MPI_Cartdim_get(comm(), mpi_topo_ndims));
+    if (comm() == MPI_COMM_NULL) { return SP_DO_NOTHING; }
 
-            MPI_CALL(MPI_Cart_get(comm(), *mpi_topo_ndims, mpi_topo_dims, periods, mpi_topo_coord));
-        }
+    int tope_type = MPI_CART;
+
+    MPI_CALL(MPI_Topo_test(comm(), &tope_type));
+
+    if (tope_type == MPI_CART);
+    {
+        MPI_CALL(MPI_Cartdim_get(comm(), mpi_topo_ndims));
+
+        MPI_CALL(MPI_Cart_get(comm(), *mpi_topo_ndims, mpi_topo_dims, periods, mpi_topo_coord));
     }
+
     return SP_SUCCESS;
 };
 

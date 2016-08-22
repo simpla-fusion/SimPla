@@ -112,8 +112,8 @@ int main(int argc, char **argv)
         SP_CALL(spFieldClear(fRho));
         SP_CALL(spFieldClear(fJ));
 
-        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
-
+//        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
+//
         SP_CALL(spFDTDUpdate(dt, fRho, fJ, fE, fB));
 
 

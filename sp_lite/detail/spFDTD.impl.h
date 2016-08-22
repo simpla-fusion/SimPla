@@ -161,7 +161,6 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 
     spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
 
-    CHECK_INT(num_of_sub);
     for (int i = 0; i < num_of_sub; ++i)
     {
         Real3 t_k_dx = real2Real3(k_dx);
@@ -212,15 +211,15 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernel, Real dt,
         Ex[s] +=
             ((Bz[s + _fdtd_param.strides.y] - Bz[s]) * _fdtd_param.inv_dx.y
                 - (By[s + _fdtd_param.strides.z] - By[s]) * _fdtd_param.inv_dx.z)
-                * speed_of_light2 - Jx[s] / epsilon0 * dt;
+                * speed_of_light2 * dt - Jx[s] / epsilon0 * dt;
         Ey[s] +=
             ((Bx[s + _fdtd_param.strides.z] - Bx[s]) * _fdtd_param.inv_dx.z
                 - (Bz[s + _fdtd_param.strides.x] - Bz[s]) * _fdtd_param.inv_dx.x)
-                * speed_of_light2 - Jy[s] / epsilon0 * dt;
+                * speed_of_light2 * dt - Jy[s] / epsilon0 * dt;
         Ez[s] +=
             ((By[s + _fdtd_param.strides.x] - By[s]) * _fdtd_param.inv_dx.x
                 - (Bx[s + _fdtd_param.strides.y] - Bx[s]) * _fdtd_param.inv_dx.y)
-                * speed_of_light2 - Jz[s] / epsilon0 * dt;
+                * speed_of_light2 * dt - Jz[s] / epsilon0 * dt;
 
         Bx[s] -=
             ((Ez[s] - Ez[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y

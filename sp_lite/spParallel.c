@@ -65,15 +65,14 @@ int spMPINeighborAllToAll(const void *send_buffer,
                           MPI_Datatype const *recv_types,
                           MPI_Comm comm)
 {
-    if (comm == MPI_COMM_NULL) { return SP_FAILED; }
-    else
-    {
-        int tope_type = MPI_CART;
+    if (comm == MPI_COMM_NULL) { return SP_DO_NOTHING; }
 
-        MPI_CALL(MPI_Topo_test(comm, &tope_type));
+    int tope_type = MPI_CART;
 
-        if (tope_type != MPI_CART) { return SP_FAILED; }
-    }
+    MPI_CALL(MPI_Topo_test(comm, &tope_type));
+
+    if (tope_type != MPI_CART) { return SP_FAILED; }
+
 
     int tag = 0;
 
@@ -88,32 +87,32 @@ int spMPINeighborAllToAll(const void *send_buffer,
         MPI_CALL(MPI_Cart_shift(comm, d, 1, &r0, &r1));
 
         MPI_CALL(MPI_Sendrecv(
-                (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
-                send_counts[d],
-                send_types[d * 2 + 0],
-                r0,
-                tag,
-                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
-                recv_counts[d],
-                recv_types[d * 2 + 0],
-                r0,
-                tag,
-                comm,
-                MPI_STATUS_IGNORE));
+            (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
+            send_counts[d],
+            send_types[d * 2 + 0],
+            r0,
+            tag,
+            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
+            recv_counts[d],
+            recv_types[d * 2 + 0],
+            r0,
+            tag,
+            comm,
+            MPI_STATUS_IGNORE));
 
         MPI_CALL(MPI_Sendrecv(
-                (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
-                send_counts[d],
-                send_types[d * 2 + 1],
-                r1,
-                tag,
-                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
-                recv_counts[d],
-                recv_types[d * 2 + 1],
-                r1,
-                tag,
-                comm,
-                MPI_STATUS_IGNORE));
+            (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
+            send_counts[d],
+            send_types[d * 2 + 1],
+            r1,
+            tag,
+            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
+            recv_counts[d],
+            recv_types[d * 2 + 1],
+            r1,
+            tag,
+            comm,
+            MPI_STATUS_IGNORE));
     }
 
     return SP_SUCCESS;
@@ -169,13 +168,14 @@ int spParallelUpdateNdArrayHalo(void *buffer,
 {
     MPI_Comm comm = spMPIComm();
 
-    if (comm == MPI_COMM_NULL) { return SP_SUCCESS; }
-    else
-    {
-        int tope_type = MPI_CART;
-        MPI_CALL(MPI_Topo_test(comm, &tope_type));
-        assert(tope_type == MPI_CART);
-    }
+    if (comm == MPI_COMM_NULL) { return SP_DO_NOTHING; }
+
+    int tope_type = MPI_CART;
+
+    MPI_CALL(MPI_Topo_test(comm, &tope_type));
+
+    assert(tope_type == MPI_CART);
+
 
     MPI_Datatype ele_type = spDataTypeMPIType(data_desc);
 
