@@ -7,6 +7,7 @@
 
 #include "../../sp_lite_def.h"
 #include "../../spParallel.h"
+#include <device_functions.h>
 
 #ifdef NUM_OF_THREADS_PER_BLOCK
 #   define SP_NUM_OF_THREADS_PER_BLOCK NUM_OF_THREADS_PER_BLOCK
