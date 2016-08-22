@@ -44,4 +44,18 @@
 #define INLINE __inline__ __attribute__((always_inline))
 #define __register__
 
+
+INLINE  __device__ int atomicAddInt(int *ptr, int val)
+{
+
+    return atomicAdd(ptr, val);
+
+}
+INLINE __device__ Real atomicAddReal(Real *ptr, float val)
+{
+    return atomicAdd(ptr, val);
+}
+
+
+
 #endif //SIMPLA_SPPARALLEL_CU_H

@@ -53,4 +53,25 @@ typedef uint3 dim3;
 INLINE unsigned int __umul24(unsigned int a, unsigned int b) { return a * b; }
 INLINE int __mul24(int a, int b) { return a * b; }
 
+INLINE int atomicAddInt(int *ptr, int val)
+{
+    int t;
+#pragma omp atomic capture
+    {
+        t = *ptr;
+        *ptr += val;
+    }
+    return t;
+}
+INLINE Real atomicAddReal(Real *ptr, float val)
+{
+    Real t;
+#pragma omp atomic capture
+    {
+        t = *ptr;
+        *ptr += val;
+    }
+    return t;
+}
+
 #endif //SIMPLA_SPPARALLELOPENMP_H

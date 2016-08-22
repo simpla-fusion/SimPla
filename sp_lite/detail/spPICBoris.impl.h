@@ -406,7 +406,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
                         int dest = src;
                         if (s0 != s1)
                         {
-                            while ((sp->id[s0 + (dest = atomicAdd(&dest_tail, 1))] & 0x3F) != flag) {};
+                            while ((sp->id[s0 + (dest = atomicAddInt(&dest_tail, 1))] & 0x3F) != flag) {};
                         }
 
 
@@ -447,10 +447,10 @@ SP_DEVICE_DECLARE_KERNEL (spParticleGatherBorisYeeKernel,
         Jz += w * sp->vz[s];
 
     }
-    atomicAdd(&fJx[s0], Jx);
-    atomicAdd(&fJy[s0], Jy);
-    atomicAdd(&fJz[s0], Jz);
-    atomicAdd(&fRho[s0], rho);
+    atomicAddReal(&fJx[s0], Jx);
+    atomicAddReal(&fJy[s0], Jy);
+    atomicAddReal(&fJz[s0], Jz);
+    atomicAddReal(&fRho[s0], rho);
 
 };
 
