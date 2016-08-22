@@ -40,7 +40,7 @@ typedef MeshEntityId64 MeshEntityId;
 
 typedef MeshEntityId32 MeshEntityShortId;
 
-#define TWOPI (3.141592653589793*2.0)
+#define TWOPI (3.141592653589793f*2.0f)
 
 
 #define MIN(_A_, _B_) (_A_<_B_)?_A_:_B_

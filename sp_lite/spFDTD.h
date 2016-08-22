@@ -11,6 +11,9 @@
 struct spField_s;
 struct spMesh_s;
 
+int spFDTDInitialValueSin(spField *, Real const *k, Real const *amp);
+
+
 int spFDTDUpdate(Real dt,
                  const struct spField_s *fRho,
                  const struct spField_s *fJ,

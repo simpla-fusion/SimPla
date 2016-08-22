@@ -1,5 +1,5 @@
 /*
- * BorisYeeMain.c
+ * @file BorisYeeMain.c
  *
  *  Created on: 2016年6月15日
  *      Author: salmon
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
 
-    Real dt = nan("");
+    Real dt = nanf("");
 
     Real amp[3] = {0.0, 0.0, 1.0};
     Real k[3] = {TWOPI / (upper[0] - lower[0]), TWOPI / (upper[0] - lower[0]), 0};
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     SP_CALL(spMeshDeploy(mesh));
 
 
-    if (isnan(dt)) { dt = spMeshCFLDt(mesh, 299792458.0/* speed_of_light*/); }
+    if (isnan(dt)) { dt = spMeshCFLDt(mesh, 299792458.0f/* speed_of_light*/); }
 
     /*****************************************************************************************************************/
 
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 
     /*****************************************************************************************************************/
 
-    SP_CALL(spFieldAssignValueSin(fE, k, amp));
+    SP_CALL(spFDTDInitialValueSin(fE, k, amp));
 
     SP_CALL(spParticleInitializeBorisYee(sp, n0, T0, 0));
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
         SP_CALL(spFieldClear(fRho));
         SP_CALL(spFieldClear(fJ));
 
-        SP_CALL(spParticleUpdateBorisYee(dt, sp, fE, fB, fRho, fJ));
+        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
 
         SP_CALL(spFDTDUpdate(dt, fRho, fJ, fE, fB));
 

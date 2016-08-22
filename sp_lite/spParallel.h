@@ -56,4 +56,11 @@ int spParallelGridDim();
 
 int spParallelBlockDim();
 
+int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
+                                   unsigned int ndims,
+                                   size_type const *min,
+                                   size_type const *max,
+                                   size_type grid_dim[3],
+                                   size_type block_dim[3]);
+
 #endif //SIMPLA_SPPARALLEL_H

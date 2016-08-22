@@ -23,6 +23,10 @@
 
 #define SP_FALSE  0
 
+
+#define SP_DO_NOTHING 0xFFFF
+#define SP_UNIMPLEMENT  SP_DO_NOTHING +1
+
 #define SP_SUCCESS 1
 
 #define SP_FAILED  0

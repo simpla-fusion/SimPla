@@ -82,15 +82,14 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
 
 int spParticleDestroy(spParticle **sp)
 {
-    if (*sp != NULL)
-    {
-        for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i)
-        {
-            spParallelDeviceFree(&((*sp)->m_attrs_[i].data));
-            SP_CALL(spDataTypeDestroy(&((*sp)->m_attrs_[i].data_type)));
-        }
+    if (sp == NULL || *sp == NULL) { return SP_DO_NOTHING; }
 
+    for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i)
+    {
+        spParallelDeviceFree(&((*sp)->m_attrs_[i].data));
+        SP_CALL(spDataTypeDestroy(&((*sp)->m_attrs_[i].data_type)));
     }
+
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) sp));
 
 
@@ -99,6 +98,8 @@ int spParticleDestroy(spParticle **sp)
 
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset)
 {
+    if (sp == NULL) { return SP_DO_NOTHING; }
+
     SP_CALL(spDataTypeCreate(&(sp->m_attrs_[sp->m_num_of_attrs_].data_type), tag, size));
 
     sp->m_attrs_[sp->m_num_of_attrs_].offset = offset;
@@ -125,6 +126,8 @@ void *spParticleGetAttributeData(spParticle *sp, int i) { return sp->m_attrs_[i]
 
 int spParticleDeploy(spParticle *sp)
 {
+    if (sp == NULL) { return SP_DO_NOTHING; }
+
     size_type number_of_entities = spParticleGetNumberOfEntities(sp);
 
     assert (sp->m_max_pic_ > 0);
@@ -149,6 +152,8 @@ size_type spParticleGetNumberOfEntities(spParticle const *sp)
 
 int spParticleInitialize(spParticle *sp, int const *dist_types)
 {
+    if (sp == NULL) { return SP_DO_NOTHING; }
+
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
 
@@ -194,6 +199,8 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
 int spParticleSetPIC(spParticle *sp, size_type pic, size_type max_pic)
 {
+    if (sp == NULL) { return SP_DO_NOTHING; }
+
     sp->m_pic_ = pic;
 
     if (max_pic == 0)
@@ -210,6 +217,8 @@ size_type spParticleGetMaxPIC(const spParticle *sp) { return sp->m_max_pic_; }
 
 int spParticleGetAllAttributeData(spParticle *sp, void **res)
 {
+    if (sp == NULL) { return SP_DO_NOTHING; }
+
     for (int i = 0, ie = spParticleGetNumberOfAttributes(sp); i < ie; ++i)
     {
         res[i] = spParticleGetAttributeData(sp, i);
@@ -219,6 +228,7 @@ int spParticleGetAllAttributeData(spParticle *sp, void **res)
 
 int spParticleGetAllAttributeData_device(spParticle *sp, void ***current_data, void ***next_data)
 {
+    if (sp == NULL) { return SP_DO_NOTHING; }
 //    void *data[spParticleGetNumberOfAttributes(sp)];
 //    SP_CALL(spParticleGetAllAttributeData(sp, data));
 //    SP_CALL(spParallelDeviceAlloc((void **) current_data, spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
@@ -233,12 +243,14 @@ spMesh const *spParticleMesh(spParticle const *sp) { return sp->m; };
 
 int spParticleSetMass(spParticle *sp, Real m)
 {
+    if (sp == NULL) { return SP_DO_NOTHING; }
     sp->mass = m;
     return SP_SUCCESS;
 }
 
 int spParticleSetCharge(spParticle *sp, Real e)
 {
+    if (sp == NULL) { return SP_DO_NOTHING; }
     sp->charge = e;
     return SP_SUCCESS;
 }
@@ -249,9 +261,7 @@ Real spParticleGetCharge(spParticle const *sp) { return sp->charge; }
 
 int spParticleUpdate(spParticle *sp)
 {
-    void **tmp = sp->m_current_data_;
-    sp->m_current_data_ = sp->m_next_data_;
-    sp->m_next_data_ = tmp;
+    if (sp == NULL) { return SP_DO_NOTHING; }
 
     return spParticleSync(sp);
 
@@ -262,6 +272,7 @@ int spParticleUpdate(spParticle *sp)
  */
 int spParticleSync(spParticle *sp)
 {
+    if (sp == NULL) { return SP_DO_NOTHING; }
 
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
@@ -291,7 +302,7 @@ int spParticleSync(spParticle *sp)
 int
 spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag)
 {
-    if (sp == NULL) { return SP_FAILED; }
+    if (sp == NULL) { return SP_DO_NOTHING; }
 
     char curr_path[2048];
     char new_path[2048];
@@ -364,8 +375,50 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
 }
 
-int spParticleRead(struct spParticle_s *f, spIOStream *os, const char *url, int flag)
+int spParticleRead(struct spParticle_s *sp, spIOStream *os, const char *url, int flag)
 {
-    return SP_SUCCESS;
+    if (sp == NULL) { return SP_DO_NOTHING; }
+
+    return SP_UNIMPLEMENT;
 }
 
+int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
+                                   unsigned int ndims,
+                                   size_type const *min,
+                                   size_type const *max,
+                                   size_type grid_dim[3],
+                                   size_type block_dim[3])
+{
+    assert(max[0] > min[0]);
+    assert(max[1] > min[1]);
+    assert(max[2] > min[2]);
+
+
+    block_dim[0] = num_of_threads_per_block;
+    block_dim[1] = 1;
+    block_dim[2] = 1;
+
+    while (block_dim[0] + min[0] > max[0])
+    {
+        block_dim[0] /= 2;
+        block_dim[1] *= 2;
+    }
+
+    while (block_dim[1] + min[1] > max[1])
+    {
+        block_dim[1] /= 2;
+        block_dim[2] *= 2;
+    }
+    grid_dim[0] = (max[0] - min[0]) / block_dim[0];
+    grid_dim[1] = (max[1] - min[1]) / block_dim[1];
+    grid_dim[2] = (max[2] - min[2]) / block_dim[2];
+
+    grid_dim[0] = (grid_dim[0] * block_dim[0] < max[0] - min[0]) ? grid_dim[0] + 1 : grid_dim[0];
+    grid_dim[1] = (grid_dim[1] * block_dim[1] < max[1] - min[1]) ? grid_dim[1] + 1 : grid_dim[1];
+    grid_dim[2] = (grid_dim[2] * block_dim[2] < max[2] - min[2]) ? grid_dim[2] + 1 : grid_dim[2];
+
+    assert(grid_dim[0] * block_dim[0] >= max[0] - min[0]);
+    assert(grid_dim[1] * block_dim[1] >= max[1] - min[1]);
+    assert(grid_dim[2] * block_dim[2] >= max[2] - min[2]);
+
+}

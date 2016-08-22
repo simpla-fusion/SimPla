@@ -497,10 +497,3 @@ int spMeshWrite(const spMesh *ctx, const char *name) { return SP_FAILED; };
 
 int spMeshRead(spMesh *ctx, const char *name) { return SP_FAILED; }
 
-int spMeshThreadBlockDecompose(spMesh const *m,
-                               size_type num_of_threads_per_block,
-                               size_type *grid_dim,
-                               size_type *block_dim)
-{
-
-}

@@ -16,7 +16,7 @@
 
 int spParticleCreateBorisYee(spParticle **sp, struct spMesh_s const *m)
 {
-    if (sp == NULL) { return SP_FAILED; }
+    if (sp == NULL) { return SP_DO_NOTHING; }
 
     SP_CALL(spParticleCreate(sp, m));
     SP_PARTICLE_CREATE_DATA_DESC((*sp), struct boris_particle_s);

@@ -19,12 +19,6 @@
 
 #include "sp_device.h"
 
-#ifdef NUM_OF_THREADS_PER_BLOCK
-#   define SP_NUM_OF_THREADS_PER_BLOCK NUM_OF_THREADS_PER_BLOCK
-#else
-#   define SP_NUM_OF_THREADS_PER_BLOCK 128
-#endif
-
 
 typedef struct
 {
@@ -49,9 +43,121 @@ int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *b
     param.strides = sizeType2Dim3(strides);
     param.inv_dx = real2Real3(inv_dx);
     SP_CALL(spParallelMemcpyToCache(&_pic_param, &param, sizeof(_spFDTDParam)));
-    SP_CALL(spMeshThreadBlockDecompose(m, SP_NUM_OF_THREADS_PER_BLOCK, grid_dim, block_dim));
+    SP_CALL(spParallelThreadBlockDecompose(SP_NUM_OF_THREADS_PER_BLOCK, 3, min, max, grid_dim, block_dim));
 
+    return SP_SUCCESS;
 }
+
+SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSin_g, Real *data, Real3 k_dx, Real3 alpha0, Real amp)
+{
+    size_type x = _fdtd_param.min.x + threadIdx.x + blockIdx.x * blockDim.x;
+    size_type y = _fdtd_param.min.y + threadIdx.y + blockIdx.y * blockDim.y;
+    size_type z = _fdtd_param.min.z + threadIdx.z + blockIdx.z * blockDim.z;
+
+    if (x < _fdtd_param.max.x && y < _fdtd_param.max.y && z < _fdtd_param.max.z)
+    {
+        size_type s = x * _fdtd_param.strides.x + y * _fdtd_param.strides.y + z * _fdtd_param.strides.z;
+        data[s] =
+            amp * (Real) (cos(k_dx.x * (x) + alpha0.x) * cos(k_dx.y * (y) + alpha0.y) * cos(k_dx.z * (z) + alpha0.z));
+    }
+}
+
+
+#define HALFPI (3.1415926*0.5f)
+
+int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
+{
+
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
+    int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
+    int ndims = spMeshGetNDims(m);
+    int num_of_sub = spFieldNumberOfSub(f);
+
+    Real *data[num_of_sub];
+
+    size_type dims[3];
+    Real x0[3], dx[3];
+
+    SP_CALL(spMeshGetDims(m, dims));
+    SP_CALL(spMeshGetOrigin(m, x0));
+    SP_CALL(spMeshGetDx(m, dx));
+
+
+    Real k_dx[3] = {k[0] * dx[0], k[1] * dx[1], k[2] * dx[2]};
+
+    Real alpha0[9];
+
+    switch (iform)
+    {
+        case EDGE:
+            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
+            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
+            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
+            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
+            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
+            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
+            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
+            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
+            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
+            break;
+        case FACE:
+            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
+            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
+            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
+            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
+            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
+            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
+            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
+            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
+            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
+            break;
+        case VOLUME:
+
+            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
+            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
+            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
+            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
+            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
+            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
+            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
+            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
+            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
+            break;
+
+        case VERTEX:
+        default:
+            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
+            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
+            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
+            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
+            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
+            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
+            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
+            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
+            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
+    };
+
+    SP_CALL(spFieldSubArray(f, (void **) data));
+
+    size_type grid_dim[3], block_dim[3];
+
+    spFDTDSetupParam(m, SP_DOMAIN_ALL, grid_dim, block_dim);
+
+    for (int i = 0; i < num_of_sub; ++i)
+    {
+        Real3 t_k_dx = real2Real3(k_dx);
+        Real3 t_alpha0 = real2Real3(alpha0 + i * 3);
+
+        SP_DEVICE_CALL_KERNEL(spFDTDInitialValueSin_g,
+                              sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+                              data[i], t_k_dx, t_alpha0, amp[i]);
+    }
+
+    SP_CALL(spFieldSync(f));
+
+    return SP_SUCCESS;
+};
+
 
 SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernel, Real dt,
                           Real const *Rho, Real const *Jx, Real const *Jy, Real const *Jz,
