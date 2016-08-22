@@ -32,16 +32,15 @@ typedef uint3 dim3;
 
 #define SP_DEVICE_CALL_KERNEL(_FUN_, gridDim, blockDim, ...)         \
 {                                                                    \
-  dim3   blockIdx;                                                   \
-  _Pragma("omp parallel for")                                        \
+   _Pragma("omp parallel for")                                       \
   for (int x = 0; x < gridDim.x; ++x)                                \
-  { blockIdx.x=x;                                                    \
+  { dim3 blockIdx,threadIdx;    blockIdx.x=x;                        \
     for (blockIdx.y = 0; blockIdx.y < gridDim.y; ++blockIdx.y)       \
     for (blockIdx.z = 0; blockIdx.z < gridDim.z; ++blockIdx.z)       \
-    for (int j = 0; j < blockDim.y; ++j)                             \
-    for (int k = 0; k < blockDim.z; ++k)                             \
-    for (int i = 0; i < blockDim.x; ++i)                             \
-    {  dim3 threadIdx = {i,j,k};                                     \
+    for (threadIdx.x = 0; threadIdx.x < blockDim.x; ++threadIdx.x)   \
+    for (threadIdx.y = 0; threadIdx.y < blockDim.y; ++threadIdx.y)   \
+    for (threadIdx.z = 0; threadIdx.z < blockDim.z; ++threadIdx.z)   \
+    {                                                                \
        _FUN_(gridDim, blockDim, blockIdx, threadIdx, __VA_ARGS__);   \
     }                                                                \
   }                                                                  \

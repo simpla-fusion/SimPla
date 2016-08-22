@@ -8,7 +8,13 @@
 
 #include <omp.h>
 
-int spParallelDeviceInitialize(int argc, char **argv) { return SP_SUCCESS; }
+int spParallelDeviceInitialize(int argc, char **argv)
+{
+#ifndef NDEBUG
+    omp_set_num_threads(4);
+#endif
+    return SP_SUCCESS;
+}
 
 int spParallelDeviceFinalize() { return SP_SUCCESS; }
 

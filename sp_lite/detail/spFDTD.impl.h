@@ -31,6 +31,9 @@ typedef struct
 
 __constant__ _spFDTDParam _fdtd_param;
 
+#define  SPMeshHash(x, y, z)   (__mul24(x, _fdtd_param.strides.x) + __mul24(y, _fdtd_param.strides.y) + __mul24(z, _fdtd_param.strides.z))
+
+
 int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *block_dim)
 {
     _spFDTDParam param;
@@ -38,27 +41,42 @@ int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *b
     Real inv_dx[3];
     SP_CALL(spMeshGetArrayShape(m, tag, min, max, strides));
     SP_CALL(spMeshGetInvDx(m, inv_dx));
-    param.min = sizeType2Dim3(min);
-    param.max = sizeType2Dim3(max);
-    param.strides = sizeType2Dim3(strides);
-    param.inv_dx = real2Real3(inv_dx);
-    SP_CALL(spParallelMemcpyToCache(&_pic_param, &param, sizeof(_spFDTDParam)));
+
+    param.min.x = (unsigned int) min[0];
+    param.min.y = (unsigned int) min[1];
+    param.min.z = (unsigned int) min[2];
+
+    param.max.x = (unsigned int) max[0];
+    param.max.y = (unsigned int) max[1];
+    param.max.z = (unsigned int) max[2];
+
+    param.strides.x = (unsigned int) strides[0];
+    param.strides.y = (unsigned int) strides[1];
+    param.strides.z = (unsigned int) strides[2];
+
+    param.inv_dx.x = inv_dx[0];
+    param.inv_dx.y = inv_dx[1];
+    param.inv_dx.z = inv_dx[2];
+
+    SP_CALL(spParallelMemcpyToCache(&_fdtd_param, &param, sizeof(_spFDTDParam)));
     SP_CALL(spParallelThreadBlockDecompose(SP_NUM_OF_THREADS_PER_BLOCK, 3, min, max, grid_dim, block_dim));
 
     return SP_SUCCESS;
 }
 
-SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSin_g, Real *data, Real3 k_dx, Real3 alpha0, Real amp)
+SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSinKernel, Real *d, Real3 k_dx, Real3 alpha0, Real amp)
 {
-    size_type x = _fdtd_param.min.x + threadIdx.x + blockIdx.x * blockDim.x;
-    size_type y = _fdtd_param.min.y + threadIdx.y + blockIdx.y * blockDim.y;
-    size_type z = _fdtd_param.min.z + threadIdx.z + blockIdx.z * blockDim.z;
+    int x = _fdtd_param.min.x + threadIdx.x + blockIdx.x * blockDim.x;
+    int y = _fdtd_param.min.y + threadIdx.y + blockIdx.y * blockDim.y;
+    int z = _fdtd_param.min.z + threadIdx.z + blockIdx.z * blockDim.z;
 
     if (x < _fdtd_param.max.x && y < _fdtd_param.max.y && z < _fdtd_param.max.z)
     {
-        size_type s = x * _fdtd_param.strides.x + y * _fdtd_param.strides.y + z * _fdtd_param.strides.z;
-        data[s] =
-            amp * (Real) (cos(k_dx.x * (x) + alpha0.x) * cos(k_dx.y * (y) + alpha0.y) * cos(k_dx.z * (z) + alpha0.z));
+        int s = SPMeshHash(x, y, z);
+        d[s] = amp * (Real) (
+            cos(k_dx.x * (x) + alpha0.x) *
+                cos(k_dx.y * (y) + alpha0.y) *
+                cos(k_dx.z * (z) + alpha0.z));
     }
 }
 
@@ -141,16 +159,22 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 
     size_type grid_dim[3], block_dim[3];
 
-    spFDTDSetupParam(m, SP_DOMAIN_ALL, grid_dim, block_dim);
+    spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
 
+    CHECK_INT(num_of_sub);
     for (int i = 0; i < num_of_sub; ++i)
     {
         Real3 t_k_dx = real2Real3(k_dx);
         Real3 t_alpha0 = real2Real3(alpha0 + i * 3);
 
-        SP_DEVICE_CALL_KERNEL(spFDTDInitialValueSin_g,
-                              sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
-                              data[i], t_k_dx, t_alpha0, amp[i]);
+        SP_DEVICE_CALL_KERNEL(spFDTDInitialValueSinKernel,
+                              sizeType2Dim3(grid_dim),
+                              sizeType2Dim3(block_dim),
+                              data[i],
+                              t_k_dx,
+                              t_alpha0,
+                              amp[i]
+        );
     }
 
     SP_CALL(spFieldSync(f));
@@ -164,16 +188,12 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernel, Real dt,
                           Real *Ex, Real *Ey, Real *Ez,
                           Real *Bx, Real *By, Real *Bz)
 {
-//    for (size_type x = min.x + threadIdx.x + blockIdx.x * blockDim.x; x < max.x; x += gridDim.x * blockDim.x)
-//        for (size_type y = min.y + threadIdx.y + blockIdx.y * blockDim.y; y < max.y; y += gridDim.y * blockDim.y)
-//            for (size_type z = min.z + threadIdx.z + blockIdx.z * blockDim.z; z < max.z; z += gridDim.z * blockDim.z)
+
     size_type x = _fdtd_param.min.x + threadIdx.x + blockIdx.x * blockDim.x;
     size_type y = _fdtd_param.min.y + threadIdx.y + blockIdx.y * blockDim.y;
     size_type z = _fdtd_param.min.z + threadIdx.z + blockIdx.z * blockDim.z;
     if (x < _fdtd_param.max.x && y < _fdtd_param.max.y && z < _fdtd_param.max.z)
     {
-
-
         size_type s = x * _fdtd_param.strides.x + y * _fdtd_param.strides.y + z * _fdtd_param.strides.z;
 
         Bx[s] -=
