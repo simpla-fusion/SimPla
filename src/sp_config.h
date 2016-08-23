@@ -16,13 +16,12 @@
 #define  COPYRIGHT "All rights reserved. (2016 )"
 
 
-#define  SP_REAL float
-#define REAL_IS_FLOAT 1
-
 #define SP_TRUE 1
 
 #define SP_FALSE  0
 
+#define  SP_REAL double
+//#define REAL_IS_FLOAT SP_FALSE
 
 #define SP_DO_NOTHING 0xFFFF
 #define SP_UNIMPLEMENT  SP_DO_NOTHING +1

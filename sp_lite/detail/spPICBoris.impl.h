@@ -25,7 +25,7 @@ typedef struct
     uint3 min;
     uint3 max;
     uint3 strides;
-    float3 inv_dx;
+    Real3 inv_dx;
 
     int max_pic;
 
@@ -75,13 +75,13 @@ cache_gather(Real const *f, Real rx, Real ry, Real rz)
     static const int s_c = 13, IX = 1, IY = 3, IZ = 9;
 
     return (f[s_c + IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
-        + f[s_c + IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
-        + f[s_c + IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
-        + f[s_c + IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
-        + f[s_c + IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
-        + f[s_c + IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
-        + f[s_c + IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
-        + f[s_c + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
+            + f[s_c + IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
+            + f[s_c + IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
+            + f[s_c + IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
+            + f[s_c + IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
+            + f[s_c + IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
+            + f[s_c + IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
+            + f[s_c + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
 }
 
 INLINE __device__
@@ -109,8 +109,8 @@ INLINE __device__
 int _spMeshHash(int x, int y, int z)
 {
     return __mul24(x, _pic_param.strides.x) +
-        __mul24(y, _pic_param.strides.y) +
-        __mul24(z, _pic_param.strides.z);
+           __mul24(y, _pic_param.strides.y) +
+           __mul24(z, _pic_param.strides.z);
 }
 
 __device__ void
@@ -123,13 +123,14 @@ spParticleInitializeBoris(boris_particle *sp, size_type s, Real vT, Real f0, int
     if (uniform_sample > 0)
     {
         sp->f[s] *= exp(-sp->vx[s] * sp->vx[s] - sp->vy[s] * sp->vy[s]
-                            - sp->vz[s] * sp->vz[s]);
+                        - sp->vz[s] * sp->vz[s]);
     }
 
     sp->vx[s] *= vT;
     sp->vy[s] *= vT;
     sp->vz[s] *= vT;
 }
+
 SP_DEVICE_DECLARE_KERNEL(spParticleInitializeBorisYeeKernel,
                          boris_particle *sp, Real vT, Real f0, int uniform_sample)
 {
@@ -172,7 +173,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0, int do_import
     SP_CALL(spParticleDeploy(sp));
 
     int dist_type[6] =
-        {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
+            {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
 
     SP_CALL(spParticleInitialize(sp, dist_type));
 
@@ -336,8 +337,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
                     cB[s1 + 27 * 2] = Bz[s2];
 
                 }
-    }
-    else if (threadId < 27 * 3)
+    } else if (threadId < 27 * 3)
     {
 
         int s2 = _spMeshHash(x + ((threadId % 3) - 1), y + ((threadId / 3) % 3 - 1), z + ((threadId / 9) - 1));
@@ -435,9 +435,9 @@ SP_DEVICE_DECLARE_KERNEL (spParticleGatherBorisYeeKernel,
         if (sp->id[s] != 0) { continue; }
 
         Real w = sp->w[s] * sp->f[s]
-            * (1 - sp->rx[s])
-            * (1 - sp->ry[s])
-            * (1 - sp->rz[s]);
+                 * (1 - sp->rx[s])
+                 * (1 - sp->ry[s])
+                 * (1 - sp->rz[s]);
         rho += w;
         Jx += w * sp->vx[s];
         Jy += w * sp->vy[s];

@@ -24,8 +24,8 @@ typedef struct
 {
     uint3 min;
     uint3 max;
-    float3 x0, dx;
-    float3 inv_dx;
+    Real3 x0, dx;
+    Real3 inv_dx;
     uint3 strides;
 
 } _spFDTDParam;
@@ -111,10 +111,9 @@ SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSinKernel, Real *d, Real3 k, Real3 al
     if (SPMeshInBox(x, y, z))
     {
         Real rx, ry, rz;
-
         SPMeshPoint(x, y, z, &rx, &ry, &rz);
-
-        d[SPMeshHash(x, y, z)] = (Real) (cos(k.x * rx) * cos(k.y * ry) * cos(k.z * rz)) * amp;
+        int s = SPMeshHash(x, y, z);
+        d[s] = (Real) (cos(k.x * rx) * cos(k.y * ry) * cos(k.z * rz)) * amp;
     }
 }
 
@@ -144,51 +143,51 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
     switch (iform)
     {
         case EDGE:
-            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
-            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
-            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
-            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
-            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
-            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
-            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
-            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
-            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
+            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * dx[0] * 0.5));
+            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : 0);
+            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : 0);
+            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : 0);
+            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * dx[1] * 0.5));
+            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : 0);
+            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : 0);
+            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : 0);
+            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * dx[2] * 0.5));
             break;
         case FACE:
-            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
-            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
-            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
-            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
-            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
-            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
-            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
-            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
-            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
+            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : 0);
+            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * dx[1] * 0.5));
+            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * dx[2] * 0.5));
+            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * dx[0] * 0.5));
+            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : 0);
+            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * dx[2] * 0.5));
+            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * dx[0] * 0.5));
+            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * dx[1] * 0.5));
+            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : 0);
             break;
         case VOLUME:
 
-            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
-            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
-            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
-            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
-            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
-            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
-            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (x0[0] + dx[0] * 0.5)));
-            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (x0[1] + dx[1] * 0.5)));
-            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (x0[2] + dx[2] * 0.5)));
+            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (dx[0] * 0.5)));
+            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (dx[1] * 0.5)));
+            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (dx[2] * 0.5)));
+            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (dx[0] * 0.5)));
+            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (dx[1] * 0.5)));
+            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (dx[2] * 0.5)));
+            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * (dx[0] * 0.5)));
+            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * (dx[1] * 0.5)));
+            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * (dx[2] * 0.5)));
             break;
 
         case VERTEX:
         default:
-            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
-            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
-            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
-            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
-            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
-            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
-            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : (k[0] * x0[0]));
-            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : (k[1] * x0[1]));
-            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : (k[2] * x0[2]));
+            alpha0[0] = (Real) (dims[0] == 1 ? HALFPI : 0);
+            alpha0[1] = (Real) (dims[1] == 1 ? HALFPI : 0);
+            alpha0[2] = (Real) (dims[2] == 1 ? HALFPI : 0);
+            alpha0[3] = (Real) (dims[0] == 1 ? HALFPI : 0);
+            alpha0[4] = (Real) (dims[1] == 1 ? HALFPI : 0);
+            alpha0[5] = (Real) (dims[2] == 1 ? HALFPI : 0);
+            alpha0[6] = (Real) (dims[0] == 1 ? HALFPI : 0);
+            alpha0[7] = (Real) (dims[1] == 1 ? HALFPI : 0);
+            alpha0[8] = (Real) (dims[2] == 1 ? HALFPI : 0);
     };
 
     SP_CALL(spFieldSubArray(f, (void **) data));
@@ -230,47 +229,47 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernel, Real dt,
     {
         int s = SPMeshHash(x, y, z);
 
-//        Bx[s] -=
-//                ((Ez[s] - Ez[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
-//                 - (Ey[s] - Ey[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
-//                * 0.5 * dt;
-//        By[s] -=
-//                ((Ex[s] - Ex[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
-//                 - (Ez[s] - Ez[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
-//                * 0.5 * dt;
-//        Bz[s] -=
-//                ((Ey[s] - Ey[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
-//                 - (Ex[s] - Ex[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
-//                * 0.5 * dt;
+        Bx[s] += ((Ez[s + _fdtd_param.strides.y] - Ez[s]) * _fdtd_param.inv_dx.y
+                  - (Ey[s + _fdtd_param.strides.z] - Ey[s]) * _fdtd_param.inv_dx.z)
+                 * dt;
+        By[s] += ((Ex[s + _fdtd_param.strides.z] - Ex[s]) * _fdtd_param.inv_dx.z
+                  - (Ez[s + _fdtd_param.strides.x] - Ez[s]) * _fdtd_param.inv_dx.x)
+                 * dt;
+        Bz[s] += ((Ey[s + _fdtd_param.strides.x] - Ey[s]) * _fdtd_param.inv_dx.x
+                  - (Ex[s + _fdtd_param.strides.y] - Ex[s]) * _fdtd_param.inv_dx.y)
+                 * dt;
+
+        Ex[s] -= ((Bz[s] - Bz[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
+                  - (By[s] - By[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
+                 * speed_of_light2 * dt;// - Jx[s] / epsilon0 * dt;
+        Ey[s] -= ((Bx[s] - Bx[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
+                  - (Bz[s] - Bz[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
+                 * speed_of_light2 * dt;// - Jy[s] / epsilon0 * dt;
+        Ez[s] -= ((By[s] - By[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
+                  - (Bx[s] - Bx[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
+                 * speed_of_light2 * dt;// - Jz[s] / epsilon0 * dt;
 
 
-        Bx[s] -=
-                ((Ez[s] - Ez[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
-                 - (Ey[s] - Ey[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
-                * dt;
-        By[s] -=
-                ((Ex[s] - Ex[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
-                 - (Ez[s] - Ez[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
-                * dt;
-        Bz[s] -=
-                ((Ey[s] - Ey[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
-                 - (Ex[s] - Ex[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
-                * dt;
 
 
-        Ex[s] +=
-                ((Bz[s + _fdtd_param.strides.y] - Bz[s]) * _fdtd_param.inv_dx.y
-                 - (By[s + _fdtd_param.strides.z] - By[s]) * _fdtd_param.inv_dx.z)
-                * speed_of_light2 * dt - Jx[s] / epsilon0 * dt;
-        Ey[s] +=
-                ((Bx[s + _fdtd_param.strides.z] - Bx[s]) * _fdtd_param.inv_dx.z
-                 - (Bz[s + _fdtd_param.strides.x] - Bz[s]) * _fdtd_param.inv_dx.x)
-                * speed_of_light2 * dt - Jy[s] / epsilon0 * dt;
-        Ez[s] +=
-                ((By[s + _fdtd_param.strides.x] - By[s]) * _fdtd_param.inv_dx.x
-                 - (Bx[s + _fdtd_param.strides.y] - Bx[s]) * _fdtd_param.inv_dx.y)
-                * speed_of_light2 * dt - Jz[s] / epsilon0 * dt;
-
+//        Bx[s] -= ((Ez[s] - Ez[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
+//                  - (Ey[s] - Ey[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z) * dt;
+//        By[s] -= ((Ex[s] - Ex[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
+//                  - (Ez[s] - Ez[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x) * dt;
+//        Bz[s] -= ((Ey[s] - Ey[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
+//                  - (Ex[s] - Ex[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y) * dt;
+//
+//
+//        Ex[s] += ((Bz[s + _fdtd_param.strides.y] - Bz[s]) * _fdtd_param.inv_dx.y
+//                  - (By[s + _fdtd_param.strides.z] - By[s]) * _fdtd_param.inv_dx.z)
+//                 * speed_of_light2 * dt - Jx[s] / epsilon0 * dt;
+//        Ey[s] += ((Bx[s + _fdtd_param.strides.z] - Bx[s]) * _fdtd_param.inv_dx.z
+//                  - (Bz[s + _fdtd_param.strides.x] - Bz[s]) * _fdtd_param.inv_dx.x)
+//                 * speed_of_light2 * dt - Jy[s] / epsilon0 * dt;
+//        Ez[s] += ((By[s + _fdtd_param.strides.x] - By[s]) * _fdtd_param.inv_dx.x
+//                  - (Bx[s + _fdtd_param.strides.y] - Bx[s]) * _fdtd_param.inv_dx.y)
+//                 * speed_of_light2 * dt - Jz[s] / epsilon0 * dt;
+//
 
     }
 }
@@ -295,7 +294,7 @@ int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, s
 
     size_type grid_dim[3], block_dim[3];
 
-    spFDTDSetupParam(spMeshAttributeGetMesh((spMeshAttribute *) fE), SP_DOMAIN_AFFECT_1, grid_dim, block_dim);
+    spFDTDSetupParam(spMeshAttributeGetMesh((spMeshAttribute *) fE), SP_DOMAIN_CENTER, grid_dim, block_dim);
 
     SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           dt, (const Real *) rho, (const Real *) J[0], (const Real *) J[1], (const Real *) J[2],

@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     size_type PIC = 256;
     Real n0 = 1.0e18;
     Real T0 = 0.026;
-    size_type dims[3] = {0x40, 0x40, 0x1};
+    size_type dims[3] = {0x80, 0x80, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     SP_CALL(spMeshDeploy(mesh));
 
 
-    if (isnan(dt)) { dt = spMeshCFLDt(mesh, 299792458.0f/* speed_of_light*/); }
+    if (isnan(dt)) { dt = spMeshCFLDt(mesh, speed_of_light); }
 
     /*****************************************************************************************************************/
 
