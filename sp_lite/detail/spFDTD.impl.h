@@ -294,7 +294,7 @@ int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, s
 
     size_type grid_dim[3], block_dim[3];
 
-    spFDTDSetupParam(spMeshAttributeGetMesh((spMeshAttribute *) fE), SP_DOMAIN_CENTER, grid_dim, block_dim);
+    spFDTDSetupParam(spMeshAttributeGetMesh((spMeshAttribute *) fE), SP_DOMAIN_AFFECT_1, grid_dim, block_dim);
 
     SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           dt, (const Real *) rho, (const Real *) J[0], (const Real *) J[1], (const Real *) J[2],

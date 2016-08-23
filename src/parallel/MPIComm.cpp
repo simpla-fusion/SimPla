@@ -23,16 +23,16 @@ struct MPIComm::pimpl_s
 
     size_type m_object_id_count_ = 0;
 
-    int m_topology_ndims_ = 2;
+    int m_topology_ndims_ = 3;
 
     int m_topology_dims_[3] = {0, 0, 0};
 };
 
 MPIComm::MPIComm()
-    : pimpl_(new pimpl_s) {}
+        : pimpl_(new pimpl_s) {}
 
 MPIComm::MPIComm(int argc, char **argv)
-    : MPIComm() { init(argc, argv); }
+        : MPIComm() { init(argc, argv); }
 
 MPIComm::~MPIComm() { close(); }
 
@@ -46,6 +46,7 @@ int MPIComm::rank() const
     if (comm() != MPI_COMM_NULL) { MPI_Comm_rank(comm(), &res); }
     return res;
 }
+
 int MPIComm::size() const
 {
     int res = 1;
@@ -55,6 +56,7 @@ int MPIComm::size() const
     }
     return res;
 }
+
 int MPIComm::get_rank(int const *d) const
 {
     int res = 0;
@@ -75,7 +77,7 @@ void MPIComm::init(int argc, char **argv)
 
     int m_topology_coord_[3] = {0, 0, 0};
 
-    MPI_CALL(MPI_Dims_create(m_num_process_, 2, pimpl_->m_topology_dims_));
+    MPI_CALL(MPI_Dims_create(m_num_process_, pimpl_->m_topology_ndims_, pimpl_->m_topology_dims_));
 
     int periods[pimpl_->m_topology_ndims_];
 
@@ -90,16 +92,16 @@ void MPIComm::init(int argc, char **argv)
     MPI_CALL(MPI_Cart_coords(comm(), rank(), pimpl_->m_topology_ndims_, m_topology_coord_));
 
 
-    VERBOSE << "MPI communicator is initialized! "
-        "[("
-            << m_topology_coord_[0] << ","
-            << m_topology_coord_[1] << ","
-            << m_topology_coord_[2]
-            << ")/("
-            << pimpl_->m_topology_dims_[0] << ","
-            << pimpl_->m_topology_dims_[1] << ","
-            << pimpl_->m_topology_dims_[2]
-            << ")]" << std::endl;
+    INFORM << "MPI communicator is initialized! "
+            "[("
+           << m_topology_coord_[0] << ","
+           << m_topology_coord_[1] << ","
+           << m_topology_coord_[2]
+           << ")/("
+           << pimpl_->m_topology_dims_[0] << ","
+           << pimpl_->m_topology_dims_[1] << ","
+           << pimpl_->m_topology_dims_[2]
+           << ")]" << std::endl;
 
 }
 

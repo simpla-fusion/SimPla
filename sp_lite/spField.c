@@ -195,8 +195,17 @@ int spFieldSync(spField *f)
                                       l_dims, l_start, l_count, spFieldIsSoA(f)));
 
 
-    SP_CALL(spParallelUpdateNdArrayHalo(spFieldDeviceData(f), spFieldDataType(f),
-                                        array_ndims, l_dims, l_start, NULL, l_count, NULL, mesh_start_dim));
+    Real *F[num_of_sub];
+
+    SP_CALL(spFieldSubArray((spField *) f, (void **) &F));
+
+    for (int i = 0; i < num_of_sub; ++i)
+    {
+        SP_CALL(spParallelUpdateNdArrayHalo(num_of_sub, (void **) F, spFieldDataType(f), ndims,
+                                            l_dims, l_start, NULL, l_count, NULL, mesh_start_dim));
+    }
+
+
     return SP_SUCCESS;
 
 }

@@ -87,32 +87,32 @@ int spMPINeighborAllToAll(const void *send_buffer,
         MPI_CALL(MPI_Cart_shift(comm, d, 1, &r0, &r1));
 
         MPI_CALL(MPI_Sendrecv(
-            (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
-            send_counts[d],
-            send_types[d * 2 + 0],
-            r0,
-            tag,
-            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
-            recv_counts[d],
-            recv_types[d * 2 + 0],
-            r0,
-            tag,
-            comm,
-            MPI_STATUS_IGNORE));
+                (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
+                send_counts[d],
+                send_types[d * 2 + 0],
+                r0,
+                tag,
+                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
+                recv_counts[d],
+                recv_types[d * 2 + 0],
+                r0,
+                tag,
+                comm,
+                MPI_STATUS_IGNORE));
 
         MPI_CALL(MPI_Sendrecv(
-            (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
-            send_counts[d],
-            send_types[d * 2 + 1],
-            r1,
-            tag,
-            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
-            recv_counts[d],
-            recv_types[d * 2 + 1],
-            r1,
-            tag,
-            comm,
-            MPI_STATUS_IGNORE));
+                (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
+                send_counts[d],
+                send_types[d * 2 + 1],
+                r1,
+                tag,
+                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
+                recv_counts[d],
+                recv_types[d * 2 + 1],
+                r1,
+                tag,
+                comm,
+                MPI_STATUS_IGNORE));
     }
 
     return SP_SUCCESS;
@@ -156,15 +156,9 @@ int spMPINeighborAllToAll(const void *send_buffer,
 //    );
 //}
 
-int spParallelUpdateNdArrayHalo(void *buffer,
-                                const spDataType *data_desc,
-                                int ndims,
-                                const size_type *shape,
-                                const size_type *start,
-                                const size_type *stride,
-                                const size_type *count,
-                                const size_type *block,
-                                int mpi_sync_start_dims)
+int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataType *data_desc, int ndims,
+                                const size_type *shape, const size_type *start, const size_type *stride,
+                                const size_type *count, const size_type *block, int mpi_sync_start_dims)
 {
     MPI_Comm comm = spMPIComm();
 
@@ -229,8 +223,7 @@ int spParallelUpdateNdArrayHalo(void *buffer,
                 r_start_lower[i] = 0;
                 r_count_upper[i] = dims[i];
                 r_start_upper[i] = 0;
-            }
-            else if (i == d + mpi_sync_start_dims)
+            } else if (i == d + mpi_sync_start_dims)
             {
                 s_count_lower[i] = (int) start[i];
                 s_start_lower[i] = (int) start[i];
@@ -241,8 +234,7 @@ int spParallelUpdateNdArrayHalo(void *buffer,
                 r_start_lower[i] = (int) 0;
                 r_count_upper[i] = (int) (dims[i] - count[i] - start[i]);
                 r_start_upper[i] = (int) dims[i] - s_count_upper[i];
-            }
-            else
+            } else
             {
                 s_count_lower[i] = (int) count[i];
                 s_start_lower[i] = (int) start[i];
@@ -299,9 +291,12 @@ int spParallelUpdateNdArrayHalo(void *buffer,
         recv_displs[2 * d + 1] = 0;
     }
 
+    for (int i = 0; i < num_of_buffer; ++i)
+    {
+        SP_CALL(spMPINeighborAllToAll(buffers[i], mpi_sendrecv_count, send_displs, send_types,
+                                      buffers[i], mpi_sendrecv_count, recv_displs, recv_types, comm));
+    }
 
-    SP_CALL(spMPINeighborAllToAll(buffer, mpi_sendrecv_count, send_displs, send_types,
-                                  buffer, mpi_sendrecv_count, recv_displs, recv_types, comm));
 
     for (int i = 0; i < num_of_neighbour; ++i)
     {

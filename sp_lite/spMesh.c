@@ -453,7 +453,7 @@ int spMeshGetGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset)
 };
 
 int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
-                              int attr_ndims, size_type const *attr_dims,
+                              int attr_ndims, const size_type *attr_dims,
                               int *array_ndims,
                               int *start_mesh_dim,
                               size_type *g_dims,

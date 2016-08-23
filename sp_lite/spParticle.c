@@ -152,7 +152,7 @@ size_type spParticleGetNumberOfEntities(spParticle const *sp)
 {
     return spMeshGetNumberOfEntities(spMeshAttributeGetMesh((spMeshAttribute *) (sp)), SP_DOMAIN_ALL,
                                      spMeshAttributeGetForm((spMeshAttribute *) (sp)))
-        * spParticleGetMaxPIC(sp);
+           * spParticleGetMaxPIC(sp);
 }
 
 int spParticleInitialize(spParticle *sp, int const *dist_types)
@@ -271,6 +271,7 @@ int spParticleUpdate(spParticle *sp)
     return spParticleSync(sp);
 
 }
+
 /**
  *
  * @param sp
@@ -297,8 +298,7 @@ int spParticleSync(spParticle *sp)
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
-        SP_CALL(spParallelUpdateNdArrayHalo(sp->m_attrs_[i].data, sp->m_attrs_[i].data_type,
-                                            array_ndims, l_dims, l_start, NULL, l_count, NULL, 0));
+        SP_CALL(spParallelUpdateNdArrayHalo(1, sp->m_attrs_[i].data, sp->m_attrs_[i].data_type, array_ndims, l_dims, l_start, NULL, l_count, NULL, 0));
     }
     return SP_SUCCESS;
 
@@ -343,11 +343,7 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
     num_of_entities *= spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
 
-    for (
-        int i = 0;
-        i < sp->
-            m_num_of_attrs_;
-        ++i)
+    for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
         void *buffer = NULL;
 
@@ -356,7 +352,7 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
         spParallelHostAlloc(&buffer, size_in_byte);
 
         spParallelMemcpy(buffer, sp
-            ->m_attrs_[i].data, size_in_byte);
+                ->m_attrs_[i].data, size_in_byte);
 
         SP_CALL(spIOStreamWriteSimple(os,
                                       sp->m_attrs_[i].name,
