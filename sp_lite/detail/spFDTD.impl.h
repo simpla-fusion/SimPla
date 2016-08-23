@@ -35,37 +35,41 @@ __constant__ _spFDTDParam _fdtd_param;
 INLINE __device__ int SPMeshHash(int x, int y, int z)
 {
     return
-        __mul24((_fdtd_param.max.x + x) % (_fdtd_param.max.x - _fdtd_param.min.x) + _fdtd_param.min.x,
-                _fdtd_param.strides.x) +
-            __mul24((_fdtd_param.max.y + y) % (_fdtd_param.max.y - _fdtd_param.min.y) + _fdtd_param.min.y,
+            __mul24((_fdtd_param.max.x - _fdtd_param.min.x + x) % (_fdtd_param.max.x - _fdtd_param.min.x) +
+                    _fdtd_param.min.x,
+                    _fdtd_param.strides.x) +
+            __mul24((_fdtd_param.max.y - _fdtd_param.min.y + y) % (_fdtd_param.max.y - _fdtd_param.min.y) +
+                    _fdtd_param.min.y,
                     _fdtd_param.strides.y) +
-            __mul24((_fdtd_param.max.z + z) % (_fdtd_param.max.z - _fdtd_param.min.z) + _fdtd_param.min.z,
+            __mul24((_fdtd_param.max.z - _fdtd_param.min.z + z) % (_fdtd_param.max.z - _fdtd_param.min.z) +
+                    _fdtd_param.min.z,
                     _fdtd_param.strides.z);
 
 }
+
 INLINE __device__  int SPMeshInBox(int x, int y, int z)
 {
     return (_fdtd_param.min.x + x < _fdtd_param.max.x && _fdtd_param.min.y + y < _fdtd_param.max.y
-        && _fdtd_param.min.z + z < _fdtd_param.max.z);
+            && _fdtd_param.min.z + z < _fdtd_param.max.z);
 }
+
 INLINE __device__ void SPMeshPoint(int x, int y, int z, Real *rx, Real *ry, Real *rz)
 {
-    *rx = _fdtd_param.x0.x + (int) (x + _fdtd_param.min.x) * _fdtd_param.dx.x;
-    *ry = _fdtd_param.x0.y + (int) (y + _fdtd_param.min.y) * _fdtd_param.dx.y;
-    *rz = _fdtd_param.x0.z + (int) (z + _fdtd_param.min.z) * _fdtd_param.dx.z;
+    *rx = _fdtd_param.x0.x + x * _fdtd_param.dx.x;
+    *ry = _fdtd_param.x0.y + y * _fdtd_param.dx.y;
+    *rz = _fdtd_param.x0.z + z * _fdtd_param.dx.z;
+
 };
 
 int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *block_dim)
 {
     _spFDTDParam param;
     size_type min[3], max[3], strides[3];
-    Real inv_dx[3], x0[3], x1[3], dx[3];
+    Real inv_dx[3], x0[3], dx[3];
     SP_CALL(spMeshGetArrayShape(m, tag, min, max, strides));
-    SP_CALL(spMeshGetBox(m, tag, x0, x1));
+    SP_CALL(spMeshGetBox(m, tag, x0, NULL));
     SP_CALL(spMeshGetInvDx(m, inv_dx));
     SP_CALL(spMeshGetDx(m, dx));
-
-    CHECK_FLOAT(x0[0]);
 
     param.min.x = (unsigned int) min[0];
     param.min.y = (unsigned int) min[1];
@@ -110,8 +114,7 @@ SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSinKernel, Real *d, Real3 k, Real3 al
 
         SPMeshPoint(x, y, z, &rx, &ry, &rz);
 
-        d[SPMeshHash(x, y, z)] =
-            (Real) (cos(k.x * rx) * cos(k.y * ry) * cos(k.z * rz)) * amp;
+        d[SPMeshHash(x, y, z)] = (Real) (cos(k.x * rx) * cos(k.y * ry) * cos(k.z * rz)) * amp;
     }
 }
 
@@ -192,7 +195,7 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 
     size_type grid_dim[3], block_dim[3];
 
-    spFDTDSetupParam(m, SP_DOMAIN_ALL, grid_dim, block_dim);
+    spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
 
     for (int i = 0; i < num_of_sub; ++i)
     {
@@ -227,44 +230,48 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernel, Real dt,
     {
         int s = SPMeshHash(x, y, z);
 
+//        Bx[s] -=
+//                ((Ez[s] - Ez[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
+//                 - (Ey[s] - Ey[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
+//                * 0.5 * dt;
+//        By[s] -=
+//                ((Ex[s] - Ex[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
+//                 - (Ez[s] - Ez[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
+//                * 0.5 * dt;
+//        Bz[s] -=
+//                ((Ey[s] - Ey[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
+//                 - (Ex[s] - Ex[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
+//                * 0.5 * dt;
+
+
         Bx[s] -=
-            ((Ez[s] - Ez[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
-                - (Ey[s] - Ey[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
-                * 0.5 * dt;
+                ((Ez[s] - Ez[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
+                 - (Ey[s] - Ey[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
+                * dt;
         By[s] -=
-            ((Ex[s] - Ex[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
-                - (Ez[s] - Ez[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
-                * 0.5 * dt;
+                ((Ex[s] - Ex[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
+                 - (Ez[s] - Ez[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
+                * dt;
         Bz[s] -=
-            ((Ey[s] - Ey[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
-                - (Ex[s] - Ex[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
-                * 0.5 * dt;
+                ((Ey[s] - Ey[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
+                 - (Ex[s] - Ex[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
+                * dt;
+
 
         Ex[s] +=
-            ((Bz[s + _fdtd_param.strides.y] - Bz[s]) * _fdtd_param.inv_dx.y
-                - (By[s + _fdtd_param.strides.z] - By[s]) * _fdtd_param.inv_dx.z)
+                ((Bz[s + _fdtd_param.strides.y] - Bz[s]) * _fdtd_param.inv_dx.y
+                 - (By[s + _fdtd_param.strides.z] - By[s]) * _fdtd_param.inv_dx.z)
                 * speed_of_light2 * dt - Jx[s] / epsilon0 * dt;
         Ey[s] +=
-            ((Bx[s + _fdtd_param.strides.z] - Bx[s]) * _fdtd_param.inv_dx.z
-                - (Bz[s + _fdtd_param.strides.x] - Bz[s]) * _fdtd_param.inv_dx.x)
+                ((Bx[s + _fdtd_param.strides.z] - Bx[s]) * _fdtd_param.inv_dx.z
+                 - (Bz[s + _fdtd_param.strides.x] - Bz[s]) * _fdtd_param.inv_dx.x)
                 * speed_of_light2 * dt - Jy[s] / epsilon0 * dt;
         Ez[s] +=
-            ((By[s + _fdtd_param.strides.x] - By[s]) * _fdtd_param.inv_dx.x
-                - (Bx[s + _fdtd_param.strides.y] - Bx[s]) * _fdtd_param.inv_dx.y)
+                ((By[s + _fdtd_param.strides.x] - By[s]) * _fdtd_param.inv_dx.x
+                 - (Bx[s + _fdtd_param.strides.y] - Bx[s]) * _fdtd_param.inv_dx.y)
                 * speed_of_light2 * dt - Jz[s] / epsilon0 * dt;
 
-        Bx[s] -=
-            ((Ez[s] - Ez[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
-                - (Ey[s] - Ey[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
-                * 0.5 * dt;
-        By[s] -=
-            ((Ex[s] - Ex[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
-                - (Ez[s] - Ez[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
-                * 0.5 * dt;
-        Bz[s] -=
-            ((Ey[s] - Ey[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
-                - (Ex[s] - Ex[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
-                * 0.5 * dt;
+
     }
 }
 

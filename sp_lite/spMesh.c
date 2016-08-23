@@ -155,9 +155,8 @@ int spMeshDeploy(spMesh *self)
             self->m_global_start_[i] = self->m_global_dims_[i] * mpi_topo_coords[i] / mpi_topo_dims[i];
 
             self->m_count_[i] =
-                self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
-        }
-        else
+                    self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
+        } else
         {
             self->m_global_start_[i] = 0;
 
@@ -324,10 +323,12 @@ int spMeshGetBox(spMesh const *m, int tag, Real *lower, Real *upper)
     lower[1] = m->m_coord_lower[1] + ((int) start[1] - (int) (m->m_start_[1])) * m->dx[1];
     lower[2] = m->m_coord_lower[2] + ((int) start[2] - (int) (m->m_start_[2])) * m->dx[2];
 
-    upper[0] = lower[0] + count[0] * m->dx[0];
-    upper[1] = lower[1] + count[1] * m->dx[1];
-    upper[2] = lower[2] + count[2] * m->dx[2];
-
+    if (upper != NULL)
+    {
+        upper[0] = lower[0] + count[0] * m->dx[0];
+        upper[1] = lower[1] + count[1] * m->dx[1];
+        upper[2] = lower[2] + count[2] * m->dx[2];
+    }
 
     return SP_SUCCESS;
 };
@@ -431,8 +432,7 @@ int spMeshGetStrides(spMesh const *m, size_type *res)
             res[2] = (m->m_global_dims_[2] == 1) ? 0 : 1;
             res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[2];
             res[0] = (m->m_global_dims_[0] == 1) ? 0 : m->m_dims_[2] * m->m_dims_[1];
-        }
-        else
+        } else
         {
             res[0] = (m->m_global_dims_[0] == 1) ? 0 : 1;
             res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[0];
@@ -476,8 +476,7 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
             l_count[i] = attr_dims[i];
         }
         *start_mesh_dim = attr_ndims;
-    }
-    else
+    } else
     {
         for (int i = 0; i < attr_ndims; ++i)
         {

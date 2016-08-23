@@ -16,7 +16,6 @@ extern "C"
 #include </usr/local/cuda/include/cuda_runtime_api.h>
 #include </usr/local/cuda/include/curand_kernel.h>
 
-
 /* Number of 64-bit vectors per dimension */
 #define VECTOR_SIZE 64
 
@@ -39,6 +38,29 @@ typedef struct spRandomGenerator_s
 } spRandomGenerator;
 
 
+
+int spRandomGeneratorSetThreadBlocks(spRandomGenerator *gen, size_type const *blocks, size_type const *threads)
+{
+    gen->blocks[0] = blocks[0];
+    gen->blocks[1] = blocks[1];
+    gen->blocks[2] = blocks[2];
+    gen->threads[0] = threads[0];
+    gen->threads[1] = threads[1];
+    gen->threads[2] = threads[2];
+    gen->num_of_threads = blocks[0] * blocks[1] * blocks[2] * threads[0] * threads[1] * threads[2];
+    return SP_SUCCESS;
+}
+
+int spRandomGeneratorGetThreadBlocks(spRandomGenerator *gen, size_type *blocks, size_type *threads)
+{
+    blocks[0] = gen->blocks[0];
+    blocks[1] = gen->blocks[1];
+    blocks[2] = gen->blocks[2];
+    threads[0] = gen->threads[0];
+    threads[1] = gen->threads[1];
+    threads[2] = gen->threads[2];
+    return SP_SUCCESS;
+}
 
 
 /**
@@ -89,27 +111,27 @@ int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimens
 
     /* Allocate memory for 3 states per thread (x, y, z), each state to get a unique dimension */
     SP_DEVICE_CALL(cudaMalloc((void **) &((*gen)->devSobol64States),
-                            n_threads * n_dims *
-                            sizeof(curandStateScrambledSobol64)));
+                              n_threads * n_dims *
+                              sizeof(curandStateScrambledSobol64)));
 
     /* Allocate memory and copy 3 sets of vectors per thread to the detail */
 
     SP_DEVICE_CALL(cudaMalloc((void **) &((*gen)->devDirectionVectors64),
-                            n_threads * n_dims * VECTOR_SIZE * sizeof(long long int)));
+                              n_threads * n_dims * VECTOR_SIZE * sizeof(long long int)));
 
     SP_DEVICE_CALL(cudaMemcpy((*gen)->devDirectionVectors64, hostVectors64,
-                            n_threads * n_dims * VECTOR_SIZE * sizeof(long long int),
-                            cudaMemcpyHostToDevice));
+                              n_threads * n_dims * VECTOR_SIZE * sizeof(long long int),
+                              cudaMemcpyHostToDevice));
 
     /* Allocate memory and copy 6 scramble constants (one costant per dimension)
        per thread to the detail */
 
     SP_DEVICE_CALL(cudaMalloc((void **) &((*gen)->devScrambleConstants64),
-                            n_threads * n_dims * sizeof(long long int)));
+                              n_threads * n_dims * sizeof(long long int)));
 
     SP_DEVICE_CALL(cudaMemcpy((*gen)->devScrambleConstants64, hostScrambleConstants64,
-                            n_threads * n_dims * sizeof(long long int),
-                            cudaMemcpyHostToDevice));
+                              n_threads * n_dims * sizeof(long long int),
+                              cudaMemcpyHostToDevice));
 
     {
         size_type s_blocks[3], s_threads[3];
@@ -146,28 +168,6 @@ int spRandomGeneratorSetNumOfDimensions(spRandomGenerator *gen, int n)
 
 int spRandomGeneratorGetNumOfDimensions(spRandomGenerator const *gen) { return gen->num_of_dimensions; }
 
-int spRandomGeneratorSetThreadBlocks(spRandomGenerator *gen, size_type const *blocks, size_type const *threads)
-{
-    gen->blocks[0] = blocks[0];
-    gen->blocks[1] = blocks[1];
-    gen->blocks[2] = blocks[2];
-    gen->threads[0] = threads[0];
-    gen->threads[1] = threads[1];
-    gen->threads[2] = threads[2];
-    gen->num_of_threads = blocks[0] * blocks[1] * blocks[2] * threads[0] * threads[1] * threads[2];
-    return SP_SUCCESS;
-}
-
-int spRandomGeneratorGetThreadBlocks(spRandomGenerator *gen, size_type *blocks, size_type *threads)
-{
-    blocks[0] = gen->blocks[0];
-    blocks[1] = gen->blocks[1];
-    blocks[2] = gen->blocks[2];
-    threads[0] = gen->threads[0];
-    threads[1] = gen->threads[1];
-    threads[2] = gen->threads[2];
-    return SP_SUCCESS;
-}
 
 size_type spRandomGeneratorGetNumOfThreads(spRandomGenerator const *gen) { return gen->num_of_threads; }
 
@@ -259,21 +259,18 @@ spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, R
     {
         switch (dist_types[n])
         {
-            case SP_RAND_NORMAL:
-
-                SP_DEVICE_CALL_KERNEL(spRandomDistributionInCellNormalKernel,
-                                      sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads),
-                                      gen->devSobol64States + n * n_threads,
-                                      data[n],
-                                      sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides), num_per_cell);
+            case SP_RAND_NORMAL: SP_DEVICE_CALL_KERNEL(spRandomDistributionInCellNormalKernel,
+                                                       sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads),
+                                                       gen->devSobol64States + n * n_threads,
+                                                       data[n],
+                                                       sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides), num_per_cell);
                 break;
             case SP_RAND_UNIFORM:
-            default:
-                SP_DEVICE_CALL_KERNEL(spRandomDistributionInCellUniformKernel,
-                                      sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads),
-                                      gen->devSobol64States + n * n_threads,
-                                      data[n],
-                                      sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides), num_per_cell);
+            default: SP_DEVICE_CALL_KERNEL(spRandomDistributionInCellUniformKernel,
+                                           sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads),
+                                           gen->devSobol64States + n * n_threads,
+                                           data[n],
+                                           sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides), num_per_cell);
                 break;
         }
     }
