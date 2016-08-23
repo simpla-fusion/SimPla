@@ -24,6 +24,7 @@ typedef struct
 {
     uint3 min;
     uint3 max;
+    float3 x0, dx;
     float3 inv_dx;
     uint3 strides;
 
@@ -31,16 +32,40 @@ typedef struct
 
 __constant__ _spFDTDParam _fdtd_param;
 
-#define  SPMeshHash(x, y, z)   (__mul24(x, _fdtd_param.strides.x) + __mul24(y, _fdtd_param.strides.y) + __mul24(z, _fdtd_param.strides.z))
+INLINE __device__ int SPMeshHash(int x, int y, int z)
+{
+    return
+        __mul24((_fdtd_param.max.x + x) % (_fdtd_param.max.x - _fdtd_param.min.x) + _fdtd_param.min.x,
+                _fdtd_param.strides.x) +
+            __mul24((_fdtd_param.max.y + y) % (_fdtd_param.max.y - _fdtd_param.min.y) + _fdtd_param.min.y,
+                    _fdtd_param.strides.y) +
+            __mul24((_fdtd_param.max.z + z) % (_fdtd_param.max.z - _fdtd_param.min.z) + _fdtd_param.min.z,
+                    _fdtd_param.strides.z);
 
+}
+INLINE __device__  int SPMeshInBox(int x, int y, int z)
+{
+    return (_fdtd_param.min.x + x < _fdtd_param.max.x && _fdtd_param.min.y + y < _fdtd_param.max.y
+        && _fdtd_param.min.z + z < _fdtd_param.max.z);
+}
+INLINE __device__ void SPMeshPoint(int x, int y, int z, Real *rx, Real *ry, Real *rz)
+{
+    *rx = _fdtd_param.x0.x + (int) (x + _fdtd_param.min.x) * _fdtd_param.dx.x;
+    *ry = _fdtd_param.x0.y + (int) (y + _fdtd_param.min.y) * _fdtd_param.dx.y;
+    *rz = _fdtd_param.x0.z + (int) (z + _fdtd_param.min.z) * _fdtd_param.dx.z;
+};
 
 int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *block_dim)
 {
     _spFDTDParam param;
     size_type min[3], max[3], strides[3];
-    Real inv_dx[3];
+    Real inv_dx[3], x0[3], x1[3], dx[3];
     SP_CALL(spMeshGetArrayShape(m, tag, min, max, strides));
+    SP_CALL(spMeshGetBox(m, tag, x0, x1));
     SP_CALL(spMeshGetInvDx(m, inv_dx));
+    SP_CALL(spMeshGetDx(m, dx));
+
+    CHECK_FLOAT(x0[0]);
 
     param.min.x = (unsigned int) min[0];
     param.min.y = (unsigned int) min[1];
@@ -58,25 +83,35 @@ int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *b
     param.inv_dx.y = inv_dx[1];
     param.inv_dx.z = inv_dx[2];
 
+    param.dx.x = dx[0];
+    param.dx.y = dx[1];
+    param.dx.z = dx[2];
+
+    param.x0.x = x0[0];
+    param.x0.y = x0[1];
+    param.x0.z = x0[2];
+
+
     SP_CALL(spParallelMemcpyToCache(&_fdtd_param, &param, sizeof(_spFDTDParam)));
     SP_CALL(spParallelThreadBlockDecompose(SP_NUM_OF_THREADS_PER_BLOCK, 3, min, max, grid_dim, block_dim));
 
     return SP_SUCCESS;
 }
 
-SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSinKernel, Real *d, Real3 k_dx, Real3 alpha0, Real amp)
+SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSinKernel, Real *d, Real3 k, Real3 alpha0, Real amp)
 {
-    int x = _fdtd_param.min.x + threadIdx.x + blockIdx.x * blockDim.x;
-    int y = _fdtd_param.min.y + threadIdx.y + blockIdx.y * blockDim.y;
-    int z = _fdtd_param.min.z + threadIdx.z + blockIdx.z * blockDim.z;
+    int x = threadIdx.x + blockIdx.x * blockDim.x;
+    int y = threadIdx.y + blockIdx.y * blockDim.y;
+    int z = threadIdx.z + blockIdx.z * blockDim.z;
 
-    if (x < _fdtd_param.max.x && y < _fdtd_param.max.y && z < _fdtd_param.max.z)
+    if (SPMeshInBox(x, y, z))
     {
-        int s = SPMeshHash(x, y, z);
-        d[s] = amp * (Real) (
-            cos(k_dx.x * (x) + alpha0.x) *
-                cos(k_dx.y * (y) + alpha0.y) *
-                cos(k_dx.z * (z) + alpha0.z));
+        Real rx, ry, rz;
+
+        SPMeshPoint(x, y, z, &rx, &ry, &rz);
+
+        d[SPMeshHash(x, y, z)] =
+            (Real) (cos(k.x * rx) * cos(k.y * ry) * cos(k.z * rz)) * amp;
     }
 }
 
@@ -100,8 +135,6 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
     SP_CALL(spMeshGetOrigin(m, x0));
     SP_CALL(spMeshGetDx(m, dx));
 
-
-    Real k_dx[3] = {k[0] * dx[0], k[1] * dx[1], k[2] * dx[2]};
 
     Real alpha0[9];
 
@@ -159,19 +192,18 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 
     size_type grid_dim[3], block_dim[3];
 
-    spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
+    spFDTDSetupParam(m, SP_DOMAIN_ALL, grid_dim, block_dim);
 
     for (int i = 0; i < num_of_sub; ++i)
     {
-        Real3 t_k_dx = real2Real3(k_dx);
-        Real3 t_alpha0 = real2Real3(alpha0 + i * 3);
+
 
         SP_DEVICE_CALL_KERNEL(spFDTDInitialValueSinKernel,
                               sizeType2Dim3(grid_dim),
                               sizeType2Dim3(block_dim),
                               data[i],
-                              t_k_dx,
-                              t_alpha0,
+                              real2Real3(k),
+                              real2Real3(alpha0 + i * 3),
                               amp[i]
         );
     }
@@ -188,12 +220,12 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernel, Real dt,
                           Real *Bx, Real *By, Real *Bz)
 {
 
-    size_type x = _fdtd_param.min.x + threadIdx.x + blockIdx.x * blockDim.x;
-    size_type y = _fdtd_param.min.y + threadIdx.y + blockIdx.y * blockDim.y;
-    size_type z = _fdtd_param.min.z + threadIdx.z + blockIdx.z * blockDim.z;
-    if (x < _fdtd_param.max.x && y < _fdtd_param.max.y && z < _fdtd_param.max.z)
+    unsigned int x = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int y = threadIdx.y + blockIdx.y * blockDim.y;
+    unsigned int z = threadIdx.z + blockIdx.z * blockDim.z;
+    if (SPMeshInBox(x, y, z))
     {
-        size_type s = x * _fdtd_param.strides.x + y * _fdtd_param.strides.y + z * _fdtd_param.strides.z;
+        int s = SPMeshHash(x, y, z);
 
         Bx[s] -=
             ((Ez[s] - Ez[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
@@ -256,7 +288,7 @@ int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, s
 
     size_type grid_dim[3], block_dim[3];
 
-    spFDTDSetupParam(spMeshAttributeGetMesh((spMeshAttribute *) fE), SP_DOMAIN_ALL, grid_dim, block_dim);
+    spFDTDSetupParam(spMeshAttributeGetMesh((spMeshAttribute *) fE), SP_DOMAIN_AFFECT_1, grid_dim, block_dim);
 
     SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           dt, (const Real *) rho, (const Real *) J[0], (const Real *) J[1], (const Real *) J[2],

@@ -67,6 +67,8 @@ struct spMesh_s
     Real inv_dx[4];
 
     size_type strides[3];
+
+    int array_is_order_c;
 };
 
 int spMeshCreate(spMesh **m)
@@ -116,7 +118,7 @@ int spMeshCreate(spMesh **m)
     (*m)->m_coord_upper[0] = 1;
     (*m)->m_coord_upper[1] = 1;
     (*m)->m_coord_upper[2] = 1;
-
+    (*m)->array_is_order_c = SP_TRUE;
     return SP_SUCCESS;
 }
 
@@ -315,13 +317,17 @@ int spMeshSetBox(spMesh *m, Real const *lower, Real const *upper)
 int spMeshGetBox(spMesh const *m, int tag, Real *lower, Real *upper)
 {
     size_type start[3], count[3], dims[3];
-    spMeshGetDomain(m, SP_DOMAIN_CENTER, dims, start, count);
 
-    MeshEntityId id = spMeshEntityIdFromArray(start);
+    spMeshGetDomain(m, tag, dims, start, count);
 
-    spMeshPoint(m, id, lower);
+    lower[0] = m->m_coord_lower[0] + ((int) start[0] - (int) (m->m_start_[0])) * m->dx[0];
+    lower[1] = m->m_coord_lower[1] + ((int) start[1] - (int) (m->m_start_[1])) * m->dx[1];
+    lower[2] = m->m_coord_lower[2] + ((int) start[2] - (int) (m->m_start_[2])) * m->dx[2];
 
-    spMeshPoint(m, spMeshEntityIdShift(id, count), upper);
+    upper[0] = lower[0] + count[0] * m->dx[0];
+    upper[1] = lower[1] + count[1] * m->dx[1];
+    upper[2] = lower[2] + count[2] * m->dx[2];
+
 
     return SP_SUCCESS;
 };
@@ -349,6 +355,13 @@ int spMeshGetDomain(spMesh const *m, int tag, size_type *dims, size_type *start,
                 count[i] = m->m_count_[i];
             }
 
+            break;
+        case SP_DOMAIN_AFFECT_1:
+            for (int i = 0; i < 3; ++i)
+            {
+                start[i] = m->m_dims_[i] <= 1 ? 0 : 1;
+                count[i] = m->m_dims_[i] <= 1 ? 1 : m->m_dims_[i] - 2;
+            }
             break;
         default:
 
@@ -413,9 +426,18 @@ int spMeshGetStrides(spMesh const *m, size_type *res)
 {
     if (res != NULL)
     {
-        res[0] = (m->m_global_dims_[0] == 1) ? 0 : 1;
-        res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[0];
-        res[2] = (m->m_global_dims_[2] == 1) ? 0 : m->m_dims_[0] * m->m_dims_[1];
+        if (m->array_is_order_c == SP_TRUE)
+        {
+            res[2] = (m->m_global_dims_[2] == 1) ? 0 : 1;
+            res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[2];
+            res[0] = (m->m_global_dims_[0] == 1) ? 0 : m->m_dims_[2] * m->m_dims_[1];
+        }
+        else
+        {
+            res[0] = (m->m_global_dims_[0] == 1) ? 0 : 1;
+            res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[0];
+            res[2] = (m->m_global_dims_[2] == 1) ? 0 : m->m_dims_[0] * m->m_dims_[1];
+        }
     }
     return SP_SUCCESS;
 }

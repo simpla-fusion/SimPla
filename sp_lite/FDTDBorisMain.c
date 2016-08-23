@@ -32,15 +32,15 @@ int main(int argc, char **argv)
     size_type PIC = 256;
     Real n0 = 1.0e18;
     Real T0 = 0.026;
-    size_type dims[3] = {0x10, 0x10, 0x1};
+    size_type dims[3] = {0x40, 0x40, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
 
     Real dt = nanf("");
 
-    Real amp[3] = {1.0, 1.0, 1.0};
-    Real k[3] = {TWOPI / (upper[0] - lower[0]), TWOPI / (upper[0] - lower[0]), 0};
+    Real amp[3] = {0.0, 0.0, 1.0};
+    Real k[3] = {TWOPI / (upper[0] - lower[0]), TWOPI / (upper[1] - lower[1]), 0};
 
     /*****************************************************************************************************************/
 
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
         SP_CALL(spFieldClear(fRho));
         SP_CALL(spFieldClear(fJ));
 
-        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
+//        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
 
         SP_CALL(spFDTDUpdate(dt, fRho, fJ, fE, fB));
 

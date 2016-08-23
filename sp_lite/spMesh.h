@@ -12,7 +12,7 @@
 #include "spObject.h"
 
 enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3 };
-enum { SP_DOMAIN_CENTER = 13, SP_DOMAIN_ALL = 0xFF };
+enum { SP_DOMAIN_CENTER = 13, SP_DOMAIN_ALL = 0xFF, SP_DOMAIN_AFFECT_1 = SP_DOMAIN_ALL + 1 };
 struct spMesh_s;
 
 typedef struct spMesh_s spMesh;
