@@ -148,5 +148,15 @@ int spMPISize();
 
 int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord);
 
+int spRandomMultiNormalDistributionInCell(size_type const *min,
+                                          size_type const *max,
+                                          size_type const *strides,
+                                          unsigned int pic,
+                                          Real *rx,
+                                          Real *ry,
+                                          Real *rz,
+                                          Real *vx,
+                                          Real *vy,
+                                          Real *vz);
 
 #endif /* SPSIMPLAWRAP_H_ */

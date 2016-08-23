@@ -50,19 +50,18 @@ struct spParticle_s
     SP_MESH_ATTR_HEAD
 
     Real mass;
+
     Real charge;
 
-    size_type m_pic_;
-    size_type m_max_pic_;
+    unsigned int m_pic_;
+
+    unsigned int m_max_pic_;
+
     int m_num_of_attrs_;
+
     spParticleAttrEntity m_attrs_[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
-    size_type m_page_size_;
-    size_type m_number_of_pages_;
-    size_type *m_page_head_;
-
     void **m_current_data_;
-    void **m_next_data_;
 
 };
 
@@ -83,6 +82,8 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
 int spParticleDestroy(spParticle **sp)
 {
     if (sp == NULL || *sp == NULL) { return SP_DO_NOTHING; }
+
+    spParallelDeviceFree((void **) &((*sp)->m_current_data_));
 
     for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i)
     {
@@ -139,7 +140,11 @@ int spParticleDeploy(spParticle *sp)
 //        spParallelMemset((sp->m_attrs_[i].data), 0,
 //                         spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * number_of_entities);
     }
-
+    void *d[spParticleGetNumberOfAttributes(sp)];
+    SP_CALL(spParticleGetAllAttributeData(sp, d));
+    SP_CALL(spParallelDeviceAlloc((void **) &(sp->m_current_data_),
+                                  spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
+    SP_CALL(spParallelMemcpy(sp->m_current_data_, d, spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
     return SP_SUCCESS;
 }
 
@@ -189,9 +194,13 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, offset));
 
-    SP_CALL(spRandomMultiDistributionInCell(sp_gen, l_dist_types,
+    SP_CALL(spRandomMultiDistributionInCell(sp_gen,
+                                            l_dist_types,
                                             (Real **) (data + 1),
-                                            x_min, x_max, strides, num_of_pic));
+                                            x_min,
+                                            x_max,
+                                            strides,
+                                            num_of_pic));
 
     SP_CALL(spRandomGeneratorDestroy(&sp_gen));
 
@@ -211,9 +220,9 @@ int spParticleSetPIC(spParticle *sp, size_type pic, size_type max_pic)
     return SP_SUCCESS;
 }
 
-size_type spParticleGetPIC(spParticle const *sp) { return sp->m_pic_; }
+unsigned int spParticleGetPIC(spParticle const *sp) { return sp->m_pic_; }
 
-size_type spParticleGetMaxPIC(const spParticle *sp) { return sp->m_max_pic_; }
+unsigned int spParticleGetMaxPIC(const spParticle *sp) { return sp->m_max_pic_; }
 
 int spParticleGetAllAttributeData(spParticle *sp, void **res)
 {
@@ -226,20 +235,16 @@ int spParticleGetAllAttributeData(spParticle *sp, void **res)
     return SP_SUCCESS;
 };
 
-int spParticleGetAllAttributeData_device(spParticle *sp, void ***current_data, void ***next_data)
+int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
 {
+    *data = NULL;
+
     if (sp == NULL) { return SP_DO_NOTHING; }
-//    void *data[spParticleGetNumberOfAttributes(sp)];
-//    SP_CALL(spParticleGetAllAttributeData(sp, data));
-//    SP_CALL(spParallelDeviceAlloc((void **) current_data, spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
-//    SP_CALL(spParallelMemcpy(*current_data, data, spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
 
-    if (current_data != NULL) { *current_data = sp->m_current_data_; }
+    *data = sp->m_current_data_;
 
-    if (next_data != NULL) { *next_data = sp->m_next_data_; }
+    return SP_SUCCESS;
 }
-
-spMesh const *spParticleMesh(spParticle const *sp) { return sp->m; };
 
 int spParticleSetMass(spParticle *sp, Real m)
 {

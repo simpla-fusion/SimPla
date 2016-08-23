@@ -50,36 +50,25 @@ int spParticleDeploy(spParticle *sp);
 int spParticleInitialize(spParticle *sp, int const *dist_types);
 
 int spParticleSetPIC(spParticle *sp, size_type pic, size_type max_pic);
-
-size_type spParticleGetPIC(spParticle const *sp);
-
-size_type spParticleGetPIC(spParticle const *sp);
+unsigned int spParticleGetPIC(spParticle const *sp);
 
 int spParticleSetMass(spParticle *, Real m);
-
-int spParticleSetCharge(spParticle *, Real e);
-
 Real spParticleGetMass(spParticle const *);
 
+int spParticleSetCharge(spParticle *, Real e);
 Real spParticleGetCharge(spParticle const *);
 
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset);
-
 int spParticleGetNumberOfAttributes(spParticle const *sp);
-
 int spParticleGetAttributeName(spParticle *sp, int i, char *);
-
 size_type spParticleGetAttributeTypeSizeInByte(spParticle *sp, int i);
-
 void *spParticleGetAttributeData(spParticle *sp, int i);
-
 int spParticleGetAllAttributeData(spParticle *sp, void **res);
-
-int spParticleGetAllAttributeData_device(spParticle *sp, void ***current_data, void ***next_data);
+int spParticleGetAllAttributeData_device(spParticle *sp, void ***data);
 
 size_type spParticleGetNumberOfEntities(spParticle const *sp);
 
-size_type spParticleGetMaxPIC(const spParticle *sp);
+unsigned int spParticleGetMaxPIC(const spParticle *sp);
 
 int spParticleWrite(spParticle const *sp, struct spIOStream_s *os, const char *url, int flag);
 

@@ -26,9 +26,9 @@ int spRandomGeneratorSetNumOfDimensions(spRandomGenerator *gen, int n);
 
 int spRandomGeneratorGetNumOfDimensions(spRandomGenerator const *gen);
 
-int spRandomGeneratorSetThreadBlocks(spRandomGenerator *gen, size_type const *blocks, size_type const *threads);
-
-int spRandomGeneratorGetThreadBlocks(spRandomGenerator *gen, size_type *blocks, size_type *threads);
+//int spRandomGeneratorSetThreadBlocks(spRandomGenerator *gen, size_type const *blocks, size_type const *threads);
+//
+//int spRandomGeneratorGetThreadBlocks(spRandomGenerator *gen, size_type *blocks, size_type *threads);
 
 size_type spRandomGeneratorGetNumOfThreads(spRandomGenerator const *gen);
 
