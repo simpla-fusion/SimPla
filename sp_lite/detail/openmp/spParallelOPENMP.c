@@ -55,7 +55,6 @@ int spParallelMemset(void *dest, int v, size_type s)
 int spParallelDeviceSync()
 {
     SP_CALL(spParallelGlobalBarrier());
-//    SP_CUDA_CALL(cudaDeviceSynchronize());
     return SP_SUCCESS;
 }
 
@@ -77,22 +76,21 @@ int spParallelHostFree(void **p)
 
 int spParallelDeviceFillInt(int *d, int v, size_type s)
 {
-//    SP_DEVICE_CALL_KERNEL(spParallelDeviceFillIntKernel, 16, 256, d, v, s);
-
+    UNIMPLEMENTED;
     return SP_SUCCESS;
 };
 
 
 int spParallelDeviceFillReal(Real *d, Real v, size_type s)
 {
-//    SP_DEVICE_CALL_KERNEL(spParallelDeviceFillRealKernel, 16, 256, d, v, s);
+    UNIMPLEMENTED;
     return SP_SUCCESS;
 };
 
 
 int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v)
 {
-//    SP_DEVICE_CALL_KERNEL(spParallelAssignKernel, 16, 256, num_of_point, offset, d, v);
+    UNIMPLEMENTED;
     return SP_SUCCESS;
 };
 
