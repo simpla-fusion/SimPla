@@ -7,11 +7,9 @@
 
 int spParallelInitialize(int argc, char **argv)
 {
-
     spMPIInitialize(argc, argv);
     spParallelDeviceInitialize(argc, argv);
     return SP_SUCCESS;
-
 }
 
 int spParallelFinalize()
@@ -19,7 +17,6 @@ int spParallelFinalize()
     spParallelDeviceFinalize();
     spMPIFinalize();
     return SP_SUCCESS;
-
 }
 
 int spParallelGlobalBarrier()
@@ -82,6 +79,7 @@ int spMPINeighborAllToAll(const void *send_buffer,
 
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
+        if (send_types[d * 2 + 0] == MPI_DATATYPE_NULL) { continue; }
         int r0, r1;
 
         MPI_CALL(MPI_Cart_shift(comm, d, 1, &r0, &r1));
@@ -208,6 +206,14 @@ int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataT
 
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
+
+        send_types[2 * d + 0] = MPI_DATATYPE_NULL;
+        send_types[2 * d + 1] = MPI_DATATYPE_NULL;
+        recv_types[2 * d + 0] = MPI_DATATYPE_NULL;
+        recv_types[2 * d + 1] = MPI_DATATYPE_NULL;
+
+        if (dims[d] == 1) { continue; }
+
         mpi_sendrecv_count[2 * d] = mpi_sendrecv_count[2 * d + 1] = 1;
 
         for (int i = 0; i < ndims; ++i)
@@ -300,8 +306,9 @@ int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataT
 
     for (int i = 0; i < num_of_neighbour; ++i)
     {
-        MPI_CALL(MPI_Type_free(&send_types[i]));
-        MPI_CALL(MPI_Type_free(&recv_types[i]));
+        if (send_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&send_types[i]));
+
+        if (recv_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&recv_types[i]));
     }
 
     return SP_SUCCESS;

@@ -187,25 +187,19 @@ int spFieldSync(spField *f)
     size_type l_start[ndims + 1];
     size_type l_count[ndims + 1];
 
-    size_type num_of_sub = 3;
+    int num_of_sub = spFieldNumberOfSub(f);
 
-    SP_CALL(spMeshGetGlobalArrayShape(m, SP_DOMAIN_CENTER,
-                                      (iform == VERTEX || iform == VOLUME) ? 0 : 1,
-                                      &num_of_sub, &array_ndims, &mesh_start_dim, NULL, NULL,
-                                      l_dims, l_start, l_count, spFieldIsSoA(f)));
+//    SP_CALL(spMeshGetGlobalArrayShape(m, SP_DOMAIN_CENTER,
+//                                      (iform == VERTEX || iform == VOLUME) ? 0 : 1,
+//                                      &num_of_sub, &array_ndims, &mesh_start_dim, NULL, NULL,
+//                                      l_dims, l_start, l_count, spFieldIsSoA(f)));
+    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_dims, l_start, l_count));
 
+    void *F[num_of_sub];
 
-    Real *F[num_of_sub];
-
-    SP_CALL(spFieldSubArray((spField *) f, (void **) &F));
-
-    for (int i = 0; i < num_of_sub; ++i)
-    {
-        SP_CALL(spParallelUpdateNdArrayHalo(num_of_sub, (void **) F, spFieldDataType(f), ndims,
-                                            l_dims, l_start, NULL, l_count, NULL, mesh_start_dim));
-    }
-
-
+    SP_CALL(spFieldSubArray(f, (void **) F));
+    SP_CALL(spParallelUpdateNdArrayHalo(num_of_sub, F, spFieldDataType(f), ndims,
+                                        l_dims, l_start, NULL, l_count, NULL, 0));
     return SP_SUCCESS;
 
 }

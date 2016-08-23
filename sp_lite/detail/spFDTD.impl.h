@@ -34,16 +34,9 @@ __constant__ _spFDTDParam _fdtd_param;
 
 INLINE __device__ int SPMeshHash(int x, int y, int z)
 {
-    return
-            __mul24((_fdtd_param.max.x - _fdtd_param.min.x + x) % (_fdtd_param.max.x - _fdtd_param.min.x) +
-                    _fdtd_param.min.x,
-                    _fdtd_param.strides.x) +
-            __mul24((_fdtd_param.max.y - _fdtd_param.min.y + y) % (_fdtd_param.max.y - _fdtd_param.min.y) +
-                    _fdtd_param.min.y,
-                    _fdtd_param.strides.y) +
-            __mul24((_fdtd_param.max.z - _fdtd_param.min.z + z) % (_fdtd_param.max.z - _fdtd_param.min.z) +
-                    _fdtd_param.min.z,
-                    _fdtd_param.strides.z);
+    return __mul24(x + _fdtd_param.min.x, _fdtd_param.strides.x) +
+           __mul24(y + _fdtd_param.min.y, _fdtd_param.strides.y) +
+           __mul24(z + _fdtd_param.min.z, _fdtd_param.strides.z);
 
 }
 
@@ -82,7 +75,7 @@ int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *b
     param.strides.x = (unsigned int) strides[0];
     param.strides.y = (unsigned int) strides[1];
     param.strides.z = (unsigned int) strides[2];
-
+    CHECK_INT(param.strides.z);
     param.inv_dx.x = inv_dx[0];
     param.inv_dx.y = inv_dx[1];
     param.inv_dx.z = inv_dx[2];
@@ -194,7 +187,7 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 
     size_type grid_dim[3], block_dim[3];
 
-    spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
+    spFDTDSetupParam(m, SP_DOMAIN_ALL, grid_dim, block_dim);
 
     for (int i = 0; i < num_of_sub; ++i)
     {
@@ -230,14 +223,11 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernel, Real dt,
         int s = SPMeshHash(x, y, z);
 
         Bx[s] += ((Ez[s + _fdtd_param.strides.y] - Ez[s]) * _fdtd_param.inv_dx.y
-                  - (Ey[s + _fdtd_param.strides.z] - Ey[s]) * _fdtd_param.inv_dx.z)
-                 * dt;
+                  - (Ey[s + _fdtd_param.strides.z] - Ey[s]) * _fdtd_param.inv_dx.z) * dt;
         By[s] += ((Ex[s + _fdtd_param.strides.z] - Ex[s]) * _fdtd_param.inv_dx.z
-                  - (Ez[s + _fdtd_param.strides.x] - Ez[s]) * _fdtd_param.inv_dx.x)
-                 * dt;
+                  - (Ez[s + _fdtd_param.strides.x] - Ez[s]) * _fdtd_param.inv_dx.x) * dt;
         Bz[s] += ((Ey[s + _fdtd_param.strides.x] - Ey[s]) * _fdtd_param.inv_dx.x
-                  - (Ex[s + _fdtd_param.strides.y] - Ex[s]) * _fdtd_param.inv_dx.y)
-                 * dt;
+                  - (Ex[s + _fdtd_param.strides.y] - Ex[s]) * _fdtd_param.inv_dx.y) * dt;
 
         Ex[s] -= ((Bz[s] - Bz[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
                   - (By[s] - By[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
