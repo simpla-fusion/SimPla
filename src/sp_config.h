@@ -20,11 +20,11 @@
 
 #define SP_FALSE  0
 
-#define  SP_REAL double
-//#define REAL_IS_FLOAT SP_FALSE
+#define  SP_REAL float
+#define REAL_IS_FLOAT SP_TRUE
 
 #define SP_DO_NOTHING 0xFFFF
-#define SP_UNIMPLEMENT  SP_DO_NOTHING +1
+#define SP_UNIMPLEMENTED  SP_DO_NOTHING +1
 
 #define SP_SUCCESS 1
 

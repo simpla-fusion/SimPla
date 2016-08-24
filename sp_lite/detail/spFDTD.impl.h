@@ -89,7 +89,8 @@ int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *b
     param.x0.z = x0[2];
 
 
-    SP_CALL(spParallelMemcpyToCache(&_fdtd_param, &param, sizeof(_spFDTDParam)));
+    spParallelMemcpyToSymbol(_fdtd_param, &param, sizeof(_spFDTDParam));
+
     SP_CALL(spParallelThreadBlockDecompose(SP_NUM_OF_THREADS_PER_BLOCK, 3, min, max, grid_dim, block_dim));
 
     return SP_SUCCESS;

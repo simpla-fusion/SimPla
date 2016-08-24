@@ -7,7 +7,8 @@
 
 #include "../../sp_lite_def.h"
 #include "../../spParallel.h"
-#include <device_functions.h>
+
+
 
 #ifdef NUM_OF_THREADS_PER_BLOCK
 #   define SP_NUM_OF_THREADS_PER_BLOCK NUM_OF_THREADS_PER_BLOCK
@@ -44,18 +45,32 @@
 #define INLINE __inline__ __attribute__((always_inline))
 #define __register__
 
+#define spParallelMemcpyToSymbol(_dest_, _src_, _s_)      cudaMemcpyToSymbol(_dest_, _src_, _s_);
 
-INLINE  __device__ int atomicAddInt(int *ptr, int val)
+
+INLINE __device__ int atomicAddInt(int *ptr, int val)
 {
 
     return atomicAdd(ptr, val);
 
 }
-INLINE __device__ Real atomicAddReal(Real *ptr, float val)
-{
-    return atomicAdd(ptr, val);
-}
 
+INLINE __device__ Real
+
+atomicAddReal(Real
+
+*ptr,
+
+float val
+
+)
+{
+return
+
+atomicAdd(ptr, val
+
+);
+}
 
 
 #endif //SIMPLA_SPPARALLEL_CU_H

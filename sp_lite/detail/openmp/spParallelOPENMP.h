@@ -9,7 +9,9 @@
 #include <string.h>
 #include "../../sp_lite_def.h"
 
+
 typedef struct { float x, y, z; } float3;
+
 typedef struct { double x, y, z; } double3;
 
 typedef struct { int x, y, z; } int3;
@@ -49,8 +51,11 @@ typedef uint3 dim3;
 
 #define SP_DEVICE_CALL(_CMD_)  SP_CALL(_CMD_)
 
+#define spParallelMemcpyToSymbol(_dest_, _src_, _s_)     spParallelMemcpyToCache(&_dest_, _src_, _s_);
+
 
 INLINE unsigned int __umul24(unsigned int a, unsigned int b) { return a * b; }
+
 INLINE int __mul24(int a, int b) { return a * b; }
 
 INLINE int atomicAddInt(int *ptr, int val)

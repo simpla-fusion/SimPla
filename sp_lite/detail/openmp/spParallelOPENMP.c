@@ -11,7 +11,7 @@
 int spParallelDeviceInitialize(int argc, char **argv)
 {
 #ifndef NDEBUG
-    omp_set_num_threads(1);
+    omp_set_num_threads(4);
 #endif
     return SP_SUCCESS;
 }
@@ -94,5 +94,14 @@ int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real co
     return SP_SUCCESS;
 };
 
-
+int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte)
+{
+    *p = src;
+    return SP_SUCCESS;
+}
+int spMemoryHostFree(void **p)
+{
+    *p = NULL;
+    return SP_SUCCESS;
+};
 

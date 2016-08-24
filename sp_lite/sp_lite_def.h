@@ -45,6 +45,12 @@ typedef MeshEntityId32 MeshEntityShortId;
 
 #define MIN(_A_, _B_) (_A_<_B_)?_A_:_B_
 
-#define MAX(_A_, _B_) (_A_>_B_)?_A_:_B_
+#define MAX(_A_, _B_) (_A_>_B_)?_A_:
+
+
+#ifdef USING_DEVICE_MEMORY
+#   undef USING_DEVICE_MEMORY;
+#endif
+
 
 #endif /* SP_DEF_LITE_H_ */

@@ -136,9 +136,6 @@ int spParticleDeploy(spParticle *sp)
     {
         spParallelDeviceAlloc(&(sp->m_attrs_[i].data),
                               spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * number_of_entities);
-
-//        spParallelMemset((sp->m_attrs_[i].data), 0,
-//                         spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * number_of_entities);
     }
     void *d[spParticleGetNumberOfAttributes(sp)];
     SP_CALL(spParticleGetAllAttributeData(sp, d));
@@ -204,7 +201,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
 }
 
-int spParticleSetPIC(spParticle *sp, size_type pic, size_type max_pic)
+int spParticleSetPIC(spParticle *sp, unsigned int pic, unsigned int max_pic)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
 
@@ -262,14 +259,6 @@ Real spParticleGetMass(spParticle const *sp) { return sp->mass; }
 
 Real spParticleGetCharge(spParticle const *sp) { return sp->charge; }
 
-int spParticleUpdate(spParticle *sp)
-{
-    if (sp == NULL) { return SP_DO_NOTHING; }
-
-    return spParticleSync(sp);
-
-}
-
 /**
  *
  * @param sp
@@ -282,7 +271,6 @@ int spParticleSync(spParticle *sp)
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
     int ndims = spMeshGetNDims(m);
-    int array_ndims, mesh_start_dim;
 
     size_type l_dims[ndims + 1];
     size_type l_start[ndims + 1];
@@ -295,10 +283,6 @@ int spParticleSync(spParticle *sp)
     l_dims[ndims] = num_of_entities;
     l_count[ndims] = num_of_entities;
     l_start[ndims] = 0;
-
-//    SP_CALL(spMeshGetGlobalArrayShape(m, SP_DOMAIN_CENTER, 1, &num_of_entities,
-//                                      &array_ndims, &mesh_start_dim, NULL, NULL, l_dims, l_start, l_count, SP_FALSE));
-
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
@@ -362,10 +346,8 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
         size_type size_in_byte = spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * num_of_entities;
 
-        spParallelHostAlloc(&buffer, size_in_byte);
 
-        spParallelMemcpy(buffer, sp
-            ->m_attrs_[i].data, size_in_byte);
+        spMemoryDeviceToHost(&buffer, sp->m_attrs_[i].data, size_in_byte);
 
         SP_CALL(spIOStreamWriteSimple(os,
                                       sp->m_attrs_[i].name,
@@ -380,8 +362,7 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
                                       g_dims,
                                       g_start,
                                       flag));
-
-        spParallelHostFree(&buffer);
+        spMemoryHostFree(&buffer);
     }
 
     SP_CALL(spIOStreamOpen(os, curr_path));
@@ -392,8 +373,9 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 int spParticleRead(struct spParticle_s *sp, spIOStream *os, const char *url, int flag)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
+    UNIMPLEMENTED;
 
-    return SP_UNIMPLEMENT;
+    return SP_UNIMPLEMENTED;
 }
 
 int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,

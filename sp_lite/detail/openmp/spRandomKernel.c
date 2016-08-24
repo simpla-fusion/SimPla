@@ -67,7 +67,7 @@ spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, R
 //        {
 //            case SP_RAND_UNIFORM:
 //
-//                return SP_UNIMPLEMENT;
+//                return SP_UNIMPLEMENTED;
 //
 //            case SP_RAND_NORMAL:
 //            default:

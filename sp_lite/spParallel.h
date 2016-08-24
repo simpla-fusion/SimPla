@@ -68,4 +68,6 @@ int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
                                    size_type grid_dim[3],
                                    size_type block_dim[3]);
 
+int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte);
+int spMemoryHostFree(void **p);
 #endif //SIMPLA_SPPARALLEL_H

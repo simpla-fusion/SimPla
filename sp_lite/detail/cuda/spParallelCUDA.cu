@@ -63,7 +63,7 @@ int spParallelMemcpy(void *dest, void const *src, size_type s)
 
 int spParallelMemcpyToCache(const void *dest, void const *src, size_type s)
 {
-    SP_DEVICE_CALL(cudaMemcpyToSymbol(dest, src, s, cudaMemcpyDefault));
+    SP_DEVICE_CALL(cudaMemcpyToSymbol(dest, src, s));
     return SP_SUCCESS;
 }
 
@@ -141,4 +141,15 @@ int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real co
     return SP_SUCCESS;
 };
 
+int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte)
+{
+    spParallelHostAlloc(p, size_in_byte);
+    spParallelMemcpy(*p, src, size_in_byte);
+    return SP_SUCCESS;
 
+}
+int spMemoryHostFree(void **p)
+{
+    spParallelHostFree(p);
+    return SP_SUCCESS;
+}

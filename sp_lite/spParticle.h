@@ -49,7 +49,7 @@ int spParticleDeploy(spParticle *sp);
 
 int spParticleInitialize(spParticle *sp, int const *dist_types);
 
-int spParticleSetPIC(spParticle *sp, size_type pic, size_type max_pic);
+int spParticleSetPIC(spParticle *sp, unsigned int pic, unsigned int max_pic);
 unsigned int spParticleGetPIC(spParticle const *sp);
 
 int spParticleSetMass(spParticle *, Real m);

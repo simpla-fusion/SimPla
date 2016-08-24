@@ -7,8 +7,11 @@
 
 #include "../spParallel.h"
 
+
+
 #ifdef __CUDACC__
 #   include "cuda/spParallelCUDA.h"
+
 #else
 
 #   include "openmp/spParallelOPENMP.h"
