@@ -84,7 +84,7 @@ int main(int argc, char **argv)
     /*****************************************************************************************************************/
 
     spParticle *sp = NULL;
-//    SP_CALL(spParticleCreateBorisYee(&sp, mesh));
+    SP_CALL(spParticleCreateBorisYee(&sp, mesh));
     SP_CALL(spParticleSetMass(sp, SI_electron_mass));
     SP_CALL(spParticleSetCharge(sp, SI_elementary_charge));
     SP_CALL(spParticleSetPIC(sp, PIC, 0));
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
         SP_CALL(spFieldClear(fRho));
         SP_CALL(spFieldClear(fJ));
 
-//        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
+        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
 
         SP_CALL(spFDTDUpdate(dt, fRho, fJ, fE, fB));
 

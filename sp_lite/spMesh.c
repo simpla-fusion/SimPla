@@ -155,8 +155,9 @@ int spMeshDeploy(spMesh *self)
             self->m_global_start_[i] = self->m_global_dims_[i] * mpi_topo_coords[i] / mpi_topo_dims[i];
 
             self->m_count_[i] =
-                    self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
-        } else
+                self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
+        }
+        else
         {
             self->m_global_start_[i] = 0;
 
@@ -432,7 +433,8 @@ int spMeshGetStrides(spMesh const *m, size_type *res)
             res[2] = (m->m_global_dims_[2] == 1) ? 0 : 1;
             res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[2];
             res[0] = (m->m_global_dims_[0] == 1) ? 0 : m->m_dims_[2] * m->m_dims_[1];
-        } else
+        }
+        else
         {
             res[0] = (m->m_global_dims_[0] == 1) ? 0 : 1;
             res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[0];
@@ -476,7 +478,8 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
             l_count[i] = attr_dims[i];
         }
         *start_mesh_dim = attr_ndims;
-    } else
+    }
+    else
     {
         for (int i = 0; i < attr_ndims; ++i)
         {

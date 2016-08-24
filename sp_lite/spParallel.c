@@ -85,32 +85,32 @@ int spMPINeighborAllToAll(const void *send_buffer,
         MPI_CALL(MPI_Cart_shift(comm, d, 1, &r0, &r1));
 
         MPI_CALL(MPI_Sendrecv(
-                (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
-                send_counts[d],
-                send_types[d * 2 + 0],
-                r0,
-                tag,
-                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
-                recv_counts[d],
-                recv_types[d * 2 + 0],
-                r0,
-                tag,
-                comm,
-                MPI_STATUS_IGNORE));
+            (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
+            send_counts[d],
+            send_types[d * 2 + 0],
+            r0,
+            tag,
+            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
+            recv_counts[d],
+            recv_types[d * 2 + 0],
+            r0,
+            tag,
+            comm,
+            MPI_STATUS_IGNORE));
 
         MPI_CALL(MPI_Sendrecv(
-                (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
-                send_counts[d],
-                send_types[d * 2 + 1],
-                r1,
-                tag,
-                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
-                recv_counts[d],
-                recv_types[d * 2 + 1],
-                r1,
-                tag,
-                comm,
-                MPI_STATUS_IGNORE));
+            (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
+            send_counts[d],
+            send_types[d * 2 + 1],
+            r1,
+            tag,
+            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
+            recv_counts[d],
+            recv_types[d * 2 + 1],
+            r1,
+            tag,
+            comm,
+            MPI_STATUS_IGNORE));
     }
 
     return SP_SUCCESS;
@@ -154,9 +154,9 @@ int spMPINeighborAllToAll(const void *send_buffer,
 //    );
 //}
 
-int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataType *data_desc, int ndims,
-                                const size_type *shape, const size_type *start, const size_type *stride,
-                                const size_type *count, const size_type *block, int mpi_sync_start_dims)
+int spParallelUpdateNdArrayHalo2(int num_of_buffer, void **buffers, const spDataType *data_desc, int ndims,
+                                 const size_type *shape, const size_type *start, const size_type *stride,
+                                 const size_type *count, const size_type *block, int mpi_sync_start_dims)
 {
     MPI_Comm comm = spMPIComm();
 
@@ -229,7 +229,8 @@ int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataT
                 r_start_lower[i] = 0;
                 r_count_upper[i] = dims[i];
                 r_start_upper[i] = 0;
-            } else if (i == d + mpi_sync_start_dims)
+            }
+            else if (i == d + mpi_sync_start_dims)
             {
                 s_count_lower[i] = (int) start[i];
                 s_start_lower[i] = (int) start[i];
@@ -240,7 +241,8 @@ int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataT
                 r_start_lower[i] = (int) 0;
                 r_count_upper[i] = (int) (dims[i] - count[i] - start[i]);
                 r_start_upper[i] = (int) dims[i] - s_count_upper[i];
-            } else
+            }
+            else
             {
                 s_count_lower[i] = (int) count[i];
                 s_start_lower[i] = (int) start[i];
@@ -313,6 +315,218 @@ int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataT
 
     return SP_SUCCESS;
 
+}
+
+typedef struct spParallelDAUpdater_s
+{
+    MPI_Comm comm;
+
+    int num_of_neighbour;
+
+    int mpi_sendrecv_count[6];
+    MPI_Datatype send_types[6];
+    MPI_Datatype recv_types[6];
+    MPI_Aint send_displs[6];
+    MPI_Aint recv_displs[6];
+} spParallelDAUpdater;
+
+int spParallelDAUpdaterCreate(spParallelDAUpdater **updater, const spDataType *data_desc, int ndims,
+                              const size_type *shape, const size_type *start, const size_type *stride,
+                              const size_type *count, const size_type *block, int mpi_sync_start_dims)
+{
+    *updater = malloc(sizeof(spParallelDAUpdater));
+
+    (*updater)->comm = spMPIComm();
+
+    if ((*updater)->comm == MPI_COMM_NULL) { return SP_DO_NOTHING; }
+
+    int tope_type = MPI_CART;
+
+    MPI_CALL(MPI_Topo_test((*updater)->comm, &tope_type));
+
+    assert(tope_type == MPI_CART);
+
+
+    MPI_Datatype ele_type = spDataTypeMPIType(data_desc);
+
+    if (ele_type == MPI_DATATYPE_NULL) { return SP_FAILED; }
+
+    int mpi_topology_ndims = 0;
+
+    MPI_CALL(MPI_Cartdim_get((*updater)->comm, &mpi_topology_ndims));
+
+    assert(mpi_topology_ndims <= ndims);
+
+
+    MPI_Count ele_size_in_byte = 0;
+
+    MPI_CALL(MPI_Type_size_x(ele_type, &ele_size_in_byte));
+
+    int dims[ndims];
+
+    for (int i = 0; i < ndims; ++i) { dims[i] = (int) shape[i]; }
+
+    int s_count_lower[ndims];
+    int s_start_lower[ndims];
+    int s_count_upper[ndims];
+    int s_start_upper[ndims];
+
+    int r_count_lower[ndims];
+    int r_start_lower[ndims];
+    int r_count_upper[ndims];
+    int r_start_upper[ndims];
+
+    (*updater)->num_of_neighbour = 6;
+
+    for (int d = 0; d < mpi_topology_ndims; ++d)
+    {
+
+        (*updater)->send_types[2 * d + 0] = MPI_DATATYPE_NULL;
+        (*updater)->send_types[2 * d + 1] = MPI_DATATYPE_NULL;
+        (*updater)->recv_types[2 * d + 0] = MPI_DATATYPE_NULL;
+        (*updater)->recv_types[2 * d + 1] = MPI_DATATYPE_NULL;
+
+        if (dims[d] == 1) { continue; }
+
+        (*updater)->mpi_sendrecv_count[2 * d] = (*updater)->mpi_sendrecv_count[2 * d + 1] = 1;
+
+        for (int i = 0; i < ndims; ++i)
+        {
+            if (i >= mpi_sync_start_dims && i < d + mpi_sync_start_dims)
+            {
+                s_count_lower[i] = dims[i];
+                s_start_lower[i] = 0;
+                s_count_upper[i] = dims[i];
+                s_start_upper[i] = 0;
+
+                r_count_lower[i] = dims[i];
+                r_start_lower[i] = 0;
+                r_count_upper[i] = dims[i];
+                r_start_upper[i] = 0;
+            }
+            else if (i == d + mpi_sync_start_dims)
+            {
+                s_count_lower[i] = (int) start[i];
+                s_start_lower[i] = (int) start[i];
+                s_count_upper[i] = (int) (dims[i] - count[i] - start[i]);
+                s_start_upper[i] = (int) (start[i] + count[i] - s_count_upper[i]);
+
+                r_count_lower[i] = (int) start[i];
+                r_start_lower[i] = (int) 0;
+                r_count_upper[i] = (int) (dims[i] - count[i] - start[i]);
+                r_start_upper[i] = (int) dims[i] - s_count_upper[i];
+            }
+            else
+            {
+                s_count_lower[i] = (int) count[i];
+                s_start_lower[i] = (int) start[i];
+                s_count_upper[i] = (int) count[i];
+                s_start_upper[i] = (int) start[i];
+
+                r_count_lower[i] = (int) count[i];
+                r_start_lower[i] = (int) start[i];
+                r_count_upper[i] = (int) count[i];
+                r_start_upper[i] = (int) start[i];
+            };
+        }
+
+
+        MPI_CALL(MPI_Type_create_subarray(ndims,
+                                          dims,
+                                          s_count_upper,
+                                          s_start_upper,
+                                          MPI_ORDER_C,
+                                          ele_type,
+                                          &((*updater)->send_types[2 * d + 0])));
+
+        MPI_CALL(MPI_Type_create_subarray(ndims,
+                                          dims,
+                                          s_count_lower,
+                                          s_start_lower,
+                                          MPI_ORDER_C,
+                                          ele_type,
+                                          &((*updater)->send_types[2 * d + 1])));
+
+        MPI_CALL(MPI_Type_create_subarray(ndims,
+                                          dims,
+                                          r_count_lower,
+                                          r_start_lower,
+                                          MPI_ORDER_C,
+                                          ele_type,
+                                          &((*updater)->recv_types[2 * d + 0])));
+        MPI_CALL(MPI_Type_create_subarray(ndims,
+                                          dims,
+                                          r_count_upper,
+                                          r_start_upper,
+                                          MPI_ORDER_C,
+                                          ele_type,
+                                          &((*updater)->recv_types[2 * d + 1])));
+
+        MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 0])));
+        MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 1])));
+        MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 0])));
+        MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 1])));
+
+        (*updater)->send_displs[2 * d + 0] = 0;
+        (*updater)->send_displs[2 * d + 1] = 0;
+        (*updater)->recv_displs[2 * d + 0] = 0;
+        (*updater)->recv_displs[2 * d + 1] = 0;
+    }
+}
+int spParallelDAUpdaterDestroy(spParallelDAUpdater **updater)
+{
+    for (int i = 0; i < (*updater)->num_of_neighbour; ++i)
+    {
+        if ((*updater)->send_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->send_types[i])));
+
+        if ((*updater)->recv_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->recv_types[i])));
+    }
+
+    free(*updater);
+
+}
+
+int spParallelDAUpdate(spParallelDAUpdater const *updater, void *buffer)
+{
+
+
+    SP_CALL(spMPINeighborAllToAll(buffer,
+                                  updater->mpi_sendrecv_count,
+                                  updater->send_displs,
+                                  updater->send_types,
+                                  buffer,
+                                  updater->mpi_sendrecv_count,
+                                  updater->recv_displs,
+                                  updater->recv_types,
+                                  updater->comm));
+
+
+    return SP_SUCCESS;
+
+}
+
+int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataType *data_desc, int ndims,
+                                const size_type *shape, const size_type *start, const size_type *stride,
+                                const size_type *count, const size_type *block, int mpi_sync_start_dims)
+{
+    spParallelDAUpdater *updater;
+
+    SP_CALL(spParallelDAUpdaterCreate(&updater,
+                                      data_desc,
+                                      ndims,
+                                      shape,
+                                      start,
+                                      stride,
+                                      count,
+                                      block,
+                                      mpi_sync_start_dims));
+
+    for (int i = 0; i < num_of_buffer; ++i)
+    {
+        SP_CALL(spParallelDAUpdate(updater, buffers[i]));
+    }
+
+    SP_CALL(spParallelDAUpdaterDestroy(&updater));
 }
 
 int spUpdateIndexedBlock(void const *send_buffer,

@@ -5,8 +5,11 @@
 #ifndef SIMPLA_SPPHYSICALCONSTANTS_H
 #define SIMPLA_SPPHYSICALCONSTANTS_H
 
+
+#define HALFPI 3.1415926*0.5
+
 #define speed_of_light          299792458.0
-#define speed_of_light2         8.987551787368176e+16
+#define speed_of_light2         speed_of_light*speed_of_light
 #define epsilon0                8.8542e-12
 #define SI_elementary_charge    1.60217656e-19
 #define SI_electron_mass        9.10938291e-31
