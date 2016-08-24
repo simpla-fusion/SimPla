@@ -415,7 +415,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
             }
 };
 
-SP_DEVICE_DECLARE_KERNEL (spParticleGatherBorisYeeKernel,
+SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
                           boris_particle *sp,
                           Real *fJx,
                           Real *fJy,
@@ -435,16 +435,16 @@ SP_DEVICE_DECLARE_KERNEL (spParticleGatherBorisYeeKernel,
 
     for (int s = s0 * _pic_param.max_pic + threadId; s < _pic_param.max_pic; s += num_of_thread)
     {
-        if (sp->id[s] != 0) { continue; }
+//        if (sp->id[s] != 0) { continue; }
 
         Real w = sp->w[s] * sp->f[s]
             * (1 - sp->rx[s])
             * (1 - sp->ry[s])
             * (1 - sp->rz[s]);
         rho += w;
-        Jx += w * sp->vx[s];
-        Jy += w * sp->vy[s];
-        Jz += w * sp->vz[s];
+        Jx += sp->f[s] * w * sp->vx[s];
+        Jy += sp->f[s] * w * sp->vy[s];
+        Jz += sp->f[s] * w * sp->vz[s];
 
     }
     atomicAddReal(&fJx[s0], Jx);
@@ -455,12 +455,9 @@ SP_DEVICE_DECLARE_KERNEL (spParticleGatherBorisYeeKernel,
 };
 
 
-int spParticleUpdateBorisYee(spParticle *sp,
-                             Real dt,
-                             const struct spField_s *fE,
-                             const struct spField_s *fB,
-                             struct spField_s *fRho,
-                             struct spField_s *fJ)
+int spParticleUpdateBorisYee(spParticle *sp, Real dt,
+                             const struct spField_s *fE, const struct spField_s *fB,
+                             struct spField_s *fRho, struct spField_s *fJ)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
 
@@ -484,12 +481,11 @@ int spParticleUpdateBorisYee(spParticle *sp,
 
     spParticleGetAllAttributeData_device(sp, &p_data);
 
-    SP_DEVICE_CALL_KERNEL(spParticleUpdateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
-                          dt, (boris_particle *) p_data, E[0], E[1], E[2], B[0], B[1], B[2]);
+//    SP_DEVICE_CALL_KERNEL(spParticleUpdateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+//                          dt, (boris_particle *) p_data, E[0], E[1], E[2], B[0], B[1], B[2]);
+//    SP_CALL(spParticleSync(sp));
 
-    SP_CALL(spParticleSync(sp));
-
-    SP_DEVICE_CALL_KERNEL(spParticleGatherBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+    SP_DEVICE_CALL_KERNEL(spParticleAccumlateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (boris_particle *) p_data, J[0], J[1], J[2], rho);
 
     SP_CALL(spFieldSync(fJ));
