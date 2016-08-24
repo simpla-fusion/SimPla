@@ -320,9 +320,7 @@ int spParallelUpdateNdArrayHalo2(int num_of_buffer, void **buffers, const spData
 typedef struct spParallelDAUpdater_s
 {
     MPI_Comm comm;
-
     int num_of_neighbour;
-
     int mpi_sendrecv_count[6];
     MPI_Datatype send_types[6];
     MPI_Datatype recv_types[6];

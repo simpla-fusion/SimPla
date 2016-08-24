@@ -256,7 +256,7 @@ int spRandomMultiNormalDistributionInCell(size_type const *min,
         for (size_type j = min[1]; j < max[1]; ++j)
             for (size_type k = min[2]; k < max[2]; ++k)
             {
-                size_type s = (i * strides[0] + j * strides[1] + k * strides[2]);
+                size_type s = (i * strides[0] + j * strides[1] + k * strides[2]) * pic;
                 for (int l = 0; l < pic; ++l)
                 {
                     Real x[3], v[3];

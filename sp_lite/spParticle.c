@@ -152,7 +152,7 @@ size_type spParticleGetNumberOfEntities(spParticle const *sp)
 {
     return spMeshGetNumberOfEntities(spMeshAttributeGetMesh((spMeshAttribute *) (sp)), SP_DOMAIN_ALL,
                                      spMeshAttributeGetForm((spMeshAttribute *) (sp)))
-           * spParticleGetMaxPIC(sp);
+        * spParticleGetMaxPIC(sp);
 }
 
 int spParticleInitialize(spParticle *sp, int const *dist_types)
@@ -181,10 +181,8 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
     SP_CALL(spParallelMemset(((spParticleFiber *) data)->id, -1, max_number_of_entities * sizeof(int)));
 
     size_type x_min[3], x_max[3], strides[3];
+
     SP_CALL(spMeshGetArrayShape(m, SP_DOMAIN_CENTER, x_min, x_max, strides));
-    strides[0] *= spParticleGetMaxPIC(sp);
-    strides[1] *= spParticleGetMaxPIC(sp);
-    strides[2] *= spParticleGetMaxPIC(sp);
 
     size_type offset = spMeshGetNumberOfEntities(m, SP_DOMAIN_CENTER, iform) * num_of_pic;
 
@@ -292,13 +290,28 @@ int spParticleSync(spParticle *sp)
 
     size_type num_of_entities = spParticleGetMaxPIC(sp);
 
-    SP_CALL(spMeshGetGlobalArrayShape(m, SP_DOMAIN_CENTER, 1, &num_of_entities,
-                                      &array_ndims, &mesh_start_dim, NULL, NULL, l_dims, l_start, l_count, SP_FALSE));
+    spMeshGetDomain(m, SP_DOMAIN_CENTER, l_dims, l_start, l_count);
+
+    l_dims[ndims] = num_of_entities;
+    l_count[ndims] = num_of_entities;
+    l_start[ndims] = 0;
+
+//    SP_CALL(spMeshGetGlobalArrayShape(m, SP_DOMAIN_CENTER, 1, &num_of_entities,
+//                                      &array_ndims, &mesh_start_dim, NULL, NULL, l_dims, l_start, l_count, SP_FALSE));
 
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
-        SP_CALL(spParallelUpdateNdArrayHalo(1, sp->m_attrs_[i].data, sp->m_attrs_[i].data_type, array_ndims, l_dims, l_start, NULL, l_count, NULL, 0));
+        SP_CALL(spParallelUpdateNdArrayHalo(1,
+                                            &(sp->m_attrs_[i].data),
+                                            sp->m_attrs_[i].data_type,
+                                            ndims + 1,
+                                            l_dims,
+                                            l_start,
+                                            NULL,
+                                            l_count,
+                                            NULL,
+                                            0));
     }
     return SP_SUCCESS;
 
@@ -352,7 +365,7 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
         spParallelHostAlloc(&buffer, size_in_byte);
 
         spParallelMemcpy(buffer, sp
-                ->m_attrs_[i].data, size_in_byte);
+            ->m_attrs_[i].data, size_in_byte);
 
         SP_CALL(spIOStreamWriteSimple(os,
                                       sp->m_attrs_[i].name,

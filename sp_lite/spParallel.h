@@ -40,6 +40,17 @@ int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataT
                                 const size_type *dims, const size_type *start, const size_type *,
                                 const size_type *count, const size_type *, int mpi_sync_start_dims);
 
+int spParallelUpdateNdArrayHalo2(int num_of_buffer,
+                                 void **buffers,
+                                 const spDataType *data_desc,
+                                 int ndims,
+                                 const size_type *shape,
+                                 const size_type *start,
+                                 const size_type *stride,
+                                 const size_type *count,
+                                 const size_type *block,
+                                 int mpi_sync_start_dims);
+
 int spParallelDeviceFillInt(int *d, int v, size_type s);
 
 int spParallelDeviceFillReal(Real *d, Real v, size_type s);
