@@ -135,15 +135,7 @@ spParticleInitializeBoris(boris_particle *sp, size_type s, Real vT, Real f0, int
 SP_DEVICE_DECLARE_KERNEL(spParticleInitializeBorisYeeKernel,
                          boris_particle *sp, Real vT, Real f0, int uniform_sample)
 {
-
-
-//    for (size_type x = min.x + blockIdx.x; x < max.x; x += gridDim.x)
-//        for (size_type y = min.y + blockIdx.y; y < max.y; y += gridDim.y)
-//            for (size_type z = min.z + blockIdx.z; z < max.z; z += gridDim.z)
-//
     size_type threadId = threadIdx.x * blockDim.x + threadIdx.y * blockDim.y + threadIdx.z * blockDim.z;
-//    size_type num_of_thread = blockDim.x * blockDim.x * blockDim.x;
-
     size_type x = _pic_param.min.x + blockIdx.x;
     size_type y = _pic_param.min.y + blockIdx.y;
     size_type z = _pic_param.min.z + blockIdx.z;
@@ -314,11 +306,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
     __shared__  Real cE[27 * 3];
     __shared__  Real cB[27 * 3];
 
-
-#ifdef __CUDACC__
-    __syncthreads();
-#endif
-
+    spParallelSyncThreads();
 
     if (num_of_thread < 27 * 3 && threadId == 0)
     {
@@ -355,9 +343,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
     __shared__ int dest_tail;
 
 
-#ifdef __CUDACC__
-    __syncthreads();
-#endif
+    spParallelSyncThreads();
 
     struct boris_particle_p_s p;
     int s0 = _spMeshHash(x, y, z) * _pic_param.max_pic;
@@ -398,18 +384,10 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
                     if (sp->id[src] & 0x3F == tag)
                     {
                         spParticlePopBoris(sp, s1 + src, &p);
-
                         spParticleMoveBoris(dt, &p, (Real const *) cE, (Real const *) cB);
-
                         int dest = src;
-                        if (s0 != s1)
-                        {
-                            while ((sp->id[s0 + (dest = atomicAddInt(&dest_tail, 1))] & 0x3F) != flag) {};
-                        }
-
-
+                        if (s0 != s1) { while ((sp->id[s0 + (dest = atomicAddInt(&dest_tail, 1))] & 0x3F) != flag) {}; }
                         spParticlePopBoris(sp, s0 + dest, &p);
-
                     }
                 }
             }
@@ -437,10 +415,8 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
     {
 //        if (sp->id[s] != 0) { continue; }
 
-        Real w = sp->w[s] * sp->f[s]
-            * (1 - sp->rx[s])
-            * (1 - sp->ry[s])
-            * (1 - sp->rz[s]);
+        Real w = sp->w[s] * sp->f[s] * (1 - sp->rx[s]) * (1 - sp->ry[s]) * (1 - sp->rz[s]);
+
         rho += w;
         Jx += sp->f[s] * w * sp->vx[s];
         Jy += sp->f[s] * w * sp->vy[s];

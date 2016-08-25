@@ -9,7 +9,6 @@
 #include "../../spParallel.h"
 
 
-
 #ifdef NUM_OF_THREADS_PER_BLOCK
 #   define SP_NUM_OF_THREADS_PER_BLOCK NUM_OF_THREADS_PER_BLOCK
 #else
@@ -46,7 +45,7 @@
 #define __register__
 
 #define spParallelMemcpyToSymbol(_dest_, _src_, _s_)      cudaMemcpyToSymbol(_dest_, _src_, _s_);
-
+#define spParallelSyncThreads() __syncthreads()
 
 INLINE __device__ int atomicAddInt(int *ptr, int val)
 {

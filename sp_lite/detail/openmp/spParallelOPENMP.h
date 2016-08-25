@@ -52,6 +52,7 @@ typedef uint3 dim3;
 #define SP_DEVICE_CALL(_CMD_)  SP_CALL(_CMD_)
 
 #define spParallelMemcpyToSymbol(_dest_, _src_, _s_)     spParallelMemcpyToCache(&_dest_, _src_, _s_);
+#define spParallelSyncThreads()
 
 
 INLINE unsigned int __umul24(unsigned int a, unsigned int b) { return a * b; }
