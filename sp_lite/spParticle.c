@@ -69,8 +69,8 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
 {
     SP_CALL(spMeshAttributeCreate((spMeshAttribute **) sp, sizeof(spParticle), mesh, VOLUME));
 
-    (*sp)->m_max_pic_ = SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
-    (*sp)->m_pic_ = SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE * 2 / 3;
+    (*sp)->m_max_pic_ = 0;
+    (*sp)->m_pic_ = 0;
     (*sp)->m_num_of_attrs_ = 0;
     (*sp)->charge = 1;
     (*sp)->mass = 1;
@@ -162,7 +162,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
     int iform = spMeshAttributeGetForm((spMeshAttribute *) sp);
 
     size_type num_of_pic = spParticleGetPIC(sp);
-
+    size_type max_pic = spParticleGetMaxPIC(sp);
     size_type max_number_of_entities = spParticleGetNumberOfEntities(sp);
 
     int num_of_dimensions = spParticleGetNumberOfAttributes(sp);
@@ -189,6 +189,11 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, offset));
 
+
+    strides[0] *= max_pic;
+    strides[1] *= max_pic;
+    strides[2] *= max_pic;
+
     SP_CALL(spRandomMultiDistributionInCell(sp_gen,
                                             l_dist_types,
                                             (Real **) (data + 1),
@@ -209,7 +214,7 @@ int spParticleSetPIC(spParticle *sp, unsigned int pic, unsigned int max_pic)
 
     if (max_pic == 0)
     {
-        sp->m_max_pic_ = 256;
+        sp->m_max_pic_ = 1 << (__builtin_clz(0) - __builtin_clz(pic * 3 / 2));
         //(size_type) (pic / SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE + 1) * SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE;
     }
     return SP_SUCCESS;

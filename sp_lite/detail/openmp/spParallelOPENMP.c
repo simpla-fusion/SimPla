@@ -11,7 +11,7 @@
 int spParallelDeviceInitialize(int argc, char **argv)
 {
 #ifndef NDEBUG
-    omp_set_num_threads(4);
+    omp_set_num_threads(1);
 #endif
     return SP_SUCCESS;
 }

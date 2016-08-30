@@ -69,7 +69,7 @@ INLINE int atomicAddInt(int *ptr, int val)
     }
     return t;
 }
-INLINE Real atomicAddReal(Real *ptr, float val)
+INLINE Real atomicAddReal(Real *ptr, Real val)
 {
     Real t;
 #pragma omp atomic capture

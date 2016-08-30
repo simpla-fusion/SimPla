@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
     int num_of_steps = argc < 2 ? 100 : atoi(argv[1]);
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
-    size_type PIC = 256;
+    size_type PIC = 100;
     Real n0 = 1.0e18;
     Real T0 = 0.026;
     size_type dims[3] = {0x8, 0x8, 0x1};
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
     SP_CALL(spParticleSetMass(sp, SI_electron_mass));
     SP_CALL(spParticleSetCharge(sp, SI_elementary_charge));
     SP_CALL(spParticleSetPIC(sp, PIC, 0));
-    SP_CALL(spParticleInitializeBorisYee(sp, n0, T0, 0));
+    SP_CALL(spParticleInitializeBorisYee(sp, n0, T0));
 
     /*****************************************************************************************************************/
 
