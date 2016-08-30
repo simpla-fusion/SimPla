@@ -406,7 +406,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
 
     int s0 = _spMeshHash(x, y, z);
 
-    Real Jx = 1, Jy = 0, Jz = 0, rho = 0;
+    Real Jx = 0, Jy = 0, Jz = 0, rho = 0;
 
     for (int s = s0 * _pic_param.max_pic + threadId, se = s + _pic_param.max_pic; s < se; s += num_of_thread)
     {
@@ -455,18 +455,18 @@ int spParticleUpdateBorisYee(spParticle *sp, Real dt,
     void **p_data;
 
     spParticleGetAllAttributeData_device(sp, &p_data);
-//
-//    SP_DEVICE_CALL_KERNEL(spParticleUpdateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
-//                          dt, (boris_particle *) p_data, E[0], E[1], E[2], B[0], B[1], B[2]);
-//
-//    SP_CALL(spParticleSync(sp));
+
+    SP_DEVICE_CALL_KERNEL(spParticleUpdateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+                          dt, (boris_particle *) p_data, E[0], E[1], E[2], B[0], B[1], B[2]);
+
+    SP_CALL(spParticleSync(sp));
 
     SP_DEVICE_CALL_KERNEL(spParticleAccumlateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (boris_particle *) p_data, J[0], J[1], J[2], rho);
 
-//    SP_CALL(spFieldSync(fJ));
-//
-//    SP_CALL(spFieldSync(fRho));
+    SP_CALL(spFieldSync(fJ));
+
+    SP_CALL(spFieldSync(fRho));
 
     return SP_SUCCESS;
 }
