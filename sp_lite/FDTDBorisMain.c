@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
     size_type PIC = 200;
     Real n0 = 1.0e18;
-    Real T0 = 0.026;
+    Real T0 = 0.026 * SI_elementary_charge / SI_Boltzmann_constant;
     size_type dims[3] = {0x20, 0x20, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 
     for (int count = 0; count < num_of_steps; ++count)
     {
-        SP_CALL(spFieldClear(fdRho));
+        SP_CALL(spFieldClear(fRho));
         SP_CALL(spFieldClear(fJ));
 
         SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));

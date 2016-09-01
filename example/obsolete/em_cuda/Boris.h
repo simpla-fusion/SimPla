@@ -78,7 +78,7 @@ struct boris_point_s
 //{ };
 //MC_HOST_DEVICE_PREFIX
 //inline void spBorisPushOne(struct boris_point_s const *p0, struct boris_point_s *p1, Real dt, Real q, Real m,
-//		Real const tE[3][CACHE_SIZE], Real const tB[3][CACHE_SIZE], Real tJ[4][CACHE_SIZE], const Real *inv_dx)
+//		Real const tE[3][CACHE_SIZE], Real const tB[3][CACHE_SIZE], Real tJ[4][CACHE_SIZE], const Real *invD)
 //{
 //
 //	Real E[3], B[3];
@@ -91,9 +91,9 @@ struct boris_point_s
 //	cache_gather(&B[1], tB[1], p0->r, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
 //	cache_gather(&B[2], tB[2], p0->r, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
 //
-//	p1->r[0] = p0->r[0] + p0->v[0] * dt * 0.5 * inv_dx[0];
-//	p1->r[1] = p0->r[1] + p0->v[1] * dt * 0.5 * inv_dx[1];
-//	p1->r[2] = p0->r[2] + p0->v[2] * dt * 0.5 * inv_dx[2];
+//	p1->r[0] = p0->r[0] + p0->v[0] * dt * 0.5 * invD[0];
+//	p1->r[1] = p0->r[1] + p0->v[1] * dt * 0.5 * invD[1];
+//	p1->r[2] = p0->r[2] + p0->v[2] * dt * 0.5 * invD[2];
 //
 //	Real v_[3], t[3];
 //
@@ -119,9 +119,9 @@ struct boris_point_s
 //	p1->v[1] += E[1] * (q / m * dt * 0.5);
 //	p1->v[2] += E[2] * (q / m * dt * 0.5);
 //
-//	p1->r[0] += p1->v[0] * dt * 0.5 * inv_dx[0];
-//	p1->r[1] += p1->v[1] * dt * 0.5 * inv_dx[1];
-//	p1->r[2] += p1->v[2] * dt * 0.5 * inv_dx[2];
+//	p1->r[0] += p1->v[0] * dt * 0.5 * invD[0];
+//	p1->r[1] += p1->v[1] * dt * 0.5 * invD[1];
+//	p1->r[2] += p1->v[2] * dt * 0.5 * invD[2];
 //
 //	cache_scatter(tJ[0], p1->f * p1->w * q, p1->r, id_to_shift_[sub_index_to_id_[0/*VERTEX*/][0]]);
 //	cache_scatter(tJ[1], p1->f * p1->w * p1->v[0] * q, p1->r, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
