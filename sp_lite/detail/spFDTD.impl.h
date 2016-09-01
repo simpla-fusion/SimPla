@@ -249,5 +249,82 @@ int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, s
     return SP_SUCCESS;
 }
 
+SP_DEVICE_DECLARE_KERNEL (spFDTDDivKernel, Real const *Jx, Real const *Jy, Real const *Jz, Real *rho)
+{
+
+    unsigned int x = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int y = threadIdx.y + blockIdx.y * blockDim.y;
+    unsigned int z = threadIdx.z + blockIdx.z * blockDim.z;
+    if (SPMeshInBox(x, y, z))
+    {
+        int s = SPMeshHash(x, y, z);
+        rho[s] +=
+                (Jx[s + _fdtd_param.strides.x] - Jx[s]) * _fdtd_param.inv_dx.x +
+                (Jy[s + _fdtd_param.strides.y] - Jy[s]) * _fdtd_param.inv_dx.y +
+                (Jz[s + _fdtd_param.strides.z] - Jz[s]) * _fdtd_param.inv_dx.z;
+
+    }
+}
+
+int spFDTDDiv(const spField *fJ, spField *fRho)
+{
+    assert(spFieldIsSoA(fRho));
+    assert(spFieldIsSoA(fJ));
+
+
+    Real *rho, *J[3];
+
+    SP_CALL(spFieldSubArray((spField *) fRho, (void **) &rho));
+
+    SP_CALL(spFieldSubArray((spField *) fJ, (void **) J));
+
+
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) fRho);
+
+    size_type grid_dim[3], block_dim[3];
+
+    spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
+
+    SP_DEVICE_CALL_KERNEL(spFDTDDivKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+                          (const Real *) J[0], (const Real *) J[1], (const Real *) J[2], rho);
+
+    SP_CALL(spFieldSync(fRho));
+
+
+    return SP_SUCCESS;
+}
+
+SP_DEVICE_DECLARE_KERNEL (spFDTDMultiplyByScalarKernel, Real *rho, Real a)
+{
+
+    unsigned int x = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int y = threadIdx.y + blockIdx.y * blockDim.y;
+    unsigned int z = threadIdx.z + blockIdx.z * blockDim.z;
+
+    if (SPMeshInBox(x, y, z)) { rho[SPMeshHash(x, y, z)] *= a; }
+}
+
+int spFDTDMultiplyByScalar(spField *fRho, Real a)
+{
+    assert(spFieldIsSoA(fRho));
+
+    Real *rho;
+
+    SP_CALL(spFieldSubArray((spField *) fRho, (void **) &rho));
+
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) fRho);
+
+    size_type grid_dim[3], block_dim[3];
+
+    spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
+
+    SP_DEVICE_CALL_KERNEL(spFDTDMultiplyByScalarKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), rho, a);
+
+    SP_CALL(spFieldSync(fRho));
+
+
+    return SP_SUCCESS;
+}
+
 
 #endif //SIMPLA_SPFDTD_IMPL_H_H

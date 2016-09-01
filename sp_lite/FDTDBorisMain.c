@@ -65,19 +65,22 @@ int main(int argc, char **argv)
 
     spField *fE = NULL;
     spField *fB = NULL;
-    spField *fRho = NULL;
     spField *fJ = NULL;
+    spField *fRho = NULL;
+    spField *fdRho = NULL;
 
     SP_CALL(spFieldCreate(&fE, mesh, EDGE, SP_TYPE_Real));
     SP_CALL(spFieldCreate(&fB, mesh, FACE, SP_TYPE_Real));
     SP_CALL(spFieldCreate(&fJ, mesh, EDGE, SP_TYPE_Real));
     SP_CALL(spFieldCreate(&fRho, mesh, VERTEX, SP_TYPE_Real));
+    SP_CALL(spFieldCreate(&fdRho, mesh, VERTEX, SP_TYPE_Real));
 
 
     SP_CALL(spFieldClear(fE));
     SP_CALL(spFieldClear(fB));
     SP_CALL(spFieldClear(fJ));
     SP_CALL(spFieldClear(fRho));
+    SP_CALL(spFieldClear(fdRho));
     SP_CALL(spFDTDInitialValueSin(fE, k, amp));
 
 
@@ -105,10 +108,12 @@ int main(int argc, char **argv)
 
     for (int count = 0; count < num_of_steps; ++count)
     {
-        SP_CALL(spFieldClear(fRho));
+        SP_CALL(spFieldClear(fdRho));
         SP_CALL(spFieldClear(fJ));
 
         SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
+
+        SP_CALL(spFDTDDiv(fJ, fdRho));
 
         SP_CALL(spFDTDUpdate(dt, fRho, fJ, fE, fB));
 
@@ -121,6 +126,7 @@ int main(int argc, char **argv)
             SP_CALL(spFieldWrite(fB, os, "B", SP_FILE_RECORD));
             SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_RECORD));
             SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_RECORD));
+            SP_CALL(spFieldWrite(fdRho, os, "dRho", SP_FILE_RECORD));
         }
 
     }
@@ -136,6 +142,7 @@ int main(int argc, char **argv)
     SP_CALL(spFieldDestroy(&fB));
     SP_CALL(spFieldDestroy(&fJ));
     SP_CALL(spFieldDestroy(&fRho));
+    SP_CALL(spFieldDestroy(&fdRho));
 
     SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
     SP_CALL(spParticleDestroy(&sp));

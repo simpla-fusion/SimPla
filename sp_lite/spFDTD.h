@@ -13,12 +13,15 @@ struct spMesh_s;
 
 int spFDTDInitialValueSin(spField *, Real const *k, Real const *amp);
 
-
 int spFDTDUpdate(Real dt,
                  const struct spField_s *fRho,
                  const struct spField_s *fJ,
                  struct spField_s *fE,
                  struct spField_s *fB);
+
+int spFDTDDiv(const spField *fJ, spField *fRho);
+
+int spFDTDMultiplyByScalar(spField *fRho, Real a);
 
 
 #endif //SIMPLA_FDTD_H
