@@ -25,7 +25,7 @@ typedef struct
     uint3 min;
     uint3 max;
     uint3 strides;
-    Real3 inv_dx;
+    Real3 invD;
 
     int max_pic;
 
@@ -51,7 +51,7 @@ int spPICBorisSetupParam(spParticle *sp, int tag, size_type *grid_dim, size_type
     param.min = sizeType2Dim3(min);
     param.max = sizeType2Dim3(max);
     param.strides = sizeType2Dim3(strides);
-    param.inv_dx = real2Real3(inv_dx);
+    param.invD = real2Real3(inv_dx);
     param.cmr = spParticleGetCharge(sp) / spParticleGetMass(sp);
     param.charge = spParticleGetCharge(sp);
     param.mass = spParticleGetMass(sp);
@@ -76,13 +76,13 @@ cache_gather(Real const *f, Real rx, Real ry, Real rz)
     static const int s_c = 13, IX = 1, IY = 3, IZ = 9;
 
     return (f[s_c + IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
-        + f[s_c + IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
-        + f[s_c + IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
-        + f[s_c + IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
-        + f[s_c + IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
-        + f[s_c + IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
-        + f[s_c + IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
-        + f[s_c + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
+            + f[s_c + IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
+            + f[s_c + IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
+            + f[s_c + IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
+            + f[s_c + IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
+            + f[s_c + IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
+            + f[s_c + IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
+            + f[s_c + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
 }
 
 INLINE __device__
@@ -110,13 +110,14 @@ INLINE __device__
 int _spMeshHash(int x, int y, int z)
 {
     return __mul24(x, _pic_param.strides.x) +
-        __mul24(y, _pic_param.strides.y) +
-        __mul24(z, _pic_param.strides.z);
+           __mul24(y, _pic_param.strides.y) +
+           __mul24(z, _pic_param.strides.z);
 }
+
 INLINE __device__  int _SPMeshInBox(int x, int y, int z)
 {
     return (_pic_param.min.x + x < _pic_param.max.x && _pic_param.min.y + y < _pic_param.max.y
-        && _pic_param.min.z + z < _pic_param.max.z);
+            && _pic_param.min.z + z < _pic_param.max.z);
 }
 
 INLINE  __device__ void
@@ -169,7 +170,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
     SP_CALL(spParticleDeploy(sp));
 
     int dist_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM,
-        SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
+                        SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
 
     SP_CALL(spParticleInitialize(sp, dist_type));
 
@@ -179,7 +180,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 
     Real vT = (Real) sqrt(2.0 * SI_Boltzmann_constant * T0 / spParticleGetMass(sp));
 
-    Real f0 = n0 * dx[0] * dx[1] * dx[2] / spParticleGetPIC(sp);
+    Real f0 = n0 * dx[0] * dx[1] * dx[2] / spParticleGetPIC(sp) * spParticleGetCharge(sp);
 
     void **device_data;
 
@@ -252,9 +253,9 @@ __device__ INLINE void
 spParticleMoveBoris(Real dt, boris_p *p, Real const *E, Real const *B)
 {
 
-    p->rx += p->vx * _pic_param.inv_dx.x * dt;
-    p->ry += p->vy * _pic_param.inv_dx.y * dt;
-    p->rz += p->vz * _pic_param.inv_dx.z * dt;
+    p->rx += p->vx * _pic_param.invD.x * dt;
+    p->ry += p->vy * _pic_param.invD.y * dt;
+    p->rz += p->vz * _pic_param.invD.z * dt;
 
 
     __register__ Real ax, ay, az;
@@ -333,8 +334,12 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
                     cB[s1 + 27 * 2] = Bz[s2];
 
                 }
+<<<<<<< HEAD
+    } else if (threadId < 27 * 3)
+=======
     }
     else if (threadId < 27 * 3)
+>>>>>>> origin/master
     {
 
         int s2 = _spMeshHash(x + ((threadId % 3) - 1), y + ((threadId / 3) % 3 - 1), z + ((threadId / 9) - 1));
@@ -364,9 +369,15 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
             spParticlePopBoris(sp, s0 + src, &p);
 
 
+<<<<<<< HEAD
+//            sp->rx[src] += sp->vx[src] * _pic_param.invD.x * dt;
+//            sp->ry[src] += sp->vy[src] * _pic_param.invD.y * dt;
+//            sp->rz[src] += sp->vz[src] * _pic_param.invD.z * dt;
+=======
 //            sp->rx[src] += sp->vx[src] * _pic_param.inv_dx.x * dt;
 //            sp->ry[src] += sp->vy[src] * _pic_param.inv_dx.y * dt;
 //            sp->rz[src] += sp->vz[src] * _pic_param.inv_dx.z * dt;
+>>>>>>> origin/master
         }
     }
 
@@ -431,21 +442,23 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
         if (sp->id[s] == 0)
         {
 
-            Real f = 1;// sp->f[s];
-            J[0 + (int) (sp->rx[s] * 2)] += sp->vx[s] * _pic_param.inv_dx.x * f;
-            J[2 + (int) (sp->ry[s] * 2)] += sp->vy[s] * _pic_param.inv_dx.y * f;
-            J[4 + (int) (sp->rz[s] * 2)] += sp->vz[s] * _pic_param.inv_dx.z * f;
-
+            Real f = sp->f[s];
+            J[0] += (sp->rx[s] >= 0.5) ? 0 : sp->vx[s] * _pic_param.invD.x * f;
+            J[1] += (sp->rx[s] < 0.5) ? 0 : -sp->vx[s] * _pic_param.invD.x * f;
+            J[2] += (sp->ry[s] >= 0.5) ? 0 : sp->vy[s] * _pic_param.invD.y * f;
+            J[3] += (sp->ry[s] < 0.5) ? 0 : -sp->vy[s] * _pic_param.invD.y * f;
+            J[4] += (sp->rz[s] >= 0.5) ? 0 : sp->vz[s] * _pic_param.invD.z * f;
+            J[5] += (sp->rz[s] < 0.5) ? 0 : -sp->vz[s] * _pic_param.invD.z * f;
             rho += (1 - sp->rx[s]) * (1 - sp->ry[s]) * (1 - sp->rz[s]) * f;
 
         }
     };
 
-    atomicAddReal(&fJx[s0], J[0]);
+    atomicAddReal(&fJx[s0/*                   */], J[0]);
     atomicAddReal(&fJx[s0 + _pic_param.strides.x], J[0]);
-    atomicAddReal(&fJy[s0], J[2]);
+    atomicAddReal(&fJy[s0/*                   */], J[2]);
     atomicAddReal(&fJy[s0 + _pic_param.strides.y], J[3]);
-    atomicAddReal(&fJz[s0], J[4]);
+    atomicAddReal(&fJz[s0/*                   */], J[4]);
     atomicAddReal(&fJz[s0 + _pic_param.strides.z], J[5]);
     atomicAddReal(&fRho[s0], rho);
 
