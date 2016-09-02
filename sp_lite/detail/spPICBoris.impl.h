@@ -68,9 +68,7 @@ int spPICBorisSetupParam(spParticle *sp, int tag, size_type *grid_dim, size_type
 #define ll 0
 #define rr 1
 
-INLINE __device__
-
-Real
+INLINE __device__ Real
 cache_gather(Real const *f, Real rx, Real ry, Real rz)
 {
     static const int s_c = 13, IX = 1, IY = 3, IZ = 9;
@@ -85,9 +83,7 @@ cache_gather(Real const *f, Real rx, Real ry, Real rz)
             + f[s_c + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
 }
 
-INLINE __device__
-
-void
+INLINE __device__ void
 cache_scatter(Real v, Real *f, Real rx, Real ry, Real rz)
 {
     static const int s_c = 13, IX = 1, IY = 3, IZ = 9;
@@ -105,9 +101,7 @@ cache_scatter(Real v, Real *f, Real rx, Real ry, Real rz)
 #undef ll
 #undef rr
 
-INLINE __device__
-
-int _spMeshHash(int x, int y, int z)
+INLINE __device__ int _spMeshHash(int x, int y, int z)
 {
     return __mul24(x, _pic_param.strides.x) +
            __mul24(y, _pic_param.strides.y) +
@@ -233,7 +227,7 @@ spParticlePopBoris(boris_particle *sp, int s, boris_p *p)
 }
 
 __device__ INLINE void
-spParticlePushBoris(boris_particle *sp, int s, boris_p const *p)
+spParticlePushBoris(boris_particle *sp, int s, boris_p *p)
 {
     sp->id[s] = p->id;
 
@@ -259,8 +253,8 @@ spParticleMoveBoris(Real dt, boris_p *p, Real const *E, Real const *B)
 
 
     __register__ Real ax, ay, az;
-    __register__ Real tx, ty, tz;
-    __register__ Real tt;
+//    __register__ Real tx, ty, tz;
+//    __register__ Real tt;
 
     ax = cache_gather(E + 0, p->rx - 0.5f, p->ry, p->rz);
     ay = cache_gather(E + 27, p->rx, p->ry - 0.5f, p->rz);
@@ -347,69 +341,42 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
         cE[threadId + 54] = Ez[s2];
         cB[threadId + 54] = Bz[s2];
     }
-
-
-//    spParallelSyncThreads();
+    spParallelSyncThreads();
 
     struct boris_particle_p_s p;
 
-    int s0 = _spMeshHash(x, y, z) * _pic_param.max_pic;
-
-    for (int src = threadId; src < _pic_param.max_pic; src += num_of_thread)
+    int src0 = _spMeshHash(x, y, z) * _pic_param.max_pic;
+    /**
+     *   -1 -> 0b11
+     *   00 -> 0b00
+     *    1 -> 0b01
+     *    (i+4)& 0x3
+     */
+    for (int s = threadId; s < _pic_param.max_pic; s += num_of_thread)
     {
-
-        if ((sp->id[src] & 0x3F) == 0x0)
+        if ((sp->id[src0 + s] & 0x3F) == 0x0)
         {
-            spParticlePopBoris(sp, s0 + src, &p);
+            spParticlePopBoris(sp, src0 + s, &p);
+
+
             spParticleMoveBoris(dt, &p, (Real const *) cE, (Real const *) cB);
-            spParticlePopBoris(sp, s0 + src, &p);
+
+            p.rx += 4;
+            p.ry += 4;
+            p.rz += 4;
+            p.id = p.id & (~0x3F)
+                   | (((int) (p.rx) & 0x3) << 0)
+                   | (((int) (p.ry) & 0x3) << 2)
+                   | (((int) (p.rz) & 0x3) << 4);
+
+            p.rx -= (int) (p.rx);
+            p.ry -= (int) (p.ry);
+            p.rz -= (int) (p.rz);
 
 
-            //            sp->rx[src] += sp->vx[src] * _pic_param.invD.x * dt;
-            //            sp->ry[src] += sp->vy[src] * _pic_param.invD.y * dt;
-            //            sp->rz[src] += sp->vz[src] * _pic_param.invD.z * dt;
-            //            sp->rx[src] += sp->vx[src] * _pic_param.inv_dx.x * dt;
-//            sp->ry[src] += sp->vy[src] * _pic_param.inv_dx.y * dt;
-//            sp->rz[src] += sp->vz[src] * _pic_param.inv_dx.z * dt;
+            spParticlePushBoris(sp, src0 + s, &p);
         }
     }
-
-
-
-
-
-
-
-
-//    for (int i = -1; i <= 1; ++i)
-//        for (int j = -1; j <= 1; ++j)
-//            for (int k = -1; k < 1; ++k)
-//            {
-//
-//                if (i == 0 && j == 0 && k == 0) { continue; }
-//
-//                int s1 = _spMeshHash(x + i, y + j, z + k) * _pic_param.max_pic;
-//
-//                /**
-//                 *   -1 -> 0b10
-//                 *   00 -> 0b00
-//                 *    1 -> 0b01
-//                 *    (i+3)%3
-//                 */
-//                int tag = 0;
-//                int flag = (i == 0 && j == 0 && k == 0) ? 0x0 : 0x3F;
-//                for (int src = threadId; src < _pic_param.max_pic; src += num_of_thread)
-//                {
-//                    if (sp->id[src] & 0x3F == tag)
-//                    {
-//
-//                        spParticlePopBoris(sp, s1 + src, &p);
-//                        spParticleMoveBoris(dt, &p, (Real const *) cE, (Real const *) cB);
-//                        int dest = src;
-//                        if (s0 != s1) { while ((sp->id[s0 + (dest = atomicAddInt(&dest_tail, 1))] & 0x3F) != flag) {}; }
-//                        spParticlePopBoris(sp, s0 + dest, &p);
-//                    }
-//                }
 //            }
 };
 
