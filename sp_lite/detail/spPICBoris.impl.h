@@ -334,12 +334,8 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
                     cB[s1 + 27 * 2] = Bz[s2];
 
                 }
-<<<<<<< HEAD
+
     } else if (threadId < 27 * 3)
-=======
-    }
-    else if (threadId < 27 * 3)
->>>>>>> origin/master
     {
 
         int s2 = _spMeshHash(x + ((threadId % 3) - 1), y + ((threadId / 3) % 3 - 1), z + ((threadId / 9) - 1));
@@ -369,15 +365,12 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
             spParticlePopBoris(sp, s0 + src, &p);
 
 
-<<<<<<< HEAD
-//            sp->rx[src] += sp->vx[src] * _pic_param.invD.x * dt;
-//            sp->ry[src] += sp->vy[src] * _pic_param.invD.y * dt;
-//            sp->rz[src] += sp->vz[src] * _pic_param.invD.z * dt;
-=======
-//            sp->rx[src] += sp->vx[src] * _pic_param.inv_dx.x * dt;
+            //            sp->rx[src] += sp->vx[src] * _pic_param.invD.x * dt;
+            //            sp->ry[src] += sp->vy[src] * _pic_param.invD.y * dt;
+            //            sp->rz[src] += sp->vz[src] * _pic_param.invD.z * dt;
+            //            sp->rx[src] += sp->vx[src] * _pic_param.inv_dx.x * dt;
 //            sp->ry[src] += sp->vy[src] * _pic_param.inv_dx.y * dt;
 //            sp->rz[src] += sp->vz[src] * _pic_param.inv_dx.z * dt;
->>>>>>> origin/master
         }
     }
 
