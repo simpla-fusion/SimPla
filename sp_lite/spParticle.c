@@ -62,7 +62,6 @@ struct spParticle_s
     spParticleAttrEntity m_attrs_[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
     void **m_current_data_;
-
 };
 
 int spParticleCreate(spParticle **sp, const spMesh *mesh)
@@ -149,7 +148,7 @@ size_type spParticleGetNumberOfEntities(spParticle const *sp)
 {
     return spMeshGetNumberOfEntities(spMeshAttributeGetMesh((spMeshAttribute *) (sp)), SP_DOMAIN_ALL,
                                      spMeshAttributeGetForm((spMeshAttribute *) (sp)))
-        * spParticleGetMaxPIC(sp);
+           * spParticleGetMaxPIC(sp);
 }
 
 int spParticleInitialize(spParticle *sp, int const *dist_types)
@@ -243,6 +242,7 @@ int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
 
     *data = sp->m_current_data_;
 
+
     return SP_SUCCESS;
 }
 
@@ -263,6 +263,7 @@ int spParticleSetCharge(spParticle *sp, Real e)
 Real spParticleGetMass(spParticle const *sp) { return sp->mass; }
 
 Real spParticleGetCharge(spParticle const *sp) { return sp->charge; }
+
 
 /**
  *

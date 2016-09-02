@@ -36,4 +36,5 @@ int spParticleUpdateBorisYee(spParticle *sp,
                              struct spField_s *fRho,
                              struct spField_s *fJ);
 
+
 #endif //SIMPLA_BORISYEE_H

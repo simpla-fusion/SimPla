@@ -69,6 +69,7 @@ INLINE int atomicAddInt(int *ptr, int val)
     }
     return t;
 }
+
 INLINE Real atomicAddReal(Real *ptr, Real val)
 {
     Real t;
@@ -76,6 +77,28 @@ INLINE Real atomicAddReal(Real *ptr, Real val)
     {
         t = *ptr;
         *ptr += val;
+    }
+    return t;
+}
+
+INLINE int atomicCAS(int *address, int compare, int val)
+{
+    int t;
+//#pragma omp atomic capture
+//    {
+//        if (*address == compare) { *address = val; }
+//        t = *address;
+//    }
+    return t;
+}
+
+INLINE int atomicExch(int *address, int val)
+{
+    int t;
+#pragma omp atomic capture
+    {
+        t = *address;
+        *address = val;
     }
     return t;
 }

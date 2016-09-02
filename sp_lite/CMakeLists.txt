@@ -28,6 +28,5 @@ FILE(GLOB sp_lite_SRC ./*.c)
 ADD_EXECUTABLE(sp_boris_mt ${sp_lite_SRC})
 TARGET_LINK_LIBRARIES(sp_boris_mt sp_capi sp_lite_openmp)
 
-
 ADD_EXECUTABLE(sp_boris_gpu ${sp_lite_SRC})
 TARGET_LINK_LIBRARIES(sp_boris_gpu sp_capi sp_lite_cuda)
