@@ -24,14 +24,14 @@
 INLINE __device__ int _spMeshHash(int x, int y, int z)
 {
     return __mul24(x, _pic_param.strides.x) +
-           __mul24(y, _pic_param.strides.y) +
-           __mul24(z, _pic_param.strides.z);
+        __mul24(y, _pic_param.strides.y) +
+        __mul24(z, _pic_param.strides.z);
 }
 
 INLINE __device__  int _SPMeshInBox(int x, int y, int z)
 {
     return (_pic_param.min.x + x < _pic_param.max.x && _pic_param.min.y + y < _pic_param.max.y
-            && _pic_param.min.z + z < _pic_param.max.z);
+        && _pic_param.min.z + z < _pic_param.max.z);
 }
 
 INLINE  __device__ void
@@ -84,7 +84,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
     SP_CALL(spParticleDeploy(sp));
 
     int dist_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM,
-                        SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
+        SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
 
     SP_CALL(spParticleInitialize(sp, dist_type));
 
@@ -155,7 +155,6 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
         cB[4] = Bz[s0 - _pic_param.strides.z];
         cB[5] = Bz[s0 /*                  */];
 
-
     }
     spParallelSyncThreads();
 
@@ -213,13 +212,14 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
                     spParallelSyncThreads();
 
                     while (src[threadId] < src0 + _pic_param.max_pic &&
-                           sp->id[src[threadId]] != tag) { src[threadId] = atomicAddInt(&src_tail, 1); }
+                        sp->id[src[threadId]] != tag) { src[threadId] = atomicAddInt(&src_tail, 1); }
 
                     if (i != 0 || j != 0 || k != 0)
                     {
                         while (dest[threadId] < dest0 + _pic_param.max_pic &&
-                               sp->id[dest[threadId]] != 0x26) { dest[threadId] = atomicAddInt(&dest_tail, 1); }
-                    } else
+                            sp->id[dest[threadId]] != 0x26) { dest[threadId] = atomicAddInt(&dest_tail, 1); }
+                    }
+                    else
                     {
                         dest[threadId] = src[threadId];
                     }
@@ -244,9 +244,9 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
                     p.ry += 4.5;
                     p.rz += 4.5;
                     p.id = p.id & (~0x3F)
-                           | (((int) (p.rx) & 0x3) << 0)
-                           | (((int) (p.ry) & 0x3) << 2)
-                           | (((int) (p.rz) & 0x3) << 4);
+                        | (((int) (p.rx) & 0x3) << 0)
+                        | (((int) (p.ry) & 0x3) << 2)
+                        | (((int) (p.rz) & 0x3) << 4);
 
                     p.rx -= (int) (p.rx) + .5;
                     p.ry -= (int) (p.ry) + .5;

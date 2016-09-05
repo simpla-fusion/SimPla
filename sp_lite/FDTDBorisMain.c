@@ -29,10 +29,10 @@ int main(int argc, char **argv)
 
     int num_of_steps = argc < 2 ? 100 : atoi(argv[1]);
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
-    size_type PIC = 200;
+    size_type PIC = 20;
     Real n0 = 1.0e18;
     Real T0 = 0.026 * SI_elementary_charge / SI_Boltzmann_constant;
-    size_type dims[3] = {0x20, 0x20, 0x1};
+    size_type dims[3] = {0x8, 0x8, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
@@ -40,6 +40,7 @@ int main(int argc, char **argv)
     Real dt = nanf("");
 
     Real amp[3] = {0.0, 0.0, 1.0};
+
     Real k[3] = {TWOPI / (upper[0] - lower[0]), TWOPI / (upper[1] - lower[1]), 0};
 
     /*****************************************************************************************************************/
@@ -58,7 +59,6 @@ int main(int argc, char **argv)
     SP_CALL(spMeshSetBox(mesh, lower, upper));
     SP_CALL(spMeshDeploy(mesh));
 
-
     if (isnan(dt)) { dt = spMeshCFLDt(mesh, speed_of_light); }
 
     /*****************************************************************************************************************/
@@ -75,14 +75,13 @@ int main(int argc, char **argv)
     SP_CALL(spFieldCreate(&fRho, mesh, VERTEX, SP_TYPE_Real));
     SP_CALL(spFieldCreate(&fdRho, mesh, VERTEX, SP_TYPE_Real));
 
-
     SP_CALL(spFieldClear(fE));
     SP_CALL(spFieldClear(fB));
     SP_CALL(spFieldClear(fJ));
     SP_CALL(spFieldClear(fRho));
     SP_CALL(spFieldClear(fdRho));
-    SP_CALL(spFDTDInitialValueSin(fE, k, amp));
 
+    SP_CALL(spFDTDInitialValueSin(fE, k, amp));
 
     /*****************************************************************************************************************/
 

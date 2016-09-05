@@ -27,14 +27,14 @@ extern "C" {
 INLINE __device__ int _spMeshHash(int x, int y, int z)
 {
     return __mul24(x, _pic_param.strides.x) +
-           __mul24(y, _pic_param.strides.y) +
-           __mul24(z, _pic_param.strides.z);
+        __mul24(y, _pic_param.strides.y) +
+        __mul24(z, _pic_param.strides.z);
 }
 
 INLINE __device__  int _SPMeshInBox(int x, int y, int z)
 {
     return (_pic_param.min.x + x < _pic_param.max.x && _pic_param.min.y + y < _pic_param.max.y
-            && _pic_param.min.z + z < _pic_param.max.z);
+        && _pic_param.min.z + z < _pic_param.max.z);
 }
 
 INLINE  __device__ void
@@ -65,9 +65,14 @@ SP_DEVICE_DECLARE_KERNEL(spParticleInitializeBorisYeeKernel, boris_particle *sp,
         for (size_type s = s0 * _pic_param.max_pic + threadIdx.x, se = s + PIC; s < se;
              s += blockDim.x)
         {
-            sp->id[s] = 0;
+            sp->id[s] = 0x3F;
             sp->f[s] = f0;
             sp->w[s] = 0.0;
+
+
+            sp->rx[s] -= 0.5;
+            sp->ry[s] -= 0.5;
+            sp->rz[s] -= 0.5;
 
             sp->vx[s] *= vT;
             sp->vy[s] *= vT;
@@ -87,7 +92,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
     SP_CALL(spParticleDeploy(sp));
 
     int dist_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM,
-                        SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
+        SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
 
     SP_CALL(spParticleInitialize(sp, dist_type));
 
@@ -159,7 +164,6 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
         cB[4] = Bz[s0 - _pic_param.strides.z];
         cB[5] = Bz[s0 /*                  */];
 
-
     }
     spParallelSyncThreads();
 
@@ -195,71 +199,100 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
 //        cE[threadId + 54] = Ez[s2];
 //        cB[threadId + 54] = Bz[s2];
 //    }
-    int dest0 = s0 * _pic_param.max_pic;
     /**
      *   -1 -> 0b11
      *   00 -> 0b00
      *    1 -> 0b01
      *    (i+4)& 0x3
      */
-    __shared__ int src[256], dest[256];
-    __shared__ int src_tail, dest_tail;
-    int tag;
 
-    for (int i = -1; i < 1; ++i)
+    __shared__ int src_tail, dest_tail;
+
+    spParallelSyncThreads();
+    if (threadId == 0) { dest_tail = s0 * _pic_param.max_pic; }
+    spParallelSyncThreads();
+
+    int s_tag[4] = {
+        0x1, // -1
+        0x2, // 0
+        0x3, // 1
+        0x0   // empty
+    };
+    int dest_id;
+
+    for (int i = -1; i <= 1; ++i)
         for (int j = -1; j <= 1; ++j)
             for (int k = -1; k <= 1; ++k)
             {
                 int src0 = _spMeshHash(x + i, y + j, z + k) * _pic_param.max_pic;
+                int tag = s_tag[-i + 1] | (s_tag[-j + 1] << 2) | (s_tag[-k + 1] << 4);
 
-                while (1)
+                spParallelSyncThreads();
+                if (threadId == 0) { src_tail = src0; }
+                spParallelSyncThreads();
+
+                int src_id;
+                int count = 0;
+                while (count < 1)
                 {
+                    --count;
+
                     spParallelSyncThreads();
 
-                    while (src[threadId] < src0 + _pic_param.max_pic &&
-                           sp->id[src[threadId]] != tag) { src[threadId] = atomicAddInt(&src_tail, 1); }
-
-                    if (i != 0 || j != 0 || k != 0)
+                    while (src_id < src0 + _pic_param.max_pic &&
+                        (sp->id[src_id] & 0x3F) != tag)
                     {
-                        while (dest[threadId] < dest0 + _pic_param.max_pic &&
-                               sp->id[dest[threadId]] != 0x26) { dest[threadId] = atomicAddInt(&dest_tail, 1); }
-                    } else
-                    {
-                        dest[threadId] = src[threadId];
+                        src_id = atomicAdd(&src_tail, 1);
+                        assert(src_id < src0 + _pic_param.max_pic);
                     }
+
+//            if (threadId == 0) { CHECK_INT(src_id); }
+
+                    if (i == 0 && j == 0 && k == 0) { dest_id = src_id; }
+                    else
+                    {
+                        while (dest_id < (s0 + 1) * _pic_param.max_pic &&
+                            (sp->id[dest_id] & 0x3F) != 0x0)
+                        {
+                            dest_id = atomicAdd(&dest_tail, 1);
+                            assert(dest_id < (s0 + 1) * _pic_param.max_pic);
+                        }
+                    }
+//
                     spParallelSyncThreads();
 
-                    if (dest[threadId] >= dest0 + _pic_param.max_pic ||
-                        src[threadId] >= src0 + _pic_param.max_pic) { break; }
+//                    if (threadId == 0) { CHECK_INT(dest_id); }
 
-                    struct boris_particle_p_s p;
 
-                    spParticlePopBoris(sp, src[threadId], &p);
+                    if (dest_id >= (s0 + 1) * _pic_param.max_pic ||
+                        src_id >= src0 + _pic_param.max_pic) { break; }
 
-                    Real E[3], B[3];
-
-                    E[0] = cE[0] * (0.5f - p.rx) + cE[1] * (0.5f + p.rx);
-                    E[1] = cE[2] * (0.5f - p.ry) + cE[3] * (0.5f + p.ry);
-                    E[2] = cE[4] * (0.5f - p.rz) + cE[5] * (0.5f + p.rz);
-
-                    spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
-
-                    p.rx += 4.5;
-                    p.ry += 4.5;
-                    p.rz += 4.5;
-                    p.id = p.id & (~0x3F)
-                           | (((int) (p.rx) & 0x3) << 0)
-                           | (((int) (p.ry) & 0x3) << 2)
-                           | (((int) (p.rz) & 0x3) << 4);
-
-                    p.rx -= (int) (p.rx) + .5;
-                    p.ry -= (int) (p.ry) + .5;
-                    p.rz -= (int) (p.rz) + .5;
-
-                    spParticlePushBoris(sp, dest[threadId], &p);
-
-                    src[threadId] += num_of_thread;
-                    dest[threadId] += num_of_thread;
+//                    struct boris_particle_p_s p;
+//
+//                    spParticlePopBoris(sp, src_id, &p);
+//                    atomicExch(&sp->id[src_id], 0x0);
+//
+//                    Real E[3], B[3];
+//
+//                    E[0] = cE[0] * (0.5f - p.rx) + cE[1] * (0.5f + p.rx);
+//                    E[1] = cE[2] * (0.5f - p.ry) + cE[3] * (0.5f + p.ry);
+//                    E[2] = cE[4] * (0.5f - p.rz) + cE[5] * (0.5f + p.rz);
+//
+//                    spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
+//
+//                    p.rx += 0.5;
+//                    p.ry += 0.5;
+//                    p.rz += 0.5;
+//                    p.id = p.id & (~0x3F)
+//                        | (s_tag[(int) (p.rx)])
+//                        | (s_tag[(int) (p.ry)] << 2)
+//                        | (s_tag[(int) (p.rz)] << 4);
+//
+//                    p.rx -= (int) (p.rx) + .5;
+//                    p.ry -= (int) (p.ry) + .5;
+//                    p.rz -= (int) (p.rz) + .5;
+//                    spParticlePushBoris(sp, dest_id, &p);
+//
                 }
             }
 };
@@ -279,11 +312,11 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
     Real J[6], rho = 0;
 
     for (int i = 0; i < 6; ++i) { J[i] = 0; }
-
-    for (int s = s0 * _pic_param.max_pic + threadId, se = s + _pic_param.max_pic; s < se; s += num_of_thread)
+    for (int s = s0 * _pic_param.max_pic + threadId, se = s + _pic_param.max_pic;
+         s < se; s += num_of_thread)
     {
 
-        if (sp->id[s] == 0)
+        if ((sp->id[s] == 0x26))
         {
 
             Real f = sp->f[s];
@@ -298,13 +331,13 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
         }
     };
 
-    atomicAddReal(&fJx[s0/*                   */], J[0]);
-    atomicAddReal(&fJx[s0 + _pic_param.strides.x], J[0]);
-    atomicAddReal(&fJy[s0/*                   */], J[2]);
-    atomicAddReal(&fJy[s0 + _pic_param.strides.y], J[3]);
-    atomicAddReal(&fJz[s0/*                   */], J[4]);
-    atomicAddReal(&fJz[s0 + _pic_param.strides.z], J[5]);
-    atomicAddReal(&fRho[s0], rho);
+    atomicAdd(&fJx[s0/*                   */], J[0]);
+    atomicAdd(&fJx[s0 + _pic_param.strides.x], J[0]);
+    atomicAdd(&fJy[s0/*                   */], J[2]);
+    atomicAdd(&fJy[s0 + _pic_param.strides.y], J[3]);
+    atomicAdd(&fJz[s0/*                   */], J[4]);
+    atomicAdd(&fJz[s0 + _pic_param.strides.z], J[5]);
+    atomicAdd(&fRho[s0] /*                 */, rho);
 
 };
 
@@ -344,8 +377,6 @@ int spParticleUpdateBorisYee(spParticle *sp, Real dt,
                           (boris_particle *) p_data, J[0], J[1], J[2], rho);
 
     SP_CALL(spFieldSync(fJ));
-
-
 //    SP_CALL(spFieldSync(fRho));
 
     return SP_SUCCESS;

@@ -148,7 +148,7 @@ size_type spParticleGetNumberOfEntities(spParticle const *sp)
 {
     return spMeshGetNumberOfEntities(spMeshAttributeGetMesh((spMeshAttribute *) (sp)), SP_DOMAIN_ALL,
                                      spMeshAttributeGetForm((spMeshAttribute *) (sp)))
-           * spParticleGetMaxPIC(sp);
+        * spParticleGetMaxPIC(sp);
 }
 
 int spParticleInitialize(spParticle *sp, int const *dist_types)
@@ -174,7 +174,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spParticleGetAllAttributeData(sp, data));
 
-    SP_CALL(spParallelMemset(((spParticleFiber *) data)->id, -1, max_number_of_entities * sizeof(int)));
+    SP_CALL(spParallelMemset(((spParticleFiber *) data)->id, 0, max_number_of_entities * sizeof(int)));
 
     size_type x_min[3], x_max[3], strides[3];
 
@@ -263,7 +263,6 @@ int spParticleSetCharge(spParticle *sp, Real e)
 Real spParticleGetMass(spParticle const *sp) { return sp->mass; }
 
 Real spParticleGetCharge(spParticle const *sp) { return sp->charge; }
-
 
 /**
  *
