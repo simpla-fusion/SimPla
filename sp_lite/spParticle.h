@@ -15,6 +15,8 @@
 #define SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE 128
 
 #define SP_PARTICLE_HEAD                                \
+     int   *pos;           \
+     int   *point;           \
      int   *id;           \
      Real  *rx;           \
      Real  *ry;           \

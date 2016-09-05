@@ -27,6 +27,8 @@ typedef struct
     uint3 min;
     uint3 max;
     uint3 strides;
+    uint3 g_strides;
+
     Real3 invD;
 
     int max_pic;
@@ -90,13 +92,13 @@ cache_gather(Real const *f, Real rx, Real ry, Real rz)
     static const int s_c = 13, IX = 1, IY = 3, IZ = 9;
 
     return (f[s_c + IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
-        + f[s_c + IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
-        + f[s_c + IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
-        + f[s_c + IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
-        + f[s_c + IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
-        + f[s_c + IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
-        + f[s_c + IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
-        + f[s_c + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
+            + f[s_c + IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
+            + f[s_c + IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
+            + f[s_c + IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
+            + f[s_c + IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
+            + f[s_c + IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
+            + f[s_c + IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
+            + f[s_c + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz));
 }
 
 INLINE __device__ void
@@ -211,14 +213,21 @@ spParticleMoveBoris(Real dt, boris_p *p, Real const *E, Real const *B)
 INLINE __device__ int _spMeshHash(int x, int y, int z)
 {
     return __mul24(x, _pic_param.strides.x) +
-        __mul24(y, _pic_param.strides.y) +
-        __mul24(z, _pic_param.strides.z);
+           __mul24(y, _pic_param.strides.y) +
+           __mul24(z, _pic_param.strides.z);
+}
+
+INLINE __device__ int _spMeshGlobalHash(int x, int y, int z)
+{
+    return __mul24(x, _pic_param.g_strides.x) +
+           __mul24(y, _pic_param.g_strides.y) +
+           __mul24(z, _pic_param.g_strides.z);
 }
 
 INLINE __device__  int _SPMeshInBox(int x, int y, int z)
 {
     return (_pic_param.min.x + x < _pic_param.max.x && _pic_param.min.y + y < _pic_param.max.y
-        && _pic_param.min.z + z < _pic_param.max.z);
+            && _pic_param.min.z + z < _pic_param.max.z);
 }
 
 INLINE  __device__ void
@@ -276,7 +285,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
     SP_CALL(spParticleDeploy(sp));
 
     int dist_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM,
-        SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
+                        SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
 
     SP_CALL(spParticleInitialize(sp, dist_type));
 
@@ -309,16 +318,14 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 
 
 SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
-                          boris_particle *sp,
+                          boris_particle *sp, int const *id,
                           Real const *Ex, Real const *Ey, Real const *Ez,
                           Real const *Bx, Real const *By, Real const *Bz)
 {
     int threadId = threadIdx.x * blockDim.x + threadIdx.y * blockDim.y + threadIdx.z * blockDim.z;
     int num_of_thread = blockDim.x * blockDim.x * blockDim.x;
 
-    int x = _pic_param.min.x + blockIdx.x;
-    int y = _pic_param.min.y + blockIdx.y;
-    int z = _pic_param.min.z + blockIdx.z;
+
     int s0 = _spMeshHash(_pic_param.min.x + blockIdx.x, _pic_param.min.y + blockIdx.y, _pic_param.min.z + blockIdx.z);
 
 //    __shared__  Real cE[27 * 3];
@@ -348,7 +355,9 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
         cB[4] = Bz[s0 - _pic_param.strides.z];
         cB[5] = Bz[s0 /*                  */];
 
-    }spParallelSyncThreads();
+    }
+
+
 
     //    if (num_of_thread < 27 * 3 && threadId == 0)
 //    {
@@ -389,97 +398,34 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel, Real dt,
      *    (i+4)& 0x3
      */
 
-    __shared__ int src_tail, dest_tail;
+    int gs0 = _spMeshGlobalHash(
+            _pic_param.min.x + blockIdx.x, _pic_param.min.y + blockIdx.y, _pic_param.min.z + blockIdx.z);
 
-    spParallelSyncThreads();
-    if (threadId == 0) { dest_tail = s0 * _pic_param.max_pic; }spParallelSyncThreads();
+    for (int t = sp->pos[s0 * 2], te = sp->pos[s0 * 2 + 1]; t < te; t += num_of_thread)
+    {
+        int s = sp->point[t];
+        assert(sp->id[s] == gs0);
+        struct boris_particle_p_s p;
 
-    int s_tag[4] = {
-        0x1, // -1
-        0x2, // 0
-        0x3, // 1
-        0x0   // empty
-    };
-    int dest_id;
+        spParticlePopBoris(sp, s, &p);
 
-    for (int i = -1; i <= 1; ++i)
-        for (int j = -1; j <= 1; ++j)
-            for (int k = -1; k <= 1; ++k)
-            {
+        Real E[3], B[3];
 
-                if ((_pic_param.max.x - _pic_param.min.x <= 1 && i != 0) ||
-                    (_pic_param.max.y - _pic_param.min.y <= 1 && j != 0) ||
-                    (_pic_param.max.z - _pic_param.min.z <= 1 && k != 0)
-                    ) { continue; }
+        E[0] = cE[0] * (0.5f - p.rx) + cE[1] * (0.5f + p.rx);
+        E[1] = cE[2] * (0.5f - p.ry) + cE[3] * (0.5f + p.ry);
+        E[2] = cE[4] * (0.5f - p.rz) + cE[5] * (0.5f + p.rz);
 
-                int src0 = _spMeshHash(x + i, y + j, z + k) * _pic_param.max_pic;
-                int tag = s_tag[-i + 1] | (s_tag[-j + 1] << 2) | (s_tag[-k + 1] << 4);
+        spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
 
-                spParallelSyncThreads();
-                if (threadId == 0) { src_tail = src0; }spParallelSyncThreads();
+        p.id = gs0 + _spMeshGlobalHash((int) (p.rx + 0.5), (int) (p.ry + 0.5), (int) (p.rz + 0.5));
 
-                int src_id;
-                int count = 0;
-                while (count < 1)
-                {
-                    --count;
+        p.rx -= (int) (p.rx + .5) + .5;
+        p.ry -= (int) (p.ry + .5) + .5;
+        p.rz -= (int) (p.rz + .5) + .5;
+        spParticlePushBoris(sp, s, &p);
 
-                    spParallelSyncThreads();
+    }
 
-                    while ((src_id = atomicAdd(&src_tail, 1)) < src0 + _pic_param.max_pic &&
-                        (sp->id[src_id] & 0x3F) != tag)
-                    {
-                        assert(src_id <= src0 + _pic_param.max_pic);
-                    }
-
-//            if (threadId == 0) { CHECK_INT(src_id); }
-
-                    if (i == 0 && j == 0 && k == 0) { dest_id = src_id; }
-                    else
-                    {
-                        while ((dest_id = atomicAdd(&dest_tail, 1)) < (s0 + 1) * _pic_param.max_pic &&
-                            (sp->id[dest_id] & 0x3F) != 0x0)
-                        { ;
-                            assert(dest_id <= (s0 + 1) * _pic_param.max_pic);
-                        }
-                    }
-//
-                    spParallelSyncThreads();
-
-//                    if (threadId == 0) { CHECK_INT(dest_id); }
-
-
-                    if (dest_id >= (s0 + 1) * _pic_param.max_pic ||
-                        src_id >= src0 + _pic_param.max_pic) { break; }
-
-//                    struct boris_particle_p_s p;
-//
-//                    spParticlePopBoris(sp, src_id, &p);
-//                    atomicExch(&sp->id[src_id], 0x0);
-//
-//                    Real E[3], B[3];
-//
-//                    E[0] = cE[0] * (0.5f - p.rx) + cE[1] * (0.5f + p.rx);
-//                    E[1] = cE[2] * (0.5f - p.ry) + cE[3] * (0.5f + p.ry);
-//                    E[2] = cE[4] * (0.5f - p.rz) + cE[5] * (0.5f + p.rz);
-//
-//                    spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
-//
-//                    p.rx += 0.5;
-//                    p.ry += 0.5;
-//                    p.rz += 0.5;
-//                    p.id = p.id & (~0x3F)
-//                        | (s_tag[(int) (p.rx)])
-//                        | (s_tag[(int) (p.ry)] << 2)
-//                        | (s_tag[(int) (p.rz)] << 4);
-//
-//                    p.rx -= (int) (p.rx) + .5;
-//                    p.ry -= (int) (p.ry) + .5;
-//                    p.rz -= (int) (p.rz) + .5;
-//                    spParticlePushBoris(sp, dest_id, &p);
-//
-                }
-            }
 };
 
 SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
@@ -497,23 +443,26 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
     Real J[6], rho = 0;
 
     for (int i = 0; i < 6; ++i) { J[i] = 0; }
-    for (int s = s0 * _pic_param.max_pic + threadId, se = s + _pic_param.max_pic;
-         s < se; s += num_of_thread)
+
+    int gs0 = _spMeshGlobalHash(
+            _pic_param.min.x + blockIdx.x, _pic_param.min.y + blockIdx.y, _pic_param.min.z + blockIdx.z);
+
+
+    for (int t = sp->pos[s0 * 2], te = sp->pos[s0 * 2 + 1]; t < te; t += num_of_thread)
     {
+        int s = sp->point[t];
+        assert(sp->id[s] == gs0);
 
-        if ((sp->id[s] == 0x26))
-        {
+        Real f = sp->f[s];
+        J[0] += (sp->rx[s] >= 0.0) ? 0 : sp->vx[s] * _pic_param.invD.x * f;
+        J[1] += (sp->rx[s] < 0.0) ? 0 : -sp->vx[s] * _pic_param.invD.x * f;
+        J[2] += (sp->ry[s] >= 0.0) ? 0 : sp->vy[s] * _pic_param.invD.y * f;
+        J[3] += (sp->ry[s] < 0.0) ? 0 : -sp->vy[s] * _pic_param.invD.y * f;
+        J[4] += (sp->rz[s] >= 0.0) ? 0 : sp->vz[s] * _pic_param.invD.z * f;
+        J[5] += (sp->rz[s] < 0.0) ? 0 : -sp->vz[s] * _pic_param.invD.z * f;
+        rho += (1 - sp->rx[s]) * (1 - sp->ry[s]) * (1 - sp->rz[s]) * f;
 
-            Real f = sp->f[s];
-            J[0] += (sp->rx[s] >= 0.0) ? 0 : sp->vx[s] * _pic_param.invD.x * f;
-            J[1] += (sp->rx[s] < 0.0) ? 0 : -sp->vx[s] * _pic_param.invD.x * f;
-            J[2] += (sp->ry[s] >= 0.0) ? 0 : sp->vy[s] * _pic_param.invD.y * f;
-            J[3] += (sp->ry[s] < 0.0) ? 0 : -sp->vy[s] * _pic_param.invD.y * f;
-            J[4] += (sp->rz[s] >= 0.0) ? 0 : sp->vz[s] * _pic_param.invD.z * f;
-            J[5] += (sp->rz[s] < 0.0) ? 0 : -sp->vz[s] * _pic_param.invD.z * f;
-            rho += (1 - sp->rx[s]) * (1 - sp->ry[s]) * (1 - sp->rz[s]) * f;
 
-        }
     };
 
     atomicAddReal(&fJx[s0/*                   */], J[0]);
