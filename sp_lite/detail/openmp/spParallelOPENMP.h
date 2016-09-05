@@ -52,16 +52,18 @@ typedef uint3 dim3;
 #define SP_DEVICE_CALL(_CMD_)  SP_CALL(_CMD_)
 
 #define spParallelMemcpyToSymbol(_dest_, _src_, _s_)     spParallelMemcpyToCache(&_dest_, _src_, _s_);
-#define spParallelSyncThreads()
+#define spParallelSyncThreads()    _Pragma("omp barrier")
 
 
 INLINE unsigned int __umul24(unsigned int a, unsigned int b) { return a * b; }
 
 INLINE int __mul24(int a, int b) { return a * b; }
-
+INLINE int atomicAdd(int *ptr, int val)
+{
+    return __sync_fetch_and_add(ptr,val);}
 INLINE int atomicAddInt(int *ptr, int val)
 {
-    int t;
+     int t;
 #pragma omp atomic capture
     {
         t = *ptr;
