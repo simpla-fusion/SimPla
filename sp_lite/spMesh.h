@@ -21,7 +21,7 @@ typedef struct spMesh_s *spMesh_t;
 
 typedef struct spMesh_s const *spMesh_const_t;
 
-#define SP_MESH_ATTR_HEAD  SP_OBJECT_HEAD const spMesh *m; int iform;
+#define SP_MESH_ATTR_HEAD  SP_OBJECT_HEAD const spMesh *m; uint iform;
 
 typedef struct spMeshAttribute_s
 {
@@ -37,13 +37,13 @@ MeshEntityId spMeshEntityIdFromArray(size_type const *s);
 
 MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s);
 
-int spMeshAttributeCreate(spMeshAttribute_t *f, size_type size, spMesh_const_t mesh, int iform);
+int spMeshAttributeCreate(spMeshAttribute_t *f, size_type size, spMesh_const_t mesh, uint iform);
 
 int spMeshAttributeDestroy(spMeshAttribute_t *f);
 
 spMesh_const_t spMeshAttributeGetMesh(spMeshAttribute_const_t f);
 
-int spMeshAttributeGetForm(spMeshAttribute_const_t f);
+uint spMeshAttributeGetForm(spMeshAttribute_const_t f);
 
 int spMeshCreate(spMesh_t *ctx);
 

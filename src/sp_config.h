@@ -42,6 +42,8 @@ typedef int64_t id_type; //!< Data type of vertex's index , i.e. i,j
 
 typedef int64_t index_type;
 
+typedef unsigned int uint;
+
 typedef union
 {
     struct { int8_t w, z, y, x; };

@@ -18,7 +18,14 @@ void ShowSimPlaLogo();
 
 enum
 {
-    SP_TYPE_NULL, SP_TYPE_float, SP_TYPE_double, SP_TYPE_int, SP_TYPE_long, SP_TYPE_int64_t, SP_TYPE_OPAQUE
+    SP_TYPE_NULL,
+    SP_TYPE_float,
+    SP_TYPE_double,
+    SP_TYPE_int,
+    SP_TYPE_uint,
+    SP_TYPE_long,
+    SP_TYPE_int64_t,
+    SP_TYPE_OPAQUE
 };
 #ifdef REAL_IS_FLOAT
 #   define SP_TYPE_Real SP_TYPE_float

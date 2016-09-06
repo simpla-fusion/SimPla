@@ -52,7 +52,9 @@ int spDataTypeCreate(spDataType **dtype, int type_tag, size_type s)
             case SP_TYPE_int:
                 (*dtype)->self = simpla::data_model::DataType::create<int>();
                 break;
-
+            case SP_TYPE_uint:
+                (*dtype)->self = simpla::data_model::DataType::create<unsigned int>();
+                break;
             case SP_TYPE_long:
                 (*dtype)->self = simpla::data_model::DataType::create<long>();
                 break;

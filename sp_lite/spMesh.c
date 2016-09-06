@@ -29,7 +29,7 @@ MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s)
     return id;
 }
 
-int spMeshAttributeCreate(spMeshAttribute **f, size_type size, spMesh const *mesh, int iform)
+int spMeshAttributeCreate(spMeshAttribute **f, size_type size, spMesh const *mesh, uint iform)
 {
     SP_CALL(spObjectCreate((spObject **) (f), size));
     (*f)->m = mesh;
@@ -45,7 +45,7 @@ int spMeshAttributeDestroy(spMeshAttribute **f)
 
 spMesh const *spMeshAttributeGetMesh(spMeshAttribute const *f) { return f->m; }
 
-int spMeshAttributeGetForm(spMeshAttribute const *f) { return f->iform; };
+uint spMeshAttributeGetForm(spMeshAttribute const *f) { return f->iform; };
 
 struct spMesh_s
 {
