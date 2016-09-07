@@ -40,6 +40,20 @@ int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataT
                                 const size_type *dims, const size_type *start, const size_type *,
                                 const size_type *count, const size_type *, int mpi_sync_start_dims);
 
+struct spParallelDAUpdater_s;
+
+typedef struct spParallelDAUpdater_s spParallelMPIUpdater;
+
+int spParallelUpdaterCreateDA(spParallelMPIUpdater **updater, const spDataType *data_desc, int ndims,
+                              const size_type *shape, const size_type *start, const size_type *stride,
+                              const size_type *count, const size_type *block, int mpi_sync_start_dims);
+
+int spParallelUpdaterDestroy(spParallelMPIUpdater **updater);
+
+int spParallelUpdate(spParallelMPIUpdater const *updater, void *buffer);
+
+int spParallelUpdateAll(spParallelMPIUpdater const *updater, int num_of_buffer, void **buffers);
+
 int spParallelUpdateNdArrayHalo2(int num_of_buffer,
                                  void **buffers,
                                  const spDataType *data_desc,

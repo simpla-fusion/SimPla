@@ -26,6 +26,9 @@ typedef struct
 {
     uint3 min;
     uint3 max;
+
+    uint3 center_min;
+    uint3 center_max;
     uint3 strides;
     uint3 g_strides;
 
@@ -36,6 +39,8 @@ typedef struct
     Real cmr;
 
 } _spPICBorisParam;
+
+#define NULL_ID -1
 
 __constant__ _spPICBorisParam _pic_param;
 
@@ -66,7 +71,7 @@ INLINE int spPICBorisSetupParam(spParticle *sp, int tag, size_type *grid_dim, si
 
 typedef struct boris_particle_p_s
 {
-    int id;
+    uint id;
     Real rx;
     Real ry;
     Real rz;
@@ -116,7 +121,7 @@ cache_scatter(Real v, Real *f, Real rx, Real ry, Real rz)
 #undef rr
 
 __device__ INLINE void
-spParticlePopBoris(boris_particle *sp, int s, boris_p *p)
+spParticlePopBoris(boris_particle *sp, size_type s, boris_p *p)
 {
     p->id = sp->id[s];
     p->rx = sp->rx[s];
@@ -130,10 +135,8 @@ spParticlePopBoris(boris_particle *sp, int s, boris_p *p)
 
 }
 
-__device__ INLINE
-
-void
-spParticlePushBoris(boris_particle *sp, int s, boris_p *p)
+__device__ INLINE void
+spParticlePushBoris(boris_particle *sp, size_type s, boris_p *p)
 {
     sp->id[s] = p->id;
 
@@ -206,21 +209,21 @@ spParticleMoveBoris(Real dt, boris_p *p, Real const *E, Real const *B)
 //__constant__ _spPICBorisParam _pic_param;
 
 
-INLINE __device__ int _spMeshHash(int x, int y, int z)
+INLINE __device__ uint _spMeshHash(uint x, uint y, uint z)
 {
-    return __mul24(x, _pic_param.strides.x) +
-        __mul24(y, _pic_param.strides.y) +
-        __mul24(z, _pic_param.strides.z);
+    return __umul24(x, _pic_param.strides.x) +
+        __umul24(y, _pic_param.strides.y) +
+        __umul24(z, _pic_param.strides.z);
 }
 
-INLINE __device__ int _spMeshGlobalHash(int x, int y, int z)
+INLINE __device__ uint _spMeshGlobalHash(uint x, uint y, uint z)
 {
-    return __mul24(x, _pic_param.g_strides.x) +
-        __mul24(y, _pic_param.g_strides.y) +
-        __mul24(z, _pic_param.g_strides.z);
+    return __umul24(x, _pic_param.g_strides.x) +
+        __umul24(y, _pic_param.g_strides.y) +
+        __umul24(z, _pic_param.g_strides.z);
 }
 
-INLINE __device__  int _SPMeshInBox(int x, int y, int z)
+INLINE __device__  int _SPMeshInBox(uint x, uint y, uint z)
 {
     return (_pic_param.min.x + x < _pic_param.max.x && _pic_param.min.y + y < _pic_param.max.y
         && _pic_param.min.z + z < _pic_param.max.z);
@@ -313,11 +316,12 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 /******************************************************************************************/
 
 
+
 SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                           boris_particle *sp,
-                          unsigned int const *start_pos,
-                          unsigned int const *end_pos,
-                          unsigned int const *particle_index,
+                          uint const *start_pos,
+                          uint const *end_pos,
+                          uint const *sorted_index,
                           Real dt,
                           Real const *Ex,
                           Real const *Ey,
@@ -326,20 +330,14 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                           Real const *By,
                           Real const *Bz)
 {
-    int threadId = threadIdx.x * blockDim.x + threadIdx.y * blockDim.y + threadIdx.z * blockDim.z;
-    int num_of_thread = blockDim.x * blockDim.x * blockDim.x;
 
     int s0 = _spMeshHash(_pic_param.min.x + blockIdx.x, _pic_param.min.y + blockIdx.y, _pic_param.min.z + blockIdx.z);
-
-//    __shared__  Real cE[27 * 3];
-//    __shared__  Real cB[27 * 3];
-//    __shared__ int dest_tail;
 
     __shared__  Real cE[6];
     __shared__  Real cB[6];
 
 
-    if (threadId == 0)
+    if (threadIdx.x == 0)
     {
         cE[0] = Ex[s0 - _pic_param.strides.x];
         cE[1] = Ex[s0 /*                  */];
@@ -358,11 +356,12 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
     }
 
-    spParallelSyncThreads();
+        spParallelSyncThreads();
 
-
-
-    //    if (num_of_thread < 27 * 3 && threadId == 0)
+//    __shared__  Real cE[27 * 3];
+//    __shared__  Real cB[27 * 3];
+//    __shared__ int dest_tail;
+//    if (num_of_thread < 27 * 3 && threadId == 0)
 //    {
 //
 //
@@ -404,7 +403,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
     if (start_pos[s0] + threadIdx.x < end_pos[s0])
     {
-        int s = particle_index[start_pos[s0] + threadIdx.x];
+        size_type s = sorted_index[start_pos[s0] + threadIdx.x];
         assert(sp->id[s] == s0);
         struct boris_particle_p_s p;
 
@@ -418,13 +417,13 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
         spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
 
-        int x = _pic_param.min.x + blockIdx.x + (int) (p.rx + 0.5);
-        int y = _pic_param.min.y + blockIdx.y + (int) (p.ry + 0.5);
-        int z = _pic_param.min.z + blockIdx.z + (int) (p.rz + 0.5);
+        uint x = _pic_param.min.x + blockIdx.x + (int) (p.rx + 0.5);
+        uint y = _pic_param.min.y + blockIdx.y + (int) (p.ry + 0.5);
+        uint z = _pic_param.min.z + blockIdx.z + (int) (p.rz + 0.5);
 
-        p.id = (x < _pic_param.min.x || x >= _pic_param.max.x
-            || y < _pic_param.min.y || y >= _pic_param.max.y
-            || z < _pic_param.min.z || z >= _pic_param.max.z) ? -1 : _spMeshHash(x, y, z);
+        p.id = (x < _pic_param.center_min.x || x >= _pic_param.center_max.x
+            || y < _pic_param.center_min.y || y >= _pic_param.center_max.y
+            || z < _pic_param.center_min.z || z >= _pic_param.center_max.z) ? NULL_ID : _spMeshHash(x, y, z);
 
         p.rx -= (int) (p.rx + .5);
         p.ry -= (int) (p.ry + .5);
@@ -446,12 +445,10 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
                           Real *fJz,
                           Real *fRho)
 {
-    int threadId = threadIdx.x * blockDim.x + threadIdx.y * blockDim.y + threadIdx.z * blockDim.z;
-    int num_of_thread = blockDim.x * blockDim.x * blockDim.x;
 
-    int x = _pic_param.min.x + blockIdx.x;
-    int y = _pic_param.min.y + blockIdx.y;
-    int z = _pic_param.min.z + blockIdx.z;
+    uint x = _pic_param.min.x + blockIdx.x;
+    uint y = _pic_param.min.y + blockIdx.y;
+    uint z = _pic_param.min.z + blockIdx.z;
 
     int s0 = _spMeshHash(x, y, z);
 
@@ -525,7 +522,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
     SP_DEVICE_CALL_KERNEL(spParticleUpdateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (boris_particle *) p_data,
-                          spParticleGetStartPos(sp), spParticleGetEndPos(sp), spParticleGetIndex(sp),
+                          spParticleGetStartPos(sp), spParticleGetEndPos(sp), spParticleGetSortedIndex(sp),
                           dt, E[0], E[1], E[2], B[0], B[1], B[2]);
 
 
@@ -535,7 +532,6 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
     SP_CALL(spParticleSort(sp));
 
-    SP_CALL(spParticleAutoReorder(sp));
 
     SP_DEVICE_CALL_KERNEL(spParticleAccumlateBorisYeeKernel,
                           sizeType2Dim3(grid_dim),
@@ -543,7 +539,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
                           (boris_particle *) p_data,
                           spParticleGetStartPos(sp),
                           spParticleGetEndPos(sp),
-                          spParticleGetIndex(sp),
+                          spParticleGetSortedIndex(sp),
                           J[0],
                           J[1],
                           J[2],

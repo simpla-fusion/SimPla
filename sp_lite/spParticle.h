@@ -20,6 +20,9 @@
      Real  *ry;           \
      Real  *rz;
 
+
+typedef struct { SP_PARTICLE_HEAD } particle_head;
+
 #define SP_PARTICLE_ATTR(_T_, _N_)       _T_ * _N_;
 
 
@@ -55,16 +58,6 @@ uint spParticleGetPIC(spParticle const *sp);
 
 size_type spParticleGetNumOfParticle(const spParticle *sp);
 
-int spParticleRemoveNull(spParticle *sp, size_type s);
-
-int spParticleAdd(spParticle *sp, size_type num, void **data);
-
-int spParticleSet(spParticle *sp, size_type head, size_type tail, void **data);
-
-int spParticleGet(spParticle *sp, size_type head, size_type tail, void **data);
-
-int spParticleReorder(spParticle *sp);
-
 size_type spParticleGetMaxNumOfParticle(const spParticle *sp);
 
 int spParticleSetMass(spParticle *, Real m);
@@ -75,11 +68,17 @@ int spParticleSetCharge(spParticle *, Real e);
 
 Real spParticleGetCharge(spParticle const *);
 
+size_type spParticleGetSize(spParticle const *);
+
+size_type spParticleGetCapacity(spParticle const *);
+
+size_type spParticlePush(spParticle *sp, size_type s);
+
 const uint *spParticleGetStartPos(spParticle const *);
 
 const uint *spParticleGetEndPos(spParticle const *);
 
-const uint *spParticleGetIndex(spParticle const *);
+const uint *spParticleGetSortedIndex(spParticle const *);
 
 int spParticleGetIndexArray(spParticle *sp, uint **start_pos, uint **end_pos, uint **index);
 
@@ -104,10 +103,6 @@ int spParticleWrite(spParticle const *sp, struct spIOStream_s *os, const char *u
 int spParticleRead(spParticle *sp, struct spIOStream_s *os, const char *url, int flag);
 
 int spParticleSort(spParticle *sp);
-
-int spParticleAutoReorder(spParticle *sp);
-
-int spParticleUpdate(spParticle *sp);
 
 int spParticleSync(spParticle *sp);
 

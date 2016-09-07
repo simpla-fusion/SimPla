@@ -326,23 +326,62 @@ typedef struct spParallelDAUpdater_s
     MPI_Datatype recv_types[6];
     MPI_Aint send_displs[6];
     MPI_Aint recv_displs[6];
-} spParallelDAUpdater;
+} spParallelMPIUpdater;
 
-int spParallelDAUpdaterCreate(spParallelDAUpdater **updater, const spDataType *data_desc, int ndims,
+int spParallelUpdaterDestroy(spParallelMPIUpdater **updater)
+{
+    for (int i = 0; i < (*updater)->num_of_neighbour; ++i)
+    {
+        if ((*updater)->send_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->send_types[i])));
+
+        if ((*updater)->recv_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->recv_types[i])));
+    }
+
+    free(*updater);
+
+}
+
+int spParallelUpdate(spParallelMPIUpdater const *updater, void *buffer)
+{
+
+
+    SP_CALL(spMPINeighborAllToAll(buffer,
+                                  updater->mpi_sendrecv_count,
+                                  updater->send_displs,
+                                  updater->send_types,
+                                  buffer,
+                                  updater->mpi_sendrecv_count,
+                                  updater->recv_displs,
+                                  updater->recv_types,
+                                  updater->comm));
+
+    return SP_SUCCESS;
+
+}
+int spParallelUpdateAll(spParallelMPIUpdater const *updater, int num_of_buffer, void **buffers)
+{
+
+    for (int i = 0; i < num_of_buffer; ++i) {SP_CALL(spParallelUpdate(updater, buffers[i])); }
+
+    return SP_SUCCESS;
+
+}
+
+int spParallelUpdaterCreateDA(spParallelMPIUpdater **updater, const spDataType *data_desc, int ndims,
                               const size_type *shape, const size_type *start, const size_type *stride,
                               const size_type *count, const size_type *block, int mpi_sync_start_dims)
 {
-    *updater = malloc(sizeof(spParallelDAUpdater));
+    *updater = malloc(sizeof(spParallelMPIUpdater));
 
     (*updater)->comm = spMPIComm();
 
     if ((*updater)->comm == MPI_COMM_NULL) { return SP_DO_NOTHING; }
 
-    int tope_type = MPI_CART;
+    int topo_type = MPI_CART;
 
-    MPI_CALL(MPI_Topo_test((*updater)->comm, &tope_type));
+    MPI_CALL(MPI_Topo_test((*updater)->comm, &topo_type));
 
-    assert(tope_type == MPI_CART);
+    assert(topo_type == MPI_CART);
 
 
     MPI_Datatype ele_type = spDataTypeMPIType(data_desc);
@@ -471,45 +510,49 @@ int spParallelDAUpdaterCreate(spParallelDAUpdater **updater, const spDataType *d
         (*updater)->recv_displs[2 * d + 1] = 0;
     }
 }
-int spParallelDAUpdaterDestroy(spParallelDAUpdater **updater)
+
+int spParallelUpdaterCreateIndexed(spParallelMPIUpdater **updater,
+                                   const spDataType *ele_data_desc,
+                                   int ndims,
+                                   size_type const *num_of_ele,
+                                   size_type const **index)
 {
-    for (int i = 0; i < (*updater)->num_of_neighbour; ++i)
-    {
-        if ((*updater)->send_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->send_types[i])));
+    *updater = malloc(sizeof(spParallelMPIUpdater));
 
-        if ((*updater)->recv_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->recv_types[i])));
-    }
+    (*updater)->comm = spMPIComm();
 
-    free(*updater);
+    if ((*updater)->comm == MPI_COMM_NULL) { return SP_DO_NOTHING; }
 
-}
+    int topo_type = MPI_CART;
 
-int spParallelDAUpdate(spParallelDAUpdater const *updater, void *buffer)
-{
+    MPI_CALL(MPI_Topo_test((*updater)->comm, &topo_type));
+
+    assert(topo_type == MPI_CART);
 
 
-    SP_CALL(spMPINeighborAllToAll(buffer,
-                                  updater->mpi_sendrecv_count,
-                                  updater->send_displs,
-                                  updater->send_types,
-                                  buffer,
-                                  updater->mpi_sendrecv_count,
-                                  updater->recv_displs,
-                                  updater->recv_types,
-                                  updater->comm));
+    MPI_Datatype ele_type = spDataTypeMPIType(ele_data_desc);
+
+    if (ele_type == MPI_DATATYPE_NULL) { return SP_FAILED; }
+
+    int mpi_topology_ndims = 0;
+
+    MPI_CALL(MPI_Cartdim_get((*updater)->comm, &mpi_topology_ndims));
+
+    assert(mpi_topology_ndims <= ndims);
 
 
-    return SP_SUCCESS;
+    MPI_Count ele_size_in_byte = 0;
 
+    MPI_CALL(MPI_Type_size_x(ele_type, &ele_size_in_byte));
 }
 
 int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataType *data_desc, int ndims,
                                 const size_type *shape, const size_type *start, const size_type *stride,
                                 const size_type *count, const size_type *block, int mpi_sync_start_dims)
 {
-    spParallelDAUpdater *updater;
+    spParallelMPIUpdater *updater;
 
-    SP_CALL(spParallelDAUpdaterCreate(&updater,
+    SP_CALL(spParallelUpdaterCreateDA(&updater,
                                       data_desc,
                                       ndims,
                                       shape,
@@ -519,12 +562,9 @@ int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataT
                                       block,
                                       mpi_sync_start_dims));
 
-    for (int i = 0; i < num_of_buffer; ++i)
-    {
-        SP_CALL(spParallelDAUpdate(updater, buffers[i]));
-    }
+    SP_CALL(spParallelUpdateAll(updater, num_of_buffer, buffers));
 
-    SP_CALL(spParallelDAUpdaterDestroy(&updater));
+    SP_CALL(spParallelUpdaterDestroy(&updater));
 }
 
 int spUpdateIndexedBlock(void const *send_buffer,
@@ -604,8 +644,54 @@ int spParallelScan(size_type *v, size_type num)
     MPI_Comm comm = spMPIComm();
 
     if (comm == MPI_COMM_NULL) { return SP_FAILED; }
+
     size_type res[num];
+
     MPI_CALL(MPI_Scan(v, res, num, MPI_INT64_T, MPI_SUM, comm));
+
     for (int i = 0; i < num; ++i) { v[i] = res[i] - v[i]; }
+
     return SP_SUCCESS;
 };
+
+
+int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
+                                   unsigned int ndims,
+                                   size_type const *min,
+                                   size_type const *max,
+                                   size_type grid_dim[3],
+                                   size_type block_dim[3])
+{
+    assert(max[0] > min[0]);
+    assert(max[1] > min[1]);
+    assert(max[2] > min[2]);
+
+
+    block_dim[0] = num_of_threads_per_block;
+    block_dim[1] = 1;
+    block_dim[2] = 1;
+
+    while (block_dim[0] + min[0] > max[0])
+    {
+        block_dim[0] /= 2;
+        block_dim[1] *= 2;
+    }
+
+    while (block_dim[1] + min[1] > max[1])
+    {
+        block_dim[1] /= 2;
+        block_dim[2] *= 2;
+    }
+    grid_dim[0] = (max[0] - min[0]) / block_dim[0];
+    grid_dim[1] = (max[1] - min[1]) / block_dim[1];
+    grid_dim[2] = (max[2] - min[2]) / block_dim[2];
+
+    grid_dim[0] = (grid_dim[0] * block_dim[0] < max[0] - min[0]) ? grid_dim[0] + 1 : grid_dim[0];
+    grid_dim[1] = (grid_dim[1] * block_dim[1] < max[1] - min[1]) ? grid_dim[1] + 1 : grid_dim[1];
+    grid_dim[2] = (grid_dim[2] * block_dim[2] < max[2] - min[2]) ? grid_dim[2] + 1 : grid_dim[2];
+
+    assert(grid_dim[0] * block_dim[0] >= max[0] - min[0]);
+    assert(grid_dim[1] * block_dim[1] >= max[1] - min[1]);
+    assert(grid_dim[2] * block_dim[2] >= max[2] - min[2]);
+
+}
