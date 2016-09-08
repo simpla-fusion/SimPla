@@ -31,5 +31,5 @@ TARGET_LINK_LIBRARIES(simpla_lib
         simulation
         )
 
-add_library(sp_capi sp_capi.cpp)
+add_library(sp_capi SHARED sp_capi.cpp)
 TARGET_LINK_LIBRARIES(sp_capi base data_model io parallel utilities)

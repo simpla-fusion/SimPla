@@ -6,11 +6,28 @@
 #define SIMPLA_SPPARALLEL_H
 
 #include "sp_lite_def.h"
-#include "../src/sp_capi.h"
+#include "sp_capi.h"
 
 int spParallelInitialize(int argc, char **argv);
 
 int spParallelFinalize();
+
+int spMPIBarrier();
+
+int spMPIRank();
+
+int spMPISize();
+
+size_type spMPIGenerateObjectId();
+
+int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord);
+
+int spParallelScan(size_type *, size_type num);
+
+size_type spParallelPrefixSums(size_type v);
+
+size_type spParallelSum(size_type v);
+
 
 int spParallelDeviceInitialize(int argc, char **argv);
 
@@ -36,13 +53,16 @@ int spParallelGlobalBarrier();
 
 int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v);
 
-int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataType *ele_type, int ndims,
-                                const size_type *dims, const size_type *start, const size_type *,
-                                const size_type *count, const size_type *, int mpi_sync_start_dims);
+size_type spParallelPrefixSum(size_type s);
 
 struct spParallelDAUpdater_s;
 
 typedef struct spParallelDAUpdater_s spParallelMPIUpdater;
+
+int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataType *ele_type, int ndims,
+                                const size_type *dims, const size_type *start, const size_type *,
+                                const size_type *count, const size_type *, int mpi_sync_start_dims);
+
 
 int spParallelUpdaterCreateDA(spParallelMPIUpdater **updater, const spDataType *data_desc, int ndims,
                               const size_type *shape, const size_type *start, const size_type *stride,
@@ -69,7 +89,6 @@ int spParallelDeviceFillInt(int *d, int v, size_type s);
 
 int spParallelDeviceFillReal(Real *d, Real v, size_type s);
 
-int spParallelScan(size_type *, size_type num);
 
 int spParallelGridDim();
 
@@ -83,5 +102,7 @@ int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
                                    size_type block_dim[3]);
 
 int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte);
+
 int spMemoryHostFree(void **p);
+
 #endif //SIMPLA_SPPARALLEL_H

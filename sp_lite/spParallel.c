@@ -2,29 +2,9 @@
 // Created by salmon on 16-7-20.
 //
 #include <assert.h>
+#include <mpi.h>
 #include "spParallel.h"
-
-
-int spParallelInitialize(int argc, char **argv)
-{
-    spMPIInitialize(argc, argv);
-    spParallelDeviceInitialize(argc, argv);
-    return SP_SUCCESS;
-}
-
-int spParallelFinalize()
-{
-    spParallelDeviceFinalize();
-    spMPIFinalize();
-    return SP_SUCCESS;
-}
-
-int spParallelGlobalBarrier()
-{
-    spMPIBarrier();
-    return SP_SUCCESS;
-};
-
+#include "sp_capi.h"
 
 #define MPI_CALL(_CMD_)                                                   \
 {                                                                          \
@@ -36,6 +16,63 @@ int spParallelGlobalBarrier()
         ERROR(_error_msg);                                                 \
     }                                                                      \
 }
+
+
+int spParallelInitialize(int argc, char **argv)
+{
+
+//    MPI_CALL(MPI_Init(&argc, &argv));
+//
+//    int m_num_process_;
+//
+//    MPI_CALL(MPI_Comm_size(MPI_COMM_WORLD, &m_num_process_));
+//    int mpi_rank, mpi_size;
+//    MPI_CALL(MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank));
+//    MPI_CALL(MPI_Comm_size(MPI_COMM_WORLD, &mpi_size));
+//
+//    int mpi_topology_ndims = 3;
+//
+//    int m_topology_dims_[3] = {1, 1, 1};
+//
+//    int m_topology_coord_[3] = {0, 0, 0};
+//
+//    int periods[3] = {0, 0, 0};
+//
+//    MPI_CALL(MPI_Dims_create(m_num_process_, mpi_topology_ndims, m_topology_dims_));
+//
+//
+//    for (int i = 0; i < mpi_topology_ndims; ++i) { periods[i] = SP_TRUE; }
+//
+//    MPI_CALL(MPI_Cart_create(MPI_COMM_WORLD, mpi_topology_ndims,
+//                             m_topology_dims_, periods, MPI_ORDER_C, &spMPIComm()));
+//
+//
+//    MPI_CALL(MPI_Cart_coords(spMPIComm(), mpi_rank, mpi_topology_ndims, m_topology_coord_));
+    spMPIInitialize(argc, argv);
+    spParallelDeviceInitialize(argc, argv);
+    return SP_SUCCESS;
+}
+
+int spParallelFinalize()
+{
+    spParallelDeviceFinalize();
+    spMPIFinalize();
+//    if (spMPIComm() != MPI_COMM_NULL)
+//    {
+//
+//        MPI_CALL(MPI_Finalize());
+//
+//        spMPIComm() = MPI_COMM_NULL;
+//
+//    }
+    return SP_SUCCESS;
+}
+
+int spParallelGlobalBarrier()
+{
+    spMPIBarrier();
+    return SP_SUCCESS;
+};
 
 
 /**
@@ -85,32 +122,32 @@ int spMPINeighborAllToAll(const void *send_buffer,
         MPI_CALL(MPI_Cart_shift(comm, d, 1, &r0, &r1));
 
         MPI_CALL(MPI_Sendrecv(
-            (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
-            send_counts[d],
-            send_types[d * 2 + 0],
-            r0,
-            tag,
-            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
-            recv_counts[d],
-            recv_types[d * 2 + 0],
-            r0,
-            tag,
-            comm,
-            MPI_STATUS_IGNORE));
+                (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
+                send_counts[d],
+                send_types[d * 2 + 0],
+                r0,
+                tag,
+                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
+                recv_counts[d],
+                recv_types[d * 2 + 0],
+                r0,
+                tag,
+                comm,
+                MPI_STATUS_IGNORE));
 
         MPI_CALL(MPI_Sendrecv(
-            (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
-            send_counts[d],
-            send_types[d * 2 + 1],
-            r1,
-            tag,
-            (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
-            recv_counts[d],
-            recv_types[d * 2 + 1],
-            r1,
-            tag,
-            comm,
-            MPI_STATUS_IGNORE));
+                (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
+                send_counts[d],
+                send_types[d * 2 + 1],
+                r1,
+                tag,
+                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
+                recv_counts[d],
+                recv_types[d * 2 + 1],
+                r1,
+                tag,
+                comm,
+                MPI_STATUS_IGNORE));
     }
 
     return SP_SUCCESS;
@@ -229,8 +266,7 @@ int spParallelUpdateNdArrayHalo2(int num_of_buffer, void **buffers, const spData
                 r_start_lower[i] = 0;
                 r_count_upper[i] = dims[i];
                 r_start_upper[i] = 0;
-            }
-            else if (i == d + mpi_sync_start_dims)
+            } else if (i == d + mpi_sync_start_dims)
             {
                 s_count_lower[i] = (int) start[i];
                 s_start_lower[i] = (int) start[i];
@@ -241,8 +277,7 @@ int spParallelUpdateNdArrayHalo2(int num_of_buffer, void **buffers, const spData
                 r_start_lower[i] = (int) 0;
                 r_count_upper[i] = (int) (dims[i] - count[i] - start[i]);
                 r_start_upper[i] = (int) dims[i] - s_count_upper[i];
-            }
-            else
+            } else
             {
                 s_count_lower[i] = (int) count[i];
                 s_start_lower[i] = (int) start[i];
@@ -358,14 +393,13 @@ int spParallelUpdate(spParallelMPIUpdater const *updater, void *buffer)
     return SP_SUCCESS;
 
 }
+
 int spParallelUpdateAll(spParallelMPIUpdater const *updater, int num_of_buffer, void **buffers)
 {
-
     for (int i = 0; i < num_of_buffer; ++i) {SP_CALL(spParallelUpdate(updater, buffers[i])); }
-
     return SP_SUCCESS;
-
 }
+
 
 int spParallelUpdaterCreateDA(spParallelMPIUpdater **updater, const spDataType *data_desc, int ndims,
                               const size_type *shape, const size_type *start, const size_type *stride,
@@ -440,8 +474,7 @@ int spParallelUpdaterCreateDA(spParallelMPIUpdater **updater, const spDataType *
                 r_start_lower[i] = 0;
                 r_count_upper[i] = dims[i];
                 r_start_upper[i] = 0;
-            }
-            else if (i == d + mpi_sync_start_dims)
+            } else if (i == d + mpi_sync_start_dims)
             {
                 s_count_lower[i] = (int) start[i];
                 s_start_lower[i] = (int) start[i];
@@ -452,8 +485,7 @@ int spParallelUpdaterCreateDA(spParallelMPIUpdater **updater, const spDataType *
                 r_start_lower[i] = (int) 0;
                 r_count_upper[i] = (int) (dims[i] - count[i] - start[i]);
                 r_start_upper[i] = (int) dims[i] - s_count_upper[i];
-            }
-            else
+            } else
             {
                 s_count_lower[i] = (int) count[i];
                 s_start_lower[i] = (int) start[i];
@@ -637,6 +669,20 @@ int spUpdateIndexedBlock(void const *send_buffer,
         MPI_Type_free(&recv_types[i]);
     }
     return MPI_SUCCESS;
+}
+
+size_type spParallelSum(size_type v)
+{
+    UNIMPLEMENTED;
+    return v;
+}
+
+size_type spParallelPrefixSums(size_type v)
+{
+    MPI_Comm comm = spMPIComm();
+
+    if (comm == MPI_COMM_NULL) { return SP_FAILED; }
+    UNIMPLEMENTED;
 }
 
 int spParallelScan(size_type *v, size_type num)

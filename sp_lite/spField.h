@@ -55,4 +55,8 @@ int spFieldSubArray(spField_t f, void **data);
 
 int spFieldAssign(spField_t f, int num, size_type const *offset, Real const **v);
 
+int spFieldAdd(spField *f, void const *);
+
+int spFieldMultify(spField *f, void const *);
+
 #endif /* SPFIELD_H_ */

@@ -193,9 +193,9 @@ void DistributedObject::pimpl_s::sync()
 //
 //    {
 //
-//        MPI_Comm global_comm = GLOBAL_COMM.comm();
+//        MPI_Comm mpi_global_comm = GLOBAL_COMM.comm();
 //
-//        MPI_Barrier(global_comm);
+//        MPI_Barrier(mpi_global_comm);
 //
 //        auto const &g_array = pool->mesh().global_array_;
 //        if (g_array.send_recv_.size() == 0)
@@ -235,7 +235,7 @@ void DistributedObject::pimpl_s::sync()
 //            }
 //
 //            MPI_Isend(&m_buffer[count][0], m_buffer[count].size() * sizeof(value_type),
-//                      MPI_BYTE, item.dest, item.send_tag, global_comm, &requests[count]);
+//                      MPI_BYTE, item.dest, item.send_tag, mpi_global_comm, &requests[count]);
 //            ++count;
 //
 //        }
@@ -246,7 +246,7 @@ void DistributedObject::pimpl_s::sync()
 //
 //            MPI_Status status;
 //
-//            MPI_Probe(item.dest, item.recv_tag, global_comm, &status);
+//            MPI_Probe(item.dest, item.recv_tag, mpi_global_comm, &status);
 //
 //            // When probe returns, the status object has the size and other
 //            // attributes of the incoming message. Get the size of the message
@@ -260,7 +260,7 @@ void DistributedObject::pimpl_s::sync()
 //            m_buffer[count].resize(mem_size / sizeof(value_type));
 //
 //            MPI_Irecv(&m_buffer[count][0], m_buffer[count].size() * sizeof(value_type),
-//                      MPI_BYTE, item.dest, item.recv_tag, global_comm, &requests[count]);
+//                      MPI_BYTE, item.dest, item.recv_tag, mpi_global_comm, &requests[count]);
 //            ++count;
 //        }
 //
@@ -310,7 +310,7 @@ void DistributedObject::pimpl_s::sync()
 //
 //        }
 //
-//        MPI_Barrier(global_comm);
+//        MPI_Barrier(mpi_global_comm);
 //
 //        pool->add(&cell_buffer);
 //

@@ -7,7 +7,6 @@
 
 #include <math.h>
 
-#include "../src/sp_capi.h"
 
 #include "spMesh.h"
 #include "spField.h"

@@ -52,6 +52,8 @@ int spParticleDeploy(spParticle *sp);
 
 int spParticleInitialize(spParticle *sp, int const *dist_types);
 
+int spParticleIsSorted(spParticle const *sp);
+
 int spParticleSetPIC(spParticle *sp, unsigned int pic);
 
 uint spParticleGetPIC(spParticle const *sp);

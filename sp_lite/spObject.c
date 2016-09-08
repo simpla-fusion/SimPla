@@ -7,7 +7,6 @@
 
 #include "spParallel.h"
 
-#include "../src/sp_capi.h"
 
 int spObjectCreate(spObject **obj, size_t s_in_byte)
 {

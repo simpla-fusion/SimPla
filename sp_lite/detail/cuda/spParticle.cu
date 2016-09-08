@@ -7,16 +7,14 @@ extern "C"
 #include "../../spParticle.h"
 #include "../../spMesh.h"
 #include "../../spParallel.h"
-#include "spParallelCUDA.h"
+#include "../sp_device.h"
+
 }
 
 #include <thrust/device_ptr.h>
-#include <thrust/for_each.h>
-#include <thrust/iterator/zip_iterator.h>
 #include <thrust/sort.h>
-#include "../../../../../../../usr/local/cuda/include/host_defines.h"
-#include "../../../../../../../usr/local/cuda/include/device_launch_parameters.h"
-#include "../sp_device.h"
+#include </usr/local/cuda/include/host_defines.h>
+#include </usr/local/cuda/include/device_launch_parameters.h>
 
 __global__ void spParticleSortKernel(uint *cellStart,        // output: cell start index
                                      uint *cellEnd,          // output: cell end index
@@ -74,6 +72,7 @@ __global__ void spParticleSortKernel(uint *cellStart,        // output: cell sta
 //        sortedVel[index] = vel;
     }
 }
+
 int spParticleSort(spParticle *sp)
 {
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
@@ -109,9 +108,10 @@ int spParticleAutoReorder(spParticle *sp)
 {
     return SP_DO_NOTHING;
 };
+
 SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
                           particle_head *sp,
-                          Real3 dx, Real3 min, int isGlobalToLocal,
+                          Real3 dx, Real3 min,
                           uint const *start_pos,
                           uint const *end_pos,
                           uint const *sorted_index
@@ -119,27 +119,19 @@ SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
 {
 
     uint s0 = __umul24(blockIdx.x, gridDim.x) +
-        __umul24(blockIdx.y, gridDim.y) +
-        __umul24(blockIdx.z, gridDim.z);
+              __umul24(blockIdx.y, gridDim.y) +
+              __umul24(blockIdx.z, gridDim.z);
 
     __shared__ Real x0, y0, z0;
 
     if (threadIdx.x == 0)
     {
-
         x0 = blockIdx.x * dx.x + min.x;
         y0 = blockIdx.y * dx.y + min.y;
         z0 = blockIdx.z * dx.z + min.z;
-
-        if (isGlobalToLocal == SP_TRUE)
-        {
-            x0 *= -1;
-            y0 *= -1;
-            z0 *= -1;
-        }
     }
 
-        spParallelSyncThreads();
+            spParallelSyncThreads();
 
     if (start_pos[s0] + threadIdx.x < end_pos[s0])
     {
@@ -148,11 +140,10 @@ SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
         sp->ry[s] += y0;
         sp->rz[s] += z0;
     }
-
 };
 
 
-int spParticleCooridinateLocalToGlobal(spParticle *sp, int isGlobalToLocal)
+int spParticleCooridinateLocalToGlobal(spParticle *sp)
 {
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
 
@@ -180,16 +171,12 @@ int spParticleCooridinateLocalToGlobal(spParticle *sp, int isGlobalToLocal)
 
 
     SP_DEVICE_CALL_KERNEL(spParticleCooridinateConvert, sizeType2Dim3(dims), blockDim,
-                          (particle_head *) (p_data), real2Real3(dx), real2Real3(xmin), isGlobalToLocal,
+                          (particle_head *) (p_data), real2Real3(dx), real2Real3(xmin),
                           start_pos, end_pos, index);
 
     return SP_SUCCESS;
 
 };
-int spParticleGet(spParticle *sp, size_type head, size_type tail, void **data)
-{
-
-}
 
 
 __global__ void
@@ -203,7 +190,8 @@ spParticleMemcpyKernel(void *dest,
 
     if (index < numParticles)
     {
-        memcpy(dest + index * ele_size_in_byte, src + gridParticleIndex[index] * ele_size_in_byte, ele_size_in_byte);
+        memcpy(dest + index * ele_size_in_byte,
+               src + gridParticleIndex[index] * ele_size_in_byte, ele_size_in_byte);
     }
 }
 
@@ -218,6 +206,7 @@ spParticleMemcpyUIntKernel(uint *dest,
 
     if (index < numParticles) { dest[index] = src[gridParticleIndex[index]]; }
 }
+
 int spParticleReorder(spParticle *sp)
 {
     int numThreads = 256;
@@ -247,8 +236,7 @@ int spParticleReorder(spParticle *sp)
                                   (uint *) t_data, (uint const *) src, spParticleGetSortedIndex(sp),
                                   num_particle);
 
-        }
-        else
+        } else
         {
             SP_DEVICE_CALL_KERNEL(spParticleMemcpyKernel, num_particle / numThreads + 1, numThreads,
                                   t_data, src, spParticleGetSortedIndex(sp), num_particle, ele_size_in_byte);
@@ -264,6 +252,7 @@ int spParticleReorder(spParticle *sp)
     return SP_SUCCESS;
 
 };
+
 int spParticleGetCell(spParticle *sp, uint num, uint *cell_hash, uint *start, uint *end, uint **index)
 {
     return SP_SUCCESS;
