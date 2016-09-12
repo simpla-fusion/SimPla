@@ -16,6 +16,8 @@
 #include "spMesh.h"
 #include "spField.h"
 #include "spParticle.h"
+#include "../../../../../usr/local/cuda/include/driver_types.h"
+
 #ifndef SP_MAX_NUMBER_OF_PARTICLE_ATTR
 #    define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
 #endif
@@ -63,7 +65,8 @@ struct spParticle_s
 
     void **m_current_data_;
     int is_sorted;
-    uint *start_pos, *end_pos, *num_pic;
+
+    spField *num_pic, *start_pos, *end_pos;
     uint *sorted_id;
 };
 
@@ -77,6 +80,9 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     (*sp)->charge = 1;
     (*sp)->mass = 1;
     (*sp)->is_sorted = SP_FALSE;
+    spFieldCreate(&(*sp)->start_pos, mesh, VOLUME, SP_TYPE_uint);
+    spFieldCreate(&(*sp)->end_pos, mesh, VOLUME, SP_TYPE_uint);
+    spFieldCreate(&(*sp)->num_pic, mesh, VOLUME, SP_TYPE_uint);
 
     return SP_SUCCESS;
 
@@ -109,6 +115,11 @@ int spParticleDeploy(spParticle *sp)
     SP_CALL(spParallelDeviceAlloc((void **) &(sp->m_current_data_),
                                   spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
     SP_CALL(spParallelMemcpy(sp->m_current_data_, d, spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
+
+    SP_CALL(spFieldClear(sp->start_pos));
+    SP_CALL(spFieldClear(sp->end_pos));
+    SP_CALL(spFieldClear(sp->num_pic));
+
     return SP_SUCCESS;
 }
 
@@ -116,10 +127,11 @@ int spParticleDestroy(spParticle **sp)
 {
     if (sp == NULL || *sp == NULL) { return SP_DO_NOTHING; }
 
-    spParallelDeviceFree((void **) &((*sp)->start_pos));
-    spParallelDeviceFree((void **) &((*sp)->end_pos));
-    spParallelDeviceFree((void **) &((*sp)->sorted_id));
-    spParallelDeviceFree((void **) &((*sp)->num_pic));
+    SP_CALL(spFieldDestroy(&(*sp)->start_pos));
+    SP_CALL(spFieldDestroy(&(*sp)->end_pos));
+    SP_CALL(spFieldDestroy(&(*sp)->num_pic));
+
+    SP_CALL(spParallelDeviceFree((void **) &((*sp)->sorted_id)));
 
     for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i)
     {
@@ -134,6 +146,7 @@ int spParticleDestroy(spParticle **sp)
 
     return SP_SUCCESS;
 }
+
 int spParticleDeepSort(spParticle *sp)
 {
     spParticleSort(sp);
@@ -272,8 +285,7 @@ int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
         *data = NULL;
 
         return SP_DO_NOTHING;
-    }
-    else
+    } else
     {
         *data = sp->m_current_data_;
 
@@ -309,16 +321,10 @@ size_type spParticlePush(spParticle *sp, size_type s) { return sp->m_num_of_part
 
 size_type spParticleGetCapacity(spParticle const *sp) { return sp->m_max_num_of_particle_; }
 
-const unsigned int *spParticleGetStartPos(spParticle const *sp) { return sp->start_pos; }
-
-const unsigned int *spParticleGetEndPos(spParticle const *sp) { return sp->end_pos; }
-
-const unsigned int *spParticleGetSortedIndex(spParticle const *sp) { return sp->sorted_id; }
-
 int spParticleGetIndexArray(spParticle *sp, uint **start_pos, uint **end_pos, uint **index)
 {
-    *start_pos = sp->start_pos;
-    *end_pos = sp->end_pos;
+    *start_pos = spFieldData(sp->start_pos);
+    *end_pos = spFieldData(sp->end_pos);
     *index = sp->sorted_id;
     return SP_SUCCESS;
 }
@@ -335,6 +341,10 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spParticleSort(sp));
 
+    SP_CALL(spFieldSync(sp->start_pos));
+    SP_CALL(spFieldSync(sp->end_pos));
+    SP_CALL(spFieldSync(sp->num_pic));
+
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
 
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
@@ -345,64 +355,143 @@ int spParticleSync(spParticle *sp)
 
     size_type num_of_particle = spParticleGetSize(sp);
 
-    uint *start_pos, *end_pos, *sorted_id;
+    uint *start_pos = NULL, *end_pos = NULL, *num_pic = NULL, *sorted_id = NULL;
 
-    spField *count_f;
+    SP_CALL(spFieldCopyToHost((void **) &start_pos, sp->start_pos));
+    SP_CALL(spFieldCopyToHost((void **) &end_pos, sp->end_pos));
+    SP_CALL(spFieldCopyToHost((void **) &num_pic, sp->num_pic));
 
-    SP_CALL(spFieldCreate(&count_f, m, EDGE, SP_TYPE_uint));
-
-    spFieldDeploy(count_f);
-
-    uint *count = (uint *) spFieldData(count_f);
-
-    SP_CALL(spParallelHostAlloc((void **) &start_pos, num_of_cell * sizeof(uint)));
-    SP_CALL(spParallelHostAlloc((void **) &end_pos, num_of_cell * sizeof(uint)));
-    SP_CALL(spParallelMemcpy((void *) start_pos, sp->start_pos, num_of_cell * sizeof(uint)));
-    SP_CALL(spParallelMemcpy((void *) end_pos, sp->end_pos, num_of_cell * sizeof(uint)));
 
     SP_CALL(spParallelHostAlloc((void **) &sorted_id, num_of_particle * sizeof(uint)));
     SP_CALL(spParallelMemcpy((void *) sorted_id, sp->sorted_id, num_of_particle * sizeof(uint)));
 
-
-#pragma unroll for
-    for (int i = 0; i < num_of_cell; ++i) { count[i] -= start_pos[i]; }
-
-    spFieldSync(count_f);
-
     size_type l_dims[ndims + 1];
-    size_type l_start[ndims + 1];
+    size_type start[ndims + 1];
     size_type l_end[ndims + 1];
     size_type l_strides[ndims + 1];
 
     spMeshGetDims(m, l_dims);
-    spMeshGetArrayShape(m, SP_DOMAIN_CENTER, l_start, l_end, l_strides);
-
+    spMeshGetArrayShape(m, SP_DOMAIN_CENTER, start, l_end, l_strides);
     for (int i = 0; i < l_dims[0]; ++i)
         for (int j = 0; j < l_dims[1]; ++j)
             for (int k = 0; k < l_dims[2]; ++k)
             {
-                if ((i >= l_start[0] && i < l_end[0]) &&
-                    (j >= l_start[1] && j < l_end[1]) &&
-                    (k >= l_start[2] && k < l_end[2])) { continue; }
+                if ((i >= start[0] && i < l_end[0]) &&
+                    (j >= start[1] && j < l_end[1]) &&
+                    (k >= start[2] && k < l_end[2])) { continue; }
 
                 size_type s = i * l_strides[0] + j * l_strides[1] + k * l_strides[2];
-                start_pos[s] = (uint) spParticlePush(sp, count[s]);
-                end_pos[s] = start_pos[s] + count[s];
+                start_pos[s] = (uint) sp->m_num_of_particle_;
+                sp->m_num_of_particle_ += s;
+                end_pos[s] = start_pos[s] + num_pic[s];
             }
 
-    SP_CALL(spParallelMemcpy((void *) sp->start_pos, start_pos, num_of_cell * sizeof(uint)));
-    SP_CALL(spParallelMemcpy((void *) sp->end_pos, end_pos, num_of_cell * sizeof(uint)));
+    SP_CALL(spFieldCopyToDevice(sp->start_pos, (void **) &start_pos));
+    SP_CALL(spFieldCopyToDevice(sp->end_pos, (void **) &end_pos));
+    SP_CALL(spFieldCopyToDevice(sp->num_pic, (void **) &num_pic));
 
 
 
 
-    /* mpi comm */
-    UNIMPLEMENTED;
+    /* MPI COMM Start */
+
+    MPI_Comm comm = spMPIComm();
+
+    if (comm == MPI_COMM_NULL) { return SP_DO_NOTHING; }
+
+    int tope_type = MPI_CART;
+
+    MPI_Topo_test(comm, &tope_type);
+
+    assert(tope_type == MPI_CART);
 
 
+    int mpi_topology_ndims = 0;
+    int mpi_topo_dims[3];
+    int periods[3];
+    int mpi_topo_coord[3];
+    spMPITopology(&mpi_topology_ndims,
+                  mpi_topo_dims,
+                  periods,
+                  mpi_topo_coord);
+
+    assert(mpi_topology_ndims <= ndims);
+
+    int num_of_neighbour = 2 * mpi_topology_ndims;
+
+    int dims[ndims];
+
+//
+//
+////    SP_CALL(spMeshGetGlobalArrayShape(m, SP_DOMAIN_CENTER,
+////                                      (iform == VERTEX || iform == VOLUME) ? 0 : 1,
+////                                      &num_of_sub, &array_ndims, &mesh_start_dim, NULL, NULL,
+////                                      l_dims, start, l_count, spFieldIsSoA(f)));
+//
+//    for (int i = 0; i < ndims; ++i) { dims[i] = (int) l_dims[i]; }
+//
+//    int s_count_lower[ndims];
+//    int s_start_lower[ndims];
+//    int s_count_upper[ndims];
+//    int s_start_upper[ndims];
+//
+//    int r_count_lower[ndims];
+//    int r_start_lower[ndims];
+//    int r_count_upper[ndims];
+//    int r_start_upper[ndims];
+//
+//    for (int d = 0; d < mpi_topology_ndims; ++d)
+//    {
+//
+//
+//        if (dims[d] == 1) { continue; }
+//
+//
+//        for (int i = 0; i < ndims; ++i)
+//        {
+//            if (i < d)
+//            {
+//                s_count_lower[i] = dims[i];
+//                s_start_lower[i] = 0;
+//                s_count_upper[i] = dims[i];
+//                s_start_upper[i] = 0;
+//
+//                r_count_lower[i] = dims[i];
+//                r_start_lower[i] = 0;
+//                r_count_upper[i] = dims[i];
+//                r_start_upper[i] = 0;
+//            } else if (i == d)
+//            {
+//                s_count_lower[i] = (int) start[i];
+//                s_start_lower[i] = (int) start[i];
+//                s_count_upper[i] = (int) (dims[i] - count[i] - start[i]);
+//                s_start_upper[i] = (int) (start[i] + count[i] - s_count_upper[i]);
+//
+//                r_count_lower[i] = (int) start[i];
+//                r_start_lower[i] = (int) 0;
+//                r_count_upper[i] = (int) (dims[i] - count[i] - start[i]);
+//                r_start_upper[i] = (int) dims[i] - s_count_upper[i];
+//            } else
+//            {
+//                s_count_lower[i] = (int) count[i];
+//                s_start_lower[i] = (int) start[i];
+//                s_count_upper[i] = (int) count[i];
+//                s_start_upper[i] = (int) start[i];
+//
+//                r_count_lower[i] = (int) count[i];
+//                r_start_lower[i] = (int) start[i];
+//                r_count_upper[i] = (int) count[i];
+//                r_start_upper[i] = (int) start[i];
+//            };
+//        }
+//
+//
+//    }
+
+    /* MPI COMM End*/
     SP_CALL(spParallelHostFree((void **) &start_pos));
     SP_CALL(spParallelHostFree((void **) &sorted_id));
-    SP_CALL(spFieldDestroy(&count_f));
+    SP_CALL(spParallelHostFree((void **) &num_pic));
 
 
     return SP_SUCCESS;
@@ -446,9 +535,13 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
     spFieldDeploy(end);
 
-    spMemoryDeviceToHost(spFieldData(start), (void *) spParticleGetStartPos(sp), num_of_cell);
+    uint *start_pos, *end_pos, *index;
 
-    spMemoryDeviceToHost(spFieldData(end), (void *) spParticleGetEndPos(sp), num_of_cell);
+    spParticleGetIndexArray((spParticle *) sp, &start_pos, &end_pos, &index);
+
+    spMemoryDeviceToHost(spFieldData(start), (void *) start_pos, num_of_cell);
+
+    spMemoryDeviceToHost(spFieldData(end), (void *) end_pos, num_of_cell);
 
     spFieldAdd(start, &offset);
 

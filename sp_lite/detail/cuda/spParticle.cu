@@ -97,8 +97,8 @@ int spParticleSort(spParticle *sp)
     int numThreads = 256;
     uint smemSize = sizeof(uint) * (numThreads + 1);
     /*@formatter:off*/
-    spParticleSortKernel<<<numParticles / numThreads + 1, numThreads,smemSize>>>(
-        start_pos, end_pos, &trashStart, hash, index, numParticles);
+//    spParticleSortKernel<<<numParticles / numThreads + 1, numThreads,smemSize>>>(
+//        start_pos, end_pos, &trashStart, hash, index, numParticles);
     /*@formatter:on*/
 
     return SP_SUCCESS;

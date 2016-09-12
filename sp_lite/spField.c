@@ -64,11 +64,17 @@ int spFieldDeploy(spField *f)
     if (f->m_data_ == NULL)
     {
         size_type s = spDataTypeSizeInByte(f->m_data_type_desc_) *
-            spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
+                      spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 
         spParallelDeviceAlloc((void **) &(f->m_data_), s);
     }
     return SP_SUCCESS;
+}
+
+size_type spFieldGetSizeInByte(spField const *f)
+{
+    return spDataTypeSizeInByte(f->m_data_type_desc_) *
+           spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 }
 
 int spFieldAdd(spField *, void const *);
@@ -115,8 +121,7 @@ int spFieldSubArray(spField *f, void **data)
 
         for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * offset; }
 
-    }
-    else
+    } else
     {
         UNIMPLEMENTED;
 //        for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * ele_size_in_byte; }
@@ -129,7 +134,7 @@ int spFieldClear(spField *f)
     SP_CALL(spFieldDeploy(f));
 
     size_type s = spDataTypeSizeInByte(f->m_data_type_desc_)
-        * spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
+                  * spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 
     spParallelMemset(f->m_data_, 0, s);
 
@@ -150,7 +155,7 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
 
     size_type size_in_byte = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform) *
-        spDataTypeSizeInByte(spFieldDataType(f));
+                             spDataTypeSizeInByte(spFieldDataType(f));
 
     void *f_host;
 
@@ -231,9 +236,20 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real c
         SP_CALL(spFieldSubArray(f, (void **) data));
 
         for (int i = 0; i < num_of_sub; ++i) {SP_CALL(spParallelAssign(num_of_points, offset, data[i], v[i])); }
-    }
-    else
+    } else
     {
         UNIMPLEMENTED;
     }
+}
+
+int spFieldCopyToHost(void **d, spField const *f)
+{
+    size_type s = spFieldGetSizeInByte(f);
+    spParallelHostAlloc(d, s);
+    spParallelMemcpy(d, f->m_data_, s);
+};
+
+int spFieldCopyToDevice(spField *f, void const *d)
+{
+    spParallelMemcpy(f->m_data_, d, spFieldGetSizeInByte(f));
 }

@@ -83,11 +83,11 @@ size_type spParticleGetCapacity(spParticle const *);
 
 size_type spParticlePush(spParticle *sp, size_type s);
 
-const uint *spParticleGetStartPos(spParticle const *);
-
-const uint *spParticleGetEndPos(spParticle const *);
-
-const uint *spParticleGetSortedIndex(spParticle const *);
+//const uint *spParticleGetStartPos(spParticle const *);
+//
+//const uint *spParticleGetEndPos(spParticle const *);
+//
+//const uint *spParticleGetSortedIndex(spParticle const *);
 
 int spParticleGetIndexArray(spParticle *sp, uint **start_pos, uint **end_pos, uint **index);
 

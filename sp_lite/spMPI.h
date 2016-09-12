@@ -46,14 +46,5 @@ int spMPICartUpdate(spMPICartUpdater const *updater, void *buffer);
 
 int spMPICartUpdateAll(spMPICartUpdater const *updater, int num_of_buffer, void **buffers);
 
-int spMPICartUpdateNdArrayHalo2(int num_of_buffer,
-                                void **buffers,
-                                const spDataType *data_desc,
-                                int ndims,
-                                const size_type *shape,
-                                const size_type *start,
-                                const size_type *stride,
-                                const size_type *count,
-                                const size_type *block,
-                                int mpi_sync_start_dims);
+
 #endif //SIMPLA_SPMPI_H

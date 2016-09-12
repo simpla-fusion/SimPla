@@ -31,6 +31,8 @@ struct spDataType_s const *spFieldDataType(spField const *f);
 
 void *spFieldData(spField_t f);
 
+size_type spFieldGetSizeInByte(spField const *f);
+
 int spFieldIsSoA(spField const *f);
 
 void *spFieldDeviceData(spField_t f);
@@ -58,5 +60,9 @@ int spFieldAssign(spField_t f, int num, size_type const *offset, Real const **v)
 int spFieldAdd(spField *f, void const *);
 
 int spFieldMultify(spField *f, void const *);
+
+int spFieldCopyToHost(void **d, spField const *f);
+
+int spFieldCopyToDevice(spField *f, void const *d);
 
 #endif /* SPFIELD_H_ */
