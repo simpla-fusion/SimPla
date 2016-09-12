@@ -10,7 +10,7 @@
 #include "sp_lite_def.h"
 #include "spMesh.h"
 #include "spParallel.h"
-
+#include "spMPI.h"
 
 MeshEntityId spMeshEntityIdFromArray(size_type const *s)
 {
@@ -174,7 +174,7 @@ int spMeshDeploy(spMesh *self)
 
         self->m_coord_upper[i] = self->m_coord_lower[i] + self->m_count_[i] * self->dx[i];
 
-        self->inv_dx[i] = (self->m_global_dims_[i] <= 1) ? 0 : 1.0 / self->dx[i];
+        self->inv_dx[i] = (Real) ((self->m_global_dims_[i] <= 1) ? 0 : 1.0 / self->dx[i]);
 
     }
 

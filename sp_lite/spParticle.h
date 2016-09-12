@@ -10,9 +10,7 @@
 
 
 #include "sp_config.h"
-#include "spDataType.h"
 
-#define SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE 128
 
 #define SP_PARTICLE_HEAD  \
      uint  *id;           \
@@ -21,9 +19,12 @@
      Real  *rz;
 
 
-typedef struct { SP_PARTICLE_HEAD } particle_head;
+typedef struct
+{
+    SP_PARTICLE_HEAD
+    Real *attrs[];
 
-#define SP_PARTICLE_ATTR(_T_, _N_)       _T_ * _N_;
+} particle_head;
 
 
 #define SP_PARTICLE_DATA_DESC_ADD(_DESC_, _CLS_, _T_, _N_)                           \
@@ -35,11 +36,17 @@ typedef struct { SP_PARTICLE_HEAD } particle_head;
     SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,ry)  \
     SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rz)
 
+#define SP_PARTICLE_ATTR(_N_)  Real * _N_;
+
+#define SP_PARTICLE_ADD_ATTR(_DESC_, _N_)   spParticleAddAttribute(_DESC_, __STRING(_N_), SP_TYPE_Real,sizeof(Real),-1);
+
 
 struct spDataType_s;
+
 struct spIOStream_s;
 
 struct spMesh_s;
+
 struct spParticle_s;
 
 typedef struct spParticle_s spParticle;
@@ -105,6 +112,8 @@ int spParticleWrite(spParticle const *sp, struct spIOStream_s *os, const char *u
 int spParticleRead(spParticle *sp, struct spIOStream_s *os, const char *url, int flag);
 
 int spParticleSort(spParticle *sp);
+
+int spParticleDeepSort(spParticle *sp);
 
 int spParticleSync(spParticle *sp);
 

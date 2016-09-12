@@ -21,12 +21,6 @@
 #endif
 
 
-typedef struct spParticleFiber_s
-{
-    SP_PARTICLE_HEAD
-    byte_type __other[];
-} spParticleFiber;
-
 typedef struct spParticleAttrEntity_s
 {
     spDataType *data_type;
@@ -82,6 +76,7 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     (*sp)->m_num_of_attrs_ = 0;
     (*sp)->charge = 1;
     (*sp)->mass = 1;
+    (*sp)->is_sorted = SP_FALSE;
 
     return SP_SUCCESS;
 
@@ -136,6 +131,16 @@ int spParticleDestroy(spParticle **sp)
 
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) sp));
 
+
+    return SP_SUCCESS;
+}
+int spParticleDeepSort(spParticle *sp)
+{
+    spParticleSort(sp);
+
+    sp->is_sorted = SP_TRUE;
+
+//    UNIMPLEMENTED;
 
     return SP_SUCCESS;
 }
@@ -200,7 +205,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spParticleGetAllAttributeData(sp, data));
 
-    SP_CALL(spParallelMemset(((spParticleFiber *) data)->id, -1, max_number_of_particle * sizeof(int)));
+    SP_CALL(spParallelMemset(((particle_head *) data)->id, -1, max_number_of_particle * sizeof(int)));
 
     size_type x_min[3], x_max[3], strides[3];
 
@@ -210,7 +215,11 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     spRandomGenerator *sp_gen;
 
-    SP_CALL(spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, spMPIPrefixSums(sp->m_num_of_particle_)));
+    size_type offset = sp->m_num_of_particle_;
+
+    SP_CALL(spMPIPrefixSum(&offset, NULL));
+
+    SP_CALL(spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, offset));
 
     strides[0] *= num_of_pic;
     strides[1] *= num_of_pic;
@@ -241,19 +250,6 @@ unsigned int spParticleGetPIC(spParticle const *sp) { return sp->m_pic_; }
 
 size_type spParticleGetNumOfParticle(const spParticle *sp) { return sp->m_num_of_particle_; }
 
-int spParticleRemoveNull(spParticle *sp, size_type s)
-{
-    if (s < sp->m_num_of_particle_)
-    {
-        sp->m_num_of_particle_ = s;
-        return SP_SUCCESS;
-    }
-    else
-    {
-        return SP_DO_NOTHING;
-    }
-}
-
 size_type spParticleGetMaxNumOfParticle(const spParticle *sp) { return sp->m_max_num_of_particle_; }
 
 int spParticleGetAllAttributeData(spParticle *sp, void **res)
@@ -274,11 +270,13 @@ int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
     if (sp == NULL)
     {
         *data = NULL;
+
         return SP_DO_NOTHING;
     }
     else
     {
         *data = sp->m_current_data_;
+
         return SP_SUCCESS;
     }
 }
@@ -286,21 +284,19 @@ int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
 int spParticleSetMass(spParticle *sp, Real m)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
+
     sp->mass = m;
+
     return SP_SUCCESS;
 }
 
 int spParticleSetCharge(spParticle *sp, Real e)
 {
-    if (sp == NULL)
-    {
-        return SP_DO_NOTHING;
-    }
-    else
-    {
-        sp->charge = e;
-        return SP_SUCCESS;
-    }
+    if (sp == NULL) { return SP_DO_NOTHING; }
+
+    sp->charge = e;
+
+    return SP_SUCCESS;
 }
 
 Real spParticleGetMass(spParticle const *sp) { return sp->mass; }
@@ -335,6 +331,8 @@ int spParticleSync(spParticle *sp)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
 
+    sp->is_sorted = SP_FALSE;
+
     SP_CALL(spParticleSort(sp));
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
@@ -352,6 +350,8 @@ int spParticleSync(spParticle *sp)
     spField *count_f;
 
     SP_CALL(spFieldCreate(&count_f, m, EDGE, SP_TYPE_uint));
+
+    spFieldDeploy(count_f);
 
     uint *count = (uint *) spFieldData(count_f);
 
@@ -430,14 +430,21 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
     int ndims = spMeshGetNDims(m);
 
     size_type local_number = spParticleGetSize(sp);
-    size_type offset = spMPIPrefixSums(local_number);
-    size_type total_num = spMPISum(local_number);
+    size_type offset = (int) local_number, total_num;
+
+    SP_CALL(spMPIPrefixSum(&offset, &total_num));
+
     size_type num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
     spField *start, *end;
 
     spFieldCreate(&start, m, iform, SP_TYPE_uint);
 
     spFieldCreate(&end, m, iform, SP_TYPE_uint);
+
+
+    spFieldDeploy(start);
+
+    spFieldDeploy(end);
 
     spMemoryDeviceToHost(spFieldData(start), (void *) spParticleGetStartPos(sp), num_of_cell);
 

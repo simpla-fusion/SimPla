@@ -7,6 +7,7 @@
 
 extern "C" {
 #include "spParallelCUDA.h"
+#include "../../spMPI.h"
 }
 
 

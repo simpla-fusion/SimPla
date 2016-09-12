@@ -12,11 +12,11 @@
 typedef struct boris_particle_s
 {
     SP_PARTICLE_HEAD
-    SP_PARTICLE_ATTR(Real, vx)
-    SP_PARTICLE_ATTR(Real, vy)
-    SP_PARTICLE_ATTR(Real, vz)
-    SP_PARTICLE_ATTR(Real, f)
-    SP_PARTICLE_ATTR(Real, w)
+    SP_PARTICLE_ATTR(vx)
+    SP_PARTICLE_ATTR(vy)
+    SP_PARTICLE_ATTR(vz)
+    SP_PARTICLE_ATTR(f)
+    SP_PARTICLE_ATTR(w)
 
 } boris_particle;
 

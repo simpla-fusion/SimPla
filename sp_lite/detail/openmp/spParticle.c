@@ -5,5 +5,6 @@
 
 int spParticleSort(spParticle *sp)
 {
+
     return SP_DO_NOTHING;
 }
