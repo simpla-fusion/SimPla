@@ -27,12 +27,12 @@ typedef float3 Real3;
 typedef double3 Real3;
 #endif
 
-INLINE __device__ __host__ dim3 intType2Dim3(const int *v)
+INLINE __device__ __host__ dim3 sizeType2Dim3(size_type const *v)
 {
     dim3 res;
-    res.x = (unsigned int) v[0];
-    res.y = (unsigned int) v[1];
-    res.z = (unsigned int) v[2];
+    res.x = (int) v[0];
+    res.y = (int) v[1];
+    res.z = (int) v[2];
     return res;
 }
 

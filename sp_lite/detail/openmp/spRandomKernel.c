@@ -8,6 +8,8 @@
 #include <assert.h>
 #include "../../spRandom.h"
 #include "../../spParallel.h"
+#include "../../sp_lite_def.h"
+
 /* Number of 64-bit vectors per dimension */
 #define VECTOR_SIZE 64
 
@@ -18,7 +20,7 @@ typedef struct spRandomGenerator_s
 
 } spRandomGenerator;
 
-int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimension, int offset)
+int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimension, size_type offset)
 {
 
     SP_CALL(spParallelHostAlloc((void **) gen, sizeof(spRandomGenerator)));
@@ -56,8 +58,8 @@ int spRandomGeneratorGetNumOfDimensions(spRandomGenerator const *gen) { return g
  */
 int
 spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, Real **data,
-                                int const *min, int const *max, int const *strides,
-                                int num_per_cell)
+                                size_type const *min, size_type const *max, size_type const *strides,
+                                size_type num_per_cell)
 {
 
 //    int n_dims = spRandomGeneratorGetNumOfDimensions(gen);

@@ -9,10 +9,11 @@
 #include "spObject.h"
 #include "spParallel.h"
 #include "spMPI.h"
+#include "spDataType.h"
+#include "spIOStream.h"
+
 #include "spMesh.h"
 #include "spField.h"
-#include "spIOStream.h"
-#include "spDataType.h"
 
 #define MAX_NUM_OF_FIELD_ATTR 16
 
@@ -28,7 +29,7 @@ typedef struct spField_s
 
 } spField;
 
-int spFieldCreate(spField **f, const struct spMesh_s *mesh, unsigned int iform, int type_tag)
+int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_tag)
 {
     SP_CALL(spMeshAttributeCreate((spMeshAttribute **) f, sizeof(spField), mesh, iform));
 
@@ -62,7 +63,7 @@ int spFieldDeploy(spField *f)
 
     if (f->m_data_ == NULL)
     {
-        int s = (int) spDataTypeSizeInByte(f->m_data_type_desc_) *
+        size_type s = spDataTypeSizeInByte(f->m_data_type_desc_) *
             spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 
         spParallelDeviceAlloc((void **) &(f->m_data_), s);
@@ -101,7 +102,7 @@ int spFieldSubArray(spField *f, void **data)
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
 
-    int ele_size_in_byte = (int) spDataTypeSizeInByte(spFieldDataType(f));
+    size_type ele_size_in_byte = spDataTypeSizeInByte(spFieldDataType(f));
 
     void *data_root = spFieldData(f);
 
@@ -110,7 +111,7 @@ int spFieldSubArray(spField *f, void **data)
     if (num_of_sub == 1) { *data = spFieldData(f); }
     else if (spFieldIsSoA(f))
     {
-        int offset = ele_size_in_byte * spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, VERTEX);
+        size_type offset = ele_size_in_byte * spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, VERTEX);
 
         for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * offset; }
 
@@ -127,7 +128,7 @@ int spFieldClear(spField *f)
 {
     SP_CALL(spFieldDeploy(f));
 
-    int s = (int) spDataTypeSizeInByte(f->m_data_type_desc_)
+    size_type s = spDataTypeSizeInByte(f->m_data_type_desc_)
         * spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 
     spParallelMemset(f->m_data_, 0, s);
@@ -148,8 +149,8 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
 
-    int size_in_byte = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform) *
-        (int) spDataTypeSizeInByte(spFieldDataType(f));
+    size_type size_in_byte = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform) *
+        spDataTypeSizeInByte(spFieldDataType(f));
 
     void *f_host;
 
@@ -158,14 +159,14 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     int ndims = spMeshGetNDims(m);
     int array_ndims, mesh_start_dim;
 
-    int l_dims[ndims + 1];
-    int l_start[ndims + 1];
-    int l_count[ndims + 1];
+    size_type l_dims[ndims + 1];
+    size_type l_start[ndims + 1];
+    size_type l_count[ndims + 1];
 
-    int g_dims[ndims + 1];
-    int g_start[ndims + 1];
+    size_type g_dims[ndims + 1];
+    size_type g_start[ndims + 1];
 
-    int num_of_sub = 3;
+    size_type num_of_sub = 3;
     SP_CALL(spMeshGetGlobalArrayShape(m, SP_DOMAIN_CENTER,
                                       (iform == VERTEX || iform == VOLUME) ? 0 : 1,
                                       &num_of_sub, &array_ndims, &mesh_start_dim,
@@ -196,9 +197,9 @@ int spFieldSync(spField *f)
     int ndims = spMeshGetNDims(m);
     int array_ndims, mesh_start_dim;
 
-    int l_dims[ndims + 1];
-    int l_start[ndims + 1];
-    int l_count[ndims + 1];
+    size_type l_dims[ndims + 1];
+    size_type l_start[ndims + 1];
+    size_type l_count[ndims + 1];
 
     int num_of_sub = spFieldNumberOfSub(f);
 
@@ -211,13 +212,13 @@ int spFieldSync(spField *f)
     void *F[num_of_sub];
 
     SP_CALL(spFieldSubArray(f, (void **) F));
-    SP_CALL(spMPIUpdateNdArrayHalo(num_of_sub, F, spFieldDataType(f), ndims,
-                                   l_dims, l_start, NULL, l_count, NULL, 0));
+    SP_CALL(spMPICartUpdateNdArrayHalo(num_of_sub, F, spFieldDataType(f), ndims,
+                                       l_dims, l_start, NULL, l_count, NULL, 0));
     return SP_SUCCESS;
 
 }
 
-int spFeildAssign(spField *f, int num_of_points, int *offset, Real const **v)
+int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real const **v)
 {
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
 

@@ -54,10 +54,10 @@ INLINE __device__ void SPMeshPoint(int x, int y, int z, Real *rx, Real *ry, Real
 
 };
 
-int spFDTDSetupParam(spMesh const *m, int tag, int *grid_dim, int *block_dim)
+int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *block_dim)
 {
     _spFDTDParam param;
-    int min[3], max[3], strides[3];
+    size_type min[3], max[3], strides[3];
     Real inv_dx[3], x0[3], dx[3];
     SP_CALL(spMeshGetArrayShape(m, tag, min, max, strides));
     SP_CALL(spMeshGetBox(m, tag, x0, NULL));
@@ -124,7 +124,7 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 
     SP_CALL(spFieldSubArray(f, (void **) data));
 
-    int grid_dim[3], block_dim[3];
+    size_type grid_dim[3], block_dim[3];
 
     spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
 
@@ -143,8 +143,8 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 
 
         SP_DEVICE_CALL_KERNEL(spFDTDInitialValueSinKernel,
-                              intType2Dim3(grid_dim),
-                              intType2Dim3(block_dim),
+                              sizeType2Dim3(grid_dim),
+                              sizeType2Dim3(block_dim),
                               data[i],
                               real2Real3(k),
                               real2Real3(&alpha0[iform][i * 3]),
@@ -224,23 +224,23 @@ int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, s
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) fE);
 
-    int grid_dim[3], block_dim[3];
+    size_type grid_dim[3], block_dim[3];
 
     spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
 
-    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernelPushB, intType2Dim3(grid_dim), intType2Dim3(block_dim), 0.5 * dt,
+    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernelPushB, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), 0.5 * dt,
                           E[0], E[1], E[2], B[0], B[1], B[2]);
 
     SP_CALL(spFieldSync(fB));
 
-    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernelPushE, intType2Dim3(grid_dim), intType2Dim3(block_dim), dt,
+    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernelPushE, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), dt,
                           E[0], E[1], E[2], B[0], B[1], B[2],
                           (const Real *) rho, (const Real *) J[0], (const Real *) J[1], (const Real *) J[2]);
 
     SP_CALL(spFieldSync(fE));
 
 
-    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernelPushB, intType2Dim3(grid_dim), intType2Dim3(block_dim), 0.5 * dt,
+    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernelPushB, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), 0.5 * dt,
                           E[0], E[1], E[2], B[0], B[1], B[2]);
 
     SP_CALL(spFieldSync(fB));
@@ -259,7 +259,7 @@ SP_DEVICE_DECLARE_KERNEL (spFDTDDivKernel, Real const *Jx, Real const *Jy, Real 
     {
         int s = SPMeshHash(x, y, z);
         rho[s] +=
-            (Jx[s + _fdtd_param.strides.x] - Jx[s]) * _fdtd_param.inv_dx.x +
+                (Jx[s + _fdtd_param.strides.x] - Jx[s]) * _fdtd_param.inv_dx.x +
                 (Jy[s + _fdtd_param.strides.y] - Jy[s]) * _fdtd_param.inv_dx.y +
                 (Jz[s + _fdtd_param.strides.z] - Jz[s]) * _fdtd_param.inv_dx.z;
 
@@ -281,11 +281,11 @@ int spFDTDDiv(const spField *fJ, spField *fRho)
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) fRho);
 
-    int grid_dim[3], block_dim[3];
+    size_type grid_dim[3], block_dim[3];
 
     spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
 
-    SP_DEVICE_CALL_KERNEL(spFDTDDivKernel, intType2Dim3(grid_dim), intType2Dim3(block_dim),
+    SP_DEVICE_CALL_KERNEL(spFDTDDivKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (const Real *) J[0], (const Real *) J[1], (const Real *) J[2], rho);
 
     SP_CALL(spFieldSync(fRho));
@@ -314,11 +314,11 @@ int spFDTDMultiplyByScalar(spField *fRho, Real a)
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) fRho);
 
-    int grid_dim[3], block_dim[3];
+    size_type grid_dim[3], block_dim[3];
 
     spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
 
-    SP_DEVICE_CALL_KERNEL(spFDTDMultiplyByScalarKernel, intType2Dim3(grid_dim), intType2Dim3(block_dim), rho, a);
+    SP_DEVICE_CALL_KERNEL(spFDTDMultiplyByScalarKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), rho, a);
 
     SP_CALL(spFieldSync(fRho));
 

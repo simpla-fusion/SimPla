@@ -5,8 +5,8 @@
  *    @author  salmon
  */
 
-#ifndef SIMPLA_SPCONFIG_H_
-#define SIMPLA_SPCONFIG_H_
+#ifndef SIMPLA_DEFS_H_
+#define SIMPLA_DEFS_H_
 
 
 #include <stdint.h>
@@ -57,5 +57,4 @@ typedef union
 } MeshEntityId64;
 
 
-
-#endif /* SIMPLA_SPCONFIG_H_ */
+#endif /* SIMPLA_DEFS_H_ */

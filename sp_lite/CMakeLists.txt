@@ -8,7 +8,6 @@
 #SET(CMAKE_C_FLAGS "-std=c11 ")
 #
 #
-
 #SET(MPI_C_COMPILER /pkg/openmpi/1.10.3-gpu/bin/mpicc)
 #SET(MPI_CXX_COMPILER /pkg/openmpi/1.10.3-gpu/bin/mpicxx)
 #
@@ -26,15 +25,15 @@
 #IF (HDF5_IS_PARALLEL)
 #    ADD_DEFINITIONS(-DUSE_PARALLEL_IO -DH5_HAVE_PARALLEL)
 #ENDIF (HDF5_IS_PARALLEL)
-
 SET(ENABLE_CUDA TRUE)
+
 add_subdirectory(detail)
 
 FILE(GLOB sp_lite_SRC ./*.c)
 
 ADD_EXECUTABLE(sp_boris_mt ${sp_lite_SRC})
 TARGET_LINK_LIBRARIES(sp_boris_mt sp_capi sp_lite_openmp stdc++ m mpi)
-#LINK_DIRECTORIES(/home/salmon/workspace/build/SimPla/lib)
+LINK_DIRECTORIES(/home/salmon/workspace/build/SimPla/lib)
 
 ADD_EXECUTABLE(sp_boris_gpu ${sp_lite_SRC})
 

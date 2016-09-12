@@ -4,8 +4,7 @@
 
 #ifndef SIMPLA_SPDATATYPE_H
 #define SIMPLA_SPDATATYPE_H
-
-
+#include "sp_config.h"
 enum
 {
     SP_TYPE_NULL,
@@ -29,27 +28,28 @@ struct spDataType_s;
 
 typedef struct spDataType_s spDataType;
 
-int spDataTypeCreate(spDataType **, int type_tag, int s);
+int spDataTypeCreate(spDataType **, int type_tag, size_type s);
 
 int spDataTypeDestroy(spDataType **);
 
 int spDataTypeCopy(spDataType *, spDataType const *);
 
-int spDataTypeSizeInByte(spDataType const *dtype);
+size_type spDataTypeSizeInByte(spDataType const *dtype);
 
-void spDataTypeSetSizeInByte(spDataType *dtype, int s);
+void spDataTypeSetSizeInByte(spDataType *dtype, size_type s);
 
 int spDataTypeIsValid(spDataType const *);
 
-int spDataTypeExtent(spDataType *, int rank, const int *d);
+int spDataTypeExtent(spDataType *, int rank, const size_type *d);
 
-int spDataTypeAdd(spDataType *dtype, int offset, char const *name, spDataType const *other);
+int spDataTypeAdd(spDataType *dtype, size_type offset, char const *name, spDataType const *other);
 
 int spDataTypeAddArray(spDataType *dtype,
-                       int offset,
+                       size_type offset,
                        char const *name,
                        int type_tag,
-                       int n,
-                       int const *dims);
+                       size_type n,
+                       size_type const *dims);
+
 
 #endif //SIMPLA_SPDATATYPE_H

@@ -11,7 +11,10 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "sp_config.h"
+#include "../src/sp_config.h"
+
+#define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
+#define  COPYRIGHT "All rights reserved. (2016 )"
 
 
 #define DONE       if(spMPIRank()==0){ printf( "====== DONE ======\n" );}

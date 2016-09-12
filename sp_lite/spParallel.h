@@ -5,52 +5,57 @@
 #ifndef SIMPLA_SPPARALLEL_H
 #define SIMPLA_SPPARALLEL_H
 
-#include "sp_lite_def.h"
+#include "sp_config.h"
 
 int spParallelInitialize(int argc, char **argv);
 
 int spParallelFinalize();
 
+
+
+
 int spParallelDeviceInitialize(int argc, char **argv);
 
 int spParallelDeviceFinalize();
 
-int spParallelDeviceAlloc(void **, int);
+int spParallelDeviceAlloc(void **, size_type);
 
 int spParallelDeviceFree(void **);
 
-int spParallelHostAlloc(void **, int);
+int spParallelHostAlloc(void **, size_type);
 
 int spParallelHostFree(void **);
 
-int spParallelMemcpy(void *, void const *, int);
+int spParallelMemcpy(void *, void const *, size_type);
 
-int spParallelMemcpyToCache(const void *, void const *, int);
+int spParallelMemcpyToCache(const void *, void const *, size_type);
 
-int spParallelMemset(void *, int v, int);
+int spParallelMemset(void *, int v, size_type);
 
 int spParallelDeviceSync();
 
 int spParallelGlobalBarrier();
 
-int spParallelAssign(int num_of_point, int *offset, Real *d, Real const *v);
+int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v);
 
-int spParallelDeviceFillInt(int *d, int v, int s);
 
-int spParallelDeviceFillReal(Real *d, Real v, int s);
+int spParallelDeviceFillInt(int *d, int v, size_type s);
+
+int spParallelDeviceFillReal(Real *d, Real v, size_type s);
+
 
 int spParallelGridDim();
 
 int spParallelBlockDim();
 
-int spParallelThreadBlockDecompose(int num_of_threads_per_block,
+int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
                                    unsigned int ndims,
-                                   const int *min,
-                                   const int *max,
-                                   int *grid_dim,
-                                   int *block_dim);
+                                   size_type const *min,
+                                   size_type const *max,
+                                   size_type grid_dim[3],
+                                   size_type block_dim[3]);
 
-int spMemoryDeviceToHost(void **p, void *src, int size_in_byte);
+int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte);
 
 int spMemoryHostFree(void **p);
 

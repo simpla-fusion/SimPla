@@ -9,7 +9,7 @@
 #define SPPARTICLE_H_
 
 
-#include "sp_lite_def.h"
+#include "sp_config.h"
 #include "spDataType.h"
 
 #define SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE 128
@@ -58,9 +58,9 @@ int spParticleSetPIC(spParticle *sp, unsigned int pic);
 
 uint spParticleGetPIC(spParticle const *sp);
 
-int spParticleGetNumOfParticle(const spParticle *sp);
+size_type spParticleGetNumOfParticle(const spParticle *sp);
 
-int spParticleGetMaxNumOfParticle(const spParticle *sp);
+size_type spParticleGetMaxNumOfParticle(const spParticle *sp);
 
 int spParticleSetMass(spParticle *, Real m);
 
@@ -70,11 +70,11 @@ int spParticleSetCharge(spParticle *, Real e);
 
 Real spParticleGetCharge(spParticle const *);
 
-int spParticleGetSize(spParticle const *);
+size_type spParticleGetSize(spParticle const *);
 
-int spParticleGetCapacity(spParticle const *);
+size_type spParticleGetCapacity(spParticle const *);
 
-int spParticlePush(spParticle *sp, int s);
+size_type spParticlePush(spParticle *sp, size_type s);
 
 const uint *spParticleGetStartPos(spParticle const *);
 
@@ -84,13 +84,13 @@ const uint *spParticleGetSortedIndex(spParticle const *);
 
 int spParticleGetIndexArray(spParticle *sp, uint **start_pos, uint **end_pos, uint **index);
 
-int spParticleAddAttribute(spParticle *sp, char const name[], int tag, int size, int offset);
+int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset);
 
 int spParticleGetNumberOfAttributes(spParticle const *sp);
 
 int spParticleGetAttributeName(spParticle *sp, int i, char *);
 
-int spParticleGetAttributeTypeSizeInByte(spParticle *sp, int i);
+size_type spParticleGetAttributeTypeSizeInByte(spParticle *sp, int i);
 
 void *spParticleGetAttributeData(spParticle *sp, int i);
 

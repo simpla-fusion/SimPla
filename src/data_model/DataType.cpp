@@ -169,7 +169,10 @@ void DataType::extent(size_type *d) const
 void DataType::extent(int rank, const size_type *d)
 {
     pimpl_->m_extents_.resize(rank);
-    for (int i = 0; i < rank; ++i) { pimpl_->m_extents_[i] = d[i]; }
+    for (int i = 0; i < rank; ++i)
+    {
+        pimpl_->m_extents_[i] = d[i];
+    }
 }
 
 std::vector<std::tuple<DataType, std::string, int>> const &DataType::members() const { return pimpl_->m_members_; }

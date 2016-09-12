@@ -1,32 +1,26 @@
 //
 // Created by salmon on 16-7-26.
 //
-#include "sp_lite_def.h"
-
+#include "sp_config.h"
 #include "spObject.h"
-
-
-static int global_obj_id_count = 0;
+#include "spParallel.h"
+#include "spMPI.h"
 
 int spObjectCreate(spObject **obj, size_t s_in_byte)
 {
+    spParallelHostAlloc((void **) obj, s_in_byte);
+
     *obj = (spObject *) malloc(s_in_byte);
 
-    (*obj)->id = global_obj_id_count;
-
-    ++global_obj_id_count;
+    (*obj)->id = spMPIGenerateObjectId();
 
     return SP_SUCCESS;
 };
 
 int spObjectDestroy(spObject **obj)
 {
-    if (obj != NULL && *obj != NULL)
-    {
-        free((void *) *obj);
-        *obj = NULL;
-    }
+    if (obj != NULL && *obj != NULL) { spParallelHostFree((void *) obj); }
     return SP_SUCCESS;
 };
 
-int spObjectId(spObject const *f) { return f->id; };
+size_type spObjectId(spObject const *f) { return f->id; };

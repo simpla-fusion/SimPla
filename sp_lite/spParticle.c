@@ -7,17 +7,15 @@
 #include <assert.h>
 
 #include "spObject.h"
-#include "spMesh.h"
-#include "spParticle.h"
-#include "spParallel.h"
-
-#include "spRandom.h"
-#include "spField.h"
-
-#include "spIOStream.h"
 #include "spDataType.h"
+#include "spParallel.h"
 #include "spMPI.h"
+#include "spIOStream.h"
+#include "spRandom.h"
 
+#include "spMesh.h"
+#include "spField.h"
+#include "spParticle.h"
 #ifndef SP_MAX_NUMBER_OF_PARTICLE_ATTR
 #    define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
 #endif
@@ -32,7 +30,7 @@ typedef struct spParticleFiber_s
 typedef struct spParticleAttrEntity_s
 {
     spDataType *data_type;
-    int offset;
+    size_type offset;
     char name[255];
     void *data;
 } spParticleAttrEntity;
@@ -59,11 +57,11 @@ struct spParticle_s
 
     unsigned int m_pic_;
 
-    int m_max_hash_;
+    size_type m_max_hash_;
 
-    int m_num_of_particle_;
+    size_type m_num_of_particle_;
 
-    int m_max_num_of_particle_;
+    size_type m_max_num_of_particle_;
 
     unsigned int m_num_of_attrs_;
 
@@ -93,8 +91,8 @@ int spParticleDeploy(spParticle *sp)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
 
-    int num_of_cell = spMeshGetNumberOfEntities(spMeshAttributeGetMesh((spMeshAttribute *) (sp)), SP_DOMAIN_ALL,
-                                                spMeshAttributeGetForm((spMeshAttribute *) (sp)));
+    size_type num_of_cell = spMeshGetNumberOfEntities(spMeshAttributeGetMesh((spMeshAttribute *) (sp)), SP_DOMAIN_ALL,
+                                                      spMeshAttributeGetForm((spMeshAttribute *) (sp)));
     sp->m_max_num_of_particle_ = num_of_cell * sp->m_pic_ * 3 / 2;
 
     SP_CALL(spParallelDeviceAlloc((void **) &(sp->start_pos), num_of_cell * sizeof(uint)));
@@ -109,7 +107,7 @@ int spParticleDeploy(spParticle *sp)
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
         spParallelDeviceAlloc(&(sp->m_attrs_[i].data),
-                              (int) spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_);
+                              spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_);
     }
     void *d[spParticleGetNumberOfAttributes(sp)];
     SP_CALL(spParticleGetAllAttributeData(sp, d));
@@ -144,7 +142,7 @@ int spParticleDestroy(spParticle **sp)
 
 int spParticleIsSorted(spParticle const *sp) { return sp->is_sorted; }
 
-int spParticleAddAttribute(spParticle *sp, char const name[], int tag, int size, int offset)
+int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
 
@@ -165,9 +163,9 @@ int spParticleGetAttributeName(spParticle *sp, int i, char *name)
     return SP_SUCCESS;
 };
 
-int spParticleGetAttributeTypeSizeInByte(spParticle *sp, int i)
+size_type spParticleGetAttributeTypeSizeInByte(spParticle *sp, int i)
 {
-    return (int) spDataTypeSizeInByte(sp->m_attrs_[i].data_type);
+    return spDataTypeSizeInByte(sp->m_attrs_[i].data_type);
 };
 
 void *spParticleGetAttributeData(spParticle *sp, int i) { return sp->m_attrs_[i].data; }
@@ -188,9 +186,9 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     int iform = spMeshAttributeGetForm((spMeshAttribute *) sp);
 
-    int num_of_pic = spParticleGetPIC(sp);
+    size_type num_of_pic = spParticleGetPIC(sp);
 
-    int max_number_of_particle = spParticleGetMaxNumOfParticle(sp);
+    size_type max_number_of_particle = spParticleGetMaxNumOfParticle(sp);
 
     int num_of_dimensions = spParticleGetNumberOfAttributes(sp);
 
@@ -204,7 +202,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spParallelMemset(((spParticleFiber *) data)->id, -1, max_number_of_particle * sizeof(int)));
 
-    int x_min[3], x_max[3], strides[3];
+    size_type x_min[3], x_max[3], strides[3];
 
     SP_CALL(spMeshGetArrayShape(m, SP_DOMAIN_CENTER, x_min, x_max, strides));
 
@@ -241,9 +239,9 @@ int spParticleSetPIC(spParticle *sp, unsigned int pic)
 
 unsigned int spParticleGetPIC(spParticle const *sp) { return sp->m_pic_; }
 
-int spParticleGetNumOfParticle(const spParticle *sp) { return sp->m_num_of_particle_; }
+size_type spParticleGetNumOfParticle(const spParticle *sp) { return sp->m_num_of_particle_; }
 
-int spParticleRemoveNull(spParticle *sp, int s)
+int spParticleRemoveNull(spParticle *sp, size_type s)
 {
     if (s < sp->m_num_of_particle_)
     {
@@ -256,7 +254,7 @@ int spParticleRemoveNull(spParticle *sp, int s)
     }
 }
 
-int spParticleGetMaxNumOfParticle(const spParticle *sp) { return sp->m_max_num_of_particle_; }
+size_type spParticleGetMaxNumOfParticle(const spParticle *sp) { return sp->m_max_num_of_particle_; }
 
 int spParticleGetAllAttributeData(spParticle *sp, void **res)
 {
@@ -309,11 +307,11 @@ Real spParticleGetMass(spParticle const *sp) { return sp->mass; }
 
 Real spParticleGetCharge(spParticle const *sp) { return sp->charge; }
 
-int spParticleGetSize(spParticle const *sp) { return sp->m_num_of_particle_; };
+size_type spParticleGetSize(spParticle const *sp) { return sp->m_num_of_particle_; };
 
-int spParticlePush(spParticle *sp, int s) { return sp->m_num_of_particle_ += s; };
+size_type spParticlePush(spParticle *sp, size_type s) { return sp->m_num_of_particle_ += s; };
 
-int spParticleGetCapacity(spParticle const *sp) { return sp->m_max_num_of_particle_; }
+size_type spParticleGetCapacity(spParticle const *sp) { return sp->m_max_num_of_particle_; }
 
 const unsigned int *spParticleGetStartPos(spParticle const *sp) { return sp->start_pos; }
 
@@ -345,9 +343,9 @@ int spParticleSync(spParticle *sp)
 
     int ndims = spMeshGetNDims(m);
 
-    int num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
+    size_type num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
 
-    int num_of_particle = spParticleGetSize(sp);
+    size_type num_of_particle = spParticleGetSize(sp);
 
     uint *start_pos, *end_pos, *sorted_id;
 
@@ -371,10 +369,10 @@ int spParticleSync(spParticle *sp)
 
     spFieldSync(count_f);
 
-    int l_dims[ndims + 1];
-    int l_start[ndims + 1];
-    int l_end[ndims + 1];
-    int l_strides[ndims + 1];
+    size_type l_dims[ndims + 1];
+    size_type l_start[ndims + 1];
+    size_type l_end[ndims + 1];
+    size_type l_strides[ndims + 1];
 
     spMeshGetDims(m, l_dims);
     spMeshGetArrayShape(m, SP_DOMAIN_CENTER, l_start, l_end, l_strides);
@@ -387,7 +385,7 @@ int spParticleSync(spParticle *sp)
                     (j >= l_start[1] && j < l_end[1]) &&
                     (k >= l_start[2] && k < l_end[2])) { continue; }
 
-                int s = i * l_strides[0] + j * l_strides[1] + k * l_strides[2];
+                size_type s = i * l_strides[0] + j * l_strides[1] + k * l_strides[2];
                 start_pos[s] = (uint) spParticlePush(sp, count[s]);
                 end_pos[s] = start_pos[s] + count[s];
             }
@@ -431,10 +429,10 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
     int ndims = spMeshGetNDims(m);
 
-    int local_number = spParticleGetSize(sp);
-    int offset = spMPIPrefixSums(local_number);
-    int total_num = spMPISum(local_number);
-    int num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
+    size_type local_number = spParticleGetSize(sp);
+    size_type offset = spMPIPrefixSums(local_number);
+    size_type total_num = spMPISum(local_number);
+    size_type num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
     spField *start, *end;
 
     spFieldCreate(&start, m, iform, SP_TYPE_uint);
@@ -457,13 +455,13 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
     spFieldDestroy(&end);
 
-    int total_size_in_byte = 0;
-    int local_offset = 0;
+    size_type total_size_in_byte = 0;
+    size_type local_offset = 0;
     void *buffer = NULL;
 
     for (int i = 1; i < sp->m_num_of_attrs_; ++i)
     {
-        int new_total_size_in_byte = (int) spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * local_number;
+        size_type new_total_size_in_byte = spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * local_number;
 
         if (new_total_size_in_byte != total_size_in_byte)
         {

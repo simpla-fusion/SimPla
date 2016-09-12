@@ -2,11 +2,15 @@
 // Created by salmon on 16-7-20.
 //
 #include <assert.h>
+#include <mpi.h>
 #include "spParallel.h"
 #include "spMPI.h"
 
+
+
 int spParallelInitialize(int argc, char **argv)
 {
+
     spMPIInitialize(argc, argv);
     spParallelDeviceInitialize(argc, argv);
     return SP_SUCCESS;
@@ -16,6 +20,14 @@ int spParallelFinalize()
 {
     spParallelDeviceFinalize();
     spMPIFinalize();
+//    if (spMPIComm() != MPI_COMM_NULL)
+//    {
+//
+//        MPI_CALL(MPI_Finalize());
+//
+//        spMPIComm() = MPI_COMM_NULL;
+//
+//    }
     return SP_SUCCESS;
 }
 
@@ -26,12 +38,12 @@ int spParallelGlobalBarrier()
 };
 
 
-int spParallelThreadBlockDecompose(int num_of_threads_per_block,
+int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
                                    unsigned int ndims,
-                                   const int *min,
-                                   const int *max,
-                                   int *grid_dim,
-                                   int *block_dim)
+                                   size_type const *min,
+                                   size_type const *max,
+                                   size_type grid_dim[3],
+                                   size_type block_dim[3])
 {
     assert(max[0] > min[0]);
     assert(max[1] > min[1]);
