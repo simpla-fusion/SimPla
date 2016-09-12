@@ -52,5 +52,6 @@ typedef MeshEntityId32 MeshEntityShortId;
 #   undef USING_DEVICE_MEMORY;
 #endif
 
+void ShowSimPlaLogo();
 
 #endif /* SP_DEF_LITE_H_ */

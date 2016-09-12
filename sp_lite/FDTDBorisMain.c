@@ -17,6 +17,7 @@
 
 #include "spFDTD.h"
 #include "spPICBoris.h"
+#include "spIOStream.h"
 
 
 int main(int argc, char **argv)
@@ -29,11 +30,11 @@ int main(int argc, char **argv)
 
     int num_of_steps = argc < 2 ? 100 : atoi(argv[1]);
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
-    size_type PIC = 20;
+    int PIC = 20;
     Real n0 = 1.0e18;
     Real T0 = 0.026 * SI_elementary_charge / SI_Boltzmann_constant;
-    size_type dims[3] = {0x8, 0x8, 0x1};
-    size_type gw[3] = {0x2, 0x2, 0x2};
+    int dims[3] = {0x8, 0x8, 0x1};
+    int gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
 

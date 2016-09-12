@@ -18,7 +18,7 @@ int spParallelDeviceInitialize(int argc, char **argv)
 
 int spParallelDeviceFinalize() { return SP_SUCCESS; }
 
-int spParallelDeviceAlloc(void **p, size_type s)
+int spParallelDeviceAlloc(void **p, int s)
 {
     *p = malloc(s);
     return SP_SUCCESS;
@@ -34,19 +34,19 @@ int spParallelDeviceFree(void **p)
     return SP_SUCCESS;
 };
 
-int spParallelMemcpy(void *dest, void const *src, size_type s)
+int spParallelMemcpy(void *dest, void const *src, int s)
 {
     memcpy(dest, src, s);
     return SP_SUCCESS;
 }
 
-int spParallelMemcpyToCache(const void *dest, void const *src, size_type s)
+int spParallelMemcpyToCache(const void *dest, void const *src, int s)
 {
     memcpy((void *) dest, src, s);
     return SP_SUCCESS;
 }
 
-int spParallelMemset(void *dest, int v, size_type s)
+int spParallelMemset(void *dest, int v, int s)
 {
     memset(dest, v, s);
     return SP_SUCCESS;
@@ -58,7 +58,7 @@ int spParallelDeviceSync()
     return SP_SUCCESS;
 }
 
-int spParallelHostAlloc(void **p, size_type s)
+int spParallelHostAlloc(void **p, int s)
 {
     *p = malloc(s);
     return SP_SUCCESS;
@@ -74,27 +74,27 @@ int spParallelHostFree(void **p)
     return SP_SUCCESS;
 }
 
-int spParallelDeviceFillInt(int *d, int v, size_type s)
+int spParallelDeviceFillInt(int *d, int v, int s)
 {
     UNIMPLEMENTED;
     return SP_SUCCESS;
 };
 
 
-int spParallelDeviceFillReal(Real *d, Real v, size_type s)
+int spParallelDeviceFillReal(Real *d, Real v, int s)
 {
     UNIMPLEMENTED;
     return SP_SUCCESS;
 };
 
 
-int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v)
+int spParallelAssign(int num_of_point, int *offset, Real *d, Real const *v)
 {
     UNIMPLEMENTED;
     return SP_SUCCESS;
 };
 
-int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte)
+int spMemoryDeviceToHost(void **p, void *src, int size_in_byte)
 {
     *p = src;
     return SP_SUCCESS;

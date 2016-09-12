@@ -25,7 +25,9 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 
 SET(ARCH intel64)
 
+SET(CMAKE_C_COMPILER /usr/bin/gcc-4.9)
 
+SET(CMAKE_CXX_COMPILER /usr/bin/g++-4.9)
 
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
@@ -296,5 +298,5 @@ add_subdirectory(docs)
 #add_subdirectory(applications)
 add_subdirectory(scenario)
 
-#add_subdirectory(sp_lite)
+add_subdirectory(sp_lite)
  

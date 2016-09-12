@@ -6,102 +6,54 @@
 #define SIMPLA_SPPARALLEL_H
 
 #include "sp_lite_def.h"
-#include "sp_capi.h"
+#include "spMPI.h"
 
 int spParallelInitialize(int argc, char **argv);
 
 int spParallelFinalize();
 
-int spMPIBarrier();
-
-int spMPIRank();
-
-int spMPISize();
-
-size_type spMPIGenerateObjectId();
-
-int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord);
-
-int spParallelScan(size_type *, size_type num);
-
-size_type spParallelPrefixSums(size_type v);
-
-size_type spParallelSum(size_type v);
-
+int spParallelScan(int *, int num);
 
 int spParallelDeviceInitialize(int argc, char **argv);
 
 int spParallelDeviceFinalize();
 
-int spParallelDeviceAlloc(void **, size_type);
+int spParallelDeviceAlloc(void **, int);
 
 int spParallelDeviceFree(void **);
 
-int spParallelHostAlloc(void **, size_type);
+int spParallelHostAlloc(void **, int);
 
 int spParallelHostFree(void **);
 
-int spParallelMemcpy(void *, void const *, size_type);
+int spParallelMemcpy(void *, void const *, int);
 
-int spParallelMemcpyToCache(const void *, void const *, size_type);
+int spParallelMemcpyToCache(const void *, void const *, int);
 
-int spParallelMemset(void *, int v, size_type);
+int spParallelMemset(void *, int v, int);
 
 int spParallelDeviceSync();
 
 int spParallelGlobalBarrier();
 
-int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v);
+int spParallelAssign(int num_of_point, int *offset, Real *d, Real const *v);
 
-size_type spParallelPrefixSum(size_type s);
+int spParallelDeviceFillInt(int *d, int v, int s);
 
-struct spParallelDAUpdater_s;
-
-typedef struct spParallelDAUpdater_s spParallelMPIUpdater;
-
-int spParallelUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataType *ele_type, int ndims,
-                                const size_type *dims, const size_type *start, const size_type *,
-                                const size_type *count, const size_type *, int mpi_sync_start_dims);
-
-
-int spParallelUpdaterCreateDA(spParallelMPIUpdater **updater, const spDataType *data_desc, int ndims,
-                              const size_type *shape, const size_type *start, const size_type *stride,
-                              const size_type *count, const size_type *block, int mpi_sync_start_dims);
-
-int spParallelUpdaterDestroy(spParallelMPIUpdater **updater);
-
-int spParallelUpdate(spParallelMPIUpdater const *updater, void *buffer);
-
-int spParallelUpdateAll(spParallelMPIUpdater const *updater, int num_of_buffer, void **buffers);
-
-int spParallelUpdateNdArrayHalo2(int num_of_buffer,
-                                 void **buffers,
-                                 const spDataType *data_desc,
-                                 int ndims,
-                                 const size_type *shape,
-                                 const size_type *start,
-                                 const size_type *stride,
-                                 const size_type *count,
-                                 const size_type *block,
-                                 int mpi_sync_start_dims);
-
-int spParallelDeviceFillInt(int *d, int v, size_type s);
-
-int spParallelDeviceFillReal(Real *d, Real v, size_type s);
-
+int spParallelDeviceFillReal(Real *d, Real v, int s);
 
 int spParallelGridDim();
 
 int spParallelBlockDim();
 
-int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
+int spParallelThreadBlockDecompose(int num_of_threads_per_block,
                                    unsigned int ndims,
-                                   size_type const *min,
-                                   size_type const *max,
-                                   size_type grid_dim[3],
-                                   size_type block_dim[3]);
+                                   const int *min,
+                                   const int *max,
+                                   int *grid_dim,
+                                   int *block_dim);
 
-int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte);
+int spMemoryDeviceToHost(void **p, void *src, int size_in_byte);
 
 int spMemoryHostFree(void **p);
 

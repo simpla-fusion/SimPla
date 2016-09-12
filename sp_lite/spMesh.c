@@ -12,7 +12,7 @@
 #include "spParallel.h"
 
 
-MeshEntityId spMeshEntityIdFromArray(size_type const *s)
+MeshEntityId spMeshEntityIdFromArray(int const *s)
 {
     MeshEntityId id;
     id.x = (int16_t) (s[0]);
@@ -29,7 +29,7 @@ MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s)
     return id;
 }
 
-int spMeshAttributeCreate(spMeshAttribute **f, size_type size, spMesh const *mesh, uint iform)
+int spMeshAttributeCreate(spMeshAttribute **f, int size, spMesh const *mesh, uint iform)
 {
     SP_CALL(spObjectCreate((spObject **) (f), size));
     (*f)->m = mesh;
@@ -51,13 +51,13 @@ struct spMesh_s
 {
 
     int m_ndims_;
-    size_type m_ghost_width_[4];
-    size_type m_dims_[4];
-    size_type m_start_[4];
-    size_type m_count_[4];
+    int m_ghost_width_[4];
+    int m_dims_[4];
+    int m_start_[4];
+    int m_count_[4];
 
-    size_type m_global_dims_[4];
-    size_type m_global_start_[4];
+    int m_global_dims_[4];
+    int m_global_start_[4];
 
     Real m_global_coord_lower_[4];
     Real m_global_coord_upper[4];
@@ -66,7 +66,7 @@ struct spMesh_s
     Real dx[4];
     Real inv_dx[4];
 
-    size_type strides[3];
+    int strides[3];
 
     int array_is_order_c;
 };
@@ -174,7 +174,7 @@ int spMeshDeploy(spMesh *self)
 
         self->m_coord_upper[i] = self->m_coord_lower[i] + self->m_count_[i] * self->dx[i];
 
-        self->inv_dx[i] = (self->m_global_dims_[i] <= 1) ? 0 : 1.0 / self->dx[i];
+        self->inv_dx[i] = (self->m_global_dims_[i] <= 1) ? 0.0 : 1.0 / self->dx[i];
 
     }
 
@@ -226,9 +226,9 @@ int spMeshDeploy(spMesh *self)
 
 }
 
-size_type spMeshGetNumberOfEntities(spMesh const *self, int tag, int iform)
+int spMeshGetNumberOfEntities(spMesh const *self, int tag, int iform)
 {
-    size_type res = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
+    int res = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
     switch (tag)
     {
         case SP_DOMAIN_CENTER:
@@ -284,13 +284,13 @@ for (int i = 0; i < 3; ++i) { m->_ATTR_[i] = _RES_[i]; }     \
 return SP_SUCCESS;                                                \
 
 
-int spMeshSetDims(spMesh *m, size_type const *v) { SET_VEC3(v, m_global_dims_) }
+int spMeshSetDims(spMesh *m, const int *v) { SET_VEC3(v, m_global_dims_) }
 
-int spMeshGetDims(spMesh const *m, size_type *v) { GET_VEC3(v, m_global_dims_) }
+int spMeshGetDims(spMesh const *m, int *v) { GET_VEC3(v, m_global_dims_) }
 
-int spMeshSetGhostWidth(spMesh *m, size_type const *v) { SET_VEC3(v, m_ghost_width_) }
+int spMeshSetGhostWidth(spMesh *m, const int *v) { SET_VEC3(v, m_ghost_width_) }
 
-int spMeshGetGhostWidth(spMesh const *m, size_type *res) { GET_VEC3(res, m_ghost_width_) }
+int spMeshGetGhostWidth(spMesh const *m, int *res) { GET_VEC3(res, m_ghost_width_) }
 
 int spMeshGetOrigin(spMesh const *m, Real *res) { GET_VEC3(res, m_coord_lower) }
 
@@ -316,13 +316,13 @@ int spMeshSetBox(spMesh *m, Real const *lower, Real const *upper)
 
 int spMeshGetBox(spMesh const *m, int tag, Real *lower, Real *upper)
 {
-    size_type start[3], count[3], dims[3];
+    int start[3], count[3], dims[3];
 
     spMeshGetDomain(m, tag, dims, start, count);
 
-    lower[0] = m->m_coord_lower[0] + ((int) start[0] - (int) (m->m_start_[0])) * m->dx[0];
-    lower[1] = m->m_coord_lower[1] + ((int) start[1] - (int) (m->m_start_[1])) * m->dx[1];
-    lower[2] = m->m_coord_lower[2] + ((int) start[2] - (int) (m->m_start_[2])) * m->dx[2];
+    lower[0] = m->m_coord_lower[0] + (start[0] - (m->m_start_[0])) * m->dx[0];
+    lower[1] = m->m_coord_lower[1] + (start[1] - (m->m_start_[1])) * m->dx[1];
+    lower[2] = m->m_coord_lower[2] + (start[2] - (m->m_start_[2])) * m->dx[2];
 
     if (upper != NULL)
     {
@@ -335,7 +335,7 @@ int spMeshGetBox(spMesh const *m, int tag, Real *lower, Real *upper)
 };
 
 
-int spMeshGetDomain(spMesh const *m, int tag, size_type *dims, size_type *start, size_type *count)
+int spMeshGetDomain(spMesh const *m, int tag, int *dims, int *start, int *count)
 {
 
     int success = SP_SUCCESS;
@@ -399,7 +399,7 @@ int spMeshGetDomain(spMesh const *m, int tag, size_type *dims, size_type *start,
     return success;
 };
 
-int spMeshGetArrayShape(spMesh const *m, int tag, size_type *min, size_type *max, size_type *stride)
+int spMeshGetArrayShape(spMesh const *m, int tag, int *min, int *max, int *stride)
 {
     switch (tag)
     {
@@ -424,7 +424,7 @@ int spMeshGetArrayShape(spMesh const *m, int tag, size_type *min, size_type *max
 
 }
 
-int spMeshGetStrides(spMesh const *m, size_type *res)
+int spMeshGetStrides(spMesh const *m, int *res)
 {
     if (res != NULL)
     {
@@ -444,7 +444,7 @@ int spMeshGetStrides(spMesh const *m, size_type *res)
     return SP_SUCCESS;
 }
 
-int spMeshGetGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset)
+int spMeshGetGlobalOffset(spMesh const *m, int *dims, ptrdiff_t *offset)
 {
     for (int i = 0; i < m->m_ndims_; ++i)
     {
@@ -455,14 +455,14 @@ int spMeshGetGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset)
 };
 
 int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
-                              int attr_ndims, const size_type *attr_dims,
+                              int attr_ndims, const int *attr_dims,
                               int *array_ndims,
                               int *start_mesh_dim,
-                              size_type *g_dims,
-                              size_type *g_start,
-                              size_type *l_dims,
-                              size_type *l_start,
-                              size_type *l_count,
+                              int *g_dims,
+                              int *g_start,
+                              int *l_dims,
+                              int *l_start,
+                              int *l_count,
                               int is_soa)
 {
     int mesh_ndims = spMeshGetNDims(m);
@@ -516,7 +516,7 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
 
 };
 
-size_type spMeshHash(spMesh const *m, MeshEntityId id, int iform) { return 0; };
+int spMeshHash(spMesh const *m, MeshEntityId id, int iform) { return 0; };
 
 int spMeshWrite(const spMesh *ctx, const char *name) { return SP_FAILED; };
 

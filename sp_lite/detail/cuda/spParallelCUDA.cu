@@ -39,7 +39,7 @@ int spParallelBlockDim()
 {
     return SP_DEFAULT_BLOCKS;
 };
-int spParallelDeviceAlloc(void **p, size_type s)
+int spParallelDeviceAlloc(void **p, int s)
 {
     SP_DEVICE_CALL(cudaMalloc(p, s));
     return SP_SUCCESS;
@@ -55,19 +55,19 @@ int spParallelDeviceFree(void **_P_)
     return SP_SUCCESS;
 };
 
-int spParallelMemcpy(void *dest, void const *src, size_type s)
+int spParallelMemcpy(void *dest, void const *src, int s)
 {
     SP_DEVICE_CALL(cudaMemcpy(dest, src, s, cudaMemcpyDefault));
     return SP_SUCCESS;
 }
 
-int spParallelMemcpyToCache(const void *dest, void const *src, size_type s)
+int spParallelMemcpyToCache(const void *dest, void const *src, int s)
 {
     SP_DEVICE_CALL(cudaMemcpyToSymbol(dest, src, s));
     return SP_SUCCESS;
 }
 
-int spParallelMemset(void *dest, int v, size_type s)
+int spParallelMemset(void *dest, int v, int s)
 {
     SP_DEVICE_CALL(cudaMemset(dest, v, s));
     return SP_SUCCESS;
@@ -80,7 +80,7 @@ int spParallelDeviceSync()
     return SP_SUCCESS;
 }
 
-int spParallelHostAlloc(void **p, size_type s)
+int spParallelHostAlloc(void **p, int s)
 {
     SP_DEVICE_CALL(cudaHostAlloc(p, s, cudaHostAllocDefault));
     return SP_SUCCESS;
@@ -98,12 +98,12 @@ int spParallelHostFree(void **p)
 
 
 __global__
-void spParallelDeviceFillIntKernel(int *d, int v, size_type max)
+    void spParallelDeviceFillIntKernel(int *d, int v, int max)
 {
     for (size_t s = threadIdx.x + blockIdx.x * blockDim.x; s < max; s += gridDim.x * blockDim.x) { d[s] = v; }
 };
 
-int spParallelDeviceFillInt(int *d, int v, size_type s)
+int spParallelDeviceFillInt(int *d, int v, int s)
 {
     SP_DEVICE_CALL_KERNEL(spParallelDeviceFillIntKernel, 16, 256, d, v, s);
 
@@ -111,12 +111,12 @@ int spParallelDeviceFillInt(int *d, int v, size_type s)
 };
 
 __global__
-void spParallelDeviceFillRealKernel(Real *d, Real v, size_type max)
+    void spParallelDeviceFillRealKernel(Real *d, Real v, int max)
 {
-    for (size_type s = threadIdx.x + blockIdx.x * blockDim.x; s < max; s += gridDim.x * blockDim.x) { d[s] = v; }
+    for (int s = threadIdx.x + blockIdx.x * blockDim.x; s < max; s += gridDim.x * blockDim.x) { d[s] = v; }
 };
 
-int spParallelDeviceFillReal(Real *d, Real v, size_type s)
+int spParallelDeviceFillReal(Real *d, Real v, int s)
 {
     SP_DEVICE_CALL_KERNEL(spParallelDeviceFillRealKernel, 16, 256, d, v, s);
     return SP_SUCCESS;
@@ -124,24 +124,24 @@ int spParallelDeviceFillReal(Real *d, Real v, size_type s)
 
 
 __global__
-void spParallelAssignKernel(size_type max, size_type const *offset, Real *d, Real const *v)
+    void spParallelAssignKernel(int max, int const *offset, Real *d, Real const *v)
 {
 
-    size_type num_of_thread = blockDim.x * gridDim.x * blockDim.x * gridDim.x * blockDim.x * gridDim.x;
+    int num_of_thread = blockDim.x * gridDim.x * blockDim.x * gridDim.x * blockDim.x * gridDim.x;
 
-    for (size_type s = (threadIdx.x + blockIdx.x * blockDim.x) +
+    for (int s = (threadIdx.x + blockIdx.x * blockDim.x) +
         (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
         (threadIdx.x + blockIdx.x * blockDim.x) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
          s < max; s += num_of_thread) { d[offset[s]] = v[s]; }
 };
 
-int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v)
+int spParallelAssign(int num_of_point, int *offset, Real *d, Real const *v)
 {
     SP_DEVICE_CALL_KERNEL(spParallelAssignKernel, 16, 256, num_of_point, offset, d, v);
     return SP_SUCCESS;
 };
 
-int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte)
+int spMemoryDeviceToHost(void **p, void *src, int size_in_byte)
 {
     spParallelHostAlloc(p, size_in_byte);
     spParallelMemcpy(*p, src, size_in_byte);

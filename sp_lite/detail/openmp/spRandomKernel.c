@@ -18,7 +18,7 @@ typedef struct spRandomGenerator_s
 
 } spRandomGenerator;
 
-int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimension, size_type offset)
+int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimension, int offset)
 {
 
     SP_CALL(spParallelHostAlloc((void **) gen, sizeof(spRandomGenerator)));
@@ -56,8 +56,8 @@ int spRandomGeneratorGetNumOfDimensions(spRandomGenerator const *gen) { return g
  */
 int
 spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, Real **data,
-                                size_type const *min, size_type const *max, size_type const *strides,
-                                size_type num_per_cell)
+                                int const *min, int const *max, int const *strides,
+                                int num_per_cell)
 {
 
 //    int n_dims = spRandomGeneratorGetNumOfDimensions(gen);

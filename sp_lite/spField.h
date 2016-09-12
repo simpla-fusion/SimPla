@@ -21,7 +21,7 @@ typedef struct spField_s spField;
 typedef struct spField_s *spField_t;
 typedef const struct spField_s *spField_const_t;
 
-int spFieldCreate(spField_t *f, const struct spMesh_s *m, int iform, int type_tag);
+int spFieldCreate(spField_t *f, const struct spMesh_s *m, unsigned int iform, int type_tag);
 
 int spFieldDestroy(spField_t *f);
 
