@@ -5,11 +5,10 @@
  *      Author: salmon
  */
 #include <stdlib.h>
-#include <assert.h>
 #include <math.h>
 #include "sp_lite_def.h"
 #include "spMesh.h"
-#include "spParallel.h"
+#include "spMPI.h"
 
 
 MeshEntityId spMeshEntityIdFromArray(int const *s)

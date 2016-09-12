@@ -7,6 +7,8 @@
 
 extern "C" {
 #include "spParallelCUDA.h"
+#include "../../spMPI.h"
+
 }
 
 
@@ -98,7 +100,7 @@ int spParallelHostFree(void **p)
 
 
 __global__
-    void spParallelDeviceFillIntKernel(int *d, int v, int max)
+void spParallelDeviceFillIntKernel(int *d, int v, int max)
 {
     for (size_t s = threadIdx.x + blockIdx.x * blockDim.x; s < max; s += gridDim.x * blockDim.x) { d[s] = v; }
 };
@@ -111,7 +113,7 @@ int spParallelDeviceFillInt(int *d, int v, int s)
 };
 
 __global__
-    void spParallelDeviceFillRealKernel(Real *d, Real v, int max)
+void spParallelDeviceFillRealKernel(Real *d, Real v, int max)
 {
     for (int s = threadIdx.x + blockIdx.x * blockDim.x; s < max; s += gridDim.x * blockDim.x) { d[s] = v; }
 };
@@ -124,7 +126,7 @@ int spParallelDeviceFillReal(Real *d, Real v, int s)
 
 
 __global__
-    void spParallelAssignKernel(int max, int const *offset, Real *d, Real const *v)
+void spParallelAssignKernel(int max, int const *offset, Real *d, Real const *v)
 {
 
     int num_of_thread = blockDim.x * gridDim.x * blockDim.x * gridDim.x * blockDim.x * gridDim.x;

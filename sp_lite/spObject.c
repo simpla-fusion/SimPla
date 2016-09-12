@@ -5,24 +5,28 @@
 
 #include "spObject.h"
 
-#include "spParallel.h"
 
+static int global_obj_id_count = 0;
 
 int spObjectCreate(spObject **obj, size_t s_in_byte)
 {
-    spParallelHostAlloc((void **) obj, s_in_byte);
-
     *obj = (spObject *) malloc(s_in_byte);
 
-    (*obj)->id = spMPIGenerateObjectId();
+    (*obj)->id = global_obj_id_count;
+
+    ++global_obj_id_count;
 
     return SP_SUCCESS;
 };
 
 int spObjectDestroy(spObject **obj)
 {
-    if (obj != NULL && *obj != NULL) { spParallelHostFree((void *) obj); }
+    if (obj != NULL && *obj != NULL)
+    {
+        free((void *) *obj);
+        *obj = NULL;
+    }
     return SP_SUCCESS;
 };
 
-size_type spObjectId(spObject const *f) { return f->id; };
+int spObjectId(spObject const *f) { return f->id; };

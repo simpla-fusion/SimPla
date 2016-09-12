@@ -55,8 +55,7 @@ DataSpace::DataSpace()
     : m_pimpl_{new pimpl_s} {}
 
 DataSpace::DataSpace(int ndims, size_type const *dims)
-    :
-    m_pimpl_(new pimpl_s)
+    : m_pimpl_(new pimpl_s)
 {
 
     std::get<0>(m_pimpl_->m_d_shape_)/*m_ndims_      */ = ndims;

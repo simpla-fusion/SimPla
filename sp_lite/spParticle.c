@@ -15,6 +15,8 @@
 #include "spField.h"
 
 #include "spIOStream.h"
+#include "spDataType.h"
+#include "spMPI.h"
 
 #ifndef SP_MAX_NUMBER_OF_PARTICLE_ATTR
 #    define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
@@ -107,7 +109,7 @@ int spParticleDeploy(spParticle *sp)
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
         spParallelDeviceAlloc(&(sp->m_attrs_[i].data),
-                              spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_);
+                              (int) spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_);
     }
     void *d[spParticleGetNumberOfAttributes(sp)];
     SP_CALL(spParticleGetAllAttributeData(sp, d));
@@ -461,7 +463,7 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 
     for (int i = 1; i < sp->m_num_of_attrs_; ++i)
     {
-        int new_total_size_in_byte = spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * local_number;
+        int new_total_size_in_byte = (int) spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * local_number;
 
         if (new_total_size_in_byte != total_size_in_byte)
         {

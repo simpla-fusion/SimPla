@@ -8,9 +8,11 @@
 
 #include "spObject.h"
 #include "spParallel.h"
+#include "spMPI.h"
 #include "spMesh.h"
 #include "spField.h"
 #include "spIOStream.h"
+#include "spDataType.h"
 
 #define MAX_NUM_OF_FIELD_ATTR 16
 

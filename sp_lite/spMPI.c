@@ -19,6 +19,89 @@
         ERROR(_error_msg);                                                 \
     }                                                                      \
 }
+
+static MPI_Comm global_comm = MPI_COMM_NULL;
+
+static int mpi_obj_id_count = 0;
+
+int spMPIInitialize(int argc, char **argv)
+{
+    mpi_obj_id_count = 0;
+
+    MPI_CALL(MPI_Init(&argc, &argv));
+
+    int m_num_process_;
+
+    MPI_CALL(MPI_Comm_size(MPI_COMM_WORLD, &m_num_process_));
+
+    int m_topology_ndims_ = 3;
+
+    int m_topology_dims_[3] = {0, 0, 0};
+
+    MPI_CALL(MPI_Dims_create(m_num_process_, m_topology_ndims_, m_topology_dims_));
+
+    int periods[3];
+
+    for (int i = 0; i < m_topology_ndims_; ++i) { periods[i] = SP_TRUE; }
+
+    MPI_CALL(MPI_Cart_create(MPI_COMM_WORLD,
+                             m_topology_ndims_,
+                             m_topology_dims_, periods, MPI_ORDER_C, &global_comm));
+
+
+    return SP_SUCCESS;
+};
+
+int spMPIFinalize()
+{
+    MPI_CALL(MPI_Finalize());
+    global_comm = MPI_COMM_NULL;
+    return SP_SUCCESS;
+}
+
+MPI_Comm spMPIComm() { return global_comm; }
+
+int spMPIBarrier()
+{
+    if (global_comm != MPI_COMM_NULL) { MPI_Barrier(global_comm); }
+    return SP_SUCCESS;
+}
+
+int spMPIRank()
+{
+    int res = 0;
+    MPI_CALL(MPI_Comm_rank(global_comm, &res));
+    return res;
+}
+
+int spMPISize()
+{
+    int res = 1;
+    if (global_comm != MPI_COMM_NULL) { MPI_Comm_size(global_comm, &res); }
+    return res;
+}
+
+int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord)
+{
+    *mpi_topo_ndims = 0;
+
+    if (global_comm == MPI_COMM_NULL) { return SP_DO_NOTHING; }
+
+    int tope_type = MPI_CART;
+
+    MPI_CALL(MPI_Topo_test(global_comm, &tope_type));
+
+    if (tope_type == MPI_CART);
+    {
+        MPI_CALL(MPI_Cartdim_get(global_comm, mpi_topo_ndims));
+
+        MPI_CALL(MPI_Cart_get(global_comm, *mpi_topo_ndims, mpi_topo_dims, periods, mpi_topo_coord));
+    }
+
+    return SP_SUCCESS;
+};
+
+
 /**
  * MPI_Neighbor_alltoallw
  *

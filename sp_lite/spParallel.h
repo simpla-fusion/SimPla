@@ -6,13 +6,10 @@
 #define SIMPLA_SPPARALLEL_H
 
 #include "sp_lite_def.h"
-#include "spMPI.h"
 
 int spParallelInitialize(int argc, char **argv);
 
 int spParallelFinalize();
-
-int spParallelScan(int *, int num);
 
 int spParallelDeviceInitialize(int argc, char **argv);
 

@@ -14,8 +14,6 @@ int spMPIFinalize();
 
 MPI_Comm spMPIComm();
 
-size_type spMPIGenerateObjectId();
-
 int spMPIBarrier();
 
 int spMPIRank();

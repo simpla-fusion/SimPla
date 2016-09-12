@@ -13,19 +13,21 @@
 #include "data_model/DataSet.h"
 #include "data_model/DataType.h"
 #include "data_model/DataSpace.h"
-
-extern "C"
-{
-#include "sp_capi.h"
-};
-
 #include "parallel/MPIDataType.h"
 #include "numeric/rectangle_distribution.h"
 #include "numeric/multi_normal_distribution.h"
 
+extern "C"
+{
+#include "../sp_lite/spMPI.h"
+#include "../sp_lite/spDataType.h"
+#include "../sp_lite/spIOStream.h"
+#include "../sp_lite/spRandom.h"
+};
 using namespace simpla;
 
-void ShowSimPlaLogo() { MESSAGE << ShowLogo() << std::endl; };
+void ShowSimPlaLogo() { MESSAGE << ShowLogo() << std::endl; }
+
 struct spDataType_s
 {
     simpla::data_model::DataType self;
@@ -34,7 +36,7 @@ struct spDataType_s
 
 };
 
-int spDataTypeCreate(spDataType **dtype, int type_tag, size_type s)
+int spDataTypeCreate(spDataType **dtype, int type_tag, int s)
 {
     if (dtype != nullptr)
     {
@@ -85,18 +87,20 @@ int spDataTypeCopy(spDataType *first, spDataType const *second)
     first->m_mpi_type_ = second->m_mpi_type_;
 };
 
-size_type spDataTypeSizeInByte(spDataType const *dtype) { return dtype->self.size_in_byte(); }
+int spDataTypeSizeInByte(spDataType const *dtype) { return (int) dtype->self.size_in_byte(); }
 
 int spDataTypeIsValid(spDataType const *dtype) { return dtype->self.is_valid(); }
 
-int spDataTypeExtent(spDataType *dtype, int rank, const size_type *d)
+int spDataTypeExtent(spDataType *dtype, int rank, const int *d)
 {
-    dtype->self.extent(rank, d);
+    size_type t_d[rank];
+    for (int i = 0; i < rank; ++i) { t_d[i] = (size_type) (d[i]); }
+    dtype->self.extent(rank, t_d);
     return SP_SUCCESS;
 }
-int spDataTypeAdd(spDataType *dtype, size_type offset, char const *name, spDataType const *other)
+int spDataTypeAdd(spDataType *dtype, int offset, char const *name, spDataType const *other)
 {
-    dtype->self.push_back(other->self, name, offset);
+    dtype->self.push_back(other->self, name, (size_type) offset);
 
     return SP_SUCCESS;
 }
@@ -108,17 +112,17 @@ int spDataTypeAddArray(spDataType *dtype,
                        size_type n,
                        size_type const *dims)
 {
-    spDataType *ele;
+//    spDataType *ele;
+//
+//    spDataTypeCreate(&ele, type_tag, 0);
+//
+//    if (dims == nullptr) { spDataTypeExtent(ele, 1, &n); } else { spDataTypeExtent(ele, n, dims); }
+//
+//    spDataTypeAdd(dtype, offset, name, ele);
+//
+//    spDataTypeDestroy(&ele);
 
-    spDataTypeCreate(&ele, type_tag, 0);
-
-    if (dims == nullptr) { spDataTypeExtent(ele, 1, &n); } else { spDataTypeExtent(ele, n, dims); }
-
-    spDataTypeAdd(dtype, offset, name, ele);
-
-    spDataTypeDestroy(&ele);
-
-    return SP_SUCCESS;
+    return SP_DO_NOTHING;
 }
 
 MPI_Datatype spDataTypeMPIType(struct spDataType_s const *dtype)
@@ -175,65 +179,55 @@ int spIOStreamWriteSimple(spIOStream *os,
                           struct spDataType_s const *d_type,
                           void *d,
                           int ndims,
-                          size_type const *dims,
-                          size_type const *start,
-                          size_type const *stride,
-                          size_type const *count,
-                          size_type const *block,
-                          size_type const *g_dims,
-                          size_type const *g_start,
+                          int const *dims,
+                          int const *start,
+                          int const *stride,
+                          int const *count,
+                          int const *block,
+                          int const *g_dims,
+                          int const *g_start,
                           int flag)
 {
 
     simpla::data_model::DataSet dset;
 
+    size_type l_dims[10];
+    size_type l_start[10];
+    size_type l_stride[10];
+    size_type l_count[10];
+    size_type l_block[10];
+    size_type l_g_dims[10];
+    size_type l_g_start[10];
+
+
+    for (int i = 0; i < ndims; ++i)
+    {
+        l_dims[i] = (dims != NULL) ? (size_type) dims[i] : 1;
+        l_start[i] = (start != NULL) ? (size_type) start[i] : 0;
+        l_stride[i] = (stride != NULL) ? (size_type) stride[i] : 1;
+        l_count[i] = (count != NULL) ? (size_type) count[i] : 1;
+        l_block[i] = (block != NULL) ? (size_type) block[i] : 1;
+        l_g_dims[i] = (g_dims != NULL) ? (size_type) g_dims[i] : l_dims[i];
+        l_g_start[i] = (g_start != NULL) ? (size_type) g_start[i] : l_start[i];
+
+    }
+
     dset.data_type = d_type->self;
-    dset.data_space = simpla::data_model::DataSpace(ndims, (g_dims != NULL) ? g_dims : dims);
-    dset.data_space.select_hyperslab((g_start != NULL) ? g_start : start, stride, count, block);
-    dset.memory_space = simpla::data_model::DataSpace(ndims, dims);
-    dset.memory_space.select_hyperslab(start, stride, count, block);
+    dset.data_space = simpla::data_model::DataSpace(ndims, l_g_dims);
+    dset.data_space.select_hyperslab(l_g_start, l_stride, l_count, l_block);
+    dset.memory_space = simpla::data_model::DataSpace(ndims, l_dims);
+    dset.memory_space.select_hyperslab(l_start, l_stride, l_count, l_block);
 
     dset.data = std::shared_ptr<void>(d, simpla::tags::do_nothing());
 
     VERBOSE << os->self->write(url, dset, flag) << std::endl;
-    return SP_SUCCESS;
+    return SP_DO_NOTHING;
 
 }
 
-int spMPIInitialize(int argc, char **argv)
-{
-    GLOBAL_COMM.init(argc, argv);
-    return SP_SUCCESS;
-};
-
-int spMPIFinalize()
-{
-    GLOBAL_COMM.close();
-    return SP_SUCCESS;
-}
-
-MPI_Comm spMPIComm() { return GLOBAL_COMM.comm(); }
-
-size_type spMPIGenerateObjectId() { return (GLOBAL_COMM.generate_object_id()); }
-
-int spMPIBarrier()
-{
-    GLOBAL_COMM.barrier();
-    return SP_SUCCESS;
-}
-
-int spMPIRank() { return GLOBAL_COMM.rank(); }
-
-int spMPISize() { return GLOBAL_COMM.num_of_process(); }
-
-int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord)
-{
-    return GLOBAL_COMM.topology(mpi_topo_ndims, mpi_topo_dims, periods, mpi_topo_coord);
-};
-
-int spRandomMultiNormalDistributionInCell(size_type const *min,
-                                          size_type const *max,
-                                          size_type const *strides,
+int spRandomMultiNormalDistributionInCell(int const *min,
+                                          int const *max,
+                                          int const *strides,
                                           unsigned int pic,
                                           Real *rx,
                                           Real *ry,
@@ -254,11 +248,11 @@ int spRandomMultiNormalDistributionInCell(size_type const *min,
     multi_normal_distribution<3> v_dist;
 
 
-    for (size_type i = min[0]; i < max[0]; ++i)
-        for (size_type j = min[1]; j < max[1]; ++j)
-            for (size_type k = min[2]; k < max[2]; ++k)
+    for (int i = min[0]; i < max[0]; ++i)
+        for (int j = min[1]; j < max[1]; ++j)
+            for (int k = min[2]; k < max[2]; ++k)
             {
-                size_type s = (i * strides[0] + j * strides[1] + k * strides[2]);
+                int s = (i * strides[0] + j * strides[1] + k * strides[2]);
                 for (int l = 0; l < pic; ++l)
                 {
                     Real x[3], v[3];

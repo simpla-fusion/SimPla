@@ -5,11 +5,13 @@
 #ifndef SIMPLA_SPRANDOM_H
 #define SIMPLA_SPRANDOM_H
 
-#include "sp_lite_def.h"
+#include "sp_config.h"
+
 
 struct spRandomGenerator_s;
 
 typedef struct spRandomGenerator_s spRandomGenerator;
+
 enum { SP_RAND_GEN_SOBOL };
 enum { SP_RAND_UNIFORM = 0x1, SP_RAND_NORMAL = 0x10 };
 
@@ -35,6 +37,15 @@ int spRandomGeneratorGetNumOfThreads(spRandomGenerator const *gen);
 int spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, Real **data,
                                     int const *min, int const *max, int const *strides,
                                     int num_per_cell);
-
+int spRandomMultiNormalDistributionInCell(int const *min,
+                                          int const *max,
+                                          int const *strides,
+                                          unsigned int pic,
+                                          Real *rx,
+                                          Real *ry,
+                                          Real *rz,
+                                          Real *vx,
+                                          Real *vy,
+                                          Real *vz);
 
 #endif //SIMPLA_SPRANDOM_H

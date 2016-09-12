@@ -7,24 +7,43 @@
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
-
+#include "sp_config.h"
 #include "sp_lite_def.h"
+
 #include "spParallel.h"
+#include "spMPI.h"
+#include "spIOStream.h"
+
 #include "spMesh.h"
 #include "spField.h"
 #include "spParticle.h"
 
-
 #include "spFDTD.h"
 #include "spPICBoris.h"
-#include "spIOStream.h"
 
+static const char SIMPLA_LOGO[] = "\n"
+    "\t        ____ ___ __  __ ____  _       \n"
+    "\t       / ___|_ _|  \\/  |  _ \\| | __ _ \n"
+    "\t       \\___ \\| || |\\/| | |_) | |/ _` |\n"
+    "\t        ___) | || |  | |  __/| | (_| |\n"
+    "\t       |____/___|_|  |_|_|   |_|\\__,_|\n"
+    "\n"
+    "\t Anything that can go wrong, will go wrong. \n"
+    "\t                           -- Murphy's law \n"
+    "\n"
+    " SimPla, Plasma Simulator  \n"
+    " " COPYRIGHT "\n"
+    " Build Date: " __DATE__ " " __TIME__"                   \n"
+    " ID:" IDENTIFY "\n"
+    " Author: " AUTHOR "\n";
 
 int main(int argc, char **argv)
 {
+    printf("%s", SIMPLA_LOGO);
+
+
     SP_CALL(spParallelInitialize(argc, argv));
 
-    ShowSimPlaLogo();
 
     char out_file[2048] = "untitled.h5";
 
@@ -88,11 +107,11 @@ int main(int argc, char **argv)
 
     spParticle *sp = NULL;
 
-    SP_CALL(spParticleCreateBorisYee(&sp, mesh));
-    SP_CALL(spParticleSetMass(sp, SI_electron_mass));
-    SP_CALL(spParticleSetCharge(sp, SI_elementary_charge));
-    SP_CALL(spParticleSetPIC(sp, PIC));
-    SP_CALL(spParticleInitializeBorisYee(sp, n0, T0));
+//    SP_CALL(spParticleCreateBorisYee(&sp, mesh));
+//    SP_CALL(spParticleSetMass(sp, SI_electron_mass));
+//    SP_CALL(spParticleSetCharge(sp, SI_elementary_charge));
+//    SP_CALL(spParticleSetPIC(sp, PIC));
+//    SP_CALL(spParticleInitializeBorisYee(sp, n0, T0));
 
     /*****************************************************************************************************************/
 

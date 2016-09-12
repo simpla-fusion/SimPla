@@ -10,7 +10,7 @@
 
 
 #include "sp_lite_def.h"
-
+#include "spDataType.h"
 
 #define SP_DEFAULT_NUMBER_OF_ENTITIES_IN_PAGE 128
 

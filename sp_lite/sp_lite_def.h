@@ -11,10 +11,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "../src/sp_config.h"
-
-#define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
-#define  COPYRIGHT "All rights reserved. (2016 )"
+#include "sp_config.h"
 
 
 #define DONE       if(spMPIRank()==0){ printf( "====== DONE ======\n" );}
@@ -52,6 +49,5 @@ typedef MeshEntityId32 MeshEntityShortId;
 #   undef USING_DEVICE_MEMORY;
 #endif
 
-void ShowSimPlaLogo();
 
 #endif /* SP_DEF_LITE_H_ */
