@@ -11,9 +11,12 @@
 
 #include "sp_config.h"
 
+#ifndef SP_MAX_NUMBER_OF_PARTICLE_ATTR
+#    define SP_MAX_NUMBER_OF_PARTICLE_ATTR 16
+#endif
 
 #define SP_PARTICLE_HEAD  \
-     uint  *id;           \
+     size_type  *id;           \
      Real  *rx;           \
      Real  *ry;           \
      Real  *rz;
@@ -31,7 +34,7 @@ typedef struct
     spParticleAddAttribute(_DESC_, __STRING(_N_), SP_TYPE_##_T_,sizeof(_T_),-1);
 
 #define SP_PARTICLE_CREATE_DATA_DESC(_DESC_, _CLS_)     \
-    SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,uint ,id)   \
+    SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,size_type ,id)   \
     SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rx)  \
     SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,ry)  \
     SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rz)
@@ -51,6 +54,7 @@ struct spParticle_s;
 
 typedef struct spParticle_s spParticle;
 
+/**  constructure and destructure @{*/
 int spParticleCreate(spParticle **sp, struct spMesh_s const *m);
 
 int spParticleDestroy(spParticle **sp);
@@ -59,7 +63,8 @@ int spParticleDeploy(spParticle *sp);
 
 int spParticleInitialize(spParticle *sp, int const *dist_types);
 
-int spParticleIsSorted(spParticle const *sp);
+/**    @}*/
+/**  meta data @{*/
 
 int spParticleSetPIC(spParticle *sp, unsigned int pic);
 
@@ -81,16 +86,21 @@ size_type spParticleGetSize(spParticle const *);
 
 size_type spParticleGetCapacity(spParticle const *);
 
-size_type spParticlePush(spParticle *sp, size_type s);
+/**    @}*/
+/**  ID @{*/
+int spParticleGetIndex(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **index);
 
-//const uint *spParticleGetStartPos(spParticle const *);
-//
-//const uint *spParticleGetEndPos(spParticle const *);
-//
-//const uint *spParticleGetSortedIndex(spParticle const *);
+int spParticleResetID(spParticle *sp);
 
-int spParticleGetIndexArray(spParticle *sp, uint **start_pos, uint **end_pos, uint **index);
+int spParticleSort(spParticle *sp);
 
+int spParticleDeepSort(spParticle *sp);
+
+int spParticleIsSorted(spParticle const *sp);
+
+int spParticleSync(spParticle *sp);
+/**    @}*/
+/**  attribute @{*/
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset);
 
 int spParticleGetNumberOfAttributes(spParticle const *sp);
@@ -106,16 +116,11 @@ int spParticleSetAttributeData(spParticle *sp, int i, void *data);
 int spParticleGetAllAttributeData(spParticle *sp, void **res);
 
 int spParticleGetAllAttributeData_device(spParticle *sp, void ***data);
+/** @}*/
 
 int spParticleWrite(spParticle const *sp, struct spIOStream_s *os, const char *url, int flag);
 
 int spParticleRead(spParticle *sp, struct spIOStream_s *os, const char *url, int flag);
-
-int spParticleSort(spParticle *sp);
-
-int spParticleDeepSort(spParticle *sp);
-
-int spParticleSync(spParticle *sp);
 
 
 #endif /* SPPARTICLE_H_ */

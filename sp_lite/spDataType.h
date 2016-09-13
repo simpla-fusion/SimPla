@@ -14,6 +14,7 @@ enum
     SP_TYPE_uint,
     SP_TYPE_long,
     SP_TYPE_int64_t,
+    SP_TYPE_size_type,
     SP_TYPE_OPAQUE
 };
 #ifdef REAL_IS_FLOAT

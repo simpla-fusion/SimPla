@@ -72,7 +72,11 @@ __global__ void spParticleSortKernel(uint *cellStart,        // output: cell sta
 //        sortedVel[index] = vel;
     }
 }
-
+int spParticleResetID(spParticle *sp)
+{
+    UNIMPLEMENTED;
+    return SP_DO_NOTHING;
+}
 int spParticleSort(spParticle *sp)
 {
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
@@ -85,9 +89,9 @@ int spParticleSort(spParticle *sp)
 
     uint *hash = (uint *) spParticleGetAttributeData(sp, 0);
 
-    uint *start_pos, *end_pos, *index;
+    size_type *start_pos, *end_pos, *index;
 
-    spParticleGetIndexArray(sp, &start_pos, &end_pos, &index);
+    spParticleGetIndex(sp, &start_pos, &end_pos, &index);
 
     thrust::sort_by_key(thrust::device_ptr<uint>(hash),
                         thrust::device_ptr<uint>(hash + numParticles),
@@ -119,8 +123,8 @@ SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
 {
 
     uint s0 = __umul24(blockIdx.x, gridDim.x) +
-              __umul24(blockIdx.y, gridDim.y) +
-              __umul24(blockIdx.z, gridDim.z);
+        __umul24(blockIdx.y, gridDim.y) +
+        __umul24(blockIdx.z, gridDim.z);
 
     __shared__ Real x0, y0, z0;
 
@@ -131,7 +135,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
         z0 = blockIdx.z * dx.z + min.z;
     }
 
-            spParallelSyncThreads();
+        spParallelSyncThreads();
 
     if (start_pos[s0] + threadIdx.x < end_pos[s0])
     {
@@ -162,7 +166,7 @@ int spParticleCooridinateLocalToGlobal(spParticle *sp)
 
     uint *start_pos, *end_pos, *index;
 
-    spParticleGetIndexArray(sp, &start_pos, &end_pos, &index);
+    spParticleGetIndex(sp, &start_pos, &end_pos, &index);
 
     uint3 blockDim;
     blockDim.x = SP_NUM_OF_THREADS_PER_BLOCK;
@@ -236,7 +240,8 @@ int spParticleReorder(spParticle *sp)
                                   (uint *) t_data, (uint const *) src, spParticleGetSortedIndex(sp),
                                   num_particle);
 
-        } else
+        }
+        else
         {
             SP_DEVICE_CALL_KERNEL(spParticleMemcpyKernel, num_particle / numThreads + 1, numThreads,
                                   t_data, src, spParticleGetSortedIndex(sp), num_particle, ele_size_in_byte);

@@ -12,22 +12,18 @@ int spParallelInitialize(int argc, char **argv)
 {
 
     spMPIInitialize(argc, argv);
+
     spParallelDeviceInitialize(argc, argv);
+
     return SP_SUCCESS;
 }
 
 int spParallelFinalize()
 {
     spParallelDeviceFinalize();
+
     spMPIFinalize();
-//    if (spMPIComm() != MPI_COMM_NULL)
-//    {
-//
-//        MPI_CALL(MPI_Finalize());
-//
-//        spMPIComm() = MPI_COMM_NULL;
-//
-//    }
+
     return SP_SUCCESS;
 }
 

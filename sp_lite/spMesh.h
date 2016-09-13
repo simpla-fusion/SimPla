@@ -17,9 +17,6 @@ struct spMesh_s;
 
 typedef struct spMesh_s spMesh;
 
-typedef struct spMesh_s *spMesh_t;
-
-typedef struct spMesh_s const *spMesh_const_t;
 
 #define SP_MESH_ATTR_HEAD  SP_OBJECT_HEAD const spMesh *m; uint iform;
 
@@ -29,55 +26,53 @@ typedef struct spMeshAttribute_s
     byte_type __others[];
 } spMeshAttribute;
 
-typedef struct spMeshAttribute_s *spMeshAttribute_t;
-
-typedef struct spMeshAttribute_s const *spMeshAttribute_const_t;
-
 MeshEntityId spMeshEntityIdFromArray(size_type const *s);
 
 MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s);
 
-int spMeshAttributeCreate(spMeshAttribute_t *f, size_type size, spMesh_const_t mesh, uint iform);
+int spMeshAttributeCreate(spMeshAttribute **f, size_type size, spMesh const *mesh, uint iform);
 
-int spMeshAttributeDestroy(spMeshAttribute_t *f);
+int spMeshAttributeDestroy(spMeshAttribute **f);
 
-spMesh_const_t spMeshAttributeGetMesh(spMeshAttribute_const_t f);
+spMesh const *spMeshAttributeGetMesh(spMeshAttribute const *f);
 
-uint spMeshAttributeGetForm(spMeshAttribute_const_t f);
+uint spMeshAttributeGetForm(spMeshAttribute const *f);
 
-int spMeshCreate(spMesh_t *ctx);
+int spMeshCreate(spMesh **ctx);
 
-int spMeshDestroy(spMesh_t *ctx);
+int spMeshDestroy(spMesh **ctx);
 
-int spMeshDeploy(spMesh_t self);
+int spMeshDeploy(spMesh *self);
 
 /** Topology Begin*/
 
-int spMeshGetNDims(spMesh_const_t m);
+int spMeshGetNDims(spMesh const *m);
 
-Real spMeshCFLDtv(spMesh_const_t m, Real const *speed);
+Real spMeshCFLDtv(spMesh const *m, Real const *speed);
 
-Real spMeshCFLDt(spMesh_const_t m, Real const speed);
+Real spMeshCFLDt(spMesh const *m, Real const speed);
 
-int spMeshSetDims(spMesh_t m, size_type const *);
+int spMeshSetDims(spMesh *m, size_type const *);
 
-int spMeshGetDims(spMesh_const_t m, size_type *);
+int spMeshGetDims(spMesh const *m, size_type *);
 
-int spMeshSetGhostWidth(spMesh_t m, size_type const *);
+int spMeshSetGhostWidth(spMesh *m, size_type const *);
 
-int spMeshGetGhostWidth(spMesh_const_t m, size_type *);
+int spMeshGetGhostWidth(spMesh const *m, size_type *);
 
-int spMeshGetStrides(spMesh_const_t m, size_type *res);
+int spMeshGetStrides(spMesh const *m, size_type *res);
 
-size_type spMeshGetNumberOfEntities(spMesh_const_t, int domain_tag, int iform);
+size_type spMeshGetNumberOfEntities(spMesh const *, int domain_tag, int iform);
 
-int spMeshGetDomain(spMesh_const_t m, int tag, size_type *dims, size_type *start, size_type *count);
+int spMeshGetDomain(spMesh const *m, int tag, size_type *p_start, size_type *p_end, size_type *p_count);
 
-int spMeshGetArrayShape(spMesh_const_t m, int tag, size_type *min, size_type *max, size_type *stride);
+int spMeshGetLocalDims(spMesh const *m, size_type *v);
 
-int spMeshGetGlobalOffset(spMesh_const_t m, size_type *dims, ptrdiff_t *offset);
+//int spMeshGetArrayShape(spMesh const * m, int tag, size_type *min, size_type *max, size_type *stride);
 
-int spMeshGetGlobalArrayShape(spMesh_const_t m,
+int spMeshGetGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset);
+
+int spMeshGetGlobalArrayShape(spMesh const *m,
                               int domain_tag,
                               int attr_ndims,
                               const size_type *attr_dims,
@@ -92,21 +87,21 @@ int spMeshGetGlobalArrayShape(spMesh_const_t m,
 /** Topology End*/
 
 /** Geometry Begin*/
-int spMeshSetBox(spMesh_t m, Real const *lower, Real const *upper);
+int spMeshSetBox(spMesh *m, Real const *lower, Real const *upper);
 
-int spMeshGetBox(spMesh_const_t m, int tag, Real *lower, Real *upper);
+int spMeshGetBox(spMesh const *m, int tag, Real *lower, Real *upper);
 
-int spMeshGetOrigin(spMesh_const_t m, Real *origin);
+int spMeshGetOrigin(spMesh const *m, Real *origin);
 
-int spMeshGetDx(spMesh_const_t m, Real *);
+int spMeshGetDx(spMesh const *m, Real *);
 
-int spMeshGetInvDx(spMesh_const_t m, Real *);
+int spMeshGetInvDx(spMesh const *m, Real *);
 
-int spMeshGetGlobalOrigin(spMesh_const_t m, Real *origin);
+int spMeshGetGlobalOrigin(spMesh const *m, Real *origin);
 
-size_type spMeshHash(spMesh_const_t, MeshEntityId, int iform);
+size_type spMeshHash(spMesh const *, MeshEntityId, int iform);
 
-void spMeshPoint(spMesh_const_t, MeshEntityId id, Real *);
+void spMeshPoint(spMesh const *, MeshEntityId id, Real *);
 
 __inline__ size_type spMeshSFC(size_type const *d, size_type const *strides)
 {
@@ -115,8 +110,8 @@ __inline__ size_type spMeshSFC(size_type const *d, size_type const *strides)
 
 /** Geometry End */
 
-int spMeshWrite(spMesh_const_t ctx, const char *name);
+int spMeshWrite(spMesh const *ctx, const char *name);
 
-int spMeshRead(spMesh_t ctx, const char *name);
+int spMeshRead(spMesh *ctx, const char *name);
 
 #endif /* SPMESH_H_ */

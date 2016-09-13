@@ -59,7 +59,9 @@ int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *b
     _spFDTDParam param;
     size_type min[3], max[3], strides[3];
     Real inv_dx[3], x0[3], dx[3];
-    SP_CALL(spMeshGetArrayShape(m, tag, min, max, strides));
+
+    SP_CALL(spMeshGetDomain(m, tag, min, max, NULL));
+    SP_CALL(spMeshGetStrides(m, strides));
     SP_CALL(spMeshGetBox(m, tag, x0, NULL));
     SP_CALL(spMeshGetInvDx(m, inv_dx));
     SP_CALL(spMeshGetDx(m, dx));
@@ -259,7 +261,7 @@ SP_DEVICE_DECLARE_KERNEL (spFDTDDivKernel, Real const *Jx, Real const *Jy, Real 
     {
         int s = SPMeshHash(x, y, z);
         rho[s] +=
-                (Jx[s + _fdtd_param.strides.x] - Jx[s]) * _fdtd_param.inv_dx.x +
+            (Jx[s + _fdtd_param.strides.x] - Jx[s]) * _fdtd_param.inv_dx.x +
                 (Jy[s + _fdtd_param.strides.y] - Jy[s]) * _fdtd_param.inv_dx.y +
                 (Jz[s + _fdtd_param.strides.z] - Jz[s]) * _fdtd_param.inv_dx.z;
 

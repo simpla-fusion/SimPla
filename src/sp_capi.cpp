@@ -64,6 +64,9 @@ int spDataTypeCreate(spDataType **dtype, int type_tag, size_type s)
             case SP_TYPE_int64_t:
                 (*dtype)->self = simpla::data_model::DataType::create<int64_t>();
                 break;
+            case SP_TYPE_size_type:
+                (*dtype)->self = simpla::data_model::DataType::create<size_type>();
+                break;
             default:
                 (*dtype)->self.size_in_byte(s);
                 break;

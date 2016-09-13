@@ -155,8 +155,9 @@ int spMeshDeploy(spMesh *self)
             self->m_global_start_[i] = self->m_global_dims_[i] * mpi_topo_coords[i] / mpi_topo_dims[i];
 
             self->m_count_[i] =
-                    self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
-        } else
+                self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
+        }
+        else
         {
             self->m_global_start_[i] = 0;
 
@@ -287,6 +288,8 @@ int spMeshSetDims(spMesh *m, size_type const *v) { SET_VEC3(v, m_global_dims_) }
 
 int spMeshGetDims(spMesh const *m, size_type *v) { GET_VEC3(v, m_global_dims_) }
 
+int spMeshGetLocalDims(spMesh const *m, size_type *v) { GET_VEC3(v, m_dims_) }
+
 int spMeshSetGhostWidth(spMesh *m, size_type const *v) { SET_VEC3(v, m_ghost_width_) }
 
 int spMeshGetGhostWidth(spMesh const *m, size_type *res) { GET_VEC3(res, m_ghost_width_) }
@@ -315,9 +318,9 @@ int spMeshSetBox(spMesh *m, Real const *lower, Real const *upper)
 
 int spMeshGetBox(spMesh const *m, int tag, Real *lower, Real *upper)
 {
-    size_type start[3], count[3], dims[3];
+    size_type start[3], count[3];
 
-    spMeshGetDomain(m, tag, dims, start, count);
+    spMeshGetDomain(m, tag, start, NULL, count);
 
     lower[0] = m->m_coord_lower[0] + ((int) start[0] - (int) (m->m_start_[0])) * m->dx[0];
     lower[1] = m->m_coord_lower[1] + ((int) start[1] - (int) (m->m_start_[1])) * m->dx[1];
@@ -334,11 +337,14 @@ int spMeshGetBox(spMesh const *m, int tag, Real *lower, Real *upper)
 };
 
 
-int spMeshGetDomain(spMesh const *m, int tag, size_type *dims, size_type *start, size_type *count)
+int spMeshGetDomain(spMesh const *m, int tag, size_type *p_start, size_type *p_end, size_type *p_count)
 {
 
     int success = SP_SUCCESS;
     int offset[3] = {0, 0, 0};
+    size_type start[3] = {0, 0, 0};
+    size_type end[3] = {0, 0, 0};
+    size_type count[3] = {0, 0, 0};
 
     switch (tag)
     {
@@ -392,36 +398,18 @@ int spMeshGetDomain(spMesh const *m, int tag, size_type *dims, size_type *start,
                 }
             }
     }
+    for (int i = 0; i < 3; ++i)
+    {
+        if (p_start != NULL) { p_start[i] = start[i]; }
+        if (p_count != NULL) { p_count[i] = count[i]; }
+        if (p_end != NULL) { p_end[i] = start[i] + count[i]; }
 
-    if (dims != NULL) { for (int i = 0; i < 3; ++i) { dims[i] = m->m_dims_[i]; }}
+    }
+
 
     return success;
 };
 
-int spMeshGetArrayShape(spMesh const *m, int tag, size_type *min, size_type *max, size_type *stride)
-{
-    switch (tag)
-    {
-        case SP_DOMAIN_ALL:
-            for (int i = 0; i < 3; ++i)
-            {
-                min[i] = 0;
-                max[i] = min[i] + m->m_dims_[i];
-            }
-            break;
-        case SP_DOMAIN_CENTER:
-        default:
-            for (int i = 0; i < 3; ++i)
-            {
-                min[i] = m->m_start_[i];
-                max[i] = min[i] + m->m_count_[i];
-            }
-            break;
-    }
-
-    return spMeshGetStrides(m, stride);
-
-}
 
 int spMeshGetStrides(spMesh const *m, size_type *res)
 {
@@ -432,7 +420,8 @@ int spMeshGetStrides(spMesh const *m, size_type *res)
             res[2] = (m->m_global_dims_[2] == 1) ? 0 : 1;
             res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[2];
             res[0] = (m->m_global_dims_[0] == 1) ? 0 : m->m_dims_[2] * m->m_dims_[1];
-        } else
+        }
+        else
         {
             res[0] = (m->m_global_dims_[0] == 1) ? 0 : 1;
             res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[0];
@@ -467,8 +456,10 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
 
     *array_ndims = spMeshGetNDims(m) + attr_ndims;
 
+
     if (is_soa == SP_TRUE)
     {
+
         for (int i = 0; i < attr_ndims; ++i)
         {
             l_dims[i] = attr_dims[i];
@@ -476,8 +467,10 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
             l_count[i] = attr_dims[i];
         }
         *start_mesh_dim = attr_ndims;
-    } else
+    }
+    else
     {
+
         for (int i = 0; i < attr_ndims; ++i)
         {
             l_dims[mesh_ndims + i] = attr_dims[i];
@@ -487,11 +480,8 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
         *start_mesh_dim = 0;
     }
 
-
-    SP_CALL(spMeshGetDomain(m, domain_tag,
-                            l_dims + (*start_mesh_dim),
-                            l_start + (*start_mesh_dim),
-                            l_count + (*start_mesh_dim)));
+    SP_CALL(spMeshGetLocalDims(m, l_dims + (*start_mesh_dim)));
+    SP_CALL(spMeshGetDomain(m, domain_tag, l_start + (*start_mesh_dim), NULL, l_count + (*start_mesh_dim)));
 
 
     if (g_dims != NULL && g_start != NULL)

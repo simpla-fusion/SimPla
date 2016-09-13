@@ -32,13 +32,19 @@ struct spMPICartUpdater_s;
 
 typedef struct spMPICartUpdater_s spMPICartUpdater;
 
-int spMPICartUpdateNdArrayHalo(int num_of_buffer, void **buffers, const spDataType *ele_type, int ndims,
-                               const size_type *dims, const size_type *start, const size_type *,
-                               const size_type *count, const size_type *, int mpi_sync_start_dims);
-
-int spMPICartUpdaterCreateDA(spMPICartUpdater **updater, const spDataType *data_desc, int ndims,
-                             const size_type *shape, const size_type *start, const size_type *stride,
-                             const size_type *count, const size_type *block, int mpi_sync_start_dims);
+int spMPICartUpdaterCreate(spMPICartUpdater **updater,
+                           MPI_Comm comm,
+                           const spDataType *data_desc,
+                           int mpi_sync_start_dims,
+                           int ndims,
+                           const size_type *shape,
+                           const size_type *start,
+                           const size_type *stride,
+                           const size_type *count,
+                           const size_type *block,
+                           const size_type *start_pos,
+                           const size_type *end_pos,
+                           const size_type *index);
 
 int spMPICartUpdaterDestroy(spMPICartUpdater **updater);
 
