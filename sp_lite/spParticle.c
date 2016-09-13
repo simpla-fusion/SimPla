@@ -430,11 +430,7 @@ int spParticleRearrange(spParticle *sp)
     return SP_SUCCESS;
 }
 
-int spParticleIsSorted(spParticle const *sp)
-{
-    if (sp == NULL) { return SP_DO_NOTHING; }
-    return sp->is_sorted;
-}
+
 
 int spParticleGetBucketIndex(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **index)
 {

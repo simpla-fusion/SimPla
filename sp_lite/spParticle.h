@@ -93,7 +93,6 @@ int spParticleSort(spParticle *sp);
 
 int spParticleBuildBucket(spParticle *sp);
 
-
 int spParticleResetHash(spParticle *sp);
 
 int spParticleGetBucketIndex(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **index);
