@@ -430,8 +430,6 @@ int spParticleRearrange(spParticle *sp)
     return SP_SUCCESS;
 }
 
-
-
 int spParticleGetBucketIndex(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **index)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
@@ -535,7 +533,6 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
     UNIMPLEMENTED;
 
     return SP_DO_NOTHING;
-    assert(spParticleIsSorted(sp) == SP_TRUE);
 
     char curr_path[2048];
     char new_path[2048];

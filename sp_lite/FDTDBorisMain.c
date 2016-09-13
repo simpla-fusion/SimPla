@@ -90,7 +90,6 @@ int main(int argc, char **argv)
     spParticle *sp = NULL;
 
     SP_CALL(spParticleCreateBorisYee(&sp, mesh));
-    /**/
     SP_CALL(spParticleSetMass(sp, SI_electron_mass));
     SP_CALL(spParticleSetCharge(sp, SI_elementary_charge));
     SP_CALL(spParticleSetPIC(sp, PIC));
