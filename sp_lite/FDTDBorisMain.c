@@ -95,7 +95,7 @@ int main(int argc, char **argv)
     SP_CALL(spParticleSetCharge(sp, SI_elementary_charge));
     SP_CALL(spParticleSetPIC(sp, PIC));
     SP_CALL(spParticleInitializeBorisYee(sp, n0, T0));
-    SP_CALL(spParticleDeepSort(sp));
+    SP_CALL(spParticleRearrange(sp));
 
     /*****************************************************************************************************************/
 
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
     SP_CALL(spFieldDestroy(&fRho));
     SP_CALL(spFieldDestroy(&fdRho));
 
-    SP_CALL(spParticleDeepSort(sp));
+    SP_CALL(spParticleRearrange(sp));
     SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
     SP_CALL(spParticleDestroy(&sp));
 

@@ -4,30 +4,33 @@
 
 extern "C"
 {
-#include "../../spParticle.h"
-#include "../../spMesh.h"
 #include "../../spParallel.h"
+#include "../../spMesh.h"
+#include "../../spParticle.h"
+#include "../../spParticle.impl.h"
+#include "../../spField.h"
 #include "../sp_device.h"
 
 }
 
-#include <thrust/device_ptr.h>
-#include <thrust/sort.h>
+
 #include </usr/local/cuda/include/host_defines.h>
 #include </usr/local/cuda/include/device_launch_parameters.h>
+#include "../../spDataType.h"
+#include "../../spAlogorithm.h"
 
-__global__ void spParticleSortKernel(uint *cellStart,        // output: cell start index
-                                     uint *cellEnd,          // output: cell end index
-                                     uint *trashStart,
-                                     uint *gridParticleHash, // input: sorted grid hashes
-                                     uint *gridParticleIndex,// input: sorted particle indices
-                                     uint numParticles)
+__global__ void spParticleRebuildBucketKernel(size_type *cellStart,        // output: cell start index
+                                              size_type *cellEnd,          // output: cell end index
+                                              size_type *trashStart,
+                                              size_type *gridParticleHash, // input: sorted grid hashes
+                                              size_type *gridParticleIndex,// input: sorted particle indices
+                                              size_type numParticles)
 {
-    extern __shared__ uint sharedHash[];    // blockSize + 1 elements
+    extern __shared__ size_type sharedHash[];    // blockSize + 1 elements
 
-    uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-    uint number_thread = __umul24(gridDim.x, blockDim.x);
-    uint hash;
+    size_type index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+    size_type number_thread = __umul24(gridDim.x, blockDim.x);
+    size_type hash;
 
     if (index < numParticles)     // handle case when no. of particles not multiple of block size
     {
@@ -72,53 +75,39 @@ __global__ void spParticleSortKernel(uint *cellStart,        // output: cell sta
 //        sortedVel[index] = vel;
     }
 }
-int spParticleResetID(spParticle *sp)
+int spParticleResetHash(spParticle *sp)
 {
     UNIMPLEMENTED;
     return SP_DO_NOTHING;
 }
-int spParticleSort(spParticle *sp)
+
+int spParticleBuildBucketFromIndex(spParticle *sp)
 {
-    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
 
-    uint iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
+    size_type num_of_particle = spParticleGetSize(sp);
 
-    size_type num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
-
-    size_type numParticles = spParticleGetNumOfParticle(sp);
-
-    uint *hash = (uint *) spParticleGetAttributeData(sp, 0);
-
-    size_type *start_pos, *end_pos, *index;
-
-    spParticleGetIndex(sp, &start_pos, &end_pos, &index);
-
-    thrust::sort_by_key(thrust::device_ptr<uint>(hash),
-                        thrust::device_ptr<uint>(hash + numParticles),
-                        thrust::device_ptr<uint>(index));
-
-    uint trashStart = 0;
+    size_type trashStart = 0;
     int numThreads = 256;
     uint smemSize = sizeof(uint) * (numThreads + 1);
+
+    size_type *bucket_start, *bucket_end, *index;
+
+    spParticleGetBucketIndex(sp, &bucket_start, &bucket_end, &index);
+
+    size_type *hash = (size_type *) spParticleGetAttributeData(sp, 0);
+
     /*@formatter:off*/
-//    spParticleSortKernel<<<numParticles / numThreads + 1, numThreads,smemSize>>>(
-//        start_pos, end_pos, &trashStart, hash, index, numParticles);
+    spParticleRebuildBucketKernel<<<num_of_particle / numThreads + 1, numThreads,smemSize>>>(
+        bucket_start, bucket_end, &trashStart, hash, index, num_of_particle);
     /*@formatter:on*/
-
-    return SP_SUCCESS;
-};
-
-int spParticleAutoReorder(spParticle *sp)
-{
-    return SP_DO_NOTHING;
-};
+}
 
 SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
                           particle_head *sp,
                           Real3 dx, Real3 min,
-                          uint const *start_pos,
-                          uint const *end_pos,
-                          uint const *sorted_index
+                          size_type const *start_pos,
+                          size_type const *end_pos,
+                          size_type const *sorted_index
 )
 {
 
@@ -164,9 +153,9 @@ int spParticleCooridinateLocalToGlobal(spParticle *sp)
 
     SP_CALL(spParticleGetAllAttributeData_device(sp, &p_data));
 
-    uint *start_pos, *end_pos, *index;
+    size_type *start_pos, *end_pos, *index;
 
-    spParticleGetIndex(sp, &start_pos, &end_pos, &index);
+    spParticleGetBucketIndex(sp, &start_pos, &end_pos, &index);
 
     uint3 blockDim;
     blockDim.x = SP_NUM_OF_THREADS_PER_BLOCK;
@@ -234,18 +223,18 @@ int spParticleReorder(spParticle *sp)
 
         void *src = spParticleGetAttributeData(sp, i);
 
-        if (ele_size_in_byte == sizeof(uint))
-        {
-            SP_DEVICE_CALL_KERNEL(spParticleMemcpyUIntKernel, num_particle / numThreads + 1, numThreads,
-                                  (uint *) t_data, (uint const *) src, spParticleGetSortedIndex(sp),
-                                  num_particle);
-
-        }
-        else
-        {
-            SP_DEVICE_CALL_KERNEL(spParticleMemcpyKernel, num_particle / numThreads + 1, numThreads,
-                                  t_data, src, spParticleGetSortedIndex(sp), num_particle, ele_size_in_byte);
-        }
+//        if (ele_size_in_byte == sizeof(uint))
+//        {
+//            SP_DEVICE_CALL_KERNEL(spParticleMemcpyUIntKernel, num_particle / numThreads + 1, numThreads,
+//                                  (size_type *) t_data, (uint const *) src, spParticleGetSortedIndex(sp),
+//                                  num_particle);
+//
+//        }
+//        else
+//        {
+//            SP_DEVICE_CALL_KERNEL(spParticleMemcpyKernel, num_particle / numThreads + 1, numThreads,
+//                                  t_data, src, spParticleGetSortedIndex(sp), num_particle, ele_size_in_byte);
+//        }
 
         SP_CALL(spParticleSetAttributeData(sp, i, t_data));
 

@@ -11,9 +11,6 @@ int spParallelInitialize(int argc, char **argv);
 
 int spParallelFinalize();
 
-
-
-
 int spParallelDeviceInitialize(int argc, char **argv);
 
 int spParallelDeviceFinalize();
@@ -38,11 +35,9 @@ int spParallelGlobalBarrier();
 
 int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v);
 
-
 int spParallelDeviceFillInt(int *d, int v, size_type s);
 
 int spParallelDeviceFillReal(Real *d, Real v, size_type s);
-
 
 int spParallelGridDim();
 
@@ -58,5 +53,7 @@ int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
 int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte);
 
 int spMemoryHostFree(void **p);
+
+
 
 #endif //SIMPLA_SPPARALLEL_H

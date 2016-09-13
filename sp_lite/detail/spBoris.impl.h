@@ -333,9 +333,9 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 
 SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                           boris_particle *sp,
-                          uint const *start_pos,
-                          uint const *end_pos,
-                          uint const *sorted_index,
+                          size_type const *start_pos,
+                          size_type const *end_pos,
+                          size_type const *sorted_index,
                           Real dt,
                           Real const *Ex,
                           Real const *Ey,
@@ -451,9 +451,9 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
 SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
                           boris_particle *sp,
-                          unsigned int const *start_pos,
-                          unsigned int const *end_pos,
-                          unsigned int const *particle_index,
+                          size_type const *start_pos,
+                          size_type const *end_pos,
+                          size_type const *particle_index,
                           Real *fJx,
                           Real *fJy,
                           Real *fJz,
@@ -539,7 +539,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
     size_type *start_pos, *end_pos, *index;
 
-    spParticleGetIndex(sp, &start_pos, &end_pos, &index);
+    spParticleGetBucketIndex(sp, &start_pos, &end_pos, &index);
 
     SP_DEVICE_CALL_KERNEL(spParticleUpdateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (boris_particle *) p_data,

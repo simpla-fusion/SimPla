@@ -88,17 +88,21 @@ size_type spParticleGetCapacity(spParticle const *);
 
 /**    @}*/
 /**  ID @{*/
-int spParticleGetIndex(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **index);
-
-int spParticleResetID(spParticle *sp);
 
 int spParticleSort(spParticle *sp);
 
-int spParticleDeepSort(spParticle *sp);
+int spParticleBuildBucket(spParticle *sp);
 
-int spParticleIsSorted(spParticle const *sp);
+
+int spParticleResetHash(spParticle *sp);
+
+int spParticleGetBucketIndex(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **index);
+
+int spParticleRearrange(spParticle *sp);
 
 int spParticleSync(spParticle *sp);
+
+
 /**    @}*/
 /**  attribute @{*/
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset);
