@@ -64,7 +64,7 @@ int spParticleDeploy(spParticle *sp);
 int spParticleInitialize(spParticle *sp, int const *dist_types);
 
 /**    @}*/
-/**  meta data @{*/
+/**  meta-data @{*/
 
 int spParticleSetPIC(spParticle *sp, unsigned int pic);
 
@@ -87,22 +87,19 @@ size_type spParticleGetSize(spParticle const *);
 size_type spParticleGetCapacity(spParticle const *);
 
 /**    @}*/
+
 /**  ID @{*/
 
 int spParticleSort(spParticle *sp);
-
-int spParticleBuildBucket(spParticle *sp);
-
-int spParticleResetHash(spParticle *sp);
-
-int spParticleGetBucketIndex(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **index);
 
 int spParticleRearrange(spParticle *sp);
 
 int spParticleSync(spParticle *sp);
 
+int spParticleGetBucketIndex(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **index);
 
 /**    @}*/
+
 /**  attribute @{*/
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset);
 
