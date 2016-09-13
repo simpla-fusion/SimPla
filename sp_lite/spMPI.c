@@ -377,7 +377,7 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
     int r_count_upper[ndims];
     int r_start_upper[ndims];
 
-    (*updater)->num_of_neighbour = 6;
+    (*updater)->num_of_neighbour = mpi_topology_ndims * 2;
 
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
@@ -386,6 +386,12 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
         (*updater)->send_types[2 * d + 1] = MPI_DATATYPE_NULL;
         (*updater)->recv_types[2 * d + 0] = MPI_DATATYPE_NULL;
         (*updater)->recv_types[2 * d + 1] = MPI_DATATYPE_NULL;
+
+
+        (*updater)->send_displs[2 * d + 0] = 0;
+        (*updater)->send_displs[2 * d + 1] = 0;
+        (*updater)->recv_displs[2 * d + 0] = 0;
+        (*updater)->recv_displs[2 * d + 1] = 0;
 
         if (dims[d] == 1) { continue; }
 
@@ -490,15 +496,23 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
         }
 
 
-        MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 0])));
-        MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 1])));
-        MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 0])));
-        MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 1])));
+        if ((*updater)->send_types[2 * d + 0] != MPI_DATATYPE_NULL)
+        {
+            MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 0])));
+        }
+        if ((*updater)->send_types[2 * d + 1] != MPI_DATATYPE_NULL)
+        {
+            MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 1])));
+        }
+        if ((*updater)->recv_types[2 * d + 0] != MPI_DATATYPE_NULL)
+        {
+            MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 0])));
+        }
+        if ((*updater)->recv_types[2 * d + 1] != MPI_DATATYPE_NULL)
+        {
+            MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 1])));
+        }
 
-        (*updater)->send_displs[2 * d + 0] = 0;
-        (*updater)->send_displs[2 * d + 1] = 0;
-        (*updater)->recv_displs[2 * d + 0] = 0;
-        (*updater)->recv_displs[2 * d + 1] = 0;
     }
 }
 

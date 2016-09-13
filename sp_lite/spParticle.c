@@ -75,9 +75,9 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     (*sp)->charge = 1;
     (*sp)->mass = 1;
     (*sp)->is_sorted = SP_FALSE;
-    spFieldCreate(&(*sp)->start_pos, mesh, VOLUME, SP_TYPE_size_type);
-    spFieldCreate(&(*sp)->end_pos, mesh, VOLUME, SP_TYPE_size_type);
-    spFieldCreate(&(*sp)->num_pic, mesh, VOLUME, SP_TYPE_size_type);
+    spFieldCreate(&((*sp)->start_pos), mesh, VOLUME, SP_TYPE_size_type);
+    spFieldCreate(&((*sp)->end_pos), mesh, VOLUME, SP_TYPE_size_type);
+    spFieldCreate(&((*sp)->num_pic), mesh, VOLUME, SP_TYPE_size_type);
 
     return SP_SUCCESS;
 
@@ -91,12 +91,9 @@ int spParticleDeploy(spParticle *sp)
                                                       spMeshAttributeGetForm((spMeshAttribute *) (sp)));
     sp->m_max_num_of_particle_ = num_of_cell * sp->m_pic_ * 3 / 2;
 
-    SP_CALL(spParallelDeviceAlloc((void **) &(sp->start_pos), num_of_cell * sizeof(uint)));
-    SP_CALL(spParallelDeviceAlloc((void **) &(sp->end_pos), num_of_cell * sizeof(uint)));
-    SP_CALL(spParallelDeviceAlloc((void **) &(sp->num_pic), num_of_cell * sizeof(uint)));
-    SP_CALL(spParallelMemset((void *) (sp->start_pos), 0, num_of_cell * sizeof(uint)));
-    SP_CALL(spParallelMemset((void *) (sp->end_pos), 0, num_of_cell * sizeof(uint)));
-    SP_CALL(spParallelMemset((void *) (sp->num_pic), 0, num_of_cell * sizeof(uint)));
+    SP_CALL(spFieldClear(sp->start_pos));
+    SP_CALL(spFieldClear(sp->end_pos));
+    SP_CALL(spFieldClear(sp->num_pic));
 
     SP_CALL(spParallelDeviceAlloc((void **) &(sp->sorted_id), sp->m_max_num_of_particle_ * sizeof(uint)));
 
@@ -111,9 +108,6 @@ int spParticleDeploy(spParticle *sp)
                                   spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
     SP_CALL(spParallelMemcpy(sp->m_current_data_, d, spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
 
-    SP_CALL(spFieldClear(sp->start_pos));
-    SP_CALL(spFieldClear(sp->end_pos));
-    SP_CALL(spFieldClear(sp->num_pic));
 
     return SP_SUCCESS;
 }
@@ -377,7 +371,7 @@ int spParticleSync(spParticle *sp)
     size_type l_strides[ndims + 1];
     size_type l_count[ndims + 1];
 
-    spMeshGetDims(m, l_dims);
+    spMeshGetLocalDims(m, l_dims);
     spMeshGetStrides(m, l_strides);
     spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, l_end, l_count);
 
@@ -425,7 +419,7 @@ int spParticleSync(spParticle *sp)
 
     spParticleGetAllAttributeData(sp, d);
 
-    SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp), d + 1));
+    SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp) - 1, d + 1));
 
     SP_CALL(spMPICartUpdaterDestroy(&updater));
 
@@ -446,6 +440,9 @@ spParticleWrite(spParticle const *sp, spIOStream *os, const char *name, int flag
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
 
+    UNIMPLEMENTED;
+
+    return SP_DO_NOTHING;
     assert(spParticleIsSorted(sp) == SP_TRUE);
 
     char curr_path[2048];

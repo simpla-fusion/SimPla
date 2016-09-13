@@ -34,7 +34,7 @@ int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_
     SP_CALL(spMeshAttributeCreate((spMeshAttribute **) f, sizeof(spField), mesh, iform));
 
     (*f)->m = mesh;
-    (*f)->iform = iform;
+    (*f)->iform = (uint) iform;
     (*f)->is_soa = SP_TRUE;
     (*f)->m_data_ = NULL;
 
@@ -63,10 +63,7 @@ int spFieldDeploy(spField *f)
 
     if (f->m_data_ == NULL)
     {
-        size_type s = spDataTypeSizeInByte(f->m_data_type_desc_) *
-            spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
-
-        spParallelDeviceAlloc((void **) &(f->m_data_), s);
+        spParallelDeviceAlloc((void **) &(f->m_data_), spFieldGetSizeInByte(f));
     }
     return SP_SUCCESS;
 }
@@ -134,10 +131,7 @@ int spFieldClear(spField *f)
 {
     SP_CALL(spFieldDeploy(f));
 
-    size_type s = spDataTypeSizeInByte(f->m_data_type_desc_)
-        * spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
-
-    spParallelMemset(f->m_data_, 0, s);
+    spParallelMemset(f->m_data_, 0, spFieldGetSizeInByte(f));
 
     return SP_SUCCESS;
 }

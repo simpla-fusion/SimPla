@@ -515,7 +515,8 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
                          struct spField_s *fRho, struct spField_s *fJ)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
-
+    UNIMPLEMENTED;
+    return SP_DO_NOTHING;
 
     Real *rho;
     Real *J[3];
@@ -536,7 +537,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
     SP_CALL(spParticleGetAllAttributeData_device(sp, &p_data));
 
-    uint *start_pos, *end_pos, *index;
+    size_type *start_pos, *end_pos, *index;
 
     spParticleGetIndex(sp, &start_pos, &end_pos, &index);
 
