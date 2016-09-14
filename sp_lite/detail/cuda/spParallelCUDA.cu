@@ -48,53 +48,58 @@ int spParallelDeviceAlloc(void **p, size_type s)
 
 int spParallelDeviceFree(void **_P_)
 {
+    int error_code = SP_SUCCESS;
     if (*_P_ != NULL)
     {
-        SP_DEVICE_CALL(cudaFree(*_P_));
+        error_code = SP_DEVICE_CALL(cudaFree(*_P_));
         *_P_ = NULL;
     }
-    return SP_SUCCESS;
+    return error_code;
 };
 
 int spParallelMemcpy(void *dest, void const *src, size_type s)
 {
-    SP_DEVICE_CALL(cudaMemcpy(dest, src, s, cudaMemcpyDefault));
-    return SP_SUCCESS;
+
+    return SP_DEVICE_CALL(cudaMemcpy(dest, src, s, cudaMemcpyDefault));
+
 }
 
 int spParallelMemcpyToCache(const void *dest, void const *src, size_type s)
 {
-    SP_DEVICE_CALL(cudaMemcpyToSymbol(dest, src, s));
-    return SP_SUCCESS;
+
+    return SP_DEVICE_CALL(cudaMemcpyToSymbol(dest, src, s));
+
 }
 
 int spParallelMemset(void *dest, int v, size_type s)
 {
-    SP_DEVICE_CALL(cudaMemset(dest, v, s));
-    return SP_SUCCESS;
+
+    return SP_DEVICE_CALL (cudaMemset(dest, v, s));
 }
 
 int spParallelDeviceSync()
 {
-    SP_CALL(spParallelGlobalBarrier());
-    SP_DEVICE_CALL(cudaDeviceSynchronize());
-    return SP_SUCCESS;
+
+    return SP_CALL(spParallelGlobalBarrier())
+        || SP_DEVICE_CALL (cudaDeviceSynchronize());
 }
 
 int spParallelHostAlloc(void **p, size_type s)
 {
-    SP_DEVICE_CALL(cudaHostAlloc(p, s, cudaHostAllocDefault));
-    return SP_SUCCESS;
+
+    return SP_DEVICE_CALL (cudaHostAlloc(p, s, cudaHostAllocDefault));
+
 };
 
 int spParallelHostFree(void **p)
 {
+    int error_code = SP_SUCCESS;
     if (*p != NULL)
     {
-        cudaFreeHost(*p);
+        error_code = SP_DEVICE_CALL(cudaFreeHost(*p));
         *p = NULL;
     }
-    return SP_SUCCESS;
+    return error_code;
 }
 
 
@@ -144,13 +149,12 @@ int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real co
 
 int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte)
 {
-    spParallelHostAlloc(p, size_in_byte);
-    spParallelMemcpy(*p, src, size_in_byte);
-    return SP_SUCCESS;
+    return SP_CALL(spParallelHostAlloc(p, size_in_byte)) ||
+        SP_CALL(spParallelMemcpy(*p, src, size_in_byte));
 
 }
 int spMemoryHostFree(void **p)
 {
-    spParallelHostFree(p);
-    return SP_SUCCESS;
+    return SP_CALL(spParallelHostFree(p));
+
 }

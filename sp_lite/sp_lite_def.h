@@ -26,14 +26,24 @@
 #define CHECK_INT(_MSG_)    printf( "%s:%d:0:%s: %s = %ld \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(long)(_MSG_) );
 #define CHECK_STR(_MSG_)    printf( "%s:%d:0:%s: %s = %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_), (_MSG_) );
 
-#define SP_CALL(_CMD_)                                                                                        \
-{                                                                                                                    \
-   int _return_code=_CMD_;                                                                                            \
-   if(_return_code==SP_FAILED)                                                                                         \
-   {                                                                                                                  \
-        printf( "%s:%d:0:%s: command failed! [%s] \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_CMD_));  \
-   }                                                                                                                 \
+
+//{                                                                                                                    \
+//   int _return_code=_CMD_;                                                                                            \
+//   if(_return_code==SP_FAILED)                                                                                         \
+//   {                                                                                                                  \
+//        printf( "%s:%d:0:%s: command failed! [%s] \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_CMD_));  \
+//    exit(1); \
+//}}
+inline int print_error(int error_code, char const *file, int line, char const *function, char const *cmd)
+{
+    if (error_code == SP_FAILED)
+    {
+        printf("%s:%d:0:%s: Error: [%s] \n", file, line, function, cmd);
+    }
+    return error_code;
 }
+
+#define SP_CALL(_CMD_)   print_error((_CMD_), __FILE__, __LINE__, __PRETTY_FUNCTION__, __STRING(_CMD_))
 
 
 typedef MeshEntityId64 MeshEntityId;

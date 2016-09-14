@@ -62,13 +62,16 @@ int spParticleDestroy(spParticle **sp);
 int spParticleDeploy(spParticle *sp);
 
 int spParticleInitialize(spParticle *sp, int const *dist_types);
-
+int spParticleCoordinateLocalToGlobal(spParticle *sp);
+int spParticleCoordinateGlobalToLocal(spParticle *sp);
 /**    @}*/
 /**  meta-data @{*/
 
 int spParticleSetPIC(spParticle *sp, unsigned int pic);
 
 uint spParticleGetPIC(spParticle const *sp);
+
+uint spParticleGetMaxPIC(spParticle const *sp);
 
 size_type spParticleGetNumOfParticle(const spParticle *sp);
 
@@ -118,7 +121,7 @@ int spParticleGetAllAttributeData(spParticle *sp, void **res);
 int spParticleGetAllAttributeData_device(spParticle *sp, void ***data);
 /** @}*/
 
-int spParticleWrite(spParticle const *sp, struct spIOStream_s *os, const char *url, int flag);
+int spParticleWrite(spParticle *sp, struct spIOStream_s *os, const char *url, int flag);
 
 int spParticleRead(spParticle *sp, struct spIOStream_s *os, const char *url, int flag);
 

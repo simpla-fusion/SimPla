@@ -154,9 +154,8 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
         );
     }
 
-    SP_CALL(spFieldSync(f));
+    return SP_CALL(spFieldSync(f));
 
-    return SP_SUCCESS;
 };
 
 
@@ -273,27 +272,28 @@ int spFDTDDiv(const spField *fJ, spField *fRho)
     assert(spFieldIsSoA(fRho));
     assert(spFieldIsSoA(fJ));
 
-
     Real *rho, *J[3];
-
-    SP_CALL(spFieldSubArray((spField *) fRho, (void **) &rho));
-
-    SP_CALL(spFieldSubArray((spField *) fJ, (void **) J));
-
-
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) fRho);
 
     size_type grid_dim[3], block_dim[3];
 
-    spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
+    int error_code = SP_SUCCESS;
+
+
+    error_code = error_code || SP_CALL(spFieldSubArray((spField *) fRho, (void **) &rho));
+
+    error_code = error_code || SP_CALL(spFieldSubArray((spField *) fJ, (void **) J));
+
+
+    error_code = error_code || SP_CALL(spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim));
 
     SP_DEVICE_CALL_KERNEL(spFDTDDivKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (const Real *) J[0], (const Real *) J[1], (const Real *) J[2], rho);
 
-    SP_CALL(spFieldSync(fRho));
+    error_code = error_code || SP_CALL(spFieldSync(fRho));
 
 
-    return SP_SUCCESS;
+    return error_code;
 }
 
 SP_DEVICE_DECLARE_KERNEL (spFDTDMultiplyByScalarKernel, Real *rho, Real a)
@@ -318,7 +318,7 @@ int spFDTDMultiplyByScalar(spField *fRho, Real a)
 
     size_type grid_dim[3], block_dim[3];
 
-    spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
+    SP_CALL(spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim));
 
     SP_DEVICE_CALL_KERNEL(spFDTDMultiplyByScalarKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), rho, a);
 

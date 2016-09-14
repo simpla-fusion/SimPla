@@ -280,7 +280,7 @@ int spMPICartUpdaterDestroy(spMPICartUpdater **updater)
     }
 
     free(*updater);
-
+    return SP_SUCCESS;
 }
 
 int spMPICartUpdate(spMPICartUpdater const *updater, void *buffer)
@@ -303,7 +303,7 @@ int spMPICartUpdate(spMPICartUpdater const *updater, void *buffer)
 
 int spMPICartUpdateAll(spMPICartUpdater const *updater, int num_of_buffer, void **buffers)
 {
-    for (int i = 0; i < num_of_buffer; ++i) {SP_CALL(spMPICartUpdate(updater, buffers[i])); }
+    for (int i = 0; i < num_of_buffer; ++i) { SP_CALL(spMPICartUpdate(updater, buffers[i])); }
     return SP_SUCCESS;
 }
 
@@ -514,6 +514,8 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
         }
 
     }
+
+    return SP_SUCCESS;
 }
 
 //
@@ -547,26 +549,25 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
 //    SP_CALL(spMPICartUpdaterDestroy(&updater));
 //}
 
-int spMPIPrefixSum(size_type *start, size_type *total)
+int spMPIPrefixSum(size_type *p_offset, size_type *p_count)
 {
-    assert(sizeof(size_type) == sizeof(long));
-
     MPI_Comm comm = spMPIComm();
 
-    size_type count = *start;
-
-    if (comm == MPI_COMM_NULL) { return SP_FAILED; }
+    if (comm == MPI_COMM_NULL) { return SP_DO_NOTHING; }
 
     int num_of_process = spMPISize();
 
     int process_num = spMPIRank();
 
-    size_type buffer[num_of_process];
+    int offset = (p_offset != NULL) ? (int) *p_offset : 0;
+    int count = (p_count != NULL) ? (int) *p_count : 1;
+
+    int buffer[num_of_process + 1];
 
 
     MPI_Barrier(comm);
 
-    MPI_Gather(&count, 1, MPI_LONG_INT, &buffer[0], 1, MPI_LONG_INT, 0, comm);
+    MPI_Gather(&count, 1, MPI_INT, &buffer[0], 1, MPI_INT, 0, comm);
 
     MPI_Barrier(comm);
 
@@ -585,13 +586,21 @@ int spMPIPrefixSum(size_type *start, size_type *total)
         }
         buffer[0] = 0;
     }
-    MPI_Barrier(comm);
-    MPI_Scatter(&buffer[0], 1, MPI_LONG_INT, start, 1, MPI_LONG_INT, 0, comm);
-    MPI_Barrier(comm);
-    MPI_Bcast(&count, 1, MPI_LONG_INT, 0, comm);
+
     MPI_Barrier(comm);
 
-    if (total != NULL) { *total = count; }
+    MPI_Scatter(&buffer[0], 1, MPI_INT, &offset, 1, MPI_INT, 0, comm);
+
+    MPI_Barrier(comm);
+
+    MPI_Bcast(&count, 1, MPI_INT, 0, comm);
+
+//    printf("%d/%d  offset= %d total = %d", spMPIRank(), spMPISize(), offset, count);
+
+    MPI_Barrier(comm);
+
+    if (p_count != NULL) { *p_count = (size_type) count; }
+    if (p_offset != NULL) { *p_offset = (size_type) offset; }
 
     return SP_SUCCESS;
 }

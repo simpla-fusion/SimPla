@@ -26,7 +26,7 @@ int spMPISize();
 
 int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord);
 
-int spMPIPrefixSum(size_type *start, size_type *count);
+int spMPIPrefixSum(size_type *offset, size_type *p_count);
 
 struct spMPICartUpdater_s;
 

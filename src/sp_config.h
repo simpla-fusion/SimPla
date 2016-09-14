@@ -26,9 +26,9 @@
 #define SP_DO_NOTHING 0xFFFF
 #define SP_UNIMPLEMENTED  SP_DO_NOTHING +1
 
-#define SP_SUCCESS 1
+#define SP_SUCCESS 0
 
-#define SP_FAILED  0
+#define SP_FAILED 1
 
 typedef size_t size_type;
 

@@ -13,4 +13,6 @@ int spParticleResetHash(spParticle *sp);
 
 int spParticleBuildBucketFromIndex(spParticle *sp);
 
+
+
 #endif //SIMPLA_SPPARTICLE_IMPL_H

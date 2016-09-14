@@ -7,6 +7,7 @@
 
 #include "../../sp_lite_def.h"
 #include "../../spParallel.h"
+#include "../../../../../../../usr/local/cuda/include/cuda_runtime_api.h"
 
 
 #ifdef NUM_OF_THREADS_PER_BLOCK
@@ -25,13 +26,33 @@
          __LINE__, __FILE__,blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x , threadIdx.y, threadIdx.z, __STRING(_CMD_),(_CMD_));
 #endif
 
-#define SP_DEVICE_CALL(_CMD_) {                                            \
-    cudaError_t _m_cudaStat = _CMD_;                                        \
-    if (_m_cudaStat != cudaSuccess) {                                        \
-         printf("Error [code=0x%x] %s at line %d in file %s\n",                    \
-                _m_cudaStat,cudaGetErrorString(_m_cudaStat), __LINE__, __FILE__);        \
-        exit(1);                                                            \
-    } }
+
+inline int
+print_device_error(cudaError_t _m_cudaStat, char const *file, int line, char const *function, char const *cmd)
+{
+    if (_m_cudaStat != cudaSuccess)
+    {
+        printf("%s:%d:0:%s:  [code=0x%x:%s ] %s \n",
+               file,
+               line,
+               function,
+               _m_cudaStat,
+               cudaGetErrorString(_m_cudaStat),
+               cmd);
+        return SP_FAILED;
+
+    }
+    return SP_SUCCESS;
+}
+
+
+#define SP_DEVICE_CALL(_CMD_) print_device_error((_CMD_),__FILE__, __LINE__,__PRETTY_FUNCTION__, __STRING(_CMD_))
+//#define SP_DEVICE_CALL(_CMD_) {                                            \
+//    cudaError_t _m_cudaStat = _CMD_;                                        \
+//    if (_m_cudaStat != cudaSuccess) {                                        \
+//        printf( "%s:%d:0:%s: %s [code=0x%x] %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__, __STRING(_CMD_),_m_cudaStat,cudaGetErrorString(_m_cudaStat));  \
+//    } }
+
 
 #define SP_DEVICE_CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_)>>>(__VA_ARGS__)
 
@@ -58,17 +79,17 @@ INLINE __device__ Real
 
 atomicAddReal(Real
 
-*ptr,
+              *ptr,
 
-float val
+              float val
 
 )
 {
-return
+    return
 
-atomicAdd(ptr, val
+        atomicAdd(ptr, val
 
-);
+        );
 }
 
 

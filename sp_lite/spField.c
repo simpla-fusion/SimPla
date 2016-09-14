@@ -202,36 +202,30 @@ int spFieldSync(spField *f)
 
     int num_of_sub = spFieldNumberOfSub(f);
 
-    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, NULL, l_count));
-
     void *F[num_of_sub];
-
-    SP_CALL(spFieldSubArray(f, (void **) F));
-
 
     spMPICartUpdater *updater;
 
-    SP_CALL(spMPICartUpdaterCreate(&updater,
-                                   spMPIComm(),
-                                   spFieldDataType(f),
-                                   0,
-                                   ndims,
-                                   l_dims,
-                                   l_start,
-                                   NULL,
-                                   l_count,
-                                   NULL,
-                                   NULL,
-                                   NULL,
-                                   NULL));
+    int error_code = SP_SUCCESS;
 
-    SP_CALL(spMPICartUpdateAll(updater, num_of_sub, F));
-
-    SP_CALL(spMPICartUpdaterDestroy(&updater));
-
-
-    return SP_SUCCESS;
-
+    error_code = error_code || SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, NULL, l_count));
+    error_code = error_code || SP_CALL(spFieldSubArray(f, (void **) F));
+    error_code = error_code || SP_CALL(spMPICartUpdaterCreate(&updater,
+                                                              spMPIComm(),
+                                                              spFieldDataType(f),
+                                                              0,
+                                                              ndims,
+                                                              l_dims,
+                                                              l_start,
+                                                              NULL,
+                                                              l_count,
+                                                              NULL,
+                                                              NULL,
+                                                              NULL,
+                                                              NULL));
+    error_code = error_code || SP_CALL(spMPICartUpdateAll(updater, num_of_sub, F));
+    error_code = error_code || SP_CALL(spMPICartUpdaterDestroy(&updater));
+    return error_code;
 }
 
 int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real const **v)
@@ -246,7 +240,7 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real c
 
         SP_CALL(spFieldSubArray(f, (void **) data));
 
-        for (int i = 0; i < num_of_sub; ++i) {SP_CALL(spParallelAssign(num_of_points, offset, data[i], v[i])); }
+        for (int i = 0; i < num_of_sub; ++i) { SP_CALL(spParallelAssign(num_of_points, offset, data[i], v[i])); }
     }
     else
     {
@@ -257,11 +251,15 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real c
 int spFieldCopyToHost(void **d, spField const *f)
 {
     size_type s = spFieldGetSizeInByte(f);
-    spParallelHostAlloc(d, s);
-    spParallelMemcpy(*d, f->m_data_, s);
+    int error_code = SP_SUCCESS;
+
+    error_code = error_code || SP_CALL(spParallelHostAlloc(d, s));
+    error_code = error_code || SP_CALL(spParallelMemcpy(*d, f->m_data_, s));
+    return error_code;
 };
 
 int spFieldCopyToDevice(spField *f, void const *d)
 {
-    spParallelMemcpy(f->m_data_, d, spFieldGetSizeInByte(f));
+    return SP_CALL(spParallelMemcpy(f->m_data_, d, spFieldGetSizeInByte(f)));
+
 }

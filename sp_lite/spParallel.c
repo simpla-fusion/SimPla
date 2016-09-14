@@ -7,7 +7,6 @@
 #include "spMPI.h"
 
 
-
 int spParallelInitialize(int argc, char **argv)
 {
 
@@ -72,5 +71,6 @@ int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
     assert(grid_dim[0] * block_dim[0] >= max[0] - min[0]);
     assert(grid_dim[1] * block_dim[1] >= max[1] - min[1]);
     assert(grid_dim[2] * block_dim[2] >= max[2] - min[2]);
+    return SP_SUCCESS;
 
 }
