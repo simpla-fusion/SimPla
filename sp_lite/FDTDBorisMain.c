@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 
     spParticle *sp = NULL;
 
-    SP_CALL(spParticleCreateBorisYee(&sp, mesh));
+//    SP_CALL(spParticleCreateBorisYee(&sp, mesh));
     SP_CALL(spParticleSetMass(sp, SI_electron_mass));
     SP_CALL(spParticleSetCharge(sp, SI_elementary_charge));
     SP_CALL(spParticleSetPIC(sp, PIC));
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 
     SP_CALL(spIOStreamOpen(os, "/checkpoint/"));
 
-    for (int count = 0; count < num_of_steps && error_code == SP_SUCCESS; ++count)
+    for (int count = 0; count < num_of_steps; ++count)
     {
         SP_CALL(spFieldClear(fRho));
 
@@ -122,7 +122,6 @@ int main(int argc, char **argv)
         SP_CALL(spFDTDDiv(fJ, fdRho));
 
         SP_CALL(spFDTDUpdate(dt, fRho, fJ, fE, fB));
-
 
         if (count % check_point == 0)
         {

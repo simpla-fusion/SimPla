@@ -8,19 +8,17 @@
 
 int spObjectCreate(spObject **obj, size_t s_in_byte)
 {
-    spParallelHostAlloc((void **) obj, s_in_byte);
-
-    *obj = (spObject *) malloc(s_in_byte);
-
+    int error_code = SP_SUCCESS;
+    SP_CALL(spParallelHostAlloc((void **) obj, s_in_byte));
     (*obj)->id = spMPIGenerateObjectId();
-
-    return SP_SUCCESS;
+    return error_code;
 };
 
 int spObjectDestroy(spObject **obj)
 {
-    if (obj != NULL && *obj != NULL) { spParallelHostFree((void *) obj); }
-    return SP_SUCCESS;
+    int error_code = SP_SUCCESS;
+    if (obj != NULL && *obj != NULL) { SP_CALL(spParallelHostFree((void *) obj)); }
+    return error_code;
 };
 
 size_type spObjectId(spObject const *f) { return f->id; };

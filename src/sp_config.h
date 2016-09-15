@@ -23,7 +23,7 @@
 #define  SP_REAL float
 #define REAL_IS_FLOAT SP_TRUE
 
-#define SP_DO_NOTHING 0xFFFF
+#define SP_DO_NOTHING 0
 #define SP_UNIMPLEMENTED  SP_DO_NOTHING +1
 
 #define SP_SUCCESS 0

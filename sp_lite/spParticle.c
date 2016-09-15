@@ -72,7 +72,7 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     int error_code = SP_SUCCESS;
 
     SP_CALL(spMeshAttributeCreate((spMeshAttribute **) sp,
-                                                             sizeof(spParticle), mesh, VOLUME));
+                                  sizeof(spParticle), mesh, VOLUME));
     (*sp)->m_num_of_particle_ = 0;
     (*sp)->m_max_num_of_particle_ = 0;
     (*sp)->m_pic_ = 0;
@@ -101,7 +101,7 @@ int spParticleDeploy(spParticle *sp)
     SP_CALL(spFieldClear(sp->bucket_end));
 
     SP_CALL(spParallelDeviceAlloc((void **) &(sp->sorted_id),
-                                                             sp->m_max_num_of_particle_ * sizeof(uint)));
+                                  sp->m_max_num_of_particle_ * sizeof(uint)));
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
@@ -111,9 +111,9 @@ int spParticleDeploy(spParticle *sp)
     void *d[spParticleGetNumberOfAttributes(sp)];
     SP_CALL(spParticleGetAllAttributeData(sp, d));
     SP_CALL(spParallelDeviceAlloc((void **) &(sp->m_current_data_),
-                                                             spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
+                                  spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
     SP_CALL(spParallelMemcpy(sp->m_current_data_, d,
-                                                        spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
+                             spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
 
 
     return error_code;
@@ -166,7 +166,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
     SP_CALL(spParticleGetAllAttributeData(sp, data));
 
     SP_CALL(spParallelMemset(((particle_head *) data)->id, -1,
-                                                        max_number_of_particle * sizeof(int)));
+                             max_number_of_particle * sizeof(int)));
 
     size_type x_min[3], x_max[3], strides[3];
 
@@ -190,18 +190,19 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
     strides[2] *= num_of_pic;
 
     SP_CALL(spRandomMultiDistributionInCell(sp_gen,
-                                                                       l_dist_types,
-                                                                       (Real **) (data + 1),
-                                                                       x_min,
-                                                                       x_max,
-                                                                       strides,
-                                                                       num_of_pic));
+                                            l_dist_types,
+                                            (Real **) (data + 1),
+                                            x_min,
+                                            x_max,
+                                            strides,
+                                            num_of_pic));
 
     SP_CALL(spRandomGeneratorDestroy(&sp_gen));
 
     return error_code;
 
 }
+
 /** meta data @{*/
 
 int spParticleSetPIC(spParticle *sp, unsigned int pic)
@@ -266,8 +267,7 @@ int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
         *data = NULL;
 
         return SP_DO_NOTHING;
-    }
-    else
+    } else
     {
         *data = sp->m_current_data_;
 
@@ -280,7 +280,7 @@ int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type
     if (sp == NULL) { return SP_DO_NOTHING; }
 
     int error_code =
-        SP_CALL(spDataTypeCreate(&(sp->m_attrs_[sp->m_num_of_attrs_].data_type), tag, size));
+            SP_CALL(spDataTypeCreate(&(sp->m_attrs_[sp->m_num_of_attrs_].data_type), tag, size));
 
     sp->m_attrs_[sp->m_num_of_attrs_].offset = offset;
     strcpy(sp->m_attrs_[sp->m_num_of_attrs_].name, name);
@@ -367,9 +367,9 @@ int spParticleBuildBucket(spParticle *sp)
     SP_CALL(spFieldDeploy(bucket_count));
 
     SP_CALL(spTransformMinus((size_type *) spFieldData(bucket_count),
-                                                        spFieldData(sp->bucket_end),
-                                                        spFieldData(sp->bucket_start),
-                                                        num_of_cell));
+                             spFieldData(sp->bucket_end),
+                             spFieldData(sp->bucket_start),
+                             num_of_cell));
     SP_CALL(spFieldSync(bucket_count));
 
     size_type *start_pos = NULL, *end_pos = NULL, *count = NULL, *sorted_id = NULL;
@@ -382,7 +382,7 @@ int spParticleBuildBucket(spParticle *sp)
 
     SP_CALL(spParallelHostAlloc((void **) &sorted_id, num_of_particle * sizeof(size_type)));
     SP_CALL(spParallelMemcpy((void *) sorted_id,
-                                                        index, num_of_particle * sizeof(size_type)));
+                             index, num_of_particle * sizeof(size_type)));
 
     size_type l_dims[ndims + 1];
     size_type l_start[ndims + 1];
@@ -436,8 +436,7 @@ int spParticleRearrange(spParticle *sp)
 
     Real *buffer = NULL;
 
-    SP_CALL(spParallelDeviceAlloc((void **) &buffer,
-                                                             sizeof(Real) * spParticleGetCapacity(sp)));
+    SP_CALL(spParallelDeviceAlloc((void **) &buffer, sizeof(Real) * spParticleGetCapacity(sp)));
 
     for (int i = 1; i < spParticleGetNumberOfAttributes(sp); ++i)
     {
@@ -496,7 +495,7 @@ int spParticleSync(spParticle *sp)
     SP_CALL(spParallelHostAlloc((void **) &sorted_id, num_of_particle * sizeof(size_type)));
 
     SP_CALL(spParallelMemcpy((void *) sorted_id,
-                                                        sp->sorted_id, num_of_particle * sizeof(size_type)));
+                             sp->sorted_id, num_of_particle * sizeof(size_type)));
 
     size_type l_dims[ndims + 1];
     size_type l_start[ndims + 1];
@@ -515,18 +514,18 @@ int spParticleSync(spParticle *sp)
     spMPICartUpdater *updater;
 
     SP_CALL(spMPICartUpdaterCreate(&updater,
-                                                              spMPIComm(),
-                                                              d_type,
-                                                              0,
-                                                              ndims,
-                                                              l_dims,
-                                                              l_start,
-                                                              NULL,
-                                                              l_count,
-                                                              NULL,
-                                                              start_pos,
-                                                              end_pos,
-                                                              sorted_id));
+                                   spMPIComm(),
+                                   d_type,
+                                   0,
+                                   ndims,
+                                   l_dims,
+                                   l_start,
+                                   NULL,
+                                   l_count,
+                                   NULL,
+                                   start_pos,
+                                   end_pos,
+                                   sorted_id));
 
     void *d[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
@@ -547,6 +546,7 @@ int spParticleSync(spParticle *sp)
     return error_code;
 
 }
+
 /**  @}*/
 int
 spParticleWrite(spParticle *sp, spIOStream *os, const char *name, int flag)
@@ -597,18 +597,18 @@ spParticleWrite(spParticle *sp, spIOStream *os, const char *name, int flag)
         SP_CALL(spMemoryDeviceToHost(&buffer, sp->m_attrs_[i].data, total_size_in_byte));
 
         SP_CALL(spIOStreamWriteSimple(os,
-                                                                 sp->m_attrs_[i].name,
-                                                                 sp->m_attrs_[i].data_type,
-                                                                 buffer,
-                                                                 1,
-                                                                 &local_count,
-                                                                 &local_offset,
-                                                                 NULL,
-                                                                 &local_count,
-                                                                 NULL,
-                                                                 &global_count,
-                                                                 &global_offset,
-                                                                 flag));
+                                      sp->m_attrs_[i].name,
+                                      sp->m_attrs_[i].data_type,
+                                      buffer,
+                                      1,
+                                      &local_count,
+                                      &local_offset,
+                                      NULL,
+                                      &local_count,
+                                      NULL,
+                                      &global_count,
+                                      &global_offset,
+                                      flag));
     }
     SP_CALL(spParallelHostFree(&buffer));
     SP_CALL(spIOStreamOpen(os, curr_path));

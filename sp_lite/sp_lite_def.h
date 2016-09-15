@@ -38,7 +38,10 @@ inline int print_error(int error_code, char const *file, int line, char const *f
 {
     if (error_code == SP_FAILED)
     {
-        printf("%s:%d:0:%s: Error: [%s] \n", file, line, function, cmd);
+        printf("%s:%d:0:%s: %s: [%s] \n", file, line, function,
+               ((error_code == SP_FAILED) ? "FAILED"
+                                          : "SUCCESS"),
+               cmd);
     }
     return error_code;
 }

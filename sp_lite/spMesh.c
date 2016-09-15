@@ -42,7 +42,6 @@ int spMeshAttributeCreate(spMeshAttribute **f, size_type size, spMesh const *mes
 int spMeshAttributeDestroy(spMeshAttribute **f)
 {
     int error_code = SP_SUCCESS;
-
     SP_CALL(spObjectDestroy((spObject **) (f)));
     return error_code;
 };

@@ -163,7 +163,7 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
 
     void *f_host;
 
-    spFieldCopyToHost(&f_host, f);
+    SP_CALL(spFieldCopyToHost(&f_host, f));
 
     int ndims = spMeshGetNDims(m);
     int array_ndims, mesh_start_dim;
@@ -187,7 +187,7 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
                                   g_dims, g_start, flag));
 
 
-    spParallelHostFree(&f_host);
+    SP_CALL(spParallelHostFree(&f_host));
 
 
     return error_code;
