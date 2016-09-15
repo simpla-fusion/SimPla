@@ -21,10 +21,20 @@ int sort_by_key(size_type const *key_start, size_type const *key_end, size_type 
 
     return SP_SUCCESS;
 };
+
+__global__
+void spMemoryRelativeCopyKernel(Real *dest, Real const *src, size_type num, size_type const *index)
+{
+    uint s = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+    if (s < num) { dest[index[s]] = src[s]; }
+};
+
 int spMemoryRelativeCopy(Real *dest, Real const *src, size_type num, size_type const *index)
 {
-    UNIMPLEMENTED;
-    return SP_DO_NOTHING;
+    /*@formatter:off*/
+   spMemoryRelativeCopyKernel<<<num/256+1,256>>>(dest,src,num,index);
+    /*@formatter:on*/
+    return SP_SUCCESS;
 }
 
 __global__
@@ -48,6 +58,7 @@ void spTransformMinusKernel(size_type *v, size_type const *a, size_type const *b
     uint s = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
     if (s < num) { v[s] = a[s] - b[s]; }
 };
+
 int spTransformMinus(size_type *v, size_type const *a, size_type const *b, size_type num)
 {
     /*@formatter:off*/
@@ -62,6 +73,7 @@ void spTransformAddKernel(size_type *v, size_type const *a, size_type const *b, 
     uint s = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
     if (s < num) { v[s] = a[s] + b[s]; }
 };
+
 int spTransformAdd(size_type *v, size_type const *a, size_type const *b, size_type num)
 {
     /*@formatter:off*/

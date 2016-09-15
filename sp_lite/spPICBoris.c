@@ -16,8 +16,11 @@
 int spParticleCreateBorisYee(spParticle **sp, struct spMesh_s const *m)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
+
     int error_code = SP_SUCCESS;
+
     SP_CALL(spParticleCreate(sp, m));
+
     SP_PARTICLE_CREATE_DATA_DESC((*sp), struct boris_particle_s);
     SP_PARTICLE_ADD_ATTR((*sp), vx);
     SP_PARTICLE_ADD_ATTR((*sp), vy);

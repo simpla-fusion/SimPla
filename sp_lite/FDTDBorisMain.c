@@ -34,7 +34,7 @@ int main(int argc, char **argv)
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
     size_type PIC = 20;
     Real n0 = 1.0e18;
-    Real T0 = 0.026 * SI_elementary_charge / SI_Boltzmann_constant;
+    Real T0 = (Real) (0.026 * SI_elementary_charge / SI_Boltzmann_constant);
     size_type dims[3] = {0x8, 0x8, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
@@ -90,10 +90,10 @@ int main(int argc, char **argv)
 
     spParticle *sp = NULL;
 
-//    SP_CALL(spParticleCreateBorisYee(&sp, mesh));
-    SP_CALL(spParticleSetMass(sp, SI_electron_mass));
-    SP_CALL(spParticleSetCharge(sp, SI_elementary_charge));
-    SP_CALL(spParticleSetPIC(sp, PIC));
+    SP_CALL(spParticleCreateBorisYee(&sp, mesh));
+    SP_CALL(spParticleSetMass(sp, (Real) SI_electron_mass));
+    SP_CALL(spParticleSetCharge(sp, (Real) SI_elementary_charge));
+    SP_CALL(spParticleSetPIC(sp, (uint) PIC));
     SP_CALL(spParticleInitializeBorisYee(sp, n0, T0));
     SP_CALL(spParticleRearrange(sp));
 
@@ -106,12 +106,11 @@ int main(int argc, char **argv)
     SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_NEW));
     SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_NEW));
 
-
     SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
 
     SP_CALL(spIOStreamOpen(os, "/checkpoint/"));
 
-    for (int count = 0; count < num_of_steps; ++count)
+    for (int count = 0; count < num_of_steps && error_code != SP_FAILED; ++count)
     {
         SP_CALL(spFieldClear(fRho));
 
