@@ -110,6 +110,7 @@ int spParticleResetHash(spParticle *sp)
 
 int spParticleBuildBucketFromIndex(spParticle *sp)
 {
+    int error_code = SP_SUCCESS;
 
     size_type num_of_particle = spParticleGetSize(sp);
 
@@ -119,14 +120,16 @@ int spParticleBuildBucketFromIndex(spParticle *sp)
 
     size_type *bucket_start, *bucket_end, *index;
 
-    spParticleGetBucketIndex(sp, &bucket_start, &bucket_end, &index);
+    SP_CALL(spParticleGetBucketIndex(sp, &bucket_start, &bucket_end, &index));
 
     size_type *hash = (size_type *) spParticleGetAttributeData(sp, 0);
 
-    /*@formatter:off*/
-    spParticleRebuildBucketKernel<<<num_of_particle / numThreads + 1, numThreads,smemSize>>>(
-        bucket_start, bucket_end, &trashStart, hash, index, num_of_particle);
-    /*@formatter:on*/
+//    /*@formatter:off*/
+//    spParticleRebuildBucketKernel<<<num_of_particle / numThreads + 1, numThreads,smemSize>>>(
+//        bucket_start, bucket_end, &trashStart, hash, index, num_of_particle);
+//    /*@formatter:on*/
+
+    return error_code;
 }
 
 SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
@@ -139,8 +142,8 @@ SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
 {
 
     uint s0 = __umul24(blockIdx.x, gridDim.x) +
-        __umul24(blockIdx.y, gridDim.y) +
-        __umul24(blockIdx.z, gridDim.z);
+              __umul24(blockIdx.y, gridDim.y) +
+              __umul24(blockIdx.z, gridDim.z);
 
     __shared__ Real x0, y0, z0;
 
@@ -151,7 +154,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
         z0 = blockIdx.z * dx.z + min.z;
     }
 
-        spParallelSyncThreads();
+            spParallelSyncThreads();
 
     if (start_pos[s0] + threadIdx.x < end_pos[s0])
     {
@@ -165,6 +168,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
 
 int spParticleCoordinateLocalToGlobal(spParticle *sp)
 {
+    int error_code = SP_SUCCESS;
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
 
     uint iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
@@ -194,7 +198,7 @@ int spParticleCoordinateLocalToGlobal(spParticle *sp)
                           (particle_head *) (p_data), real2Real3(dx), real2Real3(xmin),
                           start_pos, end_pos, index);
 
-    return SP_SUCCESS;
+    return error_code;
 
 };
 

@@ -31,6 +31,7 @@ typedef struct spField_s
 
 int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_tag)
 {
+    int error_code = SP_SUCCESS;
     SP_CALL(spMeshAttributeCreate((spMeshAttribute **) f, sizeof(spField), mesh, iform));
 
     (*f)->m = mesh;
@@ -41,37 +42,40 @@ int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_
 
     SP_CALL(spDataTypeCreate(&((*f)->m_data_type_desc_), type_tag, 0));
 
-    return SP_SUCCESS;
+    return error_code;
 }
 
 int spFieldDestroy(spField **f)
 {
+    int error_code = SP_SUCCESS;
+
     if (f != NULL && *f != NULL)
     {
-        spParallelDeviceFree(&((**f).m_data_));
+        SP_CALL(spParallelDeviceFree(&((**f).m_data_)));
 
         SP_CALL(spDataTypeDestroy(&((*f)->m_data_type_desc_)));
     }
 
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) f));
 
-    return SP_SUCCESS;
+    return error_code;
 }
 
 int spFieldDeploy(spField *f)
 {
+    int error_code = SP_SUCCESS;
 
     if (f->m_data_ == NULL)
     {
-        spParallelDeviceAlloc((void **) &(f->m_data_), spFieldGetSizeInByte(f));
+        SP_CALL(spParallelDeviceAlloc((void **) &(f->m_data_), spFieldGetSizeInByte(f)));
     }
-    return SP_SUCCESS;
+    return error_code;
 }
 
 size_type spFieldGetSizeInByte(spField const *f)
 {
     return spDataTypeSizeInByte(f->m_data_type_desc_) *
-        spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
+           spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 }
 
 int spFieldAdd(spField *, void const *);
@@ -102,6 +106,7 @@ int spFieldAdd(spField *f, void const *v)
 
 int spFieldSubArray(spField *f, void **data)
 {
+    int error_code = SP_SUCCESS;
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
 
@@ -118,34 +123,39 @@ int spFieldSubArray(spField *f, void **data)
 
         for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * offset; }
 
-    }
-    else
+    } else
     {
         UNIMPLEMENTED;
 //        for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * ele_size_in_byte; }
     }
-    return SP_SUCCESS;
+    return error_code;
 };
 
 int spFieldClear(spField *f)
 {
+    int error_code = SP_SUCCESS;
     SP_CALL(spFieldDeploy(f));
 
-    spParallelMemset(f->m_data_, 0, spFieldGetSizeInByte(f));
+    SP_CALL(spParallelMemset(f->m_data_, 0, spFieldGetSizeInByte(f)));
 
-    return SP_SUCCESS;
+    return error_code;
 }
 
 int spFieldFill(spField *f, Real v)
 {
-    spFieldDeploy(f);
+    int error_code = SP_SUCCESS;
 
-    return spParallelDeviceFillReal(f->m_data_, v, spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform));
+    SP_CALL(spFieldDeploy(f));
+
+    SP_CALL(spParallelDeviceFillReal(f->m_data_, v, spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform)));
+    return error_code;
 
 }
 
 int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
 {
+    int error_code = SP_SUCCESS;
+
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
 
@@ -180,7 +190,7 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     spParallelHostFree(&f_host);
 
 
-    return SP_SUCCESS;
+    return error_code;
 }
 
 int spFieldRead(spField *f, spIOStream *os, char const name[], int flag)
@@ -191,6 +201,8 @@ int spFieldRead(spField *f, spIOStream *os, char const name[], int flag)
 
 int spFieldSync(spField *f)
 {
+    int error_code = SP_SUCCESS;
+
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
     int ndims = spMeshGetNDims(m);
@@ -206,30 +218,31 @@ int spFieldSync(spField *f)
 
     spMPICartUpdater *updater;
 
-    int error_code = SP_SUCCESS;
 
-    error_code = error_code || SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, NULL, l_count));
-    error_code = error_code || SP_CALL(spFieldSubArray(f, (void **) F));
-    error_code = error_code || SP_CALL(spMPICartUpdaterCreate(&updater,
-                                                              spMPIComm(),
-                                                              spFieldDataType(f),
-                                                              0,
-                                                              ndims,
-                                                              l_dims,
-                                                              l_start,
-                                                              NULL,
-                                                              l_count,
-                                                              NULL,
-                                                              NULL,
-                                                              NULL,
-                                                              NULL));
-    error_code = error_code || SP_CALL(spMPICartUpdateAll(updater, num_of_sub, F));
-    error_code = error_code || SP_CALL(spMPICartUpdaterDestroy(&updater));
+    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, NULL, l_count));
+    SP_CALL(spFieldSubArray(f, (void **) F));
+    SP_CALL(spMPICartUpdaterCreate(&updater,
+                                   spMPIComm(),
+                                   spFieldDataType(f),
+                                   0,
+                                   ndims,
+                                   l_dims,
+                                   l_start,
+                                   NULL,
+                                   l_count,
+                                   NULL,
+                                   NULL,
+                                   NULL,
+                                   NULL));
+    SP_CALL(spMPICartUpdateAll(updater, num_of_sub, F));
+    SP_CALL(spMPICartUpdaterDestroy(&updater));
     return error_code;
 }
 
 int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real const **v)
 {
+    int error_code = SP_SUCCESS;
+
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
 
     if (spFieldIsSoA(f))
@@ -241,25 +254,28 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real c
         SP_CALL(spFieldSubArray(f, (void **) data));
 
         for (int i = 0; i < num_of_sub; ++i) { SP_CALL(spParallelAssign(num_of_points, offset, data[i], v[i])); }
-    }
-    else
+    } else
     {
         UNIMPLEMENTED;
     }
+    return error_code;
 }
 
 int spFieldCopyToHost(void **d, spField const *f)
 {
-    size_type s = spFieldGetSizeInByte(f);
     int error_code = SP_SUCCESS;
 
-    error_code = error_code || SP_CALL(spParallelHostAlloc(d, s));
-    error_code = error_code || SP_CALL(spParallelMemcpy(*d, f->m_data_, s));
+    size_type s = spFieldGetSizeInByte(f);
+
+    SP_CALL(spParallelHostAlloc(d, s));
+    SP_CALL(spParallelMemcpy(*d, f->m_data_, s));
     return error_code;
 };
 
 int spFieldCopyToDevice(spField *f, void const *d)
 {
-    return SP_CALL(spParallelMemcpy(f->m_data_, d, spFieldGetSizeInByte(f)));
+    int error_code = SP_SUCCESS;
 
+    SP_CALL(spParallelMemcpy(f->m_data_, d, spFieldGetSizeInByte(f)));
+    return error_code;
 }

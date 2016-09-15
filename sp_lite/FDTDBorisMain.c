@@ -23,6 +23,7 @@
 
 int main(int argc, char **argv)
 {
+    int error_code = SP_SUCCESS;
     SP_CALL(spParallelInitialize(argc, argv));
 
 //    ShowSimPlaLogo();
@@ -110,7 +111,7 @@ int main(int argc, char **argv)
 
     SP_CALL(spIOStreamOpen(os, "/checkpoint/"));
 
-    for (int count = 0; count < num_of_steps; ++count)
+    for (int count = 0; count < num_of_steps && error_code == SP_SUCCESS; ++count)
     {
         SP_CALL(spFieldClear(fRho));
 
@@ -161,5 +162,7 @@ int main(int argc, char **argv)
 
     SP_CALL(spIOStreamDestroy(&os));
     SP_CALL(spParallelFinalize());
+
+    exit(error_code);
 
 }

@@ -35,15 +35,15 @@ __constant__ _spFDTDParam _fdtd_param;
 INLINE __device__ int SPMeshHash(int x, int y, int z)
 {
     return __mul24(x + _fdtd_param.min.x, _fdtd_param.strides.x) +
-        __mul24(y + _fdtd_param.min.y, _fdtd_param.strides.y) +
-        __mul24(z + _fdtd_param.min.z, _fdtd_param.strides.z);
+           __mul24(y + _fdtd_param.min.y, _fdtd_param.strides.y) +
+           __mul24(z + _fdtd_param.min.z, _fdtd_param.strides.z);
 
 }
 
 INLINE __device__  int SPMeshInBox(int x, int y, int z)
 {
     return (_fdtd_param.min.x + x < _fdtd_param.max.x && _fdtd_param.min.y + y < _fdtd_param.max.y
-        && _fdtd_param.min.z + z < _fdtd_param.max.z);
+            && _fdtd_param.min.z + z < _fdtd_param.max.z);
 }
 
 INLINE __device__ void SPMeshPoint(int x, int y, int z, Real *rx, Real *ry, Real *rz)
@@ -56,6 +56,7 @@ INLINE __device__ void SPMeshPoint(int x, int y, int z, Real *rx, Real *ry, Real
 
 int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *block_dim)
 {
+    int error_code = SP_SUCCESS;
     _spFDTDParam param;
     size_type min[3], max[3], strides[3];
     Real inv_dx[3], x0[3], dx[3];
@@ -95,7 +96,7 @@ int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *b
 
     SP_CALL(spParallelThreadBlockDecompose(SP_NUM_OF_THREADS_PER_BLOCK, 3, min, max, grid_dim, block_dim));
 
-    return SP_SUCCESS;
+    return error_code;
 }
 
 SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSinKernel, Real *d, Real3 k, Real3 alpha0, Real amp)
@@ -115,6 +116,7 @@ SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSinKernel, Real *d, Real3 k, Real3 al
 
 int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 {
+    int error_code = SP_SUCCESS;
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
@@ -132,12 +134,12 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 
 
     Real alpha0[4][9] =
-        {
-            {/**/ 0,   0,   0,   /**/ 0,   0,   0,   /**/  0,   0,   0   /**/},
-            {/**/ 0.5, 0,   0,   /**/ 0,   0.5, 0,   /**/  0,   0,   0.5 /**/},
-            {/**/ 0,   0.5, 0.5, /**/ 0.5, 0,   0.5, /**/  0.5, 0.5, 0   /**/},
-            {/**/ 0.5, 0.5, 0.5, /**/ 0.5, 0.5, 0.5, /**/  0.5, 0.5, 0.5 /**/},
-        };
+            {
+                    {/**/ 0,   0,   0,   /**/ 0,   0,   0,   /**/  0,   0,   0   /**/},
+                    {/**/ 0.5, 0,   0,   /**/ 0,   0.5, 0,   /**/  0,   0,   0.5 /**/},
+                    {/**/ 0,   0.5, 0.5, /**/ 0.5, 0,   0.5, /**/  0.5, 0.5, 0   /**/},
+                    {/**/ 0.5, 0.5, 0.5, /**/ 0.5, 0.5, 0.5, /**/  0.5, 0.5, 0.5 /**/},
+            };
 
 
     for (int i = 0; i < num_of_sub; ++i)
@@ -154,8 +156,8 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
         );
     }
 
-    return SP_CALL(spFieldSync(f));
-
+    SP_CALL(spFieldSync(f));
+    return error_code;
 };
 
 
@@ -173,14 +175,14 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernelPushE, Real dt,
         int s = SPMeshHash(x, y, z);
 
         Ex[s] -= ((Bz[s] - Bz[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
-            - (By[s] - By[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
-            * speed_of_light2 * dt - Jx[s] / epsilon0 * dt;
+                  - (By[s] - By[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
+                 * speed_of_light2 * dt - Jx[s] / epsilon0 * dt;
         Ey[s] -= ((Bx[s] - Bx[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
-            - (Bz[s] - Bz[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
-            * speed_of_light2 * dt - Jy[s] / epsilon0 * dt;
+                  - (Bz[s] - Bz[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
+                 * speed_of_light2 * dt - Jy[s] / epsilon0 * dt;
         Ez[s] -= ((By[s] - By[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
-            - (Bx[s] - Bx[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
-            * speed_of_light2 * dt - Jz[s] / epsilon0 * dt;
+                  - (Bx[s] - Bx[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
+                 * speed_of_light2 * dt - Jz[s] / epsilon0 * dt;
     }
 }
 
@@ -197,17 +199,19 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernelPushB, Real dt,
         int s = SPMeshHash(x, y, z);
 
         Bx[s] += ((Ez[s + _fdtd_param.strides.y] - Ez[s]) * _fdtd_param.inv_dx.y
-            - (Ey[s + _fdtd_param.strides.z] - Ey[s]) * _fdtd_param.inv_dx.z) * dt;
+                  - (Ey[s + _fdtd_param.strides.z] - Ey[s]) * _fdtd_param.inv_dx.z) * dt;
         By[s] += ((Ex[s + _fdtd_param.strides.z] - Ex[s]) * _fdtd_param.inv_dx.z
-            - (Ez[s + _fdtd_param.strides.x] - Ez[s]) * _fdtd_param.inv_dx.x) * dt;
+                  - (Ez[s + _fdtd_param.strides.x] - Ez[s]) * _fdtd_param.inv_dx.x) * dt;
         Bz[s] += ((Ey[s + _fdtd_param.strides.x] - Ey[s]) * _fdtd_param.inv_dx.x
-            - (Ex[s + _fdtd_param.strides.y] - Ex[s]) * _fdtd_param.inv_dx.y) * dt;
+                  - (Ex[s + _fdtd_param.strides.y] - Ex[s]) * _fdtd_param.inv_dx.y) * dt;
 
     }
 }
 
 int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB)
 {
+    int error_code = SP_SUCCESS;
+
     assert(spFieldIsSoA(fRho));
     assert(spFieldIsSoA(fJ));
     assert(spFieldIsSoA(fE));
@@ -247,7 +251,7 @@ int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, s
     SP_CALL(spFieldSync(fB));
 
 
-    return SP_SUCCESS;
+    return error_code;
 }
 
 SP_DEVICE_DECLARE_KERNEL (spFDTDDivKernel, Real const *Jx, Real const *Jy, Real const *Jz, Real *rho)
@@ -260,7 +264,7 @@ SP_DEVICE_DECLARE_KERNEL (spFDTDDivKernel, Real const *Jx, Real const *Jy, Real 
     {
         int s = SPMeshHash(x, y, z);
         rho[s] +=
-            (Jx[s + _fdtd_param.strides.x] - Jx[s]) * _fdtd_param.inv_dx.x +
+                (Jx[s + _fdtd_param.strides.x] - Jx[s]) * _fdtd_param.inv_dx.x +
                 (Jy[s + _fdtd_param.strides.y] - Jy[s]) * _fdtd_param.inv_dx.y +
                 (Jz[s + _fdtd_param.strides.z] - Jz[s]) * _fdtd_param.inv_dx.z;
 
@@ -269,6 +273,8 @@ SP_DEVICE_DECLARE_KERNEL (spFDTDDivKernel, Real const *Jx, Real const *Jy, Real 
 
 int spFDTDDiv(const spField *fJ, spField *fRho)
 {
+    int error_code = SP_SUCCESS;
+
     assert(spFieldIsSoA(fRho));
     assert(spFieldIsSoA(fJ));
 
@@ -277,20 +283,18 @@ int spFDTDDiv(const spField *fJ, spField *fRho)
 
     size_type grid_dim[3], block_dim[3];
 
-    int error_code = SP_SUCCESS;
+
+    SP_CALL(spFieldSubArray((spField *) fRho, (void **) &rho));
+
+    SP_CALL(spFieldSubArray((spField *) fJ, (void **) J));
 
 
-    error_code = error_code || SP_CALL(spFieldSubArray((spField *) fRho, (void **) &rho));
-
-    error_code = error_code || SP_CALL(spFieldSubArray((spField *) fJ, (void **) J));
-
-
-    error_code = error_code || SP_CALL(spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim));
+    SP_CALL(spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim));
 
     SP_DEVICE_CALL_KERNEL(spFDTDDivKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (const Real *) J[0], (const Real *) J[1], (const Real *) J[2], rho);
 
-    error_code = error_code || SP_CALL(spFieldSync(fRho));
+    SP_CALL(spFieldSync(fRho));
 
 
     return error_code;
@@ -308,6 +312,8 @@ SP_DEVICE_DECLARE_KERNEL (spFDTDMultiplyByScalarKernel, Real *rho, Real a)
 
 int spFDTDMultiplyByScalar(spField *fRho, Real a)
 {
+    int error_code = SP_SUCCESS;
+
     assert(spFieldIsSoA(fRho));
 
     Real *rho;
@@ -325,7 +331,7 @@ int spFDTDMultiplyByScalar(spField *fRho, Real a)
     SP_CALL(spFieldSync(fRho));
 
 
-    return SP_SUCCESS;
+    return error_code;
 }
 
 

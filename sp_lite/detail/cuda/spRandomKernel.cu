@@ -38,7 +38,6 @@ typedef struct spRandomGenerator_s
 } spRandomGenerator;
 
 
-
 int spRandomGeneratorSetThreadBlocks(spRandomGenerator *gen, size_type const *blocks, size_type const *threads)
 {
     gen->blocks[0] = blocks[0];
@@ -89,7 +88,7 @@ spRandomGeneratorSobolSetupKernel(unsigned long long *sobolDirectionVectors,
 
 int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimension, size_type offset)
 {
-
+    int error_code = SP_SUCCESS;
     SP_CALL(spParallelHostAlloc((void **) gen, sizeof(spRandomGenerator)));
     {
         size_type blocks[3] = {16, 1, 1};
@@ -146,18 +145,21 @@ int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimens
         );
        /* @formatter:on */
     }
-    return SP_SUCCESS;
+    return error_code;
 }
 
 int spRandomGeneratorDestroy(spRandomGenerator **gen)
 {
+    int error_code = SP_SUCCESS;
+
     if (gen != NULL && *gen != NULL && (*gen)->devSobol64States != NULL)
     {
         SP_DEVICE_CALL(cudaFree((void *) ((*gen)->devSobol64States)));
         SP_DEVICE_CALL(cudaFree((*gen)->devDirectionVectors64));
         SP_DEVICE_CALL(cudaFree((*gen)->devScrambleConstants64));
     }
-    return spParallelHostFree((void **) gen);
+    SP_CALL(spParallelHostFree((void **) gen));
+    return error_code;
 }
 
 int spRandomGeneratorSetNumOfDimensions(spRandomGenerator *gen, int n)
@@ -250,8 +252,10 @@ spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, R
                                 size_type const *min, size_type const *max, size_type const *strides,
                                 size_type num_per_cell)
 {
+    int error_code = SP_SUCCESS;
+
     size_type s_blocks[3], s_threads[3];
-    spRandomGeneratorGetThreadBlocks(gen, s_blocks, s_threads);
+    SP_CALL(spRandomGeneratorGetThreadBlocks(gen, s_blocks, s_threads));
 
     int n_dims = spRandomGeneratorGetNumOfDimensions(gen);
     size_type n_threads = spRandomGeneratorGetNumOfThreads(gen);
@@ -275,5 +279,5 @@ spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, R
         }
     }
 
-    return SP_SUCCESS;
+    return error_code;
 }
