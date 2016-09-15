@@ -62,7 +62,7 @@ int main(int argc, char **argv)
     SP_CALL(spMeshSetBox(mesh, lower, upper));
     SP_CALL(spMeshDeploy(mesh));
 
-    if (isnan(dt)) { dt = spMeshCFLDt(mesh, speed_of_light); }
+    if (isnan(dt)) { dt = spMeshCFLDt(mesh, (Real) speed_of_light); }
 
     /*****************************************************************************************************************/
 

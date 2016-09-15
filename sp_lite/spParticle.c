@@ -279,8 +279,9 @@ int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
 
-    int error_code =
-            SP_CALL(spDataTypeCreate(&(sp->m_attrs_[sp->m_num_of_attrs_].data_type), tag, size));
+    int error_code = SP_SUCCESS;
+
+    SP_CALL(spDataTypeCreate(&(sp->m_attrs_[sp->m_num_of_attrs_].data_type), tag, size));
 
     sp->m_attrs_[sp->m_num_of_attrs_].offset = offset;
     strcpy(sp->m_attrs_[sp->m_num_of_attrs_].name, name);
@@ -295,6 +296,10 @@ int spParticleGetNumberOfAttributes(spParticle const *sp) { return sp->m_num_of_
 
 int spParticleGetAttributeName(spParticle *sp, int i, char *name)
 {
+    if (i >= sp->m_num_of_attrs_)
+    {
+        return SP_FAILED;
+    }
     strcpy(name, sp->m_attrs_[i].name);
     return SP_SUCCESS;
 };
@@ -470,8 +475,12 @@ int spParticleGetBucketIndex(spParticle *sp, size_type **start_pos, size_type **
  */
 int spParticleSync(spParticle *sp)
 {
+
     if (sp == NULL) { return SP_DO_NOTHING; }
+
     int error_code = SP_SUCCESS;
+    UNIMPLEMENTED;
+    return error_code;
     SP_CALL(spParticleSort(sp));
 
     SP_CALL(spParticleBuildBucket(sp));
