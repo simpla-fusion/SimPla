@@ -166,7 +166,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
     SP_CALL(spParticleGetAllAttributeData(sp, data));
 
     SP_CALL(spParallelMemset(((particle_head *) data)->id, -1,
-                             max_number_of_particle * sizeof(int)));
+                             max_number_of_particle * sizeof(size_type)));
 
     size_type x_min[3], x_max[3], strides[3];
 
@@ -479,8 +479,7 @@ int spParticleSync(spParticle *sp)
     if (sp == NULL) { return SP_DO_NOTHING; }
 
     int error_code = SP_SUCCESS;
-    UNIMPLEMENTED;
-    return error_code;
+
     SP_CALL(spParticleSort(sp));
 
     SP_CALL(spParticleBuildBucket(sp));
@@ -540,7 +539,7 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spParticleGetAllAttributeData(sp, d));
 
-    SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp) - 1, d + 1));
+//    SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp) - 1, d + 1));
 
     SP_CALL(spMPICartUpdaterDestroy(&updater));
 

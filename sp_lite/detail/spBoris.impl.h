@@ -322,7 +322,6 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
     SP_DEVICE_CALL_KERNEL(spParticleInitializeBorisYeeKernel,
                           sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (boris_particle *) device_data, vT, f0, spParticleGetPIC(sp));
-
     SP_CALL(spParticleSync(sp));
 
     return error_code;
