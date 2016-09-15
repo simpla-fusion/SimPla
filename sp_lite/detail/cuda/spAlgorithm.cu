@@ -26,7 +26,7 @@ __global__
 void spMemoryRelativeCopyKernel(Real *dest, Real const *src, size_type num, size_type const *index)
 {
     uint s = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-    if (s < num) { dest[index[s]] = src[s]; }
+    if (s < num) { dest[s] = src[index[s]]; }
 };
 
 int spMemoryRelativeCopy(Real *dest, Real const *src, size_type num, size_type const *index)
