@@ -16,6 +16,7 @@
 #include "../spPhysicalConstants.h"
 
 #include "sp_device.h"
+#include "../spParticle.impl.h"
 
 typedef struct
 {
@@ -294,14 +295,16 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
     int error_code = SP_SUCCESS;
-    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
 
     SP_CALL(spParticleDeploy(sp));
+
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
 
     int dist_type[6] = {SP_RAND_UNIFORM, SP_RAND_UNIFORM, SP_RAND_UNIFORM,
                         SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
 
     SP_CALL(spParticleInitialize(sp, dist_type));
+    SP_CALL(spParticleBuildBucket(sp));
 
     Real dx[3];
 
@@ -322,6 +325,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
     SP_DEVICE_CALL_KERNEL(spParticleInitializeBorisYeeKernel,
                           sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (boris_particle *) device_data, vT, f0, spParticleGetPIC(sp));
+
     SP_CALL(spParticleSync(sp));
 
     return error_code;

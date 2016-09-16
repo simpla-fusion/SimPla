@@ -37,6 +37,8 @@ int spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_type
                                     size_type const *min, size_type const *max, size_type const *strides,
                                     size_type num_per_cell);
 
+int spRandomMultiDistribution(spRandomGenerator *gen, int const *dist_types, Real **data, size_type num);
+
 int spRandomMultiNormalDistributionInCell(size_type const *min,
                                           size_type const *max,
                                           size_type const *strides,
@@ -47,4 +49,5 @@ int spRandomMultiNormalDistributionInCell(size_type const *min,
                                           Real *vx,
                                           Real *vy,
                                           Real *vz);
+
 #endif //SIMPLA_SPRANDOM_H

@@ -153,7 +153,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     size_type num_of_pic = spParticleGetPIC(sp);
 
-    size_type max_number_of_particle = spParticleGetMaxNumOfParticle(sp);
+    size_type max_number_of_particle = spParticleGetCapacity(sp);
 
     int num_of_dimensions = spParticleGetNumberOfAttributes(sp);
 
@@ -164,10 +164,10 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
     void *data[spParticleGetNumberOfAttributes(sp)];
 
     SP_CALL(spParticleGetAllAttributeData(sp, data));
-
-    SP_CALL(spParallelMemset(((particle_head *) data)->id, -1,
-                             max_number_of_particle * sizeof(size_type)));
-
+//
+//    SP_CALL(spParallelMemset(((particle_head *) data)->id, -1,
+//                             max_number_of_particle * sizeof(size_type)));
+//
     size_type x_min[3], x_max[3], strides[3];
 
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, x_min, x_max, NULL));
@@ -176,26 +176,19 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     sp->m_num_of_particle_ = spMeshGetNumberOfEntities(m, SP_DOMAIN_CENTER, iform) * num_of_pic;
 
-    spRandomGenerator *sp_gen;
+    // TODO SET bucket
 
     size_type offset = 0;
     size_type total = sp->m_num_of_particle_;
 
     SP_CALL(spMPIPrefixSum(&offset, &total));
-
+    spRandomGenerator *sp_gen;
     SP_CALL(spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, offset));
 
-    strides[0] *= num_of_pic;
-    strides[1] *= num_of_pic;
-    strides[2] *= num_of_pic;
-
-    SP_CALL(spRandomMultiDistributionInCell(sp_gen,
-                                            l_dist_types,
-                                            (Real **) (data + 1),
-                                            x_min,
-                                            x_max,
-                                            strides,
-                                            num_of_pic));
+    SP_CALL(spRandomMultiDistribution(sp_gen,
+                                      l_dist_types,
+                                      (Real **) (data + 1),
+                                      sp->m_num_of_particle_));
 
     SP_CALL(spRandomGeneratorDestroy(&sp_gen));
 
@@ -218,9 +211,6 @@ unsigned int spParticleGetPIC(spParticle const *sp) { return sp->m_pic_; }
 
 unsigned int spParticleGetMaxPIC(spParticle const *sp) { return sp->m_pic_ * 2; }
 
-size_type spParticleGetNumOfParticle(const spParticle *sp) { return sp->m_num_of_particle_; }
-
-size_type spParticleGetMaxNumOfParticle(const spParticle *sp) { return sp->m_max_num_of_particle_; }
 
 int spParticleSetMass(spParticle *sp, Real m)
 {
@@ -330,7 +320,7 @@ int spParticleSort(spParticle *sp)
 
     size_type num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
 
-    size_type numParticles = spParticleGetNumOfParticle(sp);
+    size_type numParticles = spParticleGetSize(sp);
 
     size_type *hash = (size_type *) spParticleGetAttributeData(sp, 0);
 
@@ -433,7 +423,8 @@ int spParticleRearrange(spParticle *sp)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
     int error_code = SP_SUCCESS;
-    size_type numParticles = spParticleGetNumOfParticle(sp);
+    size_type numParticles = spParticleGetSize(sp);
+    size_type maxNumParticles = spParticleGetCapacity(sp);
 
     size_type *start_pos, *end_pos, *index;
 
@@ -447,7 +438,7 @@ int spParticleRearrange(spParticle *sp)
     {
         Real *dest = buffer;
         buffer = (Real *) spParticleGetAttributeData(sp, i);
-        SP_CALL(spMemoryRelativeCopy(dest, buffer, numParticles, index));
+        SP_CALL(spMemoryRelativeCopy(dest, buffer, numParticles, maxNumParticles, index));
         SP_CALL(spParticleSetAttributeData(sp, i, dest));
     }
 
@@ -580,7 +571,7 @@ spParticleWrite(spParticle *sp, spIOStream *os, const char *name, int flag)
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
     int ndims = spMeshGetNDims(m);
 
-    size_type local_count = spParticleGetNumOfParticle(sp);
+    size_type local_count = spParticleGetSize(sp);
     size_type local_offset = 0;
     size_type global_offset, global_count = local_count;
 

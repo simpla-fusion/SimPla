@@ -23,16 +23,20 @@ int sort_by_key(size_type const *key_start, size_type const *key_end, size_type 
 };
 
 __global__
-void spMemoryRelativeCopyKernel(Real *dest, Real const *src, size_type num, size_type const *index)
+void spMemoryRelativeCopyKernel(Real *dest, Real const *src, size_type num, size_type max, size_type const *index)
 {
     uint s = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-    if (s < num) { dest[s] = src[index[s]]; }
+    if (s < num)
+    {
+        assert(index[s] < max);
+        dest[s] = src[index[s]];
+    }
 };
 
-int spMemoryRelativeCopy(Real *dest, Real const *src, size_type num, size_type const *index)
+int spMemoryRelativeCopy(Real *dest, Real const *src, size_type num, size_type max, size_type const *index)
 {
     /*@formatter:off*/
-   spMemoryRelativeCopyKernel<<<num/256+1,256>>>(dest,src,num,index);
+   spMemoryRelativeCopyKernel<<<num/256+1,256>>>(dest,src,num,max,index);
     /*@formatter:on*/
     return SP_SUCCESS;
 }

@@ -62,7 +62,9 @@ int spParticleDestroy(spParticle **sp);
 int spParticleDeploy(spParticle *sp);
 
 int spParticleInitialize(spParticle *sp, int const *dist_types);
+
 int spParticleCoordinateLocalToGlobal(spParticle *sp);
+
 int spParticleCoordinateGlobalToLocal(spParticle *sp);
 /**    @}*/
 /**  meta-data @{*/
@@ -73,7 +75,6 @@ uint spParticleGetPIC(spParticle const *sp);
 
 uint spParticleGetMaxPIC(spParticle const *sp);
 
-size_type spParticleGetNumOfParticle(const spParticle *sp);
 
 size_type spParticleGetMaxNumOfParticle(const spParticle *sp);
 

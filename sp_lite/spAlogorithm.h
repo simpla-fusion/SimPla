@@ -4,7 +4,9 @@
 
 #ifndef SIMPLA_SPALOGORITHM_H
 #define SIMPLA_SPALOGORITHM_H
+
 #include "sp_lite_def.h"
+
 int sort_by_key(size_type const *, size_type const *, size_type *);
 
 /**
@@ -16,7 +18,7 @@ int sort_by_key(size_type const *, size_type const *, size_type *);
  * @param index
  * @return
  */
-int spMemoryRelativeCopy(Real *dest, Real const *src, size_type num, size_type const *index);
+int spMemoryRelativeCopy(Real *dest, Real const *src, size_type num, size_type max_num, size_type const *index);
 
 /**
  * v[n]=min+n

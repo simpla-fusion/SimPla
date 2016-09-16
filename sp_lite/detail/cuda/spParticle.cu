@@ -87,11 +87,12 @@ int spParticleResetHash(spParticle *sp)
     uint iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
 
     uint numThreads = spParticleGetMaxPIC(sp);
+
     size_type dims[3], strides[3];
 
     spMeshGetDims(m, dims);
-    spMeshGetStrides(m, strides);
 
+    spMeshGetStrides(m, strides);
 
     size_type *hash = (size_type *) spParticleGetAttributeData(sp, 0);
 

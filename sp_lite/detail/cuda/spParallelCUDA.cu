@@ -58,7 +58,7 @@ int spParallelDeviceFree(void **_P_)
     int error_code = SP_SUCCESS;
     if (*_P_ != NULL)
     {
-        error_code = SP_DEVICE_CALL(cudaFree(*_P_));
+        SP_DEVICE_CALL(cudaFree(*_P_));
         *_P_ = NULL;
     }
     return error_code;
@@ -113,7 +113,7 @@ int spParallelHostFree(void **p)
     int error_code = SP_SUCCESS;
     if (*p != NULL)
     {
-        error_code = SP_DEVICE_CALL(cudaFreeHost(*p));
+        SP_DEVICE_CALL(cudaFreeHost(*p));
         *p = NULL;
     }
     return error_code;

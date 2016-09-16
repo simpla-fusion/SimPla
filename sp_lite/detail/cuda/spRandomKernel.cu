@@ -172,10 +172,118 @@ int spRandomGeneratorGetNumOfDimensions(spRandomGenerator const *gen) { return g
 
 
 size_type spRandomGeneratorGetNumOfThreads(spRandomGenerator const *gen) { return gen->num_of_threads; }
+//
+//SP_DEVICE_GLOBAL void
+//spRandomDistributionInCellUniformKernel(curandStateScrambledSobol64 *state, Real *data, dim3 min, dim3 max,
+//                                        dim3 strides, size_type num)
+//{
+//
+//    size_type total_thread_id =
+//            (threadIdx.x + blockIdx.x * blockDim.x) +
+//            (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
+//            (threadIdx.z + blockIdx.z * blockDim.z) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
+//
+//    size_type threadId = (threadIdx.x) +
+//                         (threadIdx.y) * blockDim.x +
+//                         (threadIdx.z) * blockDim.x * blockDim.y;
+//
+//    curandStateScrambledSobol64 local_state = state[total_thread_id];
+//
+//    size_type num_of_thread = blockDim.z * blockDim.x * blockDim.y;
+//
+//    for (int x = blockIdx.x + min.x; x < max.x; x += gridDim.x)
+//        for (int y = blockIdx.y + min.y; y < max.y; y += gridDim.y)
+//            for (int z = blockIdx.z + min.z; z < max.z; z += gridDim.z)
+//            {
+//                size_type s0 = threadId + x * strides.x + y * strides.y + z * strides.z;
+//
+//                /* Generate quasi-random double precision coordinates */
+//                for (size_type s = 0; s < num; s += num_of_thread) { data[s0 + s] = curand_uniform(&local_state); }
+//            }
+//
+//    state[total_thread_id] = local_state;
+//}
+//
+//
+//SP_DEVICE_GLOBAL void
+//spRandomDistributionInCellNormalKernel(curandStateScrambledSobol64 *state, Real *data, dim3 min, dim3 max, dim3 strides,
+//                                       size_type num)
+//{
+//
+//    size_type total_thread_id =
+//            (threadIdx.x + blockIdx.x * blockDim.x) +
+//            (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
+//            (threadIdx.z + blockIdx.z * blockDim.z) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
+//
+//    size_type threadId = (threadIdx.x) +
+//                         (threadIdx.y) * blockDim.x +
+//                         (threadIdx.z) * blockDim.x * blockDim.y;
+//
+//    curandStateScrambledSobol64 local_state = state[total_thread_id];
+//
+//    size_type num_of_thread = blockDim.z * blockDim.x * blockDim.y;
+//
+//    for (int x = blockIdx.x + min.x; x < max.x; x += gridDim.x)
+//        for (int y = blockIdx.y + min.y; y < max.y; y += gridDim.y)
+//            for (int z = blockIdx.z + min.z; z < max.z; z += gridDim.z)
+//            {
+//                size_type s0 = threadId + x * strides.x + y * strides.y + z * strides.z;
+//
+//                /* Generate quasi-random double precision coordinates */
+//                for (size_type s = 0; s < num; s += num_of_thread) { data[s0 + s] = curand_normal(&local_state); }
+//            }
+//
+//    state[total_thread_id] = local_state;
+//}
+//
+//
+///**
+// * data[i][s]=a*dist(rand())+b;
+// * @param gen
+// * @param data
+// * @param num_of_dimension
+// * @param num_of_sample
+// * @param u0
+// * @param sigma
+// * @return
+// */
+//int
+//spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, Real **data,
+//                                size_type const *min, size_type const *max, size_type const *strides,
+//                                size_type num_per_cell)
+//{
+//    int error_code = SP_SUCCESS;
+//
+//    size_type s_blocks[3], s_threads[3];
+//    SP_CALL(spRandomGeneratorGetThreadBlocks(gen, s_blocks, s_threads));
+//
+//    int n_dims = spRandomGeneratorGetNumOfDimensions(gen);
+//    size_type n_threads = spRandomGeneratorGetNumOfThreads(gen);
+//    for (int n = 0; n < n_dims; ++n)
+//    {
+//        switch (dist_types[n])
+//        {
+//            case SP_RAND_NORMAL: SP_DEVICE_CALL_KERNEL(spRandomDistributionInCellNormalKernel,
+//                                                       sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads),
+//                                                       gen->devSobol64States + n * n_threads,
+//                                                       data[n],
+//                                                       sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides), num_per_cell);
+//                break;
+//            case SP_RAND_UNIFORM:
+//            default: SP_DEVICE_CALL_KERNEL(spRandomDistributionInCellUniformKernel,
+//                                           sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads),
+//                                           gen->devSobol64States + n * n_threads,
+//                                           data[n],
+//                                           sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides), num_per_cell);
+//                break;
+//        }
+//    }
+//
+//    return error_code;
+//}
 
 SP_DEVICE_GLOBAL void
-spRandomDistributionInCellUniformKernel(curandStateScrambledSobol64 *state, Real *data, dim3 min, dim3 max,
-                                        dim3 strides, size_type num)
+spRandomDistributionUniformKernel(curandStateScrambledSobol64 *state, Real *data, size_type num)
 {
 
     size_type total_thread_id =
@@ -191,66 +299,30 @@ spRandomDistributionInCellUniformKernel(curandStateScrambledSobol64 *state, Real
 
     size_type num_of_thread = blockDim.z * blockDim.x * blockDim.y;
 
-    for (int x = blockIdx.x + min.x; x < max.x; x += gridDim.x)
-        for (int y = blockIdx.y + min.y; y < max.y; y += gridDim.y)
-            for (int z = blockIdx.z + min.z; z < max.z; z += gridDim.z)
-            {
-                size_type s0 = threadId + x * strides.x + y * strides.y + z * strides.z;
-
-                /* Generate quasi-random double precision coordinates */
-                for (size_type s = 0; s < num; s += num_of_thread) { data[s0 + s] = curand_uniform(&local_state); }
-            }
+    if (threadId < num) { data[threadId] = curand_uniform(&local_state); }
 
     state[total_thread_id] = local_state;
 }
 
-
 SP_DEVICE_GLOBAL void
-spRandomDistributionInCellNormalKernel(curandStateScrambledSobol64 *state, Real *data, dim3 min, dim3 max, dim3 strides,
-                                       size_type num)
+spRandomDistributionNormalKernel(curandStateScrambledSobol64 *state, Real *data, size_type num)
 {
 
-    size_type total_thread_id =
-            (threadIdx.x + blockIdx.x * blockDim.x) +
-            (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
-            (threadIdx.z + blockIdx.z * blockDim.z) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
+    size_type total_thread_id = (threadIdx.x + blockIdx.x * blockDim.x);
 
-    size_type threadId = (threadIdx.x) +
-                         (threadIdx.y) * blockDim.x +
-                         (threadIdx.z) * blockDim.x * blockDim.y;
+    size_type threadId = (blockIdx.x * blockDim.x + threadIdx.x);
 
     curandStateScrambledSobol64 local_state = state[total_thread_id];
 
     size_type num_of_thread = blockDim.z * blockDim.x * blockDim.y;
 
-    for (int x = blockIdx.x + min.x; x < max.x; x += gridDim.x)
-        for (int y = blockIdx.y + min.y; y < max.y; y += gridDim.y)
-            for (int z = blockIdx.z + min.z; z < max.z; z += gridDim.z)
-            {
-                size_type s0 = threadId + x * strides.x + y * strides.y + z * strides.z;
-
-                /* Generate quasi-random double precision coordinates */
-                for (size_type s = 0; s < num; s += num_of_thread) { data[s0 + s] = curand_normal(&local_state); }
-            }
+    if (threadId < num) { data[threadId] = curand_normal(&local_state); }
 
     state[total_thread_id] = local_state;
 }
 
-
-/**
- * data[i][s]=a*dist(rand())+b;
- * @param gen
- * @param data
- * @param num_of_dimension
- * @param num_of_sample
- * @param u0
- * @param sigma
- * @return
- */
 int
-spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, Real **data,
-                                size_type const *min, size_type const *max, size_type const *strides,
-                                size_type num_per_cell)
+spRandomMultiDistribution(spRandomGenerator *gen, int const *dist_types, Real **data, size_type num)
 {
     int error_code = SP_SUCCESS;
 
@@ -263,18 +335,16 @@ spRandomMultiDistributionInCell(spRandomGenerator *gen, int const *dist_types, R
     {
         switch (dist_types[n])
         {
-            case SP_RAND_NORMAL: SP_DEVICE_CALL_KERNEL(spRandomDistributionInCellNormalKernel,
+            case SP_RAND_NORMAL: SP_DEVICE_CALL_KERNEL(spRandomDistributionNormalKernel,
                                                        sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads),
-                                                       gen->devSobol64States + n * n_threads,
+                                                       gen->devSobol64States,
                                                        data[n],
-                                                       sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides), num_per_cell);
+                                                       num);
                 break;
             case SP_RAND_UNIFORM:
-            default: SP_DEVICE_CALL_KERNEL(spRandomDistributionInCellUniformKernel,
+            default: SP_DEVICE_CALL_KERNEL(spRandomDistributionUniformKernel,
                                            sizeType2Dim3(s_blocks), sizeType2Dim3(s_threads),
-                                           gen->devSobol64States + n * n_threads,
-                                           data[n],
-                                           sizeType2Dim3(min), sizeType2Dim3(max), sizeType2Dim3(strides), num_per_cell);
+                                           gen->devSobol64States, data[n], num);
                 break;
         }
     }
