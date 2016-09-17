@@ -80,8 +80,7 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     (*sp)->charge = 1;
     (*sp)->mass = 1;
     (*sp)->is_sorted = SP_FALSE;
-    SP_CALL(spFieldCreate(&((*sp)->bucket_start), mesh, VOLUME, SP_TYPE_size_type));
-    SP_CALL(spFieldCreate(&((*sp)->bucket_end), mesh, VOLUME, SP_TYPE_size_type));
+
 
     return error_code;
 
@@ -92,16 +91,13 @@ int spParticleDeploy(spParticle *sp)
     int error_code = SP_SUCCESS;
 
     if (sp == NULL) { return SP_DO_NOTHING; }
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
 
-    size_type num_of_cell = spMeshGetNumberOfEntities(spMeshAttributeGetMesh((spMeshAttribute *) (sp)), SP_DOMAIN_ALL,
-                                                      spMeshAttributeGetForm((spMeshAttribute *) (sp)));
+    int iform = spMeshAttributeGetForm((spMeshAttribute *) sp);
+
+    size_type num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
+
     sp->m_max_num_of_particle_ = num_of_cell * sp->m_pic_ * 3 / 2;
-
-    SP_CALL(spFieldClear(sp->bucket_start));
-    SP_CALL(spFieldClear(sp->bucket_end));
-
-    SP_CALL(spParallelDeviceAlloc((void **) &(sp->sorted_id),
-                                  sp->m_max_num_of_particle_ * sizeof(uint)));
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
@@ -115,6 +111,14 @@ int spParticleDeploy(spParticle *sp)
     SP_CALL(spParallelMemcpy(sp->m_current_data_, d,
                              spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
 
+    // setup bucket
+
+    SP_CALL(spFieldCreate(&(sp->bucket_start), m, VOLUME, SP_TYPE_size_type));
+    SP_CALL(spFieldCreate(&(sp->bucket_end), m, VOLUME, SP_TYPE_size_type));
+    SP_CALL(spFieldClear(sp->bucket_start));
+    SP_CALL(spFieldClear(sp->bucket_end));
+    SP_CALL(spParallelDeviceAlloc((void **) &(sp->sorted_id), sp->m_max_num_of_particle_ * sizeof(size_type)));
+    SP_CALL(spFillSeqInt(sp->sorted_id, spParticleGetCapacity(sp), 0));
 
     return error_code;
 }
@@ -125,7 +129,6 @@ int spParticleDestroy(spParticle **sp)
     int error_code = SP_SUCCESS;
     SP_CALL(spFieldDestroy(&(*sp)->bucket_start));
     SP_CALL(spFieldDestroy(&(*sp)->bucket_end));
-
     SP_CALL(spParallelDeviceFree((void **) &((*sp)->sorted_id)));
 
     for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i)
@@ -135,10 +138,7 @@ int spParticleDestroy(spParticle **sp)
     }
 
     SP_CALL(spParallelDeviceFree((void **) &((*sp)->m_current_data_)));
-
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) sp));
-
-
     return error_code;
 }
 
@@ -146,43 +146,27 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
     int error_code = SP_SUCCESS;
-
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
-
     int iform = spMeshAttributeGetForm((spMeshAttribute *) sp);
+    sp->m_num_of_particle_ = spMeshGetNumberOfEntities(m, SP_DOMAIN_CENTER, iform) * spParticleGetPIC(sp);
 
-    size_type num_of_pic = spParticleGetPIC(sp);
+    SP_CALL(spParticleResetHash(sp));
+    SP_CALL(spParticleBuildBucket(sp));
 
-    size_type max_number_of_particle = spParticleGetCapacity(sp);
+    void *data[spParticleGetNumberOfAttributes(sp)];
+    SP_CALL(spParticleGetAllAttributeData(sp, data));
 
-    int num_of_dimensions = spParticleGetNumberOfAttributes(sp);
+    size_type offset = 0;
+    size_type total = spParticleGetSize(sp);
 
-    int l_dist_types[num_of_dimensions];
+    SP_CALL(spMPIPrefixSum(&offset, &total));
+
+    spRandomGenerator *sp_gen;
+
+    int l_dist_types[6];
 
     for (int i = 0; i < 6; ++i) { l_dist_types[i] = dist_types == NULL ? SP_RAND_UNIFORM : dist_types[i]; }
 
-    void *data[spParticleGetNumberOfAttributes(sp)];
-
-    SP_CALL(spParticleGetAllAttributeData(sp, data));
-//
-//    SP_CALL(spParallelMemset(((particle_head *) data)->id, -1,
-//                             max_number_of_particle * sizeof(size_type)));
-//
-    size_type x_min[3], x_max[3], strides[3];
-
-    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, x_min, x_max, NULL));
-
-    SP_CALL(spMeshGetStrides(m, strides));
-
-    sp->m_num_of_particle_ = spMeshGetNumberOfEntities(m, SP_DOMAIN_CENTER, iform) * num_of_pic;
-
-    // TODO SET bucket
-
-    size_type offset = 0;
-    size_type total = sp->m_num_of_particle_;
-
-    SP_CALL(spMPIPrefixSum(&offset, &total));
-    spRandomGenerator *sp_gen;
     SP_CALL(spRandomGeneratorCreate(&sp_gen, SP_RAND_GEN_SOBOL, 6, offset));
 
     SP_CALL(spRandomMultiDistribution(sp_gen,
@@ -224,10 +208,11 @@ int spParticleSetMass(spParticle *sp, Real m)
 int spParticleSetCharge(spParticle *sp, Real e)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
-
-    sp->charge = e;
-
-    return SP_SUCCESS;
+    else
+    {
+        sp->charge = e;
+        return SP_SUCCESS;
+    }
 }
 
 Real spParticleGetMass(spParticle const *sp) { if (sp != NULL) { return sp->mass; } else { return 0; }}
