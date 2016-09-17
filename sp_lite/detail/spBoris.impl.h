@@ -304,7 +304,6 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
                         SP_RAND_NORMAL, SP_RAND_NORMAL, SP_RAND_NORMAL};
 
     SP_CALL(spParticleInitialize(sp, dist_type));
-    SP_CALL(spParticleBuildBucket(sp));
 
     Real dx[3];
 

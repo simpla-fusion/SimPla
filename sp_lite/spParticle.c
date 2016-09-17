@@ -215,9 +215,9 @@ int spParticleSetCharge(spParticle *sp, Real e)
     }
 }
 
-Real spParticleGetMass(spParticle const *sp) { if (sp != NULL) { return sp->mass; } else { return 0; }}
+Real spParticleGetMass(spParticle const *sp) { if (sp != NULL) { return sp->mass; } else { return 1; }}
 
-Real spParticleGetCharge(spParticle const *sp) { if (sp != NULL) { return sp->charge; } else { return 0; }}
+Real spParticleGetCharge(spParticle const *sp) { if (sp != NULL) { return sp->charge; } else { return 1; }}
 
 size_type spParticleGetSize(spParticle const *sp) { return sp->m_num_of_particle_; };
 
@@ -515,7 +515,7 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spParticleGetAllAttributeData(sp, d));
 
-//    SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp) - 1, d + 1));
+    SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp) - 1, d + 1));
 
     SP_CALL(spMPICartUpdaterDestroy(&updater));
 
@@ -558,7 +558,7 @@ spParticleWrite(spParticle *sp, spIOStream *os, const char *name, int flag)
 
     size_type local_count = spParticleGetSize(sp);
     size_type local_offset = 0;
-    size_type global_offset, global_count = local_count;
+    size_type global_offset = 0, global_count = local_count;
 
     SP_CALL(spMPIPrefixSum(&global_offset, &global_count));
 
@@ -596,6 +596,9 @@ spParticleWrite(spParticle *sp, spIOStream *os, const char *name, int flag)
     }
     SP_CALL(spParallelHostFree(&buffer));
     SP_CALL(spIOStreamOpen(os, curr_path));
+
+    SP_CALL(spParticleCoordinateGlobalToLocal(sp));
+
     return error_code;
 
 }

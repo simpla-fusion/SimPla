@@ -95,7 +95,6 @@ int main(int argc, char **argv)
     SP_CALL(spParticleSetCharge(sp, (Real) SI_elementary_charge));
     SP_CALL(spParticleSetPIC(sp, (uint) PIC));
     SP_CALL(spParticleInitializeBorisYee(sp, n0, T0));
-    SP_CALL(spParticleRearrange(sp));
 
     /*****************************************************************************************************************/
 
