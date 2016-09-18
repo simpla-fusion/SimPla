@@ -331,9 +331,9 @@ public:
                 res.append(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType));
                 break;
             case SP_ES_NON_LOCAL : // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
-            case SP_ES_SHARED : //       = 0x04,                    0b000100 shared by two or more get_mesh blocks
+            case SP_ES_SHARED : //       = 0x04,                    0b000100 shared by two or more get_mesh grid_dims
                 break;
-            case SP_ES_NOT_SHARED  : // = 0x08, //                       0b001000 not shared by other get_mesh blocks
+            case SP_ES_NOT_SHARED  : // = 0x08, //                       0b001000 not shared by other get_mesh grid_dims
                 break;
             case SP_ES_GHOST : // = SP_ES_SHARED | SP_ES_NOT_OWNED, //              0b000110
                 res.append(
@@ -390,7 +390,7 @@ public:
             case SP_ES_OWNED:
                 res.append(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
                 break;
-            case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
+            case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh grid_dims,
                 res.append(m_interface_entities_[entityType]);
                 break;
             default:

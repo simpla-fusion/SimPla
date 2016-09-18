@@ -56,12 +56,12 @@ enum MeshEntityStatus
     0x0F, //                            0b001111 SP_ES_NOT_SHARED| SP_ES_SHARED | SP_ES_OWNED | SP_ES_NOT_OWNED
     SP_ES_OWNED = 0x01, //                            0b000001 owned by local get_mesh block
     SP_ES_NOT_OWNED = 0x02, //                        0b000010 not owned by local get_mesh block
-    SP_ES_SHARED = 0x04, //                           0b000100 shared by two or more get_mesh blocks
-    SP_ES_NOT_SHARED = 0x08, //                       0b001000 not shared by other get_mesh blocks
+    SP_ES_SHARED = 0x04, //                           0b000100 shared by two or more get_mesh grid_dims
+    SP_ES_NOT_SHARED = 0x08, //                       0b001000 not shared by other get_mesh grid_dims
     SP_ES_LOCAL = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
     SP_ES_GHOST = SP_ES_SHARED | SP_ES_NOT_OWNED, //              0b000110
     SP_ES_NON_LOCAL = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
-    SP_ES_INTERFACE = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
+    SP_ES_INTERFACE = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh grid_dims,
     SP_ES_DMZ = 0x100,
     SP_ES_NOT_DMZ = 0x200,
     SP_ES_VALID = 0x400,

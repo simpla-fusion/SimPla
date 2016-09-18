@@ -167,20 +167,20 @@ int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real co
     SP_DEVICE_CALL_KERNEL(spParallelAssignKernel, 16, 256, num_of_point, offset, d, v);
     return error_code;
 };
-
-int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte)
-{
-    int error_code = SP_SUCCESS;
-    SP_CALL(spParallelHostAlloc(p, size_in_byte));
-    SP_CALL(spParallelMemcpy(*p, src, size_in_byte));
-    return error_code;
-
-}
-
-int spMemoryHostFree(void **p)
-{
-    int error_code = SP_SUCCESS;
-    SP_CALL(spParallelHostFree(p));
-    return error_code;
-
-}
+//
+//int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte)
+//{
+//    int error_code = SP_SUCCESS;
+//    SP_CALL(spParallelHostAlloc(p, size_in_byte));
+//    SP_CALL(spParallelMemcpy(*p, src, size_in_byte));
+//    return error_code;
+//
+//}
+//
+//int spMemoryHostFree(void **p)
+//{
+//    int error_code = SP_SUCCESS;
+//    SP_CALL(spParallelHostFree(p));
+//    return error_code;
+//
+//}

@@ -3,6 +3,7 @@
 //
 extern "C"
 {
+#include <assert.h>
 #include "../../spAlogorithm.h"
 #include "../sp_device.h"
 
@@ -23,7 +24,7 @@ int sort_by_key(size_type const *key_start, size_type const *key_end, size_type 
 };
 
 __global__
-void spMemoryRelativeCopyKernel(Real *dest, Real const *src, size_type num, size_type max, size_type const *index)
+void spMemoryIndirectCopyKernel(Real *dest, Real const *src, size_type num, size_type max, size_type const *index)
 {
     uint s = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
     if (s < num)
@@ -33,25 +34,25 @@ void spMemoryRelativeCopyKernel(Real *dest, Real const *src, size_type num, size
     }
 };
 
-int spMemoryRelativeCopy(Real *dest, Real const *src, size_type num, size_type max, size_type const *index)
+int spMemoryIndirectCopy(Real *dest, Real const *src, size_type num, size_type max, size_type const *index)
 {
     /*@formatter:off*/
-   spMemoryRelativeCopyKernel<<<num/256+1,256>>>(dest,src,num,max,index);
+   spMemoryIndirectCopyKernel<<<num/256+1,256>>>(dest,src,num,max,index);
     /*@formatter:on*/
     return SP_SUCCESS;
 }
 
 __global__
-void spFillSeqIntKernel(size_type *v, size_type num, size_type min)
+void spFillSeqIntKernel(size_type *v, size_type num, size_type min, size_type step)
 {
     uint s = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
-    if (s < num) { v[s] = s + min; }
+    if (s < num) { v[s] = s * step + min; }
 };
 
-int spFillSeqInt(size_type *v, size_type num, size_type min)
+int spFillSeqInt(size_type *v, size_type num, size_type min, size_type step)
 {
     /*@formatter:off*/
-   spFillSeqIntKernel<<<num/256+1,256>>>(v,num,min);
+   spFillSeqIntKernel<<<num/256+1,256>>>(v,num,min,step);
     /*@formatter:on*/
     return SP_SUCCESS;
 };

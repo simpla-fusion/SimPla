@@ -68,29 +68,9 @@ print_device_error(cudaError_t _m_cudaStat, char const *file, int line, char con
 #define spParallelMemcpyToSymbol(_dest_, _src_, _s_)      cudaMemcpyToSymbol(_dest_, _src_, _s_);
 #define spParallelSyncThreads() __syncthreads()
 
-INLINE __device__ int atomicAddInt(int *ptr, int val)
-{
+INLINE __device__ int atomicAddInt(int *ptr, int val) { return atomicAdd(ptr, val); }
 
-    return atomicAdd(ptr, val);
-
-}
-
-INLINE __device__ Real
-
-atomicAddReal(Real
-
-              *ptr,
-
-              float val
-
-)
-{
-    return
-
-        atomicAdd(ptr, val
-
-        );
-}
+INLINE __device__ Real atomicAddReal(Real *ptr, float val) { return atomicAdd(ptr, val); }
 
 
 #endif //SIMPLA_SPPARALLEL_CU_H

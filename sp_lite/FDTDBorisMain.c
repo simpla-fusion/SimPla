@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 
     SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
 
-    SP_CALL(spIOStreamOpen(os, "/checkpoint/"));
+    SP_CALL(spIOStreamOpen(os, "/diagnose/"));
 
     for (int count = 0; count < num_of_steps && error_code != SP_FAILED; ++count)
     {
@@ -130,6 +130,7 @@ int main(int argc, char **argv)
             SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_RECORD));
             SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_RECORD));
             SP_CALL(spFieldWrite(fdRho, os, "dRho", SP_FILE_RECORD));
+            SP_CALL(spParticleDiagnose(sp, os, "H", SP_FILE_RECORD));
         }
 
     }
@@ -147,7 +148,7 @@ int main(int argc, char **argv)
     SP_CALL(spFieldDestroy(&fRho));
     SP_CALL(spFieldDestroy(&fdRho));
 
-    SP_CALL(spParticleRearrange(sp));
+    SP_CALL(spParticleDefragment(sp));
     SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
     SP_CALL(spParticleDestroy(&sp));
 

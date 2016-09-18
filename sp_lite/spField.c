@@ -75,10 +75,10 @@ int spFieldDeploy(spField *f)
 size_type spFieldGetSizeInByte(spField const *f)
 {
     return spDataTypeSizeInByte(f->m_data_type_desc_) *
-           spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
+        spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 }
 
-int spFieldAdd(spField *, void const *);
+int spFieldAddScalar(spField *, void const *);
 
 int spFieldIsSoA(spField const *f) { return f->is_soa; }
 
@@ -99,9 +99,13 @@ int spFieldNumberOfSub(spField const *f)
     return (iform == VERTEX || iform == VOLUME) ? 1 : 3;
 }
 
-int spFieldAdd(spField *f, void const *v)
+int spFieldAddScalar(spField *f, void const *v)
 {
     return SP_DO_NOTHING;
+}
+int spFieldFillIntSeq(spField_t f, int tag, size_type min, size_type step)
+{
+
 }
 
 int spFieldSubArray(spField *f, void **data)
@@ -123,7 +127,8 @@ int spFieldSubArray(spField *f, void **data)
 
         for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * offset; }
 
-    } else
+    }
+    else
     {
         UNIMPLEMENTED;
 //        for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * ele_size_in_byte; }
@@ -141,7 +146,7 @@ int spFieldClear(spField *f)
     return error_code;
 }
 
-int spFieldFill(spField *f, Real v)
+int spFieldFillReal(spField *f, Real v)
 {
     int error_code = SP_SUCCESS;
 
@@ -254,7 +259,8 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real c
         SP_CALL(spFieldSubArray(f, (void **) data));
 
         for (int i = 0; i < num_of_sub; ++i) { SP_CALL(spParallelAssign(num_of_points, offset, data[i], v[i])); }
-    } else
+    }
+    else
     {
         UNIMPLEMENTED;
     }

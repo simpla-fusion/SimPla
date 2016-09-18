@@ -19,7 +19,6 @@ extern "C"
 #include "../sp_lite/spDataType.h"
 #include "../sp_lite/spMPI.h"
 #include "../sp_lite/spIOStream.h"
-#include "../sp_lite/spRandom.h"
 };
 
 #include "parallel/MPIDataType.h"

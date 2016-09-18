@@ -18,7 +18,7 @@ int sort_by_key(size_type const *, size_type const *, size_type *);
  * @param index
  * @return
  */
-int spMemoryRelativeCopy(Real *dest, Real const *src, size_type num, size_type max_num, size_type const *index);
+int spMemoryIndirectCopy(Real *dest, Real const *src, size_type num, size_type max_num, size_type const *index);
 
 /**
  * v[n]=min+n
@@ -28,7 +28,7 @@ int spMemoryRelativeCopy(Real *dest, Real const *src, size_type num, size_type m
  * @param min
  * @return
  */
-int spFillSeqInt(size_type *v, size_type num, size_type min);
+int spFillSeqInt(size_type *v, size_type num, size_type min, size_type step);
 
 int spTransformMinus(size_type *v, size_type const *a, size_type const *b, size_type num);
 

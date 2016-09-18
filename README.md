@@ -14,7 +14,7 @@ SIMPla {#mainpage}
   - MPI , OpenMPI >1.10.2
   - HDF5  >1.8.10
   - boost : uuid
-  - TBB for multi-threads
+  - TBB for multi-block_dims
   - Lua >5.2 , for lua_parser
   - CMake 3.5.1, for building
 

@@ -46,8 +46,6 @@ typedef struct
 
 struct spDataType_s;
 
-struct spIOStream_s;
-
 struct spMesh_s;
 
 struct spParticle_s;
@@ -73,11 +71,6 @@ int spParticleSetPIC(spParticle *sp, unsigned int pic);
 
 uint spParticleGetPIC(spParticle const *sp);
 
-uint spParticleGetMaxPIC(spParticle const *sp);
-
-
-size_type spParticleGetMaxNumOfParticle(const spParticle *sp);
-
 int spParticleSetMass(spParticle *, Real m);
 
 Real spParticleGetMass(spParticle const *);
@@ -96,11 +89,11 @@ size_type spParticleGetCapacity(spParticle const *);
 
 int spParticleSort(spParticle *sp);
 
-int spParticleRearrange(spParticle *sp);
-
 int spParticleSync(spParticle *sp);
 
-int spParticleGetBucketIndex(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **index);
+int spParticleDefragment(spParticle *sp);
+
+int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **sorted_id);
 
 /**    @}*/
 
@@ -122,9 +115,13 @@ int spParticleGetAllAttributeData(spParticle *sp, void **res);
 int spParticleGetAllAttributeData_device(spParticle *sp, void ***data);
 /** @}*/
 
-int spParticleWrite(spParticle *sp, struct spIOStream_s *os, const char *url, int flag);
+struct spIOStream_s;
+
+int spParticleWrite(const spParticle *sp, struct spIOStream_s *os, const char *url, int flag);
 
 int spParticleRead(spParticle *sp, struct spIOStream_s *os, const char *url, int flag);
+
+int spParticleDiagnose(spParticle const *sp, struct spIOStream_s *os, char const *path, int flag);
 
 
 #endif /* SPPARTICLE_H_ */

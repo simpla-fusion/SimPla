@@ -478,8 +478,8 @@ HIDE_UNDOC_CLASSES     = NO
 HIDE_FRIEND_COMPOUNDS  = NO
 
 # If the HIDE_IN_BODY_DOCS tag is set to YES, doxygen will hide any
-# documentation blocks found inside the body of a function. If set to NO these
-# blocks will be appended to the function's detailed documentation block.
+# documentation grid_dims found inside the body of a function. If set to NO these
+# grid_dims will be appended to the function's detailed documentation block.
 # The default value is: NO.
 
 HIDE_IN_BODY_DOCS      = NO
@@ -615,7 +615,7 @@ GENERATE_DEPRECATEDLIST= YES
 
 # The ENABLED_SECTIONS tag can be used to enable conditional documentation
 # sections, marked by \if <section_label> ... \endif and \cond <section_label>
-# ... \endcond blocks.
+# ... \endcond grid_dims.
 
 ENABLED_SECTIONS       =
 
@@ -922,7 +922,7 @@ SOURCE_BROWSER         = NO
 INLINE_SOURCES         = NO
 
 # Setting the STRIP_CODE_COMMENTS tag to YES will instruct doxygen to hide any
-# special comment blocks from generated source code fragments. Normal C, C++ and
+# special comment grid_dims from generated source code fragments. Normal C, C++ and
 # Fortran comments will always remain visible.
 # The default value is: YES.
 

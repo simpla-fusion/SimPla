@@ -18,7 +18,9 @@ struct spIOStream_s;
 struct spField_s;
 
 typedef struct spField_s spField;
+
 typedef struct spField_s *spField_t;
+
 typedef const struct spField_s *spField_const_t;
 
 int spFieldCreate(spField_t *f, const struct spMesh_s *m, int iform, int type_tag);
@@ -43,8 +45,6 @@ const void *spFieldDeviceDataConst(spField const *f);
 
 int spFieldClear(spField_t f);
 
-int spFieldFill(spField_t f, Real v);
-
 int spFieldWrite(spField_t f, struct spIOStream_s *os, char const name[], int flag);
 
 int spFieldRead(spField_t f, struct spIOStream_s *os, char const name[], int flag);
@@ -55,14 +55,24 @@ int spFieldNumberOfSub(spField const *f);
 
 int spFieldSubArray(spField_t f, void **data);
 
-int spFieldAssign(spField_t f, int num, size_type const *offset, Real const **v);
-
-int spFieldAdd(spField *f, void const *);
-
-int spFieldMultify(spField *f, void const *);
-
 int spFieldCopyToHost(void **d, spField const *f);
 
 int spFieldCopyToDevice(spField *f, void const *d);
+
+/* device dependent function*/
+int spFieldFill(spField *f, int tag, void const *v);
+int spFieldFillIntSeq(spField_t f, int tag, size_type min, size_type step);
+
+int spFieldAddScalar(spField *f, void const *);
+int spFieldMinusScalar(spField *f, void const *);
+int spFieldMultiplyScalar(spField *f, void const *);
+int spFieldDivideScalar(spField *f, void const *);
+
+int spFieldAssign(spField *f, spField const *);
+int spFieldAdd(spField *f, spField const *);
+int spFieldMinus(spField *f, spField const *);
+int spFieldMultiply(spField *f, spField const *);
+int spFieldDivide(spField *f, spField const *);
+
 
 #endif /* SPFIELD_H_ */
