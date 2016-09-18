@@ -42,9 +42,9 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
                            const size_type *stride,
                            const size_type *count,
                            const size_type *block,
-                           const size_type *start_pos,
-                           const size_type *end_pos,
-                           const size_type *index);
+                           const size_type *bucket_start,
+                           const size_type *bucket_count,
+                           const size_type *sorted_idx);
 
 int spMPICartUpdaterDestroy(spMPICartUpdater **updater);
 

@@ -223,7 +223,7 @@ int spFieldSync(spField *f)
 
     spMPICartUpdater *updater;
 
-
+    SP_CALL(spMeshGetLocalDims(m, l_dims));
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, NULL, l_count));
     SP_CALL(spFieldSubArray(f, (void **) F));
     SP_CALL(spMPICartUpdaterCreate(&updater,

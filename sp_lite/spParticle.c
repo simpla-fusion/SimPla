@@ -278,8 +278,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spParticleInitialize_device((Real **) (data + 1), 6, dist_types, spParticleGetSize(sp), offset));
 
-    /* Initialize buckets */
-    spParticleInitializeBucket_device(sp);
+    SP_CALL(spParticleInitializeBucket_device(sp));
 
     return error_code;
 
@@ -378,11 +377,11 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spFieldSync(sp->bucket_count));
 
-    size_type *start_pos = NULL, *count = NULL, *sorted_id = NULL;
+    size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_id = NULL;
 
-    SP_CALL(spFieldCopyToHost((void **) &start_pos, sp->bucket_start));
+    SP_CALL(spFieldCopyToHost((void **) &bucket_start_pos, sp->bucket_start));
 
-    SP_CALL(spFieldCopyToHost((void **) &count, sp->bucket_count));
+    SP_CALL(spFieldCopyToHost((void **) &bucket_count, sp->bucket_count));
 
     SP_CALL(spParallelHostAlloc((void **) &sorted_id, sp->m_num_of_particle_ * sizeof(size_type)));
 
@@ -413,13 +412,13 @@ int spParticleSync(spParticle *sp)
 
                 size_type s = i * l_strides[0] + j * l_strides[1] + k * l_strides[2];
 
-                start_pos[s] = sp->m_num_of_particle_;
+                bucket_start_pos[s] = sp->m_num_of_particle_;
 
-                sp->m_num_of_particle_ += count[s];
+                sp->m_num_of_particle_ += bucket_count[s];
             }
 
 
-    SP_CALL(spFieldCopyToDevice(sp->bucket_start, start_pos));
+    SP_CALL(spFieldCopyToDevice(sp->bucket_start, bucket_start_pos));
 
     /*******/
 
@@ -428,6 +427,10 @@ int spParticleSync(spParticle *sp)
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, l_end, l_count));
 
     /* MPI COMM Start */
+
+    void *d[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
+
+    SP_CALL(spParticleGetAllAttributeData(sp, d));
 
     spDataType *d_type;
 
@@ -445,13 +448,10 @@ int spParticleSync(spParticle *sp)
                                    NULL,
                                    l_count,
                                    NULL,
-                                   start_pos,
-                                   count,
+                                   bucket_start_pos,
+                                   bucket_count,
                                    sorted_id));
 
-    void *d[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
-
-    SP_CALL(spParticleGetAllAttributeData(sp, d));
 
     SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp) - 1, d + 1));
 
@@ -460,9 +460,10 @@ int spParticleSync(spParticle *sp)
     SP_CALL(spDataTypeDestroy(&d_type));
 
     /* MPI COMM End*/
-    SP_CALL(spParallelHostFree((void **) &start_pos));
 
-    SP_CALL(spParallelHostFree((void **) &count));
+    SP_CALL(spParallelHostFree((void **) &bucket_start_pos));
+
+    SP_CALL(spParallelHostFree((void **) &bucket_count));
 
     SP_CALL(spParallelHostFree((void **) &sorted_id));
 

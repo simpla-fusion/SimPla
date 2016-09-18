@@ -141,10 +141,12 @@ int spParticleBuildBucket_device(spParticle *sp)
 
     size_type *hash = (size_type *) spParticleGetAttributeData(sp, 0);
 
-//    /*@formatter:off*/
-//    spParticleRebuildBucketKernel<<<num_of_particle / numThreads + 1, numThreads,smemSize>>>(
-//        bucket_start, bucket_count, &trashStart, hash, index, num_of_particle);
-//    /*@formatter:on*/
+    UNIMPLEMENTED;
+
+    /*@formatter:off*/
+    spParticleRebuildBucketKernel<<<num_of_particle / numThreads + 1, numThreads,smemSize>>>(
+        bucket_start, bucket_count, &trashStart, hash, index, num_of_particle);
+    /*@formatter:on*/
 
     return error_code;
 }
