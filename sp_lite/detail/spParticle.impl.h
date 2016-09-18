@@ -20,7 +20,7 @@ enum { SP_RAND_UNIFORM = 0x1, SP_RAND_NORMAL = 0x10 };
  *  \f]
  */
 
-int spRandomMultiDistribution(Real **data, int ndims, int const *dist_types, size_type num, size_type offset);
+int spParticleInitialize_device(Real **data, int ndims, int const *dist_types, size_type num, size_type offset);
 
 
 #endif //SIMPLA_SPPARTICLE_IMPL_H

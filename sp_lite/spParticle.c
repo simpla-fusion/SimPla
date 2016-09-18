@@ -60,10 +60,13 @@ struct spParticle_s
     spParticleAttrEntity m_attrs_[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
     void **m_current_data_;
-    int is_sorted, is_deployed;
+    int is_deployed;
 
     spField *bucket_start, *bucket_count;
     size_type *sorted_id;
+
+    size_type step_count;
+    size_type defragment_freq;
 };
 
 /** meta data @{*/
@@ -85,6 +88,7 @@ int spParticleSetMass(spParticle *sp, Real m)
     sp->mass = m;
     return SP_SUCCESS;
 }
+Real spParticleGetMass(spParticle const *sp) { if (sp != NULL) { return sp->mass; } else { return 1; }}
 
 int spParticleSetCharge(spParticle *sp, Real e)
 {
@@ -93,13 +97,20 @@ int spParticleSetCharge(spParticle *sp, Real e)
     return SP_SUCCESS;
 }
 
-Real spParticleGetMass(spParticle const *sp) { if (sp != NULL) { return sp->mass; } else { return 1; }}
-
 Real spParticleGetCharge(spParticle const *sp) { if (sp != NULL) { return sp->charge; } else { return 1; }}
 
 size_type spParticleGetSize(spParticle const *sp) { return sp->m_num_of_particle_; };
 
 size_type spParticleGetCapacity(spParticle const *sp) { return sp->m_max_num_of_particle_; }
+
+int spParticleSetDefragmentFreq(spParticle *sp, size_t n)
+{
+    assert (sp != NULL);
+    sp->defragment_freq = n;
+    return SP_SUCCESS;
+}
+
+
 /** @} */
 
 /** attribute @{*/
@@ -111,16 +122,12 @@ int spParticleGetAllAttributeData(spParticle *sp, void **res)
     {
         res[i] = spParticleGetAttributeData(sp, i);
     }
-
-    sp->is_sorted = SP_FALSE;
-
     return SP_SUCCESS;
 };
 
 int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
 {
     assert (sp != NULL);
-    sp->is_sorted = SP_FALSE;
     *data = sp->m_current_data_;
     return SP_SUCCESS;
 
@@ -180,9 +187,9 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     (*sp)->m_num_of_attrs_ = 0;
     (*sp)->charge = 1;
     (*sp)->mass = 1;
-    (*sp)->is_sorted = SP_FALSE;
     (*sp)->is_deployed = SP_FALSE;
-
+    (*sp)->step_count = 0;
+    (*sp)->defragment_freq = (size_type) -1;
     return error_code;
 
 }
@@ -228,7 +235,6 @@ int spParticleDeploy(spParticle *sp)
     SP_CALL(spParallelDeviceAlloc((void **) &(sp->sorted_id), sp->m_max_num_of_particle_ * sizeof(size_type)));
 
 
-    sp->is_sorted = SP_FALSE;
     sp->is_deployed = SP_TRUE;
     return error_code;
 }
@@ -261,8 +267,6 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spParticleDeploy(sp));
 
-
-
     /* Initialize particles*/
     void *data[spParticleGetNumberOfAttributes(sp)];
 
@@ -272,7 +276,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spMPIPrefixSum(&offset, &total));
 
-    SP_CALL(spRandomMultiDistribution((Real **) (data + 1), 6, dist_types, spParticleGetSize(sp), offset));
+    SP_CALL(spParticleInitialize_device((Real **) (data + 1), 6, dist_types, spParticleGetSize(sp), offset));
 
     /* Initialize buckets */
     spParticleInitializeBucket_device(sp);
@@ -287,18 +291,23 @@ int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **end_p
 {
     assert (sp != NULL);
 
-    sp->is_sorted = SP_FALSE;
     if (start_pos != NULL) { *start_pos = spFieldData(sp->bucket_start); }
+
     if (end_pos != NULL) { *end_pos = spFieldData(sp->bucket_count); }
+
     if (sorted_id != NULL) { *sorted_id = sp->sorted_id; }
+
     return SP_SUCCESS;
 }
 
 int spParticleDefragment(spParticle *sp)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
+
     int error_code = SP_SUCCESS;
+
     size_type numParticles = spParticleGetSize(sp);
+
     size_type maxNumParticles = spParticleGetCapacity(sp);
 
     size_type *start_pos, *end_pos, *sorted_id;
@@ -312,11 +321,13 @@ int spParticleDefragment(spParticle *sp)
     for (int i = 1; i < spParticleGetNumberOfAttributes(sp); ++i)
     {
         Real *dest = buffer;
+
         buffer = (Real *) spParticleGetAttributeData(sp, i);
+
         SP_CALL(spMemoryIndirectCopy(dest, buffer, numParticles, maxNumParticles, sorted_id));
+
         SP_CALL(spParticleSetAttributeData(sp, i, dest));
     }
-
 
     SP_CALL(spParallelDeviceFree((void **) &buffer));
 
@@ -338,7 +349,9 @@ int spParticleSort(spParticle *sp)
 
     SP_CALL(spParticleBuildBucket_device(sp));
 
-    sp->is_sorted = SP_TRUE;
+    ++sp->step_count;
+
+    if (sp->step_count % sp->defragment_freq == 0) { SP_CALL(spParticleDefragment(sp)); }
 
     return error_code;
 };
@@ -351,9 +364,9 @@ int spParticleSync(spParticle *sp)
 {
     assert(sp != NULL);
 
-    assert(sp->is_sorted == SP_TRUE);
-
     int error_code = SP_SUCCESS;
+
+    SP_CALL(spParticleSort(sp));
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
 
@@ -364,7 +377,6 @@ int spParticleSync(spParticle *sp)
     /*******/
 
     SP_CALL(spFieldSync(sp->bucket_count));
-
 
     size_type *start_pos = NULL, *count = NULL, *sorted_id = NULL;
 
@@ -385,7 +397,9 @@ int spParticleSync(spParticle *sp)
     size_type l_count[ndims + 1];
 
     SP_CALL(spMeshGetLocalDims(m, l_dims));
+
     SP_CALL(spMeshGetStrides(m, l_strides));
+
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, l_end, l_count));
 
 
@@ -399,8 +413,6 @@ int spParticleSync(spParticle *sp)
 
                 size_type s = i * l_strides[0] + j * l_strides[1] + k * l_strides[2];
 
-//                assert(start_pos[s] == 0);
-
                 start_pos[s] = sp->m_num_of_particle_;
 
                 sp->m_num_of_particle_ += count[s];
@@ -410,7 +422,6 @@ int spParticleSync(spParticle *sp)
     SP_CALL(spFieldCopyToDevice(sp->bucket_start, start_pos));
 
     /*******/
-
 
     SP_CALL(spMeshGetLocalDims(m, l_dims));
 
@@ -450,7 +461,9 @@ int spParticleSync(spParticle *sp)
 
     /* MPI COMM End*/
     SP_CALL(spParallelHostFree((void **) &start_pos));
+
     SP_CALL(spParallelHostFree((void **) &count));
+
     SP_CALL(spParallelHostFree((void **) &sorted_id));
 
 
@@ -474,10 +487,13 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
     new_path[strlen(name) + 1] = '\0';
 
     SP_CALL(spIOStreamPWD(os, curr_path));
+
     SP_CALL(spIOStreamOpen(os, new_path));
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
+
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
+
     int ndims = spMeshGetNDims(m);
 
     size_type local_count = spParticleGetSize(sp);
@@ -497,7 +513,9 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
         if (new_total_size_in_byte != total_size_in_byte)
         {
             SP_CALL(spParallelHostFree(&buffer));
+
             total_size_in_byte = new_total_size_in_byte;
+
             SP_CALL(spParallelHostAlloc(&buffer, total_size_in_byte));
         }
 
@@ -517,7 +535,9 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
                                       &global_offset,
                                       flag));
     }
+
     SP_CALL(spParallelHostFree(&buffer));
+
     SP_CALL(spIOStreamOpen(os, curr_path));
 
 //    SP_CALL(spParticleCoordinateGlobalToLocal(sp));
@@ -539,21 +559,28 @@ spParticleDiagnose(spParticle const *sp, struct spIOStream_s *os, char const *pa
 {
 
     int error_code = SP_SUCCESS;
+
     if (sp == NULL) { return SP_DO_NOTHING; }
 
     char curr_path[2048];
+
     char new_path[2048];
+
     strcpy(new_path, path);
+
     new_path[strlen(path)] = '/';
+
     new_path[strlen(path) + 1] = '\0';
 
     SP_CALL(spIOStreamPWD(os, curr_path));
+
     SP_CALL(spIOStreamOpen(os, new_path));
 
-
     SP_CALL(spFieldWrite(sp->bucket_start, os, "bucket_start", flag));
+
     SP_CALL(spFieldWrite(sp->bucket_count, os, "bucket_count", flag));
 
     SP_CALL(spIOStreamOpen(os, curr_path));
+
     return error_code;
 }

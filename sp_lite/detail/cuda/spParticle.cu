@@ -149,19 +149,14 @@ int spParticleBuildBucket_device(spParticle *sp)
     return error_code;
 }
 
-SP_DEVICE_DECLARE_KERNEL (spParticleCooridinateConvert,
-                          particle_head *sp,
-                          Real3 dx, Real3 min,
-                          size_type const *start_pos,
-                          size_type const *end_pos,
-                          size_type const *sorted_index
-)
+__global__ void
+spParticleCooridinateConvert(particle_head *sp,
+                             Real3 dx, Real3 min,
+                             size_type const *start_pos,
+                             size_type const *end_pos,
+                             size_type const *sorted_index)
 {
-
-    uint s0 = __umul24(blockIdx.x, gridDim.x) +
-        __umul24(blockIdx.y, gridDim.y) +
-        __umul24(blockIdx.z, gridDim.z);
-
+    uint s0 = __umul24(blockIdx.x, gridDim.x) + __umul24(blockIdx.y, gridDim.y) + __umul24(blockIdx.z, gridDim.z);
     __shared__ Real x0, y0, z0;
 
     if (threadIdx.x == 0)
@@ -278,8 +273,9 @@ spRandomDistributionNormalKernel(curandStateScrambledSobol64 *state, Real *data,
     state[total_thread_id] = local_state;
 }
 
-int spRandomMultiDistribution(Real **data, int n_dims, int const *dist_types, size_type num, size_type offset)
+int spParticleInitialize_device(Real **data, int n_dims, int const *dist_types, size_type num, size_type offset)
 {
+
     int error_code = SP_SUCCESS;
 
     curandStateScrambledSobol64 *devSobol64States;
@@ -346,7 +342,7 @@ int spRandomMultiDistribution(Real **data, int n_dims, int const *dist_types, si
             default:
                 /* @formatter:off */
              spRandomDistributionUniformKernel<<<n_threads/VECTOR_SIZE, VECTOR_SIZE>>>(
-                                           devSobol64States + n *  n_threads,data[n],num);
+                                           devSobol64States + n *  n_threads,data[n],num );
                 /* @formatter:on */
                 break;
         }

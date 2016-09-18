@@ -86,6 +86,7 @@ size_type spParticleGetCapacity(spParticle const *);
 /**    @}*/
 
 /**  ID @{*/
+int spParticleSetDefragmentFreq(spParticle *sp, size_t n);
 
 int spParticleSort(spParticle *sp);
 
