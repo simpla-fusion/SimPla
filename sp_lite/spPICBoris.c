@@ -17,15 +17,14 @@ int spParticleCreateBorisYee(spParticle **sp, struct spMesh_s const *m)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
 
-
     SP_CALL(spParticleCreate(sp, m));
+    SP_PARTICLE_ATTR_HEAD((*sp));
+    SP_PARTICLE_ATTR_ADD((*sp), vx);
+    SP_PARTICLE_ATTR_ADD((*sp), vy);
+    SP_PARTICLE_ATTR_ADD((*sp), vz);
+    SP_PARTICLE_ATTR_ADD((*sp), f);
+    SP_PARTICLE_ATTR_ADD((*sp), w);
 
-    SP_PARTICLE_CREATE_DATA_DESC((*sp), struct boris_particle_s);
-    SP_PARTICLE_ADD_ATTR((*sp), vx);
-    SP_PARTICLE_ADD_ATTR((*sp), vy);
-    SP_PARTICLE_ADD_ATTR((*sp), vz);
-    SP_PARTICLE_ADD_ATTR((*sp), f);
-    SP_PARTICLE_ADD_ATTR((*sp), w);
     return SP_SUCCESS;
 }
 

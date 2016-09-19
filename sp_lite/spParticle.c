@@ -22,7 +22,6 @@
 typedef struct spParticleAttrEntity_s
 {
     int data_type;
-    size_type offset;
     char name[255];
     void *data;
 } spParticleAttrEntity;
@@ -59,7 +58,7 @@ struct spParticle_s
 
     spParticleAttrEntity m_attrs_[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
-    void **m_current_data_;
+    void **m_current_data_, **m_next_data_;
     int is_deployed;
 
     spField *bucket_start, *bucket_count;
@@ -148,22 +147,22 @@ int spParticleGetAllAttributeData(spParticle *sp, void **res)
     return SP_SUCCESS;
 };
 
-int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
+int spParticleGetAllAttributeData_device(spParticle *sp, void ***current_data, void ***next_data)
 {
     if (sp == NULL) { return SP_FAILED; }
-    *data = sp->m_current_data_;
+    if (current_data != NULL) { *current_data = sp->m_current_data_; }
+    if (next_data != NULL) { *next_data = sp->m_next_data_; }
+
     return SP_SUCCESS;
 
 }
 
-int spParticleAddAttribute(spParticle *sp, char const name[], int type_tag, size_type size, size_type offset)
+int spParticleAddAttribute(spParticle *sp, const char name[], int type_tag)
 {
     if (sp == NULL) { return SP_FAILED; }
     assert (sp->is_deployed == SP_FALSE);
 
-
     sp->m_attrs_[sp->m_num_of_attrs_].data_type = type_tag;
-    sp->m_attrs_[sp->m_num_of_attrs_].offset = offset;
     strcpy(sp->m_attrs_[sp->m_num_of_attrs_].name, name);
     sp->m_attrs_[sp->m_num_of_attrs_].data = NULL;
 
@@ -357,6 +356,15 @@ int spParticleDefragment(spParticle *sp)
     return SP_SUCCESS;
 }
 
+int spParticleNextStep(spParticle *sp)
+{
+    void **t = sp->m_next_data_;
+    sp->m_next_data_ = sp->m_current_data_;
+    sp->m_current_data_ = t;
+
+    if (sp->m_current_data_ != NULL) { return SP_SUCCESS; } else { return SP_FAILED; }
+}
+
 int spParticleSort(spParticle *sp)
 {
     if (sp == NULL) { return SP_FAILED; }
@@ -404,8 +412,7 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spMemHostAlloc((void **) &sorted_idx, sp->m_num_of_particle_ * sizeof(size_type)));
 
-    SP_CALL(spMemCopy((void *) sorted_idx,
-                      sp->sorted_idx, sp->m_num_of_particle_ * sizeof(size_type)));
+    SP_CALL(spMemCopy((void *) sorted_idx, sp->sorted_idx, sp->m_num_of_particle_ * sizeof(size_type)));
 
 
     size_type l_dims[ndims + 1];
