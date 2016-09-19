@@ -16,7 +16,6 @@
 #endif
 
 #define SP_PARTICLE_HEAD  \
-     size_type  *id;           \
      Real  *rx;           \
      Real  *ry;           \
      Real  *rz;
@@ -34,7 +33,6 @@ typedef struct
     spParticleAddAttribute(_DESC_, __STRING(_N_), SP_TYPE_##_T_,sizeof(_T_),-1);
 
 #define SP_PARTICLE_CREATE_DATA_DESC(_DESC_, _CLS_)     \
-    SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,size_type ,id)   \
     SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rx)  \
     SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,ry)  \
     SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rz)
@@ -42,7 +40,6 @@ typedef struct
 #define SP_PARTICLE_ATTR(_N_)  Real * _N_;
 
 #define SP_PARTICLE_ADD_ATTR(_DESC_, _N_)   spParticleAddAttribute(_DESC_, __STRING(_N_), SP_TYPE_Real,sizeof(Real),-1);
-
 
 struct spDataType_s;
 
@@ -99,7 +96,8 @@ int spParticleSync(spParticle *sp);
 
 int spParticleDefragment(spParticle *sp);
 
-int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **sorted_id);
+int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **sorted_idx,
+                        size_type **cell_hash);
 
 /**    @}*/
 

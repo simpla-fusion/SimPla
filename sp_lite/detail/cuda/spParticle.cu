@@ -37,8 +37,8 @@ spParticleInitializeBucket_device_kernel(dim3 start,
     if (x < count.x && y < count.y && z < count.z)
     {
         uint s = __umul24(start.x + x, strides.x) +
-            __umul24(start.y + y, strides.y) +
-            __umul24(start.z + z, strides.z);
+                 __umul24(start.y + y, strides.y) +
+                 __umul24(start.z + z, strides.z);
         start_pos[s] = (x * count.y * count.z + y * count.z + z) * num_pic;
         f_count[s] = (size_type) num_pic;
     }
@@ -58,7 +58,7 @@ int spParticleInitializeBucket_device(spParticle *sp)
 
     size_type *bucket_start, *bucket_count, *sorted_id;
 
-    SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_id));
+    SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_id, NULL));
 
     SP_CALL(spFillSeqInt(sorted_id, spParticleCapacity(sp), 0, 1));
 
@@ -89,12 +89,13 @@ spParticleInitializeHash_kernel(size_type *id,
 
 
     uint s = __umul24(blockIdx.x, strides.x) +
-        __umul24(blockIdx.y, strides.y) +
-        __umul24(blockIdx.z, strides.z);
+             __umul24(blockIdx.y, strides.y) +
+             __umul24(blockIdx.z, strides.z);
 
     if (threadIdx.x < bucket_count[s]) { id[sort_id[bucket_start[s] + threadIdx.x]] = s; }
 
 }
+
 int spParticleUpdateHash(spParticle *sp)
 {
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
@@ -133,16 +134,17 @@ spParticleRebuildBucket_kernel(size_type *cellStart,        // output: cell star
                                size_type const *gridParticleIndex,// input: sorted particle indices
                                size_type numParticles, size_type num_cell)
 {
-    extern __shared__ size_type sharedHash[];    // blockSize + 1 elements
 
-    size_type index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+
+    extern __shared__ size_type sharedHash[];    // blockSize + 1 elements
+    uint index = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+
     size_type hash;
 
-    if (index < numParticles)     // handle case when no. of particles not multiple of block size
+    // handle case when no. of particles not multiple of block size
+    if (index < numParticles)
     {
-        assert(index < numParticles);
-        assert(gridParticleIndex[index] < numParticles);
-        hash = gridParticleHash[gridParticleIndex[index]];
+        hash = gridParticleHash[index];
 
         // Load hash data into shared memory so that we can look
         // at neighboring particle's hash value without loading
@@ -152,7 +154,7 @@ spParticleRebuildBucket_kernel(size_type *cellStart,        // output: cell star
         if (index > 0 && threadIdx.x == 0)
         {
             // first thread in block must load neighbor particle hash
-            sharedHash[0] = gridParticleHash[gridParticleIndex[index - 1]];
+            sharedHash[0] = gridParticleHash[index - 1];
         }
     }
 
@@ -160,22 +162,24 @@ spParticleRebuildBucket_kernel(size_type *cellStart,        // output: cell star
 
     if (index < numParticles)
     {
-//        if (hash + 1 > num_cell) { CHECK_INT(index); }
-
         // If this particle has a different cell index to the previous
         // particle then it must be the first particle in the cell,
         // so store the index of this particle in the cell.
         // As it isn't the first particle, it must also be the cell end of
         // the previous particle's cell
-        assert (hash + 1 <= num_cell);
-        if ((index == 0 || hash != sharedHash[threadIdx.x]))
-        {
 
+        if (index == 0 || hash != sharedHash[threadIdx.x])
+        {
             cellStart[hash + 1] = index;
-            cellEnd[sharedHash[threadIdx.x] + 1] = index;
+
+            if (index > 0) cellEnd[sharedHash[threadIdx.x] + 1] = index;
         }
 
-        if (index == numParticles - 1 && hash + 1 < num_cell) { cellEnd[hash + 1] = index + 1; }
+        if (index == numParticles - 1)
+        {
+            cellEnd[hash + 1] = index + 1;
+        }
+
     }
 }
 
@@ -193,7 +197,7 @@ _CopyBucketStartCount_kernel(size_type *b_start,        // output: cell start in
     {
         start[index] = b_start[index + 1];
         count[index] = b_end[index + 1] - b_start[index + 1];
-        assert(count[index] > 0);
+        assert(count[index] >= 0);
     }
 }
 
@@ -210,11 +214,10 @@ int spParticleBuildBucket_device(spParticle *sp)
 
     size_type num_of_particle = spParticleSize(sp);
 
-    size_type *bucket_start, *bucket_count, *sorted_id;
+    size_type *bucket_start, *bucket_count, *sorted_idx, *cell_hash;
 
-    SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_id));
+    SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_idx, &cell_hash));
 
-    size_type const *hash = (size_type const *) spParticleGetAttributeData(sp, 0);
 
     size_type *b_start = NULL, *b_end = NULL;
 
@@ -228,11 +231,59 @@ int spParticleBuildBucket_device(spParticle *sp)
 
 
     /*@formatter:off*/
-//    spParticleRebuildBucket_kernel<<<num_of_particle / numThreads + 1, numThreads,sMemSize>>>(
-//        b_start, b_end,  hash, sorted_id, num_of_particle,num_of_cell);
+    spParticleRebuildBucket_kernel<<<num_of_particle / numThreads + 1, numThreads,sMemSize>>>(
+        b_start, b_end,  cell_hash, sorted_idx, num_of_particle,num_of_cell);
+
+
     _CopyBucketStartCount_kernel<<<num_of_cell / numThreads + 1, num_of_cell>>>(
          b_start  , b_end  ,bucket_start,bucket_count,num_of_cell);
     /*@formatter:on*/
+    /*@formatter:on*/
+    {
+
+        //
+        size_type *buffer;
+        SP_CALL(spMemHostAlloc((void **) &buffer, (num_of_particle + 1) * sizeof(size_type)));
+        SP_CALL(spMemCopy(buffer, cell_hash, num_of_particle * sizeof(size_type)));
+
+        for (int i = 0; i < num_of_particle; ++i)
+        {
+            printf("\t %ld", buffer[i]);
+            if ((i + 1) % 10 == 0)printf("\n");
+        }
+        printf("\n***************************************\n");
+
+
+
+//        SP_CALL(spMemCopy(buffer, b_start, (num_of_cell + 1) * sizeof(size_type)));
+//
+//        for (int i = 0; i < (num_of_cell + 1); ++i)
+//        {
+//            printf("\t %ld", buffer[i]);
+//            if (i % 10 == 0)printf("\n");
+//        }
+//
+//        printf("\n***************************************\n");
+//        SP_CALL(spMemCopy(buffer, b_end, (num_of_cell + 1) * sizeof(size_type)));
+//
+//        for (int i = 0; i < (num_of_cell + 1); ++i)
+//        {
+//            printf("\t %ld", buffer[i]);
+//            if (i % 10 == 0)printf("\n");
+//        }
+
+        printf("\n***************************************\n");
+        SP_CALL(spMemCopy(buffer, bucket_count, (num_of_cell) * sizeof(size_type)));
+
+        for (int i = 0; i < (num_of_cell); ++i)
+        {
+            printf("\t %ld", buffer[i]);
+            if ((i + 1) % 12 == 0)printf("\n");
+        }
+        SP_CALL(spMemHostFree((void **) &buffer));
+    }
+    /*@formatter:off*/
+
 
 
     SP_CALL(spMemCopy(&num_of_particle, b_start, sizeof(size_type)));
@@ -261,7 +312,7 @@ spParticleCoordinateConvert(particle_head *sp,
         z0 = blockIdx.z * dx.z + min.z;
     }
 
-        spParallelSyncThreads();
+            spParallelSyncThreads();
 
     if (start_pos[s0] + threadIdx.x < end_pos[s0])
     {
@@ -292,7 +343,7 @@ int spParticleCoordinateLocalToGlobal(spParticle *sp)
 
     size_type *start_pos, *end_pos, *index;
 
-    SP_CALL(spParticleGetBucket(sp, &start_pos, &end_pos, &index));
+    SP_CALL(spParticleGetBucket(sp, &start_pos, &end_pos, &index, NULL));
 
     uint3 blockDim;
     blockDim.x = SP_NUM_OF_THREADS_PER_BLOCK;
@@ -353,6 +404,7 @@ spRandomDistributionUniformKernel(curandStateScrambledSobol64 *state, Real *data
 
     state[total_thread_id] = local_state;
 }
+
 __global__ void
 spRandomDistributionNormalKernel(curandStateScrambledSobol64 *state, Real *data, size_type num)
 {
