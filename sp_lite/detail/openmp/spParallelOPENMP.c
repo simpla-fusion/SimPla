@@ -40,7 +40,7 @@ int spMemCopy(void *dest, void const *src, size_type s)
     return SP_SUCCESS;
 }
 
-int spParallelMemcpyToCache(const void *dest, void const *src, size_type s)
+int spMemCopyToCache(const void *dest, void const *src, size_type s)
 {
     memcpy((void *) dest, src, s);
     return SP_SUCCESS;

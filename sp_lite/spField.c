@@ -31,7 +31,7 @@ typedef struct spField_s
 
 int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_tag)
 {
-    int error_code = SP_SUCCESS;
+
     SP_CALL(spMeshAttributeCreate((spMeshAttribute **) f, sizeof(spField), mesh, iform));
 
     (*f)->m = mesh;
@@ -39,29 +39,29 @@ int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_
     (*f)->is_soa = SP_TRUE;
     (*f)->m_data_ = NULL;
     (*f)->m_data_type_tag_ = type_tag;
-    return error_code;
+    return SP_SUCCESS;
 }
 
 int spFieldDestroy(spField **f)
 {
-    int error_code = SP_SUCCESS;
 
-    if (f != NULL && *f != NULL) { SP_CALL(spMemDeviceFree(&((**f).m_data_))); }
+
+    if (f != NULL && *f != NULL) {SP_CALL(spMemDeviceFree(&((**f).m_data_))); }
 
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) f));
 
-    return error_code;
+    return SP_SUCCESS;
 }
 
 int spFieldDeploy(spField *f)
 {
-    int error_code = SP_SUCCESS;
+
 
     if (f->m_data_ == NULL)
     {
         SP_CALL(spMemDeviceAlloc((void **) &(f->m_data_), spFieldGetSizeInByte(f)));
     }
-    return error_code;
+    return SP_SUCCESS;
 }
 
 size_type spFieldGetSizeInByte(spField const *f)
@@ -97,13 +97,11 @@ int spFieldAddScalar(spField *f, void const *v)
 }
 int spFieldFillIntSeq(spField_t f, int tag, size_type min, size_type step)
 {
-
+    return SP_DO_NOTHING;
 }
 
 int spFieldSubArray(spField *f, void **data)
 {
-    int error_code = SP_SUCCESS;
-
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
 
     size_type ele_size_in_byte = spDataTypeSizeInByte(spFieldDataType(f));
@@ -125,33 +123,30 @@ int spFieldSubArray(spField *f, void **data)
         UNIMPLEMENTED;
 //        for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * ele_size_in_byte; }
     }
-    return error_code;
+    return SP_SUCCESS;
 };
 
 int spFieldClear(spField *f)
 {
-    int error_code = SP_SUCCESS;
     SP_CALL(spFieldDeploy(f));
 
     SP_CALL(spMemSet(f->m_data_, 0, spFieldGetSizeInByte(f)));
 
-    return error_code;
+    return SP_SUCCESS;
 }
 
 int spFieldFillReal(spField *f, Real v)
 {
-    int error_code = SP_SUCCESS;
-
     SP_CALL(spFieldDeploy(f));
 
     SP_CALL(spParallelDeviceFillReal(f->m_data_, v, spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform)));
-    return error_code;
+    return SP_SUCCESS;
 
 }
 
 int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
 {
-    int error_code = SP_SUCCESS;
+
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
@@ -187,7 +182,7 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     SP_CALL(spMemHostFree(&f_host));
 
 
-    return error_code;
+    return SP_SUCCESS;
 }
 
 int spFieldRead(spField *f, spIOStream *os, char const name[], int flag)
@@ -198,7 +193,7 @@ int spFieldRead(spField *f, spIOStream *os, char const name[], int flag)
 
 int spFieldSync(spField *f)
 {
-    int error_code = SP_SUCCESS;
+
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
@@ -233,13 +228,11 @@ int spFieldSync(spField *f)
                                    NULL));
     SP_CALL(spMPICartUpdateAll(updater, num_of_sub, F));
     SP_CALL(spMPICartUpdaterDestroy(&updater));
-    return error_code;
+    return SP_SUCCESS;
 }
 
 int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real const **v)
 {
-    int error_code = SP_SUCCESS;
-
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
 
     if (spFieldIsSoA(f))
@@ -250,30 +243,27 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real c
 
         SP_CALL(spFieldSubArray(f, (void **) data));
 
-        for (int i = 0; i < num_of_sub; ++i) { SP_CALL(spParallelAssign(num_of_points, offset, data[i], v[i])); }
+        for (int i = 0; i < num_of_sub; ++i) {SP_CALL(spParallelAssign(num_of_points, offset, data[i], v[i])); }
     }
     else
     {
         UNIMPLEMENTED;
     }
-    return error_code;
+    return SP_SUCCESS;
 }
 
 int spFieldCopyToHost(void **d, spField const *f)
 {
-    int error_code = SP_SUCCESS;
-
     size_type s = spFieldGetSizeInByte(f);
-
     SP_CALL(spMemHostAlloc(d, s));
     SP_CALL(spMemCopy(*d, f->m_data_, s));
-    return error_code;
+    return SP_SUCCESS;
 };
 
 int spFieldCopyToDevice(spField *f, void const *d)
 {
-    int error_code = SP_SUCCESS;
+
 
     SP_CALL(spMemCopy(f->m_data_, d, spFieldGetSizeInByte(f)));
-    return error_code;
+    return SP_SUCCESS;
 }

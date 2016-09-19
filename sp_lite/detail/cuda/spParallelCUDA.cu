@@ -24,24 +24,10 @@ int spParallelDeviceInitialize(int argc, char **argv)
 
 int spParallelDeviceFinalize()
 {
-
     SP_DEVICE_CALL(cudaDeviceReset());
     return SP_SUCCESS;
-
 }
 
-#define SP_DEFAULT_BLOCKS  128
-#define SP_DEFAULT_THREADS 128
-
-int spParallelGridDim()
-{
-    return SP_DEFAULT_THREADS;
-};
-
-int spParallelBlockDim()
-{
-    return SP_DEFAULT_BLOCKS;
-};
 
 int spMemDeviceAlloc(void **p, size_type s)
 {
@@ -65,31 +51,18 @@ int spMemCopy(void *dest, void const *src, size_type s)
     return SP_SUCCESS;
 }
 
-int spParallelMemcpyToCache(const void *dest, void const *src, size_type s)
+int spMemCopyToCache(const void *dest, void const *src, size_type s)
 {
-
-
     SP_DEVICE_CALL(cudaMemcpyToSymbol(dest, src, s));
     return SP_SUCCESS;
-
 }
 
 int spMemSet(void *dest, int v, size_type s)
 {
-
-
     SP_DEVICE_CALL (cudaMemset(dest, v, s));
     return SP_SUCCESS;
-
 }
 
-int spParallelDeviceSync()
-{
-    SP_CALL(spParallelGlobalBarrier());
-    SP_DEVICE_CALL (cudaDeviceSynchronize());
-    return SP_SUCCESS;
-
-}
 
 int spMemHostAlloc(void **p, size_type s)
 {

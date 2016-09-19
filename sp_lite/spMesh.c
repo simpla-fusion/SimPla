@@ -222,8 +222,8 @@ int spMeshDeploy(spMesh *self)
 //				++count;
 //			}
 //	assert(count == 27);
-//	spParallelMemcpyToCache(SP_NEIGHBOUR_OFFSET, neighbour_offset, sizeof(neighbour_offset));
-//	spParallelMemcpyToCache(SP_NEIGHBOUR_OFFSET_flag, neighbour_flag, sizeof(neighbour_flag));
+//	spMemCopyToCache(SP_NEIGHBOUR_OFFSET, neighbour_offset, sizeof(neighbour_offset));
+//	spMemCopyToCache(SP_NEIGHBOUR_OFFSET_flag, neighbour_flag, sizeof(neighbour_flag));
 
     return SP_SUCCESS;
 

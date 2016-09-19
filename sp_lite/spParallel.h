@@ -25,9 +25,13 @@ int spMemHostFree(void **);
 
 int spMemCopy(void *, void const *, size_type);
 
-int spParallelMemcpyToCache(const void *, void const *, size_type);
+int spMemCopyToCache(const void *, void const *, size_type);
 
 int spMemSet(void *, int v, size_type);
+
+int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte);
+
+int spMemoryHostFree(void **p);
 
 int spParallelDeviceSync();
 
@@ -38,10 +42,10 @@ int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real co
 int spParallelDeviceFillInt(int *d, int v, size_type s);
 
 int spParallelDeviceFillReal(Real *d, Real v, size_type s);
-
-int spParallelGridDim();
-
-int spParallelBlockDim();
+//
+//int spParallelGridDim();
+//
+//int spParallelBlockDim();
 
 int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
                                    unsigned int ndims,
@@ -50,9 +54,7 @@ int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
                                    size_type grid_dim[3],
                                    size_type block_dim[3]);
 
-int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte);
 
-int spMemoryHostFree(void **p);
 
 
 
