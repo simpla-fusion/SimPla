@@ -18,13 +18,13 @@ int spParallelDeviceInitialize(int argc, char **argv)
 
 int spParallelDeviceFinalize() { return SP_SUCCESS; }
 
-int spParallelDeviceAlloc(void **p, size_type s)
+int spMemDeviceAlloc(void **p, size_type s)
 {
     *p = malloc(s);
     return SP_SUCCESS;
 }
 
-int spParallelDeviceFree(void **p)
+int spMemDeviceFree(void **p)
 {
     if (*p != NULL)
     {
@@ -34,7 +34,7 @@ int spParallelDeviceFree(void **p)
     return SP_SUCCESS;
 };
 
-int spParallelMemcpy(void *dest, void const *src, size_type s)
+int spMemCopy(void *dest, void const *src, size_type s)
 {
     memcpy(dest, src, s);
     return SP_SUCCESS;
@@ -46,7 +46,7 @@ int spParallelMemcpyToCache(const void *dest, void const *src, size_type s)
     return SP_SUCCESS;
 }
 
-int spParallelMemset(void *dest, int v, size_type s)
+int spMemSet(void *dest, int v, size_type s)
 {
     memset(dest, v, s);
     return SP_SUCCESS;
@@ -58,7 +58,7 @@ int spParallelDeviceSync()
     return SP_SUCCESS;
 }
 
-int spParallelHostAlloc(void **p, size_type s)
+int spMemHostAlloc(void **p, size_type s)
 {
     *p = malloc(s);
     return SP_SUCCESS;

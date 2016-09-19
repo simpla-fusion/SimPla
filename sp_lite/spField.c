@@ -51,7 +51,7 @@ int spFieldDestroy(spField **f)
 
     if (f != NULL && *f != NULL)
     {
-        SP_CALL(spParallelDeviceFree(&((**f).m_data_)));
+        SP_CALL(spMemDeviceFree(&((**f).m_data_)));
 
         SP_CALL(spDataTypeDestroy(&((*f)->m_data_type_desc_)));
     }
@@ -67,7 +67,7 @@ int spFieldDeploy(spField *f)
 
     if (f->m_data_ == NULL)
     {
-        SP_CALL(spParallelDeviceAlloc((void **) &(f->m_data_), spFieldGetSizeInByte(f)));
+        SP_CALL(spMemDeviceAlloc((void **) &(f->m_data_), spFieldGetSizeInByte(f)));
     }
     return error_code;
 }
@@ -141,7 +141,7 @@ int spFieldClear(spField *f)
     int error_code = SP_SUCCESS;
     SP_CALL(spFieldDeploy(f));
 
-    SP_CALL(spParallelMemset(f->m_data_, 0, spFieldGetSizeInByte(f)));
+    SP_CALL(spMemSet(f->m_data_, 0, spFieldGetSizeInByte(f)));
 
     return error_code;
 }
@@ -273,8 +273,8 @@ int spFieldCopyToHost(void **d, spField const *f)
 
     size_type s = spFieldGetSizeInByte(f);
 
-    SP_CALL(spParallelHostAlloc(d, s));
-    SP_CALL(spParallelMemcpy(*d, f->m_data_, s));
+    SP_CALL(spMemHostAlloc(d, s));
+    SP_CALL(spMemCopy(*d, f->m_data_, s));
     return error_code;
 };
 
@@ -282,6 +282,6 @@ int spFieldCopyToDevice(spField *f, void const *d)
 {
     int error_code = SP_SUCCESS;
 
-    SP_CALL(spParallelMemcpy(f->m_data_, d, spFieldGetSizeInByte(f)));
+    SP_CALL(spMemCopy(f->m_data_, d, spFieldGetSizeInByte(f)));
     return error_code;
 }

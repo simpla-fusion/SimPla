@@ -79,10 +79,11 @@ int spParticleSetCharge(spParticle *, Real e);
 
 Real spParticleGetCharge(spParticle const *);
 
-size_type spParticleGetSize(spParticle const *);
+size_type spParticleSize(spParticle const *);
 
-size_type spParticleGetCapacity(spParticle const *);
+size_type spParticleCapacity(spParticle const *);
 
+int spParticleResize(spParticle *, size_type);
 /**    @}*/
 
 /**  ID @{*/

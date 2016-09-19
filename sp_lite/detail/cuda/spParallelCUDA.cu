@@ -45,7 +45,7 @@ int spParallelBlockDim()
     return SP_DEFAULT_BLOCKS;
 };
 
-int spParallelDeviceAlloc(void **p, size_type s)
+int spMemDeviceAlloc(void **p, size_type s)
 {
     int error_code = SP_SUCCESS;
 
@@ -53,7 +53,7 @@ int spParallelDeviceAlloc(void **p, size_type s)
     return error_code;
 }
 
-int spParallelDeviceFree(void **_P_)
+int spMemDeviceFree(void **_P_)
 {
     int error_code = SP_SUCCESS;
     if (*_P_ != NULL)
@@ -64,7 +64,7 @@ int spParallelDeviceFree(void **_P_)
     return error_code;
 };
 
-int spParallelMemcpy(void *dest, void const *src, size_type s)
+int spMemCopy(void *dest, void const *src, size_type s)
 {
     int error_code = SP_SUCCESS;
     SP_DEVICE_CALL(cudaMemcpy(dest, src, s, cudaMemcpyDefault));
@@ -81,7 +81,7 @@ int spParallelMemcpyToCache(const void *dest, void const *src, size_type s)
 
 }
 
-int spParallelMemset(void *dest, int v, size_type s)
+int spMemSet(void *dest, int v, size_type s)
 {
 
     int error_code = SP_SUCCESS;
@@ -100,7 +100,7 @@ int spParallelDeviceSync()
 
 }
 
-int spParallelHostAlloc(void **p, size_type s)
+int spMemHostAlloc(void **p, size_type s)
 {
     int error_code = SP_SUCCESS;
     SP_DEVICE_CALL (cudaHostAlloc(p, s, cudaHostAllocDefault));
@@ -171,8 +171,8 @@ int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real co
 //int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte)
 //{
 //    int error_code = SP_SUCCESS;
-//    SP_CALL(spParallelHostAlloc(p, size_in_byte));
-//    SP_CALL(spParallelMemcpy(*p, src, size_in_byte));
+//    SP_CALL(spMemHostAlloc(p, size_in_byte));
+//    SP_CALL(spMemCopy(*p, src, size_in_byte));
 //    return error_code;
 //
 //}

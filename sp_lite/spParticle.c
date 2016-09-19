@@ -84,7 +84,7 @@ unsigned int spParticleGetMaxPIC(spParticle const *sp) { return sp->m_pic_ * 2; 
 
 int spParticleSetMass(spParticle *sp, Real m)
 {
-    assert (sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
     sp->mass = m;
     return SP_SUCCESS;
 }
@@ -92,20 +92,28 @@ Real spParticleGetMass(spParticle const *sp) { if (sp != NULL) { return sp->mass
 
 int spParticleSetCharge(spParticle *sp, Real e)
 {
-    assert (sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
     sp->charge = e;
     return SP_SUCCESS;
 }
 
 Real spParticleGetCharge(spParticle const *sp) { if (sp != NULL) { return sp->charge; } else { return 1; }}
 
-size_type spParticleGetSize(spParticle const *sp) { return sp->m_num_of_particle_; };
+size_type spParticleSize(spParticle const *sp) { return sp->m_num_of_particle_; };
 
-size_type spParticleGetCapacity(spParticle const *sp) { return sp->m_max_num_of_particle_; }
+int spParticleResize(spParticle *sp, size_type s)
+{
+    if (sp == NULL) { return SP_FAILED; }
+    sp->m_num_of_particle_ = s;
+
+    return SP_SUCCESS;
+};
+
+size_type spParticleCapacity(spParticle const *sp) { return sp->m_max_num_of_particle_; }
 
 int spParticleSetDefragmentFreq(spParticle *sp, size_t n)
 {
-    assert (sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
     sp->defragment_freq = n;
     return SP_SUCCESS;
 }
@@ -116,8 +124,7 @@ int spParticleSetDefragmentFreq(spParticle *sp, size_t n)
 /** attribute @{*/
 int spParticleGetAllAttributeData(spParticle *sp, void **res)
 {
-    if (sp == NULL) { return SP_DO_NOTHING; }
-
+    if (sp == NULL) { return SP_FAILED; }
     for (int i = 0, ie = spParticleGetNumberOfAttributes(sp); i < ie; ++i)
     {
         res[i] = spParticleGetAttributeData(sp, i);
@@ -127,7 +134,7 @@ int spParticleGetAllAttributeData(spParticle *sp, void **res)
 
 int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
 {
-    assert (sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
     *data = sp->m_current_data_;
     return SP_SUCCESS;
 
@@ -135,7 +142,7 @@ int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
 
 int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset)
 {
-    assert (sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
     assert (sp->is_deployed == SP_FALSE);
 
     int error_code = SP_SUCCESS;
@@ -196,7 +203,7 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
 
 int spParticleDeploy(spParticle *sp)
 {
-    assert (sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
 
 
     int error_code = SP_SUCCESS;
@@ -215,15 +222,15 @@ int spParticleDeploy(spParticle *sp)
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
-        SP_CALL(spParallelDeviceAlloc(&(sp->m_attrs_[i].data),
-                                      spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
+        SP_CALL(spMemDeviceAlloc(&(sp->m_attrs_[i].data),
+                                 spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
     }
     void *d[spParticleGetNumberOfAttributes(sp)];
     SP_CALL(spParticleGetAllAttributeData(sp, d));
-    SP_CALL(spParallelDeviceAlloc((void **) &(sp->m_current_data_),
-                                  spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
-    SP_CALL(spParallelMemcpy(sp->m_current_data_, d,
+    SP_CALL(spMemDeviceAlloc((void **) &(sp->m_current_data_),
                              spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
+    SP_CALL(spMemCopy(sp->m_current_data_, d,
+                      spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
 
     /* Deploy buckets */
 
@@ -232,7 +239,7 @@ int spParticleDeploy(spParticle *sp)
     SP_CALL(spFieldClear(sp->bucket_start));
     SP_CALL(spFieldClear(sp->bucket_count));
 
-    SP_CALL(spParallelDeviceAlloc((void **) &(sp->sorted_id), sp->m_max_num_of_particle_ * sizeof(size_type)));
+    SP_CALL(spMemDeviceAlloc((void **) &(sp->sorted_id), sp->m_max_num_of_particle_ * sizeof(size_type)));
 
 
     sp->is_deployed = SP_TRUE;
@@ -246,22 +253,22 @@ int spParticleDestroy(spParticle **sp)
     int error_code = SP_SUCCESS;
     SP_CALL(spFieldDestroy(&(*sp)->bucket_start));
     SP_CALL(spFieldDestroy(&(*sp)->bucket_count));
-    SP_CALL(spParallelDeviceFree((void **) &((*sp)->sorted_id)));
+    SP_CALL(spMemDeviceFree((void **) &((*sp)->sorted_id)));
 
     for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i)
     {
-        SP_CALL(spParallelDeviceFree(&((*sp)->m_attrs_[i].data)));
+        SP_CALL(spMemDeviceFree(&((*sp)->m_attrs_[i].data)));
         SP_CALL(spDataTypeDestroy(&((*sp)->m_attrs_[i].data_type)));
     }
 
-    SP_CALL(spParallelDeviceFree((void **) &((*sp)->m_current_data_)));
+    SP_CALL(spMemDeviceFree((void **) &((*sp)->m_current_data_)));
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) sp));
     return error_code;
 }
 
 int spParticleInitialize(spParticle *sp, int const *dist_types)
 {
-    assert (sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
 
     int error_code = SP_SUCCESS;
 
@@ -272,11 +279,11 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spParticleGetAllAttributeData(sp, data));
 
-    size_type offset = 0, total = spParticleGetSize(sp);
+    size_type offset = 0, total = spParticleSize(sp);
 
     SP_CALL(spMPIPrefixSum(&offset, &total));
 
-    SP_CALL(spParticleInitialize_device((Real **) (data + 1), 6, dist_types, spParticleGetSize(sp), offset));
+    SP_CALL(spParticleInitialize_device((Real **) (data + 1), 6, dist_types, spParticleSize(sp), offset));
 
     SP_CALL(spParticleInitializeBucket_device(sp));
 
@@ -288,7 +295,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
 int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **sorted_id)
 {
-    assert (sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
 
     if (start_pos != NULL) { *start_pos = spFieldData(sp->bucket_start); }
 
@@ -301,13 +308,13 @@ int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **end_p
 
 int spParticleDefragment(spParticle *sp)
 {
-    if (sp == NULL) { return SP_DO_NOTHING; }
+    if (sp == NULL) { return SP_FAILED; }
 
     int error_code = SP_SUCCESS;
 
-    size_type numParticles = spParticleGetSize(sp);
+    size_type numParticles = spParticleSize(sp);
 
-    size_type maxNumParticles = spParticleGetCapacity(sp);
+    size_type maxNumParticles = spParticleCapacity(sp);
 
     size_type *start_pos, *end_pos, *sorted_id;
 
@@ -315,7 +322,7 @@ int spParticleDefragment(spParticle *sp)
 
     Real *buffer = NULL;
 
-    SP_CALL(spParallelDeviceAlloc((void **) &buffer, sizeof(Real) * spParticleGetCapacity(sp)));
+    SP_CALL(spMemDeviceAlloc((void **) &buffer, sizeof(Real) * spParticleCapacity(sp)));
 
     for (int i = 1; i < spParticleGetNumberOfAttributes(sp); ++i)
     {
@@ -328,7 +335,7 @@ int spParticleDefragment(spParticle *sp)
         SP_CALL(spParticleSetAttributeData(sp, i, dest));
     }
 
-    SP_CALL(spParallelDeviceFree((void **) &buffer));
+    SP_CALL(spMemDeviceFree((void **) &buffer));
 
     SP_CALL(spFillSeqInt(sorted_id, maxNumParticles, 0, 1));
 
@@ -336,11 +343,11 @@ int spParticleDefragment(spParticle *sp)
 }
 int spParticleSort(spParticle *sp)
 {
-    assert(sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
 
     int error_code = SP_SUCCESS;
 
-    size_type numParticles = spParticleGetSize(sp);
+    size_type numParticles = spParticleSize(sp);
 
     size_type *hash = (size_type *) spParticleGetAttributeData(sp, 0);
 
@@ -361,7 +368,7 @@ int spParticleSort(spParticle *sp)
  */
 int spParticleSync(spParticle *sp)
 {
-    assert(sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
 
     int error_code = SP_SUCCESS;
 
@@ -383,10 +390,10 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spFieldCopyToHost((void **) &bucket_count, sp->bucket_count));
 
-    SP_CALL(spParallelHostAlloc((void **) &sorted_id, sp->m_num_of_particle_ * sizeof(size_type)));
+    SP_CALL(spMemHostAlloc((void **) &sorted_id, sp->m_num_of_particle_ * sizeof(size_type)));
 
-    SP_CALL(spParallelMemcpy((void *) sorted_id,
-                             sp->sorted_id, sp->m_num_of_particle_ * sizeof(size_type)));
+    SP_CALL(spMemCopy((void *) sorted_id,
+                      sp->sorted_id, sp->m_num_of_particle_ * sizeof(size_type)));
 
 
     size_type l_dims[ndims + 1];
@@ -476,7 +483,7 @@ int spParticleSync(spParticle *sp)
 int
 spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag)
 {
-    assert (sp != NULL);
+    if (sp == NULL) { return SP_FAILED; }
 
     int error_code = SP_SUCCESS;
 //    SP_CALL(spParticleCoordinateLocalToGlobal(sp));
@@ -497,7 +504,7 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
 
     int ndims = spMeshGetNDims(m);
 
-    size_type local_count = spParticleGetSize(sp);
+    size_type local_count = spParticleSize(sp);
     size_type local_offset = 0;
     size_type global_offset = 0, global_count = local_count;
 
@@ -517,10 +524,10 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
 
             total_size_in_byte = new_total_size_in_byte;
 
-            SP_CALL(spParallelHostAlloc(&buffer, total_size_in_byte));
+            SP_CALL(spMemHostAlloc(&buffer, total_size_in_byte));
         }
 
-        SP_CALL(spParallelMemcpy(buffer, sp->m_attrs_[i].data, total_size_in_byte));
+        SP_CALL(spMemCopy(buffer, sp->m_attrs_[i].data, total_size_in_byte));
 
         SP_CALL(spIOStreamWriteSimple(os,
                                       sp->m_attrs_[i].name,
@@ -549,7 +556,7 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
 
 int spParticleRead(struct spParticle_s *sp, spIOStream *os, const char *url, int flag)
 {
-    if (sp == NULL) { return SP_DO_NOTHING; }
+    if (sp == NULL) { return SP_FAILED; }
     UNIMPLEMENTED;
 
     return SP_UNIMPLEMENTED;
@@ -558,10 +565,8 @@ int spParticleRead(struct spParticle_s *sp, spIOStream *os, const char *url, int
 int
 spParticleDiagnose(spParticle const *sp, struct spIOStream_s *os, char const *path, int flag)
 {
-
+    if (sp == NULL) { return SP_FAILED; }
     int error_code = SP_SUCCESS;
-
-    if (sp == NULL) { return SP_DO_NOTHING; }
 
     char curr_path[2048];
 

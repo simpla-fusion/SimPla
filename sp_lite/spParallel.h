@@ -15,19 +15,19 @@ int spParallelDeviceInitialize(int argc, char **argv);
 
 int spParallelDeviceFinalize();
 
-int spParallelDeviceAlloc(void **, size_type);
+int spMemDeviceAlloc(void **, size_type);
 
-int spParallelDeviceFree(void **);
+int spMemDeviceFree(void **);
 
-int spParallelHostAlloc(void **, size_type);
+int spMemHostAlloc(void **, size_type);
 
 int spParallelHostFree(void **);
 
-int spParallelMemcpy(void *, void const *, size_type);
+int spMemCopy(void *, void const *, size_type);
 
 int spParallelMemcpyToCache(const void *, void const *, size_type);
 
-int spParallelMemset(void *, int v, size_type);
+int spMemSet(void *, int v, size_type);
 
 int spParallelDeviceSync();
 
