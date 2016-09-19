@@ -100,7 +100,7 @@ int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **end_p
 /**    @}*/
 
 /**  attribute @{*/
-int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset);
+int spParticleAddAttribute(spParticle *sp, char const name[], int type_tag, size_type size, size_type offset);
 
 int spParticleGetNumberOfAttributes(spParticle const *sp);
 

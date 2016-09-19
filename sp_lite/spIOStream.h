@@ -31,7 +31,7 @@ struct spDataType_s;
 
 int spIOStreamWriteSimple(spIOStream *,
                           const char *name,
-                          struct spDataType_s const *d_type,
+                          int data_type_tag,
                           void *d,
                           int ndims,
                           size_type const *dims,

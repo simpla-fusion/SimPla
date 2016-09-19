@@ -29,7 +29,7 @@ int spFieldDestroy(spField_t *f);
 
 int spFieldDeploy(spField_t f);
 
-struct spDataType_s const *spFieldDataType(spField const *f);
+int spFieldDataType(spField const *f);
 
 void *spFieldData(spField_t f);
 

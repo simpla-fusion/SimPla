@@ -16,124 +16,179 @@
 
 extern "C"
 {
-#include "../sp_lite/spDataType.h"
 #include "../sp_lite/spMPI.h"
 #include "../sp_lite/spIOStream.h"
+#include "../sp_lite/spDataType.h"
+
 };
 
-#include "parallel/MPIDataType.h"
 #include "numeric/rectangle_distribution.h"
 #include "numeric/multi_normal_distribution.h"
 
 using namespace simpla;
 
 void ShowSimPlaLogo() { MESSAGE << ShowLogo() << std::endl; };
-struct spDataType_s
+//struct spDataType_s
+//{
+//    simpla::data_model::DataType self;
+//
+//    simpla::MPIDataType m_mpi_type_;
+//
+//};
+//
+//typedef struct spDataType_s spDataType;
+//
+//int spDataTypeCreate(spDataType **, int type_tag, size_type s);
+//
+//int spDataTypeDestroy(spDataType **);
+//
+//int spDataTypeCopy(spDataType *, spDataType const *);
+//
+////size_type spDataTypeSizeInByte(spDataType const *dtype);
+//
+//void spDataTypeSetSizeInByte(spDataType *dtype, size_type s);
+//
+//int spDataTypeIsValid(spDataType const *);
+//
+//int spDataTypeExtent(spDataType *, int rank, const size_type *d);
+//
+//int spDataTypeAdd(spDataType *dtype, size_type offset, char const *name, spDataType const *other);
+//
+//int spDataTypeAddArray(spDataType *dtype,
+//                       size_type offset,
+//                       char const *name,
+//                       int type_tag,
+//                       size_type n,
+//                       size_type const *dims);
+//
+//int spDataTypeCreate(spDataType **dtype, int type_tag, size_type s)
+//{
+//    if (dtype != nullptr)
+//    {
+//        *dtype = new spDataType;
+//
+//        switch (type_tag)
+//        {
+//            case SP_TYPE_float:
+//                (*dtype)->self = simpla::data_model::DataType::create<float>();
+//                break;
+//            case SP_TYPE_double:
+//                (*dtype)->self = simpla::data_model::DataType::create<double>();
+//                break;
+//
+//            case SP_TYPE_int:
+//                (*dtype)->self = simpla::data_model::DataType::create<int>();
+//                break;
+//            case SP_TYPE_uint:
+//                (*dtype)->self = simpla::data_model::DataType::create<unsigned int>();
+//                break;
+//            case SP_TYPE_long:
+//                (*dtype)->self = simpla::data_model::DataType::create<long>();
+//                break;
+////            case SP_TYPE_int64_t:
+////                (*dtype)->self = simpla::data_model::DataType::create<int64_t>();
+////                break;
+//            case SP_TYPE_unsigned_long:
+//                (*dtype)->self = simpla::data_model::DataType::create<unsigned long>();
+//                break;
+//            default:
+//                (*dtype)->self.size_in_byte(s);
+//                break;
+//        }
+//    }
+//    return SP_SUCCESS;
+//}
+//int spDataTypeDestroy(spDataType **dtype)
+//{
+//    if (dtype != nullptr && *dtype != nullptr)
+//    {
+//        delete *dtype;
+//        *dtype = nullptr;
+//    }
+//    return SP_SUCCESS;
+//}
+//
+//int spDataTypeCopy(spDataType *first, spDataType const *second)
+//{
+//    first->self = second->self;
+//    first->m_mpi_type_ = second->m_mpi_type_;
+//};
+//size_type spDataTypeSizeInByte(spDataType const *dtype) { return dtype->self.size_in_byte(); }
+//
+//int spDataTypeIsValid(spDataType const *dtype) { return dtype->self.is_valid(); }
+//
+//int spDataTypeExtent(spDataType *dtype, int rank, const size_type *d)
+//{
+//    dtype->self.extent(rank, d);
+//    return SP_SUCCESS;
+//}
+//int spDataTypeAdd(spDataType *dtype, size_type offset, char const *name, spDataType const *other)
+//{
+//    dtype->self.push_back(other->self, name, offset);
+//
+//    return SP_SUCCESS;
+//}
+//
+//int spDataTypeAddArray(spDataType *dtype,
+//                       size_type offset,
+//                       char const *name,
+//                       int type_tag,
+//                       size_type n,
+//                       size_type const *dims)
+//{
+//    spDataType *ele;
+//
+//    spDataTypeCreate(&ele, type_tag, 0);
+//
+//    if (dims == nullptr) { spDataTypeExtent(ele, 1, &n); } else { spDataTypeExtent(ele, n, dims); }
+//
+//    spDataTypeAdd(dtype, offset, name, ele);
+//
+//    spDataTypeDestroy(&ele);
+//
+//    return SP_SUCCESS;
+//}
+//MPI_Datatype spDataTypeMPIType(struct spDataType_s const *dtype)
+//{
+//    MPI_Datatype res = MPI_DATATYPE_NULL;
+//
+//    if (spMPIComm() != MPI_COMM_NULL) { MPI_Type_dup(simpla::MPIDataType::create((dtype)->self).type(), &res); }
+//
+//    return (res);
+//};
+simpla::data_model::DataType spDataTypeFromTag(int type_tag, size_type s)
 {
-    simpla::data_model::DataType self;
 
-    simpla::MPIDataType m_mpi_type_;
-
-};
-
-int spDataTypeCreate(spDataType **dtype, int type_tag, size_type s)
-{
-    if (dtype != nullptr)
+    switch (type_tag)
     {
-        *dtype = new spDataType;
+        case SP_TYPE_float:
+            return simpla::data_model::DataType::create<float>();
 
-        switch (type_tag)
-        {
-            case SP_TYPE_float:
-                (*dtype)->self = simpla::data_model::DataType::create<float>();
-                break;
-            case SP_TYPE_double:
-                (*dtype)->self = simpla::data_model::DataType::create<double>();
-                break;
+        case SP_TYPE_double:
+            return simpla::data_model::DataType::create<double>();
 
-            case SP_TYPE_int:
-                (*dtype)->self = simpla::data_model::DataType::create<int>();
-                break;
-            case SP_TYPE_uint:
-                (*dtype)->self = simpla::data_model::DataType::create<unsigned int>();
-                break;
-            case SP_TYPE_long:
-                (*dtype)->self = simpla::data_model::DataType::create<long>();
-                break;
-            case SP_TYPE_int64_t:
-                (*dtype)->self = simpla::data_model::DataType::create<int64_t>();
-                break;
-            case SP_TYPE_size_type:
-                (*dtype)->self = simpla::data_model::DataType::create<size_type>();
-                break;
-            default:
-                (*dtype)->self.size_in_byte(s);
-                break;
-        }
+        case SP_TYPE_int:
+            return simpla::data_model::DataType::create<int>();
+
+        case SP_TYPE_uint:
+            return simpla::data_model::DataType::create<unsigned int>();
+
+        case SP_TYPE_unsigned_int:
+            return simpla::data_model::DataType::create<unsigned int>();
+
+        case SP_TYPE_unsigned_long:
+            return simpla::data_model::DataType::create<unsigned long>();
+
+        case SP_TYPE_long:
+            return simpla::data_model::DataType::create<long>();
+
+
+        default:
+            break;
     }
-    return SP_SUCCESS;
+
+    return simpla::data_model::DataType();
 }
-
-int spDataTypeDestroy(spDataType **dtype)
-{
-    if (dtype != nullptr && *dtype != nullptr)
-    {
-        delete *dtype;
-        *dtype = nullptr;
-    }
-    return SP_SUCCESS;
-}
-
-int spDataTypeCopy(spDataType *first, spDataType const *second)
-{
-    first->self = second->self;
-    first->m_mpi_type_ = second->m_mpi_type_;
-};
-
-size_type spDataTypeSizeInByte(spDataType const *dtype) { return dtype->self.size_in_byte(); }
-
-int spDataTypeIsValid(spDataType const *dtype) { return dtype->self.is_valid(); }
-
-int spDataTypeExtent(spDataType *dtype, int rank, const size_type *d)
-{
-    dtype->self.extent(rank, d);
-    return SP_SUCCESS;
-}
-int spDataTypeAdd(spDataType *dtype, size_type offset, char const *name, spDataType const *other)
-{
-    dtype->self.push_back(other->self, name, offset);
-
-    return SP_SUCCESS;
-}
-
-int spDataTypeAddArray(spDataType *dtype,
-                       size_type offset,
-                       char const *name,
-                       int type_tag,
-                       size_type n,
-                       size_type const *dims)
-{
-    spDataType *ele;
-
-    spDataTypeCreate(&ele, type_tag, 0);
-
-    if (dims == nullptr) { spDataTypeExtent(ele, 1, &n); } else { spDataTypeExtent(ele, n, dims); }
-
-    spDataTypeAdd(dtype, offset, name, ele);
-
-    spDataTypeDestroy(&ele);
-
-    return SP_SUCCESS;
-}
-
-MPI_Datatype spDataTypeMPIType(struct spDataType_s const *dtype)
-{
-    MPI_Datatype res = MPI_DATATYPE_NULL;
-
-    if (spMPIComm() != MPI_COMM_NULL) { MPI_Type_dup(simpla::MPIDataType::create((dtype)->self).type(), &res); }
-
-    return (res);
-};
 
 struct spIOStream_s { std::shared_ptr<simpla::io::IOStream> self; };
 
@@ -177,7 +232,7 @@ int spIOStreamClose(spIOStream *os)
 
 int spIOStreamWriteSimple(spIOStream *os,
                           const char *url,
-                          struct spDataType_s const *d_type,
+                          int data_type_tag,
                           void *d,
                           int ndims,
                           size_type const *dims,
@@ -192,7 +247,7 @@ int spIOStreamWriteSimple(spIOStream *os,
 
     simpla::data_model::DataSet dset;
 
-    dset.data_type = d_type->self;
+    dset.data_type = spDataTypeFromTag(data_type_tag, 0);
     dset.data_space = simpla::data_model::DataSpace(ndims, (g_dims != NULL) ? g_dims : dims);
     dset.data_space.select_hyperslab((g_start != NULL) ? g_start : start, stride, count, block);
     dset.memory_space = simpla::data_model::DataSpace(ndims, dims);

@@ -21,7 +21,7 @@ typedef struct spField_s
 {
     SP_MESH_ATTR_HEAD
 
-    struct spDataType_s *m_data_type_desc_;
+    int m_data_type_tag_;
 
     void *m_data_;
 
@@ -38,10 +38,7 @@ int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_
     (*f)->iform = (uint) iform;
     (*f)->is_soa = SP_TRUE;
     (*f)->m_data_ = NULL;
-
-
-    SP_CALL(spDataTypeCreate(&((*f)->m_data_type_desc_), type_tag, 0));
-
+    (*f)->m_data_type_tag_ = type_tag;
     return error_code;
 }
 
@@ -49,12 +46,7 @@ int spFieldDestroy(spField **f)
 {
     int error_code = SP_SUCCESS;
 
-    if (f != NULL && *f != NULL)
-    {
-        SP_CALL(spMemDeviceFree(&((**f).m_data_)));
-
-        SP_CALL(spDataTypeDestroy(&((*f)->m_data_type_desc_)));
-    }
+    if (f != NULL && *f != NULL) { SP_CALL(spMemDeviceFree(&((**f).m_data_))); }
 
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) f));
 
@@ -74,7 +66,7 @@ int spFieldDeploy(spField *f)
 
 size_type spFieldGetSizeInByte(spField const *f)
 {
-    return spDataTypeSizeInByte(f->m_data_type_desc_) *
+    return spDataTypeSizeInByte(f->m_data_type_tag_) *
         spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 }
 
@@ -82,7 +74,7 @@ int spFieldAddScalar(spField *, void const *);
 
 int spFieldIsSoA(spField const *f) { return f->is_soa; }
 
-spDataType const *spFieldDataType(spField const *f) { return f->m_data_type_desc_; };
+int spFieldDataType(spField const *f) { return f->m_data_type_tag_; };
 
 void *spFieldData(spField *f) { return spFieldDeviceData(f); }
 

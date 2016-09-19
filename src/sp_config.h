@@ -30,7 +30,7 @@
 
 #define SP_FAILED 1
 
-typedef size_t size_type;
+typedef unsigned long size_type;
 
 typedef int8_t byte_type; // int8_t
 

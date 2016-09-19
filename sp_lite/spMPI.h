@@ -6,9 +6,7 @@
 #define SIMPLA_SPMPI_H
 
 #include <mpi.h>
-#include "spDataType.h"
-
-MPI_Datatype spDataTypeMPIType(struct spDataType_s const *);
+#include "sp_config.h"
 
 int spMPIInitialize(int argc, char **argv);
 
@@ -34,7 +32,7 @@ typedef struct spMPICartUpdater_s spMPICartUpdater;
 
 int spMPICartUpdaterCreate(spMPICartUpdater **updater,
                            MPI_Comm comm,
-                           const spDataType *data_desc,
+                           int data_type_tag,
                            int mpi_sync_start_dims,
                            int ndims,
                            const size_type *shape,

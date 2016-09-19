@@ -21,7 +21,7 @@
 
 typedef struct spParticleAttrEntity_s
 {
-    spDataType *data_type;
+    int data_type;
     size_type offset;
     char name[255];
     void *data;
@@ -140,15 +140,13 @@ int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
 
 }
 
-int spParticleAddAttribute(spParticle *sp, char const name[], int tag, size_type size, size_type offset)
+int spParticleAddAttribute(spParticle *sp, char const name[], int type_tag, size_type size, size_type offset)
 {
     if (sp == NULL) { return SP_FAILED; }
     assert (sp->is_deployed == SP_FALSE);
 
     int error_code = SP_SUCCESS;
-
-    SP_CALL(spDataTypeCreate(&(sp->m_attrs_[sp->m_num_of_attrs_].data_type), tag, size));
-
+    sp->m_attrs_[sp->m_num_of_attrs_].data_type = type_tag;
     sp->m_attrs_[sp->m_num_of_attrs_].offset = offset;
     strcpy(sp->m_attrs_[sp->m_num_of_attrs_].name, name);
     sp->m_attrs_[sp->m_num_of_attrs_].data = NULL;
@@ -255,11 +253,7 @@ int spParticleDestroy(spParticle **sp)
     SP_CALL(spFieldDestroy(&(*sp)->bucket_count));
     SP_CALL(spMemDeviceFree((void **) &((*sp)->sorted_id)));
 
-    for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i)
-    {
-        SP_CALL(spMemDeviceFree(&((*sp)->m_attrs_[i].data)));
-        SP_CALL(spDataTypeDestroy(&((*sp)->m_attrs_[i].data_type)));
-    }
+    for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i) { SP_CALL(spMemDeviceFree(&((*sp)->m_attrs_[i].data))); }
 
     SP_CALL(spMemDeviceFree((void **) &((*sp)->m_current_data_)));
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) sp));
@@ -441,15 +435,12 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spParticleGetAllAttributeData(sp, d));
 
-    spDataType *d_type;
-
-    SP_CALL(spDataTypeCreate(&d_type, SP_TYPE_Real, sizeof(Real)));
 
     spMPICartUpdater *updater;
 
     SP_CALL(spMPICartUpdaterCreate(&updater,
                                    spMPIComm(),
-                                   d_type,
+                                   SP_TYPE_Real,
                                    0,
                                    ndims,
                                    l_dims,
@@ -466,7 +457,6 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spMPICartUpdaterDestroy(&updater));
 
-    SP_CALL(spDataTypeDestroy(&d_type));
 
     /* MPI COMM End*/
 
