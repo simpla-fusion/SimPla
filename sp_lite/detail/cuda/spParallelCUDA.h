@@ -46,7 +46,7 @@ print_device_error(cudaError_t _m_cudaStat, char const *file, int line, char con
 }
 
 
-#define SP_DEVICE_CALL(_CMD_) error_code = error_code ||print_device_error((_CMD_),__FILE__, __LINE__,__PRETTY_FUNCTION__, __STRING(_CMD_))
+#define SP_DEVICE_CALL(_CMD_) { if(SP_SUCCESS!=print_device_error((_CMD_),__FILE__, __LINE__,__PRETTY_FUNCTION__, __STRING(_CMD_))){return SP_FAILED;}}
 //#define SP_DEVICE_CALL(_CMD_) {                                            \
 //    cudaError_t _m_cudaStat = _CMD_;                                        \
 //    if (_m_cudaStat != cudaSuccess) {                                        \

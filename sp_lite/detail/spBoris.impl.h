@@ -74,7 +74,7 @@ INLINE int spPICBorisSetupParam(spParticle *sp, int tag, size_type *grid_dim, si
 
 typedef struct boris_particle_p_s
 {
-    uint id;
+    size_type id;
     Real rx;
     Real ry;
     Real rz;
@@ -278,7 +278,6 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
 
-    int error_code = SP_SUCCESS;
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
 
@@ -312,7 +311,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 
     SP_CALL(spParticleSync(sp));
 
-    return error_code;
+    return SP_SUCCESS;
 }
 
 /******************************************************************************************/
@@ -502,10 +501,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 {
 
 
-    assert (sp != NULL);
-
-    int error_code = SP_SUCCESS;
-
+    if (sp == NULL) { return SP_FAILED; }
     Real *rho;
     Real *J[3];
     Real *E[3];
@@ -543,7 +539,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
     SP_CALL(spFieldSync(fJ));
 
-    return error_code;
+    return SP_SUCCESS;
 }
 
 

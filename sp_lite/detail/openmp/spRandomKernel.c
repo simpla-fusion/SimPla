@@ -33,7 +33,7 @@ int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimens
 int spRandomGeneratorDestroy(spRandomGenerator **gen)
 {
 
-    SP_CALL(spParallelHostFree((void **) gen));
+    SP_CALL(spMemHostFree((void **) gen));
 
     return SP_SUCCESS;
 }

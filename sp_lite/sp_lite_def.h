@@ -46,7 +46,7 @@ inline int print_error(int error_code, char const *file, int line, char const *f
     return error_code;
 }
 
-#define SP_CALL(_CMD_)   error_code = error_code || print_error((_CMD_), __FILE__, __LINE__, __PRETTY_FUNCTION__, __STRING(_CMD_))
+#define SP_CALL(_CMD_) {if(SP_SUCCESS!= print_error((_CMD_), __FILE__, __LINE__, __PRETTY_FUNCTION__, __STRING(_CMD_))) {return SP_FAILED; }}
 
 
 typedef MeshEntityId64 MeshEntityId;

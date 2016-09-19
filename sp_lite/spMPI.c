@@ -649,11 +649,11 @@ int spMPIPrefixSum(size_type *p_offset, size_type *p_count)
     int buffer[num_of_process + 1];
 
 
-    MPI_Barrier(comm);
+    MPI_CALL(MPI_Barrier(comm));
 
-    MPI_Gather(&count, 1, MPI_INT, &buffer[0], 1, MPI_INT, 0, comm);
+    MPI_CALL(MPI_Gather(&count, 1, MPI_INT, &buffer[0], 1, MPI_INT, 0, comm));
 
-    MPI_Barrier(comm);
+    MPI_CALL(MPI_Barrier(comm));
 
     if (process_num == 0)
     {
@@ -671,17 +671,11 @@ int spMPIPrefixSum(size_type *p_offset, size_type *p_count)
         buffer[0] = 0;
     }
 
-    MPI_Barrier(comm);
-
-    MPI_Scatter(&buffer[0], 1, MPI_INT, &offset, 1, MPI_INT, 0, comm);
-
-    MPI_Barrier(comm);
-
-    MPI_Bcast(&count, 1, MPI_INT, 0, comm);
-
-//    printf("%d/%d  offset= %d total = %d", spMPIRank(), spMPISize(), offset, count);
-
-    MPI_Barrier(comm);
+    MPI_CALL(MPI_Barrier(comm));
+    MPI_CALL(MPI_Scatter(&buffer[0], 1, MPI_INT, &offset, 1, MPI_INT, 0, comm));
+    MPI_CALL(MPI_Barrier(comm));
+    MPI_CALL(MPI_Bcast(&count, 1, MPI_INT, 0, comm));
+    MPI_CALL(MPI_Barrier(comm));
 
     if (p_count != NULL) { *p_count = (size_type) count; }
     if (p_offset != NULL) { *p_offset = (size_type) offset; }

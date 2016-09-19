@@ -21,7 +21,7 @@ int spMemDeviceFree(void **);
 
 int spMemHostAlloc(void **, size_type);
 
-int spParallelHostFree(void **);
+int spMemHostFree(void **);
 
 int spMemCopy(void *, void const *, size_type);
 

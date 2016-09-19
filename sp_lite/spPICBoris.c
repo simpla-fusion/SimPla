@@ -17,7 +17,6 @@ int spParticleCreateBorisYee(spParticle **sp, struct spMesh_s const *m)
 {
     if (sp == NULL) { return SP_DO_NOTHING; }
 
-    int error_code = SP_SUCCESS;
 
     SP_CALL(spParticleCreate(sp, m));
 
@@ -27,12 +26,13 @@ int spParticleCreateBorisYee(spParticle **sp, struct spMesh_s const *m)
     SP_PARTICLE_ADD_ATTR((*sp), vz);
     SP_PARTICLE_ADD_ATTR((*sp), f);
     SP_PARTICLE_ADD_ATTR((*sp), w);
-    return error_code;
+    return SP_SUCCESS;
 }
 
 int spParticleDestroyBorisYee(spParticle **sp)
 {
-    return spParticleDestroy(sp);
+    SP_CALL(spParticleDestroy(sp));
+    return SP_SUCCESS;
 }
 
 

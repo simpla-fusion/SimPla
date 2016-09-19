@@ -54,7 +54,6 @@ INLINE __device__ void SPMeshPoint(int x, int y, int z, Real *rx, Real *ry, Real
 
 int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *block_dim)
 {
-    int error_code = SP_SUCCESS;
     _spFDTDParam param;
     size_type min[3], max[3], strides[3];
     Real inv_dx[3], x0[3], dx[3];
@@ -94,7 +93,7 @@ int spFDTDSetupParam(spMesh const *m, int tag, size_type *grid_dim, size_type *b
 
     SP_CALL(spParallelThreadBlockDecompose(SP_NUM_OF_THREADS_PER_BLOCK, 3, min, max, grid_dim, block_dim));
 
-    return error_code;
+    return SP_SUCCESS;
 }
 
 SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSinKernel, Real *d, Real3 k, Real3 alpha0, Real amp)
@@ -114,7 +113,6 @@ SP_DEVICE_DECLARE_KERNEL(spFDTDInitialValueSinKernel, Real *d, Real3 k, Real3 al
 
 int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 {
-    int error_code = SP_SUCCESS;
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
     int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
@@ -155,7 +153,7 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
     }
 
     SP_CALL(spFieldSync(f));
-    return error_code;
+    return SP_SUCCESS;
 };
 
 
@@ -208,7 +206,6 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernelPushB, Real dt,
 
 int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, spField *fB)
 {
-    int error_code = SP_SUCCESS;
 
     assert(spFieldIsSoA(fRho));
     assert(spFieldIsSoA(fJ));
@@ -249,7 +246,7 @@ int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, s
     SP_CALL(spFieldSync(fB));
 
 
-    return error_code;
+    return SP_SUCCESS;
 }
 
 SP_DEVICE_DECLARE_KERNEL (spFDTDDivKernel, Real const *Jx, Real const *Jy, Real const *Jz, Real *rho)
@@ -271,7 +268,6 @@ SP_DEVICE_DECLARE_KERNEL (spFDTDDivKernel, Real const *Jx, Real const *Jy, Real 
 
 int spFDTDDiv(const spField *fJ, spField *fRho)
 {
-    int error_code = SP_SUCCESS;
 
     assert(spFieldIsSoA(fRho));
     assert(spFieldIsSoA(fJ));
@@ -295,7 +291,7 @@ int spFDTDDiv(const spField *fJ, spField *fRho)
     SP_CALL(spFieldSync(fRho));
 
 
-    return error_code;
+    return SP_SUCCESS;
 }
 
 SP_DEVICE_DECLARE_KERNEL (spFDTDMultiplyByScalarKernel, Real *rho, Real a)
@@ -310,7 +306,6 @@ SP_DEVICE_DECLARE_KERNEL (spFDTDMultiplyByScalarKernel, Real *rho, Real a)
 
 int spFDTDMultiplyByScalar(spField *fRho, Real a)
 {
-    int error_code = SP_SUCCESS;
 
     assert(spFieldIsSoA(fRho));
 
@@ -329,7 +324,7 @@ int spFDTDMultiplyByScalar(spField *fRho, Real a)
     SP_CALL(spFieldSync(fRho));
 
 
-    return error_code;
+    return SP_SUCCESS;
 }
 
 

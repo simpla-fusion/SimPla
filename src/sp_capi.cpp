@@ -22,8 +22,8 @@ extern "C"
 
 };
 
-#include "numeric/rectangle_distribution.h"
-#include "numeric/multi_normal_distribution.h"
+//#include "numeric/rectangle_distribution.h"
+//#include "numeric/multi_normal_distribution.h"
 
 using namespace simpla;
 
@@ -290,53 +290,53 @@ int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mp
 {
     return GLOBAL_COMM.topology(mpi_topo_ndims, mpi_topo_dims, periods, mpi_topo_coord);
 };
-
-int spRandomMultiNormalDistributionInCell(size_type const *min,
-                                          size_type const *max,
-                                          size_type const *strides,
-                                          unsigned int pic,
-                                          Real *rx,
-                                          Real *ry,
-                                          Real *rz,
-                                          Real *vx,
-                                          Real *vy,
-                                          Real *vz)
-{
-    std::mt19937 rnd_gen(6);
-
-    size_t number = (max[0] - min[0]) * (max[1] - min[1]) * (max[2] - min[2]) * pic;
-
-
-    rnd_gen.discard(number);
-
-    rectangle_distribution<3> x_dist;
-
-    multi_normal_distribution<3> v_dist;
-
-
-    for (size_type i = min[0]; i < max[0]; ++i)
-        for (size_type j = min[1]; j < max[1]; ++j)
-            for (size_type k = min[2]; k < max[2]; ++k)
-            {
-                size_type s = (i * strides[0] + j * strides[1] + k * strides[2]);
-                for (int l = 0; l < pic; ++l)
-                {
-                    Real x[3], v[3];
-                    x_dist(rnd_gen, &x[0]);
-                    v_dist(rnd_gen, &v[0]);
-
-                    rx[s + l] = x[0];
-                    ry[s + l] = x[1];
-                    rz[s + l] = x[2];
-
-                    vx[s + l] = v[0];
-                    vy[s + l] = v[1];
-                    vz[s + l] = v[2];
-                }
-
-            }
-
-}
+//
+//int spRandomMultiNormalDistributionInCell(size_type const *min,
+//                                          size_type const *max,
+//                                          size_type const *strides,
+//                                          unsigned int pic,
+//                                          Real *rx,
+//                                          Real *ry,
+//                                          Real *rz,
+//                                          Real *vx,
+//                                          Real *vy,
+//                                          Real *vz)
+//{
+//    std::mt19937 rnd_gen(6);
+//
+//    size_t number = (max[0] - min[0]) * (max[1] - min[1]) * (max[2] - min[2]) * pic;
+//
+//
+//    rnd_gen.discard(number);
+//
+//    rectangle_distribution<3> x_dist;
+//
+//    multi_normal_distribution<3> v_dist;
+//
+//
+//    for (size_type i = min[0]; i < max[0]; ++i)
+//        for (size_type j = min[1]; j < max[1]; ++j)
+//            for (size_type k = min[2]; k < max[2]; ++k)
+//            {
+//                size_type s = (i * strides[0] + j * strides[1] + k * strides[2]);
+//                for (int l = 0; l < pic; ++l)
+//                {
+//                    Real x[3], v[3];
+//                    x_dist(rnd_gen, &x[0]);
+//                    v_dist(rnd_gen, &v[0]);
+//
+//                    rx[s + l] = x[0];
+//                    ry[s + l] = x[1];
+//                    rz[s + l] = x[2];
+//
+//                    vx[s + l] = v[0];
+//                    vy[s + l] = v[1];
+//                    vz[s + l] = v[2];
+//                }
+//
+//            }
+//
+//}
 //
 //
 //int spMPITopologyNumOfDims() { return GLOBAL_COMM.topology_num_of_dims(); }

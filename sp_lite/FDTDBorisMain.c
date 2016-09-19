@@ -25,7 +25,6 @@
 
 int main(int argc, char **argv)
 {
-    int error_code = SP_SUCCESS;
     SP_CALL(spParallelInitialize(argc, argv));
 
 //    ShowSimPlaLogo();
@@ -92,11 +91,11 @@ int main(int argc, char **argv)
 
     spParticle *sp = NULL;
 
-    //SP_CALL(spParticleCreateBorisYee(&sp, mesh));
-    //SP_CALL(spParticleSetMass(sp, (Real) SI_electron_mass));
-    //SP_CALL(spParticleSetCharge(sp, (Real) SI_elementary_charge));
-    //SP_CALL(spParticleSetPIC(sp, (uint) PIC));
-    //SP_CALL(spParticleInitializeBorisYee(sp, n0, T0));
+    SP_CALL(spParticleCreateBorisYee(&sp, mesh));
+    SP_CALL(spParticleSetMass(sp, (Real) SI_electron_mass));
+    SP_CALL(spParticleSetCharge(sp, (Real) SI_elementary_charge));
+    SP_CALL(spParticleSetPIC(sp, (uint) PIC));
+    SP_CALL(spParticleInitializeBorisYee(sp, n0, T0));
 
     /*****************************************************************************************************************/
 
@@ -107,17 +106,17 @@ int main(int argc, char **argv)
     SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_NEW));
     SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_NEW));
 
-//    //SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
+    SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
 
     SP_CALL(spIOStreamOpen(os, "/diagnose/"));
 
-    for (int count = 0; count < num_of_steps && error_code != SP_FAILED; ++count)
+    for (int count = 0; count < num_of_steps; ++count)
     {
         SP_CALL(spFieldClear(fRho));
 
         SP_CALL(spFieldClear(fJ));
 
-        //SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
+        SP_CALL(spParticleUpdateBorisYee(sp, dt, fE, fB, fRho, fJ));
 
         SP_CALL(spFDTDDiv(fJ, fdRho));
 
@@ -132,7 +131,7 @@ int main(int argc, char **argv)
             SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_RECORD));
             SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_RECORD));
             SP_CALL(spFieldWrite(fdRho, os, "dRho", SP_FILE_RECORD));
-            //SP_CALL(spParticleDiagnose(sp, os, "H", SP_FILE_RECORD));
+            SP_CALL(spParticleDiagnose(sp, os, "H", SP_FILE_RECORD));
         }
 
     }
@@ -150,9 +149,9 @@ int main(int argc, char **argv)
     SP_CALL(spFieldDestroy(&fRho));
     SP_CALL(spFieldDestroy(&fdRho));
 
-    //SP_CALL(spParticleDefragment(sp));
-    //SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
-    //SP_CALL(spParticleDestroy(&sp));
+    SP_CALL(spParticleDefragment(sp));
+    SP_CALL(spParticleWrite(sp, os, "H", SP_FILE_NEW));
+    SP_CALL(spParticleDestroy(&sp));
 
 
     SP_CALL(spMeshDestroy(&mesh));
@@ -163,6 +162,6 @@ int main(int argc, char **argv)
     SP_CALL(spIOStreamDestroy(&os));
     SP_CALL(spParallelFinalize());
 
-    exit(error_code);
+    exit(SP_SUCCESS);
 
 }

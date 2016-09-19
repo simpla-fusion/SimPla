@@ -46,7 +46,6 @@ spParticleInitializeBucket_device_kernel(dim3 start,
 }
 int spParticleInitializeBucket_device(spParticle *sp)
 {
-    int error_code = SP_SUCCESS;
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
 
@@ -69,13 +68,13 @@ int spParticleInitializeBucket_device(spParticle *sp)
     SP_CALL(spMeshGetDims(m, m_dims));
 
     size_type block_dim[3], grid_dim[3];
-    spParallelThreadBlockDecompose(256, 3, m_start, m_end, grid_dim, block_dim);
+    SP_CALL(spParallelThreadBlockDecompose(256, 3, m_start, m_end, grid_dim, block_dim));
 
     /*@formatter:off*/
      spParticleInitializeBucket_device_kernel<<<sizeType2Dim3(grid_dim),sizeType2Dim3(block_dim)>>>(
                         sizeType2Dim3(m_start),sizeType2Dim3(m_count),sizeType2Dim3(m_strides),num_of_pic,bucket_start,bucket_count);
     /*@formatter:on*/
-    return error_code;
+    return SP_SUCCESS;
 }
 
 /**
@@ -147,7 +146,7 @@ _CopyBucketStartCount_kernel(size_type *b_start,        // output: cell start in
 
 int spParticleBuildBucket_device(spParticle *sp)
 {
-    int error_code = SP_SUCCESS;
+
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
 
@@ -171,6 +170,7 @@ int spParticleBuildBucket_device(spParticle *sp)
     int numThreads = 256;
     uint sMemSize = sizeof(size_type) * (numThreads + 1);
 
+
     /*@formatter:off*/
     spParticleRebuildBucket_kernel<<<num_of_particle / numThreads + 1, numThreads,sMemSize>>>(
         b_start, b_end,  hash, sorted_id, num_of_particle,num_of_cell);
@@ -181,11 +181,11 @@ int spParticleBuildBucket_device(spParticle *sp)
 
     SP_CALL(spMemCopy(&num_of_particle, b_start, sizeof(size_type)));
 
-    if (num_of_particle != 0) { SP_CALL(spParticleResize(sp, num_of_particle)); }
+    if (num_of_particle != 0) {SP_CALL(spParticleResize(sp, num_of_particle)); }
 
     SP_CALL(spMemDeviceFree((void **) &b_start));
     SP_CALL(spMemDeviceFree((void **) &b_end));
-    return error_code;
+    return SP_SUCCESS;
 }
 
 __global__ void
@@ -219,7 +219,6 @@ spParticleCoordinateConvert(particle_head *sp,
 
 int spParticleCoordinateLocalToGlobal(spParticle *sp)
 {
-    int error_code = SP_SUCCESS;
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
 
     uint iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
@@ -227,9 +226,9 @@ int spParticleCoordinateLocalToGlobal(spParticle *sp)
     Real dx[3], xmin[3], xmax[3];
     size_type dims[3];
 
-    spMeshGetDims(m, dims);
-    spMeshGetDx(m, dx);
-    spMeshGetBox(m, SP_DOMAIN_ALL, xmin, xmax);
+    SP_CALL(spMeshGetDims(m, dims));
+    SP_CALL(spMeshGetDx(m, dx));
+    SP_CALL(spMeshGetBox(m, SP_DOMAIN_ALL, xmin, xmax));
 
     void **p_data;
 
@@ -237,7 +236,7 @@ int spParticleCoordinateLocalToGlobal(spParticle *sp)
 
     size_type *start_pos, *end_pos, *index;
 
-    spParticleGetBucket(sp, &start_pos, &end_pos, &index);
+    SP_CALL(spParticleGetBucket(sp, &start_pos, &end_pos, &index));
 
     uint3 blockDim;
     blockDim.x = SP_NUM_OF_THREADS_PER_BLOCK;
@@ -249,7 +248,7 @@ int spParticleCoordinateLocalToGlobal(spParticle *sp)
                           (particle_head *) (p_data), real2Real3(dx), real2Real3(xmin),
                           start_pos, end_pos, index);
 
-    return error_code;
+    return SP_SUCCESS;
 
 };
 

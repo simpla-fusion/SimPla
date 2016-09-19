@@ -184,7 +184,7 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
                                   g_dims, g_start, flag));
 
 
-    SP_CALL(spParallelHostFree(&f_host));
+    SP_CALL(spMemHostFree(&f_host));
 
 
     return error_code;

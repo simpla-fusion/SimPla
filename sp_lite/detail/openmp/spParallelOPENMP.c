@@ -64,7 +64,7 @@ int spMemHostAlloc(void **p, size_type s)
     return SP_SUCCESS;
 };
 
-int spParallelHostFree(void **p)
+int spMemHostFree(void **p)
 {
     if (*p != NULL)
     {

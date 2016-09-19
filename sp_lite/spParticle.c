@@ -145,14 +145,14 @@ int spParticleAddAttribute(spParticle *sp, char const name[], int type_tag, size
     if (sp == NULL) { return SP_FAILED; }
     assert (sp->is_deployed == SP_FALSE);
 
-    int error_code = SP_SUCCESS;
+
     sp->m_attrs_[sp->m_num_of_attrs_].data_type = type_tag;
     sp->m_attrs_[sp->m_num_of_attrs_].offset = offset;
     strcpy(sp->m_attrs_[sp->m_num_of_attrs_].name, name);
     sp->m_attrs_[sp->m_num_of_attrs_].data = NULL;
 
     ++(sp->m_num_of_attrs_);
-    return error_code;
+    return SP_SUCCESS;
 
 }
 
@@ -183,7 +183,7 @@ int spParticleSetAttributeData(spParticle *sp, int i, void *data)
 
 int spParticleCreate(spParticle **sp, const spMesh *mesh)
 {
-    int error_code = SP_SUCCESS;
+
 
     SP_CALL(spMeshAttributeCreate((spMeshAttribute **) sp, sizeof(spParticle), mesh, VOLUME));
     (*sp)->m_num_of_particle_ = 0;
@@ -195,7 +195,7 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     (*sp)->is_deployed = SP_FALSE;
     (*sp)->step_count = 0;
     (*sp)->defragment_freq = (size_type) -1;
-    return error_code;
+    return SP_SUCCESS;
 
 }
 
@@ -204,10 +204,10 @@ int spParticleDeploy(spParticle *sp)
     if (sp == NULL) { return SP_FAILED; }
 
 
-    int error_code = SP_SUCCESS;
+
 
     /* if  Particle is deployed, then  do nothing and return success*/
-    if (sp->m_current_data_ != NULL) { return error_code; }
+    if (sp->m_current_data_ != NULL) { return SP_SUCCESS; }
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
 
@@ -241,30 +241,29 @@ int spParticleDeploy(spParticle *sp)
 
 
     sp->is_deployed = SP_TRUE;
-    return error_code;
+    return SP_SUCCESS;
 }
 
 int spParticleDestroy(spParticle **sp)
 {
     if (sp == NULL || *sp == NULL) { return SP_SUCCESS; }
 
-    int error_code = SP_SUCCESS;
+
     SP_CALL(spFieldDestroy(&(*sp)->bucket_start));
     SP_CALL(spFieldDestroy(&(*sp)->bucket_count));
     SP_CALL(spMemDeviceFree((void **) &((*sp)->sorted_id)));
 
-    for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i) { SP_CALL(spMemDeviceFree(&((*sp)->m_attrs_[i].data))); }
+    for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i) {SP_CALL(spMemDeviceFree(&((*sp)->m_attrs_[i].data))); }
 
     SP_CALL(spMemDeviceFree((void **) &((*sp)->m_current_data_)));
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) sp));
-    return error_code;
+    return SP_SUCCESS;
 }
 
 int spParticleInitialize(spParticle *sp, int const *dist_types)
 {
     if (sp == NULL) { return SP_FAILED; }
 
-    int error_code = SP_SUCCESS;
 
     SP_CALL(spParticleDeploy(sp));
 
@@ -281,7 +280,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spParticleInitializeBucket_device(sp));
 
-    return error_code;
+    return SP_SUCCESS;
 
 }
 
@@ -304,7 +303,6 @@ int spParticleDefragment(spParticle *sp)
 {
     if (sp == NULL) { return SP_FAILED; }
 
-    int error_code = SP_SUCCESS;
 
     size_type numParticles = spParticleSize(sp);
 
@@ -333,13 +331,11 @@ int spParticleDefragment(spParticle *sp)
 
     SP_CALL(spFillSeqInt(sorted_id, maxNumParticles, 0, 1));
 
-    return error_code;
+    return SP_SUCCESS;
 }
 int spParticleSort(spParticle *sp)
 {
     if (sp == NULL) { return SP_FAILED; }
-
-    int error_code = SP_SUCCESS;
 
     size_type numParticles = spParticleSize(sp);
 
@@ -351,9 +347,9 @@ int spParticleSort(spParticle *sp)
 
     ++sp->step_count;
 
-    if (sp->step_count % sp->defragment_freq == 0) { SP_CALL(spParticleDefragment(sp)); }
+    if (sp->step_count % sp->defragment_freq == 0) {SP_CALL(spParticleDefragment(sp)); }
 
-    return error_code;
+    return SP_SUCCESS;
 };
 
 /**
@@ -363,8 +359,6 @@ int spParticleSort(spParticle *sp)
 int spParticleSync(spParticle *sp)
 {
     if (sp == NULL) { return SP_FAILED; }
-
-    int error_code = SP_SUCCESS;
 
     SP_CALL(spParticleSort(sp));
 
@@ -402,6 +396,7 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, l_end, l_count));
 
+
     size_type p_tail = spParticleSize(sp);
 
     for (int i = 0; i < l_dims[0]; ++i)
@@ -418,8 +413,8 @@ int spParticleSync(spParticle *sp)
 
                 p_tail += bucket_count[s];
             }
-
     SP_CALL(spParticleResize(sp, p_tail));
+
 
     SP_CALL(spFieldCopyToDevice(sp->bucket_start, bucket_start_pos));
 
@@ -460,14 +455,14 @@ int spParticleSync(spParticle *sp)
 
     /* MPI COMM End*/
 
-    SP_CALL(spParallelHostFree((void **) &bucket_start_pos));
+    SP_CALL(spMemHostFree((void **) &bucket_start_pos));
 
-    SP_CALL(spParallelHostFree((void **) &bucket_count));
+    SP_CALL(spMemHostFree((void **) &bucket_count));
 
-    SP_CALL(spParallelHostFree((void **) &sorted_id));
+    SP_CALL(spMemHostFree((void **) &sorted_id));
 
 
-    return error_code;
+    return SP_SUCCESS;
 
 }
 
@@ -477,7 +472,7 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
 {
     if (sp == NULL) { return SP_FAILED; }
 
-    int error_code = SP_SUCCESS;
+
 //    SP_CALL(spParticleCoordinateLocalToGlobal(sp));
 
     char curr_path[2048];
@@ -512,7 +507,7 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
 
         if (new_total_size_in_byte != total_size_in_byte)
         {
-            SP_CALL(spParallelHostFree(&buffer));
+            SP_CALL(spMemHostFree(&buffer));
 
             total_size_in_byte = new_total_size_in_byte;
 
@@ -536,13 +531,13 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
                                       flag));
     }
 
-    SP_CALL(spParallelHostFree(&buffer));
+    SP_CALL(spMemHostFree(&buffer));
 
     SP_CALL(spIOStreamOpen(os, curr_path));
 
 //    SP_CALL(spParticleCoordinateGlobalToLocal(sp));
 
-    return error_code;
+    return SP_SUCCESS;
 
 }
 
@@ -558,7 +553,7 @@ int
 spParticleDiagnose(spParticle const *sp, struct spIOStream_s *os, char const *path, int flag)
 {
     if (sp == NULL) { return SP_FAILED; }
-    int error_code = SP_SUCCESS;
+
 
     char curr_path[2048];
 
@@ -580,5 +575,5 @@ spParticleDiagnose(spParticle const *sp, struct spIOStream_s *os, char const *pa
 
     SP_CALL(spIOStreamOpen(os, curr_path));
 
-    return error_code;
+    return SP_SUCCESS;
 }
