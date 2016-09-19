@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 
     int num_of_steps = argc < 2 ? 100 : atoi(argv[1]);
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
-    size_type PIC = 20;
+    size_type PIC = 5;
     Real n0 = 1.0e18;
     Real T0 = (Real) (0.026 * SI_elementary_charge / SI_Boltzmann_constant);
     size_type dims[3] = {0x8, 0x8, 0x1};

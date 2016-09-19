@@ -67,9 +67,22 @@ struct spParticle_s
 
     size_type step_count;
     size_type defragment_freq;
+
+    int need_sorting;
 };
 
 /** meta data @{*/
+
+
+int spParticleEnableSorting(spParticle *sp)
+{
+    sp->need_sorting = SP_TRUE;
+    return SP_SUCCESS;
+}
+int spParticleNeedSorting(spParticle const *sp)
+{
+    return sp->need_sorting;
+};
 
 int spParticleSetPIC(spParticle *sp, unsigned int pic)
 {
@@ -195,6 +208,8 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     (*sp)->is_deployed = SP_FALSE;
     (*sp)->step_count = 0;
     (*sp)->defragment_freq = (size_type) -1;
+    (*sp)->need_sorting = SP_FALSE;
+
     return SP_SUCCESS;
 
 }
@@ -268,6 +283,9 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
     SP_CALL(spParticleDeploy(sp));
 
     /* Initialize particles*/
+
+    SP_CALL(spMemSet(spParticleGetAttributeData(sp, 0), -1, spParticleCapacity(sp) * sizeof(size_type)));
+
     void *data[spParticleGetNumberOfAttributes(sp)];
 
     SP_CALL(spParticleGetAllAttributeData(sp, data));
@@ -341,13 +359,15 @@ int spParticleSort(spParticle *sp)
 
     size_type *hash = (size_type *) spParticleGetAttributeData(sp, 0);
 
-    SP_CALL(sort_by_key(hash, hash + numParticles, sp->sorted_id));
-
-    SP_CALL(spParticleBuildBucket_device(sp));
+//    SP_CALL(sort_by_key(hash, hash + numParticles, sp->sorted_id));
 
     ++sp->step_count;
 
     if (sp->step_count % sp->defragment_freq == 0) {SP_CALL(spParticleDefragment(sp)); }
+
+    sp->need_sorting = SP_FALSE;
+
+    SP_CALL(spParticleBuildBucket_device(sp));
 
     return SP_SUCCESS;
 };
@@ -360,7 +380,7 @@ int spParticleSync(spParticle *sp)
 {
     if (sp == NULL) { return SP_FAILED; }
 
-    SP_CALL(spParticleSort(sp));
+    assert(spParticleNeedSorting(sp) == SP_FALSE);
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
 
@@ -460,7 +480,6 @@ int spParticleSync(spParticle *sp)
     SP_CALL(spMemHostFree((void **) &bucket_count));
 
     SP_CALL(spMemHostFree((void **) &sorted_id));
-
 
     return SP_SUCCESS;
 

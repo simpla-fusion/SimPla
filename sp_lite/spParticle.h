@@ -61,6 +61,10 @@ int spParticleDeploy(spParticle *sp);
 
 int spParticleInitialize(spParticle *sp, int const *dist_types);
 
+int spParticleEnableSorting(spParticle *sp);
+
+int spParticleNeedSorting(spParticle const *sp);
+
 int spParticleCoordinateLocalToGlobal(spParticle *sp);
 
 int spParticleCoordinateGlobalToLocal(spParticle *sp);

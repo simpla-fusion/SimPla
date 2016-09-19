@@ -6,6 +6,7 @@
 #include "../../../../../../../usr/local/cuda/include/device_launch_parameters.h"
 
 extern "C" {
+#include <assert.h>
 #include "spParallelCUDA.h"
 #include "../../spMPI.h"
 }
@@ -28,9 +29,9 @@ int spParallelDeviceFinalize()
     return SP_SUCCESS;
 }
 
-
 int spMemDeviceAlloc(void **p, size_type s)
 {
+    assert(s > 0);
     SP_DEVICE_CALL(cudaMalloc(p, s));
     return SP_SUCCESS;
 }
@@ -62,7 +63,6 @@ int spMemSet(void *dest, int v, size_type s)
     SP_DEVICE_CALL (cudaMemset(dest, v, s));
     return SP_SUCCESS;
 }
-
 
 int spMemHostAlloc(void **p, size_type s)
 {

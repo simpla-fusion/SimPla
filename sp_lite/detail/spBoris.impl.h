@@ -256,11 +256,8 @@ SP_DEVICE_DECLARE_KERNEL(spParticleInitializeBorisYeeKernel, boris_particle *sp,
     {
         size_type s = sorted_index[start_pos[s0] + threadIdx.x];
 
-
-        sp->id[s] = s0;
         sp->f[s] = f0;
         sp->w[s] = 0.0;
-
 
         sp->rx[s] -= 0.5;
         sp->ry[s] -= 0.5;
@@ -334,30 +331,30 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
     int s0 = _spMeshHash(_pic_param.min.x + blockIdx.x, _pic_param.min.y + blockIdx.y, _pic_param.min.z + blockIdx.z);
 
-    __shared__ Real cE[6];
-    __shared__ Real cB[6];
-
-
-    if (threadIdx.x == 0)
-    {
-        cE[0] = Ex[s0 - _pic_param.strides.x];
-        cE[1] = Ex[s0 /*                  */];
-        cE[2] = Ey[s0 - _pic_param.strides.y];
-        cE[3] = Ey[s0 /*                  */];
-        cE[4] = Ez[s0 - _pic_param.strides.z];
-        cE[5] = Ez[s0 /*                  */];
-
-
-        cB[0] = Bx[s0 - _pic_param.strides.x];
-        cB[1] = Bx[s0 /*                  */];
-        cB[2] = By[s0 - _pic_param.strides.y];
-        cB[3] = By[s0 /*                  */];
-        cB[4] = Bz[s0 - _pic_param.strides.z];
-        cB[5] = Bz[s0 /*                  */];
-
-    }
-
-        spParallelSyncThreads();
+//    __shared__ Real cE[6];
+//    __shared__ Real cB[6];
+//
+//
+//    if (threadIdx.x == 0)
+//    {
+//        cE[0] = Ex[s0 - _pic_param.strides.x];
+//        cE[1] = Ex[s0 /*                  */];
+//        cE[2] = Ey[s0 - _pic_param.strides.y];
+//        cE[3] = Ey[s0 /*                  */];
+//        cE[4] = Ez[s0 - _pic_param.strides.z];
+//        cE[5] = Ez[s0 /*                  */];
+//
+//
+//        cB[0] = Bx[s0 - _pic_param.strides.x];
+//        cB[1] = Bx[s0 /*                  */];
+//        cB[2] = By[s0 - _pic_param.strides.y];
+//        cB[3] = By[s0 /*                  */];
+//        cB[4] = Bz[s0 - _pic_param.strides.z];
+//        cB[5] = Bz[s0 /*                  */];
+//
+//    }
+//
+//        spParallelSyncThreads();
 
 //    __shared__  Real cE[27 * 3];
 //    __shared__  Real cB[27 * 3];
@@ -402,6 +399,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
  */
 
 
+
     if (threadIdx.x < count[s0])
     {
         size_type s = sorted_index[start_pos[s0] + threadIdx.x];
@@ -410,25 +408,29 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
         spParticlePopBoris(sp, s, &p);
 
-        Real E[3], B[3];
+//        Real E[3], B[3];
+//
+//        E[0] = cE[0] * (0.5f - p.rx) + cE[1] * (0.5f + p.rx);
+//        E[1] = cE[2] * (0.5f - p.ry) + cE[3] * (0.5f + p.ry);
+//        E[2] = cE[4] * (0.5f - p.rz) + cE[5] * (0.5f + p.rz);
+//
+//        spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
 
-        E[0] = cE[0] * (0.5f - p.rx) + cE[1] * (0.5f + p.rx);
-        E[1] = cE[2] * (0.5f - p.ry) + cE[3] * (0.5f + p.ry);
-        E[2] = cE[4] * (0.5f - p.rz) + cE[5] * (0.5f + p.rz);
+        uint x = _pic_param.min.x + blockIdx.x;//+ (int) (p.rx + 0.5);
+        uint y = _pic_param.min.y + blockIdx.y;//+ (int) (p.ry + 0.5);
+        uint z = _pic_param.min.z + blockIdx.z;//+ (int) (p.rz + 0.5);
 
-        spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
+        p.id =
+//            (x < _pic_param.center_min.x || x >= _pic_param.center_max.x
+//            || y < _pic_param.center_min.y || y >= _pic_param.center_max.y
+//            || z < _pic_param.center_min.z || z >= _pic_param.center_max.z) ? (size_type) (-1) :
+            _spMeshHash(x, y, z);
 
-        uint x = _pic_param.min.x + blockIdx.x + (int) (p.rx + 0.5);
-        uint y = _pic_param.min.y + blockIdx.y + (int) (p.ry + 0.5);
-        uint z = _pic_param.min.z + blockIdx.z + (int) (p.rz + 0.5);
 
-        p.id = (x < _pic_param.center_min.x || x >= _pic_param.center_max.x
-            || y < _pic_param.center_min.y || y >= _pic_param.center_max.y
-            || z < _pic_param.center_min.z || z >= _pic_param.center_max.z) ? NULL_ID : _spMeshHash(x, y, z);
 
-        p.rx -= (int) (p.rx + .5);
-        p.ry -= (int) (p.ry + .5);
-        p.rz -= (int) (p.rz + .5);
+//        p.rx -= (int) (p.rx + .5);
+//        p.ry -= (int) (p.ry + .5);
+//        p.rz -= (int) (p.rz + .5);
 
         spParticlePushBoris(sp, s, &p);
 
@@ -502,6 +504,10 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
 
     if (sp == NULL) { return SP_FAILED; }
+
+
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute *) sp);
+
     Real *rho;
     Real *J[3];
     Real *E[3];
@@ -513,7 +519,9 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
     SP_CALL(spFieldSubArray((spField *) fB, (void **) B));
 
 
-    size_type grid_dim[3], block_dim[3];
+    size_type grid_dim[3], block_dim[3], dims[3];
+
+    SP_CALL(spMeshGetLocalDims(m, dims));
 
     void **p_data;
 
@@ -525,10 +533,37 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
     SP_CALL(spParticleGetBucket(sp, &start_pos, &count, &index));
 
-    SP_DEVICE_CALL_KERNEL(spParticleUpdateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+    /*@formatter:off*/
+    spParticleUpdateBorisYeeKernel<<< sizeType2Dim3(dims), 256>>>(
                           (boris_particle *) p_data, start_pos, count, index,
                           dt, E[0], E[1], E[2], B[0], B[1], B[2]);
+    /*@formatter:on*/
 
+
+
+//    size_type *buffer;
+//    size_type num_of_particle = spParticleSize(sp);
+//    spMemHostAlloc((void **) &buffer, num_of_particle * sizeof(size_type));
+//
+//    spMemCopy(buffer, spParticleGetAttributeData(sp, 0), num_of_particle * sizeof(size_type));
+//
+//    for (int i = 0; i < num_of_particle; ++i)
+//    {
+//        printf("\t %ld", buffer[i]);
+//        if (i % 10 == 0)printf("\n");
+//    }
+    SP_CALL(spParticleSort(sp));
+//    printf("\n***************************************\n");
+//
+//    spMemCopy(buffer, spParticleGetAttributeData(sp, 0), num_of_particle * sizeof(size_type));
+//
+//    for (int i = 0; i < num_of_particle; ++i)
+//    {
+//        printf("\t %ld", buffer[i]);
+//        if (i % 10 == 0)printf("\n");
+//    }
+//
+//    spMemHostFree((void **) &buffer);
 
     SP_CALL(spParticleSync(sp));
 

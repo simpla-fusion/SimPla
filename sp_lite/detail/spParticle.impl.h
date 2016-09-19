@@ -11,7 +11,6 @@ int spParticleInitializeBucket_device(spParticle *sp);
 
 int spParticleBuildBucket_device(spParticle *sp);
 
-
 enum { SP_RAND_GEN_SOBOL };
 enum { SP_RAND_UNIFORM = 0x1, SP_RAND_NORMAL = 0x10 };
 /**
