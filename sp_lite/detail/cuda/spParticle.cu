@@ -169,10 +169,10 @@ int spParticleBuildBucket_device(spParticle *sp)
     SP_CALL(spMemDeviceAlloc((void **) &b_end, (num_of_cell + 1) * sizeof(size_type)));
     SP_CALL(spMemSet(b_start, 0, (num_of_cell + 1) * sizeof(size_type)));
     int numThreads = 256;
-    uint smemSize = sizeof(size_type) * (numThreads + 1);
+    uint sMemSize = sizeof(size_type) * (numThreads + 1);
 
     /*@formatter:off*/
-    spParticleRebuildBucket_kernel<<<num_of_particle / numThreads + 1, numThreads,smemSize>>>(
+    spParticleRebuildBucket_kernel<<<num_of_particle / numThreads + 1, numThreads,sMemSize>>>(
         b_start, b_end,  hash, sorted_id, num_of_particle,num_of_cell);
     _CopyBucketStartCount_kernel<<<num_of_cell / numThreads + 1, num_of_cell>>>(
          b_start  , b_end  ,bucket_start,bucket_count,num_of_cell);
@@ -181,9 +181,7 @@ int spParticleBuildBucket_device(spParticle *sp)
 
     SP_CALL(spMemCopy(&num_of_particle, b_start, sizeof(size_type)));
 
-    assert(num_of_particle != 0);
-
-    SP_CALL(spParticleResize(sp, num_of_particle));
+    if (num_of_particle != 0) { SP_CALL(spParticleResize(sp, num_of_particle)); }
 
     SP_CALL(spMemDeviceFree((void **) &b_start));
     SP_CALL(spMemDeviceFree((void **) &b_end));

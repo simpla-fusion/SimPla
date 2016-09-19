@@ -408,6 +408,7 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, l_end, l_count));
 
+    size_type p_tail = spParticleSize(sp);
 
     for (int i = 0; i < l_dims[0]; ++i)
         for (int j = 0; j < l_dims[1]; ++j)
@@ -419,11 +420,12 @@ int spParticleSync(spParticle *sp)
 
                 size_type s = i * l_strides[0] + j * l_strides[1] + k * l_strides[2];
 
-                bucket_start_pos[s] = sp->m_num_of_particle_;
+                bucket_start_pos[s] = p_tail;
 
-                sp->m_num_of_particle_ += bucket_count[s];
+                p_tail += bucket_count[s];
             }
 
+    SP_CALL(spParticleResize(sp, p_tail));
 
     SP_CALL(spFieldCopyToDevice(sp->bucket_start, bucket_start_pos));
 
