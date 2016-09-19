@@ -37,8 +37,8 @@ spParticleInitializeBucket_device_kernel(dim3 start,
     if (x < count.x && y < count.y && z < count.z)
     {
         uint s = __umul24(start.x + x, strides.x) +
-                 __umul24(start.y + y, strides.y) +
-                 __umul24(start.z + z, strides.z);
+            __umul24(start.y + y, strides.y) +
+            __umul24(start.z + z, strides.z);
         start_pos[s] = (x * count.y * count.z + y * count.z + z) * num_pic;
         f_count[s] = (size_type) num_pic;
     }
@@ -89,8 +89,8 @@ spParticleInitializeHash_kernel(size_type *id,
 
 
     uint s = __umul24(blockIdx.x, strides.x) +
-             __umul24(blockIdx.y, strides.y) +
-             __umul24(blockIdx.z, strides.z);
+        __umul24(blockIdx.y, strides.y) +
+        __umul24(blockIdx.z, strides.z);
 
     if (threadIdx.x < bucket_count[s]) { id[sort_id[bucket_start[s] + threadIdx.x]] = s; }
 
@@ -167,16 +167,23 @@ spParticleRebuildBucket_kernel(size_type *cellStart,        // output: cell star
         // so store the index of this particle in the cell.
         // As it isn't the first particle, it must also be the cell end of
         // the previous particle's cell
-
         if (index == 0 || hash != sharedHash[threadIdx.x])
         {
+            assert(hash + 1 <= num_cell);
+
             cellStart[hash + 1] = index;
 
-            if (index > 0) cellEnd[sharedHash[threadIdx.x] + 1] = index;
+            if (index > 0)
+            {
+                assert(sharedHash[threadIdx.x] + 1 <= num_cell);
+
+                cellEnd[sharedHash[threadIdx.x] + 1] = index;
+            }
         }
 
         if (index == numParticles - 1)
         {
+            assert(hash + 1 <= num_cell);
             cellEnd[hash + 1] = index + 1;
         }
 
@@ -218,7 +225,6 @@ int spParticleBuildBucket_device(spParticle *sp)
 
     SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_idx, &cell_hash));
 
-
     size_type *b_start = NULL, *b_end = NULL;
 
     SP_CALL(spMemDeviceAlloc((void **) &b_start, (num_of_cell + 1) * sizeof(size_type)));
@@ -233,58 +239,9 @@ int spParticleBuildBucket_device(spParticle *sp)
     /*@formatter:off*/
     spParticleRebuildBucket_kernel<<<num_of_particle / numThreads + 1, numThreads,sMemSize>>>(
         b_start, b_end,  cell_hash, sorted_idx, num_of_particle,num_of_cell);
-
-
     _CopyBucketStartCount_kernel<<<num_of_cell / numThreads + 1, num_of_cell>>>(
          b_start  , b_end  ,bucket_start,bucket_count,num_of_cell);
     /*@formatter:on*/
-    /*@formatter:on*/
-    {
-
-        //
-        size_type *buffer;
-        SP_CALL(spMemHostAlloc((void **) &buffer, (num_of_particle + 1) * sizeof(size_type)));
-        SP_CALL(spMemCopy(buffer, cell_hash, num_of_particle * sizeof(size_type)));
-
-        for (int i = 0; i < num_of_particle; ++i)
-        {
-            printf("\t %ld", buffer[i]);
-            if ((i + 1) % 10 == 0)printf("\n");
-        }
-        printf("\n***************************************\n");
-
-
-
-//        SP_CALL(spMemCopy(buffer, b_start, (num_of_cell + 1) * sizeof(size_type)));
-//
-//        for (int i = 0; i < (num_of_cell + 1); ++i)
-//        {
-//            printf("\t %ld", buffer[i]);
-//            if (i % 10 == 0)printf("\n");
-//        }
-//
-//        printf("\n***************************************\n");
-//        SP_CALL(spMemCopy(buffer, b_end, (num_of_cell + 1) * sizeof(size_type)));
-//
-//        for (int i = 0; i < (num_of_cell + 1); ++i)
-//        {
-//            printf("\t %ld", buffer[i]);
-//            if (i % 10 == 0)printf("\n");
-//        }
-
-        printf("\n***************************************\n");
-        SP_CALL(spMemCopy(buffer, bucket_count, (num_of_cell) * sizeof(size_type)));
-
-        for (int i = 0; i < (num_of_cell); ++i)
-        {
-            printf("\t %ld", buffer[i]);
-            if ((i + 1) % 12 == 0)printf("\n");
-        }
-        SP_CALL(spMemHostFree((void **) &buffer));
-    }
-    /*@formatter:off*/
-
-
 
     SP_CALL(spMemCopy(&num_of_particle, b_start, sizeof(size_type)));
 
@@ -312,7 +269,7 @@ spParticleCoordinateConvert(particle_head *sp,
         z0 = blockIdx.z * dx.z + min.z;
     }
 
-            spParallelSyncThreads();
+        spParallelSyncThreads();
 
     if (start_pos[s0] + threadIdx.x < end_pos[s0])
     {
@@ -339,7 +296,7 @@ int spParticleCoordinateLocalToGlobal(spParticle *sp)
 
     void **p_data;
 
-    SP_CALL(spParticleGetAllAttributeData_device(sp, &p_data));
+    SP_CALL(spParticleGetAllAttributeData_device(sp, &p_data, NULL));
 
     size_type *start_pos, *end_pos, *index;
 

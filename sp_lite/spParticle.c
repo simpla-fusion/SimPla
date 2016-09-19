@@ -22,7 +22,6 @@
 typedef struct spParticleAttrEntity_s
 {
     int data_type;
-    size_type offset;
     char name[255];
     void *data;
 } spParticleAttrEntity;
@@ -59,7 +58,7 @@ struct spParticle_s
 
     spParticleAttrEntity m_attrs_[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
-    void **m_current_data_;
+    void **m_current_data_, **m_next_data_;
     int is_deployed;
 
     spField *bucket_start, *bucket_count;
@@ -148,22 +147,22 @@ int spParticleGetAllAttributeData(spParticle *sp, void **res)
     return SP_SUCCESS;
 };
 
-int spParticleGetAllAttributeData_device(spParticle *sp, void ***data)
+int spParticleGetAllAttributeData_device(spParticle *sp, void ***current_data, void ***next_data)
 {
     if (sp == NULL) { return SP_FAILED; }
-    *data = sp->m_current_data_;
+    if (current_data != NULL) { *current_data = sp->m_current_data_; }
+    if (next_data != NULL) { *next_data = sp->m_next_data_; }
+
     return SP_SUCCESS;
 
 }
 
-int spParticleAddAttribute(spParticle *sp, char const name[], int type_tag, size_type size, size_type offset)
+int spParticleAddAttribute(spParticle *sp, const char name[], int type_tag)
 {
     if (sp == NULL) { return SP_FAILED; }
     assert (sp->is_deployed == SP_FALSE);
 
-
     sp->m_attrs_[sp->m_num_of_attrs_].data_type = type_tag;
-    sp->m_attrs_[sp->m_num_of_attrs_].offset = offset;
     strcpy(sp->m_attrs_[sp->m_num_of_attrs_].name, name);
     sp->m_attrs_[sp->m_num_of_attrs_].data = NULL;
 
@@ -238,6 +237,8 @@ int spParticleDeploy(spParticle *sp)
     {
         SP_CALL(spMemDeviceAlloc(&(sp->m_attrs_[i].data),
                                  spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
+        SP_CALL(spMemSet((sp->m_attrs_[i].data), 0,
+                         spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
     }
     void *d[spParticleGetNumberOfAttributes(sp)];
     SP_CALL(spParticleGetAllAttributeData(sp, d));
@@ -357,6 +358,15 @@ int spParticleDefragment(spParticle *sp)
     return SP_SUCCESS;
 }
 
+int spParticleNextStep(spParticle *sp)
+{
+    void **t = sp->m_next_data_;
+    sp->m_next_data_ = sp->m_current_data_;
+    sp->m_current_data_ = t;
+
+    if (sp->m_current_data_ != NULL) { return SP_SUCCESS; } else { return SP_FAILED; }
+}
+
 int spParticleSort(spParticle *sp)
 {
     if (sp == NULL) { return SP_FAILED; }
@@ -395,6 +405,20 @@ int spParticleSync(spParticle *sp)
     /*******/
 
     SP_CALL(spFieldSync(sp->bucket_count));
+//    {
+//        size_type *buffer;
+//        size_type num_of_cell = (spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform));
+//        SP_CALL(spMemHostAlloc((void **) &buffer, num_of_cell * sizeof(size_type)));
+//        SP_CALL(spMemCopy(buffer, spFieldData(sp->bucket_count), num_of_cell * sizeof(size_type)));
+//
+//        printf("\n***************************************\n");
+//
+//        for (int i = 0; i < (num_of_cell); ++i) {
+//            printf("\t %ld", buffer[i]);
+//            if ((i + 1) % 12 == 0)printf("\n");
+//        }
+//        SP_CALL(spMemHostFree((void **) &buffer));
+//    }
 
     size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_idx = NULL;
 
@@ -402,11 +426,9 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spFieldCopyToHost((void **) &bucket_count, sp->bucket_count));
 
-    SP_CALL(spMemHostAlloc((void **) &sorted_idx, sp->m_num_of_particle_ * sizeof(size_type)));
+    SP_CALL(spMemHostAlloc((void **) &sorted_idx, sp->m_max_num_of_particle_ * sizeof(size_type)));
 
-    SP_CALL(spMemCopy((void *) sorted_idx,
-                      sp->sorted_idx, sp->m_num_of_particle_ * sizeof(size_type)));
-
+    SP_CALL(spMemCopy((void *) sorted_idx, sp->sorted_idx, sp->m_max_num_of_particle_ * sizeof(size_type)));
 
     size_type l_dims[ndims + 1];
     size_type l_start[ndims + 1];
@@ -433,12 +455,13 @@ int spParticleSync(spParticle *sp)
 
                 size_type s = i * l_strides[0] + j * l_strides[1] + k * l_strides[2];
 
-                bucket_start_pos[s] = p_tail;
-
-                p_tail += bucket_count[s];
+                if (bucket_count[s] > 0)
+                {
+                    bucket_start_pos[s] = p_tail;
+                    p_tail += bucket_count[s];
+                }
             }
     SP_CALL(spParticleResize(sp, p_tail));
-
 
     SP_CALL(spFieldCopyToDevice(sp->bucket_start, bucket_start_pos));
 
@@ -470,7 +493,6 @@ int spParticleSync(spParticle *sp)
                                    bucket_start_pos,
                                    bucket_count,
                                    sorted_idx));
-
 
     SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp), d));
 

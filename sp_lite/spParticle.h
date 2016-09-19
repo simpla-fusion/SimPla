@@ -29,18 +29,14 @@ typedef struct
 } particle_head;
 
 
-#define SP_PARTICLE_DATA_DESC_ADD(_DESC_, _CLS_, _T_, _N_)                           \
-    spParticleAddAttribute(_DESC_, __STRING(_N_), SP_TYPE_##_T_,sizeof(_T_),-1);
-
-#define SP_PARTICLE_CREATE_DATA_DESC(_DESC_, _CLS_)     \
-    SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rx)  \
-    SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,ry)  \
-    SP_PARTICLE_DATA_DESC_ADD(_DESC_,_CLS_,Real ,rz)
-
 #define SP_PARTICLE_ATTR(_N_)  Real * _N_;
 
-#define SP_PARTICLE_ADD_ATTR(_DESC_, _N_)   spParticleAddAttribute(_DESC_, __STRING(_N_), SP_TYPE_Real,sizeof(Real),-1);
+#define SP_PARTICLE_ATTR_ADD(_P_, _N_)   SP_CALL(spParticleAddAttribute(_P_, __STRING(_N_), SP_TYPE_Real));
 
+#define SP_PARTICLE_ATTR_HEAD(_P_)     \
+    SP_PARTICLE_ATTR_ADD(_P_,rx)  \
+    SP_PARTICLE_ATTR_ADD(_P_,ry)  \
+    SP_PARTICLE_ATTR_ADD(_P_,rz)
 struct spDataType_s;
 
 struct spMesh_s;
@@ -57,6 +53,8 @@ int spParticleDestroy(spParticle **sp);
 int spParticleDeploy(spParticle *sp);
 
 int spParticleInitialize(spParticle *sp, int const *dist_types);
+
+int spParticleNextStep(spParticle *sp);
 
 int spParticleEnableSorting(spParticle *sp);
 
@@ -88,6 +86,8 @@ int spParticleResize(spParticle *, size_type);
 /**    @}*/
 
 /**  ID @{*/
+
+
 int spParticleSetDefragmentFreq(spParticle *sp, size_t n);
 
 int spParticleSort(spParticle *sp);
@@ -102,7 +102,7 @@ int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **end_p
 /**    @}*/
 
 /**  attribute @{*/
-int spParticleAddAttribute(spParticle *sp, char const name[], int type_tag, size_type size, size_type offset);
+int spParticleAddAttribute(spParticle *sp, const char name[], int type_tag);
 
 int spParticleGetNumberOfAttributes(spParticle const *sp);
 
@@ -116,7 +116,8 @@ int spParticleSetAttributeData(spParticle *sp, int i, void *data);
 
 int spParticleGetAllAttributeData(spParticle *sp, void **res);
 
-int spParticleGetAllAttributeData_device(spParticle *sp, void ***data);
+int spParticleGetAllAttributeData_device(spParticle *sp, void ***current_data, void ***next_data);
+
 /** @}*/
 
 struct spIOStream_s;
