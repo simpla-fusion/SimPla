@@ -360,7 +360,9 @@ int spParticleDefragment(spParticle *sp)
 int spParticleNextStep(spParticle *sp)
 {
     void **t = sp->m_next_data_;
+
     sp->m_next_data_ = sp->m_current_data_;
+
     sp->m_current_data_ = t;
 
     if (sp->m_current_data_ != NULL) { return SP_SUCCESS; } else { return SP_FAILED; }
@@ -381,8 +383,6 @@ int spParticleSort(spParticle *sp)
     sp->need_sorting = SP_FALSE;
 
     SP_CALL(spParticleBuildBucket_device(sp));
-//    CHECK_INT(sp->m_max_num_of_particle_);
-//    _show_dev_data_int(sp->sorted_idx, sp->m_max_num_of_particle_);
 
     return SP_SUCCESS;
 };
@@ -404,10 +404,10 @@ int spParticleSync(spParticle *sp)
     int ndims = spMeshGetNDims(m);
 
     /*******/
+    CHECK_INT(sp->m_num_of_particle_);
     SHOW_FIELD(sp->bucket_count);
 
     SP_CALL(spFieldSync(sp->bucket_count));
-    SHOW_FIELD(sp->bucket_count);
 
 
     size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_idx = NULL;
@@ -435,7 +435,6 @@ int spParticleSync(spParticle *sp)
 
     size_type p_tail = spParticleSize(sp);
 
-    CHECK_INT(p_tail);
 
     for (int i = 0; i < l_dims[0]; ++i)
         for (int j = 0; j < l_dims[1]; ++j)
@@ -453,7 +452,6 @@ int spParticleSync(spParticle *sp)
                     p_tail += bucket_count[s];
                 }
             }
-    CHECK_INT(p_tail);
 
 
     SP_CALL(spParticleResize(sp, p_tail));
