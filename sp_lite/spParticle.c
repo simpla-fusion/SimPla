@@ -392,6 +392,8 @@ int spParticleSort(spParticle *sp)
 
     SP_CALL(spParticleBuildBucket_device(sp));
 
+    if (spMPIRank() == 0) {SHOW_FIELD(sp->bucket_count); }
+
     return SP_SUCCESS;
 };
 
@@ -413,17 +415,7 @@ int spParticleSync(spParticle *sp)
 
     /*******/
 
-//    SP_CALL(spFillSeqInt(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
-//    spMPIBarrier();
-//    if (spMPIRank() == 0) {SHOW_FIELD(sp->bucket_count); }
-//    spMPIBarrier();
-
-
     SP_CALL(spFieldSync(sp->bucket_count));
-
-//    spMPIBarrier();
-//    if (spMPIRank() == 0) {SHOW_FIELD(sp->bucket_count); }
-//    spMPIBarrier();
 
     size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_idx = NULL;
 
