@@ -426,7 +426,13 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spFieldCopyToHost((void **) &bucket_count, sp->bucket_count));
 
+<<<<<<< HEAD
     SP_CALL(spMemHostAlloc((void **) &sorted_idx, sp->m_max_num_of_particle_ * sizeof(size_type)));
+=======
+    SP_CALL(spMemHostAlloc((void **) &sorted_idx, sp->m_num_of_particle_ * sizeof(size_type)));
+
+    SP_CALL(spMemCopy((void *) sorted_idx, sp->sorted_idx, sp->m_num_of_particle_ * sizeof(size_type)));
+>>>>>>> origin/master
 
     SP_CALL(spMemCopy((void *) sorted_idx, sp->sorted_idx, sp->m_max_num_of_particle_ * sizeof(size_type)));
 

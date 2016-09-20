@@ -167,6 +167,10 @@ spParticleRebuildBucket_kernel(size_type *cellStart,        // output: cell star
         // so store the index of this particle in the cell.
         // As it isn't the first particle, it must also be the cell end of
         // the previous particle's cell
+<<<<<<< HEAD
+=======
+        assert(hash + 1 <= num_cell);
+>>>>>>> origin/master
         if (index == 0 || hash != sharedHash[threadIdx.x])
         {
             assert(hash + 1 <= num_cell);
@@ -175,9 +179,15 @@ spParticleRebuildBucket_kernel(size_type *cellStart,        // output: cell star
 
             if (index > 0)
             {
+<<<<<<< HEAD
                 assert(sharedHash[threadIdx.x] + 1 <= num_cell);
 
                 cellEnd[sharedHash[threadIdx.x] + 1] = index;
+=======
+                cellEnd[sharedHash[threadIdx.x] + 1] = index;
+                assert(sharedHash[threadIdx.x] + 1 <= num_cell);
+
+>>>>>>> origin/master
             }
         }
 
@@ -242,6 +252,55 @@ int spParticleBuildBucket_device(spParticle *sp)
     _CopyBucketStartCount_kernel<<<num_of_cell / numThreads + 1, num_of_cell>>>(
          b_start  , b_end  ,bucket_start,bucket_count,num_of_cell);
     /*@formatter:on*/
+<<<<<<< HEAD
+=======
+    {
+//
+        //
+        size_type *buffer;
+        SP_CALL(spMemHostAlloc((void **) &buffer, (num_of_particle + 1) * sizeof(size_type)));
+        SP_CALL(spMemCopy(buffer, cell_hash, num_of_particle * sizeof(size_type)));
+
+//        for (int i = 0; i < num_of_particle; ++i)
+//        {
+//            printf("\t %ld", buffer[i]);
+//            if ((i + 1) % 10 == 0)printf("\n");
+//        }
+//        printf("\n***************************************\n");
+//
+//
+//
+//        SP_CALL(spMemCopy(buffer, b_start, (num_of_cell + 1) * sizeof(size_type)));
+//
+//        for (int i = 0; i < (num_of_cell + 1); ++i)
+//        {
+//            printf("\t %ld", buffer[i]);
+//            if (i % 10 == 0)printf("\n");
+//        }
+//
+//        printf("\n***************************************\n");
+//        SP_CALL(spMemCopy(buffer, b_end, (num_of_cell + 1) * sizeof(size_type)));
+//
+//        for (int i = 0; i < (num_of_cell + 1); ++i)
+//        {
+//            printf("\t %ld", buffer[i]);
+//            if (i % 10 == 0)printf("\n");
+//        }
+//
+        printf("\n***************************************\n");
+        SP_CALL(spMemCopy(buffer, bucket_count, (num_of_cell) * sizeof(size_type)));
+
+        for (int i = 0; i < (num_of_cell); ++i)
+        {
+            printf("\t %ld", buffer[i]);
+            if ((i + 1) % 12 == 0)printf("\n");
+        }
+        SP_CALL(spMemHostFree((void **) &buffer));
+    }
+    /*@formatter:off*/
+
+
+>>>>>>> origin/master
 
     SP_CALL(spMemCopy(&num_of_particle, b_start, sizeof(size_type)));
 
