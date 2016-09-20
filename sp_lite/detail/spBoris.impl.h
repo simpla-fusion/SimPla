@@ -206,32 +206,27 @@ spParticleMoveBoris(Real dt, boris_p *p, Real const *E, Real const *B)
     p->ry += p->vy * _pic_param.invD.y * dt;
     p->rz += p->vz * _pic_param.invD.z * dt;
 
-
-    __register__
-    Real ax, ay, az;
+//    __register__     Real ax, ay, az;
 //    __register__ Real tx, ty, tz;
 //    __register__ Real tt;
 
-    ax = E[0];//cache_gather(E + 0, p->rx - 0.5f, p->ry, p->rz);
-    ay = E[1];//cache_gather(E + 27, p->rx, p->ry - 0.5f, p->rz);
-    az = E[2];//cache_gather(E + 54, p->rx, p->ry, p->rz - 0.5f);
+//    ax = E[0];//cache_gather(E + 0, p->rx - 0.5f, p->ry, p->rz);
+//    ay = E[1];//cache_gather(E + 27, p->rx, p->ry - 0.5f, p->rz);
+//    az = E[2];//cache_gather(E + 54, p->rx, p->ry, p->rz - 0.5f);
 //    tx = cache_gather(B + 0, p->rx, p->ry - 0.5f, p->rz - 0.5f);
 //    ty = cache_gather(B + 27, p->rx - 0.5f, p->ry, p->rz - 0.5f);
 //    tz = cache_gather(B + 54, p->rx - 0.5f, p->ry - 0.5f, p->rz);
-
-    ax *= _pic_param.cmr * dt;
-    ay *= _pic_param.cmr * dt;
-    az *= _pic_param.cmr * dt;
-
+//
+//    ax *= _pic_param.cmr * dt;
+//    ay *= _pic_param.cmr * dt;
+//    az *= _pic_param.cmr * dt;
+//
 //    tx *= _pic_param.cmr * dt;
 //    ty *= _pic_param.cmr * dt;
 //    tz *= _pic_param.cmr * dt;
-
-
-    p->vx += ax;
-    p->vy += ay;
-    p->vz += az;
-
+//    p->vx += ax;
+//    p->vy += ay;
+//    p->vz += az;
 //    __register__ Real v_x, v_y, v_z;
 //
 //    v_x = p->vx + (p->vy * tz - p->vz * ty);
@@ -461,9 +456,9 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
         int y = (int) floor(p.ry + 0.5);
         int z = (int) floor(p.rz + 0.5);
 
-        p.rx -= x + 0.5;
-        p.ry -= y + 0.5;
-        p.rz -= z + 0.5;
+        p.rx -= x;
+        p.ry -= y;
+        p.rz -= z;
 
         x = _pic_param.min.x + blockIdx.x + x;
         y = _pic_param.min.y + blockIdx.y + y;
@@ -473,7 +468,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                       y >= _pic_param.center_min.y && y < _pic_param.center_max.y &&
                       z >= _pic_param.center_min.z && z < _pic_param.center_max.z) ?
                      _spMeshHash(x, y, z) : ((size_type) (-1));
-        p.vz = s0;
+
         spParticlePushBoris(sp, s, &p);
 
     }

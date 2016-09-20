@@ -414,13 +414,11 @@ int spParticleSync(spParticle *sp)
     /*******/
 
 //     SP_CALL(spFillSeqInt(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
-
 //    SHOW_FIELD(sp->bucket_count);
 
     SP_CALL(spFieldSync(sp->bucket_count));
 
 //    SHOW_FIELD(sp->bucket_count);
-
 
     size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_idx = NULL;
 
@@ -476,34 +474,34 @@ int spParticleSync(spParticle *sp)
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, l_end, l_count));
 
     /* MPI COMM Start */
-    {
-
-        Real *buffer;
-        size_type strides[3];
-        SP_CALL(spMeshGetStrides(m, strides));
-        size_type num = spParticleSize(sp);
-        SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
-        SP_CALL(spMemCopy(buffer, spParticleGetAttributeData(sp, 5), num * sizeof(Real)));
-
-        printf("\n***************************************\n");
-
-        for (int i = 0; i < l_dims[0]; ++i)
-        {
-            printf("\n %4d|\t", i);
-            for (int j = 0; j < l_dims[1]; ++j)
-            {
-                for (int k = 0; k < l_dims[2]; ++k)
-                {
-                    size_type s = i * strides[0] + j * strides[1] + k * strides[2];
-
-                    printf(" %4.0f ", (buffer)[sorted_idx[bucket_start_pos[s]]]);
-                }
-            }
-
-        }
-        printf("\n");
-        SP_CALL(spMemHostFree((void **) &buffer));
-    }
+//    {
+//
+//        Real *buffer;
+//        size_type strides[3];
+//        SP_CALL(spMeshGetStrides(m, strides));
+//        size_type num = spParticleSize(sp);
+//        SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
+//        SP_CALL(spMemCopy(buffer, spParticleGetAttributeData(sp, 5), num * sizeof(Real)));
+//
+//        printf("\n***************************************\n");
+//
+//        for (int i = 0; i < l_dims[0]; ++i)
+//        {
+//            printf("\n %4d|\t", i);
+//            for (int j = 0; j < l_dims[1]; ++j)
+//            {
+//                for (int k = 0; k < l_dims[2]; ++k)
+//                {
+//                    size_type s = i * strides[0] + j * strides[1] + k * strides[2];
+//
+//                    printf(" %4.0f ", (buffer)[sorted_idx[bucket_start_pos[s] + 1]]);
+//                }
+//            }
+//
+//        }
+//        printf("\n");
+//        SP_CALL(spMemHostFree((void **) &buffer));
+//    }
     void *d[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
     SP_CALL(spParticleGetAllAttributeData(sp, d));
@@ -526,33 +524,33 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp), d));
 
-    {
-        Real *buffer;
-        size_type strides[3];
-        SP_CALL(spMeshGetStrides(m, strides));
-        size_type num = spParticleSize(sp);
-        SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
-        SP_CALL(spMemCopy(buffer, spParticleGetAttributeData(sp, 5), num * sizeof(Real)));
-
-        printf("\n***************************************\n");
-
-        for (int i = 0; i < l_dims[0]; ++i)
-        {
-            printf("\n %4d|\t", i);
-            for (int j = 0; j < l_dims[1]; ++j)
-            {
-                for (int k = 0; k < l_dims[2]; ++k)
-                {
-                    size_type s = i * strides[0] + j * strides[1] + k * strides[2];
-
-                    printf(" %4.0f ", (buffer)[sorted_idx[bucket_start_pos[s]]]);
-                }
-            }
-
-        }
-        printf("\n");
-        SP_CALL(spMemHostFree((void **) &buffer));
-    }
+//    {
+//        Real *buffer;
+//        size_type strides[3];
+//        SP_CALL(spMeshGetStrides(m, strides));
+//        size_type num = spParticleSize(sp);
+//        SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
+//        SP_CALL(spMemCopy(buffer, spParticleGetAttributeData(sp, 5), num * sizeof(Real)));
+//
+//        printf("\n***************************************\n");
+//
+//        for (int i = 0; i < l_dims[0]; ++i)
+//        {
+//            printf("\n %4d|\t", i);
+//            for (int j = 0; j < l_dims[1]; ++j)
+//            {
+//                for (int k = 0; k < l_dims[2]; ++k)
+//                {
+//                    size_type s = i * strides[0] + j * strides[1] + k * strides[2];
+//
+//                    printf(" %4.0f ", (buffer)[sorted_idx[bucket_start_pos[s] + 1]]);
+//                }
+//            }
+//
+//        }
+//        printf("\n");
+//        SP_CALL(spMemHostFree((void **) &buffer));
+//    }
     SP_CALL(spMPICartUpdaterDestroy(&updater));
 
     /* MPI COMM End*/
