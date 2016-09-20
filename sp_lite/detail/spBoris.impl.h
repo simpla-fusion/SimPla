@@ -566,7 +566,10 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
     SP_CALL(spParticleSort(sp));
 
+    CHECK_INT(spParticleGlobalSize(sp));
+
     SP_CALL(spParticleSync(sp));
+
 
 //    SP_CALL_DEVICE_KERNEL(spParticleAccumlateBorisYeeKernel,
 //                          sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
