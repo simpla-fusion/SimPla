@@ -52,6 +52,7 @@ INLINE int spPICBorisSetupParam(spParticle *sp, int tag, size_type *grid_dim, si
 
     SP_CALL(spMeshGetDomain(m, tag, min, max, grid_dim));
 
+
     SP_CALL(spMeshGetStrides(m, strides));
 
     SP_CALL(spMeshGetInvDx(m, inv_dx));
@@ -63,15 +64,28 @@ INLINE int spPICBorisSetupParam(spParticle *sp, int tag, size_type *grid_dim, si
     block_dim[2] = 1;
 
     param.num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform);
+
     param.max_num_of_particle = spParticleCapacity(sp);
 
     param.min = sizeType2Dim3(min);
+
     param.max = sizeType2Dim3(max);
+
     param.strides = sizeType2Dim3(strides);
 
+    size_type center_min[3], center_max[3];
+    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, center_min, center_max, grid_dim));
+
+    param.center_min = sizeType2Dim3(center_min);
+
+    param.center_max = sizeType2Dim3(center_max);
+
     param.invD = real2Real3(inv_dx);
+
     param.cmr = spParticleGetCharge(sp) / spParticleGetMass(sp);
+
     param.charge = spParticleGetCharge(sp);
+
     param.mass = spParticleGetMass(sp);
 
     spParallelMemcpyToSymbol(_pic_param, &param, sizeof(_spPICBorisParam));
