@@ -221,7 +221,9 @@ typedef struct spMPICartUpdater_s
 {
     MPI_Comm comm;
     int num_of_neighbour;
-    int mpi_sendrecv_count[6];
+    int send_count[6];
+    int recv_count[6];
+
     MPI_Datatype send_types[6];
     MPI_Datatype recv_types[6];
     MPI_Aint send_displs[6];
@@ -369,12 +371,17 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
         (*updater)->recv_types[2 * d + 1] = MPI_DATATYPE_NULL;
 
 
+        (*updater)->send_count[2 * d + 0] = 0;
+        (*updater)->send_count[2 * d + 1] = 0;
+        (*updater)->recv_count[2 * d + 0] = 0;
+        (*updater)->recv_count[2 * d + 1] = 0;
+
+
         (*updater)->send_displs[2 * d + 0] = 0;
         (*updater)->send_displs[2 * d + 1] = 0;
         (*updater)->recv_displs[2 * d + 0] = 0;
         (*updater)->recv_displs[2 * d + 1] = 0;
 
-        (*updater)->mpi_sendrecv_count[2 * d] = (*updater)->mpi_sendrecv_count[2 * d + 1] = 1;
 
         if (dims[d] == 1) { continue; }
 
@@ -449,6 +456,14 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
                                               MPI_ORDER_C,
                                               ele_type,
                                               &((*updater)->recv_types[2 * d + 1])));
+            (*updater)->send_count[2 * d + 0] = 1;
+            (*updater)->send_count[2 * d + 1] = 1;
+            (*updater)->recv_count[2 * d + 0] = 1;
+            (*updater)->recv_count[2 * d + 1] = 1;
+            MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 0])));
+            MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 1])));
+            MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 0])));
+            MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 1])));
         } else
         {
             assert(data_type_tag == SP_TYPE_Real);
@@ -456,45 +471,61 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
             int num = 0;
 
             num = _GatherIndex(&disp, 3, dims, s_start_lower, s_count_lower, bucket_start, bucket_count, sorted_idx);
-            MPI_CALL(MPI_Type_create_indexed_block(num, 1, disp, ele_type, &((*updater)->send_types[2 * d + 0])));
+            MPI_CALL(MPI_Type_create_indexed_block(num, (num > 0) ? 1 : 0, disp, ele_type,
+                                                   &((*updater)->send_types[2 * d + 0])));
+            (*updater)->send_count[2 * d + 0] = (num > 0) ? 1 : 0;
+            MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 0])));
             free(disp);
 
-            num = _GatherIndex(&disp, 3, dims, s_start_upper, s_count_upper, bucket_start, bucket_count, sorted_idx);
-            MPI_CALL(MPI_Type_create_indexed_block(num, 1, disp, ele_type, &((*updater)->send_types[2 * d + 1])));
-            free(disp);
 
             num = _GatherIndex(&disp, 3, dims, r_start_lower, r_count_lower, bucket_start, bucket_count, sorted_idx);
-            MPI_CALL(MPI_Type_create_indexed_block(num, 1, disp, ele_type, &((*updater)->recv_types[2 * d + 0])));
+            MPI_CALL(MPI_Type_create_indexed_block(num, (num > 0) ? 1 : 0, disp, ele_type,
+                                                   &((*updater)->recv_types[2 * d + 0])));
+            (*updater)->recv_count[2 * d + 0] = (num > 0) ? 1 : 0;
+            MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 0])));
+            free(disp);
+
+
+            num = _GatherIndex(&disp, 3, dims, s_start_upper, s_count_upper, bucket_start, bucket_count, sorted_idx);
+            MPI_CALL(MPI_Type_create_indexed_block(num, (num > 0) ? 1 : 0, disp, ele_type,
+                                                   &((*updater)->send_types[2 * d + 1])));
+            (*updater)->send_count[2 * d + 1] = (num > 0) ? 1 : 0;
+            MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 1])));
             free(disp);
 
             num = _GatherIndex(&disp, 0, dims, r_start_upper, r_count_upper, bucket_start, bucket_count, sorted_idx);
-            MPI_CALL(MPI_Type_create_indexed_block(num, 1, disp, ele_type, &((*updater)->recv_types[2 * d + 1])));
+            MPI_CALL(MPI_Type_create_indexed_block(num, (num > 0) ? 1 : 0, disp, ele_type,
+                                                   &((*updater)->recv_types[2 * d + 1])));
+            (*updater)->recv_count[2 * d + 1] = (num > 0) ? 1 : 0;
+            MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 1])));
             free(disp);
 
         }
 
-
-        if ((*updater)->send_types[2 * d + 0] != MPI_DATATYPE_NULL)
-        {
-            MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 0])));
-        }
-        if ((*updater)->send_types[2 * d + 1] != MPI_DATATYPE_NULL)
-        {
-            MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 1])));
-        }
-        if ((*updater)->recv_types[2 * d + 0] != MPI_DATATYPE_NULL)
-        {
-            MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 0])));
-        }
-        if ((*updater)->recv_types[2 * d + 1] != MPI_DATATYPE_NULL)
-        {
-            MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 1])));
-        }
 
     }
 
     return SP_SUCCESS;
 }
+
+
+//        if ((*updater)->send_types[2 * d + 0] != MPI_DATATYPE_NULL)
+//        {
+//            MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 0])));
+//        }
+//        if ((*updater)->send_types[2 * d + 1] != MPI_DATATYPE_NULL)
+//        {
+//            MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 1])));
+//        }
+//        if ((*updater)->recv_types[2 * d + 0] != MPI_DATATYPE_NULL)
+//        {
+//            MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 0])));
+//        }
+//        if ((*updater)->recv_types[2 * d + 1] != MPI_DATATYPE_NULL)
+//        {
+//            MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 1])));
+//        }
+
 
 /**
  * MPI_Neighbor_alltoallw
@@ -580,11 +611,11 @@ int spMPICartUpdate(spMPICartUpdater const *updater, void *buffer)
 
 
     SP_CALL(spMPINeighborAllToAll(buffer,
-                                  updater->mpi_sendrecv_count,
+                                  updater->send_count,
                                   updater->send_displs,
                                   updater->send_types,
                                   buffer,
-                                  updater->mpi_sendrecv_count,
+                                  updater->recv_count,
                                   updater->recv_displs,
                                   updater->recv_types,
                                   updater->comm));

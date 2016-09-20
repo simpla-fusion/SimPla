@@ -407,8 +407,8 @@ int spParticleSync(spParticle *sp)
     SHOW_FIELD(sp->bucket_count);
 
     SP_CALL(spFieldSync(sp->bucket_count));
-
     SHOW_FIELD(sp->bucket_count);
+
 
     size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_idx = NULL;
 
