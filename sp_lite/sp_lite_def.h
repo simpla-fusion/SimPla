@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "../src/sp_config.h"
+#include "spMPI.h"
 
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 #define  COPYRIGHT "All rights reserved. (2016 )"
@@ -23,7 +24,7 @@
 #define UNIMPLEMENTED       printf( "%s:%d:0:%s: UNIMPLEMENTED!! \n", __FILE__, __LINE__,__PRETTY_FUNCTION__ );
 
 #define CHECK_REAL(_MSG_)    printf( "%s:%d:0:%s: %s =%e \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(Real)(_MSG_) );
-#define CHECK_INT(_MSG_)    printf( "%s:%d:0:%s: %s = %ld \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(long)(_MSG_) );
+#define CHECK_INT(_MSG_)    printf( "[%d/%d]%s:%d:0:%s: %s = %ld \n",spMPIRank(),spMPISize(), __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(long)(_MSG_) );
 #define CHECK_UINT(_MSG_)    printf( "%s:%d:0:%s: %s = 0x%x \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_),(unsigned long)(_MSG_) );
 #define CHECK_STR(_MSG_)    printf( "%s:%d:0:%s: %s = %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_), (_MSG_) );
 

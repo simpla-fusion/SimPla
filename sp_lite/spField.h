@@ -47,7 +47,7 @@ int spFieldClear(spField *f);
 
 int spFieldShow(const spField *f, char const *name);
 
-#define SHOW_FIELD(_F_)  printf( "%s:%d:0:%s: Display field [ %s ]", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_F_) );SP_CALL(spFieldShow(_F_,NULL));
+#define SHOW_FIELD(_F_)  {printf( "%s:%d:0:%s: Display field [ %s ]", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_F_) );SP_CALL(spFieldShow(_F_,NULL));}
 
 int spFieldWrite(spField *f, struct spIOStream_s *os, char const name[], int flag);
 

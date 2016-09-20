@@ -83,6 +83,9 @@ size_type spParticleSize(spParticle const *);
 size_type spParticleCapacity(spParticle const *);
 
 int spParticleResize(spParticle *, size_type);
+
+size_type spParticleGlobalSize(spParticle const *sp);
+
 /**    @}*/
 
 /**  ID @{*/

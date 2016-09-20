@@ -428,16 +428,16 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
 
             MPI_CALL(MPI_Type_create_subarray(ndims,
                                               dims,
-                                              s_count_upper,
-                                              s_start_upper,
+                                              s_count_lower,
+                                              s_start_lower,
                                               MPI_ORDER_C,
                                               ele_type,
                                               &((*updater)->send_types[2 * d + 0])));
 
             MPI_CALL(MPI_Type_create_subarray(ndims,
                                               dims,
-                                              s_count_lower,
-                                              s_start_lower,
+                                              s_count_upper,
+                                              s_start_upper,
                                               MPI_ORDER_C,
                                               ele_type,
                                               &((*updater)->send_types[2 * d + 1])));
@@ -457,9 +457,9 @@ int spMPICartUpdaterCreate(spMPICartUpdater **updater,
                                               ele_type,
                                               &((*updater)->recv_types[2 * d + 1])));
             (*updater)->send_count[2 * d + 0] = 1;
+            (*updater)->recv_count[2 * d + 1] = 1;
             (*updater)->send_count[2 * d + 1] = 1;
             (*updater)->recv_count[2 * d + 0] = 1;
-            (*updater)->recv_count[2 * d + 1] = 1;
             MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 0])));
             MPI_CALL(MPI_Type_commit(&((*updater)->send_types[2 * d + 1])));
             MPI_CALL(MPI_Type_commit(&((*updater)->recv_types[2 * d + 0])));
@@ -569,34 +569,51 @@ int spMPINeighborAllToAll(const void *send_buffer,
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
         if (send_types[d * 2 + 0] == MPI_DATATYPE_NULL) { continue; }
-        int r0, r1;
+        int left, right;
 
-        MPI_CALL(MPI_Cart_shift(comm, d, 1, &r0, &r1));
+        MPI_CALL(MPI_Cart_shift(comm, d, 1, &left, &right));
+
+        int send_s0, recv_s0, send_s1, recv_s1;
+        MPI_Type_size(send_types[d * 2 + 0], &send_s0);
+        MPI_Type_size(send_types[d * 2 + 1], &send_s1);
+        MPI_Type_size(recv_types[d * 2 + 0], &recv_s0);
+        MPI_Type_size(recv_types[d * 2 + 1], &recv_s1);
+//
+//        spMPIBarrier();
+//        CHECK_INT(left);
+//        CHECK_INT(right);
+//        CHECK_INT(send_s0);
+//        CHECK_INT(recv_s0);
+//        CHECK_INT(send_counts[d * 2 + 0]);
+//        CHECK_INT(recv_counts[d * 2 + 0]);
+//        CHECK_INT(send_s1);
+//        CHECK_INT(recv_s1);
+//        CHECK_INT(send_counts[d * 2 + 1]);
+//        CHECK_INT(recv_counts[d * 2 + 1]);
+//        spMPIBarrier();
 
         MPI_CALL(MPI_Sendrecv(
                 (byte_type *) (send_buffer) + send_displs[d * 2 + 0],
-                send_counts[d],
+                send_counts[d * 2 + 0],
                 send_types[d * 2 + 0],
-                r0,
-                tag,
-                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
-                recv_counts[d],
-                recv_types[d * 2 + 0],
-                r0,
-                tag,
+                left, tag,
+                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
+                recv_counts[d * 2 + 1],
+                recv_types[d * 2 + 1],
+                right, tag,
                 comm,
                 MPI_STATUS_IGNORE));
 
         MPI_CALL(MPI_Sendrecv(
                 (byte_type *) (send_buffer) + send_displs[d * 2 + 1],
-                send_counts[d],
+                send_counts[d * 2 + 1],
                 send_types[d * 2 + 1],
-                r1,
+                right,
                 tag,
-                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 1],
-                recv_counts[d],
-                recv_types[d * 2 + 1],
-                r1,
+                (byte_type *) (recv_buffer) + recv_displs[d * 2 + 0],
+                recv_counts[d * 2 + 0],
+                recv_types[d * 2 + 0],
+                left,
                 tag,
                 comm,
                 MPI_STATUS_IGNORE));

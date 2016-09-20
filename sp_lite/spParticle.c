@@ -304,6 +304,14 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
 }
 
+size_type spParticleGlobalSize(spParticle const *sp)
+{
+    size_type total = sp->m_num_of_particle_;
+
+    SP_CALL(spMPIPrefixSum(NULL, &total));
+    return total;
+}
+
 /**  ID  and sort @{*/
 
 int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **sorted_idx,
@@ -360,7 +368,9 @@ int spParticleDefragment(spParticle *sp)
 int spParticleNextStep(spParticle *sp)
 {
     void **t = sp->m_next_data_;
+
     sp->m_next_data_ = sp->m_current_data_;
+
     sp->m_current_data_ = t;
 
     if (sp->m_current_data_ != NULL) { return SP_SUCCESS; } else { return SP_FAILED; }
@@ -381,8 +391,6 @@ int spParticleSort(spParticle *sp)
     sp->need_sorting = SP_FALSE;
 
     SP_CALL(spParticleBuildBucket_device(sp));
-//    CHECK_INT(sp->m_max_num_of_particle_);
-//    _show_dev_data_int(sp->sorted_idx, sp->m_max_num_of_particle_);
 
     return SP_SUCCESS;
 };
@@ -404,11 +412,19 @@ int spParticleSync(spParticle *sp)
     int ndims = spMeshGetNDims(m);
 
     /*******/
-    SHOW_FIELD(sp->bucket_count);
+
+    if (spMPIRank() == 0) { CHECK_INT(spParticleGlobalSize(sp)); }
+
+//    SP_CALL(spFillSeqInt(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
+//    spMPIBarrier();
+//    if (spMPIRank() == 0){SHOW_FIELD(sp->bucket_count);}
+//    spMPIBarrier();
 
     SP_CALL(spFieldSync(sp->bucket_count));
-    SHOW_FIELD(sp->bucket_count);
 
+//    spMPIBarrier();
+//    if (spMPIRank() == 0){SHOW_FIELD(sp->bucket_count);}
+//    spMPIBarrier();
 
     size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_idx = NULL;
 
@@ -435,7 +451,6 @@ int spParticleSync(spParticle *sp)
 
     size_type p_tail = spParticleSize(sp);
 
-    CHECK_INT(p_tail);
 
     for (int i = 0; i < l_dims[0]; ++i)
         for (int j = 0; j < l_dims[1]; ++j)
@@ -453,7 +468,6 @@ int spParticleSync(spParticle *sp)
                     p_tail += bucket_count[s];
                 }
             }
-    CHECK_INT(p_tail);
 
 
     SP_CALL(spParticleResize(sp, p_tail));
