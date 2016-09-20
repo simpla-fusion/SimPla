@@ -44,6 +44,9 @@ int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
     assert(max[1] > min[1]);
     assert(max[2] > min[2]);
 
+    grid_dim[0] = 1;
+    grid_dim[1] = 1;
+    grid_dim[2] = 1;
 
     block_dim[0] = num_of_threads_per_block;
     block_dim[1] = 1;
@@ -60,17 +63,30 @@ int spParallelThreadBlockDecompose(size_type num_of_threads_per_block,
         block_dim[1] /= 2;
         block_dim[2] *= 2;
     }
-    grid_dim[0] = (max[0] - min[0]) / block_dim[0];
-    grid_dim[1] = (max[1] - min[1]) / block_dim[1];
-    grid_dim[2] = (max[2] - min[2]) / block_dim[2];
+    for (int i = 0; i < 3; ++i)
+    {
+        if (max[i] - min[i] > 1)
+        {
+            grid_dim[i] = (max[i] - min[i]) / block_dim[i];
+            grid_dim[i] = (grid_dim[i] * block_dim[i] < max[i] - min[i]) ? grid_dim[i] + 1 : grid_dim[i];
 
-    grid_dim[0] = (grid_dim[0] * block_dim[0] < max[0] - min[0]) ? grid_dim[0] + 1 : grid_dim[0];
-    grid_dim[1] = (grid_dim[1] * block_dim[1] < max[1] - min[1]) ? grid_dim[1] + 1 : grid_dim[1];
-    grid_dim[2] = (grid_dim[2] * block_dim[2] < max[2] - min[2]) ? grid_dim[2] + 1 : grid_dim[2];
-
-    assert(grid_dim[0] * block_dim[0] >= max[0] - min[0]);
-    assert(grid_dim[1] * block_dim[1] >= max[1] - min[1]);
-    assert(grid_dim[2] * block_dim[2] >= max[2] - min[2]);
+        } else
+        {
+            grid_dim[i] = 1;
+            block_dim[i] = 1;
+        }
+    }
+//    grid_dim[0] = (max[0] - min[0]) / block_dim[0];
+//    grid_dim[1] = (max[1] - min[1]) / block_dim[1];
+//    grid_dim[2] = (max[2] - min[2]) / block_dim[2];
+//
+//    grid_dim[0] = (grid_dim[0] * block_dim[0] < max[0] - min[0]) ? grid_dim[0] + 1 : grid_dim[0];
+//    grid_dim[1] = (grid_dim[1] * block_dim[1] < max[1] - min[1]) ? grid_dim[1] + 1 : grid_dim[1];
+//    grid_dim[2] = (grid_dim[2] * block_dim[2] < max[2] - min[2]) ? grid_dim[2] + 1 : grid_dim[2];
+//
+//    assert(grid_dim[0] * block_dim[0] >= max[0] - min[0]);
+//    assert(grid_dim[1] * block_dim[1] >= max[1] - min[1]);
+//    assert(grid_dim[2] * block_dim[2] >= max[2] - min[2]);
     return SP_SUCCESS;
 
 }

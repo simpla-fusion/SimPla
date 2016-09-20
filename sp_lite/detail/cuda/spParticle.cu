@@ -28,9 +28,9 @@ spParticleInitializeBucket_device_kernel(dim3 start,
                                          size_type *f_count)
 {
 
-    uint x = __umul24(blockIdx.x, blockIdx.x) + threadIdx.x;
-    uint y = __umul24(blockIdx.y, blockIdx.y) + threadIdx.y;
-    uint z = __umul24(blockIdx.z, blockIdx.z) + threadIdx.z;
+    uint x = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
+    uint y = __umul24(blockIdx.y, blockDim.y) + threadIdx.y;
+    uint z = __umul24(blockIdx.z, blockDim.z) + threadIdx.z;
 
     if (x < count.x && y < count.y && z < count.z)
     {
@@ -68,11 +68,31 @@ int spParticleInitializeBucket_device(spParticle *sp)
 
     size_type block_dim[3], grid_dim[3];
     SP_CALL(spParallelThreadBlockDecompose(256, 3, m_start, m_end, grid_dim, block_dim));
-
+//    CHECK_INT(m_start[0]);
+//    CHECK_INT(m_start[1]);
+//    CHECK_INT(m_start[2]);
+//
+//    CHECK_INT(m_end[0]);
+//    CHECK_INT(m_end[1]);
+//    CHECK_INT(m_end[2]);
+//    CHECK_INT(m_count[0]);
+//    CHECK_INT(m_count[1]);
+//    CHECK_INT(m_count[2]);
+//
+//    CHECK_INT(m_strides[0]);
+//    CHECK_INT(m_strides[1]);
+//    CHECK_INT(m_strides[2]);
+//
+//    CHECK_INT(grid_dim[0]);
+//    CHECK_INT(grid_dim[1]);
+//    CHECK_INT(grid_dim[2]);
+//    CHECK_INT(block_dim[0]);
+//    CHECK_INT(block_dim[1]);
+//    CHECK_INT(block_dim[2]);
     SP_CALL_DEVICE_KERNEL(spParticleInitializeBucket_device_kernel,
                           sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
-                          sizeType2Dim3(m_start), sizeType2Dim3(m_count),
-                          sizeType2Dim3(m_strides), num_of_pic, bucket_start, bucket_count);
+                          sizeType2Dim3(m_start), sizeType2Dim3(m_count), sizeType2Dim3(m_strides),
+                          num_of_pic, bucket_start, bucket_count);
 
     return SP_SUCCESS;
 }

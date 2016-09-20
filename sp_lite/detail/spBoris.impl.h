@@ -59,6 +59,19 @@ INLINE int spPICBorisSetupParam(spParticle *sp, int tag, size_type *grid_dim, si
 
     assert(spParticleGetPIC(sp) < 256);
 
+//    CHECK_INT(min[0]);
+//    CHECK_INT(min[1]);
+//    CHECK_INT(min[2]);
+//    CHECK_INT(max[0]);
+//    CHECK_INT(max[1]);
+//    CHECK_INT(max[2]);
+//    CHECK_INT(grid_dim[0]);
+//    CHECK_INT(grid_dim[1]);
+//    CHECK_INT(grid_dim[2]);
+//    CHECK_INT(strides[0]);
+//    CHECK_INT(strides[1]);
+//    CHECK_INT(strides[2]);
+
     block_dim[0] = 256;
     block_dim[1] = 1;
     block_dim[2] = 1;
@@ -448,9 +461,9 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
         int y = (int) floor(p.ry + 0.5);
         int z = (int) floor(p.rz + 0.5);
 
-        p.rx -= x;
-        p.ry -= y;
-        p.rz -= z;
+        p.rx -= x + 0.5;
+        p.ry -= y + 0.5;
+        p.rz -= z + 0.5;
 
         x = _pic_param.min.x + blockIdx.x + x;
         y = _pic_param.min.y + blockIdx.y + y;
@@ -460,10 +473,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                       y >= _pic_param.center_min.y && y < _pic_param.center_max.y &&
                       z >= _pic_param.center_min.z && z < _pic_param.center_max.z) ?
                      _spMeshHash(x, y, z) : ((size_type) (-1));
-
-
-        p.vx = s0;
-
+        p.vz = s0;
         spParticlePushBoris(sp, s, &p);
 
     }
@@ -572,13 +582,6 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
     SP_CALL(spParticleSort(sp));
 
     CHECK_INT(spParticleGlobalSize(sp));
-
-    //    SP_CALL(spFillSeqInt(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
-//    spMPIBarrier();
-//    if (spMPIRank() == 0) {SHOW_FIELD(sp->bucket_count); }
-//    spMPIBarrier();
-//    spMPIBarrier();
-//    spMPIBarrier();
 
     SP_CALL(spParticleSync(sp));
 
