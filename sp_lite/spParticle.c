@@ -413,12 +413,14 @@ int spParticleSync(spParticle *sp)
 
     /*******/
 
+
     if (spMPIRank() == 0) { CHECK_INT(spParticleGlobalSize(sp)); }
 
 //    SP_CALL(spFillSeqInt(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
 //    spMPIBarrier();
 //    if (spMPIRank() == 0){SHOW_FIELD(sp->bucket_count);}
 //    spMPIBarrier();
+
 
     SP_CALL(spFieldSync(sp->bucket_count));
 

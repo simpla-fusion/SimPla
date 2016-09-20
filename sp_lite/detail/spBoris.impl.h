@@ -452,12 +452,13 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
         cell_id[s] = (x >= _pic_param.center_min.x && x < _pic_param.center_max.x &&
                       y >= _pic_param.center_min.y && y < _pic_param.center_max.y &&
                       z >= _pic_param.center_min.z && z < _pic_param.center_max.z) ?
+
                      _spMeshHash(x, y, z) : ((size_type) (-1));
 
 
-//        p.rx -= (int) (p.rx + .5);
-//        p.ry -= (int) (p.ry + .5);
-//        p.rz -= (int) (p.rz + .5);
+        p.rx -= (int) (p.rx + .5);
+        p.ry -= (int) (p.ry + .5);
+        p.rz -= (int) (p.rz + .5);
 
         spParticlePushBoris(sp, s, &p);
 
