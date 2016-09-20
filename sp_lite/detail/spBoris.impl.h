@@ -576,7 +576,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
     SP_CALL(spParticleSort(sp));
 
-    CHECK_INT(spParticleGlobalSize(sp));
+//    CHECK_INT(spParticleGlobalSize(sp));
 
     SP_CALL(spParticleSync(sp));
 
