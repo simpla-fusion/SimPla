@@ -413,17 +413,12 @@ int spParticleSync(spParticle *sp)
 
     /*******/
 
-//    SP_CALL(spFillSeqInt(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
-//    spMPIBarrier();
-//    if (spMPIRank() == 0) {SHOW_FIELD(sp->bucket_count); }
-//    spMPIBarrier();
-
+    SP_CALL(spFillSeqInt(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
+    if (spMPIRank() == 0) {SHOW_FIELD(sp->bucket_count); }
 
     SP_CALL(spFieldSync(sp->bucket_count));
 
-//    spMPIBarrier();
-//    if (spMPIRank() == 0) {SHOW_FIELD(sp->bucket_count); }
-//    spMPIBarrier();
+    if (spMPIRank() == 0) {SHOW_FIELD(sp->bucket_count); }
 
     size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_idx = NULL;
 
@@ -502,23 +497,33 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp), d));
 
-//    {
-//        Real *buffer;
-//        size_type num = spParticleSize(sp);
-//        SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
-//        SP_CALL(spMemCopy(buffer, spParticleGetAttributeData(sp, 0), num * sizeof(Real)));
-//
-//        printf("\n***************************************\n");
-//
-//        for (int i = 0; i < (num); ++i)
-//        {
-//            if ((i) % 10 == 0)printf("\n %4d: ", i);
-//
-//            printf("\t %f", buffer[i]);
-//        }
-//        printf("\n");
-//        SP_CALL(spMemHostFree((void **) &buffer));
-//    }
+    {
+        Real *buffer;
+        size_type strides[3];
+        SP_CALL(spMeshGetStrides(m, strides));
+        size_type num = spParticleSize(sp);
+        SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
+        SP_CALL(spMemCopy(buffer, spParticleGetAttributeData(sp, 3), num * sizeof(Real)));
+
+        printf("\n***************************************\n");
+
+        for (int i = 0; i < l_dims[0]; ++i)
+        {
+            printf("\n %4d|\t", i);
+            for (int j = 0; j < l_dims[1]; ++j)
+            {
+                for (int k = 0; k < l_dims[2]; ++k)
+                {
+                    size_type s = i * strides[0] + j * strides[1] + k * strides[2];
+
+                    printf(" %8f ", (buffer)[sorted_idx[bucket_start_pos[s]]]);
+                }
+            }
+
+        }
+        printf("\n");
+        SP_CALL(spMemHostFree((void **) &buffer));
+    }
     SP_CALL(spMPICartUpdaterDestroy(&updater));
 
     /* MPI COMM End*/

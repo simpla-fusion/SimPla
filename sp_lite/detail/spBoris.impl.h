@@ -287,9 +287,9 @@ SP_DEVICE_DECLARE_KERNEL(spParticleInitializeBorisYeeKernel, boris_particle *sp,
 //        sp->vy[s] *= vT;
 //        sp->vz[s] *= vT;
 
-        sp->vx[s] = 0.5f / _pic_param.invD.x;
-        sp->vy[s] = 0.5f / _pic_param.invD.x;
-        sp->vz[s] = 0.5;
+        sp->vx[s] = 0.1f / _pic_param.invD.x;
+        sp->vy[s] = 0;
+        sp->vz[s] = 0;
     }
 
 }
@@ -329,7 +329,6 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 
     SP_CALL_DEVICE_KERNEL(spParticleInitializeBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (boris_particle *) p_data, start_pos, count, sorted_idx, vT, f0);
-
 
     SP_CALL(spParticleSync(sp));
 
@@ -445,21 +444,24 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
         spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
 
-        int x = _pic_param.min.x + blockIdx.x + (int) (p.rx + 0.5);
-        int y = _pic_param.min.y + blockIdx.y + (int) (p.ry + 0.5);
-        int z = _pic_param.min.z + blockIdx.z + (int) (p.rz + 0.5);
+        int x = (int) floor(p.rx + 0.5);
+        int y = (int) floor(p.ry + 0.5);
+        int z = (int) floor(p.rz + 0.5);
+
+        p.rx -= x;
+        p.ry -= y;
+        p.rz -= z;
+
+        x = _pic_param.min.x + blockIdx.x + x;
+        y = _pic_param.min.y + blockIdx.y + y;
+        z = _pic_param.min.z + blockIdx.z + z;
 
         cell_id[s] = (x >= _pic_param.center_min.x && x < _pic_param.center_max.x &&
                       y >= _pic_param.center_min.y && y < _pic_param.center_max.y &&
                       z >= _pic_param.center_min.z && z < _pic_param.center_max.z) ?
-
                      _spMeshHash(x, y, z) : ((size_type) (-1));
 
-
-        p.rx -= (int) (p.rx + .5);
-        p.ry -= (int) (p.ry + .5);
-        p.rz -= (int) (p.rz + .5);
-
+        p.vx = s0;
         spParticlePushBoris(sp, s, &p);
 
     }
@@ -564,9 +566,17 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
                           (boris_particle *) current_data, cell_hash, start_pos, count, sorted_idx, 1/* dt*/,
                           E[0], E[1], E[2], B[0], B[1], B[2])
 
+
     SP_CALL(spParticleSort(sp));
 
     CHECK_INT(spParticleGlobalSize(sp));
+
+    //    SP_CALL(spFillSeqInt(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
+//    spMPIBarrier();
+//    if (spMPIRank() == 0) {SHOW_FIELD(sp->bucket_count); }
+//    spMPIBarrier();
+//    spMPIBarrier();
+//    spMPIBarrier();
 
     SP_CALL(spParticleSync(sp));
 
