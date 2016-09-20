@@ -405,20 +405,7 @@ int spParticleSync(spParticle *sp)
     /*******/
 
     SP_CALL(spFieldSync(sp->bucket_count));
-//    {
-//        size_type *buffer;
-//        size_type num_of_cell = (spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform));
-//        SP_CALL(spMemHostAlloc((void **) &buffer, num_of_cell * sizeof(size_type)));
-//        SP_CALL(spMemCopy(buffer, spFieldData(sp->bucket_count), num_of_cell * sizeof(size_type)));
-//
-//        printf("\n***************************************\n");
-//
-//        for (int i = 0; i < (num_of_cell); ++i) {
-//            printf("\t %ld", buffer[i]);
-//            if ((i + 1) % 12 == 0)printf("\n");
-//        }
-//        SP_CALL(spMemHostFree((void **) &buffer));
-//    }
+
 
     size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_idx = NULL;
 
@@ -426,14 +413,7 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spFieldCopyToHost((void **) &bucket_count, sp->bucket_count));
 
-<<<<<<< HEAD
     SP_CALL(spMemHostAlloc((void **) &sorted_idx, sp->m_max_num_of_particle_ * sizeof(size_type)));
-=======
-    SP_CALL(spMemHostAlloc((void **) &sorted_idx, sp->m_num_of_particle_ * sizeof(size_type)));
-
-    SP_CALL(spMemCopy((void *) sorted_idx, sp->sorted_idx, sp->m_num_of_particle_ * sizeof(size_type)));
->>>>>>> origin/master
-
     SP_CALL(spMemCopy((void *) sorted_idx, sp->sorted_idx, sp->m_max_num_of_particle_ * sizeof(size_type)));
 
     size_type l_dims[ndims + 1];
@@ -483,7 +463,6 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spParticleGetAllAttributeData(sp, d));
 
-
     spMPICartUpdater *updater;
 
     SP_CALL(spMPICartUpdaterCreate(&updater,
@@ -502,6 +481,23 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spMPICartUpdateAll(updater, spParticleGetNumberOfAttributes(sp), d));
 
+//    {
+//        Real *buffer;
+//        size_type num = spParticleSize(sp);
+//        SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
+//        SP_CALL(spMemCopy(buffer, spParticleGetAttributeData(sp, 0), num * sizeof(Real)));
+//
+//        printf("\n***************************************\n");
+//
+//        for (int i = 0; i < (num); ++i)
+//        {
+//            if ((i) % 10 == 0)printf("\n %4d: ", i);
+//
+//            printf("\t %f", buffer[i]);
+//        }
+//        printf("\n");
+//        SP_CALL(spMemHostFree((void **) &buffer));
+//    }
     SP_CALL(spMPICartUpdaterDestroy(&updater));
 
     /* MPI COMM End*/
