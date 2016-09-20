@@ -31,7 +31,6 @@ int spParallelDeviceFinalize()
 
 int spMemDeviceAlloc(void **p, size_type s)
 {
-    assert(s > 0);
     SP_DEVICE_CALL(cudaMalloc(p, s));
     return SP_SUCCESS;
 }
@@ -91,7 +90,7 @@ void spParallelDeviceFillIntKernel(int *d, int v, size_type max)
 int spParallelDeviceFillInt(int *d, int v, size_type s)
 {
 
-    SP_DEVICE_CALL_KERNEL(spParallelDeviceFillIntKernel, 16, 256, d, v, s);
+    SP_CALL_DEVICE_KERNEL(spParallelDeviceFillIntKernel, 16, 256, d, v, s);
 
     return SP_SUCCESS;
 };
@@ -104,7 +103,7 @@ void spParallelDeviceFillRealKernel(Real *d, Real v, size_type max)
 
 int spParallelDeviceFillReal(Real *d, Real v, size_type s)
 {
-    SP_DEVICE_CALL_KERNEL(spParallelDeviceFillRealKernel, 16, 256, d, v, s);
+    SP_CALL_DEVICE_KERNEL(spParallelDeviceFillRealKernel, 16, 256, d, v, s);
     return SP_SUCCESS;
 };
 
@@ -123,7 +122,7 @@ void spParallelAssignKernel(size_type max, size_type const *offset, Real *d, Rea
 
 int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real const *v)
 {
-    SP_DEVICE_CALL_KERNEL(spParallelAssignKernel, 16, 256, num_of_point, offset, d, v);
+    SP_CALL_DEVICE_KERNEL(spParallelAssignKernel, 16, 256, num_of_point, offset, d, v);
     return SP_SUCCESS;
 };
 //

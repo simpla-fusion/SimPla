@@ -7,7 +7,7 @@
 
 #include "../../sp_lite_def.h"
 #include "../../spParallel.h"
-#include "../../../../../../../usr/local/cuda/include/cuda_runtime_api.h"
+#include "../../../../../../../usr/local/cuda/include/driver_types.h"
 
 
 #ifdef NUM_OF_THREADS_PER_BLOCK
@@ -54,12 +54,10 @@ print_device_error(cudaError_t _m_cudaStat, char const *file, int line, char con
 //    } }
 
 
-#define SP_DEVICE_CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_)>>>(__VA_ARGS__)
+#define SP_CALL_DEVICE_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_)>>>(__VA_ARGS__);SP_DEVICE_CALL(cudaPeekAtLastError()); SP_DEVICE_CALL(cudaDeviceSynchronize())
+#define SP_DEVICE_CALL_KERNEL2(_FUN_, _DIMS_, _N_THREADS_, _SMEM_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_),(_SMEM_)>>>(__VA_ARGS__);SP_DEVICE_CALL(cudaPeekAtLastError()); SP_DEVICE_CALL(cudaDeviceSynchronize())
 
 #define SP_DEVICE_DECLARE_KERNEL(_FUN_, ...) __global__ void _FUN_( __VA_ARGS__)
-
-//int SP_DEVICE_CALL_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<_DIMS_,_N_THREADS_>>>(__VA_ARGS__)
-
 
 
 #define INLINE __inline__ __attribute__((always_inline))
@@ -70,7 +68,53 @@ print_device_error(cudaError_t _m_cudaStat, char const *file, int line, char con
 
 INLINE __device__ int atomicAddInt(int *ptr, int val) { return atomicAdd(ptr, val); }
 
-INLINE __device__ Real atomicAddReal(Real *ptr, float val) { return atomicAdd(ptr, val); }
+INLINE __device__ Real
+atomicAddReal(Real
+*ptr,
+float val
+) {
+return
+atomicAdd(ptr, val
+); }
 
+inline int _show_dev_data_int(size_type const *d, size_type num)
+{
+    size_type *buffer;
+    SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(size_type)));
+    SP_CALL(spMemCopy(buffer, d, num * sizeof(size_type)));
+
+    printf("\n***************************************\n");
+
+    for (int i = 0; i < (num); ++i)
+    {
+        if ((i) % 10 == 0)printf("\n %4d: ", i);
+
+        printf("\t %ld", buffer[i]);
+    }
+    printf("\n");
+    SP_CALL(spMemHostFree((void **) &buffer));
+    return SP_SUCCESS;
+
+}
+
+inline int _show_dev_data_real(Real const *d, size_type num)
+{
+    Real * buffer;
+    SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
+    SP_CALL(spMemCopy(buffer, d, num * sizeof(Real)));
+
+    printf("\n***************************************\n");
+
+    for (int i = 0; i < (num); ++i)
+    {
+        if ((i) % 10 == 0)printf("\n %4d: ", i);
+
+        printf("\t %f", buffer[i]);
+    }
+    printf("\n");
+    SP_CALL(spMemHostFree((void **) &buffer));
+
+    return SP_SUCCESS;
+}
 
 #endif //SIMPLA_SPPARALLEL_CU_H

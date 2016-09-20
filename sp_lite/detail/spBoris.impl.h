@@ -301,7 +301,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 
     SP_CALL(spParticleGetBucket(sp, &start_pos, &count, &sorted_idx, NULL));
 
-    SP_DEVICE_CALL_KERNEL(spParticleInitializeBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+    SP_CALL_DEVICE_KERNEL(spParticleInitializeBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (boris_particle *) p_data, start_pos, count, sorted_idx, vT, f0);
 
     SP_CALL(spParticleSync(sp));
@@ -543,14 +543,16 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
     SP_CALL(spParticleGetBucket(sp, &start_pos, &count, &sorted_idx, &cell_hash));
 
-    /*@formatter:off*/
-    spParticleUpdateBorisYeeKernel <<< sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim) >>> (
-            (boris_particle *) current_data, cell_hash, start_pos, count, sorted_idx, dt, E[0], E[1], E[2], B[0], B[1], B[2]);
-    /*@formatter:on*/
+    SP_CALL_DEVICE_KERNEL(spParticleUpdateBorisYeeKernel,
+                          sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+                          (boris_particle *) current_data, cell_hash, start_pos, count, sorted_idx, dt, E[0], E[1],
+                          E[2], B[0], B[1], B[2]);
 
     SP_CALL(spParticleSort(sp));
+
     SP_CALL(spParticleSync(sp));
-    SP_DEVICE_CALL_KERNEL(spParticleAccumlateBorisYeeKernel,
+
+    SP_CALL_DEVICE_KERNEL(spParticleAccumlateBorisYeeKernel,
                           sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (boris_particle *) current_data, start_pos, count, sorted_idx,
                           J[0], J[1], J[2], rho);

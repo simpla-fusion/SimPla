@@ -8,12 +8,11 @@
 #include "../spParallel.h"
 
 
-#ifdef __CUDACC__
-#   include "cuda/spParallelCUDA.h"
-
+#ifdef __OMP__
+#   include "openmp/spParallelOPENMP.h"
 #else
 
-#   include "openmp/spParallelOPENMP.h"
+#   include "cuda/spParallelCUDA.h"
 
 #endif
 

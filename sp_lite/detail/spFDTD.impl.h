@@ -142,7 +142,7 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
     {
 
 
-        SP_DEVICE_CALL_KERNEL(spFDTDInitialValueSinKernel,
+        SP_CALL_DEVICE_KERNEL(spFDTDInitialValueSinKernel,
                               sizeType2Dim3(grid_dim),
                               sizeType2Dim3(block_dim),
                               data[i],
@@ -228,19 +228,19 @@ int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, s
 
     spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim);
 
-    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernelPushB, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), 0.5 * dt,
+    SP_CALL_DEVICE_KERNEL(spUpdateFieldFDTDKernelPushB, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), 0.5 * dt,
                           E[0], E[1], E[2], B[0], B[1], B[2]);
 
     SP_CALL(spFieldSync(fB));
 
-    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernelPushE, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), dt,
+    SP_CALL_DEVICE_KERNEL(spUpdateFieldFDTDKernelPushE, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), dt,
                           E[0], E[1], E[2], B[0], B[1], B[2],
                           (const Real *) rho, (const Real *) J[0], (const Real *) J[1], (const Real *) J[2]);
 
     SP_CALL(spFieldSync(fE));
 
 
-    SP_DEVICE_CALL_KERNEL(spUpdateFieldFDTDKernelPushB, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), 0.5 * dt,
+    SP_CALL_DEVICE_KERNEL(spUpdateFieldFDTDKernelPushB, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), 0.5 * dt,
                           E[0], E[1], E[2], B[0], B[1], B[2]);
 
     SP_CALL(spFieldSync(fB));
@@ -285,7 +285,7 @@ int spFDTDDiv(const spField *fJ, spField *fRho)
 
     SP_CALL(spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim));
 
-    SP_DEVICE_CALL_KERNEL(spFDTDDivKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+    SP_CALL_DEVICE_KERNEL(spFDTDDivKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (const Real *) J[0], (const Real *) J[1], (const Real *) J[2], rho);
 
     SP_CALL(spFieldSync(fRho));
@@ -319,7 +319,7 @@ int spFDTDMultiplyByScalar(spField *fRho, Real a)
 
     SP_CALL(spFDTDSetupParam(m, SP_DOMAIN_CENTER, grid_dim, block_dim));
 
-    SP_DEVICE_CALL_KERNEL(spFDTDMultiplyByScalarKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), rho, a);
+    SP_CALL_DEVICE_KERNEL(spFDTDMultiplyByScalarKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), rho, a);
 
     SP_CALL(spFieldSync(fRho));
 

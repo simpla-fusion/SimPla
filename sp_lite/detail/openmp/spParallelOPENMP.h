@@ -31,9 +31,11 @@ typedef uint3 dim3;
 
 #define __register__
 
+#define SP_CHECK_DEVICE_ERROR
+
 #define SP_DEVICE_DECLARE_KERNEL(_FUN_, ...)   void _FUN_ (dim3 gridDim,dim3 blockDim,dim3 blockIdx, dim3 threadIdx,__VA_ARGS__)
 
-#define SP_DEVICE_CALL_KERNEL(_FUN_, gridDim, blockDim, ...)         \
+#define SP_CALL_DEVICE_KERNEL(_FUN_, gridDim, blockDim, ...)         \
 {                                                                    \
    _Pragma("omp parallel for")                                       \
   for (int x = 0; x < gridDim.x; ++x)                                \
