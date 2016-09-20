@@ -67,7 +67,7 @@ int spFieldDeploy(spField *f)
 size_type spFieldGetSizeInByte(spField const *f)
 {
     return spDataTypeSizeInByte(f->m_data_type_tag_) *
-        spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
+           spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform);
 }
 
 int spFieldAddScalar(spField *, void const *);
@@ -95,6 +95,7 @@ int spFieldAddScalar(spField *f, void const *v)
 {
     return SP_DO_NOTHING;
 }
+
 int spFieldFillIntSeq(spField_t f, int tag, size_type min, size_type step)
 {
     return SP_DO_NOTHING;
@@ -117,8 +118,7 @@ int spFieldSubArray(spField *f, void **data)
 
         for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * offset; }
 
-    }
-    else
+    } else
     {
         UNIMPLEMENTED;
 //        for (int i = 0; i < num_of_sub; ++i) { data[i] = data_root + i * ele_size_in_byte; }
@@ -142,6 +142,54 @@ int spFieldFillReal(spField *f, Real v)
     SP_CALL(spParallelDeviceFillReal(f->m_data_, v, spMeshGetNumberOfEntities(f->m, SP_DOMAIN_ALL, f->iform)));
     return SP_SUCCESS;
 
+}
+
+int spFieldShow(const spField *f, char const *name)
+{
+    if (f == NULL) { return SP_FAILED; }
+
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
+    int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
+
+    size_type dims[3], strides[3];
+
+    spMeshGetLocalDims(m, dims);
+    spMeshGetStrides(m, strides);
+
+    void *buffer;
+    SP_CALL(spMemHostAlloc((void **) &buffer, spFieldGetSizeInByte(f)));
+    SP_CALL(spMemCopy(buffer, spFieldData((spField *) f), spFieldGetSizeInByte(f)));
+
+    if (name != NULL) { printf("\n [ %s ]", name); }
+
+    printf("\n %4d|\t", 0);
+    for (int j = 0; j < dims[1]; ++j) { printf(" %8d ", j); }
+    printf("\n-----+--");
+    for (int j = 0; j < dims[1] * 10; ++j) { printf("-"); }
+
+
+    for (int i = 0; i < dims[0]; ++i)
+    {
+        printf("\n %4d|\t", i);
+        for (int j = 0; j < dims[1]; ++j)
+        {
+            if (dims[2] > 1) { printf("{"); }
+            for (int k = 0; k < dims[2]; ++k)
+            {
+                size_type s = i * strides[0] + j * strides[1] + k * strides[2];
+
+                if (f->m_data_type_tag_ == SP_TYPE_Real) { printf(" %8f ", ((Real *) buffer)[s]); }
+                else if (f->m_data_type_tag_ == SP_TYPE_size_type) { printf(" %8lu ", ((size_type *) buffer)[s]); }
+            }
+            if (dims[2] > 1) { printf("},"); }
+        }
+
+    }
+
+
+    printf("\n");
+    SP_CALL(spMemHostFree(&buffer));
+    return SP_SUCCESS;
 }
 
 int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
@@ -244,8 +292,7 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real c
         SP_CALL(spFieldSubArray(f, (void **) data));
 
         for (int i = 0; i < num_of_sub; ++i) {SP_CALL(spParallelAssign(num_of_points, offset, data[i], v[i])); }
-    }
-    else
+    } else
     {
         UNIMPLEMENTED;
     }

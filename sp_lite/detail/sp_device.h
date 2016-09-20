@@ -44,4 +44,42 @@ INLINE __device__  __host__ Real3 real2Real3(Real const *v)
 }
 
 
+INLINE int _show_dev_data_int(size_type const *d, size_type num)
+{
+    size_type *buffer;
+    SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(size_type)));
+    SP_CALL(spMemCopy(buffer, d, num * sizeof(size_type)));
+
+
+    for (int i = 0; i < (num); ++i)
+    {
+        if ((i) % 12 == 0)printf("\n %4d: ", i);
+
+        printf("\t %ld", buffer[i]);
+    }
+    printf("\n");
+    SP_CALL(spMemHostFree((void **) &buffer));
+    return SP_SUCCESS;
+
+}
+
+INLINE int _show_dev_data_real(Real const *d, size_type num)
+{
+    Real *buffer;
+    SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
+    SP_CALL(spMemCopy(buffer, d, num * sizeof(Real)));
+
+
+    for (int i = 0; i < (num); ++i)
+    {
+        if ((i) % 10 == 0)printf("\n %4d: ", i);
+
+        printf("\t %f", buffer[i]);
+    }
+    printf("\n");
+    SP_CALL(spMemHostFree((void **) &buffer));
+
+    return SP_SUCCESS;
+}
+
 #endif //SIMPLA_SP_DEVICE_H

@@ -16,8 +16,7 @@ extern "C"
 
 }
 
-#include </usr/local/cuda/include/device_launch_parameters.h>
-#include </usr/local/cuda/include/cuda_runtime_api.h>
+
 #include </usr/local/cuda/include/curand_kernel.h>
 
 __global__ void
@@ -55,12 +54,12 @@ int spParticleInitializeBucket_device(spParticle *sp)
 
     size_type num_of_pic = spParticleGetPIC(sp);
 
-    size_type *bucket_start, *bucket_count, *sorted_id;
+    size_type *bucket_start, *bucket_count, *sorted_id, *cell_hash;
 
-    SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_id, NULL));
+    SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_id, &cell_hash));
 
     SP_CALL(spFillSeqInt(sorted_id, spParticleCapacity(sp), 0, 1));
-
+    SP_CALL(spMemSet(cell_hash, -1, spParticleCapacity(sp) * sizeof(size_type)));
     size_type m_start[3], m_end[3], m_count[3], m_strides[3], m_dims[3];
 
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, m_start, m_end, m_count));
@@ -157,7 +156,7 @@ spParticleRebuildBucket_kernel(size_type *cellStart,        // output: cell star
         }
     }
 
-    __syncthreads();
+    spParallelSyncThreads();
 
     if (index < numParticles)
     {

@@ -23,37 +23,41 @@ typedef struct spField_s *spField_t;
 
 typedef const struct spField_s *spField_const_t;
 
-int spFieldCreate(spField_t *f, const struct spMesh_s *m, int iform, int type_tag);
+int spFieldCreate(spField **f, const struct spMesh_s *m, int iform, int type_tag);
 
-int spFieldDestroy(spField_t *f);
+int spFieldDestroy(spField **f);
 
-int spFieldDeploy(spField_t f);
+int spFieldDeploy(spField *f);
 
 int spFieldDataType(spField const *f);
 
-void *spFieldData(spField_t f);
+void *spFieldData(spField *f);
 
 size_type spFieldGetSizeInByte(spField const *f);
 
 int spFieldIsSoA(spField const *f);
 
-void *spFieldDeviceData(spField_t f);
+void *spFieldDeviceData(spField *f);
 
 const void *spFieldDataConst(spField const *f);
 
 const void *spFieldDeviceDataConst(spField const *f);
 
-int spFieldClear(spField_t f);
+int spFieldClear(spField *f);
 
-int spFieldWrite(spField_t f, struct spIOStream_s *os, char const name[], int flag);
+int spFieldShow(const spField *f, char const *name);
 
-int spFieldRead(spField_t f, struct spIOStream_s *os, char const name[], int flag);
+#define SHOW_FIELD(_F_)  printf( "%s:%d:0:%s: Display field [ %s ]", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_F_) );SP_CALL(spFieldShow(_F_,NULL));
 
-int spFieldSync(spField_t f);
+int spFieldWrite(spField *f, struct spIOStream_s *os, char const name[], int flag);
+
+int spFieldRead(spField *f, struct spIOStream_s *os, char const name[], int flag);
+
+int spFieldSync(spField *f);
 
 int spFieldNumberOfSub(spField const *f);
 
-int spFieldSubArray(spField_t f, void **data);
+int spFieldSubArray(spField *f, void **data);
 
 int spFieldCopyToHost(void **d, spField const *f);
 
@@ -61,17 +65,25 @@ int spFieldCopyToDevice(spField *f, void const *d);
 
 /* device dependent function*/
 int spFieldFill(spField *f, int tag, void const *v);
-int spFieldFillIntSeq(spField_t f, int tag, size_type min, size_type step);
+
+int spFieldFillIntSeq(spField *f, int tag, size_type min, size_type step);
 
 int spFieldAddScalar(spField *f, void const *);
+
 int spFieldMinusScalar(spField *f, void const *);
+
 int spFieldMultiplyScalar(spField *f, void const *);
+
 int spFieldDivideScalar(spField *f, void const *);
 
 int spFieldAssign(spField *f, spField const *);
+
 int spFieldAdd(spField *f, spField const *);
+
 int spFieldMinus(spField *f, spField const *);
+
 int spFieldMultiply(spField *f, spField const *);
+
 int spFieldDivide(spField *f, spField const *);
 
 

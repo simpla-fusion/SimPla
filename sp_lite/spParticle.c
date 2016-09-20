@@ -17,7 +17,7 @@
 #include "spField.h"
 #include "spParticle.h"
 #include "detail/spParticle.impl.h"
-
+#include "detail/sp_device.h"
 
 typedef struct spParticleAttrEntity_s
 {
@@ -118,7 +118,8 @@ size_type spParticleSize(spParticle const *sp) { return sp->m_num_of_particle_; 
 
 int spParticleResize(spParticle *sp, size_type s)
 {
-    if (sp == NULL) { return SP_FAILED; }
+    if (sp == NULL || s >= sp->m_max_num_of_particle_) { return SP_FAILED; }
+
     sp->m_num_of_particle_ = s;
 
     return SP_SUCCESS;
@@ -230,7 +231,7 @@ int spParticleDeploy(spParticle *sp)
 
     sp->m_num_of_particle_ = spMeshGetNumberOfEntities(m, SP_DOMAIN_CENTER, iform) * sp->m_pic_;
 
-    sp->m_max_num_of_particle_ = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform) * sp->m_pic_ * 5 / 4;
+    sp->m_max_num_of_particle_ = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform) * sp->m_pic_ * 2;
 
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
@@ -240,12 +241,11 @@ int spParticleDeploy(spParticle *sp)
         SP_CALL(spMemSet((sp->m_attrs_[i].data), 0,
                          spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
     }
-    void *d[spParticleGetNumberOfAttributes(sp)];
+    int num_of_attr = spParticleGetNumberOfAttributes(sp);
+    void *d[num_of_attr];
     SP_CALL(spParticleGetAllAttributeData(sp, d));
-    SP_CALL(spMemDeviceAlloc((void **) &(sp->m_current_data_),
-                             spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
-    SP_CALL(spMemCopy(sp->m_current_data_, d,
-                      spParticleGetNumberOfAttributes(sp) * sizeof(void *)));
+    SP_CALL(spMemDeviceAlloc((void **) &(sp->m_current_data_), num_of_attr * sizeof(void *)));
+    SP_CALL(spMemCopy(sp->m_current_data_, d, num_of_attr * sizeof(void *)));
 
     /* Deploy buckets */
 
@@ -256,6 +256,7 @@ int spParticleDeploy(spParticle *sp)
 
     SP_CALL(spMemDeviceAlloc((void **) &(sp->sorted_idx), sp->m_max_num_of_particle_ * sizeof(size_type)));
     SP_CALL(spMemDeviceAlloc((void **) &(sp->cell_hash), sp->m_max_num_of_particle_ * sizeof(size_type)));
+
     sp->is_deployed = SP_TRUE;
     return SP_SUCCESS;
 }
@@ -286,8 +287,6 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
     SP_CALL(spParticleDeploy(sp));
 
     /* Initialize particles*/
-
-    SP_CALL(spMemSet(sp->cell_hash, -1, spParticleCapacity(sp) * sizeof(size_type)));
 
     void *data[spParticleGetNumberOfAttributes(sp)];
 
@@ -382,6 +381,8 @@ int spParticleSort(spParticle *sp)
     sp->need_sorting = SP_FALSE;
 
     SP_CALL(spParticleBuildBucket_device(sp));
+//    CHECK_INT(sp->m_max_num_of_particle_);
+//    _show_dev_data_int(sp->sorted_idx, sp->m_max_num_of_particle_);
 
     return SP_SUCCESS;
 };
@@ -403,9 +404,11 @@ int spParticleSync(spParticle *sp)
     int ndims = spMeshGetNDims(m);
 
     /*******/
+    SHOW_FIELD(sp->bucket_count);
 
     SP_CALL(spFieldSync(sp->bucket_count));
 
+    SHOW_FIELD(sp->bucket_count);
 
     size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_idx = NULL;
 
@@ -414,6 +417,7 @@ int spParticleSync(spParticle *sp)
     SP_CALL(spFieldCopyToHost((void **) &bucket_count, sp->bucket_count));
 
     SP_CALL(spMemHostAlloc((void **) &sorted_idx, sp->m_max_num_of_particle_ * sizeof(size_type)));
+
     SP_CALL(spMemCopy((void *) sorted_idx, sp->sorted_idx, sp->m_max_num_of_particle_ * sizeof(size_type)));
 
     size_type l_dims[ndims + 1];
@@ -431,6 +435,8 @@ int spParticleSync(spParticle *sp)
 
     size_type p_tail = spParticleSize(sp);
 
+    CHECK_INT(p_tail);
+
     for (int i = 0; i < l_dims[0]; ++i)
         for (int j = 0; j < l_dims[1]; ++j)
             for (int k = 0; k < l_dims[2]; ++k)
@@ -447,8 +453,10 @@ int spParticleSync(spParticle *sp)
                     p_tail += bucket_count[s];
                 }
             }
-    SP_CALL(spParticleResize(sp, p_tail));
+    CHECK_INT(p_tail);
 
+
+    SP_CALL(spParticleResize(sp, p_tail));
     SP_CALL(spFieldCopyToDevice(sp->bucket_start, bucket_start_pos));
 
     /*******/
