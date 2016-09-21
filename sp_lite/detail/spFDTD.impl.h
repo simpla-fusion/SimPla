@@ -170,13 +170,13 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernelPushE, Real dt,
     {
         int s = SPMeshHash(x, y, z);
 
-        Ex[s] -= ((Bz[s] - Bz[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
+        Ex[s] += ((Bz[s] - Bz[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
             - (By[s] - By[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
             * speed_of_light2 * dt - Jx[s] / epsilon0 * dt;
-        Ey[s] -= ((Bx[s] - Bx[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
+        Ey[s] += ((Bx[s] - Bx[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
             - (Bz[s] - Bz[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
             * speed_of_light2 * dt - Jy[s] / epsilon0 * dt;
-        Ez[s] -= ((By[s] - By[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
+        Ez[s] += ((By[s] - By[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
             - (Bx[s] - Bx[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
             * speed_of_light2 * dt - Jz[s] / epsilon0 * dt;
     }
@@ -194,11 +194,11 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernelPushB, Real dt,
     {
         int s = SPMeshHash(x, y, z);
 
-        Bx[s] += ((Ez[s + _fdtd_param.strides.y] - Ez[s]) * _fdtd_param.inv_dx.y
+        Bx[s] -= ((Ez[s + _fdtd_param.strides.y] - Ez[s]) * _fdtd_param.inv_dx.y
             - (Ey[s + _fdtd_param.strides.z] - Ey[s]) * _fdtd_param.inv_dx.z) * dt;
-        By[s] += ((Ex[s + _fdtd_param.strides.z] - Ex[s]) * _fdtd_param.inv_dx.z
+        By[s] -= ((Ex[s + _fdtd_param.strides.z] - Ex[s]) * _fdtd_param.inv_dx.z
             - (Ez[s + _fdtd_param.strides.x] - Ez[s]) * _fdtd_param.inv_dx.x) * dt;
-        Bz[s] += ((Ey[s + _fdtd_param.strides.x] - Ey[s]) * _fdtd_param.inv_dx.x
+        Bz[s] -= ((Ey[s + _fdtd_param.strides.x] - Ey[s]) * _fdtd_param.inv_dx.x
             - (Ex[s + _fdtd_param.strides.y] - Ex[s]) * _fdtd_param.inv_dx.y) * dt;
 
     }

@@ -34,9 +34,9 @@ int main(int argc, char **argv)
     int num_of_steps = argc < 2 ? 100 : atoi(argv[1]);
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
     size_type PIC = 5;
-    Real n0 = 1.0e18;
+    Real n0 = 1.0e16;
     Real T0 = (Real) (0.026 * SI_elementary_charge / SI_Boltzmann_constant);
-    size_type dims[3] = {0x8, 0x6, 0x1};
+    size_type dims[3] = {0x8, 0x7, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
@@ -64,7 +64,6 @@ int main(int argc, char **argv)
     SP_CALL(spMeshDeploy(mesh));
 
     if (isnan(dt)) { dt = spMeshCFLDt(mesh, (Real) speed_of_light); }
-
     /*****************************************************************************************************************/
 
     spField *fE = NULL;
@@ -85,7 +84,7 @@ int main(int argc, char **argv)
     SP_CALL(spFieldClear(fRho));
     SP_CALL(spFieldClear(fdRho));
 
-    SP_CALL(spFDTDInitialValueSin(fE, k, amp));
+//    SP_CALL(spFDTDInitialValueSin(fE, k, amp));
 
     /*****************************************************************************************************************/
 

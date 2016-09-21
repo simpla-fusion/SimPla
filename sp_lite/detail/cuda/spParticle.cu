@@ -68,27 +68,7 @@ int spParticleInitializeBucket_device(spParticle *sp)
 
     size_type block_dim[3], grid_dim[3];
     SP_CALL(spParallelThreadBlockDecompose(256, 3, m_start, m_end, grid_dim, block_dim));
-//    CHECK_INT(m_start[0]);
-//    CHECK_INT(m_start[1]);
-//    CHECK_INT(m_start[2]);
-//
-//    CHECK_INT(m_end[0]);
-//    CHECK_INT(m_end[1]);
-//    CHECK_INT(m_end[2]);
-//    CHECK_INT(m_count[0]);
-//    CHECK_INT(m_count[1]);
-//    CHECK_INT(m_count[2]);
-//
-//    CHECK_INT(m_strides[0]);
-//    CHECK_INT(m_strides[1]);
-//    CHECK_INT(m_strides[2]);
-//
-//    CHECK_INT(grid_dim[0]);
-//    CHECK_INT(grid_dim[1]);
-//    CHECK_INT(grid_dim[2]);
-//    CHECK_INT(block_dim[0]);
-//    CHECK_INT(block_dim[1]);
-//    CHECK_INT(block_dim[2]);
+
     SP_CALL_DEVICE_KERNEL(spParticleInitializeBucket_device_kernel,
                           sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           sizeType2Dim3(m_start), sizeType2Dim3(m_count), sizeType2Dim3(m_strides),
@@ -97,50 +77,7 @@ int spParticleInitializeBucket_device(spParticle *sp)
     return SP_SUCCESS;
 }
 
-__global__ void
-spParticleInitializeHash_kernel(size_type *id,
-                                dim3 strides,
-                                size_type const *bucket_start,
-                                size_type const *bucket_count,
-                                size_type const *sort_id)
-{
 
-
-    uint s = __umul24(blockIdx.x, strides.x) +
-             __umul24(blockIdx.y, strides.y) +
-             __umul24(blockIdx.z, strides.z);
-
-    if (threadIdx.x < bucket_count[s]) { id[sort_id[bucket_start[s] + threadIdx.x]] = s; }
-
-}
-
-int spParticleUpdateHash(spParticle *sp)
-{
-    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
-
-    int iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
-
-    size_type m_start[3], m_end[3], m_count[3], m_strides[3], m_dims[3];
-    size_type *bucket_start, *bucket_count, *sorted_id;
-
-    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, m_start, m_end, m_count));
-    SP_CALL(spMeshGetStrides(m, m_strides));
-    SP_CALL(spMeshGetDims(m, m_dims));
-
-    size_type block_dim[3], grid_dim[3];
-    SP_CALL(spParallelThreadBlockDecompose(256, 3, m_start, m_end, grid_dim, block_dim));
-
-    assert(spParticleGetPIC(sp) < 256);
-
-
-    SP_CALL_DEVICE_KERNEL(spParticleInitializeHash_kernel,
-                          sizeType2Dim3(m_dims), 256,
-                          (size_type *) spParticleGetAttributeData(sp, 0),
-                          sizeType2Dim3(m_strides), bucket_start, bucket_count, sorted_id);
-
-    return SP_SUCCESS;
-
-}
 
 /**
  *  copy from cuda example/particle
@@ -225,7 +162,7 @@ _CopyBucketStartCount_kernel(size_type *b_start,        // output: cell start in
     {
         start[index] = b_start[index + 1];
         count[index] = b_end[index + 1] - b_start[index + 1];
-        assert(count[index] >= 0);
+        assert(b_end[index + 1] >= b_start[index + 1]);
     }
 }
 

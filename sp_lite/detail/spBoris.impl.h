@@ -196,61 +196,9 @@ spParticlePushBoris(boris_particle *sp, size_type s, boris_p *p)
     sp->w[s] = p->w;
 }
 
-__device__ INLINE
 
-void
-spParticleMoveBoris(Real dt, boris_p *p, Real const *E, Real const *B)
-{
-
-    p->rx += p->vx * _pic_param.invD.x * dt;
-    p->ry += p->vy * _pic_param.invD.y * dt;
-    p->rz += p->vz * _pic_param.invD.z * dt;
-
-//    __register__     Real ax, ay, az;
-//    __register__ Real tx, ty, tz;
-//    __register__ Real tt;
-
-//    ax = E[0];//cache_gather(E + 0, p->rx - 0.5f, p->ry, p->rz);
-//    ay = E[1];//cache_gather(E + 27, p->rx, p->ry - 0.5f, p->rz);
-//    az = E[2];//cache_gather(E + 54, p->rx, p->ry, p->rz - 0.5f);
-//    tx = cache_gather(B + 0, p->rx, p->ry - 0.5f, p->rz - 0.5f);
-//    ty = cache_gather(B + 27, p->rx - 0.5f, p->ry, p->rz - 0.5f);
-//    tz = cache_gather(B + 54, p->rx - 0.5f, p->ry - 0.5f, p->rz);
-//
-//    ax *= _pic_param.cmr * dt;
-//    ay *= _pic_param.cmr * dt;
-//    az *= _pic_param.cmr * dt;
-//
-//    tx *= _pic_param.cmr * dt;
-//    ty *= _pic_param.cmr * dt;
-//    tz *= _pic_param.cmr * dt;
-//    p->vx += ax;
-//    p->vy += ay;
-//    p->vz += az;
-//    __register__ Real v_x, v_y, v_z;
-//
-//    v_x = p->vx + (p->vy * tz - p->vz * ty);
-//    v_y = p->vy + (p->vz * tx - p->vx * tz);
-//    v_z = p->vz + (p->vx * ty - p->vy * tx);
-//
-//    tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
-//
-//    p->vx += ax + (v_y * tz - v_z * ty) * tt;
-//    p->vy += ax + (v_z * tx - v_x * tz) * tt;
-//    p->vz += ax + (v_x * ty - v_y * tx) * tt;
-
-}
-
-
-
-
-
-//__constant__ _spPICBorisParam _pic_param;
-
-
-INLINE __device__
-
-uint _spMeshHash(uint x, uint y, uint z)
+INLINE __device__ uint
+_spMeshHash(uint x, uint y, uint z)
 {
     return __umul24(x, _pic_param.strides.x) + __umul24(y, _pic_param.strides.y) + __umul24(z, _pic_param.strides.z);
 }
@@ -291,13 +239,10 @@ SP_DEVICE_DECLARE_KERNEL(spParticleInitializeBorisYeeKernel, boris_particle *sp,
         sp->ry[s] -= 0.5;
         sp->rz[s] -= 0.5;
 
-//        sp->vx[s] *= vT;
-//        sp->vy[s] *= vT;
-//        sp->vz[s] *= vT;
+        sp->vx[s] *= vT;
+        sp->vy[s] *= vT;
+        sp->vz[s] *= vT;
 
-        sp->vx[s] = 0.1f / _pic_param.invD.x;
-        sp->vy[s] = 0;
-        sp->vz[s] = 0;
     }
 
 }
@@ -345,6 +290,51 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 
 /******************************************************************************************/
 
+
+__device__ INLINE void
+spParticleMoveBoris(Real dt, boris_p *p, Real const *E, Real const *B)
+{
+
+//    p->rx += p->vx * _pic_param.invD.x * dt * 0.5;
+//    p->ry += p->vy * _pic_param.invD.y * dt * 0.5;
+//    p->rz += p->vz * _pic_param.invD.z * dt * 0.5;
+//
+    __register__     Real ax, ay, az;
+//    __register__ Real tx, ty, tz;
+//    __register__ Real tt;
+
+    ax = E[0];//cache_gather(E + 0, p->rx - 0.5f, p->ry, p->rz);
+    ay = E[1];//cache_gather(E + 27, p->rx, p->ry - 0.5f, p->rz);
+    az = E[2];//cache_gather(E + 54, p->rx, p->ry, p->rz - 0.5f);
+//    tx = cache_gather(B + 0, p->rx, p->ry - 0.5f, p->rz - 0.5f);
+//    ty = cache_gather(B + 27, p->rx - 0.5f, p->ry, p->rz - 0.5f);
+//    tz = cache_gather(B + 54, p->rx - 0.5f, p->ry - 0.5f, p->rz);
+//
+    ax *= _pic_param.cmr * dt;
+    ay *= _pic_param.cmr * dt;
+    az *= _pic_param.cmr * dt;
+//
+//    tx *= _pic_param.cmr * dt;
+//    ty *= _pic_param.cmr * dt;
+//    tz *= _pic_param.cmr * dt;
+    p->vx += ax;
+    p->vy += ay;
+    p->vz += az;
+//    __register__ Real v_x, v_y, v_z;
+//
+//    v_x = p->vx + (p->vy * tz - p->vz * ty);
+//    v_y = p->vy + (p->vz * tx - p->vx * tz);
+//    v_z = p->vz + (p->vx * ty - p->vy * tx);
+//
+//    tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
+//
+//    p->vx += ax + (v_y * tz - v_z * ty) * tt;
+//    p->vy += ax + (v_z * tx - v_x * tz) * tt;
+//    p->vz += ax + (v_x * ty - v_y * tx) * tt;
+//    p->rx += p->vx * _pic_param.invD.x * dt * 0.5;
+//    p->ry += p->vy * _pic_param.invD.y * dt * 0.5;
+//    p->rz += p->vz * _pic_param.invD.z * dt * 0.5;
+}
 
 
 SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
@@ -443,31 +433,40 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
         spParticlePopBoris(sp, s, &p);
 
-        Real E[3], B[3];
+
+        if (p.vx * _pic_param.invD.x * dt > 1.0) { CHECK_REAL(p.vx); };
 
 
-        E[0] = cE[0] * (0.5f - p.rx) + cE[1] * (0.5f + p.rx);
-        E[1] = cE[2] * (0.5f - p.ry) + cE[3] * (0.5f + p.ry);
-        E[2] = cE[4] * (0.5f - p.rz) + cE[5] * (0.5f + p.rz);
+//        Real E[3], B[3];
+//        E[0] = cE[0] * (0.5f + p.rx) + cE[1] * (0.5f - p.rx);
+//        E[1] = cE[2] * (0.5f + p.ry) + cE[3] * (0.5f - p.ry);
+//        E[2] = cE[4] * (0.5f + p.rz) + cE[5] * (0.5f - p.rz);
 
-        spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
+        p.vx += cE[0 + (sp->rx[s] < 0.0) ? 0 : 1] * _pic_param.cmr * dt;
+        p.vy += cE[2 + (sp->ry[s] < 0.0) ? 0 : 1] * _pic_param.cmr * dt;
+        p.vz += cE[4 + (sp->rz[s] < 0.0) ? 0 : 1] * _pic_param.cmr * dt;
 
-        int x = (int) floor(p.rx + 0.5);
-        int y = (int) floor(p.ry + 0.5);
-        int z = (int) floor(p.rz + 0.5);
 
-        p.rx -= x;
-        p.ry -= y;
-        p.rz -= z;
+//        spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
 
-        x = _pic_param.min.x + blockIdx.x + x;
-        y = _pic_param.min.y + blockIdx.y + y;
-        z = _pic_param.min.z + blockIdx.z + z;
+        int x = (int) nearbyint(p.rx);
+        int y = (int) nearbyint(p.ry);
+        int z = (int) nearbyint(p.rz);
+//
+//        p.rx -= x;
+//        p.ry -= y;
+//        p.rz -= z;
+
+        x = _pic_param.min.x + blockIdx.x;//+ x;
+        y = _pic_param.min.y + blockIdx.y;//+ y;
+        z = _pic_param.min.z + blockIdx.z;//+ z;
 
         cell_id[s] = (x >= _pic_param.center_min.x && x < _pic_param.center_max.x &&
                       y >= _pic_param.center_min.y && y < _pic_param.center_max.y &&
                       z >= _pic_param.center_min.z && z < _pic_param.center_max.z) ?
-                     _spMeshHash(x, y, z) : ((size_type) (-1));
+                     s0//_spMeshHash(x, y, z)
+                                                                                   : ((size_type) (-1));
+
 
         spParticlePushBoris(sp, s, &p);
 
@@ -493,14 +492,11 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
 
     int s0 = _spMeshHash(x, y, z);
 
-    __shared__ Real J[6];
-    __shared__ Real rho;
+    __shared__ Real J[7];
 
-    if (threadIdx.x == 0)
-    {
-        rho = 0;
-        for (int i = 0; i < 6; ++i) { J[i] = 0; }
-    }
+    spParallelSyncThreads();
+
+    if (threadIdx.x < 7) { J[threadIdx.x] = 0; }
 
     spParallelSyncThreads();
 
@@ -510,14 +506,11 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
 
         Real f = sp->f[s];
 
-        if (sp->rx[s] < 0.0) { atomicAdd(&J[0], sp->vx[s] * _pic_param.invD.x * f); }
-        if (sp->rx[s] >= 0.0) { atomicAdd(&J[1], -sp->vx[s] * _pic_param.invD.x * f); }
-        if (sp->ry[s] < 0.0) { atomicAdd(&J[2], sp->vy[s] * _pic_param.invD.y * f); }
-        if (sp->ry[s] >= 0.0) { atomicAdd(&J[3], -sp->vy[s] * _pic_param.invD.y * f); }
-        if (sp->rz[s] < 0.0) { atomicAdd(&J[4], sp->vz[s] * _pic_param.invD.z * f); }
-        if (sp->rz[s] >= 0.0) { atomicAdd(&J[5], -sp->vz[s] * _pic_param.invD.z * f); }
+        atomicAdd(&J[0 + (sp->rx[s] < 0) ? 0 : 1], ((sp->rx[s] < 0) ? 1 : 1) * sp->vx[s] * _pic_param.invD.x * f);
+        atomicAdd(&J[2 + (sp->ry[s] < 0) ? 0 : 1], ((sp->ry[s] < 0) ? 1 : 1) * sp->vy[s] * _pic_param.invD.y * f);
+        atomicAdd(&J[4 + (sp->rz[s] < 0) ? 0 : 1], ((sp->rz[s] < 0) ? 1 : 1) * sp->vz[s] * _pic_param.invD.z * f);
 
-        atomicAdd(&rho, (1 - sp->rx[s]) * (1 - sp->ry[s]) * (1 - sp->rz[s]) * f);
+        atomicAdd(&J[6], (1 - sp->rx[s]) * (1 - sp->ry[s]) * (1 - sp->rz[s]) * f);
 
     };
 
@@ -527,15 +520,13 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
     atomicAddReal(&fJy[s0 + _pic_param.strides.y], J[3]);
     atomicAddReal(&fJz[s0/*                   */], J[4]);
     atomicAddReal(&fJz[s0 + _pic_param.strides.z], J[5]);
-    atomicAddReal(&fRho[s0] /*                 */, rho
-    );
+    atomicAddReal(&fRho[s0] /*                 */, J[6]);
 
 };
 
 
 int
-spParticleUpdateBorisYee(spParticle *sp, Real dt,
-                         const struct spField_s *fE, const struct spField_s *fB,
+spParticleUpdateBorisYee(spParticle *sp, Real dt, const struct spField_s *fE, const struct spField_s *fB,
                          struct spField_s *fRho, struct spField_s *fJ)
 {
 
@@ -570,7 +561,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
 
     SP_CALL_DEVICE_KERNEL(spParticleUpdateBorisYeeKernel,
                           sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
-                          (boris_particle *) current_data, cell_hash, start_pos, count, sorted_idx, 1/* dt*/,
+                          (boris_particle *) current_data, cell_hash, start_pos, count, sorted_idx, dt,
                           E[0], E[1], E[2], B[0], B[1], B[2])
 
 
@@ -581,10 +572,10 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt,
     SP_CALL(spParticleSync(sp));
 
 
-//    SP_CALL_DEVICE_KERNEL(spParticleAccumlateBorisYeeKernel,
-//                          sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
-//                          (boris_particle *) current_data, start_pos, count, sorted_idx,
-//                          J[0], J[1], J[2], rho)
+    SP_CALL_DEVICE_KERNEL(spParticleAccumlateBorisYeeKernel,
+                          sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
+                          (boris_particle *) current_data, start_pos, count, sorted_idx,
+                          J[0], J[1], J[2], rho)
 
 
     SP_CALL(spFieldSync(fJ));
