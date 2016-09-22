@@ -215,7 +215,7 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
     size_type g_dims[ndims + 1];
     size_type g_start[ndims + 1];
 
-    size_type num_of_sub = 3;
+    size_type num_of_sub = (size_type) spFieldNumberOfSub(f);
     SP_CALL(spMeshGetGlobalArrayShape(m, SP_DOMAIN_CENTER,
                                       (iform == VERTEX || iform == VOLUME) ? 0 : 1,
                                       &num_of_sub, &array_ndims, &mesh_start_dim,

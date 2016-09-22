@@ -386,7 +386,7 @@ int spParticleSort(spParticle *sp)
 
     ++sp->step_count;
 
-    if (sp->step_count % sp->defragment_freq == 0) {SP_CALL(spParticleDefragment(sp)); }
+//    if (sp->step_count % sp->defragment_freq == 0) {SP_CALL(spParticleDefragment(sp)); }
 
     sp->need_sorting = SP_FALSE;
 
@@ -494,7 +494,7 @@ int spParticleSync(spParticle *sp)
 //                {
 //                    size_type s = i * strides[0] + j * strides[1] + k * strides[2];
 //
-//                    printf(" %4.0f ", (buffer)[sorted_idx[bucket_start_pos[s] + 1]]);
+//                    printf(" %1.5e ", (buffer)[sorted_idx[bucket_start_pos[s] + 1]]);
 //                }
 //            }
 //

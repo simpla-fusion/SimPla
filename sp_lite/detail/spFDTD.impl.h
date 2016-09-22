@@ -33,15 +33,15 @@ __constant__ _spFDTDParam _fdtd_param;
 INLINE __device__ int SPMeshHash(int x, int y, int z)
 {
     return __mul24(x + _fdtd_param.min.x, _fdtd_param.strides.x) +
-        __mul24(y + _fdtd_param.min.y, _fdtd_param.strides.y) +
-        __mul24(z + _fdtd_param.min.z, _fdtd_param.strides.z);
+           __mul24(y + _fdtd_param.min.y, _fdtd_param.strides.y) +
+           __mul24(z + _fdtd_param.min.z, _fdtd_param.strides.z);
 
 }
 
 INLINE __device__  int SPMeshInBox(int x, int y, int z)
 {
     return (_fdtd_param.min.x + x < _fdtd_param.max.x && _fdtd_param.min.y + y < _fdtd_param.max.y
-        && _fdtd_param.min.z + z < _fdtd_param.max.z);
+            && _fdtd_param.min.z + z < _fdtd_param.max.z);
 }
 
 INLINE __device__ void SPMeshPoint(int x, int y, int z, Real *rx, Real *ry, Real *rz)
@@ -130,12 +130,12 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
 
 
     Real alpha0[4][9] =
-        {
-            {/**/ 0,   0,   0,   /**/ 0,   0,   0,   /**/  0,   0,   0   /**/},
-            {/**/ 0.5, 0,   0,   /**/ 0,   0.5, 0,   /**/  0,   0,   0.5 /**/},
-            {/**/ 0,   0.5, 0.5, /**/ 0.5, 0,   0.5, /**/  0.5, 0.5, 0   /**/},
-            {/**/ 0.5, 0.5, 0.5, /**/ 0.5, 0.5, 0.5, /**/  0.5, 0.5, 0.5 /**/},
-        };
+            {
+                    {/**/ 0,   0,   0,   /**/ 0,   0,   0,   /**/  0,   0,   0   /**/},
+                    {/**/ 0.5, 0,   0,   /**/ 0,   0.5, 0,   /**/  0,   0,   0.5 /**/},
+                    {/**/ 0,   0.5, 0.5, /**/ 0.5, 0,   0.5, /**/  0.5, 0.5, 0   /**/},
+                    {/**/ 0.5, 0.5, 0.5, /**/ 0.5, 0.5, 0.5, /**/  0.5, 0.5, 0.5 /**/},
+            };
 
 
     for (int i = 0; i < num_of_sub; ++i)
@@ -170,15 +170,18 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernelPushE, Real dt,
     {
         int s = SPMeshHash(x, y, z);
 
-        Ex[s] += ((Bz[s] - Bz[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
-            - (By[s] - By[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
-            * speed_of_light2 * dt - Jx[s] / epsilon0 * dt;
-        Ey[s] += ((Bx[s] - Bx[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
-            - (Bz[s] - Bz[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
-            * speed_of_light2 * dt - Jy[s] / epsilon0 * dt;
-        Ez[s] += ((By[s] - By[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
-            - (Bx[s] - Bx[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
-            * speed_of_light2 * dt - Jz[s] / epsilon0 * dt;
+        Ex[s] += -Jx[s] / epsilon0 * dt
+                 + ((Bz[s] - Bz[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y
+                    - (By[s] - By[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z)
+                   * speed_of_light2 * dt;
+        Ey[s] += -Jy[s] / epsilon0 * dt
+                 + ((Bx[s] - Bx[s - _fdtd_param.strides.z]) * _fdtd_param.inv_dx.z
+                    - (Bz[s] - Bz[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x)
+                   * speed_of_light2 * dt;
+        Ez[s] += -Jz[s] / epsilon0 * dt
+                 + ((By[s] - By[s - _fdtd_param.strides.x]) * _fdtd_param.inv_dx.x
+                    - (Bx[s] - Bx[s - _fdtd_param.strides.y]) * _fdtd_param.inv_dx.y)
+                   * speed_of_light2 * dt;
     }
 }
 
@@ -195,11 +198,11 @@ SP_DEVICE_DECLARE_KERNEL (spUpdateFieldFDTDKernelPushB, Real dt,
         int s = SPMeshHash(x, y, z);
 
         Bx[s] -= ((Ez[s + _fdtd_param.strides.y] - Ez[s]) * _fdtd_param.inv_dx.y
-            - (Ey[s + _fdtd_param.strides.z] - Ey[s]) * _fdtd_param.inv_dx.z) * dt;
+                  - (Ey[s + _fdtd_param.strides.z] - Ey[s]) * _fdtd_param.inv_dx.z) * dt;
         By[s] -= ((Ex[s + _fdtd_param.strides.z] - Ex[s]) * _fdtd_param.inv_dx.z
-            - (Ez[s + _fdtd_param.strides.x] - Ez[s]) * _fdtd_param.inv_dx.x) * dt;
+                  - (Ez[s + _fdtd_param.strides.x] - Ez[s]) * _fdtd_param.inv_dx.x) * dt;
         Bz[s] -= ((Ey[s + _fdtd_param.strides.x] - Ey[s]) * _fdtd_param.inv_dx.x
-            - (Ex[s + _fdtd_param.strides.y] - Ex[s]) * _fdtd_param.inv_dx.y) * dt;
+                  - (Ex[s + _fdtd_param.strides.y] - Ex[s]) * _fdtd_param.inv_dx.y) * dt;
 
     }
 }
@@ -259,7 +262,7 @@ SP_DEVICE_DECLARE_KERNEL (spFDTDDivKernel, Real const *Jx, Real const *Jy, Real 
     {
         int s = SPMeshHash(x, y, z);
         rho[s] +=
-            (Jx[s + _fdtd_param.strides.x] - Jx[s]) * _fdtd_param.inv_dx.x +
+                (Jx[s + _fdtd_param.strides.x] - Jx[s]) * _fdtd_param.inv_dx.x +
                 (Jy[s + _fdtd_param.strides.y] - Jy[s]) * _fdtd_param.inv_dx.y +
                 (Jz[s + _fdtd_param.strides.z] - Jz[s]) * _fdtd_param.inv_dx.z;
 

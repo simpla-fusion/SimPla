@@ -63,7 +63,6 @@ int main(int argc, char **argv)
     SP_CALL(spMeshSetBox(mesh, lower, upper));
     SP_CALL(spMeshDeploy(mesh));
 
-    if (isnan(dt)) { dt = spMeshCFLDt(mesh, (Real) speed_of_light); }
     /*****************************************************************************************************************/
 
     spField *fE = NULL;
@@ -96,6 +95,15 @@ int main(int argc, char **argv)
     SP_CALL(spParticleSetPIC(sp, (uint) PIC));
     SP_CALL(spParticleInitializeBorisYee(sp, n0, T0));
 
+    /*****************************************************************************************************************/
+
+    if (isnan(dt))
+    {
+        dt = fminf(spMeshCFLDt(mesh, (Real) speed_of_light),
+                   (Real) (0.1 * TWOPI / sqrt(SI_elementary_charge * SI_elementary_charge * n0 / epsilon0)));
+    }
+
+    dt *= 0.1;
     /*****************************************************************************************************************/
 
     SP_CALL(spIOStreamOpen(os, "/start/"));
