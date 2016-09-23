@@ -331,7 +331,6 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
     __shared__ Real cE[64 * 3];
     __shared__ Real cB[64 * 3];
 
-    assert(blockDim.x >= 64 * 3);
     if (threadIdx.x < 64 * 3)
     {
         size_type s =
@@ -371,21 +370,22 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
         Real E[3], B[3];
 
-//        E[0] = cache_gather((uint) (p.rx + 0.5) << 4, &(cE[s0]/*       */), p.rx, p.ry, p.rz);
-//
-//        E[1] = cache_gather((uint) (p.ry + 0.5) << 2, &(cE[s0 + 0x1 << 6]), p.rx, p.ry, p.rz);
-//
-//        E[2] = cache_gather((uint) (p.rz + 0.5)/* */, &(cE[s0 + 0x2 << 6]), p.rx, p.ry, p.rz);
-//
-//
-//        B[0] = cache_gather(((uint) (p.ry + 0.5) << 2) | ((uint) (p.rz + 0.5)/* */),
-//                            &(cB[s0]/*       */), p.rx, p.ry, p.rz);
-//        B[1] = cache_gather(((uint) (p.rx + 0.5) << 4) | ((uint) (p.rz + 0.5)/* */),
-//                            &(cB[s0 + 0x1 << 6]), p.rx, p.ry, p.rz);
-//        B[2] = cache_gather(((uint) (p.rx + 0.5) << 4) | ((uint) (p.ry + 0.5) << 2),
-//                            &(cB[s0 + 0x2 << 6]), p.rx, p.ry, p.rz);
+        E[0] = cache_gather((uint) (p.rx + 0.5) << 4,
+                            &(cE[s0] /*        */), p.rx, p.ry, p.rz);
+        E[1] = cache_gather((uint) (p.ry + 0.5) << 2,
+                            &(cE[s0 + (0x1 << 6)]), p.rx, p.ry, p.rz);
+        E[2] = cache_gather((uint) (p.rz + 0.5)/* */,
+                            &(cE[s0 + (0x2 << 6)]), p.rx, p.ry, p.rz);
 
-//        spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
+
+        B[0] = cache_gather(((uint) (p.ry + 0.5) << 2) | ((uint) (p.rz + 0.5)/* */),
+                            &(cB[s0]/*       */), p.rx, p.ry, p.rz);
+        B[1] = cache_gather(((uint) (p.rx + 0.5) << 4) | ((uint) (p.rz + 0.5)/* */),
+                            &(cB[s0 + (0x1 << 6)]), p.rx, p.ry, p.rz);
+        B[2] = cache_gather(((uint) (p.rx + 0.5) << 4) | ((uint) (p.ry + 0.5) << 2),
+                            &(cB[s0 + (0x2 << 6)]), p.rx, p.ry, p.rz);
+
+        spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
 
         int x = (int) floor(p.rx);
         int y = (int) floor(p.ry);
