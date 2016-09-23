@@ -112,7 +112,6 @@ INLINE int spPICBorisSetupParam(spParticle *sp, int tag, size_type *grid_dim, si
 
 typedef struct boris_particle_p_s
 {
-    size_type id;
     Real rx;
     Real ry;
     Real rz;
@@ -227,66 +226,19 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
     return SP_SUCCESS;
 }
 
-/******************************************************************************************/
-
-
-__device__ INLINE void
-spParticleMoveBoris(Real dt, boris_p *p, Real const *E, Real const *B)
-{
-
-//    p->rx += p->vx * _pic_param.invD.x * dt * 0.5;
-//    p->ry += p->vy * _pic_param.invD.y * dt * 0.5;
-//    p->rz += p->vz * _pic_param.invD.z * dt * 0.5;
-
-    __register__ Real ax, ay, az;
-//    __register__ Real tx, ty, tz;
-//    __register__ Real tt;
-
-    ax = E[0];//cache_gather(E + 0, p->rx - 0.5f, p->ry, p->rz);
-    ay = E[1];//cache_gather(E + 27, p->rx, p->ry - 0.5f, p->rz);
-    az = E[2];//cache_gather(E + 54, p->rx, p->ry, p->rz - 0.5f);
-
-//    tx = B[0];
-//    ty = B[1];
-//    tz = B[2];
-//    tx = cache_gather(B + 0, p->rx, p->ry - 0.5f, p->rz - 0.5f);
-//    ty = cache_gather(B + 27, p->rx - 0.5f, p->ry, p->rz - 0.5f);
-//    tz = cache_gather(B + 54, p->rx - 0.5f, p->ry - 0.5f, p->rz);
-//
-    ax *= _pic_param.cmr * dt * 0.5;
-    ay *= _pic_param.cmr * dt * 0.5;
-    az *= _pic_param.cmr * dt * 0.5;
-
-//    tx *= _pic_param.cmr * dt;
-//    ty *= _pic_param.cmr * dt;
-//    tz *= _pic_param.cmr * dt;
-
-    p->vx += ax;
-    p->vy += ay;
-    p->vz += az;
-
-//    __register__ Real v_x, v_y, v_z;
-//
-//    v_x = p->vx + (p->vy * tz - p->vz * ty);
-//    v_y = p->vy + (p->vz * tx - p->vx * tz);
-//    v_z = p->vz + (p->vx * ty - p->vy * tx);
-//
-//    tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
-
-    p->vx += ax;//+ (v_y * tz - v_z * ty) * tt;
-    p->vy += ax;//+ (v_z * tx - v_x * tz) * tt;
-    p->vz += ax;//+ (v_x * ty - v_y * tx) * tt;
-
-//    p->rx += p->vx * _pic_param.invD.x * dt * 0.5;
-//    p->ry += p->vy * _pic_param.invD.y * dt * 0.5;
-//    p->rz += p->vz * _pic_param.invD.z * dt * 0.5;
-}
-
 INLINE __device__ Real
-cache_gather(uint s_c, Real const *f, Real rx, Real ry, Real rz)
+cache_gather(Real const *f, Real rx, Real ry, Real rz)
 {
 
     static const uint IX = 0x1 << 4, IY = 0x1 << 2, IZ = 0x1;
+    int ix = (int) floor(rx);
+    int iy = (int) floor(ry);
+    int iz = (int) floor(rz);
+    rx -= ix;
+    ry -= iy;
+    rz -= iz;
+
+    int s_c = ((1 + ix) << 4) | ((1 + iy) << 2) | (1 + iz);
 
     static const Real ll = 0.0, rr = 1.0;
     return f[s_c + 0 /*           */] * (rx - ll) * (ry - ll) * (rz - ll) +
@@ -301,12 +253,18 @@ cache_gather(uint s_c, Real const *f, Real rx, Real ry, Real rz)
 
 
 INLINE __device__ void
-cache_scatter(uint s_c, Real v, Real *f, Real rx, Real ry, Real rz)
+cache_scatter(Real v, Real *f, Real rx, Real ry, Real rz)
 {
+    static const uint IX = 0x1 << 4, IY = 0x1 << 2, IZ = 0x1;
+    int ix = (int) floor(rx);
+    int iy = (int) floor(ry);
+    int iz = (int) floor(rz);
+    rx -= ix;
+    ry -= iy;
+    rz -= iz;
+
+    int s_c = ((1 + ix) << 4) | ((1 + iy) << 2) | (1 + iz);
     static const Real ll = 0.0, rr = 1.0;
-
-    static const uint IX = 0x1 << 4, IY = 0x1 << 2, IZ = 1;
-
     atomicAdd(&f[s_c + 0 /*           */], (v * (rx - ll) * (ry - ll) * (rz - ll)));
     atomicAdd(&f[s_c + IZ /*          */], (v * (rx - ll) * (ry - ll) * (rr - rz)));
     atomicAdd(&f[s_c + IY /*          */], (v * (rx - ll) * (rr - ry) * (rz - ll)));
@@ -316,10 +274,50 @@ cache_scatter(uint s_c, Real v, Real *f, Real rx, Real ry, Real rz)
     atomicAdd(&f[s_c + IX + IY /*     */], (v * (rr - rx) * (rr - ry) * (rz - ll)));
     atomicAdd(&f[s_c + IX + IY + IZ /**/], (v * (rr - rx) * (rr - ry) * (rr - rz)));
 }
+
+
+
+/******************************************************************************************/
+
+
+__device__ INLINE void
+spParticleMoveBoris(Real dt, boris_p *p, Real const *E, Real const *B)
+{
+
+//    p->rx += p->vx * _pic_param.invD.x * dt * 0.5;
+//    p->ry += p->vy * _pic_param.invD.y * dt * 0.5;
+//    p->rz += p->vz * _pic_param.invD.z * dt * 0.5;
+
+    __register__ Real ax, ay, az;
+    __register__ Real tx, ty, tz;
+//    __register__ Real tt;
+
+
+    ax = _pic_param.cmr * dt * cache_gather(&(E[0]),   /**/ p->rx - (Real) 0.5, p->ry, p->rz);
+    ay = _pic_param.cmr * dt * cache_gather(&(E[64]),  /**/ p->rx, p->ry - (Real) 0.5, p->rz);
+    az = _pic_param.cmr * dt * cache_gather(&(E[128]), /**/ p->rx, p->ry, p->rz - (Real) 0.5);
+
+
+    p->vx += ax * (Real) 0.5;
+    p->vy += ay * (Real) 0.5;
+    p->vz += az * (Real) 0.5;
+
+//    __register__ Real v_x, v_y, v_z;
 //
+//    v_x = p->vx + (p->vy * tz - p->vz * ty);
+//    v_y = p->vy + (p->vz * tx - p->vx * tz);
+//    v_z = p->vz + (p->vx * ty - p->vy * tx);
 //
-//#undef ll
-//#undef rr
+//    tt = 2 / (tx * tx + ty * ty + tz * tz + 1);
+
+    p->vx += ax * (Real) 0.5;//+ (v_y * tz - v_z * ty) * tt;
+    p->vy += ax * (Real) 0.5;//+ (v_z * tx - v_x * tz) * tt;
+    p->vz += ax * (Real) 0.5;//+ (v_x * ty - v_y * tx) * tt;
+
+//    p->rx += p->vx * _pic_param.invD.x * dt * 0.5;
+//    p->ry += p->vy * _pic_param.invD.y * dt * 0.5;
+//    p->rz += p->vz * _pic_param.invD.z * dt * 0.5;
+}
 
 SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                           boris_particle *sp, size_type *cell_id,
@@ -368,29 +366,7 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
         spParticlePopBoris(sp, s, &p);
 
-        Real E[3], B[3];
-
-        uint ix = (uint) (p.rx + 0.5);
-        uint iy = (uint) (p.ry + 0.5);
-        uint iz = (uint) (p.rz + 0.5);
-
-        Real rx = p.rx;
-        Real ry = p.ry;
-        Real rz = p.rz;
-
-        Real lx = rx + (Real) 0.5 - ix;
-        Real ly = ry + (Real) 0.5 - iy;
-        Real lz = rz + (Real) 0.5 - iz;
-
-        E[0] = cache_gather((ix << 4) | (0x1 << 2) | (0x1), &(cE[0] /**/), lx, ry, rz);
-        E[1] = cache_gather((0x1 << 4) | (iy << 2) | (0x1), &(cE[64]), rx, ly, rz);
-        E[2] = cache_gather((0x1 << 4) | (0x1 << 2) | (iz), &(cE[128]), rx, ry, lz);
-
-        B[0] = cache_gather((0x1 << 4) | (iy << 2) | (iz), &(cB[0] /**/), rx, ly, lz);
-        B[1] = cache_gather((ix << 4) | (0x1 << 2) | (iz), &(cB[64]), lx, ry, lz);
-        B[2] = cache_gather((ix << 4) | (iy << 2) | (0x1), &(cB[128]), lx, ly, rz);
-
-        spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
+        spParticleMoveBoris(dt, &p, (Real const *) cE, (Real const *) cB);
 
         int x = (int) floor(p.rx);
         int y = (int) floor(p.ry);
@@ -446,19 +422,9 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
         Real ry = sp->ry[s];
         Real rz = sp->rz[s];
 
-        uint ix = (uint) (rx + 0.5);
-        uint iy = (uint) (ry + 0.5);
-        uint iz = (uint) (rz + 0.5);
-
-
-        Real lx = rx + (Real) 0.5 - ix;
-        Real ly = ry + (Real) 0.5 - iy;
-        Real lz = rz + (Real) 0.5 - iz;
-
-
-        cache_scatter((ix << 4) | (0x1 << 2) | (0x1), f * sp->vx[s], &(J[0]), lx, ry, rz);
-        cache_scatter((0x1 << 4) | (iy << 2) | (0x1), f * sp->vy[s], &(J[64]), rx, ly, rz);
-        cache_scatter((0x1 << 4) | (0x1 << 2) | (iz), f * sp->vz[s], &(J[128]), rx, ry, lz);
+        cache_scatter(f * sp->vx[s], &(J[0]),  /**/ rx - (Real) 0.5, ry, rz);
+        cache_scatter(f * sp->vy[s], &(J[64]), /**/ rx, ry - (Real) 0.5, rz);
+        cache_scatter(f * sp->vz[s], &(J[128]),/**/ rx, ry, rz - (Real) 0.5);
     };
     spParallelSyncThreads();
 
