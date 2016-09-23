@@ -289,14 +289,14 @@ cache_gather(uint s_c, Real const *f, Real rx, Real ry, Real rz)
     static const uint IX = 0x1 << 4, IY = 0x1 << 2, IZ = 0x1;
 
     static const Real ll = 0.0, rr = 1.0;
-    return f[s_c + IX + IY + IZ /**/] * (rx - ll) * (ry - ll) * (rz - ll) +
-           f[s_c + IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz) +
-           f[s_c + IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll) +
-           f[s_c + IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz) +
-           f[s_c + IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll) +
-           f[s_c + IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz) +
-           f[s_c + IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll) +
-           f[s_c + 0 /*           */] * (rr - rx) * (rr - ry) * (rr - rz);
+    return f[s_c + 0 /*           */] * (rx - ll) * (ry - ll) * (rz - ll) +
+           f[s_c + IZ /*          */] * (rx - ll) * (ry - ll) * (rr - rz) +
+           f[s_c + IY /*          */] * (rx - ll) * (rr - ry) * (rz - ll) +
+           f[s_c + IY + IZ /*     */] * (rx - ll) * (rr - ry) * (rr - rz) +
+           f[s_c + IX /*          */] * (rr - rx) * (ry - ll) * (rz - ll) +
+           f[s_c + IX + IZ /*     */] * (rr - rx) * (ry - ll) * (rr - rz) +
+           f[s_c + IX + IY /*     */] * (rr - rx) * (rr - ry) * (rz - ll) +
+           f[s_c + IX + IY + IZ /**/] * (rr - rx) * (rr - ry) * (rr - rz);
 }
 
 
@@ -307,14 +307,14 @@ cache_scatter(uint s_c, Real v, Real *f, Real rx, Real ry, Real rz)
 
     static const uint IX = 0x1 << 4, IY = 0x1 << 2, IZ = 1;
 
-    atomicAdd(&f[s_c + IX + IY + IZ /**/], (v * (rx - ll) * (ry - ll) * (rz - ll)));
-    atomicAdd(&f[s_c + IX + IY /*     */], (v * (rx - ll) * (ry - ll) * (rr - rz)));
-    atomicAdd(&f[s_c + IX + IZ /*     */], (v * (rx - ll) * (rr - ry) * (rz - ll)));
-    atomicAdd(&f[s_c + IX /*          */], (v * (rx - ll) * (rr - ry) * (rr - rz)));
-    atomicAdd(&f[s_c + IY + IZ /*     */], (v * (rr - rx) * (ry - ll) * (rz - ll)));
-    atomicAdd(&f[s_c + IY /*          */], (v * (rr - rx) * (ry - ll) * (rr - rz)));
-    atomicAdd(&f[s_c + IZ /*          */], (v * (rr - rx) * (rr - ry) * (rz - ll)));
-    atomicAdd(&f[s_c + 0 /*           */], (v * (rr - rx) * (rr - ry) * (rr - rz)));
+    atomicAdd(&f[s_c + 0 /*           */], (v * (rx - ll) * (ry - ll) * (rz - ll)));
+    atomicAdd(&f[s_c + IZ /*          */], (v * (rx - ll) * (ry - ll) * (rr - rz)));
+    atomicAdd(&f[s_c + IY /*          */], (v * (rx - ll) * (rr - ry) * (rz - ll)));
+    atomicAdd(&f[s_c + IY + IZ /*     */], (v * (rx - ll) * (rr - ry) * (rr - rz)));
+    atomicAdd(&f[s_c + IX /*          */], (v * (rr - rx) * (ry - ll) * (rz - ll)));
+    atomicAdd(&f[s_c + IX + IZ /*     */], (v * (rr - rx) * (ry - ll) * (rr - rz)));
+    atomicAdd(&f[s_c + IX + IY /*     */], (v * (rr - rx) * (rr - ry) * (rz - ll)));
+    atomicAdd(&f[s_c + IX + IY + IZ /**/], (v * (rr - rx) * (rr - ry) * (rr - rz)));
 }
 //
 //
@@ -370,20 +370,25 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
         Real E[3], B[3];
 
-        E[0] = cache_gather(((uint) (p.rx + 0.5) << 4) | (0x1 << 2) | (0x1),
-                            &(cE[s0] /*        */), p.rx, p.ry, p.rz);
-        E[1] = cache_gather((0x1 << 4) | ((uint) (p.ry + 0.5) << 2) | (0x1),
-                            &(cE[s0 + (0x1 << 6)]), p.rx, p.ry, p.rz);
-        E[2] = cache_gather((0x1 << 4) | (0x1 << 2) | ((uint) (p.rz + 0.5)),
-                            &(cE[s0 + (0x2 << 6)]), p.rx, p.ry, p.rz);
+        uint ix = (uint) (p.rx + 0.5);
+        uint iy = (uint) (p.ry + 0.5);
+        uint iz = (uint) (p.rz + 0.5);
 
+        Real rx = p.rx;
+        Real ry = p.ry;
+        Real rz = p.rz;
 
-        B[0] = cache_gather(((uint) (p.ry + 0.5) << 2) | ((uint) (p.rz + 0.5)/* */),
-                            &(cB[s0]/*       */), p.rx, p.ry, p.rz);
-        B[1] = cache_gather(((uint) (p.rx + 0.5) << 4) | ((uint) (p.rz + 0.5)/* */),
-                            &(cB[s0 + (0x1 << 6)]), p.rx, p.ry, p.rz);
-        B[2] = cache_gather(((uint) (p.rx + 0.5) << 4) | ((uint) (p.ry + 0.5) << 2),
-                            &(cB[s0 + (0x2 << 6)]), p.rx, p.ry, p.rz);
+        Real lx = rx + (Real) 0.5 - ix;
+        Real ly = ry + (Real) 0.5 - iy;
+        Real lz = rz + (Real) 0.5 - iz;
+
+        E[0] = cache_gather((ix << 4) | (0x1 << 2) | (0x1), &(cE[0] /**/), lx, ry, rz);
+        E[1] = cache_gather((0x1 << 4) | (iy << 2) | (0x1), &(cE[64]), rx, ly, rz);
+        E[2] = cache_gather((0x1 << 4) | (0x1 << 2) | (iz), &(cE[128]), rx, ry, lz);
+
+        B[0] = cache_gather((0x1 << 4) | (iy << 2) | (iz), &(cB[0] /**/), rx, ly, lz);
+        B[1] = cache_gather((ix << 4) | (0x1 << 2) | (iz), &(cB[64]), lx, ry, lz);
+        B[2] = cache_gather((ix << 4) | (iy << 2) | (0x1), &(cB[128]), lx, ly, rz);
 
         spParticleMoveBoris(dt, &p, (Real const *) E, (Real const *) B);
 
@@ -436,15 +441,24 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
     {
         size_type s = sorted_idx[start_pos[s0] + threadIdx.x];
 
-
         Real f = sp->f[s];
         Real rx = sp->rx[s];
         Real ry = sp->ry[s];
         Real rz = sp->rz[s];
 
-        cache_scatter((uint) (rx + 0.5) << 4, f * sp->vx[s], &(J[0] /*        */), rx, ry, rz);
-        cache_scatter((uint) (ry + 0.5) << 2, f * sp->vy[s], &(J[0 + (0x1 << 6)]), rx, ry, rz);
-        cache_scatter((uint) (rz + 0.5)/* */, f * sp->vz[s], &(J[0 + (0x2 << 6)]), rx, ry, rz);
+        uint ix = (uint) (rx + 0.5);
+        uint iy = (uint) (ry + 0.5);
+        uint iz = (uint) (rz + 0.5);
+
+
+        Real lx = rx + (Real) 0.5 - ix;
+        Real ly = ry + (Real) 0.5 - iy;
+        Real lz = rz + (Real) 0.5 - iz;
+
+
+        cache_scatter((ix << 4) | (0x1 << 2) | (0x1), f * sp->vx[s], &(J[0]), lx, ry, rz);
+        cache_scatter((0x1 << 4) | (iy << 2) | (0x1), f * sp->vy[s], &(J[64]), rx, ly, rz);
+        cache_scatter((0x1 << 4) | (0x1 << 2) | (iz), f * sp->vz[s], &(J[128]), rx, ry, lz);
     };
     spParallelSyncThreads();
 
