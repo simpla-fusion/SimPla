@@ -103,7 +103,7 @@ int main(int argc, char **argv)
                    (Real) (0.1 * TWOPI / sqrt(SI_elementary_charge * SI_elementary_charge * n0 / epsilon0)));
     }
 
-    dt *= 0.1;
+    dt *= 0.01;
     /*****************************************************************************************************************/
 
     SP_CALL(spIOStreamOpen(os, "/start/"));

@@ -286,9 +286,9 @@ INLINE __device__ Real
 cache_gather(uint s_c, Real const *f, Real rx, Real ry, Real rz)
 {
 
-    uint IX = 0x1 << 4, IY = 0x1 << 2, IZ = 0x1;
+    static const uint IX = 0x1 << 4, IY = 0x1 << 2, IZ = 0x1;
 
-    Real ll = 0.0, rr = 1.0;
+    static const Real ll = 0.0, rr = 1.0;
     return f[s_c + IX + IY + IZ /**/] * (rx - ll) * (ry - ll) * (rz - ll) +
            f[s_c + IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz) +
            f[s_c + IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll) +
@@ -303,7 +303,7 @@ cache_gather(uint s_c, Real const *f, Real rx, Real ry, Real rz)
 INLINE __device__ void
 cache_scatter(uint s_c, Real v, Real *f, Real rx, Real ry, Real rz)
 {
-    Real ll = 0.0, rr = 1.0;
+    static const Real ll = 0.0, rr = 1.0;
 
     static const uint IX = 0x1 << 4, IY = 0x1 << 2, IZ = 1;
 
@@ -370,11 +370,11 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
 
         Real E[3], B[3];
 
-        E[0] = cache_gather((uint) (p.rx + 0.5) << 4,
+        E[0] = cache_gather(((uint) (p.rx + 0.5) << 4) | (0x1 << 2) | (0x1),
                             &(cE[s0] /*        */), p.rx, p.ry, p.rz);
-        E[1] = cache_gather((uint) (p.ry + 0.5) << 2,
+        E[1] = cache_gather((0x1 << 4) | ((uint) (p.ry + 0.5) << 2) | (0x1),
                             &(cE[s0 + (0x1 << 6)]), p.rx, p.ry, p.rz);
-        E[2] = cache_gather((uint) (p.rz + 0.5)/* */,
+        E[2] = cache_gather((0x1 << 4) | (0x1 << 2) | ((uint) (p.rz + 0.5)),
                             &(cE[s0 + (0x2 << 6)]), p.rx, p.ry, p.rz);
 
 
@@ -437,14 +437,14 @@ SP_DEVICE_DECLARE_KERNEL (spParticleAccumlateBorisYeeKernel,
         size_type s = sorted_idx[start_pos[s0] + threadIdx.x];
 
 
-        Real f = sp->f[s] * sp->vx[s];
+        Real f = sp->f[s];
         Real rx = sp->rx[s];
         Real ry = sp->ry[s];
         Real rz = sp->rz[s];
 
-        cache_scatter((uint) (rx + 0.5) << 4, f, &(J[0]/*       */), rx, ry, rz);
-        cache_scatter((uint) (ry + 0.5) << 2, f, &(J[0 + 0x1 << 6]), rx, ry, rz);
-        cache_scatter((uint) (rz + 0.5)/* */, f, &(J[0 + 0x2 << 6]), rx, ry, rz);
+        cache_scatter((uint) (rx + 0.5) << 4, f * sp->vx[s], &(J[0] /*        */), rx, ry, rz);
+        cache_scatter((uint) (ry + 0.5) << 2, f * sp->vy[s], &(J[0 + (0x1 << 6)]), rx, ry, rz);
+        cache_scatter((uint) (rz + 0.5)/* */, f * sp->vz[s], &(J[0 + (0x2 << 6)]), rx, ry, rz);
     };
     spParallelSyncThreads();
 
@@ -495,7 +495,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const spFie
     SP_CALL(spParticleGetBucket(sp, &start_pos, &count, &sorted_idx, &cell_hash));
 
     SP_CALL_DEVICE_KERNEL(spParticleUpdateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
-                          (boris_particle *) current_data, cell_hash, start_pos, count, sorted_idx, dt, E, B)
+                          (boris_particle *) current_data, cell_hash, start_pos, count, sorted_idx, dt, E, B);
 
 
     SP_CALL(spParticleSort(sp));
@@ -506,8 +506,8 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const spFie
 
 
     SP_CALL_DEVICE_KERNEL(spParticleAccumlateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
-                          (boris_particle *) current_data, start_pos, count, sorted_idx, J)
-//
+                          (boris_particle *) current_data, start_pos, count, sorted_idx, J);
+
 
     SP_CALL(spFieldSync(fJ));
 
