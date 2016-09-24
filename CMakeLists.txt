@@ -33,7 +33,7 @@ MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
 SET(COMPILER $ENV{PRG_ENV})
 
-SET(CMAKE_C_FLAGS "-std=c11 ")
+SET(CMAKE_C_FLAGS "-std=c11 -fopenmp  ")
 
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
@@ -42,7 +42,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
     SET(CMAKE_CXX_FLAGS "-std=c++11  -fPIC ")
 else ()
-    SET(CMAKE_CXX_FLAGS "-std=c++11  -fPIC ")
+    SET(CMAKE_CXX_FLAGS "-std=c++11  -fPIC  ")
 endif ()
 
 #include(FindPackageHandleStandardArgs)

@@ -115,8 +115,8 @@ void spParallelAssignKernel(size_type max, size_type const *offset, Real *d, Rea
     size_type num_of_thread = blockDim.x * gridDim.x * blockDim.x * gridDim.x * blockDim.x * gridDim.x;
 
     for (size_type s = (threadIdx.x + blockIdx.x * blockDim.x) +
-        (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
-        (threadIdx.x + blockIdx.x * blockDim.x) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
+                       (threadIdx.y + blockIdx.y * blockDim.y) * blockDim.x * gridDim.x +
+                       (threadIdx.x + blockIdx.x * blockDim.x) * blockDim.x * gridDim.x * blockDim.y * gridDim.y;
          s < max; s += num_of_thread) { d[offset[s]] = v[s]; }
 };
 

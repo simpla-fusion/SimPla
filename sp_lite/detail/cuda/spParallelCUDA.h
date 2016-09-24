@@ -55,8 +55,10 @@ print_device_error(cudaError_t _m_cudaStat, char const *file, int line, char con
 //    } }
 
 
-#define SP_CALL_DEVICE_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_)>>>(__VA_ARGS__);SP_DEVICE_CALL(cudaPeekAtLastError()); SP_DEVICE_CALL(cudaDeviceSynchronize());
-#define SP_DEVICE_CALL_KERNEL2(_FUN_, _DIMS_, _N_THREADS_, _SMEM_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_),(_SMEM_)>>>(__VA_ARGS__);SP_DEVICE_CALL(cudaPeekAtLastError()); SP_DEVICE_CALL(cudaDeviceSynchronize());
+#define SP_CALL_DEVICE_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_)>>>(__VA_ARGS__);\
+                            SP_DEVICE_CALL(cudaPeekAtLastError()); \
+                            { if(SP_SUCCESS!=print_device_error(cudaDeviceSynchronize(),__FILE__, __LINE__,__PRETTY_FUNCTION__, __STRING(_FUN_))){return SP_FAILED;}}
+#define SP_DEVICE_CALL_KERNEL2(_FUN_, _DIMS_, _N_THREADS_, _SMEM_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_),(_SMEM_)>>>(__VA_ARGS__);SP_DEVICE_CALL(cudaPeekAtLastError());SP_DEVICE_CALL(cudaDeviceSynchronize());
 
 #define SP_DEVICE_DECLARE_KERNEL(_FUN_, ...) __global__ void _FUN_( __VA_ARGS__)
 

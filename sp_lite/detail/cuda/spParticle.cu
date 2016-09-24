@@ -67,7 +67,8 @@ int spParticleInitializeBucket_device(spParticle *sp)
     SP_CALL(spMeshGetDims(m, m_dims));
 
     size_type block_dim[3], grid_dim[3];
-    SP_CALL(spParallelThreadBlockDecompose(256, 3, m_start, m_end, grid_dim, block_dim));
+    SP_CALL(spMeshGetDims(m, grid_dim));
+    SP_CALL(spParallelThreadBlockDecompose(256, grid_dim, block_dim));
 
     SP_CALL_DEVICE_KERNEL(spParticleInitializeBucket_device_kernel,
                           sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),

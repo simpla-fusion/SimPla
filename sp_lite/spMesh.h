@@ -44,6 +44,8 @@ int spMeshDestroy(spMesh **ctx);
 
 int spMeshDeploy(spMesh *self);
 
+int spMeshSetupParam(spMesh *sp);
+
 /** Topology Begin*/
 
 int spMeshGetNDims(spMesh const *m);

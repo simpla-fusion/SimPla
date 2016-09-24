@@ -18,7 +18,20 @@ int sort_by_key(size_type const *, size_type const *, size_type *);
  * @param index
  * @return
  */
-int spMemoryIndirectCopy(Real *dest, Real const *src, size_type num, size_type max_num, size_type const *index);
+int spMemoryCopyIndirect(Real *dest, Real const *src, size_type num, size_type const *index);
+
+int spMemoryCopyInvIndirect(Real *dest, Real const *src, size_type num, size_type const *index);
+
+
+int spMemoryCopySubArray(Real *dest, Real const *src,
+                         size_type const *strides,
+                         size_type const *start,
+                         size_type const *count);
+
+int spMemoryCopyInvSubArray(Real *dest, Real const *src,
+                            size_type const *strides,
+                            size_type const *start,
+                            size_type const *count);
 
 /**
  * v[n]=min+n

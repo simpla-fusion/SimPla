@@ -8,7 +8,6 @@
 
 int spObjectCreate(spObject **obj, size_t s_in_byte)
 {
-
     SP_CALL(spMemHostAlloc((void **) obj, s_in_byte));
     (*obj)->id = spMPIGenerateObjectId();
     return SP_SUCCESS;

@@ -256,26 +256,14 @@ int spFieldSync(spField *f)
 
     void *F[num_of_sub];
 
-    spMPICartUpdater *updater;
+    spMPIHaloUpdater *updater;
 
     SP_CALL(spMeshGetLocalDims(m, l_dims));
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, NULL, l_count));
     SP_CALL(spFieldSubArray(f, (void **) F));
-    SP_CALL(spMPICartUpdaterCreate(&updater,
-                                   spMPIComm(),
-                                   spFieldDataType(f),
-                                   0,
-                                   ndims,
-                                   l_dims,
-                                   l_start,
-                                   NULL,
-                                   l_count,
-                                   NULL,
-                                   NULL,
-                                   NULL,
-                                   NULL));
-    SP_CALL(spMPICartUpdateAll(updater, num_of_sub, F));
-    SP_CALL(spMPICartUpdaterDestroy(&updater));
+    SP_CALL(spMPIHaloUpdaterCreate(&updater, spFieldDataType(f), 0, ndims, l_dims, l_start, NULL, l_count, NULL));
+    SP_CALL(spMPIUpdateAll(updater, num_of_sub, F));
+    SP_CALL(spMPIHaloUpdaterDestroy(&updater));
     return SP_SUCCESS;
 }
 

@@ -37,4 +37,4 @@ LINK_DIRECTORIES(/home/salmon/workspace/build/SimPla/lib)
 
 ADD_EXECUTABLE(sp_boris_gpu ${sp_lite_SRC})
 
-TARGET_LINK_LIBRARIES(sp_boris_gpu sp_lite_cuda stdc++ m mpi sp_capi)
+TARGET_LINK_LIBRARIES(sp_boris_gpu  pthread sp_lite_cuda stdc++ m mpi gomp sp_capi )

@@ -31,19 +31,17 @@ MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s)
 
 int spMeshAttributeCreate(spMeshAttribute **f, size_type size, spMesh const *mesh, uint iform)
 {
-    int error_code = SP_SUCCESS;
 
     SP_CALL(spObjectCreate((spObject **) (f), size));
     (*f)->m = mesh;
     (*f)->iform = iform;
-    return error_code;
+    return SP_SUCCESS;
 };
 
 int spMeshAttributeDestroy(spMeshAttribute **f)
 {
-    int error_code = SP_SUCCESS;
     SP_CALL(spObjectDestroy((spObject **) (f)));
-    return error_code;
+    return SP_SUCCESS;
 };
 
 spMesh const *spMeshAttributeGetMesh(spMeshAttribute const *f) { return f->m; }
@@ -158,9 +156,8 @@ int spMeshDeploy(spMesh *self)
             self->m_global_start_[i] = self->m_global_dims_[i] * mpi_topo_coords[i] / mpi_topo_dims[i];
 
             self->m_count_[i] =
-                self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
-        }
-        else
+                    self->m_global_dims_[i] * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i] - self->m_global_start_[i];
+        } else
         {
             self->m_global_start_[i] = 0;
 
@@ -224,7 +221,7 @@ int spMeshDeploy(spMesh *self)
 //	assert(count == 27);
 //	spMemCopyToCache(SP_NEIGHBOUR_OFFSET, neighbour_offset, sizeof(neighbour_offset));
 //	spMemCopyToCache(SP_NEIGHBOUR_OFFSET_flag, neighbour_flag, sizeof(neighbour_flag));
-
+    SP_CALL(spMeshSetupParam(self));
     return SP_SUCCESS;
 
 }
@@ -423,8 +420,7 @@ int spMeshGetStrides(spMesh const *m, size_type *res)
             res[2] = (m->m_global_dims_[2] == 1) ? 0 : 1;
             res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[2];
             res[0] = (m->m_global_dims_[0] == 1) ? 0 : m->m_dims_[2] * m->m_dims_[1];
-        }
-        else
+        } else
         {
             res[0] = (m->m_global_dims_[0] == 1) ? 0 : 1;
             res[1] = (m->m_global_dims_[1] == 1) ? 0 : m->m_dims_[0];
@@ -471,8 +467,7 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
             l_count[i] = attr_dims[i];
         }
         *start_mesh_dim = attr_ndims;
-    }
-    else
+    } else
     {
 
         for (int i = 0; i < attr_ndims; ++i)

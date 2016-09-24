@@ -30,6 +30,8 @@
 
 #define SP_FAILED 1
 
+#define SP_MAX_NUM_DIMS 10
+
 typedef unsigned long size_type;
 
 typedef int8_t byte_type; // int8_t

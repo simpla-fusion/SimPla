@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 
     int num_of_steps = argc < 2 ? 100 : atoi(argv[1]);
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
-    size_type PIC = 5;
+    size_type PIC = 128;
     Real n0 = 1.0e16;
     Real T0 = (Real) (0.026 * SI_elementary_charge / SI_Boltzmann_constant);
     size_type dims[3] = {0x8, 0x7, 0x1};
@@ -83,8 +83,8 @@ int main(int argc, char **argv)
     SP_CALL(spFieldClear(fRho));
     SP_CALL(spFieldClear(fdRho));
 
-//    SP_CALL(spFDTDInitialValueSin(fE, k, amp));
-
+    SP_CALL(spFDTDInitialValueSin(fE, k, amp));
+    if (isnan(dt)) { dt = spMeshCFLDt(mesh, (Real) speed_of_light); }
     /*****************************************************************************************************************/
 
     spParticle *sp = NULL;
@@ -97,13 +97,8 @@ int main(int argc, char **argv)
 
     /*****************************************************************************************************************/
 
-    if (isnan(dt))
-    {
-        dt = fminf(spMeshCFLDt(mesh, (Real) speed_of_light),
-                   (Real) (0.1 * TWOPI / sqrt(SI_elementary_charge * SI_elementary_charge * n0 / epsilon0)));
-    }
 
-    dt *= 0.1;
+    dt = fminf(dt, (Real) (0.1 * TWOPI / sqrt(SI_elementary_charge * SI_elementary_charge * n0 / epsilon0)));
     /*****************************************************************************************************************/
 
     SP_CALL(spIOStreamOpen(os, "/start/"));
@@ -138,7 +133,7 @@ int main(int argc, char **argv)
             SP_CALL(spFieldWrite(fJ, os, "J", SP_FILE_RECORD));
             SP_CALL(spFieldWrite(fRho, os, "rho", SP_FILE_RECORD));
             SP_CALL(spFieldWrite(fdRho, os, "dRho", SP_FILE_RECORD));
-            SP_CALL(spParticleDiagnose(sp, os, "H", SP_FILE_RECORD));
+            //SP_CALL(spParticleDiagnose(sp, os, "H", SP_FILE_RECORD));
         }
 
     }
