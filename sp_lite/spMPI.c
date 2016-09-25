@@ -341,119 +341,113 @@ int spMPIHaloUpdaterDestroy(spMPIHaloUpdater **updater)
     return SP_SUCCESS;
 }
 
-int spMPIHaloUpdaterCreate(spMPIHaloUpdater **updater, int data_type_tag)
-{
-    SP_CALL(spMPIUpdaterCreate((spMPIUpdater **) updater, sizeof(spMPIHaloUpdater), data_type_tag));
 
-    return SP_SUCCESS;
-
-}
-
-int spMPIHaloUpdaterDeploy(spMPIHaloUpdater *updater,
+int spMPIHaloUpdaterCreate(spMPIHaloUpdater **updater, int data_type_tag,
                            int mpi_sync_start_dims, int ndims,
                            const size_type *shape, const size_type *start, const size_type *stride,
                            const size_type *count, const size_type *block)
 {
 
+    SP_CALL(spMPIUpdaterCreate((spMPIUpdater **) updater, sizeof(spMPIHaloUpdater), data_type_tag));
 
     int topo_type = MPI_CART;
 
-    MPI_CALL(MPI_Topo_test(updater->comm, &topo_type));
+    MPI_CALL(MPI_Topo_test((*updater)->comm, &topo_type));
 
     assert(topo_type == MPI_CART);
 
 
     int mpi_topology_ndims = 0;
 
-    MPI_CALL(MPI_Cartdim_get(updater->comm, &mpi_topology_ndims));
+    MPI_CALL(MPI_Cartdim_get((*updater)->comm, &mpi_topology_ndims));
 
     assert(mpi_topology_ndims <= ndims);
 
-    for (int i = 0; i < ndims; ++i) { updater->dims[i] = shape[i]; }
+    for (int i = 0; i < ndims; ++i) { (*updater)->dims[i] = shape[i]; }
 
-    updater->num_of_neighbour = mpi_topology_ndims * 2;
+    (*updater)->num_of_neighbour = mpi_topology_ndims * 2;
 
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
 
 
-        updater->send_displs[2 * d + 0] = 0;
-        updater->send_displs[2 * d + 1] = 0;
-        updater->recv_displs[2 * d + 0] = 0;
-        updater->recv_displs[2 * d + 1] = 0;
+        (*updater)->send_displs[2 * d + 0] = 0;
+        (*updater)->send_displs[2 * d + 1] = 0;
+        (*updater)->recv_displs[2 * d + 0] = 0;
+        (*updater)->recv_displs[2 * d + 1] = 0;
 
 
-        if (updater->dims[d] == 1)
+        if ((*updater)->dims[d] == 1)
         {
 
-            updater->send_count[2 * d + 0] = 0;
-            updater->send_count[2 * d + 1] = 0;
-            updater->recv_count[2 * d + 0] = 0;
-            updater->recv_count[2 * d + 1] = 0;
+            (*updater)->send_count[2 * d + 0] = 0;
+            (*updater)->send_count[2 * d + 1] = 0;
+            (*updater)->recv_count[2 * d + 0] = 0;
+            (*updater)->recv_count[2 * d + 1] = 0;
 
 
             for (int i = 0; i < ndims; ++i)
             {
-                updater->s_count[2 * d + 0][i] = 0;
-                updater->s_start[2 * d + 0][i] = 0;
-                updater->s_count[2 * d + 1][i] = 0;
-                updater->s_start[2 * d + 1][i] = 0;
-                updater->r_count[2 * d + 0][i] = 0;
-                updater->r_start[2 * d + 0][i] = 0;
-                updater->r_count[2 * d + 1][i] = 0;
-                updater->r_start[2 * d + 1][i] = 0;
+                (*updater)->s_count[2 * d + 0][i] = 0;
+                (*updater)->s_start[2 * d + 0][i] = 0;
+                (*updater)->s_count[2 * d + 1][i] = 0;
+                (*updater)->s_start[2 * d + 1][i] = 0;
+                (*updater)->r_count[2 * d + 0][i] = 0;
+                (*updater)->r_start[2 * d + 0][i] = 0;
+                (*updater)->r_count[2 * d + 1][i] = 0;
+                (*updater)->r_start[2 * d + 1][i] = 0;
             }
 
 
         } else
         {
 
-            updater->send_count[2 * d + 0] = 1;
-            updater->send_count[2 * d + 1] = 1;
-            updater->recv_count[2 * d + 0] = 1;
-            updater->recv_count[2 * d + 1] = 1;
+            (*updater)->send_count[2 * d + 0] = 1;
+            (*updater)->send_count[2 * d + 1] = 1;
+            (*updater)->recv_count[2 * d + 0] = 1;
+            (*updater)->recv_count[2 * d + 1] = 1;
 
 
             for (int i = 0; i < ndims; ++i)
             {
                 if (i >= mpi_sync_start_dims && i < d + mpi_sync_start_dims)
                 {
-                    updater->s_count[2 * d + 0][i] = updater->dims[i];
-                    updater->s_start[2 * d + 0][i] = 0;
-                    updater->s_count[2 * d + 1][i] = updater->dims[i];
-                    updater->s_start[2 * d + 1][i] = 0;
+                    (*updater)->s_count[2 * d + 0][i] = (*updater)->dims[i];
+                    (*updater)->s_start[2 * d + 0][i] = 0;
+                    (*updater)->s_count[2 * d + 1][i] = (*updater)->dims[i];
+                    (*updater)->s_start[2 * d + 1][i] = 0;
 
-                    updater->r_count[2 * d + 0][i] = updater->dims[i];
-                    updater->r_start[2 * d + 0][i] = 0;
-                    updater->r_count[2 * d + 1][i] = updater->dims[i];
-                    updater->r_start[2 * d + 1][i] = 0;
+                    (*updater)->r_count[2 * d + 0][i] = (*updater)->dims[i];
+                    (*updater)->r_start[2 * d + 0][i] = 0;
+                    (*updater)->r_count[2 * d + 1][i] = (*updater)->dims[i];
+                    (*updater)->r_start[2 * d + 1][i] = 0;
                 } else if (i == d + mpi_sync_start_dims)
                 {
-                    updater->s_count[2 * d + 0][i] = start[i];
-                    updater->s_start[2 * d + 0][i] = start[i];
-                    updater->s_count[2 * d + 1][i] = (updater->dims[i] - count[i] - start[i]);
-                    updater->s_start[2 * d + 1][i] = (start[i] + count[i] - updater->s_count[2 * d + 1][i]);
+                    (*updater)->s_count[2 * d + 0][i] = start[i];
+                    (*updater)->s_start[2 * d + 0][i] = start[i];
+                    (*updater)->s_count[2 * d + 1][i] = ((*updater)->dims[i] - count[i] - start[i]);
+                    (*updater)->s_start[2 * d + 1][i] = (start[i] + count[i] - (*updater)->s_count[2 * d + 1][i]);
 
-                    updater->r_count[2 * d + 0][i] = start[i];
-                    updater->r_start[2 * d + 0][i] = 0;
-                    updater->r_count[2 * d + 1][i] = (updater->dims[i] - count[i] - start[i]);
-                    updater->r_start[2 * d + 1][i] = updater->dims[i] - updater->s_count[2 * d + 1][i];
+                    (*updater)->r_count[2 * d + 0][i] = start[i];
+                    (*updater)->r_start[2 * d + 0][i] = 0;
+                    (*updater)->r_count[2 * d + 1][i] = ((*updater)->dims[i] - count[i] - start[i]);
+                    (*updater)->r_start[2 * d + 1][i] = (*updater)->dims[i] - (*updater)->s_count[2 * d + 1][i];
                 } else
                 {
-                    updater->s_count[2 * d + 0][i] = count[i];
-                    updater->s_start[2 * d + 0][i] = start[i];
-                    updater->s_count[2 * d + 1][i] = count[i];
-                    updater->s_start[2 * d + 1][i] = start[i];
+                    (*updater)->s_count[2 * d + 0][i] = count[i];
+                    (*updater)->s_start[2 * d + 0][i] = start[i];
+                    (*updater)->s_count[2 * d + 1][i] = count[i];
+                    (*updater)->s_start[2 * d + 1][i] = start[i];
 
-                    updater->r_count[2 * d + 0][i] = count[i];
-                    updater->r_start[2 * d + 0][i] = start[i];
-                    updater->r_count[2 * d + 1][i] = count[i];
-                    updater->r_start[2 * d + 1][i] = start[i];
+                    (*updater)->r_count[2 * d + 0][i] = count[i];
+                    (*updater)->r_start[2 * d + 0][i] = start[i];
+                    (*updater)->r_count[2 * d + 1][i] = count[i];
+                    (*updater)->r_start[2 * d + 1][i] = start[i];
                 };
-                updater->send_count[2 * d + 0] *= updater->s_count[2 * d + 0][i];
-                updater->send_count[2 * d + 1] *= updater->s_count[2 * d + 1][i];
-                updater->recv_count[2 * d + 0] *= updater->r_count[2 * d + 0][i];
-                updater->recv_count[2 * d + 1] *= updater->r_count[2 * d + 1][i];
+                (*updater)->send_count[2 * d + 0] *= (*updater)->s_count[2 * d + 0][i];
+                (*updater)->send_count[2 * d + 1] *= (*updater)->s_count[2 * d + 1][i];
+                (*updater)->recv_count[2 * d + 0] *= (*updater)->r_count[2 * d + 0][i];
+                (*updater)->recv_count[2 * d + 1] *= (*updater)->r_count[2 * d + 1][i];
             }
 
         }
@@ -462,23 +456,25 @@ int spMPIHaloUpdaterDeploy(spMPIHaloUpdater *updater,
     }
 
 
-    updater->strides[ndims - 1] = 1;
+    (*updater)->strides[ndims - 1] = 1;
 
     for (int i = ndims - 2; i >= 0; --i)
     {
-        updater->strides[i] = updater->dims[i + 1] * updater->strides[i + 1];
+        (*updater)->strides[i] = (*updater)->dims[i + 1] * (*updater)->strides[i + 1];
 
     }
 
 
     for (int i = 0; i < 6; ++i)
     {
-        size_type ele_size_in_byte = spDataTypeSizeInByte(updater->type_tag);
+        size_type ele_size_in_byte = spDataTypeSizeInByte((*updater)->type_tag);
 
 
-        SP_CALL(spMemDeviceAlloc(&(updater->send_buffer[i]), (size_type) (updater->send_count[i] * ele_size_in_byte)));
+        SP_CALL(spMemDeviceAlloc(&((*updater)->send_buffer[i]),
+                                 (size_type) ((*updater)->send_count[i] * ele_size_in_byte)));
 
-        SP_CALL(spMemDeviceAlloc(&(updater->recv_buffer[i]), (size_type) (updater->recv_count[i] * ele_size_in_byte)));
+        SP_CALL(spMemDeviceAlloc(&((*updater)->recv_buffer[i]),
+                                 (size_type) ((*updater)->recv_count[i] * ele_size_in_byte)));
     }
 
     return SP_SUCCESS;

@@ -36,7 +36,7 @@ int printArray(const void *d, int type_tag, int ndims, size_type const *dims)
             {
                 size_type s = (i * dims[1] + j) * dims[2] + k;
 
-                if (type_tag == SP_TYPE_Real) { printf(" %8f ", ((Real *) buffer)[s]); }
+                if (type_tag == SP_TYPE_Real) { printf(" %8.2f ", ((Real *) buffer)[s]); }
                 else if (type_tag == SP_TYPE_size_type) { printf(" %8lu ", ((size_type *) buffer)[s]); }
             }
             if (dims[2] > 1) { printf("},"); }

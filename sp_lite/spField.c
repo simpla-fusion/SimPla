@@ -15,6 +15,7 @@
 #include "spMesh.h"
 #include "spField.h"
 #include "spAlogorithm.h"
+#include "spMisc.h"
 
 #define MAX_NUM_OF_FIELD_ATTR 16
 
@@ -72,9 +73,7 @@ int spFieldDeploy(spField *f)
 
         SP_CALL(spMeshGetDomain(f->m, SP_DOMAIN_CENTER, start, NULL, count));
 
-        SP_CALL(spMPIHaloUpdaterCreate(&f->mpi_updater, spFieldDataType(f)));
-
-        SP_CALL(spMPIHaloUpdaterDeploy(f->mpi_updater, 0, 3, dims, start, NULL, count, NULL));
+        SP_CALL(spMPIHaloUpdaterCreate(&(f->mpi_updater), f->m_data_type_tag_, 0, 3, dims, start, NULL, count, NULL));
     }
 
     return SP_SUCCESS;
@@ -165,46 +164,60 @@ int spFieldShow(const spField *f, char const *name)
     if (f == NULL) { return SP_FAILED; }
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
-    int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
 
-    size_type dims[3], strides[3];
+    size_type dims[3];
 
     spMeshGetDims(m, dims);
-    spMeshGetStrides(m, strides);
 
-    void *buffer;
-    SP_CALL(spMemHostAlloc((void **) &buffer, spFieldGetSizeInByte(f)));
-    SP_CALL(spMemCopy(buffer, spFieldData((spField *) f), spFieldGetSizeInByte(f)));
+    int num_of_sub = spFieldNumberOfSub(f);
+
+    void *d[num_of_sub];
+
+    SP_CALL(spFieldSubArray(f, d));
 
     if (name != NULL) { printf("\n [ %s ]", name); }
 
-    printf("\n %4d|\t", 0);
-    for (int j = 0; j < dims[1]; ++j) { printf(" %8d ", j); }
-    printf("\n-----+--");
-    for (int j = 0; j < dims[1] * 10; ++j) { printf("-"); }
-
-
-    for (int i = 0; i < dims[0]; ++i)
+    for (int i = 0; i < num_of_sub; ++i)
     {
-        printf("\n %4d|\t", i);
-        for (int j = 0; j < dims[1]; ++j)
-        {
-            if (dims[2] > 1) { printf("{"); }
-            for (int k = 0; k < dims[2]; ++k)
-            {
-                size_type s = i * strides[0] + j * strides[1] + k * strides[2];
-
-                if (f->m_data_type_tag_ == SP_TYPE_Real) { printf(" %8.2f ", ((Real *) buffer)[s]); }
-                else if (f->m_data_type_tag_ == SP_TYPE_size_type) { printf(" %8lu ", ((size_type *) buffer)[s]); }
-            }
-            if (dims[2] > 1) { printf("},"); }
-        }
-
+        printf("\n [ %d/%d ]", i, num_of_sub);
+        SP_CALL(printArray(d[i], f->m_data_type_tag_, 3, dims));
     }
 
 
-    printf("\n");
-    SP_CALL(spMemHostFree(&buffer));
+
+//    void *buffer;
+//    SP_CALL(spMemHostAlloc((void **) &buffer, spFieldGetSizeInByte(f)));
+//    SP_CALL(spMemCopy(buffer, spFieldData((spField *) f), spFieldGetSizeInByte(f)));
+//
+//    if (name != NULL) { printf("\n [ %s ]", name); }
+//
+//    printf("\n %4d|\t", 0);
+//    for (int j = 0; j < dims[1]; ++j) { printf(" %8d ", j); }
+//    printf("\n-----+--");
+//    for (int j = 0; j < dims[1] * 10; ++j) { printf("-"); }
+//
+//
+//    for (int i = 0; i < dims[0]; ++i)
+//    {
+//        printf("\n %4d|\t", i);
+//        for (int j = 0; j < dims[1]; ++j)
+//        {
+//            if (dims[2] > 1) { printf("{"); }
+//            for (int k = 0; k < dims[2]; ++k)
+//            {
+//                size_type s = i * strides[0] + j * strides[1] + k * strides[2];
+//
+//                if (f->m_data_type_tag_ == SP_TYPE_Real) { printf(" %8.2f ", ((Real *) buffer)[s]); }
+//                else if (f->m_data_type_tag_ == SP_TYPE_size_type) { printf(" %8lu ", ((size_type *) buffer)[s]); }
+//            }
+//            if (dims[2] > 1) { printf("},"); }
+//        }
+//
+//    }
+//
+//
+//    printf("\n");
+//    SP_CALL(spMemHostFree(&buffer));
     return SP_SUCCESS;
 }
 

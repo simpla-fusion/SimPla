@@ -53,9 +53,7 @@ struct spMPIHaloUpdater_s;
 
 typedef struct spMPIHaloUpdater_s spMPIHaloUpdater;
 
-int spMPIHaloUpdaterCreate(spMPIHaloUpdater **updater, int data_type_tag);
-
-int spMPIHaloUpdaterDeploy(spMPIHaloUpdater *updater, int mpi_sync_start_dims, int ndims,
+int spMPIHaloUpdaterCreate(spMPIHaloUpdater **updater, int data_type_tag, int mpi_sync_start_dims, int ndims,
                            const size_type *shape, const size_type *start, const size_type *stride,
                            const size_type *count, const size_type *block);
 
@@ -73,7 +71,6 @@ typedef struct spMPINoncontiguousUpdater_s spMPINoncontiguousUpdater;
 
 int spMPINoncontiguousUpdaterCreate(spMPINoncontiguousUpdater **updater, int data_type_tag);
 
-int spMPINoncontiguousUpdaterDeploy(spMPINoncontiguousUpdater **updater);
 
 int spMPINoncontiguousUpdaterDestroy(spMPINoncontiguousUpdater **updater);
 
