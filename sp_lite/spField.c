@@ -62,18 +62,19 @@ int spFieldDeploy(spField *f)
 {
 
 
-    if (f->m_data_ == NULL) {SP_CALL(spMemDeviceAlloc((void **) &(f->m_data_), spFieldGetSizeInByte(f))); }
+    if (f->m_data_ == NULL) {SP_CALL(spMemDeviceAlloc(&(f->m_data_), spFieldGetSizeInByte(f))); }
 
     if (f->mpi_updater == NULL)
     {
-        size_type dims[3];
-        size_type start[3], count[3];
+        SP_CALL(spMPIHaloUpdaterCreate(&(f->mpi_updater), f->m_data_type_tag_));
+
+        size_type dims[3], start[3], count[3];
 
         SP_CALL(spMeshGetDims(f->m, dims));
 
         SP_CALL(spMeshGetDomain(f->m, SP_DOMAIN_CENTER, start, NULL, count));
 
-        SP_CALL(spMPIHaloUpdaterCreate(&(f->mpi_updater), f->m_data_type_tag_, 0, 3, dims, start, NULL, count, NULL));
+        SP_CALL(spMPIHaloUpdaterSetup(f->mpi_updater, 0, 3, dims, start, NULL, count, NULL));
     }
 
     return SP_SUCCESS;

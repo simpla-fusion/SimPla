@@ -34,9 +34,7 @@ void spMemoryIndirectCopyKernel(Real *dest, Real const *src, size_type num, size
 
 int spMemoryCopyIndirect(Real *dest, Real const *src, size_type num, size_type const *index)
 {
-    /*@formatter:off*/
-   spMemoryIndirectCopyKernel<<<num/256+1,256>>>(dest,src,num, index);
-    /*@formatter:on*/
+    if (num > 0) { SP_CALL_DEVICE_KERNEL(spMemoryIndirectCopyKernel, num / 256 + 1, 256, dest, src, num, index); }
     return SP_SUCCESS;
 }
 
@@ -50,9 +48,7 @@ void spMemoryInvIndirectCopyKernel(Real *dest, Real const *src, size_type num, s
 
 int spMemoryCopyInvIndirect(Real *dest, Real const *src, size_type num, size_type const *index)
 {
-    /*@formatter:off*/
-   spMemoryInvIndirectCopyKernel<<<num/256+1,256>>>(dest,src,num, index);
-    /*@formatter:on*/
+    if (num > 0) { SP_CALL_DEVICE_KERNEL(spMemoryInvIndirectCopyKernel, num / 256 + 1, 256, dest, src, num, index); }
     return SP_SUCCESS;
 }
 

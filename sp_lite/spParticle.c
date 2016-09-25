@@ -46,6 +46,8 @@ struct spParticle_s
 
     Real charge;
 
+    int m_data_type_tag_;
+
     unsigned int m_pic_;
 
     size_type m_max_hash_;
@@ -70,7 +72,7 @@ struct spParticle_s
 
     int need_sorting;
 
-    spMPINoncontiguousUpdater *mpi_updater;
+    spMPIBucketUpdater *mpi_updater;
 };
 
 /** meta data @{*/
@@ -203,6 +205,7 @@ int spParticleSetAttributeData(spParticle *sp, int i, void *data)
 int spParticleCreate(spParticle **sp, const spMesh *mesh)
 {
     SP_CALL(spMeshAttributeCreate((spMeshAttribute **) sp, sizeof(spParticle), mesh, VOLUME));
+    (*sp)->m_data_type_tag_ = SP_TYPE_Real;
     (*sp)->m_num_of_particle_ = 0;
     (*sp)->m_max_num_of_particle_ = 0;
     (*sp)->m_pic_ = 0;
@@ -257,7 +260,19 @@ int spParticleDeploy(spParticle *sp)
     SP_CALL(spMemDeviceAlloc((void **) &(sp->sorted_idx), sp->m_max_num_of_particle_ * sizeof(size_type)));
     SP_CALL(spMemDeviceAlloc((void **) &(sp->cell_hash), sp->m_max_num_of_particle_ * sizeof(size_type)));
 
-    spMPINoncontiguousUpdaterCreate(&(sp->mpi_updater), SP_TYPE_Real);
+
+    if (sp->mpi_updater == NULL)
+    {
+        spMPIBucketUpdaterCreate(&(sp->mpi_updater), SP_TYPE_Real);
+
+        size_type dims[3], start[3], count[3];
+
+        SP_CALL(spMeshGetDims(sp->m, dims));
+
+        SP_CALL(spMeshGetDomain(sp->m, SP_DOMAIN_CENTER, start, NULL, count));
+
+        SP_CALL(spMPIHaloUpdaterSetup((spMPIHaloUpdater *) (sp->mpi_updater), 0, 3, dims, start, NULL, count, NULL));
+    }
 
     sp->is_deployed = SP_TRUE;
     return SP_SUCCESS;
@@ -267,7 +282,7 @@ int spParticleDestroy(spParticle **sp)
 {
     if (sp == NULL || *sp == NULL) { return SP_SUCCESS; }
 
-    SP_CALL(spMPINoncontiguousUpdaterDestroy(&(*sp)->mpi_updater));
+    SP_CALL(spMPIBucketUpdaterDestroy(&(*sp)->mpi_updater));
 
     SP_CALL(spFieldDestroy(&(*sp)->bucket_start));
     SP_CALL(spFieldDestroy(&(*sp)->bucket_count));
@@ -278,6 +293,7 @@ int spParticleDestroy(spParticle **sp)
     for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i) {SP_CALL(spMemDeviceFree(&((*sp)->m_attrs_[i].data))); }
 
     SP_CALL(spMemDeviceFree((void **) &((*sp)->m_current_data_)));
+
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) sp));
 
 
@@ -410,115 +426,19 @@ int spParticleSync(spParticle *sp)
 
     assert(spParticleNeedSorting(sp) == SP_FALSE);
 
-    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
-
-    int iform = spMeshAttributeGetForm((spMeshAttribute const *) sp);
-
-    int ndims = spMeshGetNDims(m);
-
-    /*******/
-
-//     SP_CALL(spFillSeq(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
-//    SHOW_FIELD(sp->bucket_count);
-
     SP_CALL(spFieldSync(sp->bucket_count));
 
-//    SHOW_FIELD(sp->bucket_count);
+    size_type *bucket_start, *bucket_count, *sorted_id;
 
-    size_type *bucket_start_pos = NULL, *bucket_count = NULL, *sorted_idx = NULL;
+    SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_id, NULL));
 
-    SP_CALL(spFieldCopyToHost((void **) &bucket_start_pos, sp->bucket_start));
+    SP_CALL(spMPIBucketUpdaterSetup(sp->mpi_updater, bucket_start, bucket_count, sorted_id));
 
-    SP_CALL(spFieldCopyToHost((void **) &bucket_count, sp->bucket_count));
-
-    SP_CALL(spMemHostAlloc((void **) &sorted_idx, sp->m_max_num_of_particle_ * sizeof(size_type)));
-
-    SP_CALL(spMemCopy((void *) sorted_idx, sp->sorted_idx, sp->m_max_num_of_particle_ * sizeof(size_type)));
-
-    size_type l_dims[ndims + 1];
-    size_type l_start[ndims + 1];
-    size_type l_end[ndims + 1];
-    size_type l_strides[ndims + 1];
-    size_type l_count[ndims + 1];
-
-    SP_CALL(spMeshGetDims(m, l_dims));
-
-    SP_CALL(spMeshGetStrides(m, l_strides));
-
-    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, l_end, l_count));
-
-    size_type p_tail = spParticleSize(sp);
-
-#pragma omp parallel for
-    for (int i = 0; i < l_dims[0]; ++i)
-        for (int j = 0; j < l_dims[1]; ++j)
-            for (int k = 0; k < l_dims[2]; ++k)
-            {
-                if ((i >= l_start[0] && i < l_end[0]) &&
-                    (j >= l_start[1] && j < l_end[1]) &&
-                    (k >= l_start[2] && k < l_end[2])) { continue; }
-
-                size_type s = i * l_strides[0] + j * l_strides[1] + k * l_strides[2];
-
-                if (bucket_count[s] > 0)
-                {
-                    bucket_start_pos[s] = p_tail;
-                    p_tail += bucket_count[s];
-                }
-            }
-
-
-    SP_CALL(spParticleResize(sp, p_tail));
-
-    SP_CALL(spFieldCopyToDevice(sp->bucket_start, bucket_start_pos));
-
-    size_type send_num[6];
-    size_type recv_num[6];
-    size_type *send_index[6];
-    size_type *recv_index[6];
-
-//    SP_CALL(spMPINoncontiguousUpdaterDeploy(sp, send_num, send_index, recv_num, recv_index));
-
-//    SP_CALL(spMPINoncontiguousResetIndex(sp->mpi_updater, send_num, send_index, recv_num, recv_index));
-    /*******/
-//
-//    SP_CALL(spMeshGetDims(m, l_dims));
-//
-//    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, l_end, l_count));
-//
-//    /* MPI COMM Start */
-//    {
-//
-//        Real *buffer;
-//        size_type strides[3];
-//        SP_CALL(spMeshGetStrides(m, strides));
-//        size_type num = spParticleSize(sp);
-//        SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
-//        SP_CALL(spMemCopy(buffer, spParticleGetAttributeData(sp, 5), num * sizeof(Real)));
-//
-//        printf("\n***************************************\n");
-//
-//        for (int i = 0; i < l_dims[0]; ++i)
-//        {
-//            printf("\n %4d|\t", i);
-//            for (int j = 0; j < l_dims[1]; ++j)
-//            {
-//                for (int k = 0; k < l_dims[2]; ++k)
-//                {
-//                    size_type s = i * strides[0] + j * strides[1] + k * strides[2];
-//
-//                    printf(" %1.5e ", (buffer)[sorted_idx[bucket_start_pos[s] + 1]]);
-//                }
-//            }
-//
-//        }
-//        printf("\n");
-//        SP_CALL(spMemHostFree((void **) &buffer));
-//    }
     void *d[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
     SP_CALL(spParticleGetAllAttributeData(sp, d));
-    SP_CALL(spMPINoncontiguousUpdateAll(sp->mpi_updater, spParticleGetNumberOfAttributes(sp), d));
+
+    SP_CALL(spMPIBucketUpdateAll(sp->mpi_updater, spParticleGetNumberOfAttributes(sp), d));
 
 
 //    {
@@ -548,8 +468,6 @@ int spParticleSync(spParticle *sp)
 //        printf("\n");
 //        SP_CALL(spMemHostFree((void **) &buffer));
 //    }
-
-    /* MPI COMM End*/
 
     return SP_SUCCESS;
 

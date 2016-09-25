@@ -60,9 +60,9 @@ extern "C"
 //            }
 //    return num;
 //}
-//int spMPINoncontiguousUpdaterCreate(spMPINoncontiguousUpdater **updater)
+//int spMPIBucketUpdaterCreate(spMPIBucketUpdater **updater)
 //{
-//    *updater = (spMPINoncontiguousUpdater *) malloc(sizeof(spMPINoncontiguousUpdater));
+//    *updater = (spMPIBucketUpdater *) malloc(sizeof(spMPIBucketUpdater));
 //    {
 ////            assert(data_type_tag == SP_TYPE_Real);
 //        int *disp = NULL;
@@ -105,7 +105,7 @@ extern "C"
 //    return SP_SUCCESS;
 //}
 //
-//int spMPINoncontiguousUpdaterDestroy(spMPINoncontiguousUpdater **updater)
+//int spMPIBucketUpdaterDestroy(spMPIBucketUpdater **updater)
 //{
 //
 //    free(*updater);

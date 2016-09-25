@@ -47,15 +47,16 @@ int spMPIUpdaterCreate(spMPIUpdater **updater, size_type size, int type_tag);
 
 int spMPIUpdaterDestroy(spMPIUpdater **updater);
 
-int spMPIUpdate(spMPIUpdater *updater);
-
 struct spMPIHaloUpdater_s;
 
 typedef struct spMPIHaloUpdater_s spMPIHaloUpdater;
 
-int spMPIHaloUpdaterCreate(spMPIHaloUpdater **updater, int data_type_tag, int mpi_sync_start_dims, int ndims,
-                           const size_type *shape, const size_type *start, const size_type *stride,
-                           const size_type *count, const size_type *block);
+int spMPIHaloUpdaterCreate(spMPIHaloUpdater **updater, int type_tag);
+
+
+int spMPIHaloUpdaterSetup(spMPIHaloUpdater *updater, int mpi_sync_start_dims, int ndims,
+                          const size_type *shape, const size_type *start, const size_type *stride,
+                          const size_type *count, const size_type *block);
 
 
 int spMPIHaloUpdaterDestroy(spMPIHaloUpdater **updater);
@@ -65,24 +66,21 @@ int spMPIHaloUpdate(spMPIHaloUpdater *updater, void *);
 int spMPIHaloUpdateAll(spMPIHaloUpdater *updater, int num_of_buffer, void **buffers);
 
 
-struct spMPINoncontiguousUpdater_s;
+struct spMPIBucketUpdater_s;
 
-typedef struct spMPINoncontiguousUpdater_s spMPINoncontiguousUpdater;
+typedef struct spMPIBucketUpdater_s spMPIBucketUpdater;
 
-int spMPINoncontiguousUpdaterCreate(spMPINoncontiguousUpdater **updater, int data_type_tag);
+int spMPIBucketUpdaterCreate(spMPIBucketUpdater **updater, int data_type_tag);
+
+int spMPIBucketUpdaterDestroy(spMPIBucketUpdater **updater);
+
+int spMPIBucketUpdaterSetup(spMPIBucketUpdater *updater, const size_type *bucket_start,
+                            const size_type *buck_count, size_type const *sorted_index);
 
 
-int spMPINoncontiguousUpdaterDestroy(spMPINoncontiguousUpdater **updater);
+int spMPIBucketUpdate(spMPIBucketUpdater *updater, void *buffer);
 
-int spMPINoncontiguousResetIndex(spMPINoncontiguousUpdater *updater,
-                                 size_type *send_num,
-                                 size_type **send_index,
-                                 size_type *recv_num,
-                                 size_type **recv_index);
-
-int spMPINoncontiguousUpdate(spMPINoncontiguousUpdater *updater, void *buffer);
-
-int spMPINoncontiguousUpdateAll(spMPINoncontiguousUpdater *updater, int num_of_buffer, void **buffers);
+int spMPIBucketUpdateAll(spMPIBucketUpdater *updater, int num_of_buffer, void **buffers);
 
 
 #endif //SIMPLA_SPMPI_H
