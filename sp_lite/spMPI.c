@@ -8,6 +8,7 @@
 #include "spObject.h"
 #include "spAlogorithm.h"
 #include "spParallel.h"
+#include "spMisc.h"
 
 #define MPI_CALL(_CMD_)                                                   \
 {                                                                          \
@@ -220,20 +221,23 @@ MPI_Datatype spMPIDataType(int type_tag)
     return res_type;
 }
 
-int spMPIUpdaterCreate(spMPIUpdater **updater, size_type size)
+int spMPIUpdaterCreate(spMPIUpdater **updater, size_type size, int type_tag)
 {
 
     *updater = (spMPIUpdater *) malloc(size);
+
     (*updater)->comm = spMPIComm();
 
     if ((*updater)->comm == MPI_COMM_NULL) { return SP_FAILED; }
 
     (*updater)->num_of_neighbour = 6;
 
+    (*updater)->type_tag = type_tag;
+
     for (int i = 0; i < (*updater)->num_of_neighbour; ++i)
     {
-        (*updater)->send_types[i] = MPI_DATATYPE_NULL;
-        (*updater)->recv_types[i] = MPI_DATATYPE_NULL;
+//        (*updater)->send_types[i] = MPI_DATATYPE_NULL;
+//        (*updater)->recv_types[i] = MPI_DATATYPE_NULL;
 
         (*updater)->send_count[i] = 0;
         (*updater)->recv_count[i] = 0;
@@ -252,8 +256,8 @@ int spMPIUpdaterDestroy(spMPIUpdater **updater)
 {
     for (int i = 0; i < (*updater)->num_of_neighbour; ++i)
     {
-        if ((*updater)->send_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->send_types[i])));
-        if ((*updater)->recv_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->recv_types[i])));
+//        if ((*updater)->send_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->send_types[i])));
+//        if ((*updater)->recv_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->recv_types[i])));
 
         SP_CALL(spMemDeviceFree(&((*updater)->send_buffer[i])));
         SP_CALL(spMemDeviceFree(&((*updater)->recv_buffer[i])));
@@ -318,20 +322,17 @@ int spMPIPrefixSum(size_type *p_offset, size_type *p_count)
     SP_MPI_UPDATER_HEAD                                  \
     size_type dims[SP_MAX_NUM_DIMS];                     \
     size_type strides[SP_MAX_NUM_DIMS];                  \
-    size_type s_count_lower[3][SP_MAX_NUM_DIMS];         \
-    size_type s_start_lower[3][SP_MAX_NUM_DIMS];         \
-    size_type s_count_upper[3][SP_MAX_NUM_DIMS];         \
-    size_type s_start_upper[3][SP_MAX_NUM_DIMS];         \
-                                                         \
-    size_type r_count_lower[3][SP_MAX_NUM_DIMS];         \
-    size_type r_start_lower[3][SP_MAX_NUM_DIMS];         \
-    size_type r_count_upper[3][SP_MAX_NUM_DIMS];         \
-    size_type r_start_upper[3][SP_MAX_NUM_DIMS];         \
+    size_type s_count[6][SP_MAX_NUM_DIMS];         \
+    size_type s_start[6][SP_MAX_NUM_DIMS];         \
+    size_type r_count[6][SP_MAX_NUM_DIMS];         \
+    size_type r_start[6][SP_MAX_NUM_DIMS];         \
 
 
-typedef struct spMPIHaloUpdater_s
+
+struct spMPIHaloUpdater_s
 {
     spMPIHaloUpdater_s_header
+
 };
 
 int spMPIHaloUpdaterDestroy(spMPIHaloUpdater **updater)
@@ -342,20 +343,7 @@ int spMPIHaloUpdaterDestroy(spMPIHaloUpdater **updater)
 
 int spMPIHaloUpdaterCreate(spMPIHaloUpdater **updater, int data_type_tag)
 {
-    SP_CALL(spMPIUpdaterCreate((spMPIUpdater **) updater, sizeof(spMPIHaloUpdater)));
-
-    MPI_Datatype ele_type = spMPIDataType(data_type_tag);
-
-    if (ele_type == MPI_DATATYPE_NULL) { return SP_FAILED; }
-
-    for (int d = 0; d < 3; ++d)
-    {
-
-        (*updater)->send_types[2 * d + 0] = ele_type;
-        (*updater)->send_types[2 * d + 1] = ele_type;
-        (*updater)->recv_types[2 * d + 0] = ele_type;
-        (*updater)->recv_types[2 * d + 1] = ele_type;
-    }
+    SP_CALL(spMPIUpdaterCreate((spMPIUpdater **) updater, sizeof(spMPIHaloUpdater), data_type_tag));
 
     return SP_SUCCESS;
 
@@ -387,10 +375,6 @@ int spMPIHaloUpdaterDeploy(spMPIHaloUpdater *updater,
 
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
-        updater->send_count[2 * d + 0] = 1;
-        updater->send_count[2 * d + 1] = 1;
-        updater->recv_count[2 * d + 0] = 1;
-        updater->recv_count[2 * d + 1] = 1;
 
 
         updater->send_displs[2 * d + 0] = 0;
@@ -399,58 +383,104 @@ int spMPIHaloUpdaterDeploy(spMPIHaloUpdater *updater,
         updater->recv_displs[2 * d + 1] = 0;
 
 
-        if (updater->dims[d] == 1) { continue; }
-
-        for (int i = 0; i < ndims; ++i)
+        if (updater->dims[d] == 1)
         {
-            if (i >= mpi_sync_start_dims && i < d + mpi_sync_start_dims)
+
+            updater->send_count[2 * d + 0] = 0;
+            updater->send_count[2 * d + 1] = 0;
+            updater->recv_count[2 * d + 0] = 0;
+            updater->recv_count[2 * d + 1] = 0;
+
+
+            for (int i = 0; i < ndims; ++i)
             {
-                updater->s_count_lower[d][i] = updater->dims[i];
-                updater->s_start_lower[d][i] = 0;
-                updater->s_count_upper[d][i] = updater->dims[i];
-                updater->s_start_upper[d][i] = 0;
+                updater->s_count[2 * d + 0][i] = 0;
+                updater->s_start[2 * d + 0][i] = 0;
+                updater->s_count[2 * d + 1][i] = 0;
+                updater->s_start[2 * d + 1][i] = 0;
+                updater->r_count[2 * d + 0][i] = 0;
+                updater->r_start[2 * d + 0][i] = 0;
+                updater->r_count[2 * d + 1][i] = 0;
+                updater->r_start[2 * d + 1][i] = 0;
+            }
 
-                updater->r_count_lower[d][i] = updater->dims[i];
-                updater->r_start_lower[d][i] = 0;
-                updater->r_count_upper[d][i] = updater->dims[i];
-                updater->r_start_upper[d][i] = 0;
-            } else if (i == d + mpi_sync_start_dims)
+
+        } else
+        {
+
+            updater->send_count[2 * d + 0] = 1;
+            updater->send_count[2 * d + 1] = 1;
+            updater->recv_count[2 * d + 0] = 1;
+            updater->recv_count[2 * d + 1] = 1;
+
+
+            for (int i = 0; i < ndims; ++i)
             {
-                updater->s_count_lower[d][i] = start[i];
-                updater->s_start_lower[d][i] = start[i];
-                updater->s_count_upper[d][i] = (updater->dims[i] - count[i] - start[i]);
-                updater->s_start_upper[d][i] = (start[i] + count[i] - updater->s_count_upper[d][i]);
+                if (i >= mpi_sync_start_dims && i < d + mpi_sync_start_dims)
+                {
+                    updater->s_count[2 * d + 0][i] = updater->dims[i];
+                    updater->s_start[2 * d + 0][i] = 0;
+                    updater->s_count[2 * d + 1][i] = updater->dims[i];
+                    updater->s_start[2 * d + 1][i] = 0;
 
-                updater->r_count_lower[d][i] = start[i];
-                updater->r_start_lower[d][i] = 0;
-                updater->r_count_upper[d][i] = (updater->dims[i] - count[i] - start[i]);
-                updater->r_start_upper[d][i] = updater->dims[i] - updater->s_count_upper[d][i];
-            } else
-            {
-                updater->s_count_lower[d][i] = count[i];
-                updater->s_start_lower[d][i] = start[i];
-                updater->s_count_upper[d][i] = count[i];
-                updater->s_start_upper[d][i] = start[i];
+                    updater->r_count[2 * d + 0][i] = updater->dims[i];
+                    updater->r_start[2 * d + 0][i] = 0;
+                    updater->r_count[2 * d + 1][i] = updater->dims[i];
+                    updater->r_start[2 * d + 1][i] = 0;
+                } else if (i == d + mpi_sync_start_dims)
+                {
+                    updater->s_count[2 * d + 0][i] = start[i];
+                    updater->s_start[2 * d + 0][i] = start[i];
+                    updater->s_count[2 * d + 1][i] = (updater->dims[i] - count[i] - start[i]);
+                    updater->s_start[2 * d + 1][i] = (start[i] + count[i] - updater->s_count[2 * d + 1][i]);
 
-                updater->r_count_lower[d][i] = count[i];
-                updater->r_start_lower[d][i] = start[i];
-                updater->r_count_upper[d][i] = count[i];
-                updater->r_start_upper[d][i] = start[i];
-            };
+                    updater->r_count[2 * d + 0][i] = start[i];
+                    updater->r_start[2 * d + 0][i] = 0;
+                    updater->r_count[2 * d + 1][i] = (updater->dims[i] - count[i] - start[i]);
+                    updater->r_start[2 * d + 1][i] = updater->dims[i] - updater->s_count[2 * d + 1][i];
+                } else
+                {
+                    updater->s_count[2 * d + 0][i] = count[i];
+                    updater->s_start[2 * d + 0][i] = start[i];
+                    updater->s_count[2 * d + 1][i] = count[i];
+                    updater->s_start[2 * d + 1][i] = start[i];
 
+                    updater->r_count[2 * d + 0][i] = count[i];
+                    updater->r_start[2 * d + 0][i] = start[i];
+                    updater->r_count[2 * d + 1][i] = count[i];
+                    updater->r_start[2 * d + 1][i] = start[i];
+                };
+                updater->send_count[2 * d + 0] *= updater->s_count[2 * d + 0][i];
+                updater->send_count[2 * d + 1] *= updater->s_count[2 * d + 1][i];
+                updater->recv_count[2 * d + 0] *= updater->r_count[2 * d + 0][i];
+                updater->recv_count[2 * d + 1] *= updater->r_count[2 * d + 1][i];
+            }
 
-            updater->send_count[2 * d + 0] *= updater->s_count_lower[d][i];
-            updater->send_count[2 * d + 1] *= updater->s_count_upper[d][i];
-            updater->recv_count[2 * d + 0] *= updater->r_count_lower[d][i];
-            updater->recv_count[2 * d + 1] *= updater->r_count_upper[d][i];
         }
-    }
-    updater->strides[ndims - 1] = 1;
-    for (int i = ndims - 2; i >= 0; ++i)
-    {
-        updater->strides[i] = updater->dims[i - 1] * updater->strides[i - 1];
+
 
     }
+
+
+    updater->strides[ndims - 1] = 1;
+
+    for (int i = ndims - 2; i >= 0; --i)
+    {
+        updater->strides[i] = updater->dims[i + 1] * updater->strides[i + 1];
+
+    }
+
+
+    for (int i = 0; i < 6; ++i)
+    {
+        size_type ele_size_in_byte = spDataTypeSizeInByte(updater->type_tag);
+
+
+        SP_CALL(spMemDeviceAlloc(&(updater->send_buffer[i]), (size_type) (updater->send_count[i] * ele_size_in_byte)));
+
+        SP_CALL(spMemDeviceAlloc(&(updater->recv_buffer[i]), (size_type) (updater->recv_count[i] * ele_size_in_byte)));
+    }
+
     return SP_SUCCESS;
 }
 
@@ -471,19 +501,18 @@ int spMPIHaloUpdate(spMPIHaloUpdater *updater, void *data)
 
     MPI_CALL(MPI_Cartdim_get(updater->comm, &mpi_topology_ndims));
 
+    MPI_Datatype ele_type = spMPIDataType(updater->type_tag);
+
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
-        if (updater->send_types[d * 2 + 0] == MPI_DATATYPE_NULL) { continue; }
 
-        SP_CALL(spMemoryCopySubArray(updater->send_buffer[2 * d + 0], data,
-                                     updater->strides,
-                                     updater->s_start_lower[d],
-                                     updater->s_count_lower[d]));
 
-        SP_CALL(spMemoryCopySubArray(updater->send_buffer[2 * d + 1], data,
-                                     updater->strides,
-                                     updater->s_start_lower[d],
-                                     updater->s_count_lower[d]));
+        SP_CALL(spMemoryCopySubArray(updater->send_buffer[2 * d + 0], data, updater->type_tag, updater->strides,
+                                     updater->s_start[2 * d + 0], updater->s_count[2 * d + 0]));
+
+
+        SP_CALL(spMemoryCopySubArray(updater->send_buffer[2 * d + 1], data, updater->type_tag, updater->strides,
+                                     updater->s_start[2 * d + 1], updater->s_count[2 * d + 1]));
 
 
         int left, right;
@@ -491,41 +520,35 @@ int spMPIHaloUpdate(spMPIHaloUpdater *updater, void *data)
         MPI_CALL(MPI_Cart_shift(updater->comm, d, 1, &left, &right));
 
         MPI_CALL(MPI_Sendrecv(
-                (byte_type *) (updater->send_buffer[d * 2 + 0]) + updater->send_displs[d * 2 + 0],
+                updater->send_buffer[d * 2 + 0],
                 updater->send_count[d * 2 + 0],
-                updater->send_types[d * 2 + 0],
-                left, tag,
+                ele_type, left, tag,
 
-                (byte_type *) (updater->recv_buffer[d * 2 + 1]) + updater->recv_displs[d * 2 + 1],
+                (byte_type *) (updater->recv_buffer[d * 2 + 1]),
                 updater->recv_count[d * 2 + 1],
-                updater->recv_types[d * 2 + 1],
-                right, tag,
+                ele_type, right, tag,
 
                 updater->comm,
                 MPI_STATUS_IGNORE));
 
         MPI_CALL(MPI_Sendrecv(
-                (byte_type *) (updater->send_buffer[d * 2 + 1]) + updater->send_displs[d * 2 + 1],
+                updater->send_buffer[d * 2 + 1],
                 updater->send_count[d * 2 + 1],
-                updater->send_types[d * 2 + 1],
+                ele_type,
                 right, tag,
 
-                (byte_type *) (updater->recv_buffer[d * 2 + 0]) + updater->recv_displs[d * 2 + 0],
+                updater->recv_buffer[d * 2 + 0],
                 updater->recv_count[d * 2 + 0],
-                updater->recv_types[d * 2 + 0],
+                ele_type,
                 left, tag,
                 updater->comm,
                 MPI_STATUS_IGNORE));
 
-        SP_CALL(spMemoryCopyInvSubArray(data, updater->send_buffer[2 * d + 0],
-                                        updater->strides,
-                                        updater->r_start_lower[d],
-                                        updater->r_count_lower[d]));
+        SP_CALL(spMemoryCopyInvSubArray(data, updater->recv_buffer[2 * d + 0], updater->type_tag, updater->strides,
+                                        updater->r_start[2 * d + 0], updater->r_count[2 * d + 0]));
 
-        SP_CALL(spMemoryCopyInvSubArray(data, updater->send_buffer[2 * d + 1],
-                                        updater->strides,
-                                        updater->r_start_lower[d],
-                                        updater->r_count_lower[d]));
+        SP_CALL(spMemoryCopyInvSubArray(data, updater->recv_buffer[2 * d + 1], updater->type_tag, updater->strides,
+                                        updater->r_start[2 * d + 1], updater->r_count[2 * d + 1]));
     }
     return SP_SUCCESS;
 
@@ -547,18 +570,14 @@ struct spMPINoncontiguousUpdater_s
 
 int spMPINoncontiguousUpdaterCreate(spMPINoncontiguousUpdater **updater, int data_type_tag)
 {
-    SP_CALL(spMPIUpdaterCreate((spMPIUpdater **) updater, sizeof(spMPINoncontiguousUpdater)));
+    SP_CALL(spMPIUpdaterCreate((spMPIUpdater **) updater, sizeof(spMPINoncontiguousUpdater), data_type_tag));
 
-    MPI_Datatype ele_type = spMPIDataType(data_type_tag);
-
-    if (ele_type == MPI_DATATYPE_NULL) { return SP_FAILED; }
 
     for (int i = 0; i < 6; ++i)
     {
         (*updater)->send_index[i] = NULL;
         (*updater)->recv_index[i] = NULL;
-        (*updater)->send_types[i] = ele_type;
-        (*updater)->recv_types[i] = ele_type;
+
     }
     return SP_SUCCESS;
 }
@@ -594,9 +613,10 @@ int spMPINoncontiguousUpdate(spMPINoncontiguousUpdater *updater, void *data)
 
     MPI_CALL(MPI_Cartdim_get(updater->comm, &mpi_topology_ndims));
 
+    MPI_Datatype ele_type = spMPIDataType(updater->type_tag);
+
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
-        if (updater->send_types[d * 2 + 0] == MPI_DATATYPE_NULL) { continue; }
 
         SP_CALL(spMemoryCopyIndirect(updater->send_buffer[2 * d + 0], data,
                                      (size_type) updater->send_count[2 * d + 0],
@@ -614,12 +634,12 @@ int spMPINoncontiguousUpdate(spMPINoncontiguousUpdater *updater, void *data)
         MPI_CALL(MPI_Sendrecv(
                 (byte_type *) (updater->send_buffer[d * 2 + 0]) + updater->send_displs[d * 2 + 0],
                 updater->send_count[d * 2 + 0],
-                updater->send_types[d * 2 + 0],
+                ele_type,
                 left, tag,
 
                 (byte_type *) (updater->recv_buffer[d * 2 + 1]) + updater->recv_displs[d * 2 + 1],
                 updater->recv_count[d * 2 + 1],
-                updater->recv_types[d * 2 + 1],
+                ele_type,
                 right, tag,
 
                 updater->comm,
@@ -628,12 +648,12 @@ int spMPINoncontiguousUpdate(spMPINoncontiguousUpdater *updater, void *data)
         MPI_CALL(MPI_Sendrecv(
                 (byte_type *) (updater->send_buffer[d * 2 + 1]) + updater->send_displs[d * 2 + 1],
                 updater->send_count[d * 2 + 1],
-                updater->send_types[d * 2 + 1],
+                ele_type,
                 right, tag,
 
                 (byte_type *) (updater->recv_buffer[d * 2 + 0]) + updater->recv_displs[d * 2 + 0],
                 updater->recv_count[d * 2 + 0],
-                updater->recv_types[d * 2 + 0],
+                ele_type,
                 left, tag,
                 updater->comm,
                 MPI_STATUS_IGNORE));

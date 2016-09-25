@@ -365,7 +365,7 @@ int spParticleDefragment(spParticle *sp)
 
     SP_CALL(spMemDeviceFree((void **) &buffer));
 
-    SP_CALL(spFillSeqInt(sorted_idx, maxNumParticles, 0, 1));
+    SP_CALL(spFillSeq(sorted_idx, SP_TYPE_size_type, maxNumParticles, 0, 1));
 
     return SP_SUCCESS;
 }
@@ -418,7 +418,7 @@ int spParticleSync(spParticle *sp)
 
     /*******/
 
-//     SP_CALL(spFillSeqInt(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
+//     SP_CALL(spFillSeq(spFieldData(sp->bucket_count), spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform), 0, 1));
 //    SHOW_FIELD(sp->bucket_count);
 
     SP_CALL(spFieldSync(sp->bucket_count));
@@ -441,7 +441,7 @@ int spParticleSync(spParticle *sp)
     size_type l_strides[ndims + 1];
     size_type l_count[ndims + 1];
 
-    SP_CALL(spMeshGetLocalDims(m, l_dims));
+    SP_CALL(spMeshGetDims(m, l_dims));
 
     SP_CALL(spMeshGetStrides(m, l_strides));
 
@@ -477,12 +477,12 @@ int spParticleSync(spParticle *sp)
     size_type *send_index[6];
     size_type *recv_index[6];
 
-    SP_CALL(spParticleUpdateHalo(sp, send_num, send_index, recv_num, recv_index));
+//    SP_CALL(spMPINoncontiguousUpdaterDeploy(sp, send_num, send_index, recv_num, recv_index));
 
-    SP_CALL(spMPINoncontiguousResetIndex(sp->mpi_updater, send_num, send_index, recv_num, recv_index));
+//    SP_CALL(spMPINoncontiguousResetIndex(sp->mpi_updater, send_num, send_index, recv_num, recv_index));
     /*******/
 //
-//    SP_CALL(spMeshGetLocalDims(m, l_dims));
+//    SP_CALL(spMeshGetDims(m, l_dims));
 //
 //    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, l_end, l_count));
 //

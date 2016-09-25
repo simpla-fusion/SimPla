@@ -8,58 +8,58 @@ extern "C"
 #include "../../spMPI.h"
 #include "../sp_device.h"
 }
-
-/**
- *  @todo need parallel opt.
- * @param id_list
- * @param ndims
- * @param dims
- * @param start
- * @param count
- * @param bucket_start
- * @param bucket_count
- * @param sorted_idx
- * @return
- */
-int _GatherIndex(int **id_list, const int *strides, const int *start, const int *count,
-                 const size_type *bucket_start,
-                 const size_type *bucket_count, const size_type *sorted_idx)
-{
-
-    int num = 0;
-//#pragma omp parallel for
-    for (int i = 0; i < count[0]; ++i)
-        for (int j = 0; j < count[1]; ++j)
-            for (int k = 0; k < count[2]; ++k)
-            {
-                size_type s = (size_type) (
-                        (start[0] + i) * strides[0] +
-                        (start[1] + j) * strides[1] +
-                        (start[2] + k) * strides[2]);
-                num += bucket_count[s];
-            }
-
-    *id_list = malloc(num * sizeof(size_type));
-
-    num = 0;
-//#pragma omp parallel for
-    for (int i = 0; i < count[0]; ++i)
-        for (int j = 0; j < count[1]; ++j)
-            for (int k = 0; k < count[2]; ++k)
-            {
-                size_type s = (size_type) (
-                        (start[0] + i) * strides[0] +
-                        (start[1] + j) * strides[1] +
-                        (start[2] + k) * strides[2]);
-                for (int l = 0; l < bucket_count[s]; ++l)
-                {
-                    (*id_list)[num] = (int) (sorted_idx[bucket_start[s] + l]);
-                    ++num;
-                }
-
-            }
-    return num;
-}
+//
+///**
+// *  @todo need parallel opt.
+// * @param id_list
+// * @param ndims
+// * @param dims
+// * @param start
+// * @param count
+// * @param bucket_start
+// * @param bucket_count
+// * @param sorted_idx
+// * @return
+// */
+//int _GatherIndex(int **id_list, const int *strides, const int *start, const int *count,
+//                 const size_type *bucket_start,
+//                 const size_type *bucket_count, const size_type *sorted_idx)
+//{
+//
+//    int num = 0;
+////#pragma omp parallel for
+//    for (int i = 0; i < count[0]; ++i)
+//        for (int j = 0; j < count[1]; ++j)
+//            for (int k = 0; k < count[2]; ++k)
+//            {
+//                size_type s = (size_type) (
+//                        (start[0] + i) * strides[0] +
+//                        (start[1] + j) * strides[1] +
+//                        (start[2] + k) * strides[2]);
+//                num += bucket_count[s];
+//            }
+//
+//    *id_list = malloc(num * sizeof(size_type));
+//
+//    num = 0;
+////#pragma omp parallel for
+//    for (int i = 0; i < count[0]; ++i)
+//        for (int j = 0; j < count[1]; ++j)
+//            for (int k = 0; k < count[2]; ++k)
+//            {
+//                size_type s = (size_type) (
+//                        (start[0] + i) * strides[0] +
+//                        (start[1] + j) * strides[1] +
+//                        (start[2] + k) * strides[2]);
+//                for (int l = 0; l < bucket_count[s]; ++l)
+//                {
+//                    (*id_list)[num] = (int) (sorted_idx[bucket_start[s] + l]);
+//                    ++num;
+//                }
+//
+//            }
+//    return num;
+//}
 //int spMPINoncontiguousUpdaterCreate(spMPINoncontiguousUpdater **updater)
 //{
 //    *updater = (spMPINoncontiguousUpdater *) malloc(sizeof(spMPINoncontiguousUpdater));

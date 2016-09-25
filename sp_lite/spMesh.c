@@ -286,9 +286,9 @@ return SP_SUCCESS;                                                \
 
 int spMeshSetDims(spMesh *m, size_type const *v) { SET_VEC3(v, m_global_dims_) }
 
-int spMeshGetDims(spMesh const *m, size_type *v) { GET_VEC3(v, m_global_dims_) }
+int spMeshGetGlobalDims(spMesh const *m, size_type *v) { GET_VEC3(v, m_global_dims_) }
 
-int spMeshGetLocalDims(spMesh const *m, size_type *v) { GET_VEC3(v, m_dims_) }
+int spMeshGetDims(spMesh const *m, size_type *v) { GET_VEC3(v, m_dims_) }
 
 int spMeshSetGhostWidth(spMesh *m, size_type const *v) { SET_VEC3(v, m_ghost_width_) }
 
@@ -479,7 +479,7 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
         *start_mesh_dim = 0;
     }
 
-    SP_CALL(spMeshGetLocalDims(m, l_dims + (*start_mesh_dim)));
+    SP_CALL(spMeshGetDims(m, l_dims + (*start_mesh_dim)));
     SP_CALL(spMeshGetDomain(m, domain_tag, l_start + (*start_mesh_dim), NULL, l_count + (*start_mesh_dim)));
 
 

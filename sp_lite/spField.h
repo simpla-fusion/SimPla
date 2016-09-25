@@ -86,5 +86,6 @@ int spFieldMultiply(spField *f, spField const *);
 
 int spFieldDivide(spField *f, spField const *);
 
+int spFieldTestSync(spMesh const *m, int type_tag);
 
 #endif /* SPFIELD_H_ */

@@ -23,14 +23,10 @@ int spMemoryCopyIndirect(Real *dest, Real const *src, size_type num, size_type c
 int spMemoryCopyInvIndirect(Real *dest, Real const *src, size_type num, size_type const *index);
 
 
-int spMemoryCopySubArray(Real *dest, Real const *src,
-                         size_type const *strides,
-                         size_type const *start,
+int spMemoryCopySubArray(void *dest, void const *src, int type_tag, size_type const *strides, size_type const *start,
                          size_type const *count);
 
-int spMemoryCopyInvSubArray(Real *dest, Real const *src,
-                            size_type const *strides,
-                            size_type const *start,
+int spMemoryCopyInvSubArray(void *dest, void const *src, int type_tag, size_type const *strides, size_type const *start,
                             size_type const *count);
 
 /**
@@ -41,7 +37,7 @@ int spMemoryCopyInvSubArray(Real *dest, Real const *src,
  * @param min
  * @return
  */
-int spFillSeqInt(size_type *v, size_type num, size_type min, size_type step);
+int spFillSeq(void *v, int type_tag, size_type num, size_type min, size_type step);
 
 int spTransformMinus(size_type *v, size_type const *a, size_type const *b, size_type num);
 

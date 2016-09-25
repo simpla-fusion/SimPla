@@ -18,6 +18,7 @@ extern "C"
 
 
 #include </usr/local/cuda/include/curand_kernel.h>
+#include "../../spDataType.h"
 
 __global__ void
 spParticleInitializeBucket_device_kernel(dim3 start,
@@ -58,16 +59,16 @@ int spParticleInitializeBucket_device(spParticle *sp)
 
     SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_id, &cell_hash));
 
-    SP_CALL(spFillSeqInt(sorted_id, spParticleCapacity(sp), 0, 1));
+    SP_CALL(spFillSeq(sorted_id, SP_TYPE_size_type, spParticleCapacity(sp), 0, 1));
     SP_CALL(spMemSet(cell_hash, -1, spParticleCapacity(sp) * sizeof(size_type)));
     size_type m_start[3], m_end[3], m_count[3], m_strides[3], m_dims[3];
 
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, m_start, m_end, m_count));
     SP_CALL(spMeshGetStrides(m, m_strides));
-    SP_CALL(spMeshGetDims(m, m_dims));
+    SP_CALL(spMeshGetGlobalDims(m, m_dims));
 
     size_type block_dim[3], grid_dim[3];
-    SP_CALL(spMeshGetDims(m, grid_dim));
+    SP_CALL(spMeshGetGlobalDims(m, grid_dim));
     SP_CALL(spParallelThreadBlockDecompose(256, grid_dim, block_dim));
 
     SP_CALL_DEVICE_KERNEL(spParticleInitializeBucket_device_kernel,
@@ -250,7 +251,7 @@ int spParticleCoordinateLocalToGlobal(spParticle *sp)
     Real dx[3], xmin[3], xmax[3];
     size_type dims[3];
 
-    SP_CALL(spMeshGetDims(m, dims));
+    SP_CALL(spMeshGetGlobalDims(m, dims));
     SP_CALL(spMeshGetDx(m, dx));
     SP_CALL(spMeshGetBox(m, SP_DOMAIN_ALL, xmin, xmax));
 

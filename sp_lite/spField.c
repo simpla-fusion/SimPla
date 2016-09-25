@@ -14,6 +14,7 @@
 
 #include "spMesh.h"
 #include "spField.h"
+#include "spAlogorithm.h"
 
 #define MAX_NUM_OF_FIELD_ATTR 16
 
@@ -27,6 +28,8 @@ typedef struct spField_s
 
     int is_soa;
 
+    spMPIHaloUpdater *mpi_updater;
+
 } spField;
 
 int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_tag)
@@ -39,12 +42,13 @@ int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_
     (*f)->is_soa = SP_TRUE;
     (*f)->m_data_ = NULL;
     (*f)->m_data_type_tag_ = type_tag;
+    (*f)->mpi_updater = NULL;
     return SP_SUCCESS;
 }
 
 int spFieldDestroy(spField **f)
 {
-
+    SP_CALL(spMPIHaloUpdaterDestroy(&((*f)->mpi_updater)));
 
     if (f != NULL && *f != NULL) {SP_CALL(spMemDeviceFree(&((**f).m_data_))); }
 
@@ -57,10 +61,22 @@ int spFieldDeploy(spField *f)
 {
 
 
-    if (f->m_data_ == NULL)
+    if (f->m_data_ == NULL) {SP_CALL(spMemDeviceAlloc((void **) &(f->m_data_), spFieldGetSizeInByte(f))); }
+
+    if (f->mpi_updater == NULL)
     {
-        SP_CALL(spMemDeviceAlloc((void **) &(f->m_data_), spFieldGetSizeInByte(f)));
+        size_type dims[3];
+        size_type start[3], count[3];
+
+        SP_CALL(spMeshGetDims(f->m, dims));
+
+        SP_CALL(spMeshGetDomain(f->m, SP_DOMAIN_CENTER, start, NULL, count));
+
+        SP_CALL(spMPIHaloUpdaterCreate(&f->mpi_updater, spFieldDataType(f)));
+
+        SP_CALL(spMPIHaloUpdaterDeploy(f->mpi_updater, 0, 3, dims, start, NULL, count, NULL));
     }
+
     return SP_SUCCESS;
 }
 
@@ -153,7 +169,7 @@ int spFieldShow(const spField *f, char const *name)
 
     size_type dims[3], strides[3];
 
-    spMeshGetLocalDims(m, dims);
+    spMeshGetDims(m, dims);
     spMeshGetStrides(m, strides);
 
     void *buffer;
@@ -178,7 +194,7 @@ int spFieldShow(const spField *f, char const *name)
             {
                 size_type s = i * strides[0] + j * strides[1] + k * strides[2];
 
-                if (f->m_data_type_tag_ == SP_TYPE_Real) { printf(" %8f ", ((Real *) buffer)[s]); }
+                if (f->m_data_type_tag_ == SP_TYPE_Real) { printf(" %8.2f ", ((Real *) buffer)[s]); }
                 else if (f->m_data_type_tag_ == SP_TYPE_size_type) { printf(" %8lu ", ((size_type *) buffer)[s]); }
             }
             if (dims[2] > 1) { printf("},"); }
@@ -241,29 +257,14 @@ int spFieldRead(spField *f, spIOStream *os, char const name[], int flag)
 
 int spFieldSync(spField *f)
 {
-
-
-    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
-    int iform = spMeshAttributeGetForm((spMeshAttribute const *) f);
-    int ndims = spMeshGetNDims(m);
-    int array_ndims, mesh_start_dim;
-
-    size_type l_dims[ndims + 1];
-    size_type l_start[ndims + 1];
-    size_type l_count[ndims + 1];
-
     int num_of_sub = spFieldNumberOfSub(f);
 
     void *F[num_of_sub];
 
-    spMPIHaloUpdater *updater;
-
-    SP_CALL(spMeshGetLocalDims(m, l_dims));
-    SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, l_start, NULL, l_count));
     SP_CALL(spFieldSubArray(f, (void **) F));
-    SP_CALL(spMPIHaloUpdaterCreate(&updater, spFieldDataType(f), 0, ndims, l_dims, l_start, NULL, l_count, NULL));
-    SP_CALL(spMPIUpdateAll(updater, num_of_sub, F));
-    SP_CALL(spMPIHaloUpdaterDestroy(&updater));
+
+    SP_CALL(spMPIHaloUpdateAll(f->mpi_updater, num_of_sub, F));
+
     return SP_SUCCESS;
 }
 
@@ -297,8 +298,32 @@ int spFieldCopyToHost(void **d, spField const *f)
 
 int spFieldCopyToDevice(spField *f, void const *d)
 {
-
-
     SP_CALL(spMemCopy(f->m_data_, d, spFieldGetSizeInByte(f)));
     return SP_SUCCESS;
 }
+
+
+int spFieldTestSync(spMesh const *m, int type_tag)
+{
+    spField *f;
+
+    SP_CALL(spFieldCreate(&f, m, VERTEX, type_tag));
+
+    SP_CALL(spFieldClear(f));
+
+    size_type *data;
+
+    SP_CALL(spFieldSubArray(f, (void **) &data));
+
+    size_type num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, VERTEX);
+
+    SP_CALL(spFillSeq(data, type_tag, num_of_cell, (size_type) (spMPIRank() * 1000), 1));
+
+    if (spMPIRank() == 0) {SHOW_FIELD(f); }
+
+    SP_CALL(spFieldSync(f));
+
+    if (spMPIRank() == 0) {SHOW_FIELD(f); }
+
+    return SP_SUCCESS;
+};

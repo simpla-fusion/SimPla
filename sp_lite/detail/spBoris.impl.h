@@ -52,7 +52,7 @@
 //    int iform = spMeshAttributeGetForm((spMeshAttribute *) sp);
 //
 //
-//    SP_CALL(spMeshGetDims(m, dims));
+//    SP_CALL(spMeshGetGlobalDims(m, dims));
 //
 //    SP_CALL(spMeshGetStrides(m, strides));
 //
@@ -441,7 +441,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const spFie
     Real *B = (Real *) spFieldData((spField *) fB);
 
     size_type grid_dim[3], block_dim[3];
-    SP_CALL(spMeshGetDims(m, grid_dim));
+    SP_CALL(spMeshGetGlobalDims(m, grid_dim));
     block_dim[0] = SP_PARTICLE_DEFAULT_NUM_OF_PIC;
     block_dim[1] = 1;
     block_dim[2] = 1;

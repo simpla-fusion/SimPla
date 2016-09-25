@@ -13,9 +13,7 @@
         int num_of_neighbour;          \
         int send_count[6];             \
         int recv_count[6];             \
-                                       \
-        MPI_Datatype send_types[6];    \
-        MPI_Datatype recv_types[6];    \
+        int type_tag;                  \
         MPI_Aint send_displs[6];       \
         MPI_Aint recv_displs[6];       \
         void *send_buffer[6];          \
@@ -45,7 +43,7 @@ int spMPITopology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mp
 
 int spMPIPrefixSum(size_type *offset, size_type *p_count);
 
-int spMPIUpdaterCreate(spMPIUpdater **updater, size_type size);
+int spMPIUpdaterCreate(spMPIUpdater **updater, size_type size, int type_tag);
 
 int spMPIUpdaterDestroy(spMPIUpdater **updater);
 
@@ -66,7 +64,7 @@ int spMPIHaloUpdaterDestroy(spMPIHaloUpdater **updater);
 
 int spMPIHaloUpdate(spMPIHaloUpdater *updater, void *);
 
-int MPIHaloUpdateAll(spMPIHaloUpdater *updater, int num_of_buffer, void **buffers);
+int spMPIHaloUpdateAll(spMPIHaloUpdater *updater, int num_of_buffer, void **buffers);
 
 
 struct spMPINoncontiguousUpdater_s;

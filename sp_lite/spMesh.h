@@ -56,7 +56,7 @@ Real spMeshCFLDt(spMesh const *m, Real const speed);
 
 int spMeshSetDims(spMesh *m, size_type const *);
 
-int spMeshGetDims(spMesh const *m, size_type *);
+int spMeshGetGlobalDims(spMesh const *m, size_type *);
 
 int spMeshSetGhostWidth(spMesh *m, size_type const *);
 
@@ -68,7 +68,7 @@ size_type spMeshGetNumberOfEntities(spMesh const *, int domain_tag, int iform);
 
 int spMeshGetDomain(spMesh const *m, int tag, size_type *p_start, size_type *p_end, size_type *p_count);
 
-int spMeshGetLocalDims(spMesh const *m, size_type *v);
+int spMeshGetDims(spMesh const *m, size_type *v);
 
 //int spMeshGetArrayShape(spMesh const * m, int tag, size_type *min, size_type *max, size_type *stride);
 
