@@ -21,12 +21,12 @@ extern "C"
 #include "../../spDataType.h"
 
 __global__ void
-spParticleInitializeBucket_device_kernel(dim3 start,
-                                         dim3 count,
-                                         dim3 strides,
-                                         int num_pic,
-                                         size_type *start_pos,
-                                         size_type *f_count)
+spParticleBucketInitialize_kernel(dim3 start,
+                                  dim3 count,
+                                  dim3 strides,
+                                  int num_pic,
+                                  size_type *start_pos,
+                                  size_type *f_count)
 {
 
     uint x = __umul24(blockIdx.x, blockDim.x) + threadIdx.x;
@@ -44,7 +44,7 @@ spParticleInitializeBucket_device_kernel(dim3 start,
 
 }
 
-int spParticleInitializeBucket_device(spParticle *sp)
+int spParticleBucketInitialize_device(spParticle *sp)
 {
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
@@ -71,7 +71,7 @@ int spParticleInitializeBucket_device(spParticle *sp)
     SP_CALL(spMeshGetGlobalDims(m, grid_dim));
     SP_CALL(spParallelThreadBlockDecompose(256, grid_dim, block_dim));
 
-    SP_CALL_DEVICE_KERNEL(spParticleInitializeBucket_device_kernel,
+    SP_CALL_DEVICE_KERNEL(spParticleBucketInitialize_kernel,
                           sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           sizeType2Dim3(m_start), sizeType2Dim3(m_count), sizeType2Dim3(m_strides),
                           num_of_pic, bucket_start, bucket_count);
@@ -85,11 +85,11 @@ int spParticleInitializeBucket_device(spParticle *sp)
  *  copy from cuda example/particle
  */
 __global__ void
-spParticleRebuildBucket_kernel(size_type *cellStart,        // output: cell start index
-                               size_type *cellEnd,          // output: cell end index
-                               size_type const *gridParticleHash, // input: sorted grid hashes
-                               size_type const *gridParticleIndex,// input: sorted particle indices
-                               size_type numParticles, size_type num_cell)
+spParticleBucketBuild_kernel(size_type *cellStart,        // output: cell start index
+                             size_type *cellEnd,          // output: cell end index
+                             size_type const *gridParticleHash, // input: sorted grid hashes
+                             size_type const *gridParticleIndex,// input: sorted particle indices
+                             size_type numParticles, size_type num_cell)
 {
 
 
@@ -169,9 +169,8 @@ _CopyBucketStartCount_kernel(size_type *b_start,        // output: cell start in
 }
 
 __host__
-int spParticleBuildBucket_device(spParticle *sp)
+int spParticleBucketBuild_device(spParticle *sp)
 {
-
     assert(spParticleNeedSorting(sp) == SP_FALSE);
 
     spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
@@ -196,7 +195,7 @@ int spParticleBuildBucket_device(spParticle *sp)
     uint sMemSize = sizeof(size_type) * (numThreads + 1);
 
 
-    SP_DEVICE_CALL_KERNEL2(spParticleRebuildBucket_kernel, num_of_particle / numThreads + 1, numThreads, sMemSize,
+    SP_DEVICE_CALL_KERNEL2(spParticleBucketBuild_kernel, num_of_particle / numThreads + 1, numThreads, sMemSize,
                            b_start, b_end, cell_hash, sorted_idx, num_of_particle, num_of_cell);
 
     SP_CALL_DEVICE_KERNEL(_CopyBucketStartCount_kernel,
@@ -206,11 +205,25 @@ int spParticleBuildBucket_device(spParticle *sp)
 
     SP_CALL(spMemCopy(&num_of_particle, b_start, sizeof(size_type)));
 
+    SP_CALL(spParticleBucketSync_device(sp));
+    UNIMPLEMENTED;
     if (num_of_particle != 0) {SP_CALL(spParticleResize(sp, num_of_particle)); }
 
     SP_CALL(spMemDeviceFree((void **) &b_start));
     SP_CALL(spMemDeviceFree((void **) &b_end));
     return SP_SUCCESS;
+}
+
+int spParticleBucketSync_device(spParticle *sp)
+{
+    spField *bucket_count, *bucket_start;
+    spParticleGetBucket2(sp, &bucket_start, &bucket_count, NULL, NULL);
+    SP_CALL(spFieldSync(bucket_count));
+    size_type num_of_particle = spParticleSize(sp);
+    UNIMPLEMENTED;
+    SP_CALL(spParticleResize(sp, num_of_particle));
+    return SP_SUCCESS;
+
 }
 
 __global__ void

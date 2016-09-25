@@ -319,7 +319,7 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
     SP_CALL(spParticleInitialize_device((Real **) (data), 6, dist_types, spParticleSize(sp), offset));
 
-    SP_CALL(spParticleInitializeBucket_device(sp));
+    SP_CALL(spParticleBucketInitialize_device(sp));
 
     return SP_SUCCESS;
 
@@ -335,14 +335,30 @@ size_type spParticleGlobalSize(spParticle const *sp)
 
 /**  ID  and sort @{*/
 
-int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **end_pos, size_type **sorted_idx,
+int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **count, size_type **sorted_idx,
                         size_type **cell_hash)
 {
     if (sp == NULL) { return SP_FAILED; }
 
     if (start_pos != NULL) { *start_pos = spFieldData(sp->bucket_start); }
 
-    if (end_pos != NULL) { *end_pos = spFieldData(sp->bucket_count); }
+    if (count != NULL) { *count = spFieldData(sp->bucket_count); }
+
+    if (sorted_idx != NULL) { *sorted_idx = sp->sorted_idx; }
+
+    if (cell_hash != NULL) { *cell_hash = sp->cell_hash; }
+
+    return SP_SUCCESS;
+}
+
+int spParticleGetBucket2(spParticle *sp, spField **start_pos, spField **count,
+                         size_type **sorted_idx, size_type **cell_hash)
+{
+    if (sp == NULL) { return SP_FAILED; }
+
+    if (start_pos != NULL) { *start_pos = sp->bucket_start; }
+
+    if (count != NULL) { *count = sp->bucket_count; }
 
     if (sorted_idx != NULL) { *sorted_idx = sp->sorted_idx; }
 
@@ -411,7 +427,7 @@ int spParticleSort(spParticle *sp)
 
     sp->need_sorting = SP_FALSE;
 
-    SP_CALL(spParticleBuildBucket_device(sp));
+    SP_CALL(spParticleBucketBuild_device(sp));
 
     return SP_SUCCESS;
 };
@@ -426,7 +442,6 @@ int spParticleSync(spParticle *sp)
 
     assert(spParticleNeedSorting(sp) == SP_FALSE);
 
-    SP_CALL(spFieldSync(sp->bucket_count));
 
     size_type *bucket_start, *bucket_count, *sorted_id;
 
