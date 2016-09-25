@@ -8,21 +8,8 @@
 #include <mpi.h>
 #include "sp_config.h"
 
-#define SP_MPI_UPDATER_HEAD            \
-        MPI_Comm comm;                 \
-        int num_of_neighbour;          \
-        int send_count[6];             \
-        int recv_count[6];             \
-        int type_tag;                  \
-        MPI_Aint send_displs[6];       \
-        MPI_Aint recv_displs[6];       \
-        void *send_buffer[6];          \
-        void *recv_buffer[6];          \
+struct spMPIUpdater_s;
 
-struct spMPIUpdater_s
-{
-    SP_MPI_UPDATER_HEAD
-};
 typedef struct spMPIUpdater_s spMPIUpdater;
 
 int spMPIInitialize(int argc, char **argv);
@@ -54,9 +41,9 @@ typedef struct spMPIHaloUpdater_s spMPIHaloUpdater;
 int spMPIHaloUpdaterCreate(spMPIHaloUpdater **updater, int type_tag);
 
 
-int spMPIHaloUpdaterSetup(spMPIHaloUpdater *updater, int mpi_sync_start_dims, int ndims,
-                          const size_type *shape, const size_type *start, const size_type *stride,
-                          const size_type *count, const size_type *block);
+int spMPIHaloUpdaterDeploy(spMPIHaloUpdater *updater, int mpi_sync_start_dims, int ndims,
+                           const size_type *shape, const size_type *start, const size_type *stride,
+                           const size_type *count, const size_type *block);
 
 
 int spMPIHaloUpdaterDestroy(spMPIHaloUpdater **updater);
@@ -70,12 +57,17 @@ struct spMPIBucketUpdater_s;
 
 typedef struct spMPIBucketUpdater_s spMPIBucketUpdater;
 
-int spMPIBucketUpdaterCreate(spMPIBucketUpdater **updater, int data_type_tag);
+int spMPIBucketUpdaterCreate(spMPIBucketUpdater **updater, int type_tag);
 
 int spMPIBucketUpdaterDestroy(spMPIBucketUpdater **updater);
 
-int spMPIBucketUpdaterSetup(spMPIBucketUpdater *updater, const size_type *bucket_start,
-                            const size_type *buck_count, size_type const *sorted_index);
+int spMPIBucketUpdaterDeploy(spMPIBucketUpdater *updater, const size_type *shape, const size_type *start,
+                             const size_type *count);
+
+int spMPIBucketUpdaterSetup(spMPIBucketUpdater *updater,
+                            const size_type *bucket_start,
+                            const size_type *bucket_count,
+                            const size_type *index);
 
 
 int spMPIBucketUpdate(spMPIBucketUpdater *updater, void *buffer);

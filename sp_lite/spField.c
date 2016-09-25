@@ -74,7 +74,7 @@ int spFieldDeploy(spField *f)
 
         SP_CALL(spMeshGetDomain(f->m, SP_DOMAIN_CENTER, start, NULL, count));
 
-        SP_CALL(spMPIHaloUpdaterSetup(f->mpi_updater, 0, 3, dims, start, NULL, count, NULL));
+        SP_CALL(spMPIHaloUpdaterDeploy(f->mpi_updater, 0, 3, dims, start, NULL, count, NULL));
     }
 
     return SP_SUCCESS;
@@ -174,7 +174,7 @@ int spFieldShow(const spField *f, char const *name)
 
     void *d[num_of_sub];
 
-    SP_CALL(spFieldSubArray(f, d));
+    SP_CALL(spFieldSubArray((spField *) f, d));
 
     if (name != NULL) { printf("\n [ %s ]", name); }
 

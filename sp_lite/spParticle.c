@@ -145,6 +145,7 @@ int spParticleSetDefragmentFreq(spParticle *sp, size_t n)
 int spParticleGetAllAttributeData(spParticle *sp, void **res)
 {
     if (sp == NULL) { return SP_FAILED; }
+
     for (int i = 0, ie = spParticleGetNumberOfAttributes(sp); i < ie; ++i)
     {
         res[i] = spParticleGetAttributeData(sp, i);
@@ -236,7 +237,6 @@ int spParticleDeploy(spParticle *sp)
 
     sp->m_max_num_of_particle_ = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform) * sp->m_pic_ * 2;
 
-
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
         SP_CALL(spMemDeviceAlloc(&(sp->m_attrs_[i].data),
@@ -263,7 +263,7 @@ int spParticleDeploy(spParticle *sp)
 
     if (sp->mpi_updater == NULL)
     {
-        spMPIBucketUpdaterCreate(&(sp->mpi_updater), SP_TYPE_Real);
+        SP_CALL(spMPIBucketUpdaterCreate(&(sp->mpi_updater), SP_TYPE_Real));
 
         size_type dims[3], start[3], count[3];
 
@@ -271,7 +271,7 @@ int spParticleDeploy(spParticle *sp)
 
         SP_CALL(spMeshGetDomain(sp->m, SP_DOMAIN_CENTER, start, NULL, count));
 
-        SP_CALL(spMPIHaloUpdaterSetup((spMPIHaloUpdater *) (sp->mpi_updater), 0, 3, dims, start, NULL, count, NULL));
+        SP_CALL(spMPIBucketUpdaterDeploy(sp->mpi_updater, dims, start, count));
     }
 
     sp->is_deployed = SP_TRUE;
@@ -432,6 +432,7 @@ int spParticleSort(spParticle *sp)
     return SP_SUCCESS;
 };
 
+
 /**
  *
  * @param sp
@@ -441,7 +442,6 @@ int spParticleSync(spParticle *sp)
     if (sp == NULL) { return SP_FAILED; }
 
     assert(spParticleNeedSorting(sp) == SP_FALSE);
-
 
     size_type *bucket_start, *bucket_count, *sorted_id;
 
@@ -455,7 +455,8 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spMPIBucketUpdateAll(sp->mpi_updater, spParticleGetNumberOfAttributes(sp), d));
 
-
+    return SP_SUCCESS;
+}
 //    {
 //        Real *buffer;
 //        size_type strides[3];
@@ -483,10 +484,6 @@ int spParticleSync(spParticle *sp)
 //        printf("\n");
 //        SP_CALL(spMemHostFree((void **) &buffer));
 //    }
-
-    return SP_SUCCESS;
-
-}
 
 /**  @}*/
 int

@@ -188,6 +188,28 @@
 //
 //}
 
+
+
+#define SP_MPI_UPDATER_HEAD            \
+        MPI_Comm comm;                 \
+        int num_of_neighbour;          \
+        int send_count[6];             \
+        int recv_count[6];             \
+        int type_tag;                  \
+        MPI_Aint send_displs[6];       \
+        MPI_Aint recv_displs[6];       \
+        void *send_buffer[6];          \
+        void *recv_buffer[6];          \
+    size_type send_buffer_memsize[6];  \
+    size_type recv_buffer_memsize[6];
+
+struct spMPIUpdater_s
+{
+    SP_MPI_UPDATER_HEAD
+};
+typedef struct spMPIUpdater_s spMPIUpdater;
+
+
 MPI_Datatype spMPIDataType(int type_tag)
 {
     MPI_Datatype res_type = MPI_DATATYPE_NULL;
@@ -245,6 +267,8 @@ int spMPIUpdaterCreate(spMPIUpdater **updater, size_type size, int type_tag)
         (*updater)->send_displs[i] = 0;
         (*updater)->recv_displs[i] = 0;
 
+        (*updater)->send_buffer_memsize[i] = 0;
+        (*updater)->recv_buffer_memsize[i] = 0;
 
         (*updater)->send_buffer[i] = NULL;
         (*updater)->recv_buffer[i] = NULL;
@@ -348,13 +372,11 @@ int spMPIHaloUpdaterCreate(spMPIHaloUpdater **updater, int data_type_tag)
 }
 
 
-int spMPIHaloUpdaterSetup(spMPIHaloUpdater *updater,
-                          int mpi_sync_start_dims, int ndims,
-                          const size_type *shape, const size_type *start, const size_type *stride,
-                          const size_type *count, const size_type *block)
+int spMPIHaloUpdaterDeploy(spMPIHaloUpdater *updater,
+                           int mpi_sync_start_dims, int ndims,
+                           const size_type *shape, const size_type *start, const size_type *stride,
+                           const size_type *count, const size_type *block)
 {
-
-
     int topo_type = MPI_CART;
 
     MPI_CALL(MPI_Topo_test(updater->comm, &topo_type));
@@ -487,27 +509,49 @@ int spMPIHaloUpdate(spMPIHaloUpdater *updater, void *data)
     MPI_Datatype ele_type = spMPIDataType(updater->type_tag);
 
 
+//    for (int i = 0; i < 6; ++i)
+//    {
+//        size_type ele_size_in_byte = spDataTypeSizeInByte(updater->type_tag);
+//
+//
+//        if (updater->send_count[i] > 0 && updater->send_buffer[i] == NULL)
+//        {
+//            SP_CALL(spMemDeviceAlloc(&(updater->send_buffer[i]),
+//                                     (size_type) (updater->send_count[i] * ele_size_in_byte)));
+//        }
+//        if (updater->recv_count[i] > 0 && updater->recv_buffer[i] == NULL)
+//        {
+//            SP_CALL(spMemDeviceAlloc(&(updater->recv_buffer[i]),
+//                                     (size_type) (updater->recv_count[i] * ele_size_in_byte)));
+//        }
+//    }
     for (int i = 0; i < 6; ++i)
     {
         size_type ele_size_in_byte = spDataTypeSizeInByte(updater->type_tag);
 
+        if (updater->send_count[i] * ele_size_in_byte > updater->send_buffer_memsize[i] ||
+            updater->send_buffer[i] == NULL)
+        {
+            SP_CALL(spMemDeviceFree(&(updater->send_buffer[i])));
 
-        if (updater->send_count[i] > 0 && updater->send_buffer[i] == NULL)
-        {
-            SP_CALL(spMemDeviceAlloc(&(updater->send_buffer[i]),
-                                     (size_type) (updater->send_count[i] * ele_size_in_byte)));
+            updater->send_buffer_memsize[i] = updater->send_count[i] * ele_size_in_byte;
+
+            SP_CALL(spMemDeviceAlloc(&(updater->send_buffer[i]), updater->send_buffer_memsize[i]));
         }
-        if (updater->recv_count[i] > 0 && updater->recv_buffer[i] == NULL)
+
+        if (updater->recv_count[i] * ele_size_in_byte > updater->recv_buffer_memsize[i] ||
+            updater->recv_buffer[i] == NULL)
         {
+            SP_CALL(spMemDeviceFree(&(updater->recv_buffer[i])));
+            updater->recv_buffer_memsize[i] = updater->recv_count[i] * ele_size_in_byte;
+
             SP_CALL(spMemDeviceAlloc(&(updater->recv_buffer[i]),
                                      (size_type) (updater->recv_count[i] * ele_size_in_byte)));
         }
     }
 
-
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
-
 
         SP_CALL(spMemoryCopySubArray(updater->send_buffer[2 * d + 0], data, updater->type_tag, updater->strides,
                                      updater->s_start[2 * d + 0], updater->s_count[2 * d + 0]));
@@ -547,13 +591,25 @@ int spMPIHaloUpdateAll(spMPIHaloUpdater *updater, int num_of_buffer, void **buff
     return SP_SUCCESS;
 }
 
+typedef struct
+{
+    size_type num_of_bucket;
+    size_type index_memory_size;
+    size_type *index;
+    size_type *start;
+    size_type *count;
+} bucket_type;
+
+
 struct spMPIBucketUpdater_s
 {
     spMPIHaloUpdater_s_header
 
+
     size_type *send_index[6];
     size_type *recv_index[6];
 };
+
 
 int spMPIBucketUpdaterCreate(spMPIBucketUpdater **updater, int data_type_tag)
 {
@@ -562,6 +618,9 @@ int spMPIBucketUpdaterCreate(spMPIBucketUpdater **updater, int data_type_tag)
 
     for (int i = 0; i < 6; ++i)
     {
+        (*updater)->send_buffer_memsize[i] = 0;
+        (*updater)->recv_buffer_memsize[i] = 0;
+
         (*updater)->send_index[i] = NULL;
         (*updater)->recv_index[i] = NULL;
 
@@ -583,34 +642,22 @@ int spMPIBucketUpdaterDestroy(spMPIBucketUpdater **updater)
     return SP_SUCCESS;
 }
 
-int spMPIBucketUpdaterSetup(spMPIBucketUpdater *updater,
-                            const size_type *bucket_start, const size_type *buck_count,
-                            size_type const *sorted_index)
+int spMPIBucketUpdaterDeploy(spMPIBucketUpdater *updater, const size_type *shape, const size_type *start,
+                             const size_type *count)
 {
-//    for (int i = 0; i < 6; ++i)
-//    {
-//        if (updater->send_count[i] < (int) send_count[i] || updater->send_index[i] == NULL)
-//        {
-//            updater->send_count[i] = (int) send_count[i];
-//            SP_CALL(spMemDeviceFree((void **) &(updater->send_index[i])));
-//            SP_CALL(spMemDeviceAlloc((void **) &(updater->send_index[i]), send_count[i] * sizeof(size_type)));
-//        };
-//
-//        if (updater->recv_count[i] < (int) recv_count[i] || updater->recv_index[i] == NULL)
-//        {
-//            updater->recv_count[i] = (int) recv_count[i];
-//            SP_CALL(spMemDeviceFree((void **) &(updater->recv_index[i])));
-//            SP_CALL(spMemDeviceAlloc((void **) &(updater->recv_index[i]), recv_count[i] * sizeof(size_type)));
-//        };
-//
-//        send_index[i] = updater->send_index[i];
-//        recv_index[i] = updater->recv_index[i];
-//    }
+    SP_CALL(spMPIHaloUpdaterDeploy((spMPIHaloUpdater *) (updater), 0, 3, shape, start, NULL, count, NULL));
 
+    return SP_SUCCESS;
+}
+
+int spMPIBucketUpdaterSetup(spMPIBucketUpdater *updater,
+                            const size_type *bucket_start,
+                            const size_type *bucket_count,
+                            const size_type *index)
+{
     UNIMPLEMENTED;
     return SP_SUCCESS;
-
-};
+}
 
 int spMPIBucketUpdate(spMPIBucketUpdater *updater, void *data)
 {
@@ -631,6 +678,32 @@ int spMPIBucketUpdate(spMPIBucketUpdater *updater, void *data)
 
     MPI_Datatype ele_type = spMPIDataType(updater->type_tag);
 
+
+    for (int i = 0; i < 6; ++i)
+    {
+        size_type ele_size_in_byte = spDataTypeSizeInByte(updater->type_tag);
+
+        if (updater->send_count[i] * ele_size_in_byte > updater->send_buffer_memsize[i] ||
+            updater->send_buffer[i] == NULL)
+        {
+            SP_CALL(spMemDeviceFree(&(updater->send_buffer[i])));
+
+            updater->send_buffer_memsize[i] = updater->send_count[i] * ele_size_in_byte;
+
+            SP_CALL(spMemDeviceAlloc(&(updater->send_buffer[i]), updater->send_buffer_memsize[i]));
+        }
+
+        if (updater->recv_count[i] * ele_size_in_byte > updater->recv_buffer_memsize[i] ||
+            updater->recv_buffer[i] == NULL)
+        {
+            SP_CALL(spMemDeviceFree(&(updater->recv_buffer[i])));
+            updater->recv_buffer_memsize[i] = updater->recv_count[i] * ele_size_in_byte;
+
+            SP_CALL(spMemDeviceAlloc(&(updater->recv_buffer[i]),
+                                     (size_type) (updater->recv_count[i] * ele_size_in_byte)));
+        }
+    }
+
     for (int d = 0; d < mpi_topology_ndims; ++d)
     {
 
@@ -641,7 +714,6 @@ int spMPIBucketUpdate(spMPIBucketUpdater *updater, void *data)
         SP_CALL(spMemoryCopyIndirect(updater->send_buffer[2 * d + 1], data,
                                      (size_type) updater->send_count[2 * d + 1],
                                      updater->send_index[2 * d + 1]));
-
 
         int left, right;
 

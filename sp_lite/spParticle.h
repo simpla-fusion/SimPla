@@ -106,8 +106,9 @@ int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **count
 int spParticleGetBucket2(spParticle *sp, spField **start_pos, spField **count,
                          size_type **sorted_idx, size_type **cell_hash);
 
-int spParticleUpdateHalo(spParticle *sp, size_type *send_num, size_type **send_index, size_type *recv_num,
-                         size_type **recv_index);
+int spParticleCollectIndex(spParticle const *sp, size_type const cell_start[3], size_type const cell_count[3],
+                           size_type **index, size_type *mem_size);
+
 
 /**    @}*/
 
