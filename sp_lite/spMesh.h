@@ -52,6 +52,13 @@ int spMeshDeploy(spMesh *self);
 
 int spMeshSetupParam(spMesh *sp);
 
+struct spMPIUpdater_s;
+
+typedef struct spMPIUpdater_s spMPIUpdater;
+
+int spMeshGetMPIUpdater(const spMesh *m, spMPIUpdater **updater);
+
+
 /** Topology Begin*/
 
 int spMeshGetNDims(spMesh const *m);
@@ -123,5 +130,6 @@ __inline__ size_type spMeshSFC(size_type const *d, size_type const *strides)
 int spMeshWrite(spMesh const *ctx, const char *name);
 
 int spMeshRead(spMesh *ctx, const char *name);
+
 
 #endif /* SPMESH_H_ */

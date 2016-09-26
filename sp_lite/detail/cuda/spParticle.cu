@@ -206,7 +206,9 @@ int spParticleBucketBuild_device(spParticle *sp)
     SP_CALL(spMemCopy(&num_of_particle, b_start, sizeof(size_type)));
 
     SP_CALL(spParticleBucketSync_device(sp));
+
     UNIMPLEMENTED;
+
     if (num_of_particle != 0) {SP_CALL(spParticleResize(sp, num_of_particle)); }
 
     SP_CALL(spMemDeviceFree((void **) &b_start));

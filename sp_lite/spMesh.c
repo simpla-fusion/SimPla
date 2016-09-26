@@ -70,6 +70,9 @@ struct spMesh_s
     size_type strides[3];
 
     int array_is_order_c;
+
+    spMPIUpdater *mpi_updater;
+
 };
 
 int spMeshCreate(spMesh **m)
@@ -120,11 +123,15 @@ int spMeshCreate(spMesh **m)
     (*m)->m_coord_upper[1] = 1;
     (*m)->m_coord_upper[2] = 1;
     (*m)->array_is_order_c = SP_TRUE;
+
+    (*m)->mpi_updater = NULL;
     return SP_SUCCESS;
 }
 
 int spMeshDestroy(spMesh **ctx)
 {
+
+    SP_CALL(spMPIUpdaterDestroy(&((*ctx)->mpi_updater)));
     free(*ctx);
     *ctx = NULL;
     return SP_SUCCESS;
@@ -222,9 +229,32 @@ int spMeshDeploy(spMesh *self)
 //	spMemCopyToCache(SP_NEIGHBOUR_OFFSET, neighbour_offset, sizeof(neighbour_offset));
 //	spMemCopyToCache(SP_NEIGHBOUR_OFFSET_flag, neighbour_flag, sizeof(neighbour_flag));
     SP_CALL(spMeshSetupParam(self));
+
+
+    if (self->mpi_updater == NULL)
+    {
+        SP_CALL(spMPIUpdaterCreate(&(self->mpi_updater)));
+
+        size_type dims[3], start[3], count[3];
+
+        SP_CALL(spMeshGetDims(self, dims));
+
+        SP_CALL(spMeshGetDomain(self, SP_DOMAIN_CENTER, start, NULL, count));
+
+        SP_CALL(spMPIUpdaterDeploy(self->mpi_updater, 0, 3, dims, start, NULL, count, NULL));
+    }
+
+
     return SP_SUCCESS;
 
 }
+
+int spMeshGetMPIUpdater(const spMesh *m, spMPIUpdater **updater)
+{
+    *updater = m->mpi_updater;
+    return SP_SUCCESS;
+};
+
 
 size_type spMeshGetNumberOfEntities(spMesh const *self, int tag, int iform)
 {

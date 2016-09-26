@@ -34,6 +34,7 @@ void spMemoryIndirectCopyKernel(Real *dest, Real const *src, size_type num, size
 
 int spMemoryCopyIndirect(Real *dest, Real const *src, size_type num, size_type const *index)
 {
+
     if (num > 0) { SP_CALL_DEVICE_KERNEL(spMemoryIndirectCopyKernel, num / 256 + 1, 256, dest, src, num, index); }
     return SP_SUCCESS;
 }
@@ -260,4 +261,39 @@ int spTransformAdd(size_type *v, size_type const *a, size_type const *b, size_ty
     /*@formatter:on*/
     return SP_SUCCESS;
 
+}
+
+__global__ void
+spPackInt_kernel(size_type *dest, size_type const *src,
+                 size_type const *dest_start, size_type const *src_start, size_type const *count)
+{
+    assert(count[blockIdx.x] < blockDim.x);
+
+    dest[dest_start[blockIdx.x] + threadIdx.x] = src[src_start[blockIdx.x] + threadIdx.x];
+
+}
+
+int spPackInt(size_type **dest, int *num, size_type const *src,
+              size_type num_of_cell, size_type const *start, size_type const *count)
+{
+    UNIMPLEMENTED;
+//    *num = thrust::reduce(count, count + num_of_cell);
+//
+//    size_type *offset;
+//
+//    SP_CALL(spMemDeviceAlloc((void **) &offset, num_of_cell * sizeof(size_type)));
+//
+//    SP_CALL(spMemCopy(offset, count, num_of_cell * sizeof(size_type)));
+//
+//    thrust::exclusive_scan(offset, offset + num_of_cell);
+//
+//    if (dest != NULL) {SP_CALL(spMemDeviceFree((void **) dest)); }
+//
+//    SP_CALL(spMemDeviceAlloc((void **) dest, (*num) * sizeof(size_type)));
+//
+//    SP_CALL_DEVICE_KERNEL(spPackInt_kernel, num_of_cell, 256, dest, src,)
+//
+//    SP_CALL(spMemDeviceFree((void **) &offset));
+
+    return SP_SUCCESS;
 }

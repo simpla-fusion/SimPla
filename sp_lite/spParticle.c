@@ -72,7 +72,6 @@ struct spParticle_s
 
     int need_sorting;
 
-    spMPIBucketUpdater *mpi_updater;
 };
 
 /** meta data @{*/
@@ -217,7 +216,6 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     (*sp)->step_count = 0;
     (*sp)->defragment_freq = (size_type) -1;
     (*sp)->need_sorting = SP_FALSE;
-    (*sp)->mpi_updater = NULL;
     return SP_SUCCESS;
 
 }
@@ -261,19 +259,6 @@ int spParticleDeploy(spParticle *sp)
     SP_CALL(spMemDeviceAlloc((void **) &(sp->cell_hash), sp->m_max_num_of_particle_ * sizeof(size_type)));
 
 
-    if (sp->mpi_updater == NULL)
-    {
-        SP_CALL(spMPIBucketUpdaterCreate(&(sp->mpi_updater), SP_TYPE_Real));
-
-        size_type dims[3], start[3], count[3];
-
-        SP_CALL(spMeshGetDims(sp->m, dims));
-
-        SP_CALL(spMeshGetDomain(sp->m, SP_DOMAIN_CENTER, start, NULL, count));
-
-        SP_CALL(spMPIBucketUpdaterDeploy(sp->mpi_updater, dims, start, count));
-    }
-
     sp->is_deployed = SP_TRUE;
     return SP_SUCCESS;
 }
@@ -282,7 +267,6 @@ int spParticleDestroy(spParticle **sp)
 {
     if (sp == NULL || *sp == NULL) { return SP_SUCCESS; }
 
-    SP_CALL(spMPIBucketUpdaterDestroy(&(*sp)->mpi_updater));
 
     SP_CALL(spFieldDestroy(&(*sp)->bucket_start));
     SP_CALL(spFieldDestroy(&(*sp)->bucket_count));
@@ -303,7 +287,6 @@ int spParticleDestroy(spParticle **sp)
 int spParticleInitialize(spParticle *sp, int const *dist_types)
 {
     if (sp == NULL) { return SP_FAILED; }
-
 
     SP_CALL(spParticleDeploy(sp));
 
@@ -443,17 +426,25 @@ int spParticleSync(spParticle *sp)
 
     assert(spParticleNeedSorting(sp) == SP_FALSE);
 
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) sp);
+
     size_type *bucket_start, *bucket_count, *sorted_id;
 
     SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_id, NULL));
 
-    SP_CALL(spMPIBucketUpdaterSetup(sp->mpi_updater, bucket_start, bucket_count, sorted_id));
 
     void *d[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
+    int num_of_attr = spParticleGetNumberOfAttributes(sp);
+
     SP_CALL(spParticleGetAllAttributeData(sp, d));
 
-    SP_CALL(spMPIBucketUpdateAll(sp->mpi_updater, spParticleGetNumberOfAttributes(sp), d));
+    spMPIUpdater *updater;
+
+    SP_CALL(spMeshGetMPIUpdater(m, &updater));
+
+    SP_CALL(spMPIUpdateBucket(updater, sp->m_data_type_tag_, num_of_attr, d,
+                              bucket_start, bucket_count, sorted_id));
 
     return SP_SUCCESS;
 }

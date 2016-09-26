@@ -97,7 +97,7 @@ int spFieldFillSeq(spField *f, int tag)
                                   sizeType2Dim3(l_strides),
                                   sizeType2Dim3(g_min),
                                   sizeType2Dim3(g_strides));
-
+                break;
             default:
                 UNIMPLEMENTED;
                 break;

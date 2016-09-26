@@ -8,7 +8,6 @@
 
 #include "spObject.h"
 #include "spParallel.h"
-#include "spMPI.h"
 #include "spDataType.h"
 #include "spIOStream.h"
 
@@ -29,7 +28,6 @@ typedef struct spField_s
 
     int is_soa;
 
-    spMPIHaloUpdater *mpi_updater;
 
 } spField;
 
@@ -43,13 +41,11 @@ int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_
     (*f)->is_soa = SP_TRUE;
     (*f)->m_data_ = NULL;
     (*f)->m_data_type_tag_ = type_tag;
-    (*f)->mpi_updater = NULL;
     return SP_SUCCESS;
 }
 
 int spFieldDestroy(spField **f)
 {
-    SP_CALL(spMPIHaloUpdaterDestroy(&((*f)->mpi_updater)));
 
     if (f != NULL && *f != NULL) {SP_CALL(spMemDeviceFree(&((**f).m_data_))); }
 
@@ -60,22 +56,7 @@ int spFieldDestroy(spField **f)
 
 int spFieldDeploy(spField *f)
 {
-
-
     if (f->m_data_ == NULL) {SP_CALL(spMemDeviceAlloc(&(f->m_data_), spFieldGetSizeInByte(f))); }
-
-    if (f->mpi_updater == NULL)
-    {
-        SP_CALL(spMPIHaloUpdaterCreate(&(f->mpi_updater), f->m_data_type_tag_));
-
-        size_type dims[3], start[3], count[3];
-
-        SP_CALL(spMeshGetDims(f->m, dims));
-
-        SP_CALL(spMeshGetDomain(f->m, SP_DOMAIN_CENTER, start, NULL, count));
-
-        SP_CALL(spMPIHaloUpdaterDeploy(f->mpi_updater, 0, 3, dims, start, NULL, count, NULL));
-    }
 
     return SP_SUCCESS;
 }
@@ -267,13 +248,23 @@ int spFieldRead(spField *f, spIOStream *os, char const name[], int flag)
 
 int spFieldSync(spField *f)
 {
+    spMesh const *m = spMeshAttributeGetMesh((spMeshAttribute const *) f);
+
     int num_of_sub = spFieldNumberOfSub(f);
 
-    void *F[num_of_sub];
+    void *d[num_of_sub];
 
-    SP_CALL(spFieldSubArray(f, (void **) F));
+    SP_CALL(spFieldSubArray(f, (void **) d));
 
-    SP_CALL(spMPIHaloUpdateAll(f->mpi_updater, num_of_sub, F));
+    spMPIUpdater *updater;
+
+    SP_CALL(spMeshGetMPIUpdater(m, &updater));
+
+    for (int i = 0; i < num_of_sub; ++i)
+    {
+        SP_CALL(spMPIUpdateHalo(updater, f->m_data_type_tag_, d[i]));
+    }
+
 
     return SP_SUCCESS;
 }

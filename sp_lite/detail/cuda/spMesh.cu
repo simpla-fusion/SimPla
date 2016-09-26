@@ -4,7 +4,8 @@
 
 #include "../spMesh.cu.h"
 
-__constant__ _spMeshDevice _sp_mesh;
+__constant__
+_spMeshDevice _sp_mesh;
 
 int spMeshSetupParam(spMesh *m)
 {
