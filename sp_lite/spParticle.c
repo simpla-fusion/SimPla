@@ -207,7 +207,7 @@ int spParticleSetAttributeData(spParticle *sp, int i, void *data)
 
 /**   @}*/
 #ifndef SP_DEFAULT_DEFRAGMENT_FREQ
-#   define SP_DEFAULT_DEFRAGMENT_FREQ 1
+#   define SP_DEFAULT_DEFRAGMENT_FREQ 10
 #endif
 
 int spParticleCreate(spParticle **sp, const spMesh *mesh)
