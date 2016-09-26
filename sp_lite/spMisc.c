@@ -44,8 +44,35 @@ int printArray(const void *d, int type_tag, int ndims, size_type const *dims)
 
     }
 
-
     printf("\n");
+    SP_CALL(spMemHostFree(&buffer));
+    return SP_SUCCESS;
+};
+
+int printList(const void *d, int type_tag, size_type num)
+{
+
+    size_type size_in_byte = num * spDataTypeSizeInByte(type_tag);
+
+    void *buffer;
+    SP_CALL(spMemHostAlloc(&buffer, size_in_byte));
+    SP_CALL(spMemoryCopy(buffer, d, size_in_byte));
+
+    size_type dims[2] = {num / 10 + 1, 10};
+    size_type COL_WIDTH = 10;
+    printf("\n %4d|\t", 0);
+    for (int j = 0; j < COL_WIDTH; ++j) { printf(" %8d ", j); }
+    printf("\n-----+--");
+    for (int j = 0; j < COL_WIDTH * 10; ++j) { printf("-"); }
+
+    size_type s = 0;
+
+    for (int s = 0; s < num; ++s)
+    {
+        if (s % COL_WIDTH == 0) { printf("\n %4d|\t", s); }
+        if (type_tag == SP_TYPE_Real) { printf(" %8.2f ", ((Real *) buffer)[s]); }
+        else if (type_tag == SP_TYPE_size_type) { printf(" %8lu ", ((size_type *) buffer)[s]); }
+    }
     SP_CALL(spMemHostFree(&buffer));
     return SP_SUCCESS;
 };

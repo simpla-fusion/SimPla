@@ -37,7 +37,11 @@ void spMemoryIndirectCopyKernel(Real *dest, Real const *src, size_type num, size
 int spMemoryCopyIndirect(Real *dest, Real const *src, size_type num, size_type const *index)
 {
 
-    if (num > 0) { SP_CALL_DEVICE_KERNEL(spMemoryIndirectCopyKernel, num / 256 + 1, 256, dest, src, num, index); }
+    if (num > 0)
+    {
+        SP_CALL_DEVICE_KERNEL(spMemoryIndirectCopyKernel, num / NUMBER_OF_THREADS_PER_BLOCK + 1,
+                              NUMBER_OF_THREADS_PER_BLOCK, dest, src, num, index);
+    }
     return SP_SUCCESS;
 }
 
@@ -221,10 +225,13 @@ int spFillSeq(void *v, int type_tag, size_type num, size_type min, size_type ste
     switch (type_tag)
     {
         case SP_TYPE_Real:
-        SP_CALL_DEVICE_KERNEL(spFillSeqRealKernel, num / 256 + 1, 256, (Real *) v, num, min, step);
+        SP_CALL_DEVICE_KERNEL(spFillSeqRealKernel, num / NUMBER_OF_THREADS_PER_BLOCK + 1, NUMBER_OF_THREADS_PER_BLOCK,
+                              (Real *) v, num, min, step);
             break;
         case SP_TYPE_size_type:
-        SP_CALL_DEVICE_KERNEL(spFillSeqSizeTypeKernel, num / 256 + 1, 256, (size_type *) v, num, min, step);
+        SP_CALL_DEVICE_KERNEL(spFillSeqSizeTypeKernel,
+                              num / NUMBER_OF_THREADS_PER_BLOCK + 1, NUMBER_OF_THREADS_PER_BLOCK,
+                              (size_type *) v, num, min, step);
             break;
         default:
             UNIMPLEMENTED;
@@ -322,7 +329,7 @@ int spPackInt(size_type **dest, size_type *num, size_type const *src,
 {
     if (num_of_cell == 0) { return SP_SUCCESS; }
 
-    size_type *dest_start;
+    size_type * dest_start;
 
     SP_CALL(spMemoryDeviceAlloc((void **) &dest_start, (num_of_cell + 1) * sizeof(size_type)));
 

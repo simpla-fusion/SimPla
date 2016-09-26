@@ -17,6 +17,8 @@
 #include "spParticle.impl.h"
 #include "sp_device.h"
 #include "spMesh.cu.h"
+#include "../spMisc.h"
+#include "../spDataType.h"
 //
 //typedef struct
 //{
@@ -449,7 +451,6 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const spFie
 
     size_type *start_pos, *count, *sorted_idx, *cell_hash;
 
-
     SP_CALL(spParticleGetAllAttributeData_device(sp, &current_data, NULL));
 
     SP_CALL(spParticleGetBucket(sp, &start_pos, &count, &sorted_idx, &cell_hash));
@@ -458,18 +459,15 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const spFie
                           (boris_particle *) current_data, cell_hash, start_pos, count, sorted_idx,
                           dt, spParticleGetCharge(sp) / spParticleGetMass(sp), E, B);
 
-
     SP_CALL(spParticleSort(sp));
-
-//    CHECK_INT(spParticleGlobalSize(sp));
-
+    //    CHECK_INT(spParticleGlobalSize(sp));
+    //    SP_CALL(printList(sorted_idx, SP_TYPE_size_type, spParticleCapacity(sp)));
+    //    SP_CALL(printList(cell_hash, SP_TYPE_size_type, spParticleCapacity(sp)));
     SP_CALL(spParticleSync(sp));
-
 
     SP_CALL_DEVICE_KERNEL(spParticleAccumlateBorisYeeKernel, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
                           (boris_particle *) current_data, start_pos, count, sorted_idx,
                           spParticleGetMass(sp), J);
-
 
     SP_CALL(spFieldSync(fJ));
 

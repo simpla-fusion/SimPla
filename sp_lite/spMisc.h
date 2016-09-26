@@ -9,4 +9,6 @@
 
 int printArray(const void *d, int type_tag, int ndims, size_type const *dims);
 
+int printList(const void *d, int type_tag, size_type num);
+
 #endif //SIMPLA_SPMISC_H

@@ -33,10 +33,10 @@ int main(int argc, char **argv)
 
     int num_of_steps = argc < 2 ? 100 : atoi(argv[1]);
     int check_point = argc < 3 ? 10 : atoi(argv[2]);
-    size_type PIC = 128;
+    size_type PIC = 10;
     Real n0 = 1.0e16;
     Real T0 = (Real) (0.026 * SI_elementary_charge / SI_Boltzmann_constant);
-    size_type dims[3] = {0x8, 0x8, 0x1};
+    size_type dims[3] = {0x8, 0x7, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
@@ -63,8 +63,8 @@ int main(int argc, char **argv)
     SP_CALL(spMeshSetBox(mesh, lower, upper));
     SP_CALL(spMeshDeploy(mesh));
 
-    SP_CALL(spFieldTestSync(mesh, SP_TYPE_Real));
-    SP_CALL(spFieldTestSync(mesh, SP_TYPE_size_type));
+//    SP_CALL(spFieldTestSync(mesh, SP_TYPE_Real));
+//    SP_CALL(spFieldTestSync(mesh, SP_TYPE_size_type));
     /*****************************************************************************************************************/
 
     spField *fE = NULL;

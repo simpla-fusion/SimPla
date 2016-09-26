@@ -157,7 +157,11 @@ int spParticleGetAllAttributeData(spParticle *sp, void **res)
 int spParticleGetAllAttributeData_device(spParticle *sp, void ***current_data, void ***next_data)
 {
     if (sp == NULL) { return SP_FAILED; }
-    if (current_data != NULL) { *current_data = sp->m_current_data_; }
+
+    if (current_data != NULL)
+    {
+        *current_data = sp->m_current_data_;
+    }
     if (next_data != NULL) { *next_data = sp->m_next_data_; }
 
     return SP_SUCCESS;
@@ -363,15 +367,16 @@ int spParticleDefragment(spParticle *sp)
 
     size_type maxNumParticles = spParticleCapacity(sp);
 
-    size_type *start_pos, *end_pos, *sorted_idx;
+    size_type *sorted_idx;
 
-    SP_CALL(spParticleGetBucket(sp, &start_pos, &end_pos, &sorted_idx, NULL));
+    SP_CALL(spParticleGetBucket(sp, NULL, NULL, &sorted_idx, NULL));
 
     Real *buffer = NULL;
 
-    SP_CALL(spMemoryDeviceAlloc((void **) &buffer, sizeof(Real) * spParticleCapacity(sp)));
+    SP_CALL(spMemoryDeviceAlloc((void **) &buffer, sizeof(Real) * maxNumParticles));
+    int num_of_attr = spParticleGetNumberOfAttributes(sp);
 
-    for (int i = 0; i < spParticleGetNumberOfAttributes(sp); ++i)
+    for (int i = 0; i < num_of_attr; ++i)
     {
         Real *dest = buffer;
 
@@ -383,7 +388,9 @@ int spParticleDefragment(spParticle *sp)
     }
 
     SP_CALL(spMemoryDeviceFree((void **) &buffer));
-
+    void *d[num_of_attr];
+    SP_CALL(spParticleGetAllAttributeData(sp, d));
+    SP_CALL(spMemoryCopy(sp->m_current_data_, d, sizeof(void *) * num_of_attr));
     SP_CALL(spFillSeq(sorted_idx, SP_TYPE_size_type, maxNumParticles, 0, 1));
 
     return SP_SUCCESS;
