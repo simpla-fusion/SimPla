@@ -52,6 +52,8 @@ struct spParticle_s
 
     size_type m_max_hash_;
 
+    size_type m_sorted_idx_tail_;
+
     size_type m_num_of_particle_;
 
     size_type m_max_num_of_particle_;
@@ -117,13 +119,13 @@ int spParticleSetCharge(spParticle *sp, Real e)
 
 Real spParticleGetCharge(spParticle const *sp) { if (sp != NULL) { return sp->charge; } else { return 1; }}
 
-size_type spParticleSize(spParticle const *sp) { return sp->m_num_of_particle_; };
+size_type spParticleSize(spParticle const *sp) { return sp->m_sorted_idx_tail_; };
 
 int spParticleResize(spParticle *sp, size_type s)
 {
     if (sp == NULL || s >= sp->m_max_num_of_particle_) { return SP_FAILED; }
 
-    sp->m_num_of_particle_ = s;
+    sp->m_sorted_idx_tail_ = s;
 
     return SP_SUCCESS;
 };
@@ -206,7 +208,7 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
 {
     SP_CALL(spMeshAttributeCreate((spMeshAttribute **) sp, sizeof(spParticle), mesh, VOLUME));
     (*sp)->m_data_type_tag_ = SP_TYPE_Real;
-    (*sp)->m_num_of_particle_ = 0;
+    (*sp)->m_sorted_idx_tail_ = 0;
     (*sp)->m_max_num_of_particle_ = 0;
     (*sp)->m_pic_ = 0;
     (*sp)->m_num_of_attrs_ = 0;
@@ -231,7 +233,7 @@ int spParticleDeploy(spParticle *sp)
 
     int iform = spMeshAttributeGetForm((spMeshAttribute *) sp);
 
-    sp->m_num_of_particle_ = spMeshGetNumberOfEntities(m, SP_DOMAIN_CENTER, iform) * sp->m_pic_;
+    sp->m_sorted_idx_tail_ = spMeshGetNumberOfEntities(m, SP_DOMAIN_CENTER, iform) * sp->m_pic_;
 
     sp->m_max_num_of_particle_ = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, iform) * sp->m_pic_ * 2;
 
@@ -308,9 +310,10 @@ int spParticleInitialize(spParticle *sp, int const *dist_types)
 
 }
 
+
 size_type spParticleGlobalSize(spParticle const *sp)
 {
-    size_type total = sp->m_num_of_particle_;
+    size_type total = sp->m_sorted_idx_tail_;
 
     SP_CALL(spMPIPrefixSum(NULL, &total));
     return total;

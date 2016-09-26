@@ -16,7 +16,7 @@ int spMeshSetupParam(spMesh *m)
     int iform = VERTEX;
 
 
-    SP_CALL(spMeshGetGlobalDims(m, dims));
+    SP_CALL(spMeshGetDims(m, dims));
 
     SP_CALL(spMeshGetStrides(m, strides));
 

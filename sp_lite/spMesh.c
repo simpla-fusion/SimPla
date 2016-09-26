@@ -494,7 +494,7 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
 
     int mesh_ndims = spMeshGetNDims(m);
 
-    *array_ndims = spMeshGetNDims(m) + attr_ndims;
+    *array_ndims = mesh_ndims + attr_ndims;
 
 
     if (is_soa == SP_TRUE)
@@ -520,6 +520,7 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
     }
 
     SP_CALL(spMeshGetDims(m, l_dims + (*start_mesh_dim)));
+
     SP_CALL(spMeshGetDomain(m, domain_tag, l_start + (*start_mesh_dim), NULL, l_count + (*start_mesh_dim)));
 
 

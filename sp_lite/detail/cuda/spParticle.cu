@@ -7,13 +7,15 @@ extern "C"
 #include <assert.h>
 
 #include "../../spParallel.h"
+
+
 #include "../../spMesh.h"
 #include "../../spField.h"
 #include "../../spParticle.h"
 #include "../../spAlogorithm.h"
 #include "../spParticle.impl.h"
 #include "../sp_device.h"
-
+#include "spParallelCUDA.h"
 }
 
 
@@ -61,15 +63,14 @@ int spParticleBucketInitialize_device(spParticle *sp)
 
     SP_CALL(spFillSeq(sorted_id, SP_TYPE_size_type, spParticleCapacity(sp), 0, 1));
     SP_CALL(spMemSet(cell_hash, -1, spParticleCapacity(sp) * sizeof(size_type)));
-    size_type m_start[3], m_end[3], m_count[3], m_strides[3], m_dims[3];
+    size_type m_start[3], m_end[3], m_count[3], m_strides[3];
 
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, m_start, m_end, m_count));
     SP_CALL(spMeshGetStrides(m, m_strides));
-    SP_CALL(spMeshGetGlobalDims(m, m_dims));
 
     size_type block_dim[3], grid_dim[3];
-    SP_CALL(spMeshGetGlobalDims(m, grid_dim));
-    SP_CALL(spParallelThreadBlockDecompose(256, grid_dim, block_dim));
+    SP_CALL(spMeshGetDims(m, grid_dim));
+    SP_CALL(spParallelThreadBlockDecompose(NUMBER_OF_THREADS_PER_BLOCK, grid_dim, block_dim));
 
     SP_CALL_DEVICE_KERNEL(spParticleBucketInitialize_kernel,
                           sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim),
@@ -191,15 +192,15 @@ int spParticleBucketBuild_device(spParticle *sp)
     SP_CALL(spMemSet(b_start, 0, (num_of_cell + 1) * sizeof(size_type)));
     SP_CALL(spMemSet(b_end, 0, (num_of_cell + 1) * sizeof(size_type)));
 
-    int numThreads = 256;
-    uint sMemSize = sizeof(size_type) * (numThreads + 1);
+    uint sMemSize = sizeof(size_type) * (NUMBER_OF_THREADS_PER_BLOCK + 1);
 
 
-    SP_DEVICE_CALL_KERNEL2(spParticleBucketBuild_kernel, num_of_particle / numThreads + 1, numThreads, sMemSize,
+    SP_DEVICE_CALL_KERNEL2(spParticleBucketBuild_kernel,
+                           num_of_particle / NUMBER_OF_THREADS_PER_BLOCK + 1, NUMBER_OF_THREADS_PER_BLOCK, sMemSize,
                            b_start, b_end, cell_hash, sorted_idx, num_of_particle, num_of_cell);
 
     SP_CALL_DEVICE_KERNEL(_CopyBucketStartCount_kernel,
-                          num_of_cell / numThreads + 1, num_of_cell,
+                          num_of_cell / NUMBER_OF_THREADS_PER_BLOCK + 1, NUMBER_OF_THREADS_PER_BLOCK,
                           b_start, b_end, bucket_start, bucket_count, num_of_cell);
 
 
@@ -264,7 +265,7 @@ int spParticleCoordinateLocalToGlobal(spParticle *sp)
     SP_CALL(spParticleGetBucket(sp, &start_pos, &end_pos, &index, NULL));
 
     uint3 blockDim;
-    blockDim.x = SP_NUM_OF_THREADS_PER_BLOCK;
+    blockDim.x = NUMBER_OF_THREADS_PER_BLOCK;
     blockDim.y = 1;
     blockDim.z = 1;
 

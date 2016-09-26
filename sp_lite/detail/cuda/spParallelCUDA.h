@@ -11,10 +11,8 @@
 #include </usr/local/cuda/include/device_launch_parameters.h>
 #include </usr/local/cuda/include/cuda_runtime_api.h>
 
-#ifdef NUM_OF_THREADS_PER_BLOCK
-#   define SP_NUM_OF_THREADS_PER_BLOCK NUM_OF_THREADS_PER_BLOCK
-#else
-#   define SP_NUM_OF_THREADS_PER_BLOCK 128
+#ifndef NUMBER_OF_THREADS_PER_BLOCK
+#   define  NUMBER_OF_THREADS_PER_BLOCK 256
 #endif
 
 #define  SP_DEVICE_GLOBAL __global__
@@ -56,8 +54,8 @@ print_device_error(cudaError_t _m_cudaStat, char const *file, int line, char con
 
 
 #define SP_CALL_DEVICE_KERNEL(_FUN_, _DIMS_, _N_THREADS_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_)>>>(__VA_ARGS__);\
-                            SP_DEVICE_CALL(cudaPeekAtLastError()); \
-                            { if(SP_SUCCESS!=print_device_error(cudaDeviceSynchronize(),__FILE__, __LINE__,__PRETTY_FUNCTION__, __STRING(_FUN_))){return SP_FAILED;}}
+                    { if(SP_SUCCESS!=print_device_error(cudaPeekAtLastError(),__FILE__, __LINE__,__PRETTY_FUNCTION__, __STRING(_FUN_))){return SP_FAILED;}}\
+                    { if(SP_SUCCESS!=print_device_error(cudaDeviceSynchronize(),__FILE__, __LINE__,__PRETTY_FUNCTION__, __STRING(_FUN_))){return SP_FAILED;}}
 #define SP_DEVICE_CALL_KERNEL2(_FUN_, _DIMS_, _N_THREADS_, _SMEM_, ...) _FUN_<<<(_DIMS_),(_N_THREADS_),(_SMEM_)>>>(__VA_ARGS__);SP_DEVICE_CALL(cudaPeekAtLastError());SP_DEVICE_CALL(cudaDeviceSynchronize());
 
 #define SP_DEVICE_DECLARE_KERNEL(_FUN_, ...) __global__ void _FUN_( __VA_ARGS__)

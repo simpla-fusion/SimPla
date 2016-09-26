@@ -102,7 +102,7 @@ int spFDTDInitialValueSin(spField *f, Real const *k, Real const *amp)
     SP_CALL(spFieldSubArray(f, (void **) data));
 
     size_type grid_dim[3], block_dim[3];
-    SP_CALL(spMeshGetGlobalDims(m, grid_dim));
+    SP_CALL(spMeshGetDims(m, grid_dim));
     SP_CALL(spParallelThreadBlockDecompose(256, grid_dim, block_dim));
     Real alpha0[4][9] =
             {
@@ -206,8 +206,8 @@ int spFDTDUpdate(Real dt, const spField *fRho, const spField *fJ, spField *fE, s
 
     size_type grid_dim[3], block_dim[3];
 
-    SP_CALL(spMeshGetGlobalDims(m, grid_dim));
-    SP_CALL(spParallelThreadBlockDecompose(128, grid_dim, block_dim));
+    SP_CALL(spMeshGetDims(m, grid_dim));
+    SP_CALL(spParallelThreadBlockDecompose(NUMBER_OF_THREADS_PER_BLOCK, grid_dim, block_dim));
 
     SP_CALL_DEVICE_KERNEL(spUpdateFieldFDTDKernelPushB, sizeType2Dim3(grid_dim), sizeType2Dim3(block_dim), 0.5 * dt,
                           E[0], E[1], E[2], B[0], B[1], B[2]);

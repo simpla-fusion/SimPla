@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     size_type PIC = 128;
     Real n0 = 1.0e16;
     Real T0 = (Real) (0.026 * SI_elementary_charge / SI_Boltzmann_constant);
-    size_type dims[3] = {0x8, 0x7, 0x1};
+    size_type dims[3] = {0x8, 0x8, 0x1};
     size_type gw[3] = {0x2, 0x2, 0x2};
     Real lower[3] = {0, 0, 0};
     Real upper[3] = {1, 1, 1};
@@ -65,7 +65,6 @@ int main(int argc, char **argv)
 
     SP_CALL(spFieldTestSync(mesh, SP_TYPE_Real));
     SP_CALL(spFieldTestSync(mesh, SP_TYPE_size_type));
-    CHECK("+++++++++++++++++++++++++++++++");
     /*****************************************************************************************************************/
 
     spField *fE = NULL;
@@ -86,7 +85,9 @@ int main(int argc, char **argv)
     SP_CALL(spFieldClear(fRho));
     SP_CALL(spFieldClear(fdRho));
 
-    SP_CALL(spFDTDInitialValueSin(fE, k, amp));
+//    SP_CALL(spFDTDInitialValueSin(fE, k, amp));
+//    SHOW_FIELD(fE);
+
     if (isnan(dt)) { dt = spMeshCFLDt(mesh, (Real) speed_of_light); }
     /*****************************************************************************************************************/
 

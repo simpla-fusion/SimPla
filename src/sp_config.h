@@ -48,13 +48,19 @@ typedef unsigned int uint;
 
 typedef union
 {
-    struct { int8_t w, z, y, x; };
+    struct
+    {
+        int8_t w, z, y, x;
+    };
     int32_t v;
 } MeshEntityId32;
 
 typedef union
 {
-    struct { int16_t w, z, y, x; };
+    struct
+    {
+        int16_t w, z, y, x;
+    };
     int64_t v;
 } MeshEntityId64;
 

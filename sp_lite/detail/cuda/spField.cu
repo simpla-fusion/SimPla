@@ -70,7 +70,7 @@ int spFieldFillSeq(spField *f, int tag)
 
     size_type grid_dim[3] = {l_count[0], l_count[1], l_count[2]}, block_dim[3];
 
-    SP_CALL(spMeshGetGlobalDims(m, grid_dim));
+    SP_CALL(spMeshGetDims(m, grid_dim));
 
     SP_CALL(spParallelThreadBlockDecompose(256, grid_dim, block_dim));
 

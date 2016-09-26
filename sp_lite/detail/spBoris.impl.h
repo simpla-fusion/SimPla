@@ -8,6 +8,7 @@
 #include <math.h>
 #include <assert.h>
 #include "../sp_lite_def.h"
+#include "../sp_config.h"
 #include "../spPICBoris.h"
 #include "../spParticle.h"
 #include "../spMesh.h"
@@ -199,7 +200,7 @@ int spParticleInitializeBorisYee(spParticle *sp, Real n0, Real T0)
 
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, NULL, NULL, grid_dim));
 
-    block_dim[0] = 256;
+    block_dim[0] = NUMBER_OF_THREADS_PER_BLOCK;
     block_dim[1] = 1;
     block_dim[2] = 1;
 
@@ -333,10 +334,8 @@ SP_DEVICE_DECLARE_KERNEL (spParticleUpdateBorisYeeKernel,
                 );
 
         assert(s < _sp_mesh.num_of_cell * 3);
-
         cE[threadIdx.x] = fE[s];
         cB[threadIdx.x] = fB[s];
-
     }
 
 
@@ -441,7 +440,7 @@ spParticleUpdateBorisYee(spParticle *sp, Real dt, const spField *fE, const spFie
     Real *B = (Real *) spFieldData((spField *) fB);
 
     size_type grid_dim[3], block_dim[3];
-    SP_CALL(spMeshGetGlobalDims(m, grid_dim));
+    SP_CALL(spMeshGetDims(m, grid_dim));
     block_dim[0] = SP_PARTICLE_DEFAULT_NUM_OF_PIC;
     block_dim[1] = 1;
     block_dim[2] = 1;

@@ -87,6 +87,8 @@ int spParticleResize(spParticle *, size_type);
 
 size_type spParticleGlobalSize(spParticle const *sp);
 
+size_type spParticleLocalSizeInDomain(spParticle const *sp, int domain_tag);
+
 /**    @}*/
 
 /**  ID @{*/

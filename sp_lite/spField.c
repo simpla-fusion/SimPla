@@ -316,14 +316,6 @@ int spFieldTestSync(spMesh const *m, int type_tag)
 
     SP_CALL(spFieldSubArray(f, (void **) &data));
 
-//    size_type num_of_cell = spMeshGetNumberOfEntities(m, SP_DOMAIN_ALL, VERTEX);
-//
-//    size_type offset = 0;
-//
-//    SP_CALL(spMPIPrefixSum(&offset, &num_of_cell));
-//
-//    SP_CALL(spFillSeq(data, type_tag, num_of_cell, (size_type) (spMPIRank() * 1000) + offset, 1));
-
     SP_CALL(spFieldFillSeq(f, SP_DOMAIN_CENTER));
 
     if (spMPIRank() == 0) {SHOW_FIELD(f); }
