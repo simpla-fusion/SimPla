@@ -430,6 +430,16 @@ int spMeshGetStrides(spMesh const *m, size_type *res)
     return SP_SUCCESS;
 }
 
+int spMeshGetGlobalStart(spMesh const *m, size_type *start)
+{
+    for (int i = 0; i < m->m_ndims_; ++i)
+    {
+
+        start[i] = m->m_global_start_[i];
+    }
+    return SP_SUCCESS;
+};
+
 int spMeshGetGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset)
 {
     for (int i = 0; i < m->m_ndims_; ++i)

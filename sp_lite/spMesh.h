@@ -11,8 +11,14 @@
 #include "sp_lite_def.h"
 #include "spObject.h"
 
-enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3 };
-enum { SP_DOMAIN_CENTER = 13, SP_DOMAIN_ALL = 0xFF, SP_DOMAIN_AFFECT_1 = SP_DOMAIN_ALL + 1 };
+enum
+{
+    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
+};
+enum
+{
+    SP_DOMAIN_CENTER = 13, SP_DOMAIN_ALL = 0xFF, SP_DOMAIN_AFFECT_1 = SP_DOMAIN_ALL + 1
+};
 struct spMesh_s;
 
 typedef struct spMesh_s spMesh;
@@ -71,6 +77,8 @@ int spMeshGetDomain(spMesh const *m, int tag, size_type *p_start, size_type *p_e
 int spMeshGetDims(spMesh const *m, size_type *v);
 
 //int spMeshGetArrayShape(spMesh const * m, int tag, size_type *min, size_type *max, size_type *stride);
+
+int spMeshGetGlobalStart(spMesh const *m, size_type *start);
 
 int spMeshGetGlobalOffset(spMesh const *m, size_type *dims, ptrdiff_t *offset);
 

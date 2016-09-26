@@ -87,4 +87,12 @@ int spFieldMultiply(spField *f, spField const *);
 int spFieldDivide(spField *f, spField const *);
 
 
+int spFieldFillSeq(spField *f, int domain_tag);
+
+struct spMesh_s;
+typedef struct spMesh_s spMesh;
+
+int spFieldTestSync(spMesh const *m, int type_tag);
+
+
 #endif /* SPFIELD_H_ */
