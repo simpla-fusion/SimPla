@@ -48,7 +48,7 @@ INLINE int _show_dev_data_int(size_type const *d, size_type num)
 {
     size_type *buffer;
     SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(size_type)));
-    SP_CALL(spMemCopy(buffer, d, num * sizeof(size_type)));
+    SP_CALL(spMemoryCopy(buffer, d, num * sizeof(size_type)));
 
 
     for (int i = 0; i < (num); ++i)
@@ -67,7 +67,7 @@ INLINE int _show_dev_data_real(Real const *d, size_type num)
 {
     Real *buffer;
     SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
-    SP_CALL(spMemCopy(buffer, d, num * sizeof(Real)));
+    SP_CALL(spMemoryCopy(buffer, d, num * sizeof(Real)));
 
 
     for (int i = 0; i < (num); ++i)

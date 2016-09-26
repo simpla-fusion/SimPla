@@ -17,7 +17,7 @@ int printArray(const void *d, int type_tag, int ndims, size_type const *dims)
     }
     void *buffer;
     SP_CALL(spMemHostAlloc(&buffer, size_in_byte));
-    SP_CALL(spMemCopy(buffer, d, size_in_byte));
+    SP_CALL(spMemoryCopy(buffer, d, size_in_byte));
 
 
     printf("\n %4d|\t", 0);

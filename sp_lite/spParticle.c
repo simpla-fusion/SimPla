@@ -237,16 +237,16 @@ int spParticleDeploy(spParticle *sp)
 
     for (int i = 0; i < sp->m_num_of_attrs_; ++i)
     {
-        SP_CALL(spMemDeviceAlloc(&(sp->m_attrs_[i].data),
-                                 spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
+        SP_CALL(spMemoryDeviceAlloc(&(sp->m_attrs_[i].data),
+                                    spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
         SP_CALL(spMemSet((sp->m_attrs_[i].data), 0,
                          spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
     }
     int num_of_attr = spParticleGetNumberOfAttributes(sp);
     void *d[num_of_attr];
     SP_CALL(spParticleGetAllAttributeData(sp, d));
-    SP_CALL(spMemDeviceAlloc((void **) &(sp->m_current_data_), num_of_attr * sizeof(void *)));
-    SP_CALL(spMemCopy(sp->m_current_data_, d, num_of_attr * sizeof(void *)));
+    SP_CALL(spMemoryDeviceAlloc((void **) &(sp->m_current_data_), num_of_attr * sizeof(void *)));
+    SP_CALL(spMemoryCopy(sp->m_current_data_, d, num_of_attr * sizeof(void *)));
 
     /* Deploy buckets */
 
@@ -255,8 +255,8 @@ int spParticleDeploy(spParticle *sp)
     SP_CALL(spFieldClear(sp->bucket_start));
     SP_CALL(spFieldClear(sp->bucket_count));
 
-    SP_CALL(spMemDeviceAlloc((void **) &(sp->sorted_idx), sp->m_max_num_of_particle_ * sizeof(size_type)));
-    SP_CALL(spMemDeviceAlloc((void **) &(sp->cell_hash), sp->m_max_num_of_particle_ * sizeof(size_type)));
+    SP_CALL(spMemoryDeviceAlloc((void **) &(sp->sorted_idx), sp->m_max_num_of_particle_ * sizeof(size_type)));
+    SP_CALL(spMemoryDeviceAlloc((void **) &(sp->cell_hash), sp->m_max_num_of_particle_ * sizeof(size_type)));
 
 
     sp->is_deployed = SP_TRUE;
@@ -271,12 +271,12 @@ int spParticleDestroy(spParticle **sp)
     SP_CALL(spFieldDestroy(&(*sp)->bucket_start));
     SP_CALL(spFieldDestroy(&(*sp)->bucket_count));
 
-    SP_CALL(spMemDeviceFree((void **) &((*sp)->sorted_idx)));
-    SP_CALL(spMemDeviceFree((void **) &((*sp)->cell_hash)));
+    SP_CALL(spMemoryDeviceFree((void **) &((*sp)->sorted_idx)));
+    SP_CALL(spMemoryDeviceFree((void **) &((*sp)->cell_hash)));
 
-    for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i) {SP_CALL(spMemDeviceFree(&((*sp)->m_attrs_[i].data))); }
+    for (int i = 0; i < (*sp)->m_num_of_attrs_; ++i) {SP_CALL(spMemoryDeviceFree(&((*sp)->m_attrs_[i].data))); }
 
-    SP_CALL(spMemDeviceFree((void **) &((*sp)->m_current_data_)));
+    SP_CALL(spMemoryDeviceFree((void **) &((*sp)->m_current_data_)));
 
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) sp));
 
@@ -333,22 +333,22 @@ int spParticleGetBucket(spParticle *sp, size_type **start_pos, size_type **count
 
     return SP_SUCCESS;
 }
-
-int spParticleGetBucket2(spParticle *sp, spField **start_pos, spField **count,
-                         size_type **sorted_idx, size_type **cell_hash)
-{
-    if (sp == NULL) { return SP_FAILED; }
-
-    if (start_pos != NULL) { *start_pos = sp->bucket_start; }
-
-    if (count != NULL) { *count = sp->bucket_count; }
-
-    if (sorted_idx != NULL) { *sorted_idx = sp->sorted_idx; }
-
-    if (cell_hash != NULL) { *cell_hash = sp->cell_hash; }
-
-    return SP_SUCCESS;
-}
+//
+//int spParticleGetBucket2(spParticle *sp, spField **start_pos, spField **count,
+//                         size_type **sorted_idx, size_type **cell_hash)
+//{
+//    if (sp == NULL) { return SP_FAILED; }
+//
+//    if (start_pos != NULL) { *start_pos = sp->bucket_start; }
+//
+//    if (count != NULL) { *count = sp->bucket_count; }
+//
+//    if (sorted_idx != NULL) { *sorted_idx = sp->sorted_idx; }
+//
+//    if (cell_hash != NULL) { *cell_hash = sp->cell_hash; }
+//
+//    return SP_SUCCESS;
+//}
 
 int spParticleDefragment(spParticle *sp)
 {
@@ -365,7 +365,7 @@ int spParticleDefragment(spParticle *sp)
 
     Real *buffer = NULL;
 
-    SP_CALL(spMemDeviceAlloc((void **) &buffer, sizeof(Real) * spParticleCapacity(sp)));
+    SP_CALL(spMemoryDeviceAlloc((void **) &buffer, sizeof(Real) * spParticleCapacity(sp)));
 
     for (int i = 0; i < spParticleGetNumberOfAttributes(sp); ++i)
     {
@@ -378,7 +378,7 @@ int spParticleDefragment(spParticle *sp)
         SP_CALL(spParticleSetAttributeData(sp, i, dest));
     }
 
-    SP_CALL(spMemDeviceFree((void **) &buffer));
+    SP_CALL(spMemoryDeviceFree((void **) &buffer));
 
     SP_CALL(spFillSeq(sorted_idx, SP_TYPE_size_type, maxNumParticles, 0, 1));
 
@@ -432,19 +432,22 @@ int spParticleSync(spParticle *sp)
 
     SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_id, NULL));
 
-
     void *d[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
     int num_of_attr = spParticleGetNumberOfAttributes(sp);
 
+    size_type num_of_particle = spParticleSize(sp);
+
     SP_CALL(spParticleGetAllAttributeData(sp, d));
 
-    spMPIUpdater *updater;
+    spMPIUpdater *updater = NULL;
 
     SP_CALL(spMeshGetMPIUpdater(m, &updater));
 
     SP_CALL(spMPIUpdateBucket(updater, sp->m_data_type_tag_, num_of_attr, d,
-                              bucket_start, bucket_count, sorted_id));
+                              bucket_start, bucket_count, sorted_id, &num_of_particle));
+
+    SP_CALL(spParticleResize(sp, num_of_particle));
 
     return SP_SUCCESS;
 }
@@ -454,7 +457,7 @@ int spParticleSync(spParticle *sp)
 //        SP_CALL(spMeshGetStrides(m, strides));
 //        size_type num = spParticleSize(sp);
 //        SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
-//        SP_CALL(spMemCopy(buffer, spParticleGetAttributeData(sp, 5), num * sizeof(Real)));
+//        SP_CALL(spMemoryCopy(buffer, spParticleGetAttributeData(sp, 5), num * sizeof(Real)));
 //
 //        printf("\n***************************************\n");
 //
@@ -524,7 +527,7 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
             SP_CALL(spMemHostAlloc(&buffer, total_size_in_byte));
         }
 
-        SP_CALL(spMemCopy(buffer, sp->m_attrs_[i].data, total_size_in_byte));
+        SP_CALL(spMemoryCopy(buffer, sp->m_attrs_[i].data, total_size_in_byte));
 
         SP_CALL(spIOStreamWriteSimple(os,
                                       sp->m_attrs_[i].name,

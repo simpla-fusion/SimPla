@@ -42,10 +42,8 @@ int spMPIUpdaterDeploy(spMPIUpdater *updater, int mpi_sync_start_dims, int ndims
 
 int spMPIUpdateHalo(spMPIUpdater *updater, int type_tag, void *);
 
-int spMPIUpdateBucket(spMPIUpdater *updater, int type_tag, int num, void **data,
-                      size_type const *bucket_start,
-                      size_type const *bucket_count,
-                      size_type const *sorted_index);
+int spMPIUpdateBucket(spMPIUpdater *updater, int type_tag, int num, void **data, size_type *bucket_start,
+                      size_type *bucket_count, size_type *sorted_index, size_type *tail);
 
 int spMPIUpdateIndexed(spMPIUpdater *updater, int type_tag, int num, void **data,
                        size_type const *send_count, size_type **send_index,

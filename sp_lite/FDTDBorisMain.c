@@ -98,9 +98,6 @@ int main(int argc, char **argv)
     SP_CALL(spParticleSetPIC(sp, (uint) PIC));
     SP_CALL(spParticleInitializeBorisYee(sp, n0, T0));
 
-    /*****************************************************************************************************************/
-
-
     dt = fminf(dt, (Real) (0.1 * TWOPI / sqrt(SI_elementary_charge * SI_elementary_charge * n0 / epsilon0)));
     /*****************************************************************************************************************/
 

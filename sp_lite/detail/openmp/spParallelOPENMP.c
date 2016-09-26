@@ -18,13 +18,13 @@ int spParallelDeviceInitialize(int argc, char **argv)
 
 int spParallelDeviceFinalize() { return SP_SUCCESS; }
 
-int spMemDeviceAlloc(void **p, size_type s)
+int spMemoryDeviceAlloc(void **p, size_type s)
 {
     *p = malloc(s);
     return SP_SUCCESS;
 }
 
-int spMemDeviceFree(void **p)
+int spMemoryDeviceFree(void **p)
 {
     if (*p != NULL)
     {
@@ -34,7 +34,7 @@ int spMemDeviceFree(void **p)
     return SP_SUCCESS;
 };
 
-int spMemCopy(void *dest, void const *src, size_type s)
+int spMemoryCopy(void *dest, void const *src, size_type s)
 {
     memcpy(dest, src, s);
     return SP_SUCCESS;

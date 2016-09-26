@@ -43,8 +43,12 @@ int spTransformMinus(size_type *v, size_type const *a, size_type const *b, size_
 
 int spTransformAdd(size_type *v, size_type const *a, size_type const *b, size_type num);
 
+int spExclusiveScan(size_type const *b, size_type const *e, size_type *out);
 
-int spPackInt(size_type **dest, int *num, size_type const *src,
+int spInclusiveScan(size_type const *b, size_type const *e, size_type *out);
+
+
+int spPackInt(size_type **dest, size_type *num, size_type const *src,
               size_type num_of_cell, size_type const *start, size_type const *count);
 
 

@@ -186,8 +186,8 @@ int spParticleBucketBuild_device(spParticle *sp)
     SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_idx, &cell_hash));
 
     size_type *b_start, *b_end;
-    SP_CALL(spMemDeviceAlloc((void **) &b_end, (num_of_cell + 1) * sizeof(size_type)));
-    SP_CALL(spMemDeviceAlloc((void **) &b_start, (num_of_cell + 1) * sizeof(size_type)));
+    SP_CALL(spMemoryDeviceAlloc((void **) &b_end, (num_of_cell + 1) * sizeof(size_type)));
+    SP_CALL(spMemoryDeviceAlloc((void **) &b_start, (num_of_cell + 1) * sizeof(size_type)));
     SP_CALL(spMemSet(b_start, 0, (num_of_cell + 1) * sizeof(size_type)));
     SP_CALL(spMemSet(b_end, 0, (num_of_cell + 1) * sizeof(size_type)));
 
@@ -203,30 +203,14 @@ int spParticleBucketBuild_device(spParticle *sp)
                           b_start, b_end, bucket_start, bucket_count, num_of_cell);
 
 
-    SP_CALL(spMemCopy(&num_of_particle, b_start, sizeof(size_type)));
+    SP_CALL(spMemoryCopy(&num_of_particle, b_start, sizeof(size_type)));
 
-    SP_CALL(spParticleBucketSync_device(sp));
 
-    UNIMPLEMENTED;
-
-    if (num_of_particle != 0) {SP_CALL(spParticleResize(sp, num_of_particle)); }
-
-    SP_CALL(spMemDeviceFree((void **) &b_start));
-    SP_CALL(spMemDeviceFree((void **) &b_end));
+    SP_CALL(spMemoryDeviceFree((void **) &b_start));
+    SP_CALL(spMemoryDeviceFree((void **) &b_end));
     return SP_SUCCESS;
 }
 
-int spParticleBucketSync_device(spParticle *sp)
-{
-    spField *bucket_count, *bucket_start;
-    spParticleGetBucket2(sp, &bucket_start, &bucket_count, NULL, NULL);
-    SP_CALL(spFieldSync(bucket_count));
-    size_type num_of_particle = spParticleSize(sp);
-    UNIMPLEMENTED;
-    SP_CALL(spParticleResize(sp, num_of_particle));
-    return SP_SUCCESS;
-
-}
 
 __global__ void
 spParticleCoordinateConvert(particle_head *sp,

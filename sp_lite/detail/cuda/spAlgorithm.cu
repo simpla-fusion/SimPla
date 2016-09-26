@@ -263,6 +263,36 @@ int spTransformAdd(size_type *v, size_type const *a, size_type const *b, size_ty
 
 }
 
+int spExclusiveScan(size_type const *b, size_type const *e, size_type *out)
+{
+    try
+    {
+        thrust::exclusive_scan(b, e, out);
+    }
+    catch (...)
+    {
+        return SP_FAILED;
+    }
+
+    return SP_SUCCESS;
+};
+
+int spInclusiveScan(size_type const *b, size_type const *e, size_type *out)
+{
+    try
+    {
+        thrust::inclusive_scan(b, e, out);
+    }
+    catch (...)
+    {
+        return SP_FAILED;
+    }
+
+
+    return SP_SUCCESS;
+};
+
+
 __global__ void
 spPackInt_kernel(size_type *dest, size_type const *src,
                  size_type const *dest_start, size_type const *src_start, size_type const *count)
@@ -273,27 +303,24 @@ spPackInt_kernel(size_type *dest, size_type const *src,
 
 }
 
-int spPackInt(size_type **dest, int *num, size_type const *src,
+int spPackInt(size_type **dest, size_type *num, size_type const *src,
               size_type num_of_cell, size_type const *start, size_type const *count)
 {
-    UNIMPLEMENTED;
-//    *num = thrust::reduce(count, count + num_of_cell);
-//
-//    size_type *offset;
-//
-//    SP_CALL(spMemDeviceAlloc((void **) &offset, num_of_cell * sizeof(size_type)));
-//
-//    SP_CALL(spMemCopy(offset, count, num_of_cell * sizeof(size_type)));
-//
-//    thrust::exclusive_scan(offset, offset + num_of_cell);
-//
-//    if (dest != NULL) {SP_CALL(spMemDeviceFree((void **) dest)); }
-//
-//    SP_CALL(spMemDeviceAlloc((void **) dest, (*num) * sizeof(size_type)));
-//
-//    SP_CALL_DEVICE_KERNEL(spPackInt_kernel, num_of_cell, 256, dest, src,)
-//
-//    SP_CALL(spMemDeviceFree((void **) &offset));
+    size_type *dest_start;
+
+    SP_CALL(spMemoryDeviceAlloc((void **) &dest_start, (num_of_cell + 1) * sizeof(size_type)));
+
+    SP_CALL(spInclusiveScan(count, count + num_of_cell, dest_start + 1));
+
+    SP_CALL(spMemoryCopy(num, count + num_of_cell, sizeof(size_type)));
+
+    SP_CALL(spMemSet(dest_start, 0, sizeof(size_type)));
+
+    SP_CALL(spMemoryDeviceAlloc((void **) dest, (*num) * sizeof(size_type)));
+
+    SP_CALL_DEVICE_KERNEL(spPackInt_kernel, num_of_cell, 256, *dest, src, dest_start, start, count);
+
+    SP_CALL(spMemoryDeviceFree((void **) &dest_start));
 
     return SP_SUCCESS;
 }

@@ -47,7 +47,7 @@ int spFieldCreate(spField **f, const struct spMesh_s *mesh, int iform, int type_
 int spFieldDestroy(spField **f)
 {
 
-    if (f != NULL && *f != NULL) {SP_CALL(spMemDeviceFree(&((**f).m_data_))); }
+    if (f != NULL && *f != NULL) {SP_CALL(spMemoryDeviceFree(&((**f).m_data_))); }
 
     SP_CALL(spMeshAttributeDestroy((spMeshAttribute **) f));
 
@@ -56,7 +56,7 @@ int spFieldDestroy(spField **f)
 
 int spFieldDeploy(spField *f)
 {
-    if (f->m_data_ == NULL) {SP_CALL(spMemDeviceAlloc(&(f->m_data_), spFieldGetSizeInByte(f))); }
+    if (f->m_data_ == NULL) {SP_CALL(spMemoryDeviceAlloc(&(f->m_data_), spFieldGetSizeInByte(f))); }
 
     return SP_SUCCESS;
 }
@@ -165,7 +165,7 @@ int spFieldShow(const spField *f, char const *name)
 
 //    void *buffer;
 //    SP_CALL(spMemHostAlloc((void **) &buffer, spFieldGetSizeInByte(f)));
-//    SP_CALL(spMemCopy(buffer, spFieldData((spField *) f), spFieldGetSizeInByte(f)));
+//    SP_CALL(spMemoryCopy(buffer, spFieldData((spField *) f), spFieldGetSizeInByte(f)));
 //
 //    if (name != NULL) { printf("\n [ %s ]", name); }
 //
@@ -293,13 +293,13 @@ int spFieldCopyToHost(void **d, spField const *f)
 {
     size_type s = spFieldGetSizeInByte(f);
     SP_CALL(spMemHostAlloc(d, s));
-    SP_CALL(spMemCopy(*d, f->m_data_, s));
+    SP_CALL(spMemoryCopy(*d, f->m_data_, s));
     return SP_SUCCESS;
 };
 
 int spFieldCopyToDevice(spField *f, void const *d)
 {
-    SP_CALL(spMemCopy(f->m_data_, d, spFieldGetSizeInByte(f)));
+    SP_CALL(spMemoryCopy(f->m_data_, d, spFieldGetSizeInByte(f)));
     return SP_SUCCESS;
 }
 

@@ -15,15 +15,15 @@ int spParallelDeviceInitialize(int argc, char **argv);
 
 int spParallelDeviceFinalize();
 
-int spMemDeviceAlloc(void **, size_type);
+int spMemoryDeviceAlloc(void **, size_type);
 
-int spMemDeviceFree(void **);
+int spMemoryDeviceFree(void **);
 
 int spMemHostAlloc(void **, size_type);
 
 int spMemHostFree(void **);
 
-int spMemCopy(void *, void const *, size_type);
+int spMemoryCopy(void *, void const *, size_type);
 
 int spMemCopyToCache(const void *, void const *, size_type);
 

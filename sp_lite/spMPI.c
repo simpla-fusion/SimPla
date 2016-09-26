@@ -337,8 +337,8 @@ int spMPIUpdaterDestroy(spMPIUpdater **updater)
 //        if ((*updater)->send_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->send_types[i])));
 //        if ((*updater)->recv_types[i] != MPI_DATATYPE_NULL) MPI_CALL(MPI_Type_free(&((*updater)->recv_types[i])));
 
-        SP_CALL(spMemDeviceFree(&((*updater)->send_buffer[i])));
-        SP_CALL(spMemDeviceFree(&((*updater)->recv_buffer[i])));
+        SP_CALL(spMemoryDeviceFree(&((*updater)->send_buffer[i])));
+        SP_CALL(spMemoryDeviceFree(&((*updater)->recv_buffer[i])));
     }
     free(*updater);
     *updater = NULL;
@@ -490,12 +490,12 @@ int spMPIUpdateHalo(spMPIUpdater *updater, int type_tag, void *data)
 //
 //        if (updater->send_count[i] > 0 && updater->send_buffer[i] == NULL)
 //        {
-//            SP_CALL(spMemDeviceAlloc(&(updater->send_buffer[i]),
+//            SP_CALL(spMemoryDeviceAlloc(&(updater->send_buffer[i]),
 //                                     (size_type) (updater->send_count[i] * ele_size_in_byte)));
 //        }
 //        if (updater->recv_count[i] > 0 && updater->recv_buffer[i] == NULL)
 //        {
-//            SP_CALL(spMemDeviceAlloc(&(updater->recv_buffer[i]),
+//            SP_CALL(spMemoryDeviceAlloc(&(updater->recv_buffer[i]),
 //                                     (size_type) (updater->recv_count[i] * ele_size_in_byte)));
 //        }
 //    }
@@ -506,21 +506,21 @@ int spMPIUpdateHalo(spMPIUpdater *updater, int type_tag, void *data)
         if (updater->send_count[i] * ele_size_in_byte > updater->send_buffer_memsize[i] ||
             updater->send_buffer[i] == NULL)
         {
-            SP_CALL(spMemDeviceFree(&(updater->send_buffer[i])));
+            SP_CALL(spMemoryDeviceFree(&(updater->send_buffer[i])));
 
             updater->send_buffer_memsize[i] = updater->send_count[i] * ele_size_in_byte;
 
-            SP_CALL(spMemDeviceAlloc(&(updater->send_buffer[i]), updater->send_buffer_memsize[i]));
+            SP_CALL(spMemoryDeviceAlloc(&(updater->send_buffer[i]), updater->send_buffer_memsize[i]));
         }
 
         if (updater->recv_count[i] * ele_size_in_byte > updater->recv_buffer_memsize[i] ||
             updater->recv_buffer[i] == NULL)
         {
-            SP_CALL(spMemDeviceFree(&(updater->recv_buffer[i])));
+            SP_CALL(spMemoryDeviceFree(&(updater->recv_buffer[i])));
             updater->recv_buffer_memsize[i] = updater->recv_count[i] * ele_size_in_byte;
 
-            SP_CALL(spMemDeviceAlloc(&(updater->recv_buffer[i]),
-                                     (size_type) (updater->recv_count[i] * ele_size_in_byte)));
+            SP_CALL(spMemoryDeviceAlloc(&(updater->recv_buffer[i]),
+                                        (size_type) (updater->recv_count[i] * ele_size_in_byte)));
         }
     }
 
@@ -589,8 +589,8 @@ int spMPIUpdateIndexed(spMPIUpdater *updater, int type_tag, int num, void **data
 
     for (int i = 0; i < 6; ++i)
     {
-        SP_CALL(spMemDeviceAlloc(&(send_buffer[i]), send_count[i] * ele_size_in_byte));
-        SP_CALL(spMemDeviceAlloc(&(recv_buffer[i]), recv_count[i] * ele_size_in_byte));
+        SP_CALL(spMemoryDeviceAlloc(&(send_buffer[i]), send_count[i] * ele_size_in_byte));
+        SP_CALL(spMemoryDeviceAlloc(&(recv_buffer[i]), recv_count[i] * ele_size_in_byte));
     }
 
     for (int i = 0; i < num; ++i)
@@ -628,63 +628,88 @@ int spMPIUpdateIndexed(spMPIUpdater *updater, int type_tag, int num, void **data
 
     for (int i = 0; i < 6; ++i)
     {
-        SP_CALL(spMemDeviceFree(&(send_buffer[i])));
-        SP_CALL(spMemDeviceFree(&(recv_buffer[i])));
+        SP_CALL(spMemoryDeviceFree(&(send_buffer[i])));
+        SP_CALL(spMemoryDeviceFree(&(recv_buffer[i])));
     }
     return SP_SUCCESS;
 
 }
 
 
-int _PackIndex(size_type **dest_index, size_type *num,
-               size_type const cell_strides[3],
-               size_type const cell_start[3],
-               size_type const cell_count[3],
-               const size_type *bucket_start,
-               const size_type *bucket_count,
-               const size_type *src_index)
+int spMPIUpdateBucket(spMPIUpdater *updater, int type_tag, int num, void **data, size_type *bucket_start,
+                      size_type *bucket_count, size_type *sorted_index, size_type *tail)
 {
-    size_type num_of_cell = cell_count[0] * cell_count[1] * cell_count[2];
 
-    size_type *start, *count;
-    SP_CALL(spMemDeviceAlloc((void **) &start, num_of_cell * sizeof(size_type)));
-    SP_CALL(spMemDeviceAlloc((void **) &count, num_of_cell * sizeof(size_type)));
+    spMPIUpdateHalo(updater, SP_TYPE_size_type, bucket_count);
 
-    SP_CALL(spMemoryCopySubArray(start, bucket_start, SP_TYPE_size_type, cell_strides, cell_start, cell_count));
-    SP_CALL(spMemoryCopySubArray(count, bucket_count, SP_TYPE_size_type, cell_strides, cell_start, cell_count));
-
-    if (dest_index != NULL) {SP_CALL(spMemDeviceFree((void **) dest_index)); }
-
-    SP_CALL(spPackInt(dest_index, num, src_index, num_of_cell, start, count));
-
-    SP_CALL(spMemDeviceFree((void **) &start));
-    SP_CALL(spMemDeviceFree((void **) &count));
-}
-
-
-int spMPIUpdateBucket(spMPIUpdater *updater, int type_tag, int num, void **data,
-                      size_type const *bucket_start,
-                      size_type const *bucket_count,
-                      size_type const *sorted_index)
-{
-    size_type send_count[6];
+    size_type send_size[6];
     size_type *send_index[6];
-    size_type recv_count[6];
+    size_type recv_size[6];
     size_type *recv_index[6];
+
 
     for (int i = 0; i < 6; ++i)
     {
-        _PackIndex(&send_index[i], &(send_count[i]),
-                   updater->strides, updater->s_start[i], updater->s_count[i],
-                   bucket_start, bucket_count, sorted_index);
 
-        _PackIndex(&recv_index[i], &(recv_count[i]),
-                   updater->strides, updater->r_start[i], updater->r_count[i],
-                   bucket_start, bucket_count, sorted_index);
+        size_type *send_start;
+        size_type *send_count;
+        size_type num_of_send_cell = updater->s_count[i][0] * updater->s_count[i][1] * updater->s_count[i][2];
 
+        SP_CALL(spMemoryDeviceAlloc((void **) &send_count, num_of_send_cell * sizeof(size_type)));
+        SP_CALL(spMemoryDeviceAlloc((void **) &send_start, num_of_send_cell * sizeof(size_type)));
+
+        SP_CALL(spMemoryCopySubArray(send_count, bucket_count, SP_TYPE_size_type,
+                                     updater->strides, updater->s_start[i], updater->s_count[i]));
+        SP_CALL(spMemoryCopySubArray(send_start, bucket_start, SP_TYPE_size_type,
+                                     updater->strides, updater->s_start[i], updater->s_count[i]));
+
+        SP_CALL(spPackInt(&send_index[i], &send_size[i], sorted_index, num_of_send_cell,
+                          send_start, send_count));
+
+        SP_CALL(spMemoryDeviceFree((void **) &send_start));
+        SP_CALL(spMemoryDeviceFree((void **) &send_count));
+
+
+        size_type *recv_start;
+        size_type *recv_count;
+
+
+        size_type num_of_recv_cell = updater->r_count[i][0] * updater->r_count[i][1] * updater->r_count[i][2];
+
+        SP_CALL(spMemoryDeviceAlloc((void **) &recv_count, (num_of_recv_cell + 1) * sizeof(size_type)));
+        SP_CALL(spMemoryDeviceAlloc((void **) &recv_start, (num_of_recv_cell + 1) * sizeof(size_type)));
+
+        SP_CALL(spMemoryCopy(recv_count, tail, sizeof(size_type)));
+
+        SP_CALL(spMemoryCopySubArray(recv_count + 1, bucket_count, SP_TYPE_size_type,
+                                     updater->strides, updater->r_start[i], updater->r_count[i]));
+
+        SP_CALL(spInclusiveScan(recv_count, recv_count + num_of_recv_cell + 1, recv_start));
+
+
+        SP_CALL(spMemoryCopy(tail, recv_start + num_of_recv_cell, sizeof(size_type)));
+
+        SP_CALL(spMemoryCopyInvSubArray(bucket_start, recv_start, SP_TYPE_size_type,
+                                        updater->strides, updater->r_start[i], updater->r_count[i]));
+
+        SP_CALL(spPackInt(&recv_index[i], &recv_size[i], sorted_index, num_of_recv_cell,
+                          recv_start, recv_count + 1));
+
+        SP_CALL(spMemoryDeviceFree((void **) &recv_start));
+        SP_CALL(spMemoryDeviceFree((void **) &recv_count));
     }
 
-    SP_CALL(spMPIUpdateIndexed(updater, type_tag, num, data, send_count, send_index, recv_count, recv_index));
+
+    SP_CALL(spMPIUpdateIndexed(updater, type_tag, num, data, send_size, send_index, recv_size, recv_index));
+
+
+    for (int i = 0; i < 6; ++i)
+    {
+        SP_CALL(spMemoryDeviceFree((void **) &send_index[i]));
+        SP_CALL(spMemoryDeviceFree((void **) &recv_index[i]));
+    }
+
+
     return SP_SUCCESS;
 }
 
