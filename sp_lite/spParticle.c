@@ -202,7 +202,9 @@ int spParticleSetAttributeData(spParticle *sp, int i, void *data)
 }
 
 /**   @}*/
-
+#ifndef SP_DEFAULT_DEFRAGMENT_FREQ
+#   define SP_DEFAULT_DEFRAGMENT_FREQ 1
+#endif
 
 int spParticleCreate(spParticle **sp, const spMesh *mesh)
 {
@@ -216,7 +218,7 @@ int spParticleCreate(spParticle **sp, const spMesh *mesh)
     (*sp)->mass = 1;
     (*sp)->is_deployed = SP_FALSE;
     (*sp)->step_count = 0;
-    (*sp)->defragment_freq = (size_type) -1;
+    (*sp)->defragment_freq = SP_DEFAULT_DEFRAGMENT_FREQ;
     (*sp)->need_sorting = SP_FALSE;
     return SP_SUCCESS;
 
@@ -357,7 +359,6 @@ int spParticleDefragment(spParticle *sp)
 {
     if (sp == NULL) { return SP_FAILED; }
 
-
     size_type numParticles = spParticleSize(sp);
 
     size_type maxNumParticles = spParticleCapacity(sp);
@@ -409,7 +410,7 @@ int spParticleSort(spParticle *sp)
 
     ++sp->step_count;
 
-//    if (sp->step_count % sp->defragment_freq == 0) {SP_CALL(spParticleDefragment(sp)); }
+    if (sp->step_count % sp->defragment_freq == 0) {SP_CALL(spParticleDefragment(sp)); }
 
     sp->need_sorting = SP_FALSE;
 
