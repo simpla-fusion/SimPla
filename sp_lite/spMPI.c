@@ -561,8 +561,8 @@ int spMPIUpdateHalo(spMPIUpdater *updater, int type_tag, void *data)
 
 
 int spMPIUpdateIndexed(spMPIUpdater *updater, int type_tag, int num, void **data,
-                       size_type const *send_count, size_type **send_index,
-                       size_type const *recv_count, size_type **recv_index)
+                       size_type const *send_size, size_type **send_index,
+                       size_type const *recv_size, size_type **recv_index)
 {
 
     if (updater->comm == MPI_COMM_NULL) { return SP_DO_NOTHING; }
@@ -589,8 +589,9 @@ int spMPIUpdateIndexed(spMPIUpdater *updater, int type_tag, int num, void **data
 
     for (int i = 0; i < 6; ++i)
     {
-        SP_CALL(spMemoryDeviceAlloc(&(send_buffer[i]), send_count[i] * ele_size_in_byte));
-        SP_CALL(spMemoryDeviceAlloc(&(recv_buffer[i]), recv_count[i] * ele_size_in_byte));
+
+        SP_CALL(spMemoryDeviceAlloc(&(send_buffer[i]), send_size[i] * ele_size_in_byte));
+        SP_CALL(spMemoryDeviceAlloc(&(recv_buffer[i]), recv_size[i] * ele_size_in_byte));
     }
 
     for (int i = 0; i < num; ++i)
@@ -600,28 +601,28 @@ int spMPIUpdateIndexed(spMPIUpdater *updater, int type_tag, int num, void **data
         {
 
             SP_CALL(spMemoryCopyIndirect(send_buffer[2 * d + 0], data[i],
-                                         send_count[2 * d + 0], send_index[2 * d + 0]));
+                                         send_size[2 * d + 0], send_index[2 * d + 0]));
 
             SP_CALL(spMemoryCopyIndirect(send_buffer[2 * d + 1], data[i],
-                                         send_count[2 * d + 1], send_index[2 * d + 1]));
+                                         send_size[2 * d + 1], send_index[2 * d + 1]));
 
             int left, right;
 
             MPI_CALL(MPI_Cart_shift(updater->comm, d, 1, &left, &right));
 
-            MPI_CALL(MPI_Sendrecv(send_buffer[d * 2 + 0], (int) send_count[d * 2 + 0], ele_type, left, tag,
-                                  recv_buffer[d * 2 + 1], (int) recv_count[d * 2 + 1], ele_type, right, tag,
+            MPI_CALL(MPI_Sendrecv(send_buffer[d * 2 + 0], (int) send_size[d * 2 + 0], ele_type, left, tag,
+                                  recv_buffer[d * 2 + 1], (int) recv_size[d * 2 + 1], ele_type, right, tag,
                                   updater->comm, MPI_STATUS_IGNORE));
 
-            MPI_CALL(MPI_Sendrecv(send_buffer[d * 2 + 1], (int) send_count[d * 2 + 1], ele_type, right, tag,
-                                  recv_buffer[d * 2 + 0], (int) recv_count[d * 2 + 0], ele_type, left, tag,
+            MPI_CALL(MPI_Sendrecv(send_buffer[d * 2 + 1], (int) send_size[d * 2 + 1], ele_type, right, tag,
+                                  recv_buffer[d * 2 + 0], (int) recv_size[d * 2 + 0], ele_type, left, tag,
                                   updater->comm, MPI_STATUS_IGNORE));
 
             SP_CALL(spMemoryCopyInvIndirect(data[i], recv_buffer[2 * d + 0],
-                                            recv_count[2 * d + 0], recv_index[2 * d + 0]));
+                                            recv_size[2 * d + 0], recv_index[2 * d + 0]));
 
             SP_CALL(spMemoryCopyInvIndirect(data[i], recv_buffer[2 * d + 1],
-                                            recv_count[2 * d + 1], recv_index[2 * d + 1]));
+                                            recv_size[2 * d + 1], recv_index[2 * d + 1]));
         }
     }
 
@@ -642,10 +643,10 @@ int spMPIUpdateBucket(spMPIUpdater *updater, int type_tag, int num, void **data,
 
     spMPIUpdateHalo(updater, SP_TYPE_size_type, bucket_count);
 
-    size_type send_size[6];
-    size_type *send_index[6];
-    size_type recv_size[6];
-    size_type *recv_index[6];
+    size_type send_size[6] = {0, 0, 0, 0, 0, 0};
+    size_type *send_index[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+    size_type recv_size[6] = {0, 0, 0, 0, 0, 0};
+    size_type *recv_index[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
 
     for (int i = 0; i < 6; ++i)
@@ -663,7 +664,7 @@ int spMPIUpdateBucket(spMPIUpdater *updater, int type_tag, int num, void **data,
         SP_CALL(spMemoryCopySubArray(send_start, bucket_start, SP_TYPE_size_type,
                                      updater->strides, updater->s_start[i], updater->s_count[i]));
 
-        SP_CALL(spPackInt(&send_index[i], &send_size[i], sorted_index, num_of_send_cell,
+        SP_CALL(spPackInt(&send_index[i], &(send_size[i]), sorted_index, num_of_send_cell,
                           send_start, send_count));
 
         SP_CALL(spMemoryDeviceFree((void **) &send_start));
@@ -679,7 +680,7 @@ int spMPIUpdateBucket(spMPIUpdater *updater, int type_tag, int num, void **data,
         SP_CALL(spMemoryDeviceAlloc((void **) &recv_count, (num_of_recv_cell + 1) * sizeof(size_type)));
         SP_CALL(spMemoryDeviceAlloc((void **) &recv_start, (num_of_recv_cell + 1) * sizeof(size_type)));
 
-        SP_CALL(spMemoryCopy(recv_count, tail, sizeof(size_type)));
+        SP_CALL(spMemoryCopy(&recv_count[0], tail, sizeof(size_type)));
 
         SP_CALL(spMemoryCopySubArray(recv_count + 1, bucket_count, SP_TYPE_size_type,
                                      updater->strides, updater->r_start[i], updater->r_count[i]));
@@ -687,12 +688,12 @@ int spMPIUpdateBucket(spMPIUpdater *updater, int type_tag, int num, void **data,
         SP_CALL(spInclusiveScan(recv_count, recv_count + num_of_recv_cell + 1, recv_start));
 
 
-        SP_CALL(spMemoryCopy(tail, recv_start + num_of_recv_cell, sizeof(size_type)));
+        SP_CALL(spMemoryCopy(tail, &recv_start[num_of_recv_cell], sizeof(size_type)));
 
         SP_CALL(spMemoryCopyInvSubArray(bucket_start, recv_start, SP_TYPE_size_type,
                                         updater->strides, updater->r_start[i], updater->r_count[i]));
 
-        SP_CALL(spPackInt(&recv_index[i], &recv_size[i], sorted_index, num_of_recv_cell,
+        SP_CALL(spPackInt(&recv_index[i], &(recv_size[i]), sorted_index, num_of_recv_cell,
                           recv_start, recv_count + 1));
 
         SP_CALL(spMemoryDeviceFree((void **) &recv_start));

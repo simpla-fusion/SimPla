@@ -31,7 +31,8 @@ int spParallelDeviceFinalize()
 
 int spMemoryDeviceAlloc(void **p, size_type s)
 {
-    SP_DEVICE_CALL(cudaMalloc(p, s));
+    if (s > 0) {SP_DEVICE_CALL(cudaMalloc(p, s)); }
+    else { *p = NULL; }
     return SP_SUCCESS;
 }
 

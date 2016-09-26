@@ -12,6 +12,8 @@ extern "C"
 
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
+#include <thrust/scan.h>
+
 #include "../../../../../../../usr/local/cuda/include/host_defines.h"
 #include "../../../../../../../usr/local/cuda/include/device_launch_parameters.h"
 
@@ -267,7 +269,11 @@ int spExclusiveScan(size_type const *b, size_type const *e, size_type *out)
 {
     try
     {
-        thrust::exclusive_scan(b, e, out);
+        thrust::exclusive_scan(
+                thrust::device_ptr<size_type>((size_type *) b),
+                thrust::device_ptr<size_type>((size_type *) e),
+                thrust::device_ptr<size_type>(out)
+        );
     }
     catch (...)
     {
@@ -281,7 +287,11 @@ int spInclusiveScan(size_type const *b, size_type const *e, size_type *out)
 {
     try
     {
-        thrust::inclusive_scan(b, e, out);
+        thrust::inclusive_scan(
+                thrust::device_ptr<size_type>((size_type *) b),
+                thrust::device_ptr<size_type>((size_type *) e),
+                thrust::device_ptr<size_type>(out)
+        );
     }
     catch (...)
     {
@@ -297,22 +307,28 @@ __global__ void
 spPackInt_kernel(size_type *dest, size_type const *src,
                  size_type const *dest_start, size_type const *src_start, size_type const *count)
 {
-    assert(count[blockIdx.x] < blockDim.x);
 
-    dest[dest_start[blockIdx.x] + threadIdx.x] = src[src_start[blockIdx.x] + threadIdx.x];
+    uint s = threadIdx.x;
+    while (s < count[blockIdx.x])
+    {
+        dest[dest_start[blockIdx.x] + threadIdx.x] = src[src_start[blockIdx.x] + threadIdx.x];
+        s += blockDim.x;
+    }
 
 }
 
 int spPackInt(size_type **dest, size_type *num, size_type const *src,
               size_type num_of_cell, size_type const *start, size_type const *count)
 {
+    if (num_of_cell == 0) { return SP_SUCCESS; }
+
     size_type *dest_start;
 
     SP_CALL(spMemoryDeviceAlloc((void **) &dest_start, (num_of_cell + 1) * sizeof(size_type)));
 
     SP_CALL(spInclusiveScan(count, count + num_of_cell, dest_start + 1));
 
-    SP_CALL(spMemoryCopy(num, count + num_of_cell, sizeof(size_type)));
+    SP_CALL(spMemoryCopy(num, &(dest_start[num_of_cell]), sizeof(size_type)));
 
     SP_CALL(spMemSet(dest_start, 0, sizeof(size_type)));
 

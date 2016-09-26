@@ -46,8 +46,8 @@ int spMPIUpdateBucket(spMPIUpdater *updater, int type_tag, int num, void **data,
                       size_type *bucket_count, size_type *sorted_index, size_type *tail);
 
 int spMPIUpdateIndexed(spMPIUpdater *updater, int type_tag, int num, void **data,
-                       size_type const *send_count, size_type **send_index,
-                       size_type const *recv_count, size_type **recv_index);
+                       size_type const *send_size, size_type **send_index,
+                       size_type const *recv_size, size_type **recv_index);
 
 
 #endif //SIMPLA_SPMPI_H
