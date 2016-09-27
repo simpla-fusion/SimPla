@@ -1,7 +1,10 @@
 language: cpp
+install: make get-deps
 compiler:
      - gcc
 before_script:
+     - test -n $CC  && unset CC
+     - test -n $CXX && unset CXX
      - mkdir build
      - cd build
      - cmake ..
@@ -10,4 +13,4 @@ script:
 branches:
     only:
       - master
-  
+ 
