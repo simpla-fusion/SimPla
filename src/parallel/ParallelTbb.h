@@ -18,6 +18,7 @@
 #include <tbb/blocked_range2d.h>
 #include <tbb/blocked_range3d.h>
 #include <tbb/tbb_stddef.h>
+
 namespace simpla { namespace parallel
 {
 using tbb::parallel_for;
@@ -32,8 +33,8 @@ using tbb::blocked_range;
 
 namespace tags
 {
-using tbb::split;
-using tbb::proportional_split;
+typedef tbb::split split;
+typedef tbb::proportional_split proportional_split;
 }
 
 }}  // namespace simpla { namespace parallel
