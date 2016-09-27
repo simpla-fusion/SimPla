@@ -1,4 +1,5 @@
 language: c++
+sudo: required
 compiler:
      - gcc
 before_script:
@@ -11,4 +12,3 @@ script:
 branches:
     only:
       - master
- 
