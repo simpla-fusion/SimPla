@@ -1,18 +1,13 @@
-language: c++
+language: cpp
 compiler:
      - gcc
 before_script:
      - mkdir build
      - cd build
      - cmake ..
-script: 
+script:
      - make demo_em
 branches:
     only:
       - master
-  notifications:
-    recipients:
-    email:
-      on_success: change
-      on_failure: always
   
