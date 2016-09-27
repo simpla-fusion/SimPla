@@ -57,7 +57,7 @@ omega_ext = omega_pe * 0.8
 Mesh =
 {
     Dimensions = { NX, NY, NZ }, -- Dimensions[?]=1 => ignored dimension
-    GhostWidth = { 2, 2, 2 },    -- GhostWidth[?]=0 => cycle boundary
+    GhostWidth = { 2, 2, 2 }, -- GhostWidth[?]=0 => cycle boundary
     Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
 }
 
@@ -69,14 +69,15 @@ PML = { Width = 50 }
 InitValue = {
     B0 = {
         Value = function(x)
-            return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
+            return { 0, 0, 2 }
+            --return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
         end
     },
-    E1 = {
-        Value = function(x)
-            return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
-        end
-    },
+    --    E1 = {
+    --        Value = function(x)
+    --            return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
+    --        end
+    --    },
 }
 
 R = function(x)
@@ -112,12 +113,13 @@ Particles = {
 
 
 Constraints = {
-    J = { -- current source
+    E = {
+        -- current source
         Box = { { 0.05 * LX, 0.45 * LY, 0.45 * LZ }, { 0.1 * LX, 0.55 * LY, 0.55 * LZ } },
         Value = function(t, x, v)
             local tau = t * omega_ext + x[1] * TWOPI / LX
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
-            return { 0, 0, amp }
+            return { 0, amp, 0 }
         end
     },
     PEC = {
