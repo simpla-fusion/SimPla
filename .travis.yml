@@ -1,10 +1,8 @@
-language: cpp
-install: make get-deps
+language: c++
 compiler:
      - gcc
 before_script:
-     - test -n $CC  && unset CC
-     - test -n $CXX && unset CXX
+     - sudo apt-get instsall lua5.1 libopenmpi-dev libhdf5-openmpi-dev  liblua5.3-dev libgtest-dev
      - mkdir build
      - cd build
      - cmake ..
