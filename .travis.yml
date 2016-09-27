@@ -2,7 +2,7 @@ language: c++
 compiler:
      - gcc
 before_script:
-     - sudo apt-get instsall lua5.1 libopenmpi-dev libhdf5-openmpi-dev  liblua5.3-dev libgtest-dev
+     - sudo apt-get instsall libopenmpi-dev libhdf5-openmpi-dev  liblua5.3-dev libgtest-dev
      - mkdir build
      - cd build
      - cmake ..
