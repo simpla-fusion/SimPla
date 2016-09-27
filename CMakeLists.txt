@@ -238,26 +238,23 @@ LINK_DIRECTORIES("/usr/lib/x86_64-linux-gnu/hdf5/openmpi/lib")
 #    set(BOOST_ROOT "${install_dir}" CACHE INTERNAL "")
 #    find_package(Boost 1.58.0)
 #endif ()
+
 enable_testing()
+
 FIND_PACKAGE(GTest)
 
-IF (NOT ${GTEST_FOUND})
-
-    ExternalProject_Add(googletest
-            PREFIX ${PROJECT_BINARY_DIR}/external_project
-            #  URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
-            URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
-            SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
-            INSTALL_COMMAND "")
-    ExternalProject_Get_Property(googletest GTEST_ROOT)
-    ExternalProject_Get_Property(googletest GTEST_ROOT_BINARY_DIR)
-
-    LINK_DIRECTORIES(${BINARY_DIR})
-ENDIF (NOT ${GTEST_FOUND})
-
-FIND_PACKAGE(GTest REQUIRED)
-
-include_directories(${GTEST_INCLUDE_DIRS})
+#IF (NOT ${GTEST_FOUND})
+#include_directories(${GTEST_INCLUDE_DIRS})
+#    ExternalProject_Add(googletest
+#            PREFIX ${PROJECT_BINARY_DIR}/external_project
+#            #  URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
+#            URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
+#            SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
+#            INSTALL_COMMAND "")
+#    ExternalProject_Get_Property(googletest GTEST_ROOT)
+#    ExternalProject_Get_Property(googletest GTEST_ROOT_BINARY_DIR)
+#    LINK_DIRECTORIES(${BINARY_DIR})
+#ENDIF (NOT ${GTEST_FOUND})
 
 #IF (USE_CUDA)
 #FIND_PACKAGE(CUDA 7.5)
