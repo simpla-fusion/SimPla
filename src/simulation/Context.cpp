@@ -25,27 +25,13 @@ struct Context::pimpl_s
 
 };
 
-Context::Context() : m_pimpl_(new pimpl_s)
-{
+Context::Context() : m_pimpl_(new pimpl_s) {};
 
-};
+Context::~Context() {};
 
-Context::~Context()
-{
+void Context::setup() {};
 
-};
-
-void
-Context::setup()
-{
-
-};
-
-void
-Context::teardown()
-{
-
-};
+void Context::teardown() {};
 
 std::ostream &
 Context::print(std::ostream &os, int indent) const
@@ -63,34 +49,20 @@ Context::print(std::ostream &os, int indent) const
     return os;
 }
 
-mesh::Atlas &Context::atlas()
-{
-    return m_pimpl_->m_atlas_;
-};
+mesh::Atlas &
+Context::atlas() { return m_pimpl_->m_atlas_; };
 
-mesh::Atlas const &Context::get_mesh_atlas() const
-{
-    return m_pimpl_->m_atlas_;
-};
+mesh::Atlas const &
+Context::get_mesh_atlas() const { return m_pimpl_->m_atlas_; };
 
 mesh::MeshBlockId
-Context::add_mesh(std::shared_ptr<mesh::Chart> m)
-{
-    return m_pimpl_->m_atlas_.add_block(m);
-
-}
+Context::add_mesh(std::shared_ptr<mesh::Chart> m) { return m_pimpl_->m_atlas_.add_block(m); }
 
 std::shared_ptr<const mesh::Chart>
-Context::get_mesh_block(mesh::MeshBlockId id) const
-{
-    return m_pimpl_->m_atlas_.get_block(id);
-}
+Context::get_mesh_block(mesh::MeshBlockId id) const { return m_pimpl_->m_atlas_.get_block(id); }
 
 std::shared_ptr<mesh::Chart>
-Context::get_mesh_block(mesh::MeshBlockId id)
-{
-    return m_pimpl_->m_atlas_.get_block(id);
-}
+Context::get_mesh_block(mesh::MeshBlockId id) { return m_pimpl_->m_atlas_.get_block(id); }
 
 std::shared_ptr<ProblemDomain>
 Context::get_domain(mesh::MeshBlockId id) const { return m_pimpl_->m_domains_.at(id); };
@@ -104,8 +76,7 @@ Context::add_domain(std::shared_ptr<ProblemDomain> pb)
     if (it == m_pimpl_->m_domains_.end())
     {
         m_pimpl_->m_domains_.emplace(std::make_pair(pb->mesh()->id(), pb));
-    }
-    else
+    } else
     {
         std::shared_ptr<ProblemDomain> *p = &(m_pimpl_->m_domains_[pb->mesh()->id()]);
         while (*p != nullptr) { p = &((*p)->next()); }
@@ -137,10 +108,7 @@ Context::save(io::IOStream &os, int flag) const
 }
 
 io::IOStream &
-Context::check_point(io::IOStream &os) const
-{
-    return save(os, io::SP_RECORD);
-}
+Context::check_point(io::IOStream &os) const { return save(os, io::SP_RECORD); }
 
 io::IOStream &
 Context::load(io::IOStream &is)
@@ -192,24 +160,19 @@ void
 Context::sync(int level, int flag)
 {
     //TODO async sync
-
     for (auto const &mesh_chart: m_pimpl_->m_atlas_.at_level(level))
     {
         auto this_domain = m_pimpl_->m_domains_.find(mesh_chart.second->id());
         if (this_domain != m_pimpl_->m_domains_.end())
         {
             auto r = m_pimpl_->m_atlas_.get_adjacencies(mesh_chart.first);
-
             for (auto it = std::get<0>(r), ie = std::get<1>(r); it != ie; ++it)
             {
                 auto other_domain = m_pimpl_->m_domains_.find(it->second->second->id());
-
                 if (other_domain != m_pimpl_->m_domains_.end() && (it->second->flag & flag != 0))
                 {
                     this_domain->second->sync(*(it->second), *(other_domain->second));
                 }
-
-
             };
         };
     }

@@ -71,7 +71,6 @@ public:
 
     virtual void push_forward(point_type const &x, Real const *v, Real *u) const
     {
-
         u[0] = v[0];
         u[1] = v[1];
         u[2] = v[2];
@@ -82,8 +81,7 @@ public:
 
 
     template<typename Tg>
-    auto pull_back(Tg const &g, point_type const &x) const
-    DECL_RET_TYPE((g(map(x))))
+    auto pull_back(Tg const &g, point_type const &x) const DECL_RET_TYPE((g(map(x))))
 
     template<typename Tg, typename Tf>
     void pull_back(Tg const &g, Tf *f, mesh::MeshEntityType entity_type = mesh::VERTEX) const
@@ -116,7 +114,7 @@ public:
 
 
     template<typename TScalar>
-    void push_forward(point_type const &x, TScalar const *v, TScalar *u) const { }
+    void push_forward(point_type const &x, TScalar const *v, TScalar *u) const {}
 
 
 };

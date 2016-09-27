@@ -16,7 +16,8 @@
 
 namespace simpla
 {
-template<typename ...> struct Field;
+template<typename ...>
+struct Field;
 
 
 template<typename TV, typename TManifold, size_t IFORM>
@@ -44,19 +45,19 @@ public:
 
     Field() : base_type(), m_mesh_(nullptr), m_data_holder_(nullptr)
 //            , m_data_root_ptr_(nullptr)
-    { }
+    {}
 
     //create construct
-    Field(mesh::MeshBase const *m) : Field(static_cast<mesh_type const *>(m)) { }
+    Field(mesh::MeshBase const *m) : Field(static_cast<mesh_type const *>(m)) {}
 
     Field(mesh_type const *m) : m_mesh_(m), m_data_holder_(nullptr)
 //            , m_data_root_ptr_(nullptr)
-    { }
+    {}
 
     //copy construct
     Field(this_type const &other) : m_mesh_(other.m_mesh_), m_data_holder_(other.m_data_holder_)
 //            ,m_data_root_ptr_(other.m_data_root_ptr_)
-    { }
+    {}
 
 //    //factory construct
 //    template<typename TFactory, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
@@ -66,7 +67,7 @@ public:
 //    }
 
 
-    virtual ~Field() { }
+    virtual ~Field() {}
 
     virtual void swap(this_type &other)
     {
@@ -144,6 +145,8 @@ public:
 
     virtual std::shared_ptr<const void> data() const { return m_data_holder_; }
 
+    virtual data_model::DataType data_type() const { return data_model::DataType::create<value_type>(); }
+
     virtual data_model::DataSet dataset(mesh::MeshEntityStatus status = mesh::SP_ES_OWNED) const
     {
         data_model::DataSet res;
@@ -157,10 +160,10 @@ public:
         return res;
     };
 
-    virtual void dataset(data_model::DataSet const &)
-    {
-        UNIMPLEMENTED;
-    };
+    virtual void dataset(data_model::DataSet const &) { UNIMPLEMENTED; };
+
+
+    virtual void sync(bool is_blocking = true) ;
 
 
 public:
@@ -168,10 +171,12 @@ public:
  *  @{*/
     this_type &operator=(this_type const &other) { return apply_expr(_impl::_assign(), other); }
 
-    template<typename Other> inline this_type &
+    template<typename Other>
+    inline this_type &
     operator=(Other const &other) { return apply_expr(_impl::_assign(), other); }
 
-    template<typename Other> inline this_type &
+    template<typename Other>
+    inline this_type &
     operator+=(Other const &other)
     {
 //        return apply_expr(_impl::plus_assign(), other);
@@ -180,13 +185,16 @@ public:
         return *this;
     }
 
-    template<typename Other> inline this_type &
+    template<typename Other>
+    inline this_type &
     operator-=(Other const &other) { return apply_expr(_impl::minus_assign(), other); }
 
-    template<typename Other> inline this_type &
+    template<typename Other>
+    inline this_type &
     operator*=(Other const &other) { return apply_expr(_impl::multiplies_assign(), other); }
 
-    template<typename Other> inline this_type &
+    template<typename Other>
+    inline this_type &
     operator/=(Other const &other) { return apply_expr(_impl::divides_assign(), other); }
 
     inline value_type &get(mesh::MeshEntityId const &s)
@@ -224,9 +232,10 @@ public:
     /**@}*/
 public:
 
-    template<typename TFun> this_type &
+    template<typename TFun>
+    this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
-          CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &, field_value_type const &))
+    CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &, field_value_type const &))
     )
     {
         deploy();
@@ -244,9 +253,10 @@ public:
         return *this;
     }
 
-    template<typename TFun> this_type &
+    template<typename TFun>
+    this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
-          CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &))
+    CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &))
     )
     {
         deploy();
@@ -265,7 +275,8 @@ public:
         return *this;
     }
 
-    template<typename TFun> this_type &
+    template<typename TFun>
+    this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           CHECK_FUNCTION_SIGNATURE(value_type, TFun(mesh::MeshEntityId const &))
     )
@@ -275,7 +286,8 @@ public:
         return *this;
     }
 
-    template<typename TFun> this_type &
+    template<typename TFun>
+    this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           CHECK_FUNCTION_SIGNATURE(void, TFun(value_type & )))
     {
@@ -285,7 +297,8 @@ public:
     }
 
 
-    template<typename TFun> this_type &
+    template<typename TFun>
+    this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &f,
           ENABLE_IF((traits::is_indexable<TFun, mesh::MeshEntityId>::value)))
     {
@@ -295,7 +308,8 @@ public:
         return *this;
     }
 
-    template<typename TOP> this_type &
+    template<typename TOP>
+    this_type &
     apply(TOP const &op)
     {
         deploy();
@@ -309,7 +323,8 @@ public:
         return *this;
     }
 
-    template<typename Other> this_type &
+    template<typename Other>
+    this_type &
     fill(Other const &other)
     {
         this->deploy();
@@ -321,7 +336,8 @@ public:
 
 private:
 
-    template<typename TOP, typename Other> this_type &
+    template<typename TOP, typename Other>
+    this_type &
     apply_expr(mesh::MeshEntityRange const &r, TOP const &op, Other const &other)
     {
         r.foreach([&](mesh::MeshEntityId const &s) { op(get(s), m_mesh_->eval(other, s)); });
@@ -329,7 +345,8 @@ private:
     }
 
 
-    template<typename TOP, typename Other> this_type &
+    template<typename TOP, typename Other>
+    this_type &
     apply_expr(TOP const &op, Other const &other)
     {
         deploy();
