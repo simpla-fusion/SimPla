@@ -8,7 +8,7 @@
 #include <assert.h>
 #include "../../spRandom.h"
 #include "../../spParallel.h"
-#include "../../sp_lite_def.h"
+#include "../../sp_lite_config.h"
 
 /* Number of 64-bit vectors per dimension */
 #define VECTOR_SIZE 64

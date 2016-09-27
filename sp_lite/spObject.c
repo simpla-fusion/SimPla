@@ -1,7 +1,7 @@
 //
 // Created by salmon on 16-7-26.
 //
-#include "sp_config.h"
+#include "sp_lite_config.h"
 #include "spObject.h"
 #include "spParallel.h"
 #include "spMPI.h"

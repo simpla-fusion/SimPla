@@ -5,7 +5,7 @@
 #ifndef SIMPLA_BORISYEE_H
 #define SIMPLA_BORISYEE_H
 
-#include "sp_lite_def.h"
+#include "sp_lite_config.h"
 #include "spParticle.h"
 
 

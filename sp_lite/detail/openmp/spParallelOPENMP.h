@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "../../sp_lite_def.h"
+#include "../../sp_lite_config.h"
 
 
 typedef struct { float x, y, z; } float3;

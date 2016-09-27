@@ -4,7 +4,7 @@
 #include <math.h>
 
 #include "spPICBoris.h"
-#include "sp_lite_def.h"
+#include "sp_lite_config.h"
 #include "spDataType.h"
 #include "spParallel.h"
 #include "spPhysicalConstants.h"

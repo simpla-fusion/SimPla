@@ -4,7 +4,7 @@
 
 extern "C"
 {
-#include "../../sp_lite_def.h"
+#include "../../sp_lite_config.h"
 #include "../../spMPI.h"
 #include "../sp_device.h"
 }

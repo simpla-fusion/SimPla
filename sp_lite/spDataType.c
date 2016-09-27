@@ -1,7 +1,7 @@
 //
 // Created by salmon on 16-9-19.
 //
-#include "sp_lite_def.h"
+#include "sp_lite_config.h"
 #include "spDataType.h"
 
 size_type spDataTypeSizeInByte(int type_tag)

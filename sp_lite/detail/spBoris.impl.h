@@ -7,18 +7,18 @@
 
 #include <math.h>
 #include <assert.h>
-#include "../sp_lite_def.h"
-#include "../sp_config.h"
+#include "../sp_lite_config.h"
 #include "../spPICBoris.h"
 #include "../spParticle.h"
 #include "../spMesh.h"
 #include "../spField.h"
 #include "../spPhysicalConstants.h"
+#include "../spMisc.h"
+#include "../spDataType.h"
+
 #include "spParticle.impl.h"
 #include "sp_device.h"
 #include "spMesh.cu.h"
-#include "../spMisc.h"
-#include "../spDataType.h"
 //
 //typedef struct
 //{

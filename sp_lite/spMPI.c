@@ -2,7 +2,7 @@
 // Created by salmon on 16-9-12.
 //
 #include <assert.h>
-#include "sp_lite_def.h"
+#include "sp_lite_config.h"
 #include "spMPI.h"
 #include "spDataType.h"
 #include "spAlogorithm.h"

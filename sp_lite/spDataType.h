@@ -4,7 +4,9 @@
 
 #ifndef SIMPLA_SPDATATYPE_H
 #define SIMPLA_SPDATATYPE_H
-#include "sp_config.h"
+
+#include "sp_lite_config.h"
+
 enum
 {
     SP_TYPE_NULL,

@@ -15,7 +15,6 @@
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 #define  COPYRIGHT "All rights reserved. (2016 )"
 
-
 #define SP_TRUE 1
 
 #define SP_FALSE  0
@@ -46,10 +45,5 @@ typedef int64_t index_type;
 
 typedef unsigned int uint;
 
-typedef union { struct { int8_t w, z, y, x; }; int32_t v; } MeshEntityId32;
-
-typedef union { struct { int16_t w, z, y, x; }; int64_t v; } MeshEntityId64;
-
-constexpr inline bool operator==(MeshEntityId64 const &first, MeshEntityId64 const &second) { return first.v == second.v; }
 
 #endif /* SIMPLA_DEFS_H_ */

@@ -11,6 +11,16 @@ namespace simpla { namespace mesh
 {
 extern "C" {
 #endif
+
+
+typedef union { struct { int8_t w, z, y, x; }; int32_t v; } MeshEntityId32;
+
+typedef union { struct { int16_t w, z, y, x; }; int64_t v; } MeshEntityId64;
+
+
+typedef MeshEntityId64 MeshEntityId;
+
+
 enum MeshEntityType
 {
     VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
@@ -69,7 +79,6 @@ enum MeshEntityStatus
 };
 
 
-
 #ifdef __cplusplus
 };//extern "C"{
 }};//namespace mesh{namespace mesh{
@@ -118,7 +127,8 @@ namespace simpla { namespace mesh
 
 typedef boost::uuids::uuid MeshBlockId;
 
-template<typename ...> struct Mesh;
+template<typename ...>
+struct Mesh;
 }}//namespace simpla{namespace get_mesh{
 #endif
 #endif //SIMPLA_MESHCOMMON_H

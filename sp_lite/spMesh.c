@@ -7,27 +7,10 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
-#include "sp_lite_def.h"
+#include "sp_lite_config.h"
 #include "spMesh.h"
 #include "spParallel.h"
 #include "spMPI.h"
-
-MeshEntityId spMeshEntityIdFromArray(size_type const *s)
-{
-    MeshEntityId id;
-    id.x = (int16_t) (s[0]);
-    id.y = (int16_t) (s[1]);
-    id.z = (int16_t) (s[2]);
-    return id;
-}
-
-MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s)
-{
-    id.x += (int16_t) (s[0] * 2);
-    id.y += (int16_t) (s[1] * 2);
-    id.z += (int16_t) (s[2] * 2);
-    return id;
-}
 
 int spMeshAttributeCreate(spMeshAttribute **f, size_type size, spMesh const *mesh, uint iform)
 {
@@ -273,12 +256,6 @@ size_type spMeshGetNumberOfEntities(spMesh const *self, int tag, int iform)
     return res;
 }
 
-void spMeshPoint(spMesh const *m, MeshEntityId id, Real *res)
-{
-    res[0] = m->m_coord_lower[0] + m->dx[0] * (id.x - (m->m_start_[0] << 1)) * 0.5;
-    res[1] = m->m_coord_lower[1] + m->dx[1] * (id.y - (m->m_start_[1] << 1)) * 0.5;
-    res[2] = m->m_coord_lower[2] + m->dx[2] * (id.z - (m->m_start_[2] << 1)) * 0.5;
-};
 
 int spMeshGetNDims(spMesh const *m) { return m->m_ndims_; };
 
@@ -543,7 +520,7 @@ int spMeshGetGlobalArrayShape(spMesh const *m, int domain_tag,
 
 };
 
-size_type spMeshHash(spMesh const *m, MeshEntityId id, int iform) { return 0; };
+//size_type spMeshHash(spMesh const *m, MeshEntityId id, int iform) { return 0; };
 
 int spMeshWrite(const spMesh *ctx, const char *name) { return SP_FAILED; };
 

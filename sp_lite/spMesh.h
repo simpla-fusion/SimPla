@@ -8,7 +8,7 @@
 #ifndef SPMESH_H_
 #define SPMESH_H_
 
-#include "sp_lite_def.h"
+#include "sp_lite_config.h"
 #include "spObject.h"
 
 enum
@@ -32,9 +32,6 @@ typedef struct spMeshAttribute_s
     byte_type __others[];
 } spMeshAttribute;
 
-MeshEntityId spMeshEntityIdFromArray(size_type const *s);
-
-MeshEntityId spMeshEntityIdShift(MeshEntityId id, ptrdiff_t const *s);
 
 int spMeshAttributeCreate(spMeshAttribute **f, size_type size, spMesh const *mesh, uint iform);
 
@@ -116,14 +113,6 @@ int spMeshGetInvDx(spMesh const *m, Real *);
 
 int spMeshGetGlobalOrigin(spMesh const *m, Real *origin);
 
-size_type spMeshHash(spMesh const *, MeshEntityId, int iform);
-
-void spMeshPoint(spMesh const *, MeshEntityId id, Real *);
-
-__inline__ size_type spMeshSFC(size_type const *d, size_type const *strides)
-{
-    return d[0] * strides[0] + d[1] * strides[1] + d[2] * strides[2];
-}
 
 /** Geometry End */
 

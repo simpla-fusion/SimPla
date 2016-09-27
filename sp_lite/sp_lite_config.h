@@ -14,9 +14,10 @@
 #include "../src/sp_config.h"
 #include "spMPI.h"
 
-#define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
-#define  COPYRIGHT "All rights reserved. (2016 )"
-
+#undef DONE
+#undef CHECK
+#undef ERROR
+#undef  UNIMPLEMENTED
 
 #define DONE       if(spMPIRank()==0){ printf( "====== DONE ======\n" );}
 #define CHECK(_MSG_)        printf( "%s:%d:0:%s: %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_) );
@@ -29,13 +30,6 @@
 #define CHECK_STR(_MSG_)    printf( "%s:%d:0:%s: %s = %s \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_MSG_), (_MSG_) );
 
 
-//{                                                                                                                    \
-//   int _return_code=_CMD_;                                                                                            \
-//   if(_return_code==SP_FAILED)                                                                                         \
-//   {                                                                                                                  \
-//        printf( "%s:%d:0:%s: command failed! [%s] \n", __FILE__, __LINE__,__PRETTY_FUNCTION__,__STRING(_CMD_));  \
-//    exit(1); \
-//}}
 inline int print_error(int error_code, char const *file, int line, char const *function, char const *cmd)
 {
     if (error_code == SP_FAILED)
@@ -51,9 +45,9 @@ inline int print_error(int error_code, char const *file, int line, char const *f
 #define SP_CALL(_CMD_) {if(SP_SUCCESS!= print_error((_CMD_), __FILE__, __LINE__, __PRETTY_FUNCTION__, __STRING(_CMD_))) {return SP_FAILED; }}
 
 
-typedef MeshEntityId64 MeshEntityId;
-
-typedef MeshEntityId32 MeshEntityShortId;
+//typedef MeshEntityId64 MeshEntityId;
+//
+//typedef MeshEntityId32 MeshEntityShortId;
 
 #define TWOPI (3.141592653589793f*2.0f)
 

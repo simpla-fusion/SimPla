@@ -5,7 +5,7 @@
 #ifndef SIMPLA_FDTD_H
 #define SIMPLA_FDTD_H
 
-#include "sp_lite_def.h"
+#include "sp_lite_config.h"
 #include "spPhysicalConstants.h"
 
 struct spField_s;

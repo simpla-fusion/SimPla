@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "sp_config.h"
+#include "sp_lite_config.h"
 
 #include "spParallel.h"
 #include "spMPI.h"
@@ -160,7 +160,6 @@ int main(int argc, char **argv)
     SP_CALL(spMeshDestroy(&mesh));
     SP_CALL(spIOStreamDestroy(&os));
 
-    DONE
 
     SP_CALL(spIOStreamDestroy(&os));
     SP_CALL(spParallelFinalize());

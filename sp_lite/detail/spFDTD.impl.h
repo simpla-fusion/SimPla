@@ -6,7 +6,7 @@
 #define SIMPLA_SPFDTD_IMPL_H_H
 
 
-#include "../sp_lite_def.h"
+#include "../sp_lite_config.h"
 
 #include <math.h>
 #include <assert.h>

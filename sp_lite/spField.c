@@ -2,7 +2,7 @@
 // Created by salmon on 16-7-20.
 //
 
-#include "sp_lite_def.h"
+#include "sp_lite_config.h"
 
 #include <assert.h>
 

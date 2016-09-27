@@ -4,7 +4,7 @@
 
 #ifndef SIMPLA_SPIOSTREAM_H
 #define SIMPLA_SPIOSTREAM_H
-#include "sp_config.h"
+#include "sp_lite_config.h"
 enum
 {
     SP_FILE_NEW = 1UL << 1, SP_FILE_APPEND = 1UL << 2, SP_FILE_BUFFER = (1UL << 3), SP_FILE_RECORD = (1UL << 4)

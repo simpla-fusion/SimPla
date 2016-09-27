@@ -5,7 +5,7 @@
 #ifndef SIMPLA_SPPARALLEL_CU_H
 #define SIMPLA_SPPARALLEL_CU_H
 
-#include "../../sp_lite_def.h"
+#include "../../sp_lite_config.h"
 #include "../../spParallel.h"
 #include </usr/local/cuda/include/driver_types.h>
 #include </usr/local/cuda/include/device_launch_parameters.h>

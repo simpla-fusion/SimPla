@@ -5,7 +5,7 @@
 #ifndef SIMPLA_SPPARALLEL_H
 #define SIMPLA_SPPARALLEL_H
 
-#include "sp_config.h"
+#include "sp_lite_config.h"
 
 int spParallelInitialize(int argc, char **argv);
 
