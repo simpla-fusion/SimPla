@@ -3,7 +3,9 @@ sudo: required
 compiler:
      - gcc
 before_script:
-     - sudo apt-get install libopenmpi-dev libhdf5-openmpi-dev  liblua5.2-dev libgtest-dev
+     - sudo apt-get install cmake openmpi-bin libopenmpi-dev libhdf5-openmpi-dev  liblua5.2-dev libgtest-dev
+     - test -n $CC  && unset CC
+     - test -n $CXX && unset CXX
      - mkdir build
      - cd build
      - cmake ..
