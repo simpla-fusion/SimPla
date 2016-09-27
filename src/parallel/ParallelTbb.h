@@ -34,7 +34,25 @@ using tbb::blocked_range;
 namespace tags
 {
 typedef tbb::split split;
-typedef tbb::proportional_split proportional_split;
+
+//typedef tbb::proportional_split proportional_split;
+class proportional_split
+{
+public:
+    proportional_split(size_t _left = 1, size_t _right = 1) : my_left(_left), my_right(_right) {}
+
+    size_t left() const { return my_left; }
+
+    size_t right() const { return my_right; }
+
+    // used when range does not support proportional split
+    operator split() const { return split(); }
+
+
+private:
+    size_t my_left, my_right;
+};
+
 }
 
 }}  // namespace simpla { namespace parallel
