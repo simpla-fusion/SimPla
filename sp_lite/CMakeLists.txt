@@ -25,7 +25,6 @@
 #IF (HDF5_IS_PARALLEL)
 #    ADD_DEFINITIONS(-DUSE_PARALLEL_IO -DH5_HAVE_PARALLEL)
 #ENDIF (HDF5_IS_PARALLEL)
-SET(ENABLE_CUDA TRUE)
 
 add_subdirectory(detail)
 
@@ -35,6 +34,7 @@ ADD_EXECUTABLE(sp_boris_mt ${sp_lite_SRC})
 TARGET_LINK_LIBRARIES(sp_boris_mt sp_capi sp_lite_openmp stdc++ m mpi)
 LINK_DIRECTORIES(/home/salmon/workspace/build/SimPla/lib)
 
-ADD_EXECUTABLE(sp_boris_gpu ${sp_lite_SRC})
-
-TARGET_LINK_LIBRARIES(sp_boris_gpu  pthread sp_lite_cuda stdc++ m mpi gomp sp_capi )
+IF (CUDA_FOUND)
+    ADD_EXECUTABLE(sp_boris_gpu ${sp_lite_SRC})
+    TARGET_LINK_LIBRARIES(sp_boris_gpu pthread sp_lite_cuda stdc++ m mpi gomp sp_capi)
+ENDIF (CUDA_FOUND)
