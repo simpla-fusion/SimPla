@@ -95,7 +95,7 @@ public:
     void add_attribute(mesh::MeshAttribute *attr, std::string const &s_name);
 
     template<typename TF>
-    void declare_global(TF *attr, std::string const &s_name)
+    void global_declare(TF *attr, std::string const &s_name)
     {
         static_assert(std::is_base_of<mesh::MeshAttribute, TF>::value, "illegal Mesh convert");
         add_attribute(dynamic_cast<mesh::MeshAttribute *>(attr), s_name);

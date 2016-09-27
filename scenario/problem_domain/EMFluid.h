@@ -21,7 +21,7 @@ using namespace mesh;
 
 
 template<typename TM>
-class EMFluid: public simulation::ProblemDomain
+class EMFluid : public simulation::ProblemDomain
 {
     typedef EMFluid<TM> this_type;
     typedef simulation::ProblemDomain base_type;
@@ -41,9 +41,9 @@ public:
     mesh_type const *m;
 
     EMFluid(const mesh_type *mp)
-        : base_type(mp), m(mp) { }
+            : base_type(mp), m(mp) {}
 
-    virtual ~EMFluid() { }
+    virtual ~EMFluid() {}
 
     virtual void deploy();
 
@@ -62,10 +62,13 @@ public:
     MeshEntityRange plasma_region_vertex;
 
 
-    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM,std::integral_constant<size_t, IFORM> >;;
+    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
 
     MeshEntityRange J_src_range;
     std::function<Vec3(Real, point_type const &, vector_type const &v)> J_src_fun;
+
+    MeshEntityRange E_src_range;
+    std::function<Vec3(Real, point_type const &, vector_type const &v)> E_src_fun;
 
     typedef field_t<scalar_type, FACE> TB;
     typedef field_t<scalar_type, EDGE> TE;
@@ -123,21 +126,24 @@ void EMFluid<TM>::deploy()
     E.clear();
 
 
-    declare_global(&E, "E");
-    declare_global(&B, "B");
+    global_declare(&E, "E");
+    global_declare(&B, "B");
+    global_declare(&B0, "B0");
+    global_declare(&B0v, "B0v");
 
-    declare_global(&Ev, "Ev");
-    declare_global(&dE, "dE");
+    global_declare(&Ev, "Ev");
+    global_declare(&dE, "dE");
 
     for (auto &sp:m_fluid_sp_)
     {
-        declare_global(&(sp.second.rho), sp.first + "_rho");
-        declare_global(&(sp.second.J), sp.first + "_J");
+        global_declare(&(sp.second.rho), sp.first + "_rho");
+        global_declare(&(sp.second.J), sp.first + "_J");
     }
 
 }
 
-template<typename TM> std::ostream &
+template<typename TM>
+std::ostream &
 EMFluid<TM>::print(std::ostream &os, int indent) const
 {
     simulation::ProblemDomain::print(os, indent);
@@ -145,7 +151,7 @@ EMFluid<TM>::print(std::ostream &os, int indent) const
     for (auto &sp:m_fluid_sp_)
     {
         os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second.mass << " , Charge = " <<
-            sp.second.charge << "}," << std::endl;
+           sp.second.charge << "}," << std::endl;
     }
     os << std::setw(indent + 1) << " " << " }, " << std::endl;
     return os;
@@ -182,13 +188,30 @@ void EMFluid<TM>::next_step(Real dt)
 
         auto f = J_src_fun;
         J_src_range.foreach(
-            [&](mesh::id const &s)
-            {
-                auto x0 = m->point(s);
-                auto v = J_src_fun(current_time, x0, J1(x0));
-                J1[s] += m->template sample<EDGE>(s, v);
-            });
+                [&](mesh::MeshEntityId const &s)
+                {
+                    auto x0 = m->point(s);
+                    auto v = J_src_fun(current_time, x0, J1(x0));
+                    J1[s] += m->template sample<EDGE>(s, v);
+                });
     }
+
+
+
+    if (E_src_fun)
+    {
+        Real current_time = m->time();
+
+        auto f = E_src_fun;
+        E_src_range.foreach(
+                [&](mesh::MeshEntityId const &s)
+                {
+                    auto x0 = m->point(s);
+                    auto v = E_src_fun(current_time, x0, E(x0));
+                    E[s] += m->template sample<EDGE>(s, v);
+                });
+    }
+
 
 
     B -= curl(E) * (dt * 0.5);
@@ -253,7 +276,7 @@ void EMFluid<TM>::next_step(Real dt)
 
 
         dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-            (b * b * BB + a * a);
+             (b * b * BB + a * a);
 
         for (auto &p : m_fluid_sp_)
         {

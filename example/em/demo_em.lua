@@ -112,14 +112,14 @@ Particles = {
 
 
 Constraints = {
---    J = { -- current source
---        Box = { { 0.05 * LX, 0.45 * LY, 0.45 * LZ }, { 0.1 * LX, 0.55 * LY, 0.55 * LZ } },
---        Value = function(t, x, v)
---            local tau = t * omega_ext + x[1] * TWOPI / LX
---            local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
---            return { 0, 0, amp }
---        end
---    },
+    J = { -- current source
+        Box = { { 0.05 * LX, 0.45 * LY, 0.45 * LZ }, { 0.1 * LX, 0.55 * LY, 0.55 * LZ } },
+        Value = function(t, x, v)
+            local tau = t * omega_ext + x[1] * TWOPI / LX
+            local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
+            return { 0, 0, amp }
+        end
+    },
     PEC = {
         Domain = {
             Box = { { 0, 0, 0 }, { LX, LY, 0 } },

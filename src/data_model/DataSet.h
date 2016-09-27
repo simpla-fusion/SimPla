@@ -164,7 +164,7 @@ DataSet create_data_set(T const *p, Args &&...args)
 
 
 template<typename T>
-DataSet create_data_set(T const *p, int ndims, size_t const *d)
+DataSet create_data_set(T const *p, int ndims, const size_type *d)
 {
 
     DataSet ds;

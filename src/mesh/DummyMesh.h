@@ -35,11 +35,11 @@ struct DummyMesh : public MeshBase
         return MeshEntityRange(m_entities_.begin(), m_entities_.end());
     }
 
-    virtual size_t size(MeshEntityType entityType = VERTEX) const { max_hash(entityType); };
+    virtual size_type size(MeshEntityType entityType = VERTEX) const { max_hash(entityType); };
 
-    virtual size_t max_hash(MeshEntityType entityType = VERTEX) const { return m_points_.size(); }
+    virtual size_type max_hash(MeshEntityType entityType = VERTEX) const { return m_points_.size(); }
 
-    virtual size_t hash(MeshEntityId const &s) const { return static_cast<size_t>(s); }
+    virtual size_type hash(MeshEntityId const &s) const { return static_cast<size_type>(s); }
 
     virtual point_type point(MeshEntityId const &s) const { return m_points_[hash(s)]; }
 

@@ -32,7 +32,7 @@
 
 #define SP_MAX_NUM_DIMS 10
 
-typedef unsigned long size_type;
+typedef int64_t size_type;
 
 typedef int8_t byte_type; // int8_t
 
@@ -46,23 +46,10 @@ typedef int64_t index_type;
 
 typedef unsigned int uint;
 
-typedef union
-{
-    struct
-    {
-        int8_t w, z, y, x;
-    };
-    int32_t v;
-} MeshEntityId32;
+typedef union { struct { int8_t w, z, y, x; }; int32_t v; } MeshEntityId32;
 
-typedef union
-{
-    struct
-    {
-        int16_t w, z, y, x;
-    };
-    int64_t v;
-} MeshEntityId64;
+typedef union { struct { int16_t w, z, y, x; }; int64_t v; } MeshEntityId64;
 
+constexpr inline bool operator==(MeshEntityId64 const &first, MeshEntityId64 const &second) { return first.v == second.v; }
 
 #endif /* SIMPLA_DEFS_H_ */

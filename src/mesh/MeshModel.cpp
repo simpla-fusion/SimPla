@@ -3,9 +3,10 @@
 //
 
 #include <set>
+#include "MeshEntityId.h"
+
 #include "../parallel/Parallel.h"
 #include "MeshModel.h"
-#include "MeshEntityId.h"
 
 namespace simpla { namespace mesh
 {
@@ -13,73 +14,71 @@ namespace simpla { namespace mesh
 struct Model::pimpl_s
 {
 
-    struct MeshEntityIdHasher
-    {
-        int64_t operator()(const MeshEntityId &s) const { return s.v; }
-        int64_t hash(const MeshEntityId &s) const { return s.v; }
-    };
 
-    typedef parallel::concurrent_hash_map<MeshEntityId, Real> cache_type;
+    typedef parallel::concurrent_hash_map<MeshEntityId, Real, MeshIdHashCompare> cache_type;
 
     cache_type m_vertex_cache;
-    typedef parallel::concurrent_hash_map<MeshEntityId, int> volume_cache_type;
+    typedef parallel::concurrent_hash_map<MeshEntityId, int, MeshIdHashCompare> volume_cache_type;
 
-    typedef parallel::concurrent_unordered_set<MeshEntityId> set_type;
+    typedef parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> set_type;
 
     volume_cache_type m_volume_cache;
 
 };
 
 Model::Model(MeshBase const *pm)
-    : m(pm), m_pimpl_(new pimpl_s) { }
+        : m(pm), m_pimpl_(new pimpl_s) {}
 
-Model::~Model() { }
+Model::~Model() {}
 
 void Model::add(MeshEntityRange const &r, distance_fun_t const distance)
 {
 
     r.foreach(
-        [&](MeshEntityId const &s)
-        {
-            auto x = m->point(s);
+            [&](MeshEntityId const &s)
+            {
+                auto x = m->point(s);
 
-            Real d = distance(x);
+                Real d = distance(x);
 
-            typename pimpl_s::cache_type::accessor acc;
+                typename pimpl_s::cache_type::accessor acc;
 
-            if (!(m_pimpl_->m_vertex_cache.insert(acc, s))) { acc->second = std::min(-d, acc->second); }
-        }
+                if (!(m_pimpl_->m_vertex_cache.insert(acc, s))) { acc->second = std::min(-d, acc->second); }
+            }
     );
 
 }
+
 void Model::remove(MeshEntityRange const &r, distance_fun_t const distance)
 {
 
     r.foreach(
-        [&](MeshEntityId const &s)
-        {
-            auto x = m->point(s);
+            [&](MeshEntityId const &s)
+            {
+                auto x = m->point(s);
 
-            Real d = distance(x);
+                Real d = distance(x);
 
-            typename pimpl_s::cache_type::accessor acc;
+                typename pimpl_s::cache_type::accessor acc;
 
-            if (!(m_pimpl_->m_vertex_cache.insert(acc, s))) { acc->second = std::max(d, acc->second); }
-        }
+                if (!(m_pimpl_->m_vertex_cache.insert(acc, s))) { acc->second = std::max(d, acc->second); }
+            }
     );
 
 }
+
 void Model::deploy()
 {
     m->range(VOLUME).foreach(
-        [&](MeshEntityId const &s)
-        {
-            typename pimpl_s::volume_cache_type::accessor acc;
-            m_pimpl_->m_volume_cache.insert(acc, s);
-            acc->second = check(s);
-        }
+            [&](MeshEntityId const &s)
+            {
+                typename pimpl_s::volume_cache_type::accessor acc;
+                m_pimpl_->m_volume_cache.insert(acc, s);
+                acc->second = check(s);
+            }
     );
 };
+
 int Model::check(MeshEntityId const &s)
 {
     MeshEntityId p[MeshEntityIdCoder::MAX_NUM_OF_NEIGHBOURS];
@@ -102,12 +101,13 @@ int Model::check(MeshEntityId const &s)
     else if (num_of_inside_vertex > 0 && num_of_inside_vertex < num) { res = ON_SURFACE; }
     return res;
 };
+
 /**
  *  id < 0 out of surface
  *       = 0 on surface
  *       > 0 in surface
  */
-MeshEntityRange  Model::surface(MeshEntityType iform, int flag)
+MeshEntityRange Model::surface(MeshEntityType iform, int flag)
 {
     auto res_holder = MeshEntityRange::create<typename pimpl_s::set_type>();
     typename pimpl_s::set_type &res = res_holder.as<typename pimpl_s::set_type>();
@@ -123,7 +123,8 @@ MeshEntityRange  Model::surface(MeshEntityType iform, int flag)
                     MeshEntityId p[MeshEntityIdCoder::MAX_NUM_OF_NEIGHBOURS];
 
                     int num =
-                        m->get_adjacent_entities(iform, *reinterpret_cast<MeshEntityId const *>(&(v_item.first)), p);
+                            m->get_adjacent_entities(iform, *reinterpret_cast<MeshEntityId const *>(&(v_item.first)),
+                                                     p);
 
                     for (int i = 0; i < num; ++i)
                     {
@@ -175,6 +176,7 @@ MeshEntityRange Model::inside(MeshEntityType iform)
     }
     return std::move(res_holder);
 }
+
 MeshEntityRange Model::outside(MeshEntityType iform)
 {
     auto res_holder = MeshEntityRange::create<typename pimpl_s::set_type>();

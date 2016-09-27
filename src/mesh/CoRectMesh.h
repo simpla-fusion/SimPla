@@ -111,7 +111,7 @@ public:
 public:
     static constexpr int ndims = 3;
 
-    Mesh() { }
+    Mesh() {}
 
     Mesh(this_type const &other) : MeshBase(other)
     {
@@ -123,24 +123,25 @@ public:
         deploy();
     };
 
-    virtual  ~Mesh() { }
+    virtual  ~Mesh() {}
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
         os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
         os << std::setw(indent + 1) << " " << "Topology = { Type = \"CoRectMesh\", "
-        << "Dimensions = " << dimensions() << " m_global_start_ = " << offset() << " }," << " dx = " << dx() << " }," <<
-        std::endl;
+           << "Dimensions = " << dimensions() << " m_global_start_ = " << offset() << " }," << " dx = " << dx() << " },"
+           <<
+           std::endl;
         os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;
 #ifndef NDEBUG
         os
-        << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
-        << std::setw(indent + 1) << " " << "      upper = " << m_upper_ << "," << std::endl
-        << std::setw(indent + 1) << " " << "outer lower = " << m_outer_lower_ << "," << std::endl
-        << std::setw(indent + 1) << " " << "outer upper = " << m_outer_upper_ << "," << std::endl
-        << std::setw(indent + 1) << " " << "inner lower = " << m_inner_lower_ << "," << std::endl
-        << std::setw(indent + 1) << " " << "inner upper = " << m_inner_upper_ << "," << std::endl
-        << std::endl;
+                << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
+                << std::setw(indent + 1) << " " << "      upper = " << m_upper_ << "," << std::endl
+                << std::setw(indent + 1) << " " << "outer lower = " << m_outer_lower_ << "," << std::endl
+                << std::setw(indent + 1) << " " << "outer upper = " << m_outer_upper_ << "," << std::endl
+                << std::setw(indent + 1) << " " << "inner lower = " << m_inner_lower_ << "," << std::endl
+                << std::setw(indent + 1) << " " << "inner upper = " << m_inner_upper_ << "," << std::endl
+                << std::endl;
 #endif
         return os;
     }
@@ -212,8 +213,8 @@ public:
 
 private:
     //TODO should use block-entity_id_range
-    parallel::concurrent_unordered_set<MeshEntityId> m_affected_entities_[4];
-    parallel::concurrent_unordered_set<MeshEntityId> m_interface_entities_[4];
+    parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> m_affected_entities_[4];
+    parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> m_interface_entities_[4];
 public:
 
     typedef typename MeshEntityIdCoder::range_type block_range_type;
@@ -239,8 +240,7 @@ public:
         if (!overlapped)
         {
             return MeshEntityRange();
-        }
-        else
+        } else
         {
             return MeshEntityRange(
                     MeshEntityIdCoder::make_range(point_to_index(c_lower), point_to_index(c_upper), entityType));
@@ -290,8 +290,7 @@ public:
                            static_cast<index_type >(std::floor((x_lower[i] - m_coords_lower_[i]) / m_dx_[i] + 0.5));
                 upper[i] = m_lower_[i] +
                            static_cast<index_type >(std::floor((x_upper[i] - m_coords_lower_[i]) / m_dx_[i] + 0.5));
-            }
-            else
+            } else
             {
                 lower[i] = m_lower_[i];
                 upper[i] = m_upper_[i];

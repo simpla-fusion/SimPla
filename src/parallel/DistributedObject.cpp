@@ -163,7 +163,7 @@ void DistributedObject::pimpl_s::sync()
 
             ds->data = sp_alloc_memory(recv_num * ds->data_type.size_in_byte());
 
-            size_t s_recv_num = static_cast<size_t>(recv_num);
+            size_type s_recv_num = static_cast<size_type>(recv_num);
 
             ds->memory_space = data_model::DataSpace(1, &s_recv_num);
 

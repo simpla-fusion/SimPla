@@ -155,8 +155,8 @@ void PML<TM>::deploy()
     B.clear();
     dX1.clear();
     dX2.clear();
-    declare_global(&E, "E");
-    declare_global(&B, "B");
+    global_declare(&E, "E");
+    global_declare(&B, "B");
 }
 
 

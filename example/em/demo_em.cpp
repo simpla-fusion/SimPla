@@ -99,6 +99,16 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
         options["Constraints"]["J"]["Value"].as(&center_domain->J_src_fun);
     }
 
+    if (options["Constraints"]["E"])
+    {
+
+        center_domain->E_src_range = center_mesh->range(
+                options["Constraints"]["E"]["Box"].as<box_type>(), mesh::EDGE);
+
+        options["Constraints"]["E"]["Value"].as(&center_domain->E_src_fun);
+    }
+
+
     if (options["Constraints"]["PEC"])
     {
         mesh::Model model(center_mesh.get());

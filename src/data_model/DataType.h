@@ -134,7 +134,7 @@ private:
 
         size_type ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
-        nTuple<size_t, 10> d;
+        nTuple<size_type, 10> d;
 
         d = traits::seq_value<traits::extents<obj_type> >::value;
 

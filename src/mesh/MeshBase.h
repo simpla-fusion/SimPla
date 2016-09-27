@@ -21,7 +21,7 @@ namespace simpla { namespace mesh
 {
 enum { SP_MESH_AX_NORMAL = 0, SP_MESH_AX_CYCLE = 0x1, SP_MESH_AX_NULL = 0x3 };
 
-class MeshBase: public base::Object, public std::enable_shared_from_this<MeshBase>
+class MeshBase : public base::Object, public std::enable_shared_from_this<MeshBase>
 {
     int m_level_;
     int m_status_flag_ = 0;
@@ -31,13 +31,13 @@ public:
 
 
     MeshBase()
-        : m_level_(0), m_status_flag_(0), m_time_(0) { }
+            : m_level_(0), m_status_flag_(0), m_time_(0) {}
 
     MeshBase(MeshBase const &other)
-        : m_level_(other.m_level_), m_status_flag_(other.m_status_flag_), m_time_(
-        other.m_time_) { }
+            : m_level_(other.m_level_), m_status_flag_(other.m_status_flag_), m_time_(
+            other.m_time_) {}
 
-    virtual    ~MeshBase() { }
+    virtual    ~MeshBase() {}
 
     virtual io::IOStream &save(io::IOStream &os) const
     {
@@ -124,16 +124,16 @@ public:
 
     virtual MeshEntityRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const = 0;
 
-    virtual size_t max_hash(MeshEntityType entityType = VERTEX) const = 0;
+    virtual size_type max_hash(MeshEntityType entityType = VERTEX) const = 0;
 
-    virtual size_t hash(MeshEntityId const &) const = 0;
+    virtual size_type hash(MeshEntityId const &) const = 0;
 
     virtual point_type point(MeshEntityId const &) const = 0;
 
     virtual point_type point_local_to_global(MeshEntityId s, point_type const &r) const = 0;
 
     virtual std::tuple<MeshEntityId, point_type>
-        point_global_to_local(point_type const &g, int nId = 0) const = 0;
+    point_global_to_local(point_type const &g, int nId = 0) const = 0;
 
     virtual int get_adjacent_entities(MeshEntityType t, MeshEntityId, MeshEntityId *p = nullptr) const = 0;
 
@@ -154,7 +154,7 @@ public:
     }
 
     virtual std::tuple<data_model::DataSpace, data_model::DataSpace>
-        data_space(MeshEntityType const &t, MeshEntityStatus status = SP_ES_OWNED) const = 0;
+    data_space(MeshEntityType const &t, MeshEntityStatus status = SP_ES_OWNED) const = 0;
 
     virtual std::shared_ptr<MeshBase> clone(std::string const &name = "") const = 0;
 
