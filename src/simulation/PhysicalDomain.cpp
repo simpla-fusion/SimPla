@@ -4,12 +4,12 @@
  * @date 16-5-23 - 下午2:34
  *  */
 
-#include "ProblemDomain.h"
+#include "PhysicalDomain.h"
 #include "../io/IOStream.h"
 
 namespace simpla { namespace simulation
 {
-struct ProblemDomain::pimpl_s
+struct PhysicalDomain::pimpl_s
 {
 //    Real m_dt_ = 0;
 //    Real m_time_ = 0;
@@ -17,27 +17,27 @@ struct ProblemDomain::pimpl_s
     parallel::DistributedObject m_dist_obj_;
 };
 
-ProblemDomain::ProblemDomain() : m_mesh_(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) {}
+PhysicalDomain::PhysicalDomain() : m_mesh_(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) {}
 
-ProblemDomain::ProblemDomain(const mesh::MeshBase *msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
+PhysicalDomain::PhysicalDomain(const mesh::MeshBase *msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
 
-ProblemDomain::~ProblemDomain() { teardown(); }
+PhysicalDomain::~PhysicalDomain() { teardown(); }
 
 
 const mesh::MeshAttribute *
-ProblemDomain::attribute(std::string const &s_name) const
+PhysicalDomain::attribute(std::string const &s_name) const
 {
     return m_pimpl_->m_attr_.at(s_name);
 };
 
-void ProblemDomain::add_attribute(mesh::MeshAttribute *attr, std::string const &s_name)
+void PhysicalDomain::add_attribute(mesh::MeshAttribute *attr, std::string const &s_name)
 {
     m_pimpl_->m_attr_.emplace(std::make_pair(s_name, attr));
 };
 
-void ProblemDomain::deploy() { LOGGER << "deploy problem domain [" << get_class_name() << "]" << std::endl; };
+void PhysicalDomain::deploy() { LOGGER << "deploy problem domain [" << get_class_name() << "]" << std::endl; };
 
-void ProblemDomain::teardown()
+void PhysicalDomain::teardown()
 {
     if (m_mesh_ != nullptr)
     {
@@ -46,16 +46,16 @@ void ProblemDomain::teardown()
     }
 };
 
-std::shared_ptr<ProblemDomain>
-ProblemDomain::clone(mesh::MeshBase const &) const
+std::shared_ptr<PhysicalDomain>
+PhysicalDomain::clone(mesh::MeshBase const &) const
 {
     UNIMPLEMENTED;
-    return std::shared_ptr<ProblemDomain>(nullptr);
+    return std::shared_ptr<PhysicalDomain>(nullptr);
 };
 
 
 //void
-//ProblemDomain::run(Real stop_time, int num_of_step)
+//PhysicalDomain::run(Real stop_time, int num_of_step)
 //{
 //    Real inc_t = (num_of_step > 0) ? ((stop_time - time()) / num_of_step) : dt();
 //
@@ -74,7 +74,7 @@ ProblemDomain::clone(mesh::MeshBase const &) const
 
 
 std::ostream &
-ProblemDomain::print(std::ostream &os, int indent) const
+PhysicalDomain::print(std::ostream &os, int indent) const
 {
     auto it = m_pimpl_->m_attr_.begin();
     auto ie = m_pimpl_->m_attr_.end();
@@ -98,14 +98,14 @@ ProblemDomain::print(std::ostream &os, int indent) const
 
 
 io::IOStream &
-ProblemDomain::load(io::IOStream &is) const
+PhysicalDomain::load(io::IOStream &is) const
 {
     if (!m_properties_["DISABLE_LOAD"]) { UNIMPLEMENTED; }
     return is;
 }
 
 io::IOStream &
-ProblemDomain::save(io::IOStream &os, int flag) const
+PhysicalDomain::save(io::IOStream &os, int flag) const
 {
     auto pwd = os.pwd();
 //    if (!m_properties_["DISABLE_SAVE"])
@@ -149,7 +149,7 @@ ProblemDomain::save(io::IOStream &os, int flag) const
 };
 
 
-void ProblemDomain::sync(mesh::TransitionMap const &t_map, ProblemDomain const &other)
+void PhysicalDomain::sync(mesh::TransitionMap const &t_map, PhysicalDomain const &other)
 {
     for (auto const &item:m_pimpl_->m_attr_)
     {
@@ -162,21 +162,21 @@ void ProblemDomain::sync(mesh::TransitionMap const &t_map, ProblemDomain const &
     }
 }
 
-bool ProblemDomain::same_as(mesh::MeshBase const &) const
+bool PhysicalDomain::same_as(mesh::MeshBase const &) const
 {
     UNIMPLEMENTED;
     return false;
 };
 
-//std::vector<mesh::box_type> ProblemDomain::refine_boxes() const
+//std::vector<mesh::box_type> PhysicalDomain::refine_boxes() const
 //{
 //    UNIMPLEMENTED;
 //    return std::vector<mesh::box_type>();
 //}
 //
-//void ProblemDomain::refine(mesh::MeshBase const &other) { UNIMPLEMENTED; };
+//void PhysicalDomain::refine(mesh::MeshBase const &other) { UNIMPLEMENTED; };
 //
-//bool ProblemDomain::coarsen(mesh::MeshBase const &other)
+//bool PhysicalDomain::coarsen(mesh::MeshBase const &other)
 //{
 //    UNIMPLEMENTED;
 //    return false;

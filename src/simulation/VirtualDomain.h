@@ -21,7 +21,7 @@ class MeshAttribute;
 namespace simpla { namespace simulation
 {
 
-class RemoteDomain : public ProblemDomain
+class VirtualDomain : public ProblemDomain
 {
 
 };

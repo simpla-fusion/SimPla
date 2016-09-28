@@ -1,11 +1,11 @@
 /** 
- * @file MeshWalker.h
+ * @file PhysicalDomain.h
  * @author salmon
  * @date 16-5-23 - 下午2:34
  *  */
 
-#ifndef SIMPLA_MESHWALKER_H
-#define SIMPLA_MESHWALKER_H
+#ifndef SIMPLA_PHYSICALDOMAIN_H
+#define SIMPLA_PHYSICALDOMAIN_H
 
 #include <memory>
 #include "../sp_def.h"
@@ -35,28 +35,28 @@ namespace simpla { namespace simulation
 {
 
 
-class ProblemDomain : public base::Object
+class PhysicalDomain : public base::Object
 {
 public:
     const mesh::MeshBase *m_mesh_;
 
-    std::shared_ptr<ProblemDomain> m_next_;
+    std::shared_ptr<PhysicalDomain> m_next_;
 
     HAS_PROPERTIES;
 
-    SP_OBJECT_HEAD(ProblemDomain, base::Object);
+    SP_OBJECT_HEAD(PhysicalDomain, base::Object);
 
-    ProblemDomain();
+    PhysicalDomain();
 
-    ProblemDomain(const mesh::MeshBase *);
+    PhysicalDomain(const mesh::MeshBase *);
 
     mesh::MeshBase const *mesh() const { return m_mesh_; }
 
-    virtual  ~ProblemDomain();
+    virtual  ~PhysicalDomain();
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    virtual std::shared_ptr<ProblemDomain> clone(mesh::MeshBase const &) const;
+    virtual std::shared_ptr<PhysicalDomain> clone(mesh::MeshBase const &) const;
 
     virtual bool same_as(mesh::MeshBase const &) const;
 
@@ -70,9 +70,9 @@ public:
 
     virtual io::IOStream &load(io::IOStream &is) const;
 
-    virtual void sync(mesh::TransitionMap const &, ProblemDomain const &other);
+    virtual void sync(mesh::TransitionMap const &, PhysicalDomain const &other);
 
-    std::shared_ptr<ProblemDomain> &next() { return m_next_; }
+    std::shared_ptr<PhysicalDomain> &next() { return m_next_; }
 
     template<typename T, typename ...Args>
     void append_as(Args &&...args)
@@ -80,7 +80,7 @@ public:
         append(std::make_shared<T>(mesh(), std::forward<Args>(args)...));
     };
 
-    void append(std::shared_ptr<ProblemDomain> p_new)
+    void append(std::shared_ptr<PhysicalDomain> p_new)
     {
         assert(p_new->mesh()->id() == mesh()->id());
 
@@ -125,4 +125,4 @@ private:
 };
 }}//namespace simpla { namespace simulation
 
-#endif //SIMPLA_MESHWALKER_H
+#endif //SIMPLA_PHYSICALDOMAIN_H
