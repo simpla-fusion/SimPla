@@ -2,11 +2,11 @@ language: c++
 sudo: required
 dist: trusty
 compiler:
-     - clang
+     - clang     
 before_script:
-     - sudo apt-get install cmake nvidia-cuda-dev libtbb2 libtbb-dev  libboost-all-dev openmpi-bin libopenmpi-dev libhdf5-openmpi-dev  liblua5.2-dev libgtest-dev
+     - sudo apt-get install cmake gcc-5 g++-5 nvidia-cuda-dev libtbb2 libtbb-dev  libboost-all-dev openmpi-bin libopenmpi-dev libhdf5-openmpi-dev  liblua5.2-dev libgtest-dev
      - test -n $CC  && unset CC
-     - test -n $CXX && unset CXX
+     - test -n $CXX && unset CXX     
      - mkdir build
      - cd build
      - cmake ..
