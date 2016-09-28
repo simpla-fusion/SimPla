@@ -163,7 +163,7 @@ public:
     virtual void dataset(data_model::DataSet const &) { UNIMPLEMENTED; };
 
 
-    virtual void sync(bool is_blocking = true) ;
+    virtual void sync(bool is_blocking = true){} ;
 
 
 public:

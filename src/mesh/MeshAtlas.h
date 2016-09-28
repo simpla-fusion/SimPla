@@ -161,7 +161,11 @@ public:
     std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> m_list_;
 
 public:
-    auto get_adjacencies(mesh::MeshBlockId first) const DECL_RET_TYPE((this->m_adjacency_list_.equal_range(first)))
+    std::pair<typename adjacency_list_t::const_iterator, typename adjacency_list_t::const_iterator>
+    get_adjacencies(mesh::MeshBlockId first) const
+    {
+        return m_adjacency_list_.equal_range(first);
+    }
 
 
 };
