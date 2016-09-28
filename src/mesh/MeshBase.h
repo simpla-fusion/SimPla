@@ -25,6 +25,7 @@ class MeshBase : public base::Object, public std::enable_shared_from_this<MeshBa
 {
     int m_level_;
     int m_status_flag_ = 0;
+    bool m_is_virtual_ = false;
 public:
 
     SP_OBJECT_HEAD(MeshBase, base::Object);
@@ -51,6 +52,7 @@ public:
         return is;
     };
 
+    bool is_virtual() const { return m_is_virtual_; }
 
     /** status:   0000000zzyyxx
      *  xx : 00 NORMAL

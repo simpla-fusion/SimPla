@@ -132,8 +132,6 @@ Context::run(Real dt, int level)
 //    }
 //#endif
 
-
-
     for (auto const &chart_node: m_pimpl_->m_atlas_.at_level(level))
     {
         auto p_it = m_pimpl_->m_domains_.find(chart_node.second->id());
@@ -147,7 +145,6 @@ Context::run(Real dt, int level)
                 p->next_step(dt);
                 p = p->next();
             }
-
         };
 
         chart_node.second->next_step(dt);

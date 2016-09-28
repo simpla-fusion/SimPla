@@ -17,9 +17,9 @@ struct ProblemDomain::pimpl_s
     parallel::DistributedObject m_dist_obj_;
 };
 
-ProblemDomain::ProblemDomain() : m_mesh_(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) { }
+ProblemDomain::ProblemDomain() : m_mesh_(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) {}
 
-ProblemDomain::ProblemDomain(const mesh::MeshBase *msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) { };
+ProblemDomain::ProblemDomain(const mesh::MeshBase *msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
 
 ProblemDomain::~ProblemDomain() { teardown(); }
 
@@ -32,15 +32,10 @@ ProblemDomain::attribute(std::string const &s_name) const
 
 void ProblemDomain::add_attribute(mesh::MeshAttribute *attr, std::string const &s_name)
 {
-
     m_pimpl_->m_attr_.emplace(std::make_pair(s_name, attr));
-
 };
 
-void ProblemDomain::deploy()
-{
-    LOGGER << "deploy problem domain [" << get_class_name() << "]" << std::endl;
-};
+void ProblemDomain::deploy() { LOGGER << "deploy problem domain [" << get_class_name() << "]" << std::endl; };
 
 void ProblemDomain::teardown()
 {
@@ -87,18 +82,16 @@ ProblemDomain::print(std::ostream &os, int indent) const
     os << std::setw(indent + 1) << " " << " Type=\"" << get_class_name() << "\"," << std::endl;
 
     os << std::setw(indent + 1) << " " << " Mesh= {" << std::endl;
+
     m_mesh_->print(os, indent + 2);
+
     os << std::setw(indent + 1) << " " << " }," << std::endl;
 
 //    os << std::setw(indent + 1) << " time =" << m_self_->m_time_ << ", dt =" << m_self_->m_dt_ << "," << std::endl;
 
-
     os << std::setw(indent + 1) << " " << " Attributes= {";
-
     for (auto const &item:m_pimpl_->m_attr_) { os << " " << item.first << ","; }
-
     os << "}," << std::endl;
-
 
     return os;
 }
