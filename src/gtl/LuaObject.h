@@ -27,13 +27,11 @@
 extern "C"
 {
 
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
+#include <lua5.2/lua.h>
+#include <lua5.2/lualib.h>
+#include <lua5.2/lauxlib.h>
 
-#if LUA_VERSION_NUM < 502
-#error  need lua version >502
-#endif
+
 }
 
 namespace simpla { namespace lua
@@ -72,20 +70,20 @@ class LuaObject
             lua_State *m_state_;
             std::mutex m_mutex_;
 
-            lua_s() : m_state_(luaL_newstate()) { }
+            lua_s() : m_state_(luaL_newstate()) {}
 
             ~lua_s() { lua_close(m_state_); }
         };
 
         std::shared_ptr<lua_s> m_l_;
 
-        LuaState() : m_l_(nullptr) { }
+        LuaState() : m_l_(nullptr) {}
 
-        LuaState(std::shared_ptr<lua_s> const &other) : m_l_(other) { }
+        LuaState(std::shared_ptr<lua_s> const &other) : m_l_(other) {}
 
-        LuaState(LuaState const &other) : m_l_(other.m_l_) { }
+        LuaState(LuaState const &other) : m_l_(other.m_l_) {}
 
-        ~LuaState() { }
+        ~LuaState() {}
 
         void init() { m_l_ = std::make_shared<lua_s>(); }
 
@@ -192,8 +190,9 @@ public:
     bool is_string() const;
 
 
-    bool is_integer()const;
-    bool is_floating_point()const;
+    bool is_integer() const;
+
+    bool is_floating_point() const;
 
 
     /** ntuple < list < table
@@ -307,8 +306,7 @@ public:
             if (!lua_isfunction(*acc, idx))
             {
                 LuaObject(acc.get(), GLOBAL_REF_IDX_, self_, path_).swap(res);
-            }
-            else
+            } else
             {
                 LUA_ERROR(lua_pcall(*acc, _impl::push_to_lua(*acc, std::forward<Args>(args)...), 1, 0));
 
@@ -352,8 +350,7 @@ public:
             auto value = this->as<TRect>();
 
             *res = [value](Args ...args) -> TRect { return value; };
-        }
-        else if (is_function())
+        } else if (is_function())
         {
             LuaObject f_obj(*this);
 
@@ -379,8 +376,7 @@ public:
         if (!as(&res))
         {
             return default_value;
-        }
-        else
+        } else
         {
             return std::move(res);
         };
@@ -402,8 +398,7 @@ public:
             lua_pop(*acc, 1);
 
             return num > 0;
-        }
-        else
+        } else
         {
             return false;
         }

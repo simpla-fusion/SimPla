@@ -12,7 +12,7 @@ namespace simpla { namespace lua
 {
 
 
-LuaObject::LuaObject() : self_(0), GLOBAL_REF_IDX_(0) { }
+LuaObject::LuaObject() : self_(0), GLOBAL_REF_IDX_(0) {}
 
 
 LuaObject::LuaObject(std::shared_ptr<LuaState::lua_s> const &l, int G, int s, std::string const &path) :
@@ -22,8 +22,7 @@ LuaObject::LuaObject(std::shared_ptr<LuaState::lua_s> const &l, int G, int s, st
     {
         lua_rawgeti(l->m_state_, GLOBAL_REF_IDX_, s);
         self_ = luaL_ref(l->m_state_, GLOBAL_REF_IDX_);
-    }
-    else
+    } else
     {
         self_ = 0;
     }
@@ -84,17 +83,17 @@ std::basic_ostream<char> &LuaObject::Serialize(std::basic_ostream<char> &os)
         {
             case LUA_TSTRING:
                 os << "[" << i << "]=" << lua_tostring(*acc, i)
-                << std::endl;
+                   << std::endl;
                 break;
 
             case LUA_TBOOLEAN:
                 os << "[" << i << "]=" << std::boolalpha
-                << lua_toboolean(*acc, i) << std::endl;
+                   << lua_toboolean(*acc, i) << std::endl;
                 break;
 
             case LUA_TNUMBER:
                 os << "[" << i << "]=" << lua_tonumber(*acc, i)
-                << std::endl;
+                   << std::endl;
                 break;
             case LUA_TTABLE:
                 os << "[" << i << "]=" << "is a table" << std::endl;
@@ -178,8 +177,7 @@ LuaObject::iterator &LuaObject::iterator::Next()
         if (key_ == LUA_NOREF)
         {
             lua_pushnil(*acc);
-        }
-        else
+        } else
         {
             lua_rawgeti(*acc, GLOBAL_IDX_, key_);
         }
@@ -190,8 +188,7 @@ LuaObject::iterator &LuaObject::iterator::Next()
         {
             v = luaL_ref(*acc, GLOBAL_IDX_);
             k = luaL_ref(*acc, GLOBAL_IDX_);
-        }
-        else
+        } else
         {
             k = LUA_NOREF;
             v = LUA_NOREF;
@@ -306,8 +303,7 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const
     if (key_ == LUA_NOREF || value_ == LUA_NOREF)
     {
         LOGIC_ERROR << ("the value of this iterator is invalid!") << std::endl;
-    }
-    else
+    } else
     {
 
         auto acc = L_.acc();
@@ -478,8 +474,7 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
             int len = static_cast<int>(lua_rawlen(*acc, tidx));
             lua_rawseti(*acc, tidx, len + 1);
             lua_rawgeti(*acc, tidx, len + 1);
-        }
-        else
+        } else
         {
             lua_setfield(*acc, tidx, name.c_str());
             lua_getfield(*acc, tidx, name.c_str());
@@ -523,14 +518,12 @@ Converter<Properties>::from(lua_State *L, unsigned int idx, Properties *v)
         success = Converter<std::map<std::string, Properties>>::from(
                 L, idx,
                 dynamic_cast<std::map<std::string, Properties> *>(v));
-    }
-    else if (lua_isboolean(L, idx))
+    } else if (lua_isboolean(L, idx))
     {
         bool t;
         success = Converter<bool>::from(L, idx, &t);
         *v = t;
-    }
-    else if (lua_isnumber(L, idx))
+    } else if (lua_isnumber(L, idx))
     {
 
         double t;
@@ -538,15 +531,13 @@ Converter<Properties>::from(lua_State *L, unsigned int idx, Properties *v)
         success = Converter<double>::from(L, idx, &t);
 
         *v = t;
-    }
-    else if (lua_isstring(L, idx))
+    } else if (lua_isstring(L, idx))
     {
 
 //        std::string t;
 //        success = Converter<std::string>::from(L, idx, &t);
 //        *v = t;
-    }
-    else
+    } else
     {
         return 0;
     }
@@ -568,10 +559,18 @@ Converter<Properties>::from(lua_State *L, unsigned int idx, Properties *v)
 
 DEF_TYPE_CHECK(is_nil, lua_isnil)
 
-//#if LUA_VERSION_NUM >= 503
-DEF_TYPE_CHECK(is_integer, lua_isinteger)
-//#endif
+#if LUA_VERSION_NUM >= 503
 
+bool LuaObject::is_integer() const
+{
+    auto acc = L_.acc();
+    return lua_isinteger(*acc, self_);
+
+}
+
+#else
+bool LuaObject::is_integer() const { return is_number(); }
+#endif
 
 DEF_TYPE_CHECK(is_boolean, lua_isboolean)
 
@@ -621,15 +620,8 @@ bool LuaObject::is_string() const
 }
 
 
-//#if LUA_VERSION_NUM >= 503
-//bool LuaObject::is_integer() const
-//{
-//    auto acc = L_.acc();
-//    return lua_isinteger(*acc, self_);
-//
-//}
 bool LuaObject::is_floating_point() const { return is_number() && (!is_integer()); }
-//#endif
+
 
 bool LuaObject::is_list() const
 {
@@ -744,8 +736,7 @@ bool LuaObject::as(Properties *res) const
             (first_item.second.is_number() || first_item.second.is_nTuple())) //is ntuple
         {
             success = success && _impl::get_nTuple<double>(*this, res);
-        }
-        else //is list
+        } else //is list
         {
             for (auto const &item:*this)
             {
@@ -755,8 +746,7 @@ bool LuaObject::as(Properties *res) const
                 if (!success)break;
             }
         }
-    }
-    else if (this->is_boolean())
+    } else if (this->is_boolean())
     {
         bool v;
 
@@ -781,16 +771,14 @@ bool LuaObject::as(Properties *res) const
         success = success && this->as(&v);
 
         if (success) (*res) = v;
-    }
-    else if (this->is_string())
+    } else if (this->is_string())
     {
         std::string v;
 
         success = success && this->as(&v);
 
         if (success) (*res) = v;
-    }
-    else
+    } else
     {
         WARNING << "unknown type can not convert" << std::endl;
         success = false;

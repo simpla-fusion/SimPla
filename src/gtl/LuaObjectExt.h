@@ -21,17 +21,14 @@
 #include "nTuple.h"
 #include "Properties.h"
 
+
 extern "C"
 {
-
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-
-#if LUA_VERSION_NUM < 502
-#error  need lua version >502
-#endif
+#include <lua5.2/lua.h>
+#include <lua5.2/lualib.h>
+#include <lua5.2/lauxlib.h>
 }
+
 
 namespace simpla
 {
@@ -147,7 +144,8 @@ struct Converter<std::string>
     }
 };
 
-template<size_t N, typename T> struct Converter<nTuple<T, N>>
+template<size_t N, typename T>
+struct Converter<nTuple<T, N>>
 {
     typedef nTuple<T, N> value_type;
 
@@ -225,7 +223,8 @@ template<size_t N, typename T> struct Converter<nTuple<T, N>>
 //    }
 //};
 
-template<typename T> struct Converter<std::vector<T> >
+template<typename T>
+struct Converter<std::vector<T> >
 {
     typedef std::vector<T> value_type;
 
@@ -260,7 +259,8 @@ template<typename T> struct Converter<std::vector<T> >
     }
 };
 
-template<typename T> struct Converter<std::list<T> >
+template<typename T>
+struct Converter<std::list<T> >
 {
     typedef std::list<T> value_type;
 
@@ -291,7 +291,8 @@ template<typename T> struct Converter<std::list<T> >
     }
 };
 
-template<typename T1, typename T2> struct Converter<std::map<T1, T2> >
+template<typename T1, typename T2>
+struct Converter<std::map<T1, T2> >
 {
     typedef std::map<T1, T2> value_type;
 
@@ -336,7 +337,8 @@ template<typename T1, typename T2> struct Converter<std::map<T1, T2> >
     }
 };
 
-template<typename T> struct Converter<std::complex<T> >
+template<typename T>
+struct Converter<std::complex<T> >
 {
     typedef std::complex<T> value_type;
 
@@ -357,14 +359,12 @@ template<typename T> struct Converter<std::complex<T> >
                 *v = std::complex<T>(r, i);
             }
 
-        }
-        else if (lua_isnumber(L, idx))
+        } else if (lua_isnumber(L, idx))
         {
             T r;
             _impl::pop_from_lua(L, idx, &r);
             *v = std::complex<T>(r, 0);
-        }
-        else
+        } else
         {
             return 0;
         }
@@ -384,7 +384,8 @@ template<typename T> struct Converter<std::complex<T> >
     }
 };
 
-template<typename T1, typename T2> struct Converter<std::pair<T1, T2> >
+template<typename T1, typename T2>
+struct Converter<std::pair<T1, T2> >
 {
     typedef std::pair<T1, T2> value_type;
 
@@ -415,7 +416,8 @@ template<typename T1, typename T2> struct Converter<std::pair<T1, T2> >
     }
 };
 
-template<typename ... T> struct Converter<std::tuple<T...> >
+template<typename ... T>
+struct Converter<std::tuple<T...> >
 {
     typedef std::tuple<T...> value_type;
 
@@ -445,7 +447,8 @@ private:
         return 0;
     }
 
-    template<unsigned int N> static inline unsigned int to_(
+    template<unsigned int N>
+    static inline unsigned int to_(
             lua_State *L, value_type const &v,
             std::integral_constant<unsigned int, N>)
     {
