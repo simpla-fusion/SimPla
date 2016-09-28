@@ -60,7 +60,7 @@ int MPIComm::size() const
 int MPIComm::get_rank(int const *d) const
 {
     int res = 0;
-    MPI_CALL(MPI_Cart_rank(pimpl_->m_comm_, d, &res));
+    MPI_CALL(MPI_Cart_rank(pimpl_->m_comm_, (int *) d, &res));
     return res;
 }
 

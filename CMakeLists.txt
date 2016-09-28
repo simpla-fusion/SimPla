@@ -47,6 +47,11 @@ endif ()
 
 #include(FindPackageHandleStandardArgs)
 
+FIND_PACKAGE(Lua 5.2 REQUIRED)
+
+IF (LUA_FOUND)
+    INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
+ENDIF (LUA_FOUND)
 
 ###########################################################
 #IF (DEFINED ENV{MPI_ROOT})

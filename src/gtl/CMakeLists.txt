@@ -21,11 +21,7 @@ add_library(utilities Log.cpp MemoryPool.cpp logo.cpp Properties.cpp parse_comma
 #    FIND_PACKAGE_HANDLE_STANDARD_ARGS(LUA DEFAULT_MSG LUA_LIBRARIES LUA_INCLUDE_DIRS LUA_ROOT)
 
 
-FIND_PACKAGE(Lua 5.2 REQUIRED)
 
-IF (LUA_FOUND)
-    INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
-ENDIF (LUA_FOUND)
 
 
 add_library(lua_parser LuaObject.cpp ConfigParser.cpp)
