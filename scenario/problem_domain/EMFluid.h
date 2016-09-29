@@ -9,7 +9,7 @@
 
 #include "../../src/field/Field.h"
 #include "../../src/physics/PhysicalConstants.h"
-#include "../../src/simulation/ProblemDomain.h"
+#include "../../src/simulation/PhysicalDomain.h"
 #include "../../src/mesh/Mesh.h"
 #include "../../src/mesh/MeshEntityRange.h"
 #include "../../src/mesh/MeshModel.h"
@@ -21,15 +21,15 @@ using namespace mesh;
 
 
 template<typename TM>
-class EMFluid : public simulation::ProblemDomain
+class EMFluid : public simulation::PhysicalDomain
 {
     typedef EMFluid<TM> this_type;
-    typedef simulation::ProblemDomain base_type;
+    typedef simulation::PhysicalDomain base_type;
 
 public:
     virtual bool is_a(std::type_info const &info) const
     {
-        return typeid(this_type) == info || simulation::ProblemDomain::is_a(info);
+        return typeid(this_type) == info || simulation::PhysicalDomain::is_a(info);
     }
 
     virtual std::string get_class_name() const { return class_name(); }
@@ -49,7 +49,7 @@ public:
 
     virtual void next_step(Real dt);
 
-    virtual void sync(mesh::TransitionMap const &, simulation::ProblemDomain const &other);
+    virtual void sync(mesh::TransitionMap const &, simulation::PhysicalDomain const &other);
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
@@ -146,7 +146,7 @@ template<typename TM>
 std::ostream &
 EMFluid<TM>::print(std::ostream &os, int indent) const
 {
-    simulation::ProblemDomain::print(os, indent);
+    simulation::PhysicalDomain::print(os, indent);
     os << std::setw(indent + 1) << " " << " ParticleAttribute= { " << std::endl;
     for (auto &sp:m_fluid_sp_)
     {
@@ -159,7 +159,7 @@ EMFluid<TM>::print(std::ostream &os, int indent) const
 }
 
 template<typename TM>
-void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)
+void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::PhysicalDomain const &other)
 {
     auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));

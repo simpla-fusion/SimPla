@@ -25,10 +25,11 @@ struct MeshAttribute : public base::Object, std::enable_shared_from_this<MeshAtt
 
     ~MeshAttribute();
 
-
     MeshAttribute &operator=(MeshAttribute const &other) = delete;
 
-    virtual void deploy() = 0;
+    virtual void deploy() { m_is_deployed_ = true; };
+
+    virtual bool is_deployed() const { return m_is_deployed_; };
 
     virtual void clear() = 0;
 
@@ -73,6 +74,7 @@ struct MeshAttribute : public base::Object, std::enable_shared_from_this<MeshAtt
     bool is_ready() const;
 
 private:
+    bool m_is_deployed_ = false;
     struct pimpl_s;
     std::shared_ptr<pimpl_s> m_pimpl_;
 

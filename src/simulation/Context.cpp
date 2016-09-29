@@ -6,7 +6,7 @@
  */
 
 #include "Context.h"
-#include "ProblemDomain.h"
+#include "PhysicalDomain.h"
 //#include <functional>
 //#include <iostream>
 //#include <map>
@@ -20,7 +20,7 @@ namespace simpla { namespace simulation
 
 struct Context::pimpl_s
 {
-    std::map<mesh::MeshBlockId, std::shared_ptr<ProblemDomain>> m_domains_;
+    std::map<mesh::MeshBlockId, std::shared_ptr<PhysicalDomain>> m_domains_;
     mesh::Atlas m_atlas_;
 
 };
@@ -36,7 +36,7 @@ void Context::teardown() {};
 std::ostream &
 Context::print(std::ostream &os, int indent) const
 {
-    os << std::setw(indent) << " " << " ProblemDomain = {" << std::endl;
+    os << std::setw(indent) << " " << " PhysicalDomain = {" << std::endl;
     for (auto const &item:m_pimpl_->m_domains_)
     {
         os << std::setw(indent + 1) << " " << "{" << std::endl;
@@ -64,12 +64,12 @@ Context::get_mesh_block(mesh::MeshBlockId id) const { return m_pimpl_->m_atlas_.
 std::shared_ptr<mesh::Chart>
 Context::get_mesh_block(mesh::MeshBlockId id) { return m_pimpl_->m_atlas_.get_block(id); }
 
-std::shared_ptr<ProblemDomain>
+std::shared_ptr<PhysicalDomain>
 Context::get_domain(mesh::MeshBlockId id) const { return m_pimpl_->m_domains_.at(id); };
 
 
-std::shared_ptr<ProblemDomain>
-Context::add_domain(std::shared_ptr<ProblemDomain> pb)
+std::shared_ptr<PhysicalDomain>
+Context::add_domain(std::shared_ptr<PhysicalDomain> pb)
 {
     assert(pb != nullptr);
     auto it = m_pimpl_->m_domains_.find(pb->mesh()->id());
@@ -78,7 +78,7 @@ Context::add_domain(std::shared_ptr<ProblemDomain> pb)
         m_pimpl_->m_domains_.emplace(std::make_pair(pb->mesh()->id(), pb));
     } else
     {
-        std::shared_ptr<ProblemDomain> *p = &(m_pimpl_->m_domains_[pb->mesh()->id()]);
+        std::shared_ptr<PhysicalDomain> *p = &(m_pimpl_->m_domains_[pb->mesh()->id()]);
         while (*p != nullptr) { p = &((*p)->next()); }
         *p = pb;
     }

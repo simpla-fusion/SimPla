@@ -23,22 +23,19 @@ enum { SP_MESH_AX_NORMAL = 0, SP_MESH_AX_CYCLE = 0x1, SP_MESH_AX_NULL = 0x3 };
 
 class MeshBase : public base::Object, public std::enable_shared_from_this<MeshBase>
 {
-    int m_level_;
+    int m_level_ = 0;
     int m_status_flag_ = 0;
     bool m_is_virtual_ = false;
 public:
 
     SP_OBJECT_HEAD(MeshBase, base::Object);
 
+    MeshBase(int l = 0) : m_level_(l), m_status_flag_(0), m_time_(0) {}
 
-    MeshBase()
-            : m_level_(0), m_status_flag_(0), m_time_(0) {}
+    MeshBase(MeshBase const &other) : m_level_(other.m_level_), m_status_flag_(other.m_status_flag_),
+                                      m_time_(other.m_time_) {}
 
-    MeshBase(MeshBase const &other)
-            : m_level_(other.m_level_), m_status_flag_(other.m_status_flag_), m_time_(
-            other.m_time_) {}
-
-    virtual    ~MeshBase() {}
+    virtual ~MeshBase() {}
 
     virtual io::IOStream &save(io::IOStream &os) const
     {
@@ -63,9 +60,11 @@ public:
 
     void status(int l) { m_status_flag_ = l; }
 
+    int level() const { return m_level_; }
+
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
 
-    /**
+/**
  *
  *   ********************outer box************
  *   *      |--------------------------|     *
@@ -74,7 +73,7 @@ public:
  *   *      |       |  **inner**   |   |     *
  *   *      |       |  *       *   |   |     *
  *   *      |       |  *       *   |   |     *
- *   *      |       |  *(entity_id_range)*   |   |     *
+ *   *      |       |  *(entity_id_range)    *
  *   *      |       |  2********   |   |     *
      *      |       |   boundary   |   |     *
  *   *    /---      +--------------+   |     *

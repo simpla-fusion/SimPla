@@ -1,3 +1,4 @@
 
 ADD_SUBDIRECTORY(em)
 
+ADD_SUBDIRECTORY(multi_block)

@@ -21,9 +21,9 @@ using namespace mesh;
  *  @brief absorb boundary condition, PML
  */
 template<typename TM>
-class PML : public simulation::ProblemDomain
+class PML : public simulation::PhysicalDomain
 {
-    typedef simulation::ProblemDomain base_type;
+    typedef simulation::PhysicalDomain base_type;
 public:
     typedef TM mesh_type;
 
@@ -39,7 +39,7 @@ public:
 
     virtual void deploy();
 
-    virtual void sync(mesh::TransitionMap const &, simulation::ProblemDomain const &other);
+    virtual void sync(mesh::TransitionMap const &, simulation::PhysicalDomain const &other);
 
     virtual std::string get_class_name() const { return class_name(); }
 
@@ -161,7 +161,7 @@ void PML<TM>::deploy()
 
 
 template<typename TM>
-void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::ProblemDomain const &other)
+void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::PhysicalDomain const &other)
 {
     auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));

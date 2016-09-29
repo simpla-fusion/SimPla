@@ -23,10 +23,10 @@ struct MeshAttribute::pimpl_s
     std::map<int, link_s> m_links_;
 };
 
-MeshAttribute::MeshAttribute() { }
+MeshAttribute::MeshAttribute() {}
 
 
-MeshAttribute::~MeshAttribute() { }
+MeshAttribute::~MeshAttribute() {}
 
 
 void MeshAttribute::sync(bool is_blocking)
@@ -154,8 +154,5 @@ void MeshAttribute::wait()
 #endif
 }
 
-bool MeshAttribute::is_ready() const
-{
-    return m_pimpl_->m_dist_obj_.is_ready();
-}
+bool MeshAttribute::is_ready() const { return m_pimpl_->m_dist_obj_.is_ready(); }
 }}//namespace simpla{namespace get_mesh{

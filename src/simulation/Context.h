@@ -16,14 +16,14 @@
 #include "../mesh/MeshAttribute.h"
 #include "../mesh/MeshAtlas.h"
 #include "../io/IOStream.h"
-#include "ProblemDomain.h"
+#include "PhysicalDomain.h"
 
 
 namespace simpla { namespace simulation
 {
 
 
-class ProblemDomain;
+class PhysicalDomain;
 
 class Context
 {
@@ -90,7 +90,7 @@ public:
     }
 
 
-    std::shared_ptr<ProblemDomain> add_domain(std::shared_ptr<ProblemDomain> pb);
+    std::shared_ptr<PhysicalDomain> add_domain(std::shared_ptr<PhysicalDomain> pb);
 
     template<typename TProb, typename ...Args>
     std::shared_ptr<TProb> add_domain_as(Args &&...args)
@@ -108,7 +108,7 @@ public:
     };
 
 
-    std::shared_ptr<ProblemDomain> get_domain(mesh::MeshBlockId id) const;
+    std::shared_ptr<PhysicalDomain> get_domain(mesh::MeshBlockId id) const;
 
     template<typename TProb>
     std::shared_ptr<TProb> get_domain_as(mesh::MeshBlockId id) const

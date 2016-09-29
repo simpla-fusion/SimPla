@@ -137,7 +137,7 @@ public:
 //    std::shared_ptr<MeshBase> coarsen_block(mesh::MeshBlockId first, box_type const &);
 
 
-    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> const &at_level(int l = 0) const { return m_list_; };
+    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> const &at_level(int l = 0) const { return m_nodes_; };
 
     io::IOStream &save(io::IOStream &os) const;
 
@@ -158,14 +158,14 @@ public:
 
     adjacency_list_t m_adjacency_list_;
 
-    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> m_list_;
+    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> m_nodes_;
+
+    std::multimap<mesh::MeshBlockId, std::shared_ptr<TransitionMap>> m_out_edge_;
+    std::multimap<mesh::MeshBlockId, std::shared_ptr<TransitionMap>> m_in_edge_;
 
 public:
     std::pair<typename adjacency_list_t::const_iterator, typename adjacency_list_t::const_iterator>
-    get_adjacencies(mesh::MeshBlockId first) const
-    {
-        return m_adjacency_list_.equal_range(first);
-    }
+    get_adjacencies(mesh::MeshBlockId first) const { return m_adjacency_list_.equal_range(first); }
 
 
 };
