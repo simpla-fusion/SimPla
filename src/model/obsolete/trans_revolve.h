@@ -11,7 +11,7 @@
 
 #include <vector>
 
-#include "../gtl/ntuple.h"
+#include "../toolbox/ntuple.h"
 #include "../geometry/polygon.h"
 
 

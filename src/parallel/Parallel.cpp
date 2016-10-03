@@ -6,10 +6,10 @@
  */
 
 
-#include "../gtl/parse_command_line.h"
+#include "../toolbox/parse_command_line.h"
 
 #ifdef HAS_MPI
-#include "../gtl/design_pattern/SingletonHolder.h"
+#include "../toolbox/design_pattern/SingletonHolder.h"
 #include "MPIComm.h"
 #include "DistributedObject.h"
 #endif

@@ -9,7 +9,7 @@
 #include <iostream>
 #include <cassert>
 #include "../sp_def.h"
-#include "../gtl/Log.h"
+#include "../toolbox/Log.h"
 
 
 namespace simpla { namespace parallel

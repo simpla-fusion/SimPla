@@ -6,12 +6,12 @@
 
 #include <gtest/gtest.h>
 
-#include "../../gtl/nTuple.h"
-#include "../../gtl/nTupleExt.h"
-#include "../../gtl/utilities/Log.h"
-#include "../../gtl/iterator/range.h"
+#include "../../toolbox/nTuple.h"
+#include "../../toolbox/nTupleExt.h"
+#include "../../toolbox/utilities/Log.h"
+#include "../../toolbox/iterator/range.h"
 
-#include "../../gtl/utilities/Log.h"
+#include "../../toolbox/utilities/Log.h"
 
 
 #include "../csCartesian.h"

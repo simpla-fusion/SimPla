@@ -9,7 +9,7 @@
 
 
 #include "../data_model/DataSet.h"
-#include "../gtl/Properties.h"
+#include "../toolbox/Properties.h"
 #include "Object.h"
 
 namespace simpla { namespace base

@@ -16,8 +16,8 @@
 #include <vector>
 
 #include "../sp_def.h"
-#include "../gtl/Log.h"
-#include "../gtl/MemoryPool.h"
+#include "../toolbox/Log.h"
+#include "../toolbox/MemoryPool.h"
 
 extern "C"
 {

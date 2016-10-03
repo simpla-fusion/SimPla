@@ -6,8 +6,8 @@
  */
 
 #include <unordered_map>
-#include "../../gtl/ntuple.h"
-#include "../../gtl/type_traits.h"
+#include "../../toolbox/ntuple.h"
+#include "../../toolbox/type_traits.h"
 #include "../../diff_geometry/simple_mesh.h"
 #include "../field_map.h"
 

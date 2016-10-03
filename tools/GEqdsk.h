@@ -9,10 +9,10 @@
 #define GEQDSK_H_
 
 #include <iostream>
-#include "../src/gtl/Log.h"
-#include "../src/gtl/nTuple.h"
+#include "../src/toolbox/Log.h"
+#include "../src/toolbox/nTuple.h"
 #include "../src/sp_def.h"
-#include "../src/gtl/type_traits.h"
+#include "../src/toolbox/type_traits.h"
 #include "../src/geometry/GeoObject.h"
 
 namespace simpla

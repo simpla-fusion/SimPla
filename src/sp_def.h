@@ -6,7 +6,7 @@
 #define SIMPLA_SP_DEF_H
 
 #include "sp_config.h"
-#include "gtl/nTuple.h"
+#include "toolbox/nTuple.h"
 #include <boost/uuid/uuid.hpp>
 
 namespace simpla
@@ -27,7 +27,7 @@ typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
 typedef boost::uuids::uuid uuid;
 /**
- *  @ingroup gtl
+ *  @ingroup toolbox
  * @{
  */
 //enum POSITION

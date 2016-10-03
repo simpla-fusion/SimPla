@@ -9,7 +9,7 @@
 #define FIELD_DENSE_H_
 
 #include "../sp_def.h"
-#include "../gtl/type_traits.h"
+#include "../toolbox/type_traits.h"
 #include "../mesh/MeshBase.h"
 #include "../mesh/MeshAttribute.h"
 #include "../data_model/DataSet.h"

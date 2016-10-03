@@ -9,7 +9,7 @@
 
 #include "tokamak.h"
 
-#include "../../src/gtl/utilities.h"
+#include "../../src/toolbox/utilities.h"
 #include "../../../src/parallel/Parallel.h"
 #include "../../../src/io/IO.h"
 

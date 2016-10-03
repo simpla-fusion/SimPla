@@ -9,7 +9,7 @@
 #include "MPIDataType.h"
 #include "DistributedObject.h"
 #include "../data_model/DataSet.h"
-#include "../gtl/Log.h"
+#include "../toolbox/Log.h"
 #include <cassert>
 
 namespace simpla { namespace parallel

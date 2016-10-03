@@ -9,8 +9,8 @@
 #define CORE_PARTICLE_KINETIC_PARTICLE_H_
 
 #include <memory>
-#include "../gtl/utilities/utilities.h"
-#include "../gtl/containers/unordered_set.h"
+#include "../toolbox/utilities/utilities.h"
+#include "../toolbox/containers/unordered_set.h"
 #include "Particle.h"
 #include "../manifold/manifold_traits.h"
 

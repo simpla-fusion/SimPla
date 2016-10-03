@@ -7,8 +7,8 @@
 
 #ifndef SOBOL_ENGINE_H_
 #define SOBOL_ENGINE_H_
-#include "../gtl/nTuple.h"
-#include "../gtl/utilities/Log.h"
+#include "../toolbox/nTuple.h"
+#include "../toolbox/utilities/Log.h"
 namespace simpla
 {
 

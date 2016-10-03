@@ -8,8 +8,8 @@
 #ifndef INTERPOLATION_H_
 #define INTERPOLATION_H_
 
-#include "../gtl/utilities/Log.h"
-#include "../gtl/nTuple.h"
+#include "../toolbox/utilities/Log.h"
+#include "../toolbox/nTuple.h"
 #include <vector>
 #include <cmath>
 #include <algorithm>

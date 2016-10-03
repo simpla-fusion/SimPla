@@ -9,8 +9,8 @@
 #define CORE_PARTICLE_PARTICLE_H_
 
 #include <memory>
-#include "../gtl/type_traits.h"
-#include "../gtl/Properties.h"
+#include "../toolbox/type_traits.h"
+#include "../toolbox/Properties.h"
 
 namespace simpla { template<typename ...> struct Field; }
 

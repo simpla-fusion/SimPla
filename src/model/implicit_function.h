@@ -7,7 +7,7 @@
 
 #ifndef CORE_GEOMETRY_IMPLICIT_FUNCTION_H_
 #define CORE_GEOMETRY_IMPLICIT_FUNCTION_H_
-#include "../gtl/ExpressionTemplate.h"
+#include "../toolbox/ExpressionTemplate.h"
 namespace simpla
 {
 

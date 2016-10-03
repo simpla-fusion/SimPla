@@ -8,8 +8,8 @@
 #define SIMPLA_MESHATTRIBUTE_H
 
 #include "../base/Object.h"
-#include "../gtl/Log.h"
-#include "../gtl/MemoryPool.h"
+#include "../toolbox/Log.h"
+#include "../toolbox/MemoryPool.h"
 #include "../data_model/DataSet.h"
 #include "MeshCommon.h"
 #include "MeshBase.h"

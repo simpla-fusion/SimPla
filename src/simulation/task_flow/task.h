@@ -9,8 +9,8 @@
 #define CORE_APPLICATION_TASK_H_
 
 #include <assert.h>
-#include "../gtl/type_traits.h"
-#include "../gtl/utilities/Log.h"
+#include "../toolbox/type_traits.h"
+#include "../toolbox/utilities/Log.h"
 #include "task_flow_base.h"
 
 namespace simpla { namespace task_flow

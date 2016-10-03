@@ -16,7 +16,7 @@
 #include <string>
 #include <type_traits>
 
-#include "../gtl/type_traits.h"
+#include "../toolbox/type_traits.h"
 #include "../model/CoordinateSystem.h"
 
 namespace simpla

@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 #include "../../io/IO.h"
 
-#include "../../gtl/nTuple.h"
+#include "../../toolbox/nTuple.h"
 #include "../../sp_def.h"
 #include "../../field/Field.h"
 #include "../../field/FieldExpression.h"
@@ -27,7 +27,7 @@
 #include "../../manifold/pre_define/PreDefine.h"
 
 
-#include "../../gtl/Log.h"
+#include "../../toolbox/Log.h"
 #include "../../mesh/MeshBase.h"
 
 

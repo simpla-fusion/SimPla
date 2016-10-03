@@ -8,7 +8,7 @@
 #ifndef CORE_PARALLEL_DISTRIBUTED_ARRAY_CPP_
 #define CORE_PARALLEL_DISTRIBUTED_ARRAY_CPP_
 
-#include "../gtl/utilities/log.h"
+#include "../toolbox/utilities/log.h"
 
 #include "MPIComm.h"
 #include "MPIAuxFunctions.h"

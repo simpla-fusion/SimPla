@@ -8,7 +8,7 @@
 #ifndef CORE_GEOMETRY_PRIMITIVE_H_
 #define CORE_GEOMETRY_PRIMITIVE_H_
 
-#include "../gtl/type_traits.h"
+#include "../toolbox/type_traits.h"
 #include "CoordinateSystem.h"
 /**
  *  @ref OpenGIS® Implementation Standard for Geographic information

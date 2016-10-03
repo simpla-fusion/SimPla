@@ -15,9 +15,9 @@
 #include <string>
 #include <tuple>
 
-#include "../gtl/utilities/utilities.h"
-#include "../gtl/design_pattern/SingletonHolder.h"
-#include "../gtl/utilities/ConfigParser.h"
+#include "../toolbox/utilities/utilities.h"
+#include "../toolbox/design_pattern/SingletonHolder.h"
+#include "../toolbox/utilities/ConfigParser.h"
 
 
 namespace simpla { namespace use_case

@@ -19,8 +19,8 @@
 #include "model_base.h"
 
 #include "../sp_def.h"
-#include "../gtl/type_traits.h"
-#include "../gtl/utilities/utilities.h"
+#include "../toolbox/type_traits.h"
+#include "../toolbox/utilities/utilities.h"
 #include "../manifold/topology/block.h"
 #include "../manifold/obsolete/mesh_block.h.h"
 

@@ -10,7 +10,7 @@
 
 #include "../Particle.h"
 #include "../ParticleEngine.h"
-#include "../../gtl/type_traits.h"
+#include "../../toolbox/type_traits.h"
 
 
 namespace simpla { namespace particle { namespace engine

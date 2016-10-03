@@ -8,8 +8,8 @@
 #define SIMPLA_MESH_MESHATLAS_H
 
 #include <type_traits>
-#include "../gtl/Log.h"
-#include "../gtl/nTuple.h"
+#include "../toolbox/Log.h"
+#include "../toolbox/nTuple.h"
 #include "../parallel/DistributedObject.h"
 #include "../io/IOStream.h"
 

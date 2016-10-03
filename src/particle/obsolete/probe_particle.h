@@ -12,10 +12,10 @@
 #include <memory>
 #include <string>
 
-#include "../gtl/dataset/dataset.h"
-#include "../gtl/enable_create_from_this.h"
+#include "../toolbox/dataset/dataset.h"
+#include "../toolbox/enable_create_from_this.h"
 #include "../physics/physical_object.h"
-#include "../gtl/utilities/utilities.h"
+#include "../toolbox/utilities/utilities.h"
 #include "../sp_def.h"
 
 namespace simpla {

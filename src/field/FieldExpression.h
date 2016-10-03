@@ -12,8 +12,8 @@
 #include <cstdbool>
 #include <type_traits>
 
-#include "../gtl/ExpressionTemplate.h"
-#include "../gtl/type_traits.h"
+#include "../toolbox/ExpressionTemplate.h"
+#include "../toolbox/type_traits.h"
 
 namespace simpla
 {

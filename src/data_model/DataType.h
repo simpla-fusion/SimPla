@@ -17,8 +17,8 @@
 #include <typeindex>
 #include <vector>
 
-#include "../gtl/nTuple.h"
-#include "../gtl/type_traits.h"
+#include "../toolbox/nTuple.h"
+#include "../toolbox/type_traits.h"
 #include "../base/Object.h"
 #include "../sp_config.h"
 

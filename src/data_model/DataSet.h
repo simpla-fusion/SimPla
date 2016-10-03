@@ -15,8 +15,8 @@
 #include <type_traits>
 #include <tbb/concurrent_vector.h>
 
-#include "../gtl/check_concept.h"
-#include "../gtl/type_traits.h"
+#include "../toolbox/check_concept.h"
+#include "../toolbox/type_traits.h"
 #include "../base/Object.h"
 #include "DataSpace.h"
 #include "DataType.h"

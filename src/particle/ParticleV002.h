@@ -8,8 +8,8 @@
 #include <vector>
 #include <list>
 #include <map>
-#include "../gtl/integer_sequence.h"
-#include "../gtl/type_traits.h"
+#include "../toolbox/integer_sequence.h"
+#include "../toolbox/type_traits.h"
 #include "../parallel/Parallel.h"
 #include "../mesh/MeshAttribute.h"
 #include "SmallObjPool.h"

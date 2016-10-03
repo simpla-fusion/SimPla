@@ -13,7 +13,7 @@
 #include <mutex>
 #include <thread>
 #include <random>
-#include "../gtl/type_traits.h"
+#include "../toolbox/type_traits.h"
 #include "../sp_def.h"
 #include "../numeric/rectangle_distribution.h"
 #include "../numeric/multi_normal_distribution.h"

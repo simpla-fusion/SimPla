@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory>
 #include <list>
-#include "../../gtl/type_traits.h"
+#include "../../toolbox/type_traits.h"
 #include "../../sp_def.h"
 #include "../../data_model/dataset.h"
 #include "Attribute.h"

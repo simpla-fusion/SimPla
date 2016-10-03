@@ -6,7 +6,7 @@
  */
 #include <gtest/gtest.h>
 
-#include "../../gtl/ntuple.h"
+#include "../../toolbox/ntuple.h"
 #include "manifold"
 #include "../field_shared_ptr.h"
 #include "../field.h"

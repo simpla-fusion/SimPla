@@ -10,7 +10,7 @@
 
 #include <map>
 
-#include "../gtl/ntuple.h"
+#include "../toolbox/ntuple.h"
 #include "../sp_def.h"
 #include "../model/surface.h"
 #include "../numeric/geometric_algorithm.h"

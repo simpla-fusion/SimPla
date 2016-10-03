@@ -12,7 +12,7 @@
 #include "field_comm.h"
 
 #include "../../utilities/memory_pool.h"
-#include "../../gtl/iterator/sp_iterator.h"
+#include "../../toolbox/iterator/sp_iterator.h"
 #include "HDF5Stream.h"
 #include "../../io/IO.h"
 

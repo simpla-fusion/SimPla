@@ -8,9 +8,9 @@
 #ifndef CORE_GEOMETRY_GEO_OBJECT_H_
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
-#include "../gtl/utilities/Log.h"
-#include "../gtl/nTuple.h"
-#include "../gtl/type_traits.h"
+#include "../toolbox/utilities/Log.h"
+#include "../toolbox/nTuple.h"
+#include "../toolbox/type_traits.h"
 
 namespace simpla { namespace geometry
 {

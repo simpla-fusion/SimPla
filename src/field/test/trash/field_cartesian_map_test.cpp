@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 #include <unordered_map>
-#include "../../gtl/ntuple.h"
+#include "../../toolbox/ntuple.h"
 #include "../../diff_geometry/diff_scheme/fdm.h"
 #include "../../diff_geometry/interpolator/interpolator.h"
 #include "../../diff_geometry/geometry/cartesian.h"

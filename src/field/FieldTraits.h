@@ -12,9 +12,9 @@
 #include <cstdbool>
 #include <memory>
 #include <type_traits>
-#include "../gtl/type_traits.h"
-#include "../gtl/mpl.h"
-#include "../gtl/integer_sequence.h"
+#include "../toolbox/type_traits.h"
+#include "../toolbox/mpl.h"
+#include "../toolbox/integer_sequence.h"
 #include "../manifold/ManifoldTraits.h"
 #include "FieldExpression.h"
 #include "../mesh/MeshEntityRange.h"

@@ -7,7 +7,7 @@
 
 #include <memory>
 #include <cassert>
-#include "gtl/logo.h"
+#include "toolbox/logo.h"
 #include "io/IO.h"
 #include "parallel/MPIComm.h"
 #include "data_model/DataSet.h"

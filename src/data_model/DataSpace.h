@@ -11,10 +11,10 @@
 #include <cstdbool>
 #include <memory>
 
-#include "../gtl/nTuple.h"
+#include "../toolbox/nTuple.h"
 #include "../sp_def.h"
-#include "../gtl/Properties.h"
-#include "../gtl/Log.h"
+#include "../toolbox/Properties.h"
+#include "../toolbox/Log.h"
 #include "../base/Object.h"
 
 namespace simpla { namespace data_model

@@ -13,10 +13,10 @@
 #include <type_traits>
 
 
-#include "../../gtl/macro.h"
+#include "../../toolbox/macro.h"
 #include "../../sp_def.h"
-#include "../../gtl/type_traits.h"
-#include "../../gtl/ExpressionTemplate.h"
+#include "../../toolbox/type_traits.h"
+#include "../../toolbox/ExpressionTemplate.h"
 #include "../Calculus.h"
 #include "../ManifoldTraits.h"
 

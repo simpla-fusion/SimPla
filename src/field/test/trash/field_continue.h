@@ -14,9 +14,9 @@
 #include <string>
 #include <type_traits>
 
-#include "../../gtl/check_concept.h"
+#include "../../toolbox/check_concept.h"
 #include "../application/sp_object.h"
-#include "../gtl/expression_template.h"
+#include "../toolbox/expression_template.h"
 
 namespace simpla
 {

@@ -7,7 +7,7 @@
 #include "distributed_unordered_set.h"
 
 
-#include "../gtl/utilities/log.h"
+#include "../toolbox/utilities/log.h"
 #include "MPIComm.h"
 #include "MPIAuxFunctions.h"
 #include "MPIUpdate.h"

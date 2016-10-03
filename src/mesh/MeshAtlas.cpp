@@ -4,7 +4,7 @@
  */
 
 #include "MeshAtlas.h"
-#include "../gtl/BoxUtility.h"
+#include "../toolbox/BoxUtility.h"
 
 namespace simpla { namespace mesh
 {
@@ -68,7 +68,7 @@ std::shared_ptr<TransitionMap> Atlas::add_adjacency(MeshBlockId first, MeshBlock
 
 std::shared_ptr<TransitionMap> Atlas::add_adjacency(const MeshBase *first, const MeshBase *second, int flag)
 {
-    box_type x_b_first = gtl::box_overlap(first->box(SP_ES_ALL), second->box(SP_ES_OWNED));
+    box_type x_b_first = toolbox::box_overlap(first->box(SP_ES_ALL), second->box(SP_ES_OWNED));
     index_box_type i_b_first = first->index_box(x_b_first);
     index_box_type i_b_second = second->index_box(x_b_first);
     index_tuple offset;

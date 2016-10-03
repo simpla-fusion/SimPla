@@ -16,10 +16,10 @@
 #include <utility>
 
 #include "../core/physics/Constants.h"
-#include "../core/gtl/utilities/log.h"
-#include "../core/gtl/utilities/pretty_stream.h"
-#include "../core/gtl/ntuple.h"
-#include "../core/gtl/ntuple_ext.h"
+#include "../core/toolbox/utilities/log.h"
+#include "../core/toolbox/utilities/pretty_stream.h"
+#include "../core/toolbox/ntuple.h"
+#include "../core/toolbox/ntuple_ext.h"
 
 
 #include "../core/geometry/polygon.h"

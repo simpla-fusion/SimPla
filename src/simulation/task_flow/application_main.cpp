@@ -12,9 +12,9 @@
 #include "../io/IO.h"
 #include "../parallel/Parallel.h"
 #include "../sp_def.h"
-#include "../gtl/Log.h"
-#include "../gtl/ConfigParser.h"
-#include "../gtl/logo.h"
+#include "../toolbox/Log.h"
+#include "../toolbox/ConfigParser.h"
+#include "../toolbox/logo.h"
 
 /**
  *  @ingroup task_flow

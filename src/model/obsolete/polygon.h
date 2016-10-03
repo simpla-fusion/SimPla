@@ -7,7 +7,7 @@
 
 #ifndef CORE_GEOMETRY_POLYGON_H_
 #define CORE_GEOMETRY_POLYGON_H_
-#include "../gtl/iterator/sp_iterator_cycle.h"
+#include "../toolbox/iterator/sp_iterator_cycle.h"
 namespace simpla
 {
 

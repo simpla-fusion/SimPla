@@ -11,8 +11,8 @@
 #include <memory>
 #include <map>
 #include <tuple>
-#include "../gtl/nTuple.h"
-#include "../gtl/Log.h"
+#include "../toolbox/nTuple.h"
+#include "../toolbox/Log.h"
 #include "../sp_def.h"
 #include "Attribute.h"
 

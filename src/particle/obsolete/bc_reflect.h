@@ -11,9 +11,9 @@
 #include <memory>
 #include <string>
 
-#include "../gtl/ntuple.h"
+#include "../toolbox/ntuple.h"
 #include "../sp_def.h"
-#include "../gtl/utilities/log.h"
+#include "../toolbox/utilities/log.h"
 #include "../numeric/geometric_algorithm.h"
 
 namespace simpla {

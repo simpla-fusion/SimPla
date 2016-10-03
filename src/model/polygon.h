@@ -9,7 +9,7 @@
 
 #include <vector>
 
-#include "../gtl/nTuple.h"
+#include "../toolbox/nTuple.h"
 #include "../sp_def.h"
 #include "GeoObject.h"
 

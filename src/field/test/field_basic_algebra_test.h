@@ -15,9 +15,9 @@
 #include <gtest/gtest.h>
 
 #include "../../sp_def.h"
-#include "../../gtl/macro.h"
-#include "../../gtl/type_traits.h"
-#include "../../gtl/Log.h"
+#include "../../toolbox/macro.h"
+#include "../../toolbox/type_traits.h"
+#include "../../toolbox/Log.h"
 
 #include "../../field/Field.h"
 #include "../../field/FieldTraits.h"

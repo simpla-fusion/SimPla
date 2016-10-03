@@ -11,7 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include "../gtl/type_traits.h"
+#include "../toolbox/type_traits.h"
 #include "../sp_def.h"
 #include "../parallel/MPIComm.h"
 #include "../parallel/MPIUpdate.h"

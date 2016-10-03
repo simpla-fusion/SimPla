@@ -7,7 +7,7 @@
 #ifndef SIMPLA_LINEAR_H
 #define SIMPLA_LINEAR_H
 
-#include "../../gtl/nTuple.h"
+#include "../../toolbox/nTuple.h"
 #include "../../mesh/MeshEntityId.h"
 
 namespace simpla { namespace manifold { namespace schemes

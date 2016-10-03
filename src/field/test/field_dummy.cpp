@@ -5,8 +5,8 @@
  *      Author: salmon
  */
 #include "../../mesh/MeshBase.h"
-#include "../../gtl/PrettyStream.h"
-#include "../../gtl/nTupleExt.h"
+#include "../../toolbox/PrettyStream.h"
+#include "../../toolbox/nTupleExt.h"
 #include "../../manifold/pre_define/PreDefine.h"
 #include "../../mesh/MeshAtlas.h"
 

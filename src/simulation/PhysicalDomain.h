@@ -10,9 +10,9 @@
 #include <memory>
 #include "../sp_def.h"
 #include "../base/Object.h"
-#include "../gtl/Log.h"
-#include "../gtl/Properties.h"
-#include "../gtl/ConfigParser.h"
+#include "../toolbox/Log.h"
+#include "../toolbox/Properties.h"
+#include "../toolbox/ConfigParser.h"
 #include "../mesh/Mesh.h"
 #include "../mesh/MeshAtlas.h"
 #include "../mesh/MeshAttribute.h"

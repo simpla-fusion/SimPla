@@ -8,9 +8,9 @@
 #ifndef CORE_GEOMETRY_CS_CYLINDRICAL_H_
 #define CORE_GEOMETRY_CS_CYLINDRICAL_H_
 
-#include "../gtl/macro.h"
+#include "../toolbox/macro.h"
 #include "../sp_def.h"
-#include "../gtl/type_traits.h"
+#include "../toolbox/type_traits.h"
 #include "CoordinateSystem.h"
 
 namespace simpla

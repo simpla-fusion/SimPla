@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-#include "../gtl/ntuple.h"
+#include "../toolbox/ntuple.h"
 #include "../sp_def.h"
 #include "../model/surface.h"
 

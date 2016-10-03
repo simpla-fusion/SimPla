@@ -8,8 +8,8 @@
 #include <string.h>
 
 #include "DataSet.h"
-#include "../gtl/PrettyStream.h"
-#include "../gtl/MemoryPool.h"
+#include "../toolbox/PrettyStream.h"
+#include "../toolbox/MemoryPool.h"
 #include "../parallel/MPIUpdate.h"
 #include "../parallel/MPIComm.h"
 

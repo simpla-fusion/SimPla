@@ -6,9 +6,9 @@
 
 #include <gtest/gtest.h>
 
-#include "../../gtl/nTuple.h"
-#include "../../gtl/nTupleExt.h"
-#include "../../gtl/utilities/Log.h"
+#include "../../toolbox/nTuple.h"
+#include "../../toolbox/nTupleExt.h"
+#include "../../toolbox/utilities/Log.h"
 #include "../mesh/mesh_ids.h"
 #include "Parallel.h"
 

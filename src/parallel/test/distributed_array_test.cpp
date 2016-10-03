@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include "../gtl/ntuple.h"
+#include "../toolbox/ntuple.h"
 #include "../utilities/pretty_stream.h"
 #include "MPIComm.h"
 

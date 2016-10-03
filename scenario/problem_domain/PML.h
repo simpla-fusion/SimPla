@@ -6,7 +6,7 @@
 #define SIMPLA_PML_H
 
 #include "../../src/sp_def.h"
-#include "../../src/gtl/Log.h"
+#include "../../src/toolbox/Log.h"
 #include "../../src/physics/PhysicalConstants.h"
 #include "../../src/field/Field.h"
 #include "../../src/manifold/Calculus.h"

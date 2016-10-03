@@ -7,7 +7,7 @@
 
 #include <typeinfo>
 #include "../base/Object.h"
-#include "../gtl/Log.h"
+#include "../toolbox/Log.h"
 
 #include "MeshCommon.h"
 #include "MeshBase.h"
