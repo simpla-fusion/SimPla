@@ -1,19 +1,36 @@
 //
-// Created by salmon on 16-5-18.
+// Created by salmon on 16-6-2.
 //
 
-#ifndef SIMPLA_toolbox_ITERATORPROXY_H
-#define SIMPLA_toolbox_ITERATORPROXY_H
-namespace simpla { namespace toolbox
-{
-template<typename BaseIterator, typename Proxy>
-struct IteratorProxy : public BaseIterator
-{
-    typedef std::result_of<Proxy(typename BaseIterator::value_type)>::type value_type;
+#ifndef SIMPLA_ITERATORPROXY_H
+#define SIMPLA_ITERATORPROXY_H
 
-    value_type &operator*() { return m_proxy_(BaseIterator::operator*()); }
+#include <set>
+#include "IteratorAdapter.h"
+#include "RangeAdapter.h"
 
-    value_type const &operator*() const { return m_proxy_(BaseIterator::operator*()); }
+namespace simpla
+{
+template<typename TIterator>
+using IteratorHolder= IteratorAdapter<
+        typename std::iterator_traits<TIterator>::iterator_category,
+        typename std::iterator_traits<TIterator>::value_type,
+        typename std::iterator_traits<TIterator>::difference_type,
+        typename std::iterator_traits<TIterator>::pointer,
+        typename std::iterator_traits<TIterator>::reference
+>;
+
+template<typename TIterator>
+class RangeHolder
+{
+    typedef IteratorHolder<TIterator> iterator;
+
+    iterator m_begin_, m_end_;
+
+    iterator const &begin() const { return m_begin_; }
+
+    iterator const &end() const { return m_end_; }
 };
-}}
-#endif //SIMPLA_toolbox_ITERATORPROXY_H
+
+}//namespace simpla{
+#endif //SIMPLA_ITERATORPROXY_H

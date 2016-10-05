@@ -15,7 +15,7 @@
 #include "../toolbox/Log.h"
 #include "../toolbox/nTuple.h"
 #include "../toolbox/IteratorBlock.h"
-#include "../toolbox/iterator/Range.h"
+#include "../toolbox/Range.h"
 #include "MeshCommon.h"
 #include "MeshEntityRange.h"
 
