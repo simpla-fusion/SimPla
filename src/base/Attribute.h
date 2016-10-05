@@ -7,7 +7,7 @@
 #ifndef SIMPLA_ATTRIBUTE_H
 #define SIMPLA_ATTRIBUTE_H
 
-#include "../data_model/DataSet.h"
+#include "../toolbox/DataSet.h"
 #include "Patch.h"
 #include "DataObject.h"
 

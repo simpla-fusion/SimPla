@@ -8,9 +8,11 @@
 #define SIMPLA_MESH_H
 
 #include "MeshCommon.h"
-#include "MeshBase.h"
-#include "MeshEntityRange.h"
-#include "MeshAttribute.h"
+#include "EntityRange.h"
+#include "Chart.h"
+#include "Atlas.h"
+#include "Layers.h"
+#include "Attribute.h"
 
 
 #endif //SIMPLA_MESH_H

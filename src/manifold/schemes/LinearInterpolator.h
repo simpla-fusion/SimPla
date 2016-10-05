@@ -8,7 +8,7 @@
 #define SIMPLA_LINEAR_H
 
 #include "../../toolbox/nTuple.h"
-#include "../../mesh/MeshEntityId.h"
+#include "../../mesh/EntityId.h"
 
 namespace simpla { namespace manifold { namespace schemes
 {

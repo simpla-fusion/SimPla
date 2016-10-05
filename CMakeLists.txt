@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 cmake_policy(SET CMP0015 NEW)
 cmake_policy(SET CMP0028 NEW)
 
-PROJECT(SimPla CXX C)
+PROJECT(SimPla CXX C Fortran)
 
 INCLUDE(CTest)
 ENABLE_TESTING()
@@ -269,6 +269,8 @@ add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp tools/ge
 
 ADD_CUSTOM_TARGET(alltest)
 
+#add_subdirectory(external_project)
+
 
 add_subdirectory(src)
 add_subdirectory(example)
@@ -279,4 +281,4 @@ add_subdirectory(docs)
 add_subdirectory(scenario)
 
 add_subdirectory(sp_lite)
- 
+

@@ -15,10 +15,10 @@
 #include "../toolbox/macro.h"
 
 #include "../toolbox/type_traits.h"
-#include "../mesh/MeshEntityRange.h"
-#include "../field/Field.h"
-#include "../field/FieldTraits.h"
-#include "../field/FieldExpression.h"
+#include "../mesh/EntityRange.h"
+#include "../physics/Field.h"
+#include "../physics/FieldTraits.h"
+#include "../physics/FieldExpression.h"
 
 namespace simpla
 {

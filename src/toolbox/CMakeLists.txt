@@ -1,6 +1,7 @@
 ADD_SUBDIRECTORY(test)
-add_library(utilities Log.cpp MemoryPool.cpp logo.cpp Properties.cpp parse_command_line.cpp)
-
+FILE(GLOB toolbox_SRC ./*.cpp)
+add_library(toolbox ${toolbox_SRC})
+target_link_libraries(toolbox ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${LUA_LIBRARIES} ${TBB_LIBRARIES})
 
 ###########################################################
 #IF (DEFINED ENV{LUA_ROOT})
@@ -20,11 +21,8 @@ add_library(utilities Log.cpp MemoryPool.cpp logo.cpp Properties.cpp parse_comma
 #
 #    FIND_PACKAGE_HANDLE_STANDARD_ARGS(LUA DEFAULT_MSG LUA_LIBRARIES LUA_INCLUDE_DIRS LUA_ROOT)
 
-
-
-
-
-add_library(lua_parser LuaObject.cpp ConfigParser.cpp)
-target_link_libraries(lua_parser ${LUA_LIBRARIES} )
+#
+#add_library(lua_parser LuaObject.cpp ConfigParser.cpp)
+#target_link_libraries(lua_parser ${LUA_LIBRARIES})
 
 

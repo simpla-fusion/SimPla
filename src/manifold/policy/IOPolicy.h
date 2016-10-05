@@ -8,7 +8,7 @@
 #define SIMPLA_IO_POLICY_H
 
 #include "../../dataset/dataset.h"
-#include "../../io/XDMFStream.h"
+#include "../../toolbox/XDMFStream.h"
 
 namespace simpla
 {

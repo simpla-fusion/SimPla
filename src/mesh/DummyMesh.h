@@ -10,14 +10,14 @@
 #include <memory>
 
 #include "MeshCommon.h"
-#include "MeshBase.h"
-#include "MeshEntityRange.h"
+#include "Chart.h"
+#include "EntityRange.h"
 
 namespace simpla { namespace mesh
 {
-struct DummyMesh : public MeshBase
+struct DummyMesh : public Chart
 {
-    SP_OBJECT_HEAD(DummyMesh, MeshBase);
+    SP_OBJECT_HEAD(DummyMesh, Chart);
 
     typedef DummyMesh mesh_type;
 
@@ -30,9 +30,9 @@ struct DummyMesh : public MeshBase
 
     virtual box_type box() const { return m_box_; };
 
-    virtual MeshEntityRange range(MeshEntityType) const
+    virtual EntityRange range(MeshEntityType) const
     {
-        return MeshEntityRange(m_entities_.begin(), m_entities_.end());
+        return EntityRange(m_entities_.begin(), m_entities_.end());
     }
 
     virtual size_type size(MeshEntityType entityType = VERTEX) const { max_hash(entityType); };
@@ -51,9 +51,9 @@ struct DummyMesh : public MeshBase
     };
 
 
-    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const
+    virtual std::shared_ptr<Chart> refine(box_type const &b, int flag = 0) const
     {
-        return std::dynamic_pointer_cast<MeshBase>(std::make_shared<DummyMesh>());
+        return std::dynamic_pointer_cast<Chart>(std::make_shared<DummyMesh>());
     };
 
     struct calculus_policy

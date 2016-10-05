@@ -8,11 +8,11 @@
 #include <memory>
 #include <cassert>
 #include "toolbox/logo.h"
-#include "io/IO.h"
-#include "parallel/MPIComm.h"
-#include "data_model/DataSet.h"
-#include "data_model/DataType.h"
-#include "data_model/DataSpace.h"
+#include "toolbox/IO.h"
+#include "toolbox/MPIComm.h"
+#include "toolbox/DataSet.h"
+#include "toolbox/DataType.h"
+#include "toolbox/DataSpace.h"
 
 extern "C"
 {

@@ -10,8 +10,8 @@
 #include <string.h>
 #include "../../toolbox/design_pattern/SingletonHolder.h"
 #include "../../toolbox/MemoryPool.h"
-#include "../../data_model/DataSet.h"
-#include "../../data_model/DataSpace.h"
+#include "../../toolbox/DataSet.h"
+#include "../../toolbox/DataSpace.h"
 #include "../ManifoldTraits.h"
 
 namespace simpla

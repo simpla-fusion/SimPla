@@ -21,8 +21,8 @@
 #include "../toolbox/Log.h"
 
 #include "MeshCommon.h"
-#include "MeshBase.h"
-#include "MeshEntityId.h"
+#include "Chart.h"
+#include "EntityId.h"
 
 namespace simpla { namespace mesh
 {
@@ -40,11 +40,11 @@ typedef Mesh<tags::CoRectLinear> CoRectMesh;
  * @brief Uniform structured get_mesh
  */
 template<>
-struct Mesh<tags::CoRectLinear> : public MeshBase, public MeshEntityIdCoder
+struct Mesh<tags::CoRectLinear> : public Chart, public MeshEntityIdCoder
 {
 private:
     typedef Mesh<tags::CoRectLinear> this_type;
-    typedef MeshBase base_type;
+    typedef Chart base_type;
 public:
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
 
@@ -113,7 +113,7 @@ public:
 
     Mesh() {}
 
-    Mesh(this_type const &other) : MeshBase(other)
+    Mesh(this_type const &other) : Chart(other)
     {
         m_dims_ = other.m_dims_;
         m_coords_lower_ = other.m_coords_lower_;
@@ -182,7 +182,7 @@ public:
 
     vector_type const &dx() const { return m_dx_; }
 
-    virtual mesh::MeshBase &shift(index_tuple const &offset)
+    virtual mesh::Chart &shift(index_tuple const &offset)
     {
         for (int i = 0; i < 3; ++i)
         {
@@ -196,7 +196,7 @@ public:
         return *this;
     };
 
-    virtual mesh::MeshBase &stretch(index_tuple const &dims)
+    virtual mesh::Chart &stretch(index_tuple const &dims)
     {
         for (int i = 0; i < 3; ++i)
         {
@@ -219,7 +219,7 @@ public:
 
     typedef typename MeshEntityIdCoder::range_type block_range_type;
 
-    virtual MeshEntityRange select(box_type const &other,
+    virtual EntityRange select(box_type const &other,
                                    MeshEntityType entityType = VERTEX,
                                    MeshEntityStatus status = SP_ES_ALL) const
     {
@@ -239,10 +239,10 @@ public:
 
         if (!overlapped)
         {
-            return MeshEntityRange();
+            return EntityRange();
         } else
         {
-            return MeshEntityRange(
+            return EntityRange(
                     MeshEntityIdCoder::make_range(point_to_index(c_lower), point_to_index(c_upper), entityType));
         }
 
@@ -301,19 +301,19 @@ public:
 
     }
 
-    virtual MeshEntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
+    virtual EntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
     {
         return range(index_box(b), entityType);
     }
 
-    virtual MeshEntityRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
+    virtual EntityRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
     {
         return MeshEntityIdCoder::make_range(b, entityType);
     }
 
-    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_OWNED) const
+    virtual EntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_OWNED) const
     {
-        MeshEntityRange res;
+        EntityRange res;
 
         /**
          *   |<-----------------------------     valid   --------------------------------->|
@@ -468,9 +468,9 @@ public:
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
 
-    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const
+    virtual std::shared_ptr<Chart> refine(box_type const &b, int flag = 0) const
     {
-        return std::shared_ptr<MeshBase>();
+        return std::shared_ptr<Chart>();
     }
 
 

@@ -7,9 +7,9 @@
  *    This is an example of EM plasma
  */
 
-#include "../../io/IO.h"
+#include "../../toolbox/IO.h"
 #include "../../toolbox/Utilities.h"
-#include "../../parallel/Parallel.h"
+#include "../../toolbox/Parallel.h"
 #include "../Context.h"
 
 namespace simpla

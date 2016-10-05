@@ -7,12 +7,12 @@
 #ifndef SIMPLA_EM_FLUID_H
 #define SIMPLA_EM_FLUID_H
 
-#include "../../src/field/Field.h"
+#include "../../src/physics/Field.h"
 #include "../../src/physics/PhysicalConstants.h"
 #include "../../src/simulation/PhysicalDomain.h"
 #include "../../src/mesh/Mesh.h"
-#include "../../src/mesh/MeshEntityRange.h"
-#include "../../src/mesh/MeshModel.h"
+#include "../../src/mesh/EntityRange.h"
+#include "../../src/mesh/Model.h"
 #include "../../src/manifold/Calculus.h"
 
 namespace simpla
@@ -53,21 +53,21 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    MeshEntityRange limiter_boundary;
-    MeshEntityRange vertex_boundary;
-    MeshEntityRange edge_boundary;
-    MeshEntityRange face_boundary;
+    EntityRange limiter_boundary;
+    EntityRange vertex_boundary;
+    EntityRange edge_boundary;
+    EntityRange face_boundary;
 
-    MeshEntityRange plasma_region_volume;
-    MeshEntityRange plasma_region_vertex;
+    EntityRange plasma_region_volume;
+    EntityRange plasma_region_vertex;
 
 
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
 
-    MeshEntityRange J_src_range;
+    EntityRange J_src_range;
     std::function<Vec3(Real, point_type const &, vector_type const &v)> J_src_fun;
 
-    MeshEntityRange E_src_range;
+    EntityRange E_src_range;
     std::function<Vec3(Real, point_type const &, vector_type const &v)> E_src_fun;
 
     typedef field_t<scalar_type, FACE> TB;

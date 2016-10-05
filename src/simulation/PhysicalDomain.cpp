@@ -5,7 +5,7 @@
  *  */
 
 #include "PhysicalDomain.h"
-#include "../io/IOStream.h"
+#include "../toolbox/IOStream.h"
 
 namespace simpla { namespace simulation
 {
@@ -13,24 +13,24 @@ struct PhysicalDomain::pimpl_s
 {
 //    Real m_dt_ = 0;
 //    Real m_time_ = 0;
-    std::map<std::string, mesh::MeshAttribute *> m_attr_;
-    parallel::DistributedObject m_dist_obj_;
+    std::map<std::string, mesh::Attribute *> m_attr_;
+//    parallel::DistributedObject m_dist_obj_;
 };
 
 PhysicalDomain::PhysicalDomain() : m_mesh_(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) {}
 
-PhysicalDomain::PhysicalDomain(const mesh::MeshBase *msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
+PhysicalDomain::PhysicalDomain(const mesh::Chart *msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
 
 PhysicalDomain::~PhysicalDomain() { teardown(); }
 
 
-const mesh::MeshAttribute *
+const mesh::Attribute *
 PhysicalDomain::attribute(std::string const &s_name) const
 {
     return m_pimpl_->m_attr_.at(s_name);
 };
 
-void PhysicalDomain::add_attribute(mesh::MeshAttribute *attr, std::string const &s_name)
+void PhysicalDomain::add_attribute(mesh::Attribute *attr, std::string const &s_name)
 {
     m_pimpl_->m_attr_.emplace(std::make_pair(s_name, attr));
 };
@@ -47,7 +47,7 @@ void PhysicalDomain::teardown()
 };
 
 std::shared_ptr<PhysicalDomain>
-PhysicalDomain::clone(mesh::MeshBase const &) const
+PhysicalDomain::clone(mesh::Chart const &) const
 {
     UNIMPLEMENTED;
     return std::shared_ptr<PhysicalDomain>(nullptr);
@@ -162,7 +162,7 @@ void PhysicalDomain::sync(mesh::TransitionMap const &t_map, PhysicalDomain const
     }
 }
 
-bool PhysicalDomain::same_as(mesh::MeshBase const &) const
+bool PhysicalDomain::same_as(mesh::Chart const &) const
 {
     UNIMPLEMENTED;
     return false;
@@ -174,9 +174,9 @@ bool PhysicalDomain::same_as(mesh::MeshBase const &) const
 //    return std::vector<mesh::box_type>();
 //}
 //
-//void PhysicalDomain::refine(mesh::MeshBase const &other) { UNIMPLEMENTED; };
+//void PhysicalDomain::refine(mesh::Chart const &other) { UNIMPLEMENTED; };
 //
-//bool PhysicalDomain::coarsen(mesh::MeshBase const &other)
+//bool PhysicalDomain::coarsen(mesh::Chart const &other)
 //{
 //    UNIMPLEMENTED;
 //    return false;

@@ -12,10 +12,11 @@
 #include <list>
 #include <map>
 #include "../sp_def.h"
-#include "../mesh/MeshEntityRange.h"
-#include "../mesh/MeshAttribute.h"
-#include "../mesh/MeshAtlas.h"
-#include "../io/IOStream.h"
+#include "../mesh/EntityRange.h"
+#include "../mesh/Attribute.h"
+#include "../mesh/Atlas.h"
+#include "../mesh/TransitionMap.h"
+#include "../toolbox/IOStream.h"
 #include "PhysicalDomain.h"
 
 
@@ -82,7 +83,7 @@ public:
     template<typename TM>
     std::shared_ptr<TM> get_mesh(mesh::MeshBlockId s)
     {
-        static_assert(std::is_base_of<mesh::MeshBase, TM>::value, "illegal mesh convert!");
+        static_assert(std::is_base_of<mesh::Chart, TM>::value, "illegal mesh convert!");
         assert(get_mesh_block(s).get() != nullptr);
         assert(get_mesh_block(s)->is_a<TM>());
         auto res = std::dynamic_pointer_cast<TM>(get_mesh_block(s));

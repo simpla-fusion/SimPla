@@ -7,7 +7,7 @@
 #ifndef SIMPLA_CYLINDRICAL_H
 #define SIMPLA_CYLINDRICAL_H
 
-#include "../../mesh/MeshEntityRange.h"
+#include "../../mesh/EntityRange.h"
 #include "../../mesh/CoRectMesh.h"
 
 namespace simpla { namespace manifold { namespace metric

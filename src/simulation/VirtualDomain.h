@@ -12,9 +12,9 @@ namespace parallel { struct DistributedObject; }
 
 namespace mesh
 {
-class MeshBase;
+class Chart;
 
-class MeshAttribute;
+class Attribute;
 } //namespace get_mesh
 } //namespace simpla
 

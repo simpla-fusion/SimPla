@@ -8,7 +8,7 @@
 #define SIMPLA_DATA_OBJECT_H
 
 
-#include "../data_model/DataSet.h"
+#include "../toolbox/DataSet.h"
 #include "../toolbox/Properties.h"
 #include "Object.h"
 

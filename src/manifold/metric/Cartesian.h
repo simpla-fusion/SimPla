@@ -7,7 +7,7 @@
 #ifndef SIMPLA_CARTESIAN_H
 #define SIMPLA_CARTESIAN_H
 
-#include "../../mesh/MeshEntityRange.h"
+#include "../../mesh/EntityRange.h"
 #include "../../mesh/CoRectMesh.h"
 
 namespace simpla { namespace manifold { namespace metric

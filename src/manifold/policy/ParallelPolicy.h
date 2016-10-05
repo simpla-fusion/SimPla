@@ -10,10 +10,10 @@
 #include <tuple>
 #include <vector>
 #include "../../toolbox/nTuple.h"
-#include "../../parallel/MPIComm.h"
-#include "../../parallel/MPIUpdate.h"
-#include "../../parallel/Parallel.h"
-#include "../../parallel/DistributedObject.h"
+#include "../../toolbox/MPIComm.h"
+#include "../../toolbox/MPIUpdate.h"
+#include "../../toolbox/Parallel.h"
+#include "../../toolbox/DistributedObject.h"
 
 namespace simpla { namespace manifold { namespace policy
 {

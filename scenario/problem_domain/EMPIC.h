@@ -5,15 +5,15 @@
 #ifndef SIMPLA_EMPIC_H
 #define SIMPLA_EMPIC_H
 
-#include "../../src/field/Field.h"
+#include "../../src/physics/Field.h"
 #include "../../src/physics/PhysicalConstants.h"
 #include "../../src/simulation/ProblemDomain.h"
 #include "../../src/mesh/Mesh.h"
-#include "../../src/mesh/MeshEntityRange.h"
-#include "../../src/particle/Particle.h"
+#include "../../src/mesh/EntityRange.h"
+#include "../../src/physics/Particle.h"
 //#include "../../src/particle/pre_define/BorisParticle.h"
-#include "../../src/particle/ParticleGenerator.h"
-#include "../../src/mesh/MeshModel.h"
+#include "../../src/physics/ParticleGenerator.h"
+#include "../../src/mesh/Model.h"
 #include "BorisYee.h"
 
 namespace simpla
@@ -58,18 +58,18 @@ public:
 //    virtual io::IOStream &save(io::IOStream &os) const;
 
 
-    MeshEntityRange limiter_boundary;
-    MeshEntityRange vertex_boundary;
-    MeshEntityRange edge_boundary;
-    MeshEntityRange face_boundary;
+    EntityRange limiter_boundary;
+    EntityRange vertex_boundary;
+    EntityRange edge_boundary;
+    EntityRange face_boundary;
 
-    MeshEntityRange plasma_region_volume;
-    MeshEntityRange plasma_region_vertex;
+    EntityRange plasma_region_volume;
+    EntityRange plasma_region_vertex;
 
 
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
 
-    MeshEntityRange J_src_range;
+    EntityRange J_src_range;
     std::function<Vec3(Real, point_type const &, vector_type const &v)> J_src_fun;
 
 

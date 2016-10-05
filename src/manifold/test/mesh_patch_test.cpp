@@ -10,7 +10,7 @@
 
 #include "../../field/field.h"
 #include "../../toolbox/utilities/Log.h"
-#include "../../io/XDMFStream.h"
+#include "../../toolbox/XDMFStream.h"
 
 using namespace simpla;
 

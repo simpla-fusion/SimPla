@@ -8,7 +8,7 @@
 #include "../../src/sp_def.h"
 #include "../../src/toolbox/Log.h"
 #include "../../src/physics/PhysicalConstants.h"
-#include "../../src/field/Field.h"
+#include "../../src/physics/Field.h"
 #include "../../src/manifold/Calculus.h"
 #include "../../src/simulation/Context.h"
 

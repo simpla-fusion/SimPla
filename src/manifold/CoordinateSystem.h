@@ -196,7 +196,7 @@ public:
         return os;
     }
 
-    virtual std::shared_ptr<mesh::MeshBase> clone(std::string const &name = "") const
+    virtual std::shared_ptr<mesh::Chart> clone(std::string const &name = "") const
     {
         auto res = std::make_shared<this_type>(*this);
         if (name != "") { res->name(name); }

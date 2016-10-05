@@ -226,8 +226,7 @@ int main(int argc, char *argv[])
 
         if (input_db->keyExists("GlobalInputs"))
         {
-            boost::shared_ptr<tbox::Database> global_db(
-                    input_db->getDatabase("GlobalInputs"));
+            boost::shared_ptr<tbox::Database> global_db(input_db->getDatabase("GlobalInputs"));
 //         if (global_db->keyExists("tag_clustering_method")) {
 //            string tag_clustering_method =
 //               global_db->getString("tag_clustering_method");
@@ -235,8 +234,7 @@ int main(int argc, char *argv[])
 //         }
             if (global_db->keyExists("call_abort_in_serial_instead_of_exit"))
             {
-                bool flag = global_db->getBool(
-                        "call_abort_in_serial_instead_of_exit");
+                bool flag = global_db->getBool("call_abort_in_serial_instead_of_exit");
                 tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit(flag);
             }
         }
@@ -248,11 +246,9 @@ int main(int argc, char *argv[])
          * interval is non-zero, create a restart database.
          */
 
-        boost::shared_ptr<tbox::Database> main_db(
-                input_db->getDatabase("Main"));
+        boost::shared_ptr<tbox::Database> main_db(input_db->getDatabase("Main"));
 
-        const tbox::Dimension dim(
-                static_cast<unsigned short>(main_db->getInteger("dim")));
+        const tbox::Dimension dim(static_cast<unsigned short>(main_db->getInteger("dim")));
 
         string log_file_name = "MblkLinAdv.log";
         if (main_db->keyExists("log_file_name"))
@@ -321,12 +317,10 @@ int main(int argc, char *argv[])
         {
             if (main_db->keyExists("restart_write_dirname"))
             {
-                restart_write_dirname = main_db->getString(
-                        "restart_write_dirname");
+                restart_write_dirname = main_db->getString("restart_write_dirname");
             } else
             {
-                TBOX_ERROR(
-                        "restart_interval > 0, but key `restart_write_dirname'" << " not specifed in input file");
+                TBOX_ERROR("restart_interval > 0, but key `restart_write_dirname'" << " not specifed in input file");
             }
         }
 
@@ -351,21 +345,18 @@ int main(int argc, char *argv[])
         restart_interval = 0;
 #endif
 
-        const bool write_restart = (restart_interval > 0)
-                                   && !(restart_write_dirname.empty());
+        const bool write_restart = (restart_interval > 0) && !(restart_write_dirname.empty());
 
         /*
          * Get the restart manager and root restart database.  If run is from
          * restart, open the restart file.
          */
 
-        tbox::RestartManager *restart_manager =
-                tbox::RestartManager::getManager();
+        tbox::RestartManager *restart_manager = tbox::RestartManager::getManager();
 
         if (is_from_restart)
         {
-            restart_manager->openRestartFile(restart_read_dirname, restore_num,
-                                             mpi.getSize());
+            restart_manager->openRestartFile(restart_read_dirname, restore_num, mpi.getSize());
         }
 
         /*
@@ -377,8 +368,7 @@ int main(int argc, char *argv[])
          * reset using the tbox::TimerManager::resetAllTimers() routine.
          */
 
-        tbox::TimerManager::createManager(
-                input_db->getDatabase("TimerManager"));
+        tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
 
         /*
          * Create major algorithm and data objects which comprise application.
@@ -456,14 +446,7 @@ int main(int argc, char *argv[])
 
         tbox::RestartManager::getManager()->closeRestartFile();
 
-#if (TESTING == 1)
-        /*
-         * Create the autotesting object which will verify correctness
-         * of the problem. If no automated testing is done, the object does
-         * not get used.
-         */
-        AutoTester autotester("AutoTester", input_db);
-#endif
+
 
         /*
          * After creating all objects and initializing their state, we
@@ -500,26 +483,14 @@ int main(int argc, char *argv[])
 
         int iteration_num = time_integrator->getIntegratorStep();
 
-#if (TESTING == 1)
-        /*
-         * If we are doing autotests, check result...
-         */
-        autotester.evalTestData(iteration_num,
-                patch_hierarchy,
-                time_integrator,
-                hyp_level_integrator,
-                gridding_algorithm);
-#endif
 
         while ((loop_time < loop_time_end) && time_integrator->stepsRemaining())
         {
 
             iteration_num = time_integrator->getIntegratorStep() + 1;
 
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++"
-                       << endl;
-            tbox::pout << "At begining of timestep # " << iteration_num - 1
-                       << endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++" << endl;
+            tbox::pout << "At begining of timestep # " << iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time << endl;
 
             double dt_new = time_integrator->advanceHierarchy(dt_now);
@@ -529,8 +500,7 @@ int main(int argc, char *argv[])
 
             tbox::pout << "At end of timestep # " << iteration_num - 1 << endl;
             tbox::pout << "Simulation time is " << loop_time << endl;
-            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++"
-                       << endl;
+            tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++" << endl;
 
             /*
              * At specified intervals, write restart and visualization files.
@@ -540,8 +510,7 @@ int main(int argc, char *argv[])
 
                 if ((iteration_num % restart_interval) == 0)
                 {
-                    tbox::RestartManager::getManager()->writeRestartFile(
-                            restart_write_dirname, iteration_num);
+                    tbox::RestartManager::getManager()->writeRestartFile(restart_write_dirname, iteration_num);
                 }
             }
 
@@ -554,31 +523,18 @@ int main(int argc, char *argv[])
                 if ((iteration_num % viz_dump_interval) == 0)
                 {
 #ifdef HAVE_HDF5
-                    visit_data_writer->writePlotData(mblk_patch_hierarchy,
-                                                     iteration_num, loop_time);
+                    visit_data_writer->writePlotData(mblk_patch_hierarchy, iteration_num, loop_time);
 #endif
                 }
             }
 
-#if (TESTING == 1)
-            /*
-             * If we are doing autotests, check result...
-             */
-            autotester.evalTestData(iteration_num,
-                    patch_hierarchy,
-                    time_integrator,
-                    hyp_level_integrator,
-                    gridding_algorithm);
-#endif
 
         }
 
         /*
          * Output timer results.
          */
-#if (TESTING != 1)
         tbox::TimerManager::getManager()->print(tbox::plog);
-#endif
 
         /*
          * At conclusion of simulation, deallocate objects.
@@ -595,7 +551,7 @@ int main(int argc, char *argv[])
         error_detector.reset();
         mblk_hyp_level_integrator.reset();
 
-        if (linear_advection_model)
+        if (linear_advection_model != nullptr)
         {
             delete linear_advection_model;
         }
@@ -607,7 +563,8 @@ int main(int argc, char *argv[])
         main_db.reset();
 
         tbox::SAMRAIManager::shutdown();
-    }
+    }//    for (int run = 0; run < 2; ++run)
+
 
     tbox::SAMRAIManager::finalize();
     tbox::SAMRAI_MPI::finalize();

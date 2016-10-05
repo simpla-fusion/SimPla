@@ -13,9 +13,11 @@
 #include "../toolbox/Log.h"
 #include "../toolbox/Properties.h"
 #include "../toolbox/ConfigParser.h"
+#include "../toolbox/IOStream.h"
 #include "../mesh/Mesh.h"
-#include "../mesh/MeshAtlas.h"
-#include "../mesh/MeshAttribute.h"
+#include "../mesh/Atlas.h"
+#include "../mesh/TransitionMap.h"
+#include "../mesh/Attribute.h"
 
 
 namespace simpla
@@ -25,9 +27,9 @@ namespace parallel { struct DistributedObject; }
 
 namespace mesh
 {
-class MeshBase;
+class Chart;
 
-class MeshAttribute;
+class Attribute;
 } //namespace get_mesh
 } //namespace simpla
 
@@ -38,7 +40,7 @@ namespace simpla { namespace simulation
 class PhysicalDomain : public base::Object
 {
 public:
-    const mesh::MeshBase *m_mesh_;
+    const mesh::Chart *m_mesh_;
 
     std::shared_ptr<PhysicalDomain> m_next_;
 
@@ -48,17 +50,17 @@ public:
 
     PhysicalDomain();
 
-    PhysicalDomain(const mesh::MeshBase *);
+    PhysicalDomain(const mesh::Chart *);
 
-    mesh::MeshBase const *mesh() const { return m_mesh_; }
+    mesh::Chart const *mesh() const { return m_mesh_; }
 
     virtual  ~PhysicalDomain();
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    virtual std::shared_ptr<PhysicalDomain> clone(mesh::MeshBase const &) const;
+    virtual std::shared_ptr<PhysicalDomain> clone(mesh::Chart const &) const;
 
-    virtual bool same_as(mesh::MeshBase const &) const;
+    virtual bool same_as(mesh::Chart const &) const;
 
     virtual void deploy();
 
@@ -90,15 +92,15 @@ public:
     };
 
     //------------------------------------------------------------------------------------------------------------------
-    const mesh::MeshAttribute *attribute(std::string const &s_name) const;
+    const mesh::Attribute *attribute(std::string const &s_name) const;
 
-    void add_attribute(mesh::MeshAttribute *attr, std::string const &s_name);
+    void add_attribute(mesh::Attribute *attr, std::string const &s_name);
 
     template<typename TF>
     void global_declare(TF *attr, std::string const &s_name)
     {
-        static_assert(std::is_base_of<mesh::MeshAttribute, TF>::value, "illegal Mesh convert");
-        add_attribute(dynamic_cast<mesh::MeshAttribute *>(attr), s_name);
+        static_assert(std::is_base_of<mesh::Attribute, TF>::value, "illegal Mesh convert");
+        add_attribute(dynamic_cast<mesh::Attribute *>(attr), s_name);
     };
 
 //    template<typename TF>
