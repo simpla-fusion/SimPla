@@ -4,6 +4,7 @@ cmake_policy(SET CMP0028 NEW)
 
 
 PROJECT(SAMRAI CXX C Fortran)
+SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 
 FIND_PACKAGE(MPI)
@@ -32,6 +33,58 @@ SET(SAMRAI_DIR ./)
 
 INCLUDE_DIRECTORIES(${SAMRAI_DIR}/include)
 INCLUDE_DIRECTORIES(${SAMRAI_DIR}/source)
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include)
+SET(tbox_SRC
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/ArraySpecial.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/AsyncCommGroup.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/AsyncCommStage.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/BalancedDepthFirstTree.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/BreadthFirstRankTree.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/CenteredRankTree.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Clock.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/CommGraphWriter.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Database.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/DatabaseBox.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/DatabaseFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Dimension.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Grammar.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/HDFDatabase.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/HDFDatabaseFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/IEEE.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/InputManager.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Logger.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/MathUtilitiesSpecial.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/MemoryDatabase.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/MemoryDatabaseFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/MemoryUtilities.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/MessageStream.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/NullDatabase.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/PIO.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/ParallelBuffer.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Parser.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/RankGroup.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/RankTreeStrategy.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/ReferenceCounter.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/RestartManager.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/SAMRAIManager.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/SAMRAI_MPI.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Scanner.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Schedule.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Serializable.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/SiloDatabase.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/SiloDatabaseFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/StartupShutdownManager.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/StatTransaction.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Statistic.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Statistician.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Timer.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/TimerManager.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Tracer.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Transaction.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Utilities.C
+
+        )
 
 SET(xfer_SRC
         ${SAMRAI_DIR}/source/SAMRAI/xfer/BoxGeometryVariableFillPattern.C
@@ -77,45 +130,46 @@ SET(xfer_SRC
 # Example:
 #  add_m4_sources( SRCS src/test1.cxx.m4 src/test2.cxx.m4 )
 #  add_executable( test ${SRCS} )
-function(ADD_M4_SOURCES OUTVAR)
-    set(outfiles)
-    foreach (f ${ARGN})
+get_filename_component(PDAT_FORTDIR ${SAMRAI_DIR}/source/SAMRAI/pdat/fortran ABSOLUTE)
+
+function(ADD_FORTRAN_SOURCES _ROOT name)
+    GET_FILENAME_COMPONENT(ABS_PATH  ${_ROOT}/${name}/fortran/ ABSOLUTE)
+    MESSAGE(${ABS_PATH})
+    FILE(GLOB_RECURSE outfiles ${ABS_PATH}/*.f)
+    FILE(GLOB_RECURSE ${name}_m4_SRC ${ABS_PATH}/*.m4)
+
+    foreach (f ${${name}_m4_SRC})
         # first we might need to make the input file absolute
-        get_filename_component(f "${f}" ABSOLUTE)
+        GET_FILENAME_COMPONENT(f "${f}" ABSOLUTE)
         #if( NOT IS_ABSOLUTE "${f}" )
         #  set( f "${CMAKE_CURRENT_SOURCE_DIR}/${f}" )
         #endif( NOT IS_ABSOLUTE "${f}" )
         # get the relative path of the file to the current source dir
         file(RELATIVE_PATH rf "${CMAKE_CURRENT_SOURCE_DIR}" "${f}")
-        # strip the .m4 off the end if present and prepend the current binary dir string( REGEX REPLACE "\\.m4$" "" of "$ {CMAKE_CURRENT_BINARY_DIR}/${rf}" )
+        string(REGEX REPLACE "\\.m4$" ".f" of "${CMAKE_CURRENT_BINARY_DIR}/${rf}")
         # append the output file to the list of outputs
         list(APPEND outfiles "${of}")
-        # create the output directory if it doesn't exist
-        get_filename_component(d "${of}" PATH)
+        GET_FILENAME_COMPONENT(d "${of}" PATH)
 
-        # now add the custom command to generate the output file
+        if (NOT IS_DIRECTORY "${d}")
+            file(MAKE_DIRECTORY "${d}")
+        endif (NOT IS_DIRECTORY "${d}")
+
         add_custom_command(OUTPUT "${of}"
-                COMMAND m4 ARGS -P -s "${f}" > "${of}"
+                COMMAND m4 ARGS -DFORTDIR=${ABS_PATH} -DPDAT_FORTDIR=${PDAT_FORTDIR} ${f} > ${of}
                 DEPENDS "${f}"
                 )
     endforeach (f)
-    # set the output list in the calling scope
-    MESSAGE(${OUTVAR})
-    set(${OUTVAR} ${outfiles} PARENT_SCOPE)
-endfunction(ADD_M4_SOURCES)
+    set(${name}_f_SRC ${outfiles} PARENT_SCOPE)
+endfunction(ADD_FORTRAN_SOURCES)
 
 function(SAMRAI_build_lib _ROOT name)
     if (NOT DEFINED ${name}_SRC)
         FILE(GLOB_RECURSE ${name}_SRC ${_ROOT}/${name}/*.C)
     endif ()
 
-    if (NOT DEFINED ${name}_f_SRC)
-        FILE(GLOB_RECURSE ${name}_m4_SRC ${_ROOT}/${name}/fortran/*.m4)
-        ADD_M4_SOURCES(${name}_f_SRC ${${name}_m4_SRC})
-    endif ()
-
+    ADD_FORTRAN_SOURCES(${_ROOT} ${name})
     ADD_LIBRARY(SAMRAI_${name} ${${name}_SRC} ${${name}_f_SRC})
-
 endfunction()
 
 function(SAMRAI_build_exe _ROOT name)
@@ -124,24 +178,19 @@ function(SAMRAI_build_exe _ROOT name)
         FILE(GLOB_RECURSE ${name}_SRC ${_ROOT}/${name}/*.C)
     endif ()
 
-    if (NOT DEFINED ${name}_f_SRC)
-        FILE(GLOB_RECURSE ${name}_f_SRC ${_ROOT}/${name}/fortran/*.f)
-    endif ()
-
-    ADD_EXECUTABLE(${name}.exe ${${name}_SRC} ${${name}_f_SRC})
+    ADD_EXECUTABLE(${name}.exe ${${name}_SRC})
 
     TARGET_LINK_LIBRARIES(${name}.exe ${SAMRAI_LIBRARIES} ${MPI_LIBRARIES} ${HDF5_LIBRARIES})
 
 endfunction()
 
-
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI pdat)
 SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI appu)
 SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI algs)
 SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI solv)
 SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI geom)
 SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI mesh)
 SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI math)
-SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI pdat)
 SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI xfer)
 SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI hier)
 SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI tbox)
