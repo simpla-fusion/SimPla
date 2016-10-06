@@ -18,18 +18,18 @@
 
 namespace simpla { namespace mesh
 {
-struct Attribute : public base::Object, std::enable_shared_from_this<Attribute>
+struct Attribute
 {
 
-    Attribute();
+    Attribute() {};
 
-    ~Attribute();
+    virtual ~Attribute() {};
 
     Attribute &operator=(Attribute const &other) = delete;
 
-    virtual void deploy() { m_is_deployed_ = true; };
+    virtual void deploy()=0;
 
-    virtual bool is_deployed() const { return m_is_deployed_; };
+    virtual bool is_deployed() const =0;
 
     virtual void clear() = 0;
 
@@ -59,26 +59,9 @@ struct Attribute : public base::Object, std::enable_shared_from_this<Attribute>
     virtual std::shared_ptr<void> data() = 0;
 
     virtual std::shared_ptr<const void> data() const = 0;
+
 //    virtual void dataset(data_model::DataSet const &) = 0;
-//
 //    virtual void dataset(mesh::EntityRange const &, data_model::DataSet const &) = 0;
-
-    virtual data_model::DataSet dataset(MeshEntityStatus s = SP_ES_OWNED) const = 0;
-
-    virtual void sync(bool is_blocking = true);
-
-    void nonblocking_sync() { sync(false); }
-
-    void wait();
-
-    bool is_ready() const;
-
-private:
-    bool m_is_deployed_ = false;
-    struct pimpl_s;
-    std::shared_ptr<pimpl_s> m_pimpl_;
-
-
 };
 //
 ///**

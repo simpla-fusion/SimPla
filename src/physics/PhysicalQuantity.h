@@ -5,12 +5,20 @@
 #ifndef SIMPLA_PHYSICALQUANTITY_H
 #define SIMPLA_PHYSICALQUANTITY_H
 
-#include "../mesh/Variable.h"
+#include "../sp_config.h"
+#include <string>
 
 namespace simpla { namespace physic
 {
-class PhysicalQuantity : mesh::Variable
+/**
+ *
+ */
+class PhysicalQuantity
 {
+    std::string name;
+    size_type m_id_;
+    Real m_si_[6];
+    size_type m_num_of_dims_;
 
 };
 }}
