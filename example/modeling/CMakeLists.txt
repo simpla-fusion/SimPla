@@ -1,33 +1,31 @@
-FIND_PACKAGE(OCE REQUIRED)
+FIND_PACKAGE(OCE )
 IF (OCE_FOUND)
     MESSAGE("-- Found OCE:${OCE_LIBRARIES}")
 ENDIF (OCE_FOUND)
 
-FIND_PACKAGE(MOAB)
-
-IF (MOAB_FOUND)
-    MESSAGE("-- Found MOAB: ${MOAB_LIBRARIES}")
-else ()
-    MESSAGE("MISSING MOAB !! ")
-ENDIF (MOAB_FOUND)
-
-IF (MOAB_FOUND)
-
-    #    FIND_PACKAGE(MeshKit)
-
-
-    SET(MESHKIT_LIBRARIES "-L/pkg/sigma/1.2/lib -lMeshKit -lemon   -lFBiGeomMOAB -lMOAB -lcgm -liGeom -liMesh -liRel -L/usr/lib     -lmpi -lmpi_cxx")
-
-    SET(MESHKIT_INCLUDE_DIRS "-I/pkg/sigma/1.2/include")
-
-    INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIRS} ${MESHKIT_INCLUDE_DIRS})
-
-    ADD_DEFINITIONS(-DMESH_DIR="/pkg/sigma/1.2")
-
-    ADD_EXECUTABLE(mk_geqdsk mk_geqdsk.cpp)
-
-    TARGET_LINK_LIBRARIES(mk_geqdsk ${MOAB_LIBRARIES} ${MESHKIT_LIBRARIES} ${OCE_LIBRARIES})
-ENDIF (MOAB_FOUND)
+#FIND_PACKAGE(MOAB)
+#
+#IF (MOAB_FOUND)
+#    MESSAGE("-- Found MOAB: ${MOAB_LIBRARIES}")
+#else ()
+#    MESSAGE("MISSING MOAB !! ")
+#ENDIF (MOAB_FOUND)
+#
+#IF (MOAB_FOUND)
+#
+#    #    FIND_PACKAGE(MeshKit)
+#    SET(MESHKIT_LIBRARIES "-L/pkg/sigma/1.2/lib -lMeshKit -lemon   -lFBiGeomMOAB -lMOAB -lcgm -liGeom -liMesh -liRel -L/usr/lib     -lmpi -lmpi_cxx")
+#
+#    SET(MESHKIT_INCLUDE_DIRS "-I/pkg/sigma/1.2/include")
+#
+#    INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIRS} ${MESHKIT_INCLUDE_DIRS})
+#
+#    ADD_DEFINITIONS(-DMESH_DIR="/pkg/sigma/1.2")
+#
+#    ADD_EXECUTABLE(mk_geqdsk mk_geqdsk.cpp)
+#
+#    TARGET_LINK_LIBRARIES(mk_geqdsk ${MOAB_LIBRARIES} ${MESHKIT_LIBRARIES} ${OCE_LIBRARIES})
+#ENDIF (MOAB_FOUND)
 
 FIND_PACKAGE(Qt5Gui)
 FIND_PACKAGE(Qt5Core)
