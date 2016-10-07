@@ -14,7 +14,7 @@
 #include "HDF5Stream.h"
 
 
-namespace simpla { namespace io
+namespace simpla { namespace toolbox
 {
 
 class XDMFStream : public IOStream
@@ -43,24 +43,24 @@ public:
 
     virtual std::tuple<bool, std::string> open(std::string const &url, int flag = 0UL);
 
-    virtual std::string read(std::string const &url, data_model::DataSet *ds, int flag = 0UL) { return ""; };
+    virtual std::string read(std::string const &url, toolbox::DataSet *ds, int flag = 0UL) { return ""; };
 
     void close();
 
     void open_grid(const std::string &g_name, int TAG);
 
-    virtual void set_attribute(std::string const &url, Properties const &v) { };
+    virtual void set_attribute(std::string const &url, Properties const &v) {};
 
     void set_topology_geometry(std::string const &name, int ndims, size_t const *dims, Real const *xmin,
                                Real const *dx);
 
-    void set_topology_geometry(std::string const &name, data_model::DataSet const &ds);
+    void set_topology_geometry(std::string const &name, toolbox::DataSet const &ds);
 
     void close_grid();
 
     void time(Real time);
 
-    std::string write(std::string const &s, data_model::DataSet const &ds, int flag = 0UL);
+    std::string write(std::string const &s, toolbox::DataSet const &ds, int flag = 0UL);
 
 //    void write(std::string const &s, base::AttributeObject const &ds);
 

@@ -53,8 +53,8 @@ template<typename T> struct is_primary
 template<typename T> using is_primary_t=  std::enable_if_t<is_primary<T>::value>;
 
 
-//template<typename T> struct is_ntuple { static constexpr bool value = false; };
-//template<typename T, int ...N> struct is_ntuple<nTuple<T, N...>> { static constexpr bool value = true; };
+//template<typename T> struct is_ntuple { static constexpr bool entity = false; };
+//template<typename T, int ...N> struct is_ntuple<nTuple<T, N...>> { static constexpr bool entity = true; };
 template<typename T> using is_primary_ntuple_t=std::enable_if_t<is_ntuple<T>::value && !(is_expression<T>::value)>;
 template<typename T> using is_expression_ntuple_t=std::enable_if_t<is_ntuple<T>::value && (is_expression<T>::value)>;
 

@@ -93,7 +93,7 @@ public:
         iterator jt = data_->upper_bound(x);
 //		if (jt == data_->begin() || (++jt == data_->begin()))
 //		{
-//			THROW_EXCEPTION_LOGIC_ERROR << "key value out of entity_id_range!";
+//			THROW_EXCEPTION_LOGIC_ERROR << "key entity out of entity_id_range!";
 //		}
         for (int s = 0; s < 2; ++s)
         {
@@ -616,8 +616,8 @@ public:
 //	}
 //
 //	/**
-//	 * Given a value x, and using pointers to m_data xx and yy, and the stored vector of second derivatives
-//	 y2, this routine returns the cubic spline interpolated value y.
+//	 * Given a entity x, and using pointers to m_data xx and yy, and the stored vector of second derivatives
+//	 y2, this routine returns the cubic spline interpolated entity y.
 //	 * @_fdtd_param jl
 //	 * @_fdtd_param x
 //	 * @return

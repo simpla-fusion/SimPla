@@ -145,13 +145,13 @@ public:
 
     virtual std::shared_ptr<const void> data() const { return m_data_holder_; }
 
-    virtual data_model::DataType data_type() const { return data_model::DataType::create<value_type>(); }
+    virtual toolbox::DataType data_type() const { return toolbox::DataType::create<value_type>(); }
 
-    virtual data_model::DataSet dataset(mesh::MeshEntityStatus status = mesh::SP_ES_OWNED) const
+    virtual toolbox::DataSet dataset(mesh::MeshEntityStatus status = mesh::SP_ES_OWNED) const
     {
-        data_model::DataSet res;
+        toolbox::DataSet res;
 
-        res.data_type = data_model::DataType::create<value_type>();
+        res.data_type = toolbox::DataType::create<value_type>();
 
         res.data = m_data_holder_;
 
@@ -160,10 +160,10 @@ public:
         return res;
     };
 
-    virtual void dataset(data_model::DataSet const &) { UNIMPLEMENTED; };
+    virtual void dataset(toolbox::DataSet const &) { UNIMPLEMENTED; };
 
 
-    virtual void sync(bool is_blocking = true){} ;
+    virtual void sync(bool is_blocking = true) {};
 
 
 public:

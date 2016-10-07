@@ -22,24 +22,22 @@ namespace simpla { namespace parallel
 {
 
 void reduce(void const *send_data, void *recv_data, size_t count,
-            data_model::DataType const &data_type, std::string const &op_c);
+            toolbox::DataType const &data_type, std::string const &op_c);
 
 void allreduce(void const *send_data, void *recv_data, size_t count,
-               data_model::DataType const &data_type, std::string const &op_c);
+               toolbox::DataType const &data_type, std::string const &op_c);
 
 template<typename T>
-void reduce(T *send_data, T *recv_data, size_t count,
-            std::string const &op_c = "Sum")
+void reduce(T *send_data, T *recv_data, size_t count, std::string const &op_c = "Sum")
 {
-    reduce(send_data, recv_data, count, data_model::DataType::create<T>(), op_c);
+    reduce(send_data, recv_data, count, toolbox::DataType::create<T>(), op_c);
 
 }
 
 template<typename T>
-void allreduce(T *send_data, T *recv_data, size_t count,
-               std::string const &op_c = "Sum")
+void allreduce(T *send_data, T *recv_data, size_t count, std::string const &op_c = "Sum")
 {
-    allreduce(send_data, recv_data, count, data_model::DataType::create<T>(), op_c);
+    allreduce(send_data, recv_data, count, toolbox::DataType::create<T>(), op_c);
 }
 
 template<typename T>

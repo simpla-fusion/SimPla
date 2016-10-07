@@ -12,10 +12,10 @@
 #include <string>
 #include <iomanip>
 #include "nTuple.h"
-#include "any.h"
+#include "Any.h"
 #include "../base/Object.h"
 
-namespace simpla
+namespace simpla { namespace toolbox
 {
 
 /**
@@ -25,9 +25,8 @@ namespace simpla
  *  @todo using shared_ptr storage m_data
  */
 class Properties
-        : public any,
-          public std::map<std::string, Properties>,
-          public base::Object
+        : public Any,
+          public std::map<std::string, Properties>
 {
 
 private:
@@ -39,13 +38,13 @@ private:
 
 public:
 
-    Properties() { }
+    Properties() {}
 
-    Properties(this_type const &other) : any(dynamic_cast<any const &>(other)), map_type(other) { }
+    Properties(this_type const &other) : Any(dynamic_cast<Any const &>(other)), map_type(other) {}
 
-    template<typename T> Properties(T const &v) : any(v) { }
+    template<typename T> Properties(T const &v) : Any(v) {}
 
-    ~Properties() { }
+    ~Properties() {}
 
     this_type &operator=(this_type const &other)
     {
@@ -55,19 +54,19 @@ public:
 
     void swap(this_type &other)
     {
-        any::swap(other);
+        Any::swap(other);
         map_type::swap(other);
     }
 
     template<typename T>
     this_type &operator=(T const &v)
     {
-        any(v).swap(*this);
+        Any(v).swap(*this);
         return *this;
     }
 
 
-    inline bool empty() const { return any::empty() && map_type::empty(); }
+    inline bool empty() const { return Any::empty() && map_type::empty(); }
 
     inline bool has(std::string const &s) const { return map_type::find(s) != map_type::end(); }
 
@@ -78,8 +77,7 @@ public:
         if (key == "")
         {
             return *this;
-        }
-        else
+        } else
         {
             return map_type::operator[](key);
         }
@@ -91,8 +89,7 @@ public:
         if (it == map_type::end())
         {
             return *this;
-        }
-        else
+        } else
         {
             return it->second;
         }
@@ -174,9 +171,9 @@ std::ostream &operator<<(std::ostream &os, Properties const &prop);
 
 
 #define HAS_PROPERTIES                                                                                            \
-virtual Properties const&properties()const {return m_properties_;};                                                         \
-virtual Properties &properties()  {return m_properties_;};                                             \
-private: Properties m_properties_; public:
+virtual toolbox:: Properties const&properties()const {return m_properties_;};                                                         \
+virtual  toolbox:: Properties &properties()  {return m_properties_;};                                             \
+private:  toolbox:: Properties m_properties_; public:
 
 
 #define DEFINE_PROPERTIES(_TYPE_, _NAME_)                                                      \
@@ -185,6 +182,6 @@ void _NAME_(_TYPE_ const & v)   \
 _TYPE_ _NAME_()const{return m_##_NAME_##_;}                         \
 private: _TYPE_ m_##_NAME_##_;    public:
 /** @} */
-}   // namespace simpla
+}}  // namespace simpla
 
 #endif /* SIMPLA_toolbox_PROPERTIES_H_ */

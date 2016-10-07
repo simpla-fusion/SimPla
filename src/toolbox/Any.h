@@ -17,17 +17,13 @@
 #include <typeindex>
 #include <typeinfo>
 #include <stddef.h>
-
-//#include "../data_model/DataType.h"
 #include "Log.h"
 
-namespace simpla
+namespace simpla { namespace toolbox
 {
-struct PlaceHolder;
 
-template<typename> class Holder;
 
-struct any;
+struct Any;
 
 namespace _impl
 {
@@ -137,69 +133,71 @@ inline bool get_string(std::string *v, std::string const &other)
  *
  *   This an implement of 'any' with m_data type description/serialization information
  */
-struct any
+struct Any
 {
 
-    any() : m_data_(nullptr) { }
+    Any() : m_data_(nullptr) {}
 
     template<typename ValueType>
-    any(const ValueType &value)
+    Any(const ValueType &value)
             : m_data_(new Holder<typename std::remove_cv<
-            typename std::decay<ValueType>::type>::type>(value)) { }
+            typename std::decay<ValueType>::type>::type>(value)) {}
 
 
-    any(const any &other) : m_data_(other.m_data_ == nullptr ? other.m_data_->clone() : nullptr) { }
+    Any(const Any &other) : m_data_(other.m_data_ == nullptr ? other.m_data_->clone() : nullptr) {}
 
 
     // Move constructor
-    any(any &&other) : m_data_(other.m_data_)
+    Any(Any &&other) : m_data_(other.m_data_)
     {
         other.m_data_ = 0;
     }
 
     // Perfect forwarding of ValueType
     template<typename ValueType>
-    any(ValueType &&value,
-        typename std::enable_if<!(std::is_same<any &, ValueType>::value || std::is_const<ValueType>::value)>::type * = 0
-            // disable if value has type `any&`
-            // disable if value has type `const ValueType&&`
+    Any(ValueType &&value,
+        typename std::enable_if<!(std::is_same<Any &, ValueType>::value || std::is_const<ValueType>::value)>::type * = 0
+            // disable if entity has type `any&`
+            // disable if entity has type `const ValueType&&`
     ) : m_data_(new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType &&>(value)))
     {
     }
 
-    ~any() { delete m_data_; }
+    ~Any() { delete m_data_; }
 
-    any &swap(any &other)
+    Any &swap(Any &other)
     {
         std::swap(m_data_, other.m_data_);
         return *this;
     }
 
-    any &operator=(const any &rhs)
+    Any &operator=(const Any &rhs)
     {
-        any(rhs).swap(*this);
+        Any(rhs).swap(*this);
         return *this;
     }
 
     // move assignement
-    any &operator=(any &&rhs)
+    Any &operator=(Any &&rhs)
     {
         rhs.swap(*this);
-        any().swap(rhs);
+        Any().swap(rhs);
         return *this;
     }
 
     // Perfect forwarding of ValueType
     template<class ValueType>
-    any &operator=(ValueType &&rhs)
+    Any &operator=(ValueType &&rhs)
     {
-        any(static_cast<ValueType &&>(rhs)).swap(*this);
+        Any(static_cast<ValueType &&>(rhs)).swap(*this);
         return *this;
     }
 
     virtual bool empty() const { return m_data_ == nullptr; }
 
-    void clear() { any().swap(*this); }
+    virtual bool is_null() const { return m_data_ == nullptr; }
+
+    void clear() { Any().swap(*this); }
 
     const std::type_info &type() const
     {
@@ -237,16 +235,15 @@ struct any
 
     template<class U> operator U() const { return as<U>(); }
 
-    template<class U> U const &as() const { return any::get<U>(); }
+    template<class U> U const &as() const { return Any::get<U>(); }
 
     template<class U>
     U as(U const &def_v) const
     {
         if (!empty() && this->template is_same<U>())
         {
-            return dynamic_cast<Holder<U> *>(m_data_)->value;
-        }
-        else
+            return dynamic_cast<Holder <U> *>(m_data_)->value;
+        } else
         {
             U res;
             if (as(&res)) { return std::move(res); }
@@ -260,13 +257,13 @@ struct any
     {
         if (!is_same<U>()) {THROW_EXCEPTION_BAD_CAST(typeid(U).name(), m_data_->type().name()); }
 
-        return dynamic_cast<Holder<U> *>(m_data_)->value;
+        return dynamic_cast<Holder <U> *>(m_data_)->value;
     }
 
     template<class U> U &get()
     {
         if (!is_same<U>()) {THROW_EXCEPTION_BAD_CAST(typeid(U).name(), m_data_->type().name()); }
-        return dynamic_cast<Holder<U> *>(m_data_)->value;
+        return dynamic_cast<Holder <U> *>(m_data_)->value;
     }
 
 
@@ -293,9 +290,9 @@ private:
 
     struct PlaceHolder
     {
-        PlaceHolder() { }
+        PlaceHolder() {}
 
-        virtual ~PlaceHolder() { }
+        virtual ~PlaceHolder() {}
 
         virtual PlaceHolder *clone() const = 0;
 
@@ -339,8 +336,7 @@ private:
             {
                 *v = dynamic_cast<Holder<nTuple<U, N>> const *>(this)->value;
                 return true;
-            }
-            else if (this->size() < N)
+            } else if (this->size() < N)
             {
                 return false;
             }
@@ -359,9 +355,9 @@ private:
         {
             bool success = true;
             if (is_same<U>()) { *v = dynamic_cast<Holder<U> const *>(this)->value; }
-            else if (_impl::get_integer(v, this->to_integer())) { }
-            else if (_impl::get_floating_point(v, this->to_floating_point())) { }
-            else if (_impl::get_string(v, this->to_string())) { }
+            else if (_impl::get_integer(v, this->to_integer())) {}
+            else if (_impl::get_floating_point(v, this->to_floating_point())) {}
+            else if (_impl::get_string(v, this->to_string())) {}
             else { success = false; }
 
             return success;
@@ -371,11 +367,11 @@ private:
     template<typename ValueType>
     struct Holder : PlaceHolder
     {
-        Holder(ValueType const &v) : value(v) { }
+        Holder(ValueType const &v) : value(v) {}
 
-        Holder(ValueType &&v) : value(std::forward<ValueType>(v)) { }
+        Holder(ValueType &&v) : value(std::forward<ValueType>(v)) {}
 
-        virtual    ~Holder() { }
+        virtual    ~Holder() {}
 
         Holder &operator=(const Holder &) = delete;
 
@@ -389,9 +385,7 @@ private:
 
         std::ostream &print(std::ostream &os, int indent = 1) const
         {
-
             if (std::is_same<ValueType, std::string>::value) { os << "\"" << value << "\""; } else { os << value; }
-
             return os;
         }
 
@@ -453,7 +447,6 @@ private:
             return res;
         }
 
-
     public:
         virtual int size() const { return _size_of(value); };
 
@@ -463,7 +456,6 @@ private:
     };
 
 }; //class any
-}
-// namespace simpla
+}}// namespace simpla{ namespace toolbox
 
 #endif /* ANY_H_ */

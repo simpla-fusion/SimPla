@@ -11,39 +11,25 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "SIMPLA_config.h"
 
-#define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
-#define  COPYRIGHT "All rights reserved. (2016 )"
 
 #define SP_TRUE 1
-
 #define SP_FALSE  0
-
-#define  SP_REAL float
+#define SP_REAL float
 #define REAL_IS_FLOAT SP_TRUE
-
+#define SP_SUCCESS 0
+#define SP_FAILED 1
 #define SP_DO_NOTHING 0xFFFF
 #define SP_UNIMPLEMENTED  SP_DO_NOTHING +1
-
-#define SP_SUCCESS 0
-
-#define SP_FAILED 1
-
 #define SP_MAX_NUM_DIMS 10
 
-typedef int64_t size_type;
-
+typedef size_t size_type;
 typedef int8_t byte_type; // int8_t
-
 typedef SP_REAL Real;
-
 typedef int Integral;
-
 typedef int64_t id_type; //!< Data type of vertex's index , i.e. i,j
-
 typedef int64_t index_type;
-
 typedef unsigned int uint;
-
 
 #endif /* SIMPLA_DEFS_H_ */

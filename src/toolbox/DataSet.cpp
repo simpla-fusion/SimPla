@@ -13,7 +13,7 @@
 #include "MPIUpdate.h"
 #include "MPIComm.h"
 
-namespace simpla { namespace data_model
+namespace simpla { namespace toolbox
 {
 
 

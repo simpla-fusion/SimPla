@@ -1,0 +1,48 @@
+#ifndef SIMPLA_CONFIG_H
+#define SIMPLA_CONFIG_H
+
+#define SIMPLA_VERSION_MAJOR @SIMPLA_VERSION_MAJOR@
+#define SIMPLA_VERSION_MINOR @SIMPLA_VERSION_MAJOR@
+#define SIMPLA_VERSION_PATCHLEVEL @SIMPLA_VERSION_PATCHLEVEL@
+#define SIMPLA_VERSION_IDENTIFY "@SIMPLA_VERSION_IDENTIFY@"
+
+#define  AUTHOR "@AUTHOR@"
+#define  COPYRIGHT "@COPYRIGHT@"
+
+/* Optimized build */
+#cmakedefine OPT_BUILD
+
+#cmakedefine SP_REAL @SP_REAL@
+
+/* Thread Building Blocks are available to use */
+#cmakedefine TBB_FOUND
+
+/* BOOST headers are available to use */
+#cmakedefine BOOST_FOUND
+
+/* BOOST headers are available to use */
+#cmakedefine HAVE_BOOST_HEADERS
+
+#cmakedefine MPI_FOUND
+#define @SKIP_MPICXX@ 1
+
+/* HDF5 library is available so use it */
+#cmakedefine HDF5_FOUND
+
+/* BLAS library is available so use it */
+#cmakedefine BLAS_FOUND
+
+#cmakedefine LAPACK_FOUND
+
+#cmakedefine PETSC_FOUND
+
+#cmakedefine SIMPLA_MAXIMUM_DIMENSION @SIMPLA_MAXIMUM_DIMENSION@
+
+#cmakedefine MAX_NDIMS_OF_ARRAY  @MAX_NDIMS_OF_ARRAY@
+
+#ifdef __cplusplus
+ namespace simpla{ static const unsigned short MAX_DIM_VAL = SIMPLA_MAXIMUM_DIMENSION;}
+#endif //__cplusplus
+
+#endif //SIMPLA_CONFIG_H
+

@@ -146,7 +146,7 @@ public:
 
     Logger &push(LoggerStreamManipulator manip)
     {
-        // call the function, and return it's value
+        // call the function, and return it's entity
         return manip(*this);
     }
 
@@ -183,14 +183,14 @@ public:
 //! define an operator<< to take in std::endl
     Logger &operator<<(StandardEndLine manip)
     {
-        // call the function, but we cannot return it's value
+        // call the function, but we cannot return it's entity
         manip(*dynamic_cast< std::ostringstream *>(this));
         return *this;
     }
 
     Logger const &operator<<(StandardEndLine manip) const
     {
-        // call the function, but we cannot return it's value
+        // call the function, but we cannot return it's entity
         manip(*dynamic_cast< std::ostringstream *>(const_cast<this_type *>(this)));
         return *this;
     }

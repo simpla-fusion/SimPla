@@ -46,15 +46,15 @@ public:
     std::ostream &print(std::ostream &os, int indent = 1) const;
 
 
-    io::IOStream &save_mesh(io::IOStream &os) const;
+    toolbox::IOStream &save_mesh(toolbox::IOStream &os) const;
 
-    io::IOStream &load_mesh(io::IOStream &is);
+    toolbox::IOStream &load_mesh(toolbox::IOStream &is);
 
-    io::IOStream &save(io::IOStream &os, int flag = io::SP_NEW) const;
+    toolbox::IOStream &save(toolbox::IOStream &os, int flag = toolbox::SP_NEW) const;
 
-    io::IOStream &load(io::IOStream &is);
+    toolbox::IOStream &load(toolbox::IOStream &is);
 
-    io::IOStream &check_point(io::IOStream &os) const;
+    toolbox::IOStream &check_point(toolbox::IOStream &os) const;
 
     mesh::MeshBlockId add_mesh(std::shared_ptr<mesh::Chart>);
 

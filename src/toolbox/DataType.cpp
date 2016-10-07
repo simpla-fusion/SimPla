@@ -12,7 +12,7 @@
 #include <iterator>
 #include <iomanip>
 
-namespace simpla { namespace data_model
+namespace simpla { namespace toolbox
 {
 struct DataType::pimpl_s
 {
@@ -35,40 +35,40 @@ struct DataType::pimpl_s
 };
 
 DataType::DataType()
-    : pimpl_(new pimpl_s) {}
+        : pimpl_(new pimpl_s) {}
 
 DataType::DataType(DataType const &other)
-    : pimpl_(new pimpl_s(*other.pimpl_)) {}
+        : pimpl_(new pimpl_s(*other.pimpl_)) {}
 
 DataType::DataType(DataType &&other)
-    : pimpl_(new pimpl_s(*other.pimpl_)) {}
+        : pimpl_(new pimpl_s(*other.pimpl_)) {}
 
 DataType::~DataType() {}
 
 DataType::pimpl_s::pimpl_s()
-    : m_t_index_(std::type_index(typeid(void))) {}
+        : m_t_index_(std::type_index(typeid(void))) {}
 
 DataType::pimpl_s::pimpl_s(pimpl_s const &other)
-    : m_size_in_byte_(other.m_size_in_byte_),
-      m_ele_size_in_byte_(other.m_ele_size_in_byte_),
-      m_t_index_(other.m_t_index_),
-      m_name_(other.m_name_),
-      m_extents_(other.m_extents_),
-      m_members_(other.m_members_) {}
+        : m_size_in_byte_(other.m_size_in_byte_),
+          m_ele_size_in_byte_(other.m_ele_size_in_byte_),
+          m_t_index_(other.m_t_index_),
+          m_name_(other.m_name_),
+          m_extents_(other.m_extents_),
+          m_members_(other.m_members_) {}
 
 DataType::pimpl_s::pimpl_s(pimpl_s &&other)
-    : m_size_in_byte_(other.m_size_in_byte_),
-      m_ele_size_in_byte_(other.m_ele_size_in_byte_),
-      m_t_index_(other.m_t_index_),
-      m_name_(other.m_name_),
-      m_extents_(other.m_extents_),
-      m_members_(other.m_members_) {}
+        : m_size_in_byte_(other.m_size_in_byte_),
+          m_ele_size_in_byte_(other.m_ele_size_in_byte_),
+          m_t_index_(other.m_t_index_),
+          m_name_(other.m_name_),
+          m_extents_(other.m_extents_),
+          m_members_(other.m_members_) {}
 
 DataType::pimpl_s::~pimpl_s() {}
 
 DataType::DataType(std::type_index t_index, size_type ele_size_in_byte,
                    int ndims, size_type const *dims, std::string name)
-    : pimpl_(new pimpl_s)
+        : pimpl_(new pimpl_s)
 {
     pimpl_->m_t_index_ = (t_index);
     pimpl_->m_ele_size_in_byte_ = (ele_size_in_byte);
@@ -117,7 +117,6 @@ DataType &DataType::operator=(DataType const &other)
 void DataType::swap(DataType &other)
 {
     std::swap(pimpl_, other.pimpl_);
-    base_type::swap(other);
 }
 
 DataType DataType::element_type() const
@@ -144,6 +143,7 @@ size_type DataType::ele_size_in_byte() const
 {
     return pimpl_->m_ele_size_in_byte_;
 }
+
 size_type DataType::number_of_entities() const
 {
     size_type res = 1;
@@ -151,6 +151,7 @@ size_type DataType::number_of_entities() const
 
     return res;
 }
+
 size_type DataType::size_in_byte() const { return pimpl_->m_size_in_byte_; }
 
 void DataType::size_in_byte(size_type s) { pimpl_->m_size_in_byte_ = s; };
@@ -184,7 +185,7 @@ bool DataType::is_array() const { return pimpl_->m_extents_.size() > 0; }
 bool DataType::is_opaque() const
 {
     return pimpl_->m_extents_.size() == 0
-        && pimpl_->m_t_index_ == std::type_index(typeid(void));
+           && pimpl_->m_t_index_ == std::type_index(typeid(void));
 }
 
 bool DataType::is_same(std::type_index const &other) const { return pimpl_->m_t_index_ == other; }
@@ -196,11 +197,10 @@ int DataType::push_back(DataType const &d_type, std::string const &name, size_ty
         if (pimpl_->m_members_.empty())
         {
             offset = 0;
-        }
-        else
+        } else
         {
             offset = (std::get<2>(*(pimpl_->m_members_.rbegin()))
-                + std::get<0>(*(pimpl_->m_members_.rbegin())).size_in_byte());
+                      + std::get<0>(*(pimpl_->m_members_.rbegin())).size_in_byte());
         }
     }
 
@@ -238,8 +238,7 @@ std::ostream &DataType::print(std::ostream &os, int indent) const
         }
         os << std::endl << std::setw(indent)
            << "};" << std::endl << std::setw(indent);
-    }
-    else
+    } else
     {
         os << this->name();
         for (auto const &d : this->extents())

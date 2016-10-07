@@ -98,7 +98,7 @@ struct is_arithmetic_scalar
 
 template<typename T> struct is_primitive { static constexpr bool value = is_arithmetic_scalar<T>::value; };
 
-//template<typename T> struct is_expression { static constexpr bool value = false; };
+//template<typename T> struct is_expression { static constexpr bool entity = false; };
 
 template<typename T1> auto abs(T1 const &m) DECL_RET_TYPE((std::fabs(m)))
 

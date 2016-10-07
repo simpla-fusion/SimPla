@@ -97,15 +97,15 @@ PhysicalDomain::print(std::ostream &os, int indent) const
 }
 
 
-io::IOStream &
-PhysicalDomain::load(io::IOStream &is) const
+toolbox::IOStream &
+PhysicalDomain::load(toolbox::IOStream &is) const
 {
     if (!m_properties_["DISABLE_LOAD"]) { UNIMPLEMENTED; }
     return is;
 }
 
-io::IOStream &
-PhysicalDomain::save(io::IOStream &os, int flag) const
+toolbox::IOStream &
+PhysicalDomain::save(toolbox::IOStream &os, int flag) const
 {
     auto pwd = os.pwd();
 //    if (!m_properties_["DISABLE_SAVE"])
@@ -117,11 +117,11 @@ PhysicalDomain::save(io::IOStream &os, int flag) const
             if (!item.second->empty())
             {
                 os.open(item.first + "/");
-#ifndef NDEBUG
-                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_ALL), flag);
-#else
-                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_OWNED), flag);
-#endif
+//#ifndef NDEBUG
+//                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_ALL), flag);
+//#else
+//                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_OWNED), flag);
+//#endif
                 os.open(pwd);
             }
         }
@@ -135,11 +135,11 @@ PhysicalDomain::save(io::IOStream &os, int flag) const
             if ((it != m_pimpl_->m_attr_.end()) && !it->second->empty())
             {
                 os.open(key + "/");
-#ifndef NDEBUG
-                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_ALL), flag);
-#else
-                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_OWNED), flag);
-#endif
+//#ifndef NDEBUG
+//                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_ALL), flag);
+//#else
+//                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_OWNED), flag);
+//#endif
 
                 os.open(pwd);
             }

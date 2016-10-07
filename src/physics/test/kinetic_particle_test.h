@@ -109,7 +109,7 @@ TEST_P(TestKineticParticle, scatter_n)
 		variance += std::pow(abs(expect - actual), 2.0);
 	}
 
-//	if (std::is_same<engine_type, PICEngineFullF<mesh_type> >::value)
+//	if (std::is_same<engine_type, PICEngineFullF<mesh_type> >::entity)
 //	{
 //		Real relative_error = std::sqrt(variance) / abs(average);
 //		CHECK(relative_error);

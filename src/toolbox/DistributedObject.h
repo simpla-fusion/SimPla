@@ -12,12 +12,9 @@
 #include <boost/uuid/uuid.hpp>
 #include "../sp_def.h"
 
-namespace simpla
+namespace simpla { namespace toolbox
 {
-namespace data_model { class DataSet; }
-
-namespace parallel
-{
+class DataSet;
 
 struct DistributedObject
 {
@@ -33,9 +30,9 @@ struct DistributedObject
 
     void wait();
 
-    void add_send_link(size_t id, const nTuple<int, 3> &offset, const data_model::DataSet *);
+    void add_send_link(size_t id, const nTuple<int, 3> &offset, const DataSet *);
 
-    void add_recv_link(size_t id, const nTuple<int, 3> &offset, data_model::DataSet *);
+    void add_recv_link(size_t id, const nTuple<int, 3> &offset, DataSet *);
 
     bool is_ready() const;
 
@@ -45,6 +42,5 @@ private:
     std::unique_ptr<pimpl_s> pimpl_;
 
 };
-}
-}//namespace simpla
+}}//namespace simpla
 #endif //SIMPLA_DISTRIBUTED_OBJECT_H

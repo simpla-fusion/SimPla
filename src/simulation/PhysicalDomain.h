@@ -68,9 +68,9 @@ public:
 
     virtual void next_step(Real dt) = 0;
 
-    virtual io::IOStream &save(io::IOStream &os, int flag = io::SP_NEW) const;
+    virtual toolbox::IOStream &save(toolbox::IOStream &os, int flag = toolbox::SP_NEW) const;
 
-    virtual io::IOStream &load(io::IOStream &is) const;
+    virtual toolbox::IOStream &load(toolbox::IOStream &is) const;
 
     virtual void sync(mesh::TransitionMap const &, PhysicalDomain const &other);
 

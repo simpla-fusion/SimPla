@@ -30,9 +30,7 @@ extern "C"
 }
 
 
-namespace simpla
-{
-namespace lua
+namespace simpla { namespace toolbox
 {
 
 template<typename T>
@@ -307,7 +305,7 @@ struct Converter<std::map<T1, T2> >
 
         while (lua_next(L, idx))
         {
-            /* uses 'key' (at index -2) and 'value' (at index -1) */
+            /* uses 'key' (at index -2) and 'entity' (at index -1) */
 
             int top = lua_gettop(L);
 
@@ -315,7 +313,7 @@ struct Converter<std::map<T1, T2> >
 
             _impl::pop_from_lua(L, top, &value);
             (*v)[key] = value;
-            /* removes 'value'; keeps 'key' for next iteration */
+            /* removes 'entity'; keeps 'key' for next iteration */
             lua_pop(L, 1);
         }
 
@@ -349,11 +347,11 @@ struct Converter<std::complex<T> >
             lua_pushnil(L); /* first key */
             while (lua_next(L, idx))
             {
-                /* uses 'key' (at index -2) and 'value' (at index -1) */
+                /* uses 'key' (at index -2) and 'entity' (at index -1) */
                 T r, i;
                 _impl::pop_from_lua(L, -2, &r);
                 _impl::pop_from_lua(L, -1, &i);
-                /* removes 'value'; keeps 'key' for next iteration */
+                /* removes 'entity'; keeps 'key' for next iteration */
                 lua_pop(L, 1);
 
                 *v = std::complex<T>(r, i);
@@ -396,11 +394,11 @@ struct Converter<std::pair<T1, T2> >
         lua_pushnil(L); /* first key */
         while (lua_next(L, idx))
         {
-            /* uses 'key' (at index -2) and 'value' (at index -1) */
+            /* uses 'key' (at index -2) and 'entity' (at index -1) */
 
             _impl::pop_from_lua(L, -2, &(v->first));
             _impl::pop_from_lua(L, -1, &(v->second));
-            /* removes 'value'; keeps 'key' for next iteration */
+            /* removes 'entity'; keeps 'key' for next iteration */
             lua_pop(L, 1);
         }
 
@@ -482,7 +480,6 @@ struct Converter<Properties>
 
 
 /** @} LuaTrans */
-}
-}                                                                         // namespace simpla
+}}                                                                         // namespace simpla
 
 #endif /* CORE_UTILITIES_LUA_OBJECT_EXT_H_ */

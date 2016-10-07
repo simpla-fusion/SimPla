@@ -158,7 +158,7 @@ struct seq_get<0, integer_sequence<Tp> >
 //struct longer_integer_sequence<integer_sequence<T, N ...>,
 //		integer_sequence<T, M...>>
 //{
-//	typedef integer_sequence<T, mpl::max<T,N,M>::value ...> type;
+//	typedef integer_sequence<T, mpl::max<T,N,M>::entity ...> type;
 //};
 //
 ////template<typename T, T ... N1, T ... N2, typename ...Others>

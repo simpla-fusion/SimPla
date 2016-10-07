@@ -7,8 +7,8 @@
  * @author salmon
  */
 
-#ifndef CORE_UTILITIES_LUA_OBJECT_H_
-#define CORE_UTILITIES_LUA_OBJECT_H_
+#ifndef TOOLBOX_LUA_OBJECT_H_
+#define TOOLBOX_LUA_OBJECT_H_
 
 #include <stddef.h>
 #include <algorithm>
@@ -34,7 +34,7 @@ extern "C"
 
 }
 
-namespace simpla { namespace lua
+namespace simpla { namespace toolbox
 {
 
 /**
@@ -56,7 +56,7 @@ namespace simpla { namespace lua
 
 
 /**
- *  @class GeoObject
+ *  @class LuaObject
  *  \brief interface to Lua Script
  */
 class LuaObject
@@ -488,35 +488,32 @@ namespace traits
 {
 
 template<typename TDest>
-struct type_cast<lua::LuaObject, TDest>
+struct type_cast<toolbox::LuaObject, TDest>
 {
-    static constexpr TDest eval(lua::LuaObject const &v)
-    {
-        return v.as<TDest>();
-    }
+    static constexpr TDest eval(toolbox::LuaObject const &v) { return v.as<TDest>(); }
 };
 
 }  // namespace traits
 
-namespace check
-{
-
-template<typename, typename ...>
-struct is_callable;
-template<typename, typename>
-struct is_indexable;
-
-template<typename ...Args>
-struct is_callable<lua::LuaObject, Args ...>
-{
-    static constexpr bool value = true;
-};
-template<typename Other>
-struct is_indexable<lua::LuaObject, Other>
-{
-    static constexpr bool value = true;
-};
-
-}  // namespace check
+//namespace check
+//{
+//
+//template<typename, typename ...>
+//struct is_callable;
+//template<typename, typename>
+//struct is_indexable;
+//
+//template<typename ...Args>
+//struct is_callable<toolbox::LuaObject, Args ...>
+//{
+//    static constexpr bool entity = true;
+//};
+//template<typename Other>
+//struct is_indexable<toolbox::LuaObject, Other>
+//{
+//    static constexpr bool entity = true;
+//};
+//
+//}  // namespace check
 }
-#endif  // CORE_UTILITIES_LUA_OBJECT_H_
+#endif  // TOOLBOX_LUA_OBJECT_H_

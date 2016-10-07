@@ -16,7 +16,7 @@
 #include "IOStream.h"
 #include "HDF5Stream.h"
 
-namespace simpla { namespace io
+namespace simpla { namespace toolbox
 {
 /** @addtogroup io
  *  @brief this module collects stuff used to read/write m_data file.
@@ -24,7 +24,7 @@ namespace simpla { namespace io
  */
 
 
-std::shared_ptr<io::IOStream> create_from_output_url(std::string const &url);
+std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //
 //void close();
 //

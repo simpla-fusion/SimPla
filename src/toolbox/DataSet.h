@@ -21,7 +21,7 @@
 #include "DataSpace.h"
 #include "DataType.h"
 
-namespace simpla { namespace data_model
+namespace simpla { namespace toolbox
 {
 /**
  * @addtogroup data_model Dataset
@@ -56,7 +56,7 @@ struct DataSet : public base::Object
 
     Properties properties;
 
-    DataSet() : data(nullptr) { }
+    DataSet() : data(nullptr) {}
 
     DataSet(DataSet const &other) :
             data(other.data),
@@ -74,7 +74,7 @@ struct DataSet : public base::Object
     {
     }
 
-    virtual ~DataSet() { }
+    virtual ~DataSet() {}
 
     void swap(DataSet &other)
     {
@@ -137,7 +137,7 @@ DataSet create_data_set(DataType const &dtype, std::shared_ptr<void> const &data
     ds.data_type = dtype;
     ds.data = data;
 
-    ds.  memory_space= data_model::DataSpace::create_simple(std::forward<Args>(args)...);
+    ds.memory_space = toolbox::DataSpace::create_simple(std::forward<Args>(args)...);
     ds.data_space = ds.memory_space;
 
     return std::move(ds);
@@ -172,7 +172,7 @@ DataSet create_data_set(T const *p, int ndims, const size_type *d)
     ds.data_type = DataType::create<T>();
     ds.data = std::shared_ptr<void>(reinterpret_cast<void *>(const_cast<T *>(p)), tags::do_nothing());
 
-    ds. memory_space= data_model::DataSpace::create_simple(ndims, d);
+    ds.memory_space = toolbox::DataSpace::create_simple(ndims, d);
 
     ds.memory_space = ds.data_space;
 
@@ -217,5 +217,5 @@ DataSet DataSet::create(Args &&...args)
 }
 
 
-}} //namespace simpla { namespace data_model
+}} //namespace simpla { namespace toolbox
 #endif /* CORE_DATASET_DATASET_H_ */

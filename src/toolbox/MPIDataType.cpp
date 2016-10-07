@@ -16,7 +16,7 @@ namespace simpla
 {
 
 MPIDataType::MPIDataType()
-    : m_type_(MPI_DATATYPE_NULL) {}
+        : m_type_(MPI_DATATYPE_NULL) {}
 
 MPIDataType::MPIDataType(MPIDataType const &other) {MPI_CALL(MPI_Type_dup(other.type(), &m_type_)); }
 
@@ -28,7 +28,7 @@ void MPIDataType::swap(MPIDataType &other)
 
 MPIDataType::~MPIDataType() { if (is_commited_) {MPI_CALL(MPI_Type_free(&m_type_)); }}
 
-MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
+MPIDataType MPIDataType::create(toolbox::DataType const &data_type, //
                                 int ndims, //
                                 size_t const *p_dims,        //
                                 size_t const *p_start,      //
@@ -66,7 +66,7 @@ MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
         //		  MPI_Datatype array_of_types[],
         for (auto const &item : data_type.members())
         {
-            data_model::DataType sub_datatype;
+            toolbox::DataType sub_datatype;
 
             int offset;
 
@@ -88,13 +88,12 @@ MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
         }
 
         MPI_Type_create_struct(        //
-            static_cast<int>(array_of_block_lengths.size()),        //
-            &array_of_block_lengths[0],        //
-            &array_of_displacements[0],        //
-            &array_of_types[0], &res_type);
+                static_cast<int>(array_of_block_lengths.size()),        //
+                &array_of_block_lengths[0],        //
+                &array_of_displacements[0],        //
+                &array_of_types[0], &res_type);
 
-    }
-    else if (data_type.template is_same<int>()) { res_type = MPI_INT; }
+    } else if (data_type.template is_same<int>()) { res_type = MPI_INT; }
 
     else if (data_type.template is_same<long>()) { res_type = MPI_LONG; }
 
@@ -172,7 +171,7 @@ MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
     return std::move(res);
 }
 
-MPIDataType MPIDataType::create(data_model::DataType const &data_type, data_model::DataSpace const &d_space,
+MPIDataType MPIDataType::create(toolbox::DataType const &data_type, toolbox::DataSpace const &d_space,
                                 bool c_order_array)
 {
 

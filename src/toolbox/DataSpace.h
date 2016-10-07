@@ -17,25 +17,20 @@
 #include "Log.h"
 #include "../base/Object.h"
 
-namespace simpla { namespace data_model
+namespace simpla { namespace toolbox
 {
 
-struct DataSet;
 
 /**
  * @ingroup data_interface
  * @brief  Define the size and  shape of m_data set in memory/file
  *  Ref. http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html
  */
-class DataSpace : public base::Object
+class DataSpace
 {
 public:
 
-    SP_OBJECT_HEAD(DataSpace, base::Object);
-
-
-    typedef nTuple <size_type, MAX_NDIMS_OF_ARRAY> index_tuple;
-
+    typedef nTuple<size_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
     typedef std::tuple<
             int // m_ndims_
@@ -69,7 +64,9 @@ public:
         return *this;
     }
 
-    virtual std::ostream &print(std::ostream &os, int indent) const;
+    bool is_scalar() const { return std::get<0>(shape()) == 0; }
+
+    std::ostream &print(std::ostream &os, int indent) const;
 
     static DataSpace create_simple(int rank, const size_type *dims = nullptr);
 

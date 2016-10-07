@@ -186,8 +186,8 @@ public:
 //
 //	HAS_CONST_MEMBER_FUNCTION(max_hash);
 //
-//	static_assert(has_const_member_function_hash<TM,typename TM::id_type>::value &&
-//			has_const_member_function_max_hash<TM>::value,
+//	static_assert(has_const_member_function_hash<TM,typename TM::id_type>::entity &&
+//			has_const_member_function_max_hash<TM>::entity,
 //			"get_mesh do not support 'sequence container'"
 //	);
 };

@@ -13,19 +13,18 @@
 #include "HDF5Stream.h"
 #include "XDMFStream.h"
 
-namespace simpla { namespace io
+namespace simpla { namespace toolbox
 {
-std::shared_ptr<io::IOStream> create_from_output_url(std::string const &url)
+std::shared_ptr<toolbox::IOStream> create_from_output_url(std::string const &url)
 {
-    std::shared_ptr<io::IOStream> res(nullptr);
+    std::shared_ptr<toolbox::IOStream> res(nullptr);
 
     std::string ext = url.substr(url.find_last_of('.'));
 
     if (ext == ".xdmf")
     {
         res.reset(new XDMFStream);
-    }
-    else
+    } else
     {
         res.reset(new HDF5Stream);
     }
@@ -38,30 +37,30 @@ std::shared_ptr<io::IOStream> create_from_output_url(std::string const &url)
 //
 //void close()
 //{
-//    SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->close();
-//    SingletonHolder<std::unique_ptr<io::IOStream>>::instance().reset(nullptr);
+//    SingletonHolder<std::unique_ptr<toolbox::IOStream>>::instance()->close();
+//    SingletonHolder<std::unique_ptr<toolbox::IOStream>>::instance().reset(nullptr);
 //}
 //
 //IOStream &global()
 //{
-//    return *(SingletonHolder<std::unique_ptr<io::IOStream>>::instance());
+//    return *(SingletonHolder<std::unique_ptr<toolbox::IOStream>>::instance());
 //}
 //
 //std::string write(std::string const &url, data_model::DataSet const &ds, size_t id)
 //{
-//    return SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->write(url, ds, id);
+//    return SingletonHolder<std::unique_ptr<toolbox::IOStream>>::instance()->write(url, ds, id);
 //}
 //
 //data_model::DataSet load(std::string const &url)
 //{
 //    data_model::DataSet ds;
-//    SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->read(url, &ds);
+//    SingletonHolder<std::unique_ptr<toolbox::IOStream>>::instance()->read(url, &ds);
 //    return std::move(ds);
 //}
 //
 //std::string cd(std::string const &url)
 //{
-//    return std::get<1>(SingletonHolder<std::unique_ptr<io::IOStream>>::instance()->open(url));
+//    return std::get<1>(SingletonHolder<std::unique_ptr<toolbox::IOStream>>::instance()->open(url));
 //}
 }}// namespace simpla//namespace io
 

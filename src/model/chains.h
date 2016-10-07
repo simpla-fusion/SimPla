@@ -87,9 +87,9 @@ struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector
 //	typedef typename traits::point_type<coordinate_system>::type point_type;
 //
 //	static constexpr size_t max_number_of_points = traits::number_of_points<
-//			primitive_type>::value;
+//			primitive_type>::entity;
 //
-//	static constexpr size_t dimension = traits::dimension<primitive_type>::value;
+//	static constexpr size_t dimension = traits::dimension<primitive_type>::entity;
 //
 //	typedef Chains<Primitive<dimension - 1, coordinate_system, tag_type>,
 //			Policies...> boundary_type;

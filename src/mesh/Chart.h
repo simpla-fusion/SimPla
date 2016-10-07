@@ -13,8 +13,9 @@
 #include "Chart.h"
 #include "EntityRange.h"
 #include "EntityId.h"
+#include "../toolbox/IOStream.h"
 
-namespace simpla { namespace data_model { struct DataSpace; }}
+namespace simpla { namespace toolbox { struct DataSpace; }}
 namespace simpla { namespace io { struct IOStream; }}
 
 namespace simpla { namespace mesh
@@ -37,13 +38,13 @@ public:
 
     virtual ~Chart() {}
 
-    virtual io::IOStream &save(io::IOStream &os) const
+    virtual toolbox::IOStream &save(toolbox::IOStream &os) const
     {
         UNIMPLEMENTED;
         return os;
     };
 
-    virtual io::IOStream &load(io::IOStream &is)
+    virtual toolbox::IOStream &load(toolbox::IOStream &is)
     {
         UNIMPLEMENTED;
         return is;
@@ -154,7 +155,7 @@ public:
 
     }
 
-    virtual std::tuple<data_model::DataSpace, data_model::DataSpace>
+    virtual std::tuple<toolbox::DataSpace, toolbox::DataSpace>
     data_space(MeshEntityType const &t, MeshEntityStatus status = SP_ES_OWNED) const = 0;
 
     virtual std::shared_ptr<Chart> clone(std::string const &name = "") const = 0;

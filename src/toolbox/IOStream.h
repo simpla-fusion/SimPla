@@ -13,7 +13,7 @@
 #include "DataSet.h"
 
 
-namespace simpla { namespace io
+namespace simpla { namespace toolbox
 {
 /**
  * @ingroup io
@@ -61,7 +61,7 @@ public:
     virtual std::string ext_name() const = 0;
 
     std::tuple<std::string, std::string, std::string, std::string>
-            parser_url(std::string const &url_hint) const;
+    parser_url(std::string const &url_hint) const;
 
     std::string pwd() const;
 
@@ -71,9 +71,9 @@ public:
 
     virtual std::tuple<bool, std::string> open(std::string const &url, int flag = 0UL) = 0;
 
-    virtual std::string write(std::string const &url, data_model::DataSet const &, int flag = 0UL) = 0;
+    virtual std::string write(std::string const &url, toolbox::DataSet const &, int flag = 0UL) = 0;
 
-    virtual std::string read(std::string const &url, data_model::DataSet *ds, int flag = 0UL) = 0;
+    virtual std::string read(std::string const &url, toolbox::DataSet *ds, int flag = 0UL) = 0;
 
 
 //    template<typename TV>
@@ -91,7 +91,7 @@ public:
 //    }
 };
 
-                                                                     \
+\
 
 }}//namespace simpla { namespace io
 

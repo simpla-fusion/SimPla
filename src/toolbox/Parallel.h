@@ -21,11 +21,13 @@
 
 #endif
 
-#ifdef USE_TBB
+#ifdef TBB_FOUND
 
 #   include "ParallelTbb.h"
 
-#elif _OPENMP
+#endif
+
+#ifdef OPENMP_FOUND
 
 #   include "ParallelOpenMP.h"
 
@@ -106,7 +108,7 @@ void parallel_foreach(TRange const &r, Body const &body)
 }
 //
 //template<typename TRange, typename Body,
-//        typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x1FUL) == 0x10UL>::type * = nullptr>
+//        typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::entity & 0x1FUL) == 0x10UL>::type * = nullptr>
 //void serial_foreach(TRange const &r, Body const &body)
 //{
 //    UNIMPLEMENTED;

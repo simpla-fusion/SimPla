@@ -85,33 +85,33 @@ Context::add_domain(std::shared_ptr<PhysicalDomain> pb)
     return pb;
 }
 
-io::IOStream &
-Context::save_mesh(io::IOStream &os) const
+toolbox::IOStream &
+Context::save_mesh(toolbox::IOStream &os) const
 {
     m_pimpl_->m_atlas_.save(os);
     return os;
 }
 
 
-io::IOStream &
-Context::load_mesh(io::IOStream &is)
+toolbox::IOStream &
+Context::load_mesh(toolbox::IOStream &is)
 {
     UNIMPLEMENTED;
     return is;
 }
 
-io::IOStream &
-Context::save(io::IOStream &os, int flag) const
+toolbox::IOStream &
+Context::save(toolbox::IOStream &os, int flag) const
 {
     for (auto const &item:m_pimpl_->m_domains_) { item.second->save(os, flag); }
     return os;
 }
 
-io::IOStream &
-Context::check_point(io::IOStream &os) const { return save(os, io::SP_RECORD); }
+toolbox::IOStream &
+Context::check_point(toolbox::IOStream &os) const { return save(os, toolbox::SP_RECORD); }
 
-io::IOStream &
-Context::load(io::IOStream &is)
+toolbox::IOStream &
+Context::load(toolbox::IOStream &is)
 {
     UNIMPLEMENTED;
 

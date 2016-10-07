@@ -16,6 +16,7 @@
 #include "../toolbox/nTuple.h"
 #include "../toolbox/IteratorBlock.h"
 #include "../toolbox/Range.h"
+#include "../toolbox/Parallel.h"
 #include "MeshCommon.h"
 #include "EntityRange.h"
 

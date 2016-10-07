@@ -220,8 +220,8 @@ public:
     typedef typename MeshEntityIdCoder::range_type block_range_type;
 
     virtual EntityRange select(box_type const &other,
-                                   MeshEntityType entityType = VERTEX,
-                                   MeshEntityStatus status = SP_ES_ALL) const
+                               MeshEntityType entityType = VERTEX,
+                               MeshEntityStatus status = SP_ES_ALL) const
     {
 
         point_type c_lower, c_upper;
@@ -611,7 +611,7 @@ public:
     }
 
 
-    virtual std::tuple<data_model::DataSpace, data_model::DataSpace>
+    virtual std::tuple<toolbox::DataSpace, toolbox::DataSpace>
     data_space(MeshEntityType const &t, MeshEntityStatus status = SP_ES_OWNED) const
     {
         int i_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
@@ -654,10 +654,10 @@ public:
         m_start[ndims] = 0;
         m_count[ndims] = 3;
 
-        data_model::DataSpace f_space(i_ndims, &f_dims[0]);
+        toolbox::DataSpace f_space(i_ndims, &f_dims[0]);
         f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
 
-        data_model::DataSpace m_space(i_ndims, &m_dims[0]);
+        toolbox::DataSpace m_space(i_ndims, &m_dims[0]);
         m_space.select_hyperslab(&m_start[0], nullptr, &m_count[0], nullptr);
 
         return std::forward_as_tuple(m_space, f_space);

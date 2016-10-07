@@ -8,7 +8,7 @@
 #include "PrettyStream.h"
 #include "nTupleExt.h"
 
-namespace simpla { namespace lua
+namespace simpla { namespace toolbox
 {
 
 
@@ -302,7 +302,7 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const
 
     if (key_ == LUA_NOREF || value_ == LUA_NOREF)
     {
-        LOGIC_ERROR << ("the value of this iterator is invalid!") << std::endl;
+        LOGIC_ERROR << ("the entity of this iterator is invalid!") << std::endl;
     } else
     {
 
@@ -318,7 +318,7 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const
 
         LuaObject(acc.get(), GLOBAL_IDX_, key, path_ + ".key").swap(res.first);
 
-        LuaObject(acc.get(), GLOBAL_IDX_, value, path_ + ".value").swap(res.second);
+        LuaObject(acc.get(), GLOBAL_IDX_, value, path_ + ".entity").swap(res.second);
     }
 
     return std::move(res);

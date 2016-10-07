@@ -20,7 +20,7 @@ namespace simpla
 namespace _impl
 {
 
-bool GetMPIType(data_model::DataType const &data_type_desc, MPI_Datatype *new_type);
+bool GetMPIType(toolbox::DataType const &data_type_desc, MPI_Datatype *new_type);
 
 }  // namespace _impl
 
@@ -39,13 +39,13 @@ struct MPIDataType
 
 //	static MPIDataType create(DataType const &);
 
-    static MPIDataType create(data_model::DataType const &data_type,
+    static MPIDataType create(toolbox::DataType const &data_type,
                               int ndims = 0, size_t const *dims = nullptr,
                               size_t const *p_start = nullptr, size_t const *offset = nullptr,
                               size_t const *stride = nullptr, size_t const *block = nullptr,
                               bool c_order_array = true);
 
-    static MPIDataType create(data_model::DataType const &data_type, data_model::DataSpace const &space,
+    static MPIDataType create(toolbox::DataType const &data_type, toolbox::DataSpace const &space,
                               bool c_order_array = true);
 
     void swap(MPIDataType &other);
@@ -59,7 +59,7 @@ struct MPIDataType
     template<typename T, typename ...Others>
     static MPIDataType create(Others &&... others)
     {
-        return create(data_model::DataType::create<T>(), std::forward<Others>(others)...);
+        return create(toolbox::DataType::create<T>(), std::forward<Others>(others)...);
     }
 
     MPI_Datatype const &type(...) const { return m_type_; }

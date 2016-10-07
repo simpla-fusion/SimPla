@@ -5,15 +5,16 @@
  */
 
 #include "Properties.h"
+#include "Any.h"
 
-namespace simpla
+namespace simpla { namespace toolbox
 {
 
 
 std::ostream &Properties::print(std::ostream &os, int indent) const
 {
 
-    if (!this->any::empty()) { this->any::print(os, indent); }
+    if (!this->Any::empty()) { this->Any::print(os, indent); }
 
 
     if (this->size() == 1)
@@ -25,8 +26,7 @@ std::ostream &Properties::print(std::ostream &os, int indent) const
         it->second.print(os, indent + 1);
 
         os << "}";
-    }
-    else if (this->size() > 1)
+    } else if (this->size() > 1)
     {
         auto it = this->begin();
         auto ie = this->end();
@@ -42,7 +42,7 @@ std::ostream &Properties::print(std::ostream &os, int indent) const
         for (; it != ie; ++it)
         {
             os << " , " << std::endl
-            << std::setw(indent + 1) << " " << it->first << " = ";
+               << std::setw(indent + 1) << " " << it->first << " = ";
             it->second.print(os, indent + 1);
 
         }
@@ -59,4 +59,4 @@ std::ostream &operator<<(std::ostream &os, Properties const &prop)
     return os;
 }
 
-} // namespace simpla { namespace toolbox
+}}// namespace simpla { namespace toolbox

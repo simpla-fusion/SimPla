@@ -12,12 +12,12 @@
 #include "MPIAuxFunctions.h"
 #include "MPIUpdate.h"
 
-namespace simpla { namespace parallel
+namespace simpla { namespace toolbox
 {
 
 struct DistributedObject::pimpl_s
 {
-    typedef typename data_model::DataSpace::index_tuple index_tuple;
+    typedef typename toolbox::DataSpace::index_tuple index_tuple;
 
     pimpl_s();
 
@@ -40,14 +40,14 @@ struct DistributedObject::pimpl_s
         int tag;
         int dest;
         nTuple<int, 3> shift;
-        data_model::DataSet *data_set;
+        toolbox::DataSet *data_set;
     };
     struct send_link_s
     {
         int tag;
         int dest;
         nTuple<int, 3> shift;
-        data_model::DataSet const *data_set;
+        toolbox::DataSet const *data_set;
     };
 
     std::multimap<size_t, send_link_s> m_send_links_;
@@ -57,16 +57,16 @@ struct DistributedObject::pimpl_s
     std::vector<MPI_Request> m_mpi_requests_;
 
 
-    void add_send_link(size_t id, const nTuple<int, 3> &shift, const data_model::DataSet *ds);
+    void add_send_link(size_t id, const nTuple<int, 3> &shift, const toolbox::DataSet *ds);
 
-    void add_recv_link(size_t id, const nTuple<int, 3> &shift, data_model::DataSet *ds);
+    void add_recv_link(size_t id, const nTuple<int, 3> &shift, toolbox::DataSet *ds);
 
 
 };
 
-DistributedObject::pimpl_s::pimpl_s() { }
+DistributedObject::pimpl_s::pimpl_s() {}
 
-DistributedObject::pimpl_s::~pimpl_s() { }
+DistributedObject::pimpl_s::~pimpl_s() {}
 
 void DistributedObject::pimpl_s::clear()
 {
@@ -78,7 +78,7 @@ void DistributedObject::pimpl_s::clear()
 }
 
 void DistributedObject::pimpl_s::add_send_link(size_t id, const nTuple<int, 3> &shift,
-                                               const data_model::DataSet *ds)
+                                               const toolbox::DataSet *ds)
 {
     int dest_id;
     int send_tag;
@@ -90,7 +90,7 @@ void DistributedObject::pimpl_s::add_send_link(size_t id, const nTuple<int, 3> &
 
 };
 
-void DistributedObject::pimpl_s::add_recv_link(size_t id, const nTuple<int, 3> &shift, data_model::DataSet *ds)
+void DistributedObject::pimpl_s::add_recv_link(size_t id, const nTuple<int, 3> &shift, toolbox::DataSet *ds)
 {
     int dest_id;
     int recv_tag;
@@ -123,10 +123,10 @@ void DistributedObject::pimpl_s::sync()
                 swap(m_mpi_dtype_[count]);
 
         MPI_CALL(MPI_Isend(item.second.data_set->data.get(), 1,
-                            m_mpi_dtype_[count].type(),
-                            item.second.dest, item.second.tag,
-                            GLOBAL_COMM.comm(),
-                            &(m_mpi_requests_[item.first])));
+                           m_mpi_dtype_[count].type(),
+                           item.second.dest, item.second.tag,
+                           GLOBAL_COMM.comm(),
+                           &(m_mpi_requests_[item.first])));
         ++count;
     }
 
@@ -165,7 +165,7 @@ void DistributedObject::pimpl_s::sync()
 
             size_type s_recv_num = static_cast<size_type>(recv_num);
 
-            ds->memory_space = data_model::DataSpace(1, &s_recv_num);
+            ds->memory_space = toolbox::DataSpace(1, &s_recv_num);
 
 //            ds->data_space = ds->memory_space;
 
@@ -173,19 +173,18 @@ void DistributedObject::pimpl_s::sync()
 
             ASSERT(ds->data.get() != nullptr);
             MPI_CALL(MPI_Irecv(ds->data.get(), recv_num,
-                                m_mpi_dtype_[count].type(),
-                                dest_id, recv_tag, GLOBAL_COMM.comm(),
-                                &(m_mpi_requests_[count])));
+                               m_mpi_dtype_[count].type(),
+                               dest_id, recv_tag, GLOBAL_COMM.comm(),
+                               &(m_mpi_requests_[count])));
 
-        }
-        else
+        } else
         {
             ASSERT(ds->data.get() != nullptr);
             MPIDataType::create(ds->data_type, ds->memory_space).swap(m_mpi_dtype_[count]);
             MPI_CALL(MPI_Irecv(ds->data.get(), 1,
-                                m_mpi_dtype_[count].type(),
-                                dest_id, recv_tag, GLOBAL_COMM.comm(),
-                                &(m_mpi_requests_[count])));
+                               m_mpi_dtype_[count].type(),
+                               dest_id, recv_tag, GLOBAL_COMM.comm(),
+                               &(m_mpi_requests_[count])));
         }
 
         ++count;
@@ -356,9 +355,9 @@ bool DistributedObject::pimpl_s::is_ready() const
 
 
 //! Default constructor
-DistributedObject::DistributedObject() : pimpl_(new pimpl_s()) { }
+DistributedObject::DistributedObject() : pimpl_(new pimpl_s()) {}
 
-DistributedObject::~DistributedObject() { }
+DistributedObject::~DistributedObject() {}
 
 void DistributedObject::clear() { pimpl_->clear(); }
 
@@ -369,13 +368,13 @@ void DistributedObject::wait() { pimpl_->wait(); }
 bool DistributedObject::is_ready() const { return pimpl_->is_ready(); }
 
 
-void DistributedObject::add_send_link(size_t id, const nTuple<int, 3> &offset, const data_model::DataSet *ds)
+void DistributedObject::add_send_link(size_t id, const nTuple<int, 3> &offset, const toolbox::DataSet *ds)
 {
     return pimpl_->add_send_link(id, offset, ds);
 
 };
 
-void DistributedObject::add_recv_link(size_t id, const nTuple<int, 3> &offset, data_model::DataSet *ds)
+void DistributedObject::add_recv_link(size_t id, const nTuple<int, 3> &offset, toolbox::DataSet *ds)
 {
     return pimpl_->add_recv_link(id, offset, ds);
 }

@@ -817,7 +817,7 @@ traits::value_type_t<nTuple<Expression<T...> > > reduce(TOP const &op,
 //template<typename TOP, typename ...Args>
 //auto for_each(TOP const & op, Args &&... args)
 //-> typename std::enable_if<!(mpl::logical_or<
-//		traits::is_ntuple<Args>::value...>::value),void>::type
+//		traits::is_ntuple<Args>::m_value_...>::entity),void>::type
 //{
 //	op(std::forward<Args>(args)...);
 //}

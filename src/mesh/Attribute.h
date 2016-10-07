@@ -29,7 +29,7 @@ struct Attribute
 
     virtual void deploy()=0;
 
-    virtual bool is_deployed() const =0;
+    virtual bool is_deployed() const { return true; };
 
     virtual void clear() = 0;
 
@@ -59,6 +59,7 @@ struct Attribute
     virtual std::shared_ptr<void> data() = 0;
 
     virtual std::shared_ptr<const void> data() const = 0;
+
 
 //    virtual void dataset(data_model::DataSet const &) = 0;
 //    virtual void dataset(mesh::EntityRange const &, data_model::DataSet const &) = 0;
@@ -106,7 +107,7 @@ struct Attribute
 //
 //        std::shared_ptr<TF> res;
 //
-//        static_assert(std::is_base_of<View, TF>::value,
+//        static_assert(std::is_base_of<View, TF>::entity,
 //                      "Object is not a get_mesh::Attribute::View");
 //        auto it = m_views_.find(m->uuid());
 //

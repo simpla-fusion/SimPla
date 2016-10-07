@@ -133,7 +133,7 @@ struct type_cast<std::string, nTuple<T, N> >
 //
 //template<std::int I, class T, std::int N, std::int ...M>
 //struct extent<simpla::nTuple<T, N, M...>, I> : public std::integral_constant<
-//		std::int, std::extent<simpla::nTuple<T, M...>, I - 1>::value>
+//		std::int, std::extent<simpla::nTuple<T, M...>, I - 1>::entity>
 //{
 //};
 //

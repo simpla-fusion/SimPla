@@ -21,7 +21,7 @@
 #include "parse_command_line.h"
 #include "../sp_def.h"
 
-namespace simpla
+namespace simpla { namespace toolbox
 {
 
 /**
@@ -39,35 +39,36 @@ struct ConfigParser
     void parse(std::string const &url, std::string const &prologue = "", std::string const &epilogue = "");
 
     void add(std::string const &k, std::string const &v);
-    struct DictObject: public lua::LuaObject
+
+    struct DictObject : public toolbox::LuaObject
     {
         DictObject()
-            : lua::LuaObject(), m_value_("")
+                : toolbox::LuaObject(), m_value_("")
         {
 
         }
 
         DictObject(DictObject const &other)
-            : lua::LuaObject(other), m_value_(other.m_value_)
+                : toolbox::LuaObject(other), m_value_(other.m_value_)
         {
 
         }
 
         DictObject(DictObject &&other)
-            : lua::LuaObject(other), m_value_(other.m_value_)
+                : toolbox::LuaObject(other), m_value_(other.m_value_)
         {
 
         }
 
-        DictObject(lua::LuaObject const &lua_obj)
-            : lua::LuaObject(lua_obj), m_value_("")
+        DictObject(toolbox::LuaObject const &lua_obj)
+                : toolbox::LuaObject(lua_obj), m_value_("")
         {
 
         }
 
         DictObject(std::string const &value)
-            : /*lua::GeoObject(),*/
-            m_value_(value)
+                : /*lua::GeoObject(),*/
+                m_value_(value)
         {
         }
 
@@ -77,7 +78,7 @@ struct ConfigParser
 
         void swap(DictObject &other)
         {
-            lua::LuaObject::swap(other);
+            toolbox::LuaObject::swap(other);
             std::swap(m_value_, other.m_value_);
         }
 
@@ -89,7 +90,7 @@ struct ConfigParser
 
         operator bool() const
         {
-            return m_value_ != "" || lua::LuaObject::operator bool();
+            return m_value_ != "" || toolbox::LuaObject::operator bool();
         }
 
         template<typename T>
@@ -98,13 +99,12 @@ struct ConfigParser
             if (m_value_ != "")
             {
                 return std::move(type_cast<T>(m_value_));
-            }
-            else if (lua::LuaObject::is_null())
+            } else if (toolbox::LuaObject::is_null())
             {
 
                 THROW_EXCEPTION_RUNTIME_ERROR("undefined lua object!");
             }
-            return std::move(lua::LuaObject::template as<T>());
+            return std::move(toolbox::LuaObject::template as<T>());
 
         }
 
@@ -114,12 +114,10 @@ struct ConfigParser
             if (m_value_ != "")
             {
                 return std::move(type_cast<T>(m_value_));
-            }
-            else if (!lua::LuaObject::is_null())
+            } else if (!toolbox::LuaObject::is_null())
             {
-                return std::move(lua::LuaObject::template as<T>(default_value));
-            }
-            else
+                return std::move(toolbox::LuaObject::template as<T>(default_value));
+            } else
             {
                 return default_value;
             }
@@ -133,7 +131,7 @@ struct ConfigParser
 
         bool as(Properties *v) const
         {
-            return lua::LuaObject::as(v);
+            return toolbox::LuaObject::as(v);
         }
 
         template<typename T>
@@ -153,12 +151,10 @@ struct ConfigParser
         if (it != m_kv_map_.end())
         {
             return std::move(DictObject(it->second));
-        }
-        else if (!m_lua_object_.is_null())
+        } else if (!m_lua_object_.is_null())
         {
             return std::move(DictObject(m_lua_object_[key]));
-        }
-        else
+        } else
         {
             return std::move(DictObject());
         }
@@ -166,10 +162,10 @@ struct ConfigParser
 
 private:
 
-    lua::LuaObject m_lua_object_;
+    toolbox::LuaObject m_lua_object_;
     std::map<std::string, std::string> m_kv_map_;
 };
 
-}  // namespace simpla
+}} // namespace simpla
 
 #endif /* CORE_UTILITIES_CONFIG_PARSER_H_ */

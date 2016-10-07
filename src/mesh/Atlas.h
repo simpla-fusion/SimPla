@@ -13,6 +13,7 @@
 
 #include "MeshCommon.h"
 #include "Chart.h"
+#include "../toolbox/IOStream.h"
 
 namespace simpla { namespace mesh
 {
@@ -47,9 +48,9 @@ public:
 
     std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> const &at_level(int l = 0) const { return m_nodes_; };
 
-    io::IOStream &save(io::IOStream &os) const;
+    toolbox::IOStream &save(toolbox::IOStream &os) const;
 
-    io::IOStream &load(io::IOStream &is);
+    toolbox::IOStream &load(toolbox::IOStream &is);
 
     void add_adjacency(std::shared_ptr<TransitionMap>);
 

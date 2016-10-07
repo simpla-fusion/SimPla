@@ -24,14 +24,14 @@ public:
 	typedef optional<T> this_type;
 	typedef T value_type;
 
-	T value;
+	T m_value_;
 	optional() :
 	cond_(false)
 	{
 
 	}
 	optional(bool cond, value_type v) :
-	value(v), cond_(cond)
+	m_value_(v), cond_(cond)
 	{
 	}
 	~optional()
@@ -40,7 +40,7 @@ public:
 
 	void SetValue(value_type && v)
 	{
-		value = v;
+		m_value_ = v;
 	}
 	void SetTrue()
 	{
@@ -62,19 +62,19 @@ public:
 
 	value_type & operator*()
 	{
-		return value;
+		return m_value_;
 	}
 	value_type const & operator*() const
 	{
-		return value;
+		return m_value_;
 	}
 	value_type * operator ->()
 	{
-		return &value;
+		return &m_value_;
 	}
 	value_type const* operator ->() const
 	{
-		return &value;
+		return &m_value_;
 	}
 
 };

@@ -85,7 +85,7 @@ struct nTuple<Expression<TOP, Args...>>: public Expression<TOP, Args...>
     using Expression<TOP, Args...>::Expression;
 
     static constexpr size_t _N = traits::extent<this_type>::value;
-    //std::max<traits::extent<Args>::value...>::value;
+    //std::max<traits::extent<Args>::m_value_...>::entity;
 
     typedef std::result_of_t<TOP(typename traits::value_type<Args>::type...)> value_type;
 

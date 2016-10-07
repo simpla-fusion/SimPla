@@ -92,13 +92,13 @@ void Atlas::add_adjacency2(const Chart *first, const Chart *second, int flag)
 }
 
 
-io::IOStream &Atlas::save(io::IOStream &os) const
+toolbox::IOStream &Atlas::save(toolbox::IOStream &os) const
 {
     for (auto const &item:m_nodes_) { item.second->save(os); }
     return os;
 }
 
-io::IOStream &Atlas::load(io::IOStream &is)
+toolbox::IOStream &Atlas::load(toolbox::IOStream &is)
 {
     UNIMPLEMENTED;
     return is;

@@ -14,7 +14,7 @@
 
 namespace simpla
 {
-void create_scenario(simulation::Context *ctx, ConfigParser const &options);
+void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &options);
 }
 using namespace simpla;
 
@@ -23,9 +23,9 @@ int main(int argc, char **argv)
 
     parallel::init(argc, argv);
 
-    std::shared_ptr<io::IOStream> os;
+    std::shared_ptr<toolbox::IOStream> os;
 
-    ConfigParser options;
+    toolbox::ConfigParser options;
 
     {
         std::string output_file = "simpla.h5";
@@ -37,35 +37,33 @@ int main(int argc, char **argv)
         conf_file += ".lua";
 
         simpla::parse_cmd_line(
-            argc, argv,
-            [&](std::string const &opt, std::string const &value) -> int
-            {
-                if (opt == "i" || opt == "input") { conf_file = value; }
-
-                else if (opt == "prologue") { conf_epilogue = value; }
-
-                else if (opt == "e" || opt == "execute" || opt == "epilogue") { conf_epilogue = value; }
-
-                else if (opt == "o" || opt == "output") { output_file = value; }
-
-                else if (opt == "log") { logger::open_file(value); }
-
-                else if (opt == "V" || opt == "verbose") { logger::set_stdout_level(std::atoi(value.c_str())); }
-
-                else if (opt == "quiet") { logger::set_stdout_level(logger::LOG_MESSAGE - 1); }
-
-                else if (opt == "log_width") { logger::set_line_width(std::atoi(value.c_str())); }
-
-                else if (opt == "v" || opt == "version")
+                argc, argv,
+                [&](std::string const &opt, std::string const &value) -> int
                 {
-                    MESSAGE << "SIMPla " << ShowVersion();
-                    TheEnd(0);
-                    return TERMINATE;
-                }
+                    if (opt == "i" || opt == "input") { conf_file = value; }
 
-                else if (opt == "h" || opt == "help")
-                {
-                    /* @formatter:off */
+                    else if (opt == "prologue") { conf_epilogue = value; }
+
+                    else if (opt == "e" || opt == "execute" || opt == "epilogue") { conf_epilogue = value; }
+
+                    else if (opt == "o" || opt == "output") { output_file = value; }
+
+                    else if (opt == "log") { logger::open_file(value); }
+
+                    else if (opt == "V" || opt == "verbose") { logger::set_stdout_level(std::atoi(value.c_str())); }
+
+                    else if (opt == "quiet") { logger::set_stdout_level(logger::LOG_MESSAGE - 1); }
+
+                    else if (opt == "log_width") { logger::set_line_width(std::atoi(value.c_str())); }
+
+                    else if (opt == "v" || opt == "version")
+                    {
+                        MESSAGE << "SIMPla " << ShowVersion();
+                        TheEnd(0);
+                        return TERMINATE;
+                    } else if (opt == "h" || opt == "help")
+                    {
+                        /* @formatter:off */
                     MESSAGE
                         << ShowLogo() << std::endl
                         << " Usage: " << argv[0] << "   <options> ..." << std::endl
@@ -84,14 +82,13 @@ int main(int argc, char **argv)
                         <<std::endl;
 
                     /* @formatter:on*/
-                    TheEnd(0);
-                    return TERMINATE;
+                        TheEnd(0);
+                        return TERMINATE;
+                    } else { options.add(opt, (value == "") ? "true" : value); }
+
+                    return CONTINUE;
+
                 }
-                else { options.add(opt, (value == "") ? "true" : value); }
-
-                return CONTINUE;
-
-            }
 
 
         );
@@ -101,7 +98,7 @@ int main(int argc, char **argv)
 
         options.parse(conf_file, conf_prologue, conf_epilogue);
 
-        os = io::create_from_output_url(output_file);
+        os = toolbox::create_from_output_url(output_file);
     }
 
     simulation::Context ctx;

@@ -17,7 +17,7 @@ using namespace simpla;
 
 int main(int argc, char **argv)
 {
-    lua::LuaObject pt;
+    toolbox::LuaObject pt;
     pt.init();
 
     pt.parse_string(

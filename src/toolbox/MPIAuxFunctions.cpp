@@ -38,40 +38,31 @@ inline MPI_Op get_MPI_Op(std::string const &op_c)
     if (op_c == "Max")
     {
         op = MPI_MAX;
-    }
-    else if (op_c == "Min")
+    } else if (op_c == "Min")
     {
         op = MPI_MIN;
-    }
-    else if (op_c == "Sum")
+    } else if (op_c == "Sum")
     {
         op = MPI_SUM;
-    }
-    else if (op_c == "Prod")
+    } else if (op_c == "Prod")
     {
         op = MPI_PROD;
-    }
-    else if (op_c == "LAND")
+    } else if (op_c == "LAND")
     {
         op = MPI_LAND;
-    }
-    else if (op_c == "LOR")
+    } else if (op_c == "LOR")
     {
         op = MPI_LOR;
-    }
-    else if (op_c == "BAND")
+    } else if (op_c == "BAND")
     {
         op = MPI_BAND;
-    }
-    else if (op_c == "Sum")
+    } else if (op_c == "Sum")
     {
         op = MPI_BOR;
-    }
-    else if (op_c == "Sum")
+    } else if (op_c == "Sum")
     {
         op = MPI_MAXLOC;
-    }
-    else if (op_c == "Sum")
+    } else if (op_c == "Sum")
     {
         op = MPI_MINLOC;
     }
@@ -79,7 +70,7 @@ inline MPI_Op get_MPI_Op(std::string const &op_c)
 }
 
 void reduce(void const *send_data, void *recv_data, size_t count,
-            data_model::DataType const &data_type, std::string const &op_c)
+            toolbox::DataType const &data_type, std::string const &op_c)
 {
     auto m_type = MPIDataType::create(data_type);
 
@@ -92,7 +83,7 @@ void reduce(void const *send_data, void *recv_data, size_t count,
 }
 
 void allreduce(void const *send_data, void *recv_data, size_t count,
-               data_model::DataType const &data_type, std::string const &op_c)
+               toolbox::DataType const &data_type, std::string const &op_c)
 {
 
     auto m_type = MPIDataType::create(data_type);

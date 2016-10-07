@@ -105,7 +105,7 @@ spParticleBucketBuild_kernel(size_type *cellStart,        // output: cell start 
         hash = gridParticleHash[index];
 
         // Load hash data into shared memory so that we can look
-        // at neighboring particle's hash value without loading
+        // at neighboring particle's hash entity without loading
         // two hash values per thread
         sharedHash[threadIdx.x + 1] = hash;
 

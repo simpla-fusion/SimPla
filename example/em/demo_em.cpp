@@ -12,7 +12,7 @@
 namespace simpla
 {
 
-void create_scenario(simulation::Context *ctx, ConfigParser const &options)
+void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &options)
 {
     typedef simpla::manifold::CartesianManifold mesh_type;
 

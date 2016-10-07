@@ -15,7 +15,7 @@
 #include "MPIUpdate.h"
 #include "DataSpace.h"
 
-namespace simpla { namespace data_model
+namespace simpla { namespace toolbox
 {
 struct DataSpace::pimpl_s
 {
@@ -52,11 +52,10 @@ struct DataSpace::pimpl_s
 //===================================================================
 
 DataSpace::DataSpace()
-    : m_pimpl_{new pimpl_s} {}
+        : m_pimpl_{new pimpl_s} {}
 
 DataSpace::DataSpace(int ndims, size_type const *dims)
-    :
-    m_pimpl_(new pimpl_s)
+        : m_pimpl_(new pimpl_s)
 {
 
     std::get<0>(m_pimpl_->m_d_shape_)/*m_ndims_      */ = ndims;
@@ -69,8 +68,8 @@ DataSpace::DataSpace(int ndims, size_type const *dims)
 }
 
 DataSpace::DataSpace(const DataSpace &other)
-    :
-    m_pimpl_(new pimpl_s)
+        :
+        m_pimpl_(new pimpl_s)
 {
     // m_self_->m_d_shape_.m_ndims_ = other.m_self_->m_d_shape_.m_ndims_;
     // m_self_->m_d_shape_.dimensions = other.m_self_->m_d_shape_.dimensions;
@@ -88,7 +87,7 @@ DataSpace::DataSpace(const DataSpace &other)
 }
 
 DataSpace::DataSpace(DataSpace &&other)
-    : m_pimpl_(other.m_pimpl_) {}
+        : m_pimpl_(other.m_pimpl_) {}
 
 DataSpace::~DataSpace()
 {
@@ -109,9 +108,9 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_type co
     size_type offset = 0;
     size_type total_count = count;
     std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
-    DataSpace memory_space = data_model::DataSpace::create_simple(1, &count);
+    DataSpace memory_space = toolbox::DataSpace::create_simple(1, &count);
 
-    DataSpace data_space = data_model::DataSpace::create_simple(1, &total_count);
+    DataSpace data_space = toolbox::DataSpace::create_simple(1, &total_count);
     data_space.select_hyperslab(&offset, nullptr, &count, nullptr);
 
     return std::forward_as_tuple(data_space, memory_space);
@@ -221,8 +220,7 @@ size_type DataSpace::num_of_elements() const
     if (!is_simple())
     {
         return m_pimpl_->m_selected_points_.size() / std::get<0>(m_pimpl_->m_d_shape_);
-    }
-    else
+    } else
     {
         size_type s = 1;
 
@@ -259,17 +257,17 @@ void DataSpace::select_points(size_type num, const size_type *tags)
     size_type tail = head + num;
     m_pimpl_->m_selected_points_.resize(tail);
     parallel::parallel_for(
-        parallel::blocked_range<size_type>(head, tail),
-        [&](parallel::blocked_range<size_type> const &r)
-        {
-            for (size_type i = r.begin(), ie = r.end(); i != ie; ++i)
+            parallel::blocked_range<size_type>(head, tail),
+            [&](parallel::blocked_range<size_type> const &r)
             {
-                for (size_type j = 0; j < ndims; ++j)
+                for (size_type i = r.begin(), ie = r.end(); i != ie; ++i)
                 {
-                    m_pimpl_->m_selected_points_[i * ndims + j] = tags[(i - head) * ndims + j];
+                    for (size_type j = 0; j < ndims; ++j)
+                    {
+                        m_pimpl_->m_selected_points_[i * ndims + j] = tags[(i - head) * ndims + j];
+                    }
                 }
             }
-        }
 
     );
 }
@@ -308,7 +306,7 @@ void DataSpace::clear_selected()
 
 std::ostream &DataSpace::print(std::ostream &os, int indent) const
 {
-    return base::Object::print(os, indent);
+    return os;
 }
 //bool data_space::is_distributed() const
 //{
@@ -608,5 +606,5 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //}
 
 
-}}//namespace simpla { namespace data_model
+}}//namespace simpla { namespace toolbox
 

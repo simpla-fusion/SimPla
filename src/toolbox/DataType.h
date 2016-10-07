@@ -25,11 +25,10 @@
 namespace simpla { namespace traits
 {
 template<typename T> struct rank;
-
 template<typename T> struct value_type;
 }}//namespace simpla{namespace traits
 
-namespace simpla { namespace data_model
+namespace simpla { namespace toolbox
 {
 /**
  *  @ingroup data_interface
@@ -44,9 +43,8 @@ namespace simpla { namespace data_model
  *        doc/reference/xdr/
  *
  */
-struct DataType: public base::Object
+struct DataType
 {
-    SP_OBJECT_HEAD(DataType, base::Object);
 
     DataType();
 
@@ -139,8 +137,8 @@ private:
         d = traits::seq_value<traits::extents<obj_type> >::value;
 
         return std::move(
-            DataType(std::type_index(typeid(element_type)),
-                     ele_size_in_byte, ::simpla::traits::rank<obj_type>::value, &d[0], name)
+                DataType(std::type_index(typeid(element_type)),
+                         ele_size_in_byte, ::simpla::traits::rank<obj_type>::value, &d[0], name)
 
         );
 
@@ -171,8 +169,8 @@ struct DataType::create_helper<T[N]>
         size_type d = N;
 
         return std::move(
-            DataType(std::type_index(typeid(element_type)),
-                     ele_size_in_byte, 1, &d, name)
+                DataType(std::type_index(typeid(element_type)),
+                         ele_size_in_byte, 1, &d, name)
 
         );
     }
@@ -193,8 +191,8 @@ struct DataType::create_helper<T[N][M]>
         size_type d[] = {N, M};
 
         return std::move(
-            DataType(std::type_index(typeid(element_type)),
-                     ele_size_in_byte, 2, d, name)
+                DataType(std::type_index(typeid(element_type)),
+                         ele_size_in_byte, 2, d, name)
 
         );
     }

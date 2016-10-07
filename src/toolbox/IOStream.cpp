@@ -9,7 +9,7 @@
 #include "MPIAuxFunctions.h"
 #include "MiscUtilities.h"
 
-namespace simpla { namespace io
+namespace simpla { namespace toolbox
 {
 
 
@@ -21,14 +21,14 @@ void IOStream::init(int argc, char **argv)
 //    parse_cmd_line(
 //            argc, argv,
 //
-//            [&, this](std::string const &opt, std::string const &value) -> int
+//            [&, this](std::string const &opt, std::string const &entity) -> int
 //            {
 //                if (opt == "o" || opt == "prefix")
 //                {
 //
 //                    std::string f_name, g_name;
 //                    std::tie(f_name, g_name, std::ignore, std::ignore)
-//                            = IOStream::parser_url(value);
+//                            = IOStream::parser_url(entity);
 //
 //                    IOStream::current_file_name(f_name);
 //
@@ -89,8 +89,7 @@ IOStream::parser_url(std::string const &url_hint) const
     {
         attribute = url.substr(it + 1);
         obj_name = url.substr(0, it);
-    }
-    else
+    } else
     {
         obj_name = url;
     }
@@ -116,8 +115,7 @@ inline bool CheckFileExists(std::string const &name)
     {
         fclose(file);
         return true;
-    }
-    else { return false; }
+    } else { return false; }
 }
 
 std::string IOStream::auto_increase_file_name(std::string filename, std::string const &ext_str) const
