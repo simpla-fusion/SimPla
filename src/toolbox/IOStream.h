@@ -90,9 +90,6 @@ public:
 //        UNIMPLEMENTED;
 //    }
 };
-
-\
-
 }}//namespace simpla { namespace io
 
 #endif //SIMPLA_IOSTREAM_H

@@ -4,315 +4,112 @@
 
 #ifndef SIMPLA_DICT_H
 #define SIMPLA_DICT_H
+//
+// Created by salmon on 16-10-7.
+//
+
+
 
 #include <map>
+#include <memory>
 #include "../sp_config.h"
-#include "DataEntity.h"
+#include "DataType.h"
+#include "DataSpace.h"
 
 namespace simpla { namespace toolbox
 {
-class DataEntity
-{
-public:
-    DataEntity() : m_holder_(nullptr) {}
 
-    template<typename ValueType>
-    DataEntity(const ValueType &value)
-            : m_holder_(new Holder<typename std::remove_cv<typename std::decay<ValueType>::type>::type>(value)) {}
-
-    template<typename ValueType>
-    DataEntity(std::shared_ptr<ValueType> &value) {};
-
-    DataEntity(const DataEntity &other) : m_holder_(other.m_holder_ == nullptr ? other.m_holder_->clone() : nullptr) {}
-
-    // Move constructor
-    DataEntity(DataEntity &&other) : m_holder_(other.m_holder_) { other.m_holder_ = 0; }
-
-    // Perfect forwarding of ValueType
-    template<typename ValueType>
-    DataEntity(ValueType &&value,
-               typename std::enable_if<!(std::is_same<DataEntity &, ValueType>::value ||
-                                         std::is_const<ValueType>::value)>::type * = 0
-            // disable if entity has type `any&`
-            // disable if entity has type `const ValueType&&`
-    ) : m_holder_(new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType &&>(value)))
-    {
-    }
-
-    ~DataEntity() { delete m_holder_; }
-
-    DataEntity &swap(DataEntity &other)
-    {
-        std::swap(m_holder_, other.m_holder_);
-        return *this;
-    }
-
-    DataEntity &operator=(const DataEntity &rhs) { return DataEntity(rhs).swap(*this); }
-
-    // move assignement
-    DataEntity &operator=(DataEntity &&rhs)
-    {
-        rhs.swap(*this);
-        DataEntity().swap(rhs);
-        return *this;
-    }
-
-    // Perfect forwarding of ValueType
-    template<class ValueType>
-    DataEntity &operator=(ValueType &&rhs) { return DataEntity(static_cast<ValueType &&>(rhs)).swap(*this); }
-
-    virtual bool empty() const { return m_holder_ == nullptr; }
-
-    virtual bool is_null() const { return m_holder_ == nullptr; }
-
-    virtual const void *data() const { return m_holder_ == nullptr ? nullptr : m_holder_->data(); };
-
-    virtual void *data() { return m_holder_ == nullptr ? nullptr : m_holder_->data(); };
-
-    virtual DataType data_type() { return m_holder_ == nullptr ? DataType() : m_holder_->data_type(); };
-
-    virtual DataSpace const &data_space() { return m_holder_ == nullptr ? DataSpace() : m_holder_->data_space(); };
-
-    void clear() { DataEntity().swap(*this); }
-
-    const std::type_info &type() const { return m_holder_ ? m_holder_->type() : typeid(void); }
-
-    operator bool() const { return !is_null(); }
-
-    operator std::string() const
-    {
-        std::ostringstream os;
-        this->print(os, 0);
-        return os.str();
-    }
-
-    /** @} */
-
-    template<class U> bool is_a() const { return m_holder_ != nullptr && m_holder_->type() == typeid(U); }
-
-    template<class U> bool as(U *v) const
-    {
-        if (is_a<U>())
-        {
-            *v = dynamic_cast<Holder <U> *>(m_holder_)->value();
-            return true;
-        } else
-        {
-            return false;
-        }
-    }
-
-    template<class U> operator U() const { return as<U>(); }
-
-    template<class U> U const &as() const
-    {
-        if (!is_a<U>()) { THROW_EXCEPTION_BAD_CAST(typeid(U).name(), m_holder_->type().name()); }
-
-        return dynamic_cast<Holder <U> const *>(m_holder_)->m_value_;
-    }
-
-    template<class U> U &as()
-    {
-        if (!is_a<U>()) { THROW_EXCEPTION_BAD_CAST(typeid(U).name(), m_holder_->type().name()); }
-        return dynamic_cast<Holder <U> *>(m_holder_)->m_value_;
-    }
-
-    template<class U>
-    U as(U const &def_v) const
-    {
-        if (is_a<U>()) { return dynamic_cast<Holder <U> const *>(m_holder_)->value(); }
-        else { return def_v; }
-    }
-
-
-    std::ostream &print(std::ostream &os, int indent = 1) const
-    {
-        if (m_holder_ != nullptr) { m_holder_->print(os, indent); }
-        return os;
-    }
-
-
-private:
-    struct PlaceHolder;
-    template<typename> struct Holder;
-
-
-    PlaceHolder *clone() const { return (m_holder_ != nullptr) ? m_holder_->clone() : nullptr; }
-
-    PlaceHolder *m_holder_;
-
-
-    struct PlaceHolder
-    {
-        PlaceHolder() {}
-
-        virtual ~PlaceHolder() {}
-
-        virtual PlaceHolder *clone() const = 0;
-
-        virtual const std::type_info &type() const = 0;
-
-        virtual std::ostream &print(std::ostream &os, int indent = 1) const = 0;
-
-        virtual void *data()=0;
-
-        virtual size_type size_in_byte() const = 0;
-
-        virtual DataType data_type() const =0;
-
-        virtual DataSpace const &data_space() const =0;
-    };
-
-    template<typename ValueType>
-    struct Holder : PlaceHolder
-    {
-        ValueType m_value_;
-        static DataSpace m_space_;
-
-        Holder(ValueType const &v) : m_value_(v) {}
-
-        Holder(ValueType &&v) : m_value_(std::forward<ValueType>(v)) {}
-
-        ~Holder() {}
-
-        Holder &operator=(const Holder &) = delete;
-
-        PlaceHolder *clone() const { return new Holder(m_value_); }
-
-        const std::type_info &type() const { return typeid(ValueType); }
-
-
-        std::ostream &print(std::ostream &os, int indent = 1) const
-        {
-            if (std::is_same<ValueType, std::string>::value) { os << "\"" << m_value_ << "\""; }
-            else
-            {
-                os << m_value_;
-            }
-            return os;
-        }
-
-        void *data() { return &m_holder_; };
-
-        size_type size_in_byte() const { return sizeof(ValueType); }
-
-        DataType data_type() const { return DataType::template create<ValueType>(); }
-
-        DataSpace const &data_space() const { return m_space_; }
-
-        ValueType &value() { return m_value_; }
-
-        ValueType const &value() const { return m_value_; }
-
-    };
-
-    template<typename ValueType>
-    struct Holder<std::shared_ptr<ValueType>> : PlaceHolder
-    {
-        std::shared_ptr<ValueType> m_value_;
-        DataSpace m_space_;
-
-        Holder(std::shared_ptr<ValueType> v, DataSpace const &sp) : m_value_(v), m_space_(sp) {}
-
-        ~Holder() {}
-
-        Holder &operator=(const Holder &) = delete;
-
-        PlaceHolder *clone() const
-        {
-            return new Holder(std::shared_ptr<ValueType>(malloc(size_in_byte()), m_space_));
-        }
-
-        const std::type_info &type() const { return typeid(ValueType); }
-
-        void *data() { return m_value_.get(); };
-
-        size_type size_in_byte() const { return sizeof(ValueType) * m_space_.size(); }
-
-        DataType data_type() const { return DataType::template create<ValueType>(); }
-
-        DataSpace const &data_space() const { return m_space_; }
-
-        ValueType *value() { return m_value_; }
-
-        ValueType const *value() const { return m_value_; }
-
-        std::ostream &print(std::ostream &os, int indent = 1) const
-        {
-            UNIMPLEMENTED;
-            return os;
-        }
-    };
-};
 
 class DataBase
 {
 public:
+    struct Entity;
+    struct iterator;
+    struct const_iterator;
 
     DataBase() {};
 
     virtual  ~DataBase() {};
 
-    virtual void swap(DataBase &other);
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const =0;
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+    virtual bool open(std::string path) =0;
 
-    /**
-     * as value
-     * @{
-     */
+    virtual void close() =0;
 
-    virtual bool is_table() const;
+    virtual bool is_table() const =0;
 
-    virtual bool has_value() const { return !m_value_.is_null(); };
+    virtual bool has_value() const =0;
 
-    virtual DataEntity const &value() const { return m_value_; }
+    virtual size_t size() const =0;
 
-    virtual DataEntity &value() { return m_value_; }
+    virtual bool empty() const =0;
 
-    /** @} */
+    virtual bool has(std::string const &key) const =0;
 
-    /**
-     *  as container
-     *  @{
-     */
+    virtual Entity const &value() const =0;
 
-    virtual size_t size() const;
+    virtual Entity &value() =0;
 
-    virtual bool empty() const;
-
-    virtual bool has_a(std::string const &key) const;
-
-    typedef typename std::map<std::string, std::shared_ptr<DataBase>>::iterator iterator;
+    virtual iterator find(std::string const &key)=0;
 
     virtual std::pair<iterator, bool> insert(std::string const &, std::shared_ptr<DataBase> &);
 
-    virtual std::shared_ptr<DataBase> at(std::string const &);
+    /**
+    *  if key exists then return ptr else create and return ptr
+    * @param key
+    * @return
+    */
+    virtual std::shared_ptr<DataBase> get(std::string const &key);
 
-    virtual std::shared_ptr<const DataBase> at(std::string const &) const;
+    /**
+     *  if key exists then return ptr else return null
+     * @param key
+     * @return
+     */
+    virtual std::shared_ptr<DataBase> at(std::string const &key)=0;
 
-    std::shared_ptr<DataBase> operator[](std::string const &key) { return at(key); };
+    virtual std::shared_ptr<const DataBase> at(std::string const &key) const =0;
 
-    std::shared_ptr<const DataBase> operator[](std::string const &key) const { return at(key); };
-//    struct iterator;
+    virtual iterator DataBase::begin()=0;
 
-    virtual iterator begin();
+    virtual iterator DataBase::end() =0;
 
-    virtual iterator end();
+    virtual const_iterator DataBase::begin() const =0;
 
-    virtual iterator begin() const;
+    virtual const_iterator DataBase::end() const =0;
 
-    virtual iterator end() const;
-    /** @}*/
-
-private:
-    DataEntity m_value_;
-    std::map<std::string, std::shared_ptr<DataBase>> m_table_;
 
 };
 
+struct DataBase::Entity
+{
+public:
+    Entity() {}
+
+    virtual ~Entity() {}
+
+    virtual void swap(Entity &other) =0;
+
+    virtual const std::type_info &type() const =0;
+
+    virtual bool is_null() const =0;
+
+    virtual DataType data_type() =0;
+
+    virtual DataSpace data_space()  =0;
+
+    virtual const void *data() const =0;
+
+    virtual void *data() =0;
+};
+
+struct DataBase::iterator
+{
+
+};
 //
-//struct DataFuction : public DataEntity
+//struct DataFuction : public Entity
 //{
 //    /**
 //      *  as function
@@ -320,12 +117,12 @@ private:
 //      */
 //protected:
 //
-//    virtual DataEntity pop_return();
+//    virtual Entity pop_return();
 //
-//    virtual void push_parameter(DataEntity const &);
+//    virtual void push_parameter(Entity const &);
 //
 //private:
-//    template<typename TFirst> inline void push_parameters(TFirst &&first) { push_parameter(DataEntity(first)); }
+//    template<typename TFirst> inline void push_parameters(TFirst &&first) { push_parameter(Entity(first)); }
 //
 //    template<typename TFirst, typename ...Args> inline
 //    void push_parameters(TFirst &&first, Args &&...args)
@@ -336,14 +133,14 @@ private:
 //public:
 //
 //    template<typename ...Args> inline
-//    DataEntity call(Args &&...args)
+//    Entity call(Args &&...args)
 //    {
 //        push_parameters(std::forward<Args>(args)...);
 //        return pop_return();
 //    };
 //
 //    template<typename ...Args> inline
-//    DataEntity operator()(Args &&...args) { return call(std::forward<Args>(args)...); };
+//    Entity operator()(Args &&...args) { return call(std::forward<Args>(args)...); };
 //};
 //struct DataBase::iterator
 //{
@@ -371,4 +168,5 @@ private:
 std::ostream &operator<<(std::ostream &os, DataBase const &prop) { return prop.print(os, 0); }
 
 }}//namespace simpla{namespace toolbox{
+
 #endif //SIMPLA_DICT_H
