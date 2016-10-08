@@ -5,7 +5,7 @@
 #ifndef SIMPLA_PARTICLEBASE_H
 #define SIMPLA_PARTICLEBASE_H
 
-#include "../sp_config.h"
+#include "SIMPLA_config.h" 
 
 namespace simpla { namespace particle
 {

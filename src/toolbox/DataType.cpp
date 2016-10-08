@@ -6,7 +6,7 @@
  */
 
 #include "DataType.h"
-#include "../sp_config.h"
+#include "SIMPLA_config.h"
 
 #include <algorithm>
 #include <iterator>

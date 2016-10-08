@@ -168,7 +168,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //			id_type s = (pack(y) & PRIMARY_ID_MASK)
 //					| m_id_to_shift_[face_id[zaxe]];
 //
-//			res->insert(std::make_pair(s + m_id_to_shift_[node_id], t));
+//			res->set(std::make_pair(s + m_id_to_shift_[node_id], t));
 //		}
 //
 //	};
@@ -258,7 +258,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //				id_type p = ((pack(V0 + s * u + t * v) & PRIMARY_ID_MASK)
 //						| m_id_to_shift_[edge_id[zaxe]]);
 //
-//				res->insert(
+//				res->set(
 //						std::make_pair(p + m_id_to_shift_[node_id],
 //								std::make_tuple(u, v)));
 //
@@ -282,7 +282,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //		auto sc = std::get<0>(geometry.point_global_to_local(xc, node_id));
 //
-//		res->insert(sc);
+//		res->set(sc);
 //
 //		++count;
 //
@@ -318,7 +318,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //	for (size_t i = 0; i <= n0; ++i)
 //		for (size_t j = 0; j <= n1; ++j)
 //		{
-//			res->insert(
+//			res->set(
 //					std::get<0>(
 //							geometry.point_global_to_local(
 //									x0 + dx0 * i + dx1 * j, node_id)));
@@ -421,7 +421,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //				}
 //			}
 //			if (success)
-//				res->insert(std::make_pair(s, i0));
+//				res->set(std::make_pair(s, i0));
 //		}
 //
 //	}
@@ -455,13 +455,13 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //		}
 //		else if ((code0 | code1) == 0)
 //		{
-//			res->insert(std::make_pair(s, i0));
+//			res->set(std::make_pair(s, i0));
 //		}
 //		else
 //		{
 //			intersection(geometry.coordinates(s - mesh_type::_DA),
 //					geometry.coordinates(s + mesh_type::_DA), x0, x1);
-//			res->insert(std::make_pair(s, i0));
+//			res->set(std::make_pair(s, i0));
 //		}
 //	}
 //
@@ -494,7 +494,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //		for (size_t i = 0; i <= m; ++i)
 //		{
 //
-//			res->insert(std::get<0>(geometry.point_global_to_local(
+//			res->set(std::get<0>(geometry.point_global_to_local(
 //
 //			x0 + (x1 - x0) * (static_cast<Real>(i) / static_cast<Real>(m))
 //

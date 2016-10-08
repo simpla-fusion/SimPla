@@ -3,7 +3,7 @@
  * @author salmon
  * @date 2015-10-21.
  */
-#include "../sp_config.h"
+#include "SIMPLA_config.h"
 
 #include "logo.h"
 #include <cstdlib>

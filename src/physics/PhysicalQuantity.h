@@ -5,7 +5,7 @@
 #ifndef SIMPLA_PHYSICALQUANTITY_H
 #define SIMPLA_PHYSICALQUANTITY_H
 
-#include "../sp_config.h"
+#include "SIMPLA_config.h"
 #include <string>
 
 namespace simpla { namespace physic

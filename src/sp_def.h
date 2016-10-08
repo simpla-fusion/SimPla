@@ -5,7 +5,7 @@
 #ifndef SIMPLA_SP_DEF_H
 #define SIMPLA_SP_DEF_H
 
-#include "sp_config.h"
+#include "SIMPLA_config.h"
 #include "toolbox/nTuple.h"
 #include <boost/uuid/uuid.hpp>
 
@@ -84,11 +84,14 @@ static constexpr unsigned int CARTESIAN_YAXIS = 1;
 
 static constexpr unsigned int CARTESIAN_ZAXIS = 2;
 
-template<typename> struct has_PlaceHolder { static constexpr bool value = false; };
+template<typename>
+struct has_PlaceHolder { static constexpr bool value = false; };
 
-template<typename> struct is_real { static constexpr bool value = false; };
+template<typename>
+struct is_real { static constexpr bool value = false; };
 
-template<> struct is_real<Real> { static constexpr bool value = true; };
+template<>
+struct is_real<Real> { static constexpr bool value = true; };
 
 template<typename TL>
 struct is_arithmetic_scalar
@@ -96,11 +99,13 @@ struct is_arithmetic_scalar
     static constexpr bool value = (std::is_arithmetic<TL>::value || has_PlaceHolder<TL>::value);
 };
 
-template<typename T> struct is_primitive { static constexpr bool value = is_arithmetic_scalar<T>::value; };
+template<typename T>
+struct is_primitive { static constexpr bool value = is_arithmetic_scalar<T>::value; };
 
 //template<typename T> struct is_expression { static constexpr bool entity = false; };
 
-template<typename T1> auto abs(T1 const &m) DECL_RET_TYPE((std::fabs(m)))
+template<typename T1>
+auto abs(T1 const &m) DECL_RET_TYPE((std::fabs(m)))
 
 }
 #endif //SIMPLA_SP_DEF_H

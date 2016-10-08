@@ -20,7 +20,7 @@
 #include "nTuple.h"
 #include "type_traits.h"
 #include "../base/Object.h"
-#include "../sp_config.h"
+#include "SIMPLA_config.h"
 
 namespace simpla { namespace traits
 {
