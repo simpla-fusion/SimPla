@@ -3,6 +3,8 @@ cmake_policy(SET CMP0028 NEW)
 
 PROJECT(SAMRAI CXX C Fortran)
 
+SET(CMAKE_MODULE_PATH /home/salmon/workspace/SAMRAI-clion/CMake)
+
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 FIND_PACKAGE(MPI)
@@ -44,6 +46,15 @@ IF (LAPACK_FOUND)
     INCLUDE_DIRECTORIES(${LAPACK_INCLUDE_DIRS})
     SET(HAVE_LAPACK 1)
 ENDIF (LAPACK_FOUND)
+
+SET(HYPRE_DIR /home/salmon/workspace/SAMRAI-clion/CMake)
+#FIND_PACKAGE(HYPRE)
+#IF (HYPRE_FOUND)
+#    INCLUDE_DIRECTORIES(${HYPRE_INCLUDE_DIRS})
+#
+#ENDIF (HYPRE_FOUND)
+
+SET(HAVE_HYPRE 1)
 
 SET(OPT_BUILD 1)
 
@@ -108,99 +119,97 @@ CHECK_INCLUDE_FILE("sys/types.h" HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE("unistd.h" HAVE_UNISTD_H)
 
 
-SET(CMAKE_CURRENT_SOURCE_DIR ${SAMRAI_DIR})
-
-execute_process(COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/config/SAMRAI_config.h.in ${SAMRAI_INCLUDE_DIR}/SAMRAI_config.h.in)
+execute_process(COMMAND cp ${SAMRAI_DIR}/config/SAMRAI_config.h.in ${SAMRAI_INCLUDE_DIR}/SAMRAI_config.h.in)
 execute_process(COMMAND sed -i "s/#undef SAMRAI_F77_FUNC_/#define SAMRAI_F77_FUNC_\(name,NAME\) name ## _/g" ${SAMRAI_INCLUDE_DIR}/SAMRAI_config.h.in)
 execute_process(COMMAND sed -i "s/^#undef SAMRAI_F77_FUNC$/#define SAMRAI_F77_FUNC\(name,NAME\) name ## _/g" ${SAMRAI_INCLUDE_DIR}/SAMRAI_config.h.in)
 execute_process(COMMAND sed -i "s/#undef \\([_1-9a-zA-Z]*\\)/#cmakedefine \\1 @\\1@/g" ${SAMRAI_INCLUDE_DIR}/SAMRAI_config.h.in)
 configure_file(${SAMRAI_INCLUDE_DIR}/SAMRAI_config.h.in ${SAMRAI_INCLUDE_DIR}/SAMRAI_config.h @ONLY)
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/source)
+INCLUDE_DIRECTORIES(${SAMRAI_DIR}/include)
+INCLUDE_DIRECTORIES(${SAMRAI_DIR}/source)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include)
 SET(tbox_SRC
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/ArraySpecial.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/AsyncCommGroup.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/AsyncCommStage.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/BalancedDepthFirstTree.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/BreadthFirstRankTree.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/CenteredRankTree.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Clock.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/CommGraphWriter.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Database.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/DatabaseBox.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/DatabaseFactory.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Dimension.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Grammar.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/HDFDatabase.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/HDFDatabaseFactory.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/IEEE.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/InputManager.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Logger.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/MathUtilitiesSpecial.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/MemoryDatabase.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/MemoryDatabaseFactory.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/MemoryUtilities.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/MessageStream.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/NullDatabase.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/PIO.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/ParallelBuffer.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Parser.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/RankGroup.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/RankTreeStrategy.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/ReferenceCounter.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/RestartManager.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/SAMRAIManager.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/SAMRAI_MPI.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Scanner.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Schedule.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Serializable.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/SiloDatabase.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/SiloDatabaseFactory.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/StartupShutdownManager.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/StatTransaction.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Statistic.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Statistician.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Timer.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/TimerManager.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Tracer.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Transaction.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/tbox/Utilities.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/ArraySpecial.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/AsyncCommGroup.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/AsyncCommStage.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/BalancedDepthFirstTree.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/BreadthFirstRankTree.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/CenteredRankTree.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Clock.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/CommGraphWriter.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Database.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/DatabaseBox.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/DatabaseFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Dimension.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Grammar.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/HDFDatabase.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/HDFDatabaseFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/IEEE.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/InputManager.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Logger.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/MathUtilitiesSpecial.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/MemoryDatabase.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/MemoryDatabaseFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/MemoryUtilities.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/MessageStream.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/NullDatabase.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/PIO.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/ParallelBuffer.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Parser.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/RankGroup.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/RankTreeStrategy.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/ReferenceCounter.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/RestartManager.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/SAMRAIManager.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/SAMRAI_MPI.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Scanner.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Schedule.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Serializable.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/SiloDatabase.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/SiloDatabaseFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/StartupShutdownManager.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/StatTransaction.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Statistic.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Statistician.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Timer.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/TimerManager.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Tracer.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Transaction.C
+        ${SAMRAI_DIR}/source/SAMRAI/tbox/Utilities.C
         )
 
 SET(xfer_SRC
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/BoxGeometryVariableFillPattern.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/PatchInteriorVariableFillPattern.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/PatchLevelFullFillPattern.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/PatchLevelBorderFillPattern.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/PatchLevelBorderAndInteriorFillPattern.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/PatchLevelEnhancedFillPattern.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/PatchLevelInteriorFillPattern.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/PatchLevelFillPattern.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/VariableFillPattern.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/RefineAlgorithm.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/CoarsenAlgorithm.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/RefineSchedule.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/RefineScheduleConnectorWidthRequestor.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/CoarsenSchedule.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/RefineTimeTransaction.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/RefineCopyTransaction.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/StandardRefineTransactionFactory.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/RefineTransactionFactory.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/RefinePatchStrategy.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/RefineClasses.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/CoarsenCopyTransaction.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/StandardCoarsenTransactionFactory.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/CoarsenTransactionFactory.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/CoarsenPatchStrategy.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/CoarsenClasses.C
-        ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/xfer/SingularityPatchStrategy.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/BoxGeometryVariableFillPattern.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/PatchInteriorVariableFillPattern.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/PatchLevelFullFillPattern.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/PatchLevelBorderFillPattern.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/PatchLevelBorderAndInteriorFillPattern.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/PatchLevelEnhancedFillPattern.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/PatchLevelInteriorFillPattern.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/PatchLevelFillPattern.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/VariableFillPattern.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/RefineAlgorithm.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/CoarsenAlgorithm.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/RefineSchedule.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/RefineScheduleConnectorWidthRequestor.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/CoarsenSchedule.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/RefineTimeTransaction.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/RefineCopyTransaction.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/StandardRefineTransactionFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/RefineTransactionFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/RefinePatchStrategy.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/RefineClasses.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/CoarsenCopyTransaction.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/StandardCoarsenTransactionFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/CoarsenTransactionFactory.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/CoarsenPatchStrategy.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/CoarsenClasses.C
+        ${SAMRAI_DIR}/source/SAMRAI/xfer/SingularityPatchStrategy.C
         )
 
 
-GET_FILENAME_COMPONENT(PDAT_FORTDIR ${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI/pdat/fortran ABSOLUTE)
+GET_FILENAME_COMPONENT(PDAT_FORTDIR ${SAMRAI_DIR}/source/SAMRAI/pdat/fortran ABSOLUTE)
 
 function(ADD_FORTRAN_SOURCES _ROOT name)
     GET_FILENAME_COMPONENT(ABS_PATH ${_ROOT}/${name}/fortran/ ABSOLUTE)
@@ -212,7 +221,7 @@ function(ADD_FORTRAN_SOURCES _ROOT name)
         # first we might need to make the input file absolute
         GET_FILENAME_COMPONENT(f "${f}" ABSOLUTE)
 
-        FILE(RELATIVE_PATH rf "${CMAKE_CURRENT_SOURCE_DIR}" "${f}")
+        FILE(RELATIVE_PATH rf "${SAMRAI_DIR}" "${f}")
         STRING(REGEX REPLACE "\\.m4$" ".f" of "${CMAKE_CURRENT_BINARY_DIR}/${rf}")
         LIST(APPEND outfiles "${of}")
 
@@ -252,17 +261,17 @@ function(SAMRAI_build_exe name _ROOT libs)
 
 endfunction()
 
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI pdat)
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI appu)
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI algs)
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI solv)
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI geom)
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI mesh)
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI math)
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI xfer)
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI hier)
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/SAMRAI tbox)
-SAMRAI_build_lib(${CMAKE_CURRENT_SOURCE_DIR}/source/test testlib)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI pdat)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI appu)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI algs)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI solv)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI geom)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI mesh)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI math)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI xfer)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI hier)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI tbox)
+SAMRAI_build_lib(${SAMRAI_DIR}/source/test testlib)
 
 SET(SAMRAI_LIBRARIES
         SAMRAI_appu
@@ -277,4 +286,25 @@ SET(SAMRAI_LIBRARIES
         SAMRAI_tbox
         )
 
-SAMRAI_build_exe(MblkLinAdv ${CMAKE_CURRENT_SOURCE_DIR}/source/test/MblkLinAdv SAMRAI_testlib)
+SAMRAI_build_exe(MblkLinAdv ${SAMRAI_DIR}/source/test/MblkLinAdv SAMRAI_testlib)
+SAMRAI_build_exe(FAC_adaptive ${SAMRAI_DIR}/source/test/FAC_adaptive SAMRAI_testlib HYPRE HYPRE_struct_ls-2.8)
+
+FIND_PACKAGE(Doxygen)
+SET(dox_output_dir ${PROJECT_BINARY_DIR}/docs/)
+SET(top_srcdir ${SAMRAI_DIR}/)
+SET(HAVE_DOT ${DOXYGEN_DOT_FOUND})
+SET(DOT_PATH ${DOXYGEN_DOT_EXECUTABLE})
+
+configure_file(${SAMRAI_DIR}/docs/Doxyfile.in
+        ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile @ONLY IMMEDIATE)
+configure_file(${SAMRAI_DIR}/docs/devDoxyfile.in
+        ${CMAKE_CURRENT_BINARY_DIR}/docs/devDoxyfile @ONLY IMMEDIATE)
+#-- Add a custom target to run Doxygen when ever the project is built
+
+add_custom_target(docs ALL
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile
+        SOURCES ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile)
+
+add_custom_target(dev_docs ALL
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/docs/devDoxyfile
+        SOURCES ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile)
