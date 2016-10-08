@@ -19,7 +19,7 @@ namespace simpla { namespace toolbox
 {
 
 
-struct DataEntityAny : public DataBase::Entity
+struct DataEntityAny : public DataEntity
 {
 public:
     DataEntityAny() : m_holder_(nullptr) {}
@@ -39,22 +39,8 @@ public:
             other.m_holder_ == nullptr ? other.m_holder_->clone() : nullptr) {}
 
     // Move constructor
-    DataEntityAny(DataEntityAny
-                  &&other) :
-            m_holder_(other
-                              .m_holder_) { other.m_holder_ = 0; }
+    DataEntityAny(DataEntityAny &&other) : m_holder_(other.m_holder_) { other.m_holder_ = 0; }
 
-    // Perfect forwarding of ValueType
-    template<typename ValueType>
-    DataEntityAny(ValueType
-                  &&value,
-                  typename std::enable_if<!(std::is_same<DataEntityAny &, ValueType>::value ||
-                                            std::is_const<ValueType>::value)>::type * = 0
-            // disable if entity has type `any&`
-            // disable if entity has type `const ValueType&&`
-    ) : m_holder_(new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType &&>(value)))
-    {
-    }
 
     ~DataEntityAny() { delete m_holder_; }
 
@@ -85,6 +71,15 @@ public:
         return *this;
     }
 
+    virtual bool is_a(std::type_info const &t_id) const
+    {
+        return t_id == typeid(DataEntityAny) || DataEntity::is_a(t_id);
+    }
+
+    virtual bool is_table() const { return false; };
+
+    const std::type_info &type() const { return m_holder_ ? m_holder_->type() : typeid(void); }
+
     bool empty() const { return m_holder_ == nullptr; }
 
     bool is_null() const { return m_holder_ == nullptr; }
@@ -99,7 +94,6 @@ public:
 
     void clear() { DataEntityAny().swap(*this); }
 
-    const std::type_info &type() const { return m_holder_ ? m_holder_->type() : typeid(void); }
 
     /** @} */
 
@@ -262,25 +256,20 @@ private:
     };
 };
 
-class DataBaseAny : public DataBase
+class DataBaseMemory : public DataBase
 {
 public:
 
-    DataBaseAny() {};
+    DataBaseMemory() {};
 
-    template<typename ...Args>
-    DataBaseAny(Args &&...args):m_value_(std::forward<Args>(args)...) {};
-
-    DataBaseAny(DataBaseAny const &other) : m_value_(other.m_value_), m_table_(other.m_table_) {};
-
-    ~DataBaseAny() {};
+    ~DataBaseMemory() {};
 
     bool is_a(std::type_info const &t_id) const
     {
-        return t_id == typeid(DataBaseAny) || DataBase::is_a(t_id);
+        return t_id == typeid(DataBaseMemory) || DataBase::is_a(t_id);
     };
 
-    void swap(DataBaseAny &other);
+    void swap(DataBaseMemory &other);
 
 //    bool eval(std::string path) { return true; };
 //
@@ -292,18 +281,23 @@ public:
      * as value
      * @{
      */
-    DataEntityAny const &value() const { return m_value_; }
 
-    DataEntityAny &value() { return m_value_; }
 
-    template<typename T>
-    T const &as() const { return m_value_.as<T>(); }
 
     template<typename T>
-    T const &as(std::string const &key) const { return m_table_.at(key)->as<T>(); }
+    T const &as(std::string const &key) const
+    {
+        return std::dynamic_pointer_cast<DataEntityAny>(m_table_.at(key))->as<T>();
+    }
 
-    std::shared_ptr<DataBaseAny>
-    create(std::string const &key) { return m_table_[key] = std::make_shared<DataBaseAny>(); }
+    std::shared_ptr<DataBaseMemory>
+    create(std::string const &key)
+    {
+        auto res = std::make_shared<DataBaseMemory>();
+        m_table_[key] = std::dynamic_pointer_cast<DataEntity>(res);
+
+        return res;
+    }
 
     /** @} */
 
@@ -318,28 +312,32 @@ public:
 
     bool has(std::string const &key) const;
 
-    void set(std::string const &, std::shared_ptr<DataBase> const &);
 
-    void set(std::string const &, std::shared_ptr<DataBaseAny> const &);
+    void set(std::string const &, std::shared_ptr<DataEntity> const &);
+
+    void set(std::string const &, std::shared_ptr<DataEntityAny> const &);
+
+    void set(std::string const &, std::shared_ptr<DataBaseMemory> const &);
 
     template<typename T>
-    bool set(std::string const &key, T const &v) { set(key, std::make_shared<DataBaseAny>(v)); };
+    bool set(std::string const &key, T const &v) { set(key, std::make_shared<DataEntityAny>(v)); };
 
 
-    std::shared_ptr<DataBase> get(std::string const &key);
+    std::shared_ptr<DataEntity> get(std::string const &key);
 
-    std::shared_ptr<DataBase> at(std::string const &key);
+    std::shared_ptr<DataEntity> at(std::string const &key);
 
-    std::shared_ptr<const DataBase> at(std::string const &key) const;
+    std::shared_ptr<const DataEntity> at(std::string const &key) const;
 
-    void for_each(std::function<void(std::string const &, DataBase &)> const &fun);
+    void for_each(std::function<void(std::string const &, DataEntity &)> const &fun);
 
-    void for_each(std::function<void(std::string const &, DataBase const &)> const &fun) const;
+    void for_each(std::function<void(std::string const &, DataEntity const &)> const &fun) const;
+
     /** @}*/
 
+
 private:
-    DataEntityAny m_value_;
-    std::map<std::string, std::shared_ptr<DataBaseAny>> m_table_;
+    std::map<std::string, std::shared_ptr<DataEntity>> m_table_;
 
 };
 
@@ -377,7 +375,7 @@ private:
 //    template<typename ...Args> inline
 //    DataEntityAny operator()(Args &&...args) { return call(std::forward<Args>(args)...); };
 //};
-//struct DataBaseAny::iterator
+//struct DataBaseMemory::iterator
 //{
 //    iterator() {};
 //
@@ -385,22 +383,22 @@ private:
 //
 //     bool is_equal(iterator const &other) const;
 //
-//     std::pair<std::string, std::shared_ptr<DataBaseAny>> get() const;
+//     std::pair<std::string, std::shared_ptr<DataBaseMemory>> get() const;
 //
 //     iterator &next();
 //
-//     std::pair<std::string, std::shared_ptr<DataBaseAny>> value() const;
+//     std::pair<std::string, std::shared_ptr<DataBaseMemory>> value() const;
 //
-//    std::pair<std::string, std::shared_ptr<DataBaseAny>> operator*() const { return value(); };
+//    std::pair<std::string, std::shared_ptr<DataBaseMemory>> operator*() const { return value(); };
 //
-//    std::pair<std::string, std::shared_ptr<DataBaseAny>> operator->() const { return value(); };
+//    std::pair<std::string, std::shared_ptr<DataBaseMemory>> operator->() const { return value(); };
 //
 //    bool operator!=(iterator const &other) const { return !is_equal(other); };
 //
 //    iterator &operator++() { return next(); }
 //};
 
-//std::ostream &operator<<(std::ostream &os, DataBaseAny const &prop) { return prop.print(os, 0); }
+//std::ostream &operator<<(std::ostream &os, DataBaseMemory const &prop) { return prop.print(os, 0); }
 
 }}//namespace simpla{namespace toolbox{
 #endif //SIMPLA_DATABASEANY_H

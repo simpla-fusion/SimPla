@@ -5,16 +5,19 @@
 
 namespace simpla { namespace toolbox
 {
+
+std::ostream &operator<<(std::ostream &os, DataEntity const &prop) { return prop.print(os, 0); }
+
+std::ostream &operator<<(std::ostream &os, DataBase const &prop) { return prop.print(os, 0); }
+
 std::ostream &DataBase::print(std::ostream &os, int indent) const
 {
-    size_type s = size();
 
-    if (!value().is_null()) { value().print(os, indent); }
-    else if (s == 1)
+    if (size() == 1)
     {
         os << "{ ";
 
-        for_each([&](std::string const &key, DataBase const &value)
+        for_each([&](std::string const &key, DataEntity const &value)
                  {
                      os << key << " = ";
                      value.print(os, indent + 1);
@@ -26,7 +29,7 @@ std::ostream &DataBase::print(std::ostream &os, int indent) const
 
         os << std::endl << std::setw(indent) << " " << "{ ";
 
-        for_each([&](std::string const &key, DataBase const &value)
+        for_each([&](std::string const &key, DataEntity const &value)
                  {
                      os << std::endl << std::setw(indent + 1) << "  " << key << " = ";
                      value.print(os, indent + 2);
@@ -42,7 +45,6 @@ std::ostream &DataBase::print(std::ostream &os, int indent) const
 
 };
 
-std::ostream &operator<<(std::ostream &os, DataBase const &prop) { return prop.print(os, 0); }
 
 }}
 //namespace simpla{namespace toolbox{

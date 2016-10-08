@@ -7,13 +7,13 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
-#include "../DataBaseAny.h"
+#include "../DataBaseMemory.h"
 
 using namespace simpla::toolbox;
 
-TEST(DataBaseAny, general)
+TEST(DataBaseMemory, general)
 {
-    DataBaseAny db;
+    DataBaseMemory db;
 
     db.set("a", 1.0);
     db.set("b", 2);
@@ -24,7 +24,7 @@ TEST(DataBaseAny, general)
     EXPECT_EQ(db.template as<int>("b"), 2);
     EXPECT_EQ(db.template as<std::string>("c"), std::string("hello world!"));
 
-    auto db2 = std::make_shared<DataBaseAny>();
+    auto db2 = std::make_shared<DataBaseMemory>();
     db2->set("h", "this is the second");
 
     auto foo = db.create("d");

@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "../src/sp_config.h"
+#include "SIMPLA_config.h"
 #include "spMPI.h"
 
 #undef DONE

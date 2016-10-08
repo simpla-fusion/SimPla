@@ -30,7 +30,7 @@ using namespace simpla;
 void ShowSimPlaLogo() { MESSAGE << ShowLogo() << std::endl; };
 //struct spDataType_s
 //{
-//    simpla::data_model::DataType self;
+//    simpla::toolbox::DataType self;
 //
 //    simpla::MPIDataType m_mpi_type_;
 //
@@ -70,26 +70,26 @@ void ShowSimPlaLogo() { MESSAGE << ShowLogo() << std::endl; };
 //        switch (type_tag)
 //        {
 //            case SP_TYPE_float:
-//                (*dtype)->self = simpla::data_model::DataType::create<float>();
+//                (*dtype)->self = simpla::toolbox::DataType::create<float>();
 //                break;
 //            case SP_TYPE_double:
-//                (*dtype)->self = simpla::data_model::DataType::create<double>();
+//                (*dtype)->self = simpla::toolbox::DataType::create<double>();
 //                break;
 //
 //            case SP_TYPE_int:
-//                (*dtype)->self = simpla::data_model::DataType::create<int>();
+//                (*dtype)->self = simpla::toolbox::DataType::create<int>();
 //                break;
 //            case SP_TYPE_uint:
-//                (*dtype)->self = simpla::data_model::DataType::create<unsigned int>();
+//                (*dtype)->self = simpla::toolbox::DataType::create<unsigned int>();
 //                break;
 //            case SP_TYPE_long:
-//                (*dtype)->self = simpla::data_model::DataType::create<long>();
+//                (*dtype)->self = simpla::toolbox::DataType::create<long>();
 //                break;
 ////            case SP_TYPE_int64_t:
-////                (*dtype)->self = simpla::data_model::DataType::create<int64_t>();
+////                (*dtype)->self = simpla::toolbox::DataType::create<int64_t>();
 ////                break;
 //            case SP_TYPE_unsigned_long:
-//                (*dtype)->self = simpla::data_model::DataType::create<unsigned long>();
+//                (*dtype)->self = simpla::toolbox::DataType::create<unsigned long>();
 //                break;
 //            default:
 //                (*dtype)->self.size_in_byte(s);
@@ -156,48 +156,48 @@ void ShowSimPlaLogo() { MESSAGE << ShowLogo() << std::endl; };
 //
 //    return (res);
 //};
-simpla::data_model::DataType spDataTypeFromTag(int type_tag, size_type s)
+simpla::toolbox::DataType spDataTypeFromTag(int type_tag, size_type s)
 {
 
     switch (type_tag)
     {
         case SP_TYPE_float:
-            return simpla::data_model::DataType::create<float>();
+            return simpla::toolbox::DataType::create<float>();
 
         case SP_TYPE_double:
-            return simpla::data_model::DataType::create<double>();
+            return simpla::toolbox::DataType::create<double>();
 
         case SP_TYPE_int:
-            return simpla::data_model::DataType::create<int>();
+            return simpla::toolbox::DataType::create<int>();
 
         case SP_TYPE_uint:
-            return simpla::data_model::DataType::create<unsigned int>();
+            return simpla::toolbox::DataType::create<unsigned int>();
 
         case SP_TYPE_unsigned_int:
-            return simpla::data_model::DataType::create<unsigned int>();
+            return simpla::toolbox::DataType::create<unsigned int>();
 
         case SP_TYPE_unsigned_long:
-            return simpla::data_model::DataType::create<unsigned long>();
+            return simpla::toolbox::DataType::create<unsigned long>();
 
         case SP_TYPE_long:
-            return simpla::data_model::DataType::create<long>();
+            return simpla::toolbox::DataType::create<long>();
 
 
         default:
             break;
     }
 
-    return simpla::data_model::DataType();
+    return simpla::toolbox::DataType();
 }
 
-struct spIOStream_s { std::shared_ptr<simpla::io::IOStream> self; };
+struct spIOStream_s { std::shared_ptr<simpla::toolbox::IOStream> self; };
 
 typedef struct spIOStream_s spIOStream;
 
 int spIOStreamCreate(spIOStream **os)
 {
     *os = new spIOStream;
-    (*os)->self = std::make_shared<simpla::io::HDF5Stream>();
+    (*os)->self = std::make_shared<simpla::toolbox::HDF5Stream>();
     return SP_SUCCESS;
 }
 
@@ -245,12 +245,12 @@ int spIOStreamWriteSimple(spIOStream *os,
                           int flag)
 {
 
-    simpla::data_model::DataSet dset;
+    simpla::toolbox::DataSet dset;
 
     dset.data_type = spDataTypeFromTag(data_type_tag, 0);
-    dset.data_space = simpla::data_model::DataSpace(ndims, (g_dims != NULL) ? g_dims : dims);
+    dset.data_space = simpla::toolbox::DataSpace(ndims, (g_dims != NULL) ? g_dims : dims);
     dset.data_space.select_hyperslab((g_start != NULL) ? g_start : start, stride, count, block);
-    dset.memory_space = simpla::data_model::DataSpace(ndims, dims);
+    dset.memory_space = simpla::toolbox::DataSpace(ndims, dims);
     dset.memory_space.select_hyperslab(start, stride, count, block);
 
     dset.data = std::shared_ptr<void>(d, simpla::tags::do_nothing());

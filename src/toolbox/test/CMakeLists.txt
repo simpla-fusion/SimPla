@@ -9,7 +9,7 @@
 #target_link_libraries(properties_test utilities   parallel   physics  utilities)
 
 
-simpla_test(DataBaseAny_test DataBaseAny_test.cpp ../DataBase.cpp ../DataBaseAny.cpp ../Log.cpp)
+simpla_test(DataBaseAny_test DataBaseMemory_test.cpp ../DataBase.cpp ../DataBaseMemory.cpp ../Log.cpp)
 
 add_executable(log_test log_test.cpp ../Log.cpp ../parse_command_line.cpp)
 #target_link_libraries(log_test      )
