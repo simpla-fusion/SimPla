@@ -24,6 +24,7 @@ MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 SET(COMPILER $ENV{PRG_ENV})
 
 SET(CMAKE_C_FLAGS "-std=c11 -fopenmp  ")
+SET(CMAKE_CXX_FLAGS "-std=c11 -fopenmp  ")
 
 SET(SIMPLA_VERSION_MAJOR 0)
 SET(SIMPLA_VERSION_MINOR 0)
@@ -40,9 +41,9 @@ execute_process(COMMAND git describe --all --dirty --long
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "-std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0  -fPIC ")
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-    SET(CMAKE_CXX_FLAGS "-std=c++11  -fPIC ")
+    SET(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp -fPIC ")
 else ()
-    SET(CMAKE_CXX_FLAGS "-std=c++11  -fPIC  ")
+    SET(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp  -fPIC  ")
 endif ()
 
 FIND_PACKAGE(Boost)
@@ -94,25 +95,22 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include/simpla/)
 INCLUDE(CTest)
 ENABLE_TESTING()
 FIND_PACKAGE(GTest)
-
-
 ADD_CUSTOM_TARGET(alltest)
+
 INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
 INCLUDE_DIRECTORIES(${HDF5_INCLUDE_PATH})
 INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
-#add_subdirectory(external_project)
 
-
-# workaround for CLion 1.0.x
-FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp tools/geqdsk_convert.cpp)
-
+add_subdirectory(external_project)
 
 add_subdirectory(src)
 add_subdirectory(example)
 add_subdirectory(tools)
 add_subdirectory(docs)
-#add_subdirectory(applications)
+
 add_subdirectory(scenario)
 add_subdirectory(sp_lite)
 
+# workaround for CLion 1.0.x
+FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
+add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp tools/geqdsk_convert.cpp)

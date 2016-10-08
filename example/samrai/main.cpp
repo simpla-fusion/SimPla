@@ -48,7 +48,9 @@ using namespace std;
 #include "MblkLinAdv.h"
 
 #ifdef _OPENMP
+
 #include <omp.h>
+
 #endif
 
 // Classes for run-time plotting and autotesting.
@@ -175,7 +177,7 @@ int main(int argc, char *argv[])
     /*
      * Run problem twice to test startup/shutdown process for multi-block problems.
      */
-    for (int run = 0; run < 2; ++run)
+//    for (int run = 0; run < 2; ++run)
     {
 
         tbox::SAMRAIManager::startup();
@@ -251,66 +253,45 @@ int main(int argc, char *argv[])
         const tbox::Dimension dim(static_cast<unsigned short>(main_db->getInteger("dim")));
 
         string log_file_name = "MblkLinAdv.log";
-        if (main_db->keyExists("log_file_name"))
-        {
-            log_file_name = main_db->getString("log_file_name");
-        }
+        if (main_db->keyExists("log_file_name")) { log_file_name = main_db->getString("log_file_name"); }
         bool log_all_nodes = false;
-        if (main_db->keyExists("log_all_nodes"))
-        {
-            log_all_nodes = main_db->getBool("log_all_nodes");
-        }
-        if (log_all_nodes)
-        {
-            tbox::PIO::logAllNodes(log_file_name);
-        } else
-        {
-            tbox::PIO::logOnlyNodeZero(log_file_name);
-        }
+        if (main_db->keyExists("log_all_nodes")) { log_all_nodes = main_db->getBool("log_all_nodes"); }
+        if (log_all_nodes) { tbox::PIO::logAllNodes(log_file_name); }
+        else { tbox::PIO::logOnlyNodeZero(log_file_name); }
 
 #ifdef _OPENMP
         tbox::plog << "Compiled with OpenMP version " << _OPENMP
-        << ".  Running with " << omp_get_max_threads() << " threads."
-        << std::endl;
+                   << ".  Running with " << omp_get_max_threads() << " threads."
+                   << std::endl;
 #else
         tbox::plog << "Compiled without OpenMP.\n";
 #endif
 
         int viz_dump_interval = 0;
-        if (main_db->keyExists("viz_dump_interval"))
-        {
-            viz_dump_interval = main_db->getInteger("viz_dump_interval");
-        }
+        if (main_db->keyExists("viz_dump_interval")) { viz_dump_interval = main_db->getInteger("viz_dump_interval"); }
 
         string viz_dump_dirname = "";
         string visit_dump_dirname = "";
         int visit_number_procs_per_file = 1;
         if (viz_dump_interval > 0)
         {
-            if (main_db->keyExists("viz_dump_dirname"))
-            {
-                viz_dump_dirname = main_db->getString("viz_dump_dirname");
-            }
+            if (main_db->keyExists("viz_dump_dirname")) { viz_dump_dirname = main_db->getString("viz_dump_dirname"); }
             visit_dump_dirname = viz_dump_dirname;
             if (viz_dump_dirname.empty())
             {
-                TBOX_ERROR(
-                        "main(): " << "\nviz_dump_dirname is null ... " << "\nThis must be specified for use with VisIt"
-                                   << endl);
+                TBOX_ERROR("main(): " << "\nviz_dump_dirname is null ... "
+                                      << "\nThis must be specified for use with VisIt"
+                                      << endl);
             }
             if (main_db->keyExists("visit_number_procs_per_file"))
             {
-                visit_number_procs_per_file = main_db->getInteger(
-                        "visit_number_procs_per_file");
+                visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
             }
         }
         const bool viz_dump_data = (viz_dump_interval > 0);
 
         int restart_interval = 0;
-        if (main_db->keyExists("restart_interval"))
-        {
-            restart_interval = main_db->getInteger("restart_interval");
-        }
+        if (main_db->keyExists("restart_interval")) { restart_interval = main_db->getInteger("restart_interval"); }
 
         string restart_write_dirname;
         if (restart_interval > 0)
@@ -328,10 +309,7 @@ int main(int argc, char *argv[])
         if (main_db->keyExists("timestepping"))
         {
             string timestepping_method = main_db->getString("timestepping");
-            if (timestepping_method == "SYNCHRONIZED")
-            {
-                use_refined_timestepping = false;
-            }
+            if (timestepping_method == "SYNCHRONIZED") { use_refined_timestepping = false; }
         }
 
 #if (TESTING == 1) && !(HAVE_HDF5)
@@ -401,8 +379,7 @@ int main(int argc, char *argv[])
                                                    input_db->getDatabase("StandardTagAndInitialize")));
 
         boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
-                new mesh::BergerRigoutsos(dim,
-                                          input_db->getDatabase("BergerRigoutsos")));
+                new mesh::BergerRigoutsos(dim, input_db->getDatabase("BergerRigoutsos")));
 
         boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
                 new mesh::TreeLoadBalancer(dim, "TreeLoadBalancer",
@@ -454,8 +431,7 @@ int main(int argc, char *argv[])
          * to the log file.
          */
 
-        tbox::plog << "\nCheck input data and variables before simulation:"
-                   << endl;
+        tbox::plog << "\nCheck input data and variables before simulation:" << endl;
         tbox::plog << "Input database..." << endl;
         input_db->printClassData(tbox::plog);
         tbox::plog << "\nVariable database..." << endl;

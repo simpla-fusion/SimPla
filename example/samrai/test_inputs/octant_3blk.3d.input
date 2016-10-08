@@ -320,7 +320,7 @@ TimeRefinementIntegrator{
    start_time           = 0.e0     // initial simulation time
    end_time             = 100.e0   // final simulation time
    grow_dt              = 1.1e0    // growth factor for timesteps
-   max_integrator_steps = 50    // max number of simulation timesteps
+   max_integrator_steps = 500    // max number of simulation timesteps
 }
 
 // Refer to mesh::TreeLoadBalancer for input
