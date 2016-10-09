@@ -1,3 +1,3 @@
 
 
-add_library(base Object.cpp)
+add_library(base ../toolbox/Object.cpp)

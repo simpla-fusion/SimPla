@@ -8,9 +8,9 @@
 #define SIMPLA_LIFECLICK_H
 
 #include <atomic>
-#include "../toolbox/design_pattern/SingletonHolder.h"
+#include "design_pattern/SingletonHolder.h"
 
-namespace simpla { namespace base
+namespace simpla { namespace toolbox
 {
 
 struct LifeClick

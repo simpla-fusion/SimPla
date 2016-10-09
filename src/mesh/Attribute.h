@@ -7,7 +7,7 @@
 #ifndef SIMPLA_MESHATTRIBUTE_H
 #define SIMPLA_MESHATTRIBUTE_H
 
-#include "../base/Object.h"
+#include "../toolbox/Object.h"
 #include "../toolbox/Log.h"
 #include "../toolbox/MemoryPool.h"
 #include "../toolbox/DataSet.h"

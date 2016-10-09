@@ -15,7 +15,7 @@
 #include "../sp_def.h"
 #include "Properties.h"
 #include "Log.h"
-#include "../base/Object.h"
+#include "Object.h"
 
 namespace simpla { namespace toolbox
 {

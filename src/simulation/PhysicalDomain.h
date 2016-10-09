@@ -9,7 +9,7 @@
 
 #include <memory>
 #include "../sp_def.h"
-#include "../base/Object.h"
+#include "../toolbox/Object.h"
 #include "../toolbox/Log.h"
 #include "../toolbox/Properties.h"
 #include "../toolbox/ConfigParser.h"

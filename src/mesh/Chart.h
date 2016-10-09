@@ -6,7 +6,7 @@
 #define SIMPLA_MESHBASE_H
 
 #include <typeinfo>
-#include "../base/Object.h"
+#include "../toolbox/Object.h"
 #include "../toolbox/Log.h"
 
 #include "MeshCommon.h"
