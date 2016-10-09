@@ -37,7 +37,7 @@ namespace simpla { namespace simulation
 {
 
 
-class PhysicalDomain : public base::Object
+class PhysicalDomain : public toolbox::Object
 {
 public:
     const mesh::Chart *m_mesh_;
@@ -46,7 +46,7 @@ public:
 
     HAS_PROPERTIES;
 
-    SP_OBJECT_HEAD(PhysicalDomain, base::Object);
+    SP_OBJECT_HEAD(PhysicalDomain, toolbox::Object);
 
     PhysicalDomain();
 

@@ -26,11 +26,11 @@ enum
     SP_RECORD = (1UL << 4)
 };
 
-class IOStream : public base::Object
+class IOStream : public toolbox::Object
 {
 public:
 
-    SP_OBJECT_HEAD(IOStream, base::Object);
+    SP_OBJECT_HEAD(IOStream, toolbox::Object);
 
     HAS_PROPERTIES;
 

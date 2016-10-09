@@ -30,7 +30,7 @@ struct LifeClick
 
 };
 
-#define GLOBAL_CLICK_TOUCH SingletonHolder<::simpla::base::LifeClick>::instance().touch
+#define GLOBAL_CLICK_TOUCH SingletonHolder<::simpla::toolbox::LifeClick>::instance().touch
 }}//namespace simpla{namespace base{
 
 #endif //SIMPLA_LIFECLICK_H

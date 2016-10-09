@@ -1,12 +1,12 @@
 /**
  *
- * @file corectmesh.h
+ * @file rectmesh.h
  * Created by salmon on 15-7-2.
  *
  */
 
-#ifndef SIMPLA_CORECTMESH_H
-#define SIMPLA_CORECTMESH_H
+#ifndef SIMPLA_RECTMESH_H
+#define SIMPLA_RECTMESH_H
 
 #include <vector>
 #include <iomanip>
@@ -34,14 +34,14 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 template<>
-struct CoRectMesh : public Block
+struct RectMesh : public Block
 {
 private:
-    typedef CoRectMesh this_type;
+    typedef RectMesh this_type;
     typedef Block base_type;
 public:
 
-    SP_OBJECT_HEAD(CoRectMesh, Block)
+    SP_OBJECT_HEAD(RectMesh, Block)
 
 
     /**
@@ -76,19 +76,19 @@ public:
 
     point_type m_origin_{0, 0, 0};
     vector_type m_dx_{1, 1, 1};
-
+    std::function<Real(Real)> m_map_[3];
 public:
 
-    CoRectMesh() {}
+    RectMesh() {}
 
-    CoRectMesh(CoRectMesh const &other) :
+    RectMesh(RectMesh const &other) :
             Block(other),
             m_origin_(other.m_origin_),
             m_dx_(other.m_dx_) { deploy(); };
 
-    virtual  ~CoRectMesh() {}
+    virtual  ~RectMesh() {}
 
-    void swap(CoRectMesh const &other)
+    void swap(RectMesh const &other)
     {
         std::swap(m_origin_, other.m_origin_);
         std::swap(m_dx_, other.m_dx_);
@@ -195,7 +195,7 @@ public:
 
 }; // struct  Mesh
 
-void CoRectMesh::deploy()
+void RectMesh::deploy()
 {
     Block::deploy();
     /**
@@ -577,4 +577,4 @@ void CoRectMesh::deploy()
 
 }} // namespace simpla // namespace  mesh
 
-#endif //SIMPLA_CORECTMESH_H
+#endif //SIMPLA_RECTMESH_H

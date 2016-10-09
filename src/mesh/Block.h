@@ -9,6 +9,7 @@
 #include "MeshCommon.h"
 #include "../toolbox/Object.h"
 #include "EntityId.h"
+#include "../toolbox/DataSpace.h"
 
 namespace simpla { namespace mesh
 {
@@ -83,31 +84,13 @@ public:
 
     static constexpr int ndims = 3;
 
-    Block() {}
+    Block();
 
-    Block(Block const &other) :
-            processer_id_(other.processer_id_),
-            m_global_id_(other.m_global_id_),
-            m_level_(other.m_level_),
-            m_is_deployed_(false),
-            m_b_dimensions_(other.m_b_dimensions_),
-            m_l_dimensions_(other.m_l_dimensions_),
-            m_l_offset_(other.m_l_offset_),
-            m_g_dimensions_(other.m_g_dimensions_),
-            m_g_offset_(other.m_g_offset_) {};
+    Block(Block const &other);
 
-    Block(Block &&other) :
-            processer_id_(other.processer_id_),
-            m_global_id_(other.m_global_id_),
-            m_level_(other.m_level_),
-            m_is_deployed_(other.m_is_deployed_),
-            m_b_dimensions_(other.m_b_dimensions_),
-            m_l_dimensions_(other.m_l_dimensions_),
-            m_l_offset_(other.m_l_offset_),
-            m_g_dimensions_(other.m_g_dimensions_),
-            m_g_offset_(other.m_g_offset_) {};
+    Block(Block &&other);
 
-    virtual ~Block() {}
+    virtual ~Block();
 
     Block &operator=(Block const &other)
     {
@@ -115,19 +98,10 @@ public:
         return *this;
     }
 
-    void swap(Block const &other)
-    {
-        std::swap(processer_id_, other.processer_id_);
-        std::swap(m_global_id_, other.m_global_id_);
-        std::swap(m_level_, other.m_level_);
-        std::swap(m_is_deployed_, other.m_is_deployed_);
+    void swap(Block &other);
 
-        std::swap(m_b_dimensions_, other.m_b_dimensions_);
-        std::swap(m_l_dimensions_, other.m_l_dimensions_);
-        std::swap(m_l_offset_, other.m_l_offset_);
-        std::swap(m_g_dimensions_, other.m_g_dimensions_);
-        std::swap(m_g_offset_, other.m_g_offset_);
-    }
+    virtual std::tuple<toolbox::DataSpace, toolbox::DataSpace>
+    data_space(MeshEntityType const &t, MeshEntityStatus status = SP_ES_OWNED) const;
 
     void processer_id(int id) { processer_id_ = id; }
 
@@ -163,74 +137,13 @@ public:
         m_b_dimensions_ *= a;
     };
 
-    void intersection(Block const &other)
-    {
-        assert(!m_is_deployed_);
-        assert(m_global_id_ == other.m_global_id_);
-        for (int i = 0; i < ndims; ++i)
-        {
-            size_type l_lower = m_g_offset_[i];
-            size_type l_upper = m_g_offset_[i] + m_b_dimensions_[i];
-            size_type r_lower = other.m_g_offset_[i];
-            size_type r_upper = other.m_g_offset_[i] + other.m_b_dimensions_[i];
-            l_lower = std::max(l_lower, r_lower);
-            l_upper = std::min(l_upper, l_upper);
-            m_b_dimensions_[i] = (l_upper > l_lower) ? (l_upper - l_lower) : 0;
-            m_g_offset_[i] = l_lower;
-        }
-    };
+    void intersection(Block const &other);
 
-    virtual void refine(int ratio = 1)
-    {
-        assert(!m_is_deployed_);
-        ++m_level_;
-        for (int i = 0; i < ndims; ++i)
-        {
-            m_b_dimensions_[i] <<= ratio;
-            m_g_dimensions_[i] <<= ratio;
-            m_g_offset_[i] <<= ratio;
-            m_l_dimensions_[i] = 0;
-            m_l_offset_[i] = 0;
-        }
-    }
+    virtual void refine(int ratio = 1);
 
-    virtual void coarsen(int ratio = 1)
-    {
-        assert(!m_is_deployed_);
-        --m_level_;
-        for (int i = 0; i < ndims; ++i)
-        {
-            int mask = (1 << ratio) - 1;
-            assert(m_b_dimensions_[i] & mask == 0);
-            assert(m_g_dimensions_[i] & mask == 0);
-            assert(m_g_offset_[i] & mask == 0);
+    virtual void coarsen(int ratio = 1);
 
-            m_b_dimensions_[i] >>= ratio;
-            m_g_dimensions_[i] >>= ratio;
-            m_g_offset_[i] >>= ratio;
-            m_l_dimensions_[i] = 0;
-            m_l_offset_[i] = 0;
-        }
-    }
-
-    virtual void deploy()
-    {
-
-        for (int i = 0; i < ndims; ++i)
-        {
-            if (m_l_offset_[i] < m_ghost_width_[i] ||
-                m_l_dimensions_[i] < m_ghost_width_[i] * 2 + m_b_dimensions_[i])
-            {
-                m_l_offset_[i] = m_ghost_width_[i];
-                m_l_dimensions_[i] = m_ghost_width_[i] * 2 + m_b_dimensions_[i];
-            }
-
-            if (m_b_dimensions_[i] < 1 ||
-                m_l_dimensions_[i] < m_b_dimensions_[i] + m_l_offset_[i] ||
-                m_g_dimensions_[i] < m_b_dimensions_[i] + m_g_offset_[i]) { m_is_deployed_ = false; }
-        }
-        m_is_deployed_ = true;
-    }
+    virtual void deploy();
 
     bool is_deployed() const { return m_is_deployed_; }
 
@@ -244,7 +157,7 @@ public:
 
     index_tuple const &blobal_offset() const { return m_g_offset_; }
 
-    index_box_type const &local_index_box() const
+    index_box_type local_index_box() const
     {
         index_tuple lower = m_l_offset_;
         index_tuple upper;
@@ -252,7 +165,7 @@ public:
         return std::make_tuple(lower, upper);
     }
 
-    index_box_type const &global_index_box() const
+    index_box_type global_index_box() const
     {
         index_tuple lower = m_g_offset_;
         index_tuple upper;
@@ -265,7 +178,7 @@ public:
 
     size_type size() const { return m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]; }
 
-    inline constexpr size_type hash(size_type i, size_type j = 0, size_type k = 0) const
+    inline size_type hash(size_type i, size_type j = 0, size_type k = 0) const
     {
         return (i * m_l_dimensions_[1] + j) * m_l_dimensions_[2] + k;
     }
@@ -280,21 +193,18 @@ public:
         return std::move(res);
     }
 
-    void for_each(std::function<void(size_type, size_type, size_type)> const &fun) const
-    {
-#pragma omp parallel for
-        for (size_type i = m_l_offset_[0]; i < m_l_offset_[0] + m_b_dimensions_[0]; ++i)
-            for (size_type j = m_l_offset_[1]; j < m_l_offset_[1] + m_b_dimensions_[1]; ++j)
-                for (size_type k = m_l_offset_[2]; k < m_l_offset_[2] + m_b_dimensions_[2]; ++k) { fun(i, j, k); }
-    }
+    typedef MeshEntityIdCoder m;
+    typedef MeshEntityId id;
 
-    void for_each(std::function<void(size_type)> const &fun) const
-    {
-#pragma omp parallel for
-        for (size_type i = m_l_offset_[0]; i < m_l_offset_[0] + m_b_dimensions_[0]; ++i)
-            for (size_type j = m_l_offset_[1]; j < m_l_offset_[1] + m_b_dimensions_[1]; ++j)
-                for (size_type k = m_l_offset_[2]; k < m_l_offset_[2] + m_b_dimensions_[2]; ++k) { fun(hash(i, j, k)); }
-    }
+    id pack(size_type i, size_type j = 0, size_type k = 0, int nid = 0) const { return m::pack_index(i, j, k, nid); }
+
+    index_tuple unpack(id const &s) const { return m::unpack_index(s); }
+
+    void for_each(std::function<void(size_type, size_type, size_type)> const &fun) const;
+
+    void for_each(std::function<void(size_type)> const &fun) const;
+
+    void for_each(std::function<void(id const &)> const &fun, int iform = VERTEX) const;
 
 private:
     int processer_id_ = 0;
@@ -302,13 +212,15 @@ private:
     int m_level_ = 0;
     bool m_is_deployed_ = false;
 
-    index_tuple m_b_dimensions_ = {1, 1, 1};      //!<   dimensions of box
-    index_tuple m_ghost_width_ = {0, 0, 0};          //!<     start index in the local  space
-    index_tuple m_l_dimensions_ = {1, 1, 1};      //!<   dimensions of local index space
-    index_tuple m_l_offset_ = {0, 0, 0};          //!<     start index in the local  space
-    index_tuple m_g_dimensions_ = {1, 1, 1};      //!<   dimensions of global index space
-    index_tuple m_g_offset_ = {0, 0, 0};          //!<   start index of global index space
+    index_tuple m_b_dimensions_{{1, 1, 1}};      //!<   dimensions of box
+    index_tuple m_ghost_width_{{0, 0, 0}};          //!<     start index in the local  space
+    index_tuple m_l_dimensions_{{1, 1, 1}};      //!<   dimensions of local index space
+    index_tuple m_l_offset_{{0, 0, 0}};          //!<     start index in the local  space
+    index_tuple m_g_dimensions_{{1, 1, 1}};     //!<   dimensions of global index space
+    index_tuple m_g_offset_{{0, 0, 0}};         //!<   start index of global index space
 
 };
+
+
 }} //namespace simpla{namespace mesh
 #endif //SIMPLA_BOX_H

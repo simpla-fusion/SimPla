@@ -19,8 +19,8 @@ namespace simpla { namespace mesh
 
 class Chart : public Block
 {
-    point_type m_lower_{0, 0, 0};
-    point_type m_upper_{1, 1, 1};
+    point_type m_lower_{{0, 0, 0}};
+    point_type m_upper_{{1, 1, 1}};
 public:
 
     SP_OBJECT_HEAD(Chart, Block);
@@ -37,7 +37,7 @@ public:
 
     virtual point_type point(index_tuple const &) const
     {
-        
+
     };
 
     virtual void deploy()

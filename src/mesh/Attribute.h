@@ -68,9 +68,9 @@ struct Attribute
 ///**
 // *  PlaceHolder class of Attribute
 // */
-//struct Attribute : public base::Object, public Acceptor
+//struct Attribute : public toolbox::Object, public Acceptor
 //{
-//    SP_OBJECT_HEAD(Attribute, base::Object)
+//    SP_OBJECT_HEAD(Attribute, toolbox::Object)
 //
 //public:
 //
