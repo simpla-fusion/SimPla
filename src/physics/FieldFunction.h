@@ -80,9 +80,9 @@ public:
         if (!(dict["Value"])) { THROW_EXCEPTION_RUNTIME_ERROR("illegal configure file!"); }
 
         typename mesh_type::box_type b;
-        if (dict["Box"])
+        if (dict["Block"])
         {
-            b = dict["Box"].template as<typename mesh_type::box_type>();
+            b = dict["Block"].template as<typename mesh_type::box_type>();
         } else
         {
             b = m.box();

@@ -21,17 +21,11 @@
 #include "../toolbox/Log.h"
 
 #include "MeshCommon.h"
-#include "Chart.h"
+#include "Block.h"
 #include "EntityId.h"
 
 namespace simpla { namespace mesh
 {
-namespace tags { struct CoRectLinear; }
-
-template<typename ...>
-class Mesh;
-
-typedef Mesh<tags::CoRectLinear> CoRectMesh;
 
 
 /**
@@ -40,182 +34,90 @@ typedef Mesh<tags::CoRectLinear> CoRectMesh;
  * @brief Uniform structured get_mesh
  */
 template<>
-struct Mesh<tags::CoRectLinear> : public Chart, public MeshEntityIdCoder
+struct CoRectMesh : public Block
 {
 private:
-    typedef Mesh<tags::CoRectLinear> this_type;
-    typedef Chart base_type;
+    typedef CoRectMesh this_type;
+    typedef Block base_type;
 public:
-    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
 
-    virtual std::string get_class_name() const { return class_name(); }
+    SP_OBJECT_HEAD(CoRectMesh, Block)
 
-    static std::string class_name() { return std::string("Mesh<tags::CoRectLinear>"); }
 
     /**
- *
- *   -----------------------------5
- *   |                            |
- *   |     ---------------4       |
- *   |     |              |       |
- *   |     |  ********3   |       |
- *   |     |  *       *   |       |
- *   |     |  *       *   |       |
- *   |     |  *       *   |       |
- *   |     |  2********   |       |
- *   |     1---------------       |
- *   0-----------------------------
- *
- *	5-0 = dimensions
- *	4-1 = e-d = ghosts
- *	2-1 = counts
- *
- *	0 = id_begin
- *	5 = id_end
- *
- *	1 = id_local_outer_begin
- *	4 = id_local_outer_end
- *
- *	2 = id_local_inner_begin
- *	3 = id_local_inner_end
- *
- *
- */
+     *
+     *   -----------------------------5
+     *   |                            |
+     *   |     ---------------4       |
+     *   |     |              |       |
+     *   |     |  ********3   |       |
+     *   |     |  *       *   |       |
+     *   |     |  *       *   |       |
+     *   |     |  *       *   |       |
+     *   |     |  2********   |       |
+     *   |     1---------------       |
+     *   0-----------------------------
+     *
+     *	5-0 = dimensions
+     *	4-1 = e-d = ghosts
+     *	2-1 = counts
+     *
+     *	0 = id_begin
+     *	5 = id_end
+     *
+     *	1 = id_local_outer_begin
+     *	4 = id_local_outer_end
+     *
+     *	2 = id_local_inner_begin
+     *	3 = id_local_inner_end
+     *
+     *
+     */
 
     point_type m_coords_lower_{{0, 0, 0}};
 
     point_type m_coords_upper_{{1, 1, 1}};
 
-    index_tuple m_ghost_width_{{0, 0, 0}};
-
-    index_tuple m_offset_{{0, 0, 0}};
-
-    index_tuple m_dims_{{10, 10, 10}};
-
-
     vector_type m_dx_{{1, 1, 1}}, m_inv_dx_{{1, 1, 1}}; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
-    index_tuple m_shape_{{10, 10, 10}};
-
-    index_tuple m_lower_{{0, 0, 0}}, m_upper_{{10, 10, 10}};
-
-    index_tuple m_inner_lower_{{0, 0, 0}}, m_inner_upper_{{10, 10, 10}};
-
-    index_tuple m_outer_lower_{{0, 0, 0}}, m_outer_upper_{{10, 10, 10}};
-
-
-    typedef MeshEntityIdCoder m;
 
     typedef MeshEntityId id_type;
 
 public:
     static constexpr int ndims = 3;
 
-    Mesh() {}
+    CoRectMesh() {}
 
-    Mesh(this_type const &other) : Chart(other)
+    CoRectMesh(CoRectMesh const &other) : Block(other)
     {
-        m_dims_ = other.m_dims_;
         m_coords_lower_ = other.m_coords_lower_;
         m_coords_upper_ = other.m_coords_upper_;
-        m_ghost_width_ = other.m_ghost_width_;
-        m_offset_ = other.m_offset_;
         deploy();
     };
 
     virtual  ~Mesh() {}
 
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const
-    {
-        os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
-        os << std::setw(indent + 1) << " " << "Topology = { Type = \"CoRectMesh\", "
-           << "Dimensions = " << dimensions() << " m_global_start_ = " << offset() << " }," << " dx = " << dx() << " },"
-           <<
-           std::endl;
-        os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;
-#ifndef NDEBUG
-        os
-                << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
-                << std::setw(indent + 1) << " " << "      upper = " << m_upper_ << "," << std::endl
-                << std::setw(indent + 1) << " " << "outer lower = " << m_outer_lower_ << "," << std::endl
-                << std::setw(indent + 1) << " " << "outer upper = " << m_outer_upper_ << "," << std::endl
-                << std::setw(indent + 1) << " " << "inner lower = " << m_inner_lower_ << "," << std::endl
-                << std::setw(indent + 1) << " " << "inner upper = " << m_inner_upper_ << "," << std::endl
-                << std::endl;
-#endif
-        return os;
-    }
 
-
-    virtual io::IOStream &save(io::IOStream &os) const
-    {
-//        os.open(type_cast<std::string>(this->short_id()) + "/");
-//        os.set_attribute(".topology_dims", dimensions());
-//        os.set_attribute(".box", box());
-        return os;
-    };
-
-
-    void dimensions(index_tuple const &d) { m_dims_ = d; }
-
-    index_tuple const &dimensions() const { return m_dims_; }
-
-    void offset(index_tuple const &d) { m_offset_ = d; }
-
-    virtual index_tuple offset() const { return m_offset_; }
-
-    virtual point_type origin_point() const { return m_coords_lower_; };
-
-    virtual void ghost_width(index_tuple const &d) { m_ghost_width_ = d; }
-
-    virtual index_tuple const &ghost_width() const { return m_ghost_width_; }
-
-    template<typename X0, typename X1>
-    void box(X0 const &x0, X1 const &x1)
+    void box(point_type const &x0, point_type const &x1)
     {
         m_coords_lower_ = x0;
         m_coords_upper_ = x1;
     }
 
-
     void box(box_type const &b) { std::tie(m_coords_lower_, m_coords_upper_) = b; }
 
+
+    virtual void deploy()
+    {
+        Block::deploy();
+
+        index_tuple i0, i1;
+
+        auto const &dims = dimensions();
+        m_dx_ = (m_coords_upper_ - m_coords_lower_) / dims;
+    }
+
     vector_type const &dx() const { return m_dx_; }
-
-    virtual mesh::Chart &shift(index_tuple const &offset)
-    {
-        for (int i = 0; i < 3; ++i)
-        {
-            if (m_dims_[i] > 1)
-            {
-                m_offset_[i] += offset[i];
-                m_coords_lower_[i] += offset[i] * m_dx_[i];
-                m_coords_upper_[i] += offset[i] * m_dx_[i];
-            }
-        }
-        return *this;
-    };
-
-    virtual mesh::Chart &stretch(index_tuple const &dims)
-    {
-        for (int i = 0; i < 3; ++i)
-        {
-            if (m_dims_[i] > 1)
-            {
-                m_dims_[i] = dims[i];
-
-                m_coords_upper_[i] = m_coords_lower_[i] + dims[i] * m_dx_[i];
-            }
-
-        }
-        return *this;
-    };
-
-private:
-    //TODO should use block-entity_id_range
-    parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> m_affected_entities_[4];
-    parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> m_interface_entities_[4];
-public:
 
     typedef typename MeshEntityIdCoder::range_type block_range_type;
 
@@ -277,29 +179,7 @@ public:
         return std::move(res);
     }
 
-    virtual index_box_type index_box(box_type const &b) const
-    {
-        index_tuple lower, upper;
-        point_type x_lower, x_upper;
-        std::tie(x_lower, x_upper) = b;
-        for (int i = 0; i < 3; ++i)
-        {
-            if (m_dims_[i] > 1)
-            {
-                lower[i] = m_lower_[i] +
-                           static_cast<index_type >(std::floor((x_lower[i] - m_coords_lower_[i]) / m_dx_[i] + 0.5));
-                upper[i] = m_lower_[i] +
-                           static_cast<index_type >(std::floor((x_upper[i] - m_coords_lower_[i]) / m_dx_[i] + 0.5));
-            } else
-            {
-                lower[i] = m_lower_[i];
-                upper[i] = m_upper_[i];
-            }
-        }
 
-        return std::make_tuple(lower, upper);
-
-    }
 
     virtual EntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
     {
@@ -400,15 +280,7 @@ public:
     };
 
 
-    virtual size_type max_hash(MeshEntityType entityType = VERTEX) const
-    {
-        return m::max_hash(m_outer_lower_, m_outer_upper_, entityType);
-    }
 
-    virtual size_type hash(MeshEntityId const &s) const
-    {
-        return static_cast<size_type>(m::hash(s, m_outer_lower_, m_outer_upper_));
-    }
 
 
     virtual point_type

@@ -81,10 +81,11 @@ namespace simpla { namespace toolbox
  *  @}
  **/
 
-
 class Object
 {
 public:
+    typedef boost::uuids::uuid id_type;
+
     Object();
 
     Object(Object &&other);

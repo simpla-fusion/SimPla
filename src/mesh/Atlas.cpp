@@ -11,7 +11,7 @@
 namespace simpla { namespace mesh
 {
 
-TransitionMap::TransitionMap(Chart const *p_first, Chart const *p_second, index_box_type i_box, index_tuple offset,
+TransitionMap::TransitionMap(Block const *p_first, Block const *p_second, index_box_type i_box, index_tuple offset,
                              int p_flag)
         : first(p_first), second(p_second), m_overlap_idx_box_(i_box), m_offset_(MeshEntityIdCoder::pack_index(offset)),
           flag(p_flag)
@@ -46,13 +46,13 @@ mesh::MeshEntityId TransitionMap::direct_map(mesh::MeshEntityId s) const
     return s + m_offset_;
 };
 
-MeshBlockId Atlas::add_block(std::shared_ptr<Chart> p_m)
+MeshBlockId Atlas::add_block(std::shared_ptr<Block> p_m)
 {
     m_nodes_.emplace(std::make_pair(p_m->id(), p_m));
     return p_m->id();
 }
 
-std::shared_ptr<Chart> Atlas::get_block(mesh::MeshBlockId m_id) const
+std::shared_ptr<Block> Atlas::get_block(mesh::MeshBlockId m_id) const
 {
     assert(m_nodes_.at(m_id) != nullptr);
     return m_nodes_.at(m_id);
@@ -68,7 +68,7 @@ std::shared_ptr<TransitionMap> Atlas::add_adjacency(MeshBlockId first, MeshBlock
     return add_adjacency(get_block(first).get(), get_block(second).get(), flag);
 }
 
-std::shared_ptr<TransitionMap> Atlas::add_adjacency(const Chart *first, const Chart *second, int flag)
+std::shared_ptr<TransitionMap> Atlas::add_adjacency(const Block *first, const Block *second, int flag)
 {
     box_type x_b_first = toolbox::box_overlap(first->box(SP_ES_ALL), second->box(SP_ES_OWNED));
     index_box_type i_b_first = first->index_box(x_b_first);
@@ -81,7 +81,7 @@ std::shared_ptr<TransitionMap> Atlas::add_adjacency(const Chart *first, const Ch
     return res;
 }
 
-void Atlas::add_adjacency2(const Chart *first, const Chart *second, int flag)
+void Atlas::add_adjacency2(const Block *first, const Block *second, int flag)
 {
     auto t0 = add_adjacency(first, second, flag);
     auto t1 = add_adjacency(second, first, flag);
@@ -89,19 +89,6 @@ void Atlas::add_adjacency2(const Chart *first, const Chart *second, int flag)
 //    CHECK(1) << t0->m_overlap_idx_box_ << MeshEntityIdCoder::unpack_index(t0->m_offset_);
 //    CHECK(2) << t1->m_overlap_idx_box_ << MeshEntityIdCoder::unpack_index(t1->m_offset_);;
 
-}
-
-
-toolbox::IOStream &Atlas::save(toolbox::IOStream &os) const
-{
-    for (auto const &item:m_nodes_) { item.second->save(os); }
-    return os;
-}
-
-toolbox::IOStream &Atlas::load(toolbox::IOStream &is)
-{
-    UNIMPLEMENTED;
-    return is;
 }
 
 
