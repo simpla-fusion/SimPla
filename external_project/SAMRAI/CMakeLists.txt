@@ -47,14 +47,12 @@ IF (LAPACK_FOUND)
     SET(HAVE_LAPACK 1)
 ENDIF (LAPACK_FOUND)
 
-SET(HYPRE_DIR /home/salmon/workspace/SAMRAI-clion/CMake)
-#FIND_PACKAGE(HYPRE)
-#IF (HYPRE_FOUND)
-#    INCLUDE_DIRECTORIES(${HYPRE_INCLUDE_DIRS})
-#
-#ENDIF (HYPRE_FOUND)
-
-SET(HAVE_HYPRE 1)
+SET(HYPRE_DIR /home/salmon/workspace/SimPla/CMake)
+FIND_PACKAGE(HYPRE)
+IF (HYPRE_FOUND)
+    INCLUDE_DIRECTORIES(${HYPRE_INCLUDE_DIRS})
+    SET(HAVE_HYPRE 1)
+ENDIF (HYPRE_FOUND)
 
 SET(OPT_BUILD 1)
 
@@ -249,15 +247,19 @@ function(SAMRAI_build_lib _ROOT name)
     ADD_LIBRARY(SAMRAI_${name} ${${name}_SRC} ${${name}_f_SRC})
 endfunction()
 
-function(SAMRAI_build_exe name _ROOT libs)
+function(ADD_SAMRAI_EXE name _ROOT)
 
     if (NOT DEFINED ${name}_SRC)
         FILE(GLOB_RECURSE ${name}_SRC ${_ROOT}/*.C)
     endif ()
 
-    ADD_EXECUTABLE(${name} ${${name}_SRC})
+#    if (NOT DEFINED ${name}_f_SRC)
+#        FILE(GLOB_RECURSE ${name}_f_SRC ${_ROOT}/*.f)
+#    endif ()
 
-    TARGET_LINK_LIBRARIES(${name} ${libs} ${SAMRAI_LIBRARIES} ${MPI_LIBRARIES} ${HDF5_LIBRARIES})
+    ADD_EXECUTABLE(${name} ${${name}_SRC} ${${name}_f_SRC})
+
+    TARGET_LINK_LIBRARIES(${name} ${SAMRAI_LIBRARIES} ${MPI_LIBRARIES} ${HDF5_LIBRARIES})
 
 endfunction()
 
@@ -274,6 +276,7 @@ SAMRAI_build_lib(${SAMRAI_DIR}/source/SAMRAI tbox)
 SAMRAI_build_lib(${SAMRAI_DIR}/source/test testlib)
 
 SET(SAMRAI_LIBRARIES
+        SAMRAI_testlib
         SAMRAI_appu
         SAMRAI_algs
         SAMRAI_solv
@@ -286,8 +289,22 @@ SET(SAMRAI_LIBRARIES
         SAMRAI_tbox
         )
 
-SAMRAI_build_exe(MblkLinAdv ${SAMRAI_DIR}/source/test/MblkLinAdv SAMRAI_testlib)
-SAMRAI_build_exe(FAC_adaptive ${SAMRAI_DIR}/source/test/FAC_adaptive SAMRAI_testlib HYPRE HYPRE_struct_ls-2.8)
+ADD_SAMRAI_EXE(MblkLinAdv ${SAMRAI_DIR}/source/test/MblkLinAdv)
+TARGET_LINK_LIBRARIES(MblkLinAdv  ${HYPRE_LIBRARIES})
+
+ADD_SAMRAI_EXE(FAC_adaptive ${SAMRAI_DIR}/source/test/FAC_adaptive)
+TARGET_LINK_LIBRARIES(FAC_adaptive  ${HYPRE_LIBRARIES})
+
+
+SET(MblkEuler_SRC
+        ${SAMRAI_DIR}/source/test/MblkEuler/main.C
+        ${SAMRAI_DIR}/source/test/MblkEuler/MblkGeometry.C
+        ${SAMRAI_DIR}/source/test/MblkEuler/MblkEuler.C
+        ${SAMRAI_DIR}/source/test/MblkEuler/boundaryconditions.f
+)
+
+ADD_SAMRAI_EXE(MblkEuler ${SAMRAI_DIR}/source/test/MblkEuler)
+TARGET_LINK_LIBRARIES(MblkEuler  ${HYPRE_LIBRARIES})
 
 FIND_PACKAGE(Doxygen)
 SET(dox_output_dir ${PROJECT_BINARY_DIR}/docs/)
