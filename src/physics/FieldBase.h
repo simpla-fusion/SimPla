@@ -13,6 +13,7 @@
 #include "../toolbox/DataSet.h"
 #include "../mesh/MeshCommon.h"
 #include "../mesh/Block.h"
+#include "../mesh/ModelSelect.h"
 #include "../mesh/Attribute.h"
 
 namespace simpla
@@ -44,23 +45,15 @@ public:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-    Field() : base_type(), m_mesh_(nullptr), m_data_holder_(nullptr)
-//            , m_data_root_ptr_(nullptr)
-    {}
+    Field() : base_type(), m_mesh_(nullptr), m_data_holder_(nullptr) {}
 
     //create construct
     Field(std::shared_ptr<mesh::Block const> m) : Field(static_cast<mesh_type const *>(m.get())) {}
 
-    Field(mesh::Block const *m) : Field(static_cast<mesh_type const *>(m)) {}
-
-    Field(mesh_type const *m) : m_mesh_(m), m_data_holder_(nullptr)
-//            , m_data_root_ptr_(nullptr)
-    {}
+    Field(mesh_type const *m) : m_mesh_(m), m_data_holder_(nullptr) {}
 
     //copy construct
-    Field(this_type const &other) : m_mesh_(other.m_mesh_), m_data_holder_(other.m_data_holder_)
-//            ,m_data_root_ptr_(other.m_data_root_ptr_)
-    {}
+    Field(this_type const &other) : m_mesh_(other.m_mesh_), m_data_holder_(other.m_data_holder_) {}
 
 //    //factory construct
 //    template<typename TFactory, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
@@ -129,7 +122,7 @@ public:
     entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::SP_ES_OWNED) const
     {
         assert(is_valid());
-        return select(m_mesh_, entity_type(), entityStatus);
+        return mesh::select(m_mesh_, entity_type(), entityStatus);
     }
 
     virtual size_type entity_size_in_byte() const { return sizeof(value_type); }
@@ -237,7 +230,7 @@ public:
     template<typename TFun>
     this_type &
     apply(mesh::EntityRange const &r0, TFun const &op,
-    CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &, field_value_type const &))
+          CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &, field_value_type const &))
     )
     {
         deploy();
@@ -258,7 +251,7 @@ public:
     template<typename TFun>
     this_type &
     apply(mesh::EntityRange const &r0, TFun const &op,
-    CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &))
+          CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const &))
     )
     {
         deploy();

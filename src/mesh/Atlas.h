@@ -12,6 +12,7 @@
 #include "../toolbox/nTuple.h"
 #include "MeshCommon.h"
 #include "Block.h"
+#include "TransitionMap.h"
 
 namespace simpla { namespace mesh
 {
@@ -24,7 +25,6 @@ namespace simpla { namespace mesh
  *  of an open subset of the linear space onto another open subset of the linear space.
  */
 
-struct TransitionMap;
 
 class Atlas
 {

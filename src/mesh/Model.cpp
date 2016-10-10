@@ -164,7 +164,7 @@ EntityRange Model::inside(MeshEntityType iform)
             break;
         case EDGE:
         case FACE:
-            m->range(iform).foreach([&](MeshEntityId const &s) { if (check(s) == INSIDE) { res.insert(s); }});
+            m->for_each(iform, [&](MeshEntityId const &s) { if (check(s) == INSIDE) { res.insert(s); }});
             break;
         default:// case VOLUME:
             for (auto const &v_item:m_pimpl_->m_volume_cache)
@@ -195,7 +195,7 @@ EntityRange Model::outside(MeshEntityType iform)
             break;
         case EDGE:
         case FACE:
-            m->range(iform).foreach([&](MeshEntityId const &s) { if (check(s) == OUTSIDE) { res.insert(s); }});
+            m->for_each(iform, [&](MeshEntityId const &s) { if (check(s) == OUTSIDE) { res.insert(s); }});
             break;
         default:// case VOLUME:
             for (auto const &v_item:m_pimpl_->m_volume_cache)

@@ -159,13 +159,13 @@ public:
     };
 
 
-    virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s,
-                                      MeshEntityId *p = nullptr) const
-    {
-        return m::get_adjacent_entities(entity_type, entity_type, s, p);
-    }
+//    virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s,
+//                                      MeshEntityId *p = nullptr) const
+//    {
+//        return m::get_adjacent_entities(entity_type, entity_type, s, p);
+//    }
 
-    virtual std::shared_ptr<Block> refine(box_type const &b, int flag = 0) const { return std::shared_ptr<Block>(); }
+//    virtual std::shared_ptr<Block> refine(box_type const &b, int flag = 0) const { return std::shared_ptr<Block>(); }
 
 private:
     vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};

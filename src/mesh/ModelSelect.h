@@ -14,7 +14,7 @@ namespace simpla { namespace mesh
 {
 
 template<typename TM, typename ...Args>
-EntityRange select(TM const &m, MeshEntityType iform, Args &&...args);
+EntityRange select(TM const &m, MeshEntityType iform, Args &&...args) { return EntityRange(); }
 }}//namespace simpla { namespace mesh
 
 #endif //SIMPLA_MODELSELECT_H

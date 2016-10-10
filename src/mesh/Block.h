@@ -256,6 +256,11 @@ public:
 
     void for_each(int iform, std::function<void(MeshEntityId const &)> const &) const;
 
+    virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s,
+                                      MeshEntityId *p = nullptr) const
+    {
+        return m::get_adjacent_entities(entity_type, entity_type, s, p);
+    }
 
     Real time() const { return m_time_; }
 

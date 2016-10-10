@@ -49,14 +49,14 @@ public:
         m_src_->deploy();
     };
 
-    ~TransitionMap() {};
+    virtual  ~TransitionMap() {};
 
     std::shared_ptr<Block> m_dst_, m_src_;
 
 
     virtual point_type map(point_type const &x) const { return x; }
 
-    virtual mesh::MeshEntityId direct_map(mesh::MeshEntityId) const;
+//    virtual mesh::MeshEntityId direct_map(mesh::MeshEntityId) const;
 
     virtual void push_forward(point_type const &x, Real const *v, Real *u) const
     {
