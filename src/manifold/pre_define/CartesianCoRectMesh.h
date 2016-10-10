@@ -26,12 +26,6 @@
 
 namespace simpla { namespace mesh
 {
-namespace tags { struct CoRectLinear; }
-
-template<typename ...>
-class Mesh;
-
-typedef Mesh<tags::CoRectLinear> CoRectMesh;
 
 
 /**
@@ -39,13 +33,15 @@ typedef Mesh<tags::CoRectLinear> CoRectMesh;
  *
  * @brief Uniform structured get_mesh
  */
-template<>
-struct Mesh<tags::CoRectLinear> : public Chart, public MeshEntityIdCoder
+
+struct CartesianCoRectMesh : public Chart, public MeshEntityIdCoder
 {
 private:
-    typedef Mesh<tags::CoRectLinear> this_type;
+    typedef CartesianCoRectMesh this_type;
     typedef Chart base_type;
 public:
+    typedef Real scalar_type;
+
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
 
     virtual std::string get_class_name() const { return class_name(); }
@@ -111,9 +107,9 @@ public:
 public:
     static constexpr int ndims = 3;
 
-    Mesh() {}
+    CartesianCoRectMesh() {}
 
-    Mesh(this_type const &other) : Chart(other)
+    CartesianCoRectMesh(this_type const &other) : Chart(other)
     {
         m_dims_ = other.m_dims_;
         m_coords_lower_ = other.m_coords_lower_;
@@ -123,7 +119,7 @@ public:
         deploy();
     };
 
-    virtual  ~Mesh() {}
+    virtual  ~CartesianCoRectMesh() {}
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
