@@ -6,131 +6,56 @@
 #define SIMPLA_MESHBASE_H
 
 #include <typeinfo>
-#include "../base/Object.h"
+#include "../toolbox/Object.h"
 #include "../toolbox/Log.h"
 
 #include "MeshCommon.h"
-#include "Chart.h"
+#include "Block.h"
 #include "EntityRange.h"
 #include "EntityId.h"
-#include "../toolbox/IOStream.h"
-
-namespace simpla { namespace toolbox { struct DataSpace; }}
-namespace simpla { namespace io { struct IOStream; }}
 
 namespace simpla { namespace mesh
 {
-enum { SP_MESH_AX_NORMAL = 0, SP_MESH_AX_CYCLE = 0x1, SP_MESH_AX_NULL = 0x3 };
 
-class Chart : public base::Object
+class Chart : public Block
 {
-    int m_level_ = 0;
-    int m_status_flag_ = 0;
-    bool m_is_virtual_ = false;
+    point_type m_lower_{{0, 0, 0}};
+    point_type m_upper_{{1, 1, 1}};
 public:
 
-    SP_OBJECT_HEAD(Chart, base::Object);
+    SP_OBJECT_HEAD(Chart, Block);
 
-    Chart(int l = 0) : m_level_(l), m_status_flag_(0), m_time_(0) {}
+    Chart() {}
 
-    Chart(Chart const &other) : m_level_(other.m_level_), m_status_flag_(other.m_status_flag_),
-                                m_time_(other.m_time_) {}
+    Chart(Chart const &other) : Block(other) {}
 
     virtual ~Chart() {}
 
-    virtual toolbox::IOStream &save(toolbox::IOStream &os) const
-    {
-        UNIMPLEMENTED;
-        return os;
-    };
-
-    virtual toolbox::IOStream &load(toolbox::IOStream &is)
-    {
-        UNIMPLEMENTED;
-        return is;
-    };
-
-    bool is_virtual() const { return m_is_virtual_; }
-
-    /** status:   0000000zzyyxx
-     *  xx : 00 NORMAL
-     *       01 CYCLE
-     *       11 NULL
-     */
-    int const &status() const { return m_status_flag_; }
-
-    void status(int l) { m_status_flag_ = l; }
-
-    int level() const { return m_level_; }
-
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
 
-/**
- *
- *   ********************outer box************
- *   *      |--------------------------|     *
- *   *      |       +-----box------+   |     *
- *   *      |       |              |   |     *
- *   *      |       |  **inner**   |   |     *
- *   *      |       |  *       *   |   |     *
- *   *      |       |  *       *   |   |     *
- *   *      |       |  *(entity_id_range)    *
- *   *      |       |  2********   |   |     *
-     *      |       |   boundary   |   |     *
- *   *    /---      +--------------+   |     *
-     *   /  |             affected     |     *
-     *ghost |--------------------------|     *
-     *   \---                                *
- *   *****************************************
- *
- *	5-0 = dimensions
- *	4-1 = e-d = ghosts
- *	2-1 = counts
- *
- *	0 = m_idx_min_
- *	5 = m_idx_max_
- *
- *	1 = m_idx_memory_min_
- *	4 = m_idx_memory_max_
- *
- *	2 = m_idx_local_min_
- *	3 = m_idx_local_max_
- *
- *
- */
-
-    virtual index_tuple const &ghost_width() const = 0;
-
-    virtual void ghost_width(index_tuple const &) = 0;
-
-    virtual box_type box(MeshEntityStatus entityStatus = SP_ES_ALL) const = 0;
-
-    virtual index_box_type index_box(box_type const &b) const = 0;
-
-    virtual index_tuple offset() const = 0;
-
-    virtual point_type origin_point() const = 0;
-
-    virtual mesh::Chart &shift(index_tuple const &) { return *this; }
-
-    virtual mesh::Chart &stretch(index_tuple const &) { return *this; }
-
-    virtual EntityRange select(box_type const &b,
-                               MeshEntityType entityType = VERTEX,
-                               MeshEntityStatus entityStatus = SP_ES_ALL) const = 0;
-
-    virtual EntityRange range(MeshEntityType entityType = VERTEX,
-                              MeshEntityStatus entityStatus = SP_ES_ALL) const = 0;
-
-    virtual EntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const = 0;
-
-    virtual EntityRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const = 0;
-
-    virtual size_type max_hash(MeshEntityType entityType = VERTEX) const = 0;
-
-    virtual size_type hash(MeshEntityId const &) const = 0;
-
     virtual point_type point(MeshEntityId const &) const = 0;
+
+    virtual point_type point(index_tuple const &) const
+    {
+
+    };
+
+    virtual void deploy()
+    {
+        Block::deploy();
+        auto id_box = global_index_box();
+        box(point(std::get<0>(id_box)), point(std::get<1>(id_box)));
+    }
+
+    void box(point_type const &x0, point_type const &x1)
+    {
+        m_lower_ = x0;
+        m_upper_ = x1;
+    }
+
+    void box(box_type const &b) { std::tie(m_lower_, m_upper_) = b; }
+
+    box_type box(box_type const &b) const { return std::make_tuple(m_lower_, m_upper_); }
 
     virtual point_type point_local_to_global(MeshEntityId s, point_type const &r) const = 0;
 
@@ -154,32 +79,6 @@ public:
         return num;
 
     }
-
-    virtual std::tuple<toolbox::DataSpace, toolbox::DataSpace>
-    data_space(MeshEntityType const &t, MeshEntityStatus status = SP_ES_OWNED) const = 0;
-
-    virtual std::shared_ptr<Chart> clone(std::string const &name = "") const = 0;
-
-    template<typename TM>
-    std::shared_ptr<TM> clone_as(std::string const &name = "") const
-    {
-        assert(is_a<TM>());
-        return std::dynamic_pointer_cast<TM>(clone(name));
-    };
-
-    virtual std::shared_ptr<Chart> refine(box_type const &, int refine_ratio = 2) const
-    {
-        auto res = this->clone();
-        UNIMPLEMENTED;
-        return res;
-    };
-
-    virtual std::shared_ptr<Chart> coarsen(box_type const &, int refine_ratio = 2) const
-    {
-        auto res = this->clone();
-        UNIMPLEMENTED;
-        return res;
-    };
 
 
     //------------------------------------------------------------------------------------------------------------------

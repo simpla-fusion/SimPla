@@ -17,7 +17,7 @@
 
 #include "check_concept.h"
 #include "type_traits.h"
-#include "../base/Object.h"
+#include "Object.h"
 #include "DataSpace.h"
 #include "DataType.h"
 
@@ -42,9 +42,9 @@ namespace simpla { namespace toolbox
  * m_data set (data_space),and a container of meta m_data (Properties).
  */
 
-struct DataSet : public base::Object
+struct DataSet : public toolbox::Object
 {
-    SP_OBJECT_HEAD(DataSet, base::Object);
+    SP_OBJECT_HEAD(DataSet, toolbox::Object);
 
     std::shared_ptr<void> data;
 

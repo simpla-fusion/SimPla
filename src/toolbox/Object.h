@@ -15,10 +15,10 @@
 #include <boost/uuid/uuid.hpp>
 
 
-#include  "LifeClick.h"
-#include "../toolbox/design_pattern/Visitor.h"
+#include "LifeClick.h"
+#include "design_pattern/Visitor.h"
 
-namespace simpla { namespace base
+namespace simpla { namespace toolbox
 {
 
 
@@ -81,10 +81,11 @@ namespace simpla { namespace base
  *  @}
  **/
 
-
 class Object
 {
 public:
+    typedef boost::uuids::uuid id_type;
+
     Object();
 
     Object(Object &&other);

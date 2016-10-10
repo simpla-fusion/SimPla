@@ -39,12 +39,12 @@ struct Model
     template<typename ...Args>
     void add(box_type const &b, Args &&...args)
     {
-        add(m->range(b, VERTEX), std::forward<Args>(args)...);
+//        add(m->range(b, VERTEX), std::forward<Args>(args)...);
     };
     template<typename ...Args>
     void remove(box_type const &b, Args &&...args)
     {
-        remove(m->range(b, VERTEX), std::forward<Args>(args)...);
+//        remove(m->range(b, VERTEX), std::forward<Args>(args)...);
     };
     int check(MeshEntityId const &s);
 

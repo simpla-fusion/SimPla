@@ -10,10 +10,8 @@
 #include <type_traits>
 #include "../toolbox/Log.h"
 #include "../toolbox/nTuple.h"
-
 #include "MeshCommon.h"
-#include "Chart.h"
-#include "../toolbox/IOStream.h"
+#include "Block.h"
 
 namespace simpla { namespace mesh
 {
@@ -25,7 +23,6 @@ namespace simpla { namespace mesh
  *  _chart_ with the inverse of another chart is a function called a _transition map_, and defines a homeomorphism
  *  of an open subset of the linear space onto another open subset of the linear space.
  */
-typedef mesh::Chart Chart;
 
 struct TransitionMap;
 
@@ -33,48 +30,38 @@ class Atlas
 {
 public:
 
-    MeshBlockId add_block(std::shared_ptr<Chart> p_m);
+    Block::id_type add_block(std::shared_ptr<Block> p_m);
 
-    std::shared_ptr<Chart> get_block(mesh::MeshBlockId m_id) const;
+    std::shared_ptr<Block> get_block(Block::id_type m_id) const;
 
-    void remove_block(MeshBlockId const &m_id);
+    void remove_block(Block::id_type const &m_id);
 
-//    std::shared_ptr<Chart> extent_block(mesh::MeshBlockId first, int const *offset_direction, size_type width);
-//
-//    std::shared_ptr<Chart> refine_block(mesh::MeshBlockId first, box_type const &);
-//
-//    std::shared_ptr<Chart> coarsen_block(mesh::MeshBlockId first, box_type const &);
+    std::map<Block::id_type, std::shared_ptr<Block>> const &at_level(int l = 0) const { return m_nodes_; };
 
-
-    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> const &at_level(int l = 0) const { return m_nodes_; };
-
-    toolbox::IOStream &save(toolbox::IOStream &os) const;
-
-    toolbox::IOStream &load(toolbox::IOStream &is);
 
     void add_adjacency(std::shared_ptr<TransitionMap>);
 
-    std::shared_ptr<TransitionMap> add_adjacency(const Chart *first, const Chart *second, int flag);
+    std::shared_ptr<TransitionMap> add_adjacency(const Block *first, const Block *second, int flag);
 
     std::shared_ptr<TransitionMap> add_adjacency(MeshBlockId first, MeshBlockId second, int flag);
 
-    void add_adjacency2(const Chart *first, const Chart *second, int flag);
+    void add_adjacency2(const Block *first, const Block *second, int flag);
 
 //#ifndef NDEBUG
 //    private:
 //#endif
-    typedef std::multimap<mesh::MeshBlockId, std::shared_ptr<TransitionMap>> adjacency_list_t;
+    typedef std::multimap<Block::id_type, std::shared_ptr<TransitionMap>> adjacency_list_t;
 
     adjacency_list_t m_adjacency_list_;
 
-    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> m_nodes_;
+    std::map<Block::id_type, std::shared_ptr<Block>> m_nodes_;
 
-    std::multimap<mesh::MeshBlockId, std::shared_ptr<TransitionMap>> m_out_edge_;
-    std::multimap<mesh::MeshBlockId, std::shared_ptr<TransitionMap>> m_in_edge_;
+    std::multimap<Block::id_type, std::shared_ptr<TransitionMap>> m_out_edge_;
+    std::multimap<Block::id_type, std::shared_ptr<TransitionMap>> m_in_edge_;
 
 public:
     std::pair<typename adjacency_list_t::const_iterator, typename adjacency_list_t::const_iterator>
-    get_adjacencies(mesh::MeshBlockId first) const { return m_adjacency_list_.equal_range(first); }
+    get_adjacencies(Block::id_type first) const { return m_adjacency_list_.equal_range(first); }
 
 
 };

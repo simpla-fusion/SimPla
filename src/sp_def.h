@@ -21,7 +21,7 @@ typedef std::tuple<point_type, point_type> box_type; //! two corner of rectangle
 
 typedef long difference_type; //!< Data type of the difference between indices,i.e.  s = i - j
 
-typedef nTuple<index_type, 3> index_tuple;
+typedef nTuple<size_type, 3> index_tuple;
 
 typedef std::tuple<index_tuple, index_tuple> index_box_type;
 

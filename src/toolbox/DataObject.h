@@ -8,8 +8,8 @@
 #define SIMPLA_DATA_OBJECT_H
 
 
-#include "../toolbox/DataSet.h"
-#include "../toolbox/Properties.h"
+#include "DataSet.h"
+#include "Properties.h"
 #include "Object.h"
 
 namespace simpla { namespace base

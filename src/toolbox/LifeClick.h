@@ -8,9 +8,9 @@
 #define SIMPLA_LIFECLICK_H
 
 #include <atomic>
-#include "../toolbox/design_pattern/SingletonHolder.h"
+#include "design_pattern/SingletonHolder.h"
 
-namespace simpla { namespace base
+namespace simpla { namespace toolbox
 {
 
 struct LifeClick
@@ -30,7 +30,7 @@ struct LifeClick
 
 };
 
-#define GLOBAL_CLICK_TOUCH SingletonHolder<::simpla::base::LifeClick>::instance().touch
+#define GLOBAL_CLICK_TOUCH SingletonHolder<::simpla::toolbox::LifeClick>::instance().touch
 }}//namespace simpla{namespace base{
 
 #endif //SIMPLA_LIFECLICK_H

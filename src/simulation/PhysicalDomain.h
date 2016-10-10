@@ -9,7 +9,7 @@
 
 #include <memory>
 #include "../sp_def.h"
-#include "../base/Object.h"
+#include "../toolbox/Object.h"
 #include "../toolbox/Log.h"
 #include "../toolbox/Properties.h"
 #include "../toolbox/ConfigParser.h"
@@ -37,7 +37,7 @@ namespace simpla { namespace simulation
 {
 
 
-class PhysicalDomain : public base::Object
+class PhysicalDomain : public toolbox::Object
 {
 public:
     const mesh::Chart *m_mesh_;
@@ -46,7 +46,7 @@ public:
 
     HAS_PROPERTIES;
 
-    SP_OBJECT_HEAD(PhysicalDomain, base::Object);
+    SP_OBJECT_HEAD(PhysicalDomain, toolbox::Object);
 
     PhysicalDomain();
 

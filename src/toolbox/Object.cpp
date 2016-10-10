@@ -9,7 +9,7 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 
-namespace simpla { namespace base
+namespace simpla { namespace toolbox
 {
 Object::Object() : m_uuid_(boost::uuids::random_generator()()) { this->touch(); }
 

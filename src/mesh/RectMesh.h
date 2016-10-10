@@ -1,12 +1,12 @@
 /**
  *
- * @file corectmesh.h
+ * @file rectmesh.h
  * Created by salmon on 15-7-2.
  *
  */
 
-#ifndef SIMPLA_CORECTMESH_H
-#define SIMPLA_CORECTMESH_H
+#ifndef SIMPLA_RECTMESH_H
+#define SIMPLA_RECTMESH_H
 
 #include <vector>
 #include <iomanip>
@@ -33,147 +33,18 @@ namespace simpla { namespace mesh
  *
  * @brief Uniform structured get_mesh
  */
-<<<<<<< HEAD:src/manifold/pre_define/CartesianCoRectMesh.h
-
-struct CartesianCoRectMesh : public Chart, public MeshEntityIdCoder
-{
-private:
-    typedef CartesianCoRectMesh this_type;
-    typedef Chart base_type;
-public:
-    typedef Real scalar_type;
-
-    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
-=======
 template<>
-struct CoRectMesh : public Block
+struct RectMesh : public Block
 {
 private:
-    typedef CoRectMesh this_type;
+    typedef RectMesh this_type;
     typedef Block base_type;
 public:
->>>>>>> b51e8dfa601a778784c358fa8050d40733086a59:src/mesh/CoRectMesh.h
 
-    SP_OBJECT_HEAD(CoRectMesh, Block)
+    SP_OBJECT_HEAD(RectMesh, Block)
 
 
     /**
-<<<<<<< HEAD:src/manifold/pre_define/CartesianCoRectMesh.h
- *
- *   -----------------------------5
- *   |                            |
- *   |     ---------------4       |
- *   |     |              |       |
- *   |     |  ********3   |       |
- *   |     |  *       *   |       |
- *   |     |  *       *   |       |
- *   |     |  *       *   |       |
- *   |     |  2********   |       |
- *   |     1---------------       |
- *   0-----------------------------
- *
- *	5-0 = dimensions
- *	4-1 = e-d = ghosts
- *	2-1 = counts
- *
- *	0 = id_begin
- *	5 = id_end
- *
- *	1 = id_local_outer_begin
- *	4 = id_local_outer_end
- *
- *	2 = id_local_inner_begin
- *	3 = id_local_inner_end
- *
- *
- */
-
-    point_type m_coords_lower_{{0, 0, 0}};
-
-    point_type m_coords_upper_{{1, 1, 1}};
-
-    index_tuple m_ghost_width_{{0, 0, 0}};
-
-    index_tuple m_offset_{{0, 0, 0}};
-
-    index_tuple m_dims_{{10, 10, 10}};
-
-
-    vector_type m_dx_{{1, 1, 1}}, m_inv_dx_{{1, 1, 1}}; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
-
-    index_tuple m_shape_{{10, 10, 10}};
-
-    index_tuple m_lower_{{0, 0, 0}}, m_upper_{{10, 10, 10}};
-
-    index_tuple m_inner_lower_{{0, 0, 0}}, m_inner_upper_{{10, 10, 10}};
-
-    index_tuple m_outer_lower_{{0, 0, 0}}, m_outer_upper_{{10, 10, 10}};
-
-
-    typedef MeshEntityIdCoder m;
-
-    typedef MeshEntityId id_type;
-
-public:
-    static constexpr int ndims = 3;
-
-    CartesianCoRectMesh() {}
-
-    CartesianCoRectMesh(this_type const &other) : Chart(other)
-    {
-        m_dims_ = other.m_dims_;
-        m_coords_lower_ = other.m_coords_lower_;
-        m_coords_upper_ = other.m_coords_upper_;
-        m_ghost_width_ = other.m_ghost_width_;
-        m_offset_ = other.m_offset_;
-        deploy();
-    };
-
-    virtual  ~CartesianCoRectMesh() {}
-
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const
-    {
-        os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
-        os << std::setw(indent + 1) << " " << "Topology = { Type = \"CoRectMesh\", "
-           << "Dimensions = " << dimensions() << " m_global_start_ = " << offset() << " }," << " dx = " << dx() << " },"
-           <<
-           std::endl;
-        os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;
-#ifndef NDEBUG
-        os
-                << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
-                << std::setw(indent + 1) << " " << "      upper = " << m_upper_ << "," << std::endl
-                << std::setw(indent + 1) << " " << "outer lower = " << m_outer_lower_ << "," << std::endl
-                << std::setw(indent + 1) << " " << "outer upper = " << m_outer_upper_ << "," << std::endl
-                << std::setw(indent + 1) << " " << "inner lower = " << m_inner_lower_ << "," << std::endl
-                << std::setw(indent + 1) << " " << "inner upper = " << m_inner_upper_ << "," << std::endl
-                << std::endl;
-#endif
-        return os;
-    }
-
-
-    virtual io::IOStream &save(io::IOStream &os) const
-    {
-//        os.open(type_cast<std::string>(this->short_id()) + "/");
-//        os.set_attribute(".topology_dims", dimensions());
-//        os.set_attribute(".box", box());
-        return os;
-    };
-
-
-    void dimensions(index_tuple const &d) { m_dims_ = d; }
-
-    index_tuple const &dimensions() const { return m_dims_; }
-
-    void offset(index_tuple const &d) { m_offset_ = d; }
-
-    virtual index_tuple offset() const { return m_offset_; }
-
-    virtual point_type origin_point() const { return m_coords_lower_; };
-
-    virtual void ghost_width(index_tuple const &d) { m_ghost_width_ = d; }
-=======
      *
      *   -----------------------------5
      *   |                            |
@@ -205,20 +76,19 @@ public:
 
     point_type m_origin_{0, 0, 0};
     vector_type m_dx_{1, 1, 1};
->>>>>>> b51e8dfa601a778784c358fa8050d40733086a59:src/mesh/CoRectMesh.h
-
+    std::function<Real(Real)> m_map_[3];
 public:
 
-    CoRectMesh() {}
+    RectMesh() {}
 
-    CoRectMesh(CoRectMesh const &other) :
+    RectMesh(RectMesh const &other) :
             Block(other),
             m_origin_(other.m_origin_),
             m_dx_(other.m_dx_) { deploy(); };
 
-    virtual  ~CoRectMesh() {}
+    virtual  ~RectMesh() {}
 
-    void swap(CoRectMesh const &other)
+    void swap(RectMesh const &other)
     {
         std::swap(m_origin_, other.m_origin_);
         std::swap(m_dx_, other.m_dx_);
@@ -325,7 +195,7 @@ public:
 
 }; // struct  Mesh
 
-void CoRectMesh::deploy()
+void RectMesh::deploy()
 {
     Block::deploy();
     /**
@@ -707,4 +577,4 @@ void CoRectMesh::deploy()
 
 }} // namespace simpla // namespace  mesh
 
-#endif //SIMPLA_CORECTMESH_H
+#endif //SIMPLA_RECTMESH_H
