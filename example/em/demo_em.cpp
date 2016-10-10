@@ -43,12 +43,12 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
             std::function<Real(point_type const &)> density;
             std::get<1>(item)["Density"].as(&density);
 
-            center_mesh->for_each(VERTEX,
-                                  [&](MeshEntityId const &s)
-                                  {
-                                      auto x = center_mesh->point(s);
-                                      if (g_obj(x) <= 0) { sp->rho[s] = density(x); }
-                                  });
+            center_mesh->foreach(VERTEX,
+                                 [&](MeshEntityId const &s)
+                                 {
+                                     auto x = center_mesh->point(s);
+                                     if (g_obj(x) <= 0) { sp->rho[s] = density(x); }
+                                 });
         }
     }
 
@@ -61,37 +61,34 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B0"]["Value"].as(&fun);
-            center_mesh->for_each(FACE,
-                                  [&](mesh::MeshEntityId const &s)
-                                  {
-//                                      center_domain->B0[s] = center_mesh->
-//                                              template sample<FACE>(s, fun(center_mesh->point(s)));
-                                  });
+            center_mesh->foreach(FACE,
+                                 [&](mesh::MeshEntityId const &s)
+                                 {
+                                     center_domain->B0[s] = fun(center_mesh->point(s))[MeshEntityIdCoder::sub_index(
+                                             s)];
+                                 });
         }
 
         if (options["InitValue"]["B1"])
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B1"]["Value"].as(&fun);
-            center_mesh->for_each(FACE,
-                                  [&](mesh::MeshEntityId const &s)
-                                  {
-//                                      center_domain->B[s] = center_mesh->template sample<FACE>(s,
-//                                                                                               fun(center_mesh->point(
-//                                                                                                       s)));
-                                  });
+            center_mesh->foreach(FACE,
+                                 [&](mesh::MeshEntityId const &s)
+                                 {
+                                     center_domain->B[s] = fun(center_mesh->point(s))[MeshEntityIdCoder::sub_index(s)];
+                                 });
         }
 
         if (options["InitValue"]["E1"])
         {
-            std::function<vector_type(point_type const &)> fun_fun;
-            options["InitValue"]["E1"]["Value"].as(&fun_fun);
-            center_mesh->for_each(EDGE,
-                                  [&](mesh::MeshEntityId const &s)
-                                  {
-//                                      center_domain->E[s] =
-//                                              center_mesh->template sample<EDGE>(s, fun_fun(center_mesh->point(s)));
-                                  });
+            std::function<vector_type(point_type const &)> fun;
+            options["InitValue"]["E1"]["Value"].as(&fun);
+            center_mesh->foreach(EDGE,
+                                 [&](mesh::MeshEntityId const &s)
+                                 {
+                                     center_domain->E[s] = fun(center_mesh->point(s))[MeshEntityIdCoder::sub_index(s)];
+                                 });
         }
     }
 

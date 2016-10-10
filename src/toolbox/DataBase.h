@@ -112,16 +112,16 @@ public:
     virtual std::shared_ptr<const DataEntity> at(std::string const &key) const =0;
 
     /**
-     *   for_each(<lambda>)  lets container decide the traversing algorithm,
+     *   foreach(<lambda>)  lets container decide the traversing algorithm,
      *   which is better than iterator to traverse containers.
      *   *. easy to overload, need  not to implement iterator class
      *   *. easy to parallism
      *
      */
 
-    virtual void for_each(std::function<void(std::string const &, DataEntity &)> const &fun)=0;
+    virtual void foreach(std::function<void(std::string const &, DataEntity &)> const &fun)=0;
 
-    virtual void for_each(std::function<void(std::string const &, DataEntity const &)> const &fun) const =0;
+    virtual void foreach(std::function<void(std::string const &, DataEntity const &)> const &fun) const =0;
 
 
 };

@@ -99,7 +99,6 @@ public:
         return *this;
     }
 
-
     virtual std::shared_ptr<Block> clone() const { return std::make_shared<Block>(*this); };
 
     void swap(Block &other);
@@ -140,13 +139,23 @@ public:
         m_g_offset_ += offset;
     };
 
-    virtual void stretch(index_tuple const &a)
+    virtual void scale(index_tuple const &a)
     {
         assert(!m_is_deployed_);
         m_b_dimensions_ *= a;
     };
 
+    virtual void stretch(index_tuple const &a)
+    {
+        assert(!m_is_deployed_);
+        m_b_dimensions_ = a;
+    };
+
+    virtual void intersection(const box_type &other);
+
     virtual void intersection(const index_box_type &other);
+
+    virtual void intersection_outer(const index_box_type &other);
 
     virtual void refine(int ratio = 1);
 
@@ -175,6 +184,11 @@ public:
         point_type p;
         p = unpack(s);
         return std::move(p);
+    }
+
+    virtual std::tuple<MeshEntityId, point_type> point_global_to_local(point_type const &p, int iform = 0) const
+    {
+        return m::point_global_to_local(p, iform);
     }
 
 
@@ -250,17 +264,23 @@ public:
 
     index_tuple unpack(MeshEntityId const &s) const { return m::unpack_index(s); }
 
-    void for_each(std::function<void(index_type, index_type, index_type)> const &fun) const;
+    void foreach(std::function<void(index_type, index_type, index_type)> const &fun) const;
 
-    void for_each(std::function<void(index_type)> const &fun) const;
+    void foreach(std::function<void(index_type)> const &fun) const;
 
-    void for_each(int iform, std::function<void(MeshEntityId const &)> const &) const;
+    void foreach(int iform, std::function<void(MeshEntityId const &)> const &) const;
 
     virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s,
                                       MeshEntityId *p = nullptr) const
     {
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
+
+    virtual index_tuple
+    point_to_index(point_type const &g, int nId = 0) const
+    {
+        return m::unpack_index(std::get<0>(m::point_global_to_local(g, nId)));
+    };
 
     Real time() const { return m_time_; }
 

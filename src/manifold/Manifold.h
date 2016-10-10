@@ -145,6 +145,15 @@ public:
 
     this_type &operator=(const this_type &other) = delete;
 
+    virtual std::shared_ptr<mesh::Block> clone() const { return std::make_shared<this_type>(*this); };
+
+    virtual std::shared_ptr<mesh::Block> clone(std::string const &name) const
+    {
+        auto res = clone();
+        if (name != "") { res->name(name); }
+        return res;
+
+    };
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || TMesh::is_a(info); }
 
@@ -195,13 +204,7 @@ public:
         return os;
     }
 
-    virtual std::shared_ptr<mesh::Block> clone(std::string const &name = "") const
-    {
-        auto res = std::make_shared<this_type>(*this);
-        if (name != "") { res->name(name); }
-        return std::dynamic_pointer_cast<mesh::Block>(res);
 
-    };
 
 
 

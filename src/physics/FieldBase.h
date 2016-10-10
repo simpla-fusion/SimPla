@@ -74,7 +74,11 @@ public:
 
     virtual void deploy()
     {
-        if (m_data_holder_ == nullptr) { m_data_holder_ = sp_alloc_memory(size_in_byte()); }
+        if (m_data_holder_ == nullptr)
+        {
+            size_type s = size_in_byte();
+            m_data_holder_ = sp_alloc_memory(s);
+        }
 
 //        if (m_data_root_ptr_ == nullptr)
 //        {
@@ -176,7 +180,7 @@ public:
     operator+=(Other const &other)
     {
 
-        m_mesh_->for_each(entity_type(), [&](mesh::MeshEntityId const &s) { get(s) += m_mesh_->eval(other, s); });
+        m_mesh_->foreach(entity_type(), [&](mesh::MeshEntityId const &s) { get(s) += m_mesh_->eval(other, s); });
         return *this;
     }
 

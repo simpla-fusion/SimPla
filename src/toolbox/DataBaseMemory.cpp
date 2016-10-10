@@ -54,7 +54,7 @@ std::shared_ptr<DataEntity> DataBaseMemory::at(std::string const &key) { return 
 
 std::shared_ptr<const DataEntity> DataBaseMemory::at(std::string const &key) const { return m_table_.at(key); }
 
-void DataBaseMemory::for_each(std::function<void(std::string const &, DataEntity &)> const &fun)
+void DataBaseMemory::foreach(std::function<void(std::string const &, DataEntity &)> const &fun)
 {
 
     for (auto &item:m_table_)
@@ -63,7 +63,7 @@ void DataBaseMemory::for_each(std::function<void(std::string const &, DataEntity
     }
 };
 
-void DataBaseMemory::for_each(std::function<void(std::string const &, DataEntity const &)> const &fun) const
+void DataBaseMemory::foreach(std::function<void(std::string const &, DataEntity const &)> const &fun) const
 {
 
     for (auto const &item:m_table_)

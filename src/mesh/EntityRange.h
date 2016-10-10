@@ -36,25 +36,21 @@ class EntityRange
     typedef MeshEntityId64 id_type;
 public :
 
-    EntityRange()
-            : m_next_(nullptr), m_holder_(nullptr) {}
+    EntityRange() : m_next_(nullptr), m_holder_(nullptr) {}
 
     //****************************************************************************
     // TBB RangeHolder Concept Begin
     template<typename TOther>
     EntityRange(TOther const &other)
-            : m_next_(nullptr),
-              m_holder_(std::dynamic_pointer_cast<RangeBase>(
-                      std::make_shared<RangeHolder<TOther,
-                              has_member_function_range<TOther>::value>>(other)))
+            : m_next_(nullptr), m_holder_(std::dynamic_pointer_cast<RangeBase>(
+            std::make_shared<RangeHolder<TOther,
+                    has_member_function_range<TOther>::value>>(other)))
     {
     }
 
     template<typename ...Args>
     EntityRange(this_type &other, parallel::tags::split)
-            :
-            m_next_(nullptr),
-            m_holder_(other.m_holder_->split())
+            :m_next_(nullptr), m_holder_(other.m_holder_->split())
     {
         auto *p0 = &m_next_;
         auto p1 = other.m_next_;
@@ -70,9 +66,7 @@ public :
     }
 
     EntityRange(this_type const &other)
-            :
-            m_next_(nullptr),
-            m_holder_(other.m_holder_ == nullptr ? nullptr : other.m_holder_->clone())
+            : m_next_(nullptr), m_holder_(other.m_holder_ == nullptr ? nullptr : other.m_holder_->clone())
     {
         auto *p0 = &m_next_;
         auto p1 = other.m_next_;

@@ -51,7 +51,7 @@ struct SpaceFillingCurveCOrder
     inline constexpr size_type DZ(size_type s) const { return s - 1; }
 
     template<typename TFun>
-    void for_each(TFun const &fun) const
+    void foreach(TFun const &fun) const
     {
 #pragma omp parallel for
         for (int i = 0; i < box.m_b_dimensions_[0]; ++i)

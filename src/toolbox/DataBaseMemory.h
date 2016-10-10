@@ -329,9 +329,9 @@ public:
 
     std::shared_ptr<const DataEntity> at(std::string const &key) const;
 
-    void for_each(std::function<void(std::string const &, DataEntity &)> const &fun);
+    void foreach(std::function<void(std::string const &, DataEntity &)> const &fun);
 
-    void for_each(std::function<void(std::string const &, DataEntity const &)> const &fun) const;
+    void foreach(std::function<void(std::string const &, DataEntity const &)> const &fun) const;
 
     /** @}*/
 

@@ -83,7 +83,7 @@ public:
     CoRectMesh(CoRectMesh const &other) :
             Block(other),
             m_origin_(other.m_origin_),
-            m_dx_(other.m_dx_) { deploy(); };
+            m_dx_(other.m_dx_) {};
 
     virtual  ~CoRectMesh() {}
 
@@ -95,6 +95,8 @@ public:
     }
 
     virtual void deploy();
+
+    virtual std::shared_ptr<Block> clone() const { return std::make_shared<CoRectMesh>(*this); };
 
     inline void box(point_type const &x0, point_type const &x1)
     {
@@ -177,6 +179,7 @@ public:
 
     virtual std::shared_ptr<Block> refine(box_type const &b, int flag = 0) const { return std::shared_ptr<Block>(); }
 
+
 private:
     vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};
     vector_type m_g2l_scale_{{1, 1, 1}}, m_g2l_shift_{{0, 0, 0}};
@@ -228,68 +231,65 @@ void CoRectMesh::deploy()
 
     for (int i = 0; i < ndims; ++i)
     {
-        for (int i = 0; i < ndims; ++i)
-        {
-            assert(dims[i] > 0);
+        assert(dims[i] > 0);
 
-            m_dx_[i] = m_dx_[i] / static_cast<Real>( dims[i]);
-            m_inv_dx_[i] = (dims[i] == 1) ? 0 : static_cast<Real>(1.0) / m_dx_[i];
+        m_dx_[i] = m_dx_[i] / static_cast<Real>( dims[i]);
+        m_inv_dx_[i] = (dims[i] == 1) ? 0 : static_cast<Real>(1.0) / m_dx_[i];
 
-            m_l2g_scale_[i] = (dims[i] == 1) ? 0 : m_dx_[i];
-            m_l2g_shift_[i] = m_origin_[i];
+        m_l2g_scale_[i] = (dims[i] == 1) ? 0 : m_dx_[i];
+        m_l2g_shift_[i] = m_origin_[i];
 
-            m_g2l_scale_[i] = (dims[i] == 1) ? 0 : m_inv_dx_[i];
-            m_g2l_shift_[i] = (dims[i] == 1) ? 0 : -m_origin_[i] * m_g2l_scale_[i];
-
-        }
-
-
-        m_volume_[0 /*000*/] = 1;
-        m_volume_[1 /*001*/] = (dims[0] == 1) ? 1 : m_dx_[0];
-        m_volume_[2 /*010*/] = (dims[1] == 1) ? 1 : m_dx_[1];
-        m_volume_[4 /*100*/] = (dims[2] == 1) ? 1 : m_dx_[2];
-        m_volume_[3 /*011*/] = m_volume_[1] * m_volume_[2];
-        m_volume_[5 /*101*/] = m_volume_[4] * m_volume_[1];
-        m_volume_[6 /*110*/] = m_volume_[4] * m_volume_[2];
-        m_volume_[7 /*111*/] = m_volume_[1] * m_volume_[2] * m_volume_[4];
-
-
-        m_dual_volume_[0 /*000*/] = m_volume_[7];
-        m_dual_volume_[1 /*001*/] = m_volume_[6];
-        m_dual_volume_[2 /*010*/] = m_volume_[5];
-        m_dual_volume_[4 /*100*/] = m_volume_[3];
-        m_dual_volume_[3 /*011*/] = m_volume_[4];
-        m_dual_volume_[5 /*101*/] = m_volume_[2];
-        m_dual_volume_[6 /*110*/] = m_volume_[1];
-        m_dual_volume_[7 /*110*/] = m_volume_[0];
-
-
-        m_inv_volume_[0 /*000*/] = 1;
-        m_inv_volume_[1 /*001*/] = (dims[0] == 1) ? 1 : m_inv_dx_[0];
-        m_inv_volume_[2 /*010*/] = (dims[1] == 1) ? 1 : m_inv_dx_[1];
-        m_inv_volume_[4 /*100*/] = (dims[2] == 1) ? 1 : m_inv_dx_[2];
-        m_inv_volume_[3 /*011*/] = m_inv_volume_[2] * m_inv_volume_[1];
-        m_inv_volume_[5 /*101*/] = m_inv_volume_[4] * m_inv_volume_[1];
-        m_inv_volume_[6 /*110*/] = m_inv_volume_[4] * m_inv_volume_[2];
-        m_inv_volume_[7 /*110*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
-
-
-        m_inv_volume_[1 /*001*/] = (dims[0] == 1) ? 0 : m_inv_volume_[1];
-        m_inv_volume_[2 /*010*/] = (dims[1] == 1) ? 0 : m_inv_volume_[2];
-        m_inv_volume_[4 /*100*/] = (dims[2] == 1) ? 0 : m_inv_volume_[4];
-
-
-        m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
-        m_inv_dual_volume_[1 /*001*/] = m_inv_volume_[6];
-        m_inv_dual_volume_[2 /*010*/] = m_inv_volume_[5];
-        m_inv_dual_volume_[4 /*100*/] = m_inv_volume_[3];
-        m_inv_dual_volume_[3 /*011*/] = m_inv_volume_[4];
-        m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
-        m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
-        m_inv_dual_volume_[7 /*110*/] = m_inv_volume_[0];
-
+        m_g2l_scale_[i] = (dims[i] == 1) ? 0 : m_inv_dx_[i];
+        m_g2l_shift_[i] = (dims[i] == 1) ? 0 : -m_origin_[i] * m_g2l_scale_[i];
 
     }
+
+
+    m_volume_[0 /*000*/] = 1;
+    m_volume_[1 /*001*/] = (dims[0] == 1) ? 1 : m_dx_[0];
+    m_volume_[2 /*010*/] = (dims[1] == 1) ? 1 : m_dx_[1];
+    m_volume_[4 /*100*/] = (dims[2] == 1) ? 1 : m_dx_[2];
+    m_volume_[3 /*011*/] = m_volume_[1] * m_volume_[2];
+    m_volume_[5 /*101*/] = m_volume_[4] * m_volume_[1];
+    m_volume_[6 /*110*/] = m_volume_[4] * m_volume_[2];
+    m_volume_[7 /*111*/] = m_volume_[1] * m_volume_[2] * m_volume_[4];
+
+
+    m_dual_volume_[0 /*000*/] = m_volume_[7];
+    m_dual_volume_[1 /*001*/] = m_volume_[6];
+    m_dual_volume_[2 /*010*/] = m_volume_[5];
+    m_dual_volume_[4 /*100*/] = m_volume_[3];
+    m_dual_volume_[3 /*011*/] = m_volume_[4];
+    m_dual_volume_[5 /*101*/] = m_volume_[2];
+    m_dual_volume_[6 /*110*/] = m_volume_[1];
+    m_dual_volume_[7 /*110*/] = m_volume_[0];
+
+
+    m_inv_volume_[0 /*000*/] = 1;
+    m_inv_volume_[1 /*001*/] = (dims[0] == 1) ? 1 : m_inv_dx_[0];
+    m_inv_volume_[2 /*010*/] = (dims[1] == 1) ? 1 : m_inv_dx_[1];
+    m_inv_volume_[4 /*100*/] = (dims[2] == 1) ? 1 : m_inv_dx_[2];
+    m_inv_volume_[3 /*011*/] = m_inv_volume_[2] * m_inv_volume_[1];
+    m_inv_volume_[5 /*101*/] = m_inv_volume_[4] * m_inv_volume_[1];
+    m_inv_volume_[6 /*110*/] = m_inv_volume_[4] * m_inv_volume_[2];
+    m_inv_volume_[7 /*110*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
+
+
+    m_inv_volume_[1 /*001*/] = (dims[0] == 1) ? 0 : m_inv_volume_[1];
+    m_inv_volume_[2 /*010*/] = (dims[1] == 1) ? 0 : m_inv_volume_[2];
+    m_inv_volume_[4 /*100*/] = (dims[2] == 1) ? 0 : m_inv_volume_[4];
+
+
+    m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
+    m_inv_dual_volume_[1 /*001*/] = m_inv_volume_[6];
+    m_inv_dual_volume_[2 /*010*/] = m_inv_volume_[5];
+    m_inv_dual_volume_[4 /*100*/] = m_inv_volume_[3];
+    m_inv_dual_volume_[3 /*011*/] = m_inv_volume_[4];
+    m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
+    m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
+    m_inv_dual_volume_[7 /*110*/] = m_inv_volume_[0];
+
+
 }
 }} // namespace simpla // namespace  mesh
 

@@ -75,7 +75,7 @@ public:
 //    template<typename Tg, typename Tf>
 //    void pull_back(Tg const &g, Tf *f, mesh::MeshEntityType entity_type = mesh::VERTEX) const
 //    {
-//        m_dst_->for_each(entity_type,
+//        m_dst_->foreach(entity_type,
 //                          [&](mesh::MeshEntityId s)
 //                          {
 //                              (*f)[m_dst_->hash(s)] = m_dst_->sample(s, g(m_src_->point(s)));
@@ -85,14 +85,14 @@ public:
     int direct_map(MeshEntityType entity_type,
                    std::function<void(mesh::MeshEntityId const &, mesh::MeshEntityId const &)> const &body) const
     {
-        m_dst_->for_each(entity_type, [&](mesh::MeshEntityId const &s) { body(s, s); });
+        m_dst_->foreach(entity_type, [&](mesh::MeshEntityId const &s) { body(s, s); });
     }
 
 
     template<typename TV>
     int pointwise_copy(TV *f, TV const *g, MeshEntityType entity_type) const
     {
-        m_dst_->for_each(entity_type,
+        m_dst_->foreach(entity_type,
                          [&](mesh::MeshEntityId const &s) { f[m_dst_->hash(s)] = g[m_src_->hash(s)]; });
     }
 

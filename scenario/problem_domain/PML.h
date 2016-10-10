@@ -112,7 +112,7 @@ PML<TM>::setup_center_domain(box_type const &center_box)
     std::tie(c_xmin, c_xmax) = center_box;
     auto dims = m->dimensions();
 
-    m->for_each(mesh::VERTEX,
+    m->foreach(mesh::VERTEX,
                 [&](mesh::MeshEntityId const &s)
                 {
                     point_type x = m->point(s);

@@ -17,11 +17,11 @@ std::ostream &DataBase::print(std::ostream &os, int indent) const
     {
         os << "{ ";
 
-        for_each([&](std::string const &key, DataEntity const &value)
-                 {
-                     os << key << " = ";
-                     value.print(os, indent + 1);
-                 });
+        foreach([&](std::string const &key, DataEntity const &value)
+                {
+                    os << key << " = ";
+                    value.print(os, indent + 1);
+                });
 
         os << " }";
     } else
@@ -29,12 +29,12 @@ std::ostream &DataBase::print(std::ostream &os, int indent) const
 
         os << std::endl << std::setw(indent) << " " << "{ ";
 
-        for_each([&](std::string const &key, DataEntity const &value)
-                 {
-                     os << std::endl << std::setw(indent + 1) << "  " << key << " = ";
-                     value.print(os, indent + 2);
-                     os << ", ";
-                 });
+        foreach([&](std::string const &key, DataEntity const &value)
+                {
+                    os << std::endl << std::setw(indent + 1) << "  " << key << " = ";
+                    value.print(os, indent + 2);
+                    os << ", ";
+                });
 
         os << std::endl << std::setw(indent) << " " << "}";
     }
