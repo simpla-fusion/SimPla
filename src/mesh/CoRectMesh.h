@@ -1,12 +1,12 @@
 /**
  *
- * @file rectmesh.h
+ * @file CoRectMesh.h
  * Created by salmon on 15-7-2.
  *
  */
 
-#ifndef SIMPLA_RECTMESH_H
-#define SIMPLA_RECTMESH_H
+#ifndef SIMPLA_CORECTMESH_H
+#define SIMPLA_CORECTMESH_H
 
 #include <vector>
 #include <iomanip>
@@ -33,14 +33,15 @@ namespace simpla { namespace mesh
  *
  * @brief Uniform structured get_mesh
  */
-struct RectMesh : public Block
+
+struct CoRectMesh : public Block
 {
+
 public:
 
-    SP_OBJECT_HEAD(RectMesh, Block)
+    SP_OBJECT_HEAD(CoRectMesh, Block)
 
     typedef Real scalar_type;
-
 
     /**
      *
@@ -74,18 +75,19 @@ public:
 
     point_type m_origin_{{0, 0, 0}};
     vector_type m_dx_{{1, 1, 1}};
+
 public:
 
-    RectMesh() {}
+    CoRectMesh() {}
 
-    RectMesh(RectMesh const &other) :
+    CoRectMesh(CoRectMesh const &other) :
             Block(other),
             m_origin_(other.m_origin_),
             m_dx_(other.m_dx_) { deploy(); };
 
-    virtual  ~RectMesh() {}
+    virtual  ~CoRectMesh() {}
 
-    void swap(RectMesh &other)
+    void swap(CoRectMesh &other)
     {
 //        std::swap(m_origin_, other.m_origin_);
 //        std::swap(m_dx_, other.m_dx_);
@@ -101,6 +103,14 @@ public:
     }
 
     inline void box(box_type const &b) { box(std::get<0>(b), std::get<1>(b)); }
+
+    virtual box_type box() const
+    {
+        auto i_box = Block::index_box();
+        point_type lower = m_origin_ + std::get<0>(i_box) * m_dx_;
+        point_type upper = m_origin_ + std::get<1>(i_box) * m_dx_;
+        return std::make_tuple(lower, upper);
+    }
 
     box_type dx() const
     {
@@ -191,7 +201,7 @@ public:
 
 }; // struct  Mesh
 
-void RectMesh::deploy()
+void CoRectMesh::deploy()
 {
     Block::deploy();
     /**
@@ -281,7 +291,9 @@ void RectMesh::deploy()
 
     }
 }
+}} // namespace simpla // namespace  mesh
 
+#endif //SIMPLA_CORECTMESH_H
 //typedef typename MeshEntityIdCoder::range_type block_range_type;
 //
 //virtual EntityRange select(box_type const &other,
@@ -475,13 +487,13 @@ void RectMesh::deploy()
 //private:
 //
 //
-//    point_type m_l2g_shift_ = {0, 0, 0};
+//    point_type m_l2g_shift_ = {{0, 0, 0}};
 //
-//    point_type m_l2g_scale_ = {1, 1, 1};
+//    point_type m_l2g_scale_ = {{1, 1, 1}};
 //
-//    point_type m_g2l_shift_ = {0, 0, 0};
+//    point_type m_g2l_shift_ = {{0, 0, 0}};
 //
-//    point_type m_g2l_scale_ = {1, 1, 1};
+//    point_type m_g2l_scale_ = {{1, 1, 1}};
 //
 //
 //    point_type inv_map(point_type const &x) const
@@ -571,6 +583,4 @@ void RectMesh::deploy()
 //    };
 
 
-}} // namespace simpla // namespace  mesh
 
-#endif //SIMPLA_RECTMESH_H

@@ -26,7 +26,7 @@ struct Model::pimpl_s
 
 };
 
-Model::Model(Chart const *pm)
+Model::Model(Block const *pm)
         : m(pm), m_pimpl_(new pimpl_s) {}
 
 Model::~Model() {}
@@ -69,13 +69,13 @@ void Model::remove(EntityRange const &r, distance_fun_t const distance)
 
 void Model::deploy()
 {
-    m->range(VOLUME).foreach(
-            [&](MeshEntityId const &s)
-            {
-                typename pimpl_s::volume_cache_type::accessor acc;
-                m_pimpl_->m_volume_cache.insert(acc, s);
-                acc->second = check(s);
-            }
+    m->for_each(VOLUME,
+                [&](MeshEntityId const &s)
+                {
+                    typename pimpl_s::volume_cache_type::accessor acc;
+                    m_pimpl_->m_volume_cache.insert(acc, s);
+                    acc->second = check(s);
+                }
     );
 };
 

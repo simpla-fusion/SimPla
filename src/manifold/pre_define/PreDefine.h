@@ -8,36 +8,36 @@
 #define SIMPLA_PREDEFINE_H
 
 #include "../../mesh/CoRectMesh.h"
+#include "../../mesh/RectMesh.h"
 
-#include "../CoordinateSystem.h"
+#include "../Manifold.h"
 #include "../schemes/FVMStructured.h"
 #include "../schemes/LinearInterpolator.h"
 
 //#include "../policy/StoragePolicy.h"
 //#include "../policy/ParallelPolicy.h"
 
-#include "../metric/Cartesian.h"
-#include "../metric/Cylindrical.h"
+//#include "../metric/Cartesian.h"
+//#include "../metric/Cylindrical.h"
 
-#include "../../mesh/CoRectMesh.h"
 
 namespace simpla { namespace manifold
 {
 //template<typename MESH, template<typename> class ...Policies>
 //using ManifoldWithPolicies= CoordinateSystem<MESH, Policies<MESH>...>;
 
-template<typename MESH = mesh::CoRectMesh, template<typename> class METRIC_POLICY= metric::Cartesian>
-using DefaultManifold= CoordinateSystem<MESH,
-        METRIC_POLICY,
+template<typename MESH = mesh::CoRectMesh>
+using DefaultManifold= Manifold<MESH,
+
         schemes::FiniteVolume,
         schemes::LinearInterpolator
         //        policy::StoragePolicy,
         //        policy::ParallelPolicy,
 >;
 
-using CylindricalManifold= DefaultManifold<mesh::CoRectMesh, metric::Cylindrical>;
+using CylindricalManifold= DefaultManifold<mesh::RectMesh>;
 
-using CartesianManifold = DefaultManifold<mesh::CoRectMesh, metric::Cartesian>;
+using CartesianManifold = DefaultManifold<mesh::CoRectMesh>;
 
 
 }}// namespace simpla { namespace CoordinateSystem

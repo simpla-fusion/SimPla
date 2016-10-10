@@ -56,12 +56,12 @@ mesh::Atlas const &
 Context::get_mesh_atlas() const { return m_pimpl_->m_atlas_; };
 
 mesh::MeshBlockId
-Context::add_mesh(std::shared_ptr<mesh::Chart> m) { return m_pimpl_->m_atlas_.add_block(m); }
+Context::add_mesh(std::shared_ptr<mesh::Block> m) { return m_pimpl_->m_atlas_.add_block(m); }
 
-std::shared_ptr<const mesh::Chart>
+std::shared_ptr<const mesh::Block>
 Context::get_mesh_block(mesh::MeshBlockId id) const { return m_pimpl_->m_atlas_.get_block(id); }
 
-std::shared_ptr<mesh::Chart>
+std::shared_ptr<mesh::Block>
 Context::get_mesh_block(mesh::MeshBlockId id) { return m_pimpl_->m_atlas_.get_block(id); }
 
 std::shared_ptr<PhysicalDomain>
@@ -88,7 +88,7 @@ Context::add_domain(std::shared_ptr<PhysicalDomain> pb)
 toolbox::IOStream &
 Context::save_mesh(toolbox::IOStream &os) const
 {
-    m_pimpl_->m_atlas_.save(os);
+//    m_pimpl_->m_atlas_.save(os);
     return os;
 }
 
@@ -147,7 +147,7 @@ Context::run(Real dt, int level)
             }
         };
 
-        chart_node.second->next_step(dt);
+//        chart_node.second->next_step(dt);
     }
     next_time_step(dt);
 };
@@ -165,11 +165,11 @@ Context::sync(int level, int flag)
             auto r = m_pimpl_->m_atlas_.get_adjacencies(mesh_chart.first);
             for (auto it = std::get<0>(r), ie = std::get<1>(r); it != ie; ++it)
             {
-                auto other_domain = m_pimpl_->m_domains_.find(it->second->second->id());
-                if (other_domain != m_pimpl_->m_domains_.end() && (it->second->flag & flag != 0))
-                {
-                    this_domain->second->sync(*(it->second), *(other_domain->second));
-                }
+//                auto other_domain = m_pimpl_->m_domains_.find(it->second->second->id());
+//                if (other_domain != m_pimpl_->m_domains_.end() && (it->second->flag & flag != 0))
+//                {
+//                    this_domain->second->sync(*(it->second), *(other_domain->second));
+//                }
             };
         };
     }

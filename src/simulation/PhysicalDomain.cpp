@@ -19,7 +19,7 @@ struct PhysicalDomain::pimpl_s
 
 PhysicalDomain::PhysicalDomain() : m_mesh_(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) {}
 
-PhysicalDomain::PhysicalDomain(const mesh::Chart *msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
+PhysicalDomain::PhysicalDomain(const mesh::Block *msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
 
 PhysicalDomain::~PhysicalDomain() { teardown(); }
 
@@ -47,7 +47,7 @@ void PhysicalDomain::teardown()
 };
 
 std::shared_ptr<PhysicalDomain>
-PhysicalDomain::clone(mesh::Chart const &) const
+PhysicalDomain::clone(mesh::Block const &) const
 {
     UNIMPLEMENTED;
     return std::shared_ptr<PhysicalDomain>(nullptr);
@@ -153,16 +153,16 @@ void PhysicalDomain::sync(mesh::TransitionMap const &t_map, PhysicalDomain const
 {
     for (auto const &item:m_pimpl_->m_attr_)
     {
-        if (!item.second->empty())
-        {
-            t_map.direct_pull_back(item.second->data().get(), other.attribute(item.first)->data().get(),
-                                   item.second->entity_size_in_byte(), item.second->entity_type());
-        }
+//        if (!item.second->empty())
+//        {
+//            t_map.pull_back(item.second->data().get(), other.attribute(item.first)->data().get(),
+//                            item.second->entity_size_in_byte(), item.second->entity_type());
+//        }
 
     }
 }
 
-bool PhysicalDomain::same_as(mesh::Chart const &) const
+bool PhysicalDomain::same_as(mesh::Block const &) const
 {
     UNIMPLEMENTED;
     return false;
@@ -174,9 +174,9 @@ bool PhysicalDomain::same_as(mesh::Chart const &) const
 //    return std::vector<mesh::box_type>();
 //}
 //
-//void PhysicalDomain::refine(mesh::Chart const &other) { UNIMPLEMENTED; };
+//void PhysicalDomain::refine(mesh::Block const &other) { UNIMPLEMENTED; };
 //
-//bool PhysicalDomain::coarsen(mesh::Chart const &other)
+//bool PhysicalDomain::coarsen(mesh::Block const &other)
 //{
 //    UNIMPLEMENTED;
 //    return false;

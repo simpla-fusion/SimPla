@@ -8,11 +8,12 @@
 #ifndef FIELD_DENSE_H_
 #define FIELD_DENSE_H_
 
-#include "../sp_def.h"
+#include "SIMPLA_config.h"
 #include "../toolbox/type_traits.h"
-#include "../mesh/Chart.h"
-#include "../mesh/Attribute.h"
 #include "../toolbox/DataSet.h"
+#include "../mesh/MeshCommon.h"
+#include "../mesh/Block.h"
+#include "../mesh/Attribute.h"
 
 namespace simpla
 {
@@ -24,7 +25,7 @@ template<typename TV, typename TManifold, size_t IFORM>
 class Field<TV, TManifold, std::integral_constant<size_t, IFORM>> : public mesh::Attribute
 {
 private:
-    static_assert(std::is_base_of<mesh::Chart, TManifold>::value, "TManifold is not derived from Chart");
+    static_assert(std::is_base_of<mesh::Block, TManifold>::value, "TManifold is not derived from Block");
 
     typedef Field<TV, TManifold, std::integral_constant<size_t, IFORM>> this_type;
 
@@ -48,7 +49,7 @@ public:
     {}
 
     //create construct
-    Field(mesh::Chart const *m) : Field(static_cast<mesh_type const *>(m)) {}
+    Field(mesh::Block const *m) : Field(static_cast<mesh_type const *>(m)) {}
 
     Field(mesh_type const *m) : m_mesh_(m), m_data_holder_(nullptr)
 //            , m_data_root_ptr_(nullptr)
@@ -136,10 +137,10 @@ public:
     virtual size_type size_in_byte() const
     {
         assert(is_valid());
-        return m_mesh_->max_hash(entity_type()) * entity_size_in_byte();
+        return m_mesh_->size() * entity_size_in_byte() * ((iform == mesh::VERTEX || iform == mesh::VOLUME) ? 1 : 3);
     }
 
-    virtual mesh::Chart const *mesh() const { return m_mesh_; }
+    virtual mesh::Block const *mesh() const { return m_mesh_; }
 
     virtual std::shared_ptr<void> data() { return m_data_holder_; }
 

@@ -237,7 +237,8 @@ struct MeshEntityIdCoder_
     template<typename TI>
     static constexpr MeshEntityId pack(TI i0, TI i1, TI i2, int level = 0)
     {
-        return MeshEntityId{static_cast<int16_t>(level), static_cast<int16_t>(i2), static_cast<int16_t>(i1), static_cast<int16_t>(i0)};
+        return MeshEntityId{static_cast<int16_t>(level), static_cast<int16_t>(i2), static_cast<int16_t>(i1),
+                            static_cast<int16_t>(i0)};
     }
 
     template<typename T>
@@ -263,9 +264,9 @@ struct MeshEntityIdCoder_
     static constexpr index_tuple unpack_index(MeshEntityId const &s)
     {
         return index_tuple{
-                static_cast<size_type>(s.x) >> 1,
-                static_cast<size_type>(s.y) >> 1,
-                static_cast<size_type>(s.z) >> 1
+                static_cast<index_type>(s.x) >> 1,
+                static_cast<index_type>(s.y) >> 1,
+                static_cast<index_type>(s.z) >> 1
         };
     }
 

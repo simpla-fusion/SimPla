@@ -4,9 +4,11 @@
 
 
 #include "../../src/simulation/Context.h"
+#include "../../src/manifold/pre_define/PreDefine.h"
+#include "../../src/mesh/ModelSelect.h"
+
 #include "../../scenario/problem_domain/EMFluid.h"
 #include "../../scenario/problem_domain/PML.h"
-#include "../../src/manifold/pre_define/PreDefine.h"
 
 
 namespace simpla
@@ -21,7 +23,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     center_mesh->dimensions(options["Mesh"]["Dimensions"].template as<index_tuple>(index_tuple{20, 20, 1}));
     center_mesh->ghost_width(options["Mesh"]["GhostWidth"].template as<index_tuple>(index_tuple{2, 2, 2}));
     center_mesh->box(options["Mesh"]["Block"].template as<box_type>(box_type{{0, 0, 0},
-                                                                           {1, 1, 1}}));
+                                                                             {1, 1, 1}}));
     center_mesh->deploy();
 
     auto center_domain = ctx->add_domain_to<EMFluid<mesh_type >>(center_mesh->id());
@@ -35,17 +37,18 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         sp->J.clear();
         if (std::get<1>(item)["Density"])
         {
-            auto r = center_mesh->range(std::get<1>(item)["Block"].as<box_type>(), VERTEX);
             std::function<Real(point_type const &)> g_obj;
             std::get<1>(item)["Shape"].as(&g_obj);
 
             std::function<Real(point_type const &)> density;
             std::get<1>(item)["Density"].as(&density);
-            r.foreach([&](MeshEntityId const &s)
-                      {
-                          auto x = center_mesh->point(s);
-                          if (g_obj(x) <= 0) { sp->rho[s] = density(x); }
-                      });
+
+            center_mesh->for_each(VERTEX,
+                                  [&](MeshEntityId const &s)
+                                  {
+                                      auto x = center_mesh->point(s);
+                                      if (g_obj(x) <= 0) { sp->rho[s] = density(x); }
+                                  });
         }
     }
 
@@ -58,34 +61,37 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B0"]["Value"].as(&fun);
-            center_mesh->range(FACE).foreach(
-                    [&](mesh::MeshEntityId const &s)
-                    {
-                        center_domain->B0[s] = center_mesh->
-                                template sample<FACE>(s, fun(center_mesh->point(s)));
-                    });
+            center_mesh->for_each(FACE,
+                                  [&](mesh::MeshEntityId const &s)
+                                  {
+//                                      center_domain->B0[s] = center_mesh->
+//                                              template sample<FACE>(s, fun(center_mesh->point(s)));
+                                  });
         }
 
         if (options["InitValue"]["B1"])
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B1"]["Value"].as(&fun);
-            center_mesh->range(FACE).foreach(
-                    [&](mesh::MeshEntityId const &s)
-                    {
-                        center_domain->B[s] = center_mesh->template sample<FACE>(s, fun(center_mesh->point(s)));
-                    });
+            center_mesh->for_each(FACE,
+                                  [&](mesh::MeshEntityId const &s)
+                                  {
+//                                      center_domain->B[s] = center_mesh->template sample<FACE>(s,
+//                                                                                               fun(center_mesh->point(
+//                                                                                                       s)));
+                                  });
         }
 
         if (options["InitValue"]["E1"])
         {
             std::function<vector_type(point_type const &)> fun_fun;
             options["InitValue"]["E1"]["Value"].as(&fun_fun);
-            center_mesh->range(EDGE).foreach(
-                    [&](mesh::MeshEntityId const &s)
-                    {
-                        center_domain->E[s] = center_mesh->template sample<EDGE>(s, fun_fun(center_mesh->point(s)));
-                    });
+            center_mesh->for_each(EDGE,
+                                  [&](mesh::MeshEntityId const &s)
+                                  {
+//                                      center_domain->E[s] =
+//                                              center_mesh->template sample<EDGE>(s, fun_fun(center_mesh->point(s)));
+                                  });
         }
     }
 
@@ -93,8 +99,8 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     if (options["Constraints"]["J"])
     {
 
-        center_domain->J_src_range = center_mesh->range(
-                options["Constraints"]["J"]["Block"].as<box_type>(), mesh::EDGE);
+        center_domain->J_src_range = select(center_mesh, mesh::EDGE,
+                                            options["Constraints"]["J"]["Block"].as<box_type>());
 
         options["Constraints"]["J"]["Value"].as(&center_domain->J_src_fun);
     }
@@ -102,8 +108,8 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     if (options["Constraints"]["E"])
     {
 
-        center_domain->E_src_range = center_mesh->range(
-                options["Constraints"]["E"]["Block"].as<box_type>(), mesh::EDGE);
+        center_domain->E_src_range = select(center_mesh, mesh::EDGE,
+                                            options["Constraints"]["E"]["Block"].as<box_type>());
 
         options["Constraints"]["E"]["Value"].as(&center_domain->E_src_fun);
     }
@@ -130,74 +136,74 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         typedef PML<mesh_type> pml_type;
         std::shared_ptr<mesh_type> pml_mesh[6];
         index_type w = options["PML"]["Width"].as<index_type>(5);
-        index_tuple dims = center_mesh->dimensions();
-        index_tuple gw = center_mesh->ghost_width();
+        size_tuple dims = center_mesh->dimensions();
+        size_tuple gw = center_mesh->ghost_width();
 
-        pml_mesh[0] = center_mesh->clone_as<mesh_type>("PML_0");
+        pml_mesh[0] = std::dynamic_pointer_cast<mesh_type>(center_mesh->clone("PML_0"));
         pml_mesh[0]->shift(index_tuple{-w, -w, -w});
         pml_mesh[0]->stretch(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w});
         pml_mesh[0]->deploy();
         ctx->atlas().add_block(pml_mesh[0]);
-        ctx->atlas().add_adjacency2(center_mesh.get(), pml_mesh[0].get(), SP_MB_SYNC);
-        ctx->add_domain_as<pml_type>(pml_mesh[0].get())->setup_center_domain(center_mesh->box()).deploy();
+        ctx->atlas().add_adjacency2(center_mesh, pml_mesh[0]);
+        ctx->add_domain_as<pml_type>(pml_mesh[0])->setup_center_domain(center_mesh->box()).deploy();
 
-        pml_mesh[1] = center_mesh->clone_as<mesh_type>("PML_1");
+        pml_mesh[1] = std::dynamic_pointer_cast<mesh_type>(center_mesh->clone("PML_1"));
         pml_mesh[1]->shift(index_tuple{dims[0], -w, -w});
         pml_mesh[1]->stretch(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w});
         pml_mesh[1]->deploy();
         ctx->atlas().add_block(pml_mesh[1]);
-        ctx->atlas().add_adjacency2(center_mesh.get(), pml_mesh[1].get(), SP_MB_SYNC);
-        ctx->add_domain_as<pml_type>(pml_mesh[1].get())->setup_center_domain(center_mesh->box()).deploy();
+        ctx->atlas().add_adjacency2(center_mesh, pml_mesh[1]);
+        ctx->add_domain_as<pml_type>(pml_mesh[1])->setup_center_domain(center_mesh->box()).deploy();
 
         if (dims[1] > 1 && gw[1] > 0)
         {
-            pml_mesh[2] = center_mesh->clone_as<mesh_type>("PML_2");
+            pml_mesh[2] = std::dynamic_pointer_cast<mesh_type>(center_mesh->clone("PML_2"));
             pml_mesh[2]->shift(index_tuple{0, -w, -w});
             pml_mesh[2]->stretch(index_tuple{dims[0], w, dims[2] + 2 * w});
             pml_mesh[2]->deploy();
             ctx->atlas().add_block(pml_mesh[2]);
-            ctx->atlas().add_adjacency2(pml_mesh[2].get(), center_mesh.get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[2].get(), pml_mesh[0].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[2].get(), pml_mesh[1].get(), SP_MB_SYNC);
-            ctx->add_domain_as<pml_type>(pml_mesh[2].get())->setup_center_domain(center_mesh->box()).deploy();
+            ctx->atlas().add_adjacency2(pml_mesh[2], center_mesh);
+            ctx->atlas().add_adjacency2(pml_mesh[2], pml_mesh[0]);
+            ctx->atlas().add_adjacency2(pml_mesh[2], pml_mesh[1]);
+            ctx->add_domain_as<pml_type>(pml_mesh[2])->setup_center_domain(center_mesh->box()).deploy();
 
 
-            pml_mesh[3] = center_mesh->clone_as<mesh_type>("PML_3");
+            pml_mesh[3] = std::dynamic_pointer_cast<mesh_type>(center_mesh->clone("PML_3"));
             pml_mesh[3]->shift(index_tuple{0, dims[1], -w});
             pml_mesh[3]->stretch(index_tuple{dims[0], w, dims[2] + 2 * w});
             pml_mesh[3]->deploy();
             ctx->atlas().add_block(pml_mesh[3]);
-            ctx->atlas().add_adjacency2(pml_mesh[3].get(), center_mesh.get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[3].get(), pml_mesh[0].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[3].get(), pml_mesh[1].get(), SP_MB_SYNC);
-            ctx->add_domain_as<pml_type>(pml_mesh[3].get())->setup_center_domain(center_mesh->box()).deploy();
+            ctx->atlas().add_adjacency2(pml_mesh[3], center_mesh);
+            ctx->atlas().add_adjacency2(pml_mesh[3], pml_mesh[0]);
+            ctx->atlas().add_adjacency2(pml_mesh[3], pml_mesh[1]);
+            ctx->add_domain_as<pml_type>(pml_mesh[3])->setup_center_domain(center_mesh->box()).deploy();
 
         }
         if (dims[2] > 1 && gw[1] > 0)
         {
-            pml_mesh[4] = center_mesh->clone_as<mesh_type>("PML_4");
+            pml_mesh[4] = std::dynamic_pointer_cast<mesh_type>(center_mesh->clone("PML_4"));
             pml_mesh[4]->shift(index_tuple{0, 0, -w});
             pml_mesh[4]->stretch(index_tuple{dims[0], dims[1], w});
             pml_mesh[4]->deploy();
             ctx->atlas().add_block(pml_mesh[4]);
-            ctx->atlas().add_adjacency2(pml_mesh[4].get(), center_mesh.get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[0].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[1].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[2].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[3].get(), SP_MB_SYNC);
-            ctx->add_domain_as<pml_type>(pml_mesh[4].get())->setup_center_domain(center_mesh->box()).deploy();
+            ctx->atlas().add_adjacency2(pml_mesh[4], center_mesh);
+            ctx->atlas().add_adjacency2(pml_mesh[4], pml_mesh[0]);
+            ctx->atlas().add_adjacency2(pml_mesh[4], pml_mesh[1]);
+            ctx->atlas().add_adjacency2(pml_mesh[4], pml_mesh[2]);
+            ctx->atlas().add_adjacency2(pml_mesh[4], pml_mesh[3]);
+            ctx->add_domain_as<pml_type>(pml_mesh[4])->setup_center_domain(center_mesh->box()).deploy();
 
-            pml_mesh[5] = center_mesh->clone_as<mesh_type>("PML_5");
+            pml_mesh[5] = std::dynamic_pointer_cast<mesh_type>(center_mesh->clone("PML_5"));
             pml_mesh[5]->shift(index_tuple{0, 0, dims[2]});
             pml_mesh[5]->stretch(index_tuple{dims[0], dims[1], w});
             pml_mesh[5]->deploy();
             ctx->atlas().add_block(pml_mesh[5]);
-            ctx->atlas().add_adjacency2(pml_mesh[5].get(), center_mesh.get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[0].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[1].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[2].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[3].get(), SP_MB_SYNC);
-            ctx->add_domain_as<pml_type>(pml_mesh[5].get())->setup_center_domain(center_mesh->box()).deploy();
+            ctx->atlas().add_adjacency2(pml_mesh[5], center_mesh);
+            ctx->atlas().add_adjacency2(pml_mesh[5], pml_mesh[0]);
+            ctx->atlas().add_adjacency2(pml_mesh[5], pml_mesh[1]);
+            ctx->atlas().add_adjacency2(pml_mesh[5], pml_mesh[2]);
+            ctx->atlas().add_adjacency2(pml_mesh[5], pml_mesh[3]);
+            ctx->add_domain_as<pml_type>(pml_mesh[5])->setup_center_domain(center_mesh->box()).deploy();
 
         }
     }

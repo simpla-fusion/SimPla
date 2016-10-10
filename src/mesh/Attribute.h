@@ -12,7 +12,7 @@
 #include "../toolbox/MemoryPool.h"
 #include "../toolbox/DataSet.h"
 #include "MeshCommon.h"
-#include "Chart.h"
+#include "Block.h"
 #include "EntityRange.h"
 
 
@@ -54,7 +54,7 @@ struct Attribute
 
     virtual size_type size_in_byte() const = 0;
 
-    virtual Chart const *mesh() const = 0;
+    virtual Block const *mesh() const = 0;
 
     virtual std::shared_ptr<void> data() = 0;
 
@@ -101,7 +101,7 @@ struct Attribute
 //    /** register MeshBlockId to attribute m_data collection.  */
 //
 //    template<typename TF, typename ...Args>
-//    std::shared_ptr<TF> add(Chart const *m, Args &&...args)
+//    std::shared_ptr<TF> add(Block const *m, Args &&...args)
 //    {
 //        assert(m != nullptr);
 //

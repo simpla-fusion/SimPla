@@ -10,7 +10,7 @@
 #include "../toolbox/nTuple.h"
 
 #include "MeshCommon.h"
-#include "Chart.h"
+#include "Block.h"
 
 namespace simpla { namespace mesh
 {
@@ -34,27 +34,27 @@ enum { SP_MB_SYNC = 0x1, SP_MB_COARSEN = 0x2, SP_MB_REFINE = 0x4 };
  */
 struct TransitionMap
 {
-    typedef mesh::Chart Chart;
 
 public:
-    TransitionMap(Chart const *m, Chart const *n, index_box_type i_box, index_tuple offset, int flag);
+    TransitionMap(Block const &m, Block const &n)
+    {
+        assert(m.space_id() == m.space_id());
 
-    ~TransitionMap();
+        m_dst_ = m.clone();
+        m_dst_->intersection(n.index_box());
+        m_dst_->deploy();
 
-    int flag;
+        m_src_ = n.clone();
+        m_src_->intersection(m.outer_index_box());
+        m_src_->deploy();
+    };
 
-//private:
+    ~TransitionMap() {};
 
-    //TODO use geometric object replace box
-    index_box_type m_overlap_idx_box_;
-    MeshEntityId m_offset_;
-    Chart const *first;
-    Chart const *second;
+    std::shared_ptr<Block> m_dst_, m_src_;
 
 
-    virtual int map(point_type *) const;
-
-    virtual point_type map(point_type const &) const;
+    virtual point_type map(point_type const &x) const { return x; }
 
     virtual mesh::MeshEntityId direct_map(mesh::MeshEntityId) const;
 
@@ -70,37 +70,30 @@ public:
 
 
     template<typename Tg>
-    auto pull_back(Tg const &g, point_type const &x) const
-
-    DECL_RET_TYPE ((g(map(x))))
-
-    template<typename Tg, typename Tf>
-    void pull_back(Tg const &g, Tf *f, mesh::MeshEntityType entity_type = mesh::VERTEX) const
-    {
-        first->range(m_overlap_idx_box_, entity_type).foreach(
-                [&](mesh::MeshEntityId s)
-                {
-//                    (*f)[first->hash(s)] =
-//                            first->sample(s, pull_back(g, first->point(s)));
-                });
-    }
+    auto pull_back(Tg const &g, point_type const &x) const DECL_RET_TYPE ((g(map(x))))
+//
+//    template<typename Tg, typename Tf>
+//    void pull_back(Tg const &g, Tf *f, mesh::MeshEntityType entity_type = mesh::VERTEX) const
+//    {
+//        m_dst_->for_each(entity_type,
+//                          [&](mesh::MeshEntityId s)
+//                          {
+//                              (*f)[m_dst_->hash(s)] = m_dst_->sample(s, g(m_src_->point(s)));
+//                          });
+//    }
 
     template<typename TFun>
     int direct_map(MeshEntityType entity_type, TFun const &body) const
     {
-        first->range(m_overlap_idx_box_, entity_type).foreach(
-                [&](mesh::MeshEntityId const &s) { body(s, direct_map(s)); });
+        m_dst_->for_each(entity_type, [&](mesh::MeshEntityId const &s) { body(s); });
     }
 
 
-    int direct_pull_back(void *f, void const *g, size_type ele_size_in_byte, MeshEntityType entity_type) const;
-
-
     template<typename TV>
-    int direct_pull_back(TV *f, TV const *g, MeshEntityType entity_type) const
+    int pointwise_copy(TV *f, TV const *g, MeshEntityType entity_type) const
     {
-        first->range(m_overlap_idx_box_, entity_type).foreach(
-                [&](mesh::MeshEntityId const &s) { f[first->hash(s)] = g[second->hash(direct_map(s))]; });
+        m_dst_->for_each(entity_type,
+                          [&](mesh::MeshEntityId const &s) { f[m_dst_->hash(s)] = g[m_src_->hash(s)]; });
     }
 
 

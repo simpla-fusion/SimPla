@@ -41,11 +41,12 @@ public:
 
     void add_adjacency(std::shared_ptr<TransitionMap>);
 
-    std::shared_ptr<TransitionMap> add_adjacency(const Block *first, const Block *second, int flag);
+    std::shared_ptr<TransitionMap>
+    add_adjacency(std::shared_ptr<const Block> first, std::shared_ptr<const Block> second);
 
-    std::shared_ptr<TransitionMap> add_adjacency(MeshBlockId first, MeshBlockId second, int flag);
+    std::shared_ptr<TransitionMap> add_adjacency(MeshBlockId first, MeshBlockId second);
 
-    void add_adjacency2(const Block *first, const Block *second, int flag);
+    void add_adjacency2(std::shared_ptr<const Block> first, std::shared_ptr<const Block> second);
 
 //#ifndef NDEBUG
 //    private:

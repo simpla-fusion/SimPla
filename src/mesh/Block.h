@@ -6,10 +6,10 @@
 #define SIMPLA_BOX_H
 
 #include <iomanip>
-#include "MeshCommon.h"
 #include "../toolbox/Object.h"
-#include "EntityId.h"
 #include "../toolbox/DataSpace.h"
+#include "MeshCommon.h"
+#include "EntityId.h"
 
 namespace simpla { namespace mesh
 {
@@ -83,6 +83,7 @@ public:
     using toolbox::Object::id_type;
 
     static constexpr int ndims = 3;
+    using toolbox::Object::id;
 
     Block();
 
@@ -98,6 +99,9 @@ public:
         return *this;
     }
 
+
+    virtual std::shared_ptr<Block> clone() const { return std::make_shared<Block>(*this); };
+
     void swap(Block &other);
 
     virtual std::tuple<toolbox::DataSpace, toolbox::DataSpace>
@@ -107,9 +111,14 @@ public:
 
     int processer_id() const { return processer_id_; }
 
-    void global_id(size_type id) { m_global_id_ = id; }
 
-    size_type global_id() const { return m_global_id_; }
+    /**
+     *  Set ID of space
+     * @param id
+     */
+    void space_id(size_type id) { m_index_space_id_ = id; }
+
+    size_type space_id() const { return m_index_space_id_; }
 
     int level() const { return m_level_; }
 
@@ -125,19 +134,19 @@ public:
         m_ghost_width_ = d;
     }
 
-    void shift(nTuple<int, ndims> const &offset)
+    virtual void shift(index_tuple const &offset)
     {
         assert(!m_is_deployed_);
         m_g_offset_ += offset;
     };
 
-    void stretch(index_tuple const &a)
+    virtual void stretch(index_tuple const &a)
     {
         assert(!m_is_deployed_);
         m_b_dimensions_ *= a;
     };
 
-    void intersection(Block const &other);
+    virtual void intersection(const index_box_type &other);
 
     virtual void refine(int ratio = 1);
 
@@ -145,17 +154,43 @@ public:
 
     virtual void deploy();
 
+    virtual box_type box() const
+    {
+        point_type lower, upper;
+        lower = m_g_offset_;
+        upper = m_g_offset_ + m_b_dimensions_;
+        return std::make_tuple(lower, upper);
+    };
+
+    virtual box_type outer_box() const
+    {
+        point_type lower, upper;
+        lower = m_g_offset_ - m_l_offset_;
+        upper = m_g_offset_ + m_l_dimensions_;
+        return std::make_tuple(lower, upper);
+    }
+
+    virtual point_type point(MeshEntityId const &s) const
+    {
+        point_type p;
+        p = unpack(s);
+        return std::move(p);
+    }
+
+
     bool is_deployed() const { return m_is_deployed_; }
 
-    index_tuple const &dimensions() const { return m_b_dimensions_; }
+    size_tuple const &dimensions() const { return m_b_dimensions_; }
 
-    index_tuple const &local_dimensions() const { return m_l_dimensions_; }
+    size_tuple const &local_dimensions() const { return m_l_dimensions_; }
 
     index_tuple const &local_offset() const { return m_l_offset_; }
 
-    index_tuple const &global_dimensions() const { return m_g_dimensions_; }
+    size_tuple const &global_dimensions() const { return m_g_dimensions_; }
 
-    index_tuple const &blobal_offset() const { return m_g_offset_; }
+    index_tuple const &global_offset() const { return m_g_offset_; }
+
+    size_tuple const &ghost_width() const { return m_ghost_width_; }
 
     index_box_type local_index_box() const
     {
@@ -165,23 +200,33 @@ public:
         return std::make_tuple(lower, upper);
     }
 
-    index_box_type global_index_box() const
+    index_box_type index_box() const
     {
         index_tuple lower = m_g_offset_;
-        index_tuple upper;
-        upper = lower + m_b_dimensions_;
+        index_tuple upper = lower + m_b_dimensions_;
+        return std::make_tuple(lower, upper);
+    }
+
+    index_box_type outer_index_box() const
+    {
+        index_tuple lower = m_g_offset_ - m_l_offset_;
+        index_tuple upper = lower + m_l_dimensions_;
         return std::make_tuple(lower, upper);
     }
 
 
     bool empty() const { return size() == 0; }
 
-    size_type size() const { return m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]; }
+    size_type size() const { return (m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]); }
 
-    inline size_type hash(size_type i, size_type j = 0, size_type k = 0) const
+    inline size_type hash(index_type i, index_type j = 0, index_type k = 0) const
     {
-        return (i * m_l_dimensions_[1] + j) * m_l_dimensions_[2] + k;
+        return static_cast<size_type>(((i + m_l_offset_[0] - m_g_offset_[0]) * m_l_dimensions_[1] +
+                                       (j + m_l_offset_[1] - m_g_offset_[1])) * m_l_dimensions_[2] +
+                                      k + m_l_offset_[2] - m_g_offset_[2]);
     }
+
+    inline size_type hash(index_tuple const &id) const { return hash(id[0], id[1], id[2]); }
 
     index_tuple unhash(size_type s) const
     {
@@ -193,30 +238,37 @@ public:
         return std::move(res);
     }
 
+
     typedef MeshEntityIdCoder m;
-    typedef MeshEntityId id;
 
-    id pack(size_type i, size_type j = 0, size_type k = 0, int nid = 0) const { return m::pack_index(i, j, k, nid); }
+    inline size_type hash(MeshEntityId const &id) const { hash(unpack(id)); }
 
-    index_tuple unpack(id const &s) const { return m::unpack_index(s); }
+    MeshEntityId pack(size_type i, size_type j = 0, size_type k = 0, int nid = 0) const
+    {
+        return m::pack_index(i, j, k, nid);
+    }
 
-    void for_each(std::function<void(size_type, size_type, size_type)> const &fun) const;
+    index_tuple unpack(MeshEntityId const &s) const { return m::unpack_index(s); }
 
-    void for_each(std::function<void(size_type)> const &fun) const;
+    void for_each(std::function<void(index_type, index_type, index_type)> const &fun) const;
 
-    void for_each(std::function<void(id const &)> const &fun, int iform = VERTEX) const;
+    void for_each(std::function<void(index_type)> const &fun) const;
+
+    void for_each(int iform, std::function<void(MeshEntityId const &
+
+    )> const &) const;
 
 private:
     int processer_id_ = 0;
-    size_type m_global_id_ = 0;
+    size_type m_index_space_id_ = 0;
     int m_level_ = 0;
     bool m_is_deployed_ = false;
 
-    index_tuple m_b_dimensions_{{1, 1, 1}};      //!<   dimensions of box
-    index_tuple m_ghost_width_{{0, 0, 0}};          //!<     start index in the local  space
-    index_tuple m_l_dimensions_{{1, 1, 1}};      //!<   dimensions of local index space
+    size_tuple m_b_dimensions_{{1, 1, 1}};      //!<   dimensions of box
+    size_tuple m_ghost_width_{{0, 0, 0}};          //!<     start index in the local  space
+    size_tuple m_l_dimensions_{{1, 1, 1}};      //!<   dimensions of local index space
     index_tuple m_l_offset_{{0, 0, 0}};          //!<     start index in the local  space
-    index_tuple m_g_dimensions_{{1, 1, 1}};     //!<   dimensions of global index space
+    size_tuple m_g_dimensions_{{1, 1, 1}};     //!<   dimensions of global index space
     index_tuple m_g_offset_{{0, 0, 0}};         //!<   start index of global index space
 
 };

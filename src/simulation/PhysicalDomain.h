@@ -27,7 +27,7 @@ namespace parallel { struct DistributedObject; }
 
 namespace mesh
 {
-class Chart;
+class Block;
 
 class Attribute;
 } //namespace get_mesh
@@ -40,7 +40,7 @@ namespace simpla { namespace simulation
 class PhysicalDomain : public toolbox::Object
 {
 public:
-    const mesh::Chart *m_mesh_;
+    const mesh::Block *m_mesh_;
 
     std::shared_ptr<PhysicalDomain> m_next_;
 
@@ -50,17 +50,17 @@ public:
 
     PhysicalDomain();
 
-    PhysicalDomain(const mesh::Chart *);
+    PhysicalDomain(const mesh::Block *);
 
-    mesh::Chart const *mesh() const { return m_mesh_; }
+    mesh::Block const *mesh() const { return m_mesh_; }
 
     virtual  ~PhysicalDomain();
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    virtual std::shared_ptr<PhysicalDomain> clone(mesh::Chart const &) const;
+    virtual std::shared_ptr<PhysicalDomain> clone(mesh::Block const &) const;
 
-    virtual bool same_as(mesh::Chart const &) const;
+    virtual bool same_as(mesh::Block const &) const;
 
     virtual void deploy();
 

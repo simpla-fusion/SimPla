@@ -37,7 +37,9 @@ public:
     static std::string class_name() { return "EMFluid<" + traits::type_id<TM>::name() + ">"; }
 
     typedef TM mesh_type;
+
     typedef typename mesh_type::scalar_type scalar_type;
+
     mesh_type const *m;
 
     EMFluid(const mesh_type *mp)

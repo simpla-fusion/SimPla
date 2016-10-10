@@ -10,7 +10,7 @@
 #include "../sp_def.h"
 #include <functional>
 #include "MeshCommon.h"
-#include "Chart.h"
+#include "Block.h"
 
 namespace simpla { namespace mesh
 {
@@ -25,9 +25,9 @@ struct Model
         INSIDE, OUTSIDE, ON_SURFACE
     };
 
-    Chart const *m;
+    Block const *m;
 
-    Model(Chart const *);
+    Model(Block const *);
 
     virtual ~Model();
 

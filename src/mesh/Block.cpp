@@ -12,7 +12,7 @@ Block::Block() {}
 
 Block::Block(Block const &other) :
         processer_id_(other.processer_id_),
-        m_global_id_(other.m_global_id_),
+        m_index_space_id_(other.m_index_space_id_),
         m_level_(other.m_level_),
         m_is_deployed_(false),
         m_b_dimensions_(other.m_b_dimensions_),
@@ -23,7 +23,7 @@ Block::Block(Block const &other) :
 
 Block::Block(Block &&other) :
         processer_id_(other.processer_id_),
-        m_global_id_(other.m_global_id_),
+        m_index_space_id_(other.m_index_space_id_),
         m_level_(other.m_level_),
         m_is_deployed_(other.m_is_deployed_),
         m_b_dimensions_(other.m_b_dimensions_),
@@ -38,28 +38,27 @@ Block::~Block() {}
 void Block::swap(Block &other)
 {
     std::swap(processer_id_, other.processer_id_);
-    std::swap(m_global_id_, other.m_global_id_);
+    std::swap(m_index_space_id_, other.m_index_space_id_);
     std::swap(m_level_, other.m_level_);
     std::swap(m_is_deployed_, other.m_is_deployed_);
 
-    std::swap(m_b_dimensions_, other.m_b_dimensions_);
-    std::swap(m_l_dimensions_, other.m_l_dimensions_);
-    std::swap(m_l_offset_, other.m_l_offset_);
-    std::swap(m_g_dimensions_, other.m_g_dimensions_);
-    std::swap(m_g_offset_, other.m_g_offset_);
+//    std::swap(m_b_dimensions_, other.m_b_dimensions_);
+//    std::swap(m_l_dimensions_, other.m_l_dimensions_);
+//    std::swap(m_l_offset_, other.m_l_offset_);
+//    std::swap(m_g_dimensions_, other.m_g_dimensions_);
+//    std::swap(m_g_offset_, other.m_g_offset_);
 }
 
 
-void Block::intersection(Block const &other)
+void Block::intersection(const index_box_type &other)
 {
     assert(!m_is_deployed_);
-    assert(m_global_id_ == other.m_global_id_);
     for (int i = 0; i < ndims; ++i)
     {
-        size_type l_lower = m_g_offset_[i];
-        size_type l_upper = m_g_offset_[i] + m_b_dimensions_[i];
-        size_type r_lower = other.m_g_offset_[i];
-        size_type r_upper = other.m_g_offset_[i] + other.m_b_dimensions_[i];
+        index_type l_lower = m_g_offset_[i];
+        index_type l_upper = m_g_offset_[i] + m_b_dimensions_[i];
+        index_type r_lower = std::get<0>(other)[i];
+        index_type r_upper = std::get<1>(other)[i];
         l_lower = std::max(l_lower, r_lower);
         l_upper = std::min(l_upper, l_upper);
         m_b_dimensions_[i] = (l_upper > l_lower) ? (l_upper - l_lower) : 0;
@@ -121,29 +120,29 @@ void Block::deploy()
 }
 
 
-void Block::for_each(std::function<void(size_type, size_type, size_type)> const &fun) const
+void Block::for_each(std::function<void(index_type, index_type, index_type)> const &fun) const
 {
 #pragma omp parallel for
-    for (size_type i = m_l_offset_[0]; i < m_l_offset_[0] + m_b_dimensions_[0]; ++i)
-        for (size_type j = m_l_offset_[1]; j < m_l_offset_[1] + m_b_dimensions_[1]; ++j)
-            for (size_type k = m_l_offset_[2]; k < m_l_offset_[2] + m_b_dimensions_[2]; ++k) { fun(i, j, k); }
+    for (index_type i = m_l_offset_[0]; i < m_l_offset_[0] + m_b_dimensions_[0]; ++i)
+        for (index_type j = m_l_offset_[1]; j < m_l_offset_[1] + m_b_dimensions_[1]; ++j)
+            for (index_type k = m_l_offset_[2]; k < m_l_offset_[2] + m_b_dimensions_[2]; ++k) { fun(i, j, k); }
 }
 
-void Block::for_each(std::function<void(size_type)> const &fun) const
+void Block::for_each(std::function<void(index_type)> const &fun) const
 {
 #pragma omp parallel for
-    for (size_type i = m_l_offset_[0]; i < m_l_offset_[0] + m_b_dimensions_[0]; ++i)
-        for (size_type j = m_l_offset_[1]; j < m_l_offset_[1] + m_b_dimensions_[1]; ++j)
-            for (size_type k = m_l_offset_[2]; k < m_l_offset_[2] + m_b_dimensions_[2]; ++k) { fun(hash(i, j, k)); }
+    for (index_type i = m_l_offset_[0]; i < m_l_offset_[0] + m_b_dimensions_[0]; ++i)
+        for (index_type j = m_l_offset_[1]; j < m_l_offset_[1] + m_b_dimensions_[1]; ++j)
+            for (index_type k = m_l_offset_[2]; k < m_l_offset_[2] + m_b_dimensions_[2]; ++k) { fun(hash(i, j, k)); }
 }
 
-void Block::for_each(std::function<void(id const &)> const &fun, int iform) const
+void Block::for_each(int iform, std::function<void(MeshEntityId const &)> const &fun) const
 {
     int n = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
 #pragma omp parallel for
-    for (size_type i = m_l_offset_[0]; i < m_l_offset_[0] + m_b_dimensions_[0]; ++i)
-        for (size_type j = m_l_offset_[1]; j < m_l_offset_[1] + m_b_dimensions_[1]; ++j)
-            for (size_type k = m_l_offset_[2]; k < m_l_offset_[2] + m_b_dimensions_[2]; ++k)
+    for (index_type i = m_l_offset_[0]; i < m_l_offset_[0] + m_b_dimensions_[0]; ++i)
+        for (index_type j = m_l_offset_[1]; j < m_l_offset_[1] + m_b_dimensions_[1]; ++j)
+            for (index_type k = m_l_offset_[2]; k < m_l_offset_[2] + m_b_dimensions_[2]; ++k)
                 for (int l = 0; l < n; ++l) { fun(pack(i, j, k, l)); }
 }
 

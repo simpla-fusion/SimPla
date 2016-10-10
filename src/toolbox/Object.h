@@ -162,6 +162,7 @@ virtual std::string get_class_name() const { return __STRING(_CLASS_NAME_); } \
 static std::string class_name()  { return __STRING(_CLASS_NAME_); }           \
 private:                                                                      \
     typedef _BASE_CLASS_NAME_ base_type;                                      \
+    typedef _CLASS_NAME_ this_type;                                           \
 public:
 
 //virtual std::shared_ptr<GeoObject> clone_object()const { return std::dynamic_pointer_cast<GeoObject>(this->clone()); }

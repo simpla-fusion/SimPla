@@ -29,7 +29,7 @@ public:
 
     template<typename ValueType, size_t IFORM> using field_t =  Field <ValueType, TM, index_const<IFORM>>;;
 
-    PML(const mesh_type *mp);
+    PML(std::shared_ptr<TM> mp);
 
     PML &setup_center_domain(box_type const &center_box);
 
@@ -83,17 +83,18 @@ private:
 
 
 template<typename TM>
-PML<TM>::~PML() { }
+PML<TM>::~PML() {}
 
 template<typename TM>
-PML<TM>::PML(const mesh_type *mp) : base_type(mp), m(mp)
+PML<TM>::PML(std::shared_ptr<TM> mp) : base_type(mp), m(mp)
 {
     assert(mp != nullptr);
 
 
 }
 
-template<typename TM> PML<TM> &
+template<typename TM>
+PML<TM> &
 PML<TM>::setup_center_domain(box_type const &center_box)
 {
     a0.clear();
@@ -111,10 +112,10 @@ PML<TM>::setup_center_domain(box_type const &center_box)
     std::tie(c_xmin, c_xmax) = center_box;
     auto dims = m->dimensions();
 
-    m->range(mesh::VERTEX, SP_ES_ALL).foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                point_type x = m->point(s);
+    m->for_each(mesh::VERTEX,
+                [&](mesh::MeshEntityId const &s)
+                {
+                    point_type x = m->point(s);
 
 #define DEF(_N_)     a##_N_[s]=1;   s##_N_[s]=0;                                                     \
         if(dims[_N_]>1)                                                                              \
@@ -132,11 +133,11 @@ PML<TM>::setup_center_domain(box_type const &center_box)
                     s##_N_[s] = sigma_(r, expN, dB) * speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
                 }                                                                                    \
         }
-                DEF(0)
-                DEF(1)
-                DEF(2)
+                    DEF(0)
+                    DEF(1)
+                    DEF(2)
 #undef DEF
-            }
+                }
     );
 
     return *this;

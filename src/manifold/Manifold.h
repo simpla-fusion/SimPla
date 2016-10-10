@@ -14,7 +14,6 @@
 #include "../toolbox/macro.h"
 #include "../toolbox/nTuple.h"
 
-#include "../model/CoordinateSystem.h"
 
 #include "ManifoldTraits.h"
 
@@ -38,9 +37,9 @@ namespace simpla { namespace manifold
  */
 /**
  * @ingroup diff_geo
- * @addtogroup   CoordinateSystem Differential CoordinateSystem
+ * @addtogroup   Manifold Differential Manifold
  * @{
- *    @brief  CoordinateSystem
+ *    @brief  Manifold
  *
 
  * ## Requirements
@@ -125,24 +124,24 @@ namespace simpla { namespace manifold
  */
 
 /**
- * CoordinateSystem
+ * Manifold
  */
 template<typename TMesh, template<typename...> class ...Policies>
-class CoordinateSystem
+class Manifold
         : public TMesh,
           public Policies<TMesh> ...
 {
-    typedef CoordinateSystem<TMesh, Policies ...> this_type;
+    typedef Manifold<TMesh, Policies ...> this_type;
 
 public:
 
     typedef TMesh mesh_type;
 
-    CoordinateSystem() : Policies<mesh_type>(static_cast<mesh_type &>(*this))... { }
+    Manifold() : Policies<mesh_type>(static_cast<mesh_type &>(*this))... {}
 
-    virtual ~CoordinateSystem() { }
+    virtual ~Manifold() {}
 
-    CoordinateSystem(this_type const &other) : TMesh(other), Policies<mesh_type>(static_cast<mesh_type &>(*this))... { }
+    Manifold(this_type const &other) : TMesh(other), Policies<mesh_type>(static_cast<mesh_type &>(*this))... {}
 
     this_type &operator=(const this_type &other) = delete;
 
@@ -153,11 +152,12 @@ public:
 
     static std::string class_name()
     {
-        return "CoordinateSystem<" + traits::type_id_list<mesh_type, Policies<mesh_type>...>::name() + " > ";
+        return "Manifold<" + traits::type_id_list<mesh_type, Policies<mesh_type>...>::name() + " > ";
     }
 
 private:
-    template<typename T> void deploy_dispatch() { T::deploy(); }
+    template<typename T>
+    void deploy_dispatch() {/*T::deploy();*/ }
 
     template<typename T, typename T1, typename ...Others>
     void deploy_dispatch()
@@ -185,22 +185,22 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
-//        os << std::setw(indent + 1) << " " << "CoordinateSystem = {" << std::endl;
+//        os << std::setw(indent + 1) << " " << "Manifold = {" << std::endl;
 
         this_type::mesh_type::print(os, indent + 1);
         this_type::metric_policy::print(os, indent + 1);
         this_type::calculus_policy::print(os, indent + 1);
         this_type::interpolate_policy::print(os, indent + 1);
 
-//        os << std::setw(indent + 1) << " " << "}  -- CoordinateSystem " << std::endl;
+//        os << std::setw(indent + 1) << " " << "}  -- Manifold " << std::endl;
         return os;
     }
 
-    virtual std::shared_ptr<mesh::Chart> clone(std::string const &name = "") const
+    virtual std::shared_ptr<mesh::Block> clone(std::string const &name = "") const
     {
         auto res = std::make_shared<this_type>(*this);
         if (name != "") { res->name(name); }
-        return res;
+        return std::dynamic_pointer_cast<mesh::Block>(res);
 
     };
 
@@ -233,7 +233,7 @@ public:
 
 
 
-}; //class CoordinateSystem
+}; //class Manifold
 
 /* @}@} */
 
