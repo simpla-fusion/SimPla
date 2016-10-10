@@ -15,7 +15,7 @@ namespace simpla { namespace manifold { namespace schemes
 using namespace simpla::mesh;
 
 template<typename TM, class Enable = void>
-struct LinearInterpolator { };
+struct LinearInterpolator {};
 
 
 /**
@@ -23,19 +23,19 @@ struct LinearInterpolator { };
  * @brief basic linear interpolate
  */
 template<typename TM>
-struct LinearInterpolator<TM, std::enable_if_t<std::is_base_of<mesh::MeshEntityIdCoder, TM>::value>>
+struct LinearInterpolator<TM>
 {
 public:
 
     typedef LinearInterpolator<TM> interpolate_policy;
 
-    LinearInterpolator(TM const &m_) : m(m_) { }
+    LinearInterpolator(TM const &m_) : m(m_) {}
 
-    virtual ~LinearInterpolator() { }
+    virtual ~LinearInterpolator() {}
 
     static std::string class_name() { return "LinearInterpolator"; }
 
-    void deploy() { }
+    void deploy() {}
 
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
@@ -76,13 +76,15 @@ private:
 
 public:
 
-    template<typename TF> constexpr inline traits::field_value_t<TF>
+    template<typename TF>
+    constexpr inline traits::field_value_t<TF>
     gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == VERTEX))) const
     {
         return gather_impl_(f, m.point_global_to_local(r, 0));
     }
 
-    template<typename TF> constexpr inline traits::field_value_t<TF>
+    template<typename TF>
+    constexpr inline traits::field_value_t<TF>
     gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == EDGE))) const
     {
         return traits::field_value_t<TF>{
@@ -92,7 +94,8 @@ public:
         };
     }
 
-    template<typename TF> constexpr inline traits::field_value_t<TF>
+    template<typename TF>
+    constexpr inline traits::field_value_t<TF>
     gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == FACE))) const
     {
         return traits::field_value_t<TF>{
@@ -102,7 +105,8 @@ public:
         };
     }
 
-    template<typename TF> constexpr inline traits::field_value_t<TF>
+    template<typename TF>
+    constexpr inline traits::field_value_t<TF>
     gather(TF const &f, point_type const &x, ENABLE_IF((traits::iform<TF>::value == VOLUME))) const
     {
         return gather_impl_(f, m.point_global_to_local(x, 7));

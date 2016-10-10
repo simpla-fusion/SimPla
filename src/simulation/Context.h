@@ -104,7 +104,7 @@ public:
     template<typename TProb, typename ...Args>
     std::shared_ptr<TProb> add_domain_to(mesh::MeshBlockId id, Args &&...args)
     {
-        return add_domain_as<TProb>(std::dynamic_pointer_cast<typename TProb::mesh_type>(get_mesh_block(id)).get(),
+        return add_domain_as<TProb>(std::dynamic_pointer_cast<typename TProb::mesh_type>(get_mesh_block(id)),
                                     std::forward<Args>(args)...);
     };
 

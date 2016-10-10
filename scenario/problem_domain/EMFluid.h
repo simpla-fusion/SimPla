@@ -40,10 +40,9 @@ public:
 
     typedef typename mesh_type::scalar_type scalar_type;
 
-    mesh_type const *m;
+    std::shared_ptr<const mesh_type> m;
 
-    EMFluid(const mesh_type *mp)
-            : base_type(mp), m(mp) {}
+    EMFluid(std::shared_ptr<const mesh_type> mp) : base_type(mp), m(mp) {}
 
     virtual ~EMFluid() {}
 
@@ -199,7 +198,6 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
 
-
     if (E_src_fun)
     {
         Real current_time = m->time();
@@ -213,7 +211,6 @@ void EMFluid<TM>::next_step(Real dt)
                     E[s] += m->template sample<EDGE>(s, v);
                 });
     }
-
 
 
     B -= curl(E) * (dt * 0.5);

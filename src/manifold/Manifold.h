@@ -188,7 +188,6 @@ public:
 //        os << std::setw(indent + 1) << " " << "Manifold = {" << std::endl;
 
         this_type::mesh_type::print(os, indent + 1);
-        this_type::metric_policy::print(os, indent + 1);
         this_type::calculus_policy::print(os, indent + 1);
         this_type::interpolate_policy::print(os, indent + 1);
 

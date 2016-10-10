@@ -136,7 +136,8 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         typedef PML<mesh_type> pml_type;
         std::shared_ptr<mesh_type> pml_mesh[6];
         index_type w = options["PML"]["Width"].as<index_type>(5);
-        size_tuple dims = center_mesh->dimensions();
+        index_tuple dims;
+        dims = center_mesh->dimensions();
         size_tuple gw = center_mesh->ghost_width();
 
         pml_mesh[0] = std::dynamic_pointer_cast<mesh_type>(center_mesh->clone("PML_0"));

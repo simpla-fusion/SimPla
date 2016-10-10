@@ -40,7 +40,7 @@ namespace simpla { namespace simulation
 class PhysicalDomain : public toolbox::Object
 {
 public:
-    const mesh::Block *m_mesh_;
+    std::shared_ptr<const mesh::Block> m_mesh_;
 
     std::shared_ptr<PhysicalDomain> m_next_;
 
@@ -50,9 +50,9 @@ public:
 
     PhysicalDomain();
 
-    PhysicalDomain(const mesh::Block *);
+    PhysicalDomain(std::shared_ptr<const mesh::Block>);
 
-    mesh::Block const *mesh() const { return m_mesh_; }
+    std::shared_ptr<const mesh::Block> mesh() const { return m_mesh_; }
 
     virtual  ~PhysicalDomain();
 

@@ -49,6 +49,8 @@ public:
     {}
 
     //create construct
+    Field(std::shared_ptr<mesh::Block const> m) : Field(static_cast<mesh_type const *>(m.get())) {}
+
     Field(mesh::Block const *m) : Field(static_cast<mesh_type const *>(m)) {}
 
     Field(mesh_type const *m) : m_mesh_(m), m_data_holder_(nullptr)
@@ -127,7 +129,7 @@ public:
     entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::SP_ES_OWNED) const
     {
         assert(is_valid());
-        return m_mesh_->range(entity_type(), entityStatus);
+        return select(m_mesh_, entity_type(), entityStatus);
     }
 
     virtual size_type entity_size_in_byte() const { return sizeof(value_type); }
@@ -180,9 +182,8 @@ public:
     inline this_type &
     operator+=(Other const &other)
     {
-//        return apply_expr(_impl::plus_assign(), other);
-        m_mesh_->range(entity_type(), mesh::SP_ES_VALID).foreach(
-                [&](mesh::MeshEntityId const &s) { get(s) += m_mesh_->eval(other, s); });
+
+        m_mesh_->for_each(entity_type(), [&](mesh::MeshEntityId const &s) { get(s) += m_mesh_->eval(other, s); });
         return *this;
     }
 
@@ -356,7 +357,8 @@ private:
 //        base_type::nonblocking_sync();
 //        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op, other);
 //        base_type::wait();
-        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_VALID), op, other);
+
+        apply_expr(entity_id_range(mesh::SP_ES_VALID), op, other);
         return *this;
     }
 

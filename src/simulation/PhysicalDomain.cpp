@@ -19,7 +19,7 @@ struct PhysicalDomain::pimpl_s
 
 PhysicalDomain::PhysicalDomain() : m_mesh_(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) {}
 
-PhysicalDomain::PhysicalDomain(const mesh::Block *msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
+PhysicalDomain::PhysicalDomain(std::shared_ptr<const mesh::Block> msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
 
 PhysicalDomain::~PhysicalDomain() { teardown(); }
 

@@ -46,7 +46,7 @@ public:
     static std::string class_name() { return "PML<" + traits::type_id<TM>::name() + ">"; }
 
 
-    mesh_type const *m = nullptr;
+    std::shared_ptr<mesh_type const> m = nullptr;
 
 
     field_t<scalar_type, mesh::EDGE> E{m};

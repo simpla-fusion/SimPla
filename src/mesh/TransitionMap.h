@@ -82,10 +82,10 @@ public:
 //                          });
 //    }
 
-    template<typename TFun>
-    int direct_map(MeshEntityType entity_type, TFun const &body) const
+    int direct_map(MeshEntityType entity_type,
+                   std::function<void(mesh::MeshEntityId const &, mesh::MeshEntityId const &)> const &body) const
     {
-        m_dst_->for_each(entity_type, [&](mesh::MeshEntityId const &s) { body(s); });
+        m_dst_->for_each(entity_type, [&](mesh::MeshEntityId const &s) { body(s, s); });
     }
 
 
@@ -93,7 +93,7 @@ public:
     int pointwise_copy(TV *f, TV const *g, MeshEntityType entity_type) const
     {
         m_dst_->for_each(entity_type,
-                          [&](mesh::MeshEntityId const &s) { f[m_dst_->hash(s)] = g[m_src_->hash(s)]; });
+                         [&](mesh::MeshEntityId const &s) { f[m_dst_->hash(s)] = g[m_src_->hash(s)]; });
     }
 
 

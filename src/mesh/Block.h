@@ -254,16 +254,21 @@ public:
 
     void for_each(std::function<void(index_type)> const &fun) const;
 
-    void for_each(int iform, std::function<void(MeshEntityId const &
+    void for_each(int iform, std::function<void(MeshEntityId const &)> const &) const;
 
-    )> const &) const;
+
+    Real time() const { return m_time_; }
+
+    void time(Real t) { m_time_ = t; }
+
+    void next_step(Real dt) { m_time_ += dt; }
 
 private:
     int processer_id_ = 0;
     size_type m_index_space_id_ = 0;
     int m_level_ = 0;
     bool m_is_deployed_ = false;
-
+    Real m_time_ = 0.0;
     size_tuple m_b_dimensions_{{1, 1, 1}};      //!<   dimensions of box
     size_tuple m_ghost_width_{{0, 0, 0}};          //!<     start index in the local  space
     size_tuple m_l_dimensions_{{1, 1, 1}};      //!<   dimensions of local index space
