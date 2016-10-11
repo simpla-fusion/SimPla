@@ -39,14 +39,16 @@ public:
     std::map<Block::id_type, std::shared_ptr<Block>> const &at_level(int l = 0) const { return m_nodes_; };
 
 
-    void add_adjacency(std::shared_ptr<TransitionMap>);
+    std::shared_ptr<TransitionMap> add_adjacency(std::shared_ptr<TransitionMap>);
 
     std::shared_ptr<TransitionMap>
     add_adjacency(std::shared_ptr<const Block> first, std::shared_ptr<const Block> second);
 
-    std::shared_ptr<TransitionMap> add_adjacency(MeshBlockId first, MeshBlockId second);
+    std::shared_ptr<TransitionMap>
+    add_adjacency(MeshBlockId first, MeshBlockId second);
 
-    void add_adjacency2(std::shared_ptr<const Block> first, std::shared_ptr<const Block> second);
+    std::tuple<std::shared_ptr<TransitionMap>, std::shared_ptr<TransitionMap>>
+    add_connection(std::shared_ptr<const Block> first, std::shared_ptr<const Block> second);
 
 //#ifndef NDEBUG
 //    private:

@@ -138,7 +138,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         pml_mesh[0]->stretch(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w});
         pml_mesh[0]->deploy();
         ctx->atlas().add_block(pml_mesh[0]);
-        ctx->atlas().add_adjacency2(center_mesh.get(), pml_mesh[0].get(), SP_MB_SYNC);
+        ctx->atlas().add_connection(center_mesh.get(), pml_mesh[0].get(), SP_MB_SYNC);
         ctx->add_domain_as<pml_type>(pml_mesh[0].get())->setup_center_domain(center_mesh->box()).deploy();
 
         pml_mesh[1] = center_mesh->clone_as<mesh_type>("PML_1");
@@ -146,7 +146,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         pml_mesh[1]->stretch(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w});
         pml_mesh[1]->deploy();
         ctx->atlas().add_block(pml_mesh[1]);
-        ctx->atlas().add_adjacency2(center_mesh.get(), pml_mesh[1].get(), SP_MB_SYNC);
+        ctx->atlas().add_connection(center_mesh.get(), pml_mesh[1].get(), SP_MB_SYNC);
         ctx->add_domain_as<pml_type>(pml_mesh[1].get())->setup_center_domain(center_mesh->box()).deploy();
 
         if (dims[1] > 1 && gw[1] > 0)
@@ -156,9 +156,9 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
             pml_mesh[2]->stretch(index_tuple{dims[0], w, dims[2] + 2 * w});
             pml_mesh[2]->deploy();
             ctx->atlas().add_block(pml_mesh[2]);
-            ctx->atlas().add_adjacency2(pml_mesh[2].get(), center_mesh.get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[2].get(), pml_mesh[0].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[2].get(), pml_mesh[1].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[2].get(), center_mesh.get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[2].get(), pml_mesh[0].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[2].get(), pml_mesh[1].get(), SP_MB_SYNC);
             ctx->add_domain_as<pml_type>(pml_mesh[2].get())->setup_center_domain(center_mesh->box()).deploy();
 
 
@@ -167,9 +167,9 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
             pml_mesh[3]->stretch(index_tuple{dims[0], w, dims[2] + 2 * w});
             pml_mesh[3]->deploy();
             ctx->atlas().add_block(pml_mesh[3]);
-            ctx->atlas().add_adjacency2(pml_mesh[3].get(), center_mesh.get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[3].get(), pml_mesh[0].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[3].get(), pml_mesh[1].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[3].get(), center_mesh.get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[3].get(), pml_mesh[0].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[3].get(), pml_mesh[1].get(), SP_MB_SYNC);
             ctx->add_domain_as<pml_type>(pml_mesh[3].get())->setup_center_domain(center_mesh->box()).deploy();
 
         }
@@ -180,11 +180,11 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
             pml_mesh[4]->stretch(index_tuple{dims[0], dims[1], w});
             pml_mesh[4]->deploy();
             ctx->atlas().add_block(pml_mesh[4]);
-            ctx->atlas().add_adjacency2(pml_mesh[4].get(), center_mesh.get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[0].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[1].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[2].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[4].get(), pml_mesh[3].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[4].get(), center_mesh.get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[4].get(), pml_mesh[0].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[4].get(), pml_mesh[1].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[4].get(), pml_mesh[2].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[4].get(), pml_mesh[3].get(), SP_MB_SYNC);
             ctx->add_domain_as<pml_type>(pml_mesh[4].get())->setup_center_domain(center_mesh->box()).deploy();
 
             pml_mesh[5] = center_mesh->clone_as<mesh_type>("PML_5");
@@ -192,11 +192,11 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
             pml_mesh[5]->stretch(index_tuple{dims[0], dims[1], w});
             pml_mesh[5]->deploy();
             ctx->atlas().add_block(pml_mesh[5]);
-            ctx->atlas().add_adjacency2(pml_mesh[5].get(), center_mesh.get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[0].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[1].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[2].get(), SP_MB_SYNC);
-            ctx->atlas().add_adjacency2(pml_mesh[5].get(), pml_mesh[3].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[5].get(), center_mesh.get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[5].get(), pml_mesh[0].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[5].get(), pml_mesh[1].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[5].get(), pml_mesh[2].get(), SP_MB_SYNC);
+            ctx->atlas().add_connection(pml_mesh[5].get(), pml_mesh[3].get(), SP_MB_SYNC);
             ctx->add_domain_as<pml_type>(pml_mesh[5].get())->setup_center_domain(center_mesh->box()).deploy();
 
         }

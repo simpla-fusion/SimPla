@@ -8,7 +8,8 @@
 #include <type_traits>
 #include "../toolbox/Log.h"
 #include "../toolbox/nTuple.h"
-
+#include "../toolbox/nTupleExt.h"
+#include "../toolbox/PrettyStream.h"
 #include "MeshCommon.h"
 #include "Block.h"
 
@@ -40,13 +41,16 @@ public:
     {
         assert(m.space_id() == m.space_id());
 
-        m_dst_ = m.clone();
-        m_dst_->intersection(n.index_box());
-        m_dst_->deploy();
 
+        m_dst_ = m.clone();
+        m_dst_->intersection_outer(n.index_box());
+        m_dst_->deploy();
         m_src_ = n.clone();
         m_src_->intersection(m.outer_index_box());
         m_src_->deploy();
+
+        CHECK(m_src_->size());
+        CHECK(m_dst_->size());
     };
 
     virtual  ~TransitionMap() {};
@@ -85,15 +89,15 @@ public:
     int direct_map(MeshEntityType entity_type,
                    std::function<void(mesh::MeshEntityId const &, mesh::MeshEntityId const &)> const &body) const
     {
-        m_dst_->foreach(entity_type, [&](mesh::MeshEntityId const &s) { body(s, s); });
+        if (m_dst_->size() > 0) m_dst_->foreach(entity_type, [&](mesh::MeshEntityId const &s) { body(s, s); });
     }
 
 
     template<typename TV>
     int pointwise_copy(TV *f, TV const *g, MeshEntityType entity_type) const
     {
-        m_dst_->foreach(entity_type,
-                         [&](mesh::MeshEntityId const &s) { f[m_dst_->hash(s)] = g[m_src_->hash(s)]; });
+        if (m_dst_->size() > 0)
+            m_dst_->foreach(entity_type, [&](mesh::MeshEntityId const &s) { f[m_dst_->hash(s)] = g[m_src_->hash(s)]; });
     }
 
 

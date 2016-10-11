@@ -142,20 +142,22 @@ public:
     virtual void scale(index_tuple const &a)
     {
         assert(!m_is_deployed_);
-        m_b_dimensions_ *= a;
+        for (int i = 0; i < ndims; ++i) { if (m_b_dimensions_[i] > 1) { m_b_dimensions_[i] *= a[i]; }}
+
     };
 
     virtual void stretch(index_tuple const &a)
     {
         assert(!m_is_deployed_);
-        m_b_dimensions_ = a;
+        for (int i = 0; i < ndims; ++i) { if (m_b_dimensions_[i] > 1) { m_b_dimensions_[i] = a[i]; }}
+
     };
 
-    virtual void intersection(const box_type &other);
+    virtual bool intersection(const box_type &other);
 
-    virtual void intersection(const index_box_type &other);
+    virtual bool intersection(const index_box_type &other);
 
-    virtual void intersection_outer(const index_box_type &other);
+    virtual bool intersection_outer(const index_box_type &other);
 
     virtual void refine(int ratio = 1);
 

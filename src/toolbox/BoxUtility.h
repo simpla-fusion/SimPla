@@ -5,22 +5,26 @@
 #ifndef SIMPLA_BOXUTILITY_H
 #define SIMPLA_BOXUTILITY_H
 
-#include "../sp_def.h"
+#include "SIMPLA_config.h"
+#include <tuple>
+
 
 namespace simpla { namespace toolbox
 {
 
-box_type box_overlap(box_type const &first, box_type const &second)
+template<typename BoxT>
+BoxT box3_intersection(BoxT const &left, BoxT const &right)
 {
-    point_type lower, upper;
-
+    BoxT res;
     for (int i = 0; i < 3; ++i)
     {
-        lower[i] = std::max(std::get<0>(first)[i], std::get<0>(second)[i]);
-        upper[i] = std::min(std::get<1>(first)[i], std::get<1>(second)[i]);
+        std::get<0>(res)[i] = std::max(std::get<0>(left)[i], std::get<0>(right)[i]);
+        std::get<1>(res)[i] = std::min(std::get<1>(left)[i], std::get<1>(right)[i]);
     }
 
-    return std::make_tuple(lower, upper);
+    return res;
+
+
 }
 
 }}//namespace simpla{namespace toolbox{

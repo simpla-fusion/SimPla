@@ -3,6 +3,8 @@
 //
 
 #include "Block.h"
+#include "../toolbox/nTupleExt.h"
+#include "../toolbox/PrettyStream.h"
 
 namespace simpla { namespace mesh
 {
@@ -42,21 +44,20 @@ void Block::swap(Block &other)
     std::swap(m_level_, other.m_level_);
     std::swap(m_is_deployed_, other.m_is_deployed_);
 
-    UNIMPLEMENTED;
-//    std::swap(m_b_dimensions_, other.m_b_dimensions_);
-//    std::swap(m_l_dimensions_, other.m_l_dimensions_);
-//    std::swap(m_l_offset_, other.m_l_offset_);
-//    std::swap(m_g_dimensions_, other.m_g_dimensions_);
-//    std::swap(m_g_offset_, other.m_g_offset_);
+    std::swap(m_b_dimensions_, other.m_b_dimensions_);
+    std::swap(m_l_dimensions_, other.m_l_dimensions_);
+    std::swap(m_l_offset_, other.m_l_offset_);
+    std::swap(m_g_dimensions_, other.m_g_dimensions_);
+    std::swap(m_g_offset_, other.m_g_offset_);
 }
 
-void Block::intersection(const box_type &other)
+bool Block::intersection(const box_type &other)
 {
-    intersection(std::make_tuple(point_to_index(std::get<0>(other)), point_to_index(std::get<0>(other))));
+    return intersection(std::make_tuple(point_to_index(std::get<0>(other)), point_to_index(std::get<0>(other))));
 }
 
 
-void Block::intersection(const index_box_type &other)
+bool Block::intersection(const index_box_type &other)
 {
     assert(!m_is_deployed_);
     for (int i = 0; i < ndims; ++i)
@@ -67,13 +68,15 @@ void Block::intersection(const index_box_type &other)
         index_type r_upper = std::get<1>(other)[i];
         l_lower = std::max(l_lower, r_lower);
         l_upper = std::min(l_upper, l_upper);
-        m_b_dimensions_[i] = static_cast<size_type>((l_upper > l_lower) ? (l_upper - l_lower) : 0);
+
         m_g_offset_[i] = l_lower;
+        m_b_dimensions_[i] = static_cast<size_type>((l_upper > l_lower) ? (l_upper - l_lower) : 0);
     }
 
+    return (m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]) > 0;
 };
 
-void Block::intersection_outer(const index_box_type &other)
+bool Block::intersection_outer(const index_box_type &other)
 {
     assert(!m_is_deployed_);
     for (int i = 0; i < ndims; ++i)
@@ -84,9 +87,12 @@ void Block::intersection_outer(const index_box_type &other)
         index_type r_upper = std::get<1>(other)[i];
         l_lower = std::max(l_lower, r_lower);
         l_upper = std::min(l_upper, l_upper);
-        m_b_dimensions_[i] = static_cast<size_type>((l_upper > l_lower) ? (l_upper - l_lower) : 0);
         m_g_offset_[i] = l_lower;
+        m_b_dimensions_[i] = static_cast<size_type>((l_upper > l_lower) ? (l_upper - l_lower) : 0);
     }
+
+    return (m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]) > 0;
+
 }
 
 
@@ -129,6 +135,7 @@ void Block::deploy()
 
     m_is_deployed_ = true;
 
+
     for (int i = 0; i < ndims; ++i)
     {
         if (m_b_dimensions_[i] == 1)
@@ -146,10 +153,12 @@ void Block::deploy()
             m_l_dimensions_[i] = m_ghost_width_[i] * 2 + m_b_dimensions_[i];
         }
 
-        if (m_b_dimensions_[i] < 1 ||
-            m_l_dimensions_[i] < m_b_dimensions_[i] + m_l_offset_[i] ||
-            m_g_dimensions_[i] < m_b_dimensions_[i] + m_g_offset_[i]) { m_is_deployed_ = false; }
+        assert (m_b_dimensions_[i] > 0 ||
+                m_l_dimensions_[i] >= m_b_dimensions_[i] + m_l_offset_[i] ||
+                m_g_dimensions_[i] >= m_b_dimensions_[i] + m_g_offset_[i]);
     }
+
+
 }
 
 
