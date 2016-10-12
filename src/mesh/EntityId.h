@@ -961,6 +961,25 @@ struct MeshEntityIdCoder_
 
     }
 
+    static index_type hash2(MeshEntityId const &s, index_tuple const &b, size_tuple const &l)
+    {
+        //C-ORDER SLOW FIRST
+
+        return
+                (
+                        ((s.z >> 1) + l[2] - b[2]) % (l[2]) +
+
+                        (
+                                (((s.y >> 1) + l[1] - b[1]) % (l[1])) +
+
+                                (((s.x >> 1) + l[0] - b[0]) % (l[0])) * (l[1])
+
+                        ) * (l[2])
+
+                ) * num_of_ele_in_cell(s) + sub_index(s);
+
+    }
+
     template<int IFORM>
     static constexpr size_t max_hash(MeshEntityId b, MeshEntityId e)
     {

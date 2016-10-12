@@ -149,7 +149,10 @@ public:
     virtual void stretch(index_tuple const &a)
     {
         assert(!m_is_deployed_);
-        for (int i = 0; i < ndims; ++i) { if (m_b_dimensions_[i] > 1) { m_b_dimensions_[i] = a[i]; }}
+        for (int i = 0; i < ndims; ++i)
+        {
+            if (m_b_dimensions_[i] > 1) { m_b_dimensions_[i] = static_cast<size_type>(a[i]); }
+        }
 
     };
 
@@ -257,7 +260,10 @@ public:
 
     typedef MeshEntityIdCoder m;
 
-    inline size_type hash(MeshEntityId const &id) const { hash(unpack(id)); }
+    inline size_type hash(MeshEntityId const &id) const
+    {
+        m::hash2(id, m_l_offset_, m_l_dimensions_);
+    }
 
     MeshEntityId pack(size_type i, size_type j = 0, size_type k = 0, int nid = 0) const
     {

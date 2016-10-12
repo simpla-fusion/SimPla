@@ -86,12 +86,7 @@ template<typename TM>
 PML<TM>::~PML() {}
 
 template<typename TM>
-PML<TM>::PML(std::shared_ptr<TM> mp) : base_type(mp), m(mp)
-{
-    assert(mp != nullptr);
-
-
-}
+PML<TM>::PML(std::shared_ptr<TM> mp) : base_type(mp), m(mp) { assert(mp != nullptr); }
 
 template<typename TM>
 PML<TM> &
@@ -113,9 +108,9 @@ PML<TM>::setup_center_domain(box_type const &center_box)
     auto dims = m->dimensions();
 
     m->foreach(mesh::VERTEX,
-                [&](mesh::MeshEntityId const &s)
-                {
-                    point_type x = m->point(s);
+               [&](mesh::MeshEntityId const &s)
+               {
+                   point_type x = m->point(s);
 
 #define DEF(_N_)     a##_N_[s]=1;   s##_N_[s]=0;                                                     \
         if(dims[_N_]>1)                                                                              \
@@ -133,11 +128,11 @@ PML<TM>::setup_center_domain(box_type const &center_box)
                     s##_N_[s] = sigma_(r, expN, dB) * speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
                 }                                                                                    \
         }
-                    DEF(0)
-                    DEF(1)
-                    DEF(2)
+                   DEF(0)
+                   DEF(1)
+                   DEF(2)
 #undef DEF
-                }
+               }
     );
 
     return *this;
