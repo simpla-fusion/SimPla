@@ -19,7 +19,8 @@ struct PhysicalDomain::pimpl_s
 
 PhysicalDomain::PhysicalDomain() : m_mesh_(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) {}
 
-PhysicalDomain::PhysicalDomain(std::shared_ptr<const mesh::Block> msh) : m_mesh_(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
+PhysicalDomain::PhysicalDomain(std::shared_ptr<const mesh::Block> msh) : m_mesh_(msh), m_next_(nullptr),
+                                                                         m_pimpl_(new pimpl_s) {};
 
 PhysicalDomain::~PhysicalDomain() { teardown(); }
 
@@ -117,11 +118,11 @@ PhysicalDomain::save(toolbox::IOStream &os, int flag) const
             if (!item.second->empty())
             {
                 os.open(item.first + "/");
-//#ifndef NDEBUG
-//                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_ALL), flag);
-//#else
-//                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_OWNED), flag);
-//#endif
+#ifndef NDEBUG
+                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_ALL), flag);
+#else
+                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_OWNED), flag);
+#endif
                 os.open(pwd);
             }
         }
@@ -135,11 +136,11 @@ PhysicalDomain::save(toolbox::IOStream &os, int flag) const
             if ((it != m_pimpl_->m_attr_.end()) && !it->second->empty())
             {
                 os.open(key + "/");
-//#ifndef NDEBUG
-//                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_ALL), flag);
-//#else
-//                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_OWNED), flag);
-//#endif
+#ifndef NDEBUG
+                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_ALL), flag);
+#else
+                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_OWNED), flag);
+#endif
 
                 os.open(pwd);
             }
@@ -153,11 +154,11 @@ void PhysicalDomain::sync(mesh::TransitionMap const &t_map, PhysicalDomain const
 {
     for (auto const &item:m_pimpl_->m_attr_)
     {
-//        if (!item.second->empty())
-//        {
-//            t_map.pull_back(item.second->data().get(), other.attribute(item.first)->data().get(),
-//                            item.second->entity_size_in_byte(), item.second->entity_type());
-//        }
+        if (!item.second->empty())
+        {
+            t_map.pull_back(item.second->data().get(), other.attribute(item.first)->data().get(),
+                            item.second->entity_size_in_byte(), item.second->entity_type());
+        }
 
     }
 }

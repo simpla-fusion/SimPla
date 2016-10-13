@@ -49,8 +49,7 @@ public:
         m_src_->intersection(m.outer_index_box());
         m_src_->deploy();
 
-        CHECK(m_src_->size());
-        CHECK(m_dst_->size());
+
     };
 
     virtual  ~TransitionMap() {};
@@ -75,7 +74,7 @@ public:
 
     template<typename Tg>
     auto pull_back(Tg const &g, point_type const &x) const DECL_RET_TYPE ((g(map(x))))
-//
+
 //    template<typename Tg, typename Tf>
 //    void pull_back(Tg const &g, Tf *f, mesh::MeshEntityType entity_type = mesh::VERTEX) const
 //    {

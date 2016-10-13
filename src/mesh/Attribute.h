@@ -61,8 +61,11 @@ struct Attribute
     virtual std::shared_ptr<const void> data() const = 0;
 
 
-//    virtual void dataset(data_model::DataSet const &) = 0;
-//    virtual void dataset(mesh::EntityRange const &, data_model::DataSet const &) = 0;
+    virtual void dataset(toolbox::DataSet const &) = 0;
+
+    virtual toolbox::DataSet dataset(mesh::MeshEntityStatus status = mesh::SP_ES_OWNED) const =0;
+
+//    virtual void dataset(mesh::EntityRange const &, toolbox::DataSet const &) = 0;
 };
 //
 ///**
