@@ -21,7 +21,6 @@
 
 #include "FieldTraits.h"
 #include "FieldExpression.h"
-#include "FieldEquation.h"
 
 namespace simpla
 {
@@ -75,24 +74,86 @@ public:
     /**@}*/
 
     /** @name as_array   @{*/
-    this_type &operator=(this_type const &other) { return apply_expr(_impl::_assign(), other); }
+    this_type &operator=(this_type const &other)
+    {
+        base_type::apply(_impl::_assign(), other);
+        return *this;
+    }
 
     template<typename Other> inline this_type &
-    operator=(Other const &other) { return apply_expr(_impl::_assign(), other); }
+    operator=(Other const &other)
+    {
+        base_type::apply(_impl::_assign(), other);
+        return *this;
+    }
 
     template<typename Other> inline this_type &
-    operator+=(Other const &other) { return apply_expr(_impl::plus_assign(), other); }
+    operator+=(Other const &other)
+    {
+        base_type::apply(_impl::plus_assign(), other);
+        return *this;
+    }
 
     template<typename Other> inline this_type &
-    operator-=(Other const &other) { return apply_expr(_impl::minus_assign(), other); }
+    operator-=(Other const &other)
+    {
+        base_type::apply(_impl::minus_assign(), other);
+        return *this;
+    }
 
     template<typename Other> inline this_type &
-    operator*=(Other const &other) { return apply_expr(_impl::multiplies_assign(), other); }
+    operator*=(Other const &other)
+    {
+        base_type::apply(_impl::multiplies_assign(), other);
+        return *this;
+    }
 
     template<typename Other> inline this_type &
-    operator/=(Other const &other) { return apply_expr(_impl::divides_assign(), other); }
+    operator/=(Other const &other)
+    {
+        base_type::apply(_impl::divides_assign(), other);
+        return *this;
+    }
 
+    /* @}*/
 
+    void
+    assign(mesh::EntityRange const &r0, value_type const &v)
+    {
+        base_type::apply2(r0, _impl::_assign(), v);
+    }
+
+    template<typename TFun> void
+    assign(mesh::EntityRange const &r0, TFun const &op,
+           CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const&, field_value_type const &)))
+    {
+        auto const &m = *this->mesh();
+        base_type::apply2(
+                r0, _impl::_assign(),
+                [&](mesh::MeshEntityId const &s)
+                {
+                    auto x = m.point(s);
+                    return m.template sample<IFORM>(s, op(x, this->gather(x)));
+                }
+        );
+    }
+
+    template<typename TFun> void
+    assign(mesh::EntityRange const &r0, TFun const &op,
+           CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const&)))
+    {
+        auto const &m = *this->mesh();
+
+        base_type::apply2(
+                r0, _impl::_assign(),
+                [&](mesh::MeshEntityId const &s)
+                {
+                    return m.template sample<IFORM>(s, op(m.point(s)));
+                });
+    }
+
+};
+}//namespace simpla
 
 //public:
 //
@@ -123,34 +184,9 @@ public:
 //        return *this;
 //    }
 
-private:
-
-//    template<typename TOP, typename Other>
-//    this_type &
-//    apply_expr(mesh::EntityRange const &r, TOP const &op, Other const &other)
-//    {
-//        deploy();
-//        r.foreach([&](mesh::MeshEntityId const &s) { op(base_type::get(s), base_type::m_mesh_->eval(other, s)); });
-//        return *this;
-//    }
 
 
-    template<typename TOP, typename Other> this_type &
-    apply_expr(TOP const &op, Other const &other)
-    {
-        base_type::m_mesh_->foreach(
-                iform,
-                [&](mesh::MeshEntityId const &s)
-                {
-                    op(base_type::get(s), base_type::m_mesh_->eval(other, s));
-                });
-
-        return *this;
-    }
 
 
-    /* @}*/
-};
-}//namespace simpla
 
 #endif //SIMPLA_FIELD_H

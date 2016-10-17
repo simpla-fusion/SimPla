@@ -187,14 +187,14 @@ void EMFluid<TM>::next_step(Real dt)
     {
         Real current_time = m->time();
 
-        auto f = J_src_fun;
-        J_src_range.foreach(
-                [&](mesh::MeshEntityId const &s)
-                {
-                    auto x0 = m->point(s);
-                    auto v = J_src_fun(current_time, x0, J1(x0));
-                    J1[s] += m->template sample<EDGE>(s, v);
-                });
+
+        J1.apply2(J_src_range, _impl::plus_assign(),
+                  [&](mesh::MeshEntityId const &s)
+                  {
+                      auto x0 = m->point(s);
+                      auto v = J_src_fun(current_time, x0, J1(x0));
+                      return m->template sample<EDGE>(s, v);
+                  });
     }
 
 
@@ -202,22 +202,21 @@ void EMFluid<TM>::next_step(Real dt)
     {
         Real current_time = m->time();
 
-        auto f = E_src_fun;
-        E_src_range.foreach(
-                [&](mesh::MeshEntityId const &s)
-                {
-                    auto x0 = m->point(s);
-                    auto v = E_src_fun(current_time, x0, E(x0));
-                    E[s] += m->template sample<EDGE>(s, v);
-                });
+        E.apply2(E_src_range, _impl::plus_assign(),
+                 [&](mesh::MeshEntityId const &s)
+                 {
+                     auto x0 = m->point(s);
+                     auto v = E_src_fun(current_time, x0, E(x0));
+                     return m->template sample<EDGE>(s, v);
+                 });
     }
 
 
     B -= curl(E) * (dt * 0.5);
-    assign(B, face_boundary, 0.0);
+    B.assign(face_boundary, 0);
 
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
-    assign(E, edge_boundary, 0.0);
+    E.assign(edge_boundary, 0);
 
 
     if (m_fluid_sp_.size() > 0)
@@ -295,7 +294,7 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
     B -= curl(E) * (dt * 0.5);
-    assign(B, face_boundary,  0.0 );
+    B.assign(face_boundary, 0);
 }
 
 }//namespace simpla  {

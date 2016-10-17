@@ -152,10 +152,98 @@ public:
 
     inline value_type const &operator[](mesh::MeshEntityId const &s) const { return get(s); }
 
+    template<typename TOP> void
+    apply2(EntityRange const &r0, TOP const &op, value_type const &v)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), v); });
+    }
+
+    template<typename TOP, typename TFun> void
+    apply2(EntityRange const &r0, TOP const &op, TFun const &fun)
+    {
+        deploy();
+        r0.foreach([&](MeshEntityId const &s) { op(get(s), fun(s)); });
+    }
+
+    template<typename TOP, typename Others> void
+    apply(EntityRange const &r0, TOP const &op, Others const &other)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), m_mesh_->eval(other, s)); });
+    }
+
+    template<typename TOP> void
+    apply(TOP const &op, value_type const &v)
+    {
+        deploy();
+        m_mesh_->foreach(iform, [&](mesh::MeshEntityId const &s) { op(get(s), v); });
+    }
+
+    template<typename TOP> void
+    apply(TOP const &op, std::function<value_type(MeshEntityId const &s)> const &fun)
+    {
+        deploy();
+        m_mesh_->foreach(iform, [&](MeshEntityId const &s) { get(s) = fun(s); });
+    }
+
+    template<typename TOP, typename Others> void
+    apply(TOP const &op, Others const &other)
+    {
+        deploy();
+        m_mesh_->foreach(iform, [&](mesh::MeshEntityId const &s) { op(get(s), m_mesh_->eval(other, s)); });
+    }
+
 protected:
     M const *m_mesh_;
     std::shared_ptr<V> m_data_;
 };
+
+//
+//template<typename ...U, typename TFun> Field<U...> &
+//assign(Field<U...> &f,mesh::EntityRange const &r0,  TFun const &op,
+//      CHECK_FUNCTION_SIGNATURE(typename Field<U...>::value_type, TFun(mesh::MeshEntityId const &)))
+//{
+//    f.deploy();
+//
+//    auto const &m = *f.mesh();
+//
+//    static const mesh::MeshEntityType IFORM = Field<U...>::iform;
+//
+//    r0.foreach([&](mesh::MeshEntityId const &s) { f[s] = op(s); });
+//
+//    return f;
+//};
+//
+//template<typename ...U, typename TFun> Field<U...> &
+//assign(Field<U...> &f, mesh::EntityRange const &r0, TFun const &op,
+//      CHECK_FUNCTION_SIGNATURE(typename Field<U...>::value_type, TFun(typename Field<U...>::value_type & )))
+//{
+//    f.deploy();
+//
+//    auto const &m = *f.mesh();
+//
+//    static const mesh::MeshEntityType IFORM = Field<U...>::iform;
+//
+//    r0.foreach([&](mesh::MeshEntityId const &s) { op(f[s]); });
+//
+//    return f;
+//}
+//
+//template<typename ...U, typename ...V> Field<U...> &
+//assign(Field<U...> &f,mesh::EntityRange const &r0,  Field<V...> const &g)
+//{
+//    f.deploy();
+//
+//    auto const &m = *f.mesh();
+//
+//    static const mesh::MeshEntityType IFORM = Field<U...>::iform;
+//
+//    r0.foreach([&](mesh::MeshEntityId const &s) { f[s] = g[s]; });
+//
+//    return f;
+//}
+
 
 //template<typename V, typename M, MeshEntityType IFORM> constexpr MeshEntityType Attribute<V, M, IFORM>::iform = IFORM;
 //
