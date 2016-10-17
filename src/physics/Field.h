@@ -21,7 +21,7 @@
 
 #include "FieldTraits.h"
 #include "FieldExpression.h"
-//#include "FieldEquation.h"
+#include "FieldEquation.h"
 
 namespace simpla
 {
@@ -125,20 +125,26 @@ public:
 
 private:
 
-    template<typename TOP, typename Other>
-    this_type &
-    apply_expr(mesh::EntityRange const &r, TOP const &op, Other const &other)
-    {
-        deploy();
-        r.foreach([&](mesh::MeshEntityId const &s) { op(get(s), m_mesh_->eval(other, s)); });
-        return *this;
-    }
+//    template<typename TOP, typename Other>
+//    this_type &
+//    apply_expr(mesh::EntityRange const &r, TOP const &op, Other const &other)
+//    {
+//        deploy();
+//        r.foreach([&](mesh::MeshEntityId const &s) { op(base_type::get(s), base_type::m_mesh_->eval(other, s)); });
+//        return *this;
+//    }
 
 
     template<typename TOP, typename Other> this_type &
     apply_expr(TOP const &op, Other const &other)
     {
-        apply_expr(mesh()->range(mesh::SP_ES_VALID), op, other);
+        base_type::m_mesh_->foreach(
+                iform,
+                [&](mesh::MeshEntityId const &s)
+                {
+                    op(base_type::get(s), base_type::m_mesh_->eval(other, s));
+                });
+
         return *this;
     }
 

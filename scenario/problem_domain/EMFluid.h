@@ -214,10 +214,10 @@ void EMFluid<TM>::next_step(Real dt)
 
 
     B -= curl(E) * (dt * 0.5);
-//    B.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+    assign(B, face_boundary, 0.0);
 
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
-//    E.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+    assign(E, edge_boundary, 0.0);
 
 
     if (m_fluid_sp_.size() > 0)
@@ -295,7 +295,7 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
     B -= curl(E) * (dt * 0.5);
-//    B.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+    assign(B, face_boundary,  0.0 );
 }
 
 }//namespace simpla  {
