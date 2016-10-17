@@ -188,13 +188,13 @@ void EMFluid<TM>::next_step(Real dt)
         Real current_time = m->time();
 
 
-        J1.apply2(J_src_range, _impl::plus_assign(),
-                  [&](mesh::MeshEntityId const &s)
-                  {
-                      auto x0 = m->point(s);
-                      auto v = J_src_fun(current_time, x0, J1(x0));
-                      return m->template sample<EDGE>(s, v);
-                  });
+        J1.apply(_impl::plus_assign(), J_src_range,
+                 [&](mesh::MeshEntityId const &s) -> Real
+                 {
+                     auto x0 = m->point(s);
+                     auto v = J_src_fun(current_time, x0, J1(x0));
+                     return m->template sample<EDGE>(s, v);
+                 });
     }
 
 
@@ -202,13 +202,13 @@ void EMFluid<TM>::next_step(Real dt)
     {
         Real current_time = m->time();
 
-        E.apply2(E_src_range, _impl::plus_assign(),
-                 [&](mesh::MeshEntityId const &s)
-                 {
-                     auto x0 = m->point(s);
-                     auto v = E_src_fun(current_time, x0, E(x0));
-                     return m->template sample<EDGE>(s, v);
-                 });
+        E.apply(_impl::plus_assign(), E_src_range,
+                [&](mesh::MeshEntityId const &s) -> Real
+                {
+                    auto x0 = m->point(s);
+                    auto v = E_src_fun(current_time, x0, E(x0));
+                    return m->template sample<EDGE>(s, v);
+                });
     }
 
 

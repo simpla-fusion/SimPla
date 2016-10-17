@@ -76,61 +76,62 @@ public:
     /** @name as_array   @{*/
     this_type &operator=(this_type const &other)
     {
-        base_type::apply(_impl::_assign(), other);
+        _apply(_impl::_assign(), other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator=(Other const &other)
     {
-        base_type::apply(_impl::_assign(), other);
+        _apply(_impl::_assign(), other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator+=(Other const &other)
     {
-        base_type::apply(_impl::plus_assign(), other);
+        _apply(_impl::plus_assign(), other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator-=(Other const &other)
     {
-        base_type::apply(_impl::minus_assign(), other);
+        _apply(_impl::minus_assign(), other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator*=(Other const &other)
     {
-        base_type::apply(_impl::multiplies_assign(), other);
+        _apply(_impl::multiplies_assign(), other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator/=(Other const &other)
     {
-        base_type::apply(_impl::divides_assign(), other);
+        _apply(_impl::divides_assign(), other);
         return *this;
     }
 
     /* @}*/
-
-    void
-    assign(mesh::EntityRange const &r0, value_type const &v)
+    template<typename TOP, typename Others> void
+    _apply(TOP const &op, Others const &others)
     {
-        base_type::apply2(r0, _impl::_assign(), v);
+        base_type::apply(op, [&](mesh::MeshEntityId const &s) -> value_type { return this->mesh()->eval(others, s); });
     }
+
+    void assign(mesh::EntityRange const &r0, value_type const &v) { base_type::apply(_impl::_assign(), r0, v); }
 
     template<typename TFun> void
     assign(mesh::EntityRange const &r0, TFun const &op,
            CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const&, field_value_type const &)))
     {
         auto const &m = *this->mesh();
-        base_type::apply2(
-                r0, _impl::_assign(),
-                [&](mesh::MeshEntityId const &s)
+        base_type::apply(
+                _impl::_assign(), r0,
+                [&](mesh::MeshEntityId const &s) -> value_type
                 {
                     auto x = m.point(s);
                     return m.template sample<IFORM>(s, op(x, this->gather(x)));
@@ -144,9 +145,9 @@ public:
     {
         auto const &m = *this->mesh();
 
-        base_type::apply2(
-                r0, _impl::_assign(),
-                [&](mesh::MeshEntityId const &s)
+        base_type::apply(
+                _impl::_assign(), r0,
+                [&](mesh::MeshEntityId const &s) -> value_type
                 {
                     return m.template sample<IFORM>(s, op(m.point(s)));
                 });
