@@ -21,7 +21,7 @@
 #include "../toolbox/Log.h"
 
 #include "MeshCommon.h"
-#include "Block.h"
+#include "MeshBase.h"
 #include "EntityId.h"
 
 namespace simpla { namespace mesh
@@ -34,12 +34,12 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CoRectMesh : public Block
+struct CoRectMesh : public MeshBase
 {
 
 public:
 
-    SP_OBJECT_HEAD(CoRectMesh, Block)
+    SP_OBJECT_HEAD(CoRectMesh, MeshBase)
 
     typedef Real scalar_type;
 
@@ -81,7 +81,7 @@ public:
     CoRectMesh() {}
 
     CoRectMesh(CoRectMesh const &other) :
-            Block(other),
+            MeshBase(other),
             m_origin_(other.m_origin_),
             m_dx_(other.m_dx_) {};
 
@@ -96,7 +96,7 @@ public:
 
     virtual void deploy();
 
-    virtual std::shared_ptr<Block> clone() const { return std::make_shared<CoRectMesh>(*this); };
+    virtual std::shared_ptr<MeshBase> clone() const { return std::make_shared<CoRectMesh>(*this); };
 
     inline void box(point_type const &x0, point_type const &x1)
     {
@@ -108,7 +108,7 @@ public:
 
     virtual box_type box() const
     {
-        auto i_box = Block::index_box();
+        auto i_box = MeshBase::index_box();
         point_type lower = m_origin_ + std::get<0>(i_box) * m_dx_;
         point_type upper = m_origin_ + std::get<1>(i_box) * m_dx_;
         return std::make_tuple(lower, upper);
@@ -117,7 +117,7 @@ public:
     box_type dx() const
     {
         point_type upper;
-        upper = m_origin_ + m_dx_ * Block::dimensions();
+        upper = m_origin_ + m_dx_ * MeshBase::dimensions();
         return std::make_tuple(m_origin_, upper);
     }
 
@@ -177,7 +177,7 @@ public:
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
 
-    virtual std::shared_ptr<Block> refine(box_type const &b, int flag = 0) const { return std::shared_ptr<Block>(); }
+    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const { return std::shared_ptr<MeshBase>(); }
 
 
 private:
@@ -206,7 +206,7 @@ public:
 
 void CoRectMesh::deploy()
 {
-    Block::deploy();
+    MeshBase::deploy();
     /**
          *\verbatim
          *                ^y
@@ -298,7 +298,7 @@ void CoRectMesh::deploy()
 //
 //virtual EntityRange select(box_type const &other,
 //                           MeshEntityType entityType = VERTEX,
-//                           MeshEntityStatus status = SP_ES_ALL) const
+//                           MeshZoneTag status = SP_ES_ALL) const
 //{
 //
 //    point_type c_lower, c_upper;
@@ -325,7 +325,7 @@ void CoRectMesh::deploy()
 //
 //};
 //
-//virtual box_type box(MeshEntityStatus status = SP_ES_OWNED) const
+//virtual box_type box(MeshZoneTag status = SP_ES_OWNED) const
 //{
 //    box_type res;
 //
@@ -365,7 +365,7 @@ void CoRectMesh::deploy()
 //    return MeshEntityIdCoder::make_range(b, entityType);
 //}
 //
-//virtual EntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_OWNED) const
+//virtual EntityRange range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const
 //{
 //    EntityRange res;
 //

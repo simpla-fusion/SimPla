@@ -27,9 +27,9 @@ namespace parallel { struct DistributedObject; }
 
 namespace mesh
 {
-class Block;
+class MeshBase;
 
-class Attribute;
+class AttributeBase;
 } //namespace get_mesh
 } //namespace simpla
 
@@ -40,7 +40,7 @@ namespace simpla { namespace simulation
 class PhysicalDomain : public toolbox::Object
 {
 public:
-    std::shared_ptr<const mesh::Block> m_mesh_;
+    std::shared_ptr<const mesh::MeshBase> m_mesh_;
 
     std::shared_ptr<PhysicalDomain> m_next_;
 
@@ -50,17 +50,17 @@ public:
 
     PhysicalDomain();
 
-    PhysicalDomain(std::shared_ptr<const mesh::Block>);
+    PhysicalDomain(std::shared_ptr<const mesh::MeshBase>);
 
-    std::shared_ptr<const mesh::Block> mesh() const { return m_mesh_; }
+    std::shared_ptr<const mesh::MeshBase> mesh() const { return m_mesh_; }
 
     virtual  ~PhysicalDomain();
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    virtual std::shared_ptr<PhysicalDomain> clone(mesh::Block const &) const;
+    virtual std::shared_ptr<PhysicalDomain> clone(mesh::MeshBase const &) const;
 
-    virtual bool same_as(mesh::Block const &) const;
+    virtual bool same_as(mesh::MeshBase const &) const;
 
     virtual void deploy();
 
@@ -72,7 +72,7 @@ public:
 
     virtual toolbox::IOStream &load(toolbox::IOStream &is) const;
 
-    virtual void sync(mesh::TransitionMap const &, PhysicalDomain const &other);
+    virtual void sync(mesh::TransitionMapBase const &, PhysicalDomain const &other);
 
     std::shared_ptr<PhysicalDomain> &next() { return m_next_; }
 
@@ -92,15 +92,15 @@ public:
     };
 
     //------------------------------------------------------------------------------------------------------------------
-    const mesh::Attribute *attribute(std::string const &s_name) const;
+    const mesh::AttributeBase *attribute(std::string const &s_name) const;
 
-    void add_attribute(mesh::Attribute *attr, std::string const &s_name);
+    void add_attribute(mesh::AttributeBase *attr, std::string const &s_name);
 
     template<typename TF>
     void global_declare(TF *attr, std::string const &s_name)
     {
-        static_assert(std::is_base_of<mesh::Attribute, TF>::value, "illegal Mesh convert");
-        add_attribute(dynamic_cast<mesh::Attribute *>(attr), s_name);
+        static_assert(std::is_base_of<mesh::AttributeBase, TF>::value, "illegal Mesh convert");
+        add_attribute(dynamic_cast<mesh::AttributeBase *>(attr), s_name);
     };
 
 //    template<typename TF>

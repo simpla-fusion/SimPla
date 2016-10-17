@@ -52,26 +52,26 @@ int spMemoryCopy(void *dest, void const *src, size_type s)
     return SP_SUCCESS;
 }
 
-int spMemCopyToCache(const void *dest, void const *src, size_type s)
+int spMemoryCopyToCache(const void *dest, void const *src, size_type s)
 {
     SP_DEVICE_CALL(cudaMemcpyToSymbol(dest, src, s));
     return SP_SUCCESS;
 }
 
-int spMemSet(void *dest, int v, size_type s)
+int spMemorySet(void *dest, int v, size_type s)
 {
     SP_DEVICE_CALL (cudaMemset(dest, v, s));
     return SP_SUCCESS;
 }
 
-int spMemHostAlloc(void **p, size_type s)
+int spMemoryHostAlloc(void **p, size_type s)
 {
     SP_DEVICE_CALL (cudaHostAlloc(p, s, cudaHostAllocDefault));
     return SP_SUCCESS;
 
 };
 
-int spMemHostFree(void **p)
+int spMemoryHostFree(void **p)
 {
     if (*p != NULL)
     {
@@ -130,7 +130,7 @@ int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real co
 //int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte)
 //{
 //    int  SP_SUCCESS = SP_SUCCESS;
-//    SP_CALL(spMemHostAlloc(p, size_in_byte));
+//    SP_CALL(spMemoryHostAlloc(p, size_in_byte));
 //    SP_CALL(spMemoryCopy(*p, src, size_in_byte));
 //    return  SP_SUCCESS;
 //
@@ -139,7 +139,7 @@ int spParallelAssign(size_type num_of_point, size_type *offset, Real *d, Real co
 //int spMemoryHostFree(void **p)
 //{
 //    int  SP_SUCCESS = SP_SUCCESS;
-//    SP_CALL(spMemHostFree(p));
+//    SP_CALL(spMemoryHostFree(p));
 //    return  SP_SUCCESS;
 //
 //}

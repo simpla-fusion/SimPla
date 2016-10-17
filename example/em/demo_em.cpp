@@ -5,8 +5,6 @@
 
 #include "../../src/simulation/Context.h"
 #include "../../src/manifold/pre_define/PreDefine.h"
-#include "../../src/mesh/ModelSelect.h"
-
 #include "../../scenario/problem_domain/EMFluid.h"
 #include "../../scenario/problem_domain/PML.h"
 
@@ -22,7 +20,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     center_mesh->name("Center");
     center_mesh->dimensions(options["Mesh"]["Dimensions"].template as<index_tuple>(index_tuple{20, 20, 1}));
     center_mesh->ghost_width(options["Mesh"]["GhostWidth"].template as<index_tuple>(index_tuple{2, 2, 2}));
-    center_mesh->box(options["Mesh"]["Block"].template as<box_type>(box_type{{0, 0, 0},
+    center_mesh->box(options["Mesh"]["MeshBase"].template as<box_type>(box_type{{0, 0, 0},
                                                                              {1, 1, 1}}));
     center_mesh->deploy();
 
@@ -97,7 +95,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     {
 
         center_domain->J_src_range = select(center_mesh, mesh::EDGE,
-                                            options["Constraints"]["J"]["Block"].as<box_type>());
+                                            options["Constraints"]["J"]["MeshBase"].as<box_type>());
 
         options["Constraints"]["J"]["Value"].as(&center_domain->J_src_fun);
     }
@@ -106,7 +104,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     {
 
         center_domain->E_src_range = select(center_mesh, mesh::EDGE,
-                                            options["Constraints"]["E"]["Block"].as<box_type>());
+                                            options["Constraints"]["E"]["MeshBase"].as<box_type>());
 
         options["Constraints"]["E"]["Value"].as(&center_domain->E_src_fun);
     }
@@ -120,7 +118,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
 
         options["Constraints"]["PEC"]["Shape"].as(&shape_fun);
 
-        model.add(options["Constraints"]["PEC"]["Block"].as<box_type>(), shape_fun);
+        model.add(options["Constraints"]["PEC"]["MeshBase"].as<box_type>(), shape_fun);
 
         center_domain->face_boundary = model.surface(FACE);
         center_domain->edge_boundary = model.surface(EDGE);

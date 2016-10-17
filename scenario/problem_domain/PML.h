@@ -39,7 +39,7 @@ public:
 
     virtual void deploy();
 
-    virtual void sync(mesh::TransitionMap const &, simulation::PhysicalDomain const &other);
+    virtual void sync(mesh::TransitionMapBase const &, simulation::PhysicalDomain const &other);
 
     virtual std::string get_class_name() const { return class_name(); }
 
@@ -157,17 +157,17 @@ void PML<TM>::deploy()
 
 
 template<typename TM>
-void PML<TM>::sync(mesh::TransitionMap const &t_map, simulation::PhysicalDomain const &other)
+void PML<TM>::sync(mesh::TransitionMapBase const &t_map, simulation::PhysicalDomain const &other)
 {
     auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
 
-
-    t_map.direct_map(mesh::EDGE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = E2[s2]; });
-
-    t_map.direct_map(mesh::FACE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = B2[s2]; });
+//
+//    t_map.direct_map(mesh::EDGE,
+//                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = E2[s2]; });
+//
+//    t_map.direct_map(mesh::FACE,
+//                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = B2[s2]; });
 
 
 }

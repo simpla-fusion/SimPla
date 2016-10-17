@@ -9,7 +9,7 @@
 
 #include "MeshCommon.h"
 #include "EntityRange.h"
-#include "Block.h"
+#include "MeshBase.h"
 #include "Atlas.h"
 #include "Layers.h"
 #include "Attribute.h"

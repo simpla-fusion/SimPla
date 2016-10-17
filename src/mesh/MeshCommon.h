@@ -59,7 +59,15 @@ enum MeshEntityType
  *   |<------------- DMZ    -------------->|<----------   not DMZ   -------------->|
  *
  */
-enum MeshEntityStatus
+
+enum MeshDistributionTag
+{
+    SP_AS_NULL,
+    SP_AS_LOCAL,
+    SP_AS_GLOBAL,
+    SP_AS_VIRTUAL
+};
+enum MeshZoneTag
 {
     SP_ES_NULL = 0x00, //                          0b000000
     SP_ES_ALL =

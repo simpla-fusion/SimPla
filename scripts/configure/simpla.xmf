@@ -26,7 +26,7 @@
 	</BaseManifold>
 	<Information Name="dt"> 1.0  </Information>
 	
-	<Attribute Name="n0" AttributeType="Scalar" Center="Node">
+	<AttributeBase Name="n0" AttributeType="Scalar" Center="Node">
 		<Information  Type="LuaScript">
 		local f0=1.9
         local k={0,1,1}
@@ -39,15 +39,15 @@
             return r
         end
 		</Information>	   
-	</Attribute>
+	</AttributeBase>
 
-	<Attribute Name="E" AttributeType="Scalar" Center="Edge" />	  
+	<AttributeBase Name="E" AttributeType="Scalar" Center="Edge" />
 
-	<Attribute Name="B0" AttributeType="Scalar" Center="Face"/>
+	<AttributeBase Name="B0" AttributeType="Scalar" Center="Face"/>
 
-	<Attribute Name="ion" AttributeType="Particle" Type="Default" Mass="1.0" Charge="1.0"/>
+	<AttributeBase Name="ion" AttributeType="Particle" Type="Default" Mass="1.0" Charge="1.0"/>
 
-	<Attribute Name="electron" AttributeType="Particle" Type="GGauge" Mass="1.0" Charge="-1.0"/>
+	<AttributeBase Name="electron" AttributeType="Particle" Type="GGauge" Mass="1.0" Charge="-1.0"/>
 
 	
 </Grid>

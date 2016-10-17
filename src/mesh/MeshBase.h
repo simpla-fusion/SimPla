@@ -76,35 +76,35 @@ namespace simpla { namespace mesh
  *
  */
 
-class Block : public toolbox::Object
+class MeshBase : public toolbox::Object
 {
 public:
-    SP_OBJECT_HEAD(Block, toolbox::Object)
+    SP_OBJECT_HEAD(MeshBase, toolbox::Object)
     using toolbox::Object::id_type;
 
     static constexpr int ndims = 3;
     using toolbox::Object::id;
 
-    Block();
+    MeshBase();
 
-    Block(Block const &other);
+    MeshBase(MeshBase const &other);
 
-    Block(Block &&other);
+    MeshBase(MeshBase &&other);
 
-    virtual ~Block();
+    virtual ~MeshBase();
 
-    Block &operator=(Block const &other)
+    MeshBase &operator=(MeshBase const &other)
     {
-        Block(other).swap(*this);
+        MeshBase(other).swap(*this);
         return *this;
     }
 
-    virtual std::shared_ptr<Block> clone() const { return std::make_shared<Block>(*this); };
+    virtual std::shared_ptr<MeshBase> clone() const { return std::make_shared<MeshBase>(*this); };
 
-    void swap(Block &other);
+    void swap(MeshBase &other);
 
     virtual std::tuple<toolbox::DataSpace, toolbox::DataSpace>
-    data_space(MeshEntityType const &t, MeshEntityStatus status = SP_ES_OWNED) const;
+    data_space(MeshEntityType const &t, MeshZoneTag status = SP_ES_OWNED) const;
 
     void processer_id(int id) { processer_id_ = id; }
 
@@ -153,7 +153,6 @@ public:
         {
             if (m_b_dimensions_[i] > 1) { m_b_dimensions_[i] = static_cast<size_type>(a[i]); }
         }
-
     };
 
     virtual bool intersection(const box_type &other);
@@ -237,6 +236,8 @@ public:
     bool empty() const { return size() == 0; }
 
     size_type size() const { return (m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]); }
+
+    size_type number_of_entities(int iform) const { return size() * ((iform == VERTEX || iform == VOLUME) ? 1 : 3); }
 
     inline size_type hash(index_type i, index_type j = 0, index_type k = 0) const
     {

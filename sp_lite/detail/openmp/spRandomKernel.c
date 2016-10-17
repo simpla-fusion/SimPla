@@ -23,7 +23,7 @@ typedef struct spRandomGenerator_s
 int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimension, size_type offset)
 {
 
-    SP_CALL(spMemHostAlloc((void **) gen, sizeof(spRandomGenerator)));
+    SP_CALL(spMemoryHostAlloc((void **) gen, sizeof(spRandomGenerator)));
 
     SP_CALL(spRandomGeneratorSetNumOfDimensions(*gen, num_of_dimension));
 
@@ -33,7 +33,7 @@ int spRandomGeneratorCreate(spRandomGenerator **gen, int type, int num_of_dimens
 int spRandomGeneratorDestroy(spRandomGenerator **gen)
 {
 
-    SP_CALL(spMemHostFree((void **) gen));
+    SP_CALL(spMemoryHostFree((void **) gen));
 
     return SP_SUCCESS;
 }

@@ -62,7 +62,7 @@ int spParticleBucketInitialize_device(spParticle *sp)
     SP_CALL(spParticleGetBucket(sp, &bucket_start, &bucket_count, &sorted_id, &cell_hash));
 
     SP_CALL(spFillSeq(sorted_id, SP_TYPE_size_type, spParticleCapacity(sp), 0, 1));
-    SP_CALL(spMemSet(cell_hash, -1, spParticleCapacity(sp) * sizeof(size_type)));
+    SP_CALL(spMemorySet(cell_hash, -1, spParticleCapacity(sp) * sizeof(size_type)));
     size_type m_start[3], m_end[3], m_count[3], m_strides[3];
 
     SP_CALL(spMeshGetDomain(m, SP_DOMAIN_CENTER, m_start, m_end, m_count));
@@ -189,8 +189,8 @@ int spParticleBucketBuild_device(spParticle *sp)
     size_type *b_start, *b_end;
     SP_CALL(spMemoryDeviceAlloc((void **) &b_end, (num_of_cell + 1) * sizeof(size_type)));
     SP_CALL(spMemoryDeviceAlloc((void **) &b_start, (num_of_cell + 1) * sizeof(size_type)));
-    SP_CALL(spMemSet(b_start, 0, (num_of_cell + 1) * sizeof(size_type)));
-    SP_CALL(spMemSet(b_end, 0, (num_of_cell + 1) * sizeof(size_type)));
+    SP_CALL(spMemorySet(b_start, 0, (num_of_cell + 1) * sizeof(size_type)));
+    SP_CALL(spMemorySet(b_end, 0, (num_of_cell + 1) * sizeof(size_type)));
 
     uint sMemSize = sizeof(size_type) * (NUMBER_OF_THREADS_PER_BLOCK + 1);
 

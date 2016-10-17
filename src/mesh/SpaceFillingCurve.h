@@ -5,14 +5,14 @@
 #ifndef SIMPLA_SPACEFILLINGCURVE_H
 #define SIMPLA_SPACEFILLINGCURVE_H
 
-#include "Block.h"
+#include "MeshBase.h"
 
 namespace simpla { namespace mesh
 {
 
 struct SpaceFillingCurveCOrder
 {
-    Block const &box;
+    MeshBase const &box;
     // C-order
 
     inline constexpr size_type hash(size_type i, size_type j = 0, size_type k = 0) const

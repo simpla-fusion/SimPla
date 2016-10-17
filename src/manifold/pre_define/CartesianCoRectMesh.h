@@ -420,7 +420,7 @@ void CoRectMesh::deploy()
 //
 //virtual EntityRange select(box_type const &other,
 //                           MeshEntityType entityType = VERTEX,
-//                           MeshEntityStatus status = SP_ES_ALL) const
+//                           MeshZoneTag status = SP_ES_ALL) const
 //{
 //
 //    point_type c_lower, c_upper;
@@ -447,7 +447,7 @@ void CoRectMesh::deploy()
 //
 //};
 //
-//virtual box_type box(MeshEntityStatus status = SP_ES_OWNED) const
+//virtual box_type box(MeshZoneTag status = SP_ES_OWNED) const
 //{
 //    box_type res;
 //
@@ -487,7 +487,7 @@ void CoRectMesh::deploy()
 //    return MeshEntityIdCoder::make_range(b, entityType);
 //}
 //
-//virtual EntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_OWNED) const
+//virtual EntityRange range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const
 //{
 //    EntityRange res;
 //

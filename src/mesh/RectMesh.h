@@ -21,7 +21,7 @@
 #include "../toolbox/Log.h"
 
 #include "MeshCommon.h"
-#include "Block.h"
+#include "MeshBase.h"
 #include "EntityId.h"
 
 namespace simpla { namespace mesh
@@ -33,11 +33,11 @@ namespace simpla { namespace mesh
  *
  * @brief Uniform structured get_mesh
  */
-struct RectMesh : public Block
+struct RectMesh : public MeshBase
 {
 public:
 
-    SP_OBJECT_HEAD(RectMesh, Block)
+    SP_OBJECT_HEAD(RectMesh, MeshBase)
 
     typedef Real scalar_type;
 
@@ -79,7 +79,7 @@ public:
     RectMesh() {}
 
     RectMesh(RectMesh const &other) :
-            Block(other),
+            MeshBase(other),
             m_origin_(other.m_origin_),
             m_dx_(other.m_dx_) { deploy(); };
 
@@ -105,7 +105,7 @@ public:
     box_type dx() const
     {
         point_type upper;
-        upper = m_origin_ + m_dx_ * Block::dimensions();
+        upper = m_origin_ + m_dx_ * MeshBase::dimensions();
         return std::make_tuple(m_origin_, upper);
     }
 
@@ -165,7 +165,7 @@ public:
 //        return m::get_adjacent_entities(entity_type, entity_type, s, p);
 //    }
 
-//    virtual std::shared_ptr<Block> refine(box_type const &b, int flag = 0) const { return std::shared_ptr<Block>(); }
+//    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const { return std::shared_ptr<MeshBase>(); }
 
 private:
     vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};
@@ -193,7 +193,7 @@ public:
 
 void RectMesh::deploy()
 {
-    Block::deploy();
+    MeshBase::deploy();
     /**
          *\verbatim
          *                ^y
@@ -286,7 +286,7 @@ void RectMesh::deploy()
 //
 //virtual EntityRange select(box_type const &other,
 //                           MeshEntityType entityType = VERTEX,
-//                           MeshEntityStatus status = SP_ES_ALL) const
+//                           MeshZoneTag status = SP_ES_ALL) const
 //{
 //
 //    point_type c_lower, c_upper;
@@ -313,7 +313,7 @@ void RectMesh::deploy()
 //
 //};
 //
-//virtual box_type box(MeshEntityStatus status = SP_ES_OWNED) const
+//virtual box_type box(MeshZoneTag status = SP_ES_OWNED) const
 //{
 //    box_type res;
 //
@@ -353,7 +353,7 @@ void RectMesh::deploy()
 //    return MeshEntityIdCoder::make_range(b, entityType);
 //}
 //
-//virtual EntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_OWNED) const
+//virtual EntityRange range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const
 //{
 //    EntityRange res;
 //

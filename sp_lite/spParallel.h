@@ -19,15 +19,15 @@ int spMemoryDeviceAlloc(void **, size_type);
 
 int spMemoryDeviceFree(void **);
 
-int spMemHostAlloc(void **, size_type);
+int spMemoryHostAlloc(void **, size_type);
 
-int spMemHostFree(void **);
+int spMemoryHostFree(void **);
 
 int spMemoryCopy(void *, void const *, size_type);
 
-int spMemCopyToCache(const void *, void const *, size_type);
+int spMemoryCopyToCache(const void *, void const *, size_type);
 
-int spMemSet(void *, int v, size_type);
+int spMemorySet(void *, int v, size_type);
 
 int spMemoryDeviceToHost(void **p, void *src, size_type size_in_byte);
 

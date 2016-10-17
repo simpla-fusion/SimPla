@@ -2,7 +2,7 @@
 // Created by salmon on 16-10-10.
 //
 
-#include "Block.h"
+#include "MeshBase.h"
 #include "../toolbox/nTupleExt.h"
 #include "../toolbox/PrettyStream.h"
 
@@ -10,9 +10,9 @@ namespace simpla { namespace mesh
 {
 
 
-Block::Block() {}
+MeshBase::MeshBase() {}
 
-Block::Block(Block const &other) :
+MeshBase::MeshBase(MeshBase const &other) :
         processer_id_(other.processer_id_),
         m_index_space_id_(other.m_index_space_id_),
         m_level_(other.m_level_),
@@ -23,7 +23,7 @@ Block::Block(Block const &other) :
         m_g_dimensions_(other.m_g_dimensions_),
         m_g_offset_(other.m_g_offset_) {};
 
-Block::Block(Block &&other) :
+MeshBase::MeshBase(MeshBase &&other) :
         processer_id_(other.processer_id_),
         m_index_space_id_(other.m_index_space_id_),
         m_level_(other.m_level_),
@@ -34,10 +34,10 @@ Block::Block(Block &&other) :
         m_g_dimensions_(other.m_g_dimensions_),
         m_g_offset_(other.m_g_offset_) {};
 
-Block::~Block() {}
+MeshBase::~MeshBase() {}
 
 
-void Block::swap(Block &other)
+void MeshBase::swap(MeshBase &other)
 {
     std::swap(processer_id_, other.processer_id_);
     std::swap(m_index_space_id_, other.m_index_space_id_);
@@ -51,13 +51,13 @@ void Block::swap(Block &other)
     std::swap(m_g_offset_, other.m_g_offset_);
 }
 
-bool Block::intersection(const box_type &other)
+bool MeshBase::intersection(const box_type &other)
 {
     return intersection(std::make_tuple(point_to_index(std::get<0>(other)), point_to_index(std::get<0>(other))));
 }
 
 
-bool Block::intersection(const index_box_type &other)
+bool MeshBase::intersection(const index_box_type &other)
 {
     assert(!m_is_deployed_);
     for (int i = 0; i < ndims; ++i)
@@ -76,7 +76,7 @@ bool Block::intersection(const index_box_type &other)
     return (m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]) > 0;
 };
 
-bool Block::intersection_outer(const index_box_type &other)
+bool MeshBase::intersection_outer(const index_box_type &other)
 {
     assert(!m_is_deployed_);
     for (int i = 0; i < ndims; ++i)
@@ -96,7 +96,7 @@ bool Block::intersection_outer(const index_box_type &other)
 }
 
 
-void Block::refine(int ratio)
+void MeshBase::refine(int ratio)
 {
     assert(!m_is_deployed_);
     ++m_level_;
@@ -110,7 +110,7 @@ void Block::refine(int ratio)
     }
 }
 
-void Block::coarsen(int ratio)
+void MeshBase::coarsen(int ratio)
 {
     assert(!m_is_deployed_);
     --m_level_;
@@ -129,7 +129,7 @@ void Block::coarsen(int ratio)
     }
 }
 
-void Block::deploy()
+void MeshBase::deploy()
 {
     if (m_is_deployed_) { return; }
 
@@ -162,7 +162,7 @@ void Block::deploy()
 }
 
 
-void Block::foreach(std::function<void(index_type, index_type, index_type)> const &fun) const
+void MeshBase::foreach(std::function<void(index_type, index_type, index_type)> const &fun) const
 {
 
 #pragma omp parallel for
@@ -176,7 +176,7 @@ void Block::foreach(std::function<void(index_type, index_type, index_type)> cons
 
 }
 
-void Block::foreach(std::function<void(index_type)> const &fun) const
+void MeshBase::foreach(std::function<void(index_type)> const &fun) const
 {
 #pragma omp parallel for
     for (index_type i = 0; i < m_b_dimensions_[0]; ++i)
@@ -187,7 +187,7 @@ void Block::foreach(std::function<void(index_type)> const &fun) const
             }
 }
 
-void Block::foreach(int iform, std::function<void(MeshEntityId const &)> const &fun) const
+void MeshBase::foreach(int iform, std::function<void(MeshEntityId const &)> const &fun) const
 {
     int n = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
 #pragma omp parallel for
@@ -202,7 +202,7 @@ void Block::foreach(int iform, std::function<void(MeshEntityId const &)> const &
 
 
 std::tuple<toolbox::DataSpace, toolbox::DataSpace>
-Block::data_space(MeshEntityType const &t, MeshEntityStatus status) const
+MeshBase::data_space(MeshEntityType const &t, MeshZoneTag status) const
 {
     int i_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
 

@@ -26,7 +26,7 @@ struct Model::pimpl_s
 
 };
 
-Model::Model(Block const *pm)
+Model::Model(MeshBase const *pm)
         : m(pm), m_pimpl_(new pimpl_s) {}
 
 Model::~Model() {}

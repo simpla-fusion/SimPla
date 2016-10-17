@@ -56,13 +56,13 @@ public:
 
     toolbox::IOStream &check_point(toolbox::IOStream &os) const;
 
-    mesh::MeshBlockId add_mesh(std::shared_ptr<mesh::Block>);
+    mesh::MeshBlockId add_mesh(std::shared_ptr<mesh::MeshBase>);
 
     template<typename TM, typename ...Args>
     std::shared_ptr<TM> add_mesh(Args &&...args)
     {
         auto res = std::make_shared<TM>(std::forward<Args>(args)...);
-        add_mesh(std::dynamic_pointer_cast<mesh::Block>(res));
+        add_mesh(std::dynamic_pointer_cast<mesh::MeshBase>(res));
         return res;
     };
 
@@ -70,9 +70,9 @@ public:
 
     mesh::Atlas const &get_mesh_atlas() const;
 
-    std::shared_ptr<const mesh::Block> get_mesh_block(mesh::MeshBlockId id) const;
+    std::shared_ptr<const mesh::MeshBase> get_mesh_block(mesh::MeshBlockId id) const;
 
-    std::shared_ptr<mesh::Block> get_mesh_block(mesh::MeshBlockId id);
+    std::shared_ptr<mesh::MeshBase> get_mesh_block(mesh::MeshBlockId id);
 
     template<typename TM>
     std::shared_ptr<const TM> get_mesh(mesh::MeshBlockId s) const
@@ -83,7 +83,7 @@ public:
     template<typename TM>
     std::shared_ptr<TM> get_mesh(mesh::MeshBlockId s)
     {
-        static_assert(std::is_base_of<mesh::Block, TM>::value, "illegal mesh convert!");
+        static_assert(std::is_base_of<mesh::MeshBase, TM>::value, "illegal mesh convert!");
         assert(get_mesh_block(s).get() != nullptr);
         assert(get_mesh_block(s)->is_a<TM>());
         auto res = std::dynamic_pointer_cast<TM>(get_mesh_block(s));
@@ -118,7 +118,7 @@ public:
     }
 
 
-    void sync(int level = 0, int flag = mesh::SP_MB_SYNC);
+    void sync(int level = 0, int flag = 0);
 
     void run(Real dt, int level = 0);
 

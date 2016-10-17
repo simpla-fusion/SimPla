@@ -137,8 +137,7 @@ void *MemoryPool::pimpl_s::pop(size_t s)
                 pool_.erase(pt);
 
                 pool_depth_ -= s;
-            }
-            else
+            } else
             {
                 addr = nullptr;
             }
@@ -173,5 +172,7 @@ std::shared_ptr<void> sp_alloc_memory(size_t s)
 
     return std::shared_ptr<void>(addr, MemoryPool::deleter_s(addr, s));
 }
+
+
 
 }  // namespace simpla

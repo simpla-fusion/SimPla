@@ -9,36 +9,38 @@
 
 #include "../toolbox/Object.h"
 #include "../toolbox/Log.h"
-#include "../toolbox/MemoryPool.h"
+#include "../toolbox/Memory.h"
 #include "../toolbox/DataSet.h"
 #include "MeshCommon.h"
-#include "Block.h"
-#include "EntityRange.h"
+#include "MeshBase.h"
 
 
 namespace simpla { namespace mesh
 {
-struct Attribute
+struct AttributeBase
 {
+    AttributeBase() {};
 
-    Attribute() {};
+    virtual ~AttributeBase() {};
 
-    virtual ~Attribute() {};
+    AttributeBase &operator=(AttributeBase const &other) = delete;
 
-    Attribute &operator=(Attribute const &other) = delete;
-
-    virtual void deploy()=0;
-
-    virtual bool is_deployed() const { return true; };
+    virtual void deploy() = 0;
 
     virtual void clear() = 0;
 
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const
+    {
+        UNIMPLEMENTED;
+        return os;
+    }
 
     virtual bool is_a(std::type_info const &t_info) const = 0;
 
-    template<typename T>
-    inline bool is_a() const { return (std::is_base_of<Attribute, T>::value && is_a(typeid(T))); }
+    template<typename T> inline bool is_a() const
+    {
+        return (std::is_base_of<AttributeBase, T>::value && is_a(typeid(T)));
+    }
 
     virtual bool is_valid() const = 0;
 
@@ -46,48 +48,137 @@ struct Attribute
 
     virtual std::string get_class_name() const = 0;
 
-    virtual EntityRange entity_id_range(MeshEntityStatus status = SP_ES_ALL) const = 0;
+    virtual MeshBase const *mesh() const = 0;
 
-    virtual MeshEntityType entity_type() const = 0;
+    virtual void *raw_data() = 0;
 
-    virtual size_type entity_size_in_byte() const = 0;
-
-    virtual size_type size_in_byte() const = 0;
-
-    virtual Block const *mesh() const = 0;
-
-    virtual std::shared_ptr<void> data() = 0;
-
-    virtual std::shared_ptr<const void> data() const = 0;
-
+    virtual void const *raw_data() const = 0;
 
     virtual void dataset(toolbox::DataSet const &) = 0;
 
-    virtual toolbox::DataSet dataset(mesh::MeshEntityStatus status = mesh::SP_ES_OWNED) const =0;
-
-//    virtual void dataset(mesh::EntityRange const &, toolbox::DataSet const &) = 0;
+    virtual toolbox::DataSet dataset() const =0;
 };
+
+template<typename V, typename M, MeshEntityType IFORM = VERTEX>
+class Attribute : public AttributeBase
+{
+
+
+public:
+    typedef Attribute<V, M, IFORM> this_type;
+    static constexpr MeshEntityType iform = IFORM;
+    typedef M mesh_type;
+    typedef V value_type;
+
+    Attribute(mesh_type const *m, std::shared_ptr<value_type> p = nullptr) : m_mesh_(m), m_data_(p) {};
+
+    Attribute(Attribute const &other) : m_mesh_(other.m_mesh_), m_data_(other.m_data_) {};
+
+    virtual ~Attribute() {};
+
+    Attribute &operator=(Attribute const &other)
+    {
+        this_type(other).swap(*this);
+        return *this;
+    };
+
+    void swap(this_type &other)
+    {
+        std::swap(m_mesh_, other.m_mesh_);
+        std::swap(m_data_, other.m_data_);
+    }
+
+
+    virtual void deploy()
+    {
+        assert(m_mesh_ != nullptr);
+        if (!empty()) { m_data_ = toolbox::MemoryHostAllocT<value_type>(m_mesh_->number_of_entities(IFORM)); }
+    };
+
+    virtual void clear()
+    {
+        deploy();
+        toolbox::MemorySet(m_data_, 0, m_mesh_->number_of_entities(IFORM) * sizeof(value_type));
+    }
+
+
+    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
+
+    virtual bool is_valid() const { return m_mesh_ != nullptr && !empty(); };
+
+    virtual bool empty() const { return m_data_ != nullptr; }
+
+    virtual std::string get_class_name() const { return class_name(); }
+
+    static std::string class_name()
+    {
+        return std::string("Attribute<") +
+               traits::type_id<value_type>::name() + "," +
+               traits::type_id<mesh_type>::name() + "," +
+               traits::type_id<index_const<IFORM>>::name()
+               + ">";
+    }
+
+    virtual mesh_type const *mesh() const { return m_mesh_; };
+
+    virtual void *raw_data() { return m_data_.get(); }
+
+    virtual void const *raw_data() const { return m_data_.get(); }
+
+    virtual std::shared_ptr<value_type> data() { return m_data_; }
+
+    virtual std::shared_ptr<const value_type> data() const { return m_data_; }
+
+    virtual void dataset(toolbox::DataSet const &) { UNIMPLEMENTED; };
+
+    virtual toolbox::DataSet dataset() const
+    {
+        toolbox::DataSet res;
+
+        res.data_type = toolbox::DataType::create<value_type>();
+
+        res.data = m_data_;
+
+        std::tie(res.memory_space, res.data_space) = m_mesh_->data_space(IFORM);
+
+        return res;
+    };
+
+    inline value_type &get(mesh::MeshEntityId const &s) { return (m_data_.get())[m_mesh_->hash(s)]; }
+
+    inline value_type const &get(mesh::MeshEntityId const &s) const { return (m_data_.get())[m_mesh_->hash(s)]; }
+
+    inline value_type &operator[](mesh::MeshEntityId const &s) { return get(s); }
+
+    inline value_type const &operator[](mesh::MeshEntityId const &s) const { return get(s); }
+
+protected:
+    M const *m_mesh_;
+    std::shared_ptr<V> m_data_;
+};
+
+//template<typename V, typename M, MeshEntityType IFORM> constexpr MeshEntityType Attribute<V, M, IFORM>::iform = IFORM;
 //
-///**
-// *  PlaceHolder class of Attribute
+//**
+// *  PlaceHolder class of AttributeBase
 // */
-//struct Attribute : public toolbox::Object, public Acceptor
+//struct AttributeBase : public toolbox::Object, public Acceptor
 //{
-//    SP_OBJECT_HEAD(Attribute, toolbox::Object)
+//    SP_OBJECT_HEAD(AttributeBase, toolbox::Object)
 //
 //public:
 //
-//    Attribute() { }
+//    AttributeBase() { }
 //
-//    virtual Attribute }
+//    virtual AttributeBase }
 //
-//    Attribute(Attribute const &other) = delete;
+//    AttributeBase(AttributeBase const &other) = delete;
 //
-//    Attribute(Attribute &&other) = delete;
+//    AttributeBase(AttributeBase &&other) = delete;
 //
-//    Attribute &operator=(Attribute const &) = delete;
+//    AttributeBase &operator=(AttributeBase const &) = delete;
 //
-//    void swap(Attribute &other) = delete;
+//    void swap(AttributeBase &other) = delete;
 //
 //    virtual std::ostream &print(std::ostream &os, int indent = 1) const
 //    {
@@ -104,14 +195,14 @@ struct Attribute
 //    /** register MeshBlockId to attribute m_data collection.  */
 //
 //    template<typename TF, typename ...Args>
-//    std::shared_ptr<TF> add(Block const *m, Args &&...args)
+//    std::shared_ptr<TF> add(MeshBase const *m, Args &&...args)
 //    {
 //        assert(m != nullptr);
 //
 //        std::shared_ptr<TF> res;
 //
 //        static_assert(std::is_base_of<View, TF>::entity,
-//                      "Object is not a get_mesh::Attribute::View");
+//                      "Object is not a get_mesh::AttributeBase::View");
 //        auto it = m_views_.find(m->uuid());
 //
 //        if (it != m_views_.end())
@@ -119,7 +210,7 @@ struct Attribute
 //
 //            if (!it->second->template is_a<TF>())
 //            {
-//                RUNTIME_ERROR << "Attribute type cast error! "
+//                RUNTIME_ERROR << "AttributeBase type cast error! "
 //                << "From:" << it->second->get_class_name()
 //                << " To: " << traits::type_id<typename TF::mesh_type>::name() <<
 //                std::endl;
@@ -186,7 +277,7 @@ struct Attribute
 //        }
 //        catch (std::out_of_range const &)
 //        {
-//            RUNTIME_ERROR << "Block [" << boost::uuids::hash_value(id) << "] is missing!" << std::endl;
+//            RUNTIME_ERROR << "MeshBase [" << boost::uuids::hash_value(id) << "] is missing!" << std::endl;
 //        }
 //    }
 //

@@ -337,7 +337,7 @@ int spPackInt(size_type **dest, size_type *num, size_type const *src,
 
     SP_CALL(spMemoryCopy(num, &(dest_start[num_of_cell]), sizeof(size_type)));
 
-    SP_CALL(spMemSet(dest_start, 0, sizeof(size_type)));
+    SP_CALL(spMemorySet(dest_start, 0, sizeof(size_type)));
 
     SP_CALL(spMemoryDeviceAlloc((void **) dest, (*num) * sizeof(size_type)));
 

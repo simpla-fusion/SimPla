@@ -11,13 +11,18 @@
 #include "../toolbox/nTupleExt.h"
 #include "../toolbox/PrettyStream.h"
 #include "MeshCommon.h"
-#include "Block.h"
+#include "MeshBase.h"
+#include "Attribute.h"
 
 namespace simpla { namespace mesh
 {
 
 
-enum { SP_MB_SYNC = 0x1, SP_MB_COARSEN = 0x2, SP_MB_REFINE = 0x4 };
+class MeshAttributeVisitorBase;
+
+template<typename T> class MeshAttributeVisitor;
+
+template<typename ...> struct TransitionMap;
 
 /**
  *   TransitionMap: \f$\psi\f$,
@@ -33,78 +38,69 @@ enum { SP_MB_SYNC = 0x1, SP_MB_COARSEN = 0x2, SP_MB_REFINE = 0x4 };
  *
  *
  */
-struct TransitionMap
+struct TransitionMapBase
 {
+    std::shared_ptr<MeshBase> m_dst_, m_src_;
 
-public:
-    TransitionMap(Block const &m, Block const &n)
+    TransitionMapBase() {};
+
+    TransitionMapBase(MeshBase const &, MeshBase const &) {};
+
+    virtual  ~TransitionMapBase() {};
+
+    virtual point_type map(point_type const &x) const { return x; }
+
+    point_type operator()(point_type const &x) const { return map(x); }
+
+//    virtual void push_forward(AttributeBase const &src, AttributeBase *dest) const =0;
+//
+//    virtual void pull_back(AttributeBase const &src, AttributeBase *dest) const =0;
+
+
+};
+
+
+template<typename M, typename N>
+struct TransitionMap<M, N> :
+        public TransitionMapBase
+{
+    MeshBase m_overlap_;
+    EntityRange m_range0_;
+
+    virtual void push_forward(AttributeBase const &src, AttributeBase *dest) const
     {
-        assert(m.space_id() == m.space_id());
-
-
-        m_dst_ = m.clone();
-        m_dst_->intersection_outer(n.index_box());
-        m_dst_->deploy();
-        m_src_ = n.clone();
-        m_src_->intersection(m.outer_index_box());
-        m_src_->deploy();
 
 
     };
 
-    virtual  ~TransitionMap() {};
-
-    std::shared_ptr<Block> m_dst_, m_src_;
-
-
-    virtual point_type map(point_type const &x) const { return x; }
-
-//    virtual mesh::MeshEntityId direct_map(mesh::MeshEntityId) const;
-
-    virtual void push_forward(point_type const &x, Real const *v, Real *u) const
+    template<size_t I, typename TF, typename TG>
+    void push_forward_impl(index_const<I>, TF const &f, TG *g) const
     {
-        u[0] = v[0];
-        u[1] = v[1];
-        u[2] = v[2];
-    }
+//        m_overlap_.range(I).foreach([&](MeshEntityId const &s) { (*g)[s] = f[s]; });
+    };
 
 
-    point_type operator()(point_type const &x) const { return map(x); }
 
-
-    template<typename Tg>
-    auto pull_back(Tg const &g, point_type const &x) const DECL_RET_TYPE ((g(map(x))))
-
-//    template<typename Tg, typename Tf>
-//    void pull_back(Tg const &g, Tf *f, mesh::MeshEntityType entity_type = mesh::VERTEX) const
-//    {
-//        m_dst_->foreach(entity_type,
-//                          [&](mesh::MeshEntityId s)
-//                          {
-//                              (*f)[m_dst_->hash(s)] = m_dst_->sample(s, g(m_src_->point(s)));
-//                          });
-//    }
-
-    int direct_map(MeshEntityType entity_type,
-                   std::function<void(mesh::MeshEntityId const &, mesh::MeshEntityId const &)> const &body) const
+    template<typename TDest, typename TSrc>
+    struct Visitor : public MeshAttributeVisitor<TSrc>
     {
-        if (m_dst_->size() > 0) m_dst_->foreach(entity_type, [&](mesh::MeshEntityId const &s) { body(s, s); });
-    }
 
+    };
 
-    template<typename TV>
-    int pointwise_copy(TV *f, TV const *g, MeshEntityType entity_type) const
+    virtual void pull_back(AttributeBase const &src, AttributeBase *dest) const
     {
-        if (m_dst_->size() > 0)
-            m_dst_->foreach(entity_type, [&](mesh::MeshEntityId const &s) { f[m_dst_->hash(s)] = g[m_src_->hash(s)]; });
-    }
 
-
-    template<typename TScalar>
-    void push_forward(point_type const &x, TScalar const *v, TScalar *u) const {}
-
+    };
 
 };
+
+
+template<typename TM>
+std::shared_ptr<TransitionMapBase>
+createTransitionMap(std::shared_ptr<TM> const &src, std::shared_ptr<TM> const &dest)
+{
+
+}
 }}//namespace simpla { namespace mesh
 
 #endif //SIMPLA_TRANSITIONMAP_H

@@ -8,7 +8,7 @@
 #include "../sp_def.h"
 #include <functional>
 #include "MeshCommon.h"
-#include "Block.h"
+#include "MeshBase.h"
 
 namespace simpla { namespace mesh
 {
@@ -17,7 +17,7 @@ template<typename TM, typename ...Args>
 EntityRange select(TM const &m, MeshEntityType iform, Args &&...args) { return EntityRange(); }
 
 
-EntityRange select(Block const &m, box_type const &b, MeshEntityType entityType = VERTEX)
+EntityRange select(MeshBase const &m, box_type const &b, MeshEntityType entityType = VERTEX)
 {
 
     auto blk = m.clone();

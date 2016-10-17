@@ -50,7 +50,7 @@ public:
 
     virtual void next_step(Real dt);
 
-    virtual void sync(mesh::TransitionMap const &, simulation::PhysicalDomain const &other);
+    virtual void sync(mesh::TransitionMapBase const &, simulation::PhysicalDomain const &other);
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
@@ -160,18 +160,18 @@ EMFluid<TM>::print(std::ostream &os, int indent) const
 }
 
 template<typename TM>
-void EMFluid<TM>::sync(mesh::TransitionMap const &t_map, simulation::PhysicalDomain const &other)
+void EMFluid<TM>::sync(mesh::TransitionMapBase const &t_map, simulation::PhysicalDomain const &other)
 {
     auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
     auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
 
 
-    t_map.direct_map(mesh::EDGE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = E2[s2]; });
-
-
-    t_map.direct_map(mesh::FACE,
-                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = B2[s2]; });
+//    t_map.direct_map(mesh::EDGE,
+//                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = E2[s2]; });
+//
+//
+//    t_map.direct_map(mesh::FACE,
+//                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = B2[s2]; });
 
 }
 
@@ -214,10 +214,10 @@ void EMFluid<TM>::next_step(Real dt)
 
 
     B -= curl(E) * (dt * 0.5);
-    B.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+//    B.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
-    E.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+//    E.apply(edge_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 
 
     if (m_fluid_sp_.size() > 0)
@@ -295,7 +295,7 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
     B -= curl(E) * (dt * 0.5);
-    B.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
+//    B.apply(face_boundary, [](mesh::MeshEntityId const &) -> Real { return 0.0; });
 }
 
 }//namespace simpla  {

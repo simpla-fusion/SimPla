@@ -21,7 +21,7 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
     center_mesh->name("Center");
     center_mesh->dimensions(options["Mesh"]["Dimensions"].template as<index_tuple>(index_tuple{20, 20, 1}));
     center_mesh->ghost_width(options["Mesh"]["GhostWidth"].template as<index_tuple>(index_tuple{2, 2, 2}));
-    center_mesh->box(options["Mesh"]["Block"].template as<box_type>(box_type{{0, 0, 0},{ 1, 1, 1}}));
+    center_mesh->box(options["Mesh"]["MeshBase"].template as<box_type>(box_type{{0, 0, 0},{ 1, 1, 1}}));
     center_mesh->deploy();
 
     auto center_domain = ctx->add_domain_to<EMFluid<mesh_type >>(center_mesh->id());
@@ -35,7 +35,7 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
         sp->J.clear();
         if (std::get<1>(item)["Density"])
         {
-            auto r = center_mesh->range(std::get<1>(item)["Block"].as<box_type>(), VERTEX);
+            auto r = center_mesh->range(std::get<1>(item)["MeshBase"].as<box_type>(), VERTEX);
             std::function<Real(point_type const &)> g_obj;
             std::get<1>(item)["Shape"].as(&g_obj);
 
@@ -94,7 +94,7 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
     {
 
         center_domain->J_src_range = center_mesh->range(
-                options["Constraints"]["J"]["Block"].as<box_type>(), mesh::EDGE);
+                options["Constraints"]["J"]["MeshBase"].as<box_type>(), mesh::EDGE);
 
         options["Constraints"]["J"]["Value"].as(&center_domain->J_src_fun);
     }
@@ -103,7 +103,7 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
     {
 
         center_domain->E_src_range = center_mesh->range(
-                options["Constraints"]["E"]["Block"].as<box_type>(), mesh::EDGE);
+                options["Constraints"]["E"]["MeshBase"].as<box_type>(), mesh::EDGE);
 
         options["Constraints"]["E"]["Value"].as(&center_domain->E_src_fun);
     }
@@ -117,7 +117,7 @@ void create_scenario(simulation::Context *ctx, ConfigParser const &options)
 
         options["Constraints"]["PEC"]["Shape"].as(&shape_fun);
 
-        model.add(options["Constraints"]["PEC"]["Block"].as<box_type>(), shape_fun);
+        model.add(options["Constraints"]["PEC"]["MeshBase"].as<box_type>(), shape_fun);
 
         center_domain->face_boundary = model.surface(FACE);
         center_domain->edge_boundary = model.surface(EDGE);

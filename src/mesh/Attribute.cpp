@@ -13,7 +13,7 @@ namespace simpla { namespace mesh
 
 
 //
-//void Attribute::sync(bool is_blocking)
+//void AttributeBase::sync(bool is_blocking)
 //{
 //#ifdef HAS_MPI
 //    //

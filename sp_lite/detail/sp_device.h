@@ -47,7 +47,7 @@ INLINE __device__  __host__ Real3 real2Real3(Real const *v)
 INLINE int _show_dev_data_int(size_type const *d, size_type num)
 {
     size_type *buffer;
-    SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(size_type)));
+    SP_CALL(spMemoryHostAlloc((void **) &buffer, num * sizeof(size_type)));
     SP_CALL(spMemoryCopy(buffer, d, num * sizeof(size_type)));
 
 
@@ -58,7 +58,7 @@ INLINE int _show_dev_data_int(size_type const *d, size_type num)
         printf("\t %ld", buffer[i]);
     }
     printf("\n");
-    SP_CALL(spMemHostFree((void **) &buffer));
+    SP_CALL(spMemoryHostFree((void **) &buffer));
     return SP_SUCCESS;
 
 }
@@ -66,7 +66,7 @@ INLINE int _show_dev_data_int(size_type const *d, size_type num)
 INLINE int _show_dev_data_real(Real const *d, size_type num)
 {
     Real *buffer;
-    SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
+    SP_CALL(spMemoryHostAlloc((void **) &buffer, num * sizeof(Real)));
     SP_CALL(spMemoryCopy(buffer, d, num * sizeof(Real)));
 
 
@@ -77,7 +77,7 @@ INLINE int _show_dev_data_real(Real const *d, size_type num)
         printf("\t %f", buffer[i]);
     }
     printf("\n");
-    SP_CALL(spMemHostFree((void **) &buffer));
+    SP_CALL(spMemoryHostFree((void **) &buffer));
 
     return SP_SUCCESS;
 }

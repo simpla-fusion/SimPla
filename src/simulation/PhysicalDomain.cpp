@@ -13,25 +13,25 @@ struct PhysicalDomain::pimpl_s
 {
 //    Real m_dt_ = 0;
 //    Real m_time_ = 0;
-    std::map<std::string, mesh::Attribute *> m_attr_;
+    std::map<std::string, mesh::AttributeBase *> m_attr_;
 //    parallel::DistributedObject m_dist_obj_;
 };
 
 PhysicalDomain::PhysicalDomain() : m_mesh_(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) {}
 
-PhysicalDomain::PhysicalDomain(std::shared_ptr<const mesh::Block> msh) : m_mesh_(msh), m_next_(nullptr),
+PhysicalDomain::PhysicalDomain(std::shared_ptr<const mesh::MeshBase> msh) : m_mesh_(msh), m_next_(nullptr),
                                                                          m_pimpl_(new pimpl_s) {};
 
 PhysicalDomain::~PhysicalDomain() { teardown(); }
 
 
-const mesh::Attribute *
+const mesh::AttributeBase *
 PhysicalDomain::attribute(std::string const &s_name) const
 {
     return m_pimpl_->m_attr_.at(s_name);
 };
 
-void PhysicalDomain::add_attribute(mesh::Attribute *attr, std::string const &s_name)
+void PhysicalDomain::add_attribute(mesh::AttributeBase *attr, std::string const &s_name)
 {
     m_pimpl_->m_attr_.emplace(std::make_pair(s_name, attr));
 };
@@ -48,7 +48,7 @@ void PhysicalDomain::teardown()
 };
 
 std::shared_ptr<PhysicalDomain>
-PhysicalDomain::clone(mesh::Block const &) const
+PhysicalDomain::clone(mesh::MeshBase const &) const
 {
     UNIMPLEMENTED;
     return std::shared_ptr<PhysicalDomain>(nullptr);
@@ -64,7 +64,7 @@ PhysicalDomain::clone(mesh::Block const &) const
 //    {
 //        next_time_step(inc_t);
 //
-////        sync();
+//        sync();
 //
 //        time(time() + inc_t);
 //    }
@@ -119,7 +119,7 @@ PhysicalDomain::save(toolbox::IOStream &os, int flag) const
             {
                 os.open(item.first + "/");
 #ifndef NDEBUG
-                os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_ALL), flag);
+                os.write(m_mesh_->name(), item.second->dataset(), flag);
 #else
                 os.write(m_mesh_->name(), item.second->dataset(mesh::SP_ES_OWNED), flag);
 #endif
@@ -137,7 +137,7 @@ PhysicalDomain::save(toolbox::IOStream &os, int flag) const
             {
                 os.open(key + "/");
 #ifndef NDEBUG
-                os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_ALL), flag);
+                os.write(m_mesh_->name(), it->second->dataset(), flag);
 #else
                 os.write(m_mesh_->name(), it->second->dataset(mesh::SP_ES_OWNED), flag);
 #endif
@@ -150,20 +150,12 @@ PhysicalDomain::save(toolbox::IOStream &os, int flag) const
 };
 
 
-void PhysicalDomain::sync(mesh::TransitionMap const &t_map, PhysicalDomain const &other)
+void PhysicalDomain::sync(mesh::TransitionMapBase const &t_map, PhysicalDomain const &other)
 {
-    for (auto const &item:m_pimpl_->m_attr_)
-    {
-        if (!item.second->empty())
-        {
-            t_map.pull_back(item.second->data().get(), other.attribute(item.first)->data().get(),
-                            item.second->entity_size_in_byte(), item.second->entity_type());
-        }
-
-    }
+//    for (auto const &item:m_pimpl_->m_attr_) { if (!item.second->empty()) { item.second->map(t_map, other); }}
 }
 
-bool PhysicalDomain::same_as(mesh::Block const &) const
+bool PhysicalDomain::same_as(mesh::MeshBase const &) const
 {
     UNIMPLEMENTED;
     return false;
@@ -175,9 +167,9 @@ bool PhysicalDomain::same_as(mesh::Block const &) const
 //    return std::vector<mesh::box_type>();
 //}
 //
-//void PhysicalDomain::refine(mesh::Block const &other) { UNIMPLEMENTED; };
+//void PhysicalDomain::refine(mesh::MeshBase const &other) { UNIMPLEMENTED; };
 //
-//bool PhysicalDomain::coarsen(mesh::Block const &other)
+//bool PhysicalDomain::coarsen(mesh::MeshBase const &other)
 //{
 //    UNIMPLEMENTED;
 //    return false;

@@ -11,7 +11,7 @@
 #include "../toolbox/Log.h"
 #include "../toolbox/nTuple.h"
 #include "MeshCommon.h"
-#include "Block.h"
+#include "MeshBase.h"
 #include "TransitionMap.h"
 
 namespace simpla { namespace mesh
@@ -30,41 +30,41 @@ class Atlas
 {
 public:
 
-    Block::id_type add_block(std::shared_ptr<Block> p_m);
+    MeshBase::id_type add_block(std::shared_ptr<MeshBase> p_m);
 
-    std::shared_ptr<Block> get_block(Block::id_type m_id) const;
+    std::shared_ptr<MeshBase> get_block(MeshBase::id_type m_id) const;
 
-    void remove_block(Block::id_type const &m_id);
+    void remove_block(MeshBase::id_type const &m_id);
 
-    std::map<Block::id_type, std::shared_ptr<Block>> const &at_level(int l = 0) const { return m_nodes_; };
+    std::map<MeshBase::id_type, std::shared_ptr<MeshBase>> const &at_level(int l = 0) const { return m_nodes_; };
 
 
-    std::shared_ptr<TransitionMap> add_adjacency(std::shared_ptr<TransitionMap>);
+    std::shared_ptr<TransitionMapBase> add_adjacency(std::shared_ptr<TransitionMapBase>);
 
-    std::shared_ptr<TransitionMap>
-    add_adjacency(std::shared_ptr<const Block> first, std::shared_ptr<const Block> second);
+    std::shared_ptr<TransitionMapBase>
+    add_adjacency(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second);
 
-    std::shared_ptr<TransitionMap>
+    std::shared_ptr<TransitionMapBase>
     add_adjacency(MeshBlockId first, MeshBlockId second);
 
-    std::tuple<std::shared_ptr<TransitionMap>, std::shared_ptr<TransitionMap>>
-    add_connection(std::shared_ptr<const Block> first, std::shared_ptr<const Block> second);
+    std::tuple<std::shared_ptr<TransitionMapBase>, std::shared_ptr<TransitionMapBase>>
+    add_connection(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second);
 
 //#ifndef NDEBUG
 //    private:
 //#endif
-    typedef std::multimap<Block::id_type, std::shared_ptr<TransitionMap>> adjacency_list_t;
+    typedef std::multimap<MeshBase::id_type, std::shared_ptr<TransitionMapBase>> adjacency_list_t;
 
     adjacency_list_t m_adjacency_list_;
 
-    std::map<Block::id_type, std::shared_ptr<Block>> m_nodes_;
+    std::map<MeshBase::id_type, std::shared_ptr<MeshBase>> m_nodes_;
 
-    std::multimap<Block::id_type, std::shared_ptr<TransitionMap>> m_out_edge_;
-    std::multimap<Block::id_type, std::shared_ptr<TransitionMap>> m_in_edge_;
+    std::multimap<MeshBase::id_type, std::shared_ptr<TransitionMapBase>> m_out_edge_;
+    std::multimap<MeshBase::id_type, std::shared_ptr<TransitionMapBase>> m_in_edge_;
 
 public:
     std::pair<typename adjacency_list_t::const_iterator, typename adjacency_list_t::const_iterator>
-    get_adjacencies(Block::id_type first) const { return m_adjacency_list_.equal_range(first); }
+    get_adjacencies(MeshBase::id_type first) const { return m_adjacency_list_.equal_range(first); }
 
 
 };

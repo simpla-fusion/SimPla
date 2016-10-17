@@ -16,7 +16,7 @@ int printArray(const void *d, int type_tag, int ndims, size_type const *dims)
         size_in_byte *= dims[i];
     }
     void *buffer;
-    SP_CALL(spMemHostAlloc(&buffer, size_in_byte));
+    SP_CALL(spMemoryHostAlloc(&buffer, size_in_byte));
     SP_CALL(spMemoryCopy(buffer, d, size_in_byte));
 
 
@@ -45,7 +45,7 @@ int printArray(const void *d, int type_tag, int ndims, size_type const *dims)
     }
 
     printf("\n");
-    SP_CALL(spMemHostFree(&buffer));
+    SP_CALL(spMemoryHostFree(&buffer));
     return SP_SUCCESS;
 };
 
@@ -55,7 +55,7 @@ int printList(const void *d, int type_tag, size_type num)
     size_type size_in_byte = num * spDataTypeSizeInByte(type_tag);
 
     void *buffer;
-    SP_CALL(spMemHostAlloc(&buffer, size_in_byte));
+    SP_CALL(spMemoryHostAlloc(&buffer, size_in_byte));
     SP_CALL(spMemoryCopy(buffer, d, size_in_byte));
 
     size_type dims[2] = {num / 10 + 1, 10};
@@ -73,6 +73,6 @@ int printList(const void *d, int type_tag, size_type num)
         if (type_tag == SP_TYPE_Real) { printf(" %8.2f ", ((Real *) buffer)[s]); }
         else if (type_tag == SP_TYPE_size_type) { printf(" %8lu ", ((size_type *) buffer)[s]); }
     }
-    SP_CALL(spMemHostFree(&buffer));
+    SP_CALL(spMemoryHostFree(&buffer));
     return SP_SUCCESS;
 };

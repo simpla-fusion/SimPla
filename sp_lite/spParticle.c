@@ -247,8 +247,8 @@ int spParticleDeploy(spParticle *sp)
     {
         SP_CALL(spMemoryDeviceAlloc(&(sp->m_attrs_[i].data),
                                     spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
-        SP_CALL(spMemSet((sp->m_attrs_[i].data), 0,
-                         spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
+        SP_CALL(spMemorySet((sp->m_attrs_[i].data), 0,
+                            spDataTypeSizeInByte(sp->m_attrs_[i].data_type) * sp->m_max_num_of_particle_));
     }
     int num_of_attr = spParticleGetNumberOfAttributes(sp);
     void *d[num_of_attr];
@@ -467,7 +467,7 @@ int spParticleSync(spParticle *sp)
 //        size_type strides[3];
 //        SP_CALL(spMeshGetStrides(m, strides));
 //        size_type num = spParticleSize(sp);
-//        SP_CALL(spMemHostAlloc((void **) &buffer, num * sizeof(Real)));
+//        SP_CALL(spMemoryHostAlloc((void **) &buffer, num * sizeof(Real)));
 //        SP_CALL(spMemoryCopy(buffer, spParticleGetAttributeData(sp, 5), num * sizeof(Real)));
 //
 //        printf("\n***************************************\n");
@@ -487,7 +487,7 @@ int spParticleSync(spParticle *sp)
 //
 //        }
 //        printf("\n");
-//        SP_CALL(spMemHostFree((void **) &buffer));
+//        SP_CALL(spMemoryHostFree((void **) &buffer));
 //    }
 
 /**  @}*/
@@ -531,11 +531,11 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
 
         if (new_total_size_in_byte != total_size_in_byte)
         {
-            SP_CALL(spMemHostFree(&buffer));
+            SP_CALL(spMemoryHostFree(&buffer));
 
             total_size_in_byte = new_total_size_in_byte;
 
-            SP_CALL(spMemHostAlloc(&buffer, total_size_in_byte));
+            SP_CALL(spMemoryHostAlloc(&buffer, total_size_in_byte));
         }
 
         SP_CALL(spMemoryCopy(buffer, sp->m_attrs_[i].data, total_size_in_byte));
@@ -555,7 +555,7 @@ spParticleWrite(const spParticle *sp, spIOStream *os, const char *name, int flag
                                       flag));
     }
 
-    SP_CALL(spMemHostFree(&buffer));
+    SP_CALL(spMemoryHostFree(&buffer));
 
     SP_CALL(spIOStreamOpen(os, curr_path));
 

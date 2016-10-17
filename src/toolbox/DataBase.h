@@ -58,7 +58,6 @@ class DataBase : public DataEntity
 {
 public:
 
-
     DataBase() {};
 
     virtual  ~DataBase() {};

@@ -56,12 +56,12 @@ mesh::Atlas const &
 Context::get_mesh_atlas() const { return m_pimpl_->m_atlas_; };
 
 mesh::MeshBlockId
-Context::add_mesh(std::shared_ptr<mesh::Block> m) { return m_pimpl_->m_atlas_.add_block(m); }
+Context::add_mesh(std::shared_ptr<mesh::MeshBase> m) { return m_pimpl_->m_atlas_.add_block(m); }
 
-std::shared_ptr<const mesh::Block>
+std::shared_ptr<const mesh::MeshBase>
 Context::get_mesh_block(mesh::MeshBlockId id) const { return m_pimpl_->m_atlas_.get_block(id); }
 
-std::shared_ptr<mesh::Block>
+std::shared_ptr<mesh::MeshBase>
 Context::get_mesh_block(mesh::MeshBlockId id) { return m_pimpl_->m_atlas_.get_block(id); }
 
 std::shared_ptr<PhysicalDomain>

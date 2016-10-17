@@ -123,7 +123,7 @@ int spFieldClear(spField *f)
 {
     SP_CALL(spFieldDeploy(f));
 
-    SP_CALL(spMemSet(f->m_data_, 0, spFieldGetSizeInByte(f)));
+    SP_CALL(spMemorySet(f->m_data_, 0, spFieldGetSizeInByte(f)));
 
     return SP_SUCCESS;
 }
@@ -164,7 +164,7 @@ int spFieldShow(const spField *f, char const *name)
 
 
 //    void *buffer;
-//    SP_CALL(spMemHostAlloc((void **) &buffer, spFieldGetSizeInByte(f)));
+//    SP_CALL(spMemoryHostAlloc((void **) &buffer, spFieldGetSizeInByte(f)));
 //    SP_CALL(spMemoryCopy(buffer, spFieldData((spField *) f), spFieldGetSizeInByte(f)));
 //
 //    if (name != NULL) { printf("\n [ %s ]", name); }
@@ -195,7 +195,7 @@ int spFieldShow(const spField *f, char const *name)
 //
 //
 //    printf("\n");
-//    SP_CALL(spMemHostFree(&buffer));
+//    SP_CALL(spMemoryHostFree(&buffer));
     return SP_SUCCESS;
 }
 
@@ -234,7 +234,7 @@ int spFieldWrite(spField *f, spIOStream *os, char const name[], int flag)
                                   g_dims, g_start, flag));
 
 
-    SP_CALL(spMemHostFree(&f_host));
+    SP_CALL(spMemoryHostFree(&f_host));
 
 
     return SP_SUCCESS;
@@ -292,7 +292,7 @@ int spFeildAssign(spField *f, size_type num_of_points, size_type *offset, Real c
 int spFieldCopyToHost(void **d, spField const *f)
 {
     size_type s = spFieldGetSizeInByte(f);
-    SP_CALL(spMemHostAlloc(d, s));
+    SP_CALL(spMemoryHostAlloc(d, s));
     SP_CALL(spMemoryCopy(*d, f->m_data_, s));
     return SP_SUCCESS;
 };
