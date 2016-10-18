@@ -152,19 +152,21 @@ public:
 
     inline value_type const &operator[](mesh::MeshEntityId const &s) const { return get(s); }
 
+
     template<typename TOP> void
-    apply(TOP const &op, EntityRange const &r0, value_type const &v)
+    apply(TOP const &op, value_type const &v, EntityRange const &r0)
     {
         deploy();
         r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), v); });
     }
 
-    template<typename TOP, typename TOther> void
-    apply(TOP const &op, EntityRange const &r0, TOther const &fun)
+    template<typename TOP, typename TFun> void
+    apply(TOP const &op, TFun const &fun, EntityRange const &r0)
     {
         deploy();
         r0.foreach([&](MeshEntityId const &s) { op(get(s), fun(s)); });
     }
+
 
     template<typename TOP> void
     apply(TOP const &op, value_type const &v)
@@ -177,7 +179,7 @@ public:
     apply(TOP const &op, TFun const &fun)
     {
         deploy();
-        m_mesh_->foreach(iform, [&](MeshEntityId const &s) { op(get(s), fun(s)); });
+        m_mesh_->foreach(iform, [&](mesh::MeshEntityId const &s) { op(get(s), fun(s)); });
     }
 
 

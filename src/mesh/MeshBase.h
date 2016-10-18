@@ -279,6 +279,21 @@ public:
 
     void foreach(int iform, std::function<void(MeshEntityId const &)> const &) const;
 
+    template<typename TFun>
+    void foreach(int iform, TFun const &fun) const
+    {
+        int n = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
+#pragma omp parallel for
+        for (index_type i = 0; i < m_b_dimensions_[0]; ++i)
+            for (index_type j = 0; j < m_b_dimensions_[1]; ++j)
+                for (index_type k = 0; k < m_b_dimensions_[2]; ++k)
+                    for (int l = 0; l < n; ++l)
+                    {
+                        fun(pack(m_l_offset_[0] + i, m_l_offset_[1] + j, m_l_offset_[2] + k, l));
+                    }
+    }
+
+
     virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s,
                                       MeshEntityId *p = nullptr) const
     {
@@ -290,6 +305,7 @@ public:
     {
         return m::unpack_index(std::get<0>(m::point_global_to_local(g, nId)));
     };
+
 
     Real time() const { return m_time_; }
 

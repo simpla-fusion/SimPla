@@ -116,44 +116,80 @@ public:
     }
 
     /* @}*/
-    template<typename TOP, typename Others> void
-    _apply(TOP const &op, Others const &others)
+    template<typename ...Args> void
+    assign(Args &&... args) { _apply(_impl::_assign(), std::forward<Args>(args)...); }
+
+    template<typename ...Args> void
+    apply(Args &&... args) { _apply(std::forward<Args>(args)...); }
+
+private:
+    template<typename TOP, typename ...Others> void
+    _apply(TOP const &op, value_type const &v, Others &&...others)
     {
-        base_type::apply(op, [&](mesh::MeshEntityId const &s) -> value_type { return this->mesh()->eval(others, s); });
+        base_type::apply(op, v, std::forward<Others>(others)...);
     }
 
-    void assign(mesh::EntityRange const &r0, value_type const &v) { base_type::apply(_impl::_assign(), r0, v); }
-
-    template<typename TFun> void
-    assign(mesh::EntityRange const &r0, TFun const &op,
-           CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const&, field_value_type const &)))
+    template<typename TOP, typename ...Others> void
+    _apply(TOP const &op, this_type const &fexpr, Others &&...others)
     {
-        auto const &m = *this->mesh();
-        base_type::apply(
-                _impl::_assign(), r0,
-                [&](mesh::MeshEntityId const &s) -> value_type
-                {
-                    auto x = m.point(s);
-                    return m.template sample<IFORM>(s, op(x, this->gather(x)));
-                }
-        );
+        base_type::apply(op,
+                         [&](mesh::MeshEntityId const &s) -> value_type { return fexpr[s]; },
+                         std::forward<Others>(others)...);
     }
 
-    template<typename TFun> void
-    assign(mesh::EntityRange const &r0, TFun const &op,
-           CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const&)))
+    template<typename TOP, typename ...U, typename ...Others> void
+    _apply(TOP const &op, Field<U...> const &fexpr, Others &&...others)
     {
-        auto const &m = *this->mesh();
-
-        base_type::apply(
-                _impl::_assign(), r0,
-                [&](mesh::MeshEntityId const &s) -> value_type
-                {
-                    return m.template sample<IFORM>(s, op(m.point(s)));
-                });
+        base_type::apply(op,
+                         [&](mesh::MeshEntityId const &s) -> value_type { return this->m_mesh_->eval(fexpr, s); },
+                         std::forward<Others>(others)...);
     }
+
+public:
+
+    template<typename TOP, typename TFun, typename ...Others> void
+    apply_function(TOP const &op, TFun const &fexpr, Others &&...others)
+    {
+        base_type::apply(op,
+                         [&](mesh::MeshEntityId const &s) -> value_type
+                         {
+                             return this->m_mesh_->template sample<IFORM>(s, fexpr(s));
+                         },
+                         std::forward<Others>(others)...);
+    }
+
+
+
+//    template<typename TOP, typename TFun> void
+//    apply(TOP const &op, mesh::EntityRange const &r0, TFun const &fun,
+//          CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const&, field_value_type const &)))
+//    {
+//        auto const &m = *this->mesh();
+//        base_type::apply(op, r0,
+//                         [&](mesh::MeshEntityId const &s) -> value_type
+//                         {
+//                             auto x = m.point(s);
+//                             return m.template sample<IFORM>(s, fun(x, this->gather(x)));
+//                         }
+//        );
+//    }
+//
+//    template<typename TOP, typename TFun> void
+//    apply(TOP const &op, mesh::EntityRange const &r0, TFun const &fun,
+//          CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const&)))
+//    {
+//        auto const &m = *this->mesh();
+//
+//        base_type::apply(op, r0,
+//                         [&](mesh::MeshEntityId const &s) -> value_type
+//                         {
+//                             return m.template sample<IFORM>(s, fun(m.point(s)));
+//                         });
+//    }
 
 };
+
+
 }//namespace simpla
 
 //public:

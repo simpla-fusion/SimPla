@@ -66,10 +66,10 @@ public:
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
 
     EntityRange J_src_range;
-    std::function<Vec3(Real, point_type const &, vector_type const &v)> J_src_fun;
+    std::function<Vec3(Real, point_type const &)> J_src_fun;
 
     EntityRange E_src_range;
-    std::function<Vec3(Real, point_type const &, vector_type const &v)> E_src_fun;
+    std::function<Vec3(Real, point_type const &)> E_src_fun;
 
     typedef field_t<scalar_type, FACE> TB;
     typedef field_t<scalar_type, EDGE> TE;
@@ -187,14 +187,9 @@ void EMFluid<TM>::next_step(Real dt)
     {
         Real current_time = m->time();
 
-
-        J1.apply(_impl::plus_assign(), J_src_range,
-                 [&](mesh::MeshEntityId const &s) -> Real
-                 {
-                     auto x0 = m->point(s);
-                     auto v = J_src_fun(current_time, x0, J1(x0));
-                     return m->template sample<EDGE>(s, v);
-                 });
+        J1.apply_function(_impl::plus_assign(),
+                          [&](mesh::MeshEntityId const &s) -> Vec3 { return J_src_fun(current_time, m->point(s)); },
+                          J_src_range);
     }
 
 
@@ -202,21 +197,17 @@ void EMFluid<TM>::next_step(Real dt)
     {
         Real current_time = m->time();
 
-        E.apply(_impl::plus_assign(), E_src_range,
-                [&](mesh::MeshEntityId const &s) -> Real
-                {
-                    auto x0 = m->point(s);
-                    auto v = E_src_fun(current_time, x0, E(x0));
-                    return m->template sample<EDGE>(s, v);
-                });
+        E.apply_function(_impl::plus_assign(),
+                         [&](mesh::MeshEntityId const &s) -> Vec3 { return E_src_fun(current_time, m->point(s)); },
+                         E_src_range);
     }
 
 
     B -= curl(E) * (dt * 0.5);
-    B.assign(face_boundary, 0);
+    B.assign(0, face_boundary);
 
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
-    E.assign(edge_boundary, 0);
+    E.assign(0, edge_boundary);
 
 
     if (m_fluid_sp_.size() > 0)
@@ -294,7 +285,7 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
     B -= curl(E) * (dt * 0.5);
-    B.assign(face_boundary, 0);
+    B.assign(0, face_boundary);
 }
 
 }//namespace simpla  {

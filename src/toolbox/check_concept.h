@@ -328,7 +328,7 @@ private:
 
     template<typename _U>
     static auto test(int) ->
-            decltype(std::declval<_U>()[std::declval<_Args>()]);
+    decltype(std::declval<_U>()[std::declval<_Args>()]);
 
     template<typename> static no test(...);
 
@@ -395,7 +395,7 @@ private:
 
     template<typename _U>
     static auto test(int) ->
-            decltype(std::declval<_U>().operator*());
+    decltype(std::declval<_U>().operator*());
 
     template<typename> static no test(...);
 
@@ -430,6 +430,10 @@ template<typename, typename> struct is_indexable;
 #define ENABLE_IF(_COND_)  std::enable_if_t<_COND_> *__p = nullptr
 
 #define CHECK_FUNCTION_SIGNATURE(_RET_, _FUN_) std::enable_if_t<std::is_same<_RET_,std::result_of_t<_FUN_>>::value>*__p = nullptr
+
+template<typename ...>
+struct is_expression { static constexpr bool value = false; };
+
 }// namespace simpla
 
 #endif /* CORE_GPL_CHECK_CONCEPT_H_ */
