@@ -38,22 +38,19 @@ template<typename ...> struct TransitionMap;
  *
  *
  */
-struct TransitionMapBase
+struct TransitionMapBase : public toolbox::Object
 {
-    std::shared_ptr<MeshBase> m_dst_, m_src_;
 
     TransitionMapBase() {};
 
-    TransitionMapBase(MeshBase const &, MeshBase const &) {};
-
     virtual  ~TransitionMapBase() {};
 
-    virtual point_type map(point_type const &x) const { return x; }
+    virtual MeshBase::id_type from_id() const =0;
 
-    point_type operator()(point_type const &x) const { return map(x); }
-
+    virtual MeshBase::id_type to_id() const =0;
+//    virtual point_type map(point_type const &x) const { return x; }
+//    point_type operator()(point_type const &x) const { return map(x); }
 //    virtual void push_forward(AttributeBase const &src, AttributeBase *dest) const =0;
-//
 //    virtual void pull_back(AttributeBase const &src, AttributeBase *dest) const =0;
 
 
@@ -61,36 +58,23 @@ struct TransitionMapBase
 
 
 template<typename M, typename N>
-struct TransitionMap<M, N> :
-        public TransitionMapBase
+struct TransitionMap<M, N> : public TransitionMapBase
 {
+    typedef M l_mesh_type;
+    typedef M r_mesh_type;
+
+    std::shared_ptr<r_mesh_type> m_dst_;
+    std::shared_ptr<l_mesh_type> m_src_;
     MeshBase m_overlap_;
     EntityRange m_range0_;
 
-    virtual void push_forward(AttributeBase const &src, AttributeBase *dest) const
-    {
+    virtual MeshBase::id_type from_id() const { return m_src_->id(); };
 
+    virtual MeshBase::id_type to_id() const { return m_dst_->id(); };
 
-    };
+    TransitionMap(std::shared_ptr<l_mesh_type> const &left, std::shared_ptr<r_mesh_type> const &right)
+            : m_src_(left), m_dst_(right) {}
 
-    template<size_t I, typename TF, typename TG>
-    void push_forward_impl(index_const<I>, TF const &f, TG *g) const
-    {
-//        m_overlap_.range(I).foreach([&](MeshEntityId const &s) { (*g)[s] = f[s]; });
-    };
-
-
-
-    template<typename TDest, typename TSrc>
-    struct Visitor : public MeshAttributeVisitor<TSrc>
-    {
-
-    };
-
-    virtual void pull_back(AttributeBase const &src, AttributeBase *dest) const
-    {
-
-    };
 
 };
 

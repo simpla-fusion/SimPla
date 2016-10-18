@@ -123,6 +123,8 @@ public:
     apply(Args &&... args) { _apply(std::forward<Args>(args)...); }
 
 private:
+
+
     template<typename TOP, typename ...Others> void
     _apply(TOP const &op, value_type const &v, Others &&...others)
     {
@@ -141,7 +143,15 @@ private:
     _apply(TOP const &op, Field<U...> const &fexpr, Others &&...others)
     {
         base_type::apply(op,
-                         [&](mesh::MeshEntityId const &s) -> value_type { return this->m_mesh_->eval(fexpr, s); },
+                         [&](mesh::MeshEntityId const &s) -> value_type { return this->mesh()->eval(fexpr, s); },
+                         std::forward<Others>(others)...);
+    }
+
+    template<typename TOP, typename TFun, typename ...Others> void
+    _apply(TOP const &op, TFun const &fun, Others &&...others)
+    {
+        base_type::apply(op,
+                         [&](mesh::MeshEntityId const &s) { return fun(s); },
                          std::forward<Others>(others)...);
     }
 
@@ -153,73 +163,15 @@ public:
         base_type::apply(op,
                          [&](mesh::MeshEntityId const &s) -> value_type
                          {
-                             return this->m_mesh_->template sample<IFORM>(s, fexpr(s));
+                             return this->mesh()->template sample<IFORM>(s, fexpr(s));
                          },
                          std::forward<Others>(others)...);
     }
 
-
-
-//    template<typename TOP, typename TFun> void
-//    apply(TOP const &op, mesh::EntityRange const &r0, TFun const &fun,
-//          CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const&, field_value_type const &)))
-//    {
-//        auto const &m = *this->mesh();
-//        base_type::apply(op, r0,
-//                         [&](mesh::MeshEntityId const &s) -> value_type
-//                         {
-//                             auto x = m.point(s);
-//                             return m.template sample<IFORM>(s, fun(x, this->gather(x)));
-//                         }
-//        );
-//    }
-//
-//    template<typename TOP, typename TFun> void
-//    apply(TOP const &op, mesh::EntityRange const &r0, TFun const &fun,
-//          CHECK_FUNCTION_SIGNATURE(field_value_type, TFun(point_type const&)))
-//    {
-//        auto const &m = *this->mesh();
-//
-//        base_type::apply(op, r0,
-//                         [&](mesh::MeshEntityId const &s) -> value_type
-//                         {
-//                             return m.template sample<IFORM>(s, fun(m.point(s)));
-//                         });
-//    }
-
 };
-
 
 }//namespace simpla
 
-//public:
-//
-//
-//    template<typename TOP>
-//    this_type &
-//    apply(TOP const &op)
-//    {
-//        deploy();
-//
-////        apply(m_mesh_->range(iform, mesh::SP_ES_NON_LOCAL), op);
-////        base_type::nonblocking_sync();
-////        apply(m_mesh_->range(iform, mesh::SP_ES_LOCAL), op);
-////        base_type::wait();
-////        apply(m_mesh_->range(iform, mesh::SP_ES_VALID), op);
-//
-//        return *this;
-//    }
-//
-//    template<typename Other>
-//    this_type &
-//    fill(Other const &other)
-//    {
-//        this->deploy();
-//
-////        entity_id_range(mesh::SP_ES_ALL).foreach([&](mesh::MeshEntityId const &s) { get(s) = other; });
-//
-//        return *this;
-//    }
 
 
 

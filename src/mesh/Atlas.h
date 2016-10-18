@@ -40,22 +40,40 @@ public:
 
 
     std::shared_ptr<TransitionMapBase> add_adjacency(std::shared_ptr<TransitionMapBase>);
+//
+//    std::shared_ptr<TransitionMapBase>
+//    add_adjacency(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second);
+//
+//    std::shared_ptr<TransitionMapBase>
+//    add_adjacency(MeshBlockId first, MeshBlockId second);
+//
+//    std::tuple<std::shared_ptr<TransitionMapBase>, std::shared_ptr<TransitionMapBase>>
+//    add_connection(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second);
 
-    std::shared_ptr<TransitionMapBase>
-    add_adjacency(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second);
 
-    std::shared_ptr<TransitionMapBase>
-    add_adjacency(MeshBlockId first, MeshBlockId second);
+    template<typename TM, typename TN>
+    std::shared_ptr<TransitionMap<TM, TN> >
+    add_adjacency(std::shared_ptr<TM> const &first, std::shared_ptr<TN> const &second)
+    {
+        auto res = std::make_shared<TransitionMap<TM, TN>>(first, second);
+        add_adjacency(std::dynamic_pointer_cast<TransitionMapBase>(res));
+        return res;
+    }
 
-    std::tuple<std::shared_ptr<TransitionMapBase>, std::shared_ptr<TransitionMapBase>>
-    add_connection(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second);
+    template<typename TM, typename TN>
+    std::tuple<std::shared_ptr<TransitionMap<TM, TN> >, std::shared_ptr<TransitionMap<TN, TM> > >
+    add_connection(std::shared_ptr<TM> const &first, std::shared_ptr<TN> const &second)
+    {
+        return std::make_tuple(add_adjacency(first, second), add_adjacency(second, first));
+
+    };
 
 //#ifndef NDEBUG
 //    private:
 //#endif
     typedef std::multimap<MeshBase::id_type, std::shared_ptr<TransitionMapBase>> adjacency_list_t;
-
-    adjacency_list_t m_adjacency_list_;
+//
+//    adjacency_list_t m_adjacency_list_;
 
     std::map<MeshBase::id_type, std::shared_ptr<MeshBase>> m_nodes_;
 
@@ -64,7 +82,7 @@ public:
 
 public:
     std::pair<typename adjacency_list_t::const_iterator, typename adjacency_list_t::const_iterator>
-    get_adjacencies(MeshBase::id_type first) const { return m_adjacency_list_.equal_range(first); }
+    get_adjacencies(MeshBase::id_type first) const { return m_out_edge_.equal_range(first); }
 
 
 };

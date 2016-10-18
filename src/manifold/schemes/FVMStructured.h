@@ -11,6 +11,7 @@
 #include <complex>
 #include <cstddef>
 #include <type_traits>
+#include <armadillo>
 
 
 #include "../../toolbox/macro.h"
@@ -116,10 +117,9 @@ public:
     //! grad<0>
     template<typename T>
     inline traits::value_type_t<Field < Expression < ct::ExteriorDerivative, T>>>
-    eval(Field<Expression < ct::ExteriorDerivative, T>
-    > const &f,
-    MeshEntitId const &s,
-            index_sequence<mesh::VERTEX>
+    eval(Field<Expression < ct::ExteriorDerivative, T>>
+    const &f,
+    MeshEntitId const &s, index_sequence<mesh::VERTEX>
     ) const
     {
         MeshEntitId D = M::delta_index(s);
@@ -367,9 +367,9 @@ public:
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
+        auto X = M::DI(0, s);
+        auto Y = M::DI(1, s);
+        auto Z = M::DI(2, s);
 
         return (eval(l, s - X - Y - Z) +
                 eval(l, s - X - Y + Z) +

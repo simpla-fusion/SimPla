@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 #include "field_diff_calculus_test.h"
 #include "../Constants.h"
-#include "../../mesh/Chart.h"
+#include "../../mesh/Mesh.h"
 
 using namespace simpla;
 

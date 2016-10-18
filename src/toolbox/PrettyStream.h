@@ -9,6 +9,7 @@
 #define PRETTY_STREAM_H_
 
 #include <stddef.h>
+#include <iomanip>
 #include <complex>
 #include <list>
 #include <map>
@@ -47,13 +48,12 @@ printNdArray(std::ostream &os, TV const *v, int rank, TI const *d,
             {
                 os << std::endl;
             }
-            os << (*v);
+            os << std::setw(10) << (*v);
             ++v;
         }
         os << right_brace << std::endl;
         return v;
-    }
-    else
+    } else
     {
 
         os << left_brace;

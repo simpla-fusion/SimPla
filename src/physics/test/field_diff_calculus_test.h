@@ -28,7 +28,7 @@
 
 
 #include "../../toolbox/Log.h"
-#include "../../mesh/Chart.h"
+#include "../../mesh/Mesh.h"
 
 
 using namespace simpla;
@@ -68,7 +68,8 @@ protected:
 #endif
         m.box(box);
         m.deploy();
-        Vec3 dx = m.dx();
+        Vec3 dx;
+        dx = m.dx();
         point_type xm;
         xm = (std::get<0>(box) + std::get<1>(box)) * 0.5;
         K_imag = 0;
@@ -88,7 +89,7 @@ protected:
         one = 1;
     }
 
-    void TearDown() { }
+    void TearDown() {}
 
 public:
     typedef Real value_type;
@@ -127,6 +128,7 @@ public:
 
 TEST_P(FETLTest, grad0)
 {
+    typedef MeshEntityIdCoder M;
 
     auto f0 = make_field<value_type, VERTEX>();
     auto f1 = make_field<value_type, EDGE>();
@@ -145,10 +147,10 @@ TEST_P(FETLTest, grad0)
     value_type average;
     average *= 0.0;
 
-    m.range(EDGE).foreach(
+    m.range(EDGE, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId s)
             {
-                int n = m.sub_index(s);
+                int n = M::sub_index(s);
                 auto x = m.point(s);
                 value_type expect;
                 expect = K_real[n] * std::cos(q(x))
@@ -179,6 +181,8 @@ TEST_P(FETLTest, grad0)
 
 TEST_P(FETLTest, grad3)
 {
+    typedef MeshEntityIdCoder M;
+
     auto f2 = make_field<value_type, FACE>();
     auto f2b = make_field<value_type, FACE>();
     auto f3 = make_field<value_type, VOLUME>();
@@ -194,10 +198,10 @@ TEST_P(FETLTest, grad3)
     Real variance = 0;
     value_type average = one * 0;
 
-    m.range(FACE).foreach(
+    m.range(FACE, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId s)
             {
-                int n = m.sub_index(s);
+                int n = M::sub_index(s);
                 auto x = m.point(s);
                 value_type expect;
                 expect = K_real[n] * std::cos(q(x));
@@ -228,6 +232,7 @@ TEST_P(FETLTest, grad3)
 
 TEST_P(FETLTest, diverge1)
 {
+    typedef MeshEntityIdCoder M;
 
     auto f1 = make_field<value_type, EDGE>();
     auto f0 = make_field<value_type, VERTEX>();
@@ -242,7 +247,7 @@ TEST_P(FETLTest, diverge1)
     m.range(EDGE, SP_ES_ALL).foreach(
             [&](mesh::MeshEntityId s)
             {
-                f1[s] = E[m.sub_index(s)] * std::sin(q(m.point(s)));
+                f1[s] = E[M::sub_index(s)] * std::sin(q(m.point(s)));
             });
 
     LOG_CMD(f0 = diverge(f1));
@@ -280,7 +285,7 @@ TEST_P(FETLTest, diverge1)
 
 TEST_P(FETLTest, diverge2)
 {
-
+    typedef MeshEntityIdCoder M;
     auto f2 = make_field<value_type, FACE>();
     auto f3 = make_field<value_type, VOLUME>();
     auto f3b = make_field<value_type, VOLUME>();
@@ -345,7 +350,7 @@ TEST_P(FETLTest, diverge2)
 
 TEST_P(FETLTest, curl1)
 {
-
+    typedef MeshEntityIdCoder M;
 
     auto f1 = make_field<value_type, EDGE>();
     auto f1b = make_field<value_type, EDGE>();
@@ -367,17 +372,18 @@ TEST_P(FETLTest, curl1)
 
     nTuple<Real, 3> E = {1, 1, 1};
 
-    m.range(EDGE, SP_ES_ALL).foreach([&](mesh::MeshEntityId s)
-                                       {
-                                           f1[s] = E[m.sub_index(s)] * std::sin(q(m.point(s)));
-                                       });
+    m.range(EDGE, SP_ES_ALL).foreach(
+            [&](mesh::MeshEntityId s)
+            {
+                f1[s] = E[M::sub_index(s)] * std::sin(q(m.point(s)));
+            });
 
     LOG_CMD(f2 = curl(f1));
 
     m.range(FACE).foreach(
             [&](mesh::MeshEntityId s)
             {
-                auto n = m.sub_index(s);
+                auto n = M::sub_index(s);
 
                 auto x = m.point(s);
 
@@ -450,7 +456,7 @@ TEST_P(FETLTest, curl1)
 TEST_P(FETLTest, curl2)
 {
 
-
+    typedef MeshEntityIdCoder M;
     auto f1 = make_field<value_type, EDGE>();
     auto f1b = make_field<value_type, EDGE>();
     auto f2 = make_field<value_type, FACE>();
@@ -467,7 +473,7 @@ TEST_P(FETLTest, curl2)
     nTuple<Real, 3> E = {1, 2, 3};
 
     m.range(FACE, SP_ES_ALL).foreach(
-            [&](mesh::MeshEntityId s) { f2[s] = E[m.sub_index(s)] * std::sin(q(m.point(s))); });
+            [&](mesh::MeshEntityId s) { f2[s] = E[M::sub_index(s)] * std::sin(q(m.point(s))); });
 
 
     LOG_CMD(f1 = curl(f2));
@@ -477,7 +483,7 @@ TEST_P(FETLTest, curl2)
             [&](mesh::MeshEntityId s)
             {
 
-                auto n = m.sub_index(s);
+                auto n = M::sub_index(s);
                 auto x = m.point(s);
                 value_type expect;
 
@@ -558,7 +564,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
     Real variance_a = 0;
     Real variance_b = 0;
 
-    m.range(FACE).foreach(
+    m.range(FACE, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId s)
             {
                 variance_a += mod(f2a[s]);
@@ -601,7 +607,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
     size_t count = 0;
     Real variance_a = 0;
     Real variance_b = 0;
-    m.range(EDGE).foreach(
+    m.range(EDGE, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId s)
             {
                 variance_a += mod(f1a[s]);
@@ -628,7 +634,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 
     f2.clear();
     Real mean = 0.0;
-    m.range(FACE).foreach(
+    m.range(FACE, SP_ES_ALL).foreach(
             [&](mesh::MeshEntityId s)
             {
                 auto a = uniform_dist(gen);
@@ -646,7 +652,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
     Real variance_a = 0;
     Real variance_b = 0;
 
-    m.range(VERTEX).foreach(
+    m.range(VERTEX, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId s)
             {
                 variance_b += mod(f0b[s] * f0b[s]);
@@ -672,11 +678,13 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
     f1.clear();
 
     Real mean = 0.0;
-    m.range(EDGE).foreach(
+    size_type count = 0;
+    m.range(EDGE, SP_ES_ALL).foreach(
             [&](mesh::MeshEntityId s)
             {
                 auto a = uniform_dist(gen);
-                f1[s] = one * a;
+                f1[s] = count;// one * a;
+                ++count;
                 mean += a * a;
             });
 //    f1.sync();

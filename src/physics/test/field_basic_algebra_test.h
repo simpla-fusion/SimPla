@@ -138,14 +138,13 @@ TYPED_TEST_P(TestField, constant_real)
 
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.entity_id_range().foreach([&](mesh::MeshEntityId s) { f1[s] = va * uniform_dist(gen); });
-
-    f2.entity_id_range().foreach([&](mesh::MeshEntityId s) { f2[s] = vb * uniform_dist(gen); });
+    f1.assign([&](mesh::MeshEntityId s) { return va * uniform_dist(gen); });
+    f2.assign([&](mesh::MeshEntityId s) { return vb * uniform_dist(gen); });
 
 
     LOG_CMD(f3 = -f1 + f1 * a + f2 * c - f1 / b);
 
-    f3.entity_id_range().foreach(
+    f3.mesh()->range(f3.entity_type()).foreach(
             [&](mesh::MeshEntityId s)
             {
                 value_type expect;
@@ -182,9 +181,9 @@ TYPED_TEST_P(TestField, scalarField)
     vb = rb;
     vc = rc;
 
-    a = ra;
-    b = rb;
-    c = rc;
+    a = (va);
+    b = (vb);
+    c = (vc);
 
     f1.deploy();
     f2.deploy();
@@ -196,11 +195,9 @@ TYPED_TEST_P(TestField, scalarField)
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.entity_id_range().foreach([&](mesh::MeshEntityId s) { f1[s] = va * uniform_dist(gen); });
-
-    f2.entity_id_range().foreach([&](mesh::MeshEntityId s) { f2[s] = vb * uniform_dist(gen); });
-
-    f3.entity_id_range().foreach([&](mesh::MeshEntityId s) { f3[s] = vc * uniform_dist(gen); });
+    f1.assign([&](mesh::MeshEntityId s) { return va * uniform_dist(gen); });
+    f2.assign([&](mesh::MeshEntityId s) { return vb * uniform_dist(gen); });
+    f3.assign([&](mesh::MeshEntityId s) { return vc * uniform_dist(gen); });
 
     LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
 

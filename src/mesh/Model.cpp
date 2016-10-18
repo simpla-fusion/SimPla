@@ -69,13 +69,13 @@ void Model::remove(EntityRange const &r, distance_fun_t const distance)
 
 void Model::deploy()
 {
-    m->foreach(VOLUME,
-                [&](MeshEntityId const &s)
-                {
-                    typename pimpl_s::volume_cache_type::accessor acc;
-                    m_pimpl_->m_volume_cache.insert(acc, s);
-                    acc->second = check(s);
-                }
+    m->range(VOLUME).foreach(
+            [&](MeshEntityId const &s)
+            {
+                typename pimpl_s::volume_cache_type::accessor acc;
+                m_pimpl_->m_volume_cache.insert(acc, s);
+                acc->second = check(s);
+            }
     );
 };
 
@@ -164,7 +164,7 @@ EntityRange Model::inside(MeshEntityType iform)
             break;
         case EDGE:
         case FACE:
-            m->foreach(iform, [&](MeshEntityId const &s) { if (check(s) == INSIDE) { res.insert(s); }});
+            m->range(iform).foreach([&](MeshEntityId const &s) { if (check(s) == INSIDE) { res.insert(s); }});
             break;
         default:// case VOLUME:
             for (auto const &v_item:m_pimpl_->m_volume_cache)
@@ -195,7 +195,7 @@ EntityRange Model::outside(MeshEntityType iform)
             break;
         case EDGE:
         case FACE:
-            m->foreach(iform, [&](MeshEntityId const &s) { if (check(s) == OUTSIDE) { res.insert(s); }});
+            m->range(iform).foreach([&](MeshEntityId const &s) { if (check(s) == OUTSIDE) { res.insert(s); }});
             break;
         default:// case VOLUME:
             for (auto const &v_item:m_pimpl_->m_volume_cache)

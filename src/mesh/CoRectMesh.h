@@ -114,11 +114,13 @@ public:
         return std::make_tuple(lower, upper);
     }
 
-    box_type dx() const
+    Vec3 dx() const
     {
-        point_type upper;
-        upper = m_origin_ + m_dx_ * MeshBase::dimensions();
-        return std::make_tuple(m_origin_, upper);
+//        point_type upper;
+//        upper = m_origin_ + m_dx_ * MeshBase::dimensions();
+//        return std::make_tuple(m_origin_, upper);
+//
+        return m_dx_;
     }
 
 
@@ -177,7 +179,8 @@ public:
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
 
-    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const { return std::shared_ptr<MeshBase>(); }
+    virtual std::shared_ptr<MeshBase>
+    refine(box_type const &b, int flag = 0) const { return std::shared_ptr<MeshBase>(); }
 
 
 private:

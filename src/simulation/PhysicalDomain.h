@@ -8,7 +8,7 @@
 #define SIMPLA_PHYSICALDOMAIN_H
 
 #include <memory>
-#include "../sp_def.h"
+#include "SIMPLA_config.h"
 #include "../toolbox/Object.h"
 #include "../toolbox/Log.h"
 #include "../toolbox/Properties.h"
@@ -19,19 +19,6 @@
 #include "../mesh/TransitionMap.h"
 #include "../mesh/Attribute.h"
 
-
-namespace simpla
-{
-namespace io { struct IOStream; }
-namespace parallel { struct DistributedObject; }
-
-namespace mesh
-{
-class MeshBase;
-
-class AttributeBase;
-} //namespace get_mesh
-} //namespace simpla
 
 namespace simpla { namespace simulation
 {
@@ -99,7 +86,7 @@ public:
     template<typename TF>
     void global_declare(TF *attr, std::string const &s_name)
     {
-        static_assert(std::is_base_of<mesh::AttributeBase, TF>::value, "illegal Mesh convert");
+        static_assert(std::is_base_of<mesh::AttributeBase, TF>::value, "illegal type convertion");
         add_attribute(dynamic_cast<mesh::AttributeBase *>(attr), s_name);
     };
 

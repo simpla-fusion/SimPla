@@ -28,27 +28,29 @@ Atlas::get_block(mesh::MeshBlockId m_id) const
 std::shared_ptr<TransitionMapBase>
 Atlas::add_adjacency(std::shared_ptr<TransitionMapBase> t_map)
 {
-    auto res = m_adjacency_list_.emplace(t_map->m_dst_->id(), t_map);
-    return res->second;
-}
 
-std::shared_ptr<TransitionMapBase>
-Atlas::add_adjacency(MeshBlockId first, MeshBlockId second)
-{
-    return add_adjacency(get_block(first), get_block(second));
+    m_out_edge_.emplace(t_map->from_id(), t_map);
+    m_in_edge_.emplace(t_map->to_id(), t_map);
+    return t_map;
 }
-
-std::shared_ptr<TransitionMapBase>
-Atlas::add_adjacency(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second)
-{
-    return add_adjacency(std::make_shared<TransitionMapBase>(*first, *second));
-}
-
-std::tuple<std::shared_ptr<TransitionMapBase>, std::shared_ptr<TransitionMapBase>>
-Atlas::add_connection(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second)
-{
-    return std::make_tuple(add_adjacency(first, second), add_adjacency(second, first));
-}
+//
+//std::shared_ptr<TransitionMapBase>
+//Atlas::add_adjacency(MeshBlockId first, MeshBlockId second)
+//{
+//    return add_adjacency(get_block(first), get_block(second));
+//}
+//
+//std::shared_ptr<TransitionMapBase>
+//Atlas::add_adjacency(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second)
+//{
+//    return add_adjacency(std::make_shared<TransitionMapBase>(*first, *second));
+//}
+//
+//std::tuple<std::shared_ptr<TransitionMapBase>, std::shared_ptr<TransitionMapBase>>
+//Atlas::add_connection(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second)
+//{
+//    return std::make_tuple(add_adjacency(first, second), add_adjacency(second, first));
+//}
 
 
 }}//namespace simpla{namespace mesh{

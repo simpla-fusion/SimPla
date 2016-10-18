@@ -33,29 +33,24 @@ struct Expression<TOP, Args...>
 {
     typedef Expression<TOP, Args...> this_type;
 
-    typename std::tuple<traits::reference_t < Args> ...>
-    args;
+    typename std::tuple<typename traits::reference<Args>::type...> args;
 
     TOP m_op_;
 
-    Expression(this_type const &that)
-        : args(that.args), m_op_(that.m_op_) { }
+    Expression(this_type const &that) : args(that.args), m_op_(that.m_op_) {}
 
-    Expression(this_type &&that)
-        : args(that.args), m_op_(that.m_op_) { }
+    Expression(this_type &&that) : args(that.args), m_op_(that.m_op_) {}
 
-    Expression(Args const &... pargs)
-        : args(pargs ...), m_op_() { }
+    Expression(Args const &... pargs) : args(pargs ...), m_op_() {}
 
-    Expression(TOP op, Args const &... pargs)
-        : args(pargs ...), m_op_(op) { }
+    Expression(TOP op, Args const &... pargs) : args(pargs ...), m_op_(op) {}
 
-    ~Expression() { }
+    ~Expression() {}
 
 };
 
 template<typename TOP, typename TL, typename TR>
-class BooleanExpression<TOP, TL, TR>: public Expression<TOP, TL, TR>
+class BooleanExpression<TOP, TL, TR> : public Expression<TOP, TL, TR>
 {
     using Expression<TOP, TL, TR>::Expression;
 
@@ -63,7 +58,7 @@ class BooleanExpression<TOP, TL, TR>: public Expression<TOP, TL, TR>
 };
 
 template<typename TOP, typename TL>
-class BooleanExpression<TOP, TL>: public Expression<TOP, TL>
+class BooleanExpression<TOP, TL> : public Expression<TOP, TL>
 {
     using Expression<TOP, TL>::Expression;
 
@@ -78,19 +73,15 @@ struct AssignmentExpression<TOP, TL, TR>
     typename traits::reference<TR>::type rhs;
     TOP op_;
 
-    AssignmentExpression(this_type const &that)
-        : lhs(that.lhs), rhs(that.rhs), op_(that.op_) { }
+    AssignmentExpression(this_type const &that) : lhs(that.lhs), rhs(that.rhs), op_(that.op_) {}
 
-    AssignmentExpression(this_type &&that)
-        : lhs(that.lhs), rhs(that.rhs), op_(that.op_) { }
+    AssignmentExpression(this_type &&that) : lhs(that.lhs), rhs(that.rhs), op_(that.op_) {}
 
-    AssignmentExpression(TL &l, TR const &r)
-        : lhs(l), rhs(r), op_() { }
+    AssignmentExpression(TL &l, TR const &r) : lhs(l), rhs(r), op_() {}
 
-    AssignmentExpression(TOP op, TL &l, TR const &r)
-        : lhs(l), rhs(r), op_(op) { }
+    AssignmentExpression(TOP op, TL &l, TR const &r) : lhs(l), rhs(r), op_(op) {}
 
-    ~AssignmentExpression() { }
+    ~AssignmentExpression() {}
 
     template<typename IndexType>
     inline auto operator[](IndexType const &s) const
@@ -548,11 +539,11 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)        
  * @{*/
 
 template<typename value_type> struct Constant { value_type value; };
-struct Zero { };
-struct One { };
-struct Infinity { };
-struct Undefine { };
-struct Identity { };
+struct Zero {};
+struct One {};
+struct Infinity {};
+struct Undefine {};
+struct Identity {};
 
 template<typename TE> inline TE const &operator+(TE const &e, Zero const &) { return (e); }
 

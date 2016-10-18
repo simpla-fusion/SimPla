@@ -7,6 +7,7 @@
 #ifndef SIMPLA_MESHATTRIBUTE_H
 #define SIMPLA_MESHATTRIBUTE_H
 
+#include <toolbox/PrettyStream.h>
 #include "../toolbox/Object.h"
 #include "../toolbox/Log.h"
 #include "../toolbox/Memory.h"
@@ -17,8 +18,17 @@
 
 namespace simpla { namespace mesh
 {
-struct AttributeBase
+enum MeshAttributeStatusTag
 {
+    SP_AS_NULL,
+    SP_AS_LOCAL,
+    SP_AS_GLOBAL,
+    SP_AS_VIRTUAL
+};
+
+struct AttributeBase : public toolbox::Object
+{
+
     AttributeBase() {};
 
     virtual ~AttributeBase() {};
@@ -29,18 +39,13 @@ struct AttributeBase
 
     virtual void clear() = 0;
 
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const
-    {
-        UNIMPLEMENTED;
-        return os;
-    }
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const =0;
+
 
     virtual bool is_a(std::type_info const &t_info) const = 0;
 
-    template<typename T> inline bool is_a() const
-    {
-        return (std::is_base_of<AttributeBase, T>::value && is_a(typeid(T)));
-    }
+
+    virtual MeshEntityType entity_type() const =0;
 
     virtual bool is_valid() const = 0;
 
@@ -57,6 +62,14 @@ struct AttributeBase
     virtual void dataset(toolbox::DataSet const &) = 0;
 
     virtual toolbox::DataSet dataset() const =0;
+
+    virtual void copy(EntityRange const &, AttributeBase const &other)=0;
+
+    void copy(index_box_type const &b, AttributeBase const &other)
+    {
+        copy(mesh()->range(entity_type(), b), other);
+    };
+
 };
 
 template<typename V, typename M, MeshEntityType IFORM = VERTEX>
@@ -95,12 +108,23 @@ public:
         if (!empty()) { m_data_ = toolbox::MemoryHostAllocT<value_type>(m_mesh_->number_of_entities(IFORM)); }
     };
 
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const
+    {
+        auto ld = m_mesh_->local_dimensions();
+        size_type d[2] = {ld[0], 3};
+        printNdArray(os, (m_data_.get()), 2, &d[0]);
+        return os;
+
+    }
+
+
     virtual void clear()
     {
         deploy();
         toolbox::MemorySet(m_data_, 0, m_mesh_->number_of_entities(IFORM) * sizeof(value_type));
     }
 
+    virtual MeshEntityType entity_type() const { return iform; };
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 
@@ -168,24 +192,30 @@ public:
     }
 
 
-    template<typename TOP> void
-    apply(TOP const &op, value_type const &v)
-    {
-        deploy();
-        m_mesh_->foreach(iform, [&](mesh::MeshEntityId const &s) { op(get(s), v); });
-    }
+    template<typename TOP, typename TF> void
+    apply(TOP const &op, TF const &v) { apply(op, v, m_mesh_->range(iform, SP_ES_ALL)); }
 
-    template<typename TOP, typename TFun> void
-    apply(TOP const &op, TFun const &fun)
+
+    void copy(EntityRange const &r0, this_type const &g)
     {
-        deploy();
-        m_mesh_->foreach(iform, [&](mesh::MeshEntityId const &s) { op(get(s), fun(s)); });
+        r0.foreach([&](MeshEntityId const &s) { get(s) = g.get(s); });
     }
 
 
-protected:
-    M const *m_mesh_;
-    std::shared_ptr<V> m_data_;
+    virtual void copy(EntityRange const &r0, AttributeBase const &other)
+    {
+        assert(other.is_a(typeid(this_type)));
+
+        this_type const &g = static_cast<this_type const & >(other);
+
+        copy(r0, static_cast<this_type const & >(other));
+
+    }
+
+
+private:
+    mesh_type const *m_mesh_;
+    std::shared_ptr<value_type> m_data_;
 };
 
 //
