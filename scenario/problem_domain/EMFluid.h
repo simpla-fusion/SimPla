@@ -205,7 +205,7 @@ void EMFluid<TM>::next_step(Real dt)
             BB = dot(B0v, B0v);
         }
 
-        field_t<vector_type, VERTEX> Q{m};
+         field_t<vector_type, VERTEX> Q{m};
         field_t<vector_type, VERTEX> K{m};
 
         field_t<scalar_type, VERTEX> a{m};
@@ -218,7 +218,7 @@ void EMFluid<TM>::next_step(Real dt)
 
         Q = map_to<VERTEX>(E) - Ev;
 
-
+        K.clear();
         for (auto &p :m_fluid_sp_)
         {
 

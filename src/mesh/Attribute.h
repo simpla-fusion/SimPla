@@ -105,7 +105,7 @@ public:
     virtual void deploy()
     {
         assert(m_mesh_ != nullptr);
-        if (!empty()) { m_data_ = toolbox::MemoryHostAllocT<value_type>(m_mesh_->number_of_entities(IFORM)); }
+        if ( empty()) { m_data_ = toolbox::MemoryHostAllocT<value_type>(m_mesh_->number_of_entities(IFORM)); }
     };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
@@ -130,7 +130,7 @@ public:
 
     virtual bool is_valid() const { return m_mesh_ != nullptr && !empty(); };
 
-    virtual bool empty() const { return m_data_ != nullptr; }
+    virtual bool empty() const { return m_data_ == nullptr; }
 
     virtual std::string get_class_name() const { return class_name(); }
 

@@ -862,15 +862,14 @@ std::string HDF5Stream::write(std::string const &url, DataSet const &ds, int fla
     if (!ds.is_valid())
     {
         WARNING << "Invalid Data Set! "
-                << "[ URL = \"" << url << "\"," << std::endl
-                << " Data is " << ((ds.data != nullptr) ? "valid" : "invalid ") << ". " << std::endl
-                << " DataType is " << ((ds.data_type.is_valid()) ? "valid" : "invalid") << ". " << std::endl
+                << "[ URL = \"" << url << "\","
+                << " Data is " << ((ds.data != nullptr) ? "valid" : "invalid ") << ". "
+                << " DataType is " << ((ds.data_type.is_valid()) ? "valid" : "invalid") << ". "
                 << " File Space is " << ((ds.data_space.is_valid()) ? "valid" : "invalid") << ". size="
-                << ds.data_space.num_of_elements() << ". " << std::endl
+                << ds.data_space.num_of_elements() << ". "
                 << " Memory Space is " << ((ds.memory_space.is_valid()) ? "valid" : "invalid") << ".  size="
-                << ds.memory_space.num_of_elements() << ". " << std::endl
+                << ds.memory_space.num_of_elements() << ". "
                 << " ]"
-
                 << std::endl;
         return "";
     }

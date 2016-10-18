@@ -63,7 +63,7 @@ Mesh =
 
 dt = 0.5 * (LX / NX) / c
 
-PML = { Width = 50 }
+--PML = { Width = 50 }
 
 
 InitValue = {
@@ -116,7 +116,7 @@ Constraints = {
     E = {
         -- current source
         Box = { { 0.05 * LX, 0.45 * LY, 0.45 * LZ }, { 0.1 * LX, 0.55 * LY, 0.55 * LZ } },
-        Value = function(t, x, v)
+        Value = function(x, t, v)
             local tau = t * omega_ext + x[1] * TWOPI / LX
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
             return { 0, amp, 0 }
