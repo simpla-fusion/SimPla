@@ -63,7 +63,7 @@ Mesh =
 
 dt = 0.5 * (LX / NX) / c
 
---PML = { Width = 50 }
+PML = { Width = 50 }
 
 
 InitValue = {

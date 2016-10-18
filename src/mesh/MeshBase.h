@@ -124,7 +124,7 @@ public:
     void dimensions(index_tuple const &d)
     {
         assert(!m_is_deployed_);
-        m_block_count_ = d;
+        m_g_dimensions_ = d;
     }
 
     void ghost_width(index_tuple const &d)
@@ -142,7 +142,7 @@ public:
     virtual void scale(index_tuple const &a)
     {
         assert(!m_is_deployed_);
-        for (int i = 0; i < ndims; ++i) { if (m_block_count_[i] > 1) { m_block_count_[i] *= a[i]; }}
+        for (int i = 0; i < ndims; ++i) { if (m_g_dimensions_[i] > 1) { m_g_dimensions_[i] *= a[i]; }}
 
     };
 
@@ -151,7 +151,7 @@ public:
         assert(!m_is_deployed_);
         for (int i = 0; i < ndims; ++i)
         {
-            if (m_block_count_[i] > 1) { m_block_count_[i] = static_cast<size_type>(a[i]); }
+            if (m_g_dimensions_[i] > 1) { m_g_dimensions_[i] = static_cast<size_type>(a[i]); }
         }
     };
 

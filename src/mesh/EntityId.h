@@ -914,13 +914,18 @@ struct MeshEntityIdCoder_
         void foreach(Body const &body) const
         {
             range_type const &r = *this;
-            for (index_type i = r.m_min_[0], ie = r.m_max_[0]; i < ie; ++i)
+            int ib = r.m_min_[0];
+            int ie = r.m_max_[0];
+#pragma omp parallel for
+            for (int i = ib; i < ie; ++i)
+            {
                 for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
                     for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
                         for (index_type n = 0, ne = m_iform_to_num_of_ele_in_cell_[r.m_iform_]; n < ne; ++n)
                         {
                             body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n]));
                         }
+            }
         }
 
     private:

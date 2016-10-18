@@ -142,16 +142,17 @@ void MeshBase::deploy()
 
     for (int i = 0; i < ndims; ++i)
     {
-        if (m_block_count_[i] == 1)
+        if (m_g_dimensions_[i] == 1)
         {
             m_ghost_width_[i] = 0;
             m_l_dimensions_[i] = 1;
             m_g_dimensions_[i] = 1;
             m_l_start_[i] = 0;
             m_g_start_[i] = 0;
-
-
         }
+
+        m_block_count_[i] = m_g_dimensions_[i];
+
         if (m_l_start_[i] < m_ghost_width_[i] ||
             m_l_dimensions_[i] < m_ghost_width_[i] * 2 + m_block_count_[i])
         {
@@ -165,7 +166,6 @@ void MeshBase::deploy()
                 m_g_dimensions_[i] >= m_block_count_[i] + m_g_start_[i]);
     }
     m_g_min_ = m_g_start_ - m_l_start_;
-
 }
 
 //
@@ -251,8 +251,10 @@ MeshBase::data_space(MeshEntityType const &t, MeshZoneTag status) const
     m_start[ndims] = 0;
     m_count[ndims] = 3;
 
+    FIXME;
     toolbox::DataSpace f_space(i_ndims, &f_dims[0]);
-    f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
+//    f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
+
 
     toolbox::DataSpace m_space(i_ndims, &m_dims[0]);
     m_space.select_hyperslab(&m_start[0], nullptr, &m_count[0], nullptr);
