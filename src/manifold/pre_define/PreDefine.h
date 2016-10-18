@@ -28,7 +28,6 @@ namespace simpla { namespace manifold
 
 template<typename MESH = mesh::CoRectMesh>
 using DefaultManifold= Manifold<MESH,
-
         schemes::FiniteVolume,
         schemes::LinearInterpolator
         //        policy::StoragePolicy,

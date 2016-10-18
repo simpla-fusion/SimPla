@@ -11,7 +11,6 @@
 #include <complex>
 #include <cstddef>
 #include <type_traits>
-#include <armadillo>
 
 
 #include "../../toolbox/macro.h"

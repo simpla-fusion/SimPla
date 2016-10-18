@@ -46,7 +46,7 @@ LX = 0.10 --m --100000*rhoi --0.6
 LY = 0.10 --2.0*math.pi/k0
 LZ = 1.0 -- math.pi * 0.25 -- 2.0*math.pi/18
 
-number_of_steps = 200
+number_of_steps = 20
 
 step_of_check_point = 10
 
@@ -84,36 +84,36 @@ R = function(x)
     return math.sqrt((x[1] - LX / 2.0) * (x[1] - LX / 2.0) + (x[2] - LY / 2.0) * (x[2] - LY / 2.0)) / (LX / 4.0)
 end
 
-Particles = {
-    --    H = {
-    --        mass = mp,
-    --        charge = qe,
-    --        T = Ti,
-    --        pic = 2,
-    --        Type = "Boris",
-    --        IsParticle = true,
-    --        --  DisableCheckPoint = true,
-    --        DisableXDMFOutput = true,
-    --        V0 = { 1, 2, 3 },
-    --    },
-    ele = {
-        Mass = me,
-        Charge = -qe,
-        Type = "Fluid",
-        Box = { { 0, 0, 0 }, { LX, LY, LZ } },
-        Shape = function(x)
-            return R(x) - 1
-        end,
-        Density = function(x)
-            return N0 -- * (1.0 - math.cos((1.0 - R(x)) * math.pi * 0.5))
-        end
-    }
-}
+--Particles = {
+--    --    H = {
+--    --        mass = mp,
+--    --        charge = qe,
+--    --        T = Ti,
+--    --        pic = 2,
+--    --        Type = "Boris",
+--    --        IsParticle = true,
+--    --        --  DisableCheckPoint = true,
+--    --        DisableXDMFOutput = true,
+--    --        V0 = { 1, 2, 3 },
+--    --    },
+--    ele = {
+--        Mass = me,
+--        Charge = -qe,
+--        Type = "Fluid",
+--        Box = { { 0, 0, 0 }, { LX, LY, LZ } },
+--        Shape = function(x)
+--            return R(x) - 1
+--        end,
+--        Density = function(x)
+--            return N0 -- * (1.0 - math.cos((1.0 - R(x)) * math.pi * 0.5))
+--        end
+--    }
+--}
 
 
 
 Constraints = {
-    E = {
+    J = {
         -- current source
         Box = { { 0.05 * LX, 0.45 * LY, 0.45 * LZ }, { 0.1 * LX, 0.55 * LY, 0.55 * LZ } },
         Value = function(x, t, v)
@@ -122,14 +122,14 @@ Constraints = {
             return { 0, amp, 0 }
         end
     },
-    PEC = {
-        Domain = {
-            Box = { { 0, 0, 0 }, { LX, LY, 0 } },
-            Shape = function(v)
-                d1 = ((v[1] - LX / 2) * (v[1] - LX / 2) + (v[2] - LY / 2) * (v[2] - LY / 2)) - LY * LY * 0.04
-                d2 = math.max(math.abs(v[1] - LX * 0.6) - 2, math.abs(v[2] - LY * 0.6) - 2)
-                return math.min(d1, d2)
-            end
-        }
-    }
+    --    PEC = {
+    --        Domain = {
+    --            Box = { { 0, 0, 0 }, { LX, LY, 0 } },
+    --            Shape = function(v)
+    --                d1 = ((v[1] - LX / 2) * (v[1] - LX / 2) + (v[2] - LY / 2) * (v[2] - LY / 2)) - LY * LY * 0.04
+    --                d2 = math.max(math.abs(v[1] - LX * 0.6) - 2, math.abs(v[2] - LY * 0.6) - 2)
+    --                return math.min(d1, d2)
+    --            end
+    --        }
+    --    }
 }

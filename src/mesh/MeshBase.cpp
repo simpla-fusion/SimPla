@@ -38,6 +38,26 @@ MeshBase::MeshBase(MeshBase &&other) :
 
 MeshBase::~MeshBase() {}
 
+std::ostream &MeshBase::print(std::ostream &os, int indent) const
+{
+    os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
+    os << std::setw(indent + 1) << " " << "Topology = { Type = \"CoRectMesh\", "
+       << "Dimensions = " << m_g_dimensions_ << " start = " << m_g_start_ << " count = " << m_block_count_ << " },"
+       << std::endl;
+    os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;
+//#ifndef NDEBUG
+//    os
+//            << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
+//            << std::setw(indent + 1) << " " << "      upper = " << m_upper_ << "," << std::endl
+//            << std::setw(indent + 1) << " " << "outer lower = " << m_outer_lower_ << "," << std::endl
+//            << std::setw(indent + 1) << " " << "outer upper = " << m_outer_upper_ << "," << std::endl
+//            << std::setw(indent + 1) << " " << "inner lower = " << m_inner_lower_ << "," << std::endl
+//            << std::setw(indent + 1) << " " << "inner upper = " << m_inner_upper_ << "," << std::endl
+//            << std::endl;
+//#endif
+    return os;
+}
+
 
 void MeshBase::swap(MeshBase &other)
 {
@@ -268,11 +288,18 @@ EntityRange
 MeshBase::range(MeshEntityType entityType, index_box_type const &b) const
 {
     EntityRange res;
-
     res.append(MeshEntityIdCoder::make_range(std::get<0>(b), std::get<1>(b), entityType));
     return res;
 }
 
+EntityRange
+MeshBase::range(MeshEntityType entityType, box_type const &b) const
+{
+    index_tuple l, u;
+    l = point_to_index(std::get<1>(b));
+    u = point_to_index(std::get<1>(b)) + 1;
+    return range(entityType, std::make_tuple(l, u));
+}
 
 EntityRange
 MeshBase::range(MeshEntityType entityType, MeshZoneTag status) const

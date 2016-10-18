@@ -11,14 +11,14 @@
 #include <vector>
 #include <iomanip>
 
-#include "../toolbox/macro.h"
-#include "../sp_def.h"
-#include "../toolbox/nTuple.h"
-#include "../toolbox/nTupleExt.h"
-#include "../toolbox/PrettyStream.h"
-#include "../toolbox/type_traits.h"
-#include "../toolbox/type_cast.h"
-#include "../toolbox/Log.h"
+#include "toolbox/macro.h"
+#include "sp_def.h"
+#include "toolbox/nTuple.h"
+#include "toolbox/nTupleExt.h"
+#include "toolbox/PrettyStream.h"
+#include "toolbox/type_traits.h"
+#include "toolbox/type_cast.h"
+#include "toolbox/Log.h"
 
 #include "MeshCommon.h"
 #include "Block.h"
@@ -33,7 +33,6 @@ namespace simpla { namespace mesh
  *
  * @brief Uniform structured get_mesh
  */
-<<<<<<< HEAD:src/manifold/pre_define/CartesianCoRectMesh.h
 
 struct CartesianCoRectMesh : public Chart, public MeshEntityIdCoder
 {
@@ -44,21 +43,12 @@ public:
     typedef Real scalar_type;
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
-=======
-template<>
-struct CoRectMesh : public Block
-{
-private:
-    typedef CoRectMesh this_type;
-    typedef Block base_type;
-public:
->>>>>>> b51e8dfa601a778784c358fa8050d40733086a59:src/mesh/CoRectMesh.h
 
-    SP_OBJECT_HEAD(CoRectMesh, Block)
+    SP_OBJECT_HEAD(CoRectMesh, Block
+    )
 
 
     /**
-<<<<<<< HEAD:src/manifold/pre_define/CartesianCoRectMesh.h
  *
  *   -----------------------------5
  *   |                            |
@@ -173,48 +163,57 @@ public:
     virtual point_type origin_point() const { return m_coords_lower_; };
 
     virtual void ghost_width(index_tuple const &d) { m_ghost_width_ = d; }
-=======
-     *
-     *   -----------------------------5
-     *   |                            |
-     *   |     ---------------4       |
-     *   |     |              |       |
-     *   |     |  ********3   |       |
-     *   |     |  *       *   |       |
-     *   |     |  *       *   |       |
-     *   |     |  *       *   |       |
-     *   |     |  2********   |       |
-     *   |     1---------------       |
-     *   0-----------------------------
-     *
-     *	5-0 = dimensions
-     *	4-1 = e-d = ghosts
-     *	2-1 = counts
-     *
-     *	0 = id_begin
-     *	5 = id_end
-     *
-     *	1 = id_local_outer_begin
-     *	4 = id_local_outer_end
-     *
-     *	2 = id_local_inner_begin
-     *	3 = id_local_inner_end
-     *
-     *
-     */
 
-    point_type m_origin_{0, 0, 0};
+    =======
+    *
+    *   -----------------------------5
+    *   |                            |
+    *   |     ---------------4       |
+    *   |     |              |       |
+    *   |     |  ********3   |       |
+    *   |     |  *       *   |       |
+    *   |     |  *       *   |       |
+    *   |     |  *       *   |       |
+    *   |     |  2********   |       |
+    *   |     1---------------       |
+    *   0-----------------------------
+    *
+    *    5-0 = dimensions
+    *    4-1 = e-
+    d = ghosts
+        * 2 - 1 = counts
+                  *
+                  *0 = id_begin
+                       * 5 = id_end
+                             *
+                             *1 = id_local_outer_begin
+                                  * 4 = id_local_outer_end
+                                        *
+                                        *2 = id_local_inner_begin
+                                             * 3 = id_local_inner_end
+                                                   *
+                                                   *
+                                                           * /
+
+                                                   point_type
+
+    m_origin_ { 0, 0, 0 };
     vector_type m_dx_{1, 1, 1};
->>>>>>> b51e8dfa601a778784c358fa8050d40733086a59:src/mesh/CoRectMesh.h
+    >>>>>>>
+    b51e8dfa601a778784c358fa8050d40733086a59: src
+    /mesh/CoRectMesh.h
 
 public:
 
     CoRectMesh() {}
 
-    CoRectMesh(CoRectMesh const &other) :
-            Block(other),
-            m_origin_(other.m_origin_),
-            m_dx_(other.m_dx_) { deploy(); };
+    CoRectMesh(CoRectMesh const
+    &other) :
+    Block(other),
+            m_origin_(other
+    .m_origin_),
+    m_dx_(other
+    .m_dx_) { deploy(); };
 
     virtual  ~CoRectMesh() {}
 

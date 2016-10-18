@@ -17,7 +17,7 @@ template<typename TM, typename ...Args>
 EntityRange select(TM const &m, MeshEntityType iform, Args &&...args) { return EntityRange(); }
 
 
-EntityRange select(MeshBase const &m, box_type const &b, MeshEntityType entityType = VERTEX)
+EntityRange select(MeshBase const &m, MeshEntityType entityType, box_type const &b)
 {
 
     auto blk = m.clone();

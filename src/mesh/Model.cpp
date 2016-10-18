@@ -26,8 +26,7 @@ struct Model::pimpl_s
 
 };
 
-Model::Model(MeshBase const *pm)
-        : m(pm), m_pimpl_(new pimpl_s) {}
+Model::Model(MeshBase const *pm) : m(pm), m_pimpl_(new pimpl_s) {}
 
 Model::~Model() {}
 
@@ -122,9 +121,8 @@ EntityRange Model::surface(MeshEntityType iform, int flag)
                 {
                     MeshEntityId p[MeshEntityIdCoder::MAX_NUM_OF_NEIGHBOURS];
 
-                    int num =
-                            m->get_adjacent_entities(iform, *reinterpret_cast<MeshEntityId const *>(&(v_item.first)),
-                                                     p);
+                    int num = m->get_adjacent_entities(
+                            iform, *reinterpret_cast<MeshEntityId const *>(&(v_item.first)), p);
 
                     for (int i = 0; i < num; ++i)
                     {

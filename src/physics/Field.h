@@ -176,9 +176,10 @@ public:
                 });
     }
 
-    template<typename TOP, typename TFun, typename ...Args> void
-    apply_function(TOP const &op, mesh::EntityRange const r0, std::function<Real(point_type const &)> const &geo,
-                   TFun const &fun, Args &&...args)
+    template<typename TOP, typename TFun> void
+    apply_function_in_geometric_domain(TOP const &op, mesh::EntityRange const r0,
+                                       std::function<Real(point_type const &)> const &geo,
+                                       TFun const &fun)
     {
         deploy();
         mesh_type const &m = *this->mesh();
@@ -187,7 +188,7 @@ public:
                        auto x = m.point(s);
                        if (geo(x) < 0)
                        {
-                           op(this->get(s), m.template sample<IFORM>(s, fun(x, std::forward<Args>(args)...)));
+                           op(this->get(s), m.template sample<IFORM>(s, fun(x)));
                        }
                    });
     }

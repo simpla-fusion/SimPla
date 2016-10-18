@@ -98,6 +98,7 @@ public:
         MeshBase(other).swap(*this);
         return *this;
     }
+    virtual std::ostream &print(std::ostream &os, int indent) const;
 
     virtual std::shared_ptr<MeshBase> clone() const { return std::make_shared<MeshBase>(*this); };
 
@@ -294,8 +295,7 @@ public:
 //    }
 
 
-    virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s,
-                                      MeshEntityId *p = nullptr) const
+    virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s, MeshEntityId *p = nullptr) const
     {
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
@@ -310,6 +310,8 @@ public:
     virtual EntityRange range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const;
 
     virtual EntityRange range(MeshEntityType entityType, index_box_type const &b) const;
+
+    virtual EntityRange range(MeshEntityType entityType, box_type const &b) const;
 
     Real time() const { return m_time_; }
 

@@ -35,10 +35,11 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         sp->J.clear();
         if (std::get<1>(item)["Density"])
         {
-//            sp->rho.assign_function(
-//                    std::get<1>(item)["Shape"].as<std::function<Real(point_type const &)> >(),
-//                    std::get<1>(item)["Density"].as<std::function<Real(point_type const &)>>()
-//            );
+            sp->rho.apply_function_in_geometric_domain(
+                    _impl::_assign(), center_mesh->range(VERTEX),
+                    std::get<1>(item)["Shape"].as<std::function<Real(point_type const &)> >(),
+                    std::get<1>(item)["Density"].as<std::function<Real(point_type const &)>>()
+            );
         }
     }
 
@@ -66,19 +67,13 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
 
     if (options["Constraints"]["J"])
     {
-
-        center_domain->J_src_range = select(center_mesh, mesh::EDGE,
-                                            options["Constraints"]["J"]["MeshBase"].as<box_type>());
-
+        center_domain->J_src_range = center_mesh->range(mesh::EDGE, options["Constraints"]["J"]["Box"].as<box_type>());
         options["Constraints"]["J"]["Value"].as(&center_domain->J_src_fun);
     }
 
     if (options["Constraints"]["E"])
     {
-
-        center_domain->E_src_range = select(center_mesh, mesh::EDGE,
-                                            options["Constraints"]["E"]["MeshBase"].as<box_type>());
-
+        center_domain->E_src_range = center_mesh->range(mesh::EDGE, options["Constraints"]["E"]["Box"].as<box_type>());
         options["Constraints"]["E"]["Value"].as(&center_domain->E_src_fun);
     }
 
@@ -86,12 +81,10 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     if (options["Constraints"]["PEC"])
     {
         mesh::Model model(center_mesh.get());
-
         std::function<Real(point_type const &)> shape_fun;
-
         options["Constraints"]["PEC"]["Shape"].as(&shape_fun);
 
-        model.add(options["Constraints"]["PEC"]["MeshBase"].as<box_type>(), shape_fun);
+        model.add(options["Constraints"]["PEC"]["Box"].as<box_type>(), shape_fun);
 
         center_domain->face_boundary = model.surface(FACE);
         center_domain->edge_boundary = model.surface(EDGE);

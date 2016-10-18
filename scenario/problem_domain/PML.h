@@ -39,8 +39,6 @@ public:
 
     virtual void deploy();
 
-    virtual void sync(mesh::TransitionMapBase const &, simulation::PhysicalDomain const &other);
-
     virtual std::string get_class_name() const { return class_name(); }
 
     static std::string class_name() { return "PML<" + traits::type_id<TM>::name() + ">"; }
@@ -107,7 +105,7 @@ PML<TM>::setup_center_domain(box_type const &center_box)
     std::tie(c_xmin, c_xmax) = center_box;
     auto dims = m->dimensions();
 
-    m->range(mesh::VERTEX).foreach(
+    m->range(mesh::VERTEX, mesh::SP_ES_ALL).foreach(
             [&](mesh::MeshEntityId const &s)
             {
                 point_type x = m->point(s);
@@ -153,23 +151,6 @@ void PML<TM>::deploy()
     dX2.clear();
     global_declare(&E, "E");
     global_declare(&B, "B");
-}
-
-
-template<typename TM>
-void PML<TM>::sync(mesh::TransitionMapBase const &t_map, simulation::PhysicalDomain const &other)
-{
-    auto const &E2 = *static_cast<field_t<scalar_type, mesh::EDGE> const *>( other.attribute("E"));
-    auto const &B2 = *static_cast<field_t<scalar_type, mesh::FACE> const *>( other.attribute("B"));
-
-//
-//    t_map.direct_map(mesh::EDGE,
-//                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { E[s1] = E2[s2]; });
-//
-//    t_map.direct_map(mesh::FACE,
-//                     [&](mesh::MeshEntityId const &s1, mesh::MeshEntityId const &s2) { B[s1] = B2[s2]; });
-
-
 }
 
 template<typename TM>
