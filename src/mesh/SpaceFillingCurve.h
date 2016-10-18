@@ -54,11 +54,11 @@ struct SpaceFillingCurveCOrder
     void foreach(TFun const &fun) const
     {
 #pragma omp parallel for
-        for (int i = 0; i < box.m_b_dimensions_[0]; ++i)
-            for (int j = 0; j < box.m_b_dimensions_[1]; ++j)
-                for (int k = 0; k < box.m_b_dimensions_[2]; ++k)
+        for (int i = 0; i < box.m_block_count_[0]; ++i)
+            for (int j = 0; j < box.m_block_count_[1]; ++j)
+                for (int k = 0; k < box.m_block_count_[2]; ++k)
                 {
-                    fun(hash(i + box.m_l_offset_[0], j + box.m_l_offset_[1], k + box.m_l_offset_[2]));
+                    fun(hash(i + box.m_l_start_[0], j + box.m_l_start_[1], k + box.m_l_start_[2]));
                 }
     }
 

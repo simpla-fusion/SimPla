@@ -76,96 +76,127 @@ public:
     /** @name as_array   @{*/
     this_type &operator=(this_type const &other)
     {
-        _apply(_impl::_assign(), other);
+        apply(_impl::_assign(), other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator=(Other const &other)
     {
-        _apply(_impl::_assign(), other);
+        apply(_impl::_assign(), other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator+=(Other const &other)
     {
-        _apply(_impl::plus_assign(), other);
+        apply(_impl::plus_assign(), other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator-=(Other const &other)
     {
-        _apply(_impl::minus_assign(), other);
+        apply(_impl::minus_assign(), other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator*=(Other const &other)
     {
-        _apply(_impl::multiplies_assign(), other);
+        apply(_impl::multiplies_assign(), other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator/=(Other const &other)
     {
-        _apply(_impl::divides_assign(), other);
+        apply(_impl::divides_assign(), other);
         return *this;
     }
 
     /* @}*/
+
+
+    template<typename TOP> void
+    apply(TOP const &op, mesh::EntityRange const r0, value_type const &v)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(this->get(s), v); });
+    }
+
+    template<typename TOP> void
+    apply(TOP const &op, mesh::EntityRange const r0, this_type const &other)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(this->get(s), other.get(s)); });
+
+    }
+
+    template<typename TOP, typename TFun> void
+    apply(TOP const &op, mesh::EntityRange const r0, TFun const &fun,
+          CHECK_FUNCTION_SIGNATURE(value_type, TFun(mesh::MeshEntityId const &))
+    )
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(this->get(s), fun(s)); });
+
+    }
+
+    template<typename TOP, typename ...U> void
+    apply(TOP const &op, mesh::EntityRange const r0, Field<U...> const &fexpr)
+    {
+        deploy();
+        mesh_type const &m = *this->mesh();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(this->get(s), m.eval(fexpr, s)); });
+    }
+
+    template<typename TOP, typename Arg> void
+    apply(TOP const &op, Arg const &v)
+    {
+        apply(op, this->mesh()->range(iform, mesh::SP_ES_ALL), v);
+    }
+
     template<typename ...Args> void
-    assign(Args &&... args) { _apply(_impl::_assign(), std::forward<Args>(args)...); }
+    assign(Args &&... args)
+    {
+        apply(_impl::_assign(), std::forward<Args>(args)...);
+    }
+
+
+    template<typename TOP, typename TFun, typename ...Args> void
+    apply_function(TOP const &op, mesh::EntityRange const r0, TFun const &fun, Args &&...args)
+    {
+        deploy();
+        mesh_type const &m = *this->mesh();
+        r0.foreach(
+                [&](mesh::MeshEntityId const &s)
+                {
+                    op(this->get(s), m.template sample<IFORM>(s, fun(m.point(s), std::forward<Args>(args)...)));
+                });
+    }
+
+    template<typename TOP, typename TFun, typename ...Args> void
+    apply_function(TOP const &op, mesh::EntityRange const r0, std::function<Real(point_type const &)> const &geo,
+                   TFun const &fun, Args &&...args)
+    {
+        deploy();
+        mesh_type const &m = *this->mesh();
+        r0.foreach([&](mesh::MeshEntityId const &s)
+                   {
+                       auto x = m.point(s);
+                       if (geo(x) < 0)
+                       {
+                           op(this->get(s), m.template sample<IFORM>(s, fun(x, std::forward<Args>(args)...)));
+                       }
+                   });
+    }
+
 
     template<typename ...Args> void
-    apply(Args &&... args) { _apply(std::forward<Args>(args)...); }
-
-private:
-
-
-    template<typename TOP, typename ...Others> void
-    _apply(TOP const &op, value_type const &v, Others &&...others)
+    assign_function(Args &&... args)
     {
-        base_type::apply(op, v, std::forward<Others>(others)...);
-    }
-
-    template<typename TOP, typename ...Others> void
-    _apply(TOP const &op, this_type const &fexpr, Others &&...others)
-    {
-        base_type::apply(op,
-                         [&](mesh::MeshEntityId const &s) -> value_type { return fexpr[s]; },
-                         std::forward<Others>(others)...);
-    }
-
-    template<typename TOP, typename ...U, typename ...Others> void
-    _apply(TOP const &op, Field<U...> const &fexpr, Others &&...others)
-    {
-        base_type::apply(op,
-                         [&](mesh::MeshEntityId const &s) -> value_type { return this->mesh()->eval(fexpr, s); },
-                         std::forward<Others>(others)...);
-    }
-
-    template<typename TOP, typename TFun, typename ...Others> void
-    _apply(TOP const &op, TFun const &fun, Others &&...others)
-    {
-        base_type::apply(op,
-                         [&](mesh::MeshEntityId const &s) { return fun(s); },
-                         std::forward<Others>(others)...);
-    }
-
-public:
-
-    template<typename TOP, typename TFun, typename ...Others> void
-    apply_function(TOP const &op, TFun const &fexpr, Others &&...others)
-    {
-        base_type::apply(op,
-                         [&](mesh::MeshEntityId const &s) -> value_type
-                         {
-                             return this->mesh()->template sample<IFORM>(s, fexpr(s));
-                         },
-                         std::forward<Others>(others)...);
+        apply_function(_impl::_assign(), this->mesh()->range(iform), std::forward<Args>(args)...);
     }
 
 };

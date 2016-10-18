@@ -178,22 +178,25 @@ public:
 
 
     template<typename TOP> void
-    apply(TOP const &op, value_type const &v, EntityRange const &r0)
+    apply(TOP const &op, EntityRange const &r0, value_type const &v)
     {
         deploy();
         r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), v); });
     }
 
+    template<typename TOP> void
+    apply(TOP const &op, EntityRange const &r0, this_type const &other)
+    {
+        deploy();
+        r0.foreach([&](MeshEntityId const &s) { op(get(s), other.get(s)); });
+    }
+
     template<typename TOP, typename TFun> void
-    apply(TOP const &op, TFun const &fun, EntityRange const &r0)
+    apply(TOP const &op, EntityRange const &r0, TFun const &fun)
     {
         deploy();
         r0.foreach([&](MeshEntityId const &s) { op(get(s), fun(s)); });
     }
-
-
-    template<typename TOP, typename TF> void
-    apply(TOP const &op, TF const &v) { apply(op, v, m_mesh_->range(iform, SP_ES_ALL)); }
 
 
     void copy(EntityRange const &r0, this_type const &g)

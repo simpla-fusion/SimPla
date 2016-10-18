@@ -17,22 +17,24 @@ MeshBase::MeshBase(MeshBase const &other) :
         m_index_space_id_(other.m_index_space_id_),
         m_level_(other.m_level_),
         m_is_deployed_(false),
-        m_b_dimensions_(other.m_b_dimensions_),
+        m_block_count_(other.m_block_count_),
         m_l_dimensions_(other.m_l_dimensions_),
-        m_l_offset_(other.m_l_offset_),
+        m_l_start_(other.m_l_start_),
         m_g_dimensions_(other.m_g_dimensions_),
-        m_g_offset_(other.m_g_offset_) {};
+        m_g_start_(other.m_g_start_),
+        m_g_min_(other.m_g_min_) {};
 
 MeshBase::MeshBase(MeshBase &&other) :
         processer_id_(other.processer_id_),
         m_index_space_id_(other.m_index_space_id_),
         m_level_(other.m_level_),
         m_is_deployed_(other.m_is_deployed_),
-        m_b_dimensions_(other.m_b_dimensions_),
+        m_block_count_(other.m_block_count_),
         m_l_dimensions_(other.m_l_dimensions_),
-        m_l_offset_(other.m_l_offset_),
+        m_l_start_(other.m_l_start_),
         m_g_dimensions_(other.m_g_dimensions_),
-        m_g_offset_(other.m_g_offset_) {};
+        m_g_start_(other.m_g_start_),
+        m_g_min_(other.m_g_min_) {};
 
 MeshBase::~MeshBase() {}
 
@@ -44,11 +46,13 @@ void MeshBase::swap(MeshBase &other)
     std::swap(m_level_, other.m_level_);
     std::swap(m_is_deployed_, other.m_is_deployed_);
 
-    std::swap(m_b_dimensions_, other.m_b_dimensions_);
+    std::swap(m_block_count_, other.m_block_count_);
     std::swap(m_l_dimensions_, other.m_l_dimensions_);
-    std::swap(m_l_offset_, other.m_l_offset_);
+    std::swap(m_l_start_, other.m_l_start_);
     std::swap(m_g_dimensions_, other.m_g_dimensions_);
-    std::swap(m_g_offset_, other.m_g_offset_);
+    std::swap(m_g_start_, other.m_g_start_);
+    std::swap(m_g_min_, other.m_g_min_);
+
 }
 
 bool MeshBase::intersection(const box_type &other)
@@ -62,15 +66,15 @@ bool MeshBase::intersection(const index_box_type &other)
     assert(!m_is_deployed_);
     for (int i = 0; i < ndims; ++i)
     {
-        index_type l_lower = m_g_offset_[i];
-        index_type l_upper = m_g_offset_[i] + m_b_dimensions_[i];
+        index_type l_lower = m_g_start_[i];
+        index_type l_upper = m_g_start_[i] + m_block_count_[i];
         index_type r_lower = std::get<0>(other)[i];
         index_type r_upper = std::get<1>(other)[i];
         l_lower = std::max(l_lower, r_lower);
         l_upper = std::min(l_upper, l_upper);
 
-        m_g_offset_[i] = l_lower;
-        m_b_dimensions_[i] = static_cast<size_type>((l_upper > l_lower) ? (l_upper - l_lower) : 0);
+        m_g_start_[i] = l_lower;
+        m_block_count_[i] = static_cast<size_type>((l_upper > l_lower) ? (l_upper - l_lower) : 0);
     }
 
     return (m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]) > 0;
@@ -81,14 +85,14 @@ bool MeshBase::intersection_outer(const index_box_type &other)
     assert(!m_is_deployed_);
     for (int i = 0; i < ndims; ++i)
     {
-        index_type l_lower = m_g_offset_[i] - m_l_offset_[i];
-        index_type l_upper = m_g_offset_[i] + m_l_dimensions_[i];
+        index_type l_lower = m_g_start_[i] - m_l_start_[i];
+        index_type l_upper = m_g_start_[i] + m_l_dimensions_[i];
         index_type r_lower = std::get<0>(other)[i];
         index_type r_upper = std::get<1>(other)[i];
         l_lower = std::max(l_lower, r_lower);
         l_upper = std::min(l_upper, l_upper);
-        m_g_offset_[i] = l_lower;
-        m_b_dimensions_[i] = static_cast<size_type>((l_upper > l_lower) ? (l_upper - l_lower) : 0);
+        m_g_start_[i] = l_lower;
+        m_block_count_[i] = static_cast<size_type>((l_upper > l_lower) ? (l_upper - l_lower) : 0);
     }
 
     return (m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]) > 0;
@@ -102,11 +106,11 @@ void MeshBase::refine(int ratio)
     ++m_level_;
     for (int i = 0; i < ndims; ++i)
     {
-        m_b_dimensions_[i] <<= ratio;
+        m_block_count_[i] <<= ratio;
         m_g_dimensions_[i] <<= ratio;
-        m_g_offset_[i] <<= ratio;
+        m_g_start_[i] <<= ratio;
         m_l_dimensions_[i] = 0;
-        m_l_offset_[i] = 0;
+        m_l_start_[i] = 0;
     }
 }
 
@@ -117,15 +121,15 @@ void MeshBase::coarsen(int ratio)
     for (int i = 0; i < ndims; ++i)
     {
         int mask = (1 << ratio) - 1;
-        assert(m_b_dimensions_[i] & mask == 0);
+        assert(m_block_count_[i] & mask == 0);
         assert(m_g_dimensions_[i] & mask == 0);
-        assert(m_g_offset_[i] & mask == 0);
+        assert(m_g_start_[i] & mask == 0);
 
-        m_b_dimensions_[i] >>= ratio;
+        m_block_count_[i] >>= ratio;
         m_g_dimensions_[i] >>= ratio;
-        m_g_offset_[i] >>= ratio;
+        m_g_start_[i] >>= ratio;
         m_l_dimensions_[i] = 0;
-        m_l_offset_[i] = 0;
+        m_l_start_[i] = 0;
     }
 }
 
@@ -138,26 +142,29 @@ void MeshBase::deploy()
 
     for (int i = 0; i < ndims; ++i)
     {
-        if (m_b_dimensions_[i] == 1)
+        if (m_block_count_[i] == 1)
         {
             m_ghost_width_[i] = 0;
             m_l_dimensions_[i] = 1;
             m_g_dimensions_[i] = 1;
-            m_l_offset_[i] = 0;
-            m_g_offset_[i] = 0;
+            m_l_start_[i] = 0;
+            m_g_start_[i] = 0;
+
+
         }
-        if (m_l_offset_[i] < m_ghost_width_[i] ||
-            m_l_dimensions_[i] < m_ghost_width_[i] * 2 + m_b_dimensions_[i])
+        if (m_l_start_[i] < m_ghost_width_[i] ||
+            m_l_dimensions_[i] < m_ghost_width_[i] * 2 + m_block_count_[i])
         {
-            m_l_offset_[i] = m_ghost_width_[i];
-            m_l_dimensions_[i] = m_ghost_width_[i] * 2 + m_b_dimensions_[i];
+            m_l_start_[i] = m_ghost_width_[i];
+            m_l_dimensions_[i] = m_ghost_width_[i] * 2 + m_block_count_[i];
         }
 
-        assert (m_b_dimensions_[i] > 0 ||
-                m_l_dimensions_[i] >= m_b_dimensions_[i] + m_l_offset_[i] ||
-                m_g_dimensions_[i] >= m_b_dimensions_[i] + m_g_offset_[i]);
-    }
 
+        assert (m_block_count_[i] > 0 ||
+                m_l_dimensions_[i] >= m_block_count_[i] + m_l_start_[i] ||
+                m_g_dimensions_[i] >= m_block_count_[i] + m_g_start_[i]);
+    }
+    m_g_min_ = m_g_start_ - m_l_start_;
 
 }
 
@@ -166,11 +173,11 @@ void MeshBase::deploy()
 //{
 //
 //#pragma omp parallel for
-//    for (index_type i = 0; i < m_b_dimensions_[0]; ++i)
-//        for (index_type j = 0; j < m_b_dimensions_[1]; ++j)
-//            for (index_type k = 0; k < m_b_dimensions_[2]; ++k)
+//    for (index_type i = 0; i < m_block_count_[0]; ++i)
+//        for (index_type j = 0; j < m_block_count_[1]; ++j)
+//            for (index_type k = 0; k < m_block_count_[2]; ++k)
 //            {
-//                fun(m_l_offset_[0] + i, m_l_offset_[1] + j, m_l_offset_[2] + k);
+//                fun(m_l_start_[0] + i, m_l_start_[1] + j, m_l_start_[2] + k);
 //            }
 //
 //
@@ -179,11 +186,11 @@ void MeshBase::deploy()
 //void MeshBase::foreach(std::function<void(index_type)> const &fun) const
 //{
 //#pragma omp parallel for
-//    for (index_type i = 0; i < m_b_dimensions_[0]; ++i)
-//        for (index_type j = 0; j < m_b_dimensions_[1]; ++j)
-//            for (index_type k = 0; k < m_b_dimensions_[2]; ++k)
+//    for (index_type i = 0; i < m_block_count_[0]; ++i)
+//        for (index_type j = 0; j < m_block_count_[1]; ++j)
+//            for (index_type k = 0; k < m_block_count_[2]; ++k)
 //            {
-//                fun(hash(m_l_offset_[0] + i, m_l_offset_[1] + j, m_l_offset_[2] + k));
+//                fun(hash(m_l_start_[0] + i, m_l_start_[1] + j, m_l_start_[2] + k));
 //            }
 //}
 //
@@ -191,12 +198,12 @@ void MeshBase::deploy()
 //{
 //    int n = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
 //#pragma omp parallel for
-//    for (index_type i = 0; i < m_b_dimensions_[0]; ++i)
-//        for (index_type j = 0; j < m_b_dimensions_[1]; ++j)
-//            for (index_type k = 0; k < m_b_dimensions_[2]; ++k)
+//    for (index_type i = 0; i < m_block_count_[0]; ++i)
+//        for (index_type j = 0; j < m_block_count_[1]; ++j)
+//            for (index_type k = 0; k < m_block_count_[2]; ++k)
 //                for (int l = 0; l < n; ++l)
 //                {
-//                    fun(pack(m_l_offset_[0] + i, m_l_offset_[1] + j, m_l_offset_[2] + k, l));
+//                    fun(pack(m_l_start_[0] + i, m_l_start_[1] + j, m_l_start_[2] + k, l));
 //                }
 //}
 
@@ -226,12 +233,12 @@ MeshBase::data_space(MeshEntityType const &t, MeshZoneTag status) const
         case SP_ES_OWNED:
         default:
             f_dims = m_g_dimensions_;
-            f_start = m_g_offset_;
-            f_count = m_b_dimensions_;
+            f_start = m_g_start_;
+            f_count = m_block_count_;
 
             m_dims = m_l_dimensions_;
-            m_start = m_l_offset_;
-            m_count = m_b_dimensions_;
+            m_start = m_l_start_;
+            m_count = m_block_count_;
             break;
 
     }
@@ -281,10 +288,10 @@ MeshBase::range(MeshEntityType entityType, MeshZoneTag status) const
      */
 
     index_tuple m_outer_lower_, m_outer_upper_, m_inner_lower_, m_inner_upper_;
-    m_outer_lower_ = m_g_offset_;
-    m_outer_upper_ = m_g_offset_ + m_l_dimensions_;
-    m_inner_lower_ = m_outer_lower_ + m_ghost_width_;
-    m_inner_upper_ = m_outer_upper_ - m_ghost_width_;
+    m_outer_lower_ = m_g_min_;
+    m_outer_upper_ = m_outer_lower_ + m_l_dimensions_;
+    m_inner_lower_ = m_g_start_;
+    m_inner_upper_ = m_g_start_ + m_block_count_;
     switch (status)
     {
         case SP_ES_ALL : //all valid

@@ -659,8 +659,8 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
                 variance_a += mod(f0a[s] * f0a[s]);
             });
 
-    ASSERT_LE(std::sqrt(variance_b / m.range(VERTEX).size()), error);
-    ASSERT_LE(std::sqrt(variance_a / m.range(VERTEX).size()), error);
+    ASSERT_LE(std::sqrt(variance_b / m.range(VERTEX, SP_ES_OWNED).size()), error);
+    ASSERT_LE(std::sqrt(variance_a / m.range(VERTEX, SP_ES_OWNED).size()), error);
 
 }
 
@@ -683,11 +683,10 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
             [&](mesh::MeshEntityId s)
             {
                 auto a = uniform_dist(gen);
-                f1[s] = count;// one * a;
+                f1[s] = one * a;
                 ++count;
                 mean += a * a;
             });
-//    f1.sync();
 
     mean = std::sqrt(mean) * mod(one);
 
@@ -698,7 +697,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
 
     Real variance_a = 0;
     Real variance_b = 0;
-    m.range(VOLUME).foreach(
+    m.range(VOLUME, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId s)
             {
                 variance_a += mod(f3a[s] * f3a[s]);
@@ -706,8 +705,8 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
             });
 
 
-    EXPECT_LE(std::sqrt(variance_b / m.range(VOLUME).size()), error);
-    ASSERT_LE(std::sqrt(variance_a / m.range(VOLUME).size()), error);
+    EXPECT_LE(std::sqrt(variance_b / m.range(VOLUME, SP_ES_OWNED).size()), error);
+    ASSERT_LE(std::sqrt(variance_a / m.range(VOLUME, SP_ES_OWNED).size()), error);
 
 }
 

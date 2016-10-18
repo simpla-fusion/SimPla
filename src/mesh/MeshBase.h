@@ -124,7 +124,7 @@ public:
     void dimensions(index_tuple const &d)
     {
         assert(!m_is_deployed_);
-        m_b_dimensions_ = d;
+        m_block_count_ = d;
     }
 
     void ghost_width(index_tuple const &d)
@@ -136,13 +136,13 @@ public:
     virtual void shift(index_tuple const &offset)
     {
         assert(!m_is_deployed_);
-        m_g_offset_ += offset;
+        m_g_start_ += offset;
     };
 
     virtual void scale(index_tuple const &a)
     {
         assert(!m_is_deployed_);
-        for (int i = 0; i < ndims; ++i) { if (m_b_dimensions_[i] > 1) { m_b_dimensions_[i] *= a[i]; }}
+        for (int i = 0; i < ndims; ++i) { if (m_block_count_[i] > 1) { m_block_count_[i] *= a[i]; }}
 
     };
 
@@ -151,7 +151,7 @@ public:
         assert(!m_is_deployed_);
         for (int i = 0; i < ndims; ++i)
         {
-            if (m_b_dimensions_[i] > 1) { m_b_dimensions_[i] = static_cast<size_type>(a[i]); }
+            if (m_block_count_[i] > 1) { m_block_count_[i] = static_cast<size_type>(a[i]); }
         }
     };
 
@@ -170,16 +170,16 @@ public:
     virtual box_type box() const
     {
         point_type lower, upper;
-        lower = m_g_offset_;
-        upper = m_g_offset_ + m_b_dimensions_;
+        lower = m_g_start_;
+        upper = m_g_start_ + m_block_count_;
         return std::make_tuple(lower, upper);
     };
 
     virtual box_type outer_box() const
     {
         point_type lower, upper;
-        lower = m_g_offset_ - m_l_offset_;
-        upper = m_g_offset_ + m_l_dimensions_;
+        lower = m_g_start_ - m_l_start_;
+        upper = m_g_start_ + m_l_dimensions_;
         return std::make_tuple(lower, upper);
     }
 
@@ -198,36 +198,36 @@ public:
 
     bool is_deployed() const { return m_is_deployed_; }
 
-    size_tuple const &dimensions() const { return m_b_dimensions_; }
+    size_tuple const &dimensions() const { return m_block_count_; }
 
     size_tuple const &local_dimensions() const { return m_l_dimensions_; }
 
-    index_tuple const &local_offset() const { return m_l_offset_; }
+    index_tuple const &local_offset() const { return m_l_start_; }
 
     size_tuple const &global_dimensions() const { return m_g_dimensions_; }
 
-    index_tuple const &global_offset() const { return m_g_offset_; }
+    index_tuple const &global_offset() const { return m_g_start_; }
 
     size_tuple const &ghost_width() const { return m_ghost_width_; }
 
     index_box_type local_index_box() const
     {
-        index_tuple lower = m_l_offset_;
+        index_tuple lower = m_l_start_;
         index_tuple upper;
-        upper = lower + m_b_dimensions_;
+        upper = lower + m_block_count_;
         return std::make_tuple(lower, upper);
     }
 
     index_box_type index_box() const
     {
-        index_tuple lower = m_g_offset_;
-        index_tuple upper = lower + m_b_dimensions_;
+        index_tuple lower = m_g_start_;
+        index_tuple upper = lower + m_block_count_;
         return std::make_tuple(lower, upper);
     }
 
     index_box_type outer_index_box() const
     {
-        index_tuple lower = m_g_offset_ - m_l_offset_;
+        index_tuple lower = m_g_start_ - m_l_start_;
         index_tuple upper = lower + m_l_dimensions_;
         return std::make_tuple(lower, upper);
     }
@@ -241,9 +241,9 @@ public:
 
     inline size_type hash(index_type i, index_type j = 0, index_type k = 0) const
     {
-        return static_cast<size_type>(((i + m_l_offset_[0] - m_g_offset_[0]) * m_l_dimensions_[1] +
-                                       (j + m_l_offset_[1] - m_g_offset_[1])) * m_l_dimensions_[2] +
-                                      k + m_l_offset_[2] - m_g_offset_[2]);
+        return static_cast<size_type>(((i + m_l_start_[0] - m_g_start_[0]) * m_l_dimensions_[1] +
+                                       (j + m_l_start_[1] - m_g_start_[1])) * m_l_dimensions_[2] +
+                                      k + m_l_start_[2] - m_g_start_[2]);
     }
 
     inline size_type hash(index_tuple const &id) const { return hash(id[0], id[1], id[2]); }
@@ -263,7 +263,7 @@ public:
 
     inline size_type hash(MeshEntityId const &id) const
     {
-        m::hash2(id, m_l_offset_, m_l_dimensions_);
+        m::hash2(id, m_g_min_, m_l_dimensions_);
     }
 
     MeshEntityId pack(size_type i, size_type j = 0, size_type k = 0, int nid = 0) const
@@ -284,12 +284,12 @@ public:
 //    {
 //        int n = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
 //#pragma omp parallel for
-//        for (index_type i = 0; i < m_b_dimensions_[0]; ++i)
-//            for (index_type j = 0; j < m_b_dimensions_[1]; ++j)
-//                for (index_type k = 0; k < m_b_dimensions_[2]; ++k)
+//        for (index_type i = 0; i < m_block_count_[0]; ++i)
+//            for (index_type j = 0; j < m_block_count_[1]; ++j)
+//                for (index_type k = 0; k < m_block_count_[2]; ++k)
 //                    for (int l = 0; l < n; ++l)
 //                    {
-//                        fun(pack(m_l_offset_[0] + i, m_l_offset_[1] + j, m_l_offset_[2] + k, l));
+//                        fun(pack(m_l_start_[0] + i, m_l_start_[1] + j, m_l_start_[2] + k, l));
 //                    }
 //    }
 
@@ -323,12 +323,20 @@ private:
     int m_level_ = 0;
     bool m_is_deployed_ = false;
     Real m_time_ = 0.0;
-    size_tuple m_b_dimensions_{{1, 1, 1}};      //!<   dimensions of box
-    size_tuple m_ghost_width_{{0, 0, 0}};          //!<     start index in the local  space
-    size_tuple m_l_dimensions_{{1, 1, 1}};      //!<   dimensions of local index space
-    index_tuple m_l_offset_{{0, 0, 0}};          //!<     start index in the local  space
-    size_tuple m_g_dimensions_{{1, 1, 1}};     //!<   dimensions of global index space
-    index_tuple m_g_offset_{{0, 0, 0}};         //!<   start index of global index space
+
+    size_tuple m_block_count_{{1, 1, 1}};        //!<   dimensions of local box
+
+    index_tuple m_l_start_{{0, 0, 0}};          //!<     start index in the local  space
+
+    size_tuple m_l_dimensions_{{1, 1, 1}};       //!<   dimensions of local index space
+
+    index_tuple m_g_start_{{0, 0, 0}};        //!<   start index of global index space
+
+    size_tuple m_g_dimensions_{{1, 1, 1}};       //!<   dimensions of global index space
+
+    index_tuple m_g_min_{{0, 0, 0}};          //!<   local minum  global space index
+
+    size_tuple m_ghost_width_{{0, 0, 0}};        //!<     ghost width
 
 };
 

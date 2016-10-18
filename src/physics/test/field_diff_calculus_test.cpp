@@ -34,7 +34,7 @@ INSTANTIATE_TEST_CASE_P(
                         nTuple<size_t, 3>({1, 1, 100}), //
                         nTuple<size_t, 3>({1, 10, 20}), //
                         nTuple<size_t, 3>({17, 1, 17}), //
-                        nTuple<size_t, 3>({10, 1, 1}),//
+                        nTuple<size_t, 3>({10, 1, 1}),  //
                         nTuple<size_t, 3>({5, 19, 17})  //
                 ),
 

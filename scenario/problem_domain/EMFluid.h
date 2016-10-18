@@ -66,10 +66,10 @@ public:
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
 
     EntityRange J_src_range;
-    std::function<Vec3(Real, point_type const &)> J_src_fun;
+    std::function<Vec3(point_type const &, Real)> J_src_fun;
 
     EntityRange E_src_range;
-    std::function<Vec3(Real, point_type const &)> E_src_fun;
+    std::function<Vec3(point_type const &, Real)> E_src_fun;
 
     typedef field_t<scalar_type, FACE> TB;
     typedef field_t<scalar_type, EDGE> TE;
@@ -183,31 +183,17 @@ void EMFluid<TM>::next_step(Real dt)
 
     DEFINE_PHYSICAL_CONST
 
-    if (J_src_fun)
-    {
-        Real current_time = m->time();
-
-        J1.apply_function(_impl::plus_assign(),
-                          [&](mesh::MeshEntityId const &s) -> Vec3 { return J_src_fun(current_time, m->point(s)); },
-                          J_src_range);
-    }
+    if (J_src_fun) { J1.apply_function(_impl::plus_assign(), J_src_range, J_src_fun, m->time()); }
 
 
-    if (E_src_fun)
-    {
-        Real current_time = m->time();
-
-        E.apply_function(_impl::plus_assign(),
-                         [&](mesh::MeshEntityId const &s) -> Vec3 { return E_src_fun(current_time, m->point(s)); },
-                         E_src_range);
-    }
+    if (E_src_fun) { E.apply_function(_impl::plus_assign(), E_src_range, E_src_fun, m->time()); }
 
 
     B -= curl(E) * (dt * 0.5);
-    B.assign(0, face_boundary);
+    B.assign(face_boundary, 0);
 
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
-    E.assign(0, edge_boundary);
+    E.assign(edge_boundary, 0);
 
 
     if (m_fluid_sp_.size() > 0)
@@ -285,7 +271,7 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
     B -= curl(E) * (dt * 0.5);
-    B.assign(0, face_boundary);
+    B.assign(face_boundary, 0);
 }
 
 }//namespace simpla  {

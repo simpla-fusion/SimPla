@@ -21,7 +21,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     center_mesh->dimensions(options["Mesh"]["Dimensions"].template as<index_tuple>(index_tuple{20, 20, 1}));
     center_mesh->ghost_width(options["Mesh"]["GhostWidth"].template as<index_tuple>(index_tuple{2, 2, 2}));
     center_mesh->box(options["Mesh"]["MeshBase"].template as<box_type>(box_type{{0, 0, 0},
-                                                                             {1, 1, 1}}));
+                                                                                {1, 1, 1}}));
     center_mesh->deploy();
 
     auto center_domain = ctx->add_domain_to<EMFluid<mesh_type >>(center_mesh->id());
@@ -35,58 +35,31 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         sp->J.clear();
         if (std::get<1>(item)["Density"])
         {
-            std::function<Real(point_type const &)> g_obj;
-            std::get<1>(item)["Shape"].as(&g_obj);
-
-            std::function<Real(point_type const &)> density;
-            std::get<1>(item)["Density"].as(&density);
-
-            center_mesh->foreach(VERTEX,
-                                 [&](MeshEntityId const &s)
-                                 {
-                                     auto x = center_mesh->point(s);
-                                     if (g_obj(x) <= 0) { sp->rho[s] = density(x); }
-                                 });
+//            sp->rho.assign_function(
+//                    std::get<1>(item)["Shape"].as<std::function<Real(point_type const &)> >(),
+//                    std::get<1>(item)["Density"].as<std::function<Real(point_type const &)>>()
+//            );
         }
     }
 
     center_domain->deploy();
-
+    typedef std::function<vector_type(point_type const &)> field_function_type;
 
     if (options["InitValue"])
     {
         if (options["InitValue"]["B0"])
         {
-            std::function<vector_type(point_type const &)> fun;
-            options["InitValue"]["B0"]["Value"].as(&fun);
-            center_mesh->foreach(FACE,
-                                 [&](mesh::MeshEntityId const &s)
-                                 {
-                                     center_domain->B0[s] = fun(center_mesh->point(s))[MeshEntityIdCoder::sub_index(
-                                             s)];
-                                 });
+            center_domain->B0.assign_function(options["InitValue"]["B0"]["Value"].as<field_function_type>());
         }
 
         if (options["InitValue"]["B1"])
         {
-            std::function<vector_type(point_type const &)> fun;
-            options["InitValue"]["B1"]["Value"].as(&fun);
-            center_mesh->foreach(FACE,
-                                 [&](mesh::MeshEntityId const &s)
-                                 {
-                                     center_domain->B[s] = fun(center_mesh->point(s))[MeshEntityIdCoder::sub_index(s)];
-                                 });
+            center_domain->B.assign_function(options["InitValue"]["B1"]["Value"].as<field_function_type>());
         }
 
         if (options["InitValue"]["E1"])
         {
-            std::function<vector_type(point_type const &)> fun;
-            options["InitValue"]["E1"]["Value"].as(&fun);
-            center_mesh->foreach(EDGE,
-                                 [&](mesh::MeshEntityId const &s)
-                                 {
-                                     center_domain->E[s] = fun(center_mesh->point(s))[MeshEntityIdCoder::sub_index(s)];
-                                 });
+            center_domain->E.assign_function(options["InitValue"]["E1"]["Value"].as<field_function_type>());
         }
     }
 
