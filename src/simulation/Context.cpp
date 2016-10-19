@@ -6,7 +6,7 @@
  */
 
 #include "Context.h"
-#include "DomainBase.h"
+#include "mesh/DomainBase.h"
 //#include <functional>
 //#include <iostream>
 //#include <map>
@@ -79,7 +79,7 @@ Context::add_domain(std::shared_ptr<DomainBase> pb)
     }
     // else
 //    {
-//        std::shared_ptr<DomainBase> *p = &(m_pimpl_->m_domains_[pb->mesh()->id()]);
+//        std::shared_ptr<DomainBase> *p = &(m_pimpl_->m_nodes_[pb->mesh()->id()]);
 //        while (*p != nullptr) { p = &((*p)->next()); }
 //        *p = pb;
 //    }
@@ -166,8 +166,8 @@ Context::sync(int level, int flag)
             auto r = m_pimpl_->m_atlas_.get_adjacencies(mesh_chart.first);
             for (auto it = std::get<0>(r), ie = std::get<1>(r); it != ie; ++it)
             {
-//                auto other_domain = m_pimpl_->m_domains_.find(it->second->second->id());
-//                if (other_domain != m_pimpl_->m_domains_.end() && (it->second->flag & flag != 0))
+//                auto other_domain = m_pimpl_->m_nodes_.find(it->second->second->id());
+//                if (other_domain != m_pimpl_->m_nodes_.end() && (it->second->flag & flag != 0))
 //                {
 //                    this_domain->second->sync(*(it->second), *(other_domain->second));
 //                }

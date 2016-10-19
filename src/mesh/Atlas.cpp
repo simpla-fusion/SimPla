@@ -10,28 +10,104 @@
 
 namespace simpla { namespace mesh
 {
+Atlas::Atlas() {};
 
-MeshBlockId
-Atlas::add_block(std::shared_ptr<MeshBase> p_m)
+Atlas::~Atlas() {};
+
+void Atlas::add(std::shared_ptr<DomainBase> const p_m)
 {
-    auto res = m_nodes_.emplace(p_m->id(), p_m);
-    return res.first->first;
+    m_nodes_.emplace(p_m->id(), p_m);
+    update(p_m->id());
+};
+
+void Atlas::update(uuid id)
+{
+    unlink(id);
+
+    auto it = m_nodes_.find(id);
+
+    if (it == m_nodes_.end())
+    {
+        return;
+    } else if (id != it->second->id())
+    {
+        m_nodes_.erase(it);
+        return;
+    }
+    MeshBase const &m = *(it->second->mesh());
+    assert(m.level() < MAX_NUM_OF_LEVEL);
+    m_max_level_ = std::max(m_max_level_, m.level());
+    m_layer_[m.level()].insert(id);
+
+    //TODO  check overlap and add links
+    for (auto const &item:m_nodes_) { if (item.first != id) { link(id, item.first); }}
 }
 
-std::shared_ptr<MeshBase>
-Atlas::get_block(mesh::MeshBlockId m_id) const
+void Atlas::erase(uuid m_id)
 {
-    assert(m_nodes_.at(m_id) != nullptr);
-    return m_nodes_.at(m_id);
+    unlink(m_id);
+    m_nodes_.erase(m_id);
 }
 
-std::shared_ptr<TransitionMapBase>
-Atlas::add_adjacency(std::shared_ptr<TransitionMapBase> t_map)
+int Atlas::link(uuid i0, uuid i1)
 {
+    assert(has(i0) && has(i1));
+    MeshBase const &m0 = mesh(i0);
+    MeshBase const &m1 = mesh(i1);
+    int l0 = m0.level();
+    int l1 = m1.level();
+    box_type b0 = m0.box();
+    box_type b1 = m1.box();
+    vector_type dx = m0.dx();
+    switch (l0 - l1)
+    {
+        case 0:
+            if (toolbox::are_adjoining(b0, b1, dx))
+            {
+                m_adjacent_.emplace(i0, i1);
+                m_adjacent_.emplace(i1, i0);
+            }
+            break;
 
-    m_out_edge_.emplace(t_map->from_id(), t_map);
-    m_in_edge_.emplace(t_map->to_id(), t_map);
-    return t_map;
+        case -1:
+            if (toolbox::are_overlapping(b0, b1))
+            {
+                m_refine_.emplace(i0, i1);
+                m_coarsen_.emplace(i1, i0);
+            }
+            break;
+        case 1:
+            if (toolbox::are_overlapping(b0, b1))
+            {
+                m_coarsen_.emplace(i0, i1);
+                m_refine_.emplace(i1, i0);
+            }
+            break;
+        default:
+            break;
+    }
+
+    return l0 - l1;
+}
+
+void Atlas::unlink(uuid id)
+{
+    m_adjacent_.erase(id);
+    m_refine_.erase(id);
+    m_coarsen_.erase(id);
+    for (int i = 0; i < MAX_NUM_OF_LEVEL; ++i) { m_layer_[i].erase(id); }
+}
+
+
+void Atlas::update_all()
+{
+    for (auto ib = m_nodes_.begin(), ie = m_nodes_.end(); ib != ie; ++ib)
+        for (auto it = ib; it != ie; ++it)
+        {
+            link(ib->first, it->first);
+        }
+
+
 }
 //
 //std::shared_ptr<TransitionMapBase>

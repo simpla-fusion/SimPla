@@ -21,9 +21,9 @@ using namespace mesh;
  *  @brief absorb boundary condition, PML
  */
 template<typename TM>
-class PML : public simulation::DomainBase
+class PML : public DomainBase
 {
-    typedef simulation::DomainBase base_type;
+    typedef DomainBase base_type;
 public:
     typedef TM mesh_type;
 
@@ -44,7 +44,7 @@ public:
     static std::string class_name() { return "PML<" + traits::type_id<TM>::name() + ">"; }
 
 
-    std::shared_ptr<mesh_type const> m = nullptr;
+    using base_type::m;
 
 
     field_t<scalar_type, mesh::EDGE> E{m};

@@ -135,7 +135,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
 
         pml_mesh[0] = center_mesh->clone_as<mesh_type>("PML_0");
         pml_mesh[0]->shift(index_tuple{-w, -w, -w});
-        pml_mesh[0]->stretch(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w});
+        pml_mesh[0]->reshape(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w});
         pml_mesh[0]->deploy();
         ctx->atlas().add_block(pml_mesh[0]);
         ctx->atlas().add_connection(center_mesh.get(), pml_mesh[0].get(), SP_MB_SYNC);
@@ -143,7 +143,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
 
         pml_mesh[1] = center_mesh->clone_as<mesh_type>("PML_1");
         pml_mesh[1]->shift(index_tuple{dims[0], -w, -w});
-        pml_mesh[1]->stretch(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w});
+        pml_mesh[1]->reshape(index_tuple{w, dims[1] + 2 * w, dims[2] + 2 * w});
         pml_mesh[1]->deploy();
         ctx->atlas().add_block(pml_mesh[1]);
         ctx->atlas().add_connection(center_mesh.get(), pml_mesh[1].get(), SP_MB_SYNC);
@@ -153,7 +153,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         {
             pml_mesh[2] = center_mesh->clone_as<mesh_type>("PML_2");
             pml_mesh[2]->shift(index_tuple{0, -w, -w});
-            pml_mesh[2]->stretch(index_tuple{dims[0], w, dims[2] + 2 * w});
+            pml_mesh[2]->reshape(index_tuple{dims[0], w, dims[2] + 2 * w});
             pml_mesh[2]->deploy();
             ctx->atlas().add_block(pml_mesh[2]);
             ctx->atlas().add_connection(pml_mesh[2].get(), center_mesh.get(), SP_MB_SYNC);
@@ -164,7 +164,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
 
             pml_mesh[3] = center_mesh->clone_as<mesh_type>("PML_3");
             pml_mesh[3]->shift(index_tuple{0, dims[1], -w});
-            pml_mesh[3]->stretch(index_tuple{dims[0], w, dims[2] + 2 * w});
+            pml_mesh[3]->reshape(index_tuple{dims[0], w, dims[2] + 2 * w});
             pml_mesh[3]->deploy();
             ctx->atlas().add_block(pml_mesh[3]);
             ctx->atlas().add_connection(pml_mesh[3].get(), center_mesh.get(), SP_MB_SYNC);
@@ -177,7 +177,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         {
             pml_mesh[4] = center_mesh->clone_as<mesh_type>("PML_4");
             pml_mesh[4]->shift(index_tuple{0, 0, -w});
-            pml_mesh[4]->stretch(index_tuple{dims[0], dims[1], w});
+            pml_mesh[4]->reshape(index_tuple{dims[0], dims[1], w});
             pml_mesh[4]->deploy();
             ctx->atlas().add_block(pml_mesh[4]);
             ctx->atlas().add_connection(pml_mesh[4].get(), center_mesh.get(), SP_MB_SYNC);
@@ -189,7 +189,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
 
             pml_mesh[5] = center_mesh->clone_as<mesh_type>("PML_5");
             pml_mesh[5]->shift(index_tuple{0, 0, dims[2]});
-            pml_mesh[5]->stretch(index_tuple{dims[0], dims[1], w});
+            pml_mesh[5]->reshape(index_tuple{dims[0], dims[1], w});
             pml_mesh[5]->deploy();
             ctx->atlas().add_block(pml_mesh[5]);
             ctx->atlas().add_connection(pml_mesh[5].get(), center_mesh.get(), SP_MB_SYNC);

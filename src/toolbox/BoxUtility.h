@@ -65,6 +65,19 @@ is_same(Box3<T> const &left, Box3<T> const &right)
            (std::get<1>(left)[2] == std::get<1>(right)[2]);
 }
 
+template<typename T> constexpr inline bool
+are_adjoining(Box3<T> const &left, Box3<T> const &right, Point3<T> const &dx)
+{
+
+
+}
+
+template<typename T> constexpr inline bool
+are_overlapping(Box3<T> const &left, Box3<T> const &right)
+{
+
+
+}
 
 template<typename T> constexpr inline Vector3<T>
 dimensions(Box3<T> const &b)
@@ -133,7 +146,7 @@ template<typename T>
 constexpr inline Box3<T>
 union_bounding(Box3<T> const &left, Box3<T> const &right)
 {
-    return Box3 < T > {min(std::get<0>(left), std::get<0>(right)), max(std::get<1>(left), std::get<1>(right))};
+    return Box3<T> {min(std::get<0>(left), std::get<0>(right)), max(std::get<1>(left), std::get<1>(right))};
 }
 
 }}//namespace simpla{namespace toolbox{

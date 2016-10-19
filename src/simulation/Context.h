@@ -19,7 +19,7 @@
 #include "mesh/Atlas.h"
 #include "mesh/TransitionMap.h"
 #include "toolbox/IOStream.h"
-#include "DomainBase.h"
+#include "mesh/DomainBase.h"
 
 
 namespace simpla { namespace simulation

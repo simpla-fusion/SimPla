@@ -165,15 +165,28 @@ public:
 
     size_type space_id() const { return m_space_id_; }
 
-    int level() const { return m_level_; }
+    unsigned int level() const { return m_level_; }
 
-    void dimensions(index_tuple const &d) { if (!m_is_deployed_) { std::get<1>(m_g_box_) = std::get<0>(m_g_box_) + d; }}
+    void dimensions(size_tuple const &d) { if (!m_is_deployed_) { std::get<1>(m_g_box_) = std::get<0>(m_g_box_) + d; }}
 
-    void ghost_width(index_tuple const &d) { if (!m_is_deployed_) { m_ghost_width_ = d; }}
+    void dimensions(size_type x, size_type y = 0, size_type z = 0) { dimensions(size_tuple{x, y, z}); };
+
+    void ghost_width(size_tuple const &d) { if (!m_is_deployed_) { m_ghost_width_ = d; }}
+
 
     virtual void shift(index_tuple const &offset) { if (!m_is_deployed_) { std::get<0>(m_g_box_) += offset; }};
 
-    virtual void stretch(index_tuple const &a) { if (!m_is_deployed_) { std::get<1>(m_g_box_) += a; }};
+    void shift(index_type x, index_type y = 0, index_type z = 0) { shift(index_tuple{x, y, z}); };
+
+    virtual void reshape(index_tuple const &a)
+    {
+        if (!m_is_deployed_)
+        {
+            std::get<1>(m_g_box_) = std::get<0>(m_g_box_) + a;
+        }
+    };
+
+    void reshape(index_type x, index_type y = 0, index_type z = 0) { reshape(index_tuple{x, y, z}); };
 
     virtual void deploy();
 
@@ -187,6 +200,13 @@ public:
                toolbox::is_valid(m_m_box_) &&
                toolbox::is_valid(m_inner_box_) &&
                toolbox::is_valid(m_outer_box_);
+    }
+
+    size_tuple dimensions() const
+    {
+        size_tuple res;
+        res = std::get<1>(m_g_box_) - std::get<0>(m_g_box_);
+        return res;
     }
 
     size_tuple const &ghost_width() const { return m_ghost_width_; }
@@ -204,6 +224,11 @@ public:
         return std::make_tuple(point(std::get<0>(b)), point(std::get<1>(b)));
     }
 
+    vector_type dx() const
+    {
+        Real a = 1 / static_cast<Real>(1 << m_level_);
+        return vector_type {a, a, a};
+    }
 
     virtual box_type box() const { return get_box(m_inner_box_); };
 
@@ -217,7 +242,13 @@ public:
 
     virtual point_type point(MeshEntityId const &s) const { return point(unpack(s)); }
 
-    virtual point_type point(index_tuple const &b) const { return toolbox::convert(b); }
+    virtual point_type point(index_tuple const &b) const
+    {
+        point_type res;
+        res = toolbox::convert(b);
+        res /= 1 << m_level_;
+        return res;
+    }
 
 
     virtual std::tuple<MeshEntityId, point_type> point_global_to_local(point_type const &p, int iform = 0) const

@@ -9,27 +9,32 @@
 
 #include <memory>
 #include "SIMPLA_config.h"
-#include "../toolbox/Object.h"
-#include "../toolbox/Log.h"
-#include "../toolbox/Properties.h"
-#include "../toolbox/ConfigParser.h"
-#include "../toolbox/IOStream.h"
-#include "../mesh/Mesh.h"
-#include "../mesh/Atlas.h"
-#include "../mesh/TransitionMap.h"
-#include "../mesh/Attribute.h"
+#include "toolbox/Object.h"
+#include "toolbox/Log.h"
+#include "toolbox/Properties.h"
+#include "toolbox/ConfigParser.h"
+#include "toolbox/IOStream.h"
+#include "Mesh.h"
+#include "Atlas.h"
+#include "TransitionMap.h"
+#include "Attribute.h"
 
 
-namespace simpla { namespace simulation
+namespace simpla { namespace mesh
 {
 
 /**
- *
+ * Domain has
+ *  - 1 mesh
+ *  - n attribute
+ *  - 0|1 father domain
+ *  - n sun domain
+ *  - n brother domain
  */
 class DomainBase : public toolbox::Object
 {
 public:
-    std::shared_ptr<mesh::MeshBase> m;
+    std::shared_ptr<MeshBase> m;
 
     std::shared_ptr<DomainBase> m_sub_level_;
 
@@ -41,9 +46,9 @@ public:
 
     DomainBase();
 
-    DomainBase(std::shared_ptr<const mesh::MeshBase>);
+    DomainBase(std::shared_ptr<MeshBase>);
 
-    virtual std::shared_ptr<mesh::MeshBase> mesh() const { return m; };
+    virtual std::shared_ptr<MeshBase> mesh() const { return m; };
 
     virtual ~DomainBase();
 
@@ -63,7 +68,7 @@ public:
 
     virtual toolbox::IOStream &load(toolbox::IOStream &is) const;
 
-    virtual void sync(mesh::TransitionMapBase const &, DomainBase const &other);
+    virtual void sync(TransitionMapBase const &, DomainBase const &other);
 
     std::shared_ptr<DomainBase> &next() { return m_next_; }
 
@@ -83,15 +88,15 @@ public:
     };
 
     //------------------------------------------------------------------------------------------------------------------
-    const mesh::AttributeBase *attribute(std::string const &s_name) const;
+    const AttributeBase *attribute(std::string const &s_name) const;
 
-    void add_attribute(mesh::AttributeBase *attr, std::string const &s_name);
+    void add_attribute(AttributeBase *attr, std::string const &s_name);
 
     template<typename TF>
     void global_declare(TF *attr, std::string const &s_name)
     {
-        static_assert(std::is_base_of<mesh::AttributeBase, TF>::value, "illegal type conversion");
-        add_attribute(dynamic_cast<mesh::AttributeBase *>(attr), s_name);
+        static_assert(std::is_base_of<AttributeBase, TF>::value, "illegal type conversion");
+        add_attribute(dynamic_cast<AttributeBase *>(attr), s_name);
     };
 
 

@@ -11,7 +11,7 @@
 #include "../toolbox/Log.h"
 #include "../toolbox/nTuple.h"
 #include "MeshCommon.h"
-#include "MeshBase.h"
+#include "DomainBase.h"
 #include "TransitionMap.h"
 
 namespace simpla { namespace mesh
@@ -28,62 +28,66 @@ namespace simpla { namespace mesh
 
 class Atlas
 {
+
+    static constexpr int MAX_NUM_OF_LEVEL = 10;
+    typedef uuid id_type;
+    typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
+    typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
+    typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
+    std::map<id_type, std::shared_ptr<DomainBase>> m_nodes_;
+    std::multimap<id_type, id_type> m_adjacent_;
+    std::multimap<id_type, id_type> m_refine_;
+    std::multimap<id_type, id_type> m_coarsen_;
+    std::set<id_type> m_layer_[MAX_NUM_OF_LEVEL];
+    unsigned int m_max_level_ = 0;
 public:
+    Atlas();
 
-    MeshBase::id_type add_block(std::shared_ptr<MeshBase> p_m);
+    ~Atlas();
 
-    std::shared_ptr<MeshBase> get_block(MeshBase::id_type m_id) const;
+    unsigned int max_level() const { return m_max_level_; }
 
-    void remove_block(MeshBase::id_type const &m_id);
+    std::shared_ptr<DomainBase> get(id_type id) { m_nodes_.at(id); };
 
-    std::map<MeshBase::id_type, std::shared_ptr<MeshBase>> const &at_level(int l = 0) const { return m_nodes_; };
+    std::shared_ptr<DomainBase> get(id_type id) const { m_nodes_.at(id); };
 
+    std::shared_ptr<DomainBase> operator[](id_type id) { m_nodes_.at(id); };
 
-    std::shared_ptr<TransitionMapBase> add_adjacency(std::shared_ptr<TransitionMapBase>);
-//
-//    std::shared_ptr<TransitionMapBase>
-//    add_adjacency(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second);
-//
-//    std::shared_ptr<TransitionMapBase>
-//    add_adjacency(MeshBlockId first, MeshBlockId second);
-//
-//    std::tuple<std::shared_ptr<TransitionMapBase>, std::shared_ptr<TransitionMapBase>>
-//    add_connection(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second);
+    std::shared_ptr<DomainBase> operator[](id_type id) const { m_nodes_.at(id); };
 
+    MeshBase const &mesh(id_type id) const { return *(m_nodes_.at(id)->mesh()); };
 
-    template<typename TM, typename TN>
-    std::shared_ptr<TransitionMap<TM, TN> >
-    add_adjacency(std::shared_ptr<TM> const &first, std::shared_ptr<TN> const &second)
-    {
-        auto res = std::make_shared<TransitionMap<TM, TN>>(first, second);
-        add_adjacency(std::dynamic_pointer_cast<TransitionMapBase>(res));
-        return res;
-    }
+    bool has(id_type id) const { return m_nodes_.find(id) != m_nodes_.end(); }
 
-    template<typename TM, typename TN>
-    std::tuple<std::shared_ptr<TransitionMap<TM, TN> >, std::shared_ptr<TransitionMap<TN, TM> > >
-    add_connection(std::shared_ptr<TM> const &first, std::shared_ptr<TN> const &second)
-    {
-        return std::make_tuple(add_adjacency(first, second), add_adjacency(second, first));
+    void add(std::shared_ptr<DomainBase> const p_m);
 
-    };
+    void update(id_type id);
 
-//#ifndef NDEBUG
-//    private:
-//#endif
-    typedef std::multimap<MeshBase::id_type, std::shared_ptr<TransitionMapBase>> adjacency_list_t;
-//
-//    adjacency_list_t m_adjacency_list_;
+    /**
+     * @brief
+     * @param i0
+     * @param i1
+     * @return  -1 => refine
+     *           0 => adjointing
+     *           1 => coarsen
+     */
+    int link(id_type i0, id_type i1);
 
-    std::map<MeshBase::id_type, std::shared_ptr<MeshBase>> m_nodes_;
+    void unlink(id_type id);
 
-    std::multimap<MeshBase::id_type, std::shared_ptr<TransitionMapBase>> m_out_edge_;
-    std::multimap<MeshBase::id_type, std::shared_ptr<TransitionMapBase>> m_in_edge_;
+    void erase(id_type m_id);
 
-public:
-    std::pair<typename adjacency_list_t::const_iterator, typename adjacency_list_t::const_iterator>
-    get_adjacencies(MeshBase::id_type first) const { return m_out_edge_.equal_range(first); }
+    std::set<id_type> &level(int l) { return m_layer_[l]; }
 
+    std::set<id_type> const &level(int l) const { return m_layer_[l]; }
+
+    multi_links_type same_level(id_type id) const { return m_adjacent_.equal_range(id); };
+
+    multi_links_type upper_level(id_type id) const { return m_refine_.equal_range(id); };
+
+    multi_links_type lower_lelvel(id_type id) const { return m_coarsen_.equal_range(id); };
+
+    void update_all();
 
 };
 }}//namespace simpla{namespace mesh{

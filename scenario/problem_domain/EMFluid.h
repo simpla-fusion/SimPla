@@ -13,7 +13,7 @@
 #include "mesh/EntityRange.h"
 #include "mesh/Model.h"
 #include "manifold/Calculus.h"
-#include "simulation/DomainBase.h"
+#include "mesh/DomainBase.h"
 
 namespace simpla
 {
@@ -21,15 +21,15 @@ using namespace mesh;
 
 
 template<typename TM>
-class EMFluid : public simulation::DomainBase
+class EMFluid : public DomainBase
 {
     typedef EMFluid<TM> this_type;
-    typedef simulation::DomainBase base_type;
+    typedef DomainBase base_type;
 
 public:
     virtual bool is_a(std::type_info const &info) const
     {
-        return typeid(this_type) == info || simulation::DomainBase::is_a(info);
+        return typeid(this_type) == info || DomainBase::is_a(info);
     }
 
     virtual std::string get_class_name() const { return class_name(); }
@@ -116,6 +116,7 @@ public:
 template<typename TM>
 void EMFluid<TM>::deploy()
 {
+    mesh()->deploy();
     rho0.clear();
     E0.clear();
     B0.clear();

@@ -5,33 +5,33 @@
  *  */
 
 #include "DomainBase.h"
-#include "../toolbox/IOStream.h"
+#include "toolbox/IOStream.h"
 
-namespace simpla { namespace simulation
+namespace simpla { namespace mesh
 {
 struct DomainBase::pimpl_s
 {
 //    Real m_dt_ = 0;
 //    Real m_time_ = 0;
-    std::map<std::string, mesh::AttributeBase *> m_attr_;
+    std::map<std::string, AttributeBase *> m_attr_;
 //    parallel::DistributedObject m_dist_obj_;
 };
 
 DomainBase::DomainBase() : m(nullptr), m_next_(nullptr), m_pimpl_(new pimpl_s) {}
 
-DomainBase::DomainBase(std::shared_ptr<const mesh::MeshBase> msh) : m(msh), m_next_(nullptr),
-                                                                            m_pimpl_(new pimpl_s) {};
+DomainBase::DomainBase(std::shared_ptr<MeshBase> msh)
+        : m(msh), m_next_(nullptr), m_pimpl_(new pimpl_s) {};
 
 DomainBase::~DomainBase() { teardown(); }
 
 
-const mesh::AttributeBase *
+const AttributeBase *
 DomainBase::attribute(std::string const &s_name) const
 {
     return m_pimpl_->m_attr_.at(s_name);
 };
 
-void DomainBase::add_attribute(mesh::AttributeBase *attr, std::string const &s_name)
+void DomainBase::add_attribute(AttributeBase *attr, std::string const &s_name)
 {
     m_pimpl_->m_attr_.emplace(std::make_pair(s_name, attr));
 };
@@ -125,7 +125,7 @@ DomainBase::save(toolbox::IOStream &os, int flag) const
 #ifndef NDEBUG
                 os.write(m->name(), item.second->dataset(), flag);
 #else
-                os.write(m->name(), item.second->dataset(mesh::SP_ES_OWNED), flag);
+                os.write(m->name(), item.second->dataset(SP_ES_OWNED), flag);
 #endif
                 os.open(pwd);
             }
@@ -143,7 +143,7 @@ DomainBase::save(toolbox::IOStream &os, int flag) const
 #ifndef NDEBUG
                 os.write(m->name(), it->second->dataset(), flag);
 #else
-                os.write(m->name(), it->second->dataset(mesh::SP_ES_OWNED), flag);
+                os.write(m->name(), it->second->dataset(SP_ES_OWNED), flag);
 #endif
 
                 os.open(pwd);
@@ -154,26 +154,26 @@ DomainBase::save(toolbox::IOStream &os, int flag) const
 };
 
 
-void DomainBase::sync(mesh::TransitionMapBase const &t_map, DomainBase const &other)
+void DomainBase::sync(TransitionMapBase const &t_map, DomainBase const &other)
 {
 //    for (auto const &item:m_pimpl_->m_attr_) { if (!item.second->empty()) { item.second->map(t_map, other); }}
 }
 
-bool DomainBase::same_as(mesh::MeshBase const &) const
+bool DomainBase::same_as(MeshBase const &) const
 {
     UNIMPLEMENTED;
     return false;
 };
 
-//std::vector<mesh::box_type> DomainBase::refine_boxes() const
+//std::vector<box_type> DomainBase::refine_boxes() const
 //{
 //    UNIMPLEMENTED;
-//    return std::vector<mesh::box_type>();
+//    return std::vector<box_type>();
 //}
 //
-//void DomainBase::refine(mesh::MeshBase const &other) { UNIMPLEMENTED; };
+//void DomainBase::refine(MeshBase const &other) { UNIMPLEMENTED; };
 //
-//bool DomainBase::coarsen(mesh::MeshBase const &other)
+//bool DomainBase::coarsen(MeshBase const &other)
 //{
 //    UNIMPLEMENTED;
 //    return false;
