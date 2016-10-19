@@ -23,31 +23,35 @@
 namespace simpla { namespace simulation
 {
 
-
-class PhysicalDomain : public toolbox::Object
+/**
+ *
+ */
+class DomainBase : public toolbox::Object
 {
 public:
-    std::shared_ptr<const mesh::MeshBase> m_mesh_;
+    std::shared_ptr<mesh::MeshBase> m;
 
-    std::shared_ptr<PhysicalDomain> m_next_;
+    std::shared_ptr<DomainBase> m_sub_level_;
+
+    std::shared_ptr<DomainBase> m_next_;
 
     HAS_PROPERTIES;
 
-    SP_OBJECT_HEAD(PhysicalDomain, toolbox::Object);
+    SP_OBJECT_HEAD(DomainBase, toolbox::Object);
 
-    PhysicalDomain();
+    DomainBase();
 
-    PhysicalDomain(std::shared_ptr<const mesh::MeshBase>);
+    DomainBase(std::shared_ptr<const mesh::MeshBase>);
 
-    std::shared_ptr<const mesh::MeshBase> mesh() const { return m_mesh_; }
+    virtual std::shared_ptr<mesh::MeshBase> mesh() const { return m; };
 
-    virtual  ~PhysicalDomain();
+    virtual ~DomainBase();
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    virtual std::shared_ptr<PhysicalDomain> clone(mesh::MeshBase const &) const;
+    virtual std::shared_ptr<DomainBase> clone() const =0;
 
-    virtual bool same_as(mesh::MeshBase const &) const;
+    virtual std::shared_ptr<DomainBase> refine(index_box_type const &b, int n = 1, int flag = 0) const;
 
     virtual void deploy();
 
@@ -59,9 +63,9 @@ public:
 
     virtual toolbox::IOStream &load(toolbox::IOStream &is) const;
 
-    virtual void sync(mesh::TransitionMapBase const &, PhysicalDomain const &other);
+    virtual void sync(mesh::TransitionMapBase const &, DomainBase const &other);
 
-    std::shared_ptr<PhysicalDomain> &next() { return m_next_; }
+    std::shared_ptr<DomainBase> &next() { return m_next_; }
 
     template<typename T, typename ...Args>
     void append_as(Args &&...args)
@@ -69,7 +73,7 @@ public:
         append(std::make_shared<T>(mesh(), std::forward<Args>(args)...));
     };
 
-    void append(std::shared_ptr<PhysicalDomain> p_new)
+    void append(std::shared_ptr<DomainBase> p_new)
     {
         assert(p_new->mesh()->id() == mesh()->id());
 
@@ -86,25 +90,10 @@ public:
     template<typename TF>
     void global_declare(TF *attr, std::string const &s_name)
     {
-        static_assert(std::is_base_of<mesh::AttributeBase, TF>::value, "illegal type convertion");
+        static_assert(std::is_base_of<mesh::AttributeBase, TF>::value, "illegal type conversion");
         add_attribute(dynamic_cast<mesh::AttributeBase *>(attr), s_name);
     };
 
-//    template<typename TF>
-//    std::shared_ptr<TF> create()
-//    {
-//        auto res = std::make_shared<TF>(m_mesh_);
-//        res->deploy();
-//        return res;
-//    }
-//
-//    template<typename TF, typename ...Args>
-//    std::shared_ptr<TF> create(std::string const &s, Args &&...args)
-//    {
-//        auto res = std::make_shared<TF>(m_mesh_, std::forward<Args>(args)...);
-//        add_attribute(res, s);
-//        return res;
-//    }
 
 private:
 

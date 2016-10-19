@@ -21,9 +21,9 @@ using namespace mesh;
  *  @brief absorb boundary condition, PML
  */
 template<typename TM>
-class PML : public simulation::PhysicalDomain
+class PML : public simulation::DomainBase
 {
-    typedef simulation::PhysicalDomain base_type;
+    typedef simulation::DomainBase base_type;
 public:
     typedef TM mesh_type;
 

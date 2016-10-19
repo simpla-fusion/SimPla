@@ -130,20 +130,31 @@ bool MPIComm::is_valid() const { return ((!!pimpl_) && pimpl_->m_comm_ != MPI_CO
 int MPIComm::topology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int *mpi_topo_coord) const
 {
     *mpi_topo_ndims = 0;
-
-    if (comm() == MPI_COMM_NULL) { return SP_DO_NOTHING; }
-
-    int tope_type = MPI_CART;
-
-    MPI_CALL(MPI_Topo_test(comm(), &tope_type));
-
-    if (tope_type == MPI_CART);
+    if (mpi_topo_dims == nullptr || periods == nullptr || mpi_topo_coord == nullptr)
     {
-        MPI_CALL(MPI_Cartdim_get(comm(), mpi_topo_ndims));
-
-        MPI_CALL(MPI_Cart_get(comm(), *mpi_topo_ndims, mpi_topo_dims, periods, mpi_topo_coord));
+        return SP_SUCCESS;
     }
+    if (comm() == MPI_COMM_NULL)
+    {
+        *mpi_topo_dims = 1;
+        *periods = 1;
+        *mpi_topo_coord = 0;
 
+    } else
+    {
+
+
+        int tope_type = MPI_CART;
+
+        MPI_CALL(MPI_Topo_test(comm(), &tope_type));
+
+        if (tope_type == MPI_CART);
+        {
+            MPI_CALL(MPI_Cartdim_get(comm(), mpi_topo_ndims));
+
+            MPI_CALL(MPI_Cart_get(comm(), *mpi_topo_ndims, mpi_topo_dims, periods, mpi_topo_coord));
+        }
+    }
     return SP_SUCCESS;
 };
 

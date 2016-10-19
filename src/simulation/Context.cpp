@@ -6,7 +6,7 @@
  */
 
 #include "Context.h"
-#include "PhysicalDomain.h"
+#include "DomainBase.h"
 //#include <functional>
 //#include <iostream>
 //#include <map>
@@ -20,7 +20,7 @@ namespace simpla { namespace simulation
 
 struct Context::pimpl_s
 {
-    std::map<mesh::MeshBlockId, std::shared_ptr<PhysicalDomain>> m_domains_;
+    std::map<mesh::MeshBlockId, std::shared_ptr<DomainBase>> m_domains_;
     mesh::Atlas m_atlas_;
 
 };
@@ -36,7 +36,7 @@ void Context::teardown() {};
 std::ostream &
 Context::print(std::ostream &os, int indent) const
 {
-    os << std::setw(indent) << " " << " PhysicalDomain = {" << std::endl;
+    os << std::setw(indent) << " " << " DomainBase = {" << std::endl;
     for (auto const &item:m_pimpl_->m_domains_)
     {
         os << std::setw(indent + 1) << " " << "{" << std::endl;
@@ -64,24 +64,25 @@ Context::get_mesh_block(mesh::MeshBlockId id) const { return m_pimpl_->m_atlas_.
 std::shared_ptr<mesh::MeshBase>
 Context::get_mesh_block(mesh::MeshBlockId id) { return m_pimpl_->m_atlas_.get_block(id); }
 
-std::shared_ptr<PhysicalDomain>
+std::shared_ptr<DomainBase>
 Context::get_domain(mesh::MeshBlockId id) const { return m_pimpl_->m_domains_.at(id); };
 
 
-std::shared_ptr<PhysicalDomain>
-Context::add_domain(std::shared_ptr<PhysicalDomain> pb)
+std::shared_ptr<DomainBase>
+Context::add_domain(std::shared_ptr<DomainBase> pb)
 {
     assert(pb != nullptr);
-    auto it = m_pimpl_->m_domains_.find(pb->mesh()->id());
+    auto it = m_pimpl_->m_domains_.find(pb->id());
     if (it == m_pimpl_->m_domains_.end())
     {
-        m_pimpl_->m_domains_.emplace(std::make_pair(pb->mesh()->id(), pb));
-    } else
-    {
-        std::shared_ptr<PhysicalDomain> *p = &(m_pimpl_->m_domains_[pb->mesh()->id()]);
-        while (*p != nullptr) { p = &((*p)->next()); }
-        *p = pb;
+        m_pimpl_->m_domains_.emplace(std::make_pair(pb->id(), pb));
     }
+    // else
+//    {
+//        std::shared_ptr<DomainBase> *p = &(m_pimpl_->m_domains_[pb->mesh()->id()]);
+//        while (*p != nullptr) { p = &((*p)->next()); }
+//        *p = pb;
+//    }
     return pb;
 }
 

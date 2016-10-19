@@ -176,10 +176,16 @@ public:
                 });
     }
 
+    template<typename ...Args> void
+    assign_function(Args &&... args)
+    {
+        apply_function(_impl::_assign(), this->mesh()->range(iform), std::forward<Args>(args)...);
+    }
+
     template<typename TOP, typename TFun> void
-    apply_function_in_geometric_domain(TOP const &op, mesh::EntityRange const r0,
-                                       std::function<Real(point_type const &)> const &geo,
-                                       TFun const &fun)
+    apply_function_with_define_domain(TOP const &op, mesh::EntityRange const r0,
+                                      std::function<Real(point_type const &)> const &geo,
+                                      TFun const &fun)
     {
         deploy();
         mesh_type const &m = *this->mesh();
@@ -193,12 +199,6 @@ public:
                    });
     }
 
-
-    template<typename ...Args> void
-    assign_function(Args &&... args)
-    {
-        apply_function(_impl::_assign(), this->mesh()->range(iform), std::forward<Args>(args)...);
-    }
 
 };
 

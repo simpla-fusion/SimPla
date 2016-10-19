@@ -113,7 +113,7 @@ end
 
 
 Constraints = {
-    J = {
+    E = {
         -- current source
         Box = { { 0.05 * LX, 0.45 * LY, 0.45 * LZ }, { 0.1 * LX, 0.55 * LY, 0.55 * LZ } },
         Value = function(x, t, v)

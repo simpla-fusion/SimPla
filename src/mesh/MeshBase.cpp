@@ -3,8 +3,9 @@
 //
 
 #include "MeshBase.h"
-#include "../toolbox/nTupleExt.h"
-#include "../toolbox/PrettyStream.h"
+#include "toolbox/nTupleExt.h"
+#include "toolbox/PrettyStream.h"
+#include "toolbox/Log.h"
 
 namespace simpla { namespace mesh
 {
@@ -12,29 +13,30 @@ namespace simpla { namespace mesh
 
 MeshBase::MeshBase() {}
 
+
 MeshBase::MeshBase(MeshBase const &other) :
-        processer_id_(other.processer_id_),
-        m_index_space_id_(other.m_index_space_id_),
-        m_level_(other.m_level_),
-        m_is_deployed_(false),
-        m_block_count_(other.m_block_count_),
-        m_l_dimensions_(other.m_l_dimensions_),
-        m_l_start_(other.m_l_start_),
-        m_g_dimensions_(other.m_g_dimensions_),
-        m_g_start_(other.m_g_start_),
-        m_g_min_(other.m_g_min_) {};
+        m_is_deployed_/*    */(other.m_is_deployed_),
+        m_processer_id_/*     */(other.m_processer_id_),
+        m_space_id_/*       */(other.m_space_id_),
+        m_level_/*          */(other.m_level_),
+        m_time_/*           */(other.m_time_),
+        m_ghost_width_/*    */(other.m_ghost_width_),
+        m_g_box_/*          */(other.m_g_box_/*  */),
+        m_m_box_/*          */(other.m_m_box_/*  */),
+        m_inner_box_/*      */(other.m_inner_box_/*  */),
+        m_outer_box_/*      */(other.m_outer_box_/*  */) {};
 
 MeshBase::MeshBase(MeshBase &&other) :
-        processer_id_(other.processer_id_),
-        m_index_space_id_(other.m_index_space_id_),
-        m_level_(other.m_level_),
-        m_is_deployed_(other.m_is_deployed_),
-        m_block_count_(other.m_block_count_),
-        m_l_dimensions_(other.m_l_dimensions_),
-        m_l_start_(other.m_l_start_),
-        m_g_dimensions_(other.m_g_dimensions_),
-        m_g_start_(other.m_g_start_),
-        m_g_min_(other.m_g_min_) {};
+        m_is_deployed_/*    */(other.m_is_deployed_),
+        m_processer_id_/*     */(other.m_processer_id_),
+        m_space_id_/*       */(other.m_space_id_),
+        m_level_/*          */(other.m_level_),
+        m_time_/*           */(other.m_time_),
+        m_ghost_width_/*    */(other.m_ghost_width_),
+        m_g_box_/*          */(other.m_g_box_/*  */),
+        m_m_box_/*          */(other.m_m_box_/*  */),
+        m_inner_box_/*      */(other.m_inner_box_/*  */),
+        m_outer_box_/*      */(other.m_outer_box_/*  */) {};
 
 MeshBase::~MeshBase() {}
 
@@ -42,9 +44,7 @@ std::ostream &MeshBase::print(std::ostream &os, int indent) const
 {
     os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
     os << std::setw(indent + 1) << " " << "Topology = { Type = \"CoRectMesh\", "
-       << "Dimensions = " << m_g_dimensions_ << " start = " << m_g_start_ << " count = " << m_block_count_ << " },"
-       << std::endl;
-    os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;
+       << "Global box = " << m_g_box_ << " Local Box = " << m_inner_box_ << " }," << std::endl;
 //#ifndef NDEBUG
 //    os
 //            << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
@@ -61,143 +61,180 @@ std::ostream &MeshBase::print(std::ostream &os, int indent) const
 
 void MeshBase::swap(MeshBase &other)
 {
-    std::swap(processer_id_, other.processer_id_);
-    std::swap(m_index_space_id_, other.m_index_space_id_);
-    std::swap(m_level_, other.m_level_);
-    std::swap(m_is_deployed_, other.m_is_deployed_);
+    std::swap(m_is_deployed_/*    */, other.m_is_deployed_);
+    std::swap(m_processer_id_/*   */, other.m_processer_id_);
+    std::swap(m_space_id_/*       */, other.m_space_id_);
+    std::swap(m_level_/*          */, other.m_level_);
+    std::swap(m_time_/*           */, other.m_time_/*  */);
 
-    std::swap(m_block_count_, other.m_block_count_);
-    std::swap(m_l_dimensions_, other.m_l_dimensions_);
-    std::swap(m_l_start_, other.m_l_start_);
-    std::swap(m_g_dimensions_, other.m_g_dimensions_);
-    std::swap(m_g_start_, other.m_g_start_);
-    std::swap(m_g_min_, other.m_g_min_);
+    std::swap(m_ghost_width_/*    */, other.m_ghost_width_);
+    std::swap(m_g_box_/*          */, other.m_g_box_/*  */);
+    std::swap(m_m_box_/*          */, other.m_m_box_/*  */);
+    std::swap(m_inner_box_/*      */, other.m_inner_box_/*  */);
+    std::swap(m_outer_box_/*      */, other.m_outer_box_);
+
 
 }
 
-bool MeshBase::intersection(const box_type &other)
-{
-    return intersection(std::make_tuple(point_to_index(std::get<0>(other)), point_to_index(std::get<0>(other))));
-}
-
-
-bool MeshBase::intersection(const index_box_type &other)
-{
-    assert(!m_is_deployed_);
-    for (int i = 0; i < ndims; ++i)
-    {
-        index_type l_lower = m_g_start_[i];
-        index_type l_upper = m_g_start_[i] + m_block_count_[i];
-        index_type r_lower = std::get<0>(other)[i];
-        index_type r_upper = std::get<1>(other)[i];
-        l_lower = std::max(l_lower, r_lower);
-        l_upper = std::min(l_upper, l_upper);
-
-        m_g_start_[i] = l_lower;
-        m_block_count_[i] = static_cast<size_type>((l_upper > l_lower) ? (l_upper - l_lower) : 0);
-    }
-
-    return (m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]) > 0;
-};
-
-bool MeshBase::intersection_outer(const index_box_type &other)
-{
-    assert(!m_is_deployed_);
-    for (int i = 0; i < ndims; ++i)
-    {
-        index_type l_lower = m_g_start_[i] - m_l_start_[i];
-        index_type l_upper = m_g_start_[i] + m_l_dimensions_[i];
-        index_type r_lower = std::get<0>(other)[i];
-        index_type r_upper = std::get<1>(other)[i];
-        l_lower = std::max(l_lower, r_lower);
-        l_upper = std::min(l_upper, l_upper);
-        m_g_start_[i] = l_lower;
-        m_block_count_[i] = static_cast<size_type>((l_upper > l_lower) ? (l_upper - l_lower) : 0);
-    }
-
-    return (m_l_dimensions_[0] * m_l_dimensions_[1] * m_l_dimensions_[2]) > 0;
-
-}
-
-
-void MeshBase::refine(int ratio)
-{
-    assert(!m_is_deployed_);
-    ++m_level_;
-    for (int i = 0; i < ndims; ++i)
-    {
-        m_block_count_[i] <<= ratio;
-        m_g_dimensions_[i] <<= ratio;
-        m_g_start_[i] <<= ratio;
-        m_l_dimensions_[i] = 0;
-        m_l_start_[i] = 0;
-    }
-}
-
-void MeshBase::coarsen(int ratio)
-{
-    assert(!m_is_deployed_);
-    --m_level_;
-    for (int i = 0; i < ndims; ++i)
-    {
-        int mask = (1 << ratio) - 1;
-        assert(m_block_count_[i] & mask == 0);
-        assert(m_g_dimensions_[i] & mask == 0);
-        assert(m_g_start_[i] & mask == 0);
-
-        m_block_count_[i] >>= ratio;
-        m_g_dimensions_[i] >>= ratio;
-        m_g_start_[i] >>= ratio;
-        m_l_dimensions_[i] = 0;
-        m_l_start_[i] = 0;
-    }
-}
 
 void MeshBase::deploy()
 {
     if (m_is_deployed_) { return; }
 
-    m_is_deployed_ = true;
+    assert(toolbox::is_valid(m_g_box_));
+
+
+    int mpi_topo_ndims = 0;
+    int mpi_topo_dims[3];
+    int mpi_topo_periods[3];
+    int mpi_topo_coords[3];
+
+    GLOBAL_COMM.topology(&mpi_topo_ndims, mpi_topo_dims, mpi_topo_periods, mpi_topo_coords);
 
 
     for (int i = 0; i < ndims; ++i)
     {
-        if (m_g_dimensions_[i] == 1)
+        if (std::get<1>(m_g_box_)[i] <= std::get<0>(m_g_box_)[i] + 1)
         {
             m_ghost_width_[i] = 0;
-            m_l_dimensions_[i] = 1;
-            m_g_dimensions_[i] = 1;
-            m_l_start_[i] = 0;
-            m_g_start_[i] = 0;
-        }
 
-        m_block_count_[i] = m_g_dimensions_[i];
+            std::get<0>(m_m_box_)[i] = 0;
+            std::get<1>(m_m_box_)[i] = 1;
 
-        if (m_l_start_[i] < m_ghost_width_[i] ||
-            m_l_dimensions_[i] < m_ghost_width_[i] * 2 + m_block_count_[i])
+            std::get<0>(m_m_box_)[i] = 0;
+            std::get<1>(m_m_box_)[i] = 1;
+
+            std::get<0>(m_inner_box_)[i] = 0;
+            std::get<1>(m_inner_box_)[i] = 1;
+
+            std::get<0>(m_outer_box_)[i] = 0;
+            std::get<1>(m_outer_box_)[i] = 1;
+
+            if (i < mpi_topo_ndims && mpi_topo_dims[i] > 1)
+            {
+                RUNTIME_ERROR << " Mesh is not splitable [" << m_g_box_
+                              << ", mpi={" << mpi_topo_dims[0]
+                              << "," << mpi_topo_dims[1]
+                              << "," << mpi_topo_dims[2]
+                              << "}]" << std::endl;
+            }
+
+        } else if (i < mpi_topo_ndims && mpi_topo_dims[i] > 1)
         {
-            m_l_start_[i] = m_ghost_width_[i];
-            m_l_dimensions_[i] = m_ghost_width_[i] * 2 + m_block_count_[i];
+            index_type L = std::get<1>(m_g_box_)[i] - std::get<0>(m_g_box_)[i];
+            std::get<1>(m_g_box_)[i] = std::get<0>(m_g_box_)[i] + L * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i];
+            std::get<0>(m_g_box_)[i] += L * mpi_topo_coords[i] / mpi_topo_dims[i];
         }
-
-
-        assert (m_block_count_[i] > 0 ||
-                m_l_dimensions_[i] >= m_block_count_[i] + m_l_start_[i] ||
-                m_g_dimensions_[i] >= m_block_count_[i] + m_g_start_[i]);
     }
-    m_g_min_ = m_g_start_ - m_l_start_;
+
+
+    m_inner_box_ = m_g_box_;
+    m_outer_box_ = m_g_box_;
+
+    std::get<0>(m_outer_box_) -= m_ghost_width_;
+
+    std::get<1>(m_outer_box_) += m_ghost_width_;
+
+    m_m_box_ = m_outer_box_;
+
+    m_is_deployed_ = true;
+
 }
+
+std::shared_ptr<MeshBase>
+MeshBase::clone() const
+{
+    assert(is_deployed());
+    return std::make_shared<MeshBase>(*this);
+};
+
+void
+MeshBase::refine(index_box_type const &other_box, int n, int flag)
+{
+    m_inner_box_ = toolbox::intersection(m_inner_box_, other_box);
+
+    if (!toolbox::is_valid(m_inner_box_) || m_level_ + n < 0) { return; }
+    else if (n > 0)
+    {
+
+        int ratio = 0x1 << n;
+
+
+        std::get<0>(m_inner_box_) *= ratio;
+        std::get<1>(m_inner_box_) *= ratio;
+
+        std::get<0>(m_outer_box_) = std::get<0>(m_inner_box_) - m_ghost_width_;
+        std::get<1>(m_outer_box_) = std::get<1>(m_inner_box_) + m_ghost_width_;
+
+        m_m_box_ = m_outer_box_;
+        m_g_box_ = m_inner_box_;
+
+    } else if (n < 0)
+    {
+
+        int ratio = 0x1 << -n;
+
+
+        std::get<0>(m_inner_box_) /= ratio;
+        std::get<1>(m_inner_box_) /= ratio;
+
+        std::get<0>(m_outer_box_) = std::get<0>(m_inner_box_) - m_ghost_width_;
+        std::get<1>(m_outer_box_) = std::get<1>(m_inner_box_) + m_ghost_width_;
+
+        m_m_box_ = m_outer_box_;
+        m_g_box_ = m_inner_box_;
+    }
+
+    m_level_ += n;
+}
+
+void
+MeshBase::intersection(index_box_type const &other_box)
+{
+    m_inner_box_ = toolbox::intersection(m_inner_box_, other_box);
+
+    if (toolbox::is_valid(m_inner_box_))
+    {
+        std::get<0>(m_outer_box_) = std::get<0>(m_inner_box_) - m_ghost_width_;
+        std::get<1>(m_outer_box_) = std::get<1>(m_inner_box_) + m_ghost_width_;
+    }
+}
+
+
+
+
+//
+///**
+// * return the minimum block that contain two blocks
+// */
+//std::shared_ptr<MeshBase>
+//MeshBase::union_bounding(const std::shared_ptr<MeshBase> &other) const
+//{
+//    assert(is_deployed());
+//    auto res = clone();
+//
+//    res->m_inner_box_ = toolbox::union_bounding(m_inner_box_, other->m_inner_box_);
+//
+//    if (!toolbox::is_valid(res->m_inner_box_)) { res = nullptr; }
+//    else
+//    {
+//        std::get<0>(res->m_outer_box_) = std::get<0>(res->m_inner_box_) - res->m_ghost_width_;
+//        std::get<1>(res->m_outer_box_) = std::get<1>(res->m_inner_box_) + res->m_ghost_width_;
+//    }
+//    return res;
+//
+//}
 
 //
 //void MeshBase::foreach(std::function<void(index_type, index_type, index_type)> const &fun) const
 //{
 //
 //#pragma omp parallel for
-//    for (index_type i = 0; i < m_block_count_[0]; ++i)
-//        for (index_type j = 0; j < m_block_count_[1]; ++j)
-//            for (index_type k = 0; k < m_block_count_[2]; ++k)
+//    for (index_type i = 0; i < m_inner_count_[0]; ++i)
+//        for (index_type j = 0; j < m_inner_count_[1]; ++j)
+//            for (index_type k = 0; k < m_inner_count_[2]; ++k)
 //            {
-//                fun(m_l_start_[0] + i, m_l_start_[1] + j, m_l_start_[2] + k);
+//                fun(m_inner_start_[0] + i, m_inner_start_[1] + j, m_inner_start_[2] + k);
 //            }
 //
 //
@@ -206,11 +243,11 @@ void MeshBase::deploy()
 //void MeshBase::foreach(std::function<void(index_type)> const &fun) const
 //{
 //#pragma omp parallel for
-//    for (index_type i = 0; i < m_block_count_[0]; ++i)
-//        for (index_type j = 0; j < m_block_count_[1]; ++j)
-//            for (index_type k = 0; k < m_block_count_[2]; ++k)
+//    for (index_type i = 0; i < m_inner_count_[0]; ++i)
+//        for (index_type j = 0; j < m_inner_count_[1]; ++j)
+//            for (index_type k = 0; k < m_inner_count_[2]; ++k)
 //            {
-//                fun(hash(m_l_start_[0] + i, m_l_start_[1] + j, m_l_start_[2] + k));
+//                fun(hash(m_inner_start_[0] + i, m_inner_start_[1] + j, m_inner_start_[2] + k));
 //            }
 //}
 //
@@ -218,12 +255,12 @@ void MeshBase::deploy()
 //{
 //    int n = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
 //#pragma omp parallel for
-//    for (index_type i = 0; i < m_block_count_[0]; ++i)
-//        for (index_type j = 0; j < m_block_count_[1]; ++j)
-//            for (index_type k = 0; k < m_block_count_[2]; ++k)
+//    for (index_type i = 0; i < m_inner_count_[0]; ++i)
+//        for (index_type j = 0; j < m_inner_count_[1]; ++j)
+//            for (index_type k = 0; k < m_inner_count_[2]; ++k)
 //                for (int l = 0; l < n; ++l)
 //                {
-//                    fun(pack(m_l_start_[0] + i, m_l_start_[1] + j, m_l_start_[2] + k, l));
+//                    fun(pack(m_inner_start_[0] + i, m_inner_start_[1] + j, m_inner_start_[2] + k, l));
 //                }
 //}
 
@@ -253,12 +290,12 @@ MeshBase::data_space(MeshEntityType const &t, MeshZoneTag status) const
         case SP_ES_OWNED:
         default:
             f_dims = m_g_dimensions_;
-            f_start = m_g_start_;
-            f_count = m_block_count_;
+            f_start = m_g_lower_;
+            f_count = m_inner_count_;
 
             m_dims = m_l_dimensions_;
-            m_start = m_l_start_;
-            m_count = m_block_count_;
+            m_start = m_inner_start_;
+            m_count = m_inner_count_;
             break;
 
     }
@@ -317,10 +354,10 @@ MeshBase::range(MeshEntityType entityType, MeshZoneTag status) const
      */
 
     index_tuple m_outer_lower_, m_outer_upper_, m_inner_lower_, m_inner_upper_;
-    m_outer_lower_ = m_g_min_;
+    m_outer_lower_ = m_outer_start_;
     m_outer_upper_ = m_outer_lower_ + m_l_dimensions_;
-    m_inner_lower_ = m_g_start_;
-    m_inner_upper_ = m_g_start_ + m_block_count_;
+    m_inner_lower_ = m_g_lower_;
+    m_inner_upper_ = m_g_lower_ + m_inner_count_;
     switch (status)
     {
         case SP_ES_ALL : //all valid

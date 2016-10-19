@@ -11,44 +11,40 @@
 #include <memory>
 #include <list>
 #include <map>
-#include "../sp_def.h"
-#include "../mesh/EntityRange.h"
-#include "../mesh/Attribute.h"
-#include "../mesh/Atlas.h"
-#include "../mesh/TransitionMap.h"
-#include "../toolbox/IOStream.h"
-#include "PhysicalDomain.h"
+
+#include "SIMPLA_config.h"
+
+#include "mesh/EntityRange.h"
+#include "mesh/Attribute.h"
+#include "mesh/Atlas.h"
+#include "mesh/TransitionMap.h"
+#include "toolbox/IOStream.h"
+#include "DomainBase.h"
 
 
 namespace simpla { namespace simulation
 {
 
 
-class PhysicalDomain;
+class DomainBase;
 
 class Context
 {
 private:
     typedef Context this_type;
 public:
+    int m_refine_ratio = 2;
 
     Context();
 
     ~Context();
 
-    int m_refine_ratio = 2;
 
     void setup();
 
     void teardown();
 
-
     std::ostream &print(std::ostream &os, int indent = 1) const;
-
-
-    toolbox::IOStream &save_mesh(toolbox::IOStream &os) const;
-
-    toolbox::IOStream &load_mesh(toolbox::IOStream &is);
 
     toolbox::IOStream &save(toolbox::IOStream &os, int flag = toolbox::SP_NEW) const;
 
@@ -56,73 +52,30 @@ public:
 
     toolbox::IOStream &check_point(toolbox::IOStream &os) const;
 
-    mesh::MeshBlockId add_mesh(std::shared_ptr<mesh::MeshBase>);
+    std::shared_ptr<DomainBase> add_domain(std::shared_ptr<DomainBase> pb);
 
-    template<typename TM, typename ...Args>
-    std::shared_ptr<TM> add_mesh(Args &&...args)
-    {
-        auto res = std::make_shared<TM>(std::forward<Args>(args)...);
-        add_mesh(std::dynamic_pointer_cast<mesh::MeshBase>(res));
-        return res;
-    };
-
-    mesh::Atlas &atlas();
-
-    mesh::Atlas const &get_mesh_atlas() const;
-
-    std::shared_ptr<const mesh::MeshBase> get_mesh_block(mesh::MeshBlockId id) const;
-
-    std::shared_ptr<mesh::MeshBase> get_mesh_block(mesh::MeshBlockId id);
-
-    template<typename TM>
-    std::shared_ptr<const TM> get_mesh(mesh::MeshBlockId s) const
-    {
-        return std::dynamic_pointer_cast<const TM>(get_mesh_block(s));
-    }
-
-    template<typename TM>
-    std::shared_ptr<TM> get_mesh(mesh::MeshBlockId s)
-    {
-        static_assert(std::is_base_of<mesh::MeshBase, TM>::value, "illegal mesh convert!");
-        assert(get_mesh_block(s).get() != nullptr);
-        assert(get_mesh_block(s)->is_a<TM>());
-        auto res = std::dynamic_pointer_cast<TM>(get_mesh_block(s));
-        return std::dynamic_pointer_cast<TM>(get_mesh_block(s));
-    }
-
-
-    std::shared_ptr<PhysicalDomain> add_domain(std::shared_ptr<PhysicalDomain> pb);
-
-    template<typename TProb, typename ...Args>
-    std::shared_ptr<TProb> add_domain_as(Args &&...args)
+    template<typename TProb, typename ...Args> std::shared_ptr<TProb>
+    add_domain(Args &&...args)
     {
         auto res = std::make_shared<TProb>(std::forward<Args>(args)...);
         add_domain(res);
         return res;
     };
 
-    template<typename TProb, typename ...Args>
-    std::shared_ptr<TProb> add_domain_to(mesh::MeshBlockId id, Args &&...args)
+    std::shared_ptr<DomainBase> get_domain(uuid id) const;
+
+    template<typename TProb> std::shared_ptr<TProb>
+    get_domain_as(uuid id) const
     {
-        return add_domain_as<TProb>(std::dynamic_pointer_cast<typename TProb::mesh_type>(get_mesh_block(id)),
-                                    std::forward<Args>(args)...);
-    };
-
-
-    std::shared_ptr<PhysicalDomain> get_domain(mesh::MeshBlockId id) const;
-
-    template<typename TProb>
-    std::shared_ptr<TProb> get_domain_as(mesh::MeshBlockId id) const
-    {
+        static_assert(!get_domain(id)->is_a<TProb>(), "illegal type conversion!");
+        assert(get_domain(id).get() != nullptr);
         return std::dynamic_pointer_cast<TProb>(get_domain(id));
     }
-
 
     void sync(int level = 0, int flag = 0);
 
     void run(Real dt, int level = 0);
 
-    //------------------------------------------------------------------------------------------------------------------
     Real time() const { return m_time_; }
 
     void time(Real t) { m_time_ = t; };
@@ -131,7 +84,6 @@ public:
 
 private:
     Real m_time_;
-
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };

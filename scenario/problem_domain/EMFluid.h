@@ -7,13 +7,13 @@
 #ifndef SIMPLA_EM_FLUID_H
 #define SIMPLA_EM_FLUID_H
 
-#include "../../src/physics/Field.h"
-#include "../../src/physics/PhysicalConstants.h"
-#include "../../src/simulation/PhysicalDomain.h"
-#include "../../src/mesh/Mesh.h"
-#include "../../src/mesh/EntityRange.h"
-#include "../../src/mesh/Model.h"
-#include "../../src/manifold/Calculus.h"
+#include "physics/Field.h"
+#include "physics/PhysicalConstants.h"
+#include "mesh/Mesh.h"
+#include "mesh/EntityRange.h"
+#include "mesh/Model.h"
+#include "manifold/Calculus.h"
+#include "simulation/DomainBase.h"
 
 namespace simpla
 {
@@ -21,15 +21,15 @@ using namespace mesh;
 
 
 template<typename TM>
-class EMFluid : public simulation::PhysicalDomain
+class EMFluid : public simulation::DomainBase
 {
     typedef EMFluid<TM> this_type;
-    typedef simulation::PhysicalDomain base_type;
+    typedef simulation::DomainBase base_type;
 
 public:
     virtual bool is_a(std::type_info const &info) const
     {
-        return typeid(this_type) == info || simulation::PhysicalDomain::is_a(info);
+        return typeid(this_type) == info || simulation::DomainBase::is_a(info);
     }
 
     virtual std::string get_class_name() const { return class_name(); }
@@ -40,9 +40,11 @@ public:
 
     typedef typename mesh_type::scalar_type scalar_type;
 
-    std::shared_ptr<const mesh_type> m;
+    using base_type::m;
 
-    EMFluid(std::shared_ptr<const mesh_type> mp) : base_type(mp), m(mp) {}
+    EMFluid() : base_type(new mesh_type) {}
+
+    EMFluid(std::shared_ptr<mesh_type> mp) : base_type(mp) {}
 
     virtual ~EMFluid() {}
 
@@ -50,6 +52,7 @@ public:
 
     virtual void next_step(Real dt);
 
+    std::shared_ptr<mesh_type> mesh() const { return std::dynamic_pointer_cast<mesh_type>(base_type::mesh()); }
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
@@ -62,7 +65,7 @@ public:
     EntityRange plasma_region_vertex;
 
 
-    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
+    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;
 
     EntityRange J_src_range;
     std::function<Vec3(point_type const &, Real)> J_src_fun;
@@ -77,14 +80,14 @@ public:
     typedef field_t<vector_type, VERTEX> TJv;
 
     field_t<scalar_type, VERTEX> rho0{m};
-    field_t<scalar_type, EDGE> E0/*   */{m};
-    field_t<scalar_type, FACE> B0/*   */{m};
+    field_t<scalar_type, EDGE> E0{m};
+    field_t<scalar_type, FACE> B0{m};
     field_t<vector_type, VERTEX> B0v/**/{m};
     field_t<scalar_type, VERTEX> BB/* */{m};
     field_t<vector_type, VERTEX> Ev/* */{m};
     field_t<vector_type, VERTEX> Bv/* */{m};
     field_t<vector_type, VERTEX> dE{m};
-//
+
     field_t<scalar_type, FACE> B/*   */{m};
     field_t<scalar_type, EDGE> E/*   */{m};
     field_t<scalar_type, EDGE> J1/*  */{m};
@@ -117,20 +120,15 @@ void EMFluid<TM>::deploy()
     E0.clear();
     B0.clear();
     BB.clear();
-
     Ev.clear();
-
-
     J1.clear();
     B.clear();
     E.clear();
-
 
     global_declare(&E, "E");
     global_declare(&B, "B");
     global_declare(&B0, "B0");
     global_declare(&B0v, "B0v");
-
     global_declare(&Ev, "Ev");
     global_declare(&dE, "dE");
 
@@ -146,7 +144,7 @@ template<typename TM>
 std::ostream &
 EMFluid<TM>::print(std::ostream &os, int indent) const
 {
-    simulation::PhysicalDomain::print(os, indent);
+    simulation::DomainBase::print(os, indent);
     os << std::setw(indent + 1) << " " << " ParticleAttribute= { " << std::endl;
     for (auto &sp:m_fluid_sp_)
     {
@@ -159,7 +157,6 @@ EMFluid<TM>::print(std::ostream &os, int indent) const
 }
 
 
-
 template<typename TM>
 void EMFluid<TM>::next_step(Real dt)
 {
@@ -170,14 +167,14 @@ void EMFluid<TM>::next_step(Real dt)
 
     if (J_src_fun) { J1.apply_function(_impl::plus_assign(), J_src_range, J_src_fun, m->time()); }
 
-
     if (E_src_fun) { E.apply_function(_impl::plus_assign(), E_src_range, E_src_fun, m->time()); }
 
-
     B -= curl(E) * (dt * 0.5);
+
     B.assign(face_boundary, 0);
 
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
+
     E.assign(edge_boundary, 0);
 
 
@@ -190,7 +187,7 @@ void EMFluid<TM>::next_step(Real dt)
             BB = dot(B0v, B0v);
         }
 
-         field_t<vector_type, VERTEX> Q{m};
+        field_t<vector_type, VERTEX> Q{m};
         field_t<vector_type, VERTEX> K{m};
 
         field_t<scalar_type, VERTEX> a{m};
@@ -256,6 +253,7 @@ void EMFluid<TM>::next_step(Real dt)
     }
 
     B -= curl(E) * (dt * 0.5);
+
     B.assign(face_boundary, 0);
 }
 

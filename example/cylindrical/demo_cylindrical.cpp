@@ -24,7 +24,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
                                                                            {1, 1, 1}}));
     center_mesh->deploy();
 
-    auto center_domain = ctx->add_domain_to<EMFluid<mesh_type >>(center_mesh->id());
+    auto center_domain = ctx->set_physical_domain<EMFluid<mesh_type >>(center_mesh->id());
 
     for (auto const &item:options["Particles"])
     {
@@ -139,7 +139,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         pml_mesh[0]->deploy();
         ctx->atlas().add_block(pml_mesh[0]);
         ctx->atlas().add_connection(center_mesh.get(), pml_mesh[0].get(), SP_MB_SYNC);
-        ctx->add_domain_as<pml_type>(pml_mesh[0].get())->setup_center_domain(center_mesh->box()).deploy();
+        ctx->add_domain<pml_type>(pml_mesh[0].get())->setup_center_domain(center_mesh->box()).deploy();
 
         pml_mesh[1] = center_mesh->clone_as<mesh_type>("PML_1");
         pml_mesh[1]->shift(index_tuple{dims[0], -w, -w});
@@ -147,7 +147,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         pml_mesh[1]->deploy();
         ctx->atlas().add_block(pml_mesh[1]);
         ctx->atlas().add_connection(center_mesh.get(), pml_mesh[1].get(), SP_MB_SYNC);
-        ctx->add_domain_as<pml_type>(pml_mesh[1].get())->setup_center_domain(center_mesh->box()).deploy();
+        ctx->add_domain<pml_type>(pml_mesh[1].get())->setup_center_domain(center_mesh->box()).deploy();
 
         if (dims[1] > 1 && gw[1] > 0)
         {
@@ -159,7 +159,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
             ctx->atlas().add_connection(pml_mesh[2].get(), center_mesh.get(), SP_MB_SYNC);
             ctx->atlas().add_connection(pml_mesh[2].get(), pml_mesh[0].get(), SP_MB_SYNC);
             ctx->atlas().add_connection(pml_mesh[2].get(), pml_mesh[1].get(), SP_MB_SYNC);
-            ctx->add_domain_as<pml_type>(pml_mesh[2].get())->setup_center_domain(center_mesh->box()).deploy();
+            ctx->add_domain<pml_type>(pml_mesh[2].get())->setup_center_domain(center_mesh->box()).deploy();
 
 
             pml_mesh[3] = center_mesh->clone_as<mesh_type>("PML_3");
@@ -170,7 +170,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
             ctx->atlas().add_connection(pml_mesh[3].get(), center_mesh.get(), SP_MB_SYNC);
             ctx->atlas().add_connection(pml_mesh[3].get(), pml_mesh[0].get(), SP_MB_SYNC);
             ctx->atlas().add_connection(pml_mesh[3].get(), pml_mesh[1].get(), SP_MB_SYNC);
-            ctx->add_domain_as<pml_type>(pml_mesh[3].get())->setup_center_domain(center_mesh->box()).deploy();
+            ctx->add_domain<pml_type>(pml_mesh[3].get())->setup_center_domain(center_mesh->box()).deploy();
 
         }
         if (dims[2] > 1 && gw[1] > 0)
@@ -185,7 +185,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
             ctx->atlas().add_connection(pml_mesh[4].get(), pml_mesh[1].get(), SP_MB_SYNC);
             ctx->atlas().add_connection(pml_mesh[4].get(), pml_mesh[2].get(), SP_MB_SYNC);
             ctx->atlas().add_connection(pml_mesh[4].get(), pml_mesh[3].get(), SP_MB_SYNC);
-            ctx->add_domain_as<pml_type>(pml_mesh[4].get())->setup_center_domain(center_mesh->box()).deploy();
+            ctx->add_domain<pml_type>(pml_mesh[4].get())->setup_center_domain(center_mesh->box()).deploy();
 
             pml_mesh[5] = center_mesh->clone_as<mesh_type>("PML_5");
             pml_mesh[5]->shift(index_tuple{0, 0, dims[2]});
@@ -197,7 +197,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
             ctx->atlas().add_connection(pml_mesh[5].get(), pml_mesh[1].get(), SP_MB_SYNC);
             ctx->atlas().add_connection(pml_mesh[5].get(), pml_mesh[2].get(), SP_MB_SYNC);
             ctx->atlas().add_connection(pml_mesh[5].get(), pml_mesh[3].get(), SP_MB_SYNC);
-            ctx->add_domain_as<pml_type>(pml_mesh[5].get())->setup_center_domain(center_mesh->box()).deploy();
+            ctx->add_domain<pml_type>(pml_mesh[5].get())->setup_center_domain(center_mesh->box()).deploy();
 
         }
     }

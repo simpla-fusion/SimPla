@@ -947,22 +947,36 @@ struct MeshEntityIdCoder_
         return make_range(traits::get<0>(b), traits::get<1>(b), iform);
     }
 
-    static index_type hash(MeshEntityId const &s, index_tuple const &b, index_tuple const &e)
+
+    static size_type
+    hash(index_type i, index_type j, index_type k, int nid, index_tuple const &b, index_tuple const &e)
+    {
+        //C-ORDER SLOW FIRST
+        return
+                static_cast<size_type>(
+                        ((k + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
+                         (((j + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
+                          ((i + e[0] - b[0] - b[0]) % (e[0] - b[0])) * (e[1] - b[1])) * (e[2] - b[2])
+                        ) * m_id_to_num_of_ele_in_cell_[nid] + m_id_to_index_[nid]);
+
+    }
+
+    static size_type hash(MeshEntityId const &s, index_tuple const &b, index_tuple const &e)
     {
         //C-ORDER SLOW FIRST
 
-        return
-                (
-                        ((s.z >> 1) + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
-
-                        (
-                                (((s.y >> 1) + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
-
-                                (((s.x >> 1) + e[0] - b[0] - b[0]) % (e[0] - b[0])) * (e[1] - b[1])
-
-                        ) * (e[2] - b[2])
-
-                ) * num_of_ele_in_cell(s) + sub_index(s);
+        return hash(s.x >> 1, s.y >> 1, s.z >> 1, node_id(s), b, e);
+//                (
+//                        ((s.z >> 1) + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
+//
+//                        (
+//                                (((s.y >> 1) + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
+//
+//                                (((s.x >> 1) + e[0] - b[0] - b[0]) % (e[0] - b[0])) * (e[1] - b[1])
+//
+//                        ) * (e[2] - b[2])
+//
+//                ) * num_of_ele_in_cell(s) + sub_index(s);
 
     }
 

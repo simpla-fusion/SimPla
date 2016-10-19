@@ -20,6 +20,7 @@
 
 namespace simpla { namespace toolbox
 {
+typedef boost::uuids::uuid uuid;
 
 
 /** @ingroup task_flow
