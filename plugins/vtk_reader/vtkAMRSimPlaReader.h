@@ -110,12 +110,12 @@ protected:
     int GetIndexFromArrayName(std::string arrayName);
 
     // Description:
-    // Given the label string, this method parses the AttributeBase label and
+    // Given the label string, this method parses the PatchBase label and
     // the string index.
     void ParseLabel(const std::string labelString, int &idx, std::string &label);
 
     // Description:
-    // Given the label string, this method parses the corresponding AttributeBase
+    // Given the label string, this method parses the corresponding PatchBase
     // index and conversion factor
     void ParseCFactor(const std::string labelString, int &idx, double &factor);
 

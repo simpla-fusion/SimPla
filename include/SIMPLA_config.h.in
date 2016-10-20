@@ -74,6 +74,7 @@ typedef int64_t id_type; //!< Data type of vertex's index , i.e. i,j
 typedef int64_t index_type;
 typedef unsigned int uint;
 
+#define MAX_NDIMS_OF_ARRAY  8
 
 
 #endif //SIMPLA_CONFIG_H

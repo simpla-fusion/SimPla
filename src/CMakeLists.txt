@@ -1,15 +1,4 @@
-
-ADD_SUBDIRECTORY(toolbox)
-
-ADD_SUBDIRECTORY(physics)
-
-ADD_SUBDIRECTORY(model)
-
-ADD_SUBDIRECTORY(mesh)
-
-ADD_SUBDIRECTORY(manifold)
-
-ADD_SUBDIRECTORY(simulation)
+ADD_SUBDIRECTORY(simpla)
 
 add_library(simpla_lib dummy.cpp)
 

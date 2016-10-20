@@ -7,6 +7,7 @@
 #ifndef SIMPLA_EM_FLUID_H
 #define SIMPLA_EM_FLUID_H
 
+#include "SIMPLA_config.h"
 #include "physics/Field.h"
 #include "physics/PhysicalConstants.h"
 #include "mesh/Mesh.h"
@@ -145,7 +146,7 @@ template<typename TM>
 std::ostream &
 EMFluid<TM>::print(std::ostream &os, int indent) const
 {
-    simulation::DomainBase::print(os, indent);
+    DomainBase::print(os, indent);
     os << std::setw(indent + 1) << " " << " ParticleAttribute= { " << std::endl;
     for (auto &sp:m_fluid_sp_)
     {

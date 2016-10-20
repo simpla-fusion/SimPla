@@ -1,0 +1,13 @@
+
+ADD_SUBDIRECTORY(toolbox)
+
+ADD_SUBDIRECTORY(physics)
+
+ADD_SUBDIRECTORY(model)
+
+ADD_SUBDIRECTORY(mesh)
+
+ADD_SUBDIRECTORY(manifold)
+
+ADD_SUBDIRECTORY(simulation)
+
