@@ -66,14 +66,14 @@ is_same(Box3<T> const &left, Box3<T> const &right)
 }
 
 template<typename T> constexpr inline bool
-are_adjoining(Box3<T> const &left, Box3<T> const &right, Point3<T> const &dx)
+check_adjoining(Box3<T> const &left, Box3<T> const &right, Point3<T> const &dx, Point3<T> const &L)
 {
 
 
 }
 
 template<typename T> constexpr inline bool
-are_overlapping(Box3<T> const &left, Box3<T> const &right)
+check_overlapping(Box3<T> const &left, Box3<T> const &right)
 {
 
 

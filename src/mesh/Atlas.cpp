@@ -59,10 +59,11 @@ int Atlas::link(uuid i0, uuid i1)
     box_type b0 = m0.box();
     box_type b1 = m1.box();
     vector_type dx = m0.dx();
+    vector_type L = m0.period_length();
     switch (l0 - l1)
     {
         case 0:
-            if (toolbox::are_adjoining(b0, b1, dx))
+            if (toolbox::check_adjoining(b0, b1, dx))
             {
                 m_adjacent_.emplace(i0, i1);
                 m_adjacent_.emplace(i1, i0);
@@ -70,14 +71,14 @@ int Atlas::link(uuid i0, uuid i1)
             break;
 
         case -1:
-            if (toolbox::are_overlapping(b0, b1))
+            if (toolbox::check_overlapping(b0, b1))
             {
                 m_refine_.emplace(i0, i1);
                 m_coarsen_.emplace(i1, i0);
             }
             break;
         case 1:
-            if (toolbox::are_overlapping(b0, b1))
+            if (toolbox::check_overlapping(b0, b1))
             {
                 m_coarsen_.emplace(i0, i1);
                 m_refine_.emplace(i1, i0);
@@ -102,11 +103,13 @@ void Atlas::unlink(uuid id)
 void Atlas::update_all()
 {
     for (auto ib = m_nodes_.begin(), ie = m_nodes_.end(); ib != ie; ++ib)
-        for (auto it = ib; it != ie; ++it)
-        {
-            link(ib->first, it->first);
-        }
-
+        for (auto it = ib; it != ie; ++it) { link(ib->first, it->first); }
+    m_max_level_ = 0;
+    for (unsigned int i = 0; i < MAX_NUM_OF_LEVEL; ++i)
+    {
+        if (m_layer_[i].size() == 0) { break; }
+        m_max_level_ = i;
+    }
 
 }
 //
