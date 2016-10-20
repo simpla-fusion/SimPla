@@ -365,7 +365,7 @@ void XDMFStream::reference_topology_geometry(std::string const &id)
 
 
 
-//void XDMFStream::set_grid(mesh::MeshPatch const &m)
+//void XDMFStream::set_grid(mesh_as::MeshPatch const &m)
 //{
 //    auto b = m.get_box();
 //    auto topology_dims = m.get_dimensions();

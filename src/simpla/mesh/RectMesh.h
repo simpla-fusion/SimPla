@@ -462,6 +462,6 @@ void RectMesh::deploy()
 //    };
 
 
-}} // namespace simpla // namespace  mesh
+}} // namespace simpla // namespace  mesh_as
 
 #endif //SIMPLA_RECTMESH_H

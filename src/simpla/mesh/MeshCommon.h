@@ -83,7 +83,7 @@ enum MeshZoneTag
 
 #ifdef __cplusplus
 };//extern "C"{
-}};//namespace mesh{namespace mesh{
+}};//namespace mesh{namespace mesh_as{
 #include <boost/uuid/uuid.hpp>
 #include "../sp_def.h"
 #include "../toolbox/nTuple.h"

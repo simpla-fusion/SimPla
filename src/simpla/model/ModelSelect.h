@@ -35,6 +35,6 @@ EntityRange select(MeshBase const &m, MeshEntityType entityType, box_type const 
     }
 
 };
-}}//namespace simpla { namespace mesh
+}}//namespace simpla { namespace mesh_as
 
 #endif //SIMPLA_MODELSELECT_H

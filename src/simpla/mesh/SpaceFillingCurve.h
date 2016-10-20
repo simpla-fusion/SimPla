@@ -64,6 +64,6 @@ struct SpaceFillingCurveCOrder
 
 
 };
-}}//namespace simpla { namespace mesh
+}}//namespace simpla { namespace mesh_as
 
 #endif //SIMPLA_SPACEFILLINGCURVE_H

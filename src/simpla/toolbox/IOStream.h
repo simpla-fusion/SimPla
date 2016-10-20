@@ -78,14 +78,14 @@ public:
 
 //    template<typename TV>
 //    void write(get_mesh::MeshAtlas const &,
-//               std::map<mesh::MeshBlockId, std::shared_ptr<TV> const &, get_mesh::MeshBlockId id= 0)
+//               std::map<mesh_as::MeshBlockId, std::shared_ptr<TV> const &, get_mesh::MeshBlockId id= 0)
 //    {
 //        UNIMPLEMENTED;
 //    }
 //
 //    template<typename TV>
 //    void read(get_mesh::MeshAtlas const &,
-//              std::map<mesh::MeshBlockId, std::shared_ptr<TV> *, get_mesh::MeshBlockId id= 0)
+//              std::map<mesh_as::MeshBlockId, std::shared_ptr<TV> *, get_mesh::MeshBlockId id= 0)
 //    {
 //        UNIMPLEMENTED;
 //    }

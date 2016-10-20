@@ -108,7 +108,7 @@ public:
 
     virtual box_type box() const
     {
-        auto i_box = MeshBase::index_box();
+        auto i_box = MeshBase::inner_index_box();
         point_type lower = m_origin_ + std::get<0>(i_box) * m_dx_;
         point_type upper = m_origin_ + std::get<1>(i_box) * m_dx_;
         return std::make_tuple(lower, upper);
@@ -294,7 +294,7 @@ void CoRectMesh::deploy()
 
 
 }
-}} // namespace simpla // namespace  mesh
+}} // namespace simpla // namespace  mesh_as
 
 #endif //SIMPLA_CORECTMESH_H
 //typedef typename MeshEntityIdCoder::range_type block_range_type;

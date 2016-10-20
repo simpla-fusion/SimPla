@@ -6,8 +6,8 @@
  */
 
 #include <gtest/gtest.h>
-#include "../Field.h"
-#include "../../manifold/pre_define/PreDefine.h"
+#include <simpla/physics/Field.h>
+#include <simpla/manifold/pre_define/PreDefine.h>
 #include "field_basic_algebra_test.h"
 
 using namespace simpla;

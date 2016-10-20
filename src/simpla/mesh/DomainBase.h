@@ -44,7 +44,7 @@ public:
 
     DomainBase(std::shared_ptr<Atlas>);
 
-    virtual std::shared_ptr<Atlas> mesh() const;
+//    virtual std::shared_ptr<Atlas> mesh() const;
 
     virtual ~DomainBase();
 
@@ -65,20 +65,19 @@ public:
 
     virtual void sync(TransitionMapBase const &, DomainBase const &other);
 
+//
+//    //------------------------------------------------------------------------------------------------------------------
+//    std::shared_ptr<AttributeBase> attribute(uuid id);
+//
+//    void add_attribute(PatchBase *attr, std::string const &s_name);
+//
+//    template<typename TF>
+//    void global_declare(TF *attr, std::string const &s_name)
+//    {
+//        static_assert(std::is_base_of<PatchBase, TF>::value, "illegal type conversion");
+//        add_attribute(dynamic_cast<PatchBase *>(attr), s_name);
+//    };
 
-    //------------------------------------------------------------------------------------------------------------------
-    std::shared_ptr<AttributeBase> attribute(uuid id);
-
-    void add_attribute(PatchBase *attr, std::string const &s_name);
-
-    template<typename TF>
-    void global_declare(TF *attr, std::string const &s_name)
-    {
-        static_assert(std::is_base_of<PatchBase, TF>::value, "illegal type conversion");
-        add_attribute(dynamic_cast<PatchBase *>(attr), s_name);
-    };
-
-    void move_to(uuid);
 
 private:
 

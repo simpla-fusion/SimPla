@@ -15,10 +15,14 @@ namespace simpla { namespace mesh
  */
 class AttributeBase : public toolbox::Object
 {
+public:
+    SP_OBJECT_HEAD(AttributeBase, toolbox::Object)
+
     typedef typename Atlas::id_type id_type;
 
+    AttributeBase(std::shared_ptr<MeshBase> const &);
 
-    AttributeBase();
+    AttributeBase(std::shared_ptr<Atlas> const &);
 
     AttributeBase(AttributeBase const &) = delete;
 
@@ -26,34 +30,49 @@ class AttributeBase : public toolbox::Object
 
     virtual ~AttributeBase();
 
-    virtual std::shared_ptr<PatchBase> create(id_type id)=0;
+    virtual std::shared_ptr<PatchBase> create(id_type const &id) const =0;
 
-    virtual void move_to(id_type t_id);
+    virtual void move_to(const id_type &t_id);
 
-    id_type mesh_id() const;
+    std::shared_ptr<Atlas> atlas() const;
 
-    bool has(id_type t_id);
+    bool has(const id_type &t_id);
 
-    PatchBase *get(id_type t_id);
+
+    id_type const &mesh_id() const;
 
     MeshBase const *mesh() const;
 
+    MeshBase const *mesh(id_type const &t_id) const;
+
     PatchBase *patch();
+
+    PatchBase *patch(id_type const &t_id);
+
 
     PatchBase const *patch() const;
 
-    template<typename TM> TM const *mesh_as() const
+    PatchBase const *patch(id_type const &t_id) const;
+
+    template<typename T, typename ...Args> T const *mesh_as(Args &&...args) const
     {
-        MeshBase const *res = mesh();
-        assert(res->is_a<TM>());
-        return static_cast<TM const *>(res);
+        MeshBase const *res = mesh(std::forward<Args>(args)...);
+        assert(res->is_a<T>());
+        return static_cast<T const *>(res);
     }
 
-    template<typename T> T *patch_as()
+    template<typename T, typename ...Args> T *patch_as(Args &&...args)
     {
-        PatchBase const *res = patch();
+        PatchBase *res = patch(std::forward<Args>(args)...);
         assert(res->is_a<T>());
         return static_cast<T *>(res);
+    }
+
+    template<typename T, typename ...Args> T const *patch_as(Args &&...args) const
+    {
+        PatchBase const *res = patch(std::forward<Args>(args)...);
+        assert(res->is_a<T>());
+        return static_cast<T const *>(res);
     }
 
 private:
@@ -70,14 +89,48 @@ public:
     static constexpr MeshEntityType iform = IFORM;
     typedef V value_type;
     typedef M mesh_type;
+
     typedef Patch<value_type, mesh_type, iform> patch_type;
 
+    typedef Attribute<V, M, IFORM> this_type;
+
+    MeshEntityType entity_type() const { return iform; }
+
+    virtual bool is_a(std::type_info const &t_info) const
+    {
+        return t_info == typeid(this_type) || AttributeBase::is_a(t_info);
+    };
+
+
+    template<typename ...Args>
+    Attribute(Args &&...args) : AttributeBase(std::forward<Args>(args)...) {};
+
+    virtual ~Attribute() {}
 
     virtual std::shared_ptr<PatchBase>
-    AttributeBase::create(id_type id)
+    create(id_type const &id) const
     {
-        return std::make_shared<patch_type>(mesh_as<mesh_type>(id));
+        return std::dynamic_pointer_cast<PatchBase>(
+                std::make_shared<patch_type>(
+                        AttributeBase::atlas()->mesh_as<mesh_type>(id).get()));
     }
+
+    mesh_type const *mesh() const { return AttributeBase::mesh_as<mesh_type>(); }
+
+    patch_type const *patch() const { return AttributeBase::patch_as<patch_type>(); }
+
+    patch_type *patch() { return AttributeBase::patch_as<patch_type>(); }
+
+
+    void clear() { if (patch() != nullptr) { patch()->clear(); }}
+
+    inline value_type &get(mesh::MeshEntityId const &s) { return patch()->get(s); }
+
+    inline value_type const &get(mesh::MeshEntityId const &s) const { return patch()->get(s); }
+
+    inline value_type &operator[](mesh::MeshEntityId const &s) { return get(s); }
+
+    inline value_type const &operator[](mesh::MeshEntityId const &s) const { return get(s); }
 
 private:
 

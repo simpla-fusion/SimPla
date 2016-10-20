@@ -339,5 +339,5 @@ public:
 
 };
 
-}} //namespace simpla{namespace mesh
+}} //namespace simpla{namespace mesh_as
 #endif //SIMPLA_BOX_H

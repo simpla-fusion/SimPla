@@ -184,7 +184,7 @@ private:
 
    /*
     * The number of blocks and the set of skelton grid geometries that make
-    * up a multiblock mesh.
+    * up a multiblock mesh_as.
     */
    size_t d_nblocks;
    std::vector<bool> d_metrics_set;

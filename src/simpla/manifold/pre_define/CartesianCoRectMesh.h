@@ -704,6 +704,6 @@ void CoRectMesh::deploy()
 //    };
 
 
-}} // namespace simpla // namespace  mesh
+}} // namespace simpla // namespace  mesh_as
 
 #endif //SIMPLA_CORECTMESH_H

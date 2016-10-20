@@ -699,7 +699,7 @@ public:
 };// struct DiffScheme<TGeo, diff_scheme::tags::finite_volume>
 
 template<typename TM> constexpr Real  FiniteVolume<TM>::m_p_curl_factor_[3];
-//template<typename TM> constexpr Real  FiniteVolume<TM, std::enable_if_t<std::is_base_of<mesh::MeshEntityIdCoder, TM>::entity>>::m_p_curl_factor2_[3];
+//template<typename TM> constexpr Real  FiniteVolume<TM, std::enable_if_t<std::is_base_of<mesh_as::MeshEntityIdCoder, TM>::entity>>::m_p_curl_factor2_[3];
 }}}// namespace simpla
 
 #endif /* FDM_H_ */

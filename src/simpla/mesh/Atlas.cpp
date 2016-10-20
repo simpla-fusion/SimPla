@@ -51,8 +51,8 @@ void Atlas::erase(uuid m_id)
 int Atlas::link(uuid i0, uuid i1)
 {
     assert(has(i0) && has(i1));
-    MeshBase const &m0 = mesh(i0);
-    MeshBase const &m1 = mesh(i1);
+    MeshBase const &m0 = *at(i0);
+    MeshBase const &m1 = *at(i1);
     int l0 = m0.level();
     int l1 = m1.level();
     box_type b0 = m0.box();
@@ -131,4 +131,4 @@ void Atlas::update_all()
 //}
 
 
-}}//namespace simpla{namespace mesh{
+}}//namespace simpla{namespace mesh_as{

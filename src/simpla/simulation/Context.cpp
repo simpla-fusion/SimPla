@@ -49,20 +49,20 @@ Context::print(std::ostream &os, int indent) const
     return os;
 }
 
-//mesh::Atlas &
+//mesh_as::Atlas &
 //Context::atlas() { return m_pimpl_->m_atlas_; };
 //
-//mesh::Atlas const &
+//mesh_as::Atlas const &
 //Context::get_mesh_atlas() const { return m_pimpl_->m_atlas_; };
 //
-//mesh::MeshBlockId
-//Context::add_mesh(std::shared_ptr<mesh::MeshBase> m) { return m_pimpl_->m_atlas_.add_block(m); }
+//mesh_as::MeshBlockId
+//Context::add_mesh(std::shared_ptr<mesh_as::MeshBase> m) { return m_pimpl_->m_atlas_.add_block(m); }
 //
-//std::shared_ptr<const mesh::MeshBase>
-//Context::get_mesh_block(mesh::MeshBlockId id) const { return m_pimpl_->m_atlas_.get_block(id); }
+//std::shared_ptr<const mesh_as::MeshBase>
+//Context::get_mesh_block(mesh_as::MeshBlockId id) const { return m_pimpl_->m_atlas_.get_block(id); }
 //
-//std::shared_ptr<mesh::MeshBase>
-//Context::get_mesh_block(mesh::MeshBlockId id) { return m_pimpl_->m_atlas_.get_block(id); }
+//std::shared_ptr<mesh_as::MeshBase>
+//Context::get_mesh_block(mesh_as::MeshBlockId id) { return m_pimpl_->m_atlas_.get_block(id); }
 
 std::shared_ptr<mesh::DomainBase>
 Context::get_domain(mesh::MeshBlockId id) const { return m_pimpl_->m_domains_.at(id); };
@@ -79,7 +79,7 @@ Context::add_domain(std::shared_ptr<mesh::DomainBase> pb)
     }
     // else
 //    {
-//        std::shared_ptr<mesh::DomainBase> *p = &(m_pimpl_->m_nodes_[pb->mesh()->id()]);
+//        std::shared_ptr<mesh::DomainBase> *p = &(m_pimpl_->m_nodes_[pb->mesh_as()->id()]);
 //        while (*p != nullptr) { p = &((*p)->next()); }
 //        *p = pb;
 //    }
@@ -104,7 +104,7 @@ Context::add_domain(std::shared_ptr<mesh::DomainBase> pb)
 toolbox::IOStream &
 Context::save(toolbox::IOStream &os, int flag) const
 {
-    for (auto const &item:m_pimpl_->m_domains_) { item.second->save(os, flag); }
+//    for (auto const &item:m_pimpl_->m_domains_) { item.second->save(os, flag); }
     return os;
 }
 
@@ -126,7 +126,7 @@ Context::run(Real dt, int level)
     //TODO async run
 
 //#ifdef ENABLE_AMR
-//    sync(level + 1, mesh::SP_MB_REFINE); //  push data to next level
+//    sync(level + 1, mesh_as::SP_MB_REFINE); //  push data to next level
 //    for (int i = 0; i < m_refine_ratio; ++i)
 //    {
 //        run(dt / m_refine_ratio, level + 1);

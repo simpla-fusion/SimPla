@@ -168,7 +168,7 @@ Main {
 TimerManager {
    timer_list               = "apps::*::*",
                               "algs::*::*",
-                              "mesh::*::*"
+                              "mesh_as::*::*"
 //   print_exclusive      = TRUE
    print_summed           = TRUE
    print_max              = TRUE

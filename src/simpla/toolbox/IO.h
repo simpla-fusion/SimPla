@@ -144,7 +144,7 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //#define  SAVE_(_OS_, _F_, __FLAG__)                                                         \
 //{        auto pwd = _OS_.pwd();                                                           \
 //        _OS_.open( std::string("/")+__STRING(_F_)+"/");                                                         \
-//        _OS_.write(_F_.mesh()->name(), _F_.dataset(mesh::SP_ES_ALL), __FLAG__);            \
+//        _OS_.write(_F_.mesh()->name(), _F_.dataset(mesh_as::SP_ES_ALL), __FLAG__);            \
 //        _OS_.open(pwd);                                                                     \
 //}
 //#define SAVE(_OS_, _F_) SAVE_(_OS_,_F_,::simpla::io::SP_NEW)

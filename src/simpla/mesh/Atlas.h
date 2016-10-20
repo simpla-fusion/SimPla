@@ -50,18 +50,23 @@ public:
 
     unsigned int max_level() const { return m_max_level_; }
 
-    std::shared_ptr<MeshBase> get(id_type id) { m_nodes_.at(id); };
+    std::shared_ptr<MeshBase> first()
+    {
+        return m_nodes_.size() == 0 ? std::shared_ptr<MeshBase>(nullptr) : m_nodes_.begin()->second;
+    }
 
-    std::shared_ptr<MeshBase> get(id_type id) const { m_nodes_.at(id); };
+    std::shared_ptr<MeshBase> at(id_type id) { m_nodes_.at(id); };
+
+    std::shared_ptr<MeshBase> at(id_type id) const { m_nodes_.at(id); };
 
     std::shared_ptr<MeshBase> operator[](id_type id) { m_nodes_.at(id); };
 
     std::shared_ptr<MeshBase> operator[](id_type id) const { m_nodes_.at(id); };
 
     template<typename TM> std::shared_ptr<TM>
-    mesh(id_type id) const
+    mesh_as(id_type id) const
     {
-        auto p = get(id);
+        auto p = at(id);
 
         assert(p->is_a<TM>());
 
@@ -101,6 +106,6 @@ public:
     void update_all();
 
 };
-}}//namespace simpla{namespace mesh{
+}}//namespace simpla{namespace mesh_as{
 
 #endif //SIMPLA_MESH_MESHATLAS_H

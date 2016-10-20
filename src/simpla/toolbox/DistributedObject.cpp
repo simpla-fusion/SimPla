@@ -197,7 +197,7 @@ void DistributedObject::pimpl_s::sync()
 //
 //        MPI_Barrier(mpi_global_comm);
 //
-//        auto const &g_array = pool->mesh().global_array_;
+//        auto const &g_array = pool->mesh_as().global_array_;
 //        if (g_array.send_recv_.size() == 0)
 //        {
 //            return;
@@ -216,7 +216,7 @@ void DistributedObject::pimpl_s::sync()
 //        {
 //
 //            size_t num = 0;
-//            for (auto s : pool->mesh().select_inner(item.send_begin, item.send_end))
+//            for (auto s : pool->mesh_as().select_inner(item.send_begin, item.send_end))
 //            {
 //                num += pool->get(s).size();
 //            }
@@ -225,7 +225,7 @@ void DistributedObject::pimpl_s::sync()
 //
 //            num = 0;
 //
-//            for (auto s : pool->mesh().select_inner(item.send_begin, item.send_end))
+//            for (auto s : pool->mesh_as().select_inner(item.send_begin, item.send_end))
 //            {
 //                for (auto const &p : pool->get(s))
 //                {
@@ -242,7 +242,7 @@ void DistributedObject::pimpl_s::sync()
 //
 //        for (auto const &item : g_array.send_recv_)
 //        {
-//            pool->remove(pool->mesh().select_outer(item.recv_begin, item.recv_end));
+//            pool->remove(pool->mesh_as().select_outer(item.recv_begin, item.recv_end));
 //
 //            MPI_Status status;
 //
@@ -271,18 +271,18 @@ void DistributedObject::pimpl_s::sync()
 //        {
 //            typename mesh_type::coordinate_tuple xmin, xmax, extents;
 //
-//            std::tie(xmin, xmax) = pool->mesh().get_extents();
+//            std::tie(xmin, xmax) = pool->mesh_as().get_extents();
 //
 //            bool id = true;
 //            for (int n = 0; n < 3; ++n)
 //            {
 //                if (g_array.send_recv_[i].recv_begin[n]
-//                    < pool->mesh().global_begin_[n])
+//                    < pool->mesh_as().global_begin_[n])
 //                {
 //                    extents[n] = xmin[n] - xmax[n];
 //                }
 //                else if (g_array.send_recv_[i].recv_begin[n]
-//                         >= pool->mesh().global_end_[n])
+//                         >= pool->mesh_as().global_end_[n])
 //                {
 //                    extents[n] = xmax[n] - xmin[n];
 //                }

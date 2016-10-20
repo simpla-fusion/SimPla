@@ -11,14 +11,14 @@
 
 #include <type_traits>
 #include <cassert>
-#include <simpla/mesh/Patch.h>
 
 #include <simpla/toolbox/type_traits.h>
 #include <simpla/toolbox/DataSet.h>
+
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/MeshBase.h>
-#include <simpla/mesh/ModelSelect.h>
 #include <simpla/mesh/Attribute.h>
+#include <simpla/mesh/Patch.h>
 
 #include "FieldTraits.h"
 #include "FieldExpression.h"
@@ -31,16 +31,16 @@ template<typename ...> class Field;
 template<typename TV, typename TManifold, size_t IFORM> using field_t= Field<TV, TManifold, index_const<IFORM>>;
 
 
-template<typename TV, typename TManifold, mesh::MeshEntityType IFORM>
+template<typename TV, typename TManifold, size_t IFORM>
 class Field<TV, TManifold, index_const<IFORM>>
-        : public mesh::Attribute<TV, TManifold, IFORM>
+        : public mesh::Attribute<TV, TManifold, static_cast< mesh::MeshEntityType>(IFORM)>
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value, "TManifold is not derived from MeshBase");
 
     typedef Field<TV, TManifold, index_const<IFORM>> this_type;
 
-    typedef mesh::Patch<TV, TManifold, IFORM> base_type;
+    typedef mesh::Attribute<TV, TManifold, static_cast<mesh::MeshEntityType>(IFORM)> base_type;
 
 public:
     using base_type::iform;
@@ -53,21 +53,23 @@ public:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
+    using base_type::patch;
+    using base_type::mesh;
 
     //create construct
-    Field(mesh_type const *m = nullptr, std::shared_ptr<value_type> p = nullptr) : base_type(m, p) {};
+//    Field(mesh_type const *m = nullptr, std::shared_ptr<value_type> p = nullptr) : base_type(m, p) {};
 
-    Field(std::shared_ptr<mesh_type const> m, std::shared_ptr<value_type> p = nullptr) : base_type(m.get(), p) {};
+    Field(std::shared_ptr<mesh_type> m) : base_type(m) {};
 
     //copy construct
-    Field(this_type const &other) : base_type(other) {}
+    Field(this_type &&other) : base_type(std::move(other)) {};
 
     ~Field() {}
 
     /** @name as_function  @{*/
 
     template<typename ...Args> field_value_type
-    gather(Args &&...args) const { return base_type::m_mesh_->gather(*this, std::forward<Args>(args)...); }
+    gather(Args &&...args) const { return base_type::mesh()->gather(*this, std::forward<Args>(args)...); }
 
 
     template<typename ...Args> field_value_type
@@ -123,14 +125,14 @@ public:
     apply(TOP const &op, mesh::EntityRange const r0, value_type const &v)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(this->get(s), v); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), v); });
     }
 
     template<typename TOP> void
     apply(TOP const &op, mesh::EntityRange const r0, this_type const &other)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(this->get(s), other.get(s)); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), other.patch()->get(s)); });
 
     }
 
@@ -140,7 +142,7 @@ public:
     )
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(this->get(s), fun(s)); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), fun(s)); });
 
     }
 
@@ -148,14 +150,14 @@ public:
     apply(TOP const &op, mesh::EntityRange const r0, Field<U...> const &fexpr)
     {
         deploy();
-        mesh_type const &m = *this->mesh();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(this->get(s), m.eval(fexpr, s)); });
+        mesh_type const &m = *mesh();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), m.eval(fexpr, s)); });
     }
 
     template<typename TOP, typename Arg> void
     apply(TOP const &op, Arg const &v)
     {
-        apply(op, this->mesh()->range(iform, mesh::SP_ES_ALL), v);
+        apply(op, mesh()->range(iform, mesh::SP_ES_ALL), v);
     }
 
     template<typename ...Args> void
@@ -169,18 +171,18 @@ public:
     apply_function(TOP const &op, mesh::EntityRange const r0, TFun const &fun, Args &&...args)
     {
         deploy();
-        mesh_type const &m = *this->mesh();
+        mesh_type const &m = *mesh();
         r0.foreach(
                 [&](mesh::MeshEntityId const &s)
                 {
-                    op(this->get(s), m.template sample<IFORM>(s, fun(m.point(s), std::forward<Args>(args)...)));
+                    op(patch()->get(s), m.template sample<IFORM>(s, fun(m.point(s), std::forward<Args>(args)...)));
                 });
     }
 
     template<typename ...Args> void
     assign_function(Args &&... args)
     {
-        apply_function(_impl::_assign(), this->mesh()->range(iform), std::forward<Args>(args)...);
+        apply_function(_impl::_assign(), mesh()->range(iform), std::forward<Args>(args)...);
     }
 
     template<typename TOP, typename TFun> void
@@ -189,13 +191,13 @@ public:
                                       TFun const &fun)
     {
         deploy();
-        mesh_type const &m = *this->mesh();
+        mesh_type const &m = *mesh();
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
                        auto x = m.point(s);
                        if (geo(x) < 0)
                        {
-                           op(this->get(s), m.template sample<IFORM>(s, fun(x)));
+                           op(patch()->get(s), m.template sample<IFORM>(s, fun(x)));
                        }
                    });
     }

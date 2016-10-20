@@ -323,6 +323,6 @@ TimeRefinementIntegrator{
    max_integrator_steps = 500    // max number of simulation timesteps
 }
 
-// Refer to mesh::TreeLoadBalancer for input
+// Refer to mesh_as::TreeLoadBalancer for input
 TreeLoadBalancer {
 }

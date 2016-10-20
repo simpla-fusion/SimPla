@@ -34,15 +34,15 @@ protected:
     virtual void SetUp()
     {
         logger::set_stdout_level(10);
+        m = std::make_shared<mesh_type>();
 
-
-        index_tuple dims = {10, 1, 1};
+        size_tuple dims = {10, 1, 1};
         point_type xmin = {0, 0, 0};
         point_type xmax = {1, 2, 3};
-        m.dimensions(dims);
-        m.box(xmin, xmax);
-        m.deploy();
-        m.range(static_cast<mesh::MeshEntityType>(iform), SP_ES_OWNED).swap(m_range);
+        m->dimensions(dims);
+        m->box(xmin, xmax);
+        m->deploy();
+        m->range(static_cast<mesh::MeshEntityType>(iform), SP_ES_OWNED).swap(m_range);
     }
 
 public:
@@ -64,13 +64,13 @@ public:
 
     mesh::EntityRange m_range;
 
-    mesh_type m;
+    std::shared_ptr<mesh_type> m;
 
-    field_t<value_type, mesh_type, iform> make_field() const { return field_t<value_type, mesh_type, iform>(&m); };
+    field_t<value_type, mesh_type, iform> make_field() const { return field_t<value_type, mesh_type, iform>(m); };
 
-    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(&m)))
+    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(m)))
 
-    auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, mesh_type, iform>(&m)))
+    auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, mesh_type, iform>(m)))
 };
 
 TYPED_TEST_CASE_P(TestField);
@@ -89,7 +89,7 @@ TYPED_TEST_P(TestField, assign)
     f1 = va;
     size_t count = 0;
 
-    TestFixture::m_range.foreach([&](mesh::MeshEntityId s) { EXPECT_LE(mod(va - f1[s]), EPSILON); });
+    TestFixture::m_range.foreach([&](mesh::MeshEntityId const &s) { EXPECT_LE(mod(va - f1[s]), EPSILON); });
 }
 
 TYPED_TEST_P(TestField, index)
@@ -107,10 +107,10 @@ TYPED_TEST_P(TestField, index)
 
     va = 2.0;
 
-    TestFixture::m_range.foreach([&](mesh::MeshEntityId s) { f1[s] = va * TestFixture::m.hash(s); });
+    TestFixture::m_range.foreach([&](mesh::MeshEntityId const &s) { f1[s] = va * TestFixture::m->hash(s); });
 
     TestFixture::m_range.foreach(
-            [&](mesh::MeshEntityId s) { EXPECT_LE(mod(va * TestFixture::m.hash(s) - f1[s]), EPSILON); });
+            [&](mesh::MeshEntityId const &s) { EXPECT_LE(mod(va * TestFixture::m->hash(s) - f1[s]), EPSILON); });
 
 }
 
@@ -138,14 +138,14 @@ TYPED_TEST_P(TestField, constant_real)
 
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](mesh::MeshEntityId s) { return va * uniform_dist(gen); });
-    f2.assign([&](mesh::MeshEntityId s) { return vb * uniform_dist(gen); });
+    f1.assign([&](mesh::MeshEntityId const &s) { return va * uniform_dist(gen); });
+    f2.assign([&](mesh::MeshEntityId const &s) { return vb * uniform_dist(gen); });
 
 
     LOG_CMD(f3 = -f1 + f1 * a + f2 * c - f1 / b);
 
     f3.mesh()->range(f3.entity_type()).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 value_type expect;
                 expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
@@ -195,9 +195,9 @@ TYPED_TEST_P(TestField, scalarField)
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](mesh::MeshEntityId s) { return va * uniform_dist(gen); });
-    f2.assign([&](mesh::MeshEntityId s) { return vb * uniform_dist(gen); });
-    f3.assign([&](mesh::MeshEntityId s) { return vc * uniform_dist(gen); });
+    f1.assign([&](mesh::MeshEntityId const &s) { return va * uniform_dist(gen); });
+    f2.assign([&](mesh::MeshEntityId const &s) { return vb * uniform_dist(gen); });
+    f3.assign([&](mesh::MeshEntityId const &s) { return vc * uniform_dist(gen); });
 
     LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
 
@@ -214,7 +214,7 @@ TYPED_TEST_P(TestField, scalarField)
  * */
 
     TestFixture::m_range.foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 

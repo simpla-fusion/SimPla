@@ -79,7 +79,7 @@ public:
     typedef V value_type;
 
 
-    Patch(mesh_type const *m, std::shared_ptr<value_type> p = nullptr) : m_mesh_(m), m_data_(p) {};
+    Patch(mesh_type const *m) : m_mesh_(m), m_data_(nullptr) {};
 
     Patch(Patch const &other) : m_mesh_(other.m_mesh_), m_data_(other.m_data_) {};
 
@@ -111,7 +111,7 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
-        auto ld = m_mesh_->local_dimensions();
+        auto ld = toolbox::dimensions(m_mesh_->inner_index_box());
         size_type d[2] = {ld[0], 3};
         printNdArray(os, (m_data_.get()), 2, &d[0]);
         return os;
@@ -126,8 +126,6 @@ public:
     }
 
     virtual MeshEntityType entity_type() const { return iform; };
-
-    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 
     virtual bool is_valid() const { return m_mesh_ != nullptr && !empty(); };
 
@@ -224,45 +222,45 @@ private:
 
 //
 //template<typename ...U, typename TFun> Field<U...> &
-//assign(Field<U...> &f,mesh::EntityRange const &r0,  TFun const &op,
-//      CHECK_FUNCTION_SIGNATURE(typename Field<U...>::value_type, TFun(mesh::MeshEntityId const &)))
+//assign(Field<U...> &f,mesh_as::EntityRange const &r0,  TFun const &op,
+//      CHECK_FUNCTION_SIGNATURE(typename Field<U...>::value_type, TFun(mesh_as::MeshEntityId const &)))
 //{
 //    f.deploy();
 //
-//    auto const &m = *f.mesh();
+//    auto const &m = *f.mesh_as();
 //
-//    static const mesh::MeshEntityType IFORM = Field<U...>::iform;
+//    static const mesh_as::MeshEntityType IFORM = Field<U...>::iform;
 //
-//    r0.foreach([&](mesh::MeshEntityId const &s) { f[s] = op(s); });
+//    r0.foreach([&](mesh_as::MeshEntityId const &s) { f[s] = op(s); });
 //
 //    return f;
 //};
 //
 //template<typename ...U, typename TFun> Field<U...> &
-//assign(Field<U...> &f, mesh::EntityRange const &r0, TFun const &op,
+//assign(Field<U...> &f, mesh_as::EntityRange const &r0, TFun const &op,
 //      CHECK_FUNCTION_SIGNATURE(typename Field<U...>::value_type, TFun(typename Field<U...>::value_type & )))
 //{
 //    f.deploy();
 //
-//    auto const &m = *f.mesh();
+//    auto const &m = *f.mesh_as();
 //
-//    static const mesh::MeshEntityType IFORM = Field<U...>::iform;
+//    static const mesh_as::MeshEntityType IFORM = Field<U...>::iform;
 //
-//    r0.foreach([&](mesh::MeshEntityId const &s) { op(f[s]); });
+//    r0.foreach([&](mesh_as::MeshEntityId const &s) { op(f[s]); });
 //
 //    return f;
 //}
 //
 //template<typename ...U, typename ...V> Field<U...> &
-//assign(Field<U...> &f,mesh::EntityRange const &r0,  Field<V...> const &g)
+//assign(Field<U...> &f,mesh_as::EntityRange const &r0,  Field<V...> const &g)
 //{
 //    f.deploy();
 //
-//    auto const &m = *f.mesh();
+//    auto const &m = *f.mesh_as();
 //
-//    static const mesh::MeshEntityType IFORM = Field<U...>::iform;
+//    static const mesh_as::MeshEntityType IFORM = Field<U...>::iform;
 //
-//    r0.foreach([&](mesh::MeshEntityId const &s) { f[s] = g[s]; });
+//    r0.foreach([&](mesh_as::MeshEntityId const &s) { f[s] = g[s]; });
 //
 //    return f;
 //}

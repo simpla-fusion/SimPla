@@ -85,6 +85,6 @@ createTransitionMap(std::shared_ptr<TM> const &src, std::shared_ptr<TM> const &d
 {
 
 }
-}}//namespace simpla { namespace mesh
+}}//namespace simpla { namespace mesh_as
 
 #endif //SIMPLA_TRANSITIONMAP_H

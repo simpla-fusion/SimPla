@@ -117,9 +117,9 @@ public:
         return *this;
     };
 
-    boost::uuids::uuid uuid() const { return m_uuid_; }
+    id_type uuid() const { return m_uuid_; }
 
-    boost::uuids::uuid id() const { return m_uuid_; }
+    id_type id() const { return m_uuid_; }
 
     size_t short_id() const { return static_cast<size_t>(boost::uuids::hash_value(m_uuid_)); }
 

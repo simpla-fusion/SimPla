@@ -63,8 +63,8 @@ int main(int argc, char **argv)
     SP_CALL(spMeshSetBox(mesh, lower, upper));
     SP_CALL(spMeshDeploy(mesh));
 
-//    SP_CALL(spFieldTestSync(mesh, SP_TYPE_Real));
-//    SP_CALL(spFieldTestSync(mesh, SP_TYPE_size_type));
+//    SP_CALL(spFieldTestSync(mesh_as, SP_TYPE_Real));
+//    SP_CALL(spFieldTestSync(mesh_as, SP_TYPE_size_type));
     /*****************************************************************************************************************/
 
     spField *fE = NULL;

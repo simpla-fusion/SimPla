@@ -64,7 +64,7 @@ TEST(GeometryTest, MeshIDs)
 //
 //TEST(GeometryTest, structured_mesh)
 //{
-//    mesh::CoRectMesh t;
+//    mesh_as::CoRectMesh t;
 //
 //    nTuple<size_t, 3> b = {3, 4, 1};
 //
@@ -206,7 +206,7 @@ TEST(GeometryTest, MeshIDs)
 //
 //TEST(GeometryTest, CoordinateSystem)
 //{
-//    BaseManifold<coordinate_system::Cartesian<3, 2>, mesh::tags::CoRectMesh> g;
+//    BaseManifold<coordinate_system::Cartesian<3, 2>, mesh_as::tags::CoRectMesh> g;
 //
 //    nTuple<size_t, 3> dim = {5, 5, 5};
 //
