@@ -32,6 +32,8 @@ public:
 
     virtual ~AttributeBase();
 
+    virtual void deploy();
+
     virtual std::shared_ptr<PatchBase> create(id_type const &id) const =0;
 
     virtual void move_to(const id_type &t_id);
@@ -95,6 +97,9 @@ public:
 
     typedef Attribute<V, M, IFORM> this_type;
 
+    patch_type *m_patch_ = nullptr;
+    mesh_type const *m_mesh_ = nullptr;
+
     MeshEntityType entity_type() const { return iform; }
 
     virtual bool is_a(std::type_info const &t_info) const
@@ -110,6 +115,7 @@ public:
 
     virtual std::shared_ptr<PatchBase> create(id_type const &id) const
     {
+        assert(AttributeBase::atlas() != nullptr);
         return std::dynamic_pointer_cast<PatchBase>(
                 std::make_shared<patch_type>(
                         AttributeBase::atlas()->mesh_as<mesh_type>(id).get()));
@@ -121,8 +127,21 @@ public:
 
     patch_type *patch() { return static_cast<patch_type *>(AttributeBase::patch()); }
 
+    virtual void deploy()
+    {
+        AttributeBase::deploy();
+        m_patch_ = patch();
+        m_mesh_ = mesh();
+        assert(m_mesh_ != nullptr);
+        assert(m_patch_ != nullptr);
+    }
 
-    void clear() { if (patch() != nullptr) { patch()->clear(); }}
+    virtual void clear()
+    {
+        deploy();
+        assert(patch() != nullptr);
+        patch()->clear();
+    }
 
     inline value_type &get(mesh::MeshEntityId const &s) { return patch()->get(s); }
 

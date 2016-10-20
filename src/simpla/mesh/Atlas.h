@@ -55,20 +55,20 @@ public:
         return m_nodes_.size() == 0 ? std::shared_ptr<MeshBase>(nullptr) : m_nodes_.begin()->second;
     }
 
-    std::shared_ptr<MeshBase> at(id_type id) { m_nodes_.at(id); };
+    std::shared_ptr<MeshBase> at(id_type id) { try { return m_nodes_.at(id); } catch (...) { return nullptr; }};
 
-    std::shared_ptr<MeshBase> at(id_type id) const { m_nodes_.at(id); };
+    std::shared_ptr<MeshBase> at(id_type id) const { try { return m_nodes_.at(id); } catch (...) { return nullptr; }};
 
-    std::shared_ptr<MeshBase> operator[](id_type id) { m_nodes_.at(id); };
+    std::shared_ptr<MeshBase> operator[](id_type id) { return at(id); };
 
-    std::shared_ptr<MeshBase> operator[](id_type id) const { m_nodes_.at(id); };
+    std::shared_ptr<MeshBase> operator[](id_type id) const { return at(id); };
 
     template<typename TM> std::shared_ptr<TM>
     mesh_as(id_type id) const
     {
         auto p = at(id);
-
-        assert(p->is_a<TM>());
+        assert(p != nullptr);
+        assert(p->is_a(typeid(TM)));
 
         return std::dynamic_pointer_cast<TM>(p);
     };

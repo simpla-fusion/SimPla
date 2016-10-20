@@ -42,10 +42,9 @@ private:
 
     typedef mesh::Attribute<TV, TManifold, static_cast<mesh::MeshEntityType>(IFORM)> base_type;
 
+
 public:
     using base_type::iform;
-
-    using base_type::deploy;
 
     using typename base_type::mesh_type;
 
@@ -53,9 +52,8 @@ public:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-    using base_type::patch;
-    using base_type::mesh;
 
+public:
     //create construct
 //    Field(mesh_type const *m = nullptr, std::shared_ptr<value_type> p = nullptr) : base_type(m, p) {};
 
@@ -66,10 +64,15 @@ public:
 
     ~Field() {}
 
+    using base_type::m_mesh_;
+    using base_type::m_patch_;
+    using base_type::deploy;
+
+
     /** @name as_function  @{*/
 
     template<typename ...Args> field_value_type
-    gather(Args &&...args) const { return base_type::mesh()->gather(*this, std::forward<Args>(args)...); }
+    gather(Args &&...args) const { return m_mesh_->gather(*this, std::forward<Args>(args)...); }
 
 
     template<typename ...Args> field_value_type
@@ -125,14 +128,15 @@ public:
     apply(TOP const &op, mesh::EntityRange const r0, value_type const &v)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), v); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(m_patch_->get(s), v); });
     }
 
     template<typename TOP> void
     apply(TOP const &op, mesh::EntityRange const r0, this_type const &other)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), other.patch()->get(s)); });
+        r0.foreach([&](
+                mesh::MeshEntityId const &s) { op(m_patch_->get(s), other.m_patch_->get(s)); });
 
     }
 
@@ -140,27 +144,28 @@ public:
     apply(TOP const &op, mesh::EntityRange const r0, Field<U...> const &fexpr)
     {
         deploy();
-        mesh_type const &m = *mesh();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), m.eval(fexpr, s)); });
+        r0.foreach([&](
+                mesh::MeshEntityId const &s) { op(m_patch_->get(s), m_mesh_->eval(fexpr, s)); });
     }
 
     template<typename TOP, typename TFun> void
     apply(TOP const &op, mesh::EntityRange const r0, TFun const &fun)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), fun(s)); });
-
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(m_patch_->get(s), fun(s)); });
     }
 
     template<typename TOP, typename Arg> void
     apply(TOP const &op, Arg const &v)
     {
-        apply(op, mesh()->range(iform, mesh::SP_ES_ALL), v);
+        deploy();
+        apply(op, m_mesh_->range(iform, mesh::SP_ES_ALL), v);
     }
 
     template<typename ...Args> void
     assign(Args &&... args)
     {
+        deploy();
         apply(_impl::_assign(), std::forward<Args>(args)...);
     }
 
@@ -169,18 +174,19 @@ public:
     apply_function(TOP const &op, mesh::EntityRange const r0, TFun const &fun, Args &&...args)
     {
         deploy();
-        mesh_type const &m = *mesh();
         r0.foreach(
                 [&](mesh::MeshEntityId const &s)
                 {
-                    op(patch()->get(s), m.template sample<IFORM>(s, fun(m.point(s), std::forward<Args>(args)...)));
+                    op(m_patch_->get(s),
+                       m_mesh_->
+                               template sample<IFORM>(s, fun(m_mesh_->point(s), std::forward<Args>(args)...)));
                 });
     }
 
     template<typename ...Args> void
     assign_function(Args &&... args)
     {
-        apply_function(_impl::_assign(), mesh()->range(iform), std::forward<Args>(args)...);
+        apply_function(_impl::_assign(), m_mesh_->range(iform), std::forward<Args>(args)...);
     }
 
     template<typename TOP, typename TFun> void
@@ -189,18 +195,15 @@ public:
                                       TFun const &fun)
     {
         deploy();
-        mesh_type const &m = *mesh();
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
-                       auto x = m.point(s);
+                       auto x = m_mesh_->point(s);
                        if (geo(x) < 0)
                        {
-                           op(patch()->get(s), m.template sample<IFORM>(s, fun(x)));
+                           op(m_patch_->get(s), m_mesh_->template sample<IFORM>(s, fun(x)));
                        }
                    });
     }
-
-
 };
 
 }//namespace simpla

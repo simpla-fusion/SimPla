@@ -137,8 +137,8 @@ TEST_P(FETLTest, grad0)
     f1.clear();
     f1b.clear();
 
-
-    m->range(VERTEX, SP_ES_ALL).foreach([&](mesh::MeshEntityId s) { f0[s] = std::sin(q(m->point(s))); });
+    f0.assign([&](mesh::MeshEntityId const &s) { return std::sin(q(m->point(s))); });
+//    m->range(VERTEX, SP_ES_ALL).foreach();
 
     LOG_CMD(f1 = grad(f0));
 
@@ -147,7 +147,7 @@ TEST_P(FETLTest, grad0)
     average *= 0.0;
 
     m->range(EDGE, SP_ES_OWNED).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 int n = M::sub_index(s);
                 auto x = m->point(s);
@@ -190,7 +190,7 @@ TEST_P(FETLTest, grad3)
     f2.clear();
     f2b.clear();
 
-    m->range(VOLUME, SP_ES_ALL).foreach([&](mesh::MeshEntityId s) { f3[s] = std::sin(q(m->point(s))); });
+    m->range(VOLUME, SP_ES_ALL).foreach([&](mesh::MeshEntityId const &s) { f3[s] = std::sin(q(m->point(s))); });
 
     LOG_CMD(f2 = grad(f3));
 
@@ -198,7 +198,7 @@ TEST_P(FETLTest, grad3)
     value_type average = one * 0;
 
     m->range(FACE, SP_ES_OWNED).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 int n = M::sub_index(s);
                 auto x = m->point(s);
@@ -243,18 +243,14 @@ TEST_P(FETLTest, diverge1)
 
     nTuple<Real, 3> E{1, 1, 1};
 
-    m->range(EDGE, SP_ES_ALL).foreach(
-            [&](mesh::MeshEntityId s)
-            {
-                f1[s] = E[M::sub_index(s)] * std::sin(q(m->point(s)));
-            });
+    f1.assign([&](mesh::MeshEntityId const &s) { return E[M::sub_index(s)] * std::sin(q(m->point(s))); });
 
     LOG_CMD(f0 = diverge(f1));
     Real variance = 0;
     value_type average;
     average = 0;
     m->range(VERTEX, SP_ES_OWNED).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 auto x = m->point(s);
 
@@ -292,7 +288,8 @@ TEST_P(FETLTest, diverge2)
     f3b.clear();
     f2.clear();
 
-    m->range(FACE, SP_ES_ALL).foreach([&](mesh::MeshEntityId s) { f2[s] = std::sin(q(m->point(s))); });
+    f2.assign([&](mesh::MeshEntityId const &s) { return std::sin(q(m->point(s))); });
+
     LOG_CMD(f3 = diverge(f2));
 
     Real variance = 0;
@@ -300,7 +297,7 @@ TEST_P(FETLTest, diverge2)
     average *= 0.0;
 
     m->range(VOLUME, SP_ES_OWNED).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
 
                 auto x = m->point(s);
@@ -372,7 +369,7 @@ TEST_P(FETLTest, curl1)
     nTuple<Real, 3> E = {1, 1, 1};
 
     m->range(EDGE, SP_ES_ALL).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 f1[s] = E[M::sub_index(s)] * std::sin(q(m->point(s)));
             });
@@ -380,7 +377,7 @@ TEST_P(FETLTest, curl1)
     LOG_CMD(f2 = curl(f1));
 
     m->range(FACE).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 auto n = M::sub_index(s);
 
@@ -472,14 +469,14 @@ TEST_P(FETLTest, curl2)
     nTuple<Real, 3> E = {1, 2, 3};
 
     m->range(FACE, SP_ES_ALL).foreach(
-            [&](mesh::MeshEntityId s) { f2[s] = E[M::sub_index(s)] * std::sin(q(m->point(s))); });
+            [&](mesh::MeshEntityId const &s) { f2[s] = E[M::sub_index(s)] * std::sin(q(m->point(s))); });
 
 
     LOG_CMD(f1 = curl(f2));
     f1b.clear();
 
     m->range(EDGE).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
 
                 auto n = M::sub_index(s);
@@ -547,7 +544,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
     Real mean = 0.0;
     f0.clear();
     m->range(VERTEX, SP_ES_ALL).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 auto a = uniform_dist(gen);
                 f0[s] = one * a;
@@ -564,7 +561,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
     Real variance_b = 0;
 
     m->range(FACE, SP_ES_OWNED).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 variance_a += mod(f2a[s]);
                 variance_b += mod(f2b[s]);
@@ -590,7 +587,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 
     f3.clear();
     m->range(VOLUME, SP_ES_ALL).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 auto a = uniform_dist(gen);
                 f3[s] = a * one;
@@ -607,7 +604,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
     Real variance_a = 0;
     Real variance_b = 0;
     m->range(EDGE, SP_ES_OWNED).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 variance_a += mod(f1a[s]);
                 variance_b += mod(f1b[s]);
@@ -634,7 +631,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
     f2.clear();
     Real mean = 0.0;
     m->range(FACE, SP_ES_ALL).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 auto a = uniform_dist(gen);
                 f2[s] = one * uniform_dist(gen);
@@ -652,7 +649,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
     Real variance_b = 0;
 
     m->range(VERTEX, SP_ES_OWNED).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 variance_b += mod(f0b[s] * f0b[s]);
                 variance_a += mod(f0a[s] * f0a[s]);
@@ -679,7 +676,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
     Real mean = 0.0;
     size_type count = 0;
     m->range(EDGE, SP_ES_ALL).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 auto a = uniform_dist(gen);
                 f1[s] = one * a;
@@ -697,7 +694,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
     Real variance_a = 0;
     Real variance_b = 0;
     m->range(VOLUME, SP_ES_OWNED).foreach(
-            [&](mesh::MeshEntityId s)
+            [&](mesh::MeshEntityId const &s)
             {
                 variance_a += mod(f3a[s] * f3a[s]);
                 variance_b += mod(f3b[s] * f3b[s]);
