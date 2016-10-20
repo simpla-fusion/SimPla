@@ -162,6 +162,13 @@ public:
         apply(op, m_mesh_->range(iform, mesh::SP_ES_ALL), v);
     }
 
+    template<typename TOP, typename Arg> void
+    apply(TOP const &op, mesh::MeshZoneTag tag, Arg const &v)
+    {
+        deploy();
+        apply(op, m_mesh_->range(iform, tag), v);
+    }
+
     template<typename ...Args> void
     assign(Args &&... args)
     {

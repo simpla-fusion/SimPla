@@ -34,6 +34,8 @@ public:
 
     virtual void deploy();
 
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const;
+
     virtual std::shared_ptr<PatchBase> create(id_type const &id) const =0;
 
     virtual void move_to(const id_type &t_id);

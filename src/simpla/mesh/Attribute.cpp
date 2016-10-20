@@ -36,6 +36,15 @@ AttributeBase::AttributeBase(AttributeBase &&other) : m_pimpl_(std::move(other.m
 
 AttributeBase::~AttributeBase() {}
 
+std::ostream &AttributeBase::print(std::ostream &os, int indent) const
+{
+    for (auto const &item:m_pimpl_->m_patches_)
+    {
+        item.second->print(os, indent + 1);
+    }
+    return os;
+}
+
 void AttributeBase::deploy()
 {
     if (m_pimpl_->m_id_.is_nil())
