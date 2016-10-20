@@ -16,11 +16,18 @@ struct AttributeBase::pimpl_s
     PatchBase *m_patch_;
 };
 
+AttributeBase::AttributeBase() : m_pimpl_(new pimpl_s)
+{
+    m_pimpl_->m_mesh_ = nullptr;
+    m_pimpl_->m_patch_ = nullptr;
+
+}
+
 AttributeBase::AttributeBase(std::shared_ptr<MeshBase> const &m) : m_pimpl_(new pimpl_s)
 {
     m_pimpl_->m_atlas_ = std::make_shared<Atlas>();
     m_pimpl_->m_atlas_->add(m);
-    move_to(m->id());
+//    move_to(m->id());
 };
 
 AttributeBase::AttributeBase(std::shared_ptr<Atlas> const &m) : m_pimpl_(new pimpl_s)
@@ -31,7 +38,7 @@ AttributeBase::AttributeBase(std::shared_ptr<Atlas> const &m) : m_pimpl_(new pim
 
     if (p != nullptr)
     {
-        move_to(p->id());
+//        move_to(p->id());
     } else
     {
         m_pimpl_->m_mesh_ = nullptr;
@@ -66,6 +73,7 @@ PatchBase *AttributeBase::patch(id_type const &t_id)
 {
     PatchBase *res;
 
+    assert(!t_id.is_nil());
     auto it = m_pimpl_->m_patches_.find(t_id);
 
     if (it != m_pimpl_->m_patches_.end())
@@ -73,17 +81,30 @@ PatchBase *AttributeBase::patch(id_type const &t_id)
         res = it->second.get();
     } else
     {
-        res = m_pimpl_->m_patches_.emplace(t_id, create(t_id)).first->second.get();
+        auto p = create(t_id);
+        res = m_pimpl_->m_patches_.emplace(t_id, p).first->second.get();
     }
 
     return res;
 };
 
-PatchBase *AttributeBase::patch() { return m_pimpl_->m_patch_; };
+PatchBase *AttributeBase::patch()
+{
+    assert(m_pimpl_->m_patch_ != nullptr);
+    return m_pimpl_->m_patch_;
+};
 
-PatchBase const *AttributeBase::patch() const { return m_pimpl_->m_patch_; };
+PatchBase const *AttributeBase::patch() const
+{
+    assert(m_pimpl_->m_patch_ != nullptr);
+    return m_pimpl_->m_patch_;
+};
 
-MeshBase const *AttributeBase::mesh() const { return m_pimpl_->m_mesh_; };
+MeshBase const *AttributeBase::mesh() const
+{
+    assert(m_pimpl_->m_mesh_ != nullptr);
+    return m_pimpl_->m_mesh_;
+};
 
 MeshBase const *AttributeBase::mesh(id_type const &t_id) const
 {

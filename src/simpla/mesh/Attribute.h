@@ -20,6 +20,8 @@ public:
 
     typedef typename Atlas::id_type id_type;
 
+    AttributeBase();
+
     AttributeBase(std::shared_ptr<MeshBase> const &);
 
     AttributeBase(std::shared_ptr<Atlas> const &);
@@ -38,21 +40,20 @@ public:
 
     bool has(const id_type &t_id);
 
-
     id_type const &mesh_id() const;
 
-    MeshBase const *mesh() const;
+    virtual MeshBase const *mesh() const;
 
-    MeshBase const *mesh(id_type const &t_id) const;
+    virtual MeshBase const *mesh(id_type const &t_id) const;
 
-    PatchBase *patch();
+    virtual PatchBase *patch();
 
-    PatchBase *patch(id_type const &t_id);
+    virtual PatchBase *patch(id_type const &t_id);
 
 
-    PatchBase const *patch() const;
+    virtual PatchBase const *patch() const;
 
-    PatchBase const *patch(id_type const &t_id) const;
+    virtual PatchBase const *patch(id_type const &t_id) const;
 
     template<typename T, typename ...Args> T const *mesh_as(Args &&...args) const
     {
@@ -61,19 +62,19 @@ public:
         return static_cast<T const *>(res);
     }
 
-    template<typename T, typename ...Args> T *patch_as(Args &&...args)
-    {
-        PatchBase *res = patch(std::forward<Args>(args)...);
-        assert(res->is_a<T>());
-        return static_cast<T *>(res);
-    }
-
-    template<typename T, typename ...Args> T const *patch_as(Args &&...args) const
-    {
-        PatchBase const *res = patch(std::forward<Args>(args)...);
-        assert(res->is_a<T>());
-        return static_cast<T const *>(res);
-    }
+//    template<typename T, typename ...Args> T *patch_as(Args &&...args)
+//    {
+//        PatchBase *res = patch(std::forward<Args>(args)...);
+//        assert(res->is_a<T>());
+//        return static_cast<T *>(res);
+//    }
+//
+//    template<typename T, typename ...Args> T const *patch_as(Args &&...args) const
+//    {
+//        PatchBase const *res = patch(std::forward<Args>(args)...);
+//        assert(res->is_a<T>());
+//        return static_cast<T const *>(res);
+//    }
 
 private:
     struct pimpl_s;
@@ -107,19 +108,18 @@ public:
 
     virtual ~Attribute() {}
 
-    virtual std::shared_ptr<PatchBase>
-    create(id_type const &id) const
+    virtual std::shared_ptr<PatchBase> create(id_type const &id) const
     {
         return std::dynamic_pointer_cast<PatchBase>(
                 std::make_shared<patch_type>(
                         AttributeBase::atlas()->mesh_as<mesh_type>(id).get()));
     }
 
-    mesh_type const *mesh() const { return AttributeBase::mesh_as<mesh_type>(); }
+    mesh_type const *mesh() const { return static_cast<mesh_type const *>(AttributeBase::mesh()); }
 
-    patch_type const *patch() const { return AttributeBase::patch_as<patch_type>(); }
+    patch_type const *patch() const { return static_cast<patch_type const *>(AttributeBase::patch()); }
 
-    patch_type *patch() { return AttributeBase::patch_as<patch_type>(); }
+    patch_type *patch() { return static_cast<patch_type *>(AttributeBase::patch()); }
 
 
     void clear() { if (patch() != nullptr) { patch()->clear(); }}

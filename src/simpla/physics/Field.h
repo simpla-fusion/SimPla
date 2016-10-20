@@ -136,22 +136,20 @@ public:
 
     }
 
-    template<typename TOP, typename TFun> void
-    apply(TOP const &op, mesh::EntityRange const r0, TFun const &fun,
-          CHECK_FUNCTION_SIGNATURE(value_type, TFun(mesh::MeshEntityId const &))
-    )
-    {
-        deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), fun(s)); });
-
-    }
-
     template<typename TOP, typename ...U> void
     apply(TOP const &op, mesh::EntityRange const r0, Field<U...> const &fexpr)
     {
         deploy();
         mesh_type const &m = *mesh();
         r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), m.eval(fexpr, s)); });
+    }
+
+    template<typename TOP, typename TFun> void
+    apply(TOP const &op, mesh::EntityRange const r0, TFun const &fun)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(patch()->get(s), fun(s)); });
+
     }
 
     template<typename TOP, typename Arg> void

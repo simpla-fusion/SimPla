@@ -77,16 +77,15 @@ check_overlapping(Box3<T> const &left, Box3<T> const &right)
     return false;
 }
 
-template<typename T> constexpr inline Vector3<typename std::make_unsigned<T>::type>
+template<typename T> constexpr inline nTuple<typename std::make_unsigned<T>::type, 3>
 dimensions(Box3<T> const &b)
 {
-    return
-            Vector3<typename std::make_unsigned<T>::type>
-                    {
-                            static_cast<typename std::make_unsigned<T>::type>(std::get<1>(b)[0] - std::get<0>(b)[0]),
-                            static_cast<typename std::make_unsigned<T>::type>(std::get<1>(b)[1] - std::get<0>(b)[1]),
-                            static_cast<typename std::make_unsigned<T>::type>(std::get<1>(b)[2] - std::get<0>(b)[2])
-                    };
+    return nTuple<typename std::make_unsigned<T>::type, 3>
+            {
+                    static_cast<typename std::make_unsigned<T>::type>(std::get<1>(b)[0] - std::get<0>(b)[0]),
+                    static_cast<typename std::make_unsigned<T>::type>(std::get<1>(b)[1] - std::get<0>(b)[1]),
+                    static_cast<typename std::make_unsigned<T>::type>(std::get<1>(b)[2] - std::get<0>(b)[2])
+            };
 }
 
 
