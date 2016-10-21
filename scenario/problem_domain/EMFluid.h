@@ -7,14 +7,14 @@
 #ifndef SIMPLA_EM_FLUID_H
 #define SIMPLA_EM_FLUID_H
 
-#include "SIMPLA_config.h"
-#include "physics/Field.h"
-#include "physics/PhysicalConstants.h"
-#include "mesh/Mesh.h"
-#include "mesh/EntityRange.h"
-#include "mesh/Model.h"
-#include "manifold/Calculus.h"
-#include "mesh/DomainBase.h"
+#include <simpla/SIMPLA_config.h>
+#include <simpla/physics/Field.h>
+#include <simpla/physics/PhysicalConstants.h>
+#include <simpla/mesh/Mesh.h>
+#include <simpla/mesh/DomainBase.h>
+#include <simpla/mesh/EntityRange.h>
+#include <simpla/manifold/Calculus.h>
+#include <simpla/model/Model.h>
 
 namespace simpla
 {

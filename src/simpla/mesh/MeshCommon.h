@@ -123,14 +123,10 @@ namespace simpla { namespace mesh
 
 
 
-//typedef size_t id_type; //!< Data type  of entity id
 
 
 
-typedef boost::uuids::uuid MeshBlockId;
 
-template<typename ...>
-struct Mesh;
 }}//namespace simpla{namespace get_mesh{
 #endif
 #endif //SIMPLA_MESHCOMMON_H

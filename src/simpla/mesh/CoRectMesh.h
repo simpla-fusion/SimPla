@@ -80,10 +80,7 @@ public:
 
     CoRectMesh() {}
 
-    CoRectMesh(CoRectMesh const &other) :
-            MeshBase(other),
-            m_origin_(other.m_origin_),
-            m_dx_(other.m_dx_) {};
+    CoRectMesh(CoRectMesh const &other) : MeshBase(other), m_origin_(other.m_origin_), m_dx_(other.m_dx_) {};
 
     virtual  ~CoRectMesh() {}
 

@@ -7,11 +7,10 @@
 #ifndef SIMPLA_MESHUTILITIY_H
 #define SIMPLA_MESHUTILITIY_H
 
-#include "simpla/SIMPLA_config.h"
+#include <simpla/SIMPLA_config.h>
+#include <simpla/mesh/MeshCommon.h>
+#include <simpla/mesh/MeshBase.h>
 #include <functional>
-#include "MeshCommon.h"
-#include "MeshBase.h"
-
 namespace simpla { namespace mesh
 {
 
@@ -20,6 +19,7 @@ struct Model
 {
 
     typedef std::function<Real(point_type const &)> distance_fun_t;
+
     enum
     {
         INSIDE, OUTSIDE, ON_SURFACE

@@ -3,28 +3,22 @@
  * @author salmon
  * @date 16-5-23 - 下午2:34
  *  */
-
-#include "DomainBase.h"
+#include <simpla/toolbox/Object.h>
 #include <simpla/toolbox/IOStream.h>
+#include "DomainBase.h"
+
 
 namespace simpla { namespace mesh
 {
 struct DomainBase::pimpl_s
 {
-    std::shared_ptr<Atlas> m_atlas_;
-
-//    std::map<uuid, std::shared_ptr<AttributeBase> > m_attrs_;
+    std::map<id_type, std::shared_ptr<AttributeBase> > m_attrs_;
 };
 
 DomainBase::DomainBase() : m_pimpl_(new pimpl_s) {}
 
-DomainBase::DomainBase(std::shared_ptr<Atlas> msh)
-        : m_pimpl_(new pimpl_s)
-{
-    m_pimpl_->m_atlas_ = msh;
-};
-//
-//DomainBase::~DomainBase() { teardown(); }
+
+DomainBase::~DomainBase() { teardown(); }
 //
 //void
 //DomainBase::move_to(uuid id) { for (auto &item:m_pimpl_->m_attrs_) { item->second->move_to(id); }}

@@ -30,21 +30,25 @@ namespace simpla { namespace mesh
 /**
  * Domain: define a physical domain
  *  - HAS-A mesh
+ *  - meshs in a domain has same ''' index space''' and '''coordinate space'''
  *  - HAS-N attributes
  */
 class DomainBase : public toolbox::Object
 {
 public:
 
+    using toolbox::Object::id_type;
+
     HAS_PROPERTIES;
 
     SP_OBJECT_HEAD(DomainBase, toolbox::Object);
 
+    std::shared_ptr<Atlas> m;
+    id_type m_root_id_;
+
     DomainBase();
 
-    DomainBase(std::shared_ptr<Atlas>);
-
-//    virtual std::shared_ptr<Atlas> mesh() const;
+    DomainBase(std::shared_ptr<Atlas> const &);
 
     virtual ~DomainBase();
 

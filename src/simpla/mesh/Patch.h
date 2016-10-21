@@ -116,9 +116,7 @@ public:
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
         auto ld = toolbox::dimensions(m_mesh_->inner_index_box());
-        CHECK(ld);
-        size_type d[2] = {3 * ld[0]};
-        printNdArray(os, (m_data_.get()), 1, &d[0]);
+        printNdArray(os, (m_data_.get()), 3, &ld[0]);
         return os;
 
     }
@@ -242,10 +240,7 @@ public:
         r0.foreach(
                 [&](mesh::MeshEntityId const &s)
                 {
-                    op(get(s),
-                       m_mesh_->template sample<IFORM>(s,
-                                                       fun(m_mesh_->point(s),
-                                                           std::forward<Args>(args)...)));
+                    op(get(s), m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s), std::forward<Args>(args)...)));
                 });
     }
 
