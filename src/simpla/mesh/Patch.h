@@ -7,6 +7,7 @@
 #ifndef SIMPLA_MESHATTRIBUTE_H
 #define SIMPLA_MESHATTRIBUTE_H
 
+#include <type_traits>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Object.h>
 #include <simpla/toolbox/Log.h>
@@ -19,6 +20,9 @@
 namespace simpla { namespace mesh
 {
 
+class AttributeBase;
+
+template<typename ...> class Attribute;
 
 struct PatchBase
 {
@@ -106,14 +110,15 @@ public:
     virtual void deploy()
     {
         assert(m_mesh_ != nullptr);
-        if (empty()) { m_data_ = toolbox::MemoryHostAllocT<value_type>(m_mesh_->number_of_entities(IFORM)); }
+        if (m_data_ == nullptr) { m_data_ = toolbox::MemoryHostAllocT<value_type>(m_mesh_->number_of_entities(IFORM)); }
     };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
         auto ld = toolbox::dimensions(m_mesh_->inner_index_box());
-        size_type d[2] = {ld[0], 3};
-        printNdArray(os, (m_data_.get()), 2, &d[0]);
+        CHECK(ld);
+        size_type d[2] = {3 * ld[0]};
+        printNdArray(os, (m_data_.get()), 1, &d[0]);
         return os;
 
     }
@@ -175,6 +180,16 @@ public:
 
     inline value_type const &operator[](mesh::MeshEntityId const &s) const { return get(s); }
 
+    struct expression_tag {};
+    struct function_tag {};
+    struct field_function_tag {};
+
+    template<typename TOP, typename ...Args> void
+    apply(TOP const &op, MeshZoneTag tag, Args &&...args)
+    {
+        deploy();
+        apply(op, m_mesh_->range(iform, tag), std::forward<Args>(args)...);
+    }
 
     template<typename TOP> void
     apply(TOP const &op, EntityRange const &r0, value_type const &v)
@@ -190,6 +205,7 @@ public:
         r0.foreach([&](MeshEntityId const &s) { op(get(s), other.get(s)); });
     }
 
+
     template<typename TOP, typename TFun> void
     apply(TOP const &op, EntityRange const &r0, TFun const &fun)
     {
@@ -198,6 +214,60 @@ public:
     }
 
 
+    template<typename TOP, typename TFun, typename ...Args> void
+    apply(TOP const &op, mesh::EntityRange const r0, function_tag const *, TFun const &fun, Args &&...args)
+    {
+        deploy();
+        r0.foreach(
+                [&](mesh::MeshEntityId const &s)
+                {
+                    op(get(s), fun(m_mesh_->point(s), std::forward<Args>(args)...));
+                });
+    }
+
+    template<typename TOP, typename ...TExpr> void
+    apply(TOP const &op, EntityRange const &r0, expression_tag const *, TExpr &&...fexpr)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s)
+                   {
+                       op(get(s), m_mesh_->eval(std::forward<TExpr>(fexpr), s)...);
+                   });
+    }
+
+    template<typename TOP, typename TFun, typename ...Args> void
+    apply(TOP const &op, mesh::EntityRange const r0, field_function_tag const *, TFun const &fun, Args &&...args)
+    {
+        deploy();
+        r0.foreach(
+                [&](mesh::MeshEntityId const &s)
+                {
+                    op(get(s),
+                       m_mesh_->template sample<IFORM>(s,
+                                                       fun(m_mesh_->point(s),
+                                                           std::forward<Args>(args)...)));
+                });
+    }
+
+
+
+//    template<typename TOP, typename TFun> void
+//    apply_function_with_define_domain(TOP const &op, mesh::EntityRange const r0,
+//                                      std::function<Real(point_type const &)> const &geo,
+//                                      TFun const &fun)
+//    {
+//        deploy();
+//        r0.foreach([&](mesh::MeshEntityId const &s)
+//                   {
+//                       auto x = m_mesh_->point(s);
+//                       if (geo(x) < 0)
+//                       {
+//                           op(m_patch_->get(s), m_mesh_->template sample<IFORM>(s, fun(x)));
+//                       }
+//                   });
+//    }
+
+public:
     void copy(EntityRange const &r0, this_type const &g)
     {
         r0.foreach([&](MeshEntityId const &s) { get(s) = g.get(s); });

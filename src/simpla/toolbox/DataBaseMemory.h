@@ -4,6 +4,7 @@
 
 #ifndef SIMPLA_DATABASEANY_H
 #define SIMPLA_DATABASEANY_H
+
 #include <simpla/SIMPLA_config.h>
 
 #include <map>
@@ -223,7 +224,7 @@ private:
         std::shared_ptr<ValueType> m_value_;
         std::shared_ptr<DataSpace> m_space_;
 
-        Holder(std::shared_ptr<ValueType> v, DataSpace const &sp) : m_value_(v), m_space_(sp) {}
+        Holder(std::shared_ptr<ValueType> v, std::shared_ptr<DataSpace> sp) : m_value_(v), m_space_(sp) {}
 
         ~Holder() {}
 

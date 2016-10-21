@@ -137,7 +137,7 @@ TEST_P(FETLTest, grad0)
     f1.clear();
     f1b.clear();
 
-    f0.assign(SP_ES_ALL, [&](mesh::MeshEntityId const &s) { return std::sin(q(m->point(s))); });
+    f0.assign_function(SP_ES_ALL, [&](point_type const &x) { return std::sin(q(x)); });
 //    m->range(VERTEX, SP_ES_ALL).foreach();
 
     LOG_CMD(f1 = grad(f0));
@@ -242,42 +242,37 @@ TEST_P(FETLTest, diverge1)
     f1.clear();
 
     nTuple<Real, 3> E{1, 1, 1};
-    size_type count = 0;
-    f1.assign(SP_ES_ALL,
-              [&](mesh::MeshEntityId const &s)
-              {
-                  return ++count;
-                  /*  E[M::sub_index(s)] * std::sin(q(m->point(s)));*/
-              });
-    f1.print(std::cout);
+
+    f1.assign(SP_ES_ALL, [&](mesh::MeshEntityId const &s) { return E[M::sub_index(s)] * std::sin(q(m->point(s))); });
+
     LOG_CMD(f0 = diverge(f1));
     Real variance = 0;
     value_type average;
     average = 0;
-//    m->range(VERTEX, SP_ES_OWNED).foreach(
-//            [&](mesh::MeshEntityId const &s)
-//            {
-//                auto x = m->point(s);
-//
-//                Real cos_v = std::cos(q(x));
-//                Real sin_v = std::sin(q(x));
-//                value_type expect;
-//
-////#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-////                expect = K_real[PhiAxis] * E[PhiAxis] / x[RAxis] * cos_v
-////                         + E[RAxis] * (K_real[RAxis] * cos_v + sin_v / x[RAxis])
-////                         + K_real[ZAxis] * E[ZAxis] * cos_v;
-////#else
-//                expect = (K_real[0] * E[0] + K_real[1] * E[1] + K_real[2] * E[2]) * cos_v;
-////#endif
-//                f0b[s] = expect;
-//                variance += mod((f0[s] - expect) * (f0[s] - expect));
-//                average += (f0[s] - expect);
-//
-//                EXPECT_LE(abs(f0[s] - expect), error)
-//                                    << expect << "," << f0[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) <<
-//                                    "," << (s.z >> 1) << "]" << std::endl;
-//            });
+    m->range(VERTEX, SP_ES_OWNED).foreach(
+            [&](mesh::MeshEntityId const &s)
+            {
+                auto x = m->point(s);
+
+                Real cos_v = std::cos(q(x));
+                Real sin_v = std::sin(q(x));
+                value_type expect;
+
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+//                expect = K_real[PhiAxis] * E[PhiAxis] / x[RAxis] * cos_v
+//                         + E[RAxis] * (K_real[RAxis] * cos_v + sin_v / x[RAxis])
+//                         + K_real[ZAxis] * E[ZAxis] * cos_v;
+//#else
+                expect = (K_real[0] * E[0] + K_real[1] * E[1] + K_real[2] * E[2]) * cos_v;
+//#endif
+                f0b[s] = expect;
+                variance += mod((f0[s] - expect) * (f0[s] - expect));
+                average += (f0[s] - expect);
+
+                EXPECT_LE(abs(f0[s] - expect), error)
+                                    << expect << "," << f0[s] << "[" << (s.x >> 1) << "," << (s.y >> 1) <<
+                                    "," << (s.z >> 1) << "]" << std::endl;
+            });
 
     EXPECT_LE(std::sqrt(variance /= m->range(VERTEX).size()), error);
     EXPECT_LE(mod(average /= m->range(VERTEX).size()), error);

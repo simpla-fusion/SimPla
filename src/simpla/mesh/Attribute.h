@@ -87,22 +87,22 @@ private:
 
 };
 
-template<typename V, typename M, MeshEntityType IFORM = VERTEX>
-class Attribute : public AttributeBase
+template<typename ...> class Attribute;
+
+template<typename TPatch>
+class Attribute<TPatch> : public AttributeBase
 {
 public:
-    static constexpr MeshEntityType iform = IFORM;
-    typedef V value_type;
-    typedef M mesh_type;
 
-    typedef Patch<value_type, mesh_type, iform> patch_type;
+    typedef TPatch patch_type;
+    typedef typename patch_type::mesh_type mesh_type;
+    typedef typename patch_type::value_type value_type;
 
-    typedef Attribute<V, M, IFORM> this_type;
+    typedef Attribute<TPatch> this_type;
 
     patch_type *m_patch_ = nullptr;
-    mesh_type const *m_mesh_ = nullptr;
 
-    MeshEntityType entity_type() const { return iform; }
+    MeshEntityType entity_type() const { return patch_type::iform; }
 
     virtual bool is_a(std::type_info const &t_info) const
     {
@@ -120,10 +120,9 @@ public:
         assert(AttributeBase::atlas() != nullptr);
         return std::dynamic_pointer_cast<PatchBase>(
                 std::make_shared<patch_type>(
-                        AttributeBase::atlas()->mesh_as<mesh_type>(id).get()));
+                        AttributeBase::atlas()->template mesh_as<mesh_type>(id).get()));
     }
 
-    mesh_type const *mesh() const { return static_cast<mesh_type const *>(AttributeBase::mesh()); }
 
     patch_type const *patch() const { return static_cast<patch_type const *>(AttributeBase::patch()); }
 
@@ -133,8 +132,6 @@ public:
     {
         AttributeBase::deploy();
         m_patch_ = patch();
-        m_mesh_ = mesh();
-        assert(m_mesh_ != nullptr);
         assert(m_patch_ != nullptr);
     }
 
@@ -145,13 +142,30 @@ public:
         patch()->clear();
     }
 
-    inline value_type &get(mesh::MeshEntityId const &s) { return patch()->get(s); }
+    inline value_type &get(mesh::MeshEntityId const &s) { return m_patch_->get(s); }
 
-    inline value_type const &get(mesh::MeshEntityId const &s) const { return patch()->get(s); }
+    inline value_type const &get(mesh::MeshEntityId const &s) const { return m_patch_->get(s); }
 
     inline value_type &operator[](mesh::MeshEntityId const &s) { return get(s); }
 
     inline value_type const &operator[](mesh::MeshEntityId const &s) const { return get(s); }
+
+
+    template<typename TOP, typename TRange> void
+    apply(TOP const &op, TRange const &r0, this_type const &other)
+    {
+        deploy();
+        m_patch_->apply(op, r0, other.patch());
+    }
+
+    template<typename ...Args> void
+    apply(Args &&...args)
+    {
+        deploy();
+        m_patch_->apply(std::forward<Args>(args)...);
+    }
+
+
 
 private:
 

@@ -12,7 +12,7 @@
 
 #include <cstdbool>
 #include <memory>
-
+#include <vector>
 #include "nTuple.h"
 #include "Properties.h"
 #include "Log.h"

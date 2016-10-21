@@ -790,8 +790,8 @@ void swap(simpla::nTuple<T, N> &l, simpla::nTuple<T, N> &r)
     for (size_t s = 0; s < N; ++s) { std::swap(l[s], r[s]); }
 }
 
-template<typename T, size_t N, size_t ... M>
-void swap(simpla::nTuple<T, N, M...> &l, simpla::nTuple<T, N, M...> &r)
+template<typename T, size_t N, size_t M0, size_t ... M>
+void swap(simpla::nTuple<T, N, M0, M...> &l, simpla::nTuple<T, N, M0, M...> &r)
 {
     for (size_t s = 0; s < N; ++s) { swap(simpla::detail::get(l, s), simpla::detail::get(r, s)); }
 }

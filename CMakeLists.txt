@@ -70,9 +70,9 @@ IF (HDF5_FOUND)
 ENDIF (HDF5_FOUND)
 #LINK_DIRECTORIES("/usr/lib/x86_64-linux-gnu/hdf5/openmpi/lib")
 
-FIND_PACKAGE(BLAS)
-
-FIND_PACKAGE(LAPACK)
+#FIND_PACKAGE(BLAS)
+#
+#FIND_PACKAGE(LAPACK)
 
 FIND_PACKAGE(Lua 5.2 REQUIRED)
 
@@ -111,7 +111,7 @@ add_subdirectory(tools)
 add_subdirectory(docs)
 
 add_subdirectory(scenario)
-add_subdirectory(sp_lite)
+#add_subdirectory(sp_lite)
 
 # workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)

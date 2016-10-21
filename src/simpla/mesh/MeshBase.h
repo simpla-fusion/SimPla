@@ -294,7 +294,10 @@ public:
 
     inline size_type hash(index_tuple const &id) const { return hash(id[0], id[1], id[2]); }
 
-    inline size_type hash(MeshEntityId const &id) const { return hash(unpack(id)); }
+    inline size_type hash(MeshEntityId const &id) const
+    {
+        return hash(id.x >> 1, id.y >> 1, id.z >> 1, m::node_id(id));
+    }
 
 //    index_tuple unhash(size_type s, int nid = 0) const
 //    {
