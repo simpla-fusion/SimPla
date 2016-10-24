@@ -7,7 +7,10 @@
 
 int main(int argc, char **argv)
 {
-    auto ctx = simpla::create_context("Untitled");
+    auto ctx = simpla::create_context("LinAdv");
 
+    ctx->setup(argc, argv);
+    ctx->run(1.0);
+    ctx->teardown();
     exit(0);
 }

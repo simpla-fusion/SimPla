@@ -34,7 +34,7 @@ public:
     virtual ~ContextBase() {};
 
 
-    virtual void setup()=0;
+    virtual void setup(int argc = 0, char **argv = nullptr)=0;
 
     virtual void teardown()=0;
 
