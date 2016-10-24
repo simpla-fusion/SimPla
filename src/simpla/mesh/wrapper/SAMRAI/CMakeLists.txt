@@ -1,0 +1,11 @@
+
+SET(SAMRAI_BUILD_DIR /home/salmon/workspace/build/SAMRAI)
+SET(SAMRAI_SOURCE_DIR /home/salmon/workspace/SAMRAI-master)
+FIND_PACKAGE(SAMRAI)
+
+IF (SAMRAI_FOUND)
+    INCLUDE_DIRECTORIES(${SAMRAI_INCLUDE_DIRS})
+    MESSAGE(STATUS "SAMRAI is included")
+    FILE(GLOB SAMRAIWrapper_SRC ./*.cpp)
+    add_library(wrapper ${SAMRAIWrapper_SRC} ${SAMRAI_LIBRARIES})
+ENDIF (SAMRAI_FOUND)
