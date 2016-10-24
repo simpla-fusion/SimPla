@@ -6,42 +6,49 @@
 #define SIMPLA_WRAPPER_H
 
 #include <memory>
-#include "../Attribute.h"
-#include "../Atlas.h"
 
-namespace simpla { namespace mesh
+#include <simpla/mesh/Atlas.h>
+#include <simpla/mesh/Attribute.h>
+#include <simpla/simulation/Context.h>
+
+namespace simpla
 {
 
 
 namespace detail
 {
-std::shared_ptr<AttributeBase>
-create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, MeshEntityType const &,
-                      std::shared_ptr<Atlas> const &m, std::string const &name);
+std::shared_ptr<mesh::AttributeBase>
+create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
+                      std::shared_ptr<mesh::Atlas> const &m, std::string const &name);
 
 
-std::shared_ptr<AttributeBase>
-create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, MeshEntityType const &,
-                      std::shared_ptr<MeshBase> const &m, std::string const &name);
+std::shared_ptr<mesh::AttributeBase>
+create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
+                      std::shared_ptr<mesh::MeshBase> const &m, std::string const &name);
 
-std::shared_ptr<PatchBase>
-create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_info, MeshEntityType const &,
-                  std::shared_ptr<MeshBase> const &m);
+std::shared_ptr<mesh::PatchBase>
+create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
+                  std::shared_ptr<mesh::MeshBase> const &m);
 
 }
 
-template<typename TV, typename TM, MeshEntityType IFORM, typename ...Args>
-std::shared_ptr<Attribute<Patch<TV, TM, IFORM> > > create_attribute(Args &&...args)
+std::shared_ptr<mesh::Atlas> create_atlas(std::string const &name);
+
+template<typename TV, typename TM, mesh::MeshEntityType IFORM, typename ...Args>
+std::shared_ptr<mesh::Attribute<mesh::Patch<TV, TM, IFORM> > > create_attribute(Args &&...args)
 {
-    return std::dynamic_pointer_cast<Attribute<Patch<TV, TM, IFORM> >>(detail::create_attribute_impl(
+    return std::dynamic_pointer_cast<mesh::Attribute<mesh::Patch<TV, TM, IFORM> >>(detail::create_attribute_impl(
             typeid(TV), typeid(TM), IFORM, std::forward<Args>(args)...));;
 };
 
-template<typename TV, typename TM, MeshEntityType IFORM, typename ...Args>
-std::shared_ptr<Patch<TV, TM, IFORM> > create_patch(Args &&...args)
+template<typename TV, typename TM, mesh::MeshEntityType IFORM, typename ...Args>
+std::shared_ptr<mesh::Patch<TV, TM, IFORM> > create_patch(Args &&...args)
 {
-    return std::dynamic_pointer_cast<Patch<TV, TM, IFORM> >(detail::create_patch_impl(
+    return std::dynamic_pointer_cast<mesh::Patch<TV, TM, IFORM> >(detail::create_patch_impl(
             typeid(TV), typeid(TM), IFORM, std::forward<Args>(args)...));;
 };
-}}
+
+std::shared_ptr<simulation::ContextBase> create_context(std::string const &name);
+
+}
 #endif //SIMPLA_WRAPPER_H

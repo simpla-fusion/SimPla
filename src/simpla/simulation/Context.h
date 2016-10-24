@@ -24,8 +24,62 @@
 namespace simpla { namespace simulation
 {
 
+class ContextBase
+{
 
-class Context
+public:
+
+    ContextBase() {};
+
+    virtual ~ContextBase() {};
+
+
+    virtual void setup()=0;
+
+    virtual void teardown()=0;
+
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const =0;
+
+    virtual toolbox::IOStream &save(toolbox::IOStream &os, int flag = toolbox::SP_NEW) const =0;
+
+    virtual toolbox::IOStream &load(toolbox::IOStream &is)=0;
+
+    virtual toolbox::IOStream &check_point(toolbox::IOStream &os) const =0;
+
+    virtual std::shared_ptr<mesh::DomainBase> add_domain(std::shared_ptr<mesh::DomainBase> pb)=0;
+
+    template<typename TProb, typename ...Args> std::shared_ptr<TProb>
+    add_domain(Args &&...args)
+    {
+        auto res = std::make_shared<TProb>(std::forward<Args>(args)...);
+        add_domain(res);
+        return res;
+    };
+
+    virtual std::shared_ptr<mesh::DomainBase> get_domain(uuid id) const =0;
+
+    template<typename TProb> std::shared_ptr<TProb>
+    get_domain_as(uuid id) const
+    {
+        static_assert(!get_domain(id)->template is_a<TProb>(), "illegal type conversion!");
+        assert(get_domain(id).get() != nullptr);
+        return std::dynamic_pointer_cast<TProb>(get_domain(id));
+    }
+
+    virtual void sync(int level = 0, int flag = 0)=0;
+
+    virtual void run(Real dt, int level = 0)=0;
+
+    virtual Real time() const =0;
+
+    virtual void time(Real t) =0;
+
+    virtual void next_time_step(Real dt)=0;
+
+
+};
+
+class Context : public ContextBase
 {
 private:
     typedef Context this_type;
@@ -51,23 +105,7 @@ public:
 
     std::shared_ptr<mesh::DomainBase> add_domain(std::shared_ptr<mesh::DomainBase> pb);
 
-    template<typename TProb, typename ...Args> std::shared_ptr<TProb>
-    add_domain(Args &&...args)
-    {
-        auto res = std::make_shared<TProb>(std::forward<Args>(args)...);
-        add_domain(res);
-        return res;
-    };
-
     std::shared_ptr<mesh::DomainBase> get_domain(uuid id) const;
-
-    template<typename TProb> std::shared_ptr<TProb>
-    get_domain_as(uuid id) const
-    {
-        static_assert(!get_domain(id)->template is_a<TProb>(), "illegal type conversion!");
-        assert(get_domain(id).get() != nullptr);
-        return std::dynamic_pointer_cast<TProb>(get_domain(id));
-    }
 
     void sync(int level = 0, int flag = 0);
 
