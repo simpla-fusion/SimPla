@@ -23,7 +23,7 @@
 #include <SAMRAI/hier/VariableContext.h>
 #include <SAMRAI/appu/VisItDataWriter.h>
 
-#include "boost/shared_ptr.hpp"
+#include <boost/shared_ptr.hpp>
 #include <string>
 #include <vector>
 
@@ -31,7 +31,7 @@
 namespace simpla
 {
 
-class LinAdv :
+class SAMRAIWorkerHyperbolic :
         public SAMRAI::tbox::Serializable,
         public SAMRAI::algs::HyperbolicPatchStrategy,
         public SAMRAI::appu::BoundaryUtilityStrategy
@@ -48,7 +48,7 @@ public:
      * getFromInput() is called to read values from the given input
      * database (potentially overriding those found in the restart file).
      */
-    LinAdv(const std::string &object_name,
+    SAMRAIWorkerHyperbolic(const std::string &object_name,
            const SAMRAI::tbox::Dimension &dim,
            boost::shared_ptr<SAMRAI::tbox::Database> input_db,
            boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom);
@@ -56,7 +56,7 @@ public:
     /**
      * The destructor for LinAdv does nothing.
      */
-    ~LinAdv();
+    ~SAMRAIWorkerHyperbolic();
 
     ///
     ///  The following routines:
@@ -307,7 +307,6 @@ public:
     void
     checkNewPatchTagData(SAMRAI::hier::Patch &patch, const int tag_index) const;
 
-#ifdef HAVE_HDF5
 
     /**
      * Register a VisIt data writer so this class will write
@@ -316,8 +315,6 @@ public:
      */
     void
     registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer);
-
-#endif
 
     /**
      * Reset physical boundary values in special cases, such as when
@@ -400,9 +397,7 @@ private:
      */
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry;
 
-#ifdef HAVE_HDF5
     boost::shared_ptr<SAMRAI::appu::VisItDataWriter> d_visit_writer;
-#endif
 
     /*
      * Data items used for nonuniform load balance, if used.

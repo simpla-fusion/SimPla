@@ -2,25 +2,12 @@
 // Created by salmon on 16-10-24.
 //
 
-#include "LinAdv.h"
+#include "SAMRAIWorkerHyperbolic.h"
 
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-
-#ifndef LACKS_SSTREAM
-#ifndef included_sstream
-#define included_sstream
-
 #include <sstream>
-
-#endif
-#else
-#ifndef included_strstream
-#define included_strstream
-#include <strstream.h>
-#endif
-#endif
 
 using namespace std;
 
@@ -59,6 +46,7 @@ using namespace std;
 // routines for managing boundary data
 #include <SAMRAI/appu/CartesianBoundaryUtilities2.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities3.h>
+#include <simpla/toolbox/Log.h>
 
 // External definitions for Fortran numerical routines
 //#include <LinAdvFort.h>
@@ -92,7 +80,7 @@ using namespace std;
 #define FALSE (0)
 #endif
 
-// Version of LinAdv restart file data
+// Version of SAMRAIWorkerHyperbolic restart file data
 #define LINADV_VERSION (3)
 
 namespace simpla
@@ -100,7 +88,7 @@ namespace simpla
 /*
  *************************************************************************
  *
- * The constructor for LinAdv class sets data members to defualt values,
+ * The constructor for SAMRAIWorkerHyperbolic class sets data members to defualt values,
  * creates variables that define the solution state for the linear
  * advection equation.
  *
@@ -112,7 +100,7 @@ namespace simpla
  *************************************************************************
  */
 
-LinAdv::LinAdv(
+SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
         const std::string &object_name,
         const SAMRAI::tbox::Dimension &dim,
         boost::shared_ptr<SAMRAI::tbox::Database> input_db,
@@ -210,44 +198,27 @@ LinAdv::LinAdv(
      * Initialize object with data read from given input/restart databases.
      */
     bool is_from_restart = SAMRAI::tbox::RestartManager::getManager()->isFromRestart();
-    if (is_from_restart)
-    {
-        getFromRestart();
-    }
+    if (is_from_restart) { getFromRestart(); }
     getFromInput(input_db, is_from_restart);
 
     /*
      * Set problem data to values read from input/restart.
      */
 
-    if (d_data_problem == "PIECEWISE_CONSTANT_X")
-    {
-        d_data_problem_int = PIECEWISE_CONSTANT_X;
-    } else if (d_data_problem == "PIECEWISE_CONSTANT_Y")
-    {
-        d_data_problem_int = PIECEWISE_CONSTANT_Y;
-    } else if (d_data_problem == "PIECEWISE_CONSTANT_Z")
-    {
-        d_data_problem_int = PIECEWISE_CONSTANT_Z;
-    } else if (d_data_problem == "SINE_CONSTANT_X")
-    {
-        d_data_problem_int = SINE_CONSTANT_X;
-    } else if (d_data_problem == "SINE_CONSTANT_Y")
-    {
-        d_data_problem_int = SINE_CONSTANT_Y;
-    } else if (d_data_problem == "SINE_CONSTANT_Z")
-    {
-        d_data_problem_int = SINE_CONSTANT_Z;
-    } else if (d_data_problem == "SPHERE")
-    {
-        d_data_problem_int = SPHERE;
-    } else
+    if (d_data_problem == "PIECEWISE_CONSTANT_X") { d_data_problem_int = PIECEWISE_CONSTANT_X; }
+    else if (d_data_problem == "PIECEWISE_CONSTANT_Y") { d_data_problem_int = PIECEWISE_CONSTANT_Y; }
+    else if (d_data_problem == "PIECEWISE_CONSTANT_Z") { d_data_problem_int = PIECEWISE_CONSTANT_Z; }
+    else if (d_data_problem == "SINE_CONSTANT_X") { d_data_problem_int = SINE_CONSTANT_X; }
+    else if (d_data_problem == "SINE_CONSTANT_Y") { d_data_problem_int = SINE_CONSTANT_Y; }
+    else if (d_data_problem == "SINE_CONSTANT_Z") { d_data_problem_int = SINE_CONSTANT_Z; }
+    else if (d_data_problem == "SPHERE") { d_data_problem_int = SPHERE; }
+    else
     {
         TBOX_ERROR(
                 d_object_name << ": "
                               << "Unknown d_data_problem std::string = "
                               << d_data_problem
-                              << " encountered in constructor" << endl);
+                              << " encountered in constructor" << std::endl);
     }
 
     /*
@@ -352,12 +323,12 @@ LinAdv::LinAdv(
 /*
  *************************************************************************
  *
- * Empty destructor for LinAdv class.
+ * Empty destructor for SAMRAIWorkerHyperbolic class.
  *
  *************************************************************************
  */
 
-LinAdv::~LinAdv()
+SAMRAIWorkerHyperbolic::~SAMRAIWorkerHyperbolic()
 {
 }
 
@@ -371,9 +342,10 @@ LinAdv::~LinAdv()
  *************************************************************************
  */
 
-void LinAdv::registerModelVariables(
-        SAMRAI::algs::HyperbolicLevelIntegrator *integrator)
+void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator)
 {
+
+    CHECK("*******");
 
     TBOX_ASSERT(integrator != 0);
     TBOX_ASSERT(CELLG == FACEG);
@@ -392,7 +364,6 @@ void LinAdv::registerModelVariables(
 
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
 
-#ifdef HAVE_HDF5
     if (d_visit_writer)
     {
         d_visit_writer->
@@ -401,17 +372,15 @@ void LinAdv::registerModelVariables(
                                      vardb->mapVariableAndContextToIndex(
                                              d_uval, integrator->getPlotContext()));
     }
-#endif
 
-#ifdef HAVE_HDF5
     if (!d_visit_writer)
     {
         TBOX_WARNING(d_object_name << ": registerModelVariables()"
                                    << "\nVisIt data writer was not registered.\n"
                                    << "Consequently, no plot data will"
-                                   << "\nbe written." << endl);
+                                   << "\nbe written." << std::endl);
     }
-#endif
+
 
 }
 
@@ -423,11 +392,10 @@ void LinAdv::registerModelVariables(
  *************************************************************************
  */
 
-void LinAdv::setupLoadBalancer(
-        SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
-        SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm)
+void SAMRAIWorkerHyperbolic::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
+                                               SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm)
 {
-
+    CHECK("*******");
     NULL_USE(integrator);
 
     const SAMRAI::hier::IntVector &zero_vec = SAMRAI::hier::IntVector::getZero(d_dim);
@@ -439,27 +407,26 @@ void LinAdv::setupLoadBalancer(
     if (d_use_nonuniform_workload && gridding_algorithm)
     {
         boost::shared_ptr<SAMRAI::mesh::CascadePartitioner> load_balancer(
-                boost::dynamic_pointer_cast<SAMRAI::mesh::CascadePartitioner, SAMRAI::mesh::LoadBalanceStrategy>(
+                boost::dynamic_pointer_cast<SAMRAI::mesh::CascadePartitioner,
+                        SAMRAI::mesh::LoadBalanceStrategy>(
                         gridding_algorithm->getLoadBalanceStrategy()));
         if (load_balancer)
         {
-            d_workload_variable.reset(
-                    new SAMRAI::pdat::CellVariable<double>(
-                            d_dim,
-                            "workload_variable",
-                            1));
-            d_workload_data_id =
-                    vardb->registerVariableAndContext(d_workload_variable,
-                                                      vardb->getContext("WORKLOAD"),
-                                                      zero_vec);
+            d_workload_variable.reset(new SAMRAI::pdat::CellVariable<double>(d_dim, "workload_variable", 1));
+
+            d_workload_data_id = vardb->registerVariableAndContext(d_workload_variable,
+                                                                   vardb->getContext("WORKLOAD"),
+                                                                   zero_vec);
+
             load_balancer->setWorkloadPatchDataIndex(d_workload_data_id);
+
             pdrm->registerPatchDataForRestart(d_workload_data_id);
         } else
         {
             TBOX_WARNING(
                     d_object_name << ": "
                                   << "  Unknown load balancer used in gridding algorithm."
-                                  << "  Ignoring request for nonuniform load balancing." << endl);
+                                  << "  Ignoring request for nonuniform load balancing." << std::endl);
             d_use_nonuniform_workload = false;
         }
     } else
@@ -481,11 +448,13 @@ void LinAdv::setupLoadBalancer(
  *
  *************************************************************************
  */
-void LinAdv::initializeDataOnPatch(
+void SAMRAIWorkerHyperbolic::initializeDataOnPatch(
         SAMRAI::hier::Patch &patch,
         const double data_time,
         const bool initial_time)
 {
+    CHECK("******");
+
     NULL_USE(data_time);
 
     if (initial_time)
@@ -626,19 +595,19 @@ void LinAdv::initializeDataOnPatch(
 
     if (d_use_nonuniform_workload)
     {
-        if (!patch.checkAllocated(d_workload_data_id))
-        {
-            patch.allocatePatchData(d_workload_data_id);
-        }
-        boost::shared_ptr<SAMRAI::pdat::CellData<double> > workload_data(
-                BOOST_CAST<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
-                        patch.getPatchData(d_workload_data_id)));
+        if (!patch.checkAllocated(d_workload_data_id)) { patch.allocatePatchData(d_workload_data_id); }
+
+        auto workload_data = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>>(
+                patch.getPatchData(d_workload_data_id));
+
         TBOX_ASSERT(workload_data);
 
         const SAMRAI::hier::Box &box = patch.getBox();
         const SAMRAI::hier::BoxId &box_id = box.getBoxId();
         const SAMRAI::hier::LocalId &local_id = box_id.getLocalId();
+
         double id_val = local_id.getValue() % 2 ? static_cast<double>(local_id.getValue() % 10) : 0.0;
+
         workload_data->fillAll(1.0 + id_val);
     }
 
@@ -652,11 +621,13 @@ void LinAdv::initializeDataOnPatch(
  *************************************************************************
  */
 
-double LinAdv::computeStableDtOnPatch(
+double SAMRAIWorkerHyperbolic::computeStableDtOnPatch(
         SAMRAI::hier::Patch &patch,
         const bool initial_time,
         const double dt_time)
 {
+    CHECK("******");
+
     NULL_USE(initial_time);
     NULL_USE(dt_time);
 
@@ -700,7 +671,7 @@ double LinAdv::computeStableDtOnPatch(
 //                                                stabdt);
     } else
     {
-        TBOX_ERROR("Only 2D or 3D allowed in LinAdv::computeStableDtOnPatch");
+        TBOX_ERROR("Only 2D or 3D allowed in SAMRAIWorkerHyperbolic::computeStableDtOnPatch");
         stabdt = 0;
     }
 
@@ -717,11 +688,12 @@ double LinAdv::computeStableDtOnPatch(
  *************************************************************************
  */
 
-void LinAdv::computeFluxesOnPatch(
+void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(
         SAMRAI::hier::Patch &patch,
         const double time,
         const double dt)
 {
+    CHECK("******");
     NULL_USE(time);
 
     if (d_dim == SAMRAI::tbox::Dimension(3))
@@ -895,7 +867,7 @@ void LinAdv::computeFluxesOnPatch(
 
         }
 
-//     SAMRAI::tbox::plog << "flux values: option1...." << endl;
+//     SAMRAI::tbox::plog << "flux values: option1...." << std::endl;
 //     flux->print(pbox, SAMRAI::tbox::plog);
     }
 }
@@ -909,10 +881,11 @@ void LinAdv::computeFluxesOnPatch(
  *
  *************************************************************************
  */
-void LinAdv::compute3DFluxesWithCornerTransport1(
+void SAMRAIWorkerHyperbolic::compute3DFluxesWithCornerTransport1(
         SAMRAI::hier::Patch &patch,
         const double dt)
 {
+    CHECK("******");
     TBOX_ASSERT(CELLG == FACEG);
     TBOX_ASSERT(d_dim == SAMRAI::tbox::Dimension(3));
 
@@ -1186,7 +1159,7 @@ void LinAdv::compute3DFluxesWithCornerTransport1(
 //                                                          traced_right.getPointer(1),
 //                                                          traced_right.getPointer(2));
 
-//     SAMRAI::tbox::plog << "flux values: option1...." << endl;
+//     SAMRAI::tbox::plog << "flux values: option1...." << std::endl;
 //     flux->print(pbox, SAMRAI::tbox::plog);
 
 }
@@ -1201,10 +1174,12 @@ void LinAdv::compute3DFluxesWithCornerTransport1(
  *
  *************************************************************************
  */
-void LinAdv::compute3DFluxesWithCornerTransport2(
+void SAMRAIWorkerHyperbolic::compute3DFluxesWithCornerTransport2(
         SAMRAI::hier::Patch &patch,
         const double dt)
 {
+    CHECK("******");
+
     TBOX_ASSERT(CELLG == FACEG);
     TBOX_ASSERT(d_dim == SAMRAI::tbox::Dimension(3));
 
@@ -1414,7 +1389,7 @@ void LinAdv::compute3DFluxesWithCornerTransport2(
 //                                                          traced_right.getPointer(1),
 //                                                          traced_right.getPointer(2));
 
-//     SAMRAI::tbox::plog << "flux values: option2...." << endl;
+//     SAMRAI::tbox::plog << "flux values: option2...." << std::endl;
 //     flux->print(pbox, SAMRAI::tbox::plog);
 }
 
@@ -1427,12 +1402,13 @@ void LinAdv::compute3DFluxesWithCornerTransport2(
  *************************************************************************
  */
 
-void LinAdv::conservativeDifferenceOnPatch(
+void SAMRAIWorkerHyperbolic::conservativeDifferenceOnPatch(
         SAMRAI::hier::Patch &patch,
         const double time,
         const double dt,
         bool at_syncronization)
 {
+    CHECK("******");
     NULL_USE(time);
     NULL_USE(dt);
     NULL_USE(at_syncronization);
@@ -1489,11 +1465,12 @@ void LinAdv::conservativeDifferenceOnPatch(
  *
  *************************************************************************
  */
-void LinAdv::boundaryReset(
+void SAMRAIWorkerHyperbolic::boundaryReset(
         SAMRAI::hier::Patch &patch,
         SAMRAI::pdat::FaceData<double> &traced_left,
         SAMRAI::pdat::FaceData<double> &traced_right) const
 {
+    CHECK("******");
     const SAMRAI::hier::Index ifirst = patch.getBox().lower();
     const SAMRAI::hier::Index ilast = patch.getBox().upper();
     int idir;
@@ -1606,11 +1583,12 @@ void LinAdv::boundaryReset(
  *************************************************************************
  */
 
-void LinAdv::setPhysicalBoundaryConditions(
+void SAMRAIWorkerHyperbolic::setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch &patch,
         const double fill_time,
         const SAMRAI::hier::IntVector &ghost_width_to_fill)
 {
+    CHECK("******");
     NULL_USE(fill_time);
 
     boost::shared_ptr<SAMRAI::pdat::CellData<double> > uval(
@@ -1729,7 +1707,7 @@ void LinAdv::setPhysicalBoundaryConditions(
  *
  *************************************************************************
  */
-void LinAdv::tagRichardsonExtrapolationCells(
+void SAMRAIWorkerHyperbolic::tagRichardsonExtrapolationCells(
         SAMRAI::hier::Patch &patch,
         const int error_level_number,
         const boost::shared_ptr<SAMRAI::hier::VariableContext> &coarsened_fine,
@@ -1741,6 +1719,7 @@ void LinAdv::tagRichardsonExtrapolationCells(
         const int tag_index,
         const bool uses_gradient_detector_too)
 {
+    CHECK("******");
     NULL_USE(initial_error);
 
     SAMRAI::hier::Box pbox = patch.getBox();
@@ -1918,13 +1897,14 @@ void LinAdv::tagRichardsonExtrapolationCells(
  *************************************************************************
  */
 
-void LinAdv::tagGradientDetectorCells(
+void SAMRAIWorkerHyperbolic::tagGradientDetectorCells(
         SAMRAI::hier::Patch &patch,
         const double regrid_time,
         const bool initial_error,
         const int tag_indx,
         const bool uses_richardson_extrapolation_too)
 {
+    CHECK("******");
     NULL_USE(initial_error);
 
     const int error_level_number = patch.getPatchLevelNumber();
@@ -2194,89 +2174,84 @@ void LinAdv::tagGradientDetectorCells(
  *************************************************************************
  */
 
-#ifdef HAVE_HDF5
 
-void LinAdv::registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer)
+void SAMRAIWorkerHyperbolic::registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer)
 {
     TBOX_ASSERT(viz_writer);
     d_visit_writer = viz_writer;
 }
 
-#endif
 
 /*
  *************************************************************************
  *
- * Write LinAdv object state to specified stream.
+ * Write SAMRAIWorkerHyperbolic object state to specified stream.
  *
  *************************************************************************
  */
 
-void LinAdv::printClassData(
-        ostream &os) const
+void SAMRAIWorkerHyperbolic::printClassData(ostream &os) const
 {
     int j, k;
 
-    os << "\nLinAdv::printClassData..." << endl;
-    os << "LinAdv: this = " << (LinAdv *)
-            this << endl;
-    os << "d_object_name = " << d_object_name << endl;
-    os << "d_grid_geometry = "
-       << d_grid_geometry.get() << endl;
+    os << "\nSAMRAIWorkerHyperbolic::printClassData..." << std::endl;
+    os << "SAMRAIWorkerHyperbolic: this = " << (SAMRAIWorkerHyperbolic *) this << std::endl;
+    os << "d_object_name = " << d_object_name << std::endl;
+    os << "d_grid_geometry = " << d_grid_geometry.get() << std::endl;
 
-    os << "Parameters for numerical method ..." << endl;
+    os << "Parameters for numerical method ..." << std::endl;
     os << "   d_advection_velocity = ";
     for (j = 0; j < d_dim.getValue(); ++j) os << d_advection_velocity[j] << " ";
-    os << endl;
-    os << "   d_godunov_order = " << d_godunov_order << endl;
-    os << "   d_corner_transport = " << d_corner_transport << endl;
-    os << "   d_nghosts = " << d_nghosts << endl;
-    os << "   d_fluxghosts = " << d_fluxghosts << endl;
+    os << std::endl;
+    os << "   d_godunov_order = " << d_godunov_order << std::endl;
+    os << "   d_corner_transport = " << d_corner_transport << std::endl;
+    os << "   d_nghosts = " << d_nghosts << std::endl;
+    os << "   d_fluxghosts = " << d_fluxghosts << std::endl;
 
-    os << "Problem description and initial data..." << endl;
-    os << "   d_data_problem = " << d_data_problem << endl;
-    os << "   d_data_problem_int = " << d_data_problem << endl;
+    os << "Problem description and initial data..." << std::endl;
+    os << "   d_data_problem = " << d_data_problem << std::endl;
+    os << "   d_data_problem_int = " << d_data_problem << std::endl;
 
-    os << "       d_radius = " << d_radius << endl;
+    os << "       d_radius = " << d_radius << std::endl;
     os << "       d_center = ";
     for (j = 0; j < d_dim.getValue(); ++j) os << d_center[j] << " ";
-    os << endl;
-    os << "       d_uval_inside = " << d_uval_inside << endl;
-    os << "       d_uval_outside = " << d_uval_outside << endl;
+    os << std::endl;
+    os << "       d_uval_inside = " << d_uval_inside << std::endl;
+    os << "       d_uval_outside = " << d_uval_outside << std::endl;
 
-    os << "       d_number_of_intervals = " << d_number_of_intervals << endl;
+    os << "       d_number_of_intervals = " << d_number_of_intervals << std::endl;
     os << "       d_front_position = ";
     for (k = 0; k < d_number_of_intervals - 1; ++k)
     {
         os << d_front_position[k] << "  ";
     }
-    os << endl;
-    os << "       d_interval_uval = " << endl;
+    os << std::endl;
+    os << "       d_interval_uval = " << std::endl;
     for (k = 0; k < d_number_of_intervals; ++k)
     {
-        os << "            " << d_interval_uval[k] << endl;
+        os << "            " << d_interval_uval[k] << std::endl;
     }
-    os << "   Boundary condition data " << endl;
+    os << "   Boundary condition data " << std::endl;
 
     if (d_dim == SAMRAI::tbox::Dimension(2))
     {
         for (j = 0; j < static_cast<int>(d_scalar_bdry_edge_conds.size()); ++j)
         {
             os << "       d_scalar_bdry_edge_conds[" << j << "] = "
-               << d_scalar_bdry_edge_conds[j] << endl;
+               << d_scalar_bdry_edge_conds[j] << std::endl;
             if (d_scalar_bdry_edge_conds[j] == BdryCond::DIRICHLET)
             {
                 os << "         d_bdry_edge_uval[" << j << "] = "
-                   << d_bdry_edge_uval[j] << endl;
+                   << d_bdry_edge_uval[j] << std::endl;
             }
         }
-        os << endl;
+        os << std::endl;
         for (j = 0; j < static_cast<int>(d_scalar_bdry_node_conds.size()); ++j)
         {
             os << "       d_scalar_bdry_node_conds[" << j << "] = "
-               << d_scalar_bdry_node_conds[j] << endl;
+               << d_scalar_bdry_node_conds[j] << std::endl;
             os << "       d_node_bdry_edge[" << j << "] = "
-               << d_node_bdry_edge[j] << endl;
+               << d_node_bdry_edge[j] << std::endl;
         }
     }
     if (d_dim == SAMRAI::tbox::Dimension(3))
@@ -2284,122 +2259,122 @@ void LinAdv::printClassData(
         for (j = 0; j < static_cast<int>(d_scalar_bdry_face_conds.size()); ++j)
         {
             os << "       d_scalar_bdry_face_conds[" << j << "] = "
-               << d_scalar_bdry_face_conds[j] << endl;
+               << d_scalar_bdry_face_conds[j] << std::endl;
             if (d_scalar_bdry_face_conds[j] == BdryCond::DIRICHLET)
             {
                 os << "         d_bdry_face_uval[" << j << "] = "
-                   << d_bdry_face_uval[j] << endl;
+                   << d_bdry_face_uval[j] << std::endl;
             }
         }
-        os << endl;
+        os << std::endl;
         for (j = 0; j < static_cast<int>(d_scalar_bdry_edge_conds.size()); ++j)
         {
             os << "       d_scalar_bdry_edge_conds[" << j << "] = "
-               << d_scalar_bdry_edge_conds[j] << endl;
+               << d_scalar_bdry_edge_conds[j] << std::endl;
             os << "       d_edge_bdry_face[" << j << "] = "
-               << d_edge_bdry_face[j] << endl;
+               << d_edge_bdry_face[j] << std::endl;
         }
-        os << endl;
+        os << std::endl;
         for (j = 0; j < static_cast<int>(d_scalar_bdry_node_conds.size()); ++j)
         {
             os << "       d_scalar_bdry_node_conds[" << j << "] = "
-               << d_scalar_bdry_node_conds[j] << endl;
+               << d_scalar_bdry_node_conds[j] << std::endl;
             os << "       d_node_bdry_face[" << j << "] = "
-               << d_node_bdry_face[j] << endl;
+               << d_node_bdry_face[j] << std::endl;
         }
     }
 
-    os << "   Refinement criteria parameters " << endl;
+    os << "   Refinement criteria parameters " << std::endl;
 
     for (j = 0; j < static_cast<int>(d_refinement_criteria.size()); ++j)
     {
         os << "       d_refinement_criteria[" << j << "] = "
-           << d_refinement_criteria[j] << endl;
+           << d_refinement_criteria[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_dev_tol.size()); ++j)
     {
         os << "       d_dev_tol[" << j << "] = "
-           << d_dev_tol[j] << endl;
+           << d_dev_tol[j] << std::endl;
     }
     for (j = 0; j < static_cast<int>(d_dev.size()); ++j)
     {
         os << "       d_dev[" << j << "] = "
-           << d_dev[j] << endl;
+           << d_dev[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_dev_time_max.size()); ++j)
     {
         os << "       d_dev_time_max[" << j << "] = "
-           << d_dev_time_max[j] << endl;
+           << d_dev_time_max[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_dev_time_min.size()); ++j)
     {
         os << "       d_dev_time_min[" << j << "] = "
-           << d_dev_time_min[j] << endl;
+           << d_dev_time_min[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_grad_tol.size()); ++j)
     {
         os << "       d_grad_tol[" << j << "] = "
-           << d_grad_tol[j] << endl;
+           << d_grad_tol[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_grad_time_max.size()); ++j)
     {
         os << "       d_grad_time_max[" << j << "] = "
-           << d_grad_time_max[j] << endl;
+           << d_grad_time_max[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_grad_time_min.size()); ++j)
     {
         os << "       d_grad_time_min[" << j << "] = "
-           << d_grad_time_min[j] << endl;
+           << d_grad_time_min[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_shock_onset.size()); ++j)
     {
         os << "       d_shock_onset[" << j << "] = "
-           << d_shock_onset[j] << endl;
+           << d_shock_onset[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_shock_tol.size()); ++j)
     {
         os << "       d_shock_tol[" << j << "] = "
-           << d_shock_tol[j] << endl;
+           << d_shock_tol[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_shock_time_max.size()); ++j)
     {
         os << "       d_shock_time_max[" << j << "] = "
-           << d_shock_time_max[j] << endl;
+           << d_shock_time_max[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_shock_time_min.size()); ++j)
     {
         os << "       d_shock_time_min[" << j << "] = "
-           << d_shock_time_min[j] << endl;
+           << d_shock_time_min[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_rich_tol.size()); ++j)
     {
         os << "       d_rich_tol[" << j << "] = "
-           << d_rich_tol[j] << endl;
+           << d_rich_tol[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_rich_time_max.size()); ++j)
     {
         os << "       d_rich_time_max[" << j << "] = "
-           << d_rich_time_max[j] << endl;
+           << d_rich_time_max[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
     for (j = 0; j < static_cast<int>(d_rich_time_min.size()); ++j)
     {
         os << "       d_rich_time_min[" << j << "] = "
-           << d_rich_time_min[j] << endl;
+           << d_rich_time_min[j] << std::endl;
     }
-    os << endl;
+    os << std::endl;
 
 }
 
@@ -2411,10 +2386,9 @@ void LinAdv::printClassData(
  *
  *************************************************************************
  */
-void LinAdv::getFromInput(
-        boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-        bool is_from_restart)
+void SAMRAIWorkerHyperbolic::getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> input_db, bool is_from_restart)
 {
+    CHECK("******");
     TBOX_ASSERT(input_db);
 
     /*
@@ -2455,7 +2429,7 @@ void LinAdv::getFromInput(
         {
             TBOX_ERROR(
                     d_object_name << ": "
-                                  << "`godunov_order' in input must be 1, 2, or 4." << endl);
+                                  << "`godunov_order' in input must be 1, 2, or 4." << std::endl);
         }
     } else
     {
@@ -2472,7 +2446,7 @@ void LinAdv::getFromInput(
             TBOX_ERROR(
                     d_object_name << ": "
                                   << "`corner_transport' in input must be either std::string"
-                                  << " 'CORNER_TRANSPORT_1' or 'CORNER_TRANSPORT_2'." << endl);
+                                  << " 'CORNER_TRANSPORT_1' or 'CORNER_TRANSPORT_2'." << std::endl);
         }
     } else
     {
@@ -2482,8 +2456,7 @@ void LinAdv::getFromInput(
 
     if (input_db->keyExists("Refinement_data"))
     {
-        boost::shared_ptr<SAMRAI::tbox::Database> refine_db(
-                input_db->getDatabase("Refinement_data"));
+        boost::shared_ptr<SAMRAI::tbox::Database> refine_db(input_db->getDatabase("Refinement_data"));
         std::vector<std::string> refinement_keys = refine_db->getAllKeys();
         int num_keys = static_cast<int>(refinement_keys.size());
 
@@ -2495,7 +2468,7 @@ void LinAdv::getFromInput(
             TBOX_WARNING(
                     d_object_name << ": "
                                   << "No key `refine_criteria' found in data for"
-                                  << " RefinementData. No refinement will occur." << endl);
+                                  << " RefinementData. No refinement will occur." << std::endl);
         }
 
         std::vector<std::string> ref_keys_defined(num_keys);
@@ -2519,7 +2492,7 @@ void LinAdv::getFromInput(
                             d_object_name << ": "
                                           << "Unknown refinement criteria: "
                                           << error_key
-                                          << "\nin input." << endl);
+                                          << "\nin input." << std::endl);
                 } else
                 {
                     error_db = refine_db->getDatabase(error_key);
@@ -2538,7 +2511,7 @@ void LinAdv::getFromInput(
                         TBOX_ERROR(
                                 d_object_name << ": "
                                               << "No key `dev_tol' found in data for "
-                                              << error_key << endl);
+                                              << error_key << std::endl);
                     }
 
                     if (error_db->keyExists("uval_dev"))
@@ -2549,7 +2522,7 @@ void LinAdv::getFromInput(
                         TBOX_ERROR(
                                 d_object_name << ": "
                                               << "No key `uval_dev' found in data for "
-                                              << error_key << endl);
+                                              << error_key << std::endl);
                     }
 
                     if (error_db->keyExists("time_max"))
@@ -2583,7 +2556,7 @@ void LinAdv::getFromInput(
                         TBOX_ERROR(
                                 d_object_name << ": "
                                               << "No key `grad_tol' found in data for "
-                                              << error_key << endl);
+                                              << error_key << std::endl);
                     }
 
                     if (error_db->keyExists("time_max"))
@@ -2617,7 +2590,7 @@ void LinAdv::getFromInput(
                         TBOX_ERROR(
                                 d_object_name << ": "
                                               << "No key `shock_onset' found in data for "
-                                              << error_key << endl);
+                                              << error_key << std::endl);
                     }
 
                     if (error_db->keyExists("shock_tol"))
@@ -2628,7 +2601,7 @@ void LinAdv::getFromInput(
                         TBOX_ERROR(
                                 d_object_name << ": "
                                               << "No key `shock_tol' found in data for "
-                                              << error_key << endl);
+                                              << error_key << std::endl);
                     }
 
                     if (error_db->keyExists("time_max"))
@@ -2662,7 +2635,7 @@ void LinAdv::getFromInput(
                         TBOX_ERROR(
                                 d_object_name << ": "
                                               << "No key `rich_tol' found in data for "
-                                              << error_key << endl);
+                                              << error_key << std::endl);
                     }
 
                     if (error_db->keyExists("time_max"))
@@ -2707,7 +2680,7 @@ void LinAdv::getFromInput(
             {
                 TBOX_ERROR(d_object_name << ": "
                                          << "No input found for specified refine criteria: "
-                                         << d_refinement_criteria[k0] << endl);
+                                         << d_refinement_criteria[k0] << std::endl);
             }
         }
 
@@ -2724,14 +2697,14 @@ void LinAdv::getFromInput(
             TBOX_ERROR(
                     d_object_name << ": "
                                   << "`data_problem' value not found in input."
-                                  << endl);
+                                  << std::endl);
         }
 
         if (!input_db->keyExists("Initial_data"))
         {
             TBOX_ERROR(
                     d_object_name << ": "
-                                  << "No `Initial_data' database found in input." << endl);
+                                  << "No `Initial_data' database found in input." << std::endl);
         }
         boost::shared_ptr<SAMRAI::tbox::Database> init_data_db(
                 input_db->getDatabase("Initial_data"));
@@ -2748,7 +2721,7 @@ void LinAdv::getFromInput(
             {
                 TBOX_ERROR(
                         d_object_name << ": "
-                                      << "`radius' input required for SPHERE problem." << endl);
+                                      << "`radius' input required for SPHERE problem." << std::endl);
             }
             if (init_data_db->keyExists("center"))
             {
@@ -2757,7 +2730,7 @@ void LinAdv::getFromInput(
             {
                 TBOX_ERROR(
                         d_object_name << ": "
-                                      << "`center' input required for SPHERE problem." << endl);
+                                      << "`center' input required for SPHERE problem." << std::endl);
             }
             if (init_data_db->keyExists("uval_inside"))
             {
@@ -2766,7 +2739,7 @@ void LinAdv::getFromInput(
             {
                 TBOX_ERROR(d_object_name << ": "
                                          << "`uval_inside' input required for "
-                                         << "SPHERE problem." << endl);
+                                         << "SPHERE problem." << std::endl);
             }
             if (init_data_db->keyExists("uval_outside"))
             {
@@ -2775,7 +2748,7 @@ void LinAdv::getFromInput(
             {
                 TBOX_ERROR(d_object_name << ": "
                                          << "`uval_outside' input required for "
-                                         << "SPHERE problem." << endl);
+                                         << "SPHERE problem." << std::endl);
             }
 
             found_problem_data = true;
@@ -2799,7 +2772,7 @@ void LinAdv::getFromInput(
                     TBOX_ERROR(
                             d_object_name << ": `PIECEWISE_CONSTANT_Y' "
                                           << "problem invalid in 1 dimension."
-                                          << endl);
+                                          << std::endl);
                 }
                 idir = 1;
             }
@@ -2810,7 +2783,7 @@ void LinAdv::getFromInput(
                 {
                     TBOX_ERROR(
                             d_object_name << ": `PIECEWISE_CONSTANT_Z' "
-                                          << "problem invalid in 1 or 2 dimensions." << endl);
+                                          << "problem invalid in 1 or 2 dimensions." << std::endl);
                 }
                 idir = 2;
             }
@@ -2824,7 +2797,7 @@ void LinAdv::getFromInput(
             {
                 TBOX_ERROR(d_object_name << ": "
                                          << "`front_position' input required for "
-                                         << d_data_problem << " problem." << endl);
+                                         << d_data_problem << " problem." << std::endl);
             }
 
             d_number_of_intervals =
@@ -2859,7 +2832,7 @@ void LinAdv::getFromInput(
                     {
                         TBOX_ERROR(d_object_name << ": "
                                                  << "`uval' data missing in input for key = "
-                                                 << init_data_keys[nkey] << endl);
+                                                 << init_data_keys[nkey] << std::endl);
                     }
                     ++i;
 
@@ -2886,7 +2859,7 @@ void LinAdv::getFromInput(
                 {
                     TBOX_ERROR(
                             d_object_name << ": "
-                                          << "`frequency' input required for SINE problem." << endl);
+                                          << "`frequency' input required for SINE problem." << std::endl);
                 }
             }
 
@@ -2896,7 +2869,7 @@ void LinAdv::getFromInput(
                         d_object_name << ": "
                                       << "Insufficient interval data given in input"
                                       << " for PIECEWISE_CONSTANT_*problem."
-                                      << endl);
+                                      << std::endl);
             }
 
             found_problem_data = true;
@@ -2906,7 +2879,7 @@ void LinAdv::getFromInput(
         {
             TBOX_ERROR(d_object_name << ": "
                                      << "`Initial_data' database found in input."
-                                     << " But bad data supplied." << endl);
+                                     << " But bad data supplied." << std::endl);
         }
 
     } // if !is_from_restart read in problem data
@@ -2947,7 +2920,7 @@ void LinAdv::getFromInput(
     {
         TBOX_ERROR(
                 d_object_name << ": "
-                              << "Key data `Boundary_data' not found in input. " << endl);
+                              << "Key data `Boundary_data' not found in input. " << std::endl);
     }
 
 }
@@ -2960,9 +2933,10 @@ void LinAdv::getFromInput(
  *************************************************************************
  */
 
-void LinAdv::putToRestart(
+void SAMRAIWorkerHyperbolic::putToRestart(
         const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db) const
 {
+    CHECK("******");
     TBOX_ASSERT(restart_db);
 
     restart_db->putInteger("LINADV_VERSION", LINADV_VERSION);
@@ -3060,8 +3034,9 @@ void LinAdv::putToRestart(
  *
  *************************************************************************
  */
-void LinAdv::getFromRestart()
+void SAMRAIWorkerHyperbolic::getFromRestart()
 {
+    CHECK("******");
     boost::shared_ptr<SAMRAI::tbox::Database> root_db(
             SAMRAI::tbox::RestartManager::getManager()->getRootDatabase());
 
@@ -3091,7 +3066,7 @@ void LinAdv::getFromRestart()
     {
         TBOX_ERROR(
                 d_object_name << ": "
-                              << "Key data `d_nghosts' in restart file != CELLG." << endl);
+                              << "Key data `d_nghosts' in restart file != CELLG." << std::endl);
     }
     int *tmp_fluxghosts = &d_fluxghosts[0];
     db->getIntegerArray("d_fluxghosts", tmp_fluxghosts, d_dim.getValue());
@@ -3099,7 +3074,7 @@ void LinAdv::getFromRestart()
     {
         TBOX_ERROR(
                 d_object_name << ": "
-                              << "Key data `d_fluxghosts' in restart file != FLUXG." << endl);
+                              << "Key data `d_fluxghosts' in restart file != FLUXG." << std::endl);
     }
 
     d_data_problem = db->getString("d_data_problem");
@@ -3185,11 +3160,12 @@ void LinAdv::getFromRestart()
  *************************************************************************
  */
 
-void LinAdv::readDirichletBoundaryDataEntry(
+void SAMRAIWorkerHyperbolic::readDirichletBoundaryDataEntry(
         const boost::shared_ptr<SAMRAI::tbox::Database> &db,
         std::string &db_name,
         int bdry_location_index)
 {
+    CHECK("******");
     TBOX_ASSERT(db);
     TBOX_ASSERT(!db_name.empty());
 
@@ -3209,22 +3185,24 @@ void LinAdv::readDirichletBoundaryDataEntry(
     }
 }
 
-void LinAdv::readNeumannBoundaryDataEntry(
+void SAMRAIWorkerHyperbolic::readNeumannBoundaryDataEntry(
         const boost::shared_ptr<SAMRAI::tbox::Database> &db,
         std::string &db_name,
         int bdry_location_index)
 {
+    CHECK("******");
     NULL_USE(db);
     NULL_USE(db_name);
     NULL_USE(bdry_location_index);
 }
 
-void LinAdv::readStateDataEntry(
+void SAMRAIWorkerHyperbolic::readStateDataEntry(
         boost::shared_ptr<SAMRAI::tbox::Database> db,
         const std::string &db_name,
         int array_indx,
         std::vector<double> &uval)
 {
+    CHECK("******");
     TBOX_ASSERT(db);
     TBOX_ASSERT(!db_name.empty());
     TBOX_ASSERT(array_indx >= 0);
@@ -3237,7 +3215,7 @@ void LinAdv::readStateDataEntry(
     {
         TBOX_ERROR(d_object_name << ": "
                                  << "`uval' entry missing from " << db_name
-                                 << " input database. " << endl);
+                                 << " input database. " << std::endl);
     }
 
 }
@@ -3250,12 +3228,13 @@ void LinAdv::readStateDataEntry(
  *************************************************************************
  */
 
-void LinAdv::checkBoundaryData(
+void SAMRAIWorkerHyperbolic::checkBoundaryData(
         int btype,
         const SAMRAI::hier::Patch &patch,
         const SAMRAI::hier::IntVector &ghost_width_to_check,
         const std::vector<int> &scalar_bconds) const
 {
+    CHECK("******");
 #ifdef DEBUG_CHECK_ASSERTIONS
     if (d_dim == SAMRAI::tbox::Dimension(2))
     {
@@ -3357,7 +3336,7 @@ void LinAdv::checkBoundaryData(
                     << "     " << num_bad_values
                     << " bad UVAL values found for\n"
                     << "     boundary type " << btype << " at location "
-                    << bloc << endl;
+                    << bloc << std::endl;
       }
 #endif
 
@@ -3366,24 +3345,20 @@ void LinAdv::checkBoundaryData(
 }
 
 void
-LinAdv::checkUserTagData(
-        SAMRAI::hier::Patch &patch,
-        const int tag_index) const
+SAMRAIWorkerHyperbolic::checkUserTagData(SAMRAI::hier::Patch &patch, const int tag_index) const
 {
+    CHECK("******");
     boost::shared_ptr<SAMRAI::pdat::CellData<int> > tags(
-            BOOST_CAST<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(
-                    patch.getPatchData(tag_index)));
+            BOOST_CAST<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(patch.getPatchData(tag_index)));
     TBOX_ASSERT(tags);
 }
 
 void
-LinAdv::checkNewPatchTagData(
-        SAMRAI::hier::Patch &patch,
-        const int tag_index) const
+SAMRAIWorkerHyperbolic::checkNewPatchTagData(SAMRAI::hier::Patch &patch, const int tag_index) const
 {
+    CHECK("******");
     boost::shared_ptr<SAMRAI::pdat::CellData<int> > tags(
-            BOOST_CAST<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(
-                    patch.getPatchData(tag_index)));
+            BOOST_CAST<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(patch.getPatchData(tag_index)));
     TBOX_ASSERT(tags);
 }
 

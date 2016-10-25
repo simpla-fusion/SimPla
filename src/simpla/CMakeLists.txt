@@ -11,3 +11,4 @@ ADD_SUBDIRECTORY(manifold)
 
 ADD_SUBDIRECTORY(simulation)
 
+ADD_SUBDIRECTORY(adapter)

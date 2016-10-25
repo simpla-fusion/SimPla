@@ -2,12 +2,15 @@
 // Created by salmon on 16-10-24.
 //
 
-#include <simpla/mesh/wrapper/Wrapper.h>
+#include <simpla/adapter/Adapter.h>
 
+
+using namespace simpla;
 
 int main(int argc, char **argv)
 {
-    auto ctx = simpla::create_context("LinAdv");
+    auto ctx = simpla::create_context("SAMRAIWorkerHyperbolic");
+
 
     ctx->setup(argc, argv);
     ctx->run(1.0);

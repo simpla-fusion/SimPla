@@ -20,7 +20,7 @@ namespace simpla { namespace simulation
 
 struct Context::pimpl_s
 {
-    std::map<mesh::MeshBlockId, std::shared_ptr<mesh::DomainBase>> m_domains_;
+    std::map<uuid, std::shared_ptr<mesh::DomainBase>> m_domains_;
     mesh::Atlas m_atlas_;
 
 };
@@ -65,7 +65,7 @@ Context::print(std::ostream &os, int indent) const
 //Context::get_mesh_block(mesh_as::MeshBlockId id) { return m_pimpl_->m_atlas_.get_block(id); }
 
 std::shared_ptr<mesh::DomainBase>
-Context::get_domain(mesh::MeshBlockId id) const { return m_pimpl_->m_domains_.at(id); };
+Context::get_domain(uuid id) const { return m_pimpl_->m_domains_.at(id); };
 
 
 std::shared_ptr<mesh::DomainBase>

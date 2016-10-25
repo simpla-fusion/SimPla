@@ -1,27 +1,23 @@
 //
-// Created by salmon on 16-10-24.
+// Created by salmon on 16-10-25.
 //
+
+#include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/Patch.h>
 #include <simpla/simulation/Context.h>
-
+#include <memory>
+#include <string>
 
 #include <SAMRAI/SAMRAI_config.h>
-#include <SAMRAI/hier/VariableDatabase.h>
-#include <SAMRAI/hier/PatchHierarchy.h>
-#include <SAMRAI/hier/BaseGridGeometry.h>
-#include <SAMRAI/geom/CartesianGridGeometry.h>
-#include <SAMRAI/pdat/CellData.h>
-#include <SAMRAI/pdat/EdgeData.h>
-#include <SAMRAI/pdat/FaceData.h>
-#include <SAMRAI/pdat/NodeData.h>
-#include <SAMRAI/pdat/CellVariable.h>
-#include <SAMRAI/pdat/EdgeVariable.h>
-#include <SAMRAI/pdat/FaceVariable.h>
-#include <SAMRAI/pdat/NodeVariable.h>
 
+// Header for application-specific algorithm/data structure object
+
+#include "SAMRAIWorkerHyperbolic.h"
+
+// Headers for major algorithm/data structure objects
 
 #include <SAMRAI/appu/VisItDataWriter.h>
 #include <SAMRAI/mesh/BergerRigoutsos.h>
@@ -48,113 +44,8 @@
 #include <SAMRAI/tbox/RestartManager.h>
 #include <SAMRAI/tbox/Utilities.h>
 
-
-#include <sys/stat.h>
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-#include <fstream>
-
-
-#include "LinAdv.h"
-
 namespace simpla
 {
-//
-//namespace detail
-//{
-//
-//template<typename V, mesh::MeshEntityType IFORM> struct SAMRAITraitsPatch;
-//template<typename V> struct SAMRAITraitsPatch<V, mesh::VERTEX> { typedef SAMRAI::pdat::NodeData<V> type; };
-//template<typename V> struct SAMRAITraitsPatch<V, mesh::EDGE> { typedef SAMRAI::pdat::EdgeData<V> type; };
-//template<typename V> struct SAMRAITraitsPatch<V, mesh::FACE> { typedef SAMRAI::pdat::FaceData<V> type; };
-//template<typename V> struct SAMRAITraitsPatch<V, mesh::VOLUME> { typedef SAMRAI::pdat::CellData<V> type; };
-//
-//
-//template<typename V, typename M, mesh::MeshEntityType IFORM>
-//class SAMRAIWrapperPatch
-//        : public SAMRAITraitsPatch<V, IFORM>::type,
-//          public mesh::Patch<V, M, IFORM>
-//{
-//    typedef typename SAMRAITraitsPatch<V, IFORM>::type samari_base_type;
-//    typedef mesh::Patch<V, M, IFORM> simpla_base_type;
-//public:
-//    SAMRAIWrapperPatch(std::shared_ptr<M> const &m, size_tuple const &gw)
-//            : samari_base_type(SAMRAI::hier::Box(samraiIndexConvert(std::get<0>(m->index_box())),
-//                                                 samraiIndexConvert(std::get<1>(m->index_box())),
-//                                                 SAMRAI::hier::BlockId(0)),
-//                               1, samraiIntVectorConvert(gw)),
-//              simpla_base_type(m->get()) {}
-//
-//    ~SAMRAIWrapperPatch() {}
-//};
-//
-//
-//template<typename V, mesh::MeshEntityType IFORM> struct SAMRAITraitsVariable;
-//template<typename V> struct SAMRAITraitsVariable<V, mesh::VERTEX> { typedef SAMRAI::pdat::NodeVariable<V> type; };
-//template<typename V> struct SAMRAITraitsVariable<V, mesh::EDGE> { typedef SAMRAI::pdat::EdgeVariable<V> type; };
-//template<typename V> struct SAMRAITraitsVariable<V, mesh::FACE> { typedef SAMRAI::pdat::FaceVariable<V> type; };
-//template<typename V> struct SAMRAITraitsVariable<V, mesh::VOLUME> { typedef SAMRAI::pdat::CellVariable<V> type; };
-//
-//template<typename V, typename M, mesh::MeshEntityType IFORM>
-//class SAMRAIWrapperAttribute
-//        : public SAMRAITraitsVariable<V, IFORM>::type,
-//          public mesh::Attribute<SAMRAIWrapperPatch<V, M, IFORM> >
-//{
-//    typedef typename SAMRAITraitsVariable<V, IFORM>::type samrai_base_type;
-//    typedef mesh::Attribute<SAMRAIWrapperPatch<V, M, IFORM>> simpla_base_type;
-//public:
-//    template<typename TM>
-//    SAMRAIWrapperAttribute(std::shared_ptr<TM> const &m, std::string const &name) :
-//            samrai_base_type(SAMRAI::tbox::Dimension(M::ndims), name, 1), simpla_base_type(m) {}
-//
-//    ~SAMRAIWrapperAttribute() {}
-//};
-//
-//
-//class SAMRAIWrapperAtlas
-//        : public mesh::Atlas,
-//          public SAMRAI::hier::PatchHierarchy
-//{
-//
-//    typedef mesh::Atlas simpla_base_type;
-//    typedef SAMRAI::hier::PatchHierarchy samrai_base_type;
-//public:
-//    SAMRAIWrapperAtlas(std::string const &name)
-//            : samrai_base_type(name,
-//                               boost::shared_ptr<SAMRAI::hier::BaseGridGeometry>(
-//                                       new SAMRAI::geom::CartesianGridGeometry(
-//                                               SAMRAI::tbox::Dimension(3),
-//                                               "CartesianGridGeometry",
-//                                               boost::shared_ptr<SAMRAI::tbox::Database>(nullptr)))
-//    )
-//    {
-//
-//    }
-//
-//    ~SAMRAIWrapperAtlas() {}
-//};
-//
-//std::shared_ptr<mesh::AttributeBase>
-//create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
-//                      std::shared_ptr<mesh::Atlas> const &m, std::string const &name)
-//{
-//}
-//
-//
-//std::shared_ptr<mesh::AttributeBase>
-//create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
-//                      std::shared_ptr<mesh::MeshBase> const &m, std::string const &name)
-//{
-//}
-//
-//std::shared_ptr<mesh::PatchBase>
-//create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
-//                  std::shared_ptr<mesh::MeshBase> const &m)
-//{
-//
-//}
-//}//namespace detail
 
 
 struct SAMRAIWrapperContext : public simulation::ContextBase
@@ -194,11 +85,10 @@ struct SAMRAIWrapperContext : public simulation::ContextBase
     void time(Real t) {};
 
     void next_time_step(Real dt) {};
-
-
 private:
 
-    boost::shared_ptr<LinAdv> linear_advection_model;
+    boost::shared_ptr<SAMRAIWorkerHyperbolic> patch_worker;
+
 
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
 
@@ -206,7 +96,7 @@ private:
 
     boost::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator> hyp_level_integrator;
 
-    boost::shared_ptr<SAMRAI::mesh::StandardTagAndInitialize> error_detector;
+    boost::shared_ptr<SAMRAI::mesh::StandardTagAndInitialize> tag_and_initialize;
 
     boost::shared_ptr<SAMRAI::mesh::BergerRigoutsos> box_generator;
 
@@ -218,6 +108,16 @@ private:
 
     // VisItDataWriter is only present if HDF is available
     boost::shared_ptr<SAMRAI::appu::VisItDataWriter> visit_data_writer;
+
+
+    bool write_restart = false;
+    int restart_interval = 0;
+
+    std::string restart_write_dirname;
+
+    bool viz_dump_data = false;
+    int viz_dump_interval = 1;
+
 };
 
 
@@ -230,7 +130,6 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
 
     SAMRAI::tbox::SAMRAI_MPI::init(&argc, &argv);
     SAMRAI::tbox::SAMRAIManager::initialize();
-
 
     /*
      * Initialize SAMRAI, enable logging, and process command line.
@@ -247,12 +146,13 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
 
     if ((argc != 2) && (argc != 4))
     {
-        MESSAGE << "USAGE:  " << argv[0] << " <input filename> "
-                << "<restart dir> <restore number> [options]\n"
-                << "  options:\n"
-                << "  none at this time"
-                << std::endl;
+        SAMRAI::tbox::pout << "USAGE:  " << argv[0] << " <input filename> "
+                           << "<restart dir> <restore number> [options]\n"
+                           << "  options:\n"
+                           << "  none at this time"
+                           << std::endl;
         SAMRAI::tbox::SAMRAI_MPI::abort();
+        return;
     } else
     {
         input_filename = argv[1];
@@ -265,15 +165,16 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
         }
     }
 
-    LOGGER << "input_filename = " << input_filename << std::endl;
-    LOGGER << "restart_read_dirname = " << restart_read_dirname << std::endl;
-    LOGGER << "restore_num = " << restore_num << std::endl;
+    SAMRAI::tbox::plog << "input_filename = " << input_filename << std::endl;
+    SAMRAI::tbox::plog << "restart_read_dirname = " << restart_read_dirname << std::endl;
+    SAMRAI::tbox::plog << "restore_num = " << restore_num << std::endl;
 
     /*
      * Create input database and parse all data in input file.
      */
 
-    auto input_db = boost::make_shared<SAMRAI::tbox::InputDatabase>("input_db");
+    boost::shared_ptr<SAMRAI::tbox::InputDatabase> input_db(new SAMRAI::tbox::InputDatabase("input_db"));
+
     SAMRAI::tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
     /*
@@ -283,8 +184,7 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
 
     if (input_db->keyExists("GlobalInputs"))
     {
-        boost::shared_ptr<SAMRAI::tbox::Database> global_db(
-                input_db->getDatabase("GlobalInputs"));
+        boost::shared_ptr<SAMRAI::tbox::Database> global_db(input_db->getDatabase("GlobalInputs"));
 #ifdef SGS
         if (global_db->keyExists("tag_clustering_method")) {
        std::string tag_clustering_method =
@@ -294,8 +194,7 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
 #endif
         if (global_db->keyExists("call_abort_in_serial_instead_of_exit"))
         {
-            bool flag = global_db->
-                    getBool("call_abort_in_serial_instead_of_exit");
+            bool flag = global_db->getBool("call_abort_in_serial_instead_of_exit");
             SAMRAI::tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit(flag);
         }
     }
@@ -308,7 +207,7 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
      * database.
      */
 
-    auto main_db = input_db->getDatabase("Main");
+    boost::shared_ptr<SAMRAI::tbox::Database> main_db(input_db->getDatabase("Main"));
 
     const SAMRAI::tbox::Dimension dim(static_cast<unsigned short>(main_db->getInteger("dim")));
 
@@ -329,39 +228,36 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
         SAMRAI::tbox::PIO::logOnlyNodeZero(log_filename);
     }
 
-    int viz_dump_interval = 0;
+    viz_dump_interval = 1;
+
     if (main_db->keyExists("viz_dump_interval"))
     {
         viz_dump_interval = main_db->getInteger("viz_dump_interval");
     }
 
-    const std::string viz_dump_dirname =
-            main_db->getStringWithDefault("viz_dump_dirname", base_name + ".visit");
+    const std::string viz_dump_dirname = main_db->getStringWithDefault("viz_dump_dirname", base_name + ".visit");
+
     int visit_number_procs_per_file = 1;
 
-    const bool viz_dump_data = (viz_dump_interval > 0);
+    viz_dump_data = (viz_dump_interval > 0);
 
-    int restart_interval = 0;
-    if (main_db->keyExists("restart_interval"))
-    {
-        restart_interval = main_db->getInteger("restart_interval");
-    }
+    restart_interval = 0;
 
-    const std::string restart_write_dirname = main_db->getStringWithDefault("restart_write_dirname",
-                                                                            base_name + ".restart");
+    if (main_db->keyExists("restart_interval")) { restart_interval = main_db->getInteger("restart_interval"); }
+
+    restart_write_dirname = main_db->getStringWithDefault("restart_write_dirname", base_name + ".restart");
 
     bool use_refined_timestepping = true;
+
     if (main_db->keyExists("timestepping"))
     {
         std::string timestepping_method = main_db->getString("timestepping");
-        if (timestepping_method == "SYNCHRONIZED")
-        {
-            use_refined_timestepping = false;
-        }
+
+        if (timestepping_method == "SYNCHRONIZED") { use_refined_timestepping = false; }
     }
 
 
-    const bool write_restart = (restart_interval > 0) && !(restart_write_dirname.empty());
+    write_restart = (restart_interval > 0) && !(restart_write_dirname.empty());
 
     /*
      * Get the restart manager and root restart database.  If run is from
@@ -392,23 +288,27 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
             "PatchHierarchy",
             grid_geometry,
             input_db->getDatabase("PatchHierarchy"));
-
-    linear_advection_model = boost::make_shared<LinAdv>(
+    //---------------------------------
+    patch_worker = boost::make_shared<SAMRAIWorkerHyperbolic>(
             "LinAdv",
             dim,
             input_db->getDatabase("LinAdv"),
             grid_geometry);
+    //---------------------------------
 
     hyp_level_integrator = boost::make_shared<SAMRAI::algs::HyperbolicLevelIntegrator>(
             "HyperbolicLevelIntegrator",
             input_db->getDatabase("HyperbolicLevelIntegrator"),
-            linear_advection_model.get(),
+            patch_worker.get(),
             use_refined_timestepping);
 
-    error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
+    tag_and_initialize = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
             "StandardTagAndInitialize",
             hyp_level_integrator.get(),
             input_db->getDatabase("StandardTagAndInitialize"));
+
+
+    //---------------------------------
 
     box_generator = boost::make_shared<SAMRAI::mesh::BergerRigoutsos>(
             dim,
@@ -420,39 +320,36 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
             dim,
             "LoadBalancer",
             input_db->getDatabase("LoadBalancer"));
-
     load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 
     gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
             patch_hierarchy,
             "GriddingAlgorithm",
             input_db->getDatabase("GriddingAlgorithm"),
-            error_detector,
+            tag_and_initialize,
             box_generator,
             load_balancer);
-
+    //---------------------------------
     time_integrator = boost::make_shared<SAMRAI::algs::TimeRefinementIntegrator>(
             "TimeRefinementIntegrator",
             input_db->getDatabase("TimeRefinementIntegrator"),
             patch_hierarchy,
             hyp_level_integrator,
             gridding_algorithm);
-
+    //---------------------------------
     // VisItDataWriter is only present if HDF is available
     visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
             dim,
-            "LinAdv VisIt Writer",
+            "SAMRAIWorkerHyperbolic VisIt Writer",
             viz_dump_dirname,
             visit_number_procs_per_file);
 
-    linear_advection_model->registerVisItDataWriter(visit_data_writer);
+    patch_worker->registerVisItDataWriter(visit_data_writer);
 
     /*
      * Initialize hierarchy configuration and data on all patches.
      * Then, close restart file and write initial state for visualization.
      */
-
-    double dt_now = time_integrator->initializeHierarchy();
 
     SAMRAI::tbox::RestartManager::getManager()->closeRestartFile();
 
@@ -462,22 +359,29 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
      * to the log file.
      */
 
-    LOGGER << "\nCheck input data and variables before simulation:" << std::endl;
-    LOGGER << "Input database..." << std::endl;
-    input_db->printClassData(std::cout);
-    LOGGER << "\nVariable database..." << std::endl;
-    SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(std::cout);
+    SAMRAI::tbox::plog << "\nCheck input data and variables before simulation:" << std::endl;
+    SAMRAI::tbox::plog << "Input database..." << std::endl;
+    input_db->printClassData(SAMRAI::tbox::plog);
+    SAMRAI::tbox::plog << "\nVariable database..." << std::endl;
+    SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(SAMRAI::tbox::plog);
 
-    LOGGER << "\nCheck Linear Advection data... " << std::endl;
-    linear_advection_model->printClassData(std::cout);
+    SAMRAI::tbox::plog << "\nCheck Linear Advection data... " << std::endl;
+    patch_worker->printClassData(SAMRAI::tbox::plog);
 
-    if (viz_dump_data && time_integrator->getIntegratorStep() % viz_dump_interval == 0)
-    {
-        visit_data_writer->writePlotData(
-                patch_hierarchy,
-                time_integrator->getIntegratorStep(),
-                time_integrator->getIntegratorTime());
-    }
+
+}
+
+void SAMRAIWrapperContext::run(Real dt, int level)
+{
+//    if (viz_dump_data && time_integrator->getIntegratorStep() % viz_dump_interval == 0)
+//    {
+//        visit_data_writer->writePlotData(
+//                patch_hierarchy,
+//                time_integrator->getIntegratorStep(),
+//                time_integrator->getIntegratorTime());
+//    }
+
+    double dt_now = time_integrator->initializeHierarchy();
 
     /*
      * Time step loop.  Note that the step count and integration
@@ -488,54 +392,53 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
     double loop_time_end = time_integrator->getEndTime();
 
     int iteration_num = time_integrator->getIntegratorStep();
-}
 
-void SAMRAIWrapperContext::run(Real dt, int level)
-{
-    Real loop_time = 0;
-    Real loop_time_end = dt;
-    Real dt_now = dt;
-    while ((loop_time < loop_time_end) && time_integrator->stepsRemaining())
+
+    while ((loop_time < loop_time_end) &&
+           time_integrator->stepsRemaining())
     {
 
-        int iteration_num = time_integrator->getIntegratorStep() + 1;
+        iteration_num = time_integrator->getIntegratorStep() + 1;
 
-        MESSAGE << "++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
-        MESSAGE << "At begining of timestep # " << iteration_num - 1 << std::endl;
-        MESSAGE << "Simulation time is " << loop_time << std::endl;
+        SAMRAI::tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+        SAMRAI::tbox::pout << "At begining of timestep # " << iteration_num - 1
+                           << std::endl;
+        SAMRAI::tbox::pout << "Simulation time is " << loop_time << std::endl;
 
-        Real dt_new = (Real) time_integrator->advanceHierarchy(dt_now);
+        double dt_new = time_integrator->advanceHierarchy(dt_now);
 
         loop_time += dt_now;
         dt_now = dt_new;
 
-        MESSAGE << "At end of timestep # " << iteration_num - 1 << std::endl;
-        MESSAGE << "Simulation time is " << loop_time << std::endl;
-        MESSAGE << "++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+        SAMRAI::tbox::pout << "At end of timestep # " << iteration_num - 1 << std::endl;
+        SAMRAI::tbox::pout << "Simulation time is " << loop_time << std::endl;
+        SAMRAI::tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
 
         /*
          * At specified intervals, write restart and visualization files.
          */
-//        if (write_restart)
-//        {
-//
-//            if ((iteration_num % restart_interval) == 0)
-//            {
-//                SAMRAI::tbox::RestartManager::getManager()->writeRestartFile(restart_write_dirname, iteration_num);
-//            }
-//        }
+        if (write_restart)
+        {
+
+            if ((iteration_num % restart_interval) == 0)
+            {
+                SAMRAI::tbox::RestartManager::getManager()->writeRestartFile(restart_write_dirname, iteration_num);
+            }
+        }
 
         /*
          * At specified intervals, write out data files for plotting.
          */
 
-//        if (viz_dump_data)
-//        {
-//            if ((iteration_num % viz_dump_interval) == 0)
-//            {
-//                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-//            }
-//        }
+        if (viz_dump_data)
+        {
+            if ((iteration_num % viz_dump_interval) == 0)
+            {
+                visit_data_writer->writePlotData(patch_hierarchy,
+                                                 iteration_num,
+                                                 loop_time);
+            }
+        }
 
 
     }
@@ -543,30 +446,40 @@ void SAMRAIWrapperContext::run(Real dt, int level)
 
 void SAMRAIWrapperContext::teardown()
 {
-    /*
+
+
+/*
      * At conclusion of simulation, deallocate objects.
      */
 
     visit_data_writer.reset();
+
     time_integrator.reset();
     gridding_algorithm.reset();
     load_balancer.reset();
     box_generator.reset();
-    error_detector.reset();
-    hyp_level_integrator.reset();
-    linear_advection_model.reset();
+    tag_and_initialize.reset();
+//    hyp_level_integrator.reset();
+    patch_worker.reset();
+
     patch_hierarchy.reset();
     grid_geometry.reset();
 
+//    input_db.reset();
+//    main_db.reset();
+
+
     SAMRAI::tbox::SAMRAIManager::shutdown();
+
+
     SAMRAI::tbox::SAMRAIManager::finalize();
     SAMRAI::tbox::SAMRAI_MPI::finalize();
 
 }
 
+
 std::shared_ptr<simulation::ContextBase> create_context(std::string const &name)
 {
     return std::make_shared<SAMRAIWrapperContext>();
 }
-
-} //namespace simpla
+}//namespace simpla
