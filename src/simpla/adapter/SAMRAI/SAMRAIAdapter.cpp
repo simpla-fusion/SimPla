@@ -68,6 +68,7 @@
 #include <SAMRAI/appu/CartesianBoundaryDefines.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities2.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities3.h>
+#include <boost/shared_ptr.hpp>
 
 namespace simpla
 {
@@ -343,7 +344,7 @@ private:
     /*
      * Data items used for nonuniform load balance, if used.
      */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable < double>> d_workload_variable;
     int d_workload_data_id;
     bool d_use_nonuniform_workload;
 
@@ -748,7 +749,7 @@ SAMRAIWorkerHyperbolic::checkUserTagData(SAMRAI::hier::Patch &patch, const int t
 {
     CHECK("This is a tag");
 
-    auto tags = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int> >(patch.getPatchData(tag_index));
+    auto tags = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData < int> > (patch.getPatchData(tag_index));
     TBOX_ASSERT(tags);
 }
 
@@ -757,7 +758,8 @@ SAMRAIWorkerHyperbolic::checkNewPatchTagData(SAMRAI::hier::Patch &patch, const i
 {
     CHECK("This is a tag");
 
-    auto tags = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int>>(patch.getPatchData(tag_index));
+    auto tags = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData < int>>
+    (patch.getPatchData(tag_index));
     TBOX_ASSERT(tags);
 }
 
@@ -1029,7 +1031,10 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
 
 }
 
-void SAMRAIWrapperContext::deploy() { time_integrator->initializeHierarchy(); };
+void SAMRAIWrapperContext::deploy()
+{
+    time_integrator->initializeHierarchy();
+};
 
 void SAMRAIWrapperContext::next_time_step(Real dt) { time_integrator->advanceHierarchy(dt); }
 

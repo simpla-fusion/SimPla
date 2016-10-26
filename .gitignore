@@ -41,5 +41,4 @@ third_part
 .cproject
 .project
 .settings/
-sp_lite/.cproject
-sp_lite/.project
+external_project/*/src/
