@@ -36,6 +36,8 @@ public:
 
     virtual void setup(int argc = 0, char **argv = nullptr)=0;
 
+    virtual void deploy()=0;
+
     virtual void teardown()=0;
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const =0;
@@ -66,13 +68,9 @@ public:
         return std::dynamic_pointer_cast<TProb>(get_domain(id));
     }
 
-    virtual void sync(int level = 0, int flag = 0)=0;
-
-    virtual void run(Real dt, int level = 0)=0;
+    virtual size_type step() const =0;
 
     virtual Real time() const =0;
-
-    virtual void time(Real t) =0;
 
     virtual void next_time_step(Real dt)=0;
 
@@ -84,7 +82,6 @@ class Context : public ContextBase
 private:
     typedef Context this_type;
 public:
-    int m_refine_ratio = 2;
 
     Context();
 

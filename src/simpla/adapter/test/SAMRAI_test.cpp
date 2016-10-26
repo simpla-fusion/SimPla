@@ -13,7 +13,8 @@ int main(int argc, char **argv)
 
 
     ctx->setup(argc, argv);
-    ctx->run(1.0);
+    ctx->deploy();
+    ctx->next_time_step(1.0);
     ctx->teardown();
     exit(0);
 }

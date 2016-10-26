@@ -47,6 +47,7 @@ else ()
     SET(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp  -fPIC  ")
 endif ()
 
+
 FIND_PACKAGE(Boost)
 
 FIND_PACKAGE(MPI)
@@ -104,11 +105,7 @@ INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
 INCLUDE_DIRECTORIES(${HDF5_INCLUDE_PATH})
 INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 
-INCLUDE_DIRECTORIES(${SAMRAI_INCLUDE_DIRS})
-
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-add_subdirectory(external_project)
 
 add_subdirectory(src)
 add_subdirectory(example)
