@@ -344,7 +344,7 @@ private:
     /*
      * Data items used for nonuniform load balance, if used.
      */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable < double>> d_workload_variable;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id;
     bool d_use_nonuniform_workload;
 
@@ -458,13 +458,11 @@ void SAMRAIWorkerHyperbolic::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelInte
     const SAMRAI::hier::IntVector &zero_vec = SAMRAI::hier::IntVector::getZero(d_dim);
 
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
-    SAMRAI::hier::PatchDataRestartManager *pdrm =
-            SAMRAI::hier::PatchDataRestartManager::getManager();
+
 
     if (d_use_nonuniform_workload && gridding_algorithm)
     {
-        auto load_balancer = boost::dynamic_pointer_cast<SAMRAI::mesh::CascadePartitioner,
-                SAMRAI::mesh::LoadBalanceStrategy>(
+        auto load_balancer = boost::dynamic_pointer_cast<SAMRAI::mesh::CascadePartitioner>(
                 gridding_algorithm->getLoadBalanceStrategy());
 
         if (load_balancer)
@@ -477,7 +475,6 @@ void SAMRAIWorkerHyperbolic::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelInte
 
             load_balancer->setWorkloadPatchDataIndex(d_workload_data_id);
 
-            pdrm->registerPatchDataForRestart(d_workload_data_id);
         } else
         {
             TBOX_WARNING(
@@ -749,7 +746,7 @@ SAMRAIWorkerHyperbolic::checkUserTagData(SAMRAI::hier::Patch &patch, const int t
 {
     CHECK("This is a tag");
 
-    auto tags = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData < int> > (patch.getPatchData(tag_index));
+    auto tags = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int> >(patch.getPatchData(tag_index));
     TBOX_ASSERT(tags);
 }
 
@@ -758,8 +755,8 @@ SAMRAIWorkerHyperbolic::checkNewPatchTagData(SAMRAI::hier::Patch &patch, const i
 {
     CHECK("This is a tag");
 
-    auto tags = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData < int>>
-    (patch.getPatchData(tag_index));
+    auto tags = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int>>
+            (patch.getPatchData(tag_index));
     TBOX_ASSERT(tags);
 }
 

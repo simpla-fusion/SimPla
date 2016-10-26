@@ -6,10 +6,9 @@
 #    add_subdirectory(src)
 #ENDIF (IS_DIRECTORY ${PROJECT_SOURCE_DIR}/external_project/SAMRAI/src)
 
-
-IF (NOT SAMRAI_SRC_URL)
+IF (NOT EXISTS ${SAMRAI_SRC_URL})
     SET(SAMRAI_SRC_URL https://github.com/LLNL/SAMRAI/archive/master.zip)
-ENDIF (NOT SAMRAI_SRC_URL)
+ENDIF (NOT EXISTS ${SAMRAI_SRC_URL})
 
 SET(Boost_DIR ${Boost_INCLUDE_DIR}/../)
 GET_FILENAME_COMPONENT(MPI_BIN_DIR ${MPI_C_COMPILER} DIRECTORY)
@@ -25,12 +24,9 @@ INCLUDE(ExternalProject)
 
 ExternalProject_Add(SAMRAI
         PREFIX ${PROJECT_BINARY_DIR}/external_project/SAMRAI
-        #        URL
         URL ${SAMRAI_SRC_URL}
-
         CONFIGURE_COMMAND ${cmake} <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
         --with-boost=${Boost_DIR} --with-hdf5=${HDF5_DIR} --with-mpi=${MPI_DIR} --enable-debug=yes
-
         LOG_DOWNLOAD 1
         LOG_UPDATE 1
         LOG_CONFIGURE 1
