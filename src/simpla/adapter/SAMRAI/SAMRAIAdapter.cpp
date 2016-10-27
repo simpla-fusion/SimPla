@@ -71,7 +71,7 @@
 #include <boost/shared_ptr.hpp>
 
 
-#include "SAMRAIWorker.h"
+#include "SAMRAIWorkerHyperbolic.h"
 
 namespace simpla
 {
@@ -117,20 +117,19 @@ private:
 
     boost::shared_ptr<SAMRAIWorkerHyperbolic> patch_worker;
 
-
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
-
+//
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> patch_hierarchy;
 
     boost::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator> hyp_level_integrator;
 
-    boost::shared_ptr<SAMRAI::mesh::StandardTagAndInitialize> error_detector;
-
-    boost::shared_ptr<SAMRAI::mesh::BergerRigoutsos> box_generator;
-
-    boost::shared_ptr<SAMRAI::mesh::CascadePartitioner> load_balancer;
-
-    boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_algorithm;
+//    boost::shared_ptr<SAMRAI::mesh::StandardTagAndInitialize> error_detector;
+//
+//    boost::shared_ptr<SAMRAI::mesh::BergerRigoutsos> box_generator;
+//
+//    boost::shared_ptr<SAMRAI::mesh::CascadePartitioner> load_balancer;
+//
+//    boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_algorithm;
 
     boost::shared_ptr<SAMRAI::algs::TimeRefinementIntegrator> time_integrator;
 
@@ -273,7 +272,7 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
             "CartesianGeometry",
             input_db->getDatabase("CartesianGeometry"));
 
-    patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>(
+    auto patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>(
             "PatchHierarchy",
             grid_geometry,
             input_db->getDatabase("PatchHierarchy"));
@@ -291,7 +290,7 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
             patch_worker.get(),
             use_refined_timestepping);
 
-    error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
+    auto error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
             "StandardTagAndInitialize",
             hyp_level_integrator.get(),
             input_db->getDatabase("StandardTagAndInitialize"));
@@ -299,19 +298,19 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
 
     //---------------------------------
 
-    box_generator = boost::make_shared<SAMRAI::mesh::BergerRigoutsos>(
+    auto box_generator = boost::make_shared<SAMRAI::mesh::BergerRigoutsos>(
             dim,
             input_db->getDatabaseWithDefault("BergerRigoutsos", boost::shared_ptr<SAMRAI::tbox::Database>()));
 
     box_generator->useDuplicateMPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 
-    load_balancer = boost::make_shared<SAMRAI::mesh::CascadePartitioner>(
+    auto load_balancer = boost::make_shared<SAMRAI::mesh::CascadePartitioner>(
             dim,
             "LoadBalancer",
             input_db->getDatabase("LoadBalancer"));
     load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 
-    gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
+    auto gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
             patch_hierarchy,
             "GriddingAlgorithm",
             input_db->getDatabase("GriddingAlgorithm"),
@@ -341,13 +340,13 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
      * to the log file.
      */
 
-    SAMRAI::tbox::plog << "\nCheck input data and variables before simulation:" << std::endl;
-    SAMRAI::tbox::plog << "Input database..." << std::endl;
+    MESSAGE << "\nCheck input data and variables before simulation:" << std::endl;
+    MESSAGE << "Input database..." << std::endl;
     input_db->printClassData(SAMRAI::tbox::plog);
-    SAMRAI::tbox::plog << "\nVariable database..." << std::endl;
+    MESSAGE << "\nVariable database..." << std::endl;
     SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(SAMRAI::tbox::plog);
 
-    SAMRAI::tbox::plog << "\nCheck Linear Advection data... " << std::endl;
+    MESSAGE << "\nCheck Linear Advection data... " << std::endl;
     patch_worker->printClassData(SAMRAI::tbox::plog);
 
 
@@ -375,15 +374,15 @@ void SAMRAIWrapperContext::teardown()
     visit_data_writer.reset();
 
     time_integrator.reset();
-    gridding_algorithm.reset();
-    load_balancer.reset();
-    box_generator.reset();
-    error_detector.reset();
+//    gridding_algorithm.reset();
+//    load_balancer.reset();
+//    box_generator.reset();
+//    error_detector.reset();
     hyp_level_integrator.reset();
     patch_worker.reset();
 
-    patch_hierarchy.reset();
-    grid_geometry.reset();
+//    patch_hierarchy.reset();
+//    grid_geometry.reset();
 
 //    input_db.reset();
 //    main_db.reset();
