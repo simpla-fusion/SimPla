@@ -434,10 +434,10 @@ private:
      */
     boost::shared_ptr<pdat::FaceVariable<double> > d_flux;
 
-//    /**
-//     * linear advection velocity vector
-//     */
-//    std::vector<double> d_advection_velocity;
+    /**
+     * linear advection velocity vector
+     */
+    std::vector<double> d_advection_velocity;
 
     /*
      *  Parameters for numerical method:
@@ -458,58 +458,58 @@ private:
     hier::IntVector d_nghosts;
     hier::IntVector d_fluxghosts;
 
-//    /*
-//     * Indicator for problem type and initial conditions
-//     */
-//    std::string d_data_problem;
-//    int d_data_problem_int;
-//
-//    /*
-//     * Input for SPHERE problem
-//     */
-//    double d_radius;
-//    std::vector<double> d_center;
-//    double d_uval_inside;
-//    double d_uval_outside;
-//
-//    /*
-//     * Input for FRONT problem
-//     */
-//    int d_number_of_intervals;
-//    std::vector<double> d_front_position;
-//    std::vector<double> d_interval_uval;
-//
-//    /*
-//     * Boundary condition cases and boundary values.
-//     * Options are: FLOW, REFLECT, DIRICHLET
-//     * and variants for nodes and edges.
-//     *
-//     * Input file values are read into these arrays.
-//     */
-//    std::vector<int> d_scalar_bdry_edge_conds;
-//    std::vector<int> d_scalar_bdry_node_conds;
-//    std::vector<int> d_scalar_bdry_face_conds; // only for (dim == tbox::Dimension(3))
-//
-//    /*
-//     * Boundary condition cases for scalar and vector (i.e., depth > 1)
-//     * variables.  These are post-processed input values and are passed
-//     * to the boundary routines.
-//     */
-//    std::vector<int> d_node_bdry_edge; // only for (dim == tbox::Dimension(2))
-//    std::vector<int> d_edge_bdry_face; // only for (dim == tbox::Dimension(3))
-//    std::vector<int> d_node_bdry_face; // only for (dim == tbox::Dimension(3))
-//
-//    /*
-//     * Vectors of face (3d) or edge (2d) boundary values for DIRICHLET case.
-//     */
-//    std::vector<double> d_bdry_edge_uval; // only for (dim == tbox::Dimension(2))
-//    std::vector<double> d_bdry_face_uval; // only for (dim == tbox::Dimension(3))
-//
-//    /*
-//     * Input for Sine problem initialization
-//     */
-//    double d_amplitude;
-//    std::vector<double> d_frequency;
+    /*
+     * Indicator for problem type and initial conditions
+     */
+    std::string d_data_problem;
+    int d_data_problem_int;
+
+    /*
+     * Input for SPHERE problem
+     */
+    double d_radius;
+    std::vector<double> d_center;
+    double d_uval_inside;
+    double d_uval_outside;
+
+    /*
+     * Input for FRONT problem
+     */
+    int d_number_of_intervals;
+    std::vector<double> d_front_position;
+    std::vector<double> d_interval_uval;
+
+    /*
+     * Boundary condition cases and boundary values.
+     * Options are: FLOW, REFLECT, DIRICHLET
+     * and variants for nodes and edges.
+     *
+     * Input file values are read into these arrays.
+     */
+    std::vector<int> d_scalar_bdry_edge_conds;
+    std::vector<int> d_scalar_bdry_node_conds;
+    std::vector<int> d_scalar_bdry_face_conds; // only for (dim == tbox::Dimension(3))
+
+    /*
+     * Boundary condition cases for scalar and vector (i.e., depth > 1)
+     * variables.  These are post-processed input values and are passed
+     * to the boundary routines.
+     */
+    std::vector<int> d_node_bdry_edge; // only for (dim == tbox::Dimension(2))
+    std::vector<int> d_edge_bdry_face; // only for (dim == tbox::Dimension(3))
+    std::vector<int> d_node_bdry_face; // only for (dim == tbox::Dimension(3))
+
+    /*
+     * Vectors of face (3d) or edge (2d) boundary values for DIRICHLET case.
+     */
+    std::vector<double> d_bdry_edge_uval; // only for (dim == tbox::Dimension(2))
+    std::vector<double> d_bdry_face_uval; // only for (dim == tbox::Dimension(3))
+
+    /*
+     * Input for Sine problem initialization
+     */
+    double d_amplitude;
+    std::vector<double> d_frequency;
 
     /*
      * Refinement criteria parameters for gradient detector and
