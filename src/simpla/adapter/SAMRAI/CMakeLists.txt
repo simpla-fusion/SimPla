@@ -58,6 +58,7 @@ SET(SAMRAI_LIBRARIES
 SET(SAMRAI_INCLUDE_DIRS ${SAMRAI_BINARY_DIR}/include/ ${SAMRAI_SOURCE_DIR}/source/)
 
 INCLUDE_DIRECTORIES(${SAMRAI_INCLUDE_DIRS})
+MESSAGE(${SAMRAI_INCLUDE_DIRS})
 
 add_library(samrai_wrapper SAMRAIAdapter.cpp SAMRAIWorkerHyperbolic.cpp)
 TARGET_LINK_LIBRARIES(samrai_wrapper ${SAMRAI_LIBRARIES})
@@ -67,4 +68,3 @@ ADD_DEFINITIONS(-DHAVE_HDF5)
 FILE(GLOB samrai_test_SRC ./*.cpp)
 add_executable(samrai_test ${samrai_test_SRC})
 target_link_libraries(samrai_test mesh toolbox ${SAMRAI_LIBRARIES} ${MPI_LIBRARIES} ${HDF5_LIBRARIES})
-ADD_SUBDIRECTORY(LinAdv)

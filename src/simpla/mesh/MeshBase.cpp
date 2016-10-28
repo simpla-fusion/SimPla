@@ -73,7 +73,7 @@ void MeshBase::swap(MeshBase &other)
     std::swap(m_inner_box_/*      */, other.m_inner_box_/*  */);
     std::swap(m_outer_box_/*      */, other.m_outer_box_);
 
-
+    toolbox::Object::swap(other);
 }
 
 

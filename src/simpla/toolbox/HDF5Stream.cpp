@@ -983,7 +983,7 @@ std::string HDF5Stream::write(std::string const &url, DataSet const &ds, int fla
         H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, ds.data.get()));
     }
 
-    m_pimpl_->set_attribute(dset, ds.properties);
+//    m_pimpl_->set_attribute(dset, ds.properties);
 
     H5_ERROR(H5Dclose(dset));
 

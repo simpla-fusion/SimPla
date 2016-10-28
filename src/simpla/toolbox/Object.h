@@ -12,17 +12,14 @@
 #include <stddef.h> //for size_t
 #include <memory>
 
-#include <boost/uuid/uuid.hpp>
-
+#include <simpla/SIMPLA_config.h>
 
 #include "LifeClick.h"
 #include "design_pattern/Visitor.h"
+//#include "DataBase.h"
 
 namespace simpla { namespace toolbox
 {
-typedef boost::uuids::uuid uuid;
-
-
 /** @ingroup task_flow
  *  @addtogroup sp_object SIMPla object
  *  @{
@@ -85,21 +82,19 @@ typedef boost::uuids::uuid uuid;
 class Object
 {
 public:
-    typedef boost::uuids::uuid id_type;
+    typedef size_type id_type;
 
-    Object();
+    Object(std::string const &n = "");
 
     Object(Object &&other);
 
-    Object(Object const &);
+    Object(Object const &) = delete;
 
-    Object &operator=(Object const &other);
+    Object &operator=(Object const &other)= delete;
 
     virtual  ~Object();
 
-    void swap(Object &other);
-
-    virtual void deploy() {}
+    virtual void swap(Object &other);
 
     virtual bool is_a(std::type_info const &info) const;
 
@@ -109,48 +104,52 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
-    virtual std::string name() const { return m_name_ == "" ? type_cast<std::string>(short_id()) : m_name_; };
+    std::string const &name() const;
 
-    Object &name(std::string const &s)
-    {
-        m_name_ = s;
-        return *this;
-    };
+    id_type const &id() const;
 
-    id_type id() const { return m_uuid_; }
 
-    size_t short_id() const { return static_cast<size_t>(boost::uuids::hash_value(m_uuid_)); }
+    bool operator==(Object const &other);
 
-    bool operator==(Object const &other) { return m_uuid_ == other.m_uuid_; }
     /**
      *  @name concept lockable
      *  @{
      */
-public:
-    inline void lock() { m_mutex_.lock(); }
+//    virtual void load(DataBase const &) {};
+//
+//    virtual void save(DataBase *) const {};
 
-    inline void unlock() { m_mutex_.unlock(); }
+    virtual bool is_valid() const { return true; };
 
-    inline bool try_lock() { return m_mutex_.try_lock(); }
+    /** @}*/
 
-private:
-    std::string m_name_{""};
-    std::mutex m_mutex_;
-    boost::uuids::uuid m_uuid_;
+
+    /**
+     *  @name concept lockable
+     *  @{
+     */
+
+    void lock();
+
+    void unlock();
+
+    bool try_lock();
 
     /** @} */
-public:
+
     /**
      *  @name concept touchable
      *  @{
      */
-    inline void touch() { GLOBAL_CLICK_TOUCH(&m_click_); }
+    void touch();
 
-    inline size_t click() const { return m_click_; }
+    size_type click() const;
     /** @} */
 private:
 
-    size_t m_click_ = 0;
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
+
 };
 
 #define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                       \

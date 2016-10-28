@@ -3,34 +3,44 @@
  * @author salmon
  * @date 2015-12-16.
  */
+
+#include "Object.h"
+
 #include <iomanip>
 #include <ostream>
-#include "Object.h"
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/functional/hash.hpp>
 
 namespace simpla { namespace toolbox
 {
-Object::Object() : m_uuid_(boost::uuids::random_generator()()) { this->touch(); }
-
-Object::Object(Object &&other) : m_click_(other.m_click_), m_uuid_(other.m_uuid_) { }
-
-Object::Object(Object const &) : m_uuid_(boost::uuids::random_generator()()) { this->touch(); };
-
-Object &Object::operator=(Object const &other)
+struct Object::pimpl_s
 {
-    Object(other).swap(*this);
-    return *this;
+    std::string m_name_{"unamed"};
+    std::mutex m_mutex_;
+    size_t m_click_ = 0;
+    boost::uuids::uuid m_id_;
+
+    id_type m_short_id_;
 };
 
-Object::~Object() { }
-
-void Object::swap(Object &other)
+Object::Object(std::string const &n) : m_pimpl_(new pimpl_s)
 {
-    std::swap(m_name_, other.m_name_);
-    std::swap(m_click_, other.m_click_);
-    std::swap(m_uuid_, other.m_uuid_);
-};
+
+    auto gen = boost::uuids::random_generator();
+    m_pimpl_->m_name_ = n;
+    m_pimpl_->m_id_ = boost::uuids::random_generator()();
+    boost::hash<boost::uuids::uuid> hasher;
+    m_pimpl_->m_short_id_ = hasher(m_pimpl_->m_id_);
+
+    this->touch();
+}
+
+Object::Object(Object &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
+
+Object::~Object() {}
+
+void Object::swap(Object &other) { std::swap(m_pimpl_, other.m_pimpl_); };
 
 bool Object::is_a(std::type_info const &info) const { return typeid(Object) == info; }
 
@@ -38,11 +48,26 @@ std::string Object::get_class_name() const { return "base::LuaObject"; }
 
 std::ostream &Object::print(std::ostream &os, int indent) const
 {
-    os << std::setw(indent) << this->get_class_name() << "= {";
-    os << std::setw(indent) << "}," << std::endl;
+    os << std::setw(indent) << this->get_class_name() << std::endl;
 
     return os;
 }
+
+std::string const &Object::name() const { return m_pimpl_->m_name_; };
+
+Object::id_type const &Object::id() const { return m_pimpl_->m_short_id_; }
+
+bool Object::operator==(Object const &other) { return m_pimpl_->m_id_ == other.m_pimpl_->m_id_; }
+
+void Object::lock() { m_pimpl_->m_mutex_.lock(); }
+
+void Object::unlock() { m_pimpl_->m_mutex_.unlock(); }
+
+bool Object::try_lock() { return m_pimpl_->m_mutex_.try_lock(); }
+
+void Object::touch() { GLOBAL_CLICK_TOUCH(&m_pimpl_->m_click_); }
+
+size_type Object::click() const { return m_pimpl_->m_click_; }
 
 }}//namespace simpla { namespace base
 

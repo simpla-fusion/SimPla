@@ -17,6 +17,7 @@
 #include <typeindex>
 #include <typeinfo>
 #include <stddef.h>
+#include "nTuple.h"
 #include "Log.h"
 
 namespace simpla { namespace toolbox
@@ -163,7 +164,7 @@ struct Any
     {
     }
 
-    ~Any() { delete m_data_; }
+    virtual ~Any() { delete m_data_; }
 
     Any &swap(Any &other)
     {
@@ -208,6 +209,7 @@ struct Any
 // SimPla extent
 
 
+
     operator bool() const { return m_data_ != nullptr; }
 //
 //    void const *m_data() const { return m_attr_data_ != nullptr ? m_attr_data_->m_data() : nullptr; }
@@ -223,13 +225,13 @@ struct Any
 
     template<class U> bool is_same() const { return m_data_ != nullptr && m_data_->is_same<U>(); }
 
-    bool is_boolean() const { return m_data_ != nullptr && m_data_->is_bool(); }
+    virtual bool is_boolean() const { return m_data_ != nullptr && m_data_->is_bool(); }
 
-    bool is_integral() const { return m_data_ != nullptr && m_data_->is_integral(); }
+    virtual bool is_integral() const { return m_data_ != nullptr && m_data_->is_integral(); }
 
-    bool is_floating_point() const { return m_data_ != nullptr && m_data_->is_floating_point(); }
+    virtual bool is_floating_point() const { return m_data_ != nullptr && m_data_->is_floating_point(); }
 
-    bool is_string() const { return m_data_ != nullptr && m_data_->is_string(); }
+    virtual bool is_string() const { return m_data_ != nullptr && m_data_->is_string(); }
 
     template<class U> bool as(U *v) const { return m_data_ != nullptr && m_data_->as(v); }
 
@@ -267,13 +269,12 @@ struct Any
     }
 
 
-    std::ostream &print(std::ostream &os, int indent = 1) const
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
         if (m_data_ != nullptr) { m_data_->print(os, indent); }
         return os;
     }
 
-//    data_model::DataType data_type() const { return m_attr_data_->data_type(); }
 
 private:
     struct PlaceHolder;

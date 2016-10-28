@@ -28,7 +28,6 @@ namespace simpla { namespace toolbox
 class HDF5Stream : public IOStream
 {
 public:
-    SP_OBJECT_HEAD(HDF5Stream, IOStream);
 
     HDF5Stream();
 

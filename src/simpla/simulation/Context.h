@@ -19,62 +19,60 @@
 #include <simpla/mesh/TransitionMap.h>
 #include <simpla/mesh/DomainBase.h>
 #include <simpla/toolbox/IOStream.h>
+#include <simpla/toolbox/DataBase.h>
 
 
 namespace simpla { namespace simulation
 {
 
-class ContextBase
+
+/**
+ *  life cycle of a simpla::Context
+ *
+ *
+ *
+ * constructure->initialize -> load -> +-[ add_*    ]  -> deploy-> +- [ next_step   ] -> save -> [ teardown ] -> destructure
+ *                                     |-[ register*]              |- [ check_point ]
+ *                                                                 |- [ print       ]
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+class ContextBase : public toolbox::Object
 {
 
 public:
 
-    ContextBase() {};
+    ContextBase(std::string const &name_str = "") : toolbox::Object(name_str) {};
 
     virtual ~ContextBase() {};
 
+    virtual void initialize(int argc = 0, char **argv = nullptr)=0;
 
-    virtual void setup(int argc = 0, char **argv = nullptr)=0;
+    virtual void load(const std::shared_ptr<toolbox::DataBase> &) =0;
+
+    virtual void save(toolbox::DataBase *) =0;
 
     virtual void deploy()=0;
 
     virtual void teardown()=0;
 
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const =0;
+    virtual void registerAttribute(std::string const &, std::shared_ptr<mesh::AttributeBase> &, int flag = 0) =0;
 
-    virtual toolbox::IOStream &save(toolbox::IOStream &os, int flag = toolbox::SP_NEW) const =0;
+    virtual bool is_valid() const { return true; };
 
-    virtual toolbox::IOStream &load(toolbox::IOStream &is)=0;
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; };
 
-    virtual toolbox::IOStream &check_point(toolbox::IOStream &os) const =0;
-
-    virtual std::shared_ptr<mesh::DomainBase> add_domain(std::shared_ptr<mesh::DomainBase> pb)=0;
-
-    template<typename TProb, typename ...Args> std::shared_ptr<TProb>
-    add_domain(Args &&...args)
-    {
-        auto res = std::make_shared<TProb>(std::forward<Args>(args)...);
-        add_domain(res);
-        return res;
-    };
-
-    virtual std::shared_ptr<mesh::DomainBase> get_domain(uuid id) const =0;
-
-    template<typename TProb> std::shared_ptr<TProb>
-    get_domain_as(uuid id) const
-    {
-        static_assert(!get_domain(id)->template is_a<TProb>(), "illegal type conversion!");
-        assert(get_domain(id).get() != nullptr);
-        return std::dynamic_pointer_cast<TProb>(get_domain(id));
-    }
+    virtual toolbox::IOStream &check_point(toolbox::IOStream &os) const { return os; };
 
     virtual size_type step() const =0;
 
     virtual Real time() const =0;
 
     virtual void next_time_step(Real dt)=0;
-
-
 };
 
 class Context : public ContextBase
@@ -86,7 +84,6 @@ public:
     Context();
 
     ~Context();
-
 
     void setup();
 
@@ -102,7 +99,7 @@ public:
 
     std::shared_ptr<mesh::DomainBase> add_domain(std::shared_ptr<mesh::DomainBase> pb);
 
-    std::shared_ptr<mesh::DomainBase> get_domain(uuid id) const;
+    std::shared_ptr<mesh::DomainBase> get_domain(id_type id) const;
 
     void sync(int level = 0, int flag = 0);
 

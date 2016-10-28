@@ -342,7 +342,39 @@ size_t LuaObject::size() const
     return res;
 }
 
+bool LuaObject::has(std::string const &key) const
+{
+    return !LuaObject(this->operator[](key)).is_nil();
+};
+LuaObject LuaObject::get(std::string const &s) const noexcept
+{
+    LuaObject res;
 
+    if ((is_table() || is_global()))
+    {
+        auto acc = L_.acc();
+
+
+        if (is_global()) { lua_getglobal(*acc, s.c_str()); }
+        else
+        {
+            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+            lua_getfield(*acc, -1, s.c_str());
+        }
+
+        if (lua_isnil(*acc, lua_gettop(*acc))) { lua_pop(*acc, 1); }
+        else
+        {
+
+            int id = luaL_ref(*acc, GLOBAL_REF_IDX_);
+
+            if (!is_global()) { lua_pop(*acc, 1); }
+
+            LuaObject(acc.get(), GLOBAL_REF_IDX_, id, path_ + "." + s).swap(res);
+        }
+    }
+    return std::move(res);
+}
 LuaObject LuaObject::operator[](std::string const &s) const noexcept
 {
     LuaObject res;
@@ -569,6 +601,7 @@ bool LuaObject::is_integer() const
 }
 
 #else
+
 bool LuaObject::is_integer() const { return is_number(); }
 #endif
 

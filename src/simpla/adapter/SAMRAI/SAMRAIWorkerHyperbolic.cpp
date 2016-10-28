@@ -120,7 +120,6 @@ namespace simpla
 SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
         const string &object_name,
         const tbox::Dimension &dim,
-        boost::shared_ptr<tbox::Database> input_db,
         boost::shared_ptr<geom::CartesianGridGeometry> grid_geom) :
         algs::HyperbolicPatchStrategy(),
         d_object_name(object_name),
@@ -134,6 +133,7 @@ SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
         d_corner_transport("CORNER_TRANSPORT_1"),
         d_nghosts(dim, CELLG),
         d_fluxghosts(dim, FLUXG),
+        d_data_problem("SPHERE"),
         d_data_problem_int(tbox::MathUtilities<int>::getMax()),
         d_radius(tbox::MathUtilities<double>::getSignalingNaN()),
         d_center(dim.getValue()),
@@ -144,7 +144,6 @@ SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
         d_frequency(dim.getValue())
 {
     TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(input_db);
     TBOX_ASSERT(grid_geom);
 
     tbox::RestartManager::getManager()->registerRestartItem(d_object_name, this);
@@ -211,15 +210,6 @@ SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
         tbox::MathUtilities<double>::setVectorToSignalingNaN(d_bdry_face_uval);
     }
 
-    /*
-     * Initialize object with data read from given input/restart databases.
-     */
-    bool is_from_restart = tbox::RestartManager::getManager()->isFromRestart();
-    if (is_from_restart)
-    {
-        getFromRestart();
-    }
-    getFromInput(input_db, is_from_restart);
 
     /*
      * Set problem data to values read from input/restart.

@@ -20,7 +20,7 @@ void Atlas::add(std::shared_ptr<MeshBase> const p_m)
     update(p_m->id());
 };
 
-void Atlas::update(uuid id)
+void Atlas::update(id_type id)
 {
     unlink(id);
 
@@ -42,13 +42,13 @@ void Atlas::update(uuid id)
     for (auto const &item:m_nodes_) { if (item.first != id) { link(id, item.first); }}
 }
 
-void Atlas::erase(uuid m_id)
+void Atlas::erase(id_type m_id)
 {
     unlink(m_id);
     m_nodes_.erase(m_id);
 }
 
-int Atlas::link(uuid i0, uuid i1)
+int Atlas::link(id_type i0, id_type i1)
 {
     assert(has(i0) && has(i1));
     MeshBase const &m0 = *at(i0);
@@ -90,7 +90,7 @@ int Atlas::link(uuid i0, uuid i1)
     return l0 - l1;
 }
 
-void Atlas::unlink(uuid id)
+void Atlas::unlink(id_type id)
 {
     m_adjacent_.erase(id);
     m_refine_.erase(id);

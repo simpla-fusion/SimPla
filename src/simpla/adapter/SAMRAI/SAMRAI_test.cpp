@@ -12,7 +12,8 @@ int main(int argc, char **argv)
     auto ctx = simpla::create_context("SAMRAIWorkerHyperbolic");
 
     MESSAGE << "START\n";
-    ctx->setup(argc, argv);
+    ctx->initialize(argc, argv);
+    ctx->load(nullptr);
     ctx->deploy();
     ctx->next_time_step(1.0);
     ctx->teardown();

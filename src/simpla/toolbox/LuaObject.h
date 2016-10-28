@@ -189,7 +189,6 @@ public:
 
     bool is_string() const;
 
-
     bool is_integer() const;
 
     bool is_floating_point() const;
@@ -269,12 +268,18 @@ public:
 
     size_t size() const;
 
+
+    bool has(std::string const &key) const;
+
+
     inline LuaObject operator[](char const s[]) const noexcept
     {
         return operator[](std::string(s));
     }
 
     LuaObject operator[](std::string const &s) const noexcept;
+
+    LuaObject get(std::string const &s) const noexcept;
 
     //! unsafe fast access, no boundary check, no path information
     LuaObject operator[](int s) const noexcept;

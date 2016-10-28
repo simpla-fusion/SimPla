@@ -11,6 +11,7 @@
 #include <simpla/toolbox/Object.h>
 #include <simpla/toolbox/DataSpace.h>
 #include <simpla/toolbox/BoxUtility.h>
+#include <simpla/toolbox/DataBase.h>
 #include "MeshCommon.h"
 #include "EntityId.h"
 
@@ -122,8 +123,11 @@ public:
         return *this;
     }
 
-    virtual std::ostream &print(std::ostream &os, int indent) const;
+    virtual void load(const toolbox::DataBase &) {};
 
+    virtual void save(toolbox::DataBase *) {};
+
+    virtual std::ostream &print(std::ostream &os, int indent) const;
 
     /**
      * @return  a copy of this mesh

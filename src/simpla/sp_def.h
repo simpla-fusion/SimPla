@@ -26,7 +26,6 @@ typedef nTuple<size_type, 3> size_tuple;
 
 typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
-typedef boost::uuids::uuid uuid;
 /**
  *  @ingroup toolbox
  * @{

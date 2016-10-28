@@ -29,7 +29,7 @@ namespace simpla { namespace mesh
 class Atlas
 {
 public:
-    typedef uuid id_type;
+    typedef typename toolbox::Object::id_type id_type;
 private:
     static constexpr int MAX_NUM_OF_LEVEL = 10;
 

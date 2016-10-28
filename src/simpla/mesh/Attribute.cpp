@@ -11,9 +11,9 @@ struct AttributeBase::pimpl_s
 {
     std::shared_ptr<Atlas> m_atlas_;
     std::map<id_type, std::shared_ptr<PatchBase>> m_patches_;
-    id_type m_id_;
     MeshBase const *m_mesh_;
     PatchBase *m_patch_;
+    typename toolbox::Object::id_type m_id_;
 };
 
 AttributeBase::AttributeBase() : m_pimpl_(new pimpl_s)
@@ -47,7 +47,7 @@ std::ostream &AttributeBase::print(std::ostream &os, int indent) const
 
 void AttributeBase::deploy()
 {
-    if (m_pimpl_->m_id_.is_nil())
+    if (m_pimpl_->m_id_ == 0)
     {
         assert(m_pimpl_->m_atlas_->first() != nullptr);
         m_pimpl_->m_id_ = m_pimpl_->m_atlas_->first()->id();
@@ -77,7 +77,7 @@ PatchBase *AttributeBase::patch(id_type const &t_id)
 {
     PatchBase *res;
 
-    assert(!t_id.is_nil());
+    assert(t_id != 0);
     auto it = m_pimpl_->m_patches_.find(t_id);
 
     if (it != m_pimpl_->m_patches_.end())

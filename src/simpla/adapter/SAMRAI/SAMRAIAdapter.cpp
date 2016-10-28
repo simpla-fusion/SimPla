@@ -69,6 +69,7 @@
 #include <SAMRAI/appu/CartesianBoundaryUtilities2.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities3.h>
 #include <boost/shared_ptr.hpp>
+#include <simpla/toolbox/DataBase.h>
 
 
 #include "SAMRAIWorkerHyperbolic.h"
@@ -79,33 +80,27 @@ namespace simpla
 
 struct SAMRAIWrapperContext : public simulation::ContextBase
 {
-    SAMRAIWrapperContext()
-    {
+    SAMRAIWrapperContext() {}
 
-    }
+    ~SAMRAIWrapperContext() {}
 
-    ~SAMRAIWrapperContext()
-    {
+    void initialize(int argc = 0, char **argv = nullptr);
 
-    }
+    void load(std::shared_ptr<toolbox::DataBase> const &);
 
-    void setup(int argc, char *argv[]);
+    void save(toolbox::DataBase *);
 
     void deploy();
+
+    bool is_valid() const;
 
     void teardown();
 
     std::ostream &print(std::ostream &os, int indent = 1) const { return os; };
 
-    toolbox::IOStream &save(toolbox::IOStream &os, int flag = toolbox::SP_NEW) const { return os; };
-
-    toolbox::IOStream &load(toolbox::IOStream &is) { return is; };
+    void registerAttribute(std::string const &, std::shared_ptr<mesh::AttributeBase> &, int flag = 0);
 
     toolbox::IOStream &check_point(toolbox::IOStream &os) const { return os; };
-
-    std::shared_ptr<mesh::DomainBase> add_domain(std::shared_ptr<mesh::DomainBase> pb) {};
-
-    std::shared_ptr<mesh::DomainBase> get_domain(uuid id) const {};
 
     size_type step() const;
 
@@ -114,11 +109,11 @@ struct SAMRAIWrapperContext : public simulation::ContextBase
     void next_time_step(Real dt);
 
 private:
-
+    bool m_is_valid_ = false;
     boost::shared_ptr<SAMRAIWorkerHyperbolic> patch_worker;
 
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
-//
+
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> patch_hierarchy;
 
     boost::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator> hyp_level_integrator;
@@ -147,17 +142,14 @@ private:
 
 };
 
-
-void SAMRAIWrapperContext::setup(int argc, char *argv[])
+void SAMRAIWrapperContext::initialize(int argc, char **argv)
 {
-
     /*
      * Initialize SAMRAI::tbox::MPI.
      */
+    tbox::SAMRAI_MPI::init(&argc, &argv);
 
-    SAMRAI::tbox::SAMRAI_MPI::init(&argc, &argv);
     SAMRAI::tbox::SAMRAIManager::initialize();
-
     /*
      * Initialize SAMRAI, enable logging, and process command line.
      */
@@ -170,96 +162,17 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
     int restore_num = 0;
 
     bool is_from_restart = false;
-
-    if ((argc != 2) && (argc != 4))
-    {
-        SAMRAI::tbox::pout << "USAGE:  " << argv[0] << " <input filename> "
-                           << "<restart dir> <restore number> [options]\n"
-                           << "  options:\n"
-                           << "  none at this time"
-                           << std::endl;
-        SAMRAI::tbox::SAMRAI_MPI::abort();
-        return;
-    } else
-    {
-        input_filename = argv[1];
-        if (argc == 4)
-        {
-            restart_read_dirname = argv[2];
-            restore_num = atoi(argv[3]);
-
-            is_from_restart = true;
-        }
-    }
-
-    SAMRAI::tbox::plog << "input_filename = " << input_filename << std::endl;
-    SAMRAI::tbox::plog << "restart_read_dirname = " << restart_read_dirname << std::endl;
-    SAMRAI::tbox::plog << "restore_num = " << restore_num << std::endl;
-
-    /*
-     * Create input database and parse all data in input file.
-     */
-
-    boost::shared_ptr<SAMRAI::tbox::InputDatabase> input_db(new SAMRAI::tbox::InputDatabase("input_db"));
-
-    SAMRAI::tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
-
-    /*
-     * Retrieve "GlobalInputs" section of the input database and set
-     * values accordingly.
-     */
-
-    if (input_db->keyExists("GlobalInputs"))
-    {
-        boost::shared_ptr<SAMRAI::tbox::Database> global_db(input_db->getDatabase("GlobalInputs"));
-#ifdef SGS
-        if (global_db->keyExists("tag_clustering_method")) {
-       std::string tag_clustering_method = global_db->getString("tag_clustering_method");
-       SAMRAI::mesh::BergerRigoutsos::setClusteringOption(tag_clustering_method);
-    }
-#endif
-        if (global_db->keyExists("call_abort_in_serial_instead_of_exit"))
-        {
-            bool flag = global_db->getBool("call_abort_in_serial_instead_of_exit");
-            SAMRAI::tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit(flag);
-        }
-    }
-
-    /*
-     * Retrieve "Main" section of the input database.  First, read
-     * dump information, which is used for writing plot files.
-     * Second, if proper restart information was given on command
-     * line, and the restart interval is non-zero, create a restart
-     * database.
-     */
-
-    boost::shared_ptr<SAMRAI::tbox::Database> main_db(input_db->getDatabase("Main"));
-
-    const SAMRAI::tbox::Dimension dim(static_cast<unsigned short>(main_db->getInteger("dim")));
-
-    const std::string base_name = main_db->getStringWithDefault("base_name", "unnamed");
-
-    const std::string log_filename = main_db->getStringWithDefault("log_filename", base_name + ".log");
-
-    bool log_all_nodes = false;
-    if (main_db->keyExists("log_all_nodes")) { log_all_nodes = main_db->getBool("log_all_nodes"); }
-    if (log_all_nodes) { SAMRAI::tbox::PIO::logAllNodes(log_filename); }
-    else { SAMRAI::tbox::PIO::logOnlyNodeZero(log_filename); }
+}
 
 
+void SAMRAIWrapperContext::load(std::shared_ptr<toolbox::DataBase> const &db)
+{
+    m_is_valid_ = false;
+
+    const SAMRAI::tbox::Dimension dim(3);
     bool use_refined_timestepping = true;
-
-    if (main_db->keyExists("timestepping"))
-    {
-        std::string timestepping_method = main_db->getString("timestepping");
-
-        if (timestepping_method == "SYNCHRONIZED") { use_refined_timestepping = false; }
-    }
-
-
-
-
     /*
+
      * Create major algorithm and data objects which comprise application.
      * Each object will be initialized either from input data or restart
      * files, or a combination of both.  Refer to each class constructor
@@ -267,65 +180,144 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
      * for this application, see comments at top of file.
      */
 
-    grid_geometry = boost::make_shared<SAMRAI::geom::CartesianGridGeometry>(
-            dim,
-            "CartesianGeometry",
-            input_db->getDatabase("CartesianGeometry"));
 
-    auto patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>(
-            "PatchHierarchy",
-            grid_geometry,
-            input_db->getDatabase("PatchHierarchy"));
     //---------------------------------
-    patch_worker = boost::make_shared<SAMRAIWorkerHyperbolic>(
-            "LinAdv",
-            dim,
-            input_db->getDatabase("LinAdv"),
-            grid_geometry);
+
+
+    auto CartesianGeometry_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("CartesianGeometry");
+
+
+    size_t ndims = 3;
+    int i_lo[ndims] = {0, 0, 0}, i_up[ndims] = {40, 40, 40};
+    double x_lo[ndims] = {0, 0, 0}, x_up[ndims] = {1, 1, 1};
+    int periodic_dimension[ndims];
+    std::vector<SAMRAI::tbox::DatabaseBox> box_vec;
+    box_vec.emplace_back(SAMRAI::tbox::DatabaseBox(dim, i_lo, i_up));
+    CartesianGeometry_db->putDatabaseBoxVector("domain_boxes", box_vec);
+    CartesianGeometry_db->putDoubleArray("x_lo", x_lo, ndims);
+    CartesianGeometry_db->putDoubleArray("x_up", x_up, ndims);
+    CartesianGeometry_db->putIntegerArray("periodic_dimension", periodic_dimension, ndims);
+
+
+    grid_geometry = boost::make_shared<SAMRAI::geom::CartesianGridGeometry>(dim, "CartesianGeometry",
+                                                                            CartesianGeometry_db);
+    grid_geometry->printClassData(std::cout);
     //---------------------------------
+
+    auto PatchHierarchy_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("PatchHierarchy");
+
+
+    {
+        auto ratio_to_coarser = PatchHierarchy_db->putDatabase("ratio_to_coarser");
+        int ratio_to_coarser_d[4][3] = {
+                {2, 2, 2},
+                {2, 2, 2},
+                {2, 2, 2},
+                {2, 2, 2}
+        };
+        ratio_to_coarser->putIntegerArray("level_1", ratio_to_coarser_d[0], ndims);
+        ratio_to_coarser->putIntegerArray("level_2", ratio_to_coarser_d[1], ndims);
+        ratio_to_coarser->putIntegerArray("level_3", ratio_to_coarser_d[2], ndims);
+
+        auto smallest_patch_size = PatchHierarchy_db->putDatabase("smallest_patch_size");
+
+        int smallest_patch_size_d[3] = {16, 16, 16};
+
+        smallest_patch_size->putIntegerArray("level_0", smallest_patch_size_d, ndims);
+
+        int largest_patch_size_d[3] = {40, 40, 40};
+
+        auto largest_patch_size = PatchHierarchy_db->putDatabase("auto");
+
+        largest_patch_size->putIntegerArray("level_0", largest_patch_size_d, ndims);
+
+        PatchHierarchy_db->putInteger("proper_nesting_buffer", 1);
+        PatchHierarchy_db->putInteger("max_levels", 4);
+        PatchHierarchy_db->putBool("allow_patches_smaller_than_ghostwidth", false);
+        PatchHierarchy_db->putBool("allow_patches_smaller_than_minimum_size_to_prevent_overlap", false);
+    }
+    auto patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>("PatchHierarchy", grid_geometry,
+                                                                            PatchHierarchy_db);
+
+    patch_hierarchy->recursivePrint(std::cout, "", 1);
+
+    //---------------------------------
+    patch_worker = boost::make_shared<SAMRAIWorkerHyperbolic>("unnamed", dim, grid_geometry);
+    //---------------------------------
+    auto HyperbolicLevelIntegrator_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("HyperbolicLevelIntegrator");
+
+    HyperbolicLevelIntegrator_db->putDouble("cfl", 0.5);
+    HyperbolicLevelIntegrator_db->putDouble("cfl_init", 0.5);
+    HyperbolicLevelIntegrator_db->putBool("lag_dt_computation", true);
+    HyperbolicLevelIntegrator_db->putBool("use_ghosts_to_compute_dt", false);
+
 
     hyp_level_integrator = boost::make_shared<SAMRAI::algs::HyperbolicLevelIntegrator>(
-            "HyperbolicLevelIntegrator",
-            input_db->getDatabase("HyperbolicLevelIntegrator"),
-            patch_worker.get(),
-            use_refined_timestepping);
+            "HyperbolicLevelIntegrator", HyperbolicLevelIntegrator_db, patch_worker.get(), use_refined_timestepping);
+
+    hyp_level_integrator->printClassData(std::cout);
+    //---------------------------------
+    auto StandardTagAndInitialize_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("StandardTagAndInitialize");
+
+    StandardTagAndInitialize_db->putString("tagging_method", "GRADIENT_DETECTOR");
 
     auto error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
-            "StandardTagAndInitialize",
-            hyp_level_integrator.get(),
-            input_db->getDatabase("StandardTagAndInitialize"));
-
+            "StandardTagAndInitialize", hyp_level_integrator.get(), StandardTagAndInitialize_db);
 
     //---------------------------------
+    auto BergerRigoutsos_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("BergerRigoutsos");
+
+    BergerRigoutsos_db->putBool("sort_output_nodes", true);
+    BergerRigoutsos_db->putDouble("efficiency_tolerance", 0.85e0);
+    BergerRigoutsos_db->putDouble("combine_efficiency", 0.95e0);
 
     auto box_generator = boost::make_shared<SAMRAI::mesh::BergerRigoutsos>(
-            dim,
-            input_db->getDatabaseWithDefault("BergerRigoutsos", boost::shared_ptr<SAMRAI::tbox::Database>()));
+            dim, BergerRigoutsos_db);
 
     box_generator->useDuplicateMPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 
+
+    //---------------------------------
+    auto LoadBalancer_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("LoadBalancer");
+
     auto load_balancer = boost::make_shared<SAMRAI::mesh::CascadePartitioner>(
-            dim,
-            "LoadBalancer",
-            input_db->getDatabase("LoadBalancer"));
+            dim, "LoadBalancer", LoadBalancer_db);
+
     load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
+
+    load_balancer->printStatistics(std::cout);
+
+    //---------------------------------
+    auto GriddingAlgorithm_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("GriddingAlgorithm");
 
     auto gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
             patch_hierarchy,
             "GriddingAlgorithm",
-            input_db->getDatabase("GriddingAlgorithm"),
+            GriddingAlgorithm_db,
             error_detector,
             box_generator,
             load_balancer);
+
+    gridding_algorithm->printClassData(std::cout);
     //---------------------------------
+    auto TimeRefinementIntegrator_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("TimeRefinementIntegrator");
+    TimeRefinementIntegrator_db->putDouble("start_time", 0e0);
+    TimeRefinementIntegrator_db->putDouble("end_time", 100.e0);
+    TimeRefinementIntegrator_db->putDouble("grow_dt", 1.1e0);
+    TimeRefinementIntegrator_db->putDouble("max_integrator_steps", 10);
+
+
     time_integrator = boost::make_shared<SAMRAI::algs::TimeRefinementIntegrator>(
             "TimeRefinementIntegrator",
-            input_db->getDatabase("TimeRefinementIntegrator"),
+            TimeRefinementIntegrator_db,
             patch_hierarchy,
             hyp_level_integrator,
             gridding_algorithm);
 
-    const std::string viz_dump_dirname = main_db->getStringWithDefault("viz_dump_dirname", base_name + ".visit");
+    time_integrator->printClassData(std::cout);
+
+    const std::string viz_dump_dirname("untitled.visit");
+
     int visit_number_procs_per_file = 1;
 
     visit_data_writer = boost::make_shared<appu::VisItDataWriter>(
@@ -334,30 +326,37 @@ void SAMRAIWrapperContext::setup(int argc, char *argv[])
             viz_dump_dirname,
             visit_number_procs_per_file);
     patch_worker->registerVisItDataWriter(visit_data_writer);
-    /*
-     * After creating all objects and initializing their state, we
-     * print the input database and variable database contents
-     * to the log file.
-     */
-
-    MESSAGE << "\nCheck input data and variables before simulation:" << std::endl;
-    MESSAGE << "Input database..." << std::endl;
-    input_db->printClassData(SAMRAI::tbox::plog);
-    MESSAGE << "\nVariable database..." << std::endl;
-    SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(SAMRAI::tbox::plog);
-
-    MESSAGE << "\nCheck Linear Advection data... " << std::endl;
-    patch_worker->printClassData(SAMRAI::tbox::plog);
 
 
 }
 
+void SAMRAIWrapperContext::save(toolbox::DataBase *)
+{
+    assert(is_valid());
+    UNIMPLEMENTED;
+}
+
+
+void SAMRAIWrapperContext::registerAttribute(std::string const &, std::shared_ptr<mesh::AttributeBase> &, int flag)
+{
+    m_is_valid_ = false;
+
+}
+
+
 void SAMRAIWrapperContext::deploy()
 {
+    m_is_valid_ = true;
     time_integrator->initializeHierarchy();
 };
 
-void SAMRAIWrapperContext::next_time_step(Real dt) { time_integrator->advanceHierarchy(dt); }
+bool SAMRAIWrapperContext::is_valid() const { return m_is_valid_; }
+
+void SAMRAIWrapperContext::next_time_step(Real dt)
+{
+    assert(is_valid());
+    time_integrator->advanceHierarchy(dt);
+}
 
 Real SAMRAIWrapperContext::time() const { return static_cast<Real>( time_integrator->getIntegratorTime()); }
 
@@ -365,7 +364,7 @@ size_type SAMRAIWrapperContext::step() const { return static_cast<size_type>( ti
 
 void SAMRAIWrapperContext::teardown()
 {
-
+    m_is_valid_ = false;
 
     /*
      * At conclusion of simulation, deallocate objects.
@@ -386,6 +385,7 @@ void SAMRAIWrapperContext::teardown()
 
 //    input_db.reset();
 //    main_db.reset();
+
 
 
     SAMRAI::tbox::SAMRAIManager::shutdown();

@@ -47,11 +47,8 @@ class SAMRAIWorkerHyperbolic :
 {
 public:
 
-    SAMRAIWorkerHyperbolic(
-            const std::string &object_name,
-            const tbox::Dimension &dim,
-            boost::shared_ptr<tbox::Database> input_db,
-            boost::shared_ptr<geom::CartesianGridGeometry> grid_geom);
+    SAMRAIWorkerHyperbolic(const std::string &object_name, const tbox::Dimension &dim,
+                           boost::shared_ptr<geom::CartesianGridGeometry> grid_geom);
 
     /**
      * The destructor for SAMRAIWorkerHyperbolic does nothing.
