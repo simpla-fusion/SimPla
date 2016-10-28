@@ -170,6 +170,7 @@ void SAMRAIWrapperContext::load(std::shared_ptr<toolbox::DataBase> const &db)
     m_is_valid_ = false;
 
     const SAMRAI::tbox::Dimension dim(3);
+
     bool use_refined_timestepping = true;
     /*
 
