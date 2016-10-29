@@ -16,6 +16,9 @@ int main(int argc, char **argv)
     ctx->load(nullptr);
     ctx->deploy();
     ctx->next_time_step(1.0);
+    ctx->next_time_step(1.0);
+    ctx->next_time_step(1.0);
+
     ctx->teardown();
 
     MESSAGE << "DONE\n";

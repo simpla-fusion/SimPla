@@ -60,7 +60,7 @@ SET(SAMRAI_INCLUDE_DIRS ${SAMRAI_BINARY_DIR}/include/ ${SAMRAI_SOURCE_DIR}/sourc
 INCLUDE_DIRECTORIES(${SAMRAI_INCLUDE_DIRS})
 MESSAGE(${SAMRAI_INCLUDE_DIRS})
 
-add_library(samrai_wrapper SAMRAIAdapter.cpp SAMRAIWorkerHyperbolic.cpp)
+add_library(samrai_wrapper SAMRAIAdapter.cpp SAMRAIAdapter.cpp)
 TARGET_LINK_LIBRARIES(samrai_wrapper ${SAMRAI_LIBRARIES})
 add_dependencies(samrai_wrapper SAMRAI)
 SET(MESH_WEAPPER samrai_wrapper)
