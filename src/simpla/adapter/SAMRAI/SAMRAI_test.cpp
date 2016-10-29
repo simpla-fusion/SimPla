@@ -15,9 +15,12 @@ int main(int argc, char **argv)
     ctx->initialize(argc, argv);
     ctx->load(nullptr);
     ctx->deploy();
-    ctx->next_time_step(1.0);
-    ctx->next_time_step(1.0);
-    ctx->next_time_step(1.0);
+    for (int i = 0; i < 10; ++i)
+    {
+        ctx->next_time_step(1.0);
+    }
+
+
 
     ctx->teardown();
 

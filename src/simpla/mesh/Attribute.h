@@ -7,9 +7,12 @@
 
 #include "Patch.h"
 #include "Atlas.h"
+#include "Worker.h"
 
 namespace simpla { namespace mesh
 {
+class WorkerBase;
+
 /**
  *  Attribute IS-A container of patchs
  */
@@ -33,6 +36,14 @@ public:
     virtual ~AttributeBase();
 
     virtual void deploy();
+
+    virtual std::type_info const &value_info()=0;
+
+    virtual bool check_value_type() const =0;
+
+    virtual MeshEntityType entity_type() const =0;
+
+    virtual void registerTo(WorkerBase *w) const { w->registerAttribute(*this); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
@@ -102,7 +113,9 @@ public:
 
     patch_type *m_patch_ = nullptr;
 
-    MeshEntityType entity_type() const { return patch_type::iform; }
+    virtual std::type_info const &value_info() { return typeid(value_type); };
+
+    virtual MeshEntityType entity_type() const { return patch_type::iform; }
 
     virtual bool is_a(std::type_info const &t_info) const
     {
@@ -114,6 +127,8 @@ public:
     Attribute(Args &&...args) : AttributeBase(std::forward<Args>(args)...) {};
 
     virtual ~Attribute() {}
+
+    virtual void registerTo(WorkerBase *w) const { w->registerAttribute(*this); };
 
     virtual std::shared_ptr<PatchBase> create(id_type const &id) const
     {
@@ -164,7 +179,6 @@ public:
         deploy();
         m_patch_->apply(std::forward<Args>(args)...);
     }
-
 
 
 private:
