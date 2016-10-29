@@ -4,6 +4,8 @@
 
 #ifndef SIMPLA_WORKER_H
 #define SIMPLA_WORKER_H
+
+
 namespace simpla { namespace mesh
 {
 class AttributeBase;
@@ -24,12 +26,14 @@ public:
         m_attributes_[name] = attr;
     };
 
+
     template<typename V, typename M, MeshEntityType IFORM>
-    void registerAttribute(std::shared_ptr<Attribute<Patch<V, M, IFORM> > > const &attr, std::string const &name = "")
+    void registerAttribute(Attribute<Patch<V, M, IFORM>> &attr, std::string const &name = "")
     {
-        typedef Attribute<Patch<V, M, IFORM> > f_type;
+        typedef Attribute<Patch<V, M, IFORM>>
+                f_type;
         static_assert(std::is_base_of<AttributeBase, f_type>::value, "illegal Attribute type");
-        registerAttribute(std::dynamic_pointer_cast<AttributeBase>(attr), name == "" ? attr->name() : name);
+        registerAttribute(attr.shared_from_this(), name == "" ? attr.name() : name);
     };
 
     std::map<std::string, std::shared_ptr<AttributeBase> > const &attributes() const { return m_attributes_; };

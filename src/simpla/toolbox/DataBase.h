@@ -67,6 +67,8 @@ public:
         if (has(key)) { return at(key)->value().template as<T>(); } else { return default_value; }
     }
 
+    bool check(std::string const &key) { return has(key) && at(key)->value().template as<bool>(); }
+
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
     virtual void foreach(std::function<void(std::string const &, std::shared_ptr<DataBase> const &)> const &) const;

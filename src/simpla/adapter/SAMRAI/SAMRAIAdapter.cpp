@@ -14,8 +14,8 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/Patch.h>
-#include <simpla/simulation/Context.h>
 #include <simpla/mesh/Worker.h>
+#include <simpla/simulation/Context.h>
 
 // Headers for SAMRAI
 #include <SAMRAI/SAMRAI_config.h>
@@ -1143,16 +1143,37 @@ void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLeve
                 break;                                                                                   \
         }
 
-        if (item.second->value_info() == typeid(float)) { CONVERT_VAR_STD_BOOST(float); }
-        else if (item.second->value_info() == typeid(double)) { CONVERT_VAR_STD_BOOST(double); }
-        else if (item.second->value_info() == typeid(int)) { CONVERT_VAR_STD_BOOST(int); }
-        else if (item.second->value_info() == typeid(long)) { CONVERT_VAR_STD_BOOST(long); }
-        else if (item.second->value_info() == typeid(size_type)) { CONVERT_VAR_STD_BOOST(size_type); }
+        if (item.second->value_type_info() == typeid(float)) { CONVERT_VAR_STD_BOOST(float); }
+        else if (item.second->value_type_info() == typeid(double)) { CONVERT_VAR_STD_BOOST(double); }
+        else if (item.second->value_type_info() == typeid(int)) { CONVERT_VAR_STD_BOOST(int); }
+//        else if (item.second->value_type_info() == typeid(long)) { CONVERT_VAR_STD_BOOST(long); }
+//        else if (item.second->value_type_info() == typeid(size_type)) { CONVERT_VAR_STD_BOOST(size_type); }
         else { RUNTIME_ERROR << "Unsupported value type" << std::endl; }
 #undef CONVERT_VAR_STD_BOOST
 
         m_samrai_variables_[item.first] = var;
+        if (item.second->check("IS_FLUX"))
+        {
+            integrator->registerVariable(var, d_fluxghosts,
+                                         SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
+                                         d_grid_geometry,
+                                         "CONSERVATIVE_COARSEN",
+                                         "NO_REFINE");
+        } else
+        {
+            integrator->registerVariable(var, d_nghosts,
+                                         SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                         d_grid_geometry,
+                                         "CONSERVATIVE_COARSEN",
+                                         "CONSERVATIVE_LINEAR_REFINE");
+        }
 
+        if (item.second->check("check_point"))
+        {
+            d_visit_writer->registerPlotQuantity(item.first,
+                                                 item.second->is_scalar() ? "SCALAR" : "VECTOR",
+                                                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+        }
     }
     if (d_visit_writer)
     {
@@ -1161,6 +1182,8 @@ void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLeve
                                      "SCALAR",
                                      vardb->mapVariableAndContextToIndex(
                                              d_uval, integrator->getPlotContext()));
+
+
     }
 
     if (!d_visit_writer)

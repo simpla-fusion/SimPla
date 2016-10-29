@@ -16,7 +16,10 @@ class WorkerBase;
 /**
  *  Attribute IS-A container of patchs
  */
-class AttributeBase : public toolbox::Object
+class AttributeBase :
+        public toolbox::Object,
+        public toolbox::DataBase,
+        public std::enable_shared_from_this<AttributeBase>
 {
 public:
     SP_OBJECT_HEAD(AttributeBase, toolbox::Object)
@@ -37,13 +40,13 @@ public:
 
     virtual void deploy();
 
-    virtual std::type_info const &value_info()=0;
+    virtual std::type_info const &value_type_info()=0;
 
     virtual bool check_value_type() const =0;
 
     virtual MeshEntityType entity_type() const =0;
 
-    virtual void registerTo(WorkerBase *w) const { w->registerAttribute(*this); };
+    virtual void registerTo(WorkerBase *w) const =0;
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
@@ -113,7 +116,7 @@ public:
 
     patch_type *m_patch_ = nullptr;
 
-    virtual std::type_info const &value_info() { return typeid(value_type); };
+    virtual std::type_info const &value_type_info() { return typeid(value_type); };
 
     virtual MeshEntityType entity_type() const { return patch_type::iform; }
 
