@@ -14,7 +14,7 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/Patch.h>
-#include <simpla/mesh/Worker.h>
+#include <simpla/simulation/Worker.h>
 #include <simpla/simulation/Context.h>
 
 // Headers for SAMRAI
@@ -107,7 +107,9 @@ struct SAMRAIContext : public simulation::ContextBase
 
     std::ostream &print(std::ostream &os, int indent = 1) const { return os; };
 
-    void registerAttribute(std::string const &, std::shared_ptr<mesh::AttributeBase> &, int flag = 0);
+    virtual void registerAttribute(std::string const &, std::shared_ptr<mesh::AttributeBase> &, int flag = 0);
+
+    virtual void registerWorker(std::shared_ptr<simulation::WorkerBase>)=0;
 
     toolbox::IOStream &check_point(toolbox::IOStream &os) const { return os; };
 
@@ -119,7 +121,6 @@ struct SAMRAIContext : public simulation::ContextBase
 
 private:
     bool m_is_valid_ = false;
-
 
     boost::shared_ptr<SAMRAIWorkerHyperbolic> patch_worker;
 
@@ -151,6 +152,7 @@ private:
     bool viz_dump_data = false;
     int viz_dump_interval = 1;
 
+    static constexpr ndims = 3;
 };
 
 void SAMRAIContext::initialize(int argc, char **argv)
@@ -166,34 +168,20 @@ void SAMRAIContext::initialize(int argc, char **argv)
      */
     SAMRAI::tbox::SAMRAIManager::startup();
     const SAMRAI::tbox::SAMRAI_MPI &mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
-
-
-    std::string input_filename;
-    std::string restart_read_dirname;
-    int restore_num = 0;
-
-    bool is_from_restart = false;
 }
 
 
 void SAMRAIContext::load(std::shared_ptr<toolbox::DataBase> const &db)
 {
     m_is_valid_ = false;
-
-    const SAMRAI::tbox::Dimension dim(3);
-
-    bool use_refined_timestepping = true;
-    /*
-
+    SAMRAI::tbox::Dimension dim(ndims);
+    /**
      * Create major algorithm and data objects which comprise application.
      * Each object will be initialized either from input data or restart
      * files, or a combination of both.  Refer to each class constructor
      * for details.  For more information on the composition of objects
      * for this application, see comments at top of file.
      */
-
-
-    //---------------------------------
 
 
     auto CartesianGeometry_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("CartesianGeometry");
@@ -248,12 +236,34 @@ void SAMRAIContext::load(std::shared_ptr<toolbox::DataBase> const &db)
     }
     auto patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>("PatchHierarchy", grid_geometry,
                                                                             PatchHierarchy_db);
-
     patch_hierarchy->recursivePrint(std::cout, "", 1);
+}
+
+void SAMRAIContext::save(toolbox::DataBase *)
+{
+    assert(is_valid());
+    UNIMPLEMENTED;
+}
+
+
+void SAMRAIContext::registerAttribute(std::string const &, std::shared_ptr<mesh::AttributeBase> &, int flag)
+{
+    m_is_valid_ = false;
+
+}
+
+
+void SAMRAIContext::deploy()
+{
+    m_is_valid_ = true;
+    SAMRAI::tbox::Dimension dim(ndims);
+    bool use_refined_timestepping = true;
 
     //---------------------------------
+    /***
+     *  create hyp_level_integrator and error_detector
+     */
     patch_worker = boost::make_shared<SAMRAIWorkerHyperbolic>("unnamed", dim, grid_geometry);
-    //---------------------------------
     auto HyperbolicLevelIntegrator_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("HyperbolicLevelIntegrator");
 
     HyperbolicLevelIntegrator_db->putDouble("cfl", 0.5);
@@ -266,15 +276,18 @@ void SAMRAIContext::load(std::shared_ptr<toolbox::DataBase> const &db)
             "HyperbolicLevelIntegrator", HyperbolicLevelIntegrator_db, patch_worker.get(), use_refined_timestepping);
 
     hyp_level_integrator->printClassData(std::cout);
-    //---------------------------------
+
     auto StandardTagAndInitialize_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("StandardTagAndInitialize");
 
     StandardTagAndInitialize_db->putString("tagging_method", "GRADIENT_DETECTOR");
 
     auto error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
             "StandardTagAndInitialize", hyp_level_integrator.get(), StandardTagAndInitialize_db);
-
     //---------------------------------
+
+    /**
+     *  create grid_algorithm
+     */
     auto BergerRigoutsos_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("BergerRigoutsos");
 
     BergerRigoutsos_db->putBool("sort_output_nodes", true);
@@ -286,7 +299,6 @@ void SAMRAIContext::load(std::shared_ptr<toolbox::DataBase> const &db)
     box_generator->useDuplicateMPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 
 
-    //---------------------------------
     auto LoadBalancer_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("LoadBalancer");
 
     auto load_balancer = boost::make_shared<SAMRAI::mesh::CascadePartitioner>(dim, "LoadBalancer", LoadBalancer_db);
@@ -294,8 +306,6 @@ void SAMRAIContext::load(std::shared_ptr<toolbox::DataBase> const &db)
     load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 
     load_balancer->printStatistics(std::cout);
-
-    //---------------------------------
     auto GriddingAlgorithm_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("GriddingAlgorithm");
 
     auto gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
@@ -321,6 +331,8 @@ void SAMRAIContext::load(std::shared_ptr<toolbox::DataBase> const &db)
             patch_hierarchy,
             hyp_level_integrator,
             gridding_algorithm);
+    time_integrator->initializeHierarchy();
+
 
 //    time_integrator->printClassData(std::cout);
 
@@ -334,28 +346,6 @@ void SAMRAIContext::load(std::shared_ptr<toolbox::DataBase> const &db)
             viz_dump_dirname,
             visit_number_procs_per_file);
 //    patch_worker->registerVisItDataWriter(visit_data_writer);
-
-
-}
-
-void SAMRAIContext::save(toolbox::DataBase *)
-{
-    assert(is_valid());
-    UNIMPLEMENTED;
-}
-
-
-void SAMRAIContext::registerAttribute(std::string const &, std::shared_ptr<mesh::AttributeBase> &, int flag)
-{
-    m_is_valid_ = false;
-
-}
-
-
-void SAMRAIContext::deploy()
-{
-    m_is_valid_ = true;
-    time_integrator->initializeHierarchy();
     MESSAGE << name() << " is deployed!" << std::endl;
 };
 
@@ -1171,7 +1161,7 @@ void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLeve
         if (item.second->check("check_point"))
         {
             d_visit_writer->registerPlotQuantity(item.first,
-                                                 item.second->is_scalar() ? "SCALAR" : "VECTOR",
+                                                 "SCALAR",
                                                  vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
     }
@@ -1193,6 +1183,9 @@ void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLeve
                                    << "Consequently, no plot data will"
                                    << "\nbe written." << std::endl);
     }
+
+
+    vardb->printClassData(std::cout);
 
 }
 
@@ -2310,6 +2303,7 @@ void SAMRAIWorkerHyperbolic::boundaryReset(
         }
         if (d_dim == SAMRAI::tbox::Dimension(3))
         {
+
             bdry_case = d_scalar_bdry_face_conds[bside];
         }
         if (bdry_case == BdryCond::REFLECT)

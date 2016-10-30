@@ -24,7 +24,7 @@
 
 namespace simpla { namespace simulation
 {
-
+class WorkerBase;
 
 /**
  *  life cycle of a simpla::Context
@@ -73,6 +73,13 @@ public:
     virtual Real time() const =0;
 
     virtual void next_time_step(Real dt)=0;
+
+    virtual void registerWorker(std::shared_ptr<WorkerBase>)=0;
+
+    virtual void registerAttribute(std::shared_ptr<mesh::AttributeBase>)=0;
+
+    template<typename TWorker>
+    void registerWorker(std::shared_ptr<TWorker>);
 
 
 };

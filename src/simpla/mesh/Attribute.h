@@ -7,7 +7,7 @@
 
 #include "Patch.h"
 #include "Atlas.h"
-#include "Worker.h"
+#include "simpla/simulation/Worker.h"
 
 namespace simpla { namespace mesh
 {
