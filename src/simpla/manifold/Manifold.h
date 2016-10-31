@@ -145,9 +145,9 @@ public:
 
     this_type &operator=(const this_type &other) = delete;
 
-    virtual std::shared_ptr<mesh::MeshBase> clone() const { return std::make_shared<this_type>(*this); };
+    virtual std::shared_ptr<mesh::MeshBlock> clone() const { return std::make_shared<this_type>(*this); };
 
-    virtual std::shared_ptr<mesh::MeshBase> clone(std::string const &name) const
+    virtual std::shared_ptr<mesh::MeshBlock> clone(std::string const &name) const
     {
         auto res = clone();
         if (name != "") { res->name(name); }

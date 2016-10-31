@@ -9,7 +9,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/mesh/MeshCommon.h>
-#include <simpla/mesh/MeshBase.h>
+#include <simpla/mesh/MeshBlock.h>
 #include <functional>
 namespace simpla { namespace mesh
 {
@@ -25,9 +25,9 @@ struct Model
         INSIDE, OUTSIDE, ON_SURFACE
     };
 
-    MeshBase const *m;
+    MeshBlock const *m;
 
-    Model(MeshBase const *);
+    Model(MeshBlock const *);
 
     virtual ~Model();
 

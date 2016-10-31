@@ -22,7 +22,7 @@
 #include <simpla/toolbox/Log.h>
 
 #include "MeshCommon.h"
-#include "MeshBase.h"
+#include "MeshBlock.h"
 #include "EntityId.h"
 
 namespace simpla { namespace mesh
@@ -34,11 +34,11 @@ namespace simpla { namespace mesh
  *
  * @brief Uniform structured get_mesh
  */
-struct RectMesh : public MeshBase
+struct RectMesh : public MeshBlock
 {
 public:
 
-    SP_OBJECT_HEAD(RectMesh, MeshBase)
+    SP_OBJECT_HEAD(RectMesh, MeshBlock)
 
     typedef Real scalar_type;
 
@@ -80,7 +80,7 @@ public:
     RectMesh() {}
 
     RectMesh(RectMesh const &other) :
-            MeshBase(other),
+            MeshBlock(other),
             m_origin_(other.m_origin_),
             m_dx_(other.m_dx_) { deploy(); };
 
@@ -106,7 +106,7 @@ public:
     box_type dx() const
     {
         point_type upper;
-        upper = m_origin_ + m_dx_ * MeshBase::dimensions();
+        upper = m_origin_ + m_dx_ * MeshBlock::dimensions();
         return std::make_tuple(m_origin_, upper);
     }
 
@@ -166,7 +166,7 @@ public:
 //        return m::get_adjacent_entities(entity_type, entity_type, s, p);
 //    }
 
-//    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const { return std::shared_ptr<MeshBase>(); }
+//    virtual std::shared_ptr<MeshBlock> refine(box_type const &b, int flag = 0) const { return std::shared_ptr<MeshBlock>(); }
 
 private:
     vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};
@@ -194,7 +194,7 @@ public:
 
 void RectMesh::deploy()
 {
-    MeshBase::deploy();
+    MeshBlock::deploy();
     /**
          *\verbatim
          *                ^y
@@ -406,24 +406,24 @@ void RectMesh::deploy()
 //
 //public:
 //
-//    virtual point_type point(id_type const &s) const { return std::move(map(m::point(s))); }
+//    virtual point_type point(mesh_id_type const &s) const { return std::move(map(m::point(s))); }
 //
-//    virtual point_type point_local_to_global(id_type s, point_type const &x) const
+//    virtual point_type point_local_to_global(mesh_id_type s, point_type const &x) const
 //    {
 //        return std::move(map(m::point_local_to_global(s, x)));
 //    }
 //
-//    virtual point_type point_local_to_global(std::tuple<id_type, point_type> const &t) const
+//    virtual point_type point_local_to_global(std::tuple<mesh_id_type, point_type> const &t) const
 //    {
 //        return std::move(map(m::point_local_to_global(t)));
 //    }
 //
-//    virtual std::tuple<id_type, point_type> point_global_to_local(point_type const &x, int n_id = 0) const
+//    virtual std::tuple<mesh_id_type, point_type> point_global_to_local(point_type const &x, int n_id = 0) const
 //    {
 //        return std::move(m::point_global_to_local(inv_map(x), n_id));
 //    }
 //
-//    virtual id_type id(point_type const &x, int n_id = 0) const
+//    virtual mesh_id_type id(point_type const &x, int n_id = 0) const
 //    {
 //        return std::get<0>(m::point_global_to_local(inv_map(x), n_id));
 //    }

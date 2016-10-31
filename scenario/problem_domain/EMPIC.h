@@ -94,7 +94,7 @@ void EMPIC<TM>::init(ConfigParser const &options)
     {
         options["Constraints"]["J"]["Value"].as(&J_src_fun);
 
-        mesh::select(*m, m->range(EDGE), options["Constraints"]["J"]["MeshBase"].as<box_type>()).swap(J_src_range);
+        mesh::select(*m, m->range(EDGE), options["Constraints"]["J"]["MeshBlock"].as<box_type>()).swap(J_src_range);
 
     }
     dt(options["Mesh"]["dt"].as<Real>(1.0));

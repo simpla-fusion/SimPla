@@ -56,12 +56,12 @@ Context::print(std::ostream &os, int indent) const
 //Context::get_mesh_atlas() const { return m_pimpl_->m_atlas_; };
 //
 //mesh_as::MeshBlockId
-//Context::add_mesh(std::shared_ptr<mesh_as::MeshBase> m) { return m_pimpl_->m_atlas_.add_block(m); }
+//Context::add_mesh(std::shared_ptr<mesh_as::MeshBlock> m) { return m_pimpl_->m_atlas_.add_block(m); }
 //
-//std::shared_ptr<const mesh_as::MeshBase>
+//std::shared_ptr<const mesh_as::MeshBlock>
 //Context::get_mesh_block(mesh_as::MeshBlockId id) const { return m_pimpl_->m_atlas_.get_block(id); }
 //
-//std::shared_ptr<mesh_as::MeshBase>
+//std::shared_ptr<mesh_as::MeshBlock>
 //Context::get_mesh_block(mesh_as::MeshBlockId id) { return m_pimpl_->m_atlas_.get_block(id); }
 
 std::shared_ptr<mesh::DomainBase>

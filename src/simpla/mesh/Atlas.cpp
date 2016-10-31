@@ -14,7 +14,7 @@ Atlas::Atlas() {};
 
 Atlas::~Atlas() {};
 
-void Atlas::add(std::shared_ptr<MeshBase> const p_m)
+void Atlas::add(std::shared_ptr<MeshBlock> const p_m)
 {
     m_nodes_.emplace(p_m->id(), p_m);
     update(p_m->id());
@@ -34,7 +34,7 @@ void Atlas::update(id_type id)
         m_nodes_.erase(it);
         return;
     }
-    MeshBase const &m = *(it->second);
+    MeshBlock const &m = *(it->second);
     assert(m.level() < MAX_NUM_OF_LEVEL);
     m_max_level_ = std::max(m_max_level_, m.level());
     m_layer_[m.level()].insert(id);
@@ -51,8 +51,8 @@ void Atlas::erase(id_type m_id)
 int Atlas::link(id_type i0, id_type i1)
 {
     assert(has(i0) && has(i1));
-    MeshBase const &m0 = *at(i0);
-    MeshBase const &m1 = *at(i1);
+    MeshBlock const &m0 = *at(i0);
+    MeshBlock const &m1 = *at(i1);
     int l0 = m0.level();
     int l1 = m1.level();
     box_type b0 = m0.box();
@@ -119,13 +119,13 @@ void Atlas::update_all()
 //}
 //
 //std::shared_ptr<TransitionMapBase>
-//Atlas::add_adjacency(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second)
+//Atlas::add_adjacency(std::shared_ptr<const MeshBlock> first, std::shared_ptr<const MeshBlock> second)
 //{
 //    return add_adjacency(std::make_shared<TransitionMapBase>(*first, *second));
 //}
 //
 //std::tuple<std::shared_ptr<TransitionMapBase>, std::shared_ptr<TransitionMapBase>>
-//Atlas::add_connection(std::shared_ptr<const MeshBase> first, std::shared_ptr<const MeshBase> second)
+//Atlas::add_connection(std::shared_ptr<const MeshBlock> first, std::shared_ptr<const MeshBlock> second)
 //{
 //    return std::make_tuple(add_adjacency(first, second), add_adjacency(second, first));
 //}

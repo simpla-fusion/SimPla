@@ -7,11 +7,11 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <iomanip>
+#include <simpla/data/DataBase.h>
+#include <simpla/data/DataSpace.h>
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/Object.h>
-#include <simpla/toolbox/DataSpace.h>
 #include <simpla/toolbox/BoxUtility.h>
-#include <simpla/toolbox/DataBase.h>
 #include "MeshCommon.h"
 #include "EntityId.h"
 
@@ -69,7 +69,7 @@ namespace simpla { namespace mesh
  *
  */
 
-class MeshBase : public toolbox::Object
+class MeshBlock : public toolbox::Object
 {
 
 private:
@@ -102,24 +102,24 @@ private:
 
 public:
 
-    SP_OBJECT_HEAD(MeshBase, toolbox::Object)
+    SP_OBJECT_HEAD(MeshBlock, toolbox::Object)
 
     using toolbox::Object::id_type;
     using toolbox::Object::id;
 
     static constexpr int ndims = 3;
 
-    MeshBase();
+    MeshBlock();
 
-    MeshBase(MeshBase const &other);
+    MeshBlock(MeshBlock const &other);
 
-    MeshBase(MeshBase &&other);
+    MeshBlock(MeshBlock &&other);
 
-    virtual ~MeshBase();
+    virtual ~MeshBlock();
 
-    MeshBase &operator=(MeshBase const &other)
+    MeshBlock &operator=(MeshBlock const &other)
     {
-        MeshBase(other).swap(*this);
+        MeshBlock(other).swap(*this);
         return *this;
     }
 
@@ -132,7 +132,7 @@ public:
     /**
      * @return  a copy of this mesh
      */
-    virtual std::shared_ptr<MeshBase> clone() const;
+    virtual std::shared_ptr<MeshBlock> clone() const;
 
 
     /**
@@ -157,9 +157,9 @@ public:
     virtual void intersection(index_box_type const &);
 
 
-    void swap(MeshBase &other);
+    void swap(MeshBlock &other);
 
-    virtual std::tuple<toolbox::DataSpace, toolbox::DataSpace>
+    virtual std::tuple<data::DataSpace, data::DataSpace>
     data_space(MeshEntityType const &t, MeshZoneTag status = SP_ES_OWNED) const;
 
     void processer_id(int id) { m_processer_id_ = id; }
@@ -336,12 +336,6 @@ public:
     virtual EntityRange range(MeshEntityType entityType, index_box_type const &b) const;
 
     virtual EntityRange range(MeshEntityType entityType, box_type const &b) const;
-
-    Real time() const { return m_time_; }
-
-    void time(Real t) { m_time_ = t; }
-
-    void next_step(Real dt) { m_time_ += dt; }
 
 
 };

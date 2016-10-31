@@ -154,7 +154,7 @@ DomainBase::~DomainBase() { teardown(); }
 ////    for (auto const &item:m_pimpl_->m_attrs_) { if (!item.second->empty()) { item.second->map(t_map, other); }}
 //}
 
-//bool DomainBase::same_as(MeshBase const &) const
+//bool DomainBase::same_as(MeshBlock const &) const
 //{
 //    UNIMPLEMENTED;
 //    return false;
@@ -166,9 +166,9 @@ DomainBase::~DomainBase() { teardown(); }
 //    return std::vector<box_type>();
 //}
 //
-//void DomainBase::refine(MeshBase const &other) { UNIMPLEMENTED; };
+//void DomainBase::refine(MeshBlock const &other) { UNIMPLEMENTED; };
 //
-//bool DomainBase::coarsen(MeshBase const &other)
+//bool DomainBase::coarsen(MeshBlock const &other)
 //{
 //    UNIMPLEMENTED;
 //    return false;

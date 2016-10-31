@@ -70,7 +70,7 @@ typedef SP_REAL Real;
 typedef size_t size_type;
 typedef int8_t byte_type; // int8_t
 typedef int Integral;
-typedef int64_t id_type; //!< Data type of vertex's index , i.e. i,j
+typedef int64_t mesh_id_type; //!< Data type of vertex's index , i.e. i,j
 typedef int64_t index_type;
 typedef unsigned int uint;
 

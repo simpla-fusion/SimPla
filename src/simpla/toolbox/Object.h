@@ -115,9 +115,9 @@ public:
      *  @name concept lockable
      *  @{
      */
-//    virtual void load(DataBase const &) {};
-//
-//    virtual void save(DataBase *) const {};
+    virtual void load(DataBase const &, std::string const & = "") {};
+
+    virtual void save(DataBase *, std::string const & = "") const {};
 
     virtual bool is_valid() const { return true; };
 

@@ -12,7 +12,7 @@ namespace simpla { namespace simulation
 {
 
 
-template<typename V, typename M, MeshEntityType IFORM> class Patch;
+template<typename V, typename M, mesh::MeshEntityType IFORM> class Patch;
 
 class WorkerBase
 {
@@ -28,7 +28,7 @@ public:
 
     virtual void registerAttributeTo(ContextBase *)=0;
 
-    template<typename V, typename M, MeshEntityType IFORM>
+    template<typename V, typename M, mesh::MeshEntityType IFORM>
     void registerAttribute(mesh::Attribute<Patch<V, M, IFORM>> &attr, std::string const &name = "")
     {
         typedef mesh::Attribute<Patch<V, M, IFORM>> f_type;

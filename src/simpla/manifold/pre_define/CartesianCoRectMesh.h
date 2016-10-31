@@ -574,14 +574,14 @@ void CoRectMesh::deploy()
 //    return std::move(res);
 //};
 
-//    int get_vertices(int node_id, id_type s, point_type *p = nullptr) const
+//    int get_vertices(int node_id, mesh_id_type s, point_type *p = nullptr) const
 //    {
 //
 //        int num = m::get_adjacent_entities(VERTEX, node_id, s);
 //
 //        if (p != nullptr)
 //        {
-//            id_type neighbour[num];
+//            mesh_id_type neighbour[num];
 //
 //            m::get_adjacent_entities(VERTEX, node_id, s, neighbour);
 //
@@ -648,24 +648,24 @@ void CoRectMesh::deploy()
 //
 //public:
 //
-//    virtual point_type point(id_type const &s) const { return std::move(map(m::point(s))); }
+//    virtual point_type point(mesh_id_type const &s) const { return std::move(map(m::point(s))); }
 //
-//    virtual point_type point_local_to_global(id_type s, point_type const &x) const
+//    virtual point_type point_local_to_global(mesh_id_type s, point_type const &x) const
 //    {
 //        return std::move(map(m::point_local_to_global(s, x)));
 //    }
 //
-//    virtual point_type point_local_to_global(std::tuple<id_type, point_type> const &t) const
+//    virtual point_type point_local_to_global(std::tuple<mesh_id_type, point_type> const &t) const
 //    {
 //        return std::move(map(m::point_local_to_global(t)));
 //    }
 //
-//    virtual std::tuple<id_type, point_type> point_global_to_local(point_type const &x, int n_id = 0) const
+//    virtual std::tuple<mesh_id_type, point_type> point_global_to_local(point_type const &x, int n_id = 0) const
 //    {
 //        return std::move(m::point_global_to_local(inv_map(x), n_id));
 //    }
 //
-//    virtual id_type id(point_type const &x, int n_id = 0) const
+//    virtual mesh_id_type id(point_type const &x, int n_id = 0) const
 //    {
 //        return std::get<0>(m::point_global_to_local(inv_map(x), n_id));
 //    }

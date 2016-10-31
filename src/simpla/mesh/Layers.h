@@ -10,7 +10,7 @@
 #include "../toolbox/nTuple.h"
 
 #include "MeshCommon.h"
-#include "MeshBase.h"
+#include "MeshBlock.h"
 #include "Atlas.h"
 
 namespace simpla { namespace mesh

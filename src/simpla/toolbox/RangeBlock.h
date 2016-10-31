@@ -101,19 +101,19 @@ private:
 
 
 //        struct iterator : public std::iterator<
-//                typename std::bidirectional_iterator_tag, id_type,
+//                typename std::bidirectional_iterator_tag, mesh_id_type,
 //                difference_type>
 //        {
 //        private:
-//            id_type m_idx_min_, m_idx_max_, m_self_;
+//            mesh_id_type m_idx_min_, m_idx_max_, m_self_;
 //        public:
-//            iterator(id_type const &min, id_type const &max,
-//                     id_type const &self) :
+//            iterator(mesh_id_type const &min, mesh_id_type const &max,
+//                     mesh_id_type const &self) :
 //                    m_idx_min_(min), m_idx_max_(max), m_self_(self)
 //            {
 //            }
 //
-//            iterator(id_type const &min, id_type const &max) :
+//            iterator(mesh_id_type const &min, mesh_id_type const &max) :
 //                    m_idx_min_(min), m_idx_max_(max), m_self_(min)
 //            {
 //            }
@@ -156,12 +156,12 @@ private:
 //                        static_cast<long>(*self + id * (_D << 1) + max
 //                                          - min * 2), static_cast<long>(max - min));
 //
-//                *self = static_cast<id_type>(div.rem + min);
+//                *self = static_cast<mesh_id_type>(div.rem + min);
 //
 //                return div.quot - 1L;
 //            }
 //
-//            index_type carray(id_type *self, id_type xmin, id_type xmax,
+//            index_type carray(mesh_id_type *self, mesh_id_type xmin, mesh_id_type xmax,
 //                              index_type id = 0)
 //            {
 //                index_tuple idx, min, max;

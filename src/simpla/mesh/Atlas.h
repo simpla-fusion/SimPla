@@ -11,7 +11,7 @@
 #include "simpla/toolbox/Log.h"
 #include "simpla/toolbox/nTuple.h"
 #include "MeshCommon.h"
-#include "MeshBase.h"
+#include "MeshBlock.h"
 #include "TransitionMap.h"
 
 namespace simpla { namespace mesh
@@ -29,14 +29,14 @@ namespace simpla { namespace mesh
 class Atlas
 {
 public:
-    typedef typename toolbox::Object::id_type id_type;
+    typedef typename MeshBlock::id_type id_type;
 private:
     static constexpr int MAX_NUM_OF_LEVEL = 10;
 
     typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
     typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
     typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
-    std::map<id_type, std::shared_ptr<MeshBase>> m_nodes_;
+    std::map<id_type, std::shared_ptr<MeshBlock>> m_nodes_;
     std::multimap<id_type, id_type> m_adjacent_;
     std::multimap<id_type, id_type> m_refine_;
     std::multimap<id_type, id_type> m_coarsen_;
@@ -50,32 +50,31 @@ public:
 
     unsigned int max_level() const { return m_max_level_; }
 
-    std::shared_ptr<MeshBase> first()
+
+    std::shared_ptr<MeshBlock> at(id_type id) { try { return m_nodes_.at(id); } catch (...) { return nullptr; }};
+
+    std::shared_ptr<const MeshBlock> at(id_type id) const
     {
-        return m_nodes_.size() == 0 ? std::shared_ptr<MeshBase>(nullptr) : m_nodes_.begin()->second;
-    }
+        try { return m_nodes_.at(id); } catch (...) { return nullptr; }
+    };
 
-    std::shared_ptr<MeshBase> at(id_type id) { try { return m_nodes_.at(id); } catch (...) { return nullptr; }};
+    std::shared_ptr<MeshBlock> operator[](id_type id) { return at(id); };
 
-    std::shared_ptr<MeshBase> at(id_type id) const { try { return m_nodes_.at(id); } catch (...) { return nullptr; }};
+    std::shared_ptr<const MeshBlock> operator[](id_type id) const { return at(id); };
 
-    std::shared_ptr<MeshBase> operator[](id_type id) { return at(id); };
-
-    std::shared_ptr<MeshBase> operator[](id_type id) const { return at(id); };
-
-    template<typename TM> std::shared_ptr<TM>
-    mesh_as(id_type id) const
+    MeshBlock const *mesh(id_type id = 0) const
     {
-        auto p = at(id);
-        assert(p != nullptr);
-        assert(p->is_a(typeid(TM)));
+        MeshBlock const *res = nullptr;
 
-        return std::dynamic_pointer_cast<TM>(p);
+        if (!m_nodes_.empty()) { if (id == 0) { res = m_nodes_.begin()->second.get(); } else { res = &(*at(id)); }}
+
+        return res;
+
     };
 
     bool has(id_type id) const { return m_nodes_.find(id) != m_nodes_.end(); }
 
-    void add(std::shared_ptr<MeshBase> const p_m);
+    void add(std::shared_ptr<MeshBlock> const p_m);
 
     void update(id_type id);
 

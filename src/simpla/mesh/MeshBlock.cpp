@@ -2,7 +2,7 @@
 // Created by salmon on 16-10-10.
 //
 
-#include "MeshBase.h"
+#include "MeshBlock.h"
 #include "simpla/toolbox/nTupleExt.h"
 #include "simpla/toolbox/PrettyStream.h"
 #include "simpla/toolbox/Log.h"
@@ -11,10 +11,10 @@ namespace simpla { namespace mesh
 {
 
 
-MeshBase::MeshBase() {}
+MeshBlock::MeshBlock() {}
 
 
-MeshBase::MeshBase(MeshBase const &other) :
+MeshBlock::MeshBlock(MeshBlock const &other) :
         m_is_deployed_/*    */(other.m_is_deployed_),
         m_processer_id_/*     */(other.m_processer_id_),
         m_space_id_/*       */(other.m_space_id_),
@@ -26,7 +26,7 @@ MeshBase::MeshBase(MeshBase const &other) :
         m_inner_box_/*      */(other.m_inner_box_/*  */),
         m_outer_box_/*      */(other.m_outer_box_/*  */) {};
 
-MeshBase::MeshBase(MeshBase &&other) :
+MeshBlock::MeshBlock(MeshBlock &&other) :
         m_is_deployed_/*    */(other.m_is_deployed_),
         m_processer_id_/*     */(other.m_processer_id_),
         m_space_id_/*       */(other.m_space_id_),
@@ -38,9 +38,9 @@ MeshBase::MeshBase(MeshBase &&other) :
         m_inner_box_/*      */(other.m_inner_box_/*  */),
         m_outer_box_/*      */(other.m_outer_box_/*  */) {};
 
-MeshBase::~MeshBase() {}
+MeshBlock::~MeshBlock() {}
 
-std::ostream &MeshBase::print(std::ostream &os, int indent) const
+std::ostream &MeshBlock::print(std::ostream &os, int indent) const
 {
     os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
     os << std::setw(indent + 1) << " " << "Topology = { Type = \"CoRectMesh\", "
@@ -59,7 +59,7 @@ std::ostream &MeshBase::print(std::ostream &os, int indent) const
 }
 
 
-void MeshBase::swap(MeshBase &other)
+void MeshBlock::swap(MeshBlock &other)
 {
     std::swap(m_is_deployed_/*    */, other.m_is_deployed_);
     std::swap(m_processer_id_/*   */, other.m_processer_id_);
@@ -77,7 +77,7 @@ void MeshBase::swap(MeshBase &other)
 }
 
 
-void MeshBase::deploy()
+void MeshBlock::deploy()
 {
     if (m_is_deployed_) { return; }
 
@@ -141,15 +141,15 @@ void MeshBase::deploy()
 
 }
 
-std::shared_ptr<MeshBase>
-MeshBase::clone() const
+std::shared_ptr<MeshBlock>
+MeshBlock::clone() const
 {
     assert(is_deployed());
-    return std::make_shared<MeshBase>(*this);
+    return std::make_shared<MeshBlock>(*this);
 };
 
 void
-MeshBase::refine(index_box_type const &other_box, int n, int flag)
+MeshBlock::refine(index_box_type const &other_box, int n, int flag)
 {
     m_inner_box_ = toolbox::intersection(m_inner_box_, other_box);
 
@@ -189,7 +189,7 @@ MeshBase::refine(index_box_type const &other_box, int n, int flag)
 }
 
 void
-MeshBase::intersection(index_box_type const &other_box)
+MeshBlock::intersection(index_box_type const &other_box)
 {
     m_inner_box_ = toolbox::intersection(m_inner_box_, other_box);
 
@@ -207,8 +207,8 @@ MeshBase::intersection(index_box_type const &other_box)
 ///**
 // * return the minimum block that contain two blocks
 // */
-//std::shared_ptr<MeshBase>
-//MeshBase::union_bounding(const std::shared_ptr<MeshBase> &other) const
+//std::shared_ptr<MeshBlock>
+//MeshBlock::union_bounding(const std::shared_ptr<MeshBlock> &other) const
 //{
 //    assert(is_deployed());
 //    auto res = clone();
@@ -226,7 +226,7 @@ MeshBase::intersection(index_box_type const &other_box)
 //}
 
 //
-//void MeshBase::foreach(std::function<void(index_type, index_type, index_type)> const &fun) const
+//void MeshBlock::foreach(std::function<void(index_type, index_type, index_type)> const &fun) const
 //{
 //
 //#pragma omp parallel for
@@ -240,7 +240,7 @@ MeshBase::intersection(index_box_type const &other_box)
 //
 //}
 //
-//void MeshBase::foreach(std::function<void(index_type)> const &fun) const
+//void MeshBlock::foreach(std::function<void(index_type)> const &fun) const
 //{
 //#pragma omp parallel for
 //    for (index_type i = 0; i < m_inner_count_[0]; ++i)
@@ -251,7 +251,7 @@ MeshBase::intersection(index_box_type const &other_box)
 //            }
 //}
 //
-//void MeshBase::foreach(int iform, std::function<void(MeshEntityId const &)> const &fun) const
+//void MeshBlock::foreach(int iform, std::function<void(MeshEntityId const &)> const &fun) const
 //{
 //    int n = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
 //#pragma omp parallel for
@@ -266,7 +266,7 @@ MeshBase::intersection(index_box_type const &other_box)
 
 
 std::tuple<toolbox::DataSpace, toolbox::DataSpace>
-MeshBase::data_space(MeshEntityType const &t, MeshZoneTag status) const
+MeshBlock::data_space(MeshEntityType const &t, MeshZoneTag status) const
 {
     int i_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
 
@@ -322,7 +322,7 @@ MeshBase::data_space(MeshEntityType const &t, MeshZoneTag status) const
 
 
 EntityRange
-MeshBase::range(MeshEntityType entityType, index_box_type const &b) const
+MeshBlock::range(MeshEntityType entityType, index_box_type const &b) const
 {
     EntityRange res;
     res.append(MeshEntityIdCoder::make_range(std::get<0>(b), std::get<1>(b), entityType));
@@ -330,7 +330,7 @@ MeshBase::range(MeshEntityType entityType, index_box_type const &b) const
 }
 
 EntityRange
-MeshBase::range(MeshEntityType entityType, box_type const &b) const
+MeshBlock::range(MeshEntityType entityType, box_type const &b) const
 {
     index_tuple l, u;
     l = point_to_index(std::get<1>(b));
@@ -339,7 +339,7 @@ MeshBase::range(MeshEntityType entityType, box_type const &b) const
 }
 
 EntityRange
-MeshBase::range(MeshEntityType entityType, MeshZoneTag status) const
+MeshBlock::range(MeshEntityType entityType, MeshZoneTag status) const
 {
     EntityRange res;
 

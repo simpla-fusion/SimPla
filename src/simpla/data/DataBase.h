@@ -16,7 +16,7 @@
 #include <map>
 #include "DataEntity.h"
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace data
 {
 
 

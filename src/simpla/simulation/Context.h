@@ -14,6 +14,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/mesh/EntityRange.h>
+#include <simpla/mesh/Mesh.h>
 #include <simpla/mesh/Patch.h>
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/TransitionMap.h>
@@ -78,8 +79,7 @@ public:
 
     virtual void registerAttribute(std::shared_ptr<mesh::AttributeBase>)=0;
 
-    template<typename TWorker>
-    void registerWorker(std::shared_ptr<TWorker>);
+    template<typename TWorker> void registerWorker(std::shared_ptr<TWorker>);
 
 
 };
@@ -106,9 +106,9 @@ public:
 
     toolbox::IOStream &check_point(toolbox::IOStream &os) const;
 
-    std::shared_ptr<mesh::DomainBase> add_domain(std::shared_ptr<mesh::DomainBase> pb);
-
-    std::shared_ptr<mesh::DomainBase> get_domain(id_type id) const;
+//    std::shared_ptr<mesh::DomainBase> add_domain(std::shared_ptr<mesh::DomainBase> pb);
+//
+//    std::shared_ptr<mesh::DomainBase> get_domain(mesh_id_type id) const;
 
     void sync(int level = 0, int flag = 0);
 

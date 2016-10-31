@@ -11,7 +11,7 @@
 #include <simpla/toolbox/nTupleExt.h>
 #include <simpla/toolbox/PrettyStream.h>
 #include "MeshCommon.h"
-#include "MeshBase.h"
+#include "MeshBlock.h"
 #include "Patch.h"
 
 namespace simpla { namespace mesh
@@ -45,9 +45,9 @@ struct TransitionMapBase : public toolbox::Object
 
     virtual  ~TransitionMapBase() {};
 
-    virtual MeshBase::id_type from_id() const =0;
+    virtual MeshBlock::id_type from_id() const =0;
 
-    virtual MeshBase::id_type to_id() const =0;
+    virtual MeshBlock::id_type to_id() const =0;
 //    virtual point_type map(point_type const &x) const { return x; }
 //    point_type operator()(point_type const &x) const { return map(x); }
 //    virtual void push_forward(PatchBase const &src, PatchBase *dest) const =0;
@@ -65,12 +65,12 @@ struct TransitionMap<M, N> : public TransitionMapBase
 
     std::shared_ptr<r_mesh_type> m_dst_;
     std::shared_ptr<l_mesh_type> m_src_;
-    MeshBase m_overlap_;
+    MeshBlock m_overlap_;
     EntityRange m_range0_;
 
-    virtual MeshBase::id_type from_id() const { return m_src_->id(); };
+    virtual MeshBlock::id_type from_id() const { return m_src_->id(); };
 
-    virtual MeshBase::id_type to_id() const { return m_dst_->id(); };
+    virtual MeshBlock::id_type to_id() const { return m_dst_->id(); };
 
     TransitionMap(std::shared_ptr<l_mesh_type> const &left, std::shared_ptr<r_mesh_type> const &right)
             : m_src_(left), m_dst_(right) {}

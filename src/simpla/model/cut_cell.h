@@ -71,18 +71,18 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 // * @_fdtd_param s1
 // * @return
 // */
-//static constexpr id_type out_code(id_type c, id_type s)
+//static constexpr mesh_id_type out_code(mesh_id_type c, mesh_id_type s)
 //{
 //	return out_code_(((c | FULL_OVERFLOW_FLAG) - s) & PRIMARY_ID_MASK);
 //}
-//static constexpr id_type out_code_(id_type c)
+//static constexpr mesh_id_type out_code_(mesh_id_type c)
 //{
 //	return ((c >> (ID_DIGITS - 1)) & 1UL) | ((c >> (ID_DIGITS - 3)) & (4UL))
 //			| ((c >> (ID_DIGITS * 2 - 5)) & 16UL)
-//			| (static_cast<id_type>((c & (OVERFLOW_FLAG - 1UL)) != 0UL))
-//			| (static_cast<id_type>((c & ((OVERFLOW_FLAG - 1UL) << ID_DIGITS))
+//			| (static_cast<mesh_id_type>((c & (OVERFLOW_FLAG - 1UL)) != 0UL))
+//			| (static_cast<mesh_id_type>((c & ((OVERFLOW_FLAG - 1UL) << ID_DIGITS))
 //					!= 0UL) << (2UL))
-//			| (static_cast<id_type>((c
+//			| (static_cast<mesh_id_type>((c
 //					& ((OVERFLOW_FLAG - 1UL) << (ID_DIGITS * 2))) != 0UL)
 //					<< (4UL));
 //}
@@ -99,7 +99,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 // */
 //template<typename TRes>
 //static void cut_cell(coordinates_type const & x0, coordinates_type const & x1,
-//		TRes *res, id_type node_id = 7);
+//		TRes *res, mesh_id_type node_id = 7);
 //
 ///**
 // *
@@ -114,12 +114,12 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 // */
 //template<typename TX, typename TRes>
 //static void cut_cell(TX const & x0, TX const & x1, TX const & x2, TRes*res,
-//		id_type node_id = 7);
+//		mesh_id_type node_id = 7);
 //
 //template<size_t N, size_t M>
 //template<typename TRes>
 //void MeshEntityIdCoder<N, M>::cut_cell(coordinates_type const & pV0,
-//		coordinates_type const & pV1, TRes*res, id_type node_id)
+//		coordinates_type const & pV1, TRes*res, mesh_id_type node_id)
 //{
 //
 //	coordinates_type V0 = pV0 - m_id_to_coordinates_shift_[node_id];
@@ -137,7 +137,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //			max(V0[1], V1[1]), //
 //			max(V0[2], V1[2]) };
 //
-//	id_type face_id[3] = { 6, 5, 3 };
+//	mesh_id_type face_id[3] = { 6, 5, 3 };
 //
 //	for (int zaxe = 0; zaxe < 3; ++zaxe)
 //	{
@@ -165,7 +165,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //			y = V0 + t * u;
 //
-//			id_type s = (pack(y) & PRIMARY_ID_MASK)
+//			mesh_id_type s = (pack(y) & PRIMARY_ID_MASK)
 //					| m_id_to_shift_[face_id[zaxe]];
 //
 //			res->set(std::make_pair(s + m_id_to_shift_[node_id], t));
@@ -182,7 +182,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //	coordinates_type V1 = pV1 - m_id_to_coordinates_shift_[node_id];
 //	coordinates_type V2 = pV2 - m_id_to_coordinates_shift_[node_id];
 //
-//	id_type edge_id[3] = { 1, 2, 4 };
+//	mesh_id_type edge_id[3] = { 1, 2, 4 };
 //
 //	Vec3 u = V1 - V0;
 //	Vec3 v = V2 - V0;
@@ -255,7 +255,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //					continue;
 //				}
 //
-//				id_type p = ((pack(V0 + s * u + t * v) & PRIMARY_ID_MASK)
+//				mesh_id_type p = ((pack(V0 + s * u + t * v) & PRIMARY_ID_MASK)
 //						| m_id_to_shift_[edge_id[zaxe]]);
 //
 //				res->set(
@@ -266,9 +266,9 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //	};
 //template<typename TM, typename TX>
-//int line_segment_cut_cell(TM const & geometry, typename TM::id_type node_id,
-//		TX const &x0, TX const & x1, typename TM::id_type s0,
-//		typename TM::id_type s1, std::set<typename TM::id_type>* res,
+//int line_segment_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
+//		TX const &x0, TX const & x1, typename TM::mesh_id_type s0,
+//		typename TM::mesh_id_type s1, std::set<typename TM::mesh_id_type>* res,
 //		Real epsilon = 0.01)
 //{
 //	int count = 0;
@@ -297,13 +297,13 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //	return count;
 //}
 //template<typename TM, typename TX>
-//void triangle_cut_cell(TM const & geometry, typename TM::id_type node_id,
+//void triangle_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
 //		TX const &x0, TX const & x1, TX const & x2,
-//		std::set<typename TM::id_type>* res)
+//		std::set<typename TM::mesh_id_type>* res)
 //{
 //	typedef TM mesh_type;
 //	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
-//	typedef typename mesh_type::id_type id_type;
+//	typedef typename mesh_type::mesh_id_type mesh_id_type;
 //
 //	coordinate_tuple dims0;
 //	dims0 = (x1 - x0) / geometry.dx();
@@ -329,7 +329,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //template<typename TM, typename TSplicesIter>
 //size_t cut_cell(TM const & geometry, TSplicesIter const & ib,
 //		TSplicesIter const & ie,
-//		std::map<typename TM::id_type,
+//		std::map<typename TM::mesh_id_type,
 //				typename std::iterator_traits<TSplicesIter>::value_type>* res)
 //{
 //
@@ -359,12 +359,12 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //}
 //template<typename TM, typename TI>
-//size_t triangle_cut_cell(TM const & geometry, typename TM::id_type node_id,
-//		TI const &i0, std::multimap<typename TM::id_type, TI>* res)
+//size_t triangle_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
+//		TI const &i0, std::multimap<typename TM::mesh_id_type, TI>* res)
 //{
 //	typedef TM mesh_type;
 //	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
-//	typedef typename mesh_type::id_type id_type;
+//	typedef typename mesh_type::mesh_id_type mesh_id_type;
 //
 //	TI it = i0;
 //	coordinate_tuple x0 = *it;
@@ -375,15 +375,15 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //	coordinate_tuple xmin, xmax;
 //
-//	id_type s0 = std::get<0>(geometry.point_global_to_local(x0, node_id));
+//	mesh_id_type s0 = std::get<0>(geometry.point_global_to_local(x0, node_id));
 //
-//	id_type s1 = std::get<0>(geometry.point_global_to_local(x1, node_id));
+//	mesh_id_type s1 = std::get<0>(geometry.point_global_to_local(x1, node_id));
 //
-//	id_type s2 = std::get<0>(geometry.point_global_to_local(x2, node_id));
+//	mesh_id_type s2 = std::get<0>(geometry.point_global_to_local(x2, node_id));
 //
 //	for (auto s : geometry.box(bound(bound(x0, x1), x2), node_id))
 //	{
-//		id_type out_code[3] = { geometry.out_code(s, s0), geometry.out_code(s, s1),
+//		mesh_id_type out_code[3] = { geometry.out_code(s, s0), geometry.out_code(s, s1),
 //				geometry.out_code(s, s2) };
 //		bool success = false;
 //		if ((out_code[0] & out_code[1] & out_code[2]) != 0)
@@ -397,7 +397,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //		}
 //		else
 //		{
-//			id_type code = code[0] | code[1] | code[2];
+//			mesh_id_type code = code[0] | code[1] | code[2];
 //
 //			for (int i = 0; i < 6; ++i)
 //			{
@@ -408,7 +408,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //					int IX = (IZ + 1) % 3;
 //					int IY = (IZ + 2) % 3;
 //
-//					id_type face_id = s
+//					mesh_id_type face_id = s
 //							+ (mesh_type::_DA << (mesh_type::ID_DIGITS * IZ))
 //									* ((i % 2 == 0) ? 1 : -1);
 //
@@ -428,26 +428,26 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //}
 //template<typename TM, typename TI>
-//size_t line_segment_cut_cell(TM const & geometry, typename TM::id_type node_id,
-//		TI const &i0, std::multimap<typename TM::id_type, TI>* res)
+//size_t line_segment_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
+//		TI const &i0, std::multimap<typename TM::mesh_id_type, TI>* res)
 //{
 //	typedef TM mesh_type;
 //	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
-//	typedef typename mesh_type::id_type id_type;
+//	typedef typename mesh_type::mesh_id_type mesh_id_type;
 //
 //	TI it = i0;
 //	coordinate_tuple x0 = *it;
 //	++it;
 //	coordinate_tuple x1 = *it;
 //
-//	id_type s0 = std::get<0>(geometry.point_global_to_local(x0, node_id));
+//	mesh_id_type s0 = std::get<0>(geometry.point_global_to_local(x0, node_id));
 //
-//	id_type s1 = std::get<0>(geometry.point_global_to_local(x1, node_id));
+//	mesh_id_type s1 = std::get<0>(geometry.point_global_to_local(x1, node_id));
 //
 //	for (auto s : geometry.box(bound(x0, x1), node_id))
 //	{
-//		id_type code0 = geometry.out_code(s, s0);
-//		id_type code1 = geometry.out_code(s, s1);
+//		mesh_id_type code0 = geometry.out_code(s, s0);
+//		mesh_id_type code1 = geometry.out_code(s, s1);
 //
 //		if ((code0 & code1) != 0)
 //		{
@@ -467,12 +467,12 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //}
 //template<typename TM, typename TX>
-//void line_segment_cut_cell(TM const & geometry, typename TM::id_type node_id,
-//		TX const &x0, TX const & x1, std::set<typename TM::id_type>* res)
+//void line_segment_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
+//		TX const &x0, TX const & x1, std::set<typename TM::mesh_id_type>* res)
 //{
 //	typedef TM mesh_type;
 //	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
-//	typedef typename mesh_type::id_type id_type;
+//	typedef typename mesh_type::mesh_id_type mesh_id_type;
 //
 //	int m = 0;
 //	for (int i = 0; i < 3; ++i)

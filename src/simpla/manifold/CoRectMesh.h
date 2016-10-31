@@ -11,17 +11,19 @@
 #include <vector>
 #include <iomanip>
 
-#include "simpla/toolbox/macro.h"
-#include "simpla/sp_def.h"
-#include "simpla/toolbox/nTuple.h"
-#include "simpla/toolbox/nTupleExt.h"
-#include "simpla/toolbox/PrettyStream.h"
-#include "simpla/toolbox/type_traits.h"
-#include "simpla/toolbox/type_cast.h"
-#include "simpla/toolbox/Log.h"
+#include <simpla/toolbox/macro.h>
+#include <simpla/sp_def.h>
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/type_traits.h>
+#include <simpla/toolbox/type_cast.h>
+#include <simpla/toolbox/Log.h>
+#include <simpla/data/Patch.h>
+#include <simpla/data/Attribute.h>
 
 #include "MeshCommon.h"
-#include "MeshBase.h"
+#include "MeshBlock.h"
 #include "EntityId.h"
 
 namespace simpla { namespace mesh
@@ -34,12 +36,12 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CoRectMesh : public MeshBase
+struct CoRectMesh : public MeshBlock
 {
 
 public:
 
-    SP_OBJECT_HEAD(CoRectMesh, MeshBase)
+    SP_OBJECT_HEAD(CoRectMesh, MeshBlock)
 
     typedef Real scalar_type;
 
@@ -78,9 +80,13 @@ public:
 
 public:
 
+    template<typename TV, MeshEntityType IFORM> using patch_type =  data::ArrayPatch<TV, ndims + 1>;
+    template<typename TV, MeshEntityType IFORM> using attribute_type =  data::Attribute<data::ArrayPatch<TV,
+            ndims + 1>, this_type, IFORM>;
+
     CoRectMesh() {}
 
-    CoRectMesh(CoRectMesh const &other) : MeshBase(other), m_origin_(other.m_origin_), m_dx_(other.m_dx_) {};
+    CoRectMesh(CoRectMesh const &other) : MeshBlock(other), m_origin_(other.m_origin_), m_dx_(other.m_dx_) {};
 
     virtual  ~CoRectMesh() {}
 
@@ -93,7 +99,7 @@ public:
 
     virtual void deploy();
 
-    virtual std::shared_ptr<MeshBase> clone() const { return std::make_shared<CoRectMesh>(*this); };
+    virtual std::shared_ptr<MeshBlock> clone() const { return std::make_shared<CoRectMesh>(*this); };
 
     inline void box(point_type const &x0, point_type const &x1)
     {
@@ -105,7 +111,7 @@ public:
 
     virtual box_type box() const
     {
-        auto i_box = MeshBase::inner_index_box();
+        auto i_box = MeshBlock::inner_index_box();
         point_type lower = m_origin_ + std::get<0>(i_box) * m_dx_;
         point_type upper = m_origin_ + std::get<1>(i_box) * m_dx_;
         return std::make_tuple(lower, upper);
@@ -114,7 +120,7 @@ public:
     Vec3 dx() const
     {
 //        point_type upper;
-//        upper = m_origin_ + m_dx_ * MeshBase::dimensions();
+//        upper = m_origin_ + m_dx_ * MeshBlock::dimensions();
 //        return std::make_tuple(m_origin_, upper);
 //
         return m_dx_;
@@ -176,8 +182,8 @@ public:
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
 
-    virtual std::shared_ptr<MeshBase>
-    refine(box_type const &b, int flag = 0) const { return std::shared_ptr<MeshBase>(); }
+    virtual std::shared_ptr<MeshBlock>
+    refine(box_type const &b, int flag = 0) const { return std::shared_ptr<MeshBlock>(); }
 
 
 private:
@@ -206,7 +212,7 @@ public:
 
 void CoRectMesh::deploy()
 {
-    MeshBase::deploy();
+    MeshBlock::deploy();
     /**
          *\verbatim
          *                ^y
@@ -453,14 +459,14 @@ void CoRectMesh::deploy()
 //    return std::move(res);
 //};
 
-//    int get_vertices(int node_id, id_type s, point_type *p = nullptr) const
+//    int get_vertices(int node_id, mesh_id_type s, point_type *p = nullptr) const
 //    {
 //
 //        int num = m::get_adjacent_entities(VERTEX, node_id, s);
 //
 //        if (p != nullptr)
 //        {
-//            id_type neighbour[num];
+//            mesh_id_type neighbour[num];
 //
 //            m::get_adjacent_entities(VERTEX, node_id, s, neighbour);
 //
@@ -527,24 +533,24 @@ void CoRectMesh::deploy()
 //
 //public:
 //
-//    virtual point_type point(id_type const &s) const { return std::move(map(m::point(s))); }
+//    virtual point_type point(mesh_id_type const &s) const { return std::move(map(m::point(s))); }
 //
-//    virtual point_type point_local_to_global(id_type s, point_type const &x) const
+//    virtual point_type point_local_to_global(mesh_id_type s, point_type const &x) const
 //    {
 //        return std::move(map(m::point_local_to_global(s, x)));
 //    }
 //
-//    virtual point_type point_local_to_global(std::tuple<id_type, point_type> const &t) const
+//    virtual point_type point_local_to_global(std::tuple<mesh_id_type, point_type> const &t) const
 //    {
 //        return std::move(map(m::point_local_to_global(t)));
 //    }
 //
-//    virtual std::tuple<id_type, point_type> point_global_to_local(point_type const &x, int n_id = 0) const
+//    virtual std::tuple<mesh_id_type, point_type> point_global_to_local(point_type const &x, int n_id = 0) const
 //    {
 //        return std::move(m::point_global_to_local(inv_map(x), n_id));
 //    }
 //
-//    virtual id_type id(point_type const &x, int n_id = 0) const
+//    virtual mesh_id_type id(point_type const &x, int n_id = 0) const
 //    {
 //        return std::get<0>(m::point_global_to_local(inv_map(x), n_id));
 //    }

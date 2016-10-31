@@ -94,11 +94,11 @@ struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector
 //	typedef Chains<Primitive<dimension - 1, coordinate_system, tag_type>,
 //			Policies...> boundary_type;
 //
-//	typedef size_t id_type;
+//	typedef size_t mesh_id_type;
 //
-//	typedef nTuple<id_type, max_number_of_points> indices_tuple;
+//	typedef nTuple<mesh_id_type, max_number_of_points> indices_tuple;
 //
-//	typedef std::map<id_type, indices_tuple> DataType;
+//	typedef std::map<mesh_id_type, indices_tuple> DataType;
 //
 //	DataType & m_data()
 //	{

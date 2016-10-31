@@ -442,7 +442,7 @@ Particle<P, M, V001>::dataset(mesh::EntityRange const &r0, data_model::DataSet c
 
 
 //    ptrdiff_t inc = std::max(10, (num_of_element / r.size()));
-//    std::map<id_type, std::tuple<size_t, void *>> ptr;
+//    std::map<mesh_id_type, std::tuple<size_t, void *>> ptr;
 //
 //    {
 //        auto it = r0.begin();
@@ -543,7 +543,7 @@ Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator
 }
 
 //template<typename P, typename M> void
-//Particle<P, M, V001>::insert(id_type const &s, value_type const &v) { set(s, &v, &v + 1); }
+//Particle<P, M, V001>::insert(mesh_id_type const &s, value_type const &v) { set(s, &v, &v + 1); }
 //
 //
 //template<typename P, typename M> template<typename Hash, typename TRange> void
@@ -555,7 +555,7 @@ Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator
 //template<typename P, typename M>
 //template<typename TInputIterator>
 //void
-//Particle<P, M, V001>::set(id_type const &s, TInputIterator ib, TInputIterator ie)
+//Particle<P, M, V001>::set(mesh_id_type const &s, TInputIterator ib, TInputIterator ie)
 //{
 ////    _insert(m_attr_data_.get(), s, ib, ie);
 //}

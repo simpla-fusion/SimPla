@@ -28,7 +28,7 @@
 //extern inline void cache_gather(Real *v, Real const f[CACHE_SIZE], Real const *r0, const Real *r1)
 //{
 //    Real r[3] = {r0[0] - r1[0], r0[1] - r1[1], r0[2] - r1[2]};
-//    id_type s = (int) (r[0]) * IX + (int) (r[1]) * IY + (int) (r[2]) * IZ;
+//    mesh_id_type s = (int) (r[0]) * IX + (int) (r[1]) * IY + (int) (r[2]) * IZ;
 //
 //    *v = f[s + IX + IY + IZ /* */] * (r[0] - ll) * (r[1] - ll) * (r[2] - ll) +
 //         f[s + IX + IY  /*     */] * (r[0] - ll) * (r[1] - ll) * (rr - r[2]) +
@@ -43,7 +43,7 @@
 //extern inline void cache_scatter(Real f[CACHE_SIZE], Real v, Real const *r0, Real const *r1)
 //{
 //    Real r[3] = {r0[0] - r1[0], r0[1] - r1[1], r0[2] - r1[2]};
-//    id_type s = (int) (r[0]) * IX + (int) (r[1]) * IY + (int) (r[2]) * IZ;
+//    mesh_id_type s = (int) (r[0]) * IX + (int) (r[1]) * IY + (int) (r[2]) * IZ;
 //
 //    f[s + IX + IY + IZ /*  */] += v * (r[0] - ll) * (r[1] - ll) * (r[2] - ll);
 //    f[s + IX + IY /*       */] += v * (r[0] - ll) * (r[1] - ll) * (rr - r[2]);

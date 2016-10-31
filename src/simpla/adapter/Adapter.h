@@ -24,11 +24,11 @@ create_attribute_impl(std::type_info const &type_info, std::type_info const &mes
 
 std::shared_ptr<mesh::AttributeBase>
 create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
-                      std::shared_ptr<mesh::MeshBase> const &m, std::string const &name);
+                      std::shared_ptr<mesh::MeshBlock> const &m, std::string const &name);
 
 std::shared_ptr<mesh::PatchBase>
 create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
-                  std::shared_ptr<mesh::MeshBase> const &m);
+                  std::shared_ptr<mesh::MeshBlock> const &m);
 
 }
 

@@ -454,11 +454,11 @@ void filter_by_config(TDict const & dict, TDomain * domain)
 	{
 		return;
 	}
-	else if (dict["MeshBase"])
+	else if (dict["MeshBlock"])
 	{
 		std::vector<point_type> p;
 
-		dict["MeshBase"].as(&p);
+		dict["MeshBlock"].as(&p);
 
 		domain->reset(p[0], p[1]);
 
