@@ -15,14 +15,22 @@
 namespace simpla { namespace data
 {
 
+class AttributeBase;
 
 class AttrVisitorBase
 {
+public:
+    AttrVisitorBase() {}
+
+    virtual ~AttrVisitorBase() {}
+
+    virtual void visit(AttributeBase *)=0;
+
     template<typename ... T> void visit(Attribute<T...> *) {};
 };
 
 /**
- *  Attribute IS-A container of patchs
+ *  Attribute IS-A container of patches
  */
 class AttributeBase :
         public toolbox::Object,
@@ -88,7 +96,7 @@ private:
 
 template<typename ...> class Attribute;
 
-template<typename P, typename M, size_type IFORM = 0>
+template<typename P, typename M, size_type IFORM>
 class Attribute<P, M, index_const<IFORM>> : public AttributeBase
 {
 public:
@@ -226,7 +234,6 @@ public:
 //                   });
 //    }
 
-public:
     void copy(mesh::EntityRange const &r0, this_type const &g)
     {
         r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = g.get(s); });

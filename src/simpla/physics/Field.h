@@ -13,11 +13,6 @@
 #include <cassert>
 
 #include <simpla/toolbox/type_traits.h>
-#include <simpla/mesh/MeshCommon.h>
-#include <simpla/mesh/MeshBlock.h>
-#include <simpla/data/DataSet.h>
-#include <simpla/data/Attribute.h>
-#include <simpla/data/Patch.h>
 
 #include "FieldTraits.h"
 #include "FieldExpression.h"
@@ -31,15 +26,14 @@ template<typename TV, typename TManifold, size_t IFORM> using field_t= Field<TV,
 
 
 template<typename TV, typename TManifold, size_t IFORM>
-class Field<TV, TManifold, index_const<IFORM>>
-        : public data::Attribute<data::Patch<TV, TManifold, static_cast<mesh::MeshEntityType >(IFORM) >>
+class Field<TV, TManifold, index_const<IFORM>> : public typename TManifold::attribute_type<TV, IFORM>
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBlock, TManifold>::value, "TManifold is not derived from MeshBlock");
 
     typedef Field<TV, TManifold, index_const<IFORM>> this_type;
 
-    typedef mesh::Attribute<data::Patch<TV, TManifold, static_cast<mesh::MeshEntityType >(IFORM)  >> base_type;
+    typedef typename TManifold::attribute_type<TV, IFORM> base_type;
 
 
 public:
