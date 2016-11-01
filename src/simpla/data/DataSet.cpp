@@ -8,12 +8,12 @@
 #include <string.h>
 
 #include "DataSet.h"
-#include "PrettyStream.h"
-#include "MemoryPool.h"
-#include "MPIUpdate.h"
-#include "MPIComm.h"
+#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/MemoryPool.h>
+#include <simpla/toolbox/MPIUpdate.h>
+#include <simpla/toolbox/MPIComm.h>
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace data
 {
 
 

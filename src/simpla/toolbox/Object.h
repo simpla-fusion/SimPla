@@ -13,10 +13,10 @@
 #include <memory>
 
 #include <simpla/SIMPLA_config.h>
-
+#include <simpla/data/DataBase.h>
 #include "LifeClick.h"
 #include "design_pattern/Visitor.h"
-//#include "DataBase.h"
+
 
 namespace simpla { namespace toolbox
 {
@@ -115,9 +115,9 @@ public:
      *  @name concept lockable
      *  @{
      */
-    virtual void load(DataBase const &, std::string const & = "") {};
+    virtual void load(data::DataBase const &, std::string const & = "") {};
 
-    virtual void save(DataBase *, std::string const & = "") const {};
+    virtual void save(data::DataBase *, std::string const & = "") const {};
 
     virtual bool is_valid() const { return true; };
 

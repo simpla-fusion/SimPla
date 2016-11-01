@@ -6,7 +6,7 @@
 #ifdef HAS_MPI
 #   include "../parallel/DistributedObject.h"
 #endif
-namespace simpla { namespace mesh
+namespace simpla { namespace data
 {
 
 

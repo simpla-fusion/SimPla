@@ -9,12 +9,12 @@
 #include <utility>
 #include <tuple>
 
-#include "nTuple.h"
-#include "Parallel.h"
-#include "MPIUpdate.h"
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/Parallel.h>
+#include <simpla/toolbox/MPIUpdate.h>
 #include "DataSpace.h"
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace data
 {
 struct DataSpace::pimpl_s
 {

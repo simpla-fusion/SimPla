@@ -37,9 +37,7 @@ AttributeBase::~AttributeBase() {}
 std::ostream &AttributeBase::print(std::ostream &os, int indent) const
 {
     for (auto const &item:m_pimpl_->m_patches_)
-    {
-        item.second->print(os, indent + 1);
-    }
+    {        item.second->print(os, indent + 1);    }
     return os;
 }
 

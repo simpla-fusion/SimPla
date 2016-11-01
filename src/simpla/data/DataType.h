@@ -19,9 +19,8 @@
 #include <typeindex>
 #include <vector>
 
-#include "nTuple.h"
-#include "type_traits.h"
-#include "Object.h"
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/type_traits.h>
 
 namespace simpla { namespace traits
 {
@@ -29,7 +28,7 @@ template<typename T> struct rank;
 template<typename T> struct value_type;
 }}//namespace simpla{namespace traits
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace data
 {
 /**
  *  @ingroup data_interface
@@ -117,7 +116,7 @@ template<typename T>
 struct DataType::create_helper
 {
 private:
-    HAS_STATIC_MEMBER_FUNCTION (data_type)
+//    HAS_STATIC_MEMBER_FUNCTION (data_type)
 
     static DataType create_(std::string const &name, std::integral_constant<bool, true>)
     {

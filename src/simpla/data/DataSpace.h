@@ -13,10 +13,10 @@
 #include <cstdbool>
 #include <memory>
 #include <vector>
-#include "nTuple.h"
-#include "Properties.h"
-#include "Log.h"
-#include "Object.h"
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/Properties.h>
+#include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/Object.h>
 
 namespace simpla { namespace toolbox
 {

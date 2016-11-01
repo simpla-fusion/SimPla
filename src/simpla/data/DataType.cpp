@@ -12,7 +12,7 @@
 #include <iterator>
 #include <iomanip>
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace data
 {
 struct DataType::pimpl_s
 {

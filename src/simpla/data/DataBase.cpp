@@ -7,7 +7,7 @@
 #include "DataBase.h"
 #include "DataEntity.h"
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace data
 {
 
 std::ostream &operator<<(std::ostream &os, DataEntity const &prop) { return prop.print(os, 0); }
