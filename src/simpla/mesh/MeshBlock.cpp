@@ -265,7 +265,7 @@ MeshBlock::intersection(index_box_type const &other_box)
 //}
 
 
-std::tuple<toolbox::DataSpace, toolbox::DataSpace>
+std::tuple<data::DataSpace, data::DataSpace>
 MeshBlock::data_space(MeshEntityType const &t, MeshZoneTag status) const
 {
     int i_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
@@ -309,11 +309,11 @@ MeshBlock::data_space(MeshEntityType const &t, MeshZoneTag status) const
     m_count[ndims] = 3;
 
     FIXME;
-    toolbox::DataSpace f_space(i_ndims, &f_dims[0]);
+    data::DataSpace f_space(i_ndims, &f_dims[0]);
 //    f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
 
 
-    toolbox::DataSpace m_space(i_ndims, &m_dims[0]);
+    data::DataSpace m_space(i_ndims, &m_dims[0]);
     m_space.select_hyperslab(&m_start[0], nullptr, &m_count[0], nullptr);
 
     return std::forward_as_tuple(m_space, f_space);

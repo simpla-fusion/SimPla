@@ -26,7 +26,7 @@
 	</BaseManifold>
 	<Information Name="dt"> 1.0  </Information>
 	
-	<PatchBase Name="n0" AttributeType="Scalar" Center="Node">
+	<DataEntityHeavy Name="n0" AttributeType="Scalar" Center="Node">
 		<Information  Type="LuaScript">
 		local f0=1.9
         local k={0,1,1}
@@ -39,15 +39,15 @@
             return r
         end
 		</Information>	   
-	</PatchBase>
+	</DataEntityHeavy>
 
-	<PatchBase Name="E" AttributeType="Scalar" Center="Edge" />
+	<DataEntityHeavy Name="E" AttributeType="Scalar" Center="Edge" />
 
-	<PatchBase Name="B0" AttributeType="Scalar" Center="Face"/>
+	<DataEntityHeavy Name="B0" AttributeType="Scalar" Center="Face"/>
 
-	<PatchBase Name="ion" AttributeType="Particle" Type="Default" Mass="1.0" Charge="1.0"/>
+	<DataEntityHeavy Name="ion" AttributeType="Particle" Type="Default" Mass="1.0" Charge="1.0"/>
 
-	<PatchBase Name="electron" AttributeType="Particle" Type="GGauge" Mass="1.0" Charge="-1.0"/>
+	<DataEntityHeavy Name="electron" AttributeType="Particle" Type="GGauge" Mass="1.0" Charge="-1.0"/>
 
 	
 </Grid>

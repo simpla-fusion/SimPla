@@ -5,15 +5,18 @@
 #ifndef SIMPLA_ATTRIBUTE_H
 #define SIMPLA_ATTRIBUTE_H
 
-#include <simpla/mesh/MeshBlock.h>
-#include <simpla/mesh/EntityId.h>
-#include <simpla/mesh/EntityRange.h>
-#include <simpla/mesh/Atlas.h>
 
+#include <simpla/data/Serializable.h>
+#include "Atlas.h"
+#include "MeshBlock.h"
+#include "EntityId.h"
+#include "EntityRange.h"
 #include "Patch.h"
 
-namespace simpla { namespace data
+namespace simpla { namespace mesh
 {
+
+template<typename ...> class Attribute;
 
 class AttributeBase;
 
@@ -33,8 +36,7 @@ public:
  *  Attribute IS-A container of patches
  */
 class AttributeBase :
-        public toolbox::Object,
-        public DataBase,
+        public toolbox::Object, public data::Serializable,
         public std::enable_shared_from_this<AttributeBase>
 {
 public:
@@ -50,22 +52,23 @@ public:
 
     AttributeBase(AttributeBase const &) = delete;
 
-    AttributeBase(AttributeBase &&);
+    AttributeBase(AttributeBase &&)= delete;
 
     virtual ~AttributeBase();
 
+    virtual std::string const &name() const { return toolbox::Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    virtual void load(DataBase const &, std::string const & = "") {};
+    virtual void load(const data::DataBase &) {};
 
-    virtual void save(DataBase *, std::string const & = "") const {};
+    virtual void save(data::DataBase *) const {};
 
     virtual void apply(AttrVisitorBase *)=0;
 
     virtual std::type_info const &value_type_info()=0;
 
-    virtual size_type entity_type() const =0;
+    virtual mesh::MeshEntityType entity_type() const =0;
 
     virtual void deploy();
 
@@ -108,13 +111,15 @@ public:
 
     typedef Attribute<P, M, index_const<IFORM>> this_type;
 
+    static constexpr mesh::MeshEntityType iform = static_cast<mesh::MeshEntityType>(IFORM);
+
     patch_type *m_patch_ = nullptr;
 
     mesh_type const *m_mesh_ = nullptr;
 
     virtual std::type_info const &value_type_info() { return typeid(value_type); };
 
-    virtual size_type entity_type() const { return IFORM; }
+    virtual mesh::MeshEntityType entity_type() const { return iform; }
 
     virtual bool is_a(std::type_info const &t_info) const
     {
@@ -141,6 +146,7 @@ public:
         m_patch_ = patch();
     }
 
+    virtual void clear() { m_patch_->clear(); };
 
     inline value_type &get(mesh::MeshEntityId const &s) { return m_patch_->get(s.x, s.y, s.z, s.w); }
 

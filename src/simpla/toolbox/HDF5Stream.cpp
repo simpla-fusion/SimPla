@@ -16,7 +16,7 @@ extern "C"
 #include <cstring> //for memcopy
 
 #include "HDF5Stream.h"
-#include "DataSet.h"
+#include <simpla/data/DataSet.h>
 
 
 #include "Parallel.h"
@@ -34,13 +34,13 @@ RUNTIME_ERROR<<"\e[1;32m" <<"HDF5 Error:" <<__STRING(_FUN_) <<  "\e[1;37m"<<std:
 
 namespace simpla { namespace toolbox
 {
-hid_t convert_data_type_sp_to_h5(DataType const &, size_t flag = 0UL);
+hid_t convert_data_type_sp_to_h5(data::DataType const &, size_t flag = 0UL);
 
-hid_t convert_data_space_sp_to_h5(DataSpace const &, size_t flag = 0UL);
+hid_t convert_data_space_sp_to_h5(data::DataSpace const &, size_t flag = 0UL);
 
-DataType convert_data_type_h5_to_sp(hid_t);
+data::DataType convert_data_type_h5_to_sp(hid_t);
 
-DataSpace convert_data_space_h5_to_sp(hid_t);
+data::DataSpace convert_data_space_h5_to_sp(hid_t);
 
 struct HDF5Stream::pimpl_s
 {
@@ -62,7 +62,7 @@ struct HDF5Stream::pimpl_s
 
     static constexpr size_t DEFAULT_MAX_BUFFER_DEPTH = 100;
 
-    std::map<std::string, DataSet> m_buffer_map_;
+    std::map<std::string, data::DataSet> m_buffer_map_;
 
 };
 
@@ -378,7 +378,7 @@ void HDF5Stream::open_group(std::string const &str)
 
 }
 
-hid_t convert_data_type_sp_to_h5(DataType const &d_type, size_t is_compact_array)
+hid_t convert_data_type_sp_to_h5(data::DataType const &d_type, size_t is_compact_array)
 {
     hid_t res = H5T_NO_CLASS;
 
@@ -451,19 +451,19 @@ hid_t convert_data_type_sp_to_h5(DataType const &d_type, size_t is_compact_array
     return (res);
 }
 
-DataType convert_data_type_h5_to_sp(hid_t t_id)
+data::DataType convert_data_type_h5_to_sp(hid_t t_id)
 {
 
     bool bad_cast_error = true;
 
-    DataType dtype;
+    data::DataType dtype;
 
     H5T_class_t type_class = H5Tget_class(t_id);
 
     if (type_class == H5T_NO_CLASS) { bad_cast_error = true; }
     else if (type_class == H5T_OPAQUE)
     {
-        DataType(std::type_index(typeid(void)), H5Tget_size(t_id)).swap(dtype);
+        data::DataType(std::type_index(typeid(void)), H5Tget_size(t_id)).swap(dtype);
     } else if (type_class == H5T_COMPOUND)
     {
         for (int i = 0, num = H5Tget_nmembers(t_id); i < num; ++i)
@@ -556,7 +556,7 @@ DataType convert_data_type_h5_to_sp(hid_t t_id)
 
 }
 
-hid_t convert_data_space_sp_to_h5(DataSpace const &ds, size_t flag)
+hid_t convert_data_space_sp_to_h5(data::DataSpace const &ds, size_t flag)
 {
 
     int ndims = 0;
@@ -626,14 +626,14 @@ hid_t convert_data_space_sp_to_h5(DataSpace const &ds, size_t flag)
 
 }
 
-DataSpace convert_data_space_h5_to_sp(hid_t)
+data::DataSpace convert_data_space_h5_to_sp(hid_t)
 {
     UNIMPLEMENTED;
 
-    return DataSpace();
+    return data::DataSpace();
 }
 
-void HDF5Stream::push_buffer(std::string const &url, DataSet const &ds)
+void HDF5Stream::push_buffer(std::string const &url, data::DataSet const &ds)
 {
 
     std::string full_path = absolute_path(url);
@@ -843,7 +843,7 @@ void HDF5Stream::flush()
 
 }
 
-std::string HDF5Stream::write(std::string const &url, DataSet const &ds, int flag)
+std::string HDF5Stream::write(std::string const &url, data::DataSet const &ds, int flag)
 {
 
 
@@ -998,7 +998,7 @@ std::string HDF5Stream::write(std::string const &url, DataSet const &ds, int fla
     return pwd() + dsname;
 }
 
-std::string HDF5Stream::read(std::string const &url, DataSet *ds, int flag)
+std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag)
 {
     UNIMPLEMENTED;
     return "UNIMPLEMENTED";

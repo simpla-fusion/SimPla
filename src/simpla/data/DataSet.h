@@ -20,7 +20,7 @@
 #include "DataSpace.h"
 #include "DataType.h"
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace data
 {
 /**
  * @addtogroup data_model Dataset
@@ -133,7 +133,7 @@ DataSet create_data_set(DataType const &dtype, std::shared_ptr<void> const &data
     ds.data_type = dtype;
     ds.data = data;
 
-    ds.memory_space = toolbox::DataSpace::create_simple(std::forward<Args>(args)...);
+    ds.memory_space = data::DataSpace::create_simple(std::forward<Args>(args)...);
     ds.data_space = ds.memory_space;
 
     return std::move(ds);
@@ -168,7 +168,7 @@ DataSet create_data_set(T const *p, int ndims, const size_type *d)
     ds.data_type = DataType::create<T>();
     ds.data = std::shared_ptr<void>(reinterpret_cast<void *>(const_cast<T *>(p)), tags::do_nothing());
 
-    ds.memory_space = toolbox::DataSpace::create_simple(ndims, d);
+    ds.memory_space = DataSpace::create_simple(ndims, d);
 
     ds.memory_space = ds.data_space;
 

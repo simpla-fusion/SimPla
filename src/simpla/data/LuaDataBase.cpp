@@ -3,7 +3,7 @@
 //
 #include "LuaDataBase.h"
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace data
 {
 LuaDataBase::LuaDataBase()
 {
@@ -14,15 +14,9 @@ LuaDataBase::LuaDataBase()
 LuaDataBase::~LuaDataBase() {};
 
 
-void LuaDataBase::parse_file(std::string const &filename)
-{
-    value().parse_file(filename);
-};
+void LuaDataBase::parse_file(std::string const &filename) { value().parse_file(filename); };
 
-void LuaDataBase::parse_string(std::string const &str)
-{
-    value().parse_file(str);
-};
+void LuaDataBase::parse_string(std::string const &str) { value().parse_file(str); };
 
 //bool LuaDataBase::is_a(std::type_info const &t_id) const
 //{
@@ -41,7 +35,7 @@ std::shared_ptr<DataBase> LuaDataBase::get(std::string const &key)
 {
     auto res = std::make_shared<LuaDataBase>();
 
-//    res->value().swap(this->value().LuaObject::get(key));
+//    res->m_value_().swap(this->m_value_().LuaObject::get(key));
 
     return (res->value().is_nil()) ? DataBase::get(key) : std::dynamic_pointer_cast<DataBase>(res);
 
@@ -51,7 +45,7 @@ std::shared_ptr<DataBase> LuaDataBase::at(std::string const &key)
 {
     auto res = std::make_shared<LuaDataBase>();
 
-//    res->value().swap(this->value().get(key));
+//    res->m_value_().swap(this->m_value_().get(key));
 
     return (res->value().is_nil()) ? DataBase::at(key) : std::dynamic_pointer_cast<DataBase>(res);
 
@@ -61,7 +55,7 @@ std::shared_ptr<DataBase> LuaDataBase::at(std::string const &key) const
 {
     auto res = std::make_shared<LuaDataBase>();
 
-//    res->value().swap(this->value()[key]);
+//    res->m_value_().swap(this->m_value_()[key]);
 
     return (res->value().is_nil()) ? DataBase::at(key) : std::dynamic_pointer_cast<DataBase>(res);
 

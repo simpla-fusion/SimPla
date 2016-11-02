@@ -16,9 +16,8 @@
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/Properties.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/Object.h>
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace data
 {
 
 

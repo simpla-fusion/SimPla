@@ -9,13 +9,10 @@
 
 #include <typeinfo>
 #include <mutex>
-#include <stddef.h> //for size_t
 #include <memory>
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/data/DataBase.h>
 #include "LifeClick.h"
-#include "design_pattern/Visitor.h"
 
 
 namespace simpla { namespace toolbox
@@ -102,27 +99,14 @@ public:
 
     virtual std::string get_class_name() const;
 
-    virtual std::ostream &print(std::ostream &os, int indent) const;
-
-    std::string const &name() const;
-
-    id_type const &id() const;
+    virtual bool is_valid() const { return true; };
 
 
     bool operator==(Object const &other);
 
-    /**
-     *  @name concept lockable
-     *  @{
-     */
-    virtual void load(data::DataBase const &, std::string const & = "") {};
+    std::string const &name() const;
 
-    virtual void save(data::DataBase *, std::string const & = "") const {};
-
-    virtual bool is_valid() const { return true; };
-
-    /** @}*/
-
+    id_type const &id() const;
 
     /**
      *  @name concept lockable
@@ -138,7 +122,7 @@ public:
     /** @} */
 
     /**
-     *  @name concept touchable
+     *  @name concept touch count
      *  @{
      */
     void touch();

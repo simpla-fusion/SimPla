@@ -70,7 +70,7 @@ inline MPI_Op get_MPI_Op(std::string const &op_c)
 }
 
 void reduce(void const *send_data, void *recv_data, size_t count,
-            toolbox::DataType const &data_type, std::string const &op_c)
+            data::DataType const &data_type, std::string const &op_c)
 {
     auto m_type = MPIDataType::create(data_type);
 
@@ -83,7 +83,7 @@ void reduce(void const *send_data, void *recv_data, size_t count,
 }
 
 void allreduce(void const *send_data, void *recv_data, size_t count,
-               toolbox::DataType const &data_type, std::string const &op_c)
+               data::DataType const &data_type, std::string const &op_c)
 {
 
     auto m_type = MPIDataType::create(data_type);

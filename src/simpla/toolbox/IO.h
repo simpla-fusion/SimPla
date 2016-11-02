@@ -11,8 +11,7 @@
 #include <stddef.h>
 #include <string>
 
-#include "DataSet.h"
-#include "DataType.h"
+
 #include "IOStream.h"
 #include "HDF5Stream.h"
 

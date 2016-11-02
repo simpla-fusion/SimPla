@@ -1,11 +1,9 @@
 //
 // Created by salmon on 16-6-6.
 //
-#include "Patch.h"
+#include "DataEntity.h"
 
-#ifdef HAS_MPI
-#   include "../parallel/DistributedObject.h"
-#endif
+
 namespace simpla { namespace data
 {
 
@@ -13,7 +11,7 @@ namespace simpla { namespace data
 
 
 //
-//void PatchBase::sync(bool is_blocking)
+//void DataEntityHeavy::sync(bool is_blocking)
 //{
 //#ifdef HAS_MPI
 //    //

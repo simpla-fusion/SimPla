@@ -5,11 +5,11 @@
 
 #include "Attribute.h"
 
-namespace simpla { namespace data
+namespace simpla { namespace mesh
 {
 struct AttributeBase::pimpl_s
 {
-    std::shared_ptr<mesh::Atlas> m_atlas_;
+    std::shared_ptr<Atlas> m_atlas_;
 
     std::map<mesh_id_type, std::shared_ptr<PatchBase>> m_patches_;
 
@@ -18,17 +18,17 @@ struct AttributeBase::pimpl_s
 
 AttributeBase::AttributeBase() : m_pimpl_(new pimpl_s)
 {
-    m_pimpl_->m_atlas_ = std::make_shared<mesh::Atlas>();
+    m_pimpl_->m_atlas_ = std::make_shared<Atlas>();
 }
 
-AttributeBase::AttributeBase(std::shared_ptr<mesh::MeshBlock> const &m) : m_pimpl_(new pimpl_s)
+AttributeBase::AttributeBase(std::shared_ptr<MeshBlock> const &m) : m_pimpl_(new pimpl_s)
 {
-    m_pimpl_->m_atlas_ = std::make_shared<mesh::Atlas>();
+    m_pimpl_->m_atlas_ = std::make_shared<Atlas>();
     m_pimpl_->m_atlas_->add(m);
     m_pimpl_->m_id_ = m->id();
 };
 
-AttributeBase::AttributeBase(std::shared_ptr<mesh::Atlas> const &m) : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = m; }
+AttributeBase::AttributeBase(std::shared_ptr<Atlas> const &m) : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = m; }
 
 AttributeBase::AttributeBase(AttributeBase &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
 
@@ -64,14 +64,14 @@ void AttributeBase::move_to(mesh_id_type id)
 AttributeBase::mesh_id_type AttributeBase::mesh_id() const { return m_pimpl_->m_id_; }
 
 
-std::shared_ptr<mesh::Atlas> const &AttributeBase::atlas() const { return m_pimpl_->m_atlas_; };
+std::shared_ptr<Atlas> const &AttributeBase::atlas() const { return m_pimpl_->m_atlas_; };
 
 bool AttributeBase::has(const mesh_id_type &t_id)
 {
     return m_pimpl_->m_patches_.find(t_id) != m_pimpl_->m_patches_.end();
 };
 
-mesh::MeshBlock const *AttributeBase::mesh(mesh_id_type t_id) const
+MeshBlock const *AttributeBase::mesh(mesh_id_type t_id) const
 {
     return m_pimpl_->m_atlas_->mesh(t_id);
 }

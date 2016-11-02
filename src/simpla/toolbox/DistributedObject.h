@@ -11,7 +11,6 @@
 
 #include <vector>
 #include <memory>
-#include <boost/uuid/uuid.hpp>
 
 #include <simpla/toolbox/nTuple.h>
 

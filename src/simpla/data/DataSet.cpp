@@ -9,9 +9,6 @@
 
 #include "DataSet.h"
 #include <simpla/toolbox/PrettyStream.h>
-#include <simpla/toolbox/MemoryPool.h>
-#include <simpla/toolbox/MPIUpdate.h>
-#include <simpla/toolbox/MPIComm.h>
 
 namespace simpla { namespace data
 {

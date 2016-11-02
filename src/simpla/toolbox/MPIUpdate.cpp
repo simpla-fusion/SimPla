@@ -8,7 +8,7 @@
 #include "MPIUpdate.h"
 #include "MPIDataType.h"
 #include "DistributedObject.h"
-#include "DataSet.h"
+#include <simpla/data/DataSet.h>
 #include "Log.h"
 #include <cassert>
 

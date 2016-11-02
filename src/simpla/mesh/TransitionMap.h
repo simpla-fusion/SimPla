@@ -12,7 +12,6 @@
 #include <simpla/toolbox/PrettyStream.h>
 #include "MeshCommon.h"
 #include "MeshBlock.h"
-#include "Patch.h"
 
 namespace simpla { namespace mesh
 {
@@ -50,8 +49,8 @@ struct TransitionMapBase : public toolbox::Object
     virtual MeshBlock::id_type to_id() const =0;
 //    virtual point_type map(point_type const &x) const { return x; }
 //    point_type operator()(point_type const &x) const { return map(x); }
-//    virtual void push_forward(PatchBase const &src, PatchBase *dest) const =0;
-//    virtual void pull_back(PatchBase const &src, PatchBase *dest) const =0;
+//    virtual void push_forward(DataEntityHeavy const &src, DataEntityHeavy *dest) const =0;
+//    virtual void pull_back(DataEntityHeavy const &src, DataEntityHeavy *dest) const =0;
 
 
 };

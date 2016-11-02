@@ -5,23 +5,23 @@
 #ifndef SIMPLA_LUADATABASE_H
 #define SIMPLA_LUADATABASE_H
 
-#include "LuaObject.h"
+#include <simpla/toolbox/LuaObject.h>
 #include "DataBase.h"
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace data
 {
-class LuaDataEntity : public LuaObject, public DataEntity
+class LuaDataEntity : public toolbox::LuaObject, public DataEntity
 {
 public:
     LuaDataEntity() {}
 
     virtual ~LuaDataEntity() {}
 
-    bool empty() const { return LuaObject::empty(); }
+    bool empty() const { return toolbox::LuaObject::empty(); }
 
-    bool is_null() const { return LuaObject::is_null(); }
+    bool is_null() const { return toolbox::LuaObject::is_null(); }
 
-    void swap(LuaDataEntity &other) { LuaObject::swap(other); }
+    void swap(LuaDataEntity &other) { toolbox::LuaObject::swap(other); }
 
 
 };

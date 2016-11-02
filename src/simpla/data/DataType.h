@@ -116,7 +116,7 @@ template<typename T>
 struct DataType::create_helper
 {
 private:
-//    HAS_STATIC_MEMBER_FUNCTION (data_type)
+    HAS_STATIC_MEMBER_FUNCTION (data_type)
 
     static DataType create_(std::string const &name, std::integral_constant<bool, true>)
     {

@@ -11,7 +11,6 @@
 
 #include "IO.h"
 #include "Log.h"
-#include "DataSet.h"
 #include "Parallel.h"
 
 namespace simpla { namespace toolbox
@@ -158,7 +157,7 @@ void _str_replace(std::string *s, std::string const &place_holder, std::string c
 }
 
 
-std::string XDMFStream::write(std::string const &ds_name, toolbox::DataSet const &ds, int flag)
+std::string XDMFStream::write(std::string const &ds_name, data::DataSet const &ds, int flag)
 {
     if (ds.empty())
     {
@@ -203,7 +202,7 @@ std::string XDMFStream::write(std::string const &ds_name, toolbox::DataSet const
 //{
 //    if (attr.data_set().empty())
 //    {
-//        VERBOSE << "Try to write empty PatchBase: [" << ds_name << "] Ignored!" << std::endl;
+//        VERBOSE << "Try to write empty DataEntityHeavy: [" << ds_name << "] Ignored!" << std::endl;
 //
 //        return;
 //    }
@@ -235,13 +234,13 @@ std::string XDMFStream::write(std::string const &ds_name, toolbox::DataSet const
 //    ];
 //
 //    m_file_stream_ << ""
-//    << std::setw(level * 2 + 2) << "" << "<PatchBase Name=\"" << ds_name << " \" "
+//    << std::setw(level * 2 + 2) << "" << "<DataEntityHeavy Name=\"" << ds_name << " \" "
 //    << "AttributeType=\"" << attr_type << "\" "
 //    << "Center=\"" << center_type << "\">" << std::endl;
 //
 //    this->write(ds_name, attr.data_set());
 //
-//    m_file_stream_ << std::setw(level * 2 + 2) << "" << "</PatchBase>" << std::endl;
+//    m_file_stream_ << std::setw(level * 2 + 2) << "" << "</DataEntityHeavy>" << std::endl;
 //
 //
 ////    VERBOSE << "data_set [" << ds_name << "] is saved in [" << path() << "]!" << std::endl;
@@ -309,7 +308,7 @@ void XDMFStream::set_topology_geometry(std::string const &name, int ndims, size_
 }
 
 
-void XDMFStream::set_topology_geometry(std::string const &name, toolbox::DataSet const &ds)
+void XDMFStream::set_topology_geometry(std::string const &name, data::DataSet const &ds)
 {
 
     int level = static_cast<int>(m_path_.size());

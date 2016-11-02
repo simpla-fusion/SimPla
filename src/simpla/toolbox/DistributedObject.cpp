@@ -18,7 +18,7 @@ namespace simpla { namespace toolbox
 
 struct DistributedObject::pimpl_s
 {
-    typedef typename toolbox::DataSpace::index_tuple index_tuple;
+    typedef typename data::DataSpace::index_tuple index_tuple;
 
     pimpl_s();
 
@@ -41,14 +41,14 @@ struct DistributedObject::pimpl_s
         int tag;
         int dest;
         nTuple<int, 3> shift;
-        toolbox::DataSet *data_set;
+        data::DataSet *data_set;
     };
     struct send_link_s
     {
         int tag;
         int dest;
         nTuple<int, 3> shift;
-        toolbox::DataSet const *data_set;
+        data::DataSet const *data_set;
     };
 
     std::multimap<size_t, send_link_s> m_send_links_;
@@ -166,7 +166,7 @@ void DistributedObject::pimpl_s::sync()
 
             size_type s_recv_num = static_cast<size_type>(recv_num);
 
-            ds->memory_space = toolbox::DataSpace(1, &s_recv_num);
+            ds->memory_space = data::DataSpace(1, &s_recv_num);
 
 //            ds->data_space = ds->memory_space;
 

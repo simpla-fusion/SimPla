@@ -123,9 +123,9 @@ public:
         return *this;
     }
 
-    virtual void load(const toolbox::DataBase &) {};
+    virtual void load(const data::DataBase &) {};
 
-    virtual void save(toolbox::DataBase *) {};
+    virtual void save(data::DataBase *) {};
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 

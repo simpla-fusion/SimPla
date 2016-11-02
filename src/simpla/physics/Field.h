@@ -26,14 +26,14 @@ template<typename TV, typename TManifold, size_t IFORM> using field_t= Field<TV,
 
 
 template<typename TV, typename TManifold, size_t IFORM>
-class Field<TV, TManifold, index_const<IFORM>> : public typename TManifold::attribute_type<TV, IFORM>
+class Field<TV, TManifold, index_const<IFORM>> : public TManifold::template attribute_type<TV, IFORM>
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBlock, TManifold>::value, "TManifold is not derived from MeshBlock");
 
     typedef Field<TV, TManifold, index_const<IFORM>> this_type;
 
-    typedef typename TManifold::attribute_type<TV, IFORM> base_type;
+    typedef typename TManifold::template attribute_type<TV, IFORM> base_type;
 
 
 public:

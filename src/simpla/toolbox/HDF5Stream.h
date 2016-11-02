@@ -13,7 +13,7 @@
 #include <cstdbool>
 #include <string>
 #include <tuple>
-#include "DataSet.h"
+#include <simpla/data/DataSet.h>
 #include "Any.h"
 #include "Properties.h"
 #include "IOStream.h"
@@ -79,9 +79,9 @@ public:
      * @return
      */
 
-    virtual std::string write(std::string const &url, DataSet const &ds, int flag = 0UL);
+    virtual std::string write(std::string const &url, data::DataSet const &ds, int flag = 0UL);
 
-    void push_buffer(std::string const &url, DataSet const &ds);
+    void push_buffer(std::string const &url, data::DataSet const &ds);
 
     std::string write_buffer(std::string const &url, bool is_forced_flush = false);
 
@@ -92,7 +92,7 @@ public:
      * @param id
      * @return
      */
-    virtual std::string read(std::string const &url, DataSet *ds, int flag = 0UL);
+    virtual std::string read(std::string const &url, data::DataSet *ds, int flag = 0UL);
 
 
     /**

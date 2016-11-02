@@ -198,12 +198,13 @@ struct Any
 
     virtual bool is_null() const { return m_data_ == nullptr; }
 
-    void clear() { Any().swap(*this); }
+    virtual void clear() { Any().swap(*this); }
 
-    const std::type_info &type() const
-    {
-        return m_data_ ? m_data_->type() : typeid(void);
-    }
+    virtual void *data() { return m_data_->data(); }
+
+    virtual void const *data() const { return m_data_->data(); }
+
+    const std::type_info &type() const { return m_data_ ? m_data_->type() : typeid(void); }
 
 //----------------------------------------------------------------------------------------------
 // SimPla extent
@@ -244,7 +245,7 @@ struct Any
     {
         if (!empty() && this->template is_same<U>())
         {
-            return dynamic_cast<Holder <U> *>(m_data_)->value;
+            return dynamic_cast<Holder <U> *>(m_data_)->m_value_;
         } else
         {
             U res;
@@ -259,13 +260,13 @@ struct Any
     {
         if (!is_same<U>()) {THROW_EXCEPTION_BAD_CAST(typeid(U).name(), m_data_->type().name()); }
 
-        return dynamic_cast<Holder <U> *>(m_data_)->value;
+        return dynamic_cast<Holder <U> *>(m_data_)->m_value_;
     }
 
     template<class U> U &get()
     {
         if (!is_same<U>()) {THROW_EXCEPTION_BAD_CAST(typeid(U).name(), m_data_->type().name()); }
-        return dynamic_cast<Holder <U> *>(m_data_)->value;
+        return dynamic_cast<Holder <U> *>(m_data_)->m_value_;
     }
 
 
@@ -329,13 +330,17 @@ private:
 
         virtual std::shared_ptr<PlaceHolder> get(int) const = 0;
 
+        virtual void *data()  = 0;
+
+        virtual void const *data() const = 0;
+
         template<typename U, int N>
         bool as(nTuple <U, N> *v) const
         {
             if (is_same<nTuple<U, N>>
                     ())
             {
-                *v = dynamic_cast<Holder<nTuple<U, N>> const *>(this)->value;
+                *v = dynamic_cast<Holder<nTuple<U, N>> const *>(this)->m_value_;
                 return true;
             } else if (this->size() < N)
             {
@@ -355,7 +360,7 @@ private:
         bool as(U *v) const
         {
             bool success = true;
-            if (is_same<U>()) { *v = dynamic_cast<Holder<U> const *>(this)->value; }
+            if (is_same<U>()) { *v = dynamic_cast<Holder<U> const *>(this)->m_value_; }
             else if (_impl::get_integer(v, this->to_integer())) {}
             else if (_impl::get_floating_point(v, this->to_floating_point())) {}
             else if (_impl::get_string(v, this->to_string())) {}
@@ -368,29 +373,37 @@ private:
     template<typename ValueType>
     struct Holder : PlaceHolder
     {
-        Holder(ValueType const &v) : value(v) {}
+        ValueType m_value_;
 
-        Holder(ValueType &&v) : value(std::forward<ValueType>(v)) {}
+    public:
+        Holder(ValueType const &v) : m_value_(v) {}
+
+        Holder(ValueType &&v) : m_value_(std::forward<ValueType>(v)) {}
 
         virtual    ~Holder() {}
 
         Holder &operator=(const Holder &) = delete;
 
-        virtual PlaceHolder *clone() const { return new Holder(value); }
+        virtual PlaceHolder *clone() const { return new Holder(m_value_); }
 
         virtual const std::type_info &type() const { return typeid(ValueType); }
 
-        ValueType value;
 //----------------------------------------------------------------------------------------------
 // SimPla extent
 
         std::ostream &print(std::ostream &os, int indent = 1) const
         {
-            if (std::is_same<ValueType, std::string>::value) { os << "\"" << value << "\""; } else { os << value; }
+            if (std::is_same<ValueType, std::string>::value) { os << "\"" << m_value_ << "\""; }
+            else
+            {
+                os << m_value_;
+            }
             return os;
         }
 
+        virtual void *data() { return &m_value_; };
 
+        virtual void const *data() const { return &m_value_; };
 
 //    data_model::DataType data_type() const { return data_model::DataType::template create<T>(); }
 
@@ -403,13 +416,13 @@ private:
         virtual bool is_string() const { return std::is_convertible<ValueType, std::string>::value; }
 
 
-        virtual int to_integer() const { return _impl::_to_integer(value); };
+        virtual int to_integer() const { return _impl::_to_integer(m_value_); };
 
-        virtual double to_floating_point() const { return _impl::_to_floating_point(value); };
+        virtual double to_floating_point() const { return _impl::_to_floating_point(m_value_); };
 
-        virtual bool to_bool() const { return _impl::_to_bool(value); };
+        virtual bool to_bool() const { return _impl::_to_bool(m_value_); };
 
-        virtual std::string to_string() const { return _impl::_to_string(value); };
+        virtual std::string to_string() const { return _impl::_to_string(m_value_); };
 
 
     private:
@@ -449,9 +462,9 @@ private:
         }
 
     public:
-        virtual int size() const { return _size_of(value); };
+        virtual int size() const { return _size_of(m_value_); };
 
-        virtual std::shared_ptr<PlaceHolder> get(int n) const { return _index_of(value, n); }
+        virtual std::shared_ptr<PlaceHolder> get(int n) const { return _index_of(m_value_, n); }
 
 
     };

@@ -5,14 +5,16 @@
  *  */
 #include <simpla/toolbox/Object.h>
 #include <simpla/toolbox/IOStream.h>
+#include <simpla/data/Attribute.h>
 #include "DomainBase.h"
+
 
 
 namespace simpla { namespace mesh
 {
 struct DomainBase::pimpl_s
 {
-    std::map<id_type, std::shared_ptr<AttributeBase> > m_attrs_;
+    std::map<id_type, std::shared_ptr<data::AttributeBase> > m_attrs_;
 };
 
 DomainBase::DomainBase() : m_pimpl_(new pimpl_s) {}
@@ -26,7 +28,7 @@ DomainBase::~DomainBase() { teardown(); }
 //
 //std::shared_ptr<AttributeBase> DomainBase::attribute(uuid id) { return m_pimpl_->m_attrs_.at(id); };
 //
-//void DomainBase::add_attribute(PatchBase *attr, std::string const &s_name)
+//void DomainBase::add_attribute(DataEntityHeavy *attr, std::string const &s_name)
 //{
 //    m_pimpl_->m_attrs_.emplace(std::make_pair(s_name, attr));
 //};

@@ -28,7 +28,7 @@ void MPIDataType::swap(MPIDataType &other)
 
 MPIDataType::~MPIDataType() { if (is_commited_) {MPI_CALL(MPI_Type_free(&m_type_)); }}
 
-MPIDataType MPIDataType::create(toolbox::DataType const &data_type, //
+MPIDataType MPIDataType::create(data::DataType const &data_type, //
                                 int ndims, //
                                 size_t const *p_dims,        //
                                 size_t const *p_start,      //
@@ -66,7 +66,7 @@ MPIDataType MPIDataType::create(toolbox::DataType const &data_type, //
         //		  MPI_Datatype array_of_types[],
         for (auto const &item : data_type.members())
         {
-            toolbox::DataType sub_datatype;
+            data::DataType sub_datatype;
 
             int offset;
 
@@ -171,7 +171,7 @@ MPIDataType MPIDataType::create(toolbox::DataType const &data_type, //
     return std::move(res);
 }
 
-MPIDataType MPIDataType::create(toolbox::DataType const &data_type, toolbox::DataSpace const &d_space,
+MPIDataType MPIDataType::create(data::DataType const &data_type, data::DataSpace const &d_space,
                                 bool c_order_array)
 {
 

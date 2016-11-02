@@ -19,12 +19,13 @@
 #include <simpla/toolbox/type_traits.h>
 #include <simpla/toolbox/type_cast.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/data/Patch.h>
+#include <simpla/data/DataBlock.h>
 #include <simpla/data/Attribute.h>
+#include <simpla/data/DataEntityNDArray.h>
 
-#include "MeshCommon.h"
-#include "MeshBlock.h"
-#include "EntityId.h"
+#include "../mesh/MeshCommon.h"
+#include "../mesh/MeshBlock.h"
+#include "../mesh/EntityId.h"
 
 namespace simpla { namespace mesh
 {
@@ -80,9 +81,9 @@ public:
 
 public:
 
-    template<typename TV, MeshEntityType IFORM> using patch_type =  data::ArrayPatch<TV, ndims + 1>;
-    template<typename TV, MeshEntityType IFORM> using attribute_type =  data::Attribute<data::ArrayPatch<TV,
-            ndims + 1>, this_type, IFORM>;
+    template<typename TV, size_type IFORM> using patch_type =  data::DataEntityNDArray<TV, ndims + 1>;
+    template<typename TV, size_type IFORM> using attribute_type =
+    data::Attribute<data::DataEntityNDArray<TV,ndims + 1>, this_type, index_const<IFORM> >;
 
     CoRectMesh() {}
 

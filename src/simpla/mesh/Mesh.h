@@ -12,7 +12,6 @@
 #include "MeshBlock.h"
 #include "Atlas.h"
 #include "Layers.h"
-#include "Patch.h"
 
 
 #endif //SIMPLA_MESH_H

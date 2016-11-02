@@ -21,7 +21,6 @@
 #include "Mesh.h"
 #include "Atlas.h"
 #include "TransitionMap.h"
-#include "Attribute.h"
 
 
 namespace simpla { namespace mesh
@@ -73,13 +72,13 @@ public:
 //    //------------------------------------------------------------------------------------------------------------------
 //    std::shared_ptr<AttributeBase> attribute(uuid id);
 //
-//    void add_attribute(PatchBase *attr, std::string const &s_name);
+//    void add_attribute(DataEntityHeavy *attr, std::string const &s_name);
 //
 //    template<typename TF>
 //    void global_declare(TF *attr, std::string const &s_name)
 //    {
-//        static_assert(std::is_base_of<PatchBase, TF>::value, "illegal type conversion");
-//        add_attribute(dynamic_cast<PatchBase *>(attr), s_name);
+//        static_assert(std::is_base_of<DataEntityHeavy, TF>::m_value_, "illegal type conversion");
+//        add_attribute(dynamic_cast<DataEntityHeavy *>(attr), s_name);
 //    };
 
 

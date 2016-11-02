@@ -9,8 +9,8 @@
 
 #include <string>
 #include <tuple>
+#include <simpla/data/DataSet.h>
 #include "Properties.h"
-#include "DataSet.h"
 
 
 namespace simpla { namespace toolbox
@@ -70,9 +70,9 @@ public:
 
     virtual std::tuple<bool, std::string> open(std::string const &url, int flag = 0UL) = 0;
 
-    virtual std::string write(std::string const &url, toolbox::DataSet const &, int flag = 0UL) = 0;
+    virtual std::string write(std::string const &url, data::DataSet const &, int flag = 0UL) = 0;
 
-    virtual std::string read(std::string const &url, toolbox::DataSet *ds, int flag = 0UL) = 0;
+    virtual std::string read(std::string const &url, data::DataSet *ds, int flag = 0UL) = 0;
 
 
 //    template<typename TV>

@@ -4,26 +4,27 @@
 
 #ifndef SIMPLA_ARRAYPATCH_H
 #define SIMPLA_ARRAYPATCH_H
+
 #include <type_traits>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Memory.h>
-#include "Patch.h"
+#include "DataEntity.h"
 #include "DataBase.h"
 
 namespace simpla { namespace data
 {
 
-template<typename V, unsigned int NDIMS> class ArrayPatch;
 
 template<typename V, unsigned int NDIMS>
-class ArrayPatch : public PatchBase
+class DataEntityNDArray : public DataEntityHeavy
 {
 public:
     static constexpr int ndims = NDIMS;
-    typedef ArrayPatch<V, 4> this_type;
+    typedef DataEntityNDArray<V, 4> this_type;
     typedef V value_type;
 
-    ArrayPatch(index_type const lo[ndims], index_type const hi[ndims], std::shared_ptr<value_type> const &p = nullptr)
+    DataEntityNDArray(index_type const lo[ndims], index_type const hi[ndims],
+                      std::shared_ptr<value_type> const &p = nullptr)
             : m_data_(p)
     {
         m_ndims_ = 0;
@@ -50,9 +51,9 @@ public:
         }
     };
 
-    ArrayPatch(this_type const &other) = delete;
+    DataEntityNDArray(this_type const &other) = delete;
 
-    virtual ~ArrayPatch() {};
+    virtual ~DataEntityNDArray() {};
 
     virtual bool is_valid() const { return !empty(); };
 
@@ -62,7 +63,7 @@ public:
 
     static std::string class_name()
     {
-        return std::string("ArrayPatch<") + traits::type_id<value_type>::name() + std::string(",4>");
+        return std::string("DataEntityNDArray<") + traits::type_id<value_type>::name() + std::string(",4>");
     }
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
@@ -78,7 +79,7 @@ public:
 
     virtual bool is_a(std::type_info const &t_info) const
     {
-        return t_info == typeid(this_type) || PatchBase::is_a(t_info);
+        return t_info == typeid(this_type) || DataEntityHeavy::is_a(t_info);
     };
 
     virtual void deploy() { if (m_data_ == nullptr) { m_data_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }};

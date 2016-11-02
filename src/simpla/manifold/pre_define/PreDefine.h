@@ -7,8 +7,8 @@
 #ifndef SIMPLA_PREDEFINE_H
 #define SIMPLA_PREDEFINE_H
 
-#include "../../mesh/CoRectMesh.h"
-#include "../../mesh/RectMesh.h"
+#include "../../manifold/CoRectMesh.h"
+#include "../../manifold/RectMesh.h"
 
 #include "../Manifold.h"
 #include "../schemes/FVMStructured.h"

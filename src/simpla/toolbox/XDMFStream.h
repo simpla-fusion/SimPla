@@ -9,8 +9,8 @@
 
 #include <fstream>
 #include <memory>
-#include "DataSet.h"
-//#include "../base/PatchBase.h"
+#include <simpla/data/DataSet.h>
+//#include "../base/DataEntityHeavy.h"
 #include "HDF5Stream.h"
 
 
@@ -43,7 +43,7 @@ public:
 
     virtual std::tuple<bool, std::string> open(std::string const &url, int flag = 0UL);
 
-    virtual std::string read(std::string const &url, toolbox::DataSet *ds, int flag = 0UL) { return ""; };
+    virtual std::string read(std::string const &url, data::DataSet *ds, int flag = 0UL) { return ""; };
 
     void close();
 
@@ -54,13 +54,13 @@ public:
     void set_topology_geometry(std::string const &name, int ndims, size_t const *dims, Real const *xmin,
                                Real const *dx);
 
-    void set_topology_geometry(std::string const &name, toolbox::DataSet const &ds);
+    void set_topology_geometry(std::string const &name, data::DataSet const &ds);
 
     void close_grid();
 
     void time(Real time);
 
-    std::string write(std::string const &s, toolbox::DataSet const &ds, int flag = 0UL);
+    std::string write(std::string const &s, data::DataSet const &ds, int flag = 0UL);
 
 //    void write(std::string const &s, base::AttributeObject const &ds);
 

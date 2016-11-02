@@ -1138,7 +1138,7 @@ void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLeve
         else if (item.second->value_type_info() == typeid(int)) { CONVERT_VAR_STD_BOOST(int); }
 //        else if (item.second->value_type_info() == typeid(long)) { CONVERT_VAR_STD_BOOST(long); }
 //        else if (item.second->value_type_info() == typeid(size_type)) { CONVERT_VAR_STD_BOOST(size_type); }
-        else { RUNTIME_ERROR << "Unsupported value type" << std::endl; }
+        else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
 #undef CONVERT_VAR_STD_BOOST
 
         m_samrai_variables_[item.first] = var;
@@ -1420,7 +1420,7 @@ void SAMRAIWorkerHyperbolic::initializeDataOnPatch(SAMRAI::hier::Patch &patch, c
 /*
  *************************************************************************
  *
- * Compute stable time increment for patch.  Return this value.
+ * Compute stable time increment for patch.  Return this m_value_.
  *
  *************************************************************************
  */
@@ -1678,7 +1678,7 @@ void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, co
  *
  * Compute numerical approximations to flux terms using an extension
  * to three dimensions of Collella's corner transport upwind approach.
- * I.E. input value corner_transport = CORNER_TRANSPORT_1
+ * I.E. input m_value_ corner_transport = CORNER_TRANSPORT_1
  *
  *************************************************************************
  */
@@ -1967,7 +1967,7 @@ void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, co
  * Compute numerical approximations to flux terms using John
  * Trangenstein's interpretation of the three-dimensional version of
  * Collella's corner transport upwind approach.
- * I.E. input value corner_transport = CORNER_TRANSPORT_2
+ * I.E. input m_value_ corner_transport = CORNER_TRANSPORT_2
  *
  *************************************************************************
  */
@@ -2739,7 +2739,7 @@ void SAMRAIWorkerHyperbolic::tagGradientDetectorCells(
 //    int refine_tag_val = TRUE;
 //
 //    /*
-//     * Create a set of temporary tags and set to untagged value.
+//     * Create a set of temporary tags and set to untagged m_value_.
 //     */
 //    boost::shared_ptr<pdat::CellData<int> > temp_tags(
 //            new pdat::CellData<int>(pbox, 1, d_nghosts));
@@ -2797,7 +2797,7 @@ void SAMRAIWorkerHyperbolic::tagGradientDetectorCells(
 //
 //                /*
 //                 * Check for tags that have already been set in a previous
-//                 * step.  Do NOT consider values tagged with value
+//                 * step.  Do NOT consider values tagged with m_value_
 //                 * RICHARDSON_NEWLY_TAGGED since these were set most recently
 //                 * by Richardson extrapolation.
 //                 */
@@ -3492,7 +3492,7 @@ void SAMRAIWorkerHyperbolic::getFromInput(boost::shared_ptr<SAMRAI::tbox::Databa
         {
             TBOX_ERROR(
                     d_object_name << ": "
-                                  << "`data_problem' value not found in input."
+                                  << "`data_problem' m_value_ not found in input."
                                   << std::endl);
         }
 
@@ -4232,7 +4232,7 @@ void SAMRAIWorkerHyperbolic::readStateDataEntry(
 //{
 //}
 //
-//std::shared_ptr<mesh::PatchBase>
+//std::shared_ptr<mesh::DataEntityHeavy>
 //create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
 //                  std::shared_ptr<mesh::MeshBlock> const &m)
 //{

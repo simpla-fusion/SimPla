@@ -1,10 +1,12 @@
 //
-// Created by salmon on 16-10-8.
+// Created by salmon on 16-11-2.
 //
+
+
 #include <ostream>
 #include <iomanip>
 
-#include "DataBase.h"
+#include "MemoryDataBase.h"
 #include "DataEntity.h"
 
 namespace simpla { namespace data
@@ -12,13 +14,13 @@ namespace simpla { namespace data
 
 std::ostream &operator<<(std::ostream &os, DataEntity const &prop) { return prop.print(os, 0); }
 
-std::ostream &operator<<(std::ostream &os, DataBase const &prop) { return prop.print(os, 0); }
+std::ostream &operator<<(std::ostream &os, MemoryDataBase const &prop) { return prop.print(os, 0); }
 
-DataBase::DataBase() {};
+MemoryDataBase::MemoryDataBase() {};
 
-DataBase::~DataBase() {};
+MemoryDataBase::~MemoryDataBase() {};
 
-std::ostream &DataBase::print(std::ostream &os, int indent) const
+std::ostream &MemoryDataBase::print(std::ostream &os, int indent) const
 {
     if (m_value_ != nullptr) { m_value_->print(os, indent + 1); }
 
@@ -47,13 +49,13 @@ std::ostream &DataBase::print(std::ostream &os, int indent) const
 };
 
 void
-DataBase::foreach(std::function<void(std::string const &, std::shared_ptr<DataBase> const &)> const &fun) const
+MemoryDataBase::foreach(std::function<void(std::string const &, std::shared_ptr<DataBase> const &)> const &fun) const
 {
     for (auto const &item:m_table_) { fun(item.first, item.second); }
 }
 
 void
-DataBase::foreach(std::function<void(std::string const &, std::shared_ptr<DataBase> &)> const &fun)
+MemoryDataBase::foreach(std::function<void(std::string const &, std::shared_ptr<DataBase> &)> const &fun)
 {
     for (auto &item: m_table_) { fun(item.first, item.second); }
 };

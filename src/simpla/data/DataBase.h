@@ -14,76 +14,64 @@
 #include <ostream>
 #include <iomanip>
 #include <map>
-#include "DataEntity.h"
+#include "Printable.h"
+
 
 namespace simpla { namespace data
 {
+class DataEntity;
 
-
-class DataBase
+class DataBase : public Printable
 {
 public:
 
-    DataBase();
-
-    virtual  ~DataBase();
+    DataBase() {};
 
     DataBase(DataBase const &) = delete;
 
     DataBase(DataBase &&) = delete;
 
-    virtual DataEntity const &value() const { return *m_value_; };
+    virtual  ~DataBase() {};
 
-    virtual DataEntity &value() { return *m_value_; };
+    virtual std::string const &name() const =0;
 
-    virtual std::shared_ptr<DataBase> create() const { return std::make_shared<DataBase>(); };
+    virtual std::ostream &print(std::ostream &os, int indent) const =0;
 
-    virtual bool is_a(std::type_info const &t_id) const { return t_id == typeid(DataBase); }
+    virtual DataEntity const &value() const =0;
 
-    virtual bool is_table() const { return (m_value_ == nullptr) && !m_table_.empty(); };
+    virtual DataEntity &value() =0;
 
-    virtual bool empty() const { return m_value_ == nullptr || m_table_.empty(); };
+    virtual std::shared_ptr<DataBase> create() const =0;
 
-    virtual bool is_null() const { return empty(); };
+    virtual bool is_a(std::type_info const &t_id) const =0;
 
-    virtual bool has(std::string const &key) const { return m_table_.find(key) != m_table_.end(); };
+    virtual bool is_table() const =0;
 
-    virtual void set(std::string const &key, std::shared_ptr<DataBase> const &v) { get(key) = v; };;
+    virtual bool empty() const =0;
 
-    virtual std::shared_ptr<DataBase> get(std::string const &key) { return m_table_[key]; };
+    virtual bool is_null() const =0;
 
-    virtual std::shared_ptr<DataBase> at(std::string const &key) { return m_table_.at(key); };
+    virtual bool has(std::string const &key) const =0;
 
-    virtual std::shared_ptr<DataBase> at(std::string const &key) const { return m_table_.at(key); };
+    virtual void insert(std::string const &key, std::shared_ptr<DataBase> const &v) =0;
 
-    std::shared_ptr<DataBase> operator[](std::string const &key) { return get(key); };
+    virtual std::shared_ptr<DataBase> at(std::string const &key)  =0;
 
-    template<typename T> T const &
-    value_as(std::string const &key) const { return at(key)->value().template as<T>(); }
+    virtual std::shared_ptr<DataBase> at(std::string const &key) const =0;
 
-    template<typename T> T const &
-    value_as(std::string const &key, T const &default_value) const
-    {
-        if (has(key)) { return at(key)->value().template as<T>(); } else { return default_value; }
-    }
+    virtual DataBase &get(std::string const &key)  =0;
 
-    bool check(std::string const &key) { return has(key) && at(key)->value().template as<bool>(); }
+    virtual DataBase const &get(std::string const &key) const =0;
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+    DataBase &operator[](std::string const &key) { return get(key); };
 
-    virtual void foreach(std::function<void(std::string const &, std::shared_ptr<DataBase> const &)> const &) const;
+    DataBase const &operator[](std::string const &key) const { return get(key); };
 
-    virtual void foreach(std::function<void(std::string const &, std::shared_ptr<DataBase> &)> const &);
+    virtual void foreach(std::function<void(std::string const &key, DataBase const &)> const &) const =0;
 
-protected:
+    virtual void foreach(std::function<void(std::string const &key, DataBase &)> const &)=0;
 
-    std::map<std::string, std::shared_ptr<DataBase> > m_table_;
-    std::shared_ptr<DataEntity> m_value_;
 };
-
-std::ostream &operator<<(std::ostream &os, DataEntity const &prop);
-
-std::ostream &operator<<(std::ostream &os, DataBase const &prop);
 
 
 }}//namespace simpla{namespace toolbox{
