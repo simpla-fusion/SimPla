@@ -7,9 +7,10 @@
 
 #include <string>
 
-namespace simpla { namespace data
+namespace simpla { namespace data { class DataBase; }}
+
+namespace simpla { namespace toolbox
 {
-class DataBase;
 
 struct Serializable
 {
@@ -19,9 +20,9 @@ struct Serializable
 
     virtual std::string const &name() const =0;
 
-    virtual void load(DataBase const &) =0;
+    virtual void load(data::DataBase const &) =0;
 
-    virtual void save(DataBase *) const =0;
+    virtual void save(data::DataBase *) const =0;
 };
 
 

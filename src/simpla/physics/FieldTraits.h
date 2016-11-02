@@ -16,7 +16,7 @@
 #include "../toolbox/mpl.h"
 #include "../toolbox/integer_sequence.h"
 #include "../manifold/ManifoldTraits.h"
-#include "../mesh/EntityRange.h"
+#include "simpla/mesh/EntityIdRange.h"
 #include "FieldExpression.h"
 
 namespace simpla

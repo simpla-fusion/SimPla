@@ -11,7 +11,7 @@ struct AttributeBase::pimpl_s
 {
     std::shared_ptr<Atlas> m_atlas_;
 
-    std::map<mesh_id_type, std::shared_ptr<PatchBase>> m_patches_;
+    std::map<id_type, std::shared_ptr<PatchBase>> m_patches_;
 
     typename toolbox::Object::id_type m_id_;
 };
@@ -30,14 +30,13 @@ AttributeBase::AttributeBase(std::shared_ptr<MeshBlock> const &m) : m_pimpl_(new
 
 AttributeBase::AttributeBase(std::shared_ptr<Atlas> const &m) : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = m; }
 
-AttributeBase::AttributeBase(AttributeBase &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
+//AttributeBase::AttributeBase(AttributeBase &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
 
 AttributeBase::~AttributeBase() {}
 
 std::ostream &AttributeBase::print(std::ostream &os, int indent) const
 {
-    for (auto const &item:m_pimpl_->m_patches_)
-    {        item.second->print(os, indent + 1);    }
+    for (auto const &item:m_pimpl_->m_patches_) { item.second->print(os, indent + 1); }
     return os;
 }
 
@@ -54,35 +53,33 @@ void AttributeBase::deploy()
     update();
 }
 
-void AttributeBase::move_to(mesh_id_type id)
+void AttributeBase::move_to(id_type id)
 {
     m_pimpl_->m_id_ = id;
     update();
 
 }
 
-AttributeBase::mesh_id_type AttributeBase::mesh_id() const { return m_pimpl_->m_id_; }
-
 
 std::shared_ptr<Atlas> const &AttributeBase::atlas() const { return m_pimpl_->m_atlas_; };
 
-bool AttributeBase::has(const mesh_id_type &t_id)
+bool AttributeBase::has(const id_type &t_id)
 {
     return m_pimpl_->m_patches_.find(t_id) != m_pimpl_->m_patches_.end();
 };
 
-MeshBlock const *AttributeBase::mesh(mesh_id_type t_id) const
+MeshBlock const *AttributeBase::mesh(id_type t_id) const
 {
     return m_pimpl_->m_atlas_->mesh(t_id);
 }
 
 
-PatchBase const *AttributeBase::patch(mesh_id_type t_id) const
+PatchBase const *AttributeBase::patch(id_type t_id) const
 {
     return m_pimpl_->m_patches_.at((t_id == 0) ? mesh()->id() : t_id).get();
 }
 
-PatchBase *AttributeBase::patch(mesh_id_type t_id)
+PatchBase *AttributeBase::patch(id_type t_id)
 {
     PatchBase *res;
 

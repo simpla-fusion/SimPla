@@ -16,7 +16,7 @@ namespace simpla { namespace toolbox
 {
 struct Object::pimpl_s
 {
-    std::string m_name_{"unamed"};
+    std::string m_name_{""};
     std::mutex m_mutex_;
     size_t m_click_ = 0;
     boost::uuids::uuid m_id_;
@@ -24,9 +24,8 @@ struct Object::pimpl_s
     id_type m_short_id_;
 };
 
-Object::Object(std::string const &n) : m_pimpl_(new pimpl_s)
+Object::Object(std::string const &n ) : m_pimpl_(new pimpl_s)
 {
-
     auto gen = boost::uuids::random_generator();
     m_pimpl_->m_name_ = n;
     m_pimpl_->m_id_ = boost::uuids::random_generator()();
@@ -44,14 +43,7 @@ void Object::swap(Object &other) { std::swap(m_pimpl_, other.m_pimpl_); };
 
 bool Object::is_a(std::type_info const &info) const { return typeid(Object) == info; }
 
-std::string Object::get_class_name() const { return "base::LuaObject"; }
-
-std::ostream &Object::print(std::ostream &os, int indent) const
-{
-    os << std::setw(indent) << this->get_class_name() << std::endl;
-
-    return os;
-}
+std::string Object::get_class_name() const { return "Object"; }
 
 std::string const &Object::name() const { return m_pimpl_->m_name_; };
 

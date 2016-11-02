@@ -13,9 +13,11 @@
 #include "MeshCommon.h"
 #include "MeshBlock.h"
 #include "TransitionMap.h"
+#include "Attribute.h"
 
 namespace simpla { namespace mesh
 {
+class AttributeBase;
 
 /**
  *  Manifold (Differential Manifold):
@@ -28,55 +30,53 @@ namespace simpla { namespace mesh
 
 class Atlas
 {
-public:
-    typedef typename MeshBlock::id_type id_type;
-private:
-    static constexpr int MAX_NUM_OF_LEVEL = 10;
 
-    typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
-    typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
-    typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
-    std::map<id_type, std::shared_ptr<MeshBlock>> m_nodes_;
-    std::multimap<id_type, id_type> m_adjacent_;
-    std::multimap<id_type, id_type> m_refine_;
-    std::multimap<id_type, id_type> m_coarsen_;
-    std::set<id_type> m_layer_[MAX_NUM_OF_LEVEL];
-    unsigned int m_max_level_ = 0;
+
 public:
 
     Atlas();
 
     ~Atlas();
 
-    unsigned int max_level() const { return m_max_level_; }
+    unsigned int level() const;
+
+    bool has(id_type id) const;
 
 
-    std::shared_ptr<MeshBlock> at(id_type id) { try { return m_nodes_.at(id); } catch (...) { return nullptr; }};
+    virtual id_type insert(std::shared_ptr<MeshBlock> const p_m);
 
-    std::shared_ptr<const MeshBlock> at(id_type id) const
-    {
-        try { return m_nodes_.at(id); } catch (...) { return nullptr; }
-    };
+    id_type insert(MeshBlock &p_m) { return insert(p_m.shared_from_this()); };
 
-    std::shared_ptr<MeshBlock> operator[](id_type id) { return at(id); };
+    virtual MeshBlock &at(id_type id = 0);
 
-    std::shared_ptr<const MeshBlock> operator[](id_type id) const { return at(id); };
+    virtual MeshBlock const &at(id_type id = 0) const;
 
-    MeshBlock const *mesh(id_type id = 0) const
-    {
-        MeshBlock const *res = nullptr;
+    MeshBlock &operator[](id_type id) { return at(id); };
 
-        if (!m_nodes_.empty()) { if (id == 0) { res = m_nodes_.begin()->second.get(); } else { res = &(*at(id)); }}
+    MeshBlock const &operator[](id_type id) const { return at(id); };
 
-        return res;
+    template<typename TM> TM &as(id_type id = 0) { return static_cast<TM &>(at(id)); };
 
-    };
+    template<typename TM> TM const &as(id_type id = 0) const { return static_cast<TM const &>(at(id)); };
 
-    bool has(id_type id) const { return m_nodes_.find(id) != m_nodes_.end(); }
-
-    void add(std::shared_ptr<MeshBlock> const p_m);
+    /**
+     *  if '''has(hint)''' then '''at(hint).create(level,b)'''
+     *  else find_overlap(b,level)->create(level,b)
+     */
+    virtual id_type create(int level, index_box_type const &b, id_type hint = 0);
 
     void update(id_type id);
+
+
+    virtual void deploy(id_type id = 0);
+
+    virtual void erase(id_type id);
+
+    virtual void clear(id_type id);
+
+    virtual void coarsen(id_type dest, id_type src);
+
+    virtual void update(id_type dest, id_type src);
 
     /**
      * @brief
@@ -88,9 +88,6 @@ public:
      */
     int link(id_type i0, id_type i1);
 
-    void unlink(id_type id);
-
-    void erase(id_type m_id);
 
     std::set<id_type> &level(int l) { return m_layer_[l]; }
 
@@ -103,6 +100,15 @@ public:
     multi_links_type lower_lelvel(id_type id) const { return m_coarsen_.equal_range(id); };
 
     void update_all();
+
+    void register_attribute(std::shared_ptr<AttributeBase> attr);
+
+    void unregister_attribute(std::shared_ptr<AttributeBase> attr);
+
+
+private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 
 };
 }}//namespace simpla{namespace mesh_as{

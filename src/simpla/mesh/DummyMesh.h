@@ -11,7 +11,7 @@
 
 #include "MeshCommon.h"
 #include "Chart.h"
-#include "EntityRange.h"
+#include "EntityIdRange.h"
 
 namespace simpla { namespace mesh
 {
@@ -30,9 +30,9 @@ struct DummyMesh : public Chart
 
     virtual box_type box() const { return m_box_; };
 
-    virtual EntityRange range(MeshEntityType) const
+    virtual EntityIdRange range(MeshEntityType) const
     {
-        return EntityRange(m_entities_.begin(), m_entities_.end());
+        return EntityIdRange(m_entities_.begin(), m_entities_.end());
     }
 
     virtual size_type size(MeshEntityType entityType = VERTEX) const { max_hash(entityType); };

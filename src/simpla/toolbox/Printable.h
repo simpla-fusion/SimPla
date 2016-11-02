@@ -7,14 +7,14 @@
 
 #include <ostream>
 
-namespace simpla { namespace data
+namespace simpla { namespace toolbox
 {
 
 struct Printable
 {
-    Serializable() {}
+    Printable() {}
 
-    virtual ~Serializable() {}
+    virtual ~Printable() {}
 
     virtual std::string const &name() const =0;
 
@@ -23,11 +23,12 @@ struct Printable
 
 };
 
-std::ostream &operator<<(std::ostream &os, Printable const &obj)
+inline std::ostream &operator<<(std::ostream &os, Printable const &obj)
 {
-    os << obj.name() << " = {";
+    if (obj.name() != "") { os << obj.name() << " = "; };
+
     obj.print(os, 1);
-    os << "}" << std::endl;
+
     return os;
 }
 

@@ -1,5 +1,5 @@
 /**
- * @file MeshEntityRange.h
+ * @file EntityIdRange.h
  * @author salmon
  * @date 2016-05-18.
  */
@@ -19,9 +19,9 @@
 namespace simpla { namespace mesh
 {
 
-class EntityRange
+class EntityIdRange
 {
-    typedef EntityRange this_type;
+    typedef EntityIdRange this_type;
 
     class RangeBase;
 
@@ -30,18 +30,18 @@ class EntityRange
 
     HAS_MEMBER_FUNCTION(range)
 
-    std::shared_ptr<EntityRange> m_next_;
+    std::shared_ptr<EntityIdRange> m_next_;
     std::shared_ptr<RangeBase> m_holder_;
 
     typedef MeshEntityId64 id_type;
 public :
 
-    EntityRange() : m_next_(nullptr), m_holder_(nullptr) {}
+    EntityIdRange() : m_next_(nullptr), m_holder_(nullptr) {}
 
     //****************************************************************************
     // TBB RangeHolder Concept Begin
     template<typename TOther>
-    EntityRange(TOther const &other)
+    EntityIdRange(TOther const &other)
             : m_next_(nullptr), m_holder_(std::dynamic_pointer_cast<RangeBase>(
             std::make_shared<RangeHolder<TOther,
                     has_member_function_range<TOther>::value>>(other)))
@@ -49,14 +49,14 @@ public :
     }
 
     template<typename ...Args>
-    EntityRange(this_type &other, parallel::tags::split)
+    EntityIdRange(this_type &other, parallel::tags::split)
             :m_next_(nullptr), m_holder_(other.m_holder_->split())
     {
         auto *p0 = &m_next_;
         auto p1 = other.m_next_;
         while (p1 != nullptr)
         {
-            (*p0) = std::make_shared<EntityRange>();
+            (*p0) = std::make_shared<EntityIdRange>();
             (*p0)->m_holder_ = p1->m_holder_->split();
             (*p0)->m_next_ = nullptr;
             p0 = &((*p0)->m_next_);
@@ -65,14 +65,14 @@ public :
 
     }
 
-    EntityRange(this_type const &other)
+    EntityIdRange(this_type const &other)
             : m_next_(nullptr), m_holder_(other.m_holder_ == nullptr ? nullptr : other.m_holder_->clone())
     {
         auto *p0 = &m_next_;
         auto p1 = other.m_next_;
         while (p1 != nullptr)
         {
-            (*p0) = std::make_shared<EntityRange>();
+            (*p0) = std::make_shared<EntityIdRange>();
             (*p0)->m_holder_ = p1->m_holder_->clone();
             (*p0)->m_next_ = nullptr;
             p0 = &((*p0)->m_next_);
@@ -80,14 +80,14 @@ public :
         }
     }
 
-    EntityRange(this_type &&other)
+    EntityIdRange(this_type &&other)
             : m_holder_(other.m_holder_), m_next_(other.m_next_)
     {
         other.m_holder_ = nullptr;
         other.m_next_ = nullptr;
     }
 
-    ~EntityRange() {}
+    ~EntityIdRange() {}
 
     template<typename T>
     T &as() { return m_holder_->template as<T>(); }
@@ -120,7 +120,7 @@ public :
         return *this;
     }
 
-    void append(std::shared_ptr<EntityRange> p_next)
+    void append(std::shared_ptr<EntityIdRange> p_next)
     {// TODO remove cycle link
         if (p_next == nullptr || p_next->size() == 0) { return; }
 
@@ -141,7 +141,7 @@ public :
     template<typename ...Args>
     void append(Args &&... args)
     {
-        append(std::make_shared<EntityRange>(std::forward<Args>(args)...));
+        append(std::make_shared<EntityIdRange>(std::forward<Args>(args)...));
     }
 
 public:
@@ -165,9 +165,9 @@ public:
 
     template<typename T, typename ...Args,
             typename std::enable_if<!std::is_base_of<RangeBase, T>::value>::type * = nullptr>
-    static EntityRange create(Args &&...args)
+    static EntityIdRange create(Args &&...args)
     {
-        EntityRange res;
+        EntityIdRange res;
         res.m_holder_ = std::dynamic_pointer_cast<RangeBase>(
                 RangeHolder<T, has_member_function_range<T>::value>::create(std::forward<Args>(args)...));
         return std::move(res);
@@ -175,9 +175,9 @@ public:
 
     template<typename T, typename ...Args,
             typename std::enable_if<std::is_base_of<RangeBase, T>::value>::type * = nullptr>
-    static EntityRange create(Args &&...args)
+    static EntityIdRange create(Args &&...args)
     {
-        EntityRange res;
+        EntityIdRange res;
         res.m_holder_ = std::dynamic_pointer_cast<RangeBase>(std::make_shared<T>(std::forward<Args>(args)...));
         return std::move(res);
     }

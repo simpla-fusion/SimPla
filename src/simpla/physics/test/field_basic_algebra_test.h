@@ -62,7 +62,7 @@ public:
 
     value_type default_value;
 
-    mesh::EntityRange m_range;
+    mesh::EntityIdRange m_range;
 
     std::shared_ptr<mesh_type> m;
 

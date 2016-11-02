@@ -15,7 +15,7 @@
 #include "simpla/toolbox/macro.h"
 
 #include "simpla/toolbox/type_traits.h"
-#include "simpla/mesh/EntityRange.h"
+#include "simpla/mesh/EntityIdRange.h"
 #include "simpla/physics/Field.h"
 #include "simpla/physics/FieldTraits.h"
 #include "simpla/physics/FieldExpression.h"

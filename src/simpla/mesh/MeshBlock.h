@@ -11,6 +11,8 @@
 #include <simpla/data/DataSpace.h>
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/Object.h>
+#include <simpla/toolbox/Serializable.h>
+#include <simpla/toolbox/Printable.h>
 #include <simpla/toolbox/BoxUtility.h>
 #include "MeshCommon.h"
 #include "EntityId.h"
@@ -69,199 +71,133 @@ namespace simpla { namespace mesh
  *
  */
 
-class MeshBlock : public toolbox::Object
+class MeshBlock :
+        public toolbox::Object,
+        public toolbox::Serializable,
+        public toolbox::Printable,
+        public std::enable_shared_from_this<MeshBlock>
 {
-
-private:
-    bool m_is_deployed_ = false;
-    int m_processer_id_ = 0;
-    size_type m_space_id_ = 0;
-    int m_level_ = 0;
-    Real m_time_ = 0.0;
-
-
-    size_tuple m_ghost_width_{{0, 0, 0}};        //!<     ghost width
-
-    index_box_type m_g_box_{{0, 0, 0},
-                            {1, 1, 1}};         //!<     global index block
-    index_box_type m_m_box_{{0, 0, 0},
-                            {1, 1, 1}};         //!<     memory index block
-    index_box_type m_inner_box_{{0, 0, 0},
-                                {1, 1, 1}};     //!<    inner block
-    index_box_type m_outer_box_{{0, 0, 0},
-                                {1, 1, 1}};     //!<    outer block
-//    /**
-//     *  stride for memory address hash
-//     * index id[3]
-//     *  pos = (id[0]-m_m_lower[0])*m_m_stride_[0] +
-//     *        (id[1]-m_m_lower[1])*m_m_stride_[1] +
-//     *        (id[2]-m_m_lower[2])*m_m_stride_[2]
-//     */
-//    size_tuple m_m_stride_{{1, 1, 1}};
-
 
 public:
 
     SP_OBJECT_HEAD(MeshBlock, toolbox::Object)
 
-    using toolbox::Object::id_type;
-    using toolbox::Object::id;
-
-    static constexpr int ndims = 3;
-
     MeshBlock();
 
-    MeshBlock(MeshBlock const &other);
+    MeshBlock(index_tuple const &lo, index_tuple const &hi, index_tuple const &gw, id_type space_id = 0);
 
-    MeshBlock(MeshBlock &&other);
+    MeshBlock(int ndims, index_type const *lo, index_type const *hi, index_type const *gw, id_type space_id = 0);
 
     virtual ~MeshBlock();
 
-    MeshBlock &operator=(MeshBlock const &other)
-    {
-        MeshBlock(other).swap(*this);
-        return *this;
-    }
+    virtual void swap(MeshBlock &other);
+
+    MeshBlock(MeshBlock const &other) = delete;
+
+    MeshBlock(MeshBlock &&other) = delete;
+
+    MeshBlock &operator=(MeshBlock const &other)= delete;
+
+    /** for Printable @{*/
+    virtual std::string const &name() const { return toolbox::Object::name(); };
+
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+
+    /** @}*/
+
+    /** for Serializable @{*/
 
     virtual void load(const data::DataBase &) {};
 
     virtual void save(data::DataBase *) {};
 
-    virtual std::ostream &print(std::ostream &os, int indent) const;
+    /** @}*/
 
     /**
-     * @return  a copy of this mesh
+      * @return   copy of this mesh but has different '''id'''
+      */
+
+    virtual std::shared_ptr<MeshBlock> clone() const =0;
+
+    /**
+     *
+     *   inc_level <  0 => create a new mesh in coarser  index space
+     *   inc_level == 0 => create a new mesh in the same index space
+     *   inc_level >  0 => create a new mesh in finer    index space
+     *
+     *   dx_new= dx_old* 2^ (-inc_level)
+     *   offset_new = b.first * 2^ (-inc_level)
+     *   count_new  = b.second * 2^ (-inc_level) - offset_new
      */
-    virtual std::shared_ptr<MeshBlock> clone() const;
+    virtual std::shared_ptr<MeshBlock> create(index_box_type const &b, int inc_level = 1) const;
 
 
     /**
-     * refine mesh with 2^n ratio
-     *   n<0 => coarsen
-     *   n=0 => clone
-     *   n>0 => refine
-     * @param n
-     * @param flag RFU (reserved for future use)
-     * @return
+     * create a sub-mesh of this mesh, with same m_root_id
+     * @param other_box
      */
+    std::shared_ptr<MeshBlock> intersection(index_box_type const &other_box);
 
+    size_type root_id() const;
 
-    virtual void refine(index_box_type const &, int n, int flag = 0);
+    size_type space_id() const;
 
+    int level() const;
 
-    /**
-     * return block in this and other ,  if two block are not intersected return nullptr
-     * @param flag
-     * @return
-     */
-    virtual void intersection(index_box_type const &);
+    virtual bool is_overlap(index_box_type const &, int inc_level = 0);
 
+    virtual bool is_overlap(box_type const &, int inc_level = 0);
 
-    void swap(MeshBlock &other);
-
-    virtual std::tuple<data::DataSpace, data::DataSpace>
-    data_space(MeshEntityType const &t, MeshZoneTag status = SP_ES_OWNED) const;
-
-    void processer_id(int id) { m_processer_id_ = id; }
-
-    int processer_id() const { return m_processer_id_; }
-
+    virtual bool is_overlap(MeshBlock const &, int inc_level = 0);
 
     /**
-     *  Set ID of space
+     *  Set unique ID of index space
      * @param id
      */
-    void space_id(size_type id) { m_space_id_ = id; }
-
-    size_type space_id() const { return m_space_id_; }
-
-    unsigned int level() const { return m_level_; }
-
-    void dimensions(size_tuple const &d) { if (!m_is_deployed_) { std::get<1>(m_g_box_) = std::get<0>(m_g_box_) + d; }}
-
-    void dimensions(size_type x, size_type y = 0, size_type z = 0) { dimensions(size_tuple{x, y, z}); };
-
-    void ghost_width(size_tuple const &d) { if (!m_is_deployed_) { m_ghost_width_ = d; }}
-
-    void ghost_width(size_type x, size_type y = 0, size_type z = 0) { ghost_width(size_tuple{x, y, z}); };
 
 
-    virtual void shift(index_tuple const &offset) { if (!m_is_deployed_) { std::get<0>(m_g_box_) += offset; }};
+    void shift(index_type x, index_type y = 0, index_type z = 0);
 
-    void shift(index_type x, index_type y = 0, index_type z = 0) { shift(index_tuple{x, y, z}); };
-
-    virtual void reshape(index_tuple const &a)
-    {
-        if (!m_is_deployed_)
-        {
-            std::get<1>(m_g_box_) = std::get<0>(m_g_box_) + a;
-        }
-    };
-
-    void reshape(index_type x, index_type y = 0, index_type z = 0) { reshape(index_tuple{x, y, z}); };
+    void shift(index_type const *);
 
     virtual void deploy();
 
+    virtual bool is_deployed() const;
 
-    bool is_deployed() const { return m_is_deployed_; }
+    virtual bool is_valid();
 
-    virtual bool is_valid()
-    {
-        return m_is_deployed_ &&
-               toolbox::is_valid(m_g_box_) &&
-               toolbox::is_valid(m_m_box_) &&
-               toolbox::is_valid(m_inner_box_) &&
-               toolbox::is_valid(m_outer_box_);
-    }
+    size_tuple dimensions() const;
 
-    size_tuple dimensions() const
-    {
-        size_tuple res;
-        res = std::get<1>(m_g_box_) - std::get<0>(m_g_box_);
-        return res;
-    }
+    size_tuple const &ghost_width() const;
 
-    size_tuple const &ghost_width() const { return m_ghost_width_; }
+    index_box_type const &global_index_box() const;
 
-    index_box_type const &global_index_box() const { return m_g_box_; }
+    index_box_type const &memory_index_box() const;
 
-    index_box_type const &memory_index_box() const { return m_m_box_; }
+    index_box_type const &inner_index_box() const;
 
-    index_box_type const &inner_index_box() const { return m_inner_box_; }
-
-    index_box_type const &outer_index_box() const { return m_outer_box_; }
+    index_box_type const &outer_index_box() const;
 
     box_type get_box(index_box_type const &b) const
     {
         return std::make_tuple(point(std::get<0>(b)), point(std::get<1>(b)));
     }
 
-    vector_type dx() const
-    {
-        Real a = 1 / static_cast<Real>(1 << m_level_);
-        return vector_type {a, a, a};
-    }
+    virtual Real const *dx() const;
 
-    virtual box_type box() const { return get_box(m_inner_box_); };
+    virtual box_type box() const { return get_box(inner_index_box()); };
 
-    virtual box_type global_box() const { return get_box(m_g_box_); };
+    virtual box_type global_box() const { return get_box(global_index_box()); };
 
-    virtual box_type memory_box() const { return get_box(m_m_box_); };
+    virtual box_type memory_box() const { return get_box(memory_index_box()); };
 
-    virtual box_type inner_box() const { return get_box(m_inner_box_); };
+    virtual box_type inner_box() const { return get_box(inner_index_box()); };
 
-    virtual box_type outer_box() const { return get_box(m_outer_box_); };
+    virtual box_type outer_box() const { return get_box(outer_index_box()); };
 
     virtual point_type point(MeshEntityId const &s) const { return point(unpack(s)); }
 
-    virtual point_type point(index_tuple const &b) const
-    {
-        point_type res;
-        res = toolbox::convert<Real>(b);
-        res /= 1 << m_level_;
-        return res;
-    }
-
+    virtual point_type point(index_tuple const &b) const;
 
     virtual std::tuple<MeshEntityId, point_type> point_global_to_local(point_type const &p, int iform = 0) const
     {
@@ -303,23 +239,6 @@ public:
         return hash(id.x >> 1, id.y >> 1, id.z >> 1, m::node_id(id));
     }
 
-//    index_tuple unhash(size_type s, int nid = 0) const
-//    {
-//        index_tuple res;
-//
-//#ifndef SP_ARRAY_ORDER_FORTRAN
-//        // C-Order Array
-//        // m_m_stride_[0] >=  m_m_stride_[1]>=  m_m_stride_[2]
-//        res[0] = s / m_m_stride_[0];
-//        res[1] = (s % m_m_stride_[0]) / m_m_stride_[1];
-//        res[2] = (s % m_m_stride_[1]) / m_m_stride_[2];
-//#else
-//
-//#endif
-//
-//        return std::move(res);
-//    }
-
 
     virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s, MeshEntityId *p = nullptr) const
     {
@@ -331,11 +250,32 @@ public:
         return m::unpack_index(std::get<0>(m::point_global_to_local(g, nId)));
     };
 
-    virtual EntityRange range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const;
+    virtual EntityIdRange range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const;
 
-    virtual EntityRange range(MeshEntityType entityType, index_box_type const &b) const;
+    virtual EntityIdRange range(MeshEntityType entityType, index_box_type const &b) const;
 
-    virtual EntityRange range(MeshEntityType entityType, box_type const &b) const;
+    virtual EntityIdRange range(MeshEntityType entityType, box_type const &b) const;
+
+private:
+
+
+    bool m_is_deployed_ = false;
+    id_type m_space_id_ = 0;
+    int m_level_ = 0;
+    Real m_time_ = 0.0;
+    int m_ndims_;
+
+
+    size_tuple m_ghost_width_{{0, 0, 0}};        //!<     ghost width
+
+    index_box_type m_g_box_{{0, 0, 0},
+                            {1, 1, 1}};         //!<     global index block
+    index_box_type m_m_box_{{0, 0, 0},
+                            {1, 1, 1}};         //!<     memory index block
+    index_box_type m_inner_box_{{0, 0, 0},
+                                {1, 1, 1}};     //!<    inner block
+    index_box_type m_outer_box_{{0, 0, 0},
+                                {1, 1, 1}};     //!<    outer block
 
 
 };

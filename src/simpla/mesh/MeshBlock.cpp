@@ -13,30 +13,41 @@ namespace simpla { namespace mesh
 
 MeshBlock::MeshBlock() {}
 
+MeshBlock::MeshBlock(index_tuple const &lo, index_tuple const &hi, index_tuple const &gw, id_type space_id = 0)
+{
 
-MeshBlock::MeshBlock(MeshBlock const &other) :
-        m_is_deployed_/*    */(other.m_is_deployed_),
-        m_processer_id_/*     */(other.m_processer_id_),
-        m_space_id_/*       */(other.m_space_id_),
-        m_level_/*          */(other.m_level_),
-        m_time_/*           */(other.m_time_),
-        m_ghost_width_/*    */(other.m_ghost_width_),
-        m_g_box_/*          */(other.m_g_box_/*  */),
-        m_m_box_/*          */(other.m_m_box_/*  */),
-        m_inner_box_/*      */(other.m_inner_box_/*  */),
-        m_outer_box_/*      */(other.m_outer_box_/*  */) {};
+}
 
-MeshBlock::MeshBlock(MeshBlock &&other) :
-        m_is_deployed_/*    */(other.m_is_deployed_),
-        m_processer_id_/*     */(other.m_processer_id_),
-        m_space_id_/*       */(other.m_space_id_),
-        m_level_/*          */(other.m_level_),
-        m_time_/*           */(other.m_time_),
-        m_ghost_width_/*    */(other.m_ghost_width_),
-        m_g_box_/*          */(other.m_g_box_/*  */),
-        m_m_box_/*          */(other.m_m_box_/*  */),
-        m_inner_box_/*      */(other.m_inner_box_/*  */),
-        m_outer_box_/*      */(other.m_outer_box_/*  */) {};
+MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *hi, index_type const *gw,
+                     id_type space_id = 0)
+{
+
+}
+
+
+//MeshBlock::MeshBlock(MeshBlock const &other) :
+//        m_is_deployed_/*    */(other.m_is_deployed_),
+//        m_processer_id_/*     */(other.m_processer_id_),
+//        m_space_id_/*       */(other.m_space_id_),
+//        m_level_/*          */(other.m_level_),
+//        m_time_/*           */(other.m_time_),
+//        m_ghost_width_/*    */(other.m_ghost_width_),
+//        m_g_box_/*          */(other.m_g_box_/*  */),
+//        m_m_box_/*          */(other.m_m_box_/*  */),
+//        m_inner_box_/*      */(other.m_inner_box_/*  */),
+//        m_outer_box_/*      */(other.m_outer_box_/*  */) {};
+//
+//MeshBlock::MeshBlock(MeshBlock &&other) :
+//        m_is_deployed_/*    */(other.m_is_deployed_),
+//        m_processer_id_/*     */(other.m_processer_id_),
+//        m_space_id_/*       */(other.m_space_id_),
+//        m_level_/*          */(other.m_level_),
+//        m_time_/*           */(other.m_time_),
+//        m_ghost_width_/*    */(other.m_ghost_width_),
+//        m_g_box_/*          */(other.m_g_box_/*  */),
+//        m_m_box_/*          */(other.m_m_box_/*  */),
+//        m_inner_box_/*      */(other.m_inner_box_/*  */),
+//        m_outer_box_/*      */(other.m_outer_box_/*  */) {};
 
 MeshBlock::~MeshBlock() {}
 
@@ -58,25 +69,7 @@ std::ostream &MeshBlock::print(std::ostream &os, int indent) const
     return os;
 }
 
-
-void MeshBlock::swap(MeshBlock &other)
-{
-    std::swap(m_is_deployed_/*    */, other.m_is_deployed_);
-    std::swap(m_processer_id_/*   */, other.m_processer_id_);
-    std::swap(m_space_id_/*       */, other.m_space_id_);
-    std::swap(m_level_/*          */, other.m_level_);
-    std::swap(m_time_/*           */, other.m_time_/*  */);
-
-    std::swap(m_ghost_width_/*    */, other.m_ghost_width_);
-    std::swap(m_g_box_/*          */, other.m_g_box_/*  */);
-    std::swap(m_m_box_/*          */, other.m_m_box_/*  */);
-    std::swap(m_inner_box_/*      */, other.m_inner_box_/*  */);
-    std::swap(m_outer_box_/*      */, other.m_outer_box_);
-
-    toolbox::Object::swap(other);
-}
-
-
+ 
 void MeshBlock::deploy()
 {
     if (m_is_deployed_) { return; }
@@ -92,7 +85,7 @@ void MeshBlock::deploy()
     GLOBAL_COMM.topology(&mpi_topo_ndims, mpi_topo_dims, mpi_topo_periods, mpi_topo_coords);
 
 
-    for (int i = 0; i < ndims; ++i)
+    for (int i = 0; i < m_ndims_; ++i)
     {
         if (std::get<1>(m_g_box_)[i] <= std::get<0>(m_g_box_)[i] + 1)
         {
@@ -122,7 +115,8 @@ void MeshBlock::deploy()
         } else if (i < mpi_topo_ndims && mpi_topo_dims[i] > 1)
         {
             index_type L = std::get<1>(m_g_box_)[i] - std::get<0>(m_g_box_)[i];
-            std::get<1>(m_g_box_)[i] = std::get<0>(m_g_box_)[i] + L * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i];
+            std::get<1>(m_g_box_)[i] =
+                    std::get<0>(m_g_box_)[i] + L * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i];
             std::get<0>(m_g_box_)[i] += L * mpi_topo_coords[i] / mpi_topo_dims[i];
         }
     }
@@ -141,54 +135,75 @@ void MeshBlock::deploy()
 
 }
 
+virtual bool MeshBlock::is_valid()
+{
+    return m_is_deployed_ &&
+           toolbox::is_valid(m_g_box_) &&
+           toolbox::is_valid(m_m_box_) &&
+           toolbox::is_valid(m_inner_box_) &&
+           toolbox::is_valid(m_outer_box_);
+}
+
 std::shared_ptr<MeshBlock>
 MeshBlock::clone() const
 {
     assert(is_deployed());
-    return std::make_shared<MeshBlock>(*this);
+    auto res = std::make_shared<MeshBlock>();
+
+    res->m_is_deployed_/*    */= m_is_deployed_;
+    res->m_processer_id_/*   */= m_processer_id_;
+    res->m_space_id_/*       */= m_space_id_;
+    res->m_level_/*          */= m_level_;
+    res->m_time_/*           */= m_time_/*  */;
+    res->m_ghost_width_/*    */= m_ghost_width_;
+    res->m_g_box_/*          */= m_g_box_/*  */;
+    res->m_m_box_/*          */= m_m_box_/*  */;
+    res->m_inner_box_/*      */= m_inner_box_/*  */;
+    res->m_outer_box_/*      */= m_outer_box_;
+    return res;
 };
 
-void
-MeshBlock::refine(index_box_type const &other_box, int n, int flag)
+std::shared_ptr<MeshBlock>
+MeshBlock::create(index_box_type const &b, int inc_level = 1) const
 {
-    m_inner_box_ = toolbox::intersection(m_inner_box_, other_box);
-
-    if (!toolbox::is_valid(m_inner_box_) || m_level_ + n < 0) { return; }
-    else if (n > 0)
-    {
-
-        int ratio = 0x1 << n;
-
-
-        std::get<0>(m_inner_box_) *= ratio;
-        std::get<1>(m_inner_box_) *= ratio;
-
-        std::get<0>(m_outer_box_) = std::get<0>(m_inner_box_) - m_ghost_width_;
-        std::get<1>(m_outer_box_) = std::get<1>(m_inner_box_) + m_ghost_width_;
-
-        m_m_box_ = m_outer_box_;
-        m_g_box_ = m_inner_box_;
-
-    } else if (n < 0)
-    {
-
-        int ratio = 0x1 << -n;
-
-
-        std::get<0>(m_inner_box_) /= ratio;
-        std::get<1>(m_inner_box_) /= ratio;
-
-        std::get<0>(m_outer_box_) = std::get<0>(m_inner_box_) - m_ghost_width_;
-        std::get<1>(m_outer_box_) = std::get<1>(m_inner_box_) + m_ghost_width_;
-
-        m_m_box_ = m_outer_box_;
-        m_g_box_ = m_inner_box_;
-    }
-
-    m_level_ += n;
+//    m_inner_box_ = toolbox::intersection(m_inner_box_, other_box);
+//
+//    if (!toolbox::is_valid(m_inner_box_) || m_level_ + n < 0) { return; }
+//    else if (n > 0)
+//    {
+//
+//        int ratio = 0x1 << n;
+//
+//
+//        std::get<0>(m_inner_box_) *= ratio;
+//        std::get<1>(m_inner_box_) *= ratio;
+//
+//        std::get<0>(m_outer_box_) = std::get<0>(m_inner_box_) - m_ghost_width_;
+//        std::get<1>(m_outer_box_) = std::get<1>(m_inner_box_) + m_ghost_width_;
+//
+//        m_m_box_ = m_outer_box_;
+//        m_g_box_ = m_inner_box_;
+//
+//    } else if (n < 0)
+//    {
+//
+//        int ratio = 0x1 << -n;
+//
+//
+//        std::get<0>(m_inner_box_) /= ratio;
+//        std::get<1>(m_inner_box_) /= ratio;
+//
+//        std::get<0>(m_outer_box_) = std::get<0>(m_inner_box_) - m_ghost_width_;
+//        std::get<1>(m_outer_box_) = std::get<1>(m_inner_box_) + m_ghost_width_;
+//
+//        m_m_box_ = m_outer_box_;
+//        m_g_box_ = m_inner_box_;
+//    }
+//
+//    m_level_ += n;
 }
 
-void
+std::shared_ptr<MeshBlock>
 MeshBlock::intersection(index_box_type const &other_box)
 {
     m_inner_box_ = toolbox::intersection(m_inner_box_, other_box);
@@ -268,13 +283,13 @@ MeshBlock::intersection(index_box_type const &other_box)
 std::tuple<data::DataSpace, data::DataSpace>
 MeshBlock::data_space(MeshEntityType const &t, MeshZoneTag status) const
 {
-    int i_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
+    int i_ndims = (t == EDGE || t == FACE) ? (NDIMS + 1) : NDIMS;
 
-    nTuple<size_type, ndims + 1> f_dims, f_count;
-    nTuple<size_type, ndims + 1> f_start;
+    nTuple<size_type, NDIMS + 1> f_dims, f_count;
+    nTuple<size_type, NDIMS + 1> f_start;
 
-    nTuple<size_type, ndims + 1> m_dims, m_count;
-    nTuple<size_type, ndims + 1> m_start;
+    nTuple<size_type, NDIMS + 1> m_dims, m_count;
+    nTuple<size_type, NDIMS + 1> m_start;
 
     switch (status)
     {
@@ -299,14 +314,14 @@ MeshBlock::data_space(MeshEntityType const &t, MeshZoneTag status) const
             break;
 
     }
-    f_dims[ndims] = 3;
-    f_start[ndims] = 0;
-    f_count[ndims] = 3;
+    f_dims[NDIMS] = 3;
+    f_start[NDIMS] = 0;
+    f_count[NDIMS] = 3;
 
 
-    m_dims[ndims] = 3;
-    m_start[ndims] = 0;
-    m_count[ndims] = 3;
+    m_dims[NDIMS] = 3;
+    m_start[NDIMS] = 0;
+    m_count[NDIMS] = 3;
 
     FIXME;
     data::DataSpace f_space(i_ndims, &f_dims[0]);
@@ -321,15 +336,15 @@ MeshBlock::data_space(MeshEntityType const &t, MeshZoneTag status) const
 };
 
 
-EntityRange
+EntityIdRange
 MeshBlock::range(MeshEntityType entityType, index_box_type const &b) const
 {
-    EntityRange res;
+    EntityIdRange res;
     res.append(MeshEntityIdCoder::make_range(std::get<0>(b), std::get<1>(b), entityType));
     return res;
 }
 
-EntityRange
+EntityIdRange
 MeshBlock::range(MeshEntityType entityType, box_type const &b) const
 {
     index_tuple l, u;
@@ -338,10 +353,10 @@ MeshBlock::range(MeshEntityType entityType, box_type const &b) const
     return range(entityType, std::make_tuple(l, u));
 }
 
-EntityRange
+EntityIdRange
 MeshBlock::range(MeshEntityType entityType, MeshZoneTag status) const
 {
-    EntityRange res;
+    EntityIdRange res;
 
     /**
      *   |<-----------------------------     valid   --------------------------------->|

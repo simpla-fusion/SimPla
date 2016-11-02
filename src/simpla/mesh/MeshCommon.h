@@ -19,11 +19,13 @@ typedef union { struct { int16_t w, z, y, x; }; int64_t v; } MeshEntityId64;
 
 
 typedef MeshEntityId64 MeshEntityId;
+typedef size_type id_type;
 
 
 enum MeshEntityType
 {
-    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
+    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3,
+    FIBER = 10 // points in cell
 
 //    TRIANGLE = (3 << 2) | 2,
 //

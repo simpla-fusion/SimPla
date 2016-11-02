@@ -4190,7 +4190,7 @@ void SAMRAIWorkerHyperbolic::readStateDataEntry(
 //public:
 //    template<typename TM>
 //    SAMRAIWrapperAttribute(std::shared_ptr<TM> const &m, std::string const &name) :
-//            samrai_base_type(SAMRAI::tbox::Dimension(M::ndims), name, 1), simpla_base_type(m) {}
+//            samrai_base_type(SAMRAI::tbox::Dimension(M::NDIMS), name, 1), simpla_base_type(m) {}
 //
 //    ~SAMRAIWrapperAttribute() {}
 //};

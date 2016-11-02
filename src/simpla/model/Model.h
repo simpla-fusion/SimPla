@@ -33,9 +33,9 @@ struct Model
 
     virtual void deploy();
 
-    virtual void add(EntityRange const &, distance_fun_t const dist_fun);
+    virtual void add(EntityIdRange const &, distance_fun_t const dist_fun);
 
-    virtual void remove(EntityRange const &, distance_fun_t const dist_fun);
+    virtual void remove(EntityIdRange const &, distance_fun_t const dist_fun);
 
     template<typename ...Args>
     void add(box_type const &b, Args &&...args)
@@ -51,11 +51,11 @@ struct Model
 
     int check(MeshEntityId const &s);
 
-    virtual EntityRange surface(MeshEntityType iform, int flag = OUTSIDE);
+    virtual EntityIdRange surface(MeshEntityType iform, int flag = OUTSIDE);
 
-    virtual EntityRange inside(MeshEntityType iform);
+    virtual EntityIdRange inside(MeshEntityType iform);
 
-    virtual EntityRange outside(MeshEntityType iform);
+    virtual EntityIdRange outside(MeshEntityType iform);
 
 private:
     struct pimpl_s;

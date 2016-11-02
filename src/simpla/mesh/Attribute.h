@@ -6,15 +6,18 @@
 #define SIMPLA_ATTRIBUTE_H
 
 
-#include <simpla/data/Serializable.h>
-#include "Atlas.h"
+#include <simpla/toolbox/Serializable.h>
+#include <simpla/toolbox/Printable.h>
+
+
 #include "MeshBlock.h"
 #include "EntityId.h"
-#include "EntityRange.h"
+#include "EntityIdRange.h"
 #include "Patch.h"
 
 namespace simpla { namespace mesh
 {
+class Atlas;
 
 template<typename ...> class Attribute;
 
@@ -36,13 +39,11 @@ public:
  *  Attribute IS-A container of patches
  */
 class AttributeBase :
-        public toolbox::Object, public data::Serializable,
+        public toolbox::Object, public toolbox::Serializable,
         public std::enable_shared_from_this<AttributeBase>
 {
 public:
     SP_OBJECT_HEAD(AttributeBase, toolbox::Object)
-
-    typedef typename mesh::Atlas::id_type mesh_id_type;
 
     AttributeBase();
 
@@ -52,13 +53,14 @@ public:
 
     AttributeBase(AttributeBase const &) = delete;
 
-    AttributeBase(AttributeBase &&)= delete;
+    AttributeBase(AttributeBase &&) = delete;
 
     virtual ~AttributeBase();
 
     virtual std::string const &name() const { return toolbox::Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
+
 
     virtual void load(const data::DataBase &) {};
 
@@ -70,15 +72,26 @@ public:
 
     virtual mesh::MeshEntityType entity_type() const =0;
 
-    virtual void deploy();
 
-    virtual std::shared_ptr<PatchBase> create(mesh_id_type id) const =0;
+    virtual std::shared_ptr<PatchBase> get_or_create(id_type id = 0)= 0;
+
+
+    virtual void deploy(id_type id = 0)= 0;
+
+    virtual void erase(id_type id = 0)= 0;
+
+    virtual void clear(id_type id = 0)= 0;
+
+
+    virtual void update(id_type dest, id_type src)= 0;
+
+
+    virtual std::shared_ptr<PatchBase> create(id_type id) const =0;
 
     virtual void update()=0;
 
-    virtual void move_to(mesh_id_type t_id);
+    virtual void move_to(id_type id);
 
-    virtual mesh::MeshBlock const *mesh(mesh_id_type t_id = 0) const;
 
     virtual PatchBase *patch(mesh_id_type t_id = 0);
 
@@ -97,25 +110,23 @@ private:
 
 };
 
-template<typename ...> class Attribute;
 
-template<typename P, typename M, size_type IFORM>
-class Attribute<P, M, index_const<IFORM>> : public AttributeBase
+template<typename V, size_type IFORM>
+class Attribute : public AttributeBase
 {
 public:
 
-    typedef P patch_type;
-    typedef M mesh_type;
-    typedef typename patch_type::value_type value_type;
-    typedef typename mesh_type::id_type mesh_id_type;
 
-    typedef Attribute<P, M, index_const<IFORM>> this_type;
+    typedef V value_type;
 
-    static constexpr mesh::MeshEntityType iform = static_cast<mesh::MeshEntityType>(IFORM);
+    typedef Attribute<V, IFORM> this_type;
+
+    static constexpr MeshEntityType iform = static_cast<mesh::MeshEntityType>(IFORM);
+
+    typedef Patch<value_type, iform> patch_type;
 
     patch_type *m_patch_ = nullptr;
 
-    mesh_type const *m_mesh_ = nullptr;
 
     virtual std::type_info const &value_type_info() { return typeid(value_type); };
 
@@ -139,12 +150,7 @@ public:
         return std::dynamic_pointer_cast<PatchBase>(std::make_shared<patch_type>(mesh(id)));
     };
 
-
-    virtual void update()
-    {
-        m_mesh_ = mesh();
-        m_patch_ = patch();
-    }
+    virtual void update() { m_patch_ = patch(); }
 
     virtual void clear() { m_patch_->clear(); };
 
@@ -175,7 +181,7 @@ public:
     }
 
     template<typename TOP> void
-    apply(TOP const &op, mesh::EntityRange const &r0, this_type const &other)
+    apply(TOP const &op, mesh::EntityIdRange const &r0, this_type const &other)
     {
         deploy();
         r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), other.get(s)); });
@@ -183,7 +189,7 @@ public:
 
 
     template<typename TOP, typename TFun> void
-    apply(TOP const &op, mesh::EntityRange const &r0, TFun const &fun)
+    apply(TOP const &op, mesh::EntityIdRange const &r0, TFun const &fun)
     {
         deploy();
         r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), fun(s)); });
@@ -191,7 +197,7 @@ public:
 
 
     template<typename TOP, typename TFun, typename ...Args> void
-    apply(TOP const &op, mesh::EntityRange const r0, function_tag const *, TFun const &fun, Args &&...args)
+    apply(TOP const &op, mesh::EntityIdRange const r0, function_tag const *, TFun const &fun, Args &&...args)
     {
         deploy();
         r0.foreach(
@@ -202,7 +208,7 @@ public:
     }
 
     template<typename TOP, typename ...TExpr> void
-    apply(TOP const &op, mesh::EntityRange const &r0, expression_tag const *, TExpr &&...fexpr)
+    apply(TOP const &op, mesh::EntityIdRange const &r0, expression_tag const *, TExpr &&...fexpr)
     {
         deploy();
         r0.foreach([&](mesh::MeshEntityId const &s)
@@ -212,7 +218,7 @@ public:
     }
 
     template<typename TOP, typename TFun, typename ...Args> void
-    apply(TOP const &op, mesh::EntityRange const r0, field_function_tag const *, TFun const &fun, Args &&...args)
+    apply(TOP const &op, mesh::EntityIdRange const r0, field_function_tag const *, TFun const &fun, Args &&...args)
     {
         deploy();
         r0.foreach(
@@ -225,7 +231,7 @@ public:
 
 
 //    template<typename TOP, typename TFun> void
-//    apply_function_with_define_domain(TOP const &op, mesh::EntityRange const r0,
+//    apply_function_with_define_domain(TOP const &op, mesh::EntityIdRange const r0,
 //                                      std::function<Real(point_type const &)> const &geo,
 //                                      TFun const &fun)
 //    {
@@ -240,13 +246,13 @@ public:
 //                   });
 //    }
 
-    void copy(mesh::EntityRange const &r0, this_type const &g)
+    void copy(mesh::EntityIdRange const &r0, this_type const &g)
     {
         r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = g.get(s); });
     }
 
 
-    virtual void copy(mesh::EntityRange const &r0, PatchBase const &other)
+    virtual void copy(mesh::EntityIdRange const &r0, PatchBase const &other)
     {
         assert(other.is_a(typeid(this_type)));
 

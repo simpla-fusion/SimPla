@@ -19,8 +19,7 @@
 #include <simpla/toolbox/type_traits.h>
 #include <simpla/toolbox/type_cast.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/data/DataBlock.h>
-#include <simpla/data/Attribute.h>
+#include <simpla/mesh/Attribute.h>
 #include <simpla/data/DataEntityNDArray.h>
 
 #include "../mesh/MeshCommon.h"
@@ -81,9 +80,9 @@ public:
 
 public:
 
-    template<typename TV, size_type IFORM> using patch_type =  data::DataEntityNDArray<TV, ndims + 1>;
+    template<typename TV, size_type IFORM> using patch_type =  data::DataEntityNDArray<TV, NDIMS + 1>;
     template<typename TV, size_type IFORM> using attribute_type =
-    data::Attribute<data::DataEntityNDArray<TV,ndims + 1>, this_type, index_const<IFORM> >;
+    mesh::Attribute<data::DataEntityNDArray<TV, NDIMS + 1>, this_type, IFORM>;
 
     CoRectMesh() {}
 
@@ -236,7 +235,7 @@ void CoRectMesh::deploy()
          */
     auto const &dims = dimensions();
 
-    for (int i = 0; i < ndims; ++i)
+    for (int i = 0; i < NDIMS; ++i)
     {
         assert(dims[i] > 0);
 
@@ -303,7 +302,7 @@ void CoRectMesh::deploy()
 #endif //SIMPLA_CORECTMESH_H
 //typedef typename MeshEntityIdCoder::range_type block_range_type;
 //
-//virtual EntityRange select(box_type const &other,
+//virtual EntityIdRange select(box_type const &other,
 //                           MeshEntityType entityType = VERTEX,
 //                           MeshZoneTag status = SP_ES_ALL) const
 //{
@@ -323,10 +322,10 @@ void CoRectMesh::deploy()
 //
 //    if (!overlapped)
 //    {
-//        return EntityRange();
+//        return EntityIdRange();
 //    } else
 //    {
-//        return EntityRange(
+//        return EntityIdRange(
 //                MeshEntityIdCoder::make_range(point_to_index(c_lower), point_to_index(c_upper), entityType));
 //    }
 //
@@ -362,19 +361,19 @@ void CoRectMesh::deploy()
 //}
 //
 //
-//virtual EntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
+//virtual EntityIdRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
 //{
 //    return range(index_box(b), entityType);
 //}
 //
-//virtual EntityRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
+//virtual EntityIdRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
 //{
 //    return MeshEntityIdCoder::make_range(b, entityType);
 //}
 //
-//virtual EntityRange range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const
+//virtual EntityIdRange range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const
 //{
-//    EntityRange res;
+//    EntityIdRange res;
 //
 //    /**
 //     *   |<-----------------------------     valid   --------------------------------->|

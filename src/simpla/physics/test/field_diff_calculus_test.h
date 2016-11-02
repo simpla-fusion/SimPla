@@ -93,7 +93,7 @@ protected:
 public:
     typedef Real value_type;
 
-    static constexpr size_t ndims = mesh_type::ndims;
+    static constexpr size_t ndims = mesh_type::NDIMS;
 
     box_type box;
     point_type xmin, xmax;

@@ -12,7 +12,7 @@
 #include <simpla/physics/PhysicalConstants.h>
 #include <simpla/mesh/Mesh.h>
 #include <simpla/mesh/DomainBase.h>
-#include <simpla/mesh/EntityRange.h>
+#include <simpla/mesh/EntityIdRange.h>
 #include <simpla/manifold/Calculus.h>
 #include <simpla/model/Model.h>
 
@@ -57,21 +57,21 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    EntityRange limiter_boundary;
-    EntityRange vertex_boundary;
-    EntityRange edge_boundary;
-    EntityRange face_boundary;
+    EntityIdRange limiter_boundary;
+    EntityIdRange vertex_boundary;
+    EntityIdRange edge_boundary;
+    EntityIdRange face_boundary;
 
-    EntityRange plasma_region_volume;
-    EntityRange plasma_region_vertex;
+    EntityIdRange plasma_region_volume;
+    EntityIdRange plasma_region_vertex;
 
 
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;
 
-    EntityRange J_src_range;
+    EntityIdRange J_src_range;
     std::function<Vec3(point_type const &, Real)> J_src_fun;
 
-    EntityRange E_src_range;
+    EntityIdRange E_src_range;
     std::function<Vec3(point_type const &, Real)> E_src_fun;
 
     typedef field_t<scalar_type, FACE> TB;

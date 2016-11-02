@@ -78,9 +78,9 @@ public:
     point_type m_origin_{{0, 0, 0}};
     vector_type m_dx_{{1, 1, 1}};
 public:
-    template<typename TV, size_type IFORM> using patch_type =  data::DataEntityNDArray<TV, ndims + 1>;
+    template<typename TV, size_type IFORM> using patch_type =  data::DataEntityNDArray<TV, NDIMS + 1>;
     template<typename TV, size_type IFORM> using attribute_type =
-    data::Attribute<data::DataEntityNDArray<TV,ndims + 1>, this_type, index_const<IFORM> >;
+    mesh::Attribute<patch_type<TV, IFORM>, this_type, IFORM>;
 
     RectMesh() {}
 
@@ -222,9 +222,9 @@ void RectMesh::deploy()
          */
     auto const &dims = dimensions();
 
-    for (int i = 0; i < ndims; ++i)
+    for (int i = 0; i < NDIMS; ++i)
     {
-        for (int i = 0; i < ndims; ++i)
+        for (int i = 0; i < NDIMS; ++i)
         {
             assert(dims[i] > 0);
 
@@ -290,7 +290,7 @@ void RectMesh::deploy()
 
 //typedef typename MeshEntityIdCoder::range_type block_range_type;
 //
-//virtual EntityRange select(box_type const &other,
+//virtual EntityIdRange select(box_type const &other,
 //                           MeshEntityType entityType = VERTEX,
 //                           MeshZoneTag status = SP_ES_ALL) const
 //{
@@ -310,10 +310,10 @@ void RectMesh::deploy()
 //
 //    if (!overlapped)
 //    {
-//        return EntityRange();
+//        return EntityIdRange();
 //    } else
 //    {
-//        return EntityRange(
+//        return EntityIdRange(
 //                MeshEntityIdCoder::make_range(point_to_index(c_lower), point_to_index(c_upper), entityType));
 //    }
 //
@@ -349,12 +349,12 @@ void RectMesh::deploy()
 //}
 //
 //
-//virtual EntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
+//virtual EntityIdRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
 //{
 //    return range(index_box(b), entityType);
 //}
 //
-//virtual EntityRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
+//virtual EntityIdRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
 //{
 //    return MeshEntityIdCoder::make_range(b, entityType);
 //}

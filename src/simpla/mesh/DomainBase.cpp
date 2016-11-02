@@ -5,7 +5,7 @@
  *  */
 #include <simpla/toolbox/Object.h>
 #include <simpla/toolbox/IOStream.h>
-#include <simpla/data/Attribute.h>
+#include <simpla/mesh/Attribute.h>
 #include "DomainBase.h"
 
 
@@ -14,7 +14,7 @@ namespace simpla { namespace mesh
 {
 struct DomainBase::pimpl_s
 {
-    std::map<id_type, std::shared_ptr<data::AttributeBase> > m_attrs_;
+    std::map<id_type, std::shared_ptr<mesh::AttributeBase> > m_attrs_;
 };
 
 DomainBase::DomainBase() : m_pimpl_(new pimpl_s) {}

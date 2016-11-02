@@ -13,7 +13,7 @@
 #include <map>
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/mesh/EntityRange.h>
+#include <simpla/mesh/EntityIdRange.h>
 #include <simpla/mesh/Mesh.h>
 #include <simpla/mesh/Patch.h>
 #include <simpla/mesh/Atlas.h>

@@ -14,14 +14,14 @@
 #include <ostream>
 #include <iomanip>
 #include <map>
-#include "Printable.h"
+#include <simpla/toolbox/Printable.h>
 
 
 namespace simpla { namespace data
 {
 class DataEntity;
 
-class DataBase : public Printable
+class DataBase : public toolbox::Printable
 {
 public:
 
@@ -55,17 +55,18 @@ public:
 
     virtual void insert(std::string const &key, std::shared_ptr<DataBase> const &v) =0;
 
-    virtual std::shared_ptr<DataBase> at(std::string const &key)  =0;
+    virtual std::shared_ptr<DataBase> find(std::string const &key)  =0;
 
-    virtual std::shared_ptr<DataBase> at(std::string const &key) const =0;
+    virtual std::shared_ptr<const DataBase> find(std::string const &key) const =0;
 
-    virtual DataBase &get(std::string const &key)  =0;
+    virtual DataBase &at(std::string const &key)  =0;
 
-    virtual DataBase const &get(std::string const &key) const =0;
+    virtual DataBase const &at(std::string const &key) const =0;
+
+    virtual DataBase &get(std::string const &key) =0;
 
     DataBase &operator[](std::string const &key) { return get(key); };
 
-    DataBase const &operator[](std::string const &key) const { return get(key); };
 
     virtual void foreach(std::function<void(std::string const &key, DataBase const &)> const &) const =0;
 

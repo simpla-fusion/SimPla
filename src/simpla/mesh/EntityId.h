@@ -18,7 +18,7 @@
 #include "simpla/toolbox/Range.h"
 #include "simpla/toolbox/Parallel.h"
 #include "MeshCommon.h"
-#include "EntityRange.h"
+#include "EntityIdRange.h"
 
 
 namespace simpla { namespace mesh

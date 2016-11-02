@@ -12,10 +12,6 @@
 namespace simpla { namespace data
 {
 
-std::ostream &operator<<(std::ostream &os, DataEntity const &prop) { return prop.print(os, 0); }
-
-std::ostream &operator<<(std::ostream &os, MemoryDataBase const &prop) { return prop.print(os, 0); }
-
 MemoryDataBase::MemoryDataBase() {};
 
 MemoryDataBase::~MemoryDataBase() {};
@@ -49,15 +45,27 @@ std::ostream &MemoryDataBase::print(std::ostream &os, int indent) const
 };
 
 void
-MemoryDataBase::foreach(std::function<void(std::string const &, std::shared_ptr<DataBase> const &)> const &fun) const
+MemoryDataBase::foreach(std::function<void(std::string const &, MemoryDataBase const &)> const &fun) const
 {
-    for (auto const &item:m_table_) { fun(item.first, item.second); }
+    for (auto &item: m_table_) { fun(item.first, *(item.second)); }
 }
 
 void
-MemoryDataBase::foreach(std::function<void(std::string const &, std::shared_ptr<DataBase> &)> const &fun)
+MemoryDataBase::foreach(std::function<void(std::string const &, MemoryDataBase &)> const &fun)
 {
-    for (auto &item: m_table_) { fun(item.first, item.second); }
+    for (auto &item: m_table_) { fun(item.first, *(item.second)); }
+};
+
+void
+MemoryDataBase::foreach(std::function<void(std::string const &, DataBase const &)> const &fun) const
+{
+    for (auto &item: m_table_) { fun(item.first, *std::dynamic_pointer_cast<const DataBase>(item.second)); }
+}
+
+void
+MemoryDataBase::foreach(std::function<void(std::string const &, DataBase &)> const &fun)
+{
+    for (auto &item: m_table_) { fun(item.first, *std::dynamic_pointer_cast<DataBase>(item.second)); }
 };
 
 

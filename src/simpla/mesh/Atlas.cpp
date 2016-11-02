@@ -10,15 +10,58 @@
 
 namespace simpla { namespace mesh
 {
-Atlas::Atlas() {};
+
+struct Atlas::pimpl_s
+{
+    typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
+    typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
+    typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
+    std::map<id_type, std::shared_ptr<MeshBlock>> m_nodes_;
+    std::multimap<id_type, id_type> m_adjacent_;
+    std::multimap<id_type, id_type> m_refine_;
+    std::multimap<id_type, id_type> m_coarsen_;
+    std::set<id_type> m_layer_[MAX_NUM_OF_LEVEL];
+    unsigned int m_max_level_ = 0;
+
+
+    std::set<std::shared_ptr<AttributeBase>> m_attrs_;
+};
+
+Atlas::Atlas() : m_pimpl_(new pimpl_s) {};
 
 Atlas::~Atlas() {};
 
-void Atlas::add(std::shared_ptr<MeshBlock> const p_m)
+bool Atlas::has(id_type id) const { return m_pimpl_->m_nodes_.find(id) != m_pimpl_->m_nodes_.end(); };
+
+MeshBlock &Atlas::at(id_type id)
 {
-    m_nodes_.emplace(p_m->id(), p_m);
-    update(p_m->id());
+    id = (id == 0) ? m_pimpl_->m_nodes_.begin()->first : id;
+    return *(m_pimpl_->m_nodes_.at(id));
 };
+
+MeshBlock const &Atlas::at(id_type id) const
+{
+    id = (id == 0) ? m_pimpl_->m_nodes_.begin()->first : id;
+    return *(m_pimpl_->m_nodes_.at(id));
+};
+
+id_type Atlas::insert(std::shared_ptr<MeshBlock> const p_m)
+{
+    m_pimpl_->m_nodes_.emplace(std::make_pair(p_m->id(), p_m));
+    return p_m->id();
+};
+
+void Atlas::erase(id_type id)
+{
+    if (!has(id)) { return; }
+
+    unlink(id);
+
+    for (auto &item:m_pimpl_->m_attrs_) { item->erase(id); }
+
+    m_pimpl_->m_nodes_.erase(id);
+
+}
 
 void Atlas::update(id_type id)
 {
@@ -40,12 +83,6 @@ void Atlas::update(id_type id)
     m_layer_[m.level()].insert(id);
 
     for (auto const &item:m_nodes_) { if (item.first != id) { link(id, item.first); }}
-}
-
-void Atlas::erase(id_type m_id)
-{
-    unlink(m_id);
-    m_nodes_.erase(m_id);
 }
 
 int Atlas::link(id_type i0, id_type i1)
@@ -111,6 +148,17 @@ void Atlas::update_all()
     }
 
 }
+
+void Atlas::register_attribute(std::shared_ptr<AttributeBase> attr)
+{
+
+}
+
+void Atlas::unregister_attribute(std::shared_ptr<AttributeBase> attr)
+{
+
+}
+
 //
 //std::shared_ptr<TransitionMapBase>
 //Atlas::add_adjacency(MeshBlockId first, MeshBlockId second)

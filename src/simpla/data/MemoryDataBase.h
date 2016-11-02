@@ -37,7 +37,7 @@ class MemoryDataBase : public DataBase
 
     virtual bool has(std::string const &key) const { return m_table_.find(key) != m_table_.end(); };
 
-    bool check(std::string const &key) { return has(key) && at(key)->value().template as<bool>(); }
+    bool check(std::string const &key) { return has(key) && at(key).value().template as<bool>(); }
 
     virtual void insert(std::string const &key, std::shared_ptr<MemoryDataBase> const &v)
     {
@@ -46,20 +46,19 @@ class MemoryDataBase : public DataBase
 
     virtual MemoryDataBase &get(std::string const &key) { return *m_table_[key]; };
 
-    virtual MemoryDataBase const &get(std::string const &key) const
-    {
-        return *std::dynamic_pointer_cast<MemoryDataBase>(at(key));
-    };
+    virtual MemoryDataBase &at(std::string const &key) { return *m_table_.at(key); };
 
-    virtual std::shared_ptr<DataBase> at(std::string const &key) { return m_table_.at(key); };
-
-    virtual std::shared_ptr<DataBase> at(std::string const &key) const { return m_table_.at(key); };
+    virtual MemoryDataBase const &at(std::string const &key) const { return *m_table_.at(key); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
     virtual void foreach(std::function<void(std::string const &key, DataBase const &)> const &) const;
 
     virtual void foreach(std::function<void(std::string const &key, DataBase &)> const &fun);
+
+    virtual void foreach(std::function<void(std::string const &key, MemoryDataBase const &)> const &) const;
+
+    virtual void foreach(std::function<void(std::string const &key, MemoryDataBase &)> const &fun);
 
 
 protected:
