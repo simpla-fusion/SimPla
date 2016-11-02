@@ -38,18 +38,18 @@ public:
 
     ~Atlas();
 
-    unsigned int level() const;
+    unsigned int max_level() const;
 
     bool has(id_type id) const;
 
 
-    virtual id_type insert(std::shared_ptr<MeshBlock> const p_m);
+    id_type insert(std::shared_ptr<MeshBlock> const p_m, id_type hint = 0);
 
     id_type insert(MeshBlock &p_m) { return insert(p_m.shared_from_this()); };
 
-    virtual MeshBlock &at(id_type id = 0);
+    MeshBlock &at(id_type id = 0);
 
-    virtual MeshBlock const &at(id_type id = 0) const;
+    MeshBlock const &at(id_type id = 0) const;
 
     MeshBlock &operator[](id_type id) { return at(id); };
 
@@ -59,45 +59,19 @@ public:
 
     template<typename TM> TM const &as(id_type id = 0) const { return static_cast<TM const &>(at(id)); };
 
-    /**
-     *  if '''has(hint)''' then '''at(hint).create(level,b)'''
-     *  else find_overlap(b,level)->create(level,b)
-     */
-    virtual id_type create(int level, index_box_type const &b, id_type hint = 0);
+    template<typename ...Args>
+    id_type create(id_type hint, Args &&...args) { return insert(at(hint).create(std::forward<Args>(args)...), hint); };
+
+    void link(id_type src, id_type dest);
 
     void update(id_type id);
 
-
-    virtual void deploy(id_type id = 0);
-
-    virtual void erase(id_type id);
-
-    virtual void clear(id_type id);
-
-    virtual void coarsen(id_type dest, id_type src);
-
-    virtual void update(id_type dest, id_type src);
-
-    /**
-     * @brief
-     * @param i0
-     * @param i1
-     * @return  -1 => refine
-     *           0 => adjointing
-     *           1 => coarsen
-     */
-    int link(id_type i0, id_type i1);
+    void erase(id_type id);
 
 
-    std::set<id_type> &level(int l) { return m_layer_[l]; }
+    std::set<id_type> &level(int l);
 
-    std::set<id_type> const &level(int l) const { return m_layer_[l]; }
-
-    multi_links_type same_level(id_type id) const { return m_adjacent_.equal_range(id); };
-
-    multi_links_type upper_level(id_type id) const { return m_refine_.equal_range(id); };
-
-    multi_links_type lower_lelvel(id_type id) const { return m_coarsen_.equal_range(id); };
+    std::set<id_type> const &level(int l) const;
 
     void update_all();
 
@@ -105,6 +79,15 @@ public:
 
     void unregister_attribute(std::shared_ptr<AttributeBase> attr);
 
+    void clear(id_type id);
+
+    void sync(id_type dest, id_type src);
+
+    void coarsen(id_type id);
+
+    void refine(id_type id);
+
+    void deploy(id_type id = 0);
 
 private:
     struct pimpl_s;

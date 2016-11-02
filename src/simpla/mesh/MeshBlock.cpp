@@ -3,51 +3,56 @@
 //
 
 #include "MeshBlock.h"
-#include "simpla/toolbox/nTupleExt.h"
-#include "simpla/toolbox/PrettyStream.h"
-#include "simpla/toolbox/Log.h"
+#include <simpla/toolbox/Object.h>
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/Log.h>
 
 namespace simpla { namespace mesh
 {
 
+MeshBlock::MeshBlock() : m_ndims_(0) {}
 
-MeshBlock::MeshBlock() {}
 
-MeshBlock::MeshBlock(index_tuple const &lo, index_tuple const &hi, index_tuple const &gw, id_type space_id = 0)
+MeshBlock::MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw, int level, int ndims) :
+        m_ndims_(ndims),
+        m_g_box_{{lo[0], lo[1], lo[2]},
+                 {hi[0], hi[1], hi[2]}},
 {
+    m_space_id_ = toolbox::Object::id();
+
+    assert(ndims <= 3);
+
+    if (gw != nullptr)
+    {
+        m_ghost_width_[0] = gw[0];
+        m_ghost_width_[1] = gw[1];
+        m_ghost_width_[2] = gw[2];
+    }
 
 }
 
-MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *hi, index_type const *gw,
-                     id_type space_id = 0)
-{
 
-}
+MeshBlock::MeshBlock(MeshBlock const &other) :
+        m_is_deployed_/*    */(other.m_is_deployed_),
+        m_space_id_/*       */(other.m_space_id_),
+        m_level_/*          */(other.m_level_),
+        m_ghost_width_/*    */(other.m_ghost_width_),
+        m_g_box_/*          */(other.m_g_box_/*  */),
+        m_m_box_/*          */(other.m_m_box_/*  */),
+        m_inner_box_/*      */(other.m_inner_box_/*  */),
+        m_outer_box_/*      */(other.m_outer_box_/*  */) {};
 
-
-//MeshBlock::MeshBlock(MeshBlock const &other) :
-//        m_is_deployed_/*    */(other.m_is_deployed_),
-//        m_processer_id_/*     */(other.m_processer_id_),
-//        m_space_id_/*       */(other.m_space_id_),
-//        m_level_/*          */(other.m_level_),
-//        m_time_/*           */(other.m_time_),
-//        m_ghost_width_/*    */(other.m_ghost_width_),
-//        m_g_box_/*          */(other.m_g_box_/*  */),
-//        m_m_box_/*          */(other.m_m_box_/*  */),
-//        m_inner_box_/*      */(other.m_inner_box_/*  */),
-//        m_outer_box_/*      */(other.m_outer_box_/*  */) {};
-//
-//MeshBlock::MeshBlock(MeshBlock &&other) :
-//        m_is_deployed_/*    */(other.m_is_deployed_),
-//        m_processer_id_/*     */(other.m_processer_id_),
-//        m_space_id_/*       */(other.m_space_id_),
-//        m_level_/*          */(other.m_level_),
-//        m_time_/*           */(other.m_time_),
-//        m_ghost_width_/*    */(other.m_ghost_width_),
-//        m_g_box_/*          */(other.m_g_box_/*  */),
-//        m_m_box_/*          */(other.m_m_box_/*  */),
-//        m_inner_box_/*      */(other.m_inner_box_/*  */),
-//        m_outer_box_/*      */(other.m_outer_box_/*  */) {};
+MeshBlock::MeshBlock(MeshBlock &&other) :
+        m_is_deployed_/*    */(other.m_is_deployed_),
+        m_space_id_/*       */(other.m_space_id_),
+        m_level_/*          */(other.m_level_),
+        m_ghost_width_/*    */(other.m_ghost_width_),
+        m_g_box_/*          */(other.m_g_box_/*  */),
+        m_m_box_/*          */(other.m_m_box_/*  */),
+        m_inner_box_/*      */(other.m_inner_box_/*  */),
+        m_outer_box_/*      */(other.m_outer_box_/*  */) {};
 
 MeshBlock::~MeshBlock() {}
 
@@ -69,7 +74,7 @@ std::ostream &MeshBlock::print(std::ostream &os, int indent) const
     return os;
 }
 
- 
+
 void MeshBlock::deploy()
 {
     if (m_is_deployed_) { return; }
@@ -135,15 +140,6 @@ void MeshBlock::deploy()
 
 }
 
-virtual bool MeshBlock::is_valid()
-{
-    return m_is_deployed_ &&
-           toolbox::is_valid(m_g_box_) &&
-           toolbox::is_valid(m_m_box_) &&
-           toolbox::is_valid(m_inner_box_) &&
-           toolbox::is_valid(m_outer_box_);
-}
-
 std::shared_ptr<MeshBlock>
 MeshBlock::clone() const
 {
@@ -151,10 +147,8 @@ MeshBlock::clone() const
     auto res = std::make_shared<MeshBlock>();
 
     res->m_is_deployed_/*    */= m_is_deployed_;
-    res->m_processer_id_/*   */= m_processer_id_;
     res->m_space_id_/*       */= m_space_id_;
     res->m_level_/*          */= m_level_;
-    res->m_time_/*           */= m_time_/*  */;
     res->m_ghost_width_/*    */= m_ghost_width_;
     res->m_g_box_/*          */= m_g_box_/*  */;
     res->m_m_box_/*          */= m_m_box_/*  */;
@@ -166,53 +160,35 @@ MeshBlock::clone() const
 std::shared_ptr<MeshBlock>
 MeshBlock::create(index_box_type const &b, int inc_level = 1) const
 {
-//    m_inner_box_ = toolbox::intersection(m_inner_box_, other_box);
-//
-//    if (!toolbox::is_valid(m_inner_box_) || m_level_ + n < 0) { return; }
-//    else if (n > 0)
-//    {
-//
-//        int ratio = 0x1 << n;
-//
-//
-//        std::get<0>(m_inner_box_) *= ratio;
-//        std::get<1>(m_inner_box_) *= ratio;
-//
-//        std::get<0>(m_outer_box_) = std::get<0>(m_inner_box_) - m_ghost_width_;
-//        std::get<1>(m_outer_box_) = std::get<1>(m_inner_box_) + m_ghost_width_;
-//
-//        m_m_box_ = m_outer_box_;
-//        m_g_box_ = m_inner_box_;
-//
-//    } else if (n < 0)
-//    {
-//
-//        int ratio = 0x1 << -n;
-//
-//
-//        std::get<0>(m_inner_box_) /= ratio;
-//        std::get<1>(m_inner_box_) /= ratio;
-//
-//        std::get<0>(m_outer_box_) = std::get<0>(m_inner_box_) - m_ghost_width_;
-//        std::get<1>(m_outer_box_) = std::get<1>(m_inner_box_) + m_ghost_width_;
-//
-//        m_m_box_ = m_outer_box_;
-//        m_g_box_ = m_inner_box_;
-//    }
-//
-//    m_level_ += n;
+    std::shared_ptr<MeshBlock> res = clone();
+    res->m_g_box_ = b;
+    res->m_level_ += inc_level;
+    if (inc_level > 0)
+    {
+        std::get<0>(res->m_g_box_)[0] <<= inc_level;
+        std::get<0>(res->m_g_box_)[1] <<= inc_level;
+        std::get<0>(res->m_g_box_)[2] <<= inc_level;
+        std::get<1>(res->m_g_box_)[0] <<= inc_level;
+        std::get<1>(res->m_g_box_)[1] <<= inc_level;
+        std::get<1>(res->m_g_box_)[2] <<= inc_level;
+    } else if (inc_level < 0)
+    {
+        std::get<0>(res->m_g_box_)[0] >>= -inc_level;
+        std::get<0>(res->m_g_box_)[1] >>= -inc_level;
+        std::get<0>(res->m_g_box_)[2] >>= -inc_level;
+        std::get<1>(res->m_g_box_)[0] >>= -inc_level;
+        std::get<1>(res->m_g_box_)[1] >>= -inc_level;
+        std::get<1>(res->m_g_box_)[2] >>= -inc_level;
+    }
+    res->deploy();
+    return res;
+
 }
 
 std::shared_ptr<MeshBlock>
-MeshBlock::intersection(index_box_type const &other_box)
+MeshBlock::intersection(index_box_type const &other_box, int inc_level)
 {
-    m_inner_box_ = toolbox::intersection(m_inner_box_, other_box);
-
-    if (toolbox::is_valid(m_inner_box_))
-    {
-        std::get<0>(m_outer_box_) = std::get<0>(m_inner_box_) - m_ghost_width_;
-        std::get<1>(m_outer_box_) = std::get<1>(m_inner_box_) + m_ghost_width_;
-    }
+    return create(toolbox::intersection(m_inner_box_, other_box), inc_level);
 }
 
 

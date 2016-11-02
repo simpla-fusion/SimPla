@@ -45,11 +45,13 @@ MeshBlock const &Atlas::at(id_type id) const
     return *(m_pimpl_->m_nodes_.at(id));
 };
 
-id_type Atlas::insert(std::shared_ptr<MeshBlock> const p_m)
+id_type Atlas::insert(std::shared_ptr<MeshBlock> const p_m, id_type hint)
 {
     m_pimpl_->m_nodes_.emplace(std::make_pair(p_m->id(), p_m));
+    link(p_m->id(), hint);
     return p_m->id();
 };
+
 
 void Atlas::erase(id_type id)
 {
@@ -158,7 +160,25 @@ void Atlas::unregister_attribute(std::shared_ptr<AttributeBase> attr)
 {
 
 }
+void Atlas::clear(id_type id){
 
+};
+
+void Atlas::sync(id_type dest, id_type src){
+
+};
+
+void Atlas::coarsen(id_type id){
+
+};
+
+void Atlas::refine(id_type id){
+
+};
+
+void Atlas::deploy(id_type id ){
+
+};
 //
 //std::shared_ptr<TransitionMapBase>
 //Atlas::add_adjacency(MeshBlockId first, MeshBlockId second)
