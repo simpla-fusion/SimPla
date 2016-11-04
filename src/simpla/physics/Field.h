@@ -57,6 +57,15 @@ public:
     template<typename ...Args>
     Field(Args &&...args) : base_type(std::forward<Args>(args)...) {};
 
+    template<typename ...Args>
+    Field(mesh_type const *m, Args &&...args) :
+            base_type(std::forward<Args>(args)...),
+            m_mesh_(m),
+            m_data_block_(base_type::attribute()->template as<data_block_type>(m))
+    {
+
+    };
+
     virtual ~Field() {}
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); };
