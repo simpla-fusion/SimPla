@@ -46,12 +46,11 @@ private:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-
 private:
-    typedef typename TManifold::data_block_type data_block_type;
+    typedef typename TManifold::template data_block_type<TV, iform> data_block_type;
     static constexpr int ndims = mesh_type::ndims;
     mesh_type const *m_mesh_ = nullptr;
-    data_block_type *m_data_block_ = nullptr;
+    data_block_type *m_data_ = nullptr;
 
 public:
     template<typename ...Args>
@@ -71,8 +70,8 @@ public:
     void deploy(mesh::MeshBlock const *m = nullptr)
     {
         base_type::deploy(m);
-        m_mesh_ = static_cast<mesh_type const * >(base_type::mesh());
-        m_data_block_ = base_type::attribute()->template as<data_block_type>(m_mesh_);
+        m_mesh_ = base_type::template mesh<mesh_type>();
+        m_data_ = base_type::template data<data_block_type>();
     }
 
     /** @name as_function  @{*/
@@ -171,17 +170,17 @@ public:
     assign_function(Args &&...args) { apply_function(_impl::_assign(), std::forward<Args>(args)...); }
 
 
-    virtual void clear() { m_data_block_->clear(); };
+    virtual void clear() { m_data_->clear(); };
 
-    inline value_type &get(mesh::MeshEntityId const &s) { return m_data_block_->get(s.x, s.y, s.z, s.w); }
+    inline value_type &get(mesh::MeshEntityId const &s) { return m_data_->get(s.x, s.y, s.z, s.w); }
 
-    inline value_type const &get(mesh::MeshEntityId const &s) const { return m_data_block_->get(s.x, s.y, s.z, s.w); }
+    inline value_type const &get(mesh::MeshEntityId const &s) const { return m_data_->get(s.x, s.y, s.z, s.w); }
 
-    inline value_type &operator[](mesh::MeshEntityId const &s) { return m_data_block_->get(s.x, s.y, s.z, s.w); }
+    inline value_type &operator[](mesh::MeshEntityId const &s) { return m_data_->get(s.x, s.y, s.z, s.w); }
 
     inline value_type const &operator[](mesh::MeshEntityId const &s) const
     {
-        return m_data_block_->get(s.x, s.y, s.z, s.w);
+        return m_data_->get(s.x, s.y, s.z, s.w);
     }
 
     struct expression_tag {};
@@ -263,7 +262,7 @@ public:
 //                       auto x = m_mesh_->point(s);
 //                       if (geo(x) < 0)
 //                       {
-//                           op(m_data_block_->get(s), m_mesh_->template sample<IFORM>(s, fun(x)));
+//                           op(m_data_->get(s), m_mesh_->template sample<IFORM>(s, fun(x)));
 //                       }
 //                   });
 //    }

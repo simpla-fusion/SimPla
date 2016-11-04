@@ -34,7 +34,7 @@ public:
 
     virtual std::string const &name() const { return toolbox::Object::name(); };
 
-    virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
+    virtual std::ostream &print(std::ostream &os, int indent) const;
 
     virtual void load(data::DataBase const &) { UNIMPLEMENTED; }
 
@@ -99,6 +99,8 @@ struct Worker::Observer
     Observer(Worker *m);
 
     virtual ~Observer();
+
+    virtual std::ostream &print(std::ostream &os, int indent) const =0;
 
     virtual void destroy() =0;
 

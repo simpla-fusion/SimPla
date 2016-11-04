@@ -25,10 +25,7 @@ struct Printable
 
 inline std::ostream &operator<<(std::ostream &os, Printable const &obj)
 {
-    if (obj.name() != "") { os << obj.name() << " = "; };
-
-    obj.print(os, 1);
-
+    obj.print(os, 0);
     return os;
 }
 

@@ -73,8 +73,6 @@ public:
 private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
-
-
 };
 
 
@@ -85,7 +83,6 @@ class AttributeView :
 {
     std::shared_ptr<mesh::Attribute> m_attr_;
     MeshBlock const *m_mesh_ = nullptr;
-    DataBlock *m_data_ = nullptr;
 public:
     AttributeView(MeshBlock *m, std::string const &s, Worker *w = nullptr) :
             Worker::Observer(w), m_attr_(new mesh::Attribute(s)), m_mesh_(m) {};
@@ -98,27 +95,37 @@ public:
 
     virtual ~AttributeView() {}
 
+    template<typename TM> TM const *mesh() const { return static_cast<TM const *>(m_mesh_); }
+
+    template<typename TB> TB *data() const { return m_attr_->as<TB>(m_mesh_); }
+
+    MeshBlock const *mesh() const { return m_mesh_; }
+
+    DataBlock *data() const { return m_attr_->at(m_mesh_); }
+
+    std::shared_ptr<mesh::Attribute> &attribute() { return m_attr_; }
+
     virtual std::string const &name() const { return m_attr_->name(); };
 
-    virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
+    virtual std::ostream &print(std::ostream &os, int indent) const
+    {
+        os << std::setw(indent) << " " << m_attr_->name() << " = " << " {";
+        m_attr_->print(os, indent);
+        os << " } " << std::endl;
+        return os;
+    };
 
     virtual void load(data::DataBase const &db) {};
 
     virtual void save(data::DataBase *db) const {};
 
-    std::shared_ptr<mesh::Attribute> &attribute() { return m_attr_; }
-
-    MeshBlock const *mesh() const { return m_mesh_; }
-
-    DataBlock *data() const { return m_data_; }
-
     virtual void create(MeshBlock const *m, bool is_scratch = false) {};
 
-    virtual void destroy() {};
+    virtual void destroy() { UNIMPLEMENTED; };
 
-    virtual void deploy(MeshBlock const *m = nullptr) {};
+    virtual void deploy(MeshBlock const *m = nullptr) { m_mesh_ = m; };
 
-    virtual void move_to(MeshBlock const *m = nullptr) {};
+    virtual void move_to(MeshBlock const *m = nullptr) { m_mesh_ = m; };
 
     virtual void erase(MeshBlock const *m = nullptr) {};
 

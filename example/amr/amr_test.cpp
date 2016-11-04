@@ -16,8 +16,12 @@ using namespace simpla;
 class DummyMesh : public mesh::MeshBlock
 {
 public:
+    template<typename ...Args>
+    DummyMesh(Args &&...args):mesh::MeshBlock(std::forward<Args>(args)...) {}
 
-    typedef mesh::DataBlockArray<Real, mesh::VERTEX> data_block_type;
+    ~DummyMesh() {}
+
+    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
 
     virtual std::shared_ptr<mesh::MeshBlock> clone() const
     {
@@ -29,28 +33,34 @@ public:
 template<typename TM>
 struct AMRTest : public mesh::Worker
 {
-
     typedef TM mesh_type;
 
-    template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<static_cast<size_t>(IFORM)>>;
+    template<typename TV, mesh::MeshEntityType IFORM> using field_type=
+    Field<TV, mesh_type, index_const<static_cast<size_t>(IFORM)>>;
 
     field_type<Real, mesh::EDGE> E{"E", this};
+    field_type<Real, mesh::FACE> B{"B", this};
+
 };
 
 int main(int argc, char **argv)
 {
+//    auto atlas = std::make_shared<mesh::Atlas>();
+//    atlas->insert(m);
 
-    auto m = std::make_shared<DummyMesh>();
+    index_type lo[3] = {0, 0, 0}, hi[3] = {40, 50, 60};
+    size_type gw[3] = {0, 0, 0};
 
-    auto atlas = std::make_shared<mesh::Atlas>();
+    auto m0 = std::make_shared<DummyMesh>(lo, hi, gw, 0);
+    auto m1 = std::make_shared<DummyMesh>(lo, hi, gw, 1);
 
-    atlas->insert(m);
 
     auto worker = std::make_shared<AMRTest<DummyMesh>>();
 
-    worker->E.deploy(m.get());
+    worker->E.deploy(m0.get());
+    worker->E.deploy(m1.get());
+    worker->B.deploy(m1.get());
 
-    std::cout << worker->E << std::endl;
     std::cout << *worker << std::endl;
 
 //

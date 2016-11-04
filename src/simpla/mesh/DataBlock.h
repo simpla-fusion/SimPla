@@ -6,6 +6,7 @@
 #define SIMPLA_PATCH_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Serializable.h>
 #include <simpla/toolbox/Printable.h>
 #include "MeshBlock.h"
@@ -25,7 +26,7 @@ public:
 
     virtual bool is_a(std::type_info const &info) const { return info == typeid(DataBlock); };
 
-    virtual std::type_info const &value_type_info() =0;
+    virtual std::type_info const &value_type_info() const =0;
 
     virtual mesh::MeshEntityType entity_type() const =0;
 
@@ -62,7 +63,7 @@ public:
 
     virtual ~DataBlockArray() {}
 
-    virtual std::type_info const &value_type_info() { return typeid(value_type); };
+    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
 
     virtual mesh::MeshEntityType entity_type() const { return IFORM; }
 
@@ -77,7 +78,16 @@ public:
 
     virtual void save(data::DataBase *) const {};
 
-    virtual std::ostream &print(std::ostream &os, int indent) const { return os; }
+    virtual std::ostream &print(std::ostream &os, int indent) const
+    {
+        os << " type = \'" << value_type_info().name() << "\' "
+           << ", entity type = " << static_cast<int>(entity_type())
+           << ", level = " << mesh()->level();
+
+        os << ", dimensions = " << mesh()->dimensions();
+
+        return os;
+    }
 
 
     virtual std::shared_ptr<DataBlock> create(MeshBlock const *m) const

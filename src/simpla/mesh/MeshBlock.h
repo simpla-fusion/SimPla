@@ -137,7 +137,7 @@ public:
 
     size_type space_id() const;
 
-    int level() const;
+    int level() const { return m_level_; }
 
     virtual bool is_overlap(index_box_type const &) { return true; }
 
@@ -180,7 +180,8 @@ public:
 
     index_box_type const &outer_index_box() const { return m_outer_box_; }
 
-    box_type get_box(index_box_type const &b) const
+    box_type
+    get_box(index_box_type const &b) const
     {
         return std::make_tuple(point(std::get<0>(b)), point(std::get<1>(b)));
     }

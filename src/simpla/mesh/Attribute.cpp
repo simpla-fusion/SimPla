@@ -5,9 +5,7 @@
 #include "Atlas.h"
 #include "Attribute.h"
 
-namespace simpla
-{
-namespace mesh
+namespace simpla { namespace mesh
 {
 struct Attribute::pimpl_s
 {
@@ -21,7 +19,13 @@ Attribute::~Attribute() {}
 
 std::ostream &Attribute::print(std::ostream &os, int indent) const
 {
-    for (auto const &item:m_pimpl_->m_patches_) { item.second->print(os, indent + 1); }
+    os << std::setw(indent) << " " << std::endl;
+    for (auto const &item:m_pimpl_->m_patches_)
+    {
+        os << std::setw(indent) << " " << item.first << " = {";
+        item.second->print(os, indent + 1);
+        os << " } " << std::endl;
+    }
     return os;
 }
 
@@ -73,5 +77,4 @@ void Attribute::insert(const MeshBlock *m, const std::shared_ptr<DataBlock> &d)
 }
 
 
-}
-}
+}}//namespace simpla { namespace mesh
