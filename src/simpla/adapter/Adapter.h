@@ -26,7 +26,7 @@ std::shared_ptr<mesh::AttributeBase>
 create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
                       std::shared_ptr<mesh::MeshBlock> const &m, std::string const &name);
 
-std::shared_ptr<mesh::PatchBase>
+std::shared_ptr<mesh::DataBlockBase>
 create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
                   std::shared_ptr<mesh::MeshBlock> const &m);
 
@@ -35,16 +35,16 @@ create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_in
 std::shared_ptr<mesh::Atlas> create_atlas(std::string const &name);
 
 template<typename TV, typename TM, mesh::MeshEntityType IFORM, typename ...Args>
-std::shared_ptr<mesh::Attribute<mesh::Patch<TV, TM, IFORM> > > create_attribute(Args &&...args)
+std::shared_ptr<mesh::Attribute<mesh::DataBlockBase<TV, TM, IFORM> > > create_attribute(Args &&...args)
 {
-    return std::dynamic_pointer_cast<mesh::Attribute<mesh::Patch<TV, TM, IFORM> >>(detail::create_attribute_impl(
+    return std::dynamic_pointer_cast<mesh::Attribute<mesh::DataBlockBase<TV, TM, IFORM> >>(detail::create_attribute_impl(
             typeid(TV), typeid(TM), IFORM, std::forward<Args>(args)...));;
 };
 
 template<typename TV, typename TM, mesh::MeshEntityType IFORM, typename ...Args>
-std::shared_ptr<mesh::Patch<TV, TM, IFORM> > create_patch(Args &&...args)
+std::shared_ptr<mesh::DataBlockBase<TV, TM, IFORM> > create_patch(Args &&...args)
 {
-    return std::dynamic_pointer_cast<mesh::Patch<TV, TM, IFORM> >(detail::create_patch_impl(
+    return std::dynamic_pointer_cast<mesh::DataBlockBase<TV, TM, IFORM> >(detail::create_patch_impl(
             typeid(TV), typeid(TM), IFORM, std::forward<Args>(args)...));;
 };
 

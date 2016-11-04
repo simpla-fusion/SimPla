@@ -84,7 +84,7 @@ public:
 
     MeshBlock();
 
-    MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw, int level = 0, int ndims);
+    MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw, int level = 0, int ndims = 3);
 
     MeshBlock(MeshBlock const &);
 
@@ -92,7 +92,7 @@ public:
 
     virtual ~MeshBlock();
 
-    virtual void swap(MeshBlock &other);
+    virtual void swap(MeshBlock &other) {}
 
     MeshBlock &operator=(MeshBlock const &other)= delete;
 
@@ -107,7 +107,7 @@ public:
 
     virtual void load(const data::DataBase &) {};
 
-    virtual void save(data::DataBase *) {};
+    virtual void save(data::DataBase *) const {};
 
     /** @}*/
 
@@ -115,7 +115,7 @@ public:
       * @return   copy of this mesh but has different '''id'''
       */
 
-    virtual std::shared_ptr<MeshBlock> clone() const =0;
+    virtual std::shared_ptr<MeshBlock> clone() const;
 
     /**
      *
@@ -129,7 +129,6 @@ public:
      */
     virtual std::shared_ptr<MeshBlock> create(index_box_type const &b, int inc_level = 1) const;
 
-
     /**
      * create a sub-mesh of this mesh, with same m_root_id
      * @param other_box
@@ -140,11 +139,11 @@ public:
 
     int level() const;
 
-    virtual bool is_overlap(index_box_type const &);
+    virtual bool is_overlap(index_box_type const &) { return true; }
 
-    virtual bool is_overlap(box_type const &);
+    virtual bool is_overlap(box_type const &) { return true; }
 
-    virtual bool is_overlap(MeshBlock const &);
+    virtual bool is_overlap(MeshBlock const &) { return true; }
 
     /**
      *  Set unique ID of index space
@@ -152,9 +151,9 @@ public:
      */
 
 
-    void shift(index_type x, index_type y = 0, index_type z = 0);
+    void shift(index_type x, index_type y = 0, index_type z = 0) {}
 
-    void shift(index_type const *);
+    void shift(index_type const *) {}
 
     virtual void deploy();
 
@@ -219,10 +218,9 @@ public:
 
     virtual point_type point_global_to_local(point_type const &x, int iform = 0) const
     {
-        return index_tuple{(x[0] - floor((x[0] + 0.5 * m_dx_[0]) * m_inv_dx_[0])),
-                           (x[1] - floor((x[1] + 0.5 * m_dx_[0]) * m_inv_dx_[1])),
-                           (x[2] - floor((x[2] + 0.5 * m_dx_[0]) * m_inv_dx_[2]))
-        };
+        return point_type{static_cast<Real>(x[0] - floor((x[0] + 0.5 * m_dx_[0]) * m_inv_dx_[0])),
+                          static_cast<Real>(x[1] - floor((x[1] + 0.5 * m_dx_[0]) * m_inv_dx_[1])),
+                          static_cast<Real>(x[2] - floor((x[2] + 0.5 * m_dx_[0]) * m_inv_dx_[2]))};
     }
 
 
@@ -286,13 +284,13 @@ private:
 
     int m_ndims_;
 
-    point_type m_dx_{1, 1, 1};
+    point_type m_dx_{{1, 1, 1}};
 
-    point_type m_inv_dx_{1, 1, 1};
+    point_type m_inv_dx_{{1, 1, 1}};
 
-    point_type m_global_origin_{0, 0, 0};
+    point_type m_global_origin_{{0, 0, 0}};
 
-    size_tuple m_ghost_width_{0, 0, 0};        //!<     ghost width
+    size_tuple m_ghost_width_{{0, 0, 0}};        //!<     ghost width
     index_box_type m_g_box_;         //!<     global index block
     index_box_type m_m_box_;         //!<     memory index block
     index_box_type m_inner_box_;     //!<    inner block

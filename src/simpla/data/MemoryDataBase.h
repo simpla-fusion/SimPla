@@ -37,7 +37,10 @@ class MemoryDataBase : public DataBase
 
     virtual bool has(std::string const &key) const { return m_table_.find(key) != m_table_.end(); };
 
-    bool check(std::string const &key) { return has(key) && at(key).value().template as<bool>(); }
+    bool check(std::string const &key)
+    {
+        return has(key) && static_cast<DataEntityLight &>(at(key).value()).template as<bool>();
+    }
 
     virtual void insert(std::string const &key, std::shared_ptr<MemoryDataBase> const &v)
     {

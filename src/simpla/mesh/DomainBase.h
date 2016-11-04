@@ -36,8 +36,6 @@ class DomainBase : public toolbox::Object
 {
 public:
 
-    using toolbox::Object::id_type;
-
     HAS_PROPERTIES;
 
     SP_OBJECT_HEAD(DomainBase, toolbox::Object);

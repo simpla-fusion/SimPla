@@ -50,19 +50,19 @@ Context::print(std::ostream &os, int indent) const
 }
 
 //mesh_as::Atlas &
-//Context::atlas() { return m_pimpl_->m_atlas_; };
+//Context::atlas() { return m_pimpl_->m_worker_; };
 //
 //mesh_as::Atlas const &
-//Context::get_mesh_atlas() const { return m_pimpl_->m_atlas_; };
+//Context::get_mesh_atlas() const { return m_pimpl_->m_worker_; };
 //
 //mesh_as::MeshBlockId
-//Context::add_mesh(std::shared_ptr<mesh_as::MeshBlock> m) { return m_pimpl_->m_atlas_.add_block(m); }
+//Context::add_mesh(std::shared_ptr<mesh_as::MeshBlock> m) { return m_pimpl_->m_worker_.add_block(m); }
 //
 //std::shared_ptr<const mesh_as::MeshBlock>
-//Context::get_mesh_block(mesh_as::MeshBlockId id) const { return m_pimpl_->m_atlas_.get_block(id); }
+//Context::get_mesh_block(mesh_as::MeshBlockId id) const { return m_pimpl_->m_worker_.get_block(id); }
 //
 //std::shared_ptr<mesh_as::MeshBlock>
-//Context::get_mesh_block(mesh_as::MeshBlockId id) { return m_pimpl_->m_atlas_.get_block(id); }
+//Context::get_mesh_block(mesh_as::MeshBlockId id) { return m_pimpl_->m_worker_.get_block(id); }
 
 std::shared_ptr<mesh::DomainBase>
 Context::get_domain(uuid id) const { return m_pimpl_->m_domains_.at(id); };
@@ -133,7 +133,7 @@ Context::run(Real dt, int level)
 //    }
 //#endif
 
-//    for (auto const &chart_node: m_pimpl_->m_atlas_.level(level))
+//    for (auto const &chart_node: m_pimpl_->m_worker_.level(level))
 //    {
 //        auto p_it = m_pimpl_->m_domains_.find(chart_node.second->id());
 //
@@ -158,12 +158,12 @@ void
 Context::sync(int level, int flag)
 {
     //TODO async sync
-//    for (auto const &mesh_chart: m_pimpl_->m_atlas_.at_level(level))
+//    for (auto const &mesh_chart: m_pimpl_->m_worker_.at_level(level))
 //    {
 //        auto this_domain = m_pimpl_->m_domains_.find(mesh_chart.second->id());
 //        if (this_domain != m_pimpl_->m_domains_.end())
 //        {
-//            auto r = m_pimpl_->m_atlas_.get_adjacencies(mesh_chart.first);
+//            auto r = m_pimpl_->m_worker_.get_adjacencies(mesh_chart.first);
 //            for (auto it = std::get<0>(r), ie = std::get<1>(r); it != ie; ++it)
 //            {
 ////                auto other_domain = m_pimpl_->m_nodes_.find(it->second->second->id());

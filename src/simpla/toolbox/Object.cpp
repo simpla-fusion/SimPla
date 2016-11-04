@@ -24,7 +24,7 @@ struct Object::pimpl_s
     id_type m_short_id_;
 };
 
-Object::Object(std::string const &n ) : m_pimpl_(new pimpl_s)
+Object::Object(std::string const &n) : m_pimpl_(new pimpl_s)
 {
     auto gen = boost::uuids::random_generator();
     m_pimpl_->m_name_ = n;
@@ -47,7 +47,7 @@ std::string Object::get_class_name() const { return "Object"; }
 
 std::string const &Object::name() const { return m_pimpl_->m_name_; };
 
-Object::id_type const &Object::id() const { return m_pimpl_->m_short_id_; }
+id_type const &Object::id() const { return m_pimpl_->m_short_id_; }
 
 bool Object::operator==(Object const &other) { return m_pimpl_->m_id_ == other.m_pimpl_->m_id_; }
 

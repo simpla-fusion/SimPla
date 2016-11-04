@@ -73,7 +73,7 @@ typedef int Integral;
 typedef int64_t mesh_id_type; //!< Data type of vertex's index , i.e. i,j
 typedef int64_t index_type;
 typedef unsigned int uint;
-
+typedef size_type id_type;
 #define MAX_NDIMS_OF_ARRAY  8
 
 

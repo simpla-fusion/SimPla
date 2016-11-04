@@ -79,7 +79,6 @@ namespace simpla { namespace toolbox
 class Object
 {
 public:
-    typedef size_type id_type;
 
     Object(std::string const &n = "");
 

@@ -18,7 +18,7 @@ MeshBlock::MeshBlock() : m_ndims_(0) {}
 MeshBlock::MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw, int level, int ndims) :
         m_ndims_(ndims),
         m_g_box_{{lo[0], lo[1], lo[2]},
-                 {hi[0], hi[1], hi[2]}},
+                 {hi[0], hi[1], hi[2]}}
 {
     m_space_id_ = toolbox::Object::id();
 
@@ -158,7 +158,7 @@ MeshBlock::clone() const
 };
 
 std::shared_ptr<MeshBlock>
-MeshBlock::create(index_box_type const &b, int inc_level = 1) const
+MeshBlock::create(index_box_type const &b, int inc_level) const
 {
     std::shared_ptr<MeshBlock> res = clone();
     res->m_g_box_ = b;
@@ -255,61 +255,61 @@ MeshBlock::intersection(index_box_type const &other_box, int inc_level)
 //                }
 //}
 
-
-std::tuple<data::DataSpace, data::DataSpace>
-MeshBlock::data_space(MeshEntityType const &t, MeshZoneTag status) const
-{
-    int i_ndims = (t == EDGE || t == FACE) ? (NDIMS + 1) : NDIMS;
-
-    nTuple<size_type, NDIMS + 1> f_dims, f_count;
-    nTuple<size_type, NDIMS + 1> f_start;
-
-    nTuple<size_type, NDIMS + 1> m_dims, m_count;
-    nTuple<size_type, NDIMS + 1> m_start;
-
-    switch (status)
-    {
-        case SP_ES_ALL:
-            f_dims = toolbox::dimensions(m_g_box_);
-            f_start = std::get<0>(m_g_box_);
-            f_count = toolbox::dimensions(m_g_box_);
-
-            m_dims = toolbox::dimensions(m_m_box_);
-            m_start = std::get<0>(m_outer_box_) - std::get<0>(m_m_box_);
-            m_count = toolbox::dimensions(m_outer_box_);;
-            break;
-        case SP_ES_OWNED:
-        default:
-            f_dims = toolbox::dimensions(m_g_box_);;
-            f_start = std::get<0>(m_g_box_);;
-            f_count = toolbox::dimensions(m_inner_box_);
-
-            m_dims = toolbox::dimensions(m_m_box_);;
-            m_start = std::get<0>(m_inner_box_) - std::get<0>(m_m_box_);
-            m_count = toolbox::dimensions(m_inner_box_);
-            break;
-
-    }
-    f_dims[NDIMS] = 3;
-    f_start[NDIMS] = 0;
-    f_count[NDIMS] = 3;
-
-
-    m_dims[NDIMS] = 3;
-    m_start[NDIMS] = 0;
-    m_count[NDIMS] = 3;
-
-    FIXME;
-    data::DataSpace f_space(i_ndims, &f_dims[0]);
-//    f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
-
-
-    data::DataSpace m_space(i_ndims, &m_dims[0]);
-    m_space.select_hyperslab(&m_start[0], nullptr, &m_count[0], nullptr);
-
-    return std::forward_as_tuple(m_space, f_space);
-
-};
+//
+//std::tuple<data::DataSpace, data::DataSpace>
+//MeshBlock::data_space(MeshEntityType const &t, MeshZoneTag status) const
+//{
+//    int i_ndims = (t == EDGE || t == FACE) ? (NDIMS + 1) : NDIMS;
+//
+//    nTuple<size_type, NDIMS + 1> f_dims, f_count;
+//    nTuple<size_type, NDIMS + 1> f_start;
+//
+//    nTuple<size_type, NDIMS + 1> m_dims, m_count;
+//    nTuple<size_type, NDIMS + 1> m_start;
+//
+//    switch (status)
+//    {
+//        case SP_ES_ALL:
+//            f_dims = toolbox::dimensions(m_g_box_);
+//            f_start = std::get<0>(m_g_box_);
+//            f_count = toolbox::dimensions(m_g_box_);
+//
+//            m_dims = toolbox::dimensions(m_m_box_);
+//            m_start = std::get<0>(m_outer_box_) - std::get<0>(m_m_box_);
+//            m_count = toolbox::dimensions(m_outer_box_);;
+//            break;
+//        case SP_ES_OWNED:
+//        default:
+//            f_dims = toolbox::dimensions(m_g_box_);;
+//            f_start = std::get<0>(m_g_box_);;
+//            f_count = toolbox::dimensions(m_inner_box_);
+//
+//            m_dims = toolbox::dimensions(m_m_box_);;
+//            m_start = std::get<0>(m_inner_box_) - std::get<0>(m_m_box_);
+//            m_count = toolbox::dimensions(m_inner_box_);
+//            break;
+//
+//    }
+//    f_dims[NDIMS] = 3;
+//    f_start[NDIMS] = 0;
+//    f_count[NDIMS] = 3;
+//
+//
+//    m_dims[NDIMS] = 3;
+//    m_start[NDIMS] = 0;
+//    m_count[NDIMS] = 3;
+//
+//    FIXME;
+//    data::DataSpace f_space(i_ndims, &f_dims[0]);
+////    f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
+//
+//
+//    data::DataSpace m_space(i_ndims, &m_dims[0]);
+//    m_space.select_hyperslab(&m_start[0], nullptr, &m_count[0], nullptr);
+//
+//    return std::forward_as_tuple(m_space, f_space);
+//
+//};
 
 
 EntityIdRange

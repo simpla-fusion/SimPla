@@ -2,35 +2,20 @@
 // Created by salmon on 16-10-20.
 //
 
-
+#include "Atlas.h"
 #include "Attribute.h"
 
-namespace simpla { namespace mesh
+namespace simpla
+{
+namespace mesh
 {
 struct AttributeBase::pimpl_s
 {
-    std::shared_ptr<Atlas> m_atlas_;
-
-    std::map<id_type, std::shared_ptr<PatchBase>> m_patches_;
-
-    typename toolbox::Object::id_type m_id_;
+    std::map<id_type, std::shared_ptr<DataBlockBase>> m_patches_;
+    id_type m_id_;
 };
 
-AttributeBase::AttributeBase() : m_pimpl_(new pimpl_s)
-{
-    m_pimpl_->m_atlas_ = std::make_shared<Atlas>();
-}
-
-AttributeBase::AttributeBase(std::shared_ptr<MeshBlock> const &m) : m_pimpl_(new pimpl_s)
-{
-    m_pimpl_->m_atlas_ = std::make_shared<Atlas>();
-    m_pimpl_->m_atlas_->add(m);
-    m_pimpl_->m_id_ = m->id();
-};
-
-AttributeBase::AttributeBase(std::shared_ptr<Atlas> const &m) : m_pimpl_(new pimpl_s) { m_pimpl_->m_atlas_ = m; }
-
-//AttributeBase::AttributeBase(AttributeBase &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
+AttributeBase::AttributeBase(std::string const &s) : toolbox::Object(s), m_pimpl_(new pimpl_s) {}
 
 AttributeBase::~AttributeBase() {}
 
@@ -40,65 +25,45 @@ std::ostream &AttributeBase::print(std::ostream &os, int indent) const
     return os;
 }
 
-void AttributeBase::deploy()
-{
-    if (m_pimpl_->m_id_ == 0)
-    {
-        assert(m_pimpl_->m_atlas_->mesh() != nullptr);
-        m_pimpl_->m_id_ = m_pimpl_->m_atlas_->mesh()->id();
-    }
 
-    patch()->deploy();
+void AttributeBase::load(const data::DataBase &) { UNIMPLEMENTED; }
 
-    update();
-}
+void AttributeBase::save(data::DataBase *) const { UNIMPLEMENTED; }
 
-void AttributeBase::move_to(id_type id)
-{
-    m_pimpl_->m_id_ = id;
-    update();
-
-}
-
-
-std::shared_ptr<Atlas> const &AttributeBase::atlas() const { return m_pimpl_->m_atlas_; };
-
-bool AttributeBase::has(const id_type &t_id)
+bool AttributeBase::has(const id_type &t_id) const
 {
     return m_pimpl_->m_patches_.find(t_id) != m_pimpl_->m_patches_.end();
-};
-
-MeshBlock const *AttributeBase::mesh(id_type t_id) const
-{
-    return m_pimpl_->m_atlas_->mesh(t_id);
 }
 
 
-PatchBase const *AttributeBase::patch(id_type t_id) const
+void AttributeBase::deploy(id_type id) { m_pimpl_->m_patches_.at(id)->deploy(); }
+
+void AttributeBase::erase(id_type id) { m_pimpl_->m_patches_.erase(id); }
+
+void AttributeBase::clear(id_type id) { m_pimpl_->m_patches_.at(id)->clear(); }
+
+void AttributeBase::update(id_type dest, id_type src) { UNIMPLEMENTED; }
+
+DataBlockBase &AttributeBase::data(id_type id) { return *m_pimpl_->m_patches_.at(id == 0 ? m_pimpl_->m_id_ : id); }
+
+DataBlockBase const &AttributeBase::data(id_type id) const
 {
-    return m_pimpl_->m_patches_.at((t_id == 0) ? mesh()->id() : t_id).get();
+    return *m_pimpl_->m_patches_.at(id == 0 ? m_pimpl_->m_id_ : id);
 }
 
-PatchBase *AttributeBase::patch(id_type t_id)
+DataBlockBase &AttributeBase::create(const MeshBlock *m, id_type hint)
 {
-    PatchBase *res;
+    auto res = data(hint).create(m);
+    insert(m->id(), res);
+    return *res;
+}
 
-    t_id = (t_id == 0) ? mesh()->id() : t_id;
+void AttributeBase::insert(id_type id, const std::shared_ptr<DataBlockBase> &d)
+{
+    m_pimpl_->m_patches_.emplace(std::make_pair(id, d));
 
-    auto it = m_pimpl_->m_patches_.find(t_id);
-
-    if (it != m_pimpl_->m_patches_.end())
-    {
-        res = it->second.get();
-    } else
-    {
-        auto p = create(t_id);
-        res = m_pimpl_->m_patches_.emplace(t_id, p).first->second.get();
-    }
+}
 
 
-    return res;
-};
-
-
-}}
+}
+}

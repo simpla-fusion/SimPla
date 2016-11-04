@@ -6,6 +6,7 @@
 #define SIMPLA_LUADATABASE_H
 
 #include <simpla/toolbox/LuaObject.h>
+#include "DataEntity.h"
 #include "DataBase.h"
 
 namespace simpla { namespace data
@@ -37,9 +38,9 @@ public:
 
     void parse_string(std::string const &str);
 
-    virtual LuaDataEntity const &value() const { return *std::dynamic_pointer_cast<LuaDataEntity const>(m_value_); };
-
-    virtual LuaDataEntity &value() { return *std::dynamic_pointer_cast<LuaDataEntity>(m_value_); };
+//    virtual LuaDataEntity const &value() const;
+//
+//    virtual LuaDataEntity &value();
 
     virtual std::shared_ptr<DataBase> create() const
     {
@@ -61,11 +62,11 @@ public:
 
     virtual void set(std::string const &key, std::shared_ptr<DataBase> const &v);
 
-    virtual std::shared_ptr<DataBase> get(std::string const &key);
+    virtual DataBase &get(std::string const &key);
 
-    virtual std::shared_ptr<DataBase> at(std::string const &key);
+    virtual DataBase &at(std::string const &key);
 
-    virtual std::shared_ptr<DataBase> at(std::string const &key) const;
+    virtual DataBase const &at(std::string const &key) const;
 
 };
 

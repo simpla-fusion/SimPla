@@ -8,24 +8,29 @@
 #ifndef CORE_APPLICATION_CONTEXT_H_
 #define CORE_APPLICATION_CONTEXT_H_
 
+#include <simpla/SIMPLA_config.h>
+
 #include <memory>
 #include <list>
 #include <map>
+#include <simpla/toolbox/Log.h>
 
-#include <simpla/SIMPLA_config.h>
+#include <simpla/toolbox/Object.h>
+#include <simpla/toolbox/Printable.h>
+#include <simpla/toolbox/Serializable.h>
+
+
 #include <simpla/mesh/EntityIdRange.h>
 #include <simpla/mesh/Mesh.h>
-#include <simpla/mesh/Patch.h>
+#include <simpla/mesh/DataBlock.h>
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/TransitionMap.h>
 #include <simpla/mesh/DomainBase.h>
 #include <simpla/toolbox/IOStream.h>
-#include <simpla/toolbox/DataBase.h>
-
+#include <simpla/data/DataBase.h>
 
 namespace simpla { namespace simulation
 {
-class WorkerBase;
 
 /**
  *  life cycle of a simpla::Context
@@ -42,30 +47,35 @@ class WorkerBase;
  *
  *
  */
-class ContextBase : public toolbox::Object
+class Context :
+        public toolbox::Object,
+        public toolbox::Printable,
+        public toolbox::Serializable
 {
 
 public:
+    SP_OBJECT_HEAD(Context, toolbox::Object);
 
-    ContextBase(std::string const &name_str = "") : toolbox::Object(name_str) {};
+    Context(std::string const &name_str = "") : toolbox::Object(name_str) {};
 
-    virtual ~ContextBase() {};
+    virtual ~Context() {};
+
+
+    virtual std::string const &name() const { return toolbox::Object::name(); };
+
+    virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
+
+    virtual void load(data::DataBase const &) { UNIMPLEMENTED; }
+
+    virtual void save(data::DataBase *) const { UNIMPLEMENTED; }
 
     virtual void initialize(int argc = 0, char **argv = nullptr)=0;
 
-    virtual void load(const std::shared_ptr<toolbox::DataBase> &) =0;
+    virtual void deploy() {};
 
-    virtual void save(toolbox::DataBase *) =0;
-
-    virtual void deploy()=0;
-
-    virtual void teardown()=0;
-
-    virtual void registerAttribute(std::string const &, std::shared_ptr<mesh::AttributeBase> &, int flag = 0) =0;
+    virtual void teardown() {};
 
     virtual bool is_valid() const { return true; };
-
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; };
 
     virtual toolbox::IOStream &check_point(toolbox::IOStream &os) const { return os; };
 
@@ -75,55 +85,7 @@ public:
 
     virtual void next_time_step(Real dt)=0;
 
-    virtual void registerWorker(std::shared_ptr<WorkerBase>)=0;
 
-    virtual void registerAttribute(std::shared_ptr<mesh::AttributeBase>)=0;
-
-    template<typename TWorker> void registerWorker(std::shared_ptr<TWorker>);
-
-
-};
-
-class Context : public ContextBase
-{
-private:
-    typedef Context this_type;
-public:
-
-    Context();
-
-    ~Context();
-
-    void setup();
-
-    void teardown();
-
-    std::ostream &print(std::ostream &os, int indent = 1) const;
-
-    toolbox::IOStream &save(toolbox::IOStream &os, int flag = toolbox::SP_NEW) const;
-
-    toolbox::IOStream &load(toolbox::IOStream &is);
-
-    toolbox::IOStream &check_point(toolbox::IOStream &os) const;
-
-//    std::shared_ptr<mesh::DomainBase> add_domain(std::shared_ptr<mesh::DomainBase> pb);
-//
-//    std::shared_ptr<mesh::DomainBase> get_domain(mesh_id_type id) const;
-
-    void sync(int level = 0, int flag = 0);
-
-    void run(Real dt, int level = 0);
-
-    Real time() const { return m_time_; }
-
-    void time(Real t) { m_time_ = t; };
-
-    void next_time_step(Real dt) { m_time_ += dt; };
-
-private:
-    Real m_time_;
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 

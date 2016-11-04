@@ -19,7 +19,6 @@ typedef union { struct { int16_t w, z, y, x; }; int64_t v; } MeshEntityId64;
 
 
 typedef MeshEntityId64 MeshEntityId;
-typedef size_type id_type;
 
 
 enum MeshEntityType

@@ -13,7 +13,7 @@
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
-#include <simpla/mesh/Patch.h>
+#include <simpla/mesh/DataBlock.h>
 #include <simpla/simulation/Worker.h>
 #include <simpla/simulation/Context.h>
 
@@ -650,9 +650,9 @@ public:
     void readNeumannBoundaryDataEntry(const boost::shared_ptr<SAMRAI::tbox::Database> &db,
                                       std::string &db_name, int bdry_location_index);
 
-//    void checkUserTagData(SAMRAI::hier::Patch &patch, const int tag_index) const;
+//    void checkUserTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const;
 //
-//    void checkNewPatchTagData(SAMRAI::hier::Patch &patch, const int tag_index) const;
+//    void checkNewPatchTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const;
 
 
     /**
@@ -698,7 +698,7 @@ private:
 //     * Private member function to check correctness of boundary data.
 //     */
 //    void checkBoundaryData(int btype,
-//                           const SAMRAI::hier::Patch &patch,
+//                           const SAMRAI::hier::DataBlockBase &patch,
 //                           const SAMRAI::hier::IntVector &ghost_width_to_fill,
 //                           const std::vector<int> &scalar_bconds) const;
 //
@@ -707,9 +707,9 @@ private:
 //     * either of the two transverse flux correction options.  These
 //     * routines are called from the computeFluxesOnPatch() function.
 //     */
-//    void compute3DFluxesWithCornerTransport1(SAMRAI::hier::Patch &patch, const double dt);
+//    void compute3DFluxesWithCornerTransport1(SAMRAI::hier::DataBlockBase &patch, const double dt);
 //
-//    void compute3DFluxesWithCornerTransport2(SAMRAI::hier::Patch &patch, const double dt);
+//    void compute3DFluxesWithCornerTransport2(SAMRAI::hier::DataBlockBase &patch, const double dt);
 
     /*
      * The object name is used for error/warning reporting and also as a
@@ -1682,7 +1682,7 @@ void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, co
  *
  *************************************************************************
  */
-//void SAMRAIWorkerHyperbolic::compute3DFluxesWithCornerTransport1(SAMRAI::hier::Patch &patch, const double dt)
+//void SAMRAIWorkerHyperbolic::compute3DFluxesWithCornerTransport1(SAMRAI::hier::DataBlockBase &patch, const double dt)
 //{
 //    TBOX_ASSERT(CELLG == FACEG);
 //    TBOX_ASSERT(d_dim == tbox::Dimension(3));
@@ -1971,7 +1971,7 @@ void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, co
  *
  *************************************************************************
  */
-//void SAMRAIWorkerHyperbolic::compute3DFluxesWithCornerTransport2(SAMRAI::hier::Patch &patch, const double dt)
+//void SAMRAIWorkerHyperbolic::compute3DFluxesWithCornerTransport2(SAMRAI::hier::DataBlockBase &patch, const double dt)
 //{
 //    TBOX_ASSERT(CELLG == FACEG);
 //    TBOX_ASSERT(d_dim == tbox::Dimension(3));
@@ -4019,7 +4019,7 @@ void SAMRAIWorkerHyperbolic::readStateDataEntry(
 //
 //void SAMRAIWorkerHyperbolic::checkBoundaryData(
 //        int btype,
-//        const SAMRAI::hier::Patch &patch,
+//        const SAMRAI::hier::DataBlockBase &patch,
 //        const SAMRAI::hier::IntVector &ghost_width_to_check,
 //        const std::vector<int> &scalar_bconds) const
 //{
@@ -4125,14 +4125,14 @@ void SAMRAIWorkerHyperbolic::readStateDataEntry(
 //}
 //
 //void
-//SAMRAIWorkerHyperbolic::checkUserTagData(SAMRAI::hier::Patch &patch, const int tag_index) const
+//SAMRAIWorkerHyperbolic::checkUserTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const
 //{
 //    boost::shared_ptr<SAMRAI::pdat::CellData<int> > tags( boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(patch.getPatchData(tag_index)));
 //    TBOX_ASSERT(tags);
 //}
 //
 //void
-//SAMRAIWorkerHyperbolic::checkNewPatchTagData(SAMRAI::hier::Patch &patch, const int tag_index) const
+//SAMRAIWorkerHyperbolic::checkNewPatchTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const
 //{
 //    boost::shared_ptr<SAMRAI::pdat::CellData<int> > tags(
 //             boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(
@@ -4158,10 +4158,10 @@ void SAMRAIWorkerHyperbolic::readStateDataEntry(
 //template<typename V, typename M, mesh::MeshEntityType IFORM>
 //class SAMRAIWrapperPatch
 //        : public SAMRAITraitsPatch<V, IFORM>::type,
-//          public mesh::Patch<V, M, IFORM>
+//          public mesh::DataBlockBase<V, M, IFORM>
 //{
 //    typedef typename SAMRAITraitsPatch<V, IFORM>::type samari_base_type;
-//    typedef mesh::Patch<V, M, IFORM> simpla_base_type;
+//    typedef mesh::DataBlockBase<V, M, IFORM> simpla_base_type;
 //public:
 //    SAMRAIWrapperPatch(std::shared_ptr<M> const &m, size_tuple const &gw)
 //            : samari_base_type(SAMRAI::hier::Box(samraiIndexConvert(std::get<0>(m->index_box())),

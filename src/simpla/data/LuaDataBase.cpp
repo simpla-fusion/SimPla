@@ -7,8 +7,8 @@ namespace simpla { namespace data
 {
 LuaDataBase::LuaDataBase()
 {
-    m_value_ = std::shared_ptr<DataEntity>((new LuaDataEntity));
-    std::dynamic_pointer_cast<LuaDataEntity>(m_value_)->init();
+//    m_value_ = std::shared_ptr<DataEntity>((new LuaDataEntity));
+//    std::dynamic_pointer_cast<LuaDataEntity>(m_value_)->init();
 };
 
 LuaDataBase::~LuaDataBase() {};
@@ -31,33 +31,33 @@ bool LuaDataBase::is_null() const { return value().is_null() || DataBase::is_nul
 
 bool LuaDataBase::has(std::string const &key) const { return value().has(key) || DataBase::has(key); };
 
-std::shared_ptr<DataBase> LuaDataBase::get(std::string const &key)
+DataBase &LuaDataBase::get(std::string const &key)
 {
     auto res = std::make_shared<LuaDataBase>();
 
 //    res->m_value_().swap(this->m_value_().LuaObject::get(key));
 
-    return (res->value().is_nil()) ? DataBase::get(key) : std::dynamic_pointer_cast<DataBase>(res);
+    return *((res->value().is_nil()) ? DataBase::get(key) : std::dynamic_pointer_cast<DataBase>(res));
 
 };
 
-std::shared_ptr<DataBase> LuaDataBase::at(std::string const &key)
+DataBase &LuaDataBase::at(std::string const &key)
 {
     auto res = std::make_shared<LuaDataBase>();
 
 //    res->m_value_().swap(this->m_value_().get(key));
 
-    return (res->value().is_nil()) ? DataBase::at(key) : std::dynamic_pointer_cast<DataBase>(res);
+    return *((res->value().is_nil()) ? DataBase::at(key) : std::dynamic_pointer_cast<DataBase>(res));
 
 };
 
-std::shared_ptr<DataBase> LuaDataBase::at(std::string const &key) const
+DataBase const &LuaDataBase::at(std::string const &key) const
 {
     auto res = std::make_shared<LuaDataBase>();
 
 //    res->m_value_().swap(this->m_value_()[key]);
 
-    return (res->value().is_nil()) ? DataBase::at(key) : std::dynamic_pointer_cast<DataBase>(res);
+    return *((res->value().is_nil()) ? DataBase::at(key) : std::dynamic_pointer_cast<DataBase>(res));
 
 };
 

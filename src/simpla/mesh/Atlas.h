@@ -62,38 +62,19 @@ public:
     template<typename ...Args>
     id_type create(id_type hint, Args &&...args) { return insert(at(hint).create(std::forward<Args>(args)...), hint); };
 
-    void link(id_type src, id_type dest);
+    void link(id_type src, id_type dest) {};
 
-    void update(id_type id);
+//    std::set<id_type> &level(int l);
+//
+//    std::set<id_type> const &level(int l) const;
 
-    void erase(id_type id);
-
-
-    std::set<id_type> &level(int l);
-
-    std::set<id_type> const &level(int l) const;
-
-    void update_all();
-
-    void register_attribute(std::shared_ptr<AttributeBase> attr);
-
-    void unregister_attribute(std::shared_ptr<AttributeBase> attr);
-
-    void clear(id_type id);
-
-    void sync(id_type dest, id_type src);
-
-    void coarsen(id_type id);
-
-    void refine(id_type id);
-
-    void deploy(id_type id = 0);
 
 private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 
 };
+
 }}//namespace simpla{namespace mesh_as{
 
 #endif //SIMPLA_MESH_MESHATLAS_H
