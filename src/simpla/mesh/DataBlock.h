@@ -16,14 +16,14 @@ namespace simpla { namespace mesh
  *  Base class of Data Blocks (pure virtual)
  */
 
-struct DataBlockBase : public toolbox::Serializable, public toolbox::Printable
+struct DataBlock : public toolbox::Serializable, public toolbox::Printable
 {
 public:
-    DataBlockBase(MeshBlock const *m) : m_(m) {}
+    DataBlock(MeshBlock const *m) : m_(m) {}
 
-    virtual ~DataBlockBase() {}
+    virtual ~DataBlock() {}
 
-    virtual bool is_a(std::type_info const &info) const { return info == typeid(DataBlockBase); };
+    virtual bool is_a(std::type_info const &info) const { return info == typeid(DataBlock); };
 
     virtual std::type_info const &value_type_info() =0;
 
@@ -37,7 +37,7 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const =0;
 
-    virtual std::shared_ptr<DataBlockBase> create(MeshBlock const *) const =0;
+    virtual std::shared_ptr<DataBlock> create(MeshBlock const *) const =0;
 
     virtual void deploy() =0;
 
@@ -52,15 +52,15 @@ private:
 };
 
 template<typename TV, MeshEntityType IFORM>
-class DataBlock : public DataBlockBase
+class DataBlockArray : public DataBlock
 {
-    typedef DataBlock<TV, IFORM> this_type;
+    typedef DataBlockArray<TV, IFORM> this_type;
 public:
     typedef TV value_type;
 
-    DataBlock(MeshBlock const *m) : DataBlockBase(m) {}
+    DataBlockArray(MeshBlock const *m) : DataBlock(m) {}
 
-    virtual ~DataBlock() {}
+    virtual ~DataBlockArray() {}
 
     virtual std::type_info const &value_type_info() { return typeid(value_type); };
 
@@ -68,7 +68,7 @@ public:
 
     virtual bool is_a(std::type_info const &info) const
     {
-        return info == typeid(DataBlock<TV, IFORM>) || DataBlockBase::is_a(info);
+        return info == typeid(DataBlockArray<TV, IFORM>) || DataBlock::is_a(info);
     };
 
     virtual std::string const &name() const { return ""; }
@@ -80,9 +80,9 @@ public:
     virtual std::ostream &print(std::ostream &os, int indent) const { return os; }
 
 
-    virtual std::shared_ptr<DataBlockBase> create(MeshBlock const *m) const
+    virtual std::shared_ptr<DataBlock> create(MeshBlock const *m) const
     {
-        return std::dynamic_pointer_cast<DataBlockBase>(std::make_shared<this_type>(m));
+        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(m));
     };
 
     virtual void deploy() {};

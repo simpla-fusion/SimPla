@@ -14,7 +14,7 @@ namespace mesh
 {
 class Chart;
 
-class DataBlockBase;
+class DataBlock;
 } //namespace get_mesh
 } //namespace simpla
 

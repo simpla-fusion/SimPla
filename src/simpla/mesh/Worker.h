@@ -15,10 +15,9 @@
 #include <simpla/toolbox/Serializable.h>
 
 
-namespace simpla { namespace mesh { struct MeshBlock; }}
-
-namespace simpla { namespace simulation
+namespace simpla { namespace mesh
 {
+struct MeshBlock;
 
 class Worker :
         public toolbox::Object,
@@ -101,17 +100,17 @@ struct Worker::Observer
 
     virtual ~Observer();
 
-    virtual void destroy() {};
+    virtual void destroy() =0;
 
-    virtual void create(mesh::MeshBlock const *) {};
+    virtual void create(mesh::MeshBlock const *, bool is_scratch = false) =0;
 
-    virtual void deploy(mesh::MeshBlock const *) {};
+    virtual void deploy(mesh::MeshBlock const *) =0;
 
-    virtual void move_to(mesh::MeshBlock const *) {};
+    virtual void move_to(mesh::MeshBlock const *) =0;
 
-    virtual void erase(mesh::MeshBlock const *) {};
+    virtual void erase(mesh::MeshBlock const *)=0;
 
-    virtual void update(mesh::MeshBlock const *, bool only_ghost = false) {};
+    virtual void update(mesh::MeshBlock const *, bool only_ghost = false) =0;
 
 private:
     friend class Worker;

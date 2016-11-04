@@ -5,7 +5,7 @@
 #include <set>
 #include <simpla/mesh/MeshBlock.h>
 
-namespace simpla { namespace simulation
+namespace simpla { namespace mesh
 {
 struct Worker::pimpl_s
 {
@@ -43,7 +43,7 @@ void Worker::update(mesh::MeshBlock const *m, bool og) const
 };
 
 
-Worker::Observer::Observer(Worker *w) : m_worker_(w) { m_worker_->attach(this); }
+Worker::Observer::Observer(Worker *w) : m_worker_(w) { if (m_worker_ != nullptr) { m_worker_->attach(this); }}
 
-Worker::Observer::~Observer() { m_worker_->detach(this); }
+Worker::Observer::~Observer() { if (m_worker_ != nullptr) { m_worker_->detach(this); }}
 }}//namespace simpla { namespace mesh

@@ -14,7 +14,7 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/DataBlock.h>
-#include <simpla/simulation/Worker.h>
+#include <simpla/mesh/Worker.h>
 #include <simpla/simulation/Context.h>
 
 // Headers for SAMRAI
@@ -107,7 +107,7 @@ struct SAMRAIContext : public simulation::ContextBase
 
     std::ostream &print(std::ostream &os, int indent = 1) const { return os; };
 
-    virtual void registerAttribute(std::string const &, std::shared_ptr<mesh::AttributeBase> &, int flag = 0);
+    virtual void registerAttribute(std::string const &, std::shared_ptr<mesh::Attribute> &, int flag = 0);
 
     virtual void registerWorker(std::shared_ptr<simulation::WorkerBase>)=0;
 
@@ -246,7 +246,7 @@ void SAMRAIContext::save(toolbox::DataBase *)
 }
 
 
-void SAMRAIContext::registerAttribute(std::string const &, std::shared_ptr<mesh::AttributeBase> &, int flag)
+void SAMRAIContext::registerAttribute(std::string const &, std::shared_ptr<mesh::Attribute> &, int flag)
 {
     m_is_valid_ = false;
 
@@ -1189,7 +1189,7 @@ void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLeve
 
 }
 
-void registerAttribute(std::shared_ptr<mesh::AttributeBase> const &attr, std::string const &name)
+void registerAttribute(std::shared_ptr<mesh::Attribute> const &attr, std::string const &name)
 {
 
 }
@@ -4219,14 +4219,14 @@ void SAMRAIWorkerHyperbolic::readStateDataEntry(
 //    ~SAMRAIWrapperAtlas() {}
 //};
 //
-//std::shared_ptr<mesh::AttributeBase>
+//std::shared_ptr<mesh::Attribute>
 //create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
 //                      std::shared_ptr<mesh::Atlas> const &m, std::string const &name)
 //{
 //}
 //
 //
-//std::shared_ptr<mesh::AttributeBase>
+//std::shared_ptr<mesh::Attribute>
 //create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
 //                      std::shared_ptr<mesh::MeshBlock> const &m, std::string const &name)
 //{

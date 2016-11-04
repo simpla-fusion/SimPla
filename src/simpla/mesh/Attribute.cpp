@@ -9,59 +9,67 @@ namespace simpla
 {
 namespace mesh
 {
-struct AttributeBase::pimpl_s
+struct Attribute::pimpl_s
 {
-    std::map<id_type, std::shared_ptr<DataBlockBase>> m_patches_;
+    std::map<id_type, std::shared_ptr<DataBlock>> m_patches_;
     id_type m_id_;
 };
 
-AttributeBase::AttributeBase(std::string const &s) : toolbox::Object(s), m_pimpl_(new pimpl_s) {}
+Attribute::Attribute(std::string const &s) : toolbox::Object(s), m_pimpl_(new pimpl_s) {}
 
-AttributeBase::~AttributeBase() {}
+Attribute::~Attribute() {}
 
-std::ostream &AttributeBase::print(std::ostream &os, int indent) const
+std::ostream &Attribute::print(std::ostream &os, int indent) const
 {
     for (auto const &item:m_pimpl_->m_patches_) { item.second->print(os, indent + 1); }
     return os;
 }
 
 
-void AttributeBase::load(const data::DataBase &) { UNIMPLEMENTED; }
+void Attribute::load(const data::DataBase &) { UNIMPLEMENTED; }
 
-void AttributeBase::save(data::DataBase *) const { UNIMPLEMENTED; }
+void Attribute::save(data::DataBase *) const { UNIMPLEMENTED; }
 
-bool AttributeBase::has(const id_type &t_id) const
+bool Attribute::has(const MeshBlock *m) const
 {
-    return m_pimpl_->m_patches_.find(t_id) != m_pimpl_->m_patches_.end();
+    return m_pimpl_->m_patches_.find(m->id()) != m_pimpl_->m_patches_.end();
 }
 
+void Attribute::deploy(const MeshBlock *m) { m_pimpl_->m_patches_.at(m->id())->deploy(); }
 
-void AttributeBase::deploy(id_type id) { m_pimpl_->m_patches_.at(id)->deploy(); }
+void Attribute::erase(const MeshBlock *m) { m_pimpl_->m_patches_.erase(m->id()); }
 
-void AttributeBase::erase(id_type id) { m_pimpl_->m_patches_.erase(id); }
+void Attribute::clear(const MeshBlock *m) { m_pimpl_->m_patches_.at(m->id())->clear(); }
 
-void AttributeBase::clear(id_type id) { m_pimpl_->m_patches_.at(id)->clear(); }
+void Attribute::update(const MeshBlock *dest, const MeshBlock *src) { UNIMPLEMENTED; }
 
-void AttributeBase::update(id_type dest, id_type src) { UNIMPLEMENTED; }
 
-DataBlockBase &AttributeBase::data(id_type id) { return *m_pimpl_->m_patches_.at(id == 0 ? m_pimpl_->m_id_ : id); }
-
-DataBlockBase const &AttributeBase::data(id_type id) const
+DataBlock const *Attribute::at(const MeshBlock *m) const
 {
-    return *m_pimpl_->m_patches_.at(id == 0 ? m_pimpl_->m_id_ : id);
+    return m_pimpl_->m_patches_.at(m == nullptr ? m_pimpl_->m_id_ : m->id()).get();
 }
 
-DataBlockBase &AttributeBase::create(const MeshBlock *m, id_type hint)
+DataBlock *Attribute::at(const MeshBlock *m, const MeshBlock *hint)
 {
-    auto res = data(hint).create(m);
-    insert(m->id(), res);
-    return *res;
+    auto it = m_pimpl_->m_patches_.find(m->id());
+    if (m_pimpl_->m_patches_.end() != it) { return it->second.get(); }
+    else if (hint != nullptr)
+    {
+        try
+        {
+            auto res = at(hint)->create(m);
+            insert(m, res);
+            return res.get();
+        } catch (std::out_of_range const &err)
+        {
+            return nullptr;
+        }
+    }
 }
 
-void AttributeBase::insert(id_type id, const std::shared_ptr<DataBlockBase> &d)
+void Attribute::insert(const MeshBlock *m, const std::shared_ptr<DataBlock> &d)
 {
-    m_pimpl_->m_patches_.emplace(std::make_pair(id, d));
-
+    m_pimpl_->m_patches_.emplace(std::make_pair(m->id(), d));
 }
 
 

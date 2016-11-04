@@ -15,7 +15,7 @@
 #include <simpla/toolbox/type_traits.h>
 
 #include <simpla/mesh/Attribute.h>
-#include <simpla/simulation/Worker.h>
+#include <simpla/mesh/Worker.h>
 
 #include "FieldTraits.h"
 #include "FieldExpression.h"
@@ -29,79 +29,51 @@ template<typename TV, typename TManifold, size_t IFORM> using field_t= Field<TV,
 
 
 template<typename TV, typename TManifold, size_t IFORM>
-class Field<TV, TManifold, index_const<IFORM>> :
-        public simulation::Worker::Observer, public toolbox::Printable, public toolbox::Serializable
+class Field<TV, TManifold, index_const<IFORM>> : public mesh::AttributeView
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBlock, TManifold>::value, "TManifold is not derived from MeshBlock");
 
     typedef Field<TV, TManifold, index_const<IFORM>> this_type;
 
+    typedef mesh::AttributeView base_type;
+
+    static constexpr mesh::MeshEntityType iform = static_cast<mesh::MeshEntityType>(IFORM);
+
     typedef TManifold mesh_type;
 
     typedef TV value_type;
 
-    typedef mesh::Attribute<TV, static_cast<mesh::MeshEntityType>(IFORM)> attribute_type;
-
-    typedef typename attribute_type::data_block_type data_block_type;
-
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
+
+private:
+    typedef typename TManifold::data_block_type data_block_type;
     static constexpr int ndims = mesh_type::ndims;
-
-    std::shared_ptr<attribute_type> m_attr_;
-
     mesh_type const *m_mesh_ = nullptr;
-
     data_block_type *m_data_block_ = nullptr;
 
 public:
+    template<typename ...Args>
+    Field(Args &&...args) : base_type(std::forward<Args>(args)...) {};
 
-    Field(simulation::Worker *w, std::shared_ptr<attribute_type> attr = nullptr) :
-            simulation::Worker::Observer(w),
-            m_attr_(attr != nullptr ? attr : new attribute_type) {};
-
-    Field(simulation::Worker *w, std::string const &s) :
-            simulation::Worker::Observer(w),
-            m_attr_(new attribute_type(s)) {};
-
-    virtual   ~Field() {}
-
-    std::shared_ptr<attribute_type> &attribute() { return m_attr_; }
-
-    mesh_type const *mesh() const { return m_mesh_; }
+    virtual ~Field() {}
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); };
 
-    virtual std::shared_ptr<mesh::DataBlockBase>
-    create(mesh_type const &m, bool is_scratch = false)
+    virtual void
+    create(mesh::MeshBlock const *m, bool is_scratch = false)
     {
-        auto res = std::dynamic_pointer_cast<data_block_type>(std::make_shared<data_block_type>(&m));
-        if (!is_scratch) { m_attr_->insert(m.id(), res); };
-        return res;
+        auto res = std::dynamic_pointer_cast<mesh::DataBlock>(std::make_shared<data_block_type>(m));
+        if (!is_scratch) { base_type::attribute()->insert(m, res); };
     };
 
-    virtual void update(mesh_type const &m)
+    void deploy(mesh::MeshBlock const *m = nullptr)
     {
-        m_mesh_ = &m;
-        try
-        {
-            m_data_block_ = &(m_attr_->data(m.id()));
-        }
-        catch (std::out_of_range const &err)
-        {
-            m_attr_->insert(m.id(), std::make_shared<data_block_type>(m_mesh_));
-        }
-
+        base_type::deploy(m);
+        m_mesh_ = static_cast<mesh_type const * >(base_type::mesh());
+        m_data_block_ = base_type::attribute()->template as<data_block_type>(m_mesh_);
     }
-
-    virtual std::string const &name() const { return m_attr_->name(); };
-
-    virtual std::ostream &print(std::ostream &os, int indent) const { return m_attr_->print(os, indent); };
-
-    virtual void load(data::DataBase const &db) { return m_attr_->load(db); };
-
-    virtual void save(data::DataBase *db) const { return m_attr_->save(db); };
 
     /** @name as_function  @{*/
     template<typename ...Args> field_value_type
@@ -302,7 +274,7 @@ public:
     }
 
 
-    virtual void copy(mesh::EntityIdRange const &r0, mesh::DataBlockBase const &other)
+    virtual void copy(mesh::EntityIdRange const &r0, mesh::DataBlock const &other)
     {
 //        assert(other.is_a(typeid(this_type)));
 //

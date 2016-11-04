@@ -14,7 +14,7 @@ namespace simpla { namespace mesh
 {
 struct DomainBase::pimpl_s
 {
-    std::map<id_type, std::shared_ptr<mesh::AttributeBase> > m_attrs_;
+    std::map<id_type, std::shared_ptr<mesh::Attribute> > m_attrs_;
 };
 
 DomainBase::DomainBase() : m_pimpl_(new pimpl_s) {}
@@ -26,7 +26,7 @@ DomainBase::~DomainBase() { teardown(); }
 //DomainBase::move_to(uuid id) { for (auto &item:m_pimpl_->m_attrs_) { item->second->move_to(id); }}
 //
 //
-//std::shared_ptr<AttributeBase> DomainBase::attribute(uuid id) { return m_pimpl_->m_attrs_.at(id); };
+//std::shared_ptr<Attribute> DomainBase::attribute(uuid id) { return m_pimpl_->m_attrs_.at(id); };
 //
 //void DomainBase::add_attribute(DataEntityHeavy *attr, std::string const &s_name)
 //{

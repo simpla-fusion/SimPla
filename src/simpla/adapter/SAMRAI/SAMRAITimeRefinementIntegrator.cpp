@@ -14,7 +14,7 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/DataBlock.h>
-#include <simpla/simulation/Worker.h>
+#include <simpla/mesh/Worker.h>
 #include <simpla/simulation/Context.h>
 
 // Headers for SAMRAI

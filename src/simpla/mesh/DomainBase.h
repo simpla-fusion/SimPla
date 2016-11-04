@@ -68,7 +68,7 @@ public:
 
 //
 //    //------------------------------------------------------------------------------------------------------------------
-//    std::shared_ptr<AttributeBase> attribute(uuid id);
+//    std::shared_ptr<Attribute> attribute(uuid id);
 //
 //    void add_attribute(DataEntityHeavy *attr, std::string const &s_name);
 //

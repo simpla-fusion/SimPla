@@ -11,6 +11,7 @@
 
 #include "MeshBlock.h"
 #include "DataBlock.h"
+#include "Worker.h"
 
 namespace simpla { namespace mesh
 {
@@ -18,28 +19,23 @@ namespace simpla { namespace mesh
 /**
  *  AttributeBase IS-A container of datablock
  */
-class AttributeBase :
+class Attribute :
         public toolbox::Object, public toolbox::Serializable,
-        public std::enable_shared_from_this<AttributeBase>
+        public std::enable_shared_from_this<Attribute>
 {
 
 
 public:
 
-    SP_OBJECT_HEAD(AttributeBase, toolbox::Object)
+    SP_OBJECT_HEAD(Attribute, toolbox::Object)
 
-    AttributeBase(std::string const &s);
+    Attribute(std::string const &s);
 
-    AttributeBase(AttributeBase const &) = delete;
+    Attribute(Attribute const &) = delete;
 
-    AttributeBase(AttributeBase &&) = delete;
+    Attribute(Attribute &&) = delete;
 
-    virtual ~AttributeBase();
-
-
-    virtual std::type_info const &value_type_info() const =0;
-
-    virtual mesh::MeshEntityType entity_type() const =0;
+    virtual ~Attribute();
 
     virtual std::string const &name() const { return toolbox::Object::name(); };
 
@@ -49,26 +45,30 @@ public:
 
     virtual void save(data::DataBase *) const;
 
-    void insert(id_type id, const std::shared_ptr<DataBlockBase> &);
+    void insert(MeshBlock const *m, const std::shared_ptr<DataBlock> &);
 
-//    virtual DataBlockBase &create(MeshBlock const &)=0;
+    virtual bool has(MeshBlock const *) const;
 
-    virtual DataBlockBase &create(const MeshBlock *, id_type hint);
+    virtual void erase(MeshBlock const *);
 
-    virtual bool has(const id_type &t_id) const;
+    virtual void deploy(MeshBlock const * = nullptr);
 
-    virtual void erase(id_type id);
+    virtual void clear(MeshBlock const * = nullptr);
 
-    virtual void deploy(id_type id = 0);
+    virtual void update(MeshBlock const *, MeshBlock const * = nullptr);
 
-    virtual void clear(id_type id = 0);
+    virtual DataBlock const *at(MeshBlock const *m = nullptr) const;
 
-    virtual void update(id_type dest, id_type src = 0);
+    virtual DataBlock *at(const MeshBlock *, const MeshBlock *hint = nullptr);
 
-    virtual DataBlockBase &data(id_type t_id = 0);
-
-    virtual DataBlockBase const &data(id_type t_id = 0) const;
-
+    template<typename TB>
+    TB *as(MeshBlock const *m)
+    {
+        assert(!has(m));
+        auto res = std::make_shared<TB>(m);
+        insert(m, std::dynamic_pointer_cast<DataBlock>(res));
+        return res.get();
+    };
 
 private:
     struct pimpl_s;
@@ -77,31 +77,53 @@ private:
 
 };
 
-template<typename TV, MeshEntityType IFORM>
-class Attribute : public AttributeBase
+
+class AttributeView :
+        public Worker::Observer,
+        public toolbox::Printable,
+        public toolbox::Serializable
 {
+    std::shared_ptr<mesh::Attribute> m_attr_;
+    MeshBlock const *m_mesh_ = nullptr;
+    DataBlock *m_data_ = nullptr;
 public:
-    Attribute(std::string const &s) : AttributeBase(s) {}
+    AttributeView(MeshBlock *m, std::string const &s, Worker *w = nullptr) :
+            Worker::Observer(w), m_attr_(new mesh::Attribute(s)), m_mesh_(m) {};
 
-    virtual ~Attribute() {}
+    AttributeView(std::string const &s, Worker *w = nullptr) :
+            Worker::Observer(w), m_attr_(new mesh::Attribute(s)) {};
 
-    typedef TV value_type;
+    AttributeView(std::shared_ptr<mesh::Attribute> attr, Worker *w = nullptr) :
+            Worker::Observer(w), m_attr_(attr) {};
 
-    typedef DataBlock<value_type, IFORM> data_block_type;
+    virtual ~AttributeView() {}
 
-    static std::shared_ptr<Attribute<TV, IFORM>> create() { return std::make_shared<Attribute<TV, IFORM>>(); };
+    virtual std::string const &name() const { return m_attr_->name(); };
 
-    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
+    virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
 
-    virtual mesh::MeshEntityType entity_type() const { return IFORM; }
+    virtual void load(data::DataBase const &db) {};
 
-    virtual data_block_type &
-    data(id_type id = 0) { return static_cast<data_block_type &>(AttributeBase::data(id)); };
+    virtual void save(data::DataBase *db) const {};
 
-    virtual data_block_type const &
-    data(id_type id = 0) const { return static_cast<data_block_type const &>(AttributeBase::data(id)); };
+    std::shared_ptr<mesh::Attribute> &attribute() { return m_attr_; }
+
+    MeshBlock const *mesh() const { return m_mesh_; }
+
+    DataBlock *data() const { return m_data_; }
+
+    virtual void create(MeshBlock const *m, bool is_scratch = false) {};
+
+    virtual void destroy() {};
+
+    virtual void deploy(MeshBlock const *m = nullptr) {};
+
+    virtual void move_to(MeshBlock const *m = nullptr) {};
+
+    virtual void erase(MeshBlock const *m = nullptr) {};
+
+    virtual void update(MeshBlock const *m = nullptr, bool only_ghost = false) {};
 };
-
 
 }} //namespace data
 #endif //SIMPLA_ATTRIBUTE_H
