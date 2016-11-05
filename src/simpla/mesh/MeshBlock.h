@@ -92,12 +92,12 @@ public:
 
     virtual ~MeshBlock();
 
-    virtual void swap(MeshBlock &other) {}
+    virtual void swap(MeshBlock &other) { UNIMPLEMENTED; }
 
     MeshBlock &operator=(MeshBlock const &other)= delete;
 
     /** for Printable @{*/
-    virtual std::string const &name() const { return toolbox::Object::name(); };
+    virtual std::string  name() const { return toolbox::Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
@@ -247,17 +247,17 @@ public:
 
 
 
-//    inline size_type hash(index_type i, index_type j = 0, index_type k = 0, int nid = 0) const
-//    {
-//        return static_cast<size_type>(m::hash(i, j, k, nid, std::get<0>(m_m_box_), std::get<1>(m_m_box_)));
-//    }
-//
-//    inline size_type hash(index_tuple const &id) const { return hash(id[0], id[1], id[2]); }
-//
-//    inline size_type hash(MeshEntityId const &id) const
-//    {
-//        return hash(id.x >> 1, id.y >> 1, id.z >> 1, m::node_id(id));
-//    }
+    inline size_type hash(index_type i, index_type j = 0, index_type k = 0, int nid = 0) const
+    {
+        return static_cast<size_type>(m::hash(i, j, k, nid, std::get<0>(m_m_box_), std::get<1>(m_m_box_)));
+    }
+
+    inline size_type hash(index_tuple const &id) const { return hash(id[0], id[1], id[2]); }
+
+    inline size_type hash(MeshEntityId const &id) const
+    {
+        return hash(id.x >> 1, id.y >> 1, id.z >> 1, m::node_id(id));
+    }
 
 
     virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s, MeshEntityId *p = nullptr) const

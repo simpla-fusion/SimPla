@@ -37,7 +37,7 @@ public:
 
     virtual ~Attribute();
 
-    virtual std::string const &name() const { return toolbox::Object::name(); };
+    virtual std::string  name() const { return toolbox::Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
@@ -64,10 +64,16 @@ public:
     template<typename TB>
     TB *as(MeshBlock const *m)
     {
-        assert(!has(m));
-        auto res = std::make_shared<TB>(m);
-        insert(m, std::dynamic_pointer_cast<DataBlock>(res));
-        return res.get();
+        if (!has(m))
+        {
+            auto res = std::make_shared<TB>(m);
+            insert(m, std::dynamic_pointer_cast<DataBlock>(res));
+            return res.get();
+
+        } else
+        {
+            return static_cast<TB *>(at(m));
+        }
     };
 
 private:
@@ -84,8 +90,13 @@ class AttributeView :
     std::shared_ptr<mesh::Attribute> m_attr_;
     MeshBlock const *m_mesh_ = nullptr;
 public:
-    AttributeView(MeshBlock *m, std::string const &s, Worker *w = nullptr) :
+    AttributeView(MeshBlock *m = nullptr, std::string const &s = "", Worker *w = nullptr) :
             Worker::Observer(w), m_attr_(new mesh::Attribute(s)), m_mesh_(m) {};
+
+    template<typename TM>
+    AttributeView(std::shared_ptr<TM> const &m, std::string const &s = "", Worker *w = nullptr) :
+            Worker::Observer(w), m_attr_(new mesh::Attribute(s)), m_mesh_(m.get()) {};
+
 
     AttributeView(std::string const &s, Worker *w = nullptr) :
             Worker::Observer(w), m_attr_(new mesh::Attribute(s)) {};
@@ -94,6 +105,10 @@ public:
             Worker::Observer(w), m_attr_(attr) {};
 
     virtual ~AttributeView() {}
+
+    AttributeView(AttributeView const &other) = delete;
+
+    AttributeView(AttributeView &&other) = delete;
 
     template<typename TM> TM const *mesh() const { return static_cast<TM const *>(m_mesh_); }
 
@@ -105,7 +120,7 @@ public:
 
     std::shared_ptr<mesh::Attribute> &attribute() { return m_attr_; }
 
-    virtual std::string const &name() const { return m_attr_->name(); };
+    virtual std::string name() const { return m_attr_->name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent) const
     {
@@ -123,9 +138,9 @@ public:
 
     virtual void destroy() { UNIMPLEMENTED; };
 
-    virtual void deploy(MeshBlock const *m = nullptr) { m_mesh_ = m; };
+    virtual void deploy(MeshBlock const *m = nullptr) { if (m != nullptr) { m_mesh_ = m; }};
 
-    virtual void move_to(MeshBlock const *m = nullptr) { m_mesh_ = m; };
+    virtual void move_to(MeshBlock const *m = nullptr) { if (m != nullptr) { m_mesh_ = m; }};
 
     virtual void erase(MeshBlock const *m = nullptr) {};
 

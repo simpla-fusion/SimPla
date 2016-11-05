@@ -33,7 +33,7 @@ public:
 
     virtual  ~DataBase() {};
 
-    virtual std::string const &name() const =0;
+    virtual std::string  name() const =0;
 
     virtual std::ostream &print(std::ostream &os, int indent) const =0;
 

@@ -22,7 +22,7 @@
 #include "../Field.h"
 #include "../FieldTraits.h"
 #include "../FieldExpression.h"
-#include "../../mesh/CoRectMesh.h"
+#include "../../manifold/CoRectMesh.h"
 #include "../../manifold/ManifoldTraits.h"
 
 using namespace simpla;
@@ -34,15 +34,20 @@ protected:
     virtual void SetUp()
     {
         logger::set_stdout_level(10);
-        m = std::make_shared<mesh_type>();
 
         size_tuple dims = {10, 1, 1};
         point_type xmin = {0, 0, 0};
         point_type xmax = {1, 2, 3};
-        m->dimensions(dims);
-        m->box(xmin, xmax);
+//        m->dimensions(dims);
+//        m->box(xmin, xmax);
+
+        size_type gw[3] = {2, 2, 2};
+        index_type lo[3] = {0, 0, 0};
+        index_type hi[3];//= {dims[0], dims[1], dims[2]};
+
+        m = std::make_shared<mesh_type>(&xmin[0], &xmax[0], lo, hi, gw);
         m->deploy();
-        m->range(static_cast<mesh::MeshEntityType>(iform), SP_ES_OWNED).swap(m_range);
+        m->range(static_cast<mesh::MeshEntityType>(iform), mesh::SP_ES_OWNED).swap(m_range);
     }
 
 public:
@@ -66,11 +71,13 @@ public:
 
     std::shared_ptr<mesh_type> m;
 
-    field_t<value_type, mesh_type, iform> make_field() const { return field_t<value_type, mesh_type, iform>(m); };
+//    typedef Field<value_type, mesh_type, index_const<static_cast<size_t>(iform)> > field_type;
+    typedef Field<value_type, mesh_type, index_const<static_cast<size_t>(iform)> > scalar_field_type;
+    typedef Field<nTuple<value_type, 3>, mesh_type, index_const<static_cast<size_t>(iform)> > vector_field_type;
 
-    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(m)))
-
-    auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, mesh_type, iform>(m)))
+//    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(m)))
+//
+//    auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, mesh_type, iform>(m)))
 };
 
 TYPED_TEST_CASE_P(TestField);
@@ -82,7 +89,8 @@ TYPED_TEST_P(TestField, assign)
     typedef typename TestFixture::value_type value_type;
     typedef typename TestFixture::field_type field_type;
 
-    auto f1 = TestFixture::make_field();
+    typename TestFixture::field_type f1(TestFixture::m);
+
     f1.clear();
     value_type va;
     va = 2.0;
@@ -97,9 +105,9 @@ TYPED_TEST_P(TestField, index)
 
 
     typedef typename TestFixture::value_type value_type;
-    typedef typename TestFixture::field_type field_type;
 
-    auto f1 = TestFixture::make_field();
+    typename TestFixture::field_type f1(TestFixture::m);
+
 
     f1.clear();
 
@@ -121,9 +129,11 @@ TYPED_TEST_P(TestField, constant_real)
     typedef typename TestFixture::value_type value_type;
     typedef typename TestFixture::field_type field_type;
 
-    auto f1 = TestFixture::make_field();
-    auto f2 = TestFixture::make_field();
-    auto f3 = TestFixture::make_field();
+    typename TestFixture::field_type f1(TestFixture::m);
+    typename TestFixture::field_type f2(TestFixture::m);
+    typename TestFixture::field_type f3(TestFixture::m);
+
+
     f1.deploy();
     f2.deploy();
     f3.deploy();
@@ -144,7 +154,7 @@ TYPED_TEST_P(TestField, constant_real)
 
     LOG_CMD(f3 = -f1 + f1 * a + f2 * c - f1 / b);
 
-    f3.mesh()->range(f3.entity_type()).foreach(
+    TestFixture::m_range.foreach(
             [&](mesh::MeshEntityId const &s)
             {
                 value_type expect;
@@ -164,14 +174,14 @@ TYPED_TEST_P(TestField, scalarField)
 
     typedef typename TestFixture::value_type value_type;
 
-    auto f1 = TestFixture::make_field();
-    auto f2 = TestFixture::make_field();
-    auto f3 = TestFixture::make_field();
-    auto f4 = TestFixture::make_field();
+    typename TestFixture::field_type f1(TestFixture::m);
+    typename TestFixture::field_type f2(TestFixture::m);
+    typename TestFixture::field_type f3(TestFixture::m);
+    typename TestFixture::field_type f4(TestFixture::m);
 
-    auto a = TestFixture::make_scalarField();
-    auto b = TestFixture::make_scalarField();
-    auto c = TestFixture::make_scalarField();
+    typename TestFixture::scalar_field_type a(TestFixture::m);
+    typename TestFixture::scalar_field_type b(TestFixture::m);
+    typename TestFixture::scalar_field_type c(TestFixture::m);
 
     Real ra = 1.0, rb = 10.0, rc = 100.0;
 

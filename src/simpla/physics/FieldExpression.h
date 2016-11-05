@@ -12,11 +12,10 @@
 #include <cstdbool>
 #include <type_traits>
 
-#include "../toolbox/ExpressionTemplate.h"
-#include "../toolbox/type_traits.h"
+#include <simpla/toolbox/ExpressionTemplate.h>
+#include <simpla/toolbox/type_traits.h>
 
-namespace simpla
-{
+namespace simpla {
 /** @addtogroup field
  *  @{
  */

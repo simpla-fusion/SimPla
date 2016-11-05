@@ -56,24 +56,27 @@ protected:
     void SetUp()
     {
         logger::set_stdout_level(logger::LOG_VERBOSE);
-        m = std::make_shared<mesh_type>();
+
         std::tie(box, dims, K_real) = GetParam();
         std::tie(xmin, xmax) = box;
-        m->ghost_width(2, 2, 2);
-        m->dimensions(dims);
+        size_type gw[3] = {2, 2, 2};
+        index_type lo[3] = {0, 0, 0};
+        index_type hi[3];//= {dims[0], dims[1], dims[2]};
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        m->m_ghost_width_(index_tuple({2, 0, 0}));
-#endif
-        m->box(box);
+        m = std::make_shared<mesh_type>(&xmin[0], &xmax[0], lo, hi, gw);
+
+
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+//        m->m_ghost_width_(index_tuple({2, 0, 0}));
+//#endif
+//        m->box(box);
         m->deploy();
         Vec3 dx;
         dx = m->dx();
         point_type xm;
         xm = (std::get<0>(box) + std::get<1>(box)) * 0.5;
         K_imag = 0;
-        for (int i = 0; i < ndims; ++i)
-        {
+        for (int i = 0; i < ndims; ++i) {
             if (dims[i] <= 1) { K_real[i] = 0; }
             else { K_real[i] /= (xmax[i] - xmin[i]); }
         }
@@ -121,17 +124,17 @@ public:
     {
     }
 
-    template<typename TV, size_t IEntityType>
-    field_t<TV, mesh_type, IEntityType> make_field() { return field_t<TV, mesh_type, IEntityType>(m); };
+    template<mesh::MeshEntityType IFORM> using field_type=Field<value_type, mesh_type, index_const<static_cast<size_t>(IFORM)> >;
+
+
 };
 
 TEST_P(FETLTest, grad0)
 {
     typedef MeshEntityIdCoder M;
-
-    auto f0 = make_field<value_type, VERTEX>();
-    auto f1 = make_field<value_type, EDGE>();
-    auto f1b = make_field<value_type, EDGE>();
+    field_type <VERTEX> f0(m);
+    field_type <EDGE> f1(m);
+    field_type <EDGE> f1b(m);
 
     f0.clear();
     f1.clear();
@@ -140,7 +143,7 @@ TEST_P(FETLTest, grad0)
     f0.assign_function(SP_ES_ALL, [&](point_type const &x) { return std::sin(q(x)); });
 //    m->range(VERTEX, SP_ES_ALL).foreach();
 
-    LOG_CMD(f1 = grad(f0));
+    f1 = grad(f0);
 
     Real variance = 0;
     value_type average;
@@ -182,9 +185,9 @@ TEST_P(FETLTest, grad3)
 {
     typedef MeshEntityIdCoder M;
 
-    auto f2 = make_field<value_type, FACE>();
-    auto f2b = make_field<value_type, FACE>();
-    auto f3 = make_field<value_type, VOLUME>();
+    field_type <FACE> f2(m);
+    field_type <FACE> f2b(m);
+    field_type <VOLUME> f3(m);
 
     f3.clear();
     f2.clear();
@@ -233,9 +236,9 @@ TEST_P(FETLTest, diverge1)
 {
     typedef MeshEntityIdCoder M;
 
-    auto f1 = make_field<value_type, EDGE>();
-    auto f0 = make_field<value_type, VERTEX>();
-    auto f0b = make_field<value_type, VERTEX>();
+    field_type <EDGE> f1(m);
+    field_type <VERTEX> f0(m);
+    field_type <VERTEX> f0b(m);
 
     f0.clear();
     f0b.clear();
@@ -281,9 +284,9 @@ TEST_P(FETLTest, diverge1)
 TEST_P(FETLTest, diverge2)
 {
     typedef MeshEntityIdCoder M;
-    auto f2 = make_field<value_type, FACE>();
-    auto f3 = make_field<value_type, VOLUME>();
-    auto f3b = make_field<value_type, VOLUME>();
+    field_type <FACE> f2(m);
+    field_type <VOLUME> f3(m);
+    field_type <VOLUME> f3b(m);
     f3.clear();
     f3b.clear();
     f2.clear();
@@ -348,10 +351,10 @@ TEST_P(FETLTest, curl1)
 {
     typedef MeshEntityIdCoder M;
 
-    auto f1 = make_field<value_type, EDGE>();
-    auto f1b = make_field<value_type, EDGE>();
-    auto f2 = make_field<value_type, FACE>();
-    auto f2b = make_field<value_type, FACE>();
+    field_type <EDGE> f1(m);
+    field_type <EDGE> f1b(m);
+    field_type <FACE> f2(m);
+    field_type <FACE> f2b(m);
 
     f1.clear();
 
@@ -449,10 +452,10 @@ TEST_P(FETLTest, curl2)
 {
 
     typedef MeshEntityIdCoder M;
-    auto f1 = make_field<value_type, EDGE>();
-    auto f1b = make_field<value_type, EDGE>();
-    auto f2 = make_field<value_type, FACE>();
-    auto f2b = make_field<value_type, FACE>();
+    field_type <EDGE> f1(m);
+    field_type <EDGE> f1b(m);
+    field_type <FACE> f2(m);
+    field_type <FACE> f2b(m);
 
     f1.clear();
     f1b.clear();
@@ -528,10 +531,10 @@ TEST_P(FETLTest, curl2)
 TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 {
 
-    auto f0 = make_field<value_type, VERTEX>();
-    auto f1 = make_field<value_type, EDGE>();
-    auto f2a = make_field<value_type, FACE>();
-    auto f2b = make_field<value_type, FACE>();
+    field_type <VERTEX> f0(m);
+    field_type <EDGE> f1(m);
+    field_type <FACE> f2a(m);
+    field_type <FACE> f2b(m);
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -571,10 +574,10 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 
 TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 {
-    auto f3 = make_field<value_type, VOLUME>();
-    auto f1a = make_field<value_type, EDGE>();
-    auto f1b = make_field<value_type, EDGE>();
-    auto f2 = make_field<value_type, FACE>();
+    field_type <VOLUME> f3(m);
+    field_type <EDGE> f1a(m);
+    field_type <EDGE> f1b(m);
+    field_type <FACE> f2(m);
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
@@ -615,10 +618,10 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 {
 
 
-    auto f1 = make_field<value_type, EDGE>();
-    auto f2 = make_field<value_type, FACE>();
-    auto f0a = make_field<value_type, VERTEX>();
-    auto f0b = make_field<value_type, VERTEX>();
+    field_type <EDGE> f1(m);
+    field_type <FACE> f2(m);
+    field_type <VERTEX> f0a(m);
+    field_type <VERTEX> f0b(m);
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -658,10 +661,10 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 TEST_P(FETLTest, identity_div_curl_f2_eq0)
 {
 
-    auto f1 = make_field<value_type, EDGE>();
-    auto f2 = make_field<value_type, FACE>();
-    auto f3a = make_field<value_type, VOLUME>();
-    auto f3b = make_field<value_type, VOLUME>();
+    field_type <EDGE> f1(m);
+    field_type <FACE> f2(m);
+    field_type <VOLUME> f3a(m);
+    field_type <VOLUME> f3b(m);
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);

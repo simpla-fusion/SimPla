@@ -9,6 +9,7 @@
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Serializable.h>
 #include <simpla/toolbox/Printable.h>
+#include <simpla/data/DataEntityNDArray.h>
 #include "MeshBlock.h"
 
 namespace simpla { namespace mesh
@@ -30,7 +31,7 @@ public:
 
     virtual mesh::MeshEntityType entity_type() const =0;
 
-    virtual std::string const &name() const =0;
+    virtual std::string  name() const =0;
 
     virtual void load(data::DataBase const &) =0;
 
@@ -53,13 +54,14 @@ private:
 };
 
 template<typename TV, MeshEntityType IFORM>
-class DataBlockArray : public DataBlock
+class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV, 4>
 {
     typedef DataBlockArray<TV, IFORM> this_type;
+    typedef data::DataEntityNDArray<TV, 4> data_entity_type;
 public:
     typedef TV value_type;
 
-    DataBlockArray(MeshBlock const *m) : DataBlock(m) {}
+    DataBlockArray(MeshBlock const *m) : DataBlock(m), data_entity_type(m->memory_index_box()) {}
 
     virtual ~DataBlockArray() {}
 
@@ -72,7 +74,7 @@ public:
         return info == typeid(DataBlockArray<TV, IFORM>) || DataBlock::is_a(info);
     };
 
-    virtual std::string const &name() const { return ""; }
+    virtual std::string  name() const { return ""; }
 
     virtual void load(data::DataBase const &) {};
 
@@ -95,9 +97,9 @@ public:
         return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(m));
     };
 
-    virtual void deploy() {};
+    virtual void deploy() { data_entity_type::deploy(); };
 
-    virtual void clear() {};
+    virtual void clear() { data_entity_type::clear(); };
 };
 }}//namespace simpla { namespace mesh
 

@@ -137,7 +137,9 @@ public:
 
     typedef TMesh mesh_type;
 
-    Manifold() : Policies<mesh_type>(static_cast<mesh_type &>(*this))... {}
+    template<typename ...Args>
+    Manifold(Args &&...args) : TMesh(std::forward<Args>(args)...),
+                               Policies<mesh_type>(static_cast<mesh_type &>(*this))... {}
 
     virtual ~Manifold() {}
 
@@ -147,13 +149,13 @@ public:
 
     virtual std::shared_ptr<mesh::MeshBlock> clone() const { return std::make_shared<this_type>(*this); };
 
-    virtual std::shared_ptr<mesh::MeshBlock> clone(std::string const &name) const
-    {
-        auto res = clone();
-        if (name != "") { res->name(name); }
-        return res;
-
-    };
+//    virtual std::shared_ptr<mesh::MeshBlock> clone(std::string const &s) const
+//    {
+//        auto res = clone();
+////        if (s != "") { res->name_=(s); }
+//        return res;
+//
+//    };
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || TMesh::is_a(info); }
 
