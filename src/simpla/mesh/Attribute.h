@@ -91,7 +91,16 @@ class AttributeView :
     std::shared_ptr<mesh::Attribute> m_attr_;
     MeshBlock const *m_mesh_ = nullptr;
 public:
-    AttributeView(std::string const &s = "", Worker *w = nullptr) :
+
+    AttributeView(MeshBlock *m = nullptr, std::string const &s = "", Worker *w = nullptr) :
+            Worker::Observer(w), m_attr_(new mesh::Attribute(s)), m_mesh_(m) {};
+
+    template<typename TM>
+    AttributeView(std::shared_ptr<TM> const &m, std::string const &s = "", Worker *w = nullptr) :
+            Worker::Observer(w), m_attr_(new mesh::Attribute(s)), m_mesh_(m.get()) {};
+
+
+    AttributeView(std::string const &s, Worker *w = nullptr) :
             Worker::Observer(w), m_attr_(new mesh::Attribute(s)) {};
 
     AttributeView(std::shared_ptr<mesh::Attribute> const &attr, Worker *w = nullptr) :
@@ -103,9 +112,11 @@ public:
 
     AttributeView(AttributeView &&other) = delete;
 
+
     virtual mesh::MeshEntityType entity_type() const =0;
 
     virtual std::type_info const &value_type_info() const =0;
+
 
     template<typename TM> TM const *mesh() const { return static_cast<TM const *>(m_mesh_); }
 
@@ -120,7 +131,6 @@ public:
     virtual std::string name() const { return m_attr_->name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent) const { return m_attr_->print(os, indent); }
-
 
 
     virtual void create(MeshBlock const *m, bool is_scratch = false) { UNIMPLEMENTED; };

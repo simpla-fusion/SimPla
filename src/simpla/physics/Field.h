@@ -33,9 +33,14 @@ class Field<TV, TManifold, index_const<I>> : public mesh::AttributeView
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBlock, TManifold>::value, "TManifold is not derived from MeshBlock");
+
+
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
+
     typedef Field<TV, TManifold, index_const<I>> this_type;
+
     typedef mesh::AttributeView base_type;
+
 
 public:
     typedef typename traits::field_value_type<this_type>::type field_value_type;
@@ -43,6 +48,7 @@ public:
     typedef TV value_type;
 private:
     typedef typename TManifold::template data_block_type<TV, IFORM> data_block_type;
+
     mesh_type const *m_mesh_ = nullptr;
     data_block_type *m_data_ = nullptr;
 
@@ -109,7 +115,7 @@ public:
     template<typename ...U> inline this_type &
     operator=(Field<U...> const &other)
     {
-        apply_dispatch(_impl::_assign(), mesh::SP_ES_ALL, other);
+//        apply_dispatch(_impl::_assign(), mesh::SP_ES_ALL, other);
         return *this;
     }
 
@@ -212,6 +218,14 @@ public:
     struct field_function_tag {};
 
 
+    template<typename TOP, typename ...Args> void
+    apply(TOP const &op, mesh::MeshZoneTag const &tag, Args &&...args)
+    {
+        deploy();
+//        apply(op, m_mesh_->range(IFORM, tag), std::forward<Args>(args)...);
+    }
+
+
     template<typename TOP> void
     apply(TOP const &op, mesh::EntityIdRange const &r0, this_type const &other)
     {
@@ -254,8 +268,10 @@ public:
     apply(TOP const &op, mesh::MeshZoneTag const &tag, Args &&...args)
     {
         deploy();
-        apply(op, m_mesh_->range(entity_type(), tag), std::forward<Args>(args)...);
+//        apply(op, m_mesh_->range(entity_type(), tag), std::forward<Args>(args)...);
     }
+
+
 //
 //    template<typename TOP, typename TFun, typename ...Args> void
 //    apply(TOP const &op, mesh::EntityIdRange const r0, field_function_tag const *, TFun const &fun, Args &&...args)

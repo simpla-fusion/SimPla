@@ -20,8 +20,7 @@ Attribute::~Attribute() {}
 std::ostream &Attribute::print(std::ostream &os, int indent) const
 {
     os << std::setw(indent) << " " << std::endl;
-    for (auto const &item:m_pimpl_->m_patches_)
-    {
+    for (auto const &item:m_pimpl_->m_patches_) {
         os << std::setw(indent) << " " << item.first << " = {";
         item.second->print(os, indent + 1);
         os << " } " << std::endl;
@@ -57,10 +56,8 @@ DataBlock *Attribute::at(const MeshBlock *m, const MeshBlock *hint)
 {
     auto it = m_pimpl_->m_patches_.find(m->id());
     if (m_pimpl_->m_patches_.end() != it) { return it->second.get(); }
-    else if (hint != nullptr)
-    {
-        try
-        {
+    else if (hint != nullptr) {
+        try {
             auto res = at(hint)->create(m);
             insert(m, res);
             return res.get();
