@@ -20,8 +20,8 @@
 #include <simpla/toolbox/type_traits.h>
 #include <simpla/toolbox/type_cast.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/data/DataBlock.h>
-#include <simpla/data/Attribute.h>
+#include <simpla/mesh/DataBlock.h>
+#include <simpla/mesh/Attribute.h>
 #include <simpla/data/DataEntityNDArray.h>
 #include "../mesh/MeshCommon.h"
 #include "../mesh/MeshBlock.h"
@@ -39,6 +39,7 @@ namespace simpla { namespace mesh
 struct RectMesh : public MeshBlock
 {
 public:
+    static constexpr unsigned int NDIMS = 3;
 
     SP_OBJECT_HEAD(RectMesh, MeshBlock)
 
@@ -78,9 +79,8 @@ public:
     point_type m_origin_{{0, 0, 0}};
     vector_type m_dx_{{1, 1, 1}};
 public:
-    template<typename TV, size_type IFORM> using patch_type =  data::DataEntityNDArray<TV, NDIMS + 1>;
-    template<typename TV, size_type IFORM> using attribute_type =
-    mesh::Attribute<patch_type<TV, IFORM>, this_type, IFORM>;
+    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
+
 
     RectMesh() {}
 
@@ -141,16 +141,18 @@ public:
         return std::move(p);
     }
 
-    virtual std::tuple<MeshEntityId, point_type>
+    virtual // std::tuple<MeshEntityId, point_type>
+    point_type
     point_global_to_local(point_type const &g, int nId = 0) const
     {
 
-        return m::point_global_to_local(
+        return //m::point_global_to_local(
                 point_type{
                         std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
                         std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
                         std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
-                }, nId);
+                }//, nId)
+                ;
     }
 
     virtual index_tuple

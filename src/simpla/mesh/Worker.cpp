@@ -18,6 +18,7 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
     os << std::setw(indent + 1) << "{ " << "-- Work" << std::endl;
     for (Observer *ob:m_pimpl_->m_observers_) { ob->print(os, indent + 1); }
     os << std::setw(indent + 1) << "} " << std::endl;
+    return os;
 }
 
 void Worker::attach(Observer *ob) { m_pimpl_->m_observers_.insert(ob); }

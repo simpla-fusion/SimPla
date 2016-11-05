@@ -23,8 +23,8 @@ public:
     typedef DataEntityNDArray<V, 4> this_type;
     typedef V value_type;
 
-    DataEntityNDArray(index_type const lo[ndims], index_type const hi[ndims],
-                      std::shared_ptr<value_type> const &p = nullptr)
+
+    DataEntityNDArray(index_type const *lo, index_type const *hi, std::shared_ptr<value_type> const &p = nullptr)
             : m_data_(p)
     {
         m_ndims_ = 0;
@@ -50,6 +50,9 @@ public:
             m_start_[j] = m_count_[j + 1] * m_strides_[j + 1];
         }
     };
+
+    DataEntityNDArray(index_box_type const &b, std::shared_ptr<value_type> const &p = nullptr)
+            : DataEntityNDArray(&std::get<0>(b)[0], &std::get<1>(b)[0], p) {}
 
     DataEntityNDArray(this_type const &other) = delete;
 
@@ -81,6 +84,8 @@ public:
     {
         return t_info == typeid(this_type) || DataEntityHeavy::is_a(t_info);
     };
+
+    virtual bool is_null() const { return false; };
 
     virtual void deploy() { if (m_data_ == nullptr) { m_data_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }};
 

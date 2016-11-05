@@ -64,11 +64,10 @@ DataBlock *Attribute::at(const MeshBlock *m, const MeshBlock *hint)
             auto res = at(hint)->create(m);
             insert(m, res);
             return res.get();
-        } catch (std::out_of_range const &err)
-        {
-            return nullptr;
-        }
+        } catch (std::out_of_range const &err) {}
     }
+    return nullptr;
+
 }
 
 void Attribute::insert(const MeshBlock *m, const std::shared_ptr<DataBlock> &d)

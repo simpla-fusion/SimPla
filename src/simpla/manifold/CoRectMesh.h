@@ -40,6 +40,7 @@ struct CoRectMesh : public MeshBlock
 {
 
 public:
+    static constexpr unsigned int NDIMS = 3;
 
     SP_OBJECT_HEAD(CoRectMesh, MeshBlock)
 
@@ -80,11 +81,15 @@ public:
 
 public:
 
-    template<typename TV, size_type IFORM> using patch_type =  data::DataEntityNDArray<TV, NDIMS + 1>;
-    template<typename TV, size_type IFORM> using attribute_type =
-    mesh::Attribute<data::DataEntityNDArray<TV, NDIMS + 1>, this_type, IFORM>;
+    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<TV, IFORM>;
 
     CoRectMesh() {}
+
+    template<typename ...Args>
+    CoRectMesh(Real const *lo, Real const *hi, Args &&...args)
+            : MeshBlock(std::forward<Args>(args)...),
+              m_origin_{lo[0], lo[1], lo[2]},
+              m_dx_{hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]} {};
 
     CoRectMesh(CoRectMesh const &other) : MeshBlock(other), m_origin_(other.m_origin_), m_dx_(other.m_dx_) {};
 
@@ -101,14 +106,6 @@ public:
 
     virtual std::shared_ptr<MeshBlock> clone() const { return std::make_shared<CoRectMesh>(*this); };
 
-    inline void box(point_type const &x0, point_type const &x1)
-    {
-        m_origin_ = x0;
-        m_dx_ = x1 - x0;
-    }
-
-    inline void box(box_type const &b) { box(std::get<0>(b), std::get<1>(b)); }
-
     virtual box_type box() const
     {
         auto i_box = MeshBlock::inner_index_box();
@@ -117,14 +114,7 @@ public:
         return std::make_tuple(lower, upper);
     }
 
-    Vec3 dx() const
-    {
-//        point_type upper;
-//        upper = m_origin_ + m_dx_ * MeshBlock::dimensions();
-//        return std::make_tuple(m_origin_, upper);
-//
-        return m_dx_;
-    }
+    virtual point_type const &dx() const { return m_dx_; }
 
 
     virtual point_type
@@ -152,16 +142,20 @@ public:
         return std::move(p);
     }
 
-    virtual std::tuple<MeshEntityId, point_type>
+    virtual    //std::tuple<MeshEntityId, point_type>
+    point_type
     point_global_to_local(point_type const &g, int nId = 0) const
     {
 
-        return m::point_global_to_local(
+        return
+//                m::point_global_to_local(
                 point_type{
                         std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
                         std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
                         std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
-                }, nId);
+                }
+//                        , nId)
+                ;
     }
 
     virtual index_tuple
@@ -235,8 +229,7 @@ void CoRectMesh::deploy()
          */
     auto const &dims = dimensions();
 
-    for (int i = 0; i < NDIMS; ++i)
-    {
+    for (int i = 0; i < NDIMS; ++i) {
         assert(dims[i] > 0);
 
         m_dx_[i] = m_dx_[i] / static_cast<Real>( dims[i]);

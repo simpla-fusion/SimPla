@@ -32,7 +32,7 @@ public:
 
     ~Worker();
 
-    virtual std::string const &name() const { return toolbox::Object::name(); };
+    virtual std::string  name() const { return toolbox::Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
@@ -99,6 +99,10 @@ struct Worker::Observer
     Observer(Worker *m);
 
     virtual ~Observer();
+
+    Observer(Observer const &other) = delete;
+
+    Observer(Observer &&other) = delete;
 
     virtual std::ostream &print(std::ostream &os, int indent) const =0;
 

@@ -45,7 +45,7 @@ namespace simpla { namespace tags { struct function; }}
 
 namespace simpla { namespace traits
 {
-template<typename ValueType, typename TM, int IFORM = VERTEX>
+template<typename ValueType, typename TM, int IFORM = mesh::VERTEX>
 using field_t=  Field<ValueType, TM, std::integral_constant<int, IFORM> >;
 
 //template<typename TV, int I, typename TM> field_t<TV, TM, I>

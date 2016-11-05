@@ -28,46 +28,52 @@ template<typename ...> class Field;
 template<typename TV, typename TManifold, size_t IFORM> using field_t= Field<TV, TManifold, index_const<IFORM>>;
 
 
-template<typename TV, typename TManifold, size_t IFORM>
-class Field<TV, TManifold, index_const<IFORM>> : public mesh::AttributeView
+template<typename TV, typename TManifold, size_t I>
+class Field<TV, TManifold, index_const<I>> : public mesh::AttributeView
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBlock, TManifold>::value, "TManifold is not derived from MeshBlock");
-
-    typedef Field<TV, TManifold, index_const<IFORM>> this_type;
-
+    static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
+    typedef Field<TV, TManifold, index_const<I>> this_type;
     typedef mesh::AttributeView base_type;
 
-    static constexpr mesh::MeshEntityType iform = static_cast<mesh::MeshEntityType>(IFORM);
-
-    typedef TManifold mesh_type;
-
-    typedef TV value_type;
-
+public:
     typedef typename traits::field_value_type<this_type>::type field_value_type;
-
+    typedef TManifold mesh_type;
+    typedef TV value_type;
 private:
-    typedef typename TManifold::template data_block_type<TV, iform> data_block_type;
-    static constexpr int ndims = mesh_type::ndims;
+    typedef typename TManifold::template data_block_type<TV, IFORM> data_block_type;
     mesh_type const *m_mesh_ = nullptr;
     data_block_type *m_data_ = nullptr;
 
 public:
-    template<typename ...Args>
-    Field(Args &&...args) : base_type(std::forward<Args>(args)...) {};
+
+    Field() : base_type() {};
 
     template<typename ...Args>
-    Field(mesh_type const *m, Args &&...args) :
-            base_type(std::forward<Args>(args)...),
-            m_mesh_(m),
-            m_data_block_(base_type::attribute()->template as<data_block_type>(m))
-    {
+    Field(mesh_type const *m, Args &&...args)  : mesh::AttributeView(std::forward<Args>(args)...) { move_to(m); };
 
-    };
+    template<typename ...Args>
+    Field(std::shared_ptr<mesh_type> const &m, Args &&...args)
+            : mesh::AttributeView(std::forward<Args>(args)...) { move_to(m.get()); };
+
+    template<typename ...Args>
+    Field(std::string const &s, Args &&...args): mesh::AttributeView(s, std::forward<Args>(args)...) {};
+
+    template<typename ...Args>
+    Field(char const *s, Args &&...args): mesh::AttributeView(std::string(s), std::forward<Args>(args)...) {};
 
     virtual ~Field() {}
 
+    Field(this_type const &other) = delete;
+
+    Field(this_type &&other) = delete;
+
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); };
+
+    mesh::MeshEntityType entity_type() const { return IFORM; }
+
+    std::type_info const &value_type_info() const { return typeid(value_type); }
 
     virtual void
     create(mesh::MeshBlock const *m, bool is_scratch = false)
@@ -78,9 +84,10 @@ public:
 
     void deploy(mesh::MeshBlock const *m = nullptr)
     {
-        base_type::deploy(m);
+        if (m != nullptr) { base_type::move_to(m); }
         m_mesh_ = base_type::template mesh<mesh_type>();
         m_data_ = base_type::template data<data_block_type>();
+        m_data_->deploy();
     }
 
     /** @name as_function  @{*/
@@ -94,6 +101,13 @@ public:
     /** @name as_array   @{*/
 
     this_type &operator=(this_type const &other)
+    {
+        apply_dispatch(_impl::_assign(), mesh::SP_ES_ALL, other);
+        return *this;
+    }
+
+    template<typename ...U> inline this_type &
+    operator=(Field<U...> const &other)
     {
         apply_dispatch(_impl::_assign(), mesh::SP_ES_ALL, other);
         return *this;
@@ -164,7 +178,7 @@ private:
     template<typename TOP, typename TRange, typename Other> void
     apply_dispatch(TOP const &op, TRange r0, Other const &other)
     {
-        apply(op, r0, other);
+        apply(op, r0, static_cast< scalar_value_tag *>(nullptr), other);
     }
 
 
@@ -192,23 +206,11 @@ public:
         return m_data_->get(s.x, s.y, s.z, s.w);
     }
 
+    struct scalar_value_tag {};
     struct expression_tag {};
     struct function_tag {};
     struct field_function_tag {};
 
-    template<typename TOP, typename ...Args> void
-    apply(TOP const &op, mesh::MeshZoneTag tag, Args &&...args)
-    {
-        deploy();
-        apply(op, m_mesh_->range(IFORM, tag), std::forward<Args>(args)...);
-    }
-
-    template<typename TOP, typename TRange> void
-    apply(TOP const &op, TRange const &r0, value_type const &v)
-    {
-        deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), v); });
-    }
 
     template<typename TOP> void
     apply(TOP const &op, mesh::EntityIdRange const &r0, this_type const &other)
@@ -218,11 +220,11 @@ public:
     }
 
 
-    template<typename TOP, typename TFun> void
-    apply(TOP const &op, mesh::EntityIdRange const &r0, TFun const &fun)
+    template<typename TOP> void
+    apply(TOP const &op, mesh::EntityIdRange const &r0, scalar_value_tag *, value_type const &v)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), fun(s)); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), v); });
     }
 
 
@@ -247,19 +249,24 @@ public:
                    });
     }
 
-    template<typename TOP, typename TFun, typename ...Args> void
-    apply(TOP const &op, mesh::EntityIdRange const r0, field_function_tag const *, TFun const &fun, Args &&...args)
+
+    template<typename TOP, typename ...Args> void
+    apply(TOP const &op, mesh::MeshZoneTag const &tag, Args &&...args)
     {
         deploy();
-        r0.foreach(
-                [&](mesh::MeshEntityId const &s)
-                {
-                    op(get(s), m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s), std::forward<Args>(args)...)));
-                });
+        apply(op, m_mesh_->range(entity_type(), tag), std::forward<Args>(args)...);
     }
-
-
-
+//
+//    template<typename TOP, typename TFun, typename ...Args> void
+//    apply(TOP const &op, mesh::EntityIdRange const r0, field_function_tag const *, TFun const &fun, Args &&...args)
+//    {
+//        deploy();
+//        r0.foreach(
+//                [&](mesh::MeshEntityId const &s)
+//                {
+//                    op(get(s), m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s), std::forward<Args>(args)...)));
+//                });
+//    }
 //    template<typename TOP, typename TFun> void
 //    apply_function_with_define_domain(TOP const &op, mesh::EntityIdRange const r0,
 //                                      std::function<Real(point_type const &)> const &geo,
@@ -296,6 +303,12 @@ public:
 private:
 
 };
+
+namespace traits
+{
+template<typename TV, typename TM, size_t I>
+struct reference<Field<TV, TM, index_const<I> > > { typedef Field<TV, TM, index_const<I> > const &type; };
+}
 }//namespace simpla
 
 

@@ -20,7 +20,9 @@ namespace simpla { namespace mesh
  *  AttributeBase IS-A container of datablock
  */
 class Attribute :
-        public toolbox::Object, public toolbox::Serializable,
+        public toolbox::Object,
+        public toolbox::Printable,
+        public toolbox::Serializable,
         public std::enable_shared_from_this<Attribute>
 {
 
@@ -37,7 +39,7 @@ public:
 
     virtual ~Attribute();
 
-    virtual std::string const &name() const { return toolbox::Object::name(); };
+    virtual std::string name() const { return toolbox::Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
@@ -64,10 +66,16 @@ public:
     template<typename TB>
     TB *as(MeshBlock const *m)
     {
-        assert(!has(m));
-        auto res = std::make_shared<TB>(m);
-        insert(m, std::dynamic_pointer_cast<DataBlock>(res));
-        return res.get();
+        if (!has(m))
+        {
+            auto res = std::make_shared<TB>(m);
+            insert(m, std::dynamic_pointer_cast<DataBlock>(res));
+            return res.get();
+
+        } else
+        {
+            return static_cast<TB *>(at(m));
+        }
     };
 
 private:
@@ -78,22 +86,26 @@ private:
 
 class AttributeView :
         public Worker::Observer,
-        public toolbox::Printable,
-        public toolbox::Serializable
+        public toolbox::Printable
 {
     std::shared_ptr<mesh::Attribute> m_attr_;
     MeshBlock const *m_mesh_ = nullptr;
 public:
-    AttributeView(MeshBlock *m, std::string const &s, Worker *w = nullptr) :
-            Worker::Observer(w), m_attr_(new mesh::Attribute(s)), m_mesh_(m) {};
-
-    AttributeView(std::string const &s, Worker *w = nullptr) :
+    AttributeView(std::string const &s = "", Worker *w = nullptr) :
             Worker::Observer(w), m_attr_(new mesh::Attribute(s)) {};
 
-    AttributeView(std::shared_ptr<mesh::Attribute> attr, Worker *w = nullptr) :
+    AttributeView(std::shared_ptr<mesh::Attribute> const &attr, Worker *w = nullptr) :
             Worker::Observer(w), m_attr_(attr) {};
 
     virtual ~AttributeView() {}
+
+    AttributeView(AttributeView const &other) = delete;
+
+    AttributeView(AttributeView &&other) = delete;
+
+    virtual mesh::MeshEntityType entity_type() const =0;
+
+    virtual std::type_info const &value_type_info() const =0;
 
     template<typename TM> TM const *mesh() const { return static_cast<TM const *>(m_mesh_); }
 
@@ -105,31 +117,23 @@ public:
 
     std::shared_ptr<mesh::Attribute> &attribute() { return m_attr_; }
 
-    virtual std::string const &name() const { return m_attr_->name(); };
+    virtual std::string name() const { return m_attr_->name(); };
 
-    virtual std::ostream &print(std::ostream &os, int indent) const
-    {
-        os << std::setw(indent) << " " << m_attr_->name() << " = " << " {";
-        m_attr_->print(os, indent);
-        os << " } " << std::endl;
-        return os;
-    };
+    virtual std::ostream &print(std::ostream &os, int indent) const { return m_attr_->print(os, indent); }
 
-    virtual void load(data::DataBase const &db) {};
 
-    virtual void save(data::DataBase *db) const {};
 
-    virtual void create(MeshBlock const *m, bool is_scratch = false) {};
+    virtual void create(MeshBlock const *m, bool is_scratch = false) { UNIMPLEMENTED; };
 
     virtual void destroy() { UNIMPLEMENTED; };
 
-    virtual void deploy(MeshBlock const *m = nullptr) { m_mesh_ = m; };
+    virtual void deploy(MeshBlock const *m = nullptr) { if (m != nullptr) { m_mesh_ = m; }};
 
-    virtual void move_to(MeshBlock const *m = nullptr) { m_mesh_ = m; };
+    virtual void move_to(MeshBlock const *m = nullptr) { if (m != nullptr) { m_mesh_ = m; }};
 
-    virtual void erase(MeshBlock const *m = nullptr) {};
+    virtual void erase(MeshBlock const *m = nullptr) { UNIMPLEMENTED; };
 
-    virtual void update(MeshBlock const *m = nullptr, bool only_ghost = false) {};
+    virtual void update(MeshBlock const *m = nullptr, bool only_ghost = false) { UNIMPLEMENTED; };
 };
 
 }} //namespace data

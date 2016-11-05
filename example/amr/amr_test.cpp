@@ -10,12 +10,15 @@
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/Worker.h>
 #include <simpla/physics/Field.h>
+#include <simpla/physics/FieldExpression.h>
+#include <simpla/manifold/Calculus.h>
 
 using namespace simpla;
 
-class DummyMesh : public mesh::MeshBlock
-{
+class DummyMesh : public mesh::MeshBlock {
 public:
+    static constexpr unsigned int ndims = 3;
+
     template<typename ...Args>
     DummyMesh(Args &&...args):mesh::MeshBlock(std::forward<Args>(args)...) {}
 
@@ -23,28 +26,27 @@ public:
 
     template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
 
-    virtual std::shared_ptr<mesh::MeshBlock> clone() const
-    {
+    virtual std::shared_ptr<mesh::MeshBlock> clone() const {
         return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
     };
 
+    template<typename ...Args>
+    Real eval(Args &&...args) const { return 1.0; };
 };
 
 template<typename TM>
-struct AMRTest : public mesh::Worker
-{
+struct AMRTest : public mesh::Worker {
     typedef TM mesh_type;
 
     template<typename TV, mesh::MeshEntityType IFORM> using field_type=
     Field<TV, mesh_type, index_const<static_cast<size_t>(IFORM)>>;
-
+    field_type<Real, mesh::VERTEX> phi{"phi", this};
     field_type<Real, mesh::EDGE> E{"E", this};
     field_type<Real, mesh::FACE> B{"B", this};
 
 };
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 //    auto atlas = std::make_shared<mesh::Atlas>();
 //    atlas->insert(m);
 
@@ -60,7 +62,9 @@ int main(int argc, char **argv)
     worker->E.deploy(m0.get());
     worker->E.deploy(m1.get());
     worker->B.deploy(m1.get());
-
+    worker->E = 1.2;
+    exterior_derivative(worker->phi);
+//    worker->phi = diverge(worker->E);
     std::cout << *worker << std::endl;
 
 //

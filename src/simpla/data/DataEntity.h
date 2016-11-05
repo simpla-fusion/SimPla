@@ -20,7 +20,7 @@ public:
 
     virtual ~DataEntity() {}
 
-    virtual void swap(DataEntity &other)=0;
+//    virtual void swap(DataEntity &other)=0;
 
     virtual bool is_a(std::type_info const &t_id) const { return t_id == typeid(DataEntity); }
 
@@ -32,9 +32,9 @@ public:
 
     virtual bool is_heavy_data() const =0;
 
-    virtual DataSpace dataspace() const =0;
-
-    virtual DataType datatype() const =0;
+//    virtual DataSpace dataspace() const =0;
+//
+//    virtual DataType datatype() const =0;
 
     virtual void *data() =0;
 
@@ -63,9 +63,9 @@ public:
 
     virtual bool is_heavy_data() const { return false; };
 
-    virtual DataSpace dataspace() const {};
-
-    virtual DataType datatype() const { UNIMPLEMENTED; };
+//    virtual DataSpace dataspace() const {};
+//
+//    virtual DataType datatype() const { UNIMPLEMENTED; };
 
     virtual void *data() { return base_type::data(); }
 
@@ -92,9 +92,9 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const =0;
 
-    virtual DataSpace dataspace() const =0;
-
-    virtual DataType datatype() const =0;
+//    virtual DataSpace dataspace() const =0;
+//
+//    virtual DataType datatype() const =0;
 
     virtual bool is_heavy_data() const { return true; };
 

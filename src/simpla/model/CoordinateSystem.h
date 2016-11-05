@@ -7,13 +7,14 @@
 
 #ifndef CORE_GEOMETRY_COORDINATE_SYSTEM_H_
 #define CORE_GEOMETRY_COORDINATE_SYSTEM_H_
+
 #include <simpla/SIMPLA_config.h>
 
 #include <stddef.h>
 #include <cstdbool>
 #include <type_traits>
 
- #include <simpla/toolbox/type_traits.h>
+#include <simpla/toolbox/type_traits.h>
 
 namespace simpla { namespace geometry
 {
@@ -133,10 +134,7 @@ struct is_homogeneous<coordinate_system::MagneticFLux>
 };
 
 
-template<typename CS> struct scalar_type
-{
-    typedef Real type;
-};
+template<typename CS> struct scalar_type { typedef Real type; };
 template<typename CS> using scalar_type_t =typename scalar_type<CS>::type;
 
 template<typename CS> struct point_type
