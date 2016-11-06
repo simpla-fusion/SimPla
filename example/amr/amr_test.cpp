@@ -15,7 +15,8 @@
 
 using namespace simpla;
 
-class DummyMesh : public mesh::MeshBlock {
+class DummyMesh : public mesh::MeshBlock
+{
 public:
     static constexpr unsigned int ndims = 3;
 
@@ -26,7 +27,8 @@ public:
 
     template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
 
-    virtual std::shared_ptr<mesh::MeshBlock> clone() const {
+    virtual std::shared_ptr<mesh::MeshBlock> clone() const
+    {
         return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
     };
 
@@ -35,18 +37,19 @@ public:
 };
 
 template<typename TM>
-struct AMRTest : public mesh::Worker {
+struct AMRTest : public mesh::Worker
+{
     typedef TM mesh_type;
 
-    template<typename TV, mesh::MeshEntityType IFORM> using field_type=
-    Field<TV, mesh_type, index_const<static_cast<size_t>(IFORM)>>;
+    template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
     field_type<Real, mesh::VERTEX> phi{"phi", this};
     field_type<Real, mesh::EDGE> E{"E", this};
     field_type<Real, mesh::FACE> B{"B", this};
 
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 //    auto atlas = std::make_shared<mesh::Atlas>();
 //    atlas->insert(m);
 

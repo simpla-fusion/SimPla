@@ -54,26 +54,26 @@ public:
       *  if  data block is not exist, create
       * @param id
       */
-    void move_to(mesh::MeshBlock const *m) const;
+    void move_to(MeshBlock const *m) const;
 
     /**
      * using  current data block create a new data block on the '''m'''
      * @param m
      */
-    void create(mesh::MeshBlock const *m) const;
+    void create(MeshBlock const *m) const;
 
     /**
       *  deploy data on the mesh block   '''m'''
       *  if m==nullptr then deploy date on the current block
       * @param id
       */
-    void deploy(mesh::MeshBlock const *m = nullptr) const;
+    void deploy(MeshBlock const *m = nullptr) const;
 
     /**
      * erase '''Observer''' data on a mesh block
      * @param id id of mesh block
      */
-    void erase(mesh::MeshBlock const *m = nullptr) const;
+    void erase(MeshBlock const *m = nullptr) const;
 
 
     /**
@@ -84,7 +84,7 @@ public:
      *
      *  require '''current data block''' is not created
      */
-    void update(mesh::MeshBlock const *m = nullptr, bool only_ghost = false) const;
+    void update(MeshBlock const *m = nullptr, bool only_ghost = false) const;
 
 private:
     struct pimpl_s;
@@ -108,15 +108,15 @@ struct Worker::Observer
 
     virtual void destroy() =0;
 
-    virtual void create(mesh::MeshBlock const *, bool is_scratch = false) =0;
+    virtual void create(MeshBlock const *, bool is_scratch = false) =0;
 
-    virtual void deploy(mesh::MeshBlock const *) =0;
+    virtual void deploy(MeshBlock const *) =0;
 
-    virtual void move_to(mesh::MeshBlock const *) =0;
+    virtual void move_to(MeshBlock const *) =0;
 
-    virtual void erase(mesh::MeshBlock const *)=0;
+    virtual void erase(MeshBlock const *)=0;
 
-    virtual void update(mesh::MeshBlock const *, bool only_ghost = false) =0;
+    virtual void update(MeshBlock const *, bool only_ghost = false) =0;
 
 private:
     friend class Worker;
