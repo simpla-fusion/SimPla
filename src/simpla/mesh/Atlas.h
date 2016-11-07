@@ -42,6 +42,9 @@ public:
 
     std::ostream &print(std::ostream &os, int indent) const;
 
+
+    size_type count(int level) const;
+
     void max_level(int);
 
     int max_level() const;

@@ -18,7 +18,6 @@ std::ostream &Attribute::print(std::ostream &os, int indent) const
 {
     if (m_pimpl_ != nullptr)
     {
-
         os << std::setw(indent) << " " << std::endl;
         for (auto const &item:m_pimpl_->m_patches_)
         {

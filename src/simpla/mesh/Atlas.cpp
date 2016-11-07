@@ -33,6 +33,8 @@ Atlas::Atlas() : m_pimpl_(new pimpl_s) {};
 
 Atlas::~Atlas() {};
 
+size_type Atlas::count(int level) const { m_pimpl_->m_layer_[level].size(); }
+
 void Atlas::max_level(int ml) { m_pimpl_->m_max_level_ = ml; }
 
 int Atlas::max_level() const { return m_pimpl_->m_max_level_; }

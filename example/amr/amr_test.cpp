@@ -50,6 +50,12 @@ struct AMRTest : public mesh::Worker
     field_type<Real, mesh::EDGE> E{"E", this};
     field_type<Real, mesh::FACE> B{"B", this};
 
+    void next_time_step(Real dt)
+    {
+        E = grad(-2.0 * phi) * dt;
+        phi -= diverge(E) * 3.0 * dt;
+    }
+
 };
 
 int main(int argc, char **argv)
@@ -72,8 +78,7 @@ int main(int argc, char **argv)
     worker->move_to(m1);
     TRY_CALL(worker->deploy());
     worker->E = 1.2;
-    worker->E = exterior_derivative(worker->phi);
-//    worker->phi = diverge(worker->E);
+    worker->next_time_step(1.0);
     std::cout << " Worker = {" << *worker << "}" << std::endl;
     std::cout << "E = {" << worker->E << "}" << std::endl;
     std::cout << "E = {" << *worker->E.attribute() << "}" << std::endl;
