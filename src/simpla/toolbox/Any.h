@@ -405,7 +405,7 @@ private:
 
         virtual void const *data() const { return &m_value_; };
 
-//    data_model::DataType data_type() const { return data_model::DataType::template create<T>(); }
+//    data_model::DataType data_type() const { return data_model::DataType::template clone<T>(); }
 
         virtual bool is_bool() const { return std::is_convertible<ValueType, bool>::value; }
 

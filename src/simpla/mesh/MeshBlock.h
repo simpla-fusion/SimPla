@@ -84,7 +84,11 @@ public:
 
     MeshBlock();
 
-    MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw, int level = 0, int ndims = 3);
+    MeshBlock(std::string const &s, index_type const *lo, index_type const *hi, const size_type *gw, int ndims = 3);
+
+    MeshBlock(char const *s, index_type const *lo, index_type const *hi, const size_type *gw, int ndims = 3)
+            : MeshBlock(std::string(s), lo, hi, gw, ndims) {};
+
 
     MeshBlock(MeshBlock const &);
 
@@ -92,12 +96,10 @@ public:
 
     virtual ~MeshBlock();
 
-    virtual void swap(MeshBlock &other) { UNIMPLEMENTED; }
-
     MeshBlock &operator=(MeshBlock const &other)= delete;
 
     /** for Printable @{*/
-    virtual std::string  name() const { return toolbox::Object::name(); };
+    virtual std::string name() const;
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
@@ -115,7 +117,7 @@ public:
       * @return   copy of this mesh but has different '''id'''
       */
 
-    virtual std::shared_ptr<MeshBlock> clone() const;
+    virtual std::shared_ptr<MeshBlock> clone() const =0;
 
     /**
      *
@@ -127,7 +129,14 @@ public:
      *   offset_new = b.first * 2^ (-inc_level)
      *   count_new  = b.second * 2^ (-inc_level) - offset_new
      */
-    virtual std::shared_ptr<MeshBlock> create(index_box_type const &b, int inc_level = 1) const;
+    virtual std::shared_ptr<MeshBlock>
+    create(int inc_level, const index_type *lo, const index_type *hi) const;
+
+    virtual std::shared_ptr<MeshBlock>
+    create(int inc_level, index_box_type const &b) const
+    {
+        return create(inc_level, &std::get<0>(b)[0], &std::get<1>(b)[0]);
+    }
 
     /**
      * create a sub-mesh of this mesh, with same m_root_id
@@ -244,7 +253,6 @@ public:
         res.w = nid;
         return std::move(res);
     }
-
 
 
     inline size_type hash(index_type i, index_type j = 0, index_type k = 0, int nid = 0) const

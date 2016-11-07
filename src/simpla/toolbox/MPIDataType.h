@@ -37,7 +37,7 @@ struct MPIDataType
 
     ~MPIDataType();
 
-//	static MPIDataType create(DataType const &);
+//	static MPIDataType clone(DataType const &);
 
     static MPIDataType create(data::DataType const &data_type,
                               int ndims = 0, size_t const *dims = nullptr,

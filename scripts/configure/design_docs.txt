@@ -32,7 +32,7 @@ Its long term goal is to provide complete modeling of a fusion device.
     benefit from the rapid growth of HPC.
  - All physical models and numerical algorithms applied into the simulation system could be comprehensively
    reviewed.
- To completely recover the physical process in the tokamak device, we need create a simulation system
+ To completely recover the physical process in the tokamak device, we need clone a simulation system
   consisting of several different physical models. A unified development framework is necessary to
   achieve this goal.
 

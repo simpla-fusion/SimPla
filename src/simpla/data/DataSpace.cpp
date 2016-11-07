@@ -116,7 +116,7 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_type co
 }
 
 //
-//std::tuple<DataSpace, DataSpace>  DataSpace::create(
+//std::tuple<DataSpace, DataSpace>  DataSpace::clone(
 //        size_type rank,
 //        size_type const *topology_dims,
 //        size_type const *start,
@@ -578,14 +578,14 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	for (auto const & item : m_self_->send_recv_)
 //	{
 //
-//		MPIDataType send_type = MPIDataType::create(DataType, m_self_->local_shape_.m_ndims_ ,
+//		MPIDataType send_type = MPIDataType::clone(DataType, m_self_->local_shape_.m_ndims_ ,
 //		&m_self_->local_shape_.dimensions[0], & item.send.m_global_start_[0],
 //		&item.send.stride[0], &item.send.count[0], &item.send.block[0]);
 //
 //		dims_type recv_offset;
 //		recv_offset = item.recv.m_global_start_ - m_self_->local_shape_.m_global_start_;
 //
-//		MPIDataType recv_type = MPIDataType::create(DataType, m_self_->local_shape_.m_ndims_ ,
+//		MPIDataType recv_type = MPIDataType::clone(DataType, m_self_->local_shape_.m_ndims_ ,
 //		&m_self_->local_shape_.dimensions[0], & item.recv.m_global_start_[0],
 //		&item.recv.stride[0], &item.recv.count[0], &item.recv.block[0]);
 //

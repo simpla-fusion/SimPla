@@ -75,7 +75,7 @@ enum tags
  *
  *  @brief log message m_buffer,
  */
-class Logger: public std::ostringstream
+class Logger : public std::ostringstream
 {
 
     typedef std::ostringstream base_type;
@@ -326,6 +326,7 @@ std::string make_msg(Others const &...others)
  *  @{
  */
 #define FILE_LINE_STAMP "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " <<(__PRETTY_FUNCTION__) << "] \n \e[1;31m\t"
+#define FILE_LINE_STAMP_STRING  ("[" + std::string(__FILE__) + ":" + string_cast(__LINE__) + ":0: " + std::string(__PRETTY_FUNCTION__) + "] ")
 #define MAKE_ERROR_MSG(...)  logger::make_msg(  "\n\e[0m \e[1;37m From [" , (__FILE__) , ":" , (__LINE__) , ":0: " ,(__PRETTY_FUNCTION__) , "] \n \e[1;31m\t",__VA_ARGS__)
 
 //logger::make_error_msg( (__FILE__),(__LINE__), (__PRETTY_FUNCTION__),__VA_ARGS__)
@@ -397,11 +398,10 @@ std::string make_msg(Others const &...others)
 //
 #define THROW_EXCEPTION_BAD_ALLOC(_SIZE_)   {LOGGER<<FILE_LINE_STAMP<<  "Can not get enough memory! [ " << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" <<std::endl; throw(std::bad_alloc());}
 //
-////
 //
 #define THROW_EXCEPTION_BAD_CAST(_FIRST_, _SECOND_) {BAD_CAST<< "Can not cast " << (_FIRST_) <<" to " <<(_SECOND_) << ""   <<std::endl; }
 //
-//
+
 ////#define THROW_EXCEPTION_PARSER_ERROR(_MSG_)  {{ logger::Logger(logger::LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 #define THROW_EXCEPTION_PARSER_ERROR(...)    throw(std::logic_error(MAKE_ERROR_MSG("Configure fails:", __VA_ARGS__)));
 
@@ -413,11 +413,7 @@ std::string make_msg(Others const &...others)
 #define TRY_IT1(_CMD_, ...) try{_CMD_;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR(__VA_ARGS__,":","[",__STRING(_CMD_), "]",error.what());}
 
 
-#ifdef NDEBUG
-#  define ASSERT(_COND_)
-#else
-#  define ASSERT(_COND_)   if(!(_COND_)){ RUNTIME_ERROR<< "Assertion \""<<__STRING(_COND_)<< "\" failed! Abort." <<std::endl;};
-#endif
+
 
 //#ifndef NDEBUG
 #define CHECK(_MSG_)    std::cout<<"\n\e[0m \e[1;37m From [" << (__FILE__) << ":"<< (__LINE__) <<":0: " <<(__PRETTY_FUNCTION__) << "] \n \e[1;31m\t"<< __STRING((_MSG_))<<" = "<<( _MSG_)<<"\e[0m"<<std::endl
@@ -462,7 +458,12 @@ std::string make_msg(Others const &...others)
 /** @} */
 
 /** @} defgroup Logging*/
-
+#ifdef NDEBUG
+#  define ASSERT(_COND_)
+#else
+#  define ASSERT(_COND_)   if(!(_COND_)){ throw std::runtime_error( FILE_LINE_STAMP_STRING + "Assertion \""+__STRING(_COND_)+ "\" failed! Abort.");}
+#endif
+#define TRY_CALL(_CMD_) try { _CMD_; } catch (std::exception const &_msg_) { throw std::runtime_error(_msg_.what() + std::string("\n from:") +FILE_LINE_STAMP_STRING +"\"" __STRING(_CMD_) + "\" " ); }
 }
 // namespace simpla
 #endif /* LOG_H_ */

@@ -971,7 +971,7 @@ std::string HDF5Stream::write(std::string const &url, data::DataSet const &ds, i
 
     }
 
-// create property list for collective dataset write.
+// clone property list for collective dataset write.
     if (GLOBAL_COMM.is_valid())
     {
         hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);

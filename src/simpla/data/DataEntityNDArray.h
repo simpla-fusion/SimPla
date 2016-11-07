@@ -87,7 +87,11 @@ public:
 
     virtual bool is_null() const { return false; };
 
+    virtual bool is_deployed() const { return m_data_ != nullptr; }
+
     virtual void deploy() { if (m_data_ == nullptr) { m_data_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }};
+
+    virtual void destroy() { m_data_.reset(); }
 
     virtual void clear()
     {

@@ -17,7 +17,7 @@ namespace simpla { namespace mesh
 {
 
 /**
- *  AttributeBase IS-A container of datablock
+ *  AttributeBase IS-A container of data blocks
  */
 class Attribute :
         public toolbox::Object,
@@ -47,74 +47,36 @@ public:
 
     virtual void save(data::DataBase *) const;
 
-    void insert(MeshBlock const *m, const std::shared_ptr<DataBlock> &);
-
     virtual bool has(MeshBlock const *) const;
+
+    virtual void insert(MeshBlock const *m, const std::shared_ptr<DataBlock> &);
 
     virtual void erase(MeshBlock const *);
 
-    virtual void deploy(MeshBlock const * = nullptr);
 
-    virtual void clear(MeshBlock const * = nullptr);
+    virtual DataBlock const *at(MeshBlock const *m) const;
 
-    virtual void update(MeshBlock const *, MeshBlock const * = nullptr);
+    virtual DataBlock *at(const MeshBlock *);
 
-    virtual DataBlock const *at(MeshBlock const *m = nullptr) const;
-
-    virtual DataBlock *at(const MeshBlock *, const MeshBlock *hint = nullptr);
-
-    template<typename TB>
-    TB *as(MeshBlock const *m)
-    {
-        if (!has(m))
-        {
-            auto res = std::make_shared<TB>(m);
-            insert(m, std::dynamic_pointer_cast<DataBlock>(res));
-            return res.get();
-
-        } else
-        {
-            return static_cast<TB *>(at(m));
-        }
-    };
 
 private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-template<typename TV, typename TM, MeshEntityType IFORM>
-class AttributeView :
-        public Worker::Observer,
-        public toolbox::Printable
+class AttributeView : public Worker::Observer
 {
-public:
-    typedef TM mesh_type;
-    typedef TV value_type;
+
 
 protected:
-    struct scalar_value_tag {};
-    struct expression_tag {};
-    struct function_tag {};
-    struct field_function_tag {};
-
-    typedef AttributeView<value_type, mesh_type, IFORM> this_type;
-
-    typedef typename mesh_type::template data_block_type<TV, IFORM> data_block_type;
+    typedef AttributeView this_type;
     std::shared_ptr<Attribute> m_attr_;
-    EntityIdRange m_range_;
-protected:
-    mesh_type const *m_mesh_ = nullptr;
-    data_block_type *m_data_ = nullptr;
+    MeshBlock const *m_mesh_ = nullptr;
+    DataBlock *m_data_ = nullptr;
+
 public:
-    AttributeView(mesh_type *m = nullptr, std::string const &s = "", Worker *w = nullptr) :
+    AttributeView(std::string const &s = "", MeshBlock *m = nullptr, Worker *w = nullptr) :
             Worker::Observer(w), m_attr_(new Attribute(s)), m_mesh_(m) {};
-
-    AttributeView(std::shared_ptr<mesh_type> const &m, std::string const &s = "", Worker *w = nullptr) :
-            Worker::Observer(w), m_attr_(new Attribute(s)), m_mesh_(m.get()) {};
-
-    AttributeView(std::string const &s, Worker *w = nullptr) :
-            Worker::Observer(w), m_attr_(new Attribute(s)) {};
 
     AttributeView(std::shared_ptr<Attribute> const &attr, Worker *w = nullptr) :
             Worker::Observer(w), m_attr_(attr) {};
@@ -125,105 +87,75 @@ public:
 
     AttributeView(AttributeView &&other) = delete;
 
-    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
-
-    virtual MeshEntityType entity_type() const { return IFORM; };
-
-    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
-
-    mesh_type const *mesh() const { return m_mesh_; }
-
-    data_block_type *data() const { return m_data_; }
-
     std::shared_ptr<Attribute> &attribute() { return m_attr_; }
 
-    virtual std::string name() const { return m_attr_->name(); };
+    MeshBlock const *mesh() const { return m_mesh_; };
 
-    virtual std::ostream &print(std::ostream &os, int indent) const { return m_attr_->print(os, indent); }
+    DataBlock *data() { return m_data_; }
 
-    virtual void clear() { m_data_->clear(); };
+    DataBlock const *data() const { return m_data_; }
 
-    virtual void destroy() { UNIMPLEMENTED; };
+    virtual std::string name() const;
 
-    virtual void
-    create(MeshBlock const *m, bool is_scratch = false)
-    {
-        auto res = std::dynamic_pointer_cast<DataBlock>(std::make_shared<data_block_type>(m));
-        if (!is_scratch) { attribute()->insert(m, res); };
-    };
+    virtual std::ostream &print(std::ostream &os, int indent) const;
 
-    void deploy(MeshBlock const *m = nullptr)
-    {
-        move_to(m);
-        m_data_ = static_cast<data_block_type *>(m_attr_->at(m_mesh_));
-        m_data_->deploy();
-    }
+    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 
-    virtual void move_to(MeshBlock const *m) { if (m != nullptr) { m_mesh_ = static_cast<mesh_type const *>(m); }};
+    virtual MeshEntityType entity_type() const =0;
 
-    virtual void erase(MeshBlock const *m = nullptr) { UNIMPLEMENTED; };
+    virtual std::type_info const &value_type_info() const =0;
 
-    virtual void update(MeshBlock const *m = nullptr, bool only_ghost = false) { UNIMPLEMENTED; };
+    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *m) const =0;
 
+    /**
+     * move to block m;
+     *   if m_attr_.at(m) ==nullptr then  m_attr_.insert(m_data_.clone(m))
+     *   m_data_= m_attr_.at(m)
+     *
+     * @param m
+     * @result
+     *  m_mesh_ : m
+     *  m_data_ : m_attr_.at(m) ;
+     */
+    virtual void move_to(MeshBlock const *m);
 
-    inline value_type &get(MeshEntityId const &s) { return m_data_->get(s.x, s.y, s.z, s.w); }
+    /**
+      *  erase data from attribute
+      *
+      *   m_attr_.erase(m)
+      *
+      * @note do not destroy m_data_
+      *
+      * @result
+      *   m_data_ : nullptr
+      *   m_mesh_ : nullptr
+      */
+    virtual void erase();
 
-    inline value_type const &get(MeshEntityId const &s) const { return m_data_->get(s.x, s.y, s.z, s.w); }
+    /**
+     *  malloc data at current block
+     *  @result
+     *    m_mesh_ : not chanaged
+     *    m_data_ : is_deployed()=true
+     */
+    virtual void deploy();
 
-    inline value_type &operator[](MeshEntityId const &s) { return m_data_->get(s.x, s.y, s.z, s.w); }
+    /**
+     * release data memory at current block
+     * @result
+     *   m_mesh_ : not change
+     *   m_data_ : is_deployed()=false
+     */
+    virtual void destroy();
 
-    inline value_type const &operator[](MeshEntityId const &s) const { return m_data_->get(s.x, s.y, s.z, s.w); }
+    /**
+     *  if m_attr_.has(other) then m_data_.copy(m_attr_.at(other),only_ghost)
+     *  else do nothing
+     * @param other
+     * @param only_ghost
+     */
+    virtual void sync(MeshBlock const *other, bool only_ghost = true);
 
-
-    template<typename TOP> void
-    apply(TOP const &op, EntityIdRange const &r0, this_type const &other)
-    {
-        deploy();
-        r0.foreach([&](MeshEntityId const &s) { op(get(s), other.get(s)); });
-    }
-
-
-    template<typename TOP> void
-    apply(TOP const &op, EntityIdRange const &r0, scalar_value_tag *, value_type const &v)
-    {
-        deploy();
-        r0.foreach([&](MeshEntityId const &s) { op(get(s), v); });
-    }
-
-
-    template<typename TOP, typename TFun, typename ...Args> void
-    apply(TOP const &op, EntityIdRange const r0, function_tag const *, TFun const &fun, Args &&...args)
-    {
-        deploy();
-        r0.foreach(
-                [&](MeshEntityId const &s)
-                {
-                    op(get(s), fun(m_mesh_->point(s), std::forward<Args>(args)...));
-                });
-    }
-
-    template<typename TOP, typename ...TExpr> void
-    apply(TOP const &op, EntityIdRange const &r0, expression_tag const *, TExpr &&...fexpr)
-    {
-        deploy();
-        r0.foreach([&](MeshEntityId const &s) { op(get(s), m_mesh_->eval(std::forward<TExpr>(fexpr), s)...); });
-    }
-
-
-    template<typename TOP, typename ...Args> void
-    apply(TOP const &op, MeshZoneTag const &tag, Args &&...args)
-    {
-//        apply(op, m_mesh_->range(entity_type(), tag), std::forward<Args>(args)...);
-    }
-
-    template<typename TOP, typename TRange, typename ...Args> void
-    apply_function(TOP const &op, TRange r0, Args &&...args)
-    {
-        apply(op, r0, static_cast< function_tag *>(nullptr), std::forward<Args>(args)...);
-    }
-
-    template<typename ...Args> void
-    assign_function(Args &&...args) { apply_function(_impl::_assign(), std::forward<Args>(args)...); }
 
 };
 

@@ -8,7 +8,9 @@
 
 #include "simpla/toolbox/BoxUtility.h"
 
-namespace simpla { namespace mesh
+namespace simpla
+{
+namespace mesh
 {
 
 struct Atlas::pimpl_s
@@ -33,27 +35,33 @@ Atlas::~Atlas() {};
 
 bool Atlas::has(id_type id) const { return m_pimpl_->m_nodes_.find(id) != m_pimpl_->m_nodes_.end(); };
 
-MeshBlock &Atlas::at(id_type id)
-{
-    id = (id == 0) ? m_pimpl_->m_nodes_.begin()->first : id;
-    return *(m_pimpl_->m_nodes_.at(id));
-};
+MeshBlock *Atlas::at(id_type id) { return (m_pimpl_->m_nodes_.at(id)).get(); };
 
-MeshBlock const &Atlas::at(id_type id) const
-{
-    id = (id == 0) ? m_pimpl_->m_nodes_.begin()->first : id;
-    return *(m_pimpl_->m_nodes_.at(id));
-};
+MeshBlock const *Atlas::at(id_type id) const { return (m_pimpl_->m_nodes_.at(id)).get(); };
 
-id_type Atlas::insert(std::shared_ptr<MeshBlock> const p_m, id_type hint)
+MeshBlock const *Atlas::insert(std::shared_ptr<MeshBlock> const &p_m)
 {
     m_pimpl_->m_nodes_.emplace(std::make_pair(p_m->id(), p_m));
-    link(p_m->id(), hint);
-    return p_m->id();
+    return p_m.get();
+};
+
+std::string Atlas::name() const { return "atlas"; }
+
+std::ostream &Atlas::print(std::ostream &os, int indent) const
+{
+    os << std::setw(indent) << "*" << name() << std::endl;
+    for (auto const &item:m_pimpl_->m_nodes_)
+    {
+        os << "|" << std::setw(indent + 5 + item.second->level()) << std::setfill('-') << "> " << std::setfill(' ')
+           << std::setw(10) << std::left << item.second->name().substr(0, 8) << std::right
+           << " = {";
+        item.second->print(os, indent + 1);
+        os << "}," << std::endl;
+    }
 };
 
 //
-//void Atlas::update(id_type id)
+//void Atlas::sync(id_type id)
 //{
 //    unlink(id);
 //
@@ -64,7 +72,7 @@ id_type Atlas::insert(std::shared_ptr<MeshBlock> const p_m, id_type hint)
 //        return;
 //    } else if (id != it->second->id())
 //    {
-//        m_nodes_.erase(it);
+//        m_nodes_.destroy(it);
 //        return;
 //    }
 //    MeshBlock const &m = *(it->second);
@@ -119,10 +127,10 @@ id_type Atlas::insert(std::shared_ptr<MeshBlock> const p_m, id_type hint)
 //
 //void Atlas::unlink(id_type id)
 //{
-//    m_adjacent_.erase(id);
-//    m_refine_.erase(id);
-//    m_coarsen_.erase(id);
-//    for (int i = 0; i < MAX_NUM_OF_LEVEL; ++i) { m_layer_[i].erase(id); }
+//    m_adjacent_.destroy(id);
+//    m_refine_.destroy(id);
+//    m_coarsen_.destroy(id);
+//    for (int i = 0; i < MAX_NUM_OF_LEVEL; ++i) { m_layer_[i].destroy(id); }
 //}
 //
 //
@@ -159,4 +167,5 @@ id_type Atlas::insert(std::shared_ptr<MeshBlock> const p_m, id_type hint)
 //}
 
 
-}}//namespace simpla{namespace mesh_as{
+}
+}//namespace simpla{namespace mesh_as{

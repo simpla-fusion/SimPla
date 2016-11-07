@@ -29,42 +29,37 @@ template<typename TV, typename TManifold, mesh::MeshEntityType IFORM> using fiel
 
 
 template<typename TV, typename TManifold, size_t I>
-class Field<TV, TManifold, index_const<I >>
-        : public mesh::AttributeView<TV, TManifold, static_cast<mesh::MeshEntityType>(I)>
+class Field<TV, TManifold, index_const<I >> : public mesh::AttributeView
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBlock, TManifold>::value, "TManifold is not derived from MeshBlock");
 
     typedef Field<TV, TManifold, index_const<I >> this_type;
 
-    typedef mesh::AttributeView<TV, TManifold, static_cast<mesh::MeshEntityType>(I)> base_type;
+    typedef mesh::AttributeView base_type;
 
 public:
     typedef typename traits::field_value_type<this_type>::type field_value_type;
-    using typename base_type::mesh_type;
-    using typename base_type::value_type;
-
+    typedef TManifold mesh_type;
+    typedef TV value_type;
+    static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
 private:
-    using base_type::m_mesh_;
-    using base_type::m_data_;
+
+
+    typedef typename mesh_type::template data_block_type<TV, IFORM> data_block_type;
+
+
+protected:
+    mesh_type const *m_mesh_ = nullptr;
+    data_block_type *m_data_ = nullptr;
+
 public:
 
     Field() : base_type() {};
 
-//    template<typename ...Args>
-//    Field(Args &&...args)  : base_type(std::forward<Args>(args)...) {};
-
-    template<typename ...Args>
-    Field(mesh_type *m = nullptr, std::string const &s = "", Args &&...args) :
-            base_type(m, s, std::forward<Args>(args)...) {};
-
-    template<typename ...Args>
-    Field(std::shared_ptr<mesh_type> const &m, std::string const &s = "", Args &&...args) :
-            base_type(m, s, std::forward<Args>(args)...) {};
-
     template<typename ...Args>
     Field(std::string const &s, Args &&...args) :
-            base_type(nullptr, s, std::forward<Args>(args)...) {};
+            base_type(s, nullptr, std::forward<Args>(args)...) {};
 
     template<typename ...Args>
     Field(std::shared_ptr<mesh::Attribute> const &attr, Args &&...args) :
@@ -81,6 +76,22 @@ public:
         return t_info == typeid(this_type) || base_type::is_a(t_info);
     };
 
+    virtual mesh::MeshEntityType entity_type() const { return IFORM; };
+
+    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
+
+    virtual void deploy()
+    {
+        base_type::deploy();
+        m_mesh_ = static_cast<mesh_type const *>(base_type::mesh());
+        m_data_ = static_cast<data_block_type *>(base_type::data());
+    }
+
+    virtual std::shared_ptr<mesh::DataBlock> clone(mesh::MeshBlock const *m) const
+    {
+        return std::dynamic_pointer_cast<mesh::DataBlock>(
+                std::make_shared<data_block_type>(static_cast<mesh_type const *>(m)));
+    };
 
     /** @name as_function  @{*/
     template<typename ...Args> field_value_type
@@ -88,9 +99,21 @@ public:
 
     template<typename ...Args> field_value_type
     operator()(Args &&...args) const { return gather(std::forward<Args>(args)...); }
+
     /**@}*/
 
     /** @name as_array   @{*/
+
+    virtual void sync(mesh::MeshBlock const *other, bool only_ghost = true) { UNIMPLEMENTED; };
+
+    inline value_type &get(mesh::MeshEntityId const &s) { return m_data_->get(s.x, s.y, s.z, s.w); }
+
+    inline value_type const &get(mesh::MeshEntityId const &s) const { return m_data_->get(s.x, s.y, s.z, s.w); }
+
+    inline value_type &operator[](mesh::MeshEntityId const &s) { return m_data_->get(s.x, s.y, s.z, s.w); }
+
+    inline value_type const &operator[](mesh::MeshEntityId const &s) const { return m_data_->get(s.x, s.y, s.z, s.w); }
+
 
     this_type &operator=(this_type const &other)
     {
@@ -153,24 +176,28 @@ public:
     }
     /* @}*/
 private:
+    struct scalar_value_tag {};
+    struct expression_tag {};
+    struct function_tag {};
+    struct field_function_tag {};
 
     template<typename TOP, typename TRange, typename ...U>
     void apply_dispatch(TOP const &op, TRange r0, Field<Expression<U...>> const &expr)
     {
-        base_type::apply(op, r0, static_cast< typename base_type::expression_tag *>(nullptr), expr);
+        apply(op, r0, static_cast<   expression_tag *>(nullptr), expr);
     }
 
     template<typename TOP, typename TRange, typename ...U> void
     apply_dispatch(TOP const &op, TRange r0, std::function<value_type(point_type const &, U const &...)> const &fun,
                    U &&...args)
     {
-        base_type::apply(op, r0, static_cast<typename base_type::function_tag *>(nullptr), fun, std::forward<U>(args)...);
+        apply(op, r0, static_cast<  function_tag *>(nullptr), fun, std::forward<U>(args)...);
     }
 
     template<typename TOP, typename TRange, typename Other> void
     apply_dispatch(TOP const &op, TRange r0, Other const &other)
     {
-        base_type::apply(op, r0, static_cast<  typename base_type::scalar_value_tag *>(nullptr), other);
+        apply(op, r0, static_cast<    scalar_value_tag *>(nullptr), other);
     }
 
 
@@ -207,7 +234,7 @@ private:
 
     void copy(mesh::EntityIdRange const &r0, this_type const &g)
     {
-//        r0.foreach([&](mesh::MeshEntityId const &s) { base_type::get(s) = g.base_type::get(s); });
+//        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = g.get(s); });
     }
 
 
@@ -221,6 +248,53 @@ private:
 
     }
 
+
+    template<typename TOP> void
+    apply(TOP const &op, mesh::EntityIdRange const &r0, this_type const &other)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), other.get(s)); });
+    }
+
+
+    template<typename TOP> void
+    apply(TOP const &op, mesh::EntityIdRange const &r0, scalar_value_tag *, value_type const &v)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), v); });
+    }
+
+
+    template<typename TOP, typename TFun, typename ...Args> void
+    apply(TOP const &op, mesh::EntityIdRange const r0, function_tag const *, TFun const &fun, Args &&...args)
+    {
+        deploy();
+        r0.foreach(
+                [&](mesh::MeshEntityId const &s) { op(get(s), fun(m_mesh_->point(s), std::forward<Args>(args)...)); });
+    }
+
+    template<typename TOP, typename ...TExpr> void
+    apply(TOP const &op, mesh::EntityIdRange const &r0, expression_tag const *, TExpr &&...fexpr)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { op(get(s), m_mesh_->eval(std::forward<TExpr>(fexpr), s)...); });
+    }
+
+
+    template<typename TOP, typename ...Args> void
+    apply(TOP const &op, mesh::MeshZoneTag const &tag, Args &&...args)
+    {
+//        apply(op, m_mesh_->range(entity_type(), tag), std::forward<Args>(args)...);
+    }
+
+    template<typename TOP, typename TRange, typename ...Args> void
+    apply_function(TOP const &op, TRange r0, Args &&...args)
+    {
+        apply(op, r0, static_cast< function_tag *>(nullptr), std::forward<Args>(args)...);
+    }
+
+    template<typename ...Args> void
+    assign_function(Args &&...args) { apply_function(_impl::_assign(), std::forward<Args>(args)...); }
 
 };
 

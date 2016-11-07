@@ -70,26 +70,26 @@ void ShowSimPlaLogo() { MESSAGE << ShowLogo() << std::endl; };
 //        switch (type_tag)
 //        {
 //            case SP_TYPE_float:
-//                (*dtype)->self = simpla::toolbox::DataType::create<float>();
+//                (*dtype)->self = simpla::toolbox::DataType::clone<float>();
 //                break;
 //            case SP_TYPE_double:
-//                (*dtype)->self = simpla::toolbox::DataType::create<double>();
+//                (*dtype)->self = simpla::toolbox::DataType::clone<double>();
 //                break;
 //
 //            case SP_TYPE_int:
-//                (*dtype)->self = simpla::toolbox::DataType::create<int>();
+//                (*dtype)->self = simpla::toolbox::DataType::clone<int>();
 //                break;
 //            case SP_TYPE_uint:
-//                (*dtype)->self = simpla::toolbox::DataType::create<unsigned int>();
+//                (*dtype)->self = simpla::toolbox::DataType::clone<unsigned int>();
 //                break;
 //            case SP_TYPE_long:
-//                (*dtype)->self = simpla::toolbox::DataType::create<long>();
+//                (*dtype)->self = simpla::toolbox::DataType::clone<long>();
 //                break;
 ////            case SP_TYPE_int64_t:
 ////                (*dtype)->self = simpla::toolbox::DataType::create<int64_t>();
 ////                break;
 //            case SP_TYPE_unsigned_long:
-//                (*dtype)->self = simpla::toolbox::DataType::create<unsigned long>();
+//                (*dtype)->self = simpla::toolbox::DataType::clone<unsigned long>();
 //                break;
 //            default:
 //                (*dtype)->self.size_in_byte(s);
@@ -152,7 +152,7 @@ void ShowSimPlaLogo() { MESSAGE << ShowLogo() << std::endl; };
 //{
 //    MPI_Datatype res = MPI_DATATYPE_NULL;
 //
-//    if (spMPIComm() != MPI_COMM_NULL) { MPI_Type_dup(simpla::MPIDataType::create((dtype)->self).type(), &res); }
+//    if (spMPIComm() != MPI_COMM_NULL) { MPI_Type_dup(simpla::MPIDataType::clone((dtype)->self).type(), &res); }
 //
 //    return (res);
 //};

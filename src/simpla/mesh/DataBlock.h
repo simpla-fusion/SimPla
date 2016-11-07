@@ -31,7 +31,7 @@ public:
 
     virtual mesh::MeshEntityType entity_type() const =0;
 
-    virtual std::string  name() const =0;
+    virtual std::string name() const =0;
 
     virtual void load(data::DataBase const &) =0;
 
@@ -39,11 +39,15 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const =0;
 
-    virtual std::shared_ptr<DataBlock> create(MeshBlock const *) const =0;
+    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *) const =0;
+
+    virtual void sync(DataBlock const *, bool only_ghost = true)   =0;
+
+    virtual bool is_deployed() const =0;
 
     virtual void deploy() =0;
 
-    virtual void clear() =0;
+    virtual void destroy() =0;
 
     virtual MeshBlock const *mesh() const { return m_; };
 
@@ -74,7 +78,7 @@ public:
         return info == typeid(DataBlockArray<TV, IFORM>) || DataBlock::is_a(info);
     };
 
-    virtual std::string  name() const { return ""; }
+    virtual std::string name() const { return ""; }
 
     virtual void load(data::DataBase const &) {};
 
@@ -92,14 +96,19 @@ public:
     }
 
 
-    virtual std::shared_ptr<DataBlock> create(MeshBlock const *m) const
+    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *m) const
     {
         return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(m));
     };
 
+    virtual bool is_deployed() const { return data_entity_type::is_deployed(); };
+
     virtual void deploy() { data_entity_type::deploy(); };
 
-    virtual void clear() { data_entity_type::clear(); };
+    virtual void destroy() { data_entity_type::destroy(); };
+
+    virtual void sync(DataBlock const *, bool only_ghost = true) { UNIMPLEMENTED; };
+
 };
 }}//namespace simpla { namespace mesh
 

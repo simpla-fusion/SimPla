@@ -80,7 +80,7 @@ class Object
 {
 public:
 
-    Object(std::string const &n = "");
+    Object(std::string const &s = "");
 
     Object(Object &&other);
 
@@ -90,22 +90,19 @@ public:
 
     virtual  ~Object();
 
-    virtual void swap(Object &other);
-
     virtual bool is_a(std::type_info const &info) const;
-
-    template<typename T> inline bool is_a() const { return is_a(typeid(T)); };
 
     virtual std::string get_class_name() const;
 
     virtual bool is_valid() const { return true; };
 
-
-    bool operator==(Object const &other);
+    virtual void deploy() {};
 
     std::string const &name() const;
 
-    id_type const &id() const;
+    id_type id() const;
+
+    bool operator==(Object const &other);
 
     /**
      *  @name concept lockable

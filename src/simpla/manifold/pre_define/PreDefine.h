@@ -61,7 +61,7 @@ using field_t=  Field<ValueType, TM, std::integral_constant<int, IFORM> >;
 //template<typename TV, int IFORM, typename TM, typename TDict>
 //field_function_t<TV, TM, IFORM, TDict> make_field_function(TM const &m, TDict const &dict)
 //{
-//    return field_function_t<TV, TM, IFORM, TDict>::create(m, dict);
+//    return field_function_t<TV, TM, IFORM, TDict>::clone(m, dict);
 //}
 //
 //template<typename TV, int IFORM, typename TM, typename TDict>

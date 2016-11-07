@@ -2068,7 +2068,7 @@ void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, co
 //        std::vector<double> ttcelslp(2 * CELLG + Mcells);
 //
 //        /*
-//         *  Apply characteristic tracing to update traces w^L and
+//         *  Apply characteristic tracing to sync traces w^L and
 //         *  w^R at faces.
 //         *  Inputs: w^L, w^R (traced_left/right)
 //         *  Output: w^L, w^R

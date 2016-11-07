@@ -72,7 +72,7 @@ public:
 
     static std::tuple<DataSpace, DataSpace> create_simple_unordered(size_type size);
 
-//    static std::tuple<DataSpace, DataSpace> create(size_type rank,
+//    static std::tuple<DataSpace, DataSpace> clone(size_type rank,
 //                                                   index_type const *topology_dims = nullptr,
 //                                                   index_type const *start = nullptr,
 //                                                   index_type const *_stride = nullptr,

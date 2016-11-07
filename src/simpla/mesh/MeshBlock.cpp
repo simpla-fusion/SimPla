@@ -15,10 +15,12 @@ namespace simpla { namespace mesh
 MeshBlock::MeshBlock() : m_ndims_(0) {}
 
 
-MeshBlock::MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw, int level, int ndims) :
+MeshBlock::MeshBlock(std::string const &s, index_type const *lo, index_type const *hi, const size_type *gw, int ndims) :
+        toolbox::Object(s),
         m_ndims_(ndims),
         m_g_box_{{lo[0], lo[1], lo[2]},
-                 {hi[0], hi[1], hi[2]}}
+                 {hi[0], hi[1], hi[2]}},
+        m_level_(0)
 {
     m_space_id_ = toolbox::Object::id();
 
@@ -56,11 +58,14 @@ MeshBlock::MeshBlock(MeshBlock &&other) :
 
 MeshBlock::~MeshBlock() {}
 
+std::string MeshBlock::name() const { return toolbox::Object::name(); };
+
 std::ostream &MeshBlock::print(std::ostream &os, int indent) const
 {
-    os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
-    os << std::setw(indent + 1) << " " << "Topology = { Type = \"CoRectMesh\", "
-       << "Global box = " << m_g_box_ << " Local Box = " << m_inner_box_ << " }," << std::endl;
+
+    os << std::setw(indent + 1) << "type = \"" << get_class_name() << "\" ,"
+       << " level = " << level() << ",  box = " << m_g_box_;
+
 //#ifndef NDEBUG
 //    os
 //            << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
@@ -79,6 +84,7 @@ void MeshBlock::deploy()
 {
     if (m_is_deployed_) { return; }
 
+    base_type::deploy();
     assert(toolbox::is_valid(m_g_box_));
 
 
@@ -140,46 +146,45 @@ void MeshBlock::deploy()
 
 }
 
-std::shared_ptr<MeshBlock>
-MeshBlock::clone() const
-{
-    assert(is_deployed());
-    auto res = std::make_shared<MeshBlock>();
+//std::shared_ptr<MeshBlock>
+//MeshBlock::clone() const
+//{
+//    assert(is_deployed());
+//    auto res = std::make_shared<MeshBlock>();
+//
+//    res->m_is_deployed_/*    */= m_is_deployed_;
+//    res->m_space_id_/*       */= m_space_id_;
+//    res->m_level_/*          */= m_level_;
+//    res->m_ghost_width_/*    */= m_ghost_width_;
+//    res->m_g_box_/*          */= m_g_box_/*  */;
+//    res->m_m_box_/*          */= m_m_box_/*  */;
+//    res->m_inner_box_/*      */= m_inner_box_/*  */;
+//    res->m_outer_box_/*      */= m_outer_box_;
+//    return res;
+//};
 
-    res->m_is_deployed_/*    */= m_is_deployed_;
-    res->m_space_id_/*       */= m_space_id_;
-    res->m_level_/*          */= m_level_;
-    res->m_ghost_width_/*    */= m_ghost_width_;
-    res->m_g_box_/*          */= m_g_box_/*  */;
-    res->m_m_box_/*          */= m_m_box_/*  */;
-    res->m_inner_box_/*      */= m_inner_box_/*  */;
-    res->m_outer_box_/*      */= m_outer_box_;
-    return res;
-};
-
 std::shared_ptr<MeshBlock>
-MeshBlock::create(index_box_type const &b, int inc_level) const
+MeshBlock::create(int inc_level, const index_type *lo, const index_type *hi) const
 {
     std::shared_ptr<MeshBlock> res = clone();
-    res->m_g_box_ = b;
-    res->m_level_ += inc_level;
-    if (inc_level > 0)
+    if (inc_level >= 0)
     {
-        std::get<0>(res->m_g_box_)[0] <<= inc_level;
-        std::get<0>(res->m_g_box_)[1] <<= inc_level;
-        std::get<0>(res->m_g_box_)[2] <<= inc_level;
-        std::get<1>(res->m_g_box_)[0] <<= inc_level;
-        std::get<1>(res->m_g_box_)[1] <<= inc_level;
-        std::get<1>(res->m_g_box_)[2] <<= inc_level;
+        std::get<0>(res->m_g_box_)[0] = lo[0] << inc_level;
+        std::get<0>(res->m_g_box_)[1] = lo[1] << inc_level;
+        std::get<0>(res->m_g_box_)[2] = lo[2] << inc_level;
+        std::get<1>(res->m_g_box_)[0] = hi[0] << inc_level;
+        std::get<1>(res->m_g_box_)[1] = hi[1] << inc_level;
+        std::get<1>(res->m_g_box_)[2] = hi[2] << inc_level;
     } else if (inc_level < 0)
     {
-        std::get<0>(res->m_g_box_)[0] >>= -inc_level;
-        std::get<0>(res->m_g_box_)[1] >>= -inc_level;
-        std::get<0>(res->m_g_box_)[2] >>= -inc_level;
-        std::get<1>(res->m_g_box_)[0] >>= -inc_level;
-        std::get<1>(res->m_g_box_)[1] >>= -inc_level;
-        std::get<1>(res->m_g_box_)[2] >>= -inc_level;
+        std::get<0>(res->m_g_box_)[0] = lo[0] >> -inc_level;
+        std::get<0>(res->m_g_box_)[1] = lo[1] >> -inc_level;
+        std::get<0>(res->m_g_box_)[2] = lo[2] >> -inc_level;
+        std::get<1>(res->m_g_box_)[0] = hi[0] >> -inc_level;
+        std::get<1>(res->m_g_box_)[1] = hi[1] >> -inc_level;
+        std::get<1>(res->m_g_box_)[2] = hi[2] >> -inc_level;
     }
+    res->m_level_ += inc_level;
     res->deploy();
     return res;
 
@@ -188,7 +193,7 @@ MeshBlock::create(index_box_type const &b, int inc_level) const
 std::shared_ptr<MeshBlock>
 MeshBlock::intersection(index_box_type const &other_box, int inc_level)
 {
-    return create(toolbox::intersection(m_inner_box_, other_box), inc_level);
+    return create(inc_level, toolbox::intersection(m_inner_box_, other_box));
 }
 
 

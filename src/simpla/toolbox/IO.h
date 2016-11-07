@@ -39,14 +39,14 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //template<typename T>
 //std::string write(std::string const &url, T const &d, size_t id = 0UL)
 //{
-//    return write(url, data_model::DataSet::create(d), id);
+//    return write(url, data_model::DataSet::clone(d), id);
 //}
 //
 //
 //template<typename T>
 //std::string write(std::string const &url, size_t num, T const *d, size_t id = 0UL)
 //{
-//    return write(url, data_model::DataSet::create(d, num), id);
+//    return write(url, data_model::DataSet::clone(d, num), id);
 //}
 //
 //void delete_attribute(std::string const &url);

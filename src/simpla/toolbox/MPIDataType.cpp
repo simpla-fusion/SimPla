@@ -47,7 +47,7 @@ MPIDataType MPIDataType::create(data::DataType const &data_type, //
     if (data_type.is_compound())
     {
         is_predefined = false;
-        //TODO create MPI structure DataType
+        //TODO clone MPI structure DataType
         //		MPI_Type_contiguous(DataType.entity_size_in_byte(), MPI_BYTE,
         //				&res.m_type_);
 
@@ -112,7 +112,7 @@ MPIDataType MPIDataType::create(data::DataType const &data_type, //
     else if (data_type.template is_same<std::complex<float>>()) { res_type = MPI_2COMPLEX; }
     else
     {
-        THROW_EXCEPTION_RUNTIME_ERROR("Cannot create MPI DataType:" + data_type.name());
+        THROW_EXCEPTION_RUNTIME_ERROR("Cannot clone MPI DataType:" + data_type.name());
     }
 
     if (data_type.is_array() || (ndims > 0 && p_dims != nullptr))
@@ -136,7 +136,7 @@ MPIDataType MPIDataType::create(data::DataType const &data_type, //
 
 //        if (p_stride != nullptr || p_block != nullptr)
 //        {
-//            //TODO create mpi DataType with stride and block
+//            //TODO clone mpi DataType with stride and block
 //            UNIMPLEMENTED2("!! 'stride'  and 'block' are ignored! ");
 //        }
 

@@ -20,6 +20,8 @@ class DummyMesh : public mesh::MeshBlock
 public:
     static constexpr unsigned int ndims = 3;
 
+    SP_OBJECT_HEAD(DummyMesh, mesh::MeshBlock)
+
     template<typename ...Args>
     DummyMesh(Args &&...args):mesh::MeshBlock(std::forward<Args>(args)...) {}
 
@@ -41,6 +43,8 @@ struct AMRTest : public mesh::Worker
 {
     typedef TM mesh_type;
 
+    SP_OBJECT_HEAD(AMRTest, mesh::Worker);
+
     template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
     field_type<Real, mesh::VERTEX> phi{"phi", this};
     field_type<Real, mesh::EDGE> E{"E", this};
@@ -50,30 +54,33 @@ struct AMRTest : public mesh::Worker
 
 int main(int argc, char **argv)
 {
-//    auto atlas = std::make_shared<mesh::Atlas>();
-//    atlas->insert(m);
 
     index_type lo[3] = {0, 0, 0}, hi[3] = {40, 50, 60};
+    index_type lo1[3] = {10, 20, 30}, hi1[3] = {20, 30, 40};
+
     size_type gw[3] = {0, 0, 0};
 
-    auto m0 = std::make_shared<DummyMesh>(lo, hi, gw, 0);
-    auto m1 = std::make_shared<DummyMesh>(lo, hi, gw, 1);
+    auto atlas = std::make_shared<mesh::Atlas>();
+    auto m0 = atlas->add<DummyMesh>("FirstLevel", lo, hi, gw, 0);
+    auto m1 = atlas->refine(m0, lo1, hi1);
 
+    std::cout << *atlas << std::endl;
 
     auto worker = std::make_shared<AMRTest<DummyMesh>>();
-
-    worker->E.deploy(m0.get());
-    worker->E.deploy(m1.get());
-    worker->B.deploy(m1.get());
+    worker->move_to(m0);
+    TRY_CALL(worker->deploy());
+    worker->move_to(m1);
+    TRY_CALL(worker->deploy());
     worker->E = 1.2;
-    exterior_derivative(worker->phi);
+    worker->E = exterior_derivative(worker->phi);
 //    worker->phi = diverge(worker->E);
-    std::cout << *worker << std::endl;
-
+    std::cout << " Worker = {" << *worker << "}" << std::endl;
+    std::cout << "E = {" << worker->E << "}" << std::endl;
+    std::cout << "E = {" << *worker->E.attribute() << "}" << std::endl;
 //
 //    auto m = std::make_shared<mesh::MeshBlock>();
 //
-//    auto attr = mesh::Attribute::create();
+//    auto attr = mesh::Attribute::clone();
 
-//    auto f = attr->create(m);
+//    auto f = attr->clone(m);
 }

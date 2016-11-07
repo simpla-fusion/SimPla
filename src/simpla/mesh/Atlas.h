@@ -28,7 +28,7 @@ class Attribute;
  */
 
 
-class Atlas
+class Atlas : public toolbox::Printable
 {
 
 
@@ -36,31 +36,46 @@ public:
 
     Atlas();
 
-    ~Atlas();
+    virtual ~Atlas();
+
+    std::string name() const;
+
+    std::ostream &print(std::ostream &os, int indent) const;
 
     unsigned int max_level() const;
 
     bool has(id_type id) const;
 
+    MeshBlock *at(id_type id);
 
-    id_type insert(std::shared_ptr<MeshBlock> const p_m, id_type hint = 0);
+    MeshBlock const *at(id_type id) const;
 
-    id_type insert(MeshBlock &p_m) { return insert(p_m.shared_from_this()); };
+    MeshBlock const *insert(std::shared_ptr<MeshBlock> const &p_m);
 
-    MeshBlock &at(id_type id = 0);
+    template<typename TM, typename ... Args>
+    MeshBlock const *add(Args &&...args)
+    {
+        return static_cast<TM const *>(insert(std::make_shared<TM>(std::forward<Args>(args)...)));
+    };
 
-    MeshBlock const &at(id_type id = 0) const;
+    template<typename ... Args>
+    MeshBlock const *create(int inc_level, MeshBlock const *hint, Args &&...args)
+    {
+        return insert(hint->create(inc_level, std::forward<Args>(args)...));
+    };
 
-    MeshBlock &operator[](id_type id) { return at(id); };
+    template<typename ... Args>
+    MeshBlock const *create(int inc, id_type h, Args &&...args) { create(inc, at(h), std::forward<Args>(args)...); };
 
-    MeshBlock const &operator[](id_type id) const { return at(id); };
+    template<typename ... Args>
+    MeshBlock const *clone(Args &&...args) { create(0, std::forward<Args>(args)...); };
 
-    template<typename TM> TM &as(id_type id = 0) { return static_cast<TM &>(at(id)); };
+    template<typename ... Args>
+    MeshBlock const *refine(Args &&...args) { create(1, std::forward<Args>(args)...); };
 
-    template<typename TM> TM const &as(id_type id = 0) const { return static_cast<TM const &>(at(id)); };
+    template<typename ... Args>
+    MeshBlock const *coarsen(Args &&...args) { create(-1, std::forward<Args>(args)...); };
 
-    template<typename ...Args>
-    id_type create(id_type hint, Args &&...args) { return insert(at(hint).create(std::forward<Args>(args)...), hint); };
 
     void link(id_type src, id_type dest) {};
 

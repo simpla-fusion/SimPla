@@ -397,7 +397,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //		std::vector<MPI_Request> &requests)
 //{
 //
-//	auto mpi_data_type = MPIDataType::create(DataType);
+//	auto mpi_data_type = MPIDataType::clone(DataType);
 //
 //	int dest, send_tag, recv_tag;
 //
