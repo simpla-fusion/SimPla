@@ -86,21 +86,12 @@ public:
     CoRectMesh() {}
 
     template<typename ...Args>
-    CoRectMesh(Real const *lo, Real const *hi, Args &&...args)
-            : MeshBlock(std::forward<Args>(args)...),
-              m_origin_{lo[0], lo[1], lo[2]},
-              m_dx_{hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]} {};
+    CoRectMesh(Args &&...args): MeshBlock(std::forward<Args>(args)...) {};
 
     CoRectMesh(CoRectMesh const &other) : MeshBlock(other), m_origin_(other.m_origin_), m_dx_(other.m_dx_) {};
 
     virtual  ~CoRectMesh() {}
 
-    void swap(CoRectMesh &other)
-    {
-        std::swap(m_origin_, other.m_origin_);
-        std::swap(m_dx_, other.m_dx_);
-        base_type::swap(other);
-    }
 
     virtual void deploy();
 
@@ -229,7 +220,8 @@ void CoRectMesh::deploy()
          */
     auto const &dims = dimensions();
 
-    for (int i = 0; i < NDIMS; ++i) {
+    for (int i = 0; i < NDIMS; ++i)
+    {
         assert(dims[i] > 0);
 
         m_dx_[i] = m_dx_[i] / static_cast<Real>( dims[i]);

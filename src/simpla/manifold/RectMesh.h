@@ -91,13 +91,6 @@ public:
 
     virtual  ~RectMesh() {}
 
-    void swap(RectMesh &other)
-    {
-        std::swap(m_origin_, other.m_origin_);
-        std::swap(m_dx_, other.m_dx_);
-        base_type::swap(other);
-    }
-
     virtual void deploy();
 
     inline void box(point_type const &x0, point_type const &x1)

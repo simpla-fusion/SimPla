@@ -24,7 +24,7 @@ struct Atlas::pimpl_s
     std::multimap<id_type, id_type> m_refine_;
     std::multimap<id_type, id_type> m_coarsen_;
     std::set<id_type> m_layer_[MAX_NUM_OF_LEVEL];
-    unsigned int m_max_level_ = 0;
+    int m_max_level_ = 0;
 
 
 };
@@ -33,13 +33,17 @@ Atlas::Atlas() : m_pimpl_(new pimpl_s) {};
 
 Atlas::~Atlas() {};
 
+void Atlas::max_level(int ml) { m_pimpl_->m_max_level_ = ml; }
+
+int Atlas::max_level() const { return m_pimpl_->m_max_level_; }
+
 bool Atlas::has(id_type id) const { return m_pimpl_->m_nodes_.find(id) != m_pimpl_->m_nodes_.end(); };
 
 MeshBlock *Atlas::at(id_type id) { return (m_pimpl_->m_nodes_.at(id)).get(); };
 
 MeshBlock const *Atlas::at(id_type id) const { return (m_pimpl_->m_nodes_.at(id)).get(); };
 
-MeshBlock const *Atlas::insert(std::shared_ptr<MeshBlock> const &p_m)
+MeshBlock const *Atlas::insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint)
 {
     m_pimpl_->m_nodes_.emplace(std::make_pair(p_m->id(), p_m));
     return p_m.get();

@@ -129,7 +129,7 @@ void AttributeView::move_to(MeshBlock const *m)
 
 void AttributeView::deploy()
 {
-    ASSERT (m_data_ != nullptr);
+    if (m_data_ == nullptr) { move_to(m_mesh_); }
     m_data_->deploy();
 }
 

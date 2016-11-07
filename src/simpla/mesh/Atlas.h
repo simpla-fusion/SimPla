@@ -42,7 +42,9 @@ public:
 
     std::ostream &print(std::ostream &os, int indent) const;
 
-    unsigned int max_level() const;
+    void max_level(int);
+
+    int max_level() const;
 
     bool has(id_type id) const;
 
@@ -50,18 +52,23 @@ public:
 
     MeshBlock const *at(id_type id) const;
 
-    MeshBlock const *insert(std::shared_ptr<MeshBlock> const &p_m);
+    MeshBlock const *insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint = nullptr);
 
+    void link(id_type src, id_type dest) {};
+
+//    std::set<id_type> &level(int l);
+//
+//    std::set<id_type> const &level(int l) const;
     template<typename TM, typename ... Args>
     MeshBlock const *add(Args &&...args)
     {
-        return static_cast<TM const *>(insert(std::make_shared<TM>(std::forward<Args>(args)...)));
+        return static_cast<TM const *>(insert(std::make_shared<TM>(std::forward<Args>(args)...), nullptr));
     };
 
     template<typename ... Args>
     MeshBlock const *create(int inc_level, MeshBlock const *hint, Args &&...args)
     {
-        return insert(hint->create(inc_level, std::forward<Args>(args)...));
+        return insert(hint->create(inc_level, std::forward<Args>(args)...), hint);
     };
 
     template<typename ... Args>
@@ -75,13 +82,6 @@ public:
 
     template<typename ... Args>
     MeshBlock const *coarsen(Args &&...args) { create(-1, std::forward<Args>(args)...); };
-
-
-    void link(id_type src, id_type dest) {};
-
-//    std::set<id_type> &level(int l);
-//
-//    std::set<id_type> const &level(int l) const;
 
 
 private:

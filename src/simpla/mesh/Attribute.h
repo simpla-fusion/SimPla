@@ -31,7 +31,7 @@ public:
 
     SP_OBJECT_HEAD(Attribute, toolbox::Object)
 
-    Attribute(std::string const &s);
+    Attribute(std::string const &s = "");
 
     Attribute(Attribute const &) = delete;
 
@@ -71,15 +71,24 @@ class AttributeView : public Worker::Observer
 protected:
     typedef AttributeView this_type;
     std::shared_ptr<Attribute> m_attr_;
-    MeshBlock const *m_mesh_ = nullptr;
-    DataBlock *m_data_ = nullptr;
+    MeshBlock const *m_mesh_;
+    DataBlock *m_data_;
 
 public:
-    AttributeView(std::string const &s = "", MeshBlock *m = nullptr, Worker *w = nullptr) :
+
+
+    AttributeView(Worker *w = nullptr) :
+            Worker::Observer(w), m_attr_(new Attribute()) {};
+
+    AttributeView(std::string const &s, Worker *w = nullptr) :
+            Worker::Observer(w), m_attr_(new Attribute(s)) {};
+
+    AttributeView(MeshBlock const *m, std::string const &s = "", Worker *w = nullptr) :
             Worker::Observer(w), m_attr_(new Attribute(s)), m_mesh_(m) {};
 
-    AttributeView(std::shared_ptr<Attribute> const &attr, Worker *w = nullptr) :
+    AttributeView(std::shared_ptr<Attribute> const &attr, Worker *w) :
             Worker::Observer(w), m_attr_(attr) {};
+
 
     virtual ~AttributeView() {}
 
@@ -115,7 +124,7 @@ public:
      * @param m
      * @result
      *  m_mesh_ : m
-     *  m_data_ : m_attr_.at(m) ;
+     *  m_data_ : not nullptr. m_attr_.at(m) ;
      */
     virtual void move_to(MeshBlock const *m);
 

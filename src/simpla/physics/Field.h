@@ -38,32 +38,28 @@ private:
 
     typedef mesh::AttributeView base_type;
 
+    static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
+
+
 public:
     typedef typename traits::field_value_type<this_type>::type field_value_type;
     typedef TManifold mesh_type;
     typedef TV value_type;
-    static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
 private:
-
-
     typedef typename mesh_type::template data_block_type<TV, IFORM> data_block_type;
 
-
-protected:
     mesh_type const *m_mesh_ = nullptr;
     data_block_type *m_data_ = nullptr;
-
 public:
-
-    Field() : base_type() {};
-
-    template<typename ...Args>
-    Field(std::string const &s, Args &&...args) :
-            base_type(s, nullptr, std::forward<Args>(args)...) {};
+    Field() {};
 
     template<typename ...Args>
-    Field(std::shared_ptr<mesh::Attribute> const &attr, Args &&...args) :
-            base_type(attr, std::forward<Args>(args)...) {};
+    Field(mesh_type const *m, Args &&...args) :base_type(m, std::forward<Args>(args)...) {};
+
+    template<typename ...Args>
+    Field(std::string const &s, Args &&...args) :base_type(s, std::forward<Args>(args)...) {};
+//    template<typename ...Args>
+//    Field(Args &&...args) :base_type(std::forward<Args>(args)...) {};
 
     virtual ~Field() {}
 
@@ -79,6 +75,12 @@ public:
     virtual mesh::MeshEntityType entity_type() const { return IFORM; };
 
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
+
+    virtual void clear()
+    {
+        deploy();
+        m_data_->clear();
+    }
 
     virtual void deploy()
     {
@@ -201,8 +203,7 @@ private:
     }
 
 
-
-
+public:
 
 
 //

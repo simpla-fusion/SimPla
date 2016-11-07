@@ -45,9 +45,12 @@ protected:
         index_type lo[3] = {0, 0, 0};
         index_type hi[3];//= {dims[0], dims[1], dims[2]};
 
-        m = std::make_shared<mesh_type>(&xmin[0], &xmax[0], lo, hi, gw);
+        m_p = std::make_shared<mesh_type>(lo, hi, gw);
+        m = m_p.get();
         m->deploy();
         m->range(static_cast<mesh::MeshEntityType>(iform), mesh::SP_ES_OWNED).swap(m_range);
+
+
     }
 
 public:
@@ -69,7 +72,9 @@ public:
 
     mesh::EntityIdRange m_range;
 
-    std::shared_ptr<mesh_type> m;
+    std::shared_ptr<mesh_type> m_p;
+
+    mesh_type *m;
 
 //    typedef Field<value_type, mesh_type, index_const<static_cast<size_t>(iform)> > field_type;
     typedef Field<value_type, mesh_type, index_const<static_cast<size_t>(iform)> > scalar_field_type;
