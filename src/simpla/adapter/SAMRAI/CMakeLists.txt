@@ -1,4 +1,5 @@
 SET(SAMRAI_SRC_URL ${PROJECT_SOURCE_DIR}/external_project/SAMRAI)
+
 IF (NOT EXISTS ${SAMRAI_SRC_URL})
     SET(SAMRAI_SRC_URL https://github.com/LLNL/SAMRAI/archive/master.zip)
 ENDIF (NOT EXISTS ${SAMRAI_SRC_URL})
@@ -27,9 +28,10 @@ ExternalProject_Add(SAMRAI
         )
 
 ExternalProject_Get_Property(SAMRAI INSTALL_DIR)
+
 SET(SAMRAI_DIR ${INSTALL_DIR})
 
-SET(SAMRAI_LIBRARY_DIRS ${SAMRAI_DIR}/lib)
+SET(SAMRAI_LIBRARY_DIRS ${INSTALL_DIR}/lib)
 
 SET(SAMRAI_LIBRARIES
         SAMRAI_appu
@@ -42,25 +44,30 @@ SET(SAMRAI_LIBRARIES
         SAMRAI_xfer
         SAMRAI_hier
         SAMRAI_tbox
-        gfortran
+
         )
+#FOREACH (LIB_ ${SAMRAI_LIBRARIES_})
+#    find_library(${LIB_} NAMES ${LIB_} PATHS ${SAMRAI_LIBRARY_DIRS})
+#    IF (NOT ${LIB_}_NOTFOUND)
+#        LIST(APPEND SAMRAI_LIBRARIES "${${LIB_}}")
+#    ENDIF (NOT ${LIB_}_NOTFOUND)
+#ENDFOREACH ()
+#LIST(APPEND SAMRAI_LIBRARIES gfortran)
 
 
-SET(SAMRAI_INCLUDE_DIRS ${SAMRAI_DIR}/include/ )
+MESSAGE(STATUS SAMRAI_DIR ${SAMRAI_DIR})
 
 
-INCLUDE_DIRECTORIES(${SAMRAI_INCLUDE_DIRS})
+LINK_DIRECTORIES(${SAMRAI_DIR}/lib)
 
-add_library(samrai_wrapper SAMRAIAdapter.cpp SAMRAIAdapter.cpp)
+INCLUDE_DIRECTORIES(${SAMRAI_DIR}/include/)
+
+INCLUDE_DIRECTORIES(${SAMRAI_SRC_URL}/source/)
+
+add_library(samrai_wrapper SAMRAITimeIntegrator.cpp SAMRAITimeIntegrator.cpp)
 
 TARGET_LINK_LIBRARIES(samrai_wrapper ${SAMRAI_LIBRARIES})
 
-SET(MESH_WEAPPER samrai_wrapper)
+add_dependencies(samrai_wrapper SAMRAI)
 
-ADD_DEFINITIONS(-DHAVE_HDF5)
 
-FILE(GLOB samrai_test_SRC ./*.cpp)
-
-add_executable(samrai_test ${samrai_test_SRC})
-ADD_DEPENDENCIES(samrai_test SAMRAI)
-target_link_libraries(samrai_test mesh toolbox ${SAMRAI_LIBRARIES} ${MPI_LIBRARIES} ${HDF5_LIBRARIES})

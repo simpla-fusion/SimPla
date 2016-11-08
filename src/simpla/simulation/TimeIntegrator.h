@@ -18,29 +18,28 @@ class TimeIntegrator :
         public toolbox::Serializable
 {
 public:
-    TimeIntegrator(std::string const &s_name);
+    TimeIntegrator(std::string const &s_name) : toolbox::Object(s_name) {}
 
-    virtual ~TimeIntegrator();
+    virtual ~TimeIntegrator() {}
 
-    virtual void update_level(int l0, int l1);
+    virtual void registerWorker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
 
-    virtual void coarsen_level(int l);
+    virtual std::shared_ptr<mesh::Worker> &worker() { return m_worker_; }
 
-    virtual void advance(Real dt, int level = 0);
+    virtual std::string name() const { return toolbox::Object::name(); };
 
-    virtual std::string name() const;
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+    virtual void load(data::DataBase const &) {};
 
-    virtual void load(data::DataBase const &);
+    virtual void save(data::DataBase *) const {};
 
-    virtual void save(data::DataBase *) const;
+    virtual void update_level(int l0, int l1) {};
+
+    virtual void advance(Real dt, int level = 0) {};
 
 private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
-
-
+    std::shared_ptr<mesh::Worker> m_worker_;
 };
 }}//namespace simpla { namespace simulation
 

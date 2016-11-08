@@ -7,17 +7,17 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <memory>
-
+#include <vector>
 #include <simpla/data/DataBase.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/Object.h>
 #include <simpla/toolbox/Printable.h>
 #include <simpla/toolbox/Serializable.h>
 
-
 namespace simpla { namespace mesh
 {
 struct MeshBlock;
+struct Attribute;
 
 class Worker :
         public toolbox::Object,
@@ -81,6 +81,8 @@ public:
     void apply(std::function<void(Observer &)> const &);
 
     void apply(std::function<void(Observer const &)> const &) const;
+
+    std::vector<std::shared_ptr<Attribute>> &attributes();
 
 private:
     struct pimpl_s;

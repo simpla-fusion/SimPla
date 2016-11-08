@@ -29,14 +29,15 @@ template<typename TV, typename TManifold, mesh::MeshEntityType IFORM> using fiel
 
 
 template<typename TV, typename TManifold, size_t I>
-class Field<TV, TManifold, index_const<I >> : public mesh::AttributeView
+class Field<TV, TManifold, index_const<I >> :
+        public mesh::AttributeView<TV, static_cast<mesh::MeshEntityType >(I)>
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBlock, TManifold>::value, "TManifold is not derived from MeshBlock");
 
     typedef Field<TV, TManifold, index_const<I >> this_type;
 
-    typedef mesh::AttributeView base_type;
+    typedef mesh::AttributeView<TV, static_cast<mesh::MeshEntityType >(I)> base_type;
 
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
 
@@ -58,8 +59,6 @@ public:
 
     template<typename ...Args>
     Field(std::string const &s, Args &&...args) :base_type(s, std::forward<Args>(args)...) {};
-//    template<typename ...Args>
-//    Field(Args &&...args) :base_type(std::forward<Args>(args)...) {};
 
     virtual ~Field() {}
 
@@ -72,9 +71,6 @@ public:
         return t_info == typeid(this_type) || base_type::is_a(t_info);
     };
 
-    virtual mesh::MeshEntityType entity_type() const { return IFORM; };
-
-    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
 
     virtual void clear()
     {

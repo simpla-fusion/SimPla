@@ -3,7 +3,8 @@
 //
 #include "Worker.h"
 #include <set>
-#include <simpla/mesh/MeshBlock.h>
+#include "MeshBlock.h"
+#include "Attribute.h"
 
 namespace simpla { namespace mesh
 {
@@ -11,6 +12,7 @@ struct Worker::pimpl_s
 {
     MeshBlock const *m_mesh_ = nullptr;
     std::set<Observer *> m_obs_;
+    std::vector<std::shared_ptr<Attribute>> m_attributes_;
 };
 
 Worker::Worker() : m_pimpl_(new pimpl_s) {}
@@ -29,6 +31,8 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 
     return os;
 }
+
+std::vector<std::shared_ptr<Attribute>> &Worker::attributes() { return m_pimpl_->m_attributes_; }
 
 void Worker::attach(Observer *ob) { m_pimpl_->m_obs_.insert(ob); }
 

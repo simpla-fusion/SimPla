@@ -12,6 +12,7 @@
 #include <simpla/physics/Field.h>
 #include <simpla/physics/FieldExpression.h>
 #include <simpla/manifold/Calculus.h>
+#include <simpla/adapter/SAMRAI/SAMRAITimeIntegrator.h>
 
 using namespace simpla;
 
@@ -60,6 +61,8 @@ struct AMRTest : public mesh::Worker
 
 int main(int argc, char **argv)
 {
+
+    auto integrator = create_samrai_time_integrator("samrai_integrator");
 
     index_type lo[3] = {0, 0, 0}, hi[3] = {40, 50, 60};
     index_type lo1[3] = {10, 20, 30}, hi1[3] = {20, 30, 40};
