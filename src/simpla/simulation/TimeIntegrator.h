@@ -23,7 +23,7 @@ class TimeIntegrator :
         public concept::Serializable
 {
 public:
-    TimeIntegrator(std::string const &s_name) : Object(s_name) {}
+    TimeIntegrator(std::string const &s_name = "") : Object(s_name) {}
 
     virtual ~TimeIntegrator() {}
 
