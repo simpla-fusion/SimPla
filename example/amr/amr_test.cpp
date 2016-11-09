@@ -143,8 +143,8 @@ int main(int argc, char **argv)
      */
 
 
-    integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0,   0,   0},
-                                                                           {256, 256, 256}};
+    integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0,  0,  0},
+                                                                           {15, 15, 15}};
 
     integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{0, 0, 0};
     integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{1, 1, 1};
@@ -180,8 +180,11 @@ int main(int argc, char **argv)
     integrator->db["LoadBalancer"];
 
     integrator->deploy();
-
     integrator->print(std::cout);
+    integrator->tear_down();
+    integrator.reset();
+
+}
 
 //    index_type lo[3] = {0, 0, 0}, hi[3] = {40, 50, 60};
 //    index_type lo1[3] = {10, 20, 30}, hi1[3] = {20, 30, 40};
@@ -208,6 +211,4 @@ int main(int argc, char **argv)
 //    auto m = std::make_shared<mesh::MeshBlock>();
 //
 //    auto attr = mesh::Attribute::clone();
-
 //    auto f = attr->clone(m);
-}
