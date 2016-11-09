@@ -10,9 +10,9 @@
 #include <vector>
 #include <simpla/data/DataBase.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/Object.h>
-#include <simpla/toolbox/Printable.h>
-#include <simpla/toolbox/Serializable.h>
+#include <simpla/concept/Object.h>
+#include <simpla/concept/Printable.h>
+#include <simpla/concept/Serializable.h>
 
 namespace simpla { namespace mesh
 {
@@ -20,12 +20,12 @@ struct MeshBlock;
 struct Attribute;
 
 class Worker :
-        public toolbox::Object,
-        public toolbox::Printable,
-        public toolbox::Serializable
+        public Object,
+        public concept::Printable,
+        public concept::Serializable
 {
 public:
-    SP_OBJECT_HEAD(Worker, toolbox::Object);
+    SP_OBJECT_HEAD(Worker, Object);
     struct Observer;
     struct Visitor;
 
@@ -33,7 +33,7 @@ public:
 
     ~Worker();
 
-    virtual std::string name() const { return toolbox::Object::name(); };
+    virtual std::string name() const { return Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
@@ -96,7 +96,7 @@ struct Worker::Visitor
     virtual void visit(Observer const &) const =0;
 };
 
-struct Worker::Observer : public toolbox::Printable
+struct Worker::Observer : public concept::Printable
 {
 
     Observer(Worker *m);

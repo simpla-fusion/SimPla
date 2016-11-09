@@ -107,9 +107,9 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_type co
     size_type offset = 0;
     size_type total_count = count;
     std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
-    DataSpace memory_space = toolbox::DataSpace::create_simple(1, &count);
+    DataSpace memory_space = DataSpace::create_simple(1, &count);
 
-    DataSpace data_space = toolbox::DataSpace::create_simple(1, &total_count);
+    DataSpace data_space = DataSpace::create_simple(1, &total_count);
     data_space.select_hyperslab(&offset, nullptr, &count, nullptr);
 
     return std::forward_as_tuple(data_space, memory_space);

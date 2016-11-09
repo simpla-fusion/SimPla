@@ -13,67 +13,56 @@
 namespace simpla { namespace data
 {
 
-struct DataEntity
-{
-public:
-    DataEntity() {}
-
-    virtual ~DataEntity() {}
-
-//    virtual void swap(DataEntity &other)=0;
-
-    virtual bool is_a(std::type_info const &t_id) const { return t_id == typeid(DataEntity); }
-
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; };
-
-    virtual bool is_null() const =0;
-
-    virtual bool empty() const =0;
-
-    virtual bool is_heavy_data() const =0;
-
-//    virtual DataSpace dataspace() const =0;
-//
-//    virtual DataType datatype() const =0;
-
-    virtual void *data() =0;
-
-    virtual void const *data() const =0;
-
-};
-
-struct DataEntityLight : public DataEntity, public toolbox::Any
+struct DataEntity : public toolbox::Any
 {
     typedef toolbox::Any base_type;
 public:
-    DataEntityLight() {}
+    template<typename ...Args>
+    DataEntity(Args &&...args) : base_type(std::forward<Args>(args)...) {}
 
-    virtual ~DataEntityLight() {}
+    DataEntity(DataEntity const &other) : base_type(other) {}
 
-    virtual void swap(DataEntityLight &other) { base_type::swap(other); };
+    DataEntity(DataEntity &&other) : base_type(other) {}
 
-    virtual bool is_a(std::type_info const &t_id) const
+    virtual ~DataEntity() {}
+
+    void swap(DataEntity &other) { base_type::swap(other); }
+
+    DataEntity &operator=(const DataEntity &rhs)
     {
-        return t_id == typeid(DataEntityLight) || base_type::type() == t_id;
+        DataEntity(rhs).swap(*this);
+        return *this;
     }
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return base_type::print(os, indent); };
+    // move assignement
+    DataEntity &operator=(DataEntity &&rhs)
+    {
+        rhs.swap(*this);
+        DataEntity().swap(rhs);
+        return *this;
+    }
 
-    virtual bool is_null() const { return base_type::is_null(); };
 
-    virtual bool is_heavy_data() const { return false; };
+    virtual bool is_a(std::type_info const &t_id) const { return t_id == typeid(DataEntity); }
 
-//    virtual DataSpace dataspace() const {};
-//
-//    virtual DataType datatype() const { UNIMPLEMENTED; };
+    virtual const std::type_info &value_type_info() const { return toolbox::Any::type(); }
 
-    virtual void *data() { return base_type::data(); }
+    virtual bool is_heavy_data() const { return false; }
 
-    virtual void const *data() const { return base_type::data(); }
+    template<typename U>
+    DataEntity &operator=(U const &v)
+    {
+        base_type::operator=(v);
+        return *this;
+    };
 
 };
 
-struct DataEntityHeavy : public DataEntity
+struct DataEntityLight : public DataEntity
+{
+};
+
+struct DataEntityHeavy : public DataEntityLight
 {
     typedef DataEntity base_type;
 public:
@@ -83,34 +72,36 @@ public:
 
     virtual ~DataEntityHeavy() {}
 
-    virtual void swap(DataEntityHeavy &other) { UNIMPLEMENTED; };
+    virtual bool is_heavy_data() const { return true; };
 
     virtual bool is_a(std::type_info const &t_id) const
     {
         return t_id == typeid(DataEntityHeavy) || base_type::is_a(t_id);
     }
 
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const =0;
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; };
 
 //    virtual DataSpace dataspace() const =0;
 //
 //    virtual DataType datatype() const =0;
 
-    virtual bool is_heavy_data() const { return true; };
 
-    virtual void set(std::shared_ptr<void> d, DataType const &, DataSpace const &) {};
+//    virtual void set(std::shared_ptr<void> d, DataType const &, DataSpace const &) {};
+//
+//    virtual void deploy() = 0;
+//
+//    virtual void clear() = 0;
+//
+//    virtual bool is_valid() const = 0;
+//
+//    virtual bool empty() const = 0;
+//
+//    virtual void *data() = 0;
+//
+//    virtual void const *data() const = 0;
 
-    virtual void deploy() = 0;
 
-    virtual void clear() = 0;
 
-    virtual bool is_valid() const = 0;
-
-    virtual bool empty() const = 0;
-
-    virtual void *data() = 0;
-
-    virtual void const *data() const = 0;
 };
 
 

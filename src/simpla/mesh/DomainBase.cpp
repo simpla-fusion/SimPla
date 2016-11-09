@@ -3,7 +3,7 @@
  * @author salmon
  * @date 16-5-23 - 下午2:34
  *  */
-#include <simpla/toolbox/Object.h>
+#include <simpla/concept/Object.h>
 #include <simpla/toolbox/IOStream.h>
 #include <simpla/mesh/Attribute.h>
 #include "DomainBase.h"
@@ -35,7 +35,7 @@ DomainBase::~DomainBase() { teardown(); }
 //
 //void DomainBase::deploy() { LOGGER << "deploy problem domain [" << get_class_name() << "]" << std::endl; };
 //
-//void DomainBase::teardown()
+//void DomainBase::tear_down()
 //{
 //    if (m != nullptr)
 //    {

@@ -70,7 +70,9 @@ LuaObject::~LuaObject()
 
 }
 
-std::basic_ostream<char> &LuaObject::Serialize(std::basic_ostream<char> &os)
+std::string LuaObject::name() const { return ""; }
+
+std::ostream &LuaObject::print(std::ostream &os, int indent) const
 {
 
     auto acc = L_.acc();
@@ -346,6 +348,7 @@ bool LuaObject::has(std::string const &key) const
 {
     return !LuaObject(this->operator[](key)).is_nil();
 };
+
 LuaObject LuaObject::get(std::string const &s) const noexcept
 {
     LuaObject res;
@@ -375,6 +378,7 @@ LuaObject LuaObject::get(std::string const &s) const noexcept
     }
     return std::move(res);
 }
+
 LuaObject LuaObject::operator[](std::string const &s) const noexcept
 {
     LuaObject res;

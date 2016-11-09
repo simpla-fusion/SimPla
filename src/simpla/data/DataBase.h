@@ -14,63 +14,75 @@
 #include <ostream>
 #include <iomanip>
 #include <map>
-#include <simpla/toolbox/Printable.h>
 
+
+
+#include "DataEntity.h"
 
 namespace simpla { namespace data
 {
-class DataEntity;
 
-class DataBase : public toolbox::Printable
+class DataBase : public DataEntity
 {
 public:
 
-    DataBase() {};
+    DataBase();
 
     DataBase(DataBase const &) = delete;
 
     DataBase(DataBase &&) = delete;
 
-    virtual  ~DataBase() {};
+    virtual  ~DataBase();
 
-    virtual std::string  name() const =0;
+    virtual std::string name() const { return ""; };
 
-    virtual std::ostream &print(std::ostream &os, int indent) const =0;
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
-    virtual DataEntity const &value() const =0;
+    virtual std::shared_ptr<DataBase> clone() const { return std::make_shared<DataBase>(); };
 
-    virtual DataEntity &value() =0;
+    virtual bool is_a(std::type_info const &t_id) const { return t_id == typeid(DataBase); };
 
-    virtual std::shared_ptr<DataBase> create() const =0;
+    virtual bool is_table() const;
 
-    virtual bool is_a(std::type_info const &t_id) const =0;
+    virtual bool is_null() const;
 
-    virtual bool is_table() const =0;
+    virtual bool empty() const;
 
-    virtual bool empty() const =0;
+    virtual bool has(std::string const &key) const;
 
-    virtual bool is_null() const =0;
+    virtual void insert(std::string const &key, std::shared_ptr<DataBase> const &v);
 
-    virtual bool has(std::string const &key) const =0;
+    virtual void foreach(std::function<void(std::string const &key, DataBase const &)> const &) const;
 
-    virtual void insert(std::string const &key, std::shared_ptr<DataBase> const &v) =0;
+    virtual void foreach(std::function<void(std::string const &key, DataBase &)> const &fun);
 
-    virtual std::shared_ptr<DataBase> find(std::string const &key)  =0;
+    virtual bool check(std::string const &key);
 
-    virtual std::shared_ptr<const DataBase> find(std::string const &key) const =0;
+    virtual DataBase &get(std::string const &key);
 
-    virtual DataBase &at(std::string const &key)  =0;
+    virtual DataBase &at(std::string const &key);
 
-    virtual DataBase const &at(std::string const &key) const =0;
-
-    virtual DataBase &get(std::string const &key) =0;
+    virtual DataBase const &at(std::string const &key) const;
 
     DataBase &operator[](std::string const &key) { return get(key); };
 
+    DataBase &operator[](char const *key) { return get(key); };
 
-    virtual void foreach(std::function<void(std::string const &key, DataBase const &)> const &) const =0;
+    DataBase const &operator[](char const *&key) const { return at(key); };
 
-    virtual void foreach(std::function<void(std::string const &key, DataBase &)> const &)=0;
+    DataBase const &operator[](std::string const &key) const { return at(key); };
+
+    template<typename U>
+    DataBase &operator=(U const &v)
+    {
+        DataEntity::operator=(v);
+        return *this;
+    };
+
+
+protected:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 
 };
 

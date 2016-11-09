@@ -7,8 +7,8 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/PrettyStream.h>
-#include <simpla/toolbox/Serializable.h>
-#include <simpla/toolbox/Printable.h>
+#include <simpla/concept/Serializable.h>
+#include <simpla/concept/Printable.h>
 #include <simpla/data/DataEntityNDArray.h>
 #include "MeshBlock.h"
 
@@ -18,7 +18,7 @@ namespace simpla { namespace mesh
  *  Base class of Data Blocks (pure virtual)
  */
 
-struct DataBlock : public toolbox::Serializable, public toolbox::Printable
+struct DataBlock : public concept::Serializable, public concept::Printable
 {
 public:
     DataBlock(MeshBlock const *m) : m_(m) {}

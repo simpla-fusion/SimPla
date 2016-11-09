@@ -17,8 +17,12 @@
 #include <typeindex>
 #include <typeinfo>
 #include <stddef.h>
+
+#include <simpla/concept/Printable.h>
+
 #include "nTuple.h"
 #include "Log.h"
+
 
 namespace simpla { namespace toolbox
 {
@@ -134,7 +138,7 @@ inline bool get_string(std::string *v, std::string const &other)
  *
  *   This an implement of 'any' with m_data type description/serialization information
  */
-struct Any
+struct Any : public concept::Printable
 {
 
     Any() : m_data_(nullptr) {}
@@ -249,8 +253,7 @@ struct Any
         } else
         {
             U res;
-            if (as(&res)) { return std::move(res); }
-            else { return def_v; }
+            if (as(&res)) { return std::move(res); } else { return def_v; }
         }
 
     }
@@ -269,6 +272,7 @@ struct Any
         return dynamic_cast<Holder <U> *>(m_data_)->m_value_;
     }
 
+    std::string name() const { return ""; }
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
@@ -279,15 +283,12 @@ struct Any
 
 private:
     struct PlaceHolder;
+
     template<typename> struct Holder;
 
+    PlaceHolder *m_data_ = nullptr;
 
-    PlaceHolder *clone() const
-    {
-        return (m_data_ != nullptr) ? m_data_->clone() : nullptr;
-    }
-
-    PlaceHolder *m_data_;
+    PlaceHolder *clone() const { return (m_data_ != nullptr) ? m_data_->clone() : nullptr; }
 
 
     struct PlaceHolder
@@ -342,15 +343,9 @@ private:
             {
                 *v = dynamic_cast<Holder<nTuple<U, N>> const *>(this)->m_value_;
                 return true;
-            } else if (this->size() < N)
-            {
-                return false;
-            }
+            } else if (this->size() < N) { return false; }
 
-            for (int i = 0; i < N; ++i)
-            {
-                this->get(i)->as(&((*v)[i]));
-            }
+            for (int i = 0; i < N; ++i) { this->get(i)->as(&((*v)[i])); }
 
             return true;
         }
@@ -380,7 +375,7 @@ private:
 
         Holder(ValueType &&v) : m_value_(std::forward<ValueType>(v)) {}
 
-        virtual    ~Holder() {}
+        virtual ~Holder() {}
 
         Holder &operator=(const Holder &) = delete;
 
@@ -394,10 +389,7 @@ private:
         std::ostream &print(std::ostream &os, int indent = 1) const
         {
             if (std::is_same<ValueType, std::string>::value) { os << "\"" << m_value_ << "\""; }
-            else
-            {
-                os << m_value_;
-            }
+            else { os << m_value_; }
             return os;
         }
 

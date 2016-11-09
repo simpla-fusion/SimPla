@@ -10,9 +10,9 @@
 #include <simpla/data/DataBase.h>
 #include <simpla/data/DataSpace.h>
 #include <simpla/toolbox/nTuple.h>
-#include <simpla/toolbox/Object.h>
-#include <simpla/toolbox/Serializable.h>
-#include <simpla/toolbox/Printable.h>
+#include <simpla/concept/Object.h>
+#include <simpla/concept/Serializable.h>
+#include <simpla/concept/Printable.h>
 #include <simpla/toolbox/BoxUtility.h>
 #include "MeshCommon.h"
 #include "EntityId.h"
@@ -72,15 +72,15 @@ namespace simpla { namespace mesh
  */
 
 class MeshBlock :
-        public toolbox::Object,
-        public toolbox::Serializable,
-        public toolbox::Printable,
+        public Object,
+        public concept::Serializable,
+        public concept::Printable,
         public std::enable_shared_from_this<MeshBlock>
 {
 
 public:
 
-    SP_OBJECT_HEAD(MeshBlock, toolbox::Object)
+    SP_OBJECT_HEAD(MeshBlock, Object)
 
     MeshBlock();
 

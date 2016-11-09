@@ -20,9 +20,13 @@
 #include <tuple>
 #include <utility>
 #include <mutex>
+
+#include <simpla/concept/Printable.h>
+
 #include "Log.h"
 #include "type_cast.h"
 #include "LuaObjectExt.h"
+
 
 extern "C"
 {
@@ -59,7 +63,7 @@ namespace simpla { namespace toolbox
  *  @class LuaObject
  *  \brief interface to Lua Script
  */
-class LuaObject
+class LuaObject : public concept::Printable
 {
 
 
@@ -162,7 +166,10 @@ public:
 
     ~LuaObject();
 
-    inline std::basic_ostream<char> &Serialize(std::basic_ostream<char> &os);
+
+    std::string name() const;
+
+    std::ostream &print(std::ostream &os, int indent = 0) const;
 
     inline bool is_null() const { return L_.empty(); }
 

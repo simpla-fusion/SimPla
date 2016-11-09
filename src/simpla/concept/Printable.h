@@ -7,7 +7,7 @@
 
 #include <ostream>
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace concept
 {
 
 struct Printable
@@ -16,7 +16,7 @@ struct Printable
 
     virtual ~Printable() {}
 
-    virtual std::string  name() const =0;
+    virtual std::string name() const =0;
 
     virtual std::ostream &print(std::ostream &os, int indent) const =0;
 

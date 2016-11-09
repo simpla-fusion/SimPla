@@ -6,25 +6,15 @@
 #define SIMPLA_LUADATABASE_H
 
 #include <simpla/toolbox/LuaObject.h>
-#include "DataEntity.h"
 #include "DataBase.h"
 
 namespace simpla { namespace data
 {
-class LuaDataEntity : public toolbox::LuaObject, public DataEntity
+struct LuaDataEntity : public toolbox::LuaObject
 {
-public:
-    LuaDataEntity() {}
+    template<typename T> void set(DataEntity const &other);
 
-    virtual ~LuaDataEntity() {}
-
-    bool empty() const { return toolbox::LuaObject::empty(); }
-
-    bool is_null() const { return toolbox::LuaObject::is_null(); }
-
-    void swap(LuaDataEntity &other) { toolbox::LuaObject::swap(other); }
-
-
+    template<typename T> void set(DataEntity &&other);
 };
 
 class LuaDataBase : public DataBase
@@ -34,13 +24,12 @@ public:
 
     virtual  ~LuaDataBase();
 
-    void parse_file(std::string const &filename);
+    virtual std::string name() const { return ""; };
 
-    void parse_string(std::string const &str);
+    virtual std::ostream &print(std::ostream &os, int indent) const { return toolbox::LuaObject::print(os, indent); };
 
-//    virtual LuaDataEntity const &value() const;
-//
-//    virtual LuaDataEntity &value();
+    virtual void insert(std::string const &key, std::shared_ptr<DataBase> const &v) { UNIMPLEMENTED; };
+
 
     virtual std::shared_ptr<DataBase> create() const
     {
@@ -60,7 +49,7 @@ public:
 
     virtual bool has(std::string const &key) const;
 
-    virtual void set(std::string const &key, std::shared_ptr<DataBase> const &v);
+//    virtual void set(std::string const &key, std::shared_ptr<DataBase> const &v);
 
     virtual DataBase &get(std::string const &key);
 
@@ -68,7 +57,27 @@ public:
 
     virtual DataBase const &at(std::string const &key) const;
 
+    virtual void foreach(std::function<void(std::string const &key, DataBase const &)> const &) const
+    {
+        UNIMPLEMENTED;
+    };
+
+    virtual void foreach(std::function<void(std::string const &key, DataBase &)> const &)
+    {
+        UNIMPLEMENTED;
+    };
+
+    virtual void set(DataEntity const &other) { UNIMPLEMENTED; };
+
+    virtual void set(DataEntity &&other) { UNIMPLEMENTED; };
+
+    virtual DataEntity &get() { return m_value_; };
+
+    virtual DataEntity const &get() const { return m_value_; };
+
+    LuaDataEntity m_value_;
 };
 
 }}//namespace simpla { namespace toolbox {
 #endif //SIMPLA_LUADATABASE_H
+

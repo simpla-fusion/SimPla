@@ -37,7 +37,7 @@ template<typename ...> struct TransitionMap;
  *
  *
  */
-struct TransitionMapBase : public toolbox::Object
+struct TransitionMapBase : public Object
 {
 
     TransitionMapBase() {};

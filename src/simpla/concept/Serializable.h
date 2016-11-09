@@ -9,7 +9,7 @@
 
 namespace simpla { namespace data { class DataBase; }}
 
-namespace simpla { namespace toolbox
+namespace simpla { namespace concept
 {
 
 struct Serializable

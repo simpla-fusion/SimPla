@@ -15,9 +15,9 @@
 #include <map>
 #include <simpla/toolbox/Log.h>
 
-#include <simpla/toolbox/Object.h>
-#include <simpla/toolbox/Printable.h>
-#include <simpla/toolbox/Serializable.h>
+#include <simpla/concept/Object.h>
+#include <simpla/concept/Printable.h>
+#include <simpla/concept/Serializable.h>
 
 
 #include <simpla/mesh/EntityIdRange.h>
@@ -48,20 +48,20 @@ namespace simpla { namespace simulation
  *
  */
 class Context :
-        public toolbox::Object,
-        public toolbox::Printable,
-        public toolbox::Serializable
+        public Object,
+        public concept::Printable,
+        public concept::Serializable
 {
 
 public:
-    SP_OBJECT_HEAD(Context, toolbox::Object);
+    SP_OBJECT_HEAD(Context, Object);
 
-    Context(std::string const &name_str = "") : toolbox::Object(name_str) {};
+    Context(std::string const &name_str = "") : Object(name_str) {};
 
     virtual ~Context() {};
 
 
-    virtual std::string const &name() const { return toolbox::Object::name(); };
+    virtual std::string const &name() const { return Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
 

@@ -9,24 +9,33 @@
 #include <memory>
 
 #include <simpla/mesh/Atlas.h>
+#include <simpla/data/DataBase.h>
+
+#include <simpla/concept/Object.h>
+#include <simpla/concept/Printable.h>
+#include <simpla/concept/Serializable.h>
 
 namespace simpla { namespace simulation
 {
 class TimeIntegrator :
-        public toolbox::Object,
-        public toolbox::Printable,
-        public toolbox::Serializable
+        public Object,
+        public concept::Printable,
+        public concept::Serializable
 {
 public:
-    TimeIntegrator(std::string const &s_name) : toolbox::Object(s_name) {}
+    TimeIntegrator(std::string const &s_name) : Object(s_name) {}
 
     virtual ~TimeIntegrator() {}
 
-    virtual void registerWorker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
+    virtual void deploy() {};
+
+    virtual void tear_down() {};
+
+    virtual void register_worker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
 
     virtual std::shared_ptr<mesh::Worker> &worker() { return m_worker_; }
 
-    virtual std::string name() const { return toolbox::Object::name(); };
+    virtual std::string name() const { return Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
 
@@ -38,8 +47,14 @@ public:
 
     virtual void advance(Real dt, int level = 0) {};
 
+    data::DataBase &db(std::string const &s = "") { return m_db_.get(s); }
+
+    data::DataBase const &db(std::string const &s = "") const { return m_db_.at(s); }
+
 private:
     std::shared_ptr<mesh::Worker> m_worker_;
+    data::DataBase m_db_;
+
 };
 }}//namespace simpla { namespace simulation
 

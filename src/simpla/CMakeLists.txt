@@ -1,3 +1,4 @@
+ADD_SUBDIRECTORY(concept)
 
 ADD_SUBDIRECTORY(toolbox)
 

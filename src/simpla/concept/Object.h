@@ -12,10 +12,10 @@
 #include <memory>
 
 #include <simpla/SIMPLA_config.h>
-#include "LifeClick.h"
+#include <simpla/toolbox/LifeClick.h>
 
 
-namespace simpla { namespace toolbox
+namespace simpla
 {
 /** @ingroup task_flow
  *  @addtogroup sp_object SIMPla object
@@ -98,6 +98,8 @@ public:
 
     virtual void deploy() {};
 
+    virtual void tear_down() {};
+
     std::string const &name() const;
 
     id_type id() const;
@@ -146,7 +148,8 @@ public:
 //virtual std::shared_ptr<GeoObject> clone_object()const { return std::dynamic_pointer_cast<GeoObject>(this->clone()); }
 
 
-}}//namespace simpla { namespace base
+
+}//namespace simpla { namespace base
 
 
 #endif //SIMPLA_OBJECT_H

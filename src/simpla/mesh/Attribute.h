@@ -6,8 +6,9 @@
 #define SIMPLA_ATTRIBUTE_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/Serializable.h>
-#include <simpla/toolbox/Printable.h>
+#include <simpla/concept/Object.h>
+#include <simpla/concept/Serializable.h>
+#include <simpla/concept/Printable.h>
 
 #include "MeshBlock.h"
 #include "DataBlock.h"
@@ -29,16 +30,16 @@ namespace simpla { namespace mesh
  *  *
  */
 class Attribute :
-        public toolbox::Object,
-        public toolbox::Printable,
-        public toolbox::Serializable,
+        public Object,
+        public concept::Printable,
+        public concept::Serializable,
         public std::enable_shared_from_this<Attribute>
 {
 
 
 public:
 
-    SP_OBJECT_HEAD(Attribute, toolbox::Object)
+    SP_OBJECT_HEAD(Attribute, Object)
 
     Attribute(std::string const &s = "");
 
@@ -52,7 +53,7 @@ public:
 
     virtual std::type_info const &value_type_info() const =0;
 
-    virtual std::string name() const { return toolbox::Object::name(); };
+    virtual std::string name() const { return Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 

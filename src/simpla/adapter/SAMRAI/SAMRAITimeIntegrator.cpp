@@ -82,7 +82,7 @@ struct SAMRAIWorkerHyperbolic;
 struct SAMRAITimeIntegrator;
 
 std::shared_ptr<simulation::TimeIntegrator>
-create_samrai_time_interator(std::string const &name)
+create_samrai_time_integrator(std::string const &name)
 {
     return std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>());
 }
@@ -91,24 +91,21 @@ struct SAMRAITimeIntegrator : public simulation::TimeIntegrator
 {
     typedef simulation::TimeIntegrator base_type;
 public:
-    SAMRAITimeIntegrator(std::string const &s = "") : base_type(s) {}
+    SAMRAITimeIntegrator(std::string const &s = "");
 
-    ~SAMRAITimeIntegrator() {}
+    ~SAMRAITimeIntegrator();
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
     virtual void load(data::DataBase const &);
 
     virtual void save(data::DataBase *) const;
 
-
-    void initialize(int argc = 0, char **argv = nullptr);
-
     void deploy();
 
-    bool is_valid() const;
+    void tear_down();
 
-    void teardown();
+    bool is_valid() const;
 
 
 //    toolbox::IOStream &check_point(toolbox::IOStream &os) const { return os; };
@@ -155,45 +152,81 @@ private:
     static constexpr int ndims = 3;
 };
 
-void SAMRAITimeIntegrator::initialize(int argc, char **argv)
+SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::string const &s) :
+        base_type(s)
 {
     /*
-     * Initialize SAMRAI::tbox::MPI.
-     */
-    SAMRAI::tbox::SAMRAI_MPI::init(&argc, &argv);
+      * Initialize SAMRAI::tbox::MPI.
+      */
+    SAMRAI::tbox::SAMRAI_MPI::init(0, nullptr);
 
     SAMRAI::tbox::SAMRAIManager::initialize();
     /*
      * Initialize SAMRAI, enable logging, and process command line.
      */
     SAMRAI::tbox::SAMRAIManager::startup();
-    const SAMRAI::tbox::SAMRAI_MPI &mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
+//    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
+
+SAMRAITimeIntegrator::~SAMRAITimeIntegrator()
+{
+    SAMRAI::tbox::SAMRAIManager::shutdown();
+    SAMRAI::tbox::SAMRAIManager::finalize();
+    SAMRAI::tbox::SAMRAI_MPI::finalize();
+}
+
+std::ostream &SAMRAITimeIntegrator::print(std::ostream &os, int indent) const
+{
+    hyp_level_integrator->printClassData(os);
+    return os;
+};
 
 
 void SAMRAITimeIntegrator::load(data::DataBase const &db)
 {
     m_is_valid_ = false;
+}
+
+void SAMRAITimeIntegrator::save(data::DataBase *) const
+{
+    assert(is_valid());
+    UNIMPLEMENTED;
+}
+
+
+void SAMRAITimeIntegrator::deploy()
+{
+    m_is_valid_ = true;
     SAMRAI::tbox::Dimension dim(ndims);
+
+    bool use_refined_timestepping = true;
+
+
     /**
-     * Create major algorithm and data objects which comprise application.
-     * Each object will be initialized either from input data or restart
-     * files, or a combination of both.  Refer to each class constructor
-     * for details.  For more information on the composition of objects
-     * for this application, see comments at top of file.
-     */
+    * Create major algorithm and data objects which comprise application.
+    * Each object will be initialized either from input data or restart
+    * files, or a combination of both.  Refer to each class constructor
+    * for details.  For more information on the composition of objects
+    * for this application, see comments at top of file.
+    */
 
 
     auto CartesianGeometry_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("CartesianGeometry");
     size_t ndims = 3;
-    int i_lo[ndims] = {0, 0, 0}, i_up[ndims] = {40, 40, 40};
-    double x_lo[ndims] = {0, 0, 0}, x_up[ndims] = {1, 1, 1};
+//    int i_lo[ndims] = {0, 0, 0}, i_up[ndims] = {40, 40, 40};
+//    double x_lo[ndims] = {0, 0, 0}, x_up[ndims] = {1, 1, 1};
+
+    nTuple<int,3> i_lo, i_up;
+    nTuple<double,3> x_lo, x_up;
+    std::tie(i_lo, i_up) = db("index_box").template as<index_box_type>();
+    std::tie(x_lo, x_up) = db("box").template as<box_type>();
+
     int periodic_dimension[ndims];
     std::vector<SAMRAI::tbox::DatabaseBox> box_vec;
-    box_vec.emplace_back(SAMRAI::tbox::DatabaseBox(dim, i_lo, i_up));
+    box_vec.emplace_back(SAMRAI::tbox::DatabaseBox(dim, &(i_lo[0]), &(i_up[0])));
     CartesianGeometry_db->putDatabaseBoxVector("domain_boxes", box_vec);
-    CartesianGeometry_db->putDoubleArray("x_lo", x_lo, ndims);
-    CartesianGeometry_db->putDoubleArray("x_up", x_up, ndims);
+    CartesianGeometry_db->putDoubleArray("x_lo", &(x_lo[0]), ndims);
+    CartesianGeometry_db->putDoubleArray("x_up", &(x_up[0]), ndims);
     CartesianGeometry_db->putIntegerArray("periodic_dimension", periodic_dimension, ndims);
 
 
@@ -237,21 +270,6 @@ void SAMRAITimeIntegrator::load(data::DataBase const &db)
     auto patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>("PatchHierarchy", grid_geometry,
                                                                             PatchHierarchy_db);
     patch_hierarchy->recursivePrint(std::cout, "", 1);
-}
-
-void SAMRAITimeIntegrator::save(data::DataBase *) const
-{
-    assert(is_valid());
-    UNIMPLEMENTED;
-}
-
-
-void SAMRAITimeIntegrator::deploy()
-{
-    m_is_valid_ = true;
-    SAMRAI::tbox::Dimension dim(ndims);
-    bool use_refined_timestepping = true;
-
     //---------------------------------
     /***
      *  create hyp_level_integrator and error_detector
@@ -342,20 +360,7 @@ void SAMRAITimeIntegrator::deploy()
     MESSAGE << name() << " is deployed!" << std::endl;
 };
 
-bool SAMRAITimeIntegrator::is_valid() const { return m_is_valid_; }
-
-void SAMRAITimeIntegrator::next_time_step(Real dt)
-{
-    assert(is_valid());
-    MESSAGE << " Time = " << time() << " Step = " << step() << std::endl;
-    time_integrator->advanceHierarchy(dt, true);
-}
-
-Real SAMRAITimeIntegrator::time() const { return static_cast<Real>( time_integrator->getIntegratorTime()); }
-
-size_type SAMRAITimeIntegrator::step() const { return static_cast<size_type>( time_integrator->getIntegratorStep()); }
-
-void SAMRAITimeIntegrator::teardown()
+void SAMRAITimeIntegrator::tear_down()
 {
     m_is_valid_ = false;
 
@@ -381,12 +386,23 @@ void SAMRAITimeIntegrator::teardown()
 
 
 
-    SAMRAI::tbox::SAMRAIManager::shutdown();
-    SAMRAI::tbox::SAMRAIManager::finalize();
-    SAMRAI::tbox::SAMRAI_MPI::finalize();
+
 
 }
 
+
+bool SAMRAITimeIntegrator::is_valid() const { return m_is_valid_; }
+
+void SAMRAITimeIntegrator::next_time_step(Real dt)
+{
+    assert(is_valid());
+    MESSAGE << " Time = " << time() << " Step = " << step() << std::endl;
+    time_integrator->advanceHierarchy(dt, true);
+}
+
+Real SAMRAITimeIntegrator::time() const { return static_cast<Real>( time_integrator->getIntegratorTime()); }
+
+size_type SAMRAITimeIntegrator::step() const { return static_cast<size_type>( time_integrator->getIntegratorStep()); }
 
 /*********************************************************************************************************************/
 
@@ -1199,7 +1215,7 @@ void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLeve
 void SAMRAIWorkerHyperbolic::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
                                                SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm)
 {
-    INFORM << "setupLoadBalancer" << std::endl;
+    FUNCTION_START;
 
     NULL_USE(integrator);
 
@@ -1233,6 +1249,7 @@ void SAMRAIWorkerHyperbolic::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelInte
         d_use_nonuniform_workload = false;
     }
 
+    FUNCTION_END;
 }
 
 /*

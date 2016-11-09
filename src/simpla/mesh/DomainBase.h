@@ -11,7 +11,7 @@
 
 #include <memory>
 
-#include <simpla/toolbox/Object.h>
+#include <simpla/concept/Object.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/Properties.h>
 #include <simpla/toolbox/ConfigParser.h>
@@ -32,13 +32,13 @@ namespace simpla { namespace mesh
  *  - meshs in a domain has same ''' index space''' and '''coordinate space'''
  *  - HAS-N attributes
  */
-class DomainBase : public toolbox::Object
+class DomainBase : public Object
 {
 public:
 
     HAS_PROPERTIES;
 
-    SP_OBJECT_HEAD(DomainBase, toolbox::Object);
+    SP_OBJECT_HEAD(DomainBase, Object);
 
     std::shared_ptr<Atlas> m;
     id_type m_root_id_;
@@ -49,7 +49,7 @@ public:
 
     virtual ~DomainBase();
 
-    using toolbox::Object::is_a;
+    using Object::is_a;
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 

@@ -8,8 +8,9 @@
 #define SIMPLA_MESH_MESHATLAS_H
 
 #include <type_traits>
-#include "simpla/toolbox/Log.h"
-#include "simpla/toolbox/nTuple.h"
+#include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/concept/Printable.h>
 #include "MeshCommon.h"
 #include "MeshBlock.h"
 #include "TransitionMap.h"
@@ -28,7 +29,7 @@ class Attribute;
  */
 
 
-class Atlas : public toolbox::Printable
+class Atlas : public concept::Printable
 {
 
 

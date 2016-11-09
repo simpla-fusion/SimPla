@@ -10,7 +10,7 @@ namespace simpla { namespace mesh
 {
 struct Attribute::pimpl_s { std::map<id_type, std::shared_ptr<DataBlock>> m_patches_; };
 
-Attribute::Attribute(std::string const &s) : toolbox::Object(s), m_pimpl_(new pimpl_s) {}
+Attribute::Attribute(std::string const &s) : Object(s), m_pimpl_(new pimpl_s) {}
 
 Attribute::~Attribute() {}
 

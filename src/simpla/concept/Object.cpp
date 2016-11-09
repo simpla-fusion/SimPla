@@ -5,7 +5,6 @@
  */
 
 #include "Object.h"
-#include "type_cast.h"
 
 #include <iomanip>
 #include <ostream>
@@ -13,7 +12,11 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/functional/hash.hpp>
 
-namespace simpla { namespace toolbox
+
+#include <simpla/toolbox/type_cast.h>
+
+
+namespace simpla
 {
 struct Object::pimpl_s
 {
@@ -62,5 +65,5 @@ void Object::touch() { GLOBAL_CLICK_TOUCH(&m_pimpl_->m_click_); }
 
 size_type Object::click() const { return m_pimpl_->m_click_; }
 
-}}//namespace simpla { namespace base
+}//namespace simpla { namespace base
 

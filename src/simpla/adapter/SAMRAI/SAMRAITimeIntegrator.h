@@ -5,9 +5,9 @@
 #ifndef SIMPLA_SAMRAITIMEINTEGRATOR_H
 #define SIMPLA_SAMRAITIMEINTEGRATOR_H
 
-#include <simpla/simulation/TimeIntegrator.h>
 #include <memory>
 #include <string>
+#include <simpla/simulation/TimeIntegrator.h>
 
 namespace simpla
 {
