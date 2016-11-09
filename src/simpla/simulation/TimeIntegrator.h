@@ -43,6 +43,8 @@ public:
 
     virtual void save(data::DataBase *) const {};
 
+    virtual void next_time_step(Real dt) {};
+
     virtual void update_level(int l0, int l1) {};
 
     virtual void advance(Real dt, int level = 0) {};

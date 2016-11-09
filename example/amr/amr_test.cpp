@@ -13,53 +13,54 @@
 #include "SAMRAITimeIntegrator.h"
 
 using namespace simpla;
-//
-//class DummyMesh : public mesh::MeshBlock
-//{
-//public:
-//    static constexpr unsigned int ndims = 3;
-//
-//    SP_OBJECT_HEAD(DummyMesh, mesh::MeshBlock)
-//
-//    template<typename ...Args>
-//    DummyMesh(Args &&...args):mesh::MeshBlock(std::forward<Args>(args)...) {}
-//
-//    ~DummyMesh() {}
-//
-//    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
-//
-//    virtual std::shared_ptr<mesh::MeshBlock> clone() const
-//    {
-//        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
-//    };
-//
-//    template<typename ...Args>
-//    Real eval(Args &&...args) const { return 1.0; };
-//};
-//
-//template<typename TM>
-//struct AMRTest : public mesh::Worker
-//{
-//    typedef TM mesh_type;
-//
-//    SP_OBJECT_HEAD(AMRTest, mesh::Worker);
-//
-//    template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
-//    field_type<Real, mesh::VERTEX> phi{"phi", this};
-//    field_type<Real, mesh::EDGE> E{"E", this};
-//    field_type<Real, mesh::FACE> B{"B", this};
-//
-//    void next_time_step(Real dt)
-//    {
-//        E = grad(-2.0 * phi) * dt;
-//        phi -= diverge(E) * 3.0 * dt;
-//    }
-//
-//};
+
+class DummyMesh : public mesh::MeshBlock
+{
+public:
+    static constexpr unsigned int ndims = 3;
+
+    SP_OBJECT_HEAD(DummyMesh, mesh::MeshBlock)
+
+    template<typename ...Args>
+    DummyMesh(Args &&...args):mesh::MeshBlock(std::forward<Args>(args)...) {}
+
+    ~DummyMesh() {}
+
+    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
+
+    virtual std::shared_ptr<mesh::MeshBlock> clone() const
+    {
+        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
+    };
+
+    template<typename ...Args>
+    Real eval(Args &&...args) const { return 1.0; };
+};
+
+template<typename TM>
+struct AMRTest : public mesh::Worker
+{
+    typedef TM mesh_type;
+
+    SP_OBJECT_HEAD(AMRTest, mesh::Worker);
+
+    template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
+    field_type<Real, mesh::VERTEX> phi{"phi", this};
+    field_type<Real, mesh::EDGE> E{"E", this};
+    field_type<Real, mesh::FACE> B{"B", this};
+
+    void next_time_step(Real dt)
+    {
+        E = grad(-2.0 * phi) * dt;
+        phi -= diverge(E) * 3.0 * dt;
+    }
+
+};
 
 int main(int argc, char **argv)
 {
-    auto integrator = simpla::create_samrai_time_integrator("samrai_integrator");
+    auto integrator = simpla::create_samrai_time_integrator(
+            "samrai_integrator", std::make_shared<AMRTest<DummyMesh> >());
 
     /** test.3d.input */
 
@@ -181,6 +182,7 @@ int main(int argc, char **argv)
 
     integrator->deploy();
     integrator->print(std::cout);
+    integrator->next_time_step(1.0);
     integrator->tear_down();
     integrator.reset();
 

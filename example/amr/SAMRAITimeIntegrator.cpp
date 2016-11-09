@@ -82,16 +82,16 @@ struct SAMRAIWorkerHyperbolic;
 struct SAMRAITimeIntegrator;
 
 std::shared_ptr<simulation::TimeIntegrator>
-create_samrai_time_integrator(std::string const &name)
+create_samrai_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w = nullptr)
 {
-    return std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>(name));
+    return std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>(name, w));
 }
 
 struct SAMRAITimeIntegrator : public simulation::TimeIntegrator
 {
     typedef simulation::TimeIntegrator base_type;
 public:
-    SAMRAITimeIntegrator(std::string const &s = "");
+    SAMRAITimeIntegrator(std::string const &s = "", std::shared_ptr<mesh::Worker> const &w = nullptr);
 
     ~SAMRAITimeIntegrator();
 
@@ -154,8 +154,8 @@ private:
     static constexpr int ndims = 3;
 };
 
-SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::string const &s) :
-        base_type(s)
+SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::string const &s, std::shared_ptr<mesh::Worker> const &w)
+        : base_type(s), m_worker_(w)
 {
     /*
       * Initialize SAMRAI::tbox::MPI.
@@ -1173,7 +1173,7 @@ void SAMRAIWorkerHyperbolic::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelInte
         {
             WARNING << d_object_name << ": "
                     << "  Unknown load balancer used in gridding algorithm."
-                    << "  Ignoring request for nonuniform load balancing." << std::endl ;
+                    << "  Ignoring request for nonuniform load balancing." << std::endl;
             d_use_nonuniform_workload = false;
         }
     } else
