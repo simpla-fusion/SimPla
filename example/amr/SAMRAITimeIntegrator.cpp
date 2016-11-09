@@ -1173,7 +1173,7 @@ void SAMRAIWorkerHyperbolic::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelInte
         {
             WARNING << d_object_name << ": "
                     << "  Unknown load balancer used in gridding algorithm."
-                    << "  Ignoring request for nonuniform load balancing." << std::endl);
+                    << "  Ignoring request for nonuniform load balancing." << std::endl ;
             d_use_nonuniform_workload = false;
         }
     } else
