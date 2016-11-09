@@ -182,17 +182,9 @@ std::ostream &SAMRAITimeIntegrator::print(std::ostream &os, int indent) const
 };
 
 
-void SAMRAITimeIntegrator::load(data::DataBase const &db)
-{
-    m_is_valid_ = false;
-}
+void SAMRAITimeIntegrator::load(data::DataBase const &db) { m_is_valid_ = false; }
 
-void SAMRAITimeIntegrator::save(data::DataBase *) const
-{
-    assert(is_valid());
-    UNIMPLEMENTED;
-}
-
+void SAMRAITimeIntegrator::save(data::DataBase *) const { UNIMPLEMENTED; }
 
 void SAMRAITimeIntegrator::deploy()
 {
@@ -212,12 +204,11 @@ void SAMRAITimeIntegrator::deploy()
 
 
     auto CartesianGeometry_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("CartesianGeometry");
-    size_t ndims = 3;
-//    int i_lo[ndims] = {0, 0, 0}, i_up[ndims] = {40, 40, 40};
-//    double x_lo[ndims] = {0, 0, 0}, x_up[ndims] = {1, 1, 1};
 
-    nTuple<int,3> i_lo, i_up;
-    nTuple<double,3> x_lo, x_up;
+    size_t ndims = 3;
+
+    nTuple<int, 3> i_lo, i_up;
+    nTuple<double, 3> x_lo, x_up;
     std::tie(i_lo, i_up) = db("index_box").template as<index_box_type>();
     std::tie(x_lo, x_up) = db("box").template as<box_type>();
 

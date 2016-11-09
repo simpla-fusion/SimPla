@@ -10,12 +10,6 @@
 
 namespace simpla { namespace data
 {
-struct LuaDataEntity : public toolbox::LuaObject
-{
-    template<typename T> void set(DataEntity const &other);
-
-    template<typename T> void set(DataEntity &&other);
-};
 
 class LuaDataBase : public DataBase
 {

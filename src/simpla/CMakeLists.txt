@@ -14,4 +14,3 @@ ADD_SUBDIRECTORY(simulation)
 
 ADD_SUBDIRECTORY(physics)
 
-ADD_SUBDIRECTORY(adapter)

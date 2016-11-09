@@ -10,7 +10,7 @@
 #include <simpla/mesh/Atlas.h>
 #include <simpla/physics/Field.h>
 #include <simpla/manifold/Calculus.h>
-#include <simpla/adapter/SAMRAI/SAMRAITimeIntegrator.h>
+#include "SAMRAITimeIntegrator.h"
 
 using namespace simpla;
 //
@@ -59,30 +59,15 @@ using namespace simpla;
 
 int main(int argc, char **argv)
 {
-    data::DataBase db;
-
-    db["index_box"] = index_box_type{{0,  0,  0},
-                                     {10, 20, 30}};
-
-    db["box"] = box_type{{0, 0, 0},
-                         {1, 1, 1}};
-
-    nTuple<int, 3> i_lo, i_up;
-    nTuple<double, 3> x_lo, x_up;
-
-    std::tie(i_lo, i_up) = db["index_box"].template as<index_box_type>();
-    std::tie(x_lo, x_up) = db["box"].template as<box_type>();
-
-    CHECK("") << i_lo << i_up << x_lo << x_up;
-
     auto integrator = simpla::create_samrai_time_integrator("samrai_integrator");
 
-    integrator->db("index_box") = index_box_type{{0,  0,  0},
-                                                 {10, 20, 30}};
+    integrator->db("index_box") = index_box_type{{0,   0,   0},
+                                                 {256, 256, 256}};
 
     integrator->db("box") = box_type{{0, 0, 0},
                                      {1, 1, 1}};
     integrator->deploy();
+
     integrator->print(std::cout);
 
 //    index_type lo[3] = {0, 0, 0}, hi[3] = {40, 50, 60};
