@@ -319,6 +319,8 @@ private:
 
         virtual bool is_string() const = 0;
 
+        virtual bool is_array() const = 0;
+
         virtual bool to_bool() const = 0;
 
         virtual int to_integer() const = 0;
@@ -399,13 +401,15 @@ private:
 
 //    data_model::DataType data_type() const { return data_model::DataType::template clone<T>(); }
 
-        virtual bool is_bool() const { return std::is_convertible<ValueType, bool>::value; }
+        virtual bool is_bool() const { return std::is_same<ValueType, bool>::value; }
 
-        virtual bool is_integral() const { return std::is_convertible<ValueType, int>::value; }
+        virtual bool is_integral() const { return std::is_integral<ValueType>::value; }
 
-        virtual bool is_floating_point() const { return std::is_convertible<ValueType, double>::value; }
+        virtual bool is_floating_point() const { return std::is_floating_point<ValueType>::value; }
 
-        virtual bool is_string() const { return std::is_convertible<ValueType, std::string>::value; }
+        virtual bool is_string() const { return std::is_same<ValueType, std::string>::value; }
+
+        virtual bool is_array() const { return std::is_array<ValueType>::value; }
 
 
         virtual int to_integer() const { return _impl::_to_integer(m_value_); };

@@ -47,9 +47,15 @@ public:
 
     virtual void advance(Real dt, int level = 0) {};
 
-    data::DataBase &db(std::string const &s = "") { return m_db_.get(s); }
+    data::DataBase &config(std::string const &s = "") { return m_db_.get(s); }
 
-    data::DataBase const &db(std::string const &s = "") const { return m_db_.at(s); }
+    data::DataBase const &config(std::string const &s = "") const { return m_db_.at(s); }
+
+
+    data::DataBase db;
+//    data::DataBase &db(std::string const &s = "") { return m_db_.get(s); }
+//
+//    data::DataBase const &db(std::string const &s = "") const { return m_db_.at(s); }
 
 private:
     std::shared_ptr<mesh::Worker> m_worker_;

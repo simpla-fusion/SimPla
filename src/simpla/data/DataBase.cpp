@@ -17,7 +17,7 @@ DataBase::~DataBase() {};
 
 std::ostream &DataBase::print(std::ostream &os, int indent) const
 {
-    if (DataEntity::is_null()) { DataEntity::print(os, indent + 1); }
+    if (!DataEntity::is_null()) { DataEntity::print(os, indent + 1); }
 
     if (!m_pimpl_->m_table_.empty())
     {
@@ -56,20 +56,20 @@ void DataBase::insert(std::string const &key, std::shared_ptr<DataBase> const &v
     m_pimpl_->m_table_.emplace(std::make_pair(key, v));
 };
 
+DataBase   &DataBase::add(std::string const &key)
+{
+    auto res = clone();
+    insert(key, res);
+    return *res;
+}
+
 DataBase &DataBase::get(std::string const &key)
 {
     if (key == "") { return *this; }
 
     auto it = m_pimpl_->m_table_.find(key);
-    if (it == m_pimpl_->m_table_.end())
-    {
-        auto res = clone();
-        insert(key, res);
-        return *res;
-    } else
-    {
-        return *(it->second);
-    }
+    if (it == m_pimpl_->m_table_.end()) { return add(key); }
+    else { return *(it->second); }
 
 };
 

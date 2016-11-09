@@ -16,7 +16,6 @@
 #include <map>
 
 
-
 #include "DataEntity.h"
 
 namespace simpla { namespace data
@@ -64,6 +63,8 @@ public:
 
     virtual DataBase const &at(std::string const &key) const;
 
+    virtual DataBase &add(std::string const &key);
+
     DataBase &operator[](std::string const &key) { return get(key); };
 
     DataBase &operator[](char const *key) { return get(key); };
@@ -71,6 +72,7 @@ public:
     DataBase const &operator[](char const *&key) const { return at(key); };
 
     DataBase const &operator[](std::string const &key) const { return at(key); };
+
 
     template<typename U>
     DataBase &operator=(U const &v)

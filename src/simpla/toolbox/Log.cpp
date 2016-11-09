@@ -33,7 +33,7 @@ struct LoggerStreams
     int mpi_rank_ = 0, mpi_size_ = 1;
 
     LoggerStreams(int level = LOG_INFORM)
-        : m_std_out_level_(level), line_width_(DEFAULT_LINE_WIDTH) { }
+            : m_std_out_level_(level), line_width_(DEFAULT_LINE_WIDTH) {}
 
     ~LoggerStreams() { close(); }
 
@@ -70,7 +70,7 @@ struct LoggerStreams
     {
 
         auto now = std::chrono::system_clock::to_time_t(
-            std::chrono::system_clock::now());
+                std::chrono::system_clock::now());
 
         char mtstr[100];
         std::strftime(mtstr, 100, "%F %T", std::localtime(&now));
@@ -173,6 +173,7 @@ void open_file(std::string const &file_name)
 {
     return SingletonHolder<LoggerStreams>::instance().open_file(file_name);
 }
+
 void close()
 {
     SingletonHolder<LoggerStreams>::instance().close();
@@ -188,20 +189,22 @@ void set_mpi_comm(int r, int s)
     SingletonHolder<LoggerStreams>::instance().mpi_rank_ = r;
     SingletonHolder<LoggerStreams>::instance().mpi_size_ = s;
 }
+
 void set_line_width(int lw)
 {
     return SingletonHolder<LoggerStreams>::instance().set_line_width(lw);
 }
+
 int get_line_width()
 {
     return SingletonHolder<LoggerStreams>::instance().get_line_width();
 }
 
 Logger::Logger()
-    : base_type(), m_level_(0), current_line_char_count_(0), endl_(true) { }
+        : base_type(), m_level_(0), current_line_char_count_(0), endl_(true) {}
 
 Logger::Logger(int lv)
-    : m_level_(lv), current_line_char_count_(0), endl_(true)
+        : m_level_(lv), current_line_char_count_(0), endl_(true)
 {
     base_type::operator<<(std::boolalpha);
 
@@ -217,6 +220,7 @@ Logger::~Logger()
             throw (std::runtime_error(this->str()));
             break;
         case LOG_ERROR_BAD_CAST   :
+            flush();
             throw (std::bad_cast());
             break;
         case LOG_ERROR_OUT_OF_RANGE  :
@@ -247,10 +251,10 @@ void Logger::surffix(std::string const &s)
 {
     (*this) << std::setfill('.')
 
-        << std::setw(SingletonHolder<LoggerStreams>::instance().get_line_width()
+            << std::setw(SingletonHolder<LoggerStreams>::instance().get_line_width()
                          - current_line_char_count_)
 
-        << std::right << s << std::left << std::endl;
+            << std::right << s << std::left << std::endl;
 
     flush();
 }
