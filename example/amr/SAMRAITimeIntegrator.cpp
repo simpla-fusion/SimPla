@@ -235,10 +235,7 @@ public:
             ghost_width_to_fill);
 
     SAMRAI::hier::IntVector
-    getRefineOpStencilWidth(const SAMRAI::tbox::Dimension &dim) const
-    {
-        return SAMRAI::hier::IntVector::getZero(dim);
-    }
+    getRefineOpStencilWidth(const SAMRAI::tbox::Dimension &dim) const { return SAMRAI::hier::IntVector::getZero(dim); }
 
     void
     preprocessRefine(
@@ -365,13 +362,16 @@ public:
     void printClassData(std::ostream &os) const;
 
 private:
-    std::shared_ptr<mesh::Worker> m_worker_;
+    void move_to(mesh::Worker *w, SAMRAI::hier::Patch &patch);
 
+private:
+    std::shared_ptr<mesh::Worker> m_worker_;
+    std::shared_ptr<mesh::Atlas> m_atlas_;
     /*
      * The object name is used for error/warning reporting and also as a
      * string label for restart database entries.
      */
-    std::string d_object_name;
+    std::string m_name_;
 
     const SAMRAI::tbox::Dimension d_dim;
 
@@ -392,7 +392,7 @@ private:
     bool d_use_nonuniform_workload;
 
 
-    std::map<std::string, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
+    std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
 
     /**
      * boost::shared_ptr to state variable vector - [u]
@@ -496,7 +496,7 @@ SAMRAIWorker::SAMRAIWorker(
         boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom) :
         SAMRAI::algs::HyperbolicPatchStrategy(),
         m_worker_(w),
-        d_object_name(w != nullptr ? w->name() : ""),
+        m_name_(w != nullptr ? w->name() : ""),
         d_dim(dim),
         d_grid_geometry(grid_geom),
         d_use_nonuniform_workload(false),
@@ -646,7 +646,7 @@ SAMRAIWorker::SAMRAIWorker(
 //    else
 //    {
 //        TBOX_ERROR(
-//                d_object_name << ": "
+//                m_name_ << ": "
 //                              << "Unknown d_data_problem string = "
 //                              << d_data_problem
 //                              << " encountered in constructor" << std::endl);
@@ -919,34 +919,24 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 
     if (!d_visit_writer)
     {
-        RUNTIME_ERROR << d_object_name << ": registerModelVariables() VisIt data writer was not registered."
+        RUNTIME_ERROR << m_name_ << ": registerModelVariables() VisIt data writer was not registered."
                 "Consequently, no plot data will be written." << std::endl;
     }
 
-    m_worker_->apply(
+    m_worker_->for_each(
             [&](mesh::Worker::Observer &ob)
             {
                 mesh::Attribute *item = ob.attribute();
                 if (item == nullptr) { return; }
-                if (item->entity_type() == mesh::VERTEX || item->entity_type() == mesh::VOLUME)
-                {
-                    detail::register_variable(item, d_dim.getValue(),
-                                              d_nghosts,
-                                              integrator,
-                                              d_grid_geometry,
-                                              d_visit_writer,
-                                              vardb
-                    );
-                } else
-                {
-                    detail::register_variable(item, d_dim.getValue(),
-                                              d_fluxghosts,
-                                              integrator,
-                                              d_grid_geometry,
-                                              d_visit_writer,
-                                              vardb
-                    );
-                }
+                auto var = detail::register_variable(item, d_dim.getValue(),
+                                                     (item->entity_type() == mesh::VERTEX ||
+                                                      item->entity_type() == mesh::VOLUME) ? d_nghosts : d_fluxghosts,
+                                                     integrator,
+                                                     d_grid_geometry,
+                                                     d_visit_writer,
+                                                     vardb
+                );
+                m_samrai_variables_.emplace(std::pair(item->id, var));
             }
     );
 //    vardb->printClassData(std::cout);
@@ -984,7 +974,7 @@ void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *in
             load_balancer->setWorkloadPatchDataIndex(d_workload_data_id);
         } else
         {
-            WARNING << d_object_name << ": "
+            WARNING << m_name_ << ": "
                     << "  Unknown load balancer used in gridding algorithm."
                     << "  Ignoring request for nonuniform load balancing." << std::endl;
             d_use_nonuniform_workload = false;
@@ -994,6 +984,42 @@ void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *in
         d_use_nonuniform_workload = false;
     }
 
+}
+
+namespace detail
+{
+mesh::DataBlock *
+convert_patch_data(mesh::Attribute *attr, boost::shared_ptr<SAMRAI::hier::PatchData> const &p_data)
+{
+}
+
+mesh::MeshBlock *
+convert_patch_mesh(mesh::Atlas *attr, SAMRAI::hier::Patch &p)
+{
+
+}
+
+
+}//namespace detail
+
+
+void
+SAMRAIWorker::move_to(mesh::Worker *w, SAMRAI::hier::Patch &patch)
+{
+    mesh::MeshBlock const *m = detail::convert_patch_mesh(m_atlas_.get(), patch);
+
+    m_worker_->for_each(
+            [&](mesh::Worker::Observer &ob)
+            {
+                mesh::Attribute *attr = ob.attribute();
+                if (attr == nullptr) { return; }
+
+                ob.move_to(m,
+                           detail::convert_patch_data(attr,
+                                                      patch.getPatchData(m_samrai_variables_.at(attr->id()),
+                                                                         getDataContext())));
+            }
+    );
 }
 
 /*
@@ -1011,147 +1037,9 @@ void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *in
 void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time,
                                          const bool initial_time)
 {
-//    FUNCTION_START;
-//    {
-//        nTuple<size_type, 3> lo, up;
-//        auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-//        lo = pgeom->getXLower();
-//        up = pgeom->getXUpper();
-//        INFORM << "initializeDataOnPatch" << " initial_time = " << std::boolalpha << initial_time << " level= "
-//               << patch.getPatchLevelNumber() << " box= [" << lo << up << "]" << std::endl;
-//    }
-//    if (initial_time)
-//    {
-//
-//        auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-//        TBOX_ASSERT(pgeom);
-//        const double *dx = pgeom->getDx();
-//        const double *xlo = pgeom->getXLower();
-//        const double *xhi = pgeom->getXUpper();
-//
-//        auto uval = (boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
-//                patch.getPatchData(d_uval, getDataContext())));
-//
-//        TBOX_ASSERT(uval);
-//
-//        SAMRAI::hier::IntVector ghost_cells(uval->getGhostCellWidth());
-//
-//        const SAMRAI::hier::Index ifirst = patch.getBox().lower();
-//        const SAMRAI::hier::Index ilast = patch.getBox().upper();
-//
-//        if (d_data_problem_int == SPHERE)
-//        {
-//            auto p = uval->getPointer();
-//
-//            if (d_dim == SAMRAI::tbox::Dimension(2))
-//            {
-////                SAMRAI_F77_FUNC(initsphere2d, INITSPHERE2D)(d_data_problem_int, dx, xlo,
-////                                                            xhi,
-////                                                            ifirst(0), ilast(0),
-////                                                            ifirst(1), ilast(1),
-////                                                            ghost_cells(0),
-////                                                            ghost_cells(1),
-////                                                            uval->getPointer(),
-////                                                            d_uval_inside,
-////                                                            d_uval_outside,
-////                                                            &d_center[0], d_radius);
-//            }
-//            if (d_dim == SAMRAI::tbox::Dimension(3))
-//            {
-////                SAMRAI_F77_FUNC(initsphere3d, INITSPHERE3D)(d_data_problem_int, dx, xlo,
-////                                                            xhi,
-////                                                            ifirst(0), ilast(0),
-////                                                            ifirst(1), ilast(1),
-////                                                            ifirst(2), ilast(2),
-////                                                            ghost_cells(0),
-////                                                            ghost_cells(1),
-////                                                            ghost_cells(2),
-////                                                            uval->getPointer(),
-////                                                            d_uval_inside,
-////                                                            d_uval_outside,
-////                                                            &d_center[0], d_radius);
-//            }
-//
-//        } else if (d_data_problem_int == SINE_CONSTANT_X ||
-//                   d_data_problem_int == SINE_CONSTANT_Y ||
-//                   d_data_problem_int == SINE_CONSTANT_Z)
-//        {
-//
-//            const double *domain_xlo = d_grid_geometry->getXLower();
-//            const double *domain_xhi = d_grid_geometry->getXUpper();
-//            std::vector<double> domain_length(d_dim.getValue());
-//            for (int i = 0; i < d_dim.getValue(); ++i)
-//            {
-//                domain_length[i] = domain_xhi[i] - domain_xlo[i];
-//            }
-//
-//            if (d_dim == SAMRAI::tbox::Dimension(2))
-//            {
-////                SAMRAI_F77_FUNC(linadvinitsine2d, LINADVINITSINE2D)(d_data_problem_int,
-////                                                                    dx, xlo,
-////                                                                    domain_xlo, &domain_length[0],
-////                                                                    ifirst(0), ilast(0),
-////                                                                    ifirst(1), ilast(1),
-////                                                                    ghost_cells(0),
-////                                                                    ghost_cells(1),
-////                                                                    uval->getPointer(),
-////                                                                    d_number_of_intervals,
-////                                                                    &d_front_position[0],
-////                                                                    &d_interval_uval[0],
-////                                                                    d_amplitude,
-////                                                                    &d_frequency[0]);
-//            }
-//            if (d_dim == SAMRAI::tbox::Dimension(3))
-//            {
-////                SAMRAI_F77_FUNC(linadvinitsine3d, LINADVINITSINE3D)(d_data_problem_int,
-////                                                                    dx, xlo,
-////                                                                    domain_xlo, &domain_length[0],
-////                                                                    ifirst(0), ilast(0),
-////                                                                    ifirst(1), ilast(1),
-////                                                                    ifirst(2), ilast(2),
-////                                                                    ghost_cells(0),
-////                                                                    ghost_cells(1),
-////                                                                    ghost_cells(2),
-////                                                                    uval->getPointer(),
-////                                                                    d_number_of_intervals,
-////                                                                    &d_front_position[0],
-////                                                                    &d_interval_uval[0],
-////                                                                    d_amplitude,
-////                                                                    &d_frequency[0]);
-//            }
-//        } else
-//        {
-//
-//            if (d_dim == SAMRAI::tbox::Dimension(2))
-//            {
-////                SAMRAI_F77_FUNC(linadvinit2d, LINADVINIT2D)(d_data_problem_int, dx, xlo,xhi,
-////                                                            ifirst(0), ilast(0),
-////                                                            ifirst(1), ilast(1),
-////                                                            ghost_cells(0),
-////                                                            ghost_cells(1),
-////                                                            uval->getPointer(),
-////                                                            d_number_of_intervals,
-////                                                            &d_front_position[0],
-////                                                            &d_interval_uval[0]);
-//            }
-//            if (d_dim == SAMRAI::tbox::Dimension(3))
-//            {
-////                SAMRAI_F77_FUNC(linadvinit3d, LINADVINIT3D)(d_data_problem_int, dx, xlo,
-////                                                            xhi,
-////                                                            ifirst(0), ilast(0),
-////                                                            ifirst(1), ilast(1),
-////                                                            ifirst(2), ilast(2),
-////                                                            ghost_cells(0),
-////                                                            ghost_cells(1),
-////                                                            ghost_cells(2),
-////                                                            uval->getPointer(),
-////                                                            d_number_of_intervals,
-////                                                            &d_front_position[0],
-////                                                            &d_interval_uval[0]);
-//            }
-//        }
-//
-//    }
+    move_to(m_worker_.get(), patch);
+
+    m_worker_->initialize(data_time, initial_time);
 
     if (d_use_nonuniform_workload)
     {
@@ -1186,57 +1074,10 @@ double SAMRAIWorker::computeStableDtOnPatch(
         const bool initial_time,
         const double dt_time)
 {
-    return dt_time;
-//    INFORM << "computeStableDtOnPatch" << " level= " << patch.getPatchLevelNumber() << std::endl;
-//
-//    NULL_USE(initial_time);
-//    NULL_USE(dt_time);
-//
-//    const boost::shared_ptr<SAMRAI::geom::CartesianPatchGeometry> patch_geom(
-//            boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry, SAMRAI::hier::PatchGeometry>(
-//                    patch.getPatchGeometry()));
-//    ASSERT(patch_geom);
-//    const double *dx = patch_geom->getDx();
-//
-//    const SAMRAI::hier::Index ifirst = patch.getBox().lower();
-//    const SAMRAI::hier::Index ilast = patch.getBox().upper();
-//
-//    boost::shared_ptr<SAMRAI::pdat::CellData<double> > uval(
-//            boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
-//                    patch.getPatchData(d_uval, getDataContext())));
-//
-//    ASSERT(uval);
-//
-//    SAMRAI::hier::IntVector ghost_cells(uval->getGhostCellWidth());
-//
-//    double stabdt;
-////    if (d_dim == tbox::Dimension(2))
-////    {
-////        SAMRAI_F77_FUNC(stabledt2d, STABLEDT2D)(dx,
-////                                                ifirst(0), ilast(0),
-////                                                ifirst(1), ilast(1),
-////                                                ghost_cells(0),
-////                                                ghost_cells(1),
-////                                                &d_advection_velocity[0],
-////                                                stabdt);
-////    } else if (d_dim == tbox::Dimension(3))
-////    {
-////        SAMRAI_F77_FUNC(stabledt3d, STABLEDT3D)(dx,
-////                                                ifirst(0), ilast(0),
-////                                                ifirst(1), ilast(1),
-////                                                ifirst(2), ilast(2),
-////                                                ghost_cells(0),
-////                                                ghost_cells(1),
-////                                                ghost_cells(2),
-////                                                &d_advection_velocity[0],
-////                                                stabdt);
-////    } else
-////    {
-////        TBOX_ERROR("Only 2D or 3D allowed in SAMRAIWorkerHyperbolic::computeStableDtOnPatch");
-////        stabdt = 0;
-////    }
-//
-//    return stabdt;
+    move_to(m_worker_.get(), patch);
+
+    return m_worker_->computeStableDtOnPatch(dt_time, initial_time);
+
 }
 
 /*
@@ -1251,699 +1092,14 @@ double SAMRAIWorker::computeStableDtOnPatch(
 
 void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt)
 {
-//    INFORM << "computeFluxesOnPatch" << " level= " << patch.getPatchLevelNumber() << std::endl;
+    move_to(m_worker_.get(), patch);
+
+    return m_worker_->computeFluxesOnPatch(time, dt);
 
     return;
 
-//    NULL_USE(time);
-//
-//    if (d_dim == tbox::Dimension(3))
-//    {
-//
-//        if (d_corner_transport == "CORNER_TRANSPORT_2")
-//        {
-//            compute3DFluxesWithCornerTransport2(patch, dt);
-//        } else
-//        {
-//            compute3DFluxesWithCornerTransport1(patch, dt);
-//        }
-//
-//    }
-//
-//    if (d_dim < SAMRAI::tbox::Dimension(3))
-//    {
-//
-//        TBOX_ASSERT(CELLG == FACEG);
-//
-//        auto patch_geom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-//
-//        TBOX_ASSERT(patch_geom);
-//
-//        const double *dx = patch_geom->getDx();
-//        SAMRAI::hier::Box pbox = patch.getBox();
-//        const SAMRAI::hier::Index ifirst = patch.getBox().lower();
-//        const SAMRAI::hier::Index ilast = patch.getBox().upper();
-//
-//        auto uval = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>>
-//                (
-//                        patch.getPatchData(d_uval, getDataContext()));
-//        auto flux = boost::dynamic_pointer_cast<SAMRAI::pdat::FaceData<double>>
-//                (
-//                        patch.getPatchData(d_flux, getDataContext()));
-//
-//        /*
-//         * Verify that the integrator providing the context correctly
-//         * created it, and that the ghost cell width associated with the
-//         * context matches the ghosts defined in this class...
-//         */
-//        TBOX_ASSERT(uval);
-//        TBOX_ASSERT(flux);
-//        TBOX_ASSERT(uval->getGhostCellWidth() == d_nghosts);
-//        TBOX_ASSERT(flux->getGhostCellWidth() == d_fluxghosts);
-//
-//        /*
-//         * Allocate patch data for temporaries local to this routine.
-//         */
-//        SAMRAI::pdat::FaceData<double> traced_left(pbox, 1, d_nghosts);
-//        SAMRAI::pdat::FaceData<double> traced_right(pbox, 1, d_nghosts);
-//
-//        if (d_dim == SAMRAI::tbox::Dimension(2))
-//        {
-////            SAMRAI_F77_FUNC(inittraceflux2d, INITTRACEFLUX2D)(ifirst(0), ilast(0),
-////                                                              ifirst(1), ilast(1),
-////                                                              uval->getPointer(),
-////                                                              traced_left.getPointer(0),
-////                                                              traced_left.getPointer(1),
-////                                                              traced_right.getPointer(0),
-////                                                              traced_right.getPointer(1),
-////                                                              flux->getPointer(0),
-////                                                              flux->getPointer(1)
-////            );
-//        }
-//
-//        if (d_godunov_order > 1)
-//        {
-//
-//            /*
-//             * Prepare temporary data for characteristic tracing.
-//             */
-//            int Mcells = 0;
-//            for (SAMRAI::tbox::Dimension::dir_t k = 0; k < d_dim.getValue(); ++k)
-//            {
-//                Mcells = SAMRAI::tbox::MathUtilities<int>::Max(Mcells, pbox.numberCells(k));
-//            }
-//
-//// Face-centered temporary arrays
-//            std::vector<double> ttedgslp(2 * FACEG + 1 + Mcells);
-//            std::vector<double> ttraclft(2 * FACEG + 1 + Mcells);
-//            std::vector<double> ttracrgt(2 * FACEG + 1 + Mcells);
-//
-//// Cell-centered temporary arrays
-//            std::vector<double> ttcelslp(2 * CELLG + Mcells);
-//
-///*
-// *  Apply characteristic tracing to compute initial estimate of
-// *  traces w^L and w^R at faces.
-// *  Inputs: w^L, w^R (traced_left/right)
-// *  Output: w^L, w^R
-// */
-//            if (d_dim == SAMRAI::tbox::Dimension(2))
-//            {
-////                SAMRAI_F77_FUNC(chartracing2d0, CHARTRACING2D0)(dt,
-////                                                                ifirst(0), ilast(0),
-////                                                                ifirst(1), ilast(1),
-////                                                                Mcells, dx[0], d_advection_velocity[0], d_godunov_order,
-////                                                                traced_left.getPointer(0),
-////                                                                traced_right.getPointer(0),
-////                                                                &ttcelslp[0],
-////                                                                &ttedgslp[0],
-////                                                                &ttraclft[0],
-////                                                                &ttracrgt[0]);
-////
-////                SAMRAI_F77_FUNC(chartracing2d1, CHARTRACING2D1)(dt,
-////                                                                ifirst(0), ilast(0), ifirst(1), ilast(1),
-////                                                                Mcells, dx[1], d_advection_velocity[1], d_godunov_order,
-////                                                                traced_left.getPointer(1),
-////                                                                traced_right.getPointer(1),
-////                                                                &ttcelslp[0],
-////                                                                &ttedgslp[0],
-////                                                                &ttraclft[0],
-////                                                                &ttracrgt[0]);
-//            }
-//
-//        }  // if (d_godunov_order > 1) ...
-//
-//        if (d_dim == SAMRAI::tbox::Dimension(2))
-//        {
-///*
-// *  Compute fluxes at faces using the face states computed so far.
-// *  Inputs: w^L, w^R (traced_left/right)
-// *  Output: F (flux)
-// */
-//// fluxcalculation_(dt,*,1,dx, to get artificial viscosity
-//// fluxcalculation_(dt,*,0,dx, to get NO artificial viscosity
-//
-////            SAMRAI_F77_FUNC(fluxcalculation2d, FLUXCALCULATION2D)(dt, 1, 0, dx,
-////                                                                  ifirst(0), ilast(0), ifirst(1), ilast(1),
-////                                                                  &d_advection_velocity[0],
-////                                                                  flux->getPointer(0),
-////                                                                  flux->getPointer(1),
-////                                                                  traced_left.getPointer(0),
-////                                                                  traced_left.getPointer(1),
-////                                                                  traced_right.getPointer(0),
-////                                                                  traced_right.getPointer(1));
-//
-///*
-// *  Re-compute traces at cell faces with transverse correction applied.
-// *  Inputs: F (flux)
-// *  Output: w^L, w^R (traced_left/right)
-// */
-////            SAMRAI_F77_FUNC(fluxcorrec, FLUXCORREC)(dt, ifirst(0), ilast(0), ifirst(1),
-////                                                    ilast(1),
-////                                                    dx, &d_advection_velocity[0],
-////                                                    flux->getPointer(0),
-////                                                    flux->getPointer(1),
-////                                                    traced_left.getPointer(0),
-////                                                    traced_left.getPointer(1),
-////                                                    traced_right.getPointer(0),
-////                                                    traced_right.getPointer(1));
-//
-//            boundaryReset(patch, traced_left, traced_right);
-//
-///*
-// *  Re-compute fluxes with updated traces.
-// *  Inputs: w^L, w^R (traced_left/right)
-// *  Output: F (flux)
-// */
-////            SAMRAI_F77_FUNC(fluxcalculation2d, FLUXCALCULATION2D)(dt, 0, 0, dx,
-////                                                                  ifirst(0), ilast(0), ifirst(1), ilast(1),
-////                                                                  &d_advection_velocity[0],
-////                                                                  flux->getPointer(0),
-////                                                                  flux->getPointer(1),
-////                                                                  traced_left.getPointer(0),
-////                                                                  traced_left.getPointer(1),
-////                                                                  traced_right.getPointer(0),
-////                                                                  traced_right.getPointer(1));
-//
-//        }
-//
-////     tbox::plog << "flux values: option1...." << std::endl;
-////     flux->print(pbox, tbox::plog);
-//    }
 }
 
-/*
- *************************************************************************
- *
- * Compute numerical approximations to flux terms using an extension
- * to three dimensions of Collella's corner transport upwind approach.
- * I.E. input m_value_ corner_transport = CORNER_TRANSPORT_1
- *
- *************************************************************************
- */
-//void SAMRAIWorker::compute3DFluxesWithCornerTransport1(SAMRAI::hier::DataBlockBase &patch, const double dt)
-//{
-//    TBOX_ASSERT(CELLG == FACEG);
-//    TBOX_ASSERT(d_dim == tbox::Dimension(3));
-//
-//    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-//             boost::dynamic_pointer_cast<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-//                    patch.getPatchGeometry()));
-//    TBOX_ASSERT(patch_geom);
-//    const double *dx = patch_geom->getDx();
-//
-//    hier::Box pbox = patch.getBox();
-//    const hier::Index ifirst = patch.getBox().lower();
-//    const hier::Index ilast = patch.getBox().upper();
-//
-//    boost::shared_ptr<pdat::CellData<double> > uval(
-//             boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
-//                    patch.getPatchData(d_uval, getDataContext())));
-//    boost::shared_ptr<pdat::FaceData<double> > flux(
-//             boost::dynamic_pointer_cast<pdat::FaceData<double>, hier::PatchData>(
-//                    patch.getPatchData(d_flux, getDataContext())));
-//
-//    TBOX_ASSERT(uval);
-//    TBOX_ASSERT(flux);
-//    TBOX_ASSERT(uval->getGhostCellWidth() == d_nghosts);
-//    TBOX_ASSERT(flux->getGhostCellWidth() == d_fluxghosts);
-//
-//    /*
-//     * Allocate patch data for temporaries local to this routine.
-//     */
-//    pdat::FaceData<double> traced_left(pbox, 1, d_nghosts);
-//    pdat::FaceData<double> traced_right(pbox, 1, d_nghosts);
-//    pdat::FaceData<double> temp_flux(pbox, 1, d_fluxghosts);
-//    pdat::FaceData<double> temp_traced_left(pbox, 1, d_nghosts);
-//    pdat::FaceData<double> temp_traced_right(pbox, 1, d_nghosts);
-//
-//    SAMRAI_F77_FUNC(inittraceflux3d, INITTRACEFLUX3D)(
-//            ifirst(0), ilast(0),
-//            ifirst(1), ilast(1),
-//            ifirst(2), ilast(2),
-//            uval->getPointer(),
-//            traced_left.getPointer(0),
-//            traced_left.getPointer(1),
-//            traced_left.getPointer(2),
-//            traced_right.getPointer(0),
-//            traced_right.getPointer(1),
-//            traced_right.getPointer(2),
-//            flux->getPointer(0),
-//            flux->getPointer(1),
-//            flux->getPointer(2));
-//
-//    /*
-//     * If Godunov method requires slopes with order greater than one, perform
-//     * characteristic tracing to compute higher-order slopes.
-//     */
-//    if (d_godunov_order > 1)
-//    {
-//
-//        /*
-//         * Prepare temporary data for characteristic tracing.
-//         */
-//        int Mcells = 0;
-//        for (tbox::Dimension::dir_t k = 0; k < d_dim.getValue(); ++k)
-//        {
-//            Mcells = tbox::MathUtilities<int>::Max(Mcells, pbox.numberCells(k));
-//        }
-//
-//        // Face-centered temporary arrays
-//        std::vector<double> ttedgslp(2 * FACEG + 1 + Mcells);
-//        std::vector<double> ttraclft(2 * FACEG + 1 + Mcells);
-//        std::vector<double> ttracrgt(2 * FACEG + 1 + Mcells);
-//
-//        // Cell-centered temporary arrays
-//        std::vector<double> ttcelslp(2 * CELLG + Mcells);
-//
-//        /*
-//         *  Apply characteristic tracing to compute initial estimate of
-//         *  traces w^L and w^R at faces.
-//         *  Inputs: w^L, w^R (traced_left/right)
-//         *  Output: w^L, w^R
-//         */
-//        SAMRAI_F77_FUNC(chartracing3d0, CHARTRACING3D0)(dt,
-//                                                        ifirst(0), ilast(0),
-//                                                        ifirst(1), ilast(1),
-//                                                        ifirst(2), ilast(2),
-//                                                        Mcells, dx[0], d_advection_velocity[0], d_godunov_order,
-//                                                        traced_left.getPointer(0),
-//                                                        traced_right.getPointer(0),
-//                                                        &ttcelslp[0],
-//                                                        &ttedgslp[0],
-//                                                        &ttraclft[0],
-//                                                        &ttracrgt[0]);
-//
-//        SAMRAI_F77_FUNC(chartracing3d1, CHARTRACING3D1)(dt,
-//                                                        ifirst(0), ilast(0),
-//                                                        ifirst(1), ilast(1),
-//                                                        ifirst(2), ilast(2),
-//                                                        Mcells, dx[1], d_advection_velocity[1], d_godunov_order,
-//                                                        traced_left.getPointer(1),
-//                                                        traced_right.getPointer(1),
-//                                                        &ttcelslp[0],
-//                                                        &ttedgslp[0],
-//                                                        &ttraclft[0],
-//                                                        &ttracrgt[0]);
-//
-//        SAMRAI_F77_FUNC(chartracing3d2, CHARTRACING3D2)(dt,
-//                                                        ifirst(0), ilast(0),
-//                                                        ifirst(1), ilast(1),
-//                                                        ifirst(2), ilast(2),
-//                                                        Mcells, dx[2], d_advection_velocity[2], d_godunov_order,
-//                                                        traced_left.getPointer(2),
-//                                                        traced_right.getPointer(2),
-//                                                        &ttcelslp[0],
-//                                                        &ttedgslp[0],
-//                                                        &ttraclft[0],
-//                                                        &ttracrgt[0]);
-//    }
-//
-//    /*
-//     *  Compute preliminary fluxes at faces using the face states computed
-//     *  so far.
-//     *  Inputs: w^L, w^R (traced_left/right)
-//     *  Output: F (flux)
-//     */
-//
-////  fluxcalculation_(dt,*,*,1,dx,  to do artificial viscosity
-////  fluxcalculation_(dt,*,*,0,dx,  to do NO artificial viscosity
-//    SAMRAI_F77_FUNC(fluxcalculation3d, FLUXCALCULATION3d)(dt, 1, 0, 0, dx,
-//                                                          ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                                                          &d_advection_velocity[0],
-//                                                          flux->getPointer(0),
-//                                                          flux->getPointer(1),
-//                                                          flux->getPointer(2),
-//                                                          traced_left.getPointer(0),
-//                                                          traced_left.getPointer(1),
-//                                                          traced_left.getPointer(2),
-//                                                          traced_right.getPointer(0),
-//                                                          traced_right.getPointer(1),
-//                                                          traced_right.getPointer(2));
-//    /*
-//     *  Re-compute face traces to include one set of correction terms with
-//     *  transverse flux differences.  Store result in temporary vectors
-//     *  (i.e. temp_traced_left/right).
-//     *  Inputs: F (flux), w^L, w^R (traced_left/right)
-//     *  Output: temp_traced_left/right
-//     */
-//    SAMRAI_F77_FUNC(fluxcorrec2d, FLUXCORREC2D)(dt, ifirst(0), ilast(0), ifirst(1),
-//                                                ilast(1), ifirst(2), ilast(2),
-//                                                dx, &d_advection_velocity[0], 1,
-//                                                flux->getPointer(0),
-//                                                flux->getPointer(1),
-//                                                flux->getPointer(2),
-//                                                traced_left.getPointer(0),
-//                                                traced_left.getPointer(1),
-//                                                traced_left.getPointer(2),
-//                                                traced_right.getPointer(0),
-//                                                traced_right.getPointer(1),
-//                                                traced_right.getPointer(2),
-//                                                temp_traced_left.getPointer(0),
-//                                                temp_traced_left.getPointer(1),
-//                                                temp_traced_left.getPointer(2),
-//                                                temp_traced_right.getPointer(0),
-//                                                temp_traced_right.getPointer(1),
-//                                                temp_traced_right.getPointer(2));
-//
-//    boundaryReset(patch, traced_left, traced_right);
-//
-//    /*
-//     *  Compute fluxes with partially-corrected trace states.  Store result in
-//     *  temporary flux vector.
-//     *  Inputs: temp_traced_left/right
-//     *  Output: temp_flux
-//     */
-//    SAMRAI_F77_FUNC(fluxcalculation3d, FLUXCALCULATION3d)(dt, 0, 1, 0, dx,
-//                                                          ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                                                          &d_advection_velocity[0],
-//                                                          temp_flux.getPointer(0),
-//                                                          temp_flux.getPointer(1),
-//                                                          temp_flux.getPointer(2),
-//                                                          temp_traced_left.getPointer(0),
-//                                                          temp_traced_left.getPointer(1),
-//                                                          temp_traced_left.getPointer(2),
-//                                                          temp_traced_right.getPointer(0),
-//                                                          temp_traced_right.getPointer(1),
-//                                                          temp_traced_right.getPointer(2));
-//    /*
-//     *  Compute face traces with other transverse correction flux
-//     *  difference terms included.  Store result in temporary vectors
-//     *  (i.e. temp_traced_left/right).
-//     *  Inputs: F (flux), w^L, w^R (traced_left/right)
-//     *  Output: temp_traced_left/right
-//     */
-//    SAMRAI_F77_FUNC(fluxcorrec2d, FLUXCORREC2D)(dt, ifirst(0), ilast(0), ifirst(1),
-//                                                ilast(1), ifirst(2), ilast(2),
-//                                                dx, &d_advection_velocity[0], -1,
-//                                                flux->getPointer(0),
-//                                                flux->getPointer(1),
-//                                                flux->getPointer(2),
-//                                                traced_left.getPointer(0),
-//                                                traced_left.getPointer(1),
-//                                                traced_left.getPointer(2),
-//                                                traced_right.getPointer(0),
-//                                                traced_right.getPointer(1),
-//                                                traced_right.getPointer(2),
-//                                                temp_traced_left.getPointer(0),
-//                                                temp_traced_left.getPointer(1),
-//                                                temp_traced_left.getPointer(2),
-//                                                temp_traced_right.getPointer(0),
-//                                                temp_traced_right.getPointer(1),
-//                                                temp_traced_right.getPointer(2));
-//
-//    boundaryReset(patch, traced_left, traced_right);
-//
-//    /*
-//     *  Compute final predicted fluxes with both sets of transverse flux
-//     *  differences included.  Store the result in regular flux vector.
-//     *  NOTE:  the fact that we store  these fluxes in the regular (i.e.
-//     *  not temporary) flux vector does NOT indicate this is the final result.
-//     *  Rather, the flux vector is used as a convenient storage location.
-//     *  Inputs: temp_traced_left/right
-//     *  Output: flux
-//     */
-//    SAMRAI_F77_FUNC(fluxcalculation3d, FLUXCALCULATION3d)(dt, 1, 0, 0, dx,
-//                                                          ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                                                          &d_advection_velocity[0],
-//                                                          flux->getPointer(0),
-//                                                          flux->getPointer(1),
-//                                                          flux->getPointer(2),
-//                                                          temp_traced_left.getPointer(0),
-//                                                          temp_traced_left.getPointer(1),
-//                                                          temp_traced_left.getPointer(2),
-//                                                          temp_traced_right.getPointer(0),
-//                                                          temp_traced_right.getPointer(1),
-//                                                          temp_traced_right.getPointer(2));
-//
-//    /*
-//     *  Compute the final trace state vectors at cell faces, using transverse
-//     *  differences of final predicted fluxes.  Store result w^L
-//     *  (traced_left) and w^R (traced_right) vectors.
-//     *  Inputs: temp_flux, flux
-//     *  Output: w^L, w^R (traced_left/right)
-//     */
-//    SAMRAI_F77_FUNC(fluxcorrec3d, FLUXCORREC3D)(dt, ifirst(0), ilast(0), ifirst(1),
-//                                                ilast(1), ifirst(2), ilast(2),
-//                                                dx, &d_advection_velocity[0],
-//                                                temp_flux.getPointer(0),
-//                                                temp_flux.getPointer(1),
-//                                                temp_flux.getPointer(2),
-//                                                flux->getPointer(0),
-//                                                flux->getPointer(1),
-//                                                flux->getPointer(2),
-//                                                traced_left.getPointer(0),
-//                                                traced_left.getPointer(1),
-//                                                traced_left.getPointer(2),
-//                                                traced_right.getPointer(0),
-//                                                traced_right.getPointer(1),
-//                                                traced_right.getPointer(2));
-//    /*
-//     *  Final flux calculation using corrected trace states.
-//     *  Inputs:  w^L, w^R (traced_left/right)
-//     *  Output:  F (flux)
-//     */
-//    SAMRAI_F77_FUNC(fluxcalculation3d, FLUXCALCULATION3d)(dt, 0, 0, 0, dx,
-//                                                          ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                                                          &d_advection_velocity[0],
-//                                                          flux->getPointer(0),
-//                                                          flux->getPointer(1),
-//                                                          flux->getPointer(2),
-//                                                          traced_left.getPointer(0),
-//                                                          traced_left.getPointer(1),
-//                                                          traced_left.getPointer(2),
-//                                                          traced_right.getPointer(0),
-//                                                          traced_right.getPointer(1),
-//                                                          traced_right.getPointer(2));
-//
-////     tbox::plog << "flux values: option1...." << std::endl;
-////     flux->print(pbox, tbox::plog);
-//}
-
-/*
- *************************************************************************
- *
- * Compute numerical approximations to flux terms using John
- * Trangenstein's interpretation of the three-dimensional version of
- * Collella's corner transport upwind approach.
- * I.E. input m_value_ corner_transport = CORNER_TRANSPORT_2
- *
- *************************************************************************
- */
-//void SAMRAIWorker::compute3DFluxesWithCornerTransport2(SAMRAI::hier::DataBlockBase &patch, const double dt)
-//{
-//    TBOX_ASSERT(CELLG == FACEG);
-//    TBOX_ASSERT(d_dim == tbox::Dimension(3));
-//
-//    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-//             boost::dynamic_pointer_cast<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-//                    patch.getPatchGeometry()));
-//    TBOX_ASSERT(patch_geom);
-//    const double *dx = patch_geom->getDx();
-//
-//    hier::Box pbox = patch.getBox();
-//    const hier::Index ifirst = patch.getBox().lower();
-//    const hier::Index ilast = patch.getBox().upper();
-//
-//    boost::shared_ptr<pdat::CellData<double> > uval(
-//             boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
-//                    patch.getPatchData(d_uval, getDataContext())));
-//    boost::shared_ptr<pdat::FaceData<double> > flux(
-//             boost::dynamic_pointer_cast<pdat::FaceData<double>, hier::PatchData>(
-//                    patch.getPatchData(d_flux, getDataContext())));
-//
-//    TBOX_ASSERT(uval);
-//    TBOX_ASSERT(flux);
-//    TBOX_ASSERT(uval->getGhostCellWidth() == d_nghosts);
-//    TBOX_ASSERT(flux->getGhostCellWidth() == d_fluxghosts);
-//
-//    /*
-//     * Allocate patch data for temporaries local to this routine.
-//     */
-//    pdat::FaceData<double> traced_left(pbox, 1, d_nghosts);
-//    pdat::FaceData<double> traced_right(pbox, 1, d_nghosts);
-//    pdat::FaceData<double> temp_flux(pbox, 1, d_fluxghosts);
-//    pdat::CellData<double> third_state(pbox, 1, d_nghosts);
-//
-//    /*
-//     *  Initialize trace fluxes (w^R and w^L) with cell-centered values.
-//     */
-//    SAMRAI_F77_FUNC(inittraceflux3d, INITTRACEFLUX3D)(
-//            ifirst(0), ilast(0),
-//            ifirst(1), ilast(1),
-//            ifirst(2), ilast(2),
-//            uval->getPointer(),
-//            traced_left.getPointer(0),
-//            traced_left.getPointer(1),
-//            traced_left.getPointer(2),
-//            traced_right.getPointer(0),
-//            traced_right.getPointer(1),
-//            traced_right.getPointer(2),
-//            flux->getPointer(0),
-//            flux->getPointer(1),
-//            flux->getPointer(2));
-//
-//    /*
-//     *  Compute preliminary fluxes at faces using the face states computed
-//     *  so far.
-//     *  Inputs: w^L, w^R (traced_left/right)
-//     *  Output: F (flux)
-//     */
-//    SAMRAI_F77_FUNC(fluxcalculation3d, FLUXCALCULATION3d)(dt, 1, 1, 0, dx,
-//                                                          ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                                                          &d_advection_velocity[0],
-//                                                          flux->getPointer(0),
-//                                                          flux->getPointer(1),
-//                                                          flux->getPointer(2),
-//                                                          traced_left.getPointer(0),
-//                                                          traced_left.getPointer(1),
-//                                                          traced_left.getPointer(2),
-//                                                          traced_right.getPointer(0),
-//                                                          traced_right.getPointer(1),
-//                                                          traced_right.getPointer(2));
-//
-//    /*
-//     * If Godunov method requires slopes with order greater than one, perform
-//     * characteristic tracing to compute higher-order slopes.
-//     */
-//    if (d_godunov_order > 1)
-//    {
-//
-//        /*
-//         * Prepare temporary data for characteristic tracing.
-//         */
-//        int Mcells = 0;
-//        for (tbox::Dimension::dir_t k = 0; k < d_dim.getValue(); ++k)
-//        {
-//            Mcells = tbox::MathUtilities<int>::Max(Mcells, pbox.numberCells(k));
-//        }
-//
-//        // Face-centered temporary arrays
-//        std::vector<double> ttedgslp(2 * FACEG + 1 + Mcells);
-//        std::vector<double> ttraclft(2 * FACEG + 1 + Mcells);
-//        std::vector<double> ttracrgt(2 * FACEG + 1 + Mcells);
-//
-//        // Cell-centered temporary arrays
-//        std::vector<double> ttcelslp(2 * CELLG + Mcells);
-//
-//        /*
-//         *  Apply characteristic tracing to sync traces w^L and
-//         *  w^R at faces.
-//         *  Inputs: w^L, w^R (traced_left/right)
-//         *  Output: w^L, w^R
-//         */
-//        SAMRAI_F77_FUNC(chartracing3d0, CHARTRACING3D0)(dt,
-//                                                        ifirst(0), ilast(0),
-//                                                        ifirst(1), ilast(1),
-//                                                        ifirst(2), ilast(2),
-//                                                        Mcells, dx[0], d_advection_velocity[0], d_godunov_order,
-//                                                        traced_left.getPointer(0),
-//                                                        traced_right.getPointer(0),
-//                                                        &ttcelslp[0],
-//                                                        &ttedgslp[0],
-//                                                        &ttraclft[0],
-//                                                        &ttracrgt[0]);
-//
-//        SAMRAI_F77_FUNC(chartracing3d1, CHARTRACING3D1)(dt,
-//                                                        ifirst(0), ilast(0), ifirst(1), ilast(1),
-//                                                        ifirst(2), ilast(2),
-//                                                        Mcells, dx[1], d_advection_velocity[1], d_godunov_order,
-//                                                        traced_left.getPointer(1),
-//                                                        traced_right.getPointer(1),
-//                                                        &ttcelslp[0],
-//                                                        &ttedgslp[0],
-//                                                        &ttraclft[0],
-//                                                        &ttracrgt[0]);
-//
-//        SAMRAI_F77_FUNC(chartracing3d2, CHARTRACING3D2)(dt,
-//                                                        ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                                                        Mcells, dx[2], d_advection_velocity[2], d_godunov_order,
-//                                                        traced_left.getPointer(2),
-//                                                        traced_right.getPointer(2),
-//                                                        &ttcelslp[0],
-//                                                        &ttedgslp[0],
-//                                                        &ttraclft[0],
-//                                                        &ttracrgt[0]);
-//
-//    } //  if (d_godunov_order > 1) ...
-//
-//    for (int idir = 0; idir < d_dim.getValue(); ++idir)
-//    {
-//
-//        /*
-//         *    Approximate traces at cell centers (in idir direction) - denoted
-//         *    1/3 state.
-//         *    Inputs:  F (flux)
-//         *    Output:  third_state
-//         */
-//        SAMRAI_F77_FUNC(onethirdstate3d, ONETHIRDSTATE3D)(dt, dx, idir,
-//                                                          ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                                                          &d_advection_velocity[0],
-//                                                          uval->getPointer(),
-//                                                          flux->getPointer(0),
-//                                                          flux->getPointer(1),
-//                                                          flux->getPointer(2),
-//                                                          third_state.getPointer());
-//        /*
-//         *    Compute fluxes using 1/3 state traces, in the two directions OTHER
-//         *    than idir.
-//         *    Inputs:  third_state
-//         *    Output:  temp_flux (only two directions (i.e. those other than idir)
-//         *             are modified)
-//         */
-//        SAMRAI_F77_FUNC(fluxthird3d, FLUXTHIRD3D)(dt, dx, idir,
-//                                                  ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                                                  &d_advection_velocity[0],
-//                                                  third_state.getPointer(),
-//                                                  temp_flux.getPointer(0),
-//                                                  temp_flux.getPointer(1),
-//                                                  temp_flux.getPointer(2));
-//
-//        /*
-//         *    Compute transverse corrections for the traces in the two directions
-//         *    (OTHER than idir) using the differenced fluxes computed in those
-//         *    directions.
-//         *    Inputs:  temp_flux
-//         *    Output:  w^L, w^R (traced_left/right)
-//         */
-//        SAMRAI_F77_FUNC(fluxcorrecjt3d, FLUXCORRECJT3D)(dt, dx, idir,
-//                                                        ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                                                        &d_advection_velocity[0],
-//                                                        temp_flux.getPointer(0),
-//                                                        temp_flux.getPointer(1),
-//                                                        temp_flux.getPointer(2),
-//                                                        traced_left.getPointer(0),
-//                                                        traced_left.getPointer(1),
-//                                                        traced_left.getPointer(2),
-//                                                        traced_right.getPointer(0),
-//                                                        traced_right.getPointer(1),
-//                                                        traced_right.getPointer(2));
-//
-//    } // loop over directions...
-//
-//    boundaryReset(patch, traced_left, traced_right);
-//
-//    /*
-//     *  Final flux calculation using corrected trace states.
-//     *  Inputs:  w^L, w^R (traced_left/right)
-//     *  Output:  F (flux)
-//     */
-//    SAMRAI_F77_FUNC(fluxcalculation3d, FLUXCALCULATION3D)(dt, 0, 0, 0, dx,
-//                                                          ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                                                          &d_advection_velocity[0],
-//                                                          flux->getPointer(0),
-//                                                          flux->getPointer(1),
-//                                                          flux->getPointer(2),
-//                                                          traced_left.getPointer(0),
-//                                                          traced_left.getPointer(1),
-//                                                          traced_left.getPointer(2),
-//                                                          traced_right.getPointer(0),
-//                                                          traced_right.getPointer(1),
-//                                                          traced_right.getPointer(2));
-//
-////     tbox::plog << "flux values: option2...." << std::endl;
-////     flux->print(pbox, tbox::plog);
-//}
 
 /*
  *************************************************************************
@@ -1957,53 +1113,8 @@ void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double
 void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, const double time,
                                                  const double dt, bool at_syncronization)
 {
-//    INFORM << "conservativeDifferenceOnPatch" << " level= " << patch.getPatchLevelNumber() << std::endl;
-
-    //    NULL_USE(time);
-//    NULL_USE(dt);
-//    NULL_USE(at_syncronization);
-//
-//    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-//             boost::dynamic_pointer_cast<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-//                    patch.getPatchGeometry()));
-//    TBOX_ASSERT(patch_geom);
-//    const double *dx = patch_geom->getDx();
-//
-//    const hier::Index ifirst = patch.getBox().lower();
-//    const hier::Index ilast = patch.getBox().upper();
-//
-//    boost::shared_ptr<pdat::CellData<double> > uval(
-//             boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
-//                    patch.getPatchData(d_uval, getDataContext())));
-//    boost::shared_ptr<pdat::FaceData<double> > flux(
-//             boost::dynamic_pointer_cast<pdat::FaceData<double>, hier::PatchData>(
-//                    patch.getPatchData(d_flux, getDataContext())));
-//
-//    TBOX_ASSERT(uval);
-//    TBOX_ASSERT(flux);
-//    TBOX_ASSERT(uval->getGhostCellWidth() == d_nghosts);
-//    TBOX_ASSERT(flux->getGhostCellWidth() == d_fluxghosts);
-//
-//    if (d_dim == tbox::Dimension(2))
-//    {
-//        SAMRAI_F77_FUNC(consdiff2d, CONSDIFF2D)(ifirst(0), ilast(0), ifirst(1), ilast(1),
-//                                                dx,
-//                                                flux->getPointer(0),
-//                                                flux->getPointer(1),
-//                                                &d_advection_velocity[0],
-//                                                uval->getPointer());
-//    }
-//    if (d_dim == tbox::Dimension(3))
-//    {
-//        SAMRAI_F77_FUNC(consdiff3d, CONSDIFF3D)(ifirst(0), ilast(0), ifirst(1), ilast(1),
-//                                                ifirst(2), ilast(2), dx,
-//                                                flux->getPointer(0),
-//                                                flux->getPointer(1),
-//                                                flux->getPointer(2),
-//                                                &d_advection_velocity[0],
-//                                                uval->getPointer());
-//    }
-
+    move_to(m_worker_.get(), patch);
+    m_worker_->conservativeDifferenceOnPatch(time, dt, at_syncronization);
 }
 
 /*
@@ -2138,116 +1249,6 @@ void SAMRAIWorker::setPhysicalBoundaryConditions(
         const double fill_time,
         const SAMRAI::hier::IntVector &ghost_width_to_fill)
 {
-//    INFORM << "setPhysicalBoundaryConditions" << " level= " << patch.getPatchLevelNumber() << std::endl;
-//
-//    NULL_USE(fill_time);
-//
-//    boost::shared_ptr<SAMRAI::pdat::CellData<double> > uval(
-//            boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
-//                    patch.getPatchData(d_uval, getDataContext())));
-//
-//    TBOX_ASSERT(uval);
-//
-//    SAMRAI::hier::IntVector ghost_cells(uval->getGhostCellWidth());
-//
-//    TBOX_ASSERT(ghost_cells == d_nghosts);
-//
-//    if (d_dim == SAMRAI::tbox::Dimension(2))
-//    {
-//
-//        /*
-//         * Set boundary conditions for cells corresponding to patch edges.
-//         */
-//        SAMRAI::appu::CartesianBoundaryUtilities2::
-//        fillEdgeBoundaryData("uval", uval,
-//                             patch,
-//                             ghost_width_to_fill,
-//                             d_scalar_bdry_edge_conds,
-//                             d_bdry_edge_uval);
-//
-////#ifdef DEBUG_CHECK_ASSERTIONS
-////#if CHECK_BDRY_DATA
-////        checkBoundaryData(Bdry::EDGE2D, patch, ghost_width_to_fill,
-////         d_scalar_bdry_edge_conds);
-////#endif
-////#endif
-//
-//        /*
-//         *  Set boundary conditions for cells corresponding to patch nodes.
-//         */
-//
-//        SAMRAI::appu::CartesianBoundaryUtilities2::
-//        fillNodeBoundaryData("uval", uval,
-//                             patch,
-//                             ghost_width_to_fill,
-//                             d_scalar_bdry_node_conds,
-//                             d_bdry_edge_uval);
-//
-////#ifdef DEBUG_CHECK_ASSERTIONS
-////#if CHECK_BDRY_DATA
-////        checkBoundaryData(Bdry::NODE2D, patch, ghost_width_to_fill,
-////         d_scalar_bdry_node_conds);
-////#endif
-////#endif
-//
-//    } // d_dim == tbox::Dimension(2))
-//
-//    if (d_dim == SAMRAI::tbox::Dimension(3))
-//    {
-//
-//        /*
-//         *  Set boundary conditions for cells corresponding to patch faces.
-//         */
-//
-//        SAMRAI::appu::CartesianBoundaryUtilities3::
-//        fillFaceBoundaryData("uval", uval,
-//                             patch,
-//                             ghost_width_to_fill,
-//                             d_scalar_bdry_face_conds,
-//                             d_bdry_face_uval);
-////#ifdef DEBUG_CHECK_ASSERTIONS
-////#if CHECK_BDRY_DATA
-////        checkBoundaryData(Bdry::FACE3D, patch, ghost_width_to_fill,
-////         d_scalar_bdry_face_conds);
-////#endif
-////#endif
-//
-//        /*
-//         *  Set boundary conditions for cells corresponding to patch edges.
-//         */
-//
-//        SAMRAI::appu::CartesianBoundaryUtilities3::
-//        fillEdgeBoundaryData("uval", uval,
-//                             patch,
-//                             ghost_width_to_fill,
-//                             d_scalar_bdry_edge_conds,
-//                             d_bdry_face_uval);
-////#ifdef DEBUG_CHECK_ASSERTIONS
-////#if CHECK_BDRY_DATA
-////        checkBoundaryData(Bdry::EDGE3D, patch, ghost_width_to_fill,
-////         d_scalar_bdry_edge_conds);
-////#endif
-////#endif
-//
-//        /*
-//         *  Set boundary conditions for cells corresponding to patch nodes.
-//         */
-//
-//        SAMRAI::appu::CartesianBoundaryUtilities3::
-//        fillNodeBoundaryData("uval", uval,
-//                             patch,
-//                             ghost_width_to_fill,
-//                             d_scalar_bdry_node_conds,
-//                             d_bdry_face_uval);
-////#ifdef DEBUG_CHECK_ASSERTIONS
-////#if CHECK_BDRY_DATA
-////        checkBoundaryData(Bdry::NODE3D, patch, ghost_width_to_fill,
-////         d_scalar_bdry_node_conds);
-////#endif
-////#endif
-//
-//    }
-
 }
 
 /*
@@ -2751,7 +1752,7 @@ void SAMRAIWorker::printClassData(std::ostream &os) const
     os << "\nSAMRAIWorker::printClassData..." << std::endl;
     os << "SAMRAIWorker: this = " << (SAMRAIWorker *)
             this << std::endl;
-    os << "d_object_name = " << d_object_name << std::endl;
+    os << "m_name_ = " << m_name_ << std::endl;
     os << "d_grid_geometry = "
        << d_grid_geometry.get() << std::endl;
 

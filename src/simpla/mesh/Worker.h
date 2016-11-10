@@ -8,6 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <memory>
 #include <vector>
+#include <set>
 #include <simpla/data/DataBase.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/concept/Object.h>
@@ -17,6 +18,7 @@
 namespace simpla { namespace mesh
 {
 struct MeshBlock;
+struct DataBlock;
 struct Attribute;
 
 class Worker :
@@ -78,9 +80,10 @@ public:
 
     void apply(Visitor const &) const;
 
-    void apply(std::function<void(Observer &)> const &);
+    void for_each(std::function<void(Observer &)> const &);
 
-    void apply(std::function<void(Observer const &)> const &) const;
+    void for_each(std::function<void(Observer const &)> const &) const;
+
 
 private:
     struct pimpl_s;
@@ -135,6 +138,9 @@ struct Worker::Observer : public concept::Printable
      */
     virtual void move_to(MeshBlock const *m)=0;
 
+    virtual void move_to(MeshBlock const *m, DataBlock *d)=0;
+
+
     /**
       *  erase data from attribute
       *
@@ -146,7 +152,7 @@ struct Worker::Observer : public concept::Printable
       *   m_data_ : nullptr
       *   m_mesh_ : nullptr
       */
-    virtual void erase()=0;
+    virtual void erase(MeshBlock const *m = nullptr)=0;
 
     /**
      *  malloc data at current block

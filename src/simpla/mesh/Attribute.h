@@ -72,6 +72,7 @@ public:
 
     virtual void insert(MeshBlock const *m, const std::shared_ptr<DataBlock> &);
 
+
     virtual void erase(MeshBlock const *);
 
     virtual DataBlock const *at(MeshBlock const *m) const;
@@ -223,6 +224,13 @@ public:
         }
     }
 
+    virtual void move_to(MeshBlock const *m, DataBlock *d)
+    {
+        m_mesh_ = m;
+        m_data_ = d;
+        deploy();
+    }
+
     /**
       *  erase data from attribute
       *
@@ -234,7 +242,7 @@ public:
       *   m_data_ : nullptr
       *   m_mesh_ : nullptr
       */
-    virtual void erase()
+    virtual void erase(MeshBlock const *m = nullptr)
     {
         ASSERT (m_attr_ != nullptr);
 

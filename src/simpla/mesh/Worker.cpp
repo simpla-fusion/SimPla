@@ -44,9 +44,9 @@ void Worker::apply(Visitor const &vis) { for (auto &ob:m_pimpl_->m_obs_) { vis.v
 
 void Worker::apply(Visitor const &vis) const { for (auto &ob:m_pimpl_->m_obs_) { vis.visit(*ob); }}
 
-void Worker::apply(std::function<void(Observer &)> const &f) { for (auto &ob:m_pimpl_->m_obs_) { f(*ob); }}
+void Worker::for_each(std::function<void(Observer &)> const &f) { for (auto &ob:m_pimpl_->m_obs_) { f(*ob); }}
 
-void Worker::apply(std::function<void(Observer const &)> const &f) const { for (auto &ob:m_pimpl_->m_obs_) { f(*ob); }}
+void Worker::for_each(std::function<void(Observer const &)> const &f) const { for (auto &ob:m_pimpl_->m_obs_) { f(*ob); }}
 
 void Worker::move_to(mesh::MeshBlock const *m)
 {
