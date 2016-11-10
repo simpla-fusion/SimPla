@@ -46,7 +46,7 @@ struct AMRTest : public mesh::Worker
 
     template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
     field_type<Real, mesh::VERTEX> phi{"phi", this};
-//    field_type<Real, mesh::EDGE> E{"E", this};
+    field_type<Real, mesh::EDGE> E{"E", this};
     field_type<Real, mesh::FACE> B{"B", this};
 
     void next_time_step(Real dt)
