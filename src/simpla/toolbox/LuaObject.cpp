@@ -817,7 +817,7 @@ bool LuaObject::as(Properties *res) const
         if (success) (*res) = v;
     } else
     {
-        WARNING << "unknown type can not convert" << std::endl;
+        WARNING << "unknown type can not convert_database_r" << std::endl;
         success = false;
     }
 
@@ -826,7 +826,7 @@ bool LuaObject::as(Properties *res) const
 
 bool LuaObject::set(std::string const &key, Properties const &res) const
 {
-    // @TODO implement Properties to LuaOjbect convert
+    // @TODO implement Properties to LuaOjbect convert_database_r
     UNIMPLEMENTED;
     return false;
 }

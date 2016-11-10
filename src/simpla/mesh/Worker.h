@@ -35,7 +35,7 @@ public:
 
     virtual std::string name() const { return Object::name(); };
 
-    virtual std::ostream &print(std::ostream &os, int indent) const;
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
     virtual void load(data::DataBase const &) { UNIMPLEMENTED; }
 
@@ -82,8 +82,6 @@ public:
 
     void apply(std::function<void(Observer const &)> const &) const;
 
-    std::vector<std::shared_ptr<Attribute>> &attributes();
-
 private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
@@ -111,6 +109,9 @@ struct Worker::Observer : public concept::Printable
 
     virtual std::ostream &print(std::ostream &os, int indent) const =0;
 
+    virtual Attribute *attribute() { return nullptr; };
+
+    virtual Attribute const *attribute() const { return nullptr; };
 //    virtual void move_to(MeshBlock const *) =0;
 //
 //    virtual void erase() =0;

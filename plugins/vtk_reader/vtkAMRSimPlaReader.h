@@ -100,7 +100,7 @@ protected:
 
     // Description:
     // Parses the parameters file and extracts the
-    // conversion factors that are used to convert
+    // conversion factors that are used to convert_database_r
     // to CGS units.
     void ParseConversionFactors();
 
@@ -120,7 +120,7 @@ protected:
     void ParseCFactor(const std::string labelString, int &idx, double &factor);
 
     // Description:
-    // Given the variable name, return the conversion factor used to convert
+    // Given the variable name, return the conversion factor used to convert_database_r
     // the m_data to CGS. These conversion factors are read directly from the
     // parameters file when the filename is set.
     double GetConversionFactor(const std::string name);

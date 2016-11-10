@@ -46,13 +46,13 @@ struct AMRTest : public mesh::Worker
 
     template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
     field_type<Real, mesh::VERTEX> phi{"phi", this};
-    field_type<Real, mesh::EDGE> E{"E", this};
+//    field_type<Real, mesh::EDGE> E{"E", this};
     field_type<Real, mesh::FACE> B{"B", this};
 
     void next_time_step(Real dt)
     {
-        E = grad(-2.0 * phi) * dt;
-        phi -= diverge(E) * 3.0 * dt;
+//        E = grad(-2.0 * phi) * dt;
+//        phi -= diverge(E) * 3.0 * dt;
     }
 
 };
@@ -64,7 +64,12 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 
 int main(int argc, char **argv)
 {
-    auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<DummyMesh>>());
+    logger::set_stdout_level(100);
+    auto worker = std::make_shared<AMRTest<DummyMesh>>();
+
+    worker->print(std::cout);
+
+    auto integrator = simpla::create_time_integrator("AMR_TEST", worker);
 
     /** test.3d.input */
 
@@ -198,6 +203,9 @@ int main(int argc, char **argv)
     integrator->tear_down();
 
     integrator.reset();
+
+    INFORM << " DONE !" << std::endl;
+    DONE;
 
 }
 

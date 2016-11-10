@@ -151,7 +151,7 @@ public:
 			im = j * N;
 			for (int k = 0; k < N; ++k)
 			{
-//	XOR the appropriate direction number into each component of the vector and convert to a floating
+//	XOR the appropriate direction number into each component of the vector and convert_database_r to a floating
 				ix[k] ^= iv[im + k];
 			}
 		}

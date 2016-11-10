@@ -135,6 +135,8 @@ public:
 
     attribute_type *attribute() { return m_attr_.get(); }
 
+    attribute_type const *attribute() const { return m_attr_.get(); }
+
     MeshBlock const *mesh() const { return m_mesh_; };
 
     DataBlock *data() { return m_data_; }

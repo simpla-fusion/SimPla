@@ -445,7 +445,7 @@ hid_t convert_data_type_sp_to_h5(data::DataType const &d_type, size_t is_compact
 
     if (res == H5T_NO_CLASS)
     {
-        WARNING << "sp.DataType convert to H5.DataType failed!" << std::endl;
+        WARNING << "sp.DataType convert_database_r to H5.DataType failed!" << std::endl;
         throw std::bad_cast();
     }
     return (res);
@@ -547,7 +547,7 @@ data::DataType convert_data_type_h5_to_sp(hid_t t_id)
     }
     if (bad_cast_error)
     {
-        logger::Logger(logger::LOG_ERROR) << "H5 DataType convert to sp.DataType failed!"
+        logger::Logger(logger::LOG_ERROR) << "H5 DataType convert_database_r to sp.DataType failed!"
                                           << std::endl;
         throw std::bad_cast();
     }
