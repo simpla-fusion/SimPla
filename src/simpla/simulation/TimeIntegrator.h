@@ -49,6 +49,12 @@ public:
 
     virtual void next_time_step(Real dt) { UNIMPLEMENTED; };
 
+    virtual void check_point() {};
+
+    virtual size_type step() const { return 0; };
+
+    virtual Real time_now() const { return 0.0; }
+
     data::DataBase &config(std::string const &s = "") { return m_db_.get(s); }
 
     data::DataBase const &config(std::string const &s = "") const { return m_db_.at(s); }

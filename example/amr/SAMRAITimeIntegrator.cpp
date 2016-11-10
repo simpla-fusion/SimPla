@@ -3710,22 +3710,25 @@ public:
 
     virtual void save(data::DataBase *) const;
 
-    void deploy();
+    virtual void deploy();
 
-    void tear_down();
+    virtual void tear_down();
 
-    bool is_valid() const;
+    virtual bool is_valid() const;
 
-    size_type step() const;
+    virtual size_type step() const;
 
-    Real time() const;
+    virtual Real time_now() const;
 
-    void next_time_step(Real dt);
+    virtual void next_time_step(Real dt);
 
-    void register_worker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
+    virtual void check_point();
+
+    virtual void register_worker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
 
 private:
     bool m_is_valid_ = false;
+
     std::shared_ptr<mesh::Worker> m_worker_;
 
     boost::shared_ptr<SAMRAI::tbox::Database> samrai_cfg;
@@ -3813,8 +3816,7 @@ void convert(data::DataBase const &src, boost::shared_ptr<SAMRAI::tbox::Database
     else if (src.is_integral()) { dest->putInteger(key, src.as<int>()); }
     else if (src.type() == typeid(nTuple<bool, 3>)) { dest->putBoolArray(key, &src.as<nTuple<bool, 3>>()[0], 3); }
     else if (src.type() == typeid(nTuple<int, 3>)) { dest->putIntegerArray(key, &src.as<nTuple<int, 3>>()[0], 3); }
-    else if (src.type() ==
-             typeid(nTuple<double, 3>)) { dest->putDoubleArray(key, &src.as<nTuple<double, 3>>()[0], 3); }
+    else if (src.type() == typeid(nTuple<double, 3>)) { dest->putDoubleArray(key, &src.as<nTuple<double, 3>>()[0], 3); }
 //    else if (src.type() == typeid(box_type)) { dest->putDoubleArray(key, &src.as<box_type>()[0], 3); }
     else if (src.type() == typeid(index_box_type))
     {
@@ -3831,7 +3833,8 @@ void convert(data::DataBase const &src, boost::shared_ptr<SAMRAI::tbox::Database
 
 void SAMRAITimeIntegrator::deploy()
 {
-    bool use_refined_timestepping = db["use_refined_timestepping"].as<bool>(true);
+
+    bool use_refined_timestepping = db["use_refined_timestepping"].template as<bool>(true);
     m_is_valid_ = true;
     SAMRAI::tbox::Dimension dim(ndims);
     samrai_cfg = boost::dynamic_pointer_cast<SAMRAI::tbox::Database>(
@@ -3909,16 +3912,14 @@ void SAMRAITimeIntegrator::deploy()
             gridding_algorithm);
 
 
-
-
     const std::string viz_dump_dirname("untitled.visit");
 
     int visit_number_procs_per_file = 1;
 
     visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
             dim,
-            "LinAdv VisIt Writer",
-            viz_dump_dirname,
+            db["output_writer_name"].as<std::string>(name() + " VisIt Writer"),
+            db["output_dir_name"].as<std::string>(name()),
             visit_number_procs_per_file);
 
     patch_worker->registerVisItDataWriter(visit_data_writer);
@@ -3930,7 +3931,7 @@ void SAMRAITimeIntegrator::deploy()
     MESSAGE << name() << " is deployed!" << std::endl;
 
 
-//    samrai_cfg->printClassData(std::cout);
+    samrai_cfg->printClassData(std::cout);
     SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(std::cout);
 
 };
@@ -3955,7 +3956,7 @@ void SAMRAITimeIntegrator::next_time_step(Real dt)
 {
     FUNCTION_START;
     assert(is_valid());
-    MESSAGE << " Time = " << time() << " Step = " << step() << std::endl;
+    MESSAGE << " Time = " << time_now() << " Step = " << step() << std::endl;
     time_integrator->advanceHierarchy(dt, true);
     visit_data_writer->writePlotData(patch_hierarchy,
                                      time_integrator->getIntegratorStep(),
@@ -3963,7 +3964,19 @@ void SAMRAITimeIntegrator::next_time_step(Real dt)
     FUNCTION_END;
 }
 
-Real SAMRAITimeIntegrator::time() const { return static_cast<Real>( time_integrator->getIntegratorTime()); }
+void SAMRAITimeIntegrator::check_point()
+{
+    if (visit_data_writer != nullptr)
+    {
+        VERBOSE << visit_data_writer->getObjectName() << std::endl;
+
+        visit_data_writer->writePlotData(patch_hierarchy,
+                                         time_integrator->getIntegratorStep(),
+                                         time_integrator->getIntegratorTime());
+    }
+}
+
+Real SAMRAITimeIntegrator::time_now() const { return static_cast<Real>( time_integrator->getIntegratorTime()); }
 
 size_type SAMRAITimeIntegrator::step() const { return static_cast<size_type>( time_integrator->getIntegratorStep()); }
 

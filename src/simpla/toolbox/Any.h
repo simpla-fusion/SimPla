@@ -258,6 +258,21 @@ struct Any : public concept::Printable
 
     }
 
+    template<class U>
+    U as(U const &def_v)
+    {
+        if (!empty() && this->template is_same<U>())
+        {
+            return dynamic_cast<Holder <U> *>(m_data_)->m_value_;
+        } else
+        {
+            Any(def_v).swap(*this);
+            return def_v;
+
+        }
+
+    }
+
 
     template<class U> U const &get() const
     {

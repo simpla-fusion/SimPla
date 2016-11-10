@@ -59,8 +59,7 @@ struct AMRTest : public mesh::Worker
 
 int main(int argc, char **argv)
 {
-    auto integrator = simpla::create_samrai_time_integrator("samrai_integrator",
-                                                            std::make_shared<AMRTest<DummyMesh>>());
+    auto integrator = simpla::create_samrai_time_integrator("AMR_TEST", std::make_shared<AMRTest<DummyMesh>>());
 
     /** test.3d.input */
 
