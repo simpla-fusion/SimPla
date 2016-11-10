@@ -48,6 +48,8 @@ struct AMRTest : public mesh::Worker
     field_type<Real, mesh::VERTEX> phi{"phi", this};
     field_type<Real, mesh::EDGE> E{"E", this};
     field_type<Real, mesh::FACE> B{"B", this};
+    field_type<nTuple<Real,3>, mesh::VERTEX> Ev{"Ev", this};
+    field_type<nTuple<Real,3>, mesh::VERTEX> Bv{"Bv", this};
 
     void next_time_step(Real dt)
     {
