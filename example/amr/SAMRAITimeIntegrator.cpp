@@ -733,28 +733,7 @@ SAMRAIWorker::~SAMRAIWorker()
 
 namespace detail
 {
-
-std::string get_visit_variable_type(std::type_info const &t_info)
-{
-
-    if (t_info == typeid(float) || t_info == typeid(double) || t_info == typeid(int)) { return "SCALAR"; }
-    else if (t_info == typeid(nTuple<float, 3>) ||
-             t_info == typeid(nTuple<double, 3>) ||
-             t_info == typeid(nTuple<int, 3>) ||
-             t_info == typeid(nTuple<long, 3>)
-            ) { return "VECTOR"; }
-//    else if (t_info == typeid(nTuple<float, 3, 3>) ||
-//             t_info == typeid(nTuple<double, 3, 3>) ||
-//             t_info == typeid(nTuple<int, 3, 3>) ||
-//             t_info == typeid(nTuple<long, 3, 3>)
-//            ) { return "TENSOR"; }
-    else
-    {
-        UNIMPLEMENTED;
-    }
-
-
-}
+static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR", "TENSOR"};
 
 
 template<typename T> boost::shared_ptr<SAMRAI::hier::Variable>
@@ -768,13 +747,13 @@ register_variable_Node(mesh::Attribute *item,
 {
     SAMRAI::tbox::Dimension d_dim(ndims);
 
-    auto var = boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, item->name());
+    auto var = boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, item->name(), item->value_size());
     integrator->registerVariable(var, d_nghosts,
                                  SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
                                  d_grid_geometry,
-                                 "", // FIXME !!! LINEAR_COARSEN ???
+                                 "",
                                  "LINEAR_REFINE");
-    d_visit_writer->registerPlotQuantity(item->name(), get_visit_variable_type(item->value_type_info()),
+    d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type[item->value_rank()],
                                          vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
 
 
@@ -792,18 +771,18 @@ register_variable_Edge(mesh::Attribute *item,
 {
     SAMRAI::tbox::Dimension d_dim(ndims);
 
-    auto var = boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, item->name(), 1);
+    auto var = boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, item->name(), item->value_size());
     integrator->registerVariable(var, d_nghosts,
                                  SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
                                  d_grid_geometry,
                                  "CONSERVATIVE_COARSEN",
-                                 "NO_REFINE");
+                                 "CONSERVATIVE_LINEAR_REFINE");
 
     /*** FIXME:
       *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
       *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
      **/
-//    d_visit_writer->registerPlotQuantity(item->name(), get_visit_variable_type(item->value_type_info()),
+//    d_visit_writer->registerPlotQuantity(item->name(),  visit_variable_type[item->value_rank()],
 //                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()) );
 
 
@@ -821,14 +800,14 @@ register_variable_Face(mesh::Attribute *item,
 {
     SAMRAI::tbox::Dimension d_dim(ndims);
 
-    auto var = boost::make_shared<SAMRAI::pdat::FaceVariable<T>>(d_dim, item->name(), 1);
+    auto var = boost::make_shared<SAMRAI::pdat::FaceVariable<T>>(d_dim, item->name(), item->value_size());
     integrator->registerVariable(var, d_nghosts,
                                  SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
                                  d_grid_geometry,
                                  "CONSERVATIVE_COARSEN",
-                                 "NO_REFINE");
+                                 "CONSERVATIVE_LINEAR_REFINE");
 
-//    d_visit_writer->registerPlotQuantity(item->name(), get_visit_variable_type(item->value_type_info()),
+//    d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type[item->value_rank()],
 //                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
 
 
@@ -847,13 +826,13 @@ register_variable_Cell(mesh::Attribute *item,
 {
     SAMRAI::tbox::Dimension d_dim(ndims);
 
-    auto var = boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, item->name());
+    auto var = boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, item->name(), item->value_size());
     integrator->registerVariable(var, d_nghosts,
                                  SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
                                  d_grid_geometry,
                                  "CONSERVATIVE_COARSEN",
                                  "CONSERVATIVE_LINEAR_REFINE");
-    d_visit_writer->registerPlotQuantity(item->name(), get_visit_variable_type(item->value_type_info()),
+    d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type[item->value_rank()],
                                          vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
 
 

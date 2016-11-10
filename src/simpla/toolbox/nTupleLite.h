@@ -307,21 +307,28 @@ struct value_type<nTuple<Expression<TOP, T...> > >
 };
 //----------------------------------------------------------------------------------------------------------------------
 
-template<typename T>
-struct rank;
+template<typename T> struct rank;
 
-template<typename T, size_t N>
-struct rank<nTuple<T, N>> : public index_const<rank<T>::value + 1> {};
 
-template<typename TV, size_t N>
-struct extent<TV, N> : public index_const<0> {};
+template<typename T, size_t N> struct rank<nTuple<T, N>> : public index_const<rank<T>::value + 1> {};
 
-template<typename TV, size_t M, size_t N>
-struct extent<nTuple<TV, M>, N> : public extent<TV, N + 1> {};
 
-template<typename TV, size_t M>
-struct extent<nTuple<TV, M>, 0> : public index_const<M> {};
+template<typename TV, size_t N> struct extent<TV, N> : public index_const<0> {};
 
+template<typename TV> struct extent<TV, 0> : public index_const<1> {};
+
+template<typename TV, size_t M, size_t N> struct extent<nTuple<TV, M>, N> : public extent<TV, N - 1> {};
+
+template<typename TV, size_t M> struct extent<nTuple<TV, M>, 0> : public index_const<M> {};
+
+template<typename T, size_t I0> struct size<nTuple<T, I0> > :
+        public std::integral_constant<size_t, I0>
+{
+};
+template<typename T, size_t I0, size_t ...I> struct size<nTuple<T, I0, I...> > :
+        public std::integral_constant<size_t, I0 * size<nTuple<T, I...>>::value>
+{
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 

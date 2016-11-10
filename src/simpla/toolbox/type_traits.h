@@ -23,13 +23,13 @@ namespace simpla
 
 typedef std::nullptr_t NullType;
 
-struct EmptyType { };
+struct EmptyType {};
 
 template<typename, size_t ...> struct nTuple;
 
 template<size_t I> using index_const=std::integral_constant<size_t, I>;
 
-namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const { }}; }
+namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const {}}; }
 
 
 namespace _impl
@@ -100,7 +100,7 @@ private:
     template<typename U>
     static auto test(int,
                      std::enable_if_t<has_static_type_member_is_self_describing<U, bool>::value> * = nullptr)
-            -> std::integral_constant<bool, U::is_self_describing>;
+    -> std::integral_constant<bool, U::is_self_describing>;
 
     template<typename> static no test(...);
 
@@ -165,6 +165,7 @@ template<typename T> using reference_t=typename reference<T>::type;
 //
 
 
+
 /**
  *  alt. of std::rank
  *  @quto http://en.cppreference.com/w/cpp/types/rank
@@ -172,9 +173,7 @@ template<typename T> using reference_t=typename reference<T>::type;
  *  value equal to the number of dimensions of the array.
  *  For any other type, value is 0.
  */
-template<typename T> struct rank : public std::integral_constant<int, std::rank<T>::value>
-{
-};
+template<typename T> struct rank : public std::rank<T> {};
 
 
 /**
@@ -186,11 +185,14 @@ template<typename T> struct rank : public std::integral_constant<int, std::rank<
  * of unknown bound along its first dimension and N is 0, value is 0.
  */
 
-template<typename T, int N = 0> struct extent : public std::extent<T, N> { };
+template<typename T, int N = 0> struct extent : public std::extent<T, N> {};
+
+
+template<typename T> struct size : public std::integral_constant<size_t, 1> {};
+
+
 template<typename _Tp, _Tp ...N>
-struct extent<integer_sequence<_Tp, N...>, 0> : public index_const<sizeof...(N)>
-{
-};
+struct extent<integer_sequence<_Tp, N...>, 0> : public index_const<sizeof...(N)> {};
 
 
 //**********************************************************************************************************************

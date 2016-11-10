@@ -53,6 +53,13 @@ public:
 
     virtual std::type_info const &value_type_info() const =0;
 
+
+    virtual size_t value_rank() const { return 0; };
+
+    virtual size_t value_extent(unsigned int n = 0) const { return 1; };
+
+    virtual size_t value_size() const { return 1; };
+
     virtual std::string name() const { return Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
@@ -88,9 +95,34 @@ public:
 
     virtual MeshEntityType entity_type() const { return IFORM; };
 
-    virtual std::type_info const &value_type_info() const { return typeid(TV); };
+    virtual std::type_info const &value_type_info() const { return typeid(typename traits::value_type<TV>::type); };
+
+    virtual size_t value_rank() const { return traits::rank<TV>::value; };
+
+    virtual size_t value_extents(unsigned int n = 0) const
+    {
+        switch (n)
+        {
+            case 0:
+                return traits::extent<TV, 0>::value;
+            case 1:
+                return traits::extent<TV, 1>::value;
+            case 2:
+                return traits::extent<TV, 2>::value;
+            case 3:
+                return traits::extent<TV, 3>::value;
+            case 4:
+                return traits::extent<TV, 5>::value;
+            default:
+                ASSERT(5 >= value_rank());
+                return 1;
+        }
+    };
+
+    virtual size_t value_size() const { return traits::size<TV>::value; };
 
 };
+
 
 /**
  * AttributeView: expose one block of attribute
