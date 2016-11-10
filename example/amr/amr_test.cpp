@@ -10,7 +10,7 @@
 #include <simpla/mesh/Atlas.h>
 #include <simpla/physics/Field.h>
 #include <simpla/manifold/Calculus.h>
-#include "SAMRAITimeIntegrator.h"
+#include <simpla/simulation/TimeIntegrator.h>
 
 using namespace simpla;
 
@@ -56,10 +56,15 @@ struct AMRTest : public mesh::Worker
     }
 
 };
+namespace simpla
+{
+std::shared_ptr<simulation::TimeIntegrator>
+create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w);
+}//namespace simpla
 
 int main(int argc, char **argv)
 {
-    auto integrator = simpla::create_samrai_time_integrator("AMR_TEST", std::make_shared<AMRTest<DummyMesh>>());
+    auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<DummyMesh>>());
 
     /** test.3d.input */
 

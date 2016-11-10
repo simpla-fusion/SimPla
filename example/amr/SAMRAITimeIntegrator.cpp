@@ -11,11 +11,13 @@
 
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/nTuple.h>
+#include <simpla/data/DataBase.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/DataBlock.h>
 #include <simpla/mesh/Worker.h>
-
+#include <simpla/simulation/TimeIntegrator.h>
+#include <boost/shared_ptr.hpp>
 // Headers for SAMRAI
 #include <SAMRAI/SAMRAI_config.h>
 
@@ -70,10 +72,6 @@
 #include <SAMRAI/appu/CartesianBoundaryDefines.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities2.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities3.h>
-#include <boost/shared_ptr.hpp>
-
-#include <simpla/data/DataBase.h>
-#include <simpla/simulation/TimeIntegrator.h>
 
 namespace simpla
 {
@@ -82,7 +80,7 @@ struct SAMRAIWorkerHyperbolic;
 struct SAMRAITimeIntegrator;
 
 std::shared_ptr<simulation::TimeIntegrator>
-create_samrai_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w)
+create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w)
 {
     return std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>(name, w));
 }
@@ -369,41 +367,6 @@ private:
     std::shared_ptr<mesh::Worker> m_worker_;
 
     /*
-     * These private member functions read data from input and restart.
-     * When beginning a run from a restart file, all data members are read
-     * from the restart file.  If the boolean flag is true when reading
-     * from input, some restart values may be overridden by those in the
-     * input file.
-     *
-     * An assertion results if the database pointer is null.
-     */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> input_db, bool is_from_restart);
-//
-//    void getFromRestart();
-
-    void readStateDataEntry(boost::shared_ptr<SAMRAI::tbox::Database> db,
-                            const std::string &db_name,
-                            int array_indx,
-                            std::vector<double> &uval);
-
-//    /*
-//     * Private member function to check correctness of boundary data.
-//     */
-//    void checkBoundaryData(int btype,
-//                           const SAMRAI::hier::DataBlockBase &patch,
-//                           const SAMRAI::hier::IntVector &ghost_width_to_fill,
-//                           const std::vector<int> &scalar_bconds) const;
-//
-//    /*
-//     * Three-dimensional flux computation routines corresponding to
-//     * either of the two transverse flux correction options.  These
-//     * routines are called from the computeFluxesOnPatch() function.
-//     */
-//    void compute3DFluxesWithCornerTransport1(SAMRAI::hier::DataBlockBase &patch, const double dt);
-//
-//    void compute3DFluxesWithCornerTransport2(SAMRAI::hier::DataBlockBase &patch, const double dt);
-
-    /*
      * The object name is used for error/warning reporting and also as a
      * string label for restart database entries.
      */
@@ -416,7 +379,7 @@ private:
      * data, set physical boundary conditions, and register plot
      * variables.
      */
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry;
+    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
 
     boost::shared_ptr<SAMRAI::appu::VisItDataWriter> d_visit_writer = nullptr;
 
@@ -554,9 +517,6 @@ SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
         d_frequency(dim.getValue())
 {
     TBOX_ASSERT(grid_geom);
-
-//    SAMRAI::tbox::RestartManager::getManager()->registerRestartItem(d_object_name, this);
-
     TBOX_ASSERT(CELLG == FACEG);
 
     // SPHERE problem...
@@ -622,54 +582,53 @@ SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
      * Initialize object with data read from given input/restart databases.
      */
 
-    auto input_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("LinAdv");
-    double advection_velocity[3] = {2.0e0, 1.0e0, 1.0e0};
-    input_db->putDoubleArray("advection_velocity", advection_velocity, 3);
-    input_db->putInteger("godunov_order", 2);
-    input_db->putString("corner_transport", "CORNER_TRANSPORT_1");
-    input_db->putString("data_problem", "SPHERE");
+//    auto input_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("LinAdv");
+//    double advection_velocity[3] = {2.0e0, 1.0e0, 1.0e0};
+//    input_db->putDoubleArray("advection_velocity", advection_velocity, 3);
+//    input_db->putInteger("godunov_order", 2);
+//    input_db->putString("corner_transport", "CORNER_TRANSPORT_1");
+//    input_db->putString("data_problem", "SPHERE");
+//
+//    auto Initial_data_db = input_db->putDatabase("Initial_data");
+//    double center[3] = {5.5, 5.5, 5.5};
+//    Initial_data_db->putDouble("radius", 2.9);
+//    Initial_data_db->putDoubleArray("center", center, 3);
+//    Initial_data_db->putDouble("uval_inside", 80.0);
+//    Initial_data_db->putDouble("uval_outside", 5.0);
+//
+//    auto Boundary_data_db = input_db->putDatabase("Boundary_data");
+//    Boundary_data_db->putDatabase("boundary_face_xlo")->putString("boundary_condition", "FLOW");
+//    Boundary_data_db->putDatabase("boundary_face_xhi")->putString("boundary_condition", "FLOW");
+//    Boundary_data_db->putDatabase("boundary_face_ylo")->putString("boundary_condition", "FLOW");
+//    Boundary_data_db->putDatabase("boundary_face_yhi")->putString("boundary_condition", "FLOW");
+//    Boundary_data_db->putDatabase("boundary_face_zlo")->putString("boundary_condition", "FLOW");
+//    Boundary_data_db->putDatabase("boundary_face_zhi")->putString("boundary_condition", "FLOW");
+//
+//
+//    Boundary_data_db->putDatabase("boundary_edge_ylo_zlo")->putString("boundary_condition", "ZFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_yhi_zlo")->putString("boundary_condition", "ZFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_ylo_zhi")->putString("boundary_condition", "ZFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_yhi_zhi")->putString("boundary_condition", "ZFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xlo_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xlo_zhi")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xhi_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xhi_zhi")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xlo_ylo")->putString("boundary_condition", "YFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xhi_ylo")->putString("boundary_condition", "YFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xlo_yhi")->putString("boundary_condition", "YFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xhi_yhi")->putString("boundary_condition", "YFLOW");
+//
+//
+//    Boundary_data_db->putDatabase("boundary_node_xlo_ylo_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xhi_ylo_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xlo_yhi_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xhi_yhi_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xlo_ylo_zhi")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xhi_ylo_zhi")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xlo_yhi_zhi")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xhi_yhi_zhi")->putString("boundary_condition", "XFLOW");
 
-    auto Initial_data_db = input_db->putDatabase("Initial_data");
-    double center[3] = {5.5, 5.5, 5.5};
-    Initial_data_db->putDouble("radius", 2.9);
-    Initial_data_db->putDoubleArray("center", center, 3);
-    Initial_data_db->putDouble("uval_inside", 80.0);
-    Initial_data_db->putDouble("uval_outside", 5.0);
 
-    auto Boundary_data_db = input_db->putDatabase("Boundary_data");
-    Boundary_data_db->putDatabase("boundary_face_xlo")->putString("boundary_condition", "FLOW");
-    Boundary_data_db->putDatabase("boundary_face_xhi")->putString("boundary_condition", "FLOW");
-    Boundary_data_db->putDatabase("boundary_face_ylo")->putString("boundary_condition", "FLOW");
-    Boundary_data_db->putDatabase("boundary_face_yhi")->putString("boundary_condition", "FLOW");
-    Boundary_data_db->putDatabase("boundary_face_zlo")->putString("boundary_condition", "FLOW");
-    Boundary_data_db->putDatabase("boundary_face_zhi")->putString("boundary_condition", "FLOW");
-
-
-    Boundary_data_db->putDatabase("boundary_edge_ylo_zlo")->putString("boundary_condition", "ZFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_yhi_zlo")->putString("boundary_condition", "ZFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_ylo_zhi")->putString("boundary_condition", "ZFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_yhi_zhi")->putString("boundary_condition", "ZFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xlo_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xlo_zhi")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xhi_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xhi_zhi")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xlo_ylo")->putString("boundary_condition", "YFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xhi_ylo")->putString("boundary_condition", "YFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xlo_yhi")->putString("boundary_condition", "YFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xhi_yhi")->putString("boundary_condition", "YFLOW");
-
-
-    Boundary_data_db->putDatabase("boundary_node_xlo_ylo_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xhi_ylo_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xlo_yhi_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xhi_yhi_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xlo_ylo_zhi")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xhi_ylo_zhi")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xlo_yhi_zhi")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xhi_yhi_zhi")->putString("boundary_condition", "XFLOW");
-
-
-    getFromInput(input_db, false);
 
 
     /*
@@ -2867,775 +2826,6 @@ void SAMRAIWorkerHyperbolic::printClassData(std::ostream &os) const
 /*
  *************************************************************************
  *
- * Read data members from input.  All values set from restart can be
- * overridden by values in the input database.
- *
- *************************************************************************
- */
-void SAMRAIWorkerHyperbolic::getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> input_db, bool is_from_restart)
-{
-    TBOX_ASSERT(input_db);
-
-    /*
-     * Note: if we are restarting, then we only allow nonuniform
-     * workload to be used if nonuniform workload was used originally.
-     */
-    if (!is_from_restart)
-    {
-        d_use_nonuniform_workload =
-                input_db->getBoolWithDefault("use_nonuniform_workload",
-                                             d_use_nonuniform_workload);
-    } else
-    {
-        if (d_use_nonuniform_workload)
-        {
-            d_use_nonuniform_workload =
-                    input_db->getBool("use_nonuniform_workload");
-        }
-    }
-
-    if (input_db->keyExists("advection_velocity"))
-    {
-        input_db->getDoubleArray("advection_velocity",
-                                 &d_advection_velocity[0], d_dim.getValue());
-    } else
-    {
-        TBOX_ERROR(
-                d_object_name << ":  "
-                              << "Key data `advection_velocity' not found in input.");
-    }
-
-    if (input_db->keyExists("godunov_order"))
-    {
-        d_godunov_order = input_db->getInteger("godunov_order");
-        if ((d_godunov_order != 1) &&
-            (d_godunov_order != 2) &&
-            (d_godunov_order != 4))
-        {
-            TBOX_ERROR(
-                    d_object_name << ": "
-                                  << "`godunov_order' in input must be 1, 2, or 4." << std::endl);
-        }
-    } else
-    {
-        d_godunov_order = input_db->getIntegerWithDefault("d_godunov_order",
-                                                          d_godunov_order);
-    }
-
-    if (input_db->keyExists("corner_transport"))
-    {
-        d_corner_transport = input_db->getString("corner_transport");
-        if ((d_corner_transport != "CORNER_TRANSPORT_1") &&
-            (d_corner_transport != "CORNER_TRANSPORT_2"))
-        {
-            TBOX_ERROR(
-                    d_object_name << ": "
-                                  << "`corner_transport' in input must be either string"
-                                  << " 'CORNER_TRANSPORT_1' or 'CORNER_TRANSPORT_2'." << std::endl);
-        }
-    } else
-    {
-        d_corner_transport = input_db->getStringWithDefault("corner_transport",
-                                                            d_corner_transport);
-    }
-
-    if (input_db->keyExists("Refinement_data"))
-    {
-        boost::shared_ptr<SAMRAI::tbox::Database> refine_db(input_db->getDatabase("Refinement_data"));
-        std::vector<std::string> refinement_keys = refine_db->getAllKeys();
-        int num_keys = static_cast<int>(refinement_keys.size());
-
-        if (refine_db->keyExists("refine_criteria"))
-        {
-            d_refinement_criteria = refine_db->getStringVector("refine_criteria");
-        } else
-        {
-            TBOX_WARNING(
-                    d_object_name << ": "
-                                  << "No key `refine_criteria' found in data for"
-                                  << " RefinementData. No refinement will occur." << std::endl);
-        }
-
-        std::vector<std::string> ref_keys_defined(num_keys);
-        int def_key_cnt = 0;
-        boost::shared_ptr<SAMRAI::tbox::Database> error_db;
-        for (int i = 0; i < num_keys; ++i)
-        {
-
-            std::string error_key = refinement_keys[i];
-            error_db.reset();
-
-            if (!(error_key == "refine_criteria"))
-            {
-
-                if (!(error_key == "UVAL_DEVIATION" ||
-                      error_key == "UVAL_GRADIENT" ||
-                      error_key == "UVAL_SHOCK" ||
-                      error_key == "UVAL_RICHARDSON"))
-                {
-                    TBOX_ERROR(
-                            d_object_name << ": "
-                                          << "Unknown refinement criteria: "
-                                          << error_key
-                                          << "\nin input." << std::endl);
-                } else
-                {
-                    error_db = refine_db->getDatabase(error_key);
-                    ref_keys_defined[def_key_cnt] = error_key;
-                    ++def_key_cnt;
-                }
-
-                if (error_db && error_key == "UVAL_DEVIATION")
-                {
-
-                    if (error_db->keyExists("dev_tol"))
-                    {
-                        d_dev_tol = error_db->getDoubleVector("dev_tol");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `dev_tol' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("uval_dev"))
-                    {
-                        d_dev = error_db->getDoubleVector("uval_dev");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `uval_dev' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("time_max"))
-                    {
-                        d_dev_time_max = error_db->getDoubleVector("time_max");
-                    } else
-                    {
-                        d_dev_time_max.resize(1);
-                        d_dev_time_max[0] = SAMRAI::tbox::MathUtilities<double>::getMax();
-                    }
-
-                    if (error_db->keyExists("time_min"))
-                    {
-                        d_dev_time_min = error_db->getDoubleVector("time_min");
-                    } else
-                    {
-                        d_dev_time_min.resize(1);
-                        d_dev_time_min[0] = 0.;
-                    }
-
-                }
-
-                if (error_db && error_key == "UVAL_GRADIENT")
-                {
-
-                    if (error_db->keyExists("grad_tol"))
-                    {
-                        d_grad_tol = error_db->getDoubleVector("grad_tol");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `grad_tol' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("time_max"))
-                    {
-                        d_grad_time_max = error_db->getDoubleVector("time_max");
-                    } else
-                    {
-                        d_grad_time_max.resize(1);
-                        d_grad_time_max[0] = SAMRAI::tbox::MathUtilities<double>::getMax();
-                    }
-
-                    if (error_db->keyExists("time_min"))
-                    {
-                        d_grad_time_min = error_db->getDoubleVector("time_min");
-                    } else
-                    {
-                        d_grad_time_min.resize(1);
-                        d_grad_time_min[0] = 0.;
-                    }
-
-                }
-
-                if (error_db && error_key == "UVAL_SHOCK")
-                {
-
-                    if (error_db->keyExists("shock_onset"))
-                    {
-                        d_shock_onset = error_db->getDoubleVector("shock_onset");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `shock_onset' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("shock_tol"))
-                    {
-                        d_shock_tol = error_db->getDoubleVector("shock_tol");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `shock_tol' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("time_max"))
-                    {
-                        d_shock_time_max = error_db->getDoubleVector("time_max");
-                    } else
-                    {
-                        d_shock_time_max.resize(1);
-                        d_shock_time_max[0] = SAMRAI::tbox::MathUtilities<double>::getMax();
-                    }
-
-                    if (error_db->keyExists("time_min"))
-                    {
-                        d_shock_time_min = error_db->getDoubleVector("time_min");
-                    } else
-                    {
-                        d_shock_time_min.resize(1);
-                        d_shock_time_min[0] = 0.;
-                    }
-
-                }
-
-                if (error_db && error_key == "UVAL_RICHARDSON")
-                {
-
-                    if (error_db->keyExists("rich_tol"))
-                    {
-                        d_rich_tol = error_db->getDoubleVector("rich_tol");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `rich_tol' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("time_max"))
-                    {
-                        d_rich_time_max = error_db->getDoubleVector("time_max");
-                    } else
-                    {
-                        d_rich_time_max.resize(1);
-                        d_rich_time_max[0] = SAMRAI::tbox::MathUtilities<double>::getMax();
-                    }
-
-                    if (error_db->keyExists("time_min"))
-                    {
-                        d_rich_time_min = error_db->getDoubleVector("time_min");
-                    } else
-                    {
-                        d_rich_time_min.resize(1);
-                        d_rich_time_min[0] = 0.;
-                    }
-
-                }
-
-            }
-
-        } // loop over refine criteria
-
-        /*
-         * Check that input is found for each string identifier in key list.
-         */
-        for (int k0 = 0;
-             k0 < static_cast<int>(d_refinement_criteria.size()); ++k0)
-        {
-            std::string use_key = d_refinement_criteria[k0];
-            bool key_found = false;
-            for (int k1 = 0; k1 < def_key_cnt; ++k1)
-            {
-                std::string def_key = ref_keys_defined[k1];
-                if (def_key == use_key) key_found = true;
-            }
-
-            if (!key_found)
-            {
-                TBOX_ERROR(d_object_name << ": "
-                                         << "No input found for specified refine criteria: "
-                                         << d_refinement_criteria[k0] << std::endl);
-            }
-        }
-
-    } // refine db entry exists
-
-    if (!is_from_restart)
-    {
-
-        if (input_db->keyExists("data_problem"))
-        {
-            d_data_problem = input_db->getString("data_problem");
-        } else
-        {
-            TBOX_ERROR(
-                    d_object_name << ": "
-                                  << "`data_problem' m_value_ not found in input."
-                                  << std::endl);
-        }
-
-        if (!input_db->keyExists("Initial_data"))
-        {
-            TBOX_ERROR(
-                    d_object_name << ": "
-                                  << "No `Initial_data' database found in input." << std::endl);
-        }
-        boost::shared_ptr<SAMRAI::tbox::Database> init_data_db(input_db->getDatabase("Initial_data"));
-
-        bool found_problem_data = false;
-
-        if (d_data_problem == "SPHERE")
-        {
-
-            if (init_data_db->keyExists("radius"))
-            {
-                d_radius = init_data_db->getDouble("radius");
-            } else
-            {
-                TBOX_ERROR(
-                        d_object_name << ": "
-                                      << "`radius' input required for SPHERE problem." << std::endl);
-            }
-            if (init_data_db->keyExists("center"))
-            {
-                d_center = init_data_db->getDoubleVector("center");
-            } else
-            {
-                TBOX_ERROR(
-                        d_object_name << ": "
-                                      << "`center' input required for SPHERE problem." << std::endl);
-            }
-            if (init_data_db->keyExists("uval_inside"))
-            {
-                d_uval_inside = init_data_db->getDouble("uval_inside");
-            } else
-            {
-                TBOX_ERROR(d_object_name << ": "
-                                         << "`uval_inside' input required for "
-                                         << "SPHERE problem." << std::endl);
-            }
-            if (init_data_db->keyExists("uval_outside"))
-            {
-                d_uval_outside = init_data_db->getDouble("uval_outside");
-            } else
-            {
-                TBOX_ERROR(d_object_name << ": "
-                                         << "`uval_outside' input required for "
-                                         << "SPHERE problem." << std::endl);
-            }
-
-            found_problem_data = true;
-
-        }
-
-        if (!found_problem_data &&
-            ((d_data_problem == "PIECEWISE_CONSTANT_X") ||
-             (d_data_problem == "PIECEWISE_CONSTANT_Y") ||
-             (d_data_problem == "PIECEWISE_CONSTANT_Z") ||
-             (d_data_problem == "SINE_CONSTANT_X") ||
-             (d_data_problem == "SINE_CONSTANT_Y") ||
-             (d_data_problem == "SINE_CONSTANT_Z")))
-        {
-
-            int idir = 0;
-            if (d_data_problem == "PIECEWISE_CONSTANT_Y")
-            {
-                if (d_dim < SAMRAI::tbox::Dimension(2))
-                {
-                    TBOX_ERROR(
-                            d_object_name << ": `PIECEWISE_CONSTANT_Y' "
-                                          << "problem invalid in 1 dimension."
-                                          << std::endl);
-                }
-                idir = 1;
-            }
-
-            if (d_data_problem == "PIECEWISE_CONSTANT_Z")
-            {
-                if (d_dim < SAMRAI::tbox::Dimension(3))
-                {
-                    TBOX_ERROR(
-                            d_object_name << ": `PIECEWISE_CONSTANT_Z' "
-                                          << "problem invalid in 1 or 2 dimensions." << std::endl);
-                }
-                idir = 2;
-            }
-
-            std::vector<std::string> init_data_keys = init_data_db->getAllKeys();
-
-            if (init_data_db->keyExists("front_position"))
-            {
-                d_front_position = init_data_db->getDoubleVector("front_position");
-            } else
-            {
-                TBOX_ERROR(d_object_name << ": "
-                                         << "`front_position' input required for "
-                                         << d_data_problem << " problem." << std::endl);
-            }
-
-            d_number_of_intervals =
-                    SAMRAI::tbox::MathUtilities<int>::Min(static_cast<int>(d_front_position.size()) + 1,
-                                                          static_cast<int>(init_data_keys.size()) - 1);
-
-            d_front_position.resize(static_cast<int>(d_front_position.size()) + 1);
-            d_front_position[static_cast<int>(d_front_position.size()) - 1] =
-                    d_grid_geometry->getXUpper()[idir];
-
-            d_interval_uval.resize(d_number_of_intervals);
-
-            int i = 0;
-            int nkey = 0;
-            bool found_interval_data = false;
-
-            while (!found_interval_data
-                   && (i < d_number_of_intervals)
-                   && (nkey < static_cast<int>(init_data_keys.size())))
-            {
-
-                if (!(init_data_keys[nkey] == "front_position"))
-                {
-
-                    boost::shared_ptr<SAMRAI::tbox::Database> interval_db(
-                            init_data_db->getDatabase(init_data_keys[nkey]));
-
-                    if (interval_db->keyExists("uval"))
-                    {
-                        d_interval_uval[i] = interval_db->getDouble("uval");
-                    } else
-                    {
-                        TBOX_ERROR(d_object_name << ": "
-                                                 << "`uval' data missing in input for key = "
-                                                 << init_data_keys[nkey] << std::endl);
-                    }
-                    ++i;
-
-                    found_interval_data = (i == d_number_of_intervals);
-
-                }
-
-                ++nkey;
-
-            }
-
-            if ((d_data_problem == "SINE_CONSTANT_X") ||
-                (d_data_problem == "SINE_CONSTANT_Y") ||
-                (d_data_problem == "SINE_CONSTANT_Z"))
-            {
-                if (init_data_db->keyExists("amplitude"))
-                {
-                    d_amplitude = init_data_db->getDouble("amplitude");
-                }
-                if (init_data_db->keyExists("frequency"))
-                {
-                    init_data_db->getDoubleArray("frequency", &d_frequency[0], d_dim.getValue());
-                } else
-                {
-                    TBOX_ERROR(
-                            d_object_name << ": "
-                                          << "`frequency' input required for SINE problem." << std::endl);
-                }
-            }
-
-            if (!found_interval_data)
-            {
-                TBOX_ERROR(
-                        d_object_name << ": "
-                                      << "Insufficient interval data given in input"
-                                      << " for PIECEWISE_CONSTANT_*problem."
-                                      << std::endl);
-            }
-
-            found_problem_data = true;
-        }
-
-        if (!found_problem_data)
-        {
-            TBOX_ERROR(d_object_name << ": "
-                                     << "`Initial_data' database found in input."
-                                     << " But bad data supplied." << std::endl);
-        }
-
-    } // if !is_from_restart read in problem data
-
-    const SAMRAI::hier::IntVector &one_vec = SAMRAI::hier::IntVector::getOne(d_dim);
-    SAMRAI::hier::IntVector periodic(d_grid_geometry->getPeriodicShift(one_vec));
-    int num_per_dirs = 0;
-    for (int id = 0; id < d_dim.getValue(); ++id)
-    {
-        if (periodic(id)) ++num_per_dirs;
-    }
-
-    if (input_db->keyExists("Boundary_data"))
-    {
-
-        boost::shared_ptr<SAMRAI::tbox::Database> bdry_db(
-                input_db->getDatabase("Boundary_data"));
-
-        if (d_dim == SAMRAI::tbox::Dimension(2))
-        {
-            SAMRAI::appu::CartesianBoundaryUtilities2::getFromInput(this,
-                                                                    bdry_db,
-                                                                    d_scalar_bdry_edge_conds,
-                                                                    d_scalar_bdry_node_conds,
-                                                                    periodic);
-        }
-        if (d_dim == SAMRAI::tbox::Dimension(3))
-        {
-            SAMRAI::appu::CartesianBoundaryUtilities3::getFromInput(this,
-                                                                    bdry_db,
-                                                                    d_scalar_bdry_face_conds,
-                                                                    d_scalar_bdry_edge_conds,
-                                                                    d_scalar_bdry_node_conds,
-                                                                    periodic);
-        }
-
-    } else
-    {
-        TBOX_ERROR(
-                d_object_name << ": "
-                              << "Key data `Boundary_data' not found in input. " << std::endl);
-    }
-
-}
-
-/*
- *************************************************************************
- *
- * Routines to put/get data members to/from restart database.
- *
- *************************************************************************
- */
-//
-//void SAMRAIWorkerHyperbolic::putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db) const
-//{
-//    TBOX_ASSERT(restart_db);
-//
-//    restart_db->putInteger("LINADV_VERSION", LINADV_VERSION);
-//
-//    restart_db->putDoubleVector("d_advection_velocity", d_advection_velocity);
-//
-//    restart_db->putInteger("d_godunov_order", d_godunov_order);
-//    restart_db->putString("d_corner_transport", d_corner_transport);
-//    restart_db->putIntegerArray("d_nghosts", &d_nghosts[0], d_dim.getValue());
-//    restart_db->putIntegerArray("d_fluxghosts",
-//                                &d_fluxghosts[0],
-//                                d_dim.getValue());
-//
-//    restart_db->putString("d_data_problem", d_data_problem);
-//
-//    if (d_data_problem == "SPHERE")
-//    {
-//        restart_db->putDouble("d_radius", d_radius);
-//        restart_db->putDoubleVector("d_center", d_center);
-//        restart_db->putDouble("d_uval_inside", d_uval_inside);
-//        restart_db->putDouble("d_uval_outside", d_uval_outside);
-//    }
-//
-//    if ((d_data_problem == "PIECEWISE_CONSTANT_X") ||
-//        (d_data_problem == "PIECEWISE_CONSTANT_Y") ||
-//        (d_data_problem == "PIECEWISE_CONSTANT_Z") ||
-//        (d_data_problem == "SINE_CONSTANT_X") ||
-//        (d_data_problem == "SINE_CONSTANT_Y") ||
-//        (d_data_problem == "SINE_CONSTANT_Z"))
-//    {
-//        restart_db->putInteger("d_number_of_intervals", d_number_of_intervals);
-//        if (d_number_of_intervals > 0)
-//        {
-//            restart_db->putDoubleVector("d_front_position", d_front_position);
-//            restart_db->putDoubleVector("d_interval_uval", d_interval_uval);
-//        }
-//    }
-//
-//    restart_db->putIntegerVector("d_scalar_bdry_edge_conds",
-//                                 d_scalar_bdry_edge_conds);
-//    restart_db->putIntegerVector("d_scalar_bdry_node_conds",
-//                                 d_scalar_bdry_node_conds);
-//
-//    if (d_dim == SAMRAI::tbox::Dimension(2))
-//    {
-//        restart_db->putDoubleVector("d_bdry_edge_uval", d_bdry_edge_uval);
-//    }
-//    if (d_dim == SAMRAI::tbox::Dimension(3))
-//    {
-//        restart_db->putIntegerVector("d_scalar_bdry_face_conds",
-//                                     d_scalar_bdry_face_conds);
-//        restart_db->putDoubleVector("d_bdry_face_uval", d_bdry_face_uval);
-//    }
-//
-//    if (d_refinement_criteria.size() > 0)
-//    {
-//        restart_db->putStringVector("d_refinement_criteria",
-//                                    d_refinement_criteria);
-//    }
-//    for (int i = 0; i < static_cast<int>(d_refinement_criteria.size()); ++i)
-//    {
-//
-//        if (d_refinement_criteria[i] == "UVAL_DEVIATION")
-//        {
-//            restart_db->putDoubleVector("d_dev_tol", d_dev_tol);
-//            restart_db->putDoubleVector("d_dev", d_dev);
-//            restart_db->putDoubleVector("d_dev_time_max", d_dev_time_max);
-//            restart_db->putDoubleVector("d_dev_time_min", d_dev_time_min);
-//        } else if (d_refinement_criteria[i] == "UVAL_GRADIENT")
-//        {
-//            restart_db->putDoubleVector("d_grad_tol", d_grad_tol);
-//            restart_db->putDoubleVector("d_grad_time_max", d_grad_time_max);
-//            restart_db->putDoubleVector("d_grad_time_min", d_grad_time_min);
-//        } else if (d_refinement_criteria[i] == "UVAL_SHOCK")
-//        {
-//            restart_db->putDoubleVector("d_shock_onset", d_shock_onset);
-//            restart_db->putDoubleVector("d_shock_tol", d_shock_tol);
-//            restart_db->putDoubleVector("d_shock_time_max", d_shock_time_max);
-//            restart_db->putDoubleVector("d_shock_time_min", d_shock_time_min);
-//        } else if (d_refinement_criteria[i] == "UVAL_RICHARDSON")
-//        {
-//            restart_db->putDoubleVector("d_rich_tol", d_rich_tol);
-//            restart_db->putDoubleVector("d_rich_time_max", d_rich_time_max);
-//            restart_db->putDoubleVector("d_rich_time_min", d_rich_time_min);
-//        }
-//
-//    }
-//
-//}
-
-/*
- *************************************************************************
- *
- *    Access class information from restart database.
- *
- *************************************************************************
- */
-//void SAMRAIWorkerHyperbolic::getFromRestart()
-//{
-//    boost::shared_ptr<SAMRAI::tbox::Database> root_db(
-//            SAMRAI::tbox::RestartManager::getManager()->getRootDatabase());
-//
-//    if (!root_db->isDatabase(d_object_name))
-//    {
-//        TBOX_ERROR("Restart database corresponding to "
-//                           << d_object_name << " not found in restart file.");
-//    }
-//    boost::shared_ptr<SAMRAI::tbox::Database> db(root_db->getDatabase(d_object_name));
-//
-//    int ver = db->getInteger("LINADV_VERSION");
-//    if (ver != LINADV_VERSION)
-//    {
-//        TBOX_ERROR(
-//                d_object_name << ":  "
-//                              << "Restart file version different than class version.");
-//    }
-//
-//    d_advection_velocity = db->getDoubleVector("d_advection_velocity");
-//
-//    d_godunov_order = db->getInteger("d_godunov_order");
-//    d_corner_transport = db->getString("d_corner_transport");
-//
-//    int *tmp_nghosts = &d_nghosts[0];
-//    db->getIntegerArray("d_nghosts", tmp_nghosts, d_dim.getValue());
-//    if (!(d_nghosts == CELLG))
-//    {
-//        TBOX_ERROR(
-//                d_object_name << ": "
-//                              << "Key data `d_nghosts' in restart file != CELLG." << std::endl);
-//    }
-//    int *tmp_fluxghosts = &d_fluxghosts[0];
-//    db->getIntegerArray("d_fluxghosts", tmp_fluxghosts, d_dim.getValue());
-//    if (!(d_fluxghosts == FLUXG))
-//    {
-//        TBOX_ERROR(
-//                d_object_name << ": "
-//                              << "Key data `d_fluxghosts' in restart file != FLUXG." << std::endl);
-//    }
-//
-//    d_data_problem = db->getString("d_data_problem");
-//
-//    if (d_data_problem == "SPHERE")
-//    {
-//        d_data_problem_int = SPHERE;
-//        d_radius = db->getDouble("d_radius");
-//        d_center = db->getDoubleVector("d_center");
-//        d_uval_inside = db->getDouble("d_uval_inside");
-//        d_uval_outside = db->getDouble("d_uval_outside");
-//    }
-//
-//    if ((d_data_problem == "PIECEWISE_CONSTANT_X") ||
-//        (d_data_problem == "PIECEWISE_CONSTANT_Y") ||
-//        (d_data_problem == "PIECEWISE_CONSTANT_Z") ||
-//        (d_data_problem == "SINE_CONSTANT_X") ||
-//        (d_data_problem == "SINE_CONSTANT_Y") ||
-//        (d_data_problem == "SINE_CONSTANT_Z"))
-//    {
-//        d_number_of_intervals = db->getInteger("d_number_of_intervals");
-//        if (d_number_of_intervals > 0)
-//        {
-//            d_front_position = db->getDoubleVector("d_front_position");
-//            d_interval_uval = db->getDoubleVector("d_interval_uval");
-//        }
-//    }
-//
-//    d_scalar_bdry_edge_conds = db->getIntegerVector("d_scalar_bdry_edge_conds");
-//    d_scalar_bdry_node_conds = db->getIntegerVector("d_scalar_bdry_node_conds");
-//
-//    if (d_dim == SAMRAI::tbox::Dimension(2))
-//    {
-//        d_bdry_edge_uval = db->getDoubleVector("d_bdry_edge_uval");
-//    }
-//    if (d_dim == SAMRAI::tbox::Dimension(3))
-//    {
-//        d_scalar_bdry_face_conds =
-//                db->getIntegerVector("d_scalar_bdry_face_conds");
-//
-//        d_bdry_face_uval = db->getDoubleVector("d_bdry_face_uval");
-//    }
-//
-//    if (db->keyExists("d_refinement_criteria"))
-//    {
-//        d_refinement_criteria = db->getStringVector("d_refinement_criteria");
-//    }
-//    for (int i = 0; i < static_cast<int>(d_refinement_criteria.size()); ++i)
-//    {
-//
-//        if (d_refinement_criteria[i] == "UVAL_DEVIATION")
-//        {
-//            d_dev_tol = db->getDoubleVector("d_dev_tol");
-//            d_dev_time_max = db->getDoubleVector("d_dev_time_max");
-//            d_dev_time_min = db->getDoubleVector("d_dev_time_min");
-//        } else if (d_refinement_criteria[i] == "UVAL_GRADIENT")
-//        {
-//            d_grad_tol = db->getDoubleVector("d_grad_tol");
-//            d_grad_time_max = db->getDoubleVector("d_grad_time_max");
-//            d_grad_time_min = db->getDoubleVector("d_grad_time_min");
-//        } else if (d_refinement_criteria[i] == "UVAL_SHOCK")
-//        {
-//            d_shock_onset = db->getDoubleVector("d_shock_onset");
-//            d_shock_tol = db->getDoubleVector("d_shock_tol");
-//            d_shock_time_max = db->getDoubleVector("d_shock_time_max");
-//            d_shock_time_min = db->getDoubleVector("d_shock_time_min");
-//        } else if (d_refinement_criteria[i] == "UVAL_RICHARDSON")
-//        {
-//            d_rich_tol = db->getDoubleVector("d_rich_tol");
-//            d_rich_time_max = db->getDoubleVector("d_rich_time_max");
-//            d_rich_time_min = db->getDoubleVector("d_rich_time_min");
-//        }
-//
-//    }
-//
-//}
-
-/*
- *************************************************************************
- *
  * Routines to read boundary data from input database.
  *
  *************************************************************************
@@ -3645,23 +2835,23 @@ void SAMRAIWorkerHyperbolic::readDirichletBoundaryDataEntry(const boost::shared_
                                                             std::string &db_name,
                                                             int bdry_location_index)
 {
-    TBOX_ASSERT(db);
-    TBOX_ASSERT(!db_name.empty());
-
-    if (d_dim == SAMRAI::tbox::Dimension(2))
-    {
-        readStateDataEntry(db,
-                           db_name,
-                           bdry_location_index,
-                           d_bdry_edge_uval);
-    }
-    if (d_dim == SAMRAI::tbox::Dimension(3))
-    {
-        readStateDataEntry(db,
-                           db_name,
-                           bdry_location_index,
-                           d_bdry_face_uval);
-    }
+//    TBOX_ASSERT(db);
+//    TBOX_ASSERT(!db_name.empty());
+//
+//    if (d_dim == SAMRAI::tbox::Dimension(2))
+//    {
+//        readStateDataEntry(db,
+//                           db_name,
+//                           bdry_location_index,
+//                           d_bdry_edge_uval);
+//    }
+//    if (d_dim == SAMRAI::tbox::Dimension(3))
+//    {
+//        readStateDataEntry(db,
+//                           db_name,
+//                           bdry_location_index,
+//                           d_bdry_face_uval);
+//    }
 }
 
 void SAMRAIWorkerHyperbolic::readNeumannBoundaryDataEntry(const boost::shared_ptr<SAMRAI::tbox::Database> &db,
@@ -3673,28 +2863,6 @@ void SAMRAIWorkerHyperbolic::readNeumannBoundaryDataEntry(const boost::shared_pt
     NULL_USE(bdry_location_index);
 }
 
-void SAMRAIWorkerHyperbolic::readStateDataEntry(
-        boost::shared_ptr<SAMRAI::tbox::Database> db,
-        const std::string &db_name,
-        int array_indx,
-        std::vector<double> &uval)
-{
-    TBOX_ASSERT(db);
-    TBOX_ASSERT(!db_name.empty());
-    TBOX_ASSERT(array_indx >= 0);
-    TBOX_ASSERT(static_cast<int>(uval.size()) > array_indx);
-
-    if (db->keyExists("uval"))
-    {
-        uval[array_indx] = db->getDouble("uval");
-    } else
-    {
-        TBOX_ERROR(d_object_name << ": "
-                                 << "`uval' entry missing from " << db_name
-                                 << " input database. " << std::endl);
-    }
-
-}
 
 struct SAMRAITimeIntegrator : public simulation::TimeIntegrator
 {
