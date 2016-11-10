@@ -11,14 +11,14 @@
  */
 
 
-//convert (x,y) to d
+//convert_database_r (x,y) to d
 extern inline int spSFCCodeMorton2d(int n, int x, int y)
 {
 
     return d;
 }
 
-//convert d to (x,y)
+//convert_database_r d to (x,y)
 extern inline void spSFCEncodeMorton2d(int n, int d, int *x, int *y)
 {
 
@@ -44,7 +44,7 @@ extern inline void spSFCRotateHilbert2d(int n, int *x, int *y, int rx, int ry)
         *y = t;
     }
 }
-//convert (x,y) to d
+//convert_database_r (x,y) to d
 extern inline int spSFCCodeHilbert2d(int n, int x, int y)
 {
     int rx, ry, s, d = 0;
@@ -58,7 +58,7 @@ extern inline int spSFCCodeHilbert2d(int n, int x, int y)
     return d;
 }
 
-//convert d to (x,y)
+//convert_database_r d to (x,y)
 extern inline void spSFCEncodeHilbert2d(int n, int d, int *x, int *y)
 {
     int rx, ry, s, t = d;

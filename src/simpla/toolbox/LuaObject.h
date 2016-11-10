@@ -372,7 +372,7 @@ public:
 
                 auto v_obj = f_obj(std::forward<Args>(args)...);
 
-                if (!v_obj.template as<TRect>(&t)) { RUNTIME_ERROR << ("convert error!") << std::endl; }
+                if (!v_obj.template as<TRect>(&t)) { RUNTIME_ERROR << ("convert_database_r error!") << std::endl; }
 
                 return std::move(t);
             };

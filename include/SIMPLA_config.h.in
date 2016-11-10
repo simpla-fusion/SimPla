@@ -50,7 +50,7 @@
 
 #cmakedefine SP_REAL @SP_REAL@
 #ifndef SP_REAL
-#define SP_REAL float
+#define SP_REAL double
 #endif
 
 typedef SP_REAL Real;

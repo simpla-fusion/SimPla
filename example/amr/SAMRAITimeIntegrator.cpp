@@ -11,11 +11,13 @@
 
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/nTuple.h>
+#include <simpla/data/DataBase.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/DataBlock.h>
 #include <simpla/mesh/Worker.h>
-
+#include <simpla/simulation/TimeIntegrator.h>
+#include <boost/shared_ptr.hpp>
 // Headers for SAMRAI
 #include <SAMRAI/SAMRAI_config.h>
 
@@ -70,278 +72,19 @@
 #include <SAMRAI/appu/CartesianBoundaryDefines.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities2.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities3.h>
-#include <boost/shared_ptr.hpp>
-
-#include <simpla/data/DataBase.h>
-#include <simpla/simulation/TimeIntegrator.h>
+#include <SAMRAI/pdat/SideVariable.h>
 
 namespace simpla
 {
-struct SAMRAIWorkerHyperbolic;
+struct SAMRAIWorker;
 
 struct SAMRAITimeIntegrator;
 
 std::shared_ptr<simulation::TimeIntegrator>
-create_samrai_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w = nullptr)
+create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w)
 {
     return std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>(name, w));
 }
-
-struct SAMRAITimeIntegrator : public simulation::TimeIntegrator
-{
-    typedef simulation::TimeIntegrator base_type;
-public:
-    SAMRAITimeIntegrator(std::string const &s = "", std::shared_ptr<mesh::Worker> const &w = nullptr);
-
-    ~SAMRAITimeIntegrator();
-
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
-
-    virtual void load(data::DataBase const &);
-
-    virtual void save(data::DataBase *) const;
-
-    void deploy();
-
-    void tear_down();
-
-    bool is_valid() const;
-
-    size_type step() const;
-
-    Real time() const;
-
-    void next_time_step(Real dt);
-
-    void register_worker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
-
-private:
-    bool m_is_valid_ = false;
-    std::shared_ptr<mesh::Worker> m_worker_;
-
-    boost::shared_ptr<SAMRAI::tbox::Database> samrai_cfg;
-
-    boost::shared_ptr<SAMRAIWorkerHyperbolic> patch_worker;
-
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
-
-    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> patch_hierarchy;
-
-    boost::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator> hyp_level_integrator;
-
-//    boost::shared_ptr<SAMRAI::mesh::StandardTagAndInitialize> error_detector;
-//
-//    boost::shared_ptr<SAMRAI::mesh::BergerRigoutsos> box_generator;
-//
-//    boost::shared_ptr<SAMRAI::mesh::CascadePartitioner> load_balancer;
-//
-//    boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_algorithm;
-
-    boost::shared_ptr<SAMRAI::algs::TimeRefinementIntegrator> time_integrator;
-
-    // VisItDataWriter is only present if HDF is available
-    boost::shared_ptr<SAMRAI::appu::VisItDataWriter> visit_data_writer;
-
-
-    bool write_restart = false;
-    int restart_interval = 0;
-
-    std::string restart_write_dirname;
-
-    bool viz_dump_data = false;
-    int viz_dump_interval = 1;
-
-    static constexpr int ndims = 3;
-};
-
-SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::string const &s, std::shared_ptr<mesh::Worker> const &w)
-        : base_type(s), m_worker_(w)
-{
-    /*
-      * Initialize SAMRAI::tbox::MPI.
-      */
-    SAMRAI::tbox::SAMRAI_MPI::init(0, nullptr);
-
-    SAMRAI::tbox::SAMRAIManager::initialize();
-    /*
-     * Initialize SAMRAI, enable logging, and process command line.
-     */
-    SAMRAI::tbox::SAMRAIManager::startup();
-//    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
-}
-
-SAMRAITimeIntegrator::~SAMRAITimeIntegrator()
-{
-    SAMRAI::tbox::SAMRAIManager::shutdown();
-    SAMRAI::tbox::SAMRAIManager::finalize();
-    SAMRAI::tbox::SAMRAI_MPI::finalize();
-}
-
-std::ostream &SAMRAITimeIntegrator::print(std::ostream &os, int indent) const
-{
-    hyp_level_integrator->printClassData(os);
-    return os;
-};
-
-
-void SAMRAITimeIntegrator::load(data::DataBase const &db) { m_is_valid_ = false; }
-
-void SAMRAITimeIntegrator::save(data::DataBase *) const { UNIMPLEMENTED; }
-
-void convert(data::DataBase const &src, boost::shared_ptr<SAMRAI::tbox::Database> &dest, std::string const &key = "")
-{
-
-    if (src.is_table())
-    {
-        auto sub_db = key == "" ? dest : dest->putDatabase(key);
-
-        src.foreach([&](std::string const &k, data::DataBase const &v) { convert(v, sub_db, k); });
-    } else if (key == "") { return; }
-    else if (src.empty()) { dest->putDatabase(key); }
-    else if (src.is_boolean()) { dest->putBool(key, src.as<bool>()); }
-    else if (src.is_string()) { dest->putString(key, src.as<std::string>()); }
-    else if (src.is_floating_point()) { dest->putDouble(key, src.as<double>()); }
-    else if (src.is_integral()) { dest->putInteger(key, src.as<int>()); }
-    else if (src.type() == typeid(nTuple<bool, 3>)) { dest->putBoolArray(key, &src.as<nTuple<bool, 3>>()[0], 3); }
-    else if (src.type() == typeid(nTuple<int, 3>)) { dest->putIntegerArray(key, &src.as<nTuple<int, 3>>()[0], 3); }
-    else if (src.type() ==
-             typeid(nTuple<double, 3>)) { dest->putDoubleArray(key, &src.as<nTuple<double, 3>>()[0], 3); }
-//    else if (src.type() == typeid(box_type)) { dest->putDoubleArray(key, &src.as<box_type>()[0], 3); }
-    else if (src.type() == typeid(index_box_type))
-    {
-        nTuple<int, 3> i_lo, i_up;
-        std::tie(i_lo, i_up) = src.as<index_box_type>();
-        SAMRAI::tbox::Dimension dim(3);
-        dest->putDatabaseBox(key, SAMRAI::tbox::DatabaseBox(dim, &(i_lo[0]), &(i_up[0])));
-    } else
-    {
-        WARNING << " Unknown type [" << src << "]" << std::endl;
-    }
-
-}
-
-void SAMRAITimeIntegrator::deploy()
-{
-    bool use_refined_timestepping = db["use_refined_timestepping"].as<bool>(true);
-    m_is_valid_ = true;
-    SAMRAI::tbox::Dimension dim(ndims);
-    samrai_cfg = boost::dynamic_pointer_cast<SAMRAI::tbox::Database>(
-            boost::make_shared<SAMRAI::tbox::MemoryDatabase>(name()));
-    convert(db, samrai_cfg);
-
-
-
-    /**
-    * Create major algorithm and data objects which comprise application.
-    * Each object will be initialized either from input data or restart
-    * files, or a combination of both.  Refer to each class constructor
-    * for details.  For more information on the composition of objects
-    * for this application, see comments at top of file.
-    */
-
-
-    grid_geometry = boost::make_shared<SAMRAI::geom::CartesianGridGeometry>(dim, "CartesianGeometry",
-                                                                            samrai_cfg->getDatabase("CartesianGeometry"));
-    grid_geometry->printClassData(std::cout);
-    //---------------------------------
-
-    auto patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>("PatchHierarchy", grid_geometry,
-                                                                            samrai_cfg->getDatabase("PatchHierarchy"));
-    patch_hierarchy->recursivePrint(std::cout, "", 1);
-    //---------------------------------
-    /***
-     *  create hyp_level_integrator and error_detector
-     */
-    patch_worker = boost::make_shared<SAMRAIWorkerHyperbolic>(m_worker_, dim, grid_geometry);
-
-    hyp_level_integrator = boost::make_shared<SAMRAI::algs::HyperbolicLevelIntegrator>(
-            "HyperbolicLevelIntegrator", samrai_cfg->getDatabase("HyperbolicLevelIntegrator"),
-            patch_worker.get(), use_refined_timestepping);
-
-    hyp_level_integrator->printClassData(std::cout);
-
-    auto error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
-            "StandardTagAndInitialize", hyp_level_integrator.get(),
-            samrai_cfg->getDatabase("StandardTagAndInitialize"));
-    //---------------------------------
-
-    /**
-     *  create grid_algorithm
-     */
-    auto box_generator = boost::make_shared<SAMRAI::mesh::BergerRigoutsos>(dim, samrai_cfg->getDatabase("BergerRigoutsos"));
-
-    box_generator->useDuplicateMPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
-
-    auto load_balancer = boost::make_shared<SAMRAI::mesh::CascadePartitioner>(dim, "LoadBalancer",
-                                                                              samrai_cfg->getDatabase("LoadBalancer"));
-
-    load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
-
-    load_balancer->printStatistics(std::cout);
-
-    auto gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
-            patch_hierarchy,
-            "GriddingAlgorithm",
-            samrai_cfg->getDatabase("GriddingAlgorithm"),
-            error_detector,
-            box_generator,
-            load_balancer);
-
-    gridding_algorithm->printClassData(std::cout);
-    //---------------------------------
-
-    time_integrator = boost::make_shared<SAMRAI::algs::TimeRefinementIntegrator>(
-            "TimeRefinementIntegrator",
-            samrai_cfg->getDatabase("TimeRefinementIntegrator"),
-            patch_hierarchy,
-            hyp_level_integrator,
-            gridding_algorithm);
-    time_integrator->initializeHierarchy();
-
-
-//    time_integrator->printClassData(std::cout);
-
-    const std::string viz_dump_dirname("untitled.visit");
-
-    int visit_number_procs_per_file = 1;
-
-    visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
-            dim,
-            "LinAdv VisIt Writer",
-            viz_dump_dirname,
-            visit_number_procs_per_file);
-//    patch_worker->registerVisItDataWriter(visit_data_writer);
-    MESSAGE << name() << " is deployed!" << std::endl;
-    samrai_cfg->printClassData(std::cout);
-
-};
-
-void SAMRAITimeIntegrator::tear_down()
-{
-    m_is_valid_ = false;
-
-    visit_data_writer.reset();
-
-    time_integrator.reset();
-
-    hyp_level_integrator.reset();
-
-    patch_worker.reset();
-}
-
-
-bool SAMRAITimeIntegrator::is_valid() const { return m_is_valid_; }
-
-void SAMRAITimeIntegrator::next_time_step(Real dt)
-{
-    assert(is_valid());
-    MESSAGE << " Time = " << time() << " Step = " << step() << std::endl;
-    time_integrator->advanceHierarchy(dt, true);
-}
-
-Real SAMRAITimeIntegrator::time() const { return static_cast<Real>( time_integrator->getIntegratorTime()); }
-
-size_type SAMRAITimeIntegrator::step() const { return static_cast<size_type>( time_integrator->getIntegratorStep()); }
 
 /*********************************************************************************************************************/
 
@@ -385,21 +128,21 @@ size_type SAMRAITimeIntegrator::step() const { return static_cast<size_type>( ti
 // Version of LinAdv restart file data
 #define LINADV_VERSION (3)
 
-class SAMRAIWorkerHyperbolic :
+class SAMRAIWorker :
         public SAMRAI::algs::HyperbolicPatchStrategy,
         public SAMRAI::appu::BoundaryUtilityStrategy // for Boundary
 {
 
 public:
 
-    SAMRAIWorkerHyperbolic(std::shared_ptr<mesh::Worker> const &w,
-                           const SAMRAI::tbox::Dimension &dim,
-                           boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom);
+    SAMRAIWorker(std::shared_ptr<mesh::Worker> const &w,
+                 const SAMRAI::tbox::Dimension &dim,
+                 boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom);
 
     /**
      * The destructor for SAMRAIWorkerHyperbolic does nothing.
      */
-    ~SAMRAIWorkerHyperbolic();
+    ~SAMRAIWorker();
 
 
 
@@ -570,7 +313,7 @@ public:
     //@}
 //
 //    /**
-//     * Write state of SAMRAIWorkerHyperbolic object to the given database for restart.
+//     * Write state of SAMRAIWorker object to the given database for restart.
 //     *
 //     * This routine is a concrete implementation of the function
 //     * declared in the tbox::Serializable abstract base class.
@@ -625,41 +368,6 @@ private:
     std::shared_ptr<mesh::Worker> m_worker_;
 
     /*
-     * These private member functions read data from input and restart.
-     * When beginning a run from a restart file, all data members are read
-     * from the restart file.  If the boolean flag is true when reading
-     * from input, some restart values may be overridden by those in the
-     * input file.
-     *
-     * An assertion results if the database pointer is null.
-     */
-    void getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> input_db, bool is_from_restart);
-//
-//    void getFromRestart();
-
-    void readStateDataEntry(boost::shared_ptr<SAMRAI::tbox::Database> db,
-                            const std::string &db_name,
-                            int array_indx,
-                            std::vector<double> &uval);
-
-//    /*
-//     * Private member function to check correctness of boundary data.
-//     */
-//    void checkBoundaryData(int btype,
-//                           const SAMRAI::hier::DataBlockBase &patch,
-//                           const SAMRAI::hier::IntVector &ghost_width_to_fill,
-//                           const std::vector<int> &scalar_bconds) const;
-//
-//    /*
-//     * Three-dimensional flux computation routines corresponding to
-//     * either of the two transverse flux correction options.  These
-//     * routines are called from the computeFluxesOnPatch() function.
-//     */
-//    void compute3DFluxesWithCornerTransport1(SAMRAI::hier::DataBlockBase &patch, const double dt);
-//
-//    void compute3DFluxesWithCornerTransport2(SAMRAI::hier::DataBlockBase &patch, const double dt);
-
-    /*
      * The object name is used for error/warning reporting and also as a
      * string label for restart database entries.
      */
@@ -672,29 +380,29 @@ private:
      * data, set physical boundary conditions, and register plot
      * variables.
      */
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry;
+    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
 
-    boost::shared_ptr<SAMRAI::appu::VisItDataWriter> d_visit_writer;
+    boost::shared_ptr<SAMRAI::appu::VisItDataWriter> d_visit_writer = nullptr;
 
     /*
      * Data items used for nonuniform load balance, if used.
      */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_workload_variable;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id;
     bool d_use_nonuniform_workload;
 
 
-    std::map<std::string, boost::shared_ptr<SAMRAI::hier::Variable> > m_samrai_variables_;
+    std::map<std::string, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
 
     /**
      * boost::shared_ptr to state variable vector - [u]
      */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double> > d_uval;
+    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_uval;
 
     /**
      * boost::shared_ptr to flux variable vector  - [F]
      */
-    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double> > d_flux;
+    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>> d_flux;
 
     /**
      * linear advection velocity vector
@@ -782,20 +490,20 @@ private:
 
 };
 
-SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
+SAMRAIWorker::SAMRAIWorker(
         std::shared_ptr<mesh::Worker> const &w,
         const SAMRAI::tbox::Dimension &dim,
         boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom) :
         SAMRAI::algs::HyperbolicPatchStrategy(),
         m_worker_(w),
-        d_object_name(w->name()),
+        d_object_name(w != nullptr ? w->name() : ""),
         d_dim(dim),
         d_grid_geometry(grid_geom),
         d_use_nonuniform_workload(false),
         d_uval(new SAMRAI::pdat::CellVariable<double>(dim, "uval", 1)),
         d_flux(new SAMRAI::pdat::FaceVariable<double>(dim, "flux", 1)),
-        d_advection_velocity(dim.getValue()),
-        d_godunov_order(1),
+//        d_advection_velocity(dim.getValue()),
+//        d_godunov_order(1),
         d_corner_transport("CORNER_TRANSPORT_1"),
         d_nghosts(dim, CELLG),
         d_fluxghosts(dim, FLUXG),
@@ -803,16 +511,13 @@ SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
         d_data_problem_int(SAMRAI::tbox::MathUtilities<int>::getMax()),
         d_radius(SAMRAI::tbox::MathUtilities<double>::getSignalingNaN()),
         d_center(dim.getValue()),
-        d_uval_inside(SAMRAI::tbox::MathUtilities<double>::getSignalingNaN()),
-        d_uval_outside(SAMRAI::tbox::MathUtilities<double>::getSignalingNaN()),
+//        d_uval_inside(SAMRAI::tbox::MathUtilities<double>::getSignalingNaN()),
+//        d_uval_outside(SAMRAI::tbox::MathUtilities<double>::getSignalingNaN()),
         d_number_of_intervals(0),
         d_amplitude(0.),
         d_frequency(dim.getValue())
 {
     TBOX_ASSERT(grid_geom);
-
-//    SAMRAI::tbox::RestartManager::getManager()->registerRestartItem(d_object_name, this);
-
     TBOX_ASSERT(CELLG == FACEG);
 
     // SPHERE problem...
@@ -821,193 +526,192 @@ SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
     // SINE problem
     for (int k = 0; k < d_dim.getValue(); ++k) d_frequency[k] = 0.;
 
-    /*
-     * Defaults for boundary conditions. Set to bogus values
-     * for error checking.
-     */
-
-    if (d_dim == SAMRAI::tbox::Dimension(2))
-    {
-        d_scalar_bdry_edge_conds.resize(NUM_2D_EDGES);
-        for (int ei = 0; ei < NUM_2D_EDGES; ++ei)
-        {
-            d_scalar_bdry_edge_conds[ei] = BOGUS_BDRY_DATA;
-        }
-
-        d_scalar_bdry_node_conds.resize(NUM_2D_NODES);
-        d_node_bdry_edge.resize(NUM_2D_NODES);
-
-        for (int ni = 0; ni < NUM_2D_NODES; ++ni)
-        {
-            d_scalar_bdry_node_conds[ni] = BOGUS_BDRY_DATA;
-            d_node_bdry_edge[ni] = BOGUS_BDRY_DATA;
-        }
-
-        d_bdry_edge_uval.resize(NUM_2D_EDGES);
-        SAMRAI::tbox::MathUtilities<double>::setVectorToSignalingNaN(d_bdry_edge_uval);
-    }
-    if (d_dim == SAMRAI::tbox::Dimension(3))
-    {
-        d_scalar_bdry_face_conds.resize(NUM_3D_FACES);
-        for (int fi = 0; fi < NUM_3D_FACES; ++fi)
-        {
-            d_scalar_bdry_face_conds[fi] = BOGUS_BDRY_DATA;
-        }
-
-        d_scalar_bdry_edge_conds.resize(NUM_3D_EDGES);
-        d_edge_bdry_face.resize(NUM_3D_EDGES);
-        for (int ei = 0; ei < NUM_3D_EDGES; ++ei)
-        {
-            d_scalar_bdry_edge_conds[ei] = BOGUS_BDRY_DATA;
-            d_edge_bdry_face[ei] = BOGUS_BDRY_DATA;
-        }
-
-        d_scalar_bdry_node_conds.resize(NUM_3D_NODES);
-        d_node_bdry_face.resize(NUM_3D_NODES);
-
-        for (int ni = 0; ni < NUM_3D_NODES; ++ni)
-        {
-            d_scalar_bdry_node_conds[ni] = BOGUS_BDRY_DATA;
-            d_node_bdry_face[ni] = BOGUS_BDRY_DATA;
-        }
-
-        d_bdry_face_uval.resize(NUM_3D_FACES);
-        SAMRAI::tbox::MathUtilities<double>::setVectorToSignalingNaN(d_bdry_face_uval);
-    }
-    /*
-     * Initialize object with data read from given input/restart databases.
-     */
-
-    auto input_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("LinAdv");
-    double advection_velocity[3] = {2.0e0, 1.0e0, 1.0e0};
-    input_db->putDoubleArray("advection_velocity", advection_velocity, 3);
-    input_db->putInteger("godunov_order", 2);
-    input_db->putString("corner_transport", "CORNER_TRANSPORT_1");
-    input_db->putString("data_problem", "SPHERE");
-
-    auto Initial_data_db = input_db->putDatabase("Initial_data");
-    double center[3] = {5.5, 5.5, 5.5};
-    Initial_data_db->putDouble("radius", 2.9);
-    Initial_data_db->putDoubleArray("center", center, 3);
-    Initial_data_db->putDouble("uval_inside", 80.0);
-    Initial_data_db->putDouble("uval_outside", 5.0);
-
-    auto Boundary_data_db = input_db->putDatabase("Boundary_data");
-    Boundary_data_db->putDatabase("boundary_face_xlo")->putString("boundary_condition", "FLOW");
-    Boundary_data_db->putDatabase("boundary_face_xhi")->putString("boundary_condition", "FLOW");
-    Boundary_data_db->putDatabase("boundary_face_ylo")->putString("boundary_condition", "FLOW");
-    Boundary_data_db->putDatabase("boundary_face_yhi")->putString("boundary_condition", "FLOW");
-    Boundary_data_db->putDatabase("boundary_face_zlo")->putString("boundary_condition", "FLOW");
-    Boundary_data_db->putDatabase("boundary_face_zhi")->putString("boundary_condition", "FLOW");
-
-
-    Boundary_data_db->putDatabase("boundary_edge_ylo_zlo")->putString("boundary_condition", "ZFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_yhi_zlo")->putString("boundary_condition", "ZFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_ylo_zhi")->putString("boundary_condition", "ZFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_yhi_zhi")->putString("boundary_condition", "ZFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xlo_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xlo_zhi")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xhi_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xhi_zhi")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xlo_ylo")->putString("boundary_condition", "YFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xhi_ylo")->putString("boundary_condition", "YFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xlo_yhi")->putString("boundary_condition", "YFLOW");
-    Boundary_data_db->putDatabase("boundary_edge_xhi_yhi")->putString("boundary_condition", "YFLOW");
-
-
-    Boundary_data_db->putDatabase("boundary_node_xlo_ylo_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xhi_ylo_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xlo_yhi_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xhi_yhi_zlo")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xlo_ylo_zhi")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xhi_ylo_zhi")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xlo_yhi_zhi")->putString("boundary_condition", "XFLOW");
-    Boundary_data_db->putDatabase("boundary_node_xhi_yhi_zhi")->putString("boundary_condition", "XFLOW");
-
-
-    getFromInput(input_db, false);
-
-
-    /*
-     * Set problem data to values read from input/restart.
-     */
-
-    if (d_data_problem == "PIECEWISE_CONSTANT_X") { d_data_problem_int = PIECEWISE_CONSTANT_X; }
-    else if (d_data_problem == "PIECEWISE_CONSTANT_Y") { d_data_problem_int = PIECEWISE_CONSTANT_Y; }
-    else if (d_data_problem == "PIECEWISE_CONSTANT_Z") { d_data_problem_int = PIECEWISE_CONSTANT_Z; }
-    else if (d_data_problem == "SINE_CONSTANT_X") { d_data_problem_int = SINE_CONSTANT_X; }
-    else if (d_data_problem == "SINE_CONSTANT_Y") { d_data_problem_int = SINE_CONSTANT_Y; }
-    else if (d_data_problem == "SINE_CONSTANT_Z") { d_data_problem_int = SINE_CONSTANT_Z; }
-    else if (d_data_problem == "SPHERE") { d_data_problem_int = SPHERE; }
-    else
-    {
-        TBOX_ERROR(
-                d_object_name << ": "
-                              << "Unknown d_data_problem string = "
-                              << d_data_problem
-                              << " encountered in constructor" << std::endl);
-    }
-
-    /*
-     * Postprocess boundary data from input/restart values.  Note: scalar
-     * quantity in this problem cannot have reflective boundary conditions
-     * so we reset them to FLOW.
-     */
-    if (d_dim == SAMRAI::tbox::Dimension(2))
-    {
-        for (int i = 0; i < NUM_2D_EDGES; ++i)
-        {
-            if (d_scalar_bdry_edge_conds[i] == BdryCond::REFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::FLOW; }
-        }
-
-        for (int i = 0; i < NUM_2D_NODES; ++i)
-        {
-            if (d_scalar_bdry_node_conds[i] == BdryCond::XREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::XFLOW; }
-            if (d_scalar_bdry_node_conds[i] == BdryCond::YREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::YFLOW; }
-
-            if (d_scalar_bdry_node_conds[i] != BOGUS_BDRY_DATA)
-            {
-                d_node_bdry_edge[i] =
-                        SAMRAI::appu::CartesianBoundaryUtilities2::getEdgeLocationForNodeBdry(
-                                i, d_scalar_bdry_node_conds[i]);
-            }
-        }
-    }
-    if (d_dim == SAMRAI::tbox::Dimension(3))
-    {
-        for (int i = 0; i < NUM_3D_FACES; ++i)
-        {
-            if (d_scalar_bdry_face_conds[i] == BdryCond::REFLECT) { d_scalar_bdry_face_conds[i] = BdryCond::FLOW; }
-        }
-
-        for (int i = 0; i < NUM_3D_EDGES; ++i)
-        {
-            if (d_scalar_bdry_edge_conds[i] == BdryCond::XREFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::XFLOW; }
-            if (d_scalar_bdry_edge_conds[i] == BdryCond::YREFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::YFLOW; }
-            if (d_scalar_bdry_edge_conds[i] == BdryCond::ZREFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::ZFLOW; }
-
-            if (d_scalar_bdry_edge_conds[i] != BOGUS_BDRY_DATA)
-            {
-                d_edge_bdry_face[i] = SAMRAI::appu::CartesianBoundaryUtilities3::getFaceLocationForEdgeBdry(i,
-                                                                                                            d_scalar_bdry_edge_conds[i]);
-            }
-        }
-
-        for (int i = 0; i < NUM_3D_NODES; ++i)
-        {
-            if (d_scalar_bdry_node_conds[i] == BdryCond::XREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::XFLOW; }
-            if (d_scalar_bdry_node_conds[i] == BdryCond::REFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::YFLOW; }
-            if (d_scalar_bdry_node_conds[i] == BdryCond::ZREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::ZFLOW; }
-
-            if (d_scalar_bdry_node_conds[i] != BOGUS_BDRY_DATA)
-            {
-                d_node_bdry_face[i] = SAMRAI::appu::CartesianBoundaryUtilities3::getFaceLocationForNodeBdry(i,
-                                                                                                            d_scalar_bdry_node_conds[i]);
-            }
-        }
-
-    }
-
+//    /*
+//     * Defaults for boundary conditions. Set to bogus values
+//     * for error checking.
+//     */
+//
+//    if (d_dim == SAMRAI::tbox::Dimension(2))
+//    {
+//        d_scalar_bdry_edge_conds.resize(NUM_2D_EDGES);
+//        for (int ei = 0; ei < NUM_2D_EDGES; ++ei)
+//        {
+//            d_scalar_bdry_edge_conds[ei] = BOGUS_BDRY_DATA;
+//        }
+//
+//        d_scalar_bdry_node_conds.resize(NUM_2D_NODES);
+//        d_node_bdry_edge.resize(NUM_2D_NODES);
+//
+//        for (int ni = 0; ni < NUM_2D_NODES; ++ni)
+//        {
+//            d_scalar_bdry_node_conds[ni] = BOGUS_BDRY_DATA;
+//            d_node_bdry_edge[ni] = BOGUS_BDRY_DATA;
+//        }
+//
+//        d_bdry_edge_uval.resize(NUM_2D_EDGES);
+//        SAMRAI::tbox::MathUtilities<double>::setVectorToSignalingNaN(d_bdry_edge_uval);
+//    }
+//    if (d_dim == SAMRAI::tbox::Dimension(3))
+//    {
+//        d_scalar_bdry_face_conds.resize(NUM_3D_FACES);
+//        for (int fi = 0; fi < NUM_3D_FACES; ++fi)
+//        {
+//            d_scalar_bdry_face_conds[fi] = BOGUS_BDRY_DATA;
+//        }
+//
+//        d_scalar_bdry_edge_conds.resize(NUM_3D_EDGES);
+//        d_edge_bdry_face.resize(NUM_3D_EDGES);
+//        for (int ei = 0; ei < NUM_3D_EDGES; ++ei)
+//        {
+//            d_scalar_bdry_edge_conds[ei] = BOGUS_BDRY_DATA;
+//            d_edge_bdry_face[ei] = BOGUS_BDRY_DATA;
+//        }
+//
+//        d_scalar_bdry_node_conds.resize(NUM_3D_NODES);
+//        d_node_bdry_face.resize(NUM_3D_NODES);
+//
+//        for (int ni = 0; ni < NUM_3D_NODES; ++ni)
+//        {
+//            d_scalar_bdry_node_conds[ni] = BOGUS_BDRY_DATA;
+//            d_node_bdry_face[ni] = BOGUS_BDRY_DATA;
+//        }
+//
+//        d_bdry_face_uval.resize(NUM_3D_FACES);
+//        SAMRAI::tbox::MathUtilities<double>::setVectorToSignalingNaN(d_bdry_face_uval);
+//    }
+//    /*
+//     * Initialize object with data read from given input/restart databases.
+//     */
+//
+//    auto input_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("LinAdv");
+//    double advection_velocity[3] = {2.0e0, 1.0e0, 1.0e0};
+//    input_db->putDoubleArray("advection_velocity", advection_velocity, 3);
+//    input_db->putInteger("godunov_order", 2);
+//    input_db->putString("corner_transport", "CORNER_TRANSPORT_1");
+//    input_db->putString("data_problem", "SPHERE");
+//
+//    auto Initial_data_db = input_db->putDatabase("Initial_data");
+//    double center[3] = {5.5, 5.5, 5.5};
+//    Initial_data_db->putDouble("radius", 2.9);
+//    Initial_data_db->putDoubleArray("center", center, 3);
+//    Initial_data_db->putDouble("uval_inside", 80.0);
+//    Initial_data_db->putDouble("uval_outside", 5.0);
+//
+//    auto Boundary_data_db = input_db->putDatabase("Boundary_data");
+//    Boundary_data_db->putDatabase("boundary_face_xlo")->putString("boundary_condition", "FLOW");
+//    Boundary_data_db->putDatabase("boundary_face_xhi")->putString("boundary_condition", "FLOW");
+//    Boundary_data_db->putDatabase("boundary_face_ylo")->putString("boundary_condition", "FLOW");
+//    Boundary_data_db->putDatabase("boundary_face_yhi")->putString("boundary_condition", "FLOW");
+//    Boundary_data_db->putDatabase("boundary_face_zlo")->putString("boundary_condition", "FLOW");
+//    Boundary_data_db->putDatabase("boundary_face_zhi")->putString("boundary_condition", "FLOW");
+//
+//
+//    Boundary_data_db->putDatabase("boundary_edge_ylo_zlo")->putString("boundary_condition", "ZFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_yhi_zlo")->putString("boundary_condition", "ZFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_ylo_zhi")->putString("boundary_condition", "ZFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_yhi_zhi")->putString("boundary_condition", "ZFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xlo_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xlo_zhi")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xhi_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xhi_zhi")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xlo_ylo")->putString("boundary_condition", "YFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xhi_ylo")->putString("boundary_condition", "YFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xlo_yhi")->putString("boundary_condition", "YFLOW");
+//    Boundary_data_db->putDatabase("boundary_edge_xhi_yhi")->putString("boundary_condition", "YFLOW");
+//
+//
+//    Boundary_data_db->putDatabase("boundary_node_xlo_ylo_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xhi_ylo_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xlo_yhi_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xhi_yhi_zlo")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xlo_ylo_zhi")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xhi_ylo_zhi")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xlo_yhi_zhi")->putString("boundary_condition", "XFLOW");
+//    Boundary_data_db->putDatabase("boundary_node_xhi_yhi_zhi")->putString("boundary_condition", "XFLOW");
+//
+//
+//
+//
+//    /*
+//     * Set problem data to values read from input/restart.
+//     */
+//
+//    if (d_data_problem == "PIECEWISE_CONSTANT_X") { d_data_problem_int = PIECEWISE_CONSTANT_X; }
+//    else if (d_data_problem == "PIECEWISE_CONSTANT_Y") { d_data_problem_int = PIECEWISE_CONSTANT_Y; }
+//    else if (d_data_problem == "PIECEWISE_CONSTANT_Z") { d_data_problem_int = PIECEWISE_CONSTANT_Z; }
+//    else if (d_data_problem == "SINE_CONSTANT_X") { d_data_problem_int = SINE_CONSTANT_X; }
+//    else if (d_data_problem == "SINE_CONSTANT_Y") { d_data_problem_int = SINE_CONSTANT_Y; }
+//    else if (d_data_problem == "SINE_CONSTANT_Z") { d_data_problem_int = SINE_CONSTANT_Z; }
+//    else if (d_data_problem == "SPHERE") { d_data_problem_int = SPHERE; }
+//    else
+//    {
+//        TBOX_ERROR(
+//                d_object_name << ": "
+//                              << "Unknown d_data_problem string = "
+//                              << d_data_problem
+//                              << " encountered in constructor" << std::endl);
+//    }
+//
+//    /*
+//     * Postprocess boundary data from input/restart values.  Note: scalar
+//     * quantity in this problem cannot have reflective boundary conditions
+//     * so we reset them to FLOW.
+//     */
+//    if (d_dim == SAMRAI::tbox::Dimension(2))
+//    {
+//        for (int i = 0; i < NUM_2D_EDGES; ++i)
+//        {
+//            if (d_scalar_bdry_edge_conds[i] == BdryCond::REFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::FLOW; }
+//        }
+//
+//        for (int i = 0; i < NUM_2D_NODES; ++i)
+//        {
+//            if (d_scalar_bdry_node_conds[i] == BdryCond::XREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::XFLOW; }
+//            if (d_scalar_bdry_node_conds[i] == BdryCond::YREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::YFLOW; }
+//
+//            if (d_scalar_bdry_node_conds[i] != BOGUS_BDRY_DATA)
+//            {
+//                d_node_bdry_edge[i] =
+//                        SAMRAI::appu::CartesianBoundaryUtilities2::getEdgeLocationForNodeBdry(
+//                                i, d_scalar_bdry_node_conds[i]);
+//            }
+//        }
+//    }
+//    if (d_dim == SAMRAI::tbox::Dimension(3))
+//    {
+//        for (int i = 0; i < NUM_3D_FACES; ++i)
+//        {
+//            if (d_scalar_bdry_face_conds[i] == BdryCond::REFLECT) { d_scalar_bdry_face_conds[i] = BdryCond::FLOW; }
+//        }
+//
+//        for (int i = 0; i < NUM_3D_EDGES; ++i)
+//        {
+//            if (d_scalar_bdry_edge_conds[i] == BdryCond::XREFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::XFLOW; }
+//            if (d_scalar_bdry_edge_conds[i] == BdryCond::YREFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::YFLOW; }
+//            if (d_scalar_bdry_edge_conds[i] == BdryCond::ZREFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::ZFLOW; }
+//
+//            if (d_scalar_bdry_edge_conds[i] != BOGUS_BDRY_DATA)
+//            {
+//                d_edge_bdry_face[i] = SAMRAI::appu::CartesianBoundaryUtilities3::getFaceLocationForEdgeBdry(i,
+//                                                                                                            d_scalar_bdry_edge_conds[i]);
+//            }
+//        }
+//
+//        for (int i = 0; i < NUM_3D_NODES; ++i)
+//        {
+//            if (d_scalar_bdry_node_conds[i] == BdryCond::XREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::XFLOW; }
+//            if (d_scalar_bdry_node_conds[i] == BdryCond::REFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::YFLOW; }
+//            if (d_scalar_bdry_node_conds[i] == BdryCond::ZREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::ZFLOW; }
+//
+//            if (d_scalar_bdry_node_conds[i] != BOGUS_BDRY_DATA)
+//            {
+//                d_node_bdry_face[i] = SAMRAI::appu::CartesianBoundaryUtilities3::getFaceLocationForNodeBdry(i,
+//                                                                                                            d_scalar_bdry_node_conds[i]);
+//            }
+//        }
+//
+//    }
+//
 //    SAMRAI_F77_FUNC(stufprobc, STUFPROBC)(PIECEWISE_CONSTANT_X, PIECEWISE_CONSTANT_Y,
 //                                          PIECEWISE_CONSTANT_Z,
 //                                          SINE_CONSTANT_X, SINE_CONSTANT_Y, SINE_CONSTANT_Z, SPHERE,
@@ -1018,15 +722,190 @@ SAMRAIWorkerHyperbolic::SAMRAIWorkerHyperbolic(
 /*
  *************************************************************************
  *
- * Empty destructor for SAMRAIWorkerHyperbolic class.
+ * Empty destructor for SAMRAIWorker class.
  *
  *************************************************************************
  */
 
-SAMRAIWorkerHyperbolic::~SAMRAIWorkerHyperbolic()
+SAMRAIWorker::~SAMRAIWorker()
 {
 }
 
+namespace detail
+{
+
+std::string get_visit_variable_type(std::type_info const &t_info)
+{
+
+    if (t_info == typeid(float) || t_info == typeid(double) || t_info == typeid(int)) { return "SCALAR"; }
+    else if (t_info == typeid(nTuple<float, 3>) ||
+             t_info == typeid(nTuple<double, 3>) ||
+             t_info == typeid(nTuple<int, 3>) ||
+             t_info == typeid(nTuple<long, 3>)
+            ) { return "VECTOR"; }
+//    else if (t_info == typeid(nTuple<float, 3, 3>) ||
+//             t_info == typeid(nTuple<double, 3, 3>) ||
+//             t_info == typeid(nTuple<int, 3, 3>) ||
+//             t_info == typeid(nTuple<long, 3, 3>)
+//            ) { return "TENSOR"; }
+    else
+    {
+        UNIMPLEMENTED;
+    }
+
+
+}
+
+
+template<typename T> boost::shared_ptr<SAMRAI::hier::Variable>
+register_variable_Node(mesh::Attribute *item,
+                       int ndims,
+                       SAMRAI::hier::IntVector const &d_nghosts,
+                       SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
+                       boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &d_grid_geometry,
+                       boost::shared_ptr<SAMRAI::appu::VisItDataWriter> const &d_visit_writer,
+                       SAMRAI::hier::VariableDatabase *vardb)
+{
+    SAMRAI::tbox::Dimension d_dim(ndims);
+
+    auto var = boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, item->name());
+    integrator->registerVariable(var, d_nghosts,
+                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                 d_grid_geometry,
+                                 "", // FIXME !!! LINEAR_COARSEN ???
+                                 "LINEAR_REFINE");
+    d_visit_writer->registerPlotQuantity(item->name(), get_visit_variable_type(item->value_type_info()),
+                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+
+
+    return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(var);
+}
+
+template<typename T> boost::shared_ptr<SAMRAI::hier::Variable>
+register_variable_Edge(mesh::Attribute *item,
+                       int ndims,
+                       SAMRAI::hier::IntVector const &d_nghosts,
+                       SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
+                       boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &d_grid_geometry,
+                       boost::shared_ptr<SAMRAI::appu::VisItDataWriter> const &d_visit_writer,
+                       SAMRAI::hier::VariableDatabase *vardb)
+{
+    SAMRAI::tbox::Dimension d_dim(ndims);
+
+    auto var = boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, item->name(), 1);
+    integrator->registerVariable(var, d_nghosts,
+                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                 d_grid_geometry,
+                                 "CONSERVATIVE_COARSEN",
+                                 "NO_REFINE");
+
+    /*** FIXME:
+      *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
+      *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
+     **/
+//    d_visit_writer->registerPlotQuantity(item->name(), get_visit_variable_type(item->value_type_info()),
+//                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()) );
+
+
+    return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(var);
+}
+
+template<typename T> boost::shared_ptr<SAMRAI::hier::Variable>
+register_variable_Face(mesh::Attribute *item,
+                       int ndims,
+                       SAMRAI::hier::IntVector const &d_nghosts,
+                       SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
+                       boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &d_grid_geometry,
+                       boost::shared_ptr<SAMRAI::appu::VisItDataWriter> const &d_visit_writer,
+                       SAMRAI::hier::VariableDatabase *vardb)
+{
+    SAMRAI::tbox::Dimension d_dim(ndims);
+
+    auto var = boost::make_shared<SAMRAI::pdat::FaceVariable<T>>(d_dim, item->name(), 1);
+    integrator->registerVariable(var, d_nghosts,
+                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                 d_grid_geometry,
+                                 "CONSERVATIVE_COARSEN",
+                                 "NO_REFINE");
+
+//    d_visit_writer->registerPlotQuantity(item->name(), get_visit_variable_type(item->value_type_info()),
+//                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+
+
+    return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(var);
+}
+
+
+template<typename T> boost::shared_ptr<SAMRAI::hier::Variable>
+register_variable_Cell(mesh::Attribute *item,
+                       int ndims,
+                       SAMRAI::hier::IntVector const &d_nghosts,
+                       SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
+                       boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &d_grid_geometry,
+                       boost::shared_ptr<SAMRAI::appu::VisItDataWriter> const &d_visit_writer,
+                       SAMRAI::hier::VariableDatabase *vardb)
+{
+    SAMRAI::tbox::Dimension d_dim(ndims);
+
+    auto var = boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, item->name());
+    integrator->registerVariable(var, d_nghosts,
+                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                 d_grid_geometry,
+                                 "CONSERVATIVE_COARSEN",
+                                 "CONSERVATIVE_LINEAR_REFINE");
+    d_visit_writer->registerPlotQuantity(item->name(), get_visit_variable_type(item->value_type_info()),
+                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+
+
+    return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(var);
+}
+
+template<typename TV, typename ...Args> boost::shared_ptr<SAMRAI::hier::Variable>
+register_variable_t(mesh::Attribute *item, Args &&...args)
+{
+    boost::shared_ptr<SAMRAI::hier::Variable> var;
+
+    if (item->entity_type() == mesh::VERTEX)
+    {
+        var = register_variable_Node<TV>(item, std::forward<Args>(args)...);
+    } else if (item->entity_type() == mesh::EDGE)
+    {
+        var = register_variable_Edge<TV>(item, std::forward<Args>(args)...);
+    } else if (item->entity_type() == mesh::FACE)
+    {
+        var = register_variable_Face<TV>(item, std::forward<Args>(args)...);
+    } else if (item->entity_type() == mesh::VOLUME)
+    {
+        var = register_variable_Cell<TV>(item, std::forward<Args>(args)...);
+    } else { UNIMPLEMENTED; }
+    return var;
+}
+
+template<typename ...Args> boost::shared_ptr<SAMRAI::hier::Variable>
+register_variable(mesh::Attribute *item, Args &&...args)
+{
+
+    boost::shared_ptr<SAMRAI::hier::Variable> var;
+
+    if (item->value_type_info() == typeid(float))
+    {
+        var = register_variable_t<float>(item, std::forward<Args>(args)...);
+    } else if (item->value_type_info() == typeid(double))
+    {
+        var = register_variable_t<double>(item, std::forward<Args>(args)...);
+    } else if (item->value_type_info() == typeid(int))
+    {
+        var = register_variable_t<int>(item, std::forward<Args>(args)...);
+    } else if (item->value_type_info() == typeid(long))
+    {
+        var = register_variable_t<int>(item, std::forward<Args>(args)...);
+    } else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
+
+
+    return var;
+};
+
+}//namespace detail{
 /*
  *************************************************************************
  *
@@ -1037,12 +916,11 @@ SAMRAIWorkerHyperbolic::~SAMRAIWorkerHyperbolic()
  *************************************************************************
  */
 
-void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator)
+void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator)
 {
-    INFORM << "registerModelVariables" << std::endl;
 
-    TBOX_ASSERT(integrator != 0);
-    TBOX_ASSERT(CELLG == FACEG);
+    ASSERT(integrator != nullptr);
+    SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
 
     integrator->registerVariable(d_uval, d_nghosts,
                                  SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
@@ -1055,88 +933,44 @@ void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLeve
                                  d_grid_geometry,
                                  "CONSERVATIVE_COARSEN",
                                  "NO_REFINE");
-
-    SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
-
-    for (auto &item : m_worker_->attributes())
-    {
-        boost::shared_ptr<SAMRAI::hier::Variable> var;
-#define CONVERT_VAR_STD_BOOST(_TYPE_)                                                                   \
-        switch (item->entity_type())                                                                     \
-        {                                                                                                \
-            case mesh::VERTEX:                                                                           \
-                var = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(                               \
-                        boost::make_shared<SAMRAI::pdat::NodeVariable<_TYPE_>>(d_dim, item->name()));      \
-                break;                                                                                   \
-            case mesh::EDGE:                                                                             \
-                var = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(                               \
-                        boost::make_shared<SAMRAI::pdat::EdgeVariable<_TYPE_>>(d_dim, item->name()));      \
-                break;                                                                                   \
-            case mesh::FACE:                                                                             \
-                var = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(                               \
-                        boost::make_shared<SAMRAI::pdat::FaceVariable<_TYPE_>>(d_dim, item->name()));      \
-                break;                                                                                   \
-            case mesh::VOLUME:                                                                           \
-            default:                                                                                     \
-                var = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(                               \
-                        boost::make_shared<SAMRAI::pdat::CellVariable<_TYPE_>>(d_dim, item->name()));      \
-                break;                                                                                   \
-        }
-
-        if (item->value_type_info() == typeid(float)) { CONVERT_VAR_STD_BOOST(float); }
-        else if (item->value_type_info() == typeid(double)) { CONVERT_VAR_STD_BOOST(double); }
-        else if (item->value_type_info() == typeid(int)) { CONVERT_VAR_STD_BOOST(int); }
-//        else if (item->value_type_info() == typeid(long)) { CONVERT_VAR_STD_BOOST(long); }
-//        else if (item->value_type_info() == typeid(size_type)) { CONVERT_VAR_STD_BOOST(size_type); }
-        else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
-#undef CONVERT_VAR_STD_BOOST
-
-        m_samrai_variables_[item->name()] = var;
-//        if (item->check("IS_FLUX"))
-//        {
-//            integrator->registerVariable(var, d_fluxghosts,
-//                                         SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
-//                                         d_grid_geometry,
-//                                         "CONSERVATIVE_COARSEN",
-//                                         "NO_REFINE");
-//        } else
-//        {
-//            integrator->registerVariable(var, d_nghosts,
-//                                         SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-//                                         d_grid_geometry,
-//                                         "CONSERVATIVE_COARSEN",
-//                                         "CONSERVATIVE_LINEAR_REFINE");
-//        }
-//
-//        if (item->check("check_point"))
-//        {
-//            d_visit_writer->registerPlotQuantity(item->name(),
-//                                                 "SCALAR",
-//                                                 vardb->mapVariableAndContextToIndex(var,
-//                                                                                     integrator->getPlotContext()));
-//        }
-    }
-    if (d_visit_writer)
-    {
-        d_visit_writer->
-                registerPlotQuantity("U",
-                                     "SCALAR",
-                                     vardb->mapVariableAndContextToIndex(
-                                             d_uval, integrator->getPlotContext()));
-
-
-    }
+    d_visit_writer->registerPlotQuantity("U",
+                                         "SCALAR",
+                                         vardb->mapVariableAndContextToIndex(
+                                                 d_uval, integrator->getPlotContext()));
 
     if (!d_visit_writer)
     {
-        TBOX_WARNING(d_object_name << ": registerModelVariables()"
-                                   << "\nVisIt data writer was not registered.\n"
-                                   << "Consequently, no plot data will"
-                                   << "\nbe written." << std::endl);
+        RUNTIME_ERROR << d_object_name << ": registerModelVariables() VisIt data writer was not registered."
+                "Consequently, no plot data will be written." << std::endl;
     }
 
-
-    vardb->printClassData(std::cout);
+    m_worker_->apply(
+            [&](mesh::Worker::Observer &ob)
+            {
+                mesh::Attribute *item = ob.attribute();
+                if (item == nullptr) { return; }
+                if (item->entity_type() == mesh::VERTEX || item->entity_type() == mesh::VOLUME)
+                {
+                    detail::register_variable(item, d_dim.getValue(),
+                                              d_nghosts,
+                                              integrator,
+                                              d_grid_geometry,
+                                              d_visit_writer,
+                                              vardb
+                    );
+                } else
+                {
+                    detail::register_variable(item, d_dim.getValue(),
+                                              d_fluxghosts,
+                                              integrator,
+                                              d_grid_geometry,
+                                              d_visit_writer,
+                                              vardb
+                    );
+                }
+            }
+    );
+//    vardb->printClassData(std::cout);
 
 }
 
@@ -1149,8 +983,8 @@ void SAMRAIWorkerHyperbolic::registerModelVariables(SAMRAI::algs::HyperbolicLeve
  *************************************************************************
  */
 
-void SAMRAIWorkerHyperbolic::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
-                                               SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm)
+void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
+                                     SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm)
 {
 
     const SAMRAI::hier::IntVector &zero_vec = SAMRAI::hier::IntVector::getZero(d_dim);
@@ -1195,149 +1029,150 @@ void SAMRAIWorkerHyperbolic::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelInte
  *
  *************************************************************************
  */
-void SAMRAIWorkerHyperbolic::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time,
-                                                   const bool initial_time)
+void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time,
+                                         const bool initial_time)
 {
-    {
-        nTuple<size_type, 3> lo, up;
-        auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-        lo = pgeom->getXLower();
-        up = pgeom->getXUpper();
-        INFORM << "initializeDataOnPatch" << " initial_time = " << std::boolalpha << initial_time << " level= "
-               << patch.getPatchLevelNumber() << " box= [" << lo << up << "]" << std::endl;
-    }
-    if (initial_time)
-    {
-
-        auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-        TBOX_ASSERT(pgeom);
-        const double *dx = pgeom->getDx();
-        const double *xlo = pgeom->getXLower();
-        const double *xhi = pgeom->getXUpper();
-
-        auto uval = (boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
-                patch.getPatchData(d_uval, getDataContext())));
-
-        TBOX_ASSERT(uval);
-
-        SAMRAI::hier::IntVector ghost_cells(uval->getGhostCellWidth());
-
-        const SAMRAI::hier::Index ifirst = patch.getBox().lower();
-        const SAMRAI::hier::Index ilast = patch.getBox().upper();
-
-        if (d_data_problem_int == SPHERE)
-        {
-            auto p = uval->getPointer();
-
-            if (d_dim == SAMRAI::tbox::Dimension(2))
-            {
-//                SAMRAI_F77_FUNC(initsphere2d, INITSPHERE2D)(d_data_problem_int, dx, xlo,
-//                                                            xhi,
-//                                                            ifirst(0), ilast(0),
-//                                                            ifirst(1), ilast(1),
-//                                                            ghost_cells(0),
-//                                                            ghost_cells(1),
-//                                                            uval->getPointer(),
-//                                                            d_uval_inside,
-//                                                            d_uval_outside,
-//                                                            &d_center[0], d_radius);
-            }
-            if (d_dim == SAMRAI::tbox::Dimension(3))
-            {
-//                SAMRAI_F77_FUNC(initsphere3d, INITSPHERE3D)(d_data_problem_int, dx, xlo,
-//                                                            xhi,
-//                                                            ifirst(0), ilast(0),
-//                                                            ifirst(1), ilast(1),
-//                                                            ifirst(2), ilast(2),
-//                                                            ghost_cells(0),
-//                                                            ghost_cells(1),
-//                                                            ghost_cells(2),
-//                                                            uval->getPointer(),
-//                                                            d_uval_inside,
-//                                                            d_uval_outside,
-//                                                            &d_center[0], d_radius);
-            }
-
-        } else if (d_data_problem_int == SINE_CONSTANT_X ||
-                   d_data_problem_int == SINE_CONSTANT_Y ||
-                   d_data_problem_int == SINE_CONSTANT_Z)
-        {
-
-            const double *domain_xlo = d_grid_geometry->getXLower();
-            const double *domain_xhi = d_grid_geometry->getXUpper();
-            std::vector<double> domain_length(d_dim.getValue());
-            for (int i = 0; i < d_dim.getValue(); ++i)
-            {
-                domain_length[i] = domain_xhi[i] - domain_xlo[i];
-            }
-
-            if (d_dim == SAMRAI::tbox::Dimension(2))
-            {
-//                SAMRAI_F77_FUNC(linadvinitsine2d, LINADVINITSINE2D)(d_data_problem_int,
-//                                                                    dx, xlo,
-//                                                                    domain_xlo, &domain_length[0],
-//                                                                    ifirst(0), ilast(0),
-//                                                                    ifirst(1), ilast(1),
-//                                                                    ghost_cells(0),
-//                                                                    ghost_cells(1),
-//                                                                    uval->getPointer(),
-//                                                                    d_number_of_intervals,
-//                                                                    &d_front_position[0],
-//                                                                    &d_interval_uval[0],
-//                                                                    d_amplitude,
-//                                                                    &d_frequency[0]);
-            }
-            if (d_dim == SAMRAI::tbox::Dimension(3))
-            {
-//                SAMRAI_F77_FUNC(linadvinitsine3d, LINADVINITSINE3D)(d_data_problem_int,
-//                                                                    dx, xlo,
-//                                                                    domain_xlo, &domain_length[0],
-//                                                                    ifirst(0), ilast(0),
-//                                                                    ifirst(1), ilast(1),
-//                                                                    ifirst(2), ilast(2),
-//                                                                    ghost_cells(0),
-//                                                                    ghost_cells(1),
-//                                                                    ghost_cells(2),
-//                                                                    uval->getPointer(),
-//                                                                    d_number_of_intervals,
-//                                                                    &d_front_position[0],
-//                                                                    &d_interval_uval[0],
-//                                                                    d_amplitude,
-//                                                                    &d_frequency[0]);
-            }
-        } else
-        {
-
-            if (d_dim == SAMRAI::tbox::Dimension(2))
-            {
-//                SAMRAI_F77_FUNC(linadvinit2d, LINADVINIT2D)(d_data_problem_int, dx, xlo,xhi,
-//                                                            ifirst(0), ilast(0),
-//                                                            ifirst(1), ilast(1),
-//                                                            ghost_cells(0),
-//                                                            ghost_cells(1),
-//                                                            uval->getPointer(),
-//                                                            d_number_of_intervals,
-//                                                            &d_front_position[0],
-//                                                            &d_interval_uval[0]);
-            }
-            if (d_dim == SAMRAI::tbox::Dimension(3))
-            {
-//                SAMRAI_F77_FUNC(linadvinit3d, LINADVINIT3D)(d_data_problem_int, dx, xlo,
-//                                                            xhi,
-//                                                            ifirst(0), ilast(0),
-//                                                            ifirst(1), ilast(1),
-//                                                            ifirst(2), ilast(2),
-//                                                            ghost_cells(0),
-//                                                            ghost_cells(1),
-//                                                            ghost_cells(2),
-//                                                            uval->getPointer(),
-//                                                            d_number_of_intervals,
-//                                                            &d_front_position[0],
-//                                                            &d_interval_uval[0]);
-            }
-        }
-
-    }
+//    FUNCTION_START;
+//    {
+//        nTuple<size_type, 3> lo, up;
+//        auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+//        lo = pgeom->getXLower();
+//        up = pgeom->getXUpper();
+//        INFORM << "initializeDataOnPatch" << " initial_time = " << std::boolalpha << initial_time << " level= "
+//               << patch.getPatchLevelNumber() << " box= [" << lo << up << "]" << std::endl;
+//    }
+//    if (initial_time)
+//    {
+//
+//        auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+//        TBOX_ASSERT(pgeom);
+//        const double *dx = pgeom->getDx();
+//        const double *xlo = pgeom->getXLower();
+//        const double *xhi = pgeom->getXUpper();
+//
+//        auto uval = (boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
+//                patch.getPatchData(d_uval, getDataContext())));
+//
+//        TBOX_ASSERT(uval);
+//
+//        SAMRAI::hier::IntVector ghost_cells(uval->getGhostCellWidth());
+//
+//        const SAMRAI::hier::Index ifirst = patch.getBox().lower();
+//        const SAMRAI::hier::Index ilast = patch.getBox().upper();
+//
+//        if (d_data_problem_int == SPHERE)
+//        {
+//            auto p = uval->getPointer();
+//
+//            if (d_dim == SAMRAI::tbox::Dimension(2))
+//            {
+////                SAMRAI_F77_FUNC(initsphere2d, INITSPHERE2D)(d_data_problem_int, dx, xlo,
+////                                                            xhi,
+////                                                            ifirst(0), ilast(0),
+////                                                            ifirst(1), ilast(1),
+////                                                            ghost_cells(0),
+////                                                            ghost_cells(1),
+////                                                            uval->getPointer(),
+////                                                            d_uval_inside,
+////                                                            d_uval_outside,
+////                                                            &d_center[0], d_radius);
+//            }
+//            if (d_dim == SAMRAI::tbox::Dimension(3))
+//            {
+////                SAMRAI_F77_FUNC(initsphere3d, INITSPHERE3D)(d_data_problem_int, dx, xlo,
+////                                                            xhi,
+////                                                            ifirst(0), ilast(0),
+////                                                            ifirst(1), ilast(1),
+////                                                            ifirst(2), ilast(2),
+////                                                            ghost_cells(0),
+////                                                            ghost_cells(1),
+////                                                            ghost_cells(2),
+////                                                            uval->getPointer(),
+////                                                            d_uval_inside,
+////                                                            d_uval_outside,
+////                                                            &d_center[0], d_radius);
+//            }
+//
+//        } else if (d_data_problem_int == SINE_CONSTANT_X ||
+//                   d_data_problem_int == SINE_CONSTANT_Y ||
+//                   d_data_problem_int == SINE_CONSTANT_Z)
+//        {
+//
+//            const double *domain_xlo = d_grid_geometry->getXLower();
+//            const double *domain_xhi = d_grid_geometry->getXUpper();
+//            std::vector<double> domain_length(d_dim.getValue());
+//            for (int i = 0; i < d_dim.getValue(); ++i)
+//            {
+//                domain_length[i] = domain_xhi[i] - domain_xlo[i];
+//            }
+//
+//            if (d_dim == SAMRAI::tbox::Dimension(2))
+//            {
+////                SAMRAI_F77_FUNC(linadvinitsine2d, LINADVINITSINE2D)(d_data_problem_int,
+////                                                                    dx, xlo,
+////                                                                    domain_xlo, &domain_length[0],
+////                                                                    ifirst(0), ilast(0),
+////                                                                    ifirst(1), ilast(1),
+////                                                                    ghost_cells(0),
+////                                                                    ghost_cells(1),
+////                                                                    uval->getPointer(),
+////                                                                    d_number_of_intervals,
+////                                                                    &d_front_position[0],
+////                                                                    &d_interval_uval[0],
+////                                                                    d_amplitude,
+////                                                                    &d_frequency[0]);
+//            }
+//            if (d_dim == SAMRAI::tbox::Dimension(3))
+//            {
+////                SAMRAI_F77_FUNC(linadvinitsine3d, LINADVINITSINE3D)(d_data_problem_int,
+////                                                                    dx, xlo,
+////                                                                    domain_xlo, &domain_length[0],
+////                                                                    ifirst(0), ilast(0),
+////                                                                    ifirst(1), ilast(1),
+////                                                                    ifirst(2), ilast(2),
+////                                                                    ghost_cells(0),
+////                                                                    ghost_cells(1),
+////                                                                    ghost_cells(2),
+////                                                                    uval->getPointer(),
+////                                                                    d_number_of_intervals,
+////                                                                    &d_front_position[0],
+////                                                                    &d_interval_uval[0],
+////                                                                    d_amplitude,
+////                                                                    &d_frequency[0]);
+//            }
+//        } else
+//        {
+//
+//            if (d_dim == SAMRAI::tbox::Dimension(2))
+//            {
+////                SAMRAI_F77_FUNC(linadvinit2d, LINADVINIT2D)(d_data_problem_int, dx, xlo,xhi,
+////                                                            ifirst(0), ilast(0),
+////                                                            ifirst(1), ilast(1),
+////                                                            ghost_cells(0),
+////                                                            ghost_cells(1),
+////                                                            uval->getPointer(),
+////                                                            d_number_of_intervals,
+////                                                            &d_front_position[0],
+////                                                            &d_interval_uval[0]);
+//            }
+//            if (d_dim == SAMRAI::tbox::Dimension(3))
+//            {
+////                SAMRAI_F77_FUNC(linadvinit3d, LINADVINIT3D)(d_data_problem_int, dx, xlo,
+////                                                            xhi,
+////                                                            ifirst(0), ilast(0),
+////                                                            ifirst(1), ilast(1),
+////                                                            ifirst(2), ilast(2),
+////                                                            ghost_cells(0),
+////                                                            ghost_cells(1),
+////                                                            ghost_cells(2),
+////                                                            uval->getPointer(),
+////                                                            d_number_of_intervals,
+////                                                            &d_front_position[0],
+////                                                            &d_interval_uval[0]);
+//            }
+//        }
+//
+//    }
 
     if (d_use_nonuniform_workload)
     {
@@ -1345,7 +1180,7 @@ void SAMRAIWorkerHyperbolic::initializeDataOnPatch(SAMRAI::hier::Patch &patch, c
         {
             patch.allocatePatchData(d_workload_data_id);
         }
-        boost::shared_ptr<SAMRAI::pdat::CellData<double> > workload_data(
+        boost::shared_ptr<SAMRAI::pdat::CellData<double>> workload_data(
                 boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
                         patch.getPatchData(d_workload_data_id)));
         TBOX_ASSERT(workload_data);
@@ -1367,61 +1202,62 @@ void SAMRAIWorkerHyperbolic::initializeDataOnPatch(SAMRAI::hier::Patch &patch, c
  *************************************************************************
  */
 
-double SAMRAIWorkerHyperbolic::computeStableDtOnPatch(
+double SAMRAIWorker::computeStableDtOnPatch(
         SAMRAI::hier::Patch &patch,
         const bool initial_time,
         const double dt_time)
 {
-    INFORM << "computeStableDtOnPatch" << " level= " << patch.getPatchLevelNumber() << std::endl;
-
-    NULL_USE(initial_time);
-    NULL_USE(dt_time);
-
-    const boost::shared_ptr<SAMRAI::geom::CartesianPatchGeometry> patch_geom(
-            boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry, SAMRAI::hier::PatchGeometry>(
-                    patch.getPatchGeometry()));
-    ASSERT(patch_geom);
-    const double *dx = patch_geom->getDx();
-
-    const SAMRAI::hier::Index ifirst = patch.getBox().lower();
-    const SAMRAI::hier::Index ilast = patch.getBox().upper();
-
-    boost::shared_ptr<SAMRAI::pdat::CellData<double> > uval(
-            boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
-                    patch.getPatchData(d_uval, getDataContext())));
-
-    ASSERT(uval);
-
-    SAMRAI::hier::IntVector ghost_cells(uval->getGhostCellWidth());
-
-    double stabdt;
-//    if (d_dim == tbox::Dimension(2))
-//    {
-//        SAMRAI_F77_FUNC(stabledt2d, STABLEDT2D)(dx,
-//                                                ifirst(0), ilast(0),
-//                                                ifirst(1), ilast(1),
-//                                                ghost_cells(0),
-//                                                ghost_cells(1),
-//                                                &d_advection_velocity[0],
-//                                                stabdt);
-//    } else if (d_dim == tbox::Dimension(3))
-//    {
-//        SAMRAI_F77_FUNC(stabledt3d, STABLEDT3D)(dx,
-//                                                ifirst(0), ilast(0),
-//                                                ifirst(1), ilast(1),
-//                                                ifirst(2), ilast(2),
-//                                                ghost_cells(0),
-//                                                ghost_cells(1),
-//                                                ghost_cells(2),
-//                                                &d_advection_velocity[0],
-//                                                stabdt);
-//    } else
-//    {
-//        TBOX_ERROR("Only 2D or 3D allowed in SAMRAIWorkerHyperbolic::computeStableDtOnPatch");
-//        stabdt = 0;
-//    }
-
-    return stabdt;
+    return dt_time;
+//    INFORM << "computeStableDtOnPatch" << " level= " << patch.getPatchLevelNumber() << std::endl;
+//
+//    NULL_USE(initial_time);
+//    NULL_USE(dt_time);
+//
+//    const boost::shared_ptr<SAMRAI::geom::CartesianPatchGeometry> patch_geom(
+//            boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry, SAMRAI::hier::PatchGeometry>(
+//                    patch.getPatchGeometry()));
+//    ASSERT(patch_geom);
+//    const double *dx = patch_geom->getDx();
+//
+//    const SAMRAI::hier::Index ifirst = patch.getBox().lower();
+//    const SAMRAI::hier::Index ilast = patch.getBox().upper();
+//
+//    boost::shared_ptr<SAMRAI::pdat::CellData<double> > uval(
+//            boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
+//                    patch.getPatchData(d_uval, getDataContext())));
+//
+//    ASSERT(uval);
+//
+//    SAMRAI::hier::IntVector ghost_cells(uval->getGhostCellWidth());
+//
+//    double stabdt;
+////    if (d_dim == tbox::Dimension(2))
+////    {
+////        SAMRAI_F77_FUNC(stabledt2d, STABLEDT2D)(dx,
+////                                                ifirst(0), ilast(0),
+////                                                ifirst(1), ilast(1),
+////                                                ghost_cells(0),
+////                                                ghost_cells(1),
+////                                                &d_advection_velocity[0],
+////                                                stabdt);
+////    } else if (d_dim == tbox::Dimension(3))
+////    {
+////        SAMRAI_F77_FUNC(stabledt3d, STABLEDT3D)(dx,
+////                                                ifirst(0), ilast(0),
+////                                                ifirst(1), ilast(1),
+////                                                ifirst(2), ilast(2),
+////                                                ghost_cells(0),
+////                                                ghost_cells(1),
+////                                                ghost_cells(2),
+////                                                &d_advection_velocity[0],
+////                                                stabdt);
+////    } else
+////    {
+////        TBOX_ERROR("Only 2D or 3D allowed in SAMRAIWorkerHyperbolic::computeStableDtOnPatch");
+////        stabdt = 0;
+////    }
+//
+//    return stabdt;
 }
 
 /*
@@ -1434,9 +1270,9 @@ double SAMRAIWorkerHyperbolic::computeStableDtOnPatch(
  *************************************************************************
  */
 
-void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt)
+void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt)
 {
-    INFORM << "computeFluxesOnPatch" << " level= " << patch.getPatchLevelNumber() << std::endl;
+//    INFORM << "computeFluxesOnPatch" << " level= " << patch.getPatchLevelNumber() << std::endl;
 
     return;
 
@@ -1454,167 +1290,167 @@ void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, co
 //        }
 //
 //    }
-
-    if (d_dim < SAMRAI::tbox::Dimension(3))
-    {
-
-        TBOX_ASSERT(CELLG == FACEG);
-
-        auto patch_geom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-
-        TBOX_ASSERT(patch_geom);
-
-        const double *dx = patch_geom->getDx();
-        SAMRAI::hier::Box pbox = patch.getBox();
-        const SAMRAI::hier::Index ifirst = patch.getBox().lower();
-        const SAMRAI::hier::Index ilast = patch.getBox().upper();
-
-        auto uval = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>>
-                (
-                        patch.getPatchData(d_uval, getDataContext()));
-        auto flux = boost::dynamic_pointer_cast<SAMRAI::pdat::FaceData<double>>
-                (
-                        patch.getPatchData(d_flux, getDataContext()));
-
-        /*
-         * Verify that the integrator providing the context correctly
-         * created it, and that the ghost cell width associated with the
-         * context matches the ghosts defined in this class...
-         */
-        TBOX_ASSERT(uval);
-        TBOX_ASSERT(flux);
-        TBOX_ASSERT(uval->getGhostCellWidth() == d_nghosts);
-        TBOX_ASSERT(flux->getGhostCellWidth() == d_fluxghosts);
-
-        /*
-         * Allocate patch data for temporaries local to this routine.
-         */
-        SAMRAI::pdat::FaceData<double> traced_left(pbox, 1, d_nghosts);
-        SAMRAI::pdat::FaceData<double> traced_right(pbox, 1, d_nghosts);
-
-        if (d_dim == SAMRAI::tbox::Dimension(2))
-        {
-//            SAMRAI_F77_FUNC(inittraceflux2d, INITTRACEFLUX2D)(ifirst(0), ilast(0),
-//                                                              ifirst(1), ilast(1),
-//                                                              uval->getPointer(),
-//                                                              traced_left.getPointer(0),
-//                                                              traced_left.getPointer(1),
-//                                                              traced_right.getPointer(0),
-//                                                              traced_right.getPointer(1),
-//                                                              flux->getPointer(0),
-//                                                              flux->getPointer(1)
-//            );
-        }
-
-        if (d_godunov_order > 1)
-        {
-
-            /*
-             * Prepare temporary data for characteristic tracing.
-             */
-            int Mcells = 0;
-            for (SAMRAI::tbox::Dimension::dir_t k = 0; k < d_dim.getValue(); ++k)
-            {
-                Mcells = SAMRAI::tbox::MathUtilities<int>::Max(Mcells, pbox.numberCells(k));
-            }
-
-// Face-centered temporary arrays
-            std::vector<double> ttedgslp(2 * FACEG + 1 + Mcells);
-            std::vector<double> ttraclft(2 * FACEG + 1 + Mcells);
-            std::vector<double> ttracrgt(2 * FACEG + 1 + Mcells);
-
-// Cell-centered temporary arrays
-            std::vector<double> ttcelslp(2 * CELLG + Mcells);
-
-/*
- *  Apply characteristic tracing to compute initial estimate of
- *  traces w^L and w^R at faces.
- *  Inputs: w^L, w^R (traced_left/right)
- *  Output: w^L, w^R
- */
-            if (d_dim == SAMRAI::tbox::Dimension(2))
-            {
-//                SAMRAI_F77_FUNC(chartracing2d0, CHARTRACING2D0)(dt,
-//                                                                ifirst(0), ilast(0),
-//                                                                ifirst(1), ilast(1),
-//                                                                Mcells, dx[0], d_advection_velocity[0], d_godunov_order,
-//                                                                traced_left.getPointer(0),
-//                                                                traced_right.getPointer(0),
-//                                                                &ttcelslp[0],
-//                                                                &ttedgslp[0],
-//                                                                &ttraclft[0],
-//                                                                &ttracrgt[0]);
 //
-//                SAMRAI_F77_FUNC(chartracing2d1, CHARTRACING2D1)(dt,
-//                                                                ifirst(0), ilast(0), ifirst(1), ilast(1),
-//                                                                Mcells, dx[1], d_advection_velocity[1], d_godunov_order,
-//                                                                traced_left.getPointer(1),
-//                                                                traced_right.getPointer(1),
-//                                                                &ttcelslp[0],
-//                                                                &ttedgslp[0],
-//                                                                &ttraclft[0],
-//                                                                &ttracrgt[0]);
-            }
-
-        }  // if (d_godunov_order > 1) ...
-
-        if (d_dim == SAMRAI::tbox::Dimension(2))
-        {
-/*
- *  Compute fluxes at faces using the face states computed so far.
- *  Inputs: w^L, w^R (traced_left/right)
- *  Output: F (flux)
- */
-// fluxcalculation_(dt,*,1,dx, to get artificial viscosity
-// fluxcalculation_(dt,*,0,dx, to get NO artificial viscosity
-
-//            SAMRAI_F77_FUNC(fluxcalculation2d, FLUXCALCULATION2D)(dt, 1, 0, dx,
-//                                                                  ifirst(0), ilast(0), ifirst(1), ilast(1),
-//                                                                  &d_advection_velocity[0],
-//                                                                  flux->getPointer(0),
-//                                                                  flux->getPointer(1),
-//                                                                  traced_left.getPointer(0),
-//                                                                  traced_left.getPointer(1),
-//                                                                  traced_right.getPointer(0),
-//                                                                  traced_right.getPointer(1));
-
-/*
- *  Re-compute traces at cell faces with transverse correction applied.
- *  Inputs: F (flux)
- *  Output: w^L, w^R (traced_left/right)
- */
-//            SAMRAI_F77_FUNC(fluxcorrec, FLUXCORREC)(dt, ifirst(0), ilast(0), ifirst(1),
-//                                                    ilast(1),
-//                                                    dx, &d_advection_velocity[0],
-//                                                    flux->getPointer(0),
-//                                                    flux->getPointer(1),
-//                                                    traced_left.getPointer(0),
-//                                                    traced_left.getPointer(1),
-//                                                    traced_right.getPointer(0),
-//                                                    traced_right.getPointer(1));
-
-            boundaryReset(patch, traced_left, traced_right);
-
-/*
- *  Re-compute fluxes with updated traces.
- *  Inputs: w^L, w^R (traced_left/right)
- *  Output: F (flux)
- */
-//            SAMRAI_F77_FUNC(fluxcalculation2d, FLUXCALCULATION2D)(dt, 0, 0, dx,
-//                                                                  ifirst(0), ilast(0), ifirst(1), ilast(1),
-//                                                                  &d_advection_velocity[0],
-//                                                                  flux->getPointer(0),
-//                                                                  flux->getPointer(1),
-//                                                                  traced_left.getPointer(0),
-//                                                                  traced_left.getPointer(1),
-//                                                                  traced_right.getPointer(0),
-//                                                                  traced_right.getPointer(1));
-
-        }
-
-//     tbox::plog << "flux values: option1...." << std::endl;
-//     flux->print(pbox, tbox::plog);
-    }
+//    if (d_dim < SAMRAI::tbox::Dimension(3))
+//    {
+//
+//        TBOX_ASSERT(CELLG == FACEG);
+//
+//        auto patch_geom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+//
+//        TBOX_ASSERT(patch_geom);
+//
+//        const double *dx = patch_geom->getDx();
+//        SAMRAI::hier::Box pbox = patch.getBox();
+//        const SAMRAI::hier::Index ifirst = patch.getBox().lower();
+//        const SAMRAI::hier::Index ilast = patch.getBox().upper();
+//
+//        auto uval = boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>>
+//                (
+//                        patch.getPatchData(d_uval, getDataContext()));
+//        auto flux = boost::dynamic_pointer_cast<SAMRAI::pdat::FaceData<double>>
+//                (
+//                        patch.getPatchData(d_flux, getDataContext()));
+//
+//        /*
+//         * Verify that the integrator providing the context correctly
+//         * created it, and that the ghost cell width associated with the
+//         * context matches the ghosts defined in this class...
+//         */
+//        TBOX_ASSERT(uval);
+//        TBOX_ASSERT(flux);
+//        TBOX_ASSERT(uval->getGhostCellWidth() == d_nghosts);
+//        TBOX_ASSERT(flux->getGhostCellWidth() == d_fluxghosts);
+//
+//        /*
+//         * Allocate patch data for temporaries local to this routine.
+//         */
+//        SAMRAI::pdat::FaceData<double> traced_left(pbox, 1, d_nghosts);
+//        SAMRAI::pdat::FaceData<double> traced_right(pbox, 1, d_nghosts);
+//
+//        if (d_dim == SAMRAI::tbox::Dimension(2))
+//        {
+////            SAMRAI_F77_FUNC(inittraceflux2d, INITTRACEFLUX2D)(ifirst(0), ilast(0),
+////                                                              ifirst(1), ilast(1),
+////                                                              uval->getPointer(),
+////                                                              traced_left.getPointer(0),
+////                                                              traced_left.getPointer(1),
+////                                                              traced_right.getPointer(0),
+////                                                              traced_right.getPointer(1),
+////                                                              flux->getPointer(0),
+////                                                              flux->getPointer(1)
+////            );
+//        }
+//
+//        if (d_godunov_order > 1)
+//        {
+//
+//            /*
+//             * Prepare temporary data for characteristic tracing.
+//             */
+//            int Mcells = 0;
+//            for (SAMRAI::tbox::Dimension::dir_t k = 0; k < d_dim.getValue(); ++k)
+//            {
+//                Mcells = SAMRAI::tbox::MathUtilities<int>::Max(Mcells, pbox.numberCells(k));
+//            }
+//
+//// Face-centered temporary arrays
+//            std::vector<double> ttedgslp(2 * FACEG + 1 + Mcells);
+//            std::vector<double> ttraclft(2 * FACEG + 1 + Mcells);
+//            std::vector<double> ttracrgt(2 * FACEG + 1 + Mcells);
+//
+//// Cell-centered temporary arrays
+//            std::vector<double> ttcelslp(2 * CELLG + Mcells);
+//
+///*
+// *  Apply characteristic tracing to compute initial estimate of
+// *  traces w^L and w^R at faces.
+// *  Inputs: w^L, w^R (traced_left/right)
+// *  Output: w^L, w^R
+// */
+//            if (d_dim == SAMRAI::tbox::Dimension(2))
+//            {
+////                SAMRAI_F77_FUNC(chartracing2d0, CHARTRACING2D0)(dt,
+////                                                                ifirst(0), ilast(0),
+////                                                                ifirst(1), ilast(1),
+////                                                                Mcells, dx[0], d_advection_velocity[0], d_godunov_order,
+////                                                                traced_left.getPointer(0),
+////                                                                traced_right.getPointer(0),
+////                                                                &ttcelslp[0],
+////                                                                &ttedgslp[0],
+////                                                                &ttraclft[0],
+////                                                                &ttracrgt[0]);
+////
+////                SAMRAI_F77_FUNC(chartracing2d1, CHARTRACING2D1)(dt,
+////                                                                ifirst(0), ilast(0), ifirst(1), ilast(1),
+////                                                                Mcells, dx[1], d_advection_velocity[1], d_godunov_order,
+////                                                                traced_left.getPointer(1),
+////                                                                traced_right.getPointer(1),
+////                                                                &ttcelslp[0],
+////                                                                &ttedgslp[0],
+////                                                                &ttraclft[0],
+////                                                                &ttracrgt[0]);
+//            }
+//
+//        }  // if (d_godunov_order > 1) ...
+//
+//        if (d_dim == SAMRAI::tbox::Dimension(2))
+//        {
+///*
+// *  Compute fluxes at faces using the face states computed so far.
+// *  Inputs: w^L, w^R (traced_left/right)
+// *  Output: F (flux)
+// */
+//// fluxcalculation_(dt,*,1,dx, to get artificial viscosity
+//// fluxcalculation_(dt,*,0,dx, to get NO artificial viscosity
+//
+////            SAMRAI_F77_FUNC(fluxcalculation2d, FLUXCALCULATION2D)(dt, 1, 0, dx,
+////                                                                  ifirst(0), ilast(0), ifirst(1), ilast(1),
+////                                                                  &d_advection_velocity[0],
+////                                                                  flux->getPointer(0),
+////                                                                  flux->getPointer(1),
+////                                                                  traced_left.getPointer(0),
+////                                                                  traced_left.getPointer(1),
+////                                                                  traced_right.getPointer(0),
+////                                                                  traced_right.getPointer(1));
+//
+///*
+// *  Re-compute traces at cell faces with transverse correction applied.
+// *  Inputs: F (flux)
+// *  Output: w^L, w^R (traced_left/right)
+// */
+////            SAMRAI_F77_FUNC(fluxcorrec, FLUXCORREC)(dt, ifirst(0), ilast(0), ifirst(1),
+////                                                    ilast(1),
+////                                                    dx, &d_advection_velocity[0],
+////                                                    flux->getPointer(0),
+////                                                    flux->getPointer(1),
+////                                                    traced_left.getPointer(0),
+////                                                    traced_left.getPointer(1),
+////                                                    traced_right.getPointer(0),
+////                                                    traced_right.getPointer(1));
+//
+//            boundaryReset(patch, traced_left, traced_right);
+//
+///*
+// *  Re-compute fluxes with updated traces.
+// *  Inputs: w^L, w^R (traced_left/right)
+// *  Output: F (flux)
+// */
+////            SAMRAI_F77_FUNC(fluxcalculation2d, FLUXCALCULATION2D)(dt, 0, 0, dx,
+////                                                                  ifirst(0), ilast(0), ifirst(1), ilast(1),
+////                                                                  &d_advection_velocity[0],
+////                                                                  flux->getPointer(0),
+////                                                                  flux->getPointer(1),
+////                                                                  traced_left.getPointer(0),
+////                                                                  traced_left.getPointer(1),
+////                                                                  traced_right.getPointer(0),
+////                                                                  traced_right.getPointer(1));
+//
+//        }
+//
+////     tbox::plog << "flux values: option1...." << std::endl;
+////     flux->print(pbox, tbox::plog);
+//    }
 }
 
 /*
@@ -1626,7 +1462,7 @@ void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, co
  *
  *************************************************************************
  */
-//void SAMRAIWorkerHyperbolic::compute3DFluxesWithCornerTransport1(SAMRAI::hier::DataBlockBase &patch, const double dt)
+//void SAMRAIWorker::compute3DFluxesWithCornerTransport1(SAMRAI::hier::DataBlockBase &patch, const double dt)
 //{
 //    TBOX_ASSERT(CELLG == FACEG);
 //    TBOX_ASSERT(d_dim == tbox::Dimension(3));
@@ -1915,7 +1751,7 @@ void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, co
  *
  *************************************************************************
  */
-//void SAMRAIWorkerHyperbolic::compute3DFluxesWithCornerTransport2(SAMRAI::hier::DataBlockBase &patch, const double dt)
+//void SAMRAIWorker::compute3DFluxesWithCornerTransport2(SAMRAI::hier::DataBlockBase &patch, const double dt)
 //{
 //    TBOX_ASSERT(CELLG == FACEG);
 //    TBOX_ASSERT(d_dim == tbox::Dimension(3));
@@ -2139,10 +1975,10 @@ void SAMRAIWorkerHyperbolic::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, co
  *************************************************************************
  */
 
-void SAMRAIWorkerHyperbolic::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, const double time,
-                                                           const double dt, bool at_syncronization)
+void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, const double time,
+                                                 const double dt, bool at_syncronization)
 {
-    INFORM << "conservativeDifferenceOnPatch" << " level= " << patch.getPatchLevelNumber() << std::endl;
+//    INFORM << "conservativeDifferenceOnPatch" << " level= " << patch.getPatchLevelNumber() << std::endl;
 
     //    NULL_USE(time);
 //    NULL_USE(dt);
@@ -2200,7 +2036,7 @@ void SAMRAIWorkerHyperbolic::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &
  *
  *************************************************************************
  */
-void SAMRAIWorkerHyperbolic::boundaryReset(
+void SAMRAIWorker::boundaryReset(
         SAMRAI::hier::Patch &patch,
         SAMRAI::pdat::FaceData<double> &traced_left,
         SAMRAI::pdat::FaceData<double> &traced_right) const
@@ -2318,13 +2154,13 @@ void SAMRAIWorkerHyperbolic::boundaryReset(
  *************************************************************************
  */
 
-void SAMRAIWorkerHyperbolic::setPhysicalBoundaryConditions(
+void SAMRAIWorker::setPhysicalBoundaryConditions(
         SAMRAI::hier::Patch &patch,
         const double fill_time,
         const SAMRAI::hier::IntVector &ghost_width_to_fill)
 {
-    INFORM << "setPhysicalBoundaryConditions" << " level= " << patch.getPatchLevelNumber() << std::endl;
-
+//    INFORM << "setPhysicalBoundaryConditions" << " level= " << patch.getPatchLevelNumber() << std::endl;
+//
 //    NULL_USE(fill_time);
 //
 //    boost::shared_ptr<SAMRAI::pdat::CellData<double> > uval(
@@ -2443,7 +2279,7 @@ void SAMRAIWorkerHyperbolic::setPhysicalBoundaryConditions(
  *
  *************************************************************************
  */
-void SAMRAIWorkerHyperbolic::tagRichardsonExtrapolationCells(
+void SAMRAIWorker::tagRichardsonExtrapolationCells(
         SAMRAI::hier::Patch &patch,
         const int error_level_number,
         const boost::shared_ptr<SAMRAI::hier::VariableContext> &coarsened_fine,
@@ -2455,7 +2291,7 @@ void SAMRAIWorkerHyperbolic::tagRichardsonExtrapolationCells(
         const int tag_index,
         const bool uses_gradient_detector_too)
 {
-    INFORM << "tagRichardsonExtrapolationCells" << patch.getPatchLevelNumber() << std::endl;
+//    INFORM << "tagRichardsonExtrapolationCells" << patch.getPatchLevelNumber() << std::endl;
 
 //    NULL_USE(initial_error);
 //
@@ -2633,7 +2469,7 @@ void SAMRAIWorkerHyperbolic::tagRichardsonExtrapolationCells(
  *************************************************************************
  */
 
-void SAMRAIWorkerHyperbolic::tagGradientDetectorCells(
+void SAMRAIWorker::tagGradientDetectorCells(
         SAMRAI::hier::Patch &patch,
         const double regrid_time,
         const bool initial_error,
@@ -2913,7 +2749,7 @@ void SAMRAIWorkerHyperbolic::tagGradientDetectorCells(
 
 #ifdef HAVE_HDF5
 
-void SAMRAIWorkerHyperbolic::registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer)
+void SAMRAIWorker::registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer)
 {
     TBOX_ASSERT(viz_writer);
     d_visit_writer = viz_writer;
@@ -2924,17 +2760,17 @@ void SAMRAIWorkerHyperbolic::registerVisItDataWriter(boost::shared_ptr<SAMRAI::a
 /*
  *************************************************************************
  *
- * Write SAMRAIWorkerHyperbolic object state to specified stream.
+ * Write SAMRAIWorker object state to specified stream.
  *
  *************************************************************************
  */
 
-void SAMRAIWorkerHyperbolic::printClassData(std::ostream &os) const
+void SAMRAIWorker::printClassData(std::ostream &os) const
 {
     int j, k;
 
-    os << "\nSAMRAIWorkerHyperbolic::printClassData..." << std::endl;
-    os << "SAMRAIWorkerHyperbolic: this = " << (SAMRAIWorkerHyperbolic *)
+    os << "\nSAMRAIWorker::printClassData..." << std::endl;
+    os << "SAMRAIWorker: this = " << (SAMRAIWorker *)
             this << std::endl;
     os << "d_object_name = " << d_object_name << std::endl;
     os << "d_grid_geometry = "
@@ -3122,836 +2958,348 @@ void SAMRAIWorkerHyperbolic::printClassData(std::ostream &os) const
 /*
  *************************************************************************
  *
- * Read data members from input.  All values set from restart can be
- * overridden by values in the input database.
- *
- *************************************************************************
- */
-void SAMRAIWorkerHyperbolic::getFromInput(boost::shared_ptr<SAMRAI::tbox::Database> input_db, bool is_from_restart)
-{
-    TBOX_ASSERT(input_db);
-
-    /*
-     * Note: if we are restarting, then we only allow nonuniform
-     * workload to be used if nonuniform workload was used originally.
-     */
-    if (!is_from_restart)
-    {
-        d_use_nonuniform_workload =
-                input_db->getBoolWithDefault("use_nonuniform_workload",
-                                             d_use_nonuniform_workload);
-    } else
-    {
-        if (d_use_nonuniform_workload)
-        {
-            d_use_nonuniform_workload =
-                    input_db->getBool("use_nonuniform_workload");
-        }
-    }
-
-    if (input_db->keyExists("advection_velocity"))
-    {
-        input_db->getDoubleArray("advection_velocity",
-                                 &d_advection_velocity[0], d_dim.getValue());
-    } else
-    {
-        TBOX_ERROR(
-                d_object_name << ":  "
-                              << "Key data `advection_velocity' not found in input.");
-    }
-
-    if (input_db->keyExists("godunov_order"))
-    {
-        d_godunov_order = input_db->getInteger("godunov_order");
-        if ((d_godunov_order != 1) &&
-            (d_godunov_order != 2) &&
-            (d_godunov_order != 4))
-        {
-            TBOX_ERROR(
-                    d_object_name << ": "
-                                  << "`godunov_order' in input must be 1, 2, or 4." << std::endl);
-        }
-    } else
-    {
-        d_godunov_order = input_db->getIntegerWithDefault("d_godunov_order",
-                                                          d_godunov_order);
-    }
-
-    if (input_db->keyExists("corner_transport"))
-    {
-        d_corner_transport = input_db->getString("corner_transport");
-        if ((d_corner_transport != "CORNER_TRANSPORT_1") &&
-            (d_corner_transport != "CORNER_TRANSPORT_2"))
-        {
-            TBOX_ERROR(
-                    d_object_name << ": "
-                                  << "`corner_transport' in input must be either string"
-                                  << " 'CORNER_TRANSPORT_1' or 'CORNER_TRANSPORT_2'." << std::endl);
-        }
-    } else
-    {
-        d_corner_transport = input_db->getStringWithDefault("corner_transport",
-                                                            d_corner_transport);
-    }
-
-    if (input_db->keyExists("Refinement_data"))
-    {
-        boost::shared_ptr<SAMRAI::tbox::Database> refine_db(input_db->getDatabase("Refinement_data"));
-        std::vector<std::string> refinement_keys = refine_db->getAllKeys();
-        int num_keys = static_cast<int>(refinement_keys.size());
-
-        if (refine_db->keyExists("refine_criteria"))
-        {
-            d_refinement_criteria = refine_db->getStringVector("refine_criteria");
-        } else
-        {
-            TBOX_WARNING(
-                    d_object_name << ": "
-                                  << "No key `refine_criteria' found in data for"
-                                  << " RefinementData. No refinement will occur." << std::endl);
-        }
-
-        std::vector<std::string> ref_keys_defined(num_keys);
-        int def_key_cnt = 0;
-        boost::shared_ptr<SAMRAI::tbox::Database> error_db;
-        for (int i = 0; i < num_keys; ++i)
-        {
-
-            std::string error_key = refinement_keys[i];
-            error_db.reset();
-
-            if (!(error_key == "refine_criteria"))
-            {
-
-                if (!(error_key == "UVAL_DEVIATION" ||
-                      error_key == "UVAL_GRADIENT" ||
-                      error_key == "UVAL_SHOCK" ||
-                      error_key == "UVAL_RICHARDSON"))
-                {
-                    TBOX_ERROR(
-                            d_object_name << ": "
-                                          << "Unknown refinement criteria: "
-                                          << error_key
-                                          << "\nin input." << std::endl);
-                } else
-                {
-                    error_db = refine_db->getDatabase(error_key);
-                    ref_keys_defined[def_key_cnt] = error_key;
-                    ++def_key_cnt;
-                }
-
-                if (error_db && error_key == "UVAL_DEVIATION")
-                {
-
-                    if (error_db->keyExists("dev_tol"))
-                    {
-                        d_dev_tol = error_db->getDoubleVector("dev_tol");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `dev_tol' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("uval_dev"))
-                    {
-                        d_dev = error_db->getDoubleVector("uval_dev");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `uval_dev' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("time_max"))
-                    {
-                        d_dev_time_max = error_db->getDoubleVector("time_max");
-                    } else
-                    {
-                        d_dev_time_max.resize(1);
-                        d_dev_time_max[0] = SAMRAI::tbox::MathUtilities<double>::getMax();
-                    }
-
-                    if (error_db->keyExists("time_min"))
-                    {
-                        d_dev_time_min = error_db->getDoubleVector("time_min");
-                    } else
-                    {
-                        d_dev_time_min.resize(1);
-                        d_dev_time_min[0] = 0.;
-                    }
-
-                }
-
-                if (error_db && error_key == "UVAL_GRADIENT")
-                {
-
-                    if (error_db->keyExists("grad_tol"))
-                    {
-                        d_grad_tol = error_db->getDoubleVector("grad_tol");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `grad_tol' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("time_max"))
-                    {
-                        d_grad_time_max = error_db->getDoubleVector("time_max");
-                    } else
-                    {
-                        d_grad_time_max.resize(1);
-                        d_grad_time_max[0] = SAMRAI::tbox::MathUtilities<double>::getMax();
-                    }
-
-                    if (error_db->keyExists("time_min"))
-                    {
-                        d_grad_time_min = error_db->getDoubleVector("time_min");
-                    } else
-                    {
-                        d_grad_time_min.resize(1);
-                        d_grad_time_min[0] = 0.;
-                    }
-
-                }
-
-                if (error_db && error_key == "UVAL_SHOCK")
-                {
-
-                    if (error_db->keyExists("shock_onset"))
-                    {
-                        d_shock_onset = error_db->getDoubleVector("shock_onset");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `shock_onset' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("shock_tol"))
-                    {
-                        d_shock_tol = error_db->getDoubleVector("shock_tol");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `shock_tol' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("time_max"))
-                    {
-                        d_shock_time_max = error_db->getDoubleVector("time_max");
-                    } else
-                    {
-                        d_shock_time_max.resize(1);
-                        d_shock_time_max[0] = SAMRAI::tbox::MathUtilities<double>::getMax();
-                    }
-
-                    if (error_db->keyExists("time_min"))
-                    {
-                        d_shock_time_min = error_db->getDoubleVector("time_min");
-                    } else
-                    {
-                        d_shock_time_min.resize(1);
-                        d_shock_time_min[0] = 0.;
-                    }
-
-                }
-
-                if (error_db && error_key == "UVAL_RICHARDSON")
-                {
-
-                    if (error_db->keyExists("rich_tol"))
-                    {
-                        d_rich_tol = error_db->getDoubleVector("rich_tol");
-                    } else
-                    {
-                        TBOX_ERROR(
-                                d_object_name << ": "
-                                              << "No key `rich_tol' found in data for "
-                                              << error_key << std::endl);
-                    }
-
-                    if (error_db->keyExists("time_max"))
-                    {
-                        d_rich_time_max = error_db->getDoubleVector("time_max");
-                    } else
-                    {
-                        d_rich_time_max.resize(1);
-                        d_rich_time_max[0] = SAMRAI::tbox::MathUtilities<double>::getMax();
-                    }
-
-                    if (error_db->keyExists("time_min"))
-                    {
-                        d_rich_time_min = error_db->getDoubleVector("time_min");
-                    } else
-                    {
-                        d_rich_time_min.resize(1);
-                        d_rich_time_min[0] = 0.;
-                    }
-
-                }
-
-            }
-
-        } // loop over refine criteria
-
-        /*
-         * Check that input is found for each string identifier in key list.
-         */
-        for (int k0 = 0;
-             k0 < static_cast<int>(d_refinement_criteria.size()); ++k0)
-        {
-            std::string use_key = d_refinement_criteria[k0];
-            bool key_found = false;
-            for (int k1 = 0; k1 < def_key_cnt; ++k1)
-            {
-                std::string def_key = ref_keys_defined[k1];
-                if (def_key == use_key) key_found = true;
-            }
-
-            if (!key_found)
-            {
-                TBOX_ERROR(d_object_name << ": "
-                                         << "No input found for specified refine criteria: "
-                                         << d_refinement_criteria[k0] << std::endl);
-            }
-        }
-
-    } // refine db entry exists
-
-    if (!is_from_restart)
-    {
-
-        if (input_db->keyExists("data_problem"))
-        {
-            d_data_problem = input_db->getString("data_problem");
-        } else
-        {
-            TBOX_ERROR(
-                    d_object_name << ": "
-                                  << "`data_problem' m_value_ not found in input."
-                                  << std::endl);
-        }
-
-        if (!input_db->keyExists("Initial_data"))
-        {
-            TBOX_ERROR(
-                    d_object_name << ": "
-                                  << "No `Initial_data' database found in input." << std::endl);
-        }
-        boost::shared_ptr<SAMRAI::tbox::Database> init_data_db(input_db->getDatabase("Initial_data"));
-
-        bool found_problem_data = false;
-
-        if (d_data_problem == "SPHERE")
-        {
-
-            if (init_data_db->keyExists("radius"))
-            {
-                d_radius = init_data_db->getDouble("radius");
-            } else
-            {
-                TBOX_ERROR(
-                        d_object_name << ": "
-                                      << "`radius' input required for SPHERE problem." << std::endl);
-            }
-            if (init_data_db->keyExists("center"))
-            {
-                d_center = init_data_db->getDoubleVector("center");
-            } else
-            {
-                TBOX_ERROR(
-                        d_object_name << ": "
-                                      << "`center' input required for SPHERE problem." << std::endl);
-            }
-            if (init_data_db->keyExists("uval_inside"))
-            {
-                d_uval_inside = init_data_db->getDouble("uval_inside");
-            } else
-            {
-                TBOX_ERROR(d_object_name << ": "
-                                         << "`uval_inside' input required for "
-                                         << "SPHERE problem." << std::endl);
-            }
-            if (init_data_db->keyExists("uval_outside"))
-            {
-                d_uval_outside = init_data_db->getDouble("uval_outside");
-            } else
-            {
-                TBOX_ERROR(d_object_name << ": "
-                                         << "`uval_outside' input required for "
-                                         << "SPHERE problem." << std::endl);
-            }
-
-            found_problem_data = true;
-
-        }
-
-        if (!found_problem_data &&
-            ((d_data_problem == "PIECEWISE_CONSTANT_X") ||
-             (d_data_problem == "PIECEWISE_CONSTANT_Y") ||
-             (d_data_problem == "PIECEWISE_CONSTANT_Z") ||
-             (d_data_problem == "SINE_CONSTANT_X") ||
-             (d_data_problem == "SINE_CONSTANT_Y") ||
-             (d_data_problem == "SINE_CONSTANT_Z")))
-        {
-
-            int idir = 0;
-            if (d_data_problem == "PIECEWISE_CONSTANT_Y")
-            {
-                if (d_dim < SAMRAI::tbox::Dimension(2))
-                {
-                    TBOX_ERROR(
-                            d_object_name << ": `PIECEWISE_CONSTANT_Y' "
-                                          << "problem invalid in 1 dimension."
-                                          << std::endl);
-                }
-                idir = 1;
-            }
-
-            if (d_data_problem == "PIECEWISE_CONSTANT_Z")
-            {
-                if (d_dim < SAMRAI::tbox::Dimension(3))
-                {
-                    TBOX_ERROR(
-                            d_object_name << ": `PIECEWISE_CONSTANT_Z' "
-                                          << "problem invalid in 1 or 2 dimensions." << std::endl);
-                }
-                idir = 2;
-            }
-
-            std::vector<std::string> init_data_keys = init_data_db->getAllKeys();
-
-            if (init_data_db->keyExists("front_position"))
-            {
-                d_front_position = init_data_db->getDoubleVector("front_position");
-            } else
-            {
-                TBOX_ERROR(d_object_name << ": "
-                                         << "`front_position' input required for "
-                                         << d_data_problem << " problem." << std::endl);
-            }
-
-            d_number_of_intervals =
-                    SAMRAI::tbox::MathUtilities<int>::Min(static_cast<int>(d_front_position.size()) + 1,
-                                                          static_cast<int>(init_data_keys.size()) - 1);
-
-            d_front_position.resize(static_cast<int>(d_front_position.size()) + 1);
-            d_front_position[static_cast<int>(d_front_position.size()) - 1] =
-                    d_grid_geometry->getXUpper()[idir];
-
-            d_interval_uval.resize(d_number_of_intervals);
-
-            int i = 0;
-            int nkey = 0;
-            bool found_interval_data = false;
-
-            while (!found_interval_data
-                   && (i < d_number_of_intervals)
-                   && (nkey < static_cast<int>(init_data_keys.size())))
-            {
-
-                if (!(init_data_keys[nkey] == "front_position"))
-                {
-
-                    boost::shared_ptr<SAMRAI::tbox::Database> interval_db(
-                            init_data_db->getDatabase(init_data_keys[nkey]));
-
-                    if (interval_db->keyExists("uval"))
-                    {
-                        d_interval_uval[i] = interval_db->getDouble("uval");
-                    } else
-                    {
-                        TBOX_ERROR(d_object_name << ": "
-                                                 << "`uval' data missing in input for key = "
-                                                 << init_data_keys[nkey] << std::endl);
-                    }
-                    ++i;
-
-                    found_interval_data = (i == d_number_of_intervals);
-
-                }
-
-                ++nkey;
-
-            }
-
-            if ((d_data_problem == "SINE_CONSTANT_X") ||
-                (d_data_problem == "SINE_CONSTANT_Y") ||
-                (d_data_problem == "SINE_CONSTANT_Z"))
-            {
-                if (init_data_db->keyExists("amplitude"))
-                {
-                    d_amplitude = init_data_db->getDouble("amplitude");
-                }
-                if (init_data_db->keyExists("frequency"))
-                {
-                    init_data_db->getDoubleArray("frequency", &d_frequency[0], d_dim.getValue());
-                } else
-                {
-                    TBOX_ERROR(
-                            d_object_name << ": "
-                                          << "`frequency' input required for SINE problem." << std::endl);
-                }
-            }
-
-            if (!found_interval_data)
-            {
-                TBOX_ERROR(
-                        d_object_name << ": "
-                                      << "Insufficient interval data given in input"
-                                      << " for PIECEWISE_CONSTANT_*problem."
-                                      << std::endl);
-            }
-
-            found_problem_data = true;
-        }
-
-        if (!found_problem_data)
-        {
-            TBOX_ERROR(d_object_name << ": "
-                                     << "`Initial_data' database found in input."
-                                     << " But bad data supplied." << std::endl);
-        }
-
-    } // if !is_from_restart read in problem data
-
-    const SAMRAI::hier::IntVector &one_vec = SAMRAI::hier::IntVector::getOne(d_dim);
-    SAMRAI::hier::IntVector periodic(d_grid_geometry->getPeriodicShift(one_vec));
-    int num_per_dirs = 0;
-    for (int id = 0; id < d_dim.getValue(); ++id)
-    {
-        if (periodic(id)) ++num_per_dirs;
-    }
-
-    if (input_db->keyExists("Boundary_data"))
-    {
-
-        boost::shared_ptr<SAMRAI::tbox::Database> bdry_db(
-                input_db->getDatabase("Boundary_data"));
-
-        if (d_dim == SAMRAI::tbox::Dimension(2))
-        {
-            SAMRAI::appu::CartesianBoundaryUtilities2::getFromInput(this,
-                                                                    bdry_db,
-                                                                    d_scalar_bdry_edge_conds,
-                                                                    d_scalar_bdry_node_conds,
-                                                                    periodic);
-        }
-        if (d_dim == SAMRAI::tbox::Dimension(3))
-        {
-            SAMRAI::appu::CartesianBoundaryUtilities3::getFromInput(this,
-                                                                    bdry_db,
-                                                                    d_scalar_bdry_face_conds,
-                                                                    d_scalar_bdry_edge_conds,
-                                                                    d_scalar_bdry_node_conds,
-                                                                    periodic);
-        }
-
-    } else
-    {
-        TBOX_ERROR(
-                d_object_name << ": "
-                              << "Key data `Boundary_data' not found in input. " << std::endl);
-    }
-
-}
-
-/*
- *************************************************************************
- *
- * Routines to put/get data members to/from restart database.
- *
- *************************************************************************
- */
-//
-//void SAMRAIWorkerHyperbolic::putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db) const
-//{
-//    TBOX_ASSERT(restart_db);
-//
-//    restart_db->putInteger("LINADV_VERSION", LINADV_VERSION);
-//
-//    restart_db->putDoubleVector("d_advection_velocity", d_advection_velocity);
-//
-//    restart_db->putInteger("d_godunov_order", d_godunov_order);
-//    restart_db->putString("d_corner_transport", d_corner_transport);
-//    restart_db->putIntegerArray("d_nghosts", &d_nghosts[0], d_dim.getValue());
-//    restart_db->putIntegerArray("d_fluxghosts",
-//                                &d_fluxghosts[0],
-//                                d_dim.getValue());
-//
-//    restart_db->putString("d_data_problem", d_data_problem);
-//
-//    if (d_data_problem == "SPHERE")
-//    {
-//        restart_db->putDouble("d_radius", d_radius);
-//        restart_db->putDoubleVector("d_center", d_center);
-//        restart_db->putDouble("d_uval_inside", d_uval_inside);
-//        restart_db->putDouble("d_uval_outside", d_uval_outside);
-//    }
-//
-//    if ((d_data_problem == "PIECEWISE_CONSTANT_X") ||
-//        (d_data_problem == "PIECEWISE_CONSTANT_Y") ||
-//        (d_data_problem == "PIECEWISE_CONSTANT_Z") ||
-//        (d_data_problem == "SINE_CONSTANT_X") ||
-//        (d_data_problem == "SINE_CONSTANT_Y") ||
-//        (d_data_problem == "SINE_CONSTANT_Z"))
-//    {
-//        restart_db->putInteger("d_number_of_intervals", d_number_of_intervals);
-//        if (d_number_of_intervals > 0)
-//        {
-//            restart_db->putDoubleVector("d_front_position", d_front_position);
-//            restart_db->putDoubleVector("d_interval_uval", d_interval_uval);
-//        }
-//    }
-//
-//    restart_db->putIntegerVector("d_scalar_bdry_edge_conds",
-//                                 d_scalar_bdry_edge_conds);
-//    restart_db->putIntegerVector("d_scalar_bdry_node_conds",
-//                                 d_scalar_bdry_node_conds);
-//
-//    if (d_dim == SAMRAI::tbox::Dimension(2))
-//    {
-//        restart_db->putDoubleVector("d_bdry_edge_uval", d_bdry_edge_uval);
-//    }
-//    if (d_dim == SAMRAI::tbox::Dimension(3))
-//    {
-//        restart_db->putIntegerVector("d_scalar_bdry_face_conds",
-//                                     d_scalar_bdry_face_conds);
-//        restart_db->putDoubleVector("d_bdry_face_uval", d_bdry_face_uval);
-//    }
-//
-//    if (d_refinement_criteria.size() > 0)
-//    {
-//        restart_db->putStringVector("d_refinement_criteria",
-//                                    d_refinement_criteria);
-//    }
-//    for (int i = 0; i < static_cast<int>(d_refinement_criteria.size()); ++i)
-//    {
-//
-//        if (d_refinement_criteria[i] == "UVAL_DEVIATION")
-//        {
-//            restart_db->putDoubleVector("d_dev_tol", d_dev_tol);
-//            restart_db->putDoubleVector("d_dev", d_dev);
-//            restart_db->putDoubleVector("d_dev_time_max", d_dev_time_max);
-//            restart_db->putDoubleVector("d_dev_time_min", d_dev_time_min);
-//        } else if (d_refinement_criteria[i] == "UVAL_GRADIENT")
-//        {
-//            restart_db->putDoubleVector("d_grad_tol", d_grad_tol);
-//            restart_db->putDoubleVector("d_grad_time_max", d_grad_time_max);
-//            restart_db->putDoubleVector("d_grad_time_min", d_grad_time_min);
-//        } else if (d_refinement_criteria[i] == "UVAL_SHOCK")
-//        {
-//            restart_db->putDoubleVector("d_shock_onset", d_shock_onset);
-//            restart_db->putDoubleVector("d_shock_tol", d_shock_tol);
-//            restart_db->putDoubleVector("d_shock_time_max", d_shock_time_max);
-//            restart_db->putDoubleVector("d_shock_time_min", d_shock_time_min);
-//        } else if (d_refinement_criteria[i] == "UVAL_RICHARDSON")
-//        {
-//            restart_db->putDoubleVector("d_rich_tol", d_rich_tol);
-//            restart_db->putDoubleVector("d_rich_time_max", d_rich_time_max);
-//            restart_db->putDoubleVector("d_rich_time_min", d_rich_time_min);
-//        }
-//
-//    }
-//
-//}
-
-/*
- *************************************************************************
- *
- *    Access class information from restart database.
- *
- *************************************************************************
- */
-//void SAMRAIWorkerHyperbolic::getFromRestart()
-//{
-//    boost::shared_ptr<SAMRAI::tbox::Database> root_db(
-//            SAMRAI::tbox::RestartManager::getManager()->getRootDatabase());
-//
-//    if (!root_db->isDatabase(d_object_name))
-//    {
-//        TBOX_ERROR("Restart database corresponding to "
-//                           << d_object_name << " not found in restart file.");
-//    }
-//    boost::shared_ptr<SAMRAI::tbox::Database> db(root_db->getDatabase(d_object_name));
-//
-//    int ver = db->getInteger("LINADV_VERSION");
-//    if (ver != LINADV_VERSION)
-//    {
-//        TBOX_ERROR(
-//                d_object_name << ":  "
-//                              << "Restart file version different than class version.");
-//    }
-//
-//    d_advection_velocity = db->getDoubleVector("d_advection_velocity");
-//
-//    d_godunov_order = db->getInteger("d_godunov_order");
-//    d_corner_transport = db->getString("d_corner_transport");
-//
-//    int *tmp_nghosts = &d_nghosts[0];
-//    db->getIntegerArray("d_nghosts", tmp_nghosts, d_dim.getValue());
-//    if (!(d_nghosts == CELLG))
-//    {
-//        TBOX_ERROR(
-//                d_object_name << ": "
-//                              << "Key data `d_nghosts' in restart file != CELLG." << std::endl);
-//    }
-//    int *tmp_fluxghosts = &d_fluxghosts[0];
-//    db->getIntegerArray("d_fluxghosts", tmp_fluxghosts, d_dim.getValue());
-//    if (!(d_fluxghosts == FLUXG))
-//    {
-//        TBOX_ERROR(
-//                d_object_name << ": "
-//                              << "Key data `d_fluxghosts' in restart file != FLUXG." << std::endl);
-//    }
-//
-//    d_data_problem = db->getString("d_data_problem");
-//
-//    if (d_data_problem == "SPHERE")
-//    {
-//        d_data_problem_int = SPHERE;
-//        d_radius = db->getDouble("d_radius");
-//        d_center = db->getDoubleVector("d_center");
-//        d_uval_inside = db->getDouble("d_uval_inside");
-//        d_uval_outside = db->getDouble("d_uval_outside");
-//    }
-//
-//    if ((d_data_problem == "PIECEWISE_CONSTANT_X") ||
-//        (d_data_problem == "PIECEWISE_CONSTANT_Y") ||
-//        (d_data_problem == "PIECEWISE_CONSTANT_Z") ||
-//        (d_data_problem == "SINE_CONSTANT_X") ||
-//        (d_data_problem == "SINE_CONSTANT_Y") ||
-//        (d_data_problem == "SINE_CONSTANT_Z"))
-//    {
-//        d_number_of_intervals = db->getInteger("d_number_of_intervals");
-//        if (d_number_of_intervals > 0)
-//        {
-//            d_front_position = db->getDoubleVector("d_front_position");
-//            d_interval_uval = db->getDoubleVector("d_interval_uval");
-//        }
-//    }
-//
-//    d_scalar_bdry_edge_conds = db->getIntegerVector("d_scalar_bdry_edge_conds");
-//    d_scalar_bdry_node_conds = db->getIntegerVector("d_scalar_bdry_node_conds");
-//
-//    if (d_dim == SAMRAI::tbox::Dimension(2))
-//    {
-//        d_bdry_edge_uval = db->getDoubleVector("d_bdry_edge_uval");
-//    }
-//    if (d_dim == SAMRAI::tbox::Dimension(3))
-//    {
-//        d_scalar_bdry_face_conds =
-//                db->getIntegerVector("d_scalar_bdry_face_conds");
-//
-//        d_bdry_face_uval = db->getDoubleVector("d_bdry_face_uval");
-//    }
-//
-//    if (db->keyExists("d_refinement_criteria"))
-//    {
-//        d_refinement_criteria = db->getStringVector("d_refinement_criteria");
-//    }
-//    for (int i = 0; i < static_cast<int>(d_refinement_criteria.size()); ++i)
-//    {
-//
-//        if (d_refinement_criteria[i] == "UVAL_DEVIATION")
-//        {
-//            d_dev_tol = db->getDoubleVector("d_dev_tol");
-//            d_dev_time_max = db->getDoubleVector("d_dev_time_max");
-//            d_dev_time_min = db->getDoubleVector("d_dev_time_min");
-//        } else if (d_refinement_criteria[i] == "UVAL_GRADIENT")
-//        {
-//            d_grad_tol = db->getDoubleVector("d_grad_tol");
-//            d_grad_time_max = db->getDoubleVector("d_grad_time_max");
-//            d_grad_time_min = db->getDoubleVector("d_grad_time_min");
-//        } else if (d_refinement_criteria[i] == "UVAL_SHOCK")
-//        {
-//            d_shock_onset = db->getDoubleVector("d_shock_onset");
-//            d_shock_tol = db->getDoubleVector("d_shock_tol");
-//            d_shock_time_max = db->getDoubleVector("d_shock_time_max");
-//            d_shock_time_min = db->getDoubleVector("d_shock_time_min");
-//        } else if (d_refinement_criteria[i] == "UVAL_RICHARDSON")
-//        {
-//            d_rich_tol = db->getDoubleVector("d_rich_tol");
-//            d_rich_time_max = db->getDoubleVector("d_rich_time_max");
-//            d_rich_time_min = db->getDoubleVector("d_rich_time_min");
-//        }
-//
-//    }
-//
-//}
-
-/*
- *************************************************************************
- *
  * Routines to read boundary data from input database.
  *
  *************************************************************************
  */
 
-void SAMRAIWorkerHyperbolic::readDirichletBoundaryDataEntry(
-        const boost::shared_ptr<SAMRAI::tbox::Database> &db,
-        std::string &db_name,
-        int bdry_location_index)
+void SAMRAIWorker::readDirichletBoundaryDataEntry(const boost::shared_ptr<SAMRAI::tbox::Database> &db,
+                                                  std::string &db_name,
+                                                  int bdry_location_index)
 {
-    TBOX_ASSERT(db);
-    TBOX_ASSERT(!db_name.empty());
-
-    if (d_dim == SAMRAI::tbox::Dimension(2))
-    {
-        readStateDataEntry(db,
-                           db_name,
-                           bdry_location_index,
-                           d_bdry_edge_uval);
-    }
-    if (d_dim == SAMRAI::tbox::Dimension(3))
-    {
-        readStateDataEntry(db,
-                           db_name,
-                           bdry_location_index,
-                           d_bdry_face_uval);
-    }
+//    TBOX_ASSERT(db);
+//    TBOX_ASSERT(!db_name.empty());
+//
+//    if (d_dim == SAMRAI::tbox::Dimension(2))
+//    {
+//        readStateDataEntry(db,
+//                           db_name,
+//                           bdry_location_index,
+//                           d_bdry_edge_uval);
+//    }
+//    if (d_dim == SAMRAI::tbox::Dimension(3))
+//    {
+//        readStateDataEntry(db,
+//                           db_name,
+//                           bdry_location_index,
+//                           d_bdry_face_uval);
+//    }
 }
 
-void SAMRAIWorkerHyperbolic::readNeumannBoundaryDataEntry(
-        const boost::shared_ptr<SAMRAI::tbox::Database> &db,
-        std::string &db_name,
-        int bdry_location_index)
+void SAMRAIWorker::readNeumannBoundaryDataEntry(const boost::shared_ptr<SAMRAI::tbox::Database> &db,
+                                                std::string &db_name,
+                                                int bdry_location_index)
 {
     NULL_USE(db);
     NULL_USE(db_name);
     NULL_USE(bdry_location_index);
 }
 
-void SAMRAIWorkerHyperbolic::readStateDataEntry(
-        boost::shared_ptr<SAMRAI::tbox::Database> db,
-        const std::string &db_name,
-        int array_indx,
-        std::vector<double> &uval)
+struct SAMRAILevelIntegrator : public SAMRAI::algs::HyperbolicLevelIntegrator
 {
-    TBOX_ASSERT(db);
-    TBOX_ASSERT(!db_name.empty());
-    TBOX_ASSERT(array_indx >= 0);
-    TBOX_ASSERT(static_cast<int>(uval.size()) > array_indx);
+    template<typename ...Args>
+    SAMRAILevelIntegrator(Args &&...args):SAMRAI::algs::HyperbolicLevelIntegrator(std::forward<Args>(args)...) {}
 
-    if (db->keyExists("uval"))
+    virtual ~SAMRAILevelIntegrator() {}
+};
+
+struct SAMRAITimeIntegrator : public simulation::TimeIntegrator
+{
+    typedef simulation::TimeIntegrator base_type;
+public:
+    SAMRAITimeIntegrator(std::string const &s, std::shared_ptr<mesh::Worker> const &w);
+
+    ~SAMRAITimeIntegrator();
+
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+
+    virtual void load(data::DataBase const &);
+
+    virtual void save(data::DataBase *) const;
+
+    virtual void deploy();
+
+    virtual void tear_down();
+
+    virtual bool is_valid() const;
+
+    virtual size_type step() const;
+
+    virtual Real time_now() const;
+
+    virtual void next_time_step(Real dt);
+
+    virtual void check_point();
+
+    virtual void register_worker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
+
+private:
+    bool m_is_valid_ = false;
+
+    std::shared_ptr<mesh::Worker> m_worker_;
+
+    boost::shared_ptr<SAMRAI::tbox::Database> samrai_cfg;
+
+    boost::shared_ptr<SAMRAIWorker> patch_worker;
+
+    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
+
+    boost::shared_ptr<SAMRAI::hier::PatchHierarchy> patch_hierarchy;
+
+    boost::shared_ptr<SAMRAILevelIntegrator> hyp_level_integrator;
+
+//    boost::shared_ptr<SAMRAI::mesh::StandardTagAndInitialize> error_detector;
+//
+//    boost::shared_ptr<SAMRAI::mesh::BergerRigoutsos> box_generator;
+//
+//    boost::shared_ptr<SAMRAI::mesh::CascadePartitioner> load_balancer;
+//
+//    boost::shared_ptr<SAMRAI::mesh::GriddingAlgorithm> gridding_algorithm;
+
+    boost::shared_ptr<SAMRAI::algs::TimeRefinementIntegrator> time_integrator;
+
+    // VisItDataWriter is only present if HDF is available
+    boost::shared_ptr<SAMRAI::appu::VisItDataWriter> visit_data_writer;
+
+
+    bool write_restart = false;
+    int restart_interval = 0;
+
+    std::string restart_write_dirname;
+
+    bool viz_dump_data = false;
+    int viz_dump_interval = 1;
+
+    static constexpr int ndims = 3;
+};
+
+SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::string const &s, std::shared_ptr<mesh::Worker> const &w)
+        : base_type(s), m_worker_(w)
+{
+    /*
+      * Initialize SAMRAI::tbox::MPI.
+      */
+    SAMRAI::tbox::SAMRAI_MPI::init(0, nullptr);
+
+    SAMRAI::tbox::SAMRAIManager::initialize();
+    /*
+     * Initialize SAMRAI, enable logging, and process command line.
+     */
+    SAMRAI::tbox::SAMRAIManager::startup();
+//    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
+}
+
+SAMRAITimeIntegrator::~SAMRAITimeIntegrator()
+{
+    SAMRAI::tbox::SAMRAIManager::shutdown();
+    SAMRAI::tbox::SAMRAIManager::finalize();
+    SAMRAI::tbox::SAMRAI_MPI::finalize();
+}
+
+std::ostream &SAMRAITimeIntegrator::print(std::ostream &os, int indent) const
+{
+    hyp_level_integrator->printClassData(os);
+    return os;
+};
+
+
+void SAMRAITimeIntegrator::load(data::DataBase const &db) { m_is_valid_ = false; }
+
+void SAMRAITimeIntegrator::save(data::DataBase *) const { UNIMPLEMENTED; }
+
+namespace detail
+{
+void convert_database_r(data::DataBase const &src, boost::shared_ptr<SAMRAI::tbox::Database> &dest,
+                        std::string const &key = "")
+{
+
+    if (src.is_table())
     {
-        uval[array_indx] = db->getDouble("uval");
+        auto sub_db = key == "" ? dest : dest->putDatabase(key);
+
+        src.foreach([&](std::string const &k, data::DataBase const &v) { convert_database_r(v, sub_db, k); });
+    } else if (key == "") { return; }
+    else if (src.empty()) { dest->putDatabase(key); }
+    else if (src.is_boolean()) { dest->putBool(key, src.as<bool>()); }
+    else if (src.is_string()) { dest->putString(key, src.as<std::string>()); }
+    else if (src.is_floating_point()) { dest->putDouble(key, src.as<double>()); }
+    else if (src.is_integral()) { dest->putInteger(key, src.as<int>()); }
+    else if (src.type() == typeid(nTuple<bool, 3>))
+    {
+        dest->putBoolArray(key, &src.as<nTuple<bool, 3 >>()[0], 3);
+    } else if (src.type() == typeid(nTuple<int, 3>))
+    {
+        dest->putIntegerArray(key, &src.as<nTuple<int, 3 >>()[0], 3);
+    } else if (src.type() == typeid(nTuple<double, 3>))
+    {
+        dest->putDoubleArray(key, &src.as<nTuple<double, 3 >>()[0], 3);
+    }
+//    else if (src.type() == typeid(box_type)) { dest->putDoubleArray(key, &src.as<box_type>()[0], 3); }
+    else if (src.type() == typeid(index_box_type))
+    {
+        nTuple<int, 3> i_lo, i_up;
+        std::tie(i_lo, i_up) = src.as<index_box_type>();
+        SAMRAI::tbox::Dimension dim(3);
+        dest->putDatabaseBox(key, SAMRAI::tbox::DatabaseBox(dim, &(i_lo[0]), &(i_up[0])));
     } else
     {
-        TBOX_ERROR(d_object_name << ": "
-                                 << "`uval' entry missing from " << db_name
-                                 << " input database. " << std::endl);
+        WARNING << " Unknown type [" << src << "]" << std::endl;
     }
 
 }
+
+boost::shared_ptr<SAMRAI::tbox::Database>
+convert_database(data::DataBase const &src, std::string const &s_name = "")
+{
+    auto dest = boost::dynamic_pointer_cast<SAMRAI::tbox::Database>(
+            boost::make_shared<SAMRAI::tbox::MemoryDatabase>(s_name));
+    convert_database_r(src, dest);
+    return dest;
+}
+}//namespace detail{
+void SAMRAITimeIntegrator::deploy()
+{
+
+    bool use_refined_timestepping = db["use_refined_timestepping"].template as<bool>(true);
+    m_is_valid_ = true;
+
+    SAMRAI::tbox::Dimension dim(ndims);
+
+    samrai_cfg = detail::convert_database(db, name());
+
+
+
+    /**
+    * Create major algorithm and data objects which comprise application.
+    * Each object will be initialized either from input data or restart
+    * files, or a combination of both.  Refer to each class constructor
+    * for details.  For more information on the composition of objects
+    * for this application, see comments at top of file.
+    */
+
+
+    grid_geometry = boost::make_shared<SAMRAI::geom::CartesianGridGeometry>(dim, "CartesianGeometry",
+                                                                            samrai_cfg->getDatabase(
+                                                                                    "CartesianGeometry"));
+//    grid_geometry->printClassData(std::cout);
+    //---------------------------------
+
+    patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>("PatchHierarchy", grid_geometry,
+                                                                       samrai_cfg->getDatabase("PatchHierarchy"));
+//    patch_hierarchy->recursivePrint(std::cout, "", 1);
+    //---------------------------------
+    /***
+     *  create hyp_level_integrator and error_detector
+     */
+    patch_worker = boost::make_shared<SAMRAIWorker>(m_worker_, dim, grid_geometry);
+
+    hyp_level_integrator = boost::make_shared<SAMRAILevelIntegrator>(
+            "SAMRAILevelIntegrator", samrai_cfg->getDatabase("HyperbolicLevelIntegrator"),
+            patch_worker.get(), use_refined_timestepping);
+
+//    hyp_level_integrator->printClassData(std::cout);
+
+    auto error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
+            "StandardTagAndInitialize", hyp_level_integrator.get(),
+            samrai_cfg->getDatabase("StandardTagAndInitialize"));
+    //---------------------------------
+
+    /**
+     *  create grid_algorithm
+     */
+    auto box_generator = boost::make_shared<SAMRAI::mesh::BergerRigoutsos>(dim,
+                                                                           samrai_cfg->getDatabase("BergerRigoutsos"));
+
+    box_generator->useDuplicateMPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
+
+    auto load_balancer = boost::make_shared<SAMRAI::mesh::CascadePartitioner>(dim, "LoadBalancer",
+                                                                              samrai_cfg->getDatabase("LoadBalancer"));
+
+    load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
+
+//    load_balancer->printStatistics(std::cout);
+
+    auto gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
+            patch_hierarchy,
+            "GriddingAlgorithm",
+            samrai_cfg->getDatabase("GriddingAlgorithm"),
+            error_detector,
+            box_generator,
+            load_balancer);
+
+//    gridding_algorithm->printClassData(std::cout);
+    //---------------------------------
+
+    time_integrator = boost::make_shared<SAMRAI::algs::TimeRefinementIntegrator>(
+            "TimeRefinementIntegrator",
+            samrai_cfg->getDatabase("TimeRefinementIntegrator"),
+            patch_hierarchy,
+            hyp_level_integrator,
+            gridding_algorithm);
+
+
+    visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
+            dim,
+            db["output_writer_name"].as<std::string>(name() + " VisIt Writer"),
+            db["output_dir_name"].as<std::string>(name()),
+            db["visit_number_procs_per_file"].as<int>(1)
+    );
+
+    patch_worker->registerVisItDataWriter(visit_data_writer);
+
+
+    time_integrator->initializeHierarchy();
+//    time_integrator->printClassData(std::cout);
+
+    MESSAGE << name() << " is deployed!" << std::endl;
+
+
+    samrai_cfg->printClassData(std::cout);
+    SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(std::cout);
+
+};
+
+void SAMRAITimeIntegrator::tear_down()
+{
+    m_is_valid_ = false;
+
+    visit_data_writer.reset();
+
+    time_integrator.reset();
+
+    hyp_level_integrator.reset();
+
+    patch_worker.reset();
+}
+
+
+bool SAMRAITimeIntegrator::is_valid() const { return m_is_valid_; }
+
+void SAMRAITimeIntegrator::next_time_step(Real dt)
+{
+    assert(is_valid());
+
+    MESSAGE << " Time = " << time_now() << " Step = " << step() << std::endl;
+
+    time_integrator->advanceHierarchy(dt, true);
+
+}
+
+void SAMRAITimeIntegrator::check_point()
+{
+    if (visit_data_writer != nullptr)
+    {
+        VERBOSE << visit_data_writer->getObjectName() << std::endl;
+
+        visit_data_writer->writePlotData(patch_hierarchy,
+                                         time_integrator->getIntegratorStep(),
+                                         time_integrator->getIntegratorTime());
+    }
+}
+
+Real SAMRAITimeIntegrator::time_now() const { return static_cast<Real>( time_integrator->getIntegratorTime()); }
+
+size_type SAMRAITimeIntegrator::step() const { return static_cast<size_type>( time_integrator->getIntegratorStep()); }
 
 /*
  *************************************************************************
@@ -3961,7 +3309,7 @@ void SAMRAIWorkerHyperbolic::readStateDataEntry(
  *************************************************************************
  */
 //
-//void SAMRAIWorkerHyperbolic::checkBoundaryData(
+//void SAMRAIWorker::checkBoundaryData(
 //        int btype,
 //        const SAMRAI::hier::DataBlockBase &patch,
 //        const SAMRAI::hier::IntVector &ghost_width_to_check,
@@ -4069,14 +3417,14 @@ void SAMRAIWorkerHyperbolic::readStateDataEntry(
 //}
 //
 //void
-//SAMRAIWorkerHyperbolic::checkUserTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const
+//SAMRAIWorker::checkUserTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const
 //{
 //    boost::shared_ptr<SAMRAI::pdat::CellData<int> > tags( boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(patch.getPatchData(tag_index)));
 //    TBOX_ASSERT(tags);
 //}
 //
 //void
-//SAMRAIWorkerHyperbolic::checkNewPatchTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const
+//SAMRAIWorker::checkNewPatchTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const
 //{
 //    boost::shared_ptr<SAMRAI::pdat::CellData<int> > tags(
 //             boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(

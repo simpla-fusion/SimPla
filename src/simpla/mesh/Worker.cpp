@@ -21,10 +21,13 @@ Worker::~Worker() { for (Observer *ob:m_pimpl_->m_obs_) { ob->destroy(); }};
 
 std::ostream &Worker::print(std::ostream &os, int indent) const
 {
-    os << std::setw(indent + 1) << " Mesh = " << m_pimpl_->m_mesh_->name() << ", "
-       << " type = \"" << get_class_name() << "\", "
-       << "Attribute= {";
+    if (m_pimpl_->m_mesh_ != nullptr)
+    {
+        os << std::setw(indent + 1) << " Mesh = " << m_pimpl_->m_mesh_->name() << ", "
+           << " type = \"" << get_class_name() << "\", ";
 
+    }
+    os << "Attribute= {";
     for (Observer *ob:m_pimpl_->m_obs_) { os << "\"" << ob->name() << "\" , "; }
 
     os << std::setw(indent + 1) << "}  ";
@@ -32,7 +35,6 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
     return os;
 }
 
-std::vector<std::shared_ptr<Attribute>> &Worker::attributes() { return m_pimpl_->m_attributes_; }
 
 void Worker::attach(Observer *ob) { m_pimpl_->m_obs_.insert(ob); }
 
