@@ -12,7 +12,8 @@
 namespace simpla
 {
 
-std::shared_ptr<simulation::TimeIntegrator> create_samrai_time_integrator(std::string const &name);
+std::shared_ptr<simulation::TimeIntegrator>
+create_samrai_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w);
 
 }
 #endif //SIMPLA_SAMRAITIMEINTEGRATOR_H

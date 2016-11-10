@@ -13,53 +13,54 @@
 #include "SAMRAITimeIntegrator.h"
 
 using namespace simpla;
-//
-//class DummyMesh : public mesh::MeshBlock
-//{
-//public:
-//    static constexpr unsigned int ndims = 3;
-//
-//    SP_OBJECT_HEAD(DummyMesh, mesh::MeshBlock)
-//
-//    template<typename ...Args>
-//    DummyMesh(Args &&...args):mesh::MeshBlock(std::forward<Args>(args)...) {}
-//
-//    ~DummyMesh() {}
-//
-//    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
-//
-//    virtual std::shared_ptr<mesh::MeshBlock> clone() const
-//    {
-//        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
-//    };
-//
-//    template<typename ...Args>
-//    Real eval(Args &&...args) const { return 1.0; };
-//};
-//
-//template<typename TM>
-//struct AMRTest : public mesh::Worker
-//{
-//    typedef TM mesh_type;
-//
-//    SP_OBJECT_HEAD(AMRTest, mesh::Worker);
-//
-//    template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
-//    field_type<Real, mesh::VERTEX> phi{"phi", this};
-//    field_type<Real, mesh::EDGE> E{"E", this};
-//    field_type<Real, mesh::FACE> B{"B", this};
-//
-//    void next_time_step(Real dt)
-//    {
-//        E = grad(-2.0 * phi) * dt;
-//        phi -= diverge(E) * 3.0 * dt;
-//    }
-//
-//};
+
+class DummyMesh : public mesh::MeshBlock
+{
+public:
+    static constexpr unsigned int ndims = 3;
+
+    SP_OBJECT_HEAD(DummyMesh, mesh::MeshBlock)
+
+    template<typename ...Args>
+    DummyMesh(Args &&...args):mesh::MeshBlock(std::forward<Args>(args)...) {}
+
+    ~DummyMesh() {}
+
+    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
+
+    virtual std::shared_ptr<mesh::MeshBlock> clone() const
+    {
+        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
+    };
+
+    template<typename ...Args>
+    Real eval(Args &&...args) const { return 1.0; };
+};
+
+template<typename TM>
+struct AMRTest : public mesh::Worker
+{
+    typedef TM mesh_type;
+
+    SP_OBJECT_HEAD(AMRTest, mesh::Worker);
+
+    template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
+    field_type<Real, mesh::VERTEX> phi{"phi", this};
+    field_type<Real, mesh::EDGE> E{"E", this};
+    field_type<Real, mesh::FACE> B{"B", this};
+
+    void next_time_step(Real dt)
+    {
+        E = grad(-2.0 * phi) * dt;
+        phi -= diverge(E) * 3.0 * dt;
+    }
+
+};
 
 int main(int argc, char **argv)
 {
-    auto integrator = simpla::create_samrai_time_integrator("samrai_integrator");
+    auto integrator = simpla::create_samrai_time_integrator("samrai_integrator",
+                                                            std::make_shared<AMRTest<DummyMesh>>());
 
     /** test.3d.input */
 
@@ -143,18 +144,21 @@ int main(int argc, char **argv)
      */
 
 
-    integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0,  0,  0},
-                                                                           {15, 15, 15}};
-
+    integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0,   0,   0},
+                                                                           {125, 125, 125}};
     integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{0, 0, 0};
     integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{1, 1, 1};
+
     integrator->db["PatchHierarchy"]["max_levels"] = int(3); // Maximum number of levels in hierarchy.
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_1"] = nTuple<int, 3>{2, 2, 2};
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_2"] = nTuple<int, 3>{2, 2, 2};
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_3"] = nTuple<int, 3>{2, 2, 2};
     integrator->db["PatchHierarchy"]["largest_patch_size"]["level_0"] = nTuple<int, 3>{40, 40, 40};
     integrator->db["PatchHierarchy"]["smallest_patch_size"]["level_0"] = nTuple<int, 3>{9, 9, 9};
+
     integrator->db["GriddingAlgorithm"];
+
+
     integrator->db["BergerRigoutsos"]["sort_output_nodes"] = true;// Makes results repeatable.
     integrator->db["BergerRigoutsos"]["efficiency_tolerance"] = 0.85;  // min % of tag cells in new patch level
     integrator->db["BergerRigoutsos"]["combine_efficiency"] = 0.95;  // chop box if sum of volumes of smaller
@@ -180,8 +184,15 @@ int main(int argc, char **argv)
     integrator->db["LoadBalancer"];
 
     integrator->deploy();
-    integrator->print(std::cout);
+    INFORM << "***********************************************" << std::endl;
+//    integrator->print(std::cout);
+
+    integrator->next_time_step(1.0);
+
+    INFORM << "***********************************************" << std::endl;
+
     integrator->tear_down();
+
     integrator.reset();
 
 }

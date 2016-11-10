@@ -39,13 +39,15 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
 
-    virtual void load(data::DataBase const &) {};
+    virtual void load(data::DataBase const &) { UNIMPLEMENTED; };
 
-    virtual void save(data::DataBase *) const {};
+    virtual void save(data::DataBase *) const { UNIMPLEMENTED; };
 
-    virtual void update_level(int l0, int l1) {};
+    virtual void update_level(int l0, int l1) { UNIMPLEMENTED; };
 
-    virtual void advance(Real dt, int level = 0) {};
+    virtual void advance(Real dt, int level = 0) { UNIMPLEMENTED; };
+
+    virtual void next_time_step(Real dt) { UNIMPLEMENTED; };
 
     data::DataBase &config(std::string const &s = "") { return m_db_.get(s); }
 
