@@ -16,6 +16,7 @@
 
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/Worker.h>
+#include <simpla/mesh/MeshCommon.h>
 
 #include "FieldTraits.h"
 #include "FieldExpression.h"
@@ -113,14 +114,25 @@ public:
 
     virtual void sync(mesh::MeshBlock const *other, bool only_ghost = true) { UNIMPLEMENTED; };
 
-    inline value_type &get(mesh::MeshEntityId const &s) { return m_data_->get(s.x, s.y, s.z, s.w); }
+    inline value_type &get(mesh::MeshEntityId const &s)
+    {
+        return m_data_->get(s.x >> 1, s.y >> 1, s.z >> 1, s.w);
+    }
 
-    inline value_type const &get(mesh::MeshEntityId const &s) const { return m_data_->get(s.x, s.y, s.z, s.w); }
+    inline value_type const &get(mesh::MeshEntityId const &s) const
+    {
+        return m_data_->get(s.x >> 1, s.y >> 1, s.z >> 1, s.w);
+    }
 
-    inline value_type &operator[](mesh::MeshEntityId const &s) { return m_data_->get(s.x, s.y, s.z, s.w); }
+    inline value_type &operator[](mesh::MeshEntityId const &s)
+    {
+        return m_data_->get(s.x >> 1, s.y >> 1, s.z >> 1, s.w);
+    }
 
-    inline value_type const &operator[](mesh::MeshEntityId const &s) const { return m_data_->get(s.x, s.y, s.z, s.w); }
-
+    inline value_type const &operator[](mesh::MeshEntityId const &s) const
+    {
+        return m_data_->get(s.x >> 1, s.y >> 1, s.z >> 1, s.w);
+    }
 
     this_type &operator=(this_type const &other)
     {
@@ -191,20 +203,20 @@ private:
     template<typename TOP, typename TRange, typename ...U>
     void apply_dispatch(TOP const &op, TRange r0, Field<Expression<U...>> const &expr)
     {
-        apply(op, r0, static_cast<   expression_tag *>(nullptr), expr);
+        apply(op, r0, static_cast<expression_tag *>(nullptr), expr);
     }
 
     template<typename TOP, typename TRange, typename ...U> void
     apply_dispatch(TOP const &op, TRange r0, std::function<value_type(point_type const &, U const &...)> const &fun,
                    U &&...args)
     {
-        apply(op, r0, static_cast<  function_tag *>(nullptr), fun, std::forward<U>(args)...);
+        apply(op, r0, static_cast<function_tag *>(nullptr), fun, std::forward<U>(args)...);
     }
 
     template<typename TOP, typename TRange, typename Other> void
     apply_dispatch(TOP const &op, TRange r0, Other const &other)
     {
-        apply(op, r0, static_cast<    scalar_value_tag *>(nullptr), other);
+        apply(op, r0, static_cast<scalar_value_tag *>(nullptr), other);
     }
 
 
@@ -233,7 +245,7 @@ public:
 //                       auto x = m_mesh_->point(s);
 //                       if (geo(x) < 0)
 //                       {
-//                           op(m_data_->get(s), m_mesh_->template sample<IFORM>(s, fun(x)));
+//                           op(m_holder_->get(s), m_mesh_->template sample<IFORM>(s, fun(x)));
 //                       }
 //                   });
 //    }
@@ -276,7 +288,10 @@ public:
     {
         deploy();
         r0.foreach(
-                [&](mesh::MeshEntityId const &s) { op(get(s), fun(m_mesh_->point(s), std::forward<Args>(args)...)); });
+                [&](mesh::MeshEntityId const &s)
+                {
+                    op(get(s), fun(m_mesh_->point(s), std::forward<Args>(args)...));
+                });
     }
 
     template<typename TOP, typename ...TExpr> void
@@ -300,7 +315,11 @@ public:
     }
 
     template<typename ...Args> void
-    assign_function(Args &&...args) { apply_function(_impl::_assign(), std::forward<Args>(args)...); }
+    assign_function(Args &&...args)
+    {
+        apply_function(_impl::_assign(),
+                       m_mesh_->range(IFORM, mesh::SP_ES_ALL), std::forward<Args>(args)...);
+    }
 
 };
 

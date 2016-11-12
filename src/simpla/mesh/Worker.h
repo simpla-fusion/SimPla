@@ -56,9 +56,17 @@ public:
       */
     void move_to(const std::shared_ptr<MeshBlock> &m);
 
-    virtual std::shared_ptr<mesh::MeshBlock> create_mesh_block(index_type const *lo, index_type const *hi) const =0;
+    virtual std::shared_ptr<mesh::MeshBlock>
+    create_mesh_block(index_type const *lo, index_type const *hi, index_type const *gw) const =0;
 
-    virtual void initialize(Real data_time, bool initial_time)=0;
+    virtual void initialize(Real data_time)=0;
+
+    virtual double computeStableDtOnPatch(const bool initial_time, const double dt_time)=0;
+
+    virtual void computeFluxesOnPatch(const double time, const double dt)=0;
+
+    virtual void conservativeDifferenceOnPatch(const double time,
+                                               const double dt, bool at_syncronization)=0;
 
     /**
       *  deploy data on the mesh block   '''m'''

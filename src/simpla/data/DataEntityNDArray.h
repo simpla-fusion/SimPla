@@ -25,8 +25,19 @@ public:
 
     DataEntityNDArray() {}
 
-    DataEntityNDArray(index_type const *lo, index_type const *hi, std::shared_ptr<value_type> const &p = nullptr)
-            : m_data_(p)
+    enum
+    {
+        SLOW_FIRST = 0, //C_OLDER
+        FAST_FIRST = 1//FORTRAN_ORDER
+    };
+
+    DataEntityNDArray(value_type *p, index_type const *lo, index_type const *hi, int order = SLOW_FIRST)
+            : m_data_(p), m_holder_(nullptr), m_order_(order) { initialize(lo, hi, order); }
+
+    DataEntityNDArray(index_type const *lo, index_type const *hi, std::shared_ptr<value_type> const &p)
+            : m_holder_(p), m_data_(p.get()) { initialize(lo, hi); };
+private:
+    void initialize(index_type const *lo, index_type const *hi, int order = SLOW_FIRST)
     {
         m_ndims_ = 0;
         m_size_ = 1;
@@ -43,15 +54,21 @@ public:
             }
             m_size_ *= m_count_[i];
         }
-
-        // C-order
-        m_strides_[ndims - 1] = 1;
-        for (int j = ndims - 2; j >= 0; --j)
+        m_order_ = order;
+        if (m_order_ == SLOW_FIRST)
         {
-            m_start_[j] = m_count_[j + 1] * m_strides_[j + 1];
+            m_strides_[ndims - 1] = 1;
+            for (int j = ndims - 2; j >= 0; --j) { m_strides_[j] = m_count_[j + 1] * m_strides_[j + 1]; }
+        } else if (m_order_ == FAST_FIRST)
+        {
+            m_strides_[0] = 1;
+            for (int j = 1; j < ndims; ++j) { m_strides_[j] = m_count_[j - 1] * m_strides_[j - 1]; }
         }
-    };
+//        CHECK("strides") << m_strides_[0] << "," << m_strides_[1] << "," << m_strides_[2] << "," << m_strides_[3]
+//                         << std::endl;
+    }
 
+public:
     DataEntityNDArray(index_box_type const &b, std::shared_ptr<value_type> const &p = nullptr)
             : DataEntityNDArray(&std::get<0>(b)[0], &std::get<1>(b)[0], p) {}
 
@@ -72,7 +89,19 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
-        printNdArray(os, (m_data_.get()), ndims, m_count_);
+        os << "-- dims=[" << m_count_[0] << "," << m_count_[1] << "," << m_count_[2] << "," << m_count_[3] << "," << "]"
+           << std::endl;
+        size_type r_count[ndims];
+        int r_ndims = 0;
+        for (int i = 0; i < ndims; ++i)
+        {
+            if (m_count_[i] > 1)
+            {
+                r_count[r_ndims] = m_count_[i];
+                ++r_ndims;
+            }
+        }
+        printNdArray(os, m_data_, r_ndims, r_count);
         return os;
 
     }
@@ -90,9 +119,21 @@ public:
 
     virtual bool is_deployed() const { return m_data_ != nullptr; }
 
-    virtual void deploy() { if (m_data_ == nullptr) { m_data_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }};
+    virtual void deploy()
+    {
+        if (m_data_ == nullptr)
+        {
+            if (m_holder_ == nullptr) { m_holder_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }
 
-    virtual void destroy() { m_data_.reset(); }
+            m_data_ = m_holder_.get();
+        }
+    };
+
+    virtual void destroy()
+    {
+        m_holder_.reset();
+        m_data_ = nullptr;
+    }
 
     virtual void clear()
     {
@@ -101,15 +142,15 @@ public:
     }
 
 
-    virtual void *data() { return m_data_.get(); }
+    virtual void *data() { return m_data_; }
 
-    virtual void const *data() const { return m_data_.get(); }
-
-    template<typename ...Args>
-    value_type &get(Args &&...args) { return m_data_.get()[hash(std::forward<Args>(args)...)]; }
+    virtual void const *data() const { return m_data_; }
 
     template<typename ...Args>
-    value_type const &get(Args &&...args) const { return m_data_.get()[hash(std::forward<Args>(args)...)]; }
+    value_type &get(Args &&...args) { return m_data_[hash(std::forward<Args>(args)...)]; }
+
+    template<typename ...Args>
+    value_type const &get(Args &&...args) const { return m_data_[hash(std::forward<Args>(args)...)]; }
 
 private:
 
@@ -120,7 +161,9 @@ private:
     size_type m_strides_[ndims];
     size_type m_size_;
 
-    std::shared_ptr<value_type> m_data_;
+    std::shared_ptr<value_type> m_holder_;
+    value_type *m_data_;
+    int m_order_ = SLOW_FIRST;
 
     inline constexpr size_type hash(index_type x0) const
     {

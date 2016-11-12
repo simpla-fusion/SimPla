@@ -15,7 +15,7 @@ namespace simpla { namespace mesh
 MeshBlock::MeshBlock() : m_ndims_(0) {}
 
 
-MeshBlock::MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw, int ndims) :
+MeshBlock::MeshBlock(index_type const *lo, index_type const *hi, const index_type *gw, int ndims) :
         Object(),
         m_ndims_(ndims),
         m_g_box_{{lo[0], lo[1], lo[2]},

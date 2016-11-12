@@ -84,8 +84,7 @@ public:
 
     MeshBlock();
 
-    MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw = nullptr,
-              int ndims = 3);
+    MeshBlock(index_type const *lo, index_type const *hi, const index_type *gw = nullptr, int ndims = 3);
 
     MeshBlock(MeshBlock const &);
 
@@ -141,7 +140,6 @@ public:
      */
     std::shared_ptr<MeshBlock> intersection(index_box_type const &other_box, int inc_level = 0);
 
-    size_type space_id() const;
 
     int level() const { return m_level_; }
 
@@ -211,7 +209,7 @@ public:
         return point_type{x * m_dx_[0], y * m_dx_[1], z * m_dx_[2]};
     };
 
-    virtual point_type point(MeshEntityId const &s) const { return point(s.x, s.y, s.z); }
+    virtual point_type point(MeshEntityId const &s) const { return point(s.x>>1, s.y>>1, s.z>>1); }
 
     virtual point_type point(index_tuple const &x) const { return point(x[0], x[1], x[2]); };
 
