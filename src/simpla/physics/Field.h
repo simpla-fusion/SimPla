@@ -58,7 +58,16 @@ public:
     Field(mesh_type const *m, Args &&...args) :base_type(m, std::forward<Args>(args)...) {};
 
     template<typename ...Args>
-    Field(std::string const &s, Args &&...args) :base_type(s, std::forward<Args>(args)...) {};
+    Field(std::string const &s, Args &&...args) :base_type(s, std::forward<Args>(args)...)
+    {
+        base_type::attribute()->register_data_block_factroy(
+                std::type_index(typeid(mesh_type)),
+                [&](const mesh::MeshBlock *m, void *p)
+                {
+                    return static_cast<mesh_type const *>(m)->template create_data_block<value_type, IFORM>(p);
+                });
+
+    };
 
     virtual ~Field() {}
 

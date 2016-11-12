@@ -23,7 +23,7 @@ class TimeIntegrator :
         public concept::Serializable
 {
 public:
-    TimeIntegrator(std::string const &s_name = "") : Object(s_name) {}
+    TimeIntegrator(std::string const &s_name = "") : Object(), m_name_(s_name) {}
 
     virtual ~TimeIntegrator() {}
 
@@ -35,7 +35,7 @@ public:
 
     virtual std::shared_ptr<mesh::Worker> &worker() { return m_worker_; }
 
-    virtual std::string name() const { return Object::name(); };
+    virtual std::string name() const { return m_name_; };
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
 
@@ -66,6 +66,7 @@ public:
 //    data::DataBase const &db(std::string const &s = "") const { return m_db_.at(s); }
 
 private:
+    std::string m_name_;
     std::shared_ptr<mesh::Worker> m_worker_;
     data::DataBase m_db_;
 

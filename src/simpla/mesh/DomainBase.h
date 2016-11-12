@@ -38,7 +38,7 @@ public:
 
     HAS_PROPERTIES;
 
-    SP_OBJECT_HEAD(DomainBase, Object);
+    SP_OBJECT_HEAD(DomainBase, Object)
 
     std::shared_ptr<Atlas> m;
     id_type m_root_id_;

@@ -28,7 +28,7 @@ class Worker :
         public concept::Serializable
 {
 public:
-    SP_OBJECT_HEAD(Worker, Object);
+    SP_OBJECT_HEAD(Worker, Object)
     struct Observer;
     struct Visitor;
 
@@ -36,9 +36,10 @@ public:
 
     ~Worker();
 
-    virtual std::string name() const { return Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+
+    virtual std::string name() const { return m_name_; };
 
     virtual void load(data::DataBase const &) { UNIMPLEMENTED; }
 
@@ -91,6 +92,7 @@ public:
 
 
 private:
+    std::string m_name_;
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };

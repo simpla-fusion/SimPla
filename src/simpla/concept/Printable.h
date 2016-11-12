@@ -16,8 +16,6 @@ struct Printable
 
     virtual ~Printable() {}
 
-    virtual std::string name() const =0;
-
     virtual std::ostream &print(std::ostream &os, int indent) const =0;
 
 

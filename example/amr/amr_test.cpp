@@ -33,6 +33,17 @@ public:
         return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
     };
 
+    template<typename TV, mesh::MeshEntityType IFORM>
+    std::shared_ptr<mesh::DataBlock> create_data_block(void *p) const
+    {
+        auto b = global_index_box();
+        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
+        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[1],
+                            (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 1 : 3};
+        return std::dynamic_pointer_cast<mesh::DataBlock>(std::make_shared<data_block_type<TV, IFORM>>(lo, hi));
+    };
+
+
     template<typename ...Args>
     Real eval(Args &&...args) const { return 1.0; };
 };
@@ -55,6 +66,7 @@ struct AMRTest : public mesh::Worker
     {
         return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(lo, hi));
     };
+
 
     void initialize(Real data_time, bool initial_time) {}
 

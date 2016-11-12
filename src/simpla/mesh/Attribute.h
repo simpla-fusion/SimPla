@@ -41,6 +41,7 @@ public:
 
     SP_OBJECT_HEAD(Attribute, Object)
 
+
     Attribute(std::string const &s = "");
 
     Attribute(Attribute const &) = delete;
@@ -53,16 +54,15 @@ public:
 
     virtual std::type_info const &value_type_info() const =0;
 
-
     virtual size_t value_rank() const { return 0; };
 
     virtual size_t value_extent(unsigned int n = 0) const { return 1; };
 
     virtual size_t value_size() const { return 1; };
 
-    virtual std::string name() const { return Object::name(); };
-
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
+
+    virtual std::string name() const { return m_name_; };
 
     virtual void load(const data::DataBase &);
 
@@ -72,15 +72,20 @@ public:
 
     virtual void insert(MeshBlock const *m, const std::shared_ptr<DataBlock> &);
 
-
     virtual void erase(MeshBlock const *);
 
     virtual std::shared_ptr<DataBlock> at(MeshBlock const *m) const;
 
     virtual std::shared_ptr<DataBlock> at(const MeshBlock *);
 
+    std::shared_ptr<DataBlock> create_data_block(MeshBlock const *, void *p) const;
+
+    void register_data_block_factroy(
+            std::type_index idx,
+            const std::function<std::shared_ptr<DataBlock>(const MeshBlock *, void *)> &f);
 
 private:
+    std::string m_name_;
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
@@ -147,14 +152,8 @@ protected:
 public:
 
 
-    AttributeView(Worker *w = nullptr) :
-            Worker::Observer(w), m_attr_(new attribute_type()) {};
-
-    AttributeView(std::string const &s, Worker *w = nullptr) :
+    AttributeView(std::string const &s = "", Worker *w = nullptr) :
             Worker::Observer(w), m_attr_(new attribute_type(s)) {};
-
-    AttributeView(MeshBlock const *m, std::string const &s = "", Worker *w = nullptr) :
-            Worker::Observer(w), m_attr_(new attribute_type(s)), m_mesh_(m) {};
 
     AttributeView(std::shared_ptr<Attribute> const &attr, Worker *w) :
             Worker::Observer(w), m_attr_(attr) {};

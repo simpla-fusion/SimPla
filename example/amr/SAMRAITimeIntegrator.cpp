@@ -908,10 +908,12 @@ template<typename T> struct PatchDataTraits<T, mesh::VOLUME> { typedef SAMRAI::p
 template<typename TV, mesh::MeshEntityType IFORM> void
 attr_choice2(mesh::Attribute *item, op_convert const &,
              std::shared_ptr<mesh::DataBlock> *res,
+             mesh::MeshBlock const *m,
              boost::shared_ptr<SAMRAI::hier::PatchData> p_data)
 {
     auto pdata = boost::dynamic_pointer_cast<typename PatchDataTraits<TV, IFORM>::type>(p_data);
-    TV *p = pdata->getPointer(0);
+
+    *res = item->create_data_block(m, pdata->getPointer(0));
 }
 
 std::shared_ptr<mesh::MeshBlock>
@@ -942,8 +944,8 @@ SAMRAIWorker::move_to(mesh::Worker *w, SAMRAI::hier::Patch &patch)
             patch.getBox().upper()[0]
     };
 
-    std::shared_ptr<mesh::MeshBlock> m = w->create_mesh_block(lo, nullptr);
-
+    std::shared_ptr<mesh::MeshBlock> m = w->create_mesh_block(lo, hi);
+    m->id(patch.getBox().getLocalId().getValue());
     m_worker_->for_each(
             [&](mesh::Worker::Observer &ob)
             {
@@ -951,7 +953,7 @@ SAMRAIWorker::move_to(mesh::Worker *w, SAMRAI::hier::Patch &patch)
                 if (attr == nullptr) { return; }
 
                 std::shared_ptr<mesh::DataBlock> data_block;
-                detail::attr_choice(attr, detail::op_convert(), &data_block,
+                detail::attr_choice(attr, detail::op_convert(), &data_block, m.get(),
                                     patch.getPatchData(m_samrai_variables_.at(attr->id()),
                                                        getDataContext()));
                 ob.move_to(m, data_block);

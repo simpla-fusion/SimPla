@@ -54,7 +54,7 @@ class Context :
 {
 
 public:
-    SP_OBJECT_HEAD(Context, Object);
+    SP_OBJECT_HEAD(Context, Object)const std::type_index &;
 
     Context(std::string const &name_str = "") : Object(name_str) {};
 

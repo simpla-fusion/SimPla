@@ -60,6 +60,11 @@ public:
 
     DataBlockArray() : DataBlock(), data_entity_type() {}
 
+    template<typename ...Args>
+    DataBlockArray(Args &&...args) :
+            DataBlock(),
+            data_entity_type(std::forward<Args>(args)...) {}
+
     virtual ~DataBlockArray() {}
 
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
@@ -81,8 +86,6 @@ public:
     {
         os << " type = \'" << value_type_info().name() << "\' "
            << ", entity type = " << static_cast<int>(entity_type());
-
-
         return os;
     }
 

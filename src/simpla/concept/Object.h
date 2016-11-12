@@ -13,7 +13,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/LifeClick.h>
-
+#include <typeindex>
 
 namespace simpla
 {
@@ -80,7 +80,7 @@ class Object
 {
 public:
 
-    Object(std::string const &s = "");
+    Object();
 
     Object(Object &&other);
 
@@ -90,7 +90,9 @@ public:
 
     virtual  ~Object();
 
-    virtual bool is_a(std::type_info const &info) const;
+    virtual bool is_a(const std::type_info &info) const;
+
+    virtual std::type_index typeindex() const { return std::type_index(typeid(Object)); }
 
     virtual std::string get_class_name() const;
 
@@ -100,7 +102,7 @@ public:
 
     virtual void tear_down() {};
 
-    std::string const &name() const;
+    void id(id_type t_id);
 
     id_type id() const;
 
@@ -138,6 +140,8 @@ private:
 virtual bool is_a(std::type_info const &info)const                            \
   { return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::is_a(info); }   \
 template<typename _UOTHER_> bool is_a()const {return is_a(typeid(_UOTHER_));} \
+virtual std::type_index typeindex() const                                     \
+ { return std::type_index(typeid(_CLASS_NAME_)); }                            \
 virtual std::string get_class_name() const { return __STRING(_CLASS_NAME_); } \
 static std::string class_name()  { return __STRING(_CLASS_NAME_); }           \
 private:                                                                      \

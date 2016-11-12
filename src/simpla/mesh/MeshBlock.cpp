@@ -15,14 +15,13 @@ namespace simpla { namespace mesh
 MeshBlock::MeshBlock() : m_ndims_(0) {}
 
 
-MeshBlock::MeshBlock(std::string const &s, index_type const *lo, index_type const *hi, const size_type *gw, int ndims) :
-        Object(s),
+MeshBlock::MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw, int ndims) :
+        Object(),
         m_ndims_(ndims),
         m_g_box_{{lo[0], lo[1], lo[2]},
                  {hi[0], hi[1], hi[2]}},
         m_level_(0)
 {
-    m_space_id_ = Object::id();
 
     assert(ndims <= 3);
 
@@ -57,8 +56,6 @@ MeshBlock::MeshBlock(MeshBlock &&other) :
         m_outer_box_/*      */(other.m_outer_box_/*  */) {};
 
 MeshBlock::~MeshBlock() {}
-
-std::string MeshBlock::name() const { return Object::name(); };
 
 std::ostream &MeshBlock::print(std::ostream &os, int indent) const
 {

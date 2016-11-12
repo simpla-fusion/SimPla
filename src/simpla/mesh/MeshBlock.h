@@ -84,12 +84,8 @@ public:
 
     MeshBlock();
 
-    MeshBlock(std::string const &s, index_type const *lo, index_type const *hi, const size_type *gw = nullptr,
+    MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw = nullptr,
               int ndims = 3);
-
-    MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw = nullptr, int ndims = 3)
-            : MeshBlock(std::string(""), lo, hi, gw, ndims) {};
-
 
     MeshBlock(MeshBlock const &);
 
@@ -100,13 +96,13 @@ public:
     MeshBlock &operator=(MeshBlock const &other)= delete;
 
     /** for Printable @{*/
-    virtual std::string name() const;
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
     /** @}*/
 
     /** for Serializable @{*/
+    virtual std::string name() const { return string_cast(id()); }
 
     virtual void load(const data::DataBase &) {};
 

@@ -20,7 +20,6 @@ namespace simpla
 {
 struct Object::pimpl_s
 {
-    std::string m_name_{""};
     std::mutex m_mutex_;
     size_t m_click_ = 0;
     boost::uuids::uuid m_id_;
@@ -28,13 +27,12 @@ struct Object::pimpl_s
     id_type m_short_id_;
 };
 
-Object::Object(std::string const &s) : m_pimpl_(new pimpl_s)
+Object::Object() : m_pimpl_(new pimpl_s)
 {
     auto gen = boost::uuids::random_generator();
     m_pimpl_->m_id_ = boost::uuids::random_generator()();
     boost::hash<boost::uuids::uuid> hasher;
     m_pimpl_->m_short_id_ = hasher(m_pimpl_->m_id_);
-    m_pimpl_->m_name_ = s != "" ? s : get_class_name() + "_" + string_cast(id());;
 
     this->touch();
 }
@@ -44,14 +42,13 @@ Object::Object(Object &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
 Object::~Object() {}
 
 
-bool Object::is_a(std::type_info const &info) const { return typeid(Object) == info; }
+bool Object::is_a(const std::type_info &info) const { return typeid(Object) == info; }
 
 std::string Object::get_class_name() const { return "Object"; }
 
-std::string const &Object::name() const { return m_pimpl_->m_name_; };
-
-
 id_type Object::id() const { return m_pimpl_->m_short_id_; }
+
+void Object::id(id_type t_id) { m_pimpl_->m_short_id_ = t_id; }
 
 bool Object::operator==(Object const &other) { return m_pimpl_->m_id_ == other.m_pimpl_->m_id_; }
 
