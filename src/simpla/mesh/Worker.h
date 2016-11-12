@@ -14,6 +14,7 @@
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
+#include "MeshCommon.h"
 
 namespace simpla { namespace mesh
 {
@@ -52,7 +53,11 @@ public:
       *  if  data block is not exist, create
       * @param id
       */
-    void move_to(MeshBlock const *m);
+    void move_to(const std::shared_ptr<MeshBlock> &m);
+
+    virtual std::shared_ptr<mesh::MeshBlock> create_mesh_block(index_type const *lo, index_type const *hi) const =0;
+
+    virtual void initialize(Real data_time, bool initial_time)=0;
 
     /**
       *  deploy data on the mesh block   '''m'''
@@ -136,9 +141,9 @@ struct Worker::Observer : public concept::Printable
      *  m_mesh_ : m
      *  m_data_ : m_attr_.at(m) ;
      */
-    virtual void move_to(MeshBlock const *m)=0;
+    virtual void move_to(const std::shared_ptr<MeshBlock> &m)=0;
 
-    virtual void move_to(MeshBlock const *m, DataBlock *d)=0;
+    virtual void move_to(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &d)=0;
 
 
     /**

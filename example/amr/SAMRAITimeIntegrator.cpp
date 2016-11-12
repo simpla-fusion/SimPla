@@ -734,154 +734,44 @@ SAMRAIWorker::~SAMRAIWorker()
 namespace detail
 {
 static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR", "TENSOR"};
+struct op_create {};
+template<typename TV, mesh::MeshEntityType IFORM> struct VariableTraits;
+template<typename T> struct VariableTraits<T, mesh::VERTEX> { typedef SAMRAI::pdat::NodeVariable<T> type; };
+template<typename T> struct VariableTraits<T, mesh::EDGE> { typedef SAMRAI::pdat::EdgeVariable<T> type; };
+template<typename T> struct VariableTraits<T, mesh::FACE> { typedef SAMRAI::pdat::FaceVariable<T> type; };
+template<typename T> struct VariableTraits<T, mesh::VOLUME> { typedef SAMRAI::pdat::CellVariable<T> type; };
 
-
-template<typename T> boost::shared_ptr<SAMRAI::hier::Variable>
-register_variable_Node(mesh::Attribute *item,
-                       int ndims,
-                       SAMRAI::hier::IntVector const &d_nghosts,
-                       SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
-                       boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &d_grid_geometry,
-                       boost::shared_ptr<SAMRAI::appu::VisItDataWriter> const &d_visit_writer,
-                       SAMRAI::hier::VariableDatabase *vardb)
+template<typename TV, mesh::MeshEntityType IFORM> void
+attr_choice2(mesh::Attribute *item, op_create const &, boost::shared_ptr<SAMRAI::hier::Variable> *res, int ndims)
 {
     SAMRAI::tbox::Dimension d_dim(ndims);
-
-    auto var = boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(d_dim, item->name(), item->value_size());
-    integrator->registerVariable(var, d_nghosts,
-                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                 d_grid_geometry,
-                                 "",
-                                 "LINEAR_REFINE");
-    d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type[item->value_rank()],
-                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-
-
-    return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(var);
-}
-
-template<typename T> boost::shared_ptr<SAMRAI::hier::Variable>
-register_variable_Edge(mesh::Attribute *item,
-                       int ndims,
-                       SAMRAI::hier::IntVector const &d_nghosts,
-                       SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
-                       boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &d_grid_geometry,
-                       boost::shared_ptr<SAMRAI::appu::VisItDataWriter> const &d_visit_writer,
-                       SAMRAI::hier::VariableDatabase *vardb)
-{
-    SAMRAI::tbox::Dimension d_dim(ndims);
-
-    auto var = boost::make_shared<SAMRAI::pdat::EdgeVariable<T>>(d_dim, item->name(), item->value_size());
-    integrator->registerVariable(var, d_nghosts,
-                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                 d_grid_geometry,
-                                 "CONSERVATIVE_COARSEN",
-                                 "CONSERVATIVE_LINEAR_REFINE");
-
-    /*** FIXME:
-      *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
-      *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
-     **/
-//    d_visit_writer->registerPlotQuantity(item->name(),  visit_variable_type[item->value_rank()],
-//                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()) );
-
-
-    return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(var);
-}
-
-template<typename T> boost::shared_ptr<SAMRAI::hier::Variable>
-register_variable_Face(mesh::Attribute *item,
-                       int ndims,
-                       SAMRAI::hier::IntVector const &d_nghosts,
-                       SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
-                       boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &d_grid_geometry,
-                       boost::shared_ptr<SAMRAI::appu::VisItDataWriter> const &d_visit_writer,
-                       SAMRAI::hier::VariableDatabase *vardb)
-{
-    SAMRAI::tbox::Dimension d_dim(ndims);
-
-    auto var = boost::make_shared<SAMRAI::pdat::FaceVariable<T>>(d_dim, item->name(), item->value_size());
-    integrator->registerVariable(var, d_nghosts,
-                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                 d_grid_geometry,
-                                 "CONSERVATIVE_COARSEN",
-                                 "CONSERVATIVE_LINEAR_REFINE");
-
-//    d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type[item->value_rank()],
-//                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-
-
-    return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(var);
+    *res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+            boost::make_shared<typename VariableTraits<TV, IFORM>::type>(d_dim, item->name(), item->value_size()));
 }
 
 
-template<typename T> boost::shared_ptr<SAMRAI::hier::Variable>
-register_variable_Cell(mesh::Attribute *item,
-                       int ndims,
-                       SAMRAI::hier::IntVector const &d_nghosts,
-                       SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
-                       boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> const &d_grid_geometry,
-                       boost::shared_ptr<SAMRAI::appu::VisItDataWriter> const &d_visit_writer,
-                       SAMRAI::hier::VariableDatabase *vardb)
+template<typename T, typename ...Args> void
+attr_choice1(mesh::Attribute *item, Args &&...args)
 {
-    SAMRAI::tbox::Dimension d_dim(ndims);
 
-    auto var = boost::make_shared<SAMRAI::pdat::CellVariable<T>>(d_dim, item->name(), item->value_size());
-    integrator->registerVariable(var, d_nghosts,
-                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                 d_grid_geometry,
-                                 "CONSERVATIVE_COARSEN",
-                                 "CONSERVATIVE_LINEAR_REFINE");
-    d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type[item->value_rank()],
-                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+    if (item->entity_type() == mesh::VERTEX) { attr_choice2<T, mesh::VERTEX>(item, std::forward<Args>(args)...); }
+    else if (item->entity_type() == mesh::EDGE) { attr_choice2<T, mesh::EDGE>(item, std::forward<Args>(args)...); }
+    else if (item->entity_type() == mesh::FACE) { attr_choice2<T, mesh::FACE>(item, std::forward<Args>(args)...); }
+    else if (item->entity_type() == mesh::VOLUME) { attr_choice2<T, mesh::VOLUME>(item, std::forward<Args>(args)...); }
+    else { UNIMPLEMENTED; }
 
-
-    return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(var);
 }
 
-template<typename TV, typename ...Args> boost::shared_ptr<SAMRAI::hier::Variable>
-register_variable_t(mesh::Attribute *item, Args &&...args)
+template<typename ...Args> void
+attr_choice(mesh::Attribute *item, Args &&...args)
 {
-    boost::shared_ptr<SAMRAI::hier::Variable> var;
-
-    if (item->entity_type() == mesh::VERTEX)
-    {
-        var = register_variable_Node<TV>(item, std::forward<Args>(args)...);
-    } else if (item->entity_type() == mesh::EDGE)
-    {
-        var = register_variable_Edge<TV>(item, std::forward<Args>(args)...);
-    } else if (item->entity_type() == mesh::FACE)
-    {
-        var = register_variable_Face<TV>(item, std::forward<Args>(args)...);
-    } else if (item->entity_type() == mesh::VOLUME)
-    {
-        var = register_variable_Cell<TV>(item, std::forward<Args>(args)...);
-    } else { UNIMPLEMENTED; }
-    return var;
-}
-
-template<typename ...Args> boost::shared_ptr<SAMRAI::hier::Variable>
-register_variable(mesh::Attribute *item, Args &&...args)
-{
-
-    boost::shared_ptr<SAMRAI::hier::Variable> var;
-
-    if (item->value_type_info() == typeid(float))
-    {
-        var = register_variable_t<float>(item, std::forward<Args>(args)...);
-    } else if (item->value_type_info() == typeid(double))
-    {
-        var = register_variable_t<double>(item, std::forward<Args>(args)...);
-    } else if (item->value_type_info() == typeid(int))
-    {
-        var = register_variable_t<int>(item, std::forward<Args>(args)...);
-    } else if (item->value_type_info() == typeid(long))
-    {
-        var = register_variable_t<int>(item, std::forward<Args>(args)...);
-    } else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
+    if (item->value_type_info() == typeid(float)) { attr_choice1<float>(item, std::forward<Args>(args)...); }
+    else if (item->value_type_info() == typeid(double)) { attr_choice1<double>(item, std::forward<Args>(args)...); }
+    else if (item->value_type_info() == typeid(int)) { attr_choice1<int>(item, std::forward<Args>(args)...); }
+//    else if (item->value_type_info() == typeid(long)) { attr_choice1<long>(item, std::forward<Args>(args)...); }
+    else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
 
 
-    return var;
 };
 
 }//namespace detail{
@@ -928,15 +818,35 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
             {
                 mesh::Attribute *item = ob.attribute();
                 if (item == nullptr) { return; }
-                auto var = detail::register_variable(item, d_dim.getValue(),
-                                                     (item->entity_type() == mesh::VERTEX ||
-                                                      item->entity_type() == mesh::VOLUME) ? d_nghosts : d_fluxghosts,
-                                                     integrator,
-                                                     d_grid_geometry,
-                                                     d_visit_writer,
-                                                     vardb
-                );
-                m_samrai_variables_.emplace(std::pair(item->id, var));
+                boost::shared_ptr<SAMRAI::hier::Variable> var;
+
+                detail::attr_choice(item, detail::op_create(), &var, d_dim.getValue());
+
+                m_samrai_variables_[item->id()] = var;
+
+
+                if (item->entity_type() == mesh::VERTEX ||
+                    item->entity_type() == mesh::VOLUME)
+                {
+                    /*** FIXME:
+                      *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
+                      *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
+                     **/
+                    integrator->registerVariable(var, d_nghosts,
+                                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                                 d_grid_geometry,
+                                                 "",
+                                                 "LINEAR_REFINE");
+                    d_visit_writer->registerPlotQuantity(item->name(), detail::visit_variable_type[item->value_rank()],
+                                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+                } else
+                {
+                    integrator->registerVariable(var, d_fluxghosts,
+                                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                                 d_grid_geometry,
+                                                 "CONSERVATIVE_COARSEN",
+                                                 "CONSERVATIVE_LINEAR_REFINE");
+                }
             }
     );
 //    vardb->printClassData(std::cout);
@@ -988,15 +898,26 @@ void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *in
 
 namespace detail
 {
-mesh::DataBlock *
-convert_patch_data(mesh::Attribute *attr, boost::shared_ptr<SAMRAI::hier::PatchData> const &p_data)
+struct op_convert {};
+template<typename TV, mesh::MeshEntityType IFORM> struct PatchDataTraits;
+template<typename T> struct PatchDataTraits<T, mesh::VERTEX> { typedef SAMRAI::pdat::NodeData<T> type; };
+template<typename T> struct PatchDataTraits<T, mesh::EDGE> { typedef SAMRAI::pdat::EdgeData<T> type; };
+template<typename T> struct PatchDataTraits<T, mesh::FACE> { typedef SAMRAI::pdat::FaceData<T> type; };
+template<typename T> struct PatchDataTraits<T, mesh::VOLUME> { typedef SAMRAI::pdat::CellData<T> type; };
+
+template<typename TV, mesh::MeshEntityType IFORM> void
+attr_choice2(mesh::Attribute *item, op_convert const &,
+             std::shared_ptr<mesh::DataBlock> *res,
+             boost::shared_ptr<SAMRAI::hier::PatchData> p_data)
 {
+    auto pdata = boost::dynamic_pointer_cast<typename PatchDataTraits<TV, IFORM>::type>(p_data);
+    TV *p = pdata->getPointer(0);
 }
 
-mesh::MeshBlock *
-convert_patch_mesh(mesh::Atlas *attr, SAMRAI::hier::Patch &p)
+std::shared_ptr<mesh::MeshBlock>
+convert_patch_mesh(std::shared_ptr<mesh::MeshBlock>, SAMRAI::hier::Patch &p)
 {
-
+    return nullptr;
 }
 
 
@@ -1006,18 +927,34 @@ convert_patch_mesh(mesh::Atlas *attr, SAMRAI::hier::Patch &p)
 void
 SAMRAIWorker::move_to(mesh::Worker *w, SAMRAI::hier::Patch &patch)
 {
-    mesh::MeshBlock const *m = detail::convert_patch_mesh(m_atlas_.get(), patch);
+
+    index_box_type b;
+
+
+    index_type lo[3] = {
+            patch.getBox().lower()[0],
+            patch.getBox().lower()[1],
+            patch.getBox().lower()[2]
+    };
+    index_type hi[3] = {
+            patch.getBox().upper()[0],
+            patch.getBox().upper()[0],
+            patch.getBox().upper()[0]
+    };
+
+    std::shared_ptr<mesh::MeshBlock> m = w->create_mesh_block(lo, nullptr);
 
     m_worker_->for_each(
             [&](mesh::Worker::Observer &ob)
             {
-                mesh::Attribute *attr = ob.attribute();
+                auto *attr = ob.attribute();
                 if (attr == nullptr) { return; }
 
-                ob.move_to(m,
-                           detail::convert_patch_data(attr,
-                                                      patch.getPatchData(m_samrai_variables_.at(attr->id()),
-                                                                         getDataContext())));
+                std::shared_ptr<mesh::DataBlock> data_block;
+                detail::attr_choice(attr, detail::op_convert(), &data_block,
+                                    patch.getPatchData(m_samrai_variables_.at(attr->id()),
+                                                       getDataContext()));
+                ob.move_to(m, data_block);
             }
     );
 }
@@ -1076,7 +1013,7 @@ double SAMRAIWorker::computeStableDtOnPatch(
 {
     move_to(m_worker_.get(), patch);
 
-    return m_worker_->computeStableDtOnPatch(dt_time, initial_time);
+//    return m_worker_->computeStableDtOnPatch(dt_time, initial_time);
 
 }
 
@@ -1094,7 +1031,7 @@ void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double
 {
     move_to(m_worker_.get(), patch);
 
-    return m_worker_->computeFluxesOnPatch(time, dt);
+//    return m_worker_->computeFluxesOnPatch(time, dt);
 
     return;
 
@@ -1114,7 +1051,7 @@ void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, con
                                                  const double dt, bool at_syncronization)
 {
     move_to(m_worker_.get(), patch);
-    m_worker_->conservativeDifferenceOnPatch(time, dt, at_syncronization);
+//    m_worker_->conservativeDifferenceOnPatch(time, dt, at_syncronization);
 }
 
 /*
@@ -2279,7 +2216,8 @@ void SAMRAITimeIntegrator::check_point()
 
 Real SAMRAITimeIntegrator::time_now() const { return static_cast<Real>( time_integrator->getIntegratorTime()); }
 
-size_type SAMRAITimeIntegrator::step() const { return static_cast<size_type>( time_integrator->getIntegratorStep()); }
+size_type
+SAMRAITimeIntegrator::step() const { return static_cast<size_type>( time_integrator->getIntegratorStep()); }
 
 /*
  *************************************************************************

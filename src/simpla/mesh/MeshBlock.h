@@ -84,9 +84,10 @@ public:
 
     MeshBlock();
 
-    MeshBlock(std::string const &s, index_type const *lo, index_type const *hi, const size_type *gw, int ndims = 3);
+    MeshBlock(std::string const &s, index_type const *lo, index_type const *hi, const size_type *gw = nullptr,
+              int ndims = 3);
 
-    MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw, int ndims = 3)
+    MeshBlock(index_type const *lo, index_type const *hi, const size_type *gw = nullptr, int ndims = 3)
             : MeshBlock(std::string(""), lo, hi, gw, ndims) {};
 
 

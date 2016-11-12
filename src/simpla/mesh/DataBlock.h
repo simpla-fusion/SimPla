@@ -10,7 +10,6 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/data/DataEntityNDArray.h>
-#include "MeshBlock.h"
 
 namespace simpla { namespace mesh
 {
@@ -21,7 +20,7 @@ namespace simpla { namespace mesh
 struct DataBlock : public concept::Serializable, public concept::Printable
 {
 public:
-    DataBlock(MeshBlock const *m) : m_(m) {}
+    DataBlock() {}
 
     virtual ~DataBlock() {}
 
@@ -41,19 +40,13 @@ public:
 
     virtual std::shared_ptr<DataBlock> clone(MeshBlock const *) const =0;
 
-    virtual void sync(DataBlock const *, bool only_ghost = true)   =0;
+    virtual void sync(std::shared_ptr<DataBlock>, bool only_ghost = true)   =0;
 
     virtual bool is_deployed() const =0;
 
     virtual void deploy() =0;
 
     virtual void destroy() =0;
-
-    virtual MeshBlock const *mesh() const { return m_; };
-
-private:
-
-    MeshBlock const *m_;
 
 };
 
@@ -65,7 +58,7 @@ class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV, 4>
 public:
     typedef TV value_type;
 
-    DataBlockArray(MeshBlock const *m) : DataBlock(m), data_entity_type(m->memory_index_box()) {}
+    DataBlockArray() : DataBlock(), data_entity_type() {}
 
     virtual ~DataBlockArray() {}
 
@@ -87,10 +80,8 @@ public:
     virtual std::ostream &print(std::ostream &os, int indent) const
     {
         os << " type = \'" << value_type_info().name() << "\' "
-           << ", entity type = " << static_cast<int>(entity_type())
-           << ", level = " << mesh()->level();
+           << ", entity type = " << static_cast<int>(entity_type());
 
-        os << ", dimensions = " << mesh()->dimensions();
 
         return os;
     }
@@ -98,7 +89,8 @@ public:
 
     virtual std::shared_ptr<DataBlock> clone(MeshBlock const *m) const
     {
-        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(m));
+        // FIXME :: data block is not initializied!!
+        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>());
     };
 
     virtual bool is_deployed() const { return data_entity_type::is_deployed(); };
@@ -107,7 +99,7 @@ public:
 
     virtual void destroy() { data_entity_type::destroy(); };
 
-    virtual void sync(DataBlock const *, bool only_ghost = true) { UNIMPLEMENTED; };
+    virtual void sync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
 
 };
 }}//namespace simpla { namespace mesh

@@ -75,9 +75,9 @@ public:
 
     virtual void erase(MeshBlock const *);
 
-    virtual DataBlock const *at(MeshBlock const *m) const;
+    virtual std::shared_ptr<DataBlock> at(MeshBlock const *m) const;
 
-    virtual DataBlock *at(const MeshBlock *);
+    virtual std::shared_ptr<DataBlock> at(const MeshBlock *);
 
 
 private:
@@ -142,8 +142,8 @@ protected:
     typedef AttributeView this_type;
     typedef AttributeProxy<TV, IFORM> attribute_type;
     std::shared_ptr<attribute_type> m_attr_;
-    MeshBlock const *m_mesh_;
-    DataBlock *m_data_;
+    std::shared_ptr<MeshBlock> m_mesh_;
+    std::shared_ptr<DataBlock> m_data_;
 public:
 
 
@@ -170,11 +170,11 @@ public:
 
     attribute_type const *attribute() const { return m_attr_.get(); }
 
-    MeshBlock const *mesh() const { return m_mesh_; };
+    MeshBlock const *mesh() const { return m_mesh_.get(); };
 
-    DataBlock *data() { return m_data_; }
+    DataBlock *data() { return m_data_.get(); }
 
-    DataBlock const *data() const { return m_data_; }
+    DataBlock const *data() const { return m_data_.get(); }
 
     virtual MeshEntityType entity_type() const { return IFORM; };
 
@@ -191,7 +191,7 @@ public:
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 
-    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *m) const =0;
+    virtual std::shared_ptr<DataBlock> clone(const std::shared_ptr<MeshBlock> &m) const =0;
 
     /**
      * move to block m;
@@ -203,7 +203,7 @@ public:
      *  m_mesh_ : m
      *  m_data_ : not nullptr. m_attr_.at(m) ;
      */
-    virtual void move_to(MeshBlock const *m)
+    virtual void move_to(const std::shared_ptr<MeshBlock> &m)
     {
         ASSERT (m != nullptr)
         if (m != m_mesh_)
@@ -212,19 +212,19 @@ public:
 
             try
             {
-                m_data_ = m_attr_->at(m_mesh_);
+                m_data_ = m_attr_->at(m_mesh_.get());
 
             }
             catch (std::out_of_range const &error)
             {
                 auto res = clone(m_mesh_);
-                m_attr_->insert(m_mesh_, res);
-                m_data_ = res.get();
+                m_attr_->insert(m_mesh_.get(), res);
+                m_data_ = res;
             }
         }
     }
 
-    virtual void move_to(MeshBlock const *m, DataBlock *d)
+    virtual void move_to(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &d)
     {
         m_mesh_ = m;
         m_data_ = d;
@@ -246,7 +246,7 @@ public:
     {
         ASSERT (m_attr_ != nullptr);
 
-        m_attr_->erase(m_mesh_);
+        m_attr_->erase(m_mesh_.get());
         m_mesh_ = nullptr;
     }
 
@@ -259,7 +259,7 @@ public:
     virtual void deploy()
     {
         if (m_data_ == nullptr) { move_to(m_mesh_); }
-        m_data_->deploy();
+        if (m_data_ != nullptr && !m_data_->is_deployed()) { m_data_->deploy(); }
     }
 
     /**

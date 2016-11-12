@@ -23,6 +23,7 @@ public:
     typedef DataEntityNDArray<V, 4> this_type;
     typedef V value_type;
 
+    DataEntityNDArray() {}
 
     DataEntityNDArray(index_type const *lo, index_type const *hi, std::shared_ptr<value_type> const &p = nullptr)
             : m_data_(p)

@@ -85,10 +85,10 @@ public:
         m_data_ = static_cast<data_block_type *>(base_type::data());
     }
 
-    virtual std::shared_ptr<mesh::DataBlock> clone(mesh::MeshBlock const *m) const
+    virtual std::shared_ptr<mesh::DataBlock> clone(const std::shared_ptr<mesh::MeshBlock> &m) const
     {
-        return std::dynamic_pointer_cast<mesh::DataBlock>(
-                std::make_shared<data_block_type>(static_cast<mesh_type const *>(m)));
+        // FIXME: new data block is not initialized!!
+        return std::dynamic_pointer_cast<mesh::DataBlock>(std::make_shared<data_block_type>());
     };
 
     /** @name as_function  @{*/

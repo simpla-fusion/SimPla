@@ -21,7 +21,7 @@ std::ostream &Attribute::print(std::ostream &os, int indent) const
         os << std::setw(indent) << " " << std::endl;
         for (auto const &item:m_pimpl_->m_patches_)
         {
-            os << std::setw(indent) << " " << item.second->mesh()->name() << " = {";
+//            os << std::setw(indent) << " " << item.second->mesh()->name() << " = {";
             item.second->print(os, indent + 1);
             os << " } " << std::endl;
         }
@@ -48,11 +48,11 @@ void Attribute::erase(const MeshBlock *m)
 }
 
 
-DataBlock const *Attribute::at(const MeshBlock *m) const
+std::shared_ptr<DataBlock> Attribute::at(const MeshBlock *m) const
 {
     ASSERT(m_pimpl_ != nullptr);
 
-    try { return m_pimpl_->m_patches_.at(m->id()).get(); }
+    try { return m_pimpl_->m_patches_.at(m->id()); }
     catch (std::out_of_range const &err)
     {
         throw std::out_of_range(
@@ -62,11 +62,11 @@ DataBlock const *Attribute::at(const MeshBlock *m) const
     }
 }
 
-DataBlock *Attribute::at(const MeshBlock *m)
+std::shared_ptr<DataBlock> Attribute::at(const MeshBlock *m)
 {
     ASSERT(m_pimpl_ != nullptr);
 
-    try { return m_pimpl_->m_patches_.at(m->id()).get(); }
+    try { return m_pimpl_->m_patches_.at(m->id()); }
     catch (std::out_of_range const &err)
     {
         throw std::out_of_range(

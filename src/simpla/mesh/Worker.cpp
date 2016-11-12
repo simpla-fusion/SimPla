@@ -10,7 +10,7 @@ namespace simpla { namespace mesh
 {
 struct Worker::pimpl_s
 {
-    MeshBlock const *m_mesh_ = nullptr;
+    std::shared_ptr<MeshBlock> m_mesh_ = nullptr;
     std::set<Observer *> m_obs_;
     std::vector<std::shared_ptr<Attribute>> m_attributes_;
 };
@@ -46,9 +46,10 @@ void Worker::apply(Visitor const &vis) const { for (auto &ob:m_pimpl_->m_obs_) {
 
 void Worker::for_each(std::function<void(Observer &)> const &f) { for (auto &ob:m_pimpl_->m_obs_) { f(*ob); }}
 
-void Worker::for_each(std::function<void(Observer const &)> const &f) const { for (auto &ob:m_pimpl_->m_obs_) { f(*ob); }}
+void
+Worker::for_each(std::function<void(Observer const &)> const &f) const { for (auto &ob:m_pimpl_->m_obs_) { f(*ob); }}
 
-void Worker::move_to(mesh::MeshBlock const *m)
+void Worker::move_to(const std::shared_ptr<MeshBlock> &m)
 {
     m_pimpl_->m_mesh_ = m;
     for (auto &ob:m_pimpl_->m_obs_) { ob->move_to(m); }

@@ -46,10 +46,17 @@ struct AMRTest : public mesh::Worker
 
     template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
     field_type<Real, mesh::VERTEX> phi{"phi", this};
-    field_type<Real, mesh::EDGE> E{"E", this};
-    field_type<Real, mesh::FACE> B{"B", this};
-    field_type<nTuple<Real,3>, mesh::VERTEX> Ev{"Ev", this};
-    field_type<nTuple<Real,3>, mesh::VERTEX> Bv{"Bv", this};
+//    field_type<Real, mesh::EDGE> E{"E", this};
+//    field_type<Real, mesh::FACE> B{"B", this};
+//    field_type<nTuple<Real, 3>, mesh::VERTEX> Ev{"Ev", this};
+
+//    field_type<nTuple<Real, 3>, mesh::VERTEX> Bv{"Bv", this};
+    virtual std::shared_ptr<mesh::MeshBlock> create_mesh_block(index_type const *lo, index_type const *hi) const
+    {
+        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(lo, hi));
+    };
+
+    void initialize(Real data_time, bool initial_time) {}
 
     void next_time_step(Real dt)
     {
