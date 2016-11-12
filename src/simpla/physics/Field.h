@@ -16,6 +16,7 @@
 
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/Worker.h>
+#include <simpla/mesh/MeshCommon.h>
 
 #include "FieldTraits.h"
 #include "FieldExpression.h"
@@ -233,7 +234,7 @@ public:
 //                       auto x = m_mesh_->point(s);
 //                       if (geo(x) < 0)
 //                       {
-//                           op(m_data_->get(s), m_mesh_->template sample<IFORM>(s, fun(x)));
+//                           op(m_holder_->get(s), m_mesh_->template sample<IFORM>(s, fun(x)));
 //                       }
 //                   });
 //    }
@@ -300,7 +301,11 @@ public:
     }
 
     template<typename ...Args> void
-    assign_function(Args &&...args) { apply_function(_impl::_assign(), std::forward<Args>(args)...); }
+    assign_function(Args &&...args)
+    {
+        apply_function(_impl::_assign(),
+                       m_mesh_->range(IFORM, mesh::SP_ES_ALL), std::forward<Args>(args)...);
+    }
 
 };
 

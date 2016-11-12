@@ -9,6 +9,8 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Atlas.h>
 #include <simpla/physics/Field.h>
+#include <simpla/physics/Constants.h>
+
 #include <simpla/manifold/Calculus.h>
 #include <simpla/simulation/TimeIntegrator.h>
 
@@ -38,9 +40,10 @@ public:
     {
         auto b = global_index_box();
         index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
-        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[1],
+        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2],
                             (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 1 : 3};
-        return std::dynamic_pointer_cast<mesh::DataBlock>(std::make_shared<data_block_type<TV, IFORM>>(lo, hi));
+        return std::dynamic_pointer_cast<mesh::DataBlock>(
+                std::make_shared<data_block_type<TV, IFORM>>(lo, hi, static_cast<TV *>(p)));
     };
 
 
@@ -54,7 +57,7 @@ struct AMRTest : public mesh::Worker
     typedef TM mesh_type;
 
     SP_OBJECT_HEAD(AMRTest, mesh::Worker);
-
+    Real m_k_[3] = {TWOPI / 24.0, TWOPI / 24.0, TWOPI / 24.0};
     template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
     field_type<Real, mesh::VERTEX> phi{"phi", this};
 //    field_type<Real, mesh::EDGE> E{"E", this};
@@ -64,11 +67,48 @@ struct AMRTest : public mesh::Worker
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Bv{"Bv", this};
     virtual std::shared_ptr<mesh::MeshBlock> create_mesh_block(index_type const *lo, index_type const *hi) const
     {
-        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(lo, hi));
+        auto res = std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(lo, hi));
+        res->deploy();
+        return res;
     };
 
 
-    void initialize(Real data_time, bool initial_time) {}
+    void initialize(Real data_time)
+    {
+        phi.clear();
+//        E.clear();
+        phi.print(std::cout);
+
+        phi.assign_function(
+                [&](point_type const &x)
+                {
+//                    double res = std::sin(x[0] * m_k_[0]) * std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]);
+//
+//                    VERBOSE << res << std::endl;
+                    return x[0] + x[1] * 100 + x[2] * 10000;
+                });
+        phi.print(std::cout);
+
+    }
+
+    double computeStableDtOnPatch(const bool initial_time, const double dt_time)
+    {
+        return dt_time;
+    }
+
+    void computeFluxesOnPatch(const double time, const double dt)
+    {
+
+//        E = grad(phi);
+    }
+
+    void conservativeDifferenceOnPatch(const double time,
+                                       const double dt, bool at_syncronization)
+    {
+        phi.print(std::cout);
+
+//        phi += diverge(E) * dt;
+    }
 
     void next_time_step(Real dt)
     {
@@ -174,8 +214,8 @@ int main(int argc, char **argv)
      */
 
 
-    integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0,   0,   0},
-                                                                           {125, 125, 125}};
+    integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0,  0,  0},
+                                                                           {16, 16, 16}};
     integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{0, 0, 0};
     integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{1, 1, 1};
 
@@ -183,8 +223,8 @@ int main(int argc, char **argv)
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_1"] = nTuple<int, 3>{2, 2, 2};
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_2"] = nTuple<int, 3>{2, 2, 2};
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_3"] = nTuple<int, 3>{2, 2, 2};
-    integrator->db["PatchHierarchy"]["largest_patch_size"]["level_0"] = nTuple<int, 3>{40, 40, 40};
-    integrator->db["PatchHierarchy"]["smallest_patch_size"]["level_0"] = nTuple<int, 3>{9, 9, 9};
+    integrator->db["PatchHierarchy"]["largest_patch_size"]["level_0"] = nTuple<int, 3>{10, 10, 10};
+    integrator->db["PatchHierarchy"]["smallest_patch_size"]["level_0"] = nTuple<int, 3>{4, 4, 4};
 
     integrator->db["GriddingAlgorithm"];
 
@@ -216,7 +256,8 @@ int main(int argc, char **argv)
     integrator->deploy();
     INFORM << "***********************************************" << std::endl;
 //    integrator->print(std::cout);
-
+//    integrator->next_time_step(1.0);
+//    integrator->next_time_step(1.0);
     integrator->next_time_step(1.0);
 
     INFORM << "***********************************************" << std::endl;

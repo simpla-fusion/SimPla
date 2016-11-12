@@ -181,10 +181,14 @@ public:
 
     virtual std::string name() const { return m_attr_->name(); }
 
-    virtual std::ostream &print(std::ostream &os, int indent) const
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const
     {
-        if (m_mesh_ != nullptr && m_data_ != nullptr) { m_data_->print(os, indent + 1); }
-        else { os << "not-deployed!"; }
+        if (m_mesh_ != nullptr && m_data_ != nullptr)
+        {
+            os << "{";
+            m_data_->print(os, indent + 1);
+            os << "}," << std::endl;
+        } else { os << "not-deployed!"; }
         return os;
     }
 

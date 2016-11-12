@@ -85,7 +85,10 @@ public:
     virtual std::ostream &print(std::ostream &os, int indent) const
     {
         os << " type = \'" << value_type_info().name() << "\' "
-           << ", entity type = " << static_cast<int>(entity_type());
+           << ", entity type = " << static_cast<int>(entity_type())
+           << ", data = {";
+        data_entity_type::print(os, indent + 1);
+        os << "}";
         return os;
     }
 

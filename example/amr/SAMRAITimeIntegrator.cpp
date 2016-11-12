@@ -129,8 +129,8 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 #define LINADV_VERSION (3)
 
 class SAMRAIWorker :
-        public SAMRAI::algs::HyperbolicPatchStrategy,
-        public SAMRAI::appu::BoundaryUtilityStrategy // for Boundary
+        public SAMRAI::algs::HyperbolicPatchStrategy
+//        ,public SAMRAI::appu::BoundaryUtilityStrategy // for Boundary
 {
 
 public:
@@ -232,7 +232,9 @@ public:
             SAMRAI::hier::Patch &patch,
             const double fill_time,
             const SAMRAI::hier::IntVector &
-            ghost_width_to_fill);
+            ghost_width_to_fill)
+    {
+    }
 
     SAMRAI::hier::IntVector
     getRefineOpStencilWidth(const SAMRAI::tbox::Dimension &dim) const { return SAMRAI::hier::IntVector::getZero(dim); }
@@ -308,15 +310,7 @@ public:
     }
 
     //@}
-//
-//    /**
-//     * Write state of SAMRAIWorker object to the given database for restart.
-//     *
-//     * This routine is a concrete implementation of the function
-//     * declared in the tbox::Serializable abstract base class.
-//     */
-//    void putToRestart(const boost::shared_ptr<SAMRAI::tbox::Database> &restart_db) const;
-//
+
     /**
      * This routine is a concrete implementation of the virtual function
      * in the base class BoundaryUtilityStrategy.  It reads DIRICHLET
@@ -348,13 +342,6 @@ public:
      */
     void registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer);
 
-//
-//    /**
-//     * Reset physical boundary values in special cases, such as when
-//     * using symmetric (i.e., reflective) boundary conditions.
-//     */
-    void boundaryReset(SAMRAI::hier::Patch &patch, SAMRAI::pdat::FaceData<double> &traced_left,
-                       SAMRAI::pdat::FaceData<double> &traced_right) const;
 
     /**
      * Print all data members for SAMRAIWorkerHyperbolic class.
@@ -362,7 +349,7 @@ public:
     void printClassData(std::ostream &os) const;
 
 private:
-    void move_to(mesh::Worker *w, SAMRAI::hier::Patch &patch);
+    void move_to(SAMRAI::hier::Patch &patch);
 
 private:
     std::shared_ptr<mesh::Worker> m_worker_;
@@ -394,99 +381,10 @@ private:
 
     std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
 
-    /**
-     * boost::shared_ptr to state variable vector - [u]
-     */
-    boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_uval;
 
-    /**
-     * boost::shared_ptr to flux variable vector  - [F]
-     */
-    boost::shared_ptr<SAMRAI::pdat::FaceVariable<double>> d_flux;
-
-    /**
-     * linear advection velocity vector
-     */
-    std::vector<double> d_advection_velocity;
-
-
-    int d_godunov_order;
-    std::string d_corner_transport;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 
-    /*
-     * Indicator for problem type and initial conditions
-     */
-    std::string d_data_problem;
-    int d_data_problem_int;
-
-    /*
-     * Input for SPHERE problem
-     */
-    double d_radius;
-    std::vector<double> d_center;
-    double d_uval_inside;
-    double d_uval_outside;
-
-    /*
-     * Input for FRONT problem
-     */
-    int d_number_of_intervals;
-    std::vector<double> d_front_position;
-    std::vector<double> d_interval_uval;
-
-    /*
-     * Boundary condition cases and boundary values.
-     * Options are: FLOW, REFLECT, DIRICHLET
-     * and variants for nodes and edges.
-     *
-     * Input file values are read into these arrays.
-     */
-    std::vector<int> d_scalar_bdry_edge_conds;
-    std::vector<int> d_scalar_bdry_node_conds;
-    std::vector<int> d_scalar_bdry_face_conds; // only for (dim == tbox::Dimension(3))
-
-    /*
-     * Boundary condition cases for scalar and vector (i.e., depth > 1)
-     * variables.  These are post-processed input values and are passed
-     * to the boundary routines.
-     */
-    std::vector<int> d_node_bdry_edge; // only for (dim == tbox::Dimension(2))
-    std::vector<int> d_edge_bdry_face; // only for (dim == tbox::Dimension(3))
-    std::vector<int> d_node_bdry_face; // only for (dim == tbox::Dimension(3))
-
-    /*
-     * Vectors of face (3d) or edge (2d) boundary values for DIRICHLET case.
-     */
-    std::vector<double> d_bdry_edge_uval; // only for (dim == tbox::Dimension(2))
-    std::vector<double> d_bdry_face_uval; // only for (dim == tbox::Dimension(3))
-
-    /*
-     * Input for Sine problem initialization
-     */
-    double d_amplitude;
-    std::vector<double> d_frequency;
-
-    /*
-     * Refinement criteria parameters for gradient detector and
-     * Richardson extrapolation.
-     */
-    std::vector<std::string> d_refinement_criteria;
-    std::vector<double> d_dev_tol;
-    std::vector<double> d_dev;
-    std::vector<double> d_dev_time_max;
-    std::vector<double> d_dev_time_min;
-    std::vector<double> d_grad_tol;
-    std::vector<double> d_grad_time_max;
-    std::vector<double> d_grad_time_min;
-    std::vector<double> d_shock_onset;
-    std::vector<double> d_shock_tol;
-    std::vector<double> d_shock_time_max;
-    std::vector<double> d_shock_time_min;
-    std::vector<double> d_rich_tol;
-    std::vector<double> d_rich_time_max;
-    std::vector<double> d_rich_time_min;
 
 };
 
@@ -500,223 +398,11 @@ SAMRAIWorker::SAMRAIWorker(
         d_dim(dim),
         d_grid_geometry(grid_geom),
         d_use_nonuniform_workload(false),
-        d_uval(new SAMRAI::pdat::CellVariable<double>(dim, "uval", 1)),
-        d_flux(new SAMRAI::pdat::FaceVariable<double>(dim, "flux", 1)),
-//        d_advection_velocity(dim.getValue()),
-//        d_godunov_order(1),
-        d_corner_transport("CORNER_TRANSPORT_1"),
         d_nghosts(dim, CELLG),
-        d_fluxghosts(dim, FLUXG),
-        d_data_problem("SPHERE"),
-        d_data_problem_int(SAMRAI::tbox::MathUtilities<int>::getMax()),
-        d_radius(SAMRAI::tbox::MathUtilities<double>::getSignalingNaN()),
-        d_center(dim.getValue()),
-//        d_uval_inside(SAMRAI::tbox::MathUtilities<double>::getSignalingNaN()),
-//        d_uval_outside(SAMRAI::tbox::MathUtilities<double>::getSignalingNaN()),
-        d_number_of_intervals(0),
-        d_amplitude(0.),
-        d_frequency(dim.getValue())
+        d_fluxghosts(dim, FLUXG)
 {
     TBOX_ASSERT(grid_geom);
     TBOX_ASSERT(CELLG == FACEG);
-
-    // SPHERE problem...
-    SAMRAI::tbox::MathUtilities<double>::setVectorToSignalingNaN(d_center);
-
-    // SINE problem
-    for (int k = 0; k < d_dim.getValue(); ++k) d_frequency[k] = 0.;
-
-//    /*
-//     * Defaults for boundary conditions. Set to bogus values
-//     * for error checking.
-//     */
-//
-//    if (d_dim == SAMRAI::tbox::Dimension(2))
-//    {
-//        d_scalar_bdry_edge_conds.resize(NUM_2D_EDGES);
-//        for (int ei = 0; ei < NUM_2D_EDGES; ++ei)
-//        {
-//            d_scalar_bdry_edge_conds[ei] = BOGUS_BDRY_DATA;
-//        }
-//
-//        d_scalar_bdry_node_conds.resize(NUM_2D_NODES);
-//        d_node_bdry_edge.resize(NUM_2D_NODES);
-//
-//        for (int ni = 0; ni < NUM_2D_NODES; ++ni)
-//        {
-//            d_scalar_bdry_node_conds[ni] = BOGUS_BDRY_DATA;
-//            d_node_bdry_edge[ni] = BOGUS_BDRY_DATA;
-//        }
-//
-//        d_bdry_edge_uval.resize(NUM_2D_EDGES);
-//        SAMRAI::tbox::MathUtilities<double>::setVectorToSignalingNaN(d_bdry_edge_uval);
-//    }
-//    if (d_dim == SAMRAI::tbox::Dimension(3))
-//    {
-//        d_scalar_bdry_face_conds.resize(NUM_3D_FACES);
-//        for (int fi = 0; fi < NUM_3D_FACES; ++fi)
-//        {
-//            d_scalar_bdry_face_conds[fi] = BOGUS_BDRY_DATA;
-//        }
-//
-//        d_scalar_bdry_edge_conds.resize(NUM_3D_EDGES);
-//        d_edge_bdry_face.resize(NUM_3D_EDGES);
-//        for (int ei = 0; ei < NUM_3D_EDGES; ++ei)
-//        {
-//            d_scalar_bdry_edge_conds[ei] = BOGUS_BDRY_DATA;
-//            d_edge_bdry_face[ei] = BOGUS_BDRY_DATA;
-//        }
-//
-//        d_scalar_bdry_node_conds.resize(NUM_3D_NODES);
-//        d_node_bdry_face.resize(NUM_3D_NODES);
-//
-//        for (int ni = 0; ni < NUM_3D_NODES; ++ni)
-//        {
-//            d_scalar_bdry_node_conds[ni] = BOGUS_BDRY_DATA;
-//            d_node_bdry_face[ni] = BOGUS_BDRY_DATA;
-//        }
-//
-//        d_bdry_face_uval.resize(NUM_3D_FACES);
-//        SAMRAI::tbox::MathUtilities<double>::setVectorToSignalingNaN(d_bdry_face_uval);
-//    }
-//    /*
-//     * Initialize object with data read from given input/restart databases.
-//     */
-//
-//    auto input_db = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("LinAdv");
-//    double advection_velocity[3] = {2.0e0, 1.0e0, 1.0e0};
-//    input_db->putDoubleArray("advection_velocity", advection_velocity, 3);
-//    input_db->putInteger("godunov_order", 2);
-//    input_db->putString("corner_transport", "CORNER_TRANSPORT_1");
-//    input_db->putString("data_problem", "SPHERE");
-//
-//    auto Initial_data_db = input_db->putDatabase("Initial_data");
-//    double center[3] = {5.5, 5.5, 5.5};
-//    Initial_data_db->putDouble("radius", 2.9);
-//    Initial_data_db->putDoubleArray("center", center, 3);
-//    Initial_data_db->putDouble("uval_inside", 80.0);
-//    Initial_data_db->putDouble("uval_outside", 5.0);
-//
-//    auto Boundary_data_db = input_db->putDatabase("Boundary_data");
-//    Boundary_data_db->putDatabase("boundary_face_xlo")->putString("boundary_condition", "FLOW");
-//    Boundary_data_db->putDatabase("boundary_face_xhi")->putString("boundary_condition", "FLOW");
-//    Boundary_data_db->putDatabase("boundary_face_ylo")->putString("boundary_condition", "FLOW");
-//    Boundary_data_db->putDatabase("boundary_face_yhi")->putString("boundary_condition", "FLOW");
-//    Boundary_data_db->putDatabase("boundary_face_zlo")->putString("boundary_condition", "FLOW");
-//    Boundary_data_db->putDatabase("boundary_face_zhi")->putString("boundary_condition", "FLOW");
-//
-//
-//    Boundary_data_db->putDatabase("boundary_edge_ylo_zlo")->putString("boundary_condition", "ZFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_yhi_zlo")->putString("boundary_condition", "ZFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_ylo_zhi")->putString("boundary_condition", "ZFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_yhi_zhi")->putString("boundary_condition", "ZFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_xlo_zlo")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_xlo_zhi")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_xhi_zlo")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_xhi_zhi")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_xlo_ylo")->putString("boundary_condition", "YFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_xhi_ylo")->putString("boundary_condition", "YFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_xlo_yhi")->putString("boundary_condition", "YFLOW");
-//    Boundary_data_db->putDatabase("boundary_edge_xhi_yhi")->putString("boundary_condition", "YFLOW");
-//
-//
-//    Boundary_data_db->putDatabase("boundary_node_xlo_ylo_zlo")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_node_xhi_ylo_zlo")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_node_xlo_yhi_zlo")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_node_xhi_yhi_zlo")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_node_xlo_ylo_zhi")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_node_xhi_ylo_zhi")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_node_xlo_yhi_zhi")->putString("boundary_condition", "XFLOW");
-//    Boundary_data_db->putDatabase("boundary_node_xhi_yhi_zhi")->putString("boundary_condition", "XFLOW");
-//
-//
-//
-//
-//    /*
-//     * Set problem data to values read from input/restart.
-//     */
-//
-//    if (d_data_problem == "PIECEWISE_CONSTANT_X") { d_data_problem_int = PIECEWISE_CONSTANT_X; }
-//    else if (d_data_problem == "PIECEWISE_CONSTANT_Y") { d_data_problem_int = PIECEWISE_CONSTANT_Y; }
-//    else if (d_data_problem == "PIECEWISE_CONSTANT_Z") { d_data_problem_int = PIECEWISE_CONSTANT_Z; }
-//    else if (d_data_problem == "SINE_CONSTANT_X") { d_data_problem_int = SINE_CONSTANT_X; }
-//    else if (d_data_problem == "SINE_CONSTANT_Y") { d_data_problem_int = SINE_CONSTANT_Y; }
-//    else if (d_data_problem == "SINE_CONSTANT_Z") { d_data_problem_int = SINE_CONSTANT_Z; }
-//    else if (d_data_problem == "SPHERE") { d_data_problem_int = SPHERE; }
-//    else
-//    {
-//        TBOX_ERROR(
-//                m_name_ << ": "
-//                              << "Unknown d_data_problem string = "
-//                              << d_data_problem
-//                              << " encountered in constructor" << std::endl);
-//    }
-//
-//    /*
-//     * Postprocess boundary data from input/restart values.  Note: scalar
-//     * quantity in this problem cannot have reflective boundary conditions
-//     * so we reset them to FLOW.
-//     */
-//    if (d_dim == SAMRAI::tbox::Dimension(2))
-//    {
-//        for (int i = 0; i < NUM_2D_EDGES; ++i)
-//        {
-//            if (d_scalar_bdry_edge_conds[i] == BdryCond::REFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::FLOW; }
-//        }
-//
-//        for (int i = 0; i < NUM_2D_NODES; ++i)
-//        {
-//            if (d_scalar_bdry_node_conds[i] == BdryCond::XREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::XFLOW; }
-//            if (d_scalar_bdry_node_conds[i] == BdryCond::YREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::YFLOW; }
-//
-//            if (d_scalar_bdry_node_conds[i] != BOGUS_BDRY_DATA)
-//            {
-//                d_node_bdry_edge[i] =
-//                        SAMRAI::appu::CartesianBoundaryUtilities2::getEdgeLocationForNodeBdry(
-//                                i, d_scalar_bdry_node_conds[i]);
-//            }
-//        }
-//    }
-//    if (d_dim == SAMRAI::tbox::Dimension(3))
-//    {
-//        for (int i = 0; i < NUM_3D_FACES; ++i)
-//        {
-//            if (d_scalar_bdry_face_conds[i] == BdryCond::REFLECT) { d_scalar_bdry_face_conds[i] = BdryCond::FLOW; }
-//        }
-//
-//        for (int i = 0; i < NUM_3D_EDGES; ++i)
-//        {
-//            if (d_scalar_bdry_edge_conds[i] == BdryCond::XREFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::XFLOW; }
-//            if (d_scalar_bdry_edge_conds[i] == BdryCond::YREFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::YFLOW; }
-//            if (d_scalar_bdry_edge_conds[i] == BdryCond::ZREFLECT) { d_scalar_bdry_edge_conds[i] = BdryCond::ZFLOW; }
-//
-//            if (d_scalar_bdry_edge_conds[i] != BOGUS_BDRY_DATA)
-//            {
-//                d_edge_bdry_face[i] = SAMRAI::appu::CartesianBoundaryUtilities3::getFaceLocationForEdgeBdry(i,
-//                                                                                                            d_scalar_bdry_edge_conds[i]);
-//            }
-//        }
-//
-//        for (int i = 0; i < NUM_3D_NODES; ++i)
-//        {
-//            if (d_scalar_bdry_node_conds[i] == BdryCond::XREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::XFLOW; }
-//            if (d_scalar_bdry_node_conds[i] == BdryCond::REFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::YFLOW; }
-//            if (d_scalar_bdry_node_conds[i] == BdryCond::ZREFLECT) { d_scalar_bdry_node_conds[i] = BdryCond::ZFLOW; }
-//
-//            if (d_scalar_bdry_node_conds[i] != BOGUS_BDRY_DATA)
-//            {
-//                d_node_bdry_face[i] = SAMRAI::appu::CartesianBoundaryUtilities3::getFaceLocationForNodeBdry(i,
-//                                                                                                            d_scalar_bdry_node_conds[i]);
-//            }
-//        }
-//
-//    }
-//
-//    SAMRAI_F77_FUNC(stufprobc, STUFPROBC)(PIECEWISE_CONSTANT_X, PIECEWISE_CONSTANT_Y,
-//                                          PIECEWISE_CONSTANT_Z,
-//                                          SINE_CONSTANT_X, SINE_CONSTANT_Y, SINE_CONSTANT_Z, SPHERE,
-//                                          CELLG, FACEG, FLUXG);
-
 }
 
 /*
@@ -775,37 +461,16 @@ attr_choice(mesh::Attribute *item, Args &&...args)
 };
 
 }//namespace detail{
-/*
- *************************************************************************
+/**
  *
- * Register conserved variable (u) (i.e., solution state variable) and
- * flux variable with hyperbolic integrator that manages storage for
- * those quantities.  Also, register plot data with VisIt.
+ * Register conserved variables  and  register plot data with VisIt.
  *
- *************************************************************************
  */
-
 void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator)
 {
 
     ASSERT(integrator != nullptr);
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
-
-    integrator->registerVariable(d_uval, d_nghosts,
-                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                 d_grid_geometry,
-                                 "CONSERVATIVE_COARSEN",
-                                 "CONSERVATIVE_LINEAR_REFINE");
-
-    integrator->registerVariable(d_flux, d_fluxghosts,
-                                 SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
-                                 d_grid_geometry,
-                                 "CONSERVATIVE_COARSEN",
-                                 "NO_REFINE");
-    d_visit_writer->registerPlotQuantity("U",
-                                         "SCALAR",
-                                         vardb->mapVariableAndContextToIndex(
-                                                 d_uval, integrator->getPlotContext()));
 
     if (!d_visit_writer)
     {
@@ -854,12 +519,10 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 }
 
 
-/*
- *************************************************************************
+/**
  *
  * Set up parameters for nonuniform load balancing, if used.
  *
- *************************************************************************
  */
 
 void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
@@ -912,27 +575,16 @@ attr_choice2(mesh::Attribute *item, op_convert const &,
              boost::shared_ptr<SAMRAI::hier::PatchData> p_data)
 {
     auto pdata = boost::dynamic_pointer_cast<typename PatchDataTraits<TV, IFORM>::type>(p_data);
-
     *res = item->create_data_block(m, pdata->getPointer(0));
 }
-
-std::shared_ptr<mesh::MeshBlock>
-convert_patch_mesh(std::shared_ptr<mesh::MeshBlock>, SAMRAI::hier::Patch &p)
-{
-    return nullptr;
-}
-
 
 }//namespace detail
 
 
 void
-SAMRAIWorker::move_to(mesh::Worker *w, SAMRAI::hier::Patch &patch)
+SAMRAIWorker::move_to(SAMRAI::hier::Patch &patch)
 {
-
     index_box_type b;
-
-
     index_type lo[3] = {
             patch.getBox().lower()[0],
             patch.getBox().lower()[1],
@@ -940,11 +592,11 @@ SAMRAIWorker::move_to(mesh::Worker *w, SAMRAI::hier::Patch &patch)
     };
     index_type hi[3] = {
             patch.getBox().upper()[0],
-            patch.getBox().upper()[0],
-            patch.getBox().upper()[0]
+            patch.getBox().upper()[1],
+            patch.getBox().upper()[2]
     };
 
-    std::shared_ptr<mesh::MeshBlock> m = w->create_mesh_block(lo, hi);
+    std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi);
     m->id(patch.getBox().getLocalId().getValue());
     m_worker_->for_each(
             [&](mesh::Worker::Observer &ob)
@@ -961,8 +613,7 @@ SAMRAIWorker::move_to(mesh::Worker *w, SAMRAI::hier::Patch &patch)
     );
 }
 
-/*
- *************************************************************************
+/**
  *
  * Set initial data for solution variables on patch interior.
  * This routine is called whenever a new patch is introduced to the
@@ -971,14 +622,17 @@ SAMRAIWorker::move_to(mesh::Worker *w, SAMRAI::hier::Patch &patch)
  * interpolation from coarser levels and copies from patches at the
  * same mesh resolution are sufficient to set data.
  *
- *************************************************************************
  */
 void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time,
                                          const bool initial_time)
 {
-    move_to(m_worker_.get(), patch);
 
-    m_worker_->initialize(data_time, initial_time);
+
+    if (initial_time)
+    {
+        move_to(patch);
+        m_worker_->initialize(data_time);
+    };
 
     if (d_use_nonuniform_workload)
     {
@@ -1013,10 +667,9 @@ double SAMRAIWorker::computeStableDtOnPatch(
         const bool initial_time,
         const double dt_time)
 {
-    move_to(m_worker_.get(), patch);
 
-//    return m_worker_->computeStableDtOnPatch(dt_time, initial_time);
 
+    return dt_time;
 }
 
 /*
@@ -1031,12 +684,8 @@ double SAMRAIWorker::computeStableDtOnPatch(
 
 void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt)
 {
-    move_to(m_worker_.get(), patch);
-
-//    return m_worker_->computeFluxesOnPatch(time, dt);
-
-    return;
-
+    move_to(patch);
+    m_worker_->computeFluxesOnPatch(time, dt);
 }
 
 
@@ -1052,143 +701,10 @@ void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double
 void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, const double time,
                                                  const double dt, bool at_syncronization)
 {
-    move_to(m_worker_.get(), patch);
-//    m_worker_->conservativeDifferenceOnPatch(time, dt, at_syncronization);
+    move_to(patch);
+    m_worker_->conservativeDifferenceOnPatch(time, dt, at_syncronization);
 }
 
-/*
- *************************************************************************
- *
- * Reset physical boundary values for special cases, such as those
- * involving symmetric (i.e., reflective) boundary conditions and
- * when the "STEP" problem is run.
- *
- *************************************************************************
- */
-void SAMRAIWorker::boundaryReset(
-        SAMRAI::hier::Patch &patch,
-        SAMRAI::pdat::FaceData<double> &traced_left,
-        SAMRAI::pdat::FaceData<double> &traced_right) const
-{
-    const SAMRAI::hier::Index ifirst = patch.getBox().lower();
-    const SAMRAI::hier::Index ilast = patch.getBox().upper();
-    int idir;
-    bool bdry_cell = true;
-
-    const boost::shared_ptr<SAMRAI::geom::CartesianPatchGeometry> patch_geom(
-            boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry, SAMRAI::hier::PatchGeometry>(
-                    patch.getPatchGeometry()));
-    TBOX_ASSERT(patch_geom);
-    SAMRAI::hier::BoxContainer domain_boxes;
-    d_grid_geometry->computePhysicalDomain(domain_boxes,
-                                           patch_geom->getRatio(),
-                                           SAMRAI::hier::BlockId::zero());
-
-    SAMRAI::pdat::CellIndex icell(ifirst);
-    SAMRAI::hier::BoxContainer bdrybox;
-    SAMRAI::hier::Index ibfirst = ifirst;
-    SAMRAI::hier::Index iblast = ilast;
-    int bdry_case = 0;
-    int bside;
-
-    for (idir = 0; idir < d_dim.getValue(); ++idir)
-    {
-        ibfirst(idir) = ifirst(idir) - 1;
-        iblast(idir) = ifirst(idir) - 1;
-        bdrybox.pushBack(SAMRAI::hier::Box(ibfirst, iblast, SAMRAI::hier::BlockId(0)));
-
-        ibfirst(idir) = ilast(idir) + 1;
-        iblast(idir) = ilast(idir) + 1;
-        bdrybox.pushBack(SAMRAI::hier::Box(ibfirst, iblast, SAMRAI::hier::BlockId(0)));
-    }
-
-    SAMRAI::hier::BoxContainer::iterator ib = bdrybox.begin();
-    for (idir = 0; idir < d_dim.getValue(); ++idir)
-    {
-        bside = 2 * idir;
-        if (d_dim == SAMRAI::tbox::Dimension(2))
-        {
-            bdry_case = d_scalar_bdry_edge_conds[bside];
-        }
-        if (d_dim == SAMRAI::tbox::Dimension(3))
-        {
-
-            bdry_case = d_scalar_bdry_face_conds[bside];
-        }
-        if (bdry_case == BdryCond::REFLECT)
-        {
-            SAMRAI::pdat::CellIterator icend(SAMRAI::pdat::CellGeometry::end(*ib));
-            for (SAMRAI::pdat::CellIterator ic(SAMRAI::pdat::CellGeometry::begin(*ib));
-                 ic != icend; ++ic)
-            {
-                for (SAMRAI::hier::BoxContainer::iterator domain_boxes_itr =
-                        domain_boxes.begin();
-                     domain_boxes_itr != domain_boxes.end();
-                     ++domain_boxes_itr)
-                {
-                    if (domain_boxes_itr->contains(*ic))
-                        bdry_cell = false;
-                }
-                if (bdry_cell)
-                {
-                    SAMRAI::pdat::FaceIndex sidein = SAMRAI::pdat::FaceIndex(*ic, idir, 1);
-                    (traced_left)(sidein, 0) = (traced_right)(sidein, 0);
-                }
-            }
-        }
-        ++ib;
-
-        int bnode = 2 * idir + 1;
-        if (d_dim == SAMRAI::tbox::Dimension(2))
-        {
-            bdry_case = d_scalar_bdry_edge_conds[bnode];
-        }
-        if (d_dim == SAMRAI::tbox::Dimension(3))
-        {
-            bdry_case = d_scalar_bdry_face_conds[bnode];
-        }
-        if (bdry_case == BdryCond::REFLECT)
-        {
-            SAMRAI::pdat::CellIterator icend(SAMRAI::pdat::CellGeometry::end(*ib));
-            for (SAMRAI::pdat::CellIterator ic(SAMRAI::pdat::CellGeometry::begin(*ib));
-                 ic != icend; ++ic)
-            {
-                for (SAMRAI::hier::BoxContainer::iterator domain_boxes_itr =
-                        domain_boxes.begin();
-                     domain_boxes_itr != domain_boxes.end();
-                     ++domain_boxes_itr)
-                {
-                    if (domain_boxes_itr->contains(*ic))
-                        bdry_cell = false;
-                }
-                if (bdry_cell)
-                {
-                    SAMRAI::pdat::FaceIndex sidein = SAMRAI::pdat::FaceIndex(*ic, idir, 0);
-                    (traced_right)(sidein, 0) = (traced_left)(sidein, 0);
-                }
-            }
-        }
-        ++ib;
-    }
-}
-
-/*
- *************************************************************************
- *
- * Set the data in ghost cells corresponding to physical boundary
- * conditions.  Note that boundary geometry configuration information
- * (i.e., faces, edges, and nodes) is obtained from the patch geometry
- * object owned by the patch.
- *
- *************************************************************************
- */
-
-void SAMRAIWorker::setPhysicalBoundaryConditions(
-        SAMRAI::hier::Patch &patch,
-        const double fill_time,
-        const SAMRAI::hier::IntVector &ghost_width_to_fill)
-{
-}
 
 /*
  *************************************************************************
@@ -1686,190 +1202,11 @@ void SAMRAIWorker::registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisIt
 
 void SAMRAIWorker::printClassData(std::ostream &os) const
 {
-    int j, k;
-
     os << "\nSAMRAIWorker::printClassData..." << std::endl;
-    os << "SAMRAIWorker: this = " << (SAMRAIWorker *)
-            this << std::endl;
+    os << "SAMRAIWorker: this = " << (SAMRAIWorker *) this << std::endl;
     os << "m_name_ = " << m_name_ << std::endl;
-    os << "d_grid_geometry = "
-       << d_grid_geometry.get() << std::endl;
+    os << "d_grid_geometry = " << d_grid_geometry.get() << std::endl;
 
-    os << "Parameters for numerical method ..." << std::endl;
-    os << "   d_advection_velocity = ";
-    for (j = 0; j < d_dim.getValue(); ++j) os << d_advection_velocity[j] << " ";
-    os << std::endl;
-    os << "   d_godunov_order = " << d_godunov_order << std::endl;
-    os << "   d_corner_transport = " << d_corner_transport << std::endl;
-    os << "   d_nghosts = " << d_nghosts << std::endl;
-    os << "   d_fluxghosts = " << d_fluxghosts << std::endl;
-
-    os << "Problem description and initial data..." << std::endl;
-    os << "   d_data_problem = " << d_data_problem << std::endl;
-    os << "   d_data_problem_int = " << d_data_problem << std::endl;
-
-    os << "       d_radius = " << d_radius << std::endl;
-    os << "       d_center = ";
-    for (j = 0; j < d_dim.getValue(); ++j) os << d_center[j] << " ";
-    os << std::endl;
-    os << "       d_uval_inside = " << d_uval_inside << std::endl;
-    os << "       d_uval_outside = " << d_uval_outside << std::endl;
-
-    os << "       d_number_of_intervals = " << d_number_of_intervals << std::endl;
-    os << "       d_front_position = ";
-    for (k = 0; k < d_number_of_intervals - 1; ++k)
-    {
-        os << d_front_position[k] << "  ";
-    }
-    os << std::endl;
-    os << "       d_interval_uval = " << std::endl;
-    for (k = 0; k < d_number_of_intervals; ++k)
-    {
-        os << "            " << d_interval_uval[k] << std::endl;
-    }
-    os << "   Boundary condition data " << std::endl;
-
-    if (d_dim == SAMRAI::tbox::Dimension(2))
-    {
-        for (j = 0; j < static_cast<int>(d_scalar_bdry_edge_conds.size()); ++j)
-        {
-            os << "       d_scalar_bdry_edge_conds[" << j << "] = "
-               << d_scalar_bdry_edge_conds[j] << std::endl;
-            if (d_scalar_bdry_edge_conds[j] == BdryCond::DIRICHLET)
-            {
-                os << "         d_bdry_edge_uval[" << j << "] = "
-                   << d_bdry_edge_uval[j] << std::endl;
-            }
-        }
-        os << std::endl;
-        for (j = 0; j < static_cast<int>(d_scalar_bdry_node_conds.size()); ++j)
-        {
-            os << "       d_scalar_bdry_node_conds[" << j << "] = "
-               << d_scalar_bdry_node_conds[j] << std::endl;
-            os << "       d_node_bdry_edge[" << j << "] = "
-               << d_node_bdry_edge[j] << std::endl;
-        }
-    }
-    if (d_dim == SAMRAI::tbox::Dimension(3))
-    {
-        for (j = 0; j < static_cast<int>(d_scalar_bdry_face_conds.size()); ++j)
-        {
-            os << "       d_scalar_bdry_face_conds[" << j << "] = "
-               << d_scalar_bdry_face_conds[j] << std::endl;
-            if (d_scalar_bdry_face_conds[j] == BdryCond::DIRICHLET)
-            {
-                os << "         d_bdry_face_uval[" << j << "] = "
-                   << d_bdry_face_uval[j] << std::endl;
-            }
-        }
-        os << std::endl;
-        for (j = 0; j < static_cast<int>(d_scalar_bdry_edge_conds.size()); ++j)
-        {
-            os << "       d_scalar_bdry_edge_conds[" << j << "] = "
-               << d_scalar_bdry_edge_conds[j] << std::endl;
-            os << "       d_edge_bdry_face[" << j << "] = "
-               << d_edge_bdry_face[j] << std::endl;
-        }
-        os << std::endl;
-        for (j = 0; j < static_cast<int>(d_scalar_bdry_node_conds.size()); ++j)
-        {
-            os << "       d_scalar_bdry_node_conds[" << j << "] = "
-               << d_scalar_bdry_node_conds[j] << std::endl;
-            os << "       d_node_bdry_face[" << j << "] = "
-               << d_node_bdry_face[j] << std::endl;
-        }
-    }
-
-    os << "   Refinement criteria parameters " << std::endl;
-
-    for (j = 0; j < static_cast<int>(d_refinement_criteria.size()); ++j)
-    {
-        os << "       d_refinement_criteria[" << j << "] = "
-           << d_refinement_criteria[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_dev_tol.size()); ++j)
-    {
-        os << "       d_dev_tol[" << j << "] = "
-           << d_dev_tol[j] << std::endl;
-    }
-    for (j = 0; j < static_cast<int>(d_dev.size()); ++j)
-    {
-        os << "       d_dev[" << j << "] = "
-           << d_dev[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_dev_time_max.size()); ++j)
-    {
-        os << "       d_dev_time_max[" << j << "] = "
-           << d_dev_time_max[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_dev_time_min.size()); ++j)
-    {
-        os << "       d_dev_time_min[" << j << "] = "
-           << d_dev_time_min[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_grad_tol.size()); ++j)
-    {
-        os << "       d_grad_tol[" << j << "] = "
-           << d_grad_tol[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_grad_time_max.size()); ++j)
-    {
-        os << "       d_grad_time_max[" << j << "] = "
-           << d_grad_time_max[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_grad_time_min.size()); ++j)
-    {
-        os << "       d_grad_time_min[" << j << "] = "
-           << d_grad_time_min[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_shock_onset.size()); ++j)
-    {
-        os << "       d_shock_onset[" << j << "] = "
-           << d_shock_onset[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_shock_tol.size()); ++j)
-    {
-        os << "       d_shock_tol[" << j << "] = "
-           << d_shock_tol[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_shock_time_max.size()); ++j)
-    {
-        os << "       d_shock_time_max[" << j << "] = "
-           << d_shock_time_max[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_shock_time_min.size()); ++j)
-    {
-        os << "       d_shock_time_min[" << j << "] = "
-           << d_shock_time_min[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_rich_tol.size()); ++j)
-    {
-        os << "       d_rich_tol[" << j << "] = "
-           << d_rich_tol[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_rich_time_max.size()); ++j)
-    {
-        os << "       d_rich_time_max[" << j << "] = "
-           << d_rich_time_max[j] << std::endl;
-    }
-    os << std::endl;
-    for (j = 0; j < static_cast<int>(d_rich_time_min.size()); ++j)
-    {
-        os << "       d_rich_time_min[" << j << "] = "
-           << d_rich_time_min[j] << std::endl;
-    }
     os << std::endl;
 
 }
@@ -2221,136 +1558,6 @@ Real SAMRAITimeIntegrator::time_now() const { return static_cast<Real>( time_int
 size_type
 SAMRAITimeIntegrator::step() const { return static_cast<size_type>( time_integrator->getIntegratorStep()); }
 
-/*
- *************************************************************************
- *
- * Routine to check boundary data when debugging.
- *
- *************************************************************************
- */
-//
-//void SAMRAIWorker::checkBoundaryData(
-//        int btype,
-//        const SAMRAI::hier::DataBlockBase &patch,
-//        const SAMRAI::hier::IntVector &ghost_width_to_check,
-//        const std::vector<int> &scalar_bconds) const
-//{
-//#ifdef DEBUG_CHECK_ASSERTIONS
-//    if (d_dim == SAMRAI::tbox::Dimension(2))
-//    {
-//        TBOX_ASSERT(btype == Bdry::EDGE2D ||
-//                    btype == Bdry::NODE2D);
-//    }
-//    if (d_dim == SAMRAI::tbox::Dimension(3))
-//    {
-//        TBOX_ASSERT(btype == Bdry::FACE3D ||
-//                    btype == Bdry::EDGE3D ||
-//                    btype == Bdry::NODE3D);
-//    }
-//#endif
-//
-//    const boost::shared_ptr<SAMRAI::geom::CartesianPatchGeometry> pgeom(
-//             boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry, SAMRAI::hier::PatchGeometry>(
-//                    patch.getPatchGeometry()));
-//    TBOX_ASSERT(pgeom);
-//    const std::vector<SAMRAI::hier::BoundaryBox> &bdry_boxes =
-//            pgeom->getCodimensionBoundaries(btype);
-//
-//    SAMRAI::hier::VariableDatabase *vdb = SAMRAI::hier::VariableDatabase::getDatabase();
-//
-//    for (int i = 0; i < static_cast<int>(bdry_boxes.size()); ++i)
-//    {
-//        SAMRAI::hier::BoundaryBox bbox = bdry_boxes[i];
-//        TBOX_ASSERT(bbox.getBoundaryType() == btype);
-//        int bloc = bbox.getLocationIndex();
-//
-//        int bscalarcase = 0, refbdryloc = 0;
-//        if (d_dim == SAMRAI::tbox::Dimension(2))
-//        {
-//            if (btype == Bdry::EDGE2D)
-//            {
-//                TBOX_ASSERT(static_cast<int>(scalar_bconds.size()) ==
-//                            NUM_2D_EDGES);
-//                bscalarcase = scalar_bconds[bloc];
-//                refbdryloc = bloc;
-//            } else
-//            { // btype == Bdry::NODE2D
-//                TBOX_ASSERT(static_cast<int>(scalar_bconds.size()) ==
-//                            NUM_2D_NODES);
-//                bscalarcase = scalar_bconds[bloc];
-//                refbdryloc = d_node_bdry_edge[bloc];
-//            }
-//        }
-//        if (d_dim == SAMRAI::tbox::Dimension(3))
-//        {
-//            if (btype == Bdry::FACE3D)
-//            {
-//                TBOX_ASSERT(static_cast<int>(scalar_bconds.size()) ==
-//                            NUM_3D_FACES);
-//                bscalarcase = scalar_bconds[bloc];
-//                refbdryloc = bloc;
-//            } else if (btype == Bdry::EDGE3D)
-//            {
-//                TBOX_ASSERT(static_cast<int>(scalar_bconds.size()) ==
-//                            NUM_3D_EDGES);
-//                bscalarcase = scalar_bconds[bloc];
-//                refbdryloc = d_edge_bdry_face[bloc];
-//            } else
-//            { // btype == Bdry::NODE3D
-//                TBOX_ASSERT(static_cast<int>(scalar_bconds.size()) ==
-//                            NUM_3D_NODES);
-//                bscalarcase = scalar_bconds[bloc];
-//                refbdryloc = d_node_bdry_face[bloc];
-//            }
-//        }
-//
-//        int num_bad_values = 0;
-//
-//        if (d_dim == SAMRAI::tbox::Dimension(2))
-//        {
-//            num_bad_values =
-//                    SAMRAI::appu::CartesianBoundaryUtilities2::checkBdryData(
-//                            d_uval->getName(),
-//                            patch,
-//                            vdb->mapVariableAndContextToIndex(d_uval, getDataContext()), 0,
-//                            ghost_width_to_check,
-//                            bbox,
-//                            bscalarcase,
-//                            d_bdry_edge_uval[refbdryloc]);
-//        }
-//        if (d_dim == SAMRAI::tbox::Dimension(3))
-//        {
-//            num_bad_values =
-//                    SAMRAI::appu::CartesianBoundaryUtilities3::checkBdryData(
-//                            d_uval->getName(),
-//                            patch,
-//                            vdb->mapVariableAndContextToIndex(d_uval, getDataContext()), 0,
-//                            ghost_width_to_check,
-//                            bbox,
-//                            bscalarcase,
-//                            d_bdry_face_uval[refbdryloc]);
-//        }
-//
-//
-//    }
-//
-//}
-//
-//void
-//SAMRAIWorker::checkUserTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const
-//{
-//    boost::shared_ptr<SAMRAI::pdat::CellData<int> > tags( boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(patch.getPatchData(tag_index)));
-//    TBOX_ASSERT(tags);
-//}
-//
-//void
-//SAMRAIWorker::checkNewPatchTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const
-//{
-//    boost::shared_ptr<SAMRAI::pdat::CellData<int> > tags(
-//             boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(
-//                    patch.getPatchData(tag_index)));
-//    TBOX_ASSERT(tags);
-//}
 
 }//namespace simpla
 

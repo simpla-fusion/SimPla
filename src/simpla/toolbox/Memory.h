@@ -4,6 +4,7 @@
 
 #ifndef SIMPLA_MEMORY_H
 #define SIMPLA_MEMORY_H
+
 #include <simpla/SIMPLA_config.h>
 
 #include <cstring>
@@ -18,12 +19,9 @@ template<typename T> std::shared_ptr<T> MemoryHostAllocT(size_type num) { return
 
 inline std::shared_ptr<void> MemoryHostAlloc(size_type s) { return sp_alloc_memory(s); }
 
-inline void MemorySet(std::shared_ptr<void> d, int v, size_type s) { memset(d.get(), v, s); }
+inline void MemorySet(void *d, int v, size_type s) { memset(d, v, s); }
 
-inline void MemoryCopy(std::shared_ptr<void> dest, std::shared_ptr<void> src, size_type s)
-{
-    memcpy(dest.get(), src.get(), s);
-}
+inline void MemoryCopy(void *dest, void *src, size_type s) { memcpy(dest, src, s); }
 
 }}//namespace simpla { namespace toolbox
 
