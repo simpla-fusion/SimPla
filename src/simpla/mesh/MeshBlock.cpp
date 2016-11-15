@@ -15,22 +15,22 @@ namespace simpla { namespace mesh
 MeshBlock::MeshBlock() : m_ndims_(0) {}
 
 
-MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *hi, const index_type *gw) :
-        Object(),
-        m_ndims_(ndims),
-        m_g_box_{{lo[0], lo[1], lo[2]},
-                 {hi[0], hi[1], hi[2]}},
-        m_level_(0)
+MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *hi, Real const *dx, Real const *xlo,
+                     Real const *xhi) : Object(),
+                                        m_ndims_(ndims),
+                                        m_g_box_{{lo[0], lo[1], lo[2]},
+                                                 {hi[0], hi[1], hi[2]}},
+                                        m_level_(0)
 {
 
     assert(ndims <= 3);
 
-    if (gw != nullptr)
-    {
-        m_ghost_width_[0] = gw[0];
-        m_ghost_width_[1] = gw[1];
-        m_ghost_width_[2] = gw[2];
-    }
+//    if (gw != nullptr)
+//    {
+//        m_ghost_width_[0] = gw[0];
+//        m_ghost_width_[1] = gw[1];
+//        m_ghost_width_[2] = gw[2];
+//    }
 
 }
 

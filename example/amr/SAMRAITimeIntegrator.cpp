@@ -455,7 +455,7 @@ create_samrai_variable(unsigned int ndims, mesh::Attribute *item)
     else if (item->value_type_info() == typeid(double)) { return create_samrai_variable_t<double>(ndims, item); }
     else if (item->value_type_info() == typeid(int)) { return create_samrai_variable_t<int>(ndims, item); }
 //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
-    else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
+    else { RUNTIME_ERROR << " m_value_ type is not supported!" << std::endl; }
     return nullptr;
 }
 }//namespace detail{
@@ -489,29 +489,29 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 
                 static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR", "TENSOR"};
 
-                if (item->entity_type() == mesh::VERTEX ||
-                    item->entity_type() == mesh::VOLUME)
-                {
-                    /*** FIXME:
-                      *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
-                      *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
-                     **/
-                    integrator->registerVariable(var, d_nghosts,
-                                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                                 d_grid_geometry,
-                                                 "",
-                                                 "LINEAR_REFINE");
-                    d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type[item->value_rank()],
-                                                         vardb->mapVariableAndContextToIndex(var,
-                                                                                             integrator->getPlotContext()));
-                } else
-                {
-                    integrator->registerVariable(var, d_fluxghosts,
-                                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                                 d_grid_geometry,
-                                                 "CONSERVATIVE_COARSEN",
-                                                 "CONSERVATIVE_LINEAR_REFINE");
-                }
+//                if (item->entity_type() == mesh::VERTEX ||
+//                    item->entity_type() == mesh::VOLUME)
+//                {
+                /*** FIXME:
+                  *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
+                  *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
+                 **/
+                integrator->registerVariable(var, d_nghosts,
+                                             SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                             d_grid_geometry,
+                                             "",
+                                             "LINEAR_REFINE");
+                d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type[item->value_rank()],
+                                                     vardb->mapVariableAndContextToIndex(var,
+                                                                                         integrator->getPlotContext()));
+//                } else
+//                {
+//                    integrator->registerVariable(var, d_fluxghosts,
+//                                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+//                                                 d_grid_geometry,
+//                                                 "CONSERVATIVE_COARSEN",
+//                                                 "CONSERVATIVE_LINEAR_REFINE");
+//                }
             }
     );
 //    vardb->printClassData(std::cout);
@@ -684,7 +684,14 @@ create_data_block(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::PatchDa
 void
 SAMRAIWorker::move_to(SAMRAI::hier::Patch &patch)
 {
-    index_box_type b;
+
+    auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+
+    TBOX_ASSERT(pgeom);
+    const double *dx = pgeom->getDx();
+    const double *xlo = pgeom->getXLower();
+    const double *xhi = pgeom->getXUpper();
+
     index_type lo[3] = {
             patch.getBox().lower()[0],
             patch.getBox().lower()[1],
@@ -696,8 +703,9 @@ SAMRAIWorker::move_to(SAMRAI::hier::Patch &patch)
             patch.getBox().upper()[2]
     };
 
+    CHECK(xlo[0] + dx[0] * (hi[0] - lo[0] + 1) - xhi[0]);
 
-    std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, nullptr);
+    std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, dx, xlo);
     m->id(patch.getBox().getLocalId().getValue());
     m_worker_->move_to(m);
     m_worker_->for_each(
@@ -769,12 +777,7 @@ void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const doubl
 double SAMRAIWorker::computeStableDtOnPatch(
         SAMRAI::hier::Patch &patch,
         const bool initial_time,
-        const double dt_time)
-{
-
-
-    return dt_time;
-}
+        const double dt_time) { return dt_time; }
 
 /*
  *************************************************************************
@@ -832,170 +835,6 @@ void SAMRAIWorker::tagRichardsonExtrapolationCells(
 {
 //    INFORM << "tagRichardsonExtrapolationCells" << patch.getPatchLevelNumber() << std::endl;
 
-//    NULL_USE(initial_error);
-//
-//    SAMRAI::hier::Box pbox = patch.getBox();
-//
-//    boost::shared_ptr<SAMRAI::pdat::CellData<int> > tags(
-//            boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<int>, SAMRAI::hier::PatchData>(
-//                    patch.getPatchData(tag_index)));
-//    TBOX_ASSERT(tags);
-//
-//    /*
-//     * Possible tagging criteria includes
-//     *    UVAL_RICHARDSON
-//     * The criteria is specified over a time interval.
-//     *
-//     * Loop over criteria provided and check to make sure we are in the
-//     * specified time interval.  If so, apply appropriate tagging for
-//     * the level.
-//     */
-//    for (int ncrit = 0;
-//         ncrit < static_cast<int>(d_refinement_criteria.size()); ++ncrit)
-//    {
-//
-//        std::string ref = d_refinement_criteria[ncrit];
-//        int size;
-//        double tol;
-//        bool time_allowed;
-//
-//        if (ref == "UVAL_RICHARDSON")
-//        {
-//            boost::shared_ptr<SAMRAI::pdat::CellData<double> > coarsened_fine_var =
-//                    boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
-//                            patch.getPatchData(d_uval, coarsened_fine));
-//            boost::shared_ptr<SAMRAI::pdat::CellData<double> > advanced_coarse_var =
-//                    boost::dynamic_pointer_cast<SAMRAI::pdat::CellData<double>, SAMRAI::hier::PatchData>(
-//                            patch.getPatchData(d_uval, advanced_coarse));
-//            size = static_cast<int>(d_rich_tol.size());
-//            tol = ((error_level_number < size)
-//                   ? d_rich_tol[error_level_number]
-//                   : d_rich_tol[size - 1]);
-//            size = static_cast<int>(d_rich_time_min.size());
-//            double time_min = ((error_level_number < size)
-//                               ? d_rich_time_min[error_level_number]
-//                               : d_rich_time_min[size - 1]);
-//            size = static_cast<int>(d_rich_time_max.size());
-//            double time_max = ((error_level_number < size)
-//                               ? d_rich_time_max[error_level_number]
-//                               : d_rich_time_max[size - 1]);
-//            time_allowed = (time_min <= regrid_time) && (time_max > regrid_time);
-//
-//            if (time_allowed)
-//            {
-//
-//                TBOX_ASSERT(coarsened_fine_var);
-//                TBOX_ASSERT(advanced_coarse_var);
-//                /*
-//                 * We tag wherever the global error > specified tolerance
-//                 * (i.e. d_rich_tol).  The estimated global error is the
-//                 * local truncation error * the approximate number of steps
-//                 * used in the simulation.  Approximate the number of steps as:
-//                 *
-//                 *       steps = L / (s*deltat)
-//                 * where
-//                 *       L = length of problem domain
-//                 *       s = wave speed
-//                 *       delta t = timestep on current level
-//                 *
-//                 */
-//                const double *xdomainlo = d_grid_geometry->getXLower();
-//                const double *xdomainhi = d_grid_geometry->getXUpper();
-//                double max_length = 0.;
-//                double max_wave_speed = 0.;
-//                for (int idir = 0; idir < d_dim.getValue(); ++idir)
-//                {
-//                    double length = xdomainhi[idir] - xdomainlo[idir];
-//                    if (length > max_length) max_length = length;
-//
-//                    double wave_speed = d_advection_velocity[idir];
-//                    if (wave_speed > max_wave_speed) max_wave_speed = wave_speed;
-//                }
-//
-//                double steps = max_length / (max_wave_speed * deltat);
-//
-//                /*
-//                 * Tag cells where |w_c - w_f| * (r^n -1) * steps
-//                 *
-//                 * where
-//                 *       w_c = soln on coarse level (pressure_crse)
-//                 *       w_f = soln on fine level (pressure_fine)
-//                 *       r   = error coarsen ratio
-//                 *       n   = spatial order of scheme (1st or 2nd depending
-//                 *             on whether Godunov order is 1st or 2nd/4th)
-//                 */
-//                int order = 1;
-//                if (d_godunov_order > 1) order = 2;
-//                double r = error_coarsen_ratio;
-//                double rnminus1 = std::pow(r, order) - 1;
-//
-//                double diff = 0.;
-//                double error = 0.;
-//
-//                SAMRAI::pdat::CellIterator icend(SAMRAI::pdat::CellGeometry::end(pbox));
-//                for (SAMRAI::pdat::CellIterator ic(SAMRAI::pdat::CellGeometry::begin(pbox));
-//                     ic != icend; ++ic)
-//                {
-//
-//                    /*
-//                     * Compute error norm
-//                     */
-//                    diff = (*advanced_coarse_var)(*ic, 0)
-//                           - (*coarsened_fine_var)(*ic, 0);
-//                    error = SAMRAI::tbox::MathUtilities<double>::Abs(diff) * rnminus1 * steps;
-//
-//                    /*
-//                     * Tag cell if error > prescribed threshold. Since we are
-//                     * operating on the actual tag values (not temporary ones)
-//                     * distinguish here tags that were previously set before
-//                     * coming into this routine and those that are set here.
-//                     *     RICHARDSON_ALREADY_TAGGED - tagged before coming
-//                     *                                 into this method.
-//                     *     RICHARDSON_NEWLY_TAGGED - newly tagged in this method
-//                     *
-//                     */
-//                    if (error > tol)
-//                    {
-//                        if ((*tags)(*ic, 0))
-//                        {
-//                            (*tags)(*ic, 0) = RICHARDSON_ALREADY_TAGGED;
-//                        } else
-//                        {
-//                            (*tags)(*ic, 0) = RICHARDSON_NEWLY_TAGGED;
-//                        }
-//                    }
-//
-//                }
-//
-//            } // time_allowed
-//
-//        } // if UVAL_RICHARDSON
-//
-//    } // loop over refinement criteria
-//
-//    /*
-//     * If we are NOT performing gradient detector (i.e. only
-//     * doing Richardson extrapolation) set tags marked in this method
-//     * to TRUE and all others false.  Otherwise, leave tags set to the
-//     * RICHARDSON_ALREADY_TAGGED and RICHARDSON_NEWLY_TAGGED as we may
-//     * use this information in the gradient detector.
-//     */
-//    if (!uses_gradient_detector_too)
-//    {
-//        SAMRAI::pdat::CellIterator icend(SAMRAI::pdat::CellGeometry::end(pbox));
-//        for (SAMRAI::pdat::CellIterator ic(SAMRAI::pdat::CellGeometry::begin(pbox));
-//             ic != icend; ++ic)
-//        {
-//            if ((*tags)(*ic, 0) == RICHARDSON_ALREADY_TAGGED ||
-//                (*tags)(*ic, 0) == RICHARDSON_NEWLY_TAGGED)
-//            {
-//                (*tags)(*ic, 0) = TRUE;
-//            } else
-//            {
-//                (*tags)(*ic, 0) = FALSE;
-//            }
-//        }
-//    }
 
 }
 
@@ -1016,264 +855,6 @@ void SAMRAIWorker::tagGradientDetectorCells(
         const bool uses_richardson_extrapolation_too)
 {
 //    INFORM << "tagGradientDetectorCells" << patch.getPatchLevelNumber() << std::endl;
-
-//    NULL_USE(initial_error);
-//
-//    const int error_level_number = patch.getPatchLevelNumber();
-//
-//    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-//             boost::dynamic_pointer_cast<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-//                    patch.getPatchGeometry()));
-//    TBOX_ASSERT(patch_geom);
-//    const double *dx = patch_geom->getDx();
-//
-//    boost::shared_ptr<pdat::CellData<int> > tags(
-//             boost::dynamic_pointer_cast<pdat::CellData<int>, hier::PatchData>(
-//                    patch.getPatchData(tag_indx)));
-//    TBOX_ASSERT(tags);
-//
-//    hier::Box pbox(patch.getBox());
-//    hier::BoxContainer domain_boxes;
-//    d_grid_geometry->computePhysicalDomain(domain_boxes,
-//                                           patch_geom->getRatio(),
-//                                           hier::BlockId::zero());
-//    /*
-//     * Construct domain bounding box
-//     */
-//    hier::Box domain(d_dim);
-//    for (hier::BoxContainer::iterator i = domain_boxes.begin();
-//         i != domain_boxes.end(); ++i)
-//    {
-//        domain += *i;
-//    }
-//
-//    const hier::Index domfirst(domain.lower());
-//    const hier::Index domlast(domain.upper());
-//    const hier::Index ifirst(patch.getBox().lower());
-//    const hier::Index ilast(patch.getBox().upper());
-//
-//    hier::Index ict(d_dim);
-//
-//    int not_refine_tag_val = FALSE;
-//    int refine_tag_val = TRUE;
-//
-//    /*
-//     * Create a set of temporary tags and set to untagged m_value_.
-//     */
-//    boost::shared_ptr<pdat::CellData<int> > temp_tags(
-//            new pdat::CellData<int>(pbox, 1, d_nghosts));
-//    temp_tags->fillAll(not_refine_tag_val);
-//
-//    /*
-//     * Possible tagging criteria includes
-//     *    UVAL_DEVIATION, UVAL_GRADIENT, UVAL_SHOCK
-//     * The criteria is specified over a time interval.
-//     *
-//     * Loop over criteria provided and check to make sure we are in the
-//     * specified time interval.  If so, apply appropriate tagging for
-//     * the level.
-//     */
-//    for (int ncrit = 0;
-//         ncrit < static_cast<int>(d_refinement_criteria.size()); ++ncrit)
-//    {
-//
-//        string ref = d_refinement_criteria[ncrit];
-//        boost::shared_ptr<pdat::CellData<double> > var(
-//                 boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
-//                        patch.getPatchData(d_uval, getDataContext())));
-//        TBOX_ASSERT(var);
-//
-//        hier::IntVector vghost(var->getGhostCellWidth());
-//        hier::IntVector tagghost(tags->getGhostCellWidth());
-//
-//        int size = 0;
-//        double tol = 0.;
-//        double onset = 0.;
-//        bool time_allowed = false;
-//
-//        if (ref == "UVAL_DEVIATION")
-//        {
-//            size = static_cast<int>(d_dev_tol.size());
-//            tol = ((error_level_number < size)
-//                   ? d_dev_tol[error_level_number]
-//                   : d_dev_tol[size - 1]);
-//            size = static_cast<int>(d_dev.size());
-//            double dev = ((error_level_number < size)
-//                          ? d_dev[error_level_number]
-//                          : d_dev[size - 1]);
-//            size = static_cast<int>(d_dev_time_min.size());
-//            double time_min = ((error_level_number < size)
-//                               ? d_dev_time_min[error_level_number]
-//                               : d_dev_time_min[size - 1]);
-//            size = static_cast<int>(d_dev_time_max.size());
-//            double time_max = ((error_level_number < size)
-//                               ? d_dev_time_max[error_level_number]
-//                               : d_dev_time_max[size - 1]);
-//            time_allowed = (time_min <= regrid_time) && (time_max > regrid_time);
-//
-//            if (time_allowed)
-//            {
-//
-//                /*
-//                 * Check for tags that have already been set in a previous
-//                 * step.  Do NOT consider values tagged with m_value_
-//                 * RICHARDSON_NEWLY_TAGGED since these were set most recently
-//                 * by Richardson extrapolation.
-//                 */
-//                pdat::CellIterator icend(pdat::CellGeometry::end(pbox));
-//                for (pdat::CellIterator ic(pdat::CellGeometry::begin(pbox));
-//                     ic != icend; ++ic)
-//                {
-//                    double locden = tol;
-//                    int tag_val = (*tags)(*ic, 0);
-//                    if (tag_val)
-//                    {
-//                        if (tag_val != RICHARDSON_NEWLY_TAGGED)
-//                        {
-//                            locden *= 0.75;
-//                        }
-//                    }
-//                    if (tbox::MathUtilities<double>::Abs((*var)(*ic) - dev) >
-//                        locden)
-//                    {
-//                        (*temp_tags)(*ic, 0) = refine_tag_val;
-//                    }
-//                }
-//            }
-//        }
-//
-//        if (ref == "UVAL_GRADIENT")
-//        {
-//            size = static_cast<int>(d_grad_tol.size());
-//            tol = ((error_level_number < size)
-//                   ? d_grad_tol[error_level_number]
-//                   : d_grad_tol[size - 1]);
-//            size = static_cast<int>(d_grad_time_min.size());
-//            double time_min = ((error_level_number < size)
-//                               ? d_grad_time_min[error_level_number]
-//                               : d_grad_time_min[size - 1]);
-//            size = static_cast<int>(d_grad_time_max.size());
-//            double time_max = ((error_level_number < size)
-//                               ? d_grad_time_max[error_level_number]
-//                               : d_grad_time_max[size - 1]);
-//            time_allowed = (time_min <= regrid_time) && (time_max > regrid_time);
-
-//            if (time_allowed)
-//            {
-//
-//                if (d_dim == tbox::Dimension(2))
-//                {
-//                    SAMRAI_F77_FUNC(detectgrad2d, DETECTGRAD2D)(
-//                            ifirst(0), ilast(0), ifirst(1), ilast(1),
-//                            vghost(0), tagghost(0), d_nghosts(0),
-//                            vghost(1), tagghost(1), d_nghosts(1),
-//                            dx,
-//                            tol,
-//                            refine_tag_val, not_refine_tag_val,
-//                            var->getPointer(),
-//                            tags->getPointer(), temp_tags->getPointer());
-//                }
-//                if (d_dim == tbox::Dimension(3))
-//                {
-//                    SAMRAI_F77_FUNC(detectgrad3d, DETECTGRAD3D)(
-//                            ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                            vghost(0), tagghost(0), d_nghosts(0),
-//                            vghost(1), tagghost(1), d_nghosts(1),
-//                            vghost(2), tagghost(2), d_nghosts(2),
-//                            dx,
-//                            tol,
-//                            refine_tag_val, not_refine_tag_val,
-//                            var->getPointer(),
-//                            tags->getPointer(), temp_tags->getPointer());
-//                }
-//            }
-//
-//        }
-//
-//        if (ref == "UVAL_SHOCK")
-//        {
-//            size = static_cast<int>(d_shock_tol.size());
-//            tol = ((error_level_number < size)
-//                   ? d_shock_tol[error_level_number]
-//                   : d_shock_tol[size - 1]);
-//            size = static_cast<int>(d_shock_onset.size());
-//            onset = ((error_level_number < size)
-//                     ? d_shock_onset[error_level_number]
-//                     : d_shock_onset[size - 1]);
-//            size = static_cast<int>(d_shock_time_min.size());
-//            double time_min = ((error_level_number < size)
-//                               ? d_shock_time_min[error_level_number]
-//                               : d_shock_time_min[size - 1]);
-//            size = static_cast<int>(d_shock_time_max.size());
-//            double time_max = ((error_level_number < size)
-//                               ? d_shock_time_max[error_level_number]
-//                               : d_shock_time_max[size - 1]);
-//            time_allowed = (time_min <= regrid_time) && (time_max > regrid_time);
-//
-//            if (time_allowed)
-//            {
-//
-//                if (d_dim == tbox::Dimension(2))
-//                {
-//                    SAMRAI_F77_FUNC(detectshock2d, DETECTSHOCK2D)(
-//                            ifirst(0), ilast(0), ifirst(1), ilast(1),
-//                            vghost(0), tagghost(0), d_nghosts(0),
-//                            vghost(1), tagghost(1), d_nghosts(1),
-//                            dx,
-//                            tol,
-//                            onset,
-//                            refine_tag_val, not_refine_tag_val,
-//                            var->getPointer(),
-//                            tags->getPointer(), temp_tags->getPointer());
-//                }
-//                if (d_dim == tbox::Dimension(3))
-//                {
-//                    SAMRAI_F77_FUNC(detectshock3d, DETECTSHOCK3D)(
-//                            ifirst(0), ilast(0), ifirst(1), ilast(1), ifirst(2), ilast(2),
-//                            vghost(0), tagghost(0), d_nghosts(0),
-//                            vghost(1), tagghost(1), d_nghosts(1),
-//                            vghost(2), tagghost(2), d_nghosts(2),
-//                            dx,
-//                            tol,
-//                            onset,
-//                            refine_tag_val, not_refine_tag_val,
-//                            var->getPointer(),
-//                            tags->getPointer(), temp_tags->getPointer());
-//                }
-//            }
-//
-//        }
-//
-//    }  // loop over criteria
-//
-//    /*
-//     * Adjust temp_tags from those tags set in Richardson extrapolation.
-//     * Here, we just reset any tags that were set in Richardson extrapolation
-//     * to be the designated "refine_tag_val".
-//     */
-//    if (uses_richardson_extrapolation_too)
-//    {
-//        pdat::CellIterator icend(pdat::CellGeometry::end(pbox));
-//        for (pdat::CellIterator ic(pdat::CellGeometry::begin(pbox));
-//             ic != icend; ++ic)
-//        {
-//            if ((*tags)(*ic, 0) == RICHARDSON_ALREADY_TAGGED ||
-//                (*tags)(*ic, 0) == RICHARDSON_NEWLY_TAGGED)
-//            {
-//                (*temp_tags)(*ic, 0) = refine_tag_val;
-//            }
-//        }
-//    }
-//
-//    /*
-//     * Update tags.
-//     */
-//    pdat::CellIterator icend(pdat::CellGeometry::end(pbox));
-//    for (pdat::CellIterator ic(pdat::CellGeometry::begin(pbox));
-//         ic != icend; ++ic)
-//    {
-//        (*tags)(*ic, 0) = (*temp_tags)(*ic, 0);
-//    }
 
 }
 
@@ -1614,8 +1195,8 @@ void SAMRAITimeIntegrator::deploy()
     MESSAGE << name() << " is deployed!" << std::endl;
 
 
-    samrai_cfg->printClassData(std::cout);
-    SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(std::cout);
+//    samrai_cfg->printClassData(std::cout);
+//    SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(std::cout);
 
 };
 
@@ -1649,7 +1230,7 @@ void SAMRAITimeIntegrator::check_point()
 {
     if (visit_data_writer != nullptr)
     {
-        VERBOSE << visit_data_writer->getObjectName() << std::endl;
+//        VERBOSE << visit_data_writer->getObjectName() << std::endl;
 
         visit_data_writer->writePlotData(patch_hierarchy,
                                          time_integrator->getIntegratorStep(),

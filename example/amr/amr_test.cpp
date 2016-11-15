@@ -72,16 +72,16 @@ struct AMRTest : public mesh::Worker
     SP_OBJECT_HEAD(AMRTest, mesh::Worker);
     Real m_k_[3] = {TWOPI / NX, TWOPI / NY, TWOPI / NZ};
     template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
-    field_type<Real, mesh::VERTEX> phi{"phi", this};
-//    field_type<Real, mesh::EDGE> E{"E", this};
-//    field_type<Real, mesh::FACE> B{"B", this};
+//    field_type<Real, mesh::VERTEX> phi{"phi", this};
+    field_type<Real, mesh::EDGE> E{"E", this};
+    field_type<Real, mesh::FACE> B{"B", this};
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Ev{"Ev", this};
 
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Bv{"Bv", this};
     virtual std::shared_ptr<mesh::MeshBlock>
-    create_mesh_block(index_type const *lo, index_type const *hi, index_type const *gw) const
+    create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx, Real const *x0 = nullptr) const
     {
-        auto res = std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(3, lo, hi, gw));
+        auto res = std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(3, lo, hi, dx, x0));
         res->deploy();
         return res;
     };
@@ -89,8 +89,9 @@ struct AMRTest : public mesh::Worker
 
     void initialize(Real data_time)
     {
-        phi.clear();
-//        E.clear();
+//        phi.clear();
+        E.clear();
+        B.clear();
 //        phi.print(std::cout);
         auto b = mesh()->inner_index_box();
         index_type ib = std::get<0>(b)[0];
@@ -108,7 +109,7 @@ struct AMRTest : public mesh::Worker
                 for (index_type k = kb; k <= ke + 1; ++k)
                 {
 //                    phi(i, j, k) = i;
-                    phi(i, j, k) = std::sin(i * m_k_[0]) * std::sin(j * m_k_[1]) * std::sin(k * m_k_[2]);
+                    E(i, j, k, 0) = std::sin(i * m_k_[0]) * std::sin(j * m_k_[1]) * std::sin(k * m_k_[2]);
                 }
             }
         }
@@ -130,21 +131,22 @@ struct AMRTest : public mesh::Worker
 
     void computeFluxesOnPatch(const double time, const double dt)
     {
-
-//        E = grad(phi);
+        LOG_CMD(B -= curl(E) * dt * 0.5);
+        LOG_CMD(E += curl(B) * dt);
+        LOG_CMD(B -= curl(E) * dt * 0.5);
     }
 
     void conservativeDifferenceOnPatch(const double time,
                                        const double dt, bool at_syncronization)
     {
-        phi.print(std::cout);
-
-//        phi += diverge(E) * dt;
+//        phi.print(std::cout);
+        //        phi += diverge(E) * dt;
     }
 
     void next_time_step(Real dt)
     {
-//        E = grad(-2.0 * phi) * dt;
+
+
 //        phi -= diverge(E) * 3.0 * dt;
     }
 
@@ -288,11 +290,18 @@ int main(int argc, char **argv)
     integrator->deploy();
     integrator->check_point();
 
+    Real dt = 1.0;
+
     INFORM << "***********************************************" << std::endl;
-//    integrator->print(std::cout);
-//    integrator->next_time_step(1.0);
-//    integrator->next_time_step(1.0);
-//    integrator->next_time_step(1.0);
+
+
+    for (int i = 0; i < 10; ++i)
+    {
+        integrator->next_time_step(dt);
+        integrator->check_point();
+    }
+
+
     INFORM << "***********************************************" << std::endl;
 
     integrator->tear_down();

@@ -84,7 +84,12 @@ public:
 
     MeshBlock();
 
-    MeshBlock(int ndims, index_type const *lo, index_type const *hi, const index_type *gw);
+    MeshBlock(int ndims,
+              index_type const *lo,
+              index_type const *hi,
+              Real const *dx,
+              Real const *xlo = nullptr,
+              Real const *xhi = nullptr);
 
     MeshBlock(MeshBlock const &);
 
@@ -209,7 +214,7 @@ public:
         return point_type{x * m_dx_[0], y * m_dx_[1], z * m_dx_[2]};
     };
 
-    virtual point_type point(MeshEntityId const &s) const { return point(s.x>>1, s.y>>1, s.z>>1); }
+    virtual point_type point(MeshEntityId const &s) const { return point(s.x >> 1, s.y >> 1, s.z >> 1); }
 
     virtual point_type point(index_tuple const &x) const { return point(x[0], x[1], x[2]); };
 
@@ -237,30 +242,6 @@ public:
     size_type max_hash() const { return toolbox::size(m_m_box_); }
 
     typedef MeshEntityIdCoder m;
-
-
-    MeshEntityId pack(size_type i, size_type j = 0, size_type k = 0, int nid = 0) const
-    {
-        MeshEntityId res;
-        res.x = i;
-        res.y = j;
-        res.z = k;
-        res.w = nid;
-        return std::move(res);
-    }
-
-
-    inline size_type hash(index_type i, index_type j = 0, index_type k = 0, int nid = 0) const
-    {
-        return static_cast<size_type>(m::hash(i, j, k, nid, std::get<0>(m_m_box_), std::get<1>(m_m_box_)));
-    }
-
-    inline size_type hash(index_tuple const &id) const { return hash(id[0], id[1], id[2]); }
-
-    inline size_type hash(MeshEntityId const &id) const
-    {
-        return hash(id.x >> 1, id.y >> 1, id.z >> 1, m::node_id(id));
-    }
 
 
     virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s, MeshEntityId *p = nullptr) const
