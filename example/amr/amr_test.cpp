@@ -14,7 +14,7 @@
 #include <simpla/manifold/Calculus.h>
 #include <simpla/simulation/TimeIntegrator.h>
 
-#define NX 128
+#define NX 16
 #define NY 16
 #define NZ 16
 using namespace simpla;
@@ -44,10 +44,12 @@ public:
         auto b = outer_index_box();
 
         index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
-        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2],
-                            (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 1 : 3};
+        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], 3};
         return std::dynamic_pointer_cast<mesh::DataBlock>(
-                std::make_shared<data_block_type<TV, IFORM>>(static_cast<TV *>(p), lo, hi));
+                std::make_shared<data_block_type<TV, IFORM>>(
+                        static_cast<TV *>(p),
+                        (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 3 : 4,
+                        lo, hi));
     };
 
 
@@ -58,6 +60,13 @@ public:
 template<typename TM>
 struct AMRTest : public mesh::Worker
 {
+    AMRTest() : mesh::Worker() { CHECK("AMRTest"); }
+
+    ~AMRTest()
+    {
+
+    }
+
     typedef TM mesh_type;
 
     SP_OBJECT_HEAD(AMRTest, mesh::Worker);
@@ -72,7 +81,7 @@ struct AMRTest : public mesh::Worker
     virtual std::shared_ptr<mesh::MeshBlock>
     create_mesh_block(index_type const *lo, index_type const *hi, index_type const *gw) const
     {
-        auto res = std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(lo, hi, gw));
+        auto res = std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(3, lo, hi, gw));
         res->deploy();
         return res;
     };
@@ -80,16 +89,35 @@ struct AMRTest : public mesh::Worker
 
     void initialize(Real data_time)
     {
-//        phi.clear();
+        phi.clear();
 //        E.clear();
 //        phi.print(std::cout);
+        auto b = mesh()->inner_index_box();
+        index_type ib = std::get<0>(b)[0];
+        index_type ie = std::get<1>(b)[0];
+        index_type jb = std::get<0>(b)[1];
+        index_type je = std::get<1>(b)[1];
+        index_type kb = std::get<0>(b)[2];
+        index_type ke = std::get<1>(b)[2];
 
-        phi.assign_function(
-                [&](point_type const &x)
+
+        for (index_type i = ib; i <= ie + 1; ++i)
+        {
+            for (index_type j = jb; j <= je + 1; ++j)
+            {
+                for (index_type k = kb; k <= ke + 1; ++k)
                 {
+//                    phi(i, j, k) = i;
+                    phi(i, j, k) = std::sin(i * m_k_[0]) * std::sin(j * m_k_[1]) * std::sin(k * m_k_[2]);
+                }
+            }
+        }
+
+//        phi.assign_function(
+//                [&](point_type const &x)
+//                {
 //                    return std::sin(x[0] * m_k_[0]) * std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]);
-                    return x[0];
-                });
+//                });
 
 //        phi.print(std::cout);
 
@@ -227,8 +255,8 @@ int main(int argc, char **argv)
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_1"] = nTuple<int, 3>{2, 2, 2};
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_2"] = nTuple<int, 3>{2, 2, 2};
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_3"] = nTuple<int, 3>{2, 2, 2};
-    integrator->db["PatchHierarchy"]["largest_patch_size"]["level_0"] = nTuple<int, 3>{10, 10, 10};
-    integrator->db["PatchHierarchy"]["smallest_patch_size"]["level_0"] = nTuple<int, 3>{4, 4, 4};
+    integrator->db["PatchHierarchy"]["largest_patch_size"]["level_0"] = nTuple<int, 3>{32, 32, 32};
+    integrator->db["PatchHierarchy"]["smallest_patch_size"]["level_0"] = nTuple<int, 3>{16, 16, 16};
 
     integrator->db["GriddingAlgorithm"];
 

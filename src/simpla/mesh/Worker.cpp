@@ -55,6 +55,8 @@ void Worker::move_to(const std::shared_ptr<MeshBlock> &m)
     for (auto &ob:m_pimpl_->m_obs_) { ob->move_to(m); }
 }
 
+MeshBlock const *Worker::mesh() const { return m_pimpl_->m_mesh_.get(); }
+
 void Worker::deploy()
 {
     move_to(m_pimpl_->m_mesh_);

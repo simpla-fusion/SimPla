@@ -84,7 +84,7 @@ public:
 
     MeshBlock();
 
-    MeshBlock(index_type const *lo, index_type const *hi, const index_type *gw = nullptr, int ndims = 3);
+    MeshBlock(int ndims, index_type const *lo, index_type const *hi, const index_type *gw);
 
     MeshBlock(MeshBlock const &);
 

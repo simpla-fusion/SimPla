@@ -51,19 +51,17 @@ public:
 };
 
 template<typename TV, MeshEntityType IFORM>
-class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV, 4>
+class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>
 {
     typedef DataBlockArray<TV, IFORM> this_type;
-    typedef data::DataEntityNDArray<TV, 4> data_entity_type;
+    typedef data::DataEntityNDArray<TV> data_entity_type;
 public:
     typedef TV value_type;
 
     DataBlockArray() : DataBlock(), data_entity_type() {}
 
     template<typename ...Args>
-    DataBlockArray(Args &&...args) :
-            DataBlock(),
-            data_entity_type(std::forward<Args>(args)...) {}
+    DataBlockArray(Args &&...args) : DataBlock(), data_entity_type(std::forward<Args>(args)...) {}
 
     virtual ~DataBlockArray() {}
 
@@ -107,6 +105,16 @@ public:
 
     virtual void sync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
 
+    template<typename ...Args>
+    value_type &get(Args &&...args) { return data_entity_type::get(std::forward<Args>(args)...); }
+
+    template<typename ...Args>
+    value_type const &get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
+
+    value_type &get(MeshEntityId const &s) { return get(s.x, s.y, s.z, s.w); }
+
+    template<typename ...Args>
+    value_type const &get(MeshEntityId const &s) const { return get(s.x, s.y, s.z, s.w); }
 };
 }}//namespace simpla { namespace mesh
 

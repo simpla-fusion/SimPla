@@ -228,6 +228,8 @@ public:
 
     virtual void move_to(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &d)
     {
+        ASSERT(d != nullptr);
+        ASSERT(m != nullptr);
         m_mesh_ = m;
         m_data_ = d;
         deploy();
@@ -261,6 +263,7 @@ public:
     virtual void deploy()
     {
         if (m_data_ == nullptr) { move_to(m_mesh_); }
+        ASSERT(m_data_ != nullptr);
         if (m_data_ != nullptr && !m_data_->is_deployed()) { m_data_->deploy(); }
     }
 

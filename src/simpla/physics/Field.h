@@ -85,6 +85,7 @@ public:
     virtual void clear()
     {
         deploy();
+        ASSERT(m_data_ != nullptr);
         m_data_->clear();
     }
 
@@ -114,25 +115,24 @@ public:
 
     virtual void sync(mesh::MeshBlock const *other, bool only_ghost = true) { UNIMPLEMENTED; };
 
-    inline value_type &get(mesh::MeshEntityId const &s)
-    {
-        return m_data_->get(s.x >> 1, s.y >> 1, s.z >> 1, s.w);
-    }
 
-    inline value_type const &get(mesh::MeshEntityId const &s) const
-    {
-        return m_data_->get(s.x >> 1, s.y >> 1, s.z >> 1, s.w);
-    }
+    template<typename ...Args>
+    inline value_type &get(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
 
-    inline value_type &operator[](mesh::MeshEntityId const &s)
-    {
-        return m_data_->get(s.x >> 1, s.y >> 1, s.z >> 1, s.w);
-    }
+    template<typename ...Args>
+    inline value_type const &get(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
 
-    inline value_type const &operator[](mesh::MeshEntityId const &s) const
-    {
-        return m_data_->get(s.x >> 1, s.y >> 1, s.z >> 1, s.w);
-    }
+    template<typename ...Args>
+    inline value_type &operator()(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
+
+    template<typename ...Args>
+    inline value_type const &operator()(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
+
+    template<typename TI>
+    inline value_type &operator[](TI const &s) { return m_data_->get(s); }
+
+    template<typename TI>
+    inline value_type const &operator[](TI const &s) const { return m_data_->get(s); }
 
     this_type &operator=(this_type const &other)
     {

@@ -56,6 +56,8 @@ public:
       */
     void move_to(const std::shared_ptr<MeshBlock> &m);
 
+    MeshBlock const *mesh() const;
+
     virtual std::shared_ptr<mesh::MeshBlock>
     create_mesh_block(index_type const *lo, index_type const *hi, index_type const *gw) const =0;
 

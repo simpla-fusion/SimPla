@@ -73,6 +73,14 @@
 #include <SAMRAI/appu/CartesianBoundaryUtilities2.h>
 #include <SAMRAI/appu/CartesianBoundaryUtilities3.h>
 #include <SAMRAI/pdat/SideVariable.h>
+#include <SAMRAI/appu/CartesianBoundaryDefines.h>
+
+
+// Number of ghosts cells used for each variable quantity
+#define CELLG (4)
+#define FACEG (4)
+#define FLUXG (1)
+
 
 namespace simpla
 {
@@ -86,47 +94,6 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
     return std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>(name, w));
 }
 
-/*********************************************************************************************************************/
-
-//integer constants for boundary conditions
-#define CHECK_BDRY_DATA (0)
-
-#include <SAMRAI/appu/CartesianBoundaryDefines.h>
-
-//integer constant for debugging improperly set boundary dat
-#define BOGUS_BDRY_DATA (-9999)
-
-// Number of ghosts cells used for each variable quantity
-#define CELLG (4)
-#define FACEG (4)
-#define FLUXG (1)
-
-// defines for initialization
-#define PIECEWISE_CONSTANT_X (10)
-#define PIECEWISE_CONSTANT_Y (11)
-#define PIECEWISE_CONSTANT_Z (12)
-#define SINE_CONSTANT_X (20)
-#define SINE_CONSTANT_Y (21)
-#define SINE_CONSTANT_Z (22)
-#define SPHERE (40)
-
-// defines for Riemann solver used in Godunov flux calculation
-#define APPROX_RIEM_SOLVE (20)   // Colella-Glaz approx Riemann solver
-#define EXACT_RIEM_SOLVE (21)    // Exact Riemann solver
-#define HLLC_RIEM_SOLVE (22)     // Harten, Lax, van Leer approx Riemann solver
-
-// defines for cell tagging routines
-#define RICHARDSON_NEWLY_TAGGED (-10)
-#define RICHARDSON_ALREADY_TAGGED (-11)
-#ifndef TRUE
-#define TRUE (1)
-#endif
-#ifndef FALSE
-#define FALSE (0)
-#endif
-
-// Version of LinAdv restart file data
-#define LINADV_VERSION (3)
 
 class SAMRAIWorker :
         public SAMRAI::algs::HyperbolicPatchStrategy
@@ -419,47 +386,78 @@ SAMRAIWorker::~SAMRAIWorker()
 
 namespace detail
 {
-static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR", "TENSOR"};
-struct op_create {};
-template<typename TV, mesh::MeshEntityType IFORM> struct VariableTraits;
-template<typename T> struct VariableTraits<T, mesh::VERTEX> { typedef SAMRAI::pdat::NodeVariable<T> type; };
-template<typename T> struct VariableTraits<T, mesh::EDGE> { typedef SAMRAI::pdat::EdgeVariable<T> type; };
-template<typename T> struct VariableTraits<T, mesh::FACE> { typedef SAMRAI::pdat::FaceVariable<T> type; };
-template<typename T> struct VariableTraits<T, mesh::VOLUME> { typedef SAMRAI::pdat::CellVariable<T> type; };
+//struct op_create {};
+//template<typename TV, mesh::MeshEntityType IFORM> struct VariableTraits;
+//template<typename T> struct VariableTraits<T, mesh::VERTEX> { typedef SAMRAI::pdat::NodeVariable<T> type; };
+//template<typename T> struct VariableTraits<T, mesh::EDGE> { typedef SAMRAI::pdat::EdgeVariable<T> type; };
+//template<typename T> struct VariableTraits<T, mesh::FACE> { typedef SAMRAI::pdat::FaceVariable<T> type; };
+//template<typename T> struct VariableTraits<T, mesh::VOLUME> { typedef SAMRAI::pdat::CellVariable<T> type; };
+//
+//template<typename TV, mesh::MeshEntityType IFORM> void
+//attr_op(mesh::Attribute *item, op_create const &, boost::shared_ptr<SAMRAI::hier::Variable> *res, int ndims)
+//{
+//    SAMRAI::tbox::Dimension d_dim(ndims);
+//    *res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+//            boost::make_shared<typename VariableTraits<TV, IFORM>::type>(d_dim, item->name(), item->value_size()));
+//}
+//
+//
+//template<typename T, typename ...Args> void
+//attr_choice_form(mesh::Attribute *item, Args &&...args)
+//{
+//
+//    if (item->entity_type() == mesh::VERTEX) { attr_op<T, mesh::VERTEX>(item, std::forward<Args>(args)...); }
+//    else if (item->entity_type() == mesh::EDGE) { attr_op<T, mesh::EDGE>(item, std::forward<Args>(args)...); }
+//    else if (item->entity_type() == mesh::FACE) { attr_op<T, mesh::FACE>(item, std::forward<Args>(args)...); }
+//    else if (item->entity_type() == mesh::VOLUME) { attr_op<T, mesh::VOLUME>(item, std::forward<Args>(args)...); }
+//    else { UNIMPLEMENTED; }
+//
+//}
+//
+//template<typename ...Args> void
+//attr_choice(mesh::Attribute *item, Args &&...args)
+//{
+//    if (item->value_type_info() == typeid(float)) { attr_choice_form<float>(item, std::forward<Args>(args)...); }
+//    else if (item->value_type_info() == typeid(double)) { attr_choice_form<double>(item, std::forward<Args>(args)...); }
+//    else if (item->value_type_info() == typeid(int)) { attr_choice_form<int>(item, std::forward<Args>(args)...); }
+////    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
+//    else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
+//
+//
+//};
 
-template<typename TV, mesh::MeshEntityType IFORM> void
-attr_op(mesh::Attribute *item, op_create const &, boost::shared_ptr<SAMRAI::hier::Variable> *res, int ndims)
+template<typename T>
+boost::shared_ptr<SAMRAI::hier::Variable>
+create_samrai_variable_t(unsigned int ndims, mesh::Attribute *item)
 {
-    SAMRAI::tbox::Dimension d_dim(ndims);
-    *res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-            boost::make_shared<typename VariableTraits<TV, IFORM>::type>(d_dim, item->name(), item->value_size()));
+    static int var_depth[4] = {1, 3, 3, 1};
+    if (item->entity_type() <= mesh::VOLUME)
+    {
+
+        SAMRAI::tbox::Dimension d_dim(ndims);
+
+        return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
+                boost::make_shared<SAMRAI::pdat::NodeVariable<T> >(d_dim,
+                                                                   item->name(),
+                                                                   var_depth[item->entity_type()] *
+                                                                   item->value_size()));
+    } else
+    {
+        UNIMPLEMENTED;
+        return nullptr;
+    }
 }
 
-
-template<typename T, typename ...Args> void
-attr_choice_form(mesh::Attribute *item, Args &&...args)
+boost::shared_ptr<SAMRAI::hier::Variable>
+create_samrai_variable(unsigned int ndims, mesh::Attribute *item)
 {
-
-    if (item->entity_type() == mesh::VERTEX) { attr_op<T, mesh::VERTEX>(item, std::forward<Args>(args)...); }
-    else if (item->entity_type() == mesh::EDGE) { attr_op<T, mesh::EDGE>(item, std::forward<Args>(args)...); }
-    else if (item->entity_type() == mesh::FACE) { attr_op<T, mesh::FACE>(item, std::forward<Args>(args)...); }
-    else if (item->entity_type() == mesh::VOLUME) { attr_op<T, mesh::VOLUME>(item, std::forward<Args>(args)...); }
-    else { UNIMPLEMENTED; }
-
-}
-
-template<typename ...Args> void
-attr_choice(mesh::Attribute *item, Args &&...args)
-{
-    if (item->value_type_info() == typeid(float)) { attr_choice_form<float>(item, std::forward<Args>(args)...); }
-    else if (item->value_type_info() == typeid(double)) { attr_choice_form<double>(item, std::forward<Args>(args)...); }
-    else if (item->value_type_info() == typeid(int)) { attr_choice_form<int>(item, std::forward<Args>(args)...); }
+    if (item->value_type_info() == typeid(float)) { return create_samrai_variable_t<float>(ndims, item); }
+    else if (item->value_type_info() == typeid(double)) { return create_samrai_variable_t<double>(ndims, item); }
+    else if (item->value_type_info() == typeid(int)) { return create_samrai_variable_t<int>(ndims, item); }
 //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
     else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
-
-
-};
-
+    return nullptr;
+}
 }//namespace detail{
 /**
  *
@@ -482,13 +480,14 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
             [&](mesh::Worker::Observer &ob)
             {
                 mesh::Attribute *item = ob.attribute();
-                if (item == nullptr) { return; }
-                boost::shared_ptr<SAMRAI::hier::Variable> var;
 
-                detail::attr_choice(item, detail::op_create(), &var, d_dim.getValue());
+                if (item == nullptr) { return; }
+
+                boost::shared_ptr<SAMRAI::hier::Variable> var = detail::create_samrai_variable(3, item);
 
                 m_samrai_variables_[item->id()] = var;
 
+                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR", "TENSOR"};
 
                 if (item->entity_type() == mesh::VERTEX ||
                     item->entity_type() == mesh::VOLUME)
@@ -502,8 +501,9 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                                  d_grid_geometry,
                                                  "",
                                                  "LINEAR_REFINE");
-                    d_visit_writer->registerPlotQuantity(item->name(), detail::visit_variable_type[item->value_rank()],
-                                                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+                    d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type[item->value_rank()],
+                                                         vardb->mapVariableAndContextToIndex(var,
+                                                                                             integrator->getPlotContext()));
                 } else
                 {
                     integrator->registerVariable(var, d_fluxghosts,
@@ -520,9 +520,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 
 
 /**
- *
  * Set up parameters for nonuniform load balancing, if used.
- *
  */
 
 void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
@@ -561,87 +559,125 @@ void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *in
 
 namespace detail
 {
-struct op_convert {};
-template<typename TV, mesh::MeshEntityType IFORM> struct PatchDataTraits;
-template<typename T> struct PatchDataTraits<T, mesh::VERTEX> { typedef SAMRAI::pdat::NodeData<T> type; };
-template<typename T> struct PatchDataTraits<T, mesh::EDGE> { typedef SAMRAI::pdat::EdgeData<T> type; };
-template<typename T> struct PatchDataTraits<T, mesh::FACE> { typedef SAMRAI::pdat::FaceData<T> type; };
-template<typename T> struct PatchDataTraits<T, mesh::VOLUME> { typedef SAMRAI::pdat::CellData<T> type; };
-
-
-template<typename TV> std::shared_ptr<mesh::DataBlock>
-convert(boost::shared_ptr<SAMRAI::pdat::NodeData<TV>> p_data)
+//struct op_convert {};
+//template<typename TV, mesh::MeshEntityType IFORM> struct PatchDataTraits;
+//template<typename T> struct PatchDataTraits<T, mesh::VERTEX> { typedef SAMRAI::pdat::NodeData<T> type; };
+//template<typename T> struct PatchDataTraits<T, mesh::EDGE> { typedef SAMRAI::pdat::EdgeData<T> type; };
+//template<typename T> struct PatchDataTraits<T, mesh::FACE> { typedef SAMRAI::pdat::FaceData<T> type; };
+//template<typename T> struct PatchDataTraits<T, mesh::VOLUME> { typedef SAMRAI::pdat::CellData<T> type; };
+//
+//
+//template<typename TV> std::shared_ptr<mesh::DataBlock>
+//convert(boost::shared_ptr<SAMRAI::pdat::NodeData<TV>> p_data)
+//{
+//    auto lo = p_data->getGhostBox().lower();
+//    auto up = p_data->getGhostBox().upper();
+//    index_type i_lo[4] = {lo[0], lo[1], lo[2], 0};
+//    index_type i_up[4] = {up[0] + 2, up[1] + 2, up[2] + 2, 1};
+//
+//    return std::dynamic_pointer_cast<mesh::DataBlock>(
+//            std::make_shared<mesh::DataBlockArray<TV, mesh::VERTEX>>(p_data->getPointer(0), 3, i_lo, i_up,
+//                                                                     data::FAST_FIRST));
+//}
+//
+//template<typename TV> std::shared_ptr<mesh::DataBlock>
+//convert(boost::shared_ptr<SAMRAI::pdat::CellData<TV>> p_data)
+//{
+//    auto lo = p_data->getGhostBox().lower();
+//    auto up = p_data->getGhostBox().upper();
+//    index_type i_lo[4] = {lo[0], lo[1], lo[2], 0};
+//    index_type i_up[4] = {up[0], up[1], up[2], 1};
+//
+//    return std::dynamic_pointer_cast<mesh::DataBlock>(
+//            std::make_shared<mesh::DataBlockArray<TV, mesh::VOLUME>>(p_data->getPointer(0), 3, i_lo, i_up,
+//                                                                     data::FAST_FIRST));
+//}
+//
+//template<typename TV> std::shared_ptr<mesh::DataBlock>
+//convert(boost::shared_ptr<SAMRAI::pdat::EdgeData<TV>> p_data)
+//{
+//    auto lo = p_data->getGhostBox().lower();
+//    auto up = p_data->getGhostBox().upper();
+//    index_type i_lo[4] = {lo[0], lo[1], lo[2], 0};
+//    index_type i_up[4] = {up[0], up[1], up[2], 3};
+//
+//    return std::dynamic_pointer_cast<mesh::DataBlock>(
+//            std::make_shared<mesh::DataBlockArray<TV, mesh::EDGE>>(p_data->getPointer(0), 4, i_lo, i_up,
+//                                                                   data::FAST_FIRST));
+//}
+//
+//template<typename TV> std::shared_ptr<mesh::DataBlock>
+//convert(boost::shared_ptr<SAMRAI::pdat::FaceData<TV>> p_data)
+//{
+//    auto lo = p_data->getGhostBox().lower();
+//    auto up = p_data->getGhostBox().upper();
+//
+//    index_type i_lo[4] = {lo[0], lo[1], lo[2], 0};
+//    index_type i_up[4] = {up[0], up[1], up[2], 3};
+//
+//    return std::dynamic_pointer_cast<mesh::DataBlock>(
+//            std::make_shared<mesh::DataBlockArray<TV, mesh::FACE>>(p_data->getPointer(0), 4, i_lo, i_up,
+//                                                                   data::FAST_FIRST));
+//}
+//
+//template<typename TV, mesh::MeshEntityType IFORM> void
+//attr_op(mesh::Attribute *item, op_convert const &,
+//        std::shared_ptr<mesh::DataBlock> *res,
+//        boost::shared_ptr<SAMRAI::hier::PatchData> p_data)
+//{
+//    auto pd = boost::dynamic_pointer_cast<typename PatchDataTraits<TV, IFORM>::type>(p_data);
+////    pd->fillAll(static_cast<double>(IFORM) + 1);
+//    pd->fillAll(0);
+//    *res = convert(pd);
+//}
+template<typename TV>
+std::shared_ptr<mesh::DataBlock>
+create_data_block_t(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
-    auto lo = p_data->getBox().lower();
-    auto up = p_data->getBox().upper();
-    auto gw = p_data->getGhostCellWidth();
-    index_type i_lo[4] = {lo[0] - gw[0], lo[1] - gw[0], lo[2] - gw[0], 1};
+    auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
 
-    index_type i_up[4] = {up[0] + gw[0], up[1] + gw[1], up[2] + gw[2], 1};
+    int ndims = p_data->getDim().getValue();
 
-    return std::dynamic_pointer_cast<mesh::DataBlock>(
-            std::make_shared<mesh::DataBlockArray<TV, mesh::VERTEX>>(p_data->getPointer(0), i_lo, i_up,
-                                                                     mesh::DataBlockArray<TV, mesh::VOLUME>::FAST_FIRST));
+    auto lo = p_data->getGhostBox().lower();
+    auto up = p_data->getGhostBox().upper();
+    int depth = p_data->getDepth();
+    index_type i_lo[4] = {lo[0], lo[1], lo[2], 0};
+    index_type i_up[4] = {up[0] + 2, up[1] + 2, up[2] + 2, depth};
+
+    switch (item->entity_type())
+    {
+        case mesh::VERTEX:
+            return std::dynamic_pointer_cast<mesh::DataBlock>(
+                    std::make_shared<mesh::DataBlockArray<TV, mesh::VERTEX>>(p_data->getPointer(0), ndims, i_lo, i_up,
+                                                                             data::FAST_FIRST));
+        case mesh::EDGE:
+            return std::dynamic_pointer_cast<mesh::DataBlock>(
+                    std::make_shared<mesh::DataBlockArray<TV, mesh::EDGE>>(p_data->getPointer(0), ndims + 1, i_lo, i_up,
+                                                                           data::FAST_FIRST));
+        case mesh::FACE:
+            return std::dynamic_pointer_cast<mesh::DataBlock>(
+                    std::make_shared<mesh::DataBlockArray<TV, mesh::FACE>>(p_data->getPointer(0), ndims + 1, i_lo, i_up,
+                                                                           data::FAST_FIRST));
+        case mesh::VOLUME:
+            return std::dynamic_pointer_cast<mesh::DataBlock>(
+                    std::make_shared<mesh::DataBlockArray<TV, mesh::VOLUME>>(p_data->getPointer(0), ndims, i_lo, i_up,
+                                                                             data::FAST_FIRST));
+        default:
+            RUNTIME_ERROR << " EntityType is not supported!" << std::endl;
+    }
+
+
 }
 
-template<typename TV> std::shared_ptr<mesh::DataBlock>
-convert(boost::shared_ptr<SAMRAI::pdat::CellData<TV>> p_data)
+std::shared_ptr<mesh::DataBlock>
+create_data_block(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
-    auto lo = p_data->getBox().lower();
-    auto up = p_data->getBox().upper();
-    auto gw = p_data->getGhostCellWidth();
-    index_type i_lo[4] = {lo[0] - gw[0], lo[1] - gw[0], lo[2] - gw[0], 1};
-    index_type i_up[4] = {up[0] + gw[0] - 1, up[1] + gw[1] - 1, up[2] + gw[2] - 1, 1};
-
-    return std::dynamic_pointer_cast<mesh::DataBlock>(
-            std::make_shared<mesh::DataBlockArray<TV, mesh::VOLUME>>(p_data->getPointer(0), i_lo, i_up,
-                                                                     mesh::DataBlockArray<TV, mesh::VOLUME>::FAST_FIRST));
+    if (item->value_type_info() == typeid(float)) { return create_data_block_t<float>(item, pd); }
+    else if (item->value_type_info() == typeid(double)) { return create_data_block_t<double>(item, pd); }
+    else if (item->value_type_info() == typeid(int)) { return create_data_block_t<int>(item, pd); }
+//    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
+    else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
 }
-
-template<typename TV> std::shared_ptr<mesh::DataBlock>
-convert(boost::shared_ptr<SAMRAI::pdat::EdgeData<TV>> p_data)
-{
-    auto lo = p_data->getBox().lower();
-
-    auto up = p_data->getBox().upper();
-
-
-    index_type i_lo[4] = {lo[0], lo[1], lo[2], 3};
-
-    index_type i_up[4] = {up[0], up[1], up[2], 3};
-
-    return std::dynamic_pointer_cast<mesh::DataBlock>(
-            std::make_shared<mesh::DataBlockArray<TV, mesh::EDGE>>(p_data->getPointer(0), i_lo, i_up,
-                                                                   mesh::DataBlockArray<TV, mesh::EDGE>::FAST_FIRST));
-}
-
-template<typename TV> std::shared_ptr<mesh::DataBlock>
-convert(boost::shared_ptr<SAMRAI::pdat::FaceData<TV>> p_data)
-{
-    auto lo = p_data->getBox().lower();
-
-    auto up = p_data->getBox().upper();
-
-
-    index_type i_lo[4] = {lo[0], lo[1], lo[2], 3};
-
-    index_type i_up[4] = {up[0], up[1], up[2], 3};
-
-    return std::dynamic_pointer_cast<mesh::DataBlock>(
-            std::make_shared<mesh::DataBlockArray<TV, mesh::FACE>>(p_data->getPointer(0), i_lo, i_up,
-                                                                   mesh::DataBlockArray<TV, mesh::FACE>::FAST_FIRST));
-}
-
-template<typename TV, mesh::MeshEntityType IFORM> void
-attr_op(mesh::Attribute *item, op_convert const &,
-        std::shared_ptr<mesh::DataBlock> *res,
-        boost::shared_ptr<SAMRAI::hier::PatchData> p_data)
-{
-    auto pd = boost::dynamic_pointer_cast<typename PatchDataTraits<TV, IFORM>::type>(p_data);
-    pd->fillAll(static_cast<double>(IFORM) + 1);
-    *res = convert(pd);
-}
-
 }//namespace detail
 
 
@@ -660,20 +696,23 @@ SAMRAIWorker::move_to(SAMRAI::hier::Patch &patch)
             patch.getBox().upper()[2]
     };
 
+
     std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, nullptr);
     m->id(patch.getBox().getLocalId().getValue());
+    m_worker_->move_to(m);
     m_worker_->for_each(
             [&](mesh::Worker::Observer &ob)
             {
                 auto *attr = ob.attribute();
                 if (attr == nullptr) { return; }
 
-                std::shared_ptr<mesh::DataBlock> data_block;
-                auto samrai_data = patch.getPatchData(m_samrai_variables_.at(attr->id()),
-                                                      getDataContext());
-                detail::attr_choice(attr, detail::op_convert(), &data_block, samrai_data);
 
-                ob.move_to(m, data_block);
+                ob.move_to(m, detail::create_data_block(
+                        attr,
+                        patch.getPatchData(
+                                m_samrai_variables_.at(attr->id()), getDataContext())
+                           )
+                );
             }
     );
 }
