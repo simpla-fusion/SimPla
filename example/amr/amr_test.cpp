@@ -101,20 +101,23 @@ struct AMRTest : public mesh::Worker
         index_type kb = std::get<0>(b)[2];
         index_type ke = std::get<1>(b)[2];
 
-
-//        for (index_type i = ib; i <= ie + 1; ++i)
-//        {
-//            for (index_type j = jb; j <= je + 1; ++j)
-//            {
-//                for (index_type k = kb; k <= ke + 1; ++k)
-//                {
-////                    phi(i, j, k) = i;
-//                    E(i, j, k, 0) = i;//std::sin(i * m_k_[0])* std::sin(j * m_k_[1]) * std::sin(k * m_k_[2]);
-//                    E(i, j, k, 1) = j;// std::cos(i * m_k_[0]);//* std::cos(j * m_k_[1]) * std::cos(k * m_k_[2]);
-//                    E(i, j, k, 2) = k;
-//                }
-//            }
-//        }
+//        E.for_each(_impl::_assign(),
+//                   [&](index_type i, index_type k, index_type j, index_type n)
+//                   {
+//                       return i;
+//                   });
+        for (index_type i = ib; i <= ie + 1; ++i)
+        {
+            for (index_type j = jb; j <= je + 1; ++j)
+            {
+                for (index_type k = kb; k <= ke + 1; ++k)
+                {
+                    E(i, j, k, 0) = std::sin(i * m_k_[0]) * std::sin(j * m_k_[1]) * std::sin(k * m_k_[2]);
+                    E(i, j, k, 1) = std::cos(i * m_k_[0]) * std::cos(j * m_k_[1]) * std::cos(k * m_k_[2]);
+                    E(i, j, k, 2) = std::sin(i * m_k_[0]) * std::cos(j * m_k_[1]) * std::sin(k * m_k_[2]);
+                }
+            }
+        }
 
 //        phi.assign_function(
 //                [&](point_type const &x)
@@ -133,6 +136,7 @@ struct AMRTest : public mesh::Worker
 
     void computeFluxesOnPatch(const double time, const double dt)
     {
+        B = 1.0;
 //        LOG_CMD(B -= curl(E) * dt * 0.5);
 //        LOG_CMD(E += curl(B) * dt);
 //        LOG_CMD(B -= curl(E) * dt * 0.5);
@@ -161,7 +165,7 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 
 int main(int argc, char **argv)
 {
-    typedef DummyMesh mesh_type; // manifold::CartesianManifold
+    typedef manifold::CartesianManifold mesh_type;
     logger::set_stdout_level(100);
     auto worker = std::make_shared<AMRTest<DummyMesh>>();
 
@@ -295,17 +299,17 @@ int main(int argc, char **argv)
 
     Real dt = 1.0;
 
-//    INFORM << "***********************************************" << std::endl;
-//
-//
-//    for (int i = 0; i < 10; ++i)
-//    {
-//        integrator->next_time_step(dt);
-//        integrator->check_point();
-//    }
-//
-//
-//    INFORM << "***********************************************" << std::endl;
+    INFORM << "***********************************************" << std::endl;
+
+
+    for (int i = 0; i < 10; ++i)
+    {
+        integrator->next_time_step(dt);
+        integrator->check_point();
+    }
+
+
+    INFORM << "***********************************************" << std::endl;
 
     integrator->tear_down();
 

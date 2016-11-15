@@ -192,38 +192,21 @@ public:
     }
 
     /* @}*/
-private:
 
 
-    template<typename TOP, typename ...U>
-    void apply(TOP const &op, Field<Expression<U...>> const &expr)
+    template<typename TOP, typename TOther>
+    void apply(TOP const &op, TOther const &expr)
     {
-        m_data_->for_each(op,
-                          [&](index_type i, index_type j, index_type k,
-                              index_type n)
-                          {
-                              return m_mesh_->eval(expr,
-                                                   mesh::MeshEntityIdCoder::pack_index(i, j, k, n));
-                          });
-    }
-
-    template<typename TOP, typename TFun, typename ...U> void
-    apply(TOP const &op, TFun const &fun, U &&...args)
-    {
+        deploy();
         m_data_->for_each(op,
                           [&](index_type i, index_type j, index_type k, index_type n)
                           {
-                              return fun(m_mesh_->point(i, j, k, n),
-                                         std::forward<U>(args)...);
+                              return m_mesh_->eval(expr, mesh::MeshEntityIdCoder::pack_index(i, j, k, n));
                           });
     }
 
-    template<typename TOP, typename U> void
-    apply(TOP const &op, U const &v, ENABLE_IF(std::is_scalar<U>::value))
-    {
-        m_data_->for_each(op, [&](index_type i, index_type j, index_type k, index_type n) { return v; });
-    }
-
+    template<typename TOP, typename TFun>
+    void for_each(TOP const &op, TFun const &fun) { m_data_->for_each(op, fun); }
 
 public:
 

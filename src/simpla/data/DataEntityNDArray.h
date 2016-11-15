@@ -46,7 +46,6 @@ private:
     void initialize(int ndims, index_type const *lo, index_type const *hi, int order = SLOW_FIRST)
     {
         m_order_ = order;
-
         m_ndims_ = ndims;
         m_size_ = 1;
         for (int i = 0; i < m_ndims_; ++i)
@@ -55,14 +54,13 @@ private:
             if (hi[i] > lo[i])
             {
                 m_count_[i] = static_cast<size_type>(hi[i] - lo[i]);
-//                ++m_ndims_;
             } else
             {
                 m_count_[i] = 1;
             }
             m_size_ *= m_count_[i];
         }
-        for (int j = m_ndims_; j < SP_MAX_NUM_DIMS; ++j)
+        for (int j = m_ndims_; j < MAX_NDIMS_OF_ARRAY; ++j)
         {
             m_count_[j] = 1;
             m_start_[j] = 0;
@@ -245,9 +243,9 @@ public:
     {
         ASSERT(m_ndims_ <= 4);
 //#pragma omp parallel for
-        for (int i = 0; i < m_count_[0]; ++i)
-            for (int j = 0; j < m_count_[1]; ++j)
-                for (int k = 0; k < m_count_[2]; ++k)
+        for (int i = 1; i < m_count_[0] - 1; ++i)
+            for (int j = 1; j < m_count_[1] - 1; ++j)
+                for (int k = 1; k < m_count_[2] - 1; ++k)
                     for (int l = 0; l < m_count_[3]; ++l)
                     {
                         op(get(i, j, k, l), fun(i, j, k, l));

@@ -275,16 +275,16 @@ public:
      */
     virtual void destroy() { if (m_data_ != nullptr) { m_data_->destroy(); }};
 
-    /**
-     *  if m_attr_.has(other) then m_data_.copy(m_attr_.at(other),only_ghost)
-     *  else do nothing
-     * @param other
-     * @param only_ghost
-     */
-    virtual void sync(MeshBlock const *other, bool only_ghost = true)
-    {
-        try { m_data_->sync(m_attr_->at(other), only_ghost); } catch (std::out_of_range const &) {}
-    };
+//    /**
+//     *  if m_attr_.has(other) then m_data_.copy(m_attr_.at(other),only_ghost)
+//     *  else do nothing
+//     * @param other
+//     * @param only_ghost
+//     */
+//    virtual void sync(MeshBlock const *other, bool only_ghost = true)
+//    {
+//        try { m_data_->sync(m_attr_->at(other), only_ghost); } catch (std::out_of_range const &) {}
+//    };
 
 
 };
