@@ -488,6 +488,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                 m_samrai_variables_[item->id()] = var;
 
                 static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR", "TENSOR"};
+                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR", "VECTOR", "SCALAR"};
 
 //                if (item->entity_type() == mesh::VERTEX ||
 //                    item->entity_type() == mesh::VOLUME)
@@ -501,7 +502,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                              d_grid_geometry,
                                              "",
                                              "LINEAR_REFINE");
-                d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type[item->value_rank()],
+                d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type2[item->entity_type()],
                                                      vardb->mapVariableAndContextToIndex(var,
                                                                                          integrator->getPlotContext()));
 //                } else
@@ -703,9 +704,9 @@ SAMRAIWorker::move_to(SAMRAI::hier::Patch &patch)
             patch.getBox().upper()[2]
     };
 
-    CHECK(xlo[0] + dx[0] * (hi[0] - lo[0] + 1) - xhi[0]);
+//    CHECK(xlo[0] + dx[0] * (hi[0] - lo[0] + 1) - xhi[0]);
 
-    std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, dx, xlo);
+    std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, dx, xlo, xhi);
     m->id(patch.getBox().getLocalId().getValue());
     m_worker_->move_to(m);
     m_worker_->for_each(

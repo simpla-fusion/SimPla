@@ -59,7 +59,8 @@ public:
     MeshBlock const *mesh() const;
 
     virtual std::shared_ptr<mesh::MeshBlock>
-    create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx, Real const *x0 = nullptr) const =0;
+    create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx,
+                      Real const *xlo = nullptr, Real const *xhi = nullptr) const =0;
 
     virtual void initialize(Real data_time)=0;
 

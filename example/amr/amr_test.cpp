@@ -79,9 +79,10 @@ struct AMRTest : public mesh::Worker
 
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Bv{"Bv", this};
     virtual std::shared_ptr<mesh::MeshBlock>
-    create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx, Real const *x0 = nullptr) const
+    create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx,
+                      Real const *xlo = nullptr, Real const *xhi = nullptr) const
     {
-        auto res = std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(3, lo, hi, dx, x0));
+        auto res = std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(3, lo, hi, dx, xlo, xhi));
         res->deploy();
         return res;
     };
