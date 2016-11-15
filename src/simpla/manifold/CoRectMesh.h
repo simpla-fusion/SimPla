@@ -11,17 +11,7 @@
 #include <vector>
 #include <iomanip>
 
-#include <simpla/toolbox/macro.h>
-#include <simpla/sp_def.h>
-#include <simpla/toolbox/nTuple.h>
-#include <simpla/toolbox/nTupleExt.h>
-#include <simpla/toolbox/PrettyStream.h>
-#include <simpla/toolbox/type_traits.h>
-#include <simpla/toolbox/type_cast.h>
-#include <simpla/toolbox/Log.h>
-#include <simpla/mesh/Attribute.h>
-#include <simpla/data/DataEntityNDArray.h>
-
+#include "../mesh/DataBlock.h"
 #include "../mesh/MeshCommon.h"
 #include "../mesh/MeshBlock.h"
 #include "../mesh/EntityId.h"
@@ -76,8 +66,7 @@ public:
      *
      */
 
-    point_type m_origin_{{0, 0, 0}};
-    vector_type m_dx_{{1, 1, 1}};
+
 
 public:
 
@@ -88,95 +77,42 @@ public:
     template<typename ...Args>
     CoRectMesh(Args &&...args): MeshBlock(std::forward<Args>(args)...) {};
 
-    CoRectMesh(CoRectMesh const &other) : MeshBlock(other), m_origin_(other.m_origin_), m_dx_(other.m_dx_) {};
+    CoRectMesh(CoRectMesh const &other) : MeshBlock(other)
+    {
+
+        for (int i = 0; i < 9; ++i)
+        {
+            m_volume_[i] = m_volume_[i];
+            m_inv_volume_[i] = m_inv_volume_[i];
+            m_dual_volume_[i] = m_dual_volume_[i];
+            m_inv_dual_volume_[i] = m_inv_dual_volume_[i];
+        }
+
+
+    };
 
     virtual  ~CoRectMesh() {}
-
 
     virtual void deploy();
 
     virtual std::shared_ptr<MeshBlock> clone() const { return std::make_shared<CoRectMesh>(*this); };
 
-    virtual box_type box() const
+    template<typename TV, mesh::MeshEntityType IFORM>
+    std::shared_ptr<mesh::DataBlock> create_data_block(void *p) const
     {
-        auto i_box = MeshBlock::inner_index_box();
-        point_type lower = m_origin_ + std::get<0>(i_box) * m_dx_;
-        point_type upper = m_origin_ + std::get<1>(i_box) * m_dx_;
-        return std::make_tuple(lower, upper);
-    }
+        auto b = outer_index_box();
 
-    virtual point_type const &dx() const { return m_dx_; }
-
-
-    virtual point_type
-    point(MeshEntityId const &s) const
-    {
-        point_type p = m::point(s);
-
-        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
-        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
-        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
-
-        return std::move(p);
-
-    }
-
-    virtual point_type
-    point_local_to_global(MeshEntityId s, point_type const &r) const
-    {
-        point_type p = m::point_local_to_global(s, r);
-
-        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
-        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
-        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
-
-        return std::move(p);
-    }
-
-    virtual    //std::tuple<MeshEntityId, point_type>
-    point_type
-    point_global_to_local(point_type const &g, int nId = 0) const
-    {
-
-        return
-//                m::point_global_to_local(
-                point_type{
-                        std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
-                        std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
-                        std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
-                }
-//                        , nId)
-                ;
-    }
-
-    virtual index_tuple
-    point_to_index(point_type const &g, int nId = 0) const
-    {
-        return m::unpack_index(std::get<0>(m::point_global_to_local(
-                point_type{
-                        std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
-                        std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
-                        std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
-                }, nId)));
+        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
+        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], 3};
+        return std::dynamic_pointer_cast<mesh::DataBlock>(
+                std::make_shared<data_block_type<TV, IFORM>>(
+                        static_cast<TV *>(p),
+                        (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 3 : 4,
+                        lo, hi));
     };
 
 
-    virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s,
-                                      MeshEntityId *p = nullptr) const
-    {
-        return m::get_adjacent_entities(entity_type, entity_type, s, p);
-    }
-
-    virtual std::shared_ptr<MeshBlock>
-    refine(box_type const &b, int flag = 0) const { return std::shared_ptr<MeshBlock>(); }
-
-
 private:
-    vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};
-    vector_type m_g2l_scale_{{1, 1, 1}}, m_g2l_shift_{{0, 0, 0}};
-
-    vector_type m_inv_dx_{{1, 1, 1}}; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
-
     Real m_volume_[9];
     Real m_inv_volume_[9];
     Real m_dual_volume_[9];
@@ -219,21 +155,6 @@ void CoRectMesh::deploy()
          *\endverbatim
          */
     auto const &dims = dimensions();
-
-    for (int i = 0; i < NDIMS; ++i)
-    {
-        assert(dims[i] > 0);
-
-        m_dx_[i] = m_dx_[i] / static_cast<Real>( dims[i]);
-        m_inv_dx_[i] = (dims[i] == 1) ? 0 : static_cast<Real>(1.0) / m_dx_[i];
-
-        m_l2g_scale_[i] = (dims[i] == 1) ? 0 : m_dx_[i];
-        m_l2g_shift_[i] = m_origin_[i];
-
-        m_g2l_scale_[i] = (dims[i] == 1) ? 0 : m_inv_dx_[i];
-        m_g2l_shift_[i] = (dims[i] == 1) ? 0 : -m_origin_[i] * m_g2l_scale_[i];
-
-    }
 
 
     m_volume_[0 /*000*/] = 1;

@@ -62,6 +62,13 @@ private:
             }
             m_size_ *= m_count_[i];
         }
+        for (int j = m_ndims_; j < SP_MAX_NUM_DIMS; ++j)
+        {
+            m_count_[j] = 1;
+            m_start_[j] = 0;
+            m_strides_[j] = 0;
+        }
+
         if (m_order_ == SLOW_FIRST)
         {
             m_strides_[m_ndims_ - 1] = 1;
@@ -131,7 +138,7 @@ public:
     {
         if (m_data_ == nullptr)
         {
-             if (m_holder_ == nullptr && m_size_ > 0) { m_holder_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }
+            if (m_holder_ == nullptr && m_size_ > 0) { m_holder_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }
 
             m_data_ = m_holder_.get();
         }
@@ -198,10 +205,10 @@ private:
 
     inline constexpr size_type hash(index_type x0, index_type x1, index_type x2, index_type x3) const
     {
-        return (x0 - m_start_[0] + m_count_[0] * 2) % m_count_[0] * m_strides_[0]
-               + (x1 - m_start_[1] + m_count_[1] * 2) % m_count_[1] * m_strides_[1]
-               + (x2 - m_start_[2] + m_count_[2] * 2) % m_count_[2] * m_strides_[2]
-               + (x3 - m_start_[3] + m_count_[3] * 2) % m_count_[3] * m_strides_[3];
+        return (x0 - m_start_[0]) * m_strides_[0] +
+               (x1 - m_start_[1]) * m_strides_[1] +
+               (x2 - m_start_[2]) * m_strides_[2] +
+               (x3 - m_start_[3]) * m_strides_[3];
     }
 
 
@@ -231,6 +238,23 @@ private:
     }
 
     inline constexpr size_type hash(nTuple<index_type, 3> const idx) const { return hash(idx[0], idx[1], idx[2]); }
+
+public:
+    template<typename TOP, typename TFUN>
+    void for_each(TOP const &op, TFUN const &fun)
+    {
+        ASSERT(m_ndims_ <= 4);
+//#pragma omp parallel for
+        for (int i = 0; i < m_count_[0]; ++i)
+            for (int j = 0; j < m_count_[1]; ++j)
+                for (int k = 0; k < m_count_[2]; ++k)
+                    for (int l = 0; l < m_count_[3]; ++l)
+                    {
+                        op(get(i, j, k, l), fun(i, j, k, l));
+                    }
+
+
+    };
 };
 }}//namespace simpla { namespace data
 #endif //SIMPLA_ARRAYPATCH_H

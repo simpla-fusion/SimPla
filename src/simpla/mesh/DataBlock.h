@@ -10,6 +10,8 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/data/DataEntityNDArray.h>
+#include "MeshCommon.h"
+#include "MeshBlock.h"
 
 namespace simpla { namespace mesh
 {
@@ -28,7 +30,7 @@ public:
 
     virtual std::type_info const &value_type_info() const =0;
 
-    virtual mesh::MeshEntityType entity_type() const =0;
+    virtual MeshEntityType entity_type() const =0;
 
     virtual std::string name() const =0;
 

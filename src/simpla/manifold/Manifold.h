@@ -10,9 +10,9 @@
 
 #include <iostream>
 #include <memory>
-#include "simpla/toolbox/Log.h"
-#include "simpla/toolbox/macro.h"
-#include "simpla/toolbox/nTuple.h"
+#include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/macro.h>
+#include <simpla/toolbox/nTuple.h>
 
 
 #include "ManifoldTraits.h"

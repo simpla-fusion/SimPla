@@ -627,7 +627,6 @@ namespace detail
 //        boost::shared_ptr<SAMRAI::hier::PatchData> p_data)
 //{
 //    auto pd = boost::dynamic_pointer_cast<typename PatchDataTraits<TV, IFORM>::type>(p_data);
-////    pd->fillAll(static_cast<double>(IFORM) + 1);
 //    pd->fillAll(0);
 //    *res = convert(pd);
 //}

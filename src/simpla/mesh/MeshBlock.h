@@ -86,10 +86,10 @@ public:
 
     MeshBlock(int ndims,
               index_type const *lo,
-              index_type const *hi,
+              index_type const *up,
               Real const *dx,
-              Real const *xlo = nullptr,
-              Real const *xhi = nullptr);
+              Real const *x_lo = nullptr,
+              Real const *x_up = nullptr);
 
     MeshBlock(MeshBlock const &);
 
@@ -214,24 +214,24 @@ public:
         return point_type{x * m_dx_[0], y * m_dx_[1], z * m_dx_[2]};
     };
 
-    virtual point_type point(MeshEntityId const &s) const { return point(s.x >> 1, s.y >> 1, s.z >> 1); }
-
+//    virtual point_type point(MeshEntityId const &s) const { return point(s.x >> 1, s.y >> 1, s.z >> 1); }
+//
     virtual point_type point(index_tuple const &x) const { return point(x[0], x[1], x[2]); };
-
-    virtual index_tuple index(point_type const &x) const
-    {
-        return index_tuple{static_cast<index_type>(floor((x[0] + 0.5 * m_dx_[0]) * m_inv_dx_[0])),
-                           static_cast<index_type>(floor((x[1] + 0.5 * m_dx_[0]) * m_inv_dx_[1])),
-                           static_cast<index_type>(floor((x[2] + 0.5 * m_dx_[0]) * m_inv_dx_[2]))
-        };
-    }
-
-    virtual point_type point_global_to_local(point_type const &x, int iform = 0) const
-    {
-        return point_type{static_cast<Real>(x[0] - floor((x[0] + 0.5 * m_dx_[0]) * m_inv_dx_[0])),
-                          static_cast<Real>(x[1] - floor((x[1] + 0.5 * m_dx_[0]) * m_inv_dx_[1])),
-                          static_cast<Real>(x[2] - floor((x[2] + 0.5 * m_dx_[0]) * m_inv_dx_[2]))};
-    }
+//
+//    virtual index_tuple index(point_type const &x) const
+//    {
+//        return index_tuple{static_cast<index_type>(floor((x[0] + 0.5 * m_dx_[0]) * m_inv_dx_[0])),
+//                           static_cast<index_type>(floor((x[1] + 0.5 * m_dx_[0]) * m_inv_dx_[1])),
+//                           static_cast<index_type>(floor((x[2] + 0.5 * m_dx_[0]) * m_inv_dx_[2]))
+//        };
+//    }
+//
+//    virtual point_type point_global_to_local(point_type const &x, int iform = 0) const
+//    {
+//        return point_type{static_cast<Real>(x[0] - floor((x[0] + 0.5 * m_dx_[0]) * m_inv_dx_[0])),
+//                          static_cast<Real>(x[1] - floor((x[1] + 0.5 * m_dx_[0]) * m_inv_dx_[1])),
+//                          static_cast<Real>(x[2] - floor((x[2] + 0.5 * m_dx_[0]) * m_inv_dx_[2]))};
+//    }
 
 
     size_type number_of_entities(int iform) const
@@ -249,9 +249,62 @@ public:
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
 
-    virtual index_tuple point_to_index(point_type const &g, int nId = 0) const
+//    virtual index_tuple point_to_index(point_type const &g, int nId = 0) const
+//    {
+//        return m::unpack_index(std::get<0>(m::point_global_to_local(g, nId)));
+//    };
+
+
+    virtual point_type
+    point(MeshEntityId const &s) const
     {
-        return m::unpack_index(std::get<0>(m::point_global_to_local(g, nId)));
+        point_type p = m::point(s);
+
+        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
+        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
+        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
+
+        return std::move(p);
+
+    }
+
+    virtual point_type
+    point_local_to_global(MeshEntityId s, point_type const &r) const
+    {
+        point_type p = m::point_local_to_global(s, r);
+
+        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
+        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
+        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
+
+        return std::move(p);
+    }
+
+    virtual    //std::tuple<MeshEntityId, point_type>
+    point_type
+    point_global_to_local(point_type const &g, int nId = 0) const
+    {
+
+        return
+//                m::point_global_to_local(
+                point_type{
+                        std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
+                        std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
+                        std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
+                }
+//                        , nId)
+                ;
+    }
+
+    virtual index_tuple
+    point_to_index(point_type const &g, int nId = 0) const
+    {
+        return m::unpack_index(std::get<0>(m::point_global_to_local(
+                point_type{
+                        std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
+                        std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
+                        std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
+                }, nId)));
     };
 
     virtual EntityIdRange range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const;
@@ -260,7 +313,7 @@ public:
 
     virtual EntityIdRange range(MeshEntityType entityType, box_type const &b) const;
 
-private:
+protected:
     bool m_is_deployed_ = false;
 
     id_type m_space_id_ = 0;
@@ -268,6 +321,8 @@ private:
     int m_level_ = 0;
 
     int m_ndims_;
+    point_type m_x_lower{{0, 0, 0}};
+    point_type m_x_upper{{1, 1, 1}};
 
     point_type m_dx_{{1, 1, 1}};
 
@@ -280,6 +335,9 @@ private:
     index_box_type m_m_box_;         //!<     memory index block
     index_box_type m_inner_box_;     //!<    inner block
     index_box_type m_outer_box_;     //!<    outer block
+
+    vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};
+    vector_type m_g2l_scale_{{1, 1, 1}}, m_g2l_shift_{{0, 0, 0}};
 
 
 };

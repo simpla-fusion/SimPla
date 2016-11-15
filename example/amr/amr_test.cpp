@@ -5,6 +5,7 @@
 #include <simpla/SIMPLA_config.h>
 
 #include <iostream>
+#include <simpla/manifold/pre_define/PreDefine.h>
 
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Atlas.h>
@@ -60,14 +61,12 @@ public:
 template<typename TM>
 struct AMRTest : public mesh::Worker
 {
-    AMRTest() : mesh::Worker() { CHECK("AMRTest"); }
-
-    ~AMRTest()
-    {
-
-    }
-
     typedef TM mesh_type;
+
+    AMRTest() : mesh::Worker() {}
+
+    ~AMRTest() {}
+
 
     SP_OBJECT_HEAD(AMRTest, mesh::Worker);
     Real m_k_[3] = {TWOPI / NX, TWOPI / NY, TWOPI / NZ};
@@ -75,14 +74,14 @@ struct AMRTest : public mesh::Worker
 //    field_type<Real, mesh::VERTEX> phi{"phi", this};
     field_type<Real, mesh::EDGE> E{"E", this};
     field_type<Real, mesh::FACE> B{"B", this};
-//    field_type<nTuple<Real, 3>, mesh::VERTEX> Ev{"Ev", this};
 
+//    field_type<nTuple<Real, 3>, mesh::VERTEX> Ev{"Ev", this};
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Bv{"Bv", this};
     virtual std::shared_ptr<mesh::MeshBlock>
     create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx,
                       Real const *xlo = nullptr, Real const *xhi = nullptr) const
     {
-        auto res = std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>(3, lo, hi, dx, xlo, xhi));
+        auto res = std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<mesh_type>(3, lo, hi, dx, xlo, xhi));
         res->deploy();
         return res;
     };
@@ -103,17 +102,19 @@ struct AMRTest : public mesh::Worker
         index_type ke = std::get<1>(b)[2];
 
 
-        for (index_type i = ib; i <= ie + 1; ++i)
-        {
-            for (index_type j = jb; j <= je + 1; ++j)
-            {
-                for (index_type k = kb; k <= ke + 1; ++k)
-                {
-//                    phi(i, j, k) = i;
-                    E(i, j, k, 0) = std::sin(i * m_k_[0]) * std::sin(j * m_k_[1]) * std::sin(k * m_k_[2]);
-                }
-            }
-        }
+//        for (index_type i = ib; i <= ie + 1; ++i)
+//        {
+//            for (index_type j = jb; j <= je + 1; ++j)
+//            {
+//                for (index_type k = kb; k <= ke + 1; ++k)
+//                {
+////                    phi(i, j, k) = i;
+//                    E(i, j, k, 0) = i;//std::sin(i * m_k_[0])* std::sin(j * m_k_[1]) * std::sin(k * m_k_[2]);
+//                    E(i, j, k, 1) = j;// std::cos(i * m_k_[0]);//* std::cos(j * m_k_[1]) * std::cos(k * m_k_[2]);
+//                    E(i, j, k, 2) = k;
+//                }
+//            }
+//        }
 
 //        phi.assign_function(
 //                [&](point_type const &x)
@@ -132,9 +133,9 @@ struct AMRTest : public mesh::Worker
 
     void computeFluxesOnPatch(const double time, const double dt)
     {
-        LOG_CMD(B -= curl(E) * dt * 0.5);
-        LOG_CMD(E += curl(B) * dt);
-        LOG_CMD(B -= curl(E) * dt * 0.5);
+//        LOG_CMD(B -= curl(E) * dt * 0.5);
+//        LOG_CMD(E += curl(B) * dt);
+//        LOG_CMD(B -= curl(E) * dt * 0.5);
     }
 
     void conservativeDifferenceOnPatch(const double time,
@@ -160,6 +161,7 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 
 int main(int argc, char **argv)
 {
+    typedef DummyMesh mesh_type; // manifold::CartesianManifold
     logger::set_stdout_level(100);
     auto worker = std::make_shared<AMRTest<DummyMesh>>();
 
@@ -293,17 +295,17 @@ int main(int argc, char **argv)
 
     Real dt = 1.0;
 
-    INFORM << "***********************************************" << std::endl;
-
-
-    for (int i = 0; i < 10; ++i)
-    {
-        integrator->next_time_step(dt);
-        integrator->check_point();
-    }
-
-
-    INFORM << "***********************************************" << std::endl;
+//    INFORM << "***********************************************" << std::endl;
+//
+//
+//    for (int i = 0; i < 10; ++i)
+//    {
+//        integrator->next_time_step(dt);
+//        integrator->check_point();
+//    }
+//
+//
+//    INFORM << "***********************************************" << std::endl;
 
     integrator->tear_down();
 
