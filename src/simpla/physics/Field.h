@@ -139,69 +139,70 @@ public:
 
     this_type &operator=(this_type const &other)
     {
-        apply(_impl::_assign(), other);
+        apply(_impl::_assign(), mesh::SP_ES_ALL, other);
         return *this;
     }
 
     template<typename ...U> inline this_type &
     operator=(Field<U...> const &other)
     {
-        apply(_impl::_assign(), other);
+        apply(_impl::_assign(), mesh::SP_ES_ALL, other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator=(Other const &other)
     {
-        apply(_impl::_assign(), other);
+        apply(_impl::_assign(), mesh::SP_ES_ALL, other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator+=(Other const &other)
     {
-        apply(_impl::plus_assign(), other);
+        apply(_impl::plus_assign(), mesh::SP_ES_ALL, other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator-=(Other const &other)
     {
-        apply(_impl::minus_assign(), other);
+        apply(_impl::minus_assign(), mesh::SP_ES_ALL, other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator*=(Other const &other)
     {
-        apply(_impl::multiplies_assign(), other);
+        apply(_impl::multiplies_assign(), mesh::SP_ES_ALL, other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator/=(Other const &other)
     {
-        apply(_impl::divides_assign(), other);
+        apply(_impl::divides_assign(), mesh::SP_ES_ALL, other);
         return *this;
     }
 
     template<typename TOther> void
     assign(TOther const &v)
     {
-        apply(_impl::_assign(), v);
+        apply(_impl::_assign(), mesh::SP_ES_ALL, v);
     }
 
     /* @}*/
 
 
     template<typename TOP, typename TOther>
-    void apply(TOP const &op, TOther const &expr)
+    void apply(TOP const &op, mesh::MeshZoneTag tag, TOther const &expr)
     {
         deploy();
-        m_data_->for_each(op,
+        m_mesh_->for_each(entity_type(), tag,
                           [&](index_type i, index_type j, index_type k, index_type n)
                           {
-                              return m_mesh_->eval(expr, mesh::MeshEntityIdCoder::pack_index(i, j, k, n));
+                              op(m_data_->get(i, j, k, n),
+                                 m_mesh_->eval(expr, mesh::MeshEntityIdCoder::pack_index(i, j, k, n)));
                           });
     }
 

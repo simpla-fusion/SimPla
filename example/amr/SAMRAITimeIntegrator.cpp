@@ -670,13 +670,17 @@ create_data_block_t(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::Patch
 }
 
 std::shared_ptr<mesh::DataBlock>
-create_data_block(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block(mesh::Attribute *item, mesh::MeshBlock const *m, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
-    if (item->value_type_info() == typeid(float)) { return create_data_block_t<float>(item, pd); }
-    else if (item->value_type_info() == typeid(double)) { return create_data_block_t<double>(item, pd); }
-    else if (item->value_type_info() == typeid(int)) { return create_data_block_t<int>(item, pd); }
+    std::shared_ptr<mesh::DataBlock> res;
+    if (item->value_type_info() == typeid(float)) { res = create_data_block_t<float>(item, pd); }
+    else if (item->value_type_info() == typeid(double)) { res = create_data_block_t<double>(item, pd); }
+    else if (item->value_type_info() == typeid(int)) { res = create_data_block_t<int>(item, pd); }
 //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
     else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
+
+    item->insert(m, res);
+    return res;
 }
 }//namespace detail
 
@@ -712,15 +716,12 @@ SAMRAIWorker::move_to(SAMRAI::hier::Patch &patch)
             [&](mesh::Worker::Observer &ob)
             {
                 auto *attr = ob.attribute();
+
                 if (attr == nullptr) { return; }
 
-
                 ob.move_to(m, detail::create_data_block(
-                        attr,
-                        patch.getPatchData(
-                                m_samrai_variables_.at(attr->id()), getDataContext())
-                           )
-                );
+                        attr, m.get(),
+                        patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext())));
             }
     );
 }

@@ -73,9 +73,9 @@ public:
 
     virtual void erase(MeshBlock const *);
 
-    virtual std::shared_ptr<DataBlock> at(MeshBlock const *m) const;
+    virtual std::shared_ptr<DataBlock> const &at(MeshBlock const *m) const;
 
-    virtual std::shared_ptr<DataBlock> at(const MeshBlock *);
+    virtual std::shared_ptr<DataBlock> &at(const MeshBlock *);
 
     std::shared_ptr<DataBlock> create_data_block(MeshBlock const *, void *p) const;
 
@@ -207,17 +207,14 @@ public:
      */
     virtual void move_to(const std::shared_ptr<MeshBlock> &m)
     {
-        ASSERT (m != nullptr)
+        ASSERT(m != nullptr)
+        ASSERT(m_attr_ != nullptr)
         if (m != m_mesh_)
         {
             m_mesh_ = m;
 
-            try
-            {
-                m_data_ = m_attr_->at(m_mesh_.get());
-
-            }
-            catch (std::out_of_range const &error)
+            if (m_attr_->has(m_mesh_.get())) { m_data_ = m_attr_->at(m_mesh_.get()); }
+            else
             {
                 auto res = clone(m_mesh_);
                 m_attr_->insert(m_mesh_.get(), res);

@@ -313,6 +313,28 @@ public:
 
     virtual EntityIdRange range(MeshEntityType entityType, box_type const &b) const;
 
+    template<typename TFun>
+    void for_each(MeshEntityType const &iform, MeshZoneTag tag, TFun const &fun) const
+    {
+        int n = iform == VERTEX || iform == VOLUME ? 1 : 3;
+        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] : std::get<0>(m_outer_box_)[0];
+        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] : std::get<1>(m_outer_box_)[0];
+        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] : std::get<0>(m_outer_box_)[1];
+        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] : std::get<1>(m_outer_box_)[1];
+        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] : std::get<0>(m_outer_box_)[2];
+        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] : std::get<1>(m_outer_box_)[2];
+
+        //#pragma omp parallel for
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k)
+                    for (index_type l = 0; l < n; ++l)
+                    {
+                        fun(i, j, k, l);
+                    }
+
+    }
+
 protected:
     bool m_is_deployed_ = false;
 

@@ -113,8 +113,8 @@ struct AMRTest : public mesh::Worker
                 for (index_type k = kb; k <= ke + 1; ++k)
                 {
                     E(i, j, k, 0) = std::sin(i * m_k_[0]) * std::sin(j * m_k_[1]) * std::sin(k * m_k_[2]);
-                    E(i, j, k, 1) = std::cos(i * m_k_[0]) * std::cos(j * m_k_[1]) * std::cos(k * m_k_[2]);
-                    E(i, j, k, 2) = std::sin(i * m_k_[0]) * std::cos(j * m_k_[1]) * std::sin(k * m_k_[2]);
+//                    E(i, j, k, 1) = std::cos(i * m_k_[0]) * std::cos(j * m_k_[1]) * std::cos(k * m_k_[2]);
+//                    E(i, j, k, 2) = std::sin(i * m_k_[0]) * std::cos(j * m_k_[1]) * std::sin(k * m_k_[2]);
                 }
             }
         }
@@ -136,10 +136,9 @@ struct AMRTest : public mesh::Worker
 
     void computeFluxesOnPatch(const double time, const double dt)
     {
-        B = 1.0;
-//        LOG_CMD(B -= curl(E) * dt * 0.5);
-//        LOG_CMD(E += curl(B) * dt);
-//        LOG_CMD(B -= curl(E) * dt * 0.5);
+        LOG_CMD(B -= curl(E) * dt * 0.5);
+        LOG_CMD(E += curl(B) * dt);
+        LOG_CMD(B -= curl(E) * dt * 0.5);
     }
 
     void conservativeDifferenceOnPatch(const double time,
@@ -165,9 +164,9 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 
 int main(int argc, char **argv)
 {
-    typedef manifold::CartesianManifold mesh_type;
+    typedef DummyMesh mesh_type; //manifold::CartesianManifold
     logger::set_stdout_level(100);
-    auto worker = std::make_shared<AMRTest<DummyMesh>>();
+    auto worker = std::make_shared<AMRTest<mesh_type>>();
 
     worker->print(std::cout);
 

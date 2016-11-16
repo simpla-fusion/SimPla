@@ -57,12 +57,15 @@ void Attribute::erase(const MeshBlock *m)
 }
 
 
-std::shared_ptr<DataBlock> Attribute::at(const MeshBlock *m) const
+std::shared_ptr<DataBlock> const &Attribute::at(const MeshBlock *m) const
 {
     ASSERT(m_pimpl_ != nullptr);
 
-    try { return m_pimpl_->m_patches_.at(m->id()); }
-    catch (std::out_of_range const &err)
+    auto it = m_pimpl_->m_patches_.find(m->id());
+    if (it != m_pimpl_->m_patches_.end())
+    {
+        return it->second;
+    } else
     {
         throw std::out_of_range(
                 FILE_LINE_STAMP_STRING + "Can not find Mesh Block! "
@@ -71,12 +74,15 @@ std::shared_ptr<DataBlock> Attribute::at(const MeshBlock *m) const
     }
 }
 
-std::shared_ptr<DataBlock> Attribute::at(const MeshBlock *m)
+std::shared_ptr<DataBlock> &Attribute::at(const MeshBlock *m)
 {
     ASSERT(m_pimpl_ != nullptr);
 
-    try { return m_pimpl_->m_patches_.at(m->id()); }
-    catch (std::out_of_range const &err)
+    auto it = m_pimpl_->m_patches_.find(m->id());
+    if (it != m_pimpl_->m_patches_.end())
+    {
+        return it->second;
+    } else
     {
         throw std::out_of_range(
                 FILE_LINE_STAMP_STRING + "Can not find Mesh Block! "
