@@ -15,9 +15,9 @@
 #include <simpla/manifold/Calculus.h>
 #include <simpla/simulation/TimeIntegrator.h>
 
-#define NX 16
-#define NY 16
-#define NZ 16
+#define NX 64
+#define NY 64
+#define NZ 64
 #define omega 1.0
 using namespace simpla;
 
@@ -97,15 +97,15 @@ struct AMRTest : public mesh::Worker
 
     void initialize(Real data_time)
     {
-        FUNCTION_START;
+        E.clear();
         B.clear();
         J.clear();
         E.foreach([&](point_type const &x)
                   {
                       return nTuple<Real, 3>{
                               std::sin(x[0] * m_k_[0]) * std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
-                              std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
-                              std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
+                              0,//  std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
+                              0//  std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
                       };
                   });
 
@@ -115,41 +115,15 @@ struct AMRTest : public mesh::Worker
     {
         FUNCTION_START;
 
-        LOG_CMD(E.foreach_ghost(0));
-        LOG_CMD(B.foreach_ghost(0));
+//        LOG_CMD(E.foreach_ghost(0));
+//        LOG_CMD(B.foreach_ghost(0));
     };
 
-    double computeStableDtOnPatch(const bool initial_time, const double dt_time)
+
+    virtual void next_time_step(Real data_time, Real dt)
     {
-        FUNCTION_START;
-        return dt_time;
-    }
-
-    void computeFluxesOnPatch(const double time, const double dt)
-    {
-        FUNCTION_START;
-        H = B * mu;
-        D = E * epsilon;
-
-    }
-
-    void conservativeDifferenceOnPatch(const double time,
-                                       const double dt, bool at_syncronization)
-    {
-
-        FUNCTION_START;
-
-        E = E + (curl(H) - J) * dt / epsilon;
-        B = B - curl(D / epsilon) * dt;
-//        phi.print(std::cout);
-        //        phi += diverge(E) * dt;
-    }
-
-    void next_time_step(Real dt)
-    {
-
-        FUNCTION_START;
-//        phi -= diverge(E) * 3.0 * dt;
+        E = E + (curl(B) / mu - J) * dt / epsilon;
+        B = B - curl(E) * dt;
     }
 
 
@@ -296,7 +270,7 @@ int main(int argc, char **argv)
     integrator->deploy();
     integrator->check_point();
 
-    Real dt = 0.10;
+    Real dt = 1;
 
     INFORM << "***********************************************" << std::endl;
 

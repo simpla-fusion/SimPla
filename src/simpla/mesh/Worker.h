@@ -64,12 +64,8 @@ public:
 
     virtual void initialize(Real data_time)=0;
 
-    virtual double computeStableDtOnPatch(const bool initial_time, const double dt_time)=0;
+    virtual void next_time_step(Real data_time, Real dt)=0;
 
-    virtual void computeFluxesOnPatch(const double time, const double dt)=0;
-
-    virtual void conservativeDifferenceOnPatch(const double time,
-                                               const double dt, bool at_syncronization)=0;
 
     virtual void setPhysicalBoundaryConditions(double time)=0;
 

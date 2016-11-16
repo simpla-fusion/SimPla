@@ -91,7 +91,6 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 
 class SAMRAIWorker :
         public SAMRAI::algs::HyperbolicPatchStrategy
-//        ,public SAMRAI::appu::BoundaryUtilityStrategy // for Boundary
 {
 
 public:
@@ -271,29 +270,6 @@ public:
 
     //@}
 
-    /**
-     * This routine is a concrete implementation of the virtual function
-     * in the base class BoundaryUtilityStrategy.  It reads DIRICHLET
-     * boundary state values from the given database with the
-     * given name string idenifier.  The integer location index
-     * indicates the face (in 3D) or edge (in 2D) to which the boundary
-     * condition applies.
-     */
-    void readDirichletBoundaryDataEntry(const boost::shared_ptr<SAMRAI::tbox::Database> &db,
-                                        std::string &db_name, int bdry_location_index);
-
-    /**
-     * This routine is a concrete implementation of the virtual function
-     * in the base class BoundaryUtilityStrategy.  It is a blank implementation
-     * for the purposes of this class.
-     */
-    void readNeumannBoundaryDataEntry(const boost::shared_ptr<SAMRAI::tbox::Database> &db,
-                                      std::string &db_name, int bdry_location_index);
-
-//    void checkUserTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const;
-//
-//    void checkNewPatchTagData(SAMRAI::hier::DataBlockBase &patch, const int tag_index) const;
-
 
     /**
      * Register a VisIt data writer so this class will write
@@ -311,7 +287,6 @@ public:
 private:
     void move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &patch);
 
-private:
     std::shared_ptr<mesh::Worker> m_worker_;
     std::shared_ptr<mesh::Atlas> m_atlas_;
     /*
@@ -651,12 +626,12 @@ create_data_block_t(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::Patch
 //    index_type p_lower[4] = {patch_lower[0], patch_lower[1], patch_lower[2], 0};
 //    index_type p_upper[4] = {patch_upper[0] + 2, patch_upper[1] + 2, patch_upper[2] + 2, depth};
 //
-    VERBOSE << " Create DataBlock "
-            << " Outer Box= {" << o_lower[1] << " , " << o_lower[2] << " , " << o_lower[2] << " },{ "
-                               << o_upper[1] << " , " << o_upper[2] << " , " << o_upper[2] << " } },  "
-            << " Inner Box= {" << i_lower[1] << " , " << i_lower[2] << " , " << i_lower[2] << " },{ "
-                               << i_upper[1] << " , " << i_upper[2] << " , " << i_upper[2] << " } },  "
-            << std::endl;
+//    VERBOSE << " Create DataBlock "
+//            << " Outer Box= {" << o_lower[1] << " , " << o_lower[2] << " , " << o_lower[2] << " },{ "
+//            << o_upper[1] << " , " << o_upper[2] << " , " << o_upper[2] << " } },  "
+//            << " Inner Box= {" << i_lower[1] << " , " << i_lower[2] << " , " << i_lower[2] << " },{ "
+//            << i_upper[1] << " , " << i_upper[2] << " , " << i_upper[2] << " } },  "
+//            << std::endl;
 
 
     std::shared_ptr<mesh::DataBlock> res(nullptr);
@@ -811,10 +786,8 @@ void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const doubl
  *************************************************************************
  */
 
-double SAMRAIWorker::computeStableDtOnPatch(
-        SAMRAI::hier::Patch &patch,
-        const bool initial_time,
-        const double dt_time) { return dt_time; }
+double SAMRAIWorker::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, const bool initial_time,
+                                            const double dt_time) { return dt_time; }
 
 /*
  *************************************************************************
@@ -828,8 +801,6 @@ double SAMRAIWorker::computeStableDtOnPatch(
 
 void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt)
 {
-    move_to(m_worker_, patch);
-    m_worker_->computeFluxesOnPatch(time, dt);
 }
 
 
@@ -846,7 +817,7 @@ void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, con
                                                  const double dt, bool at_syncronization)
 {
     move_to(m_worker_, patch);
-    m_worker_->conservativeDifferenceOnPatch(time, dt, at_syncronization);
+    m_worker_->next_time_step(time, dt);
 }
 
 
@@ -870,7 +841,6 @@ void SAMRAIWorker::tagRichardsonExtrapolationCells(
         const int tag_index,
         const bool uses_gradient_detector_too)
 {
-//    INFORM << "tagRichardsonExtrapolationCells" << patch.getPatchLevelNumber() << std::endl;
 
 
 }
@@ -891,7 +861,6 @@ void SAMRAIWorker::tagGradientDetectorCells(
         const int tag_indx,
         const bool uses_richardson_extrapolation_too)
 {
-//    INFORM << "tagGradientDetectorCells" << patch.getPatchLevelNumber() << std::endl;
 
 }
 
@@ -907,6 +876,7 @@ void SAMRAIWorker::setPhysicalBoundaryConditions(
     m_worker_->setPhysicalBoundaryConditions(fill_time);
 
 }
+
 /*
  *************************************************************************
  *
@@ -916,15 +886,12 @@ void SAMRAIWorker::setPhysicalBoundaryConditions(
  *************************************************************************
  */
 
-#ifdef HAVE_HDF5
-
 void SAMRAIWorker::registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer)
 {
     TBOX_ASSERT(viz_writer);
     d_visit_writer = viz_writer;
 }
 
-#endif
 
 /*
  *************************************************************************
@@ -945,45 +912,6 @@ void SAMRAIWorker::printClassData(std::ostream &os) const
 
 }
 
-/*
- *************************************************************************
- *
- * Routines to read boundary data from input database.
- *
- *************************************************************************
- */
-
-void SAMRAIWorker::readDirichletBoundaryDataEntry(const boost::shared_ptr<SAMRAI::tbox::Database> &db,
-                                                  std::string &db_name,
-                                                  int bdry_location_index)
-{
-//    TBOX_ASSERT(db);
-//    TBOX_ASSERT(!db_name.empty());
-//
-//    if (d_dim == SAMRAI::tbox::Dimension(2))
-//    {
-//        readStateDataEntry(db,
-//                           db_name,
-//                           bdry_location_index,
-//                           d_bdry_edge_uval);
-//    }
-//    if (d_dim == SAMRAI::tbox::Dimension(3))
-//    {
-//        readStateDataEntry(db,
-//                           db_name,
-//                           bdry_location_index,
-//                           d_bdry_face_uval);
-//    }
-}
-
-void SAMRAIWorker::readNeumannBoundaryDataEntry(const boost::shared_ptr<SAMRAI::tbox::Database> &db,
-                                                std::string &db_name,
-                                                int bdry_location_index)
-{
-    NULL_USE(db);
-    NULL_USE(db_name);
-    NULL_USE(bdry_location_index);
-}
 
 struct SAMRAILevelIntegrator : public SAMRAI::algs::HyperbolicLevelIntegrator
 {
@@ -1271,7 +1199,7 @@ void SAMRAITimeIntegrator::next_time_step(Real dt)
 
     MESSAGE << " Time = " << time_now() << " Step = " << step() << std::endl;
 
-    time_integrator->advanceHierarchy(dt, true);
+    time_integrator->advanceHierarchy(dt, false);
 
 }
 
