@@ -178,6 +178,7 @@ void MeshBlock::deploy()
 
     m_is_deployed_ = true;
 
+
 }
 
 //std::shared_ptr<MeshBlock>

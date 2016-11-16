@@ -71,6 +71,8 @@ public:
     virtual void conservativeDifferenceOnPatch(const double time,
                                                const double dt, bool at_syncronization)=0;
 
+    virtual void setPhysicalBoundaryConditions(double time)=0;
+
     /**
       *  deploy data on the mesh block   '''m'''
       *  if m==nullptr then deploy date on the current block

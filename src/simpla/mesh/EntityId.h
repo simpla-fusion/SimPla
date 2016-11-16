@@ -62,7 +62,6 @@ namespace simpla { namespace mesh
  */
 
 
-typedef MeshEntityId64 MeshEntityId;
 
 struct MeshEntityIdHasher
 {
@@ -88,9 +87,9 @@ constexpr inline MeshEntityId operator-(MeshEntityId const &first, MeshEntityId 
 {
     return MeshEntityId{
             first.w,
-            static_cast<int16_t >(first.z - second.z),
-            static_cast<int16_t >(first.y - second.y),
-            static_cast<int16_t >(first.x - second.x)
+            static_cast<u_int16_t >(first.z - second.z),
+            static_cast<u_int16_t >(first.y - second.y),
+            static_cast<u_int16_t >(first.x - second.x)
     };
 }
 
@@ -98,9 +97,9 @@ constexpr inline MeshEntityId operator+(MeshEntityId const &first, MeshEntityId 
 {
     return MeshEntityId{
             first.w,
-            static_cast<int16_t >(first.z + second.z),
-            static_cast<int16_t >(first.y + second.y),
-            static_cast<int16_t >(first.x + second.x)
+            static_cast<u_int16_t >(first.z + second.z),
+            static_cast<u_int16_t >(first.y + second.y),
+            static_cast<u_int16_t >(first.x + second.x)
     };
 }
 
@@ -120,6 +119,7 @@ struct MeshEntityIdCoder_
     /// @name at_level independent
     /// @{
 
+    static constexpr index_type ZERO = static_cast<index_type>((1UL << 13));
     static constexpr int MAX_NUM_OF_NEIGHBOURS = 12;
     static constexpr int ndims = 3;
     static constexpr int MESH_RESOLUTION = 1;
@@ -237,8 +237,10 @@ struct MeshEntityIdCoder_
     template<typename TI>
     static constexpr MeshEntityId pack(TI i0, TI i1, TI i2, int level = 0)
     {
-        return MeshEntityId{static_cast<int16_t>(level), static_cast<int16_t>(i2), static_cast<int16_t>(i1),
-                            static_cast<int16_t>(i0)};
+        return MeshEntityId{static_cast<u_int16_t>(level),
+                            static_cast<u_int16_t>(i2),
+                            static_cast<u_int16_t>(i1),
+                            static_cast<u_int16_t>(i0)};
     }
 
     template<typename T>
@@ -251,31 +253,52 @@ struct MeshEntityIdCoder_
     static constexpr MeshEntityId pack_index(T const &idx, int n_id = 0)
     {
 
-        return pack((idx[0]) << 1,
-                    (idx[1]) << 1,
-                    (idx[2]) << 1) | m_id_to_shift_[n_id];
+        return pack_index4((idx[0]), (idx[1]), (idx[2]));
     }
 
     static constexpr MeshEntityId pack_index(index_type i, index_type j, index_type k, index_type n_id = 0)
     {
-        return pack((i) << 1, (j) << 1, (k) << 1) | m_id_to_shift_[n_id];
+        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1) | m_id_to_shift_[n_id];
+    }
+
+    template<size_t IFORM>
+    static constexpr MeshEntityId pack_index4(index_type i, index_type j, index_type k, index_type n_id = 0)
+    {
+        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1) |
+               m_id_to_shift_[m_sub_index_to_id_[IFORM][n_id]];
     }
 
     static constexpr index_tuple unpack_index(MeshEntityId const &s)
     {
         return index_tuple{
-                static_cast<index_type>(s.x) >> 1,
-                static_cast<index_type>(s.y) >> 1,
-                static_cast<index_type>(s.z) >> 1
+                static_cast<index_type>(s.x >> 1 ) - ZERO,
+                static_cast<index_type>(s.y >> 1 ) - ZERO,
+                static_cast<index_type>(s.z >> 1 ) - ZERO
         };
     }
 
+    static constexpr nTuple<index_type, 4> unpack_index4(MeshEntityId const &s)
+    {
+        return nTuple<index_type, 4> {
+                static_cast<index_type>(s.x >> 1 ) - ZERO,
+                static_cast<index_type>(s.y >> 1 ) - ZERO,
+                static_cast<index_type>(s.z >> 1 ) - ZERO,
+                static_cast<index_type>(  m_id_to_sub_index_[node_id(s)]      )
+        };
+    }
 
 //    template<typename T>
 //    static constexpr T type_cast(MeshEntityId s)
 //    {
 //        return static_cast<T>(unpack(s));
 //    }
+
+
+
+    static constexpr int num_of_ele_in_cell(MeshEntityId s)
+    {
+        return m_id_to_num_of_ele_in_cell_[node_id(s)];
+    }
 
 
     static point_type point(MeshEntityId const &s)
@@ -285,11 +308,6 @@ struct MeshEntityIdCoder_
                 static_cast<Real>(s.y) * _R,
                 static_cast<Real>(s.z) * _R
         };
-    }
-
-    static constexpr int num_of_ele_in_cell(MeshEntityId s)
-    {
-        return m_id_to_num_of_ele_in_cell_[node_id(s)];
     }
 
     static std::tuple<MeshEntityId, point_type> point_global_to_local(point_type const &x, int n_id = 0)
@@ -314,7 +332,7 @@ struct MeshEntityIdCoder_
 
 //! @name id auxiliary functions
 //! @{
-    static constexpr MeshEntityId m_num_to_di_[] = { //
+    static constexpr MeshEntityId m_num_to_id_[] = { //
             {0, 0, 0, 1},
             {0, 0, 1, 0},
             {0, 1, 0, 0}
@@ -322,12 +340,12 @@ struct MeshEntityIdCoder_
 
     static constexpr MeshEntityId DI(int n)
     {
-        return m_num_to_di_[n];
+        return m_num_to_id_[n];
     }
 
     static constexpr MeshEntityId DI(int n, MeshEntityId s)
     {
-        return MeshEntityId{.v=s.v & m_num_to_di_[n].v};
+        return MeshEntityId{.v=s.v & m_num_to_id_[n].v};
     }
 
     static constexpr MeshEntityId dual(MeshEntityId s)
@@ -344,10 +362,10 @@ struct MeshEntityIdCoder_
     static constexpr MeshEntityId rotate(MeshEntityId const &s)
     {
         return MeshEntityId{
-                static_cast<int16_t >(s.w),
-                static_cast<int16_t >((s.z & ~0x1) | (s.y & 0x1)),
-                static_cast<int16_t >((s.y & ~0x1) | (s.x & 0x1)),
-                static_cast<int16_t >((s.x & ~0x1) | (s.z & 0x1))
+                static_cast<u_int16_t >(s.w),
+                static_cast<u_int16_t >((s.z & ~0x1) | (s.y & 0x1)),
+                static_cast<u_int16_t >((s.y & ~0x1) | (s.x & 0x1)),
+                static_cast<u_int16_t >((s.x & ~0x1) | (s.z & 0x1))
 
         };
     }
@@ -355,10 +373,10 @@ struct MeshEntityIdCoder_
     static constexpr MeshEntityId inverse_rotate(MeshEntityId const &s)
     {
         return MeshEntityId{
-                static_cast<int16_t >(s.w),
-                static_cast<int16_t >((s.z & ~0x1) | (s.x & 0x1)),
-                static_cast<int16_t >((s.y & ~0x1) | (s.z & 0x1)),
-                static_cast<int16_t >((s.x & ~0x1) | (s.y & 0x1))
+                static_cast<u_int16_t >(s.w),
+                static_cast<u_int16_t >((s.z & ~0x1) | (s.x & 0x1)),
+                static_cast<u_int16_t >((s.y & ~0x1) | (s.z & 0x1)),
+                static_cast<u_int16_t >((s.x & ~0x1) | (s.y & 0x1))
         };
     }
 
@@ -1042,9 +1060,11 @@ template<int L> constexpr int MeshEntityIdCoder_<L>::m_adjacent_cell_num_[4][8];
 
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_iform_to_num_of_ele_in_cell_[];
 
-template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_num_to_di_[];
+template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_num_to_id_[];
 
 template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_id_to_shift_[];
+
+template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_sub_index_[];
 
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_sub_index_to_id_[4][3];
 

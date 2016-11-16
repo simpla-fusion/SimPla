@@ -15,9 +15,9 @@
 #include <simpla/manifold/Calculus.h>
 #include <simpla/simulation/TimeIntegrator.h>
 
-#define NX 128
-#define NY 128
-#define NZ 128
+#define NX 16
+#define NY 16
+#define NZ 16
 #define omega 1.0
 using namespace simpla;
 
@@ -73,8 +73,15 @@ struct AMRTest : public mesh::Worker
     Real m_k_[3] = {TWOPI / NX, TWOPI / NY, TWOPI / NZ};
     template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
 //    field_type<Real, mesh::VERTEX> phi{"phi", this};
-    field_type<Real, mesh::EDGE> E{"E", this};
+
+    Real epsilon = 1.0;
+    Real mu = 1.0;
     field_type<Real, mesh::FACE> B{"B", this};
+    field_type<Real, mesh::EDGE> E{"E", this};
+    field_type<Real, mesh::EDGE> J{"J", this};
+    field_type<Real, mesh::EDGE> D{"D", this};
+    field_type<Real, mesh::FACE> H{"H", this};
+
 
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Ev{"Ev", this};
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Bv{"Bv", this};
@@ -90,44 +97,50 @@ struct AMRTest : public mesh::Worker
 
     void initialize(Real data_time)
     {
-//        phi.clear();
-        E.clear();
+        FUNCTION_START;
         B.clear();
-//        phi.print(std::cout);
-        auto b = mesh()->inner_index_box();
-        index_type ib = std::get<0>(b)[0];
-        index_type ie = std::get<1>(b)[0];
-        index_type jb = std::get<0>(b)[1];
-        index_type je = std::get<1>(b)[1];
-        index_type kb = std::get<0>(b)[2];
-        index_type ke = std::get<1>(b)[2];
-
-        E.apply([&](point_type const &x)
-                {
-                    return nTuple<Real, 3>{
-                            std::sin(x[0] * m_k_[0]) * std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
-                            std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
-                            std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
-                    };
-                });
+        J.clear();
+        E.foreach([&](point_type const &x)
+                  {
+                      return nTuple<Real, 3>{
+                              std::sin(x[0] * m_k_[0]) * std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
+                              std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
+                              std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
+                      };
+                  });
 
     }
 
+    virtual void setPhysicalBoundaryConditions(double time)
+    {
+        FUNCTION_START;
+
+        LOG_CMD(E.foreach_ghost(0));
+        LOG_CMD(B.foreach_ghost(0));
+    };
+
     double computeStableDtOnPatch(const bool initial_time, const double dt_time)
     {
+        FUNCTION_START;
         return dt_time;
     }
 
     void computeFluxesOnPatch(const double time, const double dt)
     {
-        LOG_CMD(B -= curl(E) * dt * 0.5);
-        LOG_CMD(E += curl(B) * dt);
-        LOG_CMD(B -= curl(E) * dt * 0.5);
+        FUNCTION_START;
+        H = B * mu;
+        D = E * epsilon;
+
     }
 
     void conservativeDifferenceOnPatch(const double time,
                                        const double dt, bool at_syncronization)
     {
+
+        FUNCTION_START;
+
+        E = E + (curl(H) - J) * dt / epsilon;
+        B = B - curl(D / epsilon) * dt;
 //        phi.print(std::cout);
         //        phi += diverge(E) * dt;
     }
@@ -135,9 +148,10 @@ struct AMRTest : public mesh::Worker
     void next_time_step(Real dt)
     {
 
-
+        FUNCTION_START;
 //        phi -= diverge(E) * 3.0 * dt;
     }
+
 
 };
 namespace simpla
@@ -149,7 +163,7 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 int main(int argc, char **argv)
 {
     typedef manifold::CartesianManifold mesh_type; //DummyMesh //
-    logger::set_stdout_level(0);
+    logger::set_stdout_level(100);
     auto worker = std::make_shared<AMRTest<mesh_type>>();
 
     worker->print(std::cout);
@@ -240,15 +254,17 @@ int main(int argc, char **argv)
 
     integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0, 0, 0},
                                                                            {NX, NY, NZ}};
+
+    integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{1, 1, 1};
     integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{0, 0, 0};
     integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{1, 1, 1};
 
     integrator->db["PatchHierarchy"]["max_levels"] = int(3); // Maximum number of levels in hierarchy.
-    integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_1"] = nTuple<int, 3>{2, 2, 2};
-    integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_2"] = nTuple<int, 3>{2, 2, 2};
-    integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_3"] = nTuple<int, 3>{2, 2, 2};
+    integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_1"] = nTuple<int, 3>{2, 2, 1};
+    integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_2"] = nTuple<int, 3>{2, 2, 1};
+    integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_3"] = nTuple<int, 3>{2, 2, 1};
     integrator->db["PatchHierarchy"]["largest_patch_size"]["level_0"] = nTuple<int, 3>{32, 32, 32};
-    integrator->db["PatchHierarchy"]["smallest_patch_size"]["level_0"] = nTuple<int, 3>{16, 16, 16};
+    integrator->db["PatchHierarchy"]["smallest_patch_size"]["level_0"] = nTuple<int, 3>{4, 4, 4};
 
     integrator->db["GriddingAlgorithm"];
 
@@ -280,12 +296,12 @@ int main(int argc, char **argv)
     integrator->deploy();
     integrator->check_point();
 
-    Real dt = 1.0;
+    Real dt = 0.10;
 
     INFORM << "***********************************************" << std::endl;
 
 
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < 20; ++i)
     {
         integrator->next_time_step(dt);
         integrator->check_point();

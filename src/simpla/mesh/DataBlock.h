@@ -50,6 +50,9 @@ public:
 
     virtual void destroy() =0;
 
+    virtual void clear()=0;
+
+
 };
 
 template<typename TV, MeshEntityType IFORM>
@@ -78,9 +81,9 @@ public:
 
     virtual std::string name() const { return ""; }
 
-    virtual void load(data::DataBase const &) {};
+    virtual void load(data::DataBase const &) { UNIMPLEMENTED; };
 
-    virtual void save(data::DataBase *) const {};
+    virtual void save(data::DataBase *) const { UNIMPLEMENTED; };
 
     virtual std::ostream &print(std::ostream &os, int indent) const
     {
@@ -105,6 +108,8 @@ public:
 
     virtual void destroy() { data_entity_type::destroy(); };
 
+    virtual void clear() { data_entity_type::clear(); }
+
     virtual void sync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
 
     template<typename ...Args>
@@ -113,11 +118,38 @@ public:
     template<typename ...Args>
     value_type const &get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
 
-    value_type &get(MeshEntityId const &s) { return get(s.x >> 1, s.y >> 1, s.z >> 1, s.w); }
+    value_type &get(MeshEntityId const &s)
+    {
+        auto &res = get(mesh::MeshEntityIdCoder::unpack_index4(s));
+//        if (std::isnan(res))
+//        {
+//            VERBOSE << "IFORM= " << entity_type() << " [ size = " << data_entity_type::size() << "]"
+//                    << mesh::MeshEntityIdCoder::unpack_index4(s) << std::endl;
+//        }
 
-    template<typename ...Args>
-    value_type const &get(MeshEntityId const &s) const { return get(s.x >> 1, s.y >> 1, s.z >> 1, s.w); }
+
+        return res;
+
+    }
+
+    value_type const &get(MeshEntityId const &s) const
+    {
+        auto const &res = get(mesh::MeshEntityIdCoder::unpack_index4(s));
+//        if (std::isnan(res))
+//        {
+//            VERBOSE << "IFORM= " << entity_type() << mesh::MeshEntityIdCoder::unpack_index4(s) << std::endl;
+//        }
+
+
+        return res;
+
+    }
+
+
+private:
+    index_tuple m_ghost_width_{{0, 0, 0}};
 };
 }}//namespace simpla { namespace mesh
 
 #endif //SIMPLA_PATCH_H
+

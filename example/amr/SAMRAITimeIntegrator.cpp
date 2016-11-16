@@ -76,12 +76,6 @@
 #include <SAMRAI/appu/CartesianBoundaryDefines.h>
 
 
-// Number of ghosts cells used for each variable quantity
-#define CELLG (4)
-#define FACEG (4)
-#define FLUXG (1)
-
-
 namespace simpla
 {
 struct SAMRAIWorker;
@@ -199,9 +193,8 @@ public:
             SAMRAI::hier::Patch &patch,
             const double fill_time,
             const SAMRAI::hier::IntVector &
-            ghost_width_to_fill)
-    {
-    }
+            ghost_width_to_fill);
+
 
     SAMRAI::hier::IntVector
     getRefineOpStencilWidth(const SAMRAI::tbox::Dimension &dim) const { return SAMRAI::hier::IntVector::getZero(dim); }
@@ -316,7 +309,7 @@ public:
     void printClassData(std::ostream &os) const;
 
 private:
-    void move_to(SAMRAI::hier::Patch &patch);
+    void move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &patch);
 
 private:
     std::shared_ptr<mesh::Worker> m_worker_;
@@ -365,11 +358,10 @@ SAMRAIWorker::SAMRAIWorker(
         d_dim(dim),
         d_grid_geometry(grid_geom),
         d_use_nonuniform_workload(false),
-        d_nghosts(dim, CELLG),
-        d_fluxghosts(dim, FLUXG)
+        d_nghosts(dim, 4),
+        d_fluxghosts(dim, 4)
 {
     TBOX_ASSERT(grid_geom);
-    TBOX_ASSERT(CELLG == FACEG);
 }
 
 /*
@@ -634,39 +626,78 @@ template<typename TV>
 std::shared_ptr<mesh::DataBlock>
 create_data_block_t(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
+
     auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
+
 
     int ndims = p_data->getDim().getValue();
 
-    auto lo = p_data->getGhostBox().lower();
-    auto up = p_data->getGhostBox().upper();
     int depth = p_data->getDepth();
-    index_type i_lo[4] = {lo[0], lo[1], lo[2], 0};
-    index_type i_up[4] = {up[0] + 2, up[1] + 2, up[2] + 2, depth};
+
+
+    auto outer_lower = p_data->getGhostBox().lower();
+    auto outer_upper = p_data->getGhostBox().upper();
+
+    auto inner_lower = p_data->getBox().lower();
+    auto inner_upper = p_data->getBox().upper();
+    index_type o_lower[4] = {outer_lower[0], outer_lower[1], outer_lower[2], 0};
+    index_type o_upper[4] = {outer_upper[0] + 2, outer_upper[1] + 2, outer_upper[2] + 2, depth};
+
+    index_type i_lower[4] = {inner_lower[0], inner_lower[1], inner_lower[2], 0};
+    index_type i_upper[4] = {inner_upper[0] + 2, inner_upper[1] + 2, inner_upper[2] + 2, depth};
+
+//    auto patch_lower = patch.getBox().lower();
+//    auto patch_upper = patch.getBox().upper();
+//    index_type p_lower[4] = {patch_lower[0], patch_lower[1], patch_lower[2], 0};
+//    index_type p_upper[4] = {patch_upper[0] + 2, patch_upper[1] + 2, patch_upper[2] + 2, depth};
+//
+    VERBOSE << " Create DataBlock "
+            << " Outer Box= {" << o_lower[1] << " , " << o_lower[2] << " , " << o_lower[2] << " },{ "
+                               << o_upper[1] << " , " << o_upper[2] << " , " << o_upper[2] << " } },  "
+            << " Inner Box= {" << i_lower[1] << " , " << i_lower[2] << " , " << i_lower[2] << " },{ "
+                               << i_upper[1] << " , " << i_upper[2] << " , " << i_upper[2] << " } },  "
+            << std::endl;
+
+
+    std::shared_ptr<mesh::DataBlock> res(nullptr);
 
     switch (item->entity_type())
     {
         case mesh::VERTEX:
-            return std::dynamic_pointer_cast<mesh::DataBlock>(
-                    std::make_shared<mesh::DataBlockArray<TV, mesh::VERTEX>>(p_data->getPointer(0), ndims, i_lo, i_up,
-                                                                             data::FAST_FIRST));
+            res = std::dynamic_pointer_cast<mesh::DataBlock>(
+                    std::make_shared<mesh::DataBlockArray<TV, mesh::VERTEX>>(p_data->getPointer(), ndims,
+                                                                             o_lower, o_upper,
+                                                                             data::FAST_FIRST,
+                                                                             i_lower, i_upper));
+            break;
         case mesh::EDGE:
-            return std::dynamic_pointer_cast<mesh::DataBlock>(
-                    std::make_shared<mesh::DataBlockArray<TV, mesh::EDGE>>(p_data->getPointer(0), ndims + 1, i_lo, i_up,
-                                                                           data::FAST_FIRST));
+            res = std::dynamic_pointer_cast<mesh::DataBlock>(
+                    std::make_shared<mesh::DataBlockArray<TV, mesh::EDGE>>(p_data->getPointer(), ndims + 1,
+                                                                           o_lower, o_upper,
+                                                                           data::FAST_FIRST,
+                                                                           i_lower, i_upper));
+            break;
         case mesh::FACE:
-            return std::dynamic_pointer_cast<mesh::DataBlock>(
-                    std::make_shared<mesh::DataBlockArray<TV, mesh::FACE>>(p_data->getPointer(0), ndims + 1, i_lo, i_up,
-                                                                           data::FAST_FIRST));
+            res = std::dynamic_pointer_cast<mesh::DataBlock>(
+                    std::make_shared<mesh::DataBlockArray<TV, mesh::FACE>>(p_data->getPointer(), ndims + 1,
+                                                                           o_lower, o_upper,
+                                                                           data::FAST_FIRST,
+                                                                           i_lower, i_upper));
+            break;
         case mesh::VOLUME:
-            return std::dynamic_pointer_cast<mesh::DataBlock>(
-                    std::make_shared<mesh::DataBlockArray<TV, mesh::VOLUME>>(p_data->getPointer(0), ndims, i_lo, i_up,
-                                                                             data::FAST_FIRST));
+            res = std::dynamic_pointer_cast<mesh::DataBlock>(
+                    std::make_shared<mesh::DataBlockArray<TV, mesh::VOLUME>>(p_data->getPointer(), ndims,
+                                                                             o_lower, o_upper,
+                                                                             data::FAST_FIRST,
+                                                                             i_lower, i_upper));
+            break;
         default:
             RUNTIME_ERROR << " EntityType is not supported!" << std::endl;
+            break;
     }
 
 
+    return res;
 }
 
 std::shared_ptr<mesh::DataBlock>
@@ -680,13 +711,14 @@ create_data_block(mesh::Attribute *item, mesh::MeshBlock const *m, boost::shared
     else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
 
     item->insert(m, res);
+
     return res;
 }
 }//namespace detail
 
 
 void
-SAMRAIWorker::move_to(SAMRAI::hier::Patch &patch)
+SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &patch)
 {
 
     auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
@@ -711,8 +743,9 @@ SAMRAIWorker::move_to(SAMRAI::hier::Patch &patch)
 
     std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, dx, xlo, xhi);
     m->id(patch.getBox().getLocalId().getValue());
-    m_worker_->move_to(m);
-    m_worker_->for_each(
+    m->deploy();
+    w->move_to(m);
+    w->for_each(
             [&](mesh::Worker::Observer &ob)
             {
                 auto *attr = ob.attribute();
@@ -722,6 +755,8 @@ SAMRAIWorker::move_to(SAMRAI::hier::Patch &patch)
                 ob.move_to(m, detail::create_data_block(
                         attr, m.get(),
                         patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext())));
+
+
             }
     );
 }
@@ -741,11 +776,12 @@ void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const doubl
 {
 
 
-    if (initial_time)
+    if (patch.getPatchLevelNumber() == 0 && initial_time)
     {
-        move_to(patch);
+        move_to(m_worker_, patch);
         m_worker_->initialize(data_time);
-    };
+    }
+
 
     if (d_use_nonuniform_workload)
     {
@@ -792,7 +828,7 @@ double SAMRAIWorker::computeStableDtOnPatch(
 
 void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt)
 {
-    move_to(patch);
+    move_to(m_worker_, patch);
     m_worker_->computeFluxesOnPatch(time, dt);
 }
 
@@ -809,7 +845,7 @@ void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double
 void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, const double time,
                                                  const double dt, bool at_syncronization)
 {
-    move_to(patch);
+    move_to(m_worker_, patch);
     m_worker_->conservativeDifferenceOnPatch(time, dt, at_syncronization);
 }
 
@@ -859,6 +895,18 @@ void SAMRAIWorker::tagGradientDetectorCells(
 
 }
 
+
+void SAMRAIWorker::setPhysicalBoundaryConditions(
+        SAMRAI::hier::Patch &patch,
+        const double fill_time,
+        const SAMRAI::hier::IntVector &
+        ghost_width_to_fill)
+{
+    move_to(m_worker_, patch);
+
+    m_worker_->setPhysicalBoundaryConditions(fill_time);
+
+}
 /*
  *************************************************************************
  *

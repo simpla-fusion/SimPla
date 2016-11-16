@@ -33,7 +33,7 @@ class EntityIdRange
     std::shared_ptr<EntityIdRange> m_next_;
     std::shared_ptr<RangeBase> m_holder_;
 
-    typedef MeshEntityId64 id_type;
+    typedef MeshEntityId id_type;
 public :
 
     EntityIdRange() : m_next_(nullptr), m_holder_(nullptr) {}

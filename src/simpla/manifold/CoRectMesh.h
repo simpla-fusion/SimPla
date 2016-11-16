@@ -174,7 +174,7 @@ void CoRectMesh::deploy()
     m_dual_volume_[3 /*011*/] = m_volume_[4];
     m_dual_volume_[5 /*101*/] = m_volume_[2];
     m_dual_volume_[6 /*110*/] = m_volume_[1];
-    m_dual_volume_[7 /*110*/] = m_volume_[0];
+    m_dual_volume_[7 /*111*/] = m_volume_[0];
 
 
     m_inv_volume_[0 /*000*/] = 1;
@@ -184,7 +184,7 @@ void CoRectMesh::deploy()
     m_inv_volume_[3 /*011*/] = m_inv_volume_[2] * m_inv_volume_[1];
     m_inv_volume_[5 /*101*/] = m_inv_volume_[4] * m_inv_volume_[1];
     m_inv_volume_[6 /*110*/] = m_inv_volume_[4] * m_inv_volume_[2];
-    m_inv_volume_[7 /*110*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
+    m_inv_volume_[7 /*111*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
 
 
     m_inv_volume_[1 /*001*/] = (dims[0] == 1) ? 0 : m_inv_volume_[1];
@@ -199,7 +199,8 @@ void CoRectMesh::deploy()
     m_inv_dual_volume_[3 /*011*/] = m_inv_volume_[4];
     m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
     m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
-    m_inv_dual_volume_[7 /*110*/] = m_inv_volume_[0];
+    m_inv_dual_volume_[7 /*111*/] = m_inv_volume_[0];
+
 
 
 }
