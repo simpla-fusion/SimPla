@@ -15,9 +15,10 @@
 #include <simpla/manifold/Calculus.h>
 #include <simpla/simulation/TimeIntegrator.h>
 
-#define NX 16
-#define NY 16
-#define NZ 16
+#define NX 128
+#define NY 128
+#define NZ 128
+#define omega 1.0
 using namespace simpla;
 
 class DummyMesh : public mesh::MeshBlock
@@ -101,31 +102,14 @@ struct AMRTest : public mesh::Worker
         index_type kb = std::get<0>(b)[2];
         index_type ke = std::get<1>(b)[2];
 
-//        E.for_each(_impl::_assign(),
-//                   [&](index_type i, index_type k, index_type j, index_type n)
-//                   {
-//                       return i;
-//                   });
-        for (index_type i = ib; i <= ie + 1; ++i)
-        {
-            for (index_type j = jb; j <= je + 1; ++j)
-            {
-                for (index_type k = kb; k <= ke + 1; ++k)
+        E.apply([&](point_type const &x)
                 {
-                    E(i, j, k, 0) = std::sin(i * m_k_[0]) * std::sin(j * m_k_[1]) * std::sin(k * m_k_[2]);
-//                    E(i, j, k, 1) = std::cos(i * m_k_[0]) * std::cos(j * m_k_[1]) * std::cos(k * m_k_[2]);
-//                    E(i, j, k, 2) = std::sin(i * m_k_[0]) * std::cos(j * m_k_[1]) * std::sin(k * m_k_[2]);
-                }
-            }
-        }
-
-//        phi.assign_function(
-//                [&](point_type const &x)
-//                {
-//                    return std::sin(x[0] * m_k_[0]) * std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]);
-//                });
-
-//        phi.print(std::cout);
+                    return nTuple<Real, 3>{
+                            std::sin(x[0] * m_k_[0]) * std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
+                            std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
+                            std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
+                    };
+                });
 
     }
 
@@ -164,8 +148,8 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 
 int main(int argc, char **argv)
 {
-    typedef DummyMesh mesh_type; //manifold::CartesianManifold
-    logger::set_stdout_level(100);
+    typedef manifold::CartesianManifold mesh_type; //DummyMesh //
+    logger::set_stdout_level(0);
     auto worker = std::make_shared<AMRTest<mesh_type>>();
 
     worker->print(std::cout);

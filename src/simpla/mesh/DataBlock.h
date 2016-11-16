@@ -113,10 +113,10 @@ public:
     template<typename ...Args>
     value_type const &get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
 
-    value_type &get(MeshEntityId const &s) { return get(s.x, s.y, s.z, s.w); }
+    value_type &get(MeshEntityId const &s) { return get(s.x >> 1, s.y >> 1, s.z >> 1, s.w); }
 
     template<typename ...Args>
-    value_type const &get(MeshEntityId const &s) const { return get(s.x, s.y, s.z, s.w); }
+    value_type const &get(MeshEntityId const &s) const { return get(s.x >> 1, s.y >> 1, s.z >> 1, s.w); }
 };
 }}//namespace simpla { namespace mesh
 

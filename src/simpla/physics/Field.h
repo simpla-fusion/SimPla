@@ -47,9 +47,6 @@ public:
     typedef typename traits::field_value_type<this_type>::type field_value_type;
     typedef TManifold mesh_type;
     typedef TV value_type;
-    using base_type::entity_type;
-
-    using base_type::value_type_info;
 private:
     typedef typename mesh_type::template data_block_type<TV, IFORM> data_block_type;
 
@@ -79,6 +76,9 @@ public:
 
     Field(this_type &&other) = delete;
 
+    using base_type::entity_type;
+    using base_type::value_type_info;
+
     virtual bool is_a(std::type_info const &t_info) const
     {
         return t_info == typeid(this_type) || base_type::is_a(t_info);
@@ -88,7 +88,6 @@ public:
     virtual void clear()
     {
         deploy();
-        ASSERT(m_data_ != nullptr);
         m_data_->clear();
     }
 
@@ -139,81 +138,170 @@ public:
 
     this_type &operator=(this_type const &other)
     {
-        apply(_impl::_assign(), mesh::SP_ES_ALL, other);
+        apply(mesh::SP_ES_ALL, other);
         return *this;
     }
 
     template<typename ...U> inline this_type &
     operator=(Field<U...> const &other)
     {
-        apply(_impl::_assign(), mesh::SP_ES_ALL, other);
+        apply(mesh::SP_ES_ALL, other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator=(Other const &other)
     {
-        apply(_impl::_assign(), mesh::SP_ES_ALL, other);
+        apply(mesh::SP_ES_ALL, other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator+=(Other const &other)
     {
-        apply(_impl::plus_assign(), mesh::SP_ES_ALL, other);
+        apply(mesh::SP_ES_ALL, *this + other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator-=(Other const &other)
     {
-        apply(_impl::minus_assign(), mesh::SP_ES_ALL, other);
+        apply(mesh::SP_ES_ALL, *this - other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator*=(Other const &other)
     {
-        apply(_impl::multiplies_assign(), mesh::SP_ES_ALL, other);
+        apply(mesh::SP_ES_ALL, *this * other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator/=(Other const &other)
     {
-        apply(_impl::divides_assign(), mesh::SP_ES_ALL, other);
+        apply(mesh::SP_ES_ALL, *this / other);
         return *this;
     }
 
-    template<typename TOther> void
-    assign(TOther const &v)
-    {
-        apply(_impl::_assign(), mesh::SP_ES_ALL, v);
-    }
+    template<typename ...Args> void
+    assign(Args &&...args) { apply(std::forward<Args>(args)...); }
 
     /* @}*/
 
-
-    template<typename TOP, typename TOther>
-    void apply(TOP const &op, mesh::MeshZoneTag tag, TOther const &expr)
+    template<typename U> void
+    apply(mesh::EntityIdRange const &r0, U const &v,
+          ENABLE_IF((std::is_arithmetic<U>::value || std::is_same<U, value_type>::value)))
     {
         deploy();
-        m_mesh_->for_each(entity_type(), tag,
-                          [&](index_type i, index_type j, index_type k, index_type n)
-                          {
-                              op(m_data_->get(i, j, k, n),
-                                 m_mesh_->eval(expr, mesh::MeshEntityIdCoder::pack_index(i, j, k, n)));
-                          });
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = v; });
     }
 
-    template<typename TOP, typename TFun>
-    void for_each(TOP const &op, TFun const &fun) { m_data_->for_each(op, fun); }
 
-public:
+    template<typename ...U>
+    void apply(mesh::EntityIdRange const &r0, Field<Expression<U...>> const &expr)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = m_mesh_->eval(expr, s); });
 
-    void copy(mesh::EntityIdRange const &r0, this_type const &g) {}
+    }
 
-    virtual void copy(mesh::EntityIdRange const &r0, mesh::DataBlock const &other) {}
+    template<typename TFun, typename ...U> void
+    apply(mesh::EntityIdRange const &r0, std::function<value_type(point_type const &, U const &...)> const &fun,
+          U &&...args)
+    {
+        deploy();
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_mesh_->point(s), std::forward<U>(args)...); });
+    }
+
+
+    template<typename TFun> void
+    apply(mesh::EntityIdRange const &r0, TFun const &fun,
+          ENABLE_IF((std::is_same<typename std::result_of<TFun(point_type const &)>::type, field_value_type>::value))
+    )
+    {
+        deploy();
+        r0.foreach(
+                [&](mesh::MeshEntityId const &s)
+                {
+                    get(s) = m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s)));
+                });
+    }
+
+    template<typename U> void
+    apply(U const &v,
+          ENABLE_IF((std::is_arithmetic<U>::value || std::is_same<U, value_type>::value)))
+    {
+        deploy();
+
+        m_data_->foreach(
+                [&](index_type i, index_type j, index_type k, index_type l)
+                {
+                    return v;
+                });
+    }
+
+
+    template<typename ...U>
+    void apply(Field<Expression<U...>> const &expr)
+    {
+        deploy();
+
+        m_data_->foreach(
+                [&](index_type i, index_type j, index_type k, index_type l)
+                {
+                    auto s = mesh::MeshEntityIdCoder::pack_index(i, j, k, l);
+                    return m_mesh_->eval(expr, s);
+                });
+
+    }
+
+
+    template<typename TFun> void
+    apply(TFun const &fun,
+          ENABLE_IF((std::is_same<typename std::result_of<TFun(point_type const &)>::type, field_value_type>::value))
+    )
+    {
+        deploy();
+
+        m_data_->foreach(
+                [&](index_type i, index_type j, index_type k, index_type l)
+                {
+                    auto s = mesh::MeshEntityIdCoder::pack_index(i, j, k, l);
+                    return m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s)));
+                });
+
+
+    }
+
+    template<typename ...Args> void
+    apply(mesh::MeshZoneTag const &tag, Args &&...args)
+    {
+        deploy();
+        if (tag == mesh::SP_ES_ALL)
+        {
+            apply(std::forward<Args>(args)...);
+        } else
+        {
+            apply(m_mesh_->range(entity_type(), tag), std::forward<Args>(args)...);
+        }
+    }
+
+    void copy(mesh::EntityIdRange const &r0, this_type const &g)
+    {
+//        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = g.get(s); });
+    }
+
+
+    virtual void copy(mesh::EntityIdRange const &r0, mesh::DataBlock const &other)
+    {
+//        assert(other.is_a(typeid(this_type)));
+//
+//        this_type const &g = static_cast<this_type const & >(other);
+//
+//        copy(r0, static_cast<this_type const & >(other));
+
+    }
 
 
 };

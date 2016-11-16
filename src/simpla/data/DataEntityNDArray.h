@@ -238,17 +238,24 @@ private:
     inline constexpr size_type hash(nTuple<index_type, 3> const idx) const { return hash(idx[0], idx[1], idx[2]); }
 
 public:
-    template<typename TOP, typename TFUN>
-    void for_each(TOP const &op, TFUN const &fun)
+    template<typename TFUN>
+    void foreach(TFUN const &fun)
     {
         ASSERT(m_ndims_ <= 4);
-//#pragma omp parallel for
-        for (int i = 1; i < m_count_[0] - 1; ++i)
-            for (int j = 1; j < m_count_[1] - 1; ++j)
-                for (int k = 1; k < m_count_[2] - 1; ++k)
-                    for (int l = 0; l < m_count_[3]; ++l)
+
+        index_type ib = m_start_[0], ie = m_start_[0] + m_count_[0];
+        index_type jb = m_start_[1], je = m_start_[1] + m_count_[1];
+        index_type kb = m_start_[2], ke = m_start_[2] + m_count_[2];
+        index_type lb = m_start_[3], le = m_start_[3] + m_count_[3];
+
+
+#pragma omp parallel for
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k)
+                    for (index_type l = lb; l < le; ++l)
                     {
-                        op(get(i, j, k, l), fun(i, j, k, l));
+                        get(i, j, k, l) = fun(i, j, k, l);
                     }
 
 
