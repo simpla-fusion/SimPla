@@ -149,14 +149,6 @@ public:
 
     virtual std::shared_ptr<mesh::MeshBlock> clone() const { return std::make_shared<this_type>(*this); };
 
-//    virtual std::shared_ptr<mesh::MeshBlock> clone(std::string const &s) const
-//    {
-//        auto res = clone();
-////        if (s != "") { res->name_=(s); }
-//        return res;
-//
-//    };
-
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || TMesh::is_a(info); }
 
     virtual std::string get_class_name() const { return class_name(); }

@@ -22,7 +22,7 @@
 #include "../Field.h"
 #include "../FieldTraits.h"
 #include "../FieldExpression.h"
-#include "../../manifold/CoRectMesh.h"
+#include "simpla/mesh/CartesianCoRectMesh.h"
 #include "../../manifold/ManifoldTraits.h"
 
 using namespace simpla;

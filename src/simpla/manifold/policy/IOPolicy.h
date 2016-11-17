@@ -70,7 +70,7 @@ public:
 
     virtual void set_grid()
     {
-        if (m_geo_.topology_type() == "CoRectMesh")
+        if (m_geo_.topology_type() == "CartesianCoRectMesh")
         {
             int ndims = m_geo_.ndims;
 

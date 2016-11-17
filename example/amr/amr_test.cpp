@@ -6,9 +6,8 @@
 
 #include <iostream>
 #include <simpla/manifold/pre_define/PreDefine.h>
-
-#include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Atlas.h>
+#include <simpla/mesh/CartesianCoRectMesh.h>
 #include <simpla/physics/Field.h>
 #include <simpla/physics/Constants.h>
 
@@ -31,10 +30,7 @@ struct AMRTest : public mesh::Worker
 
     ~AMRTest() {}
 
-
     SP_OBJECT_HEAD(AMRTest, mesh::Worker);
-
-    Real m_k_[3] = {TWOPI / NX, TWOPI / NY, TWOPI / NZ};
 
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1>
     using field_type=Field<TV, mesh_type, index_const<IFORM>, index_const<DOF>>;
@@ -77,7 +73,7 @@ struct AMRTest : public mesh::Worker
 //                      };
 //                  });
 //        xyz.clear();
-//
+
         xyz.foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
@@ -91,11 +87,9 @@ struct AMRTest : public mesh::Worker
                         case 1:
                             res = (1 + x[0]) * std::sin(x[1]);
                             break;
-
                         case 2:
                             res = x[2];
                             break;
-
                         default :
                             break;
                     }
@@ -136,8 +130,9 @@ int main(int argc, char **argv)
 {
     logger::set_stdout_level(100);
 
-    auto integrator = simpla::create_time_integrator("AMR_TEST",
-                                                     std::make_shared<AMRTest<manifold::CartesianManifold>>());
+    typedef manifold::CartesianManifold mesh_type;
+
+    auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<mesh_type>>());
 
     integrator->deploy();
 

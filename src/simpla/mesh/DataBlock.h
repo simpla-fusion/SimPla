@@ -11,13 +11,14 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/data/DataEntityNDArray.h>
 #include "MeshCommon.h"
-#include "MeshBlock.h"
+#include "EntityId.h"
 
 namespace simpla { namespace mesh
 {
 /**
  *  Base class of Data Blocks (pure virtual)
  */
+class MeshBlock;
 
 struct DataBlock : public concept::Serializable, public concept::Printable
 {
@@ -118,9 +119,9 @@ public:
     template<typename ...Args>
     value_type const &get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
 
-    value_type &get(MeshEntityId const &s) { return get(mesh::MeshEntityIdCoder::unpack_index4(s)); }
+    value_type &get(MeshEntityId const &s) { return get(MeshEntityIdCoder::unpack_index4(s)); }
 
-    value_type const &get(MeshEntityId const &s) const { return get(mesh::MeshEntityIdCoder::unpack_index4(s)); }
+    value_type const &get(MeshEntityId const &s) const { return get(MeshEntityIdCoder::unpack_index4(s)); }
 
 
 private:

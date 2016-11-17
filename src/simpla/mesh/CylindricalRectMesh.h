@@ -8,19 +8,17 @@
 
 #include <vector>
 #include <iomanip>
+#include <simpla/SIMPLA_config.h>
 
-#include "../toolbox/macro.h"
-#include "../sp_def.h"
-#include "../toolbox/nTuple.h"
-#include "../toolbox/nTupleExt.h"
-#include "../toolbox/PrettyStream.h"
-#include "../toolbox/type_traits.h"
-#include "../toolbox/type_cast.h"
-#include "../toolbox/Log.h"
+#include <simpla/toolbox/macro.h>
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/type_traits.h>
+#include <simpla/toolbox/type_cast.h>
+#include <simpla/toolbox/Log.h>
 
-
-#include "RectMesh.h"
-
+#include "MeshBlock.h"
 
 namespace simpla { namespace mesh
 {
@@ -31,11 +29,11 @@ namespace simpla { namespace mesh
  *
  * @brief Uniform structured get_mesh
  */
-struct CylindricalRectMesh : public RectMesh
+struct CylindricalRectMesh : public MeshBlock
 {
 private:
     typedef CylindricalRectMesh this_type;
-    typedef Chart base_type;
+    typedef MeshBlock base_type;
 public:
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
 
@@ -49,106 +47,30 @@ public:
 
     CylindricalRectMesh() {}
 
-    CylindricalRectMesh(this_type const &other) : RectMesh(other)
-    {
-
-    };
+    CylindricalRectMesh(this_type const &other) : MeshBlock(other) {};
 
     virtual  ~CylindricalRectMesh() {}
-
-
-    virtual io::IOStream &save(io::IOStream &os) const
-    {
-//        os.open(type_cast<std::string>(this->short_id()) + "/");
-//        os.set_attribute(".topology_dims", dimensions());
-//        os.set_attribute(".box", box());
-        return os;
-    };
-
-
-    point_type m_dx_;
-    point_type m_inv_dx_;
 
     std::vector<Real> m_volume_[9];
     std::vector<Real> m_inv_volume_[9];
     std::vector<Real> m_dual_volume_[9];
     std::vector<Real> m_inv_dual_volume_[9];
+
 public:
 
-    vector_type const &dx() const { return m_dx_; }
 
+    virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)][m::sub_index(s)]; }
 
-    virtual point_type
-    point(MeshEntityId const &s) const
-    {
-        UNIMPLEMENTED;
-        point_type p = m::point(s);
+    virtual Real dual_volume(MeshEntityId s) const { return m_dual_volume_[m::node_id(s)][m::sub_index(s)]; }
 
-//        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
-//        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
-//        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
+    virtual Real inv_volume(MeshEntityId s) const { return m_inv_volume_[m::node_id(s)][m::sub_index(s)]; }
 
-        return std::move(p);
-
-    }
-
-    virtual point_type
-    point_local_to_global(MeshEntityId s, point_type const &r) const
-    {
-        UNIMPLEMENTED;
-        point_type p = m::point_local_to_global(s, r);
-
-//        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
-//        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
-//        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
-
-        return std::move(p);
-    }
-
-    virtual std::tuple<MeshEntityId, point_type>
-    point_global_to_local(point_type const &g, int nId = 0) const
-    {
-        UNIMPLEMENTED;
-
-        return m::point_global_to_local(point_type{0, 0, 0}, nId);
-    }
-
-    virtual index_tuple
-    point_to_index(point_type const &g, int nId = 0) const
-    {
-        UNIMPLEMENTED;
-        return m::unpack_index(std::get<0>(m::point_global_to_local(point_type{0, 0, 0}, nId)));
-    };
-
-    virtual void box(box_type const &)
-    {
-        UNIMPLEMENTED;
-    };
-
-    virtual box_type box(MeshEntityStatus status = SP_ES_OWNED) const
-    {
-        UNIMPLEMENTED;
-        return box_type{};
-    };
-
-    virtual index_box_type index_box(box_type const &b) const
-    {
-        UNIMPLEMENTED;
-        return index_box_type{};
-    };
-
-    virtual Real volume(id_type s) const { return m_volume_[m::node_id(s)][hash(s)]; }
-
-    virtual Real dual_volume(id_type s) const { return m_dual_volume_[m::node_id(s)][hash(s)]; }
-
-    virtual Real inv_volume(id_type s) const { return m_inv_volume_[m::node_id(s)][hash(s)]; }
-
-    virtual Real inv_dual_volume(id_type s) const { return m_inv_dual_volume_[m::node_id(s)][hash(s)]; }
+    virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)][m::sub_index(s)]; }
 
     void deploy()
     {
 
-        RectMesh::deploy();
+        base_type::deploy();
         /**
              *\verbatim
              *                ^y

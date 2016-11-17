@@ -11,10 +11,10 @@
 #include <vector>
 #include <iomanip>
 
-#include "../mesh/DataBlock.h"
-#include "../mesh/MeshCommon.h"
-#include "../mesh/MeshBlock.h"
-#include "../mesh/EntityId.h"
+#include "DataBlock.h"
+#include "MeshCommon.h"
+#include "MeshBlock.h"
+#include "EntityId.h"
 
 namespace simpla { namespace mesh
 {
@@ -26,13 +26,13 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CoRectMesh : public MeshBlock
+struct CartesianCoRectMesh : public MeshBlock
 {
 
 public:
     static constexpr unsigned int NDIMS = 3;
 
-    SP_OBJECT_HEAD(CoRectMesh, MeshBlock)
+    SP_OBJECT_HEAD(CartesianCoRectMesh, MeshBlock)
 
     typedef Real scalar_type;
 
@@ -72,12 +72,12 @@ public:
 
     template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<TV, IFORM>;
 
-    CoRectMesh() {}
+    CartesianCoRectMesh() {}
 
     template<typename ...Args>
-    CoRectMesh(Args &&...args): MeshBlock(std::forward<Args>(args)...) {};
+    CartesianCoRectMesh(Args &&...args): MeshBlock(std::forward<Args>(args)...) {};
 
-    CoRectMesh(CoRectMesh const &other) : MeshBlock(other)
+    CartesianCoRectMesh(CartesianCoRectMesh const &other) : MeshBlock(other)
     {
 
         for (int i = 0; i < 9; ++i)
@@ -91,11 +91,11 @@ public:
 
     };
 
-    virtual  ~CoRectMesh() {}
+    virtual  ~CartesianCoRectMesh() {}
 
     virtual void deploy();
 
-    virtual std::shared_ptr<MeshBlock> clone() const { return std::make_shared<CoRectMesh>(*this); };
+    virtual std::shared_ptr<MeshBlock> clone() const { return std::make_shared<CartesianCoRectMesh>(*this); };
 
     template<typename TV, mesh::MeshEntityType IFORM>
     std::shared_ptr<mesh::DataBlock> create_data_block(void *p) const
@@ -131,7 +131,7 @@ public:
 
 }; // struct  Mesh
 
-void CoRectMesh::deploy()
+void CartesianCoRectMesh::deploy()
 {
     MeshBlock::deploy();
     /**
