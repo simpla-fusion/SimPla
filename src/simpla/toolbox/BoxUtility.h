@@ -53,6 +53,16 @@ is_inside(Box3<T> const &left, Box3<T> const &right)
            (std::get<1>(left)[2] <= std::get<1>(right)[2]);
 }
 
+template<typename T> constexpr inline bool
+is_inside(Point3<T> const &p, Box3<T> const &b)
+{
+    return (p[0] >= std::get<0>(b)[0]) &&
+           (p[1] >= std::get<0>(b)[1]) &&
+           (p[2] >= std::get<0>(b)[2]) &&
+           (p[0] <= std::get<1>(b)[0]) &&
+           (p[1] <= std::get<1>(b)[1]) &&
+           (p[2] <= std::get<1>(b)[2]);
+}
 
 template<typename T> constexpr inline bool
 is_same(Box3<T> const &left, Box3<T> const &right)

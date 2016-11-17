@@ -787,7 +787,12 @@ void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const doubl
  */
 
 double SAMRAIWorker::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, const bool initial_time,
-                                            const double dt_time) { return dt_time; }
+                                            const double dt_time)
+{
+    auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+
+    return pgeom->getDx()[0] / 2.0;
+}
 
 /*
  *************************************************************************
@@ -817,6 +822,9 @@ void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, con
                                                  const double dt, bool at_syncronization)
 {
     move_to(m_worker_, patch);
+
+    m_worker_->setPhysicalBoundaryConditions(time);
+
     m_worker_->next_time_step(time, dt);
 }
 
@@ -943,9 +951,11 @@ public:
 
     virtual size_type step() const;
 
+    virtual bool remaining_steps() const;
+
     virtual Real time_now() const;
 
-    virtual void next_time_step(Real dt);
+    virtual size_type next_step(Real dt_now);
 
     virtual void check_point();
 
@@ -953,7 +963,7 @@ public:
 
 private:
     bool m_is_valid_ = false;
-
+    Real m_dt_now_ = 10000;
     std::shared_ptr<mesh::Worker> m_worker_;
 
     boost::shared_ptr<SAMRAI::tbox::Database> samrai_cfg;
@@ -1166,7 +1176,7 @@ void SAMRAITimeIntegrator::deploy()
     patch_worker->registerVisItDataWriter(visit_data_writer);
 
 
-    time_integrator->initializeHierarchy();
+    m_dt_now_ = time_integrator->initializeHierarchy();
 //    time_integrator->printClassData(std::cout);
 
     MESSAGE << name() << " is deployed!" << std::endl;
@@ -1193,13 +1203,23 @@ void SAMRAITimeIntegrator::tear_down()
 
 bool SAMRAITimeIntegrator::is_valid() const { return m_is_valid_; }
 
-void SAMRAITimeIntegrator::next_time_step(Real dt)
+size_type SAMRAITimeIntegrator::next_step(Real dt)
 {
     assert(is_valid());
 
     MESSAGE << " Time = " << time_now() << " Step = " << step() << std::endl;
+    Real loop_time = time_integrator->getIntegratorTime();
+    Real loop_time_end = loop_time + dt;
 
-    time_integrator->advanceHierarchy(dt, false);
+    dt = std::min(dt, m_dt_now_);
+
+    while (loop_time < loop_time_end && time_integrator->stepsRemaining() > 0)
+    {
+        Real dt_new = time_integrator->advanceHierarchy(dt, false);
+        loop_time += dt;
+        dt = std::min(dt_new, loop_time_end - loop_time);
+    }
+
 
 }
 
@@ -1220,7 +1240,8 @@ Real SAMRAITimeIntegrator::time_now() const { return static_cast<Real>( time_int
 size_type
 SAMRAITimeIntegrator::step() const { return static_cast<size_type>( time_integrator->getIntegratorStep()); }
 
-
+bool
+SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->stepsRemaining(); }
 }//namespace simpla
 
 //namespace simpla

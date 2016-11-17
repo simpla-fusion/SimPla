@@ -79,8 +79,8 @@ struct AMRTest : public mesh::Worker
     field_type<Real, mesh::FACE> B{"B", this};
     field_type<Real, mesh::EDGE> E{"E", this};
     field_type<Real, mesh::EDGE> J{"J", this};
-    field_type<Real, mesh::EDGE> D{"D", this};
-    field_type<Real, mesh::FACE> H{"H", this};
+//    field_type<Real, mesh::EDGE> D{"D", this};
+//    field_type<Real, mesh::FACE> H{"H", this};
 
 
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Ev{"Ev", this};
@@ -100,28 +100,35 @@ struct AMRTest : public mesh::Worker
         E.clear();
         B.clear();
         J.clear();
-        E.foreach([&](point_type const &x)
-                  {
-                      return nTuple<Real, 3>{
-                              std::sin(x[0] * m_k_[0]) * std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
-                              0,//  std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
-                              0//  std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
-                      };
-                  });
+//        E.foreach([&](point_type const &x)
+//                  {
+//                      return nTuple<Real, 3>{
+//                              std::sin(x[0] * m_k_[0]) * std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
+//                              0,//  std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
+//                              0//  std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
+//                      };
+//                  });
 
     }
 
     virtual void setPhysicalBoundaryConditions(double time)
     {
-        FUNCTION_START;
 
-//        LOG_CMD(E.foreach_ghost(0));
-//        LOG_CMD(B.foreach_ghost(0));
+        auto b = mesh()->inner_index_box();
+
+        index_tuple p = {NX / 2, NY / 2, NZ / 2};
+
+        if (toolbox::is_inside(p, b))
+        {
+            E(p[0], p[1], p[2], 0) = std::sin(omega * time);
+        }
+
     };
 
 
     virtual void next_time_step(Real data_time, Real dt)
     {
+//        VERBOSE << "box = " << mesh()->dx() << " time = " << data_time << " dt =" << dt << std::endl;
         E = E + (curl(B) / mu - J) * dt / epsilon;
         B = B - curl(E) * dt;
     }
@@ -231,7 +238,7 @@ int main(int argc, char **argv)
 
     integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{1, 1, 1};
     integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{0, 0, 0};
-    integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{1, 1, 1};
+    integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{NX, NY, NZ};
 
     integrator->db["PatchHierarchy"]["max_levels"] = int(3); // Maximum number of levels in hierarchy.
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_1"] = nTuple<int, 3>{2, 2, 1};
@@ -260,9 +267,9 @@ int main(int argc, char **argv)
 
     // Refer to algs::TimeRefinementIntegrator for input
     integrator->db["TimeRefinementIntegrator"]["start_time"] = 0.e0; // initial simulation time
-    integrator->db["TimeRefinementIntegrator"]["end_time"] = 10.e0;  // final simulation time
+    integrator->db["TimeRefinementIntegrator"]["end_time"] = 20.e0;  // final simulation time
     integrator->db["TimeRefinementIntegrator"]["grow_dt"] = 1.1e0;  // growth factor for timesteps
-    integrator->db["TimeRefinementIntegrator"]["max_integrator_steps"] = 10;  // max number of simulation timesteps
+    integrator->db["TimeRefinementIntegrator"]["max_integrator_steps"] = 5000;  // max number of simulation timesteps
 
     // Refer to mesh::TreeLoadBalancer for input
     integrator->db["LoadBalancer"];
@@ -270,14 +277,13 @@ int main(int argc, char **argv)
     integrator->deploy();
     integrator->check_point();
 
-    Real dt = 1;
 
     INFORM << "***********************************************" << std::endl;
 
 
-    for (int i = 0; i < 20; ++i)
+    while (integrator->remaining_steps())
     {
-        integrator->next_time_step(dt);
+        integrator->next_step(0.1);
         integrator->check_point();
     }
 
@@ -310,7 +316,7 @@ int main(int argc, char **argv)
 //    worker->move_to(m1);
 //    TRY_CALL(worker->deploy());
 //    worker->E = 1.2;
-//    worker->next_time_step(1.0);
+//    worker->next_step(1.0);
 //    std::cout << " Worker = {" << *worker << "}" << std::endl;
 //    std::cout << "E = {" << worker->E << "}" << std::endl;
 //    std::cout << "E = {" << *worker->E.attribute() << "}" << std::endl;
