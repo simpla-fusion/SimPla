@@ -118,32 +118,9 @@ public:
     template<typename ...Args>
     value_type const &get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
 
-    value_type &get(MeshEntityId const &s)
-    {
-        auto &res = get(mesh::MeshEntityIdCoder::unpack_index4(s));
-//        if (std::isnan(res))
-//        {
-//            VERBOSE << "IFORM= " << entity_type() << " [ size = " << data_entity_type::size() << "]"
-//                    << mesh::MeshEntityIdCoder::unpack_index4(s) << std::endl;
-//        }
+    value_type &get(MeshEntityId const &s) { return get(mesh::MeshEntityIdCoder::unpack_index4(s)); }
 
-
-        return res;
-
-    }
-
-    value_type const &get(MeshEntityId const &s) const
-    {
-        auto const &res = get(mesh::MeshEntityIdCoder::unpack_index4(s));
-//        if (std::isnan(res))
-//        {
-//            VERBOSE << "IFORM= " << entity_type() << mesh::MeshEntityIdCoder::unpack_index4(s) << std::endl;
-//        }
-
-
-        return res;
-
-    }
+    value_type const &get(MeshEntityId const &s) const { return get(mesh::MeshEntityIdCoder::unpack_index4(s)); }
 
 
 private:

@@ -305,12 +305,12 @@ public:
         index_type jb = m_lower_[1], je = m_upper_[1];
         index_type kb = m_lower_[2], ke = m_upper_[2];
         index_type lb = m_lower_[3], le = m_upper_[3];
-/******/
-        VERBOSE << "start ={" << m_start_[0] << "," << m_start_[1] << "," << m_start_[2] << "},"
-                << "count ={" << m_count_[0] << "," << m_count_[1] << "," << m_count_[2] << "},"
-                << "lower ={" << m_lower_[0] << "," << m_lower_[1] << "," << m_lower_[2] << "},"
-                << "upper ={" << m_upper_[0] << "," << m_upper_[1] << "," << m_upper_[2] << "}," << std::endl;
-//#pragma omp parallel for
+///******/
+//        VERBOSE << "start ={" << m_start_[0] << "," << m_start_[1] << "," << m_start_[2] << "},"
+//                << "count ={" << m_count_[0] << "," << m_count_[1] << "," << m_count_[2] << "},"
+//                << "lower ={" << m_lower_[0] << "," << m_lower_[1] << "," << m_lower_[2] << "},"
+//                << "upper ={" << m_upper_[0] << "," << m_upper_[1] << "," << m_upper_[2] << "}," << std::endl;
+#pragma omp parallel for
         for (index_type i = m_start_[0]; i < m_lower_[0]; ++i)
             for (index_type j = m_start_[1]; j < m_start_[1] + m_count_[1]; ++j)
                 for (index_type k = m_start_[2]; k < m_start_[2] + m_count_[2]; ++k)

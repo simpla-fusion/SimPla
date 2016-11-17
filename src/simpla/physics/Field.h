@@ -160,7 +160,6 @@ public:
     operator+=(Other const &other)
     {
         *this = *this + other;
-
         return *this;
     }
 
@@ -234,11 +233,7 @@ public:
             ENABLE_IF((std::is_arithmetic<U>::value || std::is_same<U, value_type>::value)))
     {
         deploy();
-        m_data_->foreach(
-                [&](index_type i, index_type j, index_type k, index_type l)
-                {
-                    return v;
-                });
+        m_data_->foreach([&](index_type i, index_type j, index_type k, index_type l) { return v; });
     }
 
 
@@ -253,14 +248,7 @@ public:
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    auto res = m_mesh_->eval(expr, s);
-//                    if (std::isnan(res))
-//                    {
-//                        VERBOSE << "{" << i << " , " << j << " , " << k << " , " << l << "} ="
-//                                << mesh::MeshEntityIdCoder::unpack_index4(s) << std::endl;
-//                    }
-                    return res;
-//                    return m_mesh_->eval(expr, mesh::MeshEntityIdCoder::pack_index4(i, j, k, l));
+                    return m_mesh_->eval(expr, s);
                 });
 
     }
@@ -301,11 +289,7 @@ public:
         m_data_->foreach_ghost(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-
-                    auto res = m_mesh_->eval(expr, s);
-
-                    return res;
+                    return m_mesh_->eval(expr, mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
                 });
 
     }
@@ -345,12 +329,14 @@ public:
 
     void copy(mesh::EntityIdRange const &r0, this_type const &g)
     {
+        UNIMPLEMENTED;
 //        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = g.get(s); });
     }
 
 
     virtual void copy(mesh::EntityIdRange const &r0, mesh::DataBlock const &other)
     {
+        UNIMPLEMENTED;
 //        assert(other.is_a(typeid(this_type)));
 //
 //        this_type const &g = static_cast<this_type const & >(other);
