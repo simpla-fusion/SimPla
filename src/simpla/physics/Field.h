@@ -46,10 +46,10 @@ public:
             cell_tuple, nTuple<cell_tuple, 3> >::type field_value_type;
     typedef TManifold mesh_type;
 private:
-    typedef typename mesh_type::template data_block_type<TV, static_cast<mesh::MeshEntityType>(IFORM)> data_block_type;
+    typedef typename mesh_type::template data_block_type<TV, static_cast<mesh::MeshEntityType>(IFORM)> data_view;
 
-    mesh_type const *m_mesh_ = nullptr;
-    data_block_type *m_data_ = nullptr;
+    mesh_type m_mesh_;
+    data_view m_data_;
 public:
     Field() {};
 
@@ -89,22 +89,35 @@ public:
         m_data_->clear();
     }
 
+    virtual void move_to(const std::shared_ptr<mesh::MeshBlock> &m)
+    {
+        m_mesh_.move_to(m);
+        m_data_.move_to(m);
+    }
+
+    virtual void move_to(const std::shared_ptr<mesh::MeshBlock> &m,
+                         const std::shared_ptr<mesh::DataBlock> &d)
+    {
+        m_mesh_.move_to(m);
+        m_data_.move_to(d);
+    }
+
     virtual void deploy()
     {
         base_type::deploy();
-        m_mesh_ = static_cast<mesh_type const *>(base_type::mesh());
-        m_data_ = static_cast<data_block_type *>(base_type::data());
+        m_mesh_.deploy();
+        m_data_.deploy();
     }
 
     virtual std::shared_ptr<mesh::DataBlock> clone(const std::shared_ptr<mesh::MeshBlock> &m) const
     {
         // FIXME: new data block is not initialized!!
-        return std::dynamic_pointer_cast<mesh::DataBlock>(std::make_shared<data_block_type>());
+        return std::dynamic_pointer_cast<mesh::DataBlock>(std::make_shared<data_view>());
     };
 
     /** @name as_function  @{*/
     template<typename ...Args> field_value_type
-    gather(Args &&...args) const { return m_mesh_->gather(*this, std::forward<Args>(args)...); }
+    gather(Args &&...args) const { return m_mesh_.gather(*this, std::forward<Args>(args)...); }
 
     template<typename ...Args> field_value_type
     operator()(Args &&...args) const { return gather(std::forward<Args>(args)...); }
@@ -114,22 +127,22 @@ public:
     /** @name as_array   @{*/
 
     template<typename ...Args>
-    inline value_type &get(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
+    inline value_type &get(Args &&...args) { return m_data_.get(std::forward<Args>(args)...); }
 
     template<typename ...Args>
-    inline value_type const &get(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
+    inline value_type const &get(Args &&...args) const { return m_data_.get(std::forward<Args>(args)...); }
 
     template<typename ...Args>
-    inline value_type &operator()(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
+    inline value_type &operator()(Args &&...args) { return m_data_.get(std::forward<Args>(args)...); }
 
     template<typename ...Args>
-    inline value_type const &operator()(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
+    inline value_type const &operator()(Args &&...args) const { return m_data_.get(std::forward<Args>(args)...); }
 
     template<typename TI>
-    inline value_type &operator[](TI const &s) { return m_data_->get(s); }
+    inline value_type &operator[](TI const &s) { return m_data_.get(s); }
 
     template<typename TI>
-    inline value_type const &operator[](TI const &s) const { return m_data_->get(s); }
+    inline value_type const &operator[](TI const &s) const { return m_data_.get(s); }
 
     this_type &operator=(this_type const &other)
     {
@@ -197,7 +210,7 @@ public:
     void foreach(mesh::EntityIdRange const &r0, Field<Expression<U...>> const &expr)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = m_mesh_->eval(expr, s); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = m_mesh_.eval(expr, s); });
 
     }
 
@@ -206,7 +219,7 @@ public:
             U &&...args)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_mesh_->point(s), std::forward<U>(args)...); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_mesh_.point(s), std::forward<U>(args)...); });
     }
 
 
@@ -219,7 +232,7 @@ public:
         r0.foreach(
                 [&](mesh::MeshEntityId const &s)
                 {
-                    get(s) = m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s)));
+                    get(s) = m_mesh_.template sample<IFORM>(s, fun(m_mesh_.point(s)));
                 });
     }
 
@@ -228,7 +241,7 @@ public:
             ENABLE_IF((std::is_arithmetic<U>::value || std::is_same<U, value_type>::value)))
     {
         deploy();
-        m_data_->foreach([&](index_type i, index_type j, index_type k, index_type l) { return v; });
+        m_data_.foreach([&](index_type i, index_type j, index_type k, index_type l) { return v; });
     }
 
 
@@ -236,14 +249,14 @@ public:
     void foreach(Field<Expression<U...>> const &expr)
     {
         deploy();
-        auto b = std::get<0>(m_mesh_->outer_index_box());
+        auto b = std::get<0>(m_mesh_.outer_index_box());
         index_type gw[4] = {1, 1, 1, 0};
 
-        m_data_->foreach(
+        m_data_.foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return m_mesh_->eval(expr, s);
+                    return m_mesh_.eval(expr, s);
                 });
 
     }
@@ -254,10 +267,10 @@ public:
     {
         deploy();
 
-        m_data_->foreach(
+        m_data_.foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    return fun(m_mesh_->point(i, j, k));
+                    return fun(m_mesh_.point(i, j, k));
                 });
 
 
@@ -270,7 +283,7 @@ public:
     {
         deploy();
 
-        m_data_->foreach([&](index_type i, index_type j, index_type k, index_type l) { return fun(i, j, k, l); });
+        m_data_.foreach([&](index_type i, index_type j, index_type k, index_type l) { return fun(i, j, k, l); });
 
 
     }
@@ -284,11 +297,11 @@ public:
     {
         deploy();
 
-        m_data_->foreach(
+        m_data_.foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s)));
+                    return m_mesh_.template sample<IFORM>(s, fun(m_mesh_.point(s)));
                 });
 
 
@@ -300,7 +313,7 @@ public:
     {
         deploy();
 
-        m_data_->foreach_ghost([&](index_type i, index_type j, index_type k, index_type l) { return v; });
+        m_data_.foreach_ghost([&](index_type i, index_type j, index_type k, index_type l) { return v; });
     }
 
 
@@ -309,10 +322,10 @@ public:
     {
         deploy();
 
-        m_data_->foreach_ghost(
+        m_data_.foreach_ghost(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    return m_mesh_->eval(expr, mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
+                    return m_mesh_.eval(expr, mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
                 });
 
     }
@@ -324,11 +337,11 @@ public:
                           field_value_type>::value)))
     {
         deploy();
-        m_data_->foreach_ghost(
+        m_data_.foreach_ghost(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s)));
+                    return m_mesh_.template sample<IFORM>(s, fun(m_mesh_.point(s)));
                 });
 
 
@@ -346,7 +359,7 @@ public:
             foreach_ghost(std::forward<Args>(args)...);
         } else
         {
-            foreach(m_mesh_->range(entity_type(), tag), std::forward<Args>(args)...);
+            foreach(m_mesh_.range(entity_type(), tag), std::forward<Args>(args)...);
         }
     }
 

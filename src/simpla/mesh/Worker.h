@@ -67,7 +67,6 @@ public:
 
     virtual void next_time_step(Real data_time, Real dt)=0;
 
-
     virtual void setPhysicalBoundaryConditions(double time)=0;
 
     /**

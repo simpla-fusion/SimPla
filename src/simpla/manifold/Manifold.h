@@ -14,7 +14,7 @@
 #include <simpla/toolbox/macro.h>
 #include <simpla/toolbox/nTuple.h>
 
-
+#include <simpla/mesh/Worker.h>
 #include "ManifoldTraits.h"
 
 
@@ -127,9 +127,9 @@ namespace simpla { namespace manifold
  * Manifold
  */
 template<typename TMesh, template<typename...> class ...Policies>
-class Manifold
-        : public TMesh,
-          public Policies<TMesh> ...
+class Manifold :
+        public mesh::Worker::Observer,
+        public Policies<TMesh> ...
 {
     typedef Manifold<TMesh, Policies ...> this_type;
 
@@ -137,17 +137,17 @@ public:
 
     typedef TMesh mesh_type;
 
+    Manifold() : mesh::Worker::Observer(nullptr), Policies<mesh_type>(static_cast<mesh_type &>(*this))... {}
+
     template<typename ...Args>
-    Manifold(Args &&...args) : TMesh(std::forward<Args>(args)...),
-                               Policies<mesh_type>(static_cast<mesh_type &>(*this))... {}
+    Manifold(mesh::Worker *w, Args &&...args)
+            :  mesh::Worker::Observer(w), Policies<mesh_type>(static_cast<mesh_type &>(*this))... {}
 
     virtual ~Manifold() {}
 
-    Manifold(this_type const &other) : TMesh(other), Policies<mesh_type>(static_cast<mesh_type &>(*this))... {}
+    Manifold(this_type const &other) = delete;
 
     this_type &operator=(const this_type &other) = delete;
-
-    virtual std::shared_ptr<mesh::MeshBlock> clone() const { return std::make_shared<this_type>(*this); };
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || TMesh::is_a(info); }
 
@@ -157,6 +157,10 @@ public:
     {
         return "Manifold<" + traits::type_id_list<mesh_type, Policies<mesh_type>...>::name() + " > ";
     }
+
+    virtual void move_to(const std::shared_ptr<MeshBlock> &m);
+
+    virtual void move_to(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &d)
 
 private:
     template<typename T>

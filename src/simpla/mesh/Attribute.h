@@ -208,7 +208,8 @@ public:
         }
     }
 
-    virtual void move_to(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &d)
+    virtual void move_to(const std::shared_ptr<MeshBlock> &m,
+                         const std::shared_ptr<DataBlock> &d)
     {
         ASSERT(d != nullptr);
         ASSERT(m != nullptr);
