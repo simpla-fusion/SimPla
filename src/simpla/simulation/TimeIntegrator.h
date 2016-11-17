@@ -14,13 +14,15 @@
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
+#include <simpla/concept/Configurable.h>
 
 namespace simpla { namespace simulation
 {
 class TimeIntegrator :
         public Object,
         public concept::Printable,
-        public concept::Serializable
+        public concept::Serializable,
+        public concept::Configurable
 {
 public:
     TimeIntegrator(std::string const &s_name = "") : Object(), m_name_(s_name) {}
@@ -57,20 +59,10 @@ public:
 
     virtual Real time_now() const { return 0.0; }
 
-    data::DataBase &config(std::string const &s = "") { return m_db_.get(s); }
-
-    data::DataBase const &config(std::string const &s = "") const { return m_db_.at(s); }
-
-
-    data::DataBase db;
-//    data::DataBase &db(std::string const &s = "") { return m_db_.get(s); }
-//
-//    data::DataBase const &db(std::string const &s = "") const { return m_db_.at(s); }
 
 private:
     std::string m_name_;
     std::shared_ptr<mesh::Worker> m_worker_;
-    data::DataBase m_db_;
 
 };
 }}//namespace simpla { namespace simulation

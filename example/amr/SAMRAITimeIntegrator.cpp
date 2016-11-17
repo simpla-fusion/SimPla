@@ -74,6 +74,8 @@
 #include <SAMRAI/appu/CartesianBoundaryUtilities3.h>
 #include <SAMRAI/pdat/SideVariable.h>
 #include <SAMRAI/appu/CartesianBoundaryDefines.h>
+#include <simpla/physics/Constants.h>
+#include "../../external_project/SAMRAI/source/SAMRAI/pdat/NodeDoubleLinearTimeInterpolateOp.h"
 
 
 namespace simpla
@@ -174,9 +176,9 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
     integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0,  0,  0},
                                                                            {16, 16, 16}};
 
-    integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{1, 1, 1};
-    integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{0, 0, 0};
-    integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{16, 16, 16};
+    integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{0, 1, 0};
+    integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{1, 0, 0};
+    integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{2, PI, 1};
 
     integrator->db["PatchHierarchy"]["max_levels"] = int(3); // Maximum number of levels in hierarchy.
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_1"] = nTuple<int, 3>{2, 2, 1};
@@ -207,7 +209,7 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
     integrator->db["TimeRefinementIntegrator"]["start_time"] = 0.e0; // initial simulation time
     integrator->db["TimeRefinementIntegrator"]["end_time"] = 20.e0;  // final simulation time
     integrator->db["TimeRefinementIntegrator"]["grow_dt"] = 1.1e0;  // growth factor for timesteps
-    integrator->db["TimeRefinementIntegrator"]["max_integrator_steps"] = 5000;  // max number of simulation timesteps
+    integrator->db["TimeRefinementIntegrator"]["max_integrator_steps"] = 20;  // max number of simulation timesteps
 
     // Refer to mesh::TreeLoadBalancer for input
     integrator->db["LoadBalancer"];
@@ -445,6 +447,7 @@ private:
 
     std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
 
+    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double> > d_xyz;
 
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
@@ -463,7 +466,7 @@ SAMRAIWorker::SAMRAIWorker(
         d_grid_geometry(grid_geom),
         d_use_nonuniform_workload(false),
         d_nghosts(dim, 4),
-        d_fluxghosts(dim, 4)
+        d_fluxghosts(dim, 1)
 {
     TBOX_ASSERT(grid_geom);
 }
@@ -532,6 +535,7 @@ create_samrai_variable_t(unsigned int ndims, mesh::Attribute *item)
 
         SAMRAI::tbox::Dimension d_dim(ndims);
 
+
         return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
                 boost::make_shared<SAMRAI::pdat::NodeVariable<T> >(d_dim,
                                                                    item->name(),
@@ -572,46 +576,77 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                 "Consequently, no plot data will be written." << std::endl;
     }
 
+    //**************************************************************
     m_worker_->for_each(
             [&](mesh::Worker::Observer &ob)
             {
-                mesh::Attribute *item = ob.attribute();
+                mesh::Attribute *attr = ob.attribute();
 
-                if (item == nullptr) { return; }
+                if (attr == nullptr) { return; }
 
-                boost::shared_ptr<SAMRAI::hier::Variable> var = detail::create_samrai_variable(3, item);
+                boost::shared_ptr<SAMRAI::hier::Variable> var = detail::create_samrai_variable(3, attr);
 
-                m_samrai_variables_[item->id()] = var;
+                m_samrai_variables_[attr->id()] = var;
 
                 static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR", "TENSOR"};
                 static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR", "VECTOR", "SCALAR"};
 
-//                if (item->entity_type() == mesh::VERTEX ||
-//                    item->entity_type() == mesh::VOLUME)
-//                {
                 /*** FIXME:
-                  *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
-                  *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
-                 **/
-                integrator->registerVariable(var, d_nghosts,
-                                             SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                             d_grid_geometry,
-                                             "",
-                                             "LINEAR_REFINE");
-                d_visit_writer->registerPlotQuantity(item->name(), visit_variable_type2[item->entity_type()],
-                                                     vardb->mapVariableAndContextToIndex(var,
-                                                                                         integrator->getPlotContext()));
-//                } else
-//                {
-//                    integrator->registerVariable(var, d_fluxghosts,
-//                                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-//                                                 d_grid_geometry,
-//                                                 "CONSERVATIVE_COARSEN",
-//                                                 "CONSERVATIVE_LINEAR_REFINE");
-//                }
+                *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
+                *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
+                **/
+
+                if (attr->db.equal("config", std::string("COORDINATES")))
+                {
+                    integrator->registerVariable(var, d_nghosts,
+                                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                                 d_grid_geometry,
+                                                 "",
+                                                 "LINEAR_REFINE");
+
+                    d_visit_writer->registerNodeCoordinates(
+                            vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+                } else if (attr->db.equal("config", std::string("FLUX")))
+                {
+
+                    integrator->registerVariable(var, d_fluxghosts,
+                                                 SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
+                                                 d_grid_geometry,
+                                                 "CONSERVATIVE_COARSEN",
+                                                 "NO_REFINE");
+                    d_visit_writer->registerNodeCoordinates(
+                            vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+                } else
+                {
+                    switch (attr->entity_type())
+                    {
+                        case mesh::EDGE:
+                        case mesh::FACE:
+//                            integrator->registerVariable(var, d_nghosts,
+//                                                         SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+//                                                         d_grid_geometry,
+//                                                         "CONSERVATIVE_COARSEN",
+//                                                         "CONSERVATIVE_LINEAR_REFINE");
+//                            break;
+                        case mesh::VERTEX:
+                        case mesh::VOLUME:
+                        default:
+                            integrator->registerVariable(var, d_nghosts,
+                                                         SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                                         d_grid_geometry,
+                                                         "",
+                                                         "LINEAR_REFINE");
+                    }
+
+                    d_visit_writer->registerPlotQuantity(
+                            attr->name(), visit_variable_type2[attr->entity_type()],
+                            vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+
+                }
+
+
             }
     );
-//    vardb->printClassData(std::cout);
 
 }
 

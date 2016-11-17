@@ -73,13 +73,18 @@ public:
 
     DataBase const &operator[](std::string const &key) const { return at(key); };
 
-
     template<typename U>
     DataBase &operator=(U const &v)
     {
         DataEntity::operator=(v);
         return *this;
     };
+
+    template<typename T> bool equal(T const &v) const { return is_a(typeid(T)) && as<T>() == v; };
+
+    template<typename T> bool operator==(T const &v) const { return equal(v); }
+
+    template<typename T> bool equal(std::string const &k, T const &v) const { return has(k) && at(k).equal(v); };
 
 
 protected:

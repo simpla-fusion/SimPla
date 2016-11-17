@@ -19,7 +19,11 @@ struct Attribute::pimpl_s
             std::function<std::shared_ptr<DataBlock>(MeshBlock const *, void *p)> > m_data_factory;
 };
 
-Attribute::Attribute(std::string const &s) : Object(), m_name_(s), m_pimpl_(new pimpl_s) {}
+Attribute::Attribute(std::string const &s, std::string const &config_str)
+        : Object(), m_name_(s), m_pimpl_(new pimpl_s)
+{
+    db["config"] = config_str;
+}
 
 Attribute::~Attribute() {}
 

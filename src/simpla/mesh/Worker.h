@@ -14,6 +14,7 @@
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
+#include <simpla/concept/Configurable.h>
 #include "MeshCommon.h"
 
 namespace simpla { namespace mesh
@@ -131,6 +132,7 @@ struct Worker::Observer : public concept::Printable
     virtual Attribute *attribute() { return nullptr; };
 
     virtual Attribute const *attribute() const { return nullptr; };
+
 //    virtual void move_to(MeshBlock const *) =0;
 //
 //    virtual void erase() =0;

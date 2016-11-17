@@ -9,59 +9,50 @@
 
 #include <memory>
 
+#include <simpla/SIMPLA_config.h>
 #include "MeshCommon.h"
-#include "Chart.h"
+#include "MeshBlock.h"
+#include "DataBlock.h"
 #include "EntityIdRange.h"
 
 namespace simpla { namespace mesh
 {
-struct DummyMesh : public Chart
+class DummyMesh : public mesh::MeshBlock
 {
-    SP_OBJECT_HEAD(DummyMesh, Chart);
+public:
+    static constexpr unsigned int ndims = 3;
 
-    typedef DummyMesh mesh_type;
+    SP_OBJECT_HEAD(DummyMesh, mesh::MeshBlock)
 
-    std::set<MeshEntityId> m_entities_;
-    std::vector<point_type> m_points_;
-    box_type m_box_{{0, 0, 0},
-                    {1, 1, 1}};
+    template<typename ...Args>
+    DummyMesh(Args &&...args):mesh::MeshBlock(std::forward<Args>(args)...) {}
 
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
+    ~DummyMesh() {}
 
-    virtual box_type box() const { return m_box_; };
+    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
 
-    virtual EntityIdRange range(MeshEntityType) const
+    virtual std::shared_ptr<mesh::MeshBlock> clone() const
     {
-        return EntityIdRange(m_entities_.begin(), m_entities_.end());
-    }
+        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
+    };
 
-    virtual size_type size(MeshEntityType entityType = VERTEX) const { max_hash(entityType); };
-
-    virtual size_type max_hash(MeshEntityType entityType = VERTEX) const { return m_points_.size(); }
-
-    virtual size_type hash(MeshEntityId const &s) const { return static_cast<size_type>(s); }
-
-    virtual point_type point(MeshEntityId const &s) const { return m_points_[hash(s)]; }
-
-    virtual int get_adjacent_entities(MeshEntityId const &s, MeshEntityType t,
-                                      MeshEntityId *p = nullptr) const
+    template<typename TV, mesh::MeshEntityType IFORM>
+    std::shared_ptr<mesh::DataBlock> create_data_block(void *p) const
     {
-        if (p != nullptr) { p[0] = s; }
-        return 1;
+        auto b = outer_index_box();
+
+        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
+        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], 3};
+        return std::dynamic_pointer_cast<mesh::DataBlock>(
+                std::make_shared<data_block_type<TV, IFORM>>(
+                        static_cast<TV *>(p),
+                        (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 3 : 4,
+                        lo, hi));
     };
 
 
-    virtual std::shared_ptr<Chart> refine(box_type const &b, int flag = 0) const
-    {
-        return std::dynamic_pointer_cast<Chart>(std::make_shared<DummyMesh>());
-    };
-
-    struct calculus_policy
-    {
-        template<typename TF, typename ...Args>
-        static traits::value_type_t<TF> eval(mesh_type const &, TF const &,
-                                             Args &&...args) { return traits::value_type_t<TF>(); }
-    };
+    template<typename ...Args>
+    Real eval(Args &&...args) const { return 1.0; };
 };
 
 }}//namespace simpla { namespace get_mesh

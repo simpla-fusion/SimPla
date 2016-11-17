@@ -287,7 +287,6 @@ struct Any : public concept::Printable
         return dynamic_cast<Holder <U> *>(m_data_)->m_value_;
     }
 
-    std::string name() const { return ""; }
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {

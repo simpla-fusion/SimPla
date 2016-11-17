@@ -21,43 +21,6 @@
 #define omega 1.0
 using namespace simpla;
 
-class DummyMesh : public mesh::MeshBlock
-{
-public:
-    static constexpr unsigned int ndims = 3;
-
-    SP_OBJECT_HEAD(DummyMesh, mesh::MeshBlock)
-
-    template<typename ...Args>
-    DummyMesh(Args &&...args):mesh::MeshBlock(std::forward<Args>(args)...) {}
-
-    ~DummyMesh() {}
-
-    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
-
-    virtual std::shared_ptr<mesh::MeshBlock> clone() const
-    {
-        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
-    };
-
-    template<typename TV, mesh::MeshEntityType IFORM>
-    std::shared_ptr<mesh::DataBlock> create_data_block(void *p) const
-    {
-        auto b = outer_index_box();
-
-        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
-        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], 3};
-        return std::dynamic_pointer_cast<mesh::DataBlock>(
-                std::make_shared<data_block_type<TV, IFORM>>(
-                        static_cast<TV *>(p),
-                        (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 3 : 4,
-                        lo, hi));
-    };
-
-
-    template<typename ...Args>
-    Real eval(Args &&...args) const { return 1.0; };
-};
 
 template<typename TM>
 struct AMRTest : public mesh::Worker
@@ -70,21 +33,27 @@ struct AMRTest : public mesh::Worker
 
 
     SP_OBJECT_HEAD(AMRTest, mesh::Worker);
+
     Real m_k_[3] = {TWOPI / NX, TWOPI / NY, TWOPI / NZ};
+
     template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
+
 //    field_type<Real, mesh::VERTEX> phi{"phi", this};
 
     Real epsilon = 1.0;
     Real mu = 1.0;
-    field_type<Real, mesh::FACE> B{"B", this};
-    field_type<Real, mesh::EDGE> E{"E", this};
-    field_type<Real, mesh::EDGE> J{"J", this};
+
+    field_type<Real, mesh::EDGE> xyz{this, "xyz", "COORDINATES"};
+    field_type<Real, mesh::FACE> B{this, "B"};
+    field_type<Real, mesh::EDGE> E{this, "E"};
+    field_type<Real, mesh::EDGE> J{this, "J"};
+
 //    field_type<Real, mesh::EDGE> D{"D", this};
 //    field_type<Real, mesh::FACE> H{"H", this};
-
-
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Ev{"Ev", this};
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Bv{"Bv", this};
+
+
     virtual std::shared_ptr<mesh::MeshBlock>
     create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx,
                       Real const *xlo = nullptr, Real const *xhi = nullptr) const
@@ -108,6 +77,32 @@ struct AMRTest : public mesh::Worker
 //                              0//  std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
 //                      };
 //                  });
+//        xyz.clear();
+//
+//        xyz.foreach(
+//                [&](index_type i, index_type j, index_type k, index_type l)
+//                {
+//                    auto x = mesh()->point(i, j, k);
+//                    double res = 0.0;
+//                    switch (l)
+//                    {
+//                        case 0:
+//                            res = x[0] * std::cos(x[1]);
+//                            break;
+//                        case 1:
+//                            res = x[0] * std::sin(x[1]);
+//                            break;
+//
+//                        case 2:
+//                            res = x[2];
+//                            break;
+//
+//                        default :
+//                            break;
+//                    }
+//                    return res;
+//
+//                });
 
     }
 
@@ -118,10 +113,7 @@ struct AMRTest : public mesh::Worker
 
         index_tuple p = {NX / 2, NY / 2, NZ / 2};
 
-        if (toolbox::is_inside(p, b))
-        {
-            E(p[0], p[1], p[2], 0) = std::sin(omega * time);
-        }
+        if (toolbox::is_inside(p, b)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
 
     };
 
@@ -167,7 +159,5 @@ int main(int argc, char **argv)
     integrator.reset();
 
     INFORM << " DONE !" << std::endl;
-    DONE;
-
 }
 

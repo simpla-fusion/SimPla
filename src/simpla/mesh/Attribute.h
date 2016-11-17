@@ -9,6 +9,7 @@
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
+#include <simpla/concept/Configurable.h>
 
 #include "MeshBlock.h"
 #include "DataBlock.h"
@@ -33,6 +34,7 @@ class Attribute :
         public Object,
         public concept::Printable,
         public concept::Serializable,
+        public concept::Configurable,
         public std::enable_shared_from_this<Attribute>
 {
 
@@ -41,7 +43,7 @@ public:
 
     SP_OBJECT_HEAD(Attribute, Object)
 
-    Attribute(std::string const &s = "");
+    Attribute(std::string const &s, std::string const &config_str = "");
 
     Attribute(Attribute const &) = delete;
 
@@ -142,21 +144,24 @@ public:
 template<typename TV, MeshEntityType IFORM>
 class AttributeView : public Worker::Observer
 {
+
 protected:
+
     typedef AttributeView this_type;
     typedef AttributeProxy<TV, IFORM> attribute_type;
     std::shared_ptr<attribute_type> m_attr_;
     std::shared_ptr<MeshBlock> m_mesh_;
     std::shared_ptr<DataBlock> m_data_;
+
 public:
 
+    AttributeView(std::string const &s = "") : Worker::Observer(nullptr), m_attr_(new attribute_type(s)) {};
 
-    AttributeView(std::string const &s = "", Worker *w = nullptr) :
-            Worker::Observer(w), m_attr_(new attribute_type(s)) {};
+    template<typename ...Args>
+    AttributeView(Worker *w, Args &&...args) :
+            Worker::Observer(w), m_attr_(new attribute_type(std::forward<Args>(args)...)) {};
 
-    AttributeView(std::shared_ptr<Attribute> const &attr, Worker *w) :
-            Worker::Observer(w), m_attr_(attr) {};
-
+    AttributeView(Worker *w, std::shared_ptr<Attribute> const &attr) : Worker::Observer(w), m_attr_(attr) {};
 
     virtual ~AttributeView() {}
 

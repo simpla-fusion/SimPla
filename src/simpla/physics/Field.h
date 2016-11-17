@@ -56,10 +56,10 @@ public:
     Field() {};
 
     template<typename ...Args>
-    Field(mesh_type const *m, Args &&...args) :base_type(m, std::forward<Args>(args)...) {};
+    Field(mesh_type const *m, Args &&...args) :base_type(std::forward<Args>(args)...), m_mesh_(m) {};
 
     template<typename ...Args>
-    Field(std::string const &s, Args &&...args) :base_type(s, std::forward<Args>(args)...)
+    explicit Field(Args &&...args) :base_type(std::forward<Args>(args)...)
     {
         base_type::attribute()->register_data_block_factroy(
                 std::type_index(typeid(mesh_type)),
@@ -253,10 +253,38 @@ public:
 
     }
 
+    template<typename TFun> void
+    foreach(TFun const &fun,
+            ENABLE_IF((std::is_same<typename std::result_of<TFun(point_type const &)>::type, value_type>::value)))
+    {
+        deploy();
+
+        m_data_->foreach(
+                [&](index_type i, index_type j, index_type k, index_type l)
+                {
+                    return fun(m_mesh_->point(i, j, k));
+                });
+
+
+    }
 
     template<typename TFun> void
     foreach(TFun const &fun,
-            ENABLE_IF((std::is_same<typename std::result_of<TFun(point_type const &)>::type, field_value_type>::value))
+            ENABLE_IF((std::is_same<typename std::result_of<TFun(index_type, index_type, index_type,
+                                                                 index_type)>::type, value_type>::value)))
+    {
+        deploy();
+
+        m_data_->foreach([&](index_type i, index_type j, index_type k, index_type l) { return fun(i, j, k, l); });
+
+
+    }
+
+    template<typename TFun> void
+    foreach(TFun const &fun,
+            ENABLE_IF(((!std::is_same<typename std::result_of<TFun(point_type const &)>::type, value_type>::value) &&
+                       (std::is_same<typename std::result_of<TFun(point_type const &)>::type, field_value_type>::value)
+                      ))
     )
     {
         deploy();
