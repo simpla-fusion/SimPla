@@ -38,7 +38,7 @@ struct AMRTest : public mesh::Worker
     Real epsilon = 1.0;
     Real mu = 1.0;
 
-    field_type<Real, mesh::VERTEX, 3> xyz{this, "xyz", "COORDINATES"};
+    mesh::AttributeView<Real, mesh::VERTEX, 3> xyz{this, "xyz", "COORDINATES"};
     field_type<Real, mesh::FACE> B{this, "B"};
     field_type<Real, mesh::EDGE> E{this, "E"};
     field_type<Real, mesh::EDGE> J{this, "J"};
