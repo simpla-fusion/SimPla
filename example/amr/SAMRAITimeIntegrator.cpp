@@ -535,12 +535,9 @@ create_samrai_variable_t(unsigned int ndims, mesh::Attribute *item)
 
         SAMRAI::tbox::Dimension d_dim(ndims);
 
-
         return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-                boost::make_shared<SAMRAI::pdat::NodeVariable<T> >(d_dim,
-                                                                   item->name(),
-                                                                   var_depth[item->entity_type()] *
-                                                                   item->value_size()));
+                boost::make_shared<SAMRAI::pdat::NodeVariable<T> >(
+                        d_dim, item->name(), var_depth[item->entity_type()] * item->value_size()));
     } else
     {
         UNIMPLEMENTED;
