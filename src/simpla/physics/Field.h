@@ -26,29 +26,27 @@ namespace simpla
 
 template<typename ...> class Field;
 
-template<typename TV, typename TManifold, mesh::MeshEntityType IFORM> using field_t= Field<TV, TManifold, index_const<IFORM>>;
 
-
-template<typename TV, typename TManifold, size_t I>
-class Field<TV, TManifold, index_const<I >> :
-        public mesh::AttributeView<TV, static_cast<mesh::MeshEntityType >(I)>
+template<typename TV, typename TManifold, size_type I, size_type DOF>
+class Field<TV, TManifold, index_const<I>, index_const<DOF>> :
+        public mesh::AttributeView<TV, static_cast<mesh::MeshEntityType>(I), DOF>
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBlock, TManifold>::value, "TManifold is not derived from MeshBlock");
 
-    typedef Field<TV, TManifold, index_const<I >> this_type;
-
-    typedef mesh::AttributeView<TV, static_cast<mesh::MeshEntityType >(I)> base_type;
-
+    typedef Field<TV, TManifold, index_const<I>, index_const<DOF>> this_type;
+    typedef mesh::AttributeView<TV, static_cast<mesh::MeshEntityType>(I), DOF> base_type;
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
 
 
 public:
-    typedef typename traits::field_value_type<this_type>::type field_value_type;
-    typedef TManifold mesh_type;
     typedef TV value_type;
+    typedef typename std::conditional<DOF == 1, value_type, nTuple<value_type, DOF> >::type cell_tuple;
+    typedef typename std::conditional<(IFORM == mesh::VERTEX || IFORM == mesh::VOLUME),
+            cell_tuple, nTuple<cell_tuple, 3> >::type field_value_type;
+    typedef TManifold mesh_type;
 private:
-    typedef typename mesh_type::template data_block_type<TV, IFORM> data_block_type;
+    typedef typename mesh_type::template data_block_type<TV, static_cast<mesh::MeshEntityType>(IFORM)> data_block_type;
 
     mesh_type const *m_mesh_ = nullptr;
     data_block_type *m_data_ = nullptr;
@@ -114,9 +112,6 @@ public:
     /**@}*/
 
     /** @name as_array   @{*/
-
-    virtual void sync(mesh::MeshBlock const *other, bool only_ghost = true) { UNIMPLEMENTED; };
-
 
     template<typename ...Args>
     inline value_type &get(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
@@ -376,11 +371,11 @@ public:
 
 };
 
-namespace traits
-{
-template<typename TV, typename TM, size_t I>
-struct reference<Field<TV, TM, index_const<I> > > { typedef Field<TV, TM, index_const<I> > const &type; };
-}
+//namespace traits
+//{
+//template<typename TV, typename TM, typename ...Others>
+//struct reference<Field<TV, TM, Others...>> { typedef Field<TV, TM, Others...> const &type; };
+//}
 }//namespace simpla
 
 

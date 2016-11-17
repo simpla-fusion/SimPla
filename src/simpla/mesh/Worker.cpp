@@ -69,8 +69,6 @@ void Worker::destroy()
     m_pimpl_->m_mesh_ = nullptr;
 }
 
-void Worker::sync(MeshBlock const *other, bool og) { for (auto *ob:m_pimpl_->m_obs_) { ob->sync(other, og); }};
-
 Worker::Observer::Observer(Worker *w) : m_worker_(w) { if (m_worker_ != nullptr) { m_worker_->attach(this); }}
 
 Worker::Observer::~Observer() { if (m_worker_ != nullptr) { m_worker_->detach(this); }}

@@ -497,7 +497,7 @@ namespace detail
 //{
 //    SAMRAI::tbox::Dimension d_dim(ndims);
 //    *res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-//            boost::make_shared<typename VariableTraits<TV, IFORM>::type>(d_dim, item->name(), item->value_size()));
+//            boost::make_shared<typename VariableTraits<TV, IFORM>::type>(d_dim, item->name(), item->dof()));
 //}
 //
 //
@@ -527,17 +527,17 @@ namespace detail
 
 template<typename T>
 boost::shared_ptr<SAMRAI::hier::Variable>
-create_samrai_variable_t(unsigned int ndims, mesh::Attribute *item)
+create_samrai_variable_t(unsigned int ndims, mesh::Attribute *attr)
 {
     static int var_depth[4] = {1, 3, 3, 1};
-    if (item->entity_type() <= mesh::VOLUME)
+    if (attr->entity_type() <= mesh::VOLUME)
     {
 
         SAMRAI::tbox::Dimension d_dim(ndims);
 
         return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
                 boost::make_shared<SAMRAI::pdat::NodeVariable<T> >(
-                        d_dim, item->name(), var_depth[item->entity_type()] * item->value_size()));
+                        d_dim, attr->name(), var_depth[attr->entity_type()] * attr->dof()));
     } else
     {
         UNIMPLEMENTED;
@@ -592,9 +592,9 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                 *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
                 *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
                 **/
-
-                if (attr->db.equal("config", std::string("COORDINATES")))
+                if (attr->db.has("config") && attr->db["config"].as<std::string>() == "COORDINATES")
                 {
+                    CHECK(attr->name());
                     integrator->registerVariable(var, d_nghosts,
                                                  SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
                                                  d_grid_geometry,
@@ -603,9 +603,8 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 
                     d_visit_writer->registerNodeCoordinates(
                             vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-                } else if (attr->db.equal("config", std::string("FLUX")))
+                } else if (attr->db.has("config") && attr->db["config"].as<std::string>() == "FLUX")
                 {
-
                     integrator->registerVariable(var, d_fluxghosts,
                                                  SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
                                                  d_grid_geometry,
@@ -762,9 +761,7 @@ template<typename TV>
 std::shared_ptr<mesh::DataBlock>
 create_data_block_t(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
-
     auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
-
 
     int ndims = p_data->getDim().getValue();
 
@@ -801,7 +798,7 @@ create_data_block_t(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::Patch
     {
         case mesh::VERTEX:
             res = std::dynamic_pointer_cast<mesh::DataBlock>(
-                    std::make_shared<mesh::DataBlockArray<TV, mesh::VERTEX>>(p_data->getPointer(), ndims,
+                    std::make_shared<mesh::DataBlockArray<TV, mesh::VERTEX>>(p_data->getPointer(), ndims + 1,
                                                                              o_lower, o_upper,
                                                                              data::FAST_FIRST,
                                                                              i_lower, i_upper));
@@ -822,7 +819,7 @@ create_data_block_t(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::Patch
             break;
         case mesh::VOLUME:
             res = std::dynamic_pointer_cast<mesh::DataBlock>(
-                    std::make_shared<mesh::DataBlockArray<TV, mesh::VOLUME>>(p_data->getPointer(), ndims,
+                    std::make_shared<mesh::DataBlockArray<TV, mesh::VOLUME>>(p_data->getPointer(), ndims + 1,
                                                                              o_lower, o_upper,
                                                                              data::FAST_FIRST,
                                                                              i_lower, i_upper));

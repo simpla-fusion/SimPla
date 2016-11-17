@@ -86,8 +86,8 @@ public:
 //    typename traits::value_type<Field<TV, OM, index_const<IFORM>>>::type &
 //    eval(Field<TV, OM, index_const<IFORM>> &f, MeshEntitId const& s) const { return f[s]; };
 
-    template<typename TV, typename OM, size_t IFORM> inline constexpr TV
-    eval(Field<TV, OM, index_const<IFORM>> const &f, MeshEntitId const &s) const { return f[s]; };
+    template<typename TV, typename OM, size_t IFORM, size_type DOF> inline constexpr TV
+    eval(Field<TV, OM, index_const<IFORM>, index_const<DOF> > const &f, MeshEntitId const &s) const { return f[s]; };
 
 
 private:
@@ -254,9 +254,10 @@ public:
     mapto(TF const &expr, MeshEntitId const &s, index_sequence<I, I>, std::enable_if_t<!st::is_primary<TF>::value>
     *_p = nullptr) const { return eval(expr, s); }
 
-    template<typename TV, typename OM, size_t I>
+    template<typename TV, typename OM, size_t I, int DOF>
     inline constexpr TV
-    mapto(Field<TV, OM, index_const<I>> const &f, MeshEntitId const &s, index_sequence<I, I>) const { return f[s]; };
+    mapto(Field<TV, OM, index_const<I>, index_const<DOF> > const &f, MeshEntitId const &s,
+          index_sequence<I, I>) const { return f[s]; };
 
     template<typename TF>
     /*constexpr */  inline traits::value_type_t<TF>

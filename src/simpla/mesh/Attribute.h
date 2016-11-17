@@ -55,11 +55,8 @@ public:
 
     virtual std::type_info const &value_type_info() const =0;
 
-    virtual size_t value_rank() const { return 0; };
-
-    virtual size_t value_extent(unsigned int n = 0) const { return 1; };
-
-    virtual size_t value_size() const { return 1; };
+    // degree of freedom
+    virtual size_t dof() const { return 1; };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
@@ -91,10 +88,13 @@ private:
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-template<typename TV, MeshEntityType IFORM>
+template<typename TV, MeshEntityType IFORM, size_type IDOF>
 class AttributeProxy : public Attribute
 {
 public:
+    static constexpr mesh::MeshEntityType iform = IFORM;
+    static constexpr size_type DOF = IDOF;
+
     template<typename ...Args>
     AttributeProxy(Args &&...args):Attribute(std::forward<Args>(args)...) {}
 
@@ -104,29 +104,7 @@ public:
 
     virtual std::type_info const &value_type_info() const { return typeid(typename traits::value_type<TV>::type); };
 
-    virtual size_t value_rank() const { return traits::rank<TV>::value; };
-
-    virtual size_t value_extents(unsigned int n = 0) const
-    {
-        switch (n)
-        {
-            case 0:
-                return traits::extent<TV, 0>::value;
-            case 1:
-                return traits::extent<TV, 1>::value;
-            case 2:
-                return traits::extent<TV, 2>::value;
-            case 3:
-                return traits::extent<TV, 3>::value;
-            case 4:
-                return traits::extent<TV, 5>::value;
-            default:
-                ASSERT(5 >= value_rank());
-                return 1;
-        }
-    };
-
-    virtual size_t value_size() const { return traits::size<TV>::value; };
+    virtual size_type dof() const { return DOF; };
 
 };
 
@@ -141,25 +119,27 @@ public:
  * * can traverse on the Attribute
  * *
  */
-template<typename TV, MeshEntityType IFORM>
+template<typename TV, MeshEntityType IFORM, size_type IDOF = 1>
 class AttributeView : public Worker::Observer
 {
 
 protected:
 
     typedef AttributeView this_type;
-    typedef AttributeProxy<TV, IFORM> attribute_type;
+    typedef AttributeProxy<TV, IFORM, IDOF> attribute_type;
     std::shared_ptr<attribute_type> m_attr_;
     std::shared_ptr<MeshBlock> m_mesh_;
     std::shared_ptr<DataBlock> m_data_;
 
 public:
+    static constexpr MeshEntityType iform = IFORM;
+    static constexpr size_type DOF = IDOF;
 
     AttributeView(std::string const &s = "") : Worker::Observer(nullptr), m_attr_(new attribute_type(s)) {};
 
     template<typename ...Args>
-    AttributeView(Worker *w, Args &&...args) :
-            Worker::Observer(w), m_attr_(new attribute_type(std::forward<Args>(args)...)) {};
+    AttributeView(Worker *w, Args &&...args)
+            :Worker::Observer(w), m_attr_(new attribute_type(std::forward<Args>(args)...)) {};
 
     AttributeView(Worker *w, std::shared_ptr<Attribute> const &attr) : Worker::Observer(w), m_attr_(attr) {};
 

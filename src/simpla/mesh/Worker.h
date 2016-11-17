@@ -90,7 +90,6 @@ public:
      *
      *  require '''current data block''' is not created
      */
-    void sync(MeshBlock const *other, bool only_ghost = true);
 
     void apply(Visitor const &);
 
@@ -188,13 +187,6 @@ struct Worker::Observer : public concept::Printable
      */
     virtual void destroy()=0;
 
-    /**
-     *  if m_attr_.has(other) then m_data_.copy(m_attr_.at(other),only_ghost)
-     *  else do nothing
-     * @param other
-     * @param only_ghost
-     */
-    virtual void sync(MeshBlock const *other, bool only_ghost = true)=0;
 
 
 private:

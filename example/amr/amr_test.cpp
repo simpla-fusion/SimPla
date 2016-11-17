@@ -36,14 +36,13 @@ struct AMRTest : public mesh::Worker
 
     Real m_k_[3] = {TWOPI / NX, TWOPI / NY, TWOPI / NZ};
 
-    template<typename TV, mesh::MeshEntityType IFORM> using field_type=Field<TV, mesh_type, index_const<IFORM>>;
-
-//    field_type<Real, mesh::VERTEX> phi{"phi", this};
+    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1>
+    using field_type=Field<TV, mesh_type, index_const<IFORM>, index_const<DOF>>;
 
     Real epsilon = 1.0;
     Real mu = 1.0;
 
-    field_type<Real, mesh::EDGE> xyz{this, "xyz", "COORDINATES"};
+    field_type<Real, mesh::VERTEX, 3> xyz{this, "xyz", "COORDINATES"};
     field_type<Real, mesh::FACE> B{this, "B"};
     field_type<Real, mesh::EDGE> E{this, "E"};
     field_type<Real, mesh::EDGE> J{this, "J"};
@@ -79,30 +78,30 @@ struct AMRTest : public mesh::Worker
 //                  });
 //        xyz.clear();
 //
-//        xyz.foreach(
-//                [&](index_type i, index_type j, index_type k, index_type l)
-//                {
-//                    auto x = mesh()->point(i, j, k);
-//                    double res = 0.0;
-//                    switch (l)
-//                    {
-//                        case 0:
-//                            res = x[0] * std::cos(x[1]);
-//                            break;
-//                        case 1:
-//                            res = x[0] * std::sin(x[1]);
-//                            break;
-//
-//                        case 2:
-//                            res = x[2];
-//                            break;
-//
-//                        default :
-//                            break;
-//                    }
-//                    return res;
-//
-//                });
+        xyz.foreach(
+                [&](index_type i, index_type j, index_type k, index_type l)
+                {
+                    auto x = mesh()->point(i, j, k);
+                    double res = 0.0;
+                    switch (l)
+                    {
+                        case 0:
+                            res = (1 + x[0]) * std::cos(x[1]);
+                            break;
+                        case 1:
+                            res = (1 + x[0]) * std::sin(x[1]);
+                            break;
+
+                        case 2:
+                            res = x[2];
+                            break;
+
+                        default :
+                            break;
+                    }
+                    return res;
+
+                });
 
     }
 
