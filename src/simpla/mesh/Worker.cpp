@@ -10,14 +10,14 @@ namespace simpla { namespace mesh
 {
 struct Worker::pimpl_s
 {
-    std::shared_ptr<MeshBlock> m_mesh_ = nullptr;
-    std::set<Observer *> m_obs_;
+    MeshBlock const *m_mesh_ = nullptr;
     std::vector<std::shared_ptr<Attribute>> m_attributes_;
+    std::shared_ptr<Atlas> m_atlas_;
 };
 
 Worker::Worker() : m_pimpl_(new pimpl_s) {}
 
-Worker::~Worker() { for (Observer *ob:m_pimpl_->m_obs_) { ob->destroy(); }};
+Worker::~Worker() {};
 
 std::ostream &Worker::print(std::ostream &os, int indent) const
 {
@@ -28,7 +28,8 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 
     }
     os << "Attribute= {";
-    for (Observer *ob:m_pimpl_->m_obs_) { os << "\"" << ob->name() << "\" , "; }
+
+//    foreach([&](AttributeViewBase const &ob) { os << "\"" << ob.attribute()->name() << "\" , "; });
 
     os << std::setw(indent + 1) << "}  ";
 
@@ -36,41 +37,26 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 }
 
 
-void Worker::attach(Observer *ob) { m_pimpl_->m_obs_.insert(ob); }
-
-void Worker::detach(Observer *ob) { if (ob != nullptr) { m_pimpl_->m_obs_.erase(ob); }};
-
-void Worker::apply(Visitor const &vis) { for (auto &ob:m_pimpl_->m_obs_) { vis.visit(*ob); }}
-
-void Worker::apply(Visitor const &vis) const { for (auto &ob:m_pimpl_->m_obs_) { vis.visit(*ob); }}
-
-void Worker::for_each(std::function<void(Observer &)> const &f) { for (auto &ob:m_pimpl_->m_obs_) { f(*ob); }}
-
-void
-Worker::for_each(std::function<void(Observer const &)> const &f) const { for (auto &ob:m_pimpl_->m_obs_) { f(*ob); }}
-
-void Worker::move_to(const std::shared_ptr<MeshBlock> &m)
+void Worker::move_to(const MeshBlock *m)
 {
     m_pimpl_->m_mesh_ = m;
-    for (auto &ob:m_pimpl_->m_obs_) { ob->move_to(m); }
+//    notify(m);
 }
 
-MeshBlock const *Worker::mesh() const { return m_pimpl_->m_mesh_.get(); }
+MeshBlock const *Worker::mesh_block() const { return m_pimpl_->m_mesh_; }
 
 void Worker::deploy()
 {
     move_to(m_pimpl_->m_mesh_);
-    for (auto &ob:m_pimpl_->m_obs_) { ob->deploy(); }
+//    foreach([&](AttributeViewBase &ob) { ob.deploy(); });
+
 }
 
 void Worker::destroy()
 {
-    for (auto &ob:m_pimpl_->m_obs_) { ob->destroy(); }
+//    foreach([&](AttributeViewBase &ob) { ob.destroy(); });
     m_pimpl_->m_mesh_ = nullptr;
 }
 
-Worker::Observer::Observer(Worker *w) : m_worker_(w) { if (m_worker_ != nullptr) { m_worker_->attach(this); }}
-
-Worker::Observer::~Observer() { if (m_worker_ != nullptr) { m_worker_->detach(this); }}
 
 }}//namespace simpla { namespace mesh1

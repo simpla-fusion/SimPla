@@ -29,11 +29,13 @@ public:
 
     typedef LinearInterpolator<TM> interpolate_policy;
 
-    LinearInterpolator(TM const &m_) : m(m_) {}
+    LinearInterpolator(TM const *m_ = nullptr) : m(m_) {}
 
     virtual ~LinearInterpolator() {}
 
     static std::string class_name() { return "LinearInterpolator"; }
+
+    virtual void move_to(const mesh::MeshBlock *m_) { m = static_cast<mesh_type const *>(m_); }
 
     void deploy() {}
 
@@ -48,7 +50,7 @@ private:
     typedef TM mesh_type;
     typedef LinearInterpolator<mesh_type> this_type;
     typedef mesh::MeshEntityIdCoder M;
-    mesh_type const &m;
+    mesh_type const *m;
 
     template<typename TD, typename TIDX>
     inline auto
@@ -80,7 +82,7 @@ public:
     constexpr inline traits::field_value_t<TF>
     gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == VERTEX))) const
     {
-        return gather_impl_(f, m.point_global_to_local(r, 0));
+        return gather_impl_(f, m->point_global_to_local(r, 0));
     }
 
     template<typename TF>
@@ -88,9 +90,9 @@ public:
     gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == EDGE))) const
     {
         return traits::field_value_t<TF>{
-                gather_impl_(f, m.point_global_to_local(r, 1)),
-                gather_impl_(f, m.point_global_to_local(r, 2)),
-                gather_impl_(f, m.point_global_to_local(r, 4))
+                gather_impl_(f, m->point_global_to_local(r, 1)),
+                gather_impl_(f, m->point_global_to_local(r, 2)),
+                gather_impl_(f, m->point_global_to_local(r, 4))
         };
     }
 
@@ -99,9 +101,9 @@ public:
     gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == FACE))) const
     {
         return traits::field_value_t<TF>{
-                gather_impl_(f, m.point_global_to_local(r, 6)),
-                gather_impl_(f, m.point_global_to_local(r, 5)),
-                gather_impl_(f, m.point_global_to_local(r, 3))
+                gather_impl_(f, m->point_global_to_local(r, 6)),
+                gather_impl_(f, m->point_global_to_local(r, 5)),
+                gather_impl_(f, m->point_global_to_local(r, 3))
         };
     }
 
@@ -109,7 +111,7 @@ public:
     constexpr inline traits::field_value_t<TF>
     gather(TF const &f, point_type const &x, ENABLE_IF((traits::iform<TF>::value == VOLUME))) const
     {
-        return gather_impl_(f, m.point_global_to_local(x, 7));
+        return gather_impl_(f, m->point_global_to_local(x, 7));
     }
 
 
@@ -144,7 +146,7 @@ private:
     scatter_(std::integral_constant<int, VERTEX>, TF &
     f, TX const &x, TV const &u) const
     {
-        scatter_impl_(f, m.point_global_to_local(x, 0), u);
+        scatter_impl_(f, m->point_global_to_local(x, 0), u);
     }
 
     template<typename TF, typename TX, typename TV>
@@ -153,9 +155,9 @@ private:
     f, TX const &x, TV const &u) const
     {
 
-        scatter_impl_(f, m.point_global_to_local(x, 1), u[0]);
-        scatter_impl_(f, m.point_global_to_local(x, 2), u[1]);
-        scatter_impl_(f, m.point_global_to_local(x, 4), u[2]);
+        scatter_impl_(f, m->point_global_to_local(x, 1), u[0]);
+        scatter_impl_(f, m->point_global_to_local(x, 2), u[1]);
+        scatter_impl_(f, m->point_global_to_local(x, 4), u[2]);
 
     }
 
@@ -165,9 +167,9 @@ private:
              TX const &x, TV const &u) const
     {
 
-        scatter_impl_(f, m.point_global_to_local(x, 6), u[0]);
-        scatter_impl_(f, m.point_global_to_local(x, 5), u[1]);
-        scatter_impl_(f, m.point_global_to_local(x, 3), u[2]);
+        scatter_impl_(f, m->point_global_to_local(x, 6), u[0]);
+        scatter_impl_(f, m->point_global_to_local(x, 5), u[1]);
+        scatter_impl_(f, m->point_global_to_local(x, 3), u[2]);
     }
 
     template<typename TF, typename TX, typename TV>
@@ -175,7 +177,7 @@ private:
     scatter_(std::integral_constant<int, VOLUME>,
              TF &f, TX const &x, TV const &u) const
     {
-        scatter_impl_(f, m.point_global_to_local(x, 7), u);
+        scatter_impl_(f, m->point_global_to_local(x, 7), u);
     }
 
 public:
@@ -248,7 +250,7 @@ public:
     Real RBF(point_type const &x0, point_type const &x1, Real const &a) const
     {
 
-        return (1.0 - m.distance(x1, x0) / a);
+        return (1.0 - m->distance(x1, x0) / a);
     }
 
 };

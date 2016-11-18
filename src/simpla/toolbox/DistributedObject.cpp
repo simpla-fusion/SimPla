@@ -269,7 +269,7 @@ void DistributedObject::pimpl_s::sync()
 //        auto cell_buffer = pool->create_child();
 //        for (int i = 0; i < num_of_neighbour; ++i)
 //        {
-//            typename mesh_type::coordinate_tuple xmin, xmax, extents;
+//            typename manifold_type::coordinate_tuple xmin, xmax, extents;
 //
 //            std::tie(xmin, xmax) = pool->mesh_as().get_extents();
 //

@@ -43,13 +43,13 @@ struct FiniteVolume<TM>
 {
     typedef FiniteVolume<TM> this_type;
     typedef TM mesh_type;
-    mesh_type const &m;
+    mesh_type const *m;
     typedef mesh::MeshEntityIdCoder M;
     typedef mesh::MeshEntityId MeshEntitId;
 public:
     typedef this_type calculus_policy;
 
-    FiniteVolume(TM const &m_) : m(m_) {}
+    FiniteVolume() : m(nullptr) {}
 
     virtual ~FiniteVolume() {}
 
@@ -60,6 +60,8 @@ public:
         os << std::setw(indent) << " " << "[FiniteVolume]," << std::endl;
         return os;
     }
+
+    virtual void move_to(const mesh::MeshBlock *m_) { m = static_cast<mesh_type const *>(m_); }
 
     void deploy() {}
 
@@ -93,10 +95,10 @@ public:
 private:
 
     template<typename FExpr> inline constexpr traits::value_type_t<FExpr>
-    get_v(FExpr const &f, MeshEntitId const s) const { return eval(f, s) * m.volume(s); }
+    get_v(FExpr const &f, MeshEntitId const s) const { return eval(f, s) * m->volume(s); }
 
     template<typename FExpr> inline constexpr traits::value_type_t<FExpr>
-    get_d(FExpr const &f, MeshEntitId const s) const { return eval(f, s) * m.dual_volume(s); }
+    get_d(FExpr const &f, MeshEntitId const s) const { return eval(f, s) * m->dual_volume(s); }
 
 public:
 
@@ -111,7 +113,7 @@ public:
          index_sequence<mesh::VERTEX>) const
     {
         MeshEntitId D = M::delta_index(s);
-        return (get_v(std::get<0>(f.args), s + D) - get_v(std::get<0>(f.args), s - D)) * m.inv_volume(s);
+        return (get_v(std::get<0>(f.args), s + D) - get_v(std::get<0>(f.args), s - D)) * m->inv_volume(s);
     }
 
 
@@ -128,7 +130,7 @@ public:
 
         return ((get_v(std::get<0>(expr.args), s + Y) - get_v(std::get<0>(expr.args), s - Y))
                 - (get_v(std::get<0>(expr.args), s + Z) - get_v(std::get<0>(expr.args), s - Z))
-               ) * m.inv_volume(s);
+               ) * m->inv_volume(s);
 
 
     }
@@ -142,7 +144,7 @@ public:
         return (get_v(std::get<0>(expr.args), s + M::_DI) - get_v(std::get<0>(expr.args), s - M::_DI)
                 + get_v(std::get<0>(expr.args), s + M::_DJ) - get_v(std::get<0>(expr.args), s - M::_DJ)
                 + get_v(std::get<0>(expr.args), s + M::_DK) - get_v(std::get<0>(expr.args), s - M::_DK)
-               ) * m.inv_volume(s);
+               ) * m->inv_volume(s);
 
     }
 
@@ -156,7 +158,7 @@ public:
         return -(get_d(std::get<0>(expr.args), s + M::_DI) - get_d(std::get<0>(expr.args), s - M::_DI)
                  + get_d(std::get<0>(expr.args), s + M::_DJ) - get_d(std::get<0>(expr.args), s - M::_DJ)
                  + get_d(std::get<0>(expr.args), s + M::_DK) - get_d(std::get<0>(expr.args), s - M::_DK)
-        ) * m.inv_dual_volume(s);
+        ) * m->inv_dual_volume(s);
     }
 
     //! curl<2>
@@ -171,7 +173,7 @@ public:
 
         return -((get_d(std::get<0>(expr.args), s + Y) - get_d(std::get<0>(expr.args), s - Y))
                  - (get_d(std::get<0>(expr.args), s + Z) - get_d(std::get<0>(expr.args), s - Z))
-        ) * m.inv_dual_volume(s);
+        ) * m->inv_dual_volume(s);
     }
 
 
@@ -183,7 +185,7 @@ public:
     {
         MeshEntitId D = M::delta_index(M::dual(s));
         return -(get_d(std::get<0>(expr.args), s + D) - get_d(std::get<0>(expr.args), s - D)) *
-               m.inv_dual_volume(s);
+               m->inv_dual_volume(s);
     }
 
     //! *Form<IR> => Form<N-IL>
@@ -210,7 +212,7 @@ public:
                        get_v(l, ((s + X) + Y) - Z) +
                        get_v(l, ((s + X) + Y) + Z)
 
-               ) * m.inv_dual_volume(s) * 0.125;
+               ) * m->inv_dual_volume(s) * 0.125;
 
 
     };
@@ -226,7 +228,7 @@ public:
     {
         return (get_v(std::get<0>(expr.args), s + M::DI(I)) -
                 get_v(std::get<0>(expr.args), s - M::DI(I))
-               ) * m.inv_volume(s) * m_p_curl_factor_[(I + 3 - M::sub_index(s)) % 3];
+               ) * m->inv_volume(s) * m_p_curl_factor_[(I + 3 - M::sub_index(s)) % 3];
     }
 
 
@@ -238,7 +240,7 @@ public:
 
         return (get_v(std::get<0>(expr.args), s + M::DI(I)) -
                 get_v(std::get<0>(expr.args), s - M::DI(I))
-               ) * m.inv_dual_volume(s) * m_p_curl_factor_[(I + 3 - M::sub_index(s)) % 3];
+               ) * m->inv_dual_volume(s) * m_p_curl_factor_[(I + 3 - M::sub_index(s)) % 3];
     }
 
 ////***************************************************************************************************
@@ -406,9 +408,9 @@ public:
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
+        auto X = m->DI(0, s);
+        auto Y = m->DI(1, s);
+        auto Z = m->DI(2, s);
 
         return (
                        eval(l, ((s - X - Y - Z))) +
@@ -460,9 +462,9 @@ public:
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, M::dual(s));
-        auto Y = m.DI(1, M::dual(s));
-        auto Z = m.DI(2, M::dual(s));
+        auto X = m->DI(0, M::dual(s));
+        auto Y = m->DI(1, M::dual(s));
+        auto Z = m->DI(2, M::dual(s));
 
         return nTuple<traits::value_type_t<TF>, 3>
                 {
@@ -482,9 +484,9 @@ public:
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
+        auto X = m->DI(0, s);
+        auto Y = m->DI(1, s);
+        auto Z = m->DI(2, s);
 
         return nTuple<typename traits::value_type<TF>::type, 3>
                 {
@@ -508,9 +510,9 @@ public:
     traits::value_type_t<Field<Expression<ct::Wedge, T...>>>
     eval(Field<Expression<ct::Wedge, T...>> const &expr, MeshEntitId const &s, index_sequence<IL, IR>) const
     {
-        return m.inner_product(mapto(std::get<0>(expr.args), s, index_sequence<IL, IR + IL>()),
-                               mapto(std::get<1>(expr.args), s, index_sequence<IR, IR + IL>()),
-                               s);
+        return m->inner_product(mapto(std::get<0>(expr.args), s, index_sequence<IL, IR + IL>()),
+                                mapto(std::get<1>(expr.args), s, index_sequence<IR, IR + IL>()),
+                                s);
 
     }
 

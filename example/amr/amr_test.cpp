@@ -6,6 +6,8 @@
 
 #include <iostream>
 #include <simpla/manifold/pre_define/PreDefine.h>
+
+#include <simpla/concept/Object.h>
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/CartesianCoRectMesh.h>
 #include <simpla/physics/Field.h>
@@ -24,29 +26,39 @@ using namespace simpla;
 template<typename TM>
 struct AMRTest : public mesh::Worker
 {
-    typedef TM mesh_type;
+    SP_OBJECT_HEAD(AMRTest, mesh::Worker);
 
-    AMRTest() : mesh::Worker() {}
+    typedef typename TM::mesh_type mesh_type;
+
+    AMRTest() {}
 
     ~AMRTest() {}
 
-    SP_OBJECT_HEAD(AMRTest, mesh::Worker);
+    TM m;
 
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1>
-    using field_type=Field<TV, mesh_type, index_const<IFORM>, index_const<DOF>>;
+    using field_type=Field<TV, TM, index_const<IFORM>, index_const<DOF>>;
 
     Real epsilon = 1.0;
     Real mu = 1.0;
 
-    mesh::AttributeView<Real, mesh::VERTEX, 3> xyz{this, "xyz", "COORDINATES"};
-    field_type<Real, mesh::FACE> B{this, "B"};
-    field_type<Real, mesh::EDGE> E{this, "E"};
-    field_type<Real, mesh::EDGE> J{this, "J"};
+    field_type<Real, mesh::VERTEX, 3> xyz{m, "xyz", "COORDINATES"};
+    field_type<Real, mesh::FACE> B{m, "B"};
+    field_type<Real, mesh::EDGE> E{m, "E"};
+    field_type<Real, mesh::EDGE> J{m, "J"};
+
+    mesh_type const *mesh() const { return static_cast<mesh_type const *>(mesh_block()); }
 
 //    field_type<Real, mesh::EDGE> D{"D", this};
 //    field_type<Real, mesh::FACE> H{"H", this};
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Ev{"Ev", this};
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Bv{"Bv", this};
+
+
+
+    virtual void foreach(std::function<void(mesh::AttributeViewBase const &)> const &fun) const { m.foreach(fun); };
+
+    virtual void foreach(std::function<void(mesh::AttributeViewBase &)> const &fun) { m.foreach(fun); };
 
 
     virtual std::shared_ptr<mesh::MeshBlock>

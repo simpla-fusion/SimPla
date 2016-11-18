@@ -40,18 +40,18 @@ TEST(MeshMultiBlock, RectMesh)
     out_stream.close();
 
 
-//    traits::field_t<Real, mesh_type, VERTEX> f0{m};
-//    traits::field_t<Real, mesh_type, EDGE> f1a{m};
-//    traits::field_t<Real, mesh_type, EDGE> f1b{m};
+//    traits::field_t<Real, manifold_type, VERTEX> f0{m};
+//    traits::field_t<Real, manifold_type, EDGE> f1a{m};
+//    traits::field_t<Real, manifold_type, EDGE> f1b{m};
 //
 //    f0.clear();
 //    f1a.clear();
 //    f1b.clear();
 //    default_time_integral(
 //            m,
-//            [&](Real dt, traits::field_t<Real, mesh_type, VERTEX> F0,
-//                traits::field_t<Real, mesh_type, EDGE> F1a,
-//                traits::field_t<Real, mesh_type, EDGE> F1b) { F1b += F1a * F0 * dt; },
+//            [&](Real dt, traits::field_t<Real, manifold_type, VERTEX> F0,
+//                traits::field_t<Real, manifold_type, EDGE> F1a,
+//                traits::field_t<Real, manifold_type, EDGE> F1b) { F1b += F1a * F0 * dt; },
 //            m.dt(),
 //            f0, f1a, f1b
 //

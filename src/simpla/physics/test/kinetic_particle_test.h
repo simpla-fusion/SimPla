@@ -109,7 +109,7 @@ TEST_P(TestKineticParticle, scatter_n)
 		variance += std::pow(abs(expect - actual), 2.0);
 	}
 
-//	if (std::is_same<engine_type, PICEngineFullF<mesh_type> >::entity)
+//	if (std::is_same<engine_type, PICEngineFullF<manifold_type> >::entity)
 //	{
 //		Real relative_error = std::sqrt(variance) / abs(average);
 //		CHECK(relative_error);
@@ -127,7 +127,7 @@ TEST_P(TestKineticParticle, scatter_n)
 //TYPED_TEST_P(TestParticle,move){
 //{
 //	GLOBAL_DATA_STREAM.cd("ParticleTest.h5:/");
-//	typedef mesh_type mesh_type;
+//	typedef manifold_type manifold_type;
 //
 //	typedef particle_pool_type pool_type;
 //
@@ -139,19 +139,19 @@ TEST_P(TestKineticParticle, scatter_n)
 //
 //	typedef scalar_type scalar_type;
 //
-//	mesh_type const & geometry = geometry;
+//	manifold_type const & geometry = geometry;
 //
 //	LuaObject cfg;
 //	cfg.ParseString(cfg_str);
 //
-//	field<mesh_type,VERTEX,scalar_type> n0(geometry);
+//	field<manifold_type,VERTEX,scalar_type> n0(geometry);
 //
 //	pool_type ion(geometry,cfg["ion"]);
 //	ion.SetParticleSorting(enable_sorting);
-//	field<mesh_type,EDGE,Real> E(geometry);
-//	field<mesh_type,FACE,Real> B(geometry);
+//	field<manifold_type,EDGE,Real> E(geometry);
+//	field<manifold_type,FACE,Real> B(geometry);
 //
-//	field<mesh_type,EDGE,scalar_type> J0(geometry);
+//	field<manifold_type,EDGE,scalar_type> J0(geometry);
 //
 //	n0.Clear();
 //	J0.Clear();

@@ -30,25 +30,25 @@ struct Field<TM, TContainer, _impl::is_sequence_container> : public SpObject
 {
 
 public:
-	typedef TM mesh_type;
+	typedef TM manifold_type;
 
-	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
+	typedef typename manifold_type::id_type id_type;
+	typedef typename manifold_type::coordinate_tuple coordinate_tuple;
 
 	typedef TContainer container_type;
 	typedef typename container_type::value_type value_type;
 
-	typedef Field<mesh_type, container_type, _impl::is_sequence_container> this_type;
+	typedef Field<manifold_type, container_type, _impl::is_sequence_container> this_type;
 
 private:
 
-	mesh_type mesh_;
+	manifold_type mesh_;
 
 	std::shared_ptr<container_type> data_;
 
 public:
 	template<typename ...Args>
-	Field(mesh_type const & d, Args && ...args)
+	Field(manifold_type const & d, Args && ...args)
 			: mesh_(d), data_(
 					std::make_shared<container_type>(
 							std::forward<Args>(args...))
@@ -68,7 +68,7 @@ public:
 	{
 		return "field<" + mesh_.get_type_as_string() + ">";
 	}
-	mesh_type const & get_mesh() const
+	manifold_type const & get_mesh() const
 	{
 		return mesh_;
 	}
@@ -137,7 +137,7 @@ public:
 	/** @name access
 	 *  @{*/
 
-	typedef typename mesh_type::template field_value_type<value_type> field_value_type;
+	typedef typename manifold_type::template field_value_type<value_type> field_value_type;
 
 	field_value_type gather(coordinate_tuple const& x) const
 	{

@@ -301,9 +301,9 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //		TX const &x0, TX const & x1, TX const & x2,
 //		std::set<typename TM::mesh_id_type>* res)
 //{
-//	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
-//	typedef typename mesh_type::mesh_id_type mesh_id_type;
+//	typedef TM manifold_type;
+//	typedef typename manifold_type::coordinate_tuple coordinate_tuple;
+//	typedef typename manifold_type::mesh_id_type mesh_id_type;
 //
 //	coordinate_tuple dims0;
 //	dims0 = (x1 - x0) / geometry.dx();
@@ -362,9 +362,9 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //size_t triangle_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
 //		TI const &i0, std::multimap<typename TM::mesh_id_type, TI>* res)
 //{
-//	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
-//	typedef typename mesh_type::mesh_id_type mesh_id_type;
+//	typedef TM manifold_type;
+//	typedef typename manifold_type::coordinate_tuple coordinate_tuple;
+//	typedef typename manifold_type::mesh_id_type mesh_id_type;
 //
 //	TI it = i0;
 //	coordinate_tuple x0 = *it;
@@ -409,14 +409,14 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //					int IY = (IZ + 2) % 3;
 //
 //					mesh_id_type face_id = s
-//							+ (mesh_type::_DA << (mesh_type::ID_DIGITS * IZ))
+//							+ (manifold_type::_DA << (manifold_type::ID_DIGITS * IZ))
 //									* ((i % 2 == 0) ? 1 : -1);
 //
 //					coordinate_tuple xa = geometry.coordinates(face_id
 //
-//					- (mesh_type::_DA << (mesh_type::ID_DIGITS * IX))
+//					- (manifold_type::_DA << (manifold_type::ID_DIGITS * IX))
 //
-//					- (mesh_type::_DA << (mesh_type::ID_DIGITS * IY)));
+//					- (manifold_type::_DA << (manifold_type::ID_DIGITS * IY)));
 //
 //				}
 //			}
@@ -431,9 +431,9 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //size_t line_segment_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
 //		TI const &i0, std::multimap<typename TM::mesh_id_type, TI>* res)
 //{
-//	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
-//	typedef typename mesh_type::mesh_id_type mesh_id_type;
+//	typedef TM manifold_type;
+//	typedef typename manifold_type::coordinate_tuple coordinate_tuple;
+//	typedef typename manifold_type::mesh_id_type mesh_id_type;
 //
 //	TI it = i0;
 //	coordinate_tuple x0 = *it;
@@ -459,8 +459,8 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //		}
 //		else
 //		{
-//			intersection(geometry.coordinates(s - mesh_type::_DA),
-//					geometry.coordinates(s + mesh_type::_DA), x0, x1);
+//			intersection(geometry.coordinates(s - manifold_type::_DA),
+//					geometry.coordinates(s + manifold_type::_DA), x0, x1);
 //			res->set(std::make_pair(s, i0));
 //		}
 //	}
@@ -470,9 +470,9 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //void line_segment_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
 //		TX const &x0, TX const & x1, std::set<typename TM::mesh_id_type>* res)
 //{
-//	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
-//	typedef typename mesh_type::mesh_id_type mesh_id_type;
+//	typedef TM manifold_type;
+//	typedef typename manifold_type::coordinate_tuple coordinate_tuple;
+//	typedef typename manifold_type::mesh_id_type mesh_id_type;
 //
 //	int m = 0;
 //	for (int i = 0; i < 3; ++i)

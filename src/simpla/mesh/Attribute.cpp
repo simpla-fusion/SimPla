@@ -15,8 +15,7 @@ struct Attribute::pimpl_s
 {
     std::map<id_type, std::shared_ptr<DataBlock>> m_patches_;
 
-    std::map<std::type_index,
-            std::function<std::shared_ptr<DataBlock>(MeshBlock const *, void *p)> > m_data_factory;
+    std::map<std::type_index, std::function<std::shared_ptr<DataBlock>(MeshBlock const *, void *)> > m_data_factory;
 };
 
 Attribute::Attribute(std::string const &s, std::string const &config_str)
@@ -95,21 +94,47 @@ std::shared_ptr<DataBlock> &Attribute::at(const MeshBlock *m)
     }
 }
 
-void Attribute::insert(const MeshBlock *m, const std::shared_ptr<DataBlock> &d)
+std::shared_ptr<DataBlock> &Attribute::get(const MeshBlock *m, std::shared_ptr<DataBlock> const &p)
 {
     ASSERT(m_pimpl_ != nullptr);
-    if (m != nullptr || d == nullptr) { m_pimpl_->m_patches_.emplace(std::make_pair(m->id(), d)); }
-    else { WARNING << " try to insert null mesh or data block" << std::endl; }
+
+    if (!has(m)) { insert(m, p); }
+
+    return at(m);
 }
 
-std::shared_ptr<DataBlock> Attribute::create_data_block(MeshBlock const *m, void *p) const
+
+void Attribute::insert(const MeshBlock *m, const std::shared_ptr<DataBlock> &p)
 {
-    auto it = m_pimpl_->m_data_factory.find(m->typeindex());
-    if (it != m_pimpl_->m_data_factory.end()) { return it->second(m, p); }
-    else { return std::shared_ptr<DataBlock>(nullptr); }
+    ASSERT(m_pimpl_ != nullptr);
+
+    if (m == nullptr) { OUT_OF_RANGE << " try to insert null mesh or data block" << std::endl; }
+    else
+    {
+
+        if (p != nullptr)
+        {
+            m_pimpl_->m_patches_.emplace(std::make_pair(m->id(), p));
+
+        } else
+        {
+            auto it = m_pimpl_->m_data_factory.find(m->typeindex());
+
+            if (it != m_pimpl_->m_data_factory.end())
+            {
+                m_pimpl_->m_patches_.emplace(std::make_pair(m->id(), it->second(m, nullptr)));
+
+            } else
+            {
+                RUNTIME_ERROR << " data block factory is not registered!" << std::endl;
+            }
+
+        }
+    }
 }
 
-void Attribute::register_data_block_factroy(
+
+void Attribute::register_data_block_factory(
         std::type_index idx,
         const std::function<std::shared_ptr<DataBlock>(const MeshBlock *, void *)> &f)
 {

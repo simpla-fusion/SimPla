@@ -63,7 +63,7 @@ public:
 
     typedef Real scalar_type;
 
-//    typedef  traits::scalar_type_t<mesh_type> scalar_type;
+//    typedef  traits::scalar_type_t<manifold_type> scalar_type;
 
     static constexpr size_t iform = traits::iform<TField>::value;
 
@@ -76,13 +76,13 @@ public:
 
     mesh_type *m;
 
-//    typedef Field<value_type, mesh_type, index_const<static_cast<size_t>(iform)> > field_type;
+//    typedef Field<value_type, manifold_type, index_const<static_cast<size_t>(iform)> > field_type;
     typedef Field<value_type, mesh_type, index_const<static_cast<size_t>(iform)> > scalar_field_type;
     typedef Field<nTuple<value_type, 3>, mesh_type, index_const<static_cast<size_t>(iform)> > vector_field_type;
 
-//    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(m)))
+//    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, manifold_type, iform>(m)))
 //
-//    auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, mesh_type, iform>(m)))
+//    auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, manifold_type, iform>(m)))
 };
 
 TYPED_TEST_CASE_P(TestField);

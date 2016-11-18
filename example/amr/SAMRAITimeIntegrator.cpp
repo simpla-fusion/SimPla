@@ -574,8 +574,8 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     }
 
     //**************************************************************
-    m_worker_->for_each(
-            [&](mesh::Worker::Observer &ob)
+    m_worker_->foreach(
+            [&](mesh::AttributeViewBase &ob)
             {
                 mesh::Attribute *attr = ob.attribute();
 
@@ -877,20 +877,19 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
     std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, dx, xlo, xhi);
     m->id(patch.getBox().getLocalId().getValue());
     m->deploy();
-    w->move_to(m);
-    w->for_each(
-            [&](mesh::Worker::Observer &ob)
-            {
-                auto *attr = ob.attribute();
+    w->move_to(m.get());
+    w->foreach([&](mesh::AttributeViewBase &ob)
+               {
+                   auto *attr = ob.attribute();
 
-                if (attr == nullptr) { return; }
+                   if (attr == nullptr) { return; }
 
-                ob.move_to(m, detail::create_data_block(
-                        attr, m.get(),
-                        patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext())));
+                   ob.move_to(m.get(), detail::create_data_block(
+                           attr, m.get(),
+                           patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext())));
 
 
-            }
+               }
     );
 }
 

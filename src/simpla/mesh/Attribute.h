@@ -10,10 +10,10 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Configurable.h>
+#include <simpla/toolbox/design_pattern/Observer.h>
 
 #include "MeshBlock.h"
 #include "DataBlock.h"
-#include "Worker.h"
 
 namespace simpla { namespace mesh
 {
@@ -68,19 +68,19 @@ public:
 
     virtual bool has(MeshBlock const *) const;
 
-    virtual void insert(MeshBlock const *m, const std::shared_ptr<DataBlock> &);
-
     virtual void erase(MeshBlock const *);
 
     virtual std::shared_ptr<DataBlock> const &at(MeshBlock const *m) const;
 
-    virtual std::shared_ptr<DataBlock> &at(const MeshBlock *);
+    virtual std::shared_ptr<DataBlock> &at(MeshBlock const *m);
 
-    std::shared_ptr<DataBlock> create_data_block(MeshBlock const *, void *p) const;
+    virtual std::shared_ptr<DataBlock> &get(const MeshBlock *, std::shared_ptr<DataBlock> const &p = nullptr);
 
-    void register_data_block_factroy(
-            std::type_index idx,
-            const std::function<std::shared_ptr<DataBlock>(const MeshBlock *, void *)> &f);
+    virtual void insert(const MeshBlock *m, const std::shared_ptr<DataBlock> &p = nullptr);
+
+    virtual void register_data_block_factory(std::type_index idx,
+                                             const std::function<std::shared_ptr<DataBlock>(const MeshBlock *,
+                                                                                            void *)> &f);
 
 private:
     std::string m_name_;
@@ -108,6 +108,44 @@ public:
 
 };
 
+struct AttributeViewBase : public design_pattern::Observer<void(MeshBlock const *)>
+{
+    typedef design_pattern::Observable<void(MeshBlock const *)> observable;
+
+    AttributeViewBase(observable *w = nullptr) { if (w != nullptr) { this->connect(*w); }};
+
+    virtual ~AttributeViewBase() {}
+
+    AttributeViewBase(AttributeViewBase const &other) = delete;
+
+    AttributeViewBase(AttributeViewBase &&other) = delete;
+
+    virtual Attribute *attribute() =0;
+
+    virtual Attribute const *attribute() const =0;
+
+    virtual MeshBlock const *mesh_block() const =0;
+
+    virtual DataBlock *data()=0;
+
+    virtual DataBlock const *data() const =0;
+
+    virtual MeshEntityType entity_type() const =0;
+
+    virtual std::type_info const &value_type_info() const =0;
+
+    virtual size_type dof() const =0;
+
+    virtual bool is_a(std::type_info const &t_info) const =0;
+
+    virtual void move_to(MeshBlock const *m, std::shared_ptr<DataBlock> const &d)=0;
+
+    virtual void notify(MeshBlock const *m) { move_to(m, nullptr); };
+
+    virtual void deploy() {};
+
+    virtual void destroy() {};
+};
 
 /**
  * AttributeView: expose one block of attribute
@@ -120,7 +158,7 @@ public:
  * *
  */
 template<typename TV, MeshEntityType IFORM, size_type IDOF = 1>
-class AttributeView : public Worker::Observer
+class AttributeView : public AttributeViewBase
 {
 
 protected:
@@ -128,20 +166,24 @@ protected:
     typedef AttributeView this_type;
     typedef AttributeProxy<TV, IFORM, IDOF> attribute_type;
     std::shared_ptr<attribute_type> m_attr_;
-    std::shared_ptr<MeshBlock> m_mesh_;
+    MeshBlock const *m_mesh_block_;
     std::shared_ptr<DataBlock> m_data_;
 
 public:
+
     static constexpr MeshEntityType iform = IFORM;
+
     static constexpr size_type DOF = IDOF;
 
-    AttributeView(std::string const &s = "") : Worker::Observer(nullptr), m_attr_(new attribute_type(s)) {};
+    AttributeView() {}
+//    template<typename ...Args>
+//    explicit AttributeView(Args &&...args):m_attr_(new attribute_type(std::forward<Args>(args)...)) {};
 
     template<typename ...Args>
-    AttributeView(Worker *w, Args &&...args)
-            :Worker::Observer(w), m_attr_(new attribute_type(std::forward<Args>(args)...)) {};
+    explicit AttributeView(observable *w, Args &&...args)
+            :AttributeViewBase(w), m_attr_(new attribute_type(std::forward<Args>(args)...)) {};
 
-    AttributeView(Worker *w, std::shared_ptr<Attribute> const &attr) : Worker::Observer(w), m_attr_(attr) {};
+    AttributeView(std::shared_ptr<Attribute> const &attr) : m_attr_(attr) {};
 
     virtual ~AttributeView() {}
 
@@ -153,121 +195,26 @@ public:
 
     attribute_type const *attribute() const { return m_attr_.get(); }
 
-    MeshBlock const *mesh() const { return m_mesh_.get(); };
+    MeshBlock const *mesh_block() const { return m_mesh_block_; };
 
     DataBlock *data() { return m_data_.get(); }
 
     DataBlock const *data() const { return m_data_.get(); }
 
-    virtual MeshEntityType entity_type() const { return IFORM; };
+    MeshEntityType entity_type() const { return IFORM; };
 
-    virtual std::type_info const &value_type_info() const { return typeid(TV); };
+    std::type_info const &value_type_info() const { return typeid(TV); };
 
-    virtual std::string name() const { return m_attr_->name(); }
-
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const
-    {
-        if (m_mesh_ != nullptr && m_data_ != nullptr)
-        {
-            os << "{";
-            m_data_->print(os, indent + 1);
-            os << "}," << std::endl;
-        } else { os << "not-deployed!"; }
-        return os;
-    }
+    size_type dof() const { return DOF; };
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 
-    virtual std::shared_ptr<DataBlock> clone(const std::shared_ptr<MeshBlock> &m) const =0;
-
-    /**
-     * move to block m;
-     *   if m_attr_.at(m) ==nullptr then  m_attr_.insert(m_data_.clone(m))
-     *   m_data_= m_attr_.at(m)
-     *
-     * @param m
-     * @result
-     *  m_mesh_ : m
-     *  m_data_ : not nullptr. m_attr_.at(m) ;
-     */
-    virtual void move_to(const std::shared_ptr<MeshBlock> &m)
+    virtual void move_to(MeshBlock const *m, std::shared_ptr<DataBlock> const &d)
     {
-        ASSERT(m != nullptr)
-        ASSERT(m_attr_ != nullptr)
-        if (m != m_mesh_)
-        {
-            m_mesh_ = m;
-
-            if (m_attr_->has(m_mesh_.get())) { m_data_ = m_attr_->at(m_mesh_.get()); }
-            else
-            {
-                auto res = clone(m_mesh_);
-                m_attr_->insert(m_mesh_.get(), res);
-                m_data_ = res;
-            }
-        }
-    }
-
-    virtual void move_to(const std::shared_ptr<MeshBlock> &m,
-                         const std::shared_ptr<DataBlock> &d)
-    {
-        ASSERT(d != nullptr);
         ASSERT(m != nullptr);
-        m_mesh_ = m;
-        m_data_ = d;
-        deploy();
+        m_mesh_block_ = m;
+        m_data_ = m_attr_->get(m, d);
     }
-
-    /**
-      *  erase data from attribute
-      *
-      *   m_attr_.erase(m)
-      *
-      * @note do not destroy m_data_
-      *
-      * @result
-      *   m_data_ : nullptr
-      *   m_mesh_ : nullptr
-      */
-    virtual void erase(MeshBlock const *m = nullptr)
-    {
-        ASSERT (m_attr_ != nullptr);
-
-        m_attr_->erase(m_mesh_.get());
-        m_mesh_ = nullptr;
-    }
-
-    /**
-     *  malloc data at current block
-     *  @result
-     *    m_mesh_ : not chanaged
-     *    m_data_ : is_deployed()=true
-     */
-    virtual void deploy()
-    {
-        if (m_data_ == nullptr) { move_to(m_mesh_); }
-        ASSERT(m_data_ != nullptr);
-        if (m_data_ != nullptr && !m_data_->is_deployed()) { m_data_->deploy(); }
-    }
-
-    /**
-     * release data memory at current block
-     * @result
-     *   m_mesh_ : not change
-     *   m_data_ : is_deployed()=false
-     */
-    virtual void destroy() { if (m_data_ != nullptr) { m_data_->destroy(); }};
-
-//    /**
-//     *  if m_attr_.has(other) then m_data_.copy(m_attr_.at(other),only_ghost)
-//     *  else do nothing
-//     * @param other
-//     * @param only_ghost
-//     */
-//    virtual void sync(MeshBlock const *other, bool only_ghost = true)
-//    {
-//        try { m_data_->sync(m_attr_->at(other), only_ghost); } catch (std::out_of_range const &) {}
-//    };
 
 
 };

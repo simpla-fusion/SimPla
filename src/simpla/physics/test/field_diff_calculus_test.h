@@ -36,8 +36,8 @@ using namespace simpla::calculus;
 //#define CYLINDRICAL_COORDINATE_SYSTEM 1
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-typedef manifold::CylindricalManifold mesh_type;
-typedef geometry::traits::coordinate_system_t<mesh_type> cs;
+typedef manifold::CylindricalManifold manifold_type;
+typedef geometry::traits::coordinate_system_t<manifold_type> cs;
 static constexpr const int RAxis = cs::RAxis;
 static constexpr const int ZAxis = cs::ZAxis;
 static constexpr const int PhiAxis = cs::PhiAxis;

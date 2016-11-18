@@ -67,7 +67,7 @@ public:
     DataBlockArray() : DataBlock(), data_entity_type() {}
 
     template<typename ...Args>
-    DataBlockArray(Args &&...args) : DataBlock(), data_entity_type(std::forward<Args>(args)...) {}
+    explicit DataBlockArray(Args &&...args) : DataBlock(), data_entity_type(std::forward<Args>(args)...) {}
 
     virtual ~DataBlockArray() {}
 

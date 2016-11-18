@@ -29,24 +29,24 @@ class Field<TV, TMesh, std::integral_constant<int, IFORM>, tags::function, TFun,
 public:
     typedef TV value_type;
 
-    typedef TMesh mesh_type;
+    typedef TMesh manifold_type;
 
     static constexpr int iform = IFORM;
 
-    static constexpr int ndims = mesh_type::ndims;
+    static constexpr int ndims = manifold_type::ndims;
 
 private:
 
 
-    typedef typename mesh_type::box_type spatial_domain_type;
-    typedef typename mesh_type::id_type id_type;
-    typedef typename mesh_type::point_type point_type;
-    typedef Field<TV, mesh_type, std::integral_constant<int, IFORM>, tags::function, TFun, TBox, Policies...> this_type;
+    typedef typename manifold_type::box_type spatial_domain_type;
+    typedef typename manifold_type::id_type id_type;
+    typedef typename manifold_type::point_type point_type;
+    typedef Field<TV, manifold_type, std::integral_constant<int, IFORM>, tags::function, TFun, TBox, Policies...> this_type;
     typedef typename this_type::calculus_policy calculus_policy;
     typedef typename this_type::interpolate_policy interpolate_policy;
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-    mesh_type const &m_mesh_;
+    manifold_type const &m_mesh_;
 
     TFun m_fun_;
 
@@ -57,7 +57,7 @@ private:
 public:
 
     template<typename TF>
-    Field(mesh_type const &m, TF const &fun, TBox const &box) :
+    Field(manifold_type const &m, TF const &fun, TBox const &box) :
             m_mesh_(m), m_fun_(fun), m_define_domain_(box) { }
 
 
@@ -68,21 +68,21 @@ public:
 
 
     template<typename TF>
-    static this_type create(mesh_type const &m, TFun const &fun)
+    static this_type create(manifold_type const &m, TFun const &fun)
     {
         return this_type(m, fun, m.box());
     }
 
     template<typename TDict>
-    static this_type create_from_config(mesh_type const &m, TDict const &dict)
+    static this_type create_from_config(manifold_type const &m, TDict const &dict)
     {
 
         if (!(dict["Value"])) { THROW_EXCEPTION_RUNTIME_ERROR("illegal configure file!"); }
 
-        typename mesh_type::box_type b;
+        typename manifold_type::box_type b;
         if (dict["MeshBlock"])
         {
-            b = dict["MeshBlock"].template as<typename mesh_type::box_type>();
+            b = dict["MeshBlock"].template as<typename manifold_type::box_type>();
         } else
         {
             b = m.box();

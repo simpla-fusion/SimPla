@@ -15,7 +15,11 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Configurable.h>
+#include <simpla/toolbox/design_pattern/Observer.h>
+
 #include "MeshCommon.h"
+#include "Atlas.h"
+#include "Attribute.h"
 
 namespace simpla { namespace mesh
 {
@@ -30,13 +34,10 @@ class Worker :
 {
 public:
     SP_OBJECT_HEAD(Worker, Object)
-    struct Observer;
-    struct Visitor;
 
     Worker();
 
     ~Worker();
-
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
@@ -46,18 +47,16 @@ public:
 
     virtual void save(data::DataBase *) const { UNIMPLEMENTED; }
 
-    void attach(Observer *);
-
-    void detach(Observer *);
 
     /**
       *  move '''Observer''' to mesh block '''m'''
       *  if  data block is not exist, create
       * @param id
       */
-    void move_to(const std::shared_ptr<MeshBlock> &m);
+    void move_to(const MeshBlock *m);
 
-    MeshBlock const *mesh() const;
+
+    MeshBlock const *mesh_block() const;
 
     virtual std::shared_ptr<mesh::MeshBlock>
     create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx,
@@ -81,23 +80,9 @@ public:
      */
     void destroy();
 
-    /**
-     * copy/refine/coarsen data from '''other''' block to current block
-     *  copy   : current_block.level == other_block.level
-     *  refine : current_block.level >  other_block.level
-     *  coarsen: current_block.level <  other_block.level
-     *
-     *  require '''current data block''' is not created
-     */
+    virtual void foreach(std::function<void(AttributeViewBase const &)> const &) const =0;
 
-    void apply(Visitor const &);
-
-    void apply(Visitor const &) const;
-
-    void for_each(std::function<void(Observer &)> const &);
-
-    void for_each(std::function<void(Observer const &)> const &) const;
-
+    virtual void foreach(std::function<void(AttributeViewBase &)> const &)=0;
 
 private:
     std::string m_name_;
@@ -105,93 +90,6 @@ private:
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-struct Worker::Visitor
-{
-    virtual void visit(Observer &)=0;
 
-    virtual void visit(Observer const &) const =0;
-};
-
-struct Worker::Observer : public concept::Printable
-{
-
-    Observer(Worker *m);
-
-    virtual ~Observer();
-
-    Observer(Observer const &other) = delete;
-
-    Observer(Observer &&other) = delete;
-
-    virtual std::string name() const =0;
-
-    virtual std::ostream &print(std::ostream &os, int indent) const =0;
-
-    virtual Attribute *attribute() { return nullptr; };
-
-    virtual Attribute const *attribute() const { return nullptr; };
-
-//    virtual void move_to(MeshBlock const *) =0;
-//
-//    virtual void erase() =0;
-//
-//    virtual void deploy() =0;
-//
-//    virtual void destroy() =0;
-//
-//    virtual void sync(MeshBlock const *other, bool only_ghost = true) =0;
-
-
-    /**
-     * move to block m;
-     *   if m_attr_.at(m) ==nullptr then  m_attr_.insert(m_data_.clone(m))
-     *   m_data_= m_attr_.at(m)
-     *
-     * @param m
-     * @result
-     *  m_mesh_ : m
-     *  m_data_ : m_attr_.at(m) ;
-     */
-    virtual void move_to(const std::shared_ptr<MeshBlock> &m)=0;
-
-    virtual void move_to(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &d)=0;
-
-
-    /**
-      *  erase data from attribute
-      *
-      *   m_attr_.erase(m)
-      *
-      * @note do not destroy m_data_
-      *
-      * @result
-      *   m_data_ : nullptr
-      *   m_mesh_ : nullptr
-      */
-    virtual void erase(MeshBlock const *m = nullptr)=0;
-
-    /**
-     *  malloc data at current block
-     *  @result
-     *    m_mesh_ : not chanaged
-     *    m_data_ : is_deployed()=true
-     */
-    virtual void deploy()=0;
-
-    /**
-     * release data memory at current block
-     * @result
-     *   m_mesh_ : not change
-     *   m_data_ : is_deployed()=false
-     */
-    virtual void destroy()=0;
-
-
-
-private:
-    friend class Worker;
-
-    Worker *m_worker_;
-};
 }}
 #endif //SIMPLA_WORKER_H

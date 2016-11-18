@@ -13,8 +13,12 @@
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/macro.h>
 #include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/design_pattern/Observer.h>
+#include <simpla/concept/Configurable.h>
 
-#include <simpla/mesh/Worker.h>
+#include <simpla/mesh/MeshBlock.h>
+#include <simpla/mesh/Attribute.h>
+
 #include "ManifoldTraits.h"
 
 
@@ -126,9 +130,13 @@ namespace simpla { namespace manifold
 /**
  * Manifold
  */
+typedef simpla::design_pattern::Observable<void(simpla::mesh::MeshBlock const *)> mesh_observable;
+
+
 template<typename TMesh, template<typename...> class ...Policies>
 class Manifold :
-        public mesh::Worker::Observer,
+        public concept::Configurable,
+        public mesh_observable,
         public Policies<TMesh> ...
 {
     typedef Manifold<TMesh, Policies ...> this_type;
@@ -136,12 +144,9 @@ class Manifold :
 public:
 
     typedef TMesh mesh_type;
+    mesh_type const *m_mesh_;
 
-    Manifold() : mesh::Worker::Observer(nullptr), Policies<mesh_type>(static_cast<mesh_type &>(*this))... {}
-
-    template<typename ...Args>
-    Manifold(mesh::Worker *w, Args &&...args)
-            :  mesh::Worker::Observer(w), Policies<mesh_type>(static_cast<mesh_type &>(*this))... {}
+    Manifold() {}
 
     virtual ~Manifold() {}
 
@@ -149,88 +154,68 @@ public:
 
     this_type &operator=(const this_type &other) = delete;
 
-    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || TMesh::is_a(info); }
+    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
 
-    virtual std::string get_class_name() const { return class_name(); }
+    virtual std::string get_class_name() const { return name(); }
 
-    static std::string class_name()
+    virtual std::string name() const
     {
         return "Manifold<" + traits::type_id_list<mesh_type, Policies<mesh_type>...>::name() + " > ";
     }
 
-    virtual void move_to(const std::shared_ptr<MeshBlock> &m);
 
-    virtual void move_to(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &d)
-
-private:
-    template<typename T>
-    void deploy_dispatch() {/*T::deploy();*/ }
-
-    template<typename T, typename T1, typename ...Others>
-    void deploy_dispatch()
+    virtual void move_to(const mesh::MeshBlock *m)
     {
-        deploy_dispatch<T>();
-        deploy_dispatch<T1, Others...>();
-    }
+        m_mesh_ = static_cast<mesh_type const *>(m);
+        this_type::calculus_policy::move_to(m_mesh_);
+        this_type::interpolate_policy::move_to(m_mesh_);
+    };
 
 
 public:
+
+    mesh_type const *mesh_block() { return m_mesh_; }
+
     virtual void deploy()
     {
-        mesh_type::deploy();
-        deploy_dispatch<Policies<mesh_type>...>();
-        this->touch();
-    }
 
-    template<typename TDict>
-    this_type &setup(TDict const &dict)
-    {
-        mesh_type::setup(dict);
-        return *this;
+        this_type::calculus_policy::deploy();
+        this_type::interpolate_policy::deploy();
     }
 
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
-//        os << std::setw(indent + 1) << " " << "Manifold = {" << std::endl;
-
-        this_type::mesh_type::print(os, indent + 1);
+        m_mesh_->print(os, indent + 1);
         this_type::calculus_policy::print(os, indent + 1);
         this_type::interpolate_policy::print(os, indent + 1);
-
-//        os << std::setw(indent + 1) << " " << "}  -- Manifold " << std::endl;
         return os;
     }
 
 
+    virtual void destroy()
+    {
+
+    }
+
+    template<typename ...Args>
+    point_type point(Args &&...args) { return m_mesh_->point(std::forward<Args>(args)...); }
+
+    virtual void foreach(std::function<void(simpla::mesh::AttributeViewBase const &)> const &fun) const
+    {
+        this->mesh_observable::foreach(
+                [&](observer_type const &obj) { fun(static_cast<simpla::mesh::AttributeViewBase const &>(obj)); });
+    };
+
+    virtual void foreach(std::function<void(mesh::AttributeViewBase & )> const &fun)
+    {
+        this->mesh_observable::foreach(
+                [&](observer_type &obj) { fun(static_cast<simpla::mesh::AttributeViewBase &>(obj)); });
+    };
 
 
-
-//    virtual data_model::DataSet grid_vertices() const
-//    {
-//        auto ds = this->storage_policy::template dataset<point_type, VERTEX>();
-//
-//        ds.m_data = sp_alloc_memory(ds.memory_space.size() * sizeof(point_type));
-//
-//        point_type *p = reinterpret_cast<point_type *>(ds.m_data.get());
-//
-//        parallel::parallel_for(
-//                this->template entity_id_range<VERTEX>(),
-//                [&](range_type const &r)
-//                {
-//                    for (auto const &s: r)
-//                    {
-//                        p[this->hash(s)] = this->map_to_cartesian(this->point(s));
-//                    }
-//                }
-//        );
-//
-//        return std::move(ds);
-//
-//    };
-
-
-
+private:
+//    std::shared_ptr<mesh::Atlas> m_atlas_;
 
 
 }; //class Manifold
