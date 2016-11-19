@@ -159,7 +159,10 @@ public:
     {
         if (m_data_ == nullptr)
         {
-            if (m_holder_ == nullptr && m_size_ > 0) { m_holder_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }
+            if (m_holder_ == nullptr && m_size_ > 0) {
+
+                m_holder_ = toolbox::MemoryHostAllocT<value_type>(m_size_);
+            }
 
             m_data_ = m_holder_.get();
         }

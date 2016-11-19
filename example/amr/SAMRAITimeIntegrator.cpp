@@ -578,7 +578,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
             [&](mesh::AttributeViewBase &ob)
             {
                 auto attr = ob.attribute();
-
+                CHECK(ob.attribute()->name());
                 if (attr == nullptr) { return; }
 
                 boost::shared_ptr<SAMRAI::hier::Variable> var = detail::create_samrai_variable(3, attr.get());
@@ -1377,8 +1377,6 @@ size_type SAMRAITimeIntegrator::next_step(Real dt)
         dt = std::min(dt_new, loop_time_end - loop_time);
 
     }
-
-
 }
 
 void SAMRAITimeIntegrator::check_point()

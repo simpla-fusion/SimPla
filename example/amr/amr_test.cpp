@@ -42,7 +42,6 @@ struct AMRTest : public mesh::Worker
     Real epsilon = 1.0;
     Real mu = 1.0;
 
-    field_type<Real, mesh::VERTEX, 3> xyz{m, "xyz", "COORDINATES"};
     field_type<Real, mesh::FACE> B{m, "B"};
     field_type<Real, mesh::EDGE> E{m, "E"};
     field_type<Real, mesh::EDGE> J{m, "J"};
@@ -69,7 +68,7 @@ struct AMRTest : public mesh::Worker
     create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx,
                       Real const *xlo = nullptr, Real const *xhi = nullptr) const
     {
-        auto res = std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<mesh_type>(3, lo, hi, dx, xlo, xhi));
+        auto res = std::make_shared<mesh::MeshBlock>(3, lo, hi, dx, xlo, xhi);
         res->deploy();
         return res;
     };
@@ -77,6 +76,7 @@ struct AMRTest : public mesh::Worker
 
     void initialize(Real data_time)
     {
+        m.deploy();
         E.clear();
         B.clear();
         J.clear();
@@ -90,7 +90,7 @@ struct AMRTest : public mesh::Worker
                   });
 //        xyz.clear();
 
-        xyz.foreach(
+        static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>( m.geometry().m_vertics_.data())->foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto const *m_ = mesh_block();

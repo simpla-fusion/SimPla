@@ -161,11 +161,14 @@ public:
         return "Manifold<" + traits::type_id_list<geometry_type, Policies<geometry_type>...>::name() + " > ";
     }
 
+    geometry_type &geometry() { return m_geo_; }
+
     geometry_type const &geometry() const { return m_geo_; }
 
 
     virtual void deploy()
     {
+        m_geo_.deploy();
         this_type::calculus_policy::deploy();
         this_type::interpolate_policy::deploy();
     }

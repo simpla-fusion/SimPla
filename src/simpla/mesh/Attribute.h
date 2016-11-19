@@ -155,6 +155,9 @@ struct AttributeViewBase : public design_pattern::Observer<void(std::shared_ptr<
     virtual void deploy() { DO_NOTHING; };
 
     virtual void destroy() { DO_NOTHING; };
+
+    virtual void register_data_block_factory(std::shared_ptr<mesh::Attribute> const &attr)=0;
+
 };
 
 
@@ -225,7 +228,7 @@ public:
         m_attr_ = std::dynamic_pointer_cast<attribute_type>(attr);
     };
 
-    virtual void register_data_block_factory(std::shared_ptr<mesh::Attribute> &attr)
+    virtual void register_data_block_factory(std::shared_ptr<mesh::Attribute> const &attr)
     {
         attr->register_data_block_factory(
                 std::type_index(typeid(MeshBlock)),
@@ -260,12 +263,9 @@ public:
     virtual void deploy()
     {
         ASSERT(m_mesh_holder_ != nullptr);
-        if (m_data_holder_ == nullptr)
-        {
-            m_data_holder_ = m_attr_->get(m_mesh_holder_);
-        }
+        if (m_data_holder_ == nullptr) { m_data_holder_ = m_attr_->get(m_mesh_holder_); }
         m_data_holder_->deploy();
-
+        CHECK(m_attr_->name());
     };
 
 
@@ -339,6 +339,9 @@ AttributeView<TV, IFORM, IDOF>::connect(AttributeHolder *w, std::string const &k
     if (!w->connect(this, key))
     {
         m_attr_ = std::make_shared<attribute_type>(key, std::forward<Args>(args)...);
+
+        register_data_block_factory(m_attr_);
+
         if (!w->connect(this, key))
         {
             RUNTIME_ERROR << "Can not connect attribute view!" << std::endl;

@@ -98,9 +98,7 @@ std::shared_ptr<DataBlock> &Attribute::at(std::shared_ptr<MeshBlock> const &m)
 std::shared_ptr<DataBlock> &Attribute::get(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &p)
 {
     ASSERT(m_pimpl_ != nullptr);
-
     if (!has(m)) { insert(m, p); }
-
     return at(m);
 }
 

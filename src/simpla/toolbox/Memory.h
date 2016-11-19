@@ -10,14 +10,23 @@
 #include <cstring>
 
 #include "MemoryPool.h"
+#include "Log.h"
 
 namespace simpla { namespace toolbox
 {
 
 
-template<typename T> std::shared_ptr<T> MemoryHostAllocT(size_type num) { return sp_alloc_array<T>(num); }
+template<typename T> std::shared_ptr<T> MemoryHostAllocT(size_type s)
+{
+    VERBOSE << "Allocate memory [" << s << " ]" << std::endl;
+    return sp_alloc_array<T>(s);
+}
 
-inline std::shared_ptr<void> MemoryHostAlloc(size_type s) { return sp_alloc_memory(s); }
+inline std::shared_ptr<void> MemoryHostAlloc(size_type s)
+{
+    VERBOSE << "Allocate memory [" << s << " ]" << std::endl;
+    return sp_alloc_memory(s);
+}
 
 inline void MemorySet(void *d, int v, size_type s) { memset(d, v, s); }
 
