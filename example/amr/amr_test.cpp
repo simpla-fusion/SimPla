@@ -99,8 +99,8 @@ int main(int argc, char **argv)
 {
     logger::set_stdout_level(100);
 
-    //    typedef manifold::CylindricalManifold mesh_type;
-    typedef manifold::CartesianManifold mesh_type;
+    typedef manifold::CylindricalManifold mesh_type;
+    // typedef manifold::CartesianManifold mesh_type;
 
     auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<mesh_type>>());
 

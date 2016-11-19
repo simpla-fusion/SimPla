@@ -207,9 +207,9 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 
     // Refer to algs::TimeRefinementIntegrator for input
     integrator->db["TimeRefinementIntegrator"]["start_time"] = 0.e0; // initial simulation time
-    integrator->db["TimeRefinementIntegrator"]["end_time"] = 20.e0;  // final simulation time
+    integrator->db["TimeRefinementIntegrator"]["end_time"] = 1.e0;  // final simulation time
     integrator->db["TimeRefinementIntegrator"]["grow_dt"] = 1.1e0;  // growth factor for timesteps
-    integrator->db["TimeRefinementIntegrator"]["max_integrator_steps"] = 20;  // max number of simulation timesteps
+    integrator->db["TimeRefinementIntegrator"]["max_integrator_steps"] = 5;  // max number of simulation timesteps
 
     // Refer to mesh::TreeLoadBalancer for input
     integrator->db["LoadBalancer"];
@@ -886,7 +886,6 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
                 ob.move_to(m, detail::create_data_block(
                         attr, patch.getPatchData(m_samrai_variables_.at(attr->id()),
                                                  getDataContext())));
-                ob.deploy();
             }
     );
     w->move_to(m);

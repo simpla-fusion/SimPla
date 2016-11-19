@@ -30,7 +30,11 @@ public:
 
     virtual void notify(std::shared_ptr<MeshBlock> const &m) { move_to(m); };
 
-    virtual void move_to(std::shared_ptr<MeshBlock> const &m) { m_mesh_ = m; }
+    virtual void move_to(std::shared_ptr<MeshBlock> const &m)
+    {
+        m_mesh_ = m;
+        deploy();
+    }
 
     virtual void deploy() { DO_NOTHING; }
 
