@@ -33,13 +33,12 @@ public:
 
     typedef LinearInterpolator<TM> interpolate_policy;
 
-    LinearInterpolator(TM const *m_ = nullptr) : m(m_) {}
+    LinearInterpolator(TM const *g) : m(g) {}
 
     virtual ~LinearInterpolator() {}
 
     static std::string class_name() { return "LinearInterpolator"; }
 
-    virtual void move_to(const mesh_type *m_) { m = m_; }
 
     void deploy() {}
 

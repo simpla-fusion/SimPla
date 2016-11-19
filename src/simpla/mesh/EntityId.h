@@ -287,6 +287,15 @@ struct MeshEntityIdCoder_
         };
     }
 
+    static constexpr nTuple<index_type, 4> unpack_index4_nodeid(MeshEntityId const &s)
+    {
+        return nTuple<index_type, 4> {
+                static_cast<index_type>(s.x >> 1 ) - ZERO,
+                static_cast<index_type>(s.y >> 1 ) - ZERO,
+                static_cast<index_type>(s.z >> 1 ) - ZERO,
+                static_cast<index_type>( node_id(s))
+        };
+    }
 //    template<typename T>
 //    static constexpr T type_cast(MeshEntityId s)
 //    {

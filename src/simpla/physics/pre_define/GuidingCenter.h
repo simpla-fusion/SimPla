@@ -8,8 +8,8 @@
 #define SIMPLA_GUIDINGCENTER_H
 
 
-#include "../../manifold/schemes/FVMStructured.h"
-#include "../../manifold/schemes/LinearInterpolator.h"
+#include "simpla/geometry/FVMStructured.h"
+#include "simpla/geometry/LinearInterpolator.h"
 
 #include "../Particle.h"
 #include "../ParticleProxy.h"

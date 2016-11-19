@@ -55,7 +55,7 @@ struct Observable
     void notify(Args &&...args) { for (auto &item:m_observers_) { item->notify(std::forward<Args>(args)...); }}
 
 
-    void connect(observer_type *observer)
+    virtual void connect(observer_type *observer)
     {
         observer->connect(this);
         m_observers_.insert(observer);
@@ -74,7 +74,7 @@ struct Observable
     };
 
 
-    void disconnect(observer_type *observer)
+    virtual void disconnect(observer_type *observer)
     {
         auto it = m_observers_.find(observer);
 
@@ -86,7 +86,7 @@ struct Observable
         }
     }
 
-    void remove(observer_type *observer) { disconnect(observer); }
+    virtual void remove(observer_type *observer) { disconnect(observer); }
 
     virtual void foreach(std::function<void(observer_type &)> const &fun)
     {

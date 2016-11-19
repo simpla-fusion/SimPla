@@ -56,10 +56,10 @@ public:
 
 };
 
-template<typename TV, MeshEntityType IFORM>
+template<typename TV, MeshEntityType IFORM, size_type DOF = 1>
 class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>
 {
-    typedef DataBlockArray<TV, IFORM> this_type;
+    typedef DataBlockArray<TV, IFORM, DOF> this_type;
     typedef data::DataEntityNDArray<TV> data_entity_type;
 public:
     typedef TV value_type;
@@ -75,9 +75,11 @@ public:
 
     virtual mesh::MeshEntityType entity_type() const { return IFORM; }
 
+    virtual size_type dof() const { return DOF; }
+
     virtual bool is_a(std::type_info const &info) const
     {
-        return info == typeid(DataBlockArray<TV, IFORM>) || DataBlock::is_a(info);
+        return info == typeid(this_type) || DataBlock::is_a(info);
     };
 
     virtual std::string name() const { return ""; }

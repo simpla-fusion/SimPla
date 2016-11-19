@@ -8,7 +8,7 @@
 #define SIMPLA_PREDEFINE_H
 
 #include <simpla/mesh/CartesianCoRectMesh.h>
-#include <simpla/mesh/CylindricalRectMesh.h>
+#include <simpla/geometry/CylindricalGeometry.h>
 
 //#include "../RectMesh.h"
 
@@ -30,7 +30,7 @@ using DefaultManifold= Manifold<MESH,
         //        policy::ParallelPolicy,
 >;
 
-using CylindricalManifold= DefaultManifold<mesh::CylindricalRectMesh>;
+using CylindricalManifold= DefaultManifold<mesh::CylindricalGeometry>;
 
 using CartesianManifold = DefaultManifold<mesh::CartesianCoRectMesh>;
 

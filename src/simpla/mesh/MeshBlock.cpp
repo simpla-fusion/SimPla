@@ -201,7 +201,7 @@ void MeshBlock::deploy()
 std::shared_ptr<MeshBlock>
 MeshBlock::create(int inc_level, const index_type *lo, const index_type *hi) const
 {
-    std::shared_ptr<MeshBlock> res = clone();
+    auto res = std::make_shared<MeshBlock>();
     if (inc_level >= 0)
     {
         std::get<0>(res->m_g_box_)[0] = lo[0] << inc_level;

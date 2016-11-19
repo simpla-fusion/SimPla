@@ -130,24 +130,21 @@ namespace simpla { namespace manifold
 /**
  * Manifold
  */
-typedef simpla::design_pattern::Observable<void(std::shared_ptr<simpla::mesh::MeshBlock> const &)> mesh_observable;
 
 
-template<typename TMesh, template<typename...> class ...Policies>
+template<typename TGeo, template<typename...> class ...Policies>
 class Manifold :
-        public concept::Configurable,
-        public mesh_observable,
-        public Policies<TMesh> ...
+        public mesh::AttributeHolder,
+        public Policies<TGeo> ...
 {
-    typedef Manifold<TMesh, Policies ...> this_type;
+    typedef Manifold<TGeo, Policies ...> this_type;
 
 public:
+    typedef TGeo mesh_type;
+    typedef TGeo geometry_type;
+    geometry_type m_geo_;
 
-    typedef TMesh mesh_type;
-    std::shared_ptr<mesh_type> m_mesh_holder_;
-    mesh_type const *m_mesh_;
-
-    Manifold() {}
+    Manifold() : Policies<TGeo>(&m_geo_)... { m_geo_.connect(this); }
 
     virtual ~Manifold() {}
 
@@ -161,26 +158,14 @@ public:
 
     virtual std::string name() const
     {
-        return "Manifold<" + traits::type_id_list<mesh_type, Policies<mesh_type>...>::name() + " > ";
+        return "Manifold<" + traits::type_id_list<geometry_type, Policies<geometry_type>...>::name() + " > ";
     }
 
+    geometry_type const &geometry() const { return m_geo_; }
 
-    virtual void move_to(const std::shared_ptr<mesh::MeshBlock> &m)
-    {
-        m_mesh_holder_ = std::dynamic_pointer_cast<mesh_type>(m);
-        m_mesh_ = m_mesh_holder_.get();
-        this_type::calculus_policy::move_to(m_mesh_);
-        this_type::interpolate_policy::move_to(m_mesh_);
-    };
-
-
-public:
-
-    mesh_type const *mesh_block() { return m_mesh_; }
 
     virtual void deploy()
     {
-
         this_type::calculus_policy::deploy();
         this_type::interpolate_policy::deploy();
     }
@@ -188,7 +173,7 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
-        m_mesh_->print(os, indent + 1);
+//        m_geo_->print(os, indent + 1);
         this_type::calculus_policy::print(os, indent + 1);
         this_type::interpolate_policy::print(os, indent + 1);
         return os;
@@ -199,21 +184,6 @@ public:
     {
 
     }
-
-    template<typename ...Args>
-    point_type point(Args &&...args) { return m_mesh_->point(std::forward<Args>(args)...); }
-
-    virtual void foreach(std::function<void(simpla::mesh::AttributeViewBase const &)> const &fun) const
-    {
-        this->mesh_observable::foreach(
-                [&](observer_type const &obj) { fun(static_cast<simpla::mesh::AttributeViewBase const &>(obj)); });
-    };
-
-    virtual void foreach(std::function<void(mesh::AttributeViewBase &)> const &fun)
-    {
-        this->mesh_observable::foreach(
-                [&](observer_type &obj) { fun(static_cast<simpla::mesh::AttributeViewBase &>(obj)); });
-    };
 
 
 private:

@@ -18,7 +18,9 @@
 #include <simpla/toolbox/type_cast.h>
 #include <simpla/toolbox/Log.h>
 
-#include "MeshBlock.h"
+#include "simpla/mesh/MeshBlock.h"
+#include "simpla/mesh/Attribute.h"
+#include "Geometry.h"
 
 namespace simpla { namespace mesh
 {
@@ -29,48 +31,90 @@ namespace simpla { namespace mesh
  *
  * @brief Uniform structured get_mesh
  */
-struct CylindricalRectMesh : public MeshBlock
+
+
+struct CylindricalGeometry : public GeometryBase
 {
 private:
-    typedef CylindricalRectMesh this_type;
+    typedef CylindricalGeometry this_type;
     typedef MeshBlock base_type;
+
 public:
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
 
     virtual std::string get_class_name() const { return class_name(); }
 
-    static std::string class_name() { return std::string("CylindricalRectMesh"); }
+    static std::string class_name() { return std::string("CylindricalGeometry"); }
 
 
 public:
     static constexpr int ndims = 3;
 
-    CylindricalRectMesh() {}
+    template<typename ...Args>
+    explicit CylindricalGeometry(Args &&...args):GeometryBase(std::forward<Args>(args)...) {}
 
-    CylindricalRectMesh(this_type const &other) : MeshBlock(other) {};
+    ~CylindricalGeometry() {}
 
-    virtual  ~CylindricalRectMesh() {}
 
-    std::vector<Real> m_volume_[9];
-    std::vector<Real> m_inv_volume_[9];
-    std::vector<Real> m_dual_volume_[9];
-    std::vector<Real> m_inv_dual_volume_[9];
+    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=
+    mesh::DataBlockArray<TV, IFORM, DOF>;
+
+    mesh::AttributeView<Real, VERTEX, 3> m_vertics_;
+    mesh::AttributeView<Real, VERTEX, 9> m_volume_;
+    mesh::AttributeView<Real, VERTEX, 9> m_dual_volume_;
+    mesh::AttributeView<Real, VERTEX, 9> m_inv_volume_;
+    mesh::AttributeView<Real, VERTEX, 9> m_inv_dual_volume_;
+
 
 public:
+    void connect(AttributeHolder *holder)
+    {
+        m_vertics_.connect(holder, "vertices", "COORDINATES");
+        m_volume_.connect(holder, "volume", "NO_FILL");
+        m_dual_volume_.connect(holder, "dual_volume", "NO_FILL");
+        m_inv_volume_.connect(holder, "inv_volume", "NO_FILL");
+        m_inv_dual_volume_.connect(holder, "inv_dual_volume", "NO_FILL");
+    }
 
+    template<typename ...Args>
+    point_type point(Args &&...args) const { m_mesh_->point(std::forward<Args>(args)...); }
 
-    virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)][m::sub_index(s)]; }
+    virtual Real volume(MeshEntityId s) const
+    {
+        return static_cast<data_block_type<Real, VERTEX, 9> const *>(m_volume_.data())->
+                get(MeshEntityIdCoder::unpack_index4_nodeid(s));
+    }
 
-    virtual Real dual_volume(MeshEntityId s) const { return m_dual_volume_[m::node_id(s)][m::sub_index(s)]; }
+    virtual Real
+    dual_volume(MeshEntityId s) const
+    {
+        return static_cast<data_block_type<Real, VERTEX, 9> const *>(m_dual_volume_.data())->
+                get(MeshEntityIdCoder::unpack_index4_nodeid(s));
+    }
 
-    virtual Real inv_volume(MeshEntityId s) const { return m_inv_volume_[m::node_id(s)][m::sub_index(s)]; }
+    virtual Real
+    inv_volume(MeshEntityId s) const
+    {
+        return static_cast<data_block_type<Real, VERTEX, 9> const *>(m_inv_volume_.data())->
+                get(MeshEntityIdCoder::unpack_index4_nodeid(s));
+    }
 
-    virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)][m::sub_index(s)]; }
+    virtual Real
+    inv_dual_volume(MeshEntityId s) const
+    {
+        return static_cast<data_block_type<Real, VERTEX, 9> const *>(m_inv_dual_volume_.data())->
+                get(MeshEntityIdCoder::unpack_index4_nodeid(s));
+    }
 
     void deploy()
     {
 
-        base_type::deploy();
+        m_vertics_.deploy();
+        m_volume_.deploy();
+        m_dual_volume_.deploy();
+        m_inv_volume_.deploy();
+        m_inv_dual_volume_.deploy();
+
         /**
              *\verbatim
              *                ^y

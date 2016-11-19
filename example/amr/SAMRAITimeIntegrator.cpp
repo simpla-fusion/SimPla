@@ -577,11 +577,11 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     m_worker_->foreach(
             [&](mesh::AttributeViewBase &ob)
             {
-                mesh::Attribute *attr = ob.attribute();
+                auto attr = ob.attribute();
 
                 if (attr == nullptr) { return; }
 
-                boost::shared_ptr<SAMRAI::hier::Variable> var = detail::create_samrai_variable(3, attr);
+                boost::shared_ptr<SAMRAI::hier::Variable> var = detail::create_samrai_variable(3, attr.get());
 
                 m_samrai_variables_[attr->id()] = var;
 
@@ -594,7 +594,6 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                 **/
                 if (attr->db.has("config") && attr->db["config"].as<std::string>() == "COORDINATES")
                 {
-                    CHECK(attr->name());
                     integrator->registerVariable(var, d_nghosts,
                                                  SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
                                                  d_grid_geometry,
@@ -881,12 +880,12 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
     w->move_to(m);
     w->foreach([&](mesh::AttributeViewBase &ob)
                {
-                   auto *attr = ob.attribute();
+                   auto attr = ob.attribute();
 
                    if (attr == nullptr) { return; }
 
                    ob.move_to(m, detail::create_data_block(
-                           attr, m,
+                           attr.get(), m,
                            patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext())));
 
 

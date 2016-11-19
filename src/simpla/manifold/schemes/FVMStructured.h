@@ -49,7 +49,7 @@ struct FiniteVolume<TM>
 public:
     typedef this_type calculus_policy;
 
-    FiniteVolume() : m(nullptr) {}
+    FiniteVolume(TM const *g) : m(g) {}
 
     virtual ~FiniteVolume() {}
 
@@ -61,7 +61,6 @@ public:
         return os;
     }
 
-    virtual void move_to(const mesh_type *m_) { m = m_; }
 
     void deploy() {}
 

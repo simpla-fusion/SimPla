@@ -47,7 +47,7 @@ struct AMRTest : public mesh::Worker
     field_type<Real, mesh::EDGE> E{m, "E"};
     field_type<Real, mesh::EDGE> J{m, "J"};
 
-    mesh_type const *mesh() const { return static_cast<mesh_type const *>(mesh_block()); }
+    mesh::MeshBlock const *mesh() const { return mesh_block(); }
 
 //    field_type<Real, mesh::EDGE> D{"D", this};
 //    field_type<Real, mesh::FACE> H{"H", this};
@@ -80,14 +80,14 @@ struct AMRTest : public mesh::Worker
         E.clear();
         B.clear();
         J.clear();
-//        E.foreach([&](point_type const &x)
-//                  {
-//                      return nTuple<Real, 3>{
-//                              std::sin(x[0] * m_k_[0]) * std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
-//                              0,//  std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
-//                              0//  std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
-//                      };
-//                  });
+        E.foreach([&](point_type const &x)
+                  {
+                      return nTuple<Real, 3>{
+                              std::sin(x[0] * TWOPI / 16),//* std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
+                              0,//  std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
+                              0//  std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
+                      };
+                  });
 //        xyz.clear();
 
         xyz.foreach(
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 {
     logger::set_stdout_level(100);
 
-    typedef manifold::CartesianManifold mesh_type;
+    typedef manifold::CylindricalManifold mesh_type;
 
     auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<mesh_type>>());
 

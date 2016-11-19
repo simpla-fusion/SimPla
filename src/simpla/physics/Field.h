@@ -42,7 +42,7 @@ public:
 
     typedef TManifold manifold_type;
 
-    typedef typename manifold_type::mesh_type mesh_type;
+    typedef typename manifold_type::mesh_type geometry_type;
 
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
 
@@ -52,20 +52,28 @@ public:
             cell_tuple, nTuple<cell_tuple, 3> >::type field_value_type;
 
 private:
-    typedef typename mesh_type::template data_block_type<TV, IFORM> data_block;
+    typedef typename geometry_type::template data_block_type<TV, IFORM> data_block;
 
     manifold_type *m_manifold_;
-
-    mesh_type const *m_mesh_;
     data_block *m_data_;
-
+    geometry_type const *m_;
 public:
-    Field() {};
+    Field() : base_type(), m_manifold_(nullptr), m_data_(nullptr) {};
 
     template<typename ...Args>
     explicit Field(manifold_type &m, Args &&...args)
-            : base_type(&m, std::forward<Args>(args)...), m_manifold_(&m) { initialize(); };
+            : base_type(), m_manifold_(nullptr), m_data_(nullptr)
+    {
+        connect(m, std::forward<Args>(args)...);
+    };
 
+    template<typename ...Args>
+    void connect(manifold_type &m, Args &&...args)
+    {
+        if (m_manifold_ != nullptr) { RUNTIME_ERROR << "Field connected to Manifold more than once." << std::endl; }
+        m_manifold_ = &m;
+        base_type::connect(m_manifold_, std::forward<Args>(args)...);
+    }
 
     virtual ~Field() {}
 
@@ -75,17 +83,7 @@ public:
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); };
 
-    bool is_valid() const { return m_data_ != nullptr && m_mesh_ != nullptr; };
-
-    void initialize()
-    {
-        base_type::attribute()->register_data_block_factory(
-                std::type_index(typeid(mesh_type)),
-                [&](const std::shared_ptr<mesh::MeshBlock> &m, void *p)
-                {
-                    return std::dynamic_pointer_cast<mesh_type>(m)->template create_data_block<value_type, IFORM>(p);
-                });
-    }
+    bool is_valid() const { return m_data_ != nullptr && m_manifold_ != nullptr; };
 
     using base_type::entity_type;
 
@@ -95,7 +93,7 @@ public:
 
     void deploy()
     {
-        m_mesh_ = static_cast<mesh_type const *>(base_type::mesh_block());
+        m_ = &m_manifold_->geometry();
         m_data_ = static_cast<data_block *>(base_type::data());
         ASSERT(m_data_ != nullptr);
         m_data_->deploy();
@@ -111,7 +109,7 @@ public:
 
     /** @name as_function  @{*/
     template<typename ...Args> field_value_type
-    gather(Args &&...args) const { return m_mesh_->gather(*this, std::forward<Args>(args)...); }
+    gather(Args &&...args) const { return m_->gather(*this, std::forward<Args>(args)...); }
 
     template<typename ...Args> field_value_type
     operator()(Args &&...args) const { return gather(std::forward<Args>(args)...); }
@@ -213,7 +211,7 @@ public:
             U &&...args)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_mesh_->point(s), std::forward<U>(args)...); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_->point(s), std::forward<U>(args)...); });
     }
 
 
@@ -226,7 +224,7 @@ public:
         r0.foreach(
                 [&](mesh::MeshEntityId const &s)
                 {
-                    get(s) = m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s)));
+                    get(s) = m_->template sample<IFORM>(s, fun(m_->point(s)));
                 });
     }
 
@@ -243,7 +241,7 @@ public:
     void foreach(Field<Expression<U...>> const &expr)
     {
         deploy();
-        auto b = std::get<0>(m_mesh_->outer_index_box());
+        auto b = std::get<0>(m_->mesh_block()->outer_index_box());
         index_type gw[4] = {1, 1, 1, 0};
 
         m_data_->foreach(
@@ -264,7 +262,7 @@ public:
         m_data_->foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    return fun(m_mesh_->point(i, j, k));
+                    return fun(m_->point(i, j, k));
                 });
 
 
@@ -295,7 +293,7 @@ public:
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s)));
+                    return m_manifold_->template sample<IFORM>(s, fun(m_->point(s)));
                 });
 
 
@@ -335,7 +333,7 @@ public:
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return m_mesh_->template sample<IFORM>(s, fun(m_mesh_->point(s)));
+                    return m_->template sample<IFORM>(s, fun(m_->point(s)));
                 });
 
 
@@ -353,7 +351,7 @@ public:
             foreach_ghost(std::forward<Args>(args)...);
         } else
         {
-            foreach(m_mesh_->range(entity_type(), tag), std::forward<Args>(args)...);
+            foreach(m_->mesh_block()->range(entity_type(), tag), std::forward<Args>(args)...);
         }
     }
 

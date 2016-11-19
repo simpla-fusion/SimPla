@@ -69,13 +69,10 @@ public:
 
 
 public:
-
-    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<TV, IFORM>;
-
     CartesianCoRectMesh() {}
 
     template<typename ...Args>
-    CartesianCoRectMesh(Args &&...args): MeshBlock(std::forward<Args>(args)...) {};
+    explicit CartesianCoRectMesh(Args &&...args): MeshBlock(std::forward<Args>(args)...) {};
 
     CartesianCoRectMesh(CartesianCoRectMesh const &other) : MeshBlock(other)
     {
@@ -96,20 +93,6 @@ public:
     virtual void deploy();
 
     virtual std::shared_ptr<MeshBlock> clone() const { return std::make_shared<CartesianCoRectMesh>(*this); };
-
-    template<typename TV, mesh::MeshEntityType IFORM>
-    std::shared_ptr<mesh::DataBlock> create_data_block(void *p) const
-    {
-        auto b = outer_index_box();
-
-        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
-        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], 3};
-        return std::dynamic_pointer_cast<mesh::DataBlock>(
-                std::make_shared<data_block_type<TV, IFORM>>(
-                        static_cast<TV *>(p),
-                        (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 3 : 4,
-                        lo, hi));
-    };
 
 
 private:
@@ -200,7 +183,6 @@ void CartesianCoRectMesh::deploy()
     m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
     m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
     m_inv_dual_volume_[7 /*111*/] = m_inv_volume_[0];
-
 
 
 }

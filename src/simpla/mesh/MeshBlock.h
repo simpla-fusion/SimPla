@@ -114,7 +114,19 @@ public:
                 std::make_shared<data_block_type<TV, IFORM>>
                         (static_cast<TV *>(p), (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 3 : 4, lo, hi));
     };
-
+//    template<typename TV, mesh::MeshEntityType IFORM>
+//    std::shared_ptr<mesh::DataBlock> create_data_block(void *p) const
+//    {
+//        auto b = outer_index_box();
+//
+//        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
+//        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], 3};
+//        return std::dynamic_pointer_cast<mesh::DataBlock>(
+//                std::make_shared<data_block_type<TV, IFORM>>(
+//                        static_cast<TV *>(p),
+//                        (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 3 : 4,
+//                        lo, hi));
+//    };
     /** for Printable @{*/
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
@@ -130,11 +142,6 @@ public:
 
     /** @}*/
 
-    /**
-      * @return   copy of this mesh but has different '''id'''
-      */
-
-    virtual std::shared_ptr<MeshBlock> clone() const =0;
 
     /**
      *
