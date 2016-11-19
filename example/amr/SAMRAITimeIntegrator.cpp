@@ -873,7 +873,6 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
     std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, dx, xlo, xhi);
     m->id(patch.getBox().getLocalId().getValue());
     m->deploy();
-    w->move_to(m);
     w->foreach([&](mesh::AttributeViewBase &ob)
                {
                    auto attr = ob.attribute();
@@ -885,6 +884,8 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
                                                     getDataContext())));
                }
     );
+    w->move_to(m);
+
 }
 
 /**

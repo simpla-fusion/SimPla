@@ -101,7 +101,6 @@ void MeshBlock::deploy()
     if (m_is_deployed_) { return; }
 
     base_type::deploy();
-    CHECK(m_g_box_);
     ASSERT(toolbox::is_valid(m_g_box_));
     for (int i = 0; i < m_ndims_; ++i)
     {
