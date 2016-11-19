@@ -50,35 +50,21 @@ struct AMRTest : public mesh::Worker
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_) { m.move_to(m_); }
 
-    virtual void foreach(std::function<void(mesh::AttributeViewBase const &)> const &fun) const { m.foreach(fun); };
+    virtual mesh::AttributeHolder &attributes() { return m; }
 
-    virtual void foreach(std::function<void(mesh::AttributeViewBase &)> const &fun) { m.foreach(fun); };
-
-
-    virtual std::shared_ptr<mesh::MeshBlock>
-    create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx,
-                      Real const *xlo = nullptr, Real const *xhi = nullptr) const
-    {
-        auto res = std::make_shared<mesh::MeshBlock>(3, lo, hi, dx, xlo, xhi);
-        res->deploy();
-        return res;
-    };
-
+    virtual mesh::AttributeHolder const &attributes() const { return m; }
 
     void initialize(Real data_time)
     {
-        m.deploy();
-        E.deploy();
-        B.deploy();
-        J.deploy();
-//        E.foreach([&](point_type const &x)
-//                  {
-//                      return nTuple<Real, 3>{
-//                              std::sin(x[0] * TWOPI / 16),//* std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
-//                              0,//  std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
-//                              0//  std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
-//                      };
-//                  });
+        E.clear();
+        B.clear();
+        J.clear();
+        E.foreach([&](point_type const &x)
+                  {
+                      return nTuple<Real, 3>{
+                              std::sin(TWOPI * (x[0] - 1)), 0, 0
+                      };
+                  });
     }
 
     virtual void setPhysicalBoundaryConditions(double time)

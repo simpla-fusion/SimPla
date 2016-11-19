@@ -27,10 +27,10 @@ public:
     typedef DataEntityNDArray<V> this_type;
     typedef V value_type;
 
-    DataEntityNDArray() : m_data_(nullptr), m_holder_(nullptr), m_order_(SLOW_FIRST), m_ndims_(0), m_size_(0)
-    {
-        DO_NOTHING;
-    }
+//    DataEntityNDArray() : m_data_(nullptr), m_holder_(nullptr), m_order_(SLOW_FIRST), m_ndims_(0), m_size_(0)
+//    {
+//        DO_NOTHING;
+//    }
 
 
     DataEntityNDArray(value_type *p, int ndims, index_type const *lo, index_type const *hi,
@@ -56,33 +56,25 @@ private:
     void initialize(int ndims, index_type const *lo, index_type const *hi, int order = SLOW_FIRST,
                     index_type const *i_lower = nullptr, index_type const *i_upper = nullptr)
     {
+        for (int i = 0; i < MAX_NDIMS_OF_ARRAY; ++i)
+        {
+            m_count_[i] = 1;
+            m_start_[i] = 0;
+            m_strides_[i] = 0;
+            m_lower_[i] = 0;
+            m_upper_[i] = 1;
+        }
         m_order_ = order;
         m_ndims_ = ndims;
         m_size_ = 1;
         for (int i = 0; i < m_ndims_; ++i)
         {
             m_start_[i] = lo[i];
-            if (hi[i] > lo[i])
-            {
-                m_count_[i] = static_cast<size_type>(hi[i] - lo[i]);
-            } else
-            {
-                m_count_[i] = 1;
-            }
+            if (hi[i] > lo[i]) { m_count_[i] = static_cast<size_type>(hi[i] - lo[i]); }
             m_size_ *= m_count_[i];
 
             m_lower_[i] = (i_lower != nullptr && i_lower[i] >= lo[i]) ? i_lower[i] : lo[i];
             m_upper_[i] = (i_upper != nullptr && i_upper[i] <= hi[i]) ? i_upper[i] : hi[i];
-
-        }
-
-        for (int j = m_ndims_; j < MAX_NDIMS_OF_ARRAY; ++j)
-        {
-            m_count_[j] = 1;
-            m_start_[j] = 0;
-            m_strides_[j] = 0;
-            m_lower_[j] = 0;
-            m_upper_[j] = 1;
         }
 
         if (m_order_ == SLOW_FIRST)

@@ -62,7 +62,7 @@ public:
 
     template<typename ...Args>
     explicit Field(manifold_type &m, Args &&...args)
-            : base_type(), m_manifold_(nullptr), m_data_(nullptr)
+            : base_type(), m_manifold_(&m), m_data_(nullptr)
     {
         connect(m, std::forward<Args>(args)...);
     };
@@ -70,7 +70,7 @@ public:
     template<typename ...Args>
     void connect(manifold_type &m, Args &&...args)
     {
-        if (m_manifold_ != nullptr) { RUNTIME_ERROR << "Field connected to Manifold more than once." << std::endl; }
+        if (m_manifold_ == nullptr) { RUNTIME_ERROR << "Field connected to Manifold more than once." << std::endl; }
         m_manifold_ = &m;
         base_type::connect(m_manifold_, std::forward<Args>(args)...);
     }

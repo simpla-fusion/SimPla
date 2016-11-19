@@ -255,9 +255,7 @@ public:
     {
         ASSERT(m != nullptr);
         if (m_mesh_holder_ == m && m_data_holder_ != nullptr) { return; }
-
         m_mesh_holder_ = m;
-
         if (d != nullptr) { m_data_holder_ = d; } else { m_data_holder_ = m_attr_->get(m); }
     }
 

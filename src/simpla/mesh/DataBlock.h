@@ -43,15 +43,13 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const =0;
 
-    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *) const =0;
+//    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *) const =0;
 
     virtual void sync(std::shared_ptr<DataBlock>, bool only_ghost = true)   =0;
 
     virtual bool is_deployed() const =0;
 
     virtual void deploy() =0;
-
-    virtual void destroy() =0;
 
     virtual void clear()=0;
 
@@ -66,7 +64,7 @@ class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>
 public:
     typedef TV value_type;
 
-    DataBlockArray() : DataBlock(), data_entity_type() { DO_NOTHING; }
+//    DataBlockArray() : DataBlock(), data_entity_type() { DO_NOTHING; }
 
     template<typename ...Args>
     explicit DataBlockArray(Args &&...args) : DataBlock(), data_entity_type(std::forward<Args>(args)...) {}
@@ -103,11 +101,11 @@ public:
     }
 
 
-    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *m) const
-    {
-        // FIXME :: data block is not initializied!!
-        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>());
-    };
+//    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *m) const
+//    {
+//        // FIXME :: data block is not initializied!!
+//        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>());
+//    };
 
     virtual bool is_deployed() const { return data_entity_type::is_deployed(); };
 

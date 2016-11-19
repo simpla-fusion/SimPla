@@ -47,26 +47,18 @@ public:
 
     virtual void save(data::DataBase *) const { UNIMPLEMENTED; }
 
-    virtual std::shared_ptr<mesh::MeshBlock>
-    create_mesh_block(index_type const *lo, index_type const *hi, Real const *dx,
-                      Real const *xlo = nullptr, Real const *xhi = nullptr) const =0;
-
-    /**
-      *  move '''Observer''' to mesh block '''m'''
-      *  if  data block is not exist, create
-      * @param id
-      */
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m)=0;
 
     virtual void initialize(Real data_time)=0;
 
-    virtual void next_time_step(Real data_time, Real dt)=0;
-
     virtual void setPhysicalBoundaryConditions(double time)=0;
 
-    virtual void foreach(std::function<void(AttributeViewBase const &)> const &) const =0;
+    virtual void next_time_step(Real data_time, Real dt)=0;
 
-    virtual void foreach(std::function<void(AttributeViewBase &)> const &)=0;
+    virtual AttributeHolder &attributes()=0;
+
+    virtual AttributeHolder const &attributes() const =0;
+
 
 private:
     std::string m_name_;

@@ -74,8 +74,8 @@
 #include <SAMRAI/appu/CartesianBoundaryUtilities3.h>
 #include <SAMRAI/pdat/SideVariable.h>
 #include <SAMRAI/appu/CartesianBoundaryDefines.h>
+#include <SAMRAI/pdat/NodeDoubleLinearTimeInterpolateOp.h>
 #include <simpla/physics/Constants.h>
-#include "../../external_project/SAMRAI/source/SAMRAI/pdat/NodeDoubleLinearTimeInterpolateOp.h"
 
 
 namespace simpla
@@ -574,7 +574,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     }
 
     //**************************************************************
-    m_worker_->foreach(
+    m_worker_->attributes().foreach(
             [&](mesh::AttributeViewBase &ob)
             {
                 auto attr = ob.attribute();
@@ -870,19 +870,24 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
             patch.getBox().upper()[2]
     };
 
-    std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, dx, xlo, xhi);
+    std::shared_ptr<mesh::MeshBlock> m = std::make_shared<mesh::MeshBlock>(3, lo, hi, dx, xlo, xhi);
+
     m->id(patch.getBox().getLocalId().getValue());
+
     m->deploy();
-    w->foreach([&](mesh::AttributeViewBase &ob)
-               {
-                   auto attr = ob.attribute();
 
-                   if (attr == nullptr) { return; }
+    w->attributes().foreach(
+            [&](mesh::AttributeViewBase &ob)
+            {
+                auto attr = ob.attribute();
 
-                   ob.move_to(m, detail::create_data_block(
-                           attr, patch.getPatchData(m_samrai_variables_.at(attr->id()),
-                                                    getDataContext())));
-               }
+                if (attr == nullptr) { return; }
+
+                ob.move_to(m, detail::create_data_block(
+                        attr, patch.getPatchData(m_samrai_variables_.at(attr->id()),
+                                                 getDataContext())));
+                ob.deploy();
+            }
     );
     w->move_to(m);
 
@@ -901,8 +906,6 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
 void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time,
                                          const bool initial_time)
 {
-
-
     if (patch.getPatchLevelNumber() == 0 && initial_time)
     {
         move_to(m_worker_, patch);
@@ -975,7 +978,7 @@ void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, con
 {
     move_to(m_worker_, patch);
 
-    m_worker_->setPhysicalBoundaryConditions(time);
+//    m_worker_->setPhysicalBoundaryConditions(time);
 
     m_worker_->next_time_step(time, dt);
 }
