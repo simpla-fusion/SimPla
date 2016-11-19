@@ -54,7 +54,11 @@ struct AMRTest : public mesh::Worker
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Ev{"Ev", this};
 //    field_type<nTuple<Real, 3>, mesh::VERTEX> Bv{"Bv", this};
 
-
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_)
+    {
+        m.move_to(m_);
+        mesh::Worker::move_to(m_);
+    }
 
     virtual void foreach(std::function<void(mesh::AttributeViewBase const &)> const &fun) const { m.foreach(fun); };
 
@@ -89,7 +93,8 @@ struct AMRTest : public mesh::Worker
         xyz.foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    auto x = mesh()->point(i, j, k);
+                    auto const *m_ = mesh_block();
+                    auto x = mesh_block()->point(i, j, k);
                     double res = 0.0;
                     switch (l)
                     {
@@ -125,7 +130,8 @@ struct AMRTest : public mesh::Worker
 
     virtual void next_time_step(Real data_time, Real dt)
     {
-        VERBOSE << "box = " << mesh()->dx() << " time = " << data_time << " dt =" << dt << std::endl;
+        VERBOSE << "box = " << mesh()->dx() << " time = " << std::setw(12) << std::left << data_time << " dt ="
+                << std::setw(12) << dt << std::endl;
         E = E + (curl(B) / mu - J) * dt / epsilon;
         B = B - curl(E) * dt;
     }

@@ -61,7 +61,7 @@ public:
         return os;
     }
 
-    virtual void move_to(const mesh::MeshBlock *m_) { m = static_cast<mesh_type const *>(m_); }
+    virtual void move_to(const mesh_type *m_) { m = m_; }
 
     void deploy() {}
 

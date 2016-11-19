@@ -66,21 +66,22 @@ public:
 
     virtual void save(data::DataBase *) const;
 
-    virtual bool has(MeshBlock const *) const;
+    virtual bool has(std::shared_ptr<MeshBlock> const &) const;
 
-    virtual void erase(MeshBlock const *);
+    virtual void erase(std::shared_ptr<MeshBlock> const &);
 
-    virtual std::shared_ptr<DataBlock> const &at(MeshBlock const *m) const;
+    virtual std::shared_ptr<DataBlock> const &at(std::shared_ptr<MeshBlock> const &m) const;
 
-    virtual std::shared_ptr<DataBlock> &at(MeshBlock const *m);
+    virtual std::shared_ptr<DataBlock> &at(std::shared_ptr<MeshBlock> const &m);
 
-    virtual std::shared_ptr<DataBlock> &get(const MeshBlock *, std::shared_ptr<DataBlock> const &p = nullptr);
+    virtual std::shared_ptr<DataBlock> &
+    get(std::shared_ptr<MeshBlock> const &, std::shared_ptr<DataBlock> const &p = nullptr);
 
-    virtual void insert(const MeshBlock *m, const std::shared_ptr<DataBlock> &p = nullptr);
+    virtual void insert(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &p = nullptr);
 
     virtual void register_data_block_factory(std::type_index idx,
-                                             const std::function<std::shared_ptr<DataBlock>(const MeshBlock *,
-                                                                                            void *)> &f);
+                                             const std::function<std::shared_ptr<DataBlock>(
+                                                     std::shared_ptr<MeshBlock> const &, void *)> &f);
 
 private:
     std::string m_name_;
@@ -108,11 +109,14 @@ public:
 
 };
 
-struct AttributeViewBase : public design_pattern::Observer<void(MeshBlock const *)>
+//@formatter:off
+typedef design_pattern::Observer<void(std::shared_ptr<MeshBlock>const & )> mesh_observer_type;
+//@formatter:on
+struct AttributeViewBase : public mesh_observer_type
 {
-    typedef design_pattern::Observable<void(MeshBlock const *)> observable;
+    typedef design_pattern::Observable<void(std::shared_ptr<MeshBlock> const &)> observable;
 
-    AttributeViewBase(observable *w = nullptr) { if (w != nullptr) { this->connect(*w); }};
+    AttributeViewBase(observable *w = nullptr) { if (w != nullptr) { w->connect(this); }};
 
     virtual ~AttributeViewBase() {}
 
@@ -138,9 +142,9 @@ struct AttributeViewBase : public design_pattern::Observer<void(MeshBlock const 
 
     virtual bool is_a(std::type_info const &t_info) const =0;
 
-    virtual void move_to(MeshBlock const *m, std::shared_ptr<DataBlock> const &d)=0;
+    virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)=0;
 
-    virtual void notify(MeshBlock const *m) { move_to(m, nullptr); };
+    virtual void notify(std::shared_ptr<MeshBlock> const &m) { move_to(m, nullptr); };
 
     virtual void deploy() {};
 
@@ -166,8 +170,8 @@ protected:
     typedef AttributeView this_type;
     typedef AttributeProxy<TV, IFORM, IDOF> attribute_type;
     std::shared_ptr<attribute_type> m_attr_;
-    MeshBlock const *m_mesh_block_;
-    std::shared_ptr<DataBlock> m_data_;
+    std::shared_ptr<MeshBlock> m_mesh_holder_;
+    std::shared_ptr<DataBlock> m_data_holder_;
 
 public:
 
@@ -195,11 +199,11 @@ public:
 
     attribute_type const *attribute() const { return m_attr_.get(); }
 
-    MeshBlock const *mesh_block() const { return m_mesh_block_; };
+    MeshBlock const *mesh_block() const { return m_mesh_holder_.get(); };
 
-    DataBlock *data() { return m_data_.get(); }
+    DataBlock *data() { return m_data_holder_.get(); }
 
-    DataBlock const *data() const { return m_data_.get(); }
+    DataBlock const *data() const { return m_data_holder_.get(); }
 
     MeshEntityType entity_type() const { return IFORM; };
 
@@ -209,11 +213,11 @@ public:
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 
-    virtual void move_to(MeshBlock const *m, std::shared_ptr<DataBlock> const &d)
+    virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
     {
         ASSERT(m != nullptr);
-        m_mesh_block_ = m;
-        m_data_ = m_attr_->get(m, d);
+        m_mesh_holder_ = m;
+        m_data_holder_ = m_attr_->get(m, d);
     }
 
 

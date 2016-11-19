@@ -15,7 +15,8 @@ struct Attribute::pimpl_s
 {
     std::map<id_type, std::shared_ptr<DataBlock>> m_patches_;
 
-    std::map<std::type_index, std::function<std::shared_ptr<DataBlock>(MeshBlock const *, void *)> > m_data_factory;
+    std::map<std::type_index, std::function<std::shared_ptr<DataBlock>(std::shared_ptr<MeshBlock> const &,
+                                                                       void *)> > m_data_factory;
 };
 
 Attribute::Attribute(std::string const &s, std::string const &config_str)
@@ -46,21 +47,21 @@ void Attribute::load(const data::DataBase &) { UNIMPLEMENTED; }
 
 void Attribute::save(data::DataBase *) const { UNIMPLEMENTED; }
 
-bool Attribute::has(const MeshBlock *m) const
+bool Attribute::has(std::shared_ptr<MeshBlock> const &m) const
 {
     ASSERT(m_pimpl_ != nullptr);
     return (m == nullptr) ? false : m_pimpl_->m_patches_.find(m->id()) != m_pimpl_->m_patches_.end();
 }
 
 
-void Attribute::erase(const MeshBlock *m)
+void Attribute::erase(std::shared_ptr<MeshBlock> const &m)
 {
     ASSERT(m_pimpl_ != nullptr);
     TRY_CALL(m_pimpl_->m_patches_.erase(m->id()));
 }
 
 
-std::shared_ptr<DataBlock> const &Attribute::at(const MeshBlock *m) const
+std::shared_ptr<DataBlock> const &Attribute::at(std::shared_ptr<MeshBlock> const &m) const
 {
     ASSERT(m_pimpl_ != nullptr);
 
@@ -77,7 +78,7 @@ std::shared_ptr<DataBlock> const &Attribute::at(const MeshBlock *m) const
     }
 }
 
-std::shared_ptr<DataBlock> &Attribute::at(const MeshBlock *m)
+std::shared_ptr<DataBlock> &Attribute::at(std::shared_ptr<MeshBlock> const &m)
 {
     ASSERT(m_pimpl_ != nullptr);
 
@@ -94,7 +95,7 @@ std::shared_ptr<DataBlock> &Attribute::at(const MeshBlock *m)
     }
 }
 
-std::shared_ptr<DataBlock> &Attribute::get(const MeshBlock *m, std::shared_ptr<DataBlock> const &p)
+std::shared_ptr<DataBlock> &Attribute::get(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &p)
 {
     ASSERT(m_pimpl_ != nullptr);
 
@@ -104,7 +105,7 @@ std::shared_ptr<DataBlock> &Attribute::get(const MeshBlock *m, std::shared_ptr<D
 }
 
 
-void Attribute::insert(const MeshBlock *m, const std::shared_ptr<DataBlock> &p)
+void Attribute::insert(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &p)
 {
     ASSERT(m_pimpl_ != nullptr);
 
@@ -136,7 +137,7 @@ void Attribute::insert(const MeshBlock *m, const std::shared_ptr<DataBlock> &p)
 
 void Attribute::register_data_block_factory(
         std::type_index idx,
-        const std::function<std::shared_ptr<DataBlock>(const MeshBlock *, void *)> &f)
+        const std::function<std::shared_ptr<DataBlock>(std::shared_ptr<MeshBlock> const &, void *)> &f)
 {
     m_pimpl_->m_data_factory[idx] = f;
 

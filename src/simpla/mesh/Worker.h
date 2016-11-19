@@ -53,7 +53,7 @@ public:
       *  if  data block is not exist, create
       * @param id
       */
-    void move_to(const MeshBlock *m);
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m);
 
 
     MeshBlock const *mesh_block() const;

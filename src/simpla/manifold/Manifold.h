@@ -130,7 +130,7 @@ namespace simpla { namespace manifold
 /**
  * Manifold
  */
-typedef simpla::design_pattern::Observable<void(simpla::mesh::MeshBlock const *)> mesh_observable;
+typedef simpla::design_pattern::Observable<void(std::shared_ptr<simpla::mesh::MeshBlock> const &)> mesh_observable;
 
 
 template<typename TMesh, template<typename...> class ...Policies>
@@ -144,6 +144,7 @@ class Manifold :
 public:
 
     typedef TMesh mesh_type;
+    std::shared_ptr<mesh_type> m_mesh_holder_;
     mesh_type const *m_mesh_;
 
     Manifold() {}
@@ -164,9 +165,10 @@ public:
     }
 
 
-    virtual void move_to(const mesh::MeshBlock *m)
+    virtual void move_to(const std::shared_ptr<mesh::MeshBlock> &m)
     {
-        m_mesh_ = static_cast<mesh_type const *>(m);
+        m_mesh_holder_ = std::dynamic_pointer_cast<mesh_type>(m);
+        m_mesh_ = m_mesh_holder_.get();
         this_type::calculus_policy::move_to(m_mesh_);
         this_type::interpolate_policy::move_to(m_mesh_);
     };
@@ -207,7 +209,7 @@ public:
                 [&](observer_type const &obj) { fun(static_cast<simpla::mesh::AttributeViewBase const &>(obj)); });
     };
 
-    virtual void foreach(std::function<void(mesh::AttributeViewBase & )> const &fun)
+    virtual void foreach(std::function<void(mesh::AttributeViewBase &)> const &fun)
     {
         this->mesh_observable::foreach(
                 [&](observer_type &obj) { fun(static_cast<simpla::mesh::AttributeViewBase &>(obj)); });

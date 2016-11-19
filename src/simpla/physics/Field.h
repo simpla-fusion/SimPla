@@ -55,6 +55,7 @@ private:
     typedef typename mesh_type::template data_block_type<TV, IFORM> data_block;
 
     manifold_type *m_manifold_;
+
     mesh_type const *m_mesh_;
     data_block *m_data_;
 
@@ -80,9 +81,9 @@ public:
     {
         base_type::attribute()->register_data_block_factory(
                 std::type_index(typeid(mesh_type)),
-                [&](const mesh::MeshBlock *m, void *p)
+                [&](const std::shared_ptr<mesh::MeshBlock> &m, void *p)
                 {
-                    return static_cast<mesh_type const *>(m)->template create_data_block<value_type, IFORM>(p);
+                    return std::dynamic_pointer_cast<mesh_type>(m)->template create_data_block<value_type, IFORM>(p);
                 });
     }
 
@@ -95,9 +96,8 @@ public:
     void deploy()
     {
         m_mesh_ = static_cast<mesh_type const *>(base_type::mesh_block());
-
         m_data_ = static_cast<data_block *>(base_type::data());
-
+        ASSERT(m_data_ != nullptr);
         m_data_->deploy();
     }
 

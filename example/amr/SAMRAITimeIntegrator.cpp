@@ -834,7 +834,8 @@ create_data_block_t(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::Patch
 }
 
 std::shared_ptr<mesh::DataBlock>
-create_data_block(mesh::Attribute *item, mesh::MeshBlock const *m, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block(mesh::Attribute *item, std::shared_ptr<mesh::MeshBlock> const &m,
+                  boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     std::shared_ptr<mesh::DataBlock> res;
     if (item->value_type_info() == typeid(float)) { res = create_data_block_t<float>(item, pd); }
@@ -877,15 +878,15 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
     std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, dx, xlo, xhi);
     m->id(patch.getBox().getLocalId().getValue());
     m->deploy();
-    w->move_to(m.get());
+    w->move_to(m);
     w->foreach([&](mesh::AttributeViewBase &ob)
                {
                    auto *attr = ob.attribute();
 
                    if (attr == nullptr) { return; }
 
-                   ob.move_to(m.get(), detail::create_data_block(
-                           attr, m.get(),
+                   ob.move_to(m, detail::create_data_block(
+                           attr, m,
                            patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext())));
 
 

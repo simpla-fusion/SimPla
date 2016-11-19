@@ -24,41 +24,41 @@ struct Observer<void(Args...)>
 
     virtual ~Observer() { disconnect(); };
 
-    void connect(observable_type &subject) { m_subject_ = subject.shared_from_this(); }
+    void connect(observable_type *subject) { m_subject_ = subject; }
 
     void disconnect()
     {
-        if (m_subject_ != nullptr) { m_subject_->disconnect(this); }
-        std::shared_ptr<observable_type>(nullptr).swap(m_subject_);
+//        if (m_subject_ != nullptr) { m_subject_->disconnect(this); }
+//        std::shared_ptr<observable_type>(nullptr).swap();
+        m_subject_ = nullptr;
     }
 
     virtual void notify(Args ...) = 0;
 
 private:
-    std::shared_ptr<observable_type> m_subject_;
+    observable_type *m_subject_;
 
 };
 
 template<typename Signature>
-struct Observable : public std::enable_shared_from_this<Observable<Signature>>
+struct Observable
 {
     typedef Observer<Signature> observer_type;
 
-    std::map<observer_type *, std::shared_ptr<observer_type>> m_observers_;
-
+    std::set<observer_type *> m_observers_;
 
     Observable() {}
 
     virtual ~Observable() {}
 
     template<typename ...Args>
-    void notify(Args &&...args) { for (auto &item:m_observers_) { item.second->notify(std::forward<Args>(args)...); }}
+    void notify(Args &&...args) { for (auto &item:m_observers_) { item->notify(std::forward<Args>(args)...); }}
 
 
-    void connect(std::shared_ptr<observer_type> observer)
+    void connect(observer_type *observer)
     {
-        observer->connect(*this);
-        m_observers_.insert(std::make_pair(observer.get(), observer));
+        observer->connect(this);
+        m_observers_.insert(observer);
     };
 
     template<typename T, typename ...Args>
@@ -80,22 +80,22 @@ struct Observable : public std::enable_shared_from_this<Observable<Signature>>
 
         if (it != m_observers_.end())
         {
-            it->second->disconnect();
+            observer->disconnect();
 
             m_observers_.erase(observer);
         }
     }
 
-    void remove(std::shared_ptr<observer_type> &observer) { disconnect(observer.get()); }
+    void remove(observer_type *observer) { disconnect(observer); }
 
     virtual void foreach(std::function<void(observer_type &)> const &fun)
     {
-        for (auto &ob:m_observers_) { fun(*ob.second); }
+        for (auto &ob:m_observers_) { fun(*ob); }
     }
 
     virtual void foreach(std::function<void(observer_type const &)> const &fun) const
     {
-        for (auto const &ob:m_observers_) { fun(*ob.second); }
+        for (auto const &ob:m_observers_) { fun(*ob); }
     }
 };
 

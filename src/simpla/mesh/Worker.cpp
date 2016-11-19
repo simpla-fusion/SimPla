@@ -10,9 +10,8 @@ namespace simpla { namespace mesh
 {
 struct Worker::pimpl_s
 {
-    MeshBlock const *m_mesh_ = nullptr;
-    std::vector<std::shared_ptr<Attribute>> m_attributes_;
-    std::shared_ptr<Atlas> m_atlas_;
+    std::shared_ptr<mesh::MeshBlock> m_mesh_ = nullptr;
+    std::map<std::string, std::shared_ptr<Attribute>> m_attributes_;
 };
 
 Worker::Worker() : m_pimpl_(new pimpl_s) {}
@@ -37,13 +36,9 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 }
 
 
-void Worker::move_to(const MeshBlock *m)
-{
-    m_pimpl_->m_mesh_ = m;
-//    notify(m);
-}
+void Worker::move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_pimpl_->m_mesh_ = m; }
 
-MeshBlock const *Worker::mesh_block() const { return m_pimpl_->m_mesh_; }
+MeshBlock const *Worker::mesh_block() const { return m_pimpl_->m_mesh_.get(); }
 
 void Worker::deploy()
 {

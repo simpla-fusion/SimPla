@@ -25,6 +25,10 @@ struct LinearInterpolator {};
 template<typename TM>
 struct LinearInterpolator<TM>
 {
+    typedef TM mesh_type;
+    typedef LinearInterpolator<mesh_type> this_type;
+    typedef mesh::MeshEntityIdCoder M;
+    mesh_type const *m;
 public:
 
     typedef LinearInterpolator<TM> interpolate_policy;
@@ -35,7 +39,7 @@ public:
 
     static std::string class_name() { return "LinearInterpolator"; }
 
-    virtual void move_to(const mesh::MeshBlock *m_) { m = static_cast<mesh_type const *>(m_); }
+    virtual void move_to(const mesh_type *m_) { m = m_; }
 
     void deploy() {}
 
@@ -47,10 +51,7 @@ public:
     }
 
 private:
-    typedef TM mesh_type;
-    typedef LinearInterpolator<mesh_type> this_type;
-    typedef mesh::MeshEntityIdCoder M;
-    mesh_type const *m;
+
 
     template<typename TD, typename TIDX>
     inline auto
