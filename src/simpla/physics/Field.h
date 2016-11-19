@@ -93,9 +93,9 @@ public:
 
     void deploy()
     {
-        m_ = &m_manifold_->geometry();
         ASSERT(base_type::data()->is_a(typeid(data_block)));
         ASSERT(base_type::data()->is_valid());
+        m_ = &m_manifold_->geometry();
 
         m_data_ = static_cast<data_block *>(base_type::data());
         ASSERT(m_data_ != nullptr);

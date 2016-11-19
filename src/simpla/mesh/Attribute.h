@@ -260,11 +260,11 @@ public:
         if (m_mesh_holder_ == m && m_data_holder_ != nullptr) { return; }
         m_mesh_holder_ = m;
         m_data_holder_ = d != nullptr ? d : m_attr_->get(m);
+        deploy();
     }
 
     virtual void deploy()
     {
-
         if (m_data_holder_ == nullptr && m_mesh_holder_ != nullptr) { m_data_holder_ = m_attr_->get(m_mesh_holder_); }
         ASSERT(m_data_holder_ != nullptr);
         m_data_holder_->deploy();

@@ -108,6 +108,8 @@ public:
 
     void deploy()
     {
+        FUNCTION_START;
+//        VERBOSE << mesh_block()->inv_dx() << mesh_block()->dx() << std::endl;
 
         m_vertics_.clear();
         m_volume_.clear();
@@ -142,7 +144,6 @@ public:
                 {
 
                     auto x = m_mesh_->point(i, j, k);
-                    CHECK(x);
                     double res = 0.0;
                     switch (l)
                     {

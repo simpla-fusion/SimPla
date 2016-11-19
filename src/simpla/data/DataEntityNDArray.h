@@ -106,7 +106,15 @@ public:
 
     size_type size() const { return m_size_; }
 
-    virtual bool is_valid() const { return !empty(); };
+    virtual bool is_valid() const
+    {
+        return (m_data_ != nullptr) &&
+               (m_count_[0] >= 1) &&
+               (m_count_[1] >= 1) &&
+               (m_count_[2] >= 1) &&
+               (m_count_[3] >= 1) &&
+               (m_count_[4] >= 1);
+    };
 
     virtual bool empty() const { return m_data_ == nullptr; }
 
@@ -286,7 +294,7 @@ public:
         index_type le = m_start_[3] + m_count_[3] - (gw != nullptr ? gw[3] : 0);
 
 
-//#pragma omp parallel for
+#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k)

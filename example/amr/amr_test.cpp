@@ -72,9 +72,9 @@ struct AMRTest : public mesh::Worker
     void initialize(Real data_time)
     {
         m.deploy();
-        E.clear();
-        B.clear();
-        J.clear();
+        E.deploy();
+        B.deploy();
+        J.deploy();
         E.foreach([&](point_type const &x)
                   {
                       return nTuple<Real, 3>{
@@ -83,9 +83,6 @@ struct AMRTest : public mesh::Worker
                               0//  std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
                       };
                   });
-//        xyz.clear();
-
-
     }
 
     virtual void setPhysicalBoundaryConditions(double time)
@@ -120,7 +117,7 @@ int main(int argc, char **argv)
 {
     logger::set_stdout_level(100);
 
-//    typedef manifold::CylindricalManifold mesh_type;
+    //    typedef manifold::CylindricalManifold mesh_type;
     typedef manifold::CartesianManifold mesh_type;
 
     auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<mesh_type>>());
@@ -133,7 +130,7 @@ int main(int argc, char **argv)
 
     while (integrator->remaining_steps())
     {
-        integrator->next_step(1);
+        integrator->next_step(0.01);
         integrator->check_point();
     }
 
