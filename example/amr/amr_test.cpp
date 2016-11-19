@@ -56,6 +56,7 @@ struct AMRTest : public mesh::Worker
 
     void initialize(Real data_time)
     {
+        m.geometry().initialize();
         E.clear();
         B.clear();
         J.clear();

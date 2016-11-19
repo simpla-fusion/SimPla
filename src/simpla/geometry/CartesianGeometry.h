@@ -80,7 +80,9 @@ public:
 
     ~CartesianGeometry() {}
 
-    virtual void deploy();
+    virtual void deploy() {};
+
+    virtual void initialize();
 
 
 private:
@@ -106,7 +108,7 @@ public:
 
 }; // struct  Mesh
 
-void CartesianGeometry::deploy()
+void CartesianGeometry::initialize()
 {
     /**
         *\verbatim

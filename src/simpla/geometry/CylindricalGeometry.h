@@ -107,7 +107,9 @@ public:
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
-    void deploy()
+    void deploy() {}
+
+    void initialize()
     {
         //        VERBOSE << mesh_block()->inv_dx() << mesh_block()->dx() << std::endl;
         ASSERT(m_mesh_ != nullptr);
@@ -139,12 +141,16 @@ public:
              *\endverbatim
              */
 
+        auto *d = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>( m_vertics_.data());
 
-        static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>( m_vertics_.data())->foreach(
+        CHECK(d->ndims());
+        VERBOSE << d->count()[0] << " , " << d->count()[1] << " , " << d->count()[2] << " , " << d->count()[3] << " , "
+                << std::endl;
+        d->foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-
                     auto x = m_mesh_->point(i, j, k);
+
                     double res = 0.0;
                     switch (l)
                     {

@@ -27,24 +27,28 @@ public:
     typedef DataEntityNDArray<V> this_type;
     typedef V value_type;
 
-//    DataEntityNDArray() : m_data_(nullptr), m_holder_(nullptr), m_order_(SLOW_FIRST), m_ndims_(0), m_size_(0)
-//    {
-//        DO_NOTHING;
-//    }
-
-
-    DataEntityNDArray(value_type *p, int ndims, index_type const *lo, index_type const *hi,
-                      int order = SLOW_FIRST, index_type const *i_lo = nullptr, index_type const *i_hi = nullptr)
-            : m_data_(p), m_holder_(nullptr), m_order_(order), m_size_(0)
+    DataEntityNDArray() : m_data_(nullptr), m_holder_(nullptr), m_order_(SLOW_FIRST), m_ndims_(0), m_size_(0)
     {
-        initialize(ndims, lo, hi, order, i_lo, i_hi);
+        DO_NOTHING;
     }
 
-    DataEntityNDArray(std::shared_ptr<value_type> const &p, int ndims, index_type const *lo, index_type const *hi,
-                      int order = SLOW_FIRST, index_type const *i_lo = nullptr, index_type const *i_hi = nullptr)
-            : m_holder_(p), m_data_(p.get()), m_order_(order), m_size_(0)
+    template<typename ...Args>
+    explicit DataEntityNDArray(value_type *p, Args &&...args)
+//                      int ndims, index_type const *lo, index_type const *hi,
+//                      int order = SLOW_FIRST, index_type const *i_lo = nullptr, index_type const *i_hi = nullptr)
+            : m_data_(p), m_holder_(nullptr), m_order_(SLOW_FIRST), m_size_(0)
     {
-        initialize(ndims, lo, hi, order, i_lo, i_hi);
+        initialize(std::forward<Args>(args)...);
+    }
+
+    template<typename ...Args>
+    explicit DataEntityNDArray(std::shared_ptr<value_type> const &p, Args &&...args)
+//                      int ndims, index_type const *lo, index_type const *hi,
+//                      int order = SLOW_FIRST, index_type const *i_lo = nullptr, index_type const *i_hi = nullptr)
+            : m_holder_(p), m_data_(p.get()), m_order_(SLOW_FIRST), m_size_(0)
+    {
+        initialize(std::forward<Args>(args)...);
+//        initialize(ndims, lo, hi, order, i_lo, i_hi);
     };
 
 
@@ -52,10 +56,14 @@ public:
 
     virtual ~DataEntityNDArray() {};
 
+
 private:
     void initialize(int ndims, index_type const *lo, index_type const *hi, int order = SLOW_FIRST,
                     index_type const *i_lower = nullptr, index_type const *i_upper = nullptr)
     {
+        m_order_ = order;
+        m_ndims_ = ndims;
+        m_size_ = 1;
         for (int i = 0; i < MAX_NDIMS_OF_ARRAY; ++i)
         {
             m_count_[i] = 1;
@@ -64,9 +72,7 @@ private:
             m_lower_[i] = 0;
             m_upper_[i] = 1;
         }
-        m_order_ = order;
-        m_ndims_ = ndims;
-        m_size_ = 1;
+
         for (int i = 0; i < m_ndims_; ++i)
         {
             m_start_[i] = lo[i];
@@ -285,17 +291,30 @@ public:
         index_type lb = m_start_[3] + (gw != nullptr ? gw[3] : 0);
         index_type le = m_start_[3] + m_count_[3] - (gw != nullptr ? gw[3] : 0);
 
+        if (m_order_ == SLOW_FIRST)
+        {
+//#pragma omp parallel for
+            for (index_type i = ib; i < ie; ++i)
+                for (index_type j = jb; j < je; ++j)
+                    for (index_type k = kb; k < ke; ++k)
+                        for (index_type l = lb; l < le; ++l)
+                        {
+                            get(i, j, k, l) = fun(i, j, k, l);
+                        }
 
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k)
-                    for (index_type l = lb; l < le; ++l)
-                    {
-                        get(i, j, k, l) = fun(i, j, k, l);
-                    }
-
-
+        } else
+        {
+            for (index_type l = lb; l < le; ++l)
+            {
+                //#pragma omp parallel for
+                for (index_type i = ib; i < ie; ++i)
+                    for (index_type j = jb; j < je; ++j)
+                        for (index_type k = kb; k < ke; ++k)
+                        {
+                            get(i, j, k, l) = fun(i, j, k, l);
+                        }
+            }
+        }
     };
 
     template<typename TFUN>

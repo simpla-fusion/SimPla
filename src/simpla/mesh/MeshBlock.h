@@ -107,12 +107,18 @@ public:
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF>
     std::shared_ptr<DataBlock> create_data_block(void *p) const
     {
+        int n_dof = DOF;
+        int ndims = 3;
+        if (IFORM == mesh::EDGE || IFORM == mesh::FACE)
+        {
+            n_dof *= 3;
+            ++ndims;
+        }
         auto b = outer_index_box();
         index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
-        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], 3};
+        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], n_dof};
         return std::dynamic_pointer_cast<DataBlock>(
-                std::make_shared<data_block_type<TV, IFORM, DOF>>
-                        (static_cast<TV *>(p), (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 3 : 4, lo, hi));
+                std::make_shared<data_block_type<TV, IFORM, DOF>>(static_cast<TV *>(p), ndims, lo, hi));
     };
 //    template<typename TV, mesh::MeshEntityType IFORM>
 //    std::shared_ptr<mesh::DataBlock> create_data_block(void *p) const

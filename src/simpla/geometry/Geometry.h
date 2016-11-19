@@ -36,6 +36,8 @@ public:
         deploy();
     }
 
+    virtual void initialize() { DO_NOTHING; }
+
     virtual void deploy() { DO_NOTHING; }
 
     std::shared_ptr<mesh::MeshBlock> mesh_block()
