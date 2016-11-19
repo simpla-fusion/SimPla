@@ -105,6 +105,7 @@ std::shared_ptr<DataBlock> &Attribute::get(std::shared_ptr<MeshBlock> const &m, 
 
 void Attribute::insert(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &p)
 {
+    WARNING << "Wrong Way!" << std::endl;
     ASSERT(m_pimpl_ != nullptr);
 
     if (m == nullptr) { OUT_OF_RANGE << " try to insert null mesh or data block" << std::endl; }

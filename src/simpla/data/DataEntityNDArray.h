@@ -27,7 +27,10 @@ public:
     typedef DataEntityNDArray<V> this_type;
     typedef V value_type;
 
-    DataEntityNDArray() : m_data_(nullptr), m_holder_(nullptr), m_order_(SLOW_FIRST), m_ndims_(0), m_size_(0) {}
+    DataEntityNDArray() : m_data_(nullptr), m_holder_(nullptr), m_order_(SLOW_FIRST), m_ndims_(0), m_size_(0)
+    {
+        DO_NOTHING;
+    }
 
 
     DataEntityNDArray(value_type *p, int ndims, index_type const *lo, index_type const *hi,
@@ -159,11 +162,7 @@ public:
     {
         if (m_data_ == nullptr)
         {
-            if (m_holder_ == nullptr && m_size_ > 0) {
-
-                m_holder_ = toolbox::MemoryHostAllocT<value_type>(m_size_);
-            }
-
+            if (m_holder_ == nullptr && m_size_ > 0) { m_holder_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }
             m_data_ = m_holder_.get();
         }
     };
@@ -205,7 +204,7 @@ public:
     size_type m_size_ = 0;
 
     std::shared_ptr<value_type> m_holder_;
-    value_type *m_data_;
+    value_type *m_data_ = nullptr;
     int m_order_ = SLOW_FIRST;
 
     inline constexpr size_type hash(index_type x0) const
@@ -287,7 +286,7 @@ public:
         index_type le = m_start_[3] + m_count_[3] - (gw != nullptr ? gw[3] : 0);
 
 
-#pragma omp parallel for
+//#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k)

@@ -118,7 +118,7 @@ public:
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
         os << std::setw(indent + 1) << " " << "Name =\"" << name() << "\"," << std::endl;
-        os << std::setw(indent + 1) << " " << "Topology = { Type = \"CartesianCoRectMesh\", "
+        os << std::setw(indent + 1) << " " << "Topology = { Type = \"CartesianGeometry\", "
            << "Dimensions = " << dimensions() << " m_global_start_ = " << offset() << " },"
            << std::endl;
         os << std::setw(indent + 1) << " " << "Box = " << box() << "," << std::endl;

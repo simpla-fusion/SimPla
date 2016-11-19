@@ -18,8 +18,8 @@
 #include <simpla/toolbox/type_cast.h>
 #include <simpla/toolbox/Log.h>
 
-#include "simpla/mesh/MeshBlock.h"
-#include "simpla/mesh/Attribute.h"
+#include <simpla/mesh/MeshBlock.h>
+#include <simpla/mesh/Attribute.h>
 #include "Geometry.h"
 
 namespace simpla { namespace mesh
@@ -109,11 +109,11 @@ public:
     void deploy()
     {
 
-        m_vertics_.deploy();
-        m_volume_.deploy();
-        m_dual_volume_.deploy();
-        m_inv_volume_.deploy();
-        m_inv_dual_volume_.deploy();
+        m_vertics_.clear();
+        m_volume_.clear();
+        m_dual_volume_.clear();
+        m_inv_volume_.clear();
+        m_inv_dual_volume_.clear();
 
         /**
              *\verbatim
@@ -135,6 +135,34 @@ public:
              *
              *\endverbatim
              */
+
+
+        static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>( m_vertics_.data())->foreach(
+                [&](index_type i, index_type j, index_type k, index_type l)
+                {
+
+                    auto x = m_mesh_->point(i, j, k);
+                    CHECK(x);
+                    double res = 0.0;
+                    switch (l)
+                    {
+                        case 0:
+                            res = (1 + x[0]) * std::cos(x[1]);
+                            break;
+                        case 1:
+                            res = (1 + x[0]) * std::sin(x[1]);
+                            break;
+                        case 2:
+                            res = x[2];
+                            break;
+                        default :
+                            break;
+                    }
+                    return res;
+
+                });
+
+
         for (int i = 0; i < ndims; ++i)
         {
 

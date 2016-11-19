@@ -52,7 +52,7 @@ public:
             cell_tuple, nTuple<cell_tuple, 3> >::type field_value_type;
 
 private:
-    typedef typename geometry_type::template data_block_type<TV, IFORM> data_block;
+    typedef typename geometry_type::template data_block_type<TV, IFORM, DOF> data_block;
 
     manifold_type *m_manifold_;
     data_block *m_data_;
@@ -94,6 +94,9 @@ public:
     void deploy()
     {
         m_ = &m_manifold_->geometry();
+        ASSERT(base_type::data()->is_a(typeid(data_block)));
+        ASSERT(base_type::data()->is_valid());
+
         m_data_ = static_cast<data_block *>(base_type::data());
         ASSERT(m_data_ != nullptr);
         m_data_->deploy();

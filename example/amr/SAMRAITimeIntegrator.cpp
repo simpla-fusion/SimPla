@@ -578,7 +578,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
             [&](mesh::AttributeViewBase &ob)
             {
                 auto attr = ob.attribute();
-                CHECK(ob.attribute()->name());
+
                 if (attr == nullptr) { return; }
 
                 boost::shared_ptr<SAMRAI::hier::Variable> var = detail::create_samrai_variable(3, attr.get());
@@ -758,7 +758,7 @@ namespace detail
 //}
 template<typename TV>
 std::shared_ptr<mesh::DataBlock>
-create_data_block_t(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block_t(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
 
@@ -828,23 +828,22 @@ create_data_block_t(mesh::Attribute *item, boost::shared_ptr<SAMRAI::hier::Patch
             break;
     }
 
+    ASSERT(res != nullptr);
+
 
     return res;
 }
 
 std::shared_ptr<mesh::DataBlock>
-create_data_block(mesh::Attribute *item, std::shared_ptr<mesh::MeshBlock> const &m,
-                  boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
-    std::shared_ptr<mesh::DataBlock> res;
+    std::shared_ptr<mesh::DataBlock> res(nullptr);
     if (item->value_type_info() == typeid(float)) { res = create_data_block_t<float>(item, pd); }
     else if (item->value_type_info() == typeid(double)) { res = create_data_block_t<double>(item, pd); }
     else if (item->value_type_info() == typeid(int)) { res = create_data_block_t<int>(item, pd); }
 //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
     else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
-
-    item->insert(m, res);
-
+    ASSERT(res != nullptr);
     return res;
 }
 }//namespace detail
@@ -853,7 +852,6 @@ create_data_block(mesh::Attribute *item, std::shared_ptr<mesh::MeshBlock> const 
 void
 SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &patch)
 {
-
     auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
 
     TBOX_ASSERT(pgeom);
@@ -877,7 +875,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
     std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, dx, xlo, xhi);
     m->id(patch.getBox().getLocalId().getValue());
     m->deploy();
-    w->move_to(m);
+
     w->foreach([&](mesh::AttributeViewBase &ob)
                {
                    auto attr = ob.attribute();
@@ -885,12 +883,13 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
                    if (attr == nullptr) { return; }
 
                    ob.move_to(m, detail::create_data_block(
-                           attr.get(), m,
-                           patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext())));
+                           attr, patch.getPatchData(m_samrai_variables_.at(attr->id()),
+                                                    getDataContext())));
 
 
                }
     );
+    w->move_to(m);
 }
 
 /**

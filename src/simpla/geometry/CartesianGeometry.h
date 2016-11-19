@@ -11,10 +11,11 @@
 #include <vector>
 #include <iomanip>
 
-#include "DataBlock.h"
-#include "MeshCommon.h"
-#include "MeshBlock.h"
-#include "EntityId.h"
+#include <simpla/mesh/DataBlock.h>
+#include <simpla/mesh/MeshCommon.h>
+#include <simpla/mesh/MeshBlock.h>
+#include <simpla/mesh/EntityId.h>
+#include "Geometry.h"
 
 namespace simpla { namespace mesh
 {
@@ -26,13 +27,12 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianCoRectMesh : public MeshBlock
+struct CartesianGeometry : public GeometryBase
 {
 
 public:
     static constexpr unsigned int NDIMS = 3;
 
-    SP_OBJECT_HEAD(CartesianCoRectMesh, MeshBlock)
 
     typedef Real scalar_type;
 
@@ -69,30 +69,18 @@ public:
 
 
 public:
-    CartesianCoRectMesh() {}
+    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=
+    mesh::DataBlockArray<TV, IFORM, DOF>;
+
+
+    CartesianGeometry() {}
 
     template<typename ...Args>
-    explicit CartesianCoRectMesh(Args &&...args): MeshBlock(std::forward<Args>(args)...) {};
+    explicit CartesianGeometry(Args &&...args):GeometryBase(std::forward<Args>(args)...) {}
 
-    CartesianCoRectMesh(CartesianCoRectMesh const &other) : MeshBlock(other)
-    {
-
-        for (int i = 0; i < 9; ++i)
-        {
-            m_volume_[i] = m_volume_[i];
-            m_inv_volume_[i] = m_inv_volume_[i];
-            m_dual_volume_[i] = m_dual_volume_[i];
-            m_inv_dual_volume_[i] = m_inv_dual_volume_[i];
-        }
-
-
-    };
-
-    virtual  ~CartesianCoRectMesh() {}
+    ~CartesianGeometry() {}
 
     virtual void deploy();
-
-    virtual std::shared_ptr<MeshBlock> clone() const { return std::make_shared<CartesianCoRectMesh>(*this); };
 
 
 private:
@@ -100,8 +88,12 @@ private:
     Real m_inv_volume_[9];
     Real m_dual_volume_[9];
     Real m_inv_dual_volume_[9];
+    nTuple<Real, 3> m_dx_, m_inv_dx_;
 public:
+    typedef mesh::MeshEntityIdCoder m;
 
+    template<typename ...Args>
+    point_type point(Args &&...args) const { m_mesh_->point(std::forward<Args>(args)...); }
 
     virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 
@@ -114,31 +106,33 @@ public:
 
 }; // struct  Mesh
 
-void CartesianCoRectMesh::deploy()
+void CartesianGeometry::deploy()
 {
-    MeshBlock::deploy();
     /**
-         *\verbatim
-         *                ^y
-         *               /
-         *        z     /
-         *        ^    /
-         *        |  110-------------111
-         *        |  /|              /|
-         *        | / |             / |
-         *        |/  |            /  |
-         *       100--|----------101  |
-         *        | m |           |   |
-         *        |  010----------|--011
-         *        |  /            |  /
-         *        | /             | /
-         *        |/              |/
-         *       000-------------001---> x
-         *
-         *\endverbatim
-         */
-    auto const &dims = dimensions();
+        *\verbatim
+        *                ^y
+        *               /
+        *        z     /
+        *        ^    /
+        *        |  110-------------111
+        *        |  /|              /|
+        *        | / |             / |
+        *        |/  |            /  |
+        *       100--|----------101  |
+        *        | m |           |   |
+        *        |  010----------|--011
+        *        |  /            |  /
+        *        | /             | /
+        *        |/              |/
+        *       000-------------001---> x
+        *
+        *\endverbatim
+        */
+    VERBOSE << mesh_block()->inv_dx() << mesh_block()->dx() << std::endl;
 
+    auto const &dims = mesh_block()->dimensions();
+    m_dx_ = mesh_block()->dx();
+    m_inv_dx_ = mesh_block()->inv_dx();
 
     m_volume_[0 /*000*/] = 1;
     m_volume_[1 /*001*/] = (dims[0] == 1) ? 1 : m_dx_[0];

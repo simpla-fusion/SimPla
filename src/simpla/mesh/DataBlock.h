@@ -29,6 +29,8 @@ public:
 
     virtual bool is_a(std::type_info const &info) const { return info == typeid(DataBlock); };
 
+    virtual bool is_valid()=0;
+
     virtual std::type_info const &value_type_info() const =0;
 
     virtual MeshEntityType entity_type() const =0;
@@ -64,12 +66,14 @@ class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>
 public:
     typedef TV value_type;
 
-    DataBlockArray() : DataBlock(), data_entity_type() {}
+    DataBlockArray() : DataBlock(), data_entity_type() { DO_NOTHING; }
 
     template<typename ...Args>
     explicit DataBlockArray(Args &&...args) : DataBlock(), data_entity_type(std::forward<Args>(args)...) {}
 
     virtual ~DataBlockArray() {}
+
+    virtual bool is_valid() { return data_entity_type::is_valid(); };
 
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
 

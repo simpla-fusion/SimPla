@@ -234,7 +234,8 @@ public:
                 std::type_index(typeid(MeshBlock)),
                 [&](const std::shared_ptr<MeshBlock> &m, void *p)
                 {
-                    return m->template create_data_block<TV, IFORM>(p);
+                    ASSERT(p != nullptr);
+                    return m->template create_data_block<TV, IFORM, DOF>(p);
                 });
     }
 
@@ -256,18 +257,24 @@ public:
     virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
     {
         ASSERT(m != nullptr);
+        if (m_mesh_holder_ == m && m_data_holder_ != nullptr) { return; }
         m_mesh_holder_ = m;
-        m_data_holder_ = m_attr_->get(m, d);
+        m_data_holder_ = d != nullptr ? d : m_attr_->get(m);
     }
 
     virtual void deploy()
     {
-        ASSERT(m_mesh_holder_ != nullptr);
-        if (m_data_holder_ == nullptr) { m_data_holder_ = m_attr_->get(m_mesh_holder_); }
+
+        if (m_data_holder_ == nullptr && m_mesh_holder_ != nullptr) { m_data_holder_ = m_attr_->get(m_mesh_holder_); }
+        ASSERT(m_data_holder_ != nullptr);
         m_data_holder_->deploy();
-        CHECK(m_attr_->name());
     };
 
+    virtual void clear()
+    {
+        deploy();
+        m_data_holder_->clear();
+    }
 
 };
 

@@ -101,17 +101,17 @@ public:
     MeshBlock &operator=(MeshBlock const &other)= delete;
 
 
-    template<typename TV, MeshEntityType IFORM> using data_block_type=  DataBlockArray<TV, IFORM>;
+    template<typename TV, MeshEntityType IFORM, size_type DOF = 1> using data_block_type=  DataBlockArray<TV, IFORM, DOF>;
 
 
-    template<typename TV, mesh::MeshEntityType IFORM>
+    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF>
     std::shared_ptr<DataBlock> create_data_block(void *p) const
     {
         auto b = outer_index_box();
         index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
         index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], 3};
         return std::dynamic_pointer_cast<DataBlock>(
-                std::make_shared<data_block_type<TV, IFORM>>
+                std::make_shared<data_block_type<TV, IFORM, DOF>>
                         (static_cast<TV *>(p), (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 3 : 4, lo, hi));
     };
 //    template<typename TV, mesh::MeshEntityType IFORM>
@@ -231,6 +231,8 @@ public:
     point_type const &global_origin() const { return m_global_origin_; }
 
     point_type const &dx() const { return m_dx_; }
+
+    point_type const &inv_dx() const { return m_inv_dx_; }
 
     virtual point_type point(index_type x, index_type y = 0, index_type z = 0) const
     {

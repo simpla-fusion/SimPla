@@ -9,7 +9,7 @@
 
 #include <simpla/concept/Object.h>
 #include <simpla/mesh/Atlas.h>
-#include <simpla/mesh/CartesianCoRectMesh.h>
+#include <simpla/geometry/CartesianGeometry.h>
 #include <simpla/physics/Field.h>
 #include <simpla/physics/Constants.h>
 
@@ -48,11 +48,6 @@ struct AMRTest : public mesh::Worker
 
     mesh::MeshBlock const *mesh() const { return mesh_block(); }
 
-//    field_type<Real, mesh::EDGE> D{"D", this};
-//    field_type<Real, mesh::FACE> H{"H", this};
-//    field_type<nTuple<Real, 3>, mesh::VERTEX> Ev{"Ev", this};
-//    field_type<nTuple<Real, 3>, mesh::VERTEX> Bv{"Bv", this};
-
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_)
     {
         m.move_to(m_);
@@ -90,29 +85,6 @@ struct AMRTest : public mesh::Worker
                   });
 //        xyz.clear();
 
-        static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>( m.geometry().m_vertics_.data())->foreach(
-                [&](index_type i, index_type j, index_type k, index_type l)
-                {
-                    auto const *m_ = mesh_block();
-                    auto x = mesh_block()->point(i, j, k);
-                    double res = 0.0;
-                    switch (l)
-                    {
-                        case 0:
-                            res = (1 + x[0]) * std::cos(x[1]);
-                            break;
-                        case 1:
-                            res = (1 + x[0]) * std::sin(x[1]);
-                            break;
-                        case 2:
-                            res = x[2];
-                            break;
-                        default :
-                            break;
-                    }
-                    return res;
-
-                });
 
     }
 
@@ -132,8 +104,8 @@ struct AMRTest : public mesh::Worker
     {
         VERBOSE << "box = " << mesh()->dx() << " time = " << std::setw(12) << std::left << data_time << " dt ="
                 << std::setw(12) << dt << std::endl;
-        E = E + (curl(B) / mu - J) * dt / epsilon;
-        B = B - curl(E) * dt;
+//        E = E + (curl(B) / mu - J) * dt / epsilon;
+        B -= curl(E) * dt;
     }
 
 
@@ -148,7 +120,8 @@ int main(int argc, char **argv)
 {
     logger::set_stdout_level(100);
 
-    typedef manifold::CylindricalManifold mesh_type;
+//    typedef manifold::CylindricalManifold mesh_type;
+    typedef manifold::CartesianManifold mesh_type;
 
     auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<mesh_type>>());
 

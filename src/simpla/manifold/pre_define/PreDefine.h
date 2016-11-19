@@ -7,7 +7,7 @@
 #ifndef SIMPLA_PREDEFINE_H
 #define SIMPLA_PREDEFINE_H
 
-#include <simpla/mesh/CartesianCoRectMesh.h>
+#include <simpla/geometry/CartesianGeometry.h>
 #include <simpla/geometry/CylindricalGeometry.h>
 
 //#include "../RectMesh.h"
@@ -22,7 +22,7 @@ namespace simpla { namespace manifold
 //template<typename MESH, template<typename> class ...Policies>
 //using ManifoldWithPolicies= CoordinateSystem<MESH, Policies<MESH>...>;
 
-template<typename MESH = mesh::CartesianCoRectMesh>
+template<typename MESH = mesh::CartesianGeometry>
 using DefaultManifold= Manifold<MESH,
         schemes::FiniteVolume,
         schemes::LinearInterpolator
@@ -32,7 +32,7 @@ using DefaultManifold= Manifold<MESH,
 
 using CylindricalManifold= DefaultManifold<mesh::CylindricalGeometry>;
 
-using CartesianManifold = DefaultManifold<mesh::CartesianCoRectMesh>;
+using CartesianManifold = DefaultManifold<mesh::CartesianGeometry>;
 
 
 }}// namespace simpla { namespace CoordinateSystem
