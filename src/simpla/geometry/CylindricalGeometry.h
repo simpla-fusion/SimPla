@@ -69,6 +69,7 @@ public:
 public:
     void connect(AttributeHolder *holder)
     {
+        GeometryBase::connect(holder);
         m_vertics_.connect(holder, "vertices", "COORDINATES");
         m_volume_.connect(holder, "volume", "NO_FILL");
         m_dual_volume_.connect(holder, "dual_volume", "NO_FILL");
@@ -108,8 +109,8 @@ public:
 
     void deploy()
     {
-        FUNCTION_START;
-//        VERBOSE << mesh_block()->inv_dx() << mesh_block()->dx() << std::endl;
+        //        VERBOSE << mesh_block()->inv_dx() << mesh_block()->dx() << std::endl;
+        ASSERT(m_mesh_ != nullptr);
 
         m_vertics_.clear();
         m_volume_.clear();

@@ -128,7 +128,8 @@ void CartesianGeometry::deploy()
         *
         *\endverbatim
         */
-    VERBOSE << mesh_block()->inv_dx() << mesh_block()->dx() << std::endl;
+    ASSERT(m_mesh_ != nullptr);
+    VERBOSE << m_mesh_->inv_dx() << m_mesh_->dx() << std::endl;
 
     auto const &dims = mesh_block()->dimensions();
     m_dx_ = mesh_block()->dx();

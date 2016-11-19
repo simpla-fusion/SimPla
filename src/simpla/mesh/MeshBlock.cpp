@@ -101,17 +101,8 @@ void MeshBlock::deploy()
     if (m_is_deployed_) { return; }
 
     base_type::deploy();
-    assert(toolbox::is_valid(m_g_box_));
-
-
-    int mpi_topo_ndims = 0;
-    int mpi_topo_dims[3];
-    int mpi_topo_periods[3];
-    int mpi_topo_coords[3];
-
-    GLOBAL_COMM.topology(&mpi_topo_ndims, mpi_topo_dims, mpi_topo_periods, mpi_topo_coords);
-
-
+    CHECK(m_g_box_);
+    ASSERT(toolbox::is_valid(m_g_box_));
     for (int i = 0; i < m_ndims_; ++i)
     {
         if (std::get<1>(m_g_box_)[i] <= std::get<0>(m_g_box_)[i] + 1)
@@ -139,21 +130,20 @@ void MeshBlock::deploy()
             m_g2l_scale_[i] = 0;
             m_g2l_shift_[i] = 0;
 
-            if (i < mpi_topo_ndims && mpi_topo_dims[i] > 1)
-            {
-                RUNTIME_ERROR << " Mesh is not splitable [" << m_g_box_
-                              << ", mpi={" << mpi_topo_dims[0]
-                              << "," << mpi_topo_dims[1]
-                              << "," << mpi_topo_dims[2]
-                              << "}]" << std::endl;
-            }
+//            if (i < mpi_topo_ndims && mpi_topo_dims[i] > 1)
+//            {
+//                RUNTIME_ERROR << " Mesh is not splitable [" << m_g_box_
+//                              << ", mpi={" << mpi_topo_dims[0]
+//                              << "," << mpi_topo_dims[1]
+//                              << "," << mpi_topo_dims[2]
+//                              << "}]" << std::endl;
+//            }
 
-        } else if (i < mpi_topo_ndims && mpi_topo_dims[i] > 1)
+        } else //if (i < mpi_topo_ndims && mpi_topo_dims[i] > 1)
         {
-            index_type L = std::get<1>(m_g_box_)[i] - std::get<0>(m_g_box_)[i];
-            std::get<1>(m_g_box_)[i] =
-                    std::get<0>(m_g_box_)[i] + L * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i];
-            std::get<0>(m_g_box_)[i] += L * mpi_topo_coords[i] / mpi_topo_dims[i];
+//            index_type L = std::get<1>(m_g_box_)[i] - std::get<0>(m_g_box_)[i];
+//            std::get<1>(m_g_box_)[i] = std::get<0>(m_g_box_)[i] + L * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i];
+//            std::get<0>(m_g_box_)[i] += L * mpi_topo_coords[i] / mpi_topo_dims[i];
 
             m_inv_dx_[i] = static_cast<Real>(1.0) / m_dx_[i];
 

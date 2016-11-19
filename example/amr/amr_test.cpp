@@ -46,13 +46,10 @@ struct AMRTest : public mesh::Worker
     field_type<Real, mesh::EDGE> E{m, "E"};
     field_type<Real, mesh::EDGE> J{m, "J"};
 
-    mesh::MeshBlock const *mesh() const { return mesh_block(); }
+    std::shared_ptr<mesh::MeshBlock> mesh() const { return m.geometry().mesh_block(); }
 
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_)
-    {
-        m.move_to(m_);
-        mesh::Worker::move_to(m_);
-    }
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_) { m.move_to(m_); }
+
 
     virtual void foreach(std::function<void(mesh::AttributeViewBase const &)> const &fun) const { m.foreach(fun); };
 

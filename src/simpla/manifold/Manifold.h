@@ -168,7 +168,6 @@ public:
 
     virtual void deploy()
     {
-        m_geo_.deploy();
         this_type::calculus_policy::deploy();
         this_type::interpolate_policy::deploy();
     }
@@ -181,13 +180,6 @@ public:
         this_type::interpolate_policy::print(os, indent + 1);
         return os;
     }
-
-
-    virtual void destroy()
-    {
-
-    }
-
 
 private:
 //    std::shared_ptr<mesh::Atlas> m_atlas_;

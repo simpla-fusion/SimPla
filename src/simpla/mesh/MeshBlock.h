@@ -236,7 +236,9 @@ public:
 
     virtual point_type point(index_type x, index_type y = 0, index_type z = 0) const
     {
-        return point_type{x * m_dx_[0], y * m_dx_[1], z * m_dx_[2]};
+        return point_type{x * m_dx_[0] + m_x_lower[0],
+                          y * m_dx_[1] + m_x_lower[1],
+                          z * m_dx_[2] + m_x_lower[2]};
     };
 
 //    virtual point_type point(MeshEntityId const &s) const { return point(s.x >> 1, s.y >> 1, s.z >> 1); }

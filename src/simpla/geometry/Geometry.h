@@ -6,6 +6,7 @@
 #define SIMPLA_GEOMETRY_H
 
 #include <simpla/toolbox/design_pattern/Observer.h>
+#include <simpla/mesh/Attribute.h>
 #include "simpla/mesh/MeshBlock.h"
 #include "simpla/mesh/DataBlock.h"
 
@@ -13,17 +14,29 @@ namespace simpla { namespace mesh
 {
 struct GeometryBase : public design_pattern::Observer<void(std::shared_ptr<MeshBlock> const &)>
 {
-    std::shared_ptr<MeshBlock> m_mesh_;
+private:
+    typedef design_pattern::Observer<void(std::shared_ptr<MeshBlock> const &)> base_type;
+public:
+    std::shared_ptr<MeshBlock> m_mesh_ = nullptr;
+
+    GeometryBase() : m_mesh_(nullptr) {}
 
     template<typename ...Args>
     explicit GeometryBase(Args &&...args):m_mesh_(new MeshBlock(std::forward<Args>(args)...)) {}
 
-    virtual void notify(std::shared_ptr<MeshBlock> const &m) { UNIMPLEMENTED; };
+    virtual ~GeometryBase() {}
+
+    virtual void connect(mesh::AttributeHolder *subject) { base_type::connect(subject); }
+
+    virtual void notify(std::shared_ptr<MeshBlock> const &m) { move_to(m); };
+
+    virtual void move_to(std::shared_ptr<MeshBlock> const &m) { m_mesh_ = m; }
+
+    virtual void deploy() { DO_NOTHING; }
 
     std::shared_ptr<mesh::MeshBlock> mesh_block() { return m_mesh_; }
 
     std::shared_ptr<mesh::MeshBlock> mesh_block() const { return m_mesh_; }
-
 };
 }}
 #endif //SIMPLA_GEOMETRY_H

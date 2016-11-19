@@ -223,10 +223,7 @@ public:
     std::shared_ptr<Attribute> attribute() const { return m_attr_; }
 
     virtual void
-    attribute(std::shared_ptr<Attribute> const &attr)
-    {
-        m_attr_ = std::dynamic_pointer_cast<attribute_type>(attr);
-    };
+    attribute(std::shared_ptr<Attribute> const &attr) { m_attr_ = std::dynamic_pointer_cast<attribute_type>(attr); };
 
     virtual void register_data_block_factory(std::shared_ptr<mesh::Attribute> const &attr)
     {
@@ -322,9 +319,9 @@ struct AttributeHolder :
         base_type::disconnect(view);
     }
 
-    void move_to(std::shared_ptr<MeshBlock> const &m) { notify(m); }
+    virtual void move_to(std::shared_ptr<MeshBlock> const &m) { notify(m); }
 
-    virtual void remove(AttributeViewBase *observer) { base_type::remove(observer); }
+    virtual void remove(std::string const &key) { UNIMPLEMENTED; }
 
     virtual void foreach(std::function<void(AttributeViewBase const &)> const &fun) const
     {

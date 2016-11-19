@@ -22,9 +22,13 @@ struct Observer<void(Args...)>
 
     Observer() {}
 
-    virtual ~Observer() { disconnect(); };
+    virtual ~Observer()
+    {
+        if (m_subject_ != nullptr) { m_subject_->disconnect(this); }
+        disconnect();
+    };
 
-    void connect(observable_type *subject) { m_subject_ = subject; }
+    virtual void connect(observable_type *subject) { m_subject_ = subject; }
 
     void disconnect()
     {
@@ -36,7 +40,7 @@ struct Observer<void(Args...)>
     virtual void notify(Args ...) = 0;
 
 private:
-    observable_type *m_subject_;
+    observable_type *m_subject_ = nullptr;
 
 };
 
@@ -74,19 +78,7 @@ struct Observable
     };
 
 
-    virtual void disconnect(observer_type *observer)
-    {
-        auto it = m_observers_.find(observer);
-
-        if (it != m_observers_.end())
-        {
-            observer->disconnect();
-
-            m_observers_.erase(observer);
-        }
-    }
-
-    virtual void remove(observer_type *observer) { disconnect(observer); }
+    virtual void disconnect(observer_type *observer) { m_observers_.erase(observer); }
 
     virtual void foreach(std::function<void(observer_type &)> const &fun)
     {

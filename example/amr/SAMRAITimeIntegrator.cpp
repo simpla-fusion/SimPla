@@ -854,7 +854,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
 {
     auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
 
-    TBOX_ASSERT(pgeom);
+    ASSERT(pgeom != nullptr);
     const double *dx = pgeom->getDx();
     const double *xlo = pgeom->getXLower();
     const double *xhi = pgeom->getXUpper();
@@ -870,12 +870,10 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
             patch.getBox().upper()[2]
     };
 
-//    CHECK(xlo[0] + dx[0] * (hi[0] - lo[0] + 1) - xhi[0]);
-
     std::shared_ptr<mesh::MeshBlock> m = m_worker_->create_mesh_block(lo, hi, dx, xlo, xhi);
     m->id(patch.getBox().getLocalId().getValue());
     m->deploy();
-
+    w->move_to(m);
     w->foreach([&](mesh::AttributeViewBase &ob)
                {
                    auto attr = ob.attribute();
@@ -885,11 +883,8 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
                    ob.move_to(m, detail::create_data_block(
                            attr, patch.getPatchData(m_samrai_variables_.at(attr->id()),
                                                     getDataContext())));
-
-
                }
     );
-    w->move_to(m);
 }
 
 /**
