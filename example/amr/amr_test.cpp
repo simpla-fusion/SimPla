@@ -61,7 +61,6 @@ struct AMRTest : public mesh::Worker
         J.clear();
         E.foreach([&](point_type const &x)
                   {
-                      CHECK(x);
                       return nTuple<Real, 3>{
                               std::sin(TWOPI * (x[0] - 1)), 0, 0
                       };
@@ -100,8 +99,8 @@ int main(int argc, char **argv)
 {
     logger::set_stdout_level(100);
 
-   //  typedef manifold::CylindricalManifold mesh_type;
-    typedef manifold::CartesianManifold mesh_type;
+    typedef manifold::CylindricalManifold mesh_type;
+    //  typedef manifold::CartesianManifold mesh_type;
 
     auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<mesh_type>>());
 

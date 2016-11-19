@@ -93,7 +93,7 @@ public:
     typedef mesh::MeshEntityIdCoder m;
 
     template<typename ...Args>
-    point_type point(Args &&...args) const { m_mesh_->point(std::forward<Args>(args)...); }
+    point_type point(Args &&...args) const { return m_mesh_->point(std::forward<Args>(args)...); }
 
     virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 
@@ -129,7 +129,6 @@ void CartesianGeometry::deploy()
         *\endverbatim
         */
     ASSERT(m_mesh_ != nullptr);
-    VERBOSE << m_mesh_->inv_dx() << m_mesh_->dx() << std::endl;
 
     auto const &dims = mesh_block()->dimensions();
     m_dx_ = mesh_block()->dx();

@@ -209,13 +209,13 @@ public:
 
     }
 
-    template<typename TFun, typename ...U> void
-    foreach(mesh::EntityIdRange const &r0, std::function<value_type(point_type const &, U const &...)> const &fun,
-            U &&...args)
-    {
-        deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_->point(s), std::forward<U>(args)...); });
-    }
+//    template<typename TFun, typename ...U> void
+//    foreach(mesh::EntityIdRange const &r0, std::function<value_type(point_type const &, U const &...)> const &fun,
+//            U &&...args)
+//    {
+//        deploy();
+//        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_->point(s), std::forward<U>(args)...); });
+//    }
 
 
     template<typename TFun> void

@@ -78,7 +78,7 @@ public:
     }
 
     template<typename ...Args>
-    point_type point(Args &&...args) const { m_mesh_->point(std::forward<Args>(args)...); }
+    point_type point(Args &&...args) const { return m_mesh_->point(std::forward<Args>(args)...); }
 
     virtual Real volume(MeshEntityId s) const
     {
