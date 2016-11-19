@@ -34,9 +34,17 @@ public:
 
     virtual void deploy() { DO_NOTHING; }
 
-    std::shared_ptr<mesh::MeshBlock> mesh_block() { return m_mesh_; }
+    std::shared_ptr<mesh::MeshBlock> mesh_block()
+    {
+        ASSERT(m_mesh_ != nullptr);
+        return m_mesh_;
+    }
 
-    std::shared_ptr<mesh::MeshBlock> mesh_block() const { return m_mesh_; }
+    std::shared_ptr<mesh::MeshBlock> mesh_block() const
+    {
+        ASSERT(m_mesh_ != nullptr);
+        return m_mesh_;
+    }
 };
 }}
 #endif //SIMPLA_GEOMETRY_H

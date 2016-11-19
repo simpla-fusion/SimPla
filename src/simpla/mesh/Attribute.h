@@ -251,19 +251,19 @@ public:
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 
-    virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
+    virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr)
     {
         ASSERT(m != nullptr);
         if (m_mesh_holder_ == m && m_data_holder_ != nullptr) { return; }
+
         m_mesh_holder_ = m;
-        m_data_holder_ = d != nullptr ? d : m_attr_->get(m);
-        deploy();
+
+        if (d != nullptr) { m_data_holder_ = d; } else { m_data_holder_ = m_attr_->get(m); }
     }
 
     virtual void deploy()
     {
-        if (m_data_holder_ == nullptr && m_mesh_holder_ != nullptr) { m_data_holder_ = m_attr_->get(m_mesh_holder_); }
-        ASSERT(m_data_holder_ != nullptr);
+        if (m_data_holder_ == nullptr) { move_to(m_mesh_holder_); }
         m_data_holder_->deploy();
     };
 

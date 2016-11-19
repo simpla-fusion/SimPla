@@ -50,7 +50,6 @@ struct AMRTest : public mesh::Worker
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_) { m.move_to(m_); }
 
-
     virtual void foreach(std::function<void(mesh::AttributeViewBase const &)> const &fun) const { m.foreach(fun); };
 
     virtual void foreach(std::function<void(mesh::AttributeViewBase &)> const &fun) { m.foreach(fun); };
@@ -72,14 +71,14 @@ struct AMRTest : public mesh::Worker
         E.deploy();
         B.deploy();
         J.deploy();
-        E.foreach([&](point_type const &x)
-                  {
-                      return nTuple<Real, 3>{
-                              std::sin(x[0] * TWOPI / 16),//* std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
-                              0,//  std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
-                              0//  std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
-                      };
-                  });
+//        E.foreach([&](point_type const &x)
+//                  {
+//                      return nTuple<Real, 3>{
+//                              std::sin(x[0] * TWOPI / 16),//* std::sin(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2]),
+//                              0,//  std::cos(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::cos(x[2] * m_k_[2]),
+//                              0//  std::sin(x[0] * m_k_[0]) * std::cos(x[1] * m_k_[1]) * std::sin(x[2] * m_k_[2])
+//                      };
+//                  });
     }
 
     virtual void setPhysicalBoundaryConditions(double time)
@@ -98,7 +97,7 @@ struct AMRTest : public mesh::Worker
     {
         VERBOSE << "box = " << mesh()->dx() << " time = " << std::setw(12) << std::left << data_time << " dt ="
                 << std::setw(12) << dt << std::endl;
-//        E = E + (curl(B) / mu - J) * dt / epsilon;
+        E = E + (curl(B) / mu - J) * dt / epsilon;
         B -= curl(E) * dt;
     }
 

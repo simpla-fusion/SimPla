@@ -161,10 +161,15 @@ public:
         return "Manifold<" + traits::type_id_list<geometry_type, Policies<geometry_type>...>::name() + " > ";
     }
 
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m)
+    {
+        m_geo_.move_to(m);
+        mesh::AttributeHolder::move_to(m);
+    }
+
     geometry_type &geometry() { return m_geo_; }
 
     geometry_type const &geometry() const { return m_geo_; }
-
 
     virtual void deploy()
     {
