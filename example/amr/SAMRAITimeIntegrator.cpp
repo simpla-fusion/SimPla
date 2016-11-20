@@ -585,8 +585,31 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 
                 m_samrai_variables_[attr->id()] = var;
 
-                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR", "TENSOR"};
-                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR", "VECTOR", "SCALAR"};
+//                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR", "TENSOR"};
+//                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR", "VECTOR", "SCALAR"};
+
+                std::string visit_variable_type = "";
+                if ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) && attr->dof() == 1)
+                {
+                    visit_variable_type = "SCALAR";
+                } else if (((attr->entity_type() == mesh::EDGE || attr->entity_type() == mesh::FACE) &&
+                            attr->dof() == 1) ||
+                           ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) &&
+                            attr->dof() == 3))
+                {
+                    visit_variable_type = "VECTOR";
+                } else if (
+                        ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) &&
+                         attr->dof() == 9) ||
+                        ((attr->entity_type() == mesh::EDGE || attr->entity_type() == mesh::FACE) &&
+                         attr->dof() == 3)
+                        )
+                {
+                    visit_variable_type = "TENSOR";
+                } else
+                {
+                    WARNING << "Can not register attribute [" << attr->name() << "] to VisIt  writer!" << std::endl;
+                }
 
                 /*** FIXME:
                 *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
@@ -602,43 +625,47 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 
                     d_visit_writer->registerNodeCoordinates(
                             vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-                } else if (attr->db.has("config") && attr->db["config"].as<std::string>() == "FLUX")
-                {
-                    integrator->registerVariable(var, d_fluxghosts,
-                                                 SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
-                                                 d_grid_geometry,
-                                                 "CONSERVATIVE_COARSEN",
-                                                 "NO_REFINE");
-                    d_visit_writer->registerNodeCoordinates(
-                            vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
                 } else
                 {
-                    switch (attr->entity_type())
+                    if (attr->db.has("config") && attr->db["config"].as<std::string>() == "FLUX")
                     {
-                        case mesh::EDGE:
-                        case mesh::FACE:
+                        integrator->registerVariable(var, d_fluxghosts,
+                                                     SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
+                                                     d_grid_geometry,
+                                                     "CONSERVATIVE_COARSEN",
+                                                     "NO_REFINE");
+
+                    } else
+                    {
+                        switch (attr->entity_type())
+                        {
+                            case mesh::EDGE:
+                            case mesh::FACE:
 //                            integrator->registerVariable(var, d_nghosts,
 //                                                         SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
 //                                                         d_grid_geometry,
 //                                                         "CONSERVATIVE_COARSEN",
 //                                                         "CONSERVATIVE_LINEAR_REFINE");
 //                            break;
-                        case mesh::VERTEX:
-                        case mesh::VOLUME:
-                        default:
-                            integrator->registerVariable(var, d_nghosts,
-                                                         SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                                         d_grid_geometry,
-                                                         "",
-                                                         "LINEAR_REFINE");
+                            case mesh::VERTEX:
+                            case mesh::VOLUME:
+                            default:
+                                integrator->registerVariable(var, d_nghosts,
+                                                             SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                                             d_grid_geometry,
+                                                             "",
+                                                             "LINEAR_REFINE");
+                        }
+
+
                     }
-
-                    d_visit_writer->registerPlotQuantity(
-                            attr->name(), visit_variable_type2[attr->entity_type()],
-                            vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-
+                    if (visit_variable_type != "")
+                    {
+                        d_visit_writer->registerPlotQuantity(
+                                attr->name(), visit_variable_type,
+                                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+                    }
                 }
-
 
             }
     );

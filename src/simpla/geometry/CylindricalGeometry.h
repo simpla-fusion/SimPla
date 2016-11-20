@@ -64,6 +64,7 @@ public:
     mesh::AttributeView<Real, VERTEX, 9> m_dual_volume_;
     mesh::AttributeView<Real, VERTEX, 9> m_inv_volume_;
     mesh::AttributeView<Real, VERTEX, 9> m_inv_dual_volume_;
+    mesh::AttributeView<Real, VERTEX, 9> m_check_volume_;
 
 
 public:
@@ -75,6 +76,8 @@ public:
         m_dual_volume_.connect(holder, "dual_volume", "NO_FILL");
         m_inv_volume_.connect(holder, "inv_volume", "NO_FILL");
         m_inv_dual_volume_.connect(holder, "inv_dual_volume", "NO_FILL");
+        m_check_volume_.connect(holder, "m_check_volume_", "NO_FILL");
+
     }
 
     template<typename ...Args>
@@ -119,12 +122,12 @@ public:
         m_dual_volume_.clear();
         m_inv_volume_.clear();
         m_inv_dual_volume_.clear();
-
+        m_check_volume_.clear();
         /**
              *\verbatim
-             *                ^y
+             *                ^y (dl)
              *               /
-             *        z     /
+             *   (dz) z     /
              *        ^    /
              *        |  110-------------111
              *        |  /|              /|
@@ -136,36 +139,88 @@ public:
              *        |  /            |  /
              *        | /             | /
              *        |/              |/
-             *       000-------------001---> x
+             *       000-------------001---> x (dr)
              *
              *\endverbatim
              */
+        auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_vertics_.data())->start();
+        auto m_count_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_vertics_.data())->count();
 
-        auto *d = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>( m_vertics_.data());
-        d->foreach(
-                [&](index_type i, index_type j, index_type k, index_type l)
+        index_type ib = m_start_[0];
+        index_type ie = m_start_[0] + m_count_[0];
+        index_type jb = m_start_[1];
+        index_type je = m_start_[1] + m_count_[1];
+        index_type kb = m_start_[2];
+        index_type ke = m_start_[2] + m_count_[2];
+        auto m_dx_ = m_mesh_->dx();
+#define GET3(_NAME_, _I, _J, _K, _L)  ( static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(_NAME_.data()))->get(_I,_J,_K,_L)
+#define GET9(_NAME_, _I, _J, _K, _L)  ( static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(_NAME_.data()))->get(_I,_J,_K,_L)
+
+        for (index_type i = ib; i < ie; ++i)
+            for (index_type j = jb; j < je; ++j)
+                for (index_type k = kb; k < ke; ++k)
                 {
                     auto x = m_mesh_->point(i, j, k);
 
-                    double res = 0.0;
-                    switch (l)
-                    {
-                        case 0:
-                            res = (1 + x[0]) * std::cos(x[1]);
-                            break;
-                        case 1:
-                            res = (1 + x[0]) * std::sin(x[1]);
-                            break;
-                        case 2:
-                            res = x[2];
-                            break;
-                        default :
-                            break;
-                    }
-                    return res;
+                    GET3(m_vertics_, i, j, k, 0) = (1 + x[0]) * std::cos(x[1]);
+                    GET3(m_vertics_, i, j, k, 1) = (1 + x[0]) * std::sin(x[1]);
+                    GET3(m_vertics_, i, j, k, 2) = x[2];
+                    Real dr = m_dx_[0];
+                    Real dl0 = m_dx_[1] * x[0];
+                    Real dl1 = m_dx_[1] * (x[0] + m_dx_[0]);
+                    Real dz = m_dx_[2];
 
-                });
+                    GET9(m_volume_, i, j, k, 0) = 1.0;
+                    GET9(m_volume_, i, j, k, 1) = dr;
+                    GET9(m_volume_, i, j, k, 2) = dl0;
+                    GET9(m_volume_, i, j, k, 3) = 0.5 * dr * (dl0 + dl1);
+                    GET9(m_volume_, i, j, k, 4) = dz;
+                    GET9(m_volume_, i, j, k, 5) = dr * dz;
+                    GET9(m_volume_, i, j, k, 6) = dl0 * dz;
+                    GET9(m_volume_, i, j, k, 7) = 0.5 * dr * (dl0 + dl1) * dz;
+                    GET9(m_volume_, i, j, k, 8) = 1.0;
 
+                    GET9(m_inv_volume_, i, j, k, 0) = 1.0 / GET9(m_volume_, i, j, k, 0);
+                    GET9(m_inv_volume_, i, j, k, 1) = 1.0 / GET9(m_volume_, i, j, k, 1);
+                    GET9(m_inv_volume_, i, j, k, 2) = 1.0 / GET9(m_volume_, i, j, k, 2);
+                    GET9(m_inv_volume_, i, j, k, 3) = 1.0 / GET9(m_volume_, i, j, k, 3);
+                    GET9(m_inv_volume_, i, j, k, 4) = 1.0 / GET9(m_volume_, i, j, k, 4);
+                    GET9(m_inv_volume_, i, j, k, 5) = 1.0 / GET9(m_volume_, i, j, k, 5);
+                    GET9(m_inv_volume_, i, j, k, 6) = 1.0 / GET9(m_volume_, i, j, k, 6);
+                    GET9(m_inv_volume_, i, j, k, 7) = 1.0 / GET9(m_volume_, i, j, k, 7);
+                    GET9(m_inv_volume_, i, j, k, 8) = 1.0 / GET9(m_volume_, i, j, k, 8);
+
+
+                    dr = m_dx_[0];
+                    dl0 = m_dx_[1] * (x[0] - 0.5 * m_dx_[0]);
+                    dl1 = m_dx_[1] * (x[0] + 0.5 * m_dx_[0]);
+                    dz = m_dx_[2];
+
+                    GET9(m_dual_volume_, i, j, k, 7) = 1.0;
+                    GET9(m_dual_volume_, i, j, k, 6) = dr;
+                    GET9(m_dual_volume_, i, j, k, 5) = dl0;
+                    GET9(m_dual_volume_, i, j, k, 4) = 0.5 * dr * (dl0 + dl1);
+                    GET9(m_dual_volume_, i, j, k, 3) = dz;
+                    GET9(m_dual_volume_, i, j, k, 2) = dr * dz;
+                    GET9(m_dual_volume_, i, j, k, 1) = dl0 * dz;
+                    GET9(m_dual_volume_, i, j, k, 0) = 0.5 * dr * (dl0 + dl1) * dz;
+                    GET9(m_dual_volume_, i, j, k, 8) = 1.0;
+
+
+                    GET9(m_inv_dual_volume_, i, j, k, 0) = 1.0 / GET9(m_dual_volume_, i, j, k, 0);
+                    GET9(m_inv_dual_volume_, i, j, k, 1) = 1.0 / GET9(m_dual_volume_, i, j, k, 1);
+                    GET9(m_inv_dual_volume_, i, j, k, 2) = 1.0 / GET9(m_dual_volume_, i, j, k, 2);
+                    GET9(m_inv_dual_volume_, i, j, k, 3) = 1.0 / GET9(m_dual_volume_, i, j, k, 3);
+                    GET9(m_inv_dual_volume_, i, j, k, 4) = 1.0 / GET9(m_dual_volume_, i, j, k, 4);
+                    GET9(m_inv_dual_volume_, i, j, k, 5) = 1.0 / GET9(m_dual_volume_, i, j, k, 5);
+                    GET9(m_inv_dual_volume_, i, j, k, 6) = 1.0 / GET9(m_dual_volume_, i, j, k, 6);
+                    GET9(m_inv_dual_volume_, i, j, k, 7) = 1.0 / GET9(m_dual_volume_, i, j, k, 7);
+                    GET9(m_inv_dual_volume_, i, j, k, 8) = 1.0 / GET9(m_dual_volume_, i, j, k, 8);
+
+
+                }
+#undef GET9
+#undef GET3
 
         for (int i = 0; i < ndims; ++i)
         {

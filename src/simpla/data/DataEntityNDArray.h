@@ -275,6 +275,8 @@ public:
 
 
 public:
+
+
     template<typename TFUN>
     void foreach(TFUN const &fun, index_type const *gw = nullptr)
     {
@@ -316,6 +318,7 @@ public:
             }
         }
     };
+
 
     template<typename TFUN>
     void foreach_ghost(TFUN const &fun)
