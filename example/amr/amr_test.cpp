@@ -76,9 +76,7 @@ struct AMRTest : public mesh::Worker
     {
 
         auto b = mesh()->inner_index_box();
-
         index_tuple p = {NX / 2, NY / 2, NZ / 2};
-
         if (toolbox::is_inside(p, b)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
 
     };
