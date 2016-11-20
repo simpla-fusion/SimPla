@@ -250,7 +250,7 @@ public:
         m_data_->foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
+                    auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l / DOF, l % DOF);
                     return m_manifold_->eval(expr, s);
                 });
 
@@ -265,7 +265,7 @@ public:
         m_data_->foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    return fun(m_->point(i, j, k));
+                    return fun(m_->point(mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l / DOF, l % DOF)));
                 });
 
 
@@ -354,7 +354,7 @@ public:
             foreach_ghost(std::forward<Args>(args)...);
         } else
         {
-            foreach(m_->mesh_block()->range(entity_type(), tag), std::forward<Args>(args)...);
+            foreach(m_->mesh_block()->range(entity_type(), tag, DOF), std::forward<Args>(args)...);
         }
     }
 

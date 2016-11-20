@@ -234,8 +234,7 @@ struct MeshEntityIdCoder_
         return m_id_to_iform_[node_id(s)];
     }
 
-    template<typename TI>
-    static constexpr MeshEntityId pack(TI i0, TI i1, TI i2, int w = 0)
+    static constexpr MeshEntityId pack(index_type i0, index_type i1, index_type i2, index_type w = 0)
     {
         return MeshEntityId{static_cast<u_int16_t>(w),
                             static_cast<u_int16_t>(i2),
@@ -244,25 +243,27 @@ struct MeshEntityIdCoder_
     }
 
     template<typename T>
-    static constexpr MeshEntityId pack(T const &idx, int w = 0)
+    static constexpr MeshEntityId pack(T const &idx, index_type w = 0)
     {
         return pack(idx[0], idx[1], idx[2], w);
     }
 
     template<typename T>
-    static constexpr MeshEntityId pack_index(T const &idx, int n_id = 0)
+    static constexpr MeshEntityId pack_index(T const &idx, index_type n_id = 0)
     {
 
         return pack_index4((idx[0]), (idx[1]), (idx[2]));
     }
 
-    static constexpr MeshEntityId pack_index(index_type i, index_type j, index_type k, index_type n_id = 0, int w = 0)
+    static constexpr MeshEntityId
+    pack_index(index_type i, index_type j, index_type k, index_type n_id = 0, index_type w = 0)
     {
         return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) | m_id_to_shift_[n_id];
     }
 
     template<size_t IFORM>
-    static constexpr MeshEntityId pack_index4(index_type i, index_type j, index_type k, index_type n_id = 0, int w = 0)
+    static constexpr MeshEntityId
+    pack_index4(index_type i, index_type j, index_type k, index_type n_id = 0, index_type w = 0)
     {
         return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) |
                m_id_to_shift_[m_sub_index_to_id_[IFORM][n_id]];
@@ -277,7 +278,7 @@ struct MeshEntityIdCoder_
         };
     }
 
-    static constexpr nTuple<index_type, 4> unpack_index4(MeshEntityId const &s, int dof = 1)
+    static constexpr nTuple<index_type, 4> unpack_index4(MeshEntityId const &s, index_type dof = 1)
     {
         return nTuple<index_type, 4> {
                 static_cast<index_type>(s.x >> 1 ) - ZERO,
@@ -287,7 +288,7 @@ struct MeshEntityIdCoder_
         };
     }
 
-    static constexpr nTuple<index_type, 4> unpack_index4_nodeid(MeshEntityId const &s, int dof = 1)
+    static constexpr nTuple<index_type, 4> unpack_index4_nodeid(MeshEntityId const &s, index_type dof = 1)
     {
         return nTuple<index_type, 4> {
                 static_cast<index_type>(s.x >> 1 ) - ZERO,
@@ -785,12 +786,12 @@ struct MeshEntityIdCoder_
 
 
         range_type()
-                : m_iform_(VERTEX), m_min_(), m_max_(m_min_), m_grain_size_(m_min_) {}
+                : m_iform_(VERTEX), m_min_(), m_max_(m_min_), m_grain_size_(m_min_), m_dof_(1) {}
 
         // constructors
 
-        range_type(index_tuple const &b, index_tuple const &e, MeshEntityType IFORM = VERTEX)
-                : m_iform_(IFORM), m_min_(b), m_max_(e)
+        range_type(index_tuple const &b, index_tuple const &e, MeshEntityType IFORM = VERTEX, index_type dof = 1)
+                : m_iform_(IFORM), m_min_(b), m_max_(e), m_dof_(dof)
         {
             m_grain_size_ = 1;
             for (int i = 0; i < ndims; ++i)
@@ -803,18 +804,20 @@ struct MeshEntityIdCoder_
         }
 
         range_type(this_type const &r)
-                : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_)
+                : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_),
+                  m_dof_(r.m_dof_)
         {
         }
 
         range_type(index_tuple const &b, index_tuple const &e, index_tuple const &grain_size,
-                   MeshEntityType IFORM = VERTEX)
-                : m_iform_(IFORM), m_min_(b), m_max_(e), m_grain_size_(grain_size)
+                   MeshEntityType IFORM = VERTEX, index_type dof = 1)
+                : m_iform_(IFORM), m_min_(b), m_max_(e), m_grain_size_(grain_size), m_dof_(dof)
         {
         }
 
         range_type(range_type &r, parallel::tags::split)
-                : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_)
+                : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_),
+                  m_dof_(r.m_dof_)
         {
 
             ASSERT(is_divisible());
@@ -859,6 +862,8 @@ struct MeshEntityIdCoder_
         void swap(this_type &other)
         {
             std::swap(m_iform_, other.m_iform_);
+            std::swap(m_dof_, other.m_dof_);
+
             std::swap(m_min_, other.m_min_);
             std::swap(m_max_, other.m_max_);
             std::swap(m_grain_size_, other.m_grain_size_);
@@ -896,47 +901,6 @@ struct MeshEntityIdCoder_
             return count < ndims;
         }
 
-        // iterators
-//        const_iterator begin() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_); }
-//        const_iterator end() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_).end(); }
-//        template<typename Body>
-//        void parallel_foreach(Body const &body) const
-//        {
-//#ifdef USE_TBB
-//            tbb::parallel_for(*this, [&](range_type const &r)
-//            {
-//#else
-//                range_type const &r = *this;
-//#   ifdef  _OPENMP
-//#           pragma omp parallel for
-//#   endif
-//#endif
-//                for (index_type i = r.m_min_[0], ie = r.m_max_[0]; i < ie; ++i)
-//                    for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-//                        for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
-//                            for (index_type n = 0, ne = m_iform_to_num_of_ele_in_cell_[r.m_iform_]; n < ne; ++n)
-//                            {
-//                                body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n]));
-//                            }
-//#ifdef USE_TBB
-//            });
-//#endif
-//        }
-//
-//        template<typename Body>
-//        void serial_foreach(Body const &body) const
-//        {
-//            range_type const &r = *this;
-//            for (index_type i = r.m_min_[0], ie = r.m_max_[0]; i < ie; ++i)
-//                for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-//                    for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
-//                        for (index_type n = 0, ne = m_iform_to_num_of_ele_in_cell_[r.m_iform_]; n < ne; ++n)
-//                        {
-//                            body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n]));
-//                        }
-//
-//        }
-
         template<typename Body>
         void foreach(Body const &body) const
         {
@@ -949,15 +913,15 @@ struct MeshEntityIdCoder_
                 for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
                     for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
                         for (index_type n = 0, ne = m_iform_to_num_of_ele_in_cell_[r.m_iform_]; n < ne; ++n)
-                        {
-                            body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n]));
-                        }
+                            for (index_type w = 0; w < m_dof_; ++w)
+                            {
+                                body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n], w));
+                            }
             }
         }
 
     private:
-
-
+        index_type m_dof_ = 1;
         MeshEntityType m_iform_;
         index_tuple m_min_, m_max_, m_grain_size_;
     };

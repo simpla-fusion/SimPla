@@ -40,7 +40,7 @@ struct Model
     template<typename ...Args>
     void add(box_type const &b, Args &&...args)
     {
-        add(m->range(VERTEX, b), std::forward<Args>(args)...);
+        add(m->range(VERTEX, b, 0), std::forward<Args>(args)...);
     };
 
     template<typename ...Args>
