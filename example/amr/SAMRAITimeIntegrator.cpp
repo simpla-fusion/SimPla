@@ -177,7 +177,7 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
                                                                            {64, 64, 64}};
 
     integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{0, 0, 0};
-    integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{1, 0, 0};
+    integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{1, 0, -1};
     integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{2, PI, 1};
 
     integrator->db["PatchHierarchy"]["max_levels"] = int(3); // Maximum number of levels in hierarchy.

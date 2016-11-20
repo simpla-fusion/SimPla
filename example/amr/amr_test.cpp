@@ -63,7 +63,9 @@ struct AMRTest : public mesh::Worker
         E.foreach([&](point_type const &x)
                   {
                       return nTuple<Real, 3>{
-                              std::sin(TWOPI * (x[0] - 1)), 0, 0
+                              0,//  std::sin(TWOPI * (x[0] - 1)),
+                              std::cos((x[1])),
+                              0//    std::sin(TWOPI * (x[2]))
                       };
                   });
     }

@@ -142,16 +142,6 @@ public:
              */
 
         auto *d = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>( m_vertics_.data());
-
-        CHECK(d->ndims());
-        VERBOSE << d->count()[0] << " , " << d->count()[1] << " , " << d->count()[2] << " , " << d->count()[3] << " , "
-                << std::endl;
-//        VERBOSE << "{" << d->m_lower_[0] << " , " << d->m_lower_[1] << " , " << d->m_lower_[2] << " , "
-//                << d->m_lower_[3]
-//                << " } - { " << d->m_upper_[0] << " , " << d->m_upper_[1] << " , " << d->m_upper_[2] << " , "
-//                << d->m_upper_[3] << "}" << std::endl;
-
-        VERBOSE << m_mesh_->box() << std::endl;
         d->foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {

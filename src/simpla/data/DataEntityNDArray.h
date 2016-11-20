@@ -293,7 +293,7 @@ public:
 
         if (m_order_ == SLOW_FIRST)
         {
-//#pragma omp parallel for
+#pragma omp parallel for
             for (index_type i = ib; i < ie; ++i)
                 for (index_type j = jb; j < je; ++j)
                     for (index_type k = kb; k < ke; ++k)
@@ -306,7 +306,7 @@ public:
         {
             for (index_type l = lb; l < le; ++l)
             {
-                //#pragma omp parallel for
+#pragma omp parallel for
                 for (index_type i = ib; i < ie; ++i)
                     for (index_type j = jb; j < je; ++j)
                         for (index_type k = kb; k < ke; ++k)

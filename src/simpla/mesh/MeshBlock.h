@@ -237,9 +237,9 @@ public:
 
     virtual point_type point(index_type x, index_type y = 0, index_type z = 0) const
     {
-        return point_type{std::fma(x, m_l2g_scale_[0], m_l2g_shift_[0]),
-                          std::fma(y, m_l2g_scale_[1], m_l2g_shift_[1]),
-                          std::fma(z, m_l2g_scale_[2], m_l2g_shift_[2])};
+        return point_type{std::fma(x, m_dx_[0], m_global_origin_[0]),
+                          std::fma(y, m_dx_[1], m_global_origin_[1]),
+                          std::fma(z, m_dx_[2], m_global_origin_[2])};
     };
 
 //    virtual point_type point(MeshEntityId const &s) const { return point(s.x >> 1, s.y >> 1, s.z >> 1); }
