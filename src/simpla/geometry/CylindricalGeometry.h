@@ -64,7 +64,6 @@ public:
     mesh::AttributeView<Real, VERTEX, 9> m_dual_volume_;
     mesh::AttributeView<Real, VERTEX, 9> m_inv_volume_;
     mesh::AttributeView<Real, VERTEX, 9> m_inv_dual_volume_;
-    mesh::AttributeView<Real, VERTEX, 9> m_check_volume_;
 
 
 public:
@@ -76,7 +75,6 @@ public:
         m_dual_volume_.connect(holder, "dual_volume", "NO_FILL");
         m_inv_volume_.connect(holder, "inv_volume", "NO_FILL");
         m_inv_dual_volume_.connect(holder, "inv_dual_volume", "NO_FILL");
-        m_check_volume_.connect(holder, "m_check_volume_", "NO_FILL");
 
     }
 
@@ -122,27 +120,26 @@ public:
         m_dual_volume_.clear();
         m_inv_volume_.clear();
         m_inv_dual_volume_.clear();
-        m_check_volume_.clear();
         /**
-             *\verbatim
-             *                ^y (dl)
-             *               /
-             *   (dz) z     /
-             *        ^    /
-             *        |  110-------------111
-             *        |  /|              /|
-             *        | / |             / |
-             *        |/  |            /  |
-             *       100--|----------101  |
-             *        | m |           |   |
-             *        |  010----------|--011
-             *        |  /            |  /
-             *        | /             | /
-             *        |/              |/
-             *       000-------------001---> x (dr)
-             *
-             *\endverbatim
-             */
+            *\verbatim
+            *                ^y (dl)
+            *               /
+            *   (dz) z     /
+            *        ^    /
+            *        |  110-------------111
+            *        |  /|              /|
+            *        | / |             / |
+            *        |/  |            /  |
+            *       100--|----------101  |
+            *        | m |           |   |
+            *        |  010----------|--011
+            *        |  /            |  /
+            *        | /             | /
+            *        |/              |/
+            *       000-------------001---> x (dr)
+            *
+            *\endverbatim
+            */
         auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_vertics_.data())->start();
         auto m_count_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_vertics_.data())->count();
 
@@ -222,80 +219,6 @@ public:
 #undef GET9
 #undef GET3
 
-        for (int i = 0; i < ndims; ++i)
-        {
-
-
-
-//            m_dx_[i] = (m_dims_[i] <= 1) ? 1 : (m_coords_upper_[i] - m_coords_lower_[i]) /
-//                                               static_cast<Real>( m_dims_[i]);
-//
-//            m_inv_dx_[i] = (m_dims_[i] <= 1) ? 0 : static_cast<Real>(1.0) / m_dx_[i];
-//
-//            m_l2g_scale_[i] = (m_dims_[i] <= 1) ? 0 : m_dx_[i];
-//            m_l2g_shift_ = m_coords_lower_;
-//
-//            m_g2l_scale_[i] = (m_dims_[i] <= 1) ? 0 : static_cast<Real>(1.0) / m_dx_[i];
-//            m_g2l_shift_[i] = (m_dims_[i] <= 1) ? 0 : -m_coords_lower_[i] * m_g2l_scale_[i];
-
-        }
-
-
-//        m_volume_[0 /*000*/] = 1;
-//        m_volume_[1 /*001*/] = m_dx_[0];
-//        m_volume_[2 /*010*/] = m_dx_[1];
-//        m_volume_[4 /*100*/] = m_dx_[2];
-//        m_volume_[3 /*011*/] = m_dx_[0] * m_dx_[1];
-//        m_volume_[5 /*101*/] = m_dx_[2] * m_dx_[0];
-//        m_volume_[6 /*110*/] = m_dx_[1] * m_dx_[2];
-//        m_volume_[7 /*110*/] = m_dx_[0] * m_dx_[1] * m_dx_[2];
-//
-//
-//        m_dual_volume_[0 /*000*/] = m_volume_[7];
-//        m_dual_volume_[1 /*001*/] = m_volume_[6];
-//        m_dual_volume_[2 /*010*/] = m_volume_[5];
-//        m_dual_volume_[4 /*100*/] = m_volume_[3];
-//        m_dual_volume_[3 /*011*/] = m_volume_[4];
-//        m_dual_volume_[5 /*101*/] = m_volume_[2];
-//        m_dual_volume_[6 /*110*/] = m_volume_[1];
-//        m_dual_volume_[7 /*110*/] = m_volume_[0];
-//
-//
-//        m_inv_dx_[0] = (m_dims_[0] == 1) ? 1 : 1 / m_dx_[0];
-//        m_inv_dx_[1] = (m_dims_[1] == 1) ? 1 : 1 / m_dx_[1];
-//        m_inv_dx_[2] = (m_dims_[2] == 1) ? 1 : 1 / m_dx_[2];
-//
-//
-//        m_inv_volume_[0 /*000*/] = 1;
-//        m_inv_volume_[1 /*001*/] = m_inv_dx_[0];
-//        m_inv_volume_[2 /*010*/] = m_inv_dx_[1];
-//        m_inv_volume_[4 /*100*/] = m_inv_dx_[2];
-//        m_inv_volume_[3 /*011*/] = m_inv_dx_[0] * m_inv_dx_[1];
-//        m_inv_volume_[5 /*101*/] = m_inv_dx_[2] * m_inv_dx_[0];
-//        m_inv_volume_[6 /*110*/] = m_inv_dx_[1] * m_inv_dx_[2];
-//        m_inv_volume_[7 /*110*/] = m_inv_dx_[0] * m_inv_dx_[1] * m_inv_dx_[2];
-//
-//
-//        m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
-//        m_inv_dual_volume_[1 /*001*/] = m_inv_volume_[6];
-//        m_inv_dual_volume_[2 /*010*/] = m_inv_volume_[5];
-//        m_inv_dual_volume_[4 /*100*/] = m_inv_volume_[3];
-//        m_inv_dual_volume_[3 /*011*/] = m_inv_volume_[4];
-//        m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
-//        m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
-//        m_inv_dual_volume_[7 /*110*/] = m_inv_volume_[0];
-//
-//
-//        m_inv_dx_[0] = (m_dims_[0] <= 1) ? 0 : m_inv_dx_[0];
-//        m_inv_dx_[1] = (m_dims_[1] <= 1) ? 0 : m_inv_dx_[1];
-//        m_inv_dx_[2] = (m_dims_[2] <= 1) ? 0 : m_inv_dx_[2];
-//
-//
-//        m_inv_volume_[1 /*001*/] = (m_dims_[0] <= 1) ? 0 : m_inv_dx_[0];
-//        m_inv_volume_[2 /*010*/] = (m_dims_[1] <= 1) ? 0 : m_inv_dx_[1];
-//        m_inv_volume_[4 /*100*/] = (m_dims_[2] <= 1) ? 0 : m_inv_dx_[2];
-//
-//
 
     }
 
