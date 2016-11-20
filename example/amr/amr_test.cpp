@@ -84,8 +84,6 @@ struct AMRTest : public mesh::Worker
 
     virtual void next_time_step(Real data_time, Real dt)
     {
-        VERBOSE << "box = " << mesh()->dx() << " time = " << std::setw(12) << std::left << data_time << " dt ="
-                << std::setw(12) << dt << std::endl;
         E = E + (curl(B) / mu - J) * dt / epsilon;
         B -= curl(E) * dt;
     }
@@ -102,8 +100,8 @@ int main(int argc, char **argv)
 {
     logger::set_stdout_level(100);
 
-    typedef manifold::CylindricalManifold mesh_type;
-    //  typedef manifold::CartesianManifold mesh_type;
+    // typedef manifold::CylindricalManifold mesh_type;
+    typedef manifold::CartesianManifold mesh_type;
 
     auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<mesh_type>>());
 
