@@ -23,9 +23,9 @@
 #include <simpla/toolbox/Log.h>
 
 #include <simpla/mesh/Mesh.h>
-#include <simpla/physics/Field.h>
-#include <simpla/physics/FieldExpression.h>
-#include <simpla/physics/FieldTraits.h>
+#include <simpla/manifold/Field.h>
+#include <simpla/manifold/FieldExpression.h>
+#include <simpla/manifold/FieldTraits.h>
 #include <simpla/manifold/Calculus.h>
 #include <simpla/manifold/pre_define/PreDefine.h>
 

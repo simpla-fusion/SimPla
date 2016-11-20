@@ -10,7 +10,7 @@
 #include "../../manifold/pre_define/PreDefine.h"
 #include "../../mesh/Atlas.h"
 
-#include "../Field.h"
+#include "simpla/manifold/Field.h"
 
 
 using namespace simpla;

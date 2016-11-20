@@ -18,9 +18,9 @@
 #include <simpla/mesh/EntityIdRange.h>
 #include <simpla/mesh/MeshCommon.h>
 
-#include <simpla/physics/Field.h>
-#include <simpla/physics/FieldTraits.h>
-#include <simpla/physics/FieldExpression.h>
+#include <simpla/manifold/Field.h>
+#include <simpla/manifold/FieldTraits.h>
+#include <simpla/manifold/FieldExpression.h>
 
 namespace simpla
 {
@@ -251,7 +251,6 @@ struct value_type<Field<Expression<ct::InteriorProduct, T0, T1> > >
 template<typename T0, typename T1>
 struct value_type<Field<Expression<ct::Cross, T0, T1> > >
 {
-
     typedef typename value_type<T0>::type type;
 };
 
@@ -391,17 +390,11 @@ DECL_RET_TYPE(hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
 
 
 template<typename ...TL, typename ...TR> inline auto
-cross(Field<TL...> const &lhs, Field<TR...> const &rhs,
-      ENABLE_IF((traits::iform<Field<TL... >>
-                 ::value == mesh::VERTEX))
-)
-DECL_RET_TYPE((Field<Expression<ct::Cross, Field<TL...>, Field<TR...> > >(lhs, rhs)));
+cross(Field<TL...> const &l, Field<TR...> const &r, ENABLE_IF((traits::iform<Field<TL... >>::value == mesh::VERTEX)))
+DECL_RET_TYPE((Field<Expression<ct::Cross, Field<TL...>, Field<TR...> > >(l, r)));
 
 template<typename ...TL, typename ...TR> inline auto
-dot(Field<TL...> const &lhs, Field<TR...> const &rhs,
-    ENABLE_IF((traits::iform<Field<TL... >>
-               ::value == mesh::VERTEX))
-)
+dot(Field<TL...> const &lhs, Field<TR...> const &rhs, ENABLE_IF((traits::iform<Field<TL... >>::value == mesh::VERTEX)))
 DECL_RET_TYPE((Field<Expression<ct::Dot, Field<TL...>, Field<TR...> > >(lhs, rhs)));
 
 

@@ -8,7 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/physics/PhysicalConstants.h>
-#include <simpla/physics/Field.h>
+#include <simpla/manifold/Field.h>
 #include <simpla/manifold/Calculus.h>
 #include <simpla/simulation/Context.h>
 

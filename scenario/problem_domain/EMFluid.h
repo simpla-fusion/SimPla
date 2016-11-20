@@ -8,7 +8,7 @@
 #define SIMPLA_EM_FLUID_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/physics/Field.h>
+#include <simpla/manifold/Field.h>
 #include <simpla/physics/PhysicalConstants.h>
 #include <simpla/mesh/Mesh.h>
 #include <simpla/mesh/DomainBase.h>

@@ -12,10 +12,10 @@
 #include <cstdbool>
 #include <memory>
 #include <type_traits>
-#include "../toolbox/type_traits.h"
-#include "../toolbox/mpl.h"
-#include "../toolbox/integer_sequence.h"
-#include "../manifold/ManifoldTraits.h"
+#include "simpla/toolbox/type_traits.h"
+#include "simpla/toolbox/mpl.h"
+#include "simpla/toolbox/integer_sequence.h"
+#include "ManifoldTraits.h"
 #include "simpla/mesh/EntityIdRange.h"
 #include "FieldExpression.h"
 

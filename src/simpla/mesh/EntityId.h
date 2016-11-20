@@ -235,18 +235,18 @@ struct MeshEntityIdCoder_
     }
 
     template<typename TI>
-    static constexpr MeshEntityId pack(TI i0, TI i1, TI i2, int level = 0)
+    static constexpr MeshEntityId pack(TI i0, TI i1, TI i2, int w = 0)
     {
-        return MeshEntityId{static_cast<u_int16_t>(level),
+        return MeshEntityId{static_cast<u_int16_t>(w),
                             static_cast<u_int16_t>(i2),
                             static_cast<u_int16_t>(i1),
                             static_cast<u_int16_t>(i0)};
     }
 
     template<typename T>
-    static constexpr MeshEntityId pack(T const &idx)
+    static constexpr MeshEntityId pack(T const &idx, int w = 0)
     {
-        return pack(idx[0], idx[1], idx[2]);
+        return pack(idx[0], idx[1], idx[2], w);
     }
 
     template<typename T>
@@ -256,15 +256,15 @@ struct MeshEntityIdCoder_
         return pack_index4((idx[0]), (idx[1]), (idx[2]));
     }
 
-    static constexpr MeshEntityId pack_index(index_type i, index_type j, index_type k, index_type n_id = 0)
+    static constexpr MeshEntityId pack_index(index_type i, index_type j, index_type k, index_type n_id = 0, int w = 0)
     {
-        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1) | m_id_to_shift_[n_id];
+        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) | m_id_to_shift_[n_id];
     }
 
     template<size_t IFORM>
-    static constexpr MeshEntityId pack_index4(index_type i, index_type j, index_type k, index_type n_id = 0)
+    static constexpr MeshEntityId pack_index4(index_type i, index_type j, index_type k, index_type n_id = 0, int w = 0)
     {
-        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1) |
+        return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) |
                m_id_to_shift_[m_sub_index_to_id_[IFORM][n_id]];
     }
 
@@ -277,23 +277,23 @@ struct MeshEntityIdCoder_
         };
     }
 
-    static constexpr nTuple<index_type, 4> unpack_index4(MeshEntityId const &s)
+    static constexpr nTuple<index_type, 4> unpack_index4(MeshEntityId const &s, int dof = 1)
     {
         return nTuple<index_type, 4> {
                 static_cast<index_type>(s.x >> 1 ) - ZERO,
                 static_cast<index_type>(s.y >> 1 ) - ZERO,
                 static_cast<index_type>(s.z >> 1 ) - ZERO,
-                static_cast<index_type>(  m_id_to_sub_index_[node_id(s)]      )
+                static_cast<index_type>(  m_id_to_sub_index_[node_id(s)] * dof + s.w     )
         };
     }
 
-    static constexpr nTuple<index_type, 4> unpack_index4_nodeid(MeshEntityId const &s)
+    static constexpr nTuple<index_type, 4> unpack_index4_nodeid(MeshEntityId const &s, int dof = 1)
     {
         return nTuple<index_type, 4> {
                 static_cast<index_type>(s.x >> 1 ) - ZERO,
                 static_cast<index_type>(s.y >> 1 ) - ZERO,
                 static_cast<index_type>(s.z >> 1 ) - ZERO,
-                static_cast<index_type>( node_id(s))
+                static_cast<index_type>( node_id(s) * dof + s.w)
         };
     }
 //    template<typename T>
