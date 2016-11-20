@@ -1207,7 +1207,9 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator()
 
 std::ostream &SAMRAITimeIntegrator::print(std::ostream &os, int indent) const
 {
-    hyp_level_integrator->printClassData(os);
+    SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(os);
+    if (samrai_cfg != nullptr) samrai_cfg->printClassData(os);
+    if (hyp_level_integrator != nullptr) hyp_level_integrator->printClassData(os);
     return os;
 };
 
@@ -1358,13 +1360,9 @@ void SAMRAITimeIntegrator::deploy()
 
 
     m_dt_now_ = time_integrator->initializeHierarchy();
-//    time_integrator->printClassData(std::cout);
 
     MESSAGE << name() << " is deployed!" << std::endl;
-
-
-//    samrai_cfg->printClassData(std::cout);
-//    SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(std::cout);
+//    time_integrator->printClassData(std::cout);
 
 };
 

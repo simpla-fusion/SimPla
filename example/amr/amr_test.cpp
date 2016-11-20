@@ -45,7 +45,7 @@ struct AMRTest : public mesh::Worker
     field_type<Real, mesh::FACE> B{m, "B"};
     field_type<Real, mesh::EDGE> E{m, "E"};
     field_type<Real, mesh::EDGE> J{m, "J"};
-//    field_type<Real, mesh::EDGE, 3> Ev{m, "Ev"};
+    field_type<Real, mesh::EDGE, 3> Ev{m, "Ev"};
 
     std::shared_ptr<mesh::MeshBlock> mesh() const { return m.geometry().mesh_block(); }
 
@@ -58,7 +58,7 @@ struct AMRTest : public mesh::Worker
     void initialize(Real data_time)
     {
         m.geometry().initialize();
-//        Ev.clear();
+        Ev.clear();
         E.clear();
         B.clear();
         J.clear();
@@ -86,9 +86,10 @@ struct AMRTest : public mesh::Worker
 
     virtual void next_time_step(Real data_time, Real dt)
     {
+        Ev = 1.0;
 //        Ev = cross(Ev, Ev) * dot(Ev, Ev) * 2;
-        E = E + (curl(B) / mu - J) * dt / epsilon;
-        B -= curl(E) * dt;
+//        E = E + (curl(B) / mu - J) * dt / epsilon;
+//        B -= curl(E) * dt;
     }
 
 
@@ -107,9 +108,7 @@ int main(int argc, char **argv)
     // typedef manifold::CartesianManifold mesh_type;
 
     auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<mesh_type>>());
-
     integrator->deploy();
-
     integrator->check_point();
 
     INFORM << "***********************************************" << std::endl;
