@@ -45,7 +45,7 @@ struct AMRTest : public mesh::Worker
     field_type<Real, mesh::FACE> B{m, "B"};
     field_type<Real, mesh::EDGE> E{m, "E"};
     field_type<Real, mesh::EDGE> J{m, "J"};
-    field_type<Real, mesh::EDGE, 3> Ev{m, "Ev"};
+    field_type<Real, mesh::VERTEX, 3> Ev{m, "Ev"};
 
     std::shared_ptr<mesh::MeshBlock> mesh() const { return m.geometry().mesh_block(); }
 
@@ -86,8 +86,7 @@ struct AMRTest : public mesh::Worker
 
     virtual void next_time_step(Real data_time, Real dt)
     {
-        Ev = 1.0;
-//        Ev = cross(Ev, Ev) * dot(Ev, Ev) * 2;
+        Ev = cross(Ev, Ev) * dot(Ev, Ev) * 2;
 //        E = E + (curl(B) / mu - J) * dt / epsilon;
 //        B -= curl(E) * dt;
     }

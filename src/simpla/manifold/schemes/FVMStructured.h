@@ -532,13 +532,20 @@ public:
                 * (eval(l, s - Z) + eval(l, s + Z)) * 0.25);
     }
 
+    static MeshEntitId sw(MeshEntitId s, u_int16_t w)
+    {
+        s.w = w;
+        return s;
+    }
 
     template<typename TL, typename TR, size_t I>
     constexpr inline
     traits::value_type_t<Field<Expression<ct::Cross, TL, TR>>>
     eval(Field<Expression<ct::Cross, TL, TR>> const &expr, MeshEntitId const &s, index_sequence<I, I>) const
     {
-        return cross(eval(std::get<0>(expr.args), s), eval(std::get<1>(expr.args), s));
+        return eval(std::get<0>(expr.args), sw(s, (s.w + 1) % 3)) * eval(std::get<1>(expr.args), sw(s, (s.w + 2) % 3))
+               -
+               eval(std::get<0>(expr.args), sw(s, (s.w + 2) % 3)) * eval(std::get<1>(expr.args), sw(s, (s.w + 1) % 3));
     }
 
     template<typename TL, typename TR, size_t I>
@@ -546,7 +553,9 @@ public:
     traits::value_type_t<Field<Expression<ct::Dot, TL, TR>>>
     eval(Field<Expression<ct::Dot, TL, TR>> const &expr, MeshEntitId const &s, index_sequence<I, I>) const
     {
-        return dot(eval(std::get<0>(expr.args), s), eval(std::get<1>(expr.args), s));
+        return eval(std::get<0>(expr.args), sw(s, 0)) * eval(std::get<1>(expr.args), sw(s, 0)) +
+               eval(std::get<0>(expr.args), sw(s, 1)) * eval(std::get<1>(expr.args), sw(s, 1)) +
+               eval(std::get<0>(expr.args), sw(s, 2)) * eval(std::get<1>(expr.args), sw(s, 2));
     }
 
 

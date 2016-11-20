@@ -783,9 +783,9 @@ namespace detail
 //    pd->fillAll(0);
 //    *res = convert(pd);
 //}
-template<typename TV>
+template<typename TV, mesh::MeshEntityType IFORM, size_type DOF>
 std::shared_ptr<mesh::DataBlock>
-create_data_block_t(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block_t2(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
 
@@ -805,69 +805,76 @@ create_data_block_t(std::shared_ptr<mesh::Attribute> const &item, boost::shared_
     index_type i_lower[4] = {inner_lower[0], inner_lower[1], inner_lower[2], 0};
     index_type i_upper[4] = {inner_upper[0] + 2, inner_upper[1] + 2, inner_upper[2] + 2, depth};
 
-//    auto patch_lower = patch.getBox().lower();
-//    auto patch_upper = patch.getBox().upper();
-//    index_type p_lower[4] = {patch_lower[0], patch_lower[1], patch_lower[2], 0};
-//    index_type p_upper[4] = {patch_upper[0] + 2, patch_upper[1] + 2, patch_upper[2] + 2, depth};
-//
-//    VERBOSE << " Create DataBlock "
-//            << " Outer Box= {" << o_lower[1] << " , " << o_lower[2] << " , " << o_lower[2] << " },{ "
-//            << o_upper[1] << " , " << o_upper[2] << " , " << o_upper[2] << " } },  "
-//            << " Inner Box= {" << i_lower[1] << " , " << i_lower[2] << " , " << i_lower[2] << " },{ "
-//            << i_upper[1] << " , " << i_upper[2] << " , " << i_upper[2] << " } },  "
-//            << std::endl;
+    return std::dynamic_pointer_cast<mesh::DataBlock>(
+            std::make_shared<mesh::DataBlockArray<TV, IFORM, DOF>>(
+                    p_data->getPointer(), ndims + 1,
+                    o_lower, o_upper,
+                    data::FAST_FIRST,
+                    i_lower, i_upper));
 
 
+}
+
+
+template<typename TV, mesh::MeshEntityType IFORM>
+std::shared_ptr<mesh::DataBlock>
+create_data_block_t1(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+{
+    std::shared_ptr<mesh::DataBlock> res(nullptr);
+
+    switch (item->dof())
+    {
+        case 1:
+            res = create_data_block_t2<TV, IFORM, 1>(item, pd);
+            break;
+        case 3:
+            res = create_data_block_t2<TV, IFORM, 3>(item, pd);
+            break;
+        case 9:
+            res = create_data_block_t2<TV, IFORM, 9>(item, pd);
+            break;
+        default:
+            UNIMPLEMENTED;
+    }
+    return res;
+
+
+};
+
+template<typename TV>
+std::shared_ptr<mesh::DataBlock>
+create_data_block_t0(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+{
     std::shared_ptr<mesh::DataBlock> res(nullptr);
 
     switch (item->entity_type())
     {
         case mesh::VERTEX:
-            res = std::dynamic_pointer_cast<mesh::DataBlock>(
-                    std::make_shared<mesh::DataBlockArray<TV, mesh::VERTEX>>(p_data->getPointer(), ndims + 1,
-                                                                             o_lower, o_upper,
-                                                                             data::FAST_FIRST,
-                                                                             i_lower, i_upper));
+            res = create_data_block_t1<TV, mesh::VERTEX>(item, pd);
             break;
         case mesh::EDGE:
-            res = std::dynamic_pointer_cast<mesh::DataBlock>(
-                    std::make_shared<mesh::DataBlockArray<TV, mesh::EDGE>>(p_data->getPointer(), ndims + 1,
-                                                                           o_lower, o_upper,
-                                                                           data::FAST_FIRST,
-                                                                           i_lower, i_upper));
+            res = create_data_block_t1<TV, mesh::EDGE>(item, pd);
             break;
         case mesh::FACE:
-            res = std::dynamic_pointer_cast<mesh::DataBlock>(
-                    std::make_shared<mesh::DataBlockArray<TV, mesh::FACE>>(p_data->getPointer(), ndims + 1,
-                                                                           o_lower, o_upper,
-                                                                           data::FAST_FIRST,
-                                                                           i_lower, i_upper));
+            res = create_data_block_t1<TV, mesh::FACE>(item, pd);
             break;
         case mesh::VOLUME:
-            res = std::dynamic_pointer_cast<mesh::DataBlock>(
-                    std::make_shared<mesh::DataBlockArray<TV, mesh::VOLUME>>(p_data->getPointer(), ndims + 1,
-                                                                             o_lower, o_upper,
-                                                                             data::FAST_FIRST,
-                                                                             i_lower, i_upper));
+            res = create_data_block_t1<TV, mesh::VOLUME>(item, pd);
             break;
         default:
             RUNTIME_ERROR << " EntityType is not supported!" << std::endl;
             break;
     }
-
-    ASSERT(res != nullptr);
-
-
     return res;
-}
+};
 
 std::shared_ptr<mesh::DataBlock>
 create_data_block(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
-    if (item->value_type_info() == typeid(float)) { res = create_data_block_t<float>(item, pd); }
-    else if (item->value_type_info() == typeid(double)) { res = create_data_block_t<double>(item, pd); }
-    else if (item->value_type_info() == typeid(int)) { res = create_data_block_t<int>(item, pd); }
+    if (item->value_type_info() == typeid(float)) { res = create_data_block_t0<float>(item, pd); }
+    else if (item->value_type_info() == typeid(double)) { res = create_data_block_t0<double>(item, pd); }
+    else if (item->value_type_info() == typeid(int)) { res = create_data_block_t0<int>(item, pd); }
 //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
     else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
     ASSERT(res != nullptr);
