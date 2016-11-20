@@ -85,12 +85,7 @@ public:
 
     MeshBlock();
 
-    MeshBlock(int ndims,
-              index_type const *lo,
-              index_type const *up,
-              Real const *dx,
-              Real const *x_lo = nullptr,
-              Real const *x_up = nullptr);
+    MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *x_lo);
 
     MeshBlock(MeshBlock const &);
 
@@ -242,9 +237,9 @@ public:
 
     virtual point_type point(index_type x, index_type y = 0, index_type z = 0) const
     {
-        return point_type{x * m_dx_[0] + m_x_lower[0],
-                          y * m_dx_[1] + m_x_lower[1],
-                          z * m_dx_[2] + m_x_lower[2]};
+        return point_type{std::fma(x, m_l2g_scale_[0], m_l2g_shift_[0]),
+                          std::fma(y, m_l2g_scale_[1], m_l2g_shift_[1]),
+                          std::fma(z, m_l2g_scale_[2], m_l2g_shift_[2])};
     };
 
 //    virtual point_type point(MeshEntityId const &s) const { return point(s.x >> 1, s.y >> 1, s.z >> 1); }
@@ -376,8 +371,6 @@ protected:
     int m_level_ = 0;
 
     int m_ndims_;
-    point_type m_x_lower{{0, 0, 0}};
-    point_type m_x_upper{{1, 1, 1}};
 
     point_type m_dx_{{1, 1, 1}};
 

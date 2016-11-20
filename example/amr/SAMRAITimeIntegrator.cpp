@@ -174,11 +174,11 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 
 
     integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0,  0,  0},
-                                                                           {16, 16, 16}};
+                                                                           {64, 64, 64}};
 
     integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{0, 0, 0};
     integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{1, 0, 0};
-    integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{2, 0.5 * PI, 1};
+    integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{2, PI, 1};
 
     integrator->db["PatchHierarchy"]["max_levels"] = int(3); // Maximum number of levels in hierarchy.
     integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_1"] = nTuple<int, 3>{2, 2, 1};
@@ -870,9 +870,9 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
             patch.getBox().upper()[2]
     };
 
-    std::shared_ptr<mesh::MeshBlock> m = std::make_shared<mesh::MeshBlock>(3, lo, hi, dx, xlo, xhi);
+    std::shared_ptr<mesh::MeshBlock> m = std::make_shared<mesh::MeshBlock>(3, lo, hi, dx, xlo);
 
-    m->id(patch.getBox().getLocalId().getValue());
+    m->id(patch.getBox().getGlobalId().getOwnerRank() * 10000 + patch.getBox().getGlobalId().getLocalId().getValue());
 
     m->deploy();
 
@@ -905,7 +905,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
 void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time,
                                          const bool initial_time)
 {
-    if (patch.getPatchLevelNumber() == 0 && initial_time)
+    if (initial_time)
     {
         move_to(m_worker_, patch);
         m_worker_->initialize(data_time);

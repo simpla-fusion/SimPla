@@ -15,89 +15,17 @@ namespace simpla { namespace mesh
 MeshBlock::MeshBlock() : m_ndims_(0) {}
 
 
-MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *x_lo,
-                     Real const *x_up) : Object(),
-                                         m_ndims_(ndims),
-                                         m_g_box_{{lo[0], lo[1], lo[2]},
-                                                  {up[0], up[1], up[2]}},
-                                         m_level_(0)
+MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *xlo) :
+        Object(),
+        m_ndims_(ndims),
+        m_g_box_{{lo[0], lo[1], lo[2]},
+                 {up[0], up[1], up[2]}},
+        m_global_origin_{xlo[0] - lo[0] * dx[0], xlo[1] - lo[1] * dx[1], xlo[2] - lo[2] * dx[2]},
+        m_dx_{dx[0], dx[1], dx[2]},
+        m_level_(0)
 {
-
     assert(ndims <= 3);
 
-    if (x_lo != nullptr)
-    {
-        m_x_lower[0] = x_lo[0];
-        m_x_lower[1] = x_lo[1];
-        m_x_lower[2] = x_lo[2];
-    }
-
-    if (x_up != nullptr)
-    {
-        m_x_upper[0] = x_up[0];
-        m_x_upper[1] = x_up[1];
-        m_x_upper[2] = x_up[2];
-    }
-    if (dx != nullptr)
-    {
-        m_dx_[0] = dx[0];
-        m_dx_[1] = dx[1];
-        m_dx_[2] = dx[2];
-    }
-
-}
-
-
-MeshBlock::MeshBlock(MeshBlock const &other) :
-        m_is_deployed_/*    */(other.m_is_deployed_),
-        m_space_id_/*       */(other.m_space_id_),
-        m_level_/*          */(other.m_level_),
-        m_ghost_width_/*    */(other.m_ghost_width_),
-        m_g_box_/*          */(other.m_g_box_/*  */),
-        m_m_box_/*          */(other.m_m_box_/*  */),
-        m_inner_box_/*      */(other.m_inner_box_/*  */),
-        m_outer_box_/*      */(other.m_outer_box_/*  */),
-        m_dx_/*             */(other.m_dx_/*  */),
-        m_x_lower/*         */(other.m_x_lower/*  */),
-        m_x_upper/*         */(other.m_x_upper/*  */) {};
-
-MeshBlock::MeshBlock(MeshBlock &&other) :
-        m_is_deployed_/*    */(other.m_is_deployed_),
-        m_space_id_/*       */(other.m_space_id_),
-        m_level_/*          */(other.m_level_),
-        m_ghost_width_/*    */(other.m_ghost_width_),
-        m_g_box_/*          */(other.m_g_box_/*  */),
-        m_m_box_/*          */(other.m_m_box_/*  */),
-        m_inner_box_/*      */(other.m_inner_box_/*  */),
-        m_outer_box_/*      */(other.m_outer_box_/*  */),
-        m_dx_/*             */(other.m_dx_/*  */),
-        m_x_lower/*         */(other.m_x_lower/*  */),
-        m_x_upper/*         */(other.m_x_upper/*  */) {};
-
-MeshBlock::~MeshBlock() {}
-
-std::ostream &MeshBlock::print(std::ostream &os, int indent) const
-{
-
-    os << std::setw(indent + 1) << "type = \"" << get_class_name() << "\" ,"
-       << " level = " << level() << ",  box = " << m_g_box_;
-
-//#ifndef NDEBUG
-//    os
-//            << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
-//            << std::setw(indent + 1) << " " << "      upper = " << m_upper_ << "," << std::endl
-//            << std::setw(indent + 1) << " " << "outer lower = " << m_outer_lower_ << "," << std::endl
-//            << std::setw(indent + 1) << " " << "outer upper = " << m_outer_upper_ << "," << std::endl
-//            << std::setw(indent + 1) << " " << "inner lower = " << m_inner_lower_ << "," << std::endl
-//            << std::setw(indent + 1) << " " << "inner upper = " << m_inner_upper_ << "," << std::endl
-//            << std::endl;
-//#endif
-    return os;
-}
-
-
-void MeshBlock::deploy()
-{
     if (m_is_deployed_) { return; }
 
     base_type::deploy();
@@ -124,7 +52,7 @@ void MeshBlock::deploy()
             m_inv_dx_[i] = 0;
 
             m_l2g_scale_[i] = 0;
-            m_l2g_shift_[i] = m_x_lower[i];
+            m_l2g_shift_[i] = m_global_origin_[i];
 
             m_g2l_scale_[i] = 0;
             m_g2l_shift_[i] = 0;
@@ -147,10 +75,10 @@ void MeshBlock::deploy()
             m_inv_dx_[i] = static_cast<Real>(1.0) / m_dx_[i];
 
             m_l2g_scale_[i] = m_dx_[i];
-            m_l2g_shift_[i] = m_x_lower[i];
+            m_l2g_shift_[i] = m_global_origin_[i];
 
             m_g2l_scale_[i] = m_inv_dx_[i];
-            m_g2l_shift_[i] = -m_x_lower[i] * m_g2l_scale_[i];
+            m_g2l_shift_[i] = -(m_global_origin_[i]) * m_g2l_scale_[i];
 
         }
     }
@@ -160,15 +88,70 @@ void MeshBlock::deploy()
     m_outer_box_ = m_g_box_;
 
     std::get<0>(m_outer_box_) -= m_ghost_width_;
-
     std::get<1>(m_outer_box_) += m_ghost_width_;
 
     m_m_box_ = m_outer_box_;
-
     m_is_deployed_ = true;
 
 
 }
+
+
+MeshBlock::MeshBlock(MeshBlock const &other) :
+        m_is_deployed_/*    */(other.m_is_deployed_),
+        m_space_id_/*       */(other.m_space_id_),
+        m_level_/*          */(other.m_level_),
+        m_ghost_width_/*    */(other.m_ghost_width_),
+        m_g_box_/*          */(other.m_g_box_/*  */),
+        m_m_box_/*          */(other.m_m_box_/*  */),
+        m_inner_box_/*      */(other.m_inner_box_/*  */),
+        m_outer_box_/*      */(other.m_outer_box_/*  */),
+        m_dx_/*             */(other.m_dx_/*  */),
+        m_global_origin_/*  */(other.m_global_origin_/*  */),
+        m_l2g_scale_/*      */(other.m_l2g_scale_),
+        m_l2g_shift_/*      */(other.m_l2g_shift_),
+        m_g2l_scale_/*      */(other.m_g2l_scale_),
+        m_g2l_shift_/*      */(other.m_g2l_shift_) {};
+
+MeshBlock::MeshBlock(MeshBlock &&other) :
+        m_is_deployed_/*    */(other.m_is_deployed_),
+        m_space_id_/*       */(other.m_space_id_),
+        m_level_/*          */(other.m_level_),
+        m_ghost_width_/*    */(other.m_ghost_width_),
+        m_g_box_/*          */(other.m_g_box_/*  */),
+        m_m_box_/*          */(other.m_m_box_/*  */),
+        m_inner_box_/*      */(other.m_inner_box_/*  */),
+        m_outer_box_/*      */(other.m_outer_box_/*  */),
+        m_dx_/*             */(other.m_dx_/*  */),
+        m_global_origin_/*  */(other.m_global_origin_/*  */),
+        m_l2g_scale_/*      */(other.m_l2g_scale_),
+        m_l2g_shift_/*      */(other.m_l2g_shift_),
+        m_g2l_scale_/*      */(other.m_g2l_scale_),
+        m_g2l_shift_/*      */(other.m_g2l_shift_) {};
+
+MeshBlock::~MeshBlock() {}
+
+std::ostream &MeshBlock::print(std::ostream &os, int indent) const
+{
+
+    os << std::setw(indent + 1) << "type = \"" << get_class_name() << "\" ,"
+       << " level = " << level() << ",  box = " << m_g_box_;
+
+//#ifndef NDEBUG
+//    os
+//            << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
+//            << std::setw(indent + 1) << " " << "      upper = " << m_upper_ << "," << std::endl
+//            << std::setw(indent + 1) << " " << "outer lower = " << m_outer_lower_ << "," << std::endl
+//            << std::setw(indent + 1) << " " << "outer upper = " << m_outer_upper_ << "," << std::endl
+//            << std::setw(indent + 1) << " " << "inner lower = " << m_inner_lower_ << "," << std::endl
+//            << std::setw(indent + 1) << " " << "inner upper = " << m_inner_upper_ << "," << std::endl
+//            << std::endl;
+//#endif
+    return os;
+}
+
+
+void MeshBlock::deploy() {}
 
 //std::shared_ptr<MeshBlock>
 //MeshBlock::clone() const
