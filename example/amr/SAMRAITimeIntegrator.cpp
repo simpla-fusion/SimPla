@@ -174,9 +174,9 @@ create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> co
 
 
     integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0,  0,  0},
-                                                                           {64, 64, 64}};
+                                                                           {16, 16, 16}};
 
-    integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{0, 0, 0};
+    integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{1, 1, 1};
     integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{1, 0, -1};
     integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{2, PI, 1};
 
@@ -977,7 +977,7 @@ void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, con
 {
     move_to(m_worker_, patch);
 
-//    m_worker_->setPhysicalBoundaryConditions(time);
+    m_worker_->setPhysicalBoundaryConditions(time);
 
     m_worker_->next_time_step(time, dt);
 }
