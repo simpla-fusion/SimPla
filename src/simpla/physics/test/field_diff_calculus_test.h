@@ -135,7 +135,7 @@ public:
 TEST_P(FETLTest, grad0)
 {
     typedef MeshEntityIdCoder M;
-    field_type <VERTEX> f0(m);
+    field_type <VERTEX> f0{m};
     field_type <EDGE> f1(m);
     field_type <EDGE> f1b(m);
 

@@ -28,33 +28,23 @@ struct LinearInterpolator<TM>
     typedef TM mesh_type;
     typedef LinearInterpolator<mesh_type> this_type;
     typedef mesh::MeshEntityIdCoder M;
-    mesh_type const *m;
 public:
 
     typedef LinearInterpolator<TM> interpolate_policy;
 
-    LinearInterpolator(TM const *g) : m(g) {}
+    LinearInterpolator() {}
 
     virtual ~LinearInterpolator() {}
 
     static std::string class_name() { return "LinearInterpolator"; }
 
 
-    void deploy() {}
-
-
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const
-    {
-        os << std::setw(indent) << " " << "[LinearInterpolator]," << std::endl;
-        return os;
-    }
-
 private:
 
 
     template<typename TD, typename TIDX>
-    inline auto
-    gather_impl_(TD const &f, TIDX const &idx) const -> decltype(
+    static inline auto
+    gather_impl_(TD const &f, TIDX const &idx) -> decltype(
     traits::index(f, std::get<0>(idx)) *
     std::get<1>(idx)[0])
     {
@@ -79,15 +69,15 @@ private:
 public:
 
     template<typename TF>
-    constexpr inline traits::field_value_t<TF>
-    gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == VERTEX))) const
+    constexpr static inline traits::field_value_t<TF>
+    gather(mesh_type const *m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == VERTEX)))
     {
         return gather_impl_(f, m->point_global_to_local(r, 0));
     }
 
     template<typename TF>
-    constexpr inline traits::field_value_t<TF>
-    gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == EDGE))) const
+    constexpr static inline traits::field_value_t<TF>
+    gather(mesh_type const *m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == EDGE)))
     {
         return traits::field_value_t<TF>{
                 gather_impl_(f, m->point_global_to_local(r, 1)),
@@ -97,8 +87,8 @@ public:
     }
 
     template<typename TF>
-    constexpr inline traits::field_value_t<TF>
-    gather(TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == FACE))) const
+    constexpr static inline traits::field_value_t<TF>
+    gather(mesh_type const *m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == FACE)))
     {
         return traits::field_value_t<TF>{
                 gather_impl_(f, m->point_global_to_local(r, 6)),
@@ -108,8 +98,8 @@ public:
     }
 
     template<typename TF>
-    constexpr inline traits::field_value_t<TF>
-    gather(TF const &f, point_type const &x, ENABLE_IF((traits::iform<TF>::value == VOLUME))) const
+    constexpr static inline traits::field_value_t<TF>
+    gather(mesh_type const *m, TF const &f, point_type const &x, ENABLE_IF((traits::iform<TF>::value == VOLUME)))
     {
         return gather_impl_(f, m->point_global_to_local(x, 7));
     }
@@ -117,9 +107,9 @@ public:
 
 private:
     template<typename TF, typename IDX, typename TV>
-    inline void
+    static inline void
     scatter_impl_(TF &f, IDX const &idx,
-                  TV const &v) const
+                  TV const &v)
     {
 
         MeshEntityId X = (M::_DI);
@@ -142,17 +132,17 @@ private:
 
 
     template<typename TF, typename TX, typename TV>
-    inline void
-    scatter_(std::integral_constant<int, VERTEX>, TF &
-    f, TX const &x, TV const &u) const
+    static inline void
+    scatter_(mesh_type const *m, std::integral_constant<int, VERTEX>, TF &
+    f, TX const &x, TV const &u)
     {
         scatter_impl_(f, m->point_global_to_local(x, 0), u);
     }
 
     template<typename TF, typename TX, typename TV>
-    inline void
-    scatter_(std::integral_constant<int, EDGE>, TF &
-    f, TX const &x, TV const &u) const
+    static inline void
+    scatter_(mesh_type const *m, std::integral_constant<int, EDGE>, TF &
+    f, TX const &x, TV const &u)
     {
 
         scatter_impl_(f, m->point_global_to_local(x, 1), u[0]);
@@ -162,9 +152,9 @@ private:
     }
 
     template<typename TF, typename TX, typename TV>
-    inline void
-    scatter_(std::integral_constant<int, FACE>, TF &f,
-             TX const &x, TV const &u) const
+    static inline void
+    scatter_(mesh_type const *m, std::integral_constant<int, FACE>, TF &f,
+             TX const &x, TV const &u)
     {
 
         scatter_impl_(f, m->point_global_to_local(x, 6), u[0]);
@@ -173,60 +163,62 @@ private:
     }
 
     template<typename TF, typename TX, typename TV>
-    inline void
-    scatter_(std::integral_constant<int, VOLUME>,
-             TF &f, TX const &x, TV const &u) const
+    static inline void
+    scatter_(mesh_type const *m, std::integral_constant<int, VOLUME>,
+             TF &f, TX const &x, TV const &u)
     {
         scatter_impl_(f, m->point_global_to_local(x, 7), u);
     }
 
 public:
     template<typename TF, typename ...Args>
-    inline void
-    scatter(TF &f, Args &&...args) const
+    static inline void
+    scatter(mesh_type const *m, TF &f, Args &&...args)
     {
-        scatter_(traits::iform<TF>(), f, std::forward<Args>(args)...);
+        scatter_(m, traits::iform<TF>(), f, std::forward<Args>(args)...);
     }
 
 private:
     template<typename TV>
-    inline TV
-    sample_(std::integral_constant<int, VERTEX>, MeshEntityId const &s, TV const &v) const { return v; }
+    static inline TV
+    sample_(mesh_type const *m, std::integral_constant<int, VERTEX>, MeshEntityId const &s,
+            TV const &v) { return v; }
 
     template<typename TV>
-    inline TV
-    sample_(std::integral_constant<int, VOLUME>, MeshEntityId const &s, TV const &v) const { return v; }
+    static inline TV
+    sample_(mesh_type const *m, std::integral_constant<int, VOLUME>, MeshEntityId const &s,
+            TV const &v) { return v; }
 
     template<typename TV>
-    inline TV
-    sample_(std::integral_constant<int, EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v) const
+    static inline TV
+    sample_(mesh_type const *m, std::integral_constant<int, EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
 
     template<typename TV>
-    inline TV
-    sample_(std::integral_constant<int, FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v) const
+    static inline TV
+    sample_(mesh_type const *m, std::integral_constant<int, FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
 //
 //    template<typename M,int IFORM,  typename TV>
-//    inline TV sample_(M const & m,std::integral_constant<int, IFORM>, mesh_id_type s,
-//                                       TV const &v) const { return v; }
+//    static inline  TV sample_(M const & m,std::integral_constant<int, IFORM>, mesh_id_type s,
+//                                       TV const &v) { return v; }
 
 public:
 
 //    template<typename M,int IFORM,  typename TV>
-//    inline auto generate(TI const &s, TV const &v) const
+//    static inline  auto generate(TI const &s, TV const &v)
 //    DECL_RET_TYPE((sample_(M const & m,std::integral_constant<int, IFORM>(), s, v)))
 
 
     template<int IFORM, typename TV>
-    inline traits::value_type_t<TV>
-    sample(MeshEntityId const &s, TV const &v) const
+    static inline traits::value_type_t<TV>
+    sample(mesh_type const *m, MeshEntityId const &s, TV const &v)
     {
-        return sample_(std::integral_constant<int, IFORM>(), s, v);
+        return sample_(m, std::integral_constant<int, IFORM>(), s, v);
     }
 //    DECL_RET_TYPE((sample_(std::integral_constant<int, IFORM>(), s, v)))
 
@@ -238,7 +230,7 @@ public:
      * \f$\phi(\mathbf{x}, \mathbf{c}) = \phi(\|\mathbf{x}-\mathbf{c}\|)\f$.
      */
 
-    Real RBF(point_type const &x0, point_type const &x1, vector_type const &a) const
+    Real RBF(mesh_type const *m, point_type const &x0, point_type const &x1, vector_type const &a)
     {
         vector_type r;
         r = (x1 - x0) / a;
@@ -247,7 +239,7 @@ public:
     }
 
 
-    Real RBF(point_type const &x0, point_type const &x1, Real const &a) const
+    Real RBF(mesh_type const *m, point_type const &x0, point_type const &x1, Real const &a)
     {
 
         return (1.0 - m->distance(x1, x0) / a);

@@ -144,7 +144,7 @@ public:
     typedef TGeo geometry_type;
     geometry_type m_geo_;
 
-    Manifold() : Policies<TGeo>(&m_geo_)... { m_geo_.connect(this); }
+    Manifold() : Policies<TGeo>()... { m_geo_.connect(this); }
 
     virtual ~Manifold() {}
 
@@ -173,16 +173,11 @@ public:
 
     virtual void deploy()
     {
-        this_type::calculus_policy::deploy();
-        this_type::interpolate_policy::deploy();
     }
 
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
-//        m_geo_->print(os, indent + 1);
-        this_type::calculus_policy::print(os, indent + 1);
-        this_type::interpolate_policy::print(os, indent + 1);
         return os;
     }
 

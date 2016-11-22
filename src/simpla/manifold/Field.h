@@ -205,7 +205,7 @@ public:
     void foreach(mesh::EntityIdRange const &r0, Field<Expression<U...>> const &expr)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = m_manifold_->eval(expr, s); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = manifold_type::eval(m_, expr, s); });
 
     }
 
@@ -251,7 +251,7 @@ public:
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l / DOF, l % DOF);
-                    return m_manifold_->eval(expr, s);
+                    return manifold_type::eval(m_, expr, s);
                 });
 
     }
@@ -296,7 +296,7 @@ public:
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return m_manifold_->template sample<IFORM>(s, fun(m_->point(s)));
+                    return manifold_type::template sample<IFORM>(m_, s, fun(m_->point(s)));
                 });
 
 
@@ -320,7 +320,7 @@ public:
         m_data_->foreach_ghost(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    return m_manifold_->eval(expr, mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
+                    return manifold_type::eval(m_, expr, mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
                 });
 
     }
@@ -336,7 +336,7 @@ public:
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return m_->template sample<IFORM>(s, fun(m_->point(s)));
+                    return manifold_type::template sample<IFORM>(m_, s, fun(m_->point(s)));
                 });
 
 

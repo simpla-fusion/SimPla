@@ -16,18 +16,18 @@ typedef manifold::CartesianManifold mesh_type;
 
 
 typedef testing::Types< //
+       field_t < Real, mesh_type, mesh::VERTEX>//
+, field_t <Real, mesh_type, mesh::EDGE>//
+, field_t <Real, mesh_type, mesh::FACE>//
+, field_t <Real, mesh_type, mesh::VOLUME>//
 
-        field_t<Real, mesh_type, mesh::VERTEX>//
-        , field_t<Real, mesh_type, mesh::EDGE>//
-        , field_t<Real, mesh_type, mesh::FACE>//
-        , field_t<Real, mesh_type, mesh::VOLUME>//
+, field_t<Real, mesh_type, mesh::VERTEX, 3>//
+, field_t<Real, mesh_type, mesh::EDGE, 3> //
+, field_t<Real, mesh_type, mesh::FACE, 3> //
+, field_t<Real, mesh_type, mesh::VOLUME, 3> //
 
-        , field_t<Vec3, mesh_type, mesh::VERTEX>//
-        , field_t<Vec3, mesh_type, mesh::EDGE> //
-        , field_t<Vec3, mesh_type, mesh::FACE> //
-        , field_t<Vec3, mesh_type, mesh::VOLUME>  //
-
-> TypeParamList;
+>
+TypeParamList;
 
 
 INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList);
