@@ -70,38 +70,38 @@ public:
 
     template<typename TF>
     constexpr static inline traits::field_value_t<TF>
-    gather(mesh_type const *m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == VERTEX)))
+    gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == VERTEX)))
     {
-        return gather_impl_(f, m->point_global_to_local(r, 0));
+        return gather_impl_(f, m.point_global_to_local(r, 0));
     }
 
     template<typename TF>
     constexpr static inline traits::field_value_t<TF>
-    gather(mesh_type const *m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == EDGE)))
+    gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == EDGE)))
     {
         return traits::field_value_t<TF>{
-                gather_impl_(f, m->point_global_to_local(r, 1)),
-                gather_impl_(f, m->point_global_to_local(r, 2)),
-                gather_impl_(f, m->point_global_to_local(r, 4))
+                gather_impl_(f, m.point_global_to_local(r, 1)),
+                gather_impl_(f, m.point_global_to_local(r, 2)),
+                gather_impl_(f, m.point_global_to_local(r, 4))
         };
     }
 
     template<typename TF>
     constexpr static inline traits::field_value_t<TF>
-    gather(mesh_type const *m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == FACE)))
+    gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == FACE)))
     {
         return traits::field_value_t<TF>{
-                gather_impl_(f, m->point_global_to_local(r, 6)),
-                gather_impl_(f, m->point_global_to_local(r, 5)),
-                gather_impl_(f, m->point_global_to_local(r, 3))
+                gather_impl_(f, m.point_global_to_local(r, 6)),
+                gather_impl_(f, m.point_global_to_local(r, 5)),
+                gather_impl_(f, m.point_global_to_local(r, 3))
         };
     }
 
     template<typename TF>
     constexpr static inline traits::field_value_t<TF>
-    gather(mesh_type const *m, TF const &f, point_type const &x, ENABLE_IF((traits::iform<TF>::value == VOLUME)))
+    gather(mesh_type const &m, TF const &f, point_type const &x, ENABLE_IF((traits::iform<TF>::value == VOLUME)))
     {
-        return gather_impl_(f, m->point_global_to_local(x, 7));
+        return gather_impl_(f, m.point_global_to_local(x, 7));
     }
 
 
@@ -133,47 +133,47 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const *m, std::integral_constant<int, VERTEX>, TF &
+    scatter_(mesh_type const &m, std::integral_constant<int, VERTEX>, TF &
     f, TX const &x, TV const &u)
     {
-        scatter_impl_(f, m->point_global_to_local(x, 0), u);
+        scatter_impl_(f, m.point_global_to_local(x, 0), u);
     }
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const *m, std::integral_constant<int, EDGE>, TF &
+    scatter_(mesh_type const &m, std::integral_constant<int, EDGE>, TF &
     f, TX const &x, TV const &u)
     {
 
-        scatter_impl_(f, m->point_global_to_local(x, 1), u[0]);
-        scatter_impl_(f, m->point_global_to_local(x, 2), u[1]);
-        scatter_impl_(f, m->point_global_to_local(x, 4), u[2]);
+        scatter_impl_(f, m.point_global_to_local(x, 1), u[0]);
+        scatter_impl_(f, m.point_global_to_local(x, 2), u[1]);
+        scatter_impl_(f, m.point_global_to_local(x, 4), u[2]);
 
     }
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const *m, std::integral_constant<int, FACE>, TF &f,
+    scatter_(mesh_type const &m, std::integral_constant<int, FACE>, TF &f,
              TX const &x, TV const &u)
     {
 
-        scatter_impl_(f, m->point_global_to_local(x, 6), u[0]);
-        scatter_impl_(f, m->point_global_to_local(x, 5), u[1]);
-        scatter_impl_(f, m->point_global_to_local(x, 3), u[2]);
+        scatter_impl_(f, m.point_global_to_local(x, 6), u[0]);
+        scatter_impl_(f, m.point_global_to_local(x, 5), u[1]);
+        scatter_impl_(f, m.point_global_to_local(x, 3), u[2]);
     }
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const *m, std::integral_constant<int, VOLUME>,
+    scatter_(mesh_type const &m, std::integral_constant<int, VOLUME>,
              TF &f, TX const &x, TV const &u)
     {
-        scatter_impl_(f, m->point_global_to_local(x, 7), u);
+        scatter_impl_(f, m.point_global_to_local(x, 7), u);
     }
 
 public:
     template<typename TF, typename ...Args>
     static inline void
-    scatter(mesh_type const *m, TF &f, Args &&...args)
+    scatter(mesh_type const &m, TF &f, Args &&...args)
     {
         scatter_(m, traits::iform<TF>(), f, std::forward<Args>(args)...);
     }
@@ -181,24 +181,24 @@ public:
 private:
     template<typename TV>
     static inline TV
-    sample_(mesh_type const *m, std::integral_constant<int, VERTEX>, MeshEntityId const &s,
+    sample_(mesh_type const &m, std::integral_constant<int, VERTEX>, MeshEntityId const &s,
             TV const &v) { return v; }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const *m, std::integral_constant<int, VOLUME>, MeshEntityId const &s,
+    sample_(mesh_type const &m, std::integral_constant<int, VOLUME>, MeshEntityId const &s,
             TV const &v) { return v; }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const *m, std::integral_constant<int, EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
+    sample_(mesh_type const &m, std::integral_constant<int, EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const *m, std::integral_constant<int, FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
+    sample_(mesh_type const &m, std::integral_constant<int, FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
@@ -216,7 +216,7 @@ public:
 
     template<int IFORM, typename TV>
     static inline traits::value_type_t<TV>
-    sample(mesh_type const *m, MeshEntityId const &s, TV const &v)
+    sample(mesh_type const &m, MeshEntityId const &s, TV const &v)
     {
         return sample_(m, std::integral_constant<int, IFORM>(), s, v);
     }
@@ -230,7 +230,7 @@ public:
      * \f$\phi(\mathbf{x}, \mathbf{c}) = \phi(\|\mathbf{x}-\mathbf{c}\|)\f$.
      */
 
-    Real RBF(mesh_type const *m, point_type const &x0, point_type const &x1, vector_type const &a)
+    Real RBF(mesh_type const &m, point_type const &x0, point_type const &x1, vector_type const &a)
     {
         vector_type r;
         r = (x1 - x0) / a;
@@ -239,10 +239,10 @@ public:
     }
 
 
-    Real RBF(mesh_type const *m, point_type const &x0, point_type const &x1, Real const &a)
+    Real RBF(mesh_type const &m, point_type const &x0, point_type const &x1, Real const &a)
     {
 
-        return (1.0 - m->distance(x1, x0) / a);
+        return (1.0 - m.distance(x1, x0) / a);
     }
 
 };

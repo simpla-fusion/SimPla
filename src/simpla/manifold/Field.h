@@ -28,21 +28,20 @@ namespace simpla
 template<typename ...> class Field;
 
 
-template<typename TV, typename TManifold, size_type I, size_type DOF>
-class Field<TV, TManifold, index_const<I>, index_const<DOF>> :
+template<typename TV, typename TM, size_type I, size_type DOF>
+class Field<TV, TM, index_const<I>, index_const<DOF>> :
         public mesh::AttributeView<TV, static_cast<mesh::MeshEntityType >(I), DOF>
 {
 private:
 
-    typedef Field<TV, TManifold, index_const<I>, index_const<DOF>> this_type;
+    typedef Field<TV, TM, index_const<I>, index_const<DOF>> this_type;
     typedef mesh::AttributeView<TV, static_cast<mesh::MeshEntityType >(I), DOF> base_type;
 
 public:
     typedef TV value_type;
 
-    typedef TManifold manifold_type;
+    typedef TM mesh_type;
 
-    typedef typename manifold_type::mesh_type geometry_type;
 
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
 
@@ -52,28 +51,17 @@ public:
             cell_tuple, nTuple<cell_tuple, 3> >::type field_value_type;
 
 private:
-    typedef typename geometry_type::template data_block_type<TV, IFORM, DOF> data_block;
+    typedef typename mesh_type::template data_block_type<TV, IFORM, DOF> data_block;
 
-    manifold_type *m_manifold_;
     data_block *m_data_;
-    geometry_type const *m_;
+
+    mesh_type const *m_;
+
 public:
-    Field() : base_type(), m_manifold_(nullptr), m_data_(nullptr) {};
+    Field() : base_type(), m_data_(nullptr) {};
 
     template<typename ...Args>
-    explicit Field(manifold_type &m, Args &&...args)
-            : base_type(), m_manifold_(&m), m_data_(nullptr)
-    {
-        connect(m, std::forward<Args>(args)...);
-    };
-
-    template<typename ...Args>
-    void connect(manifold_type &m, Args &&...args)
-    {
-        if (m_manifold_ == nullptr) { RUNTIME_ERROR << "Field connected to Manifold more than once." << std::endl; }
-        m_manifold_ = &m;
-        base_type::connect(m_manifold_, std::forward<Args>(args)...);
-    }
+    explicit Field(Args &&...args) : base_type(std::forward<Args>(args)...) {};
 
     virtual ~Field() {}
 
@@ -83,7 +71,7 @@ public:
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); };
 
-    bool is_valid() const { return m_data_ != nullptr && m_manifold_ != nullptr; };
+    bool is_valid() const { return m_data_ != nullptr && m_ != nullptr; };
 
     using base_type::entity_type;
 
@@ -93,12 +81,8 @@ public:
 
     void deploy()
     {
-        ASSERT(base_type::data()->is_a(typeid(data_block)));
-        ASSERT(base_type::data()->is_valid());
-        m_ = &m_manifold_->geometry();
 
         m_data_ = static_cast<data_block *>(base_type::data());
-        ASSERT(m_data_ != nullptr);
         m_data_->deploy();
     }
 

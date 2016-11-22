@@ -43,7 +43,6 @@ struct FiniteVolume<TM>
 {
     typedef FiniteVolume<TM> this_type;
     typedef TM mesh_type;
-//    mesh_type const *m;
     typedef mesh::MeshEntityIdCoder M;
     typedef mesh::MeshEntityId MeshEntitId;
 public:
@@ -60,11 +59,11 @@ public:
 
 //    template<typename ...T>
 //    inline static constexpr traits::value_type_t<Field<T...> >
-//    eval(m,mesh_type const * m,Field<T...> &expr, MeshEntitId const& s) { return eval(m,expr, s); }
+//    eval(m,mesh_type const & m,Field<T...> &expr, MeshEntitId const& s) { return eval(m,expr, s); }
 //
 //    template<typename ...T>
 //    inline static constexpr traits::value_type_t<Field<T...> >
-//    eval(m,mesh_type const * m,Field<T...> const &expr, MeshEntitId const& s) { return eval(m,expr, s); }
+//    eval(m,mesh_type const & m,Field<T...> const &expr, MeshEntitId const& s) { return eval(m,expr, s); }
 //
 //    template<typename T>
 //    inline static constexpr T &eval(m,T &f, MeshEntitId const& s) { return f; }
@@ -77,20 +76,20 @@ public:
 
 //    template<typename TV, typename OM, size_t IFORM> inline constexpr
 //    typename traits::value_type<Field<TV, OM, index_const<IFORM>>>::type &
-//    eval(m,mesh_type const * m,Field<TV, OM, index_const<IFORM>> &f, MeshEntitId const& s) { return f[s]; };
+//    eval(m,mesh_type const & m,Field<TV, OM, index_const<IFORM>> &f, MeshEntitId const& s) { return f[s]; };
 
     template<typename TV, typename OM, size_t IFORM, size_type DOF> inline static constexpr TV
-    eval(mesh_type const *m, Field<TV, OM, index_const<IFORM>, index_const<DOF> > const &f,
+    eval(mesh_type const &m, Field<TV, OM, index_const<IFORM>, index_const<DOF> > const &f,
          MeshEntitId const &s) { return f[s]; };
 
 
 private:
 
     template<typename FExpr> inline static constexpr traits::value_type_t<FExpr>
-    get_v(mesh_type const *m, FExpr const &f, MeshEntitId const s) { return eval(m, f, s) * m->volume(s); }
+    get_v(mesh_type const &m, FExpr const &f, MeshEntitId const s) { return eval(m, f, s) * m.volume(s); }
 
     template<typename FExpr> inline static constexpr traits::value_type_t<FExpr>
-    get_d(mesh_type const *m, FExpr const &f, MeshEntitId const s) { return eval(m, f, s) * m->dual_volume(s); }
+    get_d(mesh_type const &m, FExpr const &f, MeshEntitId const s) { return eval(m, f, s) * m.dual_volume(s); }
 
 public:
 
@@ -101,18 +100,18 @@ public:
     //! grad<0>
     template<typename T>
     /*static constexpr */  inline traits::value_type_t<Field<Expression<ct::ExteriorDerivative, T>>>
-    eval(mesh_type const *m, Field<Expression<ct::ExteriorDerivative, T>> const &f, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::ExteriorDerivative, T>> const &f, MeshEntitId const &s,
          index_sequence<mesh::VERTEX>)
     {
         MeshEntitId D = M::delta_index(s);
-        return (get_v(m, std::get<0>(f.args), s + D) - get_v(m, std::get<0>(f.args), s - D)) * m->inv_volume(s);
+        return (get_v(m, std::get<0>(f.args), s + D) - get_v(m, std::get<0>(f.args), s - D)) * m.inv_volume(s);
     }
 
 
     //! curl<1>
     template<typename T>
     inline traits::value_type_t<Field<Expression<ct::ExteriorDerivative, T>>>
-    eval(mesh_type const *m, Field<Expression<ct::ExteriorDerivative, T> > const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::ExteriorDerivative, T> > const &expr, MeshEntitId const &s,
          index_sequence<EDGE>)
     {
 
@@ -123,7 +122,7 @@ public:
 
         return ((get_v(m, std::get<0>(expr.args), s + Y) - get_v(m, std::get<0>(expr.args), s - Y))
                 - (get_v(m, std::get<0>(expr.args), s + Z) - get_v(m, std::get<0>(expr.args), s - Z))
-               ) * m->inv_volume(s);
+               ) * m.inv_volume(s);
 
 
     }
@@ -132,13 +131,13 @@ public:
     //! div<2>
     template<typename T>
     static constexpr inline traits::value_type_t<Field<Expression<ct::ExteriorDerivative, T>>>
-    eval(mesh_type const *m, Field<Expression<ct::ExteriorDerivative, T> > const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::ExteriorDerivative, T> > const &expr, MeshEntitId const &s,
          index_sequence<FACE>)
     {
         return (get_v(m, std::get<0>(expr.args), s + M::_DI) - get_v(m, std::get<0>(expr.args), s - M::_DI)
                 + get_v(m, std::get<0>(expr.args), s + M::_DJ) - get_v(m, std::get<0>(expr.args), s - M::_DJ)
                 + get_v(m, std::get<0>(expr.args), s + M::_DK) - get_v(m, std::get<0>(expr.args), s - M::_DK)
-               ) * m->inv_volume(s);
+               ) * m.inv_volume(s);
 
     }
 
@@ -146,19 +145,19 @@ public:
     //! div<1>
     template<typename T>
     static constexpr inline traits::value_type_t<Field<Expression<ct::CodifferentialDerivative, T>>>
-    eval(mesh_type const *m, Field<Expression<ct::CodifferentialDerivative, T>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::CodifferentialDerivative, T>> const &expr, MeshEntitId const &s,
          index_sequence<EDGE>)
     {
         return -(get_d(m, std::get<0>(expr.args), s + M::_DI) - get_d(m, std::get<0>(expr.args), s - M::_DI)
                  + get_d(m, std::get<0>(expr.args), s + M::_DJ) - get_d(m, std::get<0>(expr.args), s - M::_DJ)
                  + get_d(m, std::get<0>(expr.args), s + M::_DK) - get_d(m, std::get<0>(expr.args), s - M::_DK)
-        ) * m->inv_dual_volume(s);
+        ) * m.inv_dual_volume(s);
     }
 
     //! curl<2>
     template<typename T>
     /*static constexpr */ inline traits::value_type_t<Field<Expression<ct::CodifferentialDerivative, T>>>
-    eval(mesh_type const *m, Field<Expression<ct::CodifferentialDerivative, T>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::CodifferentialDerivative, T>> const &expr, MeshEntitId const &s,
          index_sequence<FACE>)
     {
 
@@ -168,19 +167,19 @@ public:
 
         return -((get_d(m, std::get<0>(expr.args), s + Y) - get_d(m, std::get<0>(expr.args), s - Y))
                  - (get_d(m, std::get<0>(expr.args), s + Z) - get_d(m, std::get<0>(expr.args), s - Z))
-        ) * m->inv_dual_volume(s);
+        ) * m.inv_dual_volume(s);
     }
 
 
     //! grad<3>
     template<typename T>
     /*static constexpr */ inline traits::value_type_t<Field<Expression<ct::CodifferentialDerivative, T>>>
-    eval(mesh_type const *m, Field<Expression<ct::CodifferentialDerivative, T> > const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::CodifferentialDerivative, T> > const &expr, MeshEntitId const &s,
          index_sequence<VOLUME>)
     {
         MeshEntitId D = M::delta_index(M::dual(s));
         return -(get_d(m, std::get<0>(expr.args), s + D) - get_d(m, std::get<0>(expr.args), s - D)) *
-               m->inv_dual_volume(s);
+               m.inv_dual_volume(s);
     }
 
     //! *Form<IR> => Form<N-IL>
@@ -188,7 +187,7 @@ public:
 
     template<typename T, size_t I>
     /*static constexpr */ inline traits::value_type_t<Field<Expression<ct::HodgeStar, T> >>
-    eval(mesh_type const *m, Field<Expression<ct::HodgeStar, T>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::HodgeStar, T>> const &expr, MeshEntitId const &s,
          index_sequence<I>)
     {
         auto const &l = std::get<0>(expr.args);
@@ -208,7 +207,7 @@ public:
                        get_v(m, l, ((s + X) + Y) - Z) +
                        get_v(m, l, ((s + X) + Y) + Z)
 
-               ) * m->inv_dual_volume(s) * 0.125;
+               ) * m.inv_dual_volume(s) * 0.125;
 
 
     };
@@ -219,25 +218,25 @@ public:
 
     template<typename T, size_t I>
     /*static constexpr */ inline traits::value_type_t<Field<Expression<ct::P_ExteriorDerivative<I>, T>>>
-    eval(mesh_type const *m, Field<Expression<ct::P_ExteriorDerivative<I>, T>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::P_ExteriorDerivative<I>, T>> const &expr, MeshEntitId const &s,
          index_sequence<EDGE>)
     {
         return (get_v(m, std::get<0>(expr.args), s + M::DI(I)) -
                 get_v(m, std::get<0>(expr.args), s - M::DI(I))
-               ) * m->inv_volume(s) * m_p_curl_factor_[(I + 3 - M::sub_index(s)) % 3];
+               ) * m.inv_volume(s) * m_p_curl_factor_[(I + 3 - M::sub_index(s)) % 3];
     }
 
 
     template<typename T, size_t I>
     /*static constexpr */  inline traits::value_type_t<Field<Expression<ct::P_CodifferentialDerivative<I>, T>>>
-    eval(mesh_type const *m, Field<Expression<ct::P_CodifferentialDerivative<I>, T>> const &expr,
+    eval(mesh_type const &m, Field<Expression<ct::P_CodifferentialDerivative<I>, T>> const &expr,
          MeshEntitId const &s,
          index_sequence<FACE>)
     {
 
         return (get_v(m, std::get<0>(expr.args), s + M::DI(I)) -
                 get_v(m, std::get<0>(expr.args), s - M::DI(I))
-               ) * m->inv_dual_volume(s) * m_p_curl_factor_[(I + 3 - M::sub_index(s)) % 3];
+               ) * m.inv_dual_volume(s) * m_p_curl_factor_[(I + 3 - M::sub_index(s)) % 3];
     }
 
 ////***************************************************************************************************
@@ -245,23 +244,23 @@ public:
 ////! map_to
     template<typename T, size_t I>
     inline static constexpr T
-    mapto(mesh_type const *m, T const &r, MeshEntitId const &s, index_sequence<VERTEX, I>,
+    mapto(mesh_type const &m, T const &r, MeshEntitId const &s, index_sequence<VERTEX, I>,
           st::is_primary_t<T> *_p = nullptr) { return r; }
 
     template<typename TF, size_t I>
     inline static constexpr traits::value_type_t<TF>
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<I, I>,
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<I, I>,
           std::enable_if_t<!st::is_primary<TF>::value>
           *_p = nullptr) { return eval(m, expr, s); }
 
     template<typename TV, typename OM, size_t I, int DOF>
     inline static constexpr TV
-    mapto(mesh_type const *m, Field<TV, OM, index_const<I>, index_const<DOF> > const &f, MeshEntitId const &s,
+    mapto(mesh_type const &m, Field<TV, OM, index_const<I>, index_const<DOF> > const &f, MeshEntitId const &s,
           index_sequence<I, I>) { return f[s]; };
 
     template<typename TF>
     static constexpr inline traits::value_type_t<TF>
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<VERTEX, EDGE>)
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<VERTEX, EDGE>)
     {
         MeshEntitId X = M::delta_index(s);
         return (eval(m, expr, s - X) + eval(m, expr, s + X)) * 0.5;
@@ -269,7 +268,7 @@ public:
 
 
     template<typename TV, typename ...Others> /*static constexpr */ inline TV
-    mapto(mesh_type const *m, Field<nTuple<TV, 3>, Others...> const &expr, MeshEntitId const &s,
+    mapto(mesh_type const &m, Field<nTuple<TV, 3>, Others...> const &expr, MeshEntitId const &s,
           index_sequence<VERTEX, EDGE>)
     {
         int n = M::sub_index(s);
@@ -280,7 +279,7 @@ public:
 
     template<typename TF>
     static constexpr inline traits::value_type_t<TF>
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<VERTEX, FACE>)
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<VERTEX, FACE>)
     {
 
         auto const &l = expr;
@@ -299,7 +298,7 @@ public:
 
     template<typename TV, typename ...Others>
     static constexpr inline
-    TV mapto(mesh_type const *m, Field<nTuple<TV, 3>, Others...> const &expr, MeshEntitId const &s,
+    TV mapto(mesh_type const &m, Field<nTuple<TV, 3>, Others...> const &expr, MeshEntitId const &s,
              index_sequence<VERTEX, FACE>)
     {
 
@@ -320,7 +319,7 @@ public:
     template<typename TF>
     static constexpr inline
     traits::value_type_t<TF>
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<VERTEX, VOLUME>)
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<VERTEX, VOLUME>)
     {
         auto const &l = expr;
 
@@ -343,7 +342,7 @@ public:
     template<typename TF>
     static constexpr inline
     nTuple<typename traits::value_type<TF>::type, 3>
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<EDGE, VERTEX>)
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<EDGE, VERTEX>)
     {
         typedef nTuple<typename traits::value_type<TF>::type, 3> field_value_type;
 
@@ -372,7 +371,7 @@ public:
     template<typename TF>
     static constexpr inline
     nTuple<typename traits::value_type<TF>::type, 3>
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<FACE, VERTEX>)
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<FACE, VERTEX>)
     {
         auto const &l = expr;
 
@@ -404,13 +403,13 @@ public:
     template<typename TF>
     static constexpr inline
     typename traits::value_type<TF>::type
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<VOLUME, VERTEX>)
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<VOLUME, VERTEX>)
     {
         auto const &l = expr;
 
-        auto X = m->DI(0, s);
-        auto Y = m->DI(1, s);
-        auto Z = m->DI(2, s);
+        auto X = m.DI(0, s);
+        auto Y = m.DI(1, s);
+        auto Z = m.DI(2, s);
 
         return (
                        eval(m, l, ((s - X - Y - Z))) +
@@ -428,7 +427,7 @@ public:
     template<typename TF>
     static constexpr inline
     typename traits::value_type<TF>::type
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<VOLUME, FACE>)
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<VOLUME, FACE>)
     {
         auto X = M::delta_index(M::dual(s));
 
@@ -439,7 +438,7 @@ public:
     template<typename TF>
     static constexpr inline
     typename traits::value_type<TF>::type
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<VOLUME, EDGE>)
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<VOLUME, EDGE>)
     {
         auto const &l = expr;
         auto X = M::delta_index(s);
@@ -458,13 +457,13 @@ public:
     template<typename TF>
     static constexpr inline
     nTuple<typename traits::value_type<TF>::type, 3>
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<FACE, VOLUME>)
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<FACE, VOLUME>)
     {
         auto const &l = expr;
 
-        auto X = m->DI(0, M::dual(s));
-        auto Y = m->DI(1, M::dual(s));
-        auto Z = m->DI(2, M::dual(s));
+        auto X = m.DI(0, M::dual(s));
+        auto Y = m.DI(1, M::dual(s));
+        auto Z = m.DI(2, M::dual(s));
 
         return nTuple<traits::value_type_t<TF>, 3>
                 {
@@ -480,13 +479,13 @@ public:
     template<typename TF>
     static constexpr inline
     nTuple<typename traits::value_type<TF>::type, 3>
-    mapto(mesh_type const *m, TF const &expr, MeshEntitId const &s, index_sequence<EDGE, VOLUME>)
+    mapto(mesh_type const &m, TF const &expr, MeshEntitId const &s, index_sequence<EDGE, VOLUME>)
     {
         auto const &l = expr;
 
-        auto X = m->DI(0, s);
-        auto Y = m->DI(1, s);
-        auto Z = m->DI(2, s);
+        auto X = m.DI(0, s);
+        auto Y = m.DI(1, s);
+        auto Z = m.DI(2, s);
 
         return nTuple<typename traits::value_type<TF>::type, 3>
                 {
@@ -508,10 +507,10 @@ public:
     template<typename ...T, size_t IL, size_t IR>
     static constexpr inline
     traits::value_type_t<Field<Expression<ct::Wedge, T...>>>
-    eval(mesh_type const *m, Field<Expression<ct::Wedge, T...>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::Wedge, T...>> const &expr, MeshEntitId const &s,
          index_sequence<IL, IR>)
     {
-        return m->inner_product(mapto(m, std::get<0>(expr.args), s, index_sequence<IL, IR + IL>()),
+        return m.inner_product(mapto(m, std::get<0>(expr.args), s, index_sequence<IL, IR + IL>()),
                                 mapto(m, std::get<1>(expr.args), s, index_sequence<IR, IR + IL>()),
                                 s);
 
@@ -521,7 +520,7 @@ public:
     template<typename TL, typename TR>
     /*static constexpr */  inline
     traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
-    eval(mesh_type const *m, Field<Expression<ct::Wedge, TL, TR>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::Wedge, TL, TR>> const &expr, MeshEntitId const &s,
          index_sequence<EDGE, EDGE>)
     {
         auto const &l = std::get<0>(expr.args);
@@ -544,7 +543,7 @@ public:
     template<typename TL, typename TR, size_t I>
     static constexpr inline
     traits::value_type_t<Field<Expression<ct::Cross, TL, TR>>>
-    eval(mesh_type const *m, Field<Expression<ct::Cross, TL, TR>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::Cross, TL, TR>> const &expr, MeshEntitId const &s,
          index_sequence<I, I>)
     {
         return eval(m, std::get<0>(expr.args), sw(s, (s.w + 1) % 3)) *
@@ -557,7 +556,7 @@ public:
     template<typename TL, typename TR, size_t I>
     static constexpr inline
     traits::value_type_t<Field<Expression<ct::Dot, TL, TR>>>
-    eval(mesh_type const *m, Field<Expression<ct::Dot, TL, TR>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::Dot, TL, TR>> const &expr, MeshEntitId const &s,
          index_sequence<I, I>)
     {
         return eval(m, std::get<0>(expr.args), sw(s, 0)) * eval(m, std::get<1>(expr.args), sw(s, 0)) +
@@ -569,7 +568,7 @@ public:
     template<typename TL, typename TR, size_t I>
     static constexpr inline
     traits::value_type_t<Field<Expression<_impl::divides, TL, TR>>>
-    eval(mesh_type const *m, Field<Expression<_impl::divides, TL, TR>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<_impl::divides, TL, TR>> const &expr, MeshEntitId const &s,
          index_sequence<I, VERTEX>)
     {
         return eval(m, std::get<0>(expr.args), s) / mapto(m, std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
@@ -577,7 +576,7 @@ public:
 
     template<typename TL, typename TR, size_t I>
     static constexpr inline traits::value_type_t<Field<Expression<_impl::multiplies, TL, TR>>>
-    eval(mesh_type const *m, Field<Expression<_impl::multiplies, TL, TR>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<_impl::multiplies, TL, TR>> const &expr, MeshEntitId const &s,
          index_sequence<I, VERTEX>)
     {
         return eval(m, std::get<0>(expr.args), s) * mapto(m, std::get<1>(expr.args), s, index_sequence<VERTEX, I>());
@@ -587,7 +586,7 @@ public:
     template<typename ...T, size_t ...I>
     static constexpr inline
     traits::value_type_t<Field<Expression<ct::MapTo, T...> >>
-    eval(mesh_type const *m, Field<Expression<ct::MapTo, T...>> const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<ct::MapTo, T...>> const &expr, MeshEntitId const &s,
          index_sequence<I...>)
     {
         return mapto(m, std::get<0>(expr.args), s, index_sequence<I...>());
@@ -602,12 +601,12 @@ public:
 
     template<typename T>
     inline static constexpr T const &
-    eval(mesh_type const *m, T const &v, MeshEntitId const &s, st::is_primary_t<T> *_p = nullptr) { return v; }
+    eval(mesh_type const &m, T const &v, MeshEntitId const &s, st::is_primary_t<T> *_p = nullptr) { return v; }
 
 
     template<typename T>
     inline /*static constexpr */  traits::primary_type_t<T>
-    eval(mesh_type const *m, T const &v, MeshEntitId const &s, st::is_expression_ntuple_t<T> *_p = nullptr)
+    eval(mesh_type const &m, T const &v, MeshEntitId const &s, st::is_expression_ntuple_t<T> *_p = nullptr)
     {
         traits::primary_type_t<T> res;
         res = v;
@@ -616,7 +615,7 @@ public:
 
     template<typename TOP, typename ... T>
     inline static constexpr traits::value_type_t<Field<Expression<TOP, T...> > >
-    eval(mesh_type const *m, Field<Expression<TOP, T...> > const &expr, MeshEntitId const &s)
+    eval(mesh_type const &m, Field<Expression<TOP, T...> > const &expr, MeshEntitId const &s)
     {
         return eval(m, expr, s, traits::iform_list_t<T...>());
     }
@@ -625,7 +624,7 @@ public:
     // for element-wise arithmetic operation
     template<typename TOP, typename ...T, size_t ... I> inline static constexpr
     typename traits::value_type<Field<Expression<TOP, T...> > >::type
-    _invoke_helper(mesh_type const *m, Field<Expression<TOP, T...>> const &expr, MeshEntitId const &s,
+    _invoke_helper(mesh_type const &m, Field<Expression<TOP, T...>> const &expr, MeshEntitId const &s,
                    index_sequence<I...>)
     {
         return expr.m_op_(mapto(m, std::get<I>(expr.args), s,
@@ -636,7 +635,7 @@ public:
 
     template<typename TOP, typename ... T, size_t ...I>
     inline static constexpr traits::value_type_t<Field<Expression<TOP, T...> >>
-    eval(mesh_type const *m, Field<Expression<TOP, T...> > const &expr, MeshEntitId const &s,
+    eval(mesh_type const &m, Field<Expression<TOP, T...> > const &expr, MeshEntitId const &s,
          index_sequence<I...>)
     {
         return _invoke_helper(m, expr, s, index_sequence_for<T...>());
