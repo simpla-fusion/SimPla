@@ -27,7 +27,7 @@
 #include <simpla/manifold/FieldExpression.h>
 #include <simpla/manifold/FieldTraits.h>
 #include <simpla/manifold/Calculus.h>
-#include <simpla/manifold/pre_define/PreDefine.h>
+#include <simpla/geometry/CartesianGeometry.h>
 
 
 using namespace simpla;
@@ -44,7 +44,7 @@ static constexpr const int PhiAxis = cs::PhiAxis;
 
 #else
 
-typedef manifold::CartesianManifold mesh_type;
+typedef mesh::CartesianGeometry mesh_type;
 
 #endif
 
@@ -63,8 +63,11 @@ protected:
         index_type lo[3] = {0, 0, 0};
         index_type hi[3];//= {dims[0], dims[1], dims[2]};
 
-        m_p = std::make_shared<mesh_type>(lo, hi, gw);
-
+        {
+            Real dx[3] = {1, 1, 1};
+            Real x0[3] = {0, 0, 0};
+            m_p = std::make_shared<mesh_type>(3, lo, hi, dx, x0);
+        }
 
 //#ifdef CYLINDRICAL_COORDINATE_SYSTEM
 //        m->m_ghost_width_(index_tuple({2, 0, 0}));
@@ -72,7 +75,7 @@ protected:
 //        m->box(box);
         m_p->deploy();
         Vec3 dx;
-        dx = m_p->dx();
+        dx = m_p->mesh_block()->dx();
         point_type xm;
         xm = (std::get<0>(box) + std::get<1>(box)) * 0.5;
         K_imag = 0;
@@ -111,7 +114,7 @@ public:
 
 
     std::shared_ptr<mesh_type> m_p;
-    mesh_type const *m;
+    mesh_type *m;
 
     Real q(point_type const &x) const
     {
@@ -127,7 +130,7 @@ public:
     {
     }
 
-    template<mesh::MeshEntityType IFORM> using field_type=Field<value_type, mesh_type, index_const<static_cast<size_t>(IFORM)> >;
+    template<mesh::MeshEntityType IFORM> using field_type=Field<value_type, mesh_type, index_const<static_cast<size_t>(IFORM)>, index_const<1> >;
 
 
 };
@@ -143,7 +146,7 @@ TEST_P(FETLTest, grad0)
     f1.clear();
     f1b.clear();
 
-    f0.assign_function(SP_ES_ALL, [&](point_type const &x) { return std::sin(q(x)); });
+    f0.assign(SP_ES_ALL, [&](point_type const &x) { return std::sin(q(x)); });
 //    m->range(VERTEX, SP_ES_ALL).foreach();
 
     f1 = grad(f0);
@@ -152,7 +155,7 @@ TEST_P(FETLTest, grad0)
     value_type average;
     average *= 0.0;
 
-    m_p->range(EDGE, SP_ES_OWNED).foreach(
+    m_p->mesh_block()->range(EDGE, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId const &s)
             {
                 int n = M::sub_index(s);
@@ -173,8 +176,8 @@ TEST_P(FETLTest, grad0)
                                     "," << (s.z >> 1) << "]" << std::endl;
             });
 
-    EXPECT_LE(std::sqrt(variance / m_p->range(EDGE).size()), error);
-    EXPECT_LE(mod(average) / m_p->range(EDGE).size(), error);
+    EXPECT_LE(std::sqrt(variance / m_p->mesh_block()->range(EDGE).size()), error);
+    EXPECT_LE(mod(average) / m_p->mesh_block()->range(EDGE).size(), error);
 
 //#ifndef NDEBUG
 //    io::cd("/grad1/");
@@ -203,7 +206,7 @@ TEST_P(FETLTest, grad3)
     Real variance = 0;
     value_type average = one * 0;
 
-    m_p->range(FACE, SP_ES_OWNED).foreach(
+    m_p->mesh_block()->range(FACE, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId const &s)
             {
                 int n = M::sub_index(s);
@@ -231,8 +234,8 @@ TEST_P(FETLTest, grad3)
 //    LOGGER << SAVE(f2b) << std::endl;
 //#endif
 
-    EXPECT_LE(std::sqrt(variance / m_p->range(FACE).size()), error);
-    EXPECT_LE(mod(average / m_p->range(FACE).size()), error);
+    EXPECT_LE(std::sqrt(variance / m_p->mesh_block()->range(FACE).size()), error);
+    EXPECT_LE(mod(average / m_p->mesh_block()->range(FACE).size()), error);
 }
 
 TEST_P(FETLTest, diverge1)
@@ -255,7 +258,7 @@ TEST_P(FETLTest, diverge1)
     Real variance = 0;
     value_type average;
     average = 0;
-    m_p->range(VERTEX, SP_ES_OWNED).foreach(
+    m_p->mesh_block()->range(VERTEX, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId const &s)
             {
                 auto x = m_p->point(s);
@@ -280,8 +283,8 @@ TEST_P(FETLTest, diverge1)
                                     "," << (s.z >> 1) << "]" << std::endl;
             });
 
-    EXPECT_LE(std::sqrt(variance /= m_p->range(VERTEX).size()), error);
-    EXPECT_LE(mod(average /= m_p->range(VERTEX).size()), error);
+    EXPECT_LE(std::sqrt(variance /= m_p->mesh_block()->range(VERTEX).size()), error);
+    EXPECT_LE(mod(average /= m_p->mesh_block()->range(VERTEX).size()), error);
 }
 
 TEST_P(FETLTest, diverge2)
@@ -302,7 +305,7 @@ TEST_P(FETLTest, diverge2)
     value_type average;
     average *= 0.0;
 
-    m_p->range(VOLUME, SP_ES_OWNED).foreach(
+    m_p->mesh_block()->range(VOLUME, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId const &s)
             {
 
@@ -333,8 +336,8 @@ TEST_P(FETLTest, diverge2)
                                     "," << (s.z >> 1) << "]" << std::endl;
             }
     );
-    variance /= m_p->range(VOLUME).size();
-    average /= m_p->range(VOLUME).size();
+    variance /= m_p->mesh_block()->range(VOLUME).size();
+    average /= m_p->mesh_block()->range(VOLUME).size();
 
 
 //#ifndef NDEBUG
@@ -378,7 +381,7 @@ TEST_P(FETLTest, curl1)
 
     LOG_CMD(f2 = curl(f1));
 
-    m_p->range(FACE).foreach(
+    m_p->mesh_block()->range(FACE).foreach(
             [&](mesh::MeshEntityId const &s)
             {
                 auto n = M::sub_index(s);
@@ -446,8 +449,8 @@ TEST_P(FETLTest, curl1)
 //#endif
 
 
-    ASSERT_LE(std::sqrt(variance / m_p->range(FACE).size()), error);
-    ASSERT_LE(mod(average / m_p->range(FACE).size()), error);
+    ASSERT_LE(std::sqrt(variance / m_p->mesh_block()->range(FACE).size()), error);
+    ASSERT_LE(mod(average / m_p->mesh_block()->range(FACE).size()), error);
 
 }
 
@@ -476,7 +479,7 @@ TEST_P(FETLTest, curl2)
     LOG_CMD(f1 = curl(f2));
     f1b.clear();
 
-    m_p->range(EDGE).foreach(
+    m_p->mesh_block()->range(EDGE).foreach(
             [&](mesh::MeshEntityId const &s)
             {
 
@@ -525,8 +528,8 @@ TEST_P(FETLTest, curl2)
 //#endif
 
 
-    ASSERT_LE(std::sqrt(variance / m_p->range(EDGE).size()), error);
-    ASSERT_LE(mod(average / m_p->range(EDGE).size()), error);
+    ASSERT_LE(std::sqrt(variance / m_p->mesh_block()->range(EDGE).size()), error);
+    ASSERT_LE(mod(average / m_p->mesh_block()->range(EDGE).size()), error);
 
 }
 
@@ -561,7 +564,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
     Real variance_a = 0;
     Real variance_b = 0;
 
-    m_p->range(FACE, SP_ES_OWNED).foreach(
+    m_p->mesh_block()->range(FACE, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId const &s)
             {
                 variance_a += mod(f2a[s]);
@@ -604,7 +607,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
     size_t count = 0;
     Real variance_a = 0;
     Real variance_b = 0;
-    m_p->range(EDGE, SP_ES_OWNED).foreach(
+    m_p->mesh_block()->range(EDGE, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId const &s)
             {
                 variance_a += mod(f1a[s]);
@@ -649,15 +652,15 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
     Real variance_a = 0;
     Real variance_b = 0;
 
-    m_p->range(VERTEX, SP_ES_OWNED).foreach(
+    m_p->mesh_block()->range(VERTEX, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId const &s)
             {
                 variance_b += mod(f0b[s] * f0b[s]);
                 variance_a += mod(f0a[s] * f0a[s]);
             });
 
-    ASSERT_LE(std::sqrt(variance_b / m_p->range(VERTEX, SP_ES_OWNED).size()), error);
-    ASSERT_LE(std::sqrt(variance_a / m_p->range(VERTEX, SP_ES_OWNED).size()), error);
+    ASSERT_LE(std::sqrt(variance_b / m_p->mesh_block()->range(VERTEX, SP_ES_OWNED).size()), error);
+    ASSERT_LE(std::sqrt(variance_a / m_p->mesh_block()->range(VERTEX, SP_ES_OWNED).size()), error);
 
 }
 
@@ -693,7 +696,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
 
     Real variance_a = 0;
     Real variance_b = 0;
-    m_p->range(VOLUME, SP_ES_OWNED).foreach(
+    m_p->mesh_block()->range(VOLUME, SP_ES_OWNED).foreach(
             [&](mesh::MeshEntityId const &s)
             {
                 variance_a += mod(f3a[s] * f3a[s]);
@@ -701,8 +704,8 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
             });
 
 
-    EXPECT_LE(std::sqrt(variance_b / m_p->range(VOLUME, SP_ES_OWNED).size()), error);
-    ASSERT_LE(std::sqrt(variance_a / m_p->range(VOLUME, SP_ES_OWNED).size()), error);
+    EXPECT_LE(std::sqrt(variance_b / m_p->mesh_block()->range(VOLUME, SP_ES_OWNED).size()), error);
+    ASSERT_LE(std::sqrt(variance_a / m_p->mesh_block()->range(VOLUME, SP_ES_OWNED).size()), error);
 
 }
 

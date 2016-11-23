@@ -28,7 +28,7 @@ struct AMRTest : public mesh::Worker
 {
     SP_OBJECT_HEAD(AMRTest, mesh::Worker);
 
-    typedef typename TM::mesh_type mesh_type;
+    typedef TM mesh_type;
 
     AMRTest() {}
 
@@ -36,28 +36,30 @@ struct AMRTest : public mesh::Worker
 
     TM m;
 
+    mesh::AttributeHolder m_attr_holder_;
+
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1>
     using field_type=Field<TV, TM, index_const<IFORM>, index_const<DOF>>;
 
     Real epsilon = 1.0;
     Real mu = 1.0;
 
-    field_type<Real, mesh::FACE> B{m, "B"};
-    field_type<Real, mesh::EDGE> E{m, "E"};
-    field_type<Real, mesh::EDGE> J{m, "J"};
-    field_type<Real, mesh::VERTEX, 3> Ev{m, "Ev"};
+    field_type<Real, mesh::FACE> B{&m, "B"};
+    field_type<Real, mesh::EDGE> E{&m, "E"};
+    field_type<Real, mesh::EDGE> J{&m, "J"};
+    field_type<Real, mesh::VERTEX, 3> Ev{&m, "Ev"};
 
-    std::shared_ptr<mesh::MeshBlock> mesh() const { return m.geometry().mesh_block(); }
+    std::shared_ptr<mesh::MeshBlock> mesh() const { return m.mesh_block(); }
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_) { m.move_to(m_); }
 
-    virtual mesh::AttributeHolder &attributes() { return m; }
+    virtual mesh::AttributeHolder &attributes() { return m_attr_holder_; }
 
-    virtual mesh::AttributeHolder const &attributes() const { return m; }
+    virtual mesh::AttributeHolder const &attributes() const { return m_attr_holder_; }
 
     void initialize(Real data_time)
     {
-        m.geometry().initialize();
+        m.initialize();
         Ev.clear();
         E.clear();
         B.clear();
@@ -101,8 +103,8 @@ int main(int argc, char **argv)
 {
     logger::set_stdout_level(100);
 
-    typedef manifold::CylindricalManifold mesh_type;
-    // typedef manifold::CartesianManifold mesh_type;
+    typedef mesh::CylindricalGeometry mesh_type;
+    // typedef mesh::CartesianGeometry mesh_type;
 
     auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<mesh_type>>());
     integrator->deploy();

@@ -343,7 +343,7 @@ std::string make_msg(Others const &...others)
 #define NEED_OPTIMIZATION logger::Logger(logger::LOG_VERBOSE) <<FILE_LINE_STAMP << "This function should be optimized!"<<std::endl
 
 #define UNIMPLEMENTED  logger::Logger(logger::LOG_WARNING)<< FILE_LINE_STAMP<<   "Sorry, this function is not implemented. Try again next year, good luck! "<<std::endl
-#define FIXME  logger::Logger(logger::LOG_VERBOSE)<< FILE_LINE_STAMP<<   "Some problem is here ,please recheck "<<std::endl
+#define FIXME  logger::Logger(logger::LOG_VERBOSE)<< FILE_LINE_STAMP<<   "Some problems at here, please recheck! "<<std::endl
 #define DO_NOTHING  logger::Logger(logger::LOG_WARNING)<< FILE_LINE_STAMP<<   "NOTHING TO DO"<<std::endl
 
 

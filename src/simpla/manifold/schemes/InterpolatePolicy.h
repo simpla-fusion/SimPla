@@ -14,29 +14,20 @@ namespace simpla { namespace manifold { namespace schemes
 {
 using namespace simpla::mesh;
 
-template<typename TM, class Enable = void>
-struct LinearInterpolator {};
-
-
 /**
  * @ingroup interpolate
  * @brief basic linear interpolate
  */
 template<typename TM>
-struct LinearInterpolator<TM>
+struct InterpolatePolicy
 {
     typedef TM mesh_type;
-    typedef LinearInterpolator<mesh_type> this_type;
+    typedef InterpolatePolicy<mesh_type> this_type;
     typedef mesh::MeshEntityIdCoder M;
 public:
+    InterpolatePolicy() {}
 
-    typedef LinearInterpolator<TM> interpolate_policy;
-
-    LinearInterpolator() {}
-
-    virtual ~LinearInterpolator() {}
-
-    static std::string class_name() { return "LinearInterpolator"; }
+    virtual ~InterpolatePolicy() {}
 
 
 private:

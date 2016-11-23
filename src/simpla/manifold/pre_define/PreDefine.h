@@ -13,8 +13,8 @@
 //#include "../RectMesh.h"
 
 #include "../Manifold.h"
-#include "../schemes/FVMStructured.h"
-#include "../schemes/LinearInterpolator.h"
+#include "simpla/manifold/schemes/CalculusPolicy.h"
+#include "simpla/manifold/schemes/InterpolatePolicy.h"
 
 
 namespace simpla { namespace manifold
@@ -24,8 +24,8 @@ namespace simpla { namespace manifold
 
 template<typename MESH = mesh::CartesianGeometry>
 using DefaultManifold= Manifold<MESH,
-        schemes::FiniteVolume,
-        schemes::LinearInterpolator
+        schemes::CalculusPolicy,
+        schemes::InterpolatePolicy
         //        policy::StoragePolicy,
         //        policy::ParallelPolicy,
 >;

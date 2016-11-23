@@ -23,8 +23,8 @@ namespace simpla { namespace mesh
  *  Define of attribute
  *  *  is printable
  *  *  is serializable
- *  *  is unawar of mesh block
- *  *  is unawar of mesh atlas
+ *  *  is unware of mesh block
+ *  *  is unware of mesh atlas
  *  *  has a value type
  *  *  has a MeshEntityType (entity_type)
  *  *  has n data block (insert, erase,has,at)

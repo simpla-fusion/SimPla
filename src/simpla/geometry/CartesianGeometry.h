@@ -97,13 +97,13 @@ public:
     template<typename ...Args>
     point_type point(Args &&...args) const { return m_mesh_->point(std::forward<Args>(args)...); }
 
-    virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
+    Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 
-    virtual Real dual_volume(MeshEntityId s) const { return m_dual_volume_[m::node_id(s)]; }
+    Real dual_volume(MeshEntityId s) const { return m_dual_volume_[m::node_id(s)]; }
 
-    virtual Real inv_volume(MeshEntityId s) const { return m_inv_volume_[m::node_id(s)]; }
+    Real inv_volume(MeshEntityId s) const { return m_inv_volume_[m::node_id(s)]; }
 
-    virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
+    Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
 
 }; // struct  Mesh

@@ -60,10 +60,10 @@ public:
     mesh::DataBlockArray<TV, IFORM, DOF>;
 
     mesh::AttributeView<Real, VERTEX, 3> m_vertics_;
-    mesh::AttributeView<Real, VERTEX, 9> m_volume_;
-    mesh::AttributeView<Real, VERTEX, 9> m_dual_volume_;
-    mesh::AttributeView<Real, VERTEX, 9> m_inv_volume_;
-    mesh::AttributeView<Real, VERTEX, 9> m_inv_dual_volume_;
+    mesh::AttributeView<Real, VOLUME, 9> m_volume_;
+    mesh::AttributeView<Real, VOLUME, 9> m_dual_volume_;
+    mesh::AttributeView<Real, VOLUME, 9> m_inv_volume_;
+    mesh::AttributeView<Real, VOLUME, 9> m_inv_dual_volume_;
 
 
 public:
@@ -78,33 +78,111 @@ public:
 
     }
 
-    template<typename ...Args>
-    point_type point(Args &&...args) const { return m_mesh_->point(std::forward<Args>(args)...); }
+//    template<typename ...Args>
+//    point_type point(Args &&...args) const
+//    {
+//        FIXME;
+//        return m_mesh_->point(std::forward<Args>(args)...);
+//    }
 
-    virtual Real volume(MeshEntityId s) const
+    point_type point(MeshEntityId id, point_type const &pr) const
     {
-        return static_cast<data_block_type<Real, VERTEX, 9> const *>(m_volume_.data())->
+        /**
+          *\verbatim
+          *                ^s (dl)
+          *               /
+          *   (dz) t     /
+          *        ^    /
+          *        |  110-------------111
+          *        |  /|              /|
+          *        | / |             / |
+          *        |/  |            /  |
+          *       100--|----------101  |
+          *        | m |           |   |
+          *        |  010----------|--011
+          *        |  /            |  /
+          *        | /             | /
+          *        |/              |/
+          *       000-------------001---> r (dr)
+          *
+          *\endverbatim
+          */
+
+
+        auto const *d = static_cast<data_block_type<Real, VERTEX, 9> const *>(m_vertics_.data());
+
+        auto i = MeshEntityIdCoder::unpack_index(id);
+        Real r = pr[0], s = pr[1], t = pr[2];
+
+        Real w0 = (1 - r) * (1 - s) * (1 - t);
+        Real w1 = r * (1 - s) * (1 - t);
+        Real w2 = (1 - r) * s * (1 - t);
+        Real w3 = r * s * (1 - t);
+        Real w4 = (1 - r) * (1 - s) * t;
+        Real w5 = r * (1 - s) * t;
+        Real w6 = (1 - r) * s * t;
+        Real w7 = r * s * t;
+
+        Real x = d->get(i[0]/**/, i[1]/**/, i[2]/**/, 0) * w0 +
+                 d->get(i[0] + 1, i[1]/**/, i[2]/**/, 0) * w1 +
+                 d->get(i[0]/**/, i[1] + 1, i[2]/**/, 0) * w2 +
+                 d->get(i[0] + 1, i[1] + 1, i[2]/**/, 0) * w3 +
+                 d->get(i[0]/**/, i[1]/**/, i[2] + 1, 0) * w4 +
+                 d->get(i[0] + 1, i[1]/**/, i[2] + 1, 0) * w5 +
+                 d->get(i[0]/**/, i[1] + 1, i[2] + 1, 0) * w6 +
+                 d->get(i[0] + 1, i[1] + 1, i[2] + 1, 0) * w7;
+
+        Real y = d->get(i[0]/**/, i[1]/**/, i[2]/**/, 1) * w0 +
+                 d->get(i[0] + 1, i[1]/**/, i[2]/**/, 1) * w1 +
+                 d->get(i[0]/**/, i[1] + 1, i[2]/**/, 1) * w2 +
+                 d->get(i[0] + 1, i[1] + 1, i[2]/**/, 1) * w3 +
+                 d->get(i[0]/**/, i[1]/**/, i[2] + 1, 1) * w4 +
+                 d->get(i[0] + 1, i[1]/**/, i[2] + 1, 1) * w5 +
+                 d->get(i[0]/**/, i[1] + 1, i[2] + 1, 1) * w6 +
+                 d->get(i[0] + 1, i[1] + 1, i[2] + 1, 1) * w7;
+
+        Real z = d->get(i[0]/**/, i[1]/**/, i[2]/**/, 2) * w0 +
+                 d->get(i[0] + 1, i[1]/**/, i[2]/**/, 2) * w1 +
+                 d->get(i[0]/**/, i[1] + 1, i[2]/**/, 2) * w2 +
+                 d->get(i[0] + 1, i[1] + 1, i[2]/**/, 2) * w3 +
+                 d->get(i[0]/**/, i[1]/**/, i[2] + 1, 2) * w4 +
+                 d->get(i[0] + 1, i[1]/**/, i[2] + 1, 2) * w5 +
+                 d->get(i[0]/**/, i[1] + 1, i[2] + 1, 2) * w6 +
+                 d->get(i[0] + 1, i[1] + 1, i[2] + 1, 2) * w7;
+
+        return point_type{x, y, z};
+    }
+
+    point_type point(MeshEntityId s) const
+    {
+        auto i = MeshEntityIdCoder::unpack_index(s);
+        auto const *d = static_cast<data_block_type<Real, VERTEX, 9> const *>(m_vertics_.data());
+        return point_type{d->get(i[0], i[1], i[2], 0),
+                          d->get(i[0], i[1], i[2], 1),
+                          d->get(i[0], i[1], i[2], 2)};
+    }
+
+    Real volume(MeshEntityId s) const
+    {
+        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_volume_.data())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
-    virtual Real
-    dual_volume(MeshEntityId s) const
+    Real dual_volume(MeshEntityId s) const
     {
-        return static_cast<data_block_type<Real, VERTEX, 9> const *>(m_dual_volume_.data())->
+        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_dual_volume_.data())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
-    virtual Real
-    inv_volume(MeshEntityId s) const
+    Real inv_volume(MeshEntityId s) const
     {
-        return static_cast<data_block_type<Real, VERTEX, 9> const *>(m_inv_volume_.data())->
+        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_inv_volume_.data())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
-    virtual Real
-    inv_dual_volume(MeshEntityId s) const
+    Real inv_dual_volume(MeshEntityId s) const
     {
-        return static_cast<data_block_type<Real, VERTEX, 9> const *>(m_inv_dual_volume_.data())->
+        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_inv_dual_volume_.data())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 

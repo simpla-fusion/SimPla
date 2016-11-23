@@ -18,7 +18,6 @@
 #include <simpla/mesh/EntityIdRange.h>
 #include <simpla/mesh/MeshCommon.h>
 
-#include <simpla/manifold/Field.h>
 #include <simpla/manifold/FieldTraits.h>
 #include <simpla/manifold/FieldExpression.h>
 
@@ -343,7 +342,7 @@ template<typename ...T>
 inline auto operator*(Field<T...> const &f) DECL_RET_TYPE((hodge_star(f)))
 
 template<size_t ndims, typename TL, typename ...T>
-inline auto iv(nTuple<TL, ndims> const &v, Field<T...> const &f) DECL_RET_TYPE((interior_product(v, f)))
+inline auto iv(nTuple <TL, ndims> const &v, Field<T...> const &f) DECL_RET_TYPE((interior_product(v, f)))
 
 template<typename ...T1, typename ... T2>
 inline auto operator^(Field<T1...> const &lhs, Field<T2...> const &rhs) DECL_RET_TYPE((wedge(lhs, rhs)))
@@ -481,29 +480,29 @@ codifferential_derivative(T const &f)
  *
  */
 template<typename T> inline auto
-grad(T const &f, index_const<mesh::VERTEX>) DECL_RET_TYPE((exterior_derivative(f)))
+grad(T const &f, index_const <mesh::VERTEX>) DECL_RET_TYPE((exterior_derivative(f)))
 
 template<typename T> inline auto
-grad(T const &f, index_const<mesh::VOLUME>) DECL_RET_TYPE(((codifferential_derivative(-f))))
+grad(T const &f, index_const <mesh::VOLUME>) DECL_RET_TYPE(((codifferential_derivative(-f))))
 
 template<typename T> inline auto
 grad(T const &f) DECL_RET_TYPE((grad(f, traits::iform<T>())))
 
 template<typename T> inline auto
-diverge(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((exterior_derivative(f)))
+diverge(T const &f, index_const <mesh::FACE>) DECL_RET_TYPE((exterior_derivative(f)))
 
 template<typename T> inline auto
-diverge(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((codifferential_derivative(-f)))
+diverge(T const &f, index_const <mesh::EDGE>) DECL_RET_TYPE((codifferential_derivative(-f)))
 
 template<typename T> inline auto
 diverge(T const &f) DECL_RET_TYPE((diverge(f, traits::iform<T>())))
 
 
 template<typename T> inline auto
-curl(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((exterior_derivative(f)))
+curl(T const &f, index_const <mesh::EDGE>) DECL_RET_TYPE((exterior_derivative(f)))
 
 template<typename T> inline auto
-curl(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((codifferential_derivative(-f)))
+curl(T const &f, index_const <mesh::FACE>) DECL_RET_TYPE((codifferential_derivative(-f)))
 
 template<typename T> inline auto
 curl(T const &f) DECL_RET_TYPE((curl(f, traits::iform<T>())))
@@ -518,28 +517,28 @@ DECL_RET_TYPE((Field<Expression<ct::P_CodifferentialDerivative<I>, T >>(f)))
 
 
 template<typename T> inline auto
-curl_pdx(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<0>(f)))
+curl_pdx(T const &f, index_const <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<0>(f)))
 
 template<typename T> inline auto
-curl_pdx(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<0>(f)))
+curl_pdx(T const &f, index_const <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<0>(f)))
 
 template<typename T> inline auto
 curl_pdx(T const &f) DECL_RET_TYPE((curl_pdx(f, traits::iform<T>())))
 
 template<typename T> inline auto
-curl_pdy(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<1>(f)))
+curl_pdy(T const &f, index_const <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<1>(f)))
 
 template<typename T> inline auto
-curl_pdy(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<1>(f)))
+curl_pdy(T const &f, index_const <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<1>(f)))
 
 template<typename T> inline auto
 curl_pdy(T const &f) DECL_RET_TYPE((curl_pdy(f, traits::iform<T>())))
 
 template<typename T> inline auto
-curl_pdz(T const &f, index_const<mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<2>(f)))
+curl_pdz(T const &f, index_const <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<2>(f)))
 
 template<typename T> inline auto
-curl_pdz(T const &f, index_const<mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<2>(f)))
+curl_pdz(T const &f, index_const <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<2>(f)))
 
 template<typename T> inline auto
 curl_pdz(T const &f) DECL_RET_TYPE((curl_pdz(f, traits::iform<T>())))
