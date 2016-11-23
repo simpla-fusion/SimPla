@@ -527,7 +527,7 @@ namespace detail
 
 template<typename T>
 boost::shared_ptr<SAMRAI::hier::Variable>
-create_samrai_variable_t(unsigned int ndims, mesh::Attribute *attr)
+create_samrai_variable_t(unsigned int ndims, mesh::AttributeBase *attr)
 {
     static int var_depth[4] = {1, 3, 3, 1};
     if (attr->entity_type() <= mesh::VOLUME)
@@ -546,7 +546,7 @@ create_samrai_variable_t(unsigned int ndims, mesh::Attribute *attr)
 }
 
 boost::shared_ptr<SAMRAI::hier::Variable>
-create_samrai_variable(unsigned int ndims, mesh::Attribute *item)
+create_samrai_variable(unsigned int ndims, mesh::AttributeBase *item)
 {
     if (item->value_type_info() == typeid(float)) { return create_samrai_variable_t<float>(ndims, item); }
     else if (item->value_type_info() == typeid(double)) { return create_samrai_variable_t<double>(ndims, item); }
@@ -574,10 +574,10 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     }
 
     //**************************************************************
-    m_worker_->attributes().foreach(
+    m_worker_->foreach(
             [&](mesh::AttributeViewBase &ob)
             {
-                auto attr = ob.attribute();
+                auto &attr = ob.attribute();
 
                 if (attr == nullptr) { return; }
 
@@ -785,7 +785,7 @@ namespace detail
 //}
 template<typename TV, mesh::MeshEntityType IFORM, size_type DOF>
 std::shared_ptr<mesh::DataBlock>
-create_data_block_t2(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block_t2(std::shared_ptr<mesh::AttributeBase> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
 
@@ -818,7 +818,7 @@ create_data_block_t2(std::shared_ptr<mesh::Attribute> const &item, boost::shared
 
 template<typename TV, mesh::MeshEntityType IFORM>
 std::shared_ptr<mesh::DataBlock>
-create_data_block_t1(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block_t1(std::shared_ptr<mesh::AttributeBase> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
 
@@ -843,7 +843,7 @@ create_data_block_t1(std::shared_ptr<mesh::Attribute> const &item, boost::shared
 
 template<typename TV>
 std::shared_ptr<mesh::DataBlock>
-create_data_block_t0(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block_t0(std::shared_ptr<mesh::AttributeBase> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
 
@@ -869,7 +869,7 @@ create_data_block_t0(std::shared_ptr<mesh::Attribute> const &item, boost::shared
 };
 
 std::shared_ptr<mesh::DataBlock>
-create_data_block(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block(std::shared_ptr<mesh::AttributeBase> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
     if (item->value_type_info() == typeid(float)) { res = create_data_block_t0<float>(item, pd); }

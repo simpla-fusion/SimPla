@@ -5,11 +5,12 @@
 #include <simpla/SIMPLA_config.h>
 
 #include <iostream>
-#include <simpla/manifold/pre_define/PreDefine.h>
 
 #include <simpla/concept/Object.h>
 #include <simpla/mesh/Atlas.h>
 #include <simpla/geometry/CartesianGeometry.h>
+#include <simpla/geometry/CylindricalGeometry.h>
+
 #include <simpla/manifold/Field.h>
 #include <simpla/physics/Constants.h>
 
@@ -34,7 +35,6 @@ struct AMRTest : public mesh::Worker
 
     ~AMRTest() {}
 
-    TM m;
 
     mesh::AttributeHolder m_attr_holder_;
 
@@ -44,22 +44,31 @@ struct AMRTest : public mesh::Worker
     Real epsilon = 1.0;
     Real mu = 1.0;
 
-    field_type<Real, mesh::FACE> B{&m, this, "B"};
-    field_type<Real, mesh::EDGE> E{&m, this, "E"};
-    field_type<Real, mesh::EDGE> J{&m, this, "J"};
-    field_type<Real, mesh::VERTEX, 3> Ev{&m, this, "Ev"};
+    field_type<Real, mesh::FACE> B{this, "B"};
+    field_type<Real, mesh::EDGE> E{this, "E"};
+    field_type<Real, mesh::EDGE> J{this, "J"};
+    field_type<Real, mesh::VERTEX, 3> Ev{this, "Ev"};
 
-    std::shared_ptr<mesh::MeshBlock> mesh() const { return m.mesh_block(); }
+    virtual std::shared_ptr<mesh::MeshBlock>
+    create_mesh_block(int n, index_type const *lo,
+                      index_type const *hi,
+                      Real const *dx = nullptr,
+                      Real const *x0 = nullptr,
+                      id_type id = 0)
+    {
+        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<mesh_type>(3, lo, hi, dx, x0, id));
+    };
 
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_) { m.move_to(m_); }
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_) { ; }
 
     virtual mesh::AttributeHolder &attributes() { return m_attr_holder_; }
 
     virtual mesh::AttributeHolder const &attributes() const { return m_attr_holder_; }
 
+
     void initialize(Real data_time)
     {
-        m.initialize();
+        mesh_block()->initialize();
         Ev.clear();
         E.clear();
         B.clear();
@@ -77,7 +86,7 @@ struct AMRTest : public mesh::Worker
     virtual void setPhysicalBoundaryConditions(double time)
     {
 
-        auto b = mesh()->inner_index_box();
+        auto b = mesh_block()->inner_index_box();
         index_tuple p = {NX / 2, NY / 2, NZ / 2};
         if (toolbox::is_inside(p, b)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
 

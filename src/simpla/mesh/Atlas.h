@@ -18,7 +18,6 @@
 
 namespace simpla { namespace mesh
 {
-class Attribute;
 
 /**
  *  Manifold (Differential Manifold):

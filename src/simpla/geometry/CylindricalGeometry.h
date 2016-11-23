@@ -44,13 +44,13 @@ public:
     static constexpr int ndims = 3;
 
     template<typename ...Args>
-    explicit CylindricalGeometry(Args &&...args):GeometryBase(std::forward<Args>(args)...)
+    explicit CylindricalGeometry(Args &&...args): MeshBlock(std::forward<Args>(args)...)
     {
-        m_vertics_.connect(this, "vertices", "COORDINATES");
-        m_volume_.connect(this, "volume", "NO_FILL");
-        m_dual_volume_.connect(this, "dual_volume", "NO_FILL");
-        m_inv_volume_.connect(this, "inv_volume", "NO_FILL");
-        m_inv_dual_volume_.connect(this, "inv_dual_volume", "NO_FILL");
+//        m_vertics_.connect(this, "vertices", "COORDINATES");
+//        m_volume_.connect(this, "volume", "NO_FILL");
+//        m_dual_volume_.connect(this, "dual_volume", "NO_FILL");
+//        m_inv_volume_.connect(this, "inv_volume", "NO_FILL");
+//        m_inv_dual_volume_.connect(this, "inv_dual_volume", "NO_FILL");
     }
 
     ~CylindricalGeometry() {}
@@ -176,7 +176,6 @@ public:
     void initialize()
     {
         //        VERBOSE << mesh_block()->inv_dx() << mesh_block()->dx() << std::endl;
-        ASSERT(m_mesh_ != nullptr);
 
         m_vertics_.clear();
         m_volume_.clear();
@@ -212,15 +211,15 @@ public:
         index_type je = m_start_[1] + m_count_[1];
         index_type kb = m_start_[2];
         index_type ke = m_start_[2] + m_count_[2];
-        auto m_dx_ = m_mesh_->dx();
-#define GET3(_NAME_, _I, _J, _K, _L)  ( static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(_NAME_.data()))->get(_I,_J,_K,_L)
-#define GET9(_NAME_, _I, _J, _K, _L)  ( static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(_NAME_.data()))->get(_I,_J,_K,_L)
+        auto m_dx_ = MeshBlock::dx();
+#define GET3(_NAME_, _I, _J, _K, _L)  ( static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(_NAME_.data_block()))->get(_I,_J,_K,_L)
+#define GET9(_NAME_, _I, _J, _K, _L)  ( static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(_NAME_.data_block()))->get(_I,_J,_K,_L)
 
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k)
                 {
-                    auto x = m_mesh_->point(i, j, k);
+                    auto x = MeshBlock::point(i, j, k);
 
                     GET3(m_vertics_, i, j, k, 0) = (1 + x[0]) * std::cos(x[1]);
                     GET3(m_vertics_, i, j, k, 1) = (1 + x[0]) * std::sin(x[1]);

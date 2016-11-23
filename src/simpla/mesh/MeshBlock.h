@@ -84,7 +84,7 @@ public:
 
     MeshBlock();
 
-    MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *x_lo);
+    MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *x_lo, id_type id);
 
     MeshBlock(MeshBlock const &);
 

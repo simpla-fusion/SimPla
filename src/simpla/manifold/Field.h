@@ -85,8 +85,8 @@ public:
 
     void deploy()
     {
-        m_mesh_ = base_type::get_mesh<mesh_type>();
-        m_data_ = base_type::get_data<data_block>();
+//        m_mesh_ = base_type::get_mesh<mesh_type>();
+        m_data_ = base_type::template get_data<data_block>();
         m_data_->deploy();
     }
 

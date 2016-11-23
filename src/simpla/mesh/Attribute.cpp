@@ -19,6 +19,8 @@ struct AttributeBase::pimpl_s
                                                                        void *)> > m_data_factory;
 };
 
+AttributeBase::AttributeBase() {};
+
 AttributeBase::AttributeBase(std::string const &s, std::string const &config_str)
         : Object(), m_name_(s), m_pimpl_(new pimpl_s)
 {
@@ -50,7 +52,7 @@ void AttributeBase::save(data::DataBase *) const { UNIMPLEMENTED; }
 bool AttributeBase::has(const id_type &m) const
 {
     ASSERT(m_pimpl_ != nullptr);
-    return (m == nullptr) ? false : m_pimpl_->m_patches_.find(m) != m_pimpl_->m_patches_.end();
+    return m_pimpl_->m_patches_.find(m) != m_pimpl_->m_patches_.end();
 }
 
 
@@ -73,7 +75,7 @@ std::shared_ptr<DataBlock> const &AttributeBase::at(const id_type &m) const
     {
         throw std::out_of_range(
                 FILE_LINE_STAMP_STRING + "Can not find Mesh Block! "
-                        "[ null mesh: " + string_cast(m == nullptr) + "]");
+                        "[ null mesh: " + string_cast(m) + "]");
 
     }
 }
@@ -90,7 +92,7 @@ std::shared_ptr<DataBlock> &AttributeBase::at(const id_type &m)
     {
         throw std::out_of_range(
                 FILE_LINE_STAMP_STRING + "Can not find Mesh Block! "
-                        "[ null mesh: " + string_cast(m == nullptr) + "]");
+                        "[ null mesh: " + string_cast(m) + "]");
 
     }
 }
@@ -155,23 +157,13 @@ void AttributeBase::register_data_block_factory(
 };
 
 
-void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr)
+void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
 {
     ASSERT(m != nullptr);
 
-    if (m_id_ == m->id() && m_data_holder_ != nullptr) { return; }
+    m_id_ = m->id();
 
-    if (m_attr_ == nullptr)
-    {
-        m_data_holder_ = d;
-    } else if (d == nullptr)
-    {
-        m_data_holder_ = m_attr_->at(m->id());
-    } else
-    {
-        m_data_holder_ = m_attr_->insert_or_assign(m->id(), d);
-
-    }
+    if (m_attr_ == nullptr) { m_data_holder_ = d; } else { m_data_holder_ = m_attr_->insert_or_assign(m, d); }
 
     deploy();
 }
@@ -179,13 +171,14 @@ void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared
 void AttributeViewBase::move_to(id_type const &id)
 {
     ASSERT(m_attr_ != nullptr);
+    m_id_ = id;
     m_data_holder_ = m_attr_->at(id);
 }
 
 
 void AttributeViewBase::deploy()
 {
-    if (m_attr_ == nullptr) { m_data_holder_ = m_attr_->at(m_id_); }
+    if (m_attr_ != nullptr) { m_data_holder_ = m_attr_->at(m_id_); }
     ASSERT(m_data_holder_ != nullptr);
     m_data_holder_->deploy();
 };
@@ -196,4 +189,9 @@ void AttributeViewBase::clear()
     m_data_holder_->clear();
 }
 
+void AttributeViewBase::destroy()
+{
+    m_data_holder_.reset();
+    if (m_attr_ != nullptr) { m_attr_->erase(m_id_); }
+}
 }}//namespace simpla { namespace mesh

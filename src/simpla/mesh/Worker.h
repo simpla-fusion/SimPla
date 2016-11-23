@@ -25,7 +25,6 @@ namespace simpla { namespace mesh
 {
 struct MeshBlock;
 struct DataBlock;
-struct Attribute;
 
 class Worker :
         public Object,
@@ -48,7 +47,9 @@ public:
 
     virtual void save(data::DataBase *) const { UNIMPLEMENTED; }
 
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m)=0;
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_mesh_ = m; };
+
+    virtual std::shared_ptr<mesh::MeshBlock> mesh_block() const { return m_mesh_; };
 
     virtual void initialize(Real data_time)=0;
 
@@ -56,9 +57,6 @@ public:
 
     virtual void next_time_step(Real data_time, Real dt)=0;
 
-    virtual GeometryBase const *geometry() const =0;
-
-    virtual GeometryBase *geometry()  =0;
 
     virtual std::shared_ptr<MeshBlock>
     create_mesh_block(int n, index_type const *lo,
@@ -68,6 +66,7 @@ public:
                       id_type id = 0)=0;
 
 private:
+    std::shared_ptr<mesh::MeshBlock> m_mesh_;
     std::string m_name_;
 
 };

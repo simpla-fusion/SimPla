@@ -95,8 +95,10 @@ private:
 public:
     typedef mesh::MeshEntityIdCoder m;
 
-    template<typename ...Args>
-    point_type point(Args &&...args) const { return m_mesh_->point(std::forward<Args>(args)...); }
+//    template<typename ...Args>
+//    point_type point(Args &&...args) const { return MeshBlock::point(std::forward<Args>(args)...); }
+
+    using MeshBlock::point;
 
     Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 
@@ -131,11 +133,10 @@ void CartesianGeometry::initialize()
         *
         *\endverbatim
         */
-    ASSERT(m_mesh_ != nullptr);
 
-    auto const &dims = mesh_block()->dimensions();
-    m_dx_ = mesh_block()->dx();
-    m_inv_dx_ = mesh_block()->inv_dx();
+    auto const &dims = MeshBlock::dimensions();
+    m_dx_ = MeshBlock::dx();
+    m_inv_dx_ = MeshBlock::inv_dx();
 
     m_volume_[0 /*000*/] = 1;
     m_volume_[1 /*001*/] = (dims[0] == 1) ? 1 : m_dx_[0];

@@ -42,6 +42,8 @@ public:
 
     SP_OBJECT_HEAD(AttributeBase, Object)
 
+    AttributeBase();
+
     AttributeBase(std::string const &s, std::string const &config_str = "");
 
     AttributeBase(AttributeBase const &) = delete;
@@ -54,7 +56,6 @@ public:
 
     virtual std::type_info const &value_type_info() const =0;
 
-    // degree of freedom
     virtual size_t dof() const { return 1; };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
@@ -119,15 +120,7 @@ struct AttributeViewBase : public design_pattern::Observer<void(id_type const &)
 {
     typedef design_pattern::Observer<void(id_type const &)> base_type;
 
-    AttributeViewBase(std::shared_ptr<AttributeBase> const &attr = nullptr) : m_attr_(attr)
-    {
-
-        if (m_attr_ != nullptr)
-        {
-            register_data_block_factory(m_attr_);
-        }
-
-    };
+    AttributeViewBase(std::shared_ptr<AttributeBase> const &attr = nullptr) : m_attr_(attr) {};
 
     virtual ~AttributeViewBase() {}
 
@@ -137,9 +130,11 @@ struct AttributeViewBase : public design_pattern::Observer<void(id_type const &)
 
     void notify(id_type const &m) { move_to(m); };
 
-    std::shared_ptr<AttributeBase> attribute() { return m_attr_; }
+    id_type mesh_id() const { return m_id_; }
 
-    std::shared_ptr<AttributeBase> attribute() const { return m_attr_; }
+    std::shared_ptr<AttributeBase> &attribute() { return m_attr_; }
+
+    std::shared_ptr<AttributeBase> const &attribute() const { return m_attr_; }
 
     DataBlock *data_block() { return m_data_holder_.get(); };
 
@@ -157,7 +152,7 @@ struct AttributeViewBase : public design_pattern::Observer<void(id_type const &)
     template<typename U>
     U *get_data()
     {
-        auto const *d = data_block();
+        auto *d = data_block();
         ASSERT(d != nullptr);
         ASSERT(d->is_a(typeid(U)));
         return static_cast<U *>(d);
@@ -179,7 +174,7 @@ struct AttributeViewBase : public design_pattern::Observer<void(id_type const &)
 
     virtual void clear();
 
-    virtual void destroy() { DO_NOTHING; };
+    virtual void destroy();
 
     virtual void register_data_block_factory(std::shared_ptr<AttributeBase> const &attr) const =0;
 
@@ -221,17 +216,20 @@ public:
 
     static constexpr size_type DOF = IDOF;
 
-    explicit AttributeView(std::shared_ptr<attribute_type> const &attr = nullptr) :
-            AttributeViewBase(attr == nullptr ? nullptr :
-                              std::dynamic_pointer_cast<Attribute>(std::make_shared<attribute_type>())) {}
+    explicit AttributeView() {}
+
+    explicit AttributeView(std::shared_ptr<attribute_type> const &attr) :
+            AttributeViewBase(std::dynamic_pointer_cast<AttributeBase>(std::make_shared<attribute_type>()))
+    {
+        if (attribute() != nullptr) { register_data_block_factory(attribute()); }
+    }
 
     template<typename ...Args>
-    explicit AttributeView(Args &&...args) :
-            AttributeViewBase(
-                    std::dynamic_pointer_cast<Attribute>(
-                            std::make_shared<attribute_type>(std::forward<Args>(args)...)))
+    explicit AttributeView(AttributeHolder *holder, Args &&...args) :
+            AttributeViewBase(std::dynamic_pointer_cast<AttributeBase>(
+                    std::make_shared<attribute_type>(std::forward<Args>(args)...)))
     {
-
+        if (attribute() != nullptr) { register_data_block_factory(attribute()); }
     };
 
     virtual ~AttributeView() {}
@@ -239,7 +237,6 @@ public:
     AttributeView(AttributeView const &other) = delete;
 
     AttributeView(AttributeView &&other) = delete;
-
 
     virtual void register_data_block_factory(std::shared_ptr<AttributeBase> const &attr) const
     {
@@ -252,7 +249,6 @@ public:
                 });
     }
 
-
     virtual MeshEntityType entity_type() const { return IFORM; };
 
     virtual std::type_info const &value_type_info() const { return typeid(TV); };
@@ -260,14 +256,11 @@ public:
     virtual size_type dof() const { return DOF; };
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
-
-
 };
 
-struct AttributeHolder :
-        public design_pattern::Observable<void(std::shared_ptr<MeshBlock> const &)>
+struct AttributeHolder : public design_pattern::Observable<void(id_type const &)>
 {
-    typedef design_pattern::Observable<void(std::shared_ptr<MeshBlock> const &)> base_type;
+    typedef design_pattern::Observable<void(id_type const &)> base_type;
 
     AttributeHolder() {}
 
@@ -304,7 +297,7 @@ struct AttributeHolder :
         base_type::disconnect(view);
     }
 
-    virtual void move_to(std::shared_ptr<MeshBlock> const &m) { notify(m); }
+    virtual void move_to(id_type const &m) { notify(m); }
 
     virtual void remove(std::string const &key) { UNIMPLEMENTED; }
 
@@ -324,25 +317,25 @@ struct AttributeHolder :
     };
 
 private:
-    std::map<std::string, std::shared_ptr<Attribute>> m_attr_holders_;
+    std::map<std::string, std::shared_ptr<AttributeBase>> m_attr_holders_;
 };
 
-
-template<typename TV, MeshEntityType IFORM, size_type IDOF> template<typename ...Args> void
-AttributeView<TV, IFORM, IDOF>::connect(AttributeHolder *w, std::string const &key, Args &&...args)
-{
-    if (!w->connect(this, key))
-    {
-        m_attr_ = std::make_shared<attribute_type>(key, std::forward<Args>(args)...);
-
-        register_data_block_factory(m_attr_);
-
-        if (!w->connect(this, key))
-        {
-            RUNTIME_ERROR << "Can not connect attribute view!" << std::endl;
-        }
-    }
-};
+//
+//template<typename TV, MeshEntityType IFORM, size_type IDOF> template<typename ...Args> void
+//AttributeView<TV, IFORM, IDOF>::connect(AttributeHolder *w, std::string const &key, Args &&...args)
+//{
+//    if (!w->connect(this, key))
+//    {
+//        m_attr_ = std::make_shared<attribute_type>(key, std::forward<Args>(args)...);
+//
+//        register_data_block_factory(m_attr_);
+//
+//        if (!w->connect(this, key))
+//        {
+//            RUNTIME_ERROR << "Can not connect attribute view!" << std::endl;
+//        }
+//    }
+//};
 }} //namespace data_block
 #endif //SIMPLA_ATTRIBUTE_H
 
