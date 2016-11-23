@@ -912,7 +912,6 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
 
 
     m->deploy();
-    w->move_to(m);
     w->foreach(
             [&](mesh::AttributeViewBase &ob)
             {
@@ -925,6 +924,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
                                                  getDataContext())));
             }
     );
+    w->move_to(m);
 
 
 }

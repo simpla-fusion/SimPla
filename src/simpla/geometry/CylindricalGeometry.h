@@ -46,11 +46,8 @@ public:
     template<typename ...Args>
     explicit CylindricalGeometry(Args &&...args): MeshBlock(std::forward<Args>(args)...)
     {
-//        m_vertics_.connect(this, "vertices", "COORDINATES");
-//        m_volume_.connect(this, "volume", "NO_FILL");
-//        m_dual_volume_.connect(this, "dual_volume", "NO_FILL");
-//        m_inv_volume_.connect(this, "inv_volume", "NO_FILL");
-//        m_inv_dual_volume_.connect(this, "inv_dual_volume", "NO_FILL");
+
+
     }
 
     ~CylindricalGeometry() {}
@@ -68,7 +65,14 @@ private:
 
 
 public:
-
+    void connect(AttributeHolder *holder)
+    {
+        m_vertics_.connect(holder, "vertices", "COORDINATES");
+        m_volume_.connect(holder, "volume", "NO_FILL");
+        m_dual_volume_.connect(holder, "dual_volume", "NO_FILL");
+        m_inv_volume_.connect(holder, "inv_volume", "NO_FILL");
+        m_inv_dual_volume_.connect(holder, "inv_dual_volume", "NO_FILL");
+    }
 
     point_type point(MeshEntityId id, point_type const &pr) const
     {

@@ -56,10 +56,10 @@ struct AMRTest : public mesh::Worker
                       Real const *x0 = nullptr,
                       id_type id = 0)
     {
-        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<mesh_type>(3, lo, hi, dx, x0, id));
+        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<mesh_type>(n, lo, hi, dx, x0, id));
     };
 
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_) { ; }
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_) { mesh::Worker::move_to(m_); }
 
     virtual mesh::AttributeHolder &attributes() { return m_attr_holder_; }
 
@@ -68,6 +68,7 @@ struct AMRTest : public mesh::Worker
 
     void initialize(Real data_time)
     {
+        mesh_block()->connect(this);
         mesh_block()->initialize();
         Ev.clear();
         E.clear();

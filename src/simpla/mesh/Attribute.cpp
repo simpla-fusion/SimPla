@@ -157,7 +157,7 @@ void AttributeBase::register_data_block_factory(
 };
 
 void
-AttributeViewBase::connect(AttributeHolder *w, std::string const &key)
+AttributeViewBase::connect(AttributeHolder *w, std::string const &key, std::string const &cfg)
 {
     if (!w->connect(this, key))
     {

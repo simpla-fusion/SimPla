@@ -181,7 +181,7 @@ struct AttributeViewBase : public design_pattern::Observer<void(id_type const &)
 
     virtual void register_data_block_factory(std::shared_ptr<AttributeBase> const &attr) const =0;
 
-    void connect(AttributeHolder *w, std::string const &key);
+    void connect(AttributeHolder *w, std::string const &key, std::string const &cfg = "");
 
 
 private:
@@ -270,8 +270,8 @@ struct AttributeHolder : public design_pattern::Observable<void(id_type const &)
 
     virtual ~AttributeHolder() {}
 
-    template<typename ...Args> bool
-    connect(AttributeViewBase *view, std::string const &key)
+    bool
+    connect(AttributeViewBase *view, std::string const &key, std::string const &cfg = "")
     {
         ASSERT(view != nullptr);
         bool success = true;
@@ -289,7 +289,6 @@ struct AttributeHolder : public design_pattern::Observable<void(id_type const &)
                 m_attr_holders_.emplace(std::make_pair(key, view->attribute()));
             }
             success = true;
-
         }
         return success;
     }
