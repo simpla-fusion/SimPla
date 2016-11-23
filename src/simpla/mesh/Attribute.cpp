@@ -108,7 +108,7 @@ void Attribute::insert(const std::shared_ptr<MeshBlock> &m, const std::shared_pt
     WARNING << "Wrong Way!" << std::endl;
     ASSERT(m_pimpl_ != nullptr);
 
-    if (m == nullptr) { OUT_OF_RANGE << " try to insert null mesh or data block" << std::endl; }
+    if (m == nullptr) { OUT_OF_RANGE << " try to insert null mesh or data_block block" << std::endl; }
     else
     {
 
@@ -126,7 +126,7 @@ void Attribute::insert(const std::shared_ptr<MeshBlock> &m, const std::shared_pt
 
             } else
             {
-                RUNTIME_ERROR << " data block factory is not registered!" << std::endl;
+                RUNTIME_ERROR << " data_block block factory is not registered!" << std::endl;
             }
 
         }

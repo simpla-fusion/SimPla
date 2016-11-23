@@ -94,7 +94,7 @@ public:
     {
         os << " type = \'" << value_type_info().name() << "\' "
            << ", entity type = " << static_cast<int>(entity_type())
-           << ", data = {";
+           << ", data_block = {";
         data_entity_type::print(os, indent + 1);
         os << "}";
         return os;
@@ -103,7 +103,7 @@ public:
 
 //    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *m) const
 //    {
-//        // FIXME :: data block is not initializied!!
+//        // FIXME :: data_block block is not initializied!!
 //        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>());
 //    };
 

@@ -18,8 +18,7 @@
 
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/Attribute.h>
-
-#include "ManifoldTraits.h"
+#include <simpla/mesh/Atlas.h>
 
 
 namespace simpla { namespace manifold
@@ -132,48 +131,19 @@ namespace simpla { namespace manifold
  */
 
 
-template<typename TGeo, template<typename...> class ...Policies>
-class Manifold :
-        public mesh::AttributeHolder,
-        public Policies<TGeo> ...
+class Manifold
 {
-    typedef Manifold<TGeo, Policies ...> this_type;
 
 public:
-    typedef TGeo mesh_type;
-    typedef TGeo geometry_type;
-    geometry_type m_geo_;
+    std::shared_ptr<mesh::AttributeHolder> m_attr_holder_;
+    std::shared_ptr<mesh::Atlas> m_atlas_;
 
-    Manifold() : Policies<TGeo>()... { m_geo_.connect(this); }
+
+    Manifold() {}
 
     virtual ~Manifold() {}
 
-    Manifold(this_type const &other) = delete;
-
-    this_type &operator=(const this_type &other) = delete;
-
-    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
-
-    virtual std::string get_class_name() const { return name(); }
-
-    virtual std::string name() const
-    {
-        return "Manifold<" + traits::type_id_list<geometry_type, Policies<geometry_type>...>::name() + " > ";
-    }
-
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m)
-    {
-        m_geo_.move_to(m);
-        mesh::AttributeHolder::move_to(m);
-    }
-
-    geometry_type &geometry() { return m_geo_; }
-
-    geometry_type const &geometry() const { return m_geo_; }
-
-    virtual void deploy()
-    {
-    }
+    Manifold(Manifold const &other) = delete;
 
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const

@@ -115,6 +115,14 @@ public:
         return std::dynamic_pointer_cast<DataBlock>(
                 std::make_shared<data_block_type<TV, IFORM, DOF>>(static_cast<TV *>(p), ndims, lo, hi));
     };
+
+
+    virtual void initialize() { DO_NOTHING; }
+
+    virtual void deploy();
+
+    virtual bool is_deployed() const { return m_is_deployed_; };
+
 //    template<typename TV, mesh::MeshEntityType IFORM>
 //    std::shared_ptr<mesh::DataBlock> create_data_block(void *p) const
 //    {
@@ -188,9 +196,6 @@ public:
 
     void shift(index_type const *) {}
 
-    virtual void deploy();
-
-    virtual bool is_deployed() const { return m_is_deployed_; };
 
     virtual bool is_valid()
     {

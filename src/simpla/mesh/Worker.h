@@ -29,6 +29,7 @@ struct Attribute;
 
 class Worker :
         public Object,
+        public AttributeHolder,
         public concept::Printable,
         public concept::Serializable
 {
@@ -55,13 +56,19 @@ public:
 
     virtual void next_time_step(Real data_time, Real dt)=0;
 
-    virtual AttributeHolder &attributes()=0;
+    virtual GeometryBase const *geometry() const =0;
 
-    virtual AttributeHolder const &attributes() const =0;
+    virtual GeometryBase *geometry()  =0;
 
+    virtual std::shared_ptr<MeshBlock>
+    create_mesh_block(int n, index_type const *lo,
+                      index_type const *hi,
+                      Real const *dx = nullptr,
+                      Real const *x0 = nullptr)=0;
 
 private:
     std::string m_name_;
+
 };
 
 

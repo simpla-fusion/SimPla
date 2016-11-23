@@ -307,8 +307,8 @@ public:
 
 private:
    /*
-    * These private member functions read data from input and restart.
-    * When beginning a run from a restart file, all data members are read
+    * These private member functions read data_block from input and restart.
+    * When beginning a run from a restart file, all data_block members are read
     * from the restart file.  If the boolean flag is true when reading
     * from input, some restart values may be overridden by those in the
     * input file.
@@ -331,7 +331,7 @@ private:
       std::vector<double>& uval);
 
    /*
-    * Private member function to check correctness of boundary data.
+    * Private member function to check correctness of boundary data_block.
     */
    void
    checkBoundaryData(
@@ -363,8 +363,8 @@ private:
    const tbox::Dimension d_dim;
 
    /*
-    * We cache pointers to the grid geometry and VisIt data writer
-    * object to set up initial data, set physical boundary conditions,
+    * We cache pointers to the grid geometry and VisIt data_block writer
+    * object to set up initial data_block, set physical boundary conditions,
     * and register plot variables.
     */
    boost::shared_ptr<hier::BaseGridGeometry> d_grid_geometry;

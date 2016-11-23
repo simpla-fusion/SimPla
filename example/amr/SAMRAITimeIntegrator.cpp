@@ -430,7 +430,7 @@ private:
 
     /*
      * We cache pointers to the grid geometry object to set up initial
-     * data, set physical boundary conditions, and register plot
+     * data_block, set physical boundary conditions, and register plot
      * variables.
      */
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
@@ -569,8 +569,8 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 
     if (!d_visit_writer)
     {
-        RUNTIME_ERROR << m_name_ << ": registerModelVariables() VisIt data writer was not registered."
-                "Consequently, no plot data will be written." << std::endl;
+        RUNTIME_ERROR << m_name_ << ": registerModelVariables() VisIt data_block writer was not registered."
+                "Consequently, no plot data_block will be written." << std::endl;
     }
 
     //**************************************************************
@@ -731,7 +731,7 @@ namespace detail
 //
 //    return std::dynamic_pointer_cast<mesh::DataBlock>(
 //            std::make_shared<mesh::DataBlockArray<TV, mesh::VERTEX>>(p_data->getPointer(0), 3, i_lo, i_up,
-//                                                                     data::FAST_FIRST));
+//                                                                     data_block::FAST_FIRST));
 //}
 //
 //template<typename TV> std::shared_ptr<mesh::DataBlock>
@@ -744,7 +744,7 @@ namespace detail
 //
 //    return std::dynamic_pointer_cast<mesh::DataBlock>(
 //            std::make_shared<mesh::DataBlockArray<TV, mesh::VOLUME>>(p_data->getPointer(0), 3, i_lo, i_up,
-//                                                                     data::FAST_FIRST));
+//                                                                     data_block::FAST_FIRST));
 //}
 //
 //template<typename TV> std::shared_ptr<mesh::DataBlock>
@@ -757,7 +757,7 @@ namespace detail
 //
 //    return std::dynamic_pointer_cast<mesh::DataBlock>(
 //            std::make_shared<mesh::DataBlockArray<TV, mesh::EDGE>>(p_data->getPointer(0), 4, i_lo, i_up,
-//                                                                   data::FAST_FIRST));
+//                                                                   data_block::FAST_FIRST));
 //}
 //
 //template<typename TV> std::shared_ptr<mesh::DataBlock>
@@ -771,7 +771,7 @@ namespace detail
 //
 //    return std::dynamic_pointer_cast<mesh::DataBlock>(
 //            std::make_shared<mesh::DataBlockArray<TV, mesh::FACE>>(p_data->getPointer(0), 4, i_lo, i_up,
-//                                                                   data::FAST_FIRST));
+//                                                                   data_block::FAST_FIRST));
 //}
 //
 //template<typename TV, mesh::MeshEntityType IFORM> void
@@ -904,7 +904,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
             patch.getBox().upper()[2]
     };
 
-    std::shared_ptr<mesh::MeshBlock> m = std::make_shared<mesh::MeshBlock>(3, lo, hi, dx, xlo);
+    std::shared_ptr<mesh::MeshBlock> m = w->create_mesh_block(3, lo, hi, dx, xlo);
 
     m->id(patch.getBox().getGlobalId().getOwnerRank() * 10000 + patch.getBox().getGlobalId().getLocalId().getValue());
 
@@ -1076,7 +1076,7 @@ void SAMRAIWorker::setPhysicalBoundaryConditions(
 /*
  *************************************************************************
  *
- * Register VisIt data writer to write data to plot files that may
+ * Register VisIt data_block writer to write data_block to plot files that may
  * be postprocessed by the VisIt tool.
  *
  *************************************************************************

@@ -96,9 +96,9 @@ public:
 //
 //    virtual bool empty() const = 0;
 //
-//    virtual void *data() = 0;
+//    virtual void *data_block() = 0;
 //
-//    virtual void const *data() const = 0;
+//    virtual void const *data_block() const = 0;
 
 
 

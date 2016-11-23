@@ -94,7 +94,7 @@ MblkLinAdv {
       // test.
    }
 
-   // Boundary condition data following the format defined in
+   // Boundary condition data_block following the format defined in
    // appu::CartesianBoundaryUtility[2,3].  Refer to these classes for details.
    Boundary_data {
       boundary_face_xlo {

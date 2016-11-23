@@ -44,10 +44,10 @@ struct AMRTest : public mesh::Worker
     Real epsilon = 1.0;
     Real mu = 1.0;
 
-    field_type<Real, mesh::FACE> B{&m, "B"};
-    field_type<Real, mesh::EDGE> E{&m, "E"};
-    field_type<Real, mesh::EDGE> J{&m, "J"};
-    field_type<Real, mesh::VERTEX, 3> Ev{&m, "Ev"};
+    field_type<Real, mesh::FACE> B{&m, this, "B"};
+    field_type<Real, mesh::EDGE> E{&m, this, "E"};
+    field_type<Real, mesh::EDGE> J{&m, this, "J"};
+    field_type<Real, mesh::VERTEX, 3> Ev{&m, this, "Ev"};
 
     std::shared_ptr<mesh::MeshBlock> mesh() const { return m.mesh_block(); }
 

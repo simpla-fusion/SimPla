@@ -27,10 +27,13 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public GeometryBase
+struct CartesianGeometry : public MeshBlock
 {
 
 public:
+
+    SP_OBJECT_HEAD(CartesianGeometry, MeshBlock);
+
     static constexpr unsigned int NDIMS = 3;
 
 
@@ -72,8 +75,6 @@ public:
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=
     mesh::DataBlockArray<TV, IFORM, DOF>;
 
-
-    CartesianGeometry() {}
 
     template<typename ...Args>
     explicit CartesianGeometry(Args &&...args):GeometryBase(std::forward<Args>(args)...) {}

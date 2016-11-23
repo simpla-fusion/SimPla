@@ -393,5 +393,5 @@ public:
 
     };
 };
-}}//namespace simpla { namespace data
+}}//namespace simpla { namespace data_block
 #endif //SIMPLA_ARRAYPATCH_H

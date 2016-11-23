@@ -439,13 +439,13 @@ public:
 //
 //class PolynomialInterpolation
 //{
-//	int m_;
+//	int m_mesh_;
 //public:
 //
 //	typedef PolynomialInterpolation this_type;
 //
 //	PolynomialInterpolation(int m) :
-//			m_(m)
+//			m_mesh_(m)
 //	{
 //	}
 //	~PolynomialInterpolation(int m)
@@ -476,7 +476,7 @@ public:
 //
 //		int ns = 0;
 //
-//		for (int i = 0; i < m_; ++i)
+//		for (int i = 0; i < m_mesh_; ++i)
 //		{
 //			key_type dift = abs(x - it->first);
 //			if (dift < dif)
@@ -514,7 +514,7 @@ public:
 //
 //				c[i] = ho * den;
 //			}
-//			y += (2 * (ns + 1) < (m_ - m) ? c[ns + 1] : d[ns--]);
+//			y += (2 * (ns + 1) < (m_mesh_ - m) ? c[ns + 1] : d[ns--]);
 //
 //		}
 //		return y;

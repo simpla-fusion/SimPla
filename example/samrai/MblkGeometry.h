@@ -104,7 +104,7 @@ public:
 
 private:
    /*
-    * Read data members from input.
+    * Read data_block members from input.
     */
    void
    getFromInput(

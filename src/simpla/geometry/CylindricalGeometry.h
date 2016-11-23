@@ -33,25 +33,25 @@ namespace simpla { namespace mesh
  */
 
 
-struct CylindricalGeometry : public GeometryBase
+struct CylindricalGeometry : public MeshBlock
 {
-private:
-    typedef CylindricalGeometry this_type;
-    typedef MeshBlock base_type;
 
 public:
-    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
 
-    virtual std::string get_class_name() const { return class_name(); }
+    SP_OBJECT_HEAD(CylindricalGeometry, MeshBlock);
 
-    static std::string class_name() { return std::string("CylindricalGeometry"); }
-
-
-public:
+    typedef Real scalar_type;
     static constexpr int ndims = 3;
 
     template<typename ...Args>
-    explicit CylindricalGeometry(Args &&...args):GeometryBase(std::forward<Args>(args)...) {}
+    explicit CylindricalGeometry(Args &&...args):GeometryBase(std::forward<Args>(args)...)
+    {
+        m_vertics_.connect(this, "vertices", "COORDINATES");
+        m_volume_.connect(this, "volume", "NO_FILL");
+        m_dual_volume_.connect(this, "dual_volume", "NO_FILL");
+        m_inv_volume_.connect(this, "inv_volume", "NO_FILL");
+        m_inv_dual_volume_.connect(this, "inv_dual_volume", "NO_FILL");
+    }
 
     ~CylindricalGeometry() {}
 
@@ -59,6 +59,7 @@ public:
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=
     mesh::DataBlockArray<TV, IFORM, DOF>;
 
+private:
     mesh::AttributeView<Real, VERTEX, 3> m_vertics_;
     mesh::AttributeView<Real, VOLUME, 9> m_volume_;
     mesh::AttributeView<Real, VOLUME, 9> m_dual_volume_;
@@ -67,23 +68,7 @@ public:
 
 
 public:
-    void connect(AttributeHolder *holder)
-    {
-        GeometryBase::connect(holder);
-        m_vertics_.connect(holder, "vertices", "COORDINATES");
-        m_volume_.connect(holder, "volume", "NO_FILL");
-        m_dual_volume_.connect(holder, "dual_volume", "NO_FILL");
-        m_inv_volume_.connect(holder, "inv_volume", "NO_FILL");
-        m_inv_dual_volume_.connect(holder, "inv_dual_volume", "NO_FILL");
 
-    }
-
-//    template<typename ...Args>
-//    point_type point(Args &&...args) const
-//    {
-//        FIXME;
-//        return m_mesh_->point(std::forward<Args>(args)...);
-//    }
 
     point_type point(MeshEntityId id, point_type const &pr) const
     {
@@ -109,7 +94,7 @@ public:
           */
 
 
-        auto const *d = static_cast<data_block_type<Real, VERTEX, 9> const *>(m_vertics_.data());
+        auto const *d = static_cast<data_block_type<Real, VERTEX, 9> const *>(m_vertics_.data_block());
 
         auto i = MeshEntityIdCoder::unpack_index(id);
         Real r = pr[0], s = pr[1], t = pr[2];
@@ -156,7 +141,7 @@ public:
     point_type point(MeshEntityId s) const
     {
         auto i = MeshEntityIdCoder::unpack_index(s);
-        auto const *d = static_cast<data_block_type<Real, VERTEX, 9> const *>(m_vertics_.data());
+        auto const *d = static_cast<data_block_type<Real, VERTEX, 9> const *>(m_vertics_.data_block());
         return point_type{d->get(i[0], i[1], i[2], 0),
                           d->get(i[0], i[1], i[2], 1),
                           d->get(i[0], i[1], i[2], 2)};
@@ -164,25 +149,25 @@ public:
 
     Real volume(MeshEntityId s) const
     {
-        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_volume_.data())->
+        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_volume_.data_block())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
     Real dual_volume(MeshEntityId s) const
     {
-        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_dual_volume_.data())->
+        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_dual_volume_.data_block())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
     Real inv_volume(MeshEntityId s) const
     {
-        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_inv_volume_.data())->
+        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_inv_volume_.data_block())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
     Real inv_dual_volume(MeshEntityId s) const
     {
-        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_inv_dual_volume_.data())->
+        return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_inv_dual_volume_.data_block())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
@@ -218,8 +203,8 @@ public:
             *
             *\endverbatim
             */
-        auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_vertics_.data())->start();
-        auto m_count_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_vertics_.data())->count();
+        auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_vertics_.data_block())->start();
+        auto m_count_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_vertics_.data_block())->count();
 
         index_type ib = m_start_[0];
         index_type ie = m_start_[0] + m_count_[0];

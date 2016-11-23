@@ -53,7 +53,7 @@ private:
     typedef typename mesh_type::template data_block_type<TV, IFORM, DOF> data_block;
 
     data_block *m_data_;
-    mesh_type const *m_;
+    mesh_type const *m_mesh_;
 
 public:
 
@@ -63,7 +63,7 @@ public:
 
 
     template<typename ...Args>
-    explicit Field(mesh_type *m, Args &&...args):base_type(m, std::forward<Args>(args)...), m_(m), m_data_(nullptr)
+    explicit Field(Args &&...args):base_type(std::forward<Args>(args)...), m_mesh_(nullptr), m_data_(nullptr)
     {
     };
 
@@ -75,7 +75,7 @@ public:
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); };
 
-    bool is_valid() const { return m_data_ != nullptr && m_ != nullptr; };
+    bool is_valid() const { return m_data_ != nullptr && m_mesh_ != nullptr; };
 
     using base_type::entity_type;
 
@@ -85,8 +85,8 @@ public:
 
     void deploy()
     {
-
-        m_data_ = static_cast<data_block *>(base_type::data());
+        m_mesh_ = base_type::get_mesh<mesh_type>();
+        m_data_ = base_type::get_data<data_block>();
         m_data_->deploy();
     }
 
@@ -100,7 +100,7 @@ public:
 
     /** @name as_function  @{*/
     template<typename ...Args> field_value_type
-    gather(Args &&...args) const { return m_->gather(*this, std::forward<Args>(args)...); }
+    gather(Args &&...args) const { return m_mesh_->gather(*this, std::forward<Args>(args)...); }
 
     template<typename ...Args> field_value_type
     operator()(Args &&...args) const { return gather(std::forward<Args>(args)...); }
@@ -193,7 +193,7 @@ public:
     void foreach(mesh::EntityIdRange const &r0, Field<Expression<U...>> const &expr)
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = calculus_policy::eval(*m_, expr, s); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = calculus_policy::eval(*m_mesh_, expr, s); });
 
     }
 
@@ -202,7 +202,7 @@ public:
 //            U &&...args)
 //    {
 //        deploy();
-//        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_->point(s), std::forward<U>(args)...); });
+//        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_mesh_->point(s), std::forward<U>(args)...); });
 //    }
 
 
@@ -214,7 +214,7 @@ public:
         deploy();
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
-                       get(s) = interpolate_policy::template sample<IFORM>(*m_, s, fun(m_->point(s)));
+                       get(s) = interpolate_policy::template sample<IFORM>(*m_mesh_, s, fun(m_mesh_->point(s)));
                    });
     }
 
@@ -242,14 +242,14 @@ public:
     void foreach(Field<Expression<U...>> const &expr)
     {
         deploy();
-        auto b = std::get<0>(m_->mesh_block()->outer_index_box());
+        auto b = std::get<0>(m_mesh_->outer_index_box());
         index_type gw[4] = {1, 1, 1, 0};
 
         m_data_->foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l / DOF, l % DOF);
-                    return calculus_policy::eval(*m_, expr, s);
+                    return calculus_policy::eval(*m_mesh_, expr, s);
                 });
 
     }
@@ -263,7 +263,7 @@ public:
         m_data_->foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    return fun(m_->point(mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l / DOF, l % DOF)));
+                    return fun(m_mesh_->point(mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l / DOF, l % DOF)));
                 });
 
 
@@ -294,7 +294,7 @@ public:
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return interpolate_policy::template sample<IFORM>(*m_, s, fun(m_->point(s)));
+                    return interpolate_policy::template sample<IFORM>(*m_mesh_, s, fun(m_mesh_->point(s)));
                 });
 
 
@@ -333,7 +333,7 @@ public:
         m_data_->foreach_ghost(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    return calculus_policy::eval(*m_, expr, mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
+                    return calculus_policy::eval(*m_mesh_, expr, mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
                 });
 
     }
@@ -349,7 +349,7 @@ public:
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
                     auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return interpolate_policy::template sample<IFORM>(*m_, s, fun(m_->point(s)));
+                    return interpolate_policy::template sample<IFORM>(*m_mesh_, s, fun(m_mesh_->point(s)));
                 });
 
 
@@ -383,7 +383,7 @@ public:
             foreach_ghost(std::forward<Args>(args)...);
         } else
         {
-            foreach(m_->mesh_block()->range(entity_type(), tag, DOF), std::forward<Args>(args)...);
+            foreach(m_mesh_->range(entity_type(), tag, DOF), std::forward<Args>(args)...);
         }
     }
 

@@ -29,7 +29,7 @@ extern "C"
 //struct point_head
 //{
 //	POINT_HEAD
-//	byte_type *data;
+//	byte_type *data_block;
 //};
 
 #define SP_DEFINE_PARTICLE(_S_NAME_, ...)   SP_DEFINE_C_STRUCT(_S_NAME_,uint64_t,_tag,Real[3], r, __VA_ARGS__)

@@ -424,7 +424,7 @@ Particle<P, M, V001>::dataset(mesh::EntityRange const &r0) const
 
         std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
 
-//        copy(r0, reinterpret_cast< value_type *>( ds.data.get()));
+//        copy(r0, reinterpret_cast< value_type *>( ds.data_block.get()));
     }
     return std::move(ds);
 };

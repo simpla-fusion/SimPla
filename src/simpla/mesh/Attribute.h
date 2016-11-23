@@ -137,9 +137,37 @@ struct AttributeViewBase : public design_pattern::Observer<void(std::shared_ptr<
 
     virtual MeshBlock const *mesh_block() const =0;
 
-    virtual DataBlock *data()=0;
+    virtual DataBlock *data_block()=0;
 
-    virtual DataBlock const *data() const =0;
+    virtual DataBlock const *data_block() const =0;
+
+
+    template<typename U>
+    U const *get_mesh() const
+    {
+        auto const *m = mesh_block();
+        ASSERT(m != nullptr);
+        ASSERT(m->is_a(typeid(U)));
+        return static_cast<U const *>(m);
+    }
+
+    template<typename U>
+    U const *get_data() const
+    {
+        auto const *d = data_block();
+        ASSERT(d != nullptr);
+        ASSERT(d->is_a(typeid(U)));
+        return static_cast<U const *>(d);
+    }
+
+    template<typename U>
+    U *get_data()
+    {
+        auto const *d = data_block();
+        ASSERT(d != nullptr);
+        ASSERT(d->is_a(typeid(U)));
+        return static_cast<U *>(d);
+    }
 
     virtual MeshEntityType entity_type() const =0;
 
@@ -150,7 +178,6 @@ struct AttributeViewBase : public design_pattern::Observer<void(std::shared_ptr<
     virtual bool is_a(std::type_info const &t_info) const =0;
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)=0;
-
 
     virtual void deploy() { DO_NOTHING; };
 
@@ -239,9 +266,9 @@ public:
 
     MeshBlock const *mesh_block() const { return m_mesh_holder_.get(); };
 
-    DataBlock *data() { return m_data_holder_.get(); }
+    DataBlock *data_block() { return m_data_holder_.get(); }
 
-    DataBlock const *data() const { return m_data_holder_.get(); }
+    DataBlock const *data_block() const { return m_data_holder_.get(); }
 
     MeshEntityType entity_type() const { return IFORM; };
 
@@ -293,17 +320,13 @@ struct AttributeHolder :
 
         auto it = m_attr_holders_.find(key);
 
-        if (it == m_attr_holders_.end() && view->attribute() == nullptr)
-        {
-            success = false;
-        } else
+        if (it == m_attr_holders_.end() && view->attribute() == nullptr) { success = false; }
+        else
         {
             base_type::connect(static_cast<observer_type *>(view));
 
-            if (it != m_attr_holders_.end())
-            {
-                view->attribute(it->second);
-            } else if (view->attribute() != nullptr)
+            if (it != m_attr_holders_.end()) { view->attribute(it->second); }
+            else if (view->attribute() != nullptr)
             {
                 m_attr_holders_.emplace(std::make_pair(key, view->attribute()));
             }
@@ -353,6 +376,6 @@ AttributeView<TV, IFORM, IDOF>::connect(AttributeHolder *w, std::string const &k
         }
     }
 };
-}} //namespace data
+}} //namespace data_block
 #endif //SIMPLA_ATTRIBUTE_H
 
