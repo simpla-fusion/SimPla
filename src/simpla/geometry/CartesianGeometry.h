@@ -15,7 +15,7 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/EntityId.h>
-#include "Geometry.h"
+#include "simpla/mesh/Domain.h"
 
 namespace simpla { namespace mesh
 {
@@ -27,16 +27,10 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public MeshBlock
+struct CartesianGeometry : public Domain
 {
-
 public:
-
-    SP_OBJECT_HEAD(CartesianGeometry, MeshBlock);
-
     static constexpr unsigned int NDIMS = 3;
-
-
     typedef Real scalar_type;
 
     /**
@@ -77,7 +71,7 @@ public:
 
 
     template<typename ...Args>
-    explicit CartesianGeometry(Args &&...args):GeometryBase(std::forward<Args>(args)...) {}
+    explicit CartesianGeometry(Args &&...args):Domain(std::forward<Args>(args)...) {}
 
     ~CartesianGeometry() {}
 
@@ -95,10 +89,8 @@ private:
 public:
     typedef mesh::MeshEntityIdCoder m;
 
-//    template<typename ...Args>
-//    point_type point(Args &&...args) const { return MeshBlock::point(std::forward<Args>(args)...); }
-
-    using MeshBlock::point;
+    template<typename ...Args>
+    point_type point(Args &&...args) const { return mesh_block()->point(std::forward<Args>(args)...); }
 
     Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 
@@ -134,9 +126,9 @@ void CartesianGeometry::initialize()
         *\endverbatim
         */
 
-    auto const &dims = MeshBlock::dimensions();
-    m_dx_ = MeshBlock::dx();
-    m_inv_dx_ = MeshBlock::inv_dx();
+    auto const &dims = m_mesh_block_->dimensions();
+    m_dx_ = m_mesh_block_->dx();
+    m_inv_dx_ = m_mesh_block_->inv_dx();
 
     m_volume_[0 /*000*/] = 1;
     m_volume_[1 /*001*/] = (dims[0] == 1) ? 1 : m_dx_[0];

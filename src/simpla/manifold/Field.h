@@ -100,7 +100,7 @@ public:
 
     /** @name as_function  @{*/
     template<typename ...Args> field_value_type
-    gather(Args &&...args) const { return m_mesh_->gather(*this, std::forward<Args>(args)...); }
+    gather(Args &&...args) const { return m_mesh_->mesh_block()->gather(*this, std::forward<Args>(args)...); }
 
     template<typename ...Args> field_value_type
     operator()(Args &&...args) const { return gather(std::forward<Args>(args)...); }
@@ -242,7 +242,7 @@ public:
     void foreach(Field<Expression<U...>> const &expr)
     {
         deploy();
-        auto b = std::get<0>(m_mesh_->outer_index_box());
+        auto b = std::get<0>(m_mesh_->mesh_block()->outer_index_box());
         index_type gw[4] = {1, 1, 1, 0};
 
         m_data_->foreach(
@@ -383,7 +383,7 @@ public:
             foreach_ghost(std::forward<Args>(args)...);
         } else
         {
-            foreach(m_mesh_->range(entity_type(), tag, DOF), std::forward<Args>(args)...);
+            foreach(m_mesh_->mesh_block()->range(entity_type(), tag, DOF), std::forward<Args>(args)...);
         }
     }
 

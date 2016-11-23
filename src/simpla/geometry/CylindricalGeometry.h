@@ -20,7 +20,7 @@
 
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/Attribute.h>
-#include "Geometry.h"
+#include "simpla/mesh/Domain.h"
 
 namespace simpla { namespace mesh
 {
@@ -33,22 +33,19 @@ namespace simpla { namespace mesh
  */
 
 
-struct CylindricalGeometry : public MeshBlock
+struct CylindricalGeometry : public Domain
 {
 
 public:
 
-    SP_OBJECT_HEAD(CylindricalGeometry, MeshBlock);
 
     typedef Real scalar_type;
     static constexpr int ndims = 3;
 
+    CylindricalGeometry() {}
+
     template<typename ...Args>
-    explicit CylindricalGeometry(Args &&...args): MeshBlock(std::forward<Args>(args)...)
-    {
-
-
-    }
+    CylindricalGeometry(Args &&...args):Domain(std::forward<Args>(args)...) {}
 
     ~CylindricalGeometry() {}
 
@@ -57,22 +54,15 @@ public:
     mesh::DataBlockArray<TV, IFORM, DOF>;
 
 private:
-    mesh::AttributeView<Real, VERTEX, 3> m_vertics_{"vertices", "COORDINATES"};
-    mesh::AttributeView<Real, VOLUME, 9> m_volume_{"volume", "NO_FILL"};
-    mesh::AttributeView<Real, VOLUME, 9> m_dual_volume_{"dual_volume", "NO_FILL"};
-    mesh::AttributeView<Real, VOLUME, 9> m_inv_volume_{"inv_volume", "NO_FILL"};
-    mesh::AttributeView<Real, VOLUME, 9> m_inv_dual_volume_{"inv_dual_volume", "NO_FILL"};
+    mesh::AttributeView<Real, VERTEX, 3> m_vertics_{this, "vertices", "COORDINATES"};
+    mesh::AttributeView<Real, VOLUME, 9> m_volume_{this, "volume", "NO_FILL"};
+    mesh::AttributeView<Real, VOLUME, 9> m_dual_volume_{this, "dual_volume", "NO_FILL"};
+    mesh::AttributeView<Real, VOLUME, 9> m_inv_volume_{this, "inv_volume", "NO_FILL"};
+    mesh::AttributeView<Real, VOLUME, 9> m_inv_dual_volume_{this, "inv_dual_volume", "NO_FILL"};
 
 
 public:
-    void connect(AttributeHolder *holder)
-    {
-        m_vertics_.connect(holder);
-        m_volume_.connect(holder);
-        m_dual_volume_.connect(holder);
-        m_inv_volume_.connect(holder);
-        m_inv_dual_volume_.connect(holder);
-    }
+
 
     point_type point(MeshEntityId id, point_type const &pr) const
     {
@@ -215,7 +205,7 @@ public:
         index_type je = m_start_[1] + m_count_[1];
         index_type kb = m_start_[2];
         index_type ke = m_start_[2] + m_count_[2];
-        auto m_dx_ = MeshBlock::dx();
+        auto m_dx_ = m_mesh_block_->dx();
 #define GET3(_NAME_, _I, _J, _K, _L)  ( static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(_NAME_.data_block()))->get(_I,_J,_K,_L)
 #define GET9(_NAME_, _I, _J, _K, _L)  ( static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(_NAME_.data_block()))->get(_I,_J,_K,_L)
 
@@ -223,7 +213,7 @@ public:
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k)
                 {
-                    auto x = MeshBlock::point(i, j, k);
+                    auto x = m_mesh_block_->point(i, j, k);
 
                     GET3(m_vertics_, i, j, k, 0) = (1 + x[0]) * std::cos(x[1]);
                     GET3(m_vertics_, i, j, k, 1) = (1 + x[0]) * std::sin(x[1]);

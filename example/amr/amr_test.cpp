@@ -35,8 +35,8 @@ struct AMRTest : public mesh::Worker
 
     ~AMRTest() {}
 
+    mesh_type m_;
 
-    mesh::AttributeHolder m_attr_holder_;
 
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1>
     using field_type=Field<TV, TM, index_const<IFORM>, index_const<DOF>>;
@@ -44,10 +44,10 @@ struct AMRTest : public mesh::Worker
     Real epsilon = 1.0;
     Real mu = 1.0;
 
-    field_type<Real, mesh::FACE> B{this, "B"};
-    field_type<Real, mesh::EDGE> E{this, "E"};
-    field_type<Real, mesh::EDGE> J{this, "J"};
-    field_type<Real, mesh::VERTEX, 3> Ev{"Ev"};
+    field_type<Real, mesh::FACE> B{&m_, "B"};
+    field_type<Real, mesh::EDGE> E{&m_, "E"};
+    field_type<Real, mesh::EDGE> J{&m_, "J"};
+    field_type<Real, mesh::VERTEX, 3> Ev{&m_, "Ev"};
 
     virtual std::shared_ptr<mesh::MeshBlock>
     create_mesh_block(int n, index_type const *lo,
@@ -61,15 +61,10 @@ struct AMRTest : public mesh::Worker
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_) { mesh::Worker::move_to(m_); }
 
-    virtual mesh::AttributeHolder &attributes() { return m_attr_holder_; }
-
-    virtual mesh::AttributeHolder const &attributes() const { return m_attr_holder_; }
-
 
     void initialize(Real data_time)
     {
-//        mesh_block()->connect(this);
-//        mesh_block()->initialize();
+        mesh_block()->initialize();
 
         Ev.clear();
         E.clear();

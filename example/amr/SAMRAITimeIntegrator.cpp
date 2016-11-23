@@ -909,7 +909,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
             static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
                                  patch.getBox().getGlobalId().getLocalId().getValue())
     );
-
+    m->connect(w.get());
 
     m->deploy();
     w->foreach(
@@ -918,7 +918,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
                 auto attr = ob.attribute();
 
                 if (attr == nullptr) { return; }
-
+                CHECK(attr->name());
                 ob.move_to(m, detail::create_data_block(
                         attr, patch.getPatchData(m_samrai_variables_.at(attr->id()),
                                                  getDataContext())));
