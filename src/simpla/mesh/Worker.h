@@ -64,7 +64,8 @@ public:
     create_mesh_block(int n, index_type const *lo,
                       index_type const *hi,
                       Real const *dx = nullptr,
-                      Real const *x0 = nullptr)=0;
+                      Real const *x0 = nullptr,
+                      id_type id = 0)=0;
 
 private:
     std::string m_name_;

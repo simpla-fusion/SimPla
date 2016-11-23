@@ -11,7 +11,7 @@
 
 namespace simpla { namespace mesh
 {
-struct Attribute::pimpl_s
+struct AttributeBase::pimpl_s
 {
     std::map<id_type, std::shared_ptr<DataBlock>> m_patches_;
 
@@ -19,15 +19,15 @@ struct Attribute::pimpl_s
                                                                        void *)> > m_data_factory;
 };
 
-Attribute::Attribute(std::string const &s, std::string const &config_str)
+AttributeBase::AttributeBase(std::string const &s, std::string const &config_str)
         : Object(), m_name_(s), m_pimpl_(new pimpl_s)
 {
     db["config"] = config_str;
 }
 
-Attribute::~Attribute() {}
+AttributeBase::~AttributeBase() {}
 
-std::ostream &Attribute::print(std::ostream &os, int indent) const
+std::ostream &AttributeBase::print(std::ostream &os, int indent) const
 {
     if (m_pimpl_ != nullptr)
     {
@@ -43,29 +43,29 @@ std::ostream &Attribute::print(std::ostream &os, int indent) const
 }
 
 
-void Attribute::load(const data::DataBase &) { UNIMPLEMENTED; }
+void AttributeBase::load(const data::DataBase &) { UNIMPLEMENTED; }
 
-void Attribute::save(data::DataBase *) const { UNIMPLEMENTED; }
+void AttributeBase::save(data::DataBase *) const { UNIMPLEMENTED; }
 
-bool Attribute::has(std::shared_ptr<MeshBlock> const &m) const
+bool AttributeBase::has(const id_type &m) const
 {
     ASSERT(m_pimpl_ != nullptr);
-    return (m == nullptr) ? false : m_pimpl_->m_patches_.find(m->id()) != m_pimpl_->m_patches_.end();
+    return (m == nullptr) ? false : m_pimpl_->m_patches_.find(m) != m_pimpl_->m_patches_.end();
 }
 
 
-void Attribute::erase(std::shared_ptr<MeshBlock> const &m)
+void AttributeBase::erase(const id_type &m)
 {
     ASSERT(m_pimpl_ != nullptr);
-    TRY_CALL(m_pimpl_->m_patches_.erase(m->id()));
+    TRY_CALL(m_pimpl_->m_patches_.erase(m));
 }
 
 
-std::shared_ptr<DataBlock> const &Attribute::at(std::shared_ptr<MeshBlock> const &m) const
+std::shared_ptr<DataBlock> const &AttributeBase::at(const id_type &m) const
 {
     ASSERT(m_pimpl_ != nullptr);
 
-    auto it = m_pimpl_->m_patches_.find(m->id());
+    auto it = m_pimpl_->m_patches_.find(m);
     if (it != m_pimpl_->m_patches_.end())
     {
         return it->second;
@@ -78,11 +78,11 @@ std::shared_ptr<DataBlock> const &Attribute::at(std::shared_ptr<MeshBlock> const
     }
 }
 
-std::shared_ptr<DataBlock> &Attribute::at(std::shared_ptr<MeshBlock> const &m)
+std::shared_ptr<DataBlock> &AttributeBase::at(const id_type &m)
 {
     ASSERT(m_pimpl_ != nullptr);
 
-    auto it = m_pimpl_->m_patches_.find(m->id());
+    auto it = m_pimpl_->m_patches_.find(m);
     if (it != m_pimpl_->m_patches_.end())
     {
         return it->second;
@@ -95,17 +95,29 @@ std::shared_ptr<DataBlock> &Attribute::at(std::shared_ptr<MeshBlock> const &m)
     }
 }
 
-std::shared_ptr<DataBlock> &Attribute::get(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &p)
+std::shared_ptr<DataBlock> &AttributeBase::get(id_type const &m, std::shared_ptr<DataBlock> const &p)
 {
     ASSERT(m_pimpl_ != nullptr);
-    if (!has(m)) { insert(m, p); }
+    if (!has(m)) { insert_or_assign(m, p); }
     return at(m);
 }
 
 
-void Attribute::insert(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &p)
+std::shared_ptr<DataBlock> AttributeBase::insert_or_assign(const id_type &m, const std::shared_ptr<DataBlock> &p)
 {
-    WARNING << "Wrong Way!" << std::endl;
+
+    ASSERT(m_pimpl_ != nullptr);
+
+    m_pimpl_->m_patches_.emplace(std::make_pair(m, p));
+
+    return p;
+
+}
+
+std::shared_ptr<DataBlock>
+AttributeBase::insert_or_assign(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &p)
+{
+
     ASSERT(m_pimpl_ != nullptr);
 
     if (m == nullptr) { OUT_OF_RANGE << " try to insert null mesh or data_block block" << std::endl; }
@@ -131,14 +143,57 @@ void Attribute::insert(const std::shared_ptr<MeshBlock> &m, const std::shared_pt
 
         }
     }
+    return p;
 }
 
-
-void Attribute::register_data_block_factory(
+void AttributeBase::register_data_block_factory(
         std::type_index idx,
         const std::function<std::shared_ptr<DataBlock>(std::shared_ptr<MeshBlock> const &, void *)> &f)
 {
     m_pimpl_->m_data_factory[idx] = f;
 
 };
+
+
+void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr)
+{
+    ASSERT(m != nullptr);
+
+    if (m_id_ == m->id() && m_data_holder_ != nullptr) { return; }
+
+    if (m_attr_ == nullptr)
+    {
+        m_data_holder_ = d;
+    } else if (d == nullptr)
+    {
+        m_data_holder_ = m_attr_->at(m->id());
+    } else
+    {
+        m_data_holder_ = m_attr_->insert_or_assign(m->id(), d);
+
+    }
+
+    deploy();
+}
+
+void AttributeViewBase::move_to(id_type const &id)
+{
+    ASSERT(m_attr_ != nullptr);
+    m_data_holder_ = m_attr_->at(id);
+}
+
+
+void AttributeViewBase::deploy()
+{
+    if (m_attr_ == nullptr) { m_data_holder_ = m_attr_->at(m_id_); }
+    ASSERT(m_data_holder_ != nullptr);
+    m_data_holder_->deploy();
+};
+
+void AttributeViewBase::clear()
+{
+    deploy();
+    m_data_holder_->clear();
+}
+
 }}//namespace simpla { namespace mesh

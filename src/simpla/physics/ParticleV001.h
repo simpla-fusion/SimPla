@@ -11,7 +11,7 @@
 #include "../toolbox/integer_sequence.h"
 #include "../toolbox/type_traits.h"
 #include "../toolbox/Parallel.h"
-#include "../mesh/AttributeBase.h"
+#include "simpla/mesh/Attribute.h"
 #include "BucketContainer.h"
 #include "ParticlePage.h"
 

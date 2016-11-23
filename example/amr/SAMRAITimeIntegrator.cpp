@@ -904,13 +904,16 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
             patch.getBox().upper()[2]
     };
 
-    std::shared_ptr<mesh::MeshBlock> m = w->create_mesh_block(3, lo, hi, dx, xlo);
+    std::shared_ptr<mesh::MeshBlock> m = w->create_mesh_block(
+            3, lo, hi, dx, xlo,
+            static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
+                                 patch.getBox().getGlobalId().getLocalId().getValue())
+    );
 
-    m->id(patch.getBox().getGlobalId().getOwnerRank() * 10000 + patch.getBox().getGlobalId().getLocalId().getValue());
 
     m->deploy();
-
-    w->attributes().foreach(
+    w->move_to(m);
+    w->foreach(
             [&](mesh::AttributeViewBase &ob)
             {
                 auto attr = ob.attribute();
@@ -922,7 +925,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
                                                  getDataContext())));
             }
     );
-    w->move_to(m);
+
 
 }
 

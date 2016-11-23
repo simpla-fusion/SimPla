@@ -10,7 +10,7 @@
 #include <map>
 
 #include "../toolbox/Parallel.h"
-#include "../mesh/AttributeBase.h"
+#include "simpla/mesh/Attribute.h"
 
 namespace simpla
 {

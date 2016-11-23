@@ -30,26 +30,25 @@ namespace simpla { namespace mesh
  *  *  has n data block (insert, erase,has,at)
  *  *
  */
-class Attribute :
+class AttributeBase :
         public Object,
         public concept::Printable,
         public concept::Serializable,
-        public concept::Configurable,
-        public std::enable_shared_from_this<Attribute>
+        public concept::Configurable
 {
 
 
 public:
 
-    SP_OBJECT_HEAD(Attribute, Object)
+    SP_OBJECT_HEAD(AttributeBase, Object)
 
-    Attribute(std::string const &s, std::string const &config_str = "");
+    AttributeBase(std::string const &s, std::string const &config_str = "");
 
-    Attribute(Attribute const &) = delete;
+    AttributeBase(AttributeBase const &) = delete;
 
-    Attribute(Attribute &&) = delete;
+    AttributeBase(AttributeBase &&) = delete;
 
-    virtual ~Attribute();
+    virtual ~AttributeBase();
 
     virtual MeshEntityType entity_type() const =0;
 
@@ -66,18 +65,21 @@ public:
 
     virtual void save(data::DataBase *) const;
 
-    virtual bool has(std::shared_ptr<MeshBlock> const &) const;
+    virtual bool has(const id_type &) const;
 
-    virtual void erase(std::shared_ptr<MeshBlock> const &);
+    virtual void erase(const id_type &);
 
-    virtual std::shared_ptr<DataBlock> const &at(std::shared_ptr<MeshBlock> const &m) const;
+    virtual std::shared_ptr<DataBlock> const &at(const id_type &m) const;
 
-    virtual std::shared_ptr<DataBlock> &at(std::shared_ptr<MeshBlock> const &m);
+    virtual std::shared_ptr<DataBlock> &at(const id_type &m);
 
-    virtual std::shared_ptr<DataBlock> &
-    get(std::shared_ptr<MeshBlock> const &, std::shared_ptr<DataBlock> const &p = nullptr);
+    virtual std::shared_ptr<DataBlock> &get(id_type const &, std::shared_ptr<DataBlock> const &default_v = nullptr);
 
-    virtual void insert(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &p = nullptr);
+    virtual std::shared_ptr<DataBlock> insert_or_assign(const id_type &m,
+                                                        const std::shared_ptr<DataBlock> &p);
+
+    virtual std::shared_ptr<DataBlock> insert_or_assign(const std::shared_ptr<MeshBlock> &m,
+                                                        const std::shared_ptr<DataBlock> &p = nullptr);
 
     virtual void register_data_block_factory(std::type_index idx,
                                              const std::function<std::shared_ptr<DataBlock>(
@@ -90,16 +92,16 @@ private:
 };
 
 template<typename TV, MeshEntityType IFORM, size_type IDOF>
-class AttributeProxy : public Attribute
+class Attribute : public AttributeBase
 {
 public:
     static constexpr mesh::MeshEntityType iform = IFORM;
     static constexpr size_type DOF = IDOF;
 
     template<typename ...Args>
-    AttributeProxy(Args &&...args):Attribute(std::forward<Args>(args)...) {}
+    Attribute(Args &&...args):AttributeBase(std::forward<Args>(args)...) {}
 
-    virtual ~AttributeProxy() {}
+    virtual ~Attribute() {}
 
     virtual MeshEntityType entity_type() const { return IFORM; };
 
@@ -113,11 +115,19 @@ struct AttributeViewBase;
 
 struct AttributeHolder;
 
-struct AttributeViewBase : public design_pattern::Observer<void(std::shared_ptr<MeshBlock> const &)>
+struct AttributeViewBase : public design_pattern::Observer<void(id_type const &)>
 {
-    typedef design_pattern::Observer<void(std::shared_ptr<MeshBlock> const &)> base_type;
+    typedef design_pattern::Observer<void(id_type const &)> base_type;
 
-    AttributeViewBase() {};
+    AttributeViewBase(std::shared_ptr<AttributeBase> const &attr = nullptr) : m_attr_(attr)
+    {
+
+        if (m_attr_ != nullptr)
+        {
+            register_data_block_factory(m_attr_);
+        }
+
+    };
 
     virtual ~AttributeViewBase() {}
 
@@ -125,31 +135,15 @@ struct AttributeViewBase : public design_pattern::Observer<void(std::shared_ptr<
 
     AttributeViewBase(AttributeViewBase &&other) = delete;
 
-    virtual void notify(std::shared_ptr<MeshBlock> const &m) { move_to(m, nullptr); };
+    void notify(id_type const &m) { move_to(m); };
 
-    virtual std::shared_ptr<Attribute> create_attribute(std::string const &key) const =0;
+    std::shared_ptr<AttributeBase> attribute() { return m_attr_; }
 
-    virtual std::shared_ptr<Attribute> attribute() =0;
+    std::shared_ptr<AttributeBase> attribute() const { return m_attr_; }
 
-    virtual std::shared_ptr<Attribute> attribute() const =0;
+    DataBlock *data_block() { return m_data_holder_.get(); };
 
-    virtual void attribute(std::shared_ptr<Attribute> const &attr) =0;
-
-    virtual MeshBlock const *mesh_block() const =0;
-
-    virtual DataBlock *data_block()=0;
-
-    virtual DataBlock const *data_block() const =0;
-
-
-    template<typename U>
-    U const *get_mesh() const
-    {
-        auto const *m = mesh_block();
-        ASSERT(m != nullptr);
-        ASSERT(m->is_a(typeid(U)));
-        return static_cast<U const *>(m);
-    }
+    DataBlock const *data_block() const { return m_data_holder_.get(); };
 
     template<typename U>
     U const *get_data() const
@@ -177,13 +171,25 @@ struct AttributeViewBase : public design_pattern::Observer<void(std::shared_ptr<
 
     virtual bool is_a(std::type_info const &t_info) const =0;
 
-    virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)=0;
+    virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr);
 
-    virtual void deploy() { DO_NOTHING; };
+    virtual void move_to(id_type const &id);
+
+    virtual void deploy();
+
+    virtual void clear();
 
     virtual void destroy() { DO_NOTHING; };
 
-    virtual void register_data_block_factory(std::shared_ptr<mesh::Attribute> const &attr)=0;
+    virtual void register_data_block_factory(std::shared_ptr<AttributeBase> const &attr) const =0;
+
+    template<typename ...Args> void connect(AttributeHolder *w, std::string const &key, Args &&...args);
+
+
+private:
+    id_type m_id_;
+    std::shared_ptr<DataBlock> m_data_holder_;
+    std::shared_ptr<AttributeBase> m_attr_;
 
 };
 
@@ -206,10 +212,8 @@ class AttributeView : public AttributeViewBase
 protected:
 
     typedef AttributeView this_type;
-    typedef AttributeProxy<TV, IFORM, IDOF> attribute_type;
-    std::shared_ptr<attribute_type> m_attr_;
-    std::shared_ptr<MeshBlock> m_mesh_holder_;
-    std::shared_ptr<DataBlock> m_data_holder_;
+    typedef Attribute<TV, IFORM, IDOF> attribute_type;
+
 
 public:
 
@@ -217,19 +221,18 @@ public:
 
     static constexpr size_type DOF = IDOF;
 
-    AttributeView() : m_attr_(nullptr), m_mesh_holder_(nullptr), m_data_holder_(nullptr) {}
+    explicit AttributeView(std::shared_ptr<attribute_type> const &attr = nullptr) :
+            AttributeViewBase(attr == nullptr ? nullptr :
+                              std::dynamic_pointer_cast<Attribute>(std::make_shared<attribute_type>())) {}
 
     template<typename ...Args>
-    explicit AttributeView(AttributeHolder *w, std::string const &key, Args &&...args)
-            : m_attr_(nullptr), m_mesh_holder_(nullptr), m_data_holder_(nullptr)
+    explicit AttributeView(Args &&...args) :
+            AttributeViewBase(
+                    std::dynamic_pointer_cast<Attribute>(
+                            std::make_shared<attribute_type>(std::forward<Args>(args)...)))
     {
-        connect(w, key, std::forward<Args>(args)...);
-    };
 
-    template<typename ...Args>
-    explicit AttributeView(std::string const &key, Args &&...args)
-            : m_attr_(new attribute_type(key, std::forward<Args>(args)...)), m_mesh_holder_(nullptr),
-              m_data_holder_(nullptr) {};
+    };
 
     virtual ~AttributeView() {}
 
@@ -237,22 +240,8 @@ public:
 
     AttributeView(AttributeView &&other) = delete;
 
-    template<typename ...Args> void connect(AttributeHolder *w, std::string const &key, Args &&...args);
 
-    std::shared_ptr<Attribute>
-    create_attribute(std::string const &key) const
-    {
-        return std::dynamic_pointer_cast<Attribute>(std::make_shared<attribute_type>(key));
-    };
-
-    std::shared_ptr<Attribute> attribute() { return m_attr_; }
-
-    std::shared_ptr<Attribute> attribute() const { return m_attr_; }
-
-    virtual void
-    attribute(std::shared_ptr<Attribute> const &attr) { m_attr_ = std::dynamic_pointer_cast<attribute_type>(attr); };
-
-    virtual void register_data_block_factory(std::shared_ptr<mesh::Attribute> const &attr)
+    virtual void register_data_block_factory(std::shared_ptr<AttributeBase> const &attr) const
     {
         attr->register_data_block_factory(
                 std::type_index(typeid(MeshBlock)),
@@ -264,42 +253,14 @@ public:
     }
 
 
-    MeshBlock const *mesh_block() const { return m_mesh_holder_.get(); };
+    virtual MeshEntityType entity_type() const { return IFORM; };
 
-    DataBlock *data_block() { return m_data_holder_.get(); }
+    virtual std::type_info const &value_type_info() const { return typeid(TV); };
 
-    DataBlock const *data_block() const { return m_data_holder_.get(); }
-
-    MeshEntityType entity_type() const { return IFORM; };
-
-    std::type_info const &value_type_info() const { return typeid(TV); };
-
-    size_type dof() const { return DOF; };
+    virtual size_type dof() const { return DOF; };
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 
-    virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr)
-    {
-        ASSERT(m != nullptr);
-        if (m_mesh_holder_ == m && m_data_holder_ != nullptr) { return; }
-        m_mesh_holder_ = m;
-        if (d != nullptr) { m_data_holder_ = d; } else { m_data_holder_ = m_attr_->get(m); }
-
-        ASSERT(m_data_holder_ != nullptr);
-        deploy();
-    }
-
-    virtual void deploy()
-    {
-        if (m_data_holder_ == nullptr) { move_to(m_mesh_holder_); }
-        m_data_holder_->deploy();
-    };
-
-    virtual void clear()
-    {
-        deploy();
-        m_data_holder_->clear();
-    }
 
 };
 
@@ -325,7 +286,7 @@ struct AttributeHolder :
         {
             base_type::connect(static_cast<observer_type *>(view));
 
-            if (it != m_attr_holders_.end()) { view->attribute(it->second); }
+            if (it != m_attr_holders_.end()) { view->attribute(); }
             else if (view->attribute() != nullptr)
             {
                 m_attr_holders_.emplace(std::make_pair(key, view->attribute()));
@@ -356,6 +317,12 @@ struct AttributeHolder :
     {
         base_type::foreach([&](observer_type &obj) { fun(static_cast< AttributeViewBase &>(obj)); });
     };
+
+    virtual std::shared_ptr<DataBlock> get_data(std::string const &key, id_type const &m_id)
+    {
+        return m_attr_holders_.at(key)->at(m_id);
+    };
+
 private:
     std::map<std::string, std::shared_ptr<Attribute>> m_attr_holders_;
 };
