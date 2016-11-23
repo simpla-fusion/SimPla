@@ -57,21 +57,21 @@ public:
     mesh::DataBlockArray<TV, IFORM, DOF>;
 
 private:
-    mesh::AttributeView<Real, VERTEX, 3> m_vertics_;
-    mesh::AttributeView<Real, VOLUME, 9> m_volume_;
-    mesh::AttributeView<Real, VOLUME, 9> m_dual_volume_;
-    mesh::AttributeView<Real, VOLUME, 9> m_inv_volume_;
-    mesh::AttributeView<Real, VOLUME, 9> m_inv_dual_volume_;
+    mesh::AttributeView<Real, VERTEX, 3> m_vertics_{"vertices", "COORDINATES"};
+    mesh::AttributeView<Real, VOLUME, 9> m_volume_{"volume", "NO_FILL"};
+    mesh::AttributeView<Real, VOLUME, 9> m_dual_volume_{"dual_volume", "NO_FILL"};
+    mesh::AttributeView<Real, VOLUME, 9> m_inv_volume_{"inv_volume", "NO_FILL"};
+    mesh::AttributeView<Real, VOLUME, 9> m_inv_dual_volume_{"inv_dual_volume", "NO_FILL"};
 
 
 public:
     void connect(AttributeHolder *holder)
     {
-        m_vertics_.connect(holder, "vertices", "COORDINATES");
-        m_volume_.connect(holder, "volume", "NO_FILL");
-        m_dual_volume_.connect(holder, "dual_volume", "NO_FILL");
-        m_inv_volume_.connect(holder, "inv_volume", "NO_FILL");
-        m_inv_dual_volume_.connect(holder, "inv_dual_volume", "NO_FILL");
+        m_vertics_.connect(holder);
+        m_volume_.connect(holder);
+        m_dual_volume_.connect(holder);
+        m_inv_volume_.connect(holder);
+        m_inv_dual_volume_.connect(holder);
     }
 
     point_type point(MeshEntityId id, point_type const &pr) const

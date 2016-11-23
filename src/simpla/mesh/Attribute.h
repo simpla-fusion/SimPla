@@ -116,14 +116,15 @@ struct AttributeViewBase;
 
 struct AttributeHolder;
 
+
 struct AttributeViewBase : public design_pattern::Observer<void(id_type const &)>
 {
     typedef design_pattern::Observer<void(id_type const &)> base_type;
 
     AttributeViewBase(std::shared_ptr<AttributeBase> const &attr = nullptr) : m_attr_(attr) {};
 
-    AttributeViewBase(AttributeHolder *holder, std::string const &key, std::shared_ptr<AttributeBase> const &attr)
-            : m_attr_(attr) { connect(holder, key); }
+    AttributeViewBase(AttributeHolder *holder, std::shared_ptr<AttributeBase> const &attr)
+            : m_attr_(attr) { connect(holder); }
 
     virtual ~AttributeViewBase() {}
 
@@ -181,7 +182,7 @@ struct AttributeViewBase : public design_pattern::Observer<void(id_type const &)
 
     virtual void register_data_block_factory(std::shared_ptr<AttributeBase> const &attr) const =0;
 
-    void connect(AttributeHolder *w, std::string const &key, std::string const &cfg = "");
+    void connect(AttributeHolder *w);
 
 
 private:
@@ -189,77 +190,6 @@ private:
     std::shared_ptr<DataBlock> m_data_holder_;
     std::shared_ptr<AttributeBase> m_attr_;
 
-};
-
-
-/**
- * AttributeView: expose one block of attribute
- * -) is a view of Attribute
- * -) is unaware of the type of Mesh
- * -) has a pointer to a mesh block
- * -) has a pointer to a data block
- * -) has a shared pointer of attribute
- * -) can traverse on the Attribute
- * -) if there is no Atlas, AttributeView will hold the MeshBlock
- * -) if there is no AttributeHolder, AttributeView will hold the DataBlock and Attribute
- */
-template<typename TV, MeshEntityType IFORM, size_type IDOF = 1>
-class AttributeView : public AttributeViewBase
-{
-
-protected:
-
-    typedef AttributeView this_type;
-    typedef Attribute<TV, IFORM, IDOF> attribute_type;
-
-
-public:
-
-    static constexpr MeshEntityType iform = IFORM;
-
-    static constexpr size_type DOF = IDOF;
-
-    explicit AttributeView() {}
-
-    explicit AttributeView(std::shared_ptr<attribute_type> const &attr) :
-            AttributeViewBase(std::dynamic_pointer_cast<AttributeBase>(std::make_shared<attribute_type>()))
-    {
-        if (attribute() != nullptr) { register_data_block_factory(attribute()); }
-    }
-
-    template<typename ...Args>
-    explicit AttributeView(AttributeHolder *holder, std::string const &key, Args &&...args) :
-            AttributeViewBase(holder, key, std::dynamic_pointer_cast<AttributeBase>(
-                    std::make_shared<attribute_type>(key, std::forward<Args>(args)...)))
-    {
-
-        if (attribute() != nullptr) { register_data_block_factory(attribute()); }
-    };
-
-    virtual ~AttributeView() {}
-
-    AttributeView(AttributeView const &other) = delete;
-
-    AttributeView(AttributeView &&other) = delete;
-
-    virtual void register_data_block_factory(std::shared_ptr<AttributeBase> const &attr) const
-    {
-        attr->register_data_block_factory(
-                std::type_index(typeid(MeshBlock)),
-                [&](const std::shared_ptr<MeshBlock> &m, void *p)
-                {
-                    ASSERT(p != nullptr);
-                    return m->template create_data_block<TV, IFORM, DOF>(p);
-                });
-    }
-
-    virtual MeshEntityType entity_type() const { return IFORM; };
-
-    virtual std::type_info const &value_type_info() const { return typeid(TV); };
-
-    virtual size_type dof() const { return DOF; };
-
-    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 };
 
 struct AttributeHolder : public design_pattern::Observable<void(id_type const &)>
@@ -271,26 +201,15 @@ struct AttributeHolder : public design_pattern::Observable<void(id_type const &)
     virtual ~AttributeHolder() {}
 
     bool
-    connect(AttributeViewBase *view, std::string const &key, std::string const &cfg = "")
+    connect(AttributeViewBase *view)
     {
         ASSERT(view != nullptr);
-        bool success = true;
 
-        auto it = m_attr_holders_.find(key);
+        base_type::connect(static_cast<observer_type *>(view));
 
-        if (it == m_attr_holders_.end() && view->attribute() == nullptr) { success = false; }
-        else
-        {
-            base_type::connect(static_cast<observer_type *>(view));
+        m_attr_holders_[view->attribute()->name()] = view->attribute();
 
-            if (it != m_attr_holders_.end()) { view->attribute(); }
-            else if (view->attribute() != nullptr)
-            {
-                m_attr_holders_.emplace(std::make_pair(key, view->attribute()));
-            }
-            success = true;
-        }
-        return success;
+        return true;
     }
 
     virtual void disconnect(AttributeViewBase *view)
@@ -319,8 +238,84 @@ struct AttributeHolder : public design_pattern::Observable<void(id_type const &)
         return m_attr_holders_.at(key)->at(m_id);
     };
 
+    virtual bool has(std::string const &key) const { return m_attr_holders_.find(key) != m_attr_holders_.end(); }
+
+    virtual std::shared_ptr<AttributeBase> at(std::string const &key)
+    {
+        return m_attr_holders_.at(key);
+    }
+
 private:
     std::map<std::string, std::shared_ptr<AttributeBase>> m_attr_holders_;
+};
+
+/**
+ * AttributeView: expose one block of attribute
+ * -) is a view of Attribute
+ * -) is unaware of the type of Mesh
+ * -) has a pointer to a mesh block
+ * -) has a pointer to a data block
+ * -) has a shared pointer of attribute
+ * -) can traverse on the Attribute
+ * -) if there is no Atlas, AttributeView will hold the MeshBlock
+ * -) if there is no AttributeHolder, AttributeView will hold the DataBlock and Attribute
+ */
+template<typename TV, MeshEntityType IFORM, size_type IDOF = 1>
+class AttributeView : public AttributeViewBase
+{
+
+protected:
+
+    typedef AttributeView this_type;
+    typedef Attribute<TV, IFORM, IDOF> attribute_type;
+
+public:
+
+    static constexpr MeshEntityType iform = IFORM;
+
+    static constexpr size_type DOF = IDOF;
+
+
+    AttributeView(std::shared_ptr<attribute_type> const &attr) :
+            AttributeViewBase(attr != nullptr ? attr : std::dynamic_pointer_cast<AttributeBase>(attr)) {}
+
+    AttributeView(std::string const &key, std::string const &cfg = "") :
+            AttributeViewBase(std::make_shared<attribute_type>(key, cfg)) {};
+
+    AttributeView(AttributeHolder *holder, std::string const &key, std::string const &cfg = "") :
+            AttributeViewBase(holder->has(key) ? holder->at(key) : std::make_shared<attribute_type>(key, cfg))
+    {
+        holder->connect(this);
+    };
+
+//    template<typename ...Args>
+//    explicit AttributeView(Args &&...args) :
+//            AttributeViewBase(std::make_shared<attribute_type>(std::forward<Args>(args)...)) {};
+
+    virtual ~AttributeView() {}
+
+    AttributeView(AttributeView const &other) = delete;
+
+    AttributeView(AttributeView &&other) = delete;
+
+    virtual void register_data_block_factory(std::shared_ptr<AttributeBase> const &attr) const
+    {
+        attr->register_data_block_factory(
+                std::type_index(typeid(MeshBlock)),
+                [&](const std::shared_ptr<MeshBlock> &m, void *p)
+                {
+                    ASSERT(p != nullptr);
+                    return m->template create_data_block<TV, IFORM, DOF>(p);
+                });
+    }
+
+    virtual MeshEntityType entity_type() const { return IFORM; };
+
+    virtual std::type_info const &value_type_info() const { return typeid(TV); };
+
+    virtual size_type dof() const { return DOF; };
+
+    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 };
 
 

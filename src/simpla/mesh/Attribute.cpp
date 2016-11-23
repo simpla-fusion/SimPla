@@ -107,13 +107,9 @@ std::shared_ptr<DataBlock> &AttributeBase::get(id_type const &m, std::shared_ptr
 
 std::shared_ptr<DataBlock> AttributeBase::insert_or_assign(const id_type &m, const std::shared_ptr<DataBlock> &p)
 {
-
     ASSERT(m_pimpl_ != nullptr);
-
     m_pimpl_->m_patches_.emplace(std::make_pair(m, p));
-
     return p;
-
 }
 
 std::shared_ptr<DataBlock>
@@ -153,20 +149,15 @@ void AttributeBase::register_data_block_factory(
         const std::function<std::shared_ptr<DataBlock>(std::shared_ptr<MeshBlock> const &, void *)> &f)
 {
     m_pimpl_->m_data_factory[idx] = f;
-
 };
 
 void
-AttributeViewBase::connect(AttributeHolder *w, std::string const &key, std::string const &cfg)
+AttributeViewBase::connect(AttributeHolder *w)
 {
-    if (!w->connect(this, key))
+    if (!w->connect(this))
     {
-        if (m_attr_ != nullptr) register_data_block_factory(m_attr_);
+        RUNTIME_ERROR << "Can not connect attribute view!" << std::endl;
 
-        if (!w->connect(this, key))
-        {
-            RUNTIME_ERROR << "Can not connect attribute view!" << std::endl;
-        }
     }
 };
 

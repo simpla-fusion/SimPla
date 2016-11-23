@@ -47,7 +47,7 @@ struct AMRTest : public mesh::Worker
     field_type<Real, mesh::FACE> B{this, "B"};
     field_type<Real, mesh::EDGE> E{this, "E"};
     field_type<Real, mesh::EDGE> J{this, "J"};
-    field_type<Real, mesh::VERTEX, 3> Ev{this, "Ev"};
+    field_type<Real, mesh::VERTEX, 3> Ev{"Ev"};
 
     virtual std::shared_ptr<mesh::MeshBlock>
     create_mesh_block(int n, index_type const *lo,
@@ -68,8 +68,9 @@ struct AMRTest : public mesh::Worker
 
     void initialize(Real data_time)
     {
-        mesh_block()->connect(this);
-        mesh_block()->initialize();
+//        mesh_block()->connect(this);
+//        mesh_block()->initialize();
+
         Ev.clear();
         E.clear();
         B.clear();
