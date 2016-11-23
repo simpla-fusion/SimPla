@@ -122,6 +122,9 @@ struct AttributeViewBase : public design_pattern::Observer<void(id_type const &)
 
     AttributeViewBase(std::shared_ptr<AttributeBase> const &attr = nullptr) : m_attr_(attr) {};
 
+    AttributeViewBase(AttributeHolder *holder, std::string const &key, std::shared_ptr<AttributeBase> const &attr)
+            : m_attr_(attr) { connect(holder, key); }
+
     virtual ~AttributeViewBase() {}
 
     AttributeViewBase(AttributeViewBase const &other) = delete;
@@ -178,7 +181,7 @@ struct AttributeViewBase : public design_pattern::Observer<void(id_type const &)
 
     virtual void register_data_block_factory(std::shared_ptr<AttributeBase> const &attr) const =0;
 
-    template<typename ...Args> void connect(AttributeHolder *w, std::string const &key, Args &&...args);
+    void connect(AttributeHolder *w, std::string const &key);
 
 
 private:
@@ -225,10 +228,11 @@ public:
     }
 
     template<typename ...Args>
-    explicit AttributeView(AttributeHolder *holder, Args &&...args) :
-            AttributeViewBase(std::dynamic_pointer_cast<AttributeBase>(
-                    std::make_shared<attribute_type>(std::forward<Args>(args)...)))
+    explicit AttributeView(AttributeHolder *holder, std::string const &key, Args &&...args) :
+            AttributeViewBase(holder, key, std::dynamic_pointer_cast<AttributeBase>(
+                    std::make_shared<attribute_type>(key, std::forward<Args>(args)...)))
     {
+
         if (attribute() != nullptr) { register_data_block_factory(attribute()); }
     };
 
@@ -320,22 +324,7 @@ private:
     std::map<std::string, std::shared_ptr<AttributeBase>> m_attr_holders_;
 };
 
-//
-//template<typename TV, MeshEntityType IFORM, size_type IDOF> template<typename ...Args> void
-//AttributeView<TV, IFORM, IDOF>::connect(AttributeHolder *w, std::string const &key, Args &&...args)
-//{
-//    if (!w->connect(this, key))
-//    {
-//        m_attr_ = std::make_shared<attribute_type>(key, std::forward<Args>(args)...);
-//
-//        register_data_block_factory(m_attr_);
-//
-//        if (!w->connect(this, key))
-//        {
-//            RUNTIME_ERROR << "Can not connect attribute view!" << std::endl;
-//        }
-//    }
-//};
+
 }} //namespace data_block
 #endif //SIMPLA_ATTRIBUTE_H
 

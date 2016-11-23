@@ -156,6 +156,19 @@ void AttributeBase::register_data_block_factory(
 
 };
 
+void
+AttributeViewBase::connect(AttributeHolder *w, std::string const &key)
+{
+    if (!w->connect(this, key))
+    {
+        if (m_attr_ != nullptr) register_data_block_factory(m_attr_);
+
+        if (!w->connect(this, key))
+        {
+            RUNTIME_ERROR << "Can not connect attribute view!" << std::endl;
+        }
+    }
+};
 
 void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
 {
