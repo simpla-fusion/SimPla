@@ -96,9 +96,9 @@ struct AMRTest : public mesh::Worker
 
     virtual void next_time_step(Real data_time, Real dt)
     {
-        Ev = cross(Ev, Ev) * dot(Ev, Ev) * 2;
-//        E = E + (curl(B) / mu - J) * dt / epsilon;
-//        B -= curl(E) * dt;
+//        Ev = cross(Ev, Ev) * dot(Ev, Ev) * 2;
+        E = E + (curl(B) / mu - J) * dt / epsilon;
+        B -= curl(E) * dt;
     }
 
 
