@@ -375,6 +375,9 @@ public:
 
     }
 
+    virtual bool is_inside(point_type const &p) const { return toolbox::is_inside(p, box()); }
+
+    virtual bool is_inside(index_tuple const &p) const { return toolbox::is_inside(p, m_inner_box_); }
 
 protected:
     bool m_is_deployed_ = false;

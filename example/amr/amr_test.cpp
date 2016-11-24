@@ -56,6 +56,8 @@ struct AMRTest : public mesh::Worker
     field_type<Real, mesh::EDGE> E{&m_chart, "E"};
     field_type<Real, mesh::EDGE> J{&m_chart, "J"};
     field_type<Real, mesh::VERTEX, 3> Ev{&m_chart, "Ev"};
+    field_type<Real, mesh::VERTEX, 3> Bv{&m_chart, "Bv"};
+    field_type<Real, mesh::VERTEX, 3> Jv{&m_chart, "Jv"};
 
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_chart.move_to(m); }
@@ -69,36 +71,43 @@ struct AMRTest : public mesh::Worker
     virtual void initialize(Real data_time)
     {
         m_chart.initialize();
-
+        Bv.clear();
         Ev.clear();
+        Jv.clear();
         E.clear();
         B.clear();
         J.clear();
-        E.foreach([&](point_type const &x)
-                  {
-                      return nTuple<Real, 3>{
-                              std::sin((x[1])),
-                              std::sin(TWOPI * (x[0] - 1)),
-                              std::sin(TWOPI * (x[2]))
-                      };
-                  });
+//        Ev.foreach([&](point_type const &x)
+//                   {
+//                       return x;
+//
+////                       return nTuple<Real, 3>{
+////                               100 + std::sin((x[1])),
+////                               200 + std::sin(TWOPI * (x[0] - 1)),
+////                               300 + std::sin(TWOPI * (x[2]))
+////                       };
+//                   });
+        Bv.foreach([&](point_type const &x) { return nTuple<Real, 3>{1, 2, 3}; });
+
+        Ev.foreach([&](point_type const &x) { return nTuple<Real, 3>{4, 5, 6}; });
+
     }
 
     virtual void set_physical_boundary_conditions(double time)
     {
 
-        auto b = m_chart.mesh()->mesh_block()->inner_index_box();
         index_tuple p = {NX / 2, NY / 2, NZ / 2};
-        if (toolbox::is_inside(p, b)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
-
+        if (m_chart.mesh()->is_inside(p)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
     };
 
 
     virtual void next_time_step(Real data_time, Real dt)
     {
-//        Ev = cross(Ev, Ev) * dot(Ev, Ev) * 2;
-        E = E + (curl(B) / mu - J) * dt / epsilon;
-        B -= curl(E) * dt;
+        Jv = cross(Ev, Bv);//
+        // cross(Ev, Ev);
+        //* dot(Ev, Ev) * 2;
+//        E = E + (curl(B) / mu - J) * dt / epsilon;
+//        B -= curl(E) * dt;
     }
 
 

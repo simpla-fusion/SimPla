@@ -302,8 +302,9 @@ public:
         m_data_->foreach(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return interpolate_policy::template sample<IFORM>(*m_mesh_, s, fun(m_mesh_->point(s)));
+                    auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l / DOF, l % DOF);
+                    auto res = interpolate_policy::template sample<IFORM>(*m_mesh_, s, fun(m_mesh_->point(s)));
+                    return res;
                 });
 
 
@@ -312,8 +313,8 @@ public:
 
     template<typename TFun> void
     foreach(TFun const &fun,
-            ENABLE_IF(
-                    (std::is_same<typename std::result_of<TFun(mesh::MeshEntityId const &)>::type, value_type>::value))
+            ENABLE_IF((std::is_same<typename std::result_of<TFun(mesh::MeshEntityId const &)>::type,
+                    value_type>::value))
     )
     {
         deploy();
@@ -323,63 +324,63 @@ public:
                     return fun(mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
                 });
     }
-
-    template<typename U> void
-    foreach_ghost(U const &v,
-                  ENABLE_IF((std::is_arithmetic<U>::value || std::is_same<U, value_type>::value)))
-    {
-        deploy();
-
-        m_data_->foreach_ghost([&](index_type i, index_type j, index_type k, index_type l) { return v; });
-    }
-
-
-    template<typename ...U>
-    void foreach_ghost(Field<Expression<U...>> const &expr)
-    {
-        deploy();
-
-        m_data_->foreach_ghost(
-                [&](index_type i, index_type j, index_type k, index_type l)
-                {
-                    return calculus_policy::eval(*m_mesh_, expr,
-                                                 mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
-                });
-
-    }
-
-
-    template<typename TFun> void
-    foreach_ghost(TFun const &fun,
-                  ENABLE_IF((std::is_same<typename std::result_of<TFun(point_type const &)>::type,
-                          field_value_type>::value)))
-    {
-        deploy();
-        m_data_->foreach_ghost(
-                [&](index_type i, index_type j, index_type k, index_type l)
-                {
-                    auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-                    return interpolate_policy::template sample<IFORM>(*m_mesh_, s, fun(m_mesh_->point(s)));
-                });
-
-
-    }
-
-    template<typename TFun> void
-    foreach_ghost(TFun const &fun,
-                  ENABLE_IF(
-                          (std::is_same<typename std::result_of<TFun(
-                                  mesh::MeshEntityId const &)>::type, value_type>::value))
-    )
-    {
-        deploy();
-
-        m_data_->foreach_ghost(
-                [&](index_type i, index_type j, index_type k, index_type l)
-                {
-                    return fun(mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
-                });
-    }
+//
+//    template<typename U> void
+//    foreach_ghost(U const &v,
+//                  ENABLE_IF((std::is_arithmetic<U>::value || std::is_same<U, value_type>::value)))
+//    {
+//        deploy();
+//
+//        m_data_->foreach_ghost([&](index_type i, index_type j, index_type k, index_type l) { return v; });
+//    }
+//
+//
+//    template<typename ...U>
+//    void foreach_ghost(Field<Expression<U...>> const &expr)
+//    {
+//        deploy();
+//
+//        m_data_->foreach_ghost(
+//                [&](index_type i, index_type j, index_type k, index_type l)
+//                {
+//                    return calculus_policy::eval(*m_mesh_, expr,
+//                                                 mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
+//                });
+//
+//    }
+//
+//
+//    template<typename TFun> void
+//    foreach_ghost(TFun const &fun,
+//                  ENABLE_IF((std::is_same<typename std::result_of<TFun(point_type const &)>::type,
+//                          field_value_type>::value)))
+//    {
+//        deploy();
+//        m_data_->foreach_ghost(
+//                [&](index_type i, index_type j, index_type k, index_type l)
+//                {
+//                    auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
+//                    return interpolate_policy::template sample<IFORM>(*m_mesh_, s, fun(m_mesh_->point(s)));
+//                });
+//
+//
+//    }
+//
+//    template<typename TFun> void
+//    foreach_ghost(TFun const &fun,
+//                  ENABLE_IF(
+//                          (std::is_same<typename std::result_of<TFun(
+//                                  mesh::MeshEntityId const &)>::type, value_type>::value))
+//    )
+//    {
+//        deploy();
+//
+//        m_data_->foreach_ghost(
+//                [&](index_type i, index_type j, index_type k, index_type l)
+//                {
+//                    return fun(mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
+//                });
+//    }
 
     template<typename ...Args> void
     foreach(mesh::MeshZoneTag const &tag, Args &&...args)
@@ -388,9 +389,6 @@ public:
         if (tag == mesh::SP_ES_ALL)
         {
             foreach(std::forward<Args>(args)...);
-        } else if (tag == mesh::SP_ES_GHOST)
-        {
-            foreach_ghost(std::forward<Args>(args)...);
         } else
         {
             foreach(m_mesh_->mesh_block()->range(entity_type(), tag, DOF), std::forward<Args>(args)...);

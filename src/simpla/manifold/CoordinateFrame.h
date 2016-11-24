@@ -40,6 +40,9 @@ struct CoordinateFrame
 
     virtual id_type id() const { return m_mesh_block_->id(); }
 
+    virtual bool is_inside(point_type const &p) const { return m_mesh_block_->is_inside(p); }
+
+    virtual bool is_inside(index_tuple const &p) const { return m_mesh_block_->is_inside(p); }
 
     ChartBase *chart;
 

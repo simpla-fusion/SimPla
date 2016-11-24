@@ -175,10 +175,18 @@ private:
     sample_(mesh_type const &m, std::integral_constant<int, VERTEX>, MeshEntityId const &s,
             TV const &v) { return v; }
 
+    template<typename TV, size_type L> static inline TV
+    sample_(mesh_type const &m, std::integral_constant<int, VERTEX>, MeshEntityId const &s,
+            nTuple <TV, L> const &v) { return v[s.w % L]; }
+
     template<typename TV>
     static inline TV
     sample_(mesh_type const &m, std::integral_constant<int, VOLUME>, MeshEntityId const &s,
             TV const &v) { return v; }
+
+    template<typename TV, size_type L> static inline TV
+    sample_(mesh_type const &m, std::integral_constant<int, VOLUME>, MeshEntityId const &s,
+            nTuple <TV, L> const &v) { return v[s.w % L]; }
 
     template<typename TV>
     static inline TV

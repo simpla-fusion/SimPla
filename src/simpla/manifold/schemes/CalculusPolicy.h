@@ -542,11 +542,13 @@ public:
     eval(mesh_type const &m, Field<Expression<ct::Cross, TL, TR>> const &expr, MeshEntityId const &s,
          index_sequence<I, I>)
     {
-        return eval(m, std::get<0>(expr.args), sw(s, (s.w + 1) % 3)) *
-               eval(m, std::get<1>(expr.args), sw(s, (s.w + 2) % 3))
-               -
-               eval(m, std::get<0>(expr.args), sw(s, (s.w + 2) % 3)) *
-               eval(m, std::get<1>(expr.args), sw(s, (s.w + 1) % 3));
+        auto res0 = eval(m, std::get<0>(expr.args), sw(s, (s.w + 1) % 3));
+        auto res1 = eval(m, std::get<1>(expr.args), sw(s, (s.w + 2) % 3));
+        auto res2 = eval(m, std::get<0>(expr.args), sw(s, (s.w + 2) % 3));
+        auto res3 = eval(m, std::get<1>(expr.args), sw(s, (s.w + 1) % 3));
+        VERBOSE << res0 << " " << res1 << " " << res2 << " " << res3 << " " << std::endl;
+
+        return res0 * res1 - res2 * res3;
     }
 
     template<typename TL, typename TR, size_t I>
