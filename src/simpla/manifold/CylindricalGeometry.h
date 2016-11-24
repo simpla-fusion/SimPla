@@ -20,7 +20,8 @@
 
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/Attribute.h>
-#include "simpla/mesh/Domain.h"
+#include "Chart.h"
+#include "CoordinateFrame.h"
 
 namespace simpla { namespace mesh
 {
@@ -33,38 +34,47 @@ namespace simpla { namespace mesh
  */
 
 
-struct CylindricalGeometry : public Domain
+struct CylindricalGeometry : public CoordinateFrame
 {
 
 public:
+    SP_OBJECT_HEAD(CylindricalGeometry, CoordinateFrame)
 
-
+    static constexpr bool is_frame_bundle = true;
     typedef Real scalar_type;
+
     static constexpr int ndims = 3;
 
-    CylindricalGeometry() {}
 
     template<typename ...Args>
-    CylindricalGeometry(Args &&...args):Domain(std::forward<Args>(args)...) {}
+    CylindricalGeometry(Args &&...args):CoordinateFrame(std::forward<Args>(args)...) {}
 
-    ~CylindricalGeometry() {}
+    virtual ~CylindricalGeometry() {}
 
 
-    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=
-    mesh::DataBlockArray<TV, IFORM, DOF>;
+    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=mesh::DataBlockArray<TV, IFORM, DOF>;
 
 private:
-    mesh::AttributeView<Real, VERTEX, 3> m_vertics_{this, "vertices", "COORDINATES"};
-    mesh::AttributeView<Real, VOLUME, 9> m_volume_{this, "volume", "NO_FILL"};
-    mesh::AttributeView<Real, VOLUME, 9> m_dual_volume_{this, "dual_volume", "NO_FILL"};
-    mesh::AttributeView<Real, VOLUME, 9> m_inv_volume_{this, "inv_volume", "NO_FILL"};
-    mesh::AttributeView<Real, VOLUME, 9> m_inv_dual_volume_{this, "inv_dual_volume", "NO_FILL"};
+    AttributeView<Real, VERTEX, 3> m_vertics_{chart, "vertices", "COORDINATES"};
+    AttributeView<Real, VOLUME, 9> m_volume_{chart, "volume", "NO_FILL"};
+    AttributeView<Real, VOLUME, 9> m_dual_volume_{chart, "dual_volume", "NO_FILL"};
+    AttributeView<Real, VOLUME, 9> m_inv_volume_{chart, "inv_volume", "NO_FILL"};
+    AttributeView<Real, VOLUME, 9> m_inv_dual_volume_{chart, "inv_dual_volume", "NO_FILL"};
 
 
 public:
+    virtual void move_to(std::shared_ptr<MeshBlock> const &m)
+    {
+        m_vertics_.move_to(m);
+        m_volume_.move_to(m);
+        m_dual_volume_.move_to(m);
+        m_inv_volume_.move_to(m);
+        m_inv_dual_volume_.move_to(m);
+
+    };
 
 
-    point_type point(MeshEntityId id, point_type const &pr) const
+    virtual point_type point(MeshEntityId id, point_type const &pr) const
     {
         /**
           *\verbatim
@@ -132,7 +142,7 @@ public:
         return point_type{x, y, z};
     }
 
-    point_type point(MeshEntityId s) const
+    virtual point_type point(MeshEntityId s) const
     {
         auto i = MeshEntityIdCoder::unpack_index(s);
         auto const *d = static_cast<data_block_type<Real, VERTEX, 9> const *>(m_vertics_.data_block());
@@ -141,33 +151,33 @@ public:
                           d->get(i[0], i[1], i[2], 2)};
     }
 
-    Real volume(MeshEntityId s) const
+    virtual Real volume(MeshEntityId s) const
     {
         return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_volume_.data_block())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
-    Real dual_volume(MeshEntityId s) const
+    virtual Real dual_volume(MeshEntityId s) const
     {
         return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_dual_volume_.data_block())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
-    Real inv_volume(MeshEntityId s) const
+    virtual Real inv_volume(MeshEntityId s) const
     {
         return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_inv_volume_.data_block())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
-    Real inv_dual_volume(MeshEntityId s) const
+    virtual Real inv_dual_volume(MeshEntityId s) const
     {
         return static_cast<data_block_type<Real, VOLUME, 9> const *>(m_inv_dual_volume_.data_block())->
                 get(MeshEntityIdCoder::unpack_index4_nodeid(s));
     }
 
-    void deploy() {}
+    virtual void deploy() {}
 
-    void initialize()
+    virtual void initialize()
     {
         //        VERBOSE << mesh_block()->inv_dx() << mesh_block()->dx() << std::endl;
 
@@ -205,7 +215,7 @@ public:
         index_type je = m_start_[1] + m_count_[1];
         index_type kb = m_start_[2];
         index_type ke = m_start_[2] + m_count_[2];
-        auto m_dx_ = m_mesh_block_->dx();
+        auto m_dx_ = mesh_block()->dx();
 #define GET3(_NAME_, _I, _J, _K, _L)  ( static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(_NAME_.data_block()))->get(_I,_J,_K,_L)
 #define GET9(_NAME_, _I, _J, _K, _L)  ( static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(_NAME_.data_block()))->get(_I,_J,_K,_L)
 
@@ -213,7 +223,7 @@ public:
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k)
                 {
-                    auto x = m_mesh_block_->point(i, j, k);
+                    auto x = mesh_block()->point(i, j, k);
 
                     GET3(m_vertics_, i, j, k, 0) = (1 + x[0]) * std::cos(x[1]);
                     GET3(m_vertics_, i, j, k, 1) = (1 + x[0]) * std::sin(x[1]);

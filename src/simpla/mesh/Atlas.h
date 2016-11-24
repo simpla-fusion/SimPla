@@ -13,8 +13,6 @@
 #include <simpla/concept/Printable.h>
 #include "MeshCommon.h"
 #include "MeshBlock.h"
-#include "TransitionMap.h"
-#include "Attribute.h"
 
 namespace simpla { namespace mesh
 {

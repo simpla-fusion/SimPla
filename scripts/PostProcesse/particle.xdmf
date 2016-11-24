@@ -1,5 +1,5 @@
 <Xdmf>
-    <Domain Name="MSI">
+    <Bundle Name="MSI">
         <Grid Name="CellTime" GridType="Collection" CollectionType="Temporal">
             <Grid Name="Cell" GridType="Uniform">
                 <Time Value="0.0"/>
@@ -26,5 +26,5 @@
             </Grid>
 
         </Grid>
-    </Domain>
+    </Bundle>
 </Xdmf>

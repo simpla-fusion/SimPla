@@ -7,14 +7,16 @@
 #include <iostream>
 
 #include <simpla/concept/Object.h>
+
 #include <simpla/mesh/Atlas.h>
-#include <simpla/geometry/CartesianGeometry.h>
-#include <simpla/geometry/CylindricalGeometry.h>
-
+#include <simpla/manifold/Worker.h>
+#include <simpla/manifold/Chart.h>
+#include <simpla/manifold/CartesianGeometry.h>
+#include <simpla/manifold/CylindricalGeometry.h>
 #include <simpla/manifold/Field.h>
-#include <simpla/physics/Constants.h>
-
 #include <simpla/manifold/Calculus.h>
+
+#include <simpla/physics/Constants.h>
 #include <simpla/simulation/TimeIntegrator.h>
 
 #define NX 64
@@ -29,14 +31,13 @@ struct AMRTest : public mesh::Worker
 {
     SP_OBJECT_HEAD(AMRTest, mesh::Worker);
 
-    typedef TM mesh_type;
+    typedef TM coordiantes_frame_type;
 
     AMRTest() {}
 
     ~AMRTest() {}
 
-    mesh_type m_;
-
+    mesh::Chart<TM> m_;
 
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1>
     using field_type=Field<TV, TM, index_const<IFORM>, index_const<DOF>>;
@@ -49,22 +50,18 @@ struct AMRTest : public mesh::Worker
     field_type<Real, mesh::EDGE> J{&m_, "J"};
     field_type<Real, mesh::VERTEX, 3> Ev{&m_, "Ev"};
 
-    virtual std::shared_ptr<mesh::MeshBlock>
-    create_mesh_block(int n, index_type const *lo,
-                      index_type const *hi,
-                      Real const *dx = nullptr,
-                      Real const *x0 = nullptr,
-                      id_type id = 0)
+
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_.move_to(m); }
+
+
+    virtual mesh::ChartBase *chart() { return &m_; };
+
+    virtual mesh::ChartBase const *chart() const { return &m_; };
+
+
+    virtual void initialize(Real data_time)
     {
-        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<mesh_type>(n, lo, hi, dx, x0, id));
-    };
-
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m_) { mesh::Worker::move_to(m_); }
-
-
-    void initialize(Real data_time)
-    {
-        mesh_block()->initialize();
+        m_.initialize();
 
         Ev.clear();
         E.clear();
@@ -80,10 +77,10 @@ struct AMRTest : public mesh::Worker
                   });
     }
 
-    virtual void setPhysicalBoundaryConditions(double time)
+    virtual void set_physical_boundary_conditions(double time)
     {
 
-        auto b = mesh_block()->inner_index_box();
+        auto b = m_.mesh()->mesh_block()->inner_index_box();
         index_tuple p = {NX / 2, NY / 2, NZ / 2};
         if (toolbox::is_inside(p, b)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
 

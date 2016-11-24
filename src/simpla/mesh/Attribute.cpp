@@ -9,8 +9,14 @@
 #include "MeshBlock.h"
 #include "DataBlock.h"
 
-namespace simpla { namespace mesh
+namespace simpla
 {
+namespace mesh
+{
+
+class ChartBase;
+
+
 struct AttributeBase::pimpl_s
 {
     std::map<id_type, std::shared_ptr<DataBlock>> m_patches_;
@@ -18,6 +24,7 @@ struct AttributeBase::pimpl_s
     std::map<std::type_index, std::function<std::shared_ptr<DataBlock>(std::shared_ptr<MeshBlock> const &,
                                                                        void *)> > m_data_factory;
 };
+
 
 AttributeBase::AttributeBase() {};
 
@@ -151,51 +158,70 @@ void AttributeBase::register_data_block_factory(
     m_pimpl_->m_data_factory[idx] = f;
 };
 
-void
-AttributeViewBase::connect(AttributeHolder *w)
-{
-    if (!w->connect(this))
-    {
-        RUNTIME_ERROR << "Can not connect attribute view!" << std::endl;
 
+AttributeViewBase::AttributeViewBase(std::shared_ptr<AttributeBase> const &attr) : m_attr_(attr) {};
+
+AttributeViewBase::~AttributeViewBase() {}
+
+id_type AttributeViewBase::mesh_id() const { return m_id_; }
+
+std::shared_ptr<AttributeBase> &AttributeViewBase::attribute() { return m_attr_; }
+
+std::shared_ptr<AttributeBase> const &AttributeViewBase::attribute() const { return m_attr_; }
+
+DataBlock *AttributeViewBase::data_block() { return m_data_.get(); };
+
+DataBlock const *AttributeViewBase::data_block() const { return m_data_.get(); };
+
+void AttributeViewBase::move_to(id_type const &id, std::shared_ptr<DataBlock> const &d)
+{
+    if (d != nullptr)
+    {
+        m_data_id_ = id;
+        m_data_ = d;
+        if (m_attr_ != nullptr)
+        {
+            m_attr_->insert_or_assign(id, d);
+        }
+    } else if (m_attr_ != nullptr)
+    {
+        m_id_ = id;
+        if (id != m_data_id_)
+        {
+            m_data_id_ = id;
+            m_data_ = m_attr_->at(id);
+        }
+    } else
+    {
+        RUNTIME_ERROR << "attribute is empty" << std::endl;
     }
-};
+}
+
 
 void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
 {
-    ASSERT(m != nullptr);
-
-    m_id_ = m->id();
-
-    if (m_attr_ == nullptr) { m_data_holder_ = d; } else { m_data_holder_ = m_attr_->insert_or_assign(m, d); }
-
-    deploy();
-}
-
-void AttributeViewBase::move_to(id_type const &id)
-{
-    ASSERT(m_attr_ != nullptr);
-    m_id_ = id;
-    m_data_holder_ = m_attr_->at(id);
+    move_to(m->id(), d);
 }
 
 
 void AttributeViewBase::deploy()
 {
-    if (m_attr_ != nullptr) { m_data_holder_ = m_attr_->at(m_id_); }
-    ASSERT(m_data_holder_ != nullptr);
-    m_data_holder_->deploy();
+    if (m_attr_ != nullptr) { m_data_ = m_attr_->at(m_id_); }
+    ASSERT(m_data_ != nullptr);
+    m_data_->deploy();
 };
 
 void AttributeViewBase::clear()
 {
     deploy();
-    m_data_holder_->clear();
+    m_data_->clear();
 }
 
 void AttributeViewBase::destroy()
 {
-    m_data_holder_.reset();
-    if (m_attr_ != nullptr) { m_attr_->erase(m_id_); }
+    m_data_.reset();
+    if (m_attr_ != nullptr) { m_attr_->erase(m_data_id_); }
+    m_data_id_ = 0;
 }
-}}//namespace simpla { namespace mesh
+}
+}//namespace simpla { namespace mesh

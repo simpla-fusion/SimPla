@@ -85,7 +85,7 @@ InitValue = {
     },
     --  phi=
     --  {
-    --    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
+    --    Bundle={Box={{0 ,0 ,0},{LX,LY,LZ}}},
     --
     --    Value=function(x,t)
     --      -- print(x[1],x[2],x[3])
@@ -119,7 +119,7 @@ Particles = {
 }
 
 PEC = {
-    Domain = {
+    Bundle = {
         Box = { { 0, 0, 0 }, { LX, LY, 0 } },
         IsSurface = true,
         Object = function(v)

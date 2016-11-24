@@ -11,24 +11,29 @@
 #include <set>
 #include <simpla/data/DataBase.h>
 #include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/design_pattern/Observer.h>
+
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Configurable.h>
-#include <simpla/toolbox/design_pattern/Observer.h>
 
-#include "MeshCommon.h"
-#include "Atlas.h"
-#include "Attribute.h"
+#include <simpla/mesh/MeshCommon.h>
+#include <simpla/mesh/Atlas.h>
+#include <simpla/mesh/Attribute.h>
+#include "CoordinateFrame.h"
+#include "Chart.h"
 
 namespace simpla { namespace mesh
 {
 struct MeshBlock;
 struct DataBlock;
 
+struct ChartBase;
+struct CoordinateFrame;
+
 class Worker :
         public Object,
-        public AttributeHolder,
         public concept::Printable,
         public concept::Serializable
 {
@@ -47,26 +52,23 @@ public:
 
     virtual void save(data::DataBase *) const { UNIMPLEMENTED; }
 
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_mesh_ = m; };
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) =0;
 
-    virtual std::shared_ptr<mesh::MeshBlock> mesh_block() const { return m_mesh_; };
 
     virtual void initialize(Real data_time)=0;
 
-    virtual void setPhysicalBoundaryConditions(double time)=0;
+    virtual void set_physical_boundary_conditions(double time)=0;
 
     virtual void next_time_step(Real data_time, Real dt)=0;
 
+    virtual ChartBase *chart()=0;
 
-    virtual std::shared_ptr<MeshBlock>
-    create_mesh_block(int n, index_type const *lo,
-                      index_type const *hi,
-                      Real const *dx = nullptr,
-                      Real const *x0 = nullptr,
-                      id_type id = 0)=0;
+    virtual ChartBase const *chart() const =0;
+
 
 private:
-    std::shared_ptr<mesh::MeshBlock> m_mesh_;
+
+
     std::string m_name_;
 
 };

@@ -252,13 +252,13 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 ////
 ////using namespace simpla;
 ////
-//class Domain;
+//class Bundle;
 //class Container;
 //
 //class TestFIELD: public testing::TestWithParam<
-//		std::tuple<typename domain_traits<Domain>::coordinate_tuple,
-//				typename Domain::coordinate_tuple,
-//				nTuple<Domain::NDIMS, size_t>, nTuple<Domain::NDIMS, Real> > >
+//		std::tuple<typename domain_traits<Bundle>::coordinate_tuple,
+//				typename Bundle::coordinate_tuple,
+//				nTuple<Bundle::NDIMS, size_t>, nTuple<Bundle::NDIMS, Real> > >
 //{
 //
 //protected:
@@ -295,7 +295,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 //	}
 //public:
 //
-//	typedef Domain domain_type;
+//	typedef Bundle domain_type;
 //	typedef Real value_type;
 //	typedef domain_type::scalar_type scalar_type;
 //	typedef domain_type::iterator iterator;

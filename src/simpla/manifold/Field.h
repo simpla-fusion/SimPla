@@ -16,9 +16,8 @@
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/design_pattern/Observer.h>
 #include <simpla/mesh/Attribute.h>
-#include <simpla/mesh/Worker.h>
-#include <simpla/mesh/MeshCommon.h>
 
+#include "FiberBundle.h"
 #include "FieldTraits.h"
 #include "FieldExpression.h"
 #include "schemes/CalculusPolicy.h"
@@ -33,14 +32,11 @@ template<typename ...> class Field;
 
 
 template<typename TV, typename TM, size_type I, size_type DOF>
-class Field<TV, TM, index_const<I>, index_const<DOF>> :
-        public mesh::AttributeView<TV, static_cast<mesh::MeshEntityType >(I), DOF>
+class Field<TV, TM, index_const<I>, index_const<DOF>> : public mesh::FiberBundle
 {
 private:
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
-
     typedef Field<TV, TM, index_const<I>, index_const<DOF>> this_type;
-    typedef mesh::AttributeView<TV, IFORM, DOF> base_type;
 
 public:
     typedef TV value_type;
@@ -62,10 +58,18 @@ public:
     typedef manifold::schemes::InterpolatePolicy<mesh_type> interpolate_policy;
 
 
+    explicit Field(mesh::Chart<mesh_type> *chart,
+                   std::shared_ptr<mesh::AttributeView<TV, IFORM, DOF>> const &attr = nullptr)
+            : FiberBundle(chart, std::dynamic_pointer_cast<mesh::AttributeViewBase>(attr)),
+              m_mesh_(nullptr),
+              m_data_(nullptr) {};
+
     template<typename ...Args>
-    explicit Field(Args &&...args):base_type(std::forward<Args>(args)...), m_mesh_(nullptr), m_data_(nullptr)
-    {
-    };
+    explicit Field(mesh::Chart<mesh_type> *chart, Args &&...args):
+            FiberBundle(chart, std::make_shared<mesh::AttributeView<TV, IFORM, DOF>>(std::forward<Args>(args)...)),
+            m_mesh_(nullptr),
+            m_data_(nullptr) {};
+
 
     virtual ~Field() {}
 
@@ -73,20 +77,24 @@ public:
 
     Field(this_type &&other) = delete;
 
-    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); };
+    virtual bool is_a(std::type_info const &t_info) const
+    {
+        return t_info == typeid(this_type) || mesh::FiberBundle::is_a(t_info);
+    };
 
     bool is_valid() const { return m_data_ != nullptr && m_mesh_ != nullptr; };
 
-    using base_type::entity_type;
+    virtual mesh::MeshEntityType entity_type() const { return IFORM; };
 
-    using base_type::value_type_info;
+    virtual std::type_info const &value_type_info() const { return typeid(TV); };
 
-    using base_type::dof;
+    virtual size_type dof() const { return DOF; };
+
 
     void deploy()
     {
-//        m_mesh_ = base_type::get_mesh<mesh_type>();
-        m_data_ = base_type::template get_data<data_block>();
+        m_mesh_ = mesh::FiberBundle::template mesh_as<mesh_type>();
+        m_data_ = mesh::FiberBundle::template data_as<data_block>();
         m_data_->deploy();
     }
 
@@ -202,7 +210,7 @@ public:
 //            U &&...args)
 //    {
 //        deploy();
-//        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_mesh_->point(s), std::forward<U>(args)...); });
+//        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_frame_->point(s), std::forward<U>(args)...); });
 //    }
 
 
@@ -225,7 +233,7 @@ public:
     )
     {
         deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { return fun(s); });
+        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(s); });
     }
 
 
@@ -333,7 +341,8 @@ public:
         m_data_->foreach_ghost(
                 [&](index_type i, index_type j, index_type k, index_type l)
                 {
-                    return calculus_policy::eval(*m_mesh_, expr, mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
+                    return calculus_policy::eval(*m_mesh_, expr,
+                                                 mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
                 });
 
     }

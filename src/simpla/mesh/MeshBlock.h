@@ -20,7 +20,6 @@
 
 namespace simpla { namespace mesh
 {
-class AttributeHolder;
 
 /**
  *  block represent a n-dims block in the index space;
@@ -117,7 +116,6 @@ public:
                 std::make_shared<data_block_type<TV, IFORM, DOF>>(static_cast<TV *>(p), ndims, lo, hi));
     };
 
-    virtual void connect(AttributeHolder *holder) { DO_NOTHING; }
 
     virtual void initialize() { DO_NOTHING; }
 

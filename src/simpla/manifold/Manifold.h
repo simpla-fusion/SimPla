@@ -135,7 +135,7 @@ class Manifold
 {
 
 public:
-    std::shared_ptr<mesh::AttributeHolder> m_attr_holder_;
+    std::shared_ptr<mesh::AttributeCollection> m_attr_holder_;
     std::shared_ptr<mesh::Atlas> m_atlas_;
 
 

@@ -12,7 +12,7 @@ FILE(GLOB amr_test_SRC ./*.cpp)
 add_executable(amr_test ${amr_test_SRC})
 
 
-TARGET_LINK_LIBRARIES(amr_test ${SAMRAI_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES} concept mesh toolbox data simulation)
+TARGET_LINK_LIBRARIES(amr_test ${SAMRAI_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES} concept mesh manifold toolbox data simulation)
 
 
 

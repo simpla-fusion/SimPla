@@ -123,7 +123,7 @@ Constraints = {
         end
     },
     --    PEC = {
-    --        Domain = {
+    --        Bundle = {
     --            Box = { { 0, 0, 0 }, { LX, LY, 0 } },
     --            Shape = function(v)
     --                d1 = ((v[1] - LX / 2) * (v[1] - LX / 2) + (v[2] - LY / 2) * (v[2] - LY / 2)) - LY * LY * 0.04

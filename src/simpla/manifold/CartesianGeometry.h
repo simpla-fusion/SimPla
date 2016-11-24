@@ -15,7 +15,7 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/EntityId.h>
-#include "simpla/mesh/Domain.h"
+#include "Chart.h"
 
 namespace simpla { namespace mesh
 {
@@ -27,9 +27,13 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public Domain
+struct CartesianGeometry : public CoordinateFrame
 {
 public:
+
+    SP_OBJECT_HEAD(CartesianGeometry, CoordinateFrame)
+
+
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
 
@@ -66,12 +70,10 @@ public:
 
 
 public:
-    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=
-    mesh::DataBlockArray<TV, IFORM, DOF>;
+    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type= mesh::DataBlockArray<TV, IFORM, DOF>;
 
 
-    template<typename ...Args>
-    explicit CartesianGeometry(Args &&...args):Domain(std::forward<Args>(args)...) {}
+    CartesianGeometry(Chart<this_type> *c) : CoordinateFrame(c) {}
 
     ~CartesianGeometry() {}
 
@@ -85,12 +87,18 @@ private:
     Real m_inv_volume_[9];
     Real m_dual_volume_[9];
     Real m_inv_dual_volume_[9];
-    nTuple<Real, 3> m_dx_, m_inv_dx_;
 public:
     typedef mesh::MeshEntityIdCoder m;
 
+    virtual void move_to(std::shared_ptr<MeshBlock> const &m) {};
+
     template<typename ...Args>
-    point_type point(Args &&...args) const { return mesh_block()->point(std::forward<Args>(args)...); }
+    point_type point(Args &&...args) const { return CoordinateFrame::mesh_block()->point(std::forward<Args>(args)...); }
+
+
+    point_type point(MeshEntityId s) const {};
+
+    point_type point(MeshEntityId s, point_type const &r) const {};
 
     Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 
@@ -125,10 +133,11 @@ void CartesianGeometry::initialize()
         *
         *\endverbatim
         */
+    nTuple<Real, 3> m_dx_, m_inv_dx_;
 
-    auto const &dims = m_mesh_block_->dimensions();
-    m_dx_ = m_mesh_block_->dx();
-    m_inv_dx_ = m_mesh_block_->inv_dx();
+    auto const &dims = mesh_block()->dimensions();
+    m_dx_ = mesh_block()->dx();
+    m_inv_dx_ = mesh_block()->inv_dx();
 
     m_volume_[0 /*000*/] = 1;
     m_volume_[1 /*001*/] = (dims[0] == 1) ? 1 : m_dx_[0];

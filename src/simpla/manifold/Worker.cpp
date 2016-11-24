@@ -3,8 +3,8 @@
 //
 #include "Worker.h"
 #include <set>
-#include "MeshBlock.h"
-#include "Attribute.h"
+#include <simpla/mesh/MeshBlock.h>
+#include <simpla/mesh/Attribute.h>
 
 namespace simpla { namespace mesh
 {
@@ -16,9 +16,9 @@ Worker::~Worker() {};
 
 std::ostream &Worker::print(std::ostream &os, int indent) const
 {
-//    if (m_pimpl_->m_mesh_ != nullptr)
+//    if (m_pimpl_->m_frame_ != nullptr)
 //    {
-//        os << std::setw(indent + 1) << " Mesh = " << m_pimpl_->m_mesh_->name() << ", "
+//        os << std::setw(indent + 1) << " Mesh = " << m_pimpl_->m_frame_->name() << ", "
 //           << " type = \"" << get_class_name() << "\", ";
 //
 //    }
@@ -42,7 +42,7 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 //void Worker::destroy()
 //{
 ////    foreach([&](AttributeViewBase &ob) { ob.destroy(); });
-//    m_pimpl_->m_mesh_ = nullptr;
+//    m_pimpl_->m_frame_ = nullptr;
 //}
 //
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
-<Xdmf><Domain>
+<Xdmf><Bundle>
 
 
 
@@ -51,4 +51,4 @@
 
 	
 </Grid>
-</Domain></Xdmf>
+</Bundle></Xdmf>

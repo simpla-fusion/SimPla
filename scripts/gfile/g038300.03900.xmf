@@ -1,5 +1,5 @@
 <Xdmf xmlns:xi="http://www.w3.org/2003/XInclude" Version="2">
-  <Domain>
+  <Bundle>
     <Grid Name="G-Eqdsk" GridType="Uniform">
       <Topology TopologyType="2DCORECTMesh" Dimensions="129 129"/>
       <BaseManifold GeometryType="ORIGIN_DXDY">
@@ -218,5 +218,5 @@
         <DataItem Dimensions="93 3" NumberType="Float" Precision="4" Format="HDF">../example/gfile/g038300.03900.h5:/Limter/Points</DataItem>
       </BaseManifold>
     </Grid>
-  </Domain>
+  </Bundle>
 </Xdmf>

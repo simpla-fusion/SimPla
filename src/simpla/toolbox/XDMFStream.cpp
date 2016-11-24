@@ -63,7 +63,7 @@ std::tuple<bool, std::string> XDMFStream::open(std::string const &url, int flag)
     m_file_stream_
             << std::endl
             << "<Xdmf xmlns:xi=\"http://www.w3.org/2003/XInclude\" Version=\"2\">\n"
-            << "<Domain>\n";
+            << "<Bundle>\n";
     return res;
 }
 
@@ -77,7 +77,7 @@ void XDMFStream::close()
         m_h5_stream_.close();
 
         m_file_stream_
-                << "</Domain>" << std::endl
+                << "</Bundle>" << std::endl
                 << "</Xdmf>" << std::endl;
 
         VERBOSE << "File [" << IOStream::current_file_name() << "] is closed. " << std::endl;
@@ -355,9 +355,9 @@ void XDMFStream::reference_topology_geometry(std::string const &id)
     int level = static_cast<int>( m_path_.size());
     m_file_stream_
             << std::setw(level * 2) << ""
-            << "   <Topology Reference=\"XML\" >/Xdmf/Domain/Topology[@Name=\"" << id << "\"]</Topology>" << std::endl
+            << "   <Topology Reference=\"XML\" >/Xdmf/Bundle/Topology[@Name=\"" << id << "\"]</Topology>" << std::endl
             << std::setw(level * 2) << ""
-            << "   <geometry Reference=\"XML\" >/Xdmf/Domain/geometry[@Name=\"" << id << "\"]</geometry>" << std::endl;
+            << "   <geometry Reference=\"XML\" >/Xdmf/Bundle/geometry[@Name=\"" << id << "\"]</geometry>" << std::endl;
 
 }
 
