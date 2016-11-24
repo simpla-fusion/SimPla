@@ -8,7 +8,7 @@
 #include "../../toolbox/PrettyStream.h"
 #include "../../toolbox/nTupleExt.h"
 #include "../../manifold/pre_define/PreDefine.h"
-#include "../../mesh/Atlas.h"
+#include "simpla/manifold/Atlas.h"
 
 #include "simpla/manifold/Field.h"
 

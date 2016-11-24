@@ -178,7 +178,7 @@ struct AttributeViewBase : public std::enable_shared_from_this<AttributeViewBase
 
 
 private:
-    id_type m_id_;
+    id_type m_id_ = 0;
     id_type m_data_id_ = 0;
     std::shared_ptr<DataBlock> m_data_;
     std::shared_ptr<AttributeBase> m_attr_;

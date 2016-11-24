@@ -19,7 +19,7 @@
 #include <simpla/concept/Configurable.h>
 
 #include <simpla/mesh/MeshCommon.h>
-#include <simpla/mesh/Atlas.h>
+#include <simpla/manifold/Atlas.h>
 #include <simpla/mesh/Attribute.h>
 #include "CoordinateFrame.h"
 #include "Chart.h"
@@ -54,7 +54,6 @@ public:
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) =0;
 
-
     virtual void initialize(Real data_time)=0;
 
     virtual void set_physical_boundary_conditions(double time)=0;
@@ -64,7 +63,6 @@ public:
     virtual ChartBase *chart()=0;
 
     virtual ChartBase const *chart() const =0;
-
 
 private:
 

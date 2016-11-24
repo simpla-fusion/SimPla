@@ -8,7 +8,7 @@
 
 #include <simpla/concept/Object.h>
 
-#include <simpla/mesh/Atlas.h>
+#include <simpla/manifold/Atlas.h>
 #include <simpla/manifold/Worker.h>
 #include <simpla/manifold/Chart.h>
 #include <simpla/manifold/CartesianGeometry.h>

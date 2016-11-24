@@ -4,7 +4,7 @@
 
 #include <typeindex>
 #include <simpla/toolbox/Log.h>
-#include "Atlas.h"
+#include "simpla/manifold/Atlas.h"
 #include "Attribute.h"
 #include "MeshBlock.h"
 #include "DataBlock.h"
@@ -175,16 +175,16 @@ DataBlock const *AttributeViewBase::data_block() const { return m_data_.get(); }
 
 void AttributeViewBase::move_to(id_type const &id, std::shared_ptr<DataBlock> const &d)
 {
+    m_id_ = id;
     if (d != nullptr)
     {
         m_data_id_ = id;
         m_data_ = d;
-    }
-    if (m_data_ == nullptr && m_attr_ != nullptr && m_attr_->has(id))
+    } else if (m_data_id_ != m_id_ && m_attr_ != nullptr && m_attr_->has(id))
     {
         m_data_ = m_attr_->get(id);
+        m_data_id_ = m_id_;
     }
-
 }
 
 
@@ -196,7 +196,7 @@ void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared
 
 void AttributeViewBase::deploy()
 {
-    if (m_attr_ != nullptr) { m_data_ = m_attr_->at(m_id_); }
+    move_to(m_id_);
     ASSERT(m_data_ != nullptr);
     m_data_->deploy();
 };

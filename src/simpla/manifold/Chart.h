@@ -84,6 +84,10 @@ public:
 
     virtual ~Chart() {}
 
+    virtual void initialize() { m_mesh_.initialize(); }
+
+    virtual void deploy() { m_mesh_.deploy(); }
+
     /**
      * @return current MeshBlock
      */

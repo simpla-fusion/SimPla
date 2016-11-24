@@ -64,16 +64,6 @@ private:
 
 
 public:
-    virtual void move_to(std::shared_ptr<MeshBlock> const &m)
-    {
-        m_vertics_.move_to(m);
-        m_volume_.move_to(m);
-        m_dual_volume_.move_to(m);
-        m_inv_volume_.move_to(m);
-        m_inv_dual_volume_.move_to(m);
-
-    };
-
 
     virtual point_type point(MeshEntityId id, point_type const &pr) const
     {

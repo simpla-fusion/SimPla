@@ -18,7 +18,7 @@
 
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/Attribute.h>
-#include <simpla/mesh/Atlas.h>
+#include <simpla/manifold/Atlas.h>
 
 
 namespace simpla { namespace manifold

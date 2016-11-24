@@ -11,8 +11,8 @@
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/concept/Printable.h>
-#include "MeshCommon.h"
-#include "MeshBlock.h"
+#include <simpla/mesh/MeshCommon.h>
+#include <simpla/mesh/MeshBlock.h>
 
 namespace simpla { namespace mesh
 {

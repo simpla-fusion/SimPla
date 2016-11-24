@@ -911,17 +911,18 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
                                  patch.getBox().getGlobalId().getLocalId().getValue())
     );
     m->deploy();
-    w->move_to(m);
 
     for (auto &ob:w->chart()->attributes())
     {
         auto &attr = ob.second->attribute();
 
         if (attr == nullptr) { return; }
+        CHECK(attr->name());
         ob.second->move_to(m, detail::create_data_block(
                 attr, patch.getPatchData(m_samrai_variables_.at(attr->id()),
                                          getDataContext())));
     }
+    w->move_to(m);
 
 }
 
