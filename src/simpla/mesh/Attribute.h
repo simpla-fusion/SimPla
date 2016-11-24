@@ -217,13 +217,6 @@ public:
     explicit AttributeView(std::string const &key, Args &&...args) :
             AttributeViewBase(std::make_shared<attribute_type>(key, std::forward<Args>(args)...)) {};
 
-    template<typename THolder, typename ...Args>
-    explicit AttributeView(THolder *holder, std::string const &key, Args &&...args) :
-            AttributeViewBase(std::make_shared<attribute_type>(key, std::forward<Args>(args)...))
-    {
-        holder->connect(shared_from_this(), key);
-
-    };
 
     virtual ~AttributeView() {}
 

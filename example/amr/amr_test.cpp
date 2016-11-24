@@ -31,13 +31,20 @@ struct AMRTest : public mesh::Worker
 {
     SP_OBJECT_HEAD(AMRTest, mesh::Worker);
 
-    typedef TM coordiantes_frame_type;
 
-    AMRTest() {}
+    AMRTest()
+    {
+
+        for (auto const &item:m_chart.attributes())
+        {
+            std::cout << item.second->attribute()->name() << std::endl;
+        }
+
+    }
 
     ~AMRTest() {}
 
-    mesh::Chart<TM> m_;
+    mesh::Chart<TM> m_chart;
 
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1>
     using field_type=Field<TV, TM, index_const<IFORM>, index_const<DOF>>;
@@ -45,23 +52,23 @@ struct AMRTest : public mesh::Worker
     Real epsilon = 1.0;
     Real mu = 1.0;
 
-    field_type<Real, mesh::FACE> B{&m_, "B"};
-    field_type<Real, mesh::EDGE> E{&m_, "E"};
-    field_type<Real, mesh::EDGE> J{&m_, "J"};
-    field_type<Real, mesh::VERTEX, 3> Ev{&m_, "Ev"};
+    field_type<Real, mesh::FACE> B{&m_chart, "B"};
+    field_type<Real, mesh::EDGE> E{&m_chart, "E"};
+    field_type<Real, mesh::EDGE> J{&m_chart, "J"};
+    field_type<Real, mesh::VERTEX, 3> Ev{&m_chart, "Ev"};
 
 
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_.move_to(m); }
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_chart.move_to(m); }
 
 
-    virtual mesh::ChartBase *chart() { return &m_; };
+    virtual mesh::ChartBase *chart() { return &m_chart; };
 
-    virtual mesh::ChartBase const *chart() const { return &m_; };
+    virtual mesh::ChartBase const *chart() const { return &m_chart; };
 
 
     virtual void initialize(Real data_time)
     {
-        m_.initialize();
+        m_chart.initialize();
 
         Ev.clear();
         E.clear();
@@ -80,7 +87,7 @@ struct AMRTest : public mesh::Worker
     virtual void set_physical_boundary_conditions(double time)
     {
 
-        auto b = m_.mesh()->mesh_block()->inner_index_box();
+        auto b = m_chart.mesh()->mesh_block()->inner_index_box();
         index_tuple p = {NX / 2, NY / 2, NZ / 2};
         if (toolbox::is_inside(p, b)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
 

@@ -32,12 +32,14 @@ template<typename ...> class Field;
 
 
 template<typename TV, typename TM, size_type I, size_type DOF>
-class Field<TV, TM, index_const<I>, index_const<DOF>> : public mesh::FiberBundle
+class Field<TV, TM, index_const<I>, index_const<DOF>> :
+        public mesh::FiberBundle<TV, static_cast<mesh::MeshEntityType>(I), DOF>
 {
 private:
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
     typedef Field<TV, TM, index_const<I>, index_const<DOF>> this_type;
-
+    typedef mesh::FiberBundle<TV, static_cast<mesh::MeshEntityType>(I), DOF> base_type;
+    using base_type::view_type;
 public:
     typedef TV value_type;
     typedef TM mesh_type;
@@ -58,15 +60,14 @@ public:
     typedef manifold::schemes::InterpolatePolicy<mesh_type> interpolate_policy;
 
 
-    explicit Field(mesh::Chart<mesh_type> *chart,
-                   std::shared_ptr<mesh::AttributeView<TV, IFORM, DOF>> const &attr = nullptr)
-            : FiberBundle(chart, std::dynamic_pointer_cast<mesh::AttributeViewBase>(attr)),
-              m_mesh_(nullptr),
-              m_data_(nullptr) {};
+//    explicit Field(mesh::Chart<mesh_type> *chart, std::shared_ptr<view_type> const &attr = nullptr)
+//            : base_type(chart, attr),
+//              m_mesh_(nullptr),
+//              m_data_(nullptr) {};
 
     template<typename ...Args>
     explicit Field(mesh::Chart<mesh_type> *chart, Args &&...args):
-            FiberBundle(chart, std::make_shared<mesh::AttributeView<TV, IFORM, DOF>>(std::forward<Args>(args)...)),
+            base_type(chart, std::forward<Args>(args)...),
             m_mesh_(nullptr),
             m_data_(nullptr) {};
 
@@ -79,22 +80,22 @@ public:
 
     virtual bool is_a(std::type_info const &t_info) const
     {
-        return t_info == typeid(this_type) || mesh::FiberBundle::is_a(t_info);
+        return t_info == typeid(this_type) || base_type::is_a(t_info);
     };
 
     bool is_valid() const { return m_data_ != nullptr && m_mesh_ != nullptr; };
 
-    virtual mesh::MeshEntityType entity_type() const { return IFORM; };
+    using base_type::entity_type;
 
-    virtual std::type_info const &value_type_info() const { return typeid(TV); };
+    using base_type::value_type_info;
 
-    virtual size_type dof() const { return DOF; };
+    using base_type::dof;
 
 
     void deploy()
     {
-        m_mesh_ = mesh::FiberBundle::template mesh_as<mesh_type>();
-        m_data_ = mesh::FiberBundle::template data_as<data_block>();
+        m_mesh_ = base_type::template mesh_as<mesh_type>();
+        m_data_ = base_type::template data_as<data_block>();
         m_data_->deploy();
     }
 

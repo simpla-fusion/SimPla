@@ -179,22 +179,12 @@ void AttributeViewBase::move_to(id_type const &id, std::shared_ptr<DataBlock> co
     {
         m_data_id_ = id;
         m_data_ = d;
-        if (m_attr_ != nullptr)
-        {
-            m_attr_->insert_or_assign(id, d);
-        }
-    } else if (m_attr_ != nullptr)
-    {
-        m_id_ = id;
-        if (id != m_data_id_)
-        {
-            m_data_id_ = id;
-            m_data_ = m_attr_->at(id);
-        }
-    } else
-    {
-        RUNTIME_ERROR << "attribute is empty" << std::endl;
     }
+    if (m_data_ == nullptr && m_attr_ != nullptr && m_attr_->has(id))
+    {
+        m_data_ = m_attr_->get(id);
+    }
+
 }
 
 

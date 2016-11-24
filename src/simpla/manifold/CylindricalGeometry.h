@@ -21,6 +21,7 @@
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/Attribute.h>
 #include "Chart.h"
+#include "FiberBundle.h"
 #include "CoordinateFrame.h"
 
 namespace simpla { namespace mesh
@@ -55,11 +56,11 @@ public:
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=mesh::DataBlockArray<TV, IFORM, DOF>;
 
 private:
-    AttributeView<Real, VERTEX, 3> m_vertics_{chart, "vertices", "COORDINATES"};
-    AttributeView<Real, VOLUME, 9> m_volume_{chart, "volume", "NO_FILL"};
-    AttributeView<Real, VOLUME, 9> m_dual_volume_{chart, "dual_volume", "NO_FILL"};
-    AttributeView<Real, VOLUME, 9> m_inv_volume_{chart, "inv_volume", "NO_FILL"};
-    AttributeView<Real, VOLUME, 9> m_inv_dual_volume_{chart, "inv_dual_volume", "NO_FILL"};
+    FiberBundle<Real, VERTEX, 3> m_vertics_{chart, "vertices", "COORDINATES"};
+    FiberBundle<Real, VOLUME, 9> m_volume_{chart, "volume", "NO_FILL"};
+    FiberBundle<Real, VOLUME, 9> m_dual_volume_{chart, "dual_volume", "NO_FILL"};
+    FiberBundle<Real, VOLUME, 9> m_inv_volume_{chart, "inv_volume", "NO_FILL"};
+    FiberBundle<Real, VOLUME, 9> m_inv_dual_volume_{chart, "inv_dual_volume", "NO_FILL"};
 
 
 public:
