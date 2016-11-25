@@ -19,100 +19,12 @@
 #include <simpla/physics/Constants.h>
 #include <simpla/simulation/TimeIntegrator.h>
 
-#define NX 64
-#define NY 64
-#define NZ 64
-#define omega 1.0
+//#include "amr_test.h"
+#include "../../scenario/problem_domain/EMFluid.h"
+
 using namespace simpla;
 
 
-template<typename TM>
-struct AMRTest : public mesh::Worker
-{
-    SP_OBJECT_HEAD(AMRTest, mesh::Worker);
-
-
-    AMRTest()
-    {
-
-        for (auto const &item:m_chart.attributes())
-        {
-            std::cout << item->attribute()->name() << std::endl;
-        }
-
-    }
-
-    ~AMRTest() {}
-
-    mesh::Chart<TM> m_chart;
-
-    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1>
-    using field_type=Field<TV, TM, index_const<IFORM>, index_const<DOF>>;
-
-    Real epsilon = 1.0;
-    Real mu = 1.0;
-
-    field_type<Real, mesh::FACE> B{&m_chart, "B"};
-    field_type<Real, mesh::EDGE> E{&m_chart, "E"};
-    field_type<Real, mesh::EDGE> J{&m_chart, "J"};
-    field_type<Real, mesh::VERTEX, 3> Ev{&m_chart, "Ev"};
-    field_type<Real, mesh::VERTEX, 3> Bv{&m_chart, "Bv"};
-    field_type<Real, mesh::VERTEX, 3> Jv{&m_chart, "Jv"};
-
-
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_chart.move_to(m); }
-
-
-    virtual mesh::ChartBase *chart() { return &m_chart; };
-
-    virtual mesh::ChartBase const *chart() const { return &m_chart; };
-
-
-    virtual void initialize(Real data_time)
-    {
-        m_chart.initialize();
-        Bv.clear();
-        Ev.clear();
-        Jv.clear();
-        E.clear();
-        B.clear();
-        J.clear();
-
-        Ev.assign([&](point_type const &x) { return x; });
-
-        Bv.assign([&](point_type const &x) { return x; });
-
-    }
-
-    virtual void set_physical_boundary_conditions(double time)
-    {
-
-//        index_tuple p = {NX / 2, NY / 2, NZ / 2};
-//        if (m_chart.mesh()->is_inside(p)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
-    };
-
-
-    virtual void next_time_step(Real data_time, Real dt)
-    {
-//        Ev.deploy();
-//        Bv.deploy();
-//        Jv = cross(Ev, Bv);//
-
-
-
-//        E = E + (curl(B) / mu - J) * dt / epsilon;
-//        B -= curl(E) * dt;
-
-        E = map_to<mesh::EDGE>(Ev);
-        B = map_to<mesh::FACE>(Bv);
-
-//        Ev = map_to<mesh::VERTEX>(E);
-//        Bv = map_to<mesh::VERTEX>(B);
-
-    }
-
-
-};
 namespace simpla
 {
 std::shared_ptr<simulation::TimeIntegrator>
@@ -125,8 +37,10 @@ int main(int argc, char **argv)
 
     typedef mesh::CylindricalGeometry mesh_type;
     // typedef mesh::CartesianGeometry mesh_type;
+//    typedef AMRTest<mesh_type> work_type;
+    typedef EMFluid<mesh_type> work_type;
 
-    auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<AMRTest<mesh_type>>());
+    auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<work_type>());
     integrator->deploy();
     integrator->check_point();
 

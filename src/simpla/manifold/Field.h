@@ -84,6 +84,8 @@ public:
 
     bool is_valid() const { return m_data_ != nullptr && m_mesh_ != nullptr; };
 
+    bool empty() const { return m_data_->empty() && m_mesh_ != nullptr; };
+
     using base_type::entity_type;
 
     using base_type::value_type_info;

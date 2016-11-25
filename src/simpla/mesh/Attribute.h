@@ -43,9 +43,8 @@ public:
 
     SP_OBJECT_HEAD(AttributeBase, Object)
 
-    AttributeBase();
 
-    AttributeBase(std::string const &s, std::string const &config_str = "");
+    AttributeBase(std::string const &s = "", std::string const &config_str = "");
 
     AttributeBase(AttributeBase const &) = delete;
 
@@ -214,8 +213,8 @@ public:
 
 
     template<typename ...Args>
-    explicit AttributeView(std::string const &key, Args &&...args) :
-            AttributeViewBase(std::make_shared<attribute_type>(key, std::forward<Args>(args)...)) {};
+    explicit AttributeView(Args &&...args) :
+            AttributeViewBase(std::make_shared<attribute_type>(std::forward<Args>(args)...)) {};
 
 
     virtual ~AttributeView() {}

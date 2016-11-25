@@ -52,13 +52,15 @@ public:
 
     virtual void save(data::DataBase *) const { UNIMPLEMENTED; }
 
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) =0;
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { DO_NOTHING; };
 
-    virtual void initialize(Real data_time)=0;
+    virtual void deploy() {};
 
-    virtual void set_physical_boundary_conditions(double time)=0;
+    virtual void initialize(Real data_time) {};
 
-    virtual void next_time_step(Real data_time, Real dt)=0;
+    virtual void set_physical_boundary_conditions(double time) {};
+
+    virtual void next_time_step(Real data_time, Real dt) {};
 
     virtual ChartBase *chart()=0;
 

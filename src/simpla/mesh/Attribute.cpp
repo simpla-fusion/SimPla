@@ -26,12 +26,10 @@ struct AttributeBase::pimpl_s
 };
 
 
-AttributeBase::AttributeBase() {};
-
 AttributeBase::AttributeBase(std::string const &s, std::string const &config_str)
         : Object(), m_name_(s), m_pimpl_(new pimpl_s)
 {
-    db["config"] = config_str;
+    if (config_str != "") { db["config"] = config_str; }
 }
 
 AttributeBase::~AttributeBase() {}

@@ -18,7 +18,7 @@ ChartBase::~ChartBase() {}
 
 bool ChartBase::is_a(std::type_info const &info) const { return typeid(ChartBase) == info; }
 
-void ChartBase::initialize() { DO_NOTHING; }
+void ChartBase::initialize(Real data_time) { DO_NOTHING; }
 
 void ChartBase::deploy() { DO_NOTHING; }
 

@@ -29,7 +29,7 @@ struct ChartBase
 
     virtual bool is_a(std::type_info const &info) const;
 
-    virtual void initialize();
+    virtual void initialize(Real data_time = 0);
 
     virtual void deploy();
 
@@ -83,7 +83,7 @@ public:
 
     virtual ~Chart() {}
 
-    virtual void initialize() { m_mesh_.initialize(); }
+    virtual void initialize(Real data_time = 0) { m_mesh_.initialize(); }
 
     virtual void deploy() { m_mesh_.deploy(); }
 
