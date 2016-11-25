@@ -34,6 +34,12 @@ public:
             base_type(std::forward<Args>(args)...), m_chart_(chart)
     {
         m_chart_->connect(this);
+
+        // For scratch data block
+        if (this->attribute() == nullptr && m_chart_->coordinate_frame() != nullptr)
+        {
+            this->move_to(m_chart_->coordinate_frame()->mesh_block());
+        }
     };
 
 

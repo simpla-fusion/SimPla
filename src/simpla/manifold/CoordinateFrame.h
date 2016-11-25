@@ -10,17 +10,37 @@ namespace simpla { namespace mesh
 {
 struct ChartBase;
 
-struct CoordinateFrame
+struct CoordinateFrame : public concept::Printable
 {
+
+
     CoordinateFrame(ChartBase *c) : chart(c) {}
 
     virtual ~CoordinateFrame() {}
 
-    virtual bool is_a(std::type_info const &info) const { return info == typeid(CoordinateFrame); }
+    virtual bool is_a(std::type_info const &info) const { return typeid(CoordinateFrame) == info; }
+
+    virtual std::type_index typeindex() const { return std::type_index(typeid(CoordinateFrame)); }
+
+    virtual std::string get_class_name() const { return "CoordinateFrame"; }
+
+
+    virtual std::ostream &print(std::ostream &os, int indent) const
+    {
+        os << "Type = \"" << get_class_name() << "\",";
+        if (mesh_block() != nullptr)
+        {
+            os << std::endl;
+            os << std::setw(indent + 1) << " " << " Block = {";
+            mesh_block()->print(os, indent + 1);
+            os << std::setw(indent + 1) << " " << "},";
+        }
+        return os;
+    }
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m) { m_mesh_block_ = m; };
 
-    virtual MeshBlock const *mesh_block() const { return m_mesh_block_.get(); }
+    virtual std::shared_ptr<MeshBlock> const &mesh_block() const { return m_mesh_block_; }
 
     virtual void deploy() {};
 

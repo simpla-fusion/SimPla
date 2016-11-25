@@ -20,9 +20,6 @@ class ChartBase;
 struct AttributeBase::pimpl_s
 {
     std::map<id_type, std::shared_ptr<DataBlock>> m_patches_;
-
-    std::map<std::type_index, std::function<std::shared_ptr<DataBlock>(std::shared_ptr<MeshBlock> const &,
-                                                                       void *)> > m_data_factory;
 };
 
 
@@ -102,59 +99,13 @@ std::shared_ptr<DataBlock> &AttributeBase::at(const id_type &m)
     }
 }
 
-std::shared_ptr<DataBlock> &AttributeBase::get(id_type const &m, std::shared_ptr<DataBlock> const &p)
-{
-    ASSERT(m_pimpl_ != nullptr);
-    if (!has(m)) { insert_or_assign(m, p); }
-    return at(m);
-}
-
 
 std::shared_ptr<DataBlock> AttributeBase::insert_or_assign(const id_type &m, const std::shared_ptr<DataBlock> &p)
 {
     ASSERT(m_pimpl_ != nullptr);
-    m_pimpl_->m_patches_.emplace(std::make_pair(m, p));
+    if (p != nullptr) { m_pimpl_->m_patches_.emplace(std::make_pair(m, p)); }
     return p;
 }
-
-std::shared_ptr<DataBlock>
-AttributeBase::insert_or_assign(const std::shared_ptr<MeshBlock> &m, const std::shared_ptr<DataBlock> &p)
-{
-
-    ASSERT(m_pimpl_ != nullptr);
-
-    if (m == nullptr) { OUT_OF_RANGE << " try to insert null mesh or data_block block" << std::endl; }
-    else
-    {
-
-        if (p != nullptr)
-        {
-            m_pimpl_->m_patches_.emplace(std::make_pair(m->id(), p));
-
-        } else
-        {
-            auto it = m_pimpl_->m_data_factory.find(m->typeindex());
-
-            if (it != m_pimpl_->m_data_factory.end())
-            {
-                m_pimpl_->m_patches_.emplace(std::make_pair(m->id(), it->second(m, nullptr)));
-
-            } else
-            {
-                RUNTIME_ERROR << " data_block block factory is not registered!" << std::endl;
-            }
-
-        }
-    }
-    return p;
-}
-
-void AttributeBase::register_data_block_factory(
-        std::type_index idx,
-        const std::function<std::shared_ptr<DataBlock>(std::shared_ptr<MeshBlock> const &, void *)> &f)
-{
-    m_pimpl_->m_data_factory[idx] = f;
-};
 
 
 AttributeViewBase::AttributeViewBase(std::shared_ptr<AttributeBase> const &attr) : m_attr_(attr) {};
@@ -171,39 +122,21 @@ DataBlock *AttributeViewBase::data_block() { return m_data_.get(); };
 
 DataBlock const *AttributeViewBase::data_block() const { return m_data_.get(); };
 
-void AttributeViewBase::move_to(id_type const &id, std::shared_ptr<DataBlock> const &d)
-{
-    m_id_ = id;
-
-    if (d != nullptr)
-    {
-        m_data_id_ = id;
-        m_data_ = d;
-    }
-    deploy();
-
-}
-
 void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
 {
-    move_to(m->id(), d);
+    if (d == nullptr && m->id() == m_id_) { return; }
+
+    m_id_ = m->id();
+    if (d != nullptr) { m_data_ = d; }
+    else if (m_attr_ != nullptr && m_attr_->has(m_id_)) { m_data_ = m_attr_->at(m_id_); }
+    else { m_data_ = create_data_block(m); }
+    m_data_->deploy();
+
 }
 
 
 void AttributeViewBase::deploy()
 {
-    if (m_data_id_ != m_id_)
-    {
-        if (m_attr_ != nullptr && m_attr_->has(m_id_))
-        {
-            m_data_ = m_attr_->get(m_id_);
-            m_data_id_ = m_id_;
-        } else
-        {
-            RUNTIME_ERROR << "empty attribute" << std::endl;
-        }
-    }
-
     ASSERT(m_data_ != nullptr);
     m_data_->deploy();
 };
@@ -216,9 +149,8 @@ void AttributeViewBase::clear()
 
 void AttributeViewBase::destroy()
 {
+    if (m_attr_ != nullptr) { m_attr_->erase(m_id_); }
     m_data_.reset();
-    if (m_attr_ != nullptr) { m_attr_->erase(m_data_id_); }
-    m_data_id_ = 0;
 }
 }
 }//namespace simpla { namespace mesh

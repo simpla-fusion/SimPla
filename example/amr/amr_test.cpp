@@ -5,16 +5,11 @@
 #include <simpla/SIMPLA_config.h>
 
 #include <iostream>
-
-#include <simpla/concept/Object.h>
-
 #include <simpla/manifold/Atlas.h>
 #include <simpla/manifold/Worker.h>
-#include <simpla/manifold/Chart.h>
+#include <simpla/manifold/Field.h>
 #include <simpla/manifold/CartesianGeometry.h>
 #include <simpla/manifold/CylindricalGeometry.h>
-#include <simpla/manifold/Field.h>
-#include <simpla/manifold/Calculus.h>
 
 #include <simpla/physics/Constants.h>
 #include <simpla/simulation/TimeIntegrator.h>
@@ -35,13 +30,17 @@ int main(int argc, char **argv)
 {
     logger::set_stdout_level(100);
 
-    typedef mesh::CylindricalGeometry mesh_type;
     // typedef mesh::CartesianGeometry mesh_type;
 //    typedef AMRTest<mesh_type> work_type;
-    typedef EMFluid<mesh_type> work_type;
 
-    auto integrator = simpla::create_time_integrator("AMR_TEST", std::make_shared<work_type>());
+    auto w = std::make_shared<EMFluid<mesh::CylindricalGeometry>>();
+
+    w->print(std::cout);
+
+    auto integrator = simpla::create_time_integrator("EMFluid", w);
+
     integrator->deploy();
+
     integrator->check_point();
 
     INFORM << "***********************************************" << std::endl;

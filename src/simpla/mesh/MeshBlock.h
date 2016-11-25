@@ -100,7 +100,7 @@ public:
 
 
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF>
-    std::shared_ptr<DataBlock> create_data_block(void *p) const
+    std::shared_ptr<DataBlock> create_data_block(void *p = nullptr) const
     {
         int n_dof = DOF;
         int ndims = 3;

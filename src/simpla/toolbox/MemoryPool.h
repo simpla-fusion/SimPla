@@ -11,7 +11,6 @@
 
 #include <stddef.h>
 #include <memory>
-
 #include "design_pattern/SingletonHolder.h"
 
 namespace simpla
@@ -80,6 +79,7 @@ public:
 
         inline void operator()(void *ptr)
         {
+
             SingletonHolder<MemoryPool>::instance().push(addr_, s_);
         }
     };

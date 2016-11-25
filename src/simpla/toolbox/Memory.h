@@ -18,13 +18,11 @@ namespace simpla { namespace toolbox
 
 template<typename T> std::shared_ptr<T> MemoryHostAllocT(size_type s)
 {
-    VERBOSE << "Allocate memory [" << s << " ]" << std::endl;
     return sp_alloc_array<T>(s);
 }
 
 inline std::shared_ptr<void> MemoryHostAlloc(size_type s)
 {
-    VERBOSE << "Allocate memory [" << s << " ]" << std::endl;
     return sp_alloc_memory(s);
 }
 

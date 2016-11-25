@@ -22,11 +22,11 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 //           << " type = \"" << get_class_name() << "\", ";
 //
 //    }
-//    os << "Attribute= {";
-//
-////    foreach([&](AttributeViewBase const &ob) { os << "\"" << ob.attribute()->name() << "\" , "; });
-//
-//    os << std::setw(indent + 1) << "}  ";
+    os << std::setw(indent + 1) << " " << " [" << get_class_name() << " : " << name() << "]" << std::endl;
+    os << std::setw(indent + 1) << " " << "Chart = " << std::endl
+       << std::setw(indent + 1) << " " << "{ " << std::endl;
+    chart()->print(os, indent + 1);
+    os << std::setw(indent + 1) << " " << "}," << std::endl;
 
     return os;
 }

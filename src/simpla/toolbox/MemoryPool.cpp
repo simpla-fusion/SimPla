@@ -106,10 +106,16 @@ void MemoryPool::pimpl_s::push(void *p, size_t s)
     {
         delete[] reinterpret_cast<byte_type *>(p);
     }
+
+    VERBOSE << SHORT_FILE_LINE_STAMP << "Free memory [" << s << " ]" << std::endl;
+
+
 }
 
 void *MemoryPool::pop(size_t s)
 {
+    VERBOSE << SHORT_FILE_LINE_STAMP << "Allocate memory [" << s << " ]" << std::endl;
+
     return pimpl_->pop(s);
 }
 
@@ -172,7 +178,6 @@ std::shared_ptr<void> sp_alloc_memory(size_t s)
 
     return std::shared_ptr<void>(addr, MemoryPool::deleter_s(addr, s));
 }
-
 
 
 }  // namespace simpla

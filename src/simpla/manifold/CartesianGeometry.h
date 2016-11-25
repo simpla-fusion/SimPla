@@ -73,9 +73,11 @@ public:
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type= mesh::DataBlockArray<TV, IFORM, DOF>;
 
 
-    CartesianGeometry(Chart<this_type> *c) : CoordinateFrame(c) {}
+    CartesianGeometry(Chart <this_type> *c) : CoordinateFrame(c) {}
 
     ~CartesianGeometry() {}
+
+
 
     virtual void deploy() {};
 

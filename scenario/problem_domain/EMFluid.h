@@ -26,10 +26,10 @@ using namespace mesh;
 template<typename TM>
 class EMFluid : public Worker
 {
-    typedef EMFluid<TM> this_type;
-    typedef Worker base_type;
 
 public:
+
+    SP_OBJECT_HEAD(EMFluid<TM>, Worker);
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
@@ -41,10 +41,6 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    virtual bool is_a(std::type_info const &info) const
-    {
-        return typeid(this_type) == info || Worker::is_a(info);
-    }
 
     virtual mesh::ChartBase *chart() { return &m_chart; };
 
@@ -153,7 +149,9 @@ std::ostream &
 EMFluid<TM>::print(std::ostream &os, int indent) const
 {
     Worker::print(os, indent);
-    os << std::setw(indent + 1) << " " << " ParticleAttribute= { " << std::endl;
+
+    os << std::setw(indent + 1) << " " << "ParticleAttribute=  " << std::endl
+       << std::setw(indent + 1) << " " << "{ " << std::endl;
     for (auto &sp:m_fluid_sp_)
     {
         os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second.mass << " , Charge = " <<
@@ -184,7 +182,8 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
 
     E.assign(edge_boundary, 0);
 
-
+    field_type<VERTEX, 3> Q{&m_chart};
+    Q.clear();
     if (m_fluid_sp_.size() > 0)
     {
         if (Ev.empty()) { Ev = map_to<VERTEX>(E); }

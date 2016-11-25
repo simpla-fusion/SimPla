@@ -21,18 +21,19 @@ namespace simpla { namespace mesh
  *   - $p$ is the projection
  *
  */
-struct ChartBase
+struct ChartBase : public concept::Printable
 {
     ChartBase();
 
     virtual ~ChartBase();
+
+    virtual std::ostream &print(std::ostream &os, int indent) const;
 
     virtual bool is_a(std::type_info const &info) const;
 
     virtual void initialize(Real data_time = 0);
 
     virtual void deploy();
-
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m);
 
