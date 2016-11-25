@@ -16,67 +16,53 @@ namespace simpla { namespace mesh
 {
 class ChartBase;
 
+template<typename> class Chart;
+
 template<typename TV, MeshEntityType IFORM, size_type DOF = 1>
-class FiberBundle
+class FiberBundle : public AttributeView<TV, IFORM, DOF>
 {
+private:
+    typedef FiberBundle<TV, IFORM, DOF> this_type;
+
+    typedef AttributeView <TV, IFORM, DOF> base_type;
 public:
-    typedef AttributeView <TV, IFORM, DOF> view_type;
 
     template<typename ...Args>
     explicit FiberBundle(ChartBase *chart, Args &&...args) :
-            m_chart_(chart),
-            m_attr_(std::make_shared<view_type>(std::forward<Args>(args)...))
+            base_type(std::forward<Args>(args)...), m_chart_(chart)
     {
-        chart->connect(m_attr_);
+        m_chart_->connect(this);
     };
 
-    FiberBundle(ChartBase *chart, std::shared_ptr<view_type> const &attr) : m_chart_(chart), m_attr_(attr)
-    {
-        chart->connect(m_attr_);
-    };
 
-    virtual ~FiberBundle() {}
-
-    virtual MeshEntityType entity_type() const { return IFORM; };
-
-    virtual std::type_info const &value_type_info() const { return typeid(TV); };
-
-    virtual size_type dof() const { return DOF; };
-
-    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(FiberBundle); }
-
-    virtual DataBlock *data_block() { return m_attr_->data_block(); }
-
-    virtual DataBlock const *data_block() const { return m_attr_->data_block(); }
+    virtual ~FiberBundle() { m_chart_->disconnect(this); }
 
 
-    template<typename U> U const *data_as() const { return m_attr_->data_as<U>(); }
-
-    template<typename U> U *data_as() { return m_attr_->data_as<U>(); }
+    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 
     template<typename U> U const *mesh_as() { return m_chart_->mesh_as<U>(); }
 
     ChartBase const *chart() const { return m_chart_; }
 
     template<typename TG>
-    Chart <TG> const *chart_as() const { return static_cast<Chart<TG> const *>( m_chart_); }
+    Chart<TG> const *chart_as() const { return static_cast<Chart<TG> const *>( m_chart_); }
 
-    template<typename ...Args>
-    void move_to(Args &&...args) { m_attr_->move_to(std::forward<Args>(args)...); }
-
-    virtual void deploy() { move_to(m_chart_->coordinate_frame()->mesh_block()->id()); }
-
-    virtual void clear()
+    void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
     {
-        deploy();
-        m_attr_->clear();
+        base_type::move_to(m, d);
+//        deploy();
     }
 
-    virtual void destroy() { m_attr_->destroy(); }
+
+    virtual void deploy()
+    {
+//        base_type::move_to(m_chart_->coordinate_frame()->mesh_block()->id());
+        base_type::deploy();
+    }
+
 
 private:
-    ChartBase const *m_chart_;
-    std::shared_ptr<view_type> m_attr_;
+    ChartBase *m_chart_;
 
 
 };

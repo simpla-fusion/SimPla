@@ -114,7 +114,7 @@ public:
 };
 
 
-struct AttributeViewBase : public std::enable_shared_from_this<AttributeViewBase>
+struct AttributeViewBase
 {
 
     AttributeViewBase(std::shared_ptr<AttributeBase> const &attr = nullptr);

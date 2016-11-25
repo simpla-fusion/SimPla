@@ -176,18 +176,15 @@ DataBlock const *AttributeViewBase::data_block() const { return m_data_.get(); }
 void AttributeViewBase::move_to(id_type const &id, std::shared_ptr<DataBlock> const &d)
 {
     m_id_ = id;
+
     if (d != nullptr)
     {
         m_data_id_ = id;
         m_data_ = d;
-    } else if (m_data_id_ != m_id_ && m_attr_ != nullptr && m_attr_->has(id))
-    {
-        m_data_ = m_attr_->get(id);
-        m_data_id_ = m_id_;
     }
 
-}
 
+}
 
 void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
 {
@@ -197,7 +194,18 @@ void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared
 
 void AttributeViewBase::deploy()
 {
-    move_to(m_id_);
+    if (m_data_id_ != m_id_)
+    {
+        if (m_attr_ != nullptr && m_attr_->has(m_id_))
+        {
+            m_data_ = m_attr_->get(m_id_);
+            m_data_id_ = m_id_;
+        } else
+        {
+            RUNTIME_ERROR << "empty attribute" << std::endl;
+        }
+    }
+
     ASSERT(m_data_ != nullptr);
     m_data_->deploy();
 };

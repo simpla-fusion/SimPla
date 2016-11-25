@@ -37,7 +37,7 @@ struct AMRTest : public mesh::Worker
 
         for (auto const &item:m_chart.attributes())
         {
-            std::cout << item.second->attribute()->name() << std::endl;
+            std::cout << item->attribute()->name() << std::endl;
         }
 
     }

@@ -39,7 +39,6 @@ private:
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
     typedef Field<TV, TM, index_const<I>, index_const<DOF>> this_type;
     typedef mesh::FiberBundle<TV, static_cast<mesh::MeshEntityType>(I), DOF> base_type;
-    using base_type::view_type;
 public:
     typedef TV value_type;
     typedef TM mesh_type;
@@ -94,9 +93,9 @@ public:
 
     void deploy()
     {
+        base_type::deploy();
         m_mesh_ = base_type::template mesh_as<mesh_type>();
         m_data_ = base_type::template data_as<data_block>();
-        m_data_->deploy();
     }
 
 

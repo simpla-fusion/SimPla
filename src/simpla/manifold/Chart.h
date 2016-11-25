@@ -13,7 +13,6 @@
 namespace simpla { namespace mesh
 {
 
-
 /**
  *  Define:
  *   A bundle is a triple $(E, p, B)$ where $E$, $B$ are sets and $p:E→B$ a map
@@ -58,17 +57,17 @@ struct ChartBase
     /**
      * @param attributes
      */
-    virtual std::shared_ptr<AttributeViewBase>
-    connect(std::shared_ptr<AttributeViewBase> const &attr, std::string const &key = "");
+    AttributeViewBase *connect(AttributeViewBase *attr);
 
+    void disconnect(AttributeViewBase *attr);
 
-    std::map<std::string, std::shared_ptr<AttributeViewBase> > &attributes();
+    std::set<AttributeViewBase *> &attributes();
 
-    std::map<std::string, std::shared_ptr<AttributeViewBase> > const &attributes() const;
+    std::set<AttributeViewBase *> const &attributes() const;
 
 private:
 
-    std::map<std::string, std::shared_ptr<AttributeViewBase> > m_attr_views_;
+    std::set<AttributeViewBase *> m_attr_views_;
 };
 
 template<typename TG>

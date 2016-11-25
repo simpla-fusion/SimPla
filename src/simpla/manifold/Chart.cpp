@@ -23,28 +23,31 @@ void ChartBase::initialize() { DO_NOTHING; }
 void ChartBase::deploy() { DO_NOTHING; }
 
 
-std::shared_ptr<AttributeViewBase>
-ChartBase::connect(std::shared_ptr<AttributeViewBase> const &attr, std::string const &key)
+AttributeViewBase *
+ChartBase::connect(AttributeViewBase *attr)
 {
-    if (key == "") { m_attr_views_[attr->attribute()->name()] = attr; }
-    else { m_attr_views_[key] = attr; }
+
+    m_attr_views_.insert(attr);
     return attr;
 
+}
+
+void ChartBase::disconnect(AttributeViewBase *attr)
+{
+    m_attr_views_.erase(attr);
 }
 
 void ChartBase::move_to(std::shared_ptr<MeshBlock> const &m)
 {
     coordinate_frame()->move_to(m);
 
-    for (auto &item:m_attr_views_) { item.second->move_to(m->id()); }
+    for (auto &item:m_attr_views_) { item->move_to(m->id()); }
 };
 
 
-std::map<std::string, std::shared_ptr<AttributeViewBase> > &
-ChartBase::attributes() { return m_attr_views_; };
+std::set<AttributeViewBase *> &ChartBase::attributes() { return m_attr_views_; };
 
-std::map<std::string, std::shared_ptr<AttributeViewBase> > const &
-ChartBase::attributes() const { return m_attr_views_; };
+std::set<AttributeViewBase *> const &ChartBase::attributes() const { return m_attr_views_; };
 
 
 }}//namespace simpla {namespace mesh
