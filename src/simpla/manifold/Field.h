@@ -58,12 +58,6 @@ public:
 
     typedef manifold::schemes::InterpolatePolicy<mesh_type> interpolate_policy;
 
-
-//    explicit Field(mesh::Chart<mesh_type> *chart, std::shared_ptr<view_type> const &attr = nullptr)
-//            : base_type(chart, attr),
-//              m_mesh_(nullptr),
-//              m_data_(nullptr) {};
-
     template<typename ...Args>
     explicit Field(mesh::Chart<mesh_type> *chart, Args &&...args):
             base_type(chart, std::forward<Args>(args)...),
@@ -73,9 +67,17 @@ public:
 
     virtual ~Field() {}
 
-    Field(this_type const &other) = delete;
+    Field(this_type const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_) {};
 
-    Field(this_type &&other) = delete;
+    Field(this_type &&other) : base_type(std::forward<this_type>(other)), m_mesh_(other.m_mesh_),
+                               m_data_(other.m_data_) {};
+
+    virtual void swap(this_type &other)
+    {
+        base_type::swap(other);
+        std::swap(m_mesh_, other.m_mesh_);
+        std::swap(m_data_, other.m_data_);
+    };
 
     virtual bool is_a(std::type_info const &t_info) const
     {

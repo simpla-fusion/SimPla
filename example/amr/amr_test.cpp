@@ -35,6 +35,9 @@ int main(int argc, char **argv)
 
     auto w = std::make_shared<EMFluid<mesh::CylindricalGeometry>>();
 
+    auto sp = w->add_particle("H", 1.0, 1.0);
+
+
     w->print(std::cout);
 
     auto integrator = simpla::create_time_integrator("EMFluid", w);

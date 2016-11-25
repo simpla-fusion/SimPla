@@ -43,6 +43,20 @@ public:
     };
 
 
+    Bundle(this_type const &other) : base_type(other), m_chart_(other.m_chart_) { m_chart_->connect(this); };
+
+    Bundle(this_type &&other) : base_type(std::forward<base_type>(other)), m_chart_(other.m_chart_)
+    {
+        m_chart_->connect(this);
+        m_chart_->disconnect(&other);
+    };
+
+    virtual void swap(this_type &other)
+    {
+        base_type::swap(other);
+        std::swap(m_chart_, other.m_chart_);
+    };
+
     virtual ~Bundle() { m_chart_->disconnect(this); }
 
 

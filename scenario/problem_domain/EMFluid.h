@@ -97,8 +97,8 @@ public:
     {
         Real mass;
         Real charge;
-        field_type<VERTEX> rho;
-        field_type<VERTEX> J;
+        TRho rho;
+        TJv J;
     };
 
     std::map<std::string, fluid_s> m_fluid_sp_;
@@ -136,10 +136,18 @@ void EMFluid<TM>::initialize(Real data_time)
     B.clear();
     E.clear();
 
+    if (m_fluid_sp_.size() > 0)
+    {
+        Ev = map_to<VERTEX>(E);
+        B0v = map_to<VERTEX>(B0);
+        BB = dot(B0v, B0v);
+    }
     for (auto &sp:m_fluid_sp_)
     {
         sp.second.rho.clear();
         sp.second.J.clear();
+
+        sp.second.rho.assign([&](point_type const &x) { return std::sin(x[1]); });
     }
 }
 
@@ -182,17 +190,9 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
 
     E.assign(edge_boundary, 0);
 
-    field_type<VERTEX, 3> Q{&m_chart};
-    Q.clear();
+
     if (m_fluid_sp_.size() > 0)
     {
-        if (Ev.empty()) { Ev = map_to<VERTEX>(E); }
-        if (B0v.empty())
-        {
-            B0v = map_to<VERTEX>(B0);
-            BB = dot(B0v, B0v);
-        }
-
         field_type<VERTEX, 3> Q{&m_chart};
         field_type<VERTEX, 3> K{&m_chart};
 

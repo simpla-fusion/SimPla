@@ -91,7 +91,7 @@ public:
     static constexpr size_type DOF = IDOF;
 
     template<typename ...Args>
-    Attribute(Args &&...args):AttributeBase(std::forward<Args>(args)...) {}
+    explicit Attribute(Args &&...args):AttributeBase(std::forward<Args>(args)...) {}
 
     virtual ~Attribute() {}
 
@@ -109,11 +109,15 @@ struct AttributeViewBase
 
     AttributeViewBase(std::shared_ptr<AttributeBase> const &attr = nullptr);
 
+
+    AttributeViewBase(AttributeViewBase const &other);
+
+    AttributeViewBase(AttributeViewBase &&other);
+
+    virtual void swap(AttributeViewBase &other);
+
     virtual ~AttributeViewBase();
 
-    AttributeViewBase(AttributeViewBase const &other) = delete;
-
-    AttributeViewBase(AttributeViewBase &&other) = delete;
 
     virtual MeshEntityType entity_type() const =0;
 
@@ -204,9 +208,15 @@ public:
 
     virtual ~AttributeView() {}
 
-    AttributeView(AttributeView const &other) = delete;
+    AttributeView(this_type const &other) : AttributeViewBase(other) {};
 
-    AttributeView(AttributeView &&other) = delete;
+    AttributeView(this_type &&other) : AttributeViewBase(std::forward<this_type>(other)) {};
+
+    virtual void swap(this_type &other)
+    {
+        AttributeViewBase::swap(other);
+    };
+
 
     virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<MeshBlock> const &m)
     {
