@@ -258,18 +258,14 @@ public:
     static inline traits::value_type_t<TF>
     mapto(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<VERTEX, EDGE>)
     {
-        MeshEntityId X = M::delta_index(s);
-        return (eval(m, expr, s - X) + eval(m, expr, s + X)) * 0.5;
-    }
-
-
-    template<typename TV, typename ...Others> static inline TV
-    mapto(mesh_type const &m, Field<nTuple<TV, 3>, Others...> const &expr, MeshEntityId const &s,
-          index_sequence<VERTEX, EDGE>)
-    {
         int n = M::sub_index(s);
         MeshEntityId X = M::delta_index(s);
-        return (eval(m, expr, s - X)[n] + eval(m, expr, s + X)[n]) * 0.5;
+        auto l = eval(m, expr, sw(s - X, n));
+        auto r = eval(m, expr, sw(s + X, n));
+        return (l + r) * 0.5;
+//        return (eval(m, expr, sw(s - X, n)) + eval(m, expr, sw(s + X, n))) * 0.5;
+
+
     }
 
 
@@ -277,40 +273,20 @@ public:
     static inline traits::value_type_t<TF>
     mapto(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<VERTEX, FACE>)
     {
-
-        auto const &l = expr;
-        auto X = M::delta_index(M::dual(s));
-        auto Y = M::rotate(X);
-        auto Z = M::inverse_rotate(X);
-
-        return (
-                       eval(m, l, (s - Y - Z)) +
-                       eval(m, l, (s - Y + Z)) +
-                       eval(m, l, (s + Y - Z)) +
-                       eval(m, l, (s + Y + Z))
-               ) * 0.25;
-    }
-
-
-    template<typename TV, typename ...Others>
-    static inline
-    TV mapto(mesh_type const &m, Field<nTuple<TV, 3>, Others...> const &expr, MeshEntityId const &s,
-             index_sequence<VERTEX, FACE>)
-    {
-
         int n = M::sub_index(s);
-        auto const &l = expr;
+
         auto X = M::delta_index(M::dual(s));
         auto Y = M::rotate(X);
         auto Z = M::inverse_rotate(X);
 
         return (
-                       eval(m, l, (s - Y - Z))[n] +
-                       eval(m, l, (s - Y + Z))[n] +
-                       eval(m, l, (s + Y - Z))[n] +
-                       eval(m, l, (s + Y + Z))[n]
+                       eval(m, expr, sw(s - Y - Z, n)) +
+                       eval(m, expr, sw(s - Y + Z, n)) +
+                       eval(m, expr, sw(s + Y - Z, n)) +
+                       eval(m, expr, sw(s + Y + Z, n))
                ) * 0.25;
     }
+
 
     template<typename TF>
     static inline
@@ -337,60 +313,47 @@ public:
 
     template<typename TF>
     static inline
-    nTuple<typename traits::value_type<TF>::type, 3>
+    typename traits::value_type<TF>::type
     mapto(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<EDGE, VERTEX>)
     {
-        typedef nTuple<typename traits::value_type<TF>::type, 3> field_value_type;
-
-        auto const &l = expr;
-
-        MeshEntityId DA = M::_DA;
-        MeshEntityId X = M::_DI;
-        MeshEntityId Y = M::_DJ;
-        MeshEntityId Z = M::_DK;
-
-        return nTuple<typename traits::value_type<TF>::type, 3>
-                {
-                        static_cast<typename traits::value_type<TF>::type>((eval(m, l, s - X) +
-                                                                            eval(m, l, s + X)) * 0.5),
-                        static_cast<typename traits::value_type<TF>::type>((eval(m, l, s - Y) +
-                                                                            eval(m, l, s + Y)) * 0.5),
-                        static_cast<typename traits::value_type<TF>::type>((eval(m, l, s - Z) +
-                                                                            eval(m, l, s + Z)) * 0.5)
-
-                };
-
-
+        MeshEntityId X = M::DI(s.w, s);
+        return (eval(m, expr, sw(s - X, 0)) + eval(m, expr, sw(s + X, 0))) * 0.5;
     }
 
 
     template<typename TF>
     static inline
-    nTuple<typename traits::value_type<TF>::type, 3>
+    typename traits::value_type<TF>::type
     mapto(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<FACE, VERTEX>)
     {
-        auto const &l = expr;
-
-        MeshEntityId X = M::_DI;
-        MeshEntityId Y = M::_DJ;
-        MeshEntityId Z = M::_DK;
 
 
-        return nTuple<typename traits::value_type<TF>::type, 3>
-                {
-                        static_cast<typename traits::value_type<TF>::type>(eval(m, l, (s - Y - Z)) +
-                                                                           eval(m, l, (s - Y + Z)) +
-                                                                           eval(m, l, (s + Y - Z)) +
-                                                                           eval(m, l, (s + Y + Z)) * 0.25),
-                        static_cast<typename traits::value_type<TF>::type>(eval(m, l, (s - Z - X)) +
-                                                                           eval(m, l, (s - Z + X)) +
-                                                                           eval(m, l, (s + Z - X)) +
-                                                                           eval(m, l, (s + Z + X)) * 0.25),
-                        static_cast<typename traits::value_type<TF>::type>(eval(m, l, (s - X - Y)) +
-                                                                           eval(m, l, (s - X + Y)) +
-                                                                           eval(m, l, (s + X - Y)) +
-                                                                           eval(m, l, (s + X + Y)) * 0.25)
-                };
+        MeshEntityId Y = M::DI((s.w + 1) % 3, s);
+        MeshEntityId Z = M::DI((s.w + 2) % 3, s);
+
+        return (eval(m, expr, sw(s - Y - Z, 0)) +
+                eval(m, expr, sw(s - Y + Z, 0)) +
+                eval(m, expr, sw(s + Y - Z, 0)) +
+                eval(m, expr, sw(s + Y + Z, 0))) * 0.25;
+
+//        MeshEntityId X = M::_DI;
+//        MeshEntityId Y = M::_DJ;
+//        MeshEntityId Z = M::_DK;
+//        return nTuple<typename traits::value_type<TF>::type, 3>
+//                {
+//                        static_cast<typename traits::value_type<TF>::type>(eval(m, l, (s - Y - Z)) +
+//                                                                           eval(m, l, (s - Y + Z)) +
+//                                                                           eval(m, l, (s + Y - Z)) +
+//                                                                           eval(m, l, (s + Y + Z)) * 0.25),
+//                        static_cast<typename traits::value_type<TF>::type>(eval(m, l, (s - Z - X)) +
+//                                                                           eval(m, l, (s - Z + X)) +
+//                                                                           eval(m, l, (s + Z - X)) +
+//                                                                           eval(m, l, (s + Z + X)) * 0.25),
+//                        static_cast<typename traits::value_type<TF>::type>(eval(m, l, (s - X - Y)) +
+//                                                                           eval(m, l, (s - X + Y)) +
+//                                                                           eval(m, l, (s + X - Y)) +
+//                                                                           eval(m, l, (s + X + Y)) * 0.25)
+//                };
 
 
     }
@@ -403,9 +366,9 @@ public:
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
+        auto X = M::DI(0, s);
+        auto Y = M::DI(1, s);
+        auto Z = M::DI(2, s);
 
         return (
                        eval(m, l, ((s - X - Y - Z))) +
@@ -452,21 +415,13 @@ public:
 
     template<typename TF>
     static inline
-    nTuple<typename traits::value_type<TF>::type, 3>
+    typename traits::value_type<TF>::type
     mapto(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<FACE, VOLUME>)
     {
-        auto const &l = expr;
 
-        auto X = m.DI(0, M::dual(s));
-        auto Y = m.DI(1, M::dual(s));
-        auto Z = m.DI(2, M::dual(s));
+        MeshEntityId X = M::DI(s.w, s);
 
-        return nTuple<traits::value_type_t<TF>, 3>
-                {
-                        (eval(m, l, s - X) + eval(m, l, s + X)) * 0.5,
-                        (eval(m, l, s - Y) + eval(m, l, s + Y)) * 0.5,
-                        (eval(m, l, s - Z) + eval(m, l, s + Z)) * 0.5
-                };
+        return (eval(m, expr, sw(s - X, 0)) + eval(m, expr, sw(s + X, 0))) * 0.5;
 
 
     }
@@ -474,24 +429,20 @@ public:
 
     template<typename TF>
     static inline
-    nTuple<typename traits::value_type<TF>::type, 3>
+    typename traits::value_type<TF>::type
     mapto(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<EDGE, VOLUME>)
     {
-        auto const &l = expr;
+//        auto const &l = expr;
+//
+//        auto X = M::DI(0, s);
+//        auto Y = M::DI(1, s);
+//        auto Z = M::DI(2, s);
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
+        MeshEntityId Y = M::DI((s.w + 1) % 3, s);
+        MeshEntityId Z = M::DI((s.w + 1) % 3, s);
 
-        return nTuple<typename traits::value_type<TF>::type, 3>
-                {
-                        (eval(m, l, s - Y - Z) + eval(m, l, s - Y + Z) +
-                         eval(m, l, s + Y - Z) + eval(m, l, s + Y + Z)) * 0.25,
-                        (eval(m, l, s - Z - X) + eval(m, l, s - Z + X) +
-                         eval(m, l, s + Z - X) + eval(m, l, s + Z + X)) * 0.25,
-                        (eval(m, l, s - X - Y) + eval(m, l, s - X + Y) +
-                         eval(m, l, s + X - Y) + eval(m, l, s + X + Y)) * 0.25
-                };
+        return (eval(m, expr, sw(s - Y - Z, 0)) + eval(m, expr, sw(s - Y + Z, 0)) +
+                eval(m, expr, sw(s + Y - Z, 0)) + eval(m, expr, sw(s + Y + Z, 0))) * 0.25;
 
 
     }

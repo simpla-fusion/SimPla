@@ -78,37 +78,37 @@ struct AMRTest : public mesh::Worker
         B.clear();
         J.clear();
 
-        Ev.assign([&](point_type const &x)
-                  {
+        Ev.assign([&](point_type const &x) { return x; });
 
-                      return nTuple<Real, 3>{x[0], 0, 0};
-                  });
-
-        Bv.assign([&](point_type const &x)
-                  {
-
-                      return nTuple<Real, 3>{0, x[0], 0};
-                  });
+        Bv.assign([&](point_type const &x) { return x; });
 
     }
 
     virtual void set_physical_boundary_conditions(double time)
     {
 
-        index_tuple p = {NX / 2, NY / 2, NZ / 2};
-        if (m_chart.mesh()->is_inside(p)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
+//        index_tuple p = {NX / 2, NY / 2, NZ / 2};
+//        if (m_chart.mesh()->is_inside(p)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
     };
 
 
     virtual void next_time_step(Real data_time, Real dt)
     {
-        Ev.deploy();
-        Bv.deploy();
-        Jv = cross(Ev, Bv);//
-        // ;
-        //* dot(Ev, Ev) * 2;
+//        Ev.deploy();
+//        Bv.deploy();
+//        Jv = cross(Ev, Bv);//
+
+
+
 //        E = E + (curl(B) / mu - J) * dt / epsilon;
 //        B -= curl(E) * dt;
+
+        E = map_to<mesh::EDGE>(Ev);
+        B = map_to<mesh::FACE>(Bv);
+
+//        Ev = map_to<mesh::VERTEX>(E);
+//        Bv = map_to<mesh::VERTEX>(B);
+
     }
 
 

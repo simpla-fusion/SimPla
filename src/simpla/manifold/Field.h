@@ -17,7 +17,7 @@
 #include <simpla/toolbox/design_pattern/Observer.h>
 #include <simpla/mesh/Attribute.h>
 
-#include "FiberBundle.h"
+#include "Bundle.h"
 #include "FieldTraits.h"
 #include "FieldExpression.h"
 #include "schemes/CalculusPolicy.h"
@@ -33,12 +33,12 @@ template<typename ...> class Field;
 
 template<typename TV, typename TM, size_type I, size_type DOF>
 class Field<TV, TM, index_const<I>, index_const<DOF>> :
-        public mesh::FiberBundle<TV, static_cast<mesh::MeshEntityType>(I), DOF>
+        public mesh::Bundle<TV, static_cast<mesh::MeshEntityType>(I), DOF>
 {
 private:
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
     typedef Field<TV, TM, index_const<I>, index_const<DOF>> this_type;
-    typedef mesh::FiberBundle<TV, static_cast<mesh::MeshEntityType>(I), DOF> base_type;
+    typedef mesh::Bundle<TV, static_cast<mesh::MeshEntityType>(I), DOF> base_type;
 public:
     typedef TV value_type;
     typedef TM mesh_type;
@@ -91,18 +91,11 @@ public:
     using base_type::dof;
 
 
-    void deploy()
+    virtual void deploy()
     {
         base_type::deploy();
         m_mesh_ = base_type::template mesh_as<mesh_type>();
         m_data_ = base_type::template data_as<data_block>();
-    }
-
-
-    virtual void clear()
-    {
-        deploy();
-        m_data_->clear();
     }
 
 

@@ -182,7 +182,7 @@ void AttributeViewBase::move_to(id_type const &id, std::shared_ptr<DataBlock> co
         m_data_id_ = id;
         m_data_ = d;
     }
-
+    deploy();
 
 }
 
