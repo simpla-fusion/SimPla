@@ -123,7 +123,10 @@ public:
     template<typename ...Args>
     value_type const &get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
 
-    value_type &get(MeshEntityId const &s) { return get(MeshEntityIdCoder::unpack_index4(s, DOF)); }
+    value_type &get(MeshEntityId const &s)
+    {
+        return get(MeshEntityIdCoder::unpack_index4(s, DOF));
+    }
 
     value_type const &get(MeshEntityId const &s) const { return get(MeshEntityIdCoder::unpack_index4(s, DOF)); }
 

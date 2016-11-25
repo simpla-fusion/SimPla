@@ -185,6 +185,7 @@ void AttributeViewBase::move_to(id_type const &id, std::shared_ptr<DataBlock> co
         m_data_ = m_attr_->get(id);
         m_data_id_ = m_id_;
     }
+
 }
 
 

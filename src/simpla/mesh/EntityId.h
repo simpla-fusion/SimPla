@@ -218,6 +218,30 @@ struct MeshEntityIdCoder_
             3 // 111
     };
 
+    static MeshEntityId sx(MeshEntityId s, u_int16_t w)
+    {
+        s.x = w;
+        return s;
+    }
+
+    static MeshEntityId sy(MeshEntityId s, u_int16_t w)
+    {
+        s.y = w;
+        return s;
+    }
+
+    static MeshEntityId sz(MeshEntityId s, u_int16_t w)
+    {
+        s.z = w;
+        return s;
+    }
+
+    static MeshEntityId sw(MeshEntityId s, u_int16_t w)
+    {
+        s.w = w;
+        return s;
+    }
+
     static constexpr MeshEntityId minimal_vertex(MeshEntityId s)
     {
         return MeshEntityId{.v=s.v & (~_DA.v)};

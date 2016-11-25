@@ -325,6 +325,8 @@ std::string make_msg(Others const &...others)
  *  @name   Shortcuts for logging
  *  @{
  */
+#define SHORT_FILE_LINE_STAMP "[" << (__FILE__) << ":" << (__LINE__) << "] "
+
 #define FILE_LINE_STAMP "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " <<(__PRETTY_FUNCTION__) << "] \n \e[1;31m\t"
 #define FILE_LINE_STAMP_STRING  ("[" + std::string(__FILE__) + ":" + string_cast(__LINE__) + ":0: " + std::string(__PRETTY_FUNCTION__) + "] ")
 #define MAKE_ERROR_MSG(...)  logger::make_msg(  "\n\e[0m \e[1;37m From [" , (__FILE__) , ":" , (__LINE__) , ":0: " ,(__PRETTY_FUNCTION__) , "] \n \e[1;31m\t",__VA_ARGS__)

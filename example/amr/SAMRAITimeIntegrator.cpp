@@ -920,6 +920,8 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
         ob.second->move_to(m, detail::create_data_block(
                 attr, patch.getPatchData(m_samrai_variables_.at(attr->id()),
                                          getDataContext())));
+
+        ob.second->deploy();
     }
     w->move_to(m);
 

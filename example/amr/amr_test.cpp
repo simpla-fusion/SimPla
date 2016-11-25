@@ -77,19 +77,18 @@ struct AMRTest : public mesh::Worker
         E.clear();
         B.clear();
         J.clear();
-//        Ev.foreach([&](point_type const &x)
-//                   {
-//                       return x;
-//
-////                       return nTuple<Real, 3>{
-////                               100 + std::sin((x[1])),
-////                               200 + std::sin(TWOPI * (x[0] - 1)),
-////                               300 + std::sin(TWOPI * (x[2]))
-////                       };
-//                   });
-        Bv.foreach([&](point_type const &x) { return nTuple<Real, 3>{1, 2, 3}; });
 
-        Ev.foreach([&](point_type const &x) { return nTuple<Real, 3>{4, 5, 6}; });
+        Ev.assign([&](point_type const &x)
+                  {
+
+                      return nTuple<Real, 3>{x[0], 0, 0};
+                  });
+
+        Bv.assign([&](point_type const &x)
+                  {
+
+                      return nTuple<Real, 3>{0, x[0], 0};
+                  });
 
     }
 
@@ -103,8 +102,10 @@ struct AMRTest : public mesh::Worker
 
     virtual void next_time_step(Real data_time, Real dt)
     {
+        Ev.deploy();
+        Bv.deploy();
         Jv = cross(Ev, Bv);//
-        // cross(Ev, Ev);
+        // ;
         //* dot(Ev, Ev) * 2;
 //        E = E + (curl(B) / mu - J) * dt / epsilon;
 //        B -= curl(E) * dt;

@@ -301,7 +301,7 @@ public:
                     for (index_type k = kb; k < ke; ++k)
                         for (index_type l = lb; l < le; ++l)
                         {
-                            get(i, j, k, l) = fun(i, j, k, l);
+                            fun(get(i, j, k, l), i, j, k, l);
                         }
 
         } else
@@ -313,7 +313,7 @@ public:
                     for (index_type j = jb; j < je; ++j)
                         for (index_type k = kb; k < ke; ++k)
                         {
-                            get(i, j, k, l) = fun(i, j, k, l);
+                            fun(get(i, j, k, l), i, j, k, l);
                         }
             }
         }
@@ -321,7 +321,7 @@ public:
 
 
     template<typename TFUN>
-    void foreach_ghost(TFUN const &fun)
+    void assign_ghost(TFUN const &fun)
     {
         ASSERT(m_ndims_ <= 4);
 
