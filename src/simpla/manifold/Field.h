@@ -67,10 +67,18 @@ public:
 
     virtual ~Field() {}
 
-    Field(this_type const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_) {};
+    Field(this_type const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+    {
+
+        VERBOSE << SHORT_FILE_LINE_STAMP << "Field is copied" << std::endl;
+    };
 
     Field(this_type &&other) : base_type(std::forward<base_type>(other)), m_mesh_(other.m_mesh_),
-                               m_data_(other.m_data_) {};
+                               m_data_(other.m_data_)
+    {
+        VERBOSE << SHORT_FILE_LINE_STAMP << "Field is moved" << std::endl;
+
+    };
 
     virtual void swap(this_type &other)
     {

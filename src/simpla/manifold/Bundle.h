@@ -39,12 +39,19 @@ public:
     };
 
     template<typename ...Args>
-    Bundle(std::string const &key, Args &&...args) :base_type(key, std::forward<Args>(args)...), m_chart_(nullptr) {};
+    Bundle(std::string const &key, Args &&...args) :base_type(key, std::forward<Args>(args)...), m_chart_(nullptr)
+    {
+    };
 
-    Bundle(this_type const &other) : base_type(other), m_chart_(other.m_chart_) { connect(m_chart_); };
+    Bundle(this_type const &other) : base_type(other), m_chart_(other.m_chart_)
+    {
+        connect(m_chart_);
+        VERBOSE << SHORT_FILE_LINE_STAMP << "Field is copied" << std::endl;
+    };
 
     Bundle(this_type &&other) : base_type(std::forward<base_type>(other)), m_chart_(other.m_chart_)
     {
+        VERBOSE << SHORT_FILE_LINE_STAMP << "Field is moved" << std::endl;
         connect(m_chart_);
         if (m_chart_ != nullptr) { m_chart_->disconnect(&other); }
     };
@@ -55,6 +62,8 @@ public:
         base_type::swap(other);
         std::swap(m_chart_, other.m_chart_);
     };
+
+    bool is_connected() const { return m_chart_ != nullptr; }
 
     void connect(ChartBase *chart)
     {
@@ -89,7 +98,7 @@ public:
 
 
 private:
-    ChartBase *m_chart_;
+    ChartBase *m_chart_ = nullptr;
 
 
 };

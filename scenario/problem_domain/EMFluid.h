@@ -153,7 +153,7 @@ void EMFluid<TM>::initialize(Real data_time)
         sp.second.rho.clear();
         sp.second.J.clear();
 
-        sp.second.rho.assign([&](point_type const &x) { return std::sin(x[1]); });
+           sp.second.rho.assign([&](point_type const &x) { return std::sin(x[1]); });
     }
 }
 
@@ -180,8 +180,6 @@ EMFluid<TM>::print(std::ostream &os, int indent) const
 template<typename TM>
 void EMFluid<TM>::next_time_step(Real data_time, Real dt)
 {
-
-
     DEFINE_PHYSICAL_CONST
 
     if (J_src_fun) { J1.assign(J_src_range, J_src_fun); }
@@ -220,7 +218,6 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
             Real qs = p.second.charge;
 
             auto &ns = p.second.rho;
-
             auto &Js = p.second.J;
 
             Real as = static_cast<Real>((data_time * qs) / (2.0 * ms));
@@ -236,8 +233,8 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
             a += qs * ns * (as / (BB * as * as + 1));
             b += qs * ns * (as * as / (BB * as * as + 1));
             c += qs * ns * (as * as * as / (BB * as * as + 1));
-
         }
+
         a *= 0.5 * data_time / epsilon0;
         b *= 0.5 * data_time / epsilon0;
         c *= 0.5 * data_time / epsilon0;
@@ -260,7 +257,6 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
             Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
         }
         Ev += dE;
-
         E += map_to<EDGE>(Ev) - E;
     }
 

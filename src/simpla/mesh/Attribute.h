@@ -104,11 +104,10 @@ public:
 };
 
 
-struct AttributeViewBase
+struct AttributeViewBase : public concept::Printable
 {
 
     AttributeViewBase(std::shared_ptr<AttributeBase> const &attr = nullptr);
-
 
     AttributeViewBase(AttributeViewBase const &other);
 
@@ -165,10 +164,16 @@ struct AttributeViewBase
 
     virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<MeshBlock> const &m)=0;
 
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const
+    {
+        if (m_data_ != nullptr) { m_data_->print(os, indent); }
+        return os;
+    };
+
 private:
     id_type m_id_ = 0;
-    std::shared_ptr<DataBlock> m_data_;
-    std::shared_ptr<AttributeBase> m_attr_;
+    std::shared_ptr<DataBlock> m_data_ = nullptr;
+    std::shared_ptr<AttributeBase> m_attr_ = nullptr;
 
 };
 

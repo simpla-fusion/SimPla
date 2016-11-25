@@ -35,8 +35,7 @@ int main(int argc, char **argv)
 
     auto w = std::make_shared<EMFluid<mesh::CylindricalGeometry>>();
 
-    auto sp = w->add_particle("H", 1.0, 1.0);
-
+//    auto sp = w->add_particle("H", 1.0, 1.0);
 
     w->print(std::cout);
 
@@ -50,6 +49,7 @@ int main(int argc, char **argv)
 
     while (integrator->remaining_steps())
     {
+        w->print(std::cout);
         integrator->next_step(0.01);
         integrator->check_point();
     }

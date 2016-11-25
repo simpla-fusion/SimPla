@@ -666,8 +666,8 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
         }
 
     }
-
-
+//    integrator->printClassData(std::cout);
+//    vardb->printClassData(std::cout);
 }
 
 
@@ -802,6 +802,9 @@ create_data_block_t2(std::shared_ptr<mesh::AttributeBase> const &item, boost::sh
 
     index_type i_lower[4] = {inner_lower[0], inner_lower[1], inner_lower[2], 0};
     index_type i_upper[4] = {inner_upper[0] + 2, inner_upper[1] + 2, inner_upper[2] + 2, depth};
+    VERBOSE << "{" << o_lower[0] << " " << o_lower[1] << " " << o_lower[2] << " " << o_lower[3] << "},{"
+            << o_upper[0] << " " << o_upper[1] << " " << o_upper[2] << " " << o_upper[3] << "}"
+            << std::endl;
 
     return std::dynamic_pointer_cast<mesh::DataBlock>(
             std::make_shared<mesh::DataBlockArray<TV, IFORM, DOF>>(
@@ -908,18 +911,19 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
                                  patch.getBox().getGlobalId().getLocalId().getValue())
     );
     m->deploy();
+    VERBOSE << " Move " << std::endl;
 
     for (auto &ob:w->chart()->attributes())
     {
         auto &attr = ob->attribute();
+        VERBOSE << " Move " << attr->name() << std::endl;
+
         if (attr == nullptr) { return; }
-        ob->move_to(m, detail::create_data_block(
-                attr, patch.getPatchData(m_samrai_variables_.at(attr->id()),
-                                         getDataContext())));
+        auto db = detail::create_data_block(attr, patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext()));
+        ob->move_to(m, db);
 
     }
     w->move_to(m);
-
 }
 
 /**
