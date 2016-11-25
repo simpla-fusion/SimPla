@@ -59,8 +59,8 @@ public:
     typedef manifold::schemes::InterpolatePolicy<mesh_type> interpolate_policy;
 
     template<typename ...Args>
-    explicit Field(mesh::Chart<mesh_type> *chart, Args &&...args):
-            base_type(chart, std::forward<Args>(args)...),
+    explicit Field(Args &&...args):
+            base_type(std::forward<Args>(args)...),
             m_mesh_(nullptr),
             m_data_(nullptr) {};
 
@@ -69,7 +69,7 @@ public:
 
     Field(this_type const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_) {};
 
-    Field(this_type &&other) : base_type(std::forward<this_type>(other)), m_mesh_(other.m_mesh_),
+    Field(this_type &&other) : base_type(std::forward<base_type>(other)), m_mesh_(other.m_mesh_),
                                m_data_(other.m_data_) {};
 
     virtual void swap(this_type &other)

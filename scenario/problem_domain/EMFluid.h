@@ -111,13 +111,19 @@ public:
                                fluid_s{
                                        mass,
                                        charge,
-                                       TRho{&m_chart, name + "_rho"},
-                                       TJv{&m_chart, name + "_J"}
+                                       TRho{name + "_rho"},
+                                       TJv{name + "_J"}
                                })
         );
 
         fluid_s *res = nullptr;
-        if (std::get<1>(ins_res)) { res = &(std::get<0>(ins_res)->second); }
+        if (std::get<1>(ins_res))
+        {
+            res = &(std::get<0>(ins_res)->second);
+            res->rho.connect(&m_chart);
+            res->J.connect(&m_chart);
+
+        }
         return res;
     }
 

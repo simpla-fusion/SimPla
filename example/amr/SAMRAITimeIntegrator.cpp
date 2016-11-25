@@ -579,7 +579,6 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     for (auto &ob:m_worker_->chart()->attributes())
     {
         auto &attr = ob->attribute();
-
         if (attr == nullptr) { return; }
 
         boost::shared_ptr<SAMRAI::hier::Variable> var = detail::create_samrai_variable(3, attr.get());
@@ -626,42 +625,40 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 
             d_visit_writer->registerNodeCoordinates(
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+        } else if (attr->db.has("config") && attr->db["config"].as<std::string>() == "FLUX")
+        {
+            integrator->registerVariable(var, d_fluxghosts,
+                                         SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
+                                         d_grid_geometry,
+                                         "CONSERVATIVE_COARSEN",
+                                         "NO_REFINE");
+
         } else
         {
-            if (attr->db.has("config") && attr->db["config"].as<std::string>() == "FLUX")
+            switch (attr->entity_type())
             {
-                integrator->registerVariable(var, d_fluxghosts,
-                                             SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
-                                             d_grid_geometry,
-                                             "CONSERVATIVE_COARSEN",
-                                             "NO_REFINE");
-
-            } else
-            {
-                switch (attr->entity_type())
-                {
-                    case mesh::EDGE:
-                    case mesh::FACE:
+                case mesh::EDGE:
+                case mesh::FACE:
 //                            integrator->registerVariable(var, d_nghosts,
 //                                                         SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
 //                                                         d_grid_geometry,
 //                                                         "CONSERVATIVE_COARSEN",
 //                                                         "CONSERVATIVE_LINEAR_REFINE");
 //                            break;
-                    case mesh::VERTEX:
-                    case mesh::VOLUME:
-                    default:
-                        integrator->registerVariable(var, d_nghosts,
-                                                     SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                                     d_grid_geometry,
-                                                     "",
-                                                     "LINEAR_REFINE");
-                }
-
-
+                case mesh::VERTEX:
+                case mesh::VOLUME:
+                default:
+                    integrator->registerVariable(var, d_nghosts,
+                                                 SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                                 d_grid_geometry,
+                                                 "",
+                                                 "LINEAR_REFINE");
             }
+
+
             if (visit_variable_type != "")
             {
+
                 d_visit_writer->registerPlotQuantity(
                         attr->name(), visit_variable_type,
                         vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
@@ -915,7 +912,6 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
     for (auto &ob:w->chart()->attributes())
     {
         auto &attr = ob->attribute();
-
         if (attr == nullptr) { return; }
         ob->move_to(m, detail::create_data_block(
                 attr, patch.getPatchData(m_samrai_variables_.at(attr->id()),

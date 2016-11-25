@@ -29,27 +29,26 @@ public:
     using base_type::deploy;
     using base_type::move_to;
 
+    Bundle() : m_chart_(nullptr) {}
+
     template<typename ...Args>
-    explicit Bundle(ChartBase *chart, Args &&...args) :
+    Bundle(ChartBase *chart, Args &&...args) :
             base_type(std::forward<Args>(args)...), m_chart_(chart)
     {
-        m_chart_->connect(this);
-
-        // For scratch data block
-        if (this->attribute() == nullptr && m_chart_->coordinate_frame() != nullptr)
-        {
-            this->move_to(m_chart_->coordinate_frame()->mesh_block());
-        }
+        connect(m_chart_);
     };
 
+    template<typename ...Args>
+    Bundle(std::string const &key, Args &&...args) :base_type(key, std::forward<Args>(args)...), m_chart_(nullptr) {};
 
-    Bundle(this_type const &other) : base_type(other), m_chart_(other.m_chart_) { m_chart_->connect(this); };
+    Bundle(this_type const &other) : base_type(other), m_chart_(other.m_chart_) { connect(m_chart_); };
 
     Bundle(this_type &&other) : base_type(std::forward<base_type>(other)), m_chart_(other.m_chart_)
     {
-        m_chart_->connect(this);
-        m_chart_->disconnect(&other);
+        connect(m_chart_);
+        if (m_chart_ != nullptr) { m_chart_->disconnect(&other); }
     };
+
 
     virtual void swap(this_type &other)
     {
@@ -57,7 +56,23 @@ public:
         std::swap(m_chart_, other.m_chart_);
     };
 
-    virtual ~Bundle() { m_chart_->disconnect(this); }
+    void connect(ChartBase *chart)
+    {
+        if (chart != nullptr)
+        {
+            m_chart_ = chart;
+
+            m_chart_->connect(this);
+
+            // For scratch data block
+            if (this->attribute() == nullptr && m_chart_->coordinate_frame() != nullptr)
+            {
+                this->move_to(m_chart_->coordinate_frame()->mesh_block());
+            }
+        }
+    }
+
+    virtual ~Bundle() { if (m_chart_ != nullptr)m_chart_->disconnect(this); }
 
 
     virtual bool is_a(std::type_info const &t_info) const
