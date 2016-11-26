@@ -41,7 +41,6 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-
     virtual mesh::ChartBase *chart() { return &m_chart; };
 
     virtual mesh::ChartBase const *chart() const { return &m_chart; };
@@ -97,34 +96,22 @@ public:
     {
         Real mass;
         Real charge;
-        TRho rho;
-        TJv J;
+        std::shared_ptr<TRho> rho;
+        std::shared_ptr<TJv> J;
     };
 
-    std::map<std::string, fluid_s> m_fluid_sp_;
+    std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
 
-    fluid_s *
+    std::shared_ptr<fluid_s>
     add_particle(std::string const &name, Real mass, Real charge)
     {
-        auto ins_res = m_fluid_sp_.emplace(
-                std::make_pair(name,
-                               fluid_s{
-                                       mass,
-                                       charge,
-                                       TRho{name + "_rho"},
-                                       TJv{name + "_J"}
-                               })
-        );
-
-        fluid_s *res = nullptr;
-        if (std::get<1>(ins_res))
-        {
-            res = &(std::get<0>(ins_res)->second);
-            res->rho.connect(&m_chart);
-            res->J.connect(&m_chart);
-
-        }
-        return res;
+        auto sp = std::make_shared<fluid_s>();
+        sp->mass = mass;
+        sp->charge = charge;
+        sp->rho = std::make_shared<TRho>(&m_chart, name + "_rho");
+        sp->J = std::make_shared<TJv>(&m_chart, name + "_J");
+        m_fluid_sp_.emplace(std::make_pair(name, sp));
+        return sp;
     }
 
 };
@@ -136,11 +123,13 @@ void EMFluid<TM>::initialize(Real data_time)
     rho0.clear();
     E0.clear();
     B0.clear();
+    B0v.clear();
     BB.clear();
     Ev.clear();
     J1.clear();
     B.clear();
     E.clear();
+
 
     if (m_fluid_sp_.size() > 0)
     {
@@ -150,10 +139,9 @@ void EMFluid<TM>::initialize(Real data_time)
     }
     for (auto &sp:m_fluid_sp_)
     {
-        sp.second.rho.clear();
-        sp.second.J.clear();
-
-           sp.second.rho.assign([&](point_type const &x) { return std::sin(x[1]); });
+        sp.second->rho->clear();
+        sp.second->J->clear();
+        sp.second->rho->assign([&](point_type const &x) { return std::sin(x[1]); });
     }
 }
 
@@ -168,8 +156,8 @@ EMFluid<TM>::print(std::ostream &os, int indent) const
        << std::setw(indent + 1) << " " << "{ " << std::endl;
     for (auto &sp:m_fluid_sp_)
     {
-        os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second.mass << " , Charge = " <<
-           sp.second.charge << "}," << std::endl;
+        os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second->mass << " , Charge = " <<
+           sp.second->charge << "}," << std::endl;
     }
     os << std::setw(indent + 1) << " " << " }, " << std::endl;
     return os;
@@ -187,14 +175,9 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
     if (E_src_fun) { E.assign(E_src_range, E_src_fun); }
 
     B -= curl(E) * (data_time * 0.5);
-
     B.assign(face_boundary, 0);
-
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * data_time;
-
     E.assign(edge_boundary, 0);
-
-
     if (m_fluid_sp_.size() > 0)
     {
         field_type<VERTEX, 3> Q{&m_chart};
@@ -209,16 +192,15 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
         c.clear();
 
         Q = map_to<VERTEX>(E) - Ev;
-
+        dE.clear();
         K.clear();
         for (auto &p :m_fluid_sp_)
         {
 
-            Real ms = p.second.mass;
-            Real qs = p.second.charge;
-
-            auto &ns = p.second.rho;
-            auto &Js = p.second.J;
+            Real ms = p.second->mass;
+            Real qs = p.second->charge;
+            auto &ns = *p.second->rho;
+            auto &Js = *p.second->J;
 
             Real as = static_cast<Real>((data_time * qs) / (2.0 * ms));
 
@@ -246,10 +228,10 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
 
         for (auto &p : m_fluid_sp_)
         {
-            Real ms = p.second.mass;
-            Real qs = p.second.charge;
-            auto &ns = p.second.rho;
-            auto &Js = p.second.J;
+            Real ms = p.second->mass;
+            Real qs = p.second->charge;
+            auto &ns = *p.second->rho;
+            auto &Js = *p.second->J;
 
             Real as = static_cast<Real>((data_time * qs) / (2.0 * ms));
 
@@ -259,9 +241,7 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
         Ev += dE;
         E += map_to<EDGE>(Ev) - E;
     }
-
     B -= curl(E) * (data_time * 0.5);
-
     B.assign(face_boundary, 0);
 }
 

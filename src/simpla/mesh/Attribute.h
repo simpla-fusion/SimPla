@@ -109,14 +109,13 @@ struct AttributeViewBase : public concept::Printable
 
     AttributeViewBase(std::shared_ptr<AttributeBase> const &attr = nullptr);
 
-    AttributeViewBase(AttributeViewBase const &other);
+    AttributeViewBase(AttributeViewBase const &other) = delete;
 
-    AttributeViewBase(AttributeViewBase &&other);
+    AttributeViewBase(AttributeViewBase &&other) = delete;
 
-    virtual void swap(AttributeViewBase &other);
+//    virtual void swap(AttributeViewBase &other);
 
     virtual ~AttributeViewBase();
-
 
     virtual MeshEntityType entity_type() const =0;
 
@@ -213,14 +212,11 @@ public:
 
     virtual ~AttributeView() {}
 
-    AttributeView(this_type const &other) : AttributeViewBase(other) {};
+    AttributeView(this_type const &other) = delete;
 
-    AttributeView(this_type &&other) : AttributeViewBase(std::forward<this_type>(other)) {};
+    AttributeView(this_type &&other) = delete;
 
-    virtual void swap(this_type &other)
-    {
-        AttributeViewBase::swap(other);
-    };
+//    virtual void swap(this_type &other) { AttributeViewBase::swap(other); };
 
 
     virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<MeshBlock> const &m)

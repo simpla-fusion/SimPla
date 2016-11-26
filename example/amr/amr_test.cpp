@@ -35,9 +35,7 @@ int main(int argc, char **argv)
 
     auto w = std::make_shared<EMFluid<mesh::CylindricalGeometry>>();
 
-//    auto sp = w->add_particle("H", 1.0, 1.0);
-
-    w->print(std::cout);
+    auto sp = w->add_particle("H", 1.0, 1.0);
 
     auto integrator = simpla::create_time_integrator("EMFluid", w);
 
@@ -45,11 +43,12 @@ int main(int argc, char **argv)
 
     integrator->check_point();
 
+    w->print(std::cout);
+
     INFORM << "***********************************************" << std::endl;
 
     while (integrator->remaining_steps())
     {
-        w->print(std::cout);
         integrator->next_step(0.01);
         integrator->check_point();
     }

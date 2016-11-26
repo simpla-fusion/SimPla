@@ -67,32 +67,29 @@ public:
 
     virtual ~Field() {}
 
-    Field(this_type const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
-    {
+    Field(this_type const &other) = delete;
 
-        VERBOSE << SHORT_FILE_LINE_STAMP << "Field is copied" << std::endl;
-    };
+    Field(this_type &&other) = delete;
 
-    Field(this_type &&other) : base_type(std::forward<base_type>(other)), m_mesh_(other.m_mesh_),
-                               m_data_(other.m_data_)
-    {
-        VERBOSE << SHORT_FILE_LINE_STAMP << "Field is moved" << std::endl;
 
-    };
-
-    virtual void swap(this_type &other)
-    {
-        base_type::swap(other);
-        std::swap(m_mesh_, other.m_mesh_);
-        std::swap(m_data_, other.m_data_);
-    };
+//    virtual void swap(this_type &other)
+//    {
+//        base_type::swap(other);
+//        std::swap(m_mesh_, other.m_mesh_);
+//        std::swap(m_data_, other.m_data_);
+//    };
 
     virtual bool is_a(std::type_info const &t_info) const
     {
         return t_info == typeid(this_type) || base_type::is_a(t_info);
     };
 
-    bool is_valid() const { return m_data_ != nullptr && m_mesh_ != nullptr; };
+    bool is_valid() const
+    {
+        return m_data_ != nullptr
+               && m_mesh_ != nullptr
+               && m_data_->is_valid();
+    };
 
     bool empty() const { return m_data_->empty() && m_mesh_ != nullptr; };
 

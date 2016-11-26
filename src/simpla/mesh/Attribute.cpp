@@ -110,23 +110,23 @@ std::shared_ptr<DataBlock> AttributeBase::insert_or_assign(const id_type &m, con
 
 AttributeViewBase::AttributeViewBase(std::shared_ptr<AttributeBase> const &attr) : m_attr_(attr) {};
 
-AttributeViewBase::AttributeViewBase(AttributeViewBase const &other) :
-        m_id_(other.m_id_), m_data_(other.m_data_), m_attr_(other.m_attr_)
-{
-
-}
-
-AttributeViewBase::AttributeViewBase(AttributeViewBase &&other) :
-        m_id_(other.m_id_), m_data_(std::move(other.m_data_)), m_attr_(std::move(other.m_attr_))
-{
-}
-
-void AttributeViewBase::swap(AttributeViewBase &other)
-{
-    std::swap(m_id_, other.m_id_);
-    std::swap(m_data_, other.m_data_);
-    std::swap(m_attr_, other.m_attr_);
-}
+//AttributeViewBase::AttributeViewBase(AttributeViewBase const &other) :
+//        m_id_(other.m_id_), m_data_(other.m_data_), m_attr_(other.m_attr_)
+//{
+//
+//}
+//
+//AttributeViewBase::AttributeViewBase(AttributeViewBase &&other) :
+//        m_id_(other.m_id_), m_data_(std::move(other.m_data_)), m_attr_(std::move(other.m_attr_))
+//{
+//}
+//
+//void AttributeViewBase::swap(AttributeViewBase &other)
+//{
+//    std::swap(m_id_, other.m_id_);
+//    std::swap(m_data_, other.m_data_);
+//    std::swap(m_attr_, other.m_attr_);
+//}
 
 AttributeViewBase::~AttributeViewBase() {}
 
@@ -145,13 +145,12 @@ void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared
     if (d == nullptr && m->id() == m_id_) { return; }
 
     m_id_ = m->id();
-    if (d != nullptr)
-    {
-        m_data_ = d;
-    } else if (m_attr_ != nullptr && m_attr_->has(m_id_)) { m_data_ = m_attr_->at(m_id_); }
+
+    if (d != nullptr) { m_data_ = d; }
+    else if (m_attr_ != nullptr && m_attr_->has(m_id_)) { m_data_ = m_attr_->at(m_id_); }
     else { m_data_ = create_data_block(m); }
-    ASSERT(m_data_ != nullptr);
-    m_data_->deploy();
+
+    deploy();
 
 }
 
