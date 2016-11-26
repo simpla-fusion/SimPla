@@ -30,6 +30,12 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 
     return os;
 }
+
+void Worker::initialize(Real data_time)
+{
+    chart()->initialize(data_time);
+    for (auto &item:chart()->attributes()) { item->clear(); }
+}
 //
 //
 //void Worker::deploy()

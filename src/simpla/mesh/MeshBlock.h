@@ -327,11 +327,11 @@ public:
                 }, nId)));
     };
 
-    virtual EntityIdRange range(MeshEntityType entityType, MeshZoneTag status = SP_ES_ALL, index_type dof = 1) const;
+    virtual EntityIdRange range(MeshEntityType entityType, MeshZoneTag status) const;
 
-    virtual EntityIdRange range(MeshEntityType entityType, index_box_type const &b, index_type dof = 1) const;
+    virtual EntityIdRange range(MeshEntityType entityType, index_box_type const &b) const;
 
-    virtual EntityIdRange range(MeshEntityType entityType, box_type const &b, index_type dof = 1) const;
+    virtual EntityIdRange range(MeshEntityType entityType, box_type const &b) const;
 
     template<typename TFun>
     void foreach(MeshEntityType const &iform, MeshZoneTag tag, TFun const &fun) const

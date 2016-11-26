@@ -53,6 +53,7 @@ public:
 
     virtual void initialize(Real data_time = 0);
 
+    virtual void set_physical_boundary_conditions(Real time);
 
     EntityIdRange limiter_boundary;
     EntityIdRange vertex_boundary;
@@ -66,12 +67,11 @@ public:
     template<mesh::MeshEntityType IFORM, size_type DOF = 1>
     using field_type=Field<scalar_type, TM, index_const<IFORM>, index_const<DOF>>;
 
-
     EntityIdRange J_src_range;
-    std::function<Vec3(point_type const &)> J_src_fun;
+    std::function<Vec3(point_type const &, Real)> J_src_fun;
 
     EntityIdRange E_src_range;
-    std::function<Vec3(point_type const &)> E_src_fun;
+    std::function<Vec3(point_type const &, Real)> E_src_fun;
 
     typedef field_type<FACE> TB;
     typedef field_type<EDGE> TE;
@@ -117,36 +117,6 @@ public:
 };
 
 template<typename TM>
-void EMFluid<TM>::initialize(Real data_time)
-{
-    m_chart.initialize(data_time);
-    rho0.clear();
-    E0.clear();
-    B0.clear();
-    B0v.clear();
-    BB.clear();
-    Ev.clear();
-    J1.clear();
-    B.clear();
-    E.clear();
-
-
-    if (m_fluid_sp_.size() > 0)
-    {
-        Ev = map_to<VERTEX>(E);
-        B0v = map_to<VERTEX>(B0);
-        BB = dot(B0v, B0v);
-    }
-    for (auto &sp:m_fluid_sp_)
-    {
-        sp.second->rho->clear();
-        sp.second->J->clear();
-        sp.second->rho->assign([&](point_type const &x) { return std::sin(x[1]); });
-    }
-}
-
-
-template<typename TM>
 std::ostream &
 EMFluid<TM>::print(std::ostream &os, int indent) const
 {
@@ -164,20 +134,41 @@ EMFluid<TM>::print(std::ostream &os, int indent) const
 
 }
 
+template<typename TM>
+void EMFluid<TM>::initialize(Real data_time)
+{
+    base_type::initialize(data_time);
+
+    if (m_fluid_sp_.size() > 0)
+    {
+        Ev = map_to<VERTEX>(E);
+        B0v = map_to<VERTEX>(B0);
+        BB = dot(B0v, B0v);
+    }
+    for (auto &sp:m_fluid_sp_)
+    {
+        sp.second->rho->clear();
+        sp.second->J->clear();
+        sp.second->rho->assign([&](point_type const &x) { return std::sin(x[1]); });
+    }
+}
+
+template<typename TM>
+void EMFluid<TM>::set_physical_boundary_conditions(Real time)
+{
+    if (J_src_fun) { J1.assign([&](point_type const &x) { return J_src_fun(x, time); }, J_src_range); }
+    if (E_src_fun) { E.assign([&](point_type const &x) { return E_src_fun(x, time); }, E_src_range); }
+};
+
 
 template<typename TM>
 void EMFluid<TM>::next_time_step(Real data_time, Real dt)
 {
     DEFINE_PHYSICAL_CONST
-
-    if (J_src_fun) { J1.assign(J_src_range, J_src_fun); }
-
-    if (E_src_fun) { E.assign(E_src_range, E_src_fun); }
-
-    B -= curl(E) * (data_time * 0.5);
-    B.assign(face_boundary, 0);
-    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * data_time;
-    E.assign(edge_boundary, 0);
+    B -= curl(E) * (dt * 0.5);
+    B.assign(0, face_boundary);
+    E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
+    E.assign(0, edge_boundary);
     if (m_fluid_sp_.size() > 0)
     {
         field_type<VERTEX, 3> Q{&m_chart};
@@ -196,30 +187,29 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
         K.clear();
         for (auto &p :m_fluid_sp_)
         {
-
             Real ms = p.second->mass;
             Real qs = p.second->charge;
             auto &ns = *p.second->rho;
             auto &Js = *p.second->J;
 
-            Real as = static_cast<Real>((data_time * qs) / (2.0 * ms));
+            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
-            Q -= 0.5 * data_time / epsilon0 * Js;
+            Q -= 0.5 * dt / epsilon0 * Js;
 
             K = (Ev * qs * ns * 2.0 + cross(Js, B0v)) * as + Js;
 
             Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
 
-            Q -= 0.5 * data_time / epsilon0 * Js;
+            Q -= 0.5 * dt / epsilon0 * Js;
 
             a += qs * ns * (as / (BB * as * as + 1));
             b += qs * ns * (as * as / (BB * as * as + 1));
             c += qs * ns * (as * as * as / (BB * as * as + 1));
         }
 
-        a *= 0.5 * data_time / epsilon0;
-        b *= 0.5 * data_time / epsilon0;
-        c *= 0.5 * data_time / epsilon0;
+        a *= 0.5 * dt / epsilon0;
+        b *= 0.5 * dt / epsilon0;
+        c *= 0.5 * dt / epsilon0;
         a += 1;
 
 
@@ -233,7 +223,7 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
             auto &ns = *p.second->rho;
             auto &Js = *p.second->J;
 
-            Real as = static_cast<Real>((data_time * qs) / (2.0 * ms));
+            Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
             K = dE * ns * qs * as;
             Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
@@ -241,8 +231,8 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
         Ev += dE;
         E += map_to<EDGE>(Ev) - E;
     }
-    B -= curl(E) * (data_time * 0.5);
-    B.assign(face_boundary, 0);
+    B -= curl(E) * (dt * 0.5);
+    B.assign(0, face_boundary);
 }
 
 }//namespace simpla  {

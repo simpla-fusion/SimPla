@@ -56,9 +56,9 @@ public:
 
     virtual void deploy() {};
 
-    virtual void initialize(Real data_time) {};
+    virtual void initialize(Real data_time)  ;
 
-    virtual void set_physical_boundary_conditions(double time) {};
+    virtual void set_physical_boundary_conditions(Real time) {};
 
     virtual void next_time_step(Real data_time, Real dt) {};
 

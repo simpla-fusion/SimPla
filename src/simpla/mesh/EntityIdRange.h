@@ -41,7 +41,7 @@ public :
     //****************************************************************************
     // TBB RangeHolder Concept Begin
     template<typename TOther>
-    EntityIdRange(TOther const &other)
+    explicit EntityIdRange(TOther const &other)
             : m_next_(nullptr), m_holder_(std::dynamic_pointer_cast<RangeBase>(
             std::make_shared<RangeHolder<TOther,
                     has_member_function_range<TOther>::value>>(other)))
@@ -49,7 +49,7 @@ public :
     }
 
     template<typename ...Args>
-    EntityIdRange(this_type &other, parallel::tags::split)
+    explicit EntityIdRange(this_type &other, parallel::tags::split)
             :m_next_(nullptr), m_holder_(other.m_holder_->split())
     {
         auto *p0 = &m_next_;

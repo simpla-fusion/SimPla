@@ -100,6 +100,10 @@ public:
 
     index_type const *start() const { return m_start_; }
 
+    index_type const *index_lower() const { return m_lower_; }
+
+    index_type const *index_upper() const { return m_upper_; }
+
     size_type const *count() const { return m_count_; }
 
     size_type size() const { return m_size_; }

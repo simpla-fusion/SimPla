@@ -117,19 +117,26 @@ public:
 
     virtual void sync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
 
+    value_type &get(MeshEntityId s) { return get(MeshEntityIdCoder::unpack_index4(s, DOF)); }
+
+    value_type const &get(MeshEntityId s) const { return get(MeshEntityIdCoder::unpack_index4(s, DOF)); }
+
     template<typename ...Args>
     value_type &get(Args &&...args) { return data_entity_type::get(std::forward<Args>(args)...); }
 
     template<typename ...Args>
     value_type const &get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
 
-    value_type &get(MeshEntityId const &s)
+
+    EntityIdRange range() const
     {
-        return get(MeshEntityIdCoder::unpack_index4(s, DOF));
+        EntityIdRange res;
+        index_tuple lower, upper;
+        lower = data_entity_type::index_lower();
+        upper = data_entity_type::index_upper();
+        res.append(MeshEntityIdCoder::make_range(lower, upper, entity_type()));
+        return res;
     }
-
-    value_type const &get(MeshEntityId const &s) const { return get(MeshEntityIdCoder::unpack_index4(s, DOF)); }
-
 
 private:
     index_tuple m_ghost_width_{{0, 0, 0}};

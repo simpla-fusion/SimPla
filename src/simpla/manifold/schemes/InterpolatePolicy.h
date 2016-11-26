@@ -7,9 +7,16 @@
 #ifndef SIMPLA_LINEAR_H
 #define SIMPLA_LINEAR_H
 
-#include "../../toolbox/nTuple.h"
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/type_traits.h>
 #include "../../mesh/EntityId.h"
 
+namespace simpla
+{
+template<size_type I> using index_const=std::integral_constant<size_type, I>;
+
+template<typename ...> class Field;
+}
 namespace simpla { namespace manifold { namespace schemes
 {
 using namespace simpla::mesh;
@@ -124,7 +131,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, std::integral_constant<int, VERTEX>, TF &
+    scatter_(mesh_type const &m, index_const<VERTEX>, TF &
     f, TX const &x, TV const &u)
     {
         scatter_impl_(f, m.point_global_to_local(x, 0), u);
@@ -132,7 +139,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, std::integral_constant<int, EDGE>, TF &
+    scatter_(mesh_type const &m, index_const<EDGE>, TF &
     f, TX const &x, TV const &u)
     {
 
@@ -144,7 +151,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, std::integral_constant<int, FACE>, TF &f,
+    scatter_(mesh_type const &m, index_const<FACE>, TF &f,
              TX const &x, TV const &u)
     {
 
@@ -155,7 +162,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, std::integral_constant<int, VOLUME>,
+    scatter_(mesh_type const &m, index_const<VOLUME>,
              TF &f, TX const &x, TV const &u)
     {
         scatter_impl_(f, m.point_global_to_local(x, 7), u);
@@ -172,54 +179,54 @@ public:
 private:
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, std::integral_constant<int, VERTEX>, MeshEntityId const &s,
+    sample_(mesh_type const &m, index_const<VERTEX>, MeshEntityId const &s,
             TV const &v) { return v; }
 
     template<typename TV, size_type L> static inline TV
-    sample_(mesh_type const &m, std::integral_constant<int, VERTEX>, MeshEntityId const &s,
+    sample_(mesh_type const &m, index_const<VERTEX>, MeshEntityId const &s,
             nTuple <TV, L> const &v) { return v[s.w % L]; }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, std::integral_constant<int, VOLUME>, MeshEntityId const &s,
+    sample_(mesh_type const &m, index_const<VOLUME>, MeshEntityId const &s,
             TV const &v) { return v; }
 
     template<typename TV, size_type L> static inline TV
-    sample_(mesh_type const &m, std::integral_constant<int, VOLUME>, MeshEntityId const &s,
+    sample_(mesh_type const &m, index_const<VOLUME>, MeshEntityId const &s,
             nTuple <TV, L> const &v) { return v[s.w % L]; }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, std::integral_constant<int, EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
+    sample_(mesh_type const &m, index_const<EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, std::integral_constant<int, FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
+    sample_(mesh_type const &m, index_const<FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
 //
 //    template<typename M,int IFORM,  typename TV>
-//    static inline  TV sample_(M const & m,std::integral_constant<int, IFORM>, mesh_id_type s,
+//    static inline  TV sample_(M const & m,index_const< IFORM>, mesh_id_type s,
 //                                       TV const &v) { return v; }
 
 public:
 
 //    template<typename M,int IFORM,  typename TV>
 //    static inline  auto generate(TI const &s, TV const &v)
-//    DECL_RET_TYPE((sample_(M const & m,std::integral_constant<int, IFORM>(), s, v)))
+//    DECL_RET_TYPE((sample_(M const & m,index_const< IFORM>(), s, v)))
 
 
     template<int IFORM, typename TV>
     static inline traits::value_type_t<TV>
     sample(mesh_type const &m, MeshEntityId const &s, TV const &v)
     {
-        return sample_(m, std::integral_constant<int, IFORM>(), s, v);
+        return sample_(m, index_const<IFORM>(), s, v);
     }
-//    DECL_RET_TYPE((sample_(std::integral_constant<int, IFORM>(), s, v)))
+//    DECL_RET_TYPE((sample_(index_const< IFORM>(), s, v)))
 
 
     /**
@@ -240,9 +247,44 @@ public:
 
     Real RBF(mesh_type const &m, point_type const &x0, point_type const &x1, Real const &a)
     {
-
         return (1.0 - m.distance(x1, x0) / a);
     }
+
+    template<typename V, size_type DOF, typename U> static inline void
+    assign(Field<V, mesh_type, index_const<0>, index_const<DOF> > &f, mesh_type const &m,
+           MeshEntityId const &s, nTuple <U, DOF> const &v)
+    {
+        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
+    }
+
+    template<typename V, size_type DOF, typename U> static inline void
+    assign(Field<V, mesh_type, index_const<static_cast<size_type>(EDGE)>, index_const<DOF> > &f, mesh_type const &m,
+           MeshEntityId const &s, nTuple<U, 3> const &v)
+    {
+        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
+    }
+
+    template<typename V, size_type DOF, typename U> static inline void
+    assign(Field<V, mesh_type, index_const<static_cast<size_type>(FACE)>, index_const<DOF> > &f, mesh_type const &m,
+           MeshEntityId const &s, nTuple<U, 3> const &v)
+    {
+        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
+    }
+
+    template<typename V, size_type DOF, typename U> static inline void
+    assign(Field<V, mesh_type, index_const<static_cast<size_type>(VOLUME)>, index_const<DOF> > &f, mesh_type const &m,
+           MeshEntityId const &s, nTuple <U, DOF> const &v)
+    {
+        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
+    }
+
+    template<typename V, size_type IFORM, size_type DOF, typename U> static inline void
+    assign(Field<V, mesh_type, index_const<IFORM>, index_const<DOF> > &f, mesh_type const &m,
+           MeshEntityId const &s, U const &v)
+    {
+        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v; }
+    }
+
 
 };
 

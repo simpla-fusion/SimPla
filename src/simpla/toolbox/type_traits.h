@@ -8,6 +8,7 @@
 #ifndef SP_TYPE_TRAITS_H_
 #define SP_TYPE_TRAITS_H_
 
+#include <simpla/SIMPLA_config.h>
 #include <stddef.h>
 #include <map>
 #include <tuple>
@@ -25,9 +26,9 @@ typedef std::nullptr_t NullType;
 
 struct EmptyType {};
 
-template<typename, size_t ...> struct nTuple;
+template<typename, size_type ...> struct nTuple;
 
-template<size_t I> using index_const=std::integral_constant<size_t, I>;
+template<size_type I> using index_const=std::integral_constant<size_type, I>;
 
 namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const {}}; }
 
@@ -67,7 +68,7 @@ public:
 
 };
 
-template<size_t I>
+template<size_type I>
 struct type_id<std::integral_constant<size_t, I> >
 {
     static std::string name()
@@ -116,7 +117,7 @@ struct type_id<T, typename std::enable_if_t<detail::check_static_bool_member_is_
     static auto data_type() -> decltype(T::data_type()) { return T::data_type(); }
 };
 
-//template<typename T, size_t N>
+//template<typename T, size_type N>
 //struct type_id<T[N], void>
 //{
 //    static std::string name()
@@ -292,7 +293,7 @@ template<typename T, typename TI>
 auto index(T &v, TI *s, ENABLE_IF((is_indexable<T, TI>::value)))
 DECL_RET_TYPE((_impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v, s)))
 
-template<typename T, typename TI, size_t N>
+template<typename T, typename TI, size_type N>
 auto index(T &v, nTuple<TI, N> const &s, ENABLE_IF((is_indexable<T, TI>::value)))
 DECL_RET_TYPE((_impl::recursive_try_index_aux<N>::eval(v, s)))
 

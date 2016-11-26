@@ -14,7 +14,6 @@
 
 #include <simpla/toolbox/type_traits.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/design_pattern/Observer.h>
 #include <simpla/mesh/Attribute.h>
 
 #include "Bundle.h"
@@ -139,21 +138,21 @@ public:
 
 //    this_type &operator=(this_type const &other)
 //    {
-//        assign(mesh::SP_ES_ALL, other);
+//        assign( other,mesh::SP_ES_ALL);
 //        return *this;
 //    }
 
     template<typename ...U> inline this_type &
     operator=(Field<U...> const &other)
     {
-        assign(mesh::SP_ES_ALL, other);
+        assign(other);
         return *this;
     }
 
     template<typename Other> inline this_type &
     operator=(Other const &other)
     {
-        assign(mesh::SP_ES_ALL, other);
+        assign(other);
         return *this;
     }
 
@@ -188,232 +187,80 @@ public:
     inline this_type &
     operator=(this_type const &other)
     {
-        deploy();
 
-        m_data_->foreach(
-                [&](value_type &v, index_type i, index_type j, index_type k, index_type l)
-                {
-                    v = other.get(i, j, l, l);
-                });
+        assign(other);
         return *this;
 
     }
-
     /* @}*/
+private:
 
-    template<typename U> void
-    assign(mesh::EntityIdRange const &r0, U const &v,
-           ENABLE_IF((std::is_arithmetic<U>::value || std::is_same<U, value_type>::value)))
-    {
-        deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = v; });
-    }
-
-
-    template<typename ...U>
-    void assign(mesh::EntityIdRange const &r0, Field<Expression<U...>> const &expr)
-    {
-        deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = calculus_policy::eval(*m_mesh_, expr, s); });
-
-    }
-
-//    template<typename TFun, typename ...U> void
-//    assign(mesh::EntityIdRange const &r0, std::function<value_type(point_type const &, U const &...)> const &fun,
-//            U &&...args)
-//    {
-//        deploy();
-//        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(m_frame_->point(s), std::forward<U>(args)...); });
-//    }
-
+public:
 
     template<typename TFun> void
-    assign(mesh::EntityIdRange const &r0, TFun const &fun,
-           ENABLE_IF((std::is_same<typename std::result_of<TFun(point_type const &)>::type, field_value_type>::value))
-    )
+    assign(TFun const &fun, mesh::EntityIdRange const &r0,
+           typename std::result_of<TFun(point_type const &)>::type *p = nullptr)
     {
         deploy();
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
-                       get(s) = interpolate_policy::template sample<IFORM>(*m_mesh_, s, fun(m_mesh_->point(s)));
+                       interpolate_policy::assign(*this, *m_mesh_, s, fun(m_mesh_->point(s)));
                    });
-    }
 
-    template<typename TFun> void
-    assign(mesh::EntityIdRange const &r0, TFun const &fun,
-           ENABLE_IF(
-                   (std::is_same<typename std::result_of<TFun(mesh::MeshEntityId const &)>::type, value_type>::value))
-    )
-    {
-        deploy();
-        r0.foreach([&](mesh::MeshEntityId const &s) { get(s) = fun(s); });
     }
-
 
     template<typename U> void
-    assign(U const &v,
-           ENABLE_IF((std::is_arithmetic<U>::value || std::is_same<U, value_type>::value)))
+    assign(U const &v, mesh::EntityIdRange const &r0,
+           ENABLE_IF((std::is_convertible<U, value_type>::value || std::is_same<U, field_value_type>::value)))
     {
         deploy();
-        m_data_->assign([&](index_type i, index_type j, index_type k, index_type l) { return v; });
+
+        r0.foreach([&](mesh::MeshEntityId const &s)
+                   {
+                       interpolate_policy::assign(*this, *m_mesh_, s, v);
+                   });
+
     }
 
+    typedef mesh::MeshEntityIdCoder M;
+
+    void assign(this_type const &other, mesh::EntityIdRange const &r0)
+    {
+        deploy();
+
+        r0.foreach([&](mesh::MeshEntityId const &s)
+                   {
+                       for (int i = 0; i < DOF; ++i) { get(M::sw(s, i)) = other.get(M::sw(s, i)); }
+                   });
+
+    }
 
     template<typename ...U>
-    void assign(Field<Expression<U...>> const &expr)
+    void assign(Field<Expression<U...>> const &expr, mesh::EntityIdRange const &r0)
     {
         deploy();
-        auto b = std::get<0>(m_mesh_->mesh_block()->outer_index_box());
-        index_type gw[4] = {1, 1, 1, 0};
 
-        m_data_->foreach(
-                [&](value_type &v, index_type i, index_type j, index_type k, index_type l)
-                {
-                    auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l / DOF, l % DOF);
-
-//                    VERBOSE << FILE_LINE_STAMP
-//                            << " [" << i << "," << j << "," << k << "," << l / DOF << "," << l % DOF << "]=>"
-//                            << mesh::MeshEntityIdCoder::unpack_index4(mesh::MeshEntityIdCoder::sw(s, 2), DOF)
-//                            << std::endl;
-
-                    v = calculus_policy::eval(*m_mesh_, expr, s);
-                });
+        r0.foreach([&](mesh::MeshEntityId const &s)
+                   {
+                       for (int i = 0; i < DOF; ++i)
+                       {
+                           get(M::sw(s, i)) = calculus_policy::eval(*m_mesh_, expr, M::sw(s, i));
+                       }
+                   });
 
     }
 
 
-    template<typename TFun> void
-    assign(TFun const &fun,
-           ENABLE_IF((std::is_same<typename std::result_of<TFun(point_type const &)>::type, value_type>::value)))
-    {
-        deploy();
-
-        m_data_->foreach(
-                [&](value_type &v, index_type i, index_type j, index_type k, index_type l)
-                {
-                    v = fun(m_mesh_->point(mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l / DOF, l % DOF)));
-                });
-
-
-    }
-
-    template<typename TFun> void
-    assign(TFun const &fun,
-           ENABLE_IF((std::is_same<typename std::result_of<TFun(index_type, index_type, index_type,
-                                                                index_type)>::type, value_type>::value)))
-    {
-        deploy();
-
-        m_data_->foreach(
-                [&](value_type &v, index_type i, index_type j, index_type k, index_type l)
-                {
-                    v = fun(i, j, k, l);
-                });
-
-
-    }
-
-    template<typename TFun> void
-    assign(TFun const &fun,
-           ENABLE_IF(((!std::is_same<typename std::result_of<TFun(point_type const &)>::type, value_type>::value) &&
-                      (std::is_same<typename std::result_of<TFun(point_type const &)>::type, field_value_type>::value)
-                     ))
-    )
-    {
-        deploy();
-
-        m_data_->foreach(
-                [&](value_type &v, index_type i, index_type j, index_type k, index_type l)
-                {
-                    auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l / DOF, l % DOF);
-                    v = interpolate_policy::template sample<IFORM>(*m_mesh_, s, fun(m_mesh_->point(s)));;
-                });
-
-
-    }
-
-
-    template<typename TFun> void
-    assign(TFun const &fun,
-           ENABLE_IF((std::is_same<typename std::result_of<TFun(mesh::MeshEntityId const &)>::type,
-                   value_type>::value))
-    )
-    {
-        deploy();
-        m_data_->foreach(
-                [&](value_type &v, index_type i, index_type j, index_type k, index_type l)
-                {
-                    v = fun(mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
-                });
-    }
-//
-//    template<typename U> void
-//    assign_ghost(U const &v,
-//                  ENABLE_IF((std::is_arithmetic<U>::value || std::is_same<U, value_type>::value)))
-//    {
-//        deploy();
-//
-//        m_data_->assign_ghost([&](index_type i, index_type j, index_type k, index_type l) { return v; });
-//    }
-//
-//
-//    template<typename ...U>
-//    void assign_ghost(Field<Expression<U...>> const &expr)
-//    {
-//        deploy();
-//
-//        m_data_->assign_ghost(
-//                [&](index_type i, index_type j, index_type k, index_type l)
-//                {
-//                    return calculus_policy::eval(*m_mesh_, expr,
-//                                                 mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
-//                });
-//
-//    }
-//
-//
-//    template<typename TFun> void
-//    assign_ghost(TFun const &fun,
-//                  ENABLE_IF((std::is_same<typename std::result_of<TFun(point_type const &)>::type,
-//                          field_value_type>::value)))
-//    {
-//        deploy();
-//        m_data_->assign_ghost(
-//                [&](index_type i, index_type j, index_type k, index_type l)
-//                {
-//                    auto s = mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l);
-//                    return interpolate_policy::template sample<IFORM>(*m_mesh_, s, fun(m_mesh_->point(s)));
-//                });
-//
-//
-//    }
-//
-//    template<typename TFun> void
-//    assign_ghost(TFun const &fun,
-//                  ENABLE_IF(
-//                          (std::is_same<typename std::result_of<TFun(
-//                                  mesh::MeshEntityId const &)>::type, value_type>::value))
-//    )
-//    {
-//        deploy();
-//
-//        m_data_->assign_ghost(
-//                [&](index_type i, index_type j, index_type k, index_type l)
-//                {
-//                    return fun(mesh::MeshEntityIdCoder::pack_index4<IFORM>(i, j, k, l));
-//                });
-//    }
-
-    template<typename ...Args> void
-    assign(mesh::MeshZoneTag const &tag, Args &&...args)
+    template<typename Other> void
+    assign(Other const &other, mesh::MeshZoneTag const &tag = mesh::SP_ES_ALL)
     {
         deploy();
         if (tag == mesh::SP_ES_ALL)
         {
-            assign(std::forward<Args>(args)...);
+            assign(other, m_data_->range());
         } else
         {
-            assign(m_mesh_->mesh_block()->range(entity_type(), tag, DOF), std::forward<Args>(args)...);
+            assign(other, m_mesh_->mesh_block()->range(entity_type(), tag));
         }
     }
 
