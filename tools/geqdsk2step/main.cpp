@@ -15,14 +15,14 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
     GEqdsk gEqdsk;
-    std::string input_file = "demo.gfile";
-    std::string output_file = "demo.stp";
-    if (argc <= 1)
+    std::string input_file = "geqdsk.gfile";
+    std::string output_file = "geqdsk.stp";
+    if (argc == 0)
     {
         std::cout << " Usage: " << argv[0] << " <input file> <output file> " << std::endl;
         exit(1);
-    } else if (argc <= 2) { input_file = argv[1]; }
-    else if (argc <= 3) { output_file = argv[2]; }
+    } else if (argc >= 2) { input_file = argv[1]; }
+    else if (argc >= 3) { output_file = argv[2]; }
 
     std::cout << " input  :" << input_file << std::endl;
 

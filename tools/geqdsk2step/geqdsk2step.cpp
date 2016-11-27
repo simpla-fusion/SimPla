@@ -139,11 +139,11 @@ void convert_geqdsk2step(GEqdsk const &geqdsk, std::string const &filename)
     TopoDS_Shape myLimter = BRepPrimAPI_MakeRevol(myLimterFaceProfile, axis);
 
     // Building the Resulting Compound
-    TopoDS_Compound aRes;
-    BRep_Builder aBuilder;
-    aBuilder.MakeCompound(aRes);
-    aBuilder.Add(aRes, myBoundary);
-    aBuilder.Add(aRes, myLimter);
+//    TopoDS_Compound aRes;
+//    BRep_Builder aBuilder;
+//    aBuilder.MakeCompound(aRes);
+//    aBuilder.Add(aRes, myBoundary);
+//    aBuilder.Add(aRes, myLimter);
 
 
     // Create document
@@ -153,12 +153,14 @@ void convert_geqdsk2step(GEqdsk const &geqdsk, std::string const &filename)
 
     // Create label and add our m_global_dims_
     Handle(XCAFDoc_ShapeTool) myShapeTool = XCAFDoc_DocumentTool::ShapeTool(aDoc->Main());
-    TDF_Label aLabel = myShapeTool->NewShape();
-    myShapeTool->SetShape(aLabel, aRes);
-
+    TDF_Label aLabel0 = myShapeTool->NewShape();
+    myShapeTool->SetShape(aLabel0, myBoundary);
+    TDF_Label aLabel1 = myShapeTool->NewShape();
+    myShapeTool->SetShape(aLabel1, myLimter);
     // Write as STEP file
-    STEPCAFControl_Writer *myWriter = new STEPCAFControl_Writer();
-    myWriter->Perform(aDoc, filename.c_str());
+//    STEPCAFControl_Writer *myWriter = new STEPCAFControl_Writer();
+    STEPCAFControl_Writer().Perform(aDoc, filename.c_str());
+//    delete myWriter;
 }
 
 }//namespace simpla
