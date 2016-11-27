@@ -15,9 +15,7 @@ namespace simpla
 {
 void step2vtk(std::string const &input_filename, std::string const &output_filename)
 {
-    bool result;
-    time_t start_time, load_time, mesh_time, vol_frac_time,
-            export_time, query_time_techX, query_time;
+
 
     // start up MK and load the geometry
     MKCore mk;
