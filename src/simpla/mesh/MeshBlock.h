@@ -16,7 +16,6 @@
 #include <simpla/toolbox/BoxUtility.h>
 #include "MeshCommon.h"
 #include "EntityId.h"
-#include "DataBlock.h"
 
 namespace simpla { namespace mesh
 {
@@ -94,28 +93,6 @@ public:
     virtual ~MeshBlock();
 
     MeshBlock &operator=(MeshBlock const &other)= delete;
-
-
-    template<typename TV, MeshEntityType IFORM, size_type DOF = 1> using data_block_type=  DataBlockArray<TV, IFORM, DOF>;
-
-
-    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF>
-    std::shared_ptr<DataBlock> create_data_block(void *p = nullptr) const
-    {
-        int n_dof = DOF;
-        int ndims = 3;
-        if (IFORM == mesh::EDGE || IFORM == mesh::FACE)
-        {
-            n_dof *= 3;
-            ++ndims;
-        }
-        auto b = outer_index_box();
-        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
-        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], n_dof};
-        return std::dynamic_pointer_cast<DataBlock>(
-                std::make_shared<data_block_type<TV, IFORM, DOF>>(static_cast<TV *>(p), ndims, lo, hi));
-    };
-
 
     virtual void initialize() { DO_NOTHING; }
 

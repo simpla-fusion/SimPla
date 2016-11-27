@@ -15,16 +15,14 @@
 #include <memory>
 #include <utility>
 
-#include "../core/physics/Constants.h"
-#include "../core/toolbox/utilities/log.h"
-#include "../core/toolbox/utilities/pretty_stream.h"
-#include "../core/toolbox/ntuple.h"
-#include "../core/toolbox/ntuple_ext.h"
-
-
-#include "../core/geometry/polygon.h"
-#include "../core/numeric/find_root.h"
-#include "../core/numeric/interpolation.h"
+#include <simpla/physics/Constants.h>
+#include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/ntuple.h>
+#include <simpla/toolbox/ntuple_ext.h>
+#include <simpla/model/Polygon.h>
+#include <simpla/numeric/find_root.h>
+#include <simpla/numeric/interpolation.h>
 
 #ifndef NO_XDMF
 
@@ -133,13 +131,13 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
 
     inFileStream_ >> std::setw(16)
 
-    >> m_rdim_ >> m_zdim_ >> m_rcenter_ >> m_rleft_ >> m_zmid_
+                  >> m_rdim_ >> m_zdim_ >> m_rcenter_ >> m_rleft_ >> m_zmid_
 
-    >> m_rmaxis_ >> m_zmaxis >> simag >> sibry >> m_bcenter_
+                  >> m_rmaxis_ >> m_zmaxis >> simag >> sibry >> m_bcenter_
 
-    >> m_current_ >> simag >> xdum >> m_rmaxis_ >> xdum
+                  >> m_current_ >> simag >> xdum >> m_rmaxis_ >> xdum
 
-    >> m_zmaxis >> xdum >> sibry >> xdum >> xdum;
+                  >> m_zmaxis >> xdum >> sibry >> xdum >> xdum;
 
     m_rzmin_[RAxis] = m_rleft_;
     m_rzmax_[RAxis] = m_rleft_ + m_rdim_;
@@ -282,7 +280,7 @@ std::ostream &GEqdsk::print(std::ostream &os)
 //			<< std::endl;
 
     std::cout << "rcentr" << "\t= " << m_pimpl_->m_rcenter_
-    << "\t--                                                                    " << std::endl;
+              << "\t--                                                                    " << std::endl;
 
 //	std::cout << "rleft" << "\t= " << rleft
 //			<< "\t-- Minimum R in meter of rectangular computational box                "
@@ -293,10 +291,10 @@ std::ostream &GEqdsk::print(std::ostream &os)
 //			<< std::endl;
 
     std::cout << "rmaxis" << "\t= " << m_pimpl_->m_rmaxis_
-    << "\t-- R of magnetic axis in meter                                        " << std::endl;
+              << "\t-- R of magnetic axis in meter                                        " << std::endl;
 
     std::cout << "rmaxis" << "\t= " << m_pimpl_->m_zmaxis
-    << "\t-- Z of magnetic axis in meter                                        " << std::endl;
+              << "\t-- Z of magnetic axis in meter                                        " << std::endl;
 
 //	std::cout << "simag" << "\t= " << simag
 //			<< "\t-- poloidal flus ax magnetic axis in Weber / rad                      "
@@ -307,13 +305,13 @@ std::ostream &GEqdsk::print(std::ostream &os)
 //			<< std::endl;
 
     std::cout << "rcentr" << "\t= " << m_pimpl_->m_rcenter_
-    << "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               " << std::endl;
+              << "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               " << std::endl;
 
     std::cout << "bcentr" << "\t= " << m_pimpl_->m_bcenter_
-    << "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  " << std::endl;
+              << "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  " << std::endl;
 
     std::cout << "current" << "\t= " << m_pimpl_->m_current_
-    << "\t-- Plasma current in Ampere                                          " << std::endl;
+              << "\t-- Plasma current in Ampere                                          " << std::endl;
 
 //	std::cout << "fpol" << "\t= "
 //			<< "\t-- Poloidal current function in m-T<< $F=RB_T$ on flux grid           "
@@ -427,9 +425,9 @@ std::ostream &GEqdsk::print(std::ostream &os)
 //}
 
 
-GEqdsk::GEqdsk() : m_pimpl_(new pimpl_s) { }
+GEqdsk::GEqdsk() : m_pimpl_(new pimpl_s) {}
 
-GEqdsk::~GEqdsk() { }
+GEqdsk::~GEqdsk() {}
 
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
 
@@ -536,11 +534,11 @@ void GEqdsk::pimpl_s::write(std::string const &url)
         grid.GetTopology()->Insert(data);
 
         io::InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d) -> unsigned int
-                              {
-                                  return static_cast< unsigned int>( d[1] == 0 ? d[0] : (d[0] + 1) % dims[0]);
-                              },
+                                  {
+                                      return static_cast< unsigned int>( d[1] == 0 ? d[0] : (d[0] + 1) % dims[0]);
+                                  },
 
-                              url + ".h5:/Boundary/Topology");
+                                  url + ".h5:/Boundary/Topology");
 
         grid.GetGeometry()->SetGeometryTypeFromString("XYZ");
 
@@ -583,11 +581,11 @@ void GEqdsk::pimpl_s::write(std::string const &url)
         grid.GetTopology()->Insert(data);
 
         io::InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d) -> unsigned int
-                              {
-                                  return static_cast<unsigned int>(d[1] == 0 ? d[0] : (d[0] + 1) % dims[0]);
-                              },
+                                  {
+                                      return static_cast<unsigned int>(d[1] == 0 ? d[0] : (d[0] + 1) % dims[0]);
+                                  },
 
-                              url + ".h5:/Limter/Topology");
+                                  url + ".h5:/Limter/Topology");
 
         grid.GetGeometry()->SetGeometryTypeFromString("XYZ");
 

@@ -148,7 +148,7 @@ void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared
 
     if (d != nullptr) { m_data_ = d; }
     else if (m_attr_ != nullptr && m_attr_->has(m_id_)) { m_data_ = m_attr_->at(m_id_); }
-    else { m_data_ = create_data_block(m); }
+    else { m_data_ = create_data_block(m, nullptr); }
 
     deploy();
 

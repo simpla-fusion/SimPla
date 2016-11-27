@@ -16,7 +16,6 @@
 #include <simpla/manifold/Chart.h>
 #include <simpla/manifold/Field.h>
 
-#include <simpla/model/Model.h>
 
 namespace simpla
 {

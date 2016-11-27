@@ -218,27 +218,27 @@ struct MeshEntityIdCoder_
             3 // 111
     };
 
-    static MeshEntityId sx(MeshEntityId s, u_int16_t w)
+    static MeshEntityId sx(MeshEntityId s, int w)
     {
-        s.x = w;
+        s.x = static_cast<u_int16_t>(w);
         return s;
     }
 
-    static MeshEntityId sy(MeshEntityId s, u_int16_t w)
+    static MeshEntityId sy(MeshEntityId s, int w)
     {
-        s.y = w;
+        s.y = static_cast<u_int16_t>(w);
         return s;
     }
 
-    static MeshEntityId sz(MeshEntityId s, u_int16_t w)
+    static MeshEntityId sz(MeshEntityId s, int w)
     {
-        s.z = w;
+        s.z = static_cast<u_int16_t>(w);
         return s;
     }
 
-    static MeshEntityId sw(MeshEntityId s, u_int16_t w)
+    static MeshEntityId sw(MeshEntityId s, int w)
     {
-        s.w = w;
+        s.w = static_cast<u_int16_t>(w);
         return s;
     }
 

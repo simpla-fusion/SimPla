@@ -12,6 +12,7 @@
 #include <simpla/data/DataEntityNDArray.h>
 #include "MeshCommon.h"
 #include "EntityId.h"
+#include "MeshBlock.h"
 
 namespace simpla { namespace mesh
 {
@@ -64,7 +65,6 @@ class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>
 public:
     typedef TV value_type;
 
-//    DataBlockArray() : DataBlock(), data_entity_type() { DO_NOTHING; }
 
     template<typename ...Args>
     explicit DataBlockArray(Args &&...args) : DataBlock(), data_entity_type(std::forward<Args>(args)...) {}
@@ -101,11 +101,21 @@ public:
     }
 
 
-//    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *m) const
-//    {
-//        // FIXME :: data_block block is not initializied!!
-//        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>());
-//    };
+    static std::shared_ptr<DataBlock> create(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)
+    {
+        index_type n_dof = DOF;
+        int ndims = 3;
+        if (IFORM == mesh::EDGE || IFORM == mesh::FACE)
+        {
+            n_dof *= 3;
+            ++ndims;
+        }
+        auto b = m->outer_index_box();
+        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
+        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], n_dof};
+        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
+    };
+
 
     virtual bool is_deployed() const { return data_entity_type::is_deployed(); };
 

@@ -8,7 +8,7 @@
 #include "GEqdsk.h"
 
 #include <XdmfArray.h>
-#include <Xdmfattribute.h>
+#include <XdmfAttribute.h>
 #include <XdmfDataDesc.h>
 #include <XdmfDataItem.h>
 #include <XdmfDOM.h>
@@ -17,7 +17,7 @@
 #include <XdmfGeometry.h>
 #include <XdmfGrid.h>
 #include <XdmfLightData.h>
-#include <Xdmfobject.h>
+#include <XdmfObject.h>
 #include <XdmfRoot.h>
 #include <XdmfTopology.h>
 

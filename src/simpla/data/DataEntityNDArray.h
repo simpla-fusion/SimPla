@@ -27,15 +27,12 @@ public:
     typedef DataEntityNDArray<V> this_type;
     typedef V value_type;
 
-    DataEntityNDArray() : m_data_(nullptr), m_holder_(nullptr), m_order_(SLOW_FIRST), m_ndims_(0), m_size_(0)
-    {
-        DO_NOTHING;
-    }
+    explicit DataEntityNDArray(value_type *p = nullptr)
+            : m_data_(nullptr), m_holder_(nullptr), m_order_(SLOW_FIRST), m_ndims_(0), m_size_(0) {}
+
 
     template<typename ...Args>
     explicit DataEntityNDArray(value_type *p, Args &&...args)
-//                      int ndims, index_type const *lo, index_type const *hi,
-//                      int order = SLOW_FIRST, index_type const *i_lo = nullptr, index_type const *i_hi = nullptr)
             : m_data_(p), m_holder_(nullptr), m_order_(SLOW_FIRST), m_size_(0)
     {
         initialize(std::forward<Args>(args)...);
@@ -57,7 +54,6 @@ public:
     virtual ~DataEntityNDArray() {};
 
 
-private:
     void initialize(int ndims, index_type const *lo, index_type const *hi, int order = SLOW_FIRST,
                     index_type const *i_lower = nullptr, index_type const *i_upper = nullptr)
     {

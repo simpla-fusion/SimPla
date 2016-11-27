@@ -91,7 +91,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_subdirectory(src)
 add_subdirectory(example)
-add_subdirectory(tools)
+#add_subdirectory(tools)
 add_subdirectory(docs)
 
 add_subdirectory(scenario)
@@ -99,4 +99,4 @@ add_subdirectory(scenario)
 
 # workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp tools/geqdsk_convert.cpp)
+add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp tools/geqdsk/geqdsk_convert.cpp)

@@ -111,7 +111,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
 
     if (options["Constraints"]["PEC"])
     {
-        mesh::Model model(center_mesh.get());
+        mesh::Modeler model(center_mesh.get());
 
         std::function<Real(point_type const &)> shape_fun;
 

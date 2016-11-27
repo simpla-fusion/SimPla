@@ -9,11 +9,11 @@
 #define GEQDSK_H_
 
 #include <iostream>
-#include "../src/toolbox/Log.h"
-#include "../src/toolbox/nTuple.h"
-#include "../src/sp_def.h"
-#include "../src/toolbox/type_traits.h"
-#include "../src/geometry/GeoObject.h"
+#include <simpla/SIMPLA_config.h>
+#include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/type_traits.h>
+#include <simpla/model/GeoObject.h>
 
 namespace simpla
 {
@@ -45,7 +45,7 @@ private:
     static constexpr int CartesianZAxis = 2;
     static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;
     static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
-
+    typedef nTuple<Real, 3> Vec3;
 public:
 
     GEqdsk();

@@ -47,7 +47,7 @@ int main(int argc, char **argv)
   MEntVector vols;
   mk->get_entities_by_dimension(3, vols);
 
-  // make an SCD mesh instance with all volumes as separate model entities
+  // make an SCD mesh instance with all volumes as separate geometry entities
   SCDMesh *scdmesh = (SCDMesh*) mk->construct_meshop("SCDMesh", vols);
 
   // provide the SCD mesh parameters for a cartesian grid

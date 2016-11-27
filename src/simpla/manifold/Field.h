@@ -46,9 +46,9 @@ public:
             cell_tuple, nTuple<cell_tuple, 3> >::type field_value_type;
 
 private:
-    typedef typename mesh_type::template data_block_type<TV, IFORM, DOF> data_block;
+    typedef typename mesh_type::template data_block_type<TV, IFORM, DOF> data_block_type;
 
-    data_block *m_data_;
+    data_block_type *m_data_;
     mesh_type const *m_mesh_;
 
 public:
@@ -71,13 +71,6 @@ public:
     Field(this_type &&other) = delete;
 
 
-//    virtual void swap(this_type &other)
-//    {
-//        base_type::swap(other);
-//        std::swap(m_mesh_, other.m_mesh_);
-//        std::swap(m_data_, other.m_data_);
-//    };
-
     virtual bool is_a(std::type_info const &t_info) const
     {
         return t_info == typeid(this_type) || base_type::is_a(t_info);
@@ -98,12 +91,17 @@ public:
 
     using base_type::dof;
 
+    virtual std::shared_ptr<mesh::DataBlock>
+    create_data_block(std::shared_ptr<mesh::MeshBlock> const &m, value_type *p = nullptr) const
+    {
+        return data_block_type::create(m, p);
+    };
 
     virtual void deploy()
     {
         base_type::deploy();
         m_mesh_ = base_type::template mesh_as<mesh_type>();
-        m_data_ = base_type::template data_as<data_block>();
+        m_data_ = base_type::template data_as<data_block_type>();
     }
 
 
@@ -136,11 +134,15 @@ public:
     template<typename TI>
     inline value_type const &operator[](TI const &s) const { return m_data_->get(s); }
 
-//    this_type &operator=(this_type const &other)
-//    {
-//        assign( other,mesh::SP_ES_ALL);
-//        return *this;
-//    }
+    virtual value_type &get(mesh::MeshEntityId const &s) { return m_data_->get(s); }
+
+    virtual value_type const &get(mesh::MeshEntityId const &s) const { return m_data_->get(s); }
+
+    virtual value_type &
+    get(index_type i, index_type j, index_type k = 0, index_type l = 0) { return m_data_->get(i, j, k, l); }
+
+    virtual value_type const &
+    get(index_type i, index_type j, index_type k = 0, index_type l = 0) const { return m_data_->get(i, j, k, l); }
 
     template<typename ...U> inline this_type &
     operator=(Field<U...> const &other)

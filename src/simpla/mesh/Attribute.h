@@ -113,9 +113,13 @@ struct AttributeViewBase : public concept::Printable
 
     AttributeViewBase(AttributeViewBase &&other) = delete;
 
-//    virtual void swap(AttributeViewBase &other);
-
     virtual ~AttributeViewBase();
+
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const
+    {
+        if (m_data_ != nullptr) { m_data_->print(os, indent); }
+        return os;
+    };
 
     virtual MeshEntityType entity_type() const =0;
 
@@ -153,6 +157,9 @@ struct AttributeViewBase : public concept::Printable
         return static_cast<U *>(d);
     }
 
+    virtual std::shared_ptr<DataBlock>
+    create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const =0;
+
     virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr);
 
     virtual void deploy();
@@ -161,13 +168,6 @@ struct AttributeViewBase : public concept::Printable
 
     virtual void destroy();
 
-    virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<MeshBlock> const &m)=0;
-
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const
-    {
-        if (m_data_ != nullptr) { m_data_->print(os, indent); }
-        return os;
-    };
 
 private:
     id_type m_id_ = 0;
@@ -216,13 +216,14 @@ public:
 
     AttributeView(this_type &&other) = delete;
 
-//    virtual void swap(this_type &other) { AttributeViewBase::swap(other); };
-
-
-    virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<MeshBlock> const &m)
+    virtual std::shared_ptr<DataBlock>
+    create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const
     {
-        return m->create_data_block<TV, IFORM, DOF>();
+        return create_data_block(m, static_cast<TV *>(p));
     };
+
+    virtual std::shared_ptr<DataBlock>
+    create_data_block(std::shared_ptr<MeshBlock> const &m, TV *p = nullptr) const =0;
 
     virtual MeshEntityType entity_type() const { return IFORM; };
 
@@ -233,16 +234,6 @@ public:
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
 };
 
-//    virtual void register_data_block_factory(std::shared_ptr<AttributeBase> const &attr) const
-//    {
-//        attr->register_data_block_factory(
-//                std::type_index(typeid(MeshBlock)),
-//                [&](const std::shared_ptr<MeshBlock> &m, void *p)
-//                {
-//                    ASSERT(p != nullptr);
-//                    return m->template create_data_block<TV, IFORM, DOF>(p);
-//                });
-//    }
 
 }} //namespace data_block
 #endif //SIMPLA_ATTRIBUTE_H

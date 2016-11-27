@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 //                                                Quantity_NOC_DARKVIOLET,
 //            // Type of  visualization
 //                                                V3d_ZBUFFER,
-//            // Shading  model
+//            // Shading  geometry
 //                                                V3d_GOURAUD,
 //            // Update mode
 //                                                V3d_WAIT

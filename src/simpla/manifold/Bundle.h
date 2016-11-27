@@ -24,8 +24,10 @@ class Bundle : public AttributeView<TV, IFORM, DOF>
 private:
     typedef Bundle<TV, IFORM, DOF> this_type;
 
-    typedef AttributeView <TV, IFORM, DOF> base_type;
+    typedef AttributeView<TV, IFORM, DOF> base_type;
 public:
+    typedef TV value_type;
+
     using base_type::deploy;
     using base_type::move_to;
 
@@ -90,6 +92,39 @@ public:
 
     template<typename TG>
     Chart<TG> const *chart_as() const { return static_cast<Chart<TG> const *>( m_chart_); }
+
+    typedef mesh::DataBlockArray<TV, IFORM, DOF> default_data_block_type;
+
+    virtual std::shared_ptr<mesh::DataBlock>
+    create_data_block(std::shared_ptr<mesh::MeshBlock> const &m, value_type *p = nullptr) const
+    {
+        return std::dynamic_pointer_cast<DataBlock>(default_data_block_type::create(m, p));
+    };
+
+
+    virtual value_type &
+    get(mesh::MeshEntityId const &s)
+    {
+        return static_cast<default_data_block_type *>(base_type::data_block())->get(s);
+    }
+
+    virtual value_type const &
+    get(mesh::MeshEntityId const &s) const
+    {
+        return static_cast<default_data_block_type const *>(base_type::data_block())->get(s);
+    }
+
+    virtual value_type &
+    get(index_type i, index_type j, index_type k = 0, index_type l = 0)
+    {
+        return static_cast<default_data_block_type *>(base_type::data_block())->get(i, j, k, l);
+    }
+
+    virtual value_type const &
+    get(index_type i, index_type j, index_type k = 0, index_type l = 0) const
+    {
+        return static_cast<default_data_block_type const *>(base_type::data_block())->get(i, j, k, l);
+    }
 
 
 private:
