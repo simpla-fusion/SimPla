@@ -6,12 +6,12 @@
 #include <simpla/model/GEqdsk.h>
 #include <vector>
 
-using namespace simpla;
+
 namespace simpla
 {
 void convert_geqdsk2step(GEqdsk const &geqdsk, std::string const &filename);
 }
-
+using namespace simpla;
 int main(int argc, char **argv)
 {
     GEqdsk gEqdsk;
