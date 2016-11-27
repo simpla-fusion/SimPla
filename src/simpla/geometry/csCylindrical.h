@@ -10,8 +10,8 @@
 
 #include <simpla/SIMPLA_config.h>
 
-#include "../toolbox/macro.h"
-#include "../toolbox/type_traits.h"
+#include "simpla/toolbox/macro.h"
+#include "simpla/toolbox/type_traits.h"
 #include "CoordinateSystem.h"
 
 namespace simpla

@@ -13,8 +13,8 @@
 #include <map>
 #include <vector>
 
-#include "../toolbox/mpl.h"
-#include "../toolbox/nTuple.h"
+#include "simpla/toolbox/mpl.h"
+#include "simpla/toolbox/nTuple.h"
 #include "CoordinateSystem.h"
 #include "primitive.h"
 

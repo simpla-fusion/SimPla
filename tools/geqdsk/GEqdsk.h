@@ -13,7 +13,7 @@
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/type_traits.h>
-#include <simpla/model/GeoObject.h>
+#include <simpla/geometry/GeoObject.h>
 
 namespace simpla
 {

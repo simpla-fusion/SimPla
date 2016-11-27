@@ -8,9 +8,9 @@
 #ifndef CORE_GEOMETRY_GEO_OBJECT_H_
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
-#include "../toolbox/utilities/Log.h"
-#include "../toolbox/nTuple.h"
-#include "../toolbox/type_traits.h"
+#include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/type_traits.h>
 
 namespace simpla { namespace geometry
 {
@@ -29,9 +29,9 @@ public:
     typedef nTuple<Real, 3> point_type;
     typedef std::tuple<point_type, point_type> box_type;
 
-    GeoObject() { }
+    GeoObject() {}
 
-    virtual ~GeoObject() { }
+    virtual ~GeoObject() {}
 
     virtual box_type box() const = 0;
 

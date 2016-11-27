@@ -8,8 +8,8 @@
 #ifndef CORE_GEOMETRY_GEOMETRY_H_
 #define CORE_GEOMETRY_GEOMETRY_H_
 
-#include "../sp_def.h"
-#include "../toolbox/nTuple.h"
+#include "simpla/sp_def.h"
+#include "simpla/toolbox/nTuple.h"
 
 #include "CoordinateSystem.h"
 

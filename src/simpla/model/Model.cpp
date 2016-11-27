@@ -1,209 +1,55 @@
 //
-// Created by salmon on 16-6-2.
+// Created by salmon on 16-11-27.
 //
-
-#include <set>
-#include "EntityId.h"
-
-#include "simpla/toolbox/Parallel.h"
 #include "Model.h"
 
-namespace simpla { namespace mesh
+namespace simpla { namespace model
 {
-
-struct Model::pimpl_s
+void Model::load(std::string const &)
 {
-
-
-    typedef parallel::concurrent_hash_map<MeshEntityId, Real, MeshIdHashCompare> cache_type;
-
-    cache_type m_vertex_cache;
-    typedef parallel::concurrent_hash_map<MeshEntityId, int, MeshIdHashCompare> volume_cache_type;
-
-    typedef parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> set_type;
-
-    volume_cache_type m_volume_cache;
-
+    // TODO: load geometry object to m_geo_obj_;
+    UNIMPLEMENTED;
 };
 
-Model::Model(MeshBase const *pm) : m(pm), m_pimpl_(new pimpl_s) {}
-
-Model::~Model() {}
-
-void Model::add(EntityRange const &r, distance_fun_t const distance)
+void Model::save(std::string const &)
 {
-
-    r.foreach(
-            [&](MeshEntityId const &s)
-            {
-                auto x = m->point(s);
-
-                Real d = distance(x);
-
-                typename pimpl_s::cache_type::accessor acc;
-
-                if (!(m_pimpl_->m_vertex_cache.insert(acc, s))) { acc->second = std::min(-d, acc->second); }
-            }
-    );
-
-}
-
-void Model::remove(EntityRange const &r, distance_fun_t const distance)
-{
-
-    r.foreach(
-            [&](MeshEntityId const &s)
-            {
-                auto x = m->point(s);
-
-                Real d = distance(x);
-
-                typename pimpl_s::cache_type::accessor acc;
-
-                if (!(m_pimpl_->m_vertex_cache.insert(acc, s))) { acc->second = std::max(d, acc->second); }
-            }
-    );
-
-}
+    UNIMPLEMENTED;
+};
 
 void Model::deploy()
 {
-    m->range(VOLUME).foreach(
-            [&](MeshEntityId const &s)
-            {
-                typename pimpl_s::volume_cache_type::accessor acc;
-                m_pimpl_->m_volume_cache.insert(acc, s);
-                acc->second = check(s);
-            }
-    );
+    auto m_coord_ = chart->coordinate_frame();
+//    m_tags_.move_to(m_coord_->mesh_block());
+//    m_fraction_.move_to(m_coord_->mesh_block());
+//    m_dual_fraction_.move_to(m_coord_->mesh_block());
+//    m_tags_.deploy();
+//    m_fraction_.deploy();
+//    m_dual_fraction_.deploy();
+
 };
 
-int Model::check(MeshEntityId const &s)
+void Model::initialize(Real data_time)
 {
-    MeshEntityId p[MeshEntityIdCoder::MAX_NUM_OF_NEIGHBOURS];
+    deploy();
 
-    int num = m->get_adjacent_entities(VERTEX, s, p);
+//    m_tags_.clear();
+//    m_fraction_.clear();
+//    m_dual_fraction_.clear();
+//
+//    auto m_coord_ = chart->coordinate_frame();
+//
+////    auto r = m_coord_->range(VERTEX, m_geo_->box());
+////
+////    if (r.size() > 0)
+////    {
+////        r.foreach(
+////                [&](MeshEntityId const &s)
+////                {
+////                    if (m_geo_->within(m_coord_->point(s))) { tag(s) = 1; }
+////                }
+////        );
+////    }
+//    auto b = toolbox::intersection(m_coord_->box(), m_geo_->box());
 
-    int num_of_inside_vertex = 0;
-
-    for (int i = 0; i < num; ++i)
-    {
-        typename pimpl_s::cache_type::const_accessor acc;
-
-        if (m_pimpl_->m_vertex_cache.find(acc, p[i])) { if (acc->second <= 0.0) { ++num_of_inside_vertex; }}
-    }
-
-    int res = INSIDE;
-
-    if (num_of_inside_vertex == num) { res = INSIDE; }
-    else if (num_of_inside_vertex == 0) { res = OUTSIDE; }
-    else if (num_of_inside_vertex > 0 && num_of_inside_vertex < num) { res = ON_SURFACE; }
-    return res;
 };
-
-/**
- *  id < 0 out of surface
- *       = 0 on surface
- *       > 0 in surface
- */
-EntityRange Model::surface(MeshEntityType iform, int flag)
-{
-    auto res_holder = EntityRange::create<typename pimpl_s::set_type>();
-    typename pimpl_s::set_type &res = res_holder.as<typename pimpl_s::set_type>();
-
-    switch (iform)
-    {
-        case EDGE:
-        case FACE:
-            for (auto const &v_item:m_pimpl_->m_volume_cache)
-            {
-                if (v_item.second == ON_SURFACE)
-                {
-                    MeshEntityId p[MeshEntityIdCoder::MAX_NUM_OF_NEIGHBOURS];
-
-                    int num = m->get_adjacent_entities(
-                            iform, *reinterpret_cast<MeshEntityId const *>(&(v_item.first)), p);
-
-                    for (int i = 0; i < num; ++i)
-                    {
-                        if ((check(p[i]) & flag) != 0) { res.insert(INT_2_ENTITY_ID(v_item.first)); }
-                    }
-                }
-            }
-            break;
-        case VOLUME:
-            for (auto const &v_item:m_pimpl_->m_volume_cache)
-            {
-                if (v_item.second == ON_SURFACE) { res.insert(INT_2_ENTITY_ID(v_item.first)); }
-            }
-            break;
-        default: // case VERTEX:
-            break;
-    }
-    return std::move(res_holder);
-
-}
-
-EntityRange Model::inside(MeshEntityType iform)
-{
-    auto res_holder = EntityRange::create<typename pimpl_s::set_type>();
-    typename pimpl_s::set_type &res = res_holder.as<typename pimpl_s::set_type>();
-
-    switch (iform)
-    {
-        case VERTEX:
-            for (auto const &v_item:m_pimpl_->m_vertex_cache)
-            {
-                if (v_item.second <= 0)
-                {
-                    res.insert(INT_2_ENTITY_ID(v_item.first));
-                }
-            }
-            break;
-        case EDGE:
-        case FACE:
-            m->range(iform).foreach([&](MeshEntityId const &s) { if (check(s) == INSIDE) { res.insert(s); }});
-            break;
-        default:// case VOLUME:
-            for (auto const &v_item:m_pimpl_->m_volume_cache)
-            {
-                if (v_item.second == INSIDE) { res.insert(INT_2_ENTITY_ID(v_item.first)); }
-            }
-            break;
-
-    }
-    return std::move(res_holder);
-}
-
-EntityRange Model::outside(MeshEntityType iform)
-{
-    auto res_holder = EntityRange::create<typename pimpl_s::set_type>();
-    typename pimpl_s::set_type &res = res_holder.as<typename pimpl_s::set_type>();
-
-    switch (iform)
-    {
-        case VERTEX:
-            for (auto const &v_item:m_pimpl_->m_vertex_cache)
-            {
-                if (v_item.second > 0)
-                {
-                    res.insert(INT_2_ENTITY_ID(v_item.first));
-                }
-            }
-            break;
-        case EDGE:
-        case FACE:
-            m->range(iform).foreach([&](MeshEntityId const &s) { if (check(s) == OUTSIDE) { res.insert(s); }});
-            break;
-        default:// case VOLUME:
-            for (auto const &v_item:m_pimpl_->m_volume_cache)
-            {
-                if (v_item.second == OUTSIDE) { res.insert(INT_2_ENTITY_ID(v_item.first)); }
-            }
-            break;
-
-    }
-    return std::move(res_holder);
-}
-
-}}//namespace simpla{namespace get_mesh{
+}}

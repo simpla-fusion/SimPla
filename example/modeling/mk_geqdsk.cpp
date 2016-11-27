@@ -152,7 +152,7 @@ int load_and_mesh(const char *input_filename,
     }
     time(&export_time);
 
-    if (whole_geom && debug_EBMesher)
+//    if (whole_geom && debug_EBMesher)
     {
         // techX query function test
         double boxMin[3], boxMax[3];

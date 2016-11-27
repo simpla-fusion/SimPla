@@ -3,7 +3,7 @@
  * @author salmon
  * @date 2015-11-18.
  */
-#include "../toolbox/nTupleExt.h"
+#include "simpla/toolbox/nTupleExt.h"
 #include "polygon.h"
 #include "GeoAlgorithm.h"
 

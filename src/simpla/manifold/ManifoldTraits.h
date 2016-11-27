@@ -17,7 +17,7 @@
 #include <type_traits>
 
 #include "simpla/toolbox/type_traits.h"
-#include "simpla/model/CoordinateSystem.h"
+#include "simpla/geometry/CoordinateSystem.h"
 
 namespace simpla
 {

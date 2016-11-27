@@ -89,8 +89,7 @@ struct SAMRAITimeIntegrator;
 std::shared_ptr<simulation::TimeIntegrator>
 create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w)
 {
-    auto integrator = std::dynamic_pointer_cast<simulation::TimeIntegrator>(
-            std::make_shared<SAMRAITimeIntegrator>(name, w));
+    auto integrator = std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>(name, w));
 
     /** test.3d.input */
 
@@ -632,6 +631,17 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                          d_grid_geometry,
                                          "CONSERVATIVE_COARSEN",
                                          "NO_REFINE");
+
+        } else if (attr->db.has("config") && attr->db["config"].as<std::string>() == "INPUT")
+        {
+            integrator->registerVariable(var, d_nghosts,
+                                         SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
+                                         d_grid_geometry,
+                                         "",
+                                         "NO_REFINE");
+            d_visit_writer->registerPlotQuantity(
+                    attr->name(), visit_variable_type,
+                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
 
         } else
         {
@@ -1189,7 +1199,7 @@ SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::string const &s, std::shared_ptr
     /*
       * Initialize SAMRAI::tbox::MPI.
       */
-    SAMRAI::tbox::SAMRAI_MPI::init(0, nullptr);
+    SAMRAI::tbox::SAMRAI_MPI::init(GLOBAL_COMM.comm());
 
     SAMRAI::tbox::SAMRAIManager::initialize();
     /*
@@ -1203,7 +1213,6 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator()
 {
     SAMRAI::tbox::SAMRAIManager::shutdown();
     SAMRAI::tbox::SAMRAIManager::finalize();
-    SAMRAI::tbox::SAMRAI_MPI::finalize();
 }
 
 std::ostream &SAMRAITimeIntegrator::print(std::ostream &os, int indent) const

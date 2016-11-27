@@ -33,7 +33,10 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 
 void Worker::initialize(Real data_time)
 {
+
     chart()->initialize(data_time);
+    model()->initialize(data_time);
+
     for (auto &item:chart()->attributes()) { item->clear(); }
 }
 //

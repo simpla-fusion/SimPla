@@ -11,8 +11,8 @@
 #include <stddef.h>
 #include <tuple>
 
-#include "../toolbox/nTuple.h"
-#include "../sp_def.h"
+#include "simpla/toolbox/nTuple.h"
+#include "simpla/sp_def.h"
 
 namespace simpla
 {

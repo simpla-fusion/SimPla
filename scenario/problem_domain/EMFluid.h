@@ -44,6 +44,10 @@ public:
 
     virtual mesh::ChartBase const *chart() const { return &m_chart; };
 
+    virtual model::Model *model() { return m_model_.get(); };
+
+    virtual model::Model const *model() const { return m_model_.get(); };
+
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_chart.move_to(m); }
 
     virtual void deploy() {};
@@ -113,6 +117,11 @@ public:
         return sp;
     }
 
+
+    std::shared_ptr<model::Model> m_model_;
+
+    virtual void add_geometry_model(std::shared_ptr<model::Model> const &m) { m_model_ = m; };
+
 };
 
 template<typename TM>
@@ -137,6 +146,7 @@ template<typename TM>
 void EMFluid<TM>::initialize(Real data_time)
 {
     base_type::initialize(data_time);
+
 
     if (m_fluid_sp_.size() > 0)
     {

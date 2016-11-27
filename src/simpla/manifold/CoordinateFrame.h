@@ -12,8 +12,6 @@ struct ChartBase;
 
 struct CoordinateFrame : public concept::Printable
 {
-
-
     CoordinateFrame(ChartBase *c) : chart(c) {}
 
     virtual ~CoordinateFrame() {}
@@ -45,6 +43,11 @@ struct CoordinateFrame : public concept::Printable
     virtual void deploy() {};
 
     virtual void initialize() {};
+
+    virtual box_type box() const { return mesh_block()->box(); };
+
+//    virtual EntityIdRange
+//    range(MeshEntityType const &tag, box_type const &b) const { return mesh_block()->range(tag, b) };
 
     virtual point_type point(MeshEntityId s) const =0;
 

@@ -9,8 +9,8 @@
 
 #include <vector>
 
-#include "../toolbox/nTuple.h"
-#include "../sp_def.h"
+#include "simpla/toolbox/nTuple.h"
+#include "simpla/sp_def.h"
 #include "GeoObject.h"
 
 namespace simpla { namespace geometry

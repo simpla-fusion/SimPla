@@ -21,6 +21,7 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/manifold/Atlas.h>
 #include <simpla/mesh/Attribute.h>
+#include <simpla/model/Model.h>
 #include "CoordinateFrame.h"
 #include "Chart.h"
 
@@ -56,7 +57,7 @@ public:
 
     virtual void deploy() {};
 
-    virtual void initialize(Real data_time)  ;
+    virtual void initialize(Real data_time);
 
     virtual void set_physical_boundary_conditions(Real time) {};
 
@@ -65,6 +66,11 @@ public:
     virtual ChartBase *chart()=0;
 
     virtual ChartBase const *chart() const =0;
+
+    virtual model::Model *model()=0;
+
+    virtual model::Model const *model() const =0;
+
 
 private:
 
