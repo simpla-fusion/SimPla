@@ -3,9 +3,9 @@
 //
 
 #include <set>
-#include "EntityId.h"
+#include <simpla/mesh/EntityId.h>
 
-#include "simpla/toolbox/Parallel.h"
+#include <simpla/toolbox/Parallel.h>
 #include "Model.h"
 
 namespace simpla { namespace mesh

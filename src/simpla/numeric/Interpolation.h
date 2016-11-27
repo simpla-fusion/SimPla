@@ -8,8 +8,8 @@
 #ifndef INTERPOLATION_H_
 #define INTERPOLATION_H_
 
-#include "../toolbox/utilities/Log.h"
-#include "../toolbox/nTuple.h"
+#include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/nTuple.h>
 #include <vector>
 #include <cmath>
 #include <algorithm>
@@ -171,11 +171,11 @@ struct LinearInterpolation
  */
 
 template<typename TInterpolator, typename TV, typename ...TX>
-class MultiDimesionInterpolation : public TInterpolator
+class MultiDimensionInterpolation : public TInterpolator
 {
 
 public:
-    typedef MultiDimesionInterpolation<TInterpolator, TV> this_type;
+    typedef MultiDimensionInterpolation<TInterpolator, TV> this_type;
     typedef TV value_type;
     enum
     {
@@ -188,20 +188,20 @@ private:
 public:
 
     template<typename ...Args>
-    MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args &&...args) :
+    MultiDimensionInterpolation(std::shared_ptr<value_type> y, Args &&...args) :
             data_(y), interpolate_op_(std::forward<Args>(args)...)
     {
         update();
     }
 
     template<typename ...Args>
-    MultiDimesionInterpolation(Args &&...args) :
+    MultiDimensionInterpolation(Args &&...args) :
             data_(nullptr), interpolate_op_(std::forward<Args>(args)...)
     {
         update();
     }
 
-    virtual ~MultiDimesionInterpolation()
+    virtual ~MultiDimensionInterpolation()
     {
     }
 
@@ -262,7 +262,7 @@ public:
     }
 
     template<typename ...TArgs>
-    nTuple <value_type, NDIMS> grad(TArgs const &... x) const
+    nTuple<value_type, NDIMS> grad(TArgs const &... x) const
     {
         return std::move(
                 interpolate_op_.grad(data_.get(),
@@ -285,8 +285,8 @@ public:
 
 private:
 
-    nTuple <size_t, NDIMS> dims_;
-    nTuple <Real, NDIMS> xmin_, xmax_, inv_dx_;
+    nTuple<size_t, NDIMS> dims_;
+    nTuple<Real, NDIMS> xmin_, xmax_, inv_dx_;
 public:
     BiLinearInterpolation()
     {
@@ -296,14 +296,14 @@ public:
         }
     }
 
-    BiLinearInterpolation(nTuple <size_t, NDIMS> dims,
-                          nTuple <Real, NDIMS> const &xmin, nTuple <Real, NDIMS> const &xmax) :
+    BiLinearInterpolation(nTuple<size_type, NDIMS> dims,
+                          nTuple<Real, NDIMS> const &xmin, nTuple<Real, NDIMS> const &xmax) :
             dims_(dims), xmin_(xmin), xmax_(xmax)
     {
         update();
     }
 
-    BiLinearInterpolation(nTuple<size_t, NDIMS + 1> dims,
+    BiLinearInterpolation(nTuple<size_type, NDIMS + 1> dims,
                           nTuple<Real, NDIMS + 1> const &xmin,
                           nTuple<Real, NDIMS + 1> const &xmax, size_t ZAxis = NDIMS)
     {
@@ -330,24 +330,24 @@ public:
         std::swap(inv_dx_, r.inv_dx_);
     }
 
-    inline void dimensions(nTuple <size_t, NDIMS> const &dims)
+    inline void dimensions(nTuple<size_t, NDIMS> const &dims)
     {
         dims_ = dims;
     }
 
-    inline nTuple <size_t, NDIMS> dimensions() const
+    inline nTuple<size_t, NDIMS> dimensions() const
     {
         return dims_;
     }
 
-    inline void extents(nTuple <Real, NDIMS> const &xmin,
-                        nTuple <Real, NDIMS> const &xmax)
+    inline void extents(nTuple<Real, NDIMS> const &xmin,
+                        nTuple<Real, NDIMS> const &xmax)
     {
         xmin_ = xmin;
         xmax_ = xmax;
     }
 
-    inline std::tuple<nTuple < Real, NDIMS>, nTuple <Real, NDIMS>> extents() const
+    inline std::tuple<nTuple<Real, NDIMS>, nTuple<Real, NDIMS>> extents() const
     {
         return std::make_tuple(xmin_, xmax_);
     }
@@ -404,8 +404,8 @@ public:
     }
 
     template<typename TV, typename TX, typename ... Args>
-    inline nTuple <TV, NDIMS> grad(TV const *v, TX x, TX y,
-                                   Args const &...) const
+    inline nTuple<TV, NDIMS> grad(TV const *v, TX x, TX y,
+                                  Args const &...) const
     {
 
         x = (x - xmin_[0]) * inv_dx_[0];
@@ -431,7 +431,7 @@ public:
     }
 
     template<typename TV, size_t N, typename TX>
-    inline auto grad(TV const &v, nTuple <TX, N> const &x) const
+    inline auto grad(TV const &v, nTuple<TX, N> const &x) const
     DECL_RET_TYPE(std::move(grad(v, x[0], x[1])))
 
 };

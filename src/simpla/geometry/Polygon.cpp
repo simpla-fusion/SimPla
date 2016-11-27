@@ -3,8 +3,9 @@
  * @author salmon
  * @date 2015-11-18.
  */
-#include "simpla/toolbox/nTupleExt.h"
-#include "polygon.h"
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/nTupleExt.h>
+#include "Polygon.h"
 #include "GeoAlgorithm.h"
 
 namespace simpla { namespace geometry
@@ -76,7 +77,7 @@ Real Polygon<2>::nearest_point(point_type *x) const
 
     d2 = std::sqrt(d2);
 
-    return within(x0) > 0 ? d2 : -d2;
+    return within(&x0[0]) > 0 ? d2 : -d2;
 }
 
 
@@ -99,8 +100,7 @@ void Polygon<2>::deploy()
         {
             constant_[i] = m_polygon_[i][0];
             multiple_[i] = 0;
-        }
-        else
+        } else
         {
             constant_[i] = m_polygon_[i][0]
                            - (m_polygon_[i][1] * m_polygon_[j][0])
@@ -118,7 +118,7 @@ void Polygon<2>::deploy()
 
     for (auto const &p:m_polygon_)
     {
-        geometry::extent_box(&m_x0_, &m_x1_, p);
+        geometry::extent_box(&m_x0_, &m_x1_, &p[0]);
     }
 
     m_x0_[2] = std::numeric_limits<Real>::min();
@@ -127,7 +127,7 @@ void Polygon<2>::deploy()
 }
 
 
-int  Polygon<2>::within(point_type const &p) const
+int Polygon<2>::within(const Real *p) const
 {
     Real x = p[0];
     Real y = p[1];

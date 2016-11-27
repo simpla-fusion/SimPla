@@ -11,12 +11,11 @@
 #include <stddef.h>
 #include <tuple>
 
-#include "simpla/toolbox/nTuple.h"
-#include "simpla/sp_def.h"
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/sp_def.h>
 
 namespace simpla
 {
-template<typename T, int ...> struct nTuple;
 namespace geometry
 {
 /**
@@ -86,8 +85,8 @@ Real nearest_point_to_polygon(T0 const &p0, T1 const &p1, TP *x)
     return std::sqrt(dist2);
 }
 
-template<typename TS, int N, typename TOther>
-void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, TOther const &x)
+template<typename TS, size_type N>
+void extent_box(nTuple <TS, N> *x0, nTuple <TS, N> *x1, const TS *x)
 {
     for (int i = 0; i < N; ++i)
     {
@@ -97,7 +96,7 @@ void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, TOther const &x)
 }
 
 template<typename TS, int N, typename T1, typename ...Others>
-void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, T1 const &y0, Others &&...others)
+void extent_box(nTuple <TS, N> *x0, nTuple <TS, N> *x1, T1 const &y0, Others &&...others)
 {
     extent_box(x0, x1, y0);
     extent_box(x0, x1, std::forward<Others>(others)...);
@@ -156,8 +155,7 @@ std::tuple<Real, Real> nearest_point_line_to_line(T0 const &P0, T1 const &P1,
         s = 0;
 
         t = nearest_point_to_line_segment(P0, Q0, Q1);
-    }
-    else
+    } else
     {
         s = (b * e - c * d) / (a * c - b * b);
 
@@ -421,8 +419,8 @@ inline Vec3 reflect_point_by_plane(T0 const &x0, T1 const &p0, T2 const &p1,
 
 
 
-template<typename TS, int NDIMS, typename TV>
-bool box_intersection(nTuple<TS, NDIMS> const &l_b, nTuple<TS, NDIMS> const &l_e,
+template<typename TS, size_type NDIMS, typename TV>
+bool box_intersection(nTuple <TS, NDIMS> const &l_b, nTuple <TS, NDIMS> const &l_e,
                       TV *r_b, TV *r_e)
 {
     bool has_overlap = false;

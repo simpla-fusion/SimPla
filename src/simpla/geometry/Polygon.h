@@ -9,8 +9,9 @@
 
 #include <vector>
 
-#include "simpla/toolbox/nTuple.h"
-#include "simpla/sp_def.h"
+#include <simpla/SIMPLA_config.h>
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/sp_def.h>
 #include "GeoObject.h"
 
 namespace simpla { namespace geometry
@@ -29,8 +30,6 @@ template<int NDIMS> class Polygon;
 template<>
 struct Polygon<2> : public GeoObject
 {
-    using GeoObject::point_type;
-    using GeoObject::box_type;
 
 
     typedef nTuple<Real, 2> point2d_type;
@@ -42,9 +41,9 @@ struct Polygon<2> : public GeoObject
 public:
 
 
-    Polygon() { }
+    Polygon() {}
 
-    ~Polygon() { }
+    ~Polygon() {}
 
     Polygon(Polygon const &) = delete;
 
@@ -66,7 +65,7 @@ public:
         return std::make_tuple(m_x0_, m_x1_);
     };
 
-    virtual int within(point_type const &x) const;
+    virtual int within(const Real *x) const;
 
 
 private:

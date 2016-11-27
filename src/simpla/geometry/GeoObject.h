@@ -11,6 +11,7 @@
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/type_traits.h>
+#include <simpla/sp_def.h>
 
 namespace simpla { namespace geometry
 {
@@ -25,9 +26,6 @@ class GeoObject
     typedef GeoObject this_type;
 
 public:
-    typedef nTuple<Real, 3> vector_type;
-    typedef nTuple<Real, 3> point_type;
-    typedef std::tuple<point_type, point_type> box_type;
 
     GeoObject() {}
 
@@ -41,14 +39,14 @@ public:
      *           `on boundary` then =0
      *           `out` then >0
      */
-    virtual int within(point_type const &x) const = 0;
+    virtual int within(const Real *x) const = 0;
 
 
     /**
      * return id= 0b543210
      */
     template<typename ...Others>
-    inline int within(point_type const &b, Others &&...others) const
+    inline int within(Real const *b, Others &&...others) const
     {
         return (within(std::forward<Others>(others)...) << 1UL) | within(b);
     };
@@ -76,7 +74,7 @@ public:
         int res;
         for (int i = 0; i < num; ++i)
         {
-            res |= (within(p_tuple[i]) > 0 ? 1 : 0) << (num - 1 - i);
+            res |= (within(&p_tuple[i][0]) > 0 ? 1 : 0) << (num - 1 - i);
         }
         return res;
     };

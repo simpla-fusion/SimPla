@@ -8,9 +8,9 @@
 #ifndef ICDF_DISTRIBUTION_H_
 #define ICDF_DISTRIBUTION_H_
 
-#include "interpolation.h"
+#include "Interpolation.h"
 #include "inverse_function.h"
-#include "integration.h"
+#include "Integration.h"
 namespace simpla
 {
 /**  @ingroup numeric*/

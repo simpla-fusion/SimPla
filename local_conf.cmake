@@ -14,7 +14,7 @@ execute_process(COMMAND git describe --all --dirty --long
 SET(AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> ")
 SET(COPYRIGHT "All rights reserved. (2016 )")
 
-SET(BUILD_TOOLS True)
+SET(BUILD_TOOLS ON)
 SET(SP_REAL double)
 
 SET(SIMPLA_MAXIMUM_DIMENSION 3)

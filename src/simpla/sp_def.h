@@ -60,7 +60,7 @@ enum ArrayOrder
 
 typedef Real scalar_type;
 
-typedef std::complex<Real> Complex;
+//typedef std::complex<Real> Complex;
 
 typedef nTuple<Real, 3> Vec3;
 
@@ -70,7 +70,7 @@ typedef nTuple<Integral, 3> IVec3;
 
 typedef nTuple<Real, 3> RVec3;
 
-typedef nTuple<Complex, 3> CVec3;
+//typedef nTuple<Complex, 3> CVec3;
 
 static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 

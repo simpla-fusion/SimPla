@@ -18,17 +18,12 @@
 #include <simpla/physics/Constants.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/PrettyStream.h>
-#include <simpla/toolbox/ntuple.h>
-#include <simpla/toolbox/ntuple_ext.h>
-#include <simpla/model/Polygon.h>
+#include <simpla/toolbox/nTuple.h>
+#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/geometry/Polygon.h>
 #include <simpla/numeric/find_root.h>
-#include <simpla/numeric/interpolation.h>
+#include <simpla/numeric/Interpolation.h>
 
-#ifndef NO_XDMF
-
-#include "../io/XDMFIO.h"
-
-#endif
 namespace simpla
 {
 constexpr int GEqdsk::PhiAxis;
@@ -39,9 +34,9 @@ struct GEqdsk::pimpl_s
 {
     typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
 
-    typedef MultiDimesionInterpolation<BiLinearInterpolation, Real> inter2d_type;
+    typedef MultiDimensionInterpolation<BiLinearInterpolation, Real> inter2d_type;
 
-    nTuple<int, 3> m_dims_{1, 1, 1};
+    nTuple<size_type, 3> m_dims_{{1, 1, 1}};
     point_type m_rzmin_;
     point_type m_rzmax_;
 
@@ -95,7 +90,7 @@ void GEqdsk::load(std::string const &fname)
 
 }
 
-nTuple<int, 3> const &GEqdsk::dimensions() const
+nTuple<size_type, 3> const &GEqdsk::dimensions() const
 {
     return m_pimpl_->m_dims_;
 };
@@ -355,74 +350,6 @@ std::ostream &GEqdsk::print(std::ostream &os)
 
     return os;
 }
-//
-//bool GEqdsk::flux_surface(double psi_j, size_t M, point_type *res,
-//                          double resolution)
-//{
-//    return m_pimpl_->flux_surface(psi_j, M, res, resolution);
-//}
-//
-//bool GEqdsk::pimpl_s::flux_surface(double psi_j, size_t M, point_type *res,
-//                                   double resolution)
-//{
-//
-//    //FIXME need check
-//    Real success = 0;
-//
-//    nTuple<double, 3> center;
-//
-//    center[PhiAxis] = 0;
-//    center[RAxis] = m_rcenter_;
-//    center[ZAxis] = m_zmid_;
-//
-//    nTuple<double, 3> drz;
-//
-//    drz[PhiAxis] = 0;
-//
-//    std::function<double(nTuple<double, 3> const &)> fun =
-//            [this](nTuple<double, 3> const &x) -> double
-//            {
-//                return m_psirz_(x[RAxis], x[ZAxis]);
-//            };
-//
-//    for (int i = 0; i < M; ++i)
-//    {
-//        double theta = static_cast<double>(i) * TWOPI / static_cast<double>(M);
-//
-//        drz[RAxis] = std::cos(theta);
-//        drz[ZAxis] = std::sin(theta);
-//
-//        nTuple<double, 3> rmax;
-//        nTuple<double, 3> t;
-//
-//        rmax = center
-//               + drz * std::sqrt(m_rdim_ * m_rdim_ + m_zdim_ * m_zdim_) * 0.5;
-//
-//        success = m_rzbbb_->nearest_point(center, &rmax);
-//
-//        if (success > 0)
-//        {
-//            THROW_EXCEPTION_RUNTIME_ERROR(
-//                    "Illegal Geqdsk configuration: RZ-center is out of the boundary (rzbbb)!  ");
-//        }
-//
-//        nTuple<double, 3> t2 = center + (rmax - center) * 0.1;
-//
-//        res[i] = rmax;
-//        success = find_root(fun, psi_j, t2, &res[i], resolution);
-//
-//        if (!success)
-//        {
-//            WARNING << "Construct flux surface failed!" << "at theta = "
-//            << theta << " psi = " << psi_j;
-//            break;
-//        }
-//
-//    }
-//
-//    return success == 0;
-//
-//}
 
 
 GEqdsk::GEqdsk() : m_pimpl_(new pimpl_s) {}
@@ -432,14 +359,14 @@ GEqdsk::~GEqdsk() {}
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
 
 
-geometry::GeoObject const &GEqdsk::boundary() const
+geometry::Polygon<2> const &GEqdsk::boundary() const
 {
-    return dynamic_cast<geometry::GeoObject const &>(m_pimpl_->m_rzbbb_);
+    return m_pimpl_->m_rzbbb_;
 }
 
-geometry::GeoObject const &GEqdsk::limiter() const
+geometry::Polygon<2> const &GEqdsk::limiter() const
 {
-    return dynamic_cast<geometry::GeoObject const &>(m_pimpl_->m_rzlim_);
+    return m_pimpl_->m_rzlim_;
 }
 
 Real GEqdsk::psi(Real R, Real Z) const
@@ -447,7 +374,7 @@ Real GEqdsk::psi(Real R, Real Z) const
     return m_pimpl_->m_psirz_(R, Z);
 }
 
-Vec3 GEqdsk::grad_psi(Real R, Real Z) const
+nTuple<Real, 2> GEqdsk::grad_psi(Real R, Real Z) const
 {
     return m_pimpl_->m_psirz_.grad(R, Z);
 }
@@ -457,12 +384,12 @@ Real GEqdsk::profile(std::string const &name, Real p_psi) const
     return m_pimpl_->m_profile_[name](p_psi);
 }
 
-GEqdsk::point_type GEqdsk::magnetic_axis() const
+point_type GEqdsk::magnetic_axis() const
 {
     return point_type{m_pimpl_->m_rmaxis_, m_pimpl_->m_zmaxis, 0};
 }
 
-std::tuple<typename GEqdsk::point_type, typename GEqdsk::point_type> GEqdsk::box() const
+box_type GEqdsk::box() const
 {
     return std::make_tuple(m_pimpl_->m_rzmin_, m_pimpl_->m_rzmax_);
 }
@@ -474,7 +401,7 @@ void GEqdsk::write(std::string const &url)
 
 void GEqdsk::pimpl_s::write(std::string const &url)
 {
-#ifndef NO_XDMF
+#ifdef HAS_XDMF
 
     typedef nTuple<Real, 3> point_type;
     XdmfDOM dom;
@@ -616,7 +543,7 @@ void GEqdsk::pimpl_s::write(std::string const &url)
     std::ofstream ss(url + ".xmf");
     ss << dom.Serialize() << std::endl;
 
-#endif // NO_XDMF
+#endif // HAS_XDMF
 }
 }  // namespace simpla
 

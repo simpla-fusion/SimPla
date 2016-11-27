@@ -1,11 +1,8 @@
-/**
- * @file geqdsk_to_mesh.cpp
- * @author salmon
- * @date 2016-05-17.
- */
-
-
-
+//
+// Created by salmon on 16-11-27.
+//
+#include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/nTupleExt.h>
 
 #include <oce/BRep_Tool.hxx>
 
@@ -98,24 +95,26 @@
 #include <oce/Standard_Real.hxx>
 
 
-TopoDS_Shape
-MakeBottle(const Standard_Real myWidth, const Standard_Real myHeight,
-           const Standard_Real myThickness)
+#include <simpla/model/GEqdsk.h>
+#include <BRepBuilderAPI_MakePolygon.hxx>
+#include <BRepPrimAPI_MakeRevol.hxx>
+
+namespace simpla
 {
+void convert_geqdsk2step(GEqdsk const &geqdsk, std::string const &filename)
+{
+
 
     BRepBuilderAPI_MakeWire wireMaker;
 
     // Profile : Define Support Points
     {
-        Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, 4);
-        gp_Pnt p0(-myWidth / 2., 0, 0);
-        gp_Pnt p4(myWidth / 2., 0, 0);
+        Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, geqdsk.boundary().data().size() - 1);
 
-//    gp_array->SetValue(0, p0);
-        gp_array->SetValue(1, gp_Pnt(-myWidth / 2., -myThickness / 4., 0));
-        gp_array->SetValue(2, gp_Pnt(0, -myThickness / 2., 0));
-        gp_array->SetValue(3, gp_Pnt(myWidth / 2., -myThickness / 4., 0));
-        gp_array->SetValue(4, p4);
+        for (size_type i = 0, ie = geqdsk.boundary().data().size() - 1; i < ie; ++i)
+        {
+            gp_array->SetValue(i + 1, gp_Pnt(geqdsk.boundary().data()[i][0], geqdsk.boundary().data()[i][1], 0));
+        }
 
         GeomAPI_Interpolate sp(gp_array, true, 1.0e-3);
         sp.Perform();
@@ -123,26 +122,29 @@ MakeBottle(const Standard_Real myWidth, const Standard_Real myHeight,
         wireMaker.Add(BRepBuilderAPI_MakeEdge(sp.Curve()));
     }
     // Body : Prism the Profile
-    TopoDS_Face myFaceProfile = BRepBuilderAPI_MakeFace(wireMaker.Wire());
-    gp_Vec aPrismVec(0, 0, myHeight);
-    TopoDS_Shape myBody = BRepPrimAPI_MakePrism(myFaceProfile, aPrismVec);
 
+    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 1, 0));
 
+    TopoDS_Face myBoundaryFaceProfile = BRepBuilderAPI_MakeFace(wireMaker.Wire());
+    TopoDS_Shape myBoundary = BRepPrimAPI_MakeRevol(myBoundaryFaceProfile, axis);
+
+    BRepBuilderAPI_MakePolygon polygonMaker;
+    for (size_type i = 0, ie = geqdsk.limiter().data().size(); i < ie; ++i)
+    {
+        polygonMaker.Add(gp_Pnt(geqdsk.limiter().data()[i][0], geqdsk.limiter().data()[i][1], 0));
+    }
+
+    // Body : Prism the Profile
+    TopoDS_Face myLimterFaceProfile = BRepBuilderAPI_MakeFace(polygonMaker.Wire());
+    TopoDS_Shape myLimter = BRepPrimAPI_MakeRevol(myLimterFaceProfile, axis);
 
     // Building the Resulting Compound
     TopoDS_Compound aRes;
     BRep_Builder aBuilder;
     aBuilder.MakeCompound(aRes);
-    aBuilder.Add(aRes, myBody);
-//    aBuilder.Add(aRes, myThreading);
+    aBuilder.Add(aRes, myBoundary);
+    aBuilder.Add(aRes, myLimter);
 
-    return aRes;
-}
-
-int main(int argc, char **argv)
-{
-
-    TopoDS_Shape shape = MakeBottle(50, 70, 30);
 
     // Create document
     Handle(TDocStd_Document) aDoc;
@@ -152,11 +154,11 @@ int main(int argc, char **argv)
     // Create label and add our m_global_dims_
     Handle(XCAFDoc_ShapeTool) myShapeTool = XCAFDoc_DocumentTool::ShapeTool(aDoc->Main());
     TDF_Label aLabel = myShapeTool->NewShape();
-    myShapeTool->SetShape(aLabel, shape);
+    myShapeTool->SetShape(aLabel, aRes);
 
     // Write as STEP file
     STEPCAFControl_Writer *myWriter = new STEPCAFControl_Writer();
-    myWriter->Perform(aDoc, "demo.stp");
-
-
+    myWriter->Perform(aDoc, filename.c_str());
 }
+
+}//namespace simpla

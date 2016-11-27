@@ -91,7 +91,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_subdirectory(src)
 add_subdirectory(example)
-#add_subdirectory(tools)
+add_subdirectory(tools)
 add_subdirectory(docs)
 
 add_subdirectory(scenario)

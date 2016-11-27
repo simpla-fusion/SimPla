@@ -14,6 +14,7 @@
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/type_traits.h>
 #include <simpla/geometry/GeoObject.h>
+#include <simpla/geometry/Polygon.h>
 
 namespace simpla
 {
@@ -37,7 +38,6 @@ private:
 
     typedef GEqdsk this_type;
 
-    typedef nTuple<Real, 3> point_type;
 
     static constexpr int PhiAxis = 2;
     static constexpr int RAxis = (PhiAxis + 1) % 3;
@@ -62,15 +62,16 @@ public:
 
     std::string const &description() const;
 
-    std::tuple<point_type, point_type> box() const;
+    box_type box() const;
 
-    geometry::GeoObject const &boundary() const;
+    geometry::Polygon<2> const &boundary() const;
 
-    geometry::GeoObject const &limiter() const;
+    geometry::Polygon<2> const &limiter() const;
+
 
     Real psi(Real R, Real Z) const;
 
-    Vec3 grad_psi(Real R, Real Z) const;
+    nTuple<Real, 2> grad_psi(Real R, Real Z) const;
 
     Real profile(std::string const &name, Real p_psi) const;
 
@@ -83,7 +84,7 @@ public:
 
     point_type magnetic_axis() const;
 
-    nTuple<int, 3> const &dimensions() const;
+    nTuple<size_type, 3> const &dimensions() const;
 
     Real B0() const;
 
