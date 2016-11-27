@@ -1,1 +1,1 @@
-add_subdirectory(geqdsk)
+add_subdirectory(geqdsk2step)

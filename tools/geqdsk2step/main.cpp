@@ -4,7 +4,6 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/model/GEqdsk.h>
-#include <vector>
 
 
 namespace simpla
@@ -12,6 +11,7 @@ namespace simpla
 void convert_geqdsk2step(GEqdsk const &geqdsk, std::string const &filename);
 }
 using namespace simpla;
+
 int main(int argc, char **argv)
 {
     GEqdsk gEqdsk;
