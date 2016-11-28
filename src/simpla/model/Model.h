@@ -41,7 +41,7 @@ public:
 
     void set_chart(std::shared_ptr<Chart> const &c) { m_chart_ = c; };
 
-    std::shared_ptr<Chart> const &get_chart() const { return m_chart_; };
+    std::shared_ptr<Chart> const &get_mesh() const { return m_chart_; };
 private:
     std::shared_ptr<Chart> m_chart_;
 

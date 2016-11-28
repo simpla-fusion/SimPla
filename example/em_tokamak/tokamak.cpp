@@ -9,18 +9,18 @@
 
 #include "tokamak.h"
 
-#include "../../src/toolbox/utilities.h"
-#include "../../../src/parallel/Parallel.h"
-#include "../../../src/io/IO.h"
+//#include <simpla/toolbox/utilities.h>
+#include <simpla/toolbox/Parallel.h>
+#include <simpla/toolbox/IO.h>
 
-#include "../../../src/manifold/pre_define/PreDefine.h"
-//#include "../../src/particle/pre_define/PICBoris.h"
-#include "../../../src/particle/pre_define/PICGyro.h"
+#include <simpla/manifold/pre_define/PreDefine.h>
+//#include <simpla/particle/pre_define/PICGyro.h>
 
-#include "../../../tools/GEqdsk.h"
-#include "../../src/model/Constraint.h"
-#include "../../../src/io/XDMFStream.h"
-#include "../../../src/particle/ParticleGenerator.h"
+#include <simpla/model/GEqdsk.h>
+#include <simpla/geometry/Constraint.h>
+//#include <simpla/model/Constraint.h>
+//#include <simpla/toolbox/XDMFStream.h>
+//#include <simpla/particle/ParticleGenerator.h>
 
 namespace simpla
 {
@@ -28,9 +28,9 @@ using namespace mesh;
 
 struct EMTokamak
 {
-    EMTokamak() { }
+    EMTokamak() {}
 
-    virtual ~EMTokamak() { }
+    virtual ~EMTokamak() {}
 
     virtual void initialize(int argc, char **argv);
 
@@ -47,16 +47,16 @@ struct EMTokamak
 
     mesh_type m;
 
-    io::XDMFStream out_stream;
+//    io::XDMFStream out_stream;
 
-    model::Surface <mesh_type> limiter_boundary;
-    model::IdSet <mesh_type> vertex_boundary;
-    model::IdSet <mesh_type> edge_boundary;
-    model::IdSet <mesh_type> face_boundary;
+    model::Surface<mesh_type> limiter_boundary;
+    model::IdSet<mesh_type> vertex_boundary;
+    model::IdSet<mesh_type> edge_boundary;
+    model::IdSet<mesh_type> face_boundary;
 
-    model::IdSet <mesh_type> plasma_region_volume;
-    model::IdSet <mesh_type> plasma_region_vertex;
-    model::IdSet <mesh_type> J_src;
+    model::IdSet<mesh_type> plasma_region_volume;
+    model::IdSet<mesh_type> plasma_region_vertex;
+    model::IdSet<mesh_type> J_src;
 
     std::function<Vec3(Real, point_type const &)> J_src_fun;
 
@@ -106,7 +106,7 @@ struct EMTokamak
     }
 
     template<typename TP, typename TDict, typename TRange> std::shared_ptr<particle::ParticleBase>
-            create_particle(std::string const &key, TDict const &dict, TRange const &r0);
+    create_particle(std::string const &key, TDict const &dict, TRange const &r0);
 
 
     size_t m_count = 0;
@@ -135,7 +135,7 @@ EMTokamak::create_particle(std::string const &key, TDict const &dict, TRange con
 
     pic->deploy();
 
-    particle::DefaultParticleGenerator<TP> gen(*pic, pic->properties()["PIC"].template as<size_t>(10));
+    particle::DefaultParticleGenerator <TP> gen(*pic, pic->properties()["PIC"].template as<size_t>(10));
 
     gen.density([&](point_type const &x) { return rho0(x); });
 
@@ -262,7 +262,7 @@ void EMTokamak::initialize(int argc, char **argv)
 
 
     {
-        model::CellCache <mesh_type> cache;
+        model::CellCache<mesh_type> cache;
 
         model::update_cache(m, geqdsk.limiter(), &cache);
 
@@ -278,7 +278,7 @@ void EMTokamak::initialize(int argc, char **argv)
     }
 
     {
-        model::CellCache <mesh_type> cache;
+        model::CellCache<mesh_type> cache;
 
         model::update_cache(m, geqdsk.boundary(), &cache);
 
@@ -332,13 +332,13 @@ void EMTokamak::initialize(int argc, char **argv)
 //            else
             if (engine == "Gyro")
             {
-                particle_sp[key] = create_particle<particle::GyroParticle<mesh_type>>(
+                particle_sp[key] = create_particle<particle::GyroParticle < mesh_type>>
+                (
                         key, dict.second,
-                        plasma_region_volume.range()
+                                plasma_region_volume.range()
                 );
 
-            }
-            else
+            } else
             {
                 auto &p = fluid_sp[key];
 
@@ -358,8 +358,7 @@ void EMTokamak::initialize(int argc, char **argv)
                 if (dict.second["Density"])
                 {
                     p.rho1 = traits::make_field_function_from_config<scalar_type, VERTEX>(m, dict.second["Density"]);
-                }
-                else { p.rho1 = rho0; }
+                } else { p.rho1 = rho0; }
             }
 
 
@@ -376,19 +375,19 @@ void EMTokamak::initialize(int argc, char **argv)
 
     MESSAGE << std::endl << "[ Configuration ]" << std::endl
 
-    << "\t B0 = " << geqdsk.B0() << "," << std::endl
+            << "\t B0 = " << geqdsk.B0() << "," << std::endl
 
-    << m << std::endl;
+            << m << std::endl;
 
     MESSAGE << "Particles = {" << std::endl;
 
     for (auto const &item:fluid_sp)
     {
         MESSAGE << "  " << item.first << " =  "
-        << "{"
-        << " mass =" << item.second.mass << " , "
-        << " charge = " << item.second.charge << " , "
-        << " type =   \"Fluid\" " << "}";
+                << "{"
+                << " mass =" << item.second.mass << " , "
+                << " charge = " << item.second.charge << " , "
+                << " type =   \"Fluid\" " << "}";
 
 
         MESSAGE << "," << std::endl;
@@ -429,8 +428,7 @@ void EMTokamak::tear_down()
         if (item.second.lock()->properties()["DisableXDMFOutput"])
         {
             out_stream.hdf5().write(item.first, item.second.lock()->data_set(), io::SP_RECORD);
-        }
-        else
+        } else
         {
             out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(item.second.lock()));
         }
@@ -459,8 +457,7 @@ void EMTokamak::check_point()
             if (item.second.lock()->properties()["DisableXDMFOutput"])
             {
                 out_stream.hdf5().write(item.first, attr->data_set(), io::SP_RECORD);
-            }
-            else
+            } else
             {
                 out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(attr));
             }
@@ -634,19 +631,18 @@ int main(int argc, char **argv)
         MESSAGE << "SIMPla " << ShowVersion();
         TheEnd(0);
         return TERMINATE;
-    }
-    else if (options["h"] || options["help"])
+    } else if (options["h"] || options["help"])
     {
 
         MESSAGE << " Usage: " << argv[0] << "   <options> ..." << std::endl << std::endl;
 
         MESSAGE << " Options:" << std::endl
 
-        << "\t -h,\t--help            \t, Print a usage message and exit.\n"
+                << "\t -h,\t--help            \t, Print a usage message and exit.\n"
 
-        << "\t -v,\t--version         \t, Print version information exit. \n"
+                << "\t -v,\t--version         \t, Print version information exit. \n"
 
-        << std::endl;
+                << std::endl;
 
 
         TheEnd(0);

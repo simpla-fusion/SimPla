@@ -15,17 +15,15 @@
  *  	@addtogroup  MULTICORE Multi-thread/src and many-src support
  *  @}
  */
-#ifndef NO_MPI
 
 #include "MPIComm.h"
 
-#endif
 
-#ifdef TBB_FOUND
+//#ifdef TBB_FOUND
 
 #   include "ParallelTbb.h"
 
-#endif
+//#endif
 
 #ifdef OPENMP_FOUND
 

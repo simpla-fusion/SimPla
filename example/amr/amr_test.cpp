@@ -37,9 +37,9 @@ int main(int argc, char **argv)
     GLOBAL_COMM.init(argc, argv);
     // typedef mesh:: CylindricalGeometry mesh_type;
     // typedef AMRTest<mesh_type> work_type;
-    index_box_type mesh_index_box{{4,  8,  4},
-                                  {16, 32, 16}};
-    auto worker = std::make_shared<EMFluid<mesh::CartesianGeometry>>();
+    index_box_type mesh_index_box{{0,   0,  0},
+                                  {128, 32, 128}};
+    auto worker = std::make_shared<EMFluid<mesh::CylindricalGeometry>>();
 
     auto model = create_model();
 
@@ -54,7 +54,9 @@ int main(int argc, char **argv)
 //    auto sp = w->add_particle("H", 1.0, 1.0);
 
     worker->print(std::cout);
-    box_type bound_box = model->box();
+    box_type bound_box{{1, 0,  -1},
+                       {2, PI, 1}};
+    // model->box();
 
     auto integrator = simpla::create_time_integrator("EMFluid", worker);
 

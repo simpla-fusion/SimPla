@@ -2037,7 +2037,7 @@ PERL_PATH              = /usr/bin/perl
 
 CLASS_DIAGRAMS         = YES
 
-# You can define message sequence charts within doxygen comments using the \msc
+# You can define message sequence charts check_inside doxygen comments using the \msc
 # command. Doxygen will then run the mscgen tool (see:
 # http://www.mcternan.me.uk/mscgen/)) to produce the m_mesh_ and insert it in the
 # documentation. The MSCGEN_PATH tag allows you to specify the directory where
