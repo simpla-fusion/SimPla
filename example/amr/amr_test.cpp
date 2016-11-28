@@ -35,27 +35,26 @@ int main(int argc, char **argv)
 {
     logger::set_stdout_level(100);
     GLOBAL_COMM.init(argc, argv);
-
+    // typedef mesh:: CylindricalGeometry mesh_type;
+    // typedef AMRTest<mesh_type> work_type;
     index_box_type mesh_index_box{{4,  8,  4},
                                   {16, 32, 16}};
+    auto worker = std::make_shared<EMFluid<mesh::CartesianGeometry>>();
 
     auto model = create_model();
 
     model->db["global index box"] = mesh_index_box;
+
+    model->set_chart(worker->get_chart());
+
     model->load(argv[1]);
 
-    box_type bound_box = model->box();
-
-    // typedef mesh:: CylindricalGeometry mesh_type;
-    // typedef AMRTest<mesh_type> work_type;
-
-    auto worker = std::make_shared<EMFluid<mesh::CartesianGeometry>>();
-
-//    worker->set_model(model);
+    worker->set_model(model);
 
 //    auto sp = w->add_particle("H", 1.0, 1.0);
 
     worker->print(std::cout);
+    box_type bound_box = model->box();
 
     auto integrator = simpla::create_time_integrator("EMFluid", worker);
 

@@ -22,7 +22,6 @@
 #include <simpla/mesh/Attribute.h>
 #include "Chart.h"
 #include "Bundle.h"
-#include "CoordinateFrame.h"
 
 namespace simpla { namespace mesh
 {
@@ -35,26 +34,19 @@ namespace simpla { namespace mesh
  */
 
 
-struct CylindricalGeometry : public CoordinateFrame
+struct CylindricalGeometry : public Chart
 {
 
 public:
-    SP_OBJECT_HEAD(CylindricalGeometry, CoordinateFrame)
+    SP_OBJECT_HEAD(CylindricalGeometry, Chart)
 
     static constexpr bool is_frame_bundle = true;
+
     typedef Real scalar_type;
 
     static constexpr int ndims = 3;
 
-
-    template<typename ...Args>
-    CylindricalGeometry(Args &&...args):
-            CoordinateFrame(std::forward<Args>(args)...),
-            m_vertics_{chart, "vertices", "COORDINATES"},
-            m_volume_{chart, "volume", "NO_FILL"},
-            m_dual_volume_{chart, "dual_volume", "NO_FILL"},
-            m_inv_volume_{chart, "inv_volume", "NO_FILL"},
-            m_inv_dual_volume_{chart, "inv_dual_volume", "NO_FILL"} {}
+    CylindricalGeometry() {}
 
     virtual ~CylindricalGeometry() {}
 
@@ -62,12 +54,11 @@ public:
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=mesh::DataBlockArray<TV, IFORM, DOF>;
 
 private:
-    Bundle<Real, VERTEX, 3> m_vertics_{chart, "vertices", "COORDINATES"};
-    Bundle<Real, VOLUME, 9> m_volume_{chart, "volume", "NO_FILL"};
-    Bundle<Real, VOLUME, 9> m_dual_volume_{chart, "dual_volume", "NO_FILL"};
-    Bundle<Real, VOLUME, 9> m_inv_volume_{chart, "inv_volume", "NO_FILL"};
-    Bundle<Real, VOLUME, 9> m_inv_dual_volume_{chart, "inv_dual_volume", "NO_FILL"};
-
+    Bundle<Real, VERTEX, 3> m_vertics_{this, "vertices", "COORDINATES"};
+    Bundle<Real, VOLUME, 9> m_volume_{this, "volume", "NO_FILL"};
+    Bundle<Real, VOLUME, 9> m_dual_volume_{this, "dual_volume", "NO_FILL"};
+    Bundle<Real, VOLUME, 9> m_inv_volume_{this, "inv_volume", "NO_FILL"};
+    Bundle<Real, VOLUME, 9> m_inv_dual_volume_{this, "inv_dual_volume", "NO_FILL"};
 
 public:
 

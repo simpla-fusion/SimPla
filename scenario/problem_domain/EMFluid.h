@@ -32,25 +32,12 @@ public:
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
-    mesh::Chart<TM> m_chart;
-
-    EMFluid() {}
+    explicit EMFluid(std::shared_ptr<TM> const &c = nullptr) :
+            Worker(c != nullptr ? c : std::make_shared<TM>()) {}
 
     ~EMFluid() {}
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
-
-    virtual mesh::ChartBase *chart() { return &m_chart; };
-
-    virtual mesh::ChartBase const *chart() const { return &m_chart; };
-
-    virtual model::Model *model() { return m_model_.get(); };
-
-    virtual model::Model const *model() const { return m_model_.get(); };
-
-//    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_chart.move_to(m); }
-
-//    virtual void update() {};
 
     virtual void next_time_step(Real data_time, Real dt);
 
@@ -82,18 +69,18 @@ public:
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{&m_chart, "rho0"};
-    field_type<EDGE> E0{&m_chart, "E0"};
-    field_type<FACE> B0{&m_chart, "B0"};
-    field_type<VERTEX, 3> B0v{&m_chart, "B0v"};
-    field_type<VERTEX> BB{&m_chart, "BB"};
-    field_type<VERTEX, 3> Ev{&m_chart, "Ev"};
-    field_type<VERTEX, 3> Bv{&m_chart, "Bv"};
-    field_type<VERTEX, 3> dE{&m_chart, "dE"};
+    field_type<VERTEX> rho0{m_chart_, "rho0"};
+    field_type<EDGE> E0{m_chart_, "E0"};
+    field_type<FACE> B0{m_chart_, "B0"};
+    field_type<VERTEX, 3> B0v{m_chart_, "B0v"};
+    field_type<VERTEX> BB{m_chart_, "BB"};
+    field_type<VERTEX, 3> Ev{m_chart_, "Ev"};
+    field_type<VERTEX, 3> Bv{m_chart_, "Bv"};
+    field_type<VERTEX, 3> dE{m_chart_, "dE"};
 
-    field_type<FACE> B/*   */{&m_chart, "B"};
-    field_type<EDGE> E/*   */{&m_chart, "E"};
-    field_type<EDGE> J1/*  */{&m_chart, "J1"};
+    field_type<FACE> B/*   */{m_chart_, "B"};
+    field_type<EDGE> E/*   */{m_chart_, "E"};
+    field_type<EDGE> J1/*  */{m_chart_, "J1"};
 
     struct fluid_s
     {
@@ -111,8 +98,8 @@ public:
         auto sp = std::make_shared<fluid_s>();
         sp->mass = mass;
         sp->charge = charge;
-        sp->rho = std::make_shared<TRho>(&m_chart, name + "_rho");
-        sp->J = std::make_shared<TJv>(&m_chart, name + "_J");
+        sp->rho = std::make_shared<TRho>(m_chart_, name + "_rho");
+        sp->J = std::make_shared<TJv>(m_chart_, name + "_J");
         m_fluid_sp_.emplace(std::make_pair(name, sp));
         return sp;
     }
@@ -180,12 +167,12 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
     E.assign(0, edge_boundary);
     if (m_fluid_sp_.size() > 0)
     {
-        field_type<VERTEX, 3> Q{&m_chart};
-        field_type<VERTEX, 3> K{&m_chart};
+        field_type<VERTEX, 3> Q{m_chart_};
+        field_type<VERTEX, 3> K{m_chart_};
 
-        field_type<VERTEX> a{&m_chart};
-        field_type<VERTEX> b{&m_chart};
-        field_type<VERTEX> c{&m_chart};
+        field_type<VERTEX> a{m_chart_};
+        field_type<VERTEX> b{m_chart_};
+        field_type<VERTEX> c{m_chart_};
 
         a.clear();
         b.clear();

@@ -14,9 +14,8 @@
 
 namespace simpla { namespace mesh
 {
-class ChartBase;
+class Chart;
 
-template<typename> class Chart;
 
 template<typename TV, MeshEntityType IFORM, size_type DOF = 1>
 class Bundle : public AttributeView<TV, IFORM, DOF>
@@ -34,8 +33,13 @@ public:
     Bundle() : m_chart_(nullptr) {}
 
     template<typename ...Args>
-    Bundle(ChartBase *chart, Args &&...args) :
-            base_type(std::forward<Args>(args)...), m_chart_(nullptr) { connect(chart); };
+    Bundle(Chart *c, Args &&...args) :
+            base_type(std::forward<Args>(args)...), m_chart_(nullptr) { connect(c); };
+
+    template<typename ...Args>
+    Bundle(std::shared_ptr<Chart> const &c, Args &&...args) :
+            Bundle(c.get(), std::forward<Args>(args)...) {};
+
 
     template<typename ...Args>
     Bundle(std::string const &key, Args &&...args) :base_type(key, std::forward<Args>(args)...), m_chart_(nullptr) {};
@@ -46,20 +50,20 @@ public:
 
     bool is_connected() const { return m_chart_ != nullptr; }
 
-    void connect(ChartBase *chart)
+    void connect(Chart *c)
     {
-        if (chart != nullptr && chart != m_chart_)
+        if (c != nullptr && c != m_chart_)
         {
             if (m_chart_ != nullptr) { disconnect(); }
 
-            m_chart_ = chart;
+            m_chart_ = c;
 
             m_chart_->connect(this);
 
             // For scratch data block
-            if (this->attribute() == nullptr && m_chart_->coordinate_frame() != nullptr)
+            if (this->attribute() == nullptr && m_chart_ != nullptr)
             {
-                this->move_to(m_chart_->coordinate_frame()->mesh_block());
+                this->move_to(m_chart_->mesh_block());
             }
 
         }
@@ -84,10 +88,11 @@ public:
 
     template<typename U> U const *mesh_as() { return m_chart_->mesh_as<U>(); }
 
-    ChartBase const *chart() const { return m_chart_; }
 
-    template<typename TG>
-    Chart<TG> const *chart_as() const { return static_cast<Chart<TG> const *>( m_chart_); }
+    Chart const *get_chart() const { return m_chart_; }
+
+    void set_chart(Chart *c) { m_chart_ = c; }
+
 
     typedef mesh::DataBlockArray<TV, IFORM, DOF> default_data_block_type;
 
@@ -124,7 +129,7 @@ public:
 
 
 private:
-    ChartBase *m_chart_ = nullptr;
+    Chart *m_chart_ = nullptr;
 
 
 };

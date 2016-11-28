@@ -39,22 +39,20 @@ public:
 
     virtual void initialize(Real data_time = 0);
 
-    void chart(ChartBase *c) { m_chart_ = c; };
+    void set_chart(std::shared_ptr<Chart> const &c) { m_chart_ = c; };
 
-    ChartBase *chart() { return m_chart_; };
-
-    ChartBase const *chart() const { return m_chart_; };
+    std::shared_ptr<Chart> const &get_chart() const { return m_chart_; };
 private:
-    ChartBase *m_chart_;
+    std::shared_ptr<Chart> m_chart_;
 
 //    virtual EntityIdRange
-//    range(MeshEntityType const &iform, geometry::IntersectionStatus const &status, ChartBase const *c)
+//    range(MeshEntityType const &iform, geometry::IntersectionStatus const &status, Chart const *c)
 //    {
 //        return EntityIdRange();
 //    };
 //
 //    virtual void
-//    get_value_fraction(MeshEntityType const &iform, ChartBase const *c, std::map<EntityIdRange, Real> *)
+//    get_value_fraction(MeshEntityType const &iform, Chart const *c, std::map<EntityIdRange, Real> *)
 //    {
 //        UNIMPLEMENTED;
 //    }

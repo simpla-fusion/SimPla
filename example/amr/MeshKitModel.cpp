@@ -78,11 +78,11 @@ MeshKitModel::initialize(Real data_time)
     // make EBMesher
     EBMesher ebm(&mk, m_vols_);
 
-    auto bound_box = chart()->coordinate_frame()->box();
+    auto bound_box = get_chart()->mesh_block()->box();
 
     index_tuple i_lower, i_upper;
 
-    std::tie(i_lower, i_upper) = chart()->coordinate_frame()->mesh_block()->inner_index_box();
+    std::tie(i_lower, i_upper) = get_chart()->mesh_block()->inner_index_box();
 
     int n_interval[3] = {static_cast<int>(i_upper[0] - i_lower[0]),
                          static_cast<int>(i_upper[1] - i_lower[1]),

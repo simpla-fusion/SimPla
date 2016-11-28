@@ -6,21 +6,27 @@
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/MeshBlock.h>
 
-#include "CoordinateFrame.h"
 
 namespace simpla { namespace mesh
 {
 
 
-ChartBase::ChartBase() {}
+Chart::Chart() {}
 
-ChartBase::~ChartBase() {}
+Chart::~Chart() {}
 
-std::ostream &ChartBase::print(std::ostream &os, int indent) const
+std::ostream &Chart::print(std::ostream &os, int indent) const
 {
     os << std::setw(indent + 1) << " " << "Mesh = { ";
-    coordinate_frame()->print(os, indent + 1);
-    os << std::setw(indent + 1) << " " << "}," << std::endl;
+    os << "Type = \"" << get_class_name() << "\",";
+    if (m_mesh_block_ != nullptr)
+    {
+        os << std::endl;
+        os << std::setw(indent + 1) << " " << " Block = {";
+        m_mesh_block_->print(os, indent + 1);
+        os << std::setw(indent + 1) << " " << "},";
+    }    os << std::setw(indent + 1) << " " << "}," << std::endl;
+
     os << std::setw(indent + 1) << " " << "Attribute= { ";
 
     for (auto const &item:attributes())
@@ -32,15 +38,11 @@ std::ostream &ChartBase::print(std::ostream &os, int indent) const
 };
 
 
-bool ChartBase::is_a(std::type_info const &info) const { return typeid(ChartBase) == info; }
-
-void ChartBase::initialize(Real data_time) { DO_NOTHING; }
-
-void ChartBase::update() { DO_NOTHING; }
+bool Chart::is_a(std::type_info const &info) const { return typeid(Chart) == info; }
 
 
 AttributeViewBase *
-ChartBase::connect(AttributeViewBase *attr)
+Chart::connect(AttributeViewBase *attr)
 {
 
     m_attr_views_.insert(attr);
@@ -48,22 +50,22 @@ ChartBase::connect(AttributeViewBase *attr)
 
 }
 
-void ChartBase::disconnect(AttributeViewBase *attr)
-{
-    m_attr_views_.erase(attr);
-}
+void Chart::disconnect(AttributeViewBase *attr) { m_attr_views_.erase(attr); }
 
-void ChartBase::move_to(std::shared_ptr<MeshBlock> const &m)
-{
-    coordinate_frame()->move_to(m);
+void Chart::initialize(Real data_time) { DO_NOTHING; }
 
+void Chart::update() { DO_NOTHING; }
+
+void Chart::move_to(std::shared_ptr<MeshBlock> const &m)
+{
+    m_mesh_block_ = m;
     for (auto &item:m_attr_views_) { item->move_to(m); }
 };
 
 
-std::set<AttributeViewBase *> &ChartBase::attributes() { return m_attr_views_; };
+std::set<AttributeViewBase *> &Chart::attributes() { return m_attr_views_; };
 
-std::set<AttributeViewBase *> const &ChartBase::attributes() const { return m_attr_views_; };
+std::set<AttributeViewBase *> const &Chart::attributes() const { return m_attr_views_; };
 
 
 }}//namespace simpla {namespace mesh

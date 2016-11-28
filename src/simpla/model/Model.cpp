@@ -35,7 +35,7 @@ void Model::initialize(Real data_time)
 //    m_fraction_.clear();
 //    m_dual_fraction_.clear();
 //
-//    auto m_coord_ = m_mesh_->coordinate_frame();
+//    auto m_coord_ = m_mesh_->get_coordinate_frame();
 //
 ////    auto r = m_coord_->range(VERTEX, m_geo_->box());
 ////

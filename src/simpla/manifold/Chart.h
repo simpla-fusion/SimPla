@@ -8,7 +8,6 @@
 #include <simpla/toolbox/design_pattern/Observer.h>
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/Attribute.h>
-#include "CoordinateFrame.h"
 
 namespace simpla { namespace mesh
 {
@@ -21,13 +20,17 @@ namespace simpla { namespace mesh
  *   - $p$ is the projection
  *
  */
-struct ChartBase : public concept::Printable
+struct Chart : public concept::Printable
 {
-    ChartBase();
+    Chart();
 
-    virtual ~ChartBase();
+    virtual ~Chart();
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
+
+    virtual std::type_index typeindex() const { return std::type_index(typeid(Chart)); }
+
+    virtual std::string get_class_name() const { return "CoordinateFrame"; }
 
     virtual bool is_a(std::type_info const &info) const;
 
@@ -37,22 +40,21 @@ struct ChartBase : public concept::Printable
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m);
 
-    /**
-     * @return current MeshBlock
-     */
-    virtual CoordinateFrame *coordinate_frame() =0;
+    virtual std::shared_ptr<MeshBlock> const &mesh_block() const
+    {
+        ASSERT(m_mesh_block_ != nullptr);
+        return m_mesh_block_;
+    }
+
 
     /**
      * @return current MeshBlock
      */
-    virtual CoordinateFrame const *coordinate_frame() const =0;
-
     template<typename U>
     U const *mesh_as() const
     {
-        ASSERT(coordinate_frame() != nullptr);
-        ASSERT(coordinate_frame()->is_a(typeid(U)));
-        return static_cast<U const *>(coordinate_frame());
+        ASSERT(this->is_a(typeid(U)));
+        return static_cast<U const *>(this);
     }
 
     /**
@@ -67,42 +69,12 @@ struct ChartBase : public concept::Printable
     std::set<AttributeViewBase *> const &attributes() const;
 
 private:
-
     std::set<AttributeViewBase *> m_attr_views_;
+
+    std::shared_ptr<MeshBlock> m_mesh_block_;
+
 };
 
-template<typename TG>
-class Chart : public ChartBase
-{
-public:
-    typedef TG coord_frame_type;
-
-    Chart() : m_mesh_(this) {}
-
-    template<typename ...Args>
-    Chart(Args &&...args):m_mesh_(this, std::forward<Args>(args)...) {}
-
-    virtual ~Chart() {}
-
-    virtual void initialize(Real data_time = 0) { m_mesh_.initialize(); }
-
-    virtual void update() { m_mesh_.update(); }
-
-    /**
-     * @return current MeshBlock
-     */
-    coord_frame_type *coordinate_frame() { return &m_mesh_; };
-
-    /**
-     * @return current MeshBlock
-     */
-    coord_frame_type const *coordinate_frame() const { return &m_mesh_; };
-
-    coord_frame_type const *mesh() const { return &m_mesh_; };
-
-private:
-    TG m_mesh_{this};
-};
 
 }}//namespace simpla { namespace mesh
 

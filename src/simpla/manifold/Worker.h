@@ -22,7 +22,6 @@
 #include <simpla/manifold/Atlas.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/model/Model.h>
-#include "CoordinateFrame.h"
 #include "Chart.h"
 
 namespace simpla { namespace mesh
@@ -30,7 +29,7 @@ namespace simpla { namespace mesh
 struct MeshBlock;
 struct DataBlock;
 
-struct ChartBase;
+struct Chart;
 struct CoordinateFrame;
 
 class Worker :
@@ -41,7 +40,7 @@ class Worker :
 public:
     SP_OBJECT_HEAD(Worker, Object)
 
-    Worker();
+    Worker(std::shared_ptr<Chart> const &c = nullptr);
 
     ~Worker();
 
@@ -55,7 +54,7 @@ public:
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m);
 
-    virtual void update() {};
+    virtual void update();
 
     virtual void initialize(Real data_time);
 
@@ -63,17 +62,18 @@ public:
 
     virtual void next_time_step(Real data_time, Real dt) {};
 
-    virtual ChartBase *chart()=0;
+    std::shared_ptr<model::Model> const &get_model() const { return m_model_; };
 
-    virtual ChartBase const *chart() const =0;
+    void set_model(std::shared_ptr<model::Model> const &m) { m_model_ = m; }
 
-    virtual model::Model *model()=0;
+    std::shared_ptr<Chart> const &get_chart() const { return m_chart_; };
 
-    virtual model::Model const *model() const =0;
+    void set_chart(std::shared_ptr<Chart> const &c) { m_chart_ = c; }
 
+    std::shared_ptr<Chart> m_chart_;
 
-private:
-
+protected:
+    std::shared_ptr<model::Model> m_model_;
 
     std::string m_name_;
 

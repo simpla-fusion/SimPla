@@ -78,7 +78,7 @@ struct AMRTest : public mesh::Worker
     {
 
 //        index_tuple p = {NX / 2, NY / 2, NZ / 2};
-//        if (m_chart.mesh()->is_inside(p)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
+//        if (get_chart.mesh()->is_inside(p)) { E(p[0], p[1], p[2], 0) = std::sin(omega * time); }
     };
 
 

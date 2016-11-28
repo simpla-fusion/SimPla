@@ -576,7 +576,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     }
 
     //**************************************************************
-    for (auto &ob:m_worker_->chart()->attributes())
+    for (auto &ob:m_worker_->get_chart()->attributes())
     {
         auto &attr = ob->attribute();
         if (attr == nullptr) { return; }
@@ -921,7 +921,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
     );
     m->update();
 
-    for (auto &ob:w->chart()->attributes())
+    for (auto &ob:w->get_chart()->attributes())
     {
         auto &attr = ob->attribute();
         if (attr == nullptr) { return; }

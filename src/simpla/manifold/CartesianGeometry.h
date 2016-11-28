@@ -27,11 +27,11 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public CoordinateFrame
+struct CartesianGeometry : public Chart
 {
 public:
 
-    SP_OBJECT_HEAD(CartesianGeometry, CoordinateFrame)
+    SP_OBJECT_HEAD(CartesianGeometry, Chart)
 
 
     static constexpr unsigned int NDIMS = 3;
@@ -73,12 +73,12 @@ public:
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type= mesh::DataBlockArray<TV, IFORM, DOF>;
 
 
-    CartesianGeometry(Chart <this_type> *c) : CoordinateFrame(c) {}
+    CartesianGeometry() {}
 
     ~CartesianGeometry() {}
 
 
-    virtual void initialize();
+    virtual void initialize(Real data_time = 0);
 
 
 private:
@@ -90,7 +90,7 @@ public:
     typedef mesh::MeshEntityIdCoder m;
 
     template<typename ...Args>
-    point_type point(Args &&...args) const { return CoordinateFrame::mesh_block()->point(std::forward<Args>(args)...); }
+    point_type point(Args &&...args) const { return mesh_block()->point(std::forward<Args>(args)...); }
 
     point_type point(MeshEntityId s) const { UNIMPLEMENTED; };
 
@@ -107,7 +107,7 @@ public:
 
 }; // struct  Mesh
 
-void CartesianGeometry::initialize()
+void CartesianGeometry::initialize(Real data_time)
 {
     /**
         *\verbatim
