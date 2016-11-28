@@ -13,10 +13,10 @@ namespace simpla { namespace model
 {
 using namespace mesh;
 
-class Model : public concept::Printable
+class Model : public concept::Printable, public geometry::GeoObject
 {
 public:
-    Model(ChartBase *c) : chart(c) {}
+    Model() {}
 
     virtual ~Model() {}
 
@@ -36,10 +36,6 @@ public:
 
     virtual void initialize(Real data_time = 0);
 
-
-    enum { OUT = 0, IN = 1, CROSS_BORDER = 10 };
-
-    typedef MeshEntityIdCoder M;
 
 
 //    virtual int const &tag(MeshEntityId const &s) const
@@ -75,18 +71,8 @@ public:
 //        return m_tags_.get(M::sw(M::minimal_vertex(s), s.w + M::node_id(s)));
 //    }
 
-    ChartBase *chart;
 
-private:
-//    std::shared_ptr<geometry::GeoObject> m_geo_;
-    Bundle<int, VERTEX, 9> m_tags_{chart, "tags", "INPUT"};
-//    /**
-//     *  0     : out
-//     *  (0,1] : on the edge
-//     *  1     : in
-//     */
-    Bundle<Real, VERTEX, 9> m_fraction_{chart, "volume_fraction", "INPUT"};
-    Bundle<Real, VERTEX, 9> m_dual_fraction_{chart, "dual_volume_fraction", "INPUT"};
+
 
 
 };

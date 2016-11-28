@@ -53,7 +53,7 @@ public:
 
     virtual void save(data::DataBase *) const { UNIMPLEMENTED; }
 
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { DO_NOTHING; };
+    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m);
 
     virtual void deploy() {};
 

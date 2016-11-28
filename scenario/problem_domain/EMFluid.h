@@ -48,9 +48,9 @@ public:
 
     virtual model::Model const *model() const { return m_model_.get(); };
 
-    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_chart.move_to(m); }
+//    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_chart.move_to(m); }
 
-    virtual void deploy() {};
+//    virtual void deploy() {};
 
     virtual void next_time_step(Real data_time, Real dt);
 
@@ -120,7 +120,7 @@ public:
 
     std::shared_ptr<model::Model> m_model_;
 
-    virtual void add_geometry_model(std::shared_ptr<model::Model> const &m) { m_model_ = m; };
+    virtual void connect_model(std::shared_ptr<model::Model> const &m) { m_model_ = m; };
 
 };
 

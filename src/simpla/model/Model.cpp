@@ -18,7 +18,6 @@ void Model::save(std::string const &)
 
 void Model::deploy()
 {
-    auto m_coord_ = chart->coordinate_frame();
 //    m_tags_.move_to(m_coord_->mesh_block());
 //    m_fraction_.move_to(m_coord_->mesh_block());
 //    m_dual_fraction_.move_to(m_coord_->mesh_block());

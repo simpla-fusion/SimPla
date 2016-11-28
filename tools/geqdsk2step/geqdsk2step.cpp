@@ -98,6 +98,9 @@
 #include <simpla/model/GEqdsk.h>
 #include <BRepBuilderAPI_MakePolygon.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
+#include <oce/BRepPrimAPI_MakeRevol.hxx>
+#include <oce/TDataStd_Name.hxx>
+#include <oce/BRepBuilderAPI_MakePolygon.hxx>
 
 namespace simpla
 {
@@ -105,62 +108,70 @@ void convert_geqdsk2step(GEqdsk const &geqdsk, std::string const &filename)
 {
 
 
-    BRepBuilderAPI_MakeWire wireMaker;
-
-    // Profile : Define Support Points
     {
+        BRepBuilderAPI_MakeWire wireMaker;
+
         Handle(TColgp_HArray1OfPnt) gp_array = new TColgp_HArray1OfPnt(1, geqdsk.boundary().data().size() - 1);
 
         for (size_type i = 0, ie = geqdsk.boundary().data().size() - 1; i < ie; ++i)
         {
-            gp_array->SetValue(i + 1, gp_Pnt(geqdsk.boundary().data()[i][0], geqdsk.boundary().data()[i][1], 0));
+            gp_array->SetValue(i + 1, gp_Pnt(geqdsk.boundary().data()[i][0], 0, geqdsk.boundary().data()[i][1]));
         }
 
         GeomAPI_Interpolate sp(gp_array, true, 1.0e-3);
         sp.Perform();
 
         wireMaker.Add(BRepBuilderAPI_MakeEdge(sp.Curve()));
+
+
+        gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
+
+        TopoDS_Face myBoundaryFaceProfile = BRepBuilderAPI_MakeFace(wireMaker.Wire());
+        TopoDS_Shape myBoundary = BRepPrimAPI_MakeRevol(myBoundaryFaceProfile, axis);
+
+        // Create document
+        Handle(TDocStd_Document) aDoc;
+        Handle(XCAFApp_Application) anApp = XCAFApp_Application::GetApplication();
+        anApp->NewDocument("MDTV-XCAF", aDoc);
+
+        // Create label and add our m_global_dims_
+        Handle(XCAFDoc_ShapeTool) myShapeTool = XCAFDoc_DocumentTool::ShapeTool(aDoc->Main());
+
+
+        TDF_Label aLabel0 = myShapeTool->NewShape();
+        Handle(TDataStd_Name) NameAttrib1 = new TDataStd_Name();
+        NameAttrib1->Set("boundary");
+        aLabel0.AddAttribute(NameAttrib1);
+        myShapeTool->SetShape(aLabel0, myBoundary);
+        STEPCAFControl_Writer().Perform(aDoc, (filename + "_boundary.stp").c_str());
+
     }
-    // Body : Prism the Profile
-
-    gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 1, 0));
-
-    TopoDS_Face myBoundaryFaceProfile = BRepBuilderAPI_MakeFace(wireMaker.Wire());
-    TopoDS_Shape myBoundary = BRepPrimAPI_MakeRevol(myBoundaryFaceProfile, axis);
-
-    BRepBuilderAPI_MakePolygon polygonMaker;
-    for (size_type i = 0, ie = geqdsk.limiter().data().size(); i < ie; ++i)
     {
-        polygonMaker.Add(gp_Pnt(geqdsk.limiter().data()[i][0], geqdsk.limiter().data()[i][1], 0));
+        BRepBuilderAPI_MakePolygon polygonMaker;
+        for (size_type i = 0, ie = geqdsk.limiter().data().size(); i < ie; ++i)
+        {
+            polygonMaker.Add(gp_Pnt(geqdsk.limiter().data()[i][0], 0, geqdsk.limiter().data()[i][1]));
+        }
+        gp_Ax1 axis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
+        TopoDS_Face myLimterFaceProfile = BRepBuilderAPI_MakeFace(polygonMaker.Wire());
+        TopoDS_Shape myLimiter = BRepPrimAPI_MakeRevol(myLimterFaceProfile, axis);
+
+
+        Handle(TDocStd_Document) aDoc;
+        Handle(XCAFApp_Application) anApp = XCAFApp_Application::GetApplication();
+        anApp->NewDocument("MDTV-XCAF", aDoc);
+
+        Handle(XCAFDoc_ShapeTool) myShapeTool = XCAFDoc_DocumentTool::ShapeTool(aDoc->Main());
+
+        TDF_Label aLabel1 = myShapeTool->NewShape();
+        Handle(TDataStd_Name) NameAttrib1 = new TDataStd_Name();
+        NameAttrib1->Set("limiter");
+        aLabel1.AddAttribute(NameAttrib1);
+        myShapeTool->SetShape(aLabel1, myLimiter);
+        STEPCAFControl_Writer().Perform(aDoc, (filename + "_limiter.stp").c_str());
+
     }
 
-    // Body : Prism the Profile
-    TopoDS_Face myLimterFaceProfile = BRepBuilderAPI_MakeFace(polygonMaker.Wire());
-    TopoDS_Shape myLimter = BRepPrimAPI_MakeRevol(myLimterFaceProfile, axis);
-
-    // Building the Resulting Compound
-//    TopoDS_Compound aRes;
-//    BRep_Builder aBuilder;
-//    aBuilder.MakeCompound(aRes);
-//    aBuilder.Add(aRes, myBoundary);
-//    aBuilder.Add(aRes, myLimter);
-
-
-    // Create document
-    Handle(TDocStd_Document) aDoc;
-    Handle(XCAFApp_Application) anApp = XCAFApp_Application::GetApplication();
-    anApp->NewDocument("MDTV-XCAF", aDoc);
-
-    // Create label and add our m_global_dims_
-    Handle(XCAFDoc_ShapeTool) myShapeTool = XCAFDoc_DocumentTool::ShapeTool(aDoc->Main());
-    TDF_Label aLabel0 = myShapeTool->NewShape();
-    myShapeTool->SetShape(aLabel0, myBoundary);
-    TDF_Label aLabel1 = myShapeTool->NewShape();
-    myShapeTool->SetShape(aLabel1, myLimter);
-    // Write as STEP file
-//    STEPCAFControl_Writer *myWriter = new STEPCAFControl_Writer();
-    STEPCAFControl_Writer().Perform(aDoc, filename.c_str());
-//    delete myWriter;
 }
 
 }//namespace simpla

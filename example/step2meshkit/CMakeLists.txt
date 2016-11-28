@@ -18,7 +18,7 @@ INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIRS} ${MESHKIT_INCLUDE_DIRS})
 add_executable(step2meshkit main.cpp step2meshkit.cpp)
 
 
-TARGET_LINK_LIBRARIES(step2meshkit ${MESHKIT_LIBRARIES} ${MOAB_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES}
+TARGET_LINK_LIBRARIES(step2meshkit ${MeshKit_LIBRARIES} ${MOAB_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES}
         concept mesh manifold model toolbox data physics simulation netcdf
         )
 

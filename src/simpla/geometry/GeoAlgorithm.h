@@ -14,9 +14,7 @@
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/sp_def.h>
 
-namespace simpla
-{
-namespace geometry
+namespace simpla { namespace geometry
 {
 /**
  * @ingroup geometry
@@ -24,12 +22,42 @@ namespace geometry
  * @defgroup geo_algorithm Geometric Algorithm
  * @{
  */
-template<typename T0, typename T1, typename T2>
-bool in_box(T0 const &x0, T1 const &xmin, T2 const &xmax)
+
+template<typename T0, typename T1>
+bool in_box(std::tuple<T1, T1> const &b, T0 const &x0)
 {
-    return (x0[0] >= xmin[0]) && (x0[1] >= xmin[1]) && (x0[2] >= xmin[2])
-           && (x0[0] < xmax[0]) && (x0[1] < xmax[1]) && (x0[2] < xmax[2]);
+    return (x0[0] >= std::get<0>(b)[0]) && (x0[1] >= std::get<0>(b)[1]) && (x0[2] >= std::get<0>(b)[2])
+           && (x0[0] < std::get<1>(b)[0]) && (x0[1] < std::get<1>(b)[1]) && (x0[2] < std::get<1>(b)[2]);
+
 }
+
+
+template<typename T0, typename T1>
+std::tuple<point_type, point_type, Real> nearest_point_to_box(std::tuple<T1, T1> const &b, T0 const &x0)
+{
+    UNIMPLEMENTED;
+    return std::make_tuple(x0,
+                           point_type{std::numeric_limits<Real>::quiet_NaN(),
+                                      std::numeric_limits<Real>::quiet_NaN(),
+                                      std::numeric_limits<Real>::quiet_NaN()},
+                           std::numeric_limits<Real>::quiet_NaN());
+
+}
+
+template<typename T0, typename ...Args>
+std::tuple<point_type, point_type, Real> nearest_point_to_box(T0 const &b, Args &&...args)
+{
+    UNIMPLEMENTED;
+    return std::make_tuple(point_type{std::numeric_limits<Real>::quiet_NaN(),
+                                      std::numeric_limits<Real>::quiet_NaN(),
+                                      std::numeric_limits<Real>::quiet_NaN()},
+                           point_type{std::numeric_limits<Real>::quiet_NaN(),
+                                      std::numeric_limits<Real>::quiet_NaN(),
+                                      std::numeric_limits<Real>::quiet_NaN()},
+                           std::numeric_limits<Real>::quiet_NaN());
+
+}
+
 
 template<typename T0, typename T1, typename T2, typename T3>
 std::tuple<Real, Vec3> distance_from_point_to_plane(T0 const &x0,

@@ -27,7 +27,7 @@ void step2vtk(std::string const &input_filename, std::string const &output_filen
     // get the volumes
     MEntVector vols;
     mk.get_entities_by_dimension(3, vols);
-    int n_interval[3] = {32, 32, 32};
+    int n_interval[3] = {64, 64, 32};
     // make EBMesher
     EBMesher *ebm = (EBMesher *) mk.construct_meshop("EBMesher", vols);
     ebm->use_whole_geom(1);

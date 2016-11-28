@@ -31,6 +31,11 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
     return os;
 }
 
+void Worker::move_to(std::shared_ptr<mesh::MeshBlock> const &m)
+{
+    chart()->move_to(m);
+}
+
 void Worker::initialize(Real data_time)
 {
 

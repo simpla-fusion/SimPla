@@ -78,7 +78,6 @@ public:
     ~CartesianGeometry() {}
 
 
-
     virtual void deploy() {};
 
     virtual void initialize();
@@ -91,8 +90,6 @@ private:
     Real m_inv_dual_volume_[9];
 public:
     typedef mesh::MeshEntityIdCoder m;
-
-    virtual void move_to(std::shared_ptr<MeshBlock> const &m) {};
 
     template<typename ...Args>
     point_type point(Args &&...args) const { return CoordinateFrame::mesh_block()->point(std::forward<Args>(args)...); }

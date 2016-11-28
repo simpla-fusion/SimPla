@@ -12,9 +12,13 @@
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/type_traits.h>
 #include <simpla/sp_def.h>
+#include "GeoAlgorithm.h"
 
 namespace simpla { namespace geometry
 {
+
+enum IntersectionStatus { OUTSIDE = 0, INSIDE = 1, INTERSECTED = 10 };
+
 /**
  * @ingroup geometry
  *
@@ -24,60 +28,69 @@ class GeoObject
 {
 
     typedef GeoObject this_type;
-
+    box_type m_bound_box_{{0, 0, 0},
+                          {1, 1, 1}};
 public:
 
     GeoObject() {}
 
     virtual ~GeoObject() {}
 
-    virtual box_type box() const = 0;
+    box_type const &box() const { return m_bound_box_; };
+
+    void box(box_type const &b) { m_bound_box_ = b; };
 
     /**
      * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
-     *           `in` then <0
-     *           `on boundary` then =0
-     *           `out` then >0
+     *           `in` then 1
+     *           `out` then 0
      */
-    virtual int within(const Real *x) const = 0;
+    virtual int check_inside(const Real *x) const { return in_box(m_bound_box_, x) ? 1 : 0; };
 
+    inline int check_inside(const point_type &x) const { return check_inside(&x[0]); };
 
     /**
-     * return id= 0b543210
+     * return id= 0b012345...
      */
-    template<typename ...Others>
-    inline int within(Real const *b, Others &&...others) const
+    template<typename P0, typename ...Others>
+    inline int check_inside(P0 const &p0, Others &&...others) const
     {
-        return (within(std::forward<Others>(others)...) << 1UL) | within(b);
+        return (check_inside(p0) << (sizeof...(others))) | check_inside(std::forward<Others>(others)...);
     };
 
 private:
 
-    template<typename T, int ...I>
-    inline int _invoke_helper(T const &p_tuple, index_sequence<I...>) const
+    template<typename T, size_t ...I>
+    inline int check_inside_invoke_helper(T const &p_tuple, index_sequence<I...>) const
     {
-        return within(std::get<I>(std::forward<T>(p_tuple))...);
+        return check_inside(std::get<I>(std::forward<T>(p_tuple))...);
     };
 
 
 public:
     template<typename ...Others>
-    inline int within(std::tuple<Others...> const &p_tuple) const
+    inline int check_inside(std::tuple<Others...> const &p_tuple) const
     {
-        return _invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
+        return check_inside_invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
     };
 
-    inline int within(int num, point_type const *p_tuple) const
+    inline int check_inside(int num, point_type const *p_tuple) const
     {
         ASSERT(num < std::numeric_limits<int>::digits);
 
-        int res;
+        int res = 0;
         for (int i = 0; i < num; ++i)
         {
-            res |= (within(&p_tuple[i][0]) > 0 ? 1 : 0) << (num - 1 - i);
+            res = (res << 1) | check_inside(&p_tuple[i][0]);
         }
         return res;
     };
+
+    virtual std::tuple<point_type, point_type, Real> nearest_point(GeoObject const &other) const
+    {
+        return nearest_point_box(other.box());
+    };
+
 
     /**
      * @return  if  \f$ BOX \cap M \neq \emptyset \f$ then x0,x1 is set to overlap box
@@ -86,8 +99,18 @@ public:
      *         else if  \f$ BOX \in M   \f$ return 2
      *         else return 1
      */
-    virtual int box_intersection(point_type *x0, point_type *x1) const = 0;
 
+    virtual std::tuple<point_type, point_type, Real> nearest_point_box(box_type const &b) const
+    {
+        UNIMPLEMENTED;
+        return std::make_tuple(point_type{std::numeric_limits<Real>::quiet_NaN(),
+                                          std::numeric_limits<Real>::quiet_NaN(),
+                                          std::numeric_limits<Real>::quiet_NaN()},
+                               point_type{std::numeric_limits<Real>::quiet_NaN(),
+                                          std::numeric_limits<Real>::quiet_NaN(),
+                                          std::numeric_limits<Real>::quiet_NaN()},
+                               std::numeric_limits<Real>::quiet_NaN());
+    };
 
     /**
      * find nearest point from \f$M\f$ to \f$x\f$
@@ -98,27 +121,51 @@ public:
      *  else if \f$ x \in \partial M \f$ then  distance = 0
      *  else > 0
      */
-    virtual Real nearest_point(point_type *x) const = 0;
-
-
-    virtual Real nearest_point(point_type *x0, point_type *x1) const
+    virtual std::tuple<point_type, point_type, Real> nearest_point(Real const *x0) const
     {
-        UNIMPLEMENTED;
-        return std::numeric_limits<Real>::quiet_NaN();
+        return nearest_point_to_box(m_bound_box_, x0);
     };
 
-    virtual Real nearest_point(point_type const &x0, point_type const *x1, point_type *x2) const
+    virtual std::tuple<point_type, point_type, Real> nearest_point(Real const *x0, Real const *x1) const
     {
-        UNIMPLEMENTED;
-        return std::numeric_limits<Real>::quiet_NaN();
+        return nearest_point_to_box(m_bound_box_, x0, x1);
     };
 
-    virtual Real nearest_point(point_type const &x0, point_type const &x1, point_type *x2,
-                               point_type *x3) const
+    virtual std::tuple<point_type, point_type, Real> nearest_point(Real const *x0, Real const *x1, Real const *x2) const
     {
-        UNIMPLEMENTED;
-        return std::numeric_limits<Real>::quiet_NaN();
+        return nearest_point_to_box(m_bound_box_, x0, x1, x2);
     };
+
+    virtual std::tuple<point_type, point_type, Real>
+    nearest_point(Real const *x0, Real const *x1, Real const *x2, Real const *x3) const
+    {
+        return nearest_point_to_box(m_bound_box_, x0, x1, x2, x3);
+
+    };
+
+    template<typename ...Args>
+    std::tuple<point_type, point_type, Real> nearest_point(Args &&...args) const
+    {
+        return nearest_point(m_bound_box_, &(args[0])...);
+
+    };
+
+private:
+
+    template<typename T, size_t ...I>
+    inline int nearest_point_invoke_helper(T const &p_tuple, index_sequence<I...>) const
+    {
+        return nearest_point(std::get<I>(std::forward<T>(p_tuple))...);
+    };
+
+
+public:
+    template<typename ...Others>
+    inline int nearest_point(std::tuple<Others...> const &p_tuple) const
+    {
+        return check_inside_invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
+    };
+
 
 };
 } // namespace geometry

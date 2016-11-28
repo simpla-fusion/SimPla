@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 {
     GEqdsk gEqdsk;
     std::string input_file = "geqdsk.gfile";
-    std::string output_file = "geqdsk.stp";
+    std::string output_file = "geqdsk";
     if (argc == 0)
     {
         std::cout << " Usage: " << argv[0] << " <input file> <output file> " << std::endl;
