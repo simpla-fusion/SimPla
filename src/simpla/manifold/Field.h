@@ -97,9 +97,9 @@ public:
         return data_block_type::create(m, p);
     };
 
-    virtual void deploy()
+    virtual void update()
     {
-        base_type::deploy();
+        base_type::update();
         m_mesh_ = base_type::template mesh_as<mesh_type>();
         m_data_ = base_type::template data_as<data_block_type>();
     }
@@ -203,7 +203,7 @@ public:
     assign(TFun const &fun, mesh::EntityIdRange const &r0,
            typename std::result_of<TFun(point_type const &)>::type *p = nullptr)
     {
-        deploy();
+        update();
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
                        interpolate_policy::assign(*this, *m_mesh_, s, fun(m_mesh_->point(s)));
@@ -215,7 +215,7 @@ public:
     assign(U const &v, mesh::EntityIdRange const &r0,
            ENABLE_IF((std::is_convertible<U, value_type>::value || std::is_same<U, field_value_type>::value)))
     {
-        deploy();
+        update();
 
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
@@ -228,7 +228,7 @@ public:
 
     void assign(this_type const &other, mesh::EntityIdRange const &r0)
     {
-        deploy();
+        update();
 
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
@@ -240,7 +240,7 @@ public:
     template<typename ...U>
     void assign(Field<Expression<U...>> const &expr, mesh::EntityIdRange const &r0)
     {
-        deploy();
+        update();
 
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
@@ -256,7 +256,7 @@ public:
     template<typename Other> void
     assign(Other const &other, mesh::MeshZoneTag const &tag = mesh::SP_ES_ALL)
     {
-        deploy();
+        update();
         if (tag == mesh::SP_ES_ALL)
         {
             assign(other, m_data_->range());

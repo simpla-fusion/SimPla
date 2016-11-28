@@ -13,7 +13,10 @@ namespace simpla { namespace model
 {
 using namespace mesh;
 
-class Model : public concept::Printable, public geometry::GeoObject
+class Model :
+        public concept::Printable,
+        public geometry::GeoObject,
+        public concept::Configurable
 {
 public:
     Model() {}
@@ -32,12 +35,30 @@ public:
 
     virtual void save(std::string const &);
 
-    virtual void deploy();
+    virtual void update();
 
     virtual void initialize(Real data_time = 0);
 
+    void chart(ChartBase *c) { m_chart_ = c; };
 
+    ChartBase *chart() { return m_chart_; };
 
+    ChartBase const *chart() const { return m_chart_; };
+private:
+    ChartBase *m_chart_;
+
+//    virtual EntityIdRange
+//    range(MeshEntityType const &iform, geometry::IntersectionStatus const &status, ChartBase const *c)
+//    {
+//        return EntityIdRange();
+//    };
+//
+//    virtual void
+//    get_value_fraction(MeshEntityType const &iform, ChartBase const *c, std::map<EntityIdRange, Real> *)
+//    {
+//        UNIMPLEMENTED;
+//    }
+//
 //    virtual int const &tag(MeshEntityId const &s) const
 //    {
 //        return m_tags_.get(M::sw(M::minimal_vertex(s), s.w + M::node_id(s)));

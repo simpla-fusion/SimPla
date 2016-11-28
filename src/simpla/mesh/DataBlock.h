@@ -48,9 +48,9 @@ public:
 
     virtual void sync(std::shared_ptr<DataBlock>, bool only_ghost = true)   =0;
 
-    virtual bool is_deployed() const =0;
+    virtual bool is_updated() const =0;
 
-    virtual void deploy() =0;
+    virtual void update() =0;
 
     virtual void clear()=0;
 
@@ -117,9 +117,9 @@ public:
     };
 
 
-    virtual bool is_deployed() const { return data_entity_type::is_deployed(); };
+    virtual bool is_updated() const { return data_entity_type::is_updated(); };
 
-    virtual void deploy() { data_entity_type::deploy(); };
+    virtual void update() { data_entity_type::update(); };
 
     virtual void destroy() { data_entity_type::destroy(); };
 

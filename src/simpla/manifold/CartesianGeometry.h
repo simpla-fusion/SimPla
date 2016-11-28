@@ -78,8 +78,6 @@ public:
     ~CartesianGeometry() {}
 
 
-    virtual void deploy() {};
-
     virtual void initialize();
 
 
@@ -94,10 +92,9 @@ public:
     template<typename ...Args>
     point_type point(Args &&...args) const { return CoordinateFrame::mesh_block()->point(std::forward<Args>(args)...); }
 
+    point_type point(MeshEntityId s) const { UNIMPLEMENTED; };
 
-    point_type point(MeshEntityId s) const {};
-
-    point_type point(MeshEntityId s, point_type const &r) const {};
+    point_type point(MeshEntityId s, point_type const &r) const { UNIMPLEMENTED; };
 
     Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 

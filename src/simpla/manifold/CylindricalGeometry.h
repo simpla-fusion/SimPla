@@ -157,8 +157,6 @@ public:
     virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_.get(M::sw(s, M::node_id(s))); }
 
 
-    virtual void deploy() {}
-
     virtual void initialize()
     {
         //        VERBOSE << mesh_block()->inv_dx() << mesh_block()->dx() << std::endl;

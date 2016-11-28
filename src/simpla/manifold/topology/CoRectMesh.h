@@ -486,7 +486,7 @@ public:
 
     virtual Real inv_dual_volume(id_type s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
-    void deploy()
+    void update()
     {
         /**
              *\verbatim

@@ -98,7 +98,7 @@ public:
 
     virtual bool is_valid() const { return true; };
 
-    virtual void deploy() {};
+    virtual void update() {};
 
     virtual void tear_down() {};
 

@@ -162,9 +162,9 @@ public:
 
     virtual bool is_null() const { return false; };
 
-    virtual bool is_deployed() const { return m_data_ != nullptr; }
+    virtual bool is_updated() const { return m_data_ != nullptr; }
 
-    virtual void deploy()
+    virtual void update()
     {
         if (m_data_ == nullptr)
         {
@@ -181,7 +181,7 @@ public:
 
     virtual void clear()
     {
-        deploy();
+        update();
         toolbox::MemorySet(m_data_, 0, m_size_ * sizeof(value_type));
     }
 

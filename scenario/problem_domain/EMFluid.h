@@ -50,7 +50,7 @@ public:
 
 //    virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m) { m_chart.move_to(m); }
 
-//    virtual void deploy() {};
+//    virtual void update() {};
 
     virtual void next_time_step(Real data_time, Real dt);
 

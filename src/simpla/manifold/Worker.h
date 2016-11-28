@@ -55,7 +55,7 @@ public:
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m);
 
-    virtual void deploy() {};
+    virtual void update() {};
 
     virtual void initialize(Real data_time);
 

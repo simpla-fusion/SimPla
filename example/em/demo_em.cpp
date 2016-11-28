@@ -80,7 +80,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         }
     }
 
-    ctx->deploy();
+    ctx->update();
 
     for (auto const &item:options["Particles"])
     {

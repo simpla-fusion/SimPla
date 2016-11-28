@@ -24,18 +24,18 @@ class Bundle : public AttributeView<TV, IFORM, DOF>
 private:
     typedef Bundle<TV, IFORM, DOF> this_type;
 
-    typedef AttributeView<TV, IFORM, DOF> base_type;
+    typedef AttributeView <TV, IFORM, DOF> base_type;
 public:
     typedef TV value_type;
 
-    using base_type::deploy;
+    using base_type::update;
     using base_type::move_to;
 
     Bundle() : m_chart_(nullptr) {}
 
     template<typename ...Args>
     Bundle(ChartBase *chart, Args &&...args) :
-            base_type(std::forward<Args>(args)...), m_chart_(chart) { connect(m_chart_); };
+            base_type(std::forward<Args>(args)...), m_chart_(nullptr) { connect(chart); };
 
     template<typename ...Args>
     Bundle(std::string const &key, Args &&...args) :base_type(key, std::forward<Args>(args)...), m_chart_(nullptr) {};
@@ -44,19 +44,14 @@ public:
 
     Bundle(this_type &&other) = delete;
 
-
-//    virtual void swap(this_type &other)
-//    {
-//        base_type::swap(other);
-//        std::swap(m_chart_, other.m_chart_);
-//    };
-
     bool is_connected() const { return m_chart_ != nullptr; }
 
     void connect(ChartBase *chart)
     {
-        if (chart != nullptr)
+        if (chart != nullptr && chart != m_chart_)
         {
+            if (m_chart_ != nullptr) { disconnect(); }
+
             m_chart_ = chart;
 
             m_chart_->connect(this);
@@ -66,6 +61,7 @@ public:
             {
                 this->move_to(m_chart_->coordinate_frame()->mesh_block());
             }
+
         }
     }
 

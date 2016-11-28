@@ -27,7 +27,7 @@ namespace simpla
 std::shared_ptr<simulation::TimeIntegrator>
 create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w);
 
-std::shared_ptr<model::Model> create_model(const std::string &input_file_name);
+std::shared_ptr<model::Model> create_model();
 
 }//namespace simpla
 
@@ -36,32 +36,37 @@ int main(int argc, char **argv)
     logger::set_stdout_level(100);
     GLOBAL_COMM.init(argc, argv);
 
+    index_box_type mesh_index_box{{4,  8,  4},
+                                  {16, 32, 16}};
 
-    auto model = create_model(argv[1]);
+    auto model = create_model();
 
-    index_box_type mesh_index_box{{0, 0, 0}, {16, 16, 16}};
+    model->db["global index box"] = mesh_index_box;
+    model->load(argv[1]);
 
     box_type bound_box = model->box();
+
     // typedef mesh:: CylindricalGeometry mesh_type;
-//    typedef AMRTest<mesh_type> work_type;
+    // typedef AMRTest<mesh_type> work_type;
 
-    auto w = std::make_shared<EMFluid<mesh::CartesianGeometry>>();
+    auto worker = std::make_shared<EMFluid<mesh::CartesianGeometry>>();
 
-    w->connect_model(model);
+//    worker->set_model(model);
 
 //    auto sp = w->add_particle("H", 1.0, 1.0);
 
-    auto integrator = simpla::create_time_integrator("EMFluid", w);
+    worker->print(std::cout);
+
+    auto integrator = simpla::create_time_integrator("EMFluid", worker);
 
     integrator->db["CartesianGeometry"]["domain_boxes_0"] = mesh_index_box;
     integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{1, 1, 1};
     integrator->db["CartesianGeometry"]["x_lo"] = std::get<0>(bound_box);
     integrator->db["CartesianGeometry"]["x_up"] = std::get<1>(bound_box);
-    integrator->deploy();
+    integrator->update();
 
     integrator->check_point();
 
-    w->print(std::cout);
 
     INFORM << "***********************************************" << std::endl;
 

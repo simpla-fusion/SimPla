@@ -28,7 +28,7 @@ MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *up, Real
 
     if (m_is_deployed_) { return; }
 
-    base_type::deploy();
+    base_type::update();
     ASSERT(toolbox::is_valid(m_g_box_));
     for (int i = 0; i < m_ndims_; ++i)
     {
@@ -192,7 +192,7 @@ MeshBlock::create(int inc_level, const index_type *lo, const index_type *hi) con
         std::get<1>(res->m_g_box_)[2] = hi[2] >> -inc_level;
     }
     res->m_level_ += inc_level;
-    res->deploy();
+    res->update();
     return res;
 
 }

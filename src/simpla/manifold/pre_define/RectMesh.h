@@ -110,7 +110,7 @@ public:
         m_coords_upper_ = other.m_coords_upper_;
         m_ghost_width_ = other.m_ghost_width_;
         m_offset_ = other.m_offset_;
-        deploy();
+        update();
     };
 
     virtual  ~RectMesh() {}
@@ -353,7 +353,7 @@ public:
 
     };
 
-    virtual void deploy()
+    virtual void update()
     {
         /**
              *\verbatim

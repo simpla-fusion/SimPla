@@ -16,26 +16,26 @@ void Model::save(std::string const &)
     UNIMPLEMENTED;
 };
 
-void Model::deploy()
+void Model::update()
 {
 //    m_tags_.move_to(m_coord_->mesh_block());
 //    m_fraction_.move_to(m_coord_->mesh_block());
 //    m_dual_fraction_.move_to(m_coord_->mesh_block());
-//    m_tags_.deploy();
-//    m_fraction_.deploy();
-//    m_dual_fraction_.deploy();
+//    m_tags_.update();
+//    m_fraction_.update();
+//    m_dual_fraction_.update();
 
 };
 
 void Model::initialize(Real data_time)
 {
-    deploy();
+    update();
 
 //    m_tags_.clear();
 //    m_fraction_.clear();
 //    m_dual_fraction_.clear();
 //
-//    auto m_coord_ = chart->coordinate_frame();
+//    auto m_coord_ = m_mesh_->coordinate_frame();
 //
 ////    auto r = m_coord_->range(VERTEX, m_geo_->box());
 ////

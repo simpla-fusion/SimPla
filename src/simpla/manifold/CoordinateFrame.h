@@ -40,7 +40,7 @@ struct CoordinateFrame : public concept::Printable
 
     virtual std::shared_ptr<MeshBlock> const &mesh_block() const { return m_mesh_block_; }
 
-    virtual void deploy() {};
+    virtual void update() {};
 
     virtual void initialize() {};
 

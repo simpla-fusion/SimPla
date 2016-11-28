@@ -162,7 +162,7 @@ struct AttributeViewBase : public concept::Printable
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr);
 
-    virtual void deploy();
+    virtual void update();
 
     virtual void clear();
 

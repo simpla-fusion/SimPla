@@ -33,7 +33,7 @@ struct ChartBase : public concept::Printable
 
     virtual void initialize(Real data_time = 0);
 
-    virtual void deploy();
+    virtual void update();
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m);
 
@@ -86,7 +86,7 @@ public:
 
     virtual void initialize(Real data_time = 0) { m_mesh_.initialize(); }
 
-    virtual void deploy() { m_mesh_.deploy(); }
+    virtual void update() { m_mesh_.update(); }
 
     /**
      * @return current MeshBlock

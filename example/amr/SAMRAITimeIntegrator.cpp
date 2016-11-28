@@ -470,6 +470,7 @@ SAMRAIWorker::SAMRAIWorker(
         d_fluxghosts(dim, 1)
 {
     TBOX_ASSERT(grid_geom);
+
 }
 
 /*
@@ -817,7 +818,7 @@ create_data_block_t2(std::shared_ptr<mesh::AttributeBase> const &item, boost::sh
             o_lower, o_upper,
             data::FAST_FIRST,
             i_lower, i_upper);
-    res->deploy();
+    res->update();
 
     return std::dynamic_pointer_cast<mesh::DataBlock>(res);
 
@@ -918,7 +919,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
             static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
                                  patch.getBox().getGlobalId().getLocalId().getValue())
     );
-    m->deploy();
+    m->update();
 
     for (auto &ob:w->chart()->attributes())
     {
@@ -1135,7 +1136,7 @@ public:
 
     virtual void save(data::DataBase *) const;
 
-    virtual void deploy();
+    virtual void update();
 
     virtual void tear_down();
 
@@ -1278,7 +1279,7 @@ convert_database(data::DataBase const &src, std::string const &s_name = "")
     return dest;
 }
 }//namespace detail{
-void SAMRAITimeIntegrator::deploy()
+void SAMRAITimeIntegrator::update()
 {
 
     bool use_refined_timestepping = db["use_refined_timestepping"].template as<bool>(true);
@@ -1371,7 +1372,7 @@ void SAMRAITimeIntegrator::deploy()
 
     m_dt_now_ = time_integrator->initializeHierarchy();
 
-    MESSAGE << name() << " is deployed!" << std::endl;
+    MESSAGE << name() << " is updated!" << std::endl;
 //    time_integrator->printClassData(std::cout);
 
 };

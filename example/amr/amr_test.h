@@ -84,8 +84,8 @@ struct AMRTest : public mesh::Worker
 
     virtual void next_time_step(Real data_time, Real dt)
     {
-//        Ev.deploy();
-//        Bv.deploy();
+//        Ev.update();
+//        Bv.update();
         Jv = cross(Ev, Bv) * dot(Ev, Ev);//
 
 

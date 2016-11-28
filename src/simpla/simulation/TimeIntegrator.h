@@ -29,7 +29,7 @@ public:
 
     virtual ~TimeIntegrator() {}
 
-    virtual void deploy() {};
+    virtual void update() {};
 
     virtual void tear_down() {};
 

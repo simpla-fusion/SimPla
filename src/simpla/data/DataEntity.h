@@ -88,7 +88,7 @@ public:
 
 //    virtual void set(std::shared_ptr<void> d, DataType const &, DataSpace const &) {};
 //
-//    virtual void deploy() = 0;
+//    virtual void update() = 0;
 //
 //    virtual void clear() = 0;
 //
