@@ -80,6 +80,9 @@ public:
         return *this;
     };
 
+    template<typename U>
+    U const &get(std::string const &key, U const &v) { if (has(key)) { return at(key).as<U>(); } else { return v; }}
+
     template<typename T> bool equal(T const &v) const { return is_a(typeid(T)) && as<T>() == v; };
 
     template<typename T> bool operator==(T const &v) const { return equal(v); }

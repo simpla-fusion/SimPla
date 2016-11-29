@@ -21,6 +21,7 @@
 #include <simpla/concept/Printable.h>
 
 #include "nTuple.h"
+#include "nTupleExt.h"
 #include "Log.h"
 
 

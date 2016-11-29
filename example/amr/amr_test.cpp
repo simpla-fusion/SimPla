@@ -5,19 +5,10 @@
 #include <simpla/SIMPLA_config.h>
 
 #include <iostream>
-#include <simpla/manifold/Atlas.h>
 #include <simpla/manifold/Worker.h>
-#include <simpla/manifold/Field.h>
-#include <simpla/manifold/CartesianGeometry.h>
-#include <simpla/manifold/CylindricalGeometry.h>
-
-#include <simpla/model/Model.h>
-
-#include <simpla/physics/Constants.h>
 #include <simpla/simulation/TimeIntegrator.h>
+#include <simpla/physics/Constants.h>
 
-//#include "amr_test.h"
-#include "../../scenario/problem_domain/EMFluid.h"
 
 using namespace simpla;
 

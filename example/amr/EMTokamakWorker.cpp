@@ -104,6 +104,19 @@ void EMTokamakWorker::initialize(Real data_time)
     index_type kb = m_start_[2];
     index_type ke = m_start_[2] + m_count_[2];
 
+    field_type <VERTEX> rho0{m_chart_};
+    rho0.clear();
+
+    rho0.assign([&](point_type const &x)
+                {
+                    if (geqdsk.boundary().check_inside(x) > 0) { return geqdsk.profile("ne", x); }
+                });
+
+    for (auto &item:particles())
+    {
+        Real ratio = db["Particles"].at(item.first).get("ratio", 1.0);
+        *item.second->rho = rho0 * ratio;
+    }
 //
 //    for (index_type i = ib; i < ie; ++i)
 //        for (index_type j = jb; j < je; ++j)
