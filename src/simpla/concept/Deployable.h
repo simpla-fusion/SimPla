@@ -12,7 +12,7 @@ namespace simpla { namespace concept
 struct Deployable
 {
 
-    Deployable() : m_is_deployed_(false) {}
+    Deployable() : m_is_deployed_(false), m_is_valid_(false) {}
 
     virtual ~Deployable() { destroy(); }
 
@@ -26,8 +26,20 @@ struct Deployable
 
     virtual void destroy() { m_is_deployed_ = false; };
 
+    virtual bool is_valid() const { return m_is_valid_; }
+
+    virtual void preprocess() { m_is_valid_ = true; /*add sth here*/}
+
+    virtual void postprocess() { /*add sth here*/ m_is_valid_ = false; }
+
+    virtual void initialize(Real data_time = 0) { preprocess(); }
+
+    virtual void finalize(Real data_time = 0) { postprocess(); }
+
+
 private:
     bool m_is_deployed_ = false;
+    bool m_is_valid_ = false;
 
 };
 }}//namespace simpla{namespace concept{

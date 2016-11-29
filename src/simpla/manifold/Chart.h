@@ -20,7 +20,7 @@ namespace simpla { namespace mesh
  *   - $p$ is the projection
  *
  */
-struct Chart : public concept::Printable
+struct Chart : public concept::Printable, public concept::Deployable
 {
     Chart();
 
@@ -34,9 +34,13 @@ struct Chart : public concept::Printable
 
     virtual bool is_a(std::type_info const &info) const;
 
+    virtual void preprocess();
+
+    virtual void postprocess();
+
     virtual void initialize(Real data_time = 0);
 
-    virtual void update();
+    virtual void finalize(Real data_time = 0);
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m);
 

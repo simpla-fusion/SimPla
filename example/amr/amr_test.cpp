@@ -51,7 +51,6 @@ int main(int argc, char **argv)
     auto bound_box = worker->db["bound_box"].as(box_type {{1, 0,  -1},
                                                           {2, PI, 1}});
 
-    CHECK(bound_box);
 
     auto integrator = simpla::create_time_integrator("EMFluid");
     integrator->set_worker(worker);

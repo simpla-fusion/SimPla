@@ -48,6 +48,8 @@ public:
 
     virtual void update()=0;
 
+    virtual void preprocess()=0;
+
 
 };
 
@@ -119,6 +121,8 @@ public:
         base_type::deploy();
         data_entity_type::deploy();
     };
+
+    virtual void preprocess() { data_entity_type::update(); };
 
     virtual void update() { data_entity_type::update(); };
 

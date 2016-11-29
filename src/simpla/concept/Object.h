@@ -96,7 +96,6 @@ public:
 
     virtual std::string get_class_name() const;
 
-    virtual bool is_valid() const { return true; };
 
     void id(id_type t_id);
 

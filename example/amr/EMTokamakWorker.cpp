@@ -33,11 +33,13 @@ public:
 
     virtual void deploy();
 
-    virtual void destroy();
+    virtual void preprocess();
 
-    virtual void update();
+    virtual void postprocess();
 
     virtual void initialize(Real data_time);
+
+    virtual void finalize(Real data_time);
 
     virtual void next_time_step(Real data_time, Real dt);
 
@@ -72,7 +74,6 @@ void EMTokamakWorker::deploy()
 {
     base_type::deploy();
 
-
     // first run, only load configure, m_chart_=nullptr
     geqdsk.load(db["GEqdsk"].as<std::string>("geqdsk.gfile"));
 
@@ -81,13 +82,13 @@ void EMTokamakWorker::deploy()
     db["bound_box"] = geqdsk.box();
 };
 
-void EMTokamakWorker::destroy() { base_type::destroy(); };
+void EMTokamakWorker::preprocess() { if (is_valid()) { return; } else { base_type::preprocess(); }}
 
-void EMTokamakWorker::update() { base_type::update(); }
+void EMTokamakWorker::postprocess() { if (!is_valid()) { return; } else { base_type::postprocess(); }}
 
 void EMTokamakWorker::initialize(Real data_time)
 {
-    base_type::initialize(data_time);
+    preprocess();
 
     rho0.assign([&](point_type const &x)
                 {
@@ -95,12 +96,19 @@ void EMTokamakWorker::initialize(Real data_time)
                 }
     );
     psi.assign([&](point_type const &x) { return geqdsk.psi(x); });
-//
-//    for (auto &item:particles())
-//    {
-//        Real ratio = db["Particles"].at(item.first).get("ratio", 1.0);
-//        *item.second->rho = rho0 * ratio;
-//    }
+
+    nTuple<Real, 3> ZERO_V{0, 0, 0};
+    B0.assign([&](point_type const &x)
+              {
+                  return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V;
+              }
+    );
+
+    for (auto &item:particles())
+    {
+        Real ratio = db["Particles"].at(item.first).get("ratio", 1.0);
+        *item.second->rho = rho0 * ratio;
+    }
 //
 //    for (index_type i = ib; i < ie; ++i)
 //        for (index_type j = jb; j < je; ++j)
@@ -108,13 +116,20 @@ void EMTokamakWorker::initialize(Real data_time)
 //            {
 //                auto x = get_mesh()->point(i, j, k);
 //            }
+    base_type::initialize(data_time);
 
+}
 
+void EMTokamakWorker::finalize(Real data_time)
+{
+    base_type::finalize(data_time);
+    postprocess();
 }
 
 void EMTokamakWorker::next_time_step(Real data_time, Real dt)
 {
-
+    preprocess();
+    base_type::next_time_step(data_time, dt);
 };
 
 void EMTokamakWorker::set_physical_boundary_conditions(Real data_time)
@@ -124,15 +139,8 @@ void EMTokamakWorker::set_physical_boundary_conditions(Real data_time)
     if (E_src_fun) { E.assign([&](point_type const &x) { return E_src_fun(x, data_time); }, E_src_range); }
 };
 
-void EMTokamakWorker::set_physical_boundary_conditions_E(Real time)
-{
-    E.assign(0, edge_boundary);
-}
+void EMTokamakWorker::set_physical_boundary_conditions_E(Real time) { E.assign(0, edge_boundary); }
 
-void EMTokamakWorker::set_physical_boundary_conditions_B(Real time)
-{
-    B.assign(0, face_boundary);
-
-}
+void EMTokamakWorker::set_physical_boundary_conditions_B(Real time) { B.assign(0, face_boundary); }
 
 }

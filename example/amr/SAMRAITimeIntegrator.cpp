@@ -926,8 +926,8 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
     {
         auto &attr = ob->attribute();
         if (attr == nullptr) { return; }
-        auto db = detail::create_data_block(attr,
-                                            patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext()));
+        auto db = detail::create_data_block(
+                attr, patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext()));
 
         ob->move_to(m, db);
     }

@@ -33,22 +33,37 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 
 void Worker::move_to(std::shared_ptr<mesh::MeshBlock> const &m)
 {
-    ASSERT (m_chart_ != nullptr);
+    postprocess();
     m_chart_->move_to(m);
+    preprocess();
 }
 
-
-void Worker::update()
+void Worker::preprocess()
 {
-    ASSERT (m_chart_ != nullptr);
-    m_chart_->update();
+    if (is_valid()) { return; } else { concept::Deployable::preprocess(); }
+    m_chart_->preprocess();
+}
+
+void Worker::postprocess()
+{
+    if (!is_valid()) { return; } else { concept::Deployable::postprocess(); }
+    m_chart_->postprocess();
 }
 
 void Worker::initialize(Real data_time)
 {
-    ASSERT(m_chart_ != nullptr);
+    preprocess();
+    ASSERT (m_chart_ != nullptr);
     m_chart_->initialize(data_time);
 }
+
+void Worker::finalize(Real data_time)
+{
+    m_chart_->finalize(data_time);
+    postprocess();
+}
+
+
 //
 //
 //void Worker::deploy()

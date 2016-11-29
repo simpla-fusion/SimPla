@@ -30,7 +30,7 @@ private:
 public:
     typedef TV value_type;
 
-    using base_type::update;
+    using base_type::preprocess;
     using base_type::move_to;
 
     Bundle() : m_chart_(nullptr) {}
@@ -55,7 +55,7 @@ public:
 
     void deep_copy(this_type const &other)
     {
-        update();
+        preprocess();
         if (m_data_ != nullptr) { m_data_->deep_copy(*other.m_data_); }
     }
 
@@ -123,6 +123,7 @@ public:
     virtual std::shared_ptr<DataBlock>
     create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const
     {
+        ASSERT(m != nullptr);
         return create_data_block(m, static_cast<value_type *>(p));
     };
 
@@ -139,10 +140,23 @@ public:
     virtual value_type const &
     get(index_type i, index_type j, index_type k = 0, index_type l = 0) const { return m_data_->get(i, j, k, l); }
 
-    virtual void update()
+    virtual void preprocess()
     {
-        base_type::update();
+        if (is_valid()) { return; }
+        else
+        {
+            ASSERT(m_chart_ != nullptr);
+            base_type::move_to(m_chart_->mesh_block());
+            base_type::preprocess();
+        }
         m_data_ = base_type::template data_as<default_data_block_type>();
+    }
+
+    virtual void postprocess()
+    {
+        if (!is_valid()) { return; } else { base_type::postprocess(); }
+        m_data_ = nullptr;
+
     }
 
 private:

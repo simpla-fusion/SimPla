@@ -57,9 +57,13 @@ public:
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m);
 
-    virtual void update();
+    virtual void preprocess();
 
-    virtual void initialize(Real data_time);
+    virtual void postprocess();
+
+    virtual void initialize(Real data_time = 0);
+
+    virtual void finalize(Real data_time= 0);
 
     virtual void set_physical_boundary_conditions(Real time) {};
 

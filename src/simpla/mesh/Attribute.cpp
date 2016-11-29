@@ -130,7 +130,7 @@ AttributeView::AttributeView(std::shared_ptr<AttributeBase> const &attr) : m_att
 
 AttributeView::~AttributeView() {}
 
-id_type AttributeView::mesh_id() const { return m_id_; }
+id_type AttributeView::mesh_id() const { return is_valid() ? m_mesh_block_->id() : 0; }
 
 std::shared_ptr<AttributeBase> &AttributeView::attribute() { return m_attr_; }
 
@@ -142,36 +142,42 @@ DataBlock const *AttributeView::data_block() const { return m_data_.get(); };
 
 void AttributeView::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
 {
-    if (m != nullptr)
-    {
-        if (d == nullptr && m->id() == m_id_) { return; }
-
-        m_id_ = m->id();
-
-        if (d != nullptr) { m_data_ = d; }
-        else if (m_attr_ != nullptr && m_attr_->has(m_id_)) { m_data_ = m_attr_->at(m_id_); }
-        else { m_data_ = create_data_block(m, nullptr); }
-        update();
-    }
+    if (m == nullptr || m == m_mesh_block_) { return; }
+    postprocess();
+    m_mesh_block_ = m;
+    m_data_ = d;
 }
 
 
-void AttributeView::update()
+void AttributeView::preprocess()
 {
+    if (is_valid()) { return; } else { concept::Deployable::preprocess(); }
+
+    ASSERT(m_mesh_block_ != nullptr);
+    if (m_data_ != nullptr) { return; }
+    else if (m_attr_ != nullptr && m_attr_->has(m_mesh_block_->id())) { m_data_ = m_attr_->at(m_mesh_block_->id()); }
+    else
+    {
+        m_data_ = create_data_block(m_mesh_block_, nullptr);
+        m_data_->preprocess();
+    }
     ASSERT(m_data_ != nullptr);
-    m_data_->update();
-};
+}
+
+void AttributeView::postprocess()
+{
+    if (!is_valid()) { return; } else { concept::Deployable::postprocess(); }
+    m_data_.reset();
+    m_mesh_block_.reset();
+}
+
 
 void AttributeView::clear()
 {
-    update();
+    preprocess();
     m_data_->clear();
 }
 
-void AttributeView::destroy()
-{
-    if (m_attr_ != nullptr) { m_attr_->erase(m_id_); }
-    m_data_.reset();
-}
+
 }
 }//namespace simpla { namespace mesh

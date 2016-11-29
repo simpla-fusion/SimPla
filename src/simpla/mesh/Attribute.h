@@ -104,7 +104,7 @@ public:
 };
 
 
-struct AttributeView : public concept::Printable
+struct AttributeView : public concept::Printable, public concept::Deployable
 {
     explicit AttributeView(std::shared_ptr<AttributeBase> const &attr = nullptr);
 
@@ -164,15 +164,15 @@ struct AttributeView : public concept::Printable
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr);
 
-    virtual void update();
+    virtual void preprocess();
+
+    virtual void postprocess();
 
     virtual void clear();
 
-    virtual void destroy();
-
 
 private:
-    id_type m_id_ = 0;
+    std::shared_ptr<MeshBlock> m_mesh_block_ = nullptr;
     std::shared_ptr<DataBlock> m_data_ = nullptr;
     std::shared_ptr<AttributeBase> m_attr_ = nullptr;
 

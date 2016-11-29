@@ -47,22 +47,37 @@ bool Chart::is_a(std::type_info const &info) const { return typeid(Chart) == inf
 AttributeView *
 Chart::connect(AttributeView *attr)
 {
-
     m_attr_views_.insert(attr);
     return attr;
-
 }
 
 void Chart::disconnect(AttributeView *attr) { m_attr_views_.erase(attr); }
 
-void Chart::initialize(Real data_time) { update(); }
+void Chart::initialize(Real data_time) { preprocess(); }
 
-void Chart::update() { for (auto &item:m_attr_views_) { item->move_to(m_mesh_block_); }}
+void Chart::finalize(Real data_time) { postprocess(); }
+
+void Chart::preprocess()
+{
+    ASSERT(m_mesh_block_ != nullptr);
+    for (auto &item:m_attr_views_)
+    {
+        item->move_to(m_mesh_block_);
+        item->preprocess();
+    }
+}
+
+void Chart::postprocess()
+{
+    for (auto &item:m_attr_views_) { item->postprocess(); }
+    m_mesh_block_.reset();
+}
 
 void Chart::move_to(std::shared_ptr<MeshBlock> const &m)
 {
+    postprocess();
     m_mesh_block_ = m;
-    update();
+    preprocess();
 };
 
 

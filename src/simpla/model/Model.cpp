@@ -21,9 +21,9 @@ void Model::update()
 //    m_tags_.move_to(m_coord_->mesh_block());
 //    m_fraction_.move_to(m_coord_->mesh_block());
 //    m_dual_fraction_.move_to(m_coord_->mesh_block());
-//    m_tags_.update();
-//    m_fraction_.update();
-//    m_dual_fraction_.update();
+//    m_tags_.preprocess();
+//    m_fraction_.preprocess();
+//    m_dual_fraction_.preprocess();
 
 };
 

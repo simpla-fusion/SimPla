@@ -41,7 +41,13 @@ public:
 
     virtual void next_time_step(Real data_time, Real dt);
 
+    virtual void preprocess();
+
+    virtual void postprocess();
+
     virtual void initialize(Real data_time = 0);
+
+    virtual void finalize(Real data_time = 0);
 
     virtual void set_physical_boundary_conditions(Real time = 0) {};
 
@@ -136,9 +142,22 @@ EMFluid<TM>::print(std::ostream &os, int indent) const
 }
 
 template<typename TM>
+void EMFluid<TM>::preprocess()
+{
+    if (is_valid()) { return; } else { base_type::preprocess(); }
+    if (!E.is_valid()) E.clear();
+    if (!B.is_valid()) B.clear();
+    if (!B0.is_valid()) { B0.clear(); }
+}
+
+template<typename TM>
+void EMFluid<TM>::postprocess() { if (!is_valid()) { return; } else { base_type::postprocess(); }}
+
+
+template<typename TM>
 void EMFluid<TM>::initialize(Real data_time)
 {
-    base_type::initialize(data_time);
+    preprocess();
 
     if (m_fluid_sp_.size() > 0)
     {
@@ -146,13 +165,21 @@ void EMFluid<TM>::initialize(Real data_time)
         B0v = map_to<VERTEX>(B0);
         BB = dot(B0v, B0v);
     }
-
+    base_type::initialize(data_time);
 }
 
 
 template<typename TM>
+void EMFluid<TM>::finalize(Real data_time)
+{
+    // do sth here
+    postprocess();
+}
+
+template<typename TM>
 void EMFluid<TM>::next_time_step(Real data_time, Real dt)
 {
+    preprocess();
     DEFINE_PHYSICAL_CONST
     B -= curl(E) * (dt * 0.5);
     set_physical_boundary_conditions_B(data_time);
