@@ -109,21 +109,15 @@ void EMTokamakWorker::initialize(Real data_time)
         Real ratio = db["Particles"].at(item.first).get("ratio", 1.0);
         *item.second->rho = rho0 * ratio;
     }
-//
-//    for (index_type i = ib; i < ie; ++i)
-//        for (index_type j = jb; j < je; ++j)
-//            for (index_type k = kb; k < ke; ++k)
-//            {
-//                auto x = get_mesh()->point(i, j, k);
-//            }
+
     base_type::initialize(data_time);
 
 }
 
 void EMTokamakWorker::finalize(Real data_time)
 {
-    base_type::finalize(data_time);
     postprocess();
+    base_type::finalize(data_time);
 }
 
 void EMTokamakWorker::next_time_step(Real data_time, Real dt)

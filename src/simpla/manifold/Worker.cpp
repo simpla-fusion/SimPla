@@ -59,8 +59,8 @@ void Worker::initialize(Real data_time)
 
 void Worker::finalize(Real data_time)
 {
-    m_chart_->finalize(data_time);
     postprocess();
+    m_chart_->finalize(data_time);
 }
 
 
