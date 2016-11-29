@@ -92,17 +92,17 @@ public:
     template<typename ...Args>
     point_type point(Args &&...args) const { return mesh_block()->point(std::forward<Args>(args)...); }
 
-    point_type point(MeshEntityId s) const { return mesh_block()->point(s); };
+    virtual point_type point(MeshEntityId s) const { return mesh_block()->point(s); };
 
-    point_type point(MeshEntityId s, point_type const &r) const { return mesh_block()->point(s);};
+    virtual point_type point(MeshEntityId s, point_type const &r) const { return mesh_block()->point(s); };
 
-    Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
+    virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 
-    Real dual_volume(MeshEntityId s) const { return m_dual_volume_[m::node_id(s)]; }
+    virtual Real dual_volume(MeshEntityId s) const { return m_dual_volume_[m::node_id(s)]; }
 
-    Real inv_volume(MeshEntityId s) const { return m_inv_volume_[m::node_id(s)]; }
+    virtual Real inv_volume(MeshEntityId s) const { return m_inv_volume_[m::node_id(s)]; }
 
-    Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
+    virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
 
 }; // struct  Mesh

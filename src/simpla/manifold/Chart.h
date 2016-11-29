@@ -68,7 +68,7 @@ struct Chart : public concept::Printable
 
     std::set<AttributeView *> const &attributes() const;
 
-private:
+protected:
     std::set<AttributeView *> m_attr_views_;
 
     std::shared_ptr<MeshBlock> m_mesh_block_;

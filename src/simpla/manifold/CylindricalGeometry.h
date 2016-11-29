@@ -61,6 +61,9 @@ public:
     Bundle<Real, VOLUME, 9> m_inv_dual_volume_{this, "inv_dual_volume", "NO_FILL"};
 
 public:
+    typedef mesh::MeshEntityIdCoder M;
+
+    virtual point_type point(MeshEntityId s) const { return m_mesh_block_->point(s); };
 
     virtual point_type point(MeshEntityId id, point_type const &pr) const
     {
@@ -129,14 +132,6 @@ public:
         return point_type{x, y, z};
     }
 
-    typedef mesh::MeshEntityIdCoder M;
-
-    virtual point_type point(MeshEntityId s) const
-    {
-        return point_type{m_vertics_.get(M::sw(s, 0)),
-                          m_vertics_.get(M::sw(s, 1)),
-                          m_vertics_.get(M::sw(s, 2))};
-    }
 
     virtual Real volume(MeshEntityId s) const { return m_volume_.get(M::sw(s, M::node_id(s))); }
 
