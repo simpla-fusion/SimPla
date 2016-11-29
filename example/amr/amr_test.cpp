@@ -46,16 +46,17 @@ int main(int argc, char **argv)
     worker->print(std::cout);
 
     index_box_type mesh_index_box{{0,  0,  0},
-                                  {32, 32, 32}};
-    box_type bound_box{{1, 0,  -1},
-                       {2, PI, 1}};
+                                  {16, 16, 32}};
 
-    worker->db["Bound Box"].as(&bound_box);
+    auto bound_box = worker->db["bound_box"].as(box_type {{1, 0,  -1},
+                                                          {2, PI, 1}});
+
+    CHECK(bound_box);
 
     auto integrator = simpla::create_time_integrator("EMFluid");
     integrator->set_worker(worker);
     integrator->db["CartesianGeometry"]["domain_boxes_0"] = mesh_index_box;
-    integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{1, 1, 1};
+    integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{0, 1, 0};
     integrator->db["CartesianGeometry"]["x_lo"] = std::get<0>(bound_box);
     integrator->db["CartesianGeometry"]["x_up"] = std::get<1>(bound_box);
 

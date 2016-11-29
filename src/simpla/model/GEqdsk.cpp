@@ -397,11 +397,11 @@ box_type GEqdsk::box() const
 {
     point_type lower, upper;
     lower[RAxis] = m_pimpl_->m_rmin_;
-    lower[ZAxis] = m_pimpl_->m_rmin_;
+    lower[ZAxis] = m_pimpl_->m_zmin_;
     lower[PhiAxis] = 0;
 
     upper[RAxis] = m_pimpl_->m_rmax_;
-    upper[ZAxis] = m_pimpl_->m_rmax_;
+    upper[ZAxis] = m_pimpl_->m_zmax_;
     upper[PhiAxis] = TWOPI;
 
     return std::make_tuple(lower, upper);

@@ -28,7 +28,7 @@ template<int NDIMS> class Polygon;
  *  @brief 2D polygon
  */
 template<>
-struct Polygon<2> : public GeoObject
+struct Polygon<2>
 {
 
 
@@ -51,25 +51,19 @@ public:
 
     std::vector<point2d_type> const &data() const { return m_polygon_; };
 
-    void push_back(point_type const &p);
+    void push_back(point2d_type const &p);
 
     void deploy();
 
-    virtual int box_intersection(point_type *x0, point_type *x1) const;
+    virtual Real nearest_point(Real *x, Real *y) const;
 
-    virtual Real nearest_point(point_type *p) const;
+    virtual std::tuple<point2d_type, point2d_type> box() const { return std::make_tuple(m_min_, m_max_); };
 
-
-    virtual box_type box() const
-    {
-        return std::make_tuple(m_x0_, m_x1_);
-    };
-
-    virtual int within(const Real *x) const;
+    virtual int check_inside(Real x, Real y) const;
 
 
 private:
-    point_type m_x0_, m_x1_;
+    point2d_type m_min_, m_max_;
 };
 /* @} */
 }// namespace geometry

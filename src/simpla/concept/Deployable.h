@@ -12,7 +12,7 @@ namespace simpla { namespace concept
 struct Deployable
 {
 
-    Deployable() {}
+    Deployable() : m_is_deployed_(false) {}
 
     virtual ~Deployable() { tear_down(); }
 

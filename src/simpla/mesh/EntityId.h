@@ -338,9 +338,9 @@ struct MeshEntityIdCoder_
     static point_type point(MeshEntityId const &s)
     {
         return point_type{
-                static_cast<Real>(s.x) * _R,
-                static_cast<Real>(s.y) * _R,
-                static_cast<Real>(s.z) * _R
+                static_cast<Real>(s.x - ZERO * 2) * _R,
+                static_cast<Real>(s.y - ZERO * 2) * _R,
+                static_cast<Real>(s.z - ZERO * 2) * _R
         };
     }
 
@@ -931,7 +931,7 @@ struct MeshEntityIdCoder_
             range_type const &r = *this;
             int ib = r.m_min_[0];
             int ie = r.m_max_[0];
-#pragma omp parallel for
+//#pragma omp parallel for
             for (int i = ib; i < ie; ++i)
             {
                 for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)

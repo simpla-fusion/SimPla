@@ -11,20 +11,21 @@
 namespace simpla { namespace geometry
 {
 
-int Polygon<2>::box_intersection(point_type *x0, point_type *x1) const
-{
-    return geometry::box_intersection(m_x0_, m_x1_, x0, x1);
-}
+//int Polygon<2>::box_intersection(point_type *x0, point_type *x1) const
+//{
+//    return geometry::box_intersection(m_min_, m_max_, x0, x1);
+//}
 
 
-Real Polygon<2>::nearest_point(point_type *x) const
+Real Polygon<2>::nearest_point(Real *x, Real *y) const
 {
 
     typedef nTuple<Real, 2> Vec2;
 
     point2d_type x0;
 
-    x0 = *x;
+    x0[0] = *x;
+    x0[1] = *y;
 
     point2d_type p0 = m_polygon_.back();
 
@@ -67,8 +68,8 @@ Real Polygon<2>::nearest_point(point_type *x) const
         if (std::abs(dd) < std::abs(d2))
         {
             d2 = dd;
-            (*x)[0] = x0[0] - u[0];
-            (*x)[1] = x0[1] - u[1];
+            (*x) = x0[0] - u[0];
+            (*y) = x0[1] - u[1];
 
         }
         p0 = p1;
@@ -77,16 +78,11 @@ Real Polygon<2>::nearest_point(point_type *x) const
 
     d2 = std::sqrt(d2);
 
-    return within(&x0[0]) > 0 ? d2 : -d2;
+    return check_inside(*x, *y) > 0 ? d2 : -d2;
 }
 
 
-void Polygon<2>::push_back(point_type const &pp)
-{
-    point2d_type p;
-    p = pp;
-    m_polygon_.push_back(p);
-}
+void Polygon<2>::push_back(point2d_type const &pp) { m_polygon_.push_back(pp); }
 
 void Polygon<2>::deploy()
 {
@@ -113,41 +109,35 @@ void Polygon<2>::deploy()
         j = i;
     }
 
-    m_x0_ = m_polygon_.front();
-    m_x1_ = m_polygon_.front();
+    m_min_ = m_polygon_.front();
+    m_max_ = m_polygon_.front();
 
-    for (auto const &p:m_polygon_)
-    {
-        geometry::extent_box(&m_x0_, &m_x1_, &p[0]);
-    }
-
-    m_x0_[2] = std::numeric_limits<Real>::min();
-    m_x1_[2] = std::numeric_limits<Real>::max();
-
+    for (auto const &p:m_polygon_) { geometry::extent_box(&m_min_, &m_max_, &p[0]); }
 }
 
 
-int Polygon<2>::within(const Real *p) const
+int Polygon<2>::check_inside(Real x, Real y) const
 {
-    Real x = p[0];
-    Real y = p[1];
-    size_t num_of_vertex_ = m_polygon_.size();
-
-    bool oddNodes = false;
-
-    for (size_t i = 0, j = num_of_vertex_ - 1; i < num_of_vertex_; i++)
+    VERBOSE << "{" << x << " , " << y << "}" << m_min_ << "-" << m_max_ << std::endl;
+    if ((x >= m_min_[0]) && (y >= m_min_[1]) && (x < m_max_[0]) && (y < m_max_[1]))
     {
-        if (((m_polygon_[i][1] < y) && (m_polygon_[j][1] >= y))
-            || ((m_polygon_[j][1] < y) && (m_polygon_[i][1] >= y)))
+        size_t num_of_vertex_ = m_polygon_.size();
+
+        bool oddNodes = false;
+
+        for (size_t i = 0, j = num_of_vertex_ - 1; i < num_of_vertex_; i++)
         {
-            oddNodes ^= (y * multiple_[i] + constant_[i] < x);
+            if (((m_polygon_[i][1] < y) && (m_polygon_[j][1] >= y))
+                || ((m_polygon_[j][1] < y) && (m_polygon_[i][1] >= y)))
+            {
+                oddNodes ^= (y * multiple_[i] + constant_[i] < x);
+            }
+
+            j = i;
         }
 
-        j = i;
-    }
-
-    return oddNodes ? 1 : 0;
+        return oddNodes ? 1 : 0;
+    } else { return 0; }
 }
 
-}//namespace  geometry
-}//namespace simpla
+}}//namespace simpla//namespace  geometry

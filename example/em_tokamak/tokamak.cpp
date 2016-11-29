@@ -242,7 +242,7 @@ void EMTokamak::initialize(int argc, char **argv)
                 {
                     auto x = m.point(s);
 
-                    if (boundary.within(x)) { rho0.assign(s, geqdsk.profile("ne", x)); }
+                    if (boundary.check_inside(x, 0)) { rho0.assign(s, geqdsk.profile("ne", x)); }
 
                 }
             }

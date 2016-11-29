@@ -116,33 +116,31 @@ public:
 
     /** @name as_array   @{*/
 
-    template<typename ...Args>
-    inline value_type &get(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
+    virtual value_type &
+    get(mesh::MeshEntityId s) { return m_data_->get(mesh::MeshEntityIdCoder::unpack_index4(s, DOF)); }
 
-    template<typename ...Args>
-    inline value_type const &get(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
+    virtual value_type const &
+    get(mesh::MeshEntityId s) const { return m_data_->get(mesh::MeshEntityIdCoder::unpack_index4(s, DOF)); }
 
-    template<typename ...Args>
-    inline value_type &operator()(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
-
-    template<typename ...Args>
-    inline value_type const &operator()(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
-
-    template<typename TI>
-    inline value_type &operator[](TI const &s) { return m_data_->get(s); }
-
-    template<typename TI>
-    inline value_type const &operator[](TI const &s) const { return m_data_->get(s); }
-
-    virtual value_type &get(mesh::MeshEntityId const &s) { return m_data_->get(s); }
-
-    virtual value_type const &get(mesh::MeshEntityId const &s) const { return m_data_->get(s); }
 
     virtual value_type &
     get(index_type i, index_type j, index_type k = 0, index_type l = 0) { return m_data_->get(i, j, k, l); }
 
     virtual value_type const &
     get(index_type i, index_type j, index_type k = 0, index_type l = 0) const { return m_data_->get(i, j, k, l); }
+//
+//    template<typename ...Args>
+//    inline value_type &operator()(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
+//
+//    template<typename ...Args>
+//    inline value_type const &operator()(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
+
+    template<typename TI>
+    inline value_type &operator[](TI const &s) { return get(s); }
+
+    template<typename TI>
+    inline value_type const &operator[](TI const &s) const { return get(s); }
+
 
     template<typename ...U> inline this_type &
     operator=(Field<U...> const &other)

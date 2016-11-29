@@ -104,32 +104,27 @@ public:
 
 
     virtual value_type &
-    get(mesh::MeshEntityId const &s)
-    {
-        return static_cast<default_data_block_type *>(base_type::data_block())->get(s);
-    }
+    get(MeshEntityId s) { return m_data_->get(MeshEntityIdCoder::unpack_index4(s, DOF)); }
 
     virtual value_type const &
-    get(mesh::MeshEntityId const &s) const
-    {
-        return static_cast<default_data_block_type const *>(base_type::data_block())->get(s);
-    }
+    get(MeshEntityId s) const { return m_data_->get(MeshEntityIdCoder::unpack_index4(s, DOF)); }
+
 
     virtual value_type &
-    get(index_type i, index_type j, index_type k = 0, index_type l = 0)
-    {
-        return static_cast<default_data_block_type *>(base_type::data_block())->get(i, j, k, l);
-    }
+    get(index_type i, index_type j, index_type k = 0, index_type l = 0) { return m_data_->get(i, j, k, l); }
 
     virtual value_type const &
-    get(index_type i, index_type j, index_type k = 0, index_type l = 0) const
-    {
-        return static_cast<default_data_block_type const *>(base_type::data_block())->get(i, j, k, l);
-    }
+    get(index_type i, index_type j, index_type k = 0, index_type l = 0) const { return m_data_->get(i, j, k, l); }
 
+    virtual void update()
+    {
+        base_type::update();
+        m_data_ = base_type::template data_as<default_data_block_type>();
+    }
 
 private:
     Chart *m_chart_ = nullptr;
+    default_data_block_type *m_data_ = nullptr;
 
 
 };

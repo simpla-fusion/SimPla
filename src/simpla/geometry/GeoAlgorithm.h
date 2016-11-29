@@ -23,6 +23,13 @@ namespace simpla { namespace geometry
  * @{
  */
 
+template<typename T, typename T1>
+bool in_box(T1 const &p0, T1 const &p1, nTuple<T, 2> const &x0)
+{
+    return (x0[0] >= p0[0]) && (x0[1] >= p0[1]) && (x0[0] < p1[0]) && (x0[1] < p1[1]);
+
+}
+
 template<typename T0, typename T1>
 bool in_box(std::tuple<T1, T1> const &b, T0 const &x0)
 {

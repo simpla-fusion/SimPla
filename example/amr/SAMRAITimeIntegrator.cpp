@@ -618,8 +618,9 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
         **/
         if (attr->db.has("config") && attr->db["config"].as<std::string>() == "COORDINATES")
         {
+            VERBOSE << attr->name() << " is registered as coordinate" << std::endl;
             integrator->registerVariable(var, d_nghosts,
-                                         SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                         SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
                                          d_grid_geometry,
                                          "",
                                          "LINEAR_REFINE");
@@ -920,7 +921,7 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
             static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
                                  patch.getBox().getGlobalId().getLocalId().getValue())
     );
-    m->update();
+    //m->deploy();
 
     for (auto &ob:w->get_chart()->attributes())
     {
@@ -1302,20 +1303,19 @@ void SAMRAITimeIntegrator::deploy()
     */
 
 
-    grid_geometry = boost::make_shared<SAMRAI::geom::CartesianGridGeometry>(dim, "CartesianGeometry",
-                                                                            samrai_cfg->getDatabase(
-                                                                                    "CartesianGeometry"));
+    grid_geometry = boost::make_shared<SAMRAI::geom::CartesianGridGeometry>(
+            dim, "CartesianGeometry", samrai_cfg->getDatabase("CartesianGeometry"));
 //    grid_geometry->printClassData(std::cout);
     //---------------------------------
 
-    patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>("PatchHierarchy", grid_geometry,
-                                                                       samrai_cfg->getDatabase("PatchHierarchy"));
+    patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>(
+            "PatchHierarchy", grid_geometry, samrai_cfg->getDatabase("PatchHierarchy"));
 //    patch_hierarchy->recursivePrint(std::cout, "", 1);
     //---------------------------------
     /***
      *  create hyp_level_integrator and error_detector
      */
-    worker()->deploy();
+    ASSERT(worker()->is_deployed());
     patch_worker = boost::make_shared<SAMRAIWorker>(worker(), dim, grid_geometry);
 
     hyp_level_integrator = boost::make_shared<SAMRAILevelIntegrator>(
@@ -1375,6 +1375,7 @@ void SAMRAITimeIntegrator::deploy()
 
     m_dt_now_ = time_integrator->initializeHierarchy();
     m_is_valid_ = true;
+    samrai_cfg->printClassData(std::cout);
 
     MESSAGE << name() << " is deployed!" << std::endl;
 //    time_integrator->printClassData(std::cout);
@@ -1412,7 +1413,6 @@ size_type SAMRAITimeIntegrator::next_step(Real dt)
         Real dt_new = time_integrator->advanceHierarchy(dt, false);
         loop_time += dt;
         dt = std::min(dt_new, loop_time_end - loop_time);
-
     }
 }
 

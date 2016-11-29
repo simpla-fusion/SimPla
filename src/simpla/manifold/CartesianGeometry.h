@@ -92,9 +92,9 @@ public:
     template<typename ...Args>
     point_type point(Args &&...args) const { return mesh_block()->point(std::forward<Args>(args)...); }
 
-    point_type point(MeshEntityId s) const { UNIMPLEMENTED; };
+    point_type point(MeshEntityId s) const { return mesh_block()->point(s); };
 
-    point_type point(MeshEntityId s, point_type const &r) const { UNIMPLEMENTED; };
+    point_type point(MeshEntityId s, point_type const &r) const { return mesh_block()->point(s);};
 
     Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 

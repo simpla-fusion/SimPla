@@ -68,6 +68,9 @@ public:
 
     geometry::Polygon<2> const &limiter() const;
 
+    bool in_boundary(point_type const &x) const { return boundary().check_inside(x[RAxis], x[ZAxis]) > 0; }
+
+    bool in_limiter(point_type const &x) const { return limiter().check_inside(x[RAxis], x[ZAxis]) > 0; }
 
     Real psi(Real R, Real Z) const;
 
@@ -81,7 +84,7 @@ public:
 
     point_type magnetic_axis() const;
 
-    nTuple<size_type, 3>  dimensions() const;
+    nTuple<size_type, 3> dimensions() const;
 
     Real B0() const;
 
@@ -144,14 +147,14 @@ public:
     }
 
 
-    inline Real JT(point_type const &x) const
-    {
-        Real R = x[RAxis];
-        Real Z = x[ZAxis];
-        Real Phi = x[PhiAxis];
-
-        return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R;
-    }
+//    inline Real JT(point_type const &x) const
+//    {
+//        Real R = x[RAxis];
+//        Real Z = x[ZAxis];
+//        Real Phi = x[PhiAxis];
+//
+//        return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R;
+//    }
 
     /**
      *  diff_scheme the contour at \f$\Psi_{j}\in\left[0,1\right]\f$

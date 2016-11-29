@@ -269,7 +269,6 @@ struct Any : public concept::Printable
         {
             Any(def_v).swap(*this);
             return def_v;
-
         }
 
     }

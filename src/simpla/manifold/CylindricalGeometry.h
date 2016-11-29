@@ -54,7 +54,7 @@ public:
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=mesh::DataBlockArray<TV, IFORM, DOF>;
 
 private:
-    Bundle<Real, VERTEX, 3> m_vertics_{this, "vertices", "COORDINATES"};
+    Bundle<Real, VERTEX, 3> m_vertics_{this, "vertices"};
     Bundle<Real, VOLUME, 9> m_volume_{this, "volume", "NO_FILL"};
     Bundle<Real, VOLUME, 9> m_dual_volume_{this, "dual_volume", "NO_FILL"};
     Bundle<Real, VOLUME, 9> m_inv_volume_{this, "inv_volume", "NO_FILL"};
@@ -195,9 +195,9 @@ public:
                 {
                     auto x = mesh_block()->point(i, j, k);
 
-                    m_vertics_.get(i, j, k, 0) = (1 + x[0]) * std::cos(x[1]);
-                    m_vertics_.get(i, j, k, 1) = (1 + x[0]) * std::sin(x[1]);
-                    m_vertics_.get(i, j, k, 2) = x[2];
+                    m_vertics_.get(i, j, k, 0) = i;// (1 + x[0]) * std::cos(x[1]);
+                    m_vertics_.get(i, j, k, 1) = j;// (1 + x[0]) * std::sin(x[1]);
+                    m_vertics_.get(i, j, k, 2) = k;// x[2];
                     Real dr = m_dx_[0];
                     Real dl0 = m_dx_[1] * x[0];
                     Real dl1 = m_dx_[1] * (x[0] + m_dx_[0]);
@@ -252,10 +252,7 @@ public:
 
 
                 }
-
-
     }
-
 
 }; // struct  Mesh
 }} // namespace simpla // namespace get_mesh

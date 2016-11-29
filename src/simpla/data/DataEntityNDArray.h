@@ -133,19 +133,19 @@ public:
            << m_count_[3] << "," << "]"
            << std::endl;
 
-//        size_type r_count[m_ndims_];
-//
-//        int r_ndims = 0;
-//        for (int i = 0; i < m_ndims_; ++i)
-//        {
-//            if (m_count_[i] > 1)
-//            {
-//                r_count[r_ndims] = m_count_[i];
-//                ++r_ndims;
-//            }
-//        }
-//
-//        printNdArray(os, m_data_, r_ndims, r_count);
+        size_type r_count[m_ndims_];
+
+        int r_ndims = 0;
+        for (int i = 0; i < m_ndims_; ++i)
+        {
+            if (m_count_[i] > 1)
+            {
+                r_count[r_ndims] = m_count_[i];
+                ++r_ndims;
+            }
+        }
+
+        printNdArray(os, m_data_, r_ndims, r_count);
 
         return os;
 

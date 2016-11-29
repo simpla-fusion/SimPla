@@ -138,7 +138,6 @@ void EMFluid<TM>::initialize(Real data_time)
 {
     base_type::initialize(data_time);
 
-
     if (m_fluid_sp_.size() > 0)
     {
         Ev = map_to<VERTEX>(E);

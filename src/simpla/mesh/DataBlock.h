@@ -127,9 +127,6 @@ public:
 
     virtual void sync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
 
-    value_type &get(MeshEntityId s) { return get(MeshEntityIdCoder::unpack_index4(s, DOF)); }
-
-    value_type const &get(MeshEntityId s) const { return get(MeshEntityIdCoder::unpack_index4(s, DOF)); }
 
     template<typename ...Args>
     value_type &get(Args &&...args) { return data_entity_type::get(std::forward<Args>(args)...); }
