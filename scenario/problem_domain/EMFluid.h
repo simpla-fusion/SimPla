@@ -43,11 +43,11 @@ public:
 
     virtual void initialize(Real data_time = 0);
 
-    virtual void set_physical_boundary_conditions(Real time=0) {};
+    virtual void set_physical_boundary_conditions(Real time = 0) {};
 
-    virtual void set_physical_boundary_conditions_E(Real time=0) {};
+    virtual void set_physical_boundary_conditions_E(Real time = 0) {};
 
-    virtual void set_physical_boundary_conditions_B(Real time=0) {};
+    virtual void set_physical_boundary_conditions_B(Real time = 0) {};
 
     template<mesh::MeshEntityType IFORM, size_type DOF = 1>
     using field_type=Field<scalar_type, TM, index_const<IFORM>, index_const<DOF>>;
@@ -83,8 +83,21 @@ public:
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
 
     std::shared_ptr<fluid_s>
-    add_particle(std::string const &name, Real mass, Real charge)
+    add_particle(std::string const &name, data::DataBase const &d)
     {
+        Real mass;
+        Real charge;
+
+        if (d.has("mass")) { mass = d.at("mass").as<double>(); }
+        else if (d.has("m")) { mass = d.at("m").as<double>() * SI_proton_mass; }
+        else { mass = SI_proton_mass; }
+
+        if (d.has("charge")) { charge = d.at("charge").as<double>(); }
+        else if (d.has("Z")) { charge = d.at("Z").as<double>() * SI_elementary_charge; }
+        else { charge = SI_elementary_charge; }
+
+        VERBOSE << "Add particle : {\"" << name << "\", mass = " << mass / SI_proton_mass << " [m_p], charge = "
+                << charge / SI_elementary_charge << " [q_e] }" << std::endl;
         auto sp = std::make_shared<fluid_s>();
         sp->mass = mass;
         sp->charge = charge;

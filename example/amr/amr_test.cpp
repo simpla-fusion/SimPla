@@ -41,14 +41,20 @@ int main(int argc, char **argv)
     auto worker = create_worker();
 
     worker->db["GEqdsk"] = std::string(argv[1]);
-    worker->db["Particles"]["H"]["mass"] = 1.0;
-    worker->db["Particles"]["H"]["charge"] = 1.0;
+    worker->db["Particles"]["H"]["m"] = 1.0;
+    worker->db["Particles"]["H"]["Z"] = 1.0;
+    worker->db["Particles"]["H"]["ratio"] = 0.5;
+    worker->db["Particles"]["D"]["m"] = 2.0;
+    worker->db["Particles"]["D"]["Z"] = 1.0;
+    worker->db["Particles"]["D"]["raito"] = 0.5;
+    worker->db["Particles"]["e"]["m"] = SI_electron_proton_mass_ratio;
+    worker->db["Particles"]["e"]["Z"] = -1.0;
 
     worker->deploy();
 
     worker->print(std::cout);
 
-    index_box_type mesh_index_box{{0,   0,  0},
+    index_box_type mesh_index_box{{0,  0,  0},
                                   {32, 32, 32}};
     box_type bound_box{{1, 0,  -1},
                        {2, PI, 1}};

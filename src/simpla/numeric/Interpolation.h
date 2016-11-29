@@ -8,6 +8,7 @@
 #ifndef INTERPOLATION_H_
 #define INTERPOLATION_H_
 
+#include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/nTuple.h>
 #include <vector>
@@ -177,10 +178,8 @@ class MultiDimensionInterpolation : public TInterpolator
 public:
     typedef MultiDimensionInterpolation<TInterpolator, TV> this_type;
     typedef TV value_type;
-    enum
-    {
-        NDIMS = 2
-    };
+    static constexpr int NDIMS = TInterpolator::NDIMS;
+
 private:
     TInterpolator interpolate_op_;
     std::shared_ptr<value_type> data_;
@@ -189,17 +188,16 @@ public:
 
     template<typename ...Args>
     MultiDimensionInterpolation(std::shared_ptr<value_type> y, Args &&...args) :
-            data_(y), interpolate_op_(std::forward<Args>(args)...)
+            data_(y),
+            interpolate_op_(std::forward<Args>(args)...)
     {
         update();
     }
 
     template<typename ...Args>
     MultiDimensionInterpolation(Args &&...args) :
-            data_(nullptr), interpolate_op_(std::forward<Args>(args)...)
-    {
-        update();
-    }
+            data_(nullptr),
+            interpolate_op_(std::forward<Args>(args)...) { update(); }
 
     virtual ~MultiDimensionInterpolation()
     {
@@ -243,12 +241,12 @@ public:
                                           std::forward<TArgs const &>(x)...));
     }
 
-    inline value_type const &operator[](size_t s) const
+    inline value_type const &operator[](size_type s) const
     {
         return (&(*data_))[s];
     }
 
-    inline value_type &operator[](size_t s)
+    inline value_type &operator[](size_type s)
     {
         return (&(*data_))[s];
     }
@@ -262,7 +260,7 @@ public:
     }
 
     template<typename ...TArgs>
-    nTuple<value_type, NDIMS> grad(TArgs const &... x) const
+    nTuple <value_type, NDIMS> grad(TArgs const &... x) const
     {
         return std::move(
                 interpolate_op_.grad(data_.get(),
@@ -278,87 +276,49 @@ class BiLinearInterpolation
 {
 public:
     typedef BiLinearInterpolation this_type;
-    enum
-    {
-        NDIMS = 2
-    };
 
+    static constexpr int NDIMS = 2;
 private:
 
-    nTuple<size_t, NDIMS> dims_;
-    nTuple<Real, NDIMS> xmin_, xmax_, inv_dx_;
+    size_type dims_[2] = {1, 1};
+    Real xmin_[2] = {0, 0};
+    Real xmax_[2] = {1, 1};
+    Real inv_dx_[2] = {1, 1};
 public:
-    BiLinearInterpolation()
-    {
-        for (int s = 0; s < NDIMS; ++s)
-        {
-            dims_[s] = 1;
-        }
-    }
+    BiLinearInterpolation() {}
 
-    BiLinearInterpolation(nTuple<size_type, NDIMS> dims,
-                          nTuple<Real, NDIMS> const &xmin, nTuple<Real, NDIMS> const &xmax) :
-            dims_(dims), xmin_(xmin), xmax_(xmax)
+    BiLinearInterpolation(size_type const *dims, Real const *xmin, Real const *xmax)
     {
+        dims_[0] = dims[0];
+        dims_[1] = dims[1];
+        xmin_[0] = xmin[0];
+        xmin_[1] = xmin[1];
+        xmax_[0] = xmax_[0];
+        xmax_[1] = xmax_[1];
         update();
     }
 
-    BiLinearInterpolation(nTuple<size_type, NDIMS + 1> dims,
-                          nTuple<Real, NDIMS + 1> const &xmin,
-                          nTuple<Real, NDIMS + 1> const &xmax, size_t ZAxis = NDIMS)
-    {
-        dims_[0] = dims[(ZAxis + 1) % 3];
-        dims_[1] = dims[(ZAxis + 2) % 3];
-        xmin_[0] = xmin[(ZAxis + 1) % 3];
-        xmin_[1] = xmin[(ZAxis + 2) % 3];
-        xmax_[0] = xmax[(ZAxis + 1) % 3];
-        xmax_[1] = xmax[(ZAxis + 2) % 3];
-
-        update();
-    }
-
-    ~BiLinearInterpolation()
-    {
-
-    }
+    ~BiLinearInterpolation() {}
 
     void swap(this_type &r)
     {
-        std::swap(dims_, r.dims_);
-        std::swap(xmin_, r.xmin_);
-        std::swap(xmax_, r.xmax_);
-        std::swap(inv_dx_, r.inv_dx_);
+        std::swap(dims_[0], r.dims_[0]);
+        std::swap(xmin_[0], r.xmin_[0]);
+        std::swap(xmax_[0], r.xmax_[0]);
+        std::swap(inv_dx_[0], r.inv_dx_[0]);
+
+
+        std::swap(dims_[1], r.dims_[1]);
+        std::swap(xmin_[1], r.xmin_[1]);
+        std::swap(xmax_[1], r.xmax_[1]);
+        std::swap(inv_dx_[1], r.inv_dx_[1]);
+
     }
 
-    inline void dimensions(nTuple<size_t, NDIMS> const &dims)
+    size_type get_number_of_elements() const
     {
-        dims_ = dims;
-    }
-
-    inline nTuple<size_t, NDIMS> dimensions() const
-    {
-        return dims_;
-    }
-
-    inline void extents(nTuple<Real, NDIMS> const &xmin,
-                        nTuple<Real, NDIMS> const &xmax)
-    {
-        xmin_ = xmin;
-        xmax_ = xmax;
-    }
-
-    inline std::tuple<nTuple<Real, NDIMS>, nTuple<Real, NDIMS>> extents() const
-    {
-        return std::make_tuple(xmin_, xmax_);
-    }
-
-    size_t get_number_of_elements() const
-    {
-        size_t res = 1;
-        for (int i = 0; i < NDIMS; ++i)
-        {
-            res *= dims_[i];
-        }
+        size_type res = 1;
+        for (int i = 0; i < NDIMS; ++i) { res *= dims_[i]; }
         return res;
     }
 
@@ -378,9 +338,9 @@ public:
         Real rx = std::modf(x, &ix);
         Real ry = std::modf(y, &iy);
 
-        size_t sx = 1;
-        size_t sy = dims_[0];
-        size_t s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy) * sy;
+        size_type sx = 1;
+        size_type sy = dims_[0];
+        size_type s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy) * sy;
 
         return (
 
@@ -404,8 +364,8 @@ public:
     }
 
     template<typename TV, typename TX, typename ... Args>
-    inline nTuple<TV, NDIMS> grad(TV const *v, TX x, TX y,
-                                  Args const &...) const
+    inline nTuple <TV, NDIMS> grad(TV const *v, TX x, TX y,
+                                   Args const &...) const
     {
 
         x = (x - xmin_[0]) * inv_dx_[0];
@@ -415,13 +375,12 @@ public:
         Real rx = std::modf(x, &ix);
         Real ry = std::modf(y, &iy);
 
-        size_t sx = 1;
-        size_t sy = dims_[0];
-        size_t s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy) * sy;
+        size_type sx = 1;
+        size_type sy = dims_[0];
+        size_type s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy) * sy;
 
         nTuple<TV, NDIMS> res =
                 {
-
                         (1.0 - ry) * (v[s + sx] - v[s]) + ry * (v[s + sx + sy] - v[s + sy]),
 
                         (1.0 - rx) * (v[s + sy] - v[s]) + rx * (v[s + sx + sy] - v[s + sx])};
@@ -430,8 +389,8 @@ public:
 
     }
 
-    template<typename TV, size_t N, typename TX>
-    inline auto grad(TV const &v, nTuple<TX, N> const &x) const
+    template<typename TV, size_type N, typename TX>
+    inline auto grad(TV const &v, nTuple <TX, N> const &x) const
     DECL_RET_TYPE(std::move(grad(v, x[0], x[1])))
 
 };

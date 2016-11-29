@@ -47,6 +47,7 @@ constexpr double SI_electron_mass = 9.10938291e-31;
 constexpr double SI_proton_mass = 1.672621777e-27;
 
 constexpr double SI_proton_electron_mass_ratio = 1836.15267245;
+constexpr double SI_electron_proton_mass_ratio = 1.0 / 1836.15267245;
 
 constexpr double SI_electron_charge_mass_ratio = 1.7588e11;
 

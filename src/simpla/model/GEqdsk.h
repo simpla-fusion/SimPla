@@ -39,9 +39,9 @@ private:
     typedef GEqdsk this_type;
 
 
-    static constexpr int PhiAxis = 2;
-    static constexpr int RAxis = (PhiAxis + 1) % 3;
-    static constexpr int ZAxis = (PhiAxis + 2) % 3;
+    static constexpr int PhiAxis = 1;
+    static constexpr int RAxis = 0;
+    static constexpr int ZAxis = 2;
     static constexpr int CartesianZAxis = 2;
     static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;
     static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
@@ -77,14 +77,11 @@ public:
 
     Real profile(std::string const &name, Real R, Real Z) const { return profile(name, psi(R, Z)); }
 
-    Real profile(std::string const &name, point_type const &x) const
-    {
-        return profile(name, psi(x[RAxis], x[ZAxis]));
-    }
+    Real profile(std::string const &name, point_type const &x) const { return profile(name, psi(x[RAxis], x[ZAxis])); }
 
     point_type magnetic_axis() const;
 
-    nTuple<size_type, 3> const &dimensions() const;
+    nTuple<size_type, 3>  dimensions() const;
 
     Real B0() const;
 

@@ -15,6 +15,13 @@ DataBase::DataBase() : DataEntity(), m_pimpl_(new pimpl_s) {};
 
 DataBase::~DataBase() {};
 
+std::ostream &print_kv(std::ostream &os, int indent, std::string const &k, DataBase const &v)
+{
+    if (v.is_table()) { os << std::endl << std::setw(indent + 1) << " "; }
+    os << k << " = " << v;
+    return os;
+}
+
 std::ostream &DataBase::print(std::ostream &os, int indent) const
 {
     if (!DataEntity::is_null()) { DataEntity::print(os, indent + 1); }
@@ -26,18 +33,17 @@ std::ostream &DataBase::print(std::ostream &os, int indent) const
         if (it != ie)
         {
             os << "{ ";
-
-            os << it->first << " = ";
-            it->second->print(os, indent + 1);
+            print_kv(os, indent, it->first, *it->second);
+//            os << it->first << " = " << *it->second;
             ++it;
             for (; it != ie; ++it)
             {
-                os << "," << std::endl << std::setw(indent + 1) << "  " << it->first << " = ";
-                it->second->print(os, indent + 2);
-
+                os << " , ";
+                print_kv(os, indent, it->first, *it->second);
+//                os << " , " << it->first << " = " << *it->second;
             }
 
-            os << " }";
+            os << " }"  ;
         }
     }
     return os;
@@ -56,7 +62,7 @@ void DataBase::insert(std::string const &key, std::shared_ptr<DataBase> const &v
     m_pimpl_->m_table_.emplace(std::make_pair(key, v));
 };
 
-DataBase   &DataBase::add(std::string const &key)
+DataBase &DataBase::add(std::string const &key)
 {
     auto res = clone();
     insert(key, res);

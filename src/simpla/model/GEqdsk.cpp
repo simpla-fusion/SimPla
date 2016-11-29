@@ -36,10 +36,10 @@ struct GEqdsk::pimpl_s
 
     typedef MultiDimensionInterpolation<BiLinearInterpolation, Real> inter2d_type;
 
-    nTuple<size_type, 3> m_dims_{{1, 1, 1}};
-    point_type m_rzmin_;
-    point_type m_rzmax_;
 
+    size_type m_nr_, m_nz_;
+    Real m_rmin_, m_zmin_;
+    Real m_rmax_, m_zmax_;
     bool is_valid_ = false;
     std::string m_desc_;
 //	size_t nw;//!< Number of horizontal R grid  points
@@ -84,21 +84,19 @@ struct GEqdsk::pimpl_s
     void write(std::string const &);
 };
 
-void GEqdsk::load(std::string const &fname)
-{
-    m_pimpl_->load(fname);
+void GEqdsk::load(std::string const &fname) { m_pimpl_->load(fname); }
 
-}
-
-nTuple<size_type, 3> const &GEqdsk::dimensions() const
+nTuple<size_type, 3> GEqdsk::dimensions() const
 {
-    return m_pimpl_->m_dims_;
+    nTuple<size_type, 3> res;
+    res[RAxis] = m_pimpl_->m_nr_;
+    res[ZAxis] = m_pimpl_->m_nz_;
+    res[PhiAxis] = 1;
+    return res;
 };
 
 void GEqdsk::pimpl_s::load(std::string const &fname)
 {
-
-
     std::ifstream inFileStream_(fname);
 
     if (!inFileStream_.is_open())
@@ -134,18 +132,20 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
 
                   >> m_zmaxis >> xdum >> sibry >> xdum >> xdum;
 
-    m_rzmin_[RAxis] = m_rleft_;
-    m_rzmax_[RAxis] = m_rleft_ + m_rdim_;
-    m_rzmin_[ZAxis] = m_zmid_ - m_zdim_ / 2;
-    m_rzmax_[ZAxis] = m_zmid_ + m_zdim_ / 2;
-    m_rzmin_[PhiAxis] = 0;
-    m_rzmax_[PhiAxis] = TWOPI;
+    m_rmin_ = m_rleft_;
+    m_rmax_ = m_rleft_ + m_rdim_;
+    m_zmin_ = m_zmid_ - m_zdim_ / 2;
+    m_zmax_ = m_zmid_ + m_zdim_ / 2;
 
-    m_dims_[RAxis] = nw;
-    m_dims_[ZAxis] = nh;
-    m_dims_[PhiAxis] = 1;
 
-    inter2d_type(m_dims_, m_rzmin_, m_rzmax_, PhiAxis).swap(m_psirz_);
+    m_nr_ = static_cast<size_type>(nw);
+    m_nz_ = static_cast<size_type>(nh);
+
+    size_type dims[2] = {m_nr_, m_nz_};
+    Real rzmin[2] = {m_rmin_, m_zmin_};
+    Real rzmax[2] = {m_rmax_, m_zmax_};
+
+    inter2d_type(dims, rzmin, rzmax).swap(m_psirz_);
 
 #define INPUT_VALUE(_NAME_)                                               \
     for (int s = 0; s < nw; ++s)                                          \
@@ -386,18 +386,28 @@ Real GEqdsk::profile(std::string const &name, Real p_psi) const
 
 point_type GEqdsk::magnetic_axis() const
 {
-    return point_type{m_pimpl_->m_rmaxis_, m_pimpl_->m_zmaxis, 0};
+    point_type res;
+    res[RAxis] = m_pimpl_->m_rmaxis_;
+    res[ZAxis] = m_pimpl_->m_zmaxis;
+    res[PhiAxis] = 0;
+    return res;
 }
 
 box_type GEqdsk::box() const
 {
-    return std::make_tuple(m_pimpl_->m_rzmin_, m_pimpl_->m_rzmax_);
+    point_type lower, upper;
+    lower[RAxis] = m_pimpl_->m_rmin_;
+    lower[ZAxis] = m_pimpl_->m_rmin_;
+    lower[PhiAxis] = 0;
+
+    upper[RAxis] = m_pimpl_->m_rmax_;
+    upper[ZAxis] = m_pimpl_->m_rmax_;
+    upper[PhiAxis] = TWOPI;
+
+    return std::make_tuple(lower, upper);
 }
 
-void GEqdsk::write(std::string const &url)
-{
-    m_pimpl_->write(url);
-}
+void GEqdsk::write(std::string const &url) { m_pimpl_->write(url); }
 
 void GEqdsk::pimpl_s::write(std::string const &url)
 {

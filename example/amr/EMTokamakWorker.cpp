@@ -73,20 +73,16 @@ void EMTokamakWorker::deploy()
 
 
     // first run, only load configure, m_chart_=nullptr
-//    geqdsk.load(db["GEqdsk"].as<std::string>("geqdsk.gfile"));
+    geqdsk.load(db["GEqdsk"].as<std::string>("geqdsk.gfile"));
 
+    db["Particles"].foreach([&](std::string const &key, data::DataBase const &item) { add_particle(key, item); });
 
+    db["bound box"] = geqdsk.box();
 };
 
-void EMTokamakWorker::tear_down()
-{
-    base_type::tear_down();
-};
+void EMTokamakWorker::tear_down() { base_type::tear_down(); };
 
-void EMTokamakWorker::update()
-{
-    base_type::update();
-}
+void EMTokamakWorker::update() { base_type::update(); }
 
 void EMTokamakWorker::initialize(Real data_time)
 {
@@ -95,7 +91,6 @@ void EMTokamakWorker::initialize(Real data_time)
 
     for (auto &sp:particles())
     {
-
         sp.second->rho->assign([&](point_type const &x) { return std::sin(x[1]); });
     }
 

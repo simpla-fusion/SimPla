@@ -18,6 +18,9 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 {
 
     os << std::setw(indent + 1) << " " << " [" << get_class_name() << " : " << name() << "]" << std::endl;
+
+    os << std::setw(indent + 1) << " " << "Config = {" << db << "}" << std::endl;
+
     if (m_chart_ != nullptr)
     {
         os << std::setw(indent + 1) << " " << "Chart = " << std::endl
@@ -33,7 +36,6 @@ void Worker::move_to(std::shared_ptr<mesh::MeshBlock> const &m)
     ASSERT (m_chart_ != nullptr);
     m_chart_->move_to(m);
 }
-
 
 
 void Worker::update()
