@@ -3,7 +3,7 @@
 //
 
 #include "MeshBlock.h"
-#include <simpla/concept/Object.h>
+
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/nTupleExt.h>
 #include <simpla/toolbox/PrettyStream.h>
@@ -22,13 +22,28 @@ MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *up, Real
                    {up[0], up[1], up[2]}},
           m_global_origin_{xlo[0] - lo[0] * dx[0], xlo[1] - lo[1] * dx[1], xlo[2] - lo[2] * dx[2]},
           m_dx_{dx[0], dx[1], dx[2]},
-          m_level_(0)
+          m_level_(0) { deploy(); }
+
+MeshBlock::~MeshBlock() {}
+
+std::ostream &MeshBlock::print(std::ostream &os, int indent) const
 {
-    assert(ndims <= 3);
 
-    if (m_is_deployed_) { return; }
+    os << std::setw(indent + 1) << "type = \"" << get_class_name() << "\" ,"
+       << " level = " << level() << ",  box = " << m_g_box_;
+    return os;
+}
 
-    base_type::update();
+
+void MeshBlock::deploy()
+{
+
+    if (concept::Deployable::is_deployed()) { return; }
+
+    concept::Deployable::deploy();
+
+    assert(m_ndims_ <= 3);
+
     ASSERT(toolbox::is_valid(m_g_box_));
     for (int i = 0; i < m_ndims_; ++i)
     {
@@ -57,20 +72,9 @@ MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *up, Real
             m_g2l_scale_[i] = 0;
             m_g2l_shift_[i] = 0;
 
-//            if (i < mpi_topo_ndims && mpi_topo_dims[i] > 1)
-//            {
-//                RUNTIME_ERROR << " Mesh is not splitable [" << m_g_box_
-//                              << ", mpi={" << mpi_topo_dims[0]
-//                              << "," << mpi_topo_dims[1]
-//                              << "," << mpi_topo_dims[2]
-//                              << "}]" << std::endl;
-//            }
 
-        } else //if (i < mpi_topo_ndims && mpi_topo_dims[i] > 1)
+        } else
         {
-//            index_type L = std::get<1>(m_g_box_)[i] - std::get<0>(m_g_box_)[i];
-//            std::get<1>(m_g_box_)[i] = std::get<0>(m_g_box_)[i] + L * (mpi_topo_coords[i] + 1) / mpi_topo_dims[i];
-//            std::get<0>(m_g_box_)[i] += L * mpi_topo_coords[i] / mpi_topo_dims[i];
 
             m_inv_dx_[i] = static_cast<Real>(1.0) / m_dx_[i];
 
@@ -91,84 +95,9 @@ MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *up, Real
     std::get<1>(m_outer_box_) += m_ghost_width_;
 
     m_m_box_ = m_outer_box_;
-    m_is_deployed_ = true;
-
 
 }
 
-
-MeshBlock::MeshBlock(MeshBlock const &other) :
-        m_is_deployed_/*    */(other.m_is_deployed_),
-        m_space_id_/*       */(other.m_space_id_),
-        m_level_/*          */(other.m_level_),
-        m_ghost_width_/*    */(other.m_ghost_width_),
-        m_g_box_/*          */(other.m_g_box_/*  */),
-        m_m_box_/*          */(other.m_m_box_/*  */),
-        m_inner_box_/*      */(other.m_inner_box_/*  */),
-        m_outer_box_/*      */(other.m_outer_box_/*  */),
-        m_dx_/*             */(other.m_dx_/*  */),
-        m_global_origin_/*  */(other.m_global_origin_/*  */),
-        m_l2g_scale_/*      */(other.m_l2g_scale_),
-        m_l2g_shift_/*      */(other.m_l2g_shift_),
-        m_g2l_scale_/*      */(other.m_g2l_scale_),
-        m_g2l_shift_/*      */(other.m_g2l_shift_) {};
-
-MeshBlock::MeshBlock(MeshBlock &&other) :
-        m_is_deployed_/*    */(other.m_is_deployed_),
-        m_space_id_/*       */(other.m_space_id_),
-        m_level_/*          */(other.m_level_),
-        m_ghost_width_/*    */(other.m_ghost_width_),
-        m_g_box_/*          */(other.m_g_box_/*  */),
-        m_m_box_/*          */(other.m_m_box_/*  */),
-        m_inner_box_/*      */(other.m_inner_box_/*  */),
-        m_outer_box_/*      */(other.m_outer_box_/*  */),
-        m_dx_/*             */(other.m_dx_/*  */),
-        m_global_origin_/*  */(other.m_global_origin_/*  */),
-        m_l2g_scale_/*      */(other.m_l2g_scale_),
-        m_l2g_shift_/*      */(other.m_l2g_shift_),
-        m_g2l_scale_/*      */(other.m_g2l_scale_),
-        m_g2l_shift_/*      */(other.m_g2l_shift_) {};
-
-MeshBlock::~MeshBlock() {}
-
-std::ostream &MeshBlock::print(std::ostream &os, int indent) const
-{
-
-    os << std::setw(indent + 1) << "type = \"" << get_class_name() << "\" ,"
-       << " level = " << level() << ",  box = " << m_g_box_;
-
-//#ifndef NDEBUG
-//    os
-//            << std::setw(indent + 1) << " " << "      lower = " << m_lower_ << "," << std::endl
-//            << std::setw(indent + 1) << " " << "      upper = " << m_upper_ << "," << std::endl
-//            << std::setw(indent + 1) << " " << "outer lower = " << m_outer_lower_ << "," << std::endl
-//            << std::setw(indent + 1) << " " << "outer upper = " << m_outer_upper_ << "," << std::endl
-//            << std::setw(indent + 1) << " " << "inner lower = " << m_inner_lower_ << "," << std::endl
-//            << std::setw(indent + 1) << " " << "inner upper = " << m_inner_upper_ << "," << std::endl
-//            << std::endl;
-//#endif
-    return os;
-}
-
-
-void MeshBlock::deploy() {}
-
-//std::shared_ptr<MeshBlock>
-//MeshBlock::clone() const
-//{
-//    assert(is_deployed());
-//    auto res = std::make_shared<MeshBlock>();
-//
-//    res->m_is_deployed_/*    */= m_is_deployed_;
-//    res->m_space_id_/*       */= m_space_id_;
-//    res->m_level_/*          */= m_level_;
-//    res->m_ghost_width_/*    */= m_ghost_width_;
-//    res->m_g_box_/*          */= m_g_box_/*  */;
-//    res->m_m_box_/*          */= m_m_box_/*  */;
-//    res->m_inner_box_/*      */= m_inner_box_/*  */;
-//    res->m_outer_box_/*      */= m_outer_box_;
-//    return res;
-//};
 
 std::shared_ptr<MeshBlock>
 MeshBlock::create(int inc_level, const index_type *lo, const index_type *hi) const
@@ -192,7 +121,7 @@ MeshBlock::create(int inc_level, const index_type *lo, const index_type *hi) con
         std::get<1>(res->m_g_box_)[2] = hi[2] >> -inc_level;
     }
     res->m_level_ += inc_level;
-    res->update();
+    res->deploy();
     return res;
 
 }

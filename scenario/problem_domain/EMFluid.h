@@ -43,25 +43,15 @@ public:
 
     virtual void initialize(Real data_time = 0);
 
-    virtual void set_physical_boundary_conditions(Real time);
+    virtual void set_physical_boundary_conditions(Real time=0) {};
 
-    EntityIdRange limiter_boundary;
-    EntityIdRange vertex_boundary;
-    EntityIdRange edge_boundary;
-    EntityIdRange face_boundary;
+    virtual void set_physical_boundary_conditions_E(Real time=0) {};
 
-    EntityIdRange plasma_region_volume;
-    EntityIdRange plasma_region_vertex;
-
+    virtual void set_physical_boundary_conditions_B(Real time=0) {};
 
     template<mesh::MeshEntityType IFORM, size_type DOF = 1>
     using field_type=Field<scalar_type, TM, index_const<IFORM>, index_const<DOF>>;
 
-    EntityIdRange J_src_range;
-    std::function<Vec3(point_type const &, Real)> J_src_fun;
-
-    EntityIdRange E_src_range;
-    std::function<Vec3(point_type const &, Real)> E_src_fun;
 
     typedef field_type<FACE> TB;
     typedef field_type<EDGE> TE;
@@ -104,6 +94,7 @@ public:
         return sp;
     }
 
+    std::map<std::string, std::shared_ptr<fluid_s>> &particles() { return m_fluid_sp_; };
 
     std::shared_ptr<model::Model> m_model_;
 
@@ -141,20 +132,8 @@ void EMFluid<TM>::initialize(Real data_time)
         B0v = map_to<VERTEX>(B0);
         BB = dot(B0v, B0v);
     }
-    for (auto &sp:m_fluid_sp_)
-    {
-        sp.second->rho->clear();
-        sp.second->J->clear();
-        sp.second->rho->assign([&](point_type const &x) { return std::sin(x[1]); });
-    }
-}
 
-template<typename TM>
-void EMFluid<TM>::set_physical_boundary_conditions(Real time)
-{
-    if (J_src_fun) { J1.assign([&](point_type const &x) { return J_src_fun(x, time); }, J_src_range); }
-    if (E_src_fun) { E.assign([&](point_type const &x) { return E_src_fun(x, time); }, E_src_range); }
-};
+}
 
 
 template<typename TM>
@@ -162,9 +141,9 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
 {
     DEFINE_PHYSICAL_CONST
     B -= curl(E) * (dt * 0.5);
-    B.assign(0, face_boundary);
+    set_physical_boundary_conditions_B(data_time);
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
-    E.assign(0, edge_boundary);
+    set_physical_boundary_conditions_E(data_time);
     if (m_fluid_sp_.size() > 0)
     {
         field_type<VERTEX, 3> Q{m_chart_};
@@ -228,7 +207,7 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
         E += map_to<EDGE>(Ev) - E;
     }
     B -= curl(E) * (dt * 0.5);
-    B.assign(0, face_boundary);
+    set_physical_boundary_conditions_B(data_time);
 }
 
 }//namespace simpla  {

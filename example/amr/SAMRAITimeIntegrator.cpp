@@ -87,9 +87,10 @@ struct SAMRAIWorker;
 struct SAMRAITimeIntegrator;
 
 std::shared_ptr<simulation::TimeIntegrator>
-create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w)
+create_time_integrator(std::string const &name)
 {
-    auto integrator = std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>(name, w));
+    auto integrator = std::dynamic_pointer_cast<simulation::TimeIntegrator>(
+            std::make_shared<SAMRAITimeIntegrator>(name));
 
     /** test.3d.input */
 
@@ -925,7 +926,8 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
     {
         auto &attr = ob->attribute();
         if (attr == nullptr) { return; }
-        auto db = detail::create_data_block(attr, patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext()));
+        auto db = detail::create_data_block(attr,
+                                            patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext()));
         ob->move_to(m, db);
     }
     w->move_to(m);
@@ -1126,7 +1128,7 @@ struct SAMRAITimeIntegrator : public simulation::TimeIntegrator
 {
     typedef simulation::TimeIntegrator base_type;
 public:
-    SAMRAITimeIntegrator(std::string const &s, std::shared_ptr<mesh::Worker> const &w);
+    SAMRAITimeIntegrator(std::string const &s, std::shared_ptr<mesh::Worker> const &w = nullptr);
 
     ~SAMRAITimeIntegrator();
 
@@ -1136,7 +1138,8 @@ public:
 
     virtual void save(data::DataBase *) const;
 
-    virtual void update();
+
+    virtual void deploy();
 
     virtual void tear_down();
 
@@ -1152,12 +1155,10 @@ public:
 
     virtual void check_point();
 
-    virtual void register_worker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
 
 private:
     bool m_is_valid_ = false;
     Real m_dt_now_ = 10000;
-    std::shared_ptr<mesh::Worker> m_worker_;
 
     boost::shared_ptr<SAMRAI::tbox::Database> samrai_cfg;
 
@@ -1195,7 +1196,7 @@ private:
 };
 
 SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::string const &s, std::shared_ptr<mesh::Worker> const &w)
-        : base_type(s), m_worker_(w)
+        : base_type(s, w)
 {
     /*
       * Initialize SAMRAI::tbox::MPI.
@@ -1225,7 +1226,7 @@ std::ostream &SAMRAITimeIntegrator::print(std::ostream &os, int indent) const
 };
 
 
-void SAMRAITimeIntegrator::load(data::DataBase const &db) { m_is_valid_ = false; }
+void SAMRAITimeIntegrator::load(data::DataBase const &db) { UNIMPLEMENTED; }
 
 void SAMRAITimeIntegrator::save(data::DataBase *) const { UNIMPLEMENTED; }
 
@@ -1279,11 +1280,12 @@ convert_database(data::DataBase const &src, std::string const &s_name = "")
     return dest;
 }
 }//namespace detail{
-void SAMRAITimeIntegrator::update()
+void SAMRAITimeIntegrator::deploy()
 {
+    if (concept::Deployable::is_deployed()) { return; }
+    concept::Deployable::deploy();
 
     bool use_refined_timestepping = db["use_refined_timestepping"].template as<bool>(true);
-    m_is_valid_ = true;
 
     SAMRAI::tbox::Dimension dim(ndims);
 
@@ -1313,7 +1315,8 @@ void SAMRAITimeIntegrator::update()
     /***
      *  create hyp_level_integrator and error_detector
      */
-    patch_worker = boost::make_shared<SAMRAIWorker>(m_worker_, dim, grid_geometry);
+    worker()->deploy();
+    patch_worker = boost::make_shared<SAMRAIWorker>(worker(), dim, grid_geometry);
 
     hyp_level_integrator = boost::make_shared<SAMRAILevelIntegrator>(
             "SAMRAILevelIntegrator", samrai_cfg->getDatabase("HyperbolicLevelIntegrator"),
@@ -1371,8 +1374,9 @@ void SAMRAITimeIntegrator::update()
 
 
     m_dt_now_ = time_integrator->initializeHierarchy();
+    m_is_valid_ = true;
 
-    MESSAGE << name() << " is updated!" << std::endl;
+    MESSAGE << name() << " is deployed!" << std::endl;
 //    time_integrator->printClassData(std::cout);
 
 };

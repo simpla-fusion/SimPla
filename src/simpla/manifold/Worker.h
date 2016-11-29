@@ -17,6 +17,7 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Configurable.h>
+#include <simpla/concept/Deployable.h>
 
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/manifold/Atlas.h>
@@ -35,7 +36,9 @@ struct CoordinateFrame;
 class Worker :
         public Object,
         public concept::Printable,
-        public concept::Serializable
+        public concept::Serializable,
+        public concept::Configurable,
+        public concept::Deployable
 {
 public:
     SP_OBJECT_HEAD(Worker, Object)
@@ -62,10 +65,6 @@ public:
 
     virtual void next_time_step(Real data_time, Real dt) {};
 
-    std::shared_ptr<model::Model> const &get_model() const { return m_model_; };
-
-    void set_model(std::shared_ptr<model::Model> const &m) { m_model_ = m; }
-
     std::shared_ptr<Chart> const &get_chart() const { return m_chart_; };
 
     void set_chart(std::shared_ptr<Chart> const &c) { m_chart_ = c; }
@@ -73,10 +72,8 @@ public:
     std::shared_ptr<Chart> m_chart_;
 
 protected:
-    std::shared_ptr<model::Model> m_model_;
 
     std::string m_name_;
-
 };
 
 

@@ -13,6 +13,7 @@
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
+#include <simpla/concept/Deployable.h>
 #include <simpla/toolbox/BoxUtility.h>
 #include "MeshCommon.h"
 #include "EntityId.h"
@@ -75,7 +76,8 @@ namespace simpla { namespace mesh
 class MeshBlock :
         public Object,
         public concept::Serializable,
-        public concept::Printable
+        public concept::Printable,
+        public concept::Deployable
 {
 
 public:
@@ -86,9 +88,9 @@ public:
 
     MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *x_lo, id_type id);
 
-    MeshBlock(MeshBlock const &);
+    MeshBlock(MeshBlock const &) = delete;
 
-    MeshBlock(MeshBlock &&other);
+    MeshBlock(MeshBlock &&other) = delete;
 
     virtual ~MeshBlock();
 
@@ -98,7 +100,8 @@ public:
 
     virtual void deploy();
 
-    virtual bool is_deployed() const { return m_is_deployed_; };
+    virtual void update() {}
+
 
     /** for Printable @{*/
 
@@ -163,7 +166,7 @@ public:
 
     virtual bool is_valid()
     {
-        return m_is_deployed_ &&
+        return is_deployed() &&
                toolbox::is_valid(m_g_box_) &&
                toolbox::is_valid(m_m_box_) &&
                toolbox::is_valid(m_inner_box_) &&
@@ -357,7 +360,6 @@ public:
     virtual bool is_inside(index_tuple const &p) const { return toolbox::is_inside(p, m_inner_box_); }
 
 protected:
-    bool m_is_deployed_ = false;
 
     id_type m_space_id_ = 0;
 

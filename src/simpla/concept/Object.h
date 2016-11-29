@@ -98,10 +98,6 @@ public:
 
     virtual bool is_valid() const { return true; };
 
-    virtual void update() {};
-
-    virtual void tear_down() {};
-
     void id(id_type t_id);
 
     id_type id() const;

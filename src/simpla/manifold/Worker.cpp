@@ -34,23 +34,20 @@ void Worker::move_to(std::shared_ptr<mesh::MeshBlock> const &m)
     m_chart_->move_to(m);
 }
 
+
+
 void Worker::update()
 {
-    if (m_chart_ != nullptr) { m_model_->update(); }
     if (m_chart_ != nullptr)
     {
         m_chart_->update();
         for (auto &item:m_chart_->attributes()) { item->update(); }
     }
 
-
 }
 
 void Worker::initialize(Real data_time)
 {
-
-    if (m_model_ != nullptr) { m_model_->initialize(data_time); }
-
     if (m_chart_ != nullptr)
     {
         m_chart_->initialize(data_time);

@@ -24,10 +24,10 @@ using namespace simpla;
 
 namespace simpla
 {
-std::shared_ptr<simulation::TimeIntegrator>
-create_time_integrator(std::string const &name, std::shared_ptr<mesh::Worker> const &w);
+std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &name);
 
-std::shared_ptr<model::Model> create_model();
+std::shared_ptr<mesh::Worker> create_worker();
+
 
 }//namespace simpla
 
@@ -37,34 +37,32 @@ int main(int argc, char **argv)
     GLOBAL_COMM.init(argc, argv);
     // typedef mesh:: CylindricalGeometry mesh_type;
     // typedef AMRTest<mesh_type> work_type;
-    index_box_type mesh_index_box{{0,   0,  0},
-                                  {128, 32, 128}};
-    auto worker = std::make_shared<EMFluid<mesh::CylindricalGeometry>>();
 
-    auto model = create_model();
+    auto worker = create_worker();
 
-    model->db["global index box"] = mesh_index_box;
+    worker->db["GEqdsk"] = std::string(argv[1]);
+    worker->db["Particles"]["H"]["mass"] = 1.0;
+    worker->db["Particles"]["H"]["charge"] = 1.0;
 
-    model->set_chart(worker->get_chart());
-
-    model->load(argv[1]);
-
-    worker->set_model(model);
-
-//    auto sp = w->add_particle("H", 1.0, 1.0);
+    worker->deploy();
 
     worker->print(std::cout);
+
+    index_box_type mesh_index_box{{0,   0,  0},
+                                  {32, 32, 32}};
     box_type bound_box{{1, 0,  -1},
                        {2, PI, 1}};
-    // model->box();
 
-    auto integrator = simpla::create_time_integrator("EMFluid", worker);
+    worker->db["Bound Box"].as(&bound_box);
 
+    auto integrator = simpla::create_time_integrator("EMFluid");
+    integrator->set_worker(worker);
     integrator->db["CartesianGeometry"]["domain_boxes_0"] = mesh_index_box;
     integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{1, 1, 1};
     integrator->db["CartesianGeometry"]["x_lo"] = std::get<0>(bound_box);
     integrator->db["CartesianGeometry"]["x_up"] = std::get<1>(bound_box);
-    integrator->update();
+
+    integrator->deploy();
 
     integrator->check_point();
 
@@ -78,8 +76,6 @@ int main(int argc, char **argv)
     }
 
     INFORM << "***********************************************" << std::endl;
-
-    integrator->tear_down();
 
     integrator.reset();
 

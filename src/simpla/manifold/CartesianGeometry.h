@@ -107,7 +107,7 @@ public:
 
 }; // struct  Mesh
 
-void CartesianGeometry::initialize(Real data_time)
+inline void CartesianGeometry::initialize(Real data_time)
 {
     /**
         *\verbatim

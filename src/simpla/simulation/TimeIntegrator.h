@@ -15,6 +15,7 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Configurable.h>
+#include <simpla/concept/Deployable.h>
 
 namespace simpla { namespace simulation
 {
@@ -22,18 +23,16 @@ class TimeIntegrator :
         public Object,
         public concept::Printable,
         public concept::Serializable,
-        public concept::Configurable
+        public concept::Configurable,
+        public concept::Deployable
 {
 public:
-    TimeIntegrator(std::string const &s_name = "") : Object(), m_name_(s_name) {}
+    TimeIntegrator(std::string const &s_name = "", std::shared_ptr<mesh::Worker> const &w = nullptr)
+            : Object(), m_name_(s_name), m_worker_(w) {}
 
     virtual ~TimeIntegrator() {}
 
-    virtual void update() {};
-
-    virtual void tear_down() {};
-
-    virtual void register_worker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
+    virtual void set_worker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
 
     virtual std::shared_ptr<mesh::Worker> &worker() { return m_worker_; }
 
