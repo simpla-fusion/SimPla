@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     worker->db["Particles"]["H"]["ratio"] = 0.5;
     worker->db["Particles"]["D"]["m"] = 2.0;
     worker->db["Particles"]["D"]["Z"] = 1.0;
-    worker->db["Particles"]["D"]["raito"] = 0.5;
+    worker->db["Particles"]["D"]["ratio"] = 0.5;
     worker->db["Particles"]["e"]["m"] = SI_electron_proton_mass_ratio;
     worker->db["Particles"]["e"]["Z"] = -1.0;
 

@@ -28,12 +28,12 @@ std::shared_ptr<mesh::Worker> create_worker()
 
 class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry>
 {
-    typedef EMFluid<mesh::CylindricalGeometry> base_type;
 public:
+    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>);
 
     virtual void deploy();
 
-    virtual void tear_down();
+    virtual void destroy();
 
     virtual void update();
 
@@ -50,8 +50,8 @@ public:
     GEqdsk geqdsk;
     field_type <VERTEX> psi{m_chart_, "psi"};
 
-    Bundle<Real, VERTEX, 9> m_volume_frac_{m_chart_, "m_volume_frac_", "INPUT"};
-    Bundle<Real, VERTEX, 9> m_dual_volume_frac_{m_chart_, "m_dual_volume_frac_", "INPUT"};
+//    Bundle<Real, VERTEX, 9> m_volume_frac_{m_chart_, "m_volume_frac_", "INPUT"};
+//    Bundle<Real, VERTEX, 9> m_dual_volume_frac_{m_chart_, "m_dual_volume_frac_", "INPUT"};
     EntityIdRange edge_boundary;
     EntityIdRange face_boundary;
     EntityIdRange limiter_boundary;
@@ -70,7 +70,6 @@ public:
 
 void EMTokamakWorker::deploy()
 {
-    if (base_type::is_deployed()) { return; }
     base_type::deploy();
 
 
@@ -80,28 +79,15 @@ void EMTokamakWorker::deploy()
     db["Particles"].foreach([&](std::string const &key, data::DataBase const &item) { add_particle(key, item); });
 
     db["bound_box"] = geqdsk.box();
-
-    CHECK(geqdsk.box());
 };
 
-void EMTokamakWorker::tear_down() { base_type::tear_down(); };
+void EMTokamakWorker::destroy() { base_type::destroy(); };
 
 void EMTokamakWorker::update() { base_type::update(); }
 
 void EMTokamakWorker::initialize(Real data_time)
 {
     base_type::initialize(data_time);
-
-
-    auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_volume_frac_.data_block())->start();
-    auto m_count_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_volume_frac_.data_block())->count();
-
-    index_type ib = m_start_[0];
-    index_type ie = m_start_[0] + m_count_[0];
-    index_type jb = m_start_[1];
-    index_type je = m_start_[1] + m_count_[1];
-    index_type kb = m_start_[2];
-    index_type ke = m_start_[2] + m_count_[2];
 
     rho0.assign([&](point_type const &x)
                 {

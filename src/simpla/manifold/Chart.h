@@ -60,16 +60,16 @@ struct Chart : public concept::Printable
     /**
      * @param attributes
      */
-    AttributeViewBase *connect(AttributeViewBase *attr);
+    AttributeView *connect(AttributeView *attr);
 
-    void disconnect(AttributeViewBase *attr);
+    void disconnect(AttributeView *attr);
 
-    std::set<AttributeViewBase *> &attributes();
+    std::set<AttributeView *> &attributes();
 
-    std::set<AttributeViewBase *> const &attributes() const;
+    std::set<AttributeView *> const &attributes() const;
 
 private:
-    std::set<AttributeViewBase *> m_attr_views_;
+    std::set<AttributeView *> m_attr_views_;
 
     std::shared_ptr<MeshBlock> m_mesh_block_;
 

@@ -108,66 +108,67 @@ std::shared_ptr<DataBlock> AttributeBase::insert_or_assign(const id_type &m, con
 }
 
 
-AttributeViewBase::AttributeViewBase(std::shared_ptr<AttributeBase> const &attr) : m_attr_(attr) {};
+AttributeView::AttributeView(std::shared_ptr<AttributeBase> const &attr) : m_attr_(attr) {};
 
-//AttributeViewBase::AttributeViewBase(AttributeViewBase const &other) :
+//AttributeView::AttributeView(AttributeView const &other) :
 //        m_id_(other.m_id_), m_data_(other.m_data_), m_attr_(other.m_attr_)
 //{
 //
 //}
 //
-//AttributeViewBase::AttributeViewBase(AttributeViewBase &&other) :
+//AttributeView::AttributeView(AttributeView &&other) :
 //        m_id_(other.m_id_), m_data_(std::move(other.m_data_)), m_attr_(std::move(other.m_attr_))
 //{
 //}
 //
-//void AttributeViewBase::swap(AttributeViewBase &other)
+//void AttributeView::swap(AttributeView &other)
 //{
 //    std::swap(m_id_, other.m_id_);
 //    std::swap(m_data_, other.m_data_);
 //    std::swap(m_attr_, other.m_attr_);
 //}
 
-AttributeViewBase::~AttributeViewBase() {}
+AttributeView::~AttributeView() {}
 
-id_type AttributeViewBase::mesh_id() const { return m_id_; }
+id_type AttributeView::mesh_id() const { return m_id_; }
 
-std::shared_ptr<AttributeBase> &AttributeViewBase::attribute() { return m_attr_; }
+std::shared_ptr<AttributeBase> &AttributeView::attribute() { return m_attr_; }
 
-std::shared_ptr<AttributeBase> const &AttributeViewBase::attribute() const { return m_attr_; }
+std::shared_ptr<AttributeBase> const &AttributeView::attribute() const { return m_attr_; }
 
-DataBlock *AttributeViewBase::data_block() { return m_data_.get(); };
+DataBlock *AttributeView::data_block() { return m_data_.get(); };
 
-DataBlock const *AttributeViewBase::data_block() const { return m_data_.get(); };
+DataBlock const *AttributeView::data_block() const { return m_data_.get(); };
 
-void AttributeViewBase::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
+void AttributeView::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
 {
-    if (d == nullptr && m->id() == m_id_) { return; }
+    if (m != nullptr)
+    {
+        if (d == nullptr && m->id() == m_id_) { return; }
 
-    m_id_ = m->id();
+        m_id_ = m->id();
 
-    if (d != nullptr) { m_data_ = d; }
-    else if (m_attr_ != nullptr && m_attr_->has(m_id_)) { m_data_ = m_attr_->at(m_id_); }
-    else { m_data_ = create_data_block(m, nullptr); }
-
-    update();
-
+        if (d != nullptr) { m_data_ = d; }
+        else if (m_attr_ != nullptr && m_attr_->has(m_id_)) { m_data_ = m_attr_->at(m_id_); }
+        else { m_data_ = create_data_block(m, nullptr); }
+        update();
+    }
 }
 
 
-void AttributeViewBase::update()
+void AttributeView::update()
 {
     ASSERT(m_data_ != nullptr);
     m_data_->update();
 };
 
-void AttributeViewBase::clear()
+void AttributeView::clear()
 {
     update();
     m_data_->clear();
 }
 
-void AttributeViewBase::destroy()
+void AttributeView::destroy()
 {
     if (m_attr_ != nullptr) { m_attr_->erase(m_id_); }
     m_data_.reset();

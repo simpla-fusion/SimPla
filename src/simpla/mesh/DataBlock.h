@@ -21,7 +21,7 @@ namespace simpla { namespace mesh
  */
 class MeshBlock;
 
-struct DataBlock : public concept::Serializable, public concept::Printable
+struct DataBlock : public concept::Serializable, public concept::Printable, public concept::Deployable
 {
 public:
     DataBlock() {}
@@ -44,15 +44,9 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const =0;
 
-//    virtual std::shared_ptr<DataBlock> clone(MeshBlock const *) const =0;
-
-    virtual void sync(std::shared_ptr<DataBlock>, bool only_ghost = true)   =0;
-
-    virtual bool is_updated() const =0;
-
-    virtual void update() =0;
-
     virtual void clear()=0;
+
+    virtual void update()=0;
 
 
 };
@@ -60,6 +54,7 @@ public:
 template<typename TV, MeshEntityType IFORM, size_type DOF = 1>
 class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>
 {
+    typedef DataBlock base_type;
     typedef DataBlockArray<TV, IFORM, DOF> this_type;
     typedef data::DataEntityNDArray<TV> data_entity_type;
 public:
@@ -101,7 +96,8 @@ public:
     }
 
 
-    static std::shared_ptr<DataBlock> create(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)
+    static std::shared_ptr<DataBlock>
+    create(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)
     {
         index_type n_dof = DOF;
         int ndims = 3;
@@ -116,12 +112,21 @@ public:
         return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
     };
 
+    virtual bool is_deployed() const { data_entity_type::is_deployed(); };
 
-    virtual bool is_updated() const { return data_entity_type::is_updated(); };
+    virtual void deploy()
+    {
+        base_type::deploy();
+        data_entity_type::deploy();
+    };
 
     virtual void update() { data_entity_type::update(); };
 
-    virtual void destroy() { data_entity_type::destroy(); };
+    virtual void destroy()
+    {
+        data_entity_type::destroy();
+        base_type::destroy();
+    };
 
     virtual void clear() { data_entity_type::clear(); }
 

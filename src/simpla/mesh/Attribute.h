@@ -104,16 +104,19 @@ public:
 };
 
 
-struct AttributeViewBase : public concept::Printable
+struct AttributeView : public concept::Printable
 {
+    explicit AttributeView(std::shared_ptr<AttributeBase> const &attr = nullptr);
 
-    AttributeViewBase(std::shared_ptr<AttributeBase> const &attr = nullptr);
+    template<typename U>
+    explicit AttributeView(std::shared_ptr<U> const &attr):
+            AttributeView(std::dynamic_pointer_cast<AttributeBase>(attr)) {};
 
-    AttributeViewBase(AttributeViewBase const &other) = delete;
+    AttributeView(AttributeView const &other) = delete;
 
-    AttributeViewBase(AttributeViewBase &&other) = delete;
+    AttributeView(AttributeView &&other) = delete;
 
-    virtual ~AttributeViewBase();
+    virtual ~AttributeView();
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const
     {
@@ -127,7 +130,7 @@ struct AttributeViewBase : public concept::Printable
 
     virtual size_type dof() const =0;
 
-    virtual bool is_a(std::type_info const &t_info) const =0;
+    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(AttributeView); };
 
     id_type mesh_id() const;
 
@@ -157,8 +160,7 @@ struct AttributeViewBase : public concept::Printable
         return static_cast<U *>(d);
     }
 
-    virtual std::shared_ptr<DataBlock>
-    create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const =0;
+    virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const =0;
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr);
 
@@ -188,51 +190,7 @@ private:
  * -) if there is no Atlas, AttributeView will hold the MeshBlock
  * -) if there is no AttributeHolder, AttributeView will hold the DataBlock and Attribute
  */
-template<typename TV, MeshEntityType IFORM, size_type IDOF = 1>
-class AttributeView : public AttributeViewBase
-{
 
-protected:
-
-    typedef AttributeView this_type;
-    typedef Attribute<TV, IFORM, IDOF> attribute_type;
-
-public:
-
-    static constexpr MeshEntityType iform = IFORM;
-
-    static constexpr size_type DOF = IDOF;
-
-    AttributeView() : AttributeViewBase(nullptr) {};
-
-    template<typename ...Args>
-    explicit AttributeView(Args &&...args) :
-            AttributeViewBase(std::make_shared<attribute_type>(std::forward<Args>(args)...)) {};
-
-
-    virtual ~AttributeView() {}
-
-    AttributeView(this_type const &other) = delete;
-
-    AttributeView(this_type &&other) = delete;
-
-    virtual std::shared_ptr<DataBlock>
-    create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const
-    {
-        return create_data_block(m, static_cast<TV *>(p));
-    };
-
-    virtual std::shared_ptr<DataBlock>
-    create_data_block(std::shared_ptr<MeshBlock> const &m, TV *p = nullptr) const =0;
-
-    virtual MeshEntityType entity_type() const { return IFORM; };
-
-    virtual std::type_info const &value_type_info() const { return typeid(TV); };
-
-    virtual size_type dof() const { return DOF; };
-
-    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
-};
 
 
 }} //namespace data_block

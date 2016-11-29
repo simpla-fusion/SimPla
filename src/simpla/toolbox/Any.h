@@ -145,7 +145,7 @@ struct Any : public concept::Printable
     Any() : m_data_(nullptr) {}
 
     template<typename ValueType>
-    Any(const ValueType &value)
+    explicit Any(const ValueType &value)
             : m_data_(new Holder<typename std::remove_cv<
             typename std::decay<ValueType>::type>::type>(value)) {}
 
@@ -154,15 +154,13 @@ struct Any : public concept::Printable
 
 
     // Move constructor
-    Any(Any &&other) : m_data_(other.m_data_)
-    {
-        other.m_data_ = 0;
-    }
+    Any(Any &&other) : m_data_(other.m_data_) { other.m_data_ = 0; }
 
     // Perfect forwarding of ValueType
     template<typename ValueType>
-    Any(ValueType &&value,
-        typename std::enable_if<!(std::is_same<Any &, ValueType>::value || std::is_const<ValueType>::value)>::type * = 0
+    explicit Any(ValueType &&value,
+                 typename std::enable_if<!(std::is_same<Any &, ValueType>::value ||
+                                           std::is_const<ValueType>::value)>::type * = 0
             // disable if entity has type `any&`
             // disable if entity has type `const ValueType&&`
     ) : m_data_(new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType &&>(value)))
@@ -352,7 +350,7 @@ private:
         virtual void const *data() const = 0;
 
         template<typename U, int N>
-        bool as(nTuple <U, N> *v) const
+        bool as(nTuple<U, N> *v) const
         {
             if (is_same<nTuple<U, N>>
                     ())
@@ -449,7 +447,7 @@ private:
         }
 
         template<typename V, int N>
-        std::shared_ptr<PlaceHolder> _index_of(nTuple <V, N> const &v, int n) const
+        std::shared_ptr<PlaceHolder> _index_of(nTuple<V, N> const &v, int n) const
         {
             return std::shared_ptr<PlaceHolder>(new Holder<V>(v[n]));
         }

@@ -10,7 +10,6 @@
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Memory.h>
 #include "DataEntity.h"
-#include "DataBase.h"
 
 namespace simpla { namespace data
 {
@@ -21,13 +20,15 @@ enum
 };
 
 template<typename V>
-class DataEntityNDArray : public DataEntityHeavy
+class DataEntityNDArray : public DataEntity, public concept::Deployable
 {
-public:
+    typedef concept::Deployable base_type;
     typedef DataEntityNDArray<V> this_type;
+public:
+
     typedef V value_type;
 
-    explicit DataEntityNDArray(value_type *p = nullptr)
+    explicit DataEntityNDArray()
             : m_data_(nullptr), m_holder_(nullptr), m_order_(SLOW_FIRST), m_ndims_(0), m_size_(0) {}
 
 
@@ -40,14 +41,15 @@ public:
 
     template<typename ...Args>
     explicit DataEntityNDArray(std::shared_ptr<value_type> const &p, Args &&...args)
-//                      int ndims, index_type const *lo, index_type const *hi,
-//                      int order = SLOW_FIRST, index_type const *i_lo = nullptr, index_type const *i_hi = nullptr)
             : m_holder_(p), m_data_(p.get()), m_order_(SLOW_FIRST), m_size_(0)
     {
         initialize(std::forward<Args>(args)...);
 //        initialize(ndims, lo, hi, order, i_lo, i_hi);
     };
 
+    static constexpr bool heavy_data_flag = true;
+
+    virtual bool is_heavy_data() const { return heavy_data_flag; };
 
     DataEntityNDArray(this_type const &other) = delete;
 
@@ -157,27 +159,36 @@ public:
 
     virtual bool is_a(std::type_info const &t_info) const
     {
-        return t_info == typeid(this_type) || DataEntityHeavy::is_a(t_info);
+        return t_info == typeid(this_type) || DataEntity::is_a(t_info);
     };
 
-    virtual bool is_null() const { return false; };
+    virtual bool is_null() const { return m_data_ == nullptr; };
 
-    virtual bool is_updated() const { return m_data_ != nullptr; }
 
-    virtual void update()
+    virtual void deploy()
     {
+        concept::Deployable::deploy();
         if (m_data_ == nullptr)
         {
             if (m_holder_ == nullptr && m_size_ > 0) { m_holder_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }
             m_data_ = m_holder_.get();
         }
+
     };
 
     virtual void destroy()
     {
         m_holder_.reset();
         m_data_ = nullptr;
+        concept::Deployable::destroy();
     }
+
+    virtual void update()
+    {
+        if (!is_deployed()) { deploy(); }
+        if (m_data_ == nullptr && m_holder_ != nullptr) { m_data_ = m_holder_.get(); }
+    }
+
 
     virtual void clear()
     {
@@ -185,7 +196,11 @@ public:
         toolbox::MemorySet(m_data_, 0, m_size_ * sizeof(value_type));
     }
 
-
+    virtual void deep_copy(this_type  const &other)
+    {
+        update();
+        toolbox::MemoryCopy(m_data_, other.m_data_, m_size_ * sizeof(value_type));
+    }
     virtual void *data() { return m_data_; }
 
     virtual void const *data() const { return m_data_; }
@@ -237,10 +252,17 @@ public:
 
     inline constexpr size_type hash(index_type x0, index_type x1, index_type x2, index_type x3) const
     {
-        return (x0 - m_start_[0] + m_count_[0] * 2) % m_count_[0] * m_strides_[0]
-               + (x1 - m_start_[1] + m_count_[1] * 2) % m_count_[1] * m_strides_[1]
-               + (x2 - m_start_[2] + m_count_[2] * 2) % m_count_[2] * m_strides_[2]
-               + (x3 - m_start_[3] + m_count_[3] * 2) % m_count_[3] * m_strides_[3];
+
+
+        ASSERT((x0 - m_start_[0] + m_count_[0] * 2) % m_count_[0] * m_strides_[0] +
+               (x1 - m_start_[1] + m_count_[1] * 2) % m_count_[1] * m_strides_[1] +
+               (x2 - m_start_[2] + m_count_[2] * 2) % m_count_[2] * m_strides_[2] +
+               (x3 - m_start_[3] + m_count_[3] * 2) % m_count_[3] * m_strides_[3] < m_size_);
+
+        return (x0 - m_start_[0] + m_count_[0] * 2) % m_count_[0] * m_strides_[0] +
+               (x1 - m_start_[1] + m_count_[1] * 2) % m_count_[1] * m_strides_[1] +
+               (x2 - m_start_[2] + m_count_[2] * 2) % m_count_[2] * m_strides_[2] +
+               (x3 - m_start_[3] + m_count_[3] * 2) % m_count_[3] * m_strides_[3];
 
 //        return (x0 - m_start_[0]) * m_strides_[0] +
 //               (x1 - m_start_[1]) * m_strides_[1] +

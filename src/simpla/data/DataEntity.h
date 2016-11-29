@@ -6,6 +6,7 @@
 #define SIMPLA_DATAENTITY_H
 
 #include <simpla/toolbox/Any.h>
+#include <simpla/concept/Deployable.h>
 #include "DataSet.h"
 #include "DataType.h"
 #include "DataSpace.h"
@@ -20,7 +21,7 @@ public:
     template<typename ...Args>
     DataEntity(Args &&...args) : base_type(std::forward<Args>(args)...) {}
 
-    DataEntity(DataEntity const &other) : base_type(other) {}
+    DataEntity(DataEntity const &other) : base_type(static_cast<toolbox::Any const &>(other)) {}
 
     DataEntity(DataEntity &&other) : base_type(other) {}
 
@@ -62,7 +63,7 @@ struct DataEntityLight : public DataEntity
 {
 };
 
-struct DataEntityHeavy : public DataEntityLight
+struct DataEntityHeavy : public DataEntity, public concept::Deployable
 {
     typedef DataEntity base_type;
 public:

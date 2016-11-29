@@ -83,38 +83,39 @@ public:
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
 
-    std::shared_ptr<fluid_s>
-    add_particle(std::string const &name, data::DataBase const &d)
-    {
-        Real mass;
-        Real charge;
-
-        if (d.has("mass")) { mass = d.at("mass").as<double>(); }
-        else if (d.has("m")) { mass = d.at("m").as<double>() * SI_proton_mass; }
-        else { mass = SI_proton_mass; }
-
-        if (d.has("charge")) { charge = d.at("charge").as<double>(); }
-        else if (d.has("Z")) { charge = d.at("Z").as<double>() * SI_elementary_charge; }
-        else { charge = SI_elementary_charge; }
-
-        VERBOSE << "Add particle : {\"" << name << "\", mass = " << mass / SI_proton_mass << " [m_p], charge = "
-                << charge / SI_elementary_charge << " [q_e] }" << std::endl;
-        auto sp = std::make_shared<fluid_s>();
-        sp->mass = mass;
-        sp->charge = charge;
-        sp->rho = std::make_shared<TRho>(m_chart_, name + "_rho");
-        sp->J = std::make_shared<TJv>(m_chart_, name + "_J");
-        m_fluid_sp_.emplace(std::make_pair(name, sp));
-        return sp;
-    }
+    std::shared_ptr<fluid_s> add_particle(std::string const &name, data::DataBase const &d);
 
     std::map<std::string, std::shared_ptr<fluid_s>> &particles() { return m_fluid_sp_; };
 
-    std::shared_ptr<model::Model> m_model_;
-
-    virtual void connect_model(std::shared_ptr<model::Model> const &m) { m_model_ = m; };
 
 };
+
+template<typename TM>
+std::shared_ptr<struct EMFluid<TM>::fluid_s>
+EMFluid<TM>::add_particle(std::string const &name, data::DataBase const &d)
+{
+    Real mass;
+    Real charge;
+
+    if (d.has("mass")) { mass = d.at("mass").as<double>(); }
+    else if (d.has("m")) { mass = d.at("m").as<double>() * SI_proton_mass; }
+    else { mass = SI_proton_mass; }
+
+    if (d.has("charge")) { charge = d.at("charge").as<double>(); }
+    else if (d.has("Z")) { charge = d.at("Z").as<double>() * SI_elementary_charge; }
+    else { charge = SI_elementary_charge; }
+
+    VERBOSE << "Add particle : {\"" << name << "\", mass = " << mass / SI_proton_mass << " [m_p], charge = "
+            << charge / SI_elementary_charge << " [q_e] }" << std::endl;
+    auto sp = std::make_shared<fluid_s>();
+    sp->mass = mass;
+    sp->charge = charge;
+    sp->rho = std::make_shared<TRho>(m_chart_, name + "_rho");
+    sp->J = std::make_shared<TJv>(m_chart_, name + "_J");
+    m_fluid_sp_.emplace(std::make_pair(name, sp));
+    return sp;
+}
+
 
 template<typename TM>
 std::ostream &

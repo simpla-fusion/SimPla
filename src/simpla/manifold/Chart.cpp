@@ -7,7 +7,9 @@
 #include <simpla/mesh/MeshBlock.h>
 
 
-namespace simpla { namespace mesh
+namespace simpla
+{
+namespace mesh
 {
 
 
@@ -25,7 +27,8 @@ std::ostream &Chart::print(std::ostream &os, int indent) const
         os << std::setw(indent + 1) << " " << " Block = {";
         m_mesh_block_->print(os, indent + 1);
         os << std::setw(indent + 1) << " " << "},";
-    }    os << std::setw(indent + 1) << " " << "}," << std::endl;
+    }
+    os << std::setw(indent + 1) << " " << "}," << std::endl;
 
     os << std::setw(indent + 1) << " " << "Attribute= { ";
 
@@ -41,8 +44,8 @@ std::ostream &Chart::print(std::ostream &os, int indent) const
 bool Chart::is_a(std::type_info const &info) const { return typeid(Chart) == info; }
 
 
-AttributeViewBase *
-Chart::connect(AttributeViewBase *attr)
+AttributeView *
+Chart::connect(AttributeView *attr)
 {
 
     m_attr_views_.insert(attr);
@@ -50,22 +53,23 @@ Chart::connect(AttributeViewBase *attr)
 
 }
 
-void Chart::disconnect(AttributeViewBase *attr) { m_attr_views_.erase(attr); }
+void Chart::disconnect(AttributeView *attr) { m_attr_views_.erase(attr); }
 
-void Chart::initialize(Real data_time) { DO_NOTHING; }
+void Chart::initialize(Real data_time) { update(); }
 
-void Chart::update() { DO_NOTHING; }
+void Chart::update() { for (auto &item:m_attr_views_) { item->move_to(m_mesh_block_); }}
 
 void Chart::move_to(std::shared_ptr<MeshBlock> const &m)
 {
     m_mesh_block_ = m;
-    for (auto &item:m_attr_views_) { item->move_to(m); }
+    update();
 };
 
 
-std::set<AttributeViewBase *> &Chart::attributes() { return m_attr_views_; };
+std::set<AttributeView *> &Chart::attributes() { return m_attr_views_; };
 
-std::set<AttributeViewBase *> const &Chart::attributes() const { return m_attr_views_; };
+std::set<AttributeView *> const &Chart::attributes() const { return m_attr_views_; };
 
 
-}}//namespace simpla {namespace mesh
+}
+}//namespace simpla {namespace mesh

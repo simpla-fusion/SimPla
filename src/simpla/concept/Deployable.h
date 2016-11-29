@@ -14,9 +14,9 @@ struct Deployable
 
     Deployable() : m_is_deployed_(false) {}
 
-    virtual ~Deployable() { tear_down(); }
+    virtual ~Deployable() { destroy(); }
 
-    bool is_deployed() const { return m_is_deployed_; }
+    virtual bool is_deployed() const { return m_is_deployed_; }
 
     virtual void deploy()
     {
@@ -24,7 +24,7 @@ struct Deployable
         m_is_deployed_ = true;
     };
 
-    virtual void tear_down() { m_is_deployed_ = false; };
+    virtual void destroy() { m_is_deployed_ = false; };
 
 private:
     bool m_is_deployed_ = false;
