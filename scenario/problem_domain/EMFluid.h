@@ -60,6 +60,7 @@ public:
     typedef field_type<VERTEX, 3> TJv;
 
     field_type<VERTEX> rho0{m_chart_, "rho0"};
+
     field_type<EDGE> E0{m_chart_, "E0"};
     field_type<FACE> B0{m_chart_, "B0"};
     field_type<VERTEX, 3> B0v{m_chart_, "B0v"};

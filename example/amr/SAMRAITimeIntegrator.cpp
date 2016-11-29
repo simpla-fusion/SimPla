@@ -668,6 +668,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                                  "LINEAR_REFINE");
             }
 
+            VERBOSE << (attr->name()) << " --  " << visit_variable_type << std::endl;
 
             if (visit_variable_type != "")
             {
@@ -929,6 +930,8 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
         if (attr == nullptr) { return; }
         auto db = detail::create_data_block(attr,
                                             patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext()));
+
+//        VERBOSE << " Move to " << attr->name() << std::endl;
         ob->move_to(m, db);
     }
     w->move_to(m);

@@ -38,7 +38,7 @@ public:
 
     template<typename ...Args>
     Bundle(std::shared_ptr<Chart> const &c, Args &&...args) :
-            Bundle(c.get(), std::forward<Args>(args)...) {};
+            Bundle(c.get(), std::forward<Args>(args)...) { connect(c.get()); };
 
 
     template<typename ...Args>

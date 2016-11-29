@@ -74,6 +74,8 @@ public:
 
     Real psi(Real R, Real Z) const;
 
+    Real psi(point_type const &x) const { return psi(x[RAxis], x[ZAxis]); }
+
     nTuple<Real, 2> grad_psi(Real R, Real Z) const;
 
     Real profile(std::string const &name, Real p_psi) const;

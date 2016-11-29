@@ -236,35 +236,29 @@ public:
     template<typename ...TArgs>
     inline value_type operator()(TArgs const &... x) const
     {
-        return std::move(
-                interpolate_op_.calculate(data_.get(),
-                                          std::forward<TArgs const &>(x)...));
+        return std::move(interpolate_op_.calculate(data_.get(), std::forward<TArgs const &>(x)...));
     }
 
     inline value_type const &operator[](size_type s) const
     {
-        return (&(*data_))[s];
+        return data_.get()[s];
     }
 
     inline value_type &operator[](size_type s)
     {
-        return (&(*data_))[s];
+        return data_.get()[s];
     }
 
     template<typename ...TArgs>
     value_type calculate(TArgs const &... x) const
     {
-        return std::move(
-                interpolate_op_.calculate(data_.get(),
-                                          std::forward<TArgs const &>(x)...));
+        return std::move(interpolate_op_.calculate(data_.get(), std::forward<TArgs const &>(x)...));
     }
 
     template<typename ...TArgs>
     nTuple <value_type, NDIMS> grad(TArgs const &... x) const
     {
-        return std::move(
-                interpolate_op_.grad(data_.get(),
-                                     std::forward<TArgs const &>(x)...));
+        return std::move(interpolate_op_.grad(data_.get(), std::forward<TArgs const &>(x)...));
     }
 
 };
@@ -293,8 +287,8 @@ public:
         dims_[1] = dims[1];
         xmin_[0] = xmin[0];
         xmin_[1] = xmin[1];
-        xmax_[0] = xmax_[0];
-        xmax_[1] = xmax_[1];
+        xmax_[0] = xmax[0];
+        xmax_[1] = xmax[1];
         update();
     }
 

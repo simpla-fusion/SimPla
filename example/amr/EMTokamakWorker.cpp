@@ -26,9 +26,9 @@ std::shared_ptr<mesh::Worker> create_worker()
 }
 
 
-class EMTokamakWorker : public EMFluid<mesh::CartesianGeometry>
+class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry>
 {
-    typedef EMFluid<mesh::CartesianGeometry> base_type;
+    typedef EMFluid<mesh::CylindricalGeometry> base_type;
 public:
 
     virtual void deploy();
@@ -48,6 +48,7 @@ public:
     virtual void set_physical_boundary_conditions_B(Real time);
 
     GEqdsk geqdsk;
+    field_type <VERTEX> psi{m_chart_, "psi"};
 
     Bundle<Real, VERTEX, 9> m_volume_frac_{m_chart_, "m_volume_frac_", "INPUT"};
     Bundle<Real, VERTEX, 9> m_dual_volume_frac_{m_chart_, "m_dual_volume_frac_", "INPUT"};
@@ -107,6 +108,7 @@ void EMTokamakWorker::initialize(Real data_time)
                     return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
                 }
     );
+    psi.assign([&](point_type const &x) { return geqdsk.psi(x); });
 //
 //    for (auto &item:particles())
 //    {

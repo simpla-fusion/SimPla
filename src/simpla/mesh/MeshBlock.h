@@ -207,12 +207,6 @@ public:
 
     point_type const &inv_dx() const { return m_inv_dx_; }
 
-    virtual point_type point(index_type x, index_type y = 0, index_type z = 0) const
-    {
-        return point_type{std::fma(x, m_dx_[0], m_global_origin_[0]),
-                          std::fma(y, m_dx_[1], m_global_origin_[1]),
-                          std::fma(z, m_dx_[2], m_global_origin_[2])};
-    };
 
 //    virtual point_type point(MeshEntityId const &s) const { return point(s.x >> 1, s.y >> 1, s.z >> 1); }
 //
@@ -255,17 +249,24 @@ public:
 //    };
 
 
+    virtual point_type point(Real x, Real y = 0, Real z = 0) const
+    {
+        point_type p;
+
+        p[0] = std::fma(x, m_l2g_scale_[0], m_l2g_shift_[0]);
+        p[1] = std::fma(y, m_l2g_scale_[1], m_l2g_shift_[1]);
+        p[2] = std::fma(z, m_l2g_scale_[2], m_l2g_shift_[2]);
+
+        return std::move(p);
+
+
+    };
+
     virtual point_type
     point(MeshEntityId const &s) const
     {
         point_type p = m::point(s);
-
-        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
-        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
-        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
-
-        return std::move(p);
-
+        return point(p[0], p[1], p[2]);
     }
 
     virtual point_type
@@ -273,11 +274,7 @@ public:
     {
         point_type p = m::point_local_to_global(s, r);
 
-        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
-        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
-        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
-
-        return std::move(p);
+        return std::move(point(p[0], p[1], p[2]));
     }
 
     virtual    //std::tuple<MeshEntityId, point_type>
