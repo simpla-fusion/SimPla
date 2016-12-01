@@ -18,6 +18,9 @@
 
 namespace simpla
 {
+using namespace mesh;
+using namespace model;
+
 class EMTokamakWorker;
 
 std::shared_ptr<mesh::Worker> create_worker()
@@ -49,17 +52,10 @@ public:
 
     virtual void set_physical_boundary_conditions_B(Real time);
 
-    GEqdsk geqdsk;
-    field_type <VERTEX> psi{m_chart_, "psi"};
 
-//    Bundle<Real, VERTEX, 9> m_volume_frac_{m_chart_, "m_volume_frac_", "INPUT"};
-//    Bundle<Real, VERTEX, 9> m_dual_volume_frac_{m_chart_, "m_dual_volume_frac_", "INPUT"};
-    EntityIdRange edge_boundary;
-    EntityIdRange face_boundary;
-    EntityIdRange limiter_boundary;
-    EntityIdRange vertex_boundary;
-    EntityIdRange plasma_region_volume;
-    EntityIdRange plasma_region_vertex;
+    GEqdsk geqdsk;
+
+    field_type <VERTEX> psi{m_chart_, "psi"};
 
     EntityIdRange J_src_range;
     std::function<Vec3(point_type const &, Real)> J_src_fun;
@@ -80,9 +76,17 @@ void EMTokamakWorker::deploy()
     db["Particles"].foreach([&](std::string const &key, data::DataBase const &item) { add_particle(key, item); });
 
     db["bound_box"] = geqdsk.box();
+
+    get_model()->add_object("VACUUM", geqdsk.limiter_gobj());
+    get_model()->add_object("PLASMA", geqdsk.boundary_gobj());
+    get_model()->deploy();
+
 };
 
-void EMTokamakWorker::preprocess() { if (is_valid()) { return; } else { base_type::preprocess(); }}
+void EMTokamakWorker::preprocess()
+{
+    if (is_valid()) { return; } else { base_type::preprocess(); }
+}
 
 void EMTokamakWorker::postprocess() { if (!is_valid()) { return; } else { base_type::postprocess(); }}
 
@@ -133,8 +137,15 @@ void EMTokamakWorker::set_physical_boundary_conditions(Real data_time)
     if (E_src_fun) { E.assign([&](point_type const &x) { return E_src_fun(x, data_time); }, E_src_range); }
 };
 
-void EMTokamakWorker::set_physical_boundary_conditions_E(Real time) { E.assign(0, edge_boundary); }
+void EMTokamakWorker::set_physical_boundary_conditions_E(Real time)
+{
+    E.assign(0, get_model()->interface(EDGE, "PLASMA", "VACUUM"));
+}
 
-void EMTokamakWorker::set_physical_boundary_conditions_B(Real time) { B.assign(0, face_boundary); }
+void EMTokamakWorker::set_physical_boundary_conditions_B(Real time)
+{
+
+    B.assign(0, get_model()->interface(FACE, "PLASMA", "VACUUM"));
+}
 
 }

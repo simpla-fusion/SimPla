@@ -16,8 +16,7 @@
 
 namespace simpla { namespace geometry
 {
-
-enum IntersectionStatus { OUTSIDE = 0, INSIDE = 1, INTERSECTED = 10 };
+template<typename TObj> struct GeoObjectProxy;
 
 /**
  * @ingroup geometry
@@ -45,7 +44,7 @@ public:
      *           `in` then 1
      *           `out` then 0
      */
-    virtual int check_inside(const Real *x) const { return in_box(m_bound_box_, x) ? 1 : 0; };
+    virtual int check_inside(const Real *x) const { return geometry::in_box(m_bound_box_, x) ? 1 : 0; };
 
     inline int check_inside(const point_type &x) const { return check_inside(&x[0]); };
 
@@ -123,23 +122,23 @@ public:
      */
     virtual std::tuple<point_type, point_type, Real> nearest_point(Real const *x0) const
     {
-        return nearest_point_to_box(m_bound_box_, x0);
+        return geometry::nearest_point_to_box(m_bound_box_, x0);
     };
 
     virtual std::tuple<point_type, point_type, Real> nearest_point(Real const *x0, Real const *x1) const
     {
-        return nearest_point_to_box(m_bound_box_, x0, x1);
+        return geometry::nearest_point_to_box(m_bound_box_, x0, x1);
     };
 
     virtual std::tuple<point_type, point_type, Real> nearest_point(Real const *x0, Real const *x1, Real const *x2) const
     {
-        return nearest_point_to_box(m_bound_box_, x0, x1, x2);
+        return geometry::nearest_point_to_box(m_bound_box_, x0, x1, x2);
     };
 
     virtual std::tuple<point_type, point_type, Real>
     nearest_point(Real const *x0, Real const *x1, Real const *x2, Real const *x3) const
     {
-        return nearest_point_to_box(m_bound_box_, x0, x1, x2, x3);
+        return geometry::nearest_point_to_box(m_bound_box_, x0, x1, x2, x3);
 
     };
 
@@ -167,6 +166,14 @@ public:
     };
 
 
+};
+
+template<typename TObj>
+struct GeoObjectProxy : public GeoObject
+{
+public:
+
+private:
 };
 } // namespace geometry
 } // namespace simpla

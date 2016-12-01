@@ -72,6 +72,8 @@ struct Chart : public concept::Printable, public concept::Deployable
 
     std::set<AttributeView *> const &attributes() const;
 
+    virtual point_type point(index_type i, index_type j, index_type k) const { return m_mesh_block_->point(i, j, k); };
+
 protected:
     std::set<AttributeView *> m_attr_views_;
 

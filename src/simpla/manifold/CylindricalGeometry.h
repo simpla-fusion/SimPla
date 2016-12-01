@@ -63,6 +63,15 @@ public:
 public:
     typedef mesh::MeshEntityIdCoder M;
 
+    virtual point_type point(index_type i, index_type j, index_type k) const
+    {
+        return point_type{
+                m_vertics_.get(i, j, k, 0),
+                m_vertics_.get(i, j, k, 1),
+                m_vertics_.get(i, j, k, 2)
+        };
+    };
+
     virtual point_type point(MeshEntityId s) const { return m_mesh_block_->point(s); };
 
     virtual point_type point(MeshEntityId id, point_type const &pr) const

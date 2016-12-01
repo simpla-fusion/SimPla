@@ -589,33 +589,12 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR", "TENSOR"};
 //                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR", "VECTOR", "SCALAR"};
 
-        std::string visit_variable_type = "";
-        if ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) && attr->dof() == 1)
-        {
-            visit_variable_type = "SCALAR";
-        } else if (((attr->entity_type() == mesh::EDGE || attr->entity_type() == mesh::FACE) &&
-                    attr->dof() == 1) ||
-                   ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) &&
-                    attr->dof() == 3))
-        {
-            visit_variable_type = "VECTOR";
-        } else if (
-                ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) &&
-                 attr->dof() == 9) ||
-                ((attr->entity_type() == mesh::EDGE || attr->entity_type() == mesh::FACE) &&
-                 attr->dof() == 3)
-                )
-        {
-            visit_variable_type = "TENSOR";
-        } else
-        {
-            WARNING << "Can not register attribute [" << attr->name() << "] to VisIt  writer!" << std::endl;
-        }
 
         /*** FIXME:
         *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
         *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
         **/
+
         if (attr->db.has("config") && attr->db["config"].as<std::string>() == "COORDINATES")
         {
             VERBOSE << attr->name() << " is registered as coordinate" << std::endl;
@@ -625,8 +604,6 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                          "",
                                          "LINEAR_REFINE");
 
-            d_visit_writer->registerNodeCoordinates(
-                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         } else if (attr->db.has("config") && attr->db["config"].as<std::string>() == "FLUX")
         {
             integrator->registerVariable(var, d_fluxghosts,
@@ -642,8 +619,6 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                          d_grid_geometry,
                                          "",
                                          "NO_REFINE");
-
-
         } else
         {
             switch (attr->entity_type())
@@ -668,15 +643,41 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 
 //            VERBOSE << (attr->name()) << " --  " << visit_variable_type << std::endl;
 
-            if (visit_variable_type != "")
-            {
 
-                d_visit_writer->registerPlotQuantity(
-                        attr->name(), visit_variable_type,
-                        vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-            }
         }
 
+        std::string visit_variable_type = "";
+        if ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) && attr->dof() == 1)
+        {
+            visit_variable_type = "SCALAR";
+        } else if (((attr->entity_type() == mesh::EDGE || attr->entity_type() == mesh::FACE) && attr->dof() == 1) ||
+                   ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) && attr->dof() == 3))
+        {
+            visit_variable_type = "VECTOR";
+        } else if (
+                ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) && attr->dof() == 9) ||
+                ((attr->entity_type() == mesh::EDGE || attr->entity_type() == mesh::FACE) && attr->dof() == 3)
+                )
+        {
+            visit_variable_type = "TENSOR";
+        } else
+        {
+            WARNING << "Can not register attribute [" << attr->name() << "] to VisIt  writer!" << std::endl;
+        }
+
+
+        if (visit_variable_type == "" || !attr->db.has("config")) {}
+        else if (attr->db["config"].as<std::string>() == "COORDINATES")
+        {
+            d_visit_writer->registerNodeCoordinates(
+                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+
+        } else
+        {
+            d_visit_writer->registerPlotQuantity(
+                    attr->name(), visit_variable_type,
+                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+        }
     }
 //    integrator->printClassData(std::cout);
 //    vardb->printClassData(std::cout);

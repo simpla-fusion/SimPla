@@ -65,19 +65,19 @@ public:
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{m_chart_, "rho0"};
+    field_type<VERTEX> rho0{m_chart_, "rho0", "CHECK"};
 
     field_type<EDGE> E0{m_chart_, "E0"};
-    field_type<FACE> B0{m_chart_, "B0"};
+    field_type<FACE> B0{m_chart_, "B0", "CHECK"};
     field_type<VERTEX, 3> B0v{m_chart_, "B0v"};
     field_type<VERTEX> BB{m_chart_, "BB"};
     field_type<VERTEX, 3> Ev{m_chart_, "Ev"};
     field_type<VERTEX, 3> Bv{m_chart_, "Bv"};
     field_type<VERTEX, 3> dE{m_chart_, "dE"};
 
-    field_type<FACE> B/*   */{m_chart_, "B"};
-    field_type<EDGE> E/*   */{m_chart_, "E"};
-    field_type<EDGE> J1/*  */{m_chart_, "J1"};
+    field_type<FACE> B/*   */{m_chart_, "B", "CHECK"};
+    field_type<EDGE> E/*   */{m_chart_, "E", "CHECK"};
+    field_type<EDGE> J1/*  */{m_chart_, "J1", "CHECK"};
 
     struct fluid_s
     {

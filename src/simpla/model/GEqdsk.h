@@ -15,6 +15,7 @@
 #include <simpla/toolbox/type_traits.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/geometry/Polygon.h>
+#include <simpla/geometry/Revolve.h>
 
 namespace simpla
 {
@@ -67,6 +68,10 @@ public:
     geometry::Polygon<2> const &boundary() const;
 
     geometry::Polygon<2> const &limiter() const;
+
+    std::shared_ptr<geometry::GeoObject> boundary_gobj() const { return geometry::revolve(boundary()); }
+
+    std::shared_ptr<geometry::GeoObject> limiter_gobj() const { return geometry::revolve(limiter()); }
 
     bool in_boundary(point_type const &x) const { return boundary().check_inside(x[RAxis], x[ZAxis]) > 0; }
 

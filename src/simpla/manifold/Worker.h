@@ -45,11 +45,17 @@ public:
 
     Worker(std::shared_ptr<Chart> const &c = nullptr);
 
-    ~Worker();
+    virtual ~Worker();
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
     virtual std::string name() const { return m_name_; };
+
+    std::shared_ptr<Chart> const &get_chart() const;
+
+    void set_chart(std::shared_ptr<Chart> const &c);
+
+    std::shared_ptr<model::Model> const &get_model() const;
 
     virtual void load(data::DataBase const &) { UNIMPLEMENTED; }
 
@@ -57,26 +63,26 @@ public:
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m);
 
-    virtual void preprocess();
+    virtual void deploy();
 
-    virtual void postprocess();
+    virtual void preprocess();
 
     virtual void initialize(Real data_time = 0);
 
-    virtual void finalize(Real data_time= 0);
+    virtual void next_time_step(Real data_time, Real dt) {};
+
+    virtual void finalize(Real data_time = 0);
+
+    virtual void postprocess();
 
     virtual void set_physical_boundary_conditions(Real time) {};
 
-    virtual void next_time_step(Real data_time, Real dt) {};
-
-    std::shared_ptr<Chart> const &get_chart() const { return m_chart_; };
-
-    void set_chart(std::shared_ptr<Chart> const &c) { m_chart_ = c; }
 
     std::shared_ptr<Chart> m_chart_;
 
 protected:
 
+    std::shared_ptr<model::Model> m_model_;
     std::string m_name_;
 };
 

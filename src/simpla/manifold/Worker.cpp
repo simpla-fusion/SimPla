@@ -10,7 +10,7 @@ namespace simpla { namespace mesh
 {
 
 
-Worker::Worker(std::shared_ptr<Chart> const &c) : m_chart_(c) {}
+Worker::Worker(std::shared_ptr<Chart> const &c) : m_chart_(nullptr), m_model_(nullptr) { set_chart(c); }
 
 Worker::~Worker() {};
 
@@ -31,6 +31,21 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
     return os;
 }
 
+std::shared_ptr<Chart> const &
+Worker::get_chart() const
+{
+    return m_chart_;
+}
+
+void Worker::set_chart(std::shared_ptr<Chart> const &c)
+{
+    m_chart_ = c;
+    m_model_ = std::make_shared<model::Model>(m_chart_);
+}
+
+std::shared_ptr<model::Model> const &Worker::get_model() const { return m_model_; }
+
+
 void Worker::move_to(std::shared_ptr<mesh::MeshBlock> const &m)
 {
     postprocess();
@@ -38,15 +53,24 @@ void Worker::move_to(std::shared_ptr<mesh::MeshBlock> const &m)
     preprocess();
 }
 
+void Worker::deploy()
+{
+    concept::Deployable::deploy();
+    m_chart_->deploy();
+    m_model_->deploy();
+}
+
 void Worker::preprocess()
 {
     if (is_valid()) { return; } else { concept::Deployable::preprocess(); }
     m_chart_->preprocess();
+    m_model_->preprocess();
 }
 
 void Worker::postprocess()
 {
     if (!is_valid()) { return; } else { concept::Deployable::postprocess(); }
+    m_model_->postprocess();
     m_chart_->postprocess();
 }
 
@@ -55,29 +79,16 @@ void Worker::initialize(Real data_time)
     preprocess();
     ASSERT (m_chart_ != nullptr);
     m_chart_->initialize(data_time);
+    m_model_->initialize(data_time);
 }
 
 void Worker::finalize(Real data_time)
 {
-    postprocess();
+
+    m_model_->finalize(data_time);
     m_chart_->finalize(data_time);
+    postprocess();
 }
 
-
-//
-//
-//void Worker::deploy()
-//{
-////    move_to(m_pimpl_->m_mesh_);
-////    foreach([&](AttributeViewBase &ob) { ob.deploy(); });
-//
-//}
-//
-//void Worker::destroy()
-//{
-////    foreach([&](AttributeViewBase &ob) { ob.destroy(); });
-//    m_pimpl_->m_frame_ = nullptr;
-//}
-//
 
 }}//namespace simpla { namespace mesh1
