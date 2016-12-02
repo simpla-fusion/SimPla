@@ -30,7 +30,7 @@ private:
 public:
     typedef TV value_type;
 
-    using base_type::preprocess;
+    using base_type::pre_process;
     using base_type::move_to;
 
     Bundle() : m_chart_(nullptr) {}
@@ -147,14 +147,14 @@ public:
         {
             ASSERT(m_chart_ != nullptr);
             base_type::move_to(m_chart_->mesh_block());
-            base_type::preprocess();
+            base_type::pre_process();
         }
         m_data_ = base_type::template data_as<default_data_block_type>();
     }
 
     virtual void postprocess()
     {
-        if (!is_valid()) { return; } else { base_type::postprocess(); }
+        if (!is_valid()) { return; } else { base_type::post_process(); }
         m_data_ = nullptr;
 
     }

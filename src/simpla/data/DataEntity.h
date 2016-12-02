@@ -89,7 +89,7 @@ public:
 
 //    virtual void set(std::shared_ptr<void> d, DataType const &, DataSpace const &) {};
 //
-//    virtual void preprocess() = 0;
+//    virtual void pre_process() = 0;
 //
 //    virtual void clear() = 0;
 //

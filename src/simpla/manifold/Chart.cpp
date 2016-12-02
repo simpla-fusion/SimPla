@@ -53,9 +53,9 @@ Chart::connect(AttributeView *attr)
 
 void Chart::disconnect(AttributeView *attr) { m_attr_views_.erase(attr); }
 
-void Chart::initialize(Real data_time) { preprocess(); }
+void Chart::initialize(Real data_time) { pre_process(); }
 
-void Chart::finalize(Real data_time) { postprocess(); }
+void Chart::finalize(Real data_time) { post_process(); }
 
 void Chart::preprocess()
 {
@@ -63,21 +63,21 @@ void Chart::preprocess()
     for (auto &item:m_attr_views_)
     {
         item->move_to(m_mesh_block_);
-        item->preprocess();
+        item->pre_process();
     }
 }
 
 void Chart::postprocess()
 {
-    for (auto &item:m_attr_views_) { item->postprocess(); }
+    for (auto &item:m_attr_views_) { item->post_process(); }
     m_mesh_block_.reset();
 }
 
 void Chart::move_to(std::shared_ptr<MeshBlock> const &m)
 {
-    postprocess();
+    post_process();
     m_mesh_block_ = m;
-    preprocess();
+    pre_process();
 };
 
 

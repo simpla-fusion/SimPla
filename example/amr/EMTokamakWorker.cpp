@@ -36,9 +36,9 @@ public:
 
     virtual void deploy();
 
-    virtual void preprocess();
+    virtual void pre_process();
 
-    virtual void postprocess();
+    virtual void post_process();
 
     virtual void initialize(Real data_time);
 
@@ -83,16 +83,16 @@ void EMTokamakWorker::deploy()
 
 };
 
-void EMTokamakWorker::preprocess()
+void EMTokamakWorker::pre_process()
 {
-    if (is_valid()) { return; } else { base_type::preprocess(); }
+    if (is_valid()) { return; } else { base_type::pre_process(); }
 }
 
-void EMTokamakWorker::postprocess() { if (!is_valid()) { return; } else { base_type::postprocess(); }}
+void EMTokamakWorker::post_process() { if (!is_valid()) { return; } else { base_type::post_process(); }}
 
 void EMTokamakWorker::initialize(Real data_time)
 {
-    preprocess();
+    pre_process();
 
     rho0.assign([&](point_type const &x)
                 {
@@ -120,21 +120,29 @@ void EMTokamakWorker::initialize(Real data_time)
 
 void EMTokamakWorker::finalize(Real data_time)
 {
-    postprocess();
+    post_process();
     base_type::finalize(data_time);
 }
 
 void EMTokamakWorker::next_time_step(Real data_time, Real dt)
 {
-    preprocess();
+    pre_process();
     base_type::next_time_step(data_time, dt);
 };
 
 void EMTokamakWorker::set_physical_boundary_conditions(Real data_time)
 {
     base_type::set_physical_boundary_conditions(data_time);
-    if (J_src_fun) { J1.assign([&](point_type const &x) { return J_src_fun(x, data_time); }, J_src_range); }
-    if (E_src_fun) { E.assign([&](point_type const &x) { return E_src_fun(x, data_time); }, E_src_range); }
+    if (J_src_fun)
+    {
+        J1.assign([&](point_type const &x) { return J_src_fun(x, data_time); },
+                  get_model()->select(EDGE, "J_SRC"));
+    }
+    if (E_src_fun)
+    {
+        E.assign([&](point_type const &x) { return E_src_fun(x, data_time); },
+                 get_model()->select(EDGE, "E_SRC"));
+    }
 };
 
 void EMTokamakWorker::set_physical_boundary_conditions_E(Real time)

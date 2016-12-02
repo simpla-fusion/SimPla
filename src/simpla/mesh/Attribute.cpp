@@ -143,7 +143,7 @@ DataBlock const *AttributeView::data_block() const { return m_data_.get(); };
 void AttributeView::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
 {
     if (m == nullptr || m == m_mesh_block_) { return; }
-    postprocess();
+    post_process();
     m_mesh_block_ = m;
     m_data_ = d;
 }
@@ -151,7 +151,7 @@ void AttributeView::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr
 
 void AttributeView::preprocess()
 {
-    if (is_valid()) { return; } else { concept::Deployable::preprocess(); }
+    if (is_valid()) { return; } else { concept::Deployable::pre_process(); }
 
     ASSERT(m_mesh_block_ != nullptr);
     if (m_data_ != nullptr) { return; }
@@ -159,14 +159,14 @@ void AttributeView::preprocess()
     else
     {
         m_data_ = create_data_block(m_mesh_block_, nullptr);
-        m_data_->preprocess();
+        m_data_->pre_process();
     }
     ASSERT(m_data_ != nullptr);
 }
 
 void AttributeView::postprocess()
 {
-    if (!is_valid()) { return; } else { concept::Deployable::postprocess(); }
+    if (!is_valid()) { return; } else { concept::Deployable::post_process(); }
     m_data_.reset();
     m_mesh_block_.reset();
 }
@@ -174,7 +174,7 @@ void AttributeView::postprocess()
 
 void AttributeView::clear()
 {
-    preprocess();
+    pre_process();
     m_data_->clear();
 }
 

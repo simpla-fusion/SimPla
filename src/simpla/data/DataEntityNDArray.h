@@ -192,13 +192,13 @@ public:
 
     virtual void clear()
     {
-        preprocess();
+        pre_process();
         toolbox::MemorySet(m_data_, 0, m_size_ * sizeof(value_type));
     }
 
     virtual void deep_copy(this_type  const &other)
     {
-        preprocess();
+        pre_process();
         toolbox::MemoryCopy(m_data_, other.m_data_, m_size_ * sizeof(value_type));
     }
     virtual void *data() { return m_data_; }

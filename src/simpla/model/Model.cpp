@@ -27,9 +27,9 @@ std::ostream &Model::print(std::ostream &os, int indent) const { return os; }
 
 void Model::deploy() {};
 
-void Model::preprocess()
+void Model::pre_process()
 {
-    m_tags_.preprocess();
+    m_tags_.pre_process();
     m_tags_.clear();
 };
 
@@ -97,7 +97,7 @@ void Model::finalize(Real data_time)
     m_interface_cache_.erase(m_chart_->mesh_block()->id());
 };
 
-void Model::postprocess() {};
+void Model::post_process() {};
 
 
 void Model::add_object(std::string const &key, std::shared_ptr<geometry::GeoObject> const &g_obj)

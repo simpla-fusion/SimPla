@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     worker->print(std::cout);
 
     index_box_type mesh_index_box{{0,  0,  0},
-                                  {16, 16, 32}};
+                                  {64, 64, 64}};
 
     auto bound_box = worker->db["bound_box"].as(box_type {{1, 0,  -1},
                                                           {2, PI, 1}});

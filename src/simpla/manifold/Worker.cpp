@@ -48,9 +48,9 @@ std::shared_ptr<model::Model> const &Worker::get_model() const { return m_model_
 
 void Worker::move_to(std::shared_ptr<mesh::MeshBlock> const &m)
 {
-    postprocess();
+    post_process();
     m_chart_->move_to(m);
-    preprocess();
+    pre_process();
 }
 
 void Worker::deploy()
@@ -60,23 +60,23 @@ void Worker::deploy()
     m_model_->deploy();
 }
 
-void Worker::preprocess()
+void Worker::pre_process()
 {
-    if (is_valid()) { return; } else { concept::Deployable::preprocess(); }
-    m_chart_->preprocess();
-    m_model_->preprocess();
+    if (is_valid()) { return; } else { concept::Deployable::pre_process(); }
+    m_chart_->pre_process();
+    m_model_->pre_process();
 }
 
-void Worker::postprocess()
+void Worker::post_process()
 {
-    if (!is_valid()) { return; } else { concept::Deployable::postprocess(); }
-    m_model_->postprocess();
-    m_chart_->postprocess();
+    if (!is_valid()) { return; } else { concept::Deployable::post_process(); }
+    m_model_->post_process();
+    m_chart_->post_process();
 }
 
 void Worker::initialize(Real data_time)
 {
-    preprocess();
+    pre_process();
     ASSERT (m_chart_ != nullptr);
     m_chart_->initialize(data_time);
     m_model_->initialize(data_time);
@@ -87,7 +87,7 @@ void Worker::finalize(Real data_time)
 
     m_model_->finalize(data_time);
     m_chart_->finalize(data_time);
-    postprocess();
+    post_process();
 }
 
 

@@ -87,7 +87,7 @@ public:
 //    Particle(TFactory &factory, Args &&...args)
 //            : field_type(factory, std::forward<Args>(args)...), m_properties_(nullptr), m_pool_(nullptr)
 //    {
-//        preprocess();
+//        pre_process();
 //    }
 
     template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>

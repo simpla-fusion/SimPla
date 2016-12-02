@@ -28,13 +28,13 @@ struct Deployable
 
     virtual bool is_valid() const { return m_is_valid_; }
 
-    virtual void preprocess() { m_is_valid_ = true; /*add sth here*/}
+    virtual void pre_process() { m_is_valid_ = true; /*add sth here*/}
 
-    virtual void postprocess() { /*add sth here*/ m_is_valid_ = false; }
+    virtual void post_process() { /*add sth here*/ m_is_valid_ = false; }
 
-    virtual void initialize(Real data_time = 0) { preprocess(); }
+    virtual void initialize(Real data_time = 0) { pre_process(); }
 
-    virtual void finalize(Real data_time = 0) { postprocess(); }
+    virtual void finalize(Real data_time = 0) { post_process(); }
 
 
 private:

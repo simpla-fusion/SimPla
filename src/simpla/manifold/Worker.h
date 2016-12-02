@@ -65,7 +65,7 @@ public:
 
     virtual void deploy();
 
-    virtual void preprocess();
+    virtual void pre_process();
 
     virtual void initialize(Real data_time = 0);
 
@@ -73,7 +73,7 @@ public:
 
     virtual void finalize(Real data_time = 0);
 
-    virtual void postprocess();
+    virtual void post_process();
 
     virtual void set_physical_boundary_conditions(Real time) {};
 
