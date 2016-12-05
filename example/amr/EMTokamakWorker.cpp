@@ -73,7 +73,7 @@ void EMTokamakWorker::deploy()
     // first run, only load configure, m_chart_=nullptr
     geqdsk.load(db["GEqdsk"].as<std::string>("geqdsk.gfile"));
 
-    db["Particles"].foreach([&](std::string const &key, data::DataBase const &item) { add_particle(key, item); });
+    db["Particles"].foreach([&](std::string const &key, data::DataEntityTable const &item) { add_particle(key, item); });
 
     db["bound_box"] = geqdsk.box();
 

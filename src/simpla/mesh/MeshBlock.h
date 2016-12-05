@@ -7,7 +7,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <iomanip>
-#include <simpla/data/DataBase.h>
+#include <simpla/data/DataEntityTable.h>
 #include <simpla/data/DataSpace.h>
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/concept/Object.h>
@@ -112,9 +112,9 @@ public:
     /** for Serializable @{*/
     virtual std::string name() const { return string_cast(id()); }
 
-    virtual void load(const data::DataBase &) {};
+    virtual void load(const data::DataEntityTable &) {};
 
-    virtual void save(data::DataBase *) const {};
+    virtual void save(data::DataEntityTable *) const {};
 
     /** @}*/
 

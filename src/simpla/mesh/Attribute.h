@@ -62,9 +62,9 @@ public:
 
     virtual std::string name() const { return m_name_; };
 
-    virtual void load(const data::DataBase &);
+    virtual void load(const data::DataEntityTable &);
 
-    virtual void save(data::DataBase *) const;
+    virtual void save(data::DataEntityTable *) const;
 
     virtual bool has(const id_type &) const;
 

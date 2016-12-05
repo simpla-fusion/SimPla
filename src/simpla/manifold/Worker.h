@@ -9,7 +9,7 @@
 #include <memory>
 #include <vector>
 #include <set>
-#include <simpla/data/DataBase.h>
+#include <simpla/data/DataEntityTable.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/design_pattern/Observer.h>
 
@@ -57,9 +57,9 @@ public:
 
     std::shared_ptr<model::Model> const &get_model() const;
 
-    virtual void load(data::DataBase const &) { UNIMPLEMENTED; }
+    virtual void load(data::DataEntityTable const &) { UNIMPLEMENTED; }
 
-    virtual void save(data::DataBase *) const { UNIMPLEMENTED; }
+    virtual void save(data::DataEntityTable *) const { UNIMPLEMENTED; }
 
     virtual void move_to(std::shared_ptr<mesh::MeshBlock> const &m);
 

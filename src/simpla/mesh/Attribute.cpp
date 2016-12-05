@@ -26,7 +26,7 @@ struct AttributeBase::pimpl_s
 AttributeBase::AttributeBase(std::string const &s, std::string const &config_str)
         : Object(), m_name_(s), m_pimpl_(new pimpl_s)
 {
-    if (config_str != "") { db["config"] = config_str; }
+    if (config_str != "") { db.insert("config", config_str); }
 }
 
 AttributeBase::~AttributeBase() {}
@@ -47,9 +47,9 @@ std::ostream &AttributeBase::print(std::ostream &os, int indent) const
 }
 
 
-void AttributeBase::load(const data::DataBase &) { UNIMPLEMENTED; }
+void AttributeBase::load(const data::DataEntityTable &) { UNIMPLEMENTED; }
 
-void AttributeBase::save(data::DataBase *) const { UNIMPLEMENTED; }
+void AttributeBase::save(data::DataEntityTable *) const { UNIMPLEMENTED; }
 
 bool AttributeBase::has(const id_type &m) const
 {

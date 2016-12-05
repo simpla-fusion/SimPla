@@ -27,7 +27,7 @@
 #include <simpla/mesh/TransitionMap.h>
 #include <simpla/mesh/DomainBase.h>
 #include <simpla/toolbox/IOStream.h>
-#include <simpla/data/DataBase.h>
+#include <simpla/data/DataEntityTable.h>
 
 namespace simpla { namespace simulation
 {
@@ -65,9 +65,9 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
 
-    virtual void load(data::DataBase const &) { UNIMPLEMENTED; }
+    virtual void load(data::DataEntityTable const &) { UNIMPLEMENTED; }
 
-    virtual void save(data::DataBase *) const { UNIMPLEMENTED; }
+    virtual void save(data::DataEntityTable *) const { UNIMPLEMENTED; }
 
     virtual void initialize(int argc = 0, char **argv = nullptr)=0;
 

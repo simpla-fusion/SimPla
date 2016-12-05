@@ -38,9 +38,9 @@ public:
 
     virtual std::string name() const =0;
 
-    virtual void load(data::DataBase const &) =0;
+    virtual void load(data::DataEntityTable const &) =0;
 
-    virtual void save(data::DataBase *) const =0;
+    virtual void save(data::DataEntityTable *) const =0;
 
     virtual std::ostream &print(std::ostream &os, int indent) const =0;
 
@@ -83,9 +83,9 @@ public:
 
     virtual std::string name() const { return ""; }
 
-    virtual void load(data::DataBase const &) { UNIMPLEMENTED; };
+    virtual void load(data::DataEntityTable const &) { UNIMPLEMENTED; };
 
-    virtual void save(data::DataBase *) const { UNIMPLEMENTED; };
+    virtual void save(data::DataEntityTable *) const { UNIMPLEMENTED; };
 
     virtual std::ostream &print(std::ostream &os, int indent) const
     {

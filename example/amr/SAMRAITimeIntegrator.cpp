@@ -13,7 +13,7 @@
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/nTupleExt.h>
 
-#include <simpla/data/DataBase.h>
+#include <simpla/data/DataEntityTable.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/DataBlock.h>
@@ -1136,9 +1136,9 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
-    virtual void load(data::DataBase const &);
+    virtual void load(data::DataEntityTable const &);
 
-    virtual void save(data::DataBase *) const;
+    virtual void save(data::DataEntityTable *) const;
 
 
     virtual void deploy();
@@ -1228,13 +1228,13 @@ std::ostream &SAMRAITimeIntegrator::print(std::ostream &os, int indent) const
 };
 
 
-void SAMRAITimeIntegrator::load(data::DataBase const &db) { UNIMPLEMENTED; }
+void SAMRAITimeIntegrator::load(data::DataEntityTable const &db) { UNIMPLEMENTED; }
 
-void SAMRAITimeIntegrator::save(data::DataBase *) const { UNIMPLEMENTED; }
+void SAMRAITimeIntegrator::save(data::DataEntityTable *) const { UNIMPLEMENTED; }
 
 namespace detail
 {
-void convert_database_r(data::DataBase const &src, boost::shared_ptr<SAMRAI::tbox::Database> &dest,
+void convert_database_r(data::DataEntityTable const &src, boost::shared_ptr<SAMRAI::tbox::Database> &dest,
                         std::string const &key = "")
 {
 
@@ -1242,7 +1242,7 @@ void convert_database_r(data::DataBase const &src, boost::shared_ptr<SAMRAI::tbo
     {
         auto sub_db = key == "" ? dest : dest->putDatabase(key);
 
-        src.foreach([&](std::string const &k, data::DataBase const &v) { convert_database_r(v, sub_db, k); });
+        src.foreach([&](std::string const &k, data::DataEntityTable const &v) { convert_database_r(v, sub_db, k); });
     } else if (key == "") { return; }
     else if (src.empty()) { dest->putDatabase(key); }
     else if (src.is_boolean()) { dest->putBool(key, src.as<bool>()); }
@@ -1274,7 +1274,7 @@ void convert_database_r(data::DataBase const &src, boost::shared_ptr<SAMRAI::tbo
 }
 
 boost::shared_ptr<SAMRAI::tbox::Database>
-convert_database(data::DataBase const &src, std::string const &s_name = "")
+convert_database(data::DataEntityTable const &src, std::string const &s_name = "")
 {
     auto dest = boost::dynamic_pointer_cast<SAMRAI::tbox::Database>(
             boost::make_shared<SAMRAI::tbox::MemoryDatabase>(s_name));

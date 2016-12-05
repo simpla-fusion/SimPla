@@ -5,22 +5,22 @@
 #ifndef SIMPLA_CONFIGURABLE_H
 #define SIMPLA_CONFIGURABLE_H
 
-#include <simpla/data/DataBase.h>
+#include <simpla/data/DataEntityTable.h>
 
 namespace simpla { namespace concept
 {
 
 struct Configurable
 {
-    data::DataBase db;
+    data::DataEntityTable db;
 
     Configurable() {}
 
     virtual ~Configurable() {}
 
-    data::DataBase &config(std::string const &s = "") { return db.get(s); }
+    data::DataEntityLight &config(std::string const &s = "") { return db.get(s).as_light(); }
 
-    data::DataBase const &config(std::string const &s = "") const { return db.at(s); }
+    data::DataEntityLight const &config(std::string const &s = "") const { return db.at(s).as_light(); }
 
 
 };

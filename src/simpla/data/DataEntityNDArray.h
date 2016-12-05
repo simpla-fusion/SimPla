@@ -20,9 +20,8 @@ enum
 };
 
 template<typename V>
-class DataEntityNDArray : public DataEntity, public concept::Deployable
+class DataEntityNDArray : public DataEntityHeavy
 {
-    typedef concept::Deployable base_type;
     typedef DataEntityNDArray<V> this_type;
 public:
 
@@ -47,15 +46,12 @@ public:
 //        initialize(ndims, lo, hi, order, i_lo, i_hi);
     };
 
-    static constexpr bool heavy_data_flag = true;
-
-    virtual bool is_heavy_data() const { return heavy_data_flag; };
 
     DataEntityNDArray(this_type const &other) = delete;
 
     virtual ~DataEntityNDArray() {};
 
-
+private:
     void initialize(int ndims, index_type const *lo, index_type const *hi, int order = SLOW_FIRST,
                     index_type const *i_lower = nullptr, index_type const *i_upper = nullptr)
     {
@@ -153,9 +149,9 @@ public:
 
     }
 
-    virtual void load(DataBase const &, std::string const & = "") {};
+    virtual void load(DataEntityTable const &, std::string const & = "") { UNIMPLEMENTED; };
 
-    virtual void save(DataBase *, std::string const & = "") const {};
+    virtual void save(DataEntityTable *, std::string const & = "") const { UNIMPLEMENTED; };
 
     virtual bool is_a(std::type_info const &t_info) const
     {
@@ -167,8 +163,7 @@ public:
 
     virtual void deploy()
     {
-        concept::Deployable::deploy();
-        if (m_data_ == nullptr)
+        if (empty())
         {
             if (m_holder_ == nullptr && m_size_ > 0) { m_holder_ = toolbox::MemoryHostAllocT<value_type>(m_size_); }
             m_data_ = m_holder_.get();
@@ -180,27 +175,27 @@ public:
     {
         m_holder_.reset();
         m_data_ = nullptr;
-        concept::Deployable::destroy();
     }
 
     virtual void update()
     {
-        if (!is_deployed()) { deploy(); }
+        if (empty()) { deploy(); }
         if (m_data_ == nullptr && m_holder_ != nullptr) { m_data_ = m_holder_.get(); }
     }
 
 
     virtual void clear()
     {
-        pre_process();
+        deploy();
         toolbox::MemorySet(m_data_, 0, m_size_ * sizeof(value_type));
     }
 
-    virtual void deep_copy(this_type  const &other)
+    virtual void deep_copy(this_type const &other)
     {
-        pre_process();
+        deploy();
         toolbox::MemoryCopy(m_data_, other.m_data_, m_size_ * sizeof(value_type));
     }
+
     virtual void *data() { return m_data_; }
 
     virtual void const *data() const { return m_data_; }

@@ -89,7 +89,7 @@ public:
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
 
-    std::shared_ptr<fluid_s> add_particle(std::string const &name, data::DataBase const &d);
+    std::shared_ptr<fluid_s> add_particle(std::string const &name, data::DataEntityTable const &d);
 
     std::map<std::string, std::shared_ptr<fluid_s>> &particles() { return m_fluid_sp_; };
 
@@ -98,7 +98,7 @@ public:
 
 template<typename TM>
 std::shared_ptr<struct EMFluid<TM>::fluid_s>
-EMFluid<TM>::add_particle(std::string const &name, data::DataBase const &d)
+EMFluid<TM>::add_particle(std::string const &name, data::DataEntityTable const &d)
 {
     Real mass;
     Real charge;

@@ -2,12 +2,48 @@
 // Created by salmon on 16-6-6.
 //
 #include "DataEntity.h"
-
+#include "DataEntityTable.h"
 
 namespace simpla { namespace data
 {
 
 
+DataEntityTable &DataEntity::as_table()
+{
+    ASSERT(is_table());
+    return *static_cast<DataEntityTable *>(this);
+}
+
+DataEntityTable const &DataEntity::as_table() const
+{
+    ASSERT(is_table());
+    return *static_cast<DataEntityTable const *>(this);
+}
+
+DataEntityLight &DataEntity::as_light()
+{
+    ASSERT(is_light());
+    return *static_cast<DataEntityLight *>(this);
+}
+
+DataEntityLight const &DataEntity::as_light() const
+{
+    ASSERT(is_light());
+    return *static_cast<DataEntityLight const *>(this);
+
+}
+
+DataEntityHeavy &DataEntity::as_heavy()
+{
+    ASSERT(is_heavy());
+    return *static_cast<DataEntityHeavy *>(this);
+}
+
+DataEntityHeavy const &DataEntity::as_heavy() const
+{
+    ASSERT(is_heavy());
+    return *static_cast<DataEntityHeavy const *>(this);
+}
 
 
 //
