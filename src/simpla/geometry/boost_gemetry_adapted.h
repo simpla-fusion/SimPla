@@ -255,9 +255,9 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //		return geometry::get<Dimension>(simpla::traits::get<0>(s));
 //	}
 //
-//	static inline void set(segment_type& s, coordinate_type const& entity)
+//	static inline void set_value(segment_type& s, coordinate_type const& entity)
 //	{
-//		geometry::set<Dimension>(simpla::traits::get<0>(s), entity);
+//		geometry::set_value<Dimension>(simpla::traits::get<0>(s), entity);
 //	}
 //};
 //
@@ -272,9 +272,9 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //		return geometry::get<Dimension>(simpla::traits::get<1>(s));
 //	}
 //
-//	static inline void set(segment_type& s, coordinate_type const& entity)
+//	static inline void set_value(segment_type& s, coordinate_type const& entity)
 //	{
-//		geometry::set<Dimension>(simpla::traits::get<1>(s), entity);
+//		geometry::set_value<Dimension>(simpla::traits::get<1>(s), entity);
 //	}
 //};
 

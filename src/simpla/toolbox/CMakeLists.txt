@@ -8,7 +8,7 @@ target_link_libraries(toolbox ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${LUA_LIBRARIES
 ###########################################################
 #IF (DEFINED ENV{LUA_ROOT})
 #
-#    set(LUA_ROOT $ENV{LUA_ROOT})
+#    set_value(LUA_ROOT $ENV{LUA_ROOT})
 #
 #    find_path(LUA_INCLUDE_DIR
 #            NAMES lua.h

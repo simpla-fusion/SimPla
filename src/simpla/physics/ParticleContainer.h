@@ -550,7 +550,7 @@ ParticleContainer<P, M>::rehash()
 template<typename P, typename M> data_model::DataSet
 ParticleContainer<P, M>::data_set() const
 {
-    CMD << "Dump particle [" << this->properties()["Name"] << "] to m_data set." << std::endl;
+    CMD << "Dump particle [" << this->properties()["Name"] << "] to m_data set_value." << std::endl;
 
 
     auto r0 = mesh_attribute_entity::mesh().template range<iform>();

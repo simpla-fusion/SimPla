@@ -43,7 +43,7 @@ public:
 
     virtual bool has(std::string const &key) const;
 
-//    virtual void set(std::string const &key, std::shared_ptr<DataEntityTable> const &v);
+//    virtual void set_value(std::string const &key, std::shared_ptr<DataEntityTable> const &v);
 
     virtual DataEntityTable &get(std::string const &key);
 

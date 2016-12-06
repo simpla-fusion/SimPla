@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 //                                                V3d_WAIT
 //    );
 
-// set parameters for V3d_Viewer
+// set_value parameters for V3d_Viewer
 // defines default lights -
 //   positional-light 0.3 0.0 0.0
 //   directional-light V3d_XnegYposZpos

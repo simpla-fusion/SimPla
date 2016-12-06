@@ -54,31 +54,13 @@ public:
 
     DataEntityHeavy const &as_heavy() const;
 
-    template<typename U> U &as()
-    {
+    template<typename U, typename ...Args> U &as(Args &&...args);
 
-    }
+    template<typename U, typename ...Args> U const &as(Args &&...args) const;
 
-    template<typename U> U const &as() const
-    {
-
-    }
-
-    template<typename U> bool equal(U const &) const {}
+    template<typename U> bool equal(U const &u) const;
 
 
-};
-
-template<typename U> std::shared_ptr<DataEntity>
-create_data_entity(U const &v, ENABLE_IF((std::is_arithmetic<U>::value)))
-{
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight>(v));
-};
-
-template<typename U> std::shared_ptr<DataEntity>
-create_data_entity(U const &v, ENABLE_IF((!std::is_arithmetic<U>::value)))
-{
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityHeavy>(v));
 };
 
 struct DataEntityLight : public DataEntity
@@ -135,6 +117,11 @@ public:
     template<typename U> U as() { return m_data_.as<U>(); };
 
     template<typename U> U const &as() const { return m_data_.as<U>(); };
+
+    toolbox::Any &any() { return m_data_; }
+
+    toolbox::Any const &any() const { return m_data_; }
+
 private:
     toolbox::Any m_data_;
 };
@@ -153,6 +140,28 @@ public:
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; };
 
 
+};
+
+template<typename U, typename ...Args> U &
+DataEntity::as(Args &&...args) { return as_light().template as<U>(std::forward<Args>(args)...); }
+
+template<typename U, typename ...Args> U const &
+DataEntity::as(Args &&...args) const { return as_light().template as<U>(std::forward<Args>(args)...); }
+
+template<typename U> bool
+DataEntity::equal(U const &u) const { return as_light().equal(u); }
+
+template<typename U> std::shared_ptr<DataEntity>
+create_data_entity(U const &v, ENABLE_IF((std::is_arithmetic<U>::value)))
+{
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight>(v));
+};
+
+template<typename U> std::shared_ptr<DataEntity>
+create_data_entity(U const &v, ENABLE_IF((!std::is_arithmetic<U>::value)))
+{
+    UNIMPLEMENTED;
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityHeavy>());
 };
 
 

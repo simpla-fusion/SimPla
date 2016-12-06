@@ -26,7 +26,7 @@ struct AttributeBase::pimpl_s
 AttributeBase::AttributeBase(std::string const &s, std::string const &config_str)
         : Object(), m_name_(s), m_pimpl_(new pimpl_s)
 {
-    if (config_str != "") { db.insert("config", config_str); }
+    if (config_str != "") { db.set_value("config", config_str); }
 }
 
 AttributeBase::~AttributeBase() {}

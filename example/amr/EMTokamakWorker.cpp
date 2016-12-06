@@ -71,11 +71,12 @@ void EMTokamakWorker::deploy()
     base_type::deploy();
 
     // first run, only load configure, m_chart_=nullptr
-    geqdsk.load(db["GEqdsk"].as<std::string>("geqdsk.gfile"));
+    geqdsk.load(db.get_value("GEqdsk", std::string("geqdsk.gfile")));
 
-    db["Particles"].foreach([&](std::string const &key, data::DataEntityTable const &item) { add_particle(key, item); });
+    db.get_table("Particles").foreach(
+            [&](std::string const &key, data::DataEntity const &item) { add_particle(key, item.as_table()); });
 
-    db["bound_box"] = geqdsk.box();
+    db.set_value("bound_box", geqdsk.box());
 
     get_model()->add_object("VACUUM", geqdsk.limiter_gobj());
     get_model()->add_object("PLASMA", geqdsk.boundary_gobj());
@@ -110,7 +111,7 @@ void EMTokamakWorker::initialize(Real data_time)
 
     for (auto &item:particles())
     {
-        Real ratio = db["Particles"].at(item.first).get("ratio", 1.0);
+        Real ratio = db.get_value("Particles." + item.first + ".ratio", 1.0);
         *item.second->rho = rho0 * ratio;
     }
 

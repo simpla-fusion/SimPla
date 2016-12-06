@@ -73,13 +73,13 @@ endif( )
 #if ( NOT TBB_ROOT )
 #    message( "TBB install not found in the system.")
 #else ( )
-    # Search for 64bit libs if FIND_LIBRARY_USE_LIB64_PATHS is set to true in the global environment, 32bit libs else
+    # Search for 64bit libs if FIND_LIBRARY_USE_LIB64_PATHS is set_value to true in the global environment, 32bit libs else
     get_property( LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS )
 
 #    if( LIB64 )
         set(TBB_ARCH_PLATFORM intel64)
 #    else( )
-#        set(TBB_ARCH_PLATFORM ia32)
+#        set_value(TBB_ARCH_PLATFORM ia32)
 #    endif( )
     
 

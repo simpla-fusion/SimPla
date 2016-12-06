@@ -175,46 +175,46 @@ create_time_integrator(std::string const &name)
 
 
 
-    integrator->db["CartesianGeometry"]["domain_boxes_0"] = index_box_type{{0,  0,  0},
-                                                                           {16, 16, 16}};
+    integrator->db.set_value("CartesianGeometry.domain_boxes_0", index_box_type{{0,  0,  0},
+                                                                                {16, 16, 16}});
 
-    integrator->db["CartesianGeometry"]["periodic_dimension"] = nTuple<int, 3>{1, 1, 1};
-    integrator->db["CartesianGeometry"]["x_lo"] = nTuple<double, 3>{1, 0, -1};
-    integrator->db["CartesianGeometry"]["x_up"] = nTuple<double, 3>{2, PI, 1};
+    integrator->db.set_value("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
+    integrator->db.set_value("CartesianGeometry.x_lo", nTuple<double, 3>{1, 0, -1});
+    integrator->db.set_value("CartesianGeometry.x_up", nTuple<double, 3>{2, PI, 1});
 
-    integrator->db["PatchHierarchy"]["max_levels"] = int(3); // Maximum number of levels in hierarchy.
-    integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_1"] = nTuple<int, 3>{2, 2, 1};
-    integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_2"] = nTuple<int, 3>{2, 2, 1};
-    integrator->db["PatchHierarchy"]["ratio_to_coarser"]["level_3"] = nTuple<int, 3>{2, 2, 1};
-    integrator->db["PatchHierarchy"]["largest_patch_size"]["level_0"] = nTuple<int, 3>{32, 32, 32};
-    integrator->db["PatchHierarchy"]["smallest_patch_size"]["level_0"] = nTuple<int, 3>{4, 4, 4};
+    integrator->db.set_value("PatchHierarchy.max_levels", int(3)); // Maximum number of levels in hierarchy.
+    integrator->db.set_value("PatchHierarchy.ratio_to_coarser.level_1", nTuple<int, 3>{2, 2, 1});
+    integrator->db.set_value("PatchHierarchy.ratio_to_coarser.level_2", nTuple<int, 3>{2, 2, 1});
+    integrator->db.set_value("PatchHierarchy.ratio_to_coarser.level_3", nTuple<int, 3>{2, 2, 1});
+    integrator->db.set_value("PatchHierarchy.largest_patch_size.level_0", nTuple<int, 3>{32, 32, 32});
+    integrator->db.set_value("PatchHierarchy.smallest_patch_size.level_0", nTuple<int, 3>{4, 4, 4});
 
-    integrator->db["GriddingAlgorithm"];
+    integrator->db.set_value("GriddingAlgorithm", "");
 
 
-    integrator->db["BergerRigoutsos"]["sort_output_nodes"] = true;// Makes results repeatable.
-    integrator->db["BergerRigoutsos"]["efficiency_tolerance"] = 0.85;  // min % of tag cells in new patch level
-    integrator->db["BergerRigoutsos"]["combine_efficiency"] = 0.95;  // chop box if sum of volumes of smaller
+    integrator->db.set_value("BergerRigoutsos.sort_output_nodes", true);// Makes results repeatable.
+    integrator->db.set_value("BergerRigoutsos.efficiency_tolerance", 0.85);  // min % of tag cells in new patch level
+    integrator->db.set_value("BergerRigoutsos.combine_efficiency", 0.95);  // chop box if sum of volumes of smaller
 //    // boxes < efficiency * vol of large box
 
 
     // Refer to mesh::StandardTagAndInitialize for input
-    integrator->db["StandardTagAndInitialize"]["tagging_method"] = std::string("GRADIENT_DETECTOR");
+    integrator->db.set_value("StandardTagAndInitialize.tagging_method", std::string("GRADIENT_DETECTOR"));
 
     // Refer to algs::HyperbolicLevelIntegrator for input
-    integrator->db["HyperbolicLevelIntegrator"]["cfl"] = 0.9;  // max cfl factor used in problem
-    integrator->db["HyperbolicLevelIntegrator"]["cfl_init"] = 0.9; // initial cfl factor
-    integrator->db["HyperbolicLevelIntegrator"]["lag_dt_computation"] = true;
-    integrator->db["HyperbolicLevelIntegrator"]["use_ghosts_to_compute_dt"] = true;
+    integrator->db.set_value("HyperbolicLevelIntegrator.cfl", 0.9);  // max cfl factor used in problem
+    integrator->db.set_value("HyperbolicLevelIntegrator.cfl_init", 0.9); // initial cfl factor
+    integrator->db.set_value("HyperbolicLevelIntegrator.lag_dt_computation", true);
+    integrator->db.set_value("HyperbolicLevelIntegrator.use_ghosts_to_compute_dt", true);
 
     // Refer to algs::TimeRefinementIntegrator for input
-    integrator->db["TimeRefinementIntegrator"]["start_time"] = 0.e0; // initial simulation time
-    integrator->db["TimeRefinementIntegrator"]["end_time"] = 1.e0;  // final simulation time
-    integrator->db["TimeRefinementIntegrator"]["grow_dt"] = 1.1e0;  // growth factor for timesteps
-    integrator->db["TimeRefinementIntegrator"]["max_integrator_steps"] = 5;  // max number of simulation timesteps
+    integrator->db.set_value("TimeRefinementIntegrator.start_time", 0.e0); // initial simulation time
+    integrator->db.set_value("TimeRefinementIntegrator.end_time", 1.e0);  // final simulation time
+    integrator->db.set_value("TimeRefinementIntegrator.grow_dt", 1.1e0);  // growth factor for timesteps
+    integrator->db.set_value("TimeRefinementIntegrator.max_integrator_steps", 5);  // max number of simulation timesteps
 
     // Refer to mesh::TreeLoadBalancer for input
-    integrator->db["LoadBalancer"];
+    integrator->db.set_value("LoadBalancer", "");
 
     return integrator;
 
@@ -432,7 +432,7 @@ private:
 
     /*
      * We cache pointers to the grid geometry object to set up initial
-     * data_block, set physical boundary conditions, and register plot
+     * data_block, set_value physical boundary conditions, and register plot
      * variables.
      */
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
@@ -595,7 +595,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
         *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
         **/
 
-        if (attr->db.has("config") && attr->db["config"].as<std::string>() == "COORDINATES")
+        if (attr->db.has("config") && attr->db.get_value<std::string>("config") == "COORDINATES")
         {
             VERBOSE << attr->name() << " is registered as coordinate" << std::endl;
             integrator->registerVariable(var, d_nghosts,
@@ -604,7 +604,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                          "",
                                          "LINEAR_REFINE");
 
-        } else if (attr->db.has("config") && attr->db["config"].as<std::string>() == "FLUX")
+        } else if (attr->db.has("config") && attr->db.get_value<std::string>("config") == "FLUX")
         {
             integrator->registerVariable(var, d_fluxghosts,
                                          SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
@@ -612,7 +612,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                          "CONSERVATIVE_COARSEN",
                                          "NO_REFINE");
 
-        } else if (attr->db.has("config") && attr->db["config"].as<std::string>() == "INPUT")
+        } else if (attr->db.has("config") && attr->db.get_value<std::string>("config") == "INPUT")
         {
             integrator->registerVariable(var, d_nghosts,
                                          SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
@@ -667,7 +667,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
 
 
         if (visit_variable_type == "" || !attr->db.has("config")) {}
-        else if (attr->db["config"].as<std::string>() == "COORDINATES")
+        else if (attr->db.get_value<std::string>("config") == "COORDINATES")
         {
             d_visit_writer->registerNodeCoordinates(
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
@@ -1234,7 +1234,7 @@ void SAMRAITimeIntegrator::save(data::DataEntityTable *) const { UNIMPLEMENTED; 
 
 namespace detail
 {
-void convert_database_r(data::DataEntityTable const &src, boost::shared_ptr<SAMRAI::tbox::Database> &dest,
+void convert_database_r(data::DataEntity const &src, boost::shared_ptr<SAMRAI::tbox::Database> &dest,
                         std::string const &key = "")
 {
 
@@ -1242,25 +1242,26 @@ void convert_database_r(data::DataEntityTable const &src, boost::shared_ptr<SAMR
     {
         auto sub_db = key == "" ? dest : dest->putDatabase(key);
 
-        src.foreach([&](std::string const &k, data::DataEntityTable const &v) { convert_database_r(v, sub_db, k); });
+        src.as_table().foreach(
+                [&](std::string const &k, data::DataEntity const &v) { convert_database_r(v.as_table(), sub_db, k); });
     } else if (key == "") { return; }
-    else if (src.empty()) { dest->putDatabase(key); }
-    else if (src.is_boolean()) { dest->putBool(key, src.as<bool>()); }
-    else if (src.is_string()) { dest->putString(key, src.as<std::string>()); }
-    else if (src.is_floating_point()) { dest->putDouble(key, src.as<double>()); }
-    else if (src.is_integral()) { dest->putInteger(key, src.as<int>()); }
-    else if (src.type() == typeid(nTuple<bool, 3>))
+    else if (src.is_null()) { dest->putDatabase(key); }
+    else if (src.as_light().any().is_boolean()) { dest->putBool(key, src.as<bool>()); }
+    else if (src.as_light().any().is_string()) { dest->putString(key, src.as<std::string>()); }
+    else if (src.as_light().any().is_floating_point()) { dest->putDouble(key, src.as<double>()); }
+    else if (src.as_light().any().is_integral()) { dest->putInteger(key, src.as<int>()); }
+    else if (src.as_light().any().type() == typeid(nTuple<bool, 3>))
     {
         dest->putBoolArray(key, &src.as<nTuple<bool, 3 >>()[0], 3);
-    } else if (src.type() == typeid(nTuple<int, 3>))
+    } else if (src.as_light().any().type() == typeid(nTuple<int, 3>))
     {
         dest->putIntegerArray(key, &src.as<nTuple<int, 3 >>()[0], 3);
-    } else if (src.type() == typeid(nTuple<double, 3>))
+    } else if (src.as_light().any().type() == typeid(nTuple<double, 3>))
     {
         dest->putDoubleArray(key, &src.as<nTuple<double, 3 >>()[0], 3);
     }
 //    else if (src.type() == typeid(box_type)) { dest->putDoubleArray(key, &src.as<box_type>()[0], 3); }
-    else if (src.type() == typeid(index_box_type))
+    else if (src.as_light().any().type() == typeid(index_box_type))
     {
         nTuple<int, 3> i_lo, i_up;
         std::tie(i_lo, i_up) = src.as<index_box_type>();
@@ -1287,7 +1288,7 @@ void SAMRAITimeIntegrator::deploy()
     if (concept::Deployable::is_deployed()) { return; }
     concept::Deployable::deploy();
 
-    bool use_refined_timestepping = db["use_refined_timestepping"].template as<bool>(true);
+    bool use_refined_timestepping = db.get_value("use_refined_timestepping", true);
 
     SAMRAI::tbox::Dimension dim(ndims);
 
@@ -1366,9 +1367,9 @@ void SAMRAITimeIntegrator::deploy()
 
     visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
             dim,
-            db["output_writer_name"].as<std::string>(name() + " VisIt Writer"),
-            db["output_dir_name"].as<std::string>(name()),
-            db["visit_number_procs_per_file"].as<int>(1)
+            db.get_value("output_writer_name", name() + " VisIt Writer"),
+            db.get_value("output_dir_name", name()),
+            db.get_value("visit_number_procs_per_file", int(1))
     );
 
     patch_worker->registerVisItDataWriter(visit_data_writer);

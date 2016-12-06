@@ -18,7 +18,7 @@ struct Configurable
 
     virtual ~Configurable() {}
 
-    data::DataEntityLight &config(std::string const &s = "") { return db.get(s).as_light(); }
+    data::DataEntityLight &config(std::string const &s = "") { return db.get(s)->as_light(); }
 
     data::DataEntityLight const &config(std::string const &s = "") const { return db.at(s).as_light(); }
 

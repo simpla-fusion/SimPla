@@ -114,7 +114,7 @@ public:
         return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
     };
 
-    virtual bool is_deployed() const { data_entity_type::is_deployed(); };
+    virtual bool is_deployed() const { return !data_entity_type::empty(); };
 
     virtual void deploy()
     {

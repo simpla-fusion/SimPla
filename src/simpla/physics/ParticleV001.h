@@ -515,7 +515,7 @@ Particle<P, M, V001>::count(range_type const &r0) const
 //                for (auto const &item:r)
 //                {
 //                    typename container_type::accessor acc1;
-//                    m_attr_data_->set(acc1, item.first);
+//                    m_attr_data_->set_value(acc1, item.first);
 //
 //                    auto *p = acc1->second;
 //                    acc1->second = item.second;
@@ -543,19 +543,19 @@ Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator
 }
 
 //template<typename P, typename M> void
-//Particle<P, M, V001>::insert(mesh_id_type const &s, value_type const &v) { set(s, &v, &v + 1); }
+//Particle<P, M, V001>::insert(mesh_id_type const &s, value_type const &v) { set_value(s, &v, &v + 1); }
 //
 //
 //template<typename P, typename M> template<typename Hash, typename TRange> void
-//Particle<P, M, V001>::set(Hash const &hash, TRange const &v_r)
+//Particle<P, M, V001>::set_value(Hash const &hash, TRange const &v_r)
 //{
-//    parallel::parallel_for(v_r, [&](TRange const &r) { for (auto const &p: v_r) { set(hash(p), p); }});
+//    parallel::parallel_for(v_r, [&](TRange const &r) { for (auto const &p: v_r) { set_value(hash(p), p); }});
 //};
 //
 //template<typename P, typename M>
 //template<typename TInputIterator>
 //void
-//Particle<P, M, V001>::set(mesh_id_type const &s, TInputIterator ib, TInputIterator ie)
+//Particle<P, M, V001>::set_value(mesh_id_type const &s, TInputIterator ib, TInputIterator ie)
 //{
 ////    _insert(m_attr_data_.get(), s, ib, ie);
 //}
