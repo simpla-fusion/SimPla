@@ -34,9 +34,9 @@ struct Chart : public concept::Printable, public concept::Deployable
 
     virtual bool is_a(std::type_info const &info) const;
 
-    virtual void preprocess();
+    virtual void pre_process();
 
-    virtual void postprocess();
+    virtual void post_process();
 
     virtual void initialize(Real data_time = 0);
 

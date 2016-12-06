@@ -26,31 +26,35 @@ template<class T>
 class SingletonHolder
 {
 public:
-	static T & instance()
-	{
-		if (!pInstance_)
-		{
+    static T &instance()
+    {
+        if (!pInstance_)
+        {
 //#pragma omp critical
-			//TOD add some for mt critical
-			if (!pInstance_)
-			{
-				static T tmp;
-				pInstance_ = &tmp;
-			}
-		}
-		return *pInstance_;
-	}
+            //TOD add some for mt critical
+            if (!pInstance_)
+            {
+                static T tmp;
+                pInstance_ = &tmp;
+            }
+        }
+        return *pInstance_;
+    }
+
 protected:
-	SingletonHolder()
-	{
-	}
-	~SingletonHolder()
-	{
-	}
-	static T * volatile pInstance_;
+    SingletonHolder()
+    {
+    }
+
+    ~SingletonHolder()
+    {
+    }
+
+    static T *volatile pInstance_;
 };
+
 template<class T>
-T * volatile SingletonHolder<T>::pInstance_ = 0;
+T *volatile SingletonHolder<T>::pInstance_ = 0;
 
 /** @} */
 }  // namespace simpla

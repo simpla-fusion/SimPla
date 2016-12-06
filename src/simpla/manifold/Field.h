@@ -91,17 +91,20 @@ public:
         return data_block_type::create(m, p);
     };
 
-    virtual void preprocess()
+    virtual void pre_process()
     {
-        if (base_type::is_valid()) { return; } else { base_type::preprocess(); }
+        if (base_type::is_valid()) { return; } else { base_type::pre_process(); }
 
         m_mesh_ = base_type::template mesh_as<mesh_type>();
         m_data_ = base_type::template data_as<data_block_type>();
+        ASSERT(m_data_ != nullptr);
+        ASSERT(m_mesh_ != nullptr);
+
     }
 
-    virtual void postprocess()
+    virtual void post_process()
     {
-        if (!base_type::is_valid()) { return; } else { base_type::postprocess(); }
+        if (!base_type::is_valid()) { return; } else { base_type::post_process(); }
 
         m_mesh_ = nullptr;
         m_data_ = nullptr;
@@ -204,7 +207,7 @@ public:
     assign(TFun const &fun, mesh::EntityIdRange const &r0,
            typename std::result_of<TFun(point_type const &)>::type *p = nullptr)
     {
-        preprocess();
+        pre_process();
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
                        interpolate_policy::assign(*this, *m_mesh_, s, fun(m_mesh_->point(s)));
@@ -216,7 +219,7 @@ public:
     assign(U const &v, mesh::EntityIdRange const &r0,
            ENABLE_IF((std::is_convertible<U, value_type>::value || std::is_same<U, field_value_type>::value)))
     {
-        preprocess();
+        pre_process();
 
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
@@ -229,7 +232,7 @@ public:
 
     void assign(this_type const &other, mesh::EntityIdRange const &r0)
     {
-        preprocess();
+        pre_process();
 
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
@@ -241,7 +244,7 @@ public:
     template<typename ...U>
     void assign(Field<Expression<U...>> const &expr, mesh::EntityIdRange const &r0)
     {
-        preprocess();
+        pre_process();
 
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
@@ -257,7 +260,7 @@ public:
     template<typename Other> void
     assign(Other const &other, mesh::MeshZoneTag const &tag = mesh::SP_ES_ALL)
     {
-        preprocess();
+        pre_process();
         if (tag == mesh::SP_ES_ALL)
         {
             assign(other, m_data_->range());

@@ -164,9 +164,9 @@ struct AttributeView : public concept::Printable, public concept::Deployable
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr);
 
-    virtual void preprocess();
+    virtual void pre_process();
 
-    virtual void postprocess();
+    virtual void post_process();
 
     virtual void clear();
 

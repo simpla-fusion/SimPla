@@ -321,7 +321,7 @@ public:
         index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] : std::get<0>(m_outer_box_)[2];
         index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] : std::get<1>(m_outer_box_)[2];
 
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k)
@@ -342,7 +342,7 @@ public:
         index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] : std::get<0>(m_outer_box_)[2];
         index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] : std::get<1>(m_outer_box_)[2];
 
-        //#pragma omp parallel for
+#pragma omp parallel for
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k)

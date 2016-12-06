@@ -55,7 +55,7 @@ public:
 
     void deep_copy(this_type const &other)
     {
-        preprocess();
+        pre_process();
         if (m_data_ != nullptr) { m_data_->deep_copy(*other.m_data_); }
     }
 
@@ -140,7 +140,7 @@ public:
     virtual value_type const &
     get(index_type i, index_type j, index_type k = 0, index_type l = 0) const { return m_data_->get(i, j, k, l); }
 
-    virtual void preprocess()
+    virtual void pre_process()
     {
         if (is_valid()) { return; }
         else
@@ -152,7 +152,7 @@ public:
         m_data_ = base_type::template data_as<default_data_block_type>();
     }
 
-    virtual void postprocess()
+    virtual void post_process()
     {
         if (!is_valid()) { return; } else { base_type::post_process(); }
         m_data_ = nullptr;

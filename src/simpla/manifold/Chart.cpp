@@ -57,7 +57,7 @@ void Chart::initialize(Real data_time) { pre_process(); }
 
 void Chart::finalize(Real data_time) { post_process(); }
 
-void Chart::preprocess()
+void Chart::pre_process()
 {
     ASSERT(m_mesh_block_ != nullptr);
     for (auto &item:m_attr_views_)
@@ -67,7 +67,7 @@ void Chart::preprocess()
     }
 }
 
-void Chart::postprocess()
+void Chart::post_process()
 {
     for (auto &item:m_attr_views_) { item->post_process(); }
     m_mesh_block_.reset();

@@ -149,7 +149,7 @@ void AttributeView::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr
 }
 
 
-void AttributeView::preprocess()
+void AttributeView::pre_process()
 {
     if (is_valid()) { return; } else { concept::Deployable::pre_process(); }
 
@@ -164,7 +164,7 @@ void AttributeView::preprocess()
     ASSERT(m_data_ != nullptr);
 }
 
-void AttributeView::postprocess()
+void AttributeView::post_process()
 {
     if (!is_valid()) { return; } else { concept::Deployable::post_process(); }
     m_data_.reset();
