@@ -38,9 +38,9 @@ std::ostream &MeshBlock::print(std::ostream &os, int indent) const
 void MeshBlock::deploy()
 {
 
-    if (concept::Deployable::is_deployed()) { return; }
+    if (concept::LifeControllable::is_deployed()) { return; }
 
-    concept::Deployable::deploy();
+    concept::LifeControllable::deploy();
 
     assert(m_ndims_ <= 3);
 

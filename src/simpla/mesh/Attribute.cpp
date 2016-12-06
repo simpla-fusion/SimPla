@@ -151,7 +151,7 @@ void AttributeView::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr
 
 void AttributeView::pre_process()
 {
-    if (is_valid()) { return; } else { concept::Deployable::pre_process(); }
+    if (is_valid()) { return; } else { concept::LifeControllable::pre_process(); }
 
     ASSERT(m_mesh_block_ != nullptr);
     if (m_data_ != nullptr) { return; }
@@ -166,7 +166,7 @@ void AttributeView::pre_process()
 
 void AttributeView::post_process()
 {
-    if (!is_valid()) { return; } else { concept::Deployable::post_process(); }
+    if (!is_valid()) { return; } else { concept::LifeControllable::post_process(); }
     m_data_.reset();
     m_mesh_block_.reset();
 }

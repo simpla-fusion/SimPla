@@ -17,7 +17,7 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Configurable.h>
-#include <simpla/concept/Deployable.h>
+#include <simpla/concept/LifeControllable.h>
 
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/manifold/Atlas.h>
@@ -38,7 +38,7 @@ class Worker :
         public concept::Printable,
         public concept::Serializable,
         public concept::Configurable,
-        public concept::Deployable
+        public concept::LifeControllable
 {
 public:
     SP_OBJECT_HEAD(Worker, Object)

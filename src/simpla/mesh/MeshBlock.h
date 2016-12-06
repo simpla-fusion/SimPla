@@ -13,7 +13,7 @@
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/concept/Deployable.h>
+#include <simpla/concept/LifeControllable.h>
 #include <simpla/toolbox/BoxUtility.h>
 #include "MeshCommon.h"
 #include "EntityId.h"
@@ -77,7 +77,7 @@ class MeshBlock :
         public Object,
         public concept::Serializable,
         public concept::Printable,
-        public concept::Deployable
+        public concept::LifeControllable
 {
 
 public:

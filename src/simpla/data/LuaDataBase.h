@@ -45,7 +45,6 @@ public:
 
 //    virtual void set_value(std::string const &key, std::shared_ptr<DataEntityTable> const &v);
 
-    virtual DataEntityTable &get(std::string const &key);
 
     virtual DataEntityTable &at(std::string const &key);
 

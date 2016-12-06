@@ -21,7 +21,7 @@ namespace simpla { namespace mesh
  */
 class MeshBlock;
 
-struct DataBlock : public concept::Serializable, public concept::Printable, public concept::Deployable
+struct DataBlock : public concept::Serializable, public concept::Printable, public concept::LifeControllable
 {
 public:
     DataBlock() {}

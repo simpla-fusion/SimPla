@@ -104,7 +104,7 @@ public:
 };
 
 
-struct AttributeView : public concept::Printable, public concept::Deployable
+struct AttributeView : public concept::Printable, public concept::LifeControllable
 {
     explicit AttributeView(std::shared_ptr<AttributeBase> const &attr = nullptr);
 

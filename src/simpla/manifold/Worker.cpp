@@ -55,21 +55,21 @@ void Worker::move_to(std::shared_ptr<mesh::MeshBlock> const &m)
 
 void Worker::deploy()
 {
-    concept::Deployable::deploy();
+    concept::LifeControllable::deploy();
     m_chart_->deploy();
     m_model_->deploy();
 }
 
 void Worker::pre_process()
 {
-    if (is_valid()) { return; } else { concept::Deployable::pre_process(); }
+    if (is_valid()) { return; } else { concept::LifeControllable::pre_process(); }
     m_chart_->pre_process();
     m_model_->pre_process();
 }
 
 void Worker::post_process()
 {
-    if (!is_valid()) { return; } else { concept::Deployable::post_process(); }
+    if (!is_valid()) { return; } else { concept::LifeControllable::post_process(); }
     m_model_->post_process();
     m_chart_->post_process();
 }

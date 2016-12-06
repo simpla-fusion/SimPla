@@ -20,7 +20,7 @@ namespace simpla { namespace mesh
  *   - $p$ is the projection
  *
  */
-struct Chart : public concept::Printable, public concept::Deployable
+struct Chart : public concept::Printable, public concept::LifeControllable
 {
     Chart();
 

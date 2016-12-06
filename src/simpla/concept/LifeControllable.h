@@ -5,16 +5,17 @@
 #ifndef SIMPLA_DEPLOYABLE_H
 #define SIMPLA_DEPLOYABLE_H
 
+#include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/Log.h>
 
 namespace simpla { namespace concept
 {
-struct Deployable
+struct LifeControllable
 {
 
-    Deployable() : m_is_deployed_(false), m_is_valid_(false) {}
+    LifeControllable() : m_is_deployed_(false), m_is_valid_(false) {}
 
-    virtual ~Deployable() { destroy(); }
+    virtual ~LifeControllable() { destroy(); }
 
     virtual bool is_deployed() const { return m_is_deployed_; }
 

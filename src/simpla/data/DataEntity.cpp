@@ -33,17 +33,6 @@ DataEntityLight const &DataEntity::as_light() const
 
 }
 
-DataEntityHeavy &DataEntity::as_heavy()
-{
-    ASSERT(is_heavy());
-    return *static_cast<DataEntityHeavy *>(this);
-}
-
-DataEntityHeavy const &DataEntity::as_heavy() const
-{
-    ASSERT(is_heavy());
-    return *static_cast<DataEntityHeavy const *>(this);
-}
 
 
 //

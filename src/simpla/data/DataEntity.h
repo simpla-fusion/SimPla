@@ -126,21 +126,6 @@ private:
     toolbox::Any m_data_;
 };
 
-struct DataEntityHeavy : public DataEntity
-{
-    SP_OBJECT_HEAD(DataEntityHeavy, DataEntity);
-public:
-
-    DataEntityHeavy() {}
-
-    virtual ~DataEntityHeavy() {}
-
-    virtual bool is_heavy() const { return true; };
-
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; };
-
-
-};
 
 template<typename U, typename ...Args> U &
 DataEntity::as(Args &&...args) { return as_light().template as<U>(std::forward<Args>(args)...); }
@@ -157,6 +142,7 @@ create_data_entity(char const *v)
 {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight>(std::string(v)));
 };
+
 template<typename U> inline std::shared_ptr<DataEntity>
 create_data_entity(U const &v) { return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight>(v)); };
 

@@ -19,7 +19,7 @@ class Model :
         public Object,
         public concept::Printable,
         public concept::Configurable,
-        public concept::Deployable
+        public concept::LifeControllable
 {
 public:
 

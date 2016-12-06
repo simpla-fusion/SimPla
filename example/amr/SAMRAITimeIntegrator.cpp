@@ -1285,8 +1285,8 @@ convert_database(data::DataEntityTable const &src, std::string const &s_name = "
 }//namespace detail{
 void SAMRAITimeIntegrator::deploy()
 {
-    if (concept::Deployable::is_deployed()) { return; }
-    concept::Deployable::deploy();
+    if (concept::LifeControllable::is_deployed()) { return; }
+    concept::LifeControllable::deploy();
 
     bool use_refined_timestepping = db.get_value("use_refined_timestepping", true);
 

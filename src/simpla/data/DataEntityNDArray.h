@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Memory.h>
-#include "DataEntity.h"
+#include "DataEntityHeavy.h"
 
 namespace simpla { namespace data
 {
@@ -22,7 +22,8 @@ enum
 template<typename V>
 class DataEntityNDArray : public DataEntityHeavy
 {
-    typedef DataEntityNDArray<V> this_type;
+    SP_OBJECT_HEAD(DataEntityNDArray<V>, DataEntityHeavy);
+
 public:
 
     typedef V value_type;
@@ -112,15 +113,6 @@ public:
                (m_count_[4] >= 1);
     };
 
-    virtual bool empty() const { return m_data_ == nullptr; }
-
-
-    virtual std::string get_class_name() const { return class_name(); }
-
-    static std::string class_name()
-    {
-        return std::string("DataEntityNDArray<") + traits::type_id<value_type>::name() + std::string(",4>");
-    }
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
@@ -153,13 +145,9 @@ public:
 
     virtual void save(DataEntityTable *, std::string const & = "") const { UNIMPLEMENTED; };
 
-    virtual bool is_a(std::type_info const &t_info) const
-    {
-        return t_info == typeid(this_type) || DataEntity::is_a(t_info);
-    };
+    virtual bool empty() const { return m_data_ == nullptr; }
 
     virtual bool is_null() const { return m_data_ == nullptr; };
-
 
     virtual void deploy()
     {
