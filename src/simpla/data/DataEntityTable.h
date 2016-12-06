@@ -45,7 +45,7 @@ public:
 
     virtual bool has(std::string const &key) const;
 
-    virtual bool check(std::string const &key);
+    virtual bool check(std::string const &key) const;
 
     virtual void foreach(std::function<void(std::string const &key, DataEntity const &)> const &) const;
 
@@ -74,29 +74,29 @@ public:
 
     virtual DataEntity const &at(std::string const &key) const;
 
+    virtual DataEntityTable *create_table(std::string const &url);
 
-    template<typename U>
-    void set_value(std::string const &key, U const &v) { set(key, create_data_entity(v)); }
-
+    template<typename U> void set_value(std::string const &url, U const &v) { set(url, create_data_entity(v)); }
 
     template<typename U> U const &get_value(std::string const &url) const { return at(url).as<U>(); }
 
     template<typename U> U const &get_value(std::string const &url, U const &u) const
     {
-        try { return get_value<U>(url); } catch (...) { return u; }
+        if (has(url)) { return at(url).as<U>(); } else { return u; }
     }
 
-    DataEntityLight &get_light(std::string const &url) { return get(url)->as_light(); };
 
-    DataEntityLight const &get_light(std::string const &url) const { return at(url).as_light(); };
+    DataEntityLight &as_light(std::string const &url) { return at(url).as_light(); };
 
-    DataEntityHeavy &get_heavy(std::string const &url) { return get(url)->as_heavy(); };
+    DataEntityLight const &as_light(std::string const &url) const { return at(url).as_light(); };
 
-    DataEntityHeavy const &get_heavy(std::string const &url) const { return at(url).as_heavy(); };
+    DataEntityHeavy &as_heavy(std::string const &url) { return at(url).as_heavy(); };
 
-    DataEntityTable &get_table(std::string const &url) { return get(url)->as_table(); };
+    DataEntityHeavy const &as_heavy(std::string const &url) const { return at(url).as_heavy(); };
 
-    DataEntityTable const &get_table(std::string const &url) const { return at(url).as_table(); };
+    DataEntityTable &as_table(std::string const &url) { return at(url).as_table(); };
+
+    DataEntityTable const &as_table(std::string const &url) const { return at(url).as_table(); };
 
 
 protected:

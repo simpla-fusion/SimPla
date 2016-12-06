@@ -151,18 +151,21 @@ DataEntity::as(Args &&...args) const { return as_light().template as<U>(std::for
 template<typename U> bool
 DataEntity::equal(U const &u) const { return as_light().equal(u); }
 
-template<typename U> std::shared_ptr<DataEntity>
-create_data_entity(U const &v, ENABLE_IF((std::is_arithmetic<U>::value)))
-{
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight>(v));
-};
 
-template<typename U> std::shared_ptr<DataEntity>
-create_data_entity(U const &v, ENABLE_IF((!std::is_arithmetic<U>::value)))
+inline std::shared_ptr<DataEntity>
+create_data_entity(char const *v)
 {
-    UNIMPLEMENTED;
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityHeavy>());
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight>(std::string(v)));
 };
+template<typename U> inline std::shared_ptr<DataEntity>
+create_data_entity(U const &v) { return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight>(v)); };
+
+//template<typename U> std::shared_ptr<DataEntity>
+//create_data_entity(U const &v, ENABLE_IF((!std::is_arithmetic<U>::value)))
+//{
+//    UNIMPLEMENTED;
+//    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityHeavy>());
+//};
 
 
 }}

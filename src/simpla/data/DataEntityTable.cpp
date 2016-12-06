@@ -12,88 +12,75 @@ struct DataEntityTable::pimpl_s
 {
     std::map<std::string, std::shared_ptr<DataEntity> > m_table_;
 
-    std::shared_ptr<DataEntity> &
-    find_or_create(DataEntityTable *, std::string const &url, size_type start_pos = 0);
+    std::shared_ptr<DataEntity> &emplace(DataEntityTable *t, std::string const &url, char split_char = '.');
 
-    DataEntity const *search(DataEntityTable const *, std::string const &url, size_type start_pos = 0);
+    DataEntity const *search(DataEntityTable const *, std::string const &url, char split_char = '.');
 };
 
-
 std::shared_ptr<DataEntity> &
-DataEntityTable::pimpl_s::find_or_create(DataEntityTable *t, std::string const &url, size_type start_pos)
+DataEntityTable::pimpl_s::emplace(DataEntityTable *t, std::string const &url, char split_char)
 {
-    ASSERT (start_pos < url.size());
-    ASSERT(t != nullptr);
-
-
-    auto end_pos = url.find('.', start_pos);
-
-    if (end_pos != std::string::npos)
+    size_type start_pos = 0;
+    size_type end_pos = url.size();
+    while (start_pos < end_pos)
     {
-        std::string key = url.substr(start_pos, end_pos);
+        size_type pos = url.find(split_char, start_pos);
 
-        auto it = t->m_pimpl_->m_table_.find(key);
-
-        if (it == t->m_pimpl_->m_table_.end())
+        if (pos != std::string::npos)
         {
-            auto res = t->m_pimpl_->m_table_.emplace(std::make_pair(key, std::shared_ptr<DataEntityTable>()));
+            auto res = t->m_pimpl_->m_table_.emplace(
+                    url.substr(start_pos, pos - start_pos),
+                    std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityTable>()));
 
-            return find_or_create(&res.first->second->as_table(), url, end_pos);
+            if (!res.first->second->is_table()) { break; }
+            else if (pos == end_pos - 1) { return res.first->second; }
 
-        } else if (it->second->is_table())
-        {
-            return find_or_create(&(it->second->as_table()), url, end_pos + 1);
+            t = &res.first->second.get()->as_table();
+            start_pos = pos + 1;
+            continue;
 
         } else
         {
-
-            RUNTIME_ERROR << "Try to insert an entity to non-table entity [" << url.substr(0, end_pos) << "]"
-                          << std::endl;
-        }
-    } else
-    {
-        std::string key = url.substr(start_pos);
-
-        auto it = t->m_pimpl_->m_table_.find(key);
-
-        if (it == t->m_pimpl_->m_table_.end())
-        {
-            auto res = t->m_pimpl_->m_table_.emplace(std::make_pair(key, std::shared_ptr<DataEntityLight>()));
+            auto res = t->m_pimpl_->m_table_.emplace(url.substr(start_pos), std::make_shared<DataEntityLight>());
 
             return res.first->second;
 
-        } else
-        {
-            return it->second;
         }
     }
+    RUNTIME_ERROR << " Can not insert entity at [" << url << "]" << std::endl;
 };
 
+
 DataEntity const *
-DataEntityTable::pimpl_s::search(DataEntityTable const *t, std::string const &url, size_type start_pos)
+DataEntityTable::pimpl_s::search(DataEntityTable const *t, std::string const &url, char split_char)
 {
-    ASSERT (start_pos < url.size());
-    ASSERT(t != nullptr);
-
-
-    auto end_pos = url.find('.', start_pos);
-
-    if (end_pos != std::string::npos)
+    size_type start_pos = 0;
+    size_type end_pos = url.size();
+    while (start_pos < end_pos)
     {
-        std::string key = url.substr(start_pos, end_pos);
+        size_type pos = url.find(split_char, start_pos);
 
-        auto it = t->m_pimpl_->m_table_.find(key);
+        if (pos != std::string::npos)
+        {
+            auto it = t->m_pimpl_->m_table_.find(url.substr(start_pos, pos - start_pos));
 
-        if (it != t->m_pimpl_->m_table_.end()) { return search(&(it->second->as_table()), url, end_pos + 1); }
+            if (pos == end_pos - 1) { return it->second.get(); }
+            else if (it == t->m_pimpl_->m_table_.end() || !it->second->is_table()) { break; }
 
-    } else
-    {
-        std::string key = url.substr(start_pos);
+            t = &it->second->as_table();
+            start_pos = pos + 1;
+            continue;
 
-        auto it = t->m_pimpl_->m_table_.find(key);
+        } else
+        {
+            auto it = t->m_pimpl_->m_table_.find(url.substr(start_pos));
 
-        if (it != t->m_pimpl_->m_table_.end()) { return it->second.get(); }
+            if (it != t->m_pimpl_->m_table_.end()) { return it->second.get(); }
+
+            break;
+        }
     }
+
 
     return nullptr;
 };
@@ -137,23 +124,29 @@ std::ostream &DataEntityTable::print(std::ostream &os, int indent) const
 };
 
 
-bool DataEntityTable::empty() const { return (m_pimpl_ != nullptr) && m_pimpl_->m_table_.empty(); };
+bool
+DataEntityTable::empty() const { return (m_pimpl_ != nullptr) && m_pimpl_->m_table_.empty(); };
 
-bool DataEntityTable::has(std::string const &url) const { return m_pimpl_->search(this, url) != nullptr; };
+bool
+DataEntityTable::has(std::string const &url) const { return m_pimpl_->search(this, url) != nullptr; };
 
-bool DataEntityTable::check(std::string const &key)
+bool
+DataEntityTable::check(std::string const &key) const
 {
     return has(key) && m_pimpl_->m_table_.at(key)->as_light().template as<bool>();
 }
 
+DataEntityTable *
+DataEntityTable::create_table(std::string const &url) { return &m_pimpl_->emplace(this, url + ".")->as_table(); }
+
 void DataEntityTable::set(std::string const &url, std::shared_ptr<DataEntity> const &v)
 {
-    std::shared_ptr<DataEntity>(v).swap(m_pimpl_->find_or_create(this, url));
+    std::shared_ptr<DataEntity>(v).swap(m_pimpl_->emplace(this, url));
 };
 
 std::shared_ptr<DataEntity> &DataEntityTable::get(std::string const &url)
 {
-    return m_pimpl_->find_or_create(this, url);
+    return m_pimpl_->emplace(this, url);
 }
 
 
@@ -167,7 +160,7 @@ DataEntity &DataEntityTable::at(std::string const &url)
 DataEntity const &DataEntityTable::at(std::string const &url) const
 {
     DataEntity const *res = m_pimpl_->search(this, url);
-    if (res == nullptr) { OUT_OF_RANGE << "Can not find URL: [" << url << "] " << std::endl; } else { return *res; }
+    if (res == nullptr) { throw std::out_of_range("Can not find URL: [" + url + "] "); } else { return *res; }
 };
 
 

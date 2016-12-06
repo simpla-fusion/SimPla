@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     worker->db.set_value("Particles.D.ratio", 0.5);
     worker->db.set_value("Particles.e.m", SI_electron_proton_mass_ratio);
     worker->db.set_value("Particles.e.Z", -1.0);
-
+    worker->db.print(std::cout);
     worker->deploy();
 
     worker->print(std::cout);

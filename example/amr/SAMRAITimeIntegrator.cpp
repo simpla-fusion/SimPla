@@ -189,7 +189,7 @@ create_time_integrator(std::string const &name)
     integrator->db.set_value("PatchHierarchy.largest_patch_size.level_0", nTuple<int, 3>{32, 32, 32});
     integrator->db.set_value("PatchHierarchy.smallest_patch_size.level_0", nTuple<int, 3>{4, 4, 4});
 
-    integrator->db.set_value("GriddingAlgorithm", "");
+    integrator->db.create_table("GriddingAlgorithm");
 
 
     integrator->db.set_value("BergerRigoutsos.sort_output_nodes", true);// Makes results repeatable.
@@ -214,7 +214,7 @@ create_time_integrator(std::string const &name)
     integrator->db.set_value("TimeRefinementIntegrator.max_integrator_steps", 5);  // max number of simulation timesteps
 
     // Refer to mesh::TreeLoadBalancer for input
-    integrator->db.set_value("LoadBalancer", "");
+    integrator->db.create_table("LoadBalancer");
 
     return integrator;
 
@@ -1243,7 +1243,7 @@ void convert_database_r(data::DataEntity const &src, boost::shared_ptr<SAMRAI::t
         auto sub_db = key == "" ? dest : dest->putDatabase(key);
 
         src.as_table().foreach(
-                [&](std::string const &k, data::DataEntity const &v) { convert_database_r(v.as_table(), sub_db, k); });
+                [&](std::string const &k, data::DataEntity const &v) { convert_database_r(v, sub_db, k); });
     } else if (key == "") { return; }
     else if (src.is_null()) { dest->putDatabase(key); }
     else if (src.as_light().any().is_boolean()) { dest->putBool(key, src.as<bool>()); }
@@ -1374,10 +1374,10 @@ void SAMRAITimeIntegrator::deploy()
 
     patch_worker->registerVisItDataWriter(visit_data_writer);
 
+    samrai_cfg->printClassData(std::cout);
 
     m_dt_now_ = time_integrator->initializeHierarchy();
     m_is_valid_ = true;
-    samrai_cfg->printClassData(std::cout);
 
     MESSAGE << name() << " is deployed!" << std::endl;
 //    time_integrator->printClassData(std::cout);
