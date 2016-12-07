@@ -53,9 +53,9 @@ Chart::connect(AttributeView *attr)
 
 void Chart::disconnect(AttributeView *attr) { m_attr_views_.erase(attr); }
 
-void Chart::initialize(Real data_time) { pre_process(); }
+void Chart::initialize(Real data_time, Real dt) { pre_process(); }
 
-void Chart::finalize(Real data_time) { post_process(); }
+void Chart::finalize(Real data_time, Real dt) { post_process(); }
 
 void Chart::pre_process()
 {

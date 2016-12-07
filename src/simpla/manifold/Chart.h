@@ -38,9 +38,9 @@ struct Chart : public concept::Printable, public concept::LifeControllable
 
     virtual void post_process();
 
-    virtual void initialize(Real data_time = 0);
+    virtual void initialize(Real data_time = 0, Real dt = 0);
 
-    virtual void finalize(Real data_time = 0);
+    virtual void finalize(Real data_time = 0, Real dt = 0);
 
     virtual void move_to(std::shared_ptr<MeshBlock> const &m);
 

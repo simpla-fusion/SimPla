@@ -11,8 +11,8 @@
 
 namespace simpla { namespace data
 {
-struct DataEntityTable;
 struct DataEntityLight;
+struct DataEntityTable;
 struct DataEntityHeavy;
 
 struct DataEntity : public concept::Printable
@@ -41,6 +41,8 @@ public:
     virtual std::shared_ptr<DataEntity> copy() const { return nullptr; };
 
     virtual std::shared_ptr<DataEntity> move() { return nullptr; };
+
+    virtual void deep_copy(DataEntity const &other) { UNIMPLEMENTED; }
 
     DataEntityTable &as_table();
 

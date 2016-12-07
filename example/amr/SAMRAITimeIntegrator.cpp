@@ -175,11 +175,10 @@ create_time_integrator(std::string const &name)
 
 
 
-    integrator->db.set_value("CartesianGeometry.domain_boxes_0", index_box_type{{0,  0,  0},
-                                                                                {16, 16, 16}});
+    integrator->db.set_value("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
 
     integrator->db.set_value("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
-    integrator->db.set_value("CartesianGeometry.x_lo", nTuple<double, 3>{1, 0, -1});
+    integrator->db.set_value("CartesianGeometry.x_lo", nTuple<double, 3>{1.0, 0.0, -1.0});
     integrator->db.set_value("CartesianGeometry.x_up", nTuple<double, 3>{2, PI, 1});
 
     integrator->db.set_value("PatchHierarchy.max_levels", int(3)); // Maximum number of levels in hierarchy.
@@ -222,8 +221,7 @@ create_time_integrator(std::string const &name)
 }
 
 
-class SAMRAIWorker :
-        public SAMRAI::algs::HyperbolicPatchStrategy
+class SAMRAIWorker : public SAMRAI::algs::HyperbolicPatchStrategy
 {
 
 public:
@@ -951,7 +949,7 @@ void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const doubl
     if (initial_time)
     {
         move_to(m_worker_, patch);
-        m_worker_->initialize(data_time);
+        m_worker_->initialize(data_time, 0);
     }
 
 
@@ -1003,6 +1001,8 @@ double SAMRAIWorker::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, const bo
 
 void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt)
 {
+    m_worker_->phase0(time, dt);
+
 }
 
 
@@ -1022,7 +1022,7 @@ void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, con
 
     m_worker_->set_physical_boundary_conditions(time);
 
-    m_worker_->next_time_step(time, dt);
+    m_worker_->phase1(time, dt);
 }
 
 
@@ -1139,7 +1139,6 @@ public:
     virtual void load(data::DataEntityTable const &);
 
     virtual void save(data::DataEntityTable *) const;
-
 
     virtual void deploy();
 

@@ -74,19 +74,49 @@ void Worker::post_process()
     m_chart_->post_process();
 }
 
-void Worker::initialize(Real data_time)
+void Worker::initialize(Real data_time, Real dt)
 {
     pre_process();
     ASSERT (m_chart_ != nullptr);
-    m_chart_->initialize(data_time);
-    m_model_->initialize(data_time);
+    m_chart_->initialize(data_time, dt);
+    m_model_->initialize(data_time, dt);
 }
 
-void Worker::finalize(Real data_time)
-{
+virtual void Worker::sync() {}
 
-    m_model_->finalize(data_time);
-    m_chart_->finalize(data_time);
+unsigned int Worker::next_phase(Real data_time, Real dt, unsigned int inc_phase)
+{
+    unsigned int start_phase = current_phase_num();
+    unsigned int end_phase = concept::LifeControllable::next_phase(data_time, dt, inc_phase);
+
+    switch (start_phase)
+    {
+        #define NEXT_PHASE(_N_) case _N_: phase##_N_(data_time, dt);sync();++start_phase;if (start_phase >=end_phase )break;
+
+        NEXT_PHASE(0);
+        NEXT_PHASE(1);
+        NEXT_PHASE(2);
+        NEXT_PHASE(3);
+        NEXT_PHASE(4);
+        NEXT_PHASE(5);
+        NEXT_PHASE(6);
+        NEXT_PHASE(7);
+        NEXT_PHASE(8);
+        NEXT_PHASE(9);
+
+        #undef NEXT_PHASE
+        default:
+            break;
+    }
+    return end_phase;
+};
+
+void Worker::finalize(Real data_time, Real dt)
+{
+    next_phase(data_time, dt, max_phase_num() - current_phase_num());
+
+    m_model_->finalize(data_time, 0);
+    m_chart_->finalize(data_time, 0);
     post_process();
 }
 

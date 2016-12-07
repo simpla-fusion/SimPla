@@ -151,9 +151,9 @@ public:
     virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_.get(M::sw(s, M::node_id(s))); }
 
 
-    virtual void initialize(Real data_time = 0)
+    virtual void initialize(Real data_time, Real dt)
     {
-        base_type::initialize(data_time);
+        base_type::initialize(data_time, 0);
 
         m_vertics_.clear();
         m_volume_.clear();

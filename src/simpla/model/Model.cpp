@@ -33,7 +33,7 @@ void Model::pre_process()
     m_tags_.clear();
 };
 
-void Model::initialize(Real data_time)
+void Model::initialize(Real data_time, Real dt)
 {
 
     auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(m_tags_.data_block())->start();
@@ -91,7 +91,7 @@ void Model::initialize(Real data_time)
 
 void Model::next_time_step(Real data_time, Real dt) {};
 
-void Model::finalize(Real data_time)
+void Model::finalize(Real data_time, Real dt)
 {
     m_range_cache_.erase(m_chart_->mesh_block()->id());
     m_interface_cache_.erase(m_chart_->mesh_block()->id());

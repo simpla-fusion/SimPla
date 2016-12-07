@@ -39,22 +39,35 @@ public:
 
     virtual bool is_table() const { return true; };
 
-    virtual bool is_null() const { return empty(); };
-
     virtual bool empty() const;
 
     virtual bool has(std::string const &key) const;
-
-    virtual bool check(std::string const &key) const;
 
     virtual void foreach(std::function<void(std::string const &key, DataEntity const &)> const &) const;
 
     virtual void foreach(std::function<void(std::string const &key, DataEntity &)> const &fun);
 
-    template<typename T> bool equal(std::string const &k, T const &v) const { return has(k) && at(k).equal(v); };
+    template<typename T> bool equal(std::string const &url, T const &v) const
+    {
+        DataEntity const *p = find(url);
+        return p != nullptr && p->equal(v);
+    };
 
-    virtual void set(std::string const &key, std::shared_ptr<DataEntity> const &v);
 
+    virtual DataEntity const *find(std::string const &url) const;
+
+    /**
+     *  set entity value to '''url'''
+     * @param url
+     * @return Returns a reference to the shared pointer of  the  modified entity, create parent '''table''' as needed.
+     */
+
+    virtual std::shared_ptr<DataEntity> &set(std::string const &key, std::shared_ptr<DataEntity> const &v);
+
+    template<typename U> std::shared_ptr<DataEntity> &
+    set_value(std::string const &url, U const &v) { return set(url, create_data_entity(v)); }
+
+    virtual DataEntityTable *create_table(std::string const &url);
 
     /**
      *
@@ -63,6 +76,16 @@ public:
      *      If no such entity exists, create a light entity, create parent table as needed.
      */
     virtual std::shared_ptr<DataEntity> &get(std::string const &url);
+
+
+    template<typename U> U const &get_value(std::string const &url) const { return at(url).as<U>(); }
+
+    template<typename U> U const &get_value(std::string const &url, U const &u) const
+    {
+        auto const *p = find(url);
+        return p == nullptr ? u : p->as<U>();
+    }
+
 
     /**
      *
@@ -73,17 +96,6 @@ public:
     virtual DataEntity &at(std::string const &key);
 
     virtual DataEntity const &at(std::string const &key) const;
-
-    virtual DataEntityTable *create_table(std::string const &url);
-
-    template<typename U> void set_value(std::string const &url, U const &v) { set(url, create_data_entity(v)); }
-
-    template<typename U> U const &get_value(std::string const &url) const { return at(url).as<U>(); }
-
-    template<typename U> U const &get_value(std::string const &url, U const &u) const
-    {
-        if (has(url)) { return at(url).as<U>(); } else { return u; }
-    }
 
 
     DataEntityLight &as_light(std::string const &url) { return at(url).as_light(); };

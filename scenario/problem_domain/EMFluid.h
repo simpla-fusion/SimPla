@@ -165,7 +165,7 @@ void EMFluid<TM>::initialize(Real data_time)
         B0v = map_to<VERTEX>(B0);
         BB = dot(B0v, B0v);
     }
-    base_type::initialize(data_time);
+    base_type::initialize(data_time, 0);
 }
 
 

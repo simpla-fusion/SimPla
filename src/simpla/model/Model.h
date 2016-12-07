@@ -45,11 +45,11 @@ public:
 
     virtual void pre_process();
 
-    virtual void initialize(Real data_time = 0);
+    virtual void initialize(Real data_time = 0, Real dt = 0);
 
-    virtual void next_time_step(Real data_time, Real dt);
+    virtual void next_time_step(Real data_time = 0, Real dt = 0);
 
-    virtual void finalize(Real data_time = 0);
+    virtual void finalize(Real data_time, Real dt);
 
     virtual void post_process();
 

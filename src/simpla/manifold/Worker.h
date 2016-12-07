@@ -67,11 +67,39 @@ public:
 
     virtual void pre_process();
 
-    virtual void initialize(Real data_time = 0);
+    virtual void initialize(Real data_time, Real dt);
 
     virtual void next_time_step(Real data_time, Real dt) {};
 
-    virtual void finalize(Real data_time = 0);
+    virtual void phase0(Real data_time, Real dt) { concept::LifeControllable::to_phase(1); };
+
+    virtual void phase1(Real data_time, Real dt) { concept::LifeControllable::to_phase(2); };
+
+    virtual void phase2(Real data_time, Real dt) { concept::LifeControllable::to_phase(3); };
+
+    virtual void phase3(Real data_time, Real dt) { concept::LifeControllable::to_phase(4); };
+
+    virtual void phase4(Real data_time, Real dt) { concept::LifeControllable::to_phase(5); };
+
+    virtual void phase5(Real data_time, Real dt) { concept::LifeControllable::to_phase(6); };
+
+    virtual void phase6(Real data_time, Real dt) { concept::LifeControllable::to_phase(7); };
+
+    virtual void phase7(Real data_time, Real dt) { concept::LifeControllable::to_phase(8); };
+
+    virtual void phase8(Real data_time, Real dt) { concept::LifeControllable::to_phase(9); };
+
+    virtual void phase9(Real data_time, Real dt) { concept::LifeControllable::to_phase(10); };
+
+
+    virtual unsigned int next_phase(Real data_time, Real dt, unsigned int inc_phase = 1);
+
+    virtual unsigned int max_phase_num() const { return MAX_NUM_OF_PHASE; };
+
+
+    virtual void sync();
+
+    virtual void finalize(Real data_time, Real dt);
 
     virtual void post_process();
 
@@ -84,6 +112,7 @@ protected:
 
     std::shared_ptr<model::Model> m_model_;
     std::string m_name_;
+    static constexpr unsigned int MAX_NUM_OF_PHASE = 9;
 };
 
 

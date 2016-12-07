@@ -128,38 +128,38 @@ bool
 DataEntityTable::empty() const { return (m_pimpl_ != nullptr) && m_pimpl_->m_table_.empty(); };
 
 bool
-DataEntityTable::has(std::string const &url) const { return m_pimpl_->search(this, url) != nullptr; };
+DataEntityTable::has(std::string const &url) const { return find(url) != nullptr; };
 
-bool
-DataEntityTable::check(std::string const &key) const
-{
-    return has(key) && m_pimpl_->m_table_.at(key)->as_light().template as<bool>();
-}
 
 DataEntityTable *
 DataEntityTable::create_table(std::string const &url) { return &m_pimpl_->emplace(this, url + ".")->as_table(); }
 
-void DataEntityTable::set(std::string const &url, std::shared_ptr<DataEntity> const &v)
+std::shared_ptr<DataEntity> &DataEntityTable::set(std::string const &url, std::shared_ptr<DataEntity> const &v)
 {
-    std::shared_ptr<DataEntity>(v).swap(m_pimpl_->emplace(this, url));
+    std::shared_ptr<DataEntity> &res = m_pimpl_->emplace(this, url);
+    std::shared_ptr<DataEntity>(v).swap(res);
+    return res;
 };
 
-std::shared_ptr<DataEntity> &DataEntityTable::get(std::string const &url)
+std::shared_ptr<DataEntity> &DataEntityTable::get(std::string const &url) { return m_pimpl_->emplace(this, url); }
+
+
+DataEntity const *DataEntityTable::find(std::string const &url) const
 {
-    return m_pimpl_->emplace(this, url);
-}
+    return m_pimpl_->search(this, url);
+};
 
 
 DataEntity &DataEntityTable::at(std::string const &url)
 {
-    auto res = m_pimpl_->search(this, url);
+    DataEntity const *res = find(url);
     if (res == nullptr) { OUT_OF_RANGE << "Can not find URL: [" << url << "] " << std::endl; }
     else { return *const_cast<DataEntity *>(res); }
 };
 
 DataEntity const &DataEntityTable::at(std::string const &url) const
 {
-    DataEntity const *res = m_pimpl_->search(this, url);
+    DataEntity const *res = find(url);
     if (res == nullptr) { throw std::out_of_range("Can not find URL: [" + url + "] "); } else { return *res; }
 };
 

@@ -45,11 +45,9 @@ int main(int argc, char **argv)
 
     worker->print(std::cout);
 
-    index_box_type mesh_index_box{{0,  0,  0},
-                                  {32, 32, 32}};
+    index_box_type mesh_index_box{{0, 0, 0}, {32, 32, 32}};
 
-    auto bound_box = worker->db.get_value("bound_box", box_type {{1, 0,  -1},
-                                                                 {2, PI, 1}});
+    auto bound_box = worker->db.get_value("bound_box", box_type {{1, 0, -1}, {2, PI, 1}});
 
 
     auto integrator = simpla::create_time_integrator("EMFluid");
