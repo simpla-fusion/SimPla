@@ -666,16 +666,15 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
         }
 
 
-        if (visit_variable_type == "" || !attr->db.has("config")) {}
-        else if (attr->db.get_value<std::string>("config") == "COORDINATES")
-        {
-            d_visit_writer->registerNodeCoordinates(
-                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-
-        } else
+        if (visit_variable_type != "" && attr->db.check("CHECK", true))
         {
             d_visit_writer->registerPlotQuantity(
                     attr->name(), visit_variable_type,
+                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+
+        } else if (attr->db.check("COORDINATES", true))
+        {
+            d_visit_writer->registerNodeCoordinates(
                     vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
     }
