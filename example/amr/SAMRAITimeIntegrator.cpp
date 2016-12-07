@@ -324,8 +324,7 @@ public:
     void setPhysicalBoundaryConditions(
             SAMRAI::hier::Patch &patch,
             const double fill_time,
-            const SAMRAI::hier::IntVector &
-            ghost_width_to_fill);
+            const SAMRAI::hier::IntVector &ghost_width_to_fill);
 
 
     SAMRAI::hier::IntVector
@@ -421,7 +420,6 @@ private:
     void move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &patch);
 
     std::shared_ptr<mesh::Worker> m_worker_;
-    std::shared_ptr<mesh::Atlas> m_atlas_;
     /*
      * The object name is used for error/warning reporting and also as a
      * string label for restart database entries.
@@ -488,45 +486,7 @@ SAMRAIWorker::~SAMRAIWorker()
 
 namespace detail
 {
-//struct op_create {};
-//template<typename TV, mesh::MeshEntityType IFORM> struct VariableTraits;
-//template<typename T> struct VariableTraits<T, mesh::VERTEX> { typedef SAMRAI::pdat::NodeVariable<T> type; };
-//template<typename T> struct VariableTraits<T, mesh::EDGE> { typedef SAMRAI::pdat::EdgeVariable<T> type; };
-//template<typename T> struct VariableTraits<T, mesh::FACE> { typedef SAMRAI::pdat::FaceVariable<T> type; };
-//template<typename T> struct VariableTraits<T, mesh::VOLUME> { typedef SAMRAI::pdat::CellVariable<T> type; };
-//
-//template<typename TV, mesh::MeshEntityType IFORM> void
-//attr_op(mesh::Attribute *item, op_create const &, boost::shared_ptr<SAMRAI::hier::Variable> *res, int ndims)
-//{
-//    SAMRAI::tbox::Dimension d_dim(ndims);
-//    *res = boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
-//            boost::make_shared<typename VariableTraits<TV, IFORM>::type>(d_dim, item->name(), item->dof()));
-//}
-//
-//
-//template<typename T, typename ...Args> void
-//attr_choice_form(mesh::Attribute *item, Args &&...args)
-//{
-//
-//    if (item->entity_type() == mesh::VERTEX) { attr_op<T, mesh::VERTEX>(item, std::forward<Args>(args)...); }
-//    else if (item->entity_type() == mesh::EDGE) { attr_op<T, mesh::EDGE>(item, std::forward<Args>(args)...); }
-//    else if (item->entity_type() == mesh::FACE) { attr_op<T, mesh::FACE>(item, std::forward<Args>(args)...); }
-//    else if (item->entity_type() == mesh::VOLUME) { attr_op<T, mesh::VOLUME>(item, std::forward<Args>(args)...); }
-//    else { UNIMPLEMENTED; }
-//
-//}
-//
-//template<typename ...Args> void
-//attr_choice(mesh::Attribute *item, Args &&...args)
-//{
-//    if (item->value_type_info() == typeid(float)) { attr_choice_form<float>(item, std::forward<Args>(args)...); }
-//    else if (item->value_type_info() == typeid(double)) { attr_choice_form<double>(item, std::forward<Args>(args)...); }
-//    else if (item->value_type_info() == typeid(int)) { attr_choice_form<int>(item, std::forward<Args>(args)...); }
-////    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
-//    else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
-//
-//
-//};
+
 
 template<typename T>
 boost::shared_ptr<SAMRAI::hier::Variable>
@@ -555,7 +515,7 @@ create_samrai_variable(unsigned int ndims, mesh::AttributeBase *item)
     else if (item->value_type_info() == typeid(double)) { return create_samrai_variable_t<double>(ndims, item); }
     else if (item->value_type_info() == typeid(int)) { return create_samrai_variable_t<int>(ndims, item); }
 //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
-    else { RUNTIME_ERROR << " m_value_ type is not supported!" << std::endl; }
+    else { RUNTIME_ERROR << " value type [" << item->value_type_info().name() << "] is not supported!" << std::endl; }
     return nullptr;
 }
 }//namespace detail{
@@ -723,76 +683,7 @@ void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *in
 
 namespace detail
 {
-//struct op_convert {};
-//template<typename TV, mesh::MeshEntityType IFORM> struct PatchDataTraits;
-//template<typename T> struct PatchDataTraits<T, mesh::VERTEX> { typedef SAMRAI::pdat::NodeData<T> type; };
-//template<typename T> struct PatchDataTraits<T, mesh::EDGE> { typedef SAMRAI::pdat::EdgeData<T> type; };
-//template<typename T> struct PatchDataTraits<T, mesh::FACE> { typedef SAMRAI::pdat::FaceData<T> type; };
-//template<typename T> struct PatchDataTraits<T, mesh::VOLUME> { typedef SAMRAI::pdat::CellData<T> type; };
-//
-//
-//template<typename TV> std::shared_ptr<mesh::DataBlock>
-//convert(boost::shared_ptr<SAMRAI::pdat::NodeData<TV>> p_data)
-//{
-//    auto lo = p_data->getGhostBox().lower();
-//    auto up = p_data->getGhostBox().upper();
-//    index_type i_lo[4] = {lo[0], lo[1], lo[2], 0};
-//    index_type i_up[4] = {up[0] + 2, up[1] + 2, up[2] + 2, 1};
-//
-//    return std::dynamic_pointer_cast<mesh::DataBlock>(
-//            std::make_shared<mesh::DataBlockArray<TV, mesh::VERTEX>>(p_data->getPointer(0), 3, i_lo, i_up,
-//                                                                     data_block::FAST_FIRST));
-//}
-//
-//template<typename TV> std::shared_ptr<mesh::DataBlock>
-//convert(boost::shared_ptr<SAMRAI::pdat::CellData<TV>> p_data)
-//{
-//    auto lo = p_data->getGhostBox().lower();
-//    auto up = p_data->getGhostBox().upper();
-//    index_type i_lo[4] = {lo[0], lo[1], lo[2], 0};
-//    index_type i_up[4] = {up[0], up[1], up[2], 1};
-//
-//    return std::dynamic_pointer_cast<mesh::DataBlock>(
-//            std::make_shared<mesh::DataBlockArray<TV, mesh::VOLUME>>(p_data->getPointer(0), 3, i_lo, i_up,
-//                                                                     data_block::FAST_FIRST));
-//}
-//
-//template<typename TV> std::shared_ptr<mesh::DataBlock>
-//convert(boost::shared_ptr<SAMRAI::pdat::EdgeData<TV>> p_data)
-//{
-//    auto lo = p_data->getGhostBox().lower();
-//    auto up = p_data->getGhostBox().upper();
-//    index_type i_lo[4] = {lo[0], lo[1], lo[2], 0};
-//    index_type i_up[4] = {up[0], up[1], up[2], 3};
-//
-//    return std::dynamic_pointer_cast<mesh::DataBlock>(
-//            std::make_shared<mesh::DataBlockArray<TV, mesh::EDGE>>(p_data->getPointer(0), 4, i_lo, i_up,
-//                                                                   data_block::FAST_FIRST));
-//}
-//
-//template<typename TV> std::shared_ptr<mesh::DataBlock>
-//convert(boost::shared_ptr<SAMRAI::pdat::FaceData<TV>> p_data)
-//{
-//    auto lo = p_data->getGhostBox().lower();
-//    auto up = p_data->getGhostBox().upper();
-//
-//    index_type i_lo[4] = {lo[0], lo[1], lo[2], 0};
-//    index_type i_up[4] = {up[0], up[1], up[2], 3};
-//
-//    return std::dynamic_pointer_cast<mesh::DataBlock>(
-//            std::make_shared<mesh::DataBlockArray<TV, mesh::FACE>>(p_data->getPointer(0), 4, i_lo, i_up,
-//                                                                   data_block::FAST_FIRST));
-//}
-//
-//template<typename TV, mesh::MeshEntityType IFORM> void
-//attr_op(mesh::Attribute *item, op_convert const &,
-//        std::shared_ptr<mesh::DataBlock> *res,
-//        boost::shared_ptr<SAMRAI::hier::PatchData> p_data)
-//{
-//    auto pd = boost::dynamic_pointer_cast<typename PatchDataTraits<TV, IFORM>::type>(p_data);
-//    pd->fillAll(0);
-//    *res = convert(pd);
-//}
+
 template<typename TV, mesh::MeshEntityType IFORM, size_type DOF>
 std::shared_ptr<mesh::DataBlock>
 create_data_block_t2(std::shared_ptr<mesh::AttributeBase> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
@@ -925,7 +816,9 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
     for (auto &ob:w->get_chart()->attributes())
     {
         auto &attr = ob->attribute();
+
         if (attr == nullptr) { return; }
+
         auto db = detail::create_data_block(
                 attr, patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext()));
 
@@ -1422,7 +1315,6 @@ void SAMRAITimeIntegrator::check_point()
 {
     if (visit_data_writer != nullptr)
     {
-
         visit_data_writer->writePlotData(patch_hierarchy,
                                          time_integrator->getIntegratorStep(),
                                          time_integrator->getIntegratorTime());
@@ -1536,3 +1428,4 @@ SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->stepsRem
 //}
 //}//namespace detail
 //} //namespace simpla
+
