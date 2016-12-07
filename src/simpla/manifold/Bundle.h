@@ -37,17 +37,23 @@ public:
 
     template<typename ...Args>
     explicit Bundle(Chart *c, Args &&...args) :
-            base_type(std::make_shared<attribute_type>(std::forward<Args>(args)...)), m_chart_(nullptr) { connect(c); };
+            base_type(std::make_shared<attribute_type>(std::forward<Args>(args)...))
+    {
+        connect(c);
+    };
 
     template<typename ...Args>
     explicit Bundle(std::shared_ptr<Chart> const &c, Args &&...args) :
-            Bundle(c.get(), std::forward<Args>(args)...) { connect(c.get()); };
+            base_type(std::make_shared<attribute_type>(std::forward<Args>(args)...))
+    {
+        connect(c.get());
+    };
 
 
-    template<typename ...Args>
-    explicit Bundle(std::string const &key, Args &&...args) :
-            base_type(std::make_shared<attribute_type>(key, std::forward<Args>(args)...)),
-            m_chart_(nullptr) {};
+//    template<typename ...Args>
+//    explicit Bundle(Args &&...args) :
+//            base_type(std::make_shared<attribute_type>(std::forward<Args>(args)...)),
+//            m_chart_(nullptr) {};
 
     Bundle(this_type const &other) = delete;
 
@@ -145,6 +151,7 @@ public:
         if (is_valid()) { return; }
         else
         {
+            if (m_chart_ == nullptr) { CHECK(attribute()->name()); }
             ASSERT(m_chart_ != nullptr);
             base_type::move_to(m_chart_->mesh_block());
             base_type::pre_process();

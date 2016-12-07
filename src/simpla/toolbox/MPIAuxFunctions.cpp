@@ -133,7 +133,7 @@ void allreduce(void const *send_data, void *recv_data, size_t count,
 //
 //		MPI_Probe(std::get<0>(item), std::get<2>(item), GLOBAL_COMM.comm(), &status);
 //
-//		// When probe returns, the status object has the size and other
+//		// When probe returns, the status object find the size and other
 //		// attributes of the incoming message. Get the size of the message
 //		int tmp = 0;
 //		MPI_Get_count(&status, MPI_BYTE, &tmp);

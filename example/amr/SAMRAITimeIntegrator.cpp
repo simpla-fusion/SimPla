@@ -87,10 +87,12 @@ struct SAMRAIWorker;
 struct SAMRAITimeIntegrator;
 
 std::shared_ptr<simulation::TimeIntegrator>
-create_time_integrator(std::string const &name)
+create_time_integrator(std::string const &str)
 {
     auto integrator = std::dynamic_pointer_cast<simulation::TimeIntegrator>(
-            std::make_shared<SAMRAITimeIntegrator>(name));
+            std::make_shared<SAMRAITimeIntegrator>());
+
+    integrator->db.parse(str);
 
     /** test.3d.input */
 
@@ -593,7 +595,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
         *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
         **/
 
-        if (attr->db.has("config") && attr->db.get_value<std::string>("config") == "COORDINATES")
+        if (attr->db.check("COORDINATES", true))
         {
             VERBOSE << attr->name() << " is registered as coordinate" << std::endl;
             integrator->registerVariable(var, d_nghosts,
@@ -602,7 +604,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                          "",
                                          "LINEAR_REFINE");
 
-        } else if (attr->db.has("config") && attr->db.get_value<std::string>("config") == "FLUX")
+        } else if (attr->db.check("FLUX", true))
         {
             integrator->registerVariable(var, d_fluxghosts,
                                          SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
@@ -610,7 +612,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                          "CONSERVATIVE_COARSEN",
                                          "NO_REFINE");
 
-        } else if (attr->db.has("config") && attr->db.get_value<std::string>("config") == "INPUT")
+        } else if (attr->db.check("INPUT", true))
         {
             integrator->registerVariable(var, d_nghosts,
                                          SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
@@ -1130,7 +1132,7 @@ struct SAMRAITimeIntegrator : public simulation::TimeIntegrator
 {
     typedef simulation::TimeIntegrator base_type;
 public:
-    SAMRAITimeIntegrator(std::string const &s, std::shared_ptr<mesh::Worker> const &w = nullptr);
+    SAMRAITimeIntegrator(std::shared_ptr<mesh::Worker> const &w = nullptr);
 
     ~SAMRAITimeIntegrator();
 
@@ -1196,8 +1198,8 @@ private:
     static constexpr int ndims = 3;
 };
 
-SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::string const &s, std::shared_ptr<mesh::Worker> const &w)
-        : base_type(s, w)
+SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::shared_ptr<mesh::Worker> const &w)
+        : base_type(w)
 {
     /*
       * Initialize SAMRAI::tbox::MPI.

@@ -148,7 +148,7 @@ void DistributedObject::pimpl_s::sync()
 
             MPI_CALL(MPI_Probe(dest_id, recv_tag, GLOBAL_COMM.comm(), &status));
 
-            // When probe returns, the status object has the size and other
+            // When probe returns, the status object find the size and other
             // attributes of the incoming message. Get the size of the message
             int recv_num = 0;
 
@@ -248,7 +248,7 @@ void DistributedObject::pimpl_s::sync()
 //
 //            MPI_Probe(item.dest, item.recv_tag, mpi_global_comm, &status);
 //
-//            // When probe returns, the status object has the size and other
+//            // When probe returns, the status object find the size and other
 //            // attributes of the incoming message. Get the size of the message
 //            int mem_size = 0;
 //            MPI_Get_count(&status, MPI_BYTE, &mem_size);

@@ -27,16 +27,13 @@ class TimeIntegrator :
         public concept::LifeControllable
 {
 public:
-    TimeIntegrator(std::string const &s_name = "", std::shared_ptr<mesh::Worker> const &w = nullptr)
-            : Object(), m_name_(s_name), m_worker_(w) {}
+    TimeIntegrator(std::shared_ptr<mesh::Worker> const &w = nullptr) : Object(), m_worker_(w) {}
 
     virtual ~TimeIntegrator() {}
 
-    virtual void set_worker(std::shared_ptr<mesh::Worker> const &w) { m_worker_ = w; }
-
     virtual std::shared_ptr<mesh::Worker> &worker() { return m_worker_; }
 
-    virtual std::string name() const { return m_name_; };
+    virtual std::shared_ptr<mesh::Worker> const &worker() const { return m_worker_; }
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
 
@@ -60,7 +57,6 @@ public:
 
 
 private:
-    std::string m_name_;
     std::shared_ptr<mesh::Worker> m_worker_;
 
 };

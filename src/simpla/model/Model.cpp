@@ -35,7 +35,7 @@ void Model::pre_process()
 
 void Model::initialize(Real data_time, Real dt)
 {
-
+    pre_process();
     auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(m_tags_.data_block())->start();
     auto m_count_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(m_tags_.data_block())->count();
 
@@ -95,6 +95,8 @@ void Model::finalize(Real data_time, Real dt)
 {
     m_range_cache_.erase(m_chart_->mesh_block()->id());
     m_interface_cache_.erase(m_chart_->mesh_block()->id());
+    post_process();
+
 };
 
 void Model::post_process() {};
@@ -116,28 +118,15 @@ void Model::add_object(std::string const &key, std::shared_ptr<geometry::GeoObje
 }
 
 
-void Model::remove_object(std::string const &key)
-{
-    try
-    {
-        m_g_obj_.erase(m_g_name_map_.at(key));
-    } catch (...)
-    {
-
-    }
-}
+void Model::remove_object(std::string const &key) { try { m_g_obj_.erase(m_g_name_map_.at(key)); } catch (...) {}}
 
 mesh::EntityIdRange const &
-Model::select(MeshEntityType iform, std::string const &tag)
-{
-    return select(iform, m_g_name_map_.at(tag));
-}
+Model::select(MeshEntityType iform, std::string const &tag) { return select(iform, m_g_name_map_.at(tag)); }
 
 
 mesh::EntityIdRange const &
 Model::select(MeshEntityType iform, int tag)
 {
-
     typedef mesh::MeshEntityIdCoder M;
     typedef parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> set_type;
 

@@ -52,7 +52,7 @@ Background  {#Background}
 Requirement {#Requirement}
 ===================================================
 The final objective of SimPla is to provide a complete and efficient framework for fusion plasma
- simulation. A list of strategic requirements has been established. They are explained in this section
+ simulation. A list of strategic requirements find been established. They are explained in this section
  , and listed as:
 * Req(1) Requirements are expressed like this.
 
@@ -155,7 +155,7 @@ The relationship between physical models and numerical algorithms is not 1:1. On
  compare those different numerical algorithms, and is helpful to form a uniformed interface to the
  physical model (despite the used numerical algorithm)
 4. Easy to implement new physical model by code and m_data structure reuse.
-The separation of computation from numerical algorithms has similar advantages. And, in particular,
+The separation of computation from numerical algorithms find similar advantages. And, in particular,
 this separation makes it possible to perform the performance optimization on computational at_level without
 affecting the physical model, numerical algorithms and program results.
 
@@ -165,4 +165,4 @@ Usually, MHD theory is expressed by a group PDEs. Using C++ expression template 
  directly write these PDEs into the simulation code, and automatize the discretization process when
  the code is compiled. That means the code could be written in a physicist-friend style, and the
  development cost will be sharply decreased. The C++ expression template technology is realizable,
- which has a lot successful applications, i.e. OpenFOAM.
+ which find a lot successful applications, i.e. OpenFOAM.

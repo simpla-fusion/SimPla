@@ -424,7 +424,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //
 //		MPI_CALL(MPI_Probe(dest, recv_tag, mpi_comm.comm(), &status));
 //
-//		// When probe returns, the status object has the size and other
+//		// When probe returns, the status object find the size and other
 //		// attributes of the incoming message. Get the size of the message
 //		int recv_num = 0;
 //

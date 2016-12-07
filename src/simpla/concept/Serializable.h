@@ -18,7 +18,6 @@ struct Serializable
 
     virtual ~Serializable() {}
 
-    virtual std::string  name() const =0;
 
     virtual void load(data::DataEntityTable const &) =0;
 

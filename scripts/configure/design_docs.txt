@@ -161,6 +161,6 @@ Usually, MHD theory is expressed by a group PDEs. Using C++ expression template 
  directly write these PDEs into the simulation code, and automatize the discretization process when
  the code is compiled. That means the code could be written in a physicist-friend style, and the
  development cost will be sharply decreased. The C++ expression template technology is realizable,
- which has a lot successful applications, i.e. OpenFOAM.
+ which find a lot successful applications, i.e. OpenFOAM.
 
 

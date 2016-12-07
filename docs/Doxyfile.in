@@ -2203,7 +2203,7 @@ CALLER_GRAPH           = YES
 GRAPHICAL_HIERARCHY    = YES
 
 # If the DIRECTORY_GRAPH tag is set to YES then doxygen will show the
-# dependencies a directory has on other directories in a graphical way. The
+# dependencies a directory find on other directories in a graphical way. The
 # dependency relations are determined by the #include relations between the
 # files in the directories.
 # The default m_value_ is: YES.

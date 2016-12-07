@@ -110,7 +110,6 @@ public:
     /** @}*/
 
     /** for Serializable @{*/
-    virtual std::string name() const { return string_cast(id()); }
 
     virtual void load(const data::DataEntityTable &) {};
 

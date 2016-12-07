@@ -82,7 +82,7 @@ public:
 private:
     std::shared_ptr<Chart> m_chart_;
 
-    Bundle<int, VERTEX, 9> m_tags_{m_chart_, "tags", "INPUT"};
+    Bundle<int, VERTEX, 9> m_tags_{m_chart_, "name=tags;config=INPUT"};
     int m_g_obj_count_;
     std::map<std::string, int> m_g_name_map_;
     std::multimap<int, std::shared_ptr<geometry::GeoObject>> m_g_obj_;

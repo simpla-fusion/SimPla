@@ -47,7 +47,7 @@ public:
 
     virtual void foreach(std::function<void(std::string const &key, DataEntity &)> const &fun);
 
-    template<typename T> bool equal(std::string const &url, T const &v) const
+    template<typename T> bool check(std::string const &url, T const &v) const
     {
         DataEntity const *p = find(url);
         return p != nullptr && p->equal(v);
@@ -55,6 +55,8 @@ public:
 
 
     virtual DataEntity const *find(std::string const &url) const;
+
+    virtual void parse(std::string const &str);
 
     /**
      *  set entity value to '''url'''

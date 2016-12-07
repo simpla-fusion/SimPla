@@ -43,8 +43,7 @@ public:
 
     SP_OBJECT_HEAD(AttributeBase, Object)
 
-
-    AttributeBase(std::string const &s = "", std::string const &config_str = "");
+    AttributeBase(std::string const &config_str = "");
 
     AttributeBase(AttributeBase const &) = delete;
 
@@ -60,13 +59,13 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    virtual std::string name() const { return m_name_; };
-
     virtual void load(const data::DataEntityTable &);
 
     virtual void save(data::DataEntityTable *) const;
 
-    virtual bool has(const id_type &) const;
+    virtual const DataBlock *find(const id_type &) const;
+
+    virtual DataBlock *find(const id_type &);
 
     virtual void erase(const id_type &);
 
@@ -74,11 +73,10 @@ public:
 
     virtual std::shared_ptr<DataBlock> &at(const id_type &m);
 
-    virtual std::shared_ptr<DataBlock> insert_or_assign(const id_type &m, const std::shared_ptr<DataBlock> &p);
+    virtual std::pair<std::shared_ptr<DataBlock>, bool> emplace(const id_type &m, const std::shared_ptr<DataBlock> &p);
 
 
 private:
-    std::string m_name_;
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };

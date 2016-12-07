@@ -15,7 +15,7 @@ using namespace simpla;
 
 namespace simpla
 {
-std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &name);
+std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &str);
 
 std::shared_ptr<mesh::Worker> create_worker();
 
@@ -50,8 +50,8 @@ int main(int argc, char **argv)
     auto bound_box = worker->db.get_value("bound_box", box_type {{1, 0, -1}, {2, PI, 1}});
 
 
-    auto integrator = simpla::create_time_integrator("EMFluid");
-    integrator->set_worker(worker);
+    auto integrator = simpla::create_time_integrator("name=EMFluid");
+    integrator->worker() = worker;
     integrator->db.set_value("CartesianGeometry.domain_boxes_0", mesh_index_box);
     integrator->db.set_value("CartesianGeometry.periodic_dimension", nTuple<int, 3> {0, 1, 0});
     integrator->db.set_value("CartesianGeometry.x_lo", std::get<0>(bound_box));

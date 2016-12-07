@@ -34,7 +34,7 @@ std::ostream &Chart::print(std::ostream &os, int indent) const
 
     for (auto const &item:attributes())
     {
-        os << "\"" << item->attribute()->name() << "\" , ";
+        os << "\"" << item->attribute()->db.get_value("name", std::string("unnamed")) << "\" , ";
     }
 
     os << std::setw(indent + 1) << " " << "} , " << std::endl;
@@ -53,9 +53,15 @@ Chart::connect(AttributeView *attr)
 
 void Chart::disconnect(AttributeView *attr) { m_attr_views_.erase(attr); }
 
-void Chart::initialize(Real data_time, Real dt) { pre_process(); }
+void Chart::initialize(Real data_time, Real dt)
+{
+    pre_process();
+}
 
-void Chart::finalize(Real data_time, Real dt) { post_process(); }
+void Chart::finalize(Real data_time, Real dt)
+{
+    post_process();
+}
 
 void Chart::pre_process()
 {

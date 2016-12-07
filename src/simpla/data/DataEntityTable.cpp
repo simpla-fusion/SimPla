@@ -144,6 +144,34 @@ std::shared_ptr<DataEntity> &DataEntityTable::set(std::string const &url, std::s
 std::shared_ptr<DataEntity> &DataEntityTable::get(std::string const &url) { return m_pimpl_->emplace(this, url); }
 
 
+void DataEntityTable::parse(std::string const &str)
+{
+    size_type start_pos = 0;
+    size_type end_pos = str.size();
+    while (start_pos < end_pos)
+    {
+        size_type pos0 = str.find(';', start_pos);
+        if (pos0 == std::string::npos) { pos0 = end_pos; }
+
+        std::string key = str.substr(start_pos, pos0 - start_pos);
+
+        size_type pos1 = key.find('=');
+
+        std::string value = "";
+
+        if (pos1 != std::string::npos)
+        {
+            value = key.substr(pos1 + 1);
+            key = key.substr(0, pos1);
+        }
+
+        if (value == "") { set_value(key, true); } else { set_value(key, value); }
+
+        start_pos = pos0 + 1;
+    }
+}
+
+
 DataEntity const *DataEntityTable::find(std::string const &url) const
 {
     return m_pimpl_->search(this, url);

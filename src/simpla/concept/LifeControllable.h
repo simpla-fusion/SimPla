@@ -38,42 +38,27 @@ struct LifeControllable
 
     virtual void sync(bool is_async = false) const {}
 
-    /** @name excute cycle
+    /** @name execute cycle
      *  @{*/
 
 
     virtual void pre_process() { m_is_valid_ = true; /*add sth here*/}
 
-    virtual void post_process() { /*add sth here*/ m_is_valid_ = false; }
+    virtual void post_process() { next_phase();/*add sth here*/ m_is_valid_ = false; }
 
-    virtual void initialize(Real data_time = 0, Real dt = 0)
-    {
-        to_phase(0);
-        pre_process();
-    }
+    virtual void phase(unsigned int num) { m_current_phase_ = num; }
 
     virtual unsigned int
-    to_phase(unsigned int phase_num)
+    next_phase(unsigned int inc_phase = 0)
     {
-        m_current_phase_ = phase_num;
-        return m_current_phase_;
-    }
-
-    virtual unsigned int
-    next_phase(Real data_time = 0, Real dt = 0, unsigned int inc_phase = 1)
-    {
-        return to_phase(current_phase_num() + inc_phase);
+        if (inc_phase == 0) { m_current_phase_ = max_phase_num(); } else { ++m_current_phase_; }
     }
 
     virtual unsigned int current_phase_num() const { return m_current_phase_; }
 
     virtual unsigned int max_phase_num() const { return 1; };
 
-    virtual void finalize(Real data_time = 0, Real dt = 0)
-    {
-        next_phase(data_time, dt, max_phase_num());
-        post_process();
-    }
+
     /** @}*/
 
 private:

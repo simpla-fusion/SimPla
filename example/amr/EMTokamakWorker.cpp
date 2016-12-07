@@ -55,7 +55,7 @@ public:
 
     GEqdsk geqdsk;
 
-    field_type <VERTEX> psi{m_chart_, "psi"};
+    field_type <VERTEX> psi{m_chart_, "name=psi"};
 
     EntityIdRange J_src_range;
     std::function<Vec3(point_type const &, Real)> J_src_fun;
@@ -78,9 +78,9 @@ void EMTokamakWorker::deploy()
 
     db.set_value("bound_box", geqdsk.box());
 
+
     get_model()->add_object("VACUUM", geqdsk.limiter_gobj());
     get_model()->add_object("PLASMA", geqdsk.boundary_gobj());
-    get_model()->deploy();
 
 };
 

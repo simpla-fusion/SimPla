@@ -56,12 +56,9 @@ class Context :
 public:
     SP_OBJECT_HEAD(Context, Object)const std::type_index &;
 
-    Context(std::string const &name_str = "") : Object(name_str) {};
+    Context() : Object() {};
 
     virtual ~Context() {};
-
-
-    virtual std::string const &name() const { return Object::name(); };
 
     virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
 

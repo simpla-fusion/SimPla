@@ -16,18 +16,9 @@ namespace mesh
 
 class ChartBase;
 
+struct AttributeBase::pimpl_s { std::map<id_type, std::shared_ptr<DataBlock>> m_patches_; };
 
-struct AttributeBase::pimpl_s
-{
-    std::map<id_type, std::shared_ptr<DataBlock>> m_patches_;
-};
-
-
-AttributeBase::AttributeBase(std::string const &s, std::string const &config_str)
-        : Object(), m_name_(s), m_pimpl_(new pimpl_s)
-{
-    if (config_str != "") { db.set_value("config", config_str); }
-}
+AttributeBase::AttributeBase(std::string const &config_str) : Object(), m_pimpl_(new pimpl_s) { db.parse(config_str); }
 
 AttributeBase::~AttributeBase() {}
 
@@ -51,12 +42,21 @@ void AttributeBase::load(const data::DataEntityTable &) { UNIMPLEMENTED; }
 
 void AttributeBase::save(data::DataEntityTable *) const { UNIMPLEMENTED; }
 
-bool AttributeBase::has(const id_type &m) const
+const DataBlock *AttributeBase::find(const id_type &m) const
 {
     ASSERT(m_pimpl_ != nullptr);
-    return m_pimpl_->m_patches_.find(m) != m_pimpl_->m_patches_.end();
+    auto it = m_pimpl_->m_patches_.find(m);
+
+    return (it != m_pimpl_->m_patches_.end()) ? it->second.get() : nullptr;
 }
 
+DataBlock *AttributeBase::find(const id_type &m)
+{
+    ASSERT(m_pimpl_ != nullptr);
+    auto it = m_pimpl_->m_patches_.find(m);
+
+    return (it != m_pimpl_->m_patches_.end()) ? it->second.get() : nullptr;
+}
 
 void AttributeBase::erase(const id_type &m)
 {
@@ -68,43 +68,49 @@ void AttributeBase::erase(const id_type &m)
 std::shared_ptr<DataBlock> const &AttributeBase::at(const id_type &m) const
 {
     ASSERT(m_pimpl_ != nullptr);
-
-    auto it = m_pimpl_->m_patches_.find(m);
-    if (it != m_pimpl_->m_patches_.end())
-    {
-        return it->second;
-    } else
-    {
-        throw std::out_of_range(
-                FILE_LINE_STAMP_STRING + "Can not find Mesh Block! "
-                        "[ null mesh: " + string_cast(m) + "]");
-
-    }
+    return m_pimpl_->m_patches_.at(m);
+//    auto it = m_pimpl_->m_patches_.find(m);
+//    if (it != m_pimpl_->m_patches_.end())
+//    {
+//        return it->second;
+//    } else
+//    {
+//        throw std::out_of_range(
+//                FILE_LINE_STAMP_STRING + "Can not find Mesh Block! "
+//                        "[ null mesh: " + string_cast(m) + "]");
+//
+//    }
 }
 
 std::shared_ptr<DataBlock> &AttributeBase::at(const id_type &m)
 {
     ASSERT(m_pimpl_ != nullptr);
-
-    auto it = m_pimpl_->m_patches_.find(m);
-    if (it != m_pimpl_->m_patches_.end())
-    {
-        return it->second;
-    } else
-    {
-        throw std::out_of_range(
-                FILE_LINE_STAMP_STRING + "Can not find Mesh Block! "
-                        "[ null mesh: " + string_cast(m) + "]");
-
-    }
+    return m_pimpl_->m_patches_.at(m);
+//    auto it = m_pimpl_->m_patches_.find(m);
+//    if (it != m_pimpl_->m_patches_.end())
+//    {
+//        return it->second;
+//    } else
+//    {
+//        throw std::out_of_range(
+//                FILE_LINE_STAMP_STRING + "Can not find Mesh Block! "
+//                        "[ null mesh: " + string_cast(m) + "]");
+//
+//    }
 }
 
-
-std::shared_ptr<DataBlock> AttributeBase::insert_or_assign(const id_type &m, const std::shared_ptr<DataBlock> &p)
+std::pair<std::shared_ptr<DataBlock>, bool>
+AttributeBase::emplace(const id_type &m, const std::shared_ptr<DataBlock> &p)
 {
-    ASSERT(m_pimpl_ != nullptr);
-    if (p != nullptr) { m_pimpl_->m_patches_.emplace(std::make_pair(m, p)); }
-    return p;
+    if (p != nullptr && m_pimpl_ != nullptr)
+    {
+        auto res = m_pimpl_->m_patches_.emplace(m, p);
+        return std::make_pair(res.first->second, res.second);
+    } else
+    {
+        return std::make_pair(nullptr, false);
+    }
+
 }
 
 
@@ -155,7 +161,7 @@ void AttributeView::pre_process()
 
     ASSERT(m_mesh_block_ != nullptr);
     if (m_data_ != nullptr) { return; }
-    else if (m_attr_ != nullptr && m_attr_->has(m_mesh_block_->id())) { m_data_ = m_attr_->at(m_mesh_block_->id()); }
+    else if (m_attr_ != nullptr && m_attr_->find(m_mesh_block_->id())) { m_data_ = m_attr_->at(m_mesh_block_->id()); }
     else
     {
         m_data_ = create_data_block(m_mesh_block_, nullptr);

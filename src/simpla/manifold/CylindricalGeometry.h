@@ -54,11 +54,11 @@ public:
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=mesh::DataBlockArray<TV, IFORM, DOF>;
 
 //private:
-    Bundle<Real, VERTEX, 3> m_vertics_{this, "vertics", "COORDINATES"};
-    Bundle<Real, VOLUME, 9> m_volume_{this, "volume", "NO_FILL"};
-    Bundle<Real, VOLUME, 9> m_dual_volume_{this, "dual_volume", "NO_FILL"};
-    Bundle<Real, VOLUME, 9> m_inv_volume_{this, "inv_volume", "NO_FILL"};
-    Bundle<Real, VOLUME, 9> m_inv_dual_volume_{this, "inv_dual_volume", "NO_FILL"};
+    Bundle<Real, VERTEX, 3> m_vertics_{this, "name=vertics;COORDINATES"};
+    Bundle<Real, VOLUME, 9> m_volume_{this, "name=volume;NO_FILL"};
+    Bundle<Real, VOLUME, 9> m_dual_volume_{this, "name=dual_volume;NO_FILL"};
+    Bundle<Real, VOLUME, 9> m_inv_volume_{this, "name=inv_volume;NO_FILL"};
+    Bundle<Real, VOLUME, 9> m_inv_dual_volume_{this, "name=inv_dual_volume;NO_FILL"};
 
 public:
     typedef mesh::MeshEntityIdCoder M;

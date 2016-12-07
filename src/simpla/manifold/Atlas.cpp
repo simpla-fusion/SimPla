@@ -59,7 +59,7 @@ std::ostream &Atlas::print(std::ostream &os, int indent) const
     for (auto const &item:m_pimpl_->m_nodes_)
     {
         os << "|" << std::setw(indent + 5 + item.second->level()) << std::setfill('-') << "> " << std::setfill(' ')
-           << std::setw(10) << std::left << item.second->name().substr(0, 8) << std::right
+           << std::setw(10) << std::left << item.first << std::right
            << " = {";
         item.second->print(os, indent + 1);
         os << "}," << std::endl;
@@ -91,7 +91,7 @@ std::ostream &Atlas::print(std::ostream &os, int indent) const
 //
 //void Atlas::link(id_type i0, id_type i1)
 //{
-//    assert(has(i0) && has(i1));
+//    assert(has(i0) && find(i1));
 //    MeshBlock const &m0 = *at(i0);
 //    MeshBlock const &m1 = *at(i1);
 //    int l0 = m0.level();

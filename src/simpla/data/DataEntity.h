@@ -124,6 +124,11 @@ public:
 
     toolbox::Any const &any() const { return m_data_; }
 
+    template<typename U> bool equal(U const &u) const
+    {
+        return (m_data_.is_same<U>()) && (m_data_.as<U>() == u);
+    }
+
 private:
     toolbox::Any m_data_;
 };

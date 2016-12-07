@@ -161,8 +161,8 @@ struct Any : public concept::Printable
     explicit Any(ValueType &&value,
                  typename std::enable_if<!(std::is_same<Any &, ValueType>::value ||
                                            std::is_const<ValueType>::value)>::type * = 0
-            // disable if entity has type `any&`
-            // disable if entity has type `const ValueType&&`
+            // disable if entity find type `any&`
+            // disable if entity find type `const ValueType&&`
     ) : m_data_(new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType &&>(value)))
     {
     }
