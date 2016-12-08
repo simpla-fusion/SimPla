@@ -38,7 +38,7 @@ void Worker::move_to(Patch const &p)
     auto m = p.mesh();
     auto id = m->id();
     m_chart_->move_to(p.mesh());
-    for (auto &item:attributes()) { item->move_to(m, p.data(id)); }
+    for (auto &item:attributes()) { item->move_to(m, p.data(item->id())); }
     pre_process();
 }
 

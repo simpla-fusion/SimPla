@@ -8,57 +8,62 @@
 #include "Attribute.h"
 #include "MeshBlock.h"
 #include "DataBlock.h"
+#include <simpla/manifold/Patch.h>
 
 namespace simpla { namespace mesh
 {
 
-class ChartBase;
+
+Attribute::Attribute(AttributeCollection *c) { connect(c); };
+
+Attribute::~Attribute() { disconnect(); }
 
 
-AttributeBase::AttributeBase(std::string const &config_str) : Object() { db.parse(config_str); }
-
-AttributeBase::~AttributeBase() {}
-
-std::ostream &AttributeBase::print(std::ostream &os, int indent) const { return os; }
-
-
-void AttributeBase::load(const data::DataEntityTable &) { UNIMPLEMENTED; }
-
-void AttributeBase::save(data::DataEntityTable *) const { UNIMPLEMENTED; }
-
-AttributeCollection::AttributeCollection() {}
-
-AttributeCollection::~AttributeCollection() {}
-
-std::ostream &AttributeCollection::print(std::ostream &os, int indent) const { return os; }
-
-void AttributeCollection::load(const data::DataEntityTable &) { UNIMPLEMENTED; }
-
-void AttributeCollection::save(data::DataEntityTable *) const { UNIMPLEMENTED; }
-
-const AttributeBase *AttributeCollection::find(const key_type &k) const
+void Attribute::notify(Patch &p)
 {
-    auto it = m_map_.find(k);
-    if (it != m_map_.end()) { return it->second.get(); } else { return nullptr; }
+    m_mesh_block_ = p.mesh();
+    m_data_ = p.data(name());
 }
 
-AttributeBase *AttributeCollection::find(const key_type &k)
+DataBlock *Attribute::data_block() { return m_data_.get(); };
+
+DataBlock const *Attribute::data_block() const { return m_data_.get(); };
+
+void Attribute::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
 {
-    auto it = m_map_.find(k);
-    if (it != m_map_.end()) { return it->second.get(); } else { return nullptr; }
+    if (m == nullptr || m == m_mesh_block_) { return; }
+    post_process();
+    m_mesh_block_ = m;
+    m_data_ = d;
 }
 
-std::shared_ptr<AttributeBase> const &AttributeCollection::at(const key_type &k) const { return m_map_.at(k); }
 
-std::shared_ptr<AttributeBase> &AttributeCollection::at(const key_type &k) { return m_map_.at(k); }
-
-void AttributeCollection::erase(const key_type &k) { m_map_.erase(k); }
-
-std::pair<std::shared_ptr<AttributeBase>, bool>
-AttributeCollection::emplace(const key_type &k, const std::shared_ptr<AttributeBase> &p)
+void Attribute::pre_process()
 {
-    auto res = m_map_.emplace(k, p);
-    return std::make_pair(res.first->second, res.second);
+    if (is_valid()) { return; } else { concept::LifeControllable::pre_process(); }
+
+    ASSERT(m_mesh_block_ != nullptr);
+    if (m_data_ != nullptr) { return; }
+    else
+    {
+        m_data_ = create_data_block(m_mesh_block_, nullptr);
+        m_data_->pre_process();
+    }
+    ASSERT(m_data_ != nullptr);
+}
+
+void Attribute::post_process()
+{
+    if (!is_valid()) { return; } else { concept::LifeControllable::post_process(); }
+    m_data_.reset();
+    m_mesh_block_.reset();
+}
+
+
+void Attribute::clear()
+{
+    pre_process();
+    m_data_->clear();
 }
 
 

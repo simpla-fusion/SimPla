@@ -24,14 +24,19 @@ struct Observer<void(Args...)>
 
     virtual ~Observer()
     {
-        if (m_subject_ != nullptr) { m_subject_->disconnect(this); }
         disconnect();
     };
 
-    virtual void connect(observable_type *subject) { m_subject_ = subject; }
+    virtual void connect(observable_type *subject)
+    {
+        subject->connect(this);
+        m_subject_ = subject;
+    }
 
     void disconnect()
     {
+        if (m_subject_ != nullptr) { m_subject_->disconnect(this); }
+
 //        if (m_subject_ != nullptr) { m_subject_->disconnect(this); }
 //        std::shared_ptr<observable_type>(nullptr).swap();
         m_subject_ = nullptr;
@@ -59,11 +64,7 @@ struct Observable
     void notify(Args &&...args) { for (auto &item:m_observers_) { item->notify(std::forward<Args>(args)...); }}
 
 
-    virtual void connect(observer_type *observer)
-    {
-        observer->connect(this);
-        m_observers_.insert(observer);
-    };
+    virtual void connect(observer_type *observer) { m_observers_.insert(observer); };
 
     template<typename T, typename ...Args>
     typename std::enable_if<std::is_polymorphic<observer_type>::value,

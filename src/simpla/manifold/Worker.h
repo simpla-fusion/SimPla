@@ -40,7 +40,7 @@ class Worker :
         public concept::Serializable,
         public concept::Configurable,
         public concept::LifeControllable,
-        public AttributeViewCollection
+        public AttributeCollection
 {
 public:
     SP_OBJECT_HEAD(Worker, Object)

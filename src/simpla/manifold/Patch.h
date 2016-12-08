@@ -15,14 +15,16 @@ class Patch
 public:
     std::shared_ptr<MeshBlock> const &mesh() const { return m_mesh_block_; }
 
-    void set_mesh(std::shared_ptr<MeshBlock> const &m) const { m_mesh_block_ = m; }
+    void set_mesh(std::shared_ptr<MeshBlock> const &m) { m_mesh_block_ = m; }
 
-    std::shared_ptr<DataBlock> &data(id_type const &id, std::shared_ptr<DataBlock> const &p = (nullptr))
+    std::shared_ptr<DataBlock> &
+    data(std::string const &id, std::shared_ptr<DataBlock> const &p = (nullptr))
     {
         return m_data_.emplace(id, p).first->second;
     }
 
-    std::shared_ptr<DataBlock> data(id_type const &id) const
+    std::shared_ptr<DataBlock>
+    data(std::string const &id) const
     {
         auto it = m_data_.find(id);
         if (it != m_data_.end()) { return it->second; } else { return std::shared_ptr<DataBlock>(nullptr); }
@@ -31,7 +33,7 @@ public:
 
 private:
     std::shared_ptr<MeshBlock> m_mesh_block_;
-    std::map<id_type, std::shared_ptr<DataBlock> > m_data_;
+    std::map<std::string, std::shared_ptr<DataBlock> > m_data_;
 };
 
 

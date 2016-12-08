@@ -30,12 +30,9 @@ std::ostream &Chart::print(std::ostream &os, int indent) const
     }
     os << std::setw(indent + 1) << " " << "}," << std::endl;
 
-    os << std::setw(indent + 1) << " " << "Attribute= { ";
+    os << std::setw(indent + 1) << " " << "AttributeDescHolder= { ";
 
-    for (auto const &item:attributes())
-    {
-        os << "\"" << item->attribute()->db.get_value("name", std::string("unnamed")) << "\" , ";
-    }
+
 
     os << std::setw(indent + 1) << " " << "} , " << std::endl;
 };
@@ -44,14 +41,8 @@ std::ostream &Chart::print(std::ostream &os, int indent) const
 bool Chart::is_a(std::type_info const &info) const { return typeid(Chart) == info; }
 
 
-AttributeView *
-Chart::connect(AttributeView *attr)
-{
-    m_attr_views_.insert(attr);
-    return attr;
-}
 
-void Chart::disconnect(AttributeView *attr) { m_attr_views_.erase(attr); }
+
 
 void Chart::initialize(Real data_time, Real dt)
 {
@@ -66,17 +57,12 @@ void Chart::finalize(Real data_time, Real dt)
 void Chart::pre_process()
 {
     ASSERT(m_mesh_block_ != nullptr);
-    for (auto &item:m_attr_views_)
-    {
-        item->move_to(m_mesh_block_);
-        item->pre_process();
-    }
+
 }
 
 void Chart::post_process()
 {
-    for (auto &item:m_attr_views_) { item->post_process(); }
-    m_mesh_block_.reset();
+     m_mesh_block_.reset();
 }
 
 void Chart::move_to(std::shared_ptr<MeshBlock> const &m)
@@ -85,11 +71,6 @@ void Chart::move_to(std::shared_ptr<MeshBlock> const &m)
     m_mesh_block_ = m;
     pre_process();
 };
-
-
-std::set<AttributeView *> &Chart::attributes() { return m_attr_views_; };
-
-std::set<AttributeView *> const &Chart::attributes() const { return m_attr_views_; };
 
 
 }

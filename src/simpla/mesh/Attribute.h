@@ -10,203 +10,96 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Configurable.h>
+#include <simpla/toolbox/design_pattern/Observer.h>
 
 #include "MeshBlock.h"
 #include "DataBlock.h"
 
 namespace simpla { namespace mesh
 {
-class Chart;
+class Patch;
 
 class AttributeCollection;
 
-/**
- *  AttributeBase IS-A container of data blocks
- *  Define of attribute
- *  *  is printable
- *  *  is serializable
- *  *  is unaware of mesh block
- *  *  is unaware of mesh atlas
- *  *  has a value type
- *  *  has a MeshEntityType (entity_type)
- *  *  has n data block (emplace, erase,find,at)
- *  *
- */
-class AttributeBase :
-        public Object,
+struct Attribute :
         public concept::Printable,
-        public concept::Serializable,
         public concept::Configurable,
-        public concept::LifeControllable
+        public concept::LifeControllable,
+        public design_pattern::Observer<void(Patch &)>
 {
+    explicit Attribute(AttributeCollection *);
 
+    Attribute(Attribute const &other) = delete;
 
-public:
+    Attribute(Attribute &&other) = delete;
 
-    SP_OBJECT_HEAD(AttributeBase, Object)
+    virtual ~Attribute();
 
-    AttributeBase(std::string const &config_str = "");
-
-    AttributeBase(AttributeBase const &) = delete;
-
-    AttributeBase(AttributeBase &&) = delete;
-
-    virtual ~AttributeBase();
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const
+    {
+        if (m_data_ != nullptr) { m_data_->print(os, indent); }
+        return os;
+    };
 
     virtual MeshEntityType entity_type() const =0;
 
     virtual std::type_info const &value_type_info() const =0;
 
-    virtual size_t dof() const { return 1; };
+    virtual size_type dof() const =0;
 
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const;
+    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(Attribute); };
 
-    virtual void load(const data::DataEntityTable &);
+    DataBlock *data_block();
 
-    virtual void save(data::DataEntityTable *) const;
+    DataBlock const *data_block() const;
 
+    template<typename U>
+    U const *data_as() const
+    {
+        auto const *d = data_block();
+        ASSERT(d != nullptr);
+        ASSERT(d->is_a(typeid(U)));
+        return static_cast<U const *>(d);
+    }
+
+    template<typename U>
+    U *data_as()
+    {
+        auto *d = data_block();
+        ASSERT(d != nullptr);
+        ASSERT(d->is_a(typeid(U)));
+        return static_cast<U *>(d);
+    }
+
+    virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const =0;
+
+    virtual void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr);
+
+    virtual void pre_process();
+
+    virtual void post_process();
+
+    virtual void clear();
+
+    virtual void notify(Patch &p);
 
 private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    std::shared_ptr<MeshBlock> m_mesh_block_ = nullptr;
+    std::shared_ptr<DataBlock> m_data_ = nullptr;
+
 };
 
-struct AttributeView;
 
-template<typename TV, MeshEntityType IFORM, size_type IDOF>
-class Attribute : public AttributeBase
+class AttributeCollection : public design_pattern::Observable<void(Patch &)>
 {
+    typedef design_pattern::Observable<void(Patch &)> base_type;
 public:
-    static constexpr mesh::MeshEntityType iform = IFORM;
-    static constexpr size_type DOF = IDOF;
 
-    template<typename ...Args>
-    explicit Attribute(Args &&...args):AttributeBase(std::forward<Args>(args)...) {}
-
-    virtual ~Attribute() {}
-
-    MeshEntityType entity_type() const { return IFORM; };
-
-    std::type_info const &value_type_info() const { return typeid(typename traits::value_type<TV>::type); };
-
-    size_type dof() const { return DOF; };
-
-    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m, void *p) const =0;
-
-    DataBlock *data() { return m_data_block_; }
-
-    DataBlock const *data() const { return m_data_block_; }
-
-    void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
-    {
-        if (m == nullptr || (m == m_mesh_block_holder_ && d == m_data_block_holder_)) { return; }
-
-        post_process();
-
-        m_mesh_block_holder_ = m;
-        m_data_block_holder_ = d;
-    }
-
-
-    virtual void deploy() {}
-
-    virtual void pre_process()
-    {
-        if (is_valid()) { return; } else { concept::LifeControllable::pre_process(); }
-
-        if (m_mesh_block_holder_ != nullptr) { m_mesh_block_ = m_mesh_block_holder_.get(); }
-
-        ASSERT(m_mesh_block_ != nullptr);
-
-        if (m_data_block_holder_ != nullptr) { m_data_block_ = m_data_block_holder_.get(); }
-
-        if (m_data_block_ == nullptr)
-        {
-            m_data_block_holder_ = create_data_block(m_mesh_block_, nullptr);
-            m_data_block_ = m_data_block_holder_.get();
-        }
-        ASSERT(m_data_block_ != nullptr);
-
-        m_data_block_->pre_process();
-
-
-    }
-
-    virtual void initialize()
-    {
-        pre_process();
-        auto *p = data();
-        if (p != nullptr) p->clear();
-    }
-
-    virtual void post_process()
-    {
-        if (!is_valid()) { return; } else { concept::LifeControllable::post_process(); }
-        m_data_block_ = nullptr;
-        m_mesh_block_ = nullptr;
-        m_data_block_holder_.reset();
-        m_mesh_block_holder_.reset();
-    }
-
-    virtual void destroy() {};
-
-    template<typename U> U *
-    data_as()
-    {
-        auto *res = data();
-        return (res == nullptr) ? nullptr : res->as<U>();
-    }
-
-    template<typename U> U const *
-    data_as() const
-    {
-        auto *res = data();
-        return (res == nullptr) ? nullptr : res->as<U>();
-    }
+    void move_to(Patch &p) { notify(p); }
 
 private:
-    std::shared_ptr<DataBlock> m_data_block_holder_ = nullptr;
-    std::shared_ptr<MeshBlock> m_mesh_block_holder_ = nullptr;
-    DataBlock *m_data_block_;
-    MeshBlock const *m_mesh_block_;
 };
 
-
-class AttributeCollection :
-        public concept::Printable,
-        public concept::Serializable,
-        public concept::Configurable
-{
-    typedef id_type key_type;
-public:
-    AttributeCollection();
-
-    virtual ~AttributeCollection();
-
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const;
-
-    virtual void load(const data::DataEntityTable &);
-
-    virtual void save(data::DataEntityTable *) const;
-
-    const AttributeBase *find(const key_type &) const;
-
-    AttributeBase *find(const key_type &);
-
-    void erase(const key_type &);
-
-    std::shared_ptr<AttributeBase> const &at(const key_type &m) const;
-
-    std::shared_ptr<AttributeBase> &at(const key_type &m);
-
-    std::pair<std::shared_ptr<AttributeBase>, bool>
-    emplace(const key_type &k, const std::shared_ptr<AttributeBase> &p);
-
-
-private:
-    std::map<key_type, std::shared_ptr<AttributeBase>> m_map_;
-
-};
 
 }} //namespace data_block
 #endif //SIMPLA_ATTRIBUTE_H

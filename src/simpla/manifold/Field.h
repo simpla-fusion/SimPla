@@ -30,13 +30,11 @@ template<typename ...> class Field;
 
 
 template<typename TV, typename TM, size_type I, size_type DOF>
-class Field<TV, TM, index_const<I>, index_const<DOF>>
-        : public mesh::Attribute<TV, static_cast<mesh::MeshEntityType>(I), DOF>
+class Field<TV, TM, index_const<I>, index_const<DOF>> : public mesh::Attribute
 {
     typedef Field<TV, TM, index_const<I>, index_const<DOF>> field_type;
-    typedef mesh::Attribute<TV, static_cast<mesh::MeshEntityType>(I), DOF> attribute_type;
 
-    SP_OBJECT_HEAD(field_type, attribute_type);
+    SP_OBJECT_HEAD(field_type, mesh::Attribute);
 
 private:
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
@@ -75,11 +73,11 @@ public:
 
     bool empty() const { return m_data_ == nullptr || m_data_->empty() || m_mesh_ == nullptr; };
 
-    using base_type::entity_type;
+    virtual mesh::MeshEntityType entity_type() const { return IFORM; };
 
-    using base_type::value_type_info;
+    virtual std::type_info const &value_type_info() const { return typeid(typename traits::value_type<TV>::type); };
 
-    using base_type::dof;
+    virtual size_type dof() const { return DOF; };
 
     virtual std::shared_ptr<mesh::DataBlock>
     create_data_block(std::shared_ptr<mesh::MeshBlock> const &m, value_type *p = nullptr) const

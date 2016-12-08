@@ -8,6 +8,7 @@
 #include <simpla/manifold/Chart.h>
 #include <simpla/toolbox/Parallel.h>
 #include <simpla/mesh/MeshCommon.h>
+#include <simpla/mesh/DataBlock.h>
 #include "Model.h"
 
 namespace simpla { namespace model
@@ -15,7 +16,7 @@ namespace simpla { namespace model
 using namespace mesh;
 
 
-Model::Model(std::shared_ptr<Chart> const &c) : m_chart_(c) {}
+Model::Model(std::shared_ptr<Chart> const &c) {}
 
 Model::~Model() {}
 

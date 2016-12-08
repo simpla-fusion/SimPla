@@ -6,7 +6,6 @@
 #define SIMPLA_MODEL_H
 
 #include <simpla/manifold/Chart.h>
-#include <simpla/manifold/Bundle.h>
 #include <simpla/geometry/GeoObject.h>
 
 namespace simpla { namespace model
