@@ -30,11 +30,13 @@ template<typename ...> class Field;
 
 
 template<typename TV, typename TM, size_type I, size_type DOF>
-class Field<TV, TM, index_const<I>, index_const<DOF>> : public mesh::AttributeView
+class Field<TV, TM, index_const<I>, index_const<DOF>>
+        : public mesh::Attribute<TV, static_cast<mesh::MeshEntityType>(I), DOF>
 {
     typedef Field<TV, TM, index_const<I>, index_const<DOF>> field_type;
+    typedef mesh::Attribute<TV, static_cast<mesh::MeshEntityType>(I), DOF> attribute_type;
 
-    SP_OBJECT_HEAD(field_type, mesh::AttributeView);
+    SP_OBJECT_HEAD(field_type, attribute_type);
 
 private:
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);

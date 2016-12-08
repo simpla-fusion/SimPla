@@ -37,7 +37,7 @@ class AttributeBase :
         public concept::Printable,
         public concept::Serializable,
         public concept::Configurable,
-        public std::enable_shared_from_this<AttributeBase>
+        public concept::LifeControllable
 {
 
 
@@ -65,17 +65,6 @@ public:
 
     virtual void save(data::DataEntityTable *) const;
 
-    virtual const DataBlock *find(const id_type &) const;
-
-    virtual DataBlock *find(const id_type &);
-
-    virtual void erase(const id_type &);
-
-    virtual std::shared_ptr<DataBlock> const &at(const id_type &m) const;
-
-    virtual std::shared_ptr<DataBlock> &at(const id_type &m);
-
-    virtual std::pair<std::shared_ptr<DataBlock>, bool> emplace(const id_type &m, const std::shared_ptr<DataBlock> &p);
 
 private:
     struct pimpl_s;
@@ -102,78 +91,64 @@ public:
 
     size_type dof() const { return DOF; };
 
-    std::shared_ptr<AttributeView>
-    view(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &p = nullptr)
-    {
-        auto res = AttributeBase::emplace(m->id(), p);
-        return std::make_shared<AttributeView>(m, res.first, this->shared_from_this());
-    };
-
-
-};
-
-class AttributeViewCollection;
-
-/**
- * AttributeView: expose one block of attribute
- * -) is a view of Attribute
- * -) is unaware of the type of Mesh
- * -) has a pointer to a mesh block
- * -) has a pointer to a data block
- * -) has a shared pointer of attribute
- * -) can traverse on the Attribute
- * -) if there is no Atlas, AttributeView will hold the MeshBlock
- * -) if there is no AttributeHolder, AttributeView will hold the DataBlock and Attribute
- */
-
-
-struct AttributeView :
-        public Object,
-        public concept::Printable,
-        public concept::LifeControllable
-{
-    SP_OBJECT_HEAD(AttributeView, Object);
-public:
-    explicit AttributeView(std::shared_ptr<AttributeBase> const &attr = nullptr);
-
-    explicit AttributeView(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d,
-                           std::shared_ptr<AttributeBase> const &attr = nullptr);
-
-    AttributeView(AttributeView const &other) = delete;
-
-    AttributeView(AttributeView &&other) = delete;
-
-    virtual ~AttributeView();
-
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; };
-
-    virtual MeshEntityType entity_type() const { return m_attr_->entity_type(); };
-
-    virtual std::type_info const &value_type_info() const { return m_attr_->value_type_info(); };
-
-    virtual size_type dof() const { return m_attr_->dof(); };
-
-    std::shared_ptr<AttributeBase> &attribute() { return m_attr_; }
-
-    std::shared_ptr<AttributeBase> const &attribute() const { return m_attr_; }
+    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m, void *p) const =0;
 
     DataBlock *data() { return m_data_block_; }
 
     DataBlock const *data() const { return m_data_block_; }
 
-    void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d);
+    void move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
+    {
+        if (m == nullptr || (m == m_mesh_block_holder_ && d == m_data_block_holder_)) { return; }
 
-    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m, void *p) const =0;
+        post_process();
 
-    virtual void deploy();
+        m_mesh_block_holder_ = m;
+        m_data_block_holder_ = d;
+    }
 
-    virtual void pre_process();
 
-    virtual void initialize();
+    virtual void deploy() {}
 
-    virtual void post_process();
+    virtual void pre_process()
+    {
+        if (is_valid()) { return; } else { concept::LifeControllable::pre_process(); }
 
-    virtual void destroy();
+        if (m_mesh_block_holder_ != nullptr) { m_mesh_block_ = m_mesh_block_holder_.get(); }
+
+        ASSERT(m_mesh_block_ != nullptr);
+
+        if (m_data_block_holder_ != nullptr) { m_data_block_ = m_data_block_holder_.get(); }
+
+        if (m_data_block_ == nullptr)
+        {
+            m_data_block_holder_ = create_data_block(m_mesh_block_, nullptr);
+            m_data_block_ = m_data_block_holder_.get();
+        }
+        ASSERT(m_data_block_ != nullptr);
+
+        m_data_block_->pre_process();
+
+
+    }
+
+    virtual void initialize()
+    {
+        pre_process();
+        auto *p = data();
+        if (p != nullptr) p->clear();
+    }
+
+    virtual void post_process()
+    {
+        if (!is_valid()) { return; } else { concept::LifeControllable::post_process(); }
+        m_data_block_ = nullptr;
+        m_mesh_block_ = nullptr;
+        m_data_block_holder_.reset();
+        m_mesh_block_holder_.reset();
+    }
+
+    virtual void destroy() {};
 
     template<typename U> U *
     data_as()
@@ -189,32 +164,13 @@ public:
         return (res == nullptr) ? nullptr : res->as<U>();
     }
 
-
 private:
-    std::shared_ptr<AttributeBase> m_attr_ = nullptr;
     std::shared_ptr<DataBlock> m_data_block_holder_ = nullptr;
     std::shared_ptr<MeshBlock> m_mesh_block_holder_ = nullptr;
     DataBlock *m_data_block_;
     MeshBlock const *m_mesh_block_;
 };
 
-class AttributeViewCollection
-{
-public:
-
-
-    void disconnect(AttributeView *v) { m_views_.insert(v); };
-
-    void connect(AttributeView *v) { m_views_.erase(v); };
-
-    std::set<AttributeView *> &attributes() { return m_views_; }
-
-    std::set<AttributeView *> const &attributes() const { return m_views_; }
-
-private:
-    std::set<AttributeView *> m_views_;
-
-};
 
 class AttributeCollection :
         public concept::Printable,
