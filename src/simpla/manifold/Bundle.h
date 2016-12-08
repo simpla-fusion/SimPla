@@ -14,7 +14,6 @@
 
 namespace simpla { namespace mesh
 {
-class Chart;
 
 
 template<typename TV, MeshEntityType IFORM, size_type DOF = 1>
@@ -26,7 +25,6 @@ private:
 
     typedef AttributeView base_type;
 
-
 public:
     typedef TV value_type;
 
@@ -36,18 +34,12 @@ public:
     Bundle() : m_chart_(nullptr) {}
 
     template<typename ...Args>
-    explicit Bundle(Chart *c, Args &&...args) :
-            base_type(std::make_shared<attribute_type>(std::forward<Args>(args)...))
-    {
-        connect(c);
-    };
+    explicit Bundle(Args &&...args) :
+            base_type(std::make_shared<attribute_type>(std::forward<Args>(args)...)) {};
 
     template<typename ...Args>
-    explicit Bundle(std::shared_ptr<Chart> const &c, Args &&...args) :
-            base_type(std::make_shared<attribute_type>(std::forward<Args>(args)...))
-    {
-        connect(c.get());
-    };
+    explicit Bundle(Args &&...args) :
+            base_type(std::make_shared<attribute_type>(std::forward<Args>(args)...)) {};
 
 
 //    template<typename ...Args>
@@ -59,79 +51,35 @@ public:
 
     Bundle(this_type &&other) = delete;
 
+    virtual ~Bundle() {}
+
     void deep_copy(this_type const &other)
     {
         pre_process();
         if (m_data_ != nullptr) { m_data_->deep_copy(*other.m_data_); }
     }
 
-    virtual MeshEntityType entity_type() const { return IFORM; };
-
-    virtual std::type_info const &value_type_info() const { return typeid(TV); };
-
-    virtual size_type dof() const { return DOF; };
-
     virtual bool is_a(std::type_info const &t_info) const
     {
         return t_info == typeid(this_type) || base_type::is_a(t_info);
     }
 
-    bool is_connected() const { return m_chart_ != nullptr; }
 
-    void connect(Chart *c)
-    {
-        if (c != nullptr && c != m_chart_)
-        {
-            if (m_chart_ != nullptr) { disconnect(); }
-
-            m_chart_ = c;
-
-            m_chart_->connect(this);
-
-            // For scratch data block
-            if (this->attribute() == nullptr && m_chart_ != nullptr)
-            {
-                this->move_to(m_chart_->mesh_block());
-            }
-
-        }
-    }
-
-    void disconnect()
-    {
-        if (m_chart_ != nullptr)
-        {
-            m_chart_->disconnect(this);
-            m_chart_ = nullptr;
-        }
-    }
-
-    virtual ~Bundle() { disconnect(); }
-
-
-    template<typename U> U const *mesh_as() { return m_chart_->mesh_as<U>(); }
-
-
-    Chart const *get_chart() const { return m_chart_; }
-
-    void set_chart(Chart *c) { m_chart_ = c; }
-
-
-    typedef mesh::DataBlockArray<TV, IFORM, DOF> default_data_block_type;
-
-    virtual std::shared_ptr<mesh::DataBlock>
-    create_data_block(std::shared_ptr<mesh::MeshBlock> const &m, value_type *p = nullptr) const
-    {
-
-        return std::dynamic_pointer_cast<DataBlock>(default_data_block_type::create(m, p));
-    };
-
-    virtual std::shared_ptr<DataBlock>
-    create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const
-    {
-        ASSERT(m != nullptr);
-        return create_data_block(m, static_cast<value_type *>(p));
-    };
+//    typedef mesh::DataBlockArray<TV, IFORM, DOF> default_data_block_type;
+//
+//    virtual std::shared_ptr<mesh::DataBlock>
+//    create_data_block(std::shared_ptr<mesh::MeshBlock> const &m, value_type *p = nullptr) const
+//    {
+//
+//        return std::dynamic_pointer_cast<DataBlock>(default_data_block_type::create(m, p));
+//    };
+//
+//    virtual std::shared_ptr<DataBlock>
+//    create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const
+//    {
+//        ASSERT(m != nullptr);
+//        return create_data_block(m, static_cast<value_type *>(p));
+//    };
 
     virtual value_type &
     get(MeshEntityId s) { return m_data_->get(MeshEntityIdCoder::unpack_index4(s, DOF)); }
@@ -167,8 +115,8 @@ public:
     }
 
 private:
-    Chart *m_chart_ = nullptr;
-    default_data_block_type *m_data_ = nullptr;
+    MeshBlock const *m_chart_ = nullptr;
+    DataBlock *m_data_ = nullptr;
 
 
 };

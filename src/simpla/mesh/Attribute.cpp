@@ -9,9 +9,7 @@
 #include "MeshBlock.h"
 #include "DataBlock.h"
 
-namespace simpla
-{
-namespace mesh
+namespace simpla { namespace mesh
 {
 
 class ChartBase;
@@ -105,7 +103,9 @@ AttributeBase::emplace(const id_type &m, const std::shared_ptr<DataBlock> &p)
     if (p != nullptr && m_pimpl_ != nullptr)
     {
         auto res = m_pimpl_->m_patches_.emplace(m, p);
+
         return std::make_pair(res.first->second, res.second);
+
     } else
     {
         return std::make_pair(nullptr, false);
@@ -114,76 +114,108 @@ AttributeBase::emplace(const id_type &m, const std::shared_ptr<DataBlock> &p)
 }
 
 
-AttributeView::AttributeView(std::shared_ptr<AttributeBase> const &attr) : m_attr_(attr) {};
-
-//AttributeView::AttributeView(AttributeView const &other) :
-//        m_id_(other.m_id_), m_data_(other.m_data_), m_attr_(other.m_attr_)
-//{
-//
-//}
-//
-//AttributeView::AttributeView(AttributeView &&other) :
-//        m_id_(other.m_id_), m_data_(std::move(other.m_data_)), m_attr_(std::move(other.m_attr_))
-//{
-//}
-//
-//void AttributeView::swap(AttributeView &other)
-//{
-//    std::swap(m_id_, other.m_id_);
-//    std::swap(m_data_, other.m_data_);
-//    std::swap(m_attr_, other.m_attr_);
-//}
-
-AttributeView::~AttributeView() {}
-
-id_type AttributeView::mesh_id() const { return is_valid() ? m_mesh_block_->id() : 0; }
-
-std::shared_ptr<AttributeBase> &AttributeView::attribute() { return m_attr_; }
-
-std::shared_ptr<AttributeBase> const &AttributeView::attribute() const { return m_attr_; }
-
-DataBlock *AttributeView::data_block() { return m_data_.get(); };
-
-DataBlock const *AttributeView::data_block() const { return m_data_.get(); };
-
-void AttributeView::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
+AttributeView::AttributeView(std::shared_ptr<AttributeBase> const &attr)
+        : m_attr_(attr)
 {
-    if (m == nullptr || m == m_mesh_block_) { return; }
-    post_process();
-    m_mesh_block_ = m;
-    m_data_ = d;
-}
+};
 
+AttributeView::AttributeView(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d,
+                             std::shared_ptr<AttributeBase> const &attr)
+        : m_attr_(attr), m_mesh_block_holder_(m), m_data_block_holder_(d)
+{
+};
+
+AttributeView::~AttributeView() { destroy(); }
+
+void AttributeView::deploy() {}
+
+void AttributeView::destroy() {}
 
 void AttributeView::pre_process()
 {
     if (is_valid()) { return; } else { concept::LifeControllable::pre_process(); }
 
+    if (m_mesh_block_holder_ != nullptr) { m_mesh_block_ = m_mesh_block_holder_.get(); }
+
     ASSERT(m_mesh_block_ != nullptr);
-    if (m_data_ != nullptr) { return; }
-    else if (m_attr_ != nullptr && m_attr_->find(m_mesh_block_->id())) { m_data_ = m_attr_->at(m_mesh_block_->id()); }
-    else
+
+    if (m_data_block_holder_ != nullptr) { m_data_block_ = m_data_block_holder_.get(); }
+    else if (m_attr_ != nullptr) { m_data_block_ = m_attr_->find(m_mesh_block_->id()); }
+
+    if (m_data_block_ == nullptr)
     {
-        m_data_ = create_data_block(m_mesh_block_, nullptr);
-        m_data_->pre_process();
+        m_data_block_holder_ = create_data_block(m_mesh_block_, nullptr);
+        if (m_attr_ != nullptr) { m_attr_->emplace(m_mesh_block_->id(), m_data_block_holder_); }
+        m_data_block_ = m_data_block_holder_.get();
     }
-    ASSERT(m_data_ != nullptr);
+    ASSERT(m_data_block_ != nullptr);
+
+    m_data_block_->pre_process();
+
+
 }
 
 void AttributeView::post_process()
 {
     if (!is_valid()) { return; } else { concept::LifeControllable::post_process(); }
-    m_data_.reset();
-    m_mesh_block_.reset();
+    m_data_block_ = nullptr;
+    m_mesh_block_ = nullptr;
+    m_data_block_holder_.reset();
+    m_mesh_block_holder_.reset();
 }
 
 
-void AttributeView::clear()
+void AttributeView::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
+{
+    if (m == nullptr || (m == m_mesh_block_holder_ && d == m_data_block_holder_)) { return; }
+
+    post_process();
+
+    m_mesh_block_holder_ = m;
+    m_data_block_holder_ = d;
+}
+
+void AttributeView::initialize()
 {
     pre_process();
-    m_data_->clear();
+    auto *p = data();
+    if (p != nullptr) p->clear();
+}
+
+AttributeCollection::AttributeCollection() {}
+
+AttributeCollection::~AttributeCollection() {}
+
+std::ostream &AttributeCollection::print(std::ostream &os, int indent) const { return os; }
+
+void AttributeCollection::load(const data::DataEntityTable &) { UNIMPLEMENTED; }
+
+void AttributeCollection::save(data::DataEntityTable *) const { UNIMPLEMENTED; }
+
+const AttributeBase *AttributeCollection::find(const key_type &k) const
+{
+    auto it = m_map_.find(k);
+    if (it != m_map_.end()) { return it->second.get(); } else { return nullptr; }
+}
+
+AttributeBase *AttributeCollection::find(const key_type &k)
+{
+    auto it = m_map_.find(k);
+    if (it != m_map_.end()) { return it->second.get(); } else { return nullptr; }
+}
+
+std::shared_ptr<AttributeBase> const &AttributeCollection::at(const key_type &k) const { return m_map_.at(k); }
+
+std::shared_ptr<AttributeBase> &AttributeCollection::at(const key_type &k) { return m_map_.at(k); }
+
+void AttributeCollection::erase(const key_type &k) { m_map_.erase(k); }
+
+std::pair<std::shared_ptr<AttributeBase>, bool>
+AttributeCollection::emplace(const key_type &k, const std::shared_ptr<AttributeBase> &p)
+{
+    auto res = m_map_.emplace(k, p);
+    return std::make_pair(res.first->second, res.second);
 }
 
 
-}
-}//namespace simpla { namespace mesh
+}}//namespace simpla { namespace mesh

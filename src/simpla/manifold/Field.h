@@ -16,7 +16,6 @@
 #include <simpla/toolbox/Log.h>
 #include <simpla/mesh/Attribute.h>
 
-#include "Bundle.h"
 #include "FieldTraits.h"
 #include "FieldExpression.h"
 #include "schemes/CalculusPolicy.h"
@@ -31,13 +30,15 @@ template<typename ...> class Field;
 
 
 template<typename TV, typename TM, size_type I, size_type DOF>
-class Field<TV, TM, index_const<I>, index_const<DOF>> :
-        public mesh::Bundle<TV, static_cast<mesh::MeshEntityType>(I), DOF>
+class Field<TV, TM, index_const<I>, index_const<DOF>> : public mesh::AttributeView
 {
+    typedef Field<TV, TM, index_const<I>, index_const<DOF>> field_type;
+
+    SP_OBJECT_HEAD(field_type, mesh::AttributeView);
+
 private:
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
-    typedef Field<TV, TM, index_const<I>, index_const<DOF>> this_type;
-    typedef mesh::Bundle<TV, static_cast<mesh::MeshEntityType>(I), DOF> base_type;
+
 public:
     typedef TV value_type;
     typedef TM mesh_type;
@@ -70,14 +71,7 @@ public:
 
     Field(this_type &&other) = delete;
 
-
-    virtual bool is_a(std::type_info const &t_info) const
-    {
-        return t_info == typeid(this_type) || base_type::is_a(t_info);
-    };
-
-
-    bool empty() const { return m_data_->empty() && m_mesh_ != nullptr; };
+    bool empty() const { return m_data_ == nullptr || m_data_->empty() || m_mesh_ == nullptr; };
 
     using base_type::entity_type;
 
@@ -95,8 +89,8 @@ public:
     {
         if (base_type::is_valid()) { return; } else { base_type::pre_process(); }
 
-        m_mesh_ = base_type::template mesh_as<mesh_type>();
-        m_data_ = base_type::template data_as<data_block_type>();
+        m_mesh_ = base_type::mesh_as<mesh_type>();
+        m_data_ = base_type::data_as<data_block_type>();
         ASSERT(m_data_ != nullptr);
         ASSERT(m_mesh_ != nullptr);
 
@@ -136,10 +130,10 @@ public:
     get(index_type i, index_type j, index_type k = 0, index_type l = 0) const { return m_data_->get(i, j, k, l); }
 //
 //    template<typename ...Args>
-//    inline value_type &operator()(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
+//    inline value_type &operator()(Args &&...args) { return m_data_block_holder_->get(std::forward<Args>(args)...); }
 //
 //    template<typename ...Args>
-//    inline value_type const &operator()(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
+//    inline value_type const &operator()(Args &&...args) const { return m_data_block_holder_->get(std::forward<Args>(args)...); }
 
     template<typename TI>
     inline value_type &operator[](TI const &s) { return get(s); }

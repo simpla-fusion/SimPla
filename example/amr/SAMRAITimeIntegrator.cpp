@@ -812,19 +812,24 @@ SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch &pat
                                  patch.getBox().getGlobalId().getLocalId().getValue())
     );
     //m->deploy();
+    auto p = std::make_shared<mesh::Patch>();
 
-    for (auto &ob:w->get_chart()->attributes())
+    p->set_mesh(m);
+    for (auto &ob:w->attributes())
     {
         auto &attr = ob->attribute();
 
         if (attr == nullptr) { return; }
 
-        auto db = detail::create_data_block(
-                attr, patch.getPatchData(m_samrai_variables_.at(attr->id()), getDataContext()));
-
-        ob->move_to(m, db);
+        p->emplace(
+                attr->id(),
+                detail::create_data_block(
+                        attr, patch.getPatchData(
+                                m_samrai_variables_.at(attr->id()),
+                                getDataContext()))
+        );
     }
-    w->move_to(m);
+    w->move_to(*p);
 }
 
 /**

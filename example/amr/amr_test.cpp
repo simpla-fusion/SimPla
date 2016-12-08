@@ -9,17 +9,13 @@
 #include <simpla/simulation/TimeIntegrator.h>
 #include <simpla/physics/Constants.h>
 
-
 using namespace simpla;
-
 
 namespace simpla
 {
 std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &str);
 
 std::shared_ptr<mesh::Worker> create_worker();
-
-
 }//namespace simpla
 
 int main(int argc, char **argv)

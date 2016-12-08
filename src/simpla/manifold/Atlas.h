@@ -10,7 +10,12 @@
 #include <type_traits>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/nTuple.h>
+
+
 #include <simpla/concept/Printable.h>
+#include <simpla/concept/Serializable.h>
+#include <simpla/concept/Configurable.h>
+
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/MeshBlock.h>
 
@@ -26,7 +31,10 @@ namespace simpla { namespace mesh
  */
 
 
-class Atlas : public concept::Printable
+class Atlas :
+        public concept::Printable,
+        public concept::Serializable,
+        public concept::Configurable
 {
 
 
@@ -36,10 +44,11 @@ public:
 
     virtual ~Atlas();
 
-    std::string name() const;
+    virtual std::ostream &print(std::ostream &os, int indent) const;
 
-    std::ostream &print(std::ostream &os, int indent) const;
+    virtual void load(const data::DataEntityTable &);
 
+    virtual void save(data::DataEntityTable *) const;
 
     size_type count(int level) const;
 
@@ -48,6 +57,10 @@ public:
     int max_level() const;
 
     bool has(id_type id) const;
+
+    MeshBlock *find(id_type id);
+
+    MeshBlock const *find(id_type id) const;
 
     MeshBlock *at(id_type id);
 

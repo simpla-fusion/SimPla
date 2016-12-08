@@ -7,7 +7,6 @@
 
 #include <simpla/toolbox/design_pattern/Observer.h>
 #include <simpla/mesh/MeshBlock.h>
-#include <simpla/mesh/Attribute.h>
 
 namespace simpla { namespace mesh
 {
@@ -50,32 +49,20 @@ struct Chart : public concept::Printable, public concept::LifeControllable
         return m_mesh_block_;
     }
 
-
     /**
      * @return current MeshBlock
      */
     template<typename U>
-    U const *mesh_as() const
+    U const *as() const
     {
         ASSERT(this->is_a(typeid(U)));
         return static_cast<U const *>(this);
     }
 
-    /**
-     * @param attributes
-     */
-    AttributeView *connect(AttributeView *attr);
-
-    void disconnect(AttributeView *attr);
-
-    std::set<AttributeView *> &attributes();
-
-    std::set<AttributeView *> const &attributes() const;
 
     virtual point_type point(index_type i, index_type j, index_type k) const { return m_mesh_block_->point(i, j, k); };
 
 protected:
-    std::set<AttributeView *> m_attr_views_;
 
     std::shared_ptr<MeshBlock> m_mesh_block_;
 

@@ -2,8 +2,8 @@
 // Created by salmon on 16-11-2.
 //
 
-#ifndef SIMPLA_PATCH_H
-#define SIMPLA_PATCH_H
+#ifndef SIMPLA_DATABLOCK_H
+#define SIMPLA_DATABLOCK_H
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/PrettyStream.h>
@@ -50,6 +50,12 @@ public:
 
     virtual void pre_process()=0;
 
+
+    template<typename U> U *
+    as() { return (is_a(typeid(U))) ? static_cast<U *>(this) : nullptr; }
+
+    template<typename U> U const *
+    as() const { return (is_a(typeid(U))) ? static_cast<U const *>(this) : nullptr; }
 
 };
 
@@ -159,5 +165,5 @@ private:
 };
 }}//namespace simpla { namespace mesh
 
-#endif //SIMPLA_PATCH_H
+#endif //SIMPLA_DATABLOCK_H
 

@@ -41,6 +41,19 @@ int Atlas::max_level() const { return m_pimpl_->m_max_level_; }
 
 bool Atlas::has(id_type id) const { return m_pimpl_->m_nodes_.find(id) != m_pimpl_->m_nodes_.end(); };
 
+MeshBlock *Atlas::find(id_type id)
+{
+    auto it = m_pimpl_->m_nodes_.find(id);
+    if (it != m_pimpl_->m_nodes_.end()) { return it->second.get(); } else { return nullptr; }
+}
+
+
+MeshBlock const *Atlas::find(id_type id) const
+{
+    auto it = m_pimpl_->m_nodes_.find(id);
+    if (it != m_pimpl_->m_nodes_.end()) { return it->second.get(); } else { return nullptr; }
+}
+
 MeshBlock *Atlas::at(id_type id) { return (m_pimpl_->m_nodes_.at(id)).get(); };
 
 MeshBlock const *Atlas::at(id_type id) const { return (m_pimpl_->m_nodes_.at(id)).get(); };
@@ -51,11 +64,10 @@ MeshBlock const *Atlas::insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock 
     return p_m.get();
 };
 
-std::string Atlas::name() const { return "atlas"; }
 
 std::ostream &Atlas::print(std::ostream &os, int indent) const
 {
-    os << std::setw(indent) << "*" << name() << std::endl;
+    os << std::setw(indent) << "*" << concept::Configurable::name() << std::endl;
     for (auto const &item:m_pimpl_->m_nodes_)
     {
         os << "|" << std::setw(indent + 5 + item.second->level()) << std::setfill('-') << "> " << std::setfill(' ')
@@ -66,6 +78,9 @@ std::ostream &Atlas::print(std::ostream &os, int indent) const
     }
 };
 
+void Atlas::load(const data::DataEntityTable &) { UNIMPLEMENTED; }
+
+void Atlas::save(data::DataEntityTable *) const { UNIMPLEMENTED; }
 //
 //void Atlas::sync(id_type id)
 //{

@@ -32,22 +32,29 @@ public:
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
-    explicit EMFluid(std::shared_ptr<TM> const &c = nullptr) :
-            Worker(c != nullptr ? c : std::make_shared<TM>()) {}
+    explicit EMFluid() : Worker(std::make_shared<mesh_type>()) {}
+
+    template<typename ...Args>
+    explicit EMFluid(Args &&...args) : Worker(std::forward<Args>(args)...) {}
 
     ~EMFluid() {}
+
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
     virtual void next_time_step(Real data_time, Real dt);
 
+    virtual void deploy();
+
     virtual void pre_process();
+
+    virtual void initialize(Real data_time = 0, Real dt = 0.0);
+
+    virtual void finalize(Real data_time = 0, Real dt = 0.0);
 
     virtual void post_process();
 
-    virtual void initialize(Real data_time = 0);
-
-    virtual void finalize(Real data_time = 0);
+    virtual void destroy();
 
     virtual void set_physical_boundary_conditions(Real time = 0) {};
 
@@ -65,19 +72,19 @@ public:
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{m_chart_, "name=rho0;CHECK"};
+    field_type<VERTEX> rho0{this, "name=rho0;CHECK"};
 
-    field_type<EDGE> E0{m_chart_, "name=E0"};
-    field_type<FACE> B0{m_chart_, "name=B0;CHECK"};
-    field_type<VERTEX, 3> B0v{m_chart_, "name=B0v"};
-    field_type<VERTEX> BB{m_chart_, "name=BB"};
-    field_type<VERTEX, 3> Ev{m_chart_, "name=Ev"};
-    field_type<VERTEX, 3> Bv{m_chart_, "name=Bv"};
-    field_type<VERTEX, 3> dE{m_chart_, "name=dE"};
+    field_type<EDGE> E0{this, "name=E0"};
+    field_type<FACE> B0{this, "name=B0;CHECK"};
+    field_type<VERTEX, 3> B0v{this, "name=B0v"};
+    field_type<VERTEX> BB{this, "name=BB"};
+    field_type<VERTEX, 3> Ev{this, "name=Ev"};
+    field_type<VERTEX, 3> Bv{this, "name=Bv"};
+    field_type<VERTEX, 3> dE{this, "name=dE"};
 
-    field_type<FACE> B/*   */{m_chart_, "name=B;CHECK"};
-    field_type<EDGE> E/*   */{m_chart_, "name=E;CHECK"};
-    field_type<EDGE> J1/*  */{m_chart_, "name=J1;CHECK"};
+    field_type<FACE> B/*   */{this, "name=B;CHECK"};
+    field_type<EDGE> E/*   */{this, "name=E;CHECK"};
+    field_type<EDGE> J1/*  */{this, "name=J1;CHECK"};
 
     struct fluid_s
     {
@@ -116,8 +123,8 @@ EMFluid<TM>::add_particle(std::string const &name, data::DataEntityTable const &
     auto sp = std::make_shared<fluid_s>();
     sp->mass = mass;
     sp->charge = charge;
-    sp->rho = std::make_shared<TRho>(m_chart_, name + "_rho");
-    sp->J = std::make_shared<TJv>(m_chart_, name + "_J");
+    sp->rho = std::make_shared<TRho>(this, name + "_rho");
+    sp->J = std::make_shared<TJv>(this, name + "_J");
     m_fluid_sp_.emplace(std::make_pair(name, sp));
     return sp;
 }
@@ -141,6 +148,11 @@ EMFluid<TM>::print(std::ostream &os, int indent) const
 
 }
 
+template<typename TM> void EMFluid<TM>::deploy() { base_type::deploy(); }
+
+template<typename TM> void EMFluid<TM>::destroy() { base_type::destroy(); }
+
+
 template<typename TM>
 void EMFluid<TM>::pre_process()
 {
@@ -155,7 +167,7 @@ void EMFluid<TM>::post_process() { if (!is_valid()) { return; } else { base_type
 
 
 template<typename TM>
-void EMFluid<TM>::initialize(Real data_time)
+void EMFluid<TM>::initialize(Real data_time, Real dt)
 {
     pre_process();
 
@@ -170,7 +182,7 @@ void EMFluid<TM>::initialize(Real data_time)
 
 
 template<typename TM>
-void EMFluid<TM>::finalize(Real data_time)
+void EMFluid<TM>::finalize(Real data_time, Real dt)
 {
     // do sth here
     post_process();
@@ -187,12 +199,12 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
     set_physical_boundary_conditions_E(data_time);
     if (m_fluid_sp_.size() > 0)
     {
-        field_type<VERTEX, 3> Q{m_chart_};
-        field_type<VERTEX, 3> K{m_chart_};
+        field_type<VERTEX, 3> Q{this};
+        field_type<VERTEX, 3> K{this};
 
-        field_type<VERTEX> a{m_chart_};
-        field_type<VERTEX> b{m_chart_};
-        field_type<VERTEX> c{m_chart_};
+        field_type<VERTEX> a{this};
+        field_type<VERTEX> b{this};
+        field_type<VERTEX> c{this};
 
         a.clear();
         b.clear();

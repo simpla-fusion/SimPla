@@ -31,7 +31,7 @@ struct AMRTest : public mesh::Worker
     SP_OBJECT_HEAD(AMRTest, mesh::Worker);
 
 
-    AMRTest() {}
+    AMRTest() : Worker(<#initializer#>, <#initializer#>) {}
 
     ~AMRTest() {}
 
