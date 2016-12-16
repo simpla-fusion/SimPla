@@ -21,14 +21,17 @@ namespace simpla { namespace mesh
  */
 class MeshBlock;
 
-struct DataBlock : public concept::Serializable, public concept::Printable, public concept::LifeControllable
+class DataBlock :
+        public concept::Serializable,
+        public concept::Printable,
+        public concept::LifeControllable
 {
 public:
+    SP_OBJECT_BASE(DataBlock);
+
     DataBlock() {}
 
     virtual ~DataBlock() {}
-
-    virtual bool is_a(std::type_info const &info) const { return info == typeid(DataBlock); };
 
     virtual bool is_valid()=0;
 
@@ -50,24 +53,19 @@ public:
 
     virtual void pre_process()=0;
 
-
-    template<typename U> U *
-    as() { return (is_a(typeid(U))) ? static_cast<U *>(this) : nullptr; }
-
-    template<typename U> U const *
-    as() const { return (is_a(typeid(U))) ? static_cast<U const *>(this) : nullptr; }
+    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)=0;
 
 };
 
 template<typename TV, MeshEntityType IFORM, size_type DOF = 1>
 class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>
 {
-    typedef DataBlock base_type;
-    typedef DataBlockArray<TV, IFORM, DOF> this_type;
-    typedef data::DataEntityNDArray<TV> data_entity_type;
 public:
+    typedef DataBlockArray<TV, IFORM, DOF> block_array_type;
+    typedef data::DataEntityNDArray<TV> data_entity_type;
     typedef TV value_type;
 
+    SP_OBJECT_HEAD(block_array_type, DataBlock);
 
     template<typename ...Args>
     explicit DataBlockArray(Args &&...args) : DataBlock(), data_entity_type(std::forward<Args>(args)...) {}
@@ -81,13 +79,6 @@ public:
     virtual mesh::MeshEntityType entity_type() const { return IFORM; }
 
     virtual size_type dof() const { return DOF; }
-
-    virtual bool is_a(std::type_info const &info) const
-    {
-        return info == typeid(this_type) || DataBlock::is_a(info);
-    };
-
-    virtual std::string name() const { return ""; }
 
     virtual void load(data::DataEntityTable const &) { UNIMPLEMENTED; };
 
@@ -104,8 +95,8 @@ public:
     }
 
 
-    static std::shared_ptr<DataBlock>
-    create(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)
+    virtual std::shared_ptr<DataBlock>
+    clone(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)
     {
         index_type n_dof = DOF;
         int ndims = 3;
@@ -119,8 +110,6 @@ public:
         index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], n_dof};
         return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
     };
-
-    virtual bool is_deployed() const { return !data_entity_type::empty(); };
 
     virtual void deploy()
     {

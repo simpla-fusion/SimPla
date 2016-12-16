@@ -19,21 +19,17 @@ Attribute::Attribute(AttributeCollection *c) { connect(c); };
 Attribute::~Attribute() { disconnect(); }
 
 
-void Attribute::notify(Patch &p)
+void Attribute::notify(std::shared_ptr<Patch> const &p)
 {
-    m_mesh_block_ = p.mesh();
-    m_data_ = p.data(name());
+    post_process();
+    move_to(p->mesh(), p->data(m_desc_->name()));
 }
 
-DataBlock *Attribute::data_block() { return m_data_.get(); };
-
-DataBlock const *Attribute::data_block() const { return m_data_.get(); };
-
-void Attribute::move_to(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
+void Attribute::move_to(std::shared_ptr<Chart> const &m, std::shared_ptr<DataBlock> const &d)
 {
-    if (m == nullptr || m == m_mesh_block_) { return; }
+    if (m == nullptr || m == m_mesh_) { return; }
     post_process();
-    m_mesh_block_ = m;
+    m_mesh_ = m;
     m_data_ = d;
 }
 
@@ -42,11 +38,11 @@ void Attribute::pre_process()
 {
     if (is_valid()) { return; } else { concept::LifeControllable::pre_process(); }
 
-    ASSERT(m_mesh_block_ != nullptr);
+    ASSERT(m_mesh_ != nullptr);
     if (m_data_ != nullptr) { return; }
     else
     {
-        m_data_ = create_data_block(m_mesh_block_, nullptr);
+        m_data_ = create_data_block(m_mesh_, nullptr);
         m_data_->pre_process();
     }
     ASSERT(m_data_ != nullptr);
@@ -54,9 +50,9 @@ void Attribute::pre_process()
 
 void Attribute::post_process()
 {
-    if (!is_valid()) { return; } else { concept::LifeControllable::post_process(); }
     m_data_.reset();
-    m_mesh_block_.reset();
+    m_mesh_.reset();
+    if (!is_valid()) { return; } else { concept::LifeControllable::post_process(); }
 }
 
 

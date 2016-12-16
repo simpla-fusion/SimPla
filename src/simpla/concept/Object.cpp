@@ -41,11 +41,6 @@ Object::Object(Object &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
 
 Object::~Object() {}
 
-
-bool Object::is_a(const std::type_info &info) const { return typeid(Object) == info; }
-
-std::string Object::get_class_name() const { return "Object"; }
-
 id_type Object::id() const { return m_pimpl_->m_short_id_; }
 
 void Object::id(id_type t_id) { m_pimpl_->m_short_id_ = t_id; }

@@ -67,7 +67,7 @@ public:
 
     virtual model::Model *model() { return m_model_.get(); };
 
-    virtual void move_to(Patch const &m);
+    virtual void move_to(const std::shared_ptr<Patch> &m);
 
     virtual void deploy();
 
@@ -95,6 +95,7 @@ public:
 private:
     std::shared_ptr<Chart> m_chart_;
     std::shared_ptr<model::Model> m_model_;
+    std::shared_ptr<Patch> m_patch_;
 };
 
 

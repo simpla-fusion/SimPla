@@ -107,7 +107,7 @@ public:
 
     /** @name as_function  @{*/
     template<typename ...Args> field_value_type
-    gather(Args &&...args) const { return m_mesh_->mesh_block()->gather(*this, std::forward<Args>(args)...); }
+    gather(Args &&...args) const { return m_mesh_->gather(*this, std::forward<Args>(args)...); }
 
     template<typename ...Args> field_value_type
     operator()(Args &&...args) const { return gather(std::forward<Args>(args)...); }

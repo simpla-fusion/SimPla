@@ -908,7 +908,6 @@ double SAMRAIWorker::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, const bo
 
 void SAMRAIWorker::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt)
 {
-    m_worker_->phase0(time, dt);
 
 }
 
@@ -928,8 +927,6 @@ void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, con
     move_to(m_worker_, patch);
 
     m_worker_->set_physical_boundary_conditions(time);
-
-    m_worker_->phase1(time, dt);
 }
 
 
@@ -1141,7 +1138,8 @@ void SAMRAITimeIntegrator::save(data::DataEntityTable *) const { UNIMPLEMENTED; 
 
 namespace detail
 {
-void convert_database_r(data::DataEntity const &src, boost::shared_ptr<SAMRAI::tbox::Database> &dest,
+void convert_database_r(data::DataEntity const &src,
+                        boost::shared_ptr<SAMRAI::tbox::Database> &dest,
                         std::string const &key = "")
 {
 
@@ -1150,7 +1148,11 @@ void convert_database_r(data::DataEntity const &src, boost::shared_ptr<SAMRAI::t
         auto sub_db = key == "" ? dest : dest->putDatabase(key);
 
         src.as_table().foreach(
-                [&](std::string const &k, data::DataEntity const &v) { convert_database_r(v, sub_db, k); });
+                [&](std::string const &k, data::DataEntity const &v)
+                {
+                    convert_database_r(v, sub_db, k);
+                });
+
     } else if (key == "") { return; }
     else if (src.is_null()) { dest->putDatabase(key); }
     else if (src.as_light().any().is_boolean()) { dest->putBool(key, src.as<bool>()); }
@@ -1200,8 +1202,6 @@ void SAMRAITimeIntegrator::deploy()
     SAMRAI::tbox::Dimension dim(ndims);
 
     samrai_cfg = detail::convert_database(db, name());
-
-
 
     /**
     * Create major algorithm and data objects which comprise application.
