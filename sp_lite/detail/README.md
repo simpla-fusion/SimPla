@@ -1,2 +1,0 @@
-
-all '''device''' dependent files
