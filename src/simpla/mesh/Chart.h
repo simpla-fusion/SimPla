@@ -10,6 +10,7 @@
 
 namespace simpla { namespace mesh
 {
+class Patch;
 
 /**
  *  Define:
@@ -19,7 +20,9 @@ namespace simpla { namespace mesh
  *   - $p$ is the projection
  *
  */
-class Chart : public concept::Printable, public concept::LifeControllable
+class Chart :
+        public concept::Printable,
+        public concept::LifeControllable
 {
 public:
     SP_OBJECT_BASE(Chart);
@@ -38,7 +41,6 @@ public:
 
     virtual void finalize(Real data_time = 0, Real dt = 0);
 
-    virtual void move_to(std::shared_ptr<MeshBlock> const &m);
 
     virtual std::shared_ptr<MeshBlock> const &mesh_block() const
     {
@@ -47,6 +49,9 @@ public:
     }
 
     virtual point_type point(index_type i, index_type j, index_type k) const { return m_mesh_block_->point(i, j, k); };
+
+    virtual void accept(Patch *)=0;
+
 
 protected:
 

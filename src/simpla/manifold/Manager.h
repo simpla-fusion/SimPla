@@ -11,9 +11,9 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/model/Model.h>
-#include "Worker.h"
-#include "Atlas.h"
-#include "Patch.h"
+#include "simpla/mesh/Worker.h"
+#include "simpla/mesh/Atlas.h"
+#include "simpla/mesh/Patch.h"
 
 namespace simpla { namespace mesh
 {

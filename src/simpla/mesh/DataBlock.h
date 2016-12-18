@@ -53,7 +53,7 @@ public:
 
     virtual void pre_process()=0;
 
-    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)=0;
+    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<MeshBlock> const &m, void *p = nullptr)=0;
 
 };
 

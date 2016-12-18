@@ -11,16 +11,15 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Configurable.h>
 #include <simpla/toolbox/design_pattern/Observer.h>
-#include <simpla/manifold/Chart.h>
-#include <simpla/manifold/Patch.h>
+
 #include "DataBlock.h"
 
 namespace simpla { namespace mesh
 {
+class Patch;
 
-class AttributeCollection;
 
-struct AttributeDesc : public concept::Configurable
+struct AttributeDesc : public concept::Configurable, public Object
 {
     virtual std::type_index const &value_type_index() const =0;
 
@@ -32,12 +31,19 @@ struct AttributeDesc : public concept::Configurable
 struct Attribute :
         public concept::Printable,
         public concept::LifeControllable,
-        public design_pattern::Observer<void(std::shared_ptr<Patch> const &)>
+        public design_pattern::Observer<void(Patch *)>
 {
 public:
     SP_OBJECT_BASE(Attribute);
 
-    explicit Attribute(AttributeCollection *);
+    Attribute();
+
+    template<typename ...Args>
+    explicit Attribute(AttributeCollection *p, Args &&...args)
+            :Attribute(p),
+             m_desc_(std::make_shared<AttributeDesc>(std::forward<Args>(args)...)) {};
+
+    explicit Attribute(AttributeCollection *p);
 
     Attribute(Attribute const &other) = delete;
 
@@ -55,7 +61,7 @@ public:
 
     virtual std::shared_ptr<Attribute> clone() const =0;
 
-    virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<Chart> const &m, void *p) const =0;
+    virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const =0;
 
     virtual AttributeDesc const &desc() { return *m_desc_; }
 
@@ -65,8 +71,8 @@ public:
 
     template<typename U> U const *mesh_as() const { return m_mesh_->as<U>(); }
 
+    std::shared_ptr<MeshBlock> mesh() const { return m_mesh_; }
 
-    virtual void move_to(std::shared_ptr<Chart> const &m, std::shared_ptr<DataBlock> const &d = nullptr);
 
     virtual void pre_process();
 
@@ -74,21 +80,44 @@ public:
 
     virtual void clear();
 
-    virtual void notify(std::shared_ptr<Patch> const &p);
+    virtual void accept(Patch *p);
+
+    virtual void accept(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr);
 
 private:
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
-    std::shared_ptr<Chart> m_mesh_;
+    std::shared_ptr<MeshBlock> m_mesh_;
     std::shared_ptr<DataBlock> m_data_;
 };
 
-
-class AttributeCollection : public design_pattern::Observable<void(std::shared_ptr<Patch> const &)>
+template<typename TV, MeshEntityType IFORM, int DOF>
+class DataAttribute : public Attribute
 {
-    typedef design_pattern::Observable<void(std::shared_ptr<Patch> const &)> base_type;
+    typedef TV value_type;
+    typedef data::DataEntityNDArray<TV> data_entity_type;
+public:
+    template<typename ...Args>
+    DataAttribute(Args &&...args):    Attribute(std::forward<Args>(args)...) {}
+
+    ~DataAttribute() {}
+
+    template<typename ...Args>
+    value_type &get(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
+
+    template<typename ...Args>
+    value_type const &get(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
+
+public:
+    data_entity_type *m_data_;
+
+};
+
+class AttributeCollection : public design_pattern::Observable<void(Patch *)>
+{
+    typedef design_pattern::Observable<void(Patch *)> base_type;
 public:
 
-    void move_to(std::shared_ptr<Patch> const &p) { notify(p); }
+    virtual void accept(Patch *p) { base_type::accept(p); }
 
 private:
 };

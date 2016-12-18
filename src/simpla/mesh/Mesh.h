@@ -10,7 +10,7 @@
 #include "MeshCommon.h"
 #include "EntityIdRange.h"
 #include "MeshBlock.h"
-#include "simpla/manifold/Atlas.h"
+#include "Atlas.h"
 
 
 #endif //SIMPLA_MESH_H

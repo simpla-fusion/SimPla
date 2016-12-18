@@ -2,15 +2,16 @@
 // Created by salmon on 16-11-4.
 //
 #include "Worker.h"
-#include <set>
-#include <simpla/mesh/MeshBlock.h>
-#include <simpla/mesh/Attribute.h>
+//#include <set>
+//#include <simpla/concept/Printable.h>
+//#include <simpla/data/DataEntityTable.h>
+//#include <simpla/mesh/MeshBlock.h>
+//#include <simpla/mesh/Attribute.h>
 
 namespace simpla { namespace mesh
 {
 
-
-Worker::Worker() : m_chart_(c), m_model_(m) {}
+Worker::Worker() {}
 
 Worker::~Worker() {};
 
@@ -32,33 +33,28 @@ std::ostream &Worker::print(std::ostream &os, int indent) const
 }
 
 
-void Worker::move_to(Patch const &p)
+void Worker::accept(Patch *p)
 {
     post_process();
-    auto m = p.mesh();
-    auto id = m->id();
-    m_chart_->move_to(p.mesh());
-    for (auto &item:attributes()) { item->move_to(m, p.data(item->id())); }
+//    auto m = p.mesh();
+//    auto id = m->id();
+//    m_chart_->move_to(p.mesh());
+//    for (auto &item:attributes()) { item->move_to(m, p.data(item->id())); }
+    m_chart_->accept(p);
+    AttributeCollection::accept(p);
     pre_process();
 }
 
-std::shared_ptr<model::Model> Worker::clone_model() const { return std::make_shared<model::Model>(); }
 
 void Worker::deploy()
 {
     concept::LifeControllable::deploy();
     if (m_chart_ == nullptr) { m_chart_ = clone_mesh(); }
-
     m_chart_->deploy();
-
-    if (m_model_ == nullptr) { m_model_ = clone_model(); }
-
-    m_model_->deploy();
 }
 
 void Worker::destroy()
 {
-    m_model_.reset();
     m_chart_.reset();
     concept::LifeControllable::destroy();
 }
@@ -68,15 +64,12 @@ void Worker::pre_process()
     if (is_valid()) { return; } else { concept::LifeControllable::pre_process(); }
     ASSERT(m_chart_ != nullptr);
     m_chart_->pre_process();
-    ASSERT(m_model_ != nullptr);
-    m_model_->pre_process();
+
 }
 
 void Worker::post_process()
 {
     ASSERT(m_chart_ != nullptr);
-    m_model_->post_process();
-    ASSERT(m_model_ != nullptr);
     m_chart_->post_process();
     if (!is_valid()) { return; } else { concept::LifeControllable::post_process(); }
 }
@@ -86,14 +79,10 @@ void Worker::initialize(Real data_time, Real dt)
     pre_process();
     ASSERT (m_chart_ != nullptr);
     m_chart_->initialize(data_time, dt);
-    m_model_->initialize(data_time, dt);
 }
 
 void Worker::finalize(Real data_time, Real dt)
 {
-//    next_phase(data_time, dt, max_phase_num() - current_phase_num());
-
-    m_model_->finalize(data_time, dt);
     m_chart_->finalize(data_time, dt);
     post_process();
 }

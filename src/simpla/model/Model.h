@@ -5,7 +5,7 @@
 #ifndef SIMPLA_MODEL_H
 #define SIMPLA_MODEL_H
 
-#include <simpla/manifold/Chart.h>
+#include <simpla/mesh/Chart.h>
 #include <simpla/geometry/GeoObject.h>
 
 namespace simpla { namespace model
@@ -27,7 +27,7 @@ public:
 
     SP_OBJECT_HEAD(Model, Object)
 
-    Model(std::shared_ptr<Chart> const &c = nullptr);
+    Model();
 
     virtual ~Model();
 

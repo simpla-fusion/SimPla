@@ -42,7 +42,7 @@ struct Observer<void(Args...)>
         m_subject_ = nullptr;
     }
 
-    virtual void notify(Args ...) = 0;
+    virtual void accept(Args ...) = 0;
 
 private:
     observable_type *m_subject_ = nullptr;
@@ -61,7 +61,7 @@ struct Observable
     virtual ~Observable() {}
 
     template<typename ...Args>
-    void notify(Args &&...args) { for (auto &item:m_observers_) { item->notify(std::forward<Args>(args)...); }}
+    void accept(Args &&...args) { for (auto &item:m_observers_) { item->accept(std::forward<Args>(args)...); }}
 
 
     virtual void connect(observer_type *observer) { m_observers_.insert(observer); };
@@ -72,7 +72,7 @@ struct Observable
     {
         auto res = std::make_shared<T>(std::forward<Args>(args)...);
 
-        connect(std::dynamic_pointer_cast<observer_type>(res));
+        connect(static_cast<observer_type *>(res.get()));
 
         return res;
 

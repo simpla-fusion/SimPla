@@ -15,7 +15,7 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/EntityId.h>
-#include "Chart.h"
+#include "simpla/mesh/Chart.h"
 
 namespace simpla { namespace mesh
 {

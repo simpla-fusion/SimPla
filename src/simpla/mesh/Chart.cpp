@@ -2,14 +2,12 @@
 // Created by salmon on 16-11-24.
 //
 #include "Chart.h"
-
+#include "Patch.h"
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/MeshBlock.h>
 
 
-namespace simpla
-{
-namespace mesh
+namespace simpla { namespace mesh
 {
 
 
@@ -33,15 +31,11 @@ std::ostream &Chart::print(std::ostream &os, int indent) const
     os << std::setw(indent + 1) << " " << "AttributeDescHolder= { ";
 
 
-
     os << std::setw(indent + 1) << " " << "} , " << std::endl;
 };
 
 
 bool Chart::is_a(std::type_info const &info) const { return typeid(Chart) == info; }
-
-
-
 
 
 void Chart::initialize(Real data_time, Real dt)
@@ -62,16 +56,15 @@ void Chart::pre_process()
 
 void Chart::post_process()
 {
-     m_mesh_block_.reset();
+    m_mesh_block_.reset();
 }
 
-void Chart::move_to(std::shared_ptr<MeshBlock> const &m)
+void Chart::accept(Patch *p)
 {
     post_process();
-    m_mesh_block_ = m;
+    m_mesh_block_ = p->mesh();
     pre_process();
 };
 
 
-}
-}//namespace simpla {namespace mesh
+}}//namespace simpla {namespace mesh

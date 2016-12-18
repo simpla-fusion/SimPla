@@ -12,8 +12,8 @@
 #include <simpla/physics/PhysicalConstants.h>
 #include <simpla/mesh/EntityIdRange.h>
 #include <simpla/manifold/Calculus.h>
-#include <simpla/manifold/Worker.h>
-#include <simpla/manifold/Chart.h>
+#include <simpla/mesh/Worker.h>
+#include <simpla/mesh/Chart.h>
 #include <simpla/manifold/Field.h>
 
 

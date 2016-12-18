@@ -5,7 +5,7 @@
 #include <simpla/SIMPLA_config.h>
 
 #include <iostream>
-#include <simpla/manifold/Worker.h>
+#include <simpla/mesh/Worker.h>
 #include <simpla/simulation/TimeIntegrator.h>
 #include <simpla/physics/Constants.h>
 

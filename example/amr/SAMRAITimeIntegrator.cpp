@@ -17,7 +17,7 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/DataBlock.h>
-#include <simpla/manifold/Worker.h>
+#include <simpla/mesh/Worker.h>
 #include <simpla/simulation/TimeIntegrator.h>
 #include <boost/shared_ptr.hpp>
 // Headers for SAMRAI

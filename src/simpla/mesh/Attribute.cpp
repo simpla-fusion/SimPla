@@ -4,28 +4,24 @@
 
 #include <typeindex>
 #include <simpla/toolbox/Log.h>
-#include "simpla/manifold/Atlas.h"
+#include "Atlas.h"
 #include "Attribute.h"
 #include "MeshBlock.h"
 #include "DataBlock.h"
-#include <simpla/manifold/Patch.h>
+#include <simpla/mesh/Patch.h>
 
 namespace simpla { namespace mesh
 {
 
+Attribute::Attribute() {};
 
 Attribute::Attribute(AttributeCollection *c) { connect(c); };
 
 Attribute::~Attribute() { disconnect(); }
 
+void Attribute::accept(Patch *p) { accept(p->mesh(), p->data(m_desc_->id())); }
 
-void Attribute::notify(std::shared_ptr<Patch> const &p)
-{
-    post_process();
-    move_to(p->mesh(), p->data(m_desc_->name()));
-}
-
-void Attribute::move_to(std::shared_ptr<Chart> const &m, std::shared_ptr<DataBlock> const &d)
+void Attribute::accept(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d)
 {
     if (m == nullptr || m == m_mesh_) { return; }
     post_process();

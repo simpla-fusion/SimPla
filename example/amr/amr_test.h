@@ -11,9 +11,9 @@
 
 #include <simpla/concept/Object.h>
 
-#include <simpla/manifold/Atlas.h>
-#include <simpla/manifold/Worker.h>
-#include <simpla/manifold/Chart.h>
+#include <simpla/mesh/Atlas.h>
+#include <simpla/mesh/Worker.h>
+#include <simpla/mesh/Chart.h>
 #include <simpla/manifold/CartesianGeometry.h>
 #include <simpla/manifold/CylindricalGeometry.h>
 #include <simpla/manifold/Field.h>

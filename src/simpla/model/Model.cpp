@@ -5,7 +5,7 @@
 #include <set>
 #include <simpla/mesh/EntityId.h>
 #include <simpla/mesh/EntityIdRange.h>
-#include <simpla/manifold/Chart.h>
+#include <simpla/mesh/Chart.h>
 #include <simpla/toolbox/Parallel.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/DataBlock.h>
@@ -15,8 +15,7 @@ namespace simpla { namespace model
 {
 using namespace mesh;
 
-
-Model::Model(std::shared_ptr<Chart> const &c) {}
+Model::Model() {}
 
 Model::~Model() {}
 

@@ -8,7 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <memory>
 
-#include <simpla/manifold/Atlas.h>
+#include <simpla/mesh/Atlas.h>
 #include <simpla/data/DataEntityTable.h>
 
 #include <simpla/concept/Object.h>

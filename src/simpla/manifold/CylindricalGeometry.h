@@ -20,8 +20,7 @@
 
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/Attribute.h>
-#include "Chart.h"
-#include "Bundle.h"
+#include "simpla/mesh/Chart.h"
 
 namespace simpla { namespace mesh
 {
@@ -54,11 +53,11 @@ public:
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=mesh::DataBlockArray<TV, IFORM, DOF>;
 
 //private:
-    Bundle<Real, VERTEX, 3> m_vertics_{this, "name=vertics;COORDINATES"};
-    Bundle<Real, VOLUME, 9> m_volume_{this, "name=volume;NO_FILL"};
-    Bundle<Real, VOLUME, 9> m_dual_volume_{this, "name=dual_volume;NO_FILL"};
-    Bundle<Real, VOLUME, 9> m_inv_volume_{this, "name=inv_volume;NO_FILL"};
-    Bundle<Real, VOLUME, 9> m_inv_dual_volume_{this, "name=inv_dual_volume;NO_FILL"};
+    DataAttribute<Real, VERTEX, 3> m_vertics_{this, "name=vertics;COORDINATES"};
+    DataAttribute<Real, VOLUME, 9> m_volume_{this, "name=volume;NO_FILL"};
+    DataAttribute<Real, VOLUME, 9> m_dual_volume_{this, "name=dual_volume;NO_FILL"};
+    DataAttribute<Real, VOLUME, 9> m_inv_volume_{this, "name=inv_volume;NO_FILL"};
+    DataAttribute<Real, VOLUME, 9> m_inv_dual_volume_{this, "name=inv_dual_volume;NO_FILL"};
 
 public:
     typedef mesh::MeshEntityIdCoder M;

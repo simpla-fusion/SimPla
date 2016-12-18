@@ -9,7 +9,6 @@
 #include <memory>
 #include <vector>
 #include <set>
-#include <simpla/data/DataEntityTable.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/design_pattern/Observer.h>
 
@@ -20,11 +19,8 @@
 #include <simpla/concept/LifeControllable.h>
 
 #include <simpla/mesh/MeshCommon.h>
-#include <simpla/manifold/Atlas.h>
 #include <simpla/mesh/Attribute.h>
-#include <simpla/model/Model.h>
 #include "Chart.h"
-#include "Patch.h"
 
 namespace simpla { namespace mesh
 {
@@ -32,7 +28,7 @@ struct MeshBlock;
 struct DataBlock;
 
 struct Chart;
-struct CoordinateFrame;
+struct Patch;
 
 class Worker :
         public Object,
@@ -57,17 +53,11 @@ public:
 
     virtual std::shared_ptr<Chart> clone_mesh() const =0;
 
-    virtual std::shared_ptr<model::Model> clone_model() const;
-
     virtual Chart *chart() { return m_chart_.get(); };
 
     virtual Chart const *chart() const { return m_chart_.get(); };
 
-    virtual model::Model const *model() const { return m_model_.get(); };
-
-    virtual model::Model *model() { return m_model_.get(); };
-
-    virtual void move_to(const std::shared_ptr<Patch> &m);
+    virtual void accept(Patch *m);
 
     virtual void deploy();
 
@@ -94,8 +84,6 @@ public:
 
 private:
     std::shared_ptr<Chart> m_chart_;
-    std::shared_ptr<model::Model> m_model_;
-    std::shared_ptr<Patch> m_patch_;
 };
 
 
