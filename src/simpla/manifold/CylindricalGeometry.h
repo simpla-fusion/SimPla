@@ -45,7 +45,7 @@ public:
 
     static constexpr int ndims = 3;
 
-    CylindricalGeometry() { m_vertics_.connect(this); }
+    CylindricalGeometry() {}
 
     virtual ~CylindricalGeometry() {}
 

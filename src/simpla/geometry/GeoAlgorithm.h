@@ -12,7 +12,7 @@
 #include <tuple>
 
 #include <simpla/toolbox/nTuple.h>
-#include <simpla/sp_def.h>
+#include <simpla/toolbox/sp_def.h>
 
 namespace simpla { namespace geometry
 {

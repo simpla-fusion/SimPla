@@ -102,7 +102,6 @@ public:
 
     virtual void update() {}
 
-
     /** for Printable @{*/
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;

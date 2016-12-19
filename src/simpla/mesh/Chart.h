@@ -33,6 +33,8 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
+    virtual void accept(Patch *)=0;
+
     virtual void pre_process();
 
     virtual void post_process();
@@ -49,8 +51,6 @@ public:
     }
 
     virtual point_type point(index_type i, index_type j, index_type k) const { return m_mesh_block_->point(i, j, k); };
-
-    virtual void accept(Patch *)=0;
 
 
 protected:

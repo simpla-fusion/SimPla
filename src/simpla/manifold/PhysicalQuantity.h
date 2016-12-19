@@ -38,7 +38,7 @@ public:
     explicit PhysicalQuantity(Args &&...args):
             base_type(std::forward<Args>(args)  ...),
             m_mesh_(nullptr),
-            m_data_(nullptr) {};
+            m_data_(nullptr), Attribute(<#initializer#>, <#initializer#>) {};
 
 
     virtual ~PhysicalQuantity() {}

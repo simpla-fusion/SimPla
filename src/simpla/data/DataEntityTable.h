@@ -58,6 +58,16 @@ public:
 
     virtual void parse(std::string const &str);
 
+    template<typename U>
+    virtual void parse(std::pair<std::string, U> const &k_v) { set_value(k_v.first, k_v.second); };
+
+    template<typename T0, typename ...Args>
+    virtual void parse(T0 const &a0, Args &&...args)
+    {
+        parse(a0);
+        parse(std::forward<Args>(args)...);
+    };
+
     /**
      *  set entity value to '''url'''
      * @param url

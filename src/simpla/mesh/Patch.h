@@ -7,11 +7,12 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <map>
+#include "MeshBlock.h"
+#include "DataBlock.h"
 
 namespace simpla { namespace mesh
 {
-struct DataBlock;
-struct MeshBlock;
+
 
 class Patch
 {

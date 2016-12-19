@@ -21,11 +21,74 @@ class Patch;
 
 struct AttributeDesc : public concept::Configurable, public Object
 {
+    template<typename ...Args>
+    AttributeDesc(Args &&...args) { concept::Configurable::db.parse(std::forward<Args>(args)...); }
+
+    virtual ~AttributeDesc() {}
+
     virtual std::type_index const &value_type_index() const =0;
 
     virtual MeshEntityType entity_type() const =0;
 
     virtual size_type dof() const =0;
+};
+
+template<typename TV, MeshEntityType IFORM, size_type DOF>
+struct AttributeDescTemp : public AttributeDesc
+{
+    template<typename ...Args>
+    AttributeDescTemp(Args &&...args) :AttributeDesc(std::forward<Args>(args)...) {}
+
+    virtual ~AttributeDescTemp() {}
+
+    virtual std::type_index const &value_type_index() const { return std::type_index(typeid(TV)); };
+
+    virtual MeshEntityType entity_type() const { return IFORM; };
+
+    virtual size_type dof() const { return DOF; };
+};
+
+class AttributeDict : public concept::Printable
+{
+public:
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+
+    std::pair<std::shared_ptr<AttributeDesc>, bool>
+    register_attr(std::shared_ptr<AttributeDesc> const &desc);
+
+    void erase(id_type const &id);
+
+    void erase(std::string const &id);
+
+    std::shared_ptr<AttributeDesc> find(id_type const &id);
+
+    std::shared_ptr<AttributeDesc> find(std::string const &id);
+
+    std::shared_ptr<AttributeDesc> const &get(std::string const &k) const;
+
+    std::shared_ptr<AttributeDesc> const &get(id_type k) const;
+
+private:
+    std::map<std::string, id_type> m_key_id_;
+    std::map<id_type, std::shared_ptr<AttributeDesc> > m_map_;
+};
+
+class AttributeCollection : public design_pattern::Observable<void(Patch *)>
+{
+    typedef design_pattern::Observable<void(Patch *)> base_type;
+public:
+    AttributeCollection(std::shared_ptr<AttributeDict> const &);
+
+    virtual  ~AttributeCollection();
+
+    virtual void connect(Attribute *observer);
+
+    virtual void disconnect(Attribute *observer);
+
+    virtual void accept(Patch *p) { base_type::accept(p); }
+
+private:
+    std::shared_ptr<AttributeDict> m_dict_;
 };
 
 struct Attribute :
@@ -36,14 +99,9 @@ struct Attribute :
 public:
     SP_OBJECT_BASE(Attribute);
 
-    Attribute();
+    Attribute(std::shared_ptr<DataBlock> const &d = nullptr, std::shared_ptr<AttributeDesc> const &desc = nullptr);
 
-    template<typename ...Args>
-    explicit Attribute(AttributeCollection *p, Args &&...args)
-            :Attribute(p),
-             m_desc_(std::make_shared<AttributeDesc>(std::forward<Args>(args)...)) {};
-
-    explicit Attribute(AttributeCollection *p);
+    Attribute(AttributeCollection *p, std::shared_ptr<AttributeDesc> const &desc);
 
     Attribute(Attribute const &other) = delete;
 
@@ -53,26 +111,15 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; };
 
-    virtual MeshEntityType entity_type() const =0;
-
-    virtual std::type_info const &value_type_info() const =0;
-
-    virtual size_type dof() const =0;
-
     virtual std::shared_ptr<Attribute> clone() const =0;
 
     virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const =0;
 
     virtual AttributeDesc const &desc() { return *m_desc_; }
 
-    template<typename U> U const *data_as() const { return m_data_->as<U>(); }
+    virtual std::shared_ptr<DataBlock> const &data() const { return m_data_; }
 
-    template<typename U> U *data_as() { return m_data_->as<U>(); }
-
-    template<typename U> U const *mesh_as() const { return m_mesh_->as<U>(); }
-
-    std::shared_ptr<MeshBlock> mesh() const { return m_mesh_; }
-
+    virtual std::shared_ptr<DataBlock> &data() { return m_data_; }
 
     virtual void pre_process();
 
@@ -82,11 +129,10 @@ public:
 
     virtual void accept(Patch *p);
 
-    virtual void accept(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<DataBlock> const &d = nullptr);
+    virtual void accept(std::shared_ptr<DataBlock> const &d);
 
 private:
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
-    std::shared_ptr<MeshBlock> m_mesh_;
     std::shared_ptr<DataBlock> m_data_;
 };
 
@@ -97,7 +143,7 @@ class DataAttribute : public Attribute
     typedef data::DataEntityNDArray<TV> data_entity_type;
 public:
     template<typename ...Args>
-    DataAttribute(Args &&...args):    Attribute(std::forward<Args>(args)...) {}
+    DataAttribute(Args &&...args):Attribute(std::forward<Args>(args)...), Attribute(<#initializer#>, <#initializer#>) {}
 
     ~DataAttribute() {}
 
@@ -110,16 +156,6 @@ public:
 public:
     data_entity_type *m_data_;
 
-};
-
-class AttributeCollection : public design_pattern::Observable<void(Patch *)>
-{
-    typedef design_pattern::Observable<void(Patch *)> base_type;
-public:
-
-    virtual void accept(Patch *p) { base_type::accept(p); }
-
-private:
 };
 
 

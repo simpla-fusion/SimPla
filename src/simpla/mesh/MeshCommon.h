@@ -5,13 +5,13 @@
 #ifndef SIMPLA_MESHCOMMON_H
 #define SIMPLA_MESHCOMMON_H
 
+#include <boost/uuid/uuid.hpp>
+#include "../toolbox/sp_def.h"
+#include "../toolbox/nTuple.h"
 
-#ifdef __cplusplus
+
 namespace simpla { namespace mesh
 {
-extern "C" {
-#endif
-
 
 //typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } MeshEntityId32;
 
@@ -81,15 +81,6 @@ enum MeshZoneTag
 };
 
 
-#ifdef __cplusplus
-};//extern "C"{
-}};//namespace mesh{namespace mesh_as{
-#include <boost/uuid/uuid.hpp>
-#include "../sp_def.h"
-#include "../toolbox/nTuple.h"
-
-namespace simpla { namespace mesh
-{
 
 /**
  *  @ingroup diff_geo
@@ -128,5 +119,4 @@ namespace simpla { namespace mesh
 
 
 }}//namespace simpla{namespace get_mesh{
-#endif
 #endif //SIMPLA_MESHCOMMON_H

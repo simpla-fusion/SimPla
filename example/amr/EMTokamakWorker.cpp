@@ -19,7 +19,7 @@
 namespace simpla
 {
 using namespace mesh;
-using namespace model;
+//using namespace model;
 
 class EMTokamakWorker;
 

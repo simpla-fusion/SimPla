@@ -11,7 +11,7 @@
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/type_traits.h>
-#include <simpla/sp_def.h>
+#include <simpla/toolbox/sp_def.h>
 #include "GeoAlgorithm.h"
 
 namespace simpla { namespace geometry

@@ -6,6 +6,8 @@
 #define SIMPLA_MODEL_H
 
 #include <simpla/mesh/Chart.h>
+#include <simpla/mesh/Attribute.h>
+#include <simpla/concept/Configurable.h>
 #include <simpla/geometry/GeoObject.h>
 
 namespace simpla { namespace model
@@ -78,7 +80,7 @@ public:
 
 private:
 
-    Attribute<int, VERTEX, 9> m_tags_{"name=tags;INPUT"};
+    DataAttribute<int, VERTEX, 9> m_tags_{"name=tags;INPUT"};
 
     int m_g_obj_count_;
 

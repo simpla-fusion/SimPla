@@ -28,36 +28,13 @@ std::ostream &Chart::print(std::ostream &os, int indent) const
     }
     os << std::setw(indent + 1) << " " << "}," << std::endl;
 
-    os << std::setw(indent + 1) << " " << "AttributeDescHolder= { ";
-
+    os << std::setw(indent + 1) << " " << "Attribute Description= { ";
 
     os << std::setw(indent + 1) << " " << "} , " << std::endl;
 };
 
 
-bool Chart::is_a(std::type_info const &info) const { return typeid(Chart) == info; }
-
-
-void Chart::initialize(Real data_time, Real dt)
-{
-    pre_process();
-}
-
-void Chart::finalize(Real data_time, Real dt)
-{
-    post_process();
-}
-
-void Chart::pre_process()
-{
-    ASSERT(m_mesh_block_ != nullptr);
-
-}
-
-void Chart::post_process()
-{
-    m_mesh_block_.reset();
-}
+//bool Chart::is_a(std::type_info const &info) const { return typeid(Chart) == info; }
 
 void Chart::accept(Patch *p)
 {
@@ -65,6 +42,15 @@ void Chart::accept(Patch *p)
     m_mesh_block_ = p->mesh();
     pre_process();
 };
+
+
+void Chart::initialize(Real data_time, Real dt) { pre_process(); }
+
+void Chart::finalize(Real data_time, Real dt) { post_process(); }
+
+void Chart::pre_process() { ASSERT(m_mesh_block_ != nullptr); }
+
+void Chart::post_process() { m_mesh_block_.reset(); }
 
 
 }}//namespace simpla {namespace mesh

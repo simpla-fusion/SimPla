@@ -16,8 +16,8 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Configurable.h>
 
-#include <simpla/mesh/MeshCommon.h>
-#include <simpla/mesh/MeshBlock.h>
+#include "MeshCommon.h"
+#include "MeshBlock.h"
 
 namespace simpla { namespace mesh
 {

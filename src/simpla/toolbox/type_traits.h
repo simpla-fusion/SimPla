@@ -14,9 +14,8 @@
 #include <tuple>
 #include <type_traits>
 #include <complex>
-
-#include "check_concept.h"
 #include "type_cast.h"
+#include "check_concept.h"
 #include "integer_sequence.h"
 
 namespace simpla
