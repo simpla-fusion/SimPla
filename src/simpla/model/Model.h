@@ -82,6 +82,8 @@ private:
 
     DataAttribute<int, VERTEX, 9> m_tags_{"name=tags;INPUT"};
 
+    std::shared_ptr<Chart> m_chart_ = nullptr;
+
     int m_g_obj_count_;
 
     std::map<std::string, int> m_g_name_map_;

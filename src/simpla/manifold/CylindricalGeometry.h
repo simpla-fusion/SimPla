@@ -179,8 +179,10 @@ public:
             *
             *\endverbatim
             */
-        auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_vertics_.data_block())->start();
-        auto m_count_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> *>(m_vertics_.data_block())->count();
+        auto m_start_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> >(
+                m_vertics_.data())->start();
+        auto m_count_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> >(
+                m_vertics_.data())->count();
 
         index_type ib = m_start_[0];
         index_type ie = m_start_[0] + m_count_[0];

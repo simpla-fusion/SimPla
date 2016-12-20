@@ -20,6 +20,7 @@
 #include "FieldExpression.h"
 #include "schemes/CalculusPolicy.h"
 #include "schemes/InterpolatePolicy.h"
+#include "PhysicalQuantity.h"
 
 
 namespace simpla
@@ -30,11 +31,13 @@ template<typename ...> class Field;
 
 
 template<typename TV, typename TM, size_type I, size_type DOF>
-class Field<TV, TM, index_const<I>, index_const<DOF>> : public mesh::Attribute
+class Field<TV, TM, index_const<I>, index_const<DOF>>
+        : public manifold::PhysicalQuantity<TV, TM, static_cast<mesh::MeshEntityType >(I), DOF>
 {
+    typedef manifold::PhysicalQuantity<TV, TM, static_cast<mesh::MeshEntityType >(I), DOF> phy_quantity_type;
     typedef Field<TV, TM, index_const<I>, index_const<DOF>> field_type;
 
-    SP_OBJECT_HEAD(field_type, mesh::Attribute);
+    SP_OBJECT_HEAD(field_type, phy_quantity_type);
 
 private:
     static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
@@ -62,7 +65,7 @@ public:
     explicit Field(Args &&...args):
             base_type(std::forward<Args>(args)...),
             m_mesh_(nullptr),
-            m_data_(nullptr), Attribute(<#initializer#>, <#initializer#>) {};
+            m_data_(nullptr) {};
 
 
     virtual ~Field() {}
@@ -71,7 +74,7 @@ public:
 
     Field(this_type &&other) = delete;
 
-    bool empty() const { return m_data_ == nullptr || m_data_->empty() || m_mesh_ == nullptr; };
+
 
     virtual mesh::MeshEntityType entity_type() const { return IFORM; };
 
@@ -89,8 +92,8 @@ public:
     {
         if (base_type::is_valid()) { return; } else { base_type::pre_process(); }
 
-        m_mesh_ = base_type::mesh_as<mesh_type>();
-        m_data_ = base_type::data_as<data_block_type>();
+//        m_mesh_ = base_type::mesh_as<mesh_type>();
+//        m_data_ = base_type::data_as<data_block_type>();
         ASSERT(m_data_ != nullptr);
         ASSERT(m_mesh_ != nullptr);
 

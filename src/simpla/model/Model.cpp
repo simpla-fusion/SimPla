@@ -36,8 +36,8 @@ void Model::pre_process()
 void Model::initialize(Real data_time, Real dt)
 {
     pre_process();
-    auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(m_tags_.data_block())->start();
-    auto m_count_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(m_tags_.data_block())->count();
+    auto m_start_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->start();
+    auto m_count_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->count();
 
     index_type ib = m_start_[0];
     index_type ie = m_start_[0] + m_count_[0];
@@ -137,8 +137,8 @@ Model::select(MeshEntityType iform, int tag)
 
     auto &res = m_range_cache_.at(iform).at(tag).as<set_type>();
 
-    auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(m_tags_.data_block())->start();
-    auto m_count_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(m_tags_.data_block())->count();
+    auto m_start_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->start();
+    auto m_count_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->count();
 
     index_type ib = m_start_[0];
     index_type ie = m_start_[0] + m_count_[0];
@@ -224,8 +224,8 @@ mesh::EntityIdRange const &Model::interface(MeshEntityType iform, int tag_in, in
 
     set_type &res = const_cast<this_type *>(this)->m_interface_cache_.at(iform).at(tag_in).at(tag_out).as<set_type>();
 
-    auto m_start_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(m_tags_.data_block())->start();
-    auto m_count_ = static_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> *>(m_tags_.data_block())->count();
+    auto m_start_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->start();
+    auto m_count_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->count();
 
     index_type ib = m_start_[0];
     index_type ie = m_start_[0] + m_count_[0];

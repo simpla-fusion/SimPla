@@ -18,6 +18,7 @@ namespace simpla { namespace mesh
 {
 class Patch;
 
+class Attribute;
 
 struct AttributeDesc : public concept::Configurable, public Object
 {
@@ -77,7 +78,7 @@ class AttributeCollection : public design_pattern::Observable<void(Patch *)>
 {
     typedef design_pattern::Observable<void(Patch *)> base_type;
 public:
-    AttributeCollection(std::shared_ptr<AttributeDict> const &);
+    AttributeCollection(std::shared_ptr<AttributeDict> const &p = nullptr);
 
     virtual  ~AttributeCollection();
 
@@ -113,7 +114,7 @@ public:
 
     virtual std::shared_ptr<Attribute> clone() const =0;
 
-    virtual std::shared_ptr<DataBlock> create_data_block(std::shared_ptr<MeshBlock> const &m, void *p) const =0;
+//    virtual std::shared_ptr<DataBlock> create_data_block(void *p, std::shared_ptr<MeshBlock> const &m) const =0;
 
     virtual AttributeDesc const &desc() { return *m_desc_; }
 
@@ -140,18 +141,39 @@ template<typename TV, MeshEntityType IFORM, int DOF>
 class DataAttribute : public Attribute
 {
     typedef TV value_type;
-    typedef data::DataEntityNDArray<TV> data_entity_type;
+    typedef DataAttribute<TV, IFORM, DOF> this_type;
+    typedef DataBlockArray<TV, IFORM, DOF> data_entity_type;
 public:
     template<typename ...Args>
-    DataAttribute(Args &&...args):Attribute(std::forward<Args>(args)...), Attribute(<#initializer#>, <#initializer#>) {}
+    DataAttribute(Args &&...args):
+            Attribute(nullptr, std::make_shared<AttributeDescTemp<TV, IFORM, DOF>>(std::forward<Args>(args)...)) {}
 
     ~DataAttribute() {}
+
+    virtual std::shared_ptr<Attribute> clone() const { return std::make_shared<this_type>(); };
+
+    virtual std::shared_ptr<DataBlock> create_data_block(void *p, std::shared_ptr<MeshBlock> const &m) const
+    {
+        return data_entity_type::create(m, static_cast<value_type *>(p));
+    };
 
     template<typename ...Args>
     value_type &get(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
 
     template<typename ...Args>
     value_type const &get(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
+
+    virtual void pre_process()
+    {
+        Attribute::pre_process();
+        m_data_ = static_cast<data_entity_type *>( Attribute::data().get());
+    };
+
+    virtual void post_process()
+    {
+        m_data_ = nullptr;
+        Attribute::post_process();
+    }
 
 public:
     data_entity_type *m_data_;

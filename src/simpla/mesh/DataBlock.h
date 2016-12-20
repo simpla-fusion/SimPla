@@ -39,8 +39,6 @@ public:
 
     virtual MeshEntityType entity_type() const =0;
 
-    virtual std::string name() const =0;
-
     virtual void load(data::DataEntityTable const &) =0;
 
     virtual void save(data::DataEntityTable *) const =0;
@@ -94,9 +92,14 @@ public:
         return os;
     }
 
+    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<MeshBlock> const &m, void *p = nullptr)
+    {
+        return create(m, static_cast<value_type *>(p));
+    };
 
-    virtual std::shared_ptr<DataBlock>
-    clone(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)
+
+    static std::shared_ptr<DataBlock>
+    create(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)
     {
         index_type n_dof = DOF;
         int ndims = 3;

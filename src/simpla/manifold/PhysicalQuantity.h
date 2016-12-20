@@ -38,7 +38,7 @@ public:
     explicit PhysicalQuantity(Args &&...args):
             base_type(std::forward<Args>(args)  ...),
             m_mesh_(nullptr),
-            m_data_(nullptr), Attribute(<#initializer#>, <#initializer#>) {};
+            m_data_(nullptr) {};
 
 
     virtual ~PhysicalQuantity() {}
@@ -46,6 +46,8 @@ public:
     PhysicalQuantity(this_type const &other) = delete;
 
     PhysicalQuantity(this_type &&other) = delete;
+
+    virtual std::shared_ptr<Attribute> clone() const { return std::make_shared<this_type>(*this); };
 
     bool empty() const { return m_data_ == nullptr || m_data_->empty() || m_mesh_ == nullptr; };
 
@@ -65,8 +67,8 @@ public:
     {
         if (base_type::is_valid()) { return; } else { base_type::pre_process(); }
 
-        m_mesh_ = base_type::mesh_as<mesh_type>();
-        m_data_ = base_type::data_as<data_block_type>();
+//        m_mesh_ = base_type::mesh_as<mesh_type>();
+//        m_data_ = base_type::data_as<data_block_type>();
         ASSERT(m_data_ != nullptr);
         ASSERT(m_mesh_ != nullptr);
 
