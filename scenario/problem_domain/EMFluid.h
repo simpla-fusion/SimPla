@@ -32,7 +32,7 @@ public:
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
-    explicit EMFluid() : Worker(std::make_shared<mesh_type>()) {}
+    explicit EMFluid() {}
 
     template<typename ...Args>
     explicit EMFluid(Args &&...args) : Worker(std::forward<Args>(args)...) {}

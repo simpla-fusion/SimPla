@@ -27,7 +27,9 @@ struct AttributeDesc : public concept::Configurable, public Object
 
     virtual ~AttributeDesc() {}
 
-    virtual std::type_index const &value_type_index() const =0;
+    virtual std::type_index value_type_index() const =0;
+
+    virtual std::type_info const &value_type_info() const =0;
 
     virtual MeshEntityType entity_type() const =0;
 
@@ -42,7 +44,9 @@ struct AttributeDescTemp : public AttributeDesc
 
     virtual ~AttributeDescTemp() {}
 
-    virtual std::type_index const &value_type_index() const { return std::type_index(typeid(TV)); };
+    virtual std::type_index value_type_index() const { return std::type_index(value_type_info()); };
+
+    virtual std::type_info const &value_type_info() const { return (typeid(TV)); };
 
     virtual MeshEntityType entity_type() const { return IFORM; };
 
@@ -88,6 +92,13 @@ public:
 
     virtual void accept(Patch *p) { base_type::accept(p); }
 
+    template<typename TF>
+    void foreach(TF const &fun)
+    {
+        design_pattern::Observable<void(Patch *)>::foreach(
+                [&](observer_type &obj) { fun(static_cast<Attribute *>(&obj)); });
+    }
+
 private:
     std::shared_ptr<AttributeDict> m_dict_;
 };
@@ -116,7 +127,7 @@ public:
 
 //    virtual std::shared_ptr<DataBlock> create_data_block(void *p, std::shared_ptr<MeshBlock> const &m) const =0;
 
-    virtual AttributeDesc const &desc() { return *m_desc_; }
+    virtual AttributeDesc const &desc() const { return *m_desc_; }
 
     virtual std::shared_ptr<DataBlock> const &data() const { return m_data_; }
 

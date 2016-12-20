@@ -494,14 +494,14 @@ boost::shared_ptr<SAMRAI::hier::Variable>
 create_samrai_variable_t(unsigned int ndims, mesh::Attribute *attr)
 {
     static int var_depth[4] = {1, 3, 3, 1};
-    if (attr->entity_type() <= mesh::VOLUME)
+    if (attr->desc().entity_type() <= mesh::VOLUME)
     {
 
         SAMRAI::tbox::Dimension d_dim(ndims);
 
         return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
                 boost::make_shared<SAMRAI::pdat::NodeVariable<T> >(
-                        d_dim, attr->desc().name(), var_depth[attr->entity_type()] * attr->dof()));
+                        d_dim, attr->desc().name(), var_depth[attr->desc().entity_type()] * attr->desc().dof()));
     } else
     {
         UNIMPLEMENTED;
@@ -512,11 +512,22 @@ create_samrai_variable_t(unsigned int ndims, mesh::Attribute *attr)
 boost::shared_ptr<SAMRAI::hier::Variable>
 create_samrai_variable(unsigned int ndims, mesh::Attribute *item)
 {
-    if (item->value_type_info() == typeid(float)) { return create_samrai_variable_t<float>(ndims, item); }
-    else if (item->value_type_info() == typeid(double)) { return create_samrai_variable_t<double>(ndims, item); }
-    else if (item->value_type_info() == typeid(int)) { return create_samrai_variable_t<int>(ndims, item); }
+    if (item->desc().value_type_index() == std::type_index(typeid(float)))
+    {
+        return create_samrai_variable_t<float>(ndims, item);
+    } else if (item->desc().value_type_index() == std::type_index(typeid(double)))
+    {
+        return create_samrai_variable_t<double>(ndims, item);
+    } else if (item->desc().value_type_index() == std::type_index(typeid(int)))
+    {
+        return create_samrai_variable_t<int>(ndims, item);
+    }
 //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
-    else { RUNTIME_ERROR << " value type [" << item->value_type_info().name() << "] is not supported!" << std::endl; }
+    else
+    {
+        RUNTIME_ERROR << " value type [" << item->desc().value_type_index().name() << "] is not supported!"
+                      << std::endl;
+    }
     return nullptr;
 }
 }//namespace detail{
@@ -582,7 +593,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                                                  "NO_REFINE");
                 } else
                 {
-                    switch (attr->entity_type())
+                    switch (attr->desc().entity_type())
                     {
                         case mesh::EDGE:
                         case mesh::FACE:
@@ -608,21 +619,22 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                 }
 
                 std::string visit_variable_type = "";
-                if ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) &&
-                    attr->dof() == 1)
+                if ((attr->desc().entity_type() == mesh::VERTEX || attr->desc().entity_type() == mesh::VOLUME) &&
+                    attr->desc().dof() == 1)
                 {
                     visit_variable_type = "SCALAR";
-                } else if (((attr->entity_type() == mesh::EDGE || attr->entity_type() == mesh::FACE) &&
-                            attr->dof() == 1) ||
-                           ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) &&
-                            attr->dof() == 3))
+                } else if (((attr->desc().entity_type() == mesh::EDGE || attr->desc().entity_type() == mesh::FACE) &&
+                            attr->desc().dof() == 1) ||
+                           ((attr->desc().entity_type() == mesh::VERTEX ||
+                             attr->desc().entity_type() == mesh::VOLUME) &&
+                            attr->desc().dof() == 3))
                 {
                     visit_variable_type = "VECTOR";
                 } else if (
-                        ((attr->entity_type() == mesh::VERTEX || attr->entity_type() == mesh::VOLUME) &&
-                         attr->dof() == 9) ||
-                        ((attr->entity_type() == mesh::EDGE || attr->entity_type() == mesh::FACE) &&
-                         attr->dof() == 3)
+                        ((attr->desc().entity_type() == mesh::VERTEX || attr->desc().entity_type() == mesh::VOLUME) &&
+                         attr->desc().dof() == 9) ||
+                        ((attr->desc().entity_type() == mesh::EDGE || attr->desc().entity_type() == mesh::FACE) &&
+                         attr->desc().dof() == 3)
                         )
                 {
                     visit_variable_type = "TENSOR";
@@ -694,7 +706,7 @@ namespace detail
 
 template<typename TV, mesh::MeshEntityType IFORM, size_type DOF>
 std::shared_ptr<mesh::DataBlock>
-create_data_block_t2(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block_t2(mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
 
@@ -728,11 +740,11 @@ create_data_block_t2(std::shared_ptr<mesh::Attribute> const &item, boost::shared
 
 template<typename TV, mesh::MeshEntityType IFORM>
 std::shared_ptr<mesh::DataBlock>
-create_data_block_t1(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block_t1(mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
 
-    switch (item->dof())
+    switch (item->desc().dof())
     {
         case 1:
             res = create_data_block_t2<TV, IFORM, 1>(item, pd);
@@ -753,11 +765,11 @@ create_data_block_t1(std::shared_ptr<mesh::Attribute> const &item, boost::shared
 
 template<typename TV>
 std::shared_ptr<mesh::DataBlock>
-create_data_block_t0(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block_t0(mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
 
-    switch (item->entity_type())
+    switch (item->desc().entity_type())
     {
         case mesh::VERTEX:
             res = create_data_block_t1<TV, mesh::VERTEX>(item, pd);
@@ -779,12 +791,12 @@ create_data_block_t0(std::shared_ptr<mesh::Attribute> const &item, boost::shared
 };
 
 std::shared_ptr<mesh::DataBlock>
-create_data_block(std::shared_ptr<mesh::Attribute> const &item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
+create_data_block(mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
-    if (item->value_type_info() == typeid(float)) { res = create_data_block_t0<float>(item, pd); }
-    else if (item->value_type_info() == typeid(double)) { res = create_data_block_t0<double>(item, pd); }
-    else if (item->value_type_info() == typeid(int)) { res = create_data_block_t0<int>(item, pd); }
+    if (item->desc().value_type_info() == typeid(float)) { res = create_data_block_t0<float>(item, pd); }
+    else if (item->desc().value_type_info() == typeid(double)) { res = create_data_block_t0<double>(item, pd); }
+    else if (item->desc().value_type_info() == typeid(int)) { res = create_data_block_t0<int>(item, pd); }
 //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item, std::forward<Args>(args)...); }
     else { RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl; }
     ASSERT(res != nullptr);

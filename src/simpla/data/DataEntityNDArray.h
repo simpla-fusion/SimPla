@@ -211,6 +211,13 @@ public:
     value_type *m_data_ = nullptr;
     int m_order_ = SLOW_FIRST;
 
+    inline constexpr size_type hash(mesh::MeshEntityId s) const
+    {
+        UNIMPLEMENTED;
+        return 0;
+//        return (x0 - m_start_[0] + m_count_[0] * 2) % m_count_[0] * m_strides_[0];
+    }
+
     inline constexpr size_type hash(index_type x0) const
     {
         return (x0 - m_start_[0] + m_count_[0] * 2) % m_count_[0] * m_strides_[0];

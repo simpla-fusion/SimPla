@@ -51,7 +51,7 @@ public:
 
     virtual void save(data::DataEntityTable *) const { UNIMPLEMENTED; }
 
-    virtual std::shared_ptr<Chart> clone_mesh() const =0;
+//    virtual std::shared_ptr<Chart> clone_mesh() const =0;
 
     virtual Chart *chart() { return m_chart_.get(); };
 

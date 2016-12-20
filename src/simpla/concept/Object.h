@@ -30,6 +30,7 @@ typedef _BASE_CLASS_NAME_ this_type;                                            
 public:
 
 #define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                       \
+public:                                                                       \
 virtual bool is_a(std::type_info const &info)const { return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::is_a(info); }   \
 virtual std::type_index typeindex() const   { return std::type_index(typeid(_CLASS_NAME_)); }  \
 virtual std::string get_class_name() const { return __STRING(_CLASS_NAME_); } \

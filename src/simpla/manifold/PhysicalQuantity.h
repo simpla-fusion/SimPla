@@ -16,7 +16,7 @@ class PhysicalQuantity : public mesh::Attribute
 {
     typedef PhysicalQuantity<TV, TM, I, DOF> field_type;
 
-    SP_OBJECT_HEAD(field_type, mesh::Attribute);
+SP_OBJECT_HEAD(field_type, mesh::Attribute);
 
 private:
     static constexpr mesh::MeshEntityType IFORM = I;
@@ -36,7 +36,7 @@ public:
 
     template<typename ...Args>
     explicit PhysicalQuantity(Args &&...args):
-            base_type(std::forward<Args>(args)  ...),
+            base_type(nullptr, std::make_shared<mesh::AttributeDescTemp<TV, I, DOF>>(std::forward<Args>(args)  ...)),
             m_mesh_(nullptr),
             m_data_(nullptr) {};
 
@@ -47,7 +47,10 @@ public:
 
     PhysicalQuantity(this_type &&other) = delete;
 
-    virtual std::shared_ptr<Attribute> clone() const { return std::make_shared<this_type>(*this); };
+    virtual std::shared_ptr<mesh::Attribute> clone() const
+    {
+        return std::dynamic_pointer_cast<mesh::Attribute>(std::make_shared<this_type>());
+    };
 
     bool empty() const { return m_data_ == nullptr || m_data_->empty() || m_mesh_ == nullptr; };
 
