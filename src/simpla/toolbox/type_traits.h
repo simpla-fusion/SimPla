@@ -197,8 +197,10 @@ struct extent<integer_sequence<_Tp, N...>, 0> : public index_const<sizeof...(N)>
 
 //**********************************************************************************************************************
 
+template<typename ...T> struct value_type;
+
 template<typename T>
-struct value_type { typedef typename std::conditional<std::is_scalar<T>::value, T, std::nullptr_t>::type type; };
+struct value_type<T> { typedef typename std::conditional<std::is_scalar<T>::value, T, std::nullptr_t>::type type; };
 
 template<typename T> struct value_type<std::complex<T>> { typedef std::complex<T> type; };
 
@@ -282,6 +284,24 @@ struct recursive_try_index_aux<0>
     template<typename T, typename TI> static auto eval(T &v, TI const *s) DECL_RET_TYPE((v))
 };
 } // namespace _impl
+
+
+//template<typename U, typename TIndex> U const &
+//index(U const *v, TIndex const &i) { return v[i]; };
+//
+//template<typename U, typename TIndex> U const &
+//index(U const &v, TIndex const &i) { return v; };
+//
+//
+//template<typename U, typename TIndex>
+//typename std::remove_extent<U>::type const &
+//index(U const &v, TIndex const &i, ENABLE_IF(std::is_array<U>::vaule)) { return v[i]; };
+//
+//template<typename U, typename TIndex>
+//U const &
+//index(U const &v, TIndex const &i, ENABLE_IF(std::is_arithmetic<U>::vaule)) { return v; };
+
+
 template<typename T, typename TI>
 auto index(T &v, TI s, ENABLE_IF((!is_indexable<T, TI>::value))) DECL_RET_TYPE((v))
 

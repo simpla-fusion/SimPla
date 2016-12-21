@@ -14,10 +14,9 @@
 
 #include "macro.h"
 #include "mpl.h"
-#include "type_traits.h"
 #include "integer_sequence.h"
 #include "port_cxx14.h"
-
+#include "type_traits.h"
 #include "ExpressionTemplate.h"
 
 namespace simpla
@@ -60,233 +59,83 @@ namespace simpla
  *    @endcode}
  **/
 /// n-dimensional primary type
-template<typename, size_type ...I>
-struct nTuple;
+template<typename, size_type ...I> struct nTuple;
 
-template<typename ...>
-class Expression;
-
-namespace detail
-{
-
-template<typename   ...T>
-traits::value_type_t<nTuple<Expression<T...>>> get(nTuple<Expression<T...>> const &v, int i) { return v[i]; }
-
-template<typename TV, size_type I0, size_type ...I>
-TV const &get(nTuple<TV, I0, I...> const &v, int i) { return (v[i]); }
-
-template<typename TOther>
-TOther const &get(TOther const *v, int i) { return v[i]; };
-
-template<typename TOther>
-TOther const &get(TOther const &v, int i) { return v; };
-
-}
-
-template<typename TOP, typename ... Args>
-struct nTuple<Expression<TOP, Args...>> : public Expression<TOP, Args...>
-{
-    typedef nTuple<Expression<TOP, Args...>> this_type;
-
-    using Expression<TOP, Args...>::m_op_;
-    using Expression<TOP, Args...>::args;
-    using Expression<TOP, Args...>::Expression;
-
-    static constexpr size_type _N = traits::extent<this_type>::value;
-    //std::max<traits::extent<Args>::m_value_...>::entity;
-
-    typedef std::result_of_t<TOP(typename traits::value_type<Args>::type...)> value_type;
-
-    template<typename U, size_type ..._I>
-    operator nTuple<U, _I...>() const
-    {
-        nTuple<U, _I...> res;
-        res = *this;
-        return std::move(res);
-    }
-
-
-private:
-    template<size_type ... index>
-    value_type _invoke_helper(int s, index_sequence<index...>) const
-    {
-        return m_op_(detail::get(std::get<index>(args), s)...);
-    }
-
-public:
-    inline value_type at(int s) const { return (_invoke_helper(s, index_sequence_for<Args...>())); }
-
-    inline value_type operator[](int s) const { return at(s); }
-
-};
+template<typename ...> class Expression;
 //
-
-template<typename TOP, typename ... T>
-struct nTuple<BooleanExpression<TOP, T...> >
-        : public nTuple<Expression<TOP, T...> >
-{
-    typedef nTuple<BooleanExpression<TOP, T...>>
-            this_type;
-
-    using nTuple<Expression<TOP, T...>>::at;
-    using nTuple<Expression<TOP, T...>>::nTuple;
-
-    operator bool() const
-    {
-        static constexpr size_type N = mpl::max<int, traits::extent<T, 0>::type::value...>::value;
-
-        bool res = static_cast<bool>(at(0));
-
-        if (N > 1)
-        {
-            for (size_type s = 1; s < N; ++s)
-            {
-                res = typename _impl::op_traits<TOP>::type()(res,
-                                                             static_cast<bool>(at(s)));
-            }
-        }
-        return res;
-    }
-
-};
-
-template<typename TV>
-struct nTuple<TV>
-{
-private:
-
-
-    typedef nTuple<TV> this_type;
-
-
-public:
-
-    typedef TV value_type;
-
-    value_type data_;
-
-    value_type &at(size_type) { return data_; }
-
-    value_type const &at(size_type) const { return data_; }
-
-    value_type &operator[](size_type s) { return at(s); }
-
-    value_type const &operator[](size_type s) const { return at(s); }
-
-
-public:
-
-
-    template<typename Op, typename TR>
-    void assign(Op const &op, TR const &rhs) { op(data_, detail::get(rhs, 0)); }
-
-public:
-
-    template<typename TR>
-    inline this_type &operator=(TR const &rhs)
-    {
-        assign(_impl::_assign(), rhs);
-        return (*this);
-    }
-
-    template<typename TR>
-    inline this_type &operator+=(TR const &rhs)
-    {
-        assign(_impl::plus_assign(), rhs);
-        return (*this);
-    }
-
-    template<typename TR>
-    inline this_type &operator-=(TR const &rhs)
-    {
-        assign(_impl::minus_assign(), rhs);
-        return (*this);
-    }
-
-    template<typename TR>
-    inline this_type &operator*=(TR const &rhs)
-    {
-        assign(_impl::multiplies_assign(), rhs);
-        return (*this);
-    }
-
-    template<typename TR>
-    inline this_type &operator/=(TR const &rhs)
-    {
-        assign(_impl::divides_assign(), rhs);
-        return (*this);
-    }
-};
-
-template<typename TV, size_type N>
-struct nTuple<TV, N>
-{
-private:
-
-    typedef TV value_type;
-
-    typedef nTuple<value_type, N> this_type;
-
-
-public:
-    value_type data_[N];
-
-    value_type &operator[](size_type s) { return data_[s]; }
-
-    value_type const &operator[](size_type s) const { return data_[s]; }
-
-    value_type &at(size_type s) { return data_[s]; }
-
-    value_type const &at(size_type s) const { return data_[s]; }
-
-private:
-
-
-    template<typename Op, typename TR>
-    void assign(Op const &op, TR const &rhs) { for (size_type s = 0; s < N; ++s) { op(data_[s], detail::get(rhs, s)); }}
-
-public:
-
-    template<typename TR>
-    inline this_type &operator=(TR const &rhs)
-    {
-        for (int i = 0; i < N; ++i) { data_[i] = detail::get(rhs, i); };
-        return (*this);
-    }
-
-    template<typename TR>
-    inline this_type &operator+=(TR const &rhs)
-    {
-        for (int i = 0; i < N; ++i) { data_[i] += detail::get(rhs, i); };
-        return (*this);
-    }
-
-    template<typename TR>
-    inline this_type &operator-=(TR const &rhs)
-    {
-        for (int i = 0; i < N; ++i) { data_[i] -= detail::get(rhs, i); };
-        return (*this);
-    }
-
-    template<typename TR>
-    inline this_type &operator*=(TR const &rhs)
-    {
-        for (int i = 0; i < N; ++i) { data_[i] *= detail::get(rhs, i); };
-        return (*this);
-    }
-
-    template<typename TR>
-    inline this_type &operator/=(TR const &rhs)
-    {
-        for (int i = 0; i < N; ++i) { data_[i] /= detail::get(rhs, i); };
-        return (*this);
-    }
-
-};
+//
+//template<typename TOP, typename ... Args>
+//struct nTuple<Expression<TOP, Args...>> : public Expression<TOP, Args...>
+//{
+//    typedef nTuple<Expression<TOP, Args...>> this_type;
+//
+//    using Expression<TOP, Args...>::m_op_;
+//    using Expression<TOP, Args...>::args;
+//    using Expression<TOP, Args...>::Expression;
+//
+//    static constexpr size_type _N = traits::extent<this_type>::value;
+//    //std::max<traits::extent<Args>::m_value_...>::entity;
+//
+//    typedef std::result_of_t<TOP(typename traits::value_type<Args>::type...)> value_type;
+//
+//    template<typename U, size_type ..._I>
+//    operator nTuple<U, _I...>() const
+//    {
+//        nTuple<U, _I...> res;
+//        res = *this;
+//        return std::move(res);
+//    }
+//
+//
+//private:
+//    template<size_type ... index>
+//    value_type _invoke_helper(int s, index_sequence<index...>) const
+//    {
+//        return m_op_(detail::get(std::get<index>(args), s)...);
+//    }
+//
+//public:
+//    inline value_type at(int s) const { return (_invoke_helper(s, index_sequence_for<Args...>())); }
+//
+//    inline value_type operator[](int s) const { return at(s); }
+//
+//};
+////
+//
+//template<typename TOP, typename ... T>
+//struct nTuple<BooleanExpression<TOP, T...> >
+//        : public nTuple<Expression<TOP, T...> >
+//{
+//    typedef nTuple<BooleanExpression<TOP, T...>>
+//            this_type;
+//
+//    using nTuple<Expression<TOP, T...>>::at;
+//    using nTuple<Expression<TOP, T...>>::nTuple;
+//
+//    operator bool() const
+//    {
+//        static constexpr size_type N = mpl::max<int, traits::extent<T, 0>::type::value...>::value;
+//
+//        bool res = static_cast<bool>(at(0));
+//
+//        if (N > 1)
+//        {
+//            for (size_type s = 1; s < N; ++s)
+//            {
+//                res = typename _impl::op_traits<TOP>::type()(res,
+//                                                             static_cast<bool>(at(s)));
+//            }
+//        }
+//        return res;
+//    }
+//
+//};
 
 //----------------------------------------------------------------------------------------------------------------------
 namespace traits
 {
+template<typename TV, size_type I0, size_type ...I>
+TV const &index(nTuple<TV, I0, I...> const &v, int i) { return (v[i]); }
 
 template<typename>
 struct is_ntuple { static constexpr bool value = false; };
@@ -300,11 +149,7 @@ struct key_type<nTuple<T, N >> { typedef size_type type; };
 template<typename TV, size_type N>
 struct value_type<nTuple<TV, N> > { typedef traits::value_type_t<TV> type; };
 
-template<typename TOP, typename ... T>
-struct value_type<nTuple<Expression<TOP, T...> > >
-{
-    typedef std::result_of_t<TOP(traits::value_type_t<T>...)> type;
-};
+
 //----------------------------------------------------------------------------------------------------------------------
 
 template<typename T> struct rank;
@@ -480,6 +325,150 @@ struct pod_type<nTuple<T, N...>>
 
 
 }  // namespace traits
+//
+//template<typename TV>
+//struct nTuple<TV>
+//{
+//private:
+//
+//
+//    typedef nTuple<TV> this_type;
+//
+//
+//public:
+//
+//    typedef TV value_type;
+//
+//    value_type data_;
+//
+//    value_type &at(size_type) { return data_; }
+//
+//    value_type const &at(size_type) const { return data_; }
+//
+//    value_type &operator[](size_type s) { return at(s); }
+//
+//    value_type const &operator[](size_type s) const { return at(s); }
+//
+//
+//public:
+//
+//
+//    template<typename Op, typename TR>
+//    void assign(Op const &op, TR const &rhs)
+//    {
+//        op(data_, traits::index(rhs, 0));
+//    }
+//
+//
+//public:
+//
+//    template<typename TR>
+//    inline this_type &operator=(TR const &rhs)
+//    {
+//        assign(_impl::_assign(), rhs);
+//        return (*this);
+//    }
+//
+//    template<typename TR>
+//    inline this_type &operator+=(TR const &rhs)
+//    {
+//        assign(_impl::plus_assign(), rhs);
+//        return (*this);
+//    }
+//
+//    template<typename TR>
+//    inline this_type &operator-=(TR const &rhs)
+//    {
+//        assign(_impl::minus_assign(), rhs);
+//        return (*this);
+//    }
+//
+//    template<typename TR>
+//    inline this_type &operator*=(TR const &rhs)
+//    {
+//        assign(_impl::multiplies_assign(), rhs);
+//        return (*this);
+//    }
+//
+//    template<typename TR>
+//    inline this_type &operator/=(TR const &rhs)
+//    {
+//        assign(_impl::divides_assign(), rhs);
+//        return (*this);
+//    }
+//};
+
+template<typename TV, size_type N>
+struct nTuple<TV, N>
+{
+private:
+
+    typedef TV value_type;
+
+    typedef nTuple<value_type, N> this_type;
+
+
+public:
+    value_type data_[N];
+
+    value_type &operator[](size_type s) { return data_[s]; }
+
+    value_type const &operator[](size_type s) const { return data_[s]; }
+
+    value_type &at(size_type s) { return data_[s]; }
+
+    value_type const &at(size_type s) const { return data_[s]; }
+
+private:
+
+
+    template<typename Op, typename TR>
+    void assign(Op const &op, TR const &rhs)
+    {
+        for (size_type s = 0; s < N; ++s)
+        {
+            op(data_[s], traits::index(rhs, s));
+        }
+    }
+
+public:
+
+    template<typename TR>
+    inline this_type &operator=(TR const &rhs)
+    {
+        for (int i = 0; i < N; ++i) { data_[i] = traits::index(rhs, i); };
+        return (*this);
+    }
+
+    template<typename TR>
+    inline this_type &operator+=(TR const &rhs)
+    {
+        for (int i = 0; i < N; ++i) { data_[i] += traits::index(rhs, i); };
+        return (*this);
+    }
+
+    template<typename TR>
+    inline this_type &operator-=(TR const &rhs)
+    {
+        for (int i = 0; i < N; ++i) { data_[i] -= traits::index(rhs, i); };
+        return (*this);
+    }
+
+    template<typename TR>
+    inline this_type &operator*=(TR const &rhs)
+    {
+        for (int i = 0; i < N; ++i) { data_[i] *= traits::index(rhs, i); };
+        return (*this);
+    }
+
+    template<typename TR>
+    inline this_type &operator/=(TR const &rhs)
+    {
+        for (int i = 0; i < N; ++i) { data_[i] /= traits::index(rhs, i); };
+        return (*this);
+    }
+
+};
 
 template<typename T, size_type N> using Vector=nTuple<T, N>;
 
@@ -598,14 +587,14 @@ DECL_RET_TYPE((
 template<typename T1, size_type ... N1, typename T2, size_type ... N2>
 inline auto cross(nTuple<T1, N1...> const &l, nTuple<T2, N2...> const &r)
 DECL_RET_TYPE((
-                      nTuple<decltype(detail::get(l, 0) * detail::get(r, 0)), 3> {
+                      nTuple<decltype(traits::index(l, 0) * traits::index(r, 0)), 3> {
 
-                              detail::get(l, 1) * detail::get(r, 2)
-                              - detail::get(l, 2) * detail::get(r, 1),
-                              detail::get(l, 2) * detail::get(r, 0)
-                              - detail::get(l, 0) * detail::get(r, 2),
-                              detail::get(l, 0) * detail::get(r, 1)
-                              - detail::get(l, 1) * detail::get(r, 0)
+                              traits::index(l, 1) * traits::index(r, 2)
+                              - traits::index(l, 2) * traits::index(r, 1),
+                              traits::index(l, 2) * traits::index(r, 0)
+                              - traits::index(l, 0) * traits::index(r, 2),
+                              traits::index(l, 0) * traits::index(r, 1)
+                              - traits::index(l, 1) * traits::index(r, 0)
                       }
               ))
 //----------------------------------------------------------------------------------------------------------------------
@@ -615,90 +604,90 @@ DECL_RET_TYPE((
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_RIGHT_OPERATOR(_OP_, _NAME_)                                                  \
     template<typename T1,size_type ...N1,typename  T2> \
-    constexpr nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
+    constexpr  Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>  \
     operator _OP_(nTuple<T1,N1...> const & l,T2 const &r)  \
-    {return (nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r)) ;}                 \
+    {return ( Expression<_impl::_NAME_,nTuple<T1,N1...>,T2> (l,r)) ;}                 \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_OPERATOR(_OP_, _NAME_)                                                  \
     template<typename T1,size_type ...N1,typename  T2> \
-    constexpr nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
+    constexpr  Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>  \
     operator _OP_(nTuple<T1, N1...> const & l,T2 const&r)  \
-    {return (nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r));}                    \
+    {return ( Expression<_impl::_NAME_,nTuple<T1,N1...>,T2> (l,r));}                    \
     \
     template< typename T1,typename T2 ,size_type ...N2> \
-    constexpr nTuple<Expression< _impl::_NAME_,T1,nTuple< T2,N2...>>> \
+    constexpr Expression< _impl::_NAME_,T1,nTuple< T2,N2...>>  \
     operator _OP_(T1 const & l, nTuple< T2,N2...>const &r)                    \
-    {return (nTuple<Expression< _impl::_NAME_,T1,nTuple< T2,N2...>>>(l,r))  ;}                \
+    {return ( Expression< _impl::_NAME_,T1,nTuple< T2,N2...>> (l,r))  ;}                \
     \
     template< typename T1,size_type ... N1,typename T2 ,size_type ...N2>  \
-    constexpr nTuple<Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
+    constexpr  Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>> \
     operator _OP_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
-    {return (nTuple<Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r));}                    \
+    {return ( Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>> (l,r));}                    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_OPERATOR(_OP_, _NAME_)                           \
         template<typename T,size_type ...N> \
-        constexpr nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >> \
+        constexpr  Expression<_impl::_NAME_,nTuple<T,N...> >  \
         operator _OP_(nTuple<T,N...> const &l)  \
-        {return (nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
+        {return ( Expression<_impl::_NAME_,nTuple<T,N...> > (l)) ;}    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_FUNCTION(_NAME_)                                                  \
             template<typename T1,size_type ...N1,typename  T2> \
-            constexpr    nTuple<BooleanExpression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>> \
+            constexpr  BooleanExpression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>  \
             _NAME_(nTuple<T1,N1...> const & l,T2 const &r)  \
-            {return (nTuple<BooleanExpression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>>(l,r));}       \
+            {return ( BooleanExpression<_impl::_##_NAME_,nTuple<T1,N1...>,T2> (l,r));}       \
             \
             template< typename T1,typename T2,size_type ...N2> \
-            constexpr    nTuple<Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>>>\
+            constexpr   Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>> \
             _NAME_(T1 const & l, nTuple< T2,N2...>const &r)                    \
-            {return (nTuple<Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>>>(l,r)) ;}       \
+            {return ( Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>> (l,r)) ;}       \
             \
             template< typename T1,size_type ... N1,typename T2,size_type  ...N2> \
-            constexpr    nTuple<Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
+            constexpr    Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>> \
             _NAME_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
-            {return (nTuple<Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r))  ;}   \
+            {return ( Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>> (l,r))  ;}   \
 
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_FUNCTION(_NAME_)                           \
         template<typename T,size_type ...N> \
-        constexpr nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>> \
+        constexpr   Expression<_impl::_##_NAME_,nTuple<T,N...>>  \
         _NAME_(nTuple<T,N ...> const &r)  \
-        {return (nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>>(r));}     \
+        {return ( Expression<_impl::_##_NAME_,nTuple<T,N...>> (r));}     \
 
 
-DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
+DEFINE_EXPRESSION_TEMPLATE_BASIC_ALGEBRA2(nTuple)
 
 /** @}*/
 //----------------------------------------------------------------------------------------------------------------------
 
-
-#define _SP_DEFINE_nTuple_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                                                  \
-    template<typename T1,size_type ...N1,typename  T2> \
-    constexpr nTuple<BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
-    operator _OP_(nTuple<T1, N1...> const & l,T2 const&r)  \
-    {return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r));}                    \
-    \
-    template< typename T1,typename T2 ,size_type ...N2> \
-    constexpr nTuple<BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>>> \
-    operator _OP_(T1 const & l, nTuple< T2,N2...>const &r)                    \
-    {return (nTuple<BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>>>(l,r))  ;}                \
-    \
-    template< typename T1,size_type ... N1,typename T2 ,size_type ...N2>  \
-    constexpr nTuple<BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
-    operator _OP_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
-    {return (nTuple<BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r));}                    \
-
-
-#define _SP_DEFINE_nTuple_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                           \
-        template<typename T,size_type ...N> \
-        constexpr nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> >> \
-        operator _OP_(nTuple<T,N...> const &l)  \
-        {return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
-
-
-DEFINE_EXPRESSOPM_TEMPLATE_BOOLEAN_ALGEBRA2(nTuple)
+//
+//#define _SP_DEFINE_nTuple_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                                                  \
+//    template<typename T1,size_type ...N1,typename  T2> \
+//    constexpr  BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2>  \
+//    operator _OP_(nTuple<T1, N1...> const & l,T2 const&r)  \
+//    {return ( BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2> (l,r));}                    \
+//    \
+//    template< typename T1,typename T2 ,size_type ...N2> \
+//    constexpr  BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>>  \
+//    operator _OP_(T1 const & l, nTuple< T2,N2...>const &r)                    \
+//    {return ( BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>> (l,r))  ;}                \
+//    \
+//    template< typename T1,size_type ... N1,typename T2 ,size_type ...N2>  \
+//    constexpr BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>> \
+//    operator _OP_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
+//    {return ( BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>> (l,r));}                    \
+//
+//
+//#define _SP_DEFINE_nTuple_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                           \
+//        template<typename T,size_type ...N> \
+//        constexpr  BooleanExpression<_impl::_NAME_,nTuple<T,N...> >  \
+//        operator _OP_(nTuple<T,N...> const &l)  \
+//        {return ( BooleanExpression<_impl::_NAME_,nTuple<T,N...> > (l)) ;}    \
+//
+//
+//DEFINE_EXPRESSOPM_TEMPLATE_BOOLEAN_ALGEBRA2(nTuple)
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -714,10 +703,10 @@ reduce(TOP const &op, nTuple<T, N0, N...> const &v)
 {
     static constexpr size_type n = N0;
 
-    traits::value_type_t<nTuple<T, N0, N...> > res = reduce(op, detail::get(v, 0));
+    traits::value_type_t<nTuple<T, N0, N...> > res = reduce(op, traits::index(v, 0));
     if (n > 1)
     {
-        for (size_type s = 1; s < n; ++s) { res = op(res, reduce(op, detail::get(v, s))); }
+        for (size_type s = 1; s < n; ++s) { res = op(res, reduce(op, traits::index(v, s))); }
     }
     return
             res;
@@ -745,7 +734,7 @@ void for_each(TOP const &op, index_sequence<N, M...>,
 {
     for (size_type s = 0; s < N; ++s)
     {
-        for_each(op, index_sequence<M...>(), detail::get(std::forward<Args>(args), s)...);
+        for_each(op, index_sequence<M...>(), traits::index(std::forward<Args>(args), s)...);
     }
 
 }
@@ -800,7 +789,7 @@ void swap(simpla::nTuple<T, N> &l, simpla::nTuple<T, N> &r)
 template<typename T, size_type N, size_type M0, size_type ... M>
 void swap(simpla::nTuple<T, N, M0, M...> &l, simpla::nTuple<T, N, M0, M...> &r)
 {
-    for (size_type s = 0; s < N; ++s) { swap(simpla::detail::get(l, s), simpla::detail::get(r, s)); }
+    for (size_type s = 0; s < N; ++s) { swap(simpla::traits::index(l, s), simpla::traits::index(r, s)); }
 }
 
 template<typename T, size_type N, size_type ... M>
@@ -810,7 +799,7 @@ void swap(simpla::nTuple<T, N, M...> &l,
 
     for (size_type s = 0; s < N; ++s)
     {
-        swap(simpla::detail::get(l, s), simpla::detail::get(r, s));
+        swap(simpla::traits::index(l, s), simpla::traits::index(r, s));
     }
 }
 

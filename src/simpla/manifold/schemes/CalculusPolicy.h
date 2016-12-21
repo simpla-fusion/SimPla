@@ -69,9 +69,8 @@ public:
 //    typename traits::value_type<Field<TV, OM, index_const<IFORM>>>::type &
 //    eval(m,mesh_type const & m,Field<TV, OM, index_const<IFORM>> &f, MeshEntityId const& s) { return f[s]; };
 
-    template<typename TV, typename OM, size_t IFORM, size_type DOF> inline static TV
-    eval(mesh_type const &m, Field<TV, OM, index_const<IFORM>, index_const<DOF> > const &f,
-         MeshEntityId const &s) { return f[s]; };
+    template<typename U> inline static typename traits::value_type<U>::type
+    eval(mesh_type const &m, Field<U> const &f, MeshEntityId const &s) { return f[s]; };
 
 
 private:

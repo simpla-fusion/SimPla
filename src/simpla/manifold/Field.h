@@ -26,24 +26,32 @@
 namespace simpla
 {
 
-/**  @addtogroup physics Physics */
 
 template<typename ...> class Field;
 
 
-template<typename TV, typename TM, size_type I, size_type DOF>
-class Field<TV, TM, index_const<I>, index_const<DOF>>
-        : public manifold::PhysicalQuantity<TV, TM, static_cast<mesh::MeshEntityType >(I), DOF>
+template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF> using FieldType=Field<PhysicalQuantity<TV, TM, I, DOF> >;
+namespace traits
 {
-    typedef manifold::PhysicalQuantity<TV, TM, static_cast<mesh::MeshEntityType >(I), DOF> phy_quantity_type;
-    typedef Field<TV, TM, index_const<I>, index_const<DOF>> field_type;
+template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF>
+struct reference<Field<PhysicalQuantity<TV, TM, I, DOF> > >
+{
+    typedef Field<PhysicalQuantity<TV, TM, I, DOF> > const &type;
+};
+}
 
-    SP_OBJECT_HEAD(field_type, phy_quantity_type);
-
+template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF>
+class Field<PhysicalQuantity<TV, TM, I, DOF> >
+{
 private:
-    static constexpr mesh::MeshEntityType IFORM = static_cast<mesh::MeshEntityType>(I);
+    typedef PhysicalQuantity<TV, TM, I, DOF> phy_quantity_type;
+    typedef Field<PhysicalQuantity<TV, TM, I, DOF> > field_type;
 
+SP_OBJECT_HEAD(field_type, phy_quantity_type);
 public:
+    using base_type::IFORM;
+    using base_type::dof;
+
     typedef TV value_type;
     typedef TM mesh_type;
     typedef typename std::conditional<DOF == 1, value_type, nTuple<value_type, DOF> >::type cell_tuple;
@@ -74,7 +82,6 @@ public:
     Field(this_type const &other) = delete;
 
     Field(this_type &&other) = delete;
-
 
 
     virtual mesh::MeshEntityType entity_type() const { return IFORM; };
@@ -288,7 +295,6 @@ public:
 
 
 };
-
 
 }//namespace simpla
 

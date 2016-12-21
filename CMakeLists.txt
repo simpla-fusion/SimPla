@@ -89,7 +89,7 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/SIMPLA_config.h.in
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include/)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-add_subdirectory(src)
+add_subdirectory(src/simpla)
 add_subdirectory(example)
 add_subdirectory(tools)
 add_subdirectory(docs)
@@ -98,5 +98,5 @@ add_subdirectory(scenario)
 #add_subdirectory(sp_lite)
 
 # workaround for CLion 1.0.x
-FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp)
+#FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
+#add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp)

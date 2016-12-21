@@ -8,8 +8,9 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/mesh/Attribute.h>
 
-namespace simpla { namespace manifold
+namespace simpla
 {
+
 
 template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF>
 class PhysicalQuantity : public mesh::Attribute
@@ -18,13 +19,11 @@ class PhysicalQuantity : public mesh::Attribute
 
 SP_OBJECT_HEAD(field_type, mesh::Attribute);
 
-private:
-    static constexpr mesh::MeshEntityType IFORM = I;
 
 public:
     typedef TV value_type;
     typedef TM mesh_type;
-
+    static constexpr mesh::MeshEntityType IFORM = I;
 private:
     typedef typename mesh_type::template data_block_type<TV, IFORM, DOF> data_block_type;
 
@@ -36,7 +35,6 @@ public:
 
     template<typename ...Args>
     explicit PhysicalQuantity(Args &&...args):
-            base_type(nullptr, std::make_shared<mesh::AttributeDescTemp<TV, I, DOF>>(std::forward<Args>(args)  ...)),
             m_mesh_(nullptr),
             m_data_(nullptr) {};
 
@@ -203,6 +201,21 @@ public:
 
 
 };
-}}//namespace simpla { namespace manifold
+
+namespace traits
+{
+
+template<typename ...> struct ifrom;
+template<typename ...> struct value_type;
+
+template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF>
+struct iform<PhysicalQuantity<TV, TM, I, DOF> > : public std::integral_constant<size_t, I> {};
+
+template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF>
+struct value_type<PhysicalQuantity<TV, TM, I, DOF> > { typedef TV value_type; };
+
+}
+
+}//namespace simpla
 
 #endif //SIMPLA_PHYSICALQUANTITY_H

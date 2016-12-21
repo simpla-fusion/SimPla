@@ -766,7 +766,7 @@ bool value_in_range(T0 const &b, T1 const &e, T2 const &x)
         {return (nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>>(r));}     \
 
 
-DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
+DEFINE_EXPRESSION_TEMPLATE_BASIC_ALGEBRA2(nTuple)
 
 /** @}*/
 

@@ -16,6 +16,8 @@ namespace simpla
 template<size_type I> using index_const=std::integral_constant<size_type, I>;
 
 template<typename ...> class Field;
+
+template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF> class PhysicalQuantity;
 }
 namespace simpla { namespace manifold { namespace schemes
 {
@@ -250,37 +252,36 @@ public:
         return (1.0 - m.distance(x1, x0) / a);
     }
 
-    template<typename V, size_type DOF, typename U> static inline void
-    assign(Field<V, mesh_type, index_const<0>, index_const<DOF> > &f, mesh_type const &m,
-           MeshEntityId const &s, nTuple <U, DOF> const &v)
+    template<typename V, mesh::MeshEntityType IFORM, size_type DOF, typename U> static inline void
+    assign(PhysicalQuantity<V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+           nTuple <U, DOF> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     }
 
     template<typename V, size_type DOF, typename U> static inline void
-    assign(Field<V, mesh_type, index_const<static_cast<size_type>(EDGE)>, index_const<DOF> > &f, mesh_type const &m,
-           MeshEntityId const &s, nTuple<U, 3> const &v)
+    assign(PhysicalQuantity<V, mesh_type, EDGE, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+           nTuple<U, 3> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
     }
 
     template<typename V, size_type DOF, typename U> static inline void
-    assign(Field<V, mesh_type, index_const<static_cast<size_type>(FACE)>, index_const<DOF> > &f, mesh_type const &m,
-           MeshEntityId const &s, nTuple<U, 3> const &v)
+    assign(PhysicalQuantity<V, mesh_type, FACE, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+           nTuple<U, 3> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
     }
 
     template<typename V, size_type DOF, typename U> static inline void
-    assign(Field<V, mesh_type, index_const<static_cast<size_type>(VOLUME)>, index_const<DOF> > &f, mesh_type const &m,
-           MeshEntityId const &s, nTuple <U, DOF> const &v)
+    assign(PhysicalQuantity<V, mesh_type, VOLUME, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+           nTuple <U, DOF> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     }
 
-    template<typename V, size_type IFORM, size_type DOF, typename U> static inline void
-    assign(Field<V, mesh_type, index_const<IFORM>, index_const<DOF> > &f, mesh_type const &m,
-           MeshEntityId const &s, U const &v)
+    template<typename V, mesh::MeshEntityType IFORM, size_type DOF, typename U> static inline void
+    assign(PhysicalQuantity<V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s, U const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v; }
     }

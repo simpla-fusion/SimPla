@@ -28,7 +28,7 @@ class EMFluid : public Worker
 
 public:
 
-    SP_OBJECT_HEAD(EMFluid<TM>, Worker);
+SP_OBJECT_HEAD(EMFluid<TM>, Worker);
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
@@ -62,8 +62,7 @@ public:
 
     virtual void set_physical_boundary_conditions_B(Real time = 0) {};
 
-    template<mesh::MeshEntityType IFORM, size_type DOF = 1>
-    using field_type=Field<scalar_type, TM, index_const<IFORM>, index_const<DOF>>;
+    template<mesh::MeshEntityType IFORM, size_type DOF = 1> using field_type=FieldType<scalar_type, TM, IFORM, DOF>;
 
 
     typedef field_type<FACE> TB;

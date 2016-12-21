@@ -91,12 +91,12 @@ template<typename _Tp, _Tp _Num>
 using make_integer_sequence= typename _impl::_Make_integer_sequence<_Tp, _Num>::__type;
 
 /// Alias template index_sequence
-template<size_t... _Idx>
-using index_sequence = integer_sequence<size_t, _Idx...>;
+template<size_type ... _Idx>
+using index_sequence = integer_sequence<size_type, _Idx...>;
 
 /// Alias template make_index_sequence
-template<size_t _Num>
-using make_index_sequence = make_integer_sequence<size_t, _Num>;
+template<size_type _Num>
+using make_index_sequence = make_integer_sequence<size_type, _Num>;
 
 /// Alias template index_sequence_for
 template<typename... _Types>
