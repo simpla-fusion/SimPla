@@ -7,7 +7,7 @@
 
 #include <string>
 
-namespace simpla { namespace data { class DataEntityTable; }}
+namespace simpla { namespace data { class DataTable; }}
 
 namespace simpla { namespace concept
 {/**  @ingroup concept   */
@@ -26,9 +26,9 @@ namespace simpla { namespace concept
  */
 struct Serializable
 {
-    virtual void load(data::DataEntityTable const &) =0;
+    virtual void load(data::DataTable const &) =0;
 
-    virtual void save(data::DataEntityTable *) const =0;
+    virtual void save(data::DataTable *) const =0;
 };
 
 

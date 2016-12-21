@@ -26,6 +26,7 @@
 namespace simpla
 {
 
+/**  @addtogroup physics Physics */
 
 template<typename ...> class Field;
 

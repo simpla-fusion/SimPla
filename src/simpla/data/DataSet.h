@@ -23,7 +23,7 @@
 namespace simpla { namespace data
 {
 /**
- * @addtogroup data_model Dataset
+ * @addtogroup data  Dataset
  * @brief This section describes the interface of m_data set.
  *
  * @ref data_model  is a group of classes used to exchange m_data between different libraries
@@ -32,7 +32,7 @@ namespace simpla { namespace data
  */
 
 /**
- * @ingroup data_model
+ * @ingroup data
  *
  * @brief Describe structure of m_data in the memory.
  *

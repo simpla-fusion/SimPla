@@ -16,6 +16,8 @@ namespace simpla { template<typename ...> struct Field; }
 
 namespace simpla { namespace particle
 {
+/**  @addtogroup physics Physics */
+
 template<typename ...> struct Particle;
 
 

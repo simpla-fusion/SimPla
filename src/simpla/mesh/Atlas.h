@@ -46,9 +46,9 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
-    virtual void load(const data::DataEntityTable &);
+    virtual void load(const data::DataTable &);
 
-    virtual void save(data::DataEntityTable *) const;
+    virtual void save(data::DataTable *) const;
 
     size_type count(int level) const;
 

@@ -6,12 +6,15 @@
 #define SIMPLA_LUADATABASE_H
 
 #include <simpla/toolbox/LuaObject.h>
-#include "DataEntityTable.h"
+#include "DataTable.h"
 
 namespace simpla { namespace data
 {
-
-class LuaDataBase : public DataEntityTable
+/** @ingroup data */
+/**
+ * @brief
+ */
+class LuaDataBase : public DataTable
 {
 public:
     LuaDataBase();
@@ -22,17 +25,17 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const { return toolbox::LuaObject::print(os, indent); };
 
-    virtual void insert(std::string const &key, std::shared_ptr<DataEntityTable> const &v) { UNIMPLEMENTED; };
+    virtual void insert(std::string const &key, std::shared_ptr<DataTable> const &v) { UNIMPLEMENTED; };
 
 
-    virtual std::shared_ptr<DataEntityTable> create() const
+    virtual std::shared_ptr<DataTable> create() const
     {
-        return std::dynamic_pointer_cast<DataEntityTable>(std::make_shared<LuaDataBase>());
+        return std::dynamic_pointer_cast<DataTable>(std::make_shared<LuaDataBase>());
     };
 
     virtual bool is_a(std::type_info const &t_id) const
     {
-        return t_id == typeid(LuaDataBase) || DataEntityTable::is_a(t_id);
+        return t_id == typeid(LuaDataBase) || DataTable::is_a(t_id);
     }
 
     virtual bool is_table() const;
@@ -43,19 +46,19 @@ public:
 
     virtual bool has(std::string const &key) const;
 
-//    virtual void set_value(std::string const &key, std::shared_ptr<DataEntityTable> const &v);
+//    virtual void set_value(std::string const &key, std::shared_ptr<DataTable> const &v);
 
 
-    virtual DataEntityTable &at(std::string const &key);
+    virtual DataTable &at(std::string const &key);
 
-    virtual DataEntityTable const &at(std::string const &key) const;
+    virtual DataTable const &at(std::string const &key) const;
 
-    virtual void foreach(std::function<void(std::string const &key, DataEntityTable const &)> const &) const
+    virtual void foreach(std::function<void(std::string const &key, DataTable const &)> const &) const
     {
         UNIMPLEMENTED;
     };
 
-    virtual void foreach(std::function<void(std::string const &key, DataEntityTable &)> const &)
+    virtual void foreach(std::function<void(std::string const &key, DataTable &)> const &)
     {
         UNIMPLEMENTED;
     };

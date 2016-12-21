@@ -10,18 +10,22 @@
 
 namespace simpla { namespace data
 {
-struct DataEntityHeavy : public DataEntity, public concept::LifeControllable
+/** @ingroup data */
+/**
+ * @brief  large data, which should not be passed  between modules by value, such as big matrix or
+ */
+struct HeavyData : public DataEntity
 {
-    SP_OBJECT_HEAD(DataEntityHeavy, DataEntity);
+    SP_OBJECT_HEAD(HeavyData, DataEntity);
 public:
 
-    DataEntityHeavy() {}
+    HeavyData() {}
 
-    virtual ~DataEntityHeavy() {}
+    virtual ~HeavyData() {}
 
     virtual bool is_heavy() const { return true; }
 
-    virtual void deep_copy(DataEntityHeavy const &other) {}
+    virtual void deep_copy(HeavyData const &other) {}
 
     virtual void clear() {}
 

@@ -47,9 +47,9 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
-    virtual void load(data::DataEntityTable const &) { UNIMPLEMENTED; }
+    virtual void load(data::DataTable const &) { UNIMPLEMENTED; }
 
-    virtual void save(data::DataEntityTable *) const { UNIMPLEMENTED; }
+    virtual void save(data::DataTable *) const { UNIMPLEMENTED; }
 
 //    virtual std::shared_ptr<Chart> clone_mesh() const =0;
 

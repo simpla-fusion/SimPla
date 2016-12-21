@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Memory.h>
-#include "DataEntityHeavy.h"
+#include "HeavyData.h"
 
 namespace simpla { namespace data
 {
@@ -18,11 +18,15 @@ enum
     SLOW_FIRST = 0, //C_OLDER
     FAST_FIRST = 1//FORTRAN_ORDER
 };
-
+/** @ingroup data */
+/**
+ * @brief
+ * @tparam V
+ */
 template<typename V>
-class DataEntityNDArray : public DataEntityHeavy
+class DataEntityNDArray : public HeavyData
 {
-    SP_OBJECT_HEAD(DataEntityNDArray<V>, DataEntityHeavy);
+    SP_OBJECT_HEAD(DataEntityNDArray<V>, HeavyData);
 
 public:
 
@@ -141,9 +145,9 @@ public:
 
     }
 
-    virtual void load(DataEntityTable const &, std::string const & = "") { UNIMPLEMENTED; };
+    virtual void load(DataTable const &, std::string const & = "") { UNIMPLEMENTED; };
 
-    virtual void save(DataEntityTable *, std::string const & = "") const { UNIMPLEMENTED; };
+    virtual void save(DataTable *, std::string const & = "") const { UNIMPLEMENTED; };
 
     virtual bool empty() const { return m_data_ == nullptr; }
 

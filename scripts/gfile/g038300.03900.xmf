@@ -10,9 +10,9 @@
 0.021875 0.0125 
 </DataItem>
       </BaseManifold>
-      <DataEntityHeavy Name="Psi" AttributeType="Scalar" Center="Node">
+      <HeavyData Name="Psi" AttributeType="Scalar" Center="Node">
         <DataItem Dimensions="129 129" NumberType="Float" Precision="8" Format="HDF">../example/gfile/g038300.03900.h5:/Psi</DataItem>
-      </DataEntityHeavy>
+      </HeavyData>
     </Grid>
     <Grid Name="Boundary" GridType="Uniform">
       <Topology NodesPerElement="2" TopologyType="Polyline" Dimensions="93">

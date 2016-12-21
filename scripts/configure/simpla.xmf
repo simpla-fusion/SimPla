@@ -26,7 +26,7 @@
 	</BaseManifold>
 	<Information Name="dt"> 1.0  </Information>
 	
-	<DataEntityHeavy Name="n0" AttributeType="Scalar" Center="Node">
+	<HeavyData Name="n0" AttributeType="Scalar" Center="Node">
 		<Information  Type="LuaScript">
 		local f0=1.9
         local k={0,1,1}
@@ -39,15 +39,15 @@
             return r
         end
 		</Information>	   
-	</DataEntityHeavy>
+	</HeavyData>
 
-	<DataEntityHeavy Name="E" AttributeType="Scalar" Center="Edge" />
+	<HeavyData Name="E" AttributeType="Scalar" Center="Edge" />
 
-	<DataEntityHeavy Name="B0" AttributeType="Scalar" Center="Face"/>
+	<HeavyData Name="B0" AttributeType="Scalar" Center="Face"/>
 
-	<DataEntityHeavy Name="ion" AttributeType="Particle" Type="Default" Mass="1.0" Charge="1.0"/>
+	<HeavyData Name="ion" AttributeType="Particle" Type="Default" Mass="1.0" Charge="1.0"/>
 
-	<DataEntityHeavy Name="electron" AttributeType="Particle" Type="GGauge" Mass="1.0" Charge="-1.0"/>
+	<HeavyData Name="electron" AttributeType="Particle" Type="GGauge" Mass="1.0" Charge="-1.0"/>
 
 	
 </Grid>

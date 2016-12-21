@@ -31,7 +31,7 @@ template<typename T> struct value_type;
 namespace simpla { namespace data
 {
 /**
- *  @ingroup data_interface
+ *  @ingroup data
  *
  *  \brief  Description of m_data type
  *

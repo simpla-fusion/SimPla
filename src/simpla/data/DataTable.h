@@ -2,8 +2,8 @@
 // Created by salmon on 16-10-6.
 //
 
-#ifndef SIMPLA_DICT_H
-#define SIMPLA_DICT_H
+#ifndef SIMPLA_DATATREE_H_
+#define SIMPLA_DATATREE_H_
 
 
 #include <simpla/SIMPLA_config.h>
@@ -20,20 +20,23 @@
 
 namespace simpla { namespace data
 {
-
-class DataEntityTable : public DataEntity
+/** @ingroup data */
+/**
+ * @brief  a @ref DataEntity tree, a key-value table of @ref DataEntity, which is similar as Group in HDF5, but all node/table are DataEntity.
+ */
+class DataTable : public DataEntity
 {
-    SP_OBJECT_HEAD(DataEntityTable, DataEntity);
+SP_OBJECT_HEAD(DataTable, DataEntity);
 
 public:
 
-    DataEntityTable();
+    DataTable();
 
-    DataEntityTable(DataEntityTable const &) = delete;
+    DataTable(DataTable const &) = delete;
 
-    DataEntityTable(DataEntityTable &&) = delete;
+    DataTable(DataTable &&) = delete;
 
-    virtual  ~DataEntityTable();
+    virtual  ~DataTable();
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
@@ -81,7 +84,7 @@ public:
     template<typename U> std::shared_ptr<DataEntity> &
     set_value(std::string const &url, U const &v) { return set(url, create_data_entity(v)); }
 
-    virtual DataEntityTable *create_table(std::string const &url);
+    virtual DataTable *create_table(std::string const &url);
 
     /**
      *
@@ -100,6 +103,12 @@ public:
         return p == nullptr ? u : p->as<U>();
     }
 
+//    template<typename U> U const &get_value(std::string const &url, U const &u)
+//    {
+//        auto *p = find(url);
+//
+//        if (p != nullptr) { return p->as<U>(); } else { return set_value(url, u)->as<U>(); }
+//    }
 
     /**
      *
@@ -112,17 +121,17 @@ public:
     virtual DataEntity const &at(std::string const &key) const;
 
 
-    DataEntityLight &as_light(std::string const &url) { return at(url).as_light(); };
+    LightData &as_light(std::string const &url) { return at(url).as_light(); };
 
-    DataEntityLight const &as_light(std::string const &url) const { return at(url).as_light(); };
+    LightData const &as_light(std::string const &url) const { return at(url).as_light(); };
 
-    DataEntityHeavy &as_heavy(std::string const &url) { return at(url).as_heavy(); };
+    HeavyData &as_heavy(std::string const &url) { return at(url).as_heavy(); };
 
-    DataEntityHeavy const &as_heavy(std::string const &url) const { return at(url).as_heavy(); };
+    HeavyData const &as_heavy(std::string const &url) const { return at(url).as_heavy(); };
 
-    DataEntityTable &as_table(std::string const &url) { return at(url).as_table(); };
+    DataTable &as_table(std::string const &url) { return at(url).as_table(); };
 
-    DataEntityTable const &as_table(std::string const &url) const { return at(url).as_table(); };
+    DataTable const &as_table(std::string const &url) const { return at(url).as_table(); };
 
 
 protected:
@@ -134,4 +143,4 @@ protected:
 
 }}//namespace simpla{namespace toolbox{
 
-#endif //SIMPLA_DICT_H
+#endif //SIMPLA_DATATREE_H_

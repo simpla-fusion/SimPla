@@ -9,7 +9,7 @@
 #include <memory>
 
 #include <simpla/mesh/Atlas.h>
-#include <simpla/data/DataEntityTable.h>
+#include <simpla/data/DataTable.h>
 
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
@@ -37,9 +37,9 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
 
-    virtual void load(data::DataEntityTable const &) { UNIMPLEMENTED; };
+    virtual void load(data::DataTable const &) { UNIMPLEMENTED; };
 
-    virtual void save(data::DataEntityTable *) const { UNIMPLEMENTED; };
+    virtual void save(data::DataTable *) const { UNIMPLEMENTED; };
 
     virtual void update_level(int l0, int l1) { UNIMPLEMENTED; };
 

@@ -11,10 +11,17 @@
 
 namespace simpla { namespace data
 {
-struct DataEntityLight;
-struct DataEntityTable;
-struct DataEntityHeavy;
 
+/** @ingroup data */
+struct DataTable;
+struct HeavyData;
+struct LightData;
+
+/** @ingroup data */
+
+/**
+ * @brief primary object of data
+ */
 struct DataEntity : public concept::Printable
 {
 public:
@@ -44,17 +51,17 @@ public:
 
     virtual void deep_copy(DataEntity const &other) { UNIMPLEMENTED; }
 
-    DataEntityTable &as_table();
+    DataTable &as_table();
 
-    DataEntityTable const &as_table() const;
+    DataTable const &as_table() const;
 
-    DataEntityLight &as_light();
+    LightData &as_light();
 
-    DataEntityLight const &as_light() const;
+    LightData const &as_light() const;
 
-    DataEntityHeavy &as_heavy();
+    HeavyData &as_heavy();
 
-    DataEntityHeavy const &as_heavy() const;
+    HeavyData const &as_heavy() const;
 
     template<typename U, typename ...Args> U &as(Args &&...args);
 
@@ -65,24 +72,29 @@ public:
 
 };
 
-struct DataEntityLight : public DataEntity
+/** @ingroup data */
+
+/**
+ * @brief small data, which can be passed  between modules easily, such as short string, sigle double or n-tuple
+ */
+struct LightData : public DataEntity
 {
-    SP_OBJECT_HEAD(DataEntityLight, DataEntity);
+SP_OBJECT_HEAD(LightData, DataEntity);
 public:
     template<typename ...Args>
-    DataEntityLight(Args &&...args) : m_data_(std::forward<Args>(args)...) {}
+    LightData(Args &&...args) : m_data_(std::forward<Args>(args)...) {}
 
-    DataEntityLight(DataEntityLight const &other) : m_data_(other.m_data_) {}
+    LightData(LightData const &other) : m_data_(other.m_data_) {}
 
-    DataEntityLight(DataEntityLight &&other) : m_data_(other.m_data_) {}
+    LightData(LightData &&other) : m_data_(other.m_data_) {}
 
-    virtual ~DataEntityLight() {}
+    virtual ~LightData() {}
 
     virtual bool is_light() const { return true; }
 
     virtual std::ostream &print(std::ostream &os, int indent) const { return m_data_.print(os, indent); };
 
-    void swap(DataEntityLight &other) { m_data_.swap(other.m_data_); }
+    void swap(LightData &other) { m_data_.swap(other.m_data_); }
 
     virtual std::shared_ptr<DataEntity> copy() const { return std::make_shared<this_type>(*this); }
 
@@ -93,23 +105,23 @@ public:
         return std::dynamic_pointer_cast<DataEntity>(res);
     }
 
-    DataEntityLight &operator=(const DataEntityLight &rhs)
+    LightData &operator=(const LightData &rhs)
     {
-        DataEntityLight(rhs).swap(*this);
+        LightData(rhs).swap(*this);
         return *this;
     }
 
     // move assignment
-    DataEntityLight &operator=(DataEntityLight &&rhs)
+    LightData &operator=(LightData &&rhs)
     {
         rhs.swap(*this);
-        DataEntityLight().swap(rhs);
+        LightData().swap(rhs);
         return *this;
     }
 
 
     template<typename U>
-    DataEntityLight &operator=(U const &v)
+    LightData &operator=(U const &v)
     {
         m_data_ = v;
         return *this;
@@ -147,19 +159,19 @@ DataEntity::equal(U const &u) const { return as_light().equal(u); }
 inline std::shared_ptr<DataEntity>
 create_data_entity(char const *v)
 {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight>(std::string(v)));
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<LightData>(std::string(v)));
 };
 
 template<typename U> inline std::shared_ptr<DataEntity>
-create_data_entity(U const &v) { return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight>(v)); };
+create_data_entity(U const &v) { return std::dynamic_pointer_cast<DataEntity>(std::make_shared<LightData>(v)); };
 
 //template<typename U> std::shared_ptr<DataEntity>
 //create_data_entity(U const &v, ENABLE_IF((!std::is_arithmetic<U>::value)))
 //{
 //    UNIMPLEMENTED;
-//    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityHeavy>());
+//    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<HeavyData>());
 //};
-
+/** @} */
 
 }}
 #endif //SIMPLA_DATAENTITY_H

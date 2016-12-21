@@ -8,7 +8,7 @@
 #ifndef CORE_DATASET_DATATYPE_EXT_H_
 #define CORE_DATASET_DATATYPE_EXT_H_
 
-
+/** @ingroup data */
 /*
  * Count the number of arguments passed to MACRO, very carefully
  * tiptoeing around an MSVC bug where it improperly expands __VA_ARGS__ as a

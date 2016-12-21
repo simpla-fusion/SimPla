@@ -7,7 +7,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <iomanip>
-#include <simpla/data/DataEntityTable.h>
+#include <simpla/data/DataTable.h>
 #include <simpla/data/DataSpace.h>
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/concept/Object.h>
@@ -110,9 +110,9 @@ public:
 
     /** for Serializable @{*/
 
-    virtual void load(const data::DataEntityTable &) {};
+    virtual void load(const data::DataTable &) {};
 
-    virtual void save(data::DataEntityTable *) const {};
+    virtual void save(data::DataTable *) const {};
 
     /** @}*/
 

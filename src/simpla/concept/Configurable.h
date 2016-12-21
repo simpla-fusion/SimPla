@@ -5,7 +5,7 @@
 #ifndef SIMPLA_CONFIGURABLE_H
 #define SIMPLA_CONFIGURABLE_H
 
-#include <simpla/data/DataEntityTable.h>
+#include <simpla/data/DataTable.h>
 
 namespace simpla { namespace concept
 {
@@ -31,7 +31,7 @@ namespace simpla { namespace concept
 
 struct Configurable
 {
-    data::DataEntityTable db;
+    data::DataTable db;
 
     Configurable() {}
 

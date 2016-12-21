@@ -78,9 +78,9 @@ std::ostream &Atlas::print(std::ostream &os, int indent) const
     }
 };
 
-void Atlas::load(const data::DataEntityTable &) { UNIMPLEMENTED; }
+void Atlas::load(const data::DataTable &) { UNIMPLEMENTED; }
 
-void Atlas::save(data::DataEntityTable *) const { UNIMPLEMENTED; }
+void Atlas::save(data::DataTable *) const { UNIMPLEMENTED; }
 //
 //void Atlas::sync(id_type id)
 //{

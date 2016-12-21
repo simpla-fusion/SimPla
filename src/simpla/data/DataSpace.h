@@ -22,7 +22,8 @@ namespace simpla { namespace data
 
 
 /**
- * @ingroup data_interface
+ * @ingroup data
+ *
  * @brief  Define the size and  shape of m_data set in memory/file
  *  Ref. http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html
  */

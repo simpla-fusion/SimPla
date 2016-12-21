@@ -202,7 +202,7 @@ std::string XDMFStream::write(std::string const &ds_name, data::DataSet const &d
 //{
 //    if (attr.data_set().empty())
 //    {
-//        VERBOSE << "Try to write empty DataEntityHeavy: [" << ds_name << "] Ignored!" << std::endl;
+//        VERBOSE << "Try to write empty HeavyData: [" << ds_name << "] Ignored!" << std::endl;
 //
 //        return;
 //    }
@@ -234,13 +234,13 @@ std::string XDMFStream::write(std::string const &ds_name, data::DataSet const &d
 //    ];
 //
 //    m_file_stream_ << ""
-//    << std::setw(level * 2 + 2) << "" << "<DataEntityHeavy Name=\"" << ds_name << " \" "
+//    << std::setw(level * 2 + 2) << "" << "<HeavyData Name=\"" << ds_name << " \" "
 //    << "AttributeType=\"" << attr_type << "\" "
 //    << "Center=\"" << center_type << "\">" << std::endl;
 //
 //    this->write(ds_name, attr.data_set());
 //
-//    m_file_stream_ << std::setw(level * 2 + 2) << "" << "</DataEntityHeavy>" << std::endl;
+//    m_file_stream_ << std::setw(level * 2 + 2) << "" << "</HeavyData>" << std::endl;
 //
 //
 ////    VERBOSE << "data_set [" << ds_name << "] is saved in [" << path() << "]!" << std::endl;

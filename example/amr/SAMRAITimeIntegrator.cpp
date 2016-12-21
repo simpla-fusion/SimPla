@@ -13,7 +13,7 @@
 #include <simpla/toolbox/nTuple.h>
 #include <simpla/toolbox/nTupleExt.h>
 
-#include <simpla/data/DataEntityTable.h>
+#include <simpla/data/DataTable.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/DataBlock.h>
@@ -1050,9 +1050,9 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
-    virtual void load(data::DataEntityTable const &);
+    virtual void load(data::DataTable const &);
 
-    virtual void save(data::DataEntityTable *) const;
+    virtual void save(data::DataTable *) const;
 
     virtual void deploy();
 
@@ -1141,9 +1141,9 @@ std::ostream &SAMRAITimeIntegrator::print(std::ostream &os, int indent) const
 };
 
 
-void SAMRAITimeIntegrator::load(data::DataEntityTable const &db) { UNIMPLEMENTED; }
+void SAMRAITimeIntegrator::load(data::DataTable const &db) { UNIMPLEMENTED; }
 
-void SAMRAITimeIntegrator::save(data::DataEntityTable *) const { UNIMPLEMENTED; }
+void SAMRAITimeIntegrator::save(data::DataTable *) const { UNIMPLEMENTED; }
 
 namespace detail
 {
@@ -1193,7 +1193,7 @@ void convert_database_r(data::DataEntity const &src,
 }
 
 boost::shared_ptr<SAMRAI::tbox::Database>
-convert_database(data::DataEntityTable const &src, std::string const &s_name = "")
+convert_database(data::DataTable const &src, std::string const &s_name = "")
 {
     auto dest = boost::dynamic_pointer_cast<SAMRAI::tbox::Database>(
             boost::make_shared<SAMRAI::tbox::MemoryDatabase>(s_name));
@@ -1443,7 +1443,7 @@ SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->stepsRem
 //{
 //}
 //
-//std::shared_ptr<mesh::DataEntityHeavy>
+//std::shared_ptr<mesh::HeavyData>
 //create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
 //                  std::shared_ptr<mesh::MeshBlock> const &m)
 //{

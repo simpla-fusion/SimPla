@@ -2,41 +2,41 @@
 // Created by salmon on 16-6-6.
 //
 #include "DataEntity.h"
-#include "DataEntityTable.h"
+#include "DataTable.h"
 
 namespace simpla { namespace data
 {
 
 
-DataEntityTable &DataEntity::as_table()
+DataTable &DataEntity::as_table()
 {
     ASSERT(is_table());
-    return *static_cast<DataEntityTable *>(this);
+    return *static_cast<DataTable *>(this);
 }
 
-DataEntityTable const &DataEntity::as_table() const
+DataTable const &DataEntity::as_table() const
 {
     ASSERT(is_table());
-    return *static_cast<DataEntityTable const *>(this);
+    return *static_cast<DataTable const *>(this);
 }
 
-DataEntityLight &DataEntity::as_light()
+LightData &DataEntity::as_light()
 {
     ASSERT(is_light());
-    return *static_cast<DataEntityLight *>(this);
+    return *static_cast<LightData *>(this);
 }
 
-DataEntityLight const &DataEntity::as_light() const
+LightData const &DataEntity::as_light() const
 {
     ASSERT(is_light());
-    return *static_cast<DataEntityLight const *>(this);
+    return *static_cast<LightData const *>(this);
 
 }
 
 
 
 //
-//void DataEntityHeavy::sync(bool is_blocking)
+//void HeavyData::sync(bool is_blocking)
 //{
 //#ifdef HAS_MPI
 //    //

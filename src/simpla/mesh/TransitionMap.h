@@ -49,8 +49,8 @@ struct TransitionMapBase : public Object
     virtual id_type to_id() const =0;
 //    virtual point_type map(point_type const &x) const { return x; }
 //    point_type operator()(point_type const &x) const { return map(x); }
-//    virtual void push_forward(DataEntityHeavy const &src, DataEntityHeavy *dest) const =0;
-//    virtual void pull_back(DataEntityHeavy const &src, DataEntityHeavy *dest) const =0;
+//    virtual void push_forward(HeavyData const &src, HeavyData *dest) const =0;
+//    virtual void pull_back(HeavyData const &src, HeavyData *dest) const =0;
 
 
 };
