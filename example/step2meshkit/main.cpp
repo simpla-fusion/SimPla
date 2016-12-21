@@ -3,7 +3,7 @@
 //
 
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/algebra/nTupleExt.h>
 
 namespace simpla
 {

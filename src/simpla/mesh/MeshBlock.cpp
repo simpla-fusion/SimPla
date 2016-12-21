@@ -4,8 +4,8 @@
 
 #include "MeshBlock.h"
 
-#include <simpla/toolbox/nTuple.h>
-#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/nTupleExt.h>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Log.h>
 

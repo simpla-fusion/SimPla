@@ -6,11 +6,11 @@
  */
 #include "../../mesh/Chart.h"
 #include "../../toolbox/PrettyStream.h"
-#include "../../toolbox/nTupleExt.h"
+#include "simpla/algebra/nTupleExt.h"
 #include "../../manifold/pre_define/PreDefine.h"
 #include "simpla/mesh/Atlas.h"
 
-#include "simpla/manifold/Field.h"
+#include "simpla/algebra/Field.h"
 
 
 using namespace simpla;

@@ -11,8 +11,8 @@
 #include <simpla/SIMPLA_config.h>
 
 #include <simpla/toolbox/macro.h>
-#include <simpla/toolbox/nTuple.h>
-#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/nTupleExt.h>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/type_traits.h>
 #include <simpla/toolbox/type_cast.h>

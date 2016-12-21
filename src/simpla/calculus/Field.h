@@ -18,8 +18,8 @@
 
 #include "FieldTraits.h"
 #include "FieldExpression.h"
-#include "schemes/CalculusPolicy.h"
-#include "schemes/InterpolatePolicy.h"
+#include "simpla/manifold/schemes/CalculusPolicy.h"
+#include "simpla/manifold/schemes/InterpolatePolicy.h"
 #include "PhysicalQuantity.h"
 
 

@@ -7,7 +7,7 @@
 
 #include <boost/uuid/uuid.hpp>
 #include "../toolbox/sp_def.h"
-#include "../toolbox/nTuple.h"
+#include "simpla/calculus/nTuple.h"
 
 
 namespace simpla { namespace mesh

@@ -13,20 +13,21 @@
 #include <type_traits>
 #include <complex>
 #include <tuple>
-#include "type_traits.h"
-#include "integer_sequence.h"
+#include <simpla/toolbox/type_traits.h>
+#include <simpla/toolbox/integer_sequence.h>
 
-namespace simpla
+namespace simpla { namespace calculus
 {
-
 /**
  *  @ingroup toolbox
  *  @addtogroup expression_template  Expression Template
  *  @{
  */
+
 template<typename ...> class Expression;
 
 template<typename ...> struct BooleanExpression;
+
 template<typename ...> struct AssignmentExpression;
 
 template<typename TOP, typename ...Args>
@@ -65,42 +66,41 @@ class BooleanExpression<TOP, TL> : public Expression<TOP, TL>
 
     operator bool() const { return false; }
 };
-
-template<typename TOP, typename TL, typename TR>
-struct AssignmentExpression<TOP, TL, TR>
-{
-    typedef AssignmentExpression<TOP, TL, TR> this_type;
-    TL &lhs;
-    typename traits::reference<TR>::type rhs;
-    TOP op_;
-
-    AssignmentExpression(this_type const &that) : lhs(that.lhs), rhs(that.rhs), op_(that.op_) {}
-
-    AssignmentExpression(this_type &&that) : lhs(that.lhs), rhs(that.rhs), op_(that.op_) {}
-
-    AssignmentExpression(TL &l, TR const &r) : lhs(l), rhs(r), op_() {}
-
-    AssignmentExpression(TOP op, TL &l, TR const &r) : lhs(l), rhs(r), op_(op) {}
-
-    virtual   ~AssignmentExpression() {}
-
-    template<typename IndexType>
-    inline auto operator[](IndexType const &s) const
-    DECL_RET_TYPE (((op_(traits::index(lhs, s), traits::index(rhs, s)))))
-
-};
+//
+//template<typename TOP, typename TL, typename TR>
+//struct AssignmentExpression<TOP, TL, TR>
+//{
+//    typedef AssignmentExpression<TOP, TL, TR> this_type;
+//    TL &lhs;
+//    typename traits::reference<TR>::type rhs;
+//    TOP op_;
+//
+//    AssignmentExpression(this_type const &that) : lhs(that.lhs), rhs(that.rhs), op_(that.op_) {}
+//
+//    AssignmentExpression(this_type &&that) : lhs(that.lhs), rhs(that.rhs), op_(that.op_) {}
+//
+//    AssignmentExpression(TL &l, TR const &r) : lhs(l), rhs(r), op_() {}
+//
+//    AssignmentExpression(TOP op, TL &l, TR const &r) : lhs(l), rhs(r), op_(op) {}
+//
+//    virtual   ~AssignmentExpression() {}
+//
+//    template<typename IndexType>
+//    inline auto operator[](IndexType const &s) const
+//    DECL_RET_TYPE (((op_(traits::get_value(lhs, s), traits::get_value(rhs, s)))))
+//
+//};
 
 namespace traits
 {
 
-template<typename ...> struct value_type;
+template<typename T> struct value_type { typedef T type; };
+
+template<typename T> using value_type_t=typename value_type<T>::type;
 
 
 template<typename TOP, typename ...T>
-struct value_type<Expression<TOP, T...> >
-{
-    typedef std::result_of_t<TOP(typename value_type<T>::type ...)> type;
-};
+struct value_type<Expression<TOP, T...> > { typedef std::result_of_t<TOP(value_type_t<T> ...)> type; };
 
 template<typename ...T>
 struct value_type<BooleanExpression<T...> > { typedef bool type; };
@@ -112,11 +112,11 @@ struct is_expression<F<Expression<T...> > > { static constexpr bool value = true
 
 template<typename ...T> struct is_expression<Expression<T...> > { static constexpr bool value = true; };
 
-
-template<typename TOP, typename ...T>
-struct primary_type<BooleanExpression<TOP, T...> > { typedef bool type; };
-template<typename TOP, typename ...T>
-struct pod_type<BooleanExpression<TOP, T...> > { typedef bool type; };
+//
+//template<typename TOP, typename ...T>
+//struct primary_type<BooleanExpression<TOP, T...> > { typedef bool type; };
+//template<typename TOP, typename ...T>
+//struct pod_type<BooleanExpression<TOP, T...> > { typedef bool type; };
 //template<typename TOP, typename ...T>
 //struct extents<BooleanExpression<TOP, T...> > : public extents<Expression<TOP, T...> > {};
 
@@ -130,16 +130,30 @@ template<typename TExpr, size_type ... index, typename ...Args>
 typename traits::value_type<TExpr>::type
 _invoke_helper(TExpr const &expr, index_sequence<index...>, Args &&...args)
 {
-    return expr.m_op_(traits::index(std::get<index>(expr.m_args_), std::forward<Args>(args)...)...);
+    return expr.m_op_(get_value(std::get<index>(expr.m_args_), std::forward<Args>(args)...)...);
 }
 }
 
 template<typename TOP, typename   ...T, typename ...Args>
 typename value_type<Expression<TOP, T...>>::type
-index(Expression<TOP, T...> const &expr, Args &&...args)
+get_value(Expression<TOP, T...> const &expr, Args &&...args)
 {
     return _detail::_invoke_helper(expr, index_sequence_for<T...>(), std::forward<Args>(args)...);
 }
+
+template<typename T, typename TI>
+auto get_value(T &v, TI s, ENABLE_IF((!simpla::traits::is_indexable<T, TI>::value))) DECL_RET_TYPE((v))
+
+template<typename T, typename TI>
+auto get_value(T &v, TI s, ENABLE_IF((simpla::traits::is_indexable<T, TI>::value))) DECL_RET_TYPE((v[s]))
+
+//template<typename T, typename TI>
+//auto get_value(T &v, TI *s, ENABLE_IF((simpla::traits::is_indexable<T, TI>::value)))
+//DECL_RET_TYPE((simpla::_impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v, s)))
+//
+//template<typename T, typename TI, size_type N>
+//auto get_value(T &v, nTuple <TI, N> const &s, ENABLE_IF((simpla::traits::is_indexable<T, TI>::value)))
+//DECL_RET_TYPE((simpla::_impl::recursive_try_index_aux<N>::eval(v, s)))
 
 }
 // namespace traits
@@ -161,7 +175,7 @@ struct _swap
 
     template<typename TL, typename TR, typename TI> void operator()(TL &l, TR &r, TI const &s) const
     {
-        std::swap(traits::index(l, s), traits::index(r, s));
+        std::swap(traits::get_value(l, s), traits::get_value(r, s));
     }
 };
 
@@ -173,8 +187,8 @@ struct _NAME_                                                                   
     {  return l _OP_ r;   }                                                                       \
     template<typename TL, typename TR,typename TI>                                                         \
     constexpr auto operator()(TL const& l, TR const & r,TI const & s) const         \
-    ->decltype(traits::index(l,s) _OP_ traits::index( r,s) )                 \
-    {  return traits::index(l,s) _OP_ traits::index( r,s);   }                                    \
+    ->decltype(traits::get_value(l,s) _OP_ traits::get_value( r,s) )                 \
+    {  return traits::get_value(l,s) _OP_ traits::get_value( r,s);   }                                    \
 };
 
 #define DEF_UOP(_NAME_, _OP_)                                                                                \
@@ -184,14 +198,14 @@ struct _NAME_                                                                   
     constexpr auto operator()(TL const & l ) const->decltype(_OP_ l )                 \
     {  return  _OP_ l;   }                                                   \
     template<typename TL,typename TI >                                                         \
-    constexpr auto operator()(TL const & l, TI const & s) const->decltype(_OP_ traits::index( l ,s)) \
-    {  return  _OP_  traits::index( l ,s);   } \
+    constexpr auto operator()(TL const & l, TI const & s) const->decltype(_OP_ traits::get_value( l ,s)) \
+    {  return  _OP_  traits::get_value( l ,s);   } \
     template<typename TL >                                                         \
     static constexpr auto eval(TL const & l ) ->decltype(_OP_ l )                 \
     {  return  _OP_ l;   }                                                   \
     template<typename TL,typename TI >                                                         \
-    static constexpr auto eval(TL const & l, TI const & s)->decltype(_OP_ traits::index( l ,s)) \
-    {  return  _OP_  traits::index( l ,s);   } \
+    static constexpr auto eval(TL const & l, TI const & s)->decltype(_OP_ traits::get_value( l ,s)) \
+    {  return  _OP_  traits::get_value( l ,s);   } \
 };
 
 DEF_BOP(plus, +)
@@ -256,7 +270,7 @@ struct _NAME_                                                                   
     { l _OP_ r ; }           \
     template<typename TL, typename TR,typename TI>                                                         \
       void operator()(TL  & l, TR const & r,TI const & s)const           \
-    {    traits::index(l,s) _OP_ traits::index( r,s)   ;    }    \
+    {    traits::get_value(l,s) _OP_ traits::get_value( r,s)   ;    }    \
 };
 
 //DEF_ASSIGN_OP(_assign, =)
@@ -278,7 +292,7 @@ struct _assign
     void operator()(TL &l, TR const &r) const { l = r; }
 
     template<typename TL, typename TR, typename TI>
-    void operator()(TL &l, TR const &r, TI const &s) const { traits::index(l, s) = traits::index(r, s); }
+    void operator()(TL &l, TR const &r, TI const &s) const { traits::get_value(l, s) = traits::get_value(r, s); }
 };
 
 struct equal_to
@@ -304,8 +318,8 @@ struct _##_NAME_                                                                
     {  return std::_NAME_(l,  r);   }                                                                       \
     template<typename TL, typename TR,typename TI>                                                         \
     constexpr auto operator()(TL const& l, TR const & r,TI const & s) const         \
-    ->decltype(std::_NAME_(traits::index(l,s) , traits::index( r,s) ))                 \
-    {  return std::_NAME_(traits::index(l,s) , traits::index( r,s) );   }                                    \
+    ->decltype(std::_NAME_(traits::get_value(l,s) , traits::get_value( r,s) ))                 \
+    {  return std::_NAME_(traits::get_value(l,s) , traits::get_value( r,s) );   }                                    \
 };
 
 DEF_STD_BINARY_FUNCTION(atan2)
@@ -322,15 +336,15 @@ struct _##_NAME_                                                                
     {  return std::_NAME_(l );   }                                                                       \
     template<typename TL ,typename TI>                                                         \
     constexpr auto operator()(TL const& l, TI const & s) const         \
-    ->decltype(std::_NAME_(traits::index(l,s)   ))                 \
-    {  return std::_NAME_(traits::index(l,s)  );   }                                    \
+    ->decltype(std::_NAME_(traits::get_value(l,s)   ))                 \
+    {  return std::_NAME_(traits::get_value(l,s)  );   }                                    \
     template<typename TL >                                                         \
     static constexpr auto eval(TL const& l ) ->decltype(_NAME_(l ))                 \
     {  return std::_NAME_(l );   }                                                                       \
     template<typename TL ,typename TI>                                                         \
     static constexpr auto eval(TL const& l, TI const & s)          \
-    ->decltype(std::_NAME_(traits::index(l,s)   ))                 \
-    {  return std::_NAME_(traits::index(l,s)  );   }                                    \
+    ->decltype(std::_NAME_(traits::get_value(l,s)   ))                 \
+    {  return std::_NAME_(traits::get_value(l,s)  );   }                                    \
 };
 
 //DEF_UNARY_FUNCTION(fabs)
@@ -375,13 +389,13 @@ struct _pow2
     template<typename TL> static constexpr auto eval(TL const &l) DECL_RET_TYPE ((l * l))
 
     template<typename TL, typename TI>
-    static constexpr auto eval(TL const &l, TI const &s) DECL_RET_TYPE ((_pow2::eval(traits::index(l, s))))
+    static constexpr auto eval(TL const &l, TI const &s) DECL_RET_TYPE ((_pow2::eval(traits::get_value(l, s))))
 
     template<typename TL>
     constexpr TL operator()(TL const &l) const { return _pow2::eval(l); }
 
     template<typename TL, typename TI>
-    constexpr auto operator()(TL const &l, TI const &s) const DECL_RET_TYPE ((_pow2(traits::index(l, s))))
+    constexpr auto operator()(TL const &l, TI const &s) const DECL_RET_TYPE ((_pow2(traits::get_value(l, s))))
 
 };
 
@@ -394,14 +408,14 @@ struct _identify
 
     template<typename TL, typename TI>
     constexpr auto operator()(TL const &l, TI const &s) const
-    -> decltype(_pow2::eval(traits::index(l, s))) { return _identify::eval(traits::index(l, s)); }
+    -> decltype(_pow2::eval(traits::get_value(l, s))) { return _identify::eval(traits::get_value(l, s)); }
 
     template<typename TL>
     static constexpr TL const &eval(TL const &l) { return l; }
 
     template<typename TL, typename TI>
     static constexpr auto eval(TL const &l, TI const &s)
-    -> decltype(_identify::eval(traits::index(l, s))) { return _identify::eval(traits::index(l, s)); }
+    -> decltype(_identify::eval(traits::get_value(l, s))) { return _identify::eval(traits::get_value(l, s)); }
 
 };
 
@@ -642,15 +656,15 @@ template<typename TR> constexpr Zero operator&(Zero, Zero) { return std::move(Ze
 /** @} */
 
 /** @}*/
-template<typename TOP, typename ...T>
-traits::value_type_t<Expression<T...>> reduce(TOP const &op, Expression<T...> const &v)
-{
-    traits::primary_type_t<Expression<T...>> res = v;
+//template<typename TOP, typename ...T>
+//traits::value_type_t<Expression<T...>> reduce(TOP const &op, Expression<T...> const &v)
+//{
+//    traits::primary_type_t<Expression<T...>> res = v;
+//
+//    return reduce(op, res);
+//}
 
-    return reduce(op, res);
-}
 
-
-}   // namespace simpla
+}}  // namespace simpla
 
 #endif /* EXPRESSION_TEMPLATE_H_ */

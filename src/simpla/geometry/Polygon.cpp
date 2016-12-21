@@ -3,8 +3,8 @@
  * @author salmon
  * @date 2015-11-18.
  */
-#include <simpla/toolbox/nTuple.h>
-#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/calculus/nTuple.h>
+#include <simpla/calculus/nTupleExt.h>
 #include "Polygon.h"
 #include "GeoAlgorithm.h"
 

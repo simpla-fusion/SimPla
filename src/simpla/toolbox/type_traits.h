@@ -197,21 +197,17 @@ struct extent<integer_sequence<_Tp, N...>, 0> : public index_const<sizeof...(N)>
 
 //**********************************************************************************************************************
 
-template<typename ...T> struct value_type;
 
-template<typename T>
-struct value_type<T> { typedef typename std::conditional<std::is_scalar<T>::value, T, std::nullptr_t>::type type; };
-
-template<typename T> struct value_type<std::complex<T>> { typedef std::complex<T> type; };
-
-template<> struct value_type<std::string> { typedef std::string type; };
-
-template<typename _Tp, _Tp ...N> struct value_type<integer_sequence<_Tp, N...> >
-{
-    typedef _Tp type;
-};
-
-template<typename T> using value_type_t=typename value_type<T>::type;
+//template<typename T>
+//struct value_type { typedef typename std::conditional<std::is_scalar<T>::value, T, std::nullptr_t>::type type; };
+//
+//template<typename T> struct value_type<std::complex<T>> { typedef std::complex<T> type; };
+//
+//template<> struct value_type<std::string> { typedef std::string type; };
+//
+//template<typename _Tp, _Tp ...N> struct value_type<integer_sequence<_Tp, N...> > { typedef _Tp type; };
+//
+//template<typename T> using value_type_t=typename value_type<T>::type;
 
 
 template<typename T> struct key_type { typedef int type; };
@@ -302,19 +298,19 @@ struct recursive_try_index_aux<0>
 //index(U const &v, TIndex const &i, ENABLE_IF(std::is_arithmetic<U>::vaule)) { return v; };
 
 
-template<typename T, typename TI>
-auto index(T &v, TI s, ENABLE_IF((!is_indexable<T, TI>::value))) DECL_RET_TYPE((v))
-
-template<typename T, typename TI>
-auto index(T &v, TI s, ENABLE_IF((is_indexable<T, TI>::value))) DECL_RET_TYPE((v[s]))
-
-template<typename T, typename TI>
-auto index(T &v, TI *s, ENABLE_IF((is_indexable<T, TI>::value)))
-DECL_RET_TYPE((_impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v, s)))
-
-template<typename T, typename TI, size_type N>
-auto index(T &v, nTuple<TI, N> const &s, ENABLE_IF((is_indexable<T, TI>::value)))
-DECL_RET_TYPE((_impl::recursive_try_index_aux<N>::eval(v, s)))
+//template<typename T, typename TI>
+//auto index(T &v, TI s, ENABLE_IF((!is_indexable<T, TI>::value))) DECL_RET_TYPE((v))
+//
+//template<typename T, typename TI>
+//auto index(T &v, TI s, ENABLE_IF((is_indexable<T, TI>::value))) DECL_RET_TYPE((v[s]))
+//
+//template<typename T, typename TI>
+//auto index(T &v, TI *s, ENABLE_IF((is_indexable<T, TI>::value)))
+//DECL_RET_TYPE((_impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v, s)))
+//
+//template<typename T, typename TI, size_type N>
+//auto index(T &v, nTuple<TI, N> const &s, ENABLE_IF((is_indexable<T, TI>::value)))
+//DECL_RET_TYPE((_impl::recursive_try_index_aux<N>::eval(v, s)))
 
 
 template<int N, typename T> struct access;

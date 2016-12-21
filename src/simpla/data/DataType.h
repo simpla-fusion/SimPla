@@ -19,7 +19,7 @@
 #include <typeindex>
 #include <vector>
 
-#include <simpla/toolbox/nTuple.h>
+#include <simpla/calculus/nTuple.h>
 #include <simpla/toolbox/type_traits.h>
 
 namespace simpla { namespace traits

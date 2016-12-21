@@ -9,7 +9,7 @@
 
 #include <tuple>
 #include <vector>
-#include "../../toolbox/nTuple.h"
+#include "simpla/algebra/nTuple.h"
 #include "../../toolbox/MPIComm.h"
 #include "../../toolbox/MPIUpdate.h"
 #include "../../toolbox/Parallel.h"

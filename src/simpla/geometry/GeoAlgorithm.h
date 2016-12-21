@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <tuple>
 
-#include <simpla/toolbox/nTuple.h>
+#include <simpla/calculus/nTuple.h>
 #include <simpla/toolbox/sp_def.h>
 
 namespace simpla { namespace geometry

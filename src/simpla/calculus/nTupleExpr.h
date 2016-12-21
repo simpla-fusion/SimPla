@@ -5,9 +5,9 @@
 #ifndef SIMPLA_NTUPLEEXPR_H
 #define SIMPLA_NTUPLEEXPR_H
 
-#include "ExpressionTemplate.h"
-#include "type_traits.h"
-#include "mpl.h"
+#include "simpla/algebra/ExpressionTemplate.h"
+#include "simpla/toolbox/type_traits.h"
+#include "simpla/toolbox/mpl.h"
 
 #include "nTupleLite.h"
 

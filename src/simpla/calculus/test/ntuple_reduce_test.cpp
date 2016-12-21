@@ -13,8 +13,8 @@
 #include <utility>
 #include "../type_traits.h"
 #include "../primitives.h"
-#include "../nTuple.h"
-#include "../nTupleExt.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/algebra/nTupleExt.h"
 #include "../integer_sequence.h"
 #include "../Log.h"
 using namespace simpla;

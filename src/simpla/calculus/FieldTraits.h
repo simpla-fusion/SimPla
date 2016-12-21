@@ -15,7 +15,7 @@
 #include "simpla/toolbox/type_traits.h"
 #include "simpla/toolbox/mpl.h"
 #include "simpla/toolbox/integer_sequence.h"
-#include "ManifoldTraits.h"
+#include "simpla/manifold/ManifoldTraits.h"
 #include "simpla/mesh/EntityIdRange.h"
 #include "FieldExpression.h"
 

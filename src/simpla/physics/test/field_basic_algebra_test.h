@@ -19,9 +19,9 @@
 #include "../../toolbox/type_traits.h"
 #include "../../toolbox/Log.h"
 
-#include "simpla/manifold/Field.h"
-#include "simpla/manifold/FieldTraits.h"
-#include "simpla/manifold/FieldExpression.h"
+#include "simpla/algebra/Field.h"
+#include "simpla/algebra/FieldTraits.h"
+#include "simpla/algebra/FieldExpression.h"
 #include "simpla/geometry/CartesianGeometry.h"
 #include "../../manifold/ManifoldTraits.h"
 

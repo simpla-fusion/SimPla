@@ -16,8 +16,8 @@
 #include "MiscUtilities.h"
 #include "primitives.h"
 #include "type_traits.h"
-#include "nTuple.h"
-#include "nTupleExt.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/algebra/nTupleExt.h"
 #include "Properties.h"
 
 #include "../physics/PhysicalConstants.h"

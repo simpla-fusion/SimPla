@@ -17,7 +17,7 @@
 #include <vector>
 
 #include <simpla/data/DataSet.h>
-#include "nTuple.h"
+#include "simpla/calculus/nTuple.h"
 
 namespace simpla { namespace parallel
 {

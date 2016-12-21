@@ -9,6 +9,7 @@
 #define CORE_toolbox_INTEGER_SEQUENCE_H_
 
 #include <stddef.h>
+#include <iostream>
 #include "check_concept.h"
 #include "port_cxx14.h"
 
@@ -195,7 +196,7 @@ struct _seq_for<M>
 template<>
 struct _seq_for<0>
 {
-    template<typename TOP, typename ...Args> static inline void eval(TOP const &op, Args &&... args) { }
+    template<typename TOP, typename ...Args> static inline void eval(TOP const &op, Args &&... args) {}
 };
 
 template<size_t M, size_t ...N>
@@ -365,16 +366,16 @@ struct _seq_min<_Tp, I0, I1>
 
 }//namespace _impl
 
-template<typename Tp> struct seq_max : public index_sequence<> { };
+template<typename Tp> struct seq_max : public index_sequence<> {};
 
 template<typename _Tp, _Tp ...I>
-struct seq_max<integer_sequence<_Tp, I...>> : public std::integral_constant<_Tp, _impl::_seq_max<_Tp, I...>::value> { };
+struct seq_max<integer_sequence<_Tp, I...>> : public std::integral_constant<_Tp, _impl::_seq_max<_Tp, I...>::value> {};
 
 
-template<typename Tp> struct seq_min : public index_sequence<> { };
+template<typename Tp> struct seq_min : public index_sequence<> {};
 
 template<typename _Tp, _Tp ...I>
-struct seq_min<integer_sequence<_Tp, I...>> : public std::integral_constant<_Tp, _impl::_seq_min<_Tp, I...>::value> { };
+struct seq_min<integer_sequence<_Tp, I...>> : public std::integral_constant<_Tp, _impl::_seq_min<_Tp, I...>::value> {};
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -465,7 +466,7 @@ std::ostream &operator<<(std::ostream &os, integer_sequence<_Tp, First, Others..
 {
     os << First << " , " <<
 
-    integer_sequence<_Tp, Others...>();
+       integer_sequence<_Tp, Others...>();
 
     return os;
 }

@@ -7,7 +7,7 @@
 #ifndef SIMPLA_LINEAR_H
 #define SIMPLA_LINEAR_H
 
-#include <simpla/toolbox/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <simpla/toolbox/type_traits.h>
 #include "../../mesh/EntityId.h"
 

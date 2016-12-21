@@ -9,7 +9,7 @@
 
 #include <type_traits>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 
 
 #include <simpla/concept/Printable.h>

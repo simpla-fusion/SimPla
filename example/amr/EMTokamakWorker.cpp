@@ -9,7 +9,7 @@
 #include <iostream>
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/Worker.h>
-#include <simpla/manifold/Field.h>
+#include <simpla/algebra/Field.h>
 #include <simpla/manifold/CartesianGeometry.h>
 #include <simpla/manifold/CylindricalGeometry.h>
 #include <simpla/model/GEqdsk.h>

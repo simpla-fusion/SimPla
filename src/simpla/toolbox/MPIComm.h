@@ -19,7 +19,7 @@
 #include <mpi.h>
 
 
-#include "nTuple.h"
+#include "simpla/calculus/nTuple.h"
 #include "design_pattern/SingletonHolder.h"
 //#include "../toolbox/Utilities.h"
 

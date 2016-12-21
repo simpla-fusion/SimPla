@@ -10,7 +10,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <vector>
 #include <cmath>
 #include <algorithm>

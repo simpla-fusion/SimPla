@@ -8,8 +8,8 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/physics/PhysicalConstants.h>
-#include <simpla/manifold/Field.h>
-#include <simpla/manifold/Calculus.h>
+#include <simpla/algebra/Field.h>
+#include <simpla/algebra/Calculus.h>
 #include <simpla/simulation/Context.h>
 
 namespace simpla

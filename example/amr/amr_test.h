@@ -16,8 +16,8 @@
 #include <simpla/mesh/Chart.h>
 #include <simpla/manifold/CartesianGeometry.h>
 #include <simpla/manifold/CylindricalGeometry.h>
-#include <simpla/manifold/Field.h>
-#include <simpla/manifold/Calculus.h>
+#include <simpla/algebra/Field.h>
+#include <simpla/algebra/Calculus.h>
 
 #include <simpla/physics/Constants.h>
 #include <simpla/simulation/TimeIntegrator.h>

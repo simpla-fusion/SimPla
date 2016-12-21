@@ -11,7 +11,7 @@
 #include <iostream>
 #include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <simpla/toolbox/type_traits.h>
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/geometry/Polygon.h>

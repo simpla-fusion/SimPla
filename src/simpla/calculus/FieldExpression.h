@@ -13,9 +13,9 @@
 #include <type_traits>
 
 #include <simpla/toolbox/type_traits.h>
-#include <simpla/toolbox/ExpressionTemplate.h>
+#include <simpla/algebra/ExpressionTemplate.h>
 #include <simpla/mesh/MeshCommon.h>
-#include "Calculus.h"
+#include "simpla/algebra/Calculus.h"
 
 namespace simpla
 {

@@ -3,7 +3,7 @@
 //
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/algebra/nTupleExt.h>
 
 #include <simpla/model/Model.h>
 #include <simpla/mesh/Chart.h>

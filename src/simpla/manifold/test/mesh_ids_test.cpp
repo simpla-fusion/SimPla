@@ -6,8 +6,8 @@
 
 #include <gtest/gtest.h>
 
-#include "../../toolbox/nTuple.h"
-#include "../../toolbox/nTupleExt.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/algebra/nTupleExt.h"
 #include "../../toolbox/utilities/Log.h"
 #include "../mesh/mesh_ids.h"
 #include "Parallel.h"

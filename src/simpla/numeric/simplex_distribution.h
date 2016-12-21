@@ -7,7 +7,7 @@
 
 #ifndef SIMPLEX_DISTRIBUTION_H_
 #define SIMPLEX_DISTRIBUTION_H_
-#include "../toolbox/nTuple.h"
+#include "simpla/algebra/nTuple.h"
 #include <vector>
 #include <random>
 #include <numeric>

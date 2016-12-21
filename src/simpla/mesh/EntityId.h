@@ -13,7 +13,7 @@
 #include <tuple>
 #include "simpla/SIMPLA_config.h"
 #include "simpla/toolbox/Log.h"
-#include "simpla/toolbox/nTuple.h"
+#include "simpla/algebra/nTuple.h"
 #include "simpla/toolbox/IteratorBlock.h"
 #include "simpla/toolbox/Range.h"
 #include "simpla/toolbox/Parallel.h"

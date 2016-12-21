@@ -9,7 +9,7 @@
 #include <iomanip>
 #include <simpla/data/DataTable.h>
 #include <simpla/data/DataSpace.h>
-#include <simpla/toolbox/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>

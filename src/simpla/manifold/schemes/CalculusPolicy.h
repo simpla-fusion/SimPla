@@ -16,8 +16,8 @@
 #include "../../toolbox/macro.h"
 #include "../../toolbox/sp_def.h"
 #include "../../toolbox/type_traits.h"
-#include "../../toolbox/ExpressionTemplate.h"
-#include "../Calculus.h"
+#include "simpla/algebra/ExpressionTemplate.h"
+#include "simpla/algebra/Calculus.h"
 #include "../ManifoldTraits.h"
 
 
@@ -84,7 +84,7 @@ private:
 public:
 
     //***************************************************************************************************
-    // Exterior algebra
+    // Exterior calculus
     //***************************************************************************************************
 
     //! grad<0>

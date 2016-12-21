@@ -18,8 +18,8 @@
 #include <simpla/physics/Constants.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/PrettyStream.h>
-#include <simpla/toolbox/nTuple.h>
-#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/nTupleExt.h>
 #include <simpla/geometry/Polygon.h>
 #include <simpla/numeric/find_root.h>
 #include <simpla/numeric/Interpolation.h>

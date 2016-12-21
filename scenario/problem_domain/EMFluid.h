@@ -11,10 +11,10 @@
 
 #include <simpla/physics/PhysicalConstants.h>
 #include <simpla/mesh/EntityIdRange.h>
-#include <simpla/manifold/Calculus.h>
+#include <simpla/algebra/Calculus.h>
 #include <simpla/mesh/Worker.h>
 #include <simpla/mesh/Chart.h>
-#include <simpla/manifold/Field.h>
+#include <simpla/algebra/Field.h>
 
 
 namespace simpla

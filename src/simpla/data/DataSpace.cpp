@@ -9,7 +9,7 @@
 #include <utility>
 #include <tuple>
 
-#include <simpla/toolbox/nTuple.h>
+#include <simpla/calculus/nTuple.h>
 #include <simpla/toolbox/Parallel.h>
 #include <simpla/toolbox/MPIUpdate.h>
 #include "DataSpace.h"

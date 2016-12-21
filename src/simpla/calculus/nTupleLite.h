@@ -12,18 +12,18 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "macro.h"
-#include "mpl.h"
-#include "integer_sequence.h"
-#include "port_cxx14.h"
-#include "type_traits.h"
+#include "simpla/toolbox/macro.h"
+#include "simpla/toolbox/mpl.h"
+#include "simpla/toolbox/integer_sequence.h"
+#include "simpla/toolbox/port_cxx14.h"
+#include "simpla/toolbox/type_traits.h"
 #include "ExpressionTemplate.h"
 
 namespace simpla
 {
 
 /**
- * @ingroup toolbox
+ * @ingroup calculus
  * @addtogroup ntuple n-tuple
  * @{
  *
@@ -135,7 +135,7 @@ template<typename ...> class Expression;
 namespace traits
 {
 template<typename TV, size_type I0, size_type ...I>
-TV const &index(nTuple<TV, I0, I...> const &v, int i) { return (v[i]); }
+TV const &get_value(nTuple<TV, I0, I...> const &v, int i) { return (v[i]); }
 
 template<typename>
 struct is_ntuple { static constexpr bool value = false; };
@@ -146,8 +146,10 @@ struct is_ntuple<nTuple<T, N...>> { static constexpr bool value = true; };
 template<typename T, size_type N>
 struct key_type<nTuple<T, N >> { typedef size_type type; };
 
+template<typename T> class value_type;
+
 template<typename TV, size_type N>
-struct value_type<nTuple<TV, N> > { typedef traits::value_type_t<TV> type; };
+struct value_type<nTuple<TV, N> > { typedef calculus::traits::value_type_t<TV> type; };
 
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -356,7 +358,7 @@ struct pod_type<nTuple<T, N...>>
 //    template<typename Op, typename TR>
 //    void assign(Op const &op, TR const &rhs)
 //    {
-//        op(data_, traits::index(rhs, 0));
+//        op(data_, traits::get_value(rhs, 0));
 //    }
 //
 //
@@ -427,7 +429,7 @@ private:
     {
         for (size_type s = 0; s < N; ++s)
         {
-            op(data_[s], traits::index(rhs, s));
+            op(data_[s], traits::get_value(rhs, s));
         }
     }
 
@@ -436,35 +438,35 @@ public:
     template<typename TR>
     inline this_type &operator=(TR const &rhs)
     {
-        for (int i = 0; i < N; ++i) { data_[i] = traits::index(rhs, i); };
+        for (int i = 0; i < N; ++i) { data_[i] = calculus::traits::get_value(rhs, i); };
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator+=(TR const &rhs)
     {
-        for (int i = 0; i < N; ++i) { data_[i] += traits::index(rhs, i); };
+        for (int i = 0; i < N; ++i) { data_[i] += traits::get_value(rhs, i); };
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator-=(TR const &rhs)
     {
-        for (int i = 0; i < N; ++i) { data_[i] -= traits::index(rhs, i); };
+        for (int i = 0; i < N; ++i) { data_[i] -= traits::get_value(rhs, i); };
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator*=(TR const &rhs)
     {
-        for (int i = 0; i < N; ++i) { data_[i] *= traits::index(rhs, i); };
+        for (int i = 0; i < N; ++i) { data_[i] *= traits::get_value(rhs, i); };
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator/=(TR const &rhs)
     {
-        for (int i = 0; i < N; ++i) { data_[i] /= traits::index(rhs, i); };
+        for (int i = 0; i < N; ++i) { data_[i] /= traits::get_value(rhs, i); };
         return (*this);
     }
 
@@ -587,14 +589,14 @@ DECL_RET_TYPE((
 template<typename T1, size_type ... N1, typename T2, size_type ... N2>
 inline auto cross(nTuple<T1, N1...> const &l, nTuple<T2, N2...> const &r)
 DECL_RET_TYPE((
-                      nTuple<decltype(traits::index(l, 0) * traits::index(r, 0)), 3> {
+                      nTuple<decltype(traits::get_value(l, 0) * traits::get_value(r, 0)), 3> {
 
-                              traits::index(l, 1) * traits::index(r, 2)
-                              - traits::index(l, 2) * traits::index(r, 1),
-                              traits::index(l, 2) * traits::index(r, 0)
-                              - traits::index(l, 0) * traits::index(r, 2),
-                              traits::index(l, 0) * traits::index(r, 1)
-                              - traits::index(l, 1) * traits::index(r, 0)
+                              traits::get_value(l, 1) * traits::get_value(r, 2)
+                              - traits::get_value(l, 2) * traits::get_value(r, 1),
+                              traits::get_value(l, 2) * traits::get_value(r, 0)
+                              - traits::get_value(l, 0) * traits::get_value(r, 2),
+                              traits::get_value(l, 0) * traits::get_value(r, 1)
+                              - traits::get_value(l, 1) * traits::get_value(r, 0)
                       }
               ))
 //----------------------------------------------------------------------------------------------------------------------
@@ -703,10 +705,10 @@ reduce(TOP const &op, nTuple<T, N0, N...> const &v)
 {
     static constexpr size_type n = N0;
 
-    traits::value_type_t<nTuple<T, N0, N...> > res = reduce(op, traits::index(v, 0));
+    traits::value_type_t<nTuple<T, N0, N...> > res = reduce(op, traits::get_value(v, 0));
     if (n > 1)
     {
-        for (size_type s = 1; s < n; ++s) { res = op(res, reduce(op, traits::index(v, s))); }
+        for (size_type s = 1; s < n; ++s) { res = op(res, reduce(op, traits::get_value(v, s))); }
     }
     return
             res;
@@ -734,7 +736,7 @@ void for_each(TOP const &op, index_sequence<N, M...>,
 {
     for (size_type s = 0; s < N; ++s)
     {
-        for_each(op, index_sequence<M...>(), traits::index(std::forward<Args>(args), s)...);
+        for_each(op, index_sequence<M...>(), traits::get_value(std::forward<Args>(args), s)...);
     }
 
 }
@@ -774,7 +776,7 @@ inline auto NProduct(nTuple<T, N...> const &v) DECL_RET_TYPE((reduce(_impl::mult
 template<typename T, size_type ...N>
 inline auto NSum(nTuple<T, N...> const &v) DECL_RET_TYPE((reduce(_impl::plus(), v)))
 
-}//namespace simpla
+} //namespace simpla{namespace calculus
 
 namespace std
 {
@@ -789,7 +791,7 @@ void swap(simpla::nTuple<T, N> &l, simpla::nTuple<T, N> &r)
 template<typename T, size_type N, size_type M0, size_type ... M>
 void swap(simpla::nTuple<T, N, M0, M...> &l, simpla::nTuple<T, N, M0, M...> &r)
 {
-    for (size_type s = 0; s < N; ++s) { swap(simpla::traits::index(l, s), simpla::traits::index(r, s)); }
+    for (size_type s = 0; s < N; ++s) { swap(simpla::traits::get_value(l, s), simpla::traits::get_value(r, s)); }
 }
 
 template<typename T, size_type N, size_type ... M>
@@ -799,7 +801,7 @@ void swap(simpla::nTuple<T, N, M...> &l,
 
     for (size_type s = 0; s < N; ++s)
     {
-        swap(simpla::traits::index(l, s), simpla::traits::index(r, s));
+        swap(simpla::traits::get_value(l, s), simpla::traits::get_value(r, s));
     }
 }
 

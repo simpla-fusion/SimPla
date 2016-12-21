@@ -11,7 +11,7 @@
 #include <map>
 #include <string>
 #include <iomanip>
-#include "nTuple.h"
+#include "simpla/calculus/nTuple.h"
 #include "Any.h"
 
 namespace simpla { namespace toolbox

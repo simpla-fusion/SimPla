@@ -20,8 +20,8 @@
 
 #include <simpla/concept/Printable.h>
 
-#include "nTuple.h"
-#include "nTupleExt.h"
+#include "simpla/calculus/nTuple.h"
+#include "simpla/calculus/nTupleExt.h"
 #include "Log.h"
 
 

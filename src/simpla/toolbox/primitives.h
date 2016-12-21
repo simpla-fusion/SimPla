@@ -18,7 +18,7 @@
 
 #include "../toolbox/type_traits.h"
 #include "../toolbox/complex.h"
-#include "nTuple.h"
+#include "simpla/algebra/nTuple.h"
 
 namespace simpla
 {

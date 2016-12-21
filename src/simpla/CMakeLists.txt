@@ -1,5 +1,7 @@
 ADD_SUBDIRECTORY(concept)
 
+ADD_SUBDIRECTORY(calculus)
+
 ADD_SUBDIRECTORY(toolbox)
 
 ADD_SUBDIRECTORY(geometry)

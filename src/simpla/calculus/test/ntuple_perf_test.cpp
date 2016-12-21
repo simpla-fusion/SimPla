@@ -12,8 +12,8 @@
 #include <typeinfo>
 #include <utility>
 #include "../type_traits.h"
-#include "../nTuple.h"
-#include "../nTupleExt.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/algebra/nTupleExt.h"
 #include "../primitives.h"
 
 using namespace simpla;

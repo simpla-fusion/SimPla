@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "simpla/toolbox/mpl.h"
-#include "simpla/toolbox/nTuple.h"
+#include "simpla/algebra/nTuple.h"
 #include "CoordinateSystem.h"
 #include "primitive.h"
 

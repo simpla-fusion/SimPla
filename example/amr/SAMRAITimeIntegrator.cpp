@@ -10,8 +10,8 @@
 #include <cmath>
 
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/nTuple.h>
-#include <simpla/toolbox/nTupleExt.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/nTupleExt.h>
 
 #include <simpla/data/DataTable.h>
 #include <simpla/mesh/MeshCommon.h>

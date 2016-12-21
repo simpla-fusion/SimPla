@@ -6,7 +6,7 @@
 #include "LuaObject.h"
 #include "LuaObjectExt.h"
 #include "PrettyStream.h"
-#include "nTupleExt.h"
+#include "simpla/calculus/nTupleExt.h"
 
 namespace simpla { namespace toolbox
 {

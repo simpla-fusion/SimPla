@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <iterator>
-#include "nTuple.h"
+#include "simpla/algebra/nTuple.h"
 #include "type_traits_ext.h"
 
 namespace simpla { namespace toolbox

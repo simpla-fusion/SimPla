@@ -12,7 +12,7 @@
 #include <memory>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/macro.h>
-#include <simpla/toolbox/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <simpla/toolbox/design_pattern/Observer.h>
 #include <simpla/concept/Configurable.h>
 

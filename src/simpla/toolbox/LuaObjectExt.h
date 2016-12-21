@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-#include "nTuple.h"
+#include "simpla/calculus/nTuple.h"
 #include "Properties.h"
 
 

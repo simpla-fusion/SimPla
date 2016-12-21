@@ -10,8 +10,8 @@
 #include <utility>
 
 #include "../LuaObject.h"
-#include "../nTuple.h"
-#include "../nTupleExt.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/algebra/nTupleExt.h"
 
 using namespace simpla;
 

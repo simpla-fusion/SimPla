@@ -13,7 +13,7 @@
 #include <cstdbool>
 #include <memory>
 #include <vector>
-#include <simpla/toolbox/nTuple.h>
+#include <simpla/calculus/nTuple.h>
 #include <simpla/toolbox/Properties.h>
 #include <simpla/toolbox/Log.h>
 
