@@ -9,6 +9,7 @@
 #define PARALLEL_H_
 
 /**
+ *  @ingroup toolbox
  *  @addtogroup  parallel parallel
  *  @{
  *  	@addtogroup  MPI MPI Communicaion

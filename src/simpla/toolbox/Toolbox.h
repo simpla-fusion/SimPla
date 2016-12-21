@@ -1,12 +1,12 @@
 /**
- * @file utilities.h
+ * @file Toolbox.h
  *
  *  Created on: 2014-11-24
  *      Author: salmon
  */
 
-#ifndef CORE_UTILITIES_MISC_UTILITIES_H_
-#define CORE_UTILITIES_MISC_UTILITIES_H_
+#ifndef SIMPLA_TOOLBOX_H_
+#define SIMPLA_TOOLBOX_H_
 
 #include "logo.h"
 
@@ -23,14 +23,14 @@
 #include "../physics/PhysicalConstants.h"
 
 
-namespace simpla
+namespace simpla { namespace toolbox
 {
 /**
- *  @addtogroup utilities Utilities
+ *  @addtogroup toolbox toolbox
  *  @{
- *   @brief  This module collects   general purpose functions.
+ *   @brief  This module collects general purpose functions.
  *  @}
  */
-}  // namespace simpla
+}}// namespace simpla
 
-#endif /* CORE_UTILITIES_MISC_UTILITIES_H_ */
+#endif /* SIMPLA_TOOLBOX_H_ */

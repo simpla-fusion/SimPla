@@ -9,7 +9,26 @@
 #include <simpla/toolbox/Log.h>
 
 namespace simpla { namespace concept
-{
+{/**  @ingroup concept   */
+/**
+ * @brief a type whose life cycle is explicit controlled
+ * @details
+ * ## Summary
+ * Requirements for a type whose instances share ownership between multiple objects;
+ *
+ * ## Requirements
+ *  Class \c R implementing the concept of @ref Configurable must define:
+ *   Pseudo-Signature                                      | Semantics
+ *	 ------------------------------------------------------|----------
+ * 	 \code   R()                                  \endcode | constructor;
+ * 	 \code  virtual ~R()                          \endcode | Destructor
+ * 	 \code bool is_deployed()                     \endcode | return true after @ref deploy is evaluated, return false after @ref destroy is evaluated
+ *   \code bool is_valid()                        \endcode | return true after @ref pre_process is evaluated, return false after @ref post_process is evaluated
+ * 	 \code void deploy()                          \endcode | if is_deployed==true then throw RUNTIME_ERROR else set is_deployed =true
+ *   \code void pre_process()                     \endcode |  set is_valid =true
+ *   \code void post_process()                    \endcode |  set is_valid =false
+ *   \code void destroy()                         \endcode |  set is_deployed =false
+ */
 struct LifeControllable
 {
 

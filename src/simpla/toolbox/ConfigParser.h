@@ -26,7 +26,7 @@ namespace simpla { namespace toolbox
 {
 
 /**
- * @ingroup utilities
+ * @ingroup toolbox
  */
 struct ConfigParser
 {

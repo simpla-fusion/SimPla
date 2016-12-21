@@ -42,7 +42,7 @@ namespace simpla { namespace toolbox
 {
 
 /**
- * @ingroup utilities
+ * @ingroup toolbox
  * @addtogroup  lua   Lua engine
  *  @{
  */

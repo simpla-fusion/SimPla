@@ -17,8 +17,11 @@
 
 namespace simpla { namespace toolbox
 {
-/** @addtogroup io
- *  @brief this module collects stuff used to read/write m_data file.
+
+/**
+ * @ingroup toolbox
+ * @addtogroup io
+ * @brief this module collects stuff used to read/write m_data file.
  * @{
  */
 

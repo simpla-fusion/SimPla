@@ -12,72 +12,8 @@
 namespace simpla
 {
 
-/**
- *  @ingroup toolbox
- *  @[
- *  @addtogroup concept Concept
- * @}
- */
-/**
- *  @ingroup   concept
- *  @addtogroup shareable Shareable
- *  @{
- * ## Summary
- * Requirements for a type whose instances share ownership between multiple objects;
- *
- * ## Requirements
- * For @ref shareable GeoObject `X`
- *
- *   Pseudo-Signature                    | Semantics
- *	 ------------------------------------|----------
- * 	 `typedef std::shared_ptr<X> RangeHolder` | hold the ownership of object;
- * 	 `private  X()`                      | disable directly construct object;
- * 	 `static RangeHolder  create()`           | create an object, and return the RangeHolder
- * 	 `RangeHolder shared_from_this()`         | Returns a `RangeHolder` that shares ownership of `*this` ;
- *   `RangeHolder shared_from_this() const`   | Returns a `read-only RangeHolder` that shares `const` ownership of `*this` ;
- *
- *  @}
- */
-/**
- *  @ingroup   concept
- *  @addtogroup splittable Splitable
- *  @{
- * ## Summary
- *  Requirements for a type whose instances can be split into two pieces.
- *
- *  @ref tbb::splittable
- *
- *  @ref [ https://software.intel.com/zh-cn/node/506141 ]
- *
- * ## Requirements
- *
- *	Pseudo-Signature   |Semantics
- * ------------------- |----------
- * `X::X(X& x, split)` | Split x into x and newly constructed object.
- *
- * ## Description
- * > _from TBB_
- * >
- * >   A type is splittable if it has a splitting constructor that allows
- * >  an instance to be split into two pieces. The splitting constructor
- * >  takes as arguments a reference to the original object, and a dummy
- * >   argument of type split, which is defined by the library. The dummy
- * >   argument distinguishes the splitting constructor from a copy constructor.
- * >   After the constructor runs, x and the newly constructed object should
- * >   represent the two pieces of the original x. The library uses splitting
- * >    constructors in two contexts:
- * >    - Partitioning a entity_id_range into two subranges that can be processed concurrently.
- * >    - Forking a body (function object) into two bodies that can run concurrently.
- *
- * - Split  @ref Container  into two part, that can be accessed concurrently
- * - if X::left() and X::right() exists, construct proportion with the
- * ratio specified by left() and right(). (alter from tbb::proportional_split)
- *
- * ## Description
- *
- *
- *@}
- */
+
+
 /**
  *  @ingroup gpl
  *

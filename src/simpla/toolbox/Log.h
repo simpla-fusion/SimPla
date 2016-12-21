@@ -27,6 +27,8 @@
 
 namespace simpla
 {
+
+/** @ingroup toolbox */
 namespace logger
 {
 
@@ -44,8 +46,8 @@ int get_line_width();
 void set_mpi_comm(int rank = 0, int size = 1);
 
 /**
- * @ingroup utilities
- * @defgroup logging   Log
+ * @ingroup toolbox
+ * @addtogroup logging   Log
  * @{
  *
  */

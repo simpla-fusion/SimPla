@@ -9,6 +9,25 @@
 
 namespace simpla { namespace concept
 {
+/**  @ingroup concept   */
+
+
+/**
+ * @brief a type whose instances has member DataEntityTable db; *
+ * @details
+ * ## Summary
+ * Requirements for a type whose instances share ownership between multiple objects;
+ *
+ * ## Requirements
+ *  Class \c R implementing the concept of @ref Configurable must define:
+ *   Pseudo-Signature                                      | Semantics
+ *	 ------------------------------------------------------|----------
+ * 	 \code   R()                                  \endcode | constructor;
+ * 	 \code  virtual ~R()                          \endcode | Destructor
+ * 	 \code data::DataEntityTable db               \endcode |
+ *   \code std::string name() const               \endcode | if key-value 'name' return it else return empty string
+ *
+ */
 
 struct Configurable
 {
@@ -23,5 +42,7 @@ struct Configurable
 };
 
 
-}}
+}} // namespace  simpla::concept
+
+
 #endif //SIMPLA_CONFIGURABLE_H

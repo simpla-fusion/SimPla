@@ -32,7 +32,7 @@ extern "C"
 
 namespace simpla { namespace toolbox
 {
-
+/** @ingroup toolbox */
 template<typename T>
 struct Converter
 {

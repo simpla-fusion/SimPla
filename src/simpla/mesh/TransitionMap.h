@@ -31,9 +31,9 @@ template<typename ...> struct TransitionMap;
  *    \f].
  *   * Pull back: Let \f$g:N\rightarrow\mathbb{R}\f$ is a function on \f$N\f$,
  *     _pull-back_ of function \f$g\left(y\right)\f$ induce a function on \f$M\f$
- *   \f[
- *       \psi^{*}g&\equiv g\circ\psi,\;\psi^{*}g=&g\left(\psi\left(x\right)\right)
- *   \f]
+ *     \f[
+ *        \psi^{*}g\equiv g\circ\psi,\;\psi^{*}g=g\left(\psi\left(x\right)\right)
+ *     \f]
  *
  *
  */

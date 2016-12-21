@@ -26,7 +26,7 @@ namespace simpla
 {
 
 /**
- * @ingroup utilities
+ * @ingroup toolbox
  * @addtogroup fancy_print Fancy print
  * @{
  */

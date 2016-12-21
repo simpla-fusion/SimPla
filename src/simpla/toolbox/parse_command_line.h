@@ -15,16 +15,17 @@
 
 namespace simpla
 {
-
+/**
+ * @ingroup toolbox
+ * @{
+ * @addtogroup configuration Configuration Parser
+ * }
+ */
 enum
 {
-	CONTINUE = 0, TERMINATE = 1
-}
-;
-/**
- * @ingroup utilities
- * @addtogroup configuration Configuration Parser
- */
+    CONTINUE = 0, TERMINATE = 1
+};
+
 /**
  * @ingroup  configuration
  * @brief Command line parser
@@ -76,7 +77,7 @@ enum
  *
  */
 void parse_cmd_line(int argc, char **argv,
-		std::function<int(std::string const &, std::string const &)> const & fun);
+                    std::function<int(std::string const &, std::string const &)> const &fun);
 
 /**
  * @ingroup  configuration
@@ -86,8 +87,8 @@ void parse_cmd_line(int argc, char **argv,
  * @param key
  * @return  if key is found return {true, option string} else return {false,...}
  */
-std::tuple<bool, std::string> find_option_from_cmd_line(int argc, char ** argv,
-		std::string const & key);
+std::tuple<bool, std::string> find_option_from_cmd_line(int argc, char **argv,
+                                                        std::string const &key);
 
 /**@}*/
 }  // namespace simpla

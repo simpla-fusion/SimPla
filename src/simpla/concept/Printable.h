@@ -8,17 +8,22 @@
 #include <ostream>
 
 namespace simpla { namespace concept
-{
+{/**  @ingroup concept   */
 
+/**
+ * @brief a type whose instances maybe print to std::ostream  *
+ * @details
+ * ## Summary
+ *
+ * ## Requirements
+ *  Class \c R implementing the concept of @ref Printable must define:
+ *   Pseudo-Signature                                      | Semantics
+ *	 ------------------------------------------------------|----------
+ * 	 \code  std::ostream &print(std::ostream &os, int indent)   \endcode |
+ */
 struct Printable
 {
-    Printable() {}
-
-    virtual ~Printable() {}
-
     virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
-
-
 };
 
 inline std::ostream &operator<<(std::ostream &os, Printable const &obj)

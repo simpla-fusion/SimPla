@@ -16,7 +16,7 @@
 namespace simpla
 {
 
-/** @ingroup utilities
+/** @ingroup toolbox
  * @addtogroup memory_pool Memory Pool
  * @{
  * @brief    design to speed up  frequently and repeatedly
