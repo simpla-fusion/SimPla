@@ -12,13 +12,12 @@
 #include <cstdbool>
 #include <type_traits>
 
-#include <simpla/toolbox/type_traits.h>
+#include <simpla/mpl/type_traits.h>
 #include <simpla/algebra/Expression.h>
 #include <simpla/mesh/MeshCommon.h>
 #include "simpla/algebra/Calculus.h"
 
-namespace simpla
-{
+namespace simpla {
 /** @addtogroup field Field
  *  @{
  */

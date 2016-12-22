@@ -13,6 +13,7 @@
 #include <tuple>
 #include "simpla/SIMPLA_config.h"
 #include "simpla/toolbox/Log.h"
+#include "simpla/algebra/Algebra.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/toolbox/IteratorBlock.h"
 #include "simpla/toolbox/Range.h"
@@ -23,7 +24,6 @@
 
 namespace simpla { namespace mesh
 {
-
 
 //  \verbatim
 //
@@ -946,18 +946,18 @@ struct MeshEntityIdCoder_
 
     private:
         index_type m_dof_ = 1;
-        MeshEntityType m_iform_;
+        size_type m_iform_;
         index_tuple m_min_, m_max_, m_grain_size_;
     };
 
 //    typedef RangeHolder<iterator> range_type;
 
-    static range_type make_range(index_tuple const &min, index_tuple const &max, MeshEntityType iform = VERTEX)
+    static range_type make_range(index_tuple const &min, index_tuple const &max, size_type iform = VERTEX)
     {
         return range_type(min, max, iform);
     }
 
-    static range_type make_range(index_box_type const &b, MeshEntityType iform = VERTEX)
+    static range_type make_range(index_box_type const &b, size_type iform = VERTEX)
     {
         return make_range(traits::get<0>(b), traits::get<1>(b), iform);
     }
@@ -1020,7 +1020,7 @@ struct MeshEntityIdCoder_
         return max_hash(unpack_index(e), unpack_index(b), IFORM);
     }
 
-    static constexpr size_t max_hash(index_tuple const &b, index_tuple const &e, MeshEntityType IFORM)
+    static constexpr size_t max_hash(index_tuple const &b, index_tuple const &e, size_type IFORM)
     {
         return static_cast<size_t>((e[2] - b[2]) * (e[1] - b[1]) * (e[0] - b[0])
                                    * m_id_to_num_of_ele_in_cell_[m_sub_index_to_id_[IFORM][0]]);

@@ -12,7 +12,7 @@ namespace simpla
 {
 
 
-template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF>
+template<typename TV, typename TM, size_type I, size_type DOF>
 class PhysicalQuantity : public mesh::Attribute
 {
     typedef PhysicalQuantity<TV, TM, I, DOF> field_type;
@@ -54,7 +54,7 @@ public:
 
     virtual mesh::MeshEntityType entity_type() const { return IFORM; };
 
-    virtual std::type_info const &value_type_info() const { return typeid(typename traits::value_type<TV>::type); };
+    virtual std::type_info const &value_type_info() const { return typeid(TV); };
 
     virtual size_type dof() const { return DOF; };
 
@@ -205,8 +205,7 @@ public:
 namespace traits
 {
 
-template<typename ...> struct ifrom;
-template<typename ...> struct value_type;
+
 
 template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF>
 struct iform<PhysicalQuantity<TV, TM, I, DOF> > : public std::integral_constant<size_t, I> {};

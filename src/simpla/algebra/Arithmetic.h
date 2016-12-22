@@ -40,6 +40,7 @@ DEF_BOP(shift_right, >>)
 DEF_UOP(logical_not, !)
 DEF_BOP(logical_and, &&)
 DEF_BOP(logical_or, ||)
+DEF_BOP(equal_to, ==)
 DEF_BOP(not_equal_to, !=)
 DEF_BOP(greater, >)
 DEF_BOP(less, <)
@@ -52,7 +53,7 @@ DEF_BOP(less_equal, <=)
 using namespace std;
 
 #define DEF_BI_FUN(_NAME_)                                                                \
-namespace tags{struct _NAME_{ template<typename TL,typename TR> auto operator()( TL const & l,TR const & r )const ->decltype(_NAME_(l , r))){return _NAME_(l , r);};};}
+namespace tags{struct _NAME_{ template<typename TL,typename TR> auto operator()( TL const & l,TR const & r )const ->decltype(_NAME_(l , r)){return _NAME_(l , r);};};}
 
 #define DEF_UN_FUN(_NAME_)                                                                \
 namespace tags{struct _NAME_{template<typename TL> auto operator()(TL const & l )const ->decltype( _NAME_ (l)){return  _NAME_(l) ;};};}                                                             \
@@ -174,8 +175,6 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(|, bitwise_or)                    
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_OPERATOR(~, bitwise_not)                                \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_OPERATOR(+, unary_plus)                                 \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_OPERATOR(-, negate)                                     \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_RIGHT_OPERATOR(<<, shift_left)                        \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_RIGHT_OPERATOR(>>  , shift_right)                     \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(cos)                                           \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(acos)                                          \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(cosh)                                          \
@@ -203,6 +202,9 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>, greater)               
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(<=, less_equal)                       \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)                    \
 
+
+//_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_RIGHT_OPERATOR(<<, shift_left)                        \
+//_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_RIGHT_OPERATOR(>>  , shift_right)                     \
 
 #define _SP_DEFINE_Expression_EXPR_BINARY_OPERATOR(_OP_, _NAME_)                           \
     template< typename  T1,typename T2>   Expression< tags::_NAME_,T1,T2 >                    \

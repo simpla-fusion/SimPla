@@ -53,7 +53,7 @@ struct Expression<TOP, Args...>
 };
 
 template<typename TOP, typename TL, typename TR>
-class BooleanExpression<TOP, TL, TR> : public Expression<TOP, TL, TR>
+struct BooleanExpression<TOP, TL, TR> : public Expression<TOP, TL, TR>
 {
     typedef Expression<TOP, TL, TR> base_type;
 
@@ -65,7 +65,7 @@ class BooleanExpression<TOP, TL, TR> : public Expression<TOP, TL, TR>
 };
 
 template<typename TOP, typename TL>
-class BooleanExpression<TOP, TL> : public Expression<TOP, TL>
+struct BooleanExpression<TOP, TL> : public Expression<TOP, TL>
 {
     typedef Expression<TOP, TL> base_type;
 

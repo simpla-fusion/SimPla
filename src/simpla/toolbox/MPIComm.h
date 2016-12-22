@@ -19,8 +19,8 @@
 #include <mpi.h>
 
 
-#include "simpla/calculus/nTuple.h"
-#include "design_pattern/SingletonHolder.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/design_pattern/SingletonHolder.h"
 //#include "../toolbox/Utilities.h"
 
 namespace simpla { namespace parallel

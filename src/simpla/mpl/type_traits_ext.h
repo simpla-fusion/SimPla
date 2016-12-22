@@ -7,45 +7,47 @@
 
 #ifndef CORE_toolbox_TYPE_TRAITS_EXT_H_
 #define CORE_toolbox_TYPE_TRAITS_EXT_H_
-#include "simpla/concept/CheckConcept.h"
+
+#include "CheckConcept.h"
 #include "macro.h"
+
 namespace simpla
 {
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<unsigned long N> struct CountBits
 {
-	static const unsigned long n = CountBits<N / 2>::n + 1;
+    static const unsigned long n = CountBits<N / 2>::n + 1;
 };
 
 template<> struct CountBits<0>
 {
-	static const unsigned long n = 0;
+    static const unsigned long n = 0;
 };
 
 inline unsigned long count_bits(unsigned long s)
 {
-	unsigned long n = 0;
-	while (s != 0)
-	{
-		++n;
-		s = s >> 1;
-	}
-	return n;
+    unsigned long n = 0;
+    while (s != 0)
+    {
+        ++n;
+        s = s >> 1;
+    }
+    return n;
 }
 
-template<typename T> inline T* PointerTo(T & v)
+template<typename T> inline T *PointerTo(T &v)
 {
-	return &v;
+    return &v;
 }
 
-template<typename T> inline T* PointerTo(T * v)
+template<typename T> inline T *PointerTo(T *v)
 {
-	return v;
+    return v;
 }
 
-template<typename TV, typename TR> inline TV TypeCast(TR const& obj)
+template<typename TV, typename TR> inline TV TypeCast(TR const &obj)
 {
-	return std::move(static_cast<TV>(obj));
+    return std::move(static_cast<TV>(obj));
 }
 
 template<int...> class int_tuple_t;
@@ -92,29 +94,30 @@ template<int...> class int_tuple_t;
 HAS_MEMBER_FUNCTION(swap)
 
 template<typename T> typename std::enable_if<has_member_function_swap<T>::value,
-		void>::type sp_swap(T& l, T& r)
+        void>::type sp_swap(T &l, T &r)
 {
-	l.swap(r);
+    l.swap(r);
 }
 
 template<typename T> typename std::enable_if<
-		!has_member_function_swap<T>::value, void>::type sp_swap(T& l, T& r)
+        !has_member_function_swap<T>::value, void>::type sp_swap(T &l, T &r)
 {
-	std::swap(l, r);
+    std::swap(l, r);
 }
 
 template<typename TI>
-auto ref(TI & it)
-ENABLE_IF_DECL_RET_TYPE(traits::is_iterator<TI>::value,(*it))
-template<typename TI>
-auto ref(TI & it)
-ENABLE_IF_DECL_RET_TYPE(!traits::is_iterator<TI>::value,(it))
+auto ref(TI &it)
+ENABLE_IF_DECL_RET_TYPE(traits::is_iterator<TI>::value, (*it))
 
-template<typename > struct result_of;
+template<typename TI>
+auto ref(TI &it)
+ENABLE_IF_DECL_RET_TYPE(!traits::is_iterator<TI>::value, (it))
+
+template<typename> struct result_of;
 
 template<typename F, typename ...Args> struct result_of<F(Args...)>
 {
-	typedef typename std::result_of<F(Args...)>::type type;
+    typedef typename std::result_of<F(Args...)>::type type;
 };
 
 namespace _impl
@@ -122,13 +125,13 @@ namespace _impl
 
 struct GetValue
 {
-	template<typename TL, typename TI>
-	constexpr auto operator()(TL const & v, TI const s) const
-	DECL_RET_TYPE ((traits::index(v, s)))
+    template<typename TL, typename TI>
+    constexpr auto operator()(TL const &v, TI const s) const
+    DECL_RET_TYPE ((traits::index(v, s)))
 
-	template<typename TL, typename TI>
-	constexpr auto operator()(TL & v, TI const s) const
-	DECL_RET_TYPE((traits::index(v,s)))
+    template<typename TL, typename TI>
+    constexpr auto operator()(TL &v, TI const s) const
+    DECL_RET_TYPE((traits::index(v, s)))
 };
 
 }
@@ -138,50 +141,52 @@ template<typename ...> struct index_of;
 template<typename TC, typename TI>
 struct index_of<TC, TI>
 {
-	typedef typename result_of<_impl::GetValue(TC, TI)>::type type;
+    typedef typename result_of<_impl::GetValue(TC, TI)>::type type;
 };
 
 HAS_MEMBER_FUNCTION(print)
+
 template<typename TV>
-auto sp_print(std::ostream & os,
-		TV const & v)
-		->typename std::enable_if<has_member_function_print<TV const,std::ostream &>::value,std::ostream &>::type
+auto sp_print(std::ostream &os,
+              TV const &v)
+-> typename std::enable_if<has_member_function_print<TV const, std::ostream &>::value, std::ostream &>::type
 {
-	return v.print(os);
+    return v.print(os);
 }
 
 template<typename TV>
-auto sp_print(std::ostream & os,
-		TV const & v)
-		->typename std::enable_if<!has_member_function_print<TV const,std::ostream &>::value,std::ostream &>::type
+auto sp_print(std::ostream &os,
+              TV const &v)
+-> typename std::enable_if<!has_member_function_print<TV const, std::ostream &>::value, std::ostream &>::type
 {
-	os << v;
-	return os;
+    os << v;
+    return os;
 }
 
 template<typename TI, TI L, TI R>
 struct sp_max
 {
-	static constexpr TI value = L > R ? L : R;
+    static constexpr TI value = L > R ? L : R;
 };
 
 template<typename TI, TI L, TI R>
 struct sp_min
 {
-	static constexpr TI value = L < R ? L : R;
+    static constexpr TI value = L < R ? L : R;
 };
 template<typename T>
 struct sp_pod_traits
 {
-	typedef T type;
+    typedef T type;
 
 };
+
 template<typename _Signature>
 class sp_result_of
 {
-	typedef typename std::result_of<_Signature>::type _type;
+    typedef typename std::result_of<_Signature>::type _type;
 public:
-	typedef typename sp_pod_traits<_type>::type type;
+    typedef typename sp_pod_traits<_type>::type type;
 
 };
 

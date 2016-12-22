@@ -12,51 +12,33 @@
 #include <type_traits>
 #include <cassert>
 
-#include <simpla/toolbox/type_traits.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/mesh/Attribute.h>
 
-#include "FieldTraits.h"
-#include "FieldExpression.h"
 #include "simpla/manifold/schemes/CalculusPolicy.h"
 #include "simpla/manifold/schemes/InterpolatePolicy.h"
-#include "PhysicalQuantity.h"
 
+#include "Algebra.h"
+#include "nTuple.h"
 
 namespace simpla
 {
-
-
-template<typename ...> class Field;
-
-
-template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF> using FieldType=Field<PhysicalQuantity<TV, TM, I, DOF> >;
-namespace traits
 {
-template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF>
-struct reference<Field<PhysicalQuantity<TV, TM, I, DOF> > >
-{
-    typedef Field<PhysicalQuantity<TV, TM, I, DOF> > const &type;
-};
-}
-
-template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF>
-class Field<PhysicalQuantity<TV, TM, I, DOF> >
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+class Field<TV, TM, IFORM, DOF> : public mesh::Attribute
 {
 private:
-    typedef PhysicalQuantity<TV, TM, I, DOF> phy_quantity_type;
-    typedef Field<PhysicalQuantity<TV, TM, I, DOF> > field_type;
+    typedef Field<TV, TM, IFORM, DOF> field_type;
 
-SP_OBJECT_HEAD(field_type, phy_quantity_type);
+SP_OBJECT_HEAD(field_type, mesh::Attribute);
 public:
-    using base_type::IFORM;
-    using base_type::dof;
 
     typedef TV value_type;
     typedef TM mesh_type;
-    typedef typename std::conditional<DOF == 1, value_type, nTuple<value_type, DOF> >::type cell_tuple;
-    typedef typename std::conditional<(IFORM == mesh::VERTEX || IFORM == mesh::VOLUME),
-            cell_tuple, nTuple<cell_tuple, 3> >::type field_value_type;
+
+    typedef std::conditional_t<DOF == 1, value_type, nTuple<value_type, DOF> > cell_tuple;
+    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME),
+            cell_tuple, nTuple<cell_tuple, 3> > field_value;
 
 private:
     typedef typename mesh_type::template data_block_type<TV, IFORM, DOF> data_block_type;
@@ -72,7 +54,7 @@ public:
 
     template<typename ...Args>
     explicit Field(Args &&...args):
-            base_type(std::forward<Args>(args)...),
+            base_type(std::forward<Args>(args)  ...),
             m_mesh_(nullptr),
             m_data_(nullptr) {};
 
@@ -84,7 +66,7 @@ public:
     Field(this_type &&other) = delete;
 
 
-    virtual mesh::MeshEntityType entity_type() const { return IFORM; };
+    virtual size_type entity_type() const { return IFORM; };
 
     virtual std::type_info const &value_type_info() const { return typeid(typename traits::value_type<TV>::type); };
 
@@ -117,10 +99,10 @@ public:
     }
 
     /** @name as_function  @{*/
-    template<typename ...Args> field_value_type
+    template<typename ...Args> field_value
     gather(Args &&...args) const { return m_mesh_->gather(*this, std::forward<Args>(args)...); }
 
-    template<typename ...Args> field_value_type
+    template<typename ...Args> field_value
     operator()(Args &&...args) const { return gather(std::forward<Args>(args)...); }
 
     /**@}*/
@@ -210,7 +192,7 @@ public:
 
     template<typename TFun> void
     assign(TFun const &fun, mesh::EntityIdRange const &r0,
-           typename std::result_of<TFun(point_type const &)>::type *p = nullptr)
+           std::result_of_t<TFun(point_type const &)> *p = nullptr)
     {
         pre_process();
         r0.foreach([&](mesh::MeshEntityId const &s)
@@ -222,7 +204,7 @@ public:
 
     template<typename U> void
     assign(U const &v, mesh::EntityIdRange const &r0,
-           ENABLE_IF((std::is_convertible<U, value_type>::value || std::is_same<U, field_value_type>::value)))
+           ENABLE_IF((std::is_convertible<U, value_type>::value || std::is_same<U, field_value>::value)))
     {
         pre_process();
 
@@ -247,7 +229,7 @@ public:
     }
 
     template<typename ...U>
-    void assign(Field<Expression<U...>> const &expr, mesh::EntityIdRange const &r0)
+    void assign(Expression<U...> const &expr, mesh::EntityIdRange const &r0)
     {
         pre_process();
 
@@ -296,7 +278,7 @@ public:
 
 };
 
-}//namespace simpla
+}//namespace simpla//namespace algebra{
 
 
 

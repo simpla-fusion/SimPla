@@ -82,7 +82,7 @@ class MeshBlock :
 
 public:
 
-    SP_OBJECT_HEAD(MeshBlock, Object)
+SP_OBJECT_HEAD(MeshBlock, Object)
 
     MeshBlock();
 
@@ -236,7 +236,7 @@ public:
     typedef MeshEntityIdCoder m;
 
 
-    virtual int get_adjacent_entities(MeshEntityType entity_type, MeshEntityId s, MeshEntityId *p = nullptr) const
+    virtual int get_adjacent_entities(size_type entity_type, MeshEntityId s, MeshEntityId *p = nullptr) const
     {
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
@@ -302,14 +302,14 @@ public:
                 }, nId)));
     };
 
-    virtual EntityIdRange range(MeshEntityType entityType, MeshZoneTag status) const;
+    virtual EntityIdRange range(size_type entityType, MeshZoneTag status) const;
 
-    virtual EntityIdRange range(MeshEntityType entityType, index_box_type const &b) const;
+    virtual EntityIdRange range(size_type entityType, index_box_type const &b) const;
 
-    virtual EntityIdRange range(MeshEntityType entityType, box_type const &b) const;
+    virtual EntityIdRange range(size_type entityType, box_type const &b) const;
 
     template<typename TFun>
-    void foreach(MeshEntityType const &iform, MeshZoneTag tag, TFun const &fun) const
+    void foreach(size_type const &iform, MeshZoneTag tag, TFun const &fun) const
     {
         int n = iform == VERTEX || iform == VOLUME ? 1 : 3;
         index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] : std::get<0>(m_outer_box_)[0];

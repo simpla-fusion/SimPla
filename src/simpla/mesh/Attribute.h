@@ -10,7 +10,7 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Configurable.h>
-#include <simpla/toolbox/design_pattern/Observer.h>
+#include <simpla/design_pattern/Observer.h>
 
 #include "DataBlock.h"
 
@@ -31,7 +31,7 @@ struct AttributeDesc : public concept::Configurable, public Object
 
     virtual std::type_info const &value_type_info() const =0;
 
-    virtual MeshEntityType entity_type() const =0;
+    virtual size_type entity_type() const =0;
 
     virtual size_type dof() const =0;
 };
@@ -48,7 +48,7 @@ struct AttributeDescTemp : public AttributeDesc
 
     virtual std::type_info const &value_type_info() const { return (typeid(TV)); };
 
-    virtual MeshEntityType entity_type() const { return IFORM; };
+    virtual size_type entity_type() const { return IFORM; };
 
     virtual size_type dof() const { return DOF; };
 };

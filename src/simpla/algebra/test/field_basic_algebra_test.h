@@ -17,13 +17,13 @@
 #include "../../sp_def.h"
 #include "../../toolbox/macro.h"
 #include "../../toolbox/type_traits.h"
-#include "../../toolbox/Log.h"
+#include "simpla/toolbox/Log.h"
 
 #include "simpla/algebra/Field.h"
 #include "simpla/algebra/FieldTraits.h"
 #include "simpla/algebra/FieldExpression.h"
 #include "simpla/geometry/CartesianGeometry.h"
-#include "../../manifold/ManifoldTraits.h"
+#include "simpla/manifold/ManifoldTraits.h"
 
 using namespace simpla;
 

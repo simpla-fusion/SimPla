@@ -10,10 +10,12 @@
 #include <cstdlib>
 #include <cmath>
 #include <iterator>
-#include "simpla/algebra/nTuple.h"
-#include "type_traits_ext.h"
+#include <simpla/algebra/nTuple.h>
+#include <simpla/mpl/type_traits_ext.h>
 
-namespace simpla { namespace toolbox
+namespace simpla
+{
+namespace toolbox
 {
 
 template<typename TV, int NDIMS>
@@ -35,29 +37,49 @@ public:
     using typename base_type::value_type;
     using typename base_type::difference_type;
 
-    IteratorBlock() : m_min_(), m_max_(m_min_), m_self_(m_min_) { }
+    IteratorBlock() : m_min_(), m_max_(m_min_), m_self_(m_min_) {}
 
-    IteratorBlock(nTuple<TV, NDIMS> const &self, nTuple<TV, NDIMS> const &min, nTuple<TV, NDIMS> const &max) :
+    IteratorBlock(nTuple<TV, NDIMS> const
+                  &self,
+                  nTuple<TV, NDIMS> const &min, nTuple<TV, NDIMS> const
+                  &max) :
+
             m_min_(min), m_max_(max), m_self_(self)
     {
     }
 
-    IteratorBlock(nTuple<TV, NDIMS> const &min, nTuple<TV, NDIMS> const &max) :
+    IteratorBlock(nTuple<TV, NDIMS> const
+                  &min,
+                  nTuple<TV, NDIMS> const &max
+    ) :
+
             m_min_(min), m_max_(max), m_self_(min)
     {
     }
 
-    IteratorBlock(this_type const &other) :
-            m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
+    IteratorBlock(this_type const
+                  &other) :
+            m_min_(other
+                           .m_min_),
+            m_max_(other
+                           .m_max_),
+            m_self_(other
+                            .m_self_)
     {
     }
 
-    IteratorBlock(this_type &&other) :
-            m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
+    IteratorBlock(this_type
+                  &&other) :
+            m_min_(other
+                           .m_min_),
+            m_max_(other
+                           .m_max_),
+            m_self_(other
+                            .m_self_)
     {
     }
 
-    ~IteratorBlock() { }
+    ~IteratorBlock() {}
 
     this_type &operator=(this_type const &other)
     {
@@ -205,6 +227,7 @@ public:
 };
 
 
-}}// namespace simpla{namespace toolbox{
+}
+}// namespace simpla{namespace toolbox{
 
 #endif //SIMPLA_BLOCK_ITERATOR_H

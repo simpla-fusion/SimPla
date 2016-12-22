@@ -8,7 +8,7 @@
 #define SIMPLA_LIFECLICK_H
 
 #include <atomic>
-#include "design_pattern/SingletonHolder.h"
+#include <simpla/design_pattern/SingletonHolder.h>
 
 namespace simpla { namespace toolbox
 {

@@ -7,7 +7,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <boost/uuid/uuid.hpp>
-#include "simpla/calculus/nTuple.h"
+#include "simpla/algebra/nTuple.h"
 
 namespace simpla
 {

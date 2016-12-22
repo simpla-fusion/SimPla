@@ -8,20 +8,21 @@
 #define SIMPLA_LINEAR_H
 
 #include <simpla/algebra/nTuple.h>
-#include <simpla/toolbox/type_traits.h>
+#include <simpla/mpl/type_traits.h>
+#include "simpla/mpl/macro.h"
+#include "simpla/mpl/type_traits.h"
+#include "simpla/algebra/Algebra.h"
+#include "simpla/algebra/Expression.h"
+#include "simpla/algebra/Calculus.h"
 #include "../../mesh/EntityId.h"
 
-namespace simpla
-{
-template<size_type I> using index_const=std::integral_constant<size_type, I>;
 
-template<typename ...> class Field;
-
-template<typename TV, typename TM, mesh::MeshEntityType I, size_type DOF> class PhysicalQuantity;
-}
 namespace simpla { namespace manifold { namespace schemes
 {
 using namespace simpla::mesh;
+namespace ct= simpla::algebra::tags;
+namespace at= simpla::algebra::traits;
+namespace st= simpla::traits;
 
 /**
  * @ingroup interpolate
@@ -40,13 +41,16 @@ public:
 
 
 private:
+    template<typename U, typename M, size_type...I> inline U const &
+    eval(algebra::Field_<U, M, I...> &f, MeshEntityId const &s) { return f[s]; };
 
+    template<typename U, typename M, size_type...I> inline U &
+    eval(algebra::Field_<U, M, I...> const &f, MeshEntityId const &s) { return f[s]; };
 
     template<typename TD, typename TIDX>
     static inline auto
     gather_impl_(TD const &f, TIDX const &idx) -> decltype(
-    traits::index(f, std::get<0>(idx)) *
-    std::get<1>(idx)[0])
+    traits::index(f, std::get<0>(idx)) * std::get<1>(idx)[0])
     {
 
         MeshEntityId X = (M::_DI);
@@ -56,30 +60,30 @@ private:
         point_type r = std::get<1>(idx);
         MeshEntityId s = std::get<0>(idx);
 
-        return traits::index(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
-               + traits::index(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
-               + traits::index(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) //
-               + traits::index(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
-               + traits::index(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) //
-               + traits::index(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
-               + traits::index(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
-               + traits::index(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+        return eval(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +//
+               eval(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +//
+               eval(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) +//
+               eval(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) +//
+               eval(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) +//
+               eval(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) +//
+               eval(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) +//
+               eval(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
     }
 
 public:
 
     template<typename TF>
-    constexpr static inline traits::field_value_t<TF>
-    gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == VERTEX)))
+    constexpr static inline at::field_value_t<TF>
+    gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((at::iform<TF>::value == VERTEX)))
     {
         return gather_impl_(f, m.point_global_to_local(r, 0));
     }
 
     template<typename TF>
-    constexpr static inline traits::field_value_t<TF>
-    gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == EDGE)))
+    constexpr static inline at::field_value_t<TF>
+    gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((at::iform<TF>::value == EDGE)))
     {
-        return traits::field_value_t<TF>{
+        return at::field_value_t < TF > {
                 gather_impl_(f, m.point_global_to_local(r, 1)),
                 gather_impl_(f, m.point_global_to_local(r, 2)),
                 gather_impl_(f, m.point_global_to_local(r, 4))
@@ -87,10 +91,10 @@ public:
     }
 
     template<typename TF>
-    constexpr static inline traits::field_value_t<TF>
-    gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == FACE)))
+    constexpr static inline at::field_value_t<TF>
+    gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((at::iform<TF>::value == FACE)))
     {
-        return traits::field_value_t<TF>{
+        return at::field_value_t < TF > {
                 gather_impl_(f, m.point_global_to_local(r, 6)),
                 gather_impl_(f, m.point_global_to_local(r, 5)),
                 gather_impl_(f, m.point_global_to_local(r, 3))
@@ -98,8 +102,8 @@ public:
     }
 
     template<typename TF>
-    constexpr static inline traits::field_value_t<TF>
-    gather(mesh_type const &m, TF const &f, point_type const &x, ENABLE_IF((traits::iform<TF>::value == VOLUME)))
+    constexpr static inline at::field_value_t<TF>
+    gather(mesh_type const &m, TF const &f, point_type const &x, ENABLE_IF((at::iform<TF>::value == VOLUME)))
     {
         return gather_impl_(f, m.point_global_to_local(x, 7));
     }
@@ -119,21 +123,21 @@ private:
         point_type r = std::get<1>(idx);
         MeshEntityId s = std::get<0>(idx);
 
-        traits::index(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
-        traits::index(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
-        traits::index(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
-        traits::index(f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
-        traits::index(f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
-        traits::index(f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
-        traits::index(f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
-        traits::index(f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+        eval(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
+        eval(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
+        eval(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
+        eval(f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+        eval(f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
+        eval(f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
+        eval(f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
+        eval(f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 
     }
 
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const<VERTEX>, TF &
+    scatter_(mesh_type const &m, index_const <VERTEX>, TF &
     f, TX const &x, TV const &u)
     {
         scatter_impl_(f, m.point_global_to_local(x, 0), u);
@@ -141,7 +145,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const<EDGE>, TF &
+    scatter_(mesh_type const &m, index_const <EDGE>, TF &
     f, TX const &x, TV const &u)
     {
 
@@ -153,7 +157,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const<FACE>, TF &f,
+    scatter_(mesh_type const &m, index_const <FACE>, TF &f,
              TX const &x, TV const &u)
     {
 
@@ -164,7 +168,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const<VOLUME>,
+    scatter_(mesh_type const &m, index_const <VOLUME>,
              TF &f, TX const &x, TV const &u)
     {
         scatter_impl_(f, m.point_global_to_local(x, 7), u);
@@ -175,38 +179,38 @@ public:
     static inline void
     scatter(mesh_type const &m, TF &f, Args &&...args)
     {
-        scatter_(m, traits::iform<TF>(), f, std::forward<Args>(args)...);
+        scatter_(m, at::iform<TF>(), f, std::forward<Args>(args)...);
     }
 
 private:
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const<VERTEX>, MeshEntityId const &s,
+    sample_(mesh_type const &m, index_const <VERTEX>, MeshEntityId const &s,
             TV const &v) { return v; }
 
     template<typename TV, size_type L> static inline TV
-    sample_(mesh_type const &m, index_const<VERTEX>, MeshEntityId const &s,
+    sample_(mesh_type const &m, index_const <VERTEX>, MeshEntityId const &s,
             nTuple <TV, L> const &v) { return v[s.w % L]; }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const<VOLUME>, MeshEntityId const &s,
+    sample_(mesh_type const &m, index_const <VOLUME>, MeshEntityId const &s,
             TV const &v) { return v; }
 
     template<typename TV, size_type L> static inline TV
-    sample_(mesh_type const &m, index_const<VOLUME>, MeshEntityId const &s,
+    sample_(mesh_type const &m, index_const <VOLUME>, MeshEntityId const &s,
             nTuple <TV, L> const &v) { return v[s.w % L]; }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const<EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
+    sample_(mesh_type const &m, index_const <EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const<FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
+    sample_(mesh_type const &m, index_const <FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
@@ -223,7 +227,7 @@ public:
 
 
     template<int IFORM, typename TV>
-    static inline traits::value_type_t<TV>
+    static inline at::value_type_t<TV>
     sample(mesh_type const &m, MeshEntityId const &s, TV const &v)
     {
         return sample_(m, index_const<IFORM>(), s, v);
@@ -253,35 +257,35 @@ public:
     }
 
     template<typename V, mesh::MeshEntityType IFORM, size_type DOF, typename U> static inline void
-    assign(PhysicalQuantity<V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+    assign(al::Field_ <V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s,
            nTuple <U, DOF> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     }
 
     template<typename V, size_type DOF, typename U> static inline void
-    assign(PhysicalQuantity<V, mesh_type, EDGE, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+    assign(al::Field_ <V, mesh_type, EDGE, DOF> &f, mesh_type const &m, MeshEntityId const &s,
            nTuple<U, 3> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
     }
 
     template<typename V, size_type DOF, typename U> static inline void
-    assign(PhysicalQuantity<V, mesh_type, FACE, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+    assign(al::Field_ <V, mesh_type, FACE, DOF> &f, mesh_type const &m, MeshEntityId const &s,
            nTuple<U, 3> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
     }
 
     template<typename V, size_type DOF, typename U> static inline void
-    assign(PhysicalQuantity<V, mesh_type, VOLUME, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+    assign(al::Field_ <V, mesh_type, VOLUME, DOF> &f, mesh_type const &m, MeshEntityId const &s,
            nTuple <U, DOF> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     }
 
     template<typename V, mesh::MeshEntityType IFORM, size_type DOF, typename U> static inline void
-    assign(PhysicalQuantity<V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s, U const &v)
+    assign(al::Field_ <V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s, U const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v; }
     }

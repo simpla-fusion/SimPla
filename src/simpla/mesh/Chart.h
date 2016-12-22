@@ -5,7 +5,7 @@
 #ifndef SIMPLA_GEOMETRY_H
 #define SIMPLA_GEOMETRY_H
 
-#include <simpla/toolbox/design_pattern/Observer.h>
+#include <simpla/design_pattern/Observer.h>
 #include <simpla/mesh/MeshBlock.h>
 
 namespace simpla { namespace mesh

@@ -37,7 +37,7 @@ public:
 
     virtual std::type_info const &value_type_info() const =0;
 
-    virtual MeshEntityType entity_type() const =0;
+    virtual size_type entity_type() const =0;
 
     virtual void load(data::DataTable const &) =0;
 
@@ -55,7 +55,7 @@ public:
 
 };
 
-template<typename TV, MeshEntityType IFORM, size_type DOF = 1>
+template<typename TV, size_type IFORM, size_type DOF = 1>
 class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>
 {
 public:
@@ -63,7 +63,7 @@ public:
     typedef data::DataEntityNDArray<TV> data_entity_type;
     typedef TV value_type;
 
-    SP_OBJECT_HEAD(block_array_type, DataBlock);
+SP_OBJECT_HEAD(block_array_type, DataBlock);
 
     template<typename ...Args>
     explicit DataBlockArray(Args &&...args) : DataBlock(), data_entity_type(std::forward<Args>(args)...) {}
@@ -74,7 +74,7 @@ public:
 
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
 
-    virtual mesh::MeshEntityType entity_type() const { return IFORM; }
+    virtual size_type entity_type() const { return IFORM; }
 
     virtual size_type dof() const { return DOF; }
 
@@ -103,7 +103,7 @@ public:
     {
         index_type n_dof = DOF;
         int ndims = 3;
-        if (IFORM == mesh::EDGE || IFORM == mesh::FACE)
+        if (IFORM == EDGE || IFORM == FACE)
         {
             n_dof *= 3;
             ++ndims;

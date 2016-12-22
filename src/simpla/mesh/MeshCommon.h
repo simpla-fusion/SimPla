@@ -6,9 +6,8 @@
 #define SIMPLA_MESHCOMMON_H
 
 #include <boost/uuid/uuid.hpp>
-#include "../toolbox/sp_def.h"
-#include "simpla/calculus/nTuple.h"
-
+#include <simpla/algebra/nTuple.h>
+#include <simpla/toolbox/sp_def.h>
 
 namespace simpla { namespace mesh
 {
@@ -18,37 +17,39 @@ namespace simpla { namespace mesh
 typedef union { struct { u_int16_t w, z, y, x; }; int64_t v; } MeshEntityId;
 
 
+
 //typedef MeshEntityId64 MeshEntityId;
 
+#define MAX_POLYGON 20
 
 enum MeshEntityType
 {
-    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3,
-    FIBER = 10 // points in cell
+//    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3,
+//    FIBER = 10 // points in cell
 
-//    TRIANGLE = (3 << 2) | 2,
-//
-//    QUADRILATERAL = (4 << 2) | 2,
-//
-//    // place RangeHolder
-//
-//    POLYGON = ((-1) << 2) | 2,
-//
-//    // custom polygon
-//
-//
-//
-//    TETRAHEDRON = (6 << 2) | 3,
-//    PYRAMID,
-//    PRISM,
-//    KNIFE,
-//
-//    HEXAHEDRON = MAX_POLYGON + 12,
-//    // place RangeHolder
-//            POLYHEDRON = MAX_POLYGON + (1 << 5),
-//    // custom POLYHEDRON
-//
-//    MAX_POLYHEDRON = MAX_POLYGON + (1 << 6)
+    TRIANGLE = (3 << 2) | 2,
+
+    QUADRILATERAL = (4 << 2) | 2,
+
+    // place RangeHolder
+
+    POLYGON = ((-1) << 2) | 2,
+
+    // custom polygon
+
+
+
+    TETRAHEDRON = (6 << 2) | 3,
+    PYRAMID,
+    PRISM,
+    KNIFE,
+
+    HEXAHEDRON = MAX_POLYGON + 12,
+    // place RangeHolder
+            POLYHEDRON = MAX_POLYGON + (1 << 5),
+    // custom POLYHEDRON
+
+    MAX_POLYHEDRON = MAX_POLYGON + (1 << 6)
 
 };
 /**

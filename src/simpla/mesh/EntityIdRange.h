@@ -10,7 +10,6 @@
 #include <type_traits>
 #include <cassert>
 
-#include <simpla/toolbox/Parallel.h>
 
 #include "MeshCommon.h"
 #include "EntityId.h"

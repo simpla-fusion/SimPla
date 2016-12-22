@@ -31,7 +31,7 @@ struct CartesianGeometry : public Chart
 {
 public:
 
-    SP_OBJECT_HEAD(CartesianGeometry, Chart)
+SP_OBJECT_HEAD(CartesianGeometry, Chart)
 
 
     static constexpr unsigned int NDIMS = 3;
@@ -70,7 +70,7 @@ public:
 
 
 public:
-    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type= mesh::DataBlockArray<TV, IFORM, DOF>;
+    template<typename TV, size_type IFORM, size_type DOF = 1> using data_block_type= mesh::DataBlockArray<TV, IFORM, DOF>;
 
 
     CartesianGeometry() {}

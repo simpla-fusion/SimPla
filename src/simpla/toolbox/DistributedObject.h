@@ -12,7 +12,7 @@
 #include <vector>
 #include <memory>
 
-#include <simpla/calculus/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 
 
 namespace simpla { namespace toolbox

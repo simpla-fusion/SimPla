@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Memory.h>
+#include <simpla/mesh/MeshCommon.h>
 #include "HeavyData.h"
 
 namespace simpla { namespace data
@@ -26,7 +27,7 @@ enum
 template<typename V>
 class DataEntityNDArray : public HeavyData
 {
-    SP_OBJECT_HEAD(DataEntityNDArray<V>, HeavyData);
+SP_OBJECT_HEAD(DataEntityNDArray<V>, HeavyData);
 
 public:
 

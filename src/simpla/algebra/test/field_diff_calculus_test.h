@@ -18,17 +18,13 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include <simpla/toolbox/IO.h>
-#include <simpla/algebra/nTuple.h>
-#include <simpla/toolbox/Log.h>
 
-#include <simpla/mesh/Mesh.h>
-#include <simpla/algebra/Field.h>
-#include <simpla/algebra/FieldExpression.h>
-#include <simpla/algebra/FieldTraits.h>
-#include <simpla/algebra/Calculus.h>
-#include <simpla/geometry/CartesianGeometry.h>
 
+#include <simpla/manifold/CartesianGeometry.h>
+#include "../Algebra.h"
+#include "../nTuple.h"
+#include "../Field.h"
+#include "../Calculus.h"
 
 using namespace simpla;
 using namespace simpla::mesh;
@@ -90,7 +86,7 @@ protected:
 //        //        K_real[PhiAxis]/=xm[RAxis];
 //                error = 2 * power2(K_real[RAxis] * dx[RAxis] + K_real[ZAxis] * dx[ZAxis] + K_real[PhiAxis] * dx[PhiAxis] );
 //#else
-        error = 2 * power2(inner_product(K_real, dx));
+//        error = 2 * power2(inner_product(K_real, dx));
 //#endif
         one = 1;
 
@@ -130,7 +126,7 @@ public:
     {
     }
 
-    template<mesh::MeshEntityType IFORM> using field_type=Field<value_type, mesh_type, index_const<static_cast<size_t>(IFORM)>, index_const<1> >;
+    template<size_type IFORM> using field_type=algebra::Field_<value_type, mesh_type, IFORM, 1>;
 
 
 };

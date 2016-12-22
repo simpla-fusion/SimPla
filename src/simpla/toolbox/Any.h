@@ -19,9 +19,8 @@
 #include <stddef.h>
 
 #include <simpla/concept/Printable.h>
+#include <simpla/algebra/nTuple.h>
 
-#include "simpla/calculus/nTuple.h"
-#include "simpla/calculus/nTupleExt.h"
 #include "Log.h"
 
 
@@ -349,13 +348,12 @@ private:
 
         virtual void const *data() const = 0;
 
-        template<typename U, int N>
-        bool as(nTuple<U, N> *v) const
+        template<typename U, size_type N>
+        bool as(nTuple <U, N> *v) const
         {
-            if (is_same<nTuple<U, N>>
-                    ())
+            if (is_same<nTuple<U, N>>())
             {
-                *v = dynamic_cast<Holder<nTuple<U, N>> const *>(this)->m_value_;
+                *v = dynamic_cast<Holder<nTuple<U, N>> const * > (this)->m_value_;
                 return true;
             } else if (this->size() < N) { return false; }
 
@@ -447,7 +445,7 @@ private:
         }
 
         template<typename V, int N>
-        std::shared_ptr<PlaceHolder> _index_of(nTuple<V, N> const &v, int n) const
+        std::shared_ptr<PlaceHolder> _index_of(nTuple <V, N> const &v, int n) const
         {
             return std::shared_ptr<PlaceHolder>(new Holder<V>(v[n]));
         }
