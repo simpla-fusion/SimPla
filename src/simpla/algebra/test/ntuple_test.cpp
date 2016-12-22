@@ -12,8 +12,8 @@
 #include <typeinfo>
 #include <utility>
 #include "../nTuple.h"
-#include "../nTupleExpr.h"
-
+#include "../Expression.h"
+#include "../Algebra.h"
 
 using namespace simpla;
 using namespace simpla::algebra;
@@ -78,8 +78,8 @@ public:
 
 typedef testing::Types<
         nTuple<double, 3>
-//        Matrix<double, 3, 3>,
-//        Tensor<double, 3, 4, 5>,
+//        ,Matrix<double, 3, 3>
+//        ,Tensor<double, 3, 4, 5>,
 //        Tensor<int, 3, 4, 5, 6>,
 //        Tensor<std::complex<double>, 3, 4, 5, 6>
 
@@ -109,21 +109,21 @@ TYPED_TEST(TestNtuple, assign_Scalar)
 
     TestFixture::vA = TestFixture::a;
 
-//    traits::seq_for_each(typename TestFixture::extents(),
-//                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-//                         {
-//                             EXPECT_DOUBLE_EQ(0, abs(TestFixture::a - traits::index(TestFixture::vA, idx)));
-//                         }
-//    );
+    traits::seq_for_each(typename TestFixture::extents(),
+                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
+                         {
+                             EXPECT_DOUBLE_EQ(0, abs(TestFixture::a - traits::index(TestFixture::vA, idx)));
+                         }
+    );
 
 
 }
-//
-//TYPED_TEST(TestNtuple, assign_Array)
-//{
-//
-//    TestFixture::vA = TestFixture::aA;
-//
+
+TYPED_TEST(TestNtuple, assign_Array)
+{
+
+    TestFixture::vA = TestFixture::aA;
+
 //    traits::seq_for_each(typename TestFixture::extents(),
 //                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
 //                         {
@@ -131,10 +131,10 @@ TYPED_TEST(TestNtuple, assign_Scalar)
 //                                                     traits::index(TestFixture::vA, idx)));
 //                         }
 //    );
-//
-//
-//}
-//
+
+
+}
+
 TYPED_TEST(TestNtuple, self_assign)
 {
 
@@ -180,7 +180,9 @@ TYPED_TEST(TestNtuple, arithmetic)
 {
     using namespace simpla::algebra;
 
-    TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
+    TestFixture::vD = (-(TestFixture::vA + TestFixture::a) / (TestFixture::vB * TestFixture::b - TestFixture::c) -
+                       TestFixture::vC) + 5 + 6;
+    //EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC) + (5 + 6);
 
 //    traits::seq_for_each(typename TestFixture::extents(),
 //                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])

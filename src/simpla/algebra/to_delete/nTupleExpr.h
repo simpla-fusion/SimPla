@@ -9,15 +9,13 @@
 #include "Expression.h"
 #include "Arithmetic.h"
 
-namespace simpla { template<typename, size_type ...> struct nTuple; }
 namespace simpla
 {
-namespace algebra { namespace traits
+namespace algebra
 {
-template<typename TV, size_type N0, size_type ...N>
-struct value_type<nTuple<TV, N0, N...> > { typedef typename value_type<TV>::type type; };
 
-}}//namespace algebra{
+
+}//namespace algebra{
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_RIGHT_OPERATOR(_OP_, _NAME_)                                                  \

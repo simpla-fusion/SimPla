@@ -43,10 +43,7 @@ template<typename T> using scalar_type_t=typename scalar_type<T>::type;
 
 
 template<typename TOP, typename ...Others>
-struct value_type<Expression<TOP, Others...> >
-{
-    typedef std::result_of_t<TOP(value_type_t<Others> ...)> type;
-};
+struct value_type<Expression<TOP, Others...> > { typedef std::result_of_t<TOP(value_type_t<Others> ...)> type; };
 
 }//namespace traits
 

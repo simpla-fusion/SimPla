@@ -22,8 +22,8 @@ namespace simpla { namespace algebra
 {
 
 /**
- * @defgroup calculus Calculus on CoordinateSystem
- * @ingroup calculus
+ * @defgroup algebra Algebra
+ * @ingroup algebra
  * @{
  **/
 
@@ -43,13 +43,8 @@ struct MapTo {};
 struct Cross {};
 struct Dot {};
 }  // namespace tags
-
-
-
 namespace traits
 {
-
-
 template<typename T>
 struct iform<Expression<tags::HodgeStar, T> > : public index_const<rank<T>::value - iform<T>::value> {};
 

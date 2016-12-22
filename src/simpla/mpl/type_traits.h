@@ -26,7 +26,7 @@ typedef std::nullptr_t NullType;
 
 struct EmptyType {};
 
-template<typename, size_type ...> struct nTuple;
+//template<typename, size_type ...> struct nTuple;
 
 
 namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const {}}; }
