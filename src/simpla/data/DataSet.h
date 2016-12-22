@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <tbb/concurrent_vector.h>
 
-#include <simpla/toolbox/check_concept.h>
+#include <simpla/concept/CheckConcept.h>
 #include <simpla/toolbox/type_traits.h>
 #include "DataSpace.h"
 #include "DataType.h"

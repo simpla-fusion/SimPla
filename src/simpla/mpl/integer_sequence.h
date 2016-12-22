@@ -10,8 +10,9 @@
 
 #include <stddef.h>
 #include <iostream>
-#include "check_concept.h"
+#include "CheckConcept.h"
 #include "port_cxx14.h"
+#include "macro.h"
 
 namespace simpla
 {
@@ -112,11 +113,10 @@ namespace traits
 {
 
 template<typename T, typename TI>
-auto index(T &v, integer_sequence<TI>, ENABLE_IF((is_indexable<T, TI>::value))) DECL_RET_TYPE(v)
+auto index(T &v, integer_sequence<TI>, ENABLE_IF((is_indexable<T, TI>::value) ))DECL_RET_TYPE(v)
 
 template<typename T, typename TI, TI M, TI ...N>
-auto index(T &v, integer_sequence<TI, M, N...>, ENABLE_IF((is_indexable<T, TI>::value)))
-DECL_RET_TYPE((index(v[M], integer_sequence<TI, N...>())))
+auto index(T &v, integer_sequence<TI, M, N...>, ENABLE_IF((is_indexable<T, TI>::value)))DECL_RET_TYPE((index(v[M], integer_sequence<TI, N...>())))
 //----------------------------------------------------------------------------------------------------------------------
 
 template<typename> struct seq_value;
@@ -247,10 +247,11 @@ struct _seq_reduce<M, N...>
 
     template<typename Reduction, size_t ...L, typename ... Args>
     static inline auto eval(Reduction const &reduction, integer_sequence<size_t, L...>, Args &&... args)
+
     DECL_RET_TYPE((reduction(
             _seq_reduce<N...>::eval(reduction,
-                                    integer_sequence<size_t, L..., M>(),
-                                    std::forward<Args>(args)...),
+            integer_sequence<size_t, L..., M>(),
+            std::forward<Args>(args)...),
 
             _seq_reduce<M - 1, N...>::eval(reduction,
                                            integer_sequence<size_t, L...>(),
@@ -260,7 +261,8 @@ struct _seq_reduce<M, N...>
 
     template<typename Reduction, typename ...Args>
     static inline auto eval(Reduction const &reduction, Args &&... args)
-    DECL_RET_TYPE(eval(reduction, integer_sequence<size_t>(), std::forward<Args>(args)...))
+
+    DECL_RET_TYPE (eval(reduction, integer_sequence<size_t>(), std::forward<Args>(args)...))
 
 };
 
@@ -270,8 +272,9 @@ struct _seq_reduce<1, N...>
 
     template<typename Reduction, size_t ...L, typename ...Args>
     static inline auto eval(Reduction const &reduction, integer_sequence<size_t, L...>, Args &&... args)
-    DECL_RET_TYPE((_seq_reduce<N...>::eval(reduction, integer_sequence<size_t, L..., 1>(),
-                                           std::forward<Args>(args)...)))
+
+    DECL_RET_TYPE ((_seq_reduce<N...>::eval(reduction, integer_sequence<size_t, L..., 1>(),
+                                            std::forward<Args>(args)...)))
 
 };
 
@@ -281,7 +284,8 @@ struct _seq_reduce<>
     template<typename Reduction, size_t ...L, typename Args>
     static inline auto eval(Reduction const &, integer_sequence<size_t, L...>,
                             Args const &args)
-    DECL_RET_TYPE((access(args, integer_sequence<size_t, (L - 1)...>())))
+
+    DECL_RET_TYPE ((access(args, integer_sequence<size_t, (L - 1)...>())))
 
 
 };
@@ -290,6 +294,7 @@ struct _seq_reduce<>
 //namespace _impl
 template<size_t ... N, typename TOP, typename ...Args>
 auto seq_reduce(integer_sequence<size_t, N...>, TOP const &op, Args &&... args)
+
 DECL_RET_TYPE((_impl::_seq_reduce<N...>::eval(op, std::forward<Args>(args)...)))
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -484,6 +489,9 @@ std::ostream &operator<<(std::ostream &os, integer_sequence<_Tp> const &)
     os << std::endl;
     return os;
 }
+
+
+template<size_type I> using index_const=std::integral_constant<size_type, I>;
 
 }// namespace simpla
 #endif /* CORE_toolbox_INTEGER_SEQUENCE_H_ */

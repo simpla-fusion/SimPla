@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "simpla/algebra/ExpressionTemplate.h"
+#include "simpla/algebra/Expression.h"
 #include "simpla/toolbox/type_traits.h"
 #include "simpla/toolbox/mpl.h"
 

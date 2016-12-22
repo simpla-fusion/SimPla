@@ -32,7 +32,7 @@
 
 using namespace simpla;
 using namespace simpla::mesh;
-using namespace simpla::calculus;
+using namespace simpla::algebra;
 //#define CYLINDRICAL_COORDINATE_SYSTEM 1
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM

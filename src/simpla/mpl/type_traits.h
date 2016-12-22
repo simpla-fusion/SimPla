@@ -15,8 +15,9 @@
 #include <type_traits>
 #include <complex>
 #include "type_cast.h"
-#include "check_concept.h"
+#include "CheckConcept.h"
 #include "integer_sequence.h"
+#include "macro.h"
 
 namespace simpla
 {
@@ -27,7 +28,6 @@ struct EmptyType {};
 
 template<typename, size_type ...> struct nTuple;
 
-template<size_type I> using index_const=std::integral_constant<size_type, I>;
 
 namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const {}}; }
 

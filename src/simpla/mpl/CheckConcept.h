@@ -427,7 +427,6 @@ template<typename, typename> struct is_indexable;
 
 
 
-#define ENABLE_IF(_COND_) typename std::enable_if<_COND_, void>::type *_p = nullptr
 //std::enable_if_t<_COND_> *__p = nullptr
 
 #define CHECK_FUNCTION_SIGNATURE(_RET_, _FUN_) typename std::enable_if<std::is_same<_RET_,std::result_of_t<_FUN_>>::value>::type *__p = nullptr

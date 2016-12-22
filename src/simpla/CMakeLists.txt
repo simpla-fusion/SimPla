@@ -1,6 +1,6 @@
 ADD_SUBDIRECTORY(concept)
 
-ADD_SUBDIRECTORY(calculus)
+ADD_SUBDIRECTORY(algebra)
 
 ADD_SUBDIRECTORY(toolbox)
 

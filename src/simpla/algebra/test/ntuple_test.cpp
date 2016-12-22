@@ -11,16 +11,12 @@
 #include <type_traits>
 #include <typeinfo>
 #include <utility>
-#include "simpla/toolbox/type_traits.h"
-#include "simpla/calculus/nTuple.h"
-#include "simpla/calculus/Calculus.h"
+#include "../nTuple.h"
+#include "../nTupleExpr.h"
 
-//#include "../primitives.h"
-//#include "../mpl.h"
-#include "simpla/toolbox/integer_sequence.h"
 
 using namespace simpla;
-using namespace simpla::calculus;
+using namespace simpla::algebra;
 
 #define EQUATION(_A, _B, _C)  ( -(_A  +TestFixture::a )/(   _B *TestFixture::b -TestFixture::c  )- _C)
 
@@ -68,9 +64,9 @@ public:
 
 //    typedef traits::extents<type> extents;
 
-    nTuple<std::size_t, calculus::traits::rank<type>::value> DIMENSIONS;
+    nTuple<std::size_t, algebra::traits::rank<type>::value> DIMENSIONS;
 
-    typedef calculus::traits::value_type_t<type> value_type;
+    typedef algebra::traits::value_type_t<type> value_type;
 
     type vA, vB, vC, vD;
 
@@ -107,21 +103,21 @@ TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
 //
 //}
 //
-//TYPED_TEST(TestNtuple, assign_Scalar)
-//{
-//
-//
-//    TestFixture::vA = TestFixture::a;
-//
+TYPED_TEST(TestNtuple, assign_Scalar)
+{
+
+
+    TestFixture::vA = TestFixture::a;
+
 //    traits::seq_for_each(typename TestFixture::extents(),
 //                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
 //                         {
 //                             EXPECT_DOUBLE_EQ(0, abs(TestFixture::a - traits::index(TestFixture::vA, idx)));
 //                         }
 //    );
-//
-//
-//}
+
+
+}
 //
 //TYPED_TEST(TestNtuple, assign_Array)
 //{
@@ -139,11 +135,11 @@ TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
 //
 //}
 //
-//TYPED_TEST(TestNtuple, self_assign)
-//{
-//
-//    TestFixture::vB += TestFixture::vA;
-//
+TYPED_TEST(TestNtuple, self_assign)
+{
+
+    TestFixture::vB += TestFixture::vA;
+
 //    traits::seq_for_each(typename TestFixture::extents(),
 //                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
 //                         {
@@ -153,9 +149,9 @@ TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
 //
 //                         }
 //    );
-//
-//
-//}
+
+
+}
 ////
 //TYPED_TEST(TestNtuple, cross)
 //{
@@ -182,8 +178,9 @@ TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
 
 TYPED_TEST(TestNtuple, arithmetic)
 {
+    using namespace simpla::algebra;
 
-    TestFixture::vD = TestFixture::vA + TestFixture::vB;//EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
+    TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
 
 //    traits::seq_for_each(typename TestFixture::extents(),
 //                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])

@@ -16,7 +16,7 @@
 #include "../../toolbox/macro.h"
 #include "../../toolbox/sp_def.h"
 #include "../../toolbox/type_traits.h"
-#include "simpla/algebra/ExpressionTemplate.h"
+#include "simpla/algebra/Expression.h"
 #include "simpla/algebra/Calculus.h"
 #include "../ManifoldTraits.h"
 
@@ -25,7 +25,7 @@ namespace simpla { namespace manifold { namespace schemes
 {
 using namespace simpla::mesh;
 
-namespace ct=::simpla::calculus::tags;
+namespace ct=::simpla::algebra::tags;
 namespace st=::simpla::traits;
 
 /**
@@ -84,7 +84,7 @@ private:
 public:
 
     //***************************************************************************************************
-    // Exterior calculus
+    // Exterior algebra
     //***************************************************************************************************
 
     //! grad<0>

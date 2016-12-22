@@ -13,7 +13,7 @@
 #include <type_traits>
 
 #include <simpla/toolbox/type_traits.h>
-#include <simpla/algebra/ExpressionTemplate.h>
+#include <simpla/algebra/Expression.h>
 #include <simpla/mesh/MeshCommon.h>
 #include "simpla/algebra/Calculus.h"
 
@@ -23,7 +23,7 @@ namespace simpla
  *  @{
  */
 template<typename ...> struct Field;
-namespace ct=calculus::tags;
+namespace ct=algebra::tags;
 
 /// @name  Field Expression
 /// @{
