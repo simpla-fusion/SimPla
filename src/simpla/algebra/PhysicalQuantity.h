@@ -68,8 +68,8 @@ public:
     {
         if (base_type::is_valid()) { return; } else { base_type::pre_process(); }
 
-//        m_mesh_ = base_type::mesh_as<mesh_type>();
-//        m_data_ = base_type::data_as<data_block_type>();
+//        m_mesh_ = self_type::mesh_as<mesh_type>();
+//        m_data_ = self_type::data_as<data_block_type>();
         ASSERT(m_data_ != nullptr);
         ASSERT(m_mesh_ != nullptr);
 

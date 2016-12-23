@@ -16,15 +16,42 @@
 #include <cmath>
 #include "../mpl/type_traits.h"
 #include "../mpl/integer_sequence.h"
+#include "Algebra.h"
 
 namespace simpla { namespace algebra
 {
+namespace declare { template<typename ...> struct Expression; }
+
+namespace traits
+{
+
+template<typename TOP, typename ...Others>
+struct is_nTuple<declare::Expression<TOP, Others...> > : public is_nTuple<Others...> {};
+
+template<typename TOP, typename ...Others>
+struct is_field<declare::Expression<TOP, Others...> > : public is_field<Others...> {};
+
+template<typename TOP, typename T0, typename ... T>
+struct iform<declare::Expression<TOP, T0, T...> > : public iform<T0> {};
+
+template<typename TOP, typename ...Others>
+struct value_type<declare::Expression<TOP, Others...> >
+{
+    typedef decltype(TOP::eval(std::declval<value_type_t<Others>>() ...)) type;
+};
+
+
+}//namespace traits
+
+
+namespace declare
+{
+
 /**
  *  @ingroup calculus
  *  @addtogroup expression_template  Expression Template
  *  @{
  */
-
 template<typename ...> class Expression;
 
 template<typename ...> struct BooleanExpression;
@@ -99,6 +126,8 @@ struct BooleanExpression<TOP, TL> : public Expression<TOP, TL>
 //    DECL_RET_TYPE (((op_(traits::get_value(lhs, s), traits::get_value(rhs, s)))))
 //
 //};
-}}  // namespace simpla
+
+}
+}}  // namespace simpla::algebra::declare
 
 #endif /* EXPRESSION_TEMPLATE_H_ */

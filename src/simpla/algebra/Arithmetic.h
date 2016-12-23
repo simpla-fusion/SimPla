@@ -9,13 +9,9 @@
 #include <cmath>
 #include <type_traits>
 #include <valarray>
+
 namespace simpla { namespace algebra
 {
-template<typename ...> class Expression;
-
-template<typename ...> struct BooleanExpression;
-
-template<typename ...> struct AssignmentExpression;
 
 
 /** @name Constant Expressions
@@ -74,12 +70,11 @@ template<typename TR> constexpr Zero operator&(Zero, Zero) { return std::move(Ze
 
 /** @} */
 
+#define DEF_BOP(_NAME_, _OP_)  \
+ namespace tags{struct _NAME_{ template<typename TL,typename TR> static inline constexpr auto eval( TL const & l,TR const & r   )  ->decltype(l _OP_ r) {return l _OP_ r;};};}
 
-
-
-#define DEF_BOP(_NAME_, _OP_)   namespace tags{struct _NAME_{ template<typename TL,typename TR> auto operator()( TL const & l,TR const & r   )const ->decltype(l _OP_ r) {return l _OP_ r;};};}
-
-#define DEF_UOP(_NAME_, _OP_)   namespace tags{struct _NAME_{ template<typename TL> auto operator()(TL const & l )const ->decltype(  _OP_ l){return  _OP_ l;};};}
+#define DEF_UOP(_NAME_, _OP_)   \
+ namespace tags{struct _NAME_{ template<typename TL> static inline constexpr auto eval(TL const & l )  ->decltype(  _OP_ l){return  _OP_ l;};};}
 
 
 DEF_BOP(plus, +)
@@ -110,9 +105,11 @@ DEF_BOP(equal_to, ==)
 
 using namespace std;
 
-#define DEF_BI_FUN(_NAME_)  namespace tags{struct _##_NAME_{ template<typename TL,typename TR> auto operator()( TL const & l,TR const & r )const ->decltype(_NAME_(l , r)){return _NAME_(l , r);};};}
+#define DEF_BI_FUN(_NAME_)  \
+namespace tags{struct _##_NAME_{ template<typename TL,typename TR> static inline constexpr auto  eval( TL const & l,TR const & r ) ->decltype(_NAME_(l , r)){return _NAME_(l , r);};};}
 
-#define DEF_UN_FUN(_NAME_)   namespace tags{struct _##_NAME_{template<typename TL> auto operator()(TL const & l )const ->decltype( _NAME_ (l)){return  _NAME_(l) ;};};}
+#define DEF_UN_FUN(_NAME_)   \
+namespace tags{struct _##_NAME_{ template<typename TL> static inline constexpr auto  eval(TL const & l ) ->decltype( _NAME_ (l)){return  _NAME_(l) ;};};}
 
 DEF_UN_FUN(cos)
 DEF_UN_FUN(acos)
@@ -135,6 +132,7 @@ DEF_BI_FUN(pow)
 #undef DEF_UN_FUN
 #undef DEF_BI_FUN
 
+
 /**
  * ### Assignment Operator
  *
@@ -145,24 +143,28 @@ DEF_BI_FUN(pow)
  *  `operator/=(GeoObject & ,Expression const &)`     | Assign operation /
  *  `operator*=(GeoObject & ,Expression const &)`     | Assign operation *
  */
+//namespace tags{struct _assign{ template<typename TL,typename TR> static inline constexpr void eval( TL  & l,TR const & r){  l = static_cast<TL>(r);};};}
 
-template<typename TL, typename TR>
-void assign(std::nullptr_t, TL &l, TR const &r, typename std::enable_if<
-        std::is_arithmetic<TL>::value &&
-        std::is_arithmetic<TR>::value, void>::type *_p = nullptr) { l = static_cast<TL>(r); }
+#define DEF_ASSIGN_OP(_NAME_, _OP_)   \
+namespace tags{struct _NAME_##_assign{ template<typename TL,typename TR> static inline constexpr void eval( TL  & l,TR const & r){  l _OP_##= r;};};}
+
+DEF_ASSIGN_OP( ,  )
+DEF_ASSIGN_OP(plus, +)
+DEF_ASSIGN_OP(minus, -)
+DEF_ASSIGN_OP(multiplies, *)
+DEF_ASSIGN_OP(divides, /)
+DEF_ASSIGN_OP(modulus, %)
+
+#undef DEF_ASSIGN_OP
 
 
-//#define DEF_ASSIGN_OP(_NAME_, _OP_)                                                                \
-//template<typename TL,typename TR> void assign(tags::_NAME_ const *, TL   & l,TR const & r                                \
-//,ENABLE_IF(std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value> ){  l _OP_##= r;};
-//
-//DEF_ASSIGN_OP(plus, +)
-//DEF_ASSIGN_OP(minus, -)
-//DEF_ASSIGN_OP(multiplies, *)
-//DEF_ASSIGN_OP(divides, /)
-//DEF_ASSIGN_OP(modulus, %)
-//
-//#undef DEF_ASSIGN_OP
+namespace declare
+{
+template<typename ...> struct Expression;
+template<typename ...> struct BooleanExpression;
+template<typename ...> struct AssignmentExpression;
+
+
 #define  DEFINE_EXPRESSION_TEMPLATE_BASIC_ALGEBRA2(_CONCEPT_)                                              \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(+, plus)                                      \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(-, minus)                                     \
@@ -192,93 +194,45 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(log10)                             
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(sqrt)                                          \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_FUNCTION(atan2 )                                      \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_FUNCTION(pow)                                         \
-
-//_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_BOOLEAN_OPERATOR(!,  logical_not)                       \
-//_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(&&, logical_and)                      \
-//_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(||, logical_or)                       \
-//_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to)                     \
-//_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(==, equal_to)                         \
-//_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(<, less)                              \
-//_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>, greater)                           \
-//_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(<=, less_equal)                       \
-//_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)                    \
+_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_BOOLEAN_OPERATOR(!,  logical_not)                       \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(&&, logical_and)                      \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(||, logical_or)                       \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to)                     \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(==, equal_to)                         \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(<, less)                              \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>, greater)                           \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(<=, less_equal)                       \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)                    \
 
 
 //_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(real)                                          \
 //_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(imag)                                          \
 
 #define _SP_DEFINE_Expression_EXPR_BINARY_OPERATOR(_OP_, _NAME_)                           \
-    template<typename ...T1,typename  T2>                                                  \
-    Expression<tags::_NAME_,Expression<T1...>,T2>                                       \
-    operator _OP_(Expression<T1...> const & l,T2 const &r)                                 \
-    {return (Expression<tags::_NAME_,Expression<T1...>,T2>(l,r));}                      \
-    template< typename T1,typename ...T2>                                                  \
-    Expression< tags::_NAME_,T1,Expression< T2...> >                                         \
-    operator _OP_(T1 const & l, Expression< T2...>const &r)                                \
-    {return (Expression< tags::_NAME_,T1,Expression< T2...> > (l,r));}                  \
-    template< typename ... T1,typename ...T2>                                              \
-    Expression< tags::_NAME_,Expression< T1...>,Expression< T2...> >                    \
-    operator _OP_(Expression< T1...> const & l,Expression< T2...>  const &r)               \
-    {return (Expression< tags::_NAME_,Expression< T1...>,Expression< T2...> > (l,r));}  \
-
+    template< typename T1,typename T2> Expression< tags::_NAME_,T1,T2 > operator _OP_(T1 const & l, T2  const &r){return (Expression< tags::_NAME_,T1,T2 > (l,r));}
 
 
 #define _SP_DEFINE_Expression_EXPR_BINARY_RIGHT_OPERATOR(_OP_, _NAME_)                      \
-    template<typename ...T1,typename  T2>                                                   \
-    constexpr  Expression<tags::_NAME_,Expression<T1...>,T2>                             \
-    operator _OP_(Expression<T1...> const & l,T2 const &r)                                  \
-    {return ( Expression<tags::_NAME_,Expression<T1...>,T2> (l,r)) ;}                    \
-
+    template< typename T1,typename T2> Expression< tags::_NAME_,T1,T2 > operator _OP_(T1 const & l, T2  const &r){return (Expression< tags::_NAME_,T1,T2 > (l,r));}
 
 
 #define _SP_DEFINE_Expression_EXPR_UNARY_OPERATOR(_OP_, _NAME_)                           \
-        template<typename ...T>                                                            \
-        Expression<tags::_NAME_,Expression<T...> >                                      \
-        operator _OP_(Expression<T...> const &l)                                           \
-        {return (Expression<tags::_NAME_,Expression<T...> >(l));}                       \
+    template< typename T1> Expression< tags::_NAME_,T1 > operator _OP_(T1 const & l){return (Expression< tags::_NAME_,T1 > (l));}
 
 
 #define _SP_DEFINE_Expression_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                            \
-        template<typename ...T1,typename  T2>                                                           \
-        constexpr  BooleanExpression<tags::_NAME_,Expression<T1...>,T2>                              \
-        operator _OP_(Expression<T1...> const & l,T2 const&r)                                           \
-        {return ( BooleanExpression<tags::_NAME_,Expression<T1...>,T2> (l,r));}                      \
-         template< typename T1,typename  ...T2>                                                         \
-        constexpr  BooleanExpression< tags::_NAME_,T1,Expression< T2...>>                            \
-        operator _OP_(T1 const & l, Expression< T2...>const &r)                                         \
-        {return ( BooleanExpression< tags::_NAME_,T1,Expression< T2...>> (l,r))  ;}                  \
-         template< typename ... T1,typename ...T2>                                                      \
-        constexpr BooleanExpression< tags::_NAME_,Expression< T1...>,Expression< T2...>>                     \
-        operator _OP_(Expression< T1...> const & l,Expression< T2...>  const &r)                        \
-        {return ( BooleanExpression< tags::_NAME_,Expression< T1...>,Expression< T2...>> (l,r));}    \
+    template< typename T1,typename T2> BooleanExpression< tags::_NAME_,T1,T2 > operator _OP_(T1 const & l, T2  const &r){return (BooleanExpression< tags::_NAME_,T1,T2 > (l,r));}
 
 
 #define _SP_DEFINE_Expression_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                           \
-        template<typename ...T>                                                       \
-        constexpr  BooleanExpression<tags::_NAME_,Expression<T...> >                             \
-        operator _OP_(Expression<T...> const &l)                                                    \
-        {return ( BooleanExpression<tags::_NAME_,Expression<T...> > (l)) ;}                      \
+    template< typename T1> BooleanExpression< tags::_NAME_,T1 > operator _OP_(T1 const & l){return (BooleanExpression< tags::_NAME_,T1 > (l));}
+
 
 #define _SP_DEFINE_Expression_EXPR_BINARY_FUNCTION(_NAME_)                                       \
-    template<typename ...T1,typename  T2>                                                    \
-    constexpr  Expression<tags::_##_NAME_,Expression<T1...>,T2>                    \
-    _NAME_(Expression<T1...> const & l,T2 const &r)                                          \
-    {return ( BooleanExpression<tags::_##_NAME_,Expression<T1...>,T2> (l,r));}            \
-    template< typename T1,typename...T2>                                                     \
-    constexpr   Expression< tags::_##_NAME_,T1,Expression< T2...>>                        \
-    _NAME_(T1 const & l, Expression< T2...>const &r)                                         \
-    {return ( Expression< tags::_##_NAME_,T1,Expression< T2...>> (l,r)) ;}                \
-    template< typename  ... T1,typename   ...T2>                     \
-    constexpr    Expression< tags::_##_NAME_,Expression< T1...>,Expression< T2...>>       \
-    _NAME_(Expression< T1...> const & l,Expression< T2...>  const &r)                        \
-    {return ( Expression< tags::_##_NAME_,Expression< T1...>,Expression< T2...>> (l,r));} \
+    template< typename T1,typename T2> Expression< tags::_##_NAME_,T1,T2 >  _NAME_(T1 const & l, T2  const &r){return (Expression< tags::_##_NAME_,T1,T2 > (l,r));}
 
 #define _SP_DEFINE_Expression_EXPR_UNARY_FUNCTION(_NAME_)                                  \
-        template<typename ...T>                                                            \
-        constexpr   Expression<tags::_##_NAME_,Expression<T...>>                        \
-        _NAME_(Expression<T ...> const &r)                                                 \
-        {return ( Expression<tags::_##_NAME_,Expression<T...>> (r));}                   \
-
+    template< typename T1> Expression< tags::_##_NAME_,T1 >  _NAME_(T1 const & l){return (Expression< tags::_##_NAME_,T1 > (l));}
 
 DEFINE_EXPRESSION_TEMPLATE_BASIC_ALGEBRA2(Expression)
 
@@ -290,5 +244,6 @@ DEFINE_EXPRESSION_TEMPLATE_BASIC_ALGEBRA2(Expression)
 #undef _SP_DEFINE_Expression_EXPR_BINARY_FUNCTION
 #undef _SP_DEFINE_Expression_EXPR_UNARY_FUNCTION
 
-}}//namespace simpla{namespace algebra
+} // namespace declare
+}}//namespace simpla:: algebra
 #endif //SIMPLA_ARITHMETIC_H

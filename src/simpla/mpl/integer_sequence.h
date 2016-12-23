@@ -297,10 +297,7 @@ void seq_for_each(integer_sequence<TInts, N...>, TOP const &op)
     TInts dims[] = {N...};
     TInts idx[ndims];
 
-    for (int i = 0; i < ndims; ++i)
-    {
-        idx[i] = 0;
-    }
+    for (int i = 0; i < ndims; ++i) { idx[i] = 0; }
 
     while (1)
     {
