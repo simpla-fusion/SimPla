@@ -16,10 +16,9 @@
 
 namespace simpla
 {
+namespace algebra
+{
 
-namespace at=algebra::traits;
-namespace al=algebra;
-namespace ct=algebra::tags;
 /**
  * @ingroup calculus
  * @addtogroup ntuple n-tuple
@@ -107,28 +106,28 @@ public:
     template<typename TR>
     inline this_type &operator+=(TR const &rhs)
     {
-        assign_(reinterpret_cast<ct::plus *>(this), rhs);
+        assign_(reinterpret_cast<tags::plus *>(this), rhs);
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator-=(TR const &rhs)
     {
-        assign_(reinterpret_cast<ct::minus *>(this), rhs);
+        assign_(reinterpret_cast<tags::minus *>(this), rhs);
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator*=(TR const &rhs)
     {
-        assign_(reinterpret_cast<ct::multiplies *>(this), rhs);
+        assign_(reinterpret_cast<tags::multiplies *>(this), rhs);
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator/=(TR const &rhs)
     {
-        assign_(reinterpret_cast<ct::divides *>(this), rhs);
+        assign_(reinterpret_cast<tags::divides *>(this), rhs);
         return (*this);
     }
 
@@ -148,14 +147,14 @@ struct nTuple_<TV, N0, NOthers...>::_detail
 private:
 
     template<typename TExpr, size_type ... index>
-    static at::value_type_t<TExpr>
+    static traits::value_type_t<TExpr>
     _invoke_helper(TExpr const &expr, index_sequence<index...>, size_type s)
     {
         return expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...);
     }
 
     template<typename TExpr, size_type ... index>
-    static at::value_type_t<TExpr>
+    static traits::value_type_t<TExpr>
     _invoke_helper(TExpr &expr, index_sequence<index...>, size_type s)
     {
         return expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...);
@@ -163,33 +162,30 @@ private:
 
 public:
     template<typename TOP, typename   ...T>
-    static at::value_type_t<al::Expression<TOP, T...>>
-    get_value(al::Expression<TOP, T...> const &expr, size_type s)
+    static traits::value_type_t<Expression<TOP, T...>>
+    get_value(Expression<TOP, T...> const &expr, size_type s)
     {
         return _invoke_helper(expr, index_sequence_for<T...>(), s);
     }
 
     template<typename U, size_type J0, size_type ...J>
-    static at::value_type_t<nTuple_<U, J0, J...> >
+    static traits::value_type_t<nTuple_<U, J0, J...> >
     get_value(nTuple_<U, J0, J...> const &expr, size_type s0)
     {
         return expr[s0];
     }
 
     template<typename U, size_type J0, size_type ...J, typename ...Idx>
-    static at::value_type_t<nTuple_<U, J0, J...> >
+    static traits::value_type_t<nTuple_<U, J0, J...> >
     get_value(nTuple_<U, J0, J...> const &expr, size_type s0, Idx &&... s)
     {
         return get_value(expr[s0], std::forward<Idx>(s)...);
     }
 };
-namespace algebra
-{
-template<typename T, size_type ...N>
-struct Expression<nTuple_<T, N...>> : public nTuple_<T, N...> {};
+
 } // namespace algebra{
 
-template<typename T, size_type ...N> using nTuple=algebra::Expression<nTuple_<T, N...> >;
+template<typename T, size_type N> using nTuple=algebra::nTuple_<T, N>;
 
 template<typename T, size_type N> using Vector=algebra::nTuple_<T, N>;
 

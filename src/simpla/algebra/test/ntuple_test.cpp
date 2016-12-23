@@ -12,7 +12,10 @@
 #include <typeinfo>
 #include <utility>
 #include "../nTuple.h"
+#include "../nTupleExpr.h"
+
 #include "../Expression.h"
+#include "../Arithmetic.h"
 #include "../Algebra.h"
 
 using namespace simpla;
@@ -63,7 +66,7 @@ public:
 
 //    typedef traits::extents<type> extents;
 
-    nTuple<std::size_t, algebra::traits::rank<type>::value> DIMENSIONS;
+    nTuple<size_type, algebra::traits::rank<type>::value> DIMENSIONS;
 
     typedef algebra::traits::value_type_t<type> value_type;
 
@@ -179,8 +182,7 @@ TYPED_TEST(TestNtuple, arithmetic)
 {
     using namespace simpla::algebra;
 
-    TestFixture::vD = (-(TestFixture::vA + TestFixture::a) / (TestFixture::vB * TestFixture::b - TestFixture::c) -
-                       TestFixture::vC) + 5 + 6;
+    TestFixture::vD = (-(TestFixture::vA + TestFixture::a) / (TestFixture::vB * TestFixture::b - TestFixture::c) -  TestFixture::vC) + 5 + 6;
     //EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC) + (5 + 6);
 
 //    traits::seq_for_each(typename TestFixture::extents(),
