@@ -13,6 +13,7 @@
 #include "Algebra.h"
 #include "Arithmetic.h"
 #include "Expression.h"
+#include <simpla/mpl/CheckConcept.h>
 
 namespace simpla
 {
@@ -225,78 +226,9 @@ void _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2, I3> &lhs, TR const &rh
 template<typename V, size_type ...J>
 struct _impl<declare::nTuple_<V, J...> >
 {
-
-    template<typename U> static U &
-    get_value(U &lhs) { return lhs; }
-
-    template<typename U> static U const &
-    get_value(U const &lhs) { return lhs; }
-
-    template<typename U, size_type ...I, typename ...Others> static V const &
-    get_value(declare::nTuple_<U, I...> const &lhs, size_type s, Others &&...others)
-    {
-        return ((get_value(lhs.data_[s], std::forward<Others>(others)...)));
-    }
-
-    template<typename U, size_type ...I, typename ...Others> static V &
-    get_value(declare::nTuple_<U, I...> &lhs, size_type s, Others &&...others)
-    {
-        return ((get_value(lhs.data_[s], std::forward<Others>(others)...)));
-    }
-
-    static V &
-    get_value(V &lhs, size_type const &s) { return lhs; };
-
-    static V const &
-    get_value(V const &lhs, size_type const &s) { return lhs; };
-
-
-    template<typename U, typename I> static V
-    get_value(U const &lhs, I const &s, ENABLE_IF(traits::is_scalar<U>::value)) { return static_cast<V>(lhs); };
-
-
-    template<typename U> static std::complex<U> const &
-    get_value(std::complex<U> const &lhs, size_type s) { return lhs; };
-
-    template<typename U> static std::complex<U> &
-    get_value(std::complex<U> &lhs, size_type s) { return lhs; };
-
-    static V &
-    get_value(V &lhs, size_type const *s) { return lhs; };
-
-    template<typename U> static V
-    get_value(U &lhs, size_type const *s, ENABLE_IF(traits::is_scalar<U>::value)) { return static_cast<V>(lhs); };
-
     template<typename U> static auto
-    get_value(U &lhs, size_type const *s, ENABLE_IF(!traits::is_scalar<U>::value))
-    DECL_RET_TYPE((get_value(lhs[s[0], s + 1])));
-
-    template<typename U> auto
-    get_value(U *v, size_type const *s) -> decltype((get_value(v[*s], s + 1))) { return get_value(v[*s], s + 1); }
-
-    template<typename U> auto
-    get_value(U const *v, size_type const *s) -> decltype((get_value(v[*s], s + 1))) { return get_value(v[*s], s + 1); }
-
-
-    template<typename U, size_type ...I> static U &
-    get_value(declare::nTuple_<U, I...> &lhs, size_type const *s)
-    {
-        return get_value(lhs.data_[s[0]], s + 1);
-    }
-
-    template<typename U, size_type ...I> static U const &
-    get_value(declare::nTuple_<U, I...> const &lhs, size_type const *s)
-    {
-        return get_value(lhs.data_[s[0]], s + 1);
-    }
-
-    template<typename U, typename ...Idx> static auto
-    get_value(U &lhs, size_type s, Idx &&... others)
-    DECL_RET_TYPE((get_value(get_value(lhs, s), std::forward<Idx>(others)...)))
-
-    template<typename U, typename ...Idx> static auto
-    get_value(U const &lhs, size_type s, Idx &&... others)
-    DECL_RET_TYPE((get_value(get_value(lhs, s), std::forward<Idx>(others)...)))
+    get_value(U &lhs, size_type const *s)
+    DECL_RET_TYPE((get_value_(std::integral_constant<bool, simpla::traits::is_indexable<U, size_type>::value>(), lhs, s)));
 
 
     template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static auto
@@ -306,6 +238,40 @@ struct _impl<declare::nTuple_<V, J...> >
     template<typename TOP, typename   ...Others, typename ...Idx> static auto
     get_value(declare::Expression<TOP, Others...> const &expr, Idx &&... s)
     DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
+
+
+    template<typename U, typename ...Idx> static U &
+    get_value_(std::integral_constant<bool, false> const &, U &lhs, Idx &&...idx) { return lhs; }
+
+    template<typename U> static V
+    get_value_(std::integral_constant<bool, false> const &, U const &lhs) { return static_cast<V>(lhs); }
+
+    template<typename U> static U &
+    get_value_(std::integral_constant<bool, true> const &, U &lhs) { return lhs; };
+
+    template<typename U> static auto
+    get_value_(std::integral_constant<bool, true> const &, U &lhs, size_type s)
+    -> decltype(lhs[s]) { return lhs[s]; };
+
+
+    template<typename U, typename ...Idx> static auto
+    get_value_(std::integral_constant<bool, true> const &, U &lhs, size_type s, Idx &&...idx)
+    DECL_RET_TYPE(get_value(lhs[s], std::forward<Idx>(idx)...))
+
+    template<typename U, typename ...Idx> static auto
+    get_value(U &lhs, Idx &&...idx)
+    DECL_RET_TYPE((get_value_(std::integral_constant<bool, simpla::traits::is_indexable<U, size_type>::value>(),
+                              lhs, std::forward<Idx>(idx)...)));
+
+
+    template<typename U> static U &
+    get_value_(std::integral_constant<bool, false> const &, U &lhs, size_type const *s) { return lhs; }
+
+
+    template<typename U> static auto
+    get_value_(std::integral_constant<bool, true> const &, U &lhs, size_type const *s)
+    -> decltype(get_value(lhs[*s], s + 1)) { return get_value(lhs[*s], s + 1); };
+
 
     template<typename TOP, typename TR>
     static void apply(TOP const &op, declare::nTuple_<V, J...> &lhs, TR const &rhs) { _detail::_apply(op, lhs, rhs); };

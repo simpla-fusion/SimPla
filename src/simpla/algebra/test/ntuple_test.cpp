@@ -35,11 +35,10 @@ protected:
 
 //        DIMENSIONS = extents();
 
-        traits::seq_for_each(extents(),
-
-                             [&](size_t const *idx)
-                             {
-                                 algebra::get_v(aA, idx) = 1;//static_cast<value_type>(idx[0] * 2);
+//        traits::seq_for_each(extents(),
+//                             [&](size_t const *idx)
+//                             {
+//                                 algebra::get_v(aA, idx) = 1;//static_cast<value_type>(idx[0] * 2);
 //                                 algebra::get_v(aB, idx) = static_cast<value_type>(5 - idx[0]);
 //                                 algebra::get_v(aC, idx) = static_cast<value_type>(idx[0] * 5 + 1);
 //                                 algebra::get_v(aD, idx) = static_cast<value_type>(0);
@@ -48,10 +47,10 @@ protected:
 //                                 algebra::get_v(vC, idx) = algebra::get_v(aC, idx);
 //                                 algebra::get_v(vD, idx) = static_cast<value_type>(0);
 //                                 algebra::get_v(res, idx) = -(algebra::get_v(aA, idx) + a) /
-//                                                                (algebra::get_v(aB, idx) * b - c) -
-//                                                                algebra::get_v(aC, idx);
-
-                             });
+//                                                            (algebra::get_v(aB, idx) * b - c) -
+//                                                            algebra::get_v(aC, idx);
+//
+//                             });
 
         num_of_loops = 1000000L;
     }
@@ -78,11 +77,11 @@ public:
 
 typedef testing::Types<
         nTuple<double, 3>//,
-//        , nTuple<std::complex<double>, 3> //
-//        , Matrix<double, 3, 3> //
-//        , Tensor<double, 3, 4, 5>//
-//        , Tensor<int, 3, 4, 5, 6> //
-//        , Tensor<std::complex<double>, 3, 4, 5, 6>
+        , nTuple<std::complex<double>, 3> //
+        , Matrix<double, 3, 3> //
+        , Tensor<double, 3, 4, 5>//
+        , Tensor<int, 3, 4, 5, 6> //
+        , Tensor<std::complex<double>, 3, 4, 5, 6>
 
 > ntuple_type_lists;
 
@@ -109,11 +108,12 @@ TYPED_TEST(TestNtuple, assign_Scalar)
 
     TestFixture::vA = TestFixture::a;
 
-    traits::seq_for_each(typename TestFixture::extents(),
-                         [&](size_type const *idx)
-                         {
-                             EXPECT_DOUBLE_EQ(0, abs(TestFixture::a - algebra::get_v(TestFixture::vA, idx)));
-                         }
+    traits::seq_for_each(
+            typename TestFixture::extents(),
+            [&](size_type const *idx)
+            {
+                EXPECT_DOUBLE_EQ(0, abs(TestFixture::a - algebra::get_v(TestFixture::vA, idx)));
+            }
     );
 
 
