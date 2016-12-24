@@ -38,17 +38,17 @@ protected:
         traits::seq_for_each(extents(),
                              [&](size_t const *idx)
                              {
-//                                 algebra::get_v(aA, idx) = 1;//static_cast<value_type>(idx[0] * 2);
-//                                 algebra::get_v(aB, idx) = static_cast<value_type>(5 - idx[0]);
-//                                 algebra::get_v(aC, idx) = static_cast<value_type>(idx[0] * 5 + 1);
-//                                 algebra::get_v(aD, idx) = static_cast<value_type>(0);
+                                 algebra::get_v(aA, idx) = static_cast<value_type>(idx[0] * 2);
+                                 algebra::get_v(aB, idx) = static_cast<value_type>(5 - idx[0]);
+                                 algebra::get_v(aC, idx) = static_cast<value_type>(idx[0] * 5 + 1);
+                                 algebra::get_v(aD, idx) = static_cast<value_type>(0);
                                  algebra::get_v(vA, idx) = algebra::get_v(aA, idx);
                                  algebra::get_v(vB, idx) = algebra::get_v(aB, idx);
                                  algebra::get_v(vC, idx) = algebra::get_v(aC, idx);
                                  algebra::get_v(vD, idx) = static_cast<value_type>(0);
-//                                 algebra::get_v(res, idx) = -(algebra::get_v(aA, idx) + a) /
-//                                                            (algebra::get_v(aB, idx) * b - c) -
-//                                                            algebra::get_v(aC, idx);
+                                 algebra::get_v(res, idx) = -(algebra::get_v(aA, idx) + a) /
+                                                            (algebra::get_v(aB, idx) * b - c) -
+                                                            algebra::get_v(aC, idx);
 
                              });
 

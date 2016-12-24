@@ -128,6 +128,16 @@ struct BooleanExpression<TOP, TL> : public Expression<TOP, TL>
 //};
 
 }
+
+template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static auto
+_invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, Idx &&... s)
+DECL_RET_TYPE((TOP::eval(get_v(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
+
+template<typename TOP, typename   ...Others, typename ...Idx> static auto
+get_v(declare::Expression<TOP, Others...> const &expr, Idx &&... s)
+DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
+
+
 }}  // namespace simpla::algebra::declare
 
 #endif /* EXPRESSION_TEMPLATE_H_ */
