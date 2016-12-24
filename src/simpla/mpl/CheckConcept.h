@@ -318,27 +318,27 @@ struct check_member_value_##_MEMBER_                                            
        check_value<_T_CHKBOOL_,has_static_member_##_MEMBER_<_T_CHKBOOL_>::value>::value;   \
 };
 
-template<typename _T, typename _Args>
-struct is_indexable
-{
-private:
-    typedef std::true_type yes;
-    typedef std::false_type no;
-
-    template<typename _U>
-    static auto test(int) ->
-    decltype(std::declval<_U>()[std::declval<_Args>()]);
-
-    template<typename> static no test(...);
-
-public:
-
-    static constexpr bool value =
-            (!std::is_same<decltype(test<_T>(0)), no>::value)
-            || ((std::is_array<_T>::value)
-                && (std::is_integral<_Args>::value));
-
-};
+//template<typename _T, typename _Args>
+//struct is_indexable
+//{
+//private:
+//    typedef std::true_type yes;
+//    typedef std::false_type no;
+//
+//    template<typename _U>
+//    static auto test(int) ->
+//    decltype(std::declval<_U>()[std::declval<_Args>()]);
+//
+//    template<typename> static no test(...);
+//
+//public:
+//
+//    static constexpr bool value =
+//            (!std::is_same<decltype(test<_T>(0)), no>::value)
+//            || ((std::is_array<_T>::value)
+//                && (std::is_integral<_Args>::value));
+//
+//};
 
 /**
  * @}

@@ -22,11 +22,6 @@
 #include <simpla/calculus/nTuple.h>
 #include <simpla/toolbox/type_traits.h>
 
-namespace simpla { namespace traits
-{
-template<typename T> struct rank;
-template<typename T> struct value_type;
-}}//namespace simpla{namespace traits
 
 namespace simpla { namespace data
 {
@@ -134,7 +129,7 @@ private:
 
         nTuple<size_type, 10> d;
 
-        d = traits::seq_value<traits::extents<obj_type> >::value;
+        d = traits::seq_value < traits::extents < obj_type > > ::value;
 
         return std::move(
                 DataType(std::type_index(typeid(element_type)),
@@ -149,7 +144,8 @@ public:
     static DataType create(std::string const &name = "")
     {
         return create_(((name != "") ? name : (typeid(T).name())),
-                       std::integral_constant<bool, has_static_member_function_data_type<traits::type_id<T>>::value>());
+                       std::integral_constant<bool, has_static_member_function_data_type < traits::type_id < T>>
+        ::value > ());
     }
 
 };

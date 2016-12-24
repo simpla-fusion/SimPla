@@ -160,11 +160,94 @@ template<typename T> using reference_t=typename reference<T>::type;
 ////////////////////////////////////////////////////////////////////////
 ///// Property queries of n-dimensional array
 ////////////////////////////////////////////////////////////////////////
-//
-//template<typename, int...> struct nTuple;
-//
+template<typename _T, typename _Args=int>
+struct is_indexable
+{
+private:
+    typedef std::true_type yes;
+    typedef std::false_type no;
+
+    template<typename _U> static auto test(int) ->
+    decltype(std::declval<_U>()[std::declval<_Args>()]);
+
+    template<typename> static no test(...);
+
+public:
+    static constexpr bool value = (!std::is_same<decltype(test<_T>(0)), no>::value) || (std::is_array<_T>::value);
+};
+
+/**
+ * @ref http://en.cppreference.com/w/cpp/types/remove_extent
+ * If T is '''is_indexable''' by '''S''', provides the member typedef type equal to decltyp(T[S])
+ * otherwise type is T. Note that if T is a multidimensional array, only the first dimension is removed.
+ */
+
+template<typename T, typename Idx=int>
+struct remove_extent
+{
+    typedef std::false_type no;
+
+    template<typename _U> static auto test(int) -> decltype(std::declval<_U>()[std::declval<Idx>()]) {};
+
+    template<typename> static no test(...) {};
 
 
+public:
+    typedef decltype(test<T>(0)) _type;
+    typedef std::conditional_t<std::is_same<_type, no>::value, T, _type> type;
+};
+
+template<typename T, typename Idx=int> using remove_extent_t=typename remove_extent<T, Idx>::type;
+
+template<int N, typename T, typename Idx=int> struct remove_n_extents;
+
+template<int N, typename T, typename Idx=int> using remove_n_extents_t=typename remove_n_extents<N, T, Idx>::type;
+
+template<typename T, typename Idx> struct remove_n_extents<0, T, Idx> { typedef T type; };
+
+template<typename T, typename Idx> struct remove_n_extents<1, T, Idx> { typedef remove_extent_t<T> type; };
+
+template<int N, typename T, typename Idx> struct remove_n_extents { typedef remove_n_extents_t<N - 1, T, Idx> type; };
+
+template<typename ...> struct remove_extents;
+
+template<typename T, typename I0>
+struct remove_extents<T, I0> { typedef remove_extent_t<T, I0> type; };
+
+template<typename T, typename I0, typename ...Others>
+struct remove_extents<T, I0, Others...> { typedef remove_extents<remove_extent_t<T, I0>, Others...> type; };
+
+template<typename ...T> using remove_extents_t=typename remove_extents<T ...>::type;
+
+/**
+ * @ref http://en.cppreference.com/w/cpp/types/remove_all_extents
+ * std::remove_all_extents
+ *  If T is a multidimensional array of some type X, provides the member typedef type equal to X, otherwise type is T.
+ */
+template<typename _T, typename _Args>
+struct remove_all_extents
+{
+private:
+    typedef std::true_type yes;
+    typedef std::false_type no;
+
+    template<typename _U> static auto test(int) -> decltype(std::declval<_U>()[std::declval<_Args>()]);
+
+    template<typename> static no test(...);
+
+public:
+
+    typedef decltype(test<_T>(0)) _type;
+
+    typedef std::conditional_t<std::is_same<_type, no>::value, _T, typename remove_all_extents<_type, _Args>::type> type;
+};
+
+template<typename _Args>
+struct remove_all_extents<std::false_type, _Args>
+{
+    typedef std::false_type type;
+};
+template<typename T, typename Idx=int> using remove_all_extents_t=typename remove_all_extents<T, Idx>::type;
 
 /**
  *  alt. of std::rank
@@ -173,7 +256,37 @@ template<typename T> using reference_t=typename reference<T>::type;
  *  value equal to the number of dimensions of the array.
  *  For any other type, value is 0.
  */
-template<typename T> struct rank : public std::rank<T> {};
+template<typename T, typename Idx=int>
+struct rank : public index_const<(!is_indexable<T, Idx>::value) ? 0 : 1 + rank<remove_extent<T, Idx>>::value> {};
+
+
+template<typename T, typename ...Idx> T &
+_get_v(std::integral_constant<bool, false> const &, T &v, Idx &&...) { return v; };
+
+
+template<typename T, typename I0> remove_all_extents_t<T, I0> &
+_get_v(std::integral_constant<bool, true> const &, T &v, I0 const *s) { return get_v(v[*s], s + 1); };
+
+template<typename T, typename I0, typename ...Idx> remove_extents_t<T, I0, Idx...> &
+_get_v(std::integral_constant<bool, true> const &, T &v, I0 const &s, Idx &&...idx)
+{
+    return get_v(v[s], std::forward<Idx>(idx)...);
+};
+
+
+template<typename T, typename I0> remove_all_extents_t<T, I0> &
+get_v(T &v, I0 const *s)
+{
+    return _get_v(std::integral_constant<bool, is_indexable<T, I0>::value>(), v, s);
+};
+
+
+template<typename T, typename I0, typename ...Idx> remove_extents_t<T, I0, Idx...> &
+get_v(T &v, I0 const &s0, Idx &&...idx)
+{
+    return _get_v(std::integral_constant<bool, is_indexable<T, I0>::value>(), v, s0, std::forward<Idx>(idx)...);
+};
+
 
 
 /**
@@ -297,7 +410,6 @@ struct recursive_try_index_aux<0>
 //U const &
 //index(U const &v, TIndex const &i, ENABLE_IF(std::is_arithmetic<U>::vaule)) { return v; };
 
-
 //template<typename T, typename TI>
 //auto index(T &v, TI s, ENABLE_IF((!is_indexable<T, TI>::value))) DECL_RET_TYPE((v))
 //
@@ -311,94 +423,94 @@ struct recursive_try_index_aux<0>
 //template<typename T, typename TI, size_type N>
 //auto index(T &v, nTuple<TI, N> const &s, ENABLE_IF((is_indexable<T, TI>::value)))
 //DECL_RET_TYPE((_impl::recursive_try_index_aux<N>::eval(v, s)))
-
-
-template<int N, typename T> struct access;
-
-template<int N, typename T>
-struct access
-{
-    static constexpr auto get(T &v) DECL_RET_TYPE((v))
-
-    template<typename U> static void set(T &v, U const &u) { v = static_cast<T>(u); }
-};
-
-template<int N, typename ...T>
-struct access<N, std::tuple<T...>>
-{
-    static constexpr auto get(std::tuple<T...> &v) DECL_RET_TYPE((std::get<N>(v)))
-
-    static constexpr auto get(std::tuple<T...> const &v) DECL_RET_TYPE((std::get<N>(v)))
-
-    template<typename U> static void set(std::tuple<T...> &v, U const &u) { get(v) = u; }
-};
-
-template<int N, typename T>
-struct access<N, T *>
-{
-    static constexpr auto get(T *v) DECL_RET_TYPE((v[N]))
-
-    static constexpr auto get(T const *v) DECL_RET_TYPE((v[N]))
-
-    template<typename U> static void set(T *v, U const &u) { get(v) = u; }
-};
-
-template<int N, typename T0, typename T1>
-struct access<N, std::pair<T0, T1>>
-{
-    static constexpr auto get(std::pair<T0, T1> &v) DECL_RET_TYPE((std::get<N>(v)))
-
-    static constexpr auto get(std::pair<T0, T1> const &v) DECL_RET_TYPE((std::get<N>(v)))
-
-    template<typename U> static void set(std::pair<T0, T1> &v, U const &u) { get(v) = u; }
-};
-namespace _impl
-{
-
-template<int ...N> struct access_helper;
-
-template<int N0, int ...N>
-struct access_helper<N0, N...>
-{
-
-    template<typename T>
-    static constexpr auto get(T const &v) DECL_RET_TYPE((access_helper<N...>::get(access_helper<N0>::get((v)))))
-
-    template<typename T>
-    static constexpr auto get(T &v) DECL_RET_TYPE((access_helper<N...>::get(access_helper<N0>::get((v)))))
-
-    template<typename T, typename U>
-    static void set(T &v, U const &u) { access_helper<N0, N...>::get(v) = u; }
-
-};
-
-template<int N>
-struct access_helper<N>
-{
-    template<typename T> static constexpr auto get(T &v) DECL_RET_TYPE((access<N, T>::get(v)))
-
-    template<typename T> static constexpr auto get(T const &v) DECL_RET_TYPE((access<N, T>::get(v)))
-
-    template<typename T, typename U> static void set(T &v, U const &u) { access<N, T>::set(v, u); }
-
-};
-
-template<>
-struct access_helper<>
-{
-    template<typename T> static constexpr T &get(T &v) { return v; }
-
-    template<typename T> static constexpr T const &get(T const &v) { return v; }
-
-    template<typename T, typename U> static void set(T &v, U const &u) { v = u; }
-
-};
-}  // namespace _impl
-template<int N, typename ...T> auto get(std::tuple<T...> &v) DECL_RET_TYPE((std::get<N>(v)))
-
-template<int ...N, typename T> auto get(T &v) DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
-
-template<int ...N, typename T> auto get(T const &v) DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
+//
+//
+//template<int N, typename T> struct access;
+//
+//template<int N, typename T>
+//struct access
+//{
+//    static constexpr auto get(T &v) DECL_RET_TYPE((v))
+//
+//    template<typename U> static void set(T &v, U const &u) { v = static_cast<T>(u); }
+//};
+//
+//template<int N, typename ...T>
+//struct access<N, std::tuple<T...>>
+//{
+//    static constexpr auto get(std::tuple<T...> &v) DECL_RET_TYPE((std::get<N>(v)))
+//
+//    static constexpr auto get(std::tuple<T...> const &v) DECL_RET_TYPE((std::get<N>(v)))
+//
+//    template<typename U> static void set(std::tuple<T...> &v, U const &u) { get(v) = u; }
+//};
+//
+//template<int N, typename T>
+//struct access<N, T *>
+//{
+//    static constexpr auto get(T *v) DECL_RET_TYPE((v[N]))
+//
+//    static constexpr auto get(T const *v) DECL_RET_TYPE((v[N]))
+//
+//    template<typename U> static void set(T *v, U const &u) { get(v) = u; }
+//};
+//
+//template<int N, typename T0, typename T1>
+//struct access<N, std::pair<T0, T1>>
+//{
+//    static constexpr auto get(std::pair<T0, T1> &v) DECL_RET_TYPE((std::get<N>(v)))
+//
+//    static constexpr auto get(std::pair<T0, T1> const &v) DECL_RET_TYPE((std::get<N>(v)))
+//
+//    template<typename U> static void set(std::pair<T0, T1> &v, U const &u) { get(v) = u; }
+//};
+////namespace _impl
+////{
+////
+////template<int ...N> struct access_helper;
+////
+////template<int N0, int ...N>
+////struct access_helper<N0, N...>
+////{
+////
+////    template<typename T>
+////    static constexpr auto get(T const &v) DECL_RET_TYPE((access_helper<N...>::get(access_helper<N0>::get((v)))))
+////
+////    template<typename T>
+////    static constexpr auto get(T &v) DECL_RET_TYPE((access_helper<N...>::get(access_helper<N0>::get((v)))))
+////
+////    template<typename T, typename U>
+////    static void set(T &v, U const &u) { access_helper<N0, N...>::get(v) = u; }
+////
+////};
+////
+////template<int N>
+////struct access_helper<N>
+////{
+////    template<typename T> static constexpr auto get(T &v) DECL_RET_TYPE((access<N, T>::get(v)))
+////
+////    template<typename T> static constexpr auto get(T const &v) DECL_RET_TYPE((access<N, T>::get(v)))
+////
+////    template<typename T, typename U> static void set(T &v, U const &u) { access<N, T>::set(v, u); }
+////
+////};
+////
+////template<>
+////struct access_helper<>
+////{
+////    template<typename T> static constexpr T &get(T &v) { return v; }
+////
+////    template<typename T> static constexpr T const &get(T const &v) { return v; }
+////
+////    template<typename T, typename U> static void set(T &v, U const &u) { v = u; }
+////
+////};
+////}  // namespace _impl
+//template<int N, typename ...T> auto get(std::tuple<T...> &v) DECL_RET_TYPE((std::get<N>(v)))
+//
+//template<int ...N, typename T> auto get(T &v) DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
+//
+//template<int ...N, typename T> auto get(T const &v) DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
 
 
 template<int, typename ...> struct unpack_type;
