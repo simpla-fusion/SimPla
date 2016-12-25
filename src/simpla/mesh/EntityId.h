@@ -11,13 +11,12 @@
 #include <stddef.h>
 #include <limits>
 #include <tuple>
-#include "simpla/SIMPLA_config.h"
-#include "simpla/toolbox/Log.h"
-#include "simpla/algebra/Algebra.h"
-#include "simpla/algebra/nTuple.h"
-#include "simpla/toolbox/IteratorBlock.h"
-#include "simpla/toolbox/Range.h"
-#include "simpla/toolbox/Parallel.h"
+#include <simpla/SIMPLA_config.h>
+#include <simpla/toolbox/Log.h>
+#include <simpla/algebra/Algebra.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/toolbox/IteratorBlock.h>
+#include <simpla/toolbox/Range.h>
 #include "MeshCommon.h"
 #include "EntityIdRange.h"
 
@@ -839,7 +838,7 @@ struct MeshEntityIdCoder_
         {
         }
 
-        range_type(range_type &r, parallel::tags::split)
+        range_type(range_type &r, tags::split)
                 : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_),
                   m_dof_(r.m_dof_)
         {
@@ -862,7 +861,7 @@ struct MeshEntityIdCoder_
             r.m_min_[n] = m_max_[n];
         }
 
-        range_type(this_type &r, parallel::tags::proportional_split const &proportion)
+        range_type(this_type &r, tags::proportional_split const &proportion)
         {
             int n = 0;
             index_type L = m_max_[0] - m_min_[0];
@@ -959,7 +958,7 @@ struct MeshEntityIdCoder_
 
     static range_type make_range(index_box_type const &b, size_type iform = VERTEX)
     {
-        return make_range(traits::get<0>(b), traits::get<1>(b), iform);
+        return make_range(std::get<0>(b), std::get<1>(b), iform);
     }
 
 

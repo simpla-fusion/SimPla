@@ -22,7 +22,7 @@ class DummyMesh : public mesh::MeshBlock
 public:
     static constexpr unsigned int ndims = 3;
 
-    SP_OBJECT_HEAD(DummyMesh, mesh::MeshBlock)
+SP_OBJECT_HEAD(DummyMesh, mesh::MeshBlock)
 
     template<typename ...Args>
     DummyMesh(Args &&...args):mesh::MeshBlock(std::forward<Args>(args)...) {}
@@ -36,7 +36,7 @@ public:
         return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
     };
 
-    template<typename TV, mesh::MeshEntityType IFORM>
+    template<typename TV, size_type IFORM>
     std::shared_ptr<mesh::DataBlock> create_data_block(void *p) const
     {
         auto b = outer_index_box();
@@ -46,7 +46,7 @@ public:
         return std::dynamic_pointer_cast<mesh::DataBlock>(
                 std::make_shared<data_block_type<TV, IFORM>>(
                         static_cast<TV *>(p),
-                        (IFORM == mesh::VERTEX || IFORM == mesh::VOLUME) ? 3 : 4,
+                        (IFORM == VERTEX || IFORM == VOLUME) ? 3 : 4,
                         lo, hi));
     };
 

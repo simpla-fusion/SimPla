@@ -18,8 +18,7 @@
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/Log.h>
 
-#include "simpla/algebra/Field.h"
-#include "simpla/manifold/CartesianGeometry.h"
+#include "../Field.h"
 
 using namespace simpla;
 

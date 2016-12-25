@@ -47,10 +47,10 @@ public:
 
 private:
     template<typename U, typename M, size_type...I> inline U const &
-    eval(algebra::Field_<U, M, I...> &f, MeshEntityId const &s) { return f[s]; };
+    eval(algebra::declare::Field_<U, M, I...> &f, MeshEntityId const &s) { return f[s]; };
 
     template<typename U, typename M, size_type...I> inline U &
-    eval(algebra::Field_<U, M, I...> const &f, MeshEntityId const &s) { return f[s]; };
+    eval(algebra::declare::Field_<U, M, I...> const &f, MeshEntityId const &s) { return f[s]; };
 
     template<typename TD, typename TIDX>
     static inline auto
@@ -262,35 +262,35 @@ public:
     }
 
     template<typename V, mesh::MeshEntityType IFORM, size_type DOF, typename U> static inline void
-    assign(al::Field_ <V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+    assign(algebra::declare::Field_ <V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s,
            nTuple <U, DOF> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     }
 
     template<typename V, size_type DOF, typename U> static inline void
-    assign(al::Field_ <V, mesh_type, EDGE, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+    assign(algebra::declare::Field_ <V, mesh_type, EDGE, DOF> &f, mesh_type const &m, MeshEntityId const &s,
            nTuple<U, 3> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
     }
 
     template<typename V, size_type DOF, typename U> static inline void
-    assign(al::Field_ <V, mesh_type, FACE, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+    assign(algebra::declare::Field_ <V, mesh_type, FACE, DOF> &f, mesh_type const &m, MeshEntityId const &s,
            nTuple<U, 3> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
     }
 
     template<typename V, size_type DOF, typename U> static inline void
-    assign(al::Field_ <V, mesh_type, VOLUME, DOF> &f, mesh_type const &m, MeshEntityId const &s,
+    assign(algebra::declare::Field_ <V, mesh_type, VOLUME, DOF> &f, mesh_type const &m, MeshEntityId const &s,
            nTuple <U, DOF> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     }
 
     template<typename V, mesh::MeshEntityType IFORM, size_type DOF, typename U> static inline void
-    assign(al::Field_ <V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s, U const &v)
+    assign(algebra::declare::Field_ <V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s, U const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v; }
     }

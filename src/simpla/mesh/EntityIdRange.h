@@ -48,7 +48,7 @@ public :
     }
 
     template<typename ...Args>
-    explicit EntityIdRange(this_type &other, parallel::tags::split)
+    explicit EntityIdRange(this_type &other, tags::split)
             :m_next_(nullptr), m_holder_(other.m_holder_->split())
     {
         auto *p0 = &m_next_;
@@ -269,7 +269,7 @@ private:
 
         virtual std::shared_ptr<RangeBase> split()
         {
-            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this, parallel::tags::split()));
+            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this, tags::split()));
         };
 
         virtual size_t size() const { return m_range_.size(); }
@@ -284,7 +284,7 @@ private:
 
         virtual void foreach(foreach_body_type const &body) const
         {
-            parallel::foreach(m_range_, body);
+            foreach(m_range_, body);
         };
     };
 
@@ -324,7 +324,7 @@ private:
 
         virtual std::shared_ptr<RangeBase> split()
         {
-            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this, parallel::tags::split()));
+            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this, tags::split()));
         };
 
         virtual size_t size() const { return m_container_->size(); }
@@ -338,7 +338,7 @@ private:
 
         virtual void foreach(foreach_body_type const &body) const
         {
-            parallel::foreach(m_range_, body);
+            foreach(m_range_, body);
         };
     };
 };

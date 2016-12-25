@@ -13,14 +13,16 @@
 #include "../mpl/port_cxx14.h"
 #include "../mpl/macro.h"
 #include "../mpl/type_traits.h"
-
+#include "../mpl/integer_sequence.h"
 #include "Algebra.h"
 #include "Arithmetic.h"
-#include "Expression.h"
+//#include "Expression.h"
 
 namespace simpla { namespace algebra
 {
+template<size_type I> using index_const=std::integral_constant<size_type, I>;
 
+namespace declare { template<typename ...> class Expression; }
 /**
  * @defgroup algebra Algebra
  * @ingroup algebra
@@ -46,26 +48,26 @@ struct Dot {};
 namespace traits
 {
 template<typename T>
-struct iform<Expression<tags::HodgeStar, T> > : public index_const<rank<T>::value - iform<T>::value> {};
+struct iform<declare::Expression<tags::HodgeStar, T> > : public index_const<rank<T>::value - iform<T>::value> {};
 
 template<typename T0, typename T1>
-struct iform<Expression<tags::InteriorProduct, T0, T1> > : public index_const<iform<T1>::value - 1> {};
+struct iform<declare::Expression<tags::InteriorProduct, T0, T1> > : public index_const<traits::iform<T1>::value - 1> {};
 
 template<typename T>
-struct iform<Expression<tags::ExteriorDerivative, T> > : public index_const<iform<T>::value + 1> {};
+struct iform<declare::Expression<tags::ExteriorDerivative, T> > : public index_const<iform<T>::value + 1> {};
 
 template<typename T>
-struct iform<Expression<tags::CodifferentialDerivative, T> > : public index_const<iform<T>::value - 1> {};
+struct iform<declare::Expression<tags::CodifferentialDerivative, T> > : public index_const<iform<T>::value - 1> {};
 
 
 template<typename T, size_type I>
-struct iform<Expression<tags::P_ExteriorDerivative<I>, T> > : public index_const<iform<T>::value + 1> {};
+struct iform<declare::Expression<tags::P_ExteriorDerivative<I>, T> > : public index_const<iform<T>::value + 1> {};
 
 template<typename T, size_type I>
-struct iform<Expression<tags::P_CodifferentialDerivative<I>, T> > : public index_const<iform<T>::value - 1> {};
+struct iform<declare::Expression<tags::P_CodifferentialDerivative<I>, T> > : public index_const<iform<T>::value - 1> {};
 
 template<typename T0, typename T1>
-struct iform<Expression<tags::Wedge, T0, T1> > : public index_const<iform<T0>::value + iform<T1>::value> {};
+struct iform<declare::Expression<tags::Wedge, T0, T1> > : public index_const<iform<T0>::value + iform<T1>::value> {};
 
 //template<size_type I>
 //struct iform<index_const < I> > : public index_const <I>
@@ -73,47 +75,47 @@ struct iform<Expression<tags::Wedge, T0, T1> > : public index_const<iform<T0>::v
 //};
 
 //template<typename T1, size_type I>
-//struct iform<Expression<tags::MapTo, T1, index_const < I> > > : public index_const <I>
+//struct iform<declare::Expression<tags::MapTo, T1, index_const < I> > > : public index_const <I>
 //{
 //};
 
 
 template<typename T, typename ...Others>
-struct value_type<Expression<tags::MapTo, T, Others...> > { typedef value_type_t <T> type; };
+struct value_type<declare::Expression<tags::MapTo, T, Others...> > { typedef value_type_t <T> type; };
 
 
 template<typename T>
-struct value_type<Expression<tags::HodgeStar, T> > { typedef value_type_t <T> type; };
+struct value_type<declare::Expression<tags::HodgeStar, T> > { typedef value_type_t <T> type; };
 
 template<typename T>
-struct value_type<Expression<tags::ExteriorDerivative, T> >
+struct value_type<declare::Expression<tags::ExteriorDerivative, T> >
 {
-    typedef std::result_of_t<tags::multiplies(scalar_type_t < T > , value_type_t < T > )> type;
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
 };
 
 template<typename T>
-struct value_type<Expression<tags::CodifferentialDerivative, T> >
+struct value_type<declare::Expression<tags::CodifferentialDerivative, T> >
 {
-    typedef std::result_of_t<tags::multiplies(scalar_type_t < T > , value_type_t < T > )> type;
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
 };
 
 
 template<typename T, size_type I>
-struct value_type<Expression<tags::P_ExteriorDerivative<I>, T> >
+struct value_type<declare::Expression<tags::P_ExteriorDerivative<I>, T> >
 {
-    typedef std::result_of_t<tags::multiplies(scalar_type_t < T > , value_type_t < T > )> type;
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
 
 };
 
 template<typename T, size_type I>
-struct value_type<Expression<tags::P_CodifferentialDerivative<I>, T> >
+struct value_type<declare::Expression<tags::P_CodifferentialDerivative<I>, T> >
 {
-    typedef std::result_of_t<tags::multiplies(scalar_type_t < T > , value_type_t < T > )> type;
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, typename scalar_type<T>::type)> type;
 };
 
 
 template<typename T0, typename T1>
-struct value_type<Expression<tags::Wedge, T0, T1> >
+struct value_type<declare::Expression<tags::Wedge, T0, T1> >
 {
 
     typedef std::result_of_t<tags::multiplies(scalar_type_t < T0 > , value_type_t < T1 > )> type;
@@ -121,20 +123,20 @@ struct value_type<Expression<tags::Wedge, T0, T1> >
 };
 
 template<typename T0, typename T1>
-struct value_type<Expression<tags::InteriorProduct, T0, T1> >
+struct value_type<declare::Expression<tags::InteriorProduct, T0, T1> >
 {
     typedef std::result_of_t<tags::multiplies(scalar_type_t < T0 > , value_type_t < T1 > )> type;
 };
 
 
 template<typename T0, typename T1>
-struct value_type<Expression<tags::Cross, T0, T1> >
+struct value_type<declare::Expression<tags::Cross, T0, T1> >
 {
     typedef std::result_of_t<tags::multiplies(scalar_type_t < T0 > , value_type_t < T1 > )> type;
 };
 
 template<typename T0, typename T1>
-struct value_type<Expression<tags::Dot, T0, T1> >
+struct value_type<declare::Expression<tags::Dot, T0, T1> >
 {
     typedef std::result_of_t<tags::multiplies(scalar_type_t < T0 > , value_type_t < T1 > )> type;
 };
@@ -142,6 +144,12 @@ struct value_type<Expression<tags::Dot, T0, T1> >
 
 } //namespace traits
 
+template<size_type I, typename U>
+inline declare::Expression<tags::MapTo, U, index_const<I>>
+map_to(U const &f)
+{
+    return declare::Expression<tags::MapTo, U, index_const<I> >(f, index_const<I>());
+}
 
 /**
  * @defgroup exterior_algebra Exterior algebra on forms
@@ -156,16 +164,16 @@ struct value_type<Expression<tags::Dot, T0, T1> >
  *  \f$\Omega^{N}\f$ =InnerProduct(\f$\Omega^m\f$ ,\f$\Omega^m\f$ ) | inner product,
 
  **/
-template<typename T> inline Expression<tags::HodgeStar, T>
-hodge_star(T const &f) { return Expression<tags::HodgeStar, T>(f); }
+template<typename T> inline declare::Expression<tags::HodgeStar, T>
+hodge_star(T const &f) { return declare::Expression<tags::HodgeStar, T>(f); }
 
-template<typename TL, typename TR> inline Expression<tags::Wedge, TL, TR>
-wedge(TL const &l, TR const &r) { return Expression<tags::Wedge, TL, TR>(l, r); };
+template<typename TL, typename TR> inline declare::Expression<tags::Wedge, TL, TR>
+wedge(TL const &l, TR const &r) { return declare::Expression<tags::Wedge, TL, TR>(l, r); };
 
 
 template<typename TL, typename TR>
-inline Expression<tags::InteriorProduct, TL, TR>
-interior_product(TL const &l, TR const &r) { return Expression<tags::InteriorProduct, TL, TR>(l, r); };
+inline declare::Expression<tags::InteriorProduct, TL, TR>
+interior_product(TL const &l, TR const &r) { return declare::Expression<tags::InteriorProduct, TL, TR>(l, r); };
 
 
 //template<typename  T>
@@ -201,7 +209,8 @@ inline auto dot(TL const &lhs, TR const &rhs) DECL_RET_TYPE(wedge(lhs, hodge_sta
 
 
 template<typename TL, typename TR> inline auto
-cross(TL const &lhs, TR const &rhs, ENABLE_IF((traits::iform<TL>::value == EDGE))) DECL_RET_TYPE((wedge(lhs, rhs)))
+cross(TL const &lhs, TR const &rhs,
+      ENABLE_IF((traits::iform<TL>::value == EDGE))) DECL_RET_TYPE((wedge(lhs, rhs)))
 
 
 template<typename TL, typename TR> inline auto
@@ -209,17 +218,17 @@ cross(TL const &lhs, TR const &rhs, ENABLE_IF((traits::iform<TL>::value == FACE)
         hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
 
 
-template<typename TL, typename TR> inline Expression<tags::Cross, TL, TR>
+template<typename TL, typename TR> inline declare::Expression<tags::Cross, TL, TR>
 cross(TL const &l, TR const &r, ENABLE_IF((traits::iform<TL>::value == VERTEX)))
 {
-    return Expression<tags::Cross, TL, TR>(l, r);
+    return declare::Expression<tags::Cross, TL, TR>(l, r);
 };
 
 
-template<typename TL, typename TR> inline Expression<tags::Dot, TL, TR>
+template<typename TL, typename TR> inline declare::Expression<tags::Dot, TL, TR>
 dot(TL const &lhs, TR const &rhs, ENABLE_IF((traits::iform<TL>::value == VERTEX)))
 {
-    return Expression<tags::Dot, TL, TR>(lhs, rhs);
+    return declare::Expression<tags::Dot, TL, TR>(lhs, rhs);
 };
 
 
@@ -254,12 +263,6 @@ dot(TL const &lhs, TR const &rhs, ENABLE_IF((traits::iform<TL>::value == VERTEX)
  *  \f}
  */
 
-template<size_type I, typename U>
-inline Expression<tags::MapTo, U, index_const<I>>
-map_to(U const &f)
-{
-    return Expression<tags::MapTo, U, index_const<I >>(f, index_const<I>());
-}
 
 /** @} */
 
@@ -274,12 +277,12 @@ map_to(U const &f)
  */
 
 template<typename U>
-inline Expression<tags::ExteriorDerivative, U>
-exterior_derivative(U const &f) { return Expression<tags::ExteriorDerivative, U>(f); }
+inline declare::Expression<tags::ExteriorDerivative, U>
+exterior_derivative(U const &f) { return declare::Expression<tags::ExteriorDerivative, U>(f); }
 
 template<typename U>
-inline Expression<tags::CodifferentialDerivative, U>
-codifferential_derivative(U const &f) { return Expression<tags::CodifferentialDerivative, U>(f); };
+inline declare::Expression<tags::CodifferentialDerivative, U>
+codifferential_derivative(U const &f) { return declare::Expression<tags::CodifferentialDerivative, U>(f); };
 //
 //template<typename ... T> inline auto
 //d(Field<T...> const &f) DECL_RET_TYPE((exterior_derivative(f)))
@@ -330,13 +333,13 @@ template<typename T> inline auto
 curl(T const &f) DECL_RET_TYPE((curl(f, traits::iform<T>())))
 
 template<size_type I, typename U>
-inline Expression<tags::P_ExteriorDerivative<I>, U>
-p_exterior_derivative(U const &f) { return Expression<tags::P_ExteriorDerivative<I>, U>(f); }
+inline declare::Expression<tags::P_ExteriorDerivative<I>, U>
+p_exterior_derivative(U const &f) { return declare::Expression<tags::P_ExteriorDerivative<I>, U>(f); }
 
 
 template<size_type I, typename U>
-Expression<tags::P_CodifferentialDerivative<I>, U>
-p_codifferential_derivative(U const &f) { return Expression<tags::P_CodifferentialDerivative<I>, U>(f); };
+declare::Expression<tags::P_CodifferentialDerivative<I>, U>
+p_codifferential_derivative(U const &f) { return declare::Expression<tags::P_CodifferentialDerivative<I>, U>(f); };
 
 
 template<typename T> inline auto

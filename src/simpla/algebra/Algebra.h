@@ -17,6 +17,8 @@ enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };
 
 namespace algebra
 {
+namespace declare { template<typename ...> struct Expression; }
+
 namespace traits
 {
 
@@ -34,11 +36,15 @@ template<typename ...T> struct iform_list { typedef index_sequence<iform<T>::val
 template<typename ...T> using iform_list_t= typename iform_list<T...>::type;
 
 template<typename ...> struct value_type;
+
 template<typename ...T> using value_type_t=typename value_type<T...>::type;
+
 template<typename T> struct value_type<T> { typedef T type; };
+
 template<typename T> struct value_type<T *> { typedef value_type_t<T> type; };
 
 template<typename T> struct scalar_type { typedef Real type; };
+
 template<typename T> using scalar_type_t=typename scalar_type<T>::type;
 
 template<typename ...> struct is_complex : public std::integral_constant<bool, false> {};
