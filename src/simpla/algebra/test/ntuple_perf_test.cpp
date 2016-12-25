@@ -11,10 +11,7 @@
 #include <type_traits>
 #include <typeinfo>
 #include <utility>
-#include "../type_traits.h"
-#include "simpla/algebra/nTuple.h"
-#include "simpla/algebra/nTupleExt.h"
-#include "../primitives.h"
+#include "../nTuple.h"
 
 using namespace simpla;
 
@@ -70,7 +67,7 @@ public:
 
 typedef testing::Types<
 
-        nTuple<double, 3>, nTuple<double, 20>, nTuple<int, 3>, nTuple<int, 10>, nTuple<std::complex<double>, 3>, nTuple<std::complex<double>, 10>
+        nTuple<double, 3>, nTuple<int, 3>, nTuple<double, 20>, nTuple<int, 10>, nTuple<std::complex<double>, 3>, nTuple<std::complex<double>, 10>
 
 > ntuple_type_lists_1d;
 
@@ -83,7 +80,9 @@ TYPED_TEST(nTuplePerf1, performance_raw_array)
     {
         for (int i = 0; i < TestFixture::dims0; ++i)
         {
-            TestFixture::aD[i] += EQUATION(TestFixture::aA[i], TestFixture::aB[i], TestFixture::aC[i]) * s;
+            TestFixture::aD[i] += EQUATION(TestFixture::aA[i], TestFixture::aB[i], TestFixture::aC[i]) *
+                                  static_cast<typename TestFixture::value_type>(s);
+
         }
 
     }
@@ -96,7 +95,9 @@ TYPED_TEST(nTuplePerf1, performancenTuple)
 
     for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
     {
-        TestFixture::vD += EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC) * (s);
+        TestFixture::vD += EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC) *
+                           static_cast<typename TestFixture::value_type>(s);
+
     }
 
 
@@ -105,7 +106,7 @@ TYPED_TEST(nTuplePerf1, performancenTuple)
 template<typename> class nTuplePerf2;
 
 template<typename T, size_t N, size_t M>
-class nTuplePerf2<nTuple<nTuple<T, M>, N>> : public testing::Test
+class nTuplePerf2<nTuple<T, M, N>> : public testing::Test
 {
     virtual void SetUp()
     {
@@ -173,7 +174,8 @@ TYPED_TEST(nTuplePerf2, performance_raw_array)
             for (int j = 0; j < TestFixture::dims1; ++j)
             {
                 TestFixture::aD[i][j] +=
-                        EQUATION(TestFixture::aA[i][j], TestFixture::aB[i][j], TestFixture::aC[i][j]) * s;
+                        EQUATION(TestFixture::aA[i][j], TestFixture::aB[i][j], TestFixture::aC[i][j]) *
+                        static_cast<typename TestFixture::value_type>(s);
             }
 
     }
@@ -184,6 +186,8 @@ TYPED_TEST(nTuplePerf2, performancenTuple)
 {
     for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
     {
-        TestFixture::vD += EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC) * (s);
+        TestFixture::vD += EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC) *
+                           static_cast<typename TestFixture::value_type>(s);
+
     }
 }

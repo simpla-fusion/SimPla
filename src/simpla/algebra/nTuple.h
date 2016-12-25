@@ -69,10 +69,12 @@ namespace algebra
 {
 namespace traits
 {
-
+template<typename T, size_type ...I0>
+struct reference<declare::nTuple_<T, I0...> > { typedef declare::nTuple_<T, I0...> const &type; };
 
 template<typename T, size_type ...I>
 struct rank<declare::nTuple_<T, I...> > : public index_const<sizeof...(I)> {};
+
 template<typename V, size_type ...I>
 struct extents<declare::nTuple_<V, I...> > : public index_sequence<I...> {};
 
@@ -114,6 +116,70 @@ template<typename ...T> struct _impl;
 namespace declare
 {
 
+template<typename TV, size_type N0>
+struct nTuple_<TV, N0>
+{
+public:
+    typedef nTuple_<TV, N0> this_type;
+    typedef TV value_type;
+    typedef TV sub_type;
+
+    sub_type data_[N0];
+
+    sub_type &operator[](size_type s) { return data_[s]; }
+
+    sub_type const &operator[](size_type s) const { return data_[s]; }
+
+    sub_type &at(size_type s) { return data_[s]; }
+
+    sub_type const &at(size_type s) const { return data_[s]; }
+
+
+public:
+
+    template<typename TR>
+    inline this_type &operator=(TR const &rhs)
+    {
+        for (size_type s = 0; s < N0; ++s)
+        {
+            data_[s] = _impl<this_type>::get_value(rhs, s);
+        }
+        return (*this);
+    }
+
+    template<typename TR>
+    inline this_type &operator+=(TR const &rhs)
+    {
+        for (size_type s = 0; s < N0; ++s)
+        {
+            data_[s] += _impl<this_type>::get_value(rhs, s);
+        }
+        return (*this);
+    }
+
+    template<typename TR>
+    inline this_type &operator-=(TR const &rhs)
+    {
+        _impl<this_type>::apply(tags::minus_assign(), *this, rhs);
+
+        return (*this);
+    }
+
+    template<typename TR>
+    inline this_type &operator*=(TR const &rhs)
+    {
+        _impl<this_type>::apply(tags::multiplies_assign(), *this, rhs);
+        return (*this);
+    }
+
+    template<typename TR>
+    inline this_type &operator/=(TR const &rhs)
+    {
+        _impl<this_type>::apply(tags::divides_assign(), *this, rhs);
+        return (*this);
+    }
+
+};
 
 template<typename TV, size_type N0, size_type ...NOthers>
 struct nTuple_<TV, N0, NOthers...>
@@ -176,6 +242,8 @@ public:
 }//namespace declare
 namespace _detail
 {
+
+
 template<typename TOP, typename TL, size_type I0, typename TR>
 void _apply(TOP const &, declare::nTuple_<TL, I0> &lhs, TR const &rhs)
 {
@@ -268,7 +336,11 @@ public:
                           v, s0, std::forward<Idx>(idx)...);
     };
 
+    template<typename T, size_type N> static T &
+    get_value(declare::nTuple_<T, N> &v, size_type const &s0) { return v[s0]; };
 
+    template<typename T, size_type N> static T const &
+    get_value(declare::nTuple_<T, N> const &v, size_type const &s0) { return v[s0]; };
 public:
     template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static auto
     _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, Idx &&... s)
