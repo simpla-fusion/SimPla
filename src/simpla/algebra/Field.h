@@ -59,6 +59,9 @@ struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>>
     typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME),
             cell_tuple, declare::nTuple_<cell_tuple, 3> > type;
 };
+
+template<typename TV, typename TM, size_type ...I>
+struct mesh_type<declare::Field_<TV, TM, I...> > { typedef TM type; };
 } //namespace   traits
 
 template<typename ...T> struct _engine;

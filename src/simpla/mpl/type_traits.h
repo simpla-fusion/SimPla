@@ -362,12 +362,6 @@ struct unpack_args_helper<0>
 template<int N, typename ... Args>
 auto unpack_args(Args &&...args) DECL_RET_TYPE((_impl::unpack_args_helper<N>(std::forward<Args>(args)...)))
 
-template<typename T> struct pod_type { typedef T type; };
-template<typename T> using pod_type_t = typename pod_type<T>::type;
-
-template<typename T> struct primary_type { typedef T type; };
-template<typename T> using primary_type_t=typename primary_type<T>::type;
-
 
 template<typename T0> auto max(T0 const &first) DECL_RET_TYPE((first))
 

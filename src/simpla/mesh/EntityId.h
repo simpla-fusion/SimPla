@@ -175,16 +175,15 @@ struct MeshEntityIdCoder_
 
     };
 
-    static constexpr point_type m_id_to_coordinates_shift_[] = {
-
-            {0,  0,  0},            // 000
-            {_R, 0,  0},           // 001
-            {0,  _R, 0},           // 010
-            {0,  0,  _R},           // 011
-            {_R, _R, 0},          // 100
-            {_R, 0,  _R},          // 101
-            {0,  _R, _R},          // 110
-            {0,  _R, _R},          // 111
+    static point_type m_id_to_coordinates_shift_[] = {
+            {0.0, 0.0, 0.0},            // 000
+            {_R,  0.0, 0.0},           // 001
+            {0.0, _R,  0.0},           // 010
+            {0.0, 0.0, _R},           // 011
+            {_R,  _R,  0.0},          // 100
+            {_R,  0.0, _R},          // 101
+            {0.0, _R,  _R},          // 110
+            {0.0, _R,  _R},          // 111
 
     };
     static constexpr int m_iform_to_num_of_ele_in_cell_[] = {

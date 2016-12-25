@@ -17,7 +17,14 @@ enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };
 
 namespace algebra
 {
-namespace declare { template<typename ...> struct Expression; }
+namespace declare
+{
+template<typename ...> struct Expression;
+
+template<typename, size_type ...> struct nTuple_;
+
+template<typename, typename, size_type ...> struct Field_;
+}
 
 namespace traits
 {
@@ -59,15 +66,16 @@ struct is_scalar<T> : public std::integral_constant<bool,
         std::is_arithmetic<std::decay_t<T>>::value || is_complex<std::decay_t<T>>::value>
 {
 };
+template<typename ...> struct is_nTuple;
+template<typename T> struct is_nTuple<T> : public std::integral_constant<bool, false> {};
 
-template<typename ...> struct is_nTuple : public std::integral_constant<bool, false> {};
-
-template<typename ...> struct is_field : public std::integral_constant<bool, false> {};
+template<typename ...> struct is_field;
+template<typename T> struct is_field<T> : public std::integral_constant<bool, false> {};
 
 
 template<typename First, typename  ...Others>
 struct is_nTuple<First, Others...> : public std::integral_constant<bool,
-        (is_nTuple<First>::value || is_nTuple<Others...>::value) && !is_field<First, Others...>::value>
+        (is_nTuple<First>::value && (!is_field<First>::value)) || is_nTuple<Others...>::value>
 {
 };
 
@@ -83,6 +91,28 @@ template<typename T> using reference_t=typename reference<T>::type;
 template<typename T> struct field_value_type { typedef T type; };
 template<typename T> using field_value_t=typename field_value_type<T>::type;
 
+template<typename> struct mesh_type { typedef void type; };
+
+
+template<typename ...> struct make_nTuple { typedef void type; };
+
+template<typename TV, size_type ...I>
+struct make_nTuple<TV, index_sequence<I...>> { typedef declare::nTuple_<TV, I...> type; };
+
+template<typename T> struct primary_type
+{
+    typedef value_type_t<T> v_type;
+
+
+    typedef typename make_nTuple<v_type, extents<T>>::type nTuple_type;
+
+    typedef typename declare::Field_<v_type, typename mesh_type<T>::type, iform<T>::value, dof<T>::value> field_type;
+
+    typedef std::conditional_t<is_nTuple<T>::value, nTuple_type, field_type> type;
+
+
+};
+template<typename T> using primary_type_t=typename primary_type<T>::type;
 
 
 //template<typename TOP, typename ...Others> struct is_nTuple<Expression < TOP, Others...> > : public is_nTuple<Others...> {};

@@ -77,6 +77,14 @@ struct Expression<TOP, Args...>
 
     virtual ~Expression() {}
 
+    typedef typename traits::primary_type<this_type>::type p_type;
+
+    operator p_type() const
+    {
+        p_type res;
+        res = *this;
+        return res;
+    }
 };
 
 template<typename TOP, typename TL, typename TR>
