@@ -215,7 +215,7 @@ template<typename T, typename I0>
 struct remove_extents<T, I0> { typedef remove_extent_t<T, I0> type; };
 
 template<typename T, typename I0, typename ...Others>
-struct remove_extents<T, I0, Others...> { typedef remove_extents<remove_extent_t<T, I0>, Others...> type; };
+struct remove_extents<T, I0, Others...> { typedef typename remove_extents<remove_extent_t<T, I0>, Others...>::type type; };
 
 template<typename ...T> using remove_extents_t=typename remove_extents<T ...>::type;
 
@@ -260,32 +260,43 @@ template<typename T, typename Idx=int>
 struct rank : public index_const<(!is_indexable<T, Idx>::value) ? 0 : 1 + rank<remove_extent<T, Idx>>::value> {};
 
 
-template<typename T, typename ...Idx> T &
-_get_v(std::integral_constant<bool, false> const &, T &v, Idx &&...) { return v; };
-
-
-template<typename T, typename I0> remove_all_extents_t<T, I0> &
-_get_v(std::integral_constant<bool, true> const &, T &v, I0 const *s) { return get_v(v[*s], s + 1); };
-
-template<typename T, typename I0, typename ...Idx> remove_extents_t<T, I0, Idx...> &
-_get_v(std::integral_constant<bool, true> const &, T &v, I0 const &s, Idx &&...idx)
-{
-    return get_v(v[s], std::forward<Idx>(idx)...);
-};
-
+namespace _detail { template<bool F> struct remove_entent_v; }
 
 template<typename T, typename I0> remove_all_extents_t<T, I0> &
 get_v(T &v, I0 const *s)
 {
-    return _get_v(std::integral_constant<bool, is_indexable<T, I0>::value>(), v, s);
+    return _detail::remove_entent_v<is_indexable<T, I0>::value>::get(v, s);
 };
 
 
 template<typename T, typename I0, typename ...Idx> remove_extents_t<T, I0, Idx...> &
 get_v(T &v, I0 const &s0, Idx &&...idx)
 {
-    return _get_v(std::integral_constant<bool, is_indexable<T, I0>::value>(), v, s0, std::forward<Idx>(idx)...);
+    return _detail::remove_entent_v<is_indexable<T, I0>::value>::get(v, s0, std::forward<Idx>(idx)...);
 };
+
+namespace _detail
+{
+
+template<> struct remove_entent_v<true>
+{
+    template<typename T, typename I0> static remove_all_extents_t<T, I0> &
+    get(T &v, I0 const *s) { return get_v(v[*s], s + 1); };
+
+    template<typename T, typename I0, typename ...Idx> static remove_extents_t<T, I0, Idx...> &
+    get(T &v, I0 const &s0, Idx &&...idx)
+    {
+        return get_v(v[s0], std::forward<Idx>(idx)...);;
+    };
+};
+
+template<> struct remove_entent_v<false>
+{
+    template<typename T, typename ...Args> static T &get(T &v, Args &&...) { return v; };
+};
+}//namespace _detail{
+
+
 
 
 
