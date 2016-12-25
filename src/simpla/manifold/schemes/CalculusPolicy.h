@@ -22,11 +22,18 @@
 
 #include "../ManifoldTraits.h"
 
+namespace simpla { namespace algebra { namespace declare
+{
+template<typename, typename, size_type ...I> struct Field_;
+}}}//namespace simpla { namespace algebra { namespace declare
+
 
 namespace simpla { namespace manifold { namespace schemes
 {
 namespace al= simpla::algebra;
-namespace ct= simpla::algebra::tags;
+namespace algd= simpla::algebra::declare;
+
+namespace algt= simpla::algebra::tags;
 namespace at= simpla::algebra::traits;
 namespace st= simpla::traits;
 
@@ -52,36 +59,36 @@ public:
 
 //    template<typename ...T>
 //    inline static  algebra:: traits::value_type_t<Field<T...> >
-//    eval(m,mesh_type const & m,Field<T...> &expr, MeshEntityId const& s) { return eval(m,expr, s); }
+//    get_value(m,mesh_type const & m,Field<T...> &expr, MeshEntityId const& s) { return get_value(m,expr, s); }
 //
 //    template<typename ...T>
 //    inline static  algebra:: traits::value_type_t<Field<T...> >
-//    eval(m,mesh_type const & m,Field<T...> const &expr, MeshEntityId const& s) { return eval(m,expr, s); }
+//    get_value(m,mesh_type const & m,Field<T...> const &expr, MeshEntityId const& s) { return get_value(m,expr, s); }
 //
 //    template<typename T>
-//    inline static  T &eval(m,T &f, MeshEntityId const& s) { return f; }
+//    inline static  T &get_value(m,T &f, MeshEntityId const& s) { return f; }
 //
 //
 //    template<typename T>
-//    inline static  T const &eval(m,T const &f, MeshEntityId const& s) { return f; }
+//    inline static  T const &get_value(m,T const &f, MeshEntityId const& s) { return f; }
 
 
 
 //    template<typename TV, typename OM, size_t IFORM> inline 
 //    typename traits::value_type<Field<TV, OM, index_const<IFORM>>>::type &
-//    eval(m,mesh_type const & m,Field<TV, OM, index_const<IFORM>> &f, MeshEntityId const& s) { return f[s]; };
+//    get_value(m,mesh_type const & m,Field<TV, OM, index_const<IFORM>> &f, MeshEntityId const& s) { return f[s]; };
 
     template<typename U, typename M, size_type...I> inline static at::value_type_t<U>
-    eval(mesh_type const &m, algebra::Field_<U, M, I...> const &f, MeshEntityId const &s) { return f[s]; };
+    get_value(mesh_type const &m, algd::Field_<U, M, I...> const &f, MeshEntityId const &s) { return f[s]; };
 
 
 private:
 
     template<typename FExpr> inline static at::value_type_t<FExpr>
-    get_v(mesh_type const &m, FExpr const &f, MeshEntityId const s) { return eval(m, f, s) * m.volume(s); }
+    get_v(mesh_type const &m, FExpr const &f, MeshEntityId const s) { return get_value(m, f, s) * m.volume(s); }
 
     template<typename FExpr> inline static at::value_type_t<FExpr>
-    get_d(mesh_type const &m, FExpr const &f, MeshEntityId const s) { return eval(m, f, s) * m.dual_volume(s); }
+    get_d(mesh_type const &m, FExpr const &f, MeshEntityId const s) { return get_value(m, f, s) * m.dual_volume(s); }
 
 public:
 
@@ -91,9 +98,9 @@ public:
 
     //! grad<0>
     template<typename T>
-    static inline at::value_type_t<al::Expression<ct::ExteriorDerivative, T>>
-    eval(mesh_type const &m, al::Expression<ct::ExteriorDerivative, T> const &f,
-         MeshEntityId const &s, index_sequence<VERTEX>)
+    static inline at::value_type_t<algd::Expression<algt::ExteriorDerivative, T>>
+    get_value(mesh_type const &m, algd::Expression<algt::ExteriorDerivative, T> const &f,
+              MeshEntityId const &s, index_sequence<VERTEX>)
     {
         MeshEntityId D = M::delta_index(s);
         return (get_v(m, std::get<0>(f.m_args_), s + D) - get_v(m, std::get<0>(f.m_args_), s - D)) * m.inv_volume(s);
@@ -102,9 +109,9 @@ public:
 
     //! curl<1>
     template<typename T>
-    static inline at::value_type_t<al::Expression<ct::ExteriorDerivative, T>>
-    eval(mesh_type const &m, al::Expression<ct::ExteriorDerivative, T> const &expr,
-         MeshEntityId const &s, index_sequence<EDGE>)
+    static inline at::value_type_t<algd::Expression<algt::ExteriorDerivative, T>>
+    get_value(mesh_type const &m, algd::Expression<algt::ExteriorDerivative, T> const &expr,
+              MeshEntityId const &s, index_sequence<EDGE>)
     {
 
         MeshEntityId X = M::delta_index(M::dual(s));
@@ -122,9 +129,9 @@ public:
 
     //! div<2>
     template<typename T>
-    static inline at::value_type_t<al::Expression<ct::ExteriorDerivative, T>>
-    eval(mesh_type const &m, al::Expression<ct::ExteriorDerivative, T> const &expr,
-         MeshEntityId const &s, index_sequence<FACE>)
+    static inline at::value_type_t<algd::Expression<algt::ExteriorDerivative, T>>
+    get_value(mesh_type const &m, algd::Expression<algt::ExteriorDerivative, T> const &expr,
+              MeshEntityId const &s, index_sequence<FACE>)
     {
         return (get_v(m, std::get<0>(expr.m_args_), s + M::_DI) - get_v(m, std::get<0>(expr.m_args_), s - M::_DI)
                 + get_v(m, std::get<0>(expr.m_args_), s + M::_DJ) - get_v(m, std::get<0>(expr.m_args_), s - M::_DJ)
@@ -136,9 +143,9 @@ public:
 
     //! div<1>
     template<typename T>
-    static inline at::value_type_t<al::Expression<ct::CodifferentialDerivative, T>>
-    eval(mesh_type const &m, al::Expression<ct::CodifferentialDerivative, T> const &expr,
-         MeshEntityId const &s, index_sequence<EDGE>)
+    static inline at::value_type_t<algd::Expression<algt::CodifferentialDerivative, T>>
+    get_value(mesh_type const &m, algd::Expression<algt::CodifferentialDerivative, T> const &expr,
+              MeshEntityId const &s, index_sequence<EDGE>)
     {
         return -(get_d(m, std::get<0>(expr.m_args_), s + M::_DI) - get_d(m, std::get<0>(expr.m_args_), s - M::_DI)
                  + get_d(m, std::get<0>(expr.m_args_), s + M::_DJ) - get_d(m, std::get<0>(expr.m_args_), s - M::_DJ)
@@ -148,9 +155,9 @@ public:
 
     //! curl<2>
     template<typename T>
-    static inline at::value_type_t<al::Expression<ct::CodifferentialDerivative, T>>
-    eval(mesh_type const &m, al::Expression<ct::CodifferentialDerivative, T> const &expr,
-         MeshEntityId const &s, index_sequence<FACE>)
+    static inline at::value_type_t<algd::Expression<algt::CodifferentialDerivative, T>>
+    get_value(mesh_type const &m, algd::Expression<algt::CodifferentialDerivative, T> const &expr,
+              MeshEntityId const &s, index_sequence<FACE>)
     {
 
         MeshEntityId X = M::delta_index(s);
@@ -165,9 +172,9 @@ public:
 
     //! grad<3>
     template<typename T>
-    static inline at::value_type_t<al::Expression<ct::CodifferentialDerivative, T>>
-    eval(mesh_type const &m, al::Expression<ct::CodifferentialDerivative, T> const &expr,
-         MeshEntityId const &s, index_sequence<VOLUME>)
+    static inline at::value_type_t<algd::Expression<algt::CodifferentialDerivative, T>>
+    get_value(mesh_type const &m, algd::Expression<algt::CodifferentialDerivative, T> const &expr,
+              MeshEntityId const &s, index_sequence<VOLUME>)
     {
         MeshEntityId D = M::delta_index(M::dual(s));
         return -(get_d(m, std::get<0>(expr.m_args_), s + D) - get_d(m, std::get<0>(expr.m_args_), s - D)) *
@@ -178,9 +185,9 @@ public:
 
 
     template<typename T, size_t I>
-    static inline at::value_type_t<al::Expression<ct::HodgeStar, T> >
-    eval(mesh_type const &m, al::Expression<ct::HodgeStar, T> const &expr,
-         MeshEntityId const &s, index_sequence<I>)
+    static inline at::value_type_t<algd::Expression<algt::HodgeStar, T> >
+    get_value(mesh_type const &m, algd::Expression<algt::HodgeStar, T> const &expr,
+              MeshEntityId const &s, index_sequence<I>)
     {
         auto const &l = std::get<0>(expr.m_args_);
         int i = M::iform(s);
@@ -209,9 +216,9 @@ public:
     static constexpr Real m_p_curl_factor_[3] = {0, 1, -1};
 
     template<typename T, size_t I>
-    static inline at::value_type_t<al::Expression<ct::P_ExteriorDerivative<I>, T>>
-    eval(mesh_type const &m, al::Expression<ct::P_ExteriorDerivative<I>, T> const &expr,
-         MeshEntityId const &s, index_sequence<EDGE>)
+    static inline at::value_type_t<algd::Expression<algt::P_ExteriorDerivative<I>, T>>
+    get_value(mesh_type const &m, algd::Expression<algt::P_ExteriorDerivative<I>, T> const &expr,
+              MeshEntityId const &s, index_sequence<EDGE>)
     {
         return (get_v(m, std::get<0>(expr.m_args_), s + M::DI(I)) -
                 get_v(m, std::get<0>(expr.m_args_), s - M::DI(I))
@@ -220,9 +227,9 @@ public:
 
 
     template<typename T, size_t I>
-    static inline at::value_type_t<al::Expression<ct::P_CodifferentialDerivative<I>, T>>
-    eval(mesh_type const &m, al::Expression<ct::P_CodifferentialDerivative<I>, T> const &expr,
-         MeshEntityId const &s, index_sequence<FACE>)
+    static inline at::value_type_t<algd::Expression<algt::P_CodifferentialDerivative<I>, T>>
+    get_value(mesh_type const &m, algd::Expression<algt::P_CodifferentialDerivative<I>, T> const &expr,
+              MeshEntityId const &s, index_sequence<FACE>)
     {
 
         return (get_v(m, std::get<0>(expr.m_args_), s + M::DI(I)) -
@@ -242,10 +249,10 @@ public:
 //    inline static at::value_type_t<TF>
 //    mapto(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<I, I>,
 //          std::enable_if_t<!st::is_primary<TF>::value>
-//          *_p = nullptr) { return eval(m, expr, s); }
+//          *_p = nullptr) { return get_value(m, expr, s); }
 
     template<typename TV, typename OM, size_t I, int DOF> inline static TV
-    mapto(mesh_type const &m, algebra::Field_<TV, OM, I, DOF> const &f, MeshEntityId const &s,
+    mapto(mesh_type const &m, algd::Field_<TV, OM, I, DOF> const &f, MeshEntityId const &s,
           index_sequence<I, I>) { return f[s]; };
 
     template<typename TF> static inline at::value_type_t<TF>
@@ -253,10 +260,10 @@ public:
     {
         int n = M::sub_index(s);
         MeshEntityId X = M::delta_index(s);
-        auto l = eval(m, expr, sw(s - X, n));
-        auto r = eval(m, expr, sw(s + X, n));
+        auto l = get_value(m, expr, sw(s - X, n));
+        auto r = get_value(m, expr, sw(s + X, n));
         return (l + r) * 0.5;
-//        return (eval(m, expr, sw(s - X, n)) + eval(m, expr, sw(s + X, n))) * 0.5;
+//        return (get_value(m, expr, sw(s - X, n)) + get_value(m, expr, sw(s + X, n))) * 0.5;
 
 
     }
@@ -272,10 +279,10 @@ public:
         auto Z = M::inverse_rotate(X);
 
         return (
-                       eval(m, expr, sw(s - Y - Z, n)) +
-                       eval(m, expr, sw(s - Y + Z, n)) +
-                       eval(m, expr, sw(s + Y - Z, n)) +
-                       eval(m, expr, sw(s + Y + Z, n))
+                       get_value(m, expr, sw(s - Y - Z, n)) +
+                       get_value(m, expr, sw(s - Y + Z, n)) +
+                       get_value(m, expr, sw(s + Y - Z, n)) +
+                       get_value(m, expr, sw(s + Y + Z, n))
                ) * 0.25;
     }
 
@@ -289,14 +296,14 @@ public:
         auto Y = M::DI(1, s);
         auto Z = M::DI(2, s);
 
-        return (eval(m, l, s - X - Y - Z) +
-                eval(m, l, s - X - Y + Z) +
-                eval(m, l, s - X + Y - Z) +
-                eval(m, l, s - X + Y + Z) +
-                eval(m, l, s + X - Y - Z) +
-                eval(m, l, s + X - Y + Z) +
-                eval(m, l, s + X + Y - Z) +
-                eval(m, l, s + X + Y + Z)
+        return (get_value(m, l, s - X - Y - Z) +
+                get_value(m, l, s - X - Y + Z) +
+                get_value(m, l, s - X + Y - Z) +
+                get_value(m, l, s - X + Y + Z) +
+                get_value(m, l, s + X - Y - Z) +
+                get_value(m, l, s + X - Y + Z) +
+                get_value(m, l, s + X + Y - Z) +
+                get_value(m, l, s + X + Y + Z)
                ) * 0.125;
     }
 
@@ -305,7 +312,7 @@ public:
     mapto(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<EDGE, VERTEX>)
     {
         MeshEntityId X = M::DI(s.w, s);
-        return (eval(m, expr, sw(s - X, 0)) + eval(m, expr, sw(s + X, 0))) * 0.5;
+        return (get_value(m, expr, sw(s - X, 0)) + get_value(m, expr, sw(s + X, 0))) * 0.5;
     }
 
 
@@ -317,28 +324,28 @@ public:
         MeshEntityId Y = M::DI((s.w + 1) % 3, s);
         MeshEntityId Z = M::DI((s.w + 2) % 3, s);
 
-        return (eval(m, expr, sw(s - Y - Z, 0)) +
-                eval(m, expr, sw(s - Y + Z, 0)) +
-                eval(m, expr, sw(s + Y - Z, 0)) +
-                eval(m, expr, sw(s + Y + Z, 0))) * 0.25;
+        return (get_value(m, expr, sw(s - Y - Z, 0)) +
+                get_value(m, expr, sw(s - Y + Z, 0)) +
+                get_value(m, expr, sw(s + Y - Z, 0)) +
+                get_value(m, expr, sw(s + Y + Z, 0))) * 0.25;
 
 //        MeshEntityId X = M::_DI;
 //        MeshEntityId Y = M::_DJ;
 //        MeshEntityId Z = M::_DK;
 //        return nTuple<typename traits::value_type<TF>::type, 3>
 //                {
-//                        static_cast<typename traits::value_type<TF>::type>(eval(m, l, (s - Y - Z)) +
-//                                                                           eval(m, l, (s - Y + Z)) +
-//                                                                           eval(m, l, (s + Y - Z)) +
-//                                                                           eval(m, l, (s + Y + Z)) * 0.25),
-//                        static_cast<typename traits::value_type<TF>::type>(eval(m, l, (s - Z - X)) +
-//                                                                           eval(m, l, (s - Z + X)) +
-//                                                                           eval(m, l, (s + Z - X)) +
-//                                                                           eval(m, l, (s + Z + X)) * 0.25),
-//                        static_cast<typename traits::value_type<TF>::type>(eval(m, l, (s - X - Y)) +
-//                                                                           eval(m, l, (s - X + Y)) +
-//                                                                           eval(m, l, (s + X - Y)) +
-//                                                                           eval(m, l, (s + X + Y)) * 0.25)
+//                        static_cast<typename traits::value_type<TF>::type>(get_value(m, l, (s - Y - Z)) +
+//                                                                           get_value(m, l, (s - Y + Z)) +
+//                                                                           get_value(m, l, (s + Y - Z)) +
+//                                                                           get_value(m, l, (s + Y + Z)) * 0.25),
+//                        static_cast<typename traits::value_type<TF>::type>(get_value(m, l, (s - Z - X)) +
+//                                                                           get_value(m, l, (s - Z + X)) +
+//                                                                           get_value(m, l, (s + Z - X)) +
+//                                                                           get_value(m, l, (s + Z + X)) * 0.25),
+//                        static_cast<typename traits::value_type<TF>::type>(get_value(m, l, (s - X - Y)) +
+//                                                                           get_value(m, l, (s - X + Y)) +
+//                                                                           get_value(m, l, (s + X - Y)) +
+//                                                                           get_value(m, l, (s + X + Y)) * 0.25)
 //                };
 
 
@@ -356,14 +363,14 @@ public:
         auto Z = M::DI(2, s);
 
         return (
-                       eval(m, l, ((s - X - Y - Z))) +
-                       eval(m, l, ((s - X - Y + Z))) +
-                       eval(m, l, ((s - X + Y - Z))) +
-                       eval(m, l, ((s - X + Y + Z))) +
-                       eval(m, l, ((s + X - Y - Z))) +
-                       eval(m, l, ((s + X - Y + Z))) +
-                       eval(m, l, ((s + X + Y - Z))) +
-                       eval(m, l, ((s + X + Y + Z)))
+                       get_value(m, l, ((s - X - Y - Z))) +
+                       get_value(m, l, ((s - X - Y + Z))) +
+                       get_value(m, l, ((s - X + Y - Z))) +
+                       get_value(m, l, ((s - X + Y + Z))) +
+                       get_value(m, l, ((s + X - Y - Z))) +
+                       get_value(m, l, ((s + X - Y + Z))) +
+                       get_value(m, l, ((s + X + Y - Z))) +
+                       get_value(m, l, ((s + X + Y + Z)))
                ) * 0.125;
     }
 
@@ -374,7 +381,7 @@ public:
     {
         auto X = M::delta_index(M::dual(s));
 
-        return (eval(m, expr, s - X) + eval(m, expr, s + X)) * 0.5;
+        return (get_value(m, expr, s - X) + get_value(m, expr, s + X)) * 0.5;
     }
 
 
@@ -388,10 +395,10 @@ public:
         auto Z = M::inverse_rotate(X);
 
         return (
-                       eval(m, l, s - Y - Z) +
-                       eval(m, l, s - Y + Z) +
-                       eval(m, l, s + Y - Z) +
-                       eval(m, l, s + Y + Z)
+                       get_value(m, l, s - Y - Z) +
+                       get_value(m, l, s - Y + Z) +
+                       get_value(m, l, s + Y - Z) +
+                       get_value(m, l, s + Y + Z)
                ) * 0.25;
     }
 
@@ -403,7 +410,7 @@ public:
 
         MeshEntityId X = M::DI(s.w, s);
 
-        return (eval(m, expr, sw(s - X, 0)) + eval(m, expr, sw(s + X, 0))) * 0.5;
+        return (get_value(m, expr, sw(s - X, 0)) + get_value(m, expr, sw(s + X, 0))) * 0.5;
 
 
     }
@@ -422,8 +429,8 @@ public:
         MeshEntityId Y = M::DI((s.w + 1) % 3, s);
         MeshEntityId Z = M::DI((s.w + 1) % 3, s);
 
-        return (eval(m, expr, sw(s - Y - Z, 0)) + eval(m, expr, sw(s - Y + Z, 0)) +
-                eval(m, expr, sw(s + Y - Z, 0)) + eval(m, expr, sw(s + Y + Z, 0))) * 0.25;
+        return (get_value(m, expr, sw(s - Y - Z, 0)) + get_value(m, expr, sw(s - Y + Z, 0)) +
+                get_value(m, expr, sw(s + Y - Z, 0)) + get_value(m, expr, sw(s + Y + Z, 0))) * 0.25;
 
 
     }
@@ -433,9 +440,9 @@ public:
     //
     //! Form<IL> ^ Form<IR> => Form<IR+IL>
     template<typename ...T, size_t IL, size_t IR>
-    static inline at::value_type_t<al::Expression<ct::Wedge, T...>>
-    eval(mesh_type const &m, al::Expression<ct::Wedge, T...> const &expr,
-         MeshEntityId const &s, index_sequence<IL, IR>)
+    static inline at::value_type_t<algd::Expression<algt::Wedge, T...>>
+    get_value(mesh_type const &m, algd::Expression<algt::Wedge, T...> const &expr,
+              MeshEntityId const &s, index_sequence<IL, IR>)
     {
         return m.inner_product(mapto(m, std::get<0>(expr.m_args_), s, index_sequence<IL, IR + IL>()),
                                mapto(m, std::get<1>(expr.m_args_), s, index_sequence<IR, IR + IL>()),
@@ -445,9 +452,9 @@ public:
 
 
     template<typename TL, typename TR>
-    static inline at::value_type_t<al::Expression<ct::Wedge, TL, TR>>
-    eval(mesh_type const &m, al::Expression<ct::Wedge, TL, TR> const &expr,
-         MeshEntityId const &s, index_sequence<EDGE, EDGE>)
+    static inline at::value_type_t<algd::Expression<algt::Wedge, TL, TR>>
+    get_value(mesh_type const &m, algd::Expression<algt::Wedge, TL, TR> const &expr,
+              MeshEntityId const &s, index_sequence<EDGE, EDGE>)
     {
         auto const &l = std::get<0>(expr.m_args_);
         auto const &r = std::get<1>(expr.m_args_);
@@ -456,8 +463,8 @@ public:
         auto Z = M::delta_index(
                 M::inverse_rotate(M::dual(s)));
 
-        return ((eval(m, l, s - Y) + eval(m, l, s + Y))
-                * (eval(m, l, s - Z) + eval(m, l, s + Z)) * 0.25);
+        return ((get_value(m, l, s - Y) + get_value(m, l, s + Y))
+                * (get_value(m, l, s - Z) + get_value(m, l, s + Z)) * 0.25);
     }
 
     static MeshEntityId sw(MeshEntityId s, u_int16_t w)
@@ -467,51 +474,51 @@ public:
     }
 
     template<typename TL, typename TR, size_t I>
-    static inline at::value_type_t<al::Expression<ct::Cross, TL, TR>>
-    eval(mesh_type const &m, al::Expression<ct::Cross, TL, TR> const &expr,
-         MeshEntityId const &s, index_sequence<I, I>)
+    static inline at::value_type_t<algd::Expression<algt::Cross, TL, TR>>
+    get_value(mesh_type const &m, algd::Expression<algt::Cross, TL, TR> const &expr,
+              MeshEntityId const &s, index_sequence<I, I>)
     {
-        return eval(m, std::get<0>(expr.m_args_), sw(s, (s.w + 1) % 3)) *
-               eval(m, std::get<1>(expr.m_args_), sw(s, (s.w + 2) % 3)) -
-               eval(m, std::get<0>(expr.m_args_), sw(s, (s.w + 2) % 3)) *
-               eval(m, std::get<1>(expr.m_args_), sw(s, (s.w + 1) % 3));
+        return get_value(m, std::get<0>(expr.m_args_), sw(s, (s.w + 1) % 3)) *
+               get_value(m, std::get<1>(expr.m_args_), sw(s, (s.w + 2) % 3)) -
+               get_value(m, std::get<0>(expr.m_args_), sw(s, (s.w + 2) % 3)) *
+               get_value(m, std::get<1>(expr.m_args_), sw(s, (s.w + 1) % 3));
     }
 
     template<typename TL, typename TR, size_t I>
-    static inline at::value_type_t<al::Expression<ct::Dot, TL, TR>>
-    eval(mesh_type const &m, al::Expression<ct::Dot, TL, TR> const &expr,
-         MeshEntityId const &s, index_sequence<I, I>)
+    static inline at::value_type_t<algd::Expression<algt::Dot, TL, TR>>
+    get_value(mesh_type const &m, algd::Expression<algt::Dot, TL, TR> const &expr,
+              MeshEntityId const &s, index_sequence<I, I>)
     {
-        return eval(m, std::get<0>(expr.m_args_), sw(s, 0)) * eval(m, std::get<1>(expr.m_args_), sw(s, 0)) +
-               eval(m, std::get<0>(expr.m_args_), sw(s, 1)) * eval(m, std::get<1>(expr.m_args_), sw(s, 1)) +
-               eval(m, std::get<0>(expr.m_args_), sw(s, 2)) * eval(m, std::get<1>(expr.m_args_), sw(s, 2));
+        return get_value(m, std::get<0>(expr.m_args_), sw(s, 0)) * get_value(m, std::get<1>(expr.m_args_), sw(s, 0)) +
+               get_value(m, std::get<0>(expr.m_args_), sw(s, 1)) * get_value(m, std::get<1>(expr.m_args_), sw(s, 1)) +
+               get_value(m, std::get<0>(expr.m_args_), sw(s, 2)) * get_value(m, std::get<1>(expr.m_args_), sw(s, 2));
     }
 
 
     template<typename TL, typename TR, size_t I>
-    static inline at::value_type_t<al::Expression<ct::divides, TL, TR>>
-    eval(mesh_type const &m, al::Expression<ct::divides, TL, TR> const &expr,
-         MeshEntityId const &s, index_sequence<I, VERTEX>)
+    static inline at::value_type_t<algd::Expression<algt::divides, TL, TR>>
+    get_value(mesh_type const &m, algd::Expression<algt::divides, TL, TR> const &expr,
+              MeshEntityId const &s, index_sequence<I, VERTEX>)
     {
-        return eval(m, std::get<0>(expr.m_args_), s) /
+        return get_value(m, std::get<0>(expr.m_args_), s) /
                mapto(m, std::get<1>(expr.m_args_), s, index_sequence<VERTEX, I>());
     }
 
     template<typename TL, typename TR, size_t I>
-    static inline at::value_type_t<al::Expression<ct::multiplies, TL, TR>>
-    eval(mesh_type const &m, al::Expression<ct::multiplies, TL, TR> const &expr,
-         MeshEntityId const &s, index_sequence<I, VERTEX>
+    static inline at::value_type_t<algd::Expression<algt::multiplies, TL, TR>>
+    get_value(mesh_type const &m, algd::Expression<algt::multiplies, TL, TR> const &expr,
+              MeshEntityId const &s, index_sequence<I, VERTEX>
     )
     {
-        return eval(m, std::get<0>(expr.m_args_), s) *
+        return get_value(m, std::get<0>(expr.m_args_), s) *
                mapto(m, std::get<1>(expr.m_args_), s, index_sequence<VERTEX, I>());
     }
 
 
     template<typename ...T, size_t ...I>
-    static inline at::value_type_t<al::Expression<ct::MapTo, T...> >
-    eval(mesh_type const &m, al::Expression<ct::MapTo, T...> const &expr,
-         MeshEntityId const &s, index_sequence<I...>)
+    static inline at::value_type_t<algd::Expression<algt::MapTo, T...> >
+    get_value(mesh_type const &m, algd::Expression<algt::MapTo, T...> const &expr,
+              MeshEntityId const &s, index_sequence<I...>)
     {
         return mapto(m, std::get<0>(expr.m_args_), s, index_sequence<I...>());
     };
@@ -525,12 +532,13 @@ public:
 
     template<typename T>
     inline static T const &
-    eval(mesh_type const &m, T const &v, MeshEntityId const &s, ENABLE_IF(std::is_arithmetic<T>::value)) { return v; }
+    get_value(mesh_type const &m, T const &v, MeshEntityId const &s,
+              ENABLE_IF(std::is_arithmetic<T>::value)) { return v; }
 
 
 //    template<typename T>
 //    inline static traits::primary_type_t<T>
-//    eval(mesh_type const &m, T const &v, MeshEntityId const &s, ENABLE_IF(at::is_nTuple<T>::value))
+//    get_value(mesh_type const &m, T const &v, MeshEntityId const &s, ENABLE_IF(at::is_nTuple<T>::value))
 //    {
 ////        traits::primary_type_t<T> res;
 //        res = v;
@@ -538,30 +546,30 @@ public:
 //    }
 
     template<typename TOP, typename ... T>
-    inline static at::value_type_t<al::Expression<TOP, T...> >
-    eval(mesh_type const &m, al::Expression<TOP, T...> const &expr,
-         MeshEntityId const &s)
+    inline static at::value_type_t<algd::Expression<TOP, T...> >
+    get_value(mesh_type const &m, algd::Expression<TOP, T...> const &expr,
+              MeshEntityId const &s)
     {
-        return eval(m, expr, s, at::iform_list_t<T...>());
+        return get_value(m, expr, s, at::iform_list_t<T...>());
     }
 
     //******************************************************************************************************************
     // for element-wise arithmetic operation
     template<typename TOP, typename ...T, size_t ... I> inline static
-    at::value_type_t<al::Expression<TOP, T...> >
-    _invoke_helper(mesh_type const &m, al::Expression<TOP, T...> const &expr,
+    at::value_type_t<algd::Expression<TOP, T...> >
+    _invoke_helper(mesh_type const &m, algd::Expression<TOP, T...> const &expr,
                    MeshEntityId const &s, index_sequence<I...>)
     {
         return expr.m_op_(mapto(m, std::get<I>(expr.m_args_), s,
                                 index_sequence<at::iform<T>::value,
-                                        at::iform < al::Expression < TOP, T...> > ::value > ())...);
+                                        at::iform < algd::Expression < TOP, T...> > ::value > ())...);
     };
 
 
     template<typename TOP, typename ... T, size_t ...I>
-    inline static at::value_type_t<al::Expression<TOP, T...>>
-    eval(mesh_type const &m, al::Expression<TOP, T...> const &expr,
-         MeshEntityId const &s, index_sequence<I...>)
+    inline static at::value_type_t<algd::Expression<TOP, T...>>
+    get_value(mesh_type const &m, algd::Expression<TOP, T...> const &expr,
+              MeshEntityId const &s, index_sequence<I...>)
     {
         return _invoke_helper(m, expr, s, index_sequence_for<T...>());
     }

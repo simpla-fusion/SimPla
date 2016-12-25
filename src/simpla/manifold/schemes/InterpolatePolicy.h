@@ -16,11 +16,16 @@
 #include "simpla/algebra/Calculus.h"
 #include "../../mesh/EntityId.h"
 
+namespace simpla { namespace algebra { namespace declare
+{
+template<typename, typename, size_type ...I> struct Field_;
+}}}//namespace simpla { namespace algebra { namespace declare
+
 
 namespace simpla { namespace manifold { namespace schemes
 {
 using namespace simpla::mesh;
-namespace ct= simpla::algebra::tags;
+namespace algt= simpla::algebra::tags;
 namespace at= simpla::algebra::traits;
 namespace st= simpla::traits;
 

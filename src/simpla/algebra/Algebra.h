@@ -20,7 +20,7 @@ namespace algebra
 namespace traits
 {
 
-template<typename> struct iform : public index_const<1> {};
+template<typename> struct iform : public index_const<0> {};
 
 template<typename> struct dof : public index_const<1> {};
 

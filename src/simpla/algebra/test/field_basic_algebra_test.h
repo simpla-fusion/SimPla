@@ -14,16 +14,12 @@
 
 #include <gtest/gtest.h>
 
-#include "../../sp_def.h"
-#include "../../toolbox/macro.h"
-#include "../../toolbox/type_traits.h"
-#include "simpla/toolbox/Log.h"
+#include <simpla/mpl/macro.h>
+#include <simpla/mpl/type_traits.h>
+#include <simpla/toolbox/Log.h>
 
 #include "simpla/algebra/Field.h"
-#include "simpla/algebra/FieldTraits.h"
-#include "simpla/algebra/FieldExpression.h"
-#include "simpla/geometry/CartesianGeometry.h"
-#include "simpla/manifold/ManifoldTraits.h"
+#include "simpla/manifold/CartesianGeometry.h"
 
 using namespace simpla;
 
@@ -65,7 +61,7 @@ public:
 
 //    typedef  traits::scalar_type_t<manifold_type> scalar_type;
 
-    static constexpr size_t iform = traits::iform<TField>::value;
+    static constexpr size_type iform = algebra::traits::iform<TField>::value;
 
 
     value_type default_value;
@@ -77,8 +73,8 @@ public:
     mesh_type *m;
 
 //    typedef Field<value_type, manifold_type, index_const<static_cast<size_t>(iform)> > field_type;
-    typedef Field<value_type, mesh_type, index_const<static_cast<size_t>(iform)> > scalar_field_type;
-    typedef Field<nTuple<value_type, 3>, mesh_type, index_const<static_cast<size_t>(iform)> > vector_field_type;
+    typedef Field<value_type, mesh_type, iform> scalar_field_type;
+    typedef Field<value_type, mesh_type, iform, 3> vector_field_type;
 
 //    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, manifold_type, iform>(m)))
 //
@@ -100,7 +96,7 @@ TYPED_TEST_P(TestField, assign)
     value_type va;
     va = 2.0;
     f1 = va;
-    size_t count = 0;
+    size_type count = 0;
 
     TestFixture::m_range.foreach([&](mesh::MeshEntityId const &s) { EXPECT_LE(mod(va - f1[s]), EPSILON); });
 }
@@ -205,7 +201,7 @@ TYPED_TEST_P(TestField, scalarField)
     f3.deploy();
     f4.deploy();
 
-    size_t count = 0;
+    size_type count = 0;
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);

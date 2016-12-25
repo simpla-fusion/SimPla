@@ -110,7 +110,7 @@ struct pod_type<declare::nTuple_<T, I0, I...> > { typedef typename pod_type<decl
 
 namespace declare { template<typename ...> struct Expression; }
 
-template<typename ...T> struct _impl;
+template<typename ...T> struct algebra_parser;
 
 /// n-dimensional primary type
 namespace declare
@@ -142,7 +142,7 @@ public:
     {
         for (size_type s = 0; s < N0; ++s)
         {
-            data_[s] = _impl<this_type>::get_value(rhs, s);
+            data_[s] = algebra_parser<this_type>::get_value(rhs, s);
         }
         return (*this);
     }
@@ -152,7 +152,7 @@ public:
     {
         for (size_type s = 0; s < N0; ++s)
         {
-            data_[s] += _impl<this_type>::get_value(rhs, s);
+            data_[s] += algebra_parser<this_type>::get_value(rhs, s);
         }
         return (*this);
     }
@@ -160,7 +160,7 @@ public:
     template<typename TR>
     inline this_type &operator-=(TR const &rhs)
     {
-        _impl<this_type>::apply(tags::minus_assign(), *this, rhs);
+        algebra_parser<this_type>::apply(tags::minus_assign(), *this, rhs);
 
         return (*this);
     }
@@ -168,14 +168,14 @@ public:
     template<typename TR>
     inline this_type &operator*=(TR const &rhs)
     {
-        _impl<this_type>::apply(tags::multiplies_assign(), *this, rhs);
+        algebra_parser<this_type>::apply(tags::multiplies_assign(), *this, rhs);
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator/=(TR const &rhs)
     {
-        _impl<this_type>::apply(tags::divides_assign(), *this, rhs);
+        algebra_parser<this_type>::apply(tags::divides_assign(), *this, rhs);
         return (*this);
     }
 
@@ -205,21 +205,21 @@ public:
     template<typename TR>
     inline this_type &operator=(TR const &rhs)
     {
-        _impl<this_type>::apply(tags::_assign(), (*this), rhs);
+        algebra_parser<this_type>::apply(tags::_assign(), (*this), rhs);
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator+=(TR const &rhs)
     {
-        _impl<this_type>::apply(tags::plus_assign(), *this, rhs);
+        algebra_parser<this_type>::apply(tags::plus_assign(), *this, rhs);
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator-=(TR const &rhs)
     {
-        _impl<this_type>::apply(tags::minus_assign(), *this, rhs);
+        algebra_parser<this_type>::apply(tags::minus_assign(), *this, rhs);
 
         return (*this);
     }
@@ -227,14 +227,14 @@ public:
     template<typename TR>
     inline this_type &operator*=(TR const &rhs)
     {
-        _impl<this_type>::apply(tags::multiplies_assign(), *this, rhs);
+        algebra_parser<this_type>::apply(tags::multiplies_assign(), *this, rhs);
         return (*this);
     }
 
     template<typename TR>
     inline this_type &operator/=(TR const &rhs)
     {
-        _impl<this_type>::apply(tags::divides_assign(), *this, rhs);
+        algebra_parser<this_type>::apply(tags::divides_assign(), *this, rhs);
         return (*this);
     }
 
@@ -247,7 +247,7 @@ namespace _detail
 template<typename TOP, typename TL, size_type I0, typename TR>
 void _apply(TOP const &, declare::nTuple_<TL, I0> &lhs, TR const &rhs)
 {
-    typedef _impl<declare::nTuple_<TL, I0> > impl_type;
+    typedef algebra_parser<declare::nTuple_<TL, I0> > impl_type;
     for (size_type i = 0; i < I0; ++i)
     {
         TOP::eval(impl_type::get_value(lhs, i), impl_type::get_value(rhs, i));
@@ -257,7 +257,7 @@ void _apply(TOP const &, declare::nTuple_<TL, I0> &lhs, TR const &rhs)
 template<typename TOP, typename TL, size_type I0, size_type I1, typename TR>
 void _apply(TOP const &, declare::nTuple_<TL, I0, I1> &lhs, TR const &rhs)
 {
-    typedef _impl<declare::nTuple_<TL, I0, I1> > impl_type;
+    typedef algebra_parser<declare::nTuple_<TL, I0, I1> > impl_type;
     for (size_type i = 0; i < I0; ++i)
         for (size_type j = 0; j < I1; ++j)
         {
@@ -268,7 +268,7 @@ void _apply(TOP const &, declare::nTuple_<TL, I0, I1> &lhs, TR const &rhs)
 template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2, typename TR>
 void _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2> &lhs, TR const &rhs)
 {
-    typedef _impl<declare::nTuple_<TL, I0, I1, I2> > impl_type;
+    typedef algebra_parser<declare::nTuple_<TL, I0, I1, I2> > impl_type;
     for (size_type i = 0; i < I0; ++i)
         for (size_type j = 0; j < I1; ++j)
             for (size_type k = 0; k < I2; ++k)
@@ -280,7 +280,7 @@ void _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2> &lhs, TR const &rhs)
 template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2, size_type I3, typename TR>
 void _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2, I3> &lhs, TR const &rhs)
 {
-    typedef _impl<declare::nTuple_<TL, I0, I1, I2, I3> > impl_type;
+    typedef algebra_parser <declare::nTuple_<TL, I0, I1, I2, I3>> impl_type;
     for (size_type i = 0; i < I0; ++i)
         for (size_type j = 0; j < I1; ++j)
             for (size_type k = 0; k < I2; ++k)
@@ -293,7 +293,7 @@ void _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2, I3> &lhs, TR const &rh
 namespace st=simpla::traits;
 
 template<typename V, size_type ...J>
-struct _impl<declare::nTuple_<V, J...> >
+struct algebra_parser<declare::nTuple_<V, J...> >
 {
 
 

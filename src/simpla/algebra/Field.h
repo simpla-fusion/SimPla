@@ -23,67 +23,82 @@
 
 namespace simpla
 {
+namespace algebra { namespace declare { template<typename, typename, size_type ...I> struct Field_; }}
+
+template<typename TV, typename TM, size_type IFORM = VERTEX, size_type DOF = 1>
+using Field=algebra::declare::Field_<TV, TM, IFORM, DOF>;
+
+
+namespace algebra
+{
+namespace traits
 {
 template<typename TV, typename TM, size_type IFORM, size_type DOF>
-class Field<TV, TM, IFORM, DOF> : public mesh::Attribute
+struct is_field<declare::Field_<TV, TM, IFORM, DOF> > : public std::integral_constant<bool, true> {};
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct reference<declare::Field_<TV, TM, IFORM, DOF> > { typedef declare::Field_<TV, TM, IFORM, DOF> const &type; };
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct value_type<declare::Field_<TV, TM, IFORM, DOF>> { typedef TV type; };
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct rank<declare::Field_<TV, TM, IFORM, DOF> > : public index_const<3> {};
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct iform<declare::Field_<TV, TM, IFORM, DOF> > : public index_const<IFORM> {};
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct dof<declare::Field_<TV, TM, IFORM, DOF> > : public index_const<DOF> {};
+
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>>
+{
+    typedef std::conditional_t<DOF == 1, TV, declare::nTuple_<TV, DOF> > cell_tuple;
+    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME),
+            cell_tuple, declare::nTuple_<cell_tuple, 3> > type;
+};
+} //namespace   traits
+
+template<typename ...T> struct _engine;
+
+namespace declare
+{
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+class Field_<TV, TM, IFORM, DOF>
 {
 private:
-    typedef Field<TV, TM, IFORM, DOF> field_type;
+    typedef Field_<TV, TM, IFORM, DOF> this_type;
 
-SP_OBJECT_HEAD(field_type, mesh::Attribute);
 public:
 
+    typedef traits::field_value_t<this_type> field_value;
     typedef TV value_type;
     typedef TM mesh_type;
 
-    typedef std::conditional_t<DOF == 1, value_type, nTuple<value_type, DOF> > cell_tuple;
-    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME),
-            cell_tuple, nTuple<cell_tuple, 3> > field_value;
 
 private:
     typedef typename mesh_type::template data_block_type<TV, IFORM, DOF> data_block_type;
 
     data_block_type *m_data_;
     mesh_type const *m_mesh_;
-
+    friend struct _engine<Field_<TV, TM, IFORM, DOF>>;
 public:
 
-    typedef manifold::schemes::CalculusPolicy<mesh_type> calculus_policy;
 
-    typedef manifold::schemes::InterpolatePolicy<mesh_type> interpolate_policy;
-
-    template<typename ...Args>
-    explicit Field(Args &&...args):
-            base_type(std::forward<Args>(args)  ...),
-            m_mesh_(nullptr),
-            m_data_(nullptr) {};
+    explicit Field_() : m_mesh_(nullptr), m_data_(nullptr) {};
 
 
     virtual ~Field() {}
 
-    Field(this_type const &other) = delete;
+    Field_(this_type const &other) = delete;
 
-    Field(this_type &&other) = delete;
-
-
-    virtual size_type entity_type() const { return IFORM; };
-
-    virtual std::type_info const &value_type_info() const { return typeid(typename traits::value_type<TV>::type); };
-
-    virtual size_type dof() const { return DOF; };
-
-    virtual std::shared_ptr<mesh::DataBlock>
-    create_data_block(std::shared_ptr<mesh::MeshBlock> const &m, value_type *p = nullptr) const
-    {
-        return data_block_type::create(m, p);
-    };
+    Field_(this_type &&other) = delete;
 
     virtual void pre_process()
     {
-        if (base_type::is_valid()) { return; } else { base_type::pre_process(); }
 
-//        m_mesh_ = self_type::mesh_as<mesh_type>();
-//        m_data_ = self_type::data_as<data_block_type>();
         ASSERT(m_data_ != nullptr);
         ASSERT(m_mesh_ != nullptr);
 
@@ -91,7 +106,6 @@ public:
 
     virtual void post_process()
     {
-        if (!base_type::is_valid()) { return; } else { base_type::post_process(); }
 
         m_mesh_ = nullptr;
         m_data_ = nullptr;
@@ -109,24 +123,18 @@ public:
 
     /** @name as_array   @{*/
 
-    virtual value_type &
-    get(mesh::MeshEntityId s) { return m_data_->get(mesh::MeshEntityIdCoder::unpack_index4(s, DOF)); }
+    value_type &
+    get_value(mesh::MeshEntityId s) { return m_data_->get(mesh::MeshEntityIdCoder::unpack_index4(s, DOF)); }
 
-    virtual value_type const &
+    value_type const &
     get(mesh::MeshEntityId s) const { return m_data_->get(mesh::MeshEntityIdCoder::unpack_index4(s, DOF)); }
 
 
-    virtual value_type &
+    value_type &
     get(index_type i, index_type j, index_type k = 0, index_type l = 0) { return m_data_->get(i, j, k, l); }
 
-    virtual value_type const &
+    value_type const &
     get(index_type i, index_type j, index_type k = 0, index_type l = 0) const { return m_data_->get(i, j, k, l); }
-//
-//    template<typename ...Args>
-//    inline value_type &operator()(Args &&...args) { return m_data_block_holder_->get(std::forward<Args>(args)...); }
-//
-//    template<typename ...Args>
-//    inline value_type const &operator()(Args &&...args) const { return m_data_block_holder_->get(std::forward<Args>(args)...); }
 
     template<typename TI>
     inline value_type &operator[](TI const &s) { return get(s); }
@@ -134,151 +142,213 @@ public:
     template<typename TI>
     inline value_type const &operator[](TI const &s) const { return get(s); }
 
-
-    template<typename ...U> inline this_type &
-    operator=(Field<U...> const &other)
+    template<typename TR>
+    inline this_type &operator=(TR const &rhs)
     {
-        assign(other);
-        return *this;
+        _engine<this_type>::apply(m_mesh_, (*this), tags::_assign(), rhs);
+        return (*this);
     }
 
-    template<typename Other> inline this_type &
-    operator=(Other const &other)
+    template<typename TR>
+    inline this_type &operator+=(TR const &rhs)
     {
-        assign(other);
-        return *this;
+        _engine<this_type>::apply(m_mesh_, (*this), tags::plus_assign(), rhs);
+
+        return (*this);
     }
 
-    template<typename Other> inline this_type &
-    operator+=(Other const &other)
+    template<typename TR>
+    inline this_type &operator-=(TR const &rhs)
     {
-        *this = *this + other;
-        return *this;
+        _engine<this_type>::apply(m_mesh_, (*this), tags::minus_assign(), rhs);
+
+
+        return (*this);
     }
 
-    template<typename Other> inline this_type &
-    operator-=(Other const &other)
+    template<typename TR>
+    inline this_type &operator*=(TR const &rhs)
     {
-        *this = *this - other;
-        return *this;
+        _engine<this_type>::apply(m_mesh_, (*this), tags::multiplies_assign(), rhs);
+
+        return (*this);
     }
 
-    template<typename Other> inline this_type &
-    operator*=(Other const &other)
+    template<typename TR>
+    inline this_type &operator/=(TR const &rhs)
     {
-        *this = *this * other;
-        return *this;
+        _engine<this_type>::apply(m_mesh_, (*this), tags::divides_assign(), rhs);
+
+        return (*this);
     }
 
-    template<typename Other> inline this_type &
-    operator/=(Other const &other)
-    {
-        *this = *this / other;
-        return *this;
-    }
+    template<typename ...Args>
+    void apply(Args &&...args) { _engine<this_type>::apply(m_mesh_, *this, std::forward<Args>(args)...); }
 
-    inline this_type &
-    operator=(this_type const &other)
-    {
+}; // class Field_
+} //namespace declare
+namespace st=simpla::traits;
 
-        assign(other);
-        return *this;
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct _engine<declare::Field_<TV, TM, IFORM, DOF> >
+{
+    typedef TM mesh_type;
+    typedef TV value_type;
+    typedef declare::Field_<TV, TM, IFORM, DOF> self_type;
+    typedef manifold::schemes::CalculusPolicy<mesh_type> calculus_policy;
 
-    }
-    /* @}*/
-private:
+    typedef manifold::schemes::InterpolatePolicy<mesh_type> interpolate_policy;
 
 public:
 
-    template<typename TFun> void
-    assign(TFun const &fun, mesh::EntityIdRange const &r0,
-           std::result_of_t<TFun(point_type const &)> *p = nullptr)
+
+    template<typename T> static T &
+    get_value(T &v) { return v; };
+
+    template<typename T, typename I0> static st::remove_all_extents_t<T, I0> &
+    get_value(T &v, I0 const *s, ENABLE_IF((st::is_indexable<T, I0>::value)))
     {
-        pre_process();
-        r0.foreach([&](mesh::MeshEntityId const &s)
-                   {
-                       interpolate_policy::assign(*this, *m_mesh_, s, fun(m_mesh_->point(s)));
-                   });
+        return get_value(v[*s], s + 1);
+    };
 
-    }
-
-    template<typename U> void
-    assign(U const &v, mesh::EntityIdRange const &r0,
-           ENABLE_IF((std::is_convertible<U, value_type>::value || std::is_same<U, field_value>::value)))
+    template<typename T, typename I0> static st::remove_all_extents_t<T, I0> &
+    get_value(T &v, I0 const *s, ENABLE_IF((!st::is_indexable<T, I0>::value)))
     {
-        pre_process();
-
-        r0.foreach([&](mesh::MeshEntityId const &s)
-                   {
-                       interpolate_policy::assign(*this, *m_mesh_, s, v);
-                   });
-
-    }
-
-    typedef mesh::MeshEntityIdCoder M;
-
-    void assign(this_type const &other, mesh::EntityIdRange const &r0)
+        return v;
+    };
+private:
+    template<typename T, typename ...Args> static T &
+    get_value_(std::integral_constant<bool, false> const &, T &v, Args &&...)
     {
-        pre_process();
-
-        r0.foreach([&](mesh::MeshEntityId const &s)
-                   {
-                       for (int i = 0; i < DOF; ++i) { get(M::sw(s, i)) = other.get(M::sw(s, i)); }
-                   });
-
-    }
-
-    template<typename ...U>
-    void assign(Expression<U...> const &expr, mesh::EntityIdRange const &r0)
-    {
-        pre_process();
-
-        r0.foreach([&](mesh::MeshEntityId const &s)
-                   {
-                       for (int i = 0; i < DOF; ++i)
-                       {
-                           get(M::sw(s, i)) = calculus_policy::eval(*m_mesh_, expr, M::sw(s, i));
-                       }
-                   });
-
+        return v;
     }
 
 
-    template<typename Other> void
-    assign(Other const &other, mesh::MeshZoneTag const &tag = mesh::SP_ES_ALL)
+    template<typename T, typename I0, typename ...Idx> static st::remove_extents_t<T, I0, Idx...> &
+    get_value_(std::integral_constant<bool, true> const &, T &v, I0 const &s0, Idx &&...idx)
     {
-        pre_process();
-        if (tag == mesh::SP_ES_ALL)
-        {
-            assign(other, m_data_->range());
-        } else
-        {
-            assign(other, m_mesh_->mesh_block()->range(entity_type(), tag));
-        }
+        return get_value(v[s0], std::forward<Idx>(idx)...);
+    };
+public:
+    template<typename T, typename I0, typename ...Idx> static st::remove_extents_t<T, I0, Idx...> &
+    get_value(T &v, I0 const &s0, Idx &&...idx)
+    {
+        return get_value_(std::integral_constant<bool, st::is_indexable<T, I0>::value>(),
+                          v, s0, std::forward<Idx>(idx)...);
+    };
+
+    template<typename T, size_type N> static T &
+    get_value(declare::nTuple_<T, N> &v, size_type const &s0) { return v[s0]; };
+
+    template<typename T, size_type N> static T const &
+    get_value(declare::nTuple_<T, N> const &v, size_type const &s0) { return v[s0]; };
+public:
+    template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static auto
+    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, Idx &&... s)
+    DECL_RET_TYPE((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
+
+    template<typename TOP, typename   ...Others, typename ...Idx> static auto
+    get_value(declare::Expression<TOP, Others...> const &expr, Idx &&... s)
+    DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
+
+
+    template<typename TOP, typename ...Others> static void
+    apply(mesh_type const *m, self_type &self, TOP const &op, Others &&...others)
+    {
+        self.m_mesh_->range().foreach(
+                [&](mesh::MeshEntityId const &s)
+                {
+                    interpolate_policy::assign(m, self, s, std::forward<Others>(others)...);
+                });
     }
-
-    void copy(mesh::EntityIdRange const &r0, this_type const &g)
-    {
-        UNIMPLEMENTED;
-//        r0.assign([&](mesh::MeshEntityId const &s) { get(s) = g.get(s); });
-    }
-
-
-    virtual void copy(mesh::EntityIdRange const &r0, mesh::DataBlock const &other)
-    {
-        UNIMPLEMENTED;
-//        assert(other.is_a(typeid(this_type)));
 //
-//        this_type const &g = static_cast<this_type const & >(other);
+//    template<typename TFun> void
+//    assign(TFun const &fun, mesh::EntityIdRange const &r0,
+//           std::result_of_t<TFun(point_type const &)> *p = nullptr)
+//    {
+//        r0.foreach([&](mesh::MeshEntityId const &s)
+//                   {
+//                       interpolate_policy::assign(*this, *m_mesh_, s, fun(m_mesh_->point(s)));
+//                   });
 //
-//        copy(r0, static_cast<this_type const & >(other));
-
-    }
-
-
+//    }
+//
+//    template<typename U> void
+//    assign(U const &v, mesh::EntityIdRange const &r0,
+//           ENABLE_IF((std::is_convertible<U, value_type>::value || std::is_same<U, field_value>::value)))
+//    {
+//        pre_process();
+//
+//        r0.foreach([&](mesh::MeshEntityId const &s)
+//                   {
+//                       interpolate_policy::assign(*this, *m_mesh_, s, v);
+//                   });
+//
+//    }
+//
+//    typedef mesh::MeshEntityIdCoder M;
+//
+//    void assign(this_type const &other, mesh::EntityIdRange const &r0)
+//    {
+//        pre_process();
+//
+//        r0.foreach([&](mesh::MeshEntityId const &s)
+//                   {
+//                       for (int i = 0; i < DOF; ++i) { get(M::sw(s, i)) = other.get(M::sw(s, i)); }
+//                   });
+//
+//    }
+//
+//    template<typename ...U>
+//    void assign(Expression<U...> const &expr, mesh::EntityIdRange const &r0)
+//    {
+//        pre_process();
+//
+//        r0.foreach([&](mesh::MeshEntityId const &s)
+//                   {
+//                       for (int i = 0; i < DOF; ++i)
+//                       {
+//                           get(M::sw(s, i)) = calculus_policy::eval(*m_mesh_, expr, M::sw(s, i));
+//                       }
+//                   });
+//
+//    }
+//
+//
+//    template<typename Other> void
+//    assign(Other const &other, mesh::MeshZoneTag const &tag = mesh::SP_ES_ALL)
+//    {
+//        pre_process();
+//        if (tag == mesh::SP_ES_ALL)
+//        {
+//            assign(other, m_data_->range());
+//        } else
+//        {
+//            assign(other, m_mesh_->mesh_block()->range(entity_type(), tag));
+//        }
+//    }
+//
+//    void copy(mesh::EntityIdRange const &r0, this_type const &g)
+//    {
+//        UNIMPLEMENTED;
+////        r0.assign([&](mesh::MeshEntityId const &s) { get(s) = g.get(s); });
+//    }
+//
+//
+//    virtual void copy(mesh::EntityIdRange const &r0, mesh::DataBlock const &other)
+//    {
+//        UNIMPLEMENTED;
+////        assert(other.is_a(typeid(this_type)));
+////
+////        this_type const &g = static_cast<this_type const & >(other);
+////
+////        copy(r0, static_cast<this_type const & >(other));
+//
+//    }
 };
 
-}//namespace simpla//namespace algebra{
+}
+}//namespace simpla::algebra
 
 
 
