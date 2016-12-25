@@ -34,7 +34,6 @@ protected:
         c = 4;
         d = 7;
 
-//        DIMENSIONS = extents();
 
         traits::seq_for_each(extents(),
                              [&](size_type const *idx)
