@@ -12,9 +12,9 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <simpla/toolbox/PrettyStream.h>
 
 #include "nTuple.h"
-#include <simpla/toolbox/PrettyStream.h>
 
 namespace simpla { namespace algebra
 {

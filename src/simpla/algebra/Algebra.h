@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <utility>
 #include <simpla/mpl/type_traits.h>
-#include "../mpl/integer_sequence.h"
+#include <simpla/mpl/integer_sequence.h>
 
 namespace simpla
 {
@@ -99,6 +99,7 @@ template<typename T> using reference_t=typename reference<T>::type;
 template<typename T, int N> struct reference<T[N]> { typedef T *type; };
 template<typename T, int N> struct reference<const T[N]> { typedef T const *type; };
 
+//***********************************************************************************************************************
 
 template<typename T> struct field_value_type { typedef T type; };
 
@@ -106,7 +107,41 @@ template<typename T> using field_value_t=typename field_value_type<T>::type;
 
 template<typename> struct mesh_type { typedef void type; };
 
+template<typename TV, typename TM, size_type ...I>
+struct mesh_type<declare::Field_<TV, TM, I...> > { typedef TM type; };
 
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct is_field<declare::Field_<TV, TM, IFORM, DOF> > : public std::integral_constant<bool, true> {};
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct reference<declare::Field_<TV, TM, IFORM, DOF> > { typedef declare::Field_<TV, TM, IFORM, DOF> const &type; };
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct reference<const declare::Field_<TV, TM, IFORM, DOF> > { typedef declare::Field_<TV, TM, IFORM, DOF> const &type; };
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct value_type<declare::Field_<TV, TM, IFORM, DOF>> { typedef TV type; };
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct rank<declare::Field_<TV, TM, IFORM, DOF> > : public index_const<3> {};
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct iform<declare::Field_<TV, TM, IFORM, DOF> > : public index_const<IFORM> {};
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct dof<declare::Field_<TV, TM, IFORM, DOF> > : public index_const<DOF> {};
+
+
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>>
+{
+    typedef std::conditional_t<DOF == 1, TV, declare::nTuple_<TV, DOF> > cell_tuple;
+    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME),
+            cell_tuple, declare::nTuple_<cell_tuple, 3> > type;
+};
+
+//***********************************************************************************************************************
 template<typename ...> struct make_nTuple { typedef void type; };
 
 template<typename TV, size_type ...I>
@@ -114,22 +149,17 @@ struct make_nTuple<TV, integer_sequence<size_type, I...> >
 {
     typedef declare::nTuple_<TV, I...> type;
 };
-
-
-template<typename T> struct primary_type
-{
-    typedef value_type_t<T> v_type;
-
-
-    typedef typename make_nTuple<v_type, extents<T>>::type nTuple_type;
-
-    typedef typename declare::Field_<v_type, typename mesh_type<T>::type, iform<T>::value, dof<T>::value> field_type;
-
-    typedef std::conditional_t<is_nTuple<T>::value, nTuple_type, field_type> type;
-
-
-};
+template<typename T, class Enable=void> struct primary_type { typedef T type; };
 template<typename T> using primary_type_t=typename primary_type<T>::type;
+
+template<typename T> struct primary_type<T, typename std::enable_if<is_nTuple<T>::value>::type>
+{
+    typedef typename make_nTuple<value_type_t<T>, extents<T>>::type type;
+};
+template<typename T> struct primary_type<T, typename std::enable_if<is_field<T>::value>::type>
+{
+    typedef typename declare::Field_<value_type_t<T>, typename mesh_type<T>::type, iform<T>::value, dof<T>::value> type;
+};
 
 
 //template<typename TOP, typename ...Others> struct is_nTuple<Expression < TOP, Others...> > : public is_nTuple<Others...> {};

@@ -17,6 +17,7 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/toolbox/IteratorBlock.h>
 #include <simpla/toolbox/Range.h>
+#include <simpla/mpl/type_traits.h>
 #include "MeshCommon.h"
 #include "EntityIdRange.h"
 
@@ -274,7 +275,7 @@ struct MeshEntityIdCoder_
     static constexpr MeshEntityId pack_index(T const &idx, index_type n_id = 0)
     {
 
-        return pack_index4((idx[0]), (idx[1]), (idx[2]));
+        return pack_index4(idx[0], idx[1], idx[2], n_id);
     }
 
     static constexpr MeshEntityId
@@ -344,12 +345,11 @@ struct MeshEntityIdCoder_
 
     static std::tuple<MeshEntityId, point_type> point_global_to_local(point_type const &x, int n_id = 0)
     {
+        index_tuple i = (x - m_id_to_coordinates_shift_[n_id]) * 2;
 
-        MeshEntityId s = pack((x - m_id_to_coordinates_shift_[n_id]) * 2) | m_id_to_shift_[n_id];
+        MeshEntityId s = pack(i) | m_id_to_shift_[n_id];
 
-        point_type r;
-
-        r = (x - point(s)) / (_R * 2.0);
+        point_type r = (x - point(s)) / (_R * 2.0);
 
         return std::make_tuple(s, r);
 

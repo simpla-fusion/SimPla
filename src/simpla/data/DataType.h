@@ -19,8 +19,9 @@
 #include <typeindex>
 #include <vector>
 
-#include <simpla/calculus/nTuple.h>
-#include <simpla/toolbox/type_traits.h>
+#include <simpla/algebra/Algebra.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/mpl/type_traits.h>
 
 
 namespace simpla { namespace data
@@ -123,17 +124,17 @@ private:
 
         typedef typename std::remove_cv<T>::type obj_type;
 
-        typedef typename traits::value_type<obj_type>::type element_type;
+        typedef typename algebra::traits::value_type<obj_type>::type element_type;
 
         size_type ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
         nTuple<size_type, 10> d;
 
-        d = traits::seq_value < traits::extents < obj_type > > ::value;
+        d = traits::seq_value<algebra::traits::extents<obj_type> >::value;
 
         return std::move(
                 DataType(std::type_index(typeid(element_type)),
-                         ele_size_in_byte, ::simpla::traits::rank<obj_type>::value, &d[0], name)
+                         ele_size_in_byte, algebra::traits::rank<obj_type>::value, &d[0], name)
 
         );
 
@@ -144,8 +145,7 @@ public:
     static DataType create(std::string const &name = "")
     {
         return create_(((name != "") ? name : (typeid(T).name())),
-                       std::integral_constant<bool, has_static_member_function_data_type < traits::type_id < T>>
-        ::value > ());
+                       std::integral_constant<bool, has_static_member_function_data_type<traits::type_id<T>>::value>());
     }
 
 };
@@ -158,7 +158,7 @@ struct DataType::create_helper<T[N]>
     {
         typedef typename std::remove_cv<T>::type obj_type;
 
-        typedef typename traits::value_type<obj_type>::type element_type;
+        typedef typename algebra::traits::value_type<obj_type>::type element_type;
 
         size_type ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
@@ -180,7 +180,7 @@ struct DataType::create_helper<T[N][M]>
     {
         typedef typename std::remove_cv<T>::type obj_type;
 
-        typedef typename traits::value_type<obj_type>::type element_type;
+        typedef typename algebra::traits::value_type<obj_type>::type element_type;
 
         size_type ele_size_in_byte = sizeof(element_type) / sizeof(char);
 

@@ -14,8 +14,8 @@
 #include <complex>
 #include <tuple>
 #include <cmath>
-#include "../mpl/type_traits.h"
-#include "../mpl/integer_sequence.h"
+#include <simpla/mpl/type_traits.h>
+#include <simpla/mpl/integer_sequence.h>
 #include "Algebra.h"
 
 namespace simpla { namespace algebra
@@ -73,17 +73,8 @@ struct Expression<TOP, Args...>
 
     Expression(Args &... args) : m_args_(args ...) {}
 
-
     virtual ~Expression() {}
 
-    typedef typename traits::primary_type<this_type>::type p_type;
-
-    operator p_type() const
-    {
-        p_type res;
-        res = *this;
-        return res;
-    }
 };
 
 template<typename TOP, typename TL, typename TR>

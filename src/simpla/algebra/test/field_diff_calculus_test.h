@@ -20,7 +20,7 @@
 #include <gtest/gtest.h>
 
 
-#include <simpla/manifold/CartesianGeometry.h>
+//#include <simpla/manifold/CartesianGeometry.h>
 #include "../Algebra.h"
 #include "../nTuple.h"
 #include "../Field.h"

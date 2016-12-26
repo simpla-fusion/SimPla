@@ -22,9 +22,8 @@
 #include <mutex>
 
 #include <simpla/concept/Printable.h>
-
+#include <simpla/mpl/type_cast.h>
 #include "Log.h"
-#include "type_cast.h"
 #include "LuaObjectExt.h"
 
 

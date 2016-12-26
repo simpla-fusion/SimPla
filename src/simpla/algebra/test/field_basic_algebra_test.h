@@ -97,7 +97,7 @@ TYPED_TEST_P(TestField, assign)
     f1 = va;
     size_type count = 0;
 
-    TestFixture::m_range.foreach([&](mesh::MeshEntityId const &s) { EXPECT_LE(mod(va - f1[s]), EPSILON); });
+    TestFixture::m_range.foreach([&](mesh::MeshEntityId const &s) { EXPECT_LE(abs(va - f1[s]), EPSILON); });
 }
 
 TYPED_TEST_P(TestField, index)
@@ -118,7 +118,7 @@ TYPED_TEST_P(TestField, index)
     TestFixture::m_range.foreach([&](mesh::MeshEntityId const &s) { f1[s] = va * TestFixture::m->hash(s); });
 
     TestFixture::m_range.foreach(
-            [&](mesh::MeshEntityId const &s) { EXPECT_LE(mod(va * TestFixture::m->hash(s) - f1[s]), EPSILON); });
+            [&](mesh::MeshEntityId const &s) { EXPECT_LE(abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON); });
 
 }
 
@@ -161,7 +161,7 @@ TYPED_TEST_P(TestField, constant_real)
                 expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
 
                 // FIXME： truncation error is too big . why ??
-                EXPECT_LE(mod(expect - f3[s]), EPSILON * 100)
+                EXPECT_LE(abs(expect - f3[s]), EPSILON * 100)
                                     << expect << "==" << f3[s]
                                     << "[" << (s.x >> 1) << "," << (s.y >> 1) <<
                                     "," << (s.z >> 1) << "]" << std::endl;
@@ -228,7 +228,7 @@ TYPED_TEST_P(TestField, scalarField)
             {
                 value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 
-                EXPECT_LE(mod(res - f4[s]), EPSILON);
+                EXPECT_LE(abs(res - f4[s]), EPSILON);
             });
 
 

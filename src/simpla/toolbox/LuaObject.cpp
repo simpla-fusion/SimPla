@@ -6,7 +6,8 @@
 #include "LuaObject.h"
 #include "LuaObjectExt.h"
 #include "PrettyStream.h"
-#include "simpla/calculus/nTupleExt.h"
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/nTupleExt.h>
 
 namespace simpla { namespace toolbox
 {
@@ -716,31 +717,31 @@ auto _get_nTuple(LuaObject const &obj, LuaObject const &first, index_sequence<M.
         switch (first.size())
         {
             case 1:
-                success = _get_nTuple<T>(obj, first[0], index_sequence<M..., 1>(), res);
+                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 1>(), res);
                 break;
             case 2:
-                success = _get_nTuple<T>(obj, first[0], index_sequence<M..., 2>(), res);
+                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 2>(), res);
                 break;
             case 3:
-                success = _get_nTuple<T>(obj, first[0], index_sequence<M..., 3>(), res);
+                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 3>(), res);
                 break;
             case 4:
-                success = _get_nTuple<T>(obj, first[0], index_sequence<M..., 4>(), res);
+                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 4>(), res);
                 break;
             case 5:
-                success = _get_nTuple<T>(obj, first[0], index_sequence<M..., 5>(), res);
+                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 5>(), res);
                 break;
             case 6:
-                success = _get_nTuple<T>(obj, first[0], index_sequence<M..., 6>(), res);
+                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 6>(), res);
                 break;
             case 7:
-                success = _get_nTuple<T>(obj, first[0], index_sequence<M..., 7>(), res);
+                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 7>(), res);
                 break;
             case 8:
-                success = _get_nTuple<T>(obj, first[0], index_sequence<M..., 8>(), res);
+                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 8>(), res);
                 break;
             case 9:
-                success = _get_nTuple<T>(obj, first[0], index_sequence<M..., 9>(), res);
+                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 9>(), res);
                 break;
             default:
                 success = false;

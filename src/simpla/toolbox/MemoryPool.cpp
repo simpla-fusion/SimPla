@@ -13,7 +13,7 @@
 #include <new>
 #include <tuple>
 
-#include "design_pattern/SingletonHolder.h"
+#include <simpla/design_pattern/SingletonHolder.h>
 #include "Log.h"
 
 namespace simpla

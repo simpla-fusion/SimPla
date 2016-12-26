@@ -10,10 +10,12 @@
 
 #include <cstddef>
 #include <type_traits>
-#include "../mpl/port_cxx14.h"
-#include "../mpl/macro.h"
-#include "../mpl/type_traits.h"
-#include "../mpl/integer_sequence.h"
+
+#include <simpla/mpl/port_cxx14.h>
+#include <simpla/mpl/macro.h>
+#include <simpla/mpl/type_traits.h>
+#include <simpla/mpl/integer_sequence.h>
+
 #include "Algebra.h"
 #include "Arithmetic.h"
 //#include "Expression.h"

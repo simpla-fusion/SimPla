@@ -8,7 +8,6 @@
 #include <simpla/SIMPLA_config.h>
 #include <cmath>
 #include <type_traits>
-#include <valarray>
 
 namespace simpla { namespace algebra
 {

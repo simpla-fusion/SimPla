@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include <ctime>
 
-#include "design_pattern/SingletonHolder.h"
+#include <simpla/design_pattern/SingletonHolder.h>
 
 namespace simpla { namespace logger
 {

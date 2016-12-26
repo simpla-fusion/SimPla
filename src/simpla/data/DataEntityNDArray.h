@@ -5,11 +5,10 @@
 #ifndef SIMPLA_ARRAYPATCH_H
 #define SIMPLA_ARRAYPATCH_H
 
-#include <simpla/SIMPLA_config.h>
 #include <type_traits>
+#include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Memory.h>
-#include <simpla/mesh/MeshCommon.h>
 #include "HeavyData.h"
 
 namespace simpla { namespace data

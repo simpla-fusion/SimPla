@@ -5,7 +5,6 @@
  *      Author: salmon
  */
 #include <gtest/gtest.h>
-#include <simpla/physics/Constants.h>
 #include "field_diff_calculus_test.h"
 
 using namespace simpla;

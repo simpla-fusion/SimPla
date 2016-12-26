@@ -16,7 +16,7 @@
 #include <sstream>
 #include <string>
 
-#include "type_traits.h"
+#include <simpla/mpl/type_cast.h>
 
 /**
  *  @ingroup    utilities

@@ -53,6 +53,6 @@
 #target_compile_options(field_diff_calculus_cylindrical_test PUBLIC -DCYLINDRICAL_COORDINATE_SYSTEM)
 #target_link_libraries(field_diff_calculus_cylindrical_test simpla_lib)
 
-
-add_executable(field_dummy field_dummy.cpp)
-target_link_libraries(field_dummy simpla_lib)
+#
+#add_executable(field_dummy field_dummy.cpp)
+#target_link_libraries(field_dummy simpla_lib)

@@ -23,7 +23,7 @@
 #include <sstream>
 #include <string>
 #include <memory>
-//#include "simpla/concept/CheckConcept.h"
+#include <simpla/mpl/CheckConcept.h>
 
 namespace simpla
 {
