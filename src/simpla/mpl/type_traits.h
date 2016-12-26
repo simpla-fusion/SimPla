@@ -154,8 +154,6 @@ DEFINE_TYPE_ID_NAME(int)
 DEFINE_TYPE_ID_NAME(long)
 
 #undef DEFINE_TYPE_ID_NAME
-template<typename T> struct reference { typedef T type; };
-template<typename T> using reference_t=typename reference<T>::type;
 
 ////////////////////////////////////////////////////////////////////////
 ///// Property queries of n-dimensional array
@@ -248,6 +246,57 @@ struct remove_all_extents<std::false_type, _Args>
     typedef std::false_type type;
 };
 template<typename T, typename Idx=int> using remove_all_extents_t=typename remove_all_extents<T, Idx>::type;
+
+
+template<typename TV, size_type ...I> struct add_extents;
+
+template<typename T, size_type ...I> using add_extents_t=typename add_extents<T, I...>::type;
+
+template<typename TV> struct add_extents<TV> { typedef TV type; };
+
+template<typename TV, size_type I0, size_type ...I>
+struct add_extents<TV, I0, I...> { typedef add_extents_t<TV, I...> type[I0]; };
+
+template<typename V, size_type N> struct nested_initializer_list;
+
+template<typename V, size_type N> using nested_initializer_list_t=typename nested_initializer_list<V, N>::type;
+
+template<typename V>
+struct nested_initializer_list<V, 0> { typedef V type; };
+
+template<typename V>
+struct nested_initializer_list<V, 1> { typedef std::initializer_list<V> type; };
+
+template<typename V, size_type N>
+struct nested_initializer_list { typedef std::initializer_list<nested_initializer_list_t<V, N - 1>> type; };
+
+template<size_type ...I> struct assign_nested_initializer_list;
+
+template<>
+struct assign_nested_initializer_list<>
+{
+    template<typename U, typename TR> static inline void
+    apply(U &u, TR const &rhs) { u = rhs; }
+};
+
+template<size_type I0, size_type ...I>
+struct assign_nested_initializer_list<I0, I...>
+{
+    template<typename U, typename TR> static inline void
+    apply(U &u, std::initializer_list<TR> const &rhs)
+    {
+        static_assert(is_indexable<U, int>::value, " illegal type");
+
+        auto it = rhs.begin();
+        auto ie = rhs.end();
+
+        for (int i = 0; i < I0 && it != ie; ++i, ++it)
+        {
+            assign_nested_initializer_list<I...>::apply(u[i], *it);
+        }
+    }
+};
+
 
 /**
  *  alt. of std::rank

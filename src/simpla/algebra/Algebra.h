@@ -99,6 +99,7 @@ template<typename ...> struct make_nTuple { typedef void type; };
 template<typename TV, size_type ...I>
 struct make_nTuple<TV, index_sequence<I...>> { typedef declare::nTuple_<TV, I...> type; };
 
+
 template<typename T> struct primary_type
 {
     typedef value_type_t<T> v_type;

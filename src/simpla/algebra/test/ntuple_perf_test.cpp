@@ -80,8 +80,8 @@ TYPED_TEST(nTuplePerf1, performance_raw_array)
     {
         for (int i = 0; i < TestFixture::dims0; ++i)
         {
-            TestFixture::aD[i] += EQUATION(TestFixture::aA[i], TestFixture::aB[i], TestFixture::aC[i]) *
-                                  static_cast<typename TestFixture::value_type>(s);
+            TestFixture::aD[i] += EQUATION(TestFixture::aA[i], TestFixture::aB[i], TestFixture::aC[i]);
+                                  //*                                 static_cast<typename TestFixture::value_type>(s);
 
         }
 
@@ -95,8 +95,8 @@ TYPED_TEST(nTuplePerf1, performancenTuple)
 
     for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
     {
-        TestFixture::vD += EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC) *
-                           static_cast<typename TestFixture::value_type>(s);
+        TestFixture::vD += EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
+        //*                        static_cast<typename TestFixture::value_type>(s);
 
     }
 

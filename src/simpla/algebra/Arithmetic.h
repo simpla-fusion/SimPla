@@ -132,6 +132,15 @@ DEF_BI_FUN(pow)
 #undef DEF_UN_FUN
 #undef DEF_BI_FUN
 
+namespace tags
+{
+struct _swap
+{
+    template<typename TL, typename TR>
+    static inline constexpr void eval(TL &l, TR &r) { std::swap(l, r); };
+};
+}
+
 
 /**
  * ### Assignment Operator
@@ -148,7 +157,7 @@ DEF_BI_FUN(pow)
 #define DEF_ASSIGN_OP(_NAME_, _OP_)   \
 namespace tags{struct _NAME_##_assign{ template<typename TL,typename TR> static inline constexpr void eval( TL  & l,TR const & r){  l _OP_##= r;};};}
 
-DEF_ASSIGN_OP( ,  )
+DEF_ASSIGN_OP(,)
 DEF_ASSIGN_OP(plus, +)
 DEF_ASSIGN_OP(minus, -)
 DEF_ASSIGN_OP(multiplies, *)

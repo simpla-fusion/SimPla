@@ -53,10 +53,6 @@ protected:
                              });
 
         num_of_loops = 1000000L;
-        nTuple<Real, 3> t0 = {0, 0, 0};
-        nTuple<Real, 3, 2> t1 = {0, 0, 0,
-                                 0, 0, 0};
-
     }
 
 public:
@@ -91,18 +87,20 @@ typedef testing::Types<
 
 TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
 
+
 TYPED_TEST(TestNtuple, swap)
 {
-//    std::swap(TestFixture::vA, TestFixture::vB);
-//
-//    traits::seq_for_each(typename TestFixture::extents(),
-//                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-//                         {
-//                             EXPECT_DOUBLE_EQ(0, std::abs(
-//                                     traits::get_v(TestFixture::aA, idx) - traits::get_v(TestFixture::vB, idx)));
-//                             EXPECT_DOUBLE_EQ(0, std::abs(
-//                                     traits::get_v(TestFixture::aB, idx) - traits::get_v(TestFixture::vA, idx)));
-//                         });
+    TestFixture::vA.swap(TestFixture::vB);
+
+    traits::seq_for_each(
+            typename TestFixture::extents(),
+            [&](size_t const *idx)
+            {
+                EXPECT_DOUBLE_EQ(0, std::abs(
+                        traits::get_v(TestFixture::aA, idx) - traits::get_v(TestFixture::vB, idx)));
+                EXPECT_DOUBLE_EQ(0, std::abs(
+                        traits::get_v(TestFixture::aB, idx) - traits::get_v(TestFixture::vA, idx)));
+            });
 
 
 }
@@ -148,10 +146,8 @@ TYPED_TEST(TestNtuple, self_assign)
             typename TestFixture::extents(),
             [&](size_type const *idx)
             {
-                EXPECT_DOUBLE_EQ(0, abs(
-                        (traits::get_v(TestFixture::vB, idx)) -
-                        (traits::get_v(TestFixture::aA, idx)) -
-                        (traits::get_v(TestFixture::aB, idx)))
+                EXPECT_DOUBLE_EQ(abs(traits::get_v(TestFixture::vB, idx)),
+                                 abs(traits::get_v(TestFixture::aA, idx) + traits::get_v(TestFixture::aB, idx))
                 );
 
             }
@@ -195,7 +191,7 @@ TYPED_TEST(TestNtuple, arithmetic)
                              auto tb = traits::get_v(TestFixture::vB, idx);
                              auto tc = traits::get_v(TestFixture::vC, idx);
                              auto td = traits::get_v(TestFixture::vD, idx);
-                             EXPECT_DOUBLE_EQ(0, abs(EQUATION(ta, tb, tc) - td));
+                             EXPECT_DOUBLE_EQ(abs(td), abs(EQUATION(ta, tb, tc)));
                          }
     );
 
@@ -205,7 +201,7 @@ TYPED_TEST(TestNtuple, arithmetic)
 TYPED_TEST(TestNtuple, expression_construct)
 {
 
-    typename TestFixture::type tD = static_cast<typename TestFixture::type>(EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC));
+    typename TestFixture::type tD{EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC)};;
 
     traits::seq_for_each(typename TestFixture::extents(),
                          [&](size_type const *idx)

@@ -10,10 +10,12 @@
 #ifndef NTUPLE_H_
 #define NTUPLE_H_
 
+#include <simpla/SIMPLA_config.h>
+#include <simpla/mpl/CheckConcept.h>
+
 #include "Algebra.h"
 #include "Arithmetic.h"
 #include "Expression.h"
-#include <simpla/mpl/CheckConcept.h>
 
 namespace simpla
 {
@@ -115,155 +117,91 @@ template<typename ...T> struct algebra_parser;
 /// n-dimensional primary type
 namespace declare
 {
-//
-//template<typename TV, size_type N0>
-//struct nTuple_<TV, N0>
-//{
-//public:
-//    typedef nTuple_<TV, N0> this_type;
-//    typedef TV value_type;
-//    typedef TV sub_type;
-//
-//    sub_type data_[N0];
-//
-//    sub_type &operator[](size_type s) { return data_[s]; }
-//
-//    sub_type const &operator[](size_type s) const { return data_[s]; }
-//
-//    sub_type &at(size_type s) { return data_[s]; }
-//
-//    sub_type const &at(size_type s) const { return data_[s]; }
-//
-//    nTuple_() {}
-//
-//    ~nTuple_() {}
-//
-//    nTuple_(std::initializer_list<TV> l)
-//    {
-//        auto it = l.begin();
-//        auto ie = l.end();
-//        for (size_type s = 0; s < N0 && it != ie; ++s, ++it)
-//        {
-//            data_[s] = *it;
-//
-//        }
-//    }
-//
-//
-//    template<typename ...U>
-//    nTuple_(Expression<U...> const &expr)
-//    {
-//        for (size_type s = 0; s < N0; ++s)
-//        {
-//            data_[s] = algebra_parser<this_type>::get_value(expr, s);
-//        }
-//    }
-//
-//public:
-//
-//    template<typename TR>
-//    inline this_type &operator=(TR const &rhs)
-//    {
-//        for (size_type s = 0; s < N0; ++s)
-//        {
-//            data_[s] = algebra_parser<this_type>::get_value(rhs, s);
-//        }
-//        return (*this);
-//    }
-//
-//    template<typename TR>
-//    inline this_type &operator+=(TR const &rhs)
-//    {
-//        for (size_type s = 0; s < N0; ++s)
-//        {
-//            data_[s] += algebra_parser<this_type>::get_value(rhs, s);
-//        }
-//        return (*this);
-//    }
-//
-//    template<typename TR>
-//    inline this_type &operator-=(TR const &rhs)
-//    {
-//        algebra_parser<this_type>::apply(tags::minus_assign(), *this, rhs);
-//
-//        return (*this);
-//    }
-//
-//    template<typename TR>
-//    inline this_type &operator*=(TR const &rhs)
-//    {
-//        algebra_parser<this_type>::apply(tags::multiplies_assign(), *this, rhs);
-//        return (*this);
-//    }
-//
-//    template<typename TR>
-//    inline this_type &operator/=(TR const &rhs)
-//    {
-//        algebra_parser<this_type>::apply(tags::divides_assign(), *this, rhs);
-//        return (*this);
-//    }
-//
-//};
+template<typename TV>
+struct nTuple_<TV>
+{
+    typedef TV value_type;
+    typedef TV pod_type;
+};
 
 template<typename TV, size_type N0, size_type ...NOthers>
 struct nTuple_<TV, N0, NOthers...>
 {
-public:
+
+
     typedef nTuple_<TV, N0, NOthers...> this_type;
+
     typedef traits::value_type_t<this_type> value_type;
-    typedef traits::sub_type_t<this_type> sub_type;
 
-    sub_type data_[N0];
+    typedef simpla::traits::add_extents_t<TV, N0, NOthers...> pod_type;
 
-    sub_type &operator[](size_type s) { return data_[s]; }
+    typedef simpla::traits::add_extents_t<TV, NOthers...> sub_type;
 
-    sub_type const &operator[](size_type s) const { return data_[s]; }
+    pod_type data_;
 
-    sub_type &at(size_type s) { return data_[s]; }
+    inline sub_type &operator[](size_type s) { return data_[s]; }
 
-    sub_type const &at(size_type s) const { return data_[s]; }
+    inline sub_type const &operator[](size_type s) const { return data_[s]; }
 
+    inline sub_type &at(size_type s) { return data_[s]; }
 
-public:
+    inline sub_type const &at(size_type s) const { return data_[s]; }
 
+    nTuple_() {}
 
-//    template<typename ...U>
-//    nTuple_(Expression<U...> const &expr)
-//    {
-//        algebra_parser<this_type>::apply(tags::_assign(), (*this), expr);
-//    }
+    ~nTuple_() {}
 
-    template<typename TR>
-    inline this_type &operator=(TR const &rhs)
+    nTuple_(simpla::traits::nested_initializer_list_t<value_type, sizeof...(NOthers) + 1> l)
+    {
+        simpla::traits::assign_nested_initializer_list<N0, NOthers...>::apply(data_, l);
+    }
+
+    template<typename ...U>
+    nTuple_(Expression<U...> const &expr)
+    {
+        algebra_parser<this_type>::apply(tags::_assign(), (*this), expr);
+    }
+
+    nTuple_(this_type const &other) = delete;
+
+    nTuple_(this_type &&other) = delete;
+
+    void swap(this_type &other)
+    {
+        algebra_parser<this_type>::apply(tags::_swap(), (*this), other);
+    }
+
+    template<typename TR> inline this_type &
+    operator=(TR const &rhs)
     {
         algebra_parser<this_type>::apply(tags::_assign(), (*this), rhs);
         return (*this);
     }
 
-    template<typename TR>
-    inline this_type &operator+=(TR const &rhs)
+    template<typename TR> inline this_type &
+    operator+=(TR const &rhs)
     {
         algebra_parser<this_type>::apply(tags::plus_assign(), *this, rhs);
         return (*this);
     }
 
-    template<typename TR>
-    inline this_type &operator-=(TR const &rhs)
+    template<typename TR> inline this_type &
+    operator-=(TR const &rhs)
     {
         algebra_parser<this_type>::apply(tags::minus_assign(), *this, rhs);
 
         return (*this);
     }
 
-    template<typename TR>
-    inline this_type &operator*=(TR const &rhs)
+    template<typename TR> inline this_type &
+    operator*=(TR const &rhs)
     {
         algebra_parser<this_type>::apply(tags::multiplies_assign(), *this, rhs);
         return (*this);
     }
 
-    template<typename TR>
-    inline this_type &operator/=(TR const &rhs)
+    template<typename TR> inline this_type &
+    operator/=(TR const &rhs)
     {
         algebra_parser<this_type>::apply(tags::divides_assign(), *this, rhs);
         return (*this);
@@ -274,19 +212,28 @@ public:
 namespace _detail
 {
 
+template<typename TOP, typename TL, typename TR> inline void
+_apply(TOP const &, declare::nTuple_<TL, 3> &lhs, TR &rhs)
+{
+    typedef algebra_parser<declare::nTuple_<TL, 3> > impl_type;
+    TOP::eval(lhs[0], impl_type::get_value(rhs, 0));
+    TOP::eval(lhs[1], impl_type::get_value(rhs, 1));
+    TOP::eval(lhs[2], impl_type::get_value(rhs, 2));
 
-template<typename TOP, typename TL, size_type I0, typename TR>
-void _apply(TOP const &, declare::nTuple_<TL, I0> &lhs, TR const &rhs)
+};
+
+template<typename TOP, typename TL, size_type I0, typename TR> inline void
+_apply(TOP const &, declare::nTuple_<TL, I0> &lhs, TR &rhs)
 {
     typedef algebra_parser<declare::nTuple_<TL, I0> > impl_type;
     for (size_type i = 0; i < I0; ++i)
     {
-        TOP::eval(impl_type::get_value(lhs, i), impl_type::get_value(rhs, i));
+        TOP::eval(lhs[i], impl_type::get_value(rhs, i));
     }
 };
 
-template<typename TOP, typename TL, size_type I0, size_type I1, typename TR>
-void _apply(TOP const &, declare::nTuple_<TL, I0, I1> &lhs, TR const &rhs)
+template<typename TOP, typename TL, size_type I0, size_type I1, typename TR> inline void
+_apply(TOP const &, declare::nTuple_<TL, I0, I1> &lhs, TR &rhs)
 {
     typedef algebra_parser<declare::nTuple_<TL, I0, I1> > impl_type;
     for (size_type i = 0; i < I0; ++i)
@@ -296,8 +243,8 @@ void _apply(TOP const &, declare::nTuple_<TL, I0, I1> &lhs, TR const &rhs)
         }
 };
 
-template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2, typename TR>
-void _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2> &lhs, TR const &rhs)
+template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2, typename TR> inline void
+_apply(TOP const &, declare::nTuple_<TL, I0, I1, I2> &lhs, TR &rhs)
 {
     typedef algebra_parser<declare::nTuple_<TL, I0, I1, I2> > impl_type;
     for (size_type i = 0; i < I0; ++i)
@@ -308,8 +255,8 @@ void _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2> &lhs, TR const &rhs)
             }
 };
 
-template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2, size_type I3, typename TR>
-void _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2, I3> &lhs, TR const &rhs)
+template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2, size_type I3, typename TR> inline void
+_apply(TOP const &, declare::nTuple_<TL, I0, I1, I2, I3> &lhs, TR &rhs)
 {
     typedef algebra_parser<declare::nTuple_<TL, I0, I1, I2, I3>> impl_type;
     for (size_type i = 0; i < I0; ++i)
@@ -329,62 +276,63 @@ struct algebra_parser<declare::nTuple_<V, J...> >
 
 
 public:
-    template<typename T> static T &
+    template<typename T> static constexpr inline T &
     get_value(T &v)
     {
         return v;
     };
 
-    template<typename T, typename I0> static st::remove_all_extents_t<T, I0> &
+    template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
     get_value(T &v, I0 const *s, ENABLE_IF((st::is_indexable<T, I0>::value)))
     {
         return get_value(v[*s], s + 1);
     };
 
-    template<typename T, typename I0> static st::remove_all_extents_t<T, I0> &
+    template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
     get_value(T &v, I0 const *s, ENABLE_IF((!st::is_indexable<T, I0>::value)))
     {
         return v;
     };
 private:
-    template<typename T, typename ...Args> static T &
+    template<typename T, typename ...Args> static constexpr inline T &
     get_value_(std::integral_constant<bool, false> const &, T &v, Args &&...)
     {
         return v;
     }
 
 
-    template<typename T, typename I0, typename ...Idx> static st::remove_extents_t<T, I0, Idx...> &
+    template<typename T, typename I0, typename ...Idx> static constexpr inline st::remove_extents_t<T, I0, Idx...> &
     get_value_(std::integral_constant<bool, true> const &, T &v, I0 const &s0, Idx &&...idx)
     {
         return get_value(v[s0], std::forward<Idx>(idx)...);
     };
 public:
-    template<typename T, typename I0, typename ...Idx> static st::remove_extents_t<T, I0, Idx...> &
+    template<typename T, typename I0, typename ...Idx> static constexpr inline st::remove_extents_t<T, I0, Idx...> &
     get_value(T &v, I0 const &s0, Idx &&...idx)
     {
         return get_value_(std::integral_constant<bool, st::is_indexable<T, I0>::value>(),
                           v, s0, std::forward<Idx>(idx)...);
     };
 
-    template<typename T, size_type N> static T &
+    template<typename T, size_type N> static constexpr inline T &
     get_value(declare::nTuple_<T, N> &v, size_type const &s0) { return v[s0]; };
 
-    template<typename T, size_type N> static T const &
+    template<typename T, size_type N> static constexpr inline T const &
     get_value(declare::nTuple_<T, N> const &v, size_type const &s0) { return v[s0]; };
 public:
-    template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static auto
+    template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static constexpr inline auto
     _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, Idx &&... s)
     DECL_RET_TYPE((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
 
-    template<typename TOP, typename   ...Others, typename ...Idx> static auto
+    template<typename TOP, typename   ...Others, typename ...Idx> static constexpr inline auto
     get_value(declare::Expression<TOP, Others...> const &expr, Idx &&... s)
     DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
 
     template<typename TOP, typename TR>
-    static void apply(TOP const &op, declare::nTuple_<V, J...> &lhs, TR const &rhs) { _detail::_apply(op, lhs, rhs); };
-
-
+    static constexpr inline void apply(TOP const &op, declare::nTuple_<V, J...> &lhs, TR &rhs)
+    {
+        _detail::_apply(op, lhs, rhs);
+    };
 };
 
 
