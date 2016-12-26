@@ -20,143 +20,35 @@
 #include "Arithmetic.h"
 //#include "Expression.h"
 
-namespace simpla { namespace algebra
+namespace simpla
+{
+namespace algebra
 {
 template<size_type I> using index_const=std::integral_constant<size_type, I>;
 
 namespace declare { template<typename ...> class Expression; }
+
 /**
  * @defgroup algebra Algebra
  * @ingroup algebra
  * @{
  **/
 
-namespace tags
-{
-struct HodgeStar {};
-struct InteriorProduct {};
-struct Wedge {};
+#define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_)                                       \
+    namespace tags{struct _##_NAME_{  };}  \
+    template< typename T1,typename T2> declare::Expression< tags::_##_NAME_, const T1,const T2 > \
+     _NAME_(T1 const & l, T2  const &r){return (declare::Expression< tags::_##_NAME_, const T1,const T2 > (l,r));}
+#define DEF_BI_FUN(_NAME_)  \
 
-struct ExteriorDerivative {};
-struct CodifferentialDerivative {};
+#define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)                                  \
+    namespace tags{struct _##_NAME_{ };} \
+    template< typename T1> declare::Expression< tags::_##_NAME_,const T1 >  \
+    _NAME_(T1 const & l){return  declare::Expression< tags::_##_NAME_,const T1 >(l) ;}
 
-template<size_type I> struct P_ExteriorDerivative {};
-template<size_type I> struct P_CodifferentialDerivative {};
-
-struct MapTo {};
-struct Cross {};
-struct Dot {};
-}  // namespace tags
-namespace traits
-{
-template<typename T>
-struct iform<declare::Expression<tags::HodgeStar, T> > : public index_const<rank<T>::value - iform<T>::value> {};
-
-template<typename T0, typename T1>
-struct iform<declare::Expression<tags::InteriorProduct, T0, T1> > : public index_const<traits::iform<T1>::value - 1> {};
-
-template<typename T>
-struct iform<declare::Expression<tags::ExteriorDerivative, T> > : public index_const<iform<T>::value + 1> {};
-
-template<typename T>
-struct iform<declare::Expression<tags::CodifferentialDerivative, T> > : public index_const<iform<T>::value - 1> {};
-
-
-template<typename T, size_type I>
-struct iform<declare::Expression<tags::P_ExteriorDerivative<I>, T> > : public index_const<iform<T>::value + 1> {};
-
-template<typename T, size_type I>
-struct iform<declare::Expression<tags::P_CodifferentialDerivative<I>, T> > : public index_const<iform<T>::value - 1> {};
-
-template<typename T0, typename T1>
-struct iform<declare::Expression<tags::Wedge, T0, T1> > : public index_const<iform<T0>::value + iform<T1>::value> {};
-
-//template<size_type I>
-//struct iform<index_const < I> > : public index_const <I>
-//{
-//};
-
-//template<typename T1, size_type I>
-//struct iform<declare::Expression<tags::MapTo, T1, index_const < I> > > : public index_const <I>
-//{
-//};
-
-
-template<typename T, typename ...Others>
-struct value_type<declare::Expression<tags::MapTo, T, Others...> > { typedef value_type_t <T> type; };
-
-
-template<typename T>
-struct value_type<declare::Expression<tags::HodgeStar, T> > { typedef value_type_t <T> type; };
-
-template<typename T>
-struct value_type<declare::Expression<tags::ExteriorDerivative, T> >
-{
-    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
-};
-
-template<typename T>
-struct value_type<declare::Expression<tags::CodifferentialDerivative, T> >
-{
-    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
-};
-
-
-template<typename T, size_type I>
-struct value_type<declare::Expression<tags::P_ExteriorDerivative<I>, T> >
-{
-    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
-
-};
-
-template<typename T, size_type I>
-struct value_type<declare::Expression<tags::P_CodifferentialDerivative<I>, T> >
-{
-    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, typename scalar_type<T>::type)> type;
-};
-
-
-template<typename T0, typename T1>
-struct value_type<declare::Expression<tags::Wedge, T0, T1> >
-{
-
-    typedef std::result_of_t<tags::multiplies(scalar_type_t < T0 > , value_type_t < T1 > )> type;
-
-};
-
-template<typename T0, typename T1>
-struct value_type<declare::Expression<tags::InteriorProduct, T0, T1> >
-{
-    typedef std::result_of_t<tags::multiplies(scalar_type_t < T0 > , value_type_t < T1 > )> type;
-};
-
-
-template<typename T0, typename T1>
-struct value_type<declare::Expression<tags::Cross, T0, T1> >
-{
-    typedef std::result_of_t<tags::multiplies(scalar_type_t < T0 > , value_type_t < T1 > )> type;
-};
-
-template<typename T0, typename T1>
-struct value_type<declare::Expression<tags::Dot, T0, T1> >
-{
-    typedef std::result_of_t<tags::multiplies(scalar_type_t < T0 > , value_type_t < T1 > )> type;
-};
-
-
-} //namespace traits
-
-template<size_type I, typename U>
-inline declare::Expression<tags::MapTo, U, index_const<I>>
-map_to(U const &f)
-{
-    return declare::Expression<tags::MapTo, U, index_const<I> >(f, index_const<I>());
-}
 
 /**
  * @defgroup exterior_algebra Exterior algebra on forms
  * @{
- *
  *
  *   Pseudo-Signature  			| Semantics
  *  -------------------------------|--------------
@@ -166,43 +58,97 @@ map_to(U const &f)
  *  \f$\Omega^{N}\f$ =InnerProduct(\f$\Omega^m\f$ ,\f$\Omega^m\f$ ) | inner product,
 
  **/
-template<typename T> inline declare::Expression<tags::HodgeStar, T>
-hodge_star(T const &f) { return declare::Expression<tags::HodgeStar, T>(f); }
 
-template<typename TL, typename TR> inline declare::Expression<tags::Wedge, TL, TR>
-wedge(TL const &l, TR const &r) { return declare::Expression<tags::Wedge, TL, TR>(l, r); };
+_SP_DEFINE_EXPR_UNARY_FUNCTION(hodge_star)
+
+_SP_DEFINE_EXPR_BINARY_FUNCTION(interior_product)
+
+_SP_DEFINE_EXPR_BINARY_FUNCTION(wedge)
+
+_SP_DEFINE_EXPR_BINARY_FUNCTION(cross)
+
+_SP_DEFINE_EXPR_BINARY_FUNCTION(dot)
+
+namespace traits
+{
+
+//******************************************************
+
+template<typename T>
+struct iform<declare::Expression<tags::_hodge_star, T> > :
+        public index_const<rank<T>::value - iform<T>::value>
+{
+};
+
+template<typename T>
+struct value_type<declare::Expression<tags::_hodge_star, T> >
+{
+    typedef value_type_t <T> type;
+};
+//******************************************************
 
 
-template<typename TL, typename TR>
-inline declare::Expression<tags::InteriorProduct, TL, TR>
-interior_product(TL const &l, TR const &r) { return declare::Expression<tags::InteriorProduct, TL, TR>(l, r); };
+template<typename T0, typename T1>
+struct iform<declare::Expression<tags::_interior_product, T0, T1> > :
+        public index_const<traits::iform<T1>::value - 1>
+{
+};
+
+template<typename T0, typename T1>
+struct value_type<declare::Expression<tags::_interior_product, T0, T1> >
+{
+    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+};
 
 
-//template<typename  T>
-//inline auto operator*(T const &f) DECL_RET_TYPE((hodge_star(f)))
-//
-//template<size_type ndims, typename TL, typename ...T>
-//inline auto iv(nTuple<TL, ndims> const &v, Field<T...> const &f) DECL_RET_TYPE((interior_product(v, f)))
-//
-//template<typename ...T1, typename ... T2>
-//inline auto operator^(Field<T1...> const &lhs, Field<T2...> const &rhs) DECL_RET_TYPE((wedge(lhs, rhs)))
 
-/** @} */
+//******************************************************
 
-/**
- * @defgroup  vector_algebra   Linear algebra on vector fields
- * @{
- *   Pseudo-Signature  			| Semantics
- *  -------------------------------|--------------
- *  \f$\Omega^n\f$ =\f$\Omega^n\f$  	            | negate operation
- *  \f$\Omega^n\f$ =\f$\Omega^n\f$  	            | positive operation
- *  \f$\Omega^n\f$ =\f$\Omega^n\f$ +\f$\Omega^n\f$ 	| add
- *  \f$\Omega^n\f$ =\f$\Omega^n\f$ -\f$\Omega^n\f$ 	| subtract
- *  \f$\Omega^n\f$ =\f$\Omega^n\f$ *Scalar  	    | multiply
- *  \f$\Omega^n\f$ = Scalar * \f$\Omega^n\f$  	    | multiply
- *  \f$\Omega^n\f$ = \f$\Omega^n\f$ / Scalar  	    | divide
- *
- */
+template<typename T0, typename T1>
+struct iform<declare::Expression<tags::_wedge, T0, T1> > :
+        public index_const<iform<T0>::value + iform<T1>::value>
+{
+};
+template<typename T0, typename T1>
+struct value_type<declare::Expression<tags::_wedge, T0, T1> >
+{
+
+    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+
+};
+//******************************************************
+
+template<size_type I, typename T0, typename T1>
+struct iform<declare::Expression<tags::_map_to<I>, T0> > :
+        public index_const<I>
+{
+};
+
+
+template<typename T0, typename T1>
+struct value_type<declare::Expression<tags::_cross, T0, T1> >
+{
+    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+};
+//******************************************************
+
+template<typename T0, typename T1>
+struct iform<declare::Expression<tags::_dot, T0, T1> > :
+        public index_const<VERTEX>
+{
+};
+
+template<typename T0, typename T1>
+struct value_type<declare::Expression<tags::_dot, T0, T1> >
+{
+    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+};
+//******************************************************
+
+}//namespace traits
+
+
+
 template<typename TL, typename TR>
 inline auto inner_product(TL const &lhs, TR const &rhs) DECL_RET_TYPE(wedge(lhs, hodge_star(rhs)));
 
@@ -220,19 +166,30 @@ cross(TL const &lhs, TR const &rhs, ENABLE_IF((traits::iform<TL>::value == FACE)
         hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
 
 
-template<typename TL, typename TR> inline declare::Expression<tags::Cross, TL, TR>
+template<typename TL, typename TR> inline declare::Expression<tags::_cross, TL, TR>
 cross(TL const &l, TR const &r, ENABLE_IF((traits::iform<TL>::value == VERTEX)))
 {
-    return declare::Expression<tags::Cross, TL, TR>(l, r);
+    return declare::Expression<tags::_cross, TL, TR>(l, r);
 };
 
 
-template<typename TL, typename TR> inline declare::Expression<tags::Dot, TL, TR>
+template<typename TL, typename TR> inline declare::Expression<tags::_dot, TL, TR>
 dot(TL const &lhs, TR const &rhs, ENABLE_IF((traits::iform<TL>::value == VERTEX)))
 {
-    return declare::Expression<tags::Dot, TL, TR>(lhs, rhs);
+    return declare::Expression<tags::_dot, TL, TR>(lhs, rhs);
 };
 
+
+
+
+//template<typename  T>
+//inline auto operator*(T const &f) DECL_RET_TYPE((hodge_star(f)))
+//
+//template<size_type ndims, typename TL, typename ...T>
+//inline auto iv(nTuple<TL, ndims> const &v, Field<T...> const &f) DECL_RET_TYPE((interior_product(v, f)))
+//
+//template<typename ...T1, typename ... T2>
+//inline auto operator^(Field<T1...> const &lhs, Field<T2...> const &rhs) DECL_RET_TYPE((wedge(lhs, rhs)))
 
 //template<typename TL, typename ... TR> inline auto
 //dot(nTuple<TL, 3> const &v, Field<TR...> const &f) DECL_RET_TYPE((interior_product(v, f)))
@@ -246,7 +203,105 @@ dot(TL const &lhs, TR const &rhs, ENABLE_IF((traits::iform<TL>::value == VERTEX)
 //template<typename ... T, typename TL> inline auto
 //cross(Field<T...> const &f, nTuple<TL, 3> const &v) DECL_RET_TYPE((interior_product(v, f)));
 
-/** @} */
+
+
+/**
+ * @defgroup dif_calculus_form Differential calculus on forms
+ * @{
+ *   Pseudo-Signature  			| Semantics
+ *  -------------------------------|--------------
+ *  \f$\Omega^{n-1}\f$ =ExteriorDerivative(\f$\Omega^n\f$ )	| Exterior Derivative, abbr. d
+ *  \f$\Omega^{n+1}\f$ =Codifferential(\f$\Omega^n\f$ )	| Codifferential Derivative, abbr. delta
+ *
+ */
+
+_SP_DEFINE_EXPR_UNARY_FUNCTION(codifferential_derivative)
+
+_SP_DEFINE_EXPR_UNARY_FUNCTION(exterior_derivative)
+
+
+namespace tags
+{
+template<size_type I> struct _p_exterior_derivative {};
+template<size_type I> struct _p_codifferential_derivative {};
+}  // namespace tags
+
+
+template<size_type I, typename T1> declare::Expression<tags::_p_exterior_derivative<I>, const T1>
+p_exterior_derivative(T1 const &l)
+{
+    return (declare::Expression<tags::_p_exterior_derivative<I>, const T1>(l));
+}
+
+template<size_type I, typename T1> declare::Expression<tags::_p_codifferential_derivative<I>, const T1>
+p_codifferential_derivative(T1 const &l)
+{
+    return (declare::Expression<tags::_p_codifferential_derivative<I>, const T1>(l));
+}
+
+
+namespace traits
+{
+
+
+//******************************************************
+
+template<typename T>
+struct iform<declare::Expression<tags::_exterior_derivative, T> > :
+        public index_const<iform<T>::value + 1>
+{
+};
+
+template<typename T>
+struct value_type<declare::Expression<tags::_exterior_derivative, T> >
+{
+    typedef std::result_of_t<tags::multiplies(scalar_type_t < T > , value_type_t < T > )> type;
+};
+
+//******************************************************
+
+
+template<typename T>
+struct iform<declare::Expression<tags::_codifferential_derivative, T> > :
+        public index_const<iform<T>::value - 1>
+{
+};
+template<typename T>
+struct value_type<declare::Expression<tags::_codifferential_derivative, T> >
+{
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
+};
+
+//******************************************************
+template<typename T, size_type I>
+struct iform<declare::Expression<tags::_p_exterior_derivative<I>, T> > :
+        public index_const<iform<T>::value + 1>
+{
+};
+template<typename T, size_type I>
+struct value_type<declare::Expression<tags::_p_exterior_derivative<I>, T> >
+{
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
+
+};
+//******************************************************
+
+template<typename T, size_type I>
+struct iform<declare::Expression<tags::_p_codifferential_derivative<I>, T> >
+        : public index_const<iform<T>::value - 1>
+{
+};
+template<typename T, size_type I>
+struct value_type<declare::Expression<tags::_p_codifferential_derivative<I>, T> >
+{
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, typename scalar_type<T>::type)> type;
+};
+
+
+} //namespace traits
+
+
+
 /**
  * @defgroup linear_map Linear map between forms/fields.
  * @{
@@ -264,34 +319,54 @@ dot(TL const &lhs, TR const &rhs, ENABLE_IF((traits::iform<TL>::value == VERTEX)
  *  P &=& 1-\sum_{s}\frac{\omega_{ps}^{2}}{\omega^{2}}
  *  \f}
  */
+namespace tags { template<size_type I> struct _map_to {}; };
+namespace traits
+{
 
+template<size_type I, typename T, typename ...Others>
+struct value_type<declare::Expression<tags::_map_to<I>, T, Others...> >
+{
+    typedef value_type_t <T> type;
+};
+//******************************************************
+
+template<typename T0, typename T1>
+struct iform<declare::Expression<tags::_cross, T0, T1> > :
+        public index_const<(iform<T0>::value + iform<T1>::value) % 3>
+{
+};
+
+}
+
+
+template<size_type I, typename T1> declare::Expression<tags::_map_to<I>, const T1>
+map_to(T1 const &l)
+{
+    return (declare::Expression<tags::_map_to<I>, const T1>(l));
+}
 
 /** @} */
 
+
+
 /**
- * @defgroup dif_calculus_form Differential calculus on forms
+ * @defgroup  vector_algebra   Linear algebra on vector fields
  * @{
  *   Pseudo-Signature  			| Semantics
  *  -------------------------------|--------------
- *  \f$\Omega^{n-1}\f$ =ExteriorDerivative(\f$\Omega^n\f$ )	| Exterior Derivative, abbr. d
- *  \f$\Omega^{n+1}\f$ =Codifferential(\f$\Omega^n\f$ )	| Codifferential Derivative, abbr. delta
+ *  \f$\Omega^n\f$ =\f$\Omega^n\f$  	            | negate operation
+ *  \f$\Omega^n\f$ =\f$\Omega^n\f$  	            | positive operation
+ *  \f$\Omega^n\f$ =\f$\Omega^n\f$ +\f$\Omega^n\f$ 	| add
+ *  \f$\Omega^n\f$ =\f$\Omega^n\f$ -\f$\Omega^n\f$ 	| subtract
+ *  \f$\Omega^n\f$ =\f$\Omega^n\f$ *Scalar  	    | multiply
+ *  \f$\Omega^n\f$ = Scalar * \f$\Omega^n\f$  	    | multiply
+ *  \f$\Omega^n\f$ = \f$\Omega^n\f$ / Scalar  	    | divide
  *
  */
 
-template<typename U>
-inline declare::Expression<tags::ExteriorDerivative, U>
-exterior_derivative(U const &f) { return declare::Expression<tags::ExteriorDerivative, U>(f); }
+/** @} */
 
-template<typename U>
-inline declare::Expression<tags::CodifferentialDerivative, U>
-codifferential_derivative(U const &f) { return declare::Expression<tags::CodifferentialDerivative, U>(f); };
-//
-//template<typename ... T> inline auto
-//d(Field<T...> const &f) DECL_RET_TYPE((exterior_derivative(f)))
-//
-//template<typename ... T> inline auto
-//delta(Field<T...> const &f) DECL_RET_TYPE((codifferential_derivative(f)))
-/**@}*/
+
 
 /**
  *  @defgroup vector_calculus Differential calculus on fields
@@ -335,13 +410,13 @@ template<typename T> inline auto
 curl(T const &f) DECL_RET_TYPE((curl(f, traits::iform<T>())))
 
 template<size_type I, typename U>
-inline declare::Expression<tags::P_ExteriorDerivative<I>, U>
-p_exterior_derivative(U const &f) { return declare::Expression<tags::P_ExteriorDerivative<I>, U>(f); }
+inline declare::Expression<tags::_p_exterior_derivative<I>, U>
+p_exterior_derivative(U const &f) { return declare::Expression<tags::_p_exterior_derivative<I>, U>(f); }
 
 
 template<size_type I, typename U>
-declare::Expression<tags::P_CodifferentialDerivative<I>, U>
-p_codifferential_derivative(U const &f) { return declare::Expression<tags::P_CodifferentialDerivative<I>, U>(f); };
+declare::Expression<tags::_p_exterior_derivative<I>, U>
+p_codifferential_derivative(U const &f) { return declare::Expression<tags::_p_exterior_derivative<I>, U>(f); };
 
 
 template<typename T> inline auto
@@ -373,7 +448,10 @@ curl_pdz(T const &f) DECL_RET_TYPE((curl_pdz(f, traits::iform<T>())))
 /** @} */
 
 /** @} */
+#undef _SP_DEFINE_EXPR_UNARY_FUNCTION
+#undef _SP_DEFINE_EXPR_BINARY_FUNCTION
 
-}}// namespace simpla
+}
+}// namespace simpla
 
 #endif /* CALCULUS_H_ */

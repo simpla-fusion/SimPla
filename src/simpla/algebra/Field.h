@@ -46,7 +46,8 @@ private:
 
     typedef algebra::schemes::CalculusPolicy<mesh_type> calculus_policy;
     typedef algebra::schemes::InterpolatePolicy<mesh_type> interpolate_policy;
-
+    friend calculus_policy;
+    friend interpolate_policy;
     data_type *m_data_;
     mesh_type const *m_mesh_;
 
@@ -54,8 +55,8 @@ private:
     std::shared_ptr<data_type> m_data_holder_;
 
 public:
-    template<typename ...Args>
-    Field_(Args &&...args) : m_mesh_(nullptr), m_data_(nullptr) {};
+//    template<typename ...Args>
+//    Field_(Args &&...args) : m_mesh_(nullptr), m_data_(nullptr) {};
 
     explicit Field_(mesh_type const *m, data_type *d = nullptr) :
             m_mesh_holder_(m, simpla::tags::do_nothing()), m_data_holder_(d, simpla::tags::do_nothing()),
@@ -73,8 +74,8 @@ public:
 
     virtual void pre_process()
     {
-        assert(m_data_ != nullptr);
-        assert(m_mesh_ != nullptr);
+        assert(m_data_holder_ != nullptr);
+        assert(m_mesh_holder_ != nullptr);
     }
 
     virtual void post_process()
@@ -85,11 +86,28 @@ public:
 
     virtual void deploy()
     {
+
         m_mesh_ = m_mesh_holder_.get();
+
+        m_mesh_->template create_data_block<TV, IFORM, DOF>(&m_data_holder_);
+
         m_data_ = m_data_holder_.get();
     }
 
-    virtual void clear() {}
+    virtual void move_to(std::shared_ptr<mesh_type> const &m, std::shared_ptr<data_type> const &d)
+    {
+
+        post_process();
+        m_data_holder_ = d;
+        m_mesh_holder_ = m;
+        pre_process();
+    }
+
+    virtual void clear()
+    {
+        deploy();
+//        m_mesh_->clear(m_data_);
+    }
 
     /** @name as_function  @{*/
     template<typename ...Args> inline field_value
@@ -139,14 +157,14 @@ public:
     template<typename TR> inline this_type &
     operator=(TR const &rhs)
     {
-        calculus_policy::apply(m_mesh_, (*this), tags::_assign(), rhs);
+        apply(tags::_assign(), rhs);
         return (*this);
     }
 
     template<typename TR> inline this_type &
     operator+=(TR const &rhs)
     {
-        calculus_policy::apply(m_mesh_, (*this), tags::plus_assign(), rhs);
+        apply(tags::plus_assign(), rhs);
 
         return (*this);
     }
@@ -154,30 +172,30 @@ public:
     template<typename TR> inline this_type &
     operator-=(TR const &rhs)
     {
-        calculus_policy::apply(m_mesh_, (*this), tags::minus_assign(), rhs);
-
-
+        apply(tags::minus_assign(), rhs);
         return (*this);
     }
 
     template<typename TR> inline this_type &
     operator*=(TR const &rhs)
     {
-        calculus_policy::apply(m_mesh_, (*this), tags::multiplies_assign(), rhs);
-
+        apply(tags::multiplies_assign(), rhs);
         return (*this);
     }
 
     template<typename TR> inline this_type &
     operator/=(TR const &rhs)
     {
-        calculus_policy::apply(m_mesh_, (*this), tags::divides_assign(), rhs);
-
+        apply(tags::divides_assign(), rhs);
         return (*this);
     }
 
     template<typename ...Args> void
-    apply(Args &&...args) { calculus_policy::apply(m_mesh_, *this, std::forward<Args>(args)...); }
+    apply(Args &&...args)
+    {
+        deploy();
+        calculus_policy::apply(m_mesh_, *this, std::forward<Args>(args)...);
+    }
 
     template<typename ...Args> void
     assign(Args &&...args) { apply(tags::_assign(), std::forward<Args>(args)...); }
@@ -186,7 +204,10 @@ public:
 }
 }} //namespace simpla::algebra::declare
 
-namespace simpla { template<typename TV, typename TM, size_type IFORM = VERTEX, size_type DOF = 1> using Field=algebra::declare::Field_<TV, TM, IFORM, DOF>; }
+namespace simpla
+{
+template<typename TV, typename TM, size_type IFORM = VERTEX, size_type DOF = 1> using Field=algebra::declare::Field_<TV, TM, IFORM, DOF>;
+}
 //
 //namespace simpla { namespace algebra
 //{

@@ -1,5 +1,5 @@
 /*
- * field_basic_algerbra_test.h
+ * field_basic_algebra_test.h
  *
  *  created on: 2014-2-20
  *      Author: salmon
@@ -17,7 +17,7 @@
 #include <simpla/mpl/macro.h>
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/Log.h>
-
+#include <simpla/toolbox/sp_def.h>
 #include "../Field.h"
 
 using namespace simpla;
@@ -40,10 +40,8 @@ protected:
         index_type lo[3] = {0, 0, 0};
         index_type hi[3];//= {dims[0], dims[1], dims[2]};
 
-        m_p = std::make_shared<mesh_type>(lo, hi, gw);
-        m = m_p.get();
+        m = std::make_shared<mesh_type>(&dims[0], &xmin[0], &xmax[0]);
         m->deploy();
-        m->range(static_cast<mesh::MeshEntityType>(iform), mesh::SP_ES_OWNED).swap(m_range);
 
 
     }
@@ -65,11 +63,9 @@ public:
 
     value_type default_value;
 
-    mesh::EntityIdRange m_range;
 
-    std::shared_ptr<mesh_type> m_p;
+    std::shared_ptr<mesh_type> m;
 
-    mesh_type *m;
 
 //    typedef Field<value_type, manifold_type, index_const<static_cast<size_t>(iform)> > field_type;
     typedef Field<value_type, mesh_type, iform> scalar_field_type;
@@ -97,7 +93,12 @@ TYPED_TEST_P(TestField, assign)
     f1 = va;
     size_type count = 0;
 
-    TestFixture::m_range.foreach([&](mesh::MeshEntityId const &s) { EXPECT_LE(abs(va - f1[s]), EPSILON); });
+    TestFixture::m->foreach(
+            TestFixture::iform,
+            [&](typename TestFixture::mesh_type::id_type const &s)
+            {
+                EXPECT_LE(abs(va - f1[s]), EPSILON);
+            });
 }
 
 TYPED_TEST_P(TestField, index)
@@ -115,10 +116,15 @@ TYPED_TEST_P(TestField, index)
 
     va = 2.0;
 
-    TestFixture::m_range.foreach([&](mesh::MeshEntityId const &s) { f1[s] = va * TestFixture::m->hash(s); });
+    TestFixture::m->foreach(TestFixture::iform, [&](typename TestFixture::mesh_type::id_type const &s)
+    {
+        f1[s] = va * TestFixture::m->hash(s);
+    });
 
-    TestFixture::m_range.foreach(
-            [&](mesh::MeshEntityId const &s) { EXPECT_LE(abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON); });
+    TestFixture::m->foreach(TestFixture::iform, [&](typename TestFixture::mesh_type::id_type const &s)
+    {
+        EXPECT_LE(abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON);
+    });
 
 }
 
@@ -148,24 +154,21 @@ TYPED_TEST_P(TestField, constant_real)
 
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](mesh::MeshEntityId const &s) { return va * uniform_dist(gen); });
-    f2.assign([&](mesh::MeshEntityId const &s) { return vb * uniform_dist(gen); });
+    f1.assign([&](typename TestFixture::mesh_type::id_type const &s) { return va * uniform_dist(gen); });
+    f2.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vb * uniform_dist(gen); });
 
 
     LOG_CMD(f3 = -f1 + f1 * a + f2 * c - f1 / b);
 
-    TestFixture::m_range.foreach(
-            [&](mesh::MeshEntityId const &s)
-            {
-                value_type expect;
-                expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
+    TestFixture::m->foreach(TestFixture::iform,
+                            [&](typename TestFixture::mesh_type::id_type const &s)
+                            {
+                                value_type expect;
+                                expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
 
-                // FIXME： truncation error is too big . why ??
-                EXPECT_LE(abs(expect - f3[s]), EPSILON * 100)
-                                    << expect << "==" << f3[s]
-                                    << "[" << (s.x >> 1) << "," << (s.y >> 1) <<
-                                    "," << (s.z >> 1) << "]" << std::endl;
-            });
+                                // FIXME： truncation error is too big . why ??
+                                EXPECT_LE(abs(expect - f3[s]), EPSILON * 100);
+                            });
 }
 
 TYPED_TEST_P(TestField, scalarField)
@@ -205,9 +208,9 @@ TYPED_TEST_P(TestField, scalarField)
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](mesh::MeshEntityId const &s) { return va * uniform_dist(gen); });
-    f2.assign([&](mesh::MeshEntityId const &s) { return vb * uniform_dist(gen); });
-    f3.assign([&](mesh::MeshEntityId const &s) { return vc * uniform_dist(gen); });
+    f1.assign([&](typename TestFixture::mesh_type::id_type const &s) { return va * uniform_dist(gen); });
+    f2.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vb * uniform_dist(gen); });
+    f3.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vc * uniform_dist(gen); });
 
     LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
 
@@ -223,13 +226,13 @@ TYPED_TEST_P(TestField, scalarField)
  *
  * */
 
-    TestFixture::m_range.foreach(
-            [&](mesh::MeshEntityId const &s)
-            {
-                value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
+    TestFixture::m->foreach(TestFixture::iform,
+                            [&](typename TestFixture::mesh_type::id_type const &s)
+                            {
+                                value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 
-                EXPECT_LE(abs(res - f4[s]), EPSILON);
-            });
+                                EXPECT_LE(abs(res - f4[s]), EPSILON);
+                            });
 
 
 }

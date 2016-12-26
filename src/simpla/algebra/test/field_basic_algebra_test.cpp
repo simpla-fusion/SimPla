@@ -12,7 +12,7 @@
 
 using namespace simpla;
 
-typedef mesh::DummyMesh mesh_type;
+typedef DummyMesh mesh_type;
 
 
 typedef testing::Types< //
