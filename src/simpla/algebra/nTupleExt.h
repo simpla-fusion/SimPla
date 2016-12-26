@@ -142,6 +142,7 @@ std::ostream &operator<<(std::ostream &os, nTuple_<T, M...> const &v)
     return simpla::printNd(os, v.data_, index_sequence<M ...>());
 }
 
+
 //template<typename T, size_type  ...M>
 //std::istream &operator>>(std::istream &os, nTuple_<T, M...> &v) { return input(os, v); }
 }

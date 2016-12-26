@@ -47,8 +47,14 @@ template<typename ...> struct value_type;
 template<typename ...T> using value_type_t=typename value_type<T...>::type;
 
 template<typename T> struct value_type<T> { typedef T type; };
+template<typename T> struct value_type<T &> { typedef T &type; };
+template<typename T> struct value_type<T const &> { typedef T const &type; };
 
-template<typename T> struct value_type<T *> { typedef value_type_t<T> type; };
+template<typename T> struct value_type<T *> { typedef T type; };
+template<typename T, size_type N> struct value_type<T[N]> { typedef T type; };
+template<typename T> struct value_type<T const *> { typedef T type; };
+template<typename T> struct value_type<T const[]> { typedef T type; };
+
 
 template<typename T> struct scalar_type { typedef Real type; };
 
@@ -66,10 +72,13 @@ struct is_scalar<T> : public std::integral_constant<bool,
         std::is_arithmetic<std::decay_t<T>>::value || is_complex<std::decay_t<T>>::value>
 {
 };
+
 template<typename ...> struct is_nTuple;
+
 template<typename T> struct is_nTuple<T> : public std::integral_constant<bool, false> {};
 
 template<typename ...> struct is_field;
+
 template<typename T> struct is_field<T> : public std::integral_constant<bool, false> {};
 
 
@@ -85,10 +94,14 @@ struct is_field<First, Others...> : public std::integral_constant<bool,
 {
 };
 
-template<typename TV> struct reference { typedef TV type; };
+template<typename T> struct reference { typedef T type; };
 template<typename T> using reference_t=typename reference<T>::type;
+template<typename T, int N> struct reference<T[N]> { typedef T *type; };
+template<typename T, int N> struct reference<const T[N]> { typedef T const *type; };
+
 
 template<typename T> struct field_value_type { typedef T type; };
+
 template<typename T> using field_value_t=typename field_value_type<T>::type;
 
 template<typename> struct mesh_type { typedef void type; };
@@ -97,7 +110,10 @@ template<typename> struct mesh_type { typedef void type; };
 template<typename ...> struct make_nTuple { typedef void type; };
 
 template<typename TV, size_type ...I>
-struct make_nTuple<TV, index_sequence<I...>> { typedef declare::nTuple_<TV, I...> type; };
+struct make_nTuple<TV, integer_sequence<size_type, I...> >
+{
+    typedef declare::nTuple_<TV, I...> type;
+};
 
 
 template<typename T> struct primary_type
@@ -131,6 +147,8 @@ template<typename T> using primary_type_t=typename primary_type<T>::type;
 //template<typename TV, typename TM, size_type I, size_type DOF> struct rank<Field_<TV, TM, I, DOF> > : public rank<TM> { typedef TV type; };
 //
 //template<typename TV, typename TM, size_type I, size_type DOF> struct value_type<Field_<TV, TM, I, DOF> > { typedef TV type; };
+
+
 } //namespace traits
 
 

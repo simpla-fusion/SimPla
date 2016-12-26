@@ -72,7 +72,10 @@ namespace algebra
 namespace traits
 {
 template<typename T, size_type ...I0>
-struct reference<declare::nTuple_<T, I0...> > { typedef declare::nTuple_<T, I0...> const &type; };
+struct reference<declare::nTuple_<T, I0...> > { typedef declare::nTuple_<T, I0...> &type; };
+
+template<typename T, size_type ...I0>
+struct reference<const declare::nTuple_<T, I0...> > { typedef declare::nTuple_<T, I0...> const &type; };
 
 template<typename T, size_type ...I>
 struct rank<declare::nTuple_<T, I...> > : public index_const<sizeof...(I)> {};

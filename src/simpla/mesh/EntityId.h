@@ -175,18 +175,18 @@ struct MeshEntityIdCoder_
 
     };
 
-    static point_type m_id_to_coordinates_shift_[] = {
+    static constexpr Real m_id_to_coordinates_shift_[8][3] = {
             {0.0, 0.0, 0.0},            // 000
-            {_R,  0.0, 0.0},           // 001
-            {0.0, _R,  0.0},           // 010
+            {_R, 0.0, 0.0},           // 001
+            {0.0, _R, 0.0},           // 010
             {0.0, 0.0, _R},           // 011
-            {_R,  _R,  0.0},          // 100
-            {_R,  0.0, _R},          // 101
-            {0.0, _R,  _R},          // 110
-            {0.0, _R,  _R},          // 111
+            {_R, _R, 0.0},          // 100
+            {_R, 0.0, _R},          // 101
+            {0.0, _R, _R},          // 110
+            {0.0, _R, _R},          // 111
 
     };
-    static constexpr int m_iform_to_num_of_ele_in_cell_[] = {
+    static constexpr int m_iform_to_num_of_ele_in_cell_[8] = {
             1, // VETEX
             3, // EDGE
             3, // FACE
@@ -259,9 +259,9 @@ struct MeshEntityIdCoder_
     static constexpr MeshEntityId pack(index_type i0, index_type i1, index_type i2, index_type w = 0)
     {
         return MeshEntityId{static_cast<u_int16_t>(w),
-                            static_cast<u_int16_t>(i2),
-                            static_cast<u_int16_t>(i1),
-                            static_cast<u_int16_t>(i0)};
+                static_cast<u_int16_t>(i2),
+                static_cast<u_int16_t>(i1),
+                static_cast<u_int16_t>(i0)};
     }
 
     template<typename T>
@@ -700,7 +700,7 @@ struct MeshEntityIdCoder_
                                     _DA - _DI    //
                             },
                             /* 011*/
-                            {       _DA},
+                            {_DA},
                             /* 100*/
                             {//
                                     _DA - _DI,         //
@@ -1067,7 +1067,7 @@ template<int L> constexpr MeshEntityId
         MeshEntityIdCoder_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][
         MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
 
-template<int L> constexpr point_type MeshEntityIdCoder_<L>::m_id_to_coordinates_shift_[];
+template<int L> constexpr Real MeshEntityIdCoder_<L>::m_id_to_coordinates_shift_[8][3];
 
 typedef MeshEntityIdCoder_<> MeshEntityIdCoder;
 

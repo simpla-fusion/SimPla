@@ -67,13 +67,12 @@ struct Expression<TOP, Args...>
 
     TOP m_op_;
 
-    Expression(this_type const &that) : m_args_(that.m_args_), m_op_(that.m_op_) {}
+    Expression(this_type const &that) : m_args_(that.m_args_) {}
 
-    Expression(this_type &&that) : m_args_(that.m_args_), m_op_(that.m_op_) {}
+    Expression(this_type &&that) : m_args_(that.m_args_) {}
 
-    Expression(Args const &... args) : m_args_(args ...), m_op_() {}
+    Expression(Args &... args) : m_args_(args ...) {}
 
-    Expression(TOP op, Args const &... args) : m_args_(args ...), m_op_(op) {}
 
     virtual ~Expression() {}
 

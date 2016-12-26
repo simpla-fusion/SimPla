@@ -31,10 +31,13 @@ int main(int argc, char **argv)
 
     std::cout << "t1 = " << t1 << std::endl;
 
-    nTuple<double, 3> A, B, C;
+    double d[2][3] = {{10, 20, 30}, {40, 50, 60}};
 
-    A = B + C;
+    nTuple<double, 2, 3> A;
 
-    std::cout << A << std::endl;
+    nTuple<double, 2, 3> B = {{4, 5, 6}, {7, 8, 9}};
+    A = B + d;
+
+    std::cout << "A=" << A << std::endl;
 
 }
