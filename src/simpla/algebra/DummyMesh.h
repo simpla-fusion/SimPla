@@ -125,6 +125,8 @@ struct CalculusPolicy<DummyMesh>
     };
 
 private:
+
+
     template<typename T, typename ...Args> static T &
     get_value_(std::integral_constant<bool, false> const &, T &v, Args &&...) { return v; }
 
@@ -134,14 +136,20 @@ private:
     {
         return get_value(v[s0], std::forward<Idx>(idx)...);
     };
-public:
-
 
     template<typename T, typename I0, typename ...Idx> static st::remove_extents_t<T, I0, Idx...> &
-    get_value(T &v, I0 const &s0, Idx &&...idx)
+    get_value_dispatch(T &v, I0 const &s0, Idx &&...idx)
     {
         return get_value_(std::integral_constant<bool, st::is_indexable<T, I0>::value>(),
                           v, s0, std::forward<Idx>(idx)...);
+    };
+public:
+
+
+    template<typename T, typename ...Idx> static st::remove_extents_t<T, Idx...> &
+    get_value(T &v, Idx &&...idx)
+    {
+        return get_value_dispatch(v, std::forward<Idx>(idx)...);
     };
 public:
     template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static auto
