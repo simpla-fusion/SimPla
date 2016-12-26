@@ -368,6 +368,8 @@ template<typename _Tp, _Tp ...N>
 struct extent<integer_sequence<_Tp, N...>, 0> : public index_const<sizeof...(N)> {};
 
 
+
+
 //**********************************************************************************************************************
 
 
@@ -609,10 +611,7 @@ template<typename T0, typename ...Others> T0 min(T0 const &first, Others &&...ot
     return min(first, min(std::forward<Others>(others)...));
 };
 
-///**
-// * @} ingroup utilities
-// */
-//
+
 
 }// namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

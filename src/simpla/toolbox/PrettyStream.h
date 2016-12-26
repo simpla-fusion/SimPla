@@ -20,10 +20,34 @@
 #include <vector>
 
 #include <simpla/mpl/type_traits.h>
-
+#include <simpla/mpl/integer_sequence.h>
 
 namespace simpla
 {
+template<typename T, size_type ...N> std::ostream &
+printNd(std::ostream &os, T const &d, index_sequence<N...> const &,
+        ENABLE_IF((!traits::is_indexable<T, size_type>::value)))
+{
+    os << d;
+    return os;
+}
+
+
+template<typename T, size_type M, size_type ...N> std::ostream &
+printNd(std::ostream &os, T const &d, index_sequence<M, N...> const &,
+        ENABLE_IF((traits::is_indexable<T, size_type>::value)))
+{
+    os << "{";
+    printNd(os, d[0], index_sequence<N...>());
+    for (size_type i = 1; i < M; ++i)
+    {
+        os << " , ";
+        printNd(os, d[i], index_sequence<N...>());
+    }
+    os << "}";
+
+    return os;
+}
 
 /**
  * @ingroup toolbox
@@ -156,10 +180,7 @@ std::ostream &ContainerOutPut3(std::ostream &os, TI const &ib, TI const &ie,
     }
     return os;
 }
-} // namespace simpla
 
-namespace std
-{
 
 template<typename T> std::ostream &
 operator<<(std::ostream &os, const std::complex<T> &tv)
@@ -282,25 +303,25 @@ template<typename T> using is_printable_t=std::enable_if_t<is_printable<T>::valu
 
 }//namespace traits{
 
-
-template<typename T, typename ...Others>
-std::ostream &print(std::ostream &os, T const &first, Others &&... others)
-{
-    os << first << " , ";
-
-    print(os, std::forward<Others>(others)...);
-
-    return os;
-};
-
-template<typename T>
-std::ostream &print(std::ostream &os, T const &v, traits::is_printable_t<T> *_p = nullptr)
-{
-    return v.print(os, 1);
-}
+//
+//template<typename T, typename ...Others>
+//std::ostream &print(std::ostream &os, T const &first, Others &&... others)
+//{
+//    os << first << " , ";
+//
+//    print(os, std::forward<Others>(others)...);
+//
+//    return os;
+//};
+//
+//template<typename T>
+//std::ostream &print(std::ostream &os, T const &v, traits::is_printable_t<T> *_p = nullptr)
+//{
+//    return v.print(os, 1);
+//}
 
 
 /** @}*/
-}  // namespace std
+} // namespace simpla
 
 #endif /* PRETTY_STREAM_H_ */

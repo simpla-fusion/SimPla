@@ -4,6 +4,7 @@
 #include <iostream>
 #include <complex>
 #include "../nTuple.h"
+#include "../nTupleExt.h"
 
 using namespace simpla;
 
@@ -22,13 +23,18 @@ int main(int argc, char **argv)
     nTuple<Real, 2, 3> t1 = {{0, 1, 2}, {3, 4, 5}};
     nTuple<std::complex<Real>, 2, 3> t2 = {{0, 1, 2}, {3, 4, 5}};
 
-    std::cout << "{" << t1[0][0] << " , " << t1[0][1] << " , " << t1[0][2] << "} , {" << t1[1][0] << " , " << t1[1][1]
-              << " , " << t1[1][2] << "} " << std::endl;
+    std::cout << "t1 = " << t1 << std::endl;
+
+    std::cout << "t2 = " << t2 << std::endl;
+
     t1 *= 2;
-    std::cout << "{" << t1[0][0] << " , " << t1[0][1] << " , " << t1[0][2] << "} , {" << t1[1][0] << " , " << t1[1][1]
-              << " , " << t1[1][2] << "} " << std::endl;
+
+    std::cout << "t1 = " << t1 << std::endl;
+
     nTuple<double, 3> A, B, C;
 
     A = B + C;
+
+    std::cout << A << std::endl;
 
 }
