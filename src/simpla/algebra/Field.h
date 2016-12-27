@@ -52,8 +52,8 @@ private:
     std::shared_ptr<data_type> m_data_holder_;
 
 public:
-//    template<typename ...Args>
-//    Field_(Args &&...args) : m_mesh_(nullptr), m_data_(nullptr) {};
+    template<typename ...Args>
+    Field_(Args &&...args) : m_mesh_(nullptr), m_data_(nullptr) {};
 
     explicit Field_(mesh_type const *m, data_type *d = nullptr) :
             m_data_holder_(d, simpla::tags::do_nothing()),
@@ -68,6 +68,8 @@ public:
     Field_(this_type const &other) = delete;
 
     Field_(this_type &&other) = delete;
+
+    bool is_valid() { return true; }
 
     virtual void pre_process()
     {

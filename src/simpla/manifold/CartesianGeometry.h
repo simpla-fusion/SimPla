@@ -71,7 +71,7 @@ public:
 
 
 public:
-    template<typename TV, size_type IFORM, size_type DOF = 1> using data_block_type=TV;// mesh::DataBlockArray<TV, IFORM, DOF>;
+    template<typename TV, size_type IFORM, size_type DOF = 1> using data_block_type= mesh::DataBlockArray<TV, IFORM, DOF>;
 
     typedef MeshEntityId id_type;
 
@@ -93,6 +93,8 @@ private:
     Real m_inv_dual_volume_[9];
 public:
     typedef mesh::MeshEntityIdCoder m;
+
+    template<typename ...Args> void apply(Args &&...) const {}
 
     void deploy() {};
 

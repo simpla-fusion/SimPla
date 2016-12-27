@@ -166,25 +166,26 @@ cross(TL const &lhs, TR const &rhs,
 
 
 template<typename TL, typename TR> inline auto
-cross(TL const &lhs, TR const &rhs, ENABLE_IF((traits::iform<TL>::value == FACE))) DECL_RET_TYPE(
-        hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
+cross(TL const &lhs, TR const &rhs,
+      ENABLE_IF((traits::iform<TL>::value == FACE)))
+DECL_RET_TYPE(hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
 
 
-template<typename TL, typename TR> inline declare::Expression<tags::_cross, TL, TR>
+template<typename TL, typename TR> inline declare::Expression<tags::_cross, const TL, const TR>
 cross(TL const &l, TR const &r, ENABLE_IF((traits::iform<TL>::value == VERTEX)))
 {
-    return declare::Expression<tags::_cross, TL, TR>(l, r);
+    return declare::Expression<tags::_cross, const TL, const TR>(l, r);
 };
 
-namespace traits
-{
-
-template<typename TL, typename TR>
-struct primary_type<declare::Expression<tags::_dot, TL, TR>>
-{
-    typedef decltype(std::declval<value_type_t < TL> > () * std::declval<value_type_t < TR >>()) type;
-};
-}
+//namespace traits
+//{
+//
+//template<typename TL, typename TR>
+//struct primary_type<declare::Expression<tags::_dot, TL, TR>>
+//{
+//    typedef decltype(std::declval<value_type_t < TL> > () * std::declval<value_type_t < TR >>()) type;
+//};
+//}
 
 template<typename TL, typename TR> inline auto
 dot(TL const &lhs, TR const &rhs,
@@ -193,12 +194,12 @@ dot(TL const &lhs, TR const &rhs,
 DECL_RET_TYPE(wedge(lhs, hodge_star(rhs)));
 
 
-template<typename TL, typename TR> inline traits::primary_type_t<declare::Expression<tags::_dot, TL, TR>>
+template<typename TL, typename TR> inline declare::Expression<tags::_dot, const TL, const TR>
 dot(TL const &lhs, TR const &rhs,
     ENABLE_IF((traits::iform<TL>::value == VERTEX ||
                traits::iform<TL>::value == VOLUME)))
 {
-    return declare::Expression<tags::_dot, TL, TR>(lhs, rhs);
+    return declare::Expression<tags::_dot, const TL, const TR>(lhs, rhs);
 };
 
 

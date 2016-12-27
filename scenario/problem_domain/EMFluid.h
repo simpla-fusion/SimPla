@@ -11,10 +11,10 @@
 
 #include <simpla/physics/PhysicalConstants.h>
 #include <simpla/mesh/EntityIdRange.h>
-#include <simpla/algebra/Calculus.h>
 #include <simpla/mesh/Worker.h>
 #include <simpla/mesh/Chart.h>
 #include <simpla/algebra/Field.h>
+#include <simpla/algebra/Calculus.h>
 
 
 namespace simpla
@@ -174,9 +174,9 @@ void EMFluid<TM>::initialize(Real data_time, Real dt)
 
     if (m_fluid_sp_.size() > 0)
     {
-        Ev = algebra::map_to<VERTEX>(E);
-        B0v = algebra::map_to<VERTEX>(B0);
-        BB = algebra::dot(B0v, B0v);
+        Ev = map_to<VERTEX>(E);
+        B0v = map_to<VERTEX>(B0);
+        BB = dot(B0v, B0v);
     }
     base_type::initialize(data_time, 0);
 }

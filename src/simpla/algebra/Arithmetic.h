@@ -72,10 +72,13 @@ template<typename TR> constexpr Zero operator&(Zero, Zero) { return std::move(Ze
 /** @} */
 
 #define DEF_BOP(_NAME_, _OP_)  \
- namespace tags{struct _NAME_{ template<typename TL,typename TR> static inline constexpr auto eval( TL const & l,TR const & r   )  ->decltype(l _OP_ r) {return l _OP_ r;};};}
+ namespace tags{struct _NAME_{ \
+     template<typename TL,typename TR> static inline constexpr auto eval( TL const & l,TR const & r   )  ->decltype(l _OP_ r) {return l _OP_ r;};\
+     template<typename TL,typename TR>   inline constexpr auto operator()( TL const & l,TR const & r   )const  ->decltype(l _OP_ r) {return l _OP_ r;};\
+};}
 
 #define DEF_UOP(_NAME_, _OP_)   \
- namespace tags{struct _NAME_{ template<typename TL> static inline constexpr auto eval(TL const & l )  ->decltype(  _OP_ l){return  _OP_ l;};};}
+ namespace tags{struct _NAME_{  template<typename TL> static inline constexpr auto eval(TL const & l )  ->decltype(  _OP_ l){return  _OP_ l;};};}
 
 
 DEF_BOP(plus, +)
