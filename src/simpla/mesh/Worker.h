@@ -10,7 +10,7 @@
 #include <vector>
 #include <set>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/design_pattern/Observer.h>
+#include <simpla/design_pattern/Observer.h>
 
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>

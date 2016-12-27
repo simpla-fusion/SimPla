@@ -12,8 +12,8 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
-//#include <simpla/toolbox/PrettyStream.h>
 #include <simpla/mpl/any.h>
+#include <simpla/mpl/check_concept.h>
 
 #include "nTuple.h"
 
@@ -142,8 +142,8 @@ namespace declare
 namespace _detail
 {
 template<typename T, size_type ...N> std::ostream &
-printNd(std::ostream &os, T const &d, index_sequence<N...> const &,
-        ENABLE_IF((!traits::is_indexable<T, size_type>::value)))
+printNd_(std::ostream &os, T const &d, index_sequence<N...> const &,
+        ENABLE_IF((!simpla::traits::is_indexable<T, size_type>::value)))
 {
     os << d;
     return os;
@@ -151,15 +151,15 @@ printNd(std::ostream &os, T const &d, index_sequence<N...> const &,
 
 
 template<typename T, size_type M, size_type ...N> std::ostream &
-printNd(std::ostream &os, T const &d, index_sequence<M, N...> const &,
-        ENABLE_IF((traits::is_indexable<T, size_type>::value)))
+printNd_(std::ostream &os, T const &d, index_sequence<M, N...> const &,
+        ENABLE_IF((simpla::traits::is_indexable<T, size_type>::value)))
 {
     os << "{";
-    printNd(os, d[0], index_sequence<N...>());
+    printNd_(os, d[0], index_sequence<N...>());
     for (size_type i = 1; i < M; ++i)
     {
         os << " , ";
-        printNd(os, d[i], index_sequence<N...>());
+        printNd_(os, d[i], index_sequence<N...>());
     }
     os << "}";
 
@@ -170,7 +170,7 @@ printNd(std::ostream &os, T const &d, index_sequence<M, N...> const &,
 template<typename T, size_type  ...M>
 std::ostream &operator<<(std::ostream &os, nTuple_<T, M...> const &v)
 {
-    return _detail::printNd(os, v.data_, index_sequence<M ...>());
+    return _detail::printNd_(os, v.data_, index_sequence<M ...>());
 }
 
 

@@ -36,7 +36,7 @@ struct AttributeDesc : public concept::Configurable, public Object
     virtual size_type dof() const =0;
 };
 
-template<typename TV, MeshEntityType IFORM, size_type DOF>
+template<typename TV, size_type IFORM, size_type DOF>
 struct AttributeDescTemp : public AttributeDesc
 {
     template<typename ...Args>
@@ -148,7 +148,7 @@ private:
     std::shared_ptr<DataBlock> m_data_;
 };
 
-template<typename TV, MeshEntityType IFORM, int DOF>
+template<typename TV, size_type IFORM, size_type DOF>
 class DataAttribute : public Attribute
 {
     typedef TV value_type;

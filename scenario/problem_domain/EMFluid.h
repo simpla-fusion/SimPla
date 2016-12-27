@@ -21,6 +21,8 @@ namespace simpla
 {
 using namespace mesh;
 
+using namespace algebra;
+
 
 template<typename TM>
 class EMFluid : public Worker
@@ -62,7 +64,7 @@ SP_OBJECT_HEAD(EMFluid<TM>, Worker);
 
     virtual void set_physical_boundary_conditions_B(Real time = 0) {};
 
-    template<mesh::MeshEntityType IFORM, size_type DOF = 1> using field_type=FieldType<scalar_type, TM, IFORM, DOF>;
+    template<size_type IFORM, size_type DOF = 1> using field_type=Field<scalar_type, TM, IFORM, DOF>;
 
 
     typedef field_type<FACE> TB;
@@ -172,9 +174,9 @@ void EMFluid<TM>::initialize(Real data_time, Real dt)
 
     if (m_fluid_sp_.size() > 0)
     {
-        Ev = map_to<VERTEX>(E);
-        B0v = map_to<VERTEX>(B0);
-        BB = dot(B0v, B0v);
+        Ev = algebra::map_to<VERTEX>(E);
+        B0v = algebra::map_to<VERTEX>(B0);
+        BB = algebra::dot(B0v, B0v);
     }
     base_type::initialize(data_time, 0);
 }

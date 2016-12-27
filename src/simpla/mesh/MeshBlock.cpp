@@ -254,7 +254,7 @@ MeshBlock::intersection(index_box_type const &other_box, int inc_level)
 
 
 EntityIdRange
-MeshBlock::range(MeshEntityType entityType, index_box_type const &b) const
+MeshBlock::range(size_type entityType, index_box_type const &b) const
 {
     EntityIdRange res;
     res.append(MeshEntityIdCoder::make_range(std::get<0>(b), std::get<1>(b), entityType));
@@ -262,7 +262,7 @@ MeshBlock::range(MeshEntityType entityType, index_box_type const &b) const
 }
 
 EntityIdRange
-MeshBlock::range(MeshEntityType entityType, box_type const &b) const
+MeshBlock::range(size_type entityType, box_type const &b) const
 {
     index_tuple l, u;
     l = point_to_index(std::get<1>(b));
@@ -271,7 +271,7 @@ MeshBlock::range(MeshEntityType entityType, box_type const &b) const
 }
 
 EntityIdRange
-MeshBlock::range(MeshEntityType entityType, MeshZoneTag status) const
+MeshBlock::range(size_type entityType, MeshZoneTag status) const
 {
     EntityIdRange res;
 
@@ -344,6 +344,7 @@ MeshBlock::range(MeshEntityType entityType, MeshZoneTag status) const
             res.append(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType));
             break;
         case SP_ES_VALID:
+        {
             index_tuple l, u;
             l = m_outer_lower_;
             u = m_outer_upper_;
@@ -357,7 +358,7 @@ MeshBlock::range(MeshEntityType entityType, MeshZoneTag status) const
             }
             res.append(MeshEntityIdCoder::make_range(l, u, entityType));
             break;
-
+        }
 //        case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh grid_dims,
 //            res.append(m_interface_entities_[entityType]);
             break;

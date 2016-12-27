@@ -10,13 +10,13 @@
 #include <iomanip>
 #include <simpla/SIMPLA_config.h>
 
-#include <simpla/toolbox/macro.h>
+#include <simpla/mpl/macro.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
-#include <simpla/toolbox/PrettyStream.h>
-#include <simpla/toolbox/type_traits.h>
-#include <simpla/toolbox/type_cast.h>
+#include <simpla/mpl/type_traits.h>
+#include <simpla/mpl/type_cast.h>
 #include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/PrettyStream.h>
 
 #include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/Attribute.h>
@@ -37,7 +37,7 @@ struct CylindricalGeometry : public Chart
 {
 
 public:
-    SP_OBJECT_HEAD(CylindricalGeometry, Chart)
+SP_OBJECT_HEAD(CylindricalGeometry, Chart)
 
     static constexpr bool is_frame_bundle = true;
 
@@ -50,7 +50,7 @@ public:
     virtual ~CylindricalGeometry() {}
 
 
-    template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1> using data_block_type=mesh::DataBlockArray<TV, IFORM, DOF>;
+    template<typename TV, size_type IFORM, size_type DOF = 1> using data_block_type=mesh::DataBlockArray<TV, IFORM, DOF>;
 
 //private:
     DataAttribute<Real, VERTEX, 3> m_vertics_{this, "name=vertics;COORDINATES"};
@@ -179,9 +179,9 @@ public:
             *
             *\endverbatim
             */
-        auto m_start_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> >(
+        auto m_start_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, VERTEX, 3> >(
                 m_vertics_.data())->start();
-        auto m_count_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 3> >(
+        auto m_count_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, VERTEX, 3> >(
                 m_vertics_.data())->count();
 
         index_type ib = m_start_[0];

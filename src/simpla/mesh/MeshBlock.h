@@ -14,7 +14,7 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/LifeControllable.h>
-//#include <simpla/toolbox/BoxUtility.h>
+#include "BoxUtility.h"
 #include "MeshCommon.h"
 #include "EntityId.h"
 
@@ -164,11 +164,14 @@ SP_OBJECT_HEAD(MeshBlock, Object)
 
     virtual bool is_valid()
     {
-        return is_deployed() &&
-               toolbox::is_valid(m_g_box_) &&
-               toolbox::is_valid(m_m_box_) &&
-               toolbox::is_valid(m_inner_box_) &&
-               toolbox::is_valid(m_outer_box_);
+        return is_deployed()
+
+//               &&  toolbox::is_valid(m_g_box_) &&
+//               toolbox::is_valid(m_m_box_) &&
+//               toolbox::is_valid(m_inner_box_) &&
+//               toolbox::is_valid(m_outer_box_)
+
+                ;
     }
 
     size_tuple dimensions() const { return toolbox::dimensions(m_g_box_); }

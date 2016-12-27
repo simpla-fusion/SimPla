@@ -18,7 +18,7 @@
 #include <typeinfo>
 #include <stddef.h>
 
-//#include <simpla/toolbox/Log.h>
+#include <simpla/toolbox/Log.h>
 //#include "../../../to_delete/nTupleComplex.h"
 
 

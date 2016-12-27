@@ -6,7 +6,7 @@
 #include "Atlas.h"
 #include "simpla/mesh/TransitionMap.h"
 
-#include "simpla/toolbox/BoxUtility.h"
+//#include "simpla/toolbox/BoxUtility.h"
 
 namespace simpla
 {

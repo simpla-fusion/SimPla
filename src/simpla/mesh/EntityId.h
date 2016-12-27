@@ -812,7 +812,7 @@ struct MeshEntityIdCoder_
 
         // constructors
 
-        range_type(index_tuple const &b, index_tuple const &e, MeshEntityType IFORM = VERTEX, index_type dof = 1)
+        range_type(index_tuple const &b, index_tuple const &e, size_type IFORM = VERTEX, index_type dof = 1)
                 : m_iform_(IFORM), m_min_(b), m_max_(e), m_dof_(dof)
         {
             m_grain_size_ = 1;
@@ -832,7 +832,7 @@ struct MeshEntityIdCoder_
         }
 
         range_type(index_tuple const &b, index_tuple const &e, index_tuple const &grain_size,
-                   MeshEntityType IFORM = VERTEX, index_type dof = 1)
+                   size_type IFORM = VERTEX, index_type dof = 1)
                 : m_iform_(IFORM), m_min_(b), m_max_(e), m_grain_size_(grain_size), m_dof_(dof)
         {
         }
@@ -891,7 +891,7 @@ struct MeshEntityIdCoder_
             std::swap(m_grain_size_, other.m_grain_size_);
         }
 
-        MeshEntityType entity_type() const { return m_iform_; }
+        size_type entity_type() const { return m_iform_; }
 
         index_box_type index_box() const { return std::make_tuple(m_min_, m_max_); }
 

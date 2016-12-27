@@ -254,20 +254,20 @@ void DataSpace::select_points(size_type num, const size_type *tags)
     size_type head = m_pimpl_->m_selected_points_.size();
     size_type tail = head + num;
     m_pimpl_->m_selected_points_.resize(tail);
-    parallel::parallel_for(
-            parallel::blocked_range<size_type>(head, tail),
-            [&](parallel::blocked_range <size_type> const &r)
-            {
-                for (size_type i = r.begin(), ie = r.end(); i != ie; ++i)
-                {
-                    for (size_type j = 0; j < ndims; ++j)
-                    {
-                        m_pimpl_->m_selected_points_[i * ndims + j] = tags[(i - head) * ndims + j];
-                    }
-                }
-            }
-
-    );
+//    parallel::parallel_for(
+//            parallel::blocked_range<size_type>(head, tail),
+//            [&](parallel::blocked_range <size_type> const &r)
+//            {
+//                for (size_type i = r.begin(), ie = r.end(); i != ie; ++i)
+//                {
+//                    for (size_type j = 0; j < ndims; ++j)
+//                    {
+//                        m_pimpl_->m_selected_points_[i * ndims + j] = tags[(i - head) * ndims + j];
+//                    }
+//                }
+//            }
+//
+//    );
 }
 
 DataSpace &DataSpace::select_hyperslab(size_type const *start,

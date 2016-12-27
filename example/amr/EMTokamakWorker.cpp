@@ -32,7 +32,7 @@ std::shared_ptr<mesh::Worker> create_worker()
 class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry>
 {
 public:
-    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>);
+SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>);
 
     virtual void deploy();
 

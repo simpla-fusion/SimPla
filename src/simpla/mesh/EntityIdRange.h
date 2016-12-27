@@ -284,7 +284,7 @@ private:
 
         virtual void foreach(foreach_body_type const &body) const
         {
-            foreach(m_range_, body);
+//            foreach(m_range_, body);
         };
     };
 
