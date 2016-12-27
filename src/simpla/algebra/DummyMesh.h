@@ -97,62 +97,43 @@ struct CalculusPolicy<DummyMesh>
 {
     typedef DummyMesh mesh_type;
 
+    typedef typename DummyMesh::id_type id_type;
+
+
+    template<typename V, size_type IFORM, size_type DOF> static V &
+    access(declare::Field_<V, mesh_type, IFORM, DOF> &f, id_type const &s) { return f.m_data_[f.m_mesh_->hash(s)]; };
+
+    template<typename V, size_type IFORM, size_type DOF> static V const &
+    access(declare::Field_<V, mesh_type, IFORM, DOF> const &f, id_type const &s)
+    {
+        return f.m_data_[f.m_mesh_->hash(s)];
+    };
+
+
     template<typename T> static T &
-    get_value(T &v) { return v; };
+    get_value(T &v, id_type const &,
+              ENABLE_IF(algebra::traits::is_scalar<T>::value)) { return v; };
 
-    template<typename T, typename I0> static st::remove_all_extents_t<T, I0> &
-    get_value(T &v, I0 const *s, ENABLE_IF((st::is_indexable<T, I0>::value))) { return get_value(v[*s], s + 1); };
-
-    template<typename T, typename I0> static st::remove_all_extents_t<T, I0> &
-    get_value(T &v, I0 const *s, ENABLE_IF((!st::is_indexable<T, I0>::value))) { return v; };
-
-
-    template<typename T, size_type N> static T &
-    get_value(declare::nTuple_<T, N> &v, size_type const &s0) { return v[s0 % N]; };
-
-    template<typename T, size_type N> static T const &
-    get_value(declare::nTuple_<T, N> const &v, size_type const &s0) { return v[s0 % N]; };
-
-    template<typename V, size_type IFORM, size_type DOF, typename ...Idx> static V const &
-    get_value(declare::Field_<V, mesh_type, IFORM, DOF> const &f, Idx &&...idx)
-    {
-        return f.m_data_[f.m_mesh_->hash(std::forward<Idx>(idx)...)];
-    };
-
-    template<typename V, size_type IFORM, size_type DOF, typename ...Idx> static V &
-    get_value(declare::Field_<V, mesh_type, IFORM, DOF> &f, Idx &&...idx)
-    {
-        return f.m_data_[f.m_mesh_->hash(std::forward<Idx>(idx)...)];
-    };
-
-private:
+//    template<typename T> static auto
+//    get_value(T &v, id_type const *s, ENABLE_IF((st::is_indexable<T, id_type>::value)))
+//    DECL_RET_TYPE((get_value(v[*s], s + 1)))
 
 
-    template<typename T, typename ...Args> static T &
-    get_value_(std::integral_constant<bool, false> const &, T &v, Args &&...) { return v; }
+    template<typename T> static auto
+    get_value(T &v, id_type const &s0,
+              ENABLE_IF((st::is_indexable<T, id_type>::value && !traits::is_field<T>::value)))
+    DECL_RET_TYPE((v[s0]));
+
+    template<typename T> static auto
+    get_value(T &v, id_type const &s0,
+              ENABLE_IF((st::is_callable<T(id_type)>::value && !traits::is_field<T>::value)))
+    DECL_RET_TYPE((v(s0)));
+
+    template<typename T> static auto
+    get_value(T &f, id_type const &s, ENABLE_IF((traits::is_field<T>::value)))
+    DECL_RET_TYPE((access(f, s)));
 
 
-    template<typename T, typename I0, typename ...Idx> static st::remove_extents_t<T, I0, Idx...> &
-    get_value_(std::integral_constant<bool, true> const &, T &v, I0 const &s0, Idx &&...idx)
-    {
-        return get_value(v[s0], std::forward<Idx>(idx)...);
-    };
-
-    template<typename T, typename I0, typename ...Idx> static st::remove_extents_t<T, I0, Idx...> &
-    get_value_dispatch(T &v, I0 const &s0, Idx &&...idx)
-    {
-        return get_value_(std::integral_constant<bool, st::is_indexable<T, I0>::value>(),
-                          v, s0, std::forward<Idx>(idx)...);
-    };
-public:
-
-
-    template<typename T, typename ...Idx> static st::remove_extents_t<T, Idx...> &
-    get_value(T &v, Idx &&...idx)
-    {
-        return get_value_dispatch(v, std::forward<Idx>(idx)...);
-    };
-public:
     template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static auto
     _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, Idx &&... s)
     DECL_RET_TYPE((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))

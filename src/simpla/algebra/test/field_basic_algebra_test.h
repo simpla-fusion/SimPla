@@ -93,7 +93,6 @@ TYPED_TEST_P(TestField, assign)
     va = 2.0;
     f1 = va;
     size_type count = 0;
-    CHECK(va);
     TestFixture::m->foreach(
             [&](typename TestFixture::mesh_type::id_type const &s) { EXPECT_LE(abs(va - f1[s]), EPSILON); },
             TestFixture::iform, TestFixture::dof);
@@ -167,7 +166,7 @@ TYPED_TEST_P(TestField, constant_real)
                 expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
 
                 // FIXME： truncation error is too big . why ??
-                EXPECT_LE(abs(expect - f3[s]), EPSILON * 100);
+                EXPECT_LE(abs(expect - f3[s]), EPSILON);
             }, TestFixture::iform);
 }
 
@@ -208,9 +207,9 @@ TYPED_TEST_P(TestField, scalarField)
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-//    assign(f1, [&](typename TestFixture::mesh_type::id_type const &s) -> Real { return va * uniform_dist(gen); });
-//    assign(f2, [&](typename TestFixture::mesh_type::id_type const &s) -> Real { return vb * uniform_dist(gen); });
-//    assign(f3, [&](typename TestFixture::mesh_type::id_type const &s) -> Real { return vc * uniform_dist(gen); });
+    f1.assign([&](typename TestFixture::mesh_type::id_type const &s) { return va * uniform_dist(gen); });
+    f2.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vb * uniform_dist(gen); });
+    f3.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vc * uniform_dist(gen); });
 
     LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
 

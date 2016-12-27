@@ -121,10 +121,10 @@ public:
 
     /** @name as_array   @{*/
     template<typename ...TID> value_type &
-    at(TID &&...s) { return calculus_policy::get_value((*this), std::forward<TID>(s)...); }
+    at(TID &&...s) { return calculus_policy::access((*this), std::forward<TID>(s)...); }
 
     template<typename ...TID> value_type const &
-    at(TID &&...s) const { return calculus_policy::get_value((*this), std::forward<TID>(s)...); }
+    at(TID &&...s) const { return calculus_policy::access((*this), std::forward<TID>(s)...); }
 
 
     template<typename TI> inline value_type &
