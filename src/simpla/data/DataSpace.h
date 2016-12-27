@@ -14,7 +14,6 @@
 #include <memory>
 #include <vector>
 #include <simpla/algebra/nTuple.h>
-#include <simpla/toolbox/Properties.h>
 #include <simpla/toolbox/Log.h>
 
 namespace simpla { namespace data

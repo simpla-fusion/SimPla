@@ -36,19 +36,17 @@ private:
 
 public:
 
-    typedef traits::field_value_t<this_type> field_value;
+    typedef traits::field_value_t <this_type> field_value;
     typedef TV value_type;
     typedef TM mesh_type;
 private:
 
     typedef typename mesh_type::template data_block_type<TV, IFORM, DOF> data_type;
 
-
-    typedef algebra::schemes::CalculusPolicy<mesh_type> calculus_policy;
-
-    friend calculus_policy;
+    friend mesh_type;
 
     data_type *m_data_;
+
     mesh_type const *m_mesh_;
 
     std::shared_ptr<data_type> m_data_holder_;
@@ -121,10 +119,10 @@ public:
 
     /** @name as_array   @{*/
     template<typename ...TID> value_type &
-    at(TID &&...s) { return calculus_policy::access((*this), std::forward<TID>(s)...); }
+    at(TID &&...s) { return m_mesh_->access((*this), std::forward<TID>(s)...); }
 
     template<typename ...TID> value_type const &
-    at(TID &&...s) const { return calculus_policy::access((*this), std::forward<TID>(s)...); }
+    at(TID &&...s) const { return m_mesh_->access((*this), std::forward<TID>(s)...); }
 
 
     template<typename TI> inline value_type &
@@ -143,7 +141,7 @@ public:
     apply(Args &&...args)
     {
         pre_process();
-        calculus_policy::apply(m_mesh_, *this, std::forward<Args>(args)...);
+        m_mesh_->apply(*this, std::forward<Args>(args)...);
         return *this;
     }
 

@@ -14,7 +14,7 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/LifeControllable.h>
-#include <simpla/toolbox/BoxUtility.h>
+//#include <simpla/toolbox/BoxUtility.h>
 #include "MeshCommon.h"
 #include "EntityId.h"
 

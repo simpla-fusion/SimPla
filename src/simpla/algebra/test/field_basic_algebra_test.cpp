@@ -6,14 +6,18 @@
  */
 
 #include <gtest/gtest.h>
-#include "../DummyMesh.h"
+
 #include "../Field.h"
 #include "field_basic_algebra_test.h"
 
+#include "../../manifold/CartesianGeometry.h"
+//typedef simpla::mesh::CartesianGeometry mesh_type;
+
+#include "../DummyMesh.h"
+
+typedef simpla::DummyMesh mesh_type;
+
 using namespace simpla;
-
-typedef DummyMesh mesh_type;
-
 
 typedef testing::Types< //
         Field<Real, mesh_type, VERTEX>,//

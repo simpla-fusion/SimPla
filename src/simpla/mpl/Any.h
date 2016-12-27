@@ -20,8 +20,7 @@
 
 #include <simpla/concept/Printable.h>
 #include <simpla/algebra/nTuple.h>
-
-#include "Log.h"
+#include <simpla/toolbox/Log.h>
 
 
 namespace simpla { namespace toolbox
@@ -349,7 +348,7 @@ private:
         virtual void const *data() const = 0;
 
         template<typename U, size_type N>
-        bool as(nTuple <U, N> *v) const
+        bool as(nTuple<U, N> *v) const
         {
             if (is_same<nTuple<U, N>>())
             {
@@ -445,7 +444,7 @@ private:
         }
 
         template<typename V, int N>
-        std::shared_ptr<PlaceHolder> _index_of(nTuple <V, N> const &v, int n) const
+        std::shared_ptr<PlaceHolder> _index_of(nTuple<V, N> const &v, int n) const
         {
             return std::shared_ptr<PlaceHolder>(new Holder<V>(v[n]));
         }

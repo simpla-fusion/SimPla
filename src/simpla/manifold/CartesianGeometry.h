@@ -10,12 +10,13 @@
 
 #include <vector>
 #include <iomanip>
-
-#include <simpla/mesh/DataBlock.h>
 #include <simpla/mesh/MeshCommon.h>
-#include <simpla/mesh/MeshBlock.h>
 #include <simpla/mesh/EntityId.h>
-#include "simpla/mesh/Chart.h"
+
+#include <simpla/toolbox/MemoryPool.h>
+//#include <simpla/mesh/DataBlock.h>
+//#include <simpla/mesh/MeshBlock.h>
+//#include "simpla/mesh/Chart.h"
 
 namespace simpla { namespace mesh
 {
@@ -27,11 +28,11 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public Chart
+struct CartesianGeometry
 {
 public:
 
-SP_OBJECT_HEAD(CartesianGeometry, Chart)
+//SP_OBJECT_HEAD(CartesianGeometry, Chart)
 
 
     static constexpr unsigned int NDIMS = 3;
@@ -70,18 +71,22 @@ SP_OBJECT_HEAD(CartesianGeometry, Chart)
 
 
 public:
-    template<typename TV, size_type IFORM, size_type DOF = 1> using data_block_type= mesh::DataBlockArray<TV, IFORM, DOF>;
+    template<typename TV, size_type IFORM, size_type DOF = 1> using data_block_type=TV;// mesh::DataBlockArray<TV, IFORM, DOF>;
 
+    typedef MeshEntityId id_type;
 
     CartesianGeometry() {}
 
     ~CartesianGeometry() {}
 
-
     virtual void initialize(Real data_time, Real dt);
 
-
 private:
+
+    nTuple<Real, 3> m_dx_, m_inv_dx_;
+
+    size_tuple m_dims_;
+
     Real m_volume_[9];
     Real m_inv_volume_[9];
     Real m_dual_volume_[9];
@@ -89,12 +94,38 @@ private:
 public:
     typedef mesh::MeshEntityIdCoder m;
 
+    void deploy() {};
+
+    size_type size(size_type IFORM = VERTEX, size_type DOF = 1) const
+    {
+        return m_dims_[0] * m_dims_[1] * m_dims_[2] * DOF * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+    }
+
+    template<typename TV, size_type IFORM, size_type DOF>
+    bool create_data_block(std::shared_ptr<data_block_type<TV, IFORM, DOF> > *p, void *d = nullptr) const
+    {
+        if (p == nullptr || (*p) != nullptr) { return false; }
+        else
+        {
+            size_type s = size(IFORM, DOF);
+            *p = sp_alloc_array<TV>(s);
+        }
+    };
+
+    template<typename TFun>
+    void foreach(TFun const &fun, size_type IFORM = VERTEX, size_type DOF = 1) const
+    {
+
+    }
+
+    size_type hash(id_type const &s) const { return s.x; }
+
     template<typename ...Args>
-    point_type point(Args &&...args) const { return mesh_block()->point(std::forward<Args>(args)...); }
+    point_type point(index_type x, index_type y, index_type z) const { return point_type{x, y, z}; }
 
-    virtual point_type point(MeshEntityId s) const { return mesh_block()->point(s); };
+    virtual point_type point(MeshEntityId s) const { return point_type{s.x, s.y, s.z}; }
 
-    virtual point_type point(MeshEntityId s, point_type const &r) const { return mesh_block()->point(s); };
+    virtual point_type point(MeshEntityId s, point_type const &r) const { return point(s); };
 
     virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 
@@ -129,16 +160,12 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
         *
         *\endverbatim
         */
-    nTuple<Real, 3> m_dx_, m_inv_dx_;
 
-    auto const &dims = mesh_block()->dimensions();
-    m_dx_ = mesh_block()->dx();
-    m_inv_dx_ = mesh_block()->inv_dx();
 
     m_volume_[0 /*000*/] = 1;
-    m_volume_[1 /*001*/] = (dims[0] == 1) ? 1 : m_dx_[0];
-    m_volume_[2 /*010*/] = (dims[1] == 1) ? 1 : m_dx_[1];
-    m_volume_[4 /*100*/] = (dims[2] == 1) ? 1 : m_dx_[2];
+    m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_dx_[0];
+    m_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_dx_[1];
+    m_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_dx_[2];
     m_volume_[3 /*011*/] = m_volume_[1] * m_volume_[2];
     m_volume_[5 /*101*/] = m_volume_[4] * m_volume_[1];
     m_volume_[6 /*110*/] = m_volume_[4] * m_volume_[2];
@@ -156,18 +183,18 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
 
 
     m_inv_volume_[0 /*000*/] = 1;
-    m_inv_volume_[1 /*001*/] = (dims[0] == 1) ? 1 : m_inv_dx_[0];
-    m_inv_volume_[2 /*010*/] = (dims[1] == 1) ? 1 : m_inv_dx_[1];
-    m_inv_volume_[4 /*100*/] = (dims[2] == 1) ? 1 : m_inv_dx_[2];
+    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_inv_dx_[0];
+    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_inv_dx_[1];
+    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_inv_dx_[2];
     m_inv_volume_[3 /*011*/] = m_inv_volume_[2] * m_inv_volume_[1];
     m_inv_volume_[5 /*101*/] = m_inv_volume_[4] * m_inv_volume_[1];
     m_inv_volume_[6 /*110*/] = m_inv_volume_[4] * m_inv_volume_[2];
     m_inv_volume_[7 /*111*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
 
 
-    m_inv_volume_[1 /*001*/] = (dims[0] == 1) ? 0 : m_inv_volume_[1];
-    m_inv_volume_[2 /*010*/] = (dims[1] == 1) ? 0 : m_inv_volume_[2];
-    m_inv_volume_[4 /*100*/] = (dims[2] == 1) ? 0 : m_inv_volume_[4];
+    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 0 : m_inv_volume_[1];
+    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 0 : m_inv_volume_[2];
+    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 0 : m_inv_volume_[4];
 
 
     m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
