@@ -15,6 +15,7 @@
 #include "Algebra.h"
 #include "Expression.h"
 #include "Arithmetic.h"
+#include "Field.h"
 
 namespace simpla
 {
@@ -62,14 +63,18 @@ public:
     template<typename TV, size_type IFORM, size_type DOF = 1> using data_block_type=TV;
 //    traits::add_extents_t<TV, 1, 1, 1, ((IFORM == VERTEX || IFORM == VOLUME) ? DOF : DOF * 3)>;
 
+    size_type size(size_type IFORM = VERTEX, size_type DOF = 1) const
+    {
+        return m_dims_[0] * m_dims_[1] * m_dims_[2] * DOF * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+    }
+
     template<typename TV, size_type IFORM, size_type DOF>
     bool create_data_block(std::shared_ptr<data_block_type<TV, IFORM, DOF> > *p, void *d = nullptr) const
     {
         if (p == nullptr || (*p) != nullptr) { return false; }
         else
         {
-            size_type s = m_dims_[0] * m_dims_[1] * m_dims_[2] * DOF *
-                          ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+            size_type s = size(IFORM, DOF);
             *p = sp_alloc_array<TV>(s);
         }
     };
@@ -78,8 +83,7 @@ public:
     template<typename TFun>
     void foreach(TFun const &fun, size_type iform = VERTEX, size_type dof = 1) const
     {
-        size_type se = m_dims_[0] * m_dims_[1] * m_dims_[2] * dof *
-                       ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
+        size_type se = size(iform, dof);
 
         for (size_type s = 0; s < se; ++s) { fun(s); }
     }
@@ -145,6 +149,7 @@ struct CalculusPolicy<DummyMesh>
     template<typename TV, size_type IFORM, size_type DOF> static void
     apply(mesh_type const *m, declare::Field_<TV, mesh_type, IFORM, DOF> &lhs, algebra::tags::_clear const &)
     {
+        memset(lhs.m_data_, m->size(IFORM, DOF) * sizeof(TV), 0);
     }
 
     template<typename TV, size_type IFORM, size_type DOF, typename TOP, typename TFun> static void

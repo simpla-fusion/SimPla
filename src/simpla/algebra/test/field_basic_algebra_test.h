@@ -181,9 +181,9 @@ TYPED_TEST_P(TestField, scalarField)
     typename TestFixture::field_type f3(TestFixture::m);
     typename TestFixture::field_type f4(TestFixture::m);
 
-    typename TestFixture::scalar_field_type a(TestFixture::m);
-    typename TestFixture::scalar_field_type b(TestFixture::m);
-    typename TestFixture::scalar_field_type c(TestFixture::m);
+    typename TestFixture::scalar_field_type fa(TestFixture::m);
+    typename TestFixture::scalar_field_type fb(TestFixture::m);
+    typename TestFixture::scalar_field_type fc(TestFixture::m);
 
     Real ra = 1.0, rb = 10.0, rc = 100.0;
 
@@ -193,15 +193,15 @@ TYPED_TEST_P(TestField, scalarField)
     vb = rb;
     vc = rc;
 
-    a = (va);
-    b = (vb);
-    c = (vc);
+    fa = (va);
+    fb = (vb);
+    fc = (vc);
 
     f1.deploy();
     f2.deploy();
     f3.deploy();
     f4.deploy();
-
+    f4.clear();
     size_type count = 0;
 
     std::mt19937 gen;
@@ -211,9 +211,9 @@ TYPED_TEST_P(TestField, scalarField)
     f2.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vb * uniform_dist(gen); });
     f3.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vc * uniform_dist(gen); });
 
-    LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
+    LOG_CMD(f4 = -f1 * fa + f2 * fb - f3 / fc - f1);
 
-//	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
+//	Plus( Minus(Negate(Wedge(f1,fa)),Divides(f2,fb)),Multiplies(f3,fc) )
 
 /**           (+)
  *           /   \
@@ -225,10 +225,21 @@ TYPED_TEST_P(TestField, scalarField)
  *
  * */
 
+//    TestFixture::m->foreach([&](typename TestFixture::mesh_type::id_type const &s)
+//                            {
+//                                CHECK(fa[s]);
+//                                CHECK(fb[s]);
+//                                CHECK(fc[s]);
+//                            });
+
     TestFixture::m->foreach(
             [&](typename TestFixture::mesh_type::id_type const &s)
             {
                 value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
+
+
+
+                EXPECT_DOUBLE_EQ(abs(res), abs(f4[s]));
                 EXPECT_LE(abs(res - f4[s]), EPSILON);
             }, TestFixture::iform, TestFixture::dof);
 
