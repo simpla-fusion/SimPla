@@ -15,8 +15,7 @@
 #include <tuple>
 #include <type_traits>
 
-#include "../type_traits.h"
-#include "simpla/algebra/nTuple.h"
+#include "simpla/mpl/type_traits.h"
 
 namespace simpla { namespace toolbox
 {
@@ -40,38 +39,14 @@ public:
 
 // constructors
     Range(const_iterator b, const_iterator e, size_type grain_size = 1) :
-            m_begin_(b), m_end_(e), m_grain_size_(grain_size)
-    {
+            m_begin_(b), m_end_(e), m_grain_size_(grain_size) {}
 
-    }
-
-    Range(Range &r, tags::split) : m_begin_(r.m_begin_ + r.size() / 2), m_end_(r
-                                                                                       .m_end_), m_grain_size_(r.
-
-            grainsize()
-
-    )
-    {
-        r.
-                m_end_ = m_begin_;
-    };
+    Range(Range &r, tags::split) : m_begin_(r.m_begin_ + r.size() / 2), m_end_(r.m_end_),
+                                   m_grain_size_(r.grainsize()) { r.m_end_ = m_begin_; };
 
     Range(Range &r, tags::proportional_split &proportion) :
-            m_begin_(r.m_begin_ + r.
-
-                    size() * proportion.
-
-                    left() / (proportion.
-
-                    left() + proportion.
-
-                    right())),
-            m_end_(r.m_end_),
-            m_grain_size_(r.grainsize())
-    {
-        r.
-                m_end_ = m_begin_;
-    };
+            m_begin_(r.m_begin_ + r.size() * proportion.left() / (proportion.left() + proportion.right())),
+            m_end_(r.m_end_), m_grain_size_(r.grainsize()) { r.m_end_ = m_begin_; };
 
 // Proportional split is enabled
     static const bool is_splittable_in_proportion = true;
@@ -93,7 +68,7 @@ public:
 
 private:
 
-    nTuple<T, NDIMS> m_begin_, m_end_, m_start_, m_shape_;
+    nTuple <T, NDIMS> m_begin_, m_end_, m_start_, m_shape_;
 
     size_type m_grain_size_;
 

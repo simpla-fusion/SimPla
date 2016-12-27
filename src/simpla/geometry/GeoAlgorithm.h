@@ -11,11 +11,16 @@
 #include <stddef.h>
 #include <tuple>
 
-#include <simpla/calculus/nTuple.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/nTupleExt.h>
+#include <simpla/algebra/Arithmetic.h>
+#include <simpla/algebra/Calculus.h>
 #include <simpla/toolbox/sp_def.h>
 
 namespace simpla { namespace geometry
 {
+using namespace simpla::algebra;
+
 /**
  * @ingroup geometry
  * @{
@@ -121,7 +126,7 @@ Real nearest_point_to_polygon(T0 const &p0, T1 const &p1, TP *x)
 }
 
 template<typename TS, size_type N>
-void extent_box(nTuple <TS, N> *x0, nTuple <TS, N> *x1, const TS *x)
+void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, const TS *x)
 {
     for (int i = 0; i < N; ++i)
     {
@@ -131,7 +136,7 @@ void extent_box(nTuple <TS, N> *x0, nTuple <TS, N> *x1, const TS *x)
 }
 
 template<typename TS, int N, typename T1, typename ...Others>
-void extent_box(nTuple <TS, N> *x0, nTuple <TS, N> *x1, T1 const &y0, Others &&...others)
+void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, T1 const &y0, Others &&...others)
 {
     extent_box(x0, x1, y0);
     extent_box(x0, x1, std::forward<Others>(others)...);
@@ -334,7 +339,7 @@ Real intersection_line_to_polygons(T0 const &p0, T1 const &p1, T2 const &polygon
 
     Vec3 n;
     n = cross(q2 - q1, q1 - q0);
-    n /= std::sqrt(inner_product(n, n));
+    n /= std::sqrt(static_cast<Real>(inner_product(n, n)));
 
     it = polygon.begin();
 
@@ -455,7 +460,7 @@ inline Vec3 reflect_point_by_plane(T0 const &x0, T1 const &p0, T2 const &p1,
 
 
 template<typename TS, size_type NDIMS, typename TV>
-bool box_intersection(nTuple <TS, NDIMS> const &l_b, nTuple <TS, NDIMS> const &l_e,
+bool box_intersection(nTuple<TS, NDIMS> const &l_b, nTuple<TS, NDIMS> const &l_e,
                       TV *r_b, TV *r_e)
 {
     bool has_overlap = false;

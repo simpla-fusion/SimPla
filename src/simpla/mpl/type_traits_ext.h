@@ -8,7 +8,7 @@
 #ifndef CORE_toolbox_TYPE_TRAITS_EXT_H_
 #define CORE_toolbox_TYPE_TRAITS_EXT_H_
 
-#include "CheckConcept.h"
+#include "check_concept.h"
 #include "macro.h"
 
 namespace simpla

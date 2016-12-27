@@ -6,7 +6,7 @@
 #define SIMPLA_RANGE_H
 
 #include <iterator>
-#include "IteratorAdapter.h"
+#include "iterator_adapter.h"
 
 namespace simpla
 {
@@ -24,34 +24,34 @@ struct proportional_split
 };
 }
 template<typename _Category, typename _Tp,
-        typename _Distance = ptrdiff_t, typename _Pointer = _Tp *, typename _Reference = _Tp &> class Range;
+        typename _Distance = ptrdiff_t, typename _Pointer = _Tp *, typename _Reference = _Tp &> class range;
 
 
 template<typename _Category, typename _Tp, typename _Distance, typename _Pointer, typename _Reference>
-class Range
+class range
 {
-    typedef Range<_Category, _Tp, _Distance, _Pointer, _Reference> this_type;
+    typedef range<_Category, _Tp, _Distance, _Pointer, _Reference> this_type;
 public:
-    typedef IteratorAdapter<_Category, _Tp, _Distance, _Pointer, _Reference> iterator;
+    typedef iterator_adapter<_Category, _Tp, _Distance, _Pointer, _Reference> iterator;
     typedef iterator const_iterator;
 
-    Range() : m_grain_size_(1) { }
+    range() : m_grain_size_(1) { }
 
     template<typename TI>
-    Range(TI const &b, TI const &e, size_t grain_size = 1) :
+    range(TI const &b, TI const &e, size_t grain_size = 1) :
             m_begin_(iterator(b)), m_end_(iterator(e)), m_grain_size_(grain_size) { }
 
     //****************************************************************************
     // TBB RangeHolder Concept Begin
 
-    ~Range() { }
+    ~range() { }
 
-    Range(Range const &other) :
+    range(range const &other) :
             m_begin_(other.m_begin_),
             m_end_(other.m_end_),
             m_grain_size_(other.m_grain_size_) { }
 
-    Range(Range &other, tags::split,
+    range(range &other, tags::split,
           ENABLE_IF((std::is_same<std::random_access_iterator_tag, _Category>::value))) :
             m_begin_(other.m_begin_),
             m_end_(m_begin_ + (other.m_end_ - other.m_begin_) / 2),
@@ -60,7 +60,7 @@ public:
         other.m_begin_ = m_end_;
     }
 
-    Range(Range &other, tags::proportional_split proportion,
+    range(range &other, tags::proportional_split proportion,
           ENABLE_IF((std::is_same<std::random_access_iterator_tag, _Category>::value))) :
             m_begin_(other.m_begin_),
             m_end_(m_begin_ + ((other.m_end_ - other.m_begin_) * proportion.left())

@@ -177,8 +177,15 @@ template<typename T> struct primary_type<T, typename std::enable_if<is_field<T>:
 //template<typename TV, typename TM, size_type I, size_type DOF> struct rank<Field_<TV, TM, I, DOF> > : public rank<TM> { typedef TV type; };
 //
 //template<typename TV, typename TM, size_type I, size_type DOF> struct value_type<Field_<TV, TM, I, DOF> > { typedef TV type; };
+template<typename T> T
+calculate(T const &expr, ENABLE_IF(is_scalar<T>::value)) { return expr; }
 
-
+template<typename T> primary_type_t<T>
+calculate(T const &expr, ENABLE_IF(!is_scalar<T>::value))
+{
+    primary_type_t<T> res = expr;
+    return std::move(res);
+}
 } //namespace traits
 
 

@@ -3,8 +3,8 @@
  * @author salmon
  * @date 2015-11-18.
  */
-#include <simpla/calculus/nTuple.h>
-#include <simpla/calculus/nTupleExt.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/nTupleExt.h>
 #include "Polygon.h"
 #include "GeoAlgorithm.h"
 
@@ -47,9 +47,9 @@ Real Polygon<2>::nearest_point(Real *x, Real *y) const
         u = x0 - p0;
         v = p1 - p0;
 
-        Real v2 = inner_product(v, v);
+        Real v2 = static_cast<Real>(dot(v, v));
 
-        auto s = inner_product(u, v) / v2;
+        Real s = static_cast<Real>(dot(u, v)) / v2;
 
 
         point2d_type p;
@@ -62,7 +62,7 @@ Real Polygon<2>::nearest_point(Real *x, Real *y) const
          * if \f$ v \times u \cdot e_z >0 \f$ then `in` else `out`
          */
 
-        Real dd = inner_product(x0 - p, x0 - p);
+        Real dd = dot(x0 - p, x0 - p);
 
 
         if (std::abs(dd) < std::abs(d2))
@@ -118,7 +118,7 @@ void Polygon<2>::deploy()
 
 int Polygon<2>::check_inside(Real x, Real y) const
 {
-     if ((x >= m_min_[0]) && (y >= m_min_[1]) && (x < m_max_[0]) && (y < m_max_[1]))
+    if ((x >= m_min_[0]) && (y >= m_min_[1]) && (x < m_max_[0]) && (y < m_max_[1]))
     {
         size_t num_of_vertex_ = m_polygon_.size();
 

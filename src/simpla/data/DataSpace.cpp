@@ -9,9 +9,8 @@
 #include <utility>
 #include <tuple>
 
-#include <simpla/calculus/nTuple.h>
-#include <simpla/toolbox/Parallel.h>
-#include <simpla/toolbox/MPIUpdate.h>
+#include <simpla/algebra/nTuple.h>
+
 #include "DataSpace.h"
 
 namespace simpla { namespace data
@@ -106,7 +105,7 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_type co
 {
     size_type offset = 0;
     size_type total_count = count;
-    std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
+//    std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
     DataSpace memory_space = DataSpace::create_simple(1, &count);
 
     DataSpace data_space = DataSpace::create_simple(1, &total_count);
@@ -257,7 +256,7 @@ void DataSpace::select_points(size_type num, const size_type *tags)
     m_pimpl_->m_selected_points_.resize(tail);
     parallel::parallel_for(
             parallel::blocked_range<size_type>(head, tail),
-            [&](parallel::blocked_range<size_type> const &r)
+            [&](parallel::blocked_range <size_type> const &r)
             {
                 for (size_type i = r.begin(), ie = r.end(); i != ie; ++i)
                 {

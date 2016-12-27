@@ -2,9 +2,9 @@
 // Created by salmon on 16-12-26.
 //
 
-#include "../Algebra.h"
-#include "../Field.h"
-#include "../DummyMesh.h"
+#include "simpla/algebra/Algebra.h"
+#include "simpla/algebra/Field.h"
+#include "simpla/algebra/DummyMesh.h"
 
 using namespace simpla;
 

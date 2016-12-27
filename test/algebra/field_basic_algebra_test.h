@@ -18,7 +18,7 @@
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/sp_def.h>
-#include "../Field.h"
+#include "simpla/algebra/Field.h"
 
 using namespace simpla;
 

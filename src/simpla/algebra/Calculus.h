@@ -65,10 +65,16 @@ _SP_DEFINE_EXPR_BINARY_FUNCTION(interior_product)
 
 _SP_DEFINE_EXPR_BINARY_FUNCTION(wedge)
 
-_SP_DEFINE_EXPR_BINARY_FUNCTION(cross)
+//_SP_DEFINE_EXPR_BINARY_FUNCTION(cross)
+//
+//_SP_DEFINE_EXPR_BINARY_FUNCTION(dot)
+namespace tags
+{
 
-_SP_DEFINE_EXPR_BINARY_FUNCTION(dot)
+struct _dot {};
+struct _cross {};
 
+}
 namespace traits
 {
 
@@ -118,9 +124,9 @@ struct value_type<declare::Expression<tags::_wedge, T0, T1> >
 };
 //******************************************************
 
-template<size_type I, typename T0, typename T1>
-struct iform<declare::Expression<tags::_map_to<I>, T0> > :
-        public index_const<I>
+template<typename T0, typename T1>
+struct iform<declare::Expression<tags::_cross, T0, T1> > :
+        public index_const<(iform<T0>::value + iform<T1>::value) % 3>
 {
 };
 
@@ -150,10 +156,8 @@ struct value_type<declare::Expression<tags::_dot, T0, T1> >
 
 
 template<typename TL, typename TR>
-inline auto inner_product(TL const &lhs, TR const &rhs) DECL_RET_TYPE(wedge(lhs, hodge_star(rhs)));
-
-template<typename TL, typename TR>
-inline auto dot(TL const &lhs, TR const &rhs) DECL_RET_TYPE(wedge(lhs, hodge_star(rhs)));
+inline auto
+inner_product(TL const &lhs, TR const &rhs) DECL_RET_TYPE(wedge(lhs, hodge_star(rhs)));
 
 
 template<typename TL, typename TR> inline auto
@@ -172,9 +176,27 @@ cross(TL const &l, TR const &r, ENABLE_IF((traits::iform<TL>::value == VERTEX)))
     return declare::Expression<tags::_cross, TL, TR>(l, r);
 };
 
+namespace traits
+{
 
-template<typename TL, typename TR> inline declare::Expression<tags::_dot, TL, TR>
-dot(TL const &lhs, TR const &rhs, ENABLE_IF((traits::iform<TL>::value == VERTEX)))
+template<typename TL, typename TR>
+struct primary_type<declare::Expression<tags::_dot, TL, TR>>
+{
+    typedef decltype(std::declval<value_type_t < TL> > () * std::declval<value_type_t < TR >>()) type;
+};
+}
+
+template<typename TL, typename TR> inline auto
+dot(TL const &lhs, TR const &rhs,
+    ENABLE_IF(!(traits::iform<TL>::value == VERTEX ||
+                traits::iform<TL>::value == VOLUME)))
+DECL_RET_TYPE(wedge(lhs, hodge_star(rhs)));
+
+
+template<typename TL, typename TR> inline traits::primary_type_t<declare::Expression<tags::_dot, TL, TR>>
+dot(TL const &lhs, TR const &rhs,
+    ENABLE_IF((traits::iform<TL>::value == VERTEX ||
+               traits::iform<TL>::value == VOLUME)))
 {
     return declare::Expression<tags::_dot, TL, TR>(lhs, rhs);
 };
@@ -329,12 +351,12 @@ struct value_type<declare::Expression<tags::_map_to<I>, T, Others...> >
     typedef value_type_t <T> type;
 };
 //******************************************************
-
-template<typename T0, typename T1>
-struct iform<declare::Expression<tags::_cross, T0, T1> > :
-        public index_const<(iform<T0>::value + iform<T1>::value) % 3>
+template<size_type I, typename T0>
+struct iform<declare::Expression<tags::_map_to<I>, T0> > :
+        public index_const<I>
 {
 };
+
 
 }
 

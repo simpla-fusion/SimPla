@@ -7,13 +7,13 @@
 
 #include <gtest/gtest.h>
 
-#include "../Field.h"
+#include "simpla/algebra/Field.h"
 #include "field_basic_algebra_test.h"
 
-#include "../../manifold/CartesianGeometry.h"
+#include "simpla/manifold/CartesianGeometry.h"
 //typedef simpla::mesh::CartesianGeometry mesh_type;
 
-#include "../DummyMesh.h"
+#include "simpla/algebra/DummyMesh.h"
 
 typedef simpla::DummyMesh mesh_type;
 

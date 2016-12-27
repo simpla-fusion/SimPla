@@ -9,8 +9,8 @@
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
 #include <simpla/toolbox/Log.h>
-#include <simpla/calculus/nTuple.h>
-#include <simpla/toolbox/type_traits.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/sp_def.h>
 #include "GeoAlgorithm.h"
 

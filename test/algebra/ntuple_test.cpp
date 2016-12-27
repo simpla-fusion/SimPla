@@ -12,10 +12,10 @@
 #include <typeinfo>
 #include <utility>
 #include <simpla/mpl/type_traits.h>
-#include "../nTuple.h"
-#include "../Expression.h"
-#include "../Arithmetic.h"
-#include "../Algebra.h"
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/Expression.h>
+#include <simpla/algebra/Arithmetic.h>
+#include <simpla/algebra/Algebra.h>
 
 using namespace simpla;
 

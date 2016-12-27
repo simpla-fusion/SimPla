@@ -10,9 +10,9 @@
 
 #include <stddef.h>
 #include <iostream>
-#include "CheckConcept.h"
-#include "port_cxx14.h"
-#include "macro.h"
+#include "simpla/mpl/check_concept.h"
+#include "simpla/mpl/port_cxx14.h"
+#include "simpla/mpl/macro.h"
 
 namespace simpla
 {

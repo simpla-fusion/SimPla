@@ -8,7 +8,7 @@
 #define SIMPLA_RANGEADAPTER_H
 
 #include <memory>
-#include "Range.h"
+#include "range.h"
 
 namespace simpla
 {

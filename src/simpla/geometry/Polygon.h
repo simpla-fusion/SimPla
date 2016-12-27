@@ -10,7 +10,7 @@
 #include <vector>
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/calculus/nTuple.h>
+#include <simpla/algebra/nTuple.h>
 #include <simpla/toolbox/sp_def.h>
 #include "GeoObject.h"
 

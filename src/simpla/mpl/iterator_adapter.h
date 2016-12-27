@@ -14,13 +14,13 @@ namespace simpla
  * adapt other iterator to TIter iterator;
  */
 template<typename _Category, typename _Tp, typename _Distance = ptrdiff_t, typename _Pointer = _Tp *, typename _Reference = _Tp &>
-class IteratorAdapter;
+class iterator_adapter;
 
 template<typename _Tp, typename _Distance, typename _Pointer, typename _Reference>
-class IteratorAdapter<std::random_access_iterator_tag, _Tp, _Distance, _Pointer, _Reference>
+class iterator_adapter<std::random_access_iterator_tag, _Tp, _Distance, _Pointer, _Reference>
         : public std::iterator<typename std::random_access_iterator_tag, _Tp, _Distance, _Pointer, _Reference>
 {
-    typedef IteratorAdapter<std::random_access_iterator_tag, _Tp, _Distance, _Pointer, _Reference> this_type;
+    typedef iterator_adapter<std::random_access_iterator_tag, _Tp, _Distance, _Pointer, _Reference> this_type;
     typedef std::iterator<std::random_access_iterator_tag, _Tp, _Distance, _Pointer, _Reference> category_type;
 
     struct HolderBase;
@@ -35,17 +35,17 @@ public:
     using typename category_type::difference_type;
 
 
-    IteratorAdapter() : m_holder_(nullptr) { }
+    iterator_adapter() : m_holder_(nullptr) { }
 
     template<typename TOther>
-    IteratorAdapter(TOther const &it) : m_holder_(
+    iterator_adapter(TOther const &it) : m_holder_(
             std::dynamic_pointer_cast<HolderBase>(std::make_shared<Holder<TOther> >(it))) { }
 
-    IteratorAdapter(this_type const &other) : m_holder_(other.m_holder_->clone()) { }
+    iterator_adapter(this_type const &other) : m_holder_(other.m_holder_->clone()) { }
 
-    IteratorAdapter(this_type &&other) : m_holder_(other.m_holder_) { }
+    iterator_adapter(this_type &&other) : m_holder_(other.m_holder_) { }
 
-    virtual  ~IteratorAdapter() { }
+    virtual  ~iterator_adapter() { }
 
     this_type &operator=(this_type const &other)
     {
@@ -224,7 +224,7 @@ private:
 
 };
 
-template<typename Tp> using AdaptIterator=IteratorAdapter<
+template<typename Tp> using AdaptIterator=iterator_adapter<
         typename std::iterator_traits<Tp>::iterator_category,
         typename std::iterator_traits<Tp>::value_type,
         typename std::iterator_traits<Tp>::difference_type,

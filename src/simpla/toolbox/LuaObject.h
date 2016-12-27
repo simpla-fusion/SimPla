@@ -37,7 +37,9 @@ extern "C"
 
 }
 
-namespace simpla { namespace toolbox
+namespace simpla
+{
+namespace toolbox
 {
 
 /**
@@ -490,11 +492,9 @@ inline std::ostream &operator<<(std::ostream &os, LuaObject const &obj)
     os << obj.as<std::string>();
     return os;
 }
-}
+} //namespace toolbox
 
-} // namespace simpla
-namespace simpla
-{
+
 namespace traits
 {
 
@@ -526,5 +526,5 @@ struct type_cast<toolbox::LuaObject, TDest>
 //};
 //
 //}  // namespace check
-}
+}// namespace simpla
 #endif  // TOOLBOX_LUA_OBJECT_H_

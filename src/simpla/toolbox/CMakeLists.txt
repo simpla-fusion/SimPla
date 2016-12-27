@@ -1,4 +1,3 @@
-ADD_SUBDIRECTORY(test)
 
 
 FILE(GLOB toolbox_SRC ./*.cpp)

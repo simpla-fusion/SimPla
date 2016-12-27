@@ -18,16 +18,15 @@
 #include <typeinfo>
 #include <stddef.h>
 
-#include <simpla/concept/Printable.h>
-#include <simpla/algebra/nTuple.h>
-#include <simpla/toolbox/Log.h>
+//#include <simpla/toolbox/Log.h>
+//#include "../../../to_delete/nTupleComplex.h"
 
 
 namespace simpla { namespace toolbox
 {
 
 
-struct Any;
+struct any;
 
 namespace _impl
 {
@@ -137,27 +136,27 @@ inline bool get_string(std::string *v, std::string const &other)
  *
  *   This an implement of 'any' with m_data type description/serialization information
  */
-struct Any : public concept::Printable
+struct any
 {
 
-    Any() : m_data_(nullptr) {}
+    any() : m_data_(nullptr) {}
 
     template<typename ValueType>
-    explicit Any(const ValueType &value)
+    explicit any(const ValueType &value)
             : m_data_(new Holder<typename std::remove_cv<
             typename std::decay<ValueType>::type>::type>(value)) {}
 
 
-    Any(const Any &other) : m_data_(other.m_data_ == nullptr ? other.m_data_->clone() : nullptr) {}
+    any(const any &other) : m_data_(other.m_data_ == nullptr ? other.m_data_->clone() : nullptr) {}
 
 
     // Move constructor
-    Any(Any &&other) : m_data_(other.m_data_) { other.m_data_ = 0; }
+    any(any &&other) : m_data_(other.m_data_) { other.m_data_ = 0; }
 
     // Perfect forwarding of ValueType
     template<typename ValueType>
-    explicit Any(ValueType &&value,
-                 typename std::enable_if<!(std::is_same<Any &, ValueType>::value ||
+    explicit any(ValueType &&value,
+                 typename std::enable_if<!(std::is_same<any &, ValueType>::value ||
                                            std::is_const<ValueType>::value)>::type * = 0
             // disable if entity find type `any&`
             // disable if entity find type `const ValueType&&`
@@ -165,33 +164,33 @@ struct Any : public concept::Printable
     {
     }
 
-    virtual ~Any() { delete m_data_; }
+    virtual ~any() { delete m_data_; }
 
-    Any &swap(Any &other)
+    any &swap(any &other)
     {
         std::swap(m_data_, other.m_data_);
         return *this;
     }
 
-    Any &operator=(const Any &rhs)
+    any &operator=(const any &rhs)
     {
-        Any(rhs).swap(*this);
+        any(rhs).swap(*this);
         return *this;
     }
 
     // move assignement
-    Any &operator=(Any &&rhs)
+    any &operator=(any &&rhs)
     {
         rhs.swap(*this);
-        Any().swap(rhs);
+        any().swap(rhs);
         return *this;
     }
 
     // Perfect forwarding of ValueType
     template<class ValueType>
-    Any &operator=(ValueType &&rhs)
+    any &operator=(ValueType &&rhs)
     {
-        Any(static_cast<ValueType &&>(rhs)).swap(*this);
+        any(static_cast<ValueType &&>(rhs)).swap(*this);
         return *this;
     }
 
@@ -199,7 +198,7 @@ struct Any : public concept::Printable
 
     virtual bool is_null() const { return m_data_ == nullptr; }
 
-    virtual void clear() { Any().swap(*this); }
+    virtual void clear() { any().swap(*this); }
 
     virtual void *data() { return m_data_->data(); }
 
@@ -239,7 +238,7 @@ struct Any : public concept::Printable
 
     template<class U> operator U() const { return as<U>(); }
 
-    template<class U> U const &as() const { return Any::get<U>(); }
+    template<class U> U const &as() const { return any::get<U>(); }
 
     template<class U>
     U as(U const &def_v) const
@@ -347,19 +346,19 @@ private:
 
         virtual void const *data() const = 0;
 
-        template<typename U, size_type N>
-        bool as(nTuple<U, N> *v) const
-        {
-            if (is_same<nTuple<U, N>>())
-            {
-                *v = dynamic_cast<Holder<nTuple<U, N>> const * > (this)->m_value_;
-                return true;
-            } else if (this->size() < N) { return false; }
-
-            for (int i = 0; i < N; ++i) { this->get(i)->as(&((*v)[i])); }
-
-            return true;
-        }
+//        template<typename U, size_type N>
+//        bool as(nTuple<U, N> *v) const
+//        {
+//            if (is_same<nTuple<U, N>>())
+//            {
+//                *v = dynamic_cast<Holder<nTuple<U, N>> const * > (this)->m_value_;
+//                return true;
+//            } else if (this->size() < N) { return false; }
+//
+//            for (int i = 0; i < N; ++i) { this->get(i)->as(&((*v)[i])); }
+//
+//            return true;
+//        }
 
 
         template<class U>
@@ -370,7 +369,10 @@ private:
             else if (_impl::get_integer(v, this->to_integer())) {}
             else if (_impl::get_floating_point(v, this->to_floating_point())) {}
             else if (_impl::get_string(v, this->to_string())) {}
-            else { success = false; }
+            else
+            {
+                success = type_cast(v, *this);
+            }
 
             return success;
         }
@@ -433,7 +435,7 @@ private:
     private:
         template<typename V> int _size_of(V const &) const { return 1; }
 
-        template<typename V, int N, int ...M> int _size_of(nTuple<V, N, M...> const &) const { return N; }
+//        template<typename V, int N, int ...M> int _size_of(nTuple<V, N, M...> const &) const { return N; }
 
         template<typename ...V> int _size_of(std::tuple<V ...> const &) const { return sizeof...(V); }
 
@@ -443,11 +445,11 @@ private:
             return std::shared_ptr<PlaceHolder>(new Holder<V>(v));
         }
 
-        template<typename V, int N>
-        std::shared_ptr<PlaceHolder> _index_of(nTuple<V, N> const &v, int n) const
-        {
-            return std::shared_ptr<PlaceHolder>(new Holder<V>(v[n]));
-        }
+//        template<typename V, int N>
+//        std::shared_ptr<PlaceHolder> _index_of(nTuple<V, N> const &v, int n) const
+//        {
+//            return std::shared_ptr<PlaceHolder>(new Holder<V>(v[n]));
+//        }
 
         template<typename T0, typename T1>
         std::shared_ptr<PlaceHolder> _index_of(std::tuple<T0, T1> const &v, int n) const

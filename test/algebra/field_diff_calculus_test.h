@@ -21,10 +21,10 @@
 
 
 //#include <simpla/manifold/CartesianGeometry.h>
-#include "../Algebra.h"
-#include "../nTuple.h"
-#include "../Field.h"
-#include "../Calculus.h"
+#include "simpla/algebra/Algebra.h"
+#include "simpla/algebra/nTuple.h"
+#include "simpla/algebra/Field.h"
+#include "simpla/algebra/Calculus.h"
 
 using namespace simpla;
 using namespace simpla::mesh;

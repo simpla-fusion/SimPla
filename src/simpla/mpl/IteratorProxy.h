@@ -6,13 +6,13 @@
 #define SIMPLA_ITERATORPROXY_H
 
 #include <set>
-#include "IteratorAdapter.h"
+#include "iterator_adapter.h"
 #include "RangeAdapter.h"
 
 namespace simpla
 {
 template<typename TIterator>
-using IteratorHolder= IteratorAdapter<
+using IteratorHolder= iterator_adapter<
         typename std::iterator_traits<TIterator>::iterator_category,
         typename std::iterator_traits<TIterator>::value_type,
         typename std::iterator_traits<TIterator>::difference_type,

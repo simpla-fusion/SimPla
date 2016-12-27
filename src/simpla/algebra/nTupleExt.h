@@ -12,11 +12,14 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
-#include <simpla/toolbox/PrettyStream.h>
+//#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/mpl/any.h>
 
 #include "nTuple.h"
 
-namespace simpla { namespace algebra
+namespace simpla
+{
+namespace algebra
 {
 
 
@@ -82,7 +85,7 @@ DECL_RET_TYPE((std::sqrt(std::abs(inner_product(l, l)))))
 template<typename TOP, typename T> T
 reduce(T const &v, ENABLE_IF(traits::is_scalar<T>::value)) { return v; }
 
-template<typename TOP, typename T> traits::value_type_t<T>
+template<typename TOP, typename T> traits::value_type_t <T>
 reduce(T const &v, ENABLE_IF(traits::is_nTuple<T>::value))
 {
     traits::value_type_t<T> res();
@@ -99,7 +102,7 @@ reduce(T const &v, ENABLE_IF(traits::is_nTuple<T>::value))
 
 template<typename TL, typename TR> inline auto
 inner_product(TL const &l, TR const &r,
-              ENABLE_IF(traits::is_nTuple<TL>::value &&traits::is_nTuple<TL>::value))
+              ENABLE_IF(traits::is_nTuple<TL>::value && traits::is_nTuple<TL>::value))
 DECL_RET_TYPE((reduce<tags::plus>(l * r)))
 
 template<typename T> inline auto
@@ -136,16 +139,61 @@ DECL_RET_TYPE((reduce<tags::plus>(v)))
 
 namespace declare
 {
+namespace _detail
+{
+template<typename T, size_type ...N> std::ostream &
+printNd(std::ostream &os, T const &d, index_sequence<N...> const &,
+        ENABLE_IF((!traits::is_indexable<T, size_type>::value)))
+{
+    os << d;
+    return os;
+}
+
+
+template<typename T, size_type M, size_type ...N> std::ostream &
+printNd(std::ostream &os, T const &d, index_sequence<M, N...> const &,
+        ENABLE_IF((traits::is_indexable<T, size_type>::value)))
+{
+    os << "{";
+    printNd(os, d[0], index_sequence<N...>());
+    for (size_type i = 1; i < M; ++i)
+    {
+        os << " , ";
+        printNd(os, d[i], index_sequence<N...>());
+    }
+    os << "}";
+
+    return os;
+}
+}
+
 template<typename T, size_type  ...M>
 std::ostream &operator<<(std::ostream &os, nTuple_<T, M...> const &v)
 {
-    return simpla::printNd(os, v.data_, index_sequence<M ...>());
+    return _detail::printNd(os, v.data_, index_sequence<M ...>());
 }
 
 
 //template<typename T, size_type  ...M>
 //std::istream &operator>>(std::istream &os, nTuple_<T, M...> &v) { return input(os, v); }
 }
-}}// namespace simpla::algebra
+}// namespace algebra
+
+//namespace traits
+//{
+//template<typename TV, size_type...N>
+//struct type_cast<algebra::declare::nTuple_<TV, N...>, any>
+//{
+//    typedef algebra::declare::nTuple_<TV, N...> TSrc;
+//
+//    static constexpr any eval(toolbox::LuaObject const &v)
+//    {
+//        return v.as<TDest>();
+//    }
+//
+//};
+//}//namespace traits
+
+}// namespace simpla::algebra
 
 #endif /* CORE_toolbox_NTUPLE_EXT_H_ */

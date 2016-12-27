@@ -11,7 +11,6 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/mpl/type_traits.h>
-#include <simpla/toolbox/MemoryPool.h>
 #include "Algebra.h"
 #include "Expression.h"
 #include "Arithmetic.h"
@@ -79,7 +78,7 @@ public:
         else
         {
             size_type s = size(IFORM, DOF);
-            *p = sp_alloc_array<TV>(s);
+            *p = std::shared_ptr<TV>(new TV[s]);
         }
     };
 

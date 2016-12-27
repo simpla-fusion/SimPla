@@ -76,6 +76,13 @@ T assign_cast(U const &s)
 
 template<typename TDest, typename TSrc>
 TDest type_cast(TSrc const &v) { return traits::type_cast<TSrc, TDest>::eval(v); }
+//
+//template<typename TDest, typename TSrc>
+//bool type_cast(TDest *dest, TSrc const &v)
+//{
+//    *dest = traits::type_cast<TSrc, TDest>::eval(v);
+//    return true;
+//}
 
 template<typename TSrc> std::string string_cast(TSrc const &v) { return traits::type_cast<TSrc, std::string>::eval(v); }
 }  // namespace simpla

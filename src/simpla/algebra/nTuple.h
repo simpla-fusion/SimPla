@@ -11,7 +11,7 @@
 #define NTUPLE_H_
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/mpl/CheckConcept.h>
+#include <simpla/mpl/check_concept.h>
 
 #include "Algebra.h"
 #include "Arithmetic.h"
