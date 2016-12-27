@@ -59,6 +59,7 @@ public:
 //    typedef  traits::scalar_type_t<manifold_type> scalar_type;
 
     static constexpr size_type iform = algebra::traits::iform<TField>::value;
+    static constexpr size_type dof = algebra::traits::dof<TField>::value;
 
 
     value_type default_value;
@@ -92,13 +93,10 @@ TYPED_TEST_P(TestField, assign)
     va = 2.0;
     f1 = va;
     size_type count = 0;
-
+    CHECK(va);
     TestFixture::m->foreach(
-            TestFixture::iform,
-            [&](typename TestFixture::mesh_type::id_type const &s)
-            {
-                EXPECT_LE(abs(va - f1[s]), EPSILON);
-            });
+            [&](typename TestFixture::mesh_type::id_type const &s) { EXPECT_LE(abs(va - f1[s]), EPSILON); },
+            TestFixture::iform, TestFixture::dof);
 }
 
 TYPED_TEST_P(TestField, index)
@@ -116,15 +114,17 @@ TYPED_TEST_P(TestField, index)
 
     va = 2.0;
 
-    TestFixture::m->foreach(TestFixture::iform, [&](typename TestFixture::mesh_type::id_type const &s)
-    {
-        f1[s] = va * TestFixture::m->hash(s);
-    });
+    TestFixture::m->foreach(
+            [&](typename TestFixture::mesh_type::id_type const &s)
+            {
+                f1[s] = va * TestFixture::m->hash(s);
+            }, TestFixture::iform);
 
-    TestFixture::m->foreach(TestFixture::iform, [&](typename TestFixture::mesh_type::id_type const &s)
-    {
-        EXPECT_LE(abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON);
-    });
+    TestFixture::m->foreach(
+            [&](typename TestFixture::mesh_type::id_type const &s)
+            {
+                EXPECT_LE(abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON);
+            }, TestFixture::iform);
 
 }
 
@@ -160,15 +160,15 @@ TYPED_TEST_P(TestField, constant_real)
 
     LOG_CMD(f3 = -f1 + f1 * a + f2 * c - f1 / b);
 
-    TestFixture::m->foreach(TestFixture::iform,
-                            [&](typename TestFixture::mesh_type::id_type const &s)
-                            {
-                                value_type expect;
-                                expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
+    TestFixture::m->foreach(
+            [&](typename TestFixture::mesh_type::id_type const &s)
+            {
+                value_type expect;
+                expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
 
-                                // FIXME： truncation error is too big . why ??
-                                EXPECT_LE(abs(expect - f3[s]), EPSILON * 100);
-                            });
+                // FIXME： truncation error is too big . why ??
+                EXPECT_LE(abs(expect - f3[s]), EPSILON * 100);
+            }, TestFixture::iform);
 }
 
 TYPED_TEST_P(TestField, scalarField)
@@ -208,9 +208,9 @@ TYPED_TEST_P(TestField, scalarField)
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](typename TestFixture::mesh_type::id_type const &s) { return va * uniform_dist(gen); });
-    f2.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vb * uniform_dist(gen); });
-    f3.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vc * uniform_dist(gen); });
+//    assign(f1, [&](typename TestFixture::mesh_type::id_type const &s) -> Real { return va * uniform_dist(gen); });
+//    assign(f2, [&](typename TestFixture::mesh_type::id_type const &s) -> Real { return vb * uniform_dist(gen); });
+//    assign(f3, [&](typename TestFixture::mesh_type::id_type const &s) -> Real { return vc * uniform_dist(gen); });
 
     LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
 
@@ -226,13 +226,12 @@ TYPED_TEST_P(TestField, scalarField)
  *
  * */
 
-    TestFixture::m->foreach(TestFixture::iform,
-                            [&](typename TestFixture::mesh_type::id_type const &s)
-                            {
-                                value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
-
-                                EXPECT_LE(abs(res - f4[s]), EPSILON);
-                            });
+    TestFixture::m->foreach(
+            [&](typename TestFixture::mesh_type::id_type const &s)
+            {
+                value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
+                EXPECT_LE(abs(res - f4[s]), EPSILON);
+            }, TestFixture::iform, TestFixture::dof);
 
 
 }

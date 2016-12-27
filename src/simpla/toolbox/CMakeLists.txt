@@ -3,8 +3,9 @@ ADD_SUBDIRECTORY(test)
 
 FILE(GLOB toolbox_SRC ./*.cpp)
 add_library(toolbox ${toolbox_SRC})
-target_link_libraries(toolbox ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${LUA_LIBRARIES} ${TBB_LIBRARIES})
+target_link_libraries(toolbox ${LUA_LIBRARIES} )
 
+#${HDF5_LIBRARIES} ${MPI_LIBRARIES}  ${TBB_LIBRARIES}
 ###########################################################
 #IF (DEFINED ENV{LUA_ROOT})
 #

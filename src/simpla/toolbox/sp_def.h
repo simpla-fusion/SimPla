@@ -64,7 +64,7 @@ typedef Real scalar_type;
 
 typedef nTuple<Real, 3> Vec3;
 
-typedef nTuple<Real, 3> Covec3;
+typedef nTuple<Real, 3> CoVec3;
 
 typedef nTuple<Integral, 3> IVec3;
 

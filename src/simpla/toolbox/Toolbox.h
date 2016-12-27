@@ -15,7 +15,6 @@
 #include "PrettyStream.h"
 #include "MiscUtilities.h"
 #include "primitives.h"
-#include "type_traits.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/algebra/nTupleExt.h"
 #include "Properties.h"

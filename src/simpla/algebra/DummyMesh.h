@@ -14,6 +14,7 @@
 #include <simpla/toolbox/MemoryPool.h>
 #include "Algebra.h"
 #include "Expression.h"
+#include "Arithmetic.h"
 
 namespace simpla
 {
@@ -75,7 +76,7 @@ public:
 
 
     template<typename TFun>
-    void foreach(size_type iform, TFun const &fun, size_type dof = 1)
+    void foreach(TFun const &fun, size_type iform = VERTEX, size_type dof = 1) const
     {
         size_type se = m_dims_[0] * m_dims_[1] * m_dims_[2] * dof *
                        ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
@@ -160,8 +161,16 @@ public:
     get_value(declare::Expression<TOP, Others...> const &expr, Idx &&... s)
     DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
 
+    template<typename TV, size_type IFORM, size_type DOF> static void
+    apply(mesh_type const *m, declare::Field_<TV, mesh_type, IFORM, DOF> &lhs, algebra::tags::_clear const &)
+    {
+    }
 
-    template<typename ...Args> static void apply(mesh_type const *, Args &&...args) {}
+    template<typename TV, size_type IFORM, size_type DOF, typename TOP, typename TFun> static void
+    apply(mesh_type const *m, declare::Field_<TV, mesh_type, IFORM, DOF> &lhs, TOP const &, TFun const &rhs)
+    {
+        m->foreach([&](mesh_type::id_type const &s) { TOP::eval(get_value(lhs, s), get_value(rhs, s)); }, IFORM, DOF);
+    }
 
 };
 

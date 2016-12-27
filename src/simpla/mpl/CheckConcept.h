@@ -349,8 +349,8 @@ struct check_member_value_##_MEMBER_                                            
 //}
 template<typename ...> struct is_callable;
 
-template<typename _T, typename ... _Args, class _R>
-struct is_callable<_T(_Args...), _R>
+template<typename _T, typename ... _Args>
+struct is_callable<_T(_Args...)>
 {
 private:
     typedef std::true_type yes;
@@ -363,10 +363,27 @@ private:
 
 public:
 
-    static constexpr bool value =
-            (std::is_same<decltype(test<_T>()), _R>::value);
+    static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value;
 
 };
+
+//template<typename _T, typename ... _Args, class _R>
+//struct is_callable<_T(_Args...), _R>
+//{
+//private:
+//    typedef std::true_type yes;
+//    typedef std::false_type no;
+//
+//    template<typename _U>
+//    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
+//
+//    template<typename> static no test(...);
+//
+//public:
+//
+//    static constexpr bool value = (std::is_same<decltype(test<_T>()), _R>::value);
+//
+//};
 
 template<typename TFun, typename ... Args>
 auto try_invoke(TFun const &fun, Args &&...args) ->

@@ -9,7 +9,9 @@
 #include <cmath>
 #include <type_traits>
 
-namespace simpla { namespace algebra
+namespace simpla
+{
+namespace algebra
 {
 
 
@@ -151,19 +153,30 @@ struct _swap
  *  `operator/=(GeoObject & ,Expression const &)`     | Assign operation /
  *  `operator*=(GeoObject & ,Expression const &)`     | Assign operation *
  */
-//namespace tags{struct _assign{ template<typename TL,typename TR> static inline constexpr void eval( TL  & l,TR const & r){  l = static_cast<TL>(r);};};}
+namespace tags
+{
+struct _assign
+{
+    template<typename TL, typename TR>
+    static inline void eval(TL &l, TR const &r) { l = static_cast<TL>(r); };
+};
 
-#define DEF_ASSIGN_OP(_NAME_, _OP_)   \
-namespace tags{struct _NAME_##_assign{ template<typename TL,typename TR> static inline constexpr void eval( TL  & l,TR const & r){  l _OP_##= r;};};}
+struct _clear {};
+struct _gather {};
+struct _scatter {};
+}
 
-DEF_ASSIGN_OP(,)
-DEF_ASSIGN_OP(plus, +)
-DEF_ASSIGN_OP(minus, -)
-DEF_ASSIGN_OP(multiplies, *)
-DEF_ASSIGN_OP(divides, /)
-DEF_ASSIGN_OP(modulus, %)
-
-#undef DEF_ASSIGN_OP
+//#define DEF_ASSIGN_OP(_NAME_, _OP_)   \
+//namespace tags{struct _NAME_##_assign{ template<typename TL,typename TR> static inline constexpr void eval( TL  & l,TR const & r){  l _OP_##= r;};};}
+//
+//DEF_ASSIGN_OP(,)
+//DEF_ASSIGN_OP(plus, +)
+//DEF_ASSIGN_OP(minus, -)
+//DEF_ASSIGN_OP(multiplies, *)
+//DEF_ASSIGN_OP(divides, /)
+//DEF_ASSIGN_OP(modulus, %)
+//
+//#undef DEF_ASSIGN_OP
 
 
 namespace declare
@@ -287,6 +300,20 @@ _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)
 #undef _SP_DEFINE_EXPR_BINARY_FUNCTION
 #undef _SP_DEFINE_EXPR_UNARY_FUNCTION
 
+
+#define _SP_DEFINE_COMPOUND_OP(_OP_) \
+template<typename TL, typename TR> inline TL & operator _OP_##=(TL &lhs, TR const &rhs){    lhs = lhs _OP_ rhs;    return lhs;}
+
+_SP_DEFINE_COMPOUND_OP(+)
+
+_SP_DEFINE_COMPOUND_OP(-)
+
+_SP_DEFINE_COMPOUND_OP(*)
+
+_SP_DEFINE_COMPOUND_OP(/)
+
+#undef _SP_DEFINE_COMPOUND_OP
 } // namespace declare
-}}//namespace simpla:: algebra
+}
+}//namespace simpla:: algebra
 #endif //SIMPLA_ARITHMETIC_H

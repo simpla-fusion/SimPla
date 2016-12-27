@@ -19,7 +19,6 @@
 #include <vector>
 
 #include <simpla/algebra/nTuple.h>
-#include "Properties.h"
 
 
 extern "C"
@@ -468,15 +467,7 @@ public:
 
 };
 
-template<>
-struct Converter<Properties>
-{
-    typedef Properties value_type;
 
-    static unsigned int from(lua_State *L, unsigned int idx, value_type *v);
-
-    static unsigned int to(lua_State *L, value_type const &v);
-};
 
 
 /** @} LuaTrans */

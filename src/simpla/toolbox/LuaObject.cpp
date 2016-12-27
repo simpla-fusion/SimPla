@@ -3,11 +3,11 @@
  * @author salmon
  * @date 2015-12-10.
  */
+#include <simpla/algebra/nTuple.h>
+
 #include "LuaObject.h"
 #include "LuaObjectExt.h"
 #include "PrettyStream.h"
-#include <simpla/algebra/nTuple.h>
-#include <simpla/algebra/nTupleExt.h>
 
 namespace simpla { namespace toolbox
 {
@@ -524,62 +524,62 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
     }
     return std::move(res);
 }
-
-unsigned int
-Converter<Properties>::to(lua_State *L, Properties const &v)
-{
-    unsigned int res = -1;
-
-    if (v.size() > 0) { res = Converter<std::map<std::string, Properties>>::to(L, v); }
-
-    else if (v.is_boolean()) { res = Converter<bool>::to(L, v.template as<bool>()); }
-
-    else if (v.is_integral()) { res = Converter<int>::to(L, v.template as<int>()); }
-
-    else if (v.is_floating_point()) { res = Converter<double>::to(L, v.template as<double>()); }
-
-    else if (v.is_string()) { res = Converter<std::string>::to(L, v.template as<std::string>()); }
-
-
-    return res;
-
-}
-
-unsigned int
-Converter<Properties>::from(lua_State *L, unsigned int idx, Properties *v)
-{
-    unsigned int success = 0;
-
-    if (lua_istable(L, idx))
-    {
-        success = Converter<std::map<std::string, Properties>>::from(
-                L, idx,
-                dynamic_cast<std::map<std::string, Properties> *>(v));
-    } else if (lua_isboolean(L, idx))
-    {
-        bool t;
-        success = Converter<bool>::from(L, idx, &t);
-        *v = t;
-    } else if (lua_isnumber(L, idx))
-    {
-
-        double t;
-
-        success = Converter<double>::from(L, idx, &t);
-
-        *v = t;
-    } else if (lua_isstring(L, idx))
-    {
-
-//        std::string t;
-//        success = Converter<std::string>::from(L, idx, &t);
+//
+//unsigned int
+//Converter<Properties>::to(lua_State *L, Properties const &v)
+//{
+//    unsigned int res = -1;
+//
+//    if (v.size() > 0) { res = Converter<std::map<std::string, Properties>>::to(L, v); }
+//
+//    else if (v.is_boolean()) { res = Converter<bool>::to(L, v.template as<bool>()); }
+//
+//    else if (v.is_integral()) { res = Converter<int>::to(L, v.template as<int>()); }
+//
+//    else if (v.is_floating_point()) { res = Converter<double>::to(L, v.template as<double>()); }
+//
+//    else if (v.is_string()) { res = Converter<std::string>::to(L, v.template as<std::string>()); }
+//
+//
+//    return res;
+//
+//}
+//
+//unsigned int
+//Converter<Properties>::from(lua_State *L, unsigned int idx, Properties *v)
+//{
+//    unsigned int success = 0;
+//
+//    if (lua_istable(L, idx))
+//    {
+//        success = Converter<std::map<std::string, Properties>>::from(
+//                L, idx,
+//                dynamic_cast<std::map<std::string, Properties> *>(v));
+//    } else if (lua_isboolean(L, idx))
+//    {
+//        bool t;
+//        success = Converter<bool>::from(L, idx, &t);
 //        *v = t;
-    } else
-    {
-        return 0;
-    }
-    return 1;
-}
+//    } else if (lua_isnumber(L, idx))
+//    {
+//
+//        double t;
+//
+//        success = Converter<double>::from(L, idx, &t);
+//
+//        *v = t;
+//    } else if (lua_isstring(L, idx))
+//    {
+//
+////        std::string t;
+////        success = Converter<std::string>::from(L, idx, &t);
+////        *v = t;
+//    } else
+//    {
+//        return 0;
+//    }
+//    return 1;
+//}
 
 
 #define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)                     \
@@ -680,155 +680,155 @@ bool LuaObject::is_nTuple() const
 
     return (first_item.first.as<int>() == 1 && (first_item.second.is_number() || first_item.second.is_nTuple()));
 }
-
-namespace _impl
-{
-template<typename T>
-bool convert_ntuple(LuaObject const &obj, Properties *res) { return false; };
-
-template<typename T, size_t N, size_t ...M>
-bool convert_ntuple(LuaObject const &obj, Properties *res)
-{
-    bool success;
-    Tensor<T, N, M...> v;
-    success = obj.as(&v);
-    if (success) (*res) = v;
-
-    return success;
-};
-
-
-template<typename T, size_t ...M>
-auto _get_nTuple(LuaObject const &obj, LuaObject const &first, index_sequence<M...>, Properties *res)
--> typename std::enable_if<(sizeof...(M) >= 3), bool>::type
-{
-    return false;
-};
-
-template<typename T, size_t ...M>
-auto _get_nTuple(LuaObject const &obj, LuaObject const &first, index_sequence<M...>, Properties *res)
--> typename std::enable_if<sizeof...(M) < 3, bool>::type
-{
-    bool success = false;
-
-    if (first.is_number()) { success = convert_ntuple<T, M...>(obj, res); }
-    else
-    {
-        switch (first.size())
-        {
-            case 1:
-                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 1>(), res);
-                break;
-            case 2:
-                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 2>(), res);
-                break;
-            case 3:
-                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 3>(), res);
-                break;
-            case 4:
-                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 4>(), res);
-                break;
-            case 5:
-                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 5>(), res);
-                break;
-            case 6:
-                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 6>(), res);
-                break;
-            case 7:
-                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 7>(), res);
-                break;
-            case 8:
-                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 8>(), res);
-                break;
-            case 9:
-                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 9>(), res);
-                break;
-            default:
-                success = false;
-        }
-
-    }
-    return success;
-}
-
-template<typename T>
-bool get_nTuple(LuaObject const &obj, Properties *res)
-{
-    return _get_nTuple<T>(obj, obj, index_sequence<>(), res);
-};
-
-
-}
-
-bool LuaObject::as(Properties *res) const
-{
-
-    bool success = true;
-
-    if (this->is_table())
-    {
-
-        auto first_item = (*this->begin());
-
-        if (first_item.first.as<int>() == 1 &&
-            (first_item.second.is_number() || first_item.second.is_nTuple())) //is ntuple
-        {
-            success = success && _impl::get_nTuple<double>(*this, res);
-        } else //is list
-        {
-            for (auto const &item:*this)
-            {
-                auto &v = (*res)[item.first.as<std::string>()];
-                success = success && item.second.as(&(v));
-
-                if (!success)break;
-            }
-        }
-    } else if (this->is_boolean())
-    {
-        bool v;
-
-        success = success && this->as(&v);
-
-        if (success) (*res) = v;
-    }
-//#if LUA_VERSION_NUM >= 503
-    else if (this->is_integer())
-    {
-        int v;
-
-        success = success && this->as(&v);
-
-        if (success) (*res) = v;
-    }
-//#endif
-    else if (this->is_number())
-    {
-        double v;
-
-        success = success && this->as(&v);
-
-        if (success) (*res) = v;
-    } else if (this->is_string())
-    {
-        std::string v;
-
-        success = success && this->as(&v);
-
-        if (success) (*res) = v;
-    } else
-    {
-        WARNING << "unknown type can not convert_database_r" << std::endl;
-        success = false;
-    }
-
-    return success;
-}
-
-bool LuaObject::set(std::string const &key, Properties const &res) const
-{
-    // @TODO implement Properties to LuaOjbect convert_database_r
-    UNIMPLEMENTED;
-    return false;
-}
+//
+//namespace _impl
+//{
+//template<typename T>
+//bool convert_ntuple(LuaObject const &obj, Properties *res) { return false; };
+//
+//template<typename T, size_t N, size_t ...M>
+//bool convert_ntuple(LuaObject const &obj, Properties *res)
+//{
+//    bool success;
+//    Tensor<T, N, M...> v;
+//    success = obj.as(&v);
+//    if (success) (*res) = v;
+//
+//    return success;
+//};
+//
+//
+//template<typename T, size_t ...M>
+//auto _get_nTuple(LuaObject const &obj, LuaObject const &first, index_sequence<M...>, Properties *res)
+//-> typename std::enable_if<(sizeof...(M) >= 3), bool>::type
+//{
+//    return false;
+//};
+//
+//template<typename T, size_t ...M>
+//auto _get_nTuple(LuaObject const &obj, LuaObject const &first, index_sequence<M...>, Properties *res)
+//-> typename std::enable_if<sizeof...(M) < 3, bool>::type
+//{
+//    bool success = false;
+//
+//    if (first.is_number()) { success = convert_ntuple<T, M...>(obj, res); }
+//    else
+//    {
+//        switch (first.size())
+//        {
+//            case 1:
+//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 1>(), res);
+//                break;
+//            case 2:
+//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 2>(), res);
+//                break;
+//            case 3:
+//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 3>(), res);
+//                break;
+//            case 4:
+//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 4>(), res);
+//                break;
+//            case 5:
+//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 5>(), res);
+//                break;
+//            case 6:
+//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 6>(), res);
+//                break;
+//            case 7:
+//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 7>(), res);
+//                break;
+//            case 8:
+//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 8>(), res);
+//                break;
+//            case 9:
+//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 9>(), res);
+//                break;
+//            default:
+//                success = false;
+//        }
+//
+//    }
+//    return success;
+//}
+//
+//template<typename T>
+//bool get_nTuple(LuaObject const &obj, Properties *res)
+//{
+//    return _get_nTuple<T>(obj, obj, index_sequence<>(), res);
+//};
+//
+//
+//}
+//
+//bool LuaObject::as(Properties *res) const
+//{
+//
+//    bool success = true;
+//
+//    if (this->is_table())
+//    {
+//
+//        auto first_item = (*this->begin());
+//
+//        if (first_item.first.as<int>() == 1 &&
+//            (first_item.second.is_number() || first_item.second.is_nTuple())) //is ntuple
+//        {
+//            success = success && _impl::get_nTuple<double>(*this, res);
+//        } else //is list
+//        {
+//            for (auto const &item:*this)
+//            {
+//                auto &v = (*res)[item.first.as<std::string>()];
+//                success = success && item.second.as(&(v));
+//
+//                if (!success)break;
+//            }
+//        }
+//    } else if (this->is_boolean())
+//    {
+//        bool v;
+//
+//        success = success && this->as(&v);
+//
+//        if (success) (*res) = v;
+//    }
+////#if LUA_VERSION_NUM >= 503
+//    else if (this->is_integer())
+//    {
+//        int v;
+//
+//        success = success && this->as(&v);
+//
+//        if (success) (*res) = v;
+//    }
+////#endif
+//    else if (this->is_number())
+//    {
+//        double v;
+//
+//        success = success && this->as(&v);
+//
+//        if (success) (*res) = v;
+//    } else if (this->is_string())
+//    {
+//        std::string v;
+//
+//        success = success && this->as(&v);
+//
+//        if (success) (*res) = v;
+//    } else
+//    {
+//        WARNING << "unknown type can not convert_database_r" << std::endl;
+//        success = false;
+//    }
+//
+//    return success;
+//}
+//
+//bool LuaObject::set(std::string const &key, Properties const &res) const
+//{
+//    // @TODO implement Properties to LuaOjbect convert_database_r
+//    UNIMPLEMENTED;
+//    return false;
+//}
 }}

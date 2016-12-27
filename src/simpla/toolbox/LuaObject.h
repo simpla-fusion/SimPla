@@ -415,9 +415,9 @@ public:
         }
     }
 
-    bool as(Properties *res) const;
+//    bool as(Properties *res) const;
 
-    bool set(std::string const &key, Properties const &res) const;
+//    bool set(std::string const &key, Properties const &res) const;
 
     template<typename T>
     inline void set(std::string const &name, T const &v)
