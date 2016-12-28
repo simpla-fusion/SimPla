@@ -152,25 +152,25 @@ private:
 
 template<typename ...> class AttributeProxy;
 
-template<typename T>
-class AttributeProxy<T> : public Attribute, public T
+template<typename U>
+class AttributeProxy<U> : public Attribute, public U
 {
-    typedef T base_type;
-    typedef algebra::traits::value_type_t<T> value_type;
-    static constexpr size_type iform = algebra::traits::iform<T>::value;
-    static constexpr size_type dof = algebra::traits::dof<T>::value;
-    typedef AttributeProxy<T> this_type;
+SP_OBJECT_HEAD(AttributeProxy<U>, Attribute);
+
+    typedef algebra::traits::value_type_t<U> value_type;
+
 public:
     template<typename ...Args>
     AttributeProxy(Args &&...args):
-            Attribute(nullptr,
-                      std::make_shared<AttributeDescTemp<value_type, iform, dof>>(std::forward<Args>(args)...)) {}
+            Attribute(nullptr, std::make_shared<AttributeDescTemp<value_type,
+                    algebra::traits::iform<U>::value,
+                    algebra::traits::dof<U>::value>>()),
+            U(std::forward<Args>(args)...) {}
 
     ~AttributeProxy() {}
 
-    virtual std::shared_ptr<Attribute> clone() const { return std::make_shared<this_type>(); };
-
-    virtual std::shared_ptr<DataBlock> create_data_block(void *p, std::shared_ptr<MeshBlock> const &m) const
+    virtual std::shared_ptr<DataBlock>
+    create_data_block(void *p, std::shared_ptr<MeshBlock> const &m) const
     {
         return data_entity_type::create(m, static_cast<value_type *>(p));
     };
@@ -179,24 +179,23 @@ public:
     virtual void accept(Patch *p)
     {
         Attribute::accept(p);
-        base_type::accept(p->mesh_as<mesh_type>(), Attribute::data());
+        U::accept(Attribute::data());
     }
 
     virtual void pre_process()
     {
 
         Attribute::pre_process();
-        base_type::pre_process();
+        U::pre_process();
     };
 
     virtual void post_process()
     {
+        U::post_process();
         Attribute::post_process();
     }
 
 };
-
-template<typename TV, size_type IFORM, size_type DOF> using DataAttribute=AttributeProxy<DataBlockArray<TV, IFORM, DOF>>;
 
 
 }} //namespace data_block

@@ -21,7 +21,12 @@ Attribute::Attribute(AttributeCollection *c, std::shared_ptr<AttributeDesc> cons
 
 Attribute::~Attribute() { disconnect(); }
 
-void Attribute::accept(Patch *p) { accept(p->mesh().get(), p->data(m_desc_->id())); }
+void Attribute::accept(Patch *p)
+{
+    auto d = p->data(m_desc_->id());
+
+    accept(p->mesh().get(), p->data(m_desc_->id()));
+}
 
 void Attribute::accept(MeshBlock const *m, std::shared_ptr<DataBlock> const &d)
 {

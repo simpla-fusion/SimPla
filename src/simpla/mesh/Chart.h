@@ -12,6 +12,8 @@ namespace simpla { namespace mesh
 {
 class Patch;
 
+class DataBlock;
+
 /**
  *  Define:
  *   A bundle is a triple $(E, p, B)$ where $E$, $B$ are sets and $p:E→B$ a map
@@ -25,7 +27,7 @@ class Chart :
         public concept::LifeControllable
 {
 public:
-    SP_OBJECT_BASE(Chart);
+SP_OBJECT_BASE(Chart);
 
     Chart();
 
@@ -33,7 +35,7 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
-    virtual void accept(Patch *)=0;
+    virtual void accept(Patch *p);
 
     virtual void pre_process();
 
@@ -43,39 +45,60 @@ public:
 
     virtual void finalize(Real data_time = 0, Real dt = 0);
 
+    virtual std::shared_ptr<MeshBlock> const &mesh_block() const { return m_mesh_block_; }
 
-    virtual std::shared_ptr<MeshBlock> const &mesh_block() const
-    {
-        ASSERT(m_mesh_block_ != nullptr);
-        return m_mesh_block_;
-    }
-
-    virtual point_type point(index_type i, index_type j, index_type k) const { return m_mesh_block_->point(i, j, k); };
-
-    template<typename TV, size_type IFORM, size_type DOF = 1> using data_block_type=mesh::DataBlockArray<TV, IFORM, DOF>;
-
-    size_type size(size_type IFORM = VERTEX, size_type DOF = 1) const
-    {
-        return 1;// return m_dims_[0] * m_dims_[1] * m_dims_[2] * DOF * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-    }
-
-    template<typename TV, size_type IFORM, size_type DOF>
-    bool create_data_block(std::shared_ptr<data_block_type<TV, IFORM, DOF> > *p, void *d = nullptr) const
-    {
-        if (p == nullptr || (*p) != nullptr) { return false; }
-        else
-        {
-            size_type s = size(IFORM, DOF);
-            *p = sp_alloc_array<TV>(s);
-        }
-    };
 
 protected:
-
     std::shared_ptr<MeshBlock> m_mesh_block_;
-
 };
 
+template<typename ...> class ChartProxy;
+
+template<typename U>
+class ChartProxy<U> : public Chart, public U
+{
+    template<typename ...Args>
+    explicit ChartProxy(Args &&...args):U(std::forward<Args>(args)...) {}
+
+    ~ChartProxy() {}
+
+    virtual std::ostream &print(std::ostream &os, int indent) const
+    {
+        U::print(os, indent);
+        Chart::print(os, indent);
+    }
+
+    virtual void accept(Patch *p)
+    {
+        Chart::accept(p);
+        U::accpt(p);
+    };
+
+    virtual void pre_process()
+    {
+        Chart::pre_process(p);
+        U::pre_process(p);
+    };
+
+    virtual void post_process()
+    {
+        U::post_process(p);
+        Chart::post_process(p);
+    };
+
+    virtual void initialize(Real data_time = 0, Real dt = 0)
+    {
+        Chart::initialize(data_time, dt);
+        U::initialize(data_time, dt);
+    }
+
+    virtual void finalize(Real data_time = 0, Real dt = 0)
+    {
+        U::finalize(data_time, dt);
+        Chart::finalize(data_time, dt);
+
+    }
+};
 
 }}//namespace simpla { namespace mesh
 

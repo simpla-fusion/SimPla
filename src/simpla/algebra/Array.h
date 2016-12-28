@@ -16,7 +16,7 @@ namespace simpla { namespace algebra
 {
 
 namespace declare { template<typename V, size_type NDIMS, bool SLOW_FIRST> struct Array_; }
-
+template<typename V, size_type NDIMS, bool SLOW_FIRST = true> using Array=declare::Array_<V, NDIMS, SLOW_FIRST>;
 namespace traits
 {
 template<typename T, size_type I>
@@ -38,7 +38,6 @@ struct value_type<declare::Array_<T, I> > { typedef T type; };
 
 template<typename T, size_type I>
 struct sub_type<declare::Array_<T, I> > { typedef std::conditional_t<I == 0, T, declare::Array_<T, I - 1> > type; };
-
 
 
 template<typename T>
