@@ -78,9 +78,7 @@ struct value_type<declare::nTuple_<T, I0> > { typedef T type; };
 template<typename T, size_type ...I>
 struct value_type<declare::nTuple_<T, I...> > { typedef T type; };
 
-template<typename T> struct sub_type { typedef T type; };
 
-template<typename T> using sub_type_t = typename sub_type<T>::type;
 
 template<typename T, size_type I0, size_type  ...I>
 struct sub_type<declare::nTuple_<T, I0, I...> >
@@ -88,11 +86,6 @@ struct sub_type<declare::nTuple_<T, I0, I...> >
     typedef std::conditional_t<sizeof...(I) == 0, T, declare::nTuple_<T, I...> > type;
 };
 
-template<typename ...> struct pod_type;
-
-template<typename ...T> using pod_type_t = typename pod_type<T...>::type;
-
-template<typename T> struct pod_type<T> { typedef T type; };
 
 template<typename T, size_type I0>
 struct pod_type<declare::nTuple_<T, I0> > { typedef T type[I0]; };

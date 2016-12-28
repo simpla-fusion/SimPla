@@ -17,6 +17,14 @@ enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };
 
 namespace algebra
 {
+/**
+ * @brief algebra
+ *    Algebra system
+ *    - scalar ,nTuple, Array,Field
+ *    - type convert scarlar => nTuple => Array => Field
+ *    TODO:
+ *    - Array<nTuple>= Array<Scalar>*nTuple
+ */
 namespace declare
 {
 template<typename ...> struct Expression;
@@ -56,6 +64,12 @@ template<typename T, size_type N> struct value_type<T[N]> { typedef T type; };
 template<typename T> struct value_type<T const *> { typedef T type; };
 template<typename T> struct value_type<T const[]> { typedef T type; };
 
+template<typename T> struct sub_type { typedef T type; };
+template<typename T> using sub_type_t = typename sub_type<T>::type;
+
+template<typename ...> struct pod_type;
+template<typename ...T> using pod_type_t = typename pod_type<T...>::type;
+template<typename T> struct pod_type<T> { typedef T type; };
 
 template<typename T> struct scalar_type { typedef Real type; };
 

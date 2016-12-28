@@ -36,17 +36,10 @@ struct rank<declare::Array_<T, I> > : public index_const<I> {};
 template<typename T, size_type I>
 struct value_type<declare::Array_<T, I> > { typedef T type; };
 
-template<typename T> struct sub_type { typedef T type; };
-template<typename T> using sub_type_t = typename sub_type<T>::type;
-
 template<typename T, size_type I>
 struct sub_type<declare::Array_<T, I> > { typedef std::conditional_t<I == 0, T, declare::Array_<T, I - 1> > type; };
 
-template<typename ...> struct pod_type;
 
-template<typename ...T> using pod_type_t = typename pod_type<T...>::type;
-
-template<typename T> struct pod_type<T> { typedef T type; };
 
 template<typename T>
 struct pod_type<declare::Array_<T, 0> > { typedef pod_type_t<T> type; };
@@ -233,7 +226,9 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
 
     static inline size_type hash(size_type const *dims, size_type const *s)
     {
-        return hash_(std::integral_constant<bool, SLOW_FIRST>(), index_const<0>(), dims, s);
+        auto t = hash_(std::integral_constant<bool, SLOW_FIRST>(), index_const<0>(), dims, s);
+
+        return t;
 
     }
 
@@ -247,12 +242,12 @@ public:
     static constexpr inline value_type const &
     get_value(self_type const &self, size_type const *s) { return self.m_data_[hash(self.m_dims_, s)]; };
 
-//    template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
-//    get_value(T &v, I0 const *s,
-//              ENABLE_IF((st::is_indexable<T, I0>::value))) { return get_value(v[*s], s + 1); };
-//
-//    template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
-//    get_value(T &v, I0 const *s, ENABLE_IF((!st::is_indexable<T, I0>::value))) { return v; };
+    template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
+    get_value(T &v, I0 const *s,
+              ENABLE_IF((st::is_indexable<T, I0>::value))) { return get_value(v[*s], s + 1); };
+
+    template<typename T, typename I0> static constexpr inline T &
+    get_value(T &v, I0 const *s, ENABLE_IF((!st::is_indexable<T, I0>::value))) { return v; };
 private:
 //    template<typename T, typename ...Args> static constexpr inline T &
 //    get_value_(std::integral_constant<bool, false> const &, T &v, Args &&...)
@@ -288,6 +283,15 @@ public:
     get_value(declare::Expression<TOP, Others...> const &expr, Idx &&... s)
     DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
 
+
+    template<typename TOP, typename ...Others, size_type ... index> static constexpr inline auto
+    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, size_type const *s)
+    DECL_RET_TYPE((TOP::eval(get_value(std::get<index>(expr.m_args_), s)...)))
+
+    template<typename TOP, typename   ...Others> static constexpr inline auto
+    get_value(declare::Expression<TOP, Others...> const &expr, size_type const *s)
+    DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), s)))
+
     template<typename TFun> static void
     traversal_nd(size_type const *dims, TFun const &fun)
     {
@@ -315,7 +319,7 @@ public:
     static constexpr inline
     void apply(tags::_clear, self_type &self)
     {
-        memset(self.m_data_, static_cast<int>(size(self.m_dims_)), 0);
+        memset(self.m_data_, static_cast<int>(size(self.m_dims_) * sizeof(value_type)), 0);
     };
 
     template<typename TOP, typename ...Others>
