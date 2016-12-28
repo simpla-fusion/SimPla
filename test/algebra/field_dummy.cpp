@@ -26,6 +26,6 @@ int main(int argc, char **argv)
     Field<Real, DummyMesh> g(&m);
     f = 1;
     g = 2;
-    f += g * 2;
+    f += g;
 
 }

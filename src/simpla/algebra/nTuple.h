@@ -17,9 +17,9 @@
 #include "Arithmetic.h"
 #include "Expression.h"
 
-namespace simpla
+namespace simpla { namespace algebra
 {
-namespace algebra { namespace declare { template<typename, size_type ...I> struct nTuple_; }}
+namespace declare { template<typename, size_type ...I> struct nTuple_; }
 
 
 /**
@@ -58,17 +58,6 @@ namespace algebra { namespace declare { template<typename, size_type ...I> struc
  *
  *    @endcode}
  **/
-template<typename T, size_type ...N> using nTuple=algebra::declare::nTuple_<T, N...>;
-
-template<typename T, size_type N> using Vector=algebra::declare::nTuple_<T, N>;
-
-template<typename T, size_type M, size_type N> using Matrix=algebra::declare::nTuple_<T, M, N>;
-
-template<typename T, size_type ...N> using Tensor=algebra::declare::nTuple_<T, N...>;
-
-
-namespace algebra
-{
 namespace traits
 {
 template<typename T, size_type ...I0>
@@ -111,11 +100,23 @@ struct pod_type<declare::nTuple_<T, I0> > { typedef T type[I0]; };
 template<typename T, size_type I0, size_type  ...I>
 struct pod_type<declare::nTuple_<T, I0, I...> > { typedef typename pod_type<declare::nTuple_<T, I...>>::type type[I0]; };
 
+
+template<typename ...> struct make_nTuple { typedef void type; };
+
+template<typename TV, size_type ...I>
+struct make_nTuple<TV, integer_sequence<size_type, I...> > { typedef declare::nTuple_<TV, I...> type; };
+
+
+template<typename T> struct primary_type<T, typename std::enable_if<is_nTuple<T>::value>::type>
+{
+    typedef typename make_nTuple<value_type_t<T>, extents<T>>::type type;
+};
+
+
 }//namespace traits
 
-namespace declare { template<typename ...> struct Expression; }
 
-template<typename ...T> struct algebra_parser;
+
 
 /// n-dimensional primary type
 namespace declare
@@ -133,6 +134,8 @@ struct nTuple_<TV, N0, NOthers...>
 
 
     typedef nTuple_<TV, N0, NOthers...> this_type;
+
+    typedef calculus::calculator<this_type> calculator;
 
     typedef traits::value_type_t<this_type> value_type;
 
@@ -160,37 +163,35 @@ struct nTuple_<TV, N0, NOthers...>
     }
 
     template<typename ...U>
-    nTuple_(Expression<U...> const &expr)
-    {
-        algebra_parser<this_type>::apply(tags::_assign(), (*this), expr);
-    }
+    nTuple_(Expression<U...> const &expr) { calculator::apply(tags::_assign(), (*this), expr); }
 
 //    nTuple_(this_type const &other) = delete;
 //
 //    nTuple_(this_type &&other) = delete;
 
-    void swap(this_type &other)
-    {
-        algebra_parser<this_type>::apply(tags::_swap(), (*this), other);
-    }
+    void swap(this_type &other) { calculator::apply(tags::_swap(), (*this), other); }
 
     template<typename TR> inline this_type &
     operator=(TR const &rhs)
     {
-        algebra_parser<this_type>::apply(tags::_assign(), (*this), rhs);
+        calculator::apply(tags::_assign(), (*this), rhs);
         return (*this);
     }
 
 
 };
 }//namespace declare
+
+namespace calculus
+{
+
 namespace _detail
 {
 
 template<typename TOP, typename TL, typename TR> inline void
 _apply(TOP const &, declare::nTuple_<TL, 3> &lhs, TR &rhs)
 {
-    typedef algebra_parser<declare::nTuple_<TL, 3> > impl_type;
+    typedef calculus::calculator<declare::nTuple_<TL, 3>> impl_type;
     TOP::eval(lhs[0], impl_type::get_value(rhs, 0));
     TOP::eval(lhs[1], impl_type::get_value(rhs, 1));
     TOP::eval(lhs[2], impl_type::get_value(rhs, 2));
@@ -200,7 +201,7 @@ _apply(TOP const &, declare::nTuple_<TL, 3> &lhs, TR &rhs)
 template<typename TOP, typename TL, size_type I0, typename TR> inline void
 _apply(TOP const &, declare::nTuple_<TL, I0> &lhs, TR &rhs)
 {
-    typedef algebra_parser<declare::nTuple_<TL, I0> > impl_type;
+    typedef calculus::calculator<declare::nTuple_<TL, I0>> impl_type;
     for (size_type i = 0; i < I0; ++i)
     {
         TOP::eval(lhs[i], impl_type::get_value(rhs, i));
@@ -210,7 +211,7 @@ _apply(TOP const &, declare::nTuple_<TL, I0> &lhs, TR &rhs)
 template<typename TOP, typename TL, size_type I0, size_type I1, typename TR> inline void
 _apply(TOP const &, declare::nTuple_<TL, I0, I1> &lhs, TR &rhs)
 {
-    typedef algebra_parser<declare::nTuple_<TL, I0, I1> > impl_type;
+    typedef calculus::calculator<declare::nTuple_<TL, I0, I1>> impl_type;
     for (size_type i = 0; i < I0; ++i)
         for (size_type j = 0; j < I1; ++j)
         {
@@ -221,7 +222,7 @@ _apply(TOP const &, declare::nTuple_<TL, I0, I1> &lhs, TR &rhs)
 template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2, typename TR> inline void
 _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2> &lhs, TR &rhs)
 {
-    typedef algebra_parser<declare::nTuple_<TL, I0, I1, I2> > impl_type;
+    typedef calculus::calculator<declare::nTuple_<TL, I0, I1, I2>> impl_type;
     for (size_type i = 0; i < I0; ++i)
         for (size_type j = 0; j < I1; ++j)
             for (size_type k = 0; k < I2; ++k)
@@ -233,7 +234,7 @@ _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2> &lhs, TR &rhs)
 template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2, size_type I3, typename TR> inline void
 _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2, I3> &lhs, TR &rhs)
 {
-    typedef algebra_parser<declare::nTuple_<TL, I0, I1, I2, I3>> impl_type;
+    typedef calculus::calculator<declare::nTuple_<TL, I0, I1, I2, I3>> impl_type;
     for (size_type i = 0; i < I0; ++i)
         for (size_type j = 0; j < I1; ++j)
             for (size_type k = 0; k < I2; ++k)
@@ -243,10 +244,13 @@ _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2, I3> &lhs, TR &rhs)
                 }
 };
 }//namespace _detail
+
+
+
 namespace st=simpla::traits;
 
 template<typename V, size_type ...J>
-struct algebra_parser<declare::nTuple_<V, J...> >
+struct calculator<declare::nTuple_<V, J...> >
 {
 
 
@@ -309,7 +313,7 @@ public:
         _detail::_apply(op, lhs, rhs);
     };
 };
-
+}//namespace calculaus{
 
 }//namespaace algebra
 }//namespace simpla

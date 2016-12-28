@@ -49,6 +49,9 @@ DECL_RET_TYPE((_impl::invoke_helper(std::forward<Func>(func),
 
 namespace traits
 {
+typedef std::integral_constant<bool, true> true_t;
+typedef std::integral_constant<bool, false> false_t;
+
 template<typename T, class Enable = void> struct type_id
 {
 
@@ -610,7 +613,6 @@ template<typename T0, typename ...Others> T0 min(T0 const &first, Others &&...ot
 {
     return min(first, min(std::forward<Others>(others)...));
 };
-
 
 
 }// namespace simpla

@@ -5,8 +5,8 @@
  * @author salmon
  */
 
-#ifndef CORE_toolbox_NTUPLE_EXT_H_
-#define CORE_toolbox_NTUPLE_EXT_H_
+#ifndef CORE_NTUPLE_EXT_H_
+#define CORE_NTUPLE_EXT_H_
 
 #include <cstddef>
 #include <sstream>
@@ -85,7 +85,7 @@ DECL_RET_TYPE((std::sqrt(std::abs(inner_product(l, l)))))
 template<typename TOP, typename T> T
 reduce(T const &v, ENABLE_IF(traits::is_scalar<T>::value)) { return v; }
 
-template<typename TOP, typename T> traits::value_type_t <T>
+template<typename TOP, typename T> traits::value_type_t<T>
 reduce(T const &v, ENABLE_IF(traits::is_nTuple<T>::value))
 {
     traits::value_type_t<T> res();
@@ -102,7 +102,7 @@ reduce(T const &v, ENABLE_IF(traits::is_nTuple<T>::value))
 
 template<typename TL, typename TR> inline auto
 inner_product(TL const &l, TR const &r,
-              ENABLE_IF(traits::is_nTuple<TL>::value && traits::is_nTuple<TL>::value))
+              ENABLE_IF(traits::is_nTuple<TL>::value &&traits::is_nTuple<TL>::value))
 DECL_RET_TYPE((reduce<tags::plus>(l * r)))
 
 template<typename T> inline auto
@@ -137,13 +137,12 @@ DECL_RET_TYPE((reduce<tags::plus>(v)))
 
 
 
-namespace declare
-{
+
 namespace _detail
 {
 template<typename T, size_type ...N> std::ostream &
 printNd_(std::ostream &os, T const &d, index_sequence<N...> const &,
-        ENABLE_IF((!simpla::traits::is_indexable<T, size_type>::value)))
+         ENABLE_IF((!simpla::traits::is_indexable<T, size_type>::value)))
 {
     os << d;
     return os;
@@ -152,7 +151,7 @@ printNd_(std::ostream &os, T const &d, index_sequence<N...> const &,
 
 template<typename T, size_type M, size_type ...N> std::ostream &
 printNd_(std::ostream &os, T const &d, index_sequence<M, N...> const &,
-        ENABLE_IF((simpla::traits::is_indexable<T, size_type>::value)))
+         ENABLE_IF((simpla::traits::is_indexable<T, size_type>::value)))
 {
     os << "{";
     printNd_(os, d[0], index_sequence<N...>());
@@ -165,8 +164,9 @@ printNd_(std::ostream &os, T const &d, index_sequence<M, N...> const &,
 
     return os;
 }
-}
-
+}//namespace _detail
+namespace declare
+{
 template<typename T, size_type  ...M>
 std::ostream &operator<<(std::ostream &os, nTuple_<T, M...> const &v)
 {
@@ -196,4 +196,4 @@ std::ostream &operator<<(std::ostream &os, nTuple_<T, M...> const &v)
 
 }// namespace simpla::algebra
 
-#endif /* CORE_toolbox_NTUPLE_EXT_H_ */
+#endif /* CORE_NTUPLE_EXT_H_ */

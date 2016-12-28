@@ -58,7 +58,7 @@ printNd(std::ostream &os, T const &d, index_sequence<M, N...> const &,
 template<typename TV, typename TI> inline TV const *
 printNdArray(std::ostream &os, TV const *v, int rank, TI const *d,
              std::string const &left_brace = "{", std::string const &sep = ",",
-             std::string const &right_brace = "}")
+             std::string const &right_brace = "}", bool is_slow_first = true)
 {
     constexpr int ELE_NUM_PER_LINE = 10;
     if (rank == 1)

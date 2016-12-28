@@ -14,6 +14,7 @@
 #include <simpla/mesh/EntityId.h>
 
 #include <simpla/toolbox/MemoryPool.h>
+#include "../Chart.h"
 //#include <simpla/mesh/DataBlock.h>
 //#include <simpla/mesh/MeshBlock.h>
 //#include "simpla/mesh/Chart.h"
@@ -28,7 +29,7 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry
+struct CartesianGeometry : public Chart
 {
 public:
 
@@ -71,7 +72,6 @@ public:
 
 
 public:
-    template<typename TV, size_type IFORM, size_type DOF = 1> using data_block_type= mesh::DataBlockArray<TV, IFORM, DOF>;
 
     typedef MeshEntityId id_type;
 
@@ -79,7 +79,7 @@ public:
 
     ~CartesianGeometry() {}
 
-    virtual void initialize(Real data_time, Real dt);
+    void initialize(Real data_time, Real dt);
 
 private:
 
@@ -97,30 +97,6 @@ public:
     template<typename ...Args> void apply(Args &&...) const {}
 
     void deploy() {};
-
-    size_type size(size_type IFORM = VERTEX, size_type DOF = 1) const
-    {
-        return m_dims_[0] * m_dims_[1] * m_dims_[2] * DOF * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-    }
-
-    template<typename TV, size_type IFORM, size_type DOF>
-    bool create_data_block(std::shared_ptr<data_block_type<TV, IFORM, DOF> > *p, void *d = nullptr) const
-    {
-        if (p == nullptr || (*p) != nullptr) { return false; }
-        else
-        {
-            size_type s = size(IFORM, DOF);
-            *p = sp_alloc_array<TV>(s);
-        }
-    };
-
-    template<typename TFun>
-    void foreach(TFun const &fun, size_type IFORM = VERTEX, size_type DOF = 1) const
-    {
-
-    }
-
-    size_type hash(id_type const &s) const { return s.x; }
 
     template<typename ...Args>
     point_type point(index_type x, index_type y, index_type z) const { return point_type{x, y, z}; }

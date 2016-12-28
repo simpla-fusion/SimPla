@@ -19,6 +19,7 @@ namespace simpla
 {
 
 #define SP_OBJECT_BASE(_BASE_CLASS_NAME_)                                                                           \
+public:                                                                                                             \
 virtual bool is_a(const std::type_info &info) const { return typeid(_BASE_CLASS_NAME_) == info; }                   \
 template<typename _UOTHER_> bool is_a()const {return is_a(typeid(_UOTHER_));}                                        \
 template<typename U_> U_ * as() { return (is_a(typeid(U_))) ? static_cast<U_ *>(this) : nullptr; }                   \

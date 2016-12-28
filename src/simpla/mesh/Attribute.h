@@ -11,6 +11,7 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Configurable.h>
 #include <simpla/design_pattern/Observer.h>
+#include <simpla/algebra/Algebra.h>
 
 #include "DataBlock.h"
 
@@ -109,7 +110,7 @@ struct Attribute :
         public design_pattern::Observer<void(Patch *)>
 {
 public:
-    SP_OBJECT_BASE(Attribute);
+SP_OBJECT_BASE(Attribute);
 
     Attribute(std::shared_ptr<DataBlock> const &d = nullptr, std::shared_ptr<AttributeDesc> const &desc = nullptr);
 
@@ -125,7 +126,7 @@ public:
 
     virtual std::shared_ptr<Attribute> clone() const =0;
 
-//    virtual std::shared_ptr<DataBlock> create_data_block(void *p, std::shared_ptr<MeshBlock> const &m) const =0;
+    virtual std::shared_ptr<DataBlock> create_data_block(void *p, MeshBlock const *m) const =0;
 
     virtual AttributeDesc const &desc() const { return *m_desc_; }
 
@@ -141,25 +142,31 @@ public:
 
     virtual void accept(Patch *p);
 
-    virtual void accept(std::shared_ptr<DataBlock> const &d);
+    virtual void accept(MeshBlock const *m, std::shared_ptr<DataBlock> const &d);
 
 private:
+    MeshBlock const *m_mesh_;
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
 };
 
-template<typename TV, size_type IFORM, size_type DOF>
-class DataAttribute : public Attribute
+template<typename ...> class AttributeProxy;
+
+template<typename T>
+class AttributeProxy<T> : public Attribute, public T
 {
-    typedef TV value_type;
-    typedef DataAttribute<TV, IFORM, DOF> this_type;
-    typedef DataBlockArray<TV, IFORM, DOF> data_entity_type;
+    typedef T base_type;
+    typedef algebra::traits::value_type_t<T> value_type;
+    static constexpr size_type iform = algebra::traits::iform<T>::value;
+    static constexpr size_type dof = algebra::traits::dof<T>::value;
+    typedef AttributeProxy<T> this_type;
 public:
     template<typename ...Args>
-    DataAttribute(Args &&...args):
-            Attribute(nullptr, std::make_shared<AttributeDescTemp<TV, IFORM, DOF>>(std::forward<Args>(args)...)) {}
+    AttributeProxy(Args &&...args):
+            Attribute(nullptr,
+                      std::make_shared<AttributeDescTemp<value_type, iform, dof>>(std::forward<Args>(args)...)) {}
 
-    ~DataAttribute() {}
+    ~AttributeProxy() {}
 
     virtual std::shared_ptr<Attribute> clone() const { return std::make_shared<this_type>(); };
 
@@ -168,28 +175,28 @@ public:
         return data_entity_type::create(m, static_cast<value_type *>(p));
     };
 
-    template<typename ...Args>
-    value_type &get(Args &&...args) { return m_data_->get(std::forward<Args>(args)...); }
 
-    template<typename ...Args>
-    value_type const &get(Args &&...args) const { return m_data_->get(std::forward<Args>(args)...); }
+    virtual void accept(Patch *p)
+    {
+        Attribute::accept(p);
+        base_type::accept(p->mesh_as<mesh_type>(), Attribute::data());
+    }
 
     virtual void pre_process()
     {
+
         Attribute::pre_process();
-        m_data_ = static_cast<data_entity_type *>( Attribute::data().get());
+        base_type::pre_process();
     };
 
     virtual void post_process()
     {
-        m_data_ = nullptr;
         Attribute::post_process();
     }
 
-public:
-    data_entity_type *m_data_;
-
 };
+
+template<typename TV, size_type IFORM, size_type DOF> using DataAttribute=AttributeProxy<DataBlockArray<TV, IFORM, DOF>>;
 
 
 }} //namespace data_block

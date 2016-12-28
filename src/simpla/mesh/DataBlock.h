@@ -26,32 +26,139 @@ class DataBlock :
         public concept::Printable,
         public concept::LifeControllable
 {
+SP_OBJECT_BASE(DataBlock);
 public:
-    SP_OBJECT_BASE(DataBlock);
-
     DataBlock() {}
 
     virtual ~DataBlock() {}
-
-    virtual bool is_valid()=0;
 
     virtual std::type_info const &value_type_info() const =0;
 
     virtual size_type entity_type() const =0;
 
-    virtual void load(data::DataTable const &) =0;
-
-    virtual void save(data::DataTable *) const =0;
-
-    virtual std::ostream &print(std::ostream &os, int indent) const =0;
+    virtual size_type dof() const =0;
 
     virtual void clear()=0;
 
-    virtual void update()=0;
+    /**
+     * concept::Serializable
+     *    virtual void load(data::DataTable const &) =0;
+     *    virtual void save(data::DataTable *) const =0;
+     *
+     * concept::Printable
+     *    virtual std::ostream &print(std::ostream &os, int indent) const =0;
+     *
+     * concept::LifeControllable
+     *    virtual bool is_deployed() const =0;
+     *    virtual bool is_valid() const =0;
+     *    virtual void deploy()=0;
+     *    virtual void pre_process() =0;
+     *    virtual void post_process()=0;
+     *    virtual void destroy()=0;
+     */
 
-    virtual void pre_process()=0;
+};
 
-    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<MeshBlock> const &m, void *p = nullptr)=0;
+template<typename ...> class DataBlockProxy;
+
+template<typename U>
+class DataBlockProxy<U> : public DataBlock, public U
+{
+SP_OBJECT_HEAD(DataBlockProxy<U>, DataBlock);
+
+    typedef U data_entity_type;
+    typedef algebra::traits::value_type_t<T> value_type;
+    static constexpr size_type IFORM = algebra::traits::iform<T>::value;
+    static constexpr size_type DOF = algebra::traits::dof<T>::value;
+public:
+    template<typename ...Args>
+    DataBlockProxy(Args &&...args):data_entity_type(std::forward<Args>(args)...) {}
+
+    ~DataBlockProxy() {}
+
+
+    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
+
+    virtual size_type entity_type() const { return IFORM; }
+
+    virtual size_type dof() const { return DOF; }
+
+    virtual void load(data::DataTable const &) { UNIMPLEMENTED; };
+
+    virtual void save(data::DataTable *) const { UNIMPLEMENTED; };
+
+    virtual std::ostream &print(std::ostream &os, int indent) const
+    {
+        os << " type = \'" << value_type_info().name() << "\' "
+           << ", entity type = " << (entity_type())
+           << ", dof = " << (dof())
+           << ", data_block = {";
+        data_entity_type::print(os, indent + 1);
+        os << "}";
+        return os;
+    }
+
+//    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<MeshBlock> const &m, void *p = nullptr)
+//    {
+//        return create(m, static_cast<value_type *>(p));
+//    };
+
+
+    static std::shared_ptr<DataBlock>
+    create(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)
+    {
+        index_type n_dof = DOF;
+        int ndims = 3;
+        if (IFORM == EDGE || IFORM == FACE)
+        {
+            n_dof *= 3;
+            ++ndims;
+        }
+        auto b = m->outer_index_box();
+        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
+        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], n_dof};
+        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
+    };
+
+    /**
+     * concept::Serializable
+     *    virtual void load(data::DataTable const &) =0;
+     *    virtual void save(data::DataTable *) const =0;
+     *
+     * concept::Printable
+     *    virtual std::ostream &print(std::ostream &os, int indent) const =0;
+     *
+     * concept::LifeControllable
+     *    virtual bool is_deployed() const =0;
+     *    virtual bool is_valid() const =0;
+     *    virtual void deploy()=0;
+     *    virtual void pre_process() =0;
+     *    virtual void post_process()=0;
+     *    virtual void destroy()=0;
+     */
+    virtual void deploy()
+    {
+        base_type::deploy();
+        data_entity_type::deploy();
+    };
+
+    virtual void pre_process()
+    {
+        base_type::pre_process();
+        data_entity_type::update();
+    };
+
+    virtual void post_process()
+    {
+        data_entity_type::update();
+        base_type::post_process();
+    };
+
+    virtual void destroy()
+    {
+        data_entity_type::destroy();
+        base_type::destroy();
+    };
 
 };
 

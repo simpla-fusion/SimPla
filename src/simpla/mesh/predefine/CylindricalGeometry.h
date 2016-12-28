@@ -50,8 +50,6 @@ SP_OBJECT_HEAD(CylindricalGeometry, Chart)
     virtual ~CylindricalGeometry() {}
 
 
-    template<typename TV, size_type IFORM, size_type DOF = 1> using data_block_type=mesh::DataBlockArray<TV, IFORM, DOF>;
-
 //private:
     DataAttribute<Real, VERTEX, 3> m_vertics_{this, "name=vertics;COORDINATES"};
     DataAttribute<Real, VOLUME, 9> m_volume_{this, "name=volume;NO_FILL"};
@@ -62,21 +60,6 @@ SP_OBJECT_HEAD(CylindricalGeometry, Chart)
 public:
     typedef mesh::MeshEntityIdCoder M;
 
-    size_type size(size_type IFORM = VERTEX, size_type DOF = 1) const
-    {
-        return 1;// return m_dims_[0] * m_dims_[1] * m_dims_[2] * DOF * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-    }
-
-    template<typename TV, size_type IFORM, size_type DOF>
-    bool create_data_block(std::shared_ptr<data_block_type<TV, IFORM, DOF> > *p, void *d = nullptr) const
-    {
-        if (p == nullptr || (*p) != nullptr) { return false; }
-        else
-        {
-            size_type s = size(IFORM, DOF);
-            *p = sp_alloc_array<TV>(s);
-        }
-    };
 
     template<typename ...Args> void apply(Args &&...) const {}
 

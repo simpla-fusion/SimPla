@@ -12,3 +12,6 @@ add_executable(field_dummy field_dummy.cpp)
 target_link_libraries(field_dummy toolbox)
 
 add_executable(ntuple_dummy ntuple_dummy.cpp)
+
+
+add_executable(array_dummy array_dummy.cpp)

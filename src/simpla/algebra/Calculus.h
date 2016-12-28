@@ -20,9 +20,7 @@
 #include "Arithmetic.h"
 //#include "Expression.h"
 
-namespace simpla
-{
-namespace algebra
+namespace simpla { namespace algebra
 {
 template<size_type I> using index_const=std::integral_constant<size_type, I>;
 
@@ -474,7 +472,6 @@ curl_pdz(T const &f) DECL_RET_TYPE((curl_pdz(f, traits::iform<T>())))
 #undef _SP_DEFINE_EXPR_UNARY_FUNCTION
 #undef _SP_DEFINE_EXPR_BINARY_FUNCTION
 
-}
-}// namespace simpla
+}}// namespace simpla//namespace algebra
 
 #endif /* CALCULUS_H_ */

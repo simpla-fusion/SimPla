@@ -21,9 +21,9 @@ Attribute::Attribute(AttributeCollection *c, std::shared_ptr<AttributeDesc> cons
 
 Attribute::~Attribute() { disconnect(); }
 
-void Attribute::accept(Patch *p) { accept(p->data(m_desc_->id())); }
+void Attribute::accept(Patch *p) { accept(p->mesh().get(), p->data(m_desc_->id())); }
 
-void Attribute::accept(std::shared_ptr<DataBlock> const &d)
+void Attribute::accept(MeshBlock const *m, std::shared_ptr<DataBlock> const &d)
 {
     post_process();
     m_data_ = d;
@@ -34,19 +34,17 @@ void Attribute::pre_process()
 {
     if (is_valid()) { return; } else { concept::LifeControllable::pre_process(); }
 
-    if (m_data_ != nullptr) { return; }
-    else
-    {
-//        m_data_ = create_data_block(m_mesh_, nullptr);
-//        m_data_->pre_process();
-    }
+    if (m_data_ == nullptr) { m_data_ = create_data_block(nullptr, m_mesh_); }
+
+    m_data_->pre_process();
+
     ASSERT(m_data_ != nullptr);
 }
 
 void Attribute::post_process()
 {
     m_data_.reset();
-//    m_mesh_.reset();
+    m_mesh_ = nullptr;
     if (!is_valid()) { return; } else { concept::LifeControllable::post_process(); }
 }
 

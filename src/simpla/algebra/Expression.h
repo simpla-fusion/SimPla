@@ -26,10 +26,16 @@ namespace traits
 {
 
 template<typename TOP, typename ...Others>
+struct is_scalar<declare::Expression<TOP, Others...> > : public is_scalar<Others...> {};
+
+template<typename TOP, typename ...Others>
 struct is_nTuple<declare::Expression<TOP, Others...> > : public is_nTuple<Others...> {};
 
 template<typename TOP, typename ...Others>
 struct is_field<declare::Expression<TOP, Others...> > : public is_field<Others...> {};
+
+template<typename TOP, typename ...Others>
+struct is_array<declare::Expression<TOP, Others...> > : public is_array<Others...> {};
 
 template<typename TOP, typename T0, typename ... T>
 struct iform<declare::Expression<TOP, T0, T...> > : public iform<T0> {};

@@ -20,11 +20,12 @@ namespace algebra
 namespace declare
 {
 template<typename ...> struct Expression;
-
 template<typename, size_type ...> struct nTuple_;
-
+template<typename, size_type NDIMS, bool SLOW_FIRST = true> struct Array_;
 template<typename, typename, size_type ...> struct Field_;
+
 }
+namespace calculus { template<typename ...> struct calculator {}; }
 
 namespace traits
 {
@@ -73,24 +74,32 @@ struct is_scalar<T> : public std::integral_constant<bool,
 {
 };
 
-template<typename ...> struct is_nTuple;
-
-template<typename T> struct is_nTuple<T> : public std::integral_constant<bool, false> {};
 
 template<typename ...> struct is_field;
 
 template<typename T> struct is_field<T> : public std::integral_constant<bool, false> {};
-
-
-template<typename First, typename  ...Others>
-struct is_nTuple<First, Others...> : public std::integral_constant<bool,
-        (is_nTuple<First>::value && (!is_field<First>::value)) || is_nTuple<Others...>::value>
-{
-};
-
 template<typename First, typename  ...Others>
 struct is_field<First, Others...> : public std::integral_constant<bool,
         is_field<First>::value || is_field<Others...>::value>
+{
+};
+template<typename ...> struct is_array;
+
+template<typename T> struct is_array<T> : public std::integral_constant<bool, false> {};
+
+template<typename First, typename  ...Others>
+struct is_array<First, Others...> : public std::integral_constant<bool,
+        (is_array<First>::value && !is_field<First>::value) || is_array<Others...>::value>
+{
+};
+
+template<typename ...> struct is_nTuple;
+
+template<typename T> struct is_nTuple<T> : public std::integral_constant<bool, false> {};
+
+template<typename First, typename  ...Others>
+struct is_nTuple<First, Others...> : public std::integral_constant<bool,
+        (is_nTuple<First>::value && !(is_field<First>::value || is_array<First>::value)) || is_nTuple<Others...>::value>
 {
 };
 
@@ -99,84 +108,14 @@ template<typename T> using reference_t=typename reference<T>::type;
 template<typename T, int N> struct reference<T[N]> { typedef T *type; };
 template<typename T, int N> struct reference<const T[N]> { typedef T const *type; };
 
-//***********************************************************************************************************************
-
-template<typename T> struct field_value_type { typedef T type; };
-
-template<typename T> using field_value_t=typename field_value_type<T>::type;
-
-template<typename> struct mesh_type { typedef void type; };
-
-template<typename TV, typename TM, size_type ...I>
-struct mesh_type<declare::Field_<TV, TM, I...> > { typedef TM type; };
-
-
-template<typename TV, typename TM, size_type IFORM, size_type DOF>
-struct is_field<declare::Field_<TV, TM, IFORM, DOF> > : public std::integral_constant<bool, true> {};
-
-template<typename TV, typename TM, size_type IFORM, size_type DOF>
-struct reference<declare::Field_<TV, TM, IFORM, DOF> > { typedef declare::Field_<TV, TM, IFORM, DOF> const &type; };
-
-template<typename TV, typename TM, size_type IFORM, size_type DOF>
-struct reference<const declare::Field_<TV, TM, IFORM, DOF> > { typedef declare::Field_<TV, TM, IFORM, DOF> const &type; };
-
-template<typename TV, typename TM, size_type IFORM, size_type DOF>
-struct value_type<declare::Field_<TV, TM, IFORM, DOF>> { typedef TV type; };
-
-template<typename TV, typename TM, size_type IFORM, size_type DOF>
-struct rank<declare::Field_<TV, TM, IFORM, DOF> > : public index_const<3> {};
-
-template<typename TV, typename TM, size_type IFORM, size_type DOF>
-struct iform<declare::Field_<TV, TM, IFORM, DOF> > : public index_const<IFORM> {};
-
-template<typename TV, typename TM, size_type IFORM, size_type DOF>
-struct dof<declare::Field_<TV, TM, IFORM, DOF> > : public index_const<DOF> {};
-
-
-template<typename TV, typename TM, size_type IFORM, size_type DOF>
-struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>>
-{
-    typedef std::conditional_t<DOF == 1, TV, declare::nTuple_<TV, DOF> > cell_tuple;
-    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME),
-            cell_tuple, declare::nTuple_<cell_tuple, 3> > type;
-};
 
 //***********************************************************************************************************************
-template<typename ...> struct make_nTuple { typedef void type; };
 
-template<typename TV, size_type ...I>
-struct make_nTuple<TV, integer_sequence<size_type, I...> >
-{
-    typedef declare::nTuple_<TV, I...> type;
-};
 template<typename T, class Enable=void> struct primary_type { typedef T type; };
+
 template<typename T> using primary_type_t=typename primary_type<T>::type;
 
-template<typename T> struct primary_type<T, typename std::enable_if<is_nTuple<T>::value>::type>
-{
-    typedef typename make_nTuple<value_type_t<T>, extents<T>>::type type;
-};
-template<typename T> struct primary_type<T, typename std::enable_if<is_field<T>::value>::type>
-{
-    typedef typename declare::Field_<value_type_t<T>, typename mesh_type<T>::type, iform<T>::value, dof<T>::value> type;
-};
 
-
-//template<typename TOP, typename ...Others> struct is_nTuple<Expression < TOP, Others...> > : public is_nTuple<Others...> {};
-//template<typename TOP, typename ...Others> struct is_field<Expression < TOP, Others...> > : public is_field<Others...>{};
-//template<typename V, size_type ...I> struct is_nTuple<nTuple_ < V, I...> > : public std::integral_constant<bool, true>{};
-//template<typename U, typename M, size_type...I> struct is_field<Field_ < U, M, I...> > : public std::integral_constant<bool, true> {};
-//template<typename TV, size_type N0, size_type ...N> struct value_type<nTuple_<TV, N0, N...> > { typedef typename value_type<TV>::type type; };
-//template<typename TV, typename TM, size_type I, size_type DOF>
-//struct reference<Field_<TV, TM, I, DOF> > { typedef Field_<TV, TM, I, DOF> const &type; };
-//
-//template<typename TV, typename TM, size_type I, size_type DOF> struct iform<Field_<TV, TM, I, DOF> > : public index_const<I> {};
-//
-//template<typename TV, typename TM, size_type I, size_type DOF> struct dof<Field_<TV, TM, I, DOF> > : public index_const<DOF> {};
-//
-//template<typename TV, typename TM, size_type I, size_type DOF> struct rank<Field_<TV, TM, I, DOF> > : public rank<TM> { typedef TV type; };
-//
-//template<typename TV, typename TM, size_type I, size_type DOF> struct value_type<Field_<TV, TM, I, DOF> > { typedef TV type; };
 template<typename T> T
 calculate(T const &expr, ENABLE_IF(is_scalar<T>::value)) { return expr; }
 
@@ -191,5 +130,17 @@ calculate(T const &expr, ENABLE_IF(!is_scalar<T>::value))
 
 
 } //namespace algebra
+
+
+template<typename T, size_type ...N> using nTuple=algebra::declare::nTuple_<T, N...>;
+
+template<typename T, size_type N> using Vector=algebra::declare::nTuple_<T, N>;
+
+template<typename T, size_type M, size_type N> using Matrix=algebra::declare::nTuple_<T, M, N>;
+
+template<typename T, size_type ...N> using Tensor=algebra::declare::nTuple_<T, N...>;
+
+template<typename T, size_type N, bool is_slow_first = true> using Array=algebra::declare::Array_<T, N, is_slow_first>;
+
 } //namespace simpla
 #endif //SIMPLA_ALGEBRACOMMON_H
