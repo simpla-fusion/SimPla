@@ -128,6 +128,8 @@ public:
 
     Field_(this_type &&other) = delete;
 
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
+
 
     virtual void pre_process()
     {
@@ -161,7 +163,7 @@ public:
 
     virtual void deploy()
     {
-        if (!m_data_holder_) { m_data_holder_ = m_mesh_->template create_data_block<TV, IFORM, DOF>(); }
+//        if (!m_data_holder_) { m_data_holder_ =  create_data_block<TV, IFORM, DOF>(); }
         m_data_ = m_data_holder_.get();
     }
 
@@ -208,7 +210,7 @@ public:
     apply(Args &&...args)
     {
         pre_process();
-        calculus_policy::apply(m_mesh_, *this, std::forward<Args>(args)...);
+//        calculus_policy::apply(*this, std::forward<Args>(args)...);
         return *this;
     }
 }; // class Field_

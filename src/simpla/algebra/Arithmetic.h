@@ -215,7 +215,7 @@ template<typename ...> struct AssignmentExpression;
 
 
 #define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_)                                       \
-    template< typename T1,typename T2> Expression< tags::_##_NAME_,   T1,  T2 >  _NAME_(T1   & l, T2    &r){return (Expression< tags::_##_NAME_,   T1,  T2 > (l,r));} \
+    template< typename T1,typename T2> Expression< tags::_##_NAME_,   T1,  T2 >  _NAME_(T1   & l, T2    &r){return (Expression< tags::_##_NAME_,   T1,  T2 > (l,r));}    \
     template< typename T1,typename T2> Expression< tags::_##_NAME_, const  T1, const T2 >  _NAME_(T1 const  & l, T2 const   &r){return (Expression< tags::_##_NAME_,  const T1, const T2 > (l,r));}
 
 #define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)                                  \

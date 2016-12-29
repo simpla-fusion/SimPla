@@ -5,9 +5,9 @@
  */
 
 #include "IOStream.h"
-#include "MPIComm.h"
-#include "MPIAuxFunctions.h"
-#include "MiscUtilities.h"
+#include <simpla/parallel/MPIComm.h>
+#include <simpla/parallel/MPIAuxFunctions.h>
+#include <simpla/toolbox/MiscUtilities.h>
 
 namespace simpla { namespace toolbox
 {

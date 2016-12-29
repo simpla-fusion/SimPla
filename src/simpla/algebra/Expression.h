@@ -25,6 +25,7 @@ namespace declare { template<typename ...> struct Expression; }
 namespace traits
 {
 
+
 template<typename TOP, typename ...Others>
 struct is_scalar<declare::Expression<TOP, Others...> > : public is_scalar<Others...> {};
 
@@ -64,6 +65,15 @@ template<typename ...> struct BooleanExpression;
 
 template<typename ...> struct AssignmentExpression;
 
+}
+namespace calculus
+{
+template<typename ...> struct eval_expr_as;
+};
+
+namespace declare
+{
+
 template<typename TOP, typename ...Args>
 struct Expression<TOP, Args...>
 {
@@ -71,19 +81,18 @@ struct Expression<TOP, Args...>
 
     typename std::tuple<traits::reference_t<Args> ...> m_args_;
 
-    TOP m_op_;
+//    TOP m_op_;
 
     Expression(this_type const &that) : m_args_(that.m_args_) {}
 
     Expression(this_type &&that) : m_args_(that.m_args_) {}
 
-    Expression(Args &... args) : m_args_(args ...) {}
+    Expression(Args &... args) : m_args_(args...) {}
 
     virtual ~Expression() {}
 
-//    typedef traits::primary_type_t<this_type> primary_type;
+    template<typename T> operator T() const { return calculus::calculator<this_type>::template cast_as<T>(*this); }
 
-//    operator primary_type() const { return traits::calculate(*this); }
 };
 
 template<typename TOP, typename TL, typename TR>

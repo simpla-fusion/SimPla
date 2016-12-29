@@ -119,6 +119,9 @@ template<typename T> inline auto
 NSum(T const &v, ENABLE_IF(traits::is_nTuple<T>::value))
 DECL_RET_TYPE((reduce<tags::plus>(v)))
 
+
+
+
 //
 //template<typename T, size_type N0> std::istream &
 //input(std::istream &is, declare::nTuple_ <T, N0> &tv)
@@ -164,19 +167,36 @@ printNd_(std::ostream &os, T const &d, index_sequence<M, N...> const &,
 
     return os;
 }
+
+template<typename T, size_type  ...M> std::istream &
+input(std::istream &is, declare::nTuple_<T, M...> &a)
+{
+//    _detail::input(is, a);
+    return is;
+}
+
+
 }//namespace _detail
 namespace declare
 {
+
+
 template<typename T, size_type  ...M>
 std::ostream &operator<<(std::ostream &os, nTuple_<T, M...> const &v)
 {
     return _detail::printNd_(os, v.data_, index_sequence<M ...>());
 }
 
-
-//template<typename T, size_type  ...M>
-//std::istream &operator>>(std::istream &os, nTuple_<T, M...> &v) { return input(os, v); }
+template<typename T, size_type  ...M> std::istream &
+operator>>(std::istream &is, nTuple_<T, M...> &a)
+{
+    _detail::input(is, a);
+    return is;
 }
+}//namespace declare
+
+
+
 }// namespace algebra
 
 //namespace traits

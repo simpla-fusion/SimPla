@@ -236,6 +236,9 @@ SP_OBJECT_HEAD(MeshBlock, Object)
 
     size_type max_hash() const { return toolbox::size(m_m_box_); }
 
+    // FIXME:!!!
+    size_type hash(MeshEntityId const &s) { return 0; }
+
     typedef MeshEntityIdCoder m;
 
 

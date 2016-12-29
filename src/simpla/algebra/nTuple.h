@@ -17,7 +17,9 @@
 #include "Arithmetic.h"
 #include "Expression.h"
 
-namespace simpla { namespace algebra
+namespace simpla
+{
+namespace algebra
 {
 namespace declare { template<typename, size_type ...I> struct nTuple_; }
 
@@ -79,7 +81,6 @@ template<typename T, size_type ...I>
 struct value_type<declare::nTuple_<T, I...> > { typedef T type; };
 
 
-
 template<typename T, size_type I0, size_type  ...I>
 struct sub_type<declare::nTuple_<T, I0, I...> >
 {
@@ -98,12 +99,10 @@ template<typename ...> struct make_nTuple { typedef void type; };
 
 template<typename TV, size_type ...I>
 struct make_nTuple<TV, integer_sequence<size_type, I...> > { typedef declare::nTuple_<TV, I...> type; };
+template<typename TV>
+struct make_nTuple<TV, integer_sequence<size_type> > { typedef TV type; };
 
 
-template<typename T> struct primary_type<T, typename std::enable_if<is_nTuple<T>::value>::type>
-{
-    typedef typename make_nTuple<value_type_t<T>, extents<T>>::type type;
-};
 
 
 }//namespace traits
@@ -307,6 +306,8 @@ public:
     };
 };
 }//namespace calculaus{
+
+
 
 }//namespaace algebra
 }//namespace simpla

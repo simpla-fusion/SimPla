@@ -27,7 +27,8 @@ Real Polygon<2>::nearest_point(Real *x, Real *y) const
     x0[0] = *x;
     x0[1] = *y;
 
-    point2d_type p0 = m_polygon_.back();
+
+    point2d_type p0;// = m_polygon_.back();
 
     point2d_type p1;
 
@@ -47,9 +48,9 @@ Real Polygon<2>::nearest_point(Real *x, Real *y) const
         u = x0 - p0;
         v = p1 - p0;
 
-        Real v2 = static_cast<Real>(dot(v, v));
+        Real v2 = dot(v, v);
 
-        Real s = static_cast<Real>(dot(u, v)) / v2;
+        Real s = dot(u, v) / v2;
 
 
         point2d_type p;

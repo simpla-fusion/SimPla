@@ -33,7 +33,12 @@ template<typename, size_type NDIMS, bool SLOW_FIRST = true> struct Array_;
 template<typename, typename, size_type ...> struct Field_;
 
 }
-namespace calculus { template<typename ...> struct calculator {}; }
+namespace calculus
+{
+template<typename ...> struct calculator;
+
+
+}
 
 namespace traits
 {
@@ -87,7 +92,11 @@ struct is_scalar<T> : public std::integral_constant<bool,
         std::is_arithmetic<std::decay_t<T>>::value || is_complex<std::decay_t<T>>::value>
 {
 };
-
+template<typename First, typename  ...Others>
+struct is_scalar<First, Others...> : public std::integral_constant<bool,
+        is_scalar<First>::value && is_scalar<Others...>::value>
+{
+};
 
 template<typename ...> struct is_field;
 
@@ -116,6 +125,13 @@ struct is_nTuple<First, Others...> : public std::integral_constant<bool,
         (is_nTuple<First>::value && !(is_field<First>::value || is_array<First>::value)) || is_nTuple<Others...>::value>
 {
 };
+template<typename ...> struct is_expression;
+
+template<typename T> struct is_expression<T> : public std::integral_constant<bool, false> {};
+
+template<typename ... T>
+struct is_expression<declare::Expression<T...>> : public std::integral_constant<bool, true> {};
+
 
 template<typename T> struct reference { typedef T type; };
 template<typename T> using reference_t=typename reference<T>::type;
@@ -123,22 +139,10 @@ template<typename T, int N> struct reference<T[N]> { typedef T *type; };
 template<typename T, int N> struct reference<const T[N]> { typedef T const *type; };
 
 
+
 //***********************************************************************************************************************
 
-template<typename T, class Enable=void> struct primary_type { typedef T type; };
 
-template<typename T> using primary_type_t=typename primary_type<T>::type;
-
-
-template<typename T> T
-calculate(T const &expr, ENABLE_IF(is_scalar<T>::value)) { return expr; }
-
-template<typename T> primary_type_t<T>
-calculate(T const &expr, ENABLE_IF(!is_scalar<T>::value))
-{
-    primary_type_t<T> res = expr;
-    return std::move(res);
-}
 } //namespace traits
 
 

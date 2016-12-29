@@ -167,6 +167,10 @@ public:
                     algebra::traits::dof<U>::value>>(std::forward<Args>(args)...)),
             U() {}
 
+    AttributeProxy(AttributeProxy &&) = delete;
+
+    AttributeProxy(AttributeProxy const &) = delete;
+
     ~AttributeProxy() {}
 
     using U::operator=;
@@ -177,27 +181,28 @@ public:
         return DataBlockProxy<U>::create(m, static_cast<value_type *>(p));
     };
 
+    virtual void accept(Patch *p)
+    {
+        Attribute::accept(p);
+//        U::accept(Attribute::data());
+    }
+
     virtual void clear()
     {
         Attribute::clear();
         U::clear();
     }
 
-    virtual void accept(Patch *p)
-    {
-        Attribute::accept(p);
-        U::accept(Attribute::data());
-    }
 
     virtual void pre_process()
     {
         Attribute::pre_process();
-        U::pre_process();
+//        U::pre_process();
     };
 
     virtual void post_process()
     {
-        U::post_process();
+//        U::post_process();
         Attribute::post_process();
     }
 
@@ -205,11 +210,16 @@ public:
 
 template<typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
 using Variable=AttributeProxy<Array<TV,
-        SIMPLA_MAXIMUM_DIMENSION + ((IFORM == VERTEX || IFORM == VOLUME ? 0 : 1) * DOF > 1 ? 1 : 0)>>;
+        SIMPLA_MAXIMUM_DIMENSION + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 
 template<typename TV, typename TM, size_type IFORM = VERTEX, size_type DOF = 1>
 using FieldVariable=AttributeProxy<Field<TV, TM, IFORM, DOF>>;
 
 }} //namespace data_block
+namespace simpla { namespace algebra { namespace traits
+{
+template<typename T> struct reference<mesh::AttributeProxy<T> > { typedef mesh::AttributeProxy<T> &type; };
+template<typename T> struct reference<const mesh::AttributeProxy<T> > { typedef mesh::AttributeProxy<T> const &type; };
+}}}
 #endif //SIMPLA_ATTRIBUTE_H
 

@@ -6,9 +6,9 @@
 #include <simpla/mesh/EntityId.h>
 #include <simpla/mesh/EntityIdRange.h>
 #include <simpla/mesh/Chart.h>
-#include <simpla/toolbox/Parallel.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/DataBlock.h>
+#include <simpla/parallel/Parallel.h>
 #include "Model.h"
 
 namespace simpla { namespace model
@@ -36,15 +36,17 @@ void Model::pre_process()
 void Model::initialize(Real data_time, Real dt)
 {
     pre_process();
-    auto m_start_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->start();
-    auto m_count_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->count();
 
-    index_type ib = m_start_[0];
-    index_type ie = m_start_[0] + m_count_[0];
-    index_type jb = m_start_[1];
-    index_type je = m_start_[1] + m_count_[1];
-    index_type kb = m_start_[2];
-    index_type ke = m_start_[2] + m_count_[2];
+    size_type const *lower = m_tags_.lower();
+    size_type const *upper = m_tags_.upper();
+
+
+    index_type ib = lower[0];
+    index_type ie = upper[0];
+    index_type jb = lower[1];
+    index_type je = upper[1];
+    index_type kb = lower[2];
+    index_type ke = upper[2];
 
 
     for (index_type i = ib; i < ie; ++i)
@@ -52,7 +54,7 @@ void Model::initialize(Real data_time, Real dt)
             for (index_type k = kb; k < ke; ++k)
             {
                 auto x = m_chart_->mesh_block()->point(i, j, k);
-                auto &tag = m_tags_.get(i, j, k, 0);
+                auto &tag = m_tags_(i, j, k, 0);
 
                 tag = VACUUME;
 
@@ -63,9 +65,9 @@ void Model::initialize(Real data_time, Real dt)
         for (index_type j = jb; j < je - 1; ++j)
             for (index_type k = kb; k < ke - 1; ++k)
             {
-                m_tags_.get(i, j, k, 1) = m_tags_.get(i, j, k, 0) | m_tags_.get(i + 1, j, k, 0);
-                m_tags_.get(i, j, k, 2) = m_tags_.get(i, j, k, 0) | m_tags_.get(i, j + 1, k, 0);
-                m_tags_.get(i, j, k, 4) = m_tags_.get(i, j, k, 0) | m_tags_.get(i, j, k + 1, 0);
+                m_tags_(i, j, k, 1) = m_tags_(i, j, k, 0) | m_tags_(i + 1, j, k, 0);
+                m_tags_(i, j, k, 2) = m_tags_(i, j, k, 0) | m_tags_(i, j + 1, k, 0);
+                m_tags_(i, j, k, 4) = m_tags_(i, j, k, 0) | m_tags_(i, j, k + 1, 0);
 
 
             }
@@ -75,16 +77,16 @@ void Model::initialize(Real data_time, Real dt)
         for (index_type j = jb; j < je - 1; ++j)
             for (index_type k = kb; k < ke - 1; ++k)
             {
-                m_tags_.get(i, j, k, 3) = m_tags_.get(i, j, k, 1) | m_tags_.get(i, j + 1, k, 1);
-                m_tags_.get(i, j, k, 5) = m_tags_.get(i, j, k, 1) | m_tags_.get(i, j, k + 1, 1);
-                m_tags_.get(i, j, k, 6) = m_tags_.get(i, j + 1, k, 1) | m_tags_.get(i, j, k + 1, 1);
+                m_tags_(i, j, k, 3) = m_tags_(i, j, k, 1) | m_tags_(i, j + 1, k, 1);
+                m_tags_(i, j, k, 5) = m_tags_(i, j, k, 1) | m_tags_(i, j, k + 1, 1);
+                m_tags_(i, j, k, 6) = m_tags_(i, j + 1, k, 1) | m_tags_(i, j, k + 1, 1);
             }
 
     for (index_type i = ib; i < ie - 1; ++i)
         for (index_type j = jb; j < je - 1; ++j)
             for (index_type k = kb; k < ke - 1; ++k)
             {
-                m_tags_.get(i, j, k, 7) = m_tags_.get(i, j, k, 3) | m_tags_.get(i, j, k + 1, 3);
+                m_tags_(i, j, k, 7) = m_tags_(i, j, k, 3) | m_tags_(i, j, k + 1, 3);
             }
 
 };
@@ -121,11 +123,11 @@ void Model::add_object(std::string const &key, std::shared_ptr<geometry::GeoObje
 void Model::remove_object(std::string const &key) { try { m_g_obj_.erase(m_g_name_map_.at(key)); } catch (...) {}}
 
 mesh::EntityIdRange const &
-Model::select(MeshEntityType iform, std::string const &tag) { return select(iform, m_g_name_map_.at(tag)); }
+Model::select(size_type iform, std::string const &tag) { return select(iform, m_g_name_map_.at(tag)); }
 
 
 mesh::EntityIdRange const &
-Model::select(MeshEntityType iform, int tag)
+Model::select(size_type iform, int tag)
 {
     typedef mesh::MeshEntityIdCoder M;
     typedef parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> set_type;
@@ -137,17 +139,18 @@ Model::select(MeshEntityType iform, int tag)
 
     auto &res = m_range_cache_.at(iform).at(tag).as<set_type>();
 
-    auto m_start_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->start();
-    auto m_count_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->count();
+    size_type const *lower = m_tags_.lower();
+    size_type const *upper = m_tags_.upper();
 
-    index_type ib = m_start_[0];
-    index_type ie = m_start_[0] + m_count_[0];
-    index_type jb = m_start_[1];
-    index_type je = m_start_[1] + m_count_[1];
-    index_type kb = m_start_[2];
-    index_type ke = m_start_[2] + m_count_[2];
+    index_type ib = lower[0];
+    index_type ie = upper[0];
+    index_type jb = lower[1];
+    index_type je = upper[1];
+    index_type kb = lower[2];
+    index_type ke = upper[2];
 
-#define _CAS(I, J, K, L) if (I>=0 && J>=0 && K>=0 && ((m_tags_.get(I, J, K, L) &tag) == tag)) { res.insert(M::pack_index(I, J, K, L)); }
+
+#define _CAS(I, J, K, L) if (I>=0 && J>=0 && K>=0 && ((m_tags_(I, J, K, L) &tag) == tag)) { res.insert(M::pack_index(I, J, K, L)); }
 
     switch (iform)
     {
@@ -205,12 +208,12 @@ Model::select(MeshEntityType iform, int tag)
  *       = 0 on surface
  *       > 0 in surface
  */
-mesh::EntityIdRange const &Model::interface(MeshEntityType iform, const std::string &s_in, const std::string &s_out)
+mesh::EntityIdRange const &Model::interface(size_type iform, const std::string &s_in, const std::string &s_out)
 {
     return interface(iform, m_g_name_map_.at(s_in), m_g_name_map_.at(s_out));
 }
 
-mesh::EntityIdRange const &Model::interface(MeshEntityType iform, int tag_in, int tag_out)
+mesh::EntityIdRange const &Model::interface(size_type iform, int tag_in, int tag_out)
 {
 
     try { return m_interface_cache_.at(iform).at(tag_in).at(tag_out); } catch (...) {}
@@ -224,15 +227,16 @@ mesh::EntityIdRange const &Model::interface(MeshEntityType iform, int tag_in, in
 
     set_type &res = const_cast<this_type *>(this)->m_interface_cache_.at(iform).at(tag_in).at(tag_out).as<set_type>();
 
-    auto m_start_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->start();
-    auto m_count_ = std::dynamic_pointer_cast<mesh::DataBlockArray<Real, mesh::VERTEX, 9> >(m_tags_.data())->count();
+    size_type const *lower = m_tags_.lower();
+    size_type const *upper = m_tags_.upper();
 
-    index_type ib = m_start_[0];
-    index_type ie = m_start_[0] + m_count_[0];
-    index_type jb = m_start_[1];
-    index_type je = m_start_[1] + m_count_[1];
-    index_type kb = m_start_[2];
-    index_type ke = m_start_[2] + m_count_[2];
+
+    index_type ib = lower[0];
+    index_type ie = upper[0];
+    index_type jb = lower[1];
+    index_type je = upper[1];
+    index_type kb = lower[2];
+    index_type ke = upper[2];
 
     int v_tag = tag_in | tag_out;
 #pragma omp parallel for
@@ -240,8 +244,8 @@ mesh::EntityIdRange const &Model::interface(MeshEntityType iform, int tag_in, in
         for (index_type j = jb; j < je - 1; ++j)
             for (index_type k = kb; k < ke - 1; ++k)
             {
-                if ((m_tags_.get(i, j, k, 7) & v_tag) != v_tag) { continue; }
-#define _CAS(I, J, K, L) if (I>=0 && J>=0 && K>=0 && m_tags_.get(I, J, K, L)  == tag_in) { res.insert(M::pack_index(I, J, K, L)); }
+                if ((m_tags_(i, j, k, 7) & v_tag) != v_tag) { continue; }
+#define _CAS(I, J, K, L) if (I>=0 && J>=0 && K>=0 && m_tags_(I, J, K, L)  == tag_in) { res.insert(M::pack_index(I, J, K, L)); }
                 switch (iform)
                 {
                     case VERTEX:

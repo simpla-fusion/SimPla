@@ -101,7 +101,15 @@ public:
     template<typename ...Args>
     point_type point(index_type x, index_type y, index_type z) const { return point_type{x, y, z}; }
 
-    virtual point_type point(MeshEntityId s) const { return point_type{s.x, s.y, s.z}; }
+    virtual point_type
+    point(MeshEntityId s) const
+    {
+        return point_type{
+                static_cast<Real>(s.x ),
+                static_cast<Real>(s.y ),
+                static_cast<Real>(s.z )
+        };
+    }
 
     virtual point_type point(MeshEntityId s, point_type const &r) const { return point(s); };
 

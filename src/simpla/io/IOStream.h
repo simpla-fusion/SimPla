@@ -10,7 +10,6 @@
 #include <string>
 #include <tuple>
 #include <simpla/data/DataSet.h>
-#include "Properties.h"
 
 
 namespace simpla { namespace toolbox
@@ -31,11 +30,11 @@ class IOStream
 public:
 
 
-    HAS_PROPERTIES;
-
-    DEFINE_PROPERTIES(std::string, current_file_name);
-
-    DEFINE_PROPERTIES(std::string, current_group_name);
+//    HAS_PROPERTIES;
+//
+//    DEFINE_PROPERTIES(std::string, current_file_name);
+//
+//    DEFINE_PROPERTIES(std::string, current_group_name);
 
     IOStream();
 

@@ -19,13 +19,13 @@ extern "C"
 #include <simpla/data/DataSet.h>
 
 
-#include "Parallel.h"
-#include "MPIComm.h"
-#include "MPIAuxFunctions.h"
+#include <simpla/parallel/Parallel.h>
+#include <simpla/parallel/MPIComm.h>
+#include <simpla/parallel/MPIAuxFunctions.h>
 
 
-#include "MiscUtilities.h"
-#include "MemoryPool.h"
+#include <simpla/toolbox/MiscUtilities.h>
+#include <simpla/toolbox/MemoryPool.h>
 
 #define H5_ERROR(_FUN_) if((_FUN_)<0){H5Eprint(H5E_DEFAULT, stderr); \
 RUNTIME_ERROR<<"\e[1;32m" <<"HDF5 Error:" <<__STRING(_FUN_) <<  "\e[1;37m"<<std::endl;}

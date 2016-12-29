@@ -27,7 +27,7 @@ public:
 
     enum MODEL_TAG { VACUUME = 1, PLASMA = 1 << 1, CUSTOM = 1 << 20 };
 
-    SP_OBJECT_HEAD(Model, Object)
+SP_OBJECT_HEAD(Model, Object)
 
     Model();
 
@@ -56,24 +56,21 @@ public:
     virtual void post_process();
 
     virtual mesh::EntityIdRange const &
-    select(MeshEntityType iform, int tag);
+    select(size_type iform, int tag);
 
     virtual mesh::EntityIdRange const &
-    select(MeshEntityType iform, std::string const &tag);
+    select(size_type iform, std::string const &tag);
 
     virtual mesh::EntityIdRange const &
-    interface(MeshEntityType iform, const std::string &tag_in, const std::string &tag_out = "VACUUME");
+    interface(size_type iform, const std::string &tag_in, const std::string &tag_out = "VACUUME");
 
-    mesh::EntityIdRange const &interface(MeshEntityType iform, int tag_in, int tag_out);
-
-    virtual mesh::EntityIdRange const &
-    select(MeshEntityType iform, int tag) const
-    {
-        return m_range_cache_.at(iform).at(tag);
-    }
+    mesh::EntityIdRange const &interface(size_type iform, int tag_in, int tag_out);
 
     virtual mesh::EntityIdRange const &
-    interface(MeshEntityType iform, int tag_in, int tag_out = VACUUME) const
+    select(size_type iform, int tag) const { return m_range_cache_.at(iform).at(tag); }
+
+    virtual mesh::EntityIdRange const &
+    interface(size_type iform, int tag_in, int tag_out = VACUUME) const
     {
         return m_interface_cache_.at(iform).at(tag_in).at(tag_out);
     }

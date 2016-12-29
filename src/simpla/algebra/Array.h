@@ -13,6 +13,7 @@
 #include "Expression.h"
 #include <simpla/mpl/range.h>
 #include <simpla/concept/Splittable.h>
+#include <simpla/toolbox/PrettyStream.h>
 
 #ifdef NDEBUG
 #   include <simpla/toolbox/MemoryPool.h>
@@ -135,21 +136,17 @@ public:
     template<typename ...TID> value_type const &
     at(TID &&...s) const { return m_data_[calculator::hash(m_dims_, m_lower_, std::forward<TID>(s)...)]; }
 
-    template<typename TID>
-    inline value_type &
-    operator[](TID s) { return at(s); }
+    template<typename TID> inline value_type &operator[](TID s) { return m_data_[s]; }
 
-    template<typename TID>
-    inline value_type const &
-    operator[](TID s) const { return at(s); }
+    template<typename TID> inline value_type const &operator[](TID s) const { return m_data_[s]; }
 
-
-    template<typename ...TID> value_type &
+    template<typename ...TID> inline value_type &
     operator()(TID &&...s) { return at(std::forward<TID>(s)...); }
 
-    template<typename ...TID> value_type const &
+    template<typename ...TID> inline value_type const &
     operator()(TID &&...s) const { return at(std::forward<TID>(s)...); }
 
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return calculator::print(*this, os, indent); }
 
     void deploy() { calculator::deploy(*this); }
 
@@ -204,7 +201,7 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
         return res;
     }
 
-    static void deploy(declare::Array_<V, NDIMS> &self)
+    static void deploy(self_type &self)
     {
         if (!self.m_data_holder_)
         {
@@ -272,7 +269,7 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
     template<typename ...TID> static inline size_type
     hash(size_type const *dims, size_type const *offset, size_type s, TID &&...idx)
     {
-        static_assert(NDIMS == (sizeof...(TID) + 1), "illegal index number!");
+        static_assert(NDIMS == ((sizeof...(TID) + 1)), "illegal index number! NDIMS=");
         return hash_(std::integral_constant<bool, SLOW_FIRST>(), dims, offset, s, std::forward<TID>(idx)...);
     }
 
@@ -434,15 +431,23 @@ public:
         self.m_lower_[n] = other.m_upper_[n];
     }
 
-    declare::Array_<V, NDIMS> view(self_type &self, size_type const *il, size_type const *iu)
+    static declare::Array_<V, NDIMS>
+    view(self_type &self, size_type const *il, size_type const *iu)
     {
         return declare::Array_<V, NDIMS>(self.m_data_holder_, self.m_dims_, il, iu);
     };
 
-    declare::Array_<const V, NDIMS> view(self_type const &self, size_type const *il, size_type const *iu)
+    static declare::Array_<const V, NDIMS>
+    view(self_type const &self, size_type const *il, size_type const *iu)
     {
         return declare::Array_<V, NDIMS>(self.m_data_, self.m_dims_, il, iu);
     };
+
+    static std::ostream &
+    print(self_type const &self, std::ostream &os, int indent = 0)
+    {
+        printNdArray(os, self.m_data_, NDIMS, self.m_dims_);
+    }
 
     static void
     initialize(self_type *self, size_type const *dims = nullptr, size_type const *lower = nullptr,
@@ -475,7 +480,5 @@ public:
     }
 };
 }//namespace calculus{
-
-
 }}//namespace simpla{namespace algebra{namespace declare{
 #endif //SIMPLA_ARRAY_H

@@ -142,13 +142,13 @@ public:
     }
 
 
-    virtual Real volume(MeshEntityId s) const { return m_volume_(M::sw(s, M::node_id(s))); }
+    virtual Real volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
 
-    virtual Real dual_volume(MeshEntityId s) const { return m_dual_volume_(M::sw(s, M::node_id(s))); }
+    virtual Real dual_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
 
-    virtual Real inv_volume(MeshEntityId s) const { return m_inv_volume_(M::sw(s, M::node_id(s))); }
+    virtual Real inv_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
 
-    virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_(M::sw(s, M::node_id(s))); }
+    virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
 
 
     virtual void initialize(Real data_time, Real dt)

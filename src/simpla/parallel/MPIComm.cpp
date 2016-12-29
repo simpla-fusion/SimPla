@@ -5,12 +5,11 @@
  *      Author: salmon
  */
 #include <simpla/SIMPLA_config.h>
-
-#include "MPIComm.h"
 #include <iostream>
 #include <cassert>
- #include "Log.h"
+#include <simpla/toolbox/Log.h>
 
+#include "MPIComm.h"
 
 namespace simpla { namespace parallel
 {

@@ -7,7 +7,7 @@
 
 #include "DistributedObject.h"
 
-#include "MemoryPool.h"
+#include <simpla/toolbox/MemoryPool.h>
 
 #include "MPIComm.h"
 #include "MPIAuxFunctions.h"

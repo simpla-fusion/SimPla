@@ -10,8 +10,8 @@
 #include "XDMFStream.h"
 
 #include "IO.h"
-#include "Log.h"
-#include "Parallel.h"
+#include <simpla/toolbox/Log.h>
+#include <simpla/parallel/Parallel.h>
 
 namespace simpla { namespace toolbox
 {

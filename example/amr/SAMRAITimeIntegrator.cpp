@@ -19,6 +19,7 @@
 #include <simpla/mesh/DataBlock.h>
 #include <simpla/mesh/Worker.h>
 #include <simpla/mesh/Patch.h>
+#include <simpla/parallel/MPIComm.h>
 #include <simpla/simulation/TimeIntegrator.h>
 #include <boost/shared_ptr.hpp>
 // Headers for SAMRAI
@@ -494,7 +495,7 @@ boost::shared_ptr<SAMRAI::hier::Variable>
 create_samrai_variable_t(unsigned int ndims, mesh::Attribute *attr)
 {
     static int var_depth[4] = {1, 3, 3, 1};
-    if (attr->desc().entity_type() <= mesh::VOLUME)
+    if (attr->desc().entity_type() <= VOLUME)
     {
 
         SAMRAI::tbox::Dimension d_dim(ndims);
@@ -595,16 +596,16 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                 {
                     switch (attr->desc().entity_type())
                     {
-                        case mesh::EDGE:
-                        case mesh::FACE:
+                        case EDGE:
+                        case FACE:
 //                            integrator->registerVariable(var, d_nghosts,
 //                                                         SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
 //                                                         d_grid_geometry,
 //                                                         "CONSERVATIVE_COARSEN",
 //                                                         "CONSERVATIVE_LINEAR_REFINE");
 //                            break;
-                        case mesh::VERTEX:
-                        case mesh::VOLUME:
+                        case VERTEX:
+                        case VOLUME:
                         default:
                             integrator->registerVariable(var, d_nghosts,
                                                          SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
@@ -619,21 +620,21 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
                 }
 
                 std::string visit_variable_type = "";
-                if ((attr->desc().entity_type() == mesh::VERTEX || attr->desc().entity_type() == mesh::VOLUME) &&
+                if ((attr->desc().entity_type() == VERTEX || attr->desc().entity_type() == VOLUME) &&
                     attr->desc().dof() == 1)
                 {
                     visit_variable_type = "SCALAR";
-                } else if (((attr->desc().entity_type() == mesh::EDGE || attr->desc().entity_type() == mesh::FACE) &&
+                } else if (((attr->desc().entity_type() == EDGE || attr->desc().entity_type() == FACE) &&
                             attr->desc().dof() == 1) ||
-                           ((attr->desc().entity_type() == mesh::VERTEX ||
-                             attr->desc().entity_type() == mesh::VOLUME) &&
+                           ((attr->desc().entity_type() == VERTEX ||
+                             attr->desc().entity_type() == VOLUME) &&
                             attr->desc().dof() == 3))
                 {
                     visit_variable_type = "VECTOR";
                 } else if (
-                        ((attr->desc().entity_type() == mesh::VERTEX || attr->desc().entity_type() == mesh::VOLUME) &&
+                        ((attr->desc().entity_type() == VERTEX || attr->desc().entity_type() == VOLUME) &&
                          attr->desc().dof() == 9) ||
-                        ((attr->desc().entity_type() == mesh::EDGE || attr->desc().entity_type() == mesh::FACE) &&
+                        ((attr->desc().entity_type() == EDGE || attr->desc().entity_type() == FACE) &&
                          attr->desc().dof() == 3)
                         )
                 {
@@ -704,7 +705,7 @@ void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *in
 namespace detail
 {
 
-template<typename TV, mesh::MeshEntityType IFORM, size_type DOF>
+template<typename TV, size_type IFORM, size_type DOF>
 std::shared_ptr<mesh::DataBlock>
 create_data_block_t2(mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
@@ -720,17 +721,33 @@ create_data_block_t2(mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier
 
     auto inner_lower = p_data->getBox().lower();
     auto inner_upper = p_data->getBox().upper();
+
     index_type o_lower[4] = {outer_lower[0], outer_lower[1], outer_lower[2], 0};
     index_type o_upper[4] = {outer_upper[0] + 2, outer_upper[1] + 2, outer_upper[2] + 2, depth};
 
     index_type i_lower[4] = {inner_lower[0], inner_lower[1], inner_lower[2], 0};
     index_type i_upper[4] = {inner_upper[0] + 2, inner_upper[1] + 2, inner_upper[2] + 2, depth};
-    auto res = std::make_shared<mesh::DataBlockArray<TV, IFORM, DOF>>(
-            p_data->getPointer(), ndims + 1,
-            o_lower, o_upper,
-            data::FAST_FIRST,
-            i_lower, i_upper);
-    res->update();
+
+    size_type dims[4] = {
+            outer_upper[0] - outer_lower[0],
+            outer_upper[1] - outer_lower[1],
+            outer_upper[2] - outer_lower[2],
+            outer_upper[3] - outer_lower[3]};
+
+    size_type lo[4] = {
+            inner_lower[0] - outer_lower[0],
+            inner_lower[1] - outer_lower[1],
+            inner_lower[2] - outer_lower[2],
+            inner_lower[3] - outer_lower[3]};
+
+    size_type hi[4] = {
+            inner_upper[0] - outer_lower[0],
+            inner_upper[1] - outer_lower[1],
+            inner_upper[2] - outer_lower[2],
+            inner_upper[3] - outer_lower[3]};
+
+    auto res = std::make_shared<mesh::DataBlockArray<TV, IFORM, DOF, false>>(p_data->getPointer(), dims, lo, hi);
+//    res->update();
 
     return std::dynamic_pointer_cast<mesh::DataBlock>(res);
 
@@ -738,7 +755,7 @@ create_data_block_t2(mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier
 }
 
 
-template<typename TV, mesh::MeshEntityType IFORM>
+template<typename TV, size_type IFORM>
 std::shared_ptr<mesh::DataBlock>
 create_data_block_t1(mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd)
 {
@@ -771,17 +788,17 @@ create_data_block_t0(mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier
 
     switch (item->desc().entity_type())
     {
-        case mesh::VERTEX:
-            res = create_data_block_t1<TV, mesh::VERTEX>(item, pd);
+        case VERTEX:
+            res = create_data_block_t1<TV, VERTEX>(item, pd);
             break;
-        case mesh::EDGE:
-            res = create_data_block_t1<TV, mesh::EDGE>(item, pd);
+        case EDGE:
+            res = create_data_block_t1<TV, EDGE>(item, pd);
             break;
-        case mesh::FACE:
-            res = create_data_block_t1<TV, mesh::FACE>(item, pd);
+        case FACE:
+            res = create_data_block_t1<TV, FACE>(item, pd);
             break;
-        case mesh::VOLUME:
-            res = create_data_block_t1<TV, mesh::VOLUME>(item, pd);
+        case VOLUME:
+            res = create_data_block_t1<TV, VOLUME>(item, pd);
             break;
         default:
             RUNTIME_ERROR << " EntityType is not supported!" << std::endl;
@@ -1359,14 +1376,14 @@ SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->stepsRem
 //namespace detail
 //{
 //
-//template<typename V, mesh::MeshEntityType IFORM> struct SAMRAITraitsPatch;
+//template<typename V, size_type IFORM> struct SAMRAITraitsPatch;
 //template<typename V> struct SAMRAITraitsPatch<V, mesh::VERTEX> { typedef SAMRAI::pdat::NodeData<V> type; };
 //template<typename V> struct SAMRAITraitsPatch<V, mesh::EDGE> { typedef SAMRAI::pdat::EdgeData<V> type; };
 //template<typename V> struct SAMRAITraitsPatch<V, mesh::FACE> { typedef SAMRAI::pdat::FaceData<V> type; };
 //template<typename V> struct SAMRAITraitsPatch<V, mesh::VOLUME> { typedef SAMRAI::pdat::CellData<V> type; };
 //
 //
-//template<typename V, typename M, mesh::MeshEntityType IFORM>
+//template<typename V, typename M, size_type IFORM>
 //class SAMRAIWrapperPatch
 //        : public SAMRAITraitsPatch<V, IFORM>::type,
 //          public mesh::DataBlockBase<V, M, IFORM>
@@ -1385,13 +1402,13 @@ SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->stepsRem
 //};
 //
 //
-//template<typename V, mesh::MeshEntityType IFORM> struct SAMRAITraitsVariable;
+//template<typename V, size_type IFORM> struct SAMRAITraitsVariable;
 //template<typename V> struct SAMRAITraitsVariable<V, mesh::VERTEX> { typedef SAMRAI::pdat::NodeVariable<V> type; };
 //template<typename V> struct SAMRAITraitsVariable<V, mesh::EDGE> { typedef SAMRAI::pdat::EdgeVariable<V> type; };
 //template<typename V> struct SAMRAITraitsVariable<V, mesh::FACE> { typedef SAMRAI::pdat::FaceVariable<V> type; };
 //template<typename V> struct SAMRAITraitsVariable<V, mesh::VOLUME> { typedef SAMRAI::pdat::CellVariable<V> type; };
 //
-//template<typename V, typename M, mesh::MeshEntityType IFORM>
+//template<typename V, typename M, size_type IFORM>
 //class SAMRAIWrapperAttribute
 //        : public SAMRAITraitsVariable<V, IFORM>::type,
 //          public mesh::Attribute<SAMRAIWrapperPatch<V, M, IFORM> >
@@ -1431,20 +1448,20 @@ SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->stepsRem
 //};
 //
 //std::shared_ptr<mesh::Attribute>
-//create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
+//create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, size_type const &,
 //                      std::shared_ptr<mesh::Atlas> const &m, std::string const &name)
 //{
 //}
 //
 //
 //std::shared_ptr<mesh::Attribute>
-//create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
+//create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, size_type const &,
 //                      std::shared_ptr<mesh::MeshBlock> const &m, std::string const &name)
 //{
 //}
 //
 //std::shared_ptr<mesh::HeavyData>
-//create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_info, mesh::MeshEntityType const &,
+//create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_info, size_type const &,
 //                  std::shared_ptr<mesh::MeshBlock> const &m)
 //{
 //

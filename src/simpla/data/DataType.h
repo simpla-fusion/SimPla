@@ -130,7 +130,7 @@ private:
 
         nTuple<size_type, 10> d;
 
-        d = traits::seq_value<algebra::traits::extents<obj_type> >::value;
+//        d = traits::seq_value<algebra::traits::extents<obj_type> >::value;
 
         return std::move(
                 DataType(std::type_index(typeid(element_type)),

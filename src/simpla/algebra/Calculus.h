@@ -87,7 +87,7 @@ struct iform<declare::Expression<tags::_hodge_star, T> > :
 template<typename T>
 struct value_type<declare::Expression<tags::_hodge_star, T> >
 {
-    typedef value_type_t<T> type;
+    typedef value_type_t <T> type;
 };
 //******************************************************
 
@@ -101,7 +101,7 @@ struct iform<declare::Expression<tags::_interior_product, T0, T1> > :
 template<typename T0, typename T1>
 struct value_type<declare::Expression<tags::_interior_product, T0, T1> >
 {
-    typedef std::result_of_t<tags::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
+    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
 };
 
 
@@ -117,7 +117,7 @@ template<typename T0, typename T1>
 struct value_type<declare::Expression<tags::_wedge, T0, T1> >
 {
 
-    typedef std::result_of_t<tags::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
+    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
 
 };
 //******************************************************
@@ -132,7 +132,7 @@ struct iform<declare::Expression<tags::_cross, T0, T1> > :
 template<typename T0, typename T1>
 struct value_type<declare::Expression<tags::_cross, T0, T1> >
 {
-    typedef std::result_of_t<tags::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
+    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
 };
 //******************************************************
 
@@ -145,7 +145,7 @@ struct iform<declare::Expression<tags::_dot, T0, T1> > :
 template<typename T0, typename T1>
 struct value_type<declare::Expression<tags::_dot, T0, T1> >
 {
-    typedef std::result_of_t<tags::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
+    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
 };
 //******************************************************
 
@@ -280,7 +280,7 @@ struct iform<declare::Expression<tags::_exterior_derivative, T> > :
 template<typename T>
 struct value_type<declare::Expression<tags::_exterior_derivative, T> >
 {
-    typedef std::result_of_t<tags::multiplies(scalar_type_t<T>, value_type_t<T>)> type;
+    typedef std::result_of_t<tags::multiplies(scalar_type_t < T > , value_type_t < T > )> type;
 };
 
 //******************************************************
@@ -294,7 +294,7 @@ struct iform<declare::Expression<tags::_codifferential_derivative, T> > :
 template<typename T>
 struct value_type<declare::Expression<tags::_codifferential_derivative, T> >
 {
-    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t<T>)> type;
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
 };
 
 //******************************************************
@@ -306,7 +306,7 @@ struct iform<declare::Expression<tags::_p_exterior_derivative<I>, T> > :
 template<typename T, size_type I>
 struct value_type<declare::Expression<tags::_p_exterior_derivative<I>, T> >
 {
-    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t<T>)> type;
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
 
 };
 //******************************************************
@@ -351,7 +351,7 @@ namespace traits
 template<size_type I, typename T, typename ...Others>
 struct value_type<declare::Expression<tags::_map_to<I>, T, Others...> >
 {
-    typedef value_type_t<T> type;
+    typedef value_type_t <T> type;
 };
 //******************************************************
 template<size_type I, typename T0>
@@ -485,6 +485,97 @@ curl_pdz(T const &f) DECL_RET_TYPE((curl_pdz(f, traits::iform<T>())))
 /** @} */
 #undef _SP_DEFINE_EXPR_UNARY_FUNCTION
 #undef _SP_DEFINE_EXPR_BINARY_FUNCTION
+
+
+namespace calculus
+{
+
+
+namespace st=simpla::traits;
+
+template<typename TSelf>
+struct calculator<TSelf>
+{
+    typedef TSelf self_type;
+
+public:
+
+    template<typename T> static constexpr inline T &
+    get_value(T &v)
+    {
+        return v;
+    };
+
+    template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
+    get_value(T &v, I0 const *s, ENABLE_IF((st::is_indexable<T, I0>::value)))
+    {
+        return get_value(v[*s], s + 1);
+    };
+
+    template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
+    get_value(T &v, I0 const *s, ENABLE_IF((!st::is_indexable<T, I0>::value)))
+    {
+        return v;
+    };
+private:
+
+    template<typename T, typename ...Args> static constexpr inline T &
+    get_value_(std::integral_constant<bool, false> const &, T &v, Args &&...)
+    {
+        return v;
+    }
+
+
+    template<typename T, typename I0, typename ...Idx> static constexpr inline st::remove_extents_t<T, I0, Idx...> &
+    get_value_(std::integral_constant<bool, true> const &, T &v, I0 const &s0, Idx &&...idx)
+    {
+        return get_value(v[s0], std::forward<Idx>(idx)...);
+    };
+public:
+
+    template<typename T, typename I0, typename ...Idx> static constexpr inline st::remove_extents_t<T, I0, Idx...> &
+    get_value(T &v, I0 const &s0, Idx &&...idx)
+    {
+        return get_value_(std::integral_constant<bool, st::is_indexable<T, I0>::value>(),
+                          v, s0, std::forward<Idx>(idx)...);
+    };
+
+    template<typename T, size_type N> static constexpr inline T &
+    get_value(self_type &v, size_type const &s0) { return v[s0]; };
+
+    template<typename T, size_type N> static constexpr inline T const &
+    get_value(self_type const &v, size_type const &s0) { return v[s0]; };
+public:
+
+    template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static constexpr inline auto
+    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, Idx &&... s)
+    DECL_RET_TYPE((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
+
+    template<typename TOP, typename   ...Others, typename ...Idx> static constexpr inline auto
+    get_value(declare::Expression<TOP, Others...> const &expr, Idx &&... s)
+    DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
+
+    template<typename TOP, typename ...Args> static constexpr inline void
+    apply(TOP const &op, self_type &self, Args &&...rhs)
+    {
+//        for_each(self, [&](auto const &s) { op(get_value(self, s), get_value(std::forward<Args>(rhs), s)...); });
+    };
+};
+
+template<typename TOP, typename ...Args>
+struct calculator<declare::Expression<TOP, Args...> >
+{
+    typedef declare::Expression<TOP, Args...> self_type;
+
+    template<typename TRes>
+    static TRes cast_as(self_type const &expr)
+    {
+        UNIMPLEMENTED;
+        return TRes();
+    }
+};
+}//namespace calculaus{
+
 
 }}// namespace simpla//namespace algebra
 

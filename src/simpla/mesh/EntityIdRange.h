@@ -269,7 +269,7 @@ private:
 
         virtual std::shared_ptr<RangeBase> split()
         {
-            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this,  concept::tags::split()));
+            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this, concept::tags::split()));
         };
 
         virtual size_t size() const { return m_range_.size(); }
@@ -300,9 +300,17 @@ private:
         RangeHolder(TContainer const &other)
                 : m_container_(new TContainer(other)), m_range_(m_container_->range()) {}
 
+
+        // @FIXME: !!!!!
         template<typename ...Args>
         RangeHolder(this_type &other, Args &&...args)
-                : m_container_(other.m_container_), m_range_(other.m_range_, std::forward<Args>(args)...) {}
+                : m_container_(other.m_container_)
+                , m_range_(other.m_range_ /*, std::forward<Args>(args)...*/)
+        {}
+
+
+
+
 
         virtual  ~RangeHolder() {}
 
@@ -324,7 +332,7 @@ private:
 
         virtual std::shared_ptr<RangeBase> split()
         {
-            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this,  concept::tags::split()));
+            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this, concept::tags::split()));
         };
 
         virtual size_t size() const { return m_container_->size(); }
@@ -338,7 +346,7 @@ private:
 
         virtual void foreach(foreach_body_type const &body) const
         {
-            foreach(m_range_, body);
+//            foreach(m_range_, body);
         };
     };
 };

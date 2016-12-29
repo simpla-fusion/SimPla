@@ -10,6 +10,7 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/LifeControllable.h>
+#include <simpla/algebra/Array.h>
 
 namespace simpla { namespace mesh
 {
@@ -77,9 +78,9 @@ public:
 
     virtual size_type dof() const { return algebra::traits::dof<U>::value; }
 
-    virtual void load(data::DataTable const &d) { U::load(d); };
+    virtual void load(data::DataTable const &d) { /* load(*this, d); */};
 
-    virtual void save(data::DataTable *d) const { U::save(d); };
+    virtual void save(data::DataTable *d) const { /* save(*this, d); */};
 
     virtual std::ostream &print(std::ostream &os, int indent) const
     {
@@ -92,6 +93,12 @@ public:
         return os;
     }
 
+    static std::shared_ptr<DataBlock> create(MeshBlock const *m, void *p)
+    {
+        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<DataBlockProxy<U>>());
+    }
+
+    virtual void clear() { U::clear(); }
 //    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<MeshBlock> const &m, void *p = nullptr)
 //    {
 //        return create(m, static_cast<value_type *>(p));
@@ -132,29 +139,33 @@ public:
      */
     virtual void deploy()
     {
-        U::deploy();
+//        U::deploy();
     };
 
     virtual void pre_process()
     {
-        U::update();
+//        U::update();
     };
 
     virtual void post_process()
     {
-        U::update();
+//        U::update();
         base_type::post_process();
     };
 
     virtual void destroy()
     {
-        U::destroy();
+//        U::destroy();
         base_type::destroy();
     };
 
 };
 
-
+template<typename V, size_type IFORM = VERTEX, size_type DOF = 1, bool SLOW_FIRST = false>
+using DataBlockArray=
+DataBlockProxy<
+        Array < V,
+        SIMPLA_MAXIMUM_DIMENSION + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1), SLOW_FIRST>>;
 //
 //template<typename TV, size_type IFORM, size_type DOF = 1>
 //class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>
