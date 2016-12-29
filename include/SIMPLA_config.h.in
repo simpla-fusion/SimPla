@@ -38,6 +38,8 @@
 
 #cmakedefine MAX_NDIMS_OF_ARRAY  @MAX_NDIMS_OF_ARRAY@
 
+#cmakedefine DEFAULT_SPACE_DIMS  @DEFAULT_SPACE_DIMS@
+
 #ifdef __cplusplus
  namespace simpla{ static const unsigned short MAX_DIM_VAL = SIMPLA_MAXIMUM_DIMENSION;}
 #endif //__cplusplus

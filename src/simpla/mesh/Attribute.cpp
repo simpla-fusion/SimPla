@@ -39,7 +39,7 @@ void Attribute::pre_process()
 {
     if (is_valid()) { return; } else { concept::LifeControllable::pre_process(); }
 
-    if (m_data_ == nullptr) { m_data_ = create_data_block(nullptr, m_mesh_); }
+    if (m_data_ == nullptr) { m_data_ = create_data_block(m_mesh_, nullptr); }
 
     m_data_->pre_process();
 

@@ -64,7 +64,7 @@ SP_OBJECT_HEAD(EMFluid<TM>, Worker);
 
     virtual void set_physical_boundary_conditions_B(Real time = 0) {};
 
-    template<size_type IFORM, size_type DOF = 1> using field_type=Field<scalar_type, TM, IFORM, DOF>;
+    template<size_type IFORM, size_type DOF = 1> using field_type=FieldVariable<scalar_type, TM, IFORM, DOF>;
 
 
     typedef field_type<FACE> TB;

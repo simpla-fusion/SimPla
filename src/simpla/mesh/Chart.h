@@ -76,14 +76,14 @@ class ChartProxy<U> : public Chart, public U
 
     virtual void pre_process()
     {
-        Chart::pre_process(p);
-        U::pre_process(p);
+        Chart::pre_process();
+        U::pre_process();
     };
 
     virtual void post_process()
     {
-        U::post_process(p);
-        Chart::post_process(p);
+        U::post_process();
+        Chart::post_process();
     };
 
     virtual void initialize(Real data_time = 0, Real dt = 0)

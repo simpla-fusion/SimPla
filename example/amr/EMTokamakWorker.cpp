@@ -10,8 +10,8 @@
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/Worker.h>
 #include <simpla/algebra/Field.h>
-#include <simpla/manifold/CartesianGeometry.h>
-#include <simpla/manifold/CylindricalGeometry.h>
+#include <simpla/mesh/predefine/CartesianGeometry.h>
+#include <simpla/mesh/predefine/CylindricalGeometry.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include "../../scenario/problem_domain/EMFluid.h"

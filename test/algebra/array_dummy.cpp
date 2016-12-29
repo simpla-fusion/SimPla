@@ -62,6 +62,7 @@ int main(int argc, char **argv)
 
     c += a + b * 3;
 
+    c(1, 2, 3) = 100;
 //    nTuple<double, 3> v = {1, 2, 3};
 //    Array<nTuple<double, 3>, 3> d(4, 5, 2);
 //    d = c * v;

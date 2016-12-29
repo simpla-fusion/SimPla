@@ -71,12 +71,18 @@ struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>>
     typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple, declare::nTuple_<cell_tuple, 3> > type;
 };
 
-template<typename T> struct primary_type<T, typename std::enable_if<is_field<T>::value>::type>
+//template<typename T> struct primary_type<T, typename std::enable_if<is_field<T>::value>::type>
+//{
+//    typedef typename declare::Field_<
+//            value_type_t < T>, typename mesh_type<T>::type, iform<T>::value, dof<T>::value> type;
+//};
+template<typename TV, typename TM, size_type IFORM, size_type DOF>
+struct data_block_type
 {
-    typedef typename declare::Field_<
-            value_type_t<T>, typename mesh_type<T>::type, iform<T>::value, dof<T>::value> type;
+    typedef declare::Array_<TV,
+            rank<TM>::value + ((IFORM == VERTEX || IFORM == VOLUME ? 0 : 1) * DOF > 1 ? 1 : 0)> type;
 };
-
+template<typename TV, typename TM, size_type IFORM, size_type DOF> using data_block_t=typename data_block_type<TV, TM, IFORM, DOF>::type;
 
 }//namespace traits{
 
@@ -95,8 +101,9 @@ public:
     typedef TM mesh_type;
 private:
 
-    typedef typename mesh_type::template data_block_type<TV, IFORM, DOF> data_type;
-    typedef calculus::calculator<this_type> calculus_policy;
+    typedef traits::data_block_t<mesh_type, TV, IFORM, DOF> data_type;
+
+    typedef calculus::calculator <this_type> calculus_policy;
 
     data_type *m_data_;
 
@@ -121,7 +128,6 @@ public:
 
     Field_(this_type &&other) = delete;
 
-    bool is_valid() { return true; }
 
     virtual void pre_process()
     {

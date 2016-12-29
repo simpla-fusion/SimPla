@@ -362,8 +362,8 @@ private:
     template<typename> static no test(...);
 
 public:
-
-    static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value;
+    typedef decltype(test<_T>(0)) type;
+    static constexpr bool value = !std::is_same<type, no>::value;
 
 };
 

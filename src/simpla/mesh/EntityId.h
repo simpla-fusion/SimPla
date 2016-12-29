@@ -837,7 +837,7 @@ struct MeshEntityIdCoder_
         {
         }
 
-        range_type(range_type &r, tags::split)
+        range_type(range_type &r, concept::tags::split)
                 : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_),
                   m_dof_(r.m_dof_)
         {
@@ -860,7 +860,7 @@ struct MeshEntityIdCoder_
             r.m_min_[n] = m_max_[n];
         }
 
-        range_type(this_type &r, tags::proportional_split const &proportion)
+        range_type(this_type &r, concept::tags::proportional_split const &proportion)
         {
             int n = 0;
             index_type L = m_max_[0] - m_min_[0];

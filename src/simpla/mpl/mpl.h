@@ -5,16 +5,20 @@
  *      Author: salmon
  */
 
-#ifndef CORE_toolbox_MPL_H_
-#define CORE_toolbox_MPL_H_
+#ifndef SIMPLA_MPL_H
+#define SIMPLA_MPL_H
 
 #include <tuple>
 
 namespace simpla
 {
 
+/**
+ * @brief reinvent some wheels, or sth. maybe included in the future standard library
+ */
 namespace mpl
 {
+
 template<size_t N, typename _TP, _TP ...I> struct unpack_int_seq;
 template<size_t N, typename _TP, _TP ...I>
 using unpack_int_seq_t=typename unpack_int_seq<N, _TP, I...>::type;
@@ -224,4 +228,4 @@ typename replace_tuple<I, U, T>::type;
 
 }// namespace simpla
 
-#endif /* CORE_toolbox_MPL_H_ */
+#endif /* SIMPLA_MPL_H */

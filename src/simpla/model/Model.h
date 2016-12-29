@@ -80,7 +80,7 @@ public:
 
 private:
 
-    DataAttribute<int, VERTEX, 9> m_tags_{"name=tags;INPUT"};
+    Variable<int, VERTEX, 9> m_tags_{"name=tags;INPUT"};
 
     std::shared_ptr<Chart> m_chart_ = nullptr;
 

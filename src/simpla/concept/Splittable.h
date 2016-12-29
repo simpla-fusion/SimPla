@@ -5,12 +5,22 @@
 #ifndef SIMPLA_SPLITTABLE_H
 #define SIMPLA_SPLITTABLE_H
 
+#include <simpla/SIMPLA_config.h>
+
 namespace simpla { namespace concept
 {
 /** @ingroup concept */
 namespace tags
 {
-struct split {};
+
+struct split
+{
+    virtual size_type left() const { return 1; }
+
+    virtual size_type right() const { return 1; }
+};
+
+
 
 
 //! Type enables transmission of splitting proportion from partitioners to range objects
@@ -20,24 +30,25 @@ struct split {};
  * constant boolean field 'is_splittable_in_proportion' with the value
  * of 'true'
  */
-class proportional_split
+class proportional_split : public split
 {
 public:
-    proportional_split(size_t _left = 1, size_t _right = 1) : my_left(_left), my_right(_right) {}
+    proportional_split(size_type _left = 1, size_type _right = 1) : my_left(_left), my_right(_right) {}
 
     proportional_split(proportional_split const &) = delete;
 
     ~proportional_split() {}
 
-    size_t left() const { return my_left; }
 
-    size_t right() const { return my_right; }
+    size_type left() const { return my_left; }
+
+    size_type right() const { return my_right; }
 
     // used when range does not support proportional split
     operator split() const { return split(); }
 
 private:
-    size_t my_left, my_right;
+    size_type my_left, my_right;
 };
 }//namespace tags
 

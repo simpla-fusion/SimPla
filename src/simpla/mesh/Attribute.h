@@ -12,6 +12,8 @@
 #include <simpla/concept/Configurable.h>
 #include <simpla/design_pattern/Observer.h>
 #include <simpla/algebra/Algebra.h>
+#include <simpla/algebra/Array.h>
+#include <simpla/algebra/Field.h>
 
 #include "DataBlock.h"
 
@@ -124,9 +126,7 @@ SP_OBJECT_BASE(Attribute);
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; };
 
-    virtual std::shared_ptr<Attribute> clone() const =0;
-
-    virtual std::shared_ptr<DataBlock> create_data_block(void *p, MeshBlock const *m) const =0;
+    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m, void *p = nullptr) const =0;
 
     virtual AttributeDesc const &desc() const { return *m_desc_; }
 
@@ -164,17 +164,24 @@ public:
     AttributeProxy(Args &&...args):
             Attribute(nullptr, std::make_shared<AttributeDescTemp<value_type,
                     algebra::traits::iform<U>::value,
-                    algebra::traits::dof<U>::value>>()),
-            U(std::forward<Args>(args)...) {}
+                    algebra::traits::dof<U>::value>>(std::forward<Args>(args)...)),
+            U() {}
 
     ~AttributeProxy() {}
 
+    using U::operator=;
+
     virtual std::shared_ptr<DataBlock>
-    create_data_block(void *p, std::shared_ptr<MeshBlock> const &m) const
+    create_data_block(MeshBlock const *m, void *p = nullptr) const
     {
-        return data_entity_type::create(m, static_cast<value_type *>(p));
+        return DataBlockProxy<U>::create(m, static_cast<value_type *>(p));
     };
 
+    virtual void clear()
+    {
+        Attribute::clear();
+        U::clear();
+    }
 
     virtual void accept(Patch *p)
     {
@@ -184,7 +191,6 @@ public:
 
     virtual void pre_process()
     {
-
         Attribute::pre_process();
         U::pre_process();
     };
@@ -197,6 +203,12 @@ public:
 
 };
 
+template<typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
+using Variable=AttributeProxy<Array<TV,
+        SIMPLA_MAXIMUM_DIMENSION + ((IFORM == VERTEX || IFORM == VOLUME ? 0 : 1) * DOF > 1 ? 1 : 0)>>;
+
+template<typename TV, typename TM, size_type IFORM = VERTEX, size_type DOF = 1>
+using FieldVariable=AttributeProxy<Field<TV, TM, IFORM, DOF>>;
 
 }} //namespace data_block
 #endif //SIMPLA_ATTRIBUTE_H

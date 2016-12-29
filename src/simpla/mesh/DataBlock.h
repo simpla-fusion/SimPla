@@ -9,6 +9,7 @@
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
+#include <simpla/concept/LifeControllable.h>
 
 namespace simpla { namespace mesh
 {
@@ -86,7 +87,7 @@ public:
            << ", entity type = " << (entity_type())
            << ", dof = " << (dof())
            << ", data_block = {";
-        data_entity_type::print(os, indent + 1);
+        U::print(os, indent + 1);
         os << "}";
         return os;
     }
@@ -131,25 +132,23 @@ public:
      */
     virtual void deploy()
     {
-        base_type::deploy();
-        data_entity_type::deploy();
+        U::deploy();
     };
 
     virtual void pre_process()
     {
-        base_type::pre_process();
-        data_entity_type::update();
+        U::update();
     };
 
     virtual void post_process()
     {
-        data_entity_type::update();
+        U::update();
         base_type::post_process();
     };
 
     virtual void destroy()
     {
-        data_entity_type::destroy();
+        U::destroy();
         base_type::destroy();
     };
 

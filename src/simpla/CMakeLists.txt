@@ -1,8 +1,10 @@
 ADD_SUBDIRECTORY(concept)
 
-ADD_SUBDIRECTORY(algebra)
+#ADD_SUBDIRECTORY(algebra)
 
 ADD_SUBDIRECTORY(toolbox)
+
+ADD_SUBDIRECTORY(parallel)
 
 #ADD_SUBDIRECTORY(geometry)
 #

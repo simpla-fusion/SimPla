@@ -87,7 +87,7 @@ struct iform<declare::Expression<tags::_hodge_star, T> > :
 template<typename T>
 struct value_type<declare::Expression<tags::_hodge_star, T> >
 {
-    typedef value_type_t <T> type;
+    typedef value_type_t<T> type;
 };
 //******************************************************
 
@@ -101,7 +101,7 @@ struct iform<declare::Expression<tags::_interior_product, T0, T1> > :
 template<typename T0, typename T1>
 struct value_type<declare::Expression<tags::_interior_product, T0, T1> >
 {
-    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+    typedef std::result_of_t<tags::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
 };
 
 
@@ -117,7 +117,7 @@ template<typename T0, typename T1>
 struct value_type<declare::Expression<tags::_wedge, T0, T1> >
 {
 
-    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+    typedef std::result_of_t<tags::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
 
 };
 //******************************************************
@@ -132,7 +132,7 @@ struct iform<declare::Expression<tags::_cross, T0, T1> > :
 template<typename T0, typename T1>
 struct value_type<declare::Expression<tags::_cross, T0, T1> >
 {
-    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+    typedef std::result_of_t<tags::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
 };
 //******************************************************
 
@@ -145,7 +145,7 @@ struct iform<declare::Expression<tags::_dot, T0, T1> > :
 template<typename T0, typename T1>
 struct value_type<declare::Expression<tags::_dot, T0, T1> >
 {
-    typedef std::result_of_t<tags::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+    typedef std::result_of_t<tags::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
 };
 //******************************************************
 
@@ -245,6 +245,10 @@ namespace tags
 {
 template<size_type I> struct _p_exterior_derivative {};
 template<size_type I> struct _p_codifferential_derivative {};
+
+struct _grad {};
+struct _curl {};
+struct _diverge {};
 }  // namespace tags
 
 
@@ -276,7 +280,7 @@ struct iform<declare::Expression<tags::_exterior_derivative, T> > :
 template<typename T>
 struct value_type<declare::Expression<tags::_exterior_derivative, T> >
 {
-    typedef std::result_of_t<tags::multiplies(scalar_type_t < T > , value_type_t < T > )> type;
+    typedef std::result_of_t<tags::multiplies(scalar_type_t<T>, value_type_t<T>)> type;
 };
 
 //******************************************************
@@ -290,7 +294,7 @@ struct iform<declare::Expression<tags::_codifferential_derivative, T> > :
 template<typename T>
 struct value_type<declare::Expression<tags::_codifferential_derivative, T> >
 {
-    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t<T>)> type;
 };
 
 //******************************************************
@@ -302,7 +306,7 @@ struct iform<declare::Expression<tags::_p_exterior_derivative<I>, T> > :
 template<typename T, size_type I>
 struct value_type<declare::Expression<tags::_p_exterior_derivative<I>, T> >
 {
-    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t <T>)> type;
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t<T>)> type;
 
 };
 //******************************************************
@@ -347,7 +351,7 @@ namespace traits
 template<size_type I, typename T, typename ...Others>
 struct value_type<declare::Expression<tags::_map_to<I>, T, Others...> >
 {
-    typedef value_type_t <T> type;
+    typedef value_type_t<T> type;
 };
 //******************************************************
 template<size_type I, typename T0>
@@ -408,14 +412,21 @@ grad(T const &f, index_const<VERTEX>) DECL_RET_TYPE((exterior_derivative(f)))
 template<typename T> inline auto
 grad(T const &f, index_const<VOLUME>) DECL_RET_TYPE(((codifferential_derivative(-f))))
 
+template<typename T, size_type I> inline auto
+grad(T const &f, index_const<I>) DECL_RET_TYPE((declare::Expression<tags::_grad, const T>(f)))
+
 template<typename T> inline auto
 grad(T const &f) DECL_RET_TYPE((grad(f, traits::iform<T>())))
+
 
 template<typename T> inline auto
 diverge(T const &f, index_const<FACE>) DECL_RET_TYPE((exterior_derivative(f)))
 
 template<typename T> inline auto
 diverge(T const &f, index_const<EDGE>) DECL_RET_TYPE((codifferential_derivative(-f)))
+
+template<typename T, size_type I> inline auto
+diverge(T const &f, index_const<I>) DECL_RET_TYPE((declare::Expression<tags::_diverge, const T>(f)))
 
 template<typename T> inline auto
 diverge(T const &f) DECL_RET_TYPE((diverge(f, traits::iform<T>())))
@@ -426,6 +437,9 @@ curl(T const &f, index_const<EDGE>) DECL_RET_TYPE((exterior_derivative(f)))
 
 template<typename T> inline auto
 curl(T const &f, index_const<FACE>) DECL_RET_TYPE((codifferential_derivative(-f)))
+
+template<typename T, size_type I> inline auto
+curl(T const &f, index_const<I>) DECL_RET_TYPE((declare::Expression<tags::_curl, const T>(f)))
 
 template<typename T> inline auto
 curl(T const &f) DECL_RET_TYPE((curl(f, traits::iform<T>())))
