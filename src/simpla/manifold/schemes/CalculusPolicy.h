@@ -281,9 +281,9 @@ public:
 //          std::enable_if_t<!st::is_primary<TF>::value>
 //          *_p = nullptr) { return get_value(m, expr, s); }
 
-    template<typename TV, typename OM, size_t I, int DOF> inline static TV
-    mapto(mesh_type const &m, declare::Field_<TV, OM, IFORM, DOF> const &f, MeshEntityId const &s,
-    , ENABLE_IF(traits::iform<T>::value == IFORM))) { return f[s]; };
+    template<typename T> inline static typename traits::value_type<T>::type
+    mapto(mesh_type const &m, T const &f, MeshEntityId const &s,
+          ENABLE_IF((traits::is_field<T>::value && traits::iform<T>::value == IFORM))) { return f[s]; };
 
     template<typename TF> static inline at::value_type_t<TF>
     mapto(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<VERTEX, EDGE>)
