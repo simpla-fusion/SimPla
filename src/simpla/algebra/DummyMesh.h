@@ -23,11 +23,12 @@ namespace st=simpla::traits;
 
 class DummyMesh
 {
+public:
     size_type m_dims_[3];
     Real m_lower_[3];
     Real m_upper_[3];
 
-public:
+
     static constexpr unsigned int ndims = 3;
 
     typedef DummyMesh mesh_type;
@@ -93,13 +94,13 @@ public:
 
 
     template<typename V, size_type IFORM, size_type DOF> V &
-    access(algebra::declare::Field_<V, mesh_type, IFORM, DOF> &f, id_type const &s) const
+    access(algebra::declare::Field_ <V, mesh_type, IFORM, DOF> &f, id_type const &s) const
     {
         return f.m_data_[f.m_mesh_->hash(s)];
     };
 
     template<typename V, size_type IFORM, size_type DOF> V const &
-    access(algebra::declare::Field_<V, mesh_type, IFORM, DOF> const &f, id_type const &s) const
+    access(algebra::declare::Field_ <V, mesh_type, IFORM, DOF> const &f, id_type const &s) const
     {
         return f.m_data_[f.m_mesh_->hash(s)];
     };
@@ -139,20 +140,52 @@ public:
     DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
 
     template<typename TV, size_type IFORM, size_type DOF> void
-    apply(algebra::declare::Field_<TV, mesh_type, IFORM, DOF> &lhs, algebra::tags::_clear const &) const
+    apply(algebra::declare::Field_ <TV, mesh_type, IFORM, DOF> &lhs, algebra::tags::_clear const &) const
     {
         memset(lhs.m_data_, size(IFORM, DOF) * sizeof(TV), 0);
     }
 
     template<typename TV, size_type IFORM, size_type DOF, typename TOP, typename TFun> void
-    apply(algebra::declare::Field_<TV, mesh_type, IFORM, DOF> &lhs, TOP const &, TFun const &rhs) const
+    apply(algebra::declare::Field_ <TV, mesh_type, IFORM, DOF> &lhs, TOP const &, TFun const &rhs) const
     {
         foreach([&](mesh_type::id_type const &s) { TOP::eval(get_value(lhs, s), get_value(rhs, s)); }, IFORM, DOF);
     }
 
 };
 
+namespace algebra
+{
+namespace declare
+{
+template<typename TV, typename TM, size_type IFORM, size_type DOF> class Field_<TV, TM, IFORM, DOF>;
+}
 
+namespace calculus
+{
+template<typename TV, size_type IFORM, size_type DOF>
+struct calculator<declare::Field_<TV, DummyMesh, IFORM, DOF> >
+{
+    typedef declare::Field_<TV, DummyMesh, IFORM, DOF> self_type;
+
+    typedef declare::Array_<TV,
+            traits::rank<DummyMesh>::value +
+            ((IFORM == VERTEX || IFORM == VOLUME ? 0 : 1) * DOF > 1 ? 1 : 0)> data_block_type;
+
+    static std::shared_ptr<data_block_type> create_data_block(DummyMesh const *m)
+    {
+        size_type dims[4] = {m->m_dims_[0], m->m_dims_[1], m->m_dims_[2], 0};
+        return std::make_shared<data_block_type>(dims);
+    }
+
+    template<typename ...Args> static void
+    apply(self_type &, Args &&...args)
+    {
+
+    }
+};
+
+}//namespace calculus
+}//namespace algebra
 }//namespace simpla { namespace get_mesh
 
 #endif //SIMPLA_DUMMYMESH_H

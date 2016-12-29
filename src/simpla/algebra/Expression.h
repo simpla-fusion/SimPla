@@ -81,7 +81,7 @@ struct Expression<TOP, Args...>
 
     typename std::tuple<traits::reference_t<Args> ...> m_args_;
 
-//    TOP m_op_;
+    TOP m_op_;
 
     Expression(this_type const &that) : m_args_(that.m_args_) {}
 

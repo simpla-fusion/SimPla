@@ -76,13 +76,13 @@ struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>>
 //    typedef typename declare::Field_<
 //            value_type_t < T>, typename mesh_type<T>::type, iform<T>::value, dof<T>::value> type;
 //};
-template<typename TV, typename TM, size_type IFORM, size_type DOF>
-struct data_block_type
-{
-    typedef declare::Array_<TV,
-            rank<TM>::value + ((IFORM == VERTEX || IFORM == VOLUME ? 0 : 1) * DOF > 1 ? 1 : 0)> type;
-};
-template<typename TV, typename TM, size_type IFORM, size_type DOF> using data_block_t=typename data_block_type<TV, TM, IFORM, DOF>::type;
+//template<typename TV, typename TM, size_type IFORM, size_type DOF>
+//struct data_block_type
+//{
+//    typedef declare::Array_<TV,
+//            rank<TM>::value + ((IFORM == VERTEX || IFORM == VOLUME ? 0 : 1) * DOF > 1 ? 1 : 0)> type;
+//};
+//template<typename TV, typename TM, size_type IFORM, size_type DOF> using data_block_t=typename data_block_type<TV, TM, IFORM, DOF>::type;
 
 }//namespace traits{
 
@@ -101,9 +101,10 @@ public:
     typedef TM mesh_type;
 private:
 
-    typedef traits::data_block_t<mesh_type, TV, IFORM, DOF> data_type;
 
-    typedef calculus::calculator <this_type> calculus_policy;
+    typedef calculus::calculator<this_type> calculus_policy;
+
+    typedef typename calculus_policy::data_block_type data_type;
 
     data_type *m_data_;
 
@@ -163,7 +164,7 @@ public:
 
     virtual void deploy()
     {
-//        if (!m_data_holder_) { m_data_holder_ =  create_data_block<TV, IFORM, DOF>(); }
+        if (!m_data_holder_) { m_data_holder_ = calculus_policy::create_data_block(m_mesh_); }
         m_data_ = m_data_holder_.get();
     }
 
@@ -183,22 +184,30 @@ public:
     DECL_RET_TYPE((apply(tags::_scatter(), v, std::forward<Args>(args)...)))
 
 
-    template<typename ...Args> auto
-    operator()(Args &&...args) const DECL_RET_TYPE((gather(std::forward<Args>(args)...)))
+//    auto
+//    operator()(mesh_type::point_type const &x) const DECL_RET_TYPE((gather(x)))
+
 
     /**@}*/
 
     /** @name as_array   @{*/
     template<typename ...TID> value_type &
-    at(TID &&...s) { return calculus_policy::access(m_mesh_, (*this), std::forward<TID>(s)...); }
+    at(TID &&...s) { return m_data_->at(std::forward<TID>(s)...); }
 
     template<typename ...TID> value_type const &
-    at(TID &&...s) const { return calculus_policy::access(m_mesh_, (*this), std::forward<TID>(s)...); }
+    at(TID &&...s) const { return m_data_->at(std::forward<TID>(s)...); }
 
+    template<typename ...Args> auto
+    operator()(Args &&...args) DECL_RET_TYPE((at(std::forward<Args>(args)...)))
 
-    template<typename TI> inline value_type &operator[](TI const &s) { return at(s); }
+    template<typename ...Args> auto
+    operator()(Args &&...args) const DECL_RET_TYPE((at(std::forward<Args>(args)...)))
 
-    template<typename TI> inline value_type const &operator[](TI const &s) const { return at(s); }
+    template<typename TI> inline value_type &
+    operator[](TI const &s) { return at(s); }
+
+    template<typename TI> inline value_type const &
+    operator[](TI const &s) const { return at(s); }
 
     /**@}*/
 
@@ -210,7 +219,7 @@ public:
     apply(Args &&...args)
     {
         pre_process();
-//        calculus_policy::apply(*this, std::forward<Args>(args)...);
+        calculus_policy::apply(*this, std::forward<Args>(args)...);
         return *this;
     }
 }; // class Field_

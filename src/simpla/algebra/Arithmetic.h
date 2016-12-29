@@ -160,8 +160,13 @@ namespace tags
 {
 struct _assign
 {
-    template<typename TL, typename TR>
-    static inline void eval(TL &l, TR const &r) { l = static_cast<TL>(r); };
+    template<typename TL, typename TR> inline TL &operator()(TL &l, TR const &r) const
+    {
+        l = static_cast<TL>(r);
+        return l;
+    };
+
+    template<typename TL, typename TR> static inline void eval(TL &l, TR const &r) { l = static_cast<TL>(r); };
 };
 
 struct _clear {};

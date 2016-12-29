@@ -179,7 +179,8 @@ create_time_integrator(std::string const &str)
 
 
 
-    integrator->db.set_value("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
+    integrator->db.set_value("CartesianGeometry.domain_boxes_0", index_box_type{{0,  0,  0},
+                                                                                {16, 16, 16}});
 
     integrator->db.set_value("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
     integrator->db.set_value("CartesianGeometry.x_lo", nTuple<double, 3>{1.0, 0.0, -1.0});
@@ -722,25 +723,20 @@ create_data_block_t2(mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier
     auto inner_lower = p_data->getBox().lower();
     auto inner_upper = p_data->getBox().upper();
 
-    index_type o_lower[4] = {outer_lower[0], outer_lower[1], outer_lower[2], 0};
-    index_type o_upper[4] = {outer_upper[0] + 2, outer_upper[1] + 2, outer_upper[2] + 2, depth};
-
-    index_type i_lower[4] = {inner_lower[0], inner_lower[1], inner_lower[2], 0};
-    index_type i_upper[4] = {inner_upper[0] + 2, inner_upper[1] + 2, inner_upper[2] + 2, depth};
 
     size_type dims[4] = {
-            outer_upper[0] - outer_lower[0],
-            outer_upper[1] - outer_lower[1],
-            outer_upper[2] - outer_lower[2],
-            outer_upper[3] - outer_lower[3]};
+            static_cast<size_type>(outer_upper[0] - outer_lower[0]),
+            static_cast<size_type>(outer_upper[1] - outer_lower[1]),
+            static_cast<size_type>(outer_upper[2] - outer_lower[2]),
+            static_cast<size_type>(outer_upper[3] - outer_lower[3])};
 
-    size_type lo[4] = {
+    index_type lo[4] = {
             inner_lower[0] - outer_lower[0],
             inner_lower[1] - outer_lower[1],
             inner_lower[2] - outer_lower[2],
             inner_lower[3] - outer_lower[3]};
 
-    size_type hi[4] = {
+    index_type hi[4] = {
             inner_upper[0] - outer_lower[0],
             inner_upper[1] - outer_lower[1],
             inner_upper[2] - outer_lower[2],

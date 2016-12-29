@@ -184,6 +184,8 @@ public:
     virtual void accept(Patch *p)
     {
         Attribute::accept(p);
+
+//        accept(this, Attribute::data());
 //        U::accept(Attribute::data());
     }
 

@@ -34,7 +34,7 @@ FILE(GLOB amr_test_SRC ./*.cpp)
 add_executable(amr_test ${amr_test_SRC})
 
 
-TARGET_LINK_LIBRARIES(amr_test ${MeshKit_LIBRARIES} ${OCE_LIBRARIES} ${MOAB_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES} ${SAMRAI_LIBRARIES}
+TARGET_LINK_LIBRARIES(amr_test ${MeshKit_LIBRARIES} ${OCE_LIBRARIES} ${MOAB_LIBRARIES}  ${SAMRAI_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES}
         concept mesh manifold model parallel toolbox data physics simulation netcdf
         )
 

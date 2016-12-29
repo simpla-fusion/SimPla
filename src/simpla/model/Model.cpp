@@ -37,8 +37,8 @@ void Model::initialize(Real data_time, Real dt)
 {
     pre_process();
 
-    size_type const *lower = m_tags_.lower();
-    size_type const *upper = m_tags_.upper();
+    index_type const *lower = m_tags_.lower();
+    index_type const *upper = m_tags_.upper();
 
 
     index_type ib = lower[0];
@@ -139,8 +139,8 @@ Model::select(size_type iform, int tag)
 
     auto &res = m_range_cache_.at(iform).at(tag).as<set_type>();
 
-    size_type const *lower = m_tags_.lower();
-    size_type const *upper = m_tags_.upper();
+    index_type const *lower = m_tags_.lower();
+    index_type const *upper = m_tags_.upper();
 
     index_type ib = lower[0];
     index_type ie = upper[0];
@@ -227,8 +227,8 @@ mesh::EntityIdRange const &Model::interface(size_type iform, int tag_in, int tag
 
     set_type &res = const_cast<this_type *>(this)->m_interface_cache_.at(iform).at(tag_in).at(tag_out).as<set_type>();
 
-    size_type const *lower = m_tags_.lower();
-    size_type const *upper = m_tags_.upper();
+    index_type const *lower = m_tags_.lower();
+    index_type const *upper = m_tags_.upper();
 
 
     index_type ib = lower[0];

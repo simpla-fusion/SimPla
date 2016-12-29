@@ -180,8 +180,8 @@ public:
             *
             *\endverbatim
             */
-        size_type const *lower = m_vertics_.lower();
-        size_type const *upper = m_vertics_.upper();
+        index_type const *lower = m_vertics_.lower();
+        index_type const *upper = m_vertics_.upper();
 
 
         index_type ib = lower[0];

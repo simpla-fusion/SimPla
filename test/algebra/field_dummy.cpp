@@ -3,6 +3,7 @@
 //
 
 #include "simpla/algebra/Algebra.h"
+#include "simpla/algebra/Array.h"
 #include "simpla/algebra/Field.h"
 #include "simpla/algebra/DummyMesh.h"
 
@@ -24,6 +25,8 @@ int main(int argc, char **argv)
 
     Field<Real, DummyMesh> f(&m);
     Field<Real, DummyMesh> g(&m);
+
+    f(1, 2, 3) = 1990;
     f = 1;
     g = 2;
     f += g;

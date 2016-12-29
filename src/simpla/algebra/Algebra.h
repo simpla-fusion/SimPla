@@ -33,12 +33,7 @@ template<typename, size_type NDIMS, bool SLOW_FIRST = true> struct Array_;
 template<typename, typename, size_type ...> struct Field_;
 
 }
-namespace calculus
-{
-template<typename ...> struct calculator;
-
-
-}
+namespace calculus { template<typename ...> struct calculator; }
 
 namespace traits
 {

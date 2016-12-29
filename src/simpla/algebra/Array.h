@@ -47,9 +47,9 @@ struct sub_type<declare::Array_<T, I> > { typedef std::conditional_t<I == 0, T, 
 
 
 template<typename T>
-struct pod_type<declare::Array_<T, 0> > { typedef pod_type_t <T> type; };
+struct pod_type<declare::Array_<T, 0> > { typedef pod_type_t<T> type; };
 template<typename T, size_type I>
-struct pod_type<declare::Array_<T, I> > { typedef pod_type_t <declare::Array_<T, I - 1>> *type; };
+struct pod_type<declare::Array_<T, I> > { typedef pod_type_t<declare::Array_<T, I - 1>> *type; };
 
 }//namespace traits
 
@@ -63,7 +63,7 @@ struct Array_
 {
 private:
     typedef Array_<V, NDIMS, SLOW_FIRST> this_type;
-    typedef calculus::calculator <this_type> calculator;
+    typedef calculus::calculator<this_type> calculator;
 public:
     typedef V value_type;
 
@@ -72,8 +72,8 @@ public:
     static constexpr bool is_slow_first = SLOW_FIRST;
 
     size_type m_dims_[NDIMS];
-    size_type m_lower_[NDIMS];
-    size_type m_upper_[NDIMS];
+    index_type m_lower_[NDIMS];
+    index_type m_upper_[NDIMS];
 
     V *m_data_;
 
@@ -99,7 +99,7 @@ public:
     template<typename ...TID> Array_(std::shared_ptr<V> const &d, TID &&...idx):m_data_holder_(d), m_dims_{idx...} {}
 
     template<typename ...U>
-    Array_(Expression<U...> const &expr) { calculator::apply(tags::_assign(), (*this), expr); }
+    Array_(Expression<U...> const &expr) { calculator::apply((*this), tags::_assign(), expr); }
 
     ~Array_() {}
 
@@ -124,9 +124,9 @@ public:
 
     size_type const *dims() const { return m_dims_; }
 
-    size_type const *lower() const { return m_lower_; }
+    index_type const *lower() const { return m_lower_; }
 
-    size_type const *upper() const { return m_upper_; }
+    index_type const *upper() const { return m_upper_; }
 
     size_type ndims() const { return NDIMS; }
 
@@ -157,30 +157,30 @@ public:
     inline this_type &
     operator=(this_type const &rhs)
     {
-        calculator::apply(tags::_assign(), (*this), rhs);
+        calculator::apply((*this), tags::_assign(), rhs);
         return (*this);
     }
 
     template<typename TR> inline this_type &
     operator=(TR const &rhs)
     {
-        calculator::apply(tags::_assign(), (*this), rhs);
+        calculator::apply((*this), tags::_assign(), rhs);
         return (*this);
     }
 
-    template<typename TFun> void apply(TFun const &fun) { calculator::apply(fun, (*this)); }
+    template<typename TFun> void apply(TFun const &fun) { calculator::apply((*this), fun); }
 
-    template<typename TFun> void apply(TFun const &fun) const { calculator::apply(fun, (*this)); }
+    template<typename TFun> void apply(TFun const &fun) const { calculator::apply((*this), fun); }
 
-    Array_<value_type, NDIMS> view(size_type const *il, size_type const *iu)
-    {
-        return calculator::view((*this), il, iu);
-    }
-
-    Array_<const value_type, NDIMS> view(size_type const *il, size_type const *iu) const
-    {
-        return calculator::view((*this), il, iu);
-    }
+//    Array_<value_type, NDIMS> view(size_type const *il, size_type const *iu)
+//    {
+//        return calculator::view((*this), il, iu);
+//    }
+//
+//    Array_<const value_type, NDIMS> view(size_type const *il, size_type const *iu) const
+//    {
+//        return calculator::view((*this), il, iu);
+//    }
 };
 } // namespace declare
 namespace calculus
@@ -206,11 +206,11 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
         if (!self.m_data_holder_)
         {
             self.m_data_holder_ =
-            #ifdef NDEBUG
+#ifdef NDEBUG
                     sp_alloc_array<V>(size(self.m_dims_));
-            #else
+#else
                     std::shared_ptr<V>(new V[size(self.m_dims_)]);
-            #endif
+#endif
         }
         self.m_data_ = self.m_data_holder_.get();
     };
@@ -221,34 +221,34 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
     typedef std::integral_constant<bool, false> fast_first_t;
 
     template<bool array_order> static inline size_type
-    hash_(std::integral_constant<bool, array_order>, size_type const *dims, size_type const *offset) { return 0; }
+    hash_(std::integral_constant<bool, array_order>, size_type const *dims, index_type const *offset) { return 0; }
 
     template<bool array_order> static inline size_type
-    hash_(std::integral_constant<bool, array_order>, size_type const *dims, size_type const *offset,
-          size_type s) { return s; }
+    hash_(std::integral_constant<bool, array_order>, size_type const *dims, index_type const *offset,
+          index_type s) { return s; }
 
     //fast first
 
     template<typename ...TID> static inline size_type
-    hash_(fast_first_t, size_type const *dims, size_type const *offset, size_type i0, TID &&...idx)
+    hash_(fast_first_t, size_type const *dims, index_type const *offset, index_type i0, TID &&...idx)
     {
         return i0 + hash_(fast_first_t(), dims, offset, std::forward<TID>(idx)...) * dims[NDIMS - sizeof...(TID) - 1];
     }
 
     static inline size_type
-    hash_(fast_first_t, index_const<NDIMS>, size_type const *dims, size_type const *offset,
-          size_type const *i) { return 0; }
+    hash_(fast_first_t, index_const<NDIMS>, size_type const *dims, index_type const *offset,
+          index_type const *i) { return 0; }
 
 
     template<size_type N> static inline size_type
-    hash_(fast_first_t, index_const<N>, size_type const *dims, size_type const *offset, size_type const *i)
+    hash_(fast_first_t, index_const<N>, size_type const *dims, index_type const *offset, index_type const *i)
     {
         return i[N] - offset[N] + hash_(fast_first_t(), index_const<N + 1>(), dims, offset, i) * dims[N];
     }
     //slow first
 
     template<typename ...TID> static inline size_type
-    hash_(slow_first_t, size_type const *dims, size_type const *offset, size_type s, size_type i1, TID &&...idx)
+    hash_(slow_first_t, size_type const *dims, index_type const *offset, index_type s, index_type i1, TID &&...idx)
     {
         return hash_(slow_first_t(), dims, offset,
                      s * dims[NDIMS - (sizeof...(TID) + 1)] + i1 - offset[NDIMS - (sizeof...(TID) + 1)],
@@ -256,27 +256,28 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
     }
 
     static inline size_type
-    hash_(slow_first_t, index_const<NDIMS>, size_type const *dims, size_type const *offset,
-          size_type const *i) { return 0; }
+    hash_(slow_first_t, index_const<NDIMS>, size_type const *dims, index_type const *offset,
+          index_type const *i) { return 0; }
 
     template<size_type N> static inline size_type
-    hash_(slow_first_t, index_const<N>, size_type const *dims, size_type const *offset, size_type const *i)
+    hash_(slow_first_t, index_const<N>, size_type const *dims, index_type const *offset, index_type const *i)
     {
         return i[NDIMS - N - 1] - offset[NDIMS - N - 1] +
                hash_(slow_first_t(), index_const<N + 1>(), dims, offset, i) * dims[NDIMS - N - 1];
     }
 
     template<typename ...TID> static inline size_type
-    hash(size_type const *dims, size_type const *offset, size_type s, TID &&...idx)
+    hash(size_type const *dims, index_type const *offset, index_type s, TID &&...idx)
     {
         static_assert(NDIMS == ((sizeof...(TID) + 1)), "illegal index number! NDIMS=");
         return hash_(std::integral_constant<bool, SLOW_FIRST>(), dims, offset, s, std::forward<TID>(idx)...);
     }
 
-    static inline size_type hash(size_type const *dims, size_type const *offset, size_type const *s)
+    static inline size_type
+    hash(size_type const *dims, index_type const *offset, index_type const *s)
     {
-        auto t = hash_(std::integral_constant<bool, SLOW_FIRST>(), index_const<0>(), dims, offset, s);
-        return t;
+        return hash_(std::integral_constant<bool, SLOW_FIRST>(), index_const<0>(), dims, offset, s);
+
     }
 
 
@@ -285,10 +286,11 @@ public:
     get_value(T &v) { return v; };
 
     static constexpr inline value_type &
-    get_value(self_type &self, size_type const *s) { return self.m_data_[hash(self.m_dims_, self.m_lower_, s)]; };
+    get_value(self_type &self, index_type const *s) { return self.m_data_[hash(self.m_dims_, self.m_lower_, s)]; };
 
     static constexpr inline value_type const &
-    get_value(self_type const &self, size_type const *s) { return self.m_data_[hash(self.m_dims_, self.m_lower_, s)]; };
+    get_value(self_type const &self,
+              index_type const *s) { return self.m_data_[hash(self.m_dims_, self.m_lower_, s)]; };
 
     template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
     get_value(T &v, I0 const *s,
@@ -332,19 +334,19 @@ public:
     DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
 
 
-    template<typename TOP, typename ...Others, size_type ... index> static constexpr inline auto
-    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, size_type const *s)
-    DECL_RET_TYPE((TOP::eval(get_value(std::get<index>(expr.m_args_), s)...)))
+    template<typename TOP, typename ...Others, size_type ... index> static inline auto
+    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, index_type const *s)
+    DECL_RET_TYPE((expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...)))
 
-    template<typename TOP, typename   ...Others> static constexpr inline auto
-    get_value(declare::Expression<TOP, Others...> const &expr, size_type const *s)
+    template<typename TOP, typename   ...Others> static inline auto
+    get_value(declare::Expression<TOP, Others...> const &expr, index_type const *s)
     DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), s)))
 
     template<typename TFun> static void
-    traversal_nd(size_type const *lower, size_type const *upper, TFun const &fun)
+    traversal_nd(index_type const *lower, index_type const *upper, TFun const &fun)
     {
 /// FIXME: need parallelism
-        size_type idx[NDIMS];
+        index_type idx[NDIMS];
         for (int i = 0; i < NDIMS; ++i) { idx[i] = lower[i]; }
 
         while (1)
@@ -364,40 +366,42 @@ public:
         }
     }
 
-    static constexpr inline
-    void clear(self_type &self)
+    static constexpr inline void
+    clear(self_type &self)
     {
         deploy(self);
         memset(self.m_data_, static_cast<int>(size(self.m_dims_) * sizeof(value_type)), 0);
     };
 
-    template<typename TOP, typename ...Others> static constexpr inline
-    void apply(TOP const &op, self_type &self, Others &&...others)
+    template<typename TOP, typename ...Others> static constexpr inline void
+    apply(self_type &self, TOP const &op, Others &&...others)
     {
         deploy(self);
         traversal_nd(
                 self.m_lower_, self.m_upper_,
-                [&](size_type const *idx)
+                [&](index_type const *idx)
                 {
-                    TOP::eval(get_value(self, idx), get_value(std::forward<Others>(others), idx)...);
+                    op(get_value(self, idx), get_value(std::forward<Others>(others), idx)...);
                 });
     };
 
 
-    template<typename TOP> static constexpr inline
-    void apply(TOP const &op, self_type &self)
+
+
+    template<typename TOP> static constexpr inline void
+    apply(self_type &self, TOP const &op)
     {
-        traversal_nd(self.m_lower_, self.m_upper_, [&](size_type const *idx) { op(get_value(self, idx)); });
+        traversal_nd(self.m_lower_, self.m_upper_, [&](index_type const *idx) { op(get_value(self, idx)); });
     };
 
-    template<typename TOP> static constexpr inline
-    void apply(TOP const &op, self_type const &self)
+    template<typename TOP> static constexpr inline void
+    apply(self_type const &self, TOP const &op)
     {
-        traversal_nd(self.m_lower_, self.m_upper_, [&](size_type const *idx) { op(get_value(self, idx)); });
+        traversal_nd(self.m_lower_, self.m_upper_, [&](index_type const *idx) { op(get_value(self, idx)); });
     };
 
-    static constexpr inline
-    void swap(self_type &self, self_type &other)
+    static constexpr inline void
+    swap(self_type &self, self_type &other)
     {
         std::swap(self.m_data_, other.m_data_);
         std::swap(self.m_data_holder_, other.m_data_holder_);
@@ -412,8 +416,8 @@ public:
 
     };
 
-    static constexpr inline
-    void split(concept::tags::split const &split, self_type &other, self_type &self)
+    static constexpr inline void
+    split(concept::tags::split const &split, self_type &other, self_type &self)
     {
         self_type(other).swap(self);
         size_type max_dims = 0;
@@ -432,13 +436,13 @@ public:
     }
 
     static declare::Array_<V, NDIMS>
-    view(self_type &self, size_type const *il, size_type const *iu)
+    view(self_type &self, index_type const *il, index_type const *iu)
     {
         return declare::Array_<V, NDIMS>(self.m_data_holder_, self.m_dims_, il, iu);
     };
 
     static declare::Array_<const V, NDIMS>
-    view(self_type const &self, size_type const *il, size_type const *iu)
+    view(self_type const &self, index_type const *il, index_type const *iu)
     {
         return declare::Array_<V, NDIMS>(self.m_data_, self.m_dims_, il, iu);
     };
@@ -450,14 +454,14 @@ public:
     }
 
     static void
-    initialize(self_type *self, size_type const *dims = nullptr, size_type const *lower = nullptr,
-               size_type const *upper = nullptr)
+    initialize(self_type *self, size_type const *dims = nullptr, const index_type *lower = nullptr,
+               const index_type *upper = nullptr)
     {
         for (int i = 0; i < NDIMS; ++i)
         {
             self->m_dims_[i] = dims == nullptr ? 1 : dims[i];
             self->m_lower_[i] = lower == nullptr ? 0 : lower[i];
-            self->m_upper_[i] = upper == nullptr ? self->m_dims_[i] : upper[i];
+            self->m_upper_[i] = upper == nullptr ? static_cast<index_type>( self->m_dims_[i] ) : upper[i];
         }
     }
 
@@ -470,8 +474,9 @@ public:
         copy_(dest + 1, std::forward<Others>(others)...);
     };
 
+//
     template<typename ...TID> static void
-    initialize(self_type *self, size_type s0, TID &&...idx)
+    initialize(self_type *self, index_type s0, TID &&...idx)
     {
         size_type dims[NDIMS];
         dims[0] = s0;
