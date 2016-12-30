@@ -18,16 +18,16 @@
 #include <string>
 
 #include <gtest/gtest.h>
+#include <simpla/mesh/predefine/CartesianGeometry.h>
+#include <simpla/manifold/schemes/CalculusPolicy.h>
 
-
-//#include <simpla/manifold/CartesianGeometry.h>
+#include <simpla/mesh/EntityId.h>
 #include "simpla/algebra/Algebra.h"
 #include "simpla/algebra/nTuple.h"
 #include "simpla/algebra/Field.h"
 #include "simpla/algebra/Calculus.h"
 
 using namespace simpla;
-using namespace simpla::mesh;
 using namespace simpla::algebra;
 //#define CYLINDRICAL_COORDINATE_SYSTEM 1
 
@@ -126,14 +126,14 @@ public:
     {
     }
 
-    template<size_type IFORM> using field_type=algebra::Field_<value_type, mesh_type, IFORM, 1>;
+    template<size_type IFORM> using field_type= Field<value_type, mesh_type, IFORM, 1>;
 
 
 };
 
 TEST_P(FETLTest, grad0)
 {
-    typedef MeshEntityIdCoder M;
+    typedef mesh::MeshEntityIdCoder M;
     field_type <VERTEX> f0{m};
     field_type <EDGE> f1(m);
     field_type <EDGE> f1b(m);
@@ -142,7 +142,7 @@ TEST_P(FETLTest, grad0)
     f1.clear();
     f1b.clear();
 
-    f0.assign(SP_ES_ALL, [&](point_type const &x) { return std::sin(q(x)); });
+    f0.assign([&](point_type const &x) { return std::sin(q(x)); });
 //    m->range(VERTEX, SP_ES_ALL).foreach();
 
     f1 = grad(f0);
@@ -185,7 +185,7 @@ TEST_P(FETLTest, grad0)
 
 TEST_P(FETLTest, grad3)
 {
-    typedef MeshEntityIdCoder M;
+    typedef mesh::MeshEntityIdCoder M;
 
     field_type <FACE> f2(m);
     field_type <FACE> f2b(m);

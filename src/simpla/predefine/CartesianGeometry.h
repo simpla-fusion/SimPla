@@ -14,7 +14,7 @@
 #include <simpla/mesh/EntityId.h>
 
 #include <simpla/toolbox/MemoryPool.h>
-#include "../Chart.h"
+#include <simpla/mesh/Chart.h>
 //#include <simpla/mesh/DataBlock.h>
 //#include <simpla/mesh/MeshBlock.h>
 //#include "simpla/mesh/Chart.h"

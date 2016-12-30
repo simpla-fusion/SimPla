@@ -7,11 +7,12 @@
 #include <simpla/SIMPLA_config.h>
 
 #include <iostream>
+#include <simpla/algebra/Field.h>
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/Worker.h>
-#include <simpla/algebra/Field.h>
-#include <simpla/mesh/predefine/CartesianGeometry.h>
-#include <simpla/mesh/predefine/CylindricalGeometry.h>
+#include <simpla/predefine/CartesianGeometry.h>
+#include <simpla/predefine/CylindricalGeometry.h>
+#include <simpla/predefine/CalculusPolicy.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include "../../scenario/problem_domain/EMFluid.h"

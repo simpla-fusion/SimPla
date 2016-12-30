@@ -5,7 +5,7 @@
  */
 #include <simpla/SIMPLA_config.h>
 
-#include "logo.h"
+#include "Logo.h"
 #include <cstdlib>
 #include <iomanip>
 #include <string>

@@ -13,9 +13,9 @@
 #include <simpla/toolbox/Log.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/mpl/type_traits.h>
-#include <simpla/geometry/GeoObject.h>
-#include <simpla/geometry/Polygon.h>
-#include <simpla/geometry/Revolve.h>
+#include "geometry/GeoObject.h"
+#include "geometry/Polygon.h"
+#include "geometry/Revolve.h"
 
 namespace simpla
 {

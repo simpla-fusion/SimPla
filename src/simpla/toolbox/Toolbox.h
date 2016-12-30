@@ -8,7 +8,7 @@
 #ifndef SIMPLA_TOOLBOX_H_
 #define SIMPLA_TOOLBOX_H_
 
-#include "logo.h"
+#include "Logo.h"
 
 
 #include "Log.h"

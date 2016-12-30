@@ -102,7 +102,7 @@ public:
 private:
 
 
-    typedef calculus::calculator<this_type> calculus_policy;
+    typedef calculus::calculator <this_type> calculus_policy;
 
     typedef typename calculus_policy::data_block_type data_type;
 
@@ -219,7 +219,7 @@ public:
     apply(Args &&...args)
     {
         pre_process();
-        calculus_policy::apply(*this, std::forward<Args>(args)...);
+        calculus_policy::apply(*this, *m_mesh_, std::forward<Args>(args)...);
         return *this;
     }
 }; // class Field_

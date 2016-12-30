@@ -8,22 +8,6 @@
 #ifndef CORE_MANIFOLD_H_
 #define CORE_MANIFOLD_H_
 
-#include <iostream>
-#include <memory>
-#include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/macro.h>
-#include <simpla/algebra/nTuple.h>
-#include <simpla/toolbox/design_pattern/Observer.h>
-#include <simpla/concept/Configurable.h>
-
-#include <simpla/mesh/MeshBlock.h>
-#include <simpla/mesh/Attribute.h>
-#include <simpla/mesh/Atlas.h>
-
-
-namespace simpla { namespace manifold
-{
-
 
 /**
  * @defgroup diff_geo Differential Geometry
@@ -131,34 +115,7 @@ namespace simpla { namespace manifold
  */
 
 
-class Manifold
-{
-
-public:
-    std::shared_ptr<mesh::AttributeCollection> m_attr_holder_;
-    std::shared_ptr<mesh::Atlas> m_atlas_;
-
-
-    Manifold() {}
-
-    virtual ~Manifold() {}
-
-    Manifold(Manifold const &other) = delete;
-
-
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const
-    {
-        return os;
-    }
-
-private:
-//    std::shared_ptr<mesh::Atlas> m_atlas_;
-
-
-}; //class Manifold
-
 /* @}@} */
 
-}}//namespace simpla::manifold
 
 #endif /* CORE_MANIFOLD_H_ */

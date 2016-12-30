@@ -20,9 +20,9 @@
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
-#include <simpla/geometry/Polygon.h>
 #include <simpla/numeric/find_root.h>
 #include <simpla/numeric/Interpolation.h>
+#include "geometry/Polygon.h"
 
 namespace simpla
 {

@@ -17,14 +17,7 @@ enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };
 
 namespace algebra
 {
-/**
- * @brief algebra
- *    Algebra system
- *    - scalar ,nTuple, Array,Field
- *    - type convert scarlar => nTuple => Array => Field
- *    TODO:
- *    - Array<nTuple>= Array<Scalar>*nTuple
- */
+
 namespace declare
 {
 template<typename ...> struct Expression;
