@@ -5,7 +5,9 @@
 #include "simpla/algebra/Algebra.h"
 #include "simpla/algebra/Array.h"
 #include "simpla/algebra/Field.h"
-#include "simpla/algebra/DummyMesh.h"
+
+#include "simpla/predefine/CartesianGeometry.h"
+#include "simpla/predefine/CalculusPolicy.h"
 
 using namespace simpla;
 
@@ -19,16 +21,19 @@ int main(int argc, char **argv)
 
 //    size_type gw[3] = {2, 2, 2};
 //    index_type lo[3] = {0, 0, 0};
-//    index_type hi[3];//= {dims[0], dims[1], dims[2]};
+//    index_type hi[3];//= {dims[0], dims[1], dims[2]}
+//
 
-    DummyMesh m(&dims[0], &xmin[0], &xmax[0]);
+    typedef mesh::CartesianGeometry mesh_type;
 
-    Field<Real, DummyMesh> f(&m);
-    Field<Real, DummyMesh> g(&m);
+    mesh_type m;//(&dims[0], &xmin[0], &xmax[0]);
+
+    Field<Real, mesh_type> f(&m);
+    Field<Real, mesh_type> g(&m);
 
     f(1, 2, 3) = 1990;
     f = 1;
     g = 2;
-    f += g;
+//    f = f + g;
 
 }

@@ -101,8 +101,9 @@ public:
     typedef TM mesh_type;
 private:
 
+    typedef typename mesh_type::id_type mesh_id_type;
 
-    typedef calculus::calculator <this_type> calculus_policy;
+    typedef calculus::calculator<this_type> calculus_policy;
 
     typedef typename calculus_policy::data_block_type data_type;
 
@@ -131,6 +132,8 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
 
+    template<typename TR> inline this_type &
+    operator=(TR const &rhs) { return assign(rhs); }
 
     virtual void pre_process()
     {
@@ -170,8 +173,6 @@ public:
 
     virtual void clear() { apply(tags::_clear()); }
 
-    template<typename TR> inline this_type &
-    operator=(TR const &rhs) { return assign(rhs); }
 
     /** @name as_function  @{*/
     template<typename ...Args> inline auto
@@ -191,11 +192,13 @@ public:
     /**@}*/
 
     /** @name as_array   @{*/
+
+
     template<typename ...TID> value_type &
-    at(TID &&...s) { return m_data_->at(std::forward<TID>(s)...); }
+    at(TID &&...s) { return calculus_policy::get_value(*m_mesh_, *m_data_, std::forward<TID>(s)...); }
 
     template<typename ...TID> value_type const &
-    at(TID &&...s) const { return m_data_->at(std::forward<TID>(s)...); }
+    at(TID &&...s) const { return calculus_policy::get_value(*m_mesh_, *m_data_, std::forward<TID>(s)...); }
 
     template<typename ...Args> auto
     operator()(Args &&...args) DECL_RET_TYPE((at(std::forward<Args>(args)...)))
