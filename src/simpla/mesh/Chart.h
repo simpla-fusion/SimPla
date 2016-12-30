@@ -31,6 +31,9 @@ SP_OBJECT_BASE(Chart);
 
     Chart();
 
+    template<typename ...Args>
+    Chart(Args &&...args) :m_mesh_block_(std::make_shared<MeshBlock>(std::forward<Args>(args)...)) {}
+
     virtual ~Chart();
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
@@ -45,7 +48,11 @@ SP_OBJECT_BASE(Chart);
 
     virtual void finalize(Real data_time = 0, Real dt = 0);
 
-    virtual std::shared_ptr<MeshBlock> const &mesh_block() const { return m_mesh_block_; }
+    virtual std::shared_ptr<MeshBlock> const &mesh_block() const
+    {
+        assert(m_mesh_block_ != nullptr);
+        return m_mesh_block_;
+    }
 
 
 protected:

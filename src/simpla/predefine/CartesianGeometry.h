@@ -77,6 +77,9 @@ public:
 
     CartesianGeometry() {}
 
+    template<typename ...Args>
+    CartesianGeometry(Args &&...args):Chart(std::forward<Args>(args)...) {}
+
     ~CartesianGeometry() {}
 
     void initialize(Real data_time, Real dt);

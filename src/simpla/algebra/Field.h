@@ -105,6 +105,8 @@ private:
 
     typedef calculus::calculator<this_type> calculus_policy;
 
+    friend calculus_policy;
+
     typedef typename calculus_policy::data_block_type data_type;
 
     data_type *m_data_;
@@ -117,11 +119,10 @@ public:
     Field_() : m_data_holder_(nullptr), m_mesh_(nullptr), m_data_(nullptr) {};
 
     explicit Field_(mesh_type const *m, data_type *d) :
-            m_data_holder_(d, simpla::tags::do_nothing()),
-            m_mesh_(m), m_data_(nullptr) {};
+            m_mesh_(m), m_data_holder_(d, simpla::tags::do_nothing()), m_data_(nullptr) {};
 
     explicit Field_(mesh_type const *m, std::shared_ptr<data_type> const &d = nullptr) :
-            m_data_holder_(d), m_mesh_(m), m_data_() {};
+            m_mesh_(m), m_data_holder_(d), m_data_(d.get()) {};
 
 
     virtual ~Field_() {}
@@ -165,14 +166,10 @@ public:
         pre_process();
     }
 
-    virtual void deploy()
-    {
-        if (!m_data_holder_) { m_data_holder_ = calculus_policy::create_data_block(m_mesh_); }
-        m_data_ = m_data_holder_.get();
-    }
 
-    virtual void clear() { apply(tags::_clear()); }
+    virtual void deploy() { calculus_policy::deploy(*this); }
 
+    virtual void clear() { calculus_policy::clear(*this); }
 
     /** @name as_function  @{*/
     template<typename ...Args> inline auto

@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
     Field<Real, mesh_type> f(&m);
     Field<Real, mesh_type> g(&m);
-
+    f.clear();
     f(1, 2, 3) = 1990;
     f = 1;
     g = 2;

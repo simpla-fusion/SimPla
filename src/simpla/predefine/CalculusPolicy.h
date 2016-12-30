@@ -325,6 +325,20 @@ struct calculator<declare::Field_<TV, TM, IFORM, DOF> >
         return std::make_shared<data_block_type>(d);
     }
 
+    static void
+    deploy(self_type &self)
+    {
+        if (self.m_data_holder_.get() == nullptr) { self.m_data_holder_ = create_data_block(self.m_mesh_); }
+        self.m_data_ = self.m_data_holder_.get();
+    };
+
+    static void
+    clear(self_type &self)
+    {
+        deploy(self);
+    }
+
+/********************************************************************************************************/
     inline static value_type const &
     get_value(mesh_type const &m, data_block_type const &d, MeshEntityId const &s)
     {
@@ -874,10 +888,6 @@ public:
 
     //******************************************************************************************************************
 
-    static void
-    apply(self_type &self, mesh_type const &m, tags::_clear)
-    {
-    }
 
     template<typename TOP, typename ...Args> static void
     apply(self_type &self, mesh_type const &m, TOP const &op, Args &&...args)
