@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     a = 1;
     b = 2;
     c = a;
-//
+
     c += a + b * 3;
 
     c(1, 2, 3) = 100;

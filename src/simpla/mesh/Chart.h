@@ -59,15 +59,15 @@ protected:
     std::shared_ptr<MeshBlock> m_mesh_block_;
 };
 
-template<typename ...> class ChartProxy;
+template<typename ...> class ChartAdapter;
 
 template<typename U>
-class ChartProxy<U> : public Chart, public U
+class ChartAdapter<U> : public Chart, public U
 {
     template<typename ...Args>
-    explicit ChartProxy(Args &&...args):U(std::forward<Args>(args)...) {}
+    explicit ChartAdapter(Args &&...args):U(std::forward<Args>(args)...) {}
 
-    ~ChartProxy() {}
+    ~ChartAdapter() {}
 
     virtual std::ostream &print(std::ostream &os, int indent) const
     {

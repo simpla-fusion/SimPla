@@ -8,12 +8,15 @@
 #include <simpla/SIMPLA_config.h>
 #include <cstring>
 
-#include "Algebra.h"
-#include "Arithmetic.h"
-#include "Expression.h"
 #include <simpla/mpl/range.h>
 #include <simpla/concept/Splittable.h>
 #include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/Log.h>
+#include <simpla/data/all.h>
+
+#include "Algebra.h"
+#include "Arithmetic.h"
+#include "Expression.h"
 
 #ifdef NDEBUG
 #   include <simpla/toolbox/MemoryPool.h>
@@ -59,7 +62,7 @@ struct pod_type<declare::Array_<T, I> > { typedef pod_type_t<declare::Array_<T, 
 namespace declare
 {
 template<typename V, size_type NDIMS, bool SLOW_FIRST>
-struct Array_
+struct Array_ : public data::HeavyData
 {
 private:
     typedef Array_<V, NDIMS, SLOW_FIRST> this_type;
@@ -75,7 +78,7 @@ public:
     index_type m_lower_[NDIMS];
     index_type m_upper_[NDIMS];
 
-    V *m_data_;
+    value_type *m_data_;
 
     std::shared_ptr<V> m_data_holder_;
 public:
@@ -114,9 +117,11 @@ public:
         calculator::split(split, other, *this);
     }
 
-    value_type *data() { return m_data_; }
+    virtual std::type_info const &value_type_info() const { return typeid(value_type); }
 
-    value_type const *data() const { return m_data_; }
+    virtual void *data() { return reinterpret_cast<void *>(m_data_); }
+
+    virtual void const *data() const { return reinterpret_cast<void const *>(m_data_); }
 
     std::shared_ptr<value_type> &data_holder() { return m_data_holder_; }
 
@@ -151,6 +156,8 @@ public:
     void deploy() { calculator::deploy(*this); }
 
     void clear() { calculator::clear(*this); }
+
+    void reset() { calculator::reset(*this); }
 
     void swap(this_type &other) { calculator::swap(*this, other); }
 
@@ -201,7 +208,8 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
         return res;
     }
 
-    static void deploy(self_type &self)
+    static void
+    deploy(self_type &self)
     {
         if (!self.m_data_holder_)
         {
@@ -215,6 +223,29 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
         self.m_data_ = self.m_data_holder_.get();
     };
 
+    static void
+    clear(self_type &self)
+    {
+        deploy(self);
+
+        memset(self.m_data_, 0, size(self.dims()) * sizeof(value_type));
+    }
+
+    static void
+    reset(self_type &self)
+    {
+        self.m_data_holder_.reset();
+        self.m_data_ = nullptr;
+
+        for (int i = 0; i < NDIMS; ++i)
+        {
+            self.m_dims_[i] = 0;
+            self.m_lower_[i] = 0;
+            self.m_upper_[i] = 0;
+        }
+
+
+    }
 
     typedef std::integral_constant<bool, true> slow_first_t;
 
@@ -243,6 +274,9 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
     template<size_type N> static inline size_type
     hash_(fast_first_t, index_const<N>, size_type const *dims, index_type const *offset, index_type const *i)
     {
+#ifndef NDEBUG
+        ASSERT(i[N] - offset[N] < dims[N]);
+#endif
         return i[N] - offset[N] + hash_(fast_first_t(), index_const<N + 1>(), dims, offset, i) * dims[N];
     }
     //slow first
@@ -262,6 +296,10 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
     template<size_type N> static inline size_type
     hash_(slow_first_t, index_const<N>, size_type const *dims, index_type const *offset, index_type const *i)
     {
+#ifndef NDEBUG
+        ASSERT(i[NDIMS - N - 1] - offset[NDIMS - N - 1]);
+#endif
+
         return i[NDIMS - N - 1] - offset[NDIMS - N - 1] +
                hash_(slow_first_t(), index_const<N + 1>(), dims, offset, i) * dims[NDIMS - N - 1];
     }
@@ -366,12 +404,6 @@ public:
         }
     }
 
-    static constexpr inline void
-    clear(self_type &self)
-    {
-        deploy(self);
-        memset(self.m_data_, static_cast<int>(size(self.m_dims_) * sizeof(value_type)), 0);
-    };
 
     template<typename TOP, typename ...Others> static constexpr inline void
     apply(self_type &self, TOP const &op, Others &&...others)
@@ -384,8 +416,6 @@ public:
                     op(get_value(self, idx), get_value(std::forward<Others>(others), idx)...);
                 });
     };
-
-
 
 
     template<typename TOP> static constexpr inline void
@@ -452,6 +482,7 @@ public:
     {
         printNdArray(os, self.m_data_, NDIMS, self.m_dims_);
     }
+
 
     static void
     initialize(self_type *self, size_type const *dims = nullptr, const index_type *lower = nullptr,

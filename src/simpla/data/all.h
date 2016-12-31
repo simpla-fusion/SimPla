@@ -1,9 +1,13 @@
 //
-// Created by salmon on 16-12-21.
+// Created by salmon on 16-12-31.
 //
 
-#ifndef SIMPLA_DATA_H
-#define SIMPLA_DATA_H
+#ifndef SIMPLA_DATA_ALL_H
+#define SIMPLA_DATA_ALL_H
+
+#include "DataEntity.h"
+#include "DataTable.h"
+#include "HeavyData.h"
 
 namespace simpla { namespace data
 {
@@ -16,7 +20,6 @@ namespace simpla { namespace data
  *   - @ref DataEntity
  *   - @ref DataLight
  *   - @ref DataHeavy
- *   - @ref DataTree
  *   - @ref DataType
  *   - @ref DataSpace
  *   - @ref DataSet
@@ -28,4 +31,4 @@ namespace simpla { namespace data
  */
 }}
 
-#endif //SIMPLA_DATA_H
+#endif //SIMPLA_DATA_ALL_H

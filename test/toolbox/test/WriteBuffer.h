@@ -47,13 +47,13 @@ public:
 };
 
 template<typename T>
-class WriteBufferProxy : public WriteBuffer
+class WriteBufferAdapter : public WriteBuffer
 {
     typedef T value_type;
 public:
-    WriteBufferProxy(HDF5Stream &os) : WriteBuffer(os) { WriteBuffer::data_type(data_model::DataType::create<T>()); }
+    WriteBufferAdapter(HDF5Stream &os) : WriteBuffer(os) { WriteBuffer::data_type(data_model::DataType::create<T>()); }
 
-    virtual ~ WriteBufferProxy() { }
+    virtual ~ WriteBufferAdapter() { }
 
 
     template<typename TI>

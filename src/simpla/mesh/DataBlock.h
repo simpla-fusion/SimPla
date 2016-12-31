@@ -57,19 +57,19 @@ public:
 
 };
 
-template<typename ...> class DataBlockProxy;
+template<typename ...> class DataBlockAdapter;
 
 template<typename U>
-class DataBlockProxy<U> : public DataBlock, public U
+class DataBlockAdapter<U> : public DataBlock, public U
 {
-SP_OBJECT_HEAD(DataBlockProxy<U>, DataBlock);
+SP_OBJECT_HEAD(DataBlockAdapter<U>, DataBlock);
 
 
 public:
     template<typename ...Args>
-    explicit DataBlockProxy(Args &&...args):U(std::forward<Args>(args)...) {}
+    explicit DataBlockAdapter(Args &&...args):U(std::forward<Args>(args)...) {}
 
-    ~DataBlockProxy() {}
+    ~DataBlockAdapter() {}
 
     virtual std::type_info const &
     value_type_info() const { return typeid(algebra::traits::value_type_t<U>); };
@@ -95,7 +95,7 @@ public:
 
     static std::shared_ptr<DataBlock> create(MeshBlock const *m, void *p)
     {
-        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<DataBlockProxy<U>>());
+        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<DataBlockAdapter<U>>());
     }
 
     virtual void clear() { U::clear(); }
@@ -163,7 +163,7 @@ public:
 
 template<typename V, size_type IFORM = VERTEX, size_type DOF = 1, bool SLOW_FIRST = false>
 using DataBlockArray=
-DataBlockProxy<
+DataBlockAdapter<
         Array < V,
         SIMPLA_MAXIMUM_DIMENSION + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1), SLOW_FIRST>>;
 //

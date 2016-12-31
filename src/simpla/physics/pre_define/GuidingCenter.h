@@ -12,7 +12,7 @@
 #include "simpla/geometry/LinearInterpolator.h"
 
 #include "../Particle.h"
-#include "../ParticleProxy.h"
+#include "simpla/physics/ParticleAdapter.h"
 #include "../ParticleEngine.h"
 #include "../ParticleGenerator.h"
 #include "../ParticleConstraint.h"

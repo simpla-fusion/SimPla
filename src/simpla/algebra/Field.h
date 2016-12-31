@@ -11,6 +11,8 @@
 
 #include <type_traits>
 #include <cassert>
+#include <simpla/concept/Printable.h>
+#include <simpla/concept/Serializable.h>
 #include "Algebra.h"
 //#include <simpla/toolbox/Log.h>
 //#include <simpla/mesh/Attribute.h>
@@ -90,6 +92,8 @@ namespace declare
 {
 template<typename TV, typename TM, size_type IFORM, size_type DOF>
 class Field_<TV, TM, IFORM, DOF>
+        : public concept::Printable,
+          public concept::Serializable
 {
 private:
     typedef Field_<TV, TM, IFORM, DOF> this_type;
@@ -131,7 +135,11 @@ public:
 
     Field_(this_type &&other) = delete;
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return m_data_->print(os, indent); }
+
+    virtual void load(data::DataTable const &d) { m_data_->load(d); };
+
+    virtual void save(data::DataTable *d) const { m_data_->save(d); };
 
     template<typename TR> inline this_type &
     operator=(TR const &rhs) { return assign(rhs); }
@@ -166,10 +174,16 @@ public:
         pre_process();
     }
 
+    virtual data_type *data() { return m_data_; }
+
+    virtual data_type const *data() const { return m_data_; }
 
     virtual void deploy() { calculus_policy::deploy(*this); }
 
-    virtual void clear() { calculus_policy::clear(*this); }
+    virtual void reset() { calculus_policy::reset(*this); }
+
+    virtual void clear(){ calculus_policy::clear(*this); }
+
 
     /** @name as_function  @{*/
     template<typename ...Args> inline auto
@@ -189,25 +203,30 @@ public:
     /**@}*/
 
     /** @name as_array   @{*/
+    value_type &
+    at(mesh_id_type const &s) { return calculus_policy::get_value(*m_mesh_, *m_data_, s); }
 
+    value_type const &
+    at(mesh_id_type const &s) const { return calculus_policy::get_value(*m_mesh_, *m_data_, s); }
+
+    inline value_type &
+    operator[](mesh_id_type const &s) { return at(s); }
+
+    inline value_type const &
+    operator[](mesh_id_type const &s) const { return at(s); }
 
     template<typename ...TID> value_type &
-    at(TID &&...s) { return calculus_policy::get_value(*m_mesh_, *m_data_, std::forward<TID>(s)...); }
+    at(TID &&...s) { return m_data_->at(std::forward<TID>(s)...); }
 
     template<typename ...TID> value_type const &
-    at(TID &&...s) const { return calculus_policy::get_value(*m_mesh_, *m_data_, std::forward<TID>(s)...); }
+    at(TID &&...s) const { return m_data_->at(std::forward<TID>(s)...); }
 
-    template<typename ...Args> auto
-    operator()(Args &&...args) DECL_RET_TYPE((at(std::forward<Args>(args)...)))
+    template<typename ...Args> value_type &
+    operator()(Args &&...args) { return ((at(std::forward<Args>(args)...))); }
 
-    template<typename ...Args> auto
-    operator()(Args &&...args) const DECL_RET_TYPE((at(std::forward<Args>(args)...)))
+    template<typename ...Args> value_type const &
+    operator()(Args &&...args) const { return ((at(std::forward<Args>(args)...))); }
 
-    template<typename TI> inline value_type &
-    operator[](TI const &s) { return at(s); }
-
-    template<typename TI> inline value_type const &
-    operator[](TI const &s) const { return at(s); }
 
     /**@}*/
 

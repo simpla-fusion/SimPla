@@ -329,14 +329,26 @@ struct calculator<declare::Field_<TV, TM, IFORM, DOF> >
     deploy(self_type &self)
     {
         if (self.m_data_holder_.get() == nullptr) { self.m_data_holder_ = create_data_block(self.m_mesh_); }
+
         self.m_data_ = self.m_data_holder_.get();
+
+        self.m_data_->deploy();
+
+    };
+
+    static void
+    reset(self_type &self)
+    {
+        self.m_data_ = nullptr;
+        self.m_data_holder_.reset();
     };
 
     static void
     clear(self_type &self)
     {
         deploy(self);
-    }
+        self.m_data_->clear();
+    };
 
 /********************************************************************************************************/
     inline static value_type const &
@@ -353,23 +365,19 @@ struct calculator<declare::Field_<TV, TM, IFORM, DOF> >
         return d.at(&idx[0]);
     };
 
-    template<typename ...Args> inline static value_type const &
-    get_value(mesh_type const &m, data_block_type const &d, Args &&...args)
-    {
-        return d.at(std::forward<Args>(args)...);
-    };
-
-    template<typename ...Args> inline static value_type &
-    get_value(mesh_type const &m, data_block_type &d, Args &&...args)
-    {
-        return d.at(std::forward<Args>(args)...);
-    };
 
     template<typename U, typename M, size_type...I> inline static U const &
-    get_value(mesh_type const &m, declare::Field_<U, M, I...> const &f, MeshEntityId const &s) { return f[s]; };
+    get_value(mesh_type const &m, declare::Field_<U, M, I...> const &f,
+              MeshEntityId const &s)
+    {
+        return get_value(m, *f.data(), s);
+    };
 
     template<typename U, typename M, size_type...I> inline static U &
-    get_value(mesh_type const &m, declare::Field_<U, M, I...> &f, MeshEntityId const &s) { return f[s]; };
+    get_value(mesh_type const &m, declare::Field_<U, M, I...> &f, MeshEntityId const &s)
+    {
+        return get_value(m, *f.data(), s);
+    };
 
 
 private:

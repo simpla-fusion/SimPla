@@ -12,23 +12,23 @@
 namespace simpla { namespace particle
 {
 template<typename...> struct Particle;
-template<typename...> struct ParticleProxyBase;
-template<typename...> struct ParticleProxy;
+template<typename...> struct ParticleAdapterBase;
+template<typename...> struct ParticleAdapter;
 
 template<typename TP, typename TE, typename TB, typename TJ, typename TRho>
-class ParticleProxy<TP, TE, TB, TJ, TRho> : public ParticleProxyBase<TE, TB, TJ, TRho>
+class ParticleAdapter<TP, TE, TB, TJ, TRho> : public ParticleAdapterBase<TE, TB, TJ, TRho>
 {
-    typedef ParticleProxy<TP, TE, TB, TJ, TRho> this_type;
+    typedef ParticleAdapter<TP, TE, TB, TJ, TRho> this_type;
 public:
     typedef TP particle_type;
 
     std::shared_ptr<particle_type> m_self_;
 
-    ParticleProxy(std::shared_ptr<particle_type> p) : m_self_(p) { }
+    ParticleAdapter(std::shared_ptr<particle_type> p) : m_self_(p) { }
 
-    ParticleProxy(this_type const &other) : m_self_(other.m_self_) { }
+    ParticleAdapter(this_type const &other) : m_self_(other.m_self_) { }
 
-    virtual  ~ParticleProxy() { }
+    virtual  ~ParticleAdapter() { }
 
     particle_type &self() { return *m_self_; }
 
@@ -59,14 +59,14 @@ public:
 };
 
 template<typename TE, typename TB, typename TJ, typename TRho>
-struct ParticleProxyBase<TE, TB, TJ, TRho>
+struct ParticleAdapterBase<TE, TB, TJ, TRho>
 {
 private:
-    typedef ParticleProxyBase<TE, TB, TJ, TRho> this_type;
+    typedef ParticleAdapterBase<TE, TB, TJ, TRho> this_type;
 public:
-    ParticleProxyBase() { }
+    ParticleAdapterBase() { }
 
-    virtual ~ParticleProxyBase() { }
+    virtual ~ParticleAdapterBase() { }
 
     virtual void deploy() = 0;
 
@@ -94,13 +94,13 @@ public:
     static std::shared_ptr<this_type> create(std::shared_ptr<TP> p)
     {
         return std::dynamic_pointer_cast<this_type>(
-                std::make_shared<ParticleProxy<TP, TE, TB, TJ, TRho>>(p));
+                std::make_shared<ParticleAdapter<TP, TE, TB, TJ, TRho>>(p));
 
     };
 };
 
 template<typename TE, typename TB, typename TJ, typename TRho>
-std::ostream &operator<<(std::ostream &os, ParticleProxyBase<TE, TB, TJ, TRho> const &p)
+std::ostream &operator<<(std::ostream &os, ParticleAdapterBase<TE, TB, TJ, TRho> const &p)
 {
     return p.print(os, 0);
 };

@@ -56,42 +56,45 @@ printNd(std::ostream &os, T const &d, index_sequence<M, N...> const &,
  */
 
 template<typename TV, typename TI> inline TV const *
-printNdArray(std::ostream &os, TV const *v, int rank, TI const *d,
+printNdArray(std::ostream &os, TV const *v, int rank, TI const *d, bool is_first = true, bool is_last = true,
              std::string const &left_brace = "{", std::string const &sep = ",",
              std::string const &right_brace = "}", bool is_slow_first = true)
 {
     constexpr int ELE_NUM_PER_LINE = 10;
     if (rank == 1)
     {
-        os << left_brace << *v;
-        ++v;
-        for (int s = 1; s < d[0]; ++s)
+        os << left_brace;
+        for (int s = 0; s < d[0]; ++s)
         {
-            os << sep << "\t";
-            if (s % ELE_NUM_PER_LINE == 0 && s != 0)
-            {
-                os << std::endl;
-            }
+            if (s > 0) { os << sep; }
+            if (s % ELE_NUM_PER_LINE == 0 && s != 0) { os << std::endl; }
             os << std::setw(10) << (*v);
             ++v;
         }
-        os << right_brace << std::endl;
-        return v;
+        os << right_brace;
+
     } else
     {
 
         os << left_brace;
-        v = printNdArray(os, v, rank - 1, d + 1, left_brace, sep, right_brace);
+//        v = printNdArray(os, v, rank - 1, d + 1, left_brace, sep, right_brace);
 
-        for (int s = 1; s < d[0]; ++s)
+        for (int s = 0; s < d[0]; ++s)
         {
-            os << sep << std::endl;
-            v = printNdArray(os, v, rank - 1, d + 1, left_brace, sep,
+            if (s > 0)
+            {
+                os << sep;
+                if (rank > 1) { os << std::endl; }
+
+            }
+            v = printNdArray(os, v, rank - 1, d + 1, s == 0, s == d[0] - 1, left_brace, sep,
                              right_brace);
         }
-        os << right_brace << std::endl;
+        os << right_brace;
         return (v);
     }
+//    if (is_last) { os << std::endl; }
+    return v;
 }
 
 

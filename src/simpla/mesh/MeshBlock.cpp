@@ -15,14 +15,31 @@ namespace simpla { namespace mesh
 MeshBlock::MeshBlock() : m_ndims_(0) {}
 
 
-MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *xlo, id_type id)
+MeshBlock::MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *xlo)
         : Object(),
           m_ndims_(ndims),
-          m_g_box_{{lo[0], lo[1], lo[2]},
-                   {up[0], up[1], up[2]}},
-          m_global_origin_{xlo[0] - lo[0] * dx[0], xlo[1] - lo[1] * dx[1], xlo[2] - lo[2] * dx[2]},
-          m_dx_{dx[0], dx[1], dx[2]},
-          m_level_(0) { deploy(); }
+          m_g_box_{{lo == nullptr ? 0 : lo[0], lo == nullptr ? 0 : lo[1], lo == nullptr ? 0 : lo[2]},
+                   {up == nullptr ? 1 : up[0], up == nullptr ? 1 : up[1], up == nullptr ? 1 : up[2]}},
+          m_dx_{dx == nullptr ? 1 : dx[0], dx == nullptr ? 1 : dx[1], dx == nullptr ? 1 : dx[2]},
+          m_level_(0)
+{
+
+
+//m_global_origin_{xlo[0] - lo[0] * dx[0], xlo[1] - lo[1] * dx[1], xlo[2] - lo[2] * dx[2]},
+
+    if (dx != nullptr)
+    {
+        m_dx_[0] = dx[0];
+        m_dx_[1] = dx[1];
+        m_dx_[2] = dx[2];
+    }
+
+    m_global_origin_[0] = xlo == nullptr ? 0 : xlo[0] - lo[0] * dx[0];
+    m_global_origin_[1] = xlo == nullptr ? 0 : xlo[1] - lo[1] * dx[1];
+    m_global_origin_[1] = xlo == nullptr ? 0 : xlo[2] - lo[2] * dx[2];
+
+    deploy();
+}
 
 MeshBlock::~MeshBlock() {}
 

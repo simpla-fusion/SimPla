@@ -16,7 +16,7 @@
 
 namespace simpla { namespace geometry
 {
-template<typename TObj> struct GeoObjectProxy;
+template<typename TObj> struct GeoObjectAdapter;
 
 /**
  * @ingroup geometry
@@ -169,7 +169,7 @@ public:
 };
 
 template<typename TObj>
-struct GeoObjectProxy : public GeoObject
+struct GeoObjectAdapter : public GeoObject
 {
 public:
 

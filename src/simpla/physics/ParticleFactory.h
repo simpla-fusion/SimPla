@@ -7,15 +7,15 @@
 #ifndef SIMPLA_PARTICLEFACTORY_H
 #define SIMPLA_PARTICLEFACTORY_H
 
-#include "ParticleProxy.h"
+#include "ParticleAdapter.h"
 
 namespace simpla { namespace particle
 {
 template<typename TP, typename ...Args, typename TM, typename TDict>
-std::shared_ptr<particle::ParticleProxyBase<Args...>>
+std::shared_ptr<particle::ParticleAdapterBase<Args...>>
 create_particle(std::string const &key, TDict const &dict)
 {
-    typedef particle::ParticleProxyBase<Args...> particle_proxy_type;
+    typedef particle::ParticleAdapterBase<Args...> particle_proxy_type;
     TP pic(m, key);
 
     dict.as(&pic.properties());
@@ -33,7 +33,7 @@ create_particle(std::string const &key, TDict const &dict)
 }
 
 template<typename ...Args, typename TMesh, typename TDict>
-std::shared_ptr<particle::ParticleProxyBase<Args...>>
+std::shared_ptr<particle::ParticleAdapterBase<Args...>>
 create(TMesh &mesh, TDict const &dict)
 {
     create_particle(std::string const &key, TDict const &dict)

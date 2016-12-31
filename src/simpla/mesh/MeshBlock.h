@@ -86,7 +86,7 @@ SP_OBJECT_HEAD(MeshBlock, Object)
 
     MeshBlock();
 
-    MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *x_lo, id_type id);
+    MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *x_lo);
 
     MeshBlock(MeshBlock const &) = delete;
 

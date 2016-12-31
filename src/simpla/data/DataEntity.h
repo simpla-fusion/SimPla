@@ -36,6 +36,7 @@ public:
 
     virtual std::type_index typeindex() const { return std::type_index(typeid(DataEntity)); }
 
+
     virtual bool is_a(std::type_info const &t_id) const { return t_id == typeid(DataEntity); }
 
     virtual bool is_null() const { return !(is_table() | is_light() | is_heavy()); }

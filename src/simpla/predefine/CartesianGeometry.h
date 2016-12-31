@@ -33,7 +33,7 @@ struct CartesianGeometry : public Chart
 {
 public:
 
-//SP_OBJECT_HEAD(CartesianGeometry, Chart)
+SP_OBJECT_HEAD(CartesianGeometry, Chart)
 
 
     static constexpr unsigned int NDIMS = 3;
@@ -77,8 +77,10 @@ public:
 
     CartesianGeometry() {}
 
-    template<typename ...Args>
-    CartesianGeometry(Args &&...args):Chart(std::forward<Args>(args)...) {}
+
+    CartesianGeometry(index_type const *lower, index_type const *upper, Real const *dx = nullptr,
+                      Real const *origin = nullptr)
+            : Chart(3/*NDIMS*/, lower, upper, dx, origin) {}
 
     ~CartesianGeometry() {}
 
