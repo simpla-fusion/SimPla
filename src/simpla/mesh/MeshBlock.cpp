@@ -59,7 +59,7 @@ void MeshBlock::deploy()
 
     concept::LifeControllable::deploy();
 
-    assert(m_ndims_ <= 3);
+    ASSERT(m_ndims_ <= 3);
 
     ASSERT(toolbox::is_valid(m_g_box_));
     for (int i = 0; i < m_ndims_; ++i)
@@ -270,15 +270,15 @@ MeshBlock::intersection(index_box_type const &other_box, int inc_level)
 //};
 
 
-EntityIdRange
+Range<mesh::MeshEntityId>
 MeshBlock::range(size_type entityType, index_box_type const &b) const
 {
-    EntityIdRange res;
+    Range<mesh::MeshEntityId> res;
     res.append(MeshEntityIdCoder::make_range(std::get<0>(b), std::get<1>(b), entityType));
     return res;
 }
 
-EntityIdRange
+Range<mesh::MeshEntityId>
 MeshBlock::range(size_type entityType, box_type const &b) const
 {
     index_tuple l, u;
@@ -287,10 +287,10 @@ MeshBlock::range(size_type entityType, box_type const &b) const
     return range(entityType, std::make_tuple(l, u));
 }
 
-EntityIdRange
+Range<mesh::MeshEntityId>
 MeshBlock::range(size_type entityType, MeshZoneTag status) const
 {
-    EntityIdRange res;
+    Range<mesh::MeshEntityId> res;
 
     /**
      *   |<-----------------------------     valid   --------------------------------->|

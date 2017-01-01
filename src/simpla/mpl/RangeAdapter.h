@@ -8,7 +8,7 @@
 #define SIMPLA_RANGEADAPTER_H
 
 #include <memory>
-#include "range.h"
+#include "Range.h"
 
 namespace simpla
 {
@@ -27,7 +27,7 @@ public :
     RangeAdapter() : m_holder_(nullptr) { }
 
     //****************************************************************************
-    // TBB RangeHolder Concept Begin
+    // TBB Holder Concept Begin
     template<typename TOtherRange>
     RangeAdapter(TOtherRange const &other) :
             m_holder_(std::dynamic_pointer_cast<HolderBase>(std::make_shared<Holder<TOtherRange>>(other)))
@@ -73,7 +73,7 @@ public :
 
     iterator end() const { return m_holder_->end(); }
 
-    // TBB RangeHolder Concept End
+    // TBB Holder Concept End
     //****************************************************************************
 private:
 
@@ -111,7 +111,7 @@ private:
     public:
 
 //        template<typename ...Args>
-//        RangeHolder(Args &&... args) : m_range_(std::forward<Args>(args)...) { }
+//        Holder(Args &&... args) : m_range_(std::forward<Args>(args)...) { }
 //
 
         Holder(TOtherRange const &other) : m_range_(other) { }

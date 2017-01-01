@@ -53,7 +53,7 @@ private:
     eval(declare::Field_<U, M, I...> const &f, MeshEntityId const &s) { return f[s]; };
 
     template<typename TD, typename TIDX>
-    static inline traits::value_type_t<TD>
+    static inline traits::value_type_t <TD>
     gather_impl_(TD const &f, TIDX const &idx)
     {
 
@@ -77,14 +77,14 @@ private:
 public:
 
     template<typename TF>
-    constexpr static inline traits::field_value_t<TF>
+    constexpr static inline traits::field_value_t <TF>
     gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == VERTEX)))
     {
         return gather_impl_(f, m.point_global_to_local(r, 0));
     }
 
     template<typename TF>
-    constexpr static inline traits::field_value_t<TF>
+    constexpr static inline traits::field_value_t <TF>
     gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == EDGE)))
     {
         return traits::field_value_t<TF> {
@@ -95,7 +95,7 @@ public:
     }
 
     template<typename TF>
-    constexpr static inline traits::field_value_t<TF>
+    constexpr static inline traits::field_value_t <TF>
     gather(mesh_type const &m, TF const &f, point_type const &r, ENABLE_IF((traits::iform<TF>::value == FACE)))
     {
         return traits::field_value_t<TF> {
@@ -106,7 +106,7 @@ public:
     }
 
     template<typename TF>
-    constexpr static inline traits::field_value_t<TF>
+    constexpr static inline traits::field_value_t <TF>
     gather(mesh_type const &m, TF const &f, point_type const &x, ENABLE_IF((traits::iform<TF>::value == VOLUME)))
     {
         return gather_impl_(f, m.point_global_to_local(x, 7));
@@ -141,7 +141,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const<VERTEX>, TF &
+    scatter_(mesh_type const &m, index_const <VERTEX>, TF &
     f, TX const &x, TV const &u)
     {
         scatter_impl_(f, m.point_global_to_local(x, 0), u);
@@ -149,7 +149,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const<EDGE>, TF &
+    scatter_(mesh_type const &m, index_const <EDGE>, TF &
     f, TX const &x, TV const &u)
     {
 
@@ -161,7 +161,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const<FACE>, TF &f,
+    scatter_(mesh_type const &m, index_const <FACE>, TF &f,
              TX const &x, TV const &u)
     {
 
@@ -172,7 +172,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const<VOLUME>,
+    scatter_(mesh_type const &m, index_const <VOLUME>,
              TF &f, TX const &x, TV const &u)
     {
         scatter_impl_(f, m.point_global_to_local(x, 7), u);
@@ -189,32 +189,32 @@ public:
 private:
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const<VERTEX>, MeshEntityId const &s,
+    sample_(mesh_type const &m, index_const <VERTEX>, MeshEntityId const &s,
             TV const &v) { return v; }
 
     template<typename TV, size_type L> static inline TV
-    sample_(mesh_type const &m, index_const<VERTEX>, MeshEntityId const &s,
-            nTuple<TV, L> const &v) { return v[s.w % L]; }
+    sample_(mesh_type const &m, index_const <VERTEX>, MeshEntityId const &s,
+            nTuple <TV, L> const &v) { return v[s.w % L]; }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const<VOLUME>, MeshEntityId const &s,
+    sample_(mesh_type const &m, index_const <VOLUME>, MeshEntityId const &s,
             TV const &v) { return v; }
 
     template<typename TV, size_type L> static inline TV
-    sample_(mesh_type const &m, index_const<VOLUME>, MeshEntityId const &s,
-            nTuple<TV, L> const &v) { return v[s.w % L]; }
+    sample_(mesh_type const &m, index_const <VOLUME>, MeshEntityId const &s,
+            nTuple <TV, L> const &v) { return v[s.w % L]; }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const<EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
+    sample_(mesh_type const &m, index_const <EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const<FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
+    sample_(mesh_type const &m, index_const <FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
@@ -231,7 +231,7 @@ public:
 
 
     template<int IFORM, typename TV>
-    static inline traits::value_type_t<TV>
+    static inline traits::value_type_t <TV>
     sample(mesh_type const &m, MeshEntityId const &s, TV const &v)
     {
         return sample_(m, index_const<IFORM>(), s, v);
@@ -262,7 +262,7 @@ public:
 
     template<typename V, mesh::MeshEntityType IFORM, size_type DOF, typename U> static inline void
     assign(declare::Field_<V, mesh_type, IFORM, DOF> &f, mesh_type const &m, MeshEntityId const &s,
-           nTuple<U, DOF> const &v)
+           nTuple <U, DOF> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     }
@@ -283,7 +283,7 @@ public:
 
     template<typename V, size_type DOF, typename U> static inline void
     assign(declare::Field_<V, mesh_type, VOLUME, DOF> &f, mesh_type const &m, MeshEntityId const &s,
-           nTuple<U, DOF> const &v)
+           nTuple <U, DOF> const &v)
     {
         for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     }
@@ -382,10 +382,10 @@ struct calculator<declare::Field_<TV, TM, IFORM, DOF> >
 
 private:
 
-    template<typename FExpr> inline static traits::value_type_t<FExpr>
+    template<typename FExpr> inline static traits::value_type_t <FExpr>
     get_v(mesh_type const &m, FExpr const &f, MeshEntityId const s) { return get_value(m, f, s) * m.volume(s); }
 
-    template<typename FExpr> inline static traits::value_type_t<FExpr>
+    template<typename FExpr> inline static traits::value_type_t <FExpr>
     get_d(mesh_type const &m, FExpr const &f, MeshEntityId const s) { return get_value(m, f, s) * m.dual_volume(s); }
 
 public:
@@ -396,7 +396,7 @@ public:
 
     //! grad<0>
     template<typename T>
-    static inline traits::value_type_t<declare::Expression<tags::_exterior_derivative, T>>
+    static inline traits::value_type_t <declare::Expression<tags::_exterior_derivative, T>>
     get_value(mesh_type const &m, declare::Expression<tags::_exterior_derivative, T> const &f,
               MeshEntityId const &s, ENABLE_IF(traits::iform<T>::value == VERTEX))
     {
@@ -407,7 +407,7 @@ public:
 
     //! curl<1>
     template<typename T>
-    static inline traits::value_type_t<declare::Expression<tags::_exterior_derivative, T>>
+    static inline traits::value_type_t <declare::Expression<tags::_exterior_derivative, T>>
     get_value(mesh_type const &m, declare::Expression<tags::_exterior_derivative, T> const &expr,
               MeshEntityId const &s, ENABLE_IF(traits::iform<T>::value == EDGE))
     {
@@ -426,7 +426,7 @@ public:
 
     //! div<1>
     template<typename T>
-    static inline traits::value_type_t<declare::Expression<tags::_codifferential_derivative, T>>
+    static inline traits::value_type_t <declare::Expression<tags::_codifferential_derivative, T>>
     get_value(mesh_type const &m, declare::Expression<tags::_codifferential_derivative, T> const &expr,
               MeshEntityId const &s, ENABLE_IF(traits::iform<T>::value == EDGE))
     {
@@ -440,7 +440,7 @@ public:
 
     //! div<2>
     template<typename T>
-    static inline traits::value_type_t<declare::Expression<tags::_exterior_derivative, T>>
+    static inline traits::value_type_t <declare::Expression<tags::_exterior_derivative, T>>
     get_value(mesh_type const &m, declare::Expression<tags::_exterior_derivative, T> const &expr,
               MeshEntityId const &s, ENABLE_IF(traits::iform<T>::value == FACE))
     {
@@ -454,7 +454,7 @@ public:
 
     //! curl<2>
     template<typename T>
-    static inline traits::value_type_t<declare::Expression<tags::_codifferential_derivative, T>>
+    static inline traits::value_type_t <declare::Expression<tags::_codifferential_derivative, T>>
     get_value(mesh_type const &m, declare::Expression<tags::_codifferential_derivative, T> const &expr,
               MeshEntityId const &s, ENABLE_IF(traits::iform<T>::value == FACE))
     {
@@ -471,7 +471,7 @@ public:
 
     //! grad<3>
     template<typename T>
-    static inline traits::value_type_t<declare::Expression<tags::_codifferential_derivative, T>>
+    static inline traits::value_type_t <declare::Expression<tags::_codifferential_derivative, T>>
     get_value(mesh_type const &m, declare::Expression<tags::_codifferential_derivative, T> const &expr,
               MeshEntityId const &s, ENABLE_IF(traits::iform<T>::value == VOLUME))
     {
@@ -481,7 +481,7 @@ public:
     }
 
     template<typename T>
-    static inline traits::value_type_t<declare::Expression<tags::_codifferential_derivative, T>>
+    static inline traits::value_type_t <declare::Expression<tags::_codifferential_derivative, T>>
     get_value(mesh_type const &m, declare::Expression<tags::_codifferential_derivative, T> const &expr,
               MeshEntityId const &s)
     {
@@ -492,7 +492,7 @@ public:
 
 
     template<typename T, size_t I>
-    static inline traits::value_type_t<declare::Expression<tags::_hodge_star, T> >
+    static inline traits::value_type_t <declare::Expression<tags::_hodge_star, T>>
     get_value(mesh_type const &m, declare::Expression<tags::_hodge_star, T> const &expr,
               MeshEntityId const &s)
     {
@@ -523,9 +523,13 @@ public:
     static constexpr Real m_p_curl_factor_[3] = {0, 1, -1};
 
     template<typename T, size_t I>
-    static inline traits::value_type_t<declare::Expression<tags::_p_exterior_derivative<I>, T>>
-    get_value(mesh_type const &m, declare::Expression<tags::_p_exterior_derivative<I>, T> const &expr,
-              MeshEntityId const &s, ENABLE_IF(traits::iform<T>::value == EDGE))
+    static inline traits::value_type_t <declare::Expression<tags::_p_exterior_derivative < I>, T>>
+    get_value(
+    mesh_type const &m, declare::Expression<tags::_p_exterior_derivative < I>, T
+    > const &expr,
+    MeshEntityId const &s,
+    ENABLE_IF(traits::iform<T>::value == EDGE)
+    )
     {
         return (get_v(m, std::get<0>(expr.m_args_), s + M::DI(I)) -
                 get_v(m, std::get<0>(expr.m_args_), s - M::DI(I))
@@ -534,9 +538,13 @@ public:
 
 
     template<typename T, size_t I>
-    static inline traits::value_type_t<declare::Expression<tags::_p_codifferential_derivative<I>, T>>
-    get_value(mesh_type const &m, declare::Expression<tags::_p_codifferential_derivative<I>, T> const &expr,
-              MeshEntityId const &s, ENABLE_IF(traits::iform<T>::value == FACE))
+    static inline traits::value_type_t <declare::Expression<tags::_p_codifferential_derivative < I>, T>>
+    get_value(
+    mesh_type const &m, declare::Expression<tags::_p_codifferential_derivative < I>, T
+    > const &expr,
+    MeshEntityId const &s,
+    ENABLE_IF(traits::iform<T>::value == FACE)
+    )
     {
 
         return (get_v(m, std::get<0>(expr.m_args_), s + M::DI(I)) -
@@ -559,10 +567,10 @@ public:
 //          *_p = nullptr) { return get_value(m, expr, s); }
 private:
     template<size_type I, typename T> inline static typename traits::value_type<T>::type
-    _map_to(mesh_type const &m, T const &f, MeshEntityId const &s, index_sequence<I, I>) { return f[s]; };
+    _map_to(mesh_type const &m, T const &f, MeshEntityId const &s, index_sequence <I, I>) { return f[s]; };
 
-    template<typename TF> static inline traits::value_type_t<TF>
-    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<VERTEX, EDGE>)
+    template<typename TF> static inline traits::value_type_t <TF>
+    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence <VERTEX, EDGE>)
     {
         int n = M::sub_index(s);
         MeshEntityId X = M::delta_index(s);
@@ -575,8 +583,8 @@ private:
     }
 
 
-    template<typename TF> static inline traits::value_type_t<TF>
-    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<VERTEX, FACE>)
+    template<typename TF> static inline traits::value_type_t <TF>
+    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence <VERTEX, FACE>)
     {
         int n = M::sub_index(s);
 
@@ -593,8 +601,8 @@ private:
     }
 
 
-    template<typename TF> static inline traits::value_type_t<TF>
-    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<VERTEX, VOLUME>)
+    template<typename TF> static inline traits::value_type_t <TF>
+    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence <VERTEX, VOLUME>)
     {
         auto const &l = expr;
 
@@ -614,16 +622,16 @@ private:
     }
 
 
-    template<typename TF> static inline traits::value_type_t<TF>
-    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<EDGE, VERTEX>)
+    template<typename TF> static inline traits::value_type_t <TF>
+    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence <EDGE, VERTEX>)
     {
         MeshEntityId X = M::DI(s.w, s);
         return (get_value(m, expr, sw(s - X, 0)) + get_value(m, expr, sw(s + X, 0))) * 0.5;
     }
 
 
-    template<typename TF> static inline traits::value_type_t<TF>
-    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<FACE, VERTEX>)
+    template<typename TF> static inline traits::value_type_t <TF>
+    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence <FACE, VERTEX>)
     {
 
 
@@ -659,8 +667,8 @@ private:
 
 
     template<typename TF>
-    static inline traits::value_type_t<TF>
-    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<VOLUME, VERTEX>)
+    static inline traits::value_type_t <TF>
+    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence <VOLUME, VERTEX>)
     {
         auto const &l = expr;
 
@@ -682,8 +690,8 @@ private:
 
 
     template<typename TF>
-    static inline traits::value_type_t<TF>
-    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<VOLUME, FACE>)
+    static inline traits::value_type_t <TF>
+    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence <VOLUME, FACE>)
     {
         auto X = M::delta_index(M::dual(s));
 
@@ -692,8 +700,8 @@ private:
 
 
     template<typename TF>
-    static inline traits::value_type_t<TF>
-    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<VOLUME, EDGE>)
+    static inline traits::value_type_t <TF>
+    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence <VOLUME, EDGE>)
     {
         auto const &l = expr;
         auto X = M::delta_index(s);
@@ -710,8 +718,8 @@ private:
 
 
     template<typename TF>
-    static inline traits::value_type_t<TF>
-    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<FACE, VOLUME>)
+    static inline traits::value_type_t <TF>
+    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence <FACE, VOLUME>)
     {
 
         MeshEntityId X = M::DI(s.w, s);
@@ -723,8 +731,8 @@ private:
 
 
     template<typename TF>
-    static inline traits::value_type_t<TF>
-    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence<EDGE, VOLUME>)
+    static inline traits::value_type_t <TF>
+    _map_to(mesh_type const &m, TF const &expr, MeshEntityId const &s, index_sequence <EDGE, VOLUME>)
     {
 //        auto const &l = expr;
 //
@@ -743,15 +751,19 @@ private:
 
 public:
     template<size_type I, typename T>
-    static inline traits::value_type_t<T>
+    static inline traits::value_type_t <T>
     map_to(mesh_type const &m, T const &expr, MeshEntityId const &s)
     {
         return _map_to(m, expr, s, index_sequence<traits::iform<T>::value, I>());
     };
 
     template<size_type I, typename T>
-    static inline traits::value_type_t<T>
-    get_value(mesh_type const &m, declare::Expression<tags::_map_to<I>, T> const &expr, MeshEntityId const &s)
+    static inline traits::value_type_t <T>
+    get_value(mesh_type const &m, declare::Expression<tags::_map_to < I>, T
+
+    > const &expr,
+    MeshEntityId const &s
+    )
     {
         return map_to<I>(m, std::get<0>(expr.m_args_), s);
     };
@@ -760,9 +772,9 @@ public:
     //
     //! Form<IL> ^ Form<IR> => Form<IR+IL>
     template<typename ...T, size_t IL, size_t IR>
-    static inline traits::value_type_t<declare::Expression<tags::_wedge, T...>>
+    static inline traits::value_type_t <declare::Expression<tags::_wedge, T...>>
     get_value(mesh_type const &m, declare::Expression<tags::_wedge, T...> const &expr,
-              MeshEntityId const &s, index_sequence<IL, IR>)
+              MeshEntityId const &s, index_sequence <IL, IR>)
     {
         return m.inner_product(_map_to(m, std::get<0>(expr.m_args_), s, index_sequence<IL, IR + IL>()),
                                _map_to(m, std::get<1>(expr.m_args_), s, index_sequence<IR, IR + IL>()),
@@ -772,9 +784,9 @@ public:
 
 
     template<typename TL, typename TR>
-    static inline traits::value_type_t<declare::Expression<tags::_wedge, TL, TR>>
+    static inline traits::value_type_t <declare::Expression<tags::_wedge, TL, TR>>
     get_value(mesh_type const &m, declare::Expression<tags::_wedge, TL, TR> const &expr,
-              MeshEntityId const &s, index_sequence<EDGE, EDGE>)
+              MeshEntityId const &s, index_sequence <EDGE, EDGE>)
     {
         auto const &l = std::get<0>(expr.m_args_);
         auto const &r = std::get<1>(expr.m_args_);
@@ -794,9 +806,9 @@ public:
     }
 
     template<typename TL, typename TR, size_t I>
-    static inline traits::value_type_t<declare::Expression<tags::_cross, TL, TR>>
+    static inline traits::value_type_t <declare::Expression<tags::_cross, TL, TR>>
     get_value(mesh_type const &m, declare::Expression<tags::_cross, TL, TR> const &expr,
-              MeshEntityId const &s, index_sequence<I, I>)
+              MeshEntityId const &s, index_sequence <I, I>)
     {
         return get_value(m, std::get<0>(expr.m_args_), sw(s, (s.w + 1) % 3)) *
                get_value(m, std::get<1>(expr.m_args_), sw(s, (s.w + 2) % 3)) -
@@ -805,9 +817,9 @@ public:
     }
 
     template<typename TL, typename TR, size_t I>
-    static inline traits::value_type_t<declare::Expression<tags::_dot, TL, TR>>
+    static inline traits::value_type_t <declare::Expression<tags::_dot, TL, TR>>
     get_value(mesh_type const &m, declare::Expression<tags::_dot, TL, TR> const &expr,
-              MeshEntityId const &s, index_sequence<I, I>)
+              MeshEntityId const &s, index_sequence <I, I>)
     {
         return get_value(m, std::get<0>(expr.m_args_), sw(s, 0)) * get_value(m, std::get<1>(expr.m_args_), sw(s, 0)) +
                get_value(m, std::get<0>(expr.m_args_), sw(s, 1)) * get_value(m, std::get<1>(expr.m_args_), sw(s, 1)) +
@@ -816,25 +828,41 @@ public:
 
 
     template<typename TL, typename TR, size_t I>
-    static inline traits::value_type_t<declare::Expression<tags::divides, TL, TR>>
+    static inline traits::value_type_t <declare::Expression<tags::divides, TL, TR>>
     get_value(mesh_type const &m, declare::Expression<tags::divides, TL, TR> const &expr,
-              MeshEntityId const &s, index_sequence<I, VERTEX>)
+              MeshEntityId const &s, index_sequence <I, VERTEX>)
     {
         return get_value(m, std::get<0>(expr.m_args_), s) /
                _map_to(m, std::get<1>(expr.m_args_), s, index_sequence<VERTEX, I>());
     }
 
     template<typename TL, typename TR, size_t I>
-    static inline traits::value_type_t<declare::Expression<tags::multiplies, TL, TR>>
+    static inline traits::value_type_t <declare::Expression<tags::multiplies, TL, TR>>
     get_value(mesh_type const &m, declare::Expression<tags::multiplies, TL, TR> const &expr,
-              MeshEntityId const &s, index_sequence<I, VERTEX>
+              MeshEntityId const &s, index_sequence <I, VERTEX>
     )
     {
         return get_value(m, std::get<0>(expr.m_args_), s) *
                _map_to(m, std::get<1>(expr.m_args_), s, index_sequence<VERTEX, I>());
     }
 
+    //******************************************************************************************************************
+    // for element-wise arithmetic operation
+    template<typename TOP, typename ...T, size_t ... I> inline static
+    traits::value_type_t <declare::Expression<TOP, T...>>
+    _invoke_helper(mesh_type const &m, declare::Expression<TOP, T...> const &expr, MeshEntityId const &s,
+                   index_sequence<I...>)
+    {
+        return expr.m_op_(get_value(m, std::get<I>(expr.m_args_), s)...);
+    };
 
+
+    template<typename TOP, typename ... Args>
+    inline static traits::value_type_t <declare::Expression<TOP, Args...>>
+    get_value(mesh_type const &m, declare::Expression<TOP, Args...> const &expr, MeshEntityId const &s)
+    {
+        return _invoke_helper(m, expr, s, make_index_sequence<sizeof...(Args)>());
+    }
 
 
     ///***************************************************************************************************
@@ -866,40 +894,31 @@ public:
 //        return get_value(m, expr, s, traits::iform_list_t<T...>());
 //    }
 
-    //******************************************************************************************************************
-    // for element-wise arithmetic operation
-    template<typename TOP, typename ...T, size_t ... I> inline static
-    traits::value_type_t<declare::Expression<TOP, T...> >
-    _invoke_helper(mesh_type const &m, declare::Expression<TOP, T...> const &expr, MeshEntityId const &s,
-                   index_sequence<I...>)
-    {
-        return expr.m_op_(get_value(m, std::get<I>(expr.m_args_), s)...);
-    };
 
-
-    template<typename TOP, typename ... Args>
-    inline static traits::value_type_t<declare::Expression<TOP, Args...>>
-    get_value(mesh_type const &m, declare::Expression<TOP, Args...> const &expr, MeshEntityId const &s)
-    {
-        return _invoke_helper(m, expr, s, make_index_sequence<sizeof...(Args)>());
-    }
 
 
     template<typename TFun> static TV
     get_value(mesh_type const &m, TFun const &fun, MeshEntityId const &s,
-              ENABLE_IF((st::is_callable<TFun(point_type const &)>::value)))
+    ENABLE_IF((st::is_callable<
+                      TFun(point_type const &)>::value))
+    )
     {
         return InterpolatePolicy<mesh_type>::template sample<IFORM>(m, s, fun(m.point(s)));
-
-
     }
 
+    template<typename TFun> static TV
+    get_value(mesh_type const &m, TFun const &fun, MeshEntityId const &s,
+              ENABLE_IF((st::is_callable<TFun(mesh_id_type const &), TV>::value)))
+    {
+        return fun(s);
+    }
     //******************************************************************************************************************
 
 
     template<typename TOP, typename ...Args> static void
     apply(self_type &self, mesh_type const &m, TOP const &op, Args &&...args)
     {
+//        CHECK(m.mesh_block()->range(IFORM, SP_ES_ALL).size());
         m.mesh_block()->range(IFORM, SP_ES_ALL).foreach(
                 [&](MeshEntityId const &s)
                 {
@@ -909,11 +928,6 @@ public:
 
 
 };// struct DiffScheme<TGeo, diff_scheme::tags::finite_volume>
-
-
-
-
-
 
 template<typename TV, typename TM, size_type IFORM, size_type DOF>
 constexpr Real calculator<declare::Field_<TV, TM, IFORM, DOF> >::m_p_curl_factor_[3];

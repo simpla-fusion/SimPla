@@ -367,6 +367,23 @@ public:
 
 };
 
+template<typename _T, typename ... _Args, typename TRes>
+struct is_callable<_T(_Args...), TRes>
+{
+private:
+    typedef std::true_type yes;
+    typedef std::false_type no;
+
+    template<typename _U>
+    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
+
+    template<typename> static no test(...);
+
+public:
+    typedef decltype(test<_T>(0)) type;
+    static constexpr bool value = std::is_same<type, TRes>::value;
+
+};
 //template<typename _T, typename ... _Args, class _R>
 //struct is_callable<_T(_Args...), _R>
 //{

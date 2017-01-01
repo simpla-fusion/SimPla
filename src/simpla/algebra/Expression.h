@@ -44,7 +44,7 @@ struct iform<declare::Expression<TOP, T0, T...> > : public iform<T0> {};
 template<typename TOP, typename ...Others>
 struct value_type<declare::Expression<TOP, Others...> >
 {
-    typedef decltype(TOP::eval(std::declval<typename value_type<Others>::type>() ...)) type;
+    typedef std::result_of_t<TOP(typename value_type<Others>::type ...)> type;
 };
 
 

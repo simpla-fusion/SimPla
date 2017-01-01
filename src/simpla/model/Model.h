@@ -55,21 +55,21 @@ SP_OBJECT_HEAD(Model, Object)
 
     virtual void post_process();
 
-    virtual mesh::EntityIdRange const &
+    virtual Range<mesh::MeshEntityId> const &
     select(size_type iform, int tag);
 
-    virtual mesh::EntityIdRange const &
+    virtual Range<mesh::MeshEntityId> const &
     select(size_type iform, std::string const &tag);
 
-    virtual mesh::EntityIdRange const &
+    virtual Range<mesh::MeshEntityId> const &
     interface(size_type iform, const std::string &tag_in, const std::string &tag_out = "VACUUME");
 
-    mesh::EntityIdRange const &interface(size_type iform, int tag_in, int tag_out);
+    Range<mesh::MeshEntityId> const &interface(size_type iform, int tag_in, int tag_out);
 
-    virtual mesh::EntityIdRange const &
+    virtual Range<mesh::MeshEntityId> const &
     select(size_type iform, int tag) const { return m_range_cache_.at(iform).at(tag); }
 
-    virtual mesh::EntityIdRange const &
+    virtual Range<mesh::MeshEntityId> const &
     interface(size_type iform, int tag_in, int tag_out = VACUUME) const
     {
         return m_interface_cache_.at(iform).at(tag_in).at(tag_out);
@@ -87,9 +87,9 @@ private:
 
     std::multimap<int, std::shared_ptr<geometry::GeoObject>> m_g_obj_;
 
-    std::map<id_type, std::map<int, EntityIdRange>> m_range_cache_;
+    std::map<id_type, std::map<int, Range<mesh::MeshEntityId>>> m_range_cache_;
 
-    std::map<id_type, std::map<int, std::map<int, EntityIdRange>>> m_interface_cache_;
+    std::map<id_type, std::map<int, std::map<int, Range<mesh::MeshEntityId>>>> m_interface_cache_;
 
 
 };

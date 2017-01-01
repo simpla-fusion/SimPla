@@ -12,7 +12,7 @@
 namespace simpla
 {
 
-template<typename _Category, typename _Tp,
+template<typename _Tp, typename _Category,
         typename _Distance = ptrdiff_t, typename _Pointer = _Tp *, typename _Reference = _Tp &> class range;
 
 /**
@@ -97,7 +97,9 @@ public:
         return m_end_ - m_begin_ > m_grain_size_;
     }
 
-    bool is_divisible(ENABLE_IF((!std::is_same<std::random_access_iterator_tag, _Category>::value))) const
+    bool is_divisible(ENABLE_IF((
+
+    !std::is_same<std::random_access_iterator_tag, _Category>::value))) const
     {
         return false;
     }

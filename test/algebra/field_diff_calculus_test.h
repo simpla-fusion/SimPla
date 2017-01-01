@@ -143,7 +143,7 @@ TEST_P(FETLTest, grad0)
     f1b.clear();
 
     f0.assign([&](point_type const &x) { return std::sin(q(x)); });
-//    m->range(VERTEX, SP_ES_ALL).foreach();
+//    m->Range(VERTEX, SP_ES_ALL).foreach();
 
     f1 = grad(f0);
 

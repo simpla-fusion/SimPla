@@ -15,9 +15,11 @@ namespace tags
 
 struct split
 {
-    virtual size_type left() const { return 1; }
+    virtual size_type left() const { return my_left; }
 
-    virtual size_type right() const { return 1; }
+    virtual size_type right() const { return my_right; }
+
+    size_type my_left = 1, my_right = 1;
 };
 
 
@@ -33,22 +35,20 @@ struct split
 class proportional_split : public split
 {
 public:
-    proportional_split(size_type _left = 1, size_type _right = 1) : my_left(_left), my_right(_right) {}
+    proportional_split(size_type _left = 1, size_type _right = 1)
+    {
+        split::my_left = _left;
+        split::my_right = _right;
+    }
 
     proportional_split(proportional_split const &) = delete;
 
     ~proportional_split() {}
 
-
-    size_type left() const { return my_left; }
-
-    size_type right() const { return my_right; }
-
-    // used when range does not support proportional split
+    // used when Range does not support proportional split
     operator split() const { return split(); }
 
-private:
-    size_type my_left, my_right;
+
 };
 }//namespace tags
 

@@ -16,10 +16,10 @@
 #include <simpla/algebra/Algebra.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/mpl/IteratorBlock.h>
-#include <simpla/mpl/range.h>
+#include <simpla/mpl/Range.h>
 #include <simpla/mpl/type_traits.h>
 #include "MeshCommon.h"
-#include "EntityIdRange.h"
+//#include "EntityIdRange.h"
 
 
 namespace simpla { namespace mesh
@@ -178,13 +178,13 @@ struct MeshEntityIdCoder_
 
     static constexpr Real m_id_to_coordinates_shift_[8][3] = {
             {0.0, 0.0, 0.0},            // 000
-            {_R, 0.0, 0.0},           // 001
-            {0.0, _R, 0.0},           // 010
+            {_R,  0.0, 0.0},           // 001
+            {0.0, _R,  0.0},           // 010
             {0.0, 0.0, _R},           // 011
-            {_R, _R, 0.0},          // 100
-            {_R, 0.0, _R},          // 101
-            {0.0, _R, _R},          // 110
-            {0.0, _R, _R},          // 111
+            {_R,  _R,  0.0},          // 100
+            {_R,  0.0, _R},          // 101
+            {0.0, _R,  _R},          // 110
+            {0.0, _R,  _R},          // 111
 
     };
     static constexpr int m_iform_to_num_of_ele_in_cell_[8] = {
@@ -260,9 +260,9 @@ struct MeshEntityIdCoder_
     static constexpr MeshEntityId pack(index_type i0, index_type i1, index_type i2, index_type w = 0)
     {
         return MeshEntityId{static_cast<u_int16_t>(w),
-                static_cast<u_int16_t>(i2),
-                static_cast<u_int16_t>(i1),
-                static_cast<u_int16_t>(i0)};
+                            static_cast<u_int16_t>(i2),
+                            static_cast<u_int16_t>(i1),
+                            static_cast<u_int16_t>(i0)};
     }
 
     template<typename T>
@@ -700,7 +700,7 @@ struct MeshEntityIdCoder_
                                     _DA - _DI    //
                             },
                             /* 011*/
-                            {_DA},
+                            {       _DA},
                             /* 100*/
                             {//
                                     _DA - _DI,         //
@@ -800,19 +800,19 @@ struct MeshEntityIdCoder_
         return m_adjacent_cell_num_[IFORM][nodeid];
     }
 
-    struct range_type
+    struct EntityRange
     {
     private:
-        typedef range_type this_type;
+        typedef EntityRange this_type;
     public:
 
 
-        range_type()
+        EntityRange()
                 : m_iform_(VERTEX), m_min_(), m_max_(m_min_), m_grain_size_(m_min_), m_dof_(1) {}
 
         // constructors
 
-        range_type(index_tuple const &b, index_tuple const &e, size_type IFORM = VERTEX, index_type dof = 1)
+        EntityRange(index_tuple const &b, index_tuple const &e, size_type IFORM = VERTEX, index_type dof = 1)
                 : m_iform_(IFORM), m_min_(b), m_max_(e), m_dof_(dof)
         {
             m_grain_size_ = 1;
@@ -825,19 +825,19 @@ struct MeshEntityIdCoder_
             }
         }
 
-        range_type(this_type const &r)
+        EntityRange(this_type const &r)
                 : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_),
                   m_dof_(r.m_dof_)
         {
         }
 
-        range_type(index_tuple const &b, index_tuple const &e, index_tuple const &grain_size,
-                   size_type IFORM = VERTEX, index_type dof = 1)
+        EntityRange(index_tuple const &b, index_tuple const &e, index_tuple const &grain_size,
+                    size_type IFORM = VERTEX, index_type dof = 1)
                 : m_iform_(IFORM), m_min_(b), m_max_(e), m_grain_size_(grain_size), m_dof_(dof)
         {
         }
 
-        range_type(range_type &r, concept::tags::split)
+        EntityRange(this_type &r, concept::tags::split)
                 : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_),
                   m_dof_(r.m_dof_)
         {
@@ -860,7 +860,7 @@ struct MeshEntityIdCoder_
             r.m_min_[n] = m_max_[n];
         }
 
-        range_type(this_type &r, concept::tags::proportional_split const &proportion)
+        EntityRange(this_type &r, concept::tags::proportional_split const &proportion)
         {
             int n = 0;
             index_type L = m_max_[0] - m_min_[0];
@@ -879,7 +879,7 @@ struct MeshEntityIdCoder_
             r.m_min_[n] = m_max_[n];
         }
 
-        ~range_type() {}
+        ~EntityRange() {}
 
         void swap(this_type &other)
         {
@@ -926,7 +926,7 @@ struct MeshEntityIdCoder_
         template<typename Body>
         void foreach(Body const &body) const
         {
-            range_type const &r = *this;
+            EntityRange const &r = *this;
             int ib = r.m_min_[0];
             int ie = r.m_max_[0];
 #pragma omp parallel for
@@ -948,16 +948,16 @@ struct MeshEntityIdCoder_
         index_tuple m_min_, m_max_, m_grain_size_;
     };
 
-//    typedef RangeHolder<iterator> range_type;
+    typedef Range<MeshEntityId> range_type;
 
     static range_type make_range(index_tuple const &min, index_tuple const &max, size_type iform = VERTEX)
     {
-        return range_type(min, max, iform);
+        return std::move(range_type::create<EntityRange>(min, max, iform));
     }
 
     static range_type make_range(index_box_type const &b, size_type iform = VERTEX)
     {
-        return make_range(std::get<0>(b), std::get<1>(b), iform);
+        return std::move(make_range(std::get<0>(b), std::get<1>(b), iform));
     }
 
 

@@ -39,6 +39,8 @@ struct CylindricalGeometry : public Chart
 public:
 SP_OBJECT_HEAD(CylindricalGeometry, Chart)
 
+    typedef mesh::MeshEntityId id_type;
+
     static constexpr bool is_frame_bundle = true;
 
     typedef Real scalar_type;

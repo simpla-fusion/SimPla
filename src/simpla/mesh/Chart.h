@@ -50,7 +50,7 @@ SP_OBJECT_BASE(Chart);
 
     virtual std::shared_ptr<MeshBlock> const &mesh_block() const
     {
-        assert(m_mesh_block_ != nullptr);
+        ASSERT(m_mesh_block_ != nullptr);
         return m_mesh_block_;
     }
 

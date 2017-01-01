@@ -2,9 +2,7 @@
 // Created by salmon on 16-12-26.
 //
 
-#include "simpla/algebra/Algebra.h"
-#include "simpla/algebra/Array.h"
-#include "simpla/algebra/Field.h"
+#include "simpla/algebra/all.h"
 
 #include "simpla/predefine/CartesianGeometry.h"
 #include "simpla/predefine/CalculusPolicy.h"
@@ -38,6 +36,11 @@ int main(int argc, char **argv)
     f(0, 2, 3) = 1990;
     f = 1;
     g = 2;
+    f.assign([&](point_type const &x)
+             {
+                 std::cout << x << std::endl;
+                 return x[0];
+             });
 //    f = f + g;
 
     std::cout << f << std::endl;

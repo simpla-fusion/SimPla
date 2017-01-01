@@ -254,7 +254,7 @@ DataBlockAdapter<
 //    value_type const &get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
 //
 //
-//    EntityIdRange range() const
+//    EntityIdRange Range() const
 //    {
 //        EntityIdRange res;
 //        index_tuple lower, upper;

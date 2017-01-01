@@ -65,7 +65,7 @@ struct TransitionMap<M, N> : public TransitionMapBase
     std::shared_ptr<r_mesh_type> m_dst_;
     std::shared_ptr<l_mesh_type> m_src_;
     MeshBlock m_overlap_;
-    EntityIdRange m_range0_;
+    Range<MeshEntityId> m_range0_;
 
     virtual id_type from_id() const { return m_src_->id(); };
 

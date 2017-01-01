@@ -263,17 +263,17 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
 //}
 //
 //
-//virtual EntityIdRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
+//virtual EntityIdRange Range(box_type const &b, MeshEntityType entityType = VERTEX) const
 //{
-//    return range(index_box(b), entityType);
+//    return Range(index_box(b), entityType);
 //}
 //
-//virtual EntityIdRange range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
+//virtual EntityIdRange Range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
 //{
 //    return MeshEntityIdCoder::make_range(b, entityType);
 //}
 //
-//virtual EntityIdRange range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const
+//virtual EntityIdRange Range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const
 //{
 //    EntityIdRange res;
 //

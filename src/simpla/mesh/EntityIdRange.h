@@ -38,7 +38,7 @@ public :
     EntityIdRange() : m_next_(nullptr), m_holder_(nullptr) {}
 
     //****************************************************************************
-    // TBB RangeHolder Concept Begin
+    // TBB Holder Concept Begin
     template<typename TOther>
     explicit EntityIdRange(TOther const &other)
             : m_next_(nullptr), m_holder_(std::dynamic_pointer_cast<RangeBase>(
@@ -284,7 +284,7 @@ private:
 
         virtual void foreach(foreach_body_type const &body) const
         {
-//            foreach(m_range_, body);
+            for (auto const &it:m_range_) { body(it); };
         };
     };
 
@@ -304,12 +304,7 @@ private:
         // @FIXME: !!!!!
         template<typename ...Args>
         RangeHolder(this_type &other, Args &&...args)
-                : m_container_(other.m_container_)
-                , m_range_(other.m_range_ /*, std::forward<Args>(args)...*/)
-        {}
-
-
-
+                : m_container_(other.m_container_), m_range_(other.m_range_, std::forward<Args>(args)...) {}
 
 
         virtual  ~RangeHolder() {}
@@ -346,7 +341,7 @@ private:
 
         virtual void foreach(foreach_body_type const &body) const
         {
-//            foreach(m_range_, body);
+            for (auto const &it:m_range_) { body(it); };
         };
     };
 };

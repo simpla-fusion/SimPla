@@ -24,7 +24,7 @@ template<typename ...> struct Range;
 
 template<typename T, int NDIMS> class IteratorBlock;
 
-// PlaceHolder on RangeHolder concept in TBB
+// PlaceHolder on Holder concept in TBB
 
 template<typename T, int NDIMS>
 class Range<IteratorBlock<T, NDIMS>>
@@ -204,7 +204,7 @@ private:
 //
 //    };
 
-};//RangeHolder<IteratorBlock>
+};//Holder<IteratorBlock>
 }}//namespace simpla{namespace toolbox{
 
 #endif //SIMPLA_BLOCK_RANGE_H

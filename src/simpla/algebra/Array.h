@@ -8,7 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <cstring>
 
-#include <simpla/mpl/range.h>
+#include <simpla/mpl/Range.h>
 #include <simpla/concept/Splittable.h>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Log.h>

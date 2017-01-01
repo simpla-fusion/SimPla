@@ -14,6 +14,7 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/LifeControllable.h>
+#include <simpla/mpl/Range.h>
 #include "BoxUtility.h"
 #include "MeshCommon.h"
 #include "EntityId.h"
@@ -308,14 +309,15 @@ SP_OBJECT_HEAD(MeshBlock, Object)
                 }, nId)));
     };
 
-    virtual EntityIdRange range(size_type entityType, MeshZoneTag status) const;
+    virtual Range<MeshEntityId> range(size_type entityType, MeshZoneTag status) const;
 
-    virtual EntityIdRange range(size_type entityType, index_box_type const &b) const;
+    virtual Range<MeshEntityId> range(size_type entityType, index_box_type const &b) const;
 
-    virtual EntityIdRange range(size_type entityType, box_type const &b) const;
+    virtual Range<MeshEntityId> range(size_type entityType, box_type const &b) const;
 
     template<typename TFun>
-    void foreach(size_type const &iform, MeshZoneTag tag, TFun const &fun) const
+    void foreach(size_type const &iform, MeshZoneTag tag, TFun const &fun,
+                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type, size_type, size_type)>::value))) const
     {
         int n = iform == VERTEX || iform == VOLUME ? 1 : 3;
         index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] : std::get<0>(m_outer_box_)[0];
@@ -337,7 +339,8 @@ SP_OBJECT_HEAD(MeshBlock, Object)
     }
 
     template<typename TFun>
-    void foreach(MeshZoneTag tag, TFun const &fun) const
+    void foreach(MeshZoneTag tag, TFun const &fun,
+                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type, size_type)>::value))) const
     {
         index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] : std::get<0>(m_outer_box_)[0];
         index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] : std::get<1>(m_outer_box_)[0];

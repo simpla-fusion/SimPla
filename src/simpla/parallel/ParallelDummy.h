@@ -53,11 +53,11 @@ void parallel_for(Range const &range, Body const &op)
 
 ///**
 // *
-// * @_fdtd_param entity_id_range RangeHolder Concept
-// * @_fdtd_param op std::function<void(*RangeHolder::iterator)>
+// * @_fdtd_param entity_id_range Holder Concept
+// * @_fdtd_param op std::function<void(*Holder::iterator)>
 // */
-//template<typename RangeHolder, typename Body>
-//void parallel_foreach(RangeHolder const &entity_id_range, Body const &body)
+//template<typename Holder, typename Body>
+//void parallel_foreach(Holder const &entity_id_range, Body const &body)
 //{
 //	for (auto &&i : entity_id_range)
 //	{

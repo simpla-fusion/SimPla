@@ -103,8 +103,6 @@ template<typename TV>
 struct make_nTuple<TV, integer_sequence<size_type> > { typedef TV type; };
 
 
-
-
 }//namespace traits
 
 
@@ -145,6 +143,10 @@ struct nTuple_<TV, N0, NOthers...>
 
     inline sub_type const &at(size_type s) const { return data_[s]; }
 
+    inline value_type &at(size_type const *s) { return calculator::get_value(data_, s); }
+
+    inline value_type const &at(size_type const *s) const { return calculator::get_value(data_, s); }
+
     nTuple_() {}
 
     ~nTuple_() {}
@@ -169,7 +171,6 @@ struct nTuple_<TV, N0, NOthers...>
         calculator::apply(tags::_assign(), (*this), rhs);
         return (*this);
     }
-
 
 };
 }//namespace declare

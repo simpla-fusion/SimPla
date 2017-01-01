@@ -509,7 +509,7 @@ Particle<P, M, V002>::count(range_type const &r0) const
 //Particle<P, M, V002>::merge(buffer_type *buffer)
 //{
 //    parallel::parallel_for(
-//            buffer->range(),
+//            buffer->Range(),
 //            [&](typename buffer_type::range_type const &r)
 //            {
 //                for (auto const &item:r)

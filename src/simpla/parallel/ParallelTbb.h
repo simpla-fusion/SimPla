@@ -45,7 +45,7 @@ public:
 
     size_t right() const { return my_right; }
 
-    // used when range does not support proportional split
+    // used when Range does not support proportional split
     operator split() const { return split(); }
 
 

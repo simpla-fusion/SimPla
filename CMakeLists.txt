@@ -93,6 +93,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_subdirectory(src/simpla)
 add_subdirectory(example)
 add_subdirectory(test)
+add_subdirectory(benchmark)
 
 add_subdirectory(tools)
 add_subdirectory(docs)

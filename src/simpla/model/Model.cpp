@@ -4,7 +4,7 @@
 
 #include <set>
 #include <simpla/mesh/EntityId.h>
-#include <simpla/mesh/EntityIdRange.h>
+//#include <simpla/mesh/EntityIdRange.h>
 #include <simpla/mesh/Chart.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/DataBlock.h>
@@ -122,11 +122,11 @@ void Model::add_object(std::string const &key, std::shared_ptr<geometry::GeoObje
 
 void Model::remove_object(std::string const &key) { try { m_g_obj_.erase(m_g_name_map_.at(key)); } catch (...) {}}
 
-mesh::EntityIdRange const &
+Range<mesh::MeshEntityId> const &
 Model::select(size_type iform, std::string const &tag) { return select(iform, m_g_name_map_.at(tag)); }
 
 
-mesh::EntityIdRange const &
+Range<mesh::MeshEntityId> const &
 Model::select(size_type iform, int tag)
 {
     typedef mesh::MeshEntityIdCoder M;
@@ -135,7 +135,7 @@ Model::select(size_type iform, int tag)
     try { return m_range_cache_.at(iform).at(tag); } catch (...) {}
 
     const_cast<this_type *>(this)->m_range_cache_[iform].
-            emplace(std::make_pair(tag, EntityIdRange::create<set_type>()));
+            emplace(std::make_pair(tag, Range<mesh::MeshEntityId>::create<set_type>()));
 
     auto &res = m_range_cache_.at(iform).at(tag).as<set_type>();
 
@@ -208,12 +208,12 @@ Model::select(size_type iform, int tag)
  *       = 0 on surface
  *       > 0 in surface
  */
-mesh::EntityIdRange const &Model::interface(size_type iform, const std::string &s_in, const std::string &s_out)
+Range<mesh::MeshEntityId> const &Model::interface(size_type iform, const std::string &s_in, const std::string &s_out)
 {
     return interface(iform, m_g_name_map_.at(s_in), m_g_name_map_.at(s_out));
 }
 
-mesh::EntityIdRange const &Model::interface(size_type iform, int tag_in, int tag_out)
+Range<mesh::MeshEntityId> const &Model::interface(size_type iform, int tag_in, int tag_out)
 {
 
     try { return m_interface_cache_.at(iform).at(tag_in).at(tag_out); } catch (...) {}
@@ -223,7 +223,7 @@ mesh::EntityIdRange const &Model::interface(size_type iform, int tag_in, int tag
     typedef parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> set_type;
 
     const_cast<this_type *>(this)->m_interface_cache_[iform][tag_in].
-            emplace(std::make_pair(tag_out, EntityIdRange::create<set_type>()));
+            emplace(std::make_pair(tag_out, Range<mesh::MeshEntityId>::create<set_type>()));
 
     set_type &res = const_cast<this_type *>(this)->m_interface_cache_.at(iform).at(tag_in).at(tag_out).as<set_type>();
 

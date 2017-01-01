@@ -15,7 +15,7 @@
 #include <simpla/mpl/macro.h>
 #include <simpla/mpl/type_traits.h>
 #include <simpla/mpl/integer_sequence.h>
-
+#include <simpla/toolbox/Log.h>
 #include "Algebra.h"
 #include "Arithmetic.h"
 //#include "Expression.h"
