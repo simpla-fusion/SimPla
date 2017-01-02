@@ -21,8 +21,10 @@ namespace simpla
 {
 namespace algebra
 {
-namespace declare { template<typename, size_type ...I> struct nTuple_; }
-
+namespace declare
+{
+template<typename, size_type... I> struct nTuple_;
+}
 
 /**
  * @ingroup algebra
@@ -32,8 +34,10 @@ namespace declare { template<typename, size_type ...I> struct nTuple_; }
  * @brief nTuple_ :n-tuple
  *
  * Semantics:
- *    n-tuple is a sequence (or ordered list) of n elements, where n is a positive
- *    integral. There is also one 0-tuple, an empty sequence. An n-tuple is defined
+ *    n-tuple is a sequence (or ordered list) of n elements, where n is a
+ *positive
+ *    integral. There is also one 0-tuple, an empty sequence. An n-tuple is
+ *defined
  *    inductively using the construction of an ordered pair. Tuples are usually
  *    written by listing the elements within parenthesis '( )' and separated by
  *    commas; for example, (2, 7, 4, 1, 7) denotes a 5-tuple.
@@ -62,66 +66,79 @@ namespace declare { template<typename, size_type ...I> struct nTuple_; }
  **/
 namespace traits
 {
-template<typename T, size_type ...I0>
-struct reference<declare::nTuple_<T, I0...> > { typedef declare::nTuple_<T, I0...> &type; };
-
-template<typename T, size_type ...I0>
-struct reference<const declare::nTuple_<T, I0...> > { typedef declare::nTuple_<T, I0...> const &type; };
-
-template<typename T, size_type ...I>
-struct rank<declare::nTuple_<T, I...> > : public index_const<sizeof...(I)> {};
-
-template<typename V, size_type ...I>
-struct extents<declare::nTuple_<V, I...> > : public index_sequence<I...> {};
-
-template<typename T, size_type I0>
-struct value_type<declare::nTuple_<T, I0> > { typedef T type; };
-
-template<typename T, size_type ...I>
-struct value_type<declare::nTuple_<T, I...> > { typedef T type; };
-
-
-template<typename T, size_type I0, size_type  ...I>
-struct sub_type<declare::nTuple_<T, I0, I...> >
+template<typename T, size_type... I0>
+struct reference<declare::nTuple_<T, I0...>>
 {
-    typedef std::conditional_t<sizeof...(I) == 0, T, declare::nTuple_<T, I...> > type;
+    typedef declare::nTuple_<T, I0...> &type;
 };
 
+template<typename T, size_type... I0>
+struct reference<const declare::nTuple_<T, I0...>>
+{
+    typedef declare::nTuple_<T, I0...> const &type;
+};
 
-template<typename T, size_type I0>
-struct pod_type<declare::nTuple_<T, I0> > { typedef T type[I0]; };
+template<typename T, size_type... I>
+struct rank<declare::nTuple_<T, I...>> : public index_const<sizeof...(I)> {};
 
-template<typename T, size_type I0, size_type  ...I>
-struct pod_type<declare::nTuple_<T, I0, I...> > { typedef typename pod_type<declare::nTuple_<T, I...>>::type type[I0]; };
+template<typename V, size_type... I>
+struct extents<declare::nTuple_<V, I...>> : public index_sequence<I...> {};
 
+template<typename T, size_type I0> struct value_type<declare::nTuple_<T, I0>>
+{
+    typedef T type;
+};
 
-template<typename ...> struct make_nTuple { typedef void type; };
+template<typename T, size_type... I>
+struct value_type<declare::nTuple_<T, I...>>
+{
+    typedef T type;
+};
 
-template<typename TV, size_type ...I>
-struct make_nTuple<TV, integer_sequence<size_type, I...> > { typedef declare::nTuple_<TV, I...> type; };
-template<typename TV>
-struct make_nTuple<TV, integer_sequence<size_type> > { typedef TV type; };
+template<typename T, size_type I0, size_type... I>
+struct sub_type<declare::nTuple_<T, I0, I...>>
+{
+    typedef std::conditional_t<sizeof...(I) == 0, T, declare::nTuple_<T, I...>>
+            type;
+};
 
+template<typename T, size_type I0> struct pod_type<declare::nTuple_<T, I0>>
+{
+    typedef T type[I0];
+};
 
-}//namespace traits
+template<typename T, size_type I0, size_type... I>
+struct pod_type<declare::nTuple_<T, I0, I...>>
+{
+    typedef typename pod_type<declare::nTuple_<T, I...>>::type type[I0];
+};
 
+template<typename...> struct make_nTuple { typedef void type; };
 
+template<typename TV, size_type... I>
+struct make_nTuple<TV, integer_sequence<size_type, I...>>
+{
+    typedef declare::nTuple_<TV, I...> type;
+};
+template<typename TV> struct make_nTuple<TV, integer_sequence<size_type>>
+{
+    typedef TV type;
+};
 
+} // namespace traits
 
 /// n-dimensional primary type
 namespace declare
 {
-template<typename TV>
-struct nTuple_<TV>
+template<typename TV> struct nTuple_<TV>
 {
     typedef TV value_type;
     typedef TV pod_type;
 };
 
-template<typename TV, size_type N0, size_type ...NOthers>
+template<typename TV, size_type N0, size_type... NOthers>
 struct nTuple_<TV, N0, NOthers...>
 {
-
 
     typedef nTuple_<TV, N0, NOthers...> this_type;
 
@@ -143,37 +160,76 @@ struct nTuple_<TV, N0, NOthers...>
 
     inline sub_type const &at(size_type s) const { return data_[s]; }
 
-    inline value_type &at(size_type const *s) { return calculator::get_value(data_, s); }
+    inline value_type &at(size_type const *s)
+    {
+        return calculator::get_value(data_, s);
+    }
 
-    inline value_type const &at(size_type const *s) const { return calculator::get_value(data_, s); }
+    inline value_type const &at(size_type const *s) const
+    {
+        return calculator::get_value(data_, s);
+    }
+
+    template<typename... Idx> inline value_type &at(Idx &&... s)
+    {
+        return calculator::get_value(data_, std::forward<Idx>(s)...);
+    }
+
+    template<typename... Idx> inline value_type const &at(Idx &&... s) const
+    {
+        return calculator::get_value(data_, std::forward<Idx>(s)...);
+    }
+
+    template<typename... Idx> inline value_type &operator()(Idx &&... s)
+    {
+        return calculator::get_value(data_, std::forward<Idx>(s)...);
+    }
+
+    template<typename... Idx>
+    inline value_type const &operator()(Idx &&... s) const
+    {
+        return calculator::get_value(data_, std::forward<Idx>(s)...);
+    }
 
     nTuple_() {}
 
     ~nTuple_() {}
 
-    nTuple_(simpla::traits::nested_initializer_list_t<value_type, sizeof...(NOthers) + 1> l)
+    nTuple_(simpla::traits::nested_initializer_list_t<value_type,
+            sizeof...(NOthers) + 1>
+            l)
     {
-        simpla::traits::assign_nested_initializer_list<N0, NOthers...>::apply(data_, l);
+        simpla::traits::assign_nested_initializer_list<N0, NOthers...>::apply(data_,
+                                                                              l);
     }
 
-    template<typename ...U>
-    nTuple_(Expression<U...> const &expr) { calculator::apply(tags::_assign(), (*this), expr); }
+    template<typename... U> nTuple_(Expression<U...> const &expr)
+    {
+        calculator::apply(tags::_assign(), (*this), expr);
+    }
 
-//    nTuple_(this_type const &other) = delete;
-//
-//    nTuple_(this_type &&other) = delete;
+    //    nTuple_(this_type const &other) = delete;
+    //
+    //    nTuple_(this_type &&other) = delete;
 
-    void swap(this_type &other) { calculator::apply(tags::_swap(), (*this), other); }
+    void swap(this_type &other)
+    {
+        calculator::apply(tags::_swap(), (*this), other);
+    }
 
-    template<typename TR> inline this_type &
-    operator=(TR const &rhs)
+    inline this_type &operator=(this_type const &rhs)
     {
         calculator::apply(tags::_assign(), (*this), rhs);
         return (*this);
     }
 
+    template<typename TR> inline this_type &operator=(TR const &rhs)
+    {
+        calculator::apply(tags::_assign(), (*this), rhs);
+        return (*this);
+    }
 };
-}//namespace declare
+} // namespace declare
 
 namespace calculus
 {
@@ -181,160 +237,183 @@ namespace calculus
 namespace _detail
 {
 
-template<typename TOP, typename TL, typename TR> inline void
-_apply(TOP const &, declare::nTuple_<TL, 3> &lhs, TR &rhs)
+template<typename TOP, typename TL, typename TR>
+inline void _apply(TOP const &, declare::nTuple_<TL, 3> &lhs, TR &rhs)
 {
-    typedef calculus::calculator<declare::nTuple_<TL, 3>> impl_type;
-    TOP::eval(lhs[0], impl_type::get_value(rhs, 0));
-    TOP::eval(lhs[1], impl_type::get_value(rhs, 1));
-    TOP::eval(lhs[2], impl_type::get_value(rhs, 2));
-
+    typedef calculus::calculator<declare::nTuple_<TL, 3>> calculator;
+    TOP::eval(lhs[0], calculator::get_value(rhs, 0));
+    TOP::eval(lhs[1], calculator::get_value(rhs, 1));
+    TOP::eval(lhs[2], calculator::get_value(rhs, 2));
 };
 
-template<typename TOP, typename TL, size_type I0, typename TR> inline void
-_apply(TOP const &, declare::nTuple_<TL, I0> &lhs, TR &rhs)
+template<typename TOP, typename TL, size_type I0, typename TR>
+inline void _apply(TOP const &, declare::nTuple_<TL, I0> &lhs, TR &rhs)
 {
-    typedef calculus::calculator<declare::nTuple_<TL, I0>> impl_type;
+    typedef calculus::calculator<declare::nTuple_<TL, I0>> calculator;
     for (size_type i = 0; i < I0; ++i)
     {
-        TOP::eval(lhs[i], impl_type::get_value(rhs, i));
+        TOP::eval(lhs[i], calculator::get_value(rhs, i));
     }
 };
 
-template<typename TOP, typename TL, size_type I0, size_type I1, typename TR> inline void
-_apply(TOP const &, declare::nTuple_<TL, I0, I1> &lhs, TR &rhs)
+template<typename TOP, typename TL, size_type I0, size_type I1, typename TR>
+inline void _apply(TOP const &, declare::nTuple_<TL, I0, I1> &lhs, TR &rhs)
 {
-    typedef calculus::calculator<declare::nTuple_<TL, I0, I1>> impl_type;
+    typedef calculus::calculator<declare::nTuple_<TL, I0, I1>> calculator;
     for (size_type i = 0; i < I0; ++i)
         for (size_type j = 0; j < I1; ++j)
         {
-            TOP::eval(impl_type::get_value(lhs, i, j), impl_type::get_value(rhs, i, j));
+            TOP::eval(calculator::get_value(lhs, i, j),
+                      calculator::get_value(rhs, i, j));
         }
 };
 
-template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2, typename TR> inline void
-_apply(TOP const &, declare::nTuple_<TL, I0, I1, I2> &lhs, TR &rhs)
+template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2,
+        typename TR>
+inline void _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2> &lhs,
+                   TR &rhs)
 {
-    typedef calculus::calculator<declare::nTuple_<TL, I0, I1, I2>> impl_type;
+    typedef calculus::calculator<declare::nTuple_<TL, I0, I1, I2>> calculator;
     for (size_type i = 0; i < I0; ++i)
         for (size_type j = 0; j < I1; ++j)
             for (size_type k = 0; k < I2; ++k)
             {
-                TOP::eval(impl_type::get_value(lhs, i, j, k), impl_type::get_value(rhs, i, j, k));
+                TOP::eval(calculator::get_value(lhs, i, j, k),
+                          calculator::get_value(rhs, i, j, k));
             }
 };
 
-template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2, size_type I3, typename TR> inline void
-_apply(TOP const &, declare::nTuple_<TL, I0, I1, I2, I3> &lhs, TR &rhs)
+template<typename TOP, typename TL, size_type I0, size_type I1, size_type I2,
+        size_type I3, typename TR>
+inline void _apply(TOP const &, declare::nTuple_<TL, I0, I1, I2, I3> &lhs,
+                   TR &rhs)
 {
-    typedef calculus::calculator<declare::nTuple_<TL, I0, I1, I2, I3>> impl_type;
+    typedef calculus::calculator<declare::nTuple_<TL, I0, I1, I2, I3>> calculator;
     for (size_type i = 0; i < I0; ++i)
         for (size_type j = 0; j < I1; ++j)
             for (size_type k = 0; k < I2; ++k)
                 for (size_type l = 0; l < I3; ++l)
                 {
-                    TOP::eval(impl_type::get_value(lhs, i, j, k, l), impl_type::get_value(rhs, i, j, k, l));
+                    TOP::eval(calculator::get_value(lhs, i, j, k, l),
+                              calculator::get_value(rhs, i, j, k, l));
                 }
 };
-}//namespace _detail
+} // namespace _detail
 
+namespace st = simpla::traits;
 
-
-namespace st=simpla::traits;
-
-template<typename V, size_type ...J>
-struct calculator<declare::nTuple_<V, J...> >
+template<typename V, size_type... J>
+struct calculator<declare::nTuple_<V, J...>>
 {
 
-
 public:
-    template<typename T> static constexpr inline T &
-    get_value(T &v)
+    template<typename T> static constexpr inline T &get_value(T &v)
     {
         return v;
     };
 
-    template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
-    get_value(T &v, I0 const *s, ENABLE_IF((st::is_indexable<T, I0>::value)))
-    {
-        return get_value(v[*s], s + 1);
-    };
+//    template<typename T, typename I0>
+//    static constexpr inline st::remove_all_extents_t<T, I0> &
+//    get_value(T &v, I0 const *s, ENABLE_IF((st::is_indexable<T, I0>::value)))
+//    {
+//        return get_value(v[*s], s + 1);
+//    };
+//
+//    template<typename T, typename I0>
+//    static constexpr inline st::remove_all_extents_t<T, I0> &
+//    get_value(T &v, I0 const *s, ENABLE_IF((!st::is_indexable<T, I0>::value)))
+//    {
+//        return v;
+//    };
 
-    template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
-    get_value(T &v, I0 const *s, ENABLE_IF((!st::is_indexable<T, I0>::value)))
-    {
-        return v;
-    };
 private:
-    template<typename T, typename ...Args> static constexpr inline T &
+    template<typename T, typename... Args>
+    static constexpr inline T &
     get_value_(std::integral_constant<bool, false> const &, T &v, Args &&...)
     {
         return v;
     }
 
-
-    template<typename T, typename I0, typename ...Idx> static constexpr inline st::remove_extents_t<T, I0, Idx...> &
-    get_value_(std::integral_constant<bool, true> const &, T &v, I0 const &s0, Idx &&...idx)
+    template<typename T, typename I0, typename... Idx>
+    static constexpr inline st::remove_extents_t<T, I0, Idx...> &
+    get_value_(std::integral_constant<bool, true> const &, T &v, I0 const &s0,
+               Idx &&... idx)
     {
         return get_value(v[s0], std::forward<Idx>(idx)...);
     };
+
 public:
-    template<typename T, typename I0, typename ...Idx> static constexpr inline st::remove_extents_t<T, I0, Idx...> &
-    get_value(T &v, I0 const &s0, Idx &&...idx)
+    template<typename T, typename... Idx>
+    static constexpr inline st::remove_extents_t<T, size_type, Idx...> &
+    get_value(T &v, size_type const &s0, Idx &&... idx)
     {
-        return get_value_(std::integral_constant<bool, st::is_indexable<T, I0>::value>(),
-                          v, s0, std::forward<Idx>(idx)...);
+        return get_value_(
+                std::integral_constant<bool, st::is_indexable<T, size_type>::value>(),
+                v, s0, std::forward<Idx>(idx)...);
     };
 
-    template<typename T, size_type N> static constexpr inline T &
-    get_value(declare::nTuple_<T, N> &v, size_type const &s0) { return v[s0]; };
+//    template<typename T, size_type N>
+//    static constexpr inline T &get_value(declare::nTuple_<T, N> &v,
+//                                         size_type const &s0)
+//    {
+//        return v[s0];
+//    };
+//
+//    template<typename T, size_type N>
+//    static constexpr inline T const &get_value(declare::nTuple_<T, N> const &v,
+//                                               size_type const &s0)
+//    {
+//        return v[s0];
+//    };
 
-    template<typename T, size_type N> static constexpr inline T const &
-    get_value(declare::nTuple_<T, N> const &v, size_type const &s0) { return v[s0]; };
 public:
-//    template<typename TOP, typename ...Others, size_type ... index, typename ...Idx>
-//    static inline traits::value_type_t<declare::Expression<TOP, Others...>>
-//    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>,
-//                   Idx &&... s)
-//    {
-//        return expr.m_op_(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...);
-//    }
-//
-//    template<typename TOP, typename   ...Others, typename ...Idx>
-//    static constexpr inline traits::value_type_t<declare::Expression<TOP, Others...> >
-//    get_value(declare::Expression<TOP, Others...> const &expr,
-//              Idx &&... s)
-//    {
-//        return _invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...);
-//    }
+    //    template<typename TOP, typename ...Others, size_type ... index, typename
+    //    ...Idx>
+    //    static inline traits::value_type_t<declare::Expression<TOP, Others...>>
+    //    _invoke_helper(declare::Expression<TOP, Others...> const &expr,
+    //    index_sequence<index...>,
+    //                   Idx &&... s)
+    //    {
+    //        return expr.m_op_(get_value(std::get<index>(expr.m_args_),
+    //        std::forward<Idx>(s)...)...);
+    //    }
+    //
+    //    template<typename TOP, typename   ...Others, typename ...Idx>
+    //    static constexpr inline traits::value_type_t<declare::Expression<TOP,
+    //    Others...> >
+    //    get_value(declare::Expression<TOP, Others...> const &expr,
+    //              Idx &&... s)
+    //    {
+    //        return _invoke_helper(expr, index_sequence_for<Others...>(),
+    //        std::forward<Idx>(s)...);
+    //    }
 
-//    template<typename TOP, typename TL, typename ...Idx>
-//    static constexpr inline traits::value_type_t<declare::Expression<TOP, TL> >
-//    get_value(declare::Expression<TOP, TL> const &expr, Idx &&... s)
-//    {
-//        return expr.m_op_(get_value(std::get<0>(expr.m_args_), std::forward<Idx>(s)...));
-//
-//    }
-
-    template<typename TOP, typename TL, typename TR, typename ...Idx>
-    static constexpr inline traits::value_type_t<declare::Expression<TOP, TL, TR> >
+    template<typename TOP, typename TL, typename TR, typename... Idx>
+    static constexpr inline traits::value_type_t<declare::Expression<TOP, TL, TR>>
     get_value(declare::Expression<TOP, TL, TR> const &expr, Idx &&... s)
     {
-        return expr.m_op_(get_value(std::get<0>(expr.m_args_), std::forward<Idx>(s)...),
-                          get_value(std::get<1>(expr.m_args_), std::forward<Idx>(s)...));
-
+        return expr.m_op_(get_value(expr.lhs, std::forward<Idx>(s)...),
+                          get_value(expr.rhs, std::forward<Idx>(s)...));
     }
 
+    //    template<typename TOP, typename TL, typename ...Idx>
+    //    static constexpr inline traits::value_type_t<declare::Expression<TOP,
+    //    TL> >
+    //    get_value(declare::Expression<TOP, TL> const &expr, Idx &&... s)
+    //    {
+    //        return expr.m_op_(get_value(expr.lhs, std::forward<Idx>(s)...));
+    //
+    //    }
+
     template<typename TOP, typename TR>
-    static inline void apply(TOP const &op, declare::nTuple_<V, J...> &lhs, TR &rhs)
+    static inline void apply(TOP const &op, declare::nTuple_<V, J...> &lhs,
+                             TR &rhs)
     {
         _detail::_apply(op, lhs, rhs);
     };
 };
-}//namespace calculaus{
+} // namespace calculaus{
 
-
-
-}//namespaace algebra
-}//namespace simpla
-#endif  // NTUPLE_H_
+} // namespaace algebra
+} // namespace simpla
+#endif // NTUPLE_H_

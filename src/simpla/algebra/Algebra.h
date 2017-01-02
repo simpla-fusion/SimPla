@@ -44,11 +44,10 @@ template<typename ...T> struct iform_list { typedef index_sequence<iform<T>::val
 
 template<typename ...T> using iform_list_t= typename iform_list<T...>::type;
 
-template<typename ...> struct value_type;
+template<typename T> struct value_type { typedef T type; };
 
-template<typename ...T> using value_type_t=typename value_type<T...>::type;
+template<typename T> using value_type_t=typename value_type<T>::type;
 
-template<typename T> struct value_type<T> { typedef T type; };
 template<typename T> struct value_type<T &> { typedef T &type; };
 template<typename T> struct value_type<T const &> { typedef T const &type; };
 
