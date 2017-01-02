@@ -15,9 +15,7 @@
 #include <simpla/toolbox/sp_def.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/mpl/type_traits.h>
-#include <simpla/algebra/Algebra.h>
-#include <simpla/algebra/Expression.h>
-#include <simpla/algebra/Calculus.h>
+#include <simpla/algebra/all.h>
 
 
 namespace simpla { namespace algebra
@@ -900,7 +898,7 @@ public:
     template<typename TFun> static TV
     get_value(mesh_type const &m, TFun const &fun, MeshEntityId const &s,
     ENABLE_IF((st::is_callable<
-                      TFun(point_type const &)>::value))
+                      TFun(nTuple < Real, 3ul > const &)>::value))
     )
     {
         return InterpolatePolicy<mesh_type>::template sample<IFORM>(m, s, fun(m.point(s)));
@@ -908,7 +906,7 @@ public:
 
     template<typename TFun> static TV
     get_value(mesh_type const &m, TFun const &fun, MeshEntityId const &s,
-              ENABLE_IF((st::is_callable<TFun(mesh_id_type const &), TV>::value)))
+              ENABLE_IF((st::is_callable<TFun(MeshEntityId const &), TV>::value)))
     {
         return fun(s);
     }
@@ -916,16 +914,15 @@ public:
 
 
     template<typename TOP, typename ...Args> static void
-    apply(self_type &self, mesh_type const &m, TOP const &op, Args &&...args)
+    apply(self_type &self, mesh_type const &m, Range <MeshEntityId> const &r, TOP const &op, Args &&...args)
     {
 //        CHECK(m.mesh_block()->range(IFORM, SP_ES_ALL).size());
-        m.mesh_block()->range(IFORM, SP_ES_ALL).foreach(
+        r.foreach(
                 [&](MeshEntityId const &s)
                 {
                     op(get_value(m, self, s), get_value(m, std::forward<Args>(args), s)...);
                 });
     }
-
 
 };// struct DiffScheme<TGeo, diff_scheme::tags::finite_volume>
 

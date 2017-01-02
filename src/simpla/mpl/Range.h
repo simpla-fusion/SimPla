@@ -61,6 +61,8 @@ public:
 
     bool is_divisible() { return m_holder_->is_divisible(); }
 
+    virtual size_type size() const  { return m_holder_->size(); }
+
     bool empty() const { return m_holder_->empty(); }
 
     void swap(this_type &other) { std::swap(m_holder_, other.m_holder_); }
@@ -136,6 +138,8 @@ public:
 
     virtual const_iterator cend() const =0;
 
+    virtual size_type size() const =0;
+
     virtual bool is_divisible() =0;
 
     virtual bool empty() const =0;
@@ -192,6 +196,8 @@ struct RangeProxy : public RangeHolder<TRange>
     virtual bool is_divisible() { return false; };
 
     virtual bool empty() const { return false; };
+
+    virtual size_type size() const { return 0; }
 
     virtual void *data() { return reinterpret_cast<void *>(m_self_.get()); };
 

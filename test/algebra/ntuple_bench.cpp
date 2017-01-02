@@ -6,17 +6,11 @@
 
 using namespace simpla;
 
-//static constexpr int N = 3;
-//typedef double value_type;
 static constexpr Real a = 1, b = 2, c = 3;
 
 #define EQUATION(_A, _B, _C)  ( -(_A  +a )/(   _B *b -c  )- _C)
 
-//#define BENCHMARK_TEMPLATE(_NAME_, _T_, _N_) \
-//static void _NAME_##_T_##_N_(benchmark::State &state) { _NAME_<_T_,_N_>(state);} \
-//BENCHMARK(_NAME_##_T_##_N_);
 
-// Define another benchmark
 template<typename value_type, size_type N>
 static void BM_raw_array(benchmark::State &state)
 {
@@ -36,7 +30,6 @@ static void BM_raw_array(benchmark::State &state)
 }
 
 
-// Define another benchmark
 template<typename value_type, size_type ...N>
 static void BM_nTuple(benchmark::State &state)
 {
@@ -58,27 +51,23 @@ static void BM_nTuple(benchmark::State &state)
 
 BENCHMARK_TEMPLATE(BM_raw_array, double, 3);
 BENCHMARK_TEMPLATE(BM_nTuple, double, 3);
-
-
-BENCHMARK_TEMPLATE(BM_raw_array, double, 10);
-BENCHMARK_TEMPLATE(BM_nTuple, double, 10);
-
+BENCHMARK_TEMPLATE(BM_raw_array, double, 9);
+BENCHMARK_TEMPLATE(BM_nTuple, double, 9);
+BENCHMARK_TEMPLATE(BM_raw_array, double, 27);
+BENCHMARK_TEMPLATE(BM_nTuple, double, 27);
 BENCHMARK_TEMPLATE(BM_raw_array, double, 100);
 BENCHMARK_TEMPLATE(BM_nTuple, double, 100);
-
 BENCHMARK_TEMPLATE(BM_raw_array, int, 3);
 BENCHMARK_TEMPLATE(BM_nTuple, int, 3);
-
-BENCHMARK_TEMPLATE(BM_raw_array, int, 10);
-BENCHMARK_TEMPLATE(BM_nTuple, int, 10);
-
+BENCHMARK_TEMPLATE(BM_raw_array, int, 9);
+BENCHMARK_TEMPLATE(BM_nTuple, int, 9);
+BENCHMARK_TEMPLATE(BM_raw_array, int, 27);
+BENCHMARK_TEMPLATE(BM_nTuple, int, 27);
 BENCHMARK_TEMPLATE(BM_raw_array, int, 100);
 BENCHMARK_TEMPLATE(BM_nTuple, int, 100);
-
-
 BENCHMARK_TEMPLATE(BM_nTuple, double, 3, 3);
-BENCHMARK_TEMPLATE(BM_nTuple, int, 10, 10);
 BENCHMARK_TEMPLATE(BM_nTuple, double, 3, 3, 3);
+BENCHMARK_TEMPLATE(BM_nTuple, int, 10, 10);
 
 int main(int argc, char **argv)
 {

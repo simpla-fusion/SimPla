@@ -5,6 +5,8 @@
  *      Author: salmon
  */
 #include <gtest/gtest.h>
+#include <simpla/algebra/all.h>
+#include <simpla/physics/Constants.h>
 #include "field_diff_calculus_test.h"
 
 using namespace simpla;
@@ -26,14 +28,14 @@ INSTANTIATE_TEST_CASE_P(
 
 
                 testing::Values(
-                        nTuple<size_t, 3>{1, 1, 1},     //
-                        nTuple<size_t, 3>{10, 1, 1}, //
-                        nTuple<size_t, 3>{1, 100, 1},//
-                        nTuple<size_t, 3>{1, 1, 100},//
-                        nTuple<size_t, 3>{1, 10, 20},//
-                        nTuple<size_t, 3>{17, 1, 17},//
-                        nTuple<size_t, 3>{10, 1, 1},//
-                        nTuple<size_t, 3>{5, 19, 17} //
+                        nTuple<size_type, 3>{1, 1, 1},     //
+                        nTuple<size_type, 3>{10, 1, 1}, //
+                        nTuple<size_type, 3>{1, 100, 1},//
+                        nTuple<size_type, 3>{1, 1, 100},//
+                        nTuple<size_type, 3>{1, 10, 20},//
+                        nTuple<size_type, 3>{17, 1, 17},//
+                        nTuple<size_type, 3>{10, 1, 1},//
+                        nTuple<size_type, 3>{5, 19, 17} //
                 ),
 
                 testing::Values(nTuple<Real, 3>{TWOPI, 3 * TWOPI, TWOPI})

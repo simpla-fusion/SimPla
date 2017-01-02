@@ -13,6 +13,7 @@
 #include <cassert>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
+#include <simpla/mesh/Mesh.h>
 #include "Algebra.h"
 //#include <simpla/toolbox/Log.h>
 //#include <simpla/mesh/Attribute.h>
@@ -107,7 +108,7 @@ private:
 
     typedef typename mesh_type::id_type mesh_id_type;
 
-    typedef calculus::calculator<this_type> calculus_policy;
+    typedef calculus::calculator <this_type> calculus_policy;
 
     friend calculus_policy;
 
@@ -182,7 +183,7 @@ public:
 
     virtual void reset() { calculus_policy::reset(*this); }
 
-    virtual void clear(){ calculus_policy::clear(*this); }
+    virtual void clear() { calculus_policy::clear(*this); }
 
 
     /** @name as_function  @{*/
@@ -232,13 +233,30 @@ public:
 
 
     template<typename ...Args> this_type &
-    assign(Args &&...args) { return apply(tags::_assign(), std::forward<Args>(args)...); }
+    assign(Args &&...args)
+    {
+        return apply(tags::_assign(), std::forward<Args>(args)...);
+    }
+
+
+    template<typename ...Args> this_type &
+    apply(mesh::MeshZoneTag const &tag, Args &&...args)
+    {
+        return apply(m_mesh_->range(tag, IFORM, DOF), std::forward<Args>(args)...);
+    }
+
 
     template<typename ...Args> this_type &
     apply(Args &&...args)
     {
+        return apply(m_mesh_->range(mesh::SP_ES_ALL, IFORM, DOF), std::forward<Args>(args)...);
+    }
+
+    template<typename ...Args> this_type &
+    apply(Range<mesh_id_type> const &r, Args &&...args)
+    {
         pre_process();
-        calculus_policy::apply(*this, *m_mesh_, std::forward<Args>(args)...);
+        calculus_policy::apply(*this, *m_mesh_, r, std::forward<Args>(args)...);
         return *this;
     }
 }; // class Field_

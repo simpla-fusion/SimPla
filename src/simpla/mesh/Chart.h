@@ -54,6 +54,12 @@ SP_OBJECT_BASE(Chart);
         return m_mesh_block_;
     }
 
+    template<typename ...Args> Range<MeshEntityId>
+    range(Args &&...args) const
+    {
+        if (m_mesh_block_ != nullptr) { return m_mesh_block_->range(std::forward<Args>(args)...); }
+        else { return Range<MeshEntityId>(); }
+    }
 
 protected:
     std::shared_ptr<MeshBlock> m_mesh_block_;

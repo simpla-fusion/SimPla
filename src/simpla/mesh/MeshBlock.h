@@ -144,7 +144,7 @@ SP_OBJECT_HEAD(MeshBlock, Object)
     std::shared_ptr<MeshBlock> intersection(index_box_type const &other_box, int inc_level = 0);
 
 
-    int level() const { return m_level_; }
+//    int level() const { return m_level_; }
 
     virtual bool is_overlap(index_box_type const &) { return true; }
 
@@ -309,55 +309,55 @@ SP_OBJECT_HEAD(MeshBlock, Object)
                 }, nId)));
     };
 
-    virtual Range<MeshEntityId> range(size_type entityType, MeshZoneTag status) const;
+    virtual Range<MeshEntityId> range(MeshZoneTag status, size_type entityType = VERTEX, size_type dof = 1) const;
 
-    virtual Range<MeshEntityId> range(size_type entityType, index_box_type const &b) const;
+    virtual Range<MeshEntityId> range(index_box_type const &b, size_type entity_type = VERTEX, size_type dof = 1) const;
 
-    virtual Range<MeshEntityId> range(size_type entityType, box_type const &b) const;
+    virtual Range<MeshEntityId> range(box_type const &b, size_type entityType = VERTEX, size_type dof = 1) const;
 
-    template<typename TFun>
-    void foreach(size_type const &iform, MeshZoneTag tag, TFun const &fun,
-                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type, size_type, size_type)>::value))) const
-    {
-        int n = iform == VERTEX || iform == VOLUME ? 1 : 3;
-        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] : std::get<0>(m_outer_box_)[0];
-        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] : std::get<1>(m_outer_box_)[0];
-        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] : std::get<0>(m_outer_box_)[1];
-        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] : std::get<1>(m_outer_box_)[1];
-        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] : std::get<0>(m_outer_box_)[2];
-        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] : std::get<1>(m_outer_box_)[2];
-
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k)
-                    for (index_type l = 0; l < n; ++l)
-                    {
-                        fun(i, j, k, l);
-                    }
-
-    }
-
-    template<typename TFun>
-    void foreach(MeshZoneTag tag, TFun const &fun,
-                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type, size_type)>::value))) const
-    {
-        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] : std::get<0>(m_outer_box_)[0];
-        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] : std::get<1>(m_outer_box_)[0];
-        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] : std::get<0>(m_outer_box_)[1];
-        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] : std::get<1>(m_outer_box_)[1];
-        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] : std::get<0>(m_outer_box_)[2];
-        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] : std::get<1>(m_outer_box_)[2];
-
-#pragma omp parallel for
-        for (index_type i = ib; i < ie; ++i)
-            for (index_type j = jb; j < je; ++j)
-                for (index_type k = kb; k < ke; ++k)
-                {
-                    fun(i, j, k);
-                }
-
-    }
+//    template<typename TFun>
+//    void foreach(TFun const &fun, MeshZoneTag tag, size_type const &iform = VERTEX, size_type dof = 1,
+//                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type, size_type, size_type)>::value))) const
+//    {
+//        int n = iform == VERTEX || iform == VOLUME ? 1 : 3;
+//        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] : std::get<0>(m_outer_box_)[0];
+//        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] : std::get<1>(m_outer_box_)[0];
+//        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] : std::get<0>(m_outer_box_)[1];
+//        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] : std::get<1>(m_outer_box_)[1];
+//        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] : std::get<0>(m_outer_box_)[2];
+//        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] : std::get<1>(m_outer_box_)[2];
+//
+//#pragma omp parallel for
+//        for (index_type i = ib; i < ie; ++i)
+//            for (index_type j = jb; j < je; ++j)
+//                for (index_type k = kb; k < ke; ++k)
+//                    for (index_type l = 0; l < n; ++l)
+//                    {
+//                        fun(i, j, k, l);
+//                    }
+//
+//    }
+//
+//    template<typename TFun>
+//    void foreach(TFun const &fun, MeshZoneTag tag, size_type iform = VERTEX, size_type dof = 1,
+//                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type, size_type)>::value)) const
+//    {
+//        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] : std::get<0>(m_outer_box_)[0];
+//        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] : std::get<1>(m_outer_box_)[0];
+//        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] : std::get<0>(m_outer_box_)[1];
+//        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] : std::get<1>(m_outer_box_)[1];
+//        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] : std::get<0>(m_outer_box_)[2];
+//        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] : std::get<1>(m_outer_box_)[2];
+//
+//#pragma omp parallel for
+//        for (index_type i = ib; i < ie; ++i)
+//            for (index_type j = jb; j < je; ++j)
+//                for (index_type k = kb; k < ke; ++k)
+//                {
+//                    fun(i, j, k);
+//                }
+//
+//    }
 
     virtual bool is_inside(point_type const &p) const { return toolbox::is_inside(p, box()); }
 

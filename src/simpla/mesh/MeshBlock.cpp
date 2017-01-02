@@ -270,25 +270,25 @@ MeshBlock::intersection(index_box_type const &other_box, int inc_level)
 //};
 
 
-Range<mesh::MeshEntityId>
-MeshBlock::range(size_type entityType, index_box_type const &b) const
+Range <MeshEntityId>
+MeshBlock::range(index_box_type const &b, size_type entity_type, size_type dof) const
 {
     Range<mesh::MeshEntityId> res;
     res.append(MeshEntityIdCoder::make_range(std::get<0>(b), std::get<1>(b), entityType));
     return res;
 }
 
-Range<mesh::MeshEntityId>
-MeshBlock::range(size_type entityType, box_type const &b) const
+Range <MeshEntityId>
+MeshBlock::range(box_type const &b, size_type entityType, size_type dof) const
 {
     index_tuple l, u;
     l = point_to_index(std::get<1>(b));
     u = point_to_index(std::get<1>(b)) + 1;
-    return range(entityType, std::make_tuple(l, u));
+    return range(std::make_tuple(l, u), 0, 0);
 }
 
-Range<mesh::MeshEntityId>
-MeshBlock::range(size_type entityType, MeshZoneTag status) const
+Range <MeshEntityId>
+MeshBlock::range(MeshZoneTag status, size_type entityType, size_type dof) const
 {
     Range<mesh::MeshEntityId> res;
 
