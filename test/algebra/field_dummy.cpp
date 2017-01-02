@@ -39,11 +39,11 @@ int main(int argc, char **argv)
     f(0, 2, 3) = 1990;
     f = 1;
     g = 2;
-    f.assign([&](point_type const &x)
-             {
-                 std::cout << x << std::endl;
-                 return x[0];
-             });
+//    f.assign([&](point_type const &x)
+//             {
+//                 std::cout << x << std::endl;
+//                 return x[0];
+//             });
 //    f = f + g;
     f = -g;
     std::cout << f << std::endl;
@@ -51,5 +51,6 @@ int main(int argc, char **argv)
     Field<Real, mesh_type, VERTEX> rho(&m);
     E.clear();
     rho.clear();
-    rho = diverge(E);
+    rho = codifferential_derivative(f);
+    //diverge(E);
 }

@@ -471,7 +471,7 @@ public:
     template<typename T>
     static inline traits::value_type_t <declare::Expression<tags::_codifferential_derivative, T>>
     get_value(mesh_type const &m, declare::Expression<tags::_codifferential_derivative, T> const &expr,
-              MeshEntityId const &s, ENABLE_IF(traits::iform<T>::value == VOLUME))
+              MeshEntityId const &s, index_const<VOLUME>)
     {
         MeshEntityId D = M::delta_index(M::dual(s));
         return -(get_d(m, std::get<0>(expr.m_args_), s + D) - get_d(m, std::get<0>(expr.m_args_), s - D)) *
@@ -895,21 +895,21 @@ public:
 
 
 
-    template<typename TFun> static TV
-    get_value(mesh_type const &m, TFun const &fun, MeshEntityId const &s,
-    ENABLE_IF((st::is_callable<
-                      TFun(nTuple < Real, 3ul > const &)>::value))
-    )
-    {
-        return InterpolatePolicy<mesh_type>::template sample<IFORM>(m, s, fun(m.point(s)));
-    }
-
-    template<typename TFun> static TV
-    get_value(mesh_type const &m, TFun const &fun, MeshEntityId const &s,
-              ENABLE_IF((st::is_callable<TFun(MeshEntityId const &), TV>::value)))
-    {
-        return fun(s);
-    }
+//    template<typename TFun> static TV
+//    get_value(mesh_type const &m, TFun const &fun, MeshEntityId const &s,
+//    ENABLE_IF((st::is_callable<
+//                      TFun(nTuple < Real, 3ul > const &)>::value))
+//    )
+//    {
+//        return InterpolatePolicy<mesh_type>::template sample<IFORM>(m, s, fun(m.point(s)));
+//    }
+//
+//    template<typename TFun> static TV
+//    get_value(mesh_type const &m, TFun const &fun, MeshEntityId const &s,
+//              ENABLE_IF((st::is_callable<TFun(MeshEntityId const &), TV>::value)))
+//    {
+//        return fun(s);
+//    }
     //******************************************************************************************************************
 
 
