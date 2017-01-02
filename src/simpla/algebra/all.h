@@ -6,15 +6,14 @@
 #define SIMPLA_ALGEBRA_ALL_H
 
 #include "Algebra.h"
-#include "Arithmetic.h"
-#include "Calculus.h"
 #include "Expression.h"
 #include "nTuple.h"
 #include "nTupleExt.h"
 #include "Array.h"
 #include "ArrayExt.h"
 #include "Field.h"
-
+#include "Arithmetic.h"
+#include "Calculus.h"
 /**
  * @addtogroup algebra Algebra System
  **/

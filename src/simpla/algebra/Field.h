@@ -240,16 +240,19 @@ public:
 
 
     template<typename ...Args> this_type &
-    apply(mesh::MeshZoneTag const &tag, Args &&...args)
-    {
-        return apply(m_mesh_->range(tag, IFORM, DOF), std::forward<Args>(args)...);
-    }
-
-
-    template<typename ...Args> this_type &
     apply(Args &&...args)
     {
-        return apply(m_mesh_->range(mesh::SP_ES_ALL, IFORM, DOF), std::forward<Args>(args)...);
+        pre_process();
+        calculus_policy::apply(*this, *m_mesh_, m_mesh_->range(mesh::SP_ES_ALL, IFORM, DOF), std::forward<Args>(args)...);
+        return *this;
+    }
+
+    template<typename ...Args> this_type &
+    apply(mesh::MeshZoneTag const &tag, Args &&...args)
+    {
+        pre_process();
+        calculus_policy::apply(*this, *m_mesh_, m_mesh_->range(tag, IFORM, DOF), std::forward<Args>(args)...);
+        return *this;
     }
 
     template<typename ...Args> this_type &

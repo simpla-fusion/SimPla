@@ -477,15 +477,15 @@ public:
         return -(get_d(m, std::get<0>(expr.m_args_), s + D) - get_d(m, std::get<0>(expr.m_args_), s - D)) *
                m.inv_dual_volume(s);
     }
-
-    template<typename T>
-    static inline traits::value_type_t <declare::Expression<tags::_codifferential_derivative, T>>
-    get_value(mesh_type const &m, declare::Expression<tags::_codifferential_derivative, T> const &expr,
-              MeshEntityId const &s)
-    {
-        static_assert(traits::iform<T>::value != VOLUME && traits::iform<T>::value != VERTEX,
-                      "ERROR: grad VERTEX/VOLUME Field  ");
-    };
+//
+//    template<typename T>
+//    static inline traits::value_type_t <declare::Expression<tags::_codifferential_derivative, T>>
+//    get_value(mesh_type const &m, declare::Expression<tags::_codifferential_derivative, T> const &expr,
+//              MeshEntityId const &s)
+//    {
+//        static_assert(traits::iform<T>::value != VOLUME && traits::iform<T>::value != VERTEX,
+//                      "ERROR: grad VERTEX/VOLUME Field  ");
+//    };
     //! *Form<IR> => Form<N-IL>
 
 
