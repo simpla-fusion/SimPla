@@ -8,6 +8,7 @@
 #include "simpla/predefine/CalculusPolicy.h"
 
 using namespace simpla;
+using namespace simpla::algebra;
 
 int main(int argc, char **argv)
 {
@@ -28,6 +29,8 @@ int main(int argc, char **argv)
 
     Field<Real, mesh_type> f(&m);
     Field<Real, mesh_type> g(&m);
+
+
     f.clear();
     g.clear();
 //    std::cout << f << std::endl;
@@ -44,4 +47,9 @@ int main(int argc, char **argv)
 //    f = f + g;
 
     std::cout << f << std::endl;
+    Field<Real, mesh_type, EDGE> E(&m);
+    Field<Real, mesh_type, VERTEX> rho(&m);
+    E.clear();
+    rho.clear();
+    rho += diverge(E);
 }

@@ -950,14 +950,15 @@ struct MeshEntityIdCoder_
 
     typedef Range<MeshEntityId> range_type;
 
-    static range_type make_range(index_tuple const &min, index_tuple const &max, size_type iform = VERTEX)
+    static range_type
+    make_range(index_tuple const &min, index_tuple const &max, size_type iform = VERTEX, size_type dof = 1)
     {
-        return std::move(range_type::create<EntityRange>(min, max, iform));
+        return std::move(range_type::create<EntityRange>(min, max, iform, dof));
     }
 
-    static range_type make_range(index_box_type const &b, size_type iform = VERTEX)
+    static range_type make_range(index_box_type const &b, size_type iform = VERTEX, size_type dof = 1)
     {
-        return std::move(make_range(std::get<0>(b), std::get<1>(b), iform));
+        return std::move(make_range(std::get<0>(b), std::get<1>(b), iform, dof));
     }
 
 

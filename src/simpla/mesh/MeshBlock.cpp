@@ -270,15 +270,15 @@ MeshBlock::intersection(index_box_type const &other_box, int inc_level)
 //};
 
 
-Range <MeshEntityId>
-MeshBlock::range(index_box_type const &b, size_type entity_type, size_type dof) const
+Range<MeshEntityId>
+MeshBlock::range(index_box_type const &b, size_type iform, size_type dof) const
 {
     Range<mesh::MeshEntityId> res;
-    res.append(MeshEntityIdCoder::make_range(std::get<0>(b), std::get<1>(b), entityType));
+    res.append(MeshEntityIdCoder::make_range(std::get<0>(b), std::get<1>(b), iform, 0));
     return res;
 }
 
-Range <MeshEntityId>
+Range<MeshEntityId>
 MeshBlock::range(box_type const &b, size_type entityType, size_type dof) const
 {
     index_tuple l, u;
@@ -287,7 +287,7 @@ MeshBlock::range(box_type const &b, size_type entityType, size_type dof) const
     return range(std::make_tuple(l, u), 0, 0);
 }
 
-Range <MeshEntityId>
+Range<MeshEntityId>
 MeshBlock::range(MeshZoneTag status, size_type entityType, size_type dof) const
 {
     Range<mesh::MeshEntityId> res;
@@ -310,10 +310,10 @@ MeshBlock::range(MeshZoneTag status, size_type entityType, size_type dof) const
     switch (status)
     {
         case SP_ES_ALL : //all valid
-            res.append(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType));
+            res.append(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType, 0));
             break;
         case SP_ES_OWNED:
-            res.append(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType));
+            res.append(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType, 0));
             break;
         case SP_ES_NON_LOCAL : // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
         case SP_ES_SHARED : //       = 0x04,                    0b000100 shared by two or more get_mesh grid_dims
@@ -324,41 +324,29 @@ MeshBlock::range(MeshZoneTag status, size_type entityType, size_type dof) const
             if (m_g_dimensions_[0] > 1)
             {
                 res.append(
-                        MeshEntityIdCoder::make_range(
-                                index_tuple{m_outer_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
-                                index_tuple{m_inner_lower_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType));
+                        MeshEntityIdCoder::make_range(index_tuple{m_outer_lower_[0], m_outer_lower_[1], m_outer_lower_[2]}, index_tuple{m_inner_lower_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType, 0));
                 res.append(
-                        MeshEntityIdCoder::make_range(
-                                index_tuple{m_inner_upper_[0], m_outer_lower_[1], m_outer_lower_[2]},
-                                index_tuple{m_outer_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType));
+                        MeshEntityIdCoder::make_range(index_tuple{m_inner_upper_[0], m_outer_lower_[1], m_outer_lower_[2]}, index_tuple{m_outer_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType, 0));
             }
             if (m_g_dimensions_[1] > 1)
             {
                 res.append(
-                        MeshEntityIdCoder::make_range(
-                                index_tuple{m_inner_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
-                                index_tuple{m_inner_upper_[0], m_inner_lower_[1], m_outer_upper_[2]}, entityType));
+                        MeshEntityIdCoder::make_range(index_tuple{m_inner_lower_[0], m_outer_lower_[1], m_outer_lower_[2]}, index_tuple{m_inner_upper_[0], m_inner_lower_[1], m_outer_upper_[2]}, entityType, 0));
                 res.append(
-                        MeshEntityIdCoder::make_range(
-                                index_tuple{m_inner_lower_[0], m_inner_upper_[1], m_outer_lower_[2]},
-                                index_tuple{m_inner_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType));
+                        MeshEntityIdCoder::make_range(index_tuple{m_inner_lower_[0], m_inner_upper_[1], m_outer_lower_[2]}, index_tuple{m_inner_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType, 0));
             }
             if (m_g_dimensions_[2] > 1)
             {
                 res.append(
-                        MeshEntityIdCoder::make_range(
-                                index_tuple{m_inner_lower_[0], m_inner_lower_[1], m_outer_lower_[2]},
-                                index_tuple{m_inner_upper_[0], m_inner_upper_[1], m_inner_lower_[2]}, entityType));
+                        MeshEntityIdCoder::make_range(index_tuple{m_inner_lower_[0], m_inner_lower_[1], m_outer_lower_[2]}, index_tuple{m_inner_upper_[0], m_inner_upper_[1], m_inner_lower_[2]}, entityType, 0));
                 res.append(
-                        MeshEntityIdCoder::make_range(
-                                index_tuple{m_inner_lower_[0], m_inner_lower_[1], m_inner_upper_[2]},
-                                index_tuple{m_inner_upper_[0], m_inner_upper_[1], m_outer_upper_[2]}, entityType));
+                        MeshEntityIdCoder::make_range(index_tuple{m_inner_lower_[0], m_inner_lower_[1], m_inner_upper_[2]}, index_tuple{m_inner_upper_[0], m_inner_upper_[1], m_outer_upper_[2]}, entityType, 0));
             }
             break;
         case SP_ES_DMZ: //  = 0x100,
         case SP_ES_NOT_DMZ: //  = 0x200,
         case SP_ES_LOCAL : // = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
-            res.append(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType));
+            res.append(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType, 0));
             break;
         case SP_ES_VALID:
         {
@@ -373,7 +361,7 @@ MeshBlock::range(MeshZoneTag status, size_type entityType, size_type dof) const
                     u[i] -= 1;
                 }
             }
-            res.append(MeshEntityIdCoder::make_range(l, u, entityType));
+            res.append(MeshEntityIdCoder::make_range(l, u, entityType, 0));
             break;
         }
 //        case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh grid_dims,

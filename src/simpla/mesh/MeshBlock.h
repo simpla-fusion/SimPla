@@ -97,6 +97,8 @@ SP_OBJECT_HEAD(MeshBlock, Object)
 
     MeshBlock &operator=(MeshBlock const &other)= delete;
 
+    size_type level() const { return m_level_; }
+
     virtual void initialize() { DO_NOTHING; }
 
     virtual void deploy();
