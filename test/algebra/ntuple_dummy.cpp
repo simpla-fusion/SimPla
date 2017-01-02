@@ -21,8 +21,10 @@ int main(int argc, char **argv)
         a[i] = b[i] + c[i];
     }
     nTuple<Real, 3> t0 = {0, 0, 0};
-    nTuple<Real, 2, 3> t1 = {{0, 1, 2}, {3, 4, 5}};
-    nTuple<std::complex<Real>, 2, 3> t2 = {{0, 1, 2}, {3, 4, 5}};
+    nTuple<Real, 2, 3> t1 = {{0, 1, 2},
+                             {3, 4, 5}};
+    nTuple<std::complex<Real>, 2, 3> t2 = {{0, 1, 2},
+                                           {3, 4, 5}};
 
     std::cout << "t1 = " << t1 << std::endl;
 
@@ -32,12 +34,14 @@ int main(int argc, char **argv)
 
     std::cout << "t1 = " << t1 << std::endl;
 
-    double d[2][3] = {{10, 20, 30}, {40, 50, 60}};
+    double d[2][3] = {{10, 20, 30},
+                      {40, 50, 60}};
 
     nTuple<double, 2, 3> A;
 
-    nTuple<double, 2, 3> B = {{4, 5, 6}, {7, 8, 9}};
-    A = B + d;
+    nTuple<double, 2, 3> B = {{4, 5, 6},
+                              {7, 8, 9}};
+    A = B * 2 + b;
 
     std::cout << "A=" << A << std::endl;
 

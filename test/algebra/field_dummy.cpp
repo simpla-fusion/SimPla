@@ -45,12 +45,12 @@ int main(int argc, char **argv)
 //                 return x[0];
 //             });
 //    f = f + g;
-    f = -g;
+    f = -g * 0.2;
     std::cout << f << std::endl;
     Field<Real, mesh_type, EDGE> E(&m);
     Field<Real, mesh_type, VERTEX> rho(&m);
     E.clear();
     rho.clear();
-    rho = codifferential_derivative(f);
-    diverge(E);
+//    rho = codifferential_derivative(f);
+//    diverge(E);
 }

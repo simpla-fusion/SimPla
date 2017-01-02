@@ -99,7 +99,7 @@ public:
     void foreach(TF const &fun)
     {
         design_pattern::Observable<void(Patch *)>::foreach(
-                [&](observer_type &obj) { fun(static_cast<Attribute *>(&obj)); });
+                [&](observer_type &obj) { fun(reinterpret_cast<Attribute *>(&obj)); });
     }
 
 private:

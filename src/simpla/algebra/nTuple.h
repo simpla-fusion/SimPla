@@ -292,16 +292,41 @@ public:
     template<typename T, size_type N> static constexpr inline T const &
     get_value(declare::nTuple_<T, N> const &v, size_type const &s0) { return v[s0]; };
 public:
-    template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static constexpr inline auto
-    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, Idx &&... s)
-    DECL_RET_TYPE((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
+//    template<typename TOP, typename ...Others, size_type ... index, typename ...Idx>
+//    static inline traits::value_type_t<declare::Expression<TOP, Others...>>
+//    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>,
+//                   Idx &&... s)
+//    {
+//        return expr.m_op_(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...);
+//    }
+//
+//    template<typename TOP, typename   ...Others, typename ...Idx>
+//    static constexpr inline traits::value_type_t<declare::Expression<TOP, Others...> >
+//    get_value(declare::Expression<TOP, Others...> const &expr,
+//              Idx &&... s)
+//    {
+//        return _invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...);
+//    }
 
-    template<typename TOP, typename   ...Others, typename ...Idx> static constexpr inline auto
-    get_value(declare::Expression<TOP, Others...> const &expr, Idx &&... s)
-    DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
+//    template<typename TOP, typename TL, typename ...Idx>
+//    static constexpr inline traits::value_type_t<declare::Expression<TOP, TL> >
+//    get_value(declare::Expression<TOP, TL> const &expr, Idx &&... s)
+//    {
+//        return expr.m_op_(get_value(std::get<0>(expr.m_args_), std::forward<Idx>(s)...));
+//
+//    }
+
+    template<typename TOP, typename TL, typename TR, typename ...Idx>
+    static constexpr inline traits::value_type_t<declare::Expression<TOP, TL, TR> >
+    get_value(declare::Expression<TOP, TL, TR> const &expr, Idx &&... s)
+    {
+        return expr.m_op_(get_value(std::get<0>(expr.m_args_), std::forward<Idx>(s)...),
+                          get_value(std::get<1>(expr.m_args_), std::forward<Idx>(s)...));
+
+    }
 
     template<typename TOP, typename TR>
-    static constexpr inline void apply(TOP const &op, declare::nTuple_<V, J...> &lhs, TR &rhs)
+    static inline void apply(TOP const &op, declare::nTuple_<V, J...> &lhs, TR &rhs)
     {
         _detail::_apply(op, lhs, rhs);
     };

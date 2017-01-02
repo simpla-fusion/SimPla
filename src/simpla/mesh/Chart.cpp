@@ -31,6 +31,8 @@ std::ostream &Chart::print(std::ostream &os, int indent) const
     os << std::setw(indent + 1) << " " << "Attribute Description= { ";
 
     os << std::setw(indent + 1) << " " << "} , " << std::endl;
+
+    return os;
 };
 
 

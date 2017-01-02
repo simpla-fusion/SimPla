@@ -41,11 +41,24 @@ struct is_array<declare::Expression<TOP, Others...> > : public is_array<Others..
 template<typename TOP, typename T0, typename ... T>
 struct iform<declare::Expression<TOP, T0, T...> > : public iform<T0> {};
 
-template<typename TOP, typename ...Others>
-struct value_type<declare::Expression<TOP, Others...> >
+template<typename TOP, typename TL>
+struct value_type<declare::Expression<TOP, TL> >
 {
-    typedef std::result_of_t<TOP(typename value_type<Others>::type ...)> type;
+    typedef std::result_of_t<TOP(typename value_type<TL>::type)> type;
 };
+
+
+template<typename TOP, typename TL, typename TR>
+struct value_type<declare::Expression<TOP, TL, TR> >
+{
+    typedef std::result_of_t<TOP(typename value_type<TL>::type, typename value_type<TR>::type)> type;
+};
+
+//template<typename TOP, typename ...Others>
+//struct value_type<declare::Expression<TOP, Others...> >
+//{
+//    typedef std::result_of_t<TOP(typename value_type<Others>::type ...)> type;
+//};
 
 
 }//namespace traits

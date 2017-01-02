@@ -45,9 +45,6 @@ public:
 
     ~proportional_split() {}
 
-    // used when Range does not support proportional split
-    operator split() const { return split(); }
-
 
 };
 }//namespace tags

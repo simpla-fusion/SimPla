@@ -292,7 +292,7 @@ struct MeshEntityIdCoder_
                m_id_to_shift_[m_sub_index_to_id_[IFORM][n_id]];
     }
 
-    static constexpr index_tuple unpack_index(MeshEntityId const &s)
+    static index_tuple unpack_index(MeshEntityId const &s)
     {
         return index_tuple{
                 static_cast<index_type>(s.x >> 1 ) - ZERO,
@@ -301,7 +301,7 @@ struct MeshEntityIdCoder_
         };
     }
 
-    static constexpr nTuple<index_type, 4> unpack_index4(MeshEntityId const &s, index_type dof = 1)
+    static nTuple<index_type, 4> unpack_index4(MeshEntityId const &s, index_type dof = 1)
     {
         return nTuple<index_type, 4> {
                 static_cast<index_type>(s.x >> 1 ) - ZERO,
@@ -311,7 +311,7 @@ struct MeshEntityIdCoder_
         };
     }
 
-    static constexpr nTuple<index_type, 4> unpack_index4_nodeid(MeshEntityId const &s, index_type dof = 1)
+    static nTuple<index_type, 4> unpack_index4_nodeid(MeshEntityId const &s, index_type dof = 1)
     {
         return nTuple<index_type, 4> {
                 static_cast<index_type>(s.x >> 1 ) - ZERO,

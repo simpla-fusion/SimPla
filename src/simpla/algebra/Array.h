@@ -50,9 +50,9 @@ struct sub_type<declare::Array_<T, I> > { typedef std::conditional_t<I == 0, T, 
 
 
 template<typename T>
-struct pod_type<declare::Array_<T, 0> > { typedef pod_type_t<T> type; };
+struct pod_type<declare::Array_<T, 0> > { typedef pod_type_t <T> type; };
 template<typename T, size_type I>
-struct pod_type<declare::Array_<T, I> > { typedef pod_type_t<declare::Array_<T, I - 1>> *type; };
+struct pod_type<declare::Array_<T, I> > { typedef pod_type_t <declare::Array_<T, I - 1>> *type; };
 
 }//namespace traits
 
@@ -66,7 +66,7 @@ struct Array_ : public data::HeavyData
 {
 private:
     typedef Array_<V, NDIMS, SLOW_FIRST> this_type;
-    typedef calculus::calculator<this_type> calculator;
+    typedef calculus::calculator <this_type> calculator;
 public:
     typedef V value_type;
 
@@ -405,7 +405,7 @@ public:
     }
 
 
-    template<typename TOP, typename ...Others> static constexpr inline void
+    template<typename TOP, typename ...Others> static inline void
     apply(self_type &self, TOP const &op, Others &&...others)
     {
         deploy(self);
@@ -418,19 +418,19 @@ public:
     };
 
 
-    template<typename TOP> static constexpr inline void
+    template<typename TOP> static inline void
     apply(self_type &self, TOP const &op)
     {
         traversal_nd(self.m_lower_, self.m_upper_, [&](index_type const *idx) { op(get_value(self, idx)); });
     };
 
-    template<typename TOP> static constexpr inline void
+    template<typename TOP> static inline void
     apply(self_type const &self, TOP const &op)
     {
         traversal_nd(self.m_lower_, self.m_upper_, [&](index_type const *idx) { op(get_value(self, idx)); });
     };
 
-    static constexpr inline void
+    static inline void
     swap(self_type &self, self_type &other)
     {
         std::swap(self.m_data_, other.m_data_);
@@ -446,7 +446,7 @@ public:
 
     };
 
-    static constexpr inline void
+    static inline void
     split(concept::tags::split const &split, self_type &other, self_type &self)
     {
         self_type(other).swap(self);

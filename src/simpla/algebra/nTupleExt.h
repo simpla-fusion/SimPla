@@ -88,7 +88,7 @@ reduce(T const &v, ENABLE_IF(traits::is_scalar<T>::value)) { return v; }
 template<typename TOP, typename T> traits::value_type_t<T>
 reduce(T const &v, ENABLE_IF(traits::is_nTuple<T>::value))
 {
-    traits::value_type_t<T> res();
+    traits::value_type_t<T> res;
 
     //    static constexpr size_type n = N0;
 //

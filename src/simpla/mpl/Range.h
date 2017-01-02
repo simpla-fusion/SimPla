@@ -94,9 +94,9 @@ public:
 
     void append(this_type &&other) { m_holder_->append(other.m_holder_); }
 
-    template<typename U> U &as() { return m_holder_->as<U>(); }
+    template<typename U> U &as() { return m_holder_->template as<U>(); }
 
-    template<typename U> U const &as() const { return m_holder_->as<U>(); }
+    template<typename U> U const &as() const { return m_holder_->template as<U>(); }
 
     std::shared_ptr<RangeHolder<this_type>> next() { return m_holder_->m_next_; }
 

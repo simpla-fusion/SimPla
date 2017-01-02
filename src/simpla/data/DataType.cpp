@@ -190,7 +190,7 @@ bool DataType::is_opaque() const
 
 bool DataType::is_same(std::type_index const &other) const { return pimpl_->m_t_index_ == other; }
 
-int DataType::push_back(DataType const &d_type, std::string const &name, size_type offset)
+int DataType::push_back(DataType const &d_type, std::string const &name, index_type offset)
 {
     if (offset < 0)
     {

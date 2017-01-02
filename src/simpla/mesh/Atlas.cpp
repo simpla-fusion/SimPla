@@ -33,7 +33,7 @@ Atlas::Atlas() : m_pimpl_(new pimpl_s) {};
 
 Atlas::~Atlas() {};
 
-size_type Atlas::count(int level) const { m_pimpl_->m_layer_[level].size(); }
+size_type Atlas::count(int level) const { return m_pimpl_->m_layer_[level].size(); }
 
 void Atlas::max_level(int ml) { m_pimpl_->m_max_level_ = ml; }
 
@@ -76,6 +76,7 @@ std::ostream &Atlas::print(std::ostream &os, int indent) const
         item.second->print(os, indent + 1);
         os << "}," << std::endl;
     }
+    return os;
 };
 
 void Atlas::load(const data::DataTable &) { UNIMPLEMENTED; }

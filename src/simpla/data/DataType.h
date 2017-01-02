@@ -93,7 +93,7 @@ struct DataType
 
     template<typename T> bool is_same() const { return is_same(std::type_index(typeid(T))); }
 
-    int push_back(DataType const &dtype, std::string const &name, size_type offset = -1);
+    int push_back(DataType const &dtype, std::string const &name, index_type offset = -1);
 
     std::vector<std::tuple<DataType, std::string, int>> const &members() const;
 
