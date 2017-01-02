@@ -142,6 +142,9 @@ public:
 
     virtual void save(data::DataTable *d) const { m_data_->save(d); };
 
+    inline this_type &
+    operator=(this_type const &rhs) { return assign(rhs); }
+
     template<typename TR> inline this_type &
     operator=(TR const &rhs) { return assign(rhs); }
 

@@ -52,5 +52,5 @@ int main(int argc, char **argv)
     E.clear();
     rho.clear();
     rho = codifferential_derivative(f);
-    //diverge(E);
+    diverge(E);
 }
