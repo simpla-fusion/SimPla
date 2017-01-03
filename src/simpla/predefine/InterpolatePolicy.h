@@ -228,7 +228,7 @@ public:
 
 //    template<typename M,int IFORM,  typename TV>
 //    static inline  auto generate(TI const &s, TV const &v)
-//    DECL_RET_TYPE((sample_(M const & m,index_const< IFORM>(), s, v)))
+//    AUTO_RETURN((sample_(M const & m,index_const< IFORM>(), s, v)))
 
 
     template<int IFORM, typename TV>
@@ -237,7 +237,7 @@ public:
     {
         return sample_(m, index_const<IFORM>(), s, v);
     }
-//    DECL_RET_TYPE((sample_(index_const< IFORM>(), s, v)))
+//    AUTO_RETURN((sample_(index_const< IFORM>(), s, v)))
 
 
     /**

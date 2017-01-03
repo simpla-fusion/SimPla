@@ -126,7 +126,7 @@ struct CartesianMetric
 //
 //    template<typename TFun>
 //    auto pull_back(point_t0 const &x0, TFun const &fun)
-//    DECL_RET_TYPE ((fun(this->operator()(x0))))
+//    AUTO_RETURN ((fun(this->operator()(x0))))
 //
 //    template<typename TRect>
 //    TRect pull_back(point_t0 const &x0,

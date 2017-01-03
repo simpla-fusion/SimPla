@@ -61,7 +61,7 @@ public:
 
     bool is_divisible() { return m_holder_->is_divisible(); }
 
-    virtual size_type size() const  { return m_holder_->size(); }
+    virtual size_type size() const { return m_holder_->size(); }
 
     bool empty() const { return m_holder_->empty(); }
 
@@ -72,7 +72,8 @@ public:
     create(Args &&...args)
     {
         this_type res;
-        res.m_holder_ = std::dynamic_pointer_cast<RangeHolder<this_type>>(std::make_shared<RangeProxy<U, this_type>>(std::forward<Args>(args)...));
+        res.m_holder_ = std::dynamic_pointer_cast<RangeHolder<this_type>>(
+                std::make_shared<RangeProxy<U, this_type>>(std::forward<Args>(args)...));
         return std::move(res);
     }
 
@@ -90,9 +91,13 @@ public:
         return std::move(res);
     }
 
-    void append(this_type &other) { m_holder_->append(other.m_holder_); }
+    void append(this_type const &other)
+    {
+        if (m_holder_ != nullptr) { m_holder_->append(other.m_holder_); }
+        else { m_holder_ = other.m_holder_; }
+    }
 
-    void append(this_type &&other) { m_holder_->append(other.m_holder_); }
+//    void append(this_type &&other) { m_holder_->append(other.m_holder_); }
 
     template<typename U> U &as() { return m_holder_->template as<U>(); }
 

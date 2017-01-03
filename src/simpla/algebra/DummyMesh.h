@@ -112,32 +112,32 @@ public:
 
 //    template<typename T>  auto
 //    get_value(T &v, id_type const *s, ENABLE_IF((st::is_indexable<T, id_type>::value)))
-//    DECL_RET_TYPE((get_value(v[*s], s + 1)))
+//    AUTO_RETURN((get_value(v[*s], s + 1)))
 
 
     template<typename T> auto
     get_value(T &v, id_type const &s0,
               ENABLE_IF((st::is_indexable<T, id_type>::value && !algebra::traits::is_field<T>::value))) const
-    DECL_RET_TYPE((v[s0]));
+    AUTO_RETURN((v[s0]));
 
     template<typename T> auto
     get_value(T &v, id_type const &s0,
               ENABLE_IF((st::is_callable<T(id_type)>::value && !algebra::traits::is_field<T>::value))) const
-    DECL_RET_TYPE((v(s0)));
+    AUTO_RETURN((v(s0)));
 
     template<typename T> auto
     get_value(T &f, id_type const &s, ENABLE_IF((algebra::traits::is_field<T>::value))) const
-    DECL_RET_TYPE((access(f, s)));
+    AUTO_RETURN((access(f, s)));
 
 
     template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> auto
     _invoke_helper(algebra::declare::Expression<TOP, Others...> const &expr, index_sequence<index...>,
                    Idx &&... s) const
-    DECL_RET_TYPE((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
+    AUTO_RETURN((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
 
     template<typename TOP, typename   ...Others, typename ...Idx> auto
     get_value(algebra::declare::Expression<TOP, Others...> const &expr, Idx &&... s) const
-    DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
+    AUTO_RETURN((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
 
     template<typename TV, size_type IFORM, size_type DOF> void
     apply(algebra::declare::Field_ <TV, mesh_type, IFORM, DOF> &lhs, algebra::tags::_clear const &) const

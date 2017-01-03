@@ -202,7 +202,7 @@ Vector<CS> cross(Vector<CS> const &x1, T2 const &v)
 
 template<typename CS>
 auto cross(Vector<CS> const &v0, Vector<CS> const &v1)
-DECL_RET_TYPE(inner_product(v0.as_ntuple(), v1.as_ntuple()))
+AUTO_RETURN(inner_product(v0.as_ntuple(), v1.as_ntuple()))
 
 /**
  * THIS is INCOMPLETE!!!
@@ -218,18 +218,18 @@ struct Tensor
     }
 
     inline auto operator[](size_t n)
-    DECL_RET_TYPE (m_data_[n])
+    AUTO_RETURN (m_data_[n])
 
     inline auto operator[](size_t n) const
-    DECL_RET_TYPE (m_data_[n])
+    AUTO_RETURN (m_data_[n])
 
     template<size_t M>
     inline auto get()
-    DECL_RET_TYPE (m_data_[M])
+    AUTO_RETURN (m_data_[M])
 
     template<size_t M>
     inline auto get() const
-    DECL_RET_TYPE (m_data_[M])
+    AUTO_RETURN (m_data_[M])
 };
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
@@ -340,11 +340,11 @@ namespace std
 
 template<size_t N, size_t M, typename ... Others>
 auto get(simpla::geometry::model::Primitive<M, Others...> &obj)
-DECL_RET_TYPE((obj[N]))
+AUTO_RETURN((obj[N]))
 
 template<size_t N, size_t M, typename ...Others>
 auto get(simpla::geometry::model::Primitive<M, Others...> const &obj)
-DECL_RET_TYPE((obj[N]))
+AUTO_RETURN((obj[N]))
 
 }  // namespace std
 #endif /* CORE_GEOMETRY_PRIMITIVE_H_ */

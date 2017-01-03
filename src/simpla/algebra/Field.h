@@ -108,7 +108,7 @@ private:
 
     typedef typename mesh_type::id_type mesh_id_type;
 
-    typedef calculus::calculator <this_type> calculus_policy;
+    typedef calculus::calculator<this_type> calculus_policy;
 
     friend calculus_policy;
 
@@ -129,6 +129,11 @@ public:
     explicit Field_(mesh_type const *m, std::shared_ptr<data_type> const &d = nullptr) :
             m_mesh_(m), m_data_holder_(d), m_data_(d.get()) {};
 
+    template<typename ...Others>
+    explicit Field_(mesh_type const &m, Others &&...others) :Field_(&m, std::forward<Others>(others)...) {}
+
+    template<typename ...Others>
+    explicit Field_(std::shared_ptr<mesh_type> const &m, Others &&...others) :Field_(m.get(), std::forward<Others>(others)...) {}
 
     virtual ~Field_() {}
 
@@ -191,17 +196,16 @@ public:
 
     /** @name as_function  @{*/
     template<typename ...Args> inline auto
-    gather(Args &&...args) const
-    DECL_RET_TYPE((apply(tags::_gather(), std::forward<Args>(args)...)))
+    gather(Args &&...args) const AUTO_RETURN((apply(tags::_gather(), std::forward<Args>(args)...)))
 
 
     template<typename ...Args> inline auto
-    scatter(field_value const &v, Args &&...args)
-    DECL_RET_TYPE((apply(tags::_scatter(), v, std::forward<Args>(args)...)))
+    scatter(field_value const &v, Args &&...args) AUTO_RETURN(
+            (apply(tags::_scatter(), v, std::forward<Args>(args)...)))
 
 
 //    auto
-//    operator()(mesh_type::point_type const &x) const DECL_RET_TYPE((gather(x)))
+//    operator()(mesh_type::point_type const &x) const AUTO_RETURN((gather(x)))
 
 
     /**@}*/
@@ -246,7 +250,8 @@ public:
     apply(Args &&...args)
     {
         pre_process();
-        calculus_policy::apply(*this, *m_mesh_, m_mesh_->range(mesh::SP_ES_ALL, IFORM, DOF), std::forward<Args>(args)...);
+        calculus_policy::apply(*this, *m_mesh_, m_mesh_->range(mesh::SP_ES_ALL, IFORM, DOF),
+                               std::forward<Args>(args)...);
         return *this;
     }
 

@@ -78,7 +78,7 @@ public:
     }
 
     auto operator()(Args &&... args) const
-    DECL_RET_TYPE((call(std::is_same<result_type, void>(), std::forward<Args>(args)...)))
+    AUTO_RETURN((call(std::is_same<result_type, void>(), std::forward<Args>(args)...)))
 
 
 

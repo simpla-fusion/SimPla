@@ -79,7 +79,7 @@ determinant(declare::nTuple_<T, 4, 4> const &m)
 
 template<typename T, size_type ...N>
 auto mod(nTuple<T, N...> const &l)
-DECL_RET_TYPE((std::sqrt(std::abs(inner_product(l, l)))))
+AUTO_RETURN((std::sqrt(std::abs(inner_product(l, l)))))
 
 
 template<typename TOP, typename T> T
@@ -103,21 +103,21 @@ reduce(T const &v, ENABLE_IF(traits::is_nTuple<T>::value))
 template<typename TL, typename TR> inline auto
 inner_product(TL const &l, TR const &r,
               ENABLE_IF(traits::is_nTuple<TL>::value &&traits::is_nTuple<TL>::value))
-DECL_RET_TYPE((reduce<tags::plus>(l * r)))
+AUTO_RETURN((reduce<tags::plus>(l * r)))
 
 template<typename T> inline auto
-normal(T const &l, ENABLE_IF(traits::is_nTuple<T>::value)) DECL_RET_TYPE((std::sqrt(inner_product(l, l))))
+normal(T const &l, ENABLE_IF(traits::is_nTuple<T>::value)) AUTO_RETURN((std::sqrt(inner_product(l, l))))
 
 
 template<typename T> inline auto
-abs(T const &l, ENABLE_IF(traits::is_nTuple<T>::value)) DECL_RET_TYPE((std::sqrt(inner_product(l, l))))
+abs(T const &l, ENABLE_IF(traits::is_nTuple<T>::value)) AUTO_RETURN((std::sqrt(inner_product(l, l))))
 
 template<typename T> inline auto
-NProduct(T const &v, ENABLE_IF(traits::is_nTuple<T>::value)) DECL_RET_TYPE((reduce<tags::multiplies>(v)))
+NProduct(T const &v, ENABLE_IF(traits::is_nTuple<T>::value)) AUTO_RETURN((reduce<tags::multiplies>(v)))
 
 template<typename T> inline auto
 NSum(T const &v, ENABLE_IF(traits::is_nTuple<T>::value))
-DECL_RET_TYPE((reduce<tags::plus>(v)))
+AUTO_RETURN((reduce<tags::plus>(v)))
 
 
 

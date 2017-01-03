@@ -241,16 +241,16 @@ template<typename ...> struct AssignmentExpression;
 //{
 //
 //
-//    template<typename TL> static constexpr auto eval(TL const &l) DECL_RET_TYPE ((l * l))
+//    template<typename TL> static constexpr auto eval(TL const &l) AUTO_RETURN ((l * l))
 //
 //    template<typename TL, typename TI>
-//    static constexpr auto eval(TL const &l, TI const &s) DECL_RET_TYPE ((_pow2::eval(traits::get_value(l, s))))
+//    static constexpr auto eval(TL const &l, TI const &s) AUTO_RETURN ((_pow2::eval(traits::get_value(l, s))))
 //
 //    template<typename TL>
 //    constexpr TL operator()(TL const &l) const { return _pow2::eval(l); }
 //
 //    template<typename TL, typename TI>
-//    constexpr auto operator()(TL const &l, TI const &s) const DECL_RET_TYPE ((_pow2(traits::get_value(l, s))))
+//    constexpr auto operator()(TL const &l, TI const &s) const AUTO_RETURN ((_pow2(traits::get_value(l, s))))
 //
 //};
 //

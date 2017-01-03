@@ -77,7 +77,6 @@ public:
 
     CartesianGeometry() {}
 
-
     CartesianGeometry(index_type const *lower, index_type const *upper, Real const *dx = nullptr,
                       Real const *origin = nullptr)
             : Chart(3/*NDIMS*/, lower, upper, dx, origin) {}
@@ -104,7 +103,8 @@ public:
     void deploy() {};
 
     template<typename ...Args>
-    point_type point(index_type x, index_type y, index_type z) const { return point_type{x, y, z}; }
+    point_type point(index_type x, index_type y,
+                     index_type z) const { return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)}; }
 
     virtual point_type
     point(MeshEntityId s) const

@@ -105,13 +105,9 @@ template<typename T> typename std::enable_if<
     std::swap(l, r);
 }
 
-template<typename TI>
-auto ref(TI &it)
-ENABLE_IF_DECL_RET_TYPE(traits::is_iterator<TI>::value, (*it))
+template<typename TI> auto ref(TI &it, ENABLE_IF(traits::is_iterator<TI>::value)) AUTO_RETURN((*it))
 
-template<typename TI>
-auto ref(TI &it)
-ENABLE_IF_DECL_RET_TYPE(!traits::is_iterator<TI>::value, (it))
+template<typename TI> auto ref(TI &it, ENABLE_IF(!traits::is_iterator<TI>::value)) AUTO_RETURN((it))
 
 template<typename> struct result_of;
 
@@ -126,12 +122,10 @@ namespace _impl
 struct GetValue
 {
     template<typename TL, typename TI>
-    constexpr auto operator()(TL const &v, TI const s) const
-    DECL_RET_TYPE ((traits::index(v, s)))
+    constexpr auto operator()(TL const &v, TI const s) const AUTO_RETURN ((traits::index(v, s)))
 
     template<typename TL, typename TI>
-    constexpr auto operator()(TL &v, TI const s) const
-    DECL_RET_TYPE((traits::index(v, s)))
+    constexpr auto operator()(TL &v, TI const s) const AUTO_RETURN((traits::index(v, s)))
 };
 
 }

@@ -10,12 +10,13 @@
 #include "simpla/algebra/Field.h"
 #include "field_basic_algebra_test.h"
 
-#include "simpla/manifold/CartesianGeometry.h"
+#include "simpla/predefine/CartesianGeometry.h"
+#include "simpla/predefine/CalculusPolicy.h"
 //typedef simpla::mesh::CartesianGeometry mesh_type;
 
-#include "simpla/algebra/DummyMesh.h"
+//#include "simpla/algebra/DummyMesh.h"
 
-typedef simpla::DummyMesh mesh_type;
+typedef simpla::mesh::CartesianGeometry mesh_type;
 
 using namespace simpla;
 

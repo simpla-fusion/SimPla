@@ -43,9 +43,8 @@ typedef mesh::CartesianGeometry mesh_type;
 
 #endif
 
-class FETLTest : public testing::TestWithParam<
-        std::tuple<std::tuple<nTuple<Real, 3>, nTuple<Real, 3> >, nTuple<size_t, 3>,
-                nTuple<Real, 3>>>
+class FETLTest
+        : public testing::TestWithParam<std::tuple<std::tuple<nTuple<Real, 3>, nTuple<Real, 3> >, nTuple<size_t, 3>, nTuple<Real, 3>>>
 {
 protected:
     void SetUp()

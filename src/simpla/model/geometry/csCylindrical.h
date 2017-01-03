@@ -285,7 +285,7 @@ struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 //
 //    template<typename TFun>
 //    auto pull_back(point_t0 const &x0, TFun const &fun)
-//    DECL_RET_TYPE((fun(map(x0))))
+//    AUTO_RETURN((fun(map(x0))))
 //
 //    template<typename TRect>
 //    TRect pull_back(point_t0 const &x0, std::function<TRect(point_t0 const &)> const &fun)
@@ -387,7 +387,7 @@ struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 //
 //    template<typename TFun>
 //    auto pull_back(point_t0 const &x0, TFun const &fun)
-//    DECL_RET_TYPE((fun(map(x0))))
+//    AUTO_RETURN((fun(map(x0))))
 //
 //    template<typename TRect>
 //    TRect pull_back(point_t0 const &x0,

@@ -15,6 +15,6 @@ function(simpla_test name)
     GTEST_ADD_TESTS(${name} "" ${ARGN})
 
 #    ADD_DEPENDENCIES(${name} googletest)
-    ADD_DEPENDENCIES(alltest ${name} )
+#    ADD_DEPENDENCIES(alltest ${name} )
 endfunction()
  

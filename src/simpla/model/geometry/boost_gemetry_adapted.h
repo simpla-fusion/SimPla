@@ -298,7 +298,7 @@ struct indexed_access<sgm::Box<CS>, I, Dimension>
 {
 
 	static inline auto get(sgm::Box<CS> const& b)
-	DECL_RET_TYPE(geometry::get<Dimension>(b[I]))
+	AUTO_RETURN(geometry::get<Dimension>(b[I]))
 
 	template<typename T>
 	static inline void set(sgm::Box<CS>& b, T const& value)

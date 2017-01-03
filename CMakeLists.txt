@@ -22,20 +22,19 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
-
-SET(CMAKE_C_FLAGS "-std=c11 -fopenmp  ")
-
-SET(CMAKE_CXX_FLAGS "-std=c11 -fopenmp  ")
-
+if (NOT STD_CXX)
+    SET(STD_CXX "c++14")
+endif (NOT STD_CXX)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    SET(CMAKE_CXX_FLAGS "-std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0  -fPIC ")
+    SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fcolor-diagnostics   -ftemplate-backtrace-limit=0  -fPIC ")
     SET(CMAKE_Fortran_COMPILER gfortran)
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-    SET(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp -fPIC ")
+    SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fPIC ")
 else ()
-    SET(CMAKE_CXX_FLAGS "-std=c++11 -fopenmp  -fPIC  ")
+    SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fPIC  ")
 endif ()
+
 
 INCLUDE(CTest)
 

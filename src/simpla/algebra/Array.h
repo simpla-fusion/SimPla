@@ -9,10 +9,12 @@
 #include <cstring>
 
 #include <simpla/mpl/Range.h>
+#include <simpla/mpl/macro.h>
 #include <simpla/concept/Splittable.h>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/data/all.h>
+
 
 #include "Algebra.h"
 #include "Arithmetic.h"
@@ -50,9 +52,9 @@ struct sub_type<declare::Array_<T, I> > { typedef std::conditional_t<I == 0, T, 
 
 
 template<typename T>
-struct pod_type<declare::Array_<T, 0> > { typedef pod_type_t <T> type; };
+struct pod_type<declare::Array_<T, 0> > { typedef pod_type_t<T> type; };
 template<typename T, size_type I>
-struct pod_type<declare::Array_<T, I> > { typedef pod_type_t <declare::Array_<T, I - 1>> *type; };
+struct pod_type<declare::Array_<T, I> > { typedef pod_type_t<declare::Array_<T, I - 1>> *type; };
 
 }//namespace traits
 
@@ -66,7 +68,7 @@ struct Array_ : public data::HeavyData
 {
 private:
     typedef Array_<V, NDIMS, SLOW_FIRST> this_type;
-    typedef calculus::calculator <this_type> calculator;
+    typedef calculus::calculator<this_type> calculator;
 public:
     typedef V value_type;
 
@@ -297,7 +299,7 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST> >
     hash_(slow_first_t, index_const<N>, size_type const *dims, index_type const *offset, index_type const *i)
     {
 #ifndef NDEBUG
-        ASSERT(i[NDIMS - N - 1] - offset[NDIMS - N - 1]);
+        ASSERT(i[NDIMS - N - 1] - offset[NDIMS - N - 1] >= 0);
 #endif
 
         return i[NDIMS - N - 1] - offset[NDIMS - N - 1] +
@@ -327,12 +329,13 @@ public:
     get_value(self_type &self, index_type const *s) { return self.m_data_[hash(self.m_dims_, self.m_lower_, s)]; };
 
     static constexpr inline value_type const &
-    get_value(self_type const &self,
-              index_type const *s) { return self.m_data_[hash(self.m_dims_, self.m_lower_, s)]; };
+    get_value(self_type const &self, index_type const *s)
+    {
+        return self.m_data_[hash(self.m_dims_, self.m_lower_, s)];
+    };
 
-    template<typename T, typename I0> static constexpr inline st::remove_all_extents_t<T, I0> &
-    get_value(T &v, I0 const *s,
-              ENABLE_IF((st::is_indexable<T, I0>::value))) { return get_value(v[*s], s + 1); };
+    template<typename T, typename I0> static constexpr inline auto //st::remove_all_extents_t<T, I0> &
+    get_value(T &v, I0 const *s, ENABLE_IF((st::is_indexable<T, I0>::value))) AUTO_RETURN((get_value(v[*s], s + 1)))
 
     template<typename T, typename I0> static constexpr inline T &
     get_value(T &v, I0 const *s, ENABLE_IF((!st::is_indexable<T, I0>::value))) { return v; };
@@ -364,21 +367,22 @@ private:
 //    get_value(declare::nTuple_<T, N> const &v, size_type const &s0) { return v[s0]; };
 public:
     template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> static constexpr inline auto
-    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, Idx &&... s)
-    DECL_RET_TYPE((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
+    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>,
+                   Idx &&... s) AUTO_RETURN (
+            (TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
 
     template<typename TOP, typename   ...Others, typename ...Idx> static constexpr inline auto
-    get_value(declare::Expression<TOP, Others...> const &expr, Idx &&... s)
-    DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
+    get_value(declare::Expression<TOP, Others...> const &expr, Idx &&... s) AUTO_RETURN (
+            (_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
 
 
     template<typename TOP, typename ...Others, size_type ... index> static inline auto
-    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, index_type const *s)
-    DECL_RET_TYPE((expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...)))
+    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>,
+                   index_type const *s) AUTO_RETURN((expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...)))
 
     template<typename TOP, typename   ...Others> static inline auto
-    get_value(declare::Expression<TOP, Others...> const &expr, index_type const *s)
-    DECL_RET_TYPE((_invoke_helper(expr, index_sequence_for<Others...>(), s)))
+    get_value(declare::Expression<TOP, Others...> const &expr, index_type const *s) AUTO_RETURN (
+            (_invoke_helper(expr, index_sequence_for<Others...>(), s)))
 
     template<typename TFun> static void
     traversal_nd(index_type const *lower, index_type const *upper, TFun const &fun)
@@ -481,6 +485,7 @@ public:
     print(self_type const &self, std::ostream &os, int indent = 0)
     {
         printNdArray(os, self.m_data_, NDIMS, self.m_dims_);
+        return os;
     }
 
 

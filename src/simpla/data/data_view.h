@@ -80,13 +80,13 @@ public:
 	size_t size() const { return m_index_range_.size(); }
 
 
-	auto begin() DECL_RET_TYPE((make_iterator_proxy(*this, m_index_range_.begin())))
+	auto begin() AUTO_RETURN((make_iterator_proxy(*this, m_index_range_.begin())))
 
-	auto end() DECL_RET_TYPE((make_iterator_proxy(*this, m_index_range_.end())))
+	auto end() AUTO_RETURN((make_iterator_proxy(*this, m_index_range_.end())))
 
-	auto cbegin() const DECL_RET_TYPE((make_iterator_proxy(*this, m_index_range_.begin())))
+	auto cbegin() const AUTO_RETURN((make_iterator_proxy(*this, m_index_range_.begin())))
 
-	auto cend() const DECL_RET_TYPE((make_iterator_proxy(*this, m_index_range_.end())))
+	auto cend() const AUTO_RETURN((make_iterator_proxy(*this, m_index_range_.end())))
 
 	template<typename ...Args>
 	this_type slice(Args &&...args)

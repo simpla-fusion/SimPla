@@ -69,7 +69,7 @@ public:
 	}
 
 	template<typename ... Others>
-	auto Register(Others && ... args) DECL_RET_TYPE((callbacks_.insert(std::forward<Others>(args)...)))
+	auto Register(Others && ... args) AUTO_RETURN((callbacks_.insert(std::forward<Others>(args)...)))
 
 	int Unregister(identifier_type const & id)
 	{

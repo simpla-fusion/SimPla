@@ -40,13 +40,14 @@
 // modified from google test
 #define SIMPLA_DISALLOW_ASSIGN(_TYPE_)   void operator=(_TYPE_ const &)=delete;
 
-#define SIMPLA_DISALLOW_COPY_AND_ASSIGN(_TYPE_)  \
-  _TYPE_(_TYPE_ const &)=delete;\
-  SIMPLA_DISALLOW_ASSIGN(_TYPE_)
+#define SIMPLA_DISALLOW_COPY_AND_ASSIGN(_TYPE_)   _TYPE_(_TYPE_ const &)=delete; SIMPLA_DISALLOW_ASSIGN(_TYPE_)
 
 #define ENABLE_IF(_COND_) typename std::enable_if<_COND_, void>::type *_p = nullptr
-#   define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
-#   define ENABLE_IF_DECL_RET_TYPE(_COND_, _EXPR_) \
-        ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
+
+#if __cplusplus < 201402L
+#   define AUTO_RETURN(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
+#else
+#   define AUTO_RETURN(_EXPR_)  {return (_EXPR_);}
+#endif
 //**********************************
 #endif /* CORE_toolbox_MACRO_H_ */

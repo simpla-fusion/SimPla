@@ -25,8 +25,8 @@ template<typename value_type> struct Constant { value_type value; };
 struct Zero {};
 struct One {};
 struct Infinity {};
-struct Undefine {};
-struct Identity {};
+struct Undefined {};
+struct Identity{};
 
 template<typename TE> inline TE const &operator+(TE const &e, Zero const &) { return (e); }
 
@@ -35,54 +35,53 @@ template<typename TE> inline TE const &operator+(Zero const &, TE const &e) { re
 template<typename TE> inline TE const &operator-(TE const &e, Zero const &) { return (e); }
 
 //template<typename TE> inline auto operator -(Zero const &, TE const &e)
-//DECL_RET_TYPE (((-e)))
+//AUTO_RETURN (((-e)))
 
-inline Zero operator+(Zero const &, Zero const &e) { return (Zero()); }
+inline constexpr auto operator+(Zero const &, Zero const &e) AUTO_RETURN(Zero())
 
-template<typename TE> inline TE const &operator*(TE const &e, One const &) { return (e); }
+template<typename TE> inline constexpr auto operator*(TE const &e, One const &) AUTO_RETURN(e)
 
-template<typename TE> inline TE const &operator*(One const &, TE const &e) { return (e); }
+template<typename TE> inline constexpr auto operator*(One const &, TE const &e) AUTO_RETURN(e)
 
-template<typename TE> inline Zero operator*(TE const &, Zero const &) { return (Zero()); }
+template<typename TE> inline constexpr auto operator*(TE const &, Zero const &) AUTO_RETURN(Zero())
 
-template<typename TE> inline Zero operator*(Zero const &, TE const &) { return (Zero()); }
+template<typename TE> inline constexpr auto operator*(Zero const &, TE const &) AUTO_RETURN (Zero())
 
-template<typename TE> inline Infinity operator/(TE const &e, Zero const &) { return (Infinity()); }
+template<typename TE> inline constexpr auto operator/(TE const &e, Zero const &) AUTO_RETURN(Infinity())
 
-template<typename TE> inline Zero operator/(Zero const &, TE const &e) { return (Zero()); }
+template<typename TE> inline constexpr auto operator/(Zero const &, TE const &e) AUTO_RETURN(Zero())
 
-template<typename TE> inline Zero operator/(TE const &, Infinity const &) { return (Zero()); }
+template<typename TE> inline constexpr auto operator/(TE const &, Infinity const &) AUTO_RETURN(Zero())
 
-template<typename TE> inline Infinity operator/(Infinity const &, TE const &e) { return (Infinity()); }
+template<typename TE> inline constexpr auto operator/(Infinity const &, TE const &e) AUTO_RETURN(Infinity())
 
-//template<typename TL> inline auto operator==(TL const &lhs, Zero)DECL_RET_TYPE ((lhs))
-//
-//template<typename TR> inline auto operator==(Zero, TR const &rhs)DECL_RET_TYPE ((rhs))
+//template<typename TL> inline auto operator==(TL const &lhs, Zero)AUTO_RETURN ((lhs))
+//template<typename TR> inline auto operator==(Zero, TR const &rhs)AUTO_RETURN ((rhs))
 
-constexpr Identity operator&(Identity, Identity) { return Identity(); }
+constexpr auto operator&(Identity, Identity) AUTO_RETURN(Identity())
 
-template<typename TL> TL const &operator&(TL const &l, Identity) { return l; }
+template<typename TL> constexpr auto operator&(TL const &l, Identity) AUTO_RETURN(l)
 
-template<typename TR> TR const &operator&(Identity, TR const &r) { return r; }
+template<typename TR> constexpr auto operator&(Identity, TR const &r) AUTO_RETURN(r)
 
-template<typename TL> constexpr Zero operator&(TL const &l, Zero) { return std::move(Zero()); }
+template<typename TL> constexpr auto operator&(TL const &l, Zero) AUTO_RETURN(std::move(Zero()))
 
-template<typename TR> constexpr Zero operator&(Zero, TR const &l) { return std::move(Zero()); }
+template<typename TR> constexpr auto operator&(Zero, TR const &l) AUTO_RETURN(std::move(Zero()))
 
-template<typename TR> constexpr Zero operator&(Zero, Zero) { return std::move(Zero()); }
+template<typename TR> constexpr auto operator&(Zero, Zero) AUTO_RETURN(std::move(Zero()))
 
 /** @} */
 
 #define DEF_BOP(_NAME_, _OP_)  \
  namespace tags{struct _NAME_{ \
-     template<typename TL,typename TR> static inline constexpr auto eval( TL const & l,TR const & r   )  ->decltype( ( l _OP_ r) ) {return   ( l _OP_ r) ;};\
-     template<typename TL,typename TR>   inline constexpr auto operator()( TL const & l,TR const & r   )const  ->decltype(  ( l  _OP_  r) ) {return    ( l _OP_ r) ;};\
+     template<typename TL,typename TR> static inline constexpr auto eval( TL const & l,TR const & r) AUTO_RETURN( ( l _OP_ r) ) \
+     template<typename TL,typename TR> inline constexpr auto operator()( TL const & l,TR const & r )const  AUTO_RETURN(  ( l  _OP_  r) ) \
 };}
 
 #define DEF_UOP(_NAME_, _OP_)   \
  namespace tags{struct _NAME_{  \
-  template<typename TL> static inline constexpr auto eval(TL const & l )  ->decltype(  _OP_ l){return  _OP_ l;}; \
-  template<typename TL> inline constexpr auto operator()(TL const & l ) const ->decltype(  _OP_ l){return  _OP_ l;}; \
+  template<typename TL> static inline constexpr auto eval(TL const & l ) AUTO_RETURN( (_OP_ l) ); \
+  template<typename TL> inline constexpr auto operator()(TL const & l ) const  AUTO_RETURN( (_OP_ l) );  \
 };}
 
 
@@ -115,10 +114,10 @@ DEF_BOP(equal_to, ==)
 using namespace std;
 
 #define DEF_BI_FUN(_NAME_)  \
-namespace tags{struct _##_NAME_{ template<typename TL,typename TR> static inline constexpr auto  eval( TL const & l,TR const & r ) ->decltype(_NAME_(l , r)){return _NAME_(l , r);};};}
+namespace tags{struct _##_NAME_{ template<typename TL,typename TR> static inline constexpr auto  eval( TL const & l,TR const & r ) AUTO_RETURN(_NAME_(l , r));};}
 
 #define DEF_UN_FUN(_NAME_)   \
-namespace tags{struct _##_NAME_{ template<typename TL> static inline constexpr auto  eval(TL const & l ) ->decltype( _NAME_ (l)){return  _NAME_(l) ;};};}
+namespace tags{struct _##_NAME_{ template<typename TL> static inline constexpr auto  eval(TL const & l ) AUTO_RETURN( _NAME_ (l));};}
 
 DEF_UN_FUN(cos)
 DEF_UN_FUN(acos)
@@ -141,22 +140,15 @@ DEF_BI_FUN(pow)
 #undef DEF_UN_FUN
 #undef DEF_BI_FUN
 
-namespace tags
-{
-struct _swap
-{
-    template<typename TL, typename TR>
-    static inline void eval(TL &l, TR &r) { std::swap(l, r); };
-};
-}
+namespace tags{struct _swap{template<typename TL, typename TR> static inline void eval(TL &l, TR &r){std::swap(l, r);};};}
 
 
 /**
  * ### Assignment Operator
  *
- *   Pseudo-Signature 	 				         | Semantics
- *  ---------------------------------------------|--------------
- *  `operator+=(GeoObject &,Expression const &)`     | Assign operation +
+ *   Pseudo-Signature 	 				              | Semantics
+ *  --------------------------------------------------|--------------
+ *  `operator+=(GeoObject &,Expression const &)`      | Assign operation +
  *  `operator-=(GeoObject & ,Expression const &)`     | Assign operation -
  *  `operator/=(GeoObject & ,Expression const &)`     | Assign operation /
  *  `operator*=(GeoObject & ,Expression const &)`     | Assign operation *
@@ -200,37 +192,37 @@ template<typename ...> struct AssignmentExpression;
 
 
 #define _SP_DEFINE_EXPR_BINARY_OPERATOR(_OP_, _NAME_)                           \
-    template< typename T1,typename T2> Expression< tags::_NAME_,  T1,  T2 > operator _OP_(T1   & l, T2    &r){return (Expression< tags::_NAME_,  T1,  T2 > (l,r));} \
-    template< typename T1,typename T2> Expression< tags::_NAME_, const T1,const  T2 > operator _OP_(T1  const & l, T2  const  &r){return (Expression< tags::_NAME_, const T1, const T2 > (l,r));}
+    template< typename T1,typename T2> auto operator _OP_(T1   & l, T2    &r)           AUTO_RETURN( ( Expression< tags::_NAME_,  T1,  T2 > (l,r) )); \
+    template< typename T1,typename T2> auto operator _OP_(T1  const & l, T2  const  &r) AUTO_RETURN((Expression< tags::_NAME_, const T1, const T2 > (l,r)))
 
 
 #define _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(_OP_, _NAME_)                      \
-    template< typename T1,typename T2> Expression< tags::_NAME_,  T1,  T2 > operator _OP_(T1   & l, T2    &r){return (Expression< tags::_NAME_,  T1,  T2 > (l,r));} \
-    template< typename T1,typename T2> Expression< tags::_NAME_, const T1, const T2 > operator _OP_(T1 const  & l, T2  const  &r){return (Expression< tags::_NAME_, const  T1, const T2 > (l,r));}
+    template< typename T1,typename T2> auto operator _OP_(T1   & l, T2    &r)           AUTO_RETURN( ( Expression< tags::_NAME_,  T1,  T2 > (l,r))) \
+    template< typename T1,typename T2> auto operator _OP_(T1 const  & l, T2  const  &r) AUTO_RETURN( ( Expression< tags::_NAME_, const  T1, const T2 > (l,r)))
 
 
 #define _SP_DEFINE_EXPR_UNARY_OPERATOR(_OP_, _NAME_)                           \
-    template< typename T1> Expression< tags::_NAME_,  T1 > operator _OP_(T1   & l){return (Expression< tags::_NAME_,  T1 > (l));} \
-    template< typename T1> Expression< tags::_NAME_, const  T1 > operator _OP_(T1  const & l){return (Expression< tags::_NAME_, const  T1 > (l));}
+    template< typename T1> auto operator _OP_(T1   & l)      AUTO_RETURN((Expression< tags::_NAME_,  T1 > (l))) \
+    template< typename T1> auto operator _OP_(T1  const & l) AUTO_RETURN((Expression< tags::_NAME_, const  T1 > (l)))
 
 
 #define _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                            \
-    template< typename T1,typename T2> BooleanExpression< tags::_NAME_,  T1,  T2 > operator _OP_(T1   & l, T2    &r){return (BooleanExpression< tags::_NAME_,   T1,  T2 > (l,r));}\
-    template< typename T1,typename T2> BooleanExpression< tags::_NAME_, const T1, const T2 > operator _OP_(T1 const  & l, T2 const   &r){return (BooleanExpression< tags::_NAME_,  const T1, const T2 > (l,r));}
+    template< typename T1,typename T2> auto operator _OP_(T1   & l, T2    &r)           AUTO_RETURN((BooleanExpression< tags::_NAME_,   T1,  T2 > (l,r))) \
+    template< typename T1,typename T2> auto operator _OP_(T1 const  & l, T2 const   &r) AUTO_RETURN((BooleanExpression< tags::_NAME_,  const T1, const T2 > (l,r)))
 
 
 #define _SP_DEFINE_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                           \
-    template< typename T1> BooleanExpression< tags::_NAME_,  T1 > operator _OP_(T1   & l){return (BooleanExpression< tags::_NAME_,  T1 > (l));}\
-    template< typename T1> BooleanExpression< tags::_NAME_, const T1 > operator _OP_(T1  const & l){return (BooleanExpression< tags::_NAME_, const T1 > (l));}
+    template< typename T1> auto operator _OP_(T1   & l)     AUTO_RETURN((BooleanExpression< tags::_NAME_,  T1 > (l))) \
+    template< typename T1> auto operator _OP_(T1  const & l)AUTO_RETURN((BooleanExpression< tags::_NAME_, const T1 > (l)))
 
 
 #define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_)                                       \
-    template< typename T1,typename T2> Expression< tags::_##_NAME_,   T1,  T2 >  _NAME_(T1   & l, T2    &r){return (Expression< tags::_##_NAME_,   T1,  T2 > (l,r));}    \
-    template< typename T1,typename T2> Expression< tags::_##_NAME_, const  T1, const T2 >  _NAME_(T1 const  & l, T2 const   &r){return (Expression< tags::_##_NAME_,  const T1, const T2 > (l,r));}
+    template< typename T1,typename T2> auto  _NAME_(T1   & l, T2    &r)        AUTO_RETURN ((Expression< tags::_##_NAME_,   T1,  T2 > (l,r)))    \
+    template< typename T1,typename T2> auto  _NAME_(T1 const & l, T2 const &r) AUTO_RETURN ((Expression< tags::_##_NAME_,  const T1, const T2 > (l,r)))
 
 #define _SP_DEFINE_EXPR_UNARY_FUNCTION(_NAME_)                                  \
-    template< typename T1> Expression< tags::_##_NAME_,  T1 >  _NAME_(T1   & l){return (Expression< tags::_##_NAME_,  T1 > (l));} \
-    template< typename T1> Expression< tags::_##_NAME_, const T1 >  _NAME_(T1  const & l){return (Expression< tags::_##_NAME_, const T1 > (l));}
+    template< typename T1> auto  _NAME_(T1   & l)     AUTO_RETURN((Expression< tags::_##_NAME_,  T1 > (l))) \
+    template< typename T1> auto  _NAME_(T1  const & l)AUTO_RETURN((Expression< tags::_##_NAME_, const T1 > (l)))
 
 
 _SP_DEFINE_EXPR_BINARY_OPERATOR(+, plus)
@@ -321,8 +313,7 @@ _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)
 #undef _SP_DEFINE_EXPR_UNARY_FUNCTION
 
 
-#define _SP_DEFINE_COMPOUND_OP(_OP_) \
-template<typename TL, typename TR> inline TL & operator _OP_##=(TL &lhs, TR const &rhs){    lhs = lhs _OP_ rhs;    return lhs;}
+#define _SP_DEFINE_COMPOUND_OP(_OP_) template<typename TL, typename TR> inline TL & operator _OP_##=(TL &lhs, TR const &rhs){    lhs = lhs _OP_ rhs;    return lhs;}
 
 _SP_DEFINE_COMPOUND_OP(+)
 

@@ -61,6 +61,8 @@ SP_OBJECT_BASE(Chart);
         else { return Range<MeshEntityId>(); }
     }
 
+    template<typename ...Args> auto hash(Args &&...args) { return m_mesh_block_->hash(std::forward<Args>(args)...); }
+
 protected:
     std::shared_ptr<MeshBlock> m_mesh_block_;
 };

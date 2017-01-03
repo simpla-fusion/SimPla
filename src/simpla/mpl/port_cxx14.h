@@ -44,12 +44,9 @@ using result_of_t = typename result_of<_Tp>::type;
 }
 
 
-
 #else
 
 
-#   define DECL_RET_TYPE(_EXPR_) {return (_EXPR_);}
-#   define ENABLE_IF_DECL_RET_TYPE(_COND_, _EXPR_) \
-        ->  std::enable_if_t<_COND_,decltype((_EXPR_))>  {return (_EXPR_);}
+
 #endif
 #endif //SIMPLA_PORT_CXX14_H_H

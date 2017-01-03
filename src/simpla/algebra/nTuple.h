@@ -307,10 +307,7 @@ struct calculator<declare::nTuple_<V, J...>>
 {
 
 public:
-    template<typename T> static constexpr inline T &get_value(T &v)
-    {
-        return v;
-    };
+    template<typename T> static constexpr inline T &get_value(T &v) { return v; };
 
 //    template<typename T, typename I0>
 //    static constexpr inline st::remove_all_extents_t<T, I0> &
@@ -329,27 +326,22 @@ public:
 private:
     template<typename T, typename... Args>
     static constexpr inline T &
-    get_value_(std::integral_constant<bool, false> const &, T &v, Args &&...)
-    {
-        return v;
-    }
+    get_value_(std::integral_constant<bool, false> const &, T &v, Args &&...) { return v; }
 
     template<typename T, typename I0, typename... Idx>
     static constexpr inline st::remove_extents_t<T, I0, Idx...> &
-    get_value_(std::integral_constant<bool, true> const &, T &v, I0 const &s0,
-               Idx &&... idx)
+    get_value_(std::integral_constant<bool, true> const &, T &v, I0 const &s0, Idx &&... idx)
     {
         return get_value(v[s0], std::forward<Idx>(idx)...);
     };
 
 public:
     template<typename T, typename... Idx>
-    static constexpr inline st::remove_extents_t<T, size_type, Idx...> &
+    static constexpr inline auto // st::remove_extents_t<T, size_type, Idx...> &
     get_value(T &v, size_type const &s0, Idx &&... idx)
     {
-        return get_value_(
-                std::integral_constant<bool, st::is_indexable<T, size_type>::value>(),
-                v, s0, std::forward<Idx>(idx)...);
+        return get_value_(std::integral_constant<bool, st::is_indexable<T, size_type>::value>(),
+                          v, s0, std::forward<Idx>(idx)...);
     };
 
 //    template<typename T, size_type N>
@@ -367,50 +359,21 @@ public:
 //    };
 
 public:
-    //    template<typename TOP, typename ...Others, size_type ... index, typename
-    //    ...Idx>
-    //    static inline traits::value_type_t<declare::Expression<TOP, Others...>>
-    //    _invoke_helper(declare::Expression<TOP, Others...> const &expr,
-    //    index_sequence<index...>,
-    //                   Idx &&... s)
-    //    {
-    //        return expr.m_op_(get_value(std::get<index>(expr.m_args_),
-    //        std::forward<Idx>(s)...)...);
-    //    }
-    //
-    //    template<typename TOP, typename   ...Others, typename ...Idx>
-    //    static constexpr inline traits::value_type_t<declare::Expression<TOP,
-    //    Others...> >
-    //    get_value(declare::Expression<TOP, Others...> const &expr,
-    //              Idx &&... s)
-    //    {
-    //        return _invoke_helper(expr, index_sequence_for<Others...>(),
-    //        std::forward<Idx>(s)...);
-    //    }
+    template<typename TOP, typename ...Others, size_type ... index, typename ...Idx>
+    static inline auto //traits::value_type_t<declare::Expression<TOP, Others...>>
+    _invoke_helper(declare::Expression<TOP, Others...> const &expr, index_sequence<index...>, Idx &&... s)
+    AUTO_RETURN((expr.m_op_(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
 
-    template<typename TOP, typename TL, typename TR, typename... Idx>
-    static constexpr inline traits::value_type_t<declare::Expression<TOP, TL, TR>>
-    get_value(declare::Expression<TOP, TL, TR> const &expr, Idx &&... s)
-    {
-        return expr.m_op_(get_value(expr.lhs, std::forward<Idx>(s)...),
-                          get_value(expr.rhs, std::forward<Idx>(s)...));
-    }
 
-    //    template<typename TOP, typename TL, typename ...Idx>
-    //    static constexpr inline traits::value_type_t<declare::Expression<TOP,
-    //    TL> >
-    //    get_value(declare::Expression<TOP, TL> const &expr, Idx &&... s)
-    //    {
-    //        return expr.m_op_(get_value(expr.lhs, std::forward<Idx>(s)...));
-    //
-    //    }
+    template<typename TOP, typename   ...Others, typename ...Idx>
+    static constexpr inline auto //traits::value_type_t<declare::Expression<TOP, Others...> >
+    get_value(declare::Expression<TOP, Others...> const &expr, Idx &&... s)
+    AUTO_RETURN((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
+
+
 
     template<typename TOP, typename TR>
-    static inline void apply(TOP const &op, declare::nTuple_<V, J...> &lhs,
-                             TR &rhs)
-    {
-        _detail::_apply(op, lhs, rhs);
-    };
+    static inline void apply(TOP const &op, declare::nTuple_<V, J...> &lhs, TR &rhs) { _detail::_apply(op, lhs, rhs); };
 };
 } // namespace calculaus{
 

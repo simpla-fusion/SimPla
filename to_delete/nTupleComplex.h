@@ -709,7 +709,7 @@ bool value_in_range(T0 const &b, T1 const &e, T2 const &x)
 
 //template<typename T, size_type ...N>
 //auto mod(nTuple<T, N...> const & l)
-//DECL_RET_TYPE((std::sqrt(std::abs(inner_product(l,l)))))
+//AUTO_RETURN((std::sqrt(std::abs(inner_product(l,l)))))
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_RIGHT_OPERATOR(_OP_, _NAME_)                                                  \
     template<typename T1,size_type ...N1,typename  T2> \

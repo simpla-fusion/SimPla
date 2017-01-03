@@ -79,78 +79,75 @@ template<typename ...> struct BooleanExpression;
 template<typename ...> struct AssignmentExpression;
 
 }
-namespace calculus
-{
-template<typename ...> struct eval_expr_as;
-};
+namespace calculus { template<typename ...> struct eval_expr_as; };
 
 namespace declare
 {
-
-
-template<typename TOP, typename TL>
-struct Expression<TOP, TL>
-{
-    typedef Expression<TOP, TL> this_type;
-
-    traits::reference_t<TL> lhs;
-
-    TOP m_op_;
-
-    Expression(this_type const &that) : lhs(that.lhs) {}
-
-    Expression(this_type &&that) : lhs(that.lhs) {}
-
-    Expression(TL &args) : lhs(lhs) {}
-
-    virtual ~Expression() {}
-
-//    template<typename T> operator T() const { return calculus::calculator<this_type>::template cast_as<T>(*this); }
-
-};
-
-template<typename TOP, typename TL, typename TR>
-struct Expression<TOP, TL, TR>
-{
-    typedef Expression<TOP, TL, TR> this_type;
-
-    traits::reference_t<TL> lhs;
-    traits::reference_t<TR> rhs;
-
-    TOP m_op_;
-
-    Expression(this_type const &that) : lhs(that.lhs), rhs(that.rhs) {}
-
-//    Expression(this_type &&that) : lhs(that.lhs), rhs(that.rhs) {}
-
-    Expression(TL &l, TR &r) : lhs(l), rhs(r) {}
-
-    virtual ~Expression() {}
-
-//    template<typename T> operator T() const { return calculus::calculator<this_type>::template cast_as<T>(*this); }
-
-};
-
-//template<typename TOP, typename ...Args>
-//struct Expression<TOP, Args...>
-//{
-//    typedef Expression<TOP, Args...> this_type;
 //
-//    typename std::tuple<traits::reference_t<Args> ...> m_args_;
+//
+//template<typename TOP, typename TL>
+//struct Expression<TOP, TL>
+//{
+//    typedef Expression<TOP, TL> this_type;
+//
+//    traits::reference_t<TL> lhs;
 //
 //    TOP m_op_;
 //
-//    Expression(this_type const &that) : m_args_(that.m_args_) {}
+//    Expression(this_type const &that) : lhs(that.lhs) {}
 //
-//    Expression(this_type &&that) : m_args_(that.m_args_) {}
+//    Expression(this_type &&that) : lhs(that.lhs) {}
 //
-//    Expression(Args &... args) : m_args_(args...) {}
+//    Expression(TL &args) : lhs(lhs) {}
 //
 //    virtual ~Expression() {}
 //
 ////    template<typename T> operator T() const { return calculus::calculator<this_type>::template cast_as<T>(*this); }
 //
 //};
+//
+//template<typename TOP, typename TL, typename TR>
+//struct Expression<TOP, TL, TR>
+//{
+//    typedef Expression<TOP, TL, TR> this_type;
+//
+//    traits::reference_t<TL> lhs;
+//    traits::reference_t<TR> rhs;
+//
+//    TOP m_op_;
+//
+//    Expression(this_type const &that) : lhs(that.lhs), rhs(that.rhs) {}
+//
+////    Expression(this_type &&that) : lhs(that.lhs), rhs(that.rhs) {}
+//
+//    Expression(TL &l, TR &r) : lhs(l), rhs(r) {}
+//
+//    virtual ~Expression() {}
+//
+////    template<typename T> operator T() const { return calculus::calculator<this_type>::template cast_as<T>(*this); }
+//
+//};
+
+template<typename TOP, typename ...Args>
+struct Expression<TOP, Args...>
+{
+    typedef Expression<TOP, Args...> this_type;
+
+    typename std::tuple<traits::reference_t<Args> ...> m_args_;
+
+    TOP m_op_;
+
+    Expression(this_type const &that) : m_args_(that.m_args_) {}
+
+    Expression(this_type &&that) : m_args_(that.m_args_) {}
+
+    Expression(Args &... args) : m_args_(args...) {}
+
+    virtual ~Expression() {}
+
+//    template<typename T> operator T() const { return calculus::calculator<this_type>::template cast_as<T>(*this); }
+
+};
 
 template<typename TOP, typename TL, typename TR>
 struct BooleanExpression<TOP, TL, TR> : public Expression<TOP, TL, TR>
@@ -196,7 +193,7 @@ struct BooleanExpression<TOP, TL> : public Expression<TOP, TL>
 //
 //    template<typename IndexType>
 //    inline auto operator[](IndexType const &s) const
-//    DECL_RET_TYPE (((op_(traits::get_value(lhs, s), traits::get_value(rhs, s)))))
+//    AUTO_RETURN (((op_(traits::get_value(lhs, s), traits::get_value(rhs, s)))))
 //
 //};
 
