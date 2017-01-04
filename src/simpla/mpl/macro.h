@@ -42,7 +42,7 @@
 
 #define SIMPLA_DISALLOW_COPY_AND_ASSIGN(_TYPE_)   _TYPE_(_TYPE_ const &)=delete; SIMPLA_DISALLOW_ASSIGN(_TYPE_)
 
-#define ENABLE_IF(_COND_) typename std::enable_if<_COND_, void>::type *_p = nullptr
+#define ENABLE_IF(_COND_)   std::enable_if_t<_COND_, void>  *_p = nullptr
 
 #if __cplusplus < 201402L
 #   define AUTO_RETURN(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
