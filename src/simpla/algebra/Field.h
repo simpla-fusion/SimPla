@@ -32,9 +32,7 @@ namespace traits
 
 //***********************************************************************************************************************
 
-template<typename T> struct field_value_type { typedef T type; };
 
-template<typename T> using field_value_t=typename field_value_type<T>::type;
 
 template<typename> struct mesh_type { typedef void type; };
 

@@ -4,24 +4,23 @@
 
 #include "simpla/algebra/all.h"
 
-#include "simpla/predefine/CartesianGeometry.h"
 #include "simpla/predefine/CalculusPolicy.h"
+#include "simpla/predefine/CartesianGeometry.h"
 
 using namespace simpla;
 using namespace simpla::algebra;
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
     index_type dims[3] = {1, 4, 3};
     Real xmin[3] = {0, 0, 0};
     Real xmax[3] = {1, 2, 3};
-//        m->dimensions(dims);
-//        m->box(xmin, xmax);
+    //        m->dimensions(dims);
+    //        m->box(xmin, xmax);
 
-//    size_type gw[3] = {2, 2, 2};
-//    index_type lo[3] = {0, 0, 0};
-//    index_type hi[3];//= {dims[0], dims[1], dims[2]}
-//
+    size_type gw[3] = {2, 2, 2};
+    index_type lo[3] = {0, 0, 0};
+    index_type hi[3];  //= {dims[0], dims[1], dims[2]}
+                       //
 
     typedef mesh::CartesianGeometry mesh_type;
 
@@ -30,27 +29,31 @@ int main(int argc, char **argv)
     Field<Real, mesh_type> f(&m);
     Field<Real, mesh_type> g(&m);
 
-
     f.clear();
     g.clear();
-//    std::cout << f << std::endl;
-//    std::cout << g << std::endl;
+    //    std::cout << f << std::endl;
+    //    std::cout << g << std::endl;
 
     f(0, 2, 3) = 1990;
     f = 1;
     g = 2;
-    f.assign([&](point_type const &x)
-             {
-                 std::cout << x << std::endl;
-                 return x[0];
-             });
-//    f = f + g;
+
+    f = f + g;
     f = -g * 0.2;
+
+    f = [&](point_type const& x) {
+        std::cout << x << std::endl;
+        return x[0];
+    };
+    f = [&](mesh::MeshEntityId const& s) {
+        std::cout << s.x << std::endl;
+        return 1.0;
+    };
     std::cout << f << std::endl;
     Field<Real, mesh_type, EDGE> E(&m);
     Field<Real, mesh_type, VERTEX> rho(&m);
     E.clear();
     rho.clear();
-    rho = codifferential_derivative(f);
-//    diverge(E);
+    rho = diverge(E);
+    //    diverge(E);
 }

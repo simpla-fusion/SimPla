@@ -11,15 +11,12 @@
 #include <simpla/mpl/type_traits.h>
 #include <simpla/mpl/integer_sequence.h>
 
-namespace simpla
-{
+namespace simpla {
 enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6, SCALAR = 10000 };
 
-namespace algebra
-{
+namespace algebra {
 
-namespace declare
-{
+namespace declare {
 template<typename ...> struct Expression;
 template<typename, size_type ...> struct nTuple_;
 template<typename, size_type NDIMS, bool SLOW_FIRST = true> struct Array_;
@@ -28,14 +25,16 @@ template<typename, typename, size_type ...> struct Field_;
 }
 namespace calculus { template<typename ...> struct calculator; }
 
-namespace traits
-{
+namespace traits {
 
 template<typename> struct iform : public index_const<SCALAR> {};
+template<typename T> struct iform<const T> : public iform<T> {};
 
 template<typename> struct dof : public index_const<1> {};
+template<typename T> struct dof<const T> : public dof<T> {};
 
 template<typename> struct rank : public index_const<3> {};
+template<typename T> struct rank<const T> : public rank<T> {};
 
 template<typename ...> struct extents : public index_sequence<> {};
 
@@ -55,6 +54,9 @@ template<typename T> struct value_type<T *> { typedef T type; };
 template<typename T, size_type N> struct value_type<T[N]> { typedef T type; };
 template<typename T> struct value_type<T const *> { typedef T type; };
 template<typename T> struct value_type<T const[]> { typedef T type; };
+
+template<typename T> struct field_value_type { typedef T type; };
+template<typename T> using field_value_t=typename field_value_type<T>::type;
 
 template<typename T> struct sub_type { typedef T type; };
 template<typename T> using sub_type_t = typename sub_type<T>::type;
@@ -76,13 +78,11 @@ template<typename ...> struct is_scalar : public std::integral_constant<bool, fa
 
 template<typename T>
 struct is_scalar<T> : public std::integral_constant<bool,
-        std::is_arithmetic<std::decay_t<T>>::value || is_complex<std::decay_t<T>>::value>
-{
+        std::is_arithmetic<std::decay_t<T>>::value || is_complex<std::decay_t<T>>::value> {
 };
 template<typename First, typename  ...Others>
 struct is_scalar<First, Others...> : public std::integral_constant<bool,
-        is_scalar<First>::value && is_scalar<Others...>::value>
-{
+        is_scalar<First>::value && is_scalar<Others...>::value> {
 };
 
 template<typename ...> struct is_field;
@@ -90,8 +90,7 @@ template<typename ...> struct is_field;
 template<typename T> struct is_field<T> : public std::integral_constant<bool, false> {};
 template<typename First, typename  ...Others>
 struct is_field<First, Others...> : public std::integral_constant<bool,
-        is_field<First>::value || is_field<Others...>::value>
-{
+        is_field<First>::value || is_field<Others...>::value> {
 };
 template<typename ...> struct is_array;
 
@@ -99,8 +98,7 @@ template<typename T> struct is_array<T> : public std::integral_constant<bool, fa
 
 template<typename First, typename  ...Others>
 struct is_array<First, Others...> : public std::integral_constant<bool,
-        (is_array<First>::value && !is_field<First>::value) || is_array<Others...>::value>
-{
+        (is_array<First>::value && !is_field<First>::value) || is_array<Others...>::value> {
 };
 
 template<typename ...> struct is_nTuple;
@@ -109,8 +107,7 @@ template<typename T> struct is_nTuple<T> : public std::integral_constant<bool, f
 
 template<typename First, typename  ...Others>
 struct is_nTuple<First, Others...> : public std::integral_constant<bool,
-        (is_nTuple<First>::value && !(is_field<First>::value || is_array<First>::value)) || is_nTuple<Others...>::value>
-{
+        (is_nTuple<First>::value && !(is_field<First>::value || is_array<First>::value)) || is_nTuple<Others...>::value> {
 };
 template<typename ...> struct is_expression;
 
