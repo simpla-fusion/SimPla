@@ -96,7 +96,7 @@ TYPED_TEST_P(TestField, assign)
     f1 = va;
     size_type count = 0;
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform, TestFixture::dof).foreach(
-            [&](auto s) { EXPECT_LE(abs(va - f1[s]), EPSILON); });
+            [&](mesh::MeshEntityId const & s) { EXPECT_LE(abs(va - f1[s]), EPSILON); });
 }
 
 TYPED_TEST_P(TestField, index)
@@ -115,10 +115,10 @@ TYPED_TEST_P(TestField, index)
     va = 2.0;
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform).foreach(
-            [&](auto s) { f1[s] = va * TestFixture::m->hash(s); });
+            [&](mesh::MeshEntityId const & s) { f1[s] = va * TestFixture::m->hash(s); });
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform).foreach(
-            [&](auto s) { EXPECT_LE(abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON); });
+            [&](mesh::MeshEntityId const & s) { EXPECT_LE(abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON); });
 
 }
 
@@ -148,14 +148,14 @@ TYPED_TEST_P(TestField, constant_real)
 
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](auto s) { return va * uniform_dist(gen); });
-    f2.assign([&](auto s) { return vb * uniform_dist(gen); });
+    f1.assign([&](mesh::MeshEntityId const & s) { return va * uniform_dist(gen); });
+    f2.assign([&](mesh::MeshEntityId const & s) { return vb * uniform_dist(gen); });
 
 
     LOG_CMD(f3 = -f1 + f1 * a + f2 * c - f1 / b);
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform).foreach(
-            [&](auto s)
+            [&](mesh::MeshEntityId const & s)
             {
                 value_type expect;
                 expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
@@ -228,7 +228,7 @@ TYPED_TEST_P(TestField, scalarField)
 //                            });
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform, TestFixture::dof).foreach(
-            [&](auto s)
+            [&](mesh::MeshEntityId const & s)
             {
                 value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 

@@ -37,7 +37,11 @@ int main(int argc, char **argv)
     nTuple<double, 2, 3> A;
 
     nTuple<double, 2, 3> B = {{4, 5, 6}, {7, 8, 9}};
-    A = B * 2.0 + b;
+
+
+    A(1, 3) = 0;
+    B = 3;
+    A = B * 2 + b;
     std::cout << "A=" << A << std::endl;
 
 }
