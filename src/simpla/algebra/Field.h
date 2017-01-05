@@ -115,10 +115,10 @@ private:
     data_type *m_data_;
 
     mesh_type const *m_mesh_;
+public:
 
     std::shared_ptr<data_type> m_data_holder_;
 
-public:
     Field_() : m_data_holder_(nullptr), m_mesh_(nullptr), m_data_(nullptr) {};
 
     explicit Field_(mesh_type const *m, data_type *d) :

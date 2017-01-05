@@ -30,8 +30,7 @@ template <typename U, typename TRange>
 struct RangeProxy;
 
 template <typename _Tp, typename _Category = std::input_iterator_tag,
-          typename _Distance = ptrdiff_t, typename _Pointer = _Tp*,
-          typename _Reference = _Tp&>
+          typename _Distance = ptrdiff_t, typename _Pointer = _Tp*, typename _Reference = _Tp&>
 struct Range_ {
    private:
     typedef Range_<_Tp, _Category, _Distance, _Pointer, _Reference> this_type;
@@ -53,8 +52,7 @@ struct Range_ {
 
     Range_() : m_holder_(nullptr) {}
 
-    Range_(Range_& r, concept::tags::split)
-        : m_holder_(new Range_(r.Range_())) {}
+    Range_(Range_& r, concept::tags::split) : m_holder_(new Range_(r.Range_())) {}
 
     Range_(Range_ const& r) : m_holder_(r.m_holder_) {}
 
@@ -64,11 +62,11 @@ struct Range_ {
 
     iterator end() const { return end(*m_holder_); };
 
-    bool is_divisible() { return m_holder_->is_divisible(); }
+    bool is_divisible() { return (m_holder_ == nullptr) ? false : m_holder_->is_divisible(); }
 
-    virtual size_type size() const { return m_holder_->size(); }
+    size_type size() const { return m_holder_ == nullptr ? 0 : m_holder_->size(); }
 
-    bool empty() const { return m_holder_->empty(); }
+    bool empty() const { return (m_holder_ == nullptr) ? true : m_holder_->empty(); }
 
     void swap(this_type& other) { std::swap(m_holder_, other.m_holder_); }
 
@@ -76,8 +74,7 @@ struct Range_ {
     static this_type create(Args&&... args) {
         this_type res;
         res.m_holder_ = std::dynamic_pointer_cast<RangeHolder<this_type>>(
-            std::make_shared<RangeProxy<U, this_type>>(
-                std::forward<Args>(args)...));
+            std::make_shared<RangeProxy<U, this_type>>(std::forward<Args>(args)...));
         return std::move(res);
     }
 
@@ -113,9 +110,7 @@ struct Range_ {
         return m_holder_->template as<U>();
     }
 
-    std::shared_ptr<RangeHolder<this_type>> next() {
-        return m_holder_->m_next_;
-    }
+    std::shared_ptr<RangeHolder<this_type>> next() { return m_holder_->m_next_; }
 
     template <typename TFun>
     void foreach (TFun const&) const {}
@@ -208,9 +203,7 @@ struct RangeProxy : public RangeHolder<TRange> {
 
     virtual void* data() { return reinterpret_cast<void*>(m_self_.get()); };
 
-    virtual void const* data() const {
-        return reinterpret_cast<void*>(m_self_.get());
-    };
+    virtual void const* data() const { return reinterpret_cast<void*>(m_self_.get()); };
 
     std::unique_ptr<U> m_self_;
 };
@@ -218,8 +211,7 @@ struct RangeProxy : public RangeHolder<TRange> {
 }  // namespace simpla{namespace range
 namespace simpla {
 template <typename _Tp, typename _Category = std::input_iterator_tag,
-          typename _Distance = ptrdiff_t, typename _Pointer = _Tp*,
-          typename _Reference = _Tp&>
+          typename _Distance = ptrdiff_t, typename _Pointer = _Tp*, typename _Reference = _Tp&>
 using Range = range::Range_<_Tp, _Category, _Distance, _Pointer, _Reference>;
 }
 #endif  // SIMPLA_RANGE_H

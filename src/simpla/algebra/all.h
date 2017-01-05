@@ -17,6 +17,7 @@
 /**
  * @addtogroup algebra Algebra System
  **/
+namespace simpla{
 namespace algebra
 {
 /**
@@ -28,4 +29,5 @@ namespace algebra
  *    - Array<nTuple>= Array<Scalar>*nTuple
  */
 }//namespace algebra{
+}//namespace simpla{
 #endif //SIMPLA_ALGEBRA_ALL_H
