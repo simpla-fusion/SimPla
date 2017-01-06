@@ -706,7 +706,7 @@ struct calculator<algebra::declare::Field_<TV, TM, IFORM, DOF>> {
     //                 _map_to(m, std::get<1>(expr.m_args_), s,
     //                 index_sequence<VERTEX, I>())))
 
-    //******************************************************************************************************************
+    //**********************************************************************************************
     // for element-wise arithmetic operation
     template <typename TExpr, size_type... I>
     static decltype(auto) _invoke_helper(mesh_type const& m, TExpr const& expr,
@@ -721,10 +721,10 @@ struct calculator<algebra::declare::Field_<TV, TM, IFORM, DOF>> {
     }
 
    public:
-    ///***************************************************************************************************
+    ///*********************************************************************************************
     /// @name general_algebra General algebra
     /// @{
-    ///***************************************************************************************************
+    ///*********************************************************************************************
 
     //    template<typename T>
     //     static decltype(auto) //traits::primary_type_t<T>
@@ -750,7 +750,7 @@ struct calculator<algebra::declare::Field_<TV, TM, IFORM, DOF>> {
     //                      TFun(nTuple < Real, 3ul > const &)>::value))
     //    ) //
 
-    /********************************************************************************************************/
+    /**********************************************************************************************/
 
     template <typename T>
     static decltype(auto) get_value(mesh_type const& m, T const& v, MeshEntityId const& s,
@@ -797,7 +797,7 @@ struct calculator<algebra::declare::Field_<TV, TM, IFORM, DOF>> {
         return InterpolatePolicy<mesh_type>::template sample<IFORM>(m, s, fun(m.point(s)));
     }
 
-    //******************************************************************************************************************
+    //**********************************************************************************************
 
     template <typename TOP, typename... Args>
     static void apply(self_type& self, mesh_type const& m, Range<MeshEntityId> const& r,

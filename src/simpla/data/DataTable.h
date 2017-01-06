@@ -83,6 +83,7 @@ class DataTable : public DataEntity {
     virtual std::shared_ptr<DataEntity>  set(std::string const& key,
                                              std::shared_ptr<DataEntity> const& v);
 
+
     template <typename U>
     auto set_value(std::string const& url, U const& v) {
         return set(url, create_data_entity(v));

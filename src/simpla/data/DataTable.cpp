@@ -4,6 +4,7 @@
 #include "DataTable.h"
 #include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/Log.h>
+#include <string>
 #include "DataEntity.h"
 
 namespace simpla {
@@ -32,9 +33,11 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::emplace(DataTable* t, std::strin
                 std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>()));
 
             if (!res.first->second->is_table()) {
+                p = nullptr;
                 break;
             } else if (pos == end_pos - 1) {
                 p = res.first->second;
+                break;
             }
 
             t = &res.first->second.get()->as_table();
@@ -42,13 +45,13 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::emplace(DataTable* t, std::strin
             continue;
 
         } else {
-            auto res =
-                t->m_pimpl_->m_table_.emplace(url.substr(start_pos), std::make_shared<LightData>());
+            auto res = t->m_pimpl_->m_table_.emplace(url.substr(start_pos), p);
 
             p = res.first->second;
+            break;
         }
     }
-    RUNTIME_ERROR << " Can not insert entity at [" << url << "]" << std::endl;
+    if (p == nullptr) RUNTIME_ERROR << " Can not insert entity at [" << url << "]" << std::endl;
 
     return p;
 };
@@ -109,7 +112,7 @@ std::ostream& DataTable::print(std::ostream& os, int indent) const {
             for (; it != ie; ++it) {
                 os << " , ";
                 print_kv(os, indent, it->first, *it->second);
-                //                os << " , " << it->first << " = " << *it->second;
+                // os << " , " << it->first << " = " << *it->second;
             }
 
             os << " }";

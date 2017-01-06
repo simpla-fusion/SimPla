@@ -200,7 +200,7 @@ struct LightData : public DataEntity {
 
     template <typename U, typename... Args>
     static LightData create(Args&&... args) {
-        return LightData(new Holder<U>(std::forward<Args>(args)...));
+        return LightData(static_cast<PlaceHolder*>(new Holder<U>(std::forward<Args>(args)...)));
     };
 
     //----------------------------------------------------------------------------------------------
@@ -294,7 +294,7 @@ struct LightData : public DataEntity {
     }
 
     virtual std::ostream& print(std::ostream& os, int indent = 1) const {
-        if (m_data_ != nullptr) { m_data_->print(os, indent); }
+        if (m_data_ != nullptr) { m_data_->print(os, indent); }else{CHECK(m_data_ == nullptr);}
         return os;
     }
 
@@ -405,7 +405,7 @@ struct LightData : public DataEntity {
             } else {
                 os << m_value_;
             }
-            return os;
+             return os;
         }
 
         //        virtual void* data() { return &m_value_; };
@@ -490,8 +490,6 @@ struct create_entity<U, std::enable_if_t<is_light<std::remove_cv_t<U>>::value>> 
             LightData::template create<U>(std::forward<Args>(args)...)));
     }
 };
-
-
 
 }  // namespace traits;
 

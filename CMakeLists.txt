@@ -27,7 +27,7 @@ if (NOT STD_CXX)
 endif (NOT STD_CXX)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fcolor-diagnostics -ftemplate-backtrace-limit=0  -fPIC -funroll-loops ")
+    SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fcolor-diagnostics -ftemplate-backtrace-limit=0  -fPIC -funroll-loops  -fno-limit-debug-info")
     SET(CMAKE_Fortran_COMPILER gfortran)
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
     SET(CMAKE_CXX_FLAGS "-std=${STD_CXX} -fPIC ")
