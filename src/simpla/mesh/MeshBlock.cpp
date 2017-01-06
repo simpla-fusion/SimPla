@@ -8,7 +8,7 @@
 #include <simpla/algebra/nTupleExt.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/PrettyStream.h>
-
+#include "EntityId.h"
 namespace simpla {
 namespace mesh {
 
@@ -116,136 +116,23 @@ std::shared_ptr<MeshBlock> MeshBlock::intersection(index_box_type const& other_b
     return create(inc_level, toolbox::intersection(m_inner_box_, other_box));
 }
 
-//
-///**
-// * return the minimum block that contain two blocks
-// */
-// std::shared_ptr<MeshBlock>
-// MeshBlock::union_bounding(const std::shared_ptr<MeshBlock> &other) const
-//{
-//    assert(is_deployed());
-//    auto res = clone();
-//
-//    res->m_inner_box_ = toolbox::union_bounding(m_inner_box_, other->m_inner_box_);
-//
-//    if (!toolbox::is_valid(res->m_inner_box_)) { res = nullptr; }
-//    else
-//    {
-//        std::get<0>(res->m_outer_box_) = std::get<0>(res->m_inner_box_) - res->m_ghost_width_;
-//        std::get<1>(res->m_outer_box_) = std::get<1>(res->m_inner_box_) + res->m_ghost_width_;
-//    }
-//    return res;
-//
-//}
-
-//
-// void MeshBlock::foreach(std::function<void(index_type, index_type, index_type)> const &fun) const
-//{
-//
-//#pragma omp parallel for
-//    for (index_type i = 0; i < m_inner_count_[0]; ++i)
-//        for (index_type j = 0; j < m_inner_count_[1]; ++j)
-//            for (index_type k = 0; k < m_inner_count_[2]; ++k)
-//            {
-//                fun(m_inner_start_[0] + i, m_inner_start_[1] + j, m_inner_start_[2] + k);
-//            }
-//
-//
-//}
-//
-// void MeshBlock::foreach(std::function<void(index_type)> const &fun) const
-//{
-//#pragma omp parallel for
-//    for (index_type i = 0; i < m_inner_count_[0]; ++i)
-//        for (index_type j = 0; j < m_inner_count_[1]; ++j)
-//            for (index_type k = 0; k < m_inner_count_[2]; ++k)
-//            {
-//                fun(hash(m_inner_start_[0] + i, m_inner_start_[1] + j, m_inner_start_[2] + k));
-//            }
-//}
-//
-// void MeshBlock::foreach(int iform, std::function<void(MeshEntityId const &)> const &fun) const
-//{
-//    int n = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
-//#pragma omp parallel for
-//    for (index_type i = 0; i < m_inner_count_[0]; ++i)
-//        for (index_type j = 0; j < m_inner_count_[1]; ++j)
-//            for (index_type k = 0; k < m_inner_count_[2]; ++k)
-//                for (int l = 0; l < n; ++l)
-//                {
-//                    fun(pack(m_inner_start_[0] + i, m_inner_start_[1] + j, m_inner_start_[2] + k,
-//                    l));
-//                }
-//}
-
-//
-// std::tuple<data_block::DataSpace, data_block::DataSpace>
-// MeshBlock::data_space(MeshEntityType const &t, MeshZoneTag status) const
-//{
-//    int i_ndims = (t == EDGE || t == FACE) ? (NDIMS + 1) : NDIMS;
-//
-//    nTuple<size_type, NDIMS + 1> f_dims, f_count;
-//    nTuple<size_type, NDIMS + 1> f_start;
-//
-//    nTuple<size_type, NDIMS + 1> m_dims, m_count;
-//    nTuple<size_type, NDIMS + 1> m_start;
-//
-//    switch (status)
-//    {
-//        case SP_ES_ALL:
-//            f_dims = toolbox::dimensions(m_g_box_);
-//            f_start = std::get<0>(m_g_box_);
-//            f_count = toolbox::dimensions(m_g_box_);
-//
-//            m_dims = toolbox::dimensions(m_m_box_);
-//            m_start = std::get<0>(m_outer_box_) - std::get<0>(m_m_box_);
-//            m_count = toolbox::dimensions(m_outer_box_);;
-//            break;
-//        case SP_ES_OWNED:
-//        default:
-//            f_dims = toolbox::dimensions(m_g_box_);;
-//            f_start = std::get<0>(m_g_box_);;
-//            f_count = toolbox::dimensions(m_inner_box_);
-//
-//            m_dims = toolbox::dimensions(m_m_box_);;
-//            m_start = std::get<0>(m_inner_box_) - std::get<0>(m_m_box_);
-//            m_count = toolbox::dimensions(m_inner_box_);
-//            break;
-//
-//    }
-//    f_dims[NDIMS] = 3;
-//    f_start[NDIMS] = 0;
-//    f_count[NDIMS] = 3;
-//
-//
-//    m_dims[NDIMS] = 3;
-//    m_start[NDIMS] = 0;
-//    m_count[NDIMS] = 3;
-//
-//    FIXME;
-//    data_block::DataSpace f_space(i_ndims, &f_dims[0]);
-////    f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
-//
-//
-//    data_block::DataSpace m_space(i_ndims, &m_dims[0]);
-//    m_space.select_hyperslab(&m_start[0], nullptr, &m_count[0], nullptr);
-//
-//    return std::forward_as_tuple(m_space, f_space);
-//
-//};
-
-Range<MeshEntityId> MeshBlock::range(index_box_type const& b, size_type iform,
-                                     size_type dof) const {
-    Range<mesh::MeshEntityId> res;
-    res.append(MeshEntityIdCoder::make_range(std::get<0>(b), std::get<1>(b), iform, 0));
-    return res;
-}
-
 Range<MeshEntityId> MeshBlock::range(box_type const& b, size_type entityType, size_type dof) const {
     index_tuple l, u;
     l = point_to_index(std::get<1>(b));
     u = point_to_index(std::get<1>(b)) + 1;
-    return range(std::make_tuple(l, u), 0, 0);
+    return std::move(range(&l[0], &u[0], entityType, dof));
+}
+
+Range<MeshEntityId> MeshBlock::range(index_box_type const& b, size_type iform,
+                                     size_type dof) const {
+    return std::move(range(&(std::get<0>(b)[0]), &(std::get<1>(b)[0]), iform, dof));
+}
+
+Range<MeshEntityId> MeshBlock::range(index_type const* b, index_type const* e, size_type entityType,
+                                     size_type dof) const {
+    return std::move(
+        Range<MeshEntityId>(std::make_shared<ContinueRange<MeshEntityId>>(b, e, entityType, dof)));
+    //    return std::move(make_continue_range<MeshEntityId>(b, e, entityType, dof));
 }
 
 Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, size_type entityType,
@@ -269,12 +156,10 @@ Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, size_type entityType,
     m_g_dimensions_ = toolbox::dimensions(m_g_box_);
     switch (status) {
         case SP_ES_ALL:  // all valid
-            res.append(
-                MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType, 0));
+            res.append(range(m_outer_box_, entityType, dof));
             break;
         case SP_ES_OWNED:
-            res.append(
-                MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType, 0));
+            res.append(range(m_inner_box_, entityType, dof));
             break;
         case SP_ES_NON_LOCAL:  // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
         case SP_ES_SHARED:     //       = 0x04,                    0b000100 shared by two or more
@@ -285,41 +170,40 @@ Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, size_type entityType,
             break;
         case SP_ES_GHOST:  // = SP_ES_SHARED | SP_ES_NOT_OWNED, //              0b000110
             if (m_g_dimensions_[0] > 1) {
-                res.append(MeshEntityIdCoder::make_range(
-                    index_tuple{m_outer_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
-                    index_tuple{m_inner_lower_[0], m_outer_upper_[1], m_outer_upper_[2]},
-                    entityType, 0));
-                res.append(MeshEntityIdCoder::make_range(
-                    index_tuple{m_inner_upper_[0], m_outer_lower_[1], m_outer_lower_[2]},
-                    index_tuple{m_outer_upper_[0], m_outer_upper_[1], m_outer_upper_[2]},
-                    entityType, 0));
+                res.append(
+                    range(index_box_type{{m_outer_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
+                                         {m_inner_lower_[0], m_outer_upper_[1], m_outer_upper_[2]}},
+                          entityType, dof));
+                res.append(
+                    range(index_box_type{{m_inner_upper_[0], m_outer_lower_[1], m_outer_lower_[2]},
+                                         {m_outer_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}},
+                          entityType, dof));
             }
             if (m_g_dimensions_[1] > 1) {
-                res.append(MeshEntityIdCoder::make_range(
-                    index_tuple{m_inner_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
-                    index_tuple{m_inner_upper_[0], m_inner_lower_[1], m_outer_upper_[2]},
-                    entityType, 0));
-                res.append(MeshEntityIdCoder::make_range(
-                    index_tuple{m_inner_lower_[0], m_inner_upper_[1], m_outer_lower_[2]},
-                    index_tuple{m_inner_upper_[0], m_outer_upper_[1], m_outer_upper_[2]},
-                    entityType, 0));
+                res.append(
+                    range(index_box_type{{m_inner_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
+                                         {m_inner_upper_[0], m_inner_lower_[1], m_outer_upper_[2]}},
+                          entityType, dof));
+                res.append(
+                    range(index_box_type{{m_inner_lower_[0], m_inner_upper_[1], m_outer_lower_[2]},
+                                         {m_inner_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}},
+                          entityType, dof));
             }
             if (m_g_dimensions_[2] > 1) {
-                res.append(MeshEntityIdCoder::make_range(
-                    index_tuple{m_inner_lower_[0], m_inner_lower_[1], m_outer_lower_[2]},
-                    index_tuple{m_inner_upper_[0], m_inner_upper_[1], m_inner_lower_[2]},
-                    entityType, 0));
-                res.append(MeshEntityIdCoder::make_range(
-                    index_tuple{m_inner_lower_[0], m_inner_lower_[1], m_inner_upper_[2]},
-                    index_tuple{m_inner_upper_[0], m_inner_upper_[1], m_outer_upper_[2]},
-                    entityType, 0));
+                res.append(
+                    range(index_box_type{{m_inner_lower_[0], m_inner_lower_[1], m_outer_lower_[2]},
+                                         {m_inner_upper_[0], m_inner_upper_[1], m_inner_lower_[2]}},
+                          entityType, dof));
+                res.append(
+                    range(index_box_type{{m_inner_lower_[0], m_inner_lower_[1], m_inner_upper_[2]},
+                                         {m_inner_upper_[0], m_inner_upper_[1], m_outer_upper_[2]}},
+                          entityType, dof));
             }
             break;
         case SP_ES_DMZ:      //  = 0x100,
         case SP_ES_NOT_DMZ:  //  = 0x200,
         case SP_ES_LOCAL:    // = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
-            res.append(
-                MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType, 0));
+            res.append(range(m_inner_box_, entityType, dof));
             break;
         case SP_ES_VALID: {
             index_tuple l, u;
@@ -331,7 +215,7 @@ Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, size_type entityType,
                     u[i] -= 1;
                 }
             }
-            res.append(MeshEntityIdCoder::make_range(l, u, entityType, 0));
+            res.append(range(std::make_tuple(l, u), entityType, dof));
             break;
         }
         //        case SP_ES_INTERFACE: //  = 0x010, //                        0b010000
