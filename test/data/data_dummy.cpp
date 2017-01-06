@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 
     DataTable db;
 
-    db.set_value("CartesianGeometry.name", "hello world!");
+    db.set_value("CartesianGeometry", 1);
 
     std::cout<<db<<std::endl;
 }

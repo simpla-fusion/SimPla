@@ -71,6 +71,19 @@ struct DataEntity : public concept::Printable {
     //    bool equal(U const& u) const;
 };
 
+namespace traits {
+template <typename>
+struct is_light : public std::integral_constant<bool, true> {};
+template <typename U, class Enable = void>
+struct create_entity {};
+}
+
+template <typename U>
+std::shared_ptr<DataEntity> create_data_entity(U& v) {
+    return traits::create_entity<U>::eval(v);
+};
+
+
 /** @ingroup data */
 
 // struct LightData : public DataEntity {

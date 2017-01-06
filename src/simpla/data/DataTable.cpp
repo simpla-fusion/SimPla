@@ -11,15 +11,16 @@ namespace data {
 struct DataTable::pimpl_s {
     std::map<std::string, std::shared_ptr<DataEntity> > m_table_;
 
-    std::shared_ptr<DataEntity>& emplace(DataTable* t, std::string const& url,
-                                         char split_char = '.');
+    std::shared_ptr<DataEntity> emplace(DataTable* t, std::string const& url,
+                                        std::shared_ptr<DataEntity> p = nullptr,
+                                        char split_char = '.');
 
     DataEntity const* search(DataTable const*, std::string const& url, char split_char = '.');
 };
 
-std::shared_ptr<DataEntity>& DataTable::pimpl_s::emplace(DataTable* t, std::string const& url,
-                                                         char split_char) {
-    std::shared_ptr<DataEntity>* p = nullptr;
+std::shared_ptr<DataEntity> DataTable::pimpl_s::emplace(DataTable* t, std::string const& url,
+                                                        std::shared_ptr<DataEntity> p,
+                                                        char split_char) {
     size_type start_pos = 0;
     size_type end_pos = url.size();
     while (start_pos < end_pos) {
@@ -33,7 +34,7 @@ std::shared_ptr<DataEntity>& DataTable::pimpl_s::emplace(DataTable* t, std::stri
             if (!res.first->second->is_table()) {
                 break;
             } else if (pos == end_pos - 1) {
-                return res.first->second;
+                p = res.first->second;
             }
 
             t = &res.first->second.get()->as_table();
@@ -44,12 +45,12 @@ std::shared_ptr<DataEntity>& DataTable::pimpl_s::emplace(DataTable* t, std::stri
             auto res =
                 t->m_pimpl_->m_table_.emplace(url.substr(start_pos), std::make_shared<LightData>());
 
-            p = &(res.first->second);
+            p = res.first->second;
         }
     }
     RUNTIME_ERROR << " Can not insert entity at [" << url << "]" << std::endl;
 
-    return *p;
+    return p;
 };
 
 DataEntity const* DataTable::pimpl_s::search(DataTable const* t, std::string const& url,
@@ -122,17 +123,15 @@ bool DataTable::empty() const { return (m_pimpl_ != nullptr) && m_pimpl_->m_tabl
 bool DataTable::has(std::string const& url) const { return find(url) != nullptr; };
 
 DataTable* DataTable::create_table(std::string const& url) {
-    return &m_pimpl_->emplace(this, url + ".")->as_table();
+    return &(m_pimpl_->emplace(this, url + ".")->as_table());
 }
 
-std::shared_ptr<DataEntity>& DataTable::set(std::string const& url,
-                                            std::shared_ptr<DataEntity> const& v) {
-    std::shared_ptr<DataEntity>& res = m_pimpl_->emplace(this, url);
-    std::shared_ptr<DataEntity>(v).swap(res);
-    return res;
+std::shared_ptr<DataEntity> DataTable::set(std::string const& url,
+                                           std::shared_ptr<DataEntity> const& v) {
+    return m_pimpl_->emplace(this, url, v);
 };
 
-std::shared_ptr<DataEntity>& DataTable::get(std::string const& url) {
+std::shared_ptr<DataEntity> DataTable::get(std::string const& url) {
     return m_pimpl_->emplace(this, url);
 }
 

@@ -80,11 +80,11 @@ class DataTable : public DataEntity {
      * '''table''' as needed.
      */
 
-    virtual std::shared_ptr<DataEntity>& set(std::string const& key,
+    virtual std::shared_ptr<DataEntity>  set(std::string const& key,
                                              std::shared_ptr<DataEntity> const& v);
 
     template <typename U>
-    std::shared_ptr<DataEntity>& set_value(std::string const& url, U const& v) {
+    auto set_value(std::string const& url, U const& v) {
         return set(url, create_data_entity(v));
     }
 
@@ -96,7 +96,7 @@ class DataTable : public DataEntity {
      * @return Returns a reference to the shared pointer of  the entity with '''url'''.
      *      If no such entity exists, create a light entity, create parent table as needed.
      */
-    virtual std::shared_ptr<DataEntity>& get(std::string const& url);
+    virtual std::shared_ptr<DataEntity>  get(std::string const& url);
 
     template <typename U>
     U const& get_value(std::string const& url) const {

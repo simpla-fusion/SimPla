@@ -125,6 +125,15 @@ inline bool get_string(std::string* v, std::string const& other) {
  *   This an implement of 'any' with m_data type description/serialization information
  */
 struct LightData : public DataEntity {
+   private:
+    struct PlaceHolder;
+
+    template <typename>
+    struct Holder;
+
+    SP_OBJECT_HEAD(LightData, DataEntity);
+
+   public:
     LightData() : m_data_(nullptr) {}
 
     template <typename ValueType>
@@ -136,7 +145,9 @@ struct LightData : public DataEntity {
         : m_data_(other.m_data_ == nullptr ? other.m_data_->clone() : nullptr) {}
 
     // Move constructor
-    LightData(LightData&& other) : m_data_(other.m_data_) { other.m_data_ = 0; }
+    LightData(LightData&& other) : m_data_(nullptr) { other.m_data_.swap(m_data_); }
+
+    LightData(PlaceHolder* p) : m_data_(p) {}
 
     // Perfect forwarding of ValueType
     template <typename ValueType>
@@ -149,7 +160,7 @@ struct LightData : public DataEntity {
         : m_data_(
               new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType&&>(value))) {}
 
-    virtual ~LightData() { delete m_data_; }
+    virtual ~LightData() {}
 
     LightData& swap(LightData& other) {
         std::swap(m_data_, other.m_data_);
@@ -181,11 +192,16 @@ struct LightData : public DataEntity {
 
     virtual void clear() { LightData().swap(*this); }
 
-    virtual void* data() { return m_data_->data(); }
-
-    virtual void const* data() const { return m_data_->data(); }
+    //    virtual void* data() { return m_data_->data(); }
+    //
+    //    virtual void const* data() const { return m_data_->data(); }
 
     const std::type_info& type() const { return m_data_ ? m_data_->type() : typeid(void); }
+
+    template <typename U, typename... Args>
+    static LightData create(Args&&... args) {
+        return LightData(new Holder<U>(std::forward<Args>(args)...));
+    };
 
     //----------------------------------------------------------------------------------------------
     // SimPla extent
@@ -259,7 +275,7 @@ struct LightData : public DataEntity {
         if (!empty() && this->template is_same<U>()) {
             return dynamic_cast<Holder<U>*>(m_data_)->m_value_;
         } else {
-            Any(def_v).swap(*this);
+            LightData(def_v).swap(*this);
             return def_v;
         }
     }
@@ -283,12 +299,7 @@ struct LightData : public DataEntity {
     }
 
    private:
-    struct PlaceHolder;
-
-    template <typename>
-    struct Holder;
-
-    PlaceHolder* m_data_ = nullptr;
+    std::unique_ptr<PlaceHolder> m_data_ = nullptr;
 
     PlaceHolder* clone() const { return (m_data_ != nullptr) ? m_data_->clone() : nullptr; }
 
@@ -334,9 +345,9 @@ struct LightData : public DataEntity {
 
         virtual std::shared_ptr<PlaceHolder> get(int) const = 0;
 
-        virtual void* data() = 0;
-
-        virtual void const* data() const = 0;
+        //        virtual void* data() = 0;
+        //
+        //        virtual void const* data() const = 0;
 
         //        template<typename U, size_type N>
         //        bool as(nTuple<U, N> *v) const
@@ -397,9 +408,9 @@ struct LightData : public DataEntity {
             return os;
         }
 
-        virtual void* data() { return &m_value_; };
-
-        virtual void const* data() const { return &m_value_; };
+        //        virtual void* data() { return &m_value_; };
+        //
+        //        virtual void const* data() const { return &m_value_; };
 
         //    data_model::DataType data_type() const { return data_model::DataType::template
         //    clone<T>(); }
@@ -470,12 +481,24 @@ struct LightData : public DataEntity {
 
 };  // class LightData
 
-std::shared_ptr<DataEntity> create_data_entity(char const* v);
-
+namespace traits {
 template <typename U>
-std::shared_ptr<DataEntity> create_data_entity(U const& v) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<LightData>(v));
+struct create_entity<U, std::enable_if_t<is_light<std::remove_cv_t<U>>::value>> {
+    template <typename... Args>
+    static std::shared_ptr<DataEntity> eval(Args&&... args) {
+        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<LightData>(
+            LightData::template create<U>(std::forward<Args>(args)...)));
+    }
 };
+
+
+
+}  // namespace traits;
+
+std::shared_ptr<DataEntity> inline create_data_entity(char const* c) {
+    return traits::create_entity<std::string>::eval(std::string(c));
+};
+
 }  // namespace data {
 }  // namespace simpla{
 #endif  // SIMPLA_LIGHTDATA_H
