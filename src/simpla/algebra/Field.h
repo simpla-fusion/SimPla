@@ -11,6 +11,7 @@
 
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
+#include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/Mesh.h>
 #include <cassert>
 #include <type_traits>
@@ -97,7 +98,7 @@ struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>> {
 
 namespace declare {
 template <typename TV, typename TM, size_type IFORM, size_type DOF>
-class Field_<TV, TM, IFORM, DOF> : public concept::Printable, public concept::Serializable {
+class Field_<TV, TM, IFORM, DOF> : public mesh::Attribute {
    private:
     typedef Field_<TV, TM, IFORM, DOF> this_type;
 
@@ -123,6 +124,15 @@ class Field_<TV, TM, IFORM, DOF> : public concept::Printable, public concept::Se
     std::shared_ptr<data_type> m_data_holder_;
 
     Field_() : m_data_holder_(nullptr), m_mesh_(nullptr), m_data_(nullptr){};
+
+    template <typename... Args>
+    explicit Field_(Args&&... args)
+        : mesh::Attribute(nullptr,
+                          std::make_shared<mesh::AttributeDescTemp<value_type, IFORM, DOF>>(
+                              std::forward<Args>(args)...)),
+          m_mesh_(nullptr),
+          m_data_holder_(nullptr),
+          m_data_(nullptr) {}
 
     explicit Field_(mesh_type const* m, data_type* d)
         : m_mesh_(m), m_data_holder_(d, simpla::tags::do_nothing()), m_data_(nullptr){};
@@ -152,6 +162,10 @@ class Field_<TV, TM, IFORM, DOF> : public concept::Printable, public concept::Se
 
     virtual void save(data::DataTable* d) const { m_data_->save(d); };
 
+    virtual std::shared_ptr<mesh::DataBlock> create_data_block(mesh::MeshBlock const* m,
+                                                               void* p = nullptr) const {
+        return mesh::DataBlockAdapter<this_type>::create(m, static_cast<value_type*>(p));
+    };
     inline this_type& operator=(this_type const& rhs) { return assign(rhs); }
 
     template <typename TR>
@@ -185,9 +199,9 @@ class Field_<TV, TM, IFORM, DOF> : public concept::Printable, public concept::Se
         pre_process();
     }
 
-    virtual data_type* data() { return m_data_; }
-
-    virtual data_type const* data() const { return m_data_; }
+    //    virtual data_type* data() { return m_data_; }
+    //
+    //    virtual data_type const* data() const { return m_data_; }
 
     virtual void deploy() { calculus_policy::deploy(*this); }
 
@@ -197,20 +211,22 @@ class Field_<TV, TM, IFORM, DOF> : public concept::Printable, public concept::Se
 
     /** @name as_function  @{*/
     template <typename... Args>
-    inline auto gather(Args&&... args) const
-        AUTO_RETURN((apply(tags::_gather(), std::forward<Args>(args)...)))
+    inline auto gather(Args&&... args) const {
+        return apply(tags::_gather(), std::forward<Args>(args)...);
+    }
 
-            template <typename... Args>
-            inline auto scatter(field_value const& v, Args&&... args)
-                AUTO_RETURN((apply(tags::_scatter(), v, std::forward<Args>(args)...)))
+    template <typename... Args>
+    inline auto scatter(field_value const& v, Args&&... args) {
+        return (apply(tags::_scatter(), v, std::forward<Args>(args)...));
+    }
 
-        //    auto
-        //    operator()(mesh_type::point_type const &x) const AUTO_RETURN((gather(x)))
+    //    auto
+    //    operator()(mesh_type::point_type const &x) const AUTO_RETURN((gather(x)))
 
-        /**@}*/
+    /**@}*/
 
-        /** @name as_array   @{*/
-        value_type& at(mesh_id_type const& s) {
+    /** @name as_array   @{*/
+    value_type& at(mesh_id_type const& s) {
         return calculus_policy::get_value(*m_mesh_, *m_data_, s);
     }
 
@@ -232,15 +248,15 @@ class Field_<TV, TM, IFORM, DOF> : public concept::Printable, public concept::Se
         return m_data_->at(std::forward<TID>(s)...);
     }
 
-    template <typename... Args>
-    value_type& operator()(Args&&... args) {
-        return ((at(std::forward<Args>(args)...)));
-    }
-
-    template <typename... Args>
-    value_type const& operator()(Args&&... args) const {
-        return ((at(std::forward<Args>(args)...)));
-    }
+    //    template <typename... Args>
+    //    value_type& operator()(Args&&... args) {
+    //        return ((at(std::forward<Args>(args)...)));
+    //    }
+    //
+    //    template <typename... Args>
+    //    value_type const& operator()(Args&&... args) const {
+    //        return ((at(std::forward<Args>(args)...)));
+    //    }
 
     /**@}*/
 

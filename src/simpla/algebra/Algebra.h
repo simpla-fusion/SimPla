@@ -12,7 +12,7 @@
 #include <utility>
 
 namespace simpla {
-enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6, SCALAR = 10000 };
+enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6};
 
 namespace algebra {
 
@@ -34,7 +34,7 @@ struct calculator;
 namespace traits {
 
 template <typename>
-struct iform : public index_const<SCALAR> {};
+struct iform : public index_const<VERTEX> {};
 template <typename T>
 struct iform<const T> : public iform<T> {};
 

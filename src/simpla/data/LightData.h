@@ -402,9 +402,9 @@ struct LightData : public DataEntity {
 
         std::ostream& print(std::ostream& os, int indent = 1) const {
             if (std::is_same<ValueType, std::string>::value) {
-                os << "\"" << m_value_ << "\"";
+//                os << "\"" << m_value_ << "\"";
             } else {
-                os << m_value_;
+//                os << m_value_;
             }
              return os;
         }
