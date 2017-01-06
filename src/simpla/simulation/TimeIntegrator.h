@@ -45,7 +45,7 @@ public:
 
     virtual void advance(Real dt, int level = 0) { UNIMPLEMENTED; };
 
-    virtual size_type next_step(Real dt) { UNIMPLEMENTED; };
+    virtual size_type next_step(Real dt) { UNIMPLEMENTED; return 0;};
 
     virtual void check_point() {};
 

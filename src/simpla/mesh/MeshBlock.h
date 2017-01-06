@@ -6,21 +6,20 @@
 #define SIMPLA_BOX_H
 
 #include <simpla/SIMPLA_config.h>
-#include <iomanip>
-#include <simpla/data/DataTable.h>
-#include <simpla/data/DataSpace.h>
 #include <simpla/algebra/nTuple.h>
-#include <simpla/concept/Object.h>
-#include <simpla/concept/Serializable.h>
-#include <simpla/concept/Printable.h>
 #include <simpla/concept/LifeControllable.h>
-#include <simpla/mpl/Range.h>
+#include <simpla/concept/Object.h>
+#include <simpla/concept/Printable.h>
+#include <simpla/concept/Serializable.h>
+#include <simpla/data/DataSpace.h>
+#include <simpla/data/DataTable.h>
+#include <iomanip>
 #include "BoxUtility.h"
-#include "MeshCommon.h"
 #include "EntityId.h"
+#include "MeshCommon.h"
 
-namespace simpla { namespace mesh
-{
+namespace simpla {
+namespace mesh {
 
 /**
  *  block represent a n-dims block in the index space;
@@ -74,28 +73,25 @@ namespace simpla { namespace mesh
  *
  */
 
-class MeshBlock :
-        public Object,
-        public concept::Serializable,
-        public concept::Printable,
-        public concept::LifeControllable
-{
-
-public:
-
-SP_OBJECT_HEAD(MeshBlock, Object)
+class MeshBlock : public Object,
+                  public concept::Serializable,
+                  public concept::Printable,
+                  public concept::LifeControllable {
+   public:
+    SP_OBJECT_HEAD(MeshBlock, Object)
 
     MeshBlock();
 
-    MeshBlock(int ndims, index_type const *lo, index_type const *up, Real const *dx, Real const *x_lo);
+    MeshBlock(int ndims, index_type const* lo, index_type const* up, Real const* dx,
+              Real const* x_lo);
 
-    MeshBlock(MeshBlock const &) = delete;
+    MeshBlock(MeshBlock const&) = delete;
 
-    MeshBlock(MeshBlock &&other) = delete;
+    MeshBlock(MeshBlock&& other) = delete;
 
     virtual ~MeshBlock();
 
-    MeshBlock &operator=(MeshBlock const &other)= delete;
+    MeshBlock& operator=(MeshBlock const& other) = delete;
 
     size_type level() const { return m_level_; }
 
@@ -107,18 +103,17 @@ SP_OBJECT_HEAD(MeshBlock, Object)
 
     /** for Printable @{*/
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+    virtual std::ostream& print(std::ostream& os, int indent = 0) const;
 
     /** @}*/
 
     /** for Serializable @{*/
 
-    virtual void load(const data::DataTable &) {};
+    virtual void load(const data::DataTable&){};
 
-    virtual void save(data::DataTable *) const {};
+    virtual void save(data::DataTable*) const {};
 
     /** @}*/
-
 
     /**
      *
@@ -130,12 +125,10 @@ SP_OBJECT_HEAD(MeshBlock, Object)
      *   offset_new = b.first * 2^ (-inc_level)
      *   count_new  = b.second * 2^ (-inc_level) - offset_new
      */
-    virtual std::shared_ptr<MeshBlock>
-    create(int inc_level, const index_type *lo, const index_type *hi) const;
+    virtual std::shared_ptr<MeshBlock> create(int inc_level, const index_type* lo,
+                                              const index_type* hi) const;
 
-    virtual std::shared_ptr<MeshBlock>
-    create(int inc_level, index_box_type const &b) const
-    {
+    virtual std::shared_ptr<MeshBlock> create(int inc_level, index_box_type const& b) const {
         return create(inc_level, &std::get<0>(b)[0], &std::get<1>(b)[0]);
     }
 
@@ -143,55 +136,49 @@ SP_OBJECT_HEAD(MeshBlock, Object)
      * create a sub-mesh of this mesh, with same m_root_id
      * @param other_box
      */
-    std::shared_ptr<MeshBlock> intersection(index_box_type const &other_box, int inc_level = 0);
+    std::shared_ptr<MeshBlock> intersection(index_box_type const& other_box, int inc_level = 0);
 
+    //    int level() const { return m_level_; }
 
-//    int level() const { return m_level_; }
+    virtual bool is_overlap(index_box_type const&) { return true; }
 
-    virtual bool is_overlap(index_box_type const &) { return true; }
+    virtual bool is_overlap(box_type const&) { return true; }
 
-    virtual bool is_overlap(box_type const &) { return true; }
-
-    virtual bool is_overlap(MeshBlock const &) { return true; }
+    virtual bool is_overlap(MeshBlock const&) { return true; }
 
     /**
      *  Set unique ID of index space
      * @param id
      */
 
-
     void shift(index_type x, index_type y = 0, index_type z = 0) {}
 
-    void shift(index_type const *) {}
+    void shift(index_type const*) {}
 
-
-    virtual bool is_valid()
-    {
+    virtual bool is_valid() {
         return is_deployed()
 
-//               &&  toolbox::is_valid(m_g_box_) &&
-//               toolbox::is_valid(m_m_box_) &&
-//               toolbox::is_valid(m_inner_box_) &&
-//               toolbox::is_valid(m_outer_box_)
+            //               &&  toolbox::is_valid(m_g_box_) &&
+            //               toolbox::is_valid(m_m_box_) &&
+            //               toolbox::is_valid(m_inner_box_) &&
+            //               toolbox::is_valid(m_outer_box_)
 
-                ;
+            ;
     }
 
     size_tuple dimensions() const { return toolbox::dimensions(m_g_box_); }
 
-    size_tuple const &ghost_width() const { return m_ghost_width_; }
+    size_tuple const& ghost_width() const { return m_ghost_width_; }
 
-    index_box_type const &global_index_box() const { return m_g_box_; }
+    index_box_type const& global_index_box() const { return m_g_box_; }
 
-    index_box_type const &memory_index_box() const { return m_m_box_; }
+    index_box_type const& memory_index_box() const { return m_m_box_; }
 
-    index_box_type const &inner_index_box() const { return m_inner_box_; }
+    index_box_type const& inner_index_box() const { return m_inner_box_; }
 
-    index_box_type const &outer_index_box() const { return m_outer_box_; }
+    index_box_type const& outer_index_box() const { return m_outer_box_; }
 
-    box_type
-    get_box(index_box_type const &b) const
-    {
+    box_type get_box(index_box_type const& b) const {
         return std::make_tuple(point(std::get<0>(b)), point(std::get<1>(b)));
     }
 
@@ -205,59 +192,60 @@ SP_OBJECT_HEAD(MeshBlock, Object)
 
     virtual box_type outer_box() const { return get_box(outer_index_box()); };
 
-    point_type const &global_origin() const { return m_global_origin_; }
+    point_type const& global_origin() const { return m_global_origin_; }
 
-    point_type const &dx() const { return m_dx_; }
+    point_type const& dx() const { return m_dx_; }
 
-    point_type const &inv_dx() const { return m_inv_dx_; }
+    point_type const& inv_dx() const { return m_inv_dx_; }
 
+    //    virtual point_type point(MeshEntityId const &s) const { return point(s.x >> 1, s.y >> 1,
+    //    s.z >> 1); }
+    //
+    virtual point_type point(index_tuple const& x) const { return point(x[0], x[1], x[2]); };
+    //
+    //    virtual index_tuple index(point_type const &x) const
+    //    {
+    //        return index_tuple{static_cast<index_type>(floor((x[0] + 0.5 * m_dx_[0]) *
+    //        m_inv_dx_[0])),
+    //                           static_cast<index_type>(floor((x[1] + 0.5 * m_dx_[0]) *
+    //                           m_inv_dx_[1])),
+    //                           static_cast<index_type>(floor((x[2] + 0.5 * m_dx_[0]) *
+    //                           m_inv_dx_[2]))
+    //        };
+    //    }
+    //
+    //    virtual point_type point_global_to_local(point_type const &x, int iform = 0) const
+    //    {
+    //        return point_type{static_cast<Real>(x[0] - floor((x[0] + 0.5 * m_dx_[0]) *
+    //        m_inv_dx_[0])),
+    //                          static_cast<Real>(x[1] - floor((x[1] + 0.5 * m_dx_[0]) *
+    //                          m_inv_dx_[1])),
+    //                          static_cast<Real>(x[2] - floor((x[2] + 0.5 * m_dx_[0]) *
+    //                          m_inv_dx_[2]))};
+    //    }
 
-//    virtual point_type point(MeshEntityId const &s) const { return point(s.x >> 1, s.y >> 1, s.z >> 1); }
-//
-    virtual point_type point(index_tuple const &x) const { return point(x[0], x[1], x[2]); };
-//
-//    virtual index_tuple index(point_type const &x) const
-//    {
-//        return index_tuple{static_cast<index_type>(floor((x[0] + 0.5 * m_dx_[0]) * m_inv_dx_[0])),
-//                           static_cast<index_type>(floor((x[1] + 0.5 * m_dx_[0]) * m_inv_dx_[1])),
-//                           static_cast<index_type>(floor((x[2] + 0.5 * m_dx_[0]) * m_inv_dx_[2]))
-//        };
-//    }
-//
-//    virtual point_type point_global_to_local(point_type const &x, int iform = 0) const
-//    {
-//        return point_type{static_cast<Real>(x[0] - floor((x[0] + 0.5 * m_dx_[0]) * m_inv_dx_[0])),
-//                          static_cast<Real>(x[1] - floor((x[1] + 0.5 * m_dx_[0]) * m_inv_dx_[1])),
-//                          static_cast<Real>(x[2] - floor((x[2] + 0.5 * m_dx_[0]) * m_inv_dx_[2]))};
-//    }
-
-
-    size_type number_of_entities(int iform) const
-    {
+    size_type number_of_entities(int iform) const {
         return max_hash() * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
     }
 
     size_type max_hash() const { return toolbox::size(m_m_box_); }
 
     // FIXME:!!!
-    size_type hash(MeshEntityId const &s) { return 0; }
+    size_type hash(MeshEntityId const& s) { return 0; }
 
     typedef MeshEntityIdCoder m;
 
-
-    virtual int get_adjacent_entities(size_type entity_type, MeshEntityId s, MeshEntityId *p = nullptr) const
-    {
+    virtual int get_adjacent_entities(size_type entity_type, MeshEntityId s,
+                                      MeshEntityId* p = nullptr) const {
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
 
-//    virtual index_tuple point_to_index(point_type const &g, int nId = 0) const
-//    {
-//        return m::unpack_index(std::get<0>(m::point_global_to_local(g, nId)));
-//    };
+    //    virtual index_tuple point_to_index(point_type const &g, int nId = 0) const
+    //    {
+    //        return m::unpack_index(std::get<0>(m::point_global_to_local(g, nId)));
+    //    };
 
-
-    virtual point_type point(Real x, Real y = 0, Real z = 0) const
-    {
+    virtual point_type point(Real x, Real y = 0, Real z = 0) const {
         point_type p;
 
         p[0] = std::fma(x, m_l2g_scale_[0], m_l2g_shift_[0]);
@@ -265,108 +253,118 @@ SP_OBJECT_HEAD(MeshBlock, Object)
         p[2] = std::fma(z, m_l2g_scale_[2], m_l2g_shift_[2]);
 
         return std::move(p);
-
-
     };
 
-    virtual point_type
-    point(MeshEntityId const &s) const
-    {
+    virtual point_type point(MeshEntityId const& s) const {
         point_type p = m::point(s);
         return point(p[0], p[1], p[2]);
     }
 
-    virtual point_type
-    point_local_to_global(MeshEntityId s, point_type const &r) const
-    {
+    virtual point_type point_local_to_global(MeshEntityId s, point_type const& r) const {
         point_type p = m::point_local_to_global(s, r);
 
         return std::move(point(p[0], p[1], p[2]));
     }
 
-    virtual    //std::tuple<MeshEntityId, point_type>
-    point_type
-    point_global_to_local(point_type const &g, int nId = 0) const
-    {
-
+    virtual  // std::tuple<MeshEntityId, point_type>
+        point_type
+        point_global_to_local(point_type const& g, int nId = 0) const {
         return
-//                m::point_global_to_local(
-                point_type{
-                        std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
-                        std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
-                        std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
-                }
-//                        , nId)
-                ;
+            //                m::point_global_to_local(
+            point_type{std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
+                       std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
+                       std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])}
+        //                        , nId)
+        ;
     }
 
-    virtual index_tuple
-    point_to_index(point_type const &g, int nId = 0) const
-    {
-        return m::unpack_index(std::get<0>(m::point_global_to_local(
-                point_type{
-                        std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
-                        std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
-                        std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
-                }, nId)));
+    virtual index_tuple point_to_index(point_type const& g, int nId = 0) const {
+        return m::unpack_index(std::get<0>(
+            m::point_global_to_local(point_type{std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
+                                                std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
+                                                std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])},
+                                     nId)));
     };
 
-    virtual Range<MeshEntityId> range(MeshZoneTag status, size_type entityType = VERTEX, size_type dof = 1) const;
+    virtual Range<MeshEntityId> range(MeshZoneTag status, size_type entityType = VERTEX,
+                                      size_type dof = 1) const;
 
-    virtual Range<MeshEntityId> range(index_box_type const &b, size_type entity_type = VERTEX, size_type dof = 1) const;
+    virtual Range<MeshEntityId> range(index_box_type const& b, size_type entity_type = VERTEX,
+                                      size_type dof = 1) const;
 
-    virtual Range<MeshEntityId> range(box_type const &b, size_type entityType = VERTEX, size_type dof = 1) const;
+    virtual Range<MeshEntityId> range(box_type const& b, size_type entityType = VERTEX,
+                                      size_type dof = 1) const;
 
-//    template<typename TFun>
-//    void foreach(TFun const &fun, MeshZoneTag tag, size_type const &iform = VERTEX, size_type dof = 1,
-//                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type, size_type, size_type)>::value))) const
-//    {
-//        int n = iform == VERTEX || iform == VOLUME ? 1 : 3;
-//        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] : std::get<0>(m_outer_box_)[0];
-//        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] : std::get<1>(m_outer_box_)[0];
-//        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] : std::get<0>(m_outer_box_)[1];
-//        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] : std::get<1>(m_outer_box_)[1];
-//        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] : std::get<0>(m_outer_box_)[2];
-//        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] : std::get<1>(m_outer_box_)[2];
-//
-//#pragma omp parallel for
-//        for (index_type i = ib; i < ie; ++i)
-//            for (index_type j = jb; j < je; ++j)
-//                for (index_type k = kb; k < ke; ++k)
-//                    for (index_type l = 0; l < n; ++l)
-//                    {
-//                        fun(i, j, k, l);
-//                    }
-//
-//    }
-//
-//    template<typename TFun>
-//    void foreach(TFun const &fun, MeshZoneTag tag, size_type iform = VERTEX, size_type dof = 1,
-//                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type, size_type)>::value)) const
-//    {
-//        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] : std::get<0>(m_outer_box_)[0];
-//        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] : std::get<1>(m_outer_box_)[0];
-//        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] : std::get<0>(m_outer_box_)[1];
-//        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] : std::get<1>(m_outer_box_)[1];
-//        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] : std::get<0>(m_outer_box_)[2];
-//        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] : std::get<1>(m_outer_box_)[2];
-//
-//#pragma omp parallel for
-//        for (index_type i = ib; i < ie; ++i)
-//            for (index_type j = jb; j < je; ++j)
-//                for (index_type k = kb; k < ke; ++k)
-//                {
-//                    fun(i, j, k);
-//                }
-//
-//    }
+    virtual Range<MeshEntityId> range(index_type const* b, index_type const* e,
+                                      size_type entityType = VERTEX, size_type dof = 1) const;
 
-    virtual bool is_inside(point_type const &p) const { return toolbox::is_inside(p, box()); }
+    //    template<typename TFun>
+    //    void foreach(TFun const &fun, MeshZoneTag tag, size_type const &iform = VERTEX, size_type
+    //    dof = 1,
+    //                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type, size_type,
+    //                 size_type)>::value))) const
+    //    {
+    //        int n = iform == VERTEX || iform == VOLUME ? 1 : 3;
+    //        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] :
+    //        std::get<0>(m_outer_box_)[0];
+    //        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] :
+    //        std::get<1>(m_outer_box_)[0];
+    //        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] :
+    //        std::get<0>(m_outer_box_)[1];
+    //        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] :
+    //        std::get<1>(m_outer_box_)[1];
+    //        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] :
+    //        std::get<0>(m_outer_box_)[2];
+    //        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] :
+    //        std::get<1>(m_outer_box_)[2];
+    //
+    //#pragma omp parallel for
+    //        for (index_type i = ib; i < ie; ++i)
+    //            for (index_type j = jb; j < je; ++j)
+    //                for (index_type k = kb; k < ke; ++k)
+    //                    for (index_type l = 0; l < n; ++l)
+    //                    {
+    //                        fun(i, j, k, l);
+    //                    }
+    //
+    //    }
+    //
+    //    template<typename TFun>
+    //    void foreach(TFun const &fun, MeshZoneTag tag, size_type iform = VERTEX, size_type dof =
+    //    1,
+    //                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type,
+    //                 size_type)>::value)) const
+    //    {
+    //        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] :
+    //        std::get<0>(m_outer_box_)[0];
+    //        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] :
+    //        std::get<1>(m_outer_box_)[0];
+    //        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] :
+    //        std::get<0>(m_outer_box_)[1];
+    //        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] :
+    //        std::get<1>(m_outer_box_)[1];
+    //        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] :
+    //        std::get<0>(m_outer_box_)[2];
+    //        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] :
+    //        std::get<1>(m_outer_box_)[2];
+    //
+    //#pragma omp parallel for
+    //        for (index_type i = ib; i < ie; ++i)
+    //            for (index_type j = jb; j < je; ++j)
+    //                for (index_type k = kb; k < ke; ++k)
+    //                {
+    //                    fun(i, j, k);
+    //                }
+    //
+    //    }
 
-    virtual bool is_inside(index_tuple const &p) const { return toolbox::is_inside(p, m_inner_box_); }
+    virtual bool is_inside(point_type const& p) const { return toolbox::is_inside(p, box()); }
 
-protected:
+    virtual bool is_inside(index_tuple const& p) const {
+        return toolbox::is_inside(p, m_inner_box_);
+    }
 
+   protected:
     id_type m_space_id_ = 0;
 
     int m_level_ = 0;
@@ -379,17 +377,15 @@ protected:
 
     point_type m_global_origin_{{0, 0, 0}};
 
-    size_tuple m_ghost_width_{{0, 0, 0}};        //!<     ghost width
-    index_box_type m_g_box_;         //!<     global index block
-    index_box_type m_m_box_;         //!<     memory index block
-    index_box_type m_inner_box_;     //!<    inner block
-    index_box_type m_outer_box_;     //!<    outer block
+    size_tuple m_ghost_width_{{0, 0, 0}};  //!<     ghost width
+    index_box_type m_g_box_;               //!<     global index block
+    index_box_type m_m_box_;               //!<     memory index block
+    index_box_type m_inner_box_;           //!<    inner block
+    index_box_type m_outer_box_;           //!<    outer block
 
     vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};
     vector_type m_g2l_scale_{{1, 1, 1}}, m_g2l_shift_{{0, 0, 0}};
-
-
 };
-
-}} //namespace simpla{namespace mesh_as
-#endif //SIMPLA_BOX_H
+}
+}  // namespace simpla{namespace mesh_as
+#endif  // SIMPLA_BOX_H

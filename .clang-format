@@ -4,8 +4,7 @@ IndentWidth: 4
 Language: Cpp
 # Force pointers to the type for C++.
 PointerAlignment: Left
-ColumnLimit: 80
+ColumnLimit: 100
 AllowShortBlocksOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
-AlwaysBreakAfterDefinitionReturnType: true
 AllowAllParametersOfDeclarationOnNextLine: true

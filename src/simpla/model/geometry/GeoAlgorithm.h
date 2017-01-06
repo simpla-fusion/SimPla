@@ -11,14 +11,14 @@
 #include <stddef.h>
 #include <tuple>
 
-#include <simpla/algebra/nTuple.h>
-#include <simpla/algebra/nTupleExt.h>
 #include <simpla/algebra/Arithmetic.h>
 #include <simpla/algebra/Calculus.h>
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/nTupleExt.h>
 #include <simpla/toolbox/sp_def.h>
 
-namespace simpla { namespace geometry
-{
+namespace simpla {
+namespace geometry {
 using namespace simpla::algebra;
 
 /**
@@ -28,53 +28,42 @@ using namespace simpla::algebra;
  * @{
  */
 
-template<typename T, typename T1>
-bool in_box(T1 const &p0, T1 const &p1, nTuple<T, 2> const &x0)
-{
+template <typename T, typename T1>
+bool in_box(T1 const& p0, T1 const& p1, nTuple<T, 2> const& x0) {
     return (x0[0] >= p0[0]) && (x0[1] >= p0[1]) && (x0[0] < p1[0]) && (x0[1] < p1[1]);
-
 }
 
-template<typename T0, typename T1>
-bool in_box(std::tuple<T1, T1> const &b, T0 const &x0)
-{
-    return (x0[0] >= std::get<0>(b)[0]) && (x0[1] >= std::get<0>(b)[1]) && (x0[2] >= std::get<0>(b)[2])
-           && (x0[0] < std::get<1>(b)[0]) && (x0[1] < std::get<1>(b)[1]) && (x0[2] < std::get<1>(b)[2]);
-
+template <typename T0, typename T1>
+bool in_box(std::tuple<T1, T1> const& b, T0 const& x0) {
+    return (x0[0] >= std::get<0>(b)[0]) && (x0[1] >= std::get<0>(b)[1]) &&
+           (x0[2] >= std::get<0>(b)[2]) && (x0[0] < std::get<1>(b)[0]) &&
+           (x0[1] < std::get<1>(b)[1]) && (x0[2] < std::get<1>(b)[2]);
 }
 
-
-template<typename T0, typename T1>
-std::tuple<point_type, point_type, Real> nearest_point_to_box(std::tuple<T1, T1> const &b, T0 const &x0)
-{
+template <typename T0, typename T1>
+std::tuple<point_type, point_type, Real> nearest_point_to_box(std::tuple<T1, T1> const& b,
+                                                              T0 const& x0) {
     UNIMPLEMENTED;
-    return std::make_tuple(x0,
-                           point_type{std::numeric_limits<Real>::quiet_NaN(),
-                                      std::numeric_limits<Real>::quiet_NaN(),
-                                      std::numeric_limits<Real>::quiet_NaN()},
+    return std::make_tuple(x0, point_type{std::numeric_limits<Real>::quiet_NaN(),
+                                          std::numeric_limits<Real>::quiet_NaN(),
+                                          std::numeric_limits<Real>::quiet_NaN()},
                            std::numeric_limits<Real>::quiet_NaN());
-
 }
 
-template<typename T0, typename ...Args>
-std::tuple<point_type, point_type, Real> nearest_point_to_box(T0 const &b, Args &&...args)
-{
+template <typename T0, typename... Args>
+std::tuple<point_type, point_type, Real> nearest_point_to_box(T0 const& b, Args&&... args) {
     UNIMPLEMENTED;
-    return std::make_tuple(point_type{std::numeric_limits<Real>::quiet_NaN(),
-                                      std::numeric_limits<Real>::quiet_NaN(),
-                                      std::numeric_limits<Real>::quiet_NaN()},
-                           point_type{std::numeric_limits<Real>::quiet_NaN(),
-                                      std::numeric_limits<Real>::quiet_NaN(),
-                                      std::numeric_limits<Real>::quiet_NaN()},
-                           std::numeric_limits<Real>::quiet_NaN());
-
+    return std::make_tuple(
+        point_type{std::numeric_limits<Real>::quiet_NaN(), std::numeric_limits<Real>::quiet_NaN(),
+                   std::numeric_limits<Real>::quiet_NaN()},
+        point_type{std::numeric_limits<Real>::quiet_NaN(), std::numeric_limits<Real>::quiet_NaN(),
+                   std::numeric_limits<Real>::quiet_NaN()},
+        std::numeric_limits<Real>::quiet_NaN());
 }
 
-
-template<typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Vec3> distance_from_point_to_plane(T0 const &x0,
-                                                    T1 const &p0, T2 const &p1, T3 const &p2)
-{
+template <typename T0, typename T1, typename T2, typename T3>
+std::tuple<Real, Vec3> distance_from_point_to_plane(T0 const& x0, T1 const& p0, T2 const& p1,
+                                                    T3 const& p2) {
     Vec3 n;
 
     n = cross(p1 - p0, p2 - p1);
@@ -82,12 +71,10 @@ std::tuple<Real, Vec3> distance_from_point_to_plane(T0 const &x0,
     n /= inner_product(n, n);
 
     return std::forward_as_tuple(inner_product(p0 - x0, n), std::move(n));
-
 }
 
-template<typename T0, typename T1, typename T2>
-Real nearest_point_to_line_segment(T0 const &p0, T1 const &p1, T2 const &x)
-{
+template <typename T0, typename T1, typename T2>
+Real nearest_point_to_line_segment(T0 const& p0, T1 const& p1, T2 const& x) {
     Vec3 u, v;
 
     u = x - *p0;
@@ -97,65 +84,58 @@ Real nearest_point_to_line_segment(T0 const &p0, T1 const &p1, T2 const &x)
 
     auto s = inner_product(u, v) / v2;
 
-    if (s < 0) { s = 0; }
-    else if (s > 1) { s = 1; }
+    if (s < 0) {
+        s = 0;
+    } else if (s > 1) {
+        s = 1;
+    }
 
     return s;
 }
 
-template<typename T0, typename T1, typename TP>
-Real nearest_point_to_polygon(T0 const &p0, T1 const &p1, TP *x)
-{
+template <typename T0, typename T1, typename TP>
+Real nearest_point_to_polygon(T0 const& p0, T1 const& p1, TP* x) {
     Real dist2 = 0.0;
     UNIMPLEMENTED;
-//    TP p2 = *x;
-//    Vec3 u, v;
-//
-//    u = x - *p0;
-//    v = *p1 - *p0;
-//
-//    Real v2 = inner_product(v, v);
-//
-//    auto s = inner_product(u, v) / v2;
-//
-//    if (s < 0) { s = 0; }
-//    else if (s > 1) { s = 1; }
-
+    //    TP p2 = *x;
+    //    Vec3 u, v;
+    //
+    //    u = x - *p0;
+    //    v = *p1 - *p0;
+    //
+    //    Real v2 = inner_product(v, v);
+    //
+    //    auto s = inner_product(u, v) / v2;
+    //
+    //    if (s < 0) { s = 0; }
+    //    else if (s > 1) { s = 1; }
 
     return std::sqrt(dist2);
 }
 
-template<typename TS, size_type N>
-void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, const TS *x)
-{
-    for (int i = 0; i < N; ++i)
-    {
+template <typename TS, size_type N>
+void extent_box(nTuple<TS, N>* x0, nTuple<TS, N>* x1, const TS* x) {
+    for (int i = 0; i < N; ++i) {
         (*x0)[i] = std::min(x[i], (*x0)[i]);
         (*x1)[i] = std::max(x[i], (*x1)[i]);
     }
 }
 
-template<typename TS, int N, typename T1, typename ...Others>
-void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, T1 const &y0, Others &&...others)
-{
+template <typename TS, int N, typename T1, typename... Others>
+void extent_box(nTuple<TS, N>* x0, nTuple<TS, N>* x1, T1 const& y0, Others&&... others) {
     extent_box(x0, x1, y0);
     extent_box(x0, x1, std::forward<Others>(others)...);
 }
 
-template<typename T0, typename T1, typename TP>
-auto bound_box(T0 const &p0, T1 const &p1) -> std::tuple<decltype(*p0), decltype(*p0)>
-{
+template <typename T0, typename T1, typename TP>
+auto bound_box(T0 const& p0, T1 const& p1) -> std::tuple<decltype(*p0), decltype(*p0)> {
     typedef decltype(*p0) point_type;
 
     std::tuple<point_type, point_type> res{*p0, *p1};
 
-    for (auto it = p0; it != p1; ++it)
-    {
-        extent_box(*it, &std::get<0>(res), &std::get<1>(res));
-    }
+    for (auto it = p0; it != p1; ++it) { extent_box(*it, &std::get<0>(res), &std::get<1>(res)); }
 
     return std::move(res);
-
 };
 
 /**
@@ -170,10 +150,9 @@ auto bound_box(T0 const &p0, T1 const &p1) -> std::tuple<decltype(*p0), decltype
  *         nearest point P= P0*(1-s)+ P1*s ,and Q= Q0*(1-t)+t*Q1,
  *         dist= |P,Q|
  */
-template<typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Real> nearest_point_line_to_line(T0 const &P0, T1 const &P1,
-                                                  T2 const &Q0, T3 const &Q1, int flag = 0)
-{
+template <typename T0, typename T1, typename T2, typename T3>
+std::tuple<Real, Real> nearest_point_line_to_line(T0 const& P0, T1 const& P1, T2 const& Q0,
+                                                  T3 const& Q1, int flag = 0) {
     Real s = 0.0;
     Real t = 0.0;
     Real dist = 0.0;
@@ -189,22 +168,20 @@ std::tuple<Real, Real> nearest_point_line_to_line(T0 const &P0, T1 const &P1,
     Real d = inner_product(u, w0);
     Real e = inner_product(v, w0);
 
-    if (std::abs(a * c - b * b) < EPSILON)
-    {
-        //two lines are parallel
+    if (std::abs(a * c - b * b) < EPSILON) {
+        // two lines are parallel
         s = 0;
 
         t = nearest_point_to_line_segment(P0, Q0, Q1);
-    } else
-    {
+    } else {
         s = (b * e - c * d) / (a * c - b * b);
 
         t = (a * e - b * d) / (a * c - b * b);
 
-//		auto w = w0
-//				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b * b);
-//		dist = inner_product(w, w);
-
+        //		auto w = w0
+        //				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b *
+        // b);
+        //		dist = inner_product(w, w);
     }
 
     return std::make_tuple(s, t);
@@ -225,12 +202,9 @@ std::tuple<Real, Real> nearest_point_line_to_line(T0 const &P0, T1 const &P1,
  *
  *
  */
-template<typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Real, Real> distance_from_point_to_plane(T0 const &P0,
-                                                          T1 const &Q0, T2 const &Q1, T3 const &Q2, int flag = 0)
-{
-
-}
+template <typename T0, typename T1, typename T2, typename T3>
+std::tuple<Real, Real, Real> distance_from_point_to_plane(T0 const& P0, T1 const& Q0, T2 const& Q1,
+                                                          T3 const& Q2, int flag = 0) {}
 
 /**
  *
@@ -249,12 +223,10 @@ std::tuple<Real, Real, Real> distance_from_point_to_plane(T0 const &P0,
  *          dist = |P  Q|. |(Q1-Q0) x (Q2-Q0)|
  *
  */
-template<typename T0, typename T1, typename T2, typename T3, typename T4>
-std::tuple<Real, Real, Real, Real> distance_from_line_to_plane(T0 const &P0, T1 const &P1, T2 const &Q0, T3 const &Q1,
-                                                               T4 const &Q2)
-{
-
-}
+template <typename T0, typename T1, typename T2, typename T3, typename T4>
+std::tuple<Real, Real, Real, Real> distance_from_line_to_plane(T0 const& P0, T1 const& P1,
+                                                               T2 const& Q0, T3 const& Q1,
+                                                               T4 const& Q2) {}
 
 /**
  *
@@ -272,12 +244,10 @@ std::tuple<Real, Real, Real, Real> distance_from_line_to_plane(T0 const &P0, T1 
  * @param ie end iterator of polygon
  * @return   <d,s,p0,p1>
  */
-template<typename TI, typename TX>
-std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const &x,
-                                                                TI const &ib, TI const &ie,
-                                                                Vec3 normal_vec = Vec3({0, 0, 1}))
-{
-
+template <typename TI, typename TX>
+std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const& x, TI const& ib,
+                                                                TI const& ie,
+                                                                Vec3 normal_vec = Vec3({0, 0, 1})) {
     auto it = make_cycle_iterator(ib, ie);
 
     Real min_dist2 = std::numeric_limits<Real>::max();
@@ -292,8 +262,7 @@ std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const &x,
 
     p1 = it;
 
-    while (it != ie)
-    {
+    while (it != ie) {
         p0 = p1;
 
         ++it;
@@ -307,15 +276,17 @@ std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const &x,
 
         auto s = inner_product(u, v) / v2;
 
-        if (s < 0) { s = 0; }
-        else if (s > 1) { s = 1; }
+        if (s < 0) {
+            s = 0;
+        } else if (s > 1) {
+            s = 1;
+        }
 
         d = u - v * s;
 
         Real dist2 = inner_product(d, d);
 
-        if (min_dist2 > dist2 || (min_dist2 == dist2 && s == 0))
-        {
+        if (min_dist2 > dist2 || (min_dist2 == dist2 && s == 0)) {
             res_p0 = p0;
             res_p1 = p1;
             res_s = s;
@@ -324,13 +295,10 @@ std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const &x,
     }
 
     return std::forward_as_tuple(std::sqrt(min_dist2), res_s, res_p0, res_p1);
-
 }
 
-template<typename T0, typename T1, typename T2>
-Real intersection_line_to_polygons(T0 const &p0, T1 const &p1, T2 const &polygon)
-{
-
+template <typename T0, typename T1, typename T2>
+Real intersection_line_to_polygons(T0 const& p0, T1 const& p1, T2 const& polygon) {
     auto it = polygon.begin();
 
     auto q0 = *it;
@@ -343,8 +311,7 @@ Real intersection_line_to_polygons(T0 const &p0, T1 const &p1, T2 const &polygon
 
     it = polygon.begin();
 
-    while (it != polygon.end())
-    {
+    while (it != polygon.end()) {
         auto q0 = *it;
         auto q1 = *(++it);
         q0 -= inner_product(q0, n) * n;
@@ -352,15 +319,15 @@ Real intersection_line_to_polygons(T0 const &p0, T1 const &p1, T2 const &polygon
     }
 }
 
-//namespace mesh_intersection
+// namespace mesh_intersection
 //{
-//enum
+// enum
 //{
 //	HALF_OPEN, CLOSED
 //};
 //
-//template<typename T0, typename T1, typename T2>
-//Real to_polygons(T0 const & p0, T1 const & p1, T2 const & polygen,
+// template<typename T0, typename T1, typename T2>
+// Real to_polygons(T0 const & p0, T1 const & p1, T2 const & polygen,
 //		std::vector<coordinate_tuple> *res)
 //{
 //
@@ -388,13 +355,9 @@ Real intersection_line_to_polygons(T0 const &p0, T1 const &p1, T2 const &polygon
  * @param reflect_if_out
  * @return
  */
-template<typename T0, typename T1>
-constexpr Vec3 reflect(T0 const &v, T1 const &normal)
-{
-    return v
-           - (2 * inner_product(v, normal) / inner_product(normal, normal))
-             * normal;
-
+template <typename T0, typename T1>
+Vec3 reflect(T0 const& v, T1 const& normal) {
+    return v - (2 * inner_product(v, normal) / inner_product(normal, normal)) * normal;
 }
 
 /**
@@ -405,10 +368,8 @@ constexpr Vec3 reflect(T0 const &v, T1 const &normal)
  * @param p2
  * @return
  */
-template<typename T0, typename T1, typename T2, typename T3>
-inline Vec3 reflect_vector_by_plane(T0 const &v, T1 const &p0, T2 const &p1,
-                                    T3 const &p2)
-{
+template <typename T0, typename T1, typename T2, typename T3>
+inline Vec3 reflect_vector_by_plane(T0 const& v, T1 const& p0, T2 const& p1, T3 const& p2) {
     return reflect(v, cross(p1 - p0, p2 - p0));
 }
 
@@ -420,15 +381,13 @@ inline Vec3 reflect_vector_by_plane(T0 const &v, T1 const &p0, T2 const &p1,
  * @param p2
  * @return
  */
-template<typename T0, typename T1, typename T2, typename T3>
-inline Vec3 reflect_point_by_plane(T0 const &x0, T1 const &p0, T2 const &p1,
-                                   T3 const &p2)
-{
+template <typename T0, typename T1, typename T2, typename T3>
+inline Vec3 reflect_point_by_plane(T0 const& x0, T1 const& p0, T2 const& p1, T3 const& p2) {
     return p0 + reflect(x0 - p0, cross(p1 - p0, p2 - p0));
 }
 
-//template<typename TC>
-//std::tuple<Real, Real> intersection_line_and_triangle(TC const& l0,
+// template<typename TC>
+// std::tuple<Real, Real> intersection_line_and_triangle(TC const& l0,
 //		TC const & l1, TC const & p0, TC const & p1, TC const & p2)
 //{
 //	Real s, t;
@@ -457,12 +416,9 @@ inline Vec3 reflect_point_by_plane(T0 const &x0, T1 const &p0, T2 const &p1,
 //	return std::make_tuple(s, t);
 //}
 
-
-
-template<typename TS, size_type NDIMS, typename TV>
-bool box_intersection(nTuple<TS, NDIMS> const &l_b, nTuple<TS, NDIMS> const &l_e,
-                      TV *r_b, TV *r_e)
-{
+template <typename TS, size_type NDIMS, typename TV>
+bool box_intersection(nTuple<TS, NDIMS> const& l_b, nTuple<TS, NDIMS> const& l_e, TV* r_b,
+                      TV* r_e) {
     bool has_overlap = false;
 
     nTuple<TS, NDIMS> r_start = *r_b;
@@ -470,17 +426,13 @@ bool box_intersection(nTuple<TS, NDIMS> const &l_b, nTuple<TS, NDIMS> const &l_e
 
     nTuple<TS, NDIMS> l_count = l_e - l_b;
 
-    for (int i = 0; i < NDIMS; ++i)
-    {
-        if (r_start[i] + r_count[i] <= l_b[i]
-            || r_start[i] >= l_b[i] + l_count[i])
-            return false;
+    for (int i = 0; i < NDIMS; ++i) {
+        if (r_start[i] + r_count[i] <= l_b[i] || r_start[i] >= l_b[i] + l_count[i]) return false;
 
         TS start = std::max(l_b[i], r_start[i]);
         TS end = std::min(l_b[i] + l_count[i], r_start[i] + r_count[i]);
 
-        if (end > start)
-        {
+        if (end > start) {
             r_start[i] = start;
             r_count[i] = end - start;
 
@@ -488,10 +440,8 @@ bool box_intersection(nTuple<TS, NDIMS> const &l_b, nTuple<TS, NDIMS> const &l_e
         }
     }
 
-    if (has_overlap)
-    {
-        for (int i = 0; i < NDIMS; ++i)
-        {
+    if (has_overlap) {
+        for (int i = 0; i < NDIMS; ++i) {
             (*r_b)[i] = r_start[i];
             (*r_e)[i] = r_start[i] + r_count[i];
         }
@@ -499,14 +449,13 @@ bool box_intersection(nTuple<TS, NDIMS> const &l_b, nTuple<TS, NDIMS> const &l_e
     return has_overlap;
 }
 
-template<typename TL, typename TR>
-bool box_intersection(TL const &l, TR *r)
-{
+template <typename TL, typename TR>
+bool box_intersection(TL const& l, TR* r) {
     return box_intersection(std::get<0>(l), std::get<1>(l), &std::get<0>(*r), &std::get<1>(*r));
 };
 //
-//template<size_t DIM, typename TR, typename TRange>
-//bool PointInRectangle(nTuple<TR, DIM> const &x, TRange const & entity_id_range)
+// template<size_t DIM, typename TR, typename TRange>
+// bool PointInRectangle(nTuple<TR, DIM> const &x, TRange const & entity_id_range)
 //{
 //	bool res = true;
 //
@@ -521,8 +470,8 @@ bool box_intersection(TL const &l, TR *r)
 //	return res;
 //}
 //
-//template<typename TI>
-//bool clipping(int m_ndims_, TI const * l_begin, TI const * l_end, TI * r_begin,
+// template<typename TI>
+// bool clipping(int m_ndims_, TI const * l_begin, TI const * l_end, TI * r_begin,
 //		TI * r_end)
 //{
 //	bool has_overlap = false;
@@ -546,23 +495,23 @@ bool box_intersection(TL const &l, TR *r)
 //
 //	return has_overlap;
 //}
-//template<typename TS, size_t NDIMS>
-//bool clipping(nTuple<TS, NDIMS> l_begin, nTuple<TS, NDIMS> l_end,
+// template<typename TS, size_t NDIMS>
+// bool clipping(nTuple<TS, NDIMS> l_begin, nTuple<TS, NDIMS> l_end,
 //		nTuple<TS, NDIMS> *pr_begin, nTuple<TS, NDIMS> *pr_end)
 //{
 //	return clipping(NDIMS, &l_begin[0], &l_end[0], &(*pr_begin)[0],
 //			&(*pr_end)[0]);
 //}
 
-//inline nTuple<Real,3> Distance(nTuple<2, nTuple<Real,3>> p, nTuple<Real,3> const &x)
+// inline nTuple<Real,3> Distance(nTuple<2, nTuple<Real,3>> p, nTuple<Real,3> const &x)
 //{
 //	nTuple<Real,3> u, v;
 //	v = p[1] - p[0];
 //	u = Cross(Cross(x - p[0], v), v) / _DOT3(v, v);
 //	return std::move(u);
 //}
-//template<typename TDict, typename TModel, typename TSurface>
-//void createSurface(TDict const & dict, TModel const & model, TSurface * surf)
+// template<typename TDict, typename TModel, typename TSurface>
+// void createSurface(TDict const & dict, TModel const & model, TSurface * surf)
 //{
 //	if (dict["Width"].is_number())
 //	{
@@ -573,8 +522,8 @@ bool box_intersection(TL const &l, TR *r)
 //		WARNING << "illegal configuation!";
 //	}
 //}
-//template<typename TModel, typename TSurface>
-//void createSurface(TModel const & model, Real width, TSurface * surf)
+// template<typename TModel, typename TSurface>
+// void createSurface(TModel const & model, Real width, TSurface * surf)
 //{
 ////
 //////	typedef typename TSurface::plane_type plane_type;
@@ -640,8 +589,8 @@ bool box_intersection(TL const &l, TR *r)
 // * @return  the 'proc_num'th part [ob,oe)
 // * if 'num_part==0' return [b,e)
 // */
-//template<typename TI, size_t N>
-//std::tuple<nTuple<TI, N>, nTuple<TI, N>> block_decompose(
+// template<typename TI, size_t N>
+// std::tuple<nTuple<TI, N>, nTuple<TI, N>> block_decompose(
 //		nTuple<TI, N> const & b, nTuple<TI, N> const & e, int num_part = 0,
 //		int part_num = 0, size_t decompose_method = 0UL)
 //{
@@ -675,7 +624,7 @@ bool box_intersection(TL const &l, TR *r)
  * @}
  **/
 
-}// namespace geometry
-}// namespace simpla
+}  // namespace geometry
+}  // namespace simpla
 
 #endif /* GEOMETRY_ALGORITHM_H_ */

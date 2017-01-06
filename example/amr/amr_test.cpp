@@ -3,25 +3,23 @@
 //
 
 #include <simpla/SIMPLA_config.h>
-
-#include <iostream>
+#include <simpla/toolbox/PrettyStream.h>
 #include <simpla/algebra/nTupleExt.h>
 #include <simpla/mesh/Worker.h>
-#include <simpla/simulation/TimeIntegrator.h>
-#include <simpla/physics/Constants.h>
 #include <simpla/parallel/MPIComm.h>
+#include <simpla/physics/Constants.h>
+#include <simpla/simulation/TimeIntegrator.h>
+#include <iostream>
 
 using namespace simpla;
 
-namespace simpla
-{
-std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &str);
+namespace simpla {
+std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const& str);
 
 std::shared_ptr<mesh::Worker> create_worker();
-}//namespace simpla
+}  // namespace simpla
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
     logger::set_stdout_level(100);
     GLOBAL_COMM.init(argc, argv);
     // typedef mesh:: CylindricalGeometry mesh_type;
@@ -43,17 +41,14 @@ int main(int argc, char **argv)
 
     worker->print(std::cout);
 
-    index_box_type mesh_index_box{{0,  0,  0},
-                                  {32, 32, 32}};
+    index_box_type mesh_index_box{{0, 0, 0}, {32, 32, 32}};
 
-    auto bound_box = worker->db.get_value("bound_box", box_type {{1, 0,  -1},
-                                                                 {2, PI, 1}});
-
+    auto bound_box = worker->db.get_value("bound_box", box_type{{1, 0, -1}, {2, PI, 1}});
 
     auto integrator = simpla::create_time_integrator("name=EMFluid");
     integrator->worker() = worker;
     integrator->db.set_value("CartesianGeometry.domain_boxes_0", mesh_index_box);
-    integrator->db.set_value("CartesianGeometry.periodic_dimension", nTuple<int, 3> {0, 1, 0});
+    integrator->db.set_value("CartesianGeometry.periodic_dimension", nTuple<int, 3>{0, 1, 0});
     integrator->db.set_value("CartesianGeometry.x_lo", std::get<0>(bound_box));
     integrator->db.set_value("CartesianGeometry.x_up", std::get<1>(bound_box));
 
@@ -61,11 +56,9 @@ int main(int argc, char **argv)
 
     integrator->check_point();
 
-
     INFORM << "***********************************************" << std::endl;
 
-    while (integrator->remaining_steps())
-    {
+    while (integrator->remaining_steps()) {
         integrator->next_step(0.01);
         integrator->check_point();
     }
@@ -77,6 +70,4 @@ int main(int argc, char **argv)
     INFORM << " DONE !" << std::endl;
 
     GLOBAL_COMM.close();
-
 }
-

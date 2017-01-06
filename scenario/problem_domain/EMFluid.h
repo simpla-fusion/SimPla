@@ -8,41 +8,33 @@
 #define SIMPLA_EM_FLUID_H
 
 #include <simpla/SIMPLA_config.h>
-
-#include <simpla/physics/PhysicalConstants.h>
-#include <simpla/mesh/EntityIdRange.h>
-#include <simpla/mesh/Worker.h>
-#include <simpla/mesh/Chart.h>
-#include <simpla/algebra/Field.h>
 #include <simpla/algebra/Calculus.h>
+#include <simpla/algebra/Field.h>
+#include <simpla/mesh/Chart.h>
+#include <simpla/mesh/EntityId.h>
+#include <simpla/mesh/Worker.h>
+#include <simpla/physics/PhysicalConstants.h>
 
-
-namespace simpla
-{
+namespace simpla {
 using namespace mesh;
 
 using namespace algebra;
 
-
-template<typename TM>
-class EMFluid : public Worker
-{
-
-public:
-
-SP_OBJECT_HEAD(EMFluid<TM>, Worker);
+template <typename TM>
+class EMFluid : public Worker {
+   public:
+    SP_OBJECT_HEAD(EMFluid<TM>, Worker);
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
     explicit EMFluid() {}
 
-    template<typename ...Args>
-    explicit EMFluid(Args &&...args) : Worker(std::forward<Args>(args)...) {}
+    template <typename... Args>
+    explicit EMFluid(Args&&... args) : Worker(std::forward<Args>(args)...) {}
 
     ~EMFluid() {}
 
-
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const;
+    virtual std::ostream& print(std::ostream& os, int indent = 1) const;
 
     virtual void next_time_step(Real data_time, Real dt);
 
@@ -58,14 +50,14 @@ SP_OBJECT_HEAD(EMFluid<TM>, Worker);
 
     virtual void destroy();
 
-    virtual void set_physical_boundary_conditions(Real time = 0) {};
+    virtual void set_physical_boundary_conditions(Real time = 0){};
 
-    virtual void set_physical_boundary_conditions_E(Real time = 0) {};
+    virtual void set_physical_boundary_conditions_E(Real time = 0){};
 
-    virtual void set_physical_boundary_conditions_B(Real time = 0) {};
+    virtual void set_physical_boundary_conditions_B(Real time = 0){};
 
-    template<size_type IFORM, size_type DOF = 1> using field_type=FieldVariable<scalar_type, TM, IFORM, DOF>;
-
+    template <size_type IFORM, size_type DOF = 1>
+    using field_type = FieldVariable<scalar_type, TM, IFORM, DOF>;
 
     typedef field_type<FACE> TB;
     typedef field_type<EDGE> TE;
@@ -83,12 +75,11 @@ SP_OBJECT_HEAD(EMFluid<TM>, Worker);
     field_type<VERTEX, 3> Bv{this, "name=Bv"};
     field_type<VERTEX, 3> dE{this, "name=dE"};
 
-    field_type<FACE> B/*   */{this, "name=B;CHECK"};
-    field_type<EDGE> E/*   */{this, "name=E;CHECK"};
-    field_type<EDGE> J1/*  */{this, "name=J1;CHECK"};
+    field_type<FACE> B /*   */ {this, "name=B;CHECK"};
+    field_type<EDGE> E /*   */ {this, "name=E;CHECK"};
+    field_type<EDGE> J1 /*  */ {this, "name=J1;CHECK"};
 
-    struct fluid_s
-    {
+    struct fluid_s {
         Real mass;
         Real charge;
         std::shared_ptr<TRho> rho;
@@ -97,30 +88,35 @@ SP_OBJECT_HEAD(EMFluid<TM>, Worker);
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
 
-    std::shared_ptr<fluid_s> add_particle(std::string const &name, data::DataTable const &d);
+    std::shared_ptr<fluid_s> add_particle(std::string const& name, data::DataTable const& d);
 
-    std::map<std::string, std::shared_ptr<fluid_s>> &particles() { return m_fluid_sp_; };
-
-
+    std::map<std::string, std::shared_ptr<fluid_s>>& particles() { return m_fluid_sp_; };
 };
 
-template<typename TM>
-std::shared_ptr<struct EMFluid<TM>::fluid_s>
-EMFluid<TM>::add_particle(std::string const &name, data::DataTable const &d)
-{
+template <typename TM>
+std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::add_particle(std::string const& name,
+                                                                       data::DataTable const& d) {
     Real mass;
     Real charge;
 
-    if (d.has("mass")) { mass = d.at("mass").as<double>(); }
-    else if (d.has("m")) { mass = d.at("m").as<double>() * SI_proton_mass; }
-    else { mass = SI_proton_mass; }
+    if (d.has("mass")) {
+        mass = d.at("mass").as<double>();
+    } else if (d.has("m")) {
+        mass = d.at("m").as<double>() * SI_proton_mass;
+    } else {
+        mass = SI_proton_mass;
+    }
 
-    if (d.has("charge")) { charge = d.at("charge").as<double>(); }
-    else if (d.has("Z")) { charge = d.at("Z").as<double>() * SI_elementary_charge; }
-    else { charge = SI_elementary_charge; }
+    if (d.has("charge")) {
+        charge = d.at("charge").as<double>();
+    } else if (d.has("Z")) {
+        charge = d.at("Z").as<double>() * SI_elementary_charge;
+    } else {
+        charge = SI_elementary_charge;
+    }
 
-    VERBOSE << "Add particle : {\"" << name << "\", mass = " << mass / SI_proton_mass << " [m_p], charge = "
-            << charge / SI_elementary_charge << " [q_e] }" << std::endl;
+    VERBOSE << "Add particle : {\"" << name << "\", mass = " << mass / SI_proton_mass
+            << " [m_p], charge = " << charge / SI_elementary_charge << " [q_e] }" << std::endl;
     auto sp = std::make_shared<fluid_s>();
     sp->mass = mass;
     sp->charge = charge;
@@ -130,50 +126,59 @@ EMFluid<TM>::add_particle(std::string const &name, data::DataTable const &d)
     return sp;
 }
 
-
-template<typename TM>
-std::ostream &
-EMFluid<TM>::print(std::ostream &os, int indent) const
-{
+template <typename TM>
+std::ostream& EMFluid<TM>::print(std::ostream& os, int indent) const {
     Worker::print(os, indent);
 
-    os << std::setw(indent + 1) << " " << "ParticleAttribute=  " << std::endl
-       << std::setw(indent + 1) << " " << "{ " << std::endl;
-    for (auto &sp:m_fluid_sp_)
-    {
-        os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second->mass << " , Charge = " <<
-           sp.second->charge << "}," << std::endl;
+    os << std::setw(indent + 1) << " "
+       << "ParticleAttribute=  " << std::endl
+       << std::setw(indent + 1) << " "
+       << "{ " << std::endl;
+    for (auto& sp : m_fluid_sp_) {
+        os << std::setw(indent + 1) << " " << sp.first << " = { Mass=" << sp.second->mass
+           << " , Charge = " << sp.second->charge << "}," << std::endl;
     }
-    os << std::setw(indent + 1) << " " << " }, " << std::endl;
+    os << std::setw(indent + 1) << " "
+       << " }, " << std::endl;
     return os;
-
 }
 
-template<typename TM> void EMFluid<TM>::deploy() { base_type::deploy(); }
+template <typename TM>
+void EMFluid<TM>::deploy() {
+    base_type::deploy();
+}
 
-template<typename TM> void EMFluid<TM>::destroy() { base_type::destroy(); }
+template <typename TM>
+void EMFluid<TM>::destroy() {
+    base_type::destroy();
+}
 
-
-template<typename TM>
-void EMFluid<TM>::pre_process()
-{
-    if (is_valid()) { return; } else { base_type::pre_process(); }
+template <typename TM>
+void EMFluid<TM>::pre_process() {
+    if (is_valid()) {
+        return;
+    } else {
+        base_type::pre_process();
+    }
     if (!E.is_valid()) E.clear();
     if (!B.is_valid()) B.clear();
     if (!B0.is_valid()) { B0.clear(); }
 }
 
-template<typename TM>
-void EMFluid<TM>::post_process() { if (!is_valid()) { return; } else { base_type::post_process(); }}
+template <typename TM>
+void EMFluid<TM>::post_process() {
+    if (!is_valid()) {
+        return;
+    } else {
+        base_type::post_process();
+    }
+}
 
-
-template<typename TM>
-void EMFluid<TM>::initialize(Real data_time, Real dt)
-{
+template <typename TM>
+void EMFluid<TM>::initialize(Real data_time, Real dt) {
     pre_process();
 
-    if (m_fluid_sp_.size() > 0)
-    {
+    if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VERTEX>(E);
         B0v = map_to<VERTEX>(B0);
         BB = dot(B0v, B0v);
@@ -181,25 +186,21 @@ void EMFluid<TM>::initialize(Real data_time, Real dt)
     base_type::initialize(data_time, 0);
 }
 
-
-template<typename TM>
-void EMFluid<TM>::finalize(Real data_time, Real dt)
-{
+template <typename TM>
+void EMFluid<TM>::finalize(Real data_time, Real dt) {
     // do sth here
     post_process();
 }
 
-template<typename TM>
-void EMFluid<TM>::next_time_step(Real data_time, Real dt)
-{
+template <typename TM>
+void EMFluid<TM>::next_time_step(Real data_time, Real dt) {
     pre_process();
     DEFINE_PHYSICAL_CONST
     B -= curl(E) * (dt * 0.5);
     set_physical_boundary_conditions_B(data_time);
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     set_physical_boundary_conditions_E(data_time);
-    if (m_fluid_sp_.size() > 0)
-    {
+    if (m_fluid_sp_.size() > 0) {
         field_type<VERTEX, 3> Q{this};
         field_type<VERTEX, 3> K{this};
 
@@ -214,12 +215,11 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
         Q = map_to<VERTEX>(E) - Ev;
         dE.clear();
         K.clear();
-        for (auto &p :m_fluid_sp_)
-        {
+        for (auto& p : m_fluid_sp_) {
             Real ms = p.second->mass;
             Real qs = p.second->charge;
-            auto &ns = *p.second->rho;
-            auto &Js = *p.second->J;
+            auto& ns = *p.second->rho;
+            auto& Js = *p.second->J;
 
             Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
@@ -241,16 +241,14 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
         c *= 0.5 * dt / epsilon0;
         a += 1;
 
-
         dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
              (b * b * BB + a * a);
 
-        for (auto &p : m_fluid_sp_)
-        {
+        for (auto& p : m_fluid_sp_) {
             Real ms = p.second->mass;
             Real qs = p.second->charge;
-            auto &ns = *p.second->rho;
-            auto &Js = *p.second->J;
+            auto& ns = *p.second->rho;
+            auto& Js = *p.second->J;
 
             Real as = static_cast<Real>((dt * qs) / (2.0 * ms));
 
@@ -264,6 +262,5 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt)
     set_physical_boundary_conditions_B(data_time);
 }
 
-}//namespace simpla  {
-#endif //SIMPLA_EM_FLUID_H
-
+}  // namespace simpla  {
+#endif  // SIMPLA_EM_FLUID_H

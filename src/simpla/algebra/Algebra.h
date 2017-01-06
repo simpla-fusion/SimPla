@@ -50,6 +50,8 @@ struct rank<const T> : public rank<T> {};
 
 template <typename...>
 struct extents : public index_sequence<> {};
+template <typename>
+struct extent : public index_const<0> {};
 
 template <typename... T>
 struct iform_list {
@@ -128,20 +130,19 @@ template <typename...>
 struct is_complex : public std::integral_constant<bool, false> {};
 
 template <typename T>
-struct is_complex<std::complex<T>> : public std::integral_constant<bool, true> {
-};
+struct is_complex<std::complex<T>> : public std::integral_constant<bool, true> {};
 
 template <typename...>
 struct is_scalar : public std::integral_constant<bool, false> {};
 
 template <typename T>
-struct is_scalar<T> : public std::integral_constant<
-                          bool, std::is_arithmetic<std::decay_t<T>>::value ||
-                                    is_complex<std::decay_t<T>>::value> {};
+struct is_scalar<T>
+    : public std::integral_constant<bool, std::is_arithmetic<std::decay_t<T>>::value ||
+                                              is_complex<std::decay_t<T>>::value> {};
 template <typename First, typename... Others>
 struct is_scalar<First, Others...>
-    : public std::integral_constant<bool, is_scalar<First>::value &&
-                                              is_scalar<Others...>::value> {};
+    : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {
+};
 
 template <typename...>
 struct is_field;
@@ -150,8 +151,7 @@ template <typename T>
 struct is_field<T> : public std::integral_constant<bool, false> {};
 template <typename First, typename... Others>
 struct is_field<First, Others...>
-    : public std::integral_constant<bool, is_field<First>::value ||
-                                              is_field<Others...>::value> {};
+    : public std::integral_constant<bool, is_field<First>::value || is_field<Others...>::value> {};
 template <typename...>
 struct is_array;
 
@@ -160,8 +160,7 @@ struct is_array<T> : public std::integral_constant<bool, false> {};
 
 template <typename First, typename... Others>
 struct is_array<First, Others...>
-    : public std::integral_constant<bool, (is_array<First>::value &&
-                                           !is_field<First>::value) ||
+    : public std::integral_constant<bool, (is_array<First>::value && !is_field<First>::value) ||
                                               is_array<Others...>::value> {};
 
 template <typename...>
@@ -173,8 +172,7 @@ struct is_nTuple<T> : public std::integral_constant<bool, false> {};
 template <typename First, typename... Others>
 struct is_nTuple<First, Others...>
     : public std::integral_constant<bool, (is_nTuple<First>::value &&
-                                           !(is_field<First>::value ||
-                                             is_array<First>::value)) ||
+                                           !(is_field<First>::value || is_array<First>::value)) ||
                                               is_nTuple<Others...>::value> {};
 template <typename...>
 struct is_expression;
@@ -183,8 +181,7 @@ template <typename T>
 struct is_expression<T> : public std::integral_constant<bool, false> {};
 
 template <typename... T>
-struct is_expression<declare::Expression<T...>>
-    : public std::integral_constant<bool, true> {};
+struct is_expression<declare::Expression<T...>> : public std::integral_constant<bool, true> {};
 
 template <typename T>
 struct reference {
@@ -201,7 +198,7 @@ struct reference<const T[N]> {
     typedef T const* type;
 };
 
-//******************************************************************************
+//***********************************************************************************************************************
 
 }  // namespace traits
 

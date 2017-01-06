@@ -3,40 +3,25 @@
 //
 #include "DataEntity.h"
 #include "DataTable.h"
+#include "HeavyData.h"
+#include "LightData.h"
+namespace simpla {
+namespace data {
 
-namespace simpla { namespace data
-{
+DataTable& DataEntity::as_table() { return *as<DataTable>(); }
 
+DataTable const& DataEntity::as_table() const { return *as<DataTable>(); }
 
-DataTable &DataEntity::as_table()
-{
-    ASSERT(is_table());
-    return *static_cast<DataTable *>(this);
-}
+LightData& DataEntity::as_light() { return *as<LightData>(); }
 
-DataTable const &DataEntity::as_table() const
-{
-    ASSERT(is_table());
-    return *static_cast<DataTable const *>(this);
-}
+LightData const& DataEntity::as_light() const { return *as<LightData>(); }
 
-LightData &DataEntity::as_light()
-{
-    ASSERT(is_light());
-    return *static_cast<LightData *>(this);
-}
+HeavyData& DataEntity::as_heavy() { return *as<HeavyData>(); }
 
-LightData const &DataEntity::as_light() const
-{
-    ASSERT(is_light());
-    return *static_cast<LightData const *>(this);
-
-}
-
-
+HeavyData const& DataEntity::as_heavy() const { return *as<HeavyData>(); }
 
 //
-//void HeavyData::sync(bool is_blocking)
+// void HeavyData::sync(bool is_blocking)
 //{
 //#ifdef HAS_MPI
 //    //
@@ -119,7 +104,8 @@ LightData const &DataEntity::as_light() const
 //    //
 //    //        }
 //    //
-//    //        if (tag_is_valid && (coord_offset[0] != 0 || coord_offset[1] != 0 || coord_offset[2] != 0))
+//    //        if (tag_is_valid && (coord_offset[0] != 0 || coord_offset[1] != 0 || coord_offset[2]
+//    != 0))
 //    //        {
 //    //            try
 //    //            {
@@ -128,9 +114,11 @@ LightData const &DataEntity::as_light() const
 //    //
 //    //                data_model::DataSet recv_ds(*ds);
 //    //
-//    //                send_ds.memory_space.select_hyperslab(&send_offset[0], nullptr, &send_count[0], nullptr);
+//    //                send_ds.memory_space.select_hyperslab(&send_offset[0], nullptr,
+//    &send_count[0], nullptr);
 //    //
-//    //                recv_ds.memory_space.select_hyperslab(&recv_offset[0], nullptr, &recv_count[0], nullptr);
+//    //                recv_ds.memory_space.select_hyperslab(&recv_offset[0], nullptr,
+//    &recv_count[0], nullptr);
 //    //
 //    //
 //    //                m_self_->m_dist_obj_.add_send_link(id, send_offset, std::move(send_ds));
@@ -141,7 +129,8 @@ LightData const &DataEntity::as_light() const
 //    //            }
 //    //            catch (std::exception const &error)
 //    //            {
-//    //                RUNTIME_ERROR << "add communication link error" << error.what() << std::endl;
+//    //                RUNTIME_ERROR << "add communication link error" << error.what() <<
+//    std::endl;
 //    //
 //    //            }
 //    //        }
@@ -153,5 +142,5 @@ LightData const &DataEntity::as_light() const
 //        if (is_blocking) { wait(); }
 //#endif
 //}
-
-}}//namespace simpla{namespace get_mesh{
+}
+}  // namespace simpla{namespace get_mesh{

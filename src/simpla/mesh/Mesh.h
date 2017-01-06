@@ -8,7 +8,7 @@
 #define SIMPLA_MESH_H
 
 #include "MeshCommon.h"
-#include "EntityIdRange.h"
+#include "EntityId.h"
 #include "MeshBlock.h"
 #include "Atlas.h"
 

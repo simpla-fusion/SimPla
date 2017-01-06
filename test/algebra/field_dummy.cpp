@@ -19,8 +19,7 @@ int main(int argc, char** argv) {
 
     size_type gw[3] = {2, 2, 2};
     index_type lo[3] = {0, 0, 0};
-    index_type hi[3];  //= {dims[0], dims[1], dims[2]}
-                       //
+    index_type hi[3] = {dims[0], dims[1], dims[2]};
 
     typedef mesh::CartesianGeometry mesh_type;
 
@@ -29,17 +28,17 @@ int main(int argc, char** argv) {
     Field<Real, mesh_type> f(&m);
     Field<Real, mesh_type> g(&m);
 
-    f.clear();
-    g.clear();
+    //    f.clear();
+    //    g.clear();
     //    std::cout << f << std::endl;
     //    std::cout << g << std::endl;
 
-    f(0, 2, 3) = 1990;
-    f = 1;
-    g = 2;
-
-    f = f + g;
-    f = -g * 0.2;
+    //    f(0, 2, 3) = 1990;
+    //    f = 1;
+    //    g = 2;
+    //
+    //    f = f + g;
+    //    f = -g * 0.2;
 
     f = [&](point_type const& x) {
         std::cout << x << std::endl;
@@ -49,11 +48,11 @@ int main(int argc, char** argv) {
         std::cout << s.x << std::endl;
         return 1.0;
     };
-    std::cout << f << std::endl;
-    Field<Real, mesh_type, EDGE> E(&m);
-    Field<Real, mesh_type, VERTEX> rho(&m);
-    E.clear();
-    rho.clear();
-    rho = diverge(E);
+    //    std::cout << f << std::endl;
+    //    Field<Real, mesh_type, EDGE> E(&m);
+    //    Field<Real, mesh_type, VERTEX> rho(&m);
+    //    E.clear();
+    //    rho.clear();
+    //    rho = diverge(E);
     //    diverge(E);
 }

@@ -2,44 +2,36 @@
 // Created by salmon on 16-6-2.
 //
 
-#include <set>
-#include <simpla/mesh/EntityId.h>
-//#include <simpla/mesh/EntityIdRange.h>
-#include <simpla/mesh/Chart.h>
-#include <simpla/mesh/MeshCommon.h>
-#include <simpla/mesh/DataBlock.h>
-#include <simpla/parallel/Parallel.h>
 #include "Model.h"
 
-namespace simpla { namespace model
-{
+#include <simpla/mesh/EntityId.h>
+
+namespace simpla {
+namespace model {
 using namespace mesh;
 
 Model::Model() {}
 
 Model::~Model() {}
 
-void Model::load(std::string const &) { UNIMPLEMENTED; }
+void Model::load(std::string const&) { UNIMPLEMENTED; }
 
-void Model::save(std::string const &) { UNIMPLEMENTED; }
+void Model::save(std::string const&) { UNIMPLEMENTED; }
 
-std::ostream &Model::print(std::ostream &os, int indent) const { return os; }
+std::ostream& Model::print(std::ostream& os, int indent) const { return os; }
 
-void Model::deploy() {};
+void Model::deploy(){};
 
-void Model::pre_process()
-{
+void Model::pre_process() {
     m_tags_.pre_process();
     m_tags_.clear();
 };
 
-void Model::initialize(Real data_time, Real dt)
-{
+void Model::initialize(Real data_time, Real dt) {
     pre_process();
 
-    index_type const *lower = m_tags_.lower();
-    index_type const *upper = m_tags_.upper();
-
+    index_type const* lower = m_tags_.lower();
+    index_type const* upper = m_tags_.upper();
 
     index_type ib = lower[0];
     index_type ie = upper[0];
@@ -48,35 +40,29 @@ void Model::initialize(Real data_time, Real dt)
     index_type kb = lower[2];
     index_type ke = upper[2];
 
-
     for (index_type i = ib; i < ie; ++i)
         for (index_type j = jb; j < je; ++j)
-            for (index_type k = kb; k < ke; ++k)
-            {
+            for (index_type k = kb; k < ke; ++k) {
                 auto x = m_chart_->mesh_block()->point(i, j, k);
-                auto &tag = m_tags_(i, j, k, 0);
+                auto& tag = m_tags_(i, j, k, 0);
 
                 tag = VACUUME;
 
-                for (auto const &obj:m_g_obj_) { if (obj.second->check_inside(x)) { tag |= obj.first; }}
-
+                for (auto const& obj : m_g_obj_) {
+                    if (obj.second->check_inside(x)) { tag |= obj.first; }
+                }
             }
     for (index_type i = ib; i < ie - 1; ++i)
         for (index_type j = jb; j < je - 1; ++j)
-            for (index_type k = kb; k < ke - 1; ++k)
-            {
+            for (index_type k = kb; k < ke - 1; ++k) {
                 m_tags_(i, j, k, 1) = m_tags_(i, j, k, 0) | m_tags_(i + 1, j, k, 0);
                 m_tags_(i, j, k, 2) = m_tags_(i, j, k, 0) | m_tags_(i, j + 1, k, 0);
                 m_tags_(i, j, k, 4) = m_tags_(i, j, k, 0) | m_tags_(i, j, k + 1, 0);
-
-
             }
-
 
     for (index_type i = ib; i < ie - 1; ++i)
         for (index_type j = jb; j < je - 1; ++j)
-            for (index_type k = kb; k < ke - 1; ++k)
-            {
+            for (index_type k = kb; k < ke - 1; ++k) {
                 m_tags_(i, j, k, 3) = m_tags_(i, j, k, 1) | m_tags_(i, j + 1, k, 1);
                 m_tags_(i, j, k, 5) = m_tags_(i, j, k, 1) | m_tags_(i, j, k + 1, 1);
                 m_tags_(i, j, k, 6) = m_tags_(i, j + 1, k, 1) | m_tags_(i, j, k + 1, 1);
@@ -84,34 +70,27 @@ void Model::initialize(Real data_time, Real dt)
 
     for (index_type i = ib; i < ie - 1; ++i)
         for (index_type j = jb; j < je - 1; ++j)
-            for (index_type k = kb; k < ke - 1; ++k)
-            {
+            for (index_type k = kb; k < ke - 1; ++k) {
                 m_tags_(i, j, k, 7) = m_tags_(i, j, k, 3) | m_tags_(i, j, k + 1, 3);
             }
-
 };
 
-void Model::next_time_step(Real data_time, Real dt) {};
+void Model::next_time_step(Real data_time, Real dt){};
 
-void Model::finalize(Real data_time, Real dt)
-{
+void Model::finalize(Real data_time, Real dt) {
     m_range_cache_.erase(m_chart_->mesh_block()->id());
     m_interface_cache_.erase(m_chart_->mesh_block()->id());
     post_process();
-
 };
 
-void Model::post_process() {};
+void Model::post_process(){};
 
-
-void Model::add_object(std::string const &key, std::shared_ptr<geometry::GeoObject> const &g_obj)
-{
-
+void Model::add_object(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     int id = 0;
     auto it = m_g_name_map_.find(key);
-    if (it != m_g_name_map_.end()) { id = it->second; }
-    else
-    {
+    if (it != m_g_name_map_.end()) {
+        id = it->second;
+    } else {
         id = 1 << m_g_obj_count_;
         ++m_g_obj_count_;
         m_g_name_map_[key] = id;
@@ -119,28 +98,31 @@ void Model::add_object(std::string const &key, std::shared_ptr<geometry::GeoObje
     m_g_obj_.insert(std::make_pair(id, g_obj));
 }
 
+void Model::remove_object(std::string const& key) {
+    try {
+        m_g_obj_.erase(m_g_name_map_.at(key));
+    } catch (...) {}
+}
 
-void Model::remove_object(std::string const &key) { try { m_g_obj_.erase(m_g_name_map_.at(key)); } catch (...) {}}
+Range<mesh::MeshEntityId> const& Model::select(size_type iform, std::string const& tag) {
+    return select(iform, m_g_name_map_.at(tag));
+}
 
-Range<mesh::MeshEntityId> const &
-Model::select(size_type iform, std::string const &tag) { return select(iform, m_g_name_map_.at(tag)); }
-
-
-Range<mesh::MeshEntityId> const &
-Model::select(size_type iform, int tag)
-{
+Range<mesh::MeshEntityId> const& Model::select(size_type iform, int tag) {
     typedef mesh::MeshEntityIdCoder M;
-    typedef parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> set_type;
 
-    try { return m_range_cache_.at(iform).at(tag); } catch (...) {}
+    try {
+        return m_range_cache_.at(iform).at(tag);
+    } catch (...) {}
 
-    const_cast<this_type *>(this)->m_range_cache_[iform].
-            emplace(std::make_pair(tag, Range<mesh::MeshEntityId>::create<set_type>()));
+    const_cast<this_type*>(this)->m_range_cache_[iform].emplace(
+        std::make_pair(tag, Range<MeshEntityId>(std::make_shared<UnorderedRange<MeshEntityId>>())));
 
-    auto &res = m_range_cache_.at(iform).at(tag).as<set_type>();
+    auto& res =
+        *m_range_cache_.at(iform).at(tag).self().template as<UnorderedRange<MeshEntityId>>();
 
-    index_type const *lower = m_tags_.lower();
-    index_type const *upper = m_tags_.upper();
+    index_type const* lower = m_tags_.lower();
+    index_type const* upper = m_tags_.upper();
 
     index_type ib = lower[0];
     index_type ie = upper[0];
@@ -149,27 +131,24 @@ Model::select(size_type iform, int tag)
     index_type kb = lower[2];
     index_type ke = upper[2];
 
+#define _CAS(I, J, K, L)                                                      \
+    if (I >= 0 && J >= 0 && K >= 0 && ((m_tags_(I, J, K, L) & tag) == tag)) { \
+        res.insert(M::pack_index(I, J, K, L));                                \
+    }
 
-#define _CAS(I, J, K, L) if (I>=0 && J>=0 && K>=0 && ((m_tags_(I, J, K, L) &tag) == tag)) { res.insert(M::pack_index(I, J, K, L)); }
-
-    switch (iform)
-    {
+    switch (iform) {
         case VERTEX:
 #pragma omp parallel for
             for (index_type i = ib; i < ie; ++i)
                 for (index_type j = jb; j < je; ++j)
-                    for (index_type k = kb; k < ke; ++k)
-                    {
-                        _CAS(i, j, k, 0);
-                    }
+                    for (index_type k = kb; k < ke; ++k) { _CAS(i, j, k, 0); }
 
             break;
         case EDGE:
 #pragma omp parallel for
             for (index_type i = ib; i < ie - 1; ++i)
                 for (index_type j = jb; j < je - 1; ++j)
-                    for (index_type k = kb; k < ke - 1; ++k)
-                    {
+                    for (index_type k = kb; k < ke - 1; ++k) {
                         _CAS(i, j, k, 1);
                         _CAS(i, j, k, 2);
                         _CAS(i, j, k, 4);
@@ -179,8 +158,7 @@ Model::select(size_type iform, int tag)
 #pragma omp parallel for
             for (index_type i = ib; i < ie - 1; ++i)
                 for (index_type j = jb; j < je - 1; ++j)
-                    for (index_type k = kb; k < ke - 1; ++k)
-                    {
+                    for (index_type k = kb; k < ke - 1; ++k) {
                         _CAS(i, j, k, 3);
                         _CAS(i, j, k, 5);
                         _CAS(i, j, k, 6);
@@ -190,17 +168,14 @@ Model::select(size_type iform, int tag)
 #pragma omp parallel for
             for (index_type i = ib; i < ie - 1; ++i)
                 for (index_type j = jb; j < je - 1; ++j)
-                    for (index_type k = kb; k < ke - 1; ++k)
-                    {
-                        _CAS(i, j, k, 7);
-                    }
+                    for (index_type k = kb; k < ke - 1; ++k) { _CAS(i, j, k, 7); }
             break;
         default:
             break;
     }
 #undef _CAS
-    return m_range_cache_.at(iform).at(tag);;
-
+    return m_range_cache_.at(iform).at(tag);
+    ;
 }
 
 /**
@@ -208,28 +183,30 @@ Model::select(size_type iform, int tag)
  *       = 0 on surface
  *       > 0 in surface
  */
-Range<mesh::MeshEntityId> const &Model::interface(size_type iform, const std::string &s_in, const std::string &s_out)
-{
+Range<mesh::MeshEntityId> const& Model::interface(size_type iform, const std::string& s_in,
+                                                  const std::string& s_out) {
     return interface(iform, m_g_name_map_.at(s_in), m_g_name_map_.at(s_out));
 }
 
-Range<mesh::MeshEntityId> const &Model::interface(size_type iform, int tag_in, int tag_out)
-{
-
-    try { return m_interface_cache_.at(iform).at(tag_in).at(tag_out); } catch (...) {}
+Range<mesh::MeshEntityId> const& Model::interface(size_type iform, int tag_in, int tag_out) {
+    try {
+        return m_interface_cache_.at(iform).at(tag_in).at(tag_out);
+    } catch (...) {}
 
     typedef mesh::MeshEntityIdCoder M;
 
-    typedef parallel::concurrent_unordered_set<MeshEntityId, MeshEntityIdHasher> set_type;
+    const_cast<this_type*>(this)->m_interface_cache_[iform][tag_in].emplace(std::make_pair(
+        tag_out, Range<MeshEntityId>(std::make_shared<UnorderedRange<MeshEntityId>>())));
 
-    const_cast<this_type *>(this)->m_interface_cache_[iform][tag_in].
-            emplace(std::make_pair(tag_out, Range<mesh::MeshEntityId>::create<set_type>()));
+    auto& res = *const_cast<this_type*>(this)
+                     ->m_interface_cache_.at(iform)
+                     .at(tag_in)
+                     .at(tag_out)
+                     .self()
+                     .template as<UnorderedRange<MeshEntityId>>();
 
-    set_type &res = const_cast<this_type *>(this)->m_interface_cache_.at(iform).at(tag_in).at(tag_out).as<set_type>();
-
-    index_type const *lower = m_tags_.lower();
-    index_type const *upper = m_tags_.upper();
-
+    index_type const* lower = m_tags_.lower();
+    index_type const* upper = m_tags_.upper();
 
     index_type ib = lower[0];
     index_type ie = upper[0];
@@ -242,12 +219,13 @@ Range<mesh::MeshEntityId> const &Model::interface(size_type iform, int tag_in, i
 #pragma omp parallel for
     for (index_type i = ib; i < ie - 1; ++i)
         for (index_type j = jb; j < je - 1; ++j)
-            for (index_type k = kb; k < ke - 1; ++k)
-            {
+            for (index_type k = kb; k < ke - 1; ++k) {
                 if ((m_tags_(i, j, k, 7) & v_tag) != v_tag) { continue; }
-#define _CAS(I, J, K, L) if (I>=0 && J>=0 && K>=0 && m_tags_(I, J, K, L)  == tag_in) { res.insert(M::pack_index(I, J, K, L)); }
-                switch (iform)
-                {
+#define _CAS(I, J, K, L)                                               \
+    if (I >= 0 && J >= 0 && K >= 0 && m_tags_(I, J, K, L) == tag_in) { \
+        res.insert(M::pack_index(I, J, K, L));                         \
+    }
+                switch (iform) {
                     case VERTEX:
                         _CAS(i + 0, j + 0, k + 0, 0);
                         _CAS(i + 1, j + 0, k + 0, 0);
@@ -257,7 +235,6 @@ Range<mesh::MeshEntityId> const &Model::interface(size_type iform, int tag_in, i
                         _CAS(i + 1, j + 0, k + 1, 0);
                         _CAS(i + 0, j + 1, k + 1, 0);
                         _CAS(i + 1, j + 1, k + 1, 0);
-
 
                         break;
                     case EDGE:
@@ -297,7 +274,6 @@ Range<mesh::MeshEntityId> const &Model::interface(size_type iform, int tag_in, i
                         _CAS(i + 0, j + 1, k - 1, 7);
                         _CAS(i + 1, j + 1, k - 1, 7);
 
-
                         _CAS(i - 1, j - 1, k + 0, 7);
                         _CAS(i + 0, j - 1, k + 0, 7);
                         _CAS(i + 1, j - 1, k + 0, 7);
@@ -307,7 +283,6 @@ Range<mesh::MeshEntityId> const &Model::interface(size_type iform, int tag_in, i
                         _CAS(i - 1, j + 1, k + 0, 7);
                         _CAS(i + 0, j + 1, k + 0, 7);
                         _CAS(i + 1, j + 1, k + 0, 7);
-
 
                         _CAS(i - 1, j - 1, k + 1, 7);
                         _CAS(i + 0, j - 1, k + 1, 7);
@@ -323,13 +298,9 @@ Range<mesh::MeshEntityId> const &Model::interface(size_type iform, int tag_in, i
                         break;
                 }
 #undef _CAS
-
             }
 
-
     return m_interface_cache_.at(iform).at(tag_in).at(tag_out);
-
 }
-
-
-}}//namespace simpla{namespace get_mesh{
+}
+}  // namespace simpla{namespace get_mesh{

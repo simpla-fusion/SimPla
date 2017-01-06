@@ -18,8 +18,8 @@
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/sp_def.h>
-#include "simpla/algebra/Field.h"
-
+#include <simpla/algebra/all.h>
+#include <simpla/predefine/CalculusPolicy.h>
 using namespace simpla;
 
 template<typename TField>
