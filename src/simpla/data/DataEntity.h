@@ -61,8 +61,15 @@ struct DataEntity : public concept::Printable {
 
     HeavyData const& as_heavy() const;
 
-    //    template <typename U, typename... Args>
-    //    U& as(Args&&... args);
+//    template <typename U, typename... Args>
+//    U& as(Args&&... args) {
+//        return as_light().template as<U>(std::forward<Args>(args)...);
+//    }
+//
+//    template <typename U, typename... Args>
+//    U const& as(Args&&... args)const {
+//        return as_light().template as<U>(std::forward<Args>(args)...);
+//    };;
     //
     //    template <typename U, typename... Args>
     //    U const& as(Args&&... args) const;
@@ -82,7 +89,6 @@ template <typename U>
 std::shared_ptr<DataEntity> create_data_entity(U& v) {
     return traits::create_entity<U>::eval(v);
 };
-
 
 /** @ingroup data */
 

@@ -13,6 +13,7 @@
 #include <type_traits>
 
 #include <simpla/algebra/all.h>
+#include <simpla/toolbox/PrettyStream.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/sp_def.h>

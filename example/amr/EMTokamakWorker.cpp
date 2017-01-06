@@ -7,7 +7,7 @@
 #include <simpla/SIMPLA_config.h>
 
 #include <iostream>
-#include <simpla/algebra/Field.h>
+#include <simpla/algebra/all.h>
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/Worker.h>
 #include <simpla/predefine/CartesianGeometry.h>

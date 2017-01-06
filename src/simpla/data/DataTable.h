@@ -80,9 +80,8 @@ class DataTable : public DataEntity {
      * '''table''' as needed.
      */
 
-    virtual std::shared_ptr<DataEntity>  set(std::string const& key,
-                                             std::shared_ptr<DataEntity> const& v);
-
+    virtual std::shared_ptr<DataEntity> set(std::string const& key,
+                                            std::shared_ptr<DataEntity> const& v);
 
     template <typename U>
     auto set_value(std::string const& url, U const& v) {
@@ -97,7 +96,7 @@ class DataTable : public DataEntity {
      * @return Returns a reference to the shared pointer of  the entity with '''url'''.
      *      If no such entity exists, create a light entity, create parent table as needed.
      */
-    virtual std::shared_ptr<DataEntity>  get(std::string const& url);
+    virtual std::shared_ptr<DataEntity> get(std::string const& url);
 
     template <typename U>
     U const& get_value(std::string const& url) const {
@@ -106,8 +105,8 @@ class DataTable : public DataEntity {
 
     template <typename U>
     U const& get_value(std::string const& url, U const& u) const {
-        auto const* p = find(url);
-        return p == nullptr ? u : p->as<U>();
+        auto p = find(url);
+        return p == nullptr ? u : p->as_light().template as<U>();
     }
 
     //    template<typename U> U const &get_value(std::string const &url, U const &u)
@@ -138,6 +137,15 @@ class DataTable : public DataEntity {
     DataTable& as_table(std::string const& url) { return at(url).as_table(); };
 
     DataTable const& as_table(std::string const& url) const { return at(url).as_table(); };
+
+    template <typename U>
+    U& as(std::string const& url) {
+        return at(url).as_light().template as<U>();
+    }
+    template <typename U>
+    U const& as(std::string const& url) const {
+        return at(url).as_light().template as<U>();
+    }
 
    protected:
     struct pimpl_s;

@@ -100,17 +100,17 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::add_particle(std::stri
     Real charge;
 
     if (d.has("mass")) {
-        mass = d.at("mass").as<double>();
+        mass = d.as<double>("mass");
     } else if (d.has("m")) {
-        mass = d.at("m").as<double>() * SI_proton_mass;
+        mass = d.as<double>("m") * SI_proton_mass;
     } else {
         mass = SI_proton_mass;
     }
 
     if (d.has("charge")) {
-        charge = d.at("charge").as<double>();
+        charge = d.as<double>("charge");
     } else if (d.has("Z")) {
-        charge = d.at("Z").as<double>() * SI_elementary_charge;
+        charge = d.as<double>("Z") * SI_elementary_charge;
     } else {
         charge = SI_elementary_charge;
     }

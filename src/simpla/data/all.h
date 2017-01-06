@@ -6,9 +6,11 @@
 #define SIMPLA_DATA_ALL_H
 
 #include "DataEntity.h"
-#include "DataTable.h"
-#include "HeavyData.h"
 #include "LightData.h"
+#include "HeavyData.h"
+#include "DataTable.h"
+
+
 namespace simpla { namespace data
 {
 /**

@@ -208,6 +208,7 @@ struct nTuple_<TV, N0, NOthers...> {
         return (*this);
     }
 };
+
 }  // namespace declare
 
 namespace calculus {

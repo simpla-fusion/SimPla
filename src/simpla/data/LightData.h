@@ -115,6 +115,7 @@ inline bool get_string(std::string* v, std::string const& other) {
 
 }  // namespace _impl
 
+
 /**
  * @brief small data, which can be passed  between modules easily, such as short string, sigle
  * double or n-tuple
@@ -284,7 +285,7 @@ struct LightData : public DataEntity {
     U const& get() const {
         if (!is_same<U>()) { THROW_EXCEPTION_BAD_CAST(typeid(U).name(), m_data_->type().name()); }
 
-        return dynamic_cast<Holder<U>*>(m_data_)->m_value_;
+        return dynamic_cast<Holder<U>*>(m_data_.get())->m_value_;
     }
 
     template <class U>
