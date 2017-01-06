@@ -147,7 +147,7 @@ int MPIComm::topology(int *mpi_topo_ndims, int *mpi_topo_dims, int *periods, int
 
         MPI_CALL(MPI_Topo_test(comm(), &tope_type));
 
-        if (tope_type == MPI_CART);
+        if (tope_type == MPI_CART)
         {
             MPI_CALL(MPI_Cartdim_get(comm(), mpi_topo_ndims));
 

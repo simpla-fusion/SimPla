@@ -700,15 +700,15 @@ struct MeshEntityIdCoder_ {
 
     typedef Range<MeshEntityId> range_type;
 
-//    static range_type make_range(index_type const* min, index_type const* max,
-//                                 size_type iform = VERTEX, size_type dof = 1) {
-//        return std::move(make_continue_range<MeshEntityId>(min, max, iform, dof));
-//    }
-//
-//    static range_type make_range(index_box_type const& b, size_type iform = VERTEX,
-//                                 size_type dof = 1) {
-//        return std::move(make_range(&std::get<0>(b)[0], &std::get<1>(b)[0], iform, dof));
-//    }
+    //    static range_type make_range(index_type const* min, index_type const* max,
+    //                                 size_type iform = VERTEX, size_type dof = 1) {
+    //        return std::move(make_continue_range<MeshEntityId>(min, max, iform, dof));
+    //    }
+    //
+    //    static range_type make_range(index_box_type const& b, size_type iform = VERTEX,
+    //                                 size_type dof = 1) {
+    //        return std::move(make_range(&std::get<0>(b)[0], &std::get<1>(b)[0], iform, dof));
+    //    }
 
     static size_type hash(index_type i, index_type j, index_type k, int nid, index_tuple const& b,
                           index_tuple const& e) {
@@ -853,6 +853,13 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
             }
         }
     }
+    ContinueRange(index_tuple const& b, index_tuple const& e, size_type IFORM = VERTEX,
+                  size_type dof = 1)
+        : ContinueRange(&b[0], &(e[0]), IFORM, dof) {}
+
+    ContinueRange(std::tuple<index_tuple, index_tuple> const& b, size_type IFORM = VERTEX,
+                  size_type dof = 1)
+        : ContinueRange(std::get<0>(b), std::get<1>(b), IFORM, dof) {}
 
     ContinueRange(this_type const& r)
         : m_min_(r.m_min_),

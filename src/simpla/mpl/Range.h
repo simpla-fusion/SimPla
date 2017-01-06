@@ -5,7 +5,9 @@
 #ifndef SIMPLA_RANGE_H
 #define SIMPLA_RANGE_H
 
+#include <simpla/concept/Object.h>
 #include <simpla/concept/Splittable.h>
+#include <simpla/toolbox/Log.h>
 #include <cstddef>
 #include <iterator>
 #include <memory>
@@ -50,14 +52,14 @@ struct UnorderedRange;
 
 template <typename T>
 struct RangeBase {
-    typedef T value_type;
+    SP_OBJECT_BASE(RangeBase<T>);
 
+   private:
     typedef ContinueRange<T> continue_type;
     typedef UnorderedRange<T> unordered_type;
 
-    SP_OBJECT_BASE(RangeBase<T>)
-
    public:
+    typedef T value_type;
     virtual bool is_divisible() const { return false; }
 
     virtual size_type size() const { return 0; }
@@ -139,6 +141,7 @@ struct UnorderedRange<T> : public RangeBase<T> {
     void foreach (TFun const& fun, Args && ... args) const {
         UNIMPLEMENTED;
     }
+    void insert(value_type const&) {}
 };
 
 template <typename TOtherRange>
@@ -240,12 +243,13 @@ struct Range {
         return std::move(res);
     }
 
-    void append(this_type const& other) {
+    void append(this_type const& other) { append(other.m_next_); }
+
+    void append(std::shared_ptr<base_type> const& other) {
         auto& cursor = m_next_;
         while (cursor != nullptr) { cursor = cursor->m_next_; }
-        cursor = other.m_next_;
+        cursor = other;
     }
-
     size_type size() const {
         size_type res = 0;
         for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) {
@@ -260,6 +264,8 @@ struct Range {
             (*cursor)->foreach (std::forward<Args>(args)...);
         }
     }
+    RangeBase<T>& self() { return *m_next_; }
+    RangeBase<T> const& self() const { return *m_next_; }
 
    private:
     std::shared_ptr<RangeBase<T>> m_next_;
@@ -267,7 +273,7 @@ struct Range {
 
 template <typename T, typename... Args>
 Range<T> make_continue_range(Args&&... args) {
-    return std::move( Range<T>(std::make_shared<ContinueRange<T>>(std::forward<Args>...)));
+    return std::move(Range<T>(std::make_shared<ContinueRange<T>>(std::forward<Args>...)));
 };
 
 template <typename T, typename... Args>

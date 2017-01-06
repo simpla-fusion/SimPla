@@ -3,7 +3,8 @@
 //
 #include "DataEntity.h"
 #include "DataTable.h"
-
+#include "LightData.h"
+#include "HeavyData.h"
 namespace simpla { namespace data
 {
 

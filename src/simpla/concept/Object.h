@@ -19,6 +19,7 @@ namespace simpla
 {
 
 #define SP_OBJECT_BASE(_BASE_CLASS_NAME_)                                                                           \
+private: typedef _BASE_CLASS_NAME_ this_type ;        \
 public:                                                                                                             \
 virtual bool is_a(const std::type_info &info) const { return typeid(_BASE_CLASS_NAME_) == info; }                   \
 template<typename _UOTHER_> bool is_a()const {return is_a(typeid(_UOTHER_));}                                        \
@@ -26,9 +27,8 @@ template<typename U_> U_ * as() { return (is_a(typeid(U_))) ? static_cast<U_ *>(
 template<typename U_> U_ const * as() const { return (is_a(typeid(U_))) ? static_cast<U_ const *>(this) : nullptr; } \
 virtual std::type_index typeindex() const   { return std::type_index(typeid(_BASE_CLASS_NAME_)); }                  \
 virtual std::string get_class_name() const { return __STRING(_BASE_CLASS_NAME_); }                                  \
-private:                                                                                                            \
-typedef _BASE_CLASS_NAME_ this_type;                                                                                \
-public:
+
+
 
 #define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                       \
 public:                                                                       \
