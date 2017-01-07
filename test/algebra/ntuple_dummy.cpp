@@ -45,4 +45,11 @@ int main(int argc, char** argv) {
     std::cout << "dot(A+B, B+A) =" << res << std::endl;
 
     std::cout << "A=" << A << std::endl;
+
+    nTuple<Real, 3> v = {1, 2, 3};
+    nTuple<Real, 3> u = {4, 5, 6};
+    nTuple<Real, 3> w = {9, 8, 7};
+    std::cout << static_cast<nTuple<Real, 3> >(cross(v, u)) << std::endl;
+    std::cout << static_cast<Real>(dot(cross(v, u), cross(v, u))) << std::endl;
+    std::cout << static_cast<Real>(dot(cross(v, u), w)) << std::endl;
 }

@@ -12,14 +12,8 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/mesh/Attribute.h>
-#include <simpla/mesh/Mesh.h>
 #include <cassert>
 #include <type_traits>
-#include "Algebra.h"
-//#include <simpla/toolbox/Log.h>
-//#include <simpla/mesh/Attribute.h>
-//#include "simpla/manifold/schemes/CalculusPolicy.h"
-//#include "simpla/manifold/schemes/InterpolatePolicy.h"
 #include "Algebra.h"
 #include "nTuple.h"
 
@@ -84,28 +78,21 @@ struct field_traits {
     typedef declare::Field_<V, typename mesh_type<V>::type, iform<V>::value, dof<V>::value> type;
     typedef calculus::calculator<type> calculator;
 };
-
-template <typename V>
-struct calculator_selector<V, std::enable_if_t<is_field<V>::value>> {
-    typedef declare::Field_<value_type_t<V>, typename mesh_type<V>::type, iform<V>::value,
-                            dof<V>::value>
-        field_type;
-    typedef calculus::calculator<field_type> type;
+//
+//template <typename T>
+//struct primary_type<T, typename std::enable_if<is_field<T>::value>::type> {
+//    typedef typename declare::Field_<value_type_t<T>, typename mesh_type<T>::type, iform<T>::value,
+//                                     dof<T>::value>
+//        type;
+//};
+template <typename TV, typename TM, size_type IFORM, size_type DOF>
+struct data_block_type {
+    typedef declare::Array_<
+        TV, rank<TM>::value + ((IFORM == VERTEX || IFORM == VOLUME ? 0 : 1) * DOF > 1 ? 1 : 0)>
+        type;
 };
- template<typename T> struct primary_type<T, typename std::enable_if<is_field<T>::value>::type>
-{
-    typedef typename declare::Field_<
-            value_type_t < T>, typename mesh_type<T>::type, iform<T>::value, dof<T>::value> type;
-};
- template<typename TV, typename TM, size_type IFORM, size_type DOF>
- struct data_block_type
-{
-    typedef declare::Array_<TV,
-            rank<TM>::value + ((IFORM == VERTEX || IFORM == VOLUME ? 0 : 1) * DOF > 1 ? 1 : 0)>
-            type;
-};
- template<typename TV, typename TM, size_type IFORM, size_type DOF> using data_block_t=typename
- data_block_type<TV, TM, IFORM, DOF>::type;
+template <typename TV, typename TM, size_type IFORM, size_type DOF>
+using data_block_t = typename data_block_type<TV, TM, IFORM, DOF>::type;
 
 }  // namespace traits{
 
@@ -281,25 +268,11 @@ class Field_<TV, TM, IFORM, DOF> : public mesh::Attribute {
     template <typename... Args>
     this_type& apply(Args&&... args) {
         pre_process();
-        auto r = m_mesh_->range(mesh::SP_ES_ALL, IFORM, DOF);
-        calculus_policy::apply(*this, *m_mesh_, r, std::forward<Args>(args)...);
+        calculus_policy::apply(*this, *m_mesh_,   std::forward<Args>(args)...);
         return *this;
     }
 
-    template <typename... Args>
-    this_type& apply(mesh::MeshZoneTag const& tag, Args&&... args) {
-        pre_process();
-        calculus_policy::apply(*this, *m_mesh_, m_mesh_->range(tag, IFORM, DOF),
-                               std::forward<Args>(args)...);
-        return *this;
-    }
 
-    template <typename... Args>
-    this_type& apply(Range<mesh_id_type> const& r, Args&&... args) {
-        pre_process();
-        calculus_policy::apply(*this, *m_mesh_, r, std::forward<Args>(args)...);
-        return *this;
-    }
 };  // class Field_
 }  // namespace declare
 }

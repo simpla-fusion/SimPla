@@ -179,6 +179,15 @@ struct nTuple_calculator {
         return get_value(v.data_[s], std::forward<Idx>(idx)...);
     };
 
+    template <typename... T, typename... Idx>
+    static decltype(auto) get_value(declare::Expression<tags::_nTuple_cross, T...> const& expr,
+                                    size_type s, Idx&&... others) {
+        return get_value(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
+                   get_value(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
+               get_value(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
+                   get_value(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
+    }
+
     template <typename TOP, typename... Others, size_type... index, typename... Idx>
     static decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr,
                                          index_sequence<index...>, Idx&&... s) {
@@ -188,14 +197,6 @@ struct nTuple_calculator {
     template <typename TOP, typename... Others, typename... Idx>
     static decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr, Idx&&... s) {
         return ((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)));
-    }
-    template <typename TOP, typename TL, typename TR, typename... Idx>
-    static decltype(auto) get_value(declare::Expression<tags::_nTuple_cross, TL, TR> const& expr,
-                                    size_type s, Idx&&... others) {
-        return get_value(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
-                   get_value(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
-               get_value(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
-                   get_value(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
     }
 
     template <typename V, size_type N0, size_type... N, typename TOP, typename TR>
@@ -337,51 +338,6 @@ struct expr_parser<Real, declare::Expression<tags::_nTuple_dot, TL, TR>> {
     };
 };
 }  // namespace calculaus{
-
-// namespace traits {
-// template <typename...>
-// struct nTuple_traits;
-//
-// template <typename T, size_type... N>
-// struct nTuple_traits<T, index_sequence<N...>> {
-//    typedef declare::nTuple_<T, N...> type;
-//    typedef calculus::calculator<type> calculator;
-//};
-// template <typename T>
-// struct nTuple_traits<T> : public nTuple_traits<value_type_t<T>, extents<T>> {};
-//
-//}  // namespace traits{
-//
-// template <typename TL, typename TR>
-// auto dot(TL const& lhs, TR const& rhs,
-//         ENABLE_IF((traits::is_nTuple<TL, TR>::value) &&
-//                   (traits::rank<TL>::value == 1 && traits::rank<TR>::value == 1) &&
-//                   (traits::extent<TL>::value == 3 || traits::extent<TR>::value == 3))) {
-//    typedef traits::value_type_t<TL> value_type;
-//    typedef declare::nTuple_<value_type, 3> type;
-//    typedef calculus::calculator<type> calculator;
-//
-//    return calculator::get_value(lhs, 0) * calculator::get_value(rhs, 0) +
-//           calculator::get_value(lhs, 1) * calculator::get_value(rhs, 1) +
-//           calculator::get_value(lhs, 2) * calculator::get_value(rhs, 2);
-//}
-//
-// template <typename TL, typename TR>
-// auto inner_product(declare::nTuple_<TL, 3> const& lhs, declare::nTuple_<TR, 3> const& rhs) {
-//    return lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2];
-//}
-////template <typename TL, typename TR>
-////auto dot(declare::nTuple_<TL, 2> const& lhs, declare::nTuple_<TR, 2> const& rhs) {
-////    return lhs[0] * rhs[0] + lhs[1] * rhs[1];
-////}
-// template <typename TL, typename TR>
-// auto cross(declare::nTuple_<TL, 3> const& lhs, declare::nTuple_<TR, 3> const& rhs) {
-//    return declare::nTuple_<decltype(lhs[0] * rhs[1]), 3>{
-//        lhs[1] * rhs[2] - lhs[2] * rhs[1], lhs[2] * rhs[0] - lhs[0] * rhs[2],
-//        lhs[0] * rhs[1] - lhs[1] * rhs[0],
-//
-//    };
-//}
 
 }  // namespace algebra
 }  // namespace simpla

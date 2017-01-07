@@ -11,10 +11,9 @@
 #include "ArrayExt.h"
 #include "Calculus.h"
 #include "Expression.h"
-#include "Field.h"
 #include "nTuple.h"
 #include "nTupleExt.h"
-
+#include "Field.h"
 /**
  * @addtogroup algebra Algebra System
  **/

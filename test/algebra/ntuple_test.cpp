@@ -9,6 +9,7 @@
 
 #include <simpla/algebra/Algebra.h>
 #include <simpla/algebra/Arithmetic.h>
+#include <simpla/algebra/Calculus.h>
 #include <simpla/algebra/Expression.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/mpl/type_traits.h>
@@ -111,29 +112,23 @@ TYPED_TEST(TestNtuple, self_assign) {
 
     });
 }
-//////
-////TYPED_TEST(TestNtuple, cross)
-////{
-////
-////    nTuple<typename TestFixture::value_type, 3> vA, vB, vC, vD;
-////
-////    for (int i = 0; i < 3; ++i)
-////    {
-////        vA[i] = (i * 2);
-////        vB[i] = (5 - i);
-////    }
-////
-////    for (int i = 0; i < 3; ++i)
-////    {
-////        vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3]
-////                - vA[(i + 2) % 3] * vB[(i + 1) % 3];
-////    }
-////
-////    vC = cross(vA, vB);
-////    vD -= vC;
-////    EXPECT_DOUBLE_EQ(0, algebra::abs(vD[0]) + algebra::abs(vD[1]) + algebra::abs(vD[2]));
-////
-////}
+//
+TYPED_TEST(TestNtuple, cross) {
+    nTuple<typename TestFixture::value_type, 3> vA, vB, vC, vD;
+
+    for (int i = 0; i < 3; ++i) {
+        vA[i] = (i * 2);
+        vB[i] = (5 - i);
+    }
+
+    for (int i = 0; i < 3; ++i) {
+        vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3] - vA[(i + 2) % 3] * vB[(i + 1) % 3];
+    }
+
+    vC = algebra::cross(vA, vB);
+    vD -= vC;
+    EXPECT_DOUBLE_EQ(0, algebra::abs(vD[0]) + algebra::abs(vD[1]) + algebra::abs(vD[2]));
+}
 //
 TYPED_TEST(TestNtuple, arithmetic) {
     TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);

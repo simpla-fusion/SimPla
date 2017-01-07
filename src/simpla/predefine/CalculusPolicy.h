@@ -17,6 +17,8 @@
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/PrettyStream.h>
 #include <simpla/toolbox/sp_def.h>
+#include <simpla/mesh/MeshCommon.h>
+#include <simpla/mesh/EntityId.h>
 
 namespace simpla {
 namespace algebra {
@@ -816,6 +818,22 @@ struct calculator<algebra::declare::Field_<TV, TM, IFORM, DOF>> {
             op(get_value(m, self, s), get_value(m, std::forward<Args>(args), s)...);
         });
     }
+
+
+//    template <typename... Args>
+//    this_type& apply(mesh::MeshZoneTag const& tag, Args&&... args) {
+//        pre_process();
+//        calculus_policy::apply(*this, *m_mesh_, m_mesh_->range(tag, IFORM, DOF),
+//                               std::forward<Args>(args)...);
+//        return *this;
+//    }
+//
+//    template <typename... Args>
+//    this_type& apply(Range<mesh_id_type> const& r, Args&&... args) {
+//        pre_process();
+//        calculus_policy::apply(*this, *m_mesh_, r, std::forward<Args>(args)...);
+//        return *this;
+//    }
 };
 
 // template <typename TV, typename TM, size_type IFORM, size_type DOF>
