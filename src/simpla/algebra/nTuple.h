@@ -337,6 +337,8 @@ struct expr_parser<Real, declare::Expression<tags::_nTuple_dot, TL, TR>> {
         return res;
     };
 };
+
+
 }  // namespace calculaus{
 
 }  // namespace algebra

@@ -11,10 +11,8 @@
 #include <stddef.h>
 #include <tuple>
 
-#include <simpla/algebra/Arithmetic.h>
-#include <simpla/algebra/Calculus.h>
-#include <simpla/algebra/nTuple.h>
-#include <simpla/algebra/nTupleExt.h>
+#include <simpla/algebra/all.h>
+
 #include <simpla/toolbox/sp_def.h>
 
 namespace simpla {
@@ -68,9 +66,9 @@ std::tuple<Real, Vec3> distance_from_point_to_plane(T0 const& x0, T1 const& p0, 
 
     n = cross(p1 - p0, p2 - p1);
 
-    n /= inner_product(n, n);
+    n /= dot(n, n);
 
-    return std::forward_as_tuple(inner_product(p0 - x0, n), std::move(n));
+    return std::forward_as_tuple(dot(p0 - x0, n), std::move(n));
 }
 
 template <typename T0, typename T1, typename T2>
@@ -80,9 +78,9 @@ Real nearest_point_to_line_segment(T0 const& p0, T1 const& p1, T2 const& x) {
     u = x - *p0;
     v = *p1 - *p0;
 
-    Real v2 = inner_product(v, v);
+    Real v2 = dot(v, v);
 
-    auto s = inner_product(u, v) / v2;
+    Real s = dot(u, v) / v2;
 
     if (s < 0) {
         s = 0;
@@ -97,18 +95,18 @@ template <typename T0, typename T1, typename TP>
 Real nearest_point_to_polygon(T0 const& p0, T1 const& p1, TP* x) {
     Real dist2 = 0.0;
     UNIMPLEMENTED;
-    //    TP p2 = *x;
-    //    Vec3 u, v;
-    //
-    //    u = x - *p0;
-    //    v = *p1 - *p0;
-    //
-    //    Real v2 = inner_product(v, v);
-    //
-    //    auto s = inner_product(u, v) / v2;
-    //
-    //    if (s < 0) { s = 0; }
-    //    else if (s > 1) { s = 1; }
+        TP p2 = *x;
+        Vec3 u, v;
+
+        u = x - *p0;
+        v = *p1 - *p0;
+
+        Real v2 = dot(v, v);
+
+    Real s = dot(u, v) / v2;
+
+        if (s < 0) { s = 0; }
+        else if (s > 1) { s = 1; }
 
     return std::sqrt(dist2);
 }
@@ -162,11 +160,11 @@ std::tuple<Real, Real> nearest_point_line_to_line(T0 const& P0, T1 const& P1, T2
     auto w0 = P0 - Q0;
 
     // @ref http://geomalgorithms.com/a07-_distance.html
-    Real a = inner_product(u, u);
-    Real b = inner_product(u, v);
-    Real c = inner_product(v, v);
-    Real d = inner_product(u, w0);
-    Real e = inner_product(v, w0);
+    Real a = dot(u, u);
+    Real b = dot(u, v);
+    Real c = dot(v, v);
+    Real d = dot(u, w0);
+    Real e = dot(v, w0);
 
     if (std::abs(a * c - b * b) < EPSILON) {
         // two lines are parallel
@@ -181,7 +179,7 @@ std::tuple<Real, Real> nearest_point_line_to_line(T0 const& P0, T1 const& P1, T2
         //		auto w = w0
         //				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b *
         // b);
-        //		dist = inner_product(w, w);
+        //		dist = dot(w, w);
     }
 
     return std::make_tuple(s, t);
@@ -272,9 +270,9 @@ std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const& x, TI 
         u = x - *p0;
         v = *p1 - *p0;
 
-        Real v2 = inner_product(v, v);
+        Real v2 = dot(v, v);
 
-        auto s = inner_product(u, v) / v2;
+        Real s = dot(u, v) / v2;
 
         if (s < 0) {
             s = 0;
@@ -284,7 +282,7 @@ std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const& x, TI 
 
         d = u - v * s;
 
-        Real dist2 = inner_product(d, d);
+        Real dist2 = dot(d, d);
 
         if (min_dist2 > dist2 || (min_dist2 == dist2 && s == 0)) {
             res_p0 = p0;
@@ -307,15 +305,15 @@ Real intersection_line_to_polygons(T0 const& p0, T1 const& p1, T2 const& polygon
 
     Vec3 n;
     n = cross(q2 - q1, q1 - q0);
-    n /= std::sqrt(static_cast<Real>(inner_product(n, n)));
+    n /= std::sqrt(static_cast<Real>(dot(n, n)));
 
     it = polygon.begin();
 
     while (it != polygon.end()) {
         auto q0 = *it;
         auto q1 = *(++it);
-        q0 -= inner_product(q0, n) * n;
-        q1 -= inner_product(q1, n) * n;
+        q0 -= dot(q0, n) * n;
+        q1 -= dot(q1, n) * n;
     }
 }
 
@@ -357,7 +355,7 @@ Real intersection_line_to_polygons(T0 const& p0, T1 const& p1, T2 const& polygon
  */
 template <typename T0, typename T1>
 Vec3 reflect(T0 const& v, T1 const& normal) {
-    return v - (2 * inner_product(v, normal) / inner_product(normal, normal)) * normal;
+    return v - (2 * dot(v, normal) / dot(normal, normal)) * normal;
 }
 
 /**
@@ -396,11 +394,11 @@ inline Vec3 reflect_point_by_plane(T0 const& x0, T1 const& p0, T2 const& p1, T3 
 //	auto v = p2 - p0;
 //
 //	// @ref http://geomalgorithms.com/a07-_distance.html
-//	Real a = inner_product(x1 - x0, x1 - x0);
-//	Real b = inner_product(x1 - x0, y1 - y0);
-//	Real c = inner_product(y1 - y0, y1 - y0);
-//	Real d = inner_product(y0 - x0, x1 - x0);
-//	Real e = inner_product(y0 - x0, y1 - y0);
+//	Real a = dot(x1 - x0, x1 - x0);
+//	Real b = dot(x1 - x0, y1 - y0);
+//	Real c = dot(y1 - y0, y1 - y0);
+//	Real d = dot(y0 - x0, x1 - x0);
+//	Real e = dot(y0 - x0, y1 - y0);
 //
 //	if (std::abs(a * c - b * b) < EPSILON)
 //	{

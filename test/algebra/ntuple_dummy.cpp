@@ -41,8 +41,9 @@ int main(int argc, char** argv) {
     std::cout << "B=" << B << std::endl;
 
     Real res = dot(A, B);
-
-    std::cout << "dot(A+B, B+A) =" << res << std::endl;
+    Real res2 = dot(A, B) / 2;
+    std::cout << "dot(A , B  ) =" << res << std::endl;
+    std::cout << "dot(A , B  ) / 2 =" << res2 << std::endl;
 
     std::cout << "A=" << A << std::endl;
 
@@ -52,4 +53,8 @@ int main(int argc, char** argv) {
     std::cout << static_cast<nTuple<Real, 3> >(cross(v, u)) << std::endl;
     std::cout << static_cast<Real>(dot(cross(v, u), cross(v, u))) << std::endl;
     std::cout << static_cast<Real>(dot(cross(v, u), w)) << std::endl;
+
+    nTuple<Real, 2> v2 = {1, 2};
+    nTuple<Real, 2> u2 = {1, 2};
+    std::cout << static_cast<Real>(dot(v2, u2)) << std::endl;
 }

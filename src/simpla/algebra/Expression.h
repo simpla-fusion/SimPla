@@ -25,7 +25,25 @@ namespace declare {
 template <typename...>
 struct Expression;
 }
+namespace calculus {
+template <typename TRes, typename TR>
+struct expr_parser<TRes, TR> {
+    static TRes eval(TR const &expr) { return static_cast<TRes>(expr); };
+};
+template <typename TRes, typename TOP, typename... Args>
+struct expr_parser<TRes, declare::Expression<TOP, Args...>> {
+    template <size_type... index>
+    static decltype(auto) _invoke_helper(declare::Expression<TOP, Args...> const &expr,
+                                         index_sequence<index...>) {
+        return expr.m_op_(
+            expr_parser<TRes, std::remove_cv_t<Args>>::eval(std::get<index>(expr.m_args_))...);
+    }
 
+    static TRes eval(declare::Expression<TOP, Args...> const &expr) {
+        return _invoke_helper(expr, index_sequence_for<Args...>());
+    };
+};
+}
 namespace traits {
 
 template <typename TOP, typename... Args>
@@ -43,7 +61,6 @@ struct is_array<declare::Expression<TOP, Args...>> : public is_array<Args...> {}
 template <typename TOP, typename T0, typename... T>
 struct iform<declare::Expression<TOP, T0, T...>> : public iform<T0> {};
 
-
 template <typename TOP, typename T0, typename... T>
 struct extent<declare::Expression<TOP, T0, T...>> : public extent<T0> {};
 
@@ -58,7 +75,6 @@ struct value_type<declare::Expression<TOP, TL, TR>> {
 };
 
 }  // namespace traits
-
 
 namespace declare {
 
@@ -148,6 +164,7 @@ struct BooleanExpression<TOP, TL> : public Expression<TOP, TL> {
 //
 //};
 }  // namespace declare
+
 }  // namespace algebra
 }  // namespace simpla
 
