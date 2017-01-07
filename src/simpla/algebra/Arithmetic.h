@@ -166,7 +166,7 @@ struct _assign
 {
     template<typename TL, typename TR> TL &operator()(TL &l, TR const &r) const
     {
-        l = static_cast<TL>(r);
+        l = (r);
         return l;
     };
 

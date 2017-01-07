@@ -37,14 +37,12 @@ int main(int argc, char** argv) {
 
     nTuple<double, 2, 3> B = {{4, 5, 6}, {7, 8, 9}};
     nTuple<double, 2, 3> A = B * 2 + 5;
+    std::cout << "A=" << A << std::endl;
+    std::cout << "B=" << B << std::endl;
 
-    A(1, 3) = 0;
-    B = 3;
-    A = B * 2 + b;
+    Real res = dot(A, B);
 
-    Real res = dot(A + B, B + A);
-
-    std::cout << "res=" << res << std::endl;
+    std::cout << "dot(A+B, B+A) =" << res << std::endl;
 
     std::cout << "A=" << A << std::endl;
 }

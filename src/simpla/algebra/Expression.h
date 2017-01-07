@@ -43,6 +43,10 @@ struct is_array<declare::Expression<TOP, Args...>> : public is_array<Args...> {}
 template <typename TOP, typename T0, typename... T>
 struct iform<declare::Expression<TOP, T0, T...>> : public iform<T0> {};
 
+
+template <typename TOP, typename T0, typename... T>
+struct extent<declare::Expression<TOP, T0, T...>> : public extent<T0> {};
+
 template <typename TOP, typename TL>
 struct value_type<declare::Expression<TOP, TL>> {
     typedef std::result_of_t<TOP(value_type_t<TL>)> type;

@@ -33,79 +33,79 @@ struct Field_;
 namespace traits {
 
 //***********************************************************************************************************************
-//
-//template <typename>
-//struct mesh_type {
-//    typedef void type;
-//};
-//
-//template <typename TV, typename TM, size_type... I>
-//struct mesh_type<declare::Field_<TV, TM, I...>> {
-//    typedef TM type;
-//};
-//
-//template <typename TV, typename TM, size_type IFORM, size_type DOF>
-//struct is_field<declare::Field_<TV, TM, IFORM, DOF>> : public std::integral_constant<bool, true> {};
-//
-//template <typename TV, typename TM, size_type IFORM, size_type DOF>
-//struct reference<declare::Field_<TV, TM, IFORM, DOF>> {
-//    typedef declare::Field_<TV, TM, IFORM, DOF> const& type;
-//};
-//
-//template <typename TV, typename TM, size_type IFORM, size_type DOF>
-//struct reference<const declare::Field_<TV, TM, IFORM, DOF>> {
-//    typedef declare::Field_<TV, TM, IFORM, DOF> const& type;
-//};
-//
-//template <typename TV, typename TM, size_type IFORM, size_type DOF>
-//struct value_type<declare::Field_<TV, TM, IFORM, DOF>> {
-//    typedef TV type;
-//};
-//
-//template <typename TV, typename TM, size_type IFORM, size_type DOF>
-//struct rank<declare::Field_<TV, TM, IFORM, DOF>> : public index_const<3> {};
-//
-//template <typename TV, typename TM, size_type IFORM, size_type DOF>
-//struct iform<declare::Field_<TV, TM, IFORM, DOF>> : public index_const<IFORM> {};
-//
-//template <typename TV, typename TM, size_type IFORM, size_type DOF>
-//struct dof<declare::Field_<TV, TM, IFORM, DOF>> : public index_const<DOF> {};
-//
-//template <typename TV, typename TM, size_type IFORM, size_type DOF>
-//struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>> {
-//    typedef std::conditional_t<DOF == 1, TV, declare::nTuple_<TV, DOF>> cell_tuple;
-//    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
-//                               declare::nTuple_<cell_tuple, 3>>
-//        type;
-//};
-//
-//template <typename V>
-//struct field_traits {
-//    typedef declare::Field_<V, typename mesh_type<V>::type, iform<V>::value, dof<V>::value> type;
-//    typedef calculus::calculator<type> calculator;
-//};
 
-//template <typename V>
-//struct calculator_selector<V, std::enable_if_t<is_field<V>::value>> {
-//    typedef declare::Field_<value_type_t<V>, typename mesh_type<V>::type, iform<V>::value,
-//                            dof<V>::value>
-//        field_type;
-//    typedef calculus::calculator<field_type> type;
-//};
-// template<typename T> struct primary_type<T, typename std::enable_if<is_field<T>::value>::type>
-//{
-//    typedef typename declare::Field_<
-//            value_type_t < T>, typename mesh_type<T>::type, iform<T>::value, dof<T>::value> type;
-//};
-// template<typename TV, typename TM, size_type IFORM, size_type DOF>
-// struct data_block_type
-//{
-//    typedef declare::Array_<TV,
-//            rank<TM>::value + ((IFORM == VERTEX || IFORM == VOLUME ? 0 : 1) * DOF > 1 ? 1 : 0)>
-//            type;
-//};
-// template<typename TV, typename TM, size_type IFORM, size_type DOF> using data_block_t=typename
-// data_block_type<TV, TM, IFORM, DOF>::type;
+template <typename>
+struct mesh_type {
+    typedef void type;
+};
+
+template <typename TV, typename TM, size_type... I>
+struct mesh_type<declare::Field_<TV, TM, I...>> {
+    typedef TM type;
+};
+
+template <typename TV, typename TM, size_type IFORM, size_type DOF>
+struct is_field<declare::Field_<TV, TM, IFORM, DOF>> : public std::integral_constant<bool, true> {};
+
+template <typename TV, typename TM, size_type IFORM, size_type DOF>
+struct reference<declare::Field_<TV, TM, IFORM, DOF>> {
+    typedef declare::Field_<TV, TM, IFORM, DOF> const& type;
+};
+
+template <typename TV, typename TM, size_type IFORM, size_type DOF>
+struct reference<const declare::Field_<TV, TM, IFORM, DOF>> {
+    typedef declare::Field_<TV, TM, IFORM, DOF> const& type;
+};
+
+template <typename TV, typename TM, size_type IFORM, size_type DOF>
+struct value_type<declare::Field_<TV, TM, IFORM, DOF>> {
+    typedef TV type;
+};
+
+template <typename TV, typename TM, size_type IFORM, size_type DOF>
+struct rank<declare::Field_<TV, TM, IFORM, DOF>> : public index_const<3> {};
+
+template <typename TV, typename TM, size_type IFORM, size_type DOF>
+struct iform<declare::Field_<TV, TM, IFORM, DOF>> : public index_const<IFORM> {};
+
+template <typename TV, typename TM, size_type IFORM, size_type DOF>
+struct dof<declare::Field_<TV, TM, IFORM, DOF>> : public index_const<DOF> {};
+
+template <typename TV, typename TM, size_type IFORM, size_type DOF>
+struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>> {
+    typedef std::conditional_t<DOF == 1, TV, declare::nTuple_<TV, DOF>> cell_tuple;
+    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
+                               declare::nTuple_<cell_tuple, 3>>
+        type;
+};
+
+template <typename V>
+struct field_traits {
+    typedef declare::Field_<V, typename mesh_type<V>::type, iform<V>::value, dof<V>::value> type;
+    typedef calculus::calculator<type> calculator;
+};
+
+template <typename V>
+struct calculator_selector<V, std::enable_if_t<is_field<V>::value>> {
+    typedef declare::Field_<value_type_t<V>, typename mesh_type<V>::type, iform<V>::value,
+                            dof<V>::value>
+        field_type;
+    typedef calculus::calculator<field_type> type;
+};
+ template<typename T> struct primary_type<T, typename std::enable_if<is_field<T>::value>::type>
+{
+    typedef typename declare::Field_<
+            value_type_t < T>, typename mesh_type<T>::type, iform<T>::value, dof<T>::value> type;
+};
+ template<typename TV, typename TM, size_type IFORM, size_type DOF>
+ struct data_block_type
+{
+    typedef declare::Array_<TV,
+            rank<TM>::value + ((IFORM == VERTEX || IFORM == VOLUME ? 0 : 1) * DOF > 1 ? 1 : 0)>
+            type;
+};
+ template<typename TV, typename TM, size_type IFORM, size_type DOF> using data_block_t=typename
+ data_block_type<TV, TM, IFORM, DOF>::type;
 
 }  // namespace traits{
 

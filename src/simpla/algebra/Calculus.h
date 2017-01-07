@@ -179,10 +179,16 @@ auto cross(TL const& l, TR const& r, ENABLE_IF(!(traits::is_field<TL, TR>::value
     return ((declare::Expression<tags::_nTuple_cross, const TL, const TR>(l, r)));
 }
 template <typename TL, typename TR>
-auto dot(TL const& lhs, TR const& rhs, ENABLE_IF(!(traits::is_field<TL, TR>::value))) {
+auto dot(TL const& lhs, TR const& rhs,
+         ENABLE_IF(!(traits::is_field<TL, TR>::value) &&
+                   !(std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
     return declare::Expression<tags::_nTuple_dot, const TL, const TR>(lhs, rhs);
 }
-
+template <typename TL, typename TR>
+auto dot(TL const& lhs, TR const& rhs,
+         ENABLE_IF((std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
+    return lhs * rhs;
+}
 // template<typename  T>
 //  auto operator*(T const &f) AUTO_RETURN((hodge_star(f)))
 //
