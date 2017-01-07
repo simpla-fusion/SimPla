@@ -342,11 +342,12 @@ struct nTuple_traits<T> : public nTuple_traits<value_type_t<T>, extents<T>> {};
 
 }  // namespace traits{
 
-//template <typename TL, typename TR>
-//auto inner_product(TL const& lhs, TR const& rhs,
+// template <typename TL, typename TR>
+// auto inner_product(TL const& lhs, TR const& rhs,
 //                   ENABLE_IF((traits::is_nTuple<TL, TR>::value) &&
 //                             (traits::rank<TL>::value == 1 && traits::rank<TR>::value == 1) &&
-//                             (traits::extent<TL>::value == 3 || traits::extent<TR>::value == 3))) {
+//                             (traits::extent<TL>::value == 3 || traits::extent<TR>::value == 3)))
+//                             {
 //    typedef traits::value_type_t<TL> value_type;
 //    typedef declare::nTuple_<value_type, 3> type;
 //    typedef calculus::calculator<type> calculator;
@@ -360,7 +361,10 @@ template <typename TL, typename TR>
 auto inner_product(declare::nTuple_<TL, 3> const& lhs, declare::nTuple_<TR, 3> const& rhs) {
     return lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2];
 }
-
+template <typename TL, typename TR>
+auto dot(declare::nTuple_<TL, 2> const& lhs, declare::nTuple_<TR, 2> const& rhs) {
+    return lhs[0] * rhs[0] + lhs[1] * rhs[1];
+}
 template <typename TL, typename TR>
 auto cross(declare::nTuple_<TL, 3> const& lhs, declare::nTuple_<TR, 3> const& rhs) {
     return declare::nTuple_<decltype(lhs[0] * rhs[1]), 3>{

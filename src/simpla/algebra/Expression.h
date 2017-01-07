@@ -149,8 +149,8 @@ struct Expression<TOP, Args...> {
 
     virtual ~Expression() {}
 
-    //    template<typename T> operator T() const { return
-    //    calculus::calculator<this_type>::template cast_as<T>(*this); }
+//     template<typename T> operator T() const { return
+//     calculus::calculae_expr<T>::eval(*this); }
 };
 
 template <typename TOP, typename TL, typename TR>

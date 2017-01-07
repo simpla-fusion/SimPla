@@ -199,9 +199,9 @@ class Field_<TV, TM, IFORM, DOF> : public mesh::Attribute {
         pre_process();
     }
 
-    //    virtual data_type* data() { return m_data_; }
-    //
-    //    virtual data_type const* data() const { return m_data_; }
+    virtual data_type* data() { return m_data_; }
+
+    virtual data_type const* data() const { return m_data_; }
 
     virtual void deploy() { calculus_policy::deploy(*this); }
 

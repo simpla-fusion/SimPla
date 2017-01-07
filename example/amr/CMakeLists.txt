@@ -25,6 +25,7 @@ IF (MeshKit_FOUND)
     MESSAGE(" -- MeshKit Found: ${MeshKit_LIBRARIES};  INCLUDE: ${MESHKIT_INCLUDE_DIRS}")
 ENDIF (MeshKit_FOUND)
 
+LINK_DIRECTORIES(/usr/lib/gcc/x86_64-linux-gnu/5/)
 INCLUDE_DIRECTORIES(${SAMRAI_INCLUDE_DIRS}
         ${MOAB_INCLUDE_DIRS} ${MESHKIT_INCLUDE_DIRS} ${OCE_INCLUDE_DIRS}
         )
@@ -34,8 +35,11 @@ FILE(GLOB amr_test_SRC ./*.cpp)
 add_executable(amr_test ${amr_test_SRC})
 
 
-TARGET_LINK_LIBRARIES(amr_test ${MeshKit_LIBRARIES} ${OCE_LIBRARIES} ${MOAB_LIBRARIES}  ${SAMRAI_LIBRARIES} ${HDF5_LIBRARIES} ${MPI_LIBRARIES}
-        concept mesh manifold model parallel toolbox data physics simulation netcdf
+TARGET_LINK_LIBRARIES(amr_test
+#     ${OCE_LIBRARIES}   ${MeshKit_LIBRARIES} ${MOAB_LIBRARIES}
+        ${SAMRAI_LIBRARIES} netcdf
+        ${HDF5_LIBRARIES} ${MPI_LIBRARIES}
+        concept mesh   model parallel toolbox data physics simulation
         )
 
 

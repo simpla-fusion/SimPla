@@ -1,5 +1,5 @@
-FILE(GLOB model_SRC ./*.cpp)
+FILE(GLOB model_SRC ./*.cpp ./geometry/*.cpp)
 add_library(model ${model_SRC})
 
-TARGET_LINK_LIBRARIES(model concept toolbox data geometry)
+TARGET_LINK_LIBRARIES(model concept toolbox data )
 

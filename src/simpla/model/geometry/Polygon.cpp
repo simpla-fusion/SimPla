@@ -62,17 +62,18 @@ Real Polygon<2>::nearest_point(Real *x, Real *y) const
         /**
          * if \f$ v \times u \cdot e_z >0 \f$ then `in` else `out`
          */
+         UNIMPLEMENTED;
 
-        Real dd = dot(x0 - p, x0 - p);
-
-
-        if (std::abs(dd) < std::abs(d2))
-        {
-            d2 = dd;
-            (*x) = x0[0] - u[0];
-            (*y) = x0[1] - u[1];
-
-        }
+//        Real dd = dot(x0 - p, x0 - p);
+//
+//
+//        if (std::abs(dd) < std::abs(d2))
+//        {
+//            d2 = dd;
+//            (*x) = x0[0] - u[0];
+//            (*y) = x0[1] - u[1];
+//
+//        }
         p0 = p1;
 
     }

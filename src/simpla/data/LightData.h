@@ -18,6 +18,9 @@
 #include <typeindex>
 #include <typeinfo>
 #include "DataEntity.h"
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/nTupleExt.h>
+#include <simpla/toolbox/PrettyStream.h>
 
 namespace simpla {
 namespace data {
@@ -402,9 +405,9 @@ struct LightData : public DataEntity {
 
         std::ostream& print(std::ostream& os, int indent = 1) const {
             if (std::is_same<ValueType, std::string>::value) {
-//                os << "\"" << m_value_ << "\"";
+                os << "\"" << m_value_ << "\"";
             } else {
-//                os << m_value_;
+                os << m_value_;
             }
              return os;
         }

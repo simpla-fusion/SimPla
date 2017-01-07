@@ -693,7 +693,15 @@ struct calculator<algebra::declare::Field_<TV, TM, IFORM, DOF>> {
                get_value(m, std::get<0>(expr.m_args_), sw(s, 2)) *
                    get_value(m, std::get<1>(expr.m_args_), sw(s, 2));
     }
-
+    template <typename TExpr, size_type I, size_type K>
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, MeshEntityId const& s,
+                               expression_tag<tags::_cross, I, K>)  //
+    {
+        return get_value(m, std::get<0>(expr.m_args_), sw(s, (s.w + 1) % 3)) *
+                   get_value(m, std::get<1>(expr.m_args_), sw(s, (s.w + 2) % 3)) -
+               get_value(m, std::get<0>(expr.m_args_), sw(s, (s.w + 2) % 3)) *
+                   get_value(m, std::get<1>(expr.m_args_), sw(s, (s.w + 1) % 3));
+    }
     //    template<typename TExpr, size_type I> static decltype(auto)
     //    eval(mesh_type const &m, TExpr const &expr, MeshEntityId const &s,
     //         expression_tag<tags::divides, I, VERTEX>) //

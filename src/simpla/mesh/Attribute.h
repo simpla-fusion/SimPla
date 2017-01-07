@@ -19,6 +19,7 @@ namespace mesh {
 class Patch;
 
 class Attribute;
+class AttributeCollection;
 
 struct AttributeDesc : public concept::Configurable, public Object {
     template <typename... Args>
@@ -77,35 +78,11 @@ class AttributeDict : public concept::Printable {
     std::map<id_type, std::shared_ptr<AttributeDesc>> m_map_;
 };
 
-class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
-    typedef design_pattern::Observable<void(Patch *)> base_type;
-
-   public:
-    AttributeCollection(std::shared_ptr<AttributeDict> const &p = nullptr);
-
-    virtual ~AttributeCollection();
-
-    virtual void connect(Attribute *observer);
-
-    virtual void disconnect(Attribute *observer);
-
-    virtual void accept(Patch *p) { base_type::accept(p); }
-
-    template <typename TF>
-    void foreach (TF const &fun) {
-        design_pattern::Observable<void(Patch *)>::foreach (
-            [&](observer_type &obj) { fun(reinterpret_cast<Attribute *>(&obj)); });
-    }
-
-   private:
-    std::shared_ptr<AttributeDict> m_dict_;
-};
-
 struct Attribute : public concept::Printable,
                    public concept::LifeControllable,
                    public design_pattern::Observer<void(Patch *)> {
-   public:
-    SP_OBJECT_BASE(Attribute);
+public:
+SP_OBJECT_BASE(Attribute);
 
     Attribute(std::shared_ptr<DataBlock> const &d = nullptr,
               std::shared_ptr<AttributeDesc> const &desc = nullptr);
@@ -125,9 +102,9 @@ struct Attribute : public concept::Printable,
 
     virtual AttributeDesc const &desc() const { return *m_desc_; }
 
-    virtual std::shared_ptr<DataBlock> const &data() const { return m_data_; }
+    virtual std::shared_ptr<DataBlock> const &data_block() const { return m_data_; }
 
-    virtual std::shared_ptr<DataBlock> &data() { return m_data_; }
+    virtual std::shared_ptr<DataBlock> &data_block() { return m_data_; }
 
     virtual void pre_process();
 
@@ -139,10 +116,34 @@ struct Attribute : public concept::Printable,
 
     virtual void accept(MeshBlock const *m, std::shared_ptr<DataBlock> const &d);
 
-   private:
+private:
     MeshBlock const *m_mesh_;
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
+};
+
+class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
+    typedef design_pattern::Observable<void(Patch *)> base_type;
+
+   public:
+    AttributeCollection(std::shared_ptr<AttributeDict> const &p = nullptr);
+
+    virtual ~AttributeCollection();
+
+    virtual void connect(Attribute *observer);
+
+    virtual void disconnect(Attribute *observer);
+
+    virtual void accept(Patch *p) { base_type::accept(p); }
+
+    template <typename TF>
+    void foreach (TF const &fun) {
+        design_pattern::Observable<void(Patch *)>::foreach (
+            [&](observer_type &obj) { fun(static_cast<Attribute *>(&obj)); });
+    }
+
+   private:
+    std::shared_ptr<AttributeDict> m_dict_;
 };
 
 template <typename...>
