@@ -6,20 +6,20 @@
 #define SIMPLA_ALGEBRA_ALL_H
 
 #include "Algebra.h"
-#include "nTuple.h"
-#include "nTupleExt.h"
+#include "Arithmetic.h"
 #include "Array.h"
 #include "ArrayExt.h"
-#include "Field.h"
-#include "Expression.h"
-#include "Arithmetic.h"
 #include "Calculus.h"
+#include "Expression.h"
+#include "Field.h"
+#include "nTuple.h"
+#include "nTupleExt.h"
+
 /**
  * @addtogroup algebra Algebra System
  **/
-namespace simpla{
-namespace algebra
-{
+namespace simpla {
+namespace algebra {
 /**
  * @brief algebra
  *    Algebra system
@@ -28,6 +28,6 @@ namespace algebra
  *    TODO:
  *    - Array<nTuple>= Array<Scalar>*nTuple
  */
-}//namespace algebra{
-}//namespace simpla{
-#endif //SIMPLA_ALGEBRA_ALL_H
+}  // namespace algebra{
+}  // namespace simpla{
+#endif  // SIMPLA_ALGEBRA_ALL_H

@@ -8,6 +8,8 @@
 #ifndef SIMPLA_LIGHTDATA_H
 #define SIMPLA_LIGHTDATA_H
 
+#include <simpla/algebra/nTuple.h>
+#include <simpla/toolbox/PrettyStream.h>
 #include <stddef.h>
 #include <algorithm>
 #include <cstdbool>
@@ -18,9 +20,6 @@
 #include <typeindex>
 #include <typeinfo>
 #include "DataEntity.h"
-#include <simpla/algebra/nTuple.h>
-#include <simpla/algebra/nTupleExt.h>
-#include <simpla/toolbox/PrettyStream.h>
 
 namespace simpla {
 namespace data {
@@ -117,7 +116,6 @@ inline bool get_string(std::string* v, std::string const& other) {
 }
 
 }  // namespace _impl
-
 
 /**
  * @brief small data, which can be passed  between modules easily, such as short string, sigle
@@ -298,7 +296,11 @@ struct LightData : public DataEntity {
     }
 
     virtual std::ostream& print(std::ostream& os, int indent = 1) const {
-        if (m_data_ != nullptr) { m_data_->print(os, indent); }else{CHECK(m_data_ == nullptr);}
+        if (m_data_ != nullptr) {
+            m_data_->print(os, indent);
+        } else {
+            CHECK(m_data_ == nullptr);
+        }
         return os;
     }
 
@@ -409,7 +411,7 @@ struct LightData : public DataEntity {
             } else {
                 os << m_value_;
             }
-             return os;
+            return os;
         }
 
         //        virtual void* data() { return &m_value_; };

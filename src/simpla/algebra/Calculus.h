@@ -18,12 +18,9 @@
 #include <simpla/toolbox/Log.h>
 #include "Algebra.h"
 #include "Arithmetic.h"
-#include "Expression.h"
 
 namespace simpla {
 namespace algebra {
-template <size_type I>
-using index_const = std::integral_constant<size_type, I>;
 
 namespace declare {
 template <typename...>
@@ -84,6 +81,8 @@ _SP_DEFINE_EXPR_BINARY_FUNCTION(wedge)
 namespace tags {
 struct _dot {};
 struct _cross {};
+struct _nTuple_dot {};
+struct _nTuple_cross {};
 }
 namespace traits {
 
@@ -147,43 +146,41 @@ auto inner_product(TL const& lhs, TR const& rhs, ENABLE_IF((traits::is_field<TL,
 
 template <typename TL, typename TR>
 auto cross(TL const& lhs, TR const& rhs,
-           ENABLE_IF((!traits::is_nTuple<TL, TR>::value) && (traits::iform<TL>::value == EDGE))) {
+           ENABLE_IF((traits::is_field<TL, TR>::value) &&
+                     (traits::iform<TL>::value == EDGE && traits::iform<TR>::value == EDGE))) {
     return ((wedge(lhs, rhs)));
 }
 
 template <typename TL, typename TR>
 auto cross(TL const& lhs, TR const& rhs,
-           ENABLE_IF((!traits::is_nTuple<TL, TR>::value) && (traits::iform<TL>::value == FACE))) {
+           ENABLE_IF((traits::is_field<TL, TR>::value) &&
+                     (traits::iform<TL>::value == FACE && traits::iform<TR>::value == FACE))) {
     return (hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
 }
 
 template <typename TL, typename TR>
-auto cross(TL const& l, TR const& r,
-           ENABLE_IF((!traits::is_nTuple<TL, TR>::value) && (traits::iform<TL>::value == VERTEX))) {
-    return ((declare::Expression<tags::_cross, const TL, const TR>(l, r)));
+auto cross(TL const& lhs, TR const& rhs,
+           ENABLE_IF((traits::is_field<TL, TR>::value) &&
+                     (traits::iform<TL>::value == VERTEX || traits::iform<TL>::value == VOLUME ||
+                      traits::iform<TR>::value == VERTEX || traits::iform<TR>::value == VOLUME))) {
+    return ((declare::Expression<tags::_cross, const TL, const TR>(lhs, rhs)));
 }
-
-// namespace traits
-//{
-//
-// template<typename TL, typename TR>
-// struct primary_type<declare::Expression<tags::_dot, TL, TR>>
-//{
-//    typedef decltype(std::declval<value_type_t < TL> > () *
-//    std::declval<value_type_t < TR >>()) type;
-//};
-//}
 
 template <typename TL, typename TR>
 auto dot(TL const& lhs, TR const& rhs,
          ENABLE_IF((traits::is_field<TL, TR>::value) &&
-                   !(traits::iform<TL>::value == VERTEX || traits::iform<TL>::value == VOLUME))) {
-    return wedge(lhs, hodge_star(rhs));
+                   (traits::iform<TL>::value == VERTEX || traits::iform<TL>::value == VOLUME ||
+                    traits::iform<TR>::value == VERTEX || traits::iform<TR>::value == VOLUME))) {
+    return ((declare::Expression<tags::_dot, const TL, const TR>(lhs, rhs)));
 };
 
 template <typename TL, typename TR>
-auto dot(TL const& lhs, TR const& rhs, ENABLE_IF(!(traits::is_nTuple<TL, TR>::value))) {
-    return declare::Expression<tags::_dot, const TL, const TR>(lhs, rhs);
+auto cross(TL const& l, TR const& r, ENABLE_IF(!(traits::is_field<TL, TR>::value))) {
+    return ((declare::Expression<tags::_nTuple_cross, const TL, const TR>(l, r)));
+}
+template <typename TL, typename TR>
+auto dot(TL const& lhs, TR const& rhs, ENABLE_IF(!(traits::is_field<TL, TR>::value))) {
+    return declare::Expression<tags::_nTuple_dot, const TL, const TR>(lhs, rhs);
 }
 
 // template<typename  T>
@@ -419,12 +416,12 @@ auto curl(T const& f, index_const<FACE> const&) {
     return ((codifferential_derivative(-f)));
 }
 
-//template <typename T>
-//auto curl(T const& f, index_const<VERTEX> const&) {
+// template <typename T>
+// auto curl(T const& f, index_const<VERTEX> const&) {
 //    return declare::Expression<tags::_curl, const T>(f);
 //}
-//template <typename T>
-//auto curl(T const& f, index_const<VOLUME> const&) {
+// template <typename T>
+// auto curl(T const& f, index_const<VOLUME> const&) {
 //    return declare::Expression<tags::_curl, const T>(f);
 //}
 template <typename T>
@@ -493,7 +490,8 @@ auto curl_pdz(T const& f) {
 /** @} */
 #undef _SP_DEFINE_EXPR_UNARY_FUNCTION
 #undef _SP_DEFINE_EXPR_BINARY_FUNCTION
-}
+
+}  // namespace algebra
 }  // namespace simpla//namespace algebra
 
 #endif /* CALCULUS_H_ */

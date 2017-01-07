@@ -14,7 +14,6 @@
 #include <simpla/mpl/check_concept.h>
 
 #include "Algebra.h"
-#include "Arithmetic.h"
 #include "Expression.h"
 
 namespace simpla {
@@ -64,64 +63,77 @@ struct nTuple_;
  *    @endcode}
  **/
 namespace traits {
-template <typename T, size_type... I0>
-struct reference<declare::nTuple_<T, I0...>> {
-    typedef declare::nTuple_<T, I0...>& type;
-};
-
-template <typename T, size_type... I0>
-struct reference<const declare::nTuple_<T, I0...>> {
-    typedef declare::nTuple_<T, I0...> const& type;
-};
-
-template <typename T, size_type... I>
-struct rank<declare::nTuple_<T, I...>> : public index_const<sizeof...(I)> {};
-
-template <typename V, size_type... I>
-struct extents<declare::nTuple_<V, I...>> : public index_sequence<I...> {};
-
-template <typename V, size_type I0, size_type... I>
-struct extent<declare::nTuple_<V, I0, I...>> : public index_const<I0> {};
-
-template <typename T, size_type I0>
-struct value_type<declare::nTuple_<T, I0>> {
-    typedef T type;
-};
-
-template <typename T, size_type... I>
-struct value_type<declare::nTuple_<T, I...>> {
-    typedef T type;
-};
-
-template <typename T, size_type I0, size_type... I>
-struct sub_type<declare::nTuple_<T, I0, I...>> {
-    typedef std::conditional_t<sizeof...(I) == 0, T, declare::nTuple_<T, I...>> type;
-};
-
-template <typename T, size_type I0>
-struct pod_type<declare::nTuple_<T, I0>> {
-    typedef T type[I0];
-};
-
-template <typename T, size_type I0, size_type... I>
-struct pod_type<declare::nTuple_<T, I0, I...>> {
-    typedef typename pod_type<declare::nTuple_<T, I...>>::type type[I0];
-};
-
-template <typename...>
-struct make_nTuple {
-    typedef void type;
-};
-
-template <typename TV, size_type... I>
-struct make_nTuple<TV, integer_sequence<size_type, I...>> {
-    typedef declare::nTuple_<TV, I...> type;
-};
-template <typename TV>
-struct make_nTuple<TV, integer_sequence<size_type>> {
-    typedef TV type;
-};
-
+// template <typename T, size_type... I0>
+// struct reference<declare::nTuple_<T, I0...>> {
+//    typedef declare::nTuple_<T, I0...>& type;
+//};
+//
+// template <typename T, size_type... I0>
+// struct reference<const declare::nTuple_<T, I0...>> {
+//    typedef declare::nTuple_<T, I0...> const& type;
+//};
+//
+// template <typename T, size_type... I>
+// struct rank<declare::nTuple_<T, I...>> : public index_const<sizeof...(I)> {};
+//
+// template <typename V, size_type... I>
+// struct extents<declare::nTuple_<V, I...>> : public index_sequence<I...> {};
+//
+// template <typename V, size_type I0, size_type... I>
+// struct extent<declare::nTuple_<V, I0, I...>> : public index_const<I0> {};
+//
+// template <typename T, size_type I0>
+// struct value_type<declare::nTuple_<T, I0>> {
+//    typedef T type;
+//};
+//
+// template <typename T, size_type... I>
+// struct value_type<declare::nTuple_<T, I...>> {
+//    typedef T type;
+//};
+//
+// template <typename T, size_type I0, size_type... I>
+// struct sub_type<declare::nTuple_<T, I0, I...>> {
+//    typedef std::conditional_t<sizeof...(I) == 0, T, declare::nTuple_<T, I...>> type;
+//};
+//
+// template <typename T, size_type I0>
+// struct pod_type<declare::nTuple_<T, I0>> {
+//    typedef T type[I0];
+//};
+//
+// template <typename T, size_type I0, size_type... I>
+// struct pod_type<declare::nTuple_<T, I0, I...>> {
+//    typedef typename pod_type<declare::nTuple_<T, I...>>::type type[I0];
+//};
+//
+// template <typename...>
+// struct make_nTuple {
+//    typedef void type;
+//};
+//
+// template <typename TV, size_type... I>
+// struct make_nTuple<TV, integer_sequence<size_type, I...>> {
+//    typedef declare::nTuple_<TV, I...> type;
+//};
+// template <typename TV>
+// struct make_nTuple<TV, integer_sequence<size_type>> {
+//    typedef TV type;
+//};
+//
+// template <typename...>
+// struct nTuple_traits;
+// template <typename T>
+// struct nTuple_traits<T> {
+//    typedef typename make_nTuple<value_type_t<T>, extents<T>>::type type;
+//    typedef calculus::calculator<type> calculator;
+//};
+//
+// template <typename T>
+// struct calculator_selector<T, std::enable_if_t<is_nTuple<T>::value>> {
+//    typedef typename make_nTuple<value_type_t<T>, extents<T>>::type nTuple_type;
+//    typedef calculus::calculator<nTuple_type> type;
+//};
 }  // namespace traits
 
 /// n-dimensional primary type
@@ -187,7 +199,7 @@ struct nTuple_<TV, N0, NOthers...> {
     }
 
     template <typename... U>
-    nTuple_(Expression<U...> const& expr) {
+    explicit nTuple_(Expression<U...> const& expr) {
         calculator::apply(tags::_assign(), (*this), expr);
     }
 
@@ -325,29 +337,63 @@ struct calculator<declare::nTuple_<V, J...>> {
     static void apply(TOP const& op, self_type& lhs, TR& rhs) {
         detail::do_n_loops<this_type, J...>::eval(op, lhs, rhs);
     };
+
+    template <typename T, typename TExpr>
+    static auto calculate(TExpr const& expr) {
+        self_type res;
+        res = expr;
+        return std::move(res);
+    };
+
+    template <typename TL, typename TR>
+    static auto calculate(declare::Expression<tags::_dot, TL, TR> const& expr) {
+        V res = 0;
+        return std::move(res);
+    };
 };
 
+template <typename V, size_type... N, typename TOP, typename... Args>
+struct expr_parser<declare::nTuple_<V, N...>, declare::Expression<TOP, Args...>> {
+    static declare::nTuple_<V, N...> eval(declare::Expression<TOP, Args...> const& expr) {
+        declare::nTuple_<V, N...> res;
+        res = expr;
+        return std::move(res);
+    };
+};
+template <typename TL, typename TR>
+struct expr_parser<Real, declare::Expression<tags::_nTuple_dot, TL, TR>> {
+    static Real eval(declare::Expression<tags::_nTuple_dot, TL, TR> const& expr) {
+        Real res = 1.2345;
+       static constexpr size_type N = std::max(traits::extent<TL>::value,
+                                               traits::extent<TR>::value);
+        for (int i = 0; i < N; ++i) {
+            res += calculator<declare::nTuple_<Real, N>>::get_value(std::get<0>(expr.m_args_), i) *
+                   calculator<declare::nTuple_<Real, N>>::get_value(std::get<1>(expr.m_args_), i);
+        }
+        return res;
+    };
+};
 }  // namespace calculaus{
-namespace traits {
-template <typename...>
-struct nTuple_traits;
 
-template <typename T, size_type... N>
-struct nTuple_traits<T, index_sequence<N...>> {
-    typedef declare::nTuple_<T, N...> type;
-    typedef calculus::calculator<type> calculator;
-};
-template <typename T>
-struct nTuple_traits<T> : public nTuple_traits<value_type_t<T>, extents<T>> {};
-
-}  // namespace traits{
-
+// namespace traits {
+// template <typename...>
+// struct nTuple_traits;
+//
+// template <typename T, size_type... N>
+// struct nTuple_traits<T, index_sequence<N...>> {
+//    typedef declare::nTuple_<T, N...> type;
+//    typedef calculus::calculator<type> calculator;
+//};
+// template <typename T>
+// struct nTuple_traits<T> : public nTuple_traits<value_type_t<T>, extents<T>> {};
+//
+//}  // namespace traits{
+//
 // template <typename TL, typename TR>
-// auto inner_product(TL const& lhs, TR const& rhs,
-//                   ENABLE_IF((traits::is_nTuple<TL, TR>::value) &&
-//                             (traits::rank<TL>::value == 1 && traits::rank<TR>::value == 1) &&
-//                             (traits::extent<TL>::value == 3 || traits::extent<TR>::value == 3)))
-//                             {
+// auto dot(TL const& lhs, TR const& rhs,
+//         ENABLE_IF((traits::is_nTuple<TL, TR>::value) &&
+//                   (traits::rank<TL>::value == 1 && traits::rank<TR>::value == 1) &&
+//                   (traits::extent<TL>::value == 3 || traits::extent<TR>::value == 3))) {
 //    typedef traits::value_type_t<TL> value_type;
 //    typedef declare::nTuple_<value_type, 3> type;
 //    typedef calculus::calculator<type> calculator;
@@ -356,23 +402,23 @@ struct nTuple_traits<T> : public nTuple_traits<value_type_t<T>, extents<T>> {};
 //           calculator::get_value(lhs, 1) * calculator::get_value(rhs, 1) +
 //           calculator::get_value(lhs, 2) * calculator::get_value(rhs, 2);
 //}
-
-template <typename TL, typename TR>
-auto inner_product(declare::nTuple_<TL, 3> const& lhs, declare::nTuple_<TR, 3> const& rhs) {
-    return lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2];
-}
-template <typename TL, typename TR>
-auto dot(declare::nTuple_<TL, 2> const& lhs, declare::nTuple_<TR, 2> const& rhs) {
-    return lhs[0] * rhs[0] + lhs[1] * rhs[1];
-}
-template <typename TL, typename TR>
-auto cross(declare::nTuple_<TL, 3> const& lhs, declare::nTuple_<TR, 3> const& rhs) {
-    return declare::nTuple_<decltype(lhs[0] * rhs[1]), 3>{
-        lhs[1] * rhs[2] - lhs[2] * rhs[1], lhs[2] * rhs[0] - lhs[0] * rhs[2],
-        lhs[0] * rhs[1] - lhs[1] * rhs[0],
-
-    };
-}
+//
+// template <typename TL, typename TR>
+// auto inner_product(declare::nTuple_<TL, 3> const& lhs, declare::nTuple_<TR, 3> const& rhs) {
+//    return lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2];
+//}
+////template <typename TL, typename TR>
+////auto dot(declare::nTuple_<TL, 2> const& lhs, declare::nTuple_<TR, 2> const& rhs) {
+////    return lhs[0] * rhs[0] + lhs[1] * rhs[1];
+////}
+// template <typename TL, typename TR>
+// auto cross(declare::nTuple_<TL, 3> const& lhs, declare::nTuple_<TR, 3> const& rhs) {
+//    return declare::nTuple_<decltype(lhs[0] * rhs[1]), 3>{
+//        lhs[1] * rhs[2] - lhs[2] * rhs[1], lhs[2] * rhs[0] - lhs[0] * rhs[2],
+//        lhs[0] * rhs[1] - lhs[1] * rhs[0],
+//
+//    };
+//}
 
 }  // namespace algebra
 }  // namespace simpla

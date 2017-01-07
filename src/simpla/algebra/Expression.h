@@ -17,6 +17,7 @@
 #include <tuple>
 #include <type_traits>
 #include "Algebra.h"
+#include "Calculus.h"
 
 namespace simpla {
 namespace algebra {
@@ -27,42 +28,33 @@ struct Expression;
 
 namespace traits {
 
-template <typename TOP, typename... Others>
-struct is_scalar<declare::Expression<TOP, Others...> >
-    : public is_scalar<Others...> {};
+template <typename TOP, typename... Args>
+struct is_scalar<declare::Expression<TOP, Args...>> : public is_scalar<Args...> {};
 
-template <typename TOP, typename... Others>
-struct is_nTuple<declare::Expression<TOP, Others...> >
-    : public is_nTuple<Others...> {};
+template <typename TOP, typename... Args>
+struct is_nTuple<declare::Expression<TOP, Args...>> : public is_nTuple<Args...> {};
 
-template <typename TOP, typename... Others>
-struct is_field<declare::Expression<TOP, Others...> >
-    : public is_field<Others...> {};
+template <typename TOP, typename... Args>
+struct is_field<declare::Expression<TOP, Args...>> : public is_field<Args...> {};
 
-template <typename TOP, typename... Others>
-struct is_array<declare::Expression<TOP, Others...> >
-    : public is_array<Others...> {};
+template <typename TOP, typename... Args>
+struct is_array<declare::Expression<TOP, Args...>> : public is_array<Args...> {};
 
 template <typename TOP, typename T0, typename... T>
-struct iform<declare::Expression<TOP, T0, T...> > : public iform<T0> {};
+struct iform<declare::Expression<TOP, T0, T...>> : public iform<T0> {};
 
 template <typename TOP, typename TL>
-struct value_type<declare::Expression<TOP, TL> > {
+struct value_type<declare::Expression<TOP, TL>> {
     typedef std::result_of_t<TOP(value_type_t<TL>)> type;
 };
 
 template <typename TOP, typename TL, typename TR>
-struct value_type<declare::Expression<TOP, TL, TR> > {
+struct value_type<declare::Expression<TOP, TL, TR>> {
     typedef std::result_of_t<TOP(value_type_t<TL>, value_type_t<TR>)> type;
 };
 
-// template<typename TOP, typename ...Others>
-// struct value_type<declare::Expression<TOP, Others...> >
-//{
-//    typedef std::result_of_t<TOP(typename value_type<Others>::type ...)> type;
-//};
-
 }  // namespace traits
+
 
 namespace declare {
 
@@ -79,59 +71,6 @@ struct BooleanExpression;
 
 template <typename...>
 struct AssignmentExpression;
-}
-namespace calculus {
-template <typename...>
-struct eval_expr_as;
-};
-
-namespace declare {
-//
-//
-// template<typename TOP, typename TL>
-// struct Expression<TOP, TL>
-//{
-//    typedef Expression<TOP, TL> this_type;
-//
-//    traits::reference_t<TL> lhs;
-//
-//    TOP m_op_;
-//
-//    Expression(this_type const &that) : lhs(that.lhs) {}
-//
-//    Expression(this_type &&that) : lhs(that.lhs) {}
-//
-//    Expression(TL &args) : lhs(lhs) {}
-//
-//    virtual ~Expression() {}
-//
-////    template<typename T> operator T() const { return
-///calculus::calculator<this_type>::template cast_as<T>(*this); }
-//
-//};
-//
-// template<typename TOP, typename TL, typename TR>
-// struct Expression<TOP, TL, TR>
-//{
-//    typedef Expression<TOP, TL, TR> this_type;
-//
-//    traits::reference_t<TL> lhs;
-//    traits::reference_t<TR> rhs;
-//
-//    TOP m_op_;
-//
-//    Expression(this_type const &that) : lhs(that.lhs), rhs(that.rhs) {}
-//
-////    Expression(this_type &&that) : lhs(that.lhs), rhs(that.rhs) {}
-//
-//    Expression(TL &l, TR &r) : lhs(l), rhs(r) {}
-//
-//    virtual ~Expression() {}
-//
-////    template<typename T> operator T() const { return
-///calculus::calculator<this_type>::template cast_as<T>(*this); }
-//
-//};
 
 template <typename TOP, typename... Args>
 struct Expression<TOP, Args...> {
@@ -149,8 +88,10 @@ struct Expression<TOP, Args...> {
 
     virtual ~Expression() {}
 
-//     template<typename T> operator T() const { return
-//     calculus::calculae_expr<T>::eval(*this); }
+    template <typename T>
+    operator T() const {
+        return calculus::expr_parser<T, this_type>::eval(*this);
+    }
 };
 
 template <typename TOP, typename TL, typename TR>
@@ -202,8 +143,8 @@ struct BooleanExpression<TOP, TL> : public Expression<TOP, TL> {
 //    s)))))
 //
 //};
-}
-}
-}  // namespace simpla::algebra::declare
+}  // namespace declare
+}  // namespace algebra
+}  // namespace simpla
 
 #endif /* EXPRESSION_TEMPLATE_H_ */

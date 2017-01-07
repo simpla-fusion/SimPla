@@ -71,10 +71,12 @@ inline T determinant(declare::nTuple_<T, 4, 4> const &m) {
 //}
 
 template <typename T, size_type... N>
-auto mod(nTuple<T, N...> const &l) AUTO_RETURN((std::sqrt(std::abs(inner_product(l, l)))))
+auto mod(nTuple<T, N...> const &l) {
+    return std::sqrt(std::abs(inner_product(l, l)));
+}
 
-    template <typename TOP, typename T>
-    T reduce(T const &v, ENABLE_IF(traits::is_scalar<T>::value)) {
+template <typename TOP, typename T>
+T reduce(T const &v, ENABLE_IF(traits::is_scalar<T>::value)) {
     return v;
 }
 
@@ -176,10 +178,10 @@ std::istream &operator>>(std::istream &is, nTuple_<T, M...> &a) {
 }
 }  // namespace declare
 
-template <typename T, size_type... M>
-std::ostream &operator<<(std::ostream &os, declare::nTuple_<T, M...> const &v) {
-    return _detail::printNd_(os, v.data_, index_sequence<M...>());
-}
+// template <typename T, size_type... M>
+// std::ostream &operator<<(std::ostream &os, declare::nTuple_<T, M...> const &v) {
+//    return _detail::printNd_(os, v.data_, index_sequence<M...>());
+//}
 }  // namespace algebra
 
 // namespace traits

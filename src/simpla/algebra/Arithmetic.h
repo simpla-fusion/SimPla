@@ -9,7 +9,6 @@
 #include <cmath>
 #include <type_traits>
 #include "Algebra.h"
-#include "Expression.h"
 
 namespace simpla
 {
