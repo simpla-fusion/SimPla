@@ -81,8 +81,8 @@ class AttributeDict : public concept::Printable {
 struct Attribute : public concept::Printable,
                    public concept::LifeControllable,
                    public design_pattern::Observer<void(Patch *)> {
-public:
-SP_OBJECT_BASE(Attribute);
+   public:
+    SP_OBJECT_BASE(Attribute);
 
     Attribute(std::shared_ptr<DataBlock> const &d = nullptr,
               std::shared_ptr<AttributeDesc> const &desc = nullptr);
@@ -116,7 +116,7 @@ SP_OBJECT_BASE(Attribute);
 
     virtual void accept(MeshBlock const *m, std::shared_ptr<DataBlock> const &d);
 
-private:
+   private:
     MeshBlock const *m_mesh_;
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
@@ -199,7 +199,14 @@ class AttributeAdapter<U> : public Attribute, public U {
         Attribute::post_process();
     }
 };
+template <typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
+struct AttributeTemplate : public Attribute {
 
+    typedef TV data_type;
+
+
+}
+;
 template <typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
 using Variable =
     AttributeAdapter<Array<TV, SIMPLA_MAXIMUM_DIMENSION +

@@ -1,128 +1,113 @@
 //
-// Created by salmon on 16-12-28.
+// Created by salmon on 17-1-8.
 //
 
-#ifndef SIMPLA_ARRAY_H
-#define SIMPLA_ARRAY_H
-
+#ifndef SIMPLA_NDARRAY_H
+#define SIMPLA_NDARRAY_H
 #include <simpla/SIMPLA_config.h>
-#include <cstring>
-
 #include <simpla/concept/Splittable.h>
 #include <simpla/data/all.h>
 #include <simpla/mpl/Range.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/PrettyStream.h>
+#include <cstring>
+#include <memory>
 
 #include "Algebra.h"
 #include "Arithmetic.h"
 #include "Expression.h"
 
-#ifdef NDEBUG
-#include <simpla/toolbox/MemoryPool.h>
-#endif
-
 namespace simpla {
 namespace algebra {
 
 namespace declare {
-template <typename V, size_type NDIMS, bool SLOW_FIRST>
-struct Array_;
+template <typename V, size_type NDIMS>
+struct ndArray_;
 }
 namespace traits {
 template <typename T, size_type I>
-struct reference<declare::Array_<T, I>> {
-    typedef declare::Array_<T, I>& type;
+struct reference<declare::ndArray_<T, I>> {
+    typedef declare::ndArray_<T, I>& type;
 };
 
 template <typename T, size_type I>
-struct reference<const declare::Array_<T, I>> {
-    typedef declare::Array_<T, I> const& type;
+struct reference<const declare::ndArray_<T, I>> {
+    typedef declare::ndArray_<T, I> const& type;
 };
 
 template <typename T, size_type I>
-struct rank<declare::Array_<T, I>> : public index_const<I> {};
+struct rank<declare::ndArray_<T, I>> : public index_const<I> {};
 
 // template<typename V, size_type I>
-// struct extents<declare::Array_<V, I> > : public index_sequence<I...> {};
+// struct extents<declare::ndArray_<V, I> > : public index_sequence<I...> {};
 
 template <typename T, size_type I>
-struct value_type<declare::Array_<T, I>> {
+struct value_type<declare::ndArray_<T, I>> {
     typedef T type;
 };
 
 template <typename T, size_type I>
-struct sub_type<declare::Array_<T, I>> {
-    typedef std::conditional_t<I == 0, T, declare::Array_<T, I - 1>> type;
+struct sub_type<declare::ndArray_<T, I>> {
+    typedef std::conditional_t<I == 0, T, declare::ndArray_<T, I - 1>> type;
 };
 
 template <typename T>
-struct pod_type<declare::Array_<T, 0>> {
+struct pod_type<declare::ndArray_<T, 0>> {
     typedef pod_type_t<T> type;
 };
 template <typename T, size_type I>
-struct pod_type<declare::Array_<T, I>> {
-    typedef pod_type_t<declare::Array_<T, I - 1>>* type;
+struct pod_type<declare::ndArray_<T, I>> {
+    typedef pod_type_t<declare::ndArray_<T, I - 1>>* type;
 };
 
 }  // namespace traits
 
 namespace declare {
-template <typename V, size_type NDIMS, bool SLOW_FIRST>
-struct Array_ : public data::HeavyData {
+template <typename V, size_type NDIMS>
+struct ndArray_ {
    private:
-    typedef Array_<V, NDIMS, SLOW_FIRST> this_type;
+    typedef ndArray_<V, NDIMS> this_type;
     typedef calculus::calculator<this_type> calculator;
 
    public:
     typedef V value_type;
+    typedef traits::sub_type_t<this_type> sub_type;
 
-    typedef V* pod_type;
-
-    static constexpr bool is_slow_first = SLOW_FIRST;
-
-    size_type m_dims_[NDIMS];
-    index_type m_lower_[NDIMS];
-    index_type m_upper_[NDIMS];
-
-    value_type* m_data_;
-
-    std::shared_ptr<V> m_data_holder_;
+    std::vector<sub_type> m_data_;
 
    public:
-    friend calculator;
-
-    Array_() { calculator::initialize(this); }
+    ndArray_() {}
 
     template <typename... TID>
-    explicit Array_(TID&&... idx) : m_data_(nullptr), m_data_holder_(nullptr) {
+    explicit ndArray_(size_type N, TID&&... idx) : m_data_(N) {
         calculator::initialize(this, std::forward<TID>(idx)...);
     }
 
     template <typename... TID>
-    Array_(value_type* d, TID&&... idx)
+    ndArray_(value_type* d, TID&&... idx)
         : m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {
         calculator::initialize(this, std::forward<TID>(idx)...);
     }
 
     template <typename... TID>
-    Array_(std::shared_ptr<V> const& d, TID&&... idx) : m_data_holder_(d), m_dims_{idx...} {}
+    ndArray_(std::shared_ptr<V> const& d, TID&&... idx) : m_data_holder_(d), m_dims_{idx...} {}
 
     template <typename... U>
-    Array_(Expression<U...> const& expr) {
+    ndArray_(Expression<U...> const& expr) {
         calculator::apply((*this), tags::_assign(), expr);
     }
 
-    ~Array_() {}
+    ~ndArray_() {}
 
-    Array_(this_type const& other)
-        : Array_(other.m_data_holder_, other.m_dims_, other.m_lower_, other.m_upper_) {}
+    ndArray_(this_type const& other)
+        : ndArray_(other.m_data_holder_, other.m_dims_, other.m_lower_, other.m_upper_) {}
 
-    Array_(this_type&& other)
-        : Array_(std::move(other.m_data_holder_), other.m_dims_, other.m_lower_, other.m_upper_) {}
+    ndArray_(this_type&& other)
+        : ndArray_(std::move(other.m_data_holder_), other.m_dims_, other.m_lower_, other.m_upper_) {
+    }
 
-    Array_(this_type& other, concept::tags::split const& split)
+    ndArray_(this_type& other, concept::tags::split const& split)
         : m_data_(nullptr), m_data_holder_(nullptr) {
         calculator::split(split, other, *this);
     }
@@ -213,9 +198,9 @@ struct Array_ : public data::HeavyData {
 namespace calculus {
 namespace st = simpla::traits;
 
-template <typename V, size_type NDIMS, bool SLOW_FIRST>
-struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
-    typedef declare::Array_<V, NDIMS, SLOW_FIRST> self_type;
+template <typename V, size_type NDIMS>
+struct calculator<declare::ndArray_<V, NDIMS>> {
+    typedef declare::ndArray_<V, NDIMS> self_type;
     typedef traits::value_type_t<self_type> value_type;
 
     static inline size_type size(size_type const* dims) {
@@ -323,13 +308,12 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
     static inline size_type hash(size_type const* dims, index_type const* offset, index_type s,
                                  TID&&... idx) {
         static_assert(NDIMS == ((sizeof...(TID) + 1)), "illegal index number! NDIMS=");
-        return hash_(std::integral_constant<bool, SLOW_FIRST>(), dims, offset, s,
-                     std::forward<TID>(idx)...);
+        return hash_(std::integral_constant<bool>(), dims, offset, s, std::forward<TID>(idx)...);
     }
 
     static inline size_type hash(size_type const* dims, index_type const* offset,
                                  index_type const* s) {
-        return hash_(std::integral_constant<bool, SLOW_FIRST>(), index_const<0>(), dims, offset, s);
+        return hash_(std::integral_constant<bool>(), index_const<0>(), dims, offset, s);
     }
 
    public:
@@ -484,18 +468,18 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
         self.m_lower_[n] = other.m_upper_[n];
     }
 
-    static declare::Array_<V, NDIMS> view(self_type& self, index_type const* il,
-                                          index_type const* iu) {
-        return declare::Array_<V, NDIMS>(self.m_data_holder_, self.m_dims_, il, iu);
+    static declare::ndArray_<V, NDIMS> view(self_type& self, index_type const* il,
+                                            index_type const* iu) {
+        return declare::ndArray_<V, NDIMS>(self.m_data_holder_, self.m_dims_, il, iu);
     };
 
-    static declare::Array_<const V, NDIMS> view(self_type const& self, index_type const* il,
-                                                index_type const* iu) {
-        return declare::Array_<V, NDIMS>(self.m_data_, self.m_dims_, il, iu);
+    static declare::ndArray_<const V, NDIMS> view(self_type const& self, index_type const* il,
+                                                  index_type const* iu) {
+        return declare::ndArray_<V, NDIMS>(self.m_data_, self.m_dims_, il, iu);
     };
 
     static std::ostream& print(self_type const& self, std::ostream& os, int indent = 0) {
-        printNdArray(os, self.m_data_, NDIMS, self.m_dims_);
+        printNdndArray(os, self.m_data_, NDIMS, self.m_dims_);
         return os;
     }
 
@@ -528,6 +512,6 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
     }
 };
 }  // namespace calculus{
-} //namespace algebra{
+}  // namespace algebra{
 }  // namespace simpla{
-#endif  // SIMPLA_ARRAY_H
+#endif  // SIMPLA_NDARRAY_H
