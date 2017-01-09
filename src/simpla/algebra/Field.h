@@ -24,7 +24,7 @@ class Field_;
 
 }  // namespace declare {
 
-template <typename TM, typename TV, size_type IFORM, size_type DOF>
+template <typename TM, typename TV, size_type IFORM, size_type DOF, typename SHIFT = int_sequence<>>
 class FieldView;
 
 namespace traits {
@@ -35,8 +35,8 @@ struct mesh_type {
     typedef void type;
 };
 
-template <typename TM, typename TV, size_type... I>
-struct mesh_type<declare::Field_<TM, TV, I...>> {
+template <typename TM, typename TV, size_type I, size_type D, typename SHIFT>
+struct mesh_type<declare::Field_<TM, TV, I, D, SHIFT>> {
     typedef TM type;
 };
 
@@ -85,18 +85,17 @@ struct field_value_type<declare::Field_<TM, TV, IFORM, DOF>> {
 
 }  // namespace traits{
 
-struct IndexShifting {
-    index_type i, j, k;
-    IndexShifting operator,(IndexShifting const& l) const { return IndexShifting(); }
-};
-
-template <typename TM, typename TV, size_type IFORM, size_type DOF>
-class FieldView : public concept::Printable {
+template <typename TM, typename TV, size_type IFORM, size_type DOF, int... _I>
+class FieldView<TM, TV, IFORM, DOF, int_sequence<_I...>> : public concept::Printable {
    private:
     typedef FieldView<TM, TV, IFORM, DOF> this_type;
     //    typedef TM::attribute<TV, IFORM, DOF> base_type;
 
    public:
+    static const integer_sequence<int, 1, 0, 0> I{};
+    static const integer_sequence<int, 0, 1, 0> J{};
+    static const integer_sequence<int, 0, 0, 1> K{};
+
     typedef TV value_type;
     typedef TM mesh_type;
     //    static constexpr int NUM_OF_ENTITIES_IN_CELL = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 :
@@ -108,17 +107,12 @@ class FieldView : public concept::Printable {
     std::shared_ptr<value_type> m_data_holder_ = nullptr;
 
     mesh_type const* m_mesh_;
-    IndexShifting m_shifting_;
-    //    ArrayView<value_type, NDIMS> m_view_[(IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3][DOF];
 
    public:
     FieldView() : m_mesh_(nullptr), m_data_(nullptr){};
 
     FieldView(FieldView const& other) {}
 
-    FieldView(FieldView const& other, IndexShifting const& s) : FieldView(other) {
-        m_shifting_ += s;
-    }
     //    template <typename... Args>
     //    explicit FieldView(Args&&... args)
     //        : m_mesh_(nullptr),
@@ -135,9 +129,9 @@ class FieldView : public concept::Printable {
 
     virtual ~FieldView() {}
 
-//    FieldView(this_type const& other) = delete;
+    //    FieldView(this_type const& other) = delete;
 
-//    FieldView(this_type&& other) = delete;
+    //    FieldView(this_type&& other) = delete;
 
     virtual std::ostream& print(std::ostream& os, int indent = 0) const {
         if (m_data_ != nullptr) {
@@ -214,9 +208,10 @@ class FieldView : public concept::Printable {
     decltype(auto) get(index_type s, Args&&... args) const {
         return m_data_[m_mesh_->hash(IFORM, DOF, s, std::forward<Args>(args)...)];
     }
-    template <typename TID>
-    decltype(auto) operator[](TID const& s) {
-        return at(s);
+    template <int... _J>
+    decltype(auto) operator[](int_sequence<I...> const& s) {
+        return FieldView<TV, TM, IFORM, DOF,
+                         decltype(int_sequence<_I...>() + int_sequence<_J...>())>(*this);
     }
     template <typename TID>
     decltype(auto) operator[](TID const& s) const {

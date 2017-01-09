@@ -19,3 +19,5 @@ target_link_libraries(array_dummy toolbox)
 
 add_executable(ntuple_bench ntuple_bench.cpp)
 target_link_libraries(ntuple_bench benchmark pthread)
+
+add_executable(RIndexDummy.cpp RIndexDummy.cpp)

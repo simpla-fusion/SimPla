@@ -8,6 +8,7 @@
 #ifndef CORE_toolbox_INTEGER_SEQUENCE_H_
 #define CORE_toolbox_INTEGER_SEQUENCE_H_
 
+#include <simpla/SIMPLA_config.h>
 #include <stddef.h>
 #include <iostream>
 #include "simpla/mpl/check_concept.h"
@@ -49,9 +50,12 @@ namespace simpla {
 template <typename _Tp, _Tp... _Idx>
 struct integer_sequence {
     typedef _Tp value_type;
-
     static constexpr size_type size() { return sizeof...(_Idx); }
+
+    //    template <_Tp... _J>
+    //    integer_sequence<_Tp, _Idx..., _J...> operator,(integer_sequence<_Tp, _J...>){};
 };
+
 namespace _impl {
 template <size_t... _Indexes>
 struct _Index_tuple {
@@ -142,7 +146,10 @@ template <typename Tp>
 struct seq_get<0, integer_sequence<Tp>> {
     static constexpr Tp value = 0;
 };
-
+template <size_type N, typename _Tp, _Tp... I>
+_Tp get(integer_sequence<_Tp, I...>) {
+    return seq_get<N, integer_sequence<_Tp, I...>>::value;
+};
 // template<typename ...> class longer_integer_sequence;
 //
 // template<typename T, T ... N>
@@ -333,8 +340,6 @@ template <typename _Tp, _Tp... I>
 struct seq_min<integer_sequence<_Tp, I...>>
     : public std::integral_constant<_Tp, _impl::_seq_min<_Tp, I...>::value> {};
 
-
-
 //----------------------------------------------------------------------------------------------------------------------
 
 namespace _impl {
@@ -399,29 +404,105 @@ std::ostream &seq_print(integer_sequence<TInts, N...>, std::ostream &os, TA cons
 
 }  // namespace traits
 
-template <typename _Tp, _Tp First, _Tp... Others>
-std::ostream &operator<<(std::ostream &os, integer_sequence<_Tp, First, Others...> const &) {
+template <typename _Tp, _Tp First, _Tp Second, _Tp... Others>
+std::ostream &operator<<(std::ostream &os,
+                         integer_sequence<_Tp, First, Second, Others...> const &) {
     os << First << " , " <<
 
-        integer_sequence<_Tp, Others...>();
+        integer_sequence<_Tp, Second, Others...>();
 
     return os;
 }
 
 template <typename _Tp, _Tp First>
 std::ostream &operator<<(std::ostream &os, integer_sequence<_Tp, First> const &) {
-    os << First << std::endl;
+    os << First;
     return os;
 }
 
 template <typename _Tp>
 std::ostream &operator<<(std::ostream &os, integer_sequence<_Tp> const &) {
-    os << std::endl;
     return os;
 }
 
 template <size_type I>
-using index_const = std::integral_constant<size_type, I>;
+using index_const = integer_sequence<size_type, I>;
+
+template <typename _Tp, _Tp I>
+using integral_constant = integer_sequence<_Tp, I>;
+template <int... I>
+using int_sequence = integer_sequence<int, I...>;
+static const integer_sequence<int, 0> _0{};
+static const integer_sequence<int, 1> _1{};
+static const integer_sequence<int, 2> _2{};
+static const integer_sequence<int, 3> _3{};
+static const integer_sequence<int, 4> _4{};
+static const integer_sequence<int, 5> _5{};
+static const integer_sequence<int, 6> _6{};
+static const integer_sequence<int, 7> _7{};
+static const integer_sequence<int, 8> _8{};
+static const integer_sequence<int, 9> _9{};
+
+
+template <typename _T1>
+auto operator-(integer_sequence<_T1>) {
+    return integer_sequence<_T1>();
+}
+
+template <typename _T1, _T1 I0, _T1... I>
+auto operator-(integer_sequence<_T1, I0, I...>) {
+    return integer_sequence<_T1, -I0>(), (-integer_sequence<_T1, I...>());
+}
+
+template <typename _T1, _T1... I, typename _T2>
+auto operator+(integer_sequence<_T1, I...>, integer_sequence<_T2>) {
+    return integer_sequence<_T1, I...>();
+}
+
+template <typename _T1, typename _T2, _T2... J>
+auto operator+(integer_sequence<_T1>, integer_sequence<_T2, J...>) {
+    return integer_sequence<_T2, J...>();
+}
+template <typename _T1>
+auto operator+(integer_sequence<_T1>, integer_sequence<_T1>) {
+    return integer_sequence<_T1>();
+}
+
+template <typename _T1, _T1 I0, _T1... I, typename _T2, _T2 J0, _T2... J>
+auto operator+(integer_sequence<_T1, I0, I...>, integer_sequence<_T2, J0, J...>) {
+    return integral_constant<_T1, (I0 + J0)>(),
+           (integer_sequence<_T1, I...>() + integer_sequence<_T2, J...>());
+}
+
+template <typename _T1, _T1... I, typename _T2>
+auto operator-(integer_sequence<_T1, I...>, integer_sequence<_T2>) {
+    return integer_sequence<_T1, I...>();
+}
+
+template <typename _T1, typename _T2, _T2... J>
+auto operator-(integer_sequence<_T1>, integer_sequence<_T2, J...>) {
+    return -integer_sequence<_T2, J...>();
+}
+template <typename _T1>
+auto operator-(integer_sequence<_T1>, integer_sequence<_T1>) {
+    return integer_sequence<_T1>();
+}
+
+template <typename _T1, _T1 I0, _T1... I, typename _T2, _T2 J0, _T2... J>
+auto operator-(integer_sequence<_T1, I0, I...>, integer_sequence<_T2, J0, J...>) {
+    return integral_constant<_T1, (I0 - J0)>(),
+           (integer_sequence<_T1, I...>() - integer_sequence<_T2, J...>());
+}
+
+template <typename _T1, _T1... I, typename _T2, _T2 M>
+auto operator*(integer_sequence<_T1, I...>, integral_constant<_T2, M>) {
+    return integer_sequence<_T1, I * M...>();
+}
+
+template <typename _T1, _T1... I, typename _T2, _T2... J>
+auto operator,(integer_sequence<_T1, I...>, integer_sequence<_T2, J...>) {
+    return integer_sequence<_T1, I..., J...>();
+}
 
 }  // namespace simpla
 #endif /* CORE_toolbox_INTEGER_SEQUENCE_H_ */

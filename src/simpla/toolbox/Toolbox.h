@@ -14,12 +14,8 @@
 #include "Log.h"
 #include "FancyStream.h"
 #include "MiscUtilities.h"
-#include "primitives.h"
-#include "simpla/algebra/nTuple.h"
-#include "simpla/algebra/nTupleExt.h"
-#include "Properties.h"
 
-#include "../physics/PhysicalConstants.h"
+
 
 
 namespace simpla { namespace toolbox
