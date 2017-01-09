@@ -8,59 +8,75 @@
 #define SIMPLA_FIELD_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/concept/Printable.h>
+#include <simpla/toolbox/sp_def.h>
+#include <simpla/toolbox/FancyStream.h>
+#include <cstring>  // for memset
 #include "Algebra.h"
 #include "nTuple.h"
 
 namespace simpla {
 namespace algebra {
 namespace declare {
-template <typename, typename, size_type...>
-struct Field_;
-}
+
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+class Field_;
+
+}  // namespace declare {
+
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+class FieldImpl;
 
 namespace traits {
 
 //***********************************************************************************************************************
-
 template <typename>
 struct mesh_type {
     typedef void type;
 };
 
-template <typename TV, typename TM, size_type... I>
-struct mesh_type<declare::Field_<TV, TM, I...>> {
+template <typename TM, typename TV, size_type... I>
+struct mesh_type<declare::Field_<TM, TV, I...>> {
     typedef TM type;
 };
 
-template <typename TV, typename TM, size_type IFORM, size_type DOF>
-struct is_field<declare::Field_<TV, TM, IFORM, DOF>> : public std::integral_constant<bool, true> {};
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+struct is_field<declare::Field_<TM, TV, IFORM, DOF>> : public std::integral_constant<bool, true> {};
 
-template <typename TV, typename TM, size_type IFORM, size_type DOF>
-struct reference<declare::Field_<TV, TM, IFORM, DOF>> {
-    typedef declare::Field_<TV, TM, IFORM, DOF> const& type;
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+struct reference<declare::Field_<TM, TV, IFORM, DOF>> {
+    typedef declare::Field_<TM, TV, IFORM, DOF> const& type;
 };
 
-template <typename TV, typename TM, size_type IFORM, size_type DOF>
-struct reference<const declare::Field_<TV, TM, IFORM, DOF>> {
-    typedef declare::Field_<TV, TM, IFORM, DOF> const& type;
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+struct reference<const declare::Field_<TM, TV, IFORM, DOF>> {
+    typedef declare::Field_<TM, TV, IFORM, DOF> const& type;
 };
 
-template <typename TV, typename TM, size_type IFORM, size_type DOF>
-struct value_type<declare::Field_<TV, TM, IFORM, DOF>> {
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+struct value_type<declare::Field_<TM, TV, IFORM, DOF>> {
     typedef TV type;
 };
 
-template <typename TV, typename TM, size_type IFORM, size_type DOF>
-struct rank<declare::Field_<TV, TM, IFORM, DOF>> : public index_const<3> {};
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+struct rank<declare::Field_<TM, TV, IFORM, DOF>> : public index_const<3> {};
 
-template <typename TV, typename TM, size_type IFORM, size_type DOF>
-struct iform<declare::Field_<TV, TM, IFORM, DOF>> : public index_const<IFORM> {};
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+struct iform<declare::Field_<TM, TV, IFORM, DOF>> : public index_const<IFORM> {};
 
-template <typename TV, typename TM, size_type IFORM, size_type DOF>
-struct dof<declare::Field_<TV, TM, IFORM, DOF>> : public index_const<DOF> {};
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+struct dof<declare::Field_<TM, TV, IFORM, DOF>> : public index_const<DOF> {};
 
-template <typename TV, typename TM, size_type IFORM, size_type DOF>
-struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>> {
+template <typename T>
+struct field_value_type {
+    typedef T type;
+};
+
+template <typename T>
+using field_value_t = typename field_value_type<T>::type;
+
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+struct field_value_type<declare::Field_<TM, TV, IFORM, DOF>> {
     typedef std::conditional_t<DOF == 1, TV, declare::nTuple_<TV, DOF>> cell_tuple;
     typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
                                declare::nTuple_<cell_tuple, 3>>
@@ -69,125 +85,203 @@ struct field_value_type<declare::Field_<TV, TM, IFORM, DOF>> {
 
 }  // namespace traits{
 
-namespace declare {
-template <typename TV, typename TM, size_type IFORM, size_type DOF>
-class Field_<TV, TM, IFORM, DOF> : public TM::attribute<TV, IFORM, DOF> {
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+class FieldImpl : public concept::Printable {
    private:
-    typedef Field_<TV, TM, IFORM, DOF> this_type;
-    typedef TM::attribute<TV, IFORM, DOF> base_type;
+    typedef FieldImpl<TM, TV, IFORM, DOF> this_type;
+    //    typedef TM::attribute<TV, IFORM, DOF> base_type;
 
    public:
-    typedef traits::field_value_t<this_type> field_value;
     typedef TV value_type;
     typedef TM mesh_type;
 
    private:
-    typedef typename mesh_type::id_type mesh_id_type;
-
-    typedef calculus::calculator<this_type> calculus_policy;
-    friend calculus_policy;
-
-    typedef typename base_type::data_pointer data_pointer;
-
-    data_pointer m_data_;
-
+    value_type* m_data_ = nullptr;
+    std::shared_ptr<value_type> m_data_holder_ = nullptr;
     mesh_type const* m_mesh_;
 
    public:
-    Field_() : m_mesh_(nullptr), m_data_(nullptr){};
+    FieldImpl() : m_mesh_(nullptr), m_data_(nullptr){};
 
-    template <typename... Args>
-    explicit Field_(Args&&... args)
-        : base_type(std::forward<Args>(args)...), m_mesh_(nullptr), m_data_(nullptr) {}
+    //    template <typename... Args>
+    //    explicit FieldImpl(Args&&... args)
+    //        : m_mesh_(nullptr),
+    //          m_data_(nullptr),
+    //          m_data_holder_(nullptr)
+    //    //            : base_type(std::forward<Args>(args)...), m_mesh_(nullptr), m_data_(nullptr)
+    //    {}
 
-    virtual ~Field_() {}
+    FieldImpl(mesh_type const* m, value_type* d = nullptr)
+        : m_mesh_(m), m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {}
 
-    Field_(this_type const& other) = delete;
+    FieldImpl(mesh_type const* m, std::shared_ptr<value_type> const& d)
+        : m_mesh_(m), m_data_(d.get()), m_data_holder_(d) {}
 
-    Field_(this_type&& other) = delete;
+    virtual ~FieldImpl() {}
 
-    inline this_type& operator=(this_type const& rhs) { return assign(rhs); }
+    FieldImpl(this_type const& other) = delete;
 
-    template <typename TR>
-    inline this_type& operator=(TR const& rhs) {
-        return assign(rhs);
+    FieldImpl(this_type&& other) = delete;
+
+    virtual std::ostream& print(std::ostream& os, int indent=0) const {
+        if (m_data_ != nullptr) {
+            auto dims = m_mesh_->dimensions();
+            printNdArray(os, m_data_, 3, &dims[0]);
+        }
+        return os;
+    }
+
+    this_type& operator=(this_type const& rhs) = delete;
+
+    virtual mesh_type const& mesh() const { return *m_mesh_; }
+
+    virtual bool empty() const { return m_data_holder_ == nullptr && m_data_ == nullptr; }
+
+    virtual size_type size() const {
+        ASSERT(m_mesh_ != nullptr);
+        return m_mesh_->size(IFORM, DOF);
+    }
+
+    virtual void accept(mesh_type const* m, value_type* d) {
+        m_mesh_ = m;
+        m_data_ = d;
+        m_data_holder_ = nullptr;
     }
 
     virtual void deploy() {
-        base_type::deploy();
-        m_data_ = base_type::template data_as<data_type>();
-        m_mesh_ = base_type::template mesh_as<mesh_type>();
+        if (m_data_ == nullptr) {
+            if (this->m_data_holder_.get() == nullptr) {
+                try {
+                    m_data_holder_ = std::shared_ptr<value_type>(new value_type[size()]);
+                } catch (std::bad_alloc const&) {
+                    CHECK(size());
+                    THROW_EXCEPTION_BAD_ALLOC(size());
+                };
+            }
+            m_data_ = this->m_data_holder_.get();
+        }
+    };
+
+    virtual void reset() {
+        m_data_ = nullptr;
+        m_data_holder_.reset();
+    };
+
+    virtual void clear() {
+        deploy();
+        memset(m_data_, 0, size() * sizeof(value_type));
+    };
+
+    virtual void copy(this_type const& other) {
+        deploy();
+        ASSERT(!other.empty());
+        memcpy((void*)(m_data_), (void const*)(other.m_data_), size() * sizeof(value_type));
+    };
+    template <typename... TID>
+    value_type& at(TID&&... s) {
+        ASSERT(m_data_ != nullptr);
+        return m_data_[m_mesh_->hash(IFORM, DOF, std::forward<TID>(s)...)];
+    }
+    template <typename... TID>
+    value_type at(TID&&... s) const {
+        ASSERT(m_data_ != nullptr);
+        return m_data_[m_mesh_->hash(IFORM, DOF, std::forward<TID>(s)...)];
+    }
+
+    template <typename... Args>
+    decltype(auto) get(index_type s, Args&&... args) {
+        return m_data_[m_mesh_->hash(IFORM, DOF, s, std::forward<Args>(args)...)];
+    }
+
+    template <typename... Args>
+    decltype(auto) get(index_type s, Args&&... args) const {
+        return m_data_[m_mesh_->hash(IFORM, DOF, s, std::forward<Args>(args)...)];
+    }
+
+};  // class FieldImpl
+
+namespace declare {
+
+template <typename TM, typename TV, size_type IFORM, size_type DOF>
+class Field_ : public FieldImpl<TM, TV, IFORM, DOF> {
+    typedef Field_<TM, TV, IFORM, DOF> this_type;
+    typedef FieldImpl<TM, TV, IFORM, DOF> base_type;
+
+   public:
+    typedef TV value_type;
+    typedef calculus::template calculator<TM> calculus_policy;
+
+    template <typename... Args>
+    explicit Field_(Args&&... args) : base_type(std::forward<Args>(args)...) {}
+
+    ~Field_() {}
+
+    using base_type::at;
+    using base_type::get;
+    using base_type::mesh;
+    using base_type::deploy;
+    using base_type::print;
+
+    this_type& operator=(this_type const& rhs) {
+        assign(rhs);
+        return *this;
+    }
+
+    template <typename TR>
+    this_type& operator=(TR const& rhs) {
+        assign(rhs);
+        return *this;
     }
 
     /** @name as_function  @{*/
     template <typename... Args>
     decltype(auto) gather(Args&&... args) const {
-        return apply(tags::_gather(), std::forward<Args>(args)...);
+        return calculus_policy::gather(mesh(), *this, std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    decltype(auto) scatter(field_value const& v, Args&&... args) {
-        return apply(tags::_scatter(), v, std::forward<Args>(args)...);
+    decltype(auto) scatter(Args&&... args) {
+        return calculus_policy::scatter(mesh(), *this, std::forward<Args>(args)...);
     }
 
     /**@}*/
 
-    template <typename... TID>
-    decltype(auto) at(TID&&... s) {
-        return m_data_[m_mesh_->hash(IFORM, DOF, std::forward<TID>(s)...)];
-    }
-    template <typename... TID>
-    decltype(auto) at(TID&&... s) const {
-        return m_data_[m_mesh_->hash(IFORM, DOF, std::forward<TID>(s)...)];
-    }
     template <typename TID>
-    decltype(auto) operator[](TID const& s) {
+    value_type& operator[](TID const& s) {
         return at(s);
     }
 
     template <typename TID>
-    decltype(auto) operator[](TID const& s) const {
+    value_type const& operator[](TID const& s) const {
         return at(s);
     }
-
-    template <typename... TID>
-    decltype(auto) get(TID&&... s) {
-        return calculus_policy::get_value(*m_mesh_, *this, std::forward<TID>(s)...);
-    }
-    template <typename... TID>
-    decltype(auto) get(TID&&... s) const {
-        return calculus_policy::get_value(*m_mesh_, *this, std::forward<TID>(s)...);
-    }
     template <typename... Args>
-    decltype(auto) operator()(Args&&... args) {
-        return get(std::forward<Args>(args)...);
+    decltype(auto) operator()(index_type s, Args&&... args) const {
+        return get(s, std::forward<Args>(args)...);
     }
 
-    template <typename... Args>
-    decltype(auto) operator()(Args&&... args) const {
-        return get(std::forward<Args>(args)...);
-    }
+    decltype(auto) operator()(point_type const& x) const { return gather(x); }
 
     template <typename... Args>
     this_type& assign(Args&&... args) {
-        return apply(tags::_assign(), std::forward<Args>(args)...);
+        calculus_policy::assign(mesh(), *this, std::forward<Args>(args)...);
+        return *this;
     }
 
     template <typename... Args>
     this_type& apply(Args&&... args) {
         deploy();
-        calculus_policy::apply(*m_mesh_, *this, std::forward<Args>(args)...);
+        calculus_policy::apply(mesh(), *this, std::forward<Args>(args)...);
         return *this;
     }
+};
 
-};  // class Field_
 }  // namespace declare
 }  // namespace algebra
-}  // namespace simpla
 
-namespace simpla {
-template <typename TV, typename TM, size_type IFORM = VERTEX, size_type DOF = 1>
-using Field = algebra::declare::Field_<TV, TM, IFORM, DOF>;
-}
+template <typename TM, typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
+using Field = algebra::declare::Field_<TM, TV, IFORM, DOF>;
+
+}  // namespace simpla
 
 #endif  // SIMPLA_FIELD_H

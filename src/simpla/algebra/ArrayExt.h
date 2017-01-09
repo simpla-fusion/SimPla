@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <simpla/mpl/any.h>
 #include <simpla/mpl/check_concept.h>
-#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/FancyStream.h>
 
 #include "Array.h"
 

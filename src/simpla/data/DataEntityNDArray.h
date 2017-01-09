@@ -7,7 +7,7 @@
 
 #include <type_traits>
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/FancyStream.h>
 #include <simpla/toolbox/Memory.h>
 #include "HeavyData.h"
 

@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "DataSet.h"
-#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/FancyStream.h>
 
 namespace simpla { namespace data
 {

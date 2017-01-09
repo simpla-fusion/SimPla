@@ -386,7 +386,7 @@ std::string make_msg(Others const &...others)
 #define BAD_CAST logger::Logger(logger::LOG_ERROR_BAD_CAST)  <<FILE_LINE_STAMP
 
 #define OUT_OF_RANGE logger::Logger(logger::LOG_ERROR_OUT_OF_RANGE)  <<FILE_LINE_STAMP
-#define EXCEPTION_BAD_ALLOC
+#define EXCEPTION_BAD_ALLOC logger::Logger(logger::LOG_ERROR_OUT_OF_RANGE)  <<FILE_LINE_STAMP
 //#define THROW_EXCEPTION(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("error"));}
 //
 #define THROW_EXCEPTION(_MSG_)  {RUNTIME_ERROR<<_MSG_<<std::endl;}

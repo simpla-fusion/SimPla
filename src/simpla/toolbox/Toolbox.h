@@ -12,7 +12,7 @@
 
 
 #include "Log.h"
-#include "PrettyStream.h"
+#include "FancyStream.h"
 #include "MiscUtilities.h"
 #include "primitives.h"
 #include "simpla/algebra/nTuple.h"

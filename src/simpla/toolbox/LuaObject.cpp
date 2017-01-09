@@ -7,7 +7,7 @@
 
 #include "LuaObject.h"
 #include "LuaObjectExt.h"
-#include "PrettyStream.h"
+#include "FancyStream.h"
 
 namespace simpla { namespace toolbox
 {

@@ -15,7 +15,7 @@
 #include <simpla/mpl/type_cast.h>
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/FancyStream.h>
 
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/MeshBlock.h>
@@ -60,6 +60,7 @@ struct CylindricalGeometry : public Chart {
    public:
     typedef mesh::MeshEntityIdCoder M;
 
+    
     template <typename... Args>
     void apply(Args &&...) const {}
 

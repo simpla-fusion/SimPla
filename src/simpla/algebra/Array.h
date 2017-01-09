@@ -13,7 +13,7 @@
 #include <simpla/mpl/Range.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/FancyStream.h>
 
 #include "Algebra.h"
 #include "Arithmetic.h"
@@ -27,7 +27,7 @@ namespace simpla {
 namespace algebra {
 
 namespace declare {
-template <typename V, size_type NDIMS, bool SLOW_FIRST>
+template <typename V, size_type NDIMS, bool SLOW_FIRST=true>
 struct Array_;
 }
 namespace traits {

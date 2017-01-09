@@ -21,11 +21,16 @@
 
 namespace simpla {
 namespace algebra {
+
 namespace declare {
 template <typename...>
 struct Expression;
 }
 namespace calculus {
+
+template <typename...>
+struct expr_parser;
+
 template <typename TRes, typename TR>
 struct expr_parser<TRes, TR> {
     static TRes eval(TR const &expr) { return static_cast<TRes>(expr); };

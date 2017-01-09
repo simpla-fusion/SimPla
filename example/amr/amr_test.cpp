@@ -3,7 +3,7 @@
 //
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/FancyStream.h>
 #include <simpla/algebra/nTupleExt.h>
 #include <simpla/mesh/Worker.h>
 #include <simpla/parallel/MPIComm.h>

@@ -24,35 +24,37 @@ int main(int argc, char** argv) {
     typedef mesh::CartesianGeometry mesh_type;
 
     mesh_type m(nullptr, &dims[0]);
+    m.deploy();
+    Field<mesh_type, Real> f(&m);
+    Field<mesh_type, Real> g(&m);
 
-    Field<Real, mesh_type> f(&m);
-    Field<Real, mesh_type> g(&m);
+    f.clear();
+    g.clear();
 
-    //    f.clear();
-    //    g.clear();
-    //    std::cout << f << std::endl;
-    //    std::cout << g << std::endl;
 
-    //    f(0, 2, 3) = 1990;
-    //    f = 1;
-    //    g = 2;
-    //
-    //    f = f + g;
-    //    f = -g * 0.2;
+    f(0, 2, 3, 1) = 1990;
+        f = 1;
+        g = 2;
+
+    f = f + g;
+    f = -g * 0.2;
+
+    std::cout << f << std::endl;
+    std::cout << g << std::endl;
 
     f = [&](point_type const& x) {
         std::cout << x << std::endl;
-        return x[0];
+        return x ;
     };
-    f = [&](mesh::MeshEntityId const& s) {
+    g = [&](mesh::MeshEntityId const& s) {
         std::cout << s.x << std::endl;
         return 1.0;
     };
-    //    std::cout << f << std::endl;
-    //    Field<Real, mesh_type, EDGE> E(&m);
-    //    Field<Real, mesh_type, VERTEX> rho(&m);
-    //    E.clear();
-    //    rho.clear();
-    //    rho = diverge(E);
-    //    diverge(E);
+    std::cout << f << std::endl;
+    Field<mesh_type, Real, EDGE> E(&m);
+    Field<mesh_type, Real, VERTEX> rho(&m);
+    E.clear();
+    rho.clear();
+    rho = diverge(E);
+    diverge(E);
 }

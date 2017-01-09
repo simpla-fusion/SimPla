@@ -7,8 +7,8 @@
 
 #include "Algebra.h"
 #include "Arithmetic.h"
-#include "Array.h"
-#include "ArrayExt.h"
+//#include "Array.h"
+//#include "ArrayExt.h"
 #include "Calculus.h"
 #include "Expression.h"
 #include "nTuple.h"

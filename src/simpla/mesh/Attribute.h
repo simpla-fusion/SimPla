@@ -207,10 +207,10 @@ struct AttributeTemplate : public Attribute {
 
 }
 ;
-template <typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
-using Variable =
-    AttributeAdapter<Array<TV, SIMPLA_MAXIMUM_DIMENSION +
-                                   (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
+//template <typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
+//using Variable =
+//    AttributeAdapter<Array<TV, SIMPLA_MAXIMUM_DIMENSION +
+//                                   (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 
 // template <typename TV, typename TM, size_type IFORM = VERTEX, size_type DOF = 1>
 // using FieldVariable = AttributeAdapter<Field<TV, TM, IFORM, DOF>>;

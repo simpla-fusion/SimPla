@@ -6,11 +6,10 @@
 #define SIMPLA_DATABLOCK_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/FancyStream.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/LifeControllable.h>
-#include <simpla/algebra/Array.h>
 
 namespace simpla { namespace mesh
 {
@@ -161,11 +160,11 @@ public:
 
 };
 
-template<typename V, size_type IFORM = VERTEX, size_type DOF = 1, bool SLOW_FIRST = false>
-using DataBlockArray=
-DataBlockAdapter<
-        Array < V,
-        SIMPLA_MAXIMUM_DIMENSION + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1), SLOW_FIRST>>;
+//template<typename V, size_type IFORM = VERTEX, size_type DOF = 1, bool SLOW_FIRST = false>
+//using DataBlockArray=
+//DataBlockAdapter<
+//        Array < V,
+//        SIMPLA_MAXIMUM_DIMENSION + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1), SLOW_FIRST>>;
 //
 //template<typename TV, size_type IFORM, size_type DOF = 1>
 //class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>

@@ -36,6 +36,8 @@ class Chart : public concept::Printable, public concept::LifeControllable {
 
     virtual std::ostream& print(std::ostream& os, int indent) const;
 
+    virtual void deploy();
+
     virtual void accept(Patch* p);
 
     virtual void pre_process();
@@ -51,6 +53,8 @@ class Chart : public concept::Printable, public concept::LifeControllable {
         return m_mesh_block_;
     }
 
+    decltype(auto) dimensions() const { return m_mesh_block_->dimensions(); }
+
     template <typename... Args>
     Range<MeshEntityId> range(Args&&... args) const {
         if (m_mesh_block_ != nullptr) {
@@ -59,18 +63,27 @@ class Chart : public concept::Printable, public concept::LifeControllable {
             return Range<MeshEntityId>();
         }
     }
-
+    size_type size(size_type IFORM = VERTEX, size_type DOF = 1) const {
+        return m_mesh_block_->number_of_entities(IFORM, DOF);
+    }
     template <typename... Args>
-    auto hash(Args&&... args) {
+    auto hash(Args&&... args) const {
         return m_mesh_block_->hash(std::forward<Args>(args)...);
     }
-
+    template <typename... Args>
+    auto pack(Args&&... args) const {
+        return m_mesh_block_->pack(std::forward<Args>(args)...);
+    }
     point_type dx() const {
         if (m_mesh_block_ != nullptr) {
             return m_mesh_block_->dx();
         } else {
             return point_type{1, 1, 1};
         }
+    }
+    template <typename... Args>
+    decltype(auto) point_global_to_local(Args&&... args) const {
+        return m_mesh_block_->point_global_to_local(std::forward<Args>(args)...);
     }
 
    protected:

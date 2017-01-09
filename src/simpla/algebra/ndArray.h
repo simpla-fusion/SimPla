@@ -10,7 +10,7 @@
 #include <simpla/mpl/Range.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/FancyStream.h>
 #include <cstring>
 #include <memory>
 

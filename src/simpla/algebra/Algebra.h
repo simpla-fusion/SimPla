@@ -8,7 +8,6 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/mpl/integer_sequence.h>
 #include <simpla/mpl/type_traits.h>
-#include <type_traits>
 #include <utility>
 
 namespace simpla {
@@ -19,21 +18,14 @@ namespace algebra {
 namespace declare {
 template <typename...>
 struct Expression;
-template <typename, size_type...>
-struct nTuple_;
-template <typename, size_type NDIMS, bool SLOW_FIRST = true>
-struct Array_;
-template <typename, typename, size_type...>
-struct Field_;
 }
 namespace calculus {
-template <typename...>
-struct calculator;
-template <typename...>
-struct expr_parser;
+template <typename, class Enable = void>
+struct calculator {};
 }
-
 namespace traits {
+template <typename>
+struct num_of_dimension : public index_const<3> {};
 
 template <typename T>
 struct value_type {
@@ -66,29 +58,6 @@ struct value_type<T const*> {
 };
 template <typename T>
 struct value_type<T const[]> {
-    typedef T type;
-};
-
-template <typename T>
-struct field_value_type {
-    typedef T type;
-};
-template <typename T>
-using field_value_t = typename field_value_type<T>::type;
-
-template <typename T>
-struct sub_type {
-    typedef T type;
-};
-template <typename T>
-using sub_type_t = typename sub_type<T>::type;
-
-template <typename...>
-struct pod_type;
-template <typename... T>
-using pod_type_t = typename pod_type<T...>::type;
-template <typename T>
-struct pod_type<T> {
     typedef T type;
 };
 
@@ -145,9 +114,10 @@ struct is_nTuple<T> : public std::integral_constant<bool, false> {};
 
 template <typename First, typename... Others>
 struct is_nTuple<First, Others...>
-    : public std::integral_constant<bool, (is_nTuple<First>::value &&
-                                           !(is_field<Others...>::value || is_array<Others...>::value)) ||
-                                              is_nTuple<Others...>::value> {};
+    : public std::integral_constant<bool,
+                                    (is_nTuple<First>::value &&
+                                     !(is_field<Others...>::value || is_array<Others...>::value)) ||
+                                        is_nTuple<Others...>::value> {};
 template <typename...>
 struct is_expression;
 
@@ -196,27 +166,24 @@ struct extent<const T> : public index_const<extent<T>::value> {};
 template <typename T>
 struct extents : public index_sequence<> {};
 
-
-
-
 }  // namespace traits
 
 }  // namespace algebra
 
-template <typename T, size_type... N>
-using nTuple = algebra::declare::nTuple_<T, N...>;
-
-template <typename T, size_type N>
-using Vector = algebra::declare::nTuple_<T, N>;
-
-template <typename T, size_type M, size_type N>
-using Matrix = algebra::declare::nTuple_<T, M, N>;
-
-template <typename T, size_type... N>
-using Tensor = algebra::declare::nTuple_<T, N...>;
-
-template <typename T, size_type N, bool is_slow_first = true>
-using Array = algebra::declare::Array_<T, N, is_slow_first>;
+// template <typename T, size_type... N>
+// using nTuple = algebra::declare::nTuple_<T, N...>;
+//
+// template <typename T, size_type N>
+// using Vector = algebra::declare::nTuple_<T, N>;
+//
+// template <typename T, size_type M, size_type N>
+// using Matrix = algebra::declare::nTuple_<T, M, N>;
+//
+// template <typename T, size_type... N>
+// using Tensor = algebra::declare::nTuple_<T, N...>;
+//
+// template <typename T, size_type N, bool is_slow_first = true>
+// using Array = algebra::declare::Array_<T, N, is_slow_first>;
 
 }  // namespace simpla
 #endif  // SIMPLA_ALGEBRACOMMON_H

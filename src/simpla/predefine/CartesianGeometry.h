@@ -100,7 +100,7 @@ public:
 
     template<typename ...Args> void apply(Args &&...) const {}
 
-    void deploy() {};
+    void deploy() {Chart::deploy();};
 
     template<typename ...Args>
     point_type point(index_type x, index_type y,

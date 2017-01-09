@@ -9,7 +9,7 @@
 #define SIMPLA_LIGHTDATA_H
 
 #include <simpla/algebra/nTuple.h>
-#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/FancyStream.h>
 #include <stddef.h>
 #include <algorithm>
 #include <cstdbool>

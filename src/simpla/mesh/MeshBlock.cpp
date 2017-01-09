@@ -7,7 +7,7 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
 #include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/PrettyStream.h>
+#include <simpla/toolbox/FancyStream.h>
 #include "EntityId.h"
 namespace simpla {
 namespace mesh {
@@ -156,10 +156,12 @@ Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, size_type entityType,
     m_g_dimensions_ = toolbox::dimensions(m_g_box_);
     switch (status) {
         case SP_ES_ALL:  // all valid
-            res.append(std::make_shared<ContinueRange<MeshEntityId>>(m_outer_box_, entityType, dof));
+            res.append(
+                std::make_shared<ContinueRange<MeshEntityId>>(m_outer_box_, entityType, dof));
             break;
         case SP_ES_OWNED:
-            res.append(std::make_shared<ContinueRange<MeshEntityId>>(m_inner_box_, entityType, dof));
+            res.append(
+                std::make_shared<ContinueRange<MeshEntityId>>(m_inner_box_, entityType, dof));
             break;
         case SP_ES_NON_LOCAL:  // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
         case SP_ES_SHARED:     //       = 0x04,                    0b000100 shared by two or more
