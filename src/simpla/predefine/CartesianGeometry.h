@@ -109,14 +109,10 @@ public:
     virtual point_type
     point(MeshEntityId s) const
     {
-        return point_type{
-                static_cast<Real>(s.x ),
-                static_cast<Real>(s.y ),
-                static_cast<Real>(s.z )
-        };
+       return  Chart::point(s);
     }
 
-    virtual point_type point(MeshEntityId s, point_type const &r) const { return point(s); };
+    virtual point_type point(MeshEntityId s, point_type const &r) const { return Chart::point(s); };
 
     virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 

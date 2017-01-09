@@ -275,7 +275,6 @@ class MeshBlock : public Object,
         p[0] = std::fma(x, m_l2g_scale_[0], m_l2g_shift_[0]);
         p[1] = std::fma(y, m_l2g_scale_[1], m_l2g_shift_[1]);
         p[2] = std::fma(z, m_l2g_scale_[2], m_l2g_shift_[2]);
-
         return std::move(p);
     };
 

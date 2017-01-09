@@ -9,8 +9,8 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/toolbox/sp_def.h>
 #include <simpla/toolbox/FancyStream.h>
+#include <simpla/toolbox/sp_def.h>
 #include <cstring>  // for memset
 #include "Algebra.h"
 #include "nTuple.h"
@@ -25,7 +25,7 @@ class Field_;
 }  // namespace declare {
 
 template <typename TM, typename TV, size_type IFORM, size_type DOF>
-class FieldImpl;
+class FieldView;
 
 namespace traits {
 
@@ -85,45 +85,61 @@ struct field_value_type<declare::Field_<TM, TV, IFORM, DOF>> {
 
 }  // namespace traits{
 
+struct IndexShifting {
+    index_type i, j, k;
+    IndexShifting operator,(IndexShifting const& l) const { return IndexShifting(); }
+};
+
 template <typename TM, typename TV, size_type IFORM, size_type DOF>
-class FieldImpl : public concept::Printable {
+class FieldView : public concept::Printable {
    private:
-    typedef FieldImpl<TM, TV, IFORM, DOF> this_type;
+    typedef FieldView<TM, TV, IFORM, DOF> this_type;
     //    typedef TM::attribute<TV, IFORM, DOF> base_type;
 
    public:
     typedef TV value_type;
     typedef TM mesh_type;
+    //    static constexpr int NUM_OF_ENTITIES_IN_CELL = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 :
+    //    3);
+    //    static constexpr NDIMS = traits::num_of_dimension<TM>::value;
 
    private:
     value_type* m_data_ = nullptr;
     std::shared_ptr<value_type> m_data_holder_ = nullptr;
+
     mesh_type const* m_mesh_;
+    IndexShifting m_shifting_;
+    //    ArrayView<value_type, NDIMS> m_view_[(IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3][DOF];
 
    public:
-    FieldImpl() : m_mesh_(nullptr), m_data_(nullptr){};
+    FieldView() : m_mesh_(nullptr), m_data_(nullptr){};
 
+    FieldView(FieldView const& other) {}
+
+    FieldView(FieldView const& other, IndexShifting const& s) : FieldView(other) {
+        m_shifting_ += s;
+    }
     //    template <typename... Args>
-    //    explicit FieldImpl(Args&&... args)
+    //    explicit FieldView(Args&&... args)
     //        : m_mesh_(nullptr),
     //          m_data_(nullptr),
     //          m_data_holder_(nullptr)
     //    //            : base_type(std::forward<Args>(args)...), m_mesh_(nullptr), m_data_(nullptr)
     //    {}
 
-    FieldImpl(mesh_type const* m, value_type* d = nullptr)
+    FieldView(mesh_type const* m, value_type* d = nullptr)
         : m_mesh_(m), m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {}
 
-    FieldImpl(mesh_type const* m, std::shared_ptr<value_type> const& d)
+    FieldView(mesh_type const* m, std::shared_ptr<value_type> const& d)
         : m_mesh_(m), m_data_(d.get()), m_data_holder_(d) {}
 
-    virtual ~FieldImpl() {}
+    virtual ~FieldView() {}
 
-    FieldImpl(this_type const& other) = delete;
+//    FieldView(this_type const& other) = delete;
 
-    FieldImpl(this_type&& other) = delete;
+//    FieldView(this_type&& other) = delete;
 
-    virtual std::ostream& print(std::ostream& os, int indent=0) const {
+    virtual std::ostream& print(std::ostream& os, int indent = 0) const {
         if (m_data_ != nullptr) {
             auto dims = m_mesh_->dimensions();
             printNdArray(os, m_data_, 3, &dims[0]);
@@ -177,6 +193,7 @@ class FieldImpl : public concept::Printable {
         ASSERT(!other.empty());
         memcpy((void*)(m_data_), (void const*)(other.m_data_), size() * sizeof(value_type));
     };
+
     template <typename... TID>
     value_type& at(TID&&... s) {
         ASSERT(m_data_ != nullptr);
@@ -197,15 +214,22 @@ class FieldImpl : public concept::Printable {
     decltype(auto) get(index_type s, Args&&... args) const {
         return m_data_[m_mesh_->hash(IFORM, DOF, s, std::forward<Args>(args)...)];
     }
-
-};  // class FieldImpl
+    template <typename TID>
+    decltype(auto) operator[](TID const& s) {
+        return at(s);
+    }
+    template <typename TID>
+    decltype(auto) operator[](TID const& s) const {
+        return at(s);
+    }
+};  // class FieldView
 
 namespace declare {
 
 template <typename TM, typename TV, size_type IFORM, size_type DOF>
-class Field_ : public FieldImpl<TM, TV, IFORM, DOF> {
+class Field_ : public FieldView<TM, TV, IFORM, DOF> {
     typedef Field_<TM, TV, IFORM, DOF> this_type;
-    typedef FieldImpl<TM, TV, IFORM, DOF> base_type;
+    typedef FieldView<TM, TV, IFORM, DOF> base_type;
 
    public:
     typedef TV value_type;
@@ -221,6 +245,10 @@ class Field_ : public FieldImpl<TM, TV, IFORM, DOF> {
     using base_type::mesh;
     using base_type::deploy;
     using base_type::print;
+
+    this_type operator[](int n) const { return this_type(*this, n); }
+
+    this_type operator[](IndexShifting const& s) const { return this_type(*this, s); }
 
     this_type& operator=(this_type const& rhs) {
         assign(rhs);
@@ -246,15 +274,6 @@ class Field_ : public FieldImpl<TM, TV, IFORM, DOF> {
 
     /**@}*/
 
-    template <typename TID>
-    value_type& operator[](TID const& s) {
-        return at(s);
-    }
-
-    template <typename TID>
-    value_type const& operator[](TID const& s) const {
-        return at(s);
-    }
     template <typename... Args>
     decltype(auto) operator()(index_type s, Args&&... args) const {
         return get(s, std::forward<Args>(args)...);

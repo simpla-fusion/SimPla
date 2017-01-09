@@ -11,7 +11,7 @@ using namespace simpla;
 using namespace simpla::algebra;
 
 int main(int argc, char** argv) {
-    index_type dims[3] = {1, 4, 3};
+    index_type dims[3] = {2, 4, 3};
     Real xmin[3] = {0, 0, 0};
     Real xmax[3] = {1, 2, 3};
     //        m->dimensions(dims);
@@ -31,30 +31,30 @@ int main(int argc, char** argv) {
     f.clear();
     g.clear();
 
-
     f(0, 2, 3, 1) = 1990;
-        f = 1;
-        g = 2;
+    f = 1;
+    g = 2;
 
     f = f + g;
     f = -g * 0.2;
 
-    std::cout << f << std::endl;
-    std::cout << g << std::endl;
+    CHECK(f);
+    CHECK(g);
 
-    f = [&](point_type const& x) {
-        std::cout << x << std::endl;
-        return x ;
-    };
-    g = [&](mesh::MeshEntityId const& s) {
-        std::cout << s.x << std::endl;
-        return 1.0;
-    };
-    std::cout << f << std::endl;
+    f = [&](point_type const& x) { return x[1] + x[2]; };
+
+    g = [&](mesh::MeshEntityId const& s) { return 1.0; };
+
+    CHECK(f);
     Field<mesh_type, Real, EDGE> E(&m);
     Field<mesh_type, Real, VERTEX> rho(&m);
+
     E.clear();
     rho.clear();
+
+    E = [&](point_type const& x) { return x; };
+    CHECK(E);
     rho = diverge(E);
+
     diverge(E);
 }

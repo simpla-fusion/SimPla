@@ -85,6 +85,10 @@ class Chart : public concept::Printable, public concept::LifeControllable {
     decltype(auto) point_global_to_local(Args&&... args) const {
         return m_mesh_block_->point_global_to_local(std::forward<Args>(args)...);
     }
+    template <typename... Args>
+    decltype(auto) point(Args&&... args) const {
+        return m_mesh_block_->point(std::forward<Args>(args)...);
+    }
 
    protected:
     std::shared_ptr<MeshBlock> m_mesh_block_;
