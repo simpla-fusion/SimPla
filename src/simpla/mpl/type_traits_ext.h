@@ -11,47 +11,45 @@
 #include "check_concept.h"
 #include "macro.h"
 
-namespace simpla
-{
+namespace simpla {
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
-template<unsigned long N> struct CountBits
-{
+template <unsigned long N>
+struct CountBits {
     static const unsigned long n = CountBits<N / 2>::n + 1;
 };
 
-template<> struct CountBits<0>
-{
+template <>
+struct CountBits<0> {
     static const unsigned long n = 0;
 };
 
-inline unsigned long count_bits(unsigned long s)
-{
+inline unsigned long count_bits(unsigned long s) {
     unsigned long n = 0;
-    while (s != 0)
-    {
+    while (s != 0) {
         ++n;
         s = s >> 1;
     }
     return n;
 }
 
-template<typename T> inline T *PointerTo(T &v)
-{
+template <typename T>
+inline T *PointerTo(T &v) {
     return &v;
 }
 
-template<typename T> inline T *PointerTo(T *v)
-{
+template <typename T>
+inline T *PointerTo(T *v) {
     return v;
 }
 
-template<typename TV, typename TR> inline TV TypeCast(TR const &obj)
-{
+template <typename TV, typename TR>
+inline TV TypeCast(TR const &obj) {
     return std::move(static_cast<TV>(obj));
 }
 
-template<int...> class int_tuple_t;
-//namespace _impl
+template <int...>
+class int_tuple_t;
+// namespace _impl
 //{
 ////******************************************************************************************************
 //// Third-part code begin
@@ -62,8 +60,8 @@ template<int...> class int_tuple_t;
 //// http://www.boost.org/LICENSE_1_0.txt)
 //
 ///// A type that represents a parameter pack of zero or more integers.
-//template<unsigned ... Indices>
-//struct index_tuple
+// template<unsigned ... Indices>
+// struct index_tuple
 //{
 //	/// Generate an index_tuple with an additional element.
 //	template<unsigned N>
@@ -71,21 +69,21 @@ template<int...> class int_tuple_t;
 //};
 //
 ///// Unary metafunction that generates an index_tuple containing [0, Size)
-//template<unsigned Size>
-//struct make_index_tuple
+// template<unsigned Size>
+// struct make_index_tuple
 //{
 //	typedef typename make_index_tuple<Size - 1>::type::template append<Size - 1> type;
 //};
 //
 //// Terminal case of the recursive metafunction.
-//template<>
-//struct make_index_tuple<0u>
+// template<>
+// struct make_index_tuple<0u>
 //{
 //	typedef index_tuple<> type;
 //};
 //
-//template<typename ... Types>
-//using to_index_tuple = typename make_index_tuple<sizeof...(Types)>::type;
+// template<typename ... Types>
+// using to_index_tuple = typename make_index_tuple<sizeof...(Types)>::type;
 //// Third-part code end
 ////******************************************************************************************************
 //
@@ -93,97 +91,95 @@ template<int...> class int_tuple_t;
 
 HAS_MEMBER_FUNCTION(swap)
 
-template<typename T> typename std::enable_if<has_member_function_swap<T>::value,
-        void>::type sp_swap(T &l, T &r)
-{
+template <typename T>
+typename std::enable_if<has_member_function_swap<T>::value, void>::type sp_swap(T &l, T &r) {
     l.swap(r);
 }
 
-template<typename T> typename std::enable_if<
-        !has_member_function_swap<T>::value, void>::type sp_swap(T &l, T &r)
-{
+template <typename T>
+typename std::enable_if<!has_member_function_swap<T>::value, void>::type sp_swap(T &l, T &r) {
     std::swap(l, r);
 }
 
-template<typename TI> auto ref(TI &it, ENABLE_IF(traits::is_iterator<TI>::value)) AUTO_RETURN((*it))
+template <typename TI>
+auto ref(TI &it, ENABLE_IF(traits::is_iterator<TI>::value)) {
+    return ((*it));
+}
 
-template<typename TI> auto ref(TI &it, ENABLE_IF(!traits::is_iterator<TI>::value)) AUTO_RETURN((it))
+template <typename TI>
+auto ref(TI &it, ENABLE_IF(!traits::is_iterator<TI>::value)) {
+    return ((it));
+}
 
-template<typename> struct result_of;
+template <typename>
+struct result_of;
 
-template<typename F, typename ...Args> struct result_of<F(Args...)>
-{
+template <typename F, typename... Args>
+struct result_of<F(Args...)> {
     typedef typename std::result_of<F(Args...)>::type type;
 };
 
-namespace _impl
-{
+namespace _impl {
 
-struct GetValue
-{
-    template<typename TL, typename TI>
-    constexpr auto operator()(TL const &v, TI const s) const AUTO_RETURN ((traits::index(v, s)))
+struct GetValue {
+    template <typename TL, typename TI>
+    constexpr auto operator()(TL const &v, TI const s) const {
+        return ((traits::index(v, s)));
+    }
 
-    template<typename TL, typename TI>
-    constexpr auto operator()(TL &v, TI const s) const AUTO_RETURN((traits::index(v, s)))
+    template <typename TL, typename TI>
+    constexpr auto operator()(TL &v, TI const s) const {
+        return ((traits::index(v, s)));
+    }
 };
-
 }
-//namespace _impl
-template<typename ...> struct index_of;
+// namespace _impl
+template <typename...>
+struct index_of;
 
-template<typename TC, typename TI>
-struct index_of<TC, TI>
-{
+template <typename TC, typename TI>
+struct index_of<TC, TI> {
     typedef typename result_of<_impl::GetValue(TC, TI)>::type type;
 };
 
 HAS_MEMBER_FUNCTION(print)
 
-template<typename TV>
-auto sp_print(std::ostream &os,
-              TV const &v)
--> typename std::enable_if<has_member_function_print<TV const, std::ostream &>::value, std::ostream &>::type
-{
+template <typename TV>
+auto sp_print(std::ostream &os, TV const &v) ->
+    typename std::enable_if<has_member_function_print<TV const, std::ostream &>::value,
+                            std::ostream &>::type {
     return v.print(os);
 }
 
-template<typename TV>
-auto sp_print(std::ostream &os,
-              TV const &v)
--> typename std::enable_if<!has_member_function_print<TV const, std::ostream &>::value, std::ostream &>::type
-{
+template <typename TV>
+auto sp_print(std::ostream &os, TV const &v) ->
+    typename std::enable_if<!has_member_function_print<TV const, std::ostream &>::value,
+                            std::ostream &>::type {
     os << v;
     return os;
 }
 
-template<typename TI, TI L, TI R>
-struct sp_max
-{
+template <typename TI, TI L, TI R>
+struct sp_max {
     static constexpr TI value = L > R ? L : R;
 };
 
-template<typename TI, TI L, TI R>
-struct sp_min
-{
+template <typename TI, TI L, TI R>
+struct sp_min {
     static constexpr TI value = L < R ? L : R;
 };
-template<typename T>
-struct sp_pod_traits
-{
+template <typename T>
+struct sp_pod_traits {
     typedef T type;
-
 };
 
-template<typename _Signature>
-class sp_result_of
-{
+template <typename _Signature>
+class sp_result_of {
     typedef typename std::result_of<_Signature>::type _type;
-public:
+
+   public:
     typedef typename sp_pod_traits<_type>::type type;
-
 };
-
 
 }  // namespace simpla
 

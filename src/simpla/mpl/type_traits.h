@@ -25,7 +25,7 @@ typedef std::nullptr_t NullType;
 
 struct EmptyType {};
 
-// template<typename, size_type ...> struct nTuple;
+// template<typename, int ...> struct nTuple;
 
 namespace tags {
 struct do_nothing {
@@ -69,7 +69,7 @@ struct type_id {
     }
 };
 
-template <size_type I>
+template <int I>
 struct type_id<std::integral_constant<size_t, I>> {
     static std::string name() { return "[" + simpla::type_cast<std::string>(I) + "]"; }
 };
@@ -111,7 +111,7 @@ struct type_id<
     static auto data_type() -> decltype(T::data_type()) { return T::data_type(); }
 };
 
-// template<typename T, size_type N>
+// template<typename T, int N>
 // struct type_id<T[N], void>
 //{
 //    static std::string name()
@@ -267,10 +267,10 @@ struct remove_all_extents<std::false_type, _Args> {
 template <typename T, typename Idx = int>
 using remove_all_extents_t = typename remove_all_extents<T, Idx>::type;
 
-template <typename TV, size_type... I>
+template <typename TV, int... I>
 struct add_extents;
 
-template <typename T, size_type... I>
+template <typename T, int... I>
 using add_extents_t = typename add_extents<T, I...>::type;
 
 template <typename TV>
@@ -278,15 +278,15 @@ struct add_extents<TV> {
     typedef TV type;
 };
 
-template <typename TV, size_type I0, size_type... I>
+template <typename TV, int I0, int... I>
 struct add_extents<TV, I0, I...> {
     typedef add_extents_t<TV, I...> type[I0];
 };
 
-template <typename V, size_type N>
+template <typename V, int N>
 struct nested_initializer_list;
 
-template <typename V, size_type N>
+template <typename V, int N>
 using nested_initializer_list_t = typename nested_initializer_list<V, N>::type;
 
 template <typename V>
@@ -299,12 +299,12 @@ struct nested_initializer_list<V, 1> {
     typedef std::initializer_list<V> type;
 };
 
-template <typename V, size_type N>
+template <typename V, int N>
 struct nested_initializer_list {
     typedef std::initializer_list<nested_initializer_list_t<V, N - 1>> type;
 };
 
-template <size_type... I>
+template <int... I>
 struct assign_nested_initializer_list;
 
 template <>
@@ -315,7 +315,7 @@ struct assign_nested_initializer_list<> {
     }
 };
 
-template <size_type I0, size_type... I>
+template <int I0, int... I>
 struct assign_nested_initializer_list<I0, I...> {
     template <typename U, typename TR>
     static inline void apply(U& u, std::initializer_list<TR> const& rhs) {
@@ -429,13 +429,17 @@ namespace _impl {
 template <int N>
 struct unpack_args_helper {
     template <typename... Args>
-    auto eval(Args&&... args) AUTO_RETURN((unpack_args_helper<N - 1>(std::forward<Args>(args)...)))
+    auto eval(Args&&... args) {
+        return ((unpack_args_helper<N - 1>(std::forward<Args>(args)...)));
+    }
 };
 
 template <>
 struct unpack_args_helper<0> {
     template <typename First, typename... Args>
-    auto eval(First&& first, Args&&... args) AUTO_RETURN((std::forward<First>(first)))
+    auto eval(First&& first, Args&&... args) {
+        return ((std::forward<First>(first)));
+    }
 };
 }  // namespace _impl
 
@@ -487,7 +491,9 @@ struct recursive_try_index_aux {
 template <>
 struct recursive_try_index_aux<0> {
     template <typename T, typename TI>
-    static auto eval(T& v, TI const* s) AUTO_RETURN((v))
+    static auto eval(T& v, TI const* s) {
+        return ((v));
+    }
 };
 }  // namespace _impl
 
@@ -516,7 +522,7 @@ struct recursive_try_index_aux<0> {
 // auto index(T &v, TI *s, ENABLE_IF((is_indexable<T, TI>::value)))
 // AUTO_RETURN((_impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v, s)))
 //
-// template<typename T, typename TI, size_type N>
+// template<typename T, typename TI, int N>
 // auto index(T &v, nTuple<TI, N> const &s, ENABLE_IF((is_indexable<T, TI>::value)))
 // AUTO_RETURN((_impl::recursive_try_index_aux<N>::eval(v, s)))
 //

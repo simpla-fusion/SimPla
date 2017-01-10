@@ -94,7 +94,7 @@ class MeshBlock : public Object,
 
     MeshBlock& operator=(MeshBlock const& other) = delete;
 
-    size_type level() const { return m_level_; }
+    int level() const { return m_level_; }
 
     void initialize() { DO_NOTHING; }
 
@@ -239,7 +239,7 @@ class MeshBlock : public Object,
     //                          m_inv_dx_[2]))};
     //    }
 
-    size_type number_of_entities(size_type iform = VERTEX, size_type dof = 1) const {
+    int number_of_entities(int iform = VERTEX, int dof = 1) const {
         return max_hash() * ((iform == VERTEX || iform == VOLUME) ? 1 : 3) * dof;
     }
 
@@ -247,20 +247,18 @@ class MeshBlock : public Object,
 
     size_type hash(MeshEntityId const& s) const { return 0; }
 
-    size_type hash(size_type entity_type, size_type dof, MeshEntityId const& s) const {
+    size_type hash(int entity_type, int dof, MeshEntityId const& s) const {
         return MeshEntityIdCoder::hash(s, std::get<0>(m_m_box_), std::get<1>(m_m_box_)) * dof + s.w;
     }
 
-    size_type hash(size_type entity_type, size_type dof, index_type const& i,
-                   index_type const& j = 0, index_type const& k = 0,
-                   index_type const& w = 0) const {
+    size_type hash(int entity_type, int dof, index_type const& i, index_type const& j = 0,
+                   index_type const& k = 0, index_type const& w = 0) const {
         return MeshEntityIdCoder::hash(i, j, k, w, std::get<0>(m_m_box_), std::get<1>(m_m_box_));
     }
 
     typedef MeshEntityIdCoder m;
 
-    int get_adjacent_entities(size_type entity_type, MeshEntityId s,
-                              MeshEntityId* p = nullptr) const {
+    int get_adjacent_entities(int entity_type, MeshEntityId s, MeshEntityId* p = nullptr) const {
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
 
@@ -305,22 +303,19 @@ class MeshBlock : public Object,
                                      nId)));
     };
 
-    Range<MeshEntityId> range(MeshZoneTag status, size_type entityType, size_type dof = 1) const;
+    Range<MeshEntityId> range(MeshZoneTag status=mesh::SP_ES_ALL) const;
 
-    Range<MeshEntityId> range(index_box_type const& b, size_type entity_type = VERTEX,
-                              size_type dof = 1) const;
+    Range<MeshEntityId> range(index_box_type const& b) const;
 
-    Range<MeshEntityId> range(box_type const& b, size_type entityType = VERTEX,
-                              size_type dof = 1) const;
+    Range<MeshEntityId> range(box_type const& b) const;
 
-    Range<MeshEntityId> range(index_type const* b, index_type const* e,
-                              size_type entityType = VERTEX, size_type dof = 1) const;
+    Range<MeshEntityId> range(index_type const* b, index_type const* e) const;
 
     //    template<typename TFun>
-    //    void foreach(TFun const &fun, MeshZoneTag tag, size_type const &iform = VERTEX, size_type
+    //    void foreach(TFun const &fun, MeshZoneTag tag, int const &iform = VERTEX, int
     //    dof = 1,
-    //                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type, size_type,
-    //                 size_type)>::value))) const
+    //                 ENABLE_IF((traits::is_callable<TFun(int, int, int,
+    //                 int)>::value))) const
     //    {
     //        int n = iform == VERTEX || iform == VOLUME ? 1 : 3;
     //        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] :
@@ -348,7 +343,7 @@ class MeshBlock : public Object,
     //    }
     //
     //    template<typename TFun>
-    //    void foreach(TFun const &fun, MeshZoneTag tag, size_type iform = VERTEX, size_type dof =
+    //    void foreach(TFun const &fun, MeshZoneTag tag, int iform = VERTEX, int dof =
     //    1,
     //                 ENABLE_IF((traits::is_callable<TFun(size_type, size_type,
     //                 size_type)>::value)) const

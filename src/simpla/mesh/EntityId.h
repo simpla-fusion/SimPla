@@ -110,17 +110,19 @@ struct MeshEntityIdCoder_ {
     static constexpr int ndims = 3;
     static constexpr int MESH_RESOLUTION = 1;
 
+    static constexpr MeshEntityId _DI{1, 0, 0, 0};
+    static constexpr MeshEntityId _DJ{0, 1, 0, 0};
+    static constexpr MeshEntityId _DK{0, 0, 1, 0};
+    static constexpr MeshEntityId _DA{1, 1, 1, static_cast<u_int16_t>(-1)};
+
+
+
     typedef MeshEntityIdCoder_ this_type;
 
     /// @name at_level dependent
     /// @{
 
     static constexpr Real _R = 0.5;
-
-    static constexpr MeshEntityId _DI{0, 0, 0, 1};
-    static constexpr MeshEntityId _DJ{0, 0, 1, 0};
-    static constexpr MeshEntityId _DK{0, 1, 0, 0};
-    static constexpr MeshEntityId _DA{0, 1, 1, 1};
 
     /// @}
 
@@ -221,7 +223,10 @@ struct MeshEntityIdCoder_ {
         s.w = static_cast<u_int16_t>(w);
         return s;
     }
-
+    static MeshEntityId tag(MeshEntityId s, int64_t tag) {
+        s.v = (s.v & (~_DA.v)) | tag;
+        return s;
+    }
     static constexpr MeshEntityId minimal_vertex(MeshEntityId s) {
         return MeshEntityId{.v = s.v & (~_DA.v)};
     }
@@ -254,7 +259,7 @@ struct MeshEntityIdCoder_ {
         return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) | m_id_to_shift_[n_id];
     }
 
-    template <size_t IFORM>
+    template <int IFORM>
     static constexpr MeshEntityId pack_index4(index_type i, index_type j, index_type k,
                                               index_type n_id = 0, index_type w = 0) {
         return pack((i + ZERO) << 1, (j + ZERO) << 1, (k + ZERO) << 1, w) |
@@ -474,85 +479,64 @@ struct MeshEntityIdCoder_ {
     static constexpr MeshEntityId
         m_adjacent_cell_matrix_[4 /* to iform*/][NUM_OF_NODE_ID /* node id*/]
                                [MAX_NUM_OF_ADJACENT_CELL /*id shift*/] = {
-                                   // To VERTEX
-                                   {
 
-                                       /* 000*/
-                                       {//
-                                        _DA},
-                                       /* 001*/
-                                       {//
-                                        _DA - _DI, _DA + _DI},
-                                       /* 010*/
-                                       {//
-                                        _DA - _DJ, _DA + _DJ},
-                                       /* 011*/
-                                       {
-                                           //
-                                           _DA - _DI - _DJ, /* 000*/
-                                           _DA + _DI - _DJ, /* 001*/
-                                           _DA - _DI + _DJ, /* 010*/
-                                           _DA + _DI + _DJ  /* 011 */
-                                       },
-                                       /* 100*/
-                                       {//
-                                        _DA - _DK, _DA + _DK},
-                                       /* 101*/
-                                       {
-                                           //
-                                           _DA - _DK - _DI, /*000*/
-                                           _DA - _DK + _DI, /*001*/
-                                           _DA + _DK - _DI, /*100*/
-                                           _DA + _DK + _DI  /*101*/
-                                       },
-                                       /* 110*/
-                                       {
-                                           //
-                                           _DA - _DJ - _DK, /*000*/
-                                           _DA + _DJ - _DK, /*010*/
-                                           _DA - _DJ + _DK, /*100*/
-                                           _DA + _DJ + _DK  /*110*/
-                                       },
-                                       /* 111*/
-                                       {
-                                           //
-                                           _DA - _DK - _DJ - _DI, /*000*/
-                                           _DA - _DK - _DJ + _DI, /*001*/
-                                           _DA - _DK + _DJ - _DI, /*010*/
-                                           _DA - _DK + _DJ + _DI, /*011*/
-                                           _DA + _DK - _DJ - _DI, /*100*/
-                                           _DA + _DK - _DJ + _DI, /*101*/
-                                           _DA + _DK + _DJ - _DI, /*110*/
-                                           _DA + _DK + _DJ + _DI  /*111*/
+                                   {// To VERTEX
 
-                                       }
-
-                                   },
-
-                                   // To EDGE
-                                   { /* 000*/
-                                    {//
-                                     _DA + _DI, _DA - _DI, _DA + _DJ, _DA - _DJ, _DA + _DK,
-                                     _DA - _DK},
-                                    /* 001*/
-                                    {_DA},
-                                    /* 010*/
-                                    {_DA},
-                                    /* 011*/
-                                    {//
-                                     _DA - _DJ, _DA + _DI, _DA + _DJ, _DA - _DI},
-                                    /* 100*/
-                                    {//
-                                     _DA},
-                                    /* 101*/
-                                    {//
-                                     _DA - _DI, _DA + _DK, _DA + _DI, _DA - _DK},
-                                    /* 110*/
-                                    {//
-                                     _DA - _DK, _DA + _DJ, _DA + _DK, _DA - _DJ},
-                                    /* 111*/
+                                    {_DA},                  /* 000*/
+                                    {_DA - _DI, _DA + _DI}, /* 001*/
+                                    {_DA - _DJ, _DA + _DJ}, /* 010*/
                                     {
-                                        //
+                                        /* 011*/
+                                        _DA - _DI - _DJ, /* 000*/
+                                        _DA + _DI - _DJ, /* 001*/
+                                        _DA - _DI + _DJ, /* 010*/
+                                        _DA + _DI + _DJ  /* 011 */
+                                    },
+                                    {_DA - _DK, _DA + _DK}, /* 100*/
+                                    {
+                                        /* 101*/
+                                        _DA - _DK - _DI, /*000*/
+                                        _DA - _DK + _DI, /*001*/
+                                        _DA + _DK - _DI, /*100*/
+                                        _DA + _DK + _DI  /*101*/
+                                    },
+                                    {
+                                        /* 110*/
+                                        _DA - _DJ - _DK, /*000*/
+                                        _DA + _DJ - _DK, /*010*/
+                                        _DA - _DJ + _DK, /*100*/
+                                        _DA + _DJ + _DK  /*110*/
+                                    },
+                                    {
+                                        /* 111*/
+                                        _DA - _DK - _DJ - _DI, /*000*/
+                                        _DA - _DK - _DJ + _DI, /*001*/
+                                        _DA - _DK + _DJ - _DI, /*010*/
+                                        _DA - _DK + _DJ + _DI, /*011*/
+                                        _DA + _DK - _DJ - _DI, /*100*/
+                                        _DA + _DK - _DJ + _DI, /*101*/
+                                        _DA + _DK + _DJ - _DI, /*110*/
+                                        _DA + _DK + _DJ + _DI  /*111*/
+                                    }},
+
+                                   {// To EDGE
+                                    {_DA + _DI, _DA - _DI, _DA + _DJ, _DA - _DJ, _DA + _DK,
+                                     _DA - _DK},  ///* 000*/
+
+                                    {_DA},  // /* 001*/
+
+                                    {_DA},  //  /* 010*/
+
+                                    {_DA - _DJ, _DA + _DI, _DA + _DJ, _DA - _DI},  //      /* 011*/
+
+                                    {_DA},  //     /* 100*/
+
+                                    {_DA - _DI, _DA + _DK, _DA + _DI, _DA - _DK},  //  /* 101*/
+
+                                    {_DA - _DK, _DA + _DJ, _DA + _DK, _DA - _DJ},  //    /* 110*/
+
+                                    {
+                                        /* 111*/
                                         _DA - _DK - _DJ,  //-> 001
                                         _DA - _DK + _DI,  //   012
                                         _DA - _DK + _DJ,  //   021
@@ -569,10 +553,9 @@ struct MeshEntityIdCoder_ {
                                         _DA + _DK - _DI   //
                                     }},
 
-                                   // To FACE
-                                   {/* 000*/
-                                    {
-                                        //
+                                   {{
+                                        // To FACE
+                                        /* 000*/
                                         _DA - _DK - _DJ,  //
                                         _DA - _DK + _DI,  //
                                         _DA - _DK + _DJ,  //
@@ -588,9 +571,9 @@ struct MeshEntityIdCoder_ {
                                         _DA + _DK + _DJ,  //
                                         _DA + _DK - _DI   //
                                     },
-                                    /* 001*/
                                     {
-                                        //
+                                        /* 001*/
+
                                         _DA - _DJ,  //
                                         _DA + _DK,  //
                                         _DA + _DJ,  //
@@ -598,31 +581,28 @@ struct MeshEntityIdCoder_ {
                                     },
                                     /* 010*/
                                     {
-                                        //
+
                                         _DA - _DK,  //
                                         _DA + _DI,  //
                                         _DA + _DK,  //
                                         _DA - _DI   //
                                     },
-                                    /* 011*/
-                                    {_DA},
-                                    /* 100*/
+
+                                    {_DA}, /* 011*/
+
                                     {
-                                        //
+                                        /* 100*/
                                         _DA - _DI,  //
                                         _DA + _DJ,  //
                                         _DA + _DI,  //
                                         _DA - _DJ   //
                                     },
-                                    /* 101*/
-                                    {//
-                                     _DA},
-                                    /* 110*/
-                                    {//
-                                     _DA},
-                                    /* 111*/
+                                    {_DA}, /* 101*/
+
+                                    {_DA}, /* 110*/
+
                                     {
-                                        //
+                                        /* 111*/
                                         _DA - _DI,  //
                                         _DA - _DJ,  //
                                         _DA - _DK,  //
@@ -630,10 +610,9 @@ struct MeshEntityIdCoder_ {
                                         _DA + _DJ,  //
                                         _DA + _DK   //
                                     }},
-                                   // TO VOLUME
-                                   {/* 000*/
-                                    {
-                                        //
+
+                                   {{
+                                        // TO VOLUME   /* 000*/
                                         _DA - _DI - _DJ - _DK,  //
                                         _DA - _DI + _DJ - _DK,  //
                                         _DA - _DI - _DJ + _DK,  //
@@ -645,42 +624,35 @@ struct MeshEntityIdCoder_ {
                                         _DA + _DI + _DJ + _DK   //
 
                                     },
-                                    /* 001*/
+
                                     {
-                                        //
+                                        /* 001*/
                                         _DA - _DJ - _DK,  //
                                         _DA - _DJ + _DK,  //
                                         _DA + _DJ - _DK,  //
                                         _DA + _DJ + _DK   //
                                     },
-                                    /* 010*/
+
                                     {
-                                        //
+                                        /* 010*/
                                         _DA - _DK - _DI,  //
                                         _DA - _DK + _DI,  //
                                         _DA + _DK - _DI,  //
                                         _DA + _DK + _DI   //
                                     },
-                                    /* 011*/
-                                    {//
-                                     _DA - _DK, _DA + _DK},
-                                    /* 100*/
+
+                                    {_DA - _DK, _DA + _DK}, /* 011*/
+
                                     {
-                                        //
+                                        /* 100*/
                                         _DA - _DI - _DJ,  //
                                         _DA - _DI + _DJ,  //
                                         _DA + _DI - _DJ,  //
                                         _DA + _DI + _DJ   //
                                     },
-                                    /* 101*/
-                                    {//
-                                     _DA - _DJ, _DA + _DJ},
-                                    /* 110*/
-                                    {//
-                                     _DA - _DI, _DA + _DI},
-                                    /* 111*/
-                                    {//
-                                     _DA}}
+                                    {_DA - _DJ, _DA + _DJ}, /* 101*/
+                                    {_DA - _DI, _DA + _DI}, /* 110*/
+                                    {_DA}}                  /* 111*/
 
     };
 
@@ -700,16 +672,6 @@ struct MeshEntityIdCoder_ {
 
     typedef Range<MeshEntityId> range_type;
 
-    //    static range_type make_range(index_type const* min, index_type const* max,
-    //                                 size_type iform = VERTEX, size_type dof = 1) {
-    //        return std::move(make_continue_range<MeshEntityId>(min, max, iform, dof));
-    //    }
-    //
-    //    static range_type make_range(index_box_type const& b, size_type iform = VERTEX,
-    //                                 size_type dof = 1) {
-    //        return std::move(make_range(&std::get<0>(b)[0], &std::get<1>(b)[0], iform, dof));
-    //    }
-
     static size_type hash(index_type i, index_type j, index_type k, int nid, index_tuple const& b,
                           index_tuple const& e) {
         // C-ORDER SLOW FIRST
@@ -717,9 +679,7 @@ struct MeshEntityIdCoder_ {
             ((k + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
              (((j + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
               ((i + e[0] - b[0] - b[0]) % (e[0] - b[0])) * (e[1] - b[1])) *
-                 (e[2] - b[2])) *
-                m_id_to_num_of_ele_in_cell_[nid] +
-            m_id_to_index_[nid]);
+                 (e[2] - b[2])));
     }
 
     static size_type hash(MeshEntityId const& s, index_tuple const& b, index_tuple const& e) {
@@ -744,27 +704,14 @@ struct MeshEntityIdCoder_ {
         // C-ORDER SLOW FIRST
 
         return (((s.z >> 1) + l[2] - b[2]) % (l[2]) +
-
                 ((((s.y >> 1) + l[1] - b[1]) % (l[1])) +
-
-                 (((s.x >> 1) + l[0] - b[0]) % (l[0])) * (l[1])
-
-                     ) *
-                    (l[2])
-
-                    ) *
-                   num_of_ele_in_cell(s) +
-               sub_index(s);
+                 (((s.x >> 1) + l[0] - b[0]) % (l[0])) * (l[1])) *
+                    (l[2]));
     }
 
     template <int IFORM>
-    static constexpr size_t max_hash(MeshEntityId b, MeshEntityId e) {
-        return max_hash(unpack_index(e), unpack_index(b), IFORM);
-    }
-
-    static constexpr size_t max_hash(index_tuple const& b, index_tuple const& e, size_type IFORM) {
-        return static_cast<size_t>((e[2] - b[2]) * (e[1] - b[1]) * (e[0] - b[0]) *
-                                   m_id_to_num_of_ele_in_cell_[m_sub_index_to_id_[IFORM][0]]);
+    static constexpr size_type max_hash(MeshEntityId b, MeshEntityId e) {
+        return max_hash(unpack_index(e), unpack_index(b));
     }
 };
 
@@ -840,12 +787,9 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
     SP_OBJECT_HEAD(ContinueRange<mesh::MeshEntityId>, RangeBase<mesh::MeshEntityId>)
 
    public:
-    ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr,
-                  size_type IFORM = VERTEX, size_type dof = 1)
+    ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr)
         : m_min_{b == nullptr ? 0 : b[0], b == nullptr ? 0 : b[1], b == nullptr ? 0 : b[2]},
-          m_max_{e == nullptr ? 1 : e[0], e == nullptr ? 1 : e[1], e == nullptr ? 1 : e[2]},
-          m_iform_(IFORM),
-          m_dof_(dof) {
+          m_max_{e == nullptr ? 1 : e[0], e == nullptr ? 1 : e[1], e == nullptr ? 1 : e[2]} {
         m_grain_size_ = 1;
         for (int i = 0; i < ndims; ++i) {
             if (m_max_[i] - m_min_[i] <= m_grain_size_[i]) {
@@ -853,20 +797,13 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
             }
         }
     }
-    ContinueRange(index_tuple const& b, index_tuple const& e, size_type IFORM = VERTEX,
-                  size_type dof = 1)
-        : ContinueRange(&b[0], &(e[0]), IFORM, dof) {}
+    ContinueRange(index_tuple const& b, index_tuple const& e) : ContinueRange(&b[0], &(e[0])) {}
 
-    ContinueRange(std::tuple<index_tuple, index_tuple> const& b, size_type IFORM = VERTEX,
-                  size_type dof = 1)
-        : ContinueRange(std::get<0>(b), std::get<1>(b), IFORM, dof) {}
+    ContinueRange(std::tuple<index_tuple, index_tuple> const& b)
+        : ContinueRange(std::get<0>(b), std::get<1>(b)) {}
 
     ContinueRange(this_type const& r)
-        : m_min_(r.m_min_),
-          m_max_(r.m_max_),
-          m_grain_size_(r.m_grain_size_),
-          m_iform_(r.m_iform_),
-          m_dof_(r.m_dof_) {}
+        : m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_) {}
 
     std::shared_ptr<base_type> split(concept::tags::split const& proportion) {
         auto res = std::make_shared<this_type>(*this);
@@ -891,14 +828,10 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
     ~ContinueRange() {}
 
     void swap(this_type& other) {
-        std::swap(m_iform_, other.m_iform_);
-        std::swap(m_dof_, other.m_dof_);
         std::swap(m_min_, other.m_min_);
         std::swap(m_max_, other.m_max_);
         std::swap(m_grain_size_, other.m_grain_size_);
     }
-
-    size_type entity_type() const { return m_iform_; }
 
     index_box_type index_box() const { return std::make_tuple(m_min_, m_max_); }
 
@@ -907,8 +840,7 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
     }
 
     size_t size() const {
-        return static_cast<size_t>(((m_iform_ == VERTEX || m_iform_ == VOLUME) ? 1 : 3) *
-                                   (m_max_[0] - m_min_[0]) * (m_max_[1] - m_min_[1]) *
+        return static_cast<size_t>((m_max_[0] - m_min_[0]) * (m_max_[1] - m_min_[1]) *
                                    (m_max_[2] - m_min_[2]));
     }
 
@@ -924,25 +856,6 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
         return count < ndims;
     }
 
-    //    template <typename Body, typename... Args>
-    //    void foreach (Body const& body, Args && ... args) const {
-    //        typedef mesh::MeshEntityIdCoder M;
-    //        ContinueRange const& r = *this;
-    //        index_type ib = r.m_min_[0];
-    //        index_type ie = r.m_max_[0];
-    //#pragma omp parallel for
-    //        for (index_type i = ib; i < ie; ++i) {
-    //            for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-    //                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
-    //                    for (index_type n = 0, ne = M::m_iform_to_num_of_ele_in_cell_[r.m_iform_];
-    //                         n < ne; ++n)
-    //                        for (index_type w = 0; w < m_dof_; ++w) {
-    //                            body(M::pack_index(i, j, k, M::m_sub_index_to_id_[r.m_iform_][n],
-    //                            w),
-    //                                 std::forward<Args>(args)...);
-    //                        }
-    //        }
-    //    }
     template <typename TFun>
     void foreach (TFun const& body,
                   ENABLE_IF(traits::is_callable<TFun(mesh::MeshEntityId const&)>::value)) const {
@@ -953,12 +866,9 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
 #pragma omp parallel for
         for (index_type i = ib; i < ie; ++i) {
             for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
-                    for (index_type n = 0, ne = M::m_iform_to_num_of_ele_in_cell_[r.m_iform_];
-                         n < ne; ++n)
-                        for (index_type w = 0; w < m_dof_; ++w) {
-                            body(M::pack_index(i, j, k, M::m_sub_index_to_id_[r.m_iform_][n], w));
-                        }
+                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k) {
+                    body(M::pack_index(i, j, k));
+                }
         }
     }
 
@@ -973,18 +883,11 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
 #pragma omp parallel for
         for (index_type i = ib; i < ie; ++i) {
             for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
-                    for (index_type n = 0, ne = M::m_iform_to_num_of_ele_in_cell_[r.m_iform_];
-                         n < ne; ++n)
-                        for (index_type w = 0; w < m_dof_; ++w) {
-                            body(i, j, k, M::m_sub_index_to_id_[r.m_iform_][n] * m_dof_ + w);
-                        }
+                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k) { body(i, j, k); }
         }
     }
 
    private:
-    index_type m_dof_ = 1;
-    size_type m_iform_;
     index_tuple m_min_, m_max_, m_grain_size_;
 };
 

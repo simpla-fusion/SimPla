@@ -31,7 +31,7 @@ class TestNtuple : public testing::Test {
         c = 4;
         d = 7;
 
-        traits::seq_for_each(extents(), [&](size_type const *idx) {
+        traits::seq_for_each(extents(), [&](int const *idx) {
             traits::get_v(aA, idx) = static_cast<value_type>(idx[0] * 2);
             traits::get_v(aB, idx) = static_cast<value_type>(5 - idx[0]);
             traits::get_v(aC, idx) = static_cast<value_type>(idx[0] * 5 + 1);
@@ -46,17 +46,15 @@ class TestNtuple : public testing::Test {
 
         });
 
-        num_of_loops = 1000000L;
     }
 
    public:
-    std::size_t num_of_loops = 10000000L;
 
     typedef T type;
 
     typedef algebra::traits::extents<type> extents;
 
-    nTuple<size_type, algebra::traits::rank<type>::value> DIMENSIONS;
+    nTuple<int, algebra::traits::rank<type>::value> DIMENSIONS;
 
     typedef algebra::traits::value_type_t<type> value_type;
 
@@ -77,7 +75,7 @@ TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
 TYPED_TEST(TestNtuple, swap) {
     TestFixture::vA.swap(TestFixture::vB);
 
-    traits::seq_for_each(typename TestFixture::extents(), [&](size_t const *idx) {
+    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
         EXPECT_DOUBLE_EQ(0, algebra::abs(traits::get_v(TestFixture::aA, idx) -
                                          traits::get_v(TestFixture::vB, idx)));
         EXPECT_DOUBLE_EQ(0, algebra::abs(traits::get_v(TestFixture::aB, idx) -
@@ -88,7 +86,7 @@ TYPED_TEST(TestNtuple, swap) {
 TYPED_TEST(TestNtuple, assign_Scalar) {
     TestFixture::vA = TestFixture::a;
 
-    traits::seq_for_each(typename TestFixture::extents(), [&](size_type const *idx) {
+    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
         EXPECT_DOUBLE_EQ(0, algebra::abs(TestFixture::a - traits::get_v(TestFixture::vA, idx)));
     });
 }
@@ -96,7 +94,7 @@ TYPED_TEST(TestNtuple, assign_Scalar) {
 TYPED_TEST(TestNtuple, assign_Array) {
     TestFixture::vA = TestFixture::aA;
 
-    traits::seq_for_each(typename TestFixture::extents(), [&](size_type const *idx) {
+    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
         EXPECT_DOUBLE_EQ(0, algebra::abs(traits::get_v(TestFixture::aA, idx) -
                                          traits::get_v(TestFixture::vA, idx)));
     });
@@ -105,7 +103,7 @@ TYPED_TEST(TestNtuple, assign_Array) {
 TYPED_TEST(TestNtuple, self_assign) {
     TestFixture::vB += TestFixture::vA;
 
-    traits::seq_for_each(typename TestFixture::extents(), [&](size_type const *idx) {
+    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
         EXPECT_DOUBLE_EQ(algebra::abs(traits::get_v(TestFixture::vB, idx)),
                          algebra::abs(traits::get_v(TestFixture::aA, idx) +
                                       traits::get_v(TestFixture::aB, idx)));
@@ -133,7 +131,7 @@ TYPED_TEST(TestNtuple, cross) {
 TYPED_TEST(TestNtuple, arithmetic) {
     TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
     //
-    traits::seq_for_each(typename TestFixture::extents(), [&](size_type const *idx) {
+    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
         auto ta = traits::get_v(TestFixture::vA, idx);
         auto tb = traits::get_v(TestFixture::vB, idx);
         auto tc = traits::get_v(TestFixture::vC, idx);
@@ -146,7 +144,7 @@ TYPED_TEST(TestNtuple, expression_construct) {
     auto tD =
         typename TestFixture::type(EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC));
 
-    traits::seq_for_each(typename TestFixture::extents(), [&](size_type const *idx) {
+    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
         auto ta = traits::get_v(TestFixture::vA, idx);
         auto tb = traits::get_v(TestFixture::vB, idx);
         auto tc = traits::get_v(TestFixture::vC, idx);
@@ -158,7 +156,7 @@ TYPED_TEST(TestNtuple, expression_construct) {
 TYPED_TEST(TestNtuple, expression_construct2) {
     typename TestFixture::type tD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
 
-    traits::seq_for_each(typename TestFixture::extents(), [&](size_type const *idx) {
+    traits::seq_for_each(typename TestFixture::extents(), [&](int const *idx) {
         auto ta = traits::get_v(TestFixture::vA, idx);
         auto tb = traits::get_v(TestFixture::vB, idx);
         auto tc = traits::get_v(TestFixture::vC, idx);

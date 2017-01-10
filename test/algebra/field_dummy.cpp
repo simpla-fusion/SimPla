@@ -47,8 +47,10 @@ int main(int argc, char** argv) {
 
     CHECK(f);
     Field<mesh_type, Real, EDGE> E(&m);
+    Field<mesh_type, Real, FACE> B(&m);
+    Field<mesh_type, Real, VERTEX, 3> d(&m);
     Field<mesh_type, Real, VERTEX> rho(&m);
-
+    Field<mesh_type, Real, VERTEX, 8> v(&m);
     E.clear();
     rho.clear();
 
@@ -56,5 +58,11 @@ int main(int argc, char** argv) {
     CHECK(E);
     rho = diverge(E);
 
+    E[I] = 2;
+
+    B[2][I] = (E[0] * v[0][I] - E[0][J - 1] * v[0][J - 1] + E[1][I] * v[1][I] -
+               E[1][I - 1] * v[1][I - 1]) /
+              v[3][I];
+    CHECK(E);
     diverge(E);
 }

@@ -5,27 +5,30 @@
 #ifndef SIMPLA_MESHCOMMON_H
 #define SIMPLA_MESHCOMMON_H
 
-#include <boost/uuid/uuid.hpp>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/toolbox/sp_def.h>
+#include <boost/uuid/uuid.hpp>
 
-namespace simpla { namespace mesh
-{
+namespace simpla {
+namespace mesh {
 
-//typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } MeshEntityId32;
+// typedef union { struct { u_int8_t w, z, y, x; }; int32_t v; } MeshEntityId32;
 
-typedef union { struct { u_int16_t w, z, y, x; }; int64_t v; } MeshEntityId;
+typedef union {
+    struct {
+        u_int16_t x, y, z, w;
+    };
+    int64_t v;
+} MeshEntityId;
 
 
-
-//typedef MeshEntityId64 MeshEntityId;
+// typedef MeshEntityId64 MeshEntityId;
 
 #define MAX_POLYGON 20
 
-enum MeshEntityType
-{
-//    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3,
-//    FIBER = 10 // points in cell
+enum MeshEntityType {
+    //    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3,
+    //    FIBER = 10 // points in cell
 
     TRIANGLE = (3 << 2) | 2,
 
@@ -37,8 +40,6 @@ enum MeshEntityType
 
     // custom polygon
 
-
-
     TETRAHEDRON = (6 << 2) | 3,
     PYRAMID,
     PRISM,
@@ -46,7 +47,7 @@ enum MeshEntityType
 
     HEXAHEDRON = MAX_POLYGON + 12,
     // place Holder
-            POLYHEDRON = MAX_POLYGON + (1 << 5),
+    POLYHEDRON = MAX_POLYGON + (1 << 5),
     // custom POLYHEDRON
 
     MAX_POLYHEDRON = MAX_POLYGON + (1 << 6)
@@ -62,26 +63,26 @@ enum MeshEntityType
  *
  */
 
-
-enum MeshZoneTag
-{
-    SP_ES_NULL = 0x00, //                          0b000000
-    SP_ES_ALL = 0x0F, //                            0b001111 SP_ES_NOT_SHARED| SP_ES_SHARED | SP_ES_OWNED | SP_ES_NOT_OWNED
-    SP_ES_OWNED = 0x01, //                            0b000001 owned by local get_mesh block
-    SP_ES_NOT_OWNED = 0x02, //                        0b000010 not owned by local get_mesh block
-    SP_ES_SHARED = 0x04, //                           0b000100 shared by two or more get_mesh grid_dims
-    SP_ES_NOT_SHARED = 0x08, //                       0b001000 not shared by other get_mesh grid_dims
-    SP_ES_LOCAL = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
-    SP_ES_GHOST = SP_ES_SHARED | SP_ES_NOT_OWNED, //              0b000110
-    SP_ES_NON_LOCAL = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
-    SP_ES_INTERFACE = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh grid_dims,
+enum MeshZoneTag {
+    SP_ES_NULL = 0x00,       //                          0b000000
+    SP_ES_ALL = 0x0F,        //                            0b001111 SP_ES_NOT_SHARED| SP_ES_SHARED |
+                             //                            SP_ES_OWNED | SP_ES_NOT_OWNED
+    SP_ES_OWNED = 0x01,      //                            0b000001 owned by local get_mesh block
+    SP_ES_NOT_OWNED = 0x02,  //                        0b000010 not owned by local get_mesh block
+    SP_ES_SHARED =
+        0x04,  //                           0b000100 shared by two or more get_mesh grid_dims
+    SP_ES_NOT_SHARED =
+        0x08,  //                       0b001000 not shared by other get_mesh grid_dims
+    SP_ES_LOCAL = SP_ES_NOT_SHARED | SP_ES_OWNED,  //              0b001001
+    SP_ES_GHOST = SP_ES_SHARED | SP_ES_NOT_OWNED,  //              0b000110
+    SP_ES_NON_LOCAL = SP_ES_SHARED | SP_ES_OWNED,  //              0b000101
+    SP_ES_INTERFACE = 0x010,  //                        0b010000 interface(boundary) shared by two
+                              //                        get_mesh grid_dims,
     SP_ES_DMZ = 0x100,
     SP_ES_NOT_DMZ = 0x200,
     SP_ES_VALID = 0x400,
     SP_ES_UNDEFINED = 0xFFFF
 };
-
-
 
 /**
  *  @ingroup diff_geo
@@ -112,12 +113,6 @@ enum MeshZoneTag
  *
  *
  *   @} */
-
-
-
-
-
-
-
-}}//namespace simpla{namespace get_mesh{
-#endif //SIMPLA_MESHCOMMON_H
+}
+}  // namespace simpla{namespace get_mesh{
+#endif  // SIMPLA_MESHCOMMON_H

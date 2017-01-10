@@ -103,8 +103,8 @@ struct is_primitive { static constexpr bool value = is_arithmetic_scalar<T>::val
 
 //template<typename T> struct is_expression { static constexpr bool entity = false; };
 
-template<typename T1>
-auto abs(T1 const &m) AUTO_RETURN((std::fabs(m)))
+//template<typename T1>
+//auto abs(T1 const &m)  {return((std::fabs(m)));}
 
 }
 #endif //SIMPLA_SP_DEF_H

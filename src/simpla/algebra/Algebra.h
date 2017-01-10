@@ -48,7 +48,7 @@ template <typename T>
 struct value_type<T*> {
     typedef T type;
 };
-template <typename T, size_type N>
+template <typename T, int N>
 struct value_type<T[N]> {
     typedef T type;
 };
@@ -170,19 +170,19 @@ struct extents : public index_sequence<> {};
 
 }  // namespace algebra
 
-// template <typename T, size_type... N>
+// template <typename T, int... N>
 // using nTuple = algebra::declare::nTuple_<T, N...>;
 //
-// template <typename T, size_type N>
+// template <typename T, int N>
 // using Vector = algebra::declare::nTuple_<T, N>;
 //
-// template <typename T, size_type M, size_type N>
+// template <typename T, int M, int N>
 // using Matrix = algebra::declare::nTuple_<T, M, N>;
 //
-// template <typename T, size_type... N>
+// template <typename T, int... N>
 // using Tensor = algebra::declare::nTuple_<T, N...>;
 //
-// template <typename T, size_type N, bool is_slow_first = true>
+// template <typename T, int N, bool is_slow_first = true>
 // using Array = algebra::declare::Array_<T, N, is_slow_first>;
 
 }  // namespace simpla

@@ -21,7 +21,7 @@ namespace simpla {
 namespace algebra {
 
 namespace declare {
-template <typename, size_type...>
+template <typename, int...>
 struct nTuple_;
 template <typename...>
 struct Expression;
@@ -67,31 +67,31 @@ struct Expression;
  **/
 namespace traits {
 
-template <typename T, size_type... I0>
+template <typename T, int... I0>
 struct reference<declare::nTuple_<T, I0...>> {
     typedef declare::nTuple_<T, I0...>& type;
 };
 
-template <typename T, size_type... I0>
+template <typename T, int... I0>
 struct reference<const declare::nTuple_<T, I0...>> {
     typedef declare::nTuple_<T, I0...> const& type;
 };
 
-template <typename T, size_type... I>
+template <typename T, int... I>
 struct rank<declare::nTuple_<T, I...>> : public index_const<sizeof...(I)> {};
 
-template <typename V, size_type... I>
+template <typename V, int... I>
 struct extents<declare::nTuple_<V, I...>> : public index_sequence<I...> {};
 
-template <typename V, size_type I0, size_type... I>
+template <typename V, int I0, int... I>
 struct extent<declare::nTuple_<V, I0, I...>> : public index_const<I0> {};
 
-template <typename T, size_type I0>
+template <typename T, int I0>
 struct value_type<declare::nTuple_<T, I0>> {
     typedef T type;
 };
 
-template <typename T, size_type... I>
+template <typename T, int... I>
 struct value_type<declare::nTuple_<T, I...>> {
     typedef T type;
 };
@@ -104,7 +104,7 @@ struct sub_type {
 template <typename T>
 using sub_type_t = typename sub_type<T>::type;
 
-template <typename T, size_type I0, size_type... I>
+template <typename T, int I0, int... I>
 struct sub_type<declare::nTuple_<T, I0, I...>> {
     typedef std::conditional_t<sizeof...(I) == 0, T, declare::nTuple_<T, I...>> type;
 };
@@ -119,12 +119,12 @@ struct pod_type<T> {
     typedef T type;
 };
 
-template <typename T, size_type I0>
+template <typename T, int I0>
 struct pod_type<declare::nTuple_<T, I0>> {
     typedef T type[I0];
 };
 
-template <typename T, size_type I0, size_type... I>
+template <typename T, int I0, int... I>
 struct pod_type<declare::nTuple_<T, I0, I...>> {
     typedef typename pod_type<declare::nTuple_<T, I...>>::type type[I0];
 };
@@ -134,12 +134,12 @@ struct make_nTuple {
     typedef void type;
 };
 
-template <typename TV, size_type... I>
-struct make_nTuple<TV, simpla::integer_sequence<size_type, I...>> {
+template <typename TV, int... I>
+struct make_nTuple<TV, simpla::integer_sequence<int, I...>> {
     typedef declare::nTuple_<TV, I...> type;
 };
 template <typename TV>
-struct make_nTuple<TV, simpla::integer_sequence<size_type>> {
+struct make_nTuple<TV, simpla::integer_sequence<int>> {
     typedef TV type;
 };
 
@@ -149,11 +149,11 @@ namespace calculus {
 
 struct nTuple_calculator {
     template <typename T>
-    static T& get_value(T* v, size_type s) {
+    static T& get_value(T* v, int s) {
         return v[s];
     };
     template <typename T>
-    static T const& get_value(T const* v, size_type s) {
+    static T const& get_value(T const* v, int s) {
         return v[s];
     };
 
@@ -177,36 +177,37 @@ struct nTuple_calculator {
         return get_value(v[*s], s + 1);
     };
 
-    template <typename T, size_type... N, typename Idx>
+    template <typename T, int... N, typename Idx>
     static decltype(auto) get_value(declare::nTuple_<T, N...>& v, Idx const* idx) {
         return get_value(v.data_[idx[0]], idx + 1);
     };
 
-    template <typename T, size_type... N, typename Idx>
+    template <typename T, int... N, typename Idx>
     static decltype(auto) get_value(declare::nTuple_<T, N...> const& v, Idx const* idx) {
         return get_value(v.data_[idx[0]], idx + 1);
     };
 
-    template <typename T, size_type... N, typename... Idx>
-    static decltype(auto) get_value(declare::nTuple_<T, N...>& v, size_type s, Idx&&... idx) {
+    template <typename T, int... N, typename... Idx>
+    static decltype(auto) get_value(declare::nTuple_<T, N...>& v, int s, Idx&&... idx) {
         return get_value(v.data_[s], std::forward<Idx>(idx)...);
     };
 
-    template <typename T, size_type... N, typename... Idx>
-    static decltype(auto) get_value(declare::nTuple_<T, N...> const& v, size_type s, Idx&&... idx) {
+    template <typename T, int... N, typename... Idx>
+    static decltype(auto) get_value(declare::nTuple_<T, N...> const& v, int s, Idx&&...
+    idx) {
         return get_value(v.data_[s], std::forward<Idx>(idx)...);
     };
 
     template <typename... T, typename... Idx>
     static decltype(auto) get_value(declare::Expression<tags::_nTuple_cross, T...> const& expr,
-                                    size_type s, Idx&&... others) {
+                                    int s, Idx&&... others) {
         return get_value(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
                    get_value(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
                get_value(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
                    get_value(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
     }
 
-    template <typename TOP, typename... Others, size_type... index, typename... Idx>
+    template <typename TOP, typename... Others, int... index, typename... Idx>
     static decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr,
                                          index_sequence<index...>, Idx&&... s) {
         return ((expr.m_op_(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
@@ -217,9 +218,9 @@ struct nTuple_calculator {
         return ((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
 
-    template <typename V, size_type N0, size_type... N, typename TOP, typename TR>
+    template <typename V, int N0, int... N, typename TOP, typename TR>
     static void apply(TOP const& op, declare::nTuple_<V, N0, N...>& lhs, TR& rhs) {
-        for (size_type i = 0; i < N0; ++i) { op(get_value(lhs, i), get_value(rhs, i)); }
+        for (int i = 0; i < N0; ++i) { op(get_value(lhs, i), get_value(rhs, i)); }
     };
 };
 }
@@ -233,7 +234,7 @@ struct nTuple_<TV> {
     typedef TV pod_type;
 };
 
-template <typename TV, size_type N0, size_type... NOthers>
+template <typename TV, int N0, int... NOthers>
 struct nTuple_<TV, N0, NOthers...> {
     typedef nTuple_<TV, N0, NOthers...> this_type;
 
@@ -245,17 +246,17 @@ struct nTuple_<TV, N0, NOthers...> {
 
     sub_type data_[N0];
 
-    sub_type& operator[](size_type s) { return data_[s]; }
+    sub_type& operator[](int s) { return data_[s]; }
 
-    sub_type const& operator[](size_type s) const { return data_[s]; }
+    sub_type const& operator[](int s) const { return data_[s]; }
 
-    sub_type& at(size_type s) { return data_[s]; }
+    sub_type& at(int s) { return data_[s]; }
 
-    sub_type const& at(size_type s) const { return data_[s]; }
+    sub_type const& at(int s) const { return data_[s]; }
 
-    value_type& at(size_type const* s) { return calculator::get_value(*this, s); }
+    value_type& at(int const* s) { return calculator::get_value(*this, s); }
 
-    value_type const& at(size_type const* s) const { return calculator::get_value(*this, s); }
+    value_type const& at(int const* s) const { return calculator::get_value(*this, s); }
 
     template <typename... Idx>
     decltype(auto) at(Idx&&... s) {
@@ -317,9 +318,9 @@ namespace st = simpla::traits;
 template <typename TRes, typename TL, typename TR, typename TOP, typename TReduction>
 TRes reduce(TRes init, TL const& lhs, TR const& rhs, TOP const& op, TReduction const& reduction,
             ENABLE_IF((std::max(traits::extent<TL>::value, traits::extent<TR>::value) > 1))) {
-    static constexpr size_type N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
+    static constexpr int N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
     TRes res = init;
-    for (size_type i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i) {
         res = reduction(res, reduce(init, nTuple_calculator::get_value(lhs, i),
                                     nTuple_calculator::get_value(rhs, i), op, reduction));
     }
@@ -332,7 +333,7 @@ TRes reduce(TRes init, TL const& lhs, TR const& rhs, TOP const& op, TReduction c
     return init;
 }
 
-template <typename V, size_type... N, typename TOP, typename... Args>
+template <typename V, int... N, typename TOP, typename... Args>
 struct expr_parser<declare::nTuple_<V, N...>, declare::Expression<TOP, Args...>> {
     static declare::nTuple_<V, N...> eval(declare::Expression<TOP, Args...> const& expr) {
         declare::nTuple_<V, N...> res;
@@ -343,11 +344,11 @@ struct expr_parser<declare::nTuple_<V, N...>, declare::Expression<TOP, Args...>>
 template <typename TL, typename TR>
 struct expr_parser<Real, declare::Expression<tags::_nTuple_dot, TL, TR>> {
     static Real eval(declare::Expression<tags::_nTuple_dot, TL, TR> const& expr) {
-        static constexpr size_type N =
+        static constexpr int N =
             std::max(traits::extent<TL>::value, traits::extent<TR>::value);
         Real res = 0.0;
 
-        for (size_type i = 0; i < N; ++i) {
+        for (int i = 0; i < N; ++i) {
             res +=
                 static_cast<Real>(dot(nTuple_calculator::get_value(std::get<0>(expr.m_args_), i),
                                       nTuple_calculator::get_value(std::get<1>(expr.m_args_), i)));
@@ -360,16 +361,16 @@ struct expr_parser<Real, declare::Expression<tags::_nTuple_dot, TL, TR>> {
 }  // namespace calculaus{
 }  // namespace algebra
 
-template <typename T, size_type... N>
+template <typename T, int... N>
 using nTuple = algebra::declare::nTuple_<T, N...>;
 
-template <typename T, size_type N>
+template <typename T, int N>
 using Vector = algebra::declare::nTuple_<T, N>;
 
-template <typename T, size_type M, size_type N>
+template <typename T, int M, int N>
 using Matrix = algebra::declare::nTuple_<T, M, N>;
 
-template <typename T, size_type... N>
+template <typename T, int... N>
 using Tensor = algebra::declare::nTuple_<T, N...>;
 
 }  // namespace simpla
