@@ -22,7 +22,6 @@
 namespace simpla {
 namespace mesh {
 
-
 /**
  * @ingroup mesh
  *
@@ -123,11 +122,10 @@ struct mesh_traits<CartesianGeometry> {
     typedef Real scalar_type;
 
     template <int IFORM, int DOF>
-    struct hasher {
+    struct Shift {
         template <typename... Args>
-        hasher(Args&&... args) {}
-        constexpr size_type operator()(CartesianGeometry const& m, id const& s) const { return m
-                    .hash(IFORM, DOF, s); }
+        Shift(Args &&... args) {}
+        constexpr id operator()(id const &s) const { return s; }
     };
 };
 

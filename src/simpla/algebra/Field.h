@@ -26,11 +26,10 @@ struct mesh_traits {
     typedef Real scalar_type;
 
     template <int IFORM, int DOF>
-    struct hasher {
+    struct Shift {
         template <typename... Args>
-        hasher(Args&&... args) {}
-        constexpr size_type operator()(TM const& m, id const& s) const {
-            return m.hash(IFORM, DOF, s);
+        Shift(Args&&... args) {}
+        constexpr id const& operator()(TM const& m, id const& s) const {            return s;
         }
     };
 };
@@ -127,7 +126,7 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
     typedef TM mesh_type;
 
     typedef typename mesh::mesh_traits<mesh_type>::id mesh_id;
-    typedef typename mesh::mesh_traits<mesh_type>::template hasher<IFORM, DOF> Hasher;
+    typedef typename mesh::mesh_traits<mesh_type>::template Shift<IFORM, DOF> Shift;
 
    private:
     value_type* m_data_ = nullptr;
@@ -136,7 +135,7 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
 
     mesh_type const* m_mesh_;
 
-    Hasher m_hasher_;
+    Shift m_shift_;
 
    public:
     FieldView() : m_mesh_(nullptr), m_data_(nullptr), m_data_holder_(nullptr){};
@@ -145,22 +144,19 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
         : m_data_(const_cast<value_type*>(other.data())),
           m_mesh_(other.mesh()),
           m_data_holder_(other.data_holder()),
-          m_hasher_(other.m_hasher_) {}
+          m_shift_(other.m_shift_) {}
 
-    explicit FieldView(FieldView<TM, TV, IFORM, DOF> const& other, Hasher const& hasher)
+    explicit FieldView(FieldView<TM, TV, IFORM, DOF> const& other, Shift const& hasher)
         : m_data_(const_cast<value_type*>(other.data())),
           m_mesh_(other.mesh()),
           m_data_holder_(other.data_holder()),
-          m_hasher_(other.m_hasher_) {}
+          m_shift_(other.m_shift_) {}
 
-    FieldView(mesh_type const* m, value_type* d = nullptr, Hasher hasher = Hasher())
-        : m_mesh_(m),
-          m_data_(d),
-          m_data_holder_(d, simpla::tags::do_nothing()),
-          m_hasher_(hasher) {}
+    FieldView(mesh_type const* m, value_type* d = nullptr, Shift hasher = Shift())
+        : m_mesh_(m), m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()), m_shift_(hasher) {}
 
-    FieldView(mesh_type const* m, std::shared_ptr<value_type> const& d, Hasher hasher = Hasher())
-        : m_mesh_(m), m_data_(d.get()), m_data_holder_(d), m_hasher_(hasher) {}
+    FieldView(mesh_type const* m, std::shared_ptr<value_type> const& d, Shift hasher = Shift())
+        : m_mesh_(m), m_data_(d.get()), m_data_holder_(d), m_shift_(hasher) {}
 
     virtual ~FieldView() {}
 
@@ -237,11 +233,11 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
     };
     decltype(auto) at(mesh_id const& s) const {
         ASSERT(m_data_ != nullptr);
-        return m_data_[m_hasher_(*m_mesh_, s)];
+        return m_data_[m_mesh_->hash(m_shift_(s))];
     }
     decltype(auto) at(mesh_id const& s) {
         ASSERT(m_data_ != nullptr);
-        return m_data_[m_hasher_(*m_mesh_, s)];
+        return m_data_[m_mesh_->hash(m_shift_(s))];
     }
     template <typename... TID>
     value_type& at(TID&&... s) {
@@ -291,8 +287,9 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
         for (int i = 0; i < num_com; ++i) {
             for (int j = 0; j < DOF; ++j) {
                 r.foreach ([&](mesh_id s) {
-                    s=m_hasher_(s);
-                    op(at(s), calculus_policy::get_value(*m_mesh_, std::forward<Args>(args), s)...);
+                    s = m_shift_(s);
+                    op(m_data_[m_mesh_->hash(s)],
+                        calculus_policy::get_value(*m_mesh_,std::forward<Args>(args), s)...);
                 });
             }
         }
@@ -321,7 +318,7 @@ class Field_<TM, TV, IFORM, DOF> : public FieldView<TM, TV, IFORM, DOF> {
     ~Field_() {}
 
     using typename base_type::mesh_id;
-    using typename base_type::Hasher;
+    using typename base_type::Shift;
     using base_type::at;
     //    using base_type::get;
     using base_type::mesh;
@@ -330,7 +327,7 @@ class Field_<TM, TV, IFORM, DOF> : public FieldView<TM, TV, IFORM, DOF> {
 
     template <typename P>
     this_type operator[](P const& p) const {
-        return Field_<TM, TV, IFORM, DOF>(*this, Hasher(p));
+        return Field_<TM, TV, IFORM, DOF>(*this, Shift(p));
     }
 
     this_type& operator=(this_type const& rhs) {
