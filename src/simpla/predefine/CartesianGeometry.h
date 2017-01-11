@@ -8,19 +8,19 @@
 #ifndef SIMPLA_CORECTMESH_H
 #define SIMPLA_CORECTMESH_H
 
-#include <vector>
-#include <iomanip>
-#include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/EntityId.h>
+#include <simpla/mesh/MeshCommon.h>
+#include <iomanip>
+#include <vector>
 
-#include <simpla/toolbox/MemoryPool.h>
 #include <simpla/mesh/Chart.h>
+#include <simpla/toolbox/MemoryPool.h>
 //#include <simpla/mesh/DataBlock.h>
 //#include <simpla/mesh/MeshBlock.h>
 //#include "simpla/mesh/Chart.h"
 
-namespace simpla { namespace mesh
-{
+namespace simpla {
+namespace mesh {
 
 
 /**
@@ -29,12 +29,9 @@ namespace simpla { namespace mesh
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public Chart
-{
-public:
-
-SP_OBJECT_HEAD(CartesianGeometry, Chart)
-
+struct CartesianGeometry : public Chart {
+   public:
+    SP_OBJECT_HEAD(CartesianGeometry, Chart)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -69,24 +66,20 @@ SP_OBJECT_HEAD(CartesianGeometry, Chart)
      *
      */
 
-
-
-public:
-
+   public:
     typedef MeshEntityId id_type;
 
     CartesianGeometry() {}
 
     CartesianGeometry(index_type const *lower, index_type const *upper, Real const *dx = nullptr,
                       Real const *origin = nullptr)
-            : Chart(3/*NDIMS*/, lower, upper, dx, origin) {}
+        : Chart(3 /*NDIMS*/, lower, upper, dx, origin) {}
 
     ~CartesianGeometry() {}
 
     void initialize(Real data_time, Real dt);
 
-private:
-
+   private:
     nTuple<Real, 3> m_dx_, m_inv_dx_;
 
     size_tuple m_dims_;
@@ -95,22 +88,21 @@ private:
     Real m_inv_volume_[9];
     Real m_dual_volume_[9];
     Real m_inv_dual_volume_[9];
-public:
+
+   public:
     typedef mesh::MeshEntityIdCoder m;
 
-    template<typename ...Args> void apply(Args &&...) const {}
+    template <typename... Args>
+    void apply(Args &&...) const {}
 
-    void deploy() {Chart::deploy();};
+    void deploy() { Chart::deploy(); };
 
-    template<typename ...Args>
-    point_type point(index_type x, index_type y,
-                     index_type z) const { return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)}; }
-
-    virtual point_type
-    point(MeshEntityId s) const
-    {
-       return  Chart::point(s);
+    template <typename... Args>
+    point_type point(index_type x, index_type y, index_type z) const {
+        return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)};
     }
+
+    virtual point_type point(MeshEntityId s) const { return Chart::point(s); }
 
     virtual point_type point(MeshEntityId s, point_type const &r) const { return Chart::point(s); };
 
@@ -122,11 +114,24 @@ public:
 
     virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
+};  // struct  Mesh
 
-}; // struct  Mesh
+template <>
+struct mesh_traits<CartesianGeometry> {
+    typedef CartesianGeometry type;
+    typedef MeshEntityId id;
+    typedef Real scalar_type;
 
-inline void CartesianGeometry::initialize(Real data_time, Real dt)
-{
+    template <int IFORM, int DOF>
+    struct hasher {
+        template <typename... Args>
+        hasher(Args&&... args) {}
+        constexpr size_type operator()(CartesianGeometry const& m, id const& s) const { return m
+                    .hash(IFORM, DOF, s); }
+    };
+};
+
+inline void CartesianGeometry::initialize(Real data_time, Real dt) {
     /**
         *\verbatim
         *                ^y
@@ -148,7 +153,6 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
         *\endverbatim
         */
 
-
     m_volume_[0 /*000*/] = 1;
     m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_dx_[0];
     m_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_dx_[1];
@@ -157,7 +161,6 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
     m_volume_[5 /*101*/] = m_volume_[4] * m_volume_[1];
     m_volume_[6 /*110*/] = m_volume_[4] * m_volume_[2];
     m_volume_[7 /*111*/] = m_volume_[1] * m_volume_[2] * m_volume_[4];
-
 
     m_dual_volume_[0 /*000*/] = m_volume_[7];
     m_dual_volume_[1 /*001*/] = m_volume_[6];
@@ -168,7 +171,6 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
     m_dual_volume_[6 /*110*/] = m_volume_[1];
     m_dual_volume_[7 /*111*/] = m_volume_[0];
 
-
     m_inv_volume_[0 /*000*/] = 1;
     m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_inv_dx_[0];
     m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_inv_dx_[1];
@@ -178,11 +180,9 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
     m_inv_volume_[6 /*110*/] = m_inv_volume_[4] * m_inv_volume_[2];
     m_inv_volume_[7 /*111*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
 
-
     m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 0 : m_inv_volume_[1];
     m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 0 : m_inv_volume_[2];
     m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 0 : m_inv_volume_[4];
-
 
     m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
     m_inv_dual_volume_[1 /*001*/] = m_inv_volume_[6];
@@ -192,44 +192,44 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
     m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
     m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
     m_inv_dual_volume_[7 /*111*/] = m_inv_volume_[0];
-
-
 }
-}} // namespace simpla // namespace  mesh_as
+}
+}  // namespace simpla // namespace  mesh_as
 
-#endif //SIMPLA_CORECTMESH_H
-//typedef typename MeshEntityIdCoder::range_type block_range_type;
-//
-//virtual EntityIdRange select(box_type const &other,
-//                           MeshEntityType entityType = VERTEX,
-//                           MeshZoneTag status = SP_ES_ALL) const
-//{
-//
-//    point_type c_lower, c_upper;
-//    std::tie(c_lower, c_upper) = box(status);
-//
-//    bool overlapped = true;
-//
-//    for (int i = 0; i < 3; ++i)
-//    {
-//        c_lower[i] = std::max(c_lower[i], std::get<0>(other)[i]);
-//        c_upper[i] = std::min(c_upper[i], std::get<1>(other)[i]);
-//
-//        if (c_lower[i] >= c_upper[i]) { overlapped = false; }
-//    }
-//
-//    if (!overlapped)
-//    {
-//        return EntityIdRange();
-//    } else
-//    {
-//        return EntityIdRange(
-//                MeshEntityIdCoder::make_range(point_to_index(c_lower), point_to_index(c_upper), entityType));
+#endif  // SIMPLA_CORECTMESH_H
+        // typedef typename MeshEntityIdCoder::range_type block_range_type;
+        //
+        // virtual EntityIdRange select(box_type const &other,
+        //                           MeshEntityType entityType = VERTEX,
+        //                           MeshZoneTag status = SP_ES_ALL) const
+        //{
+        //
+        //    point_type c_lower, c_upper;
+        //    std::tie(c_lower, c_upper) = box(status);
+        //
+        //    bool overlapped = true;
+        //
+        //    for (int i = 0; i < 3; ++i)
+        //    {
+        //        c_lower[i] = std::max(c_lower[i], std::get<0>(other)[i]);
+        //        c_upper[i] = std::min(c_upper[i], std::get<1>(other)[i]);
+        //
+        //        if (c_lower[i] >= c_upper[i]) { overlapped = false; }
+        //    }
+        //
+        //    if (!overlapped)
+        //    {
+        //        return EntityIdRange();
+        //    } else
+        //    {
+        //        return EntityIdRange(
+//                MeshEntityIdCoder::make_range(point_to_index(c_lower), point_to_index(c_upper),
+//                entityType));
 //    }
 //
 //};
 //
-//virtual box_type box(MeshZoneTag status = SP_ES_OWNED) const
+// virtual box_type box(MeshZoneTag status = SP_ES_OWNED) const
 //{
 //    box_type res;
 //
@@ -259,17 +259,18 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
 //}
 //
 //
-//virtual EntityIdRange Range(box_type const &b, MeshEntityType entityType = VERTEX) const
+// virtual EntityIdRange Range(box_type const &b, MeshEntityType entityType = VERTEX) const
 //{
 //    return Range(index_box(b), entityType);
 //}
 //
-//virtual EntityIdRange Range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
+// virtual EntityIdRange Range(index_box_type const &b, MeshEntityType entityType = VERTEX) const
 //{
 //    return MeshEntityIdCoder::make_range(b, entityType);
 //}
 //
-//virtual EntityIdRange Range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED) const
+// virtual EntityIdRange Range(MeshEntityType entityType = VERTEX, MeshZoneTag status = SP_ES_OWNED)
+// const
 //{
 //    EntityIdRange res;
 //
@@ -288,30 +289,36 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
 //            res.append(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType));
 //            break;
 //        case SP_ES_NON_LOCAL : // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
-//        case SP_ES_SHARED : //       = 0x04,                    0b000100 shared by two or more get_mesh grid_dims
+//        case SP_ES_SHARED : //       = 0x04,                    0b000100 shared by two or more
+//        get_mesh grid_dims
 //            break;
-//        case SP_ES_NOT_SHARED  : // = 0x08, //                       0b001000 not shared by other get_mesh grid_dims
+//        case SP_ES_NOT_SHARED  : // = 0x08, //                       0b001000 not shared by other
+//        get_mesh grid_dims
 //            break;
 //        case SP_ES_GHOST : // = SP_ES_SHARED | SP_ES_NOT_OWNED, //              0b000110
 //            res.append(
 //                    MeshEntityIdCoder::make_range(
 //                            index_tuple{m_outer_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
-//                            index_tuple{m_origin_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType));
+//                            index_tuple{m_origin_[0], m_outer_upper_[1], m_outer_upper_[2]},
+//                            entityType));
 //            res.append(
 //                    MeshEntityIdCoder::make_range(
 //                            index_tuple{m_upper_[0], m_outer_lower_[1], m_outer_lower_[2]},
-//                            index_tuple{m_outer_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType));
+//                            index_tuple{m_outer_upper_[0], m_outer_upper_[1], m_outer_upper_[2]},
+//                            entityType));
 //
 //            if (m_dims_[1] > 1)
 //            {
 //                res.append(
 //                        MeshEntityIdCoder::make_range(
 //                                index_tuple{m_origin_[0], m_outer_lower_[1], m_outer_lower_[2]},
-//                                index_tuple{m_upper_[0], m_origin_[1], m_outer_upper_[2]}, entityType));
+//                                index_tuple{m_upper_[0], m_origin_[1], m_outer_upper_[2]},
+//                                entityType));
 //                res.append(
 //                        MeshEntityIdCoder::make_range(
 //                                index_tuple{m_origin_[0], m_upper_[1], m_outer_lower_[2]},
-//                                index_tuple{m_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}, entityType));
+//                                index_tuple{m_upper_[0], m_outer_upper_[1], m_outer_upper_[2]},
+//                                entityType));
 //            }
 //            if (m_dims_[2] > 1)
 //            {
@@ -322,7 +329,8 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
 //                res.append(
 //                        MeshEntityIdCoder::make_range(
 //                                index_tuple{m_origin_[0], m_origin_[1], m_upper_[2]},
-//                                index_tuple{m_upper_[0], m_upper_[1], m_outer_upper_[2]}, entityType));
+//                                index_tuple{m_upper_[0], m_upper_[1], m_outer_upper_[2]},
+//                                entityType));
 //            }
 //            break;
 //        case SP_ES_DMZ: //  = 0x100,
@@ -347,7 +355,8 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
 //        case SP_ES_OWNED:
 //            res.append(MeshEntityIdCoder::make_range(m_origin_, m_upper_, entityType));
 //            break;
-//        case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh grid_dims,
+//        case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary)
+//        shared by two get_mesh grid_dims,
 //            res.append(m_interface_entities_[entityType]);
 //            break;
 //        default:
@@ -388,7 +397,7 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
  *              M      ---------->      G
  *              x                       y
  **/
-//private:
+// private:
 //
 //
 //    point_type m_l2g_shift_ = {{0, 0, 0}};
@@ -429,7 +438,7 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
 //        return std::move(res);
 //    }
 //
-//public:
+// public:
 //
 //    virtual point_type point(mesh_id_type const &s) const { return std::move(map(m::point(s))); }
 //
@@ -443,7 +452,8 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
 //        return std::move(map(m::point_local_to_global(t)));
 //    }
 //
-//    virtual std::tuple<mesh_id_type, point_type> point_global_to_local(point_type const &x, int n_id = 0) const
+//    virtual std::tuple<mesh_id_type, point_type> point_global_to_local(point_type const &x, int
+//    n_id = 0) const
 //    {
 //        return std::move(m::point_global_to_local(inv_map(x), n_id));
 //    }
@@ -455,7 +465,8 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
 //
 //
 //
-//    std::tuple<index_tuple, index_tuple> index_box(std::tuple<point_type, point_type> const &b) const
+//    std::tuple<index_tuple, index_tuple> index_box(std::tuple<point_type, point_type> const &b)
+//    const
 //    {
 //
 //        point_type b0, b1, x0, x1;
@@ -480,11 +491,7 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt)
 //
 //    }
 
-
 //    struct calculus_policy
 //    {
 //        template<typename ...Args> static double eval(Args &&...args) { return 1.0; }
 //    };
-
-
-

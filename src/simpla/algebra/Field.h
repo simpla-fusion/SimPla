@@ -9,8 +9,6 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/mesh/EntityId.h>
-#include <simpla/mesh/MeshCommon.h>
 #include <simpla/mpl/Range.h>
 #include <simpla/toolbox/FancyStream.h>
 #include <simpla/toolbox/sp_def.h>
@@ -19,6 +17,25 @@
 #include "nTuple.h"
 
 namespace simpla {
+namespace mesh {
+
+template <typename TM>
+struct mesh_traits {
+    typedef TM type;
+    typedef size_type id;
+    typedef Real scalar_type;
+
+    template <int IFORM, int DOF>
+    struct hasher {
+        template <typename... Args>
+        hasher(Args&&... args) {}
+        constexpr size_type operator()(TM const& m, id const& s) const {
+            return m.hash(IFORM, DOF, s);
+        }
+    };
+};
+}  // namespace mesh{
+
 namespace algebra {
 namespace declare {
 template <typename TM, typename TV, int...>
@@ -28,20 +45,27 @@ class Field_;
 template <typename TM, typename TV, int...>
 class FieldView;
 
-template <typename TM>
-struct mesh_traits {
-    typedef TM type;
-    typedef mesh::MeshEntityId id;
-    typedef Real scalar_type;
-};
-
 template <typename>
 struct field_traits {
-    static constexpr int iform =VERTEX;
-    static constexpr int dof =1;
+    static constexpr int iform = VERTEX;
+    static constexpr int dof = 1;
 };
-template <typename TM, typename TV, int... I>
-struct mesh_traits<declare::Field_<TM, TV, I...>> : public mesh_traits<TM> {};
+template <typename TM, typename TV, int IFORM, int DOF>
+struct field_traits<declare::Field_<TM, TV, IFORM, DOF>> {
+    static constexpr bool is_field = true;
+    static constexpr int iform = IFORM;
+    static constexpr int dof = DOF;
+    typedef TV value_type;
+    typedef TM mesh_type;
+
+   private:
+    typedef std::conditional_t<DOF == 1, TV, declare::nTuple_<TV, DOF>> cell_tuple;
+
+   public:
+    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
+                               declare::nTuple_<cell_tuple, 3>>
+        field_value_type;
+};
 
 namespace traits {
 
@@ -92,30 +116,18 @@ struct field_value_type<declare::Field_<TM, TV, IFORM, DOF>> {
 
 }  // namespace traits{
 
-template <int... N>
-struct PlaceHolder;
-template <int N>
-struct PlaceHolder<N> {
-    int v = 0;
-
-    PlaceHolder<N> operator-(int n) const { return PlaceHolder<N>{v - n}; }
-};
-static constexpr PlaceHolder<0> I{0};
-static constexpr PlaceHolder<1> J{0};
-static constexpr PlaceHolder<2> K{0};
-PlaceHolder<0> operator""_p(unsigned long long n) { return PlaceHolder<0>{static_cast<int>(n)}; }
 template <typename TM, typename TV, int IFORM, int DOF>
 class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
    private:
     typedef FieldView<TM, TV, IFORM, DOF> this_type;
-    //    typedef TM::attribute<TV, IFORM, DOF> base_type;
 
    public:
     typedef TV value_type;
 
     typedef TM mesh_type;
 
-    typedef typename mesh_traits<mesh_type>::id mesh_id;
+    typedef typename mesh::mesh_traits<mesh_type>::id mesh_id;
+    typedef typename mesh::mesh_traits<mesh_type>::template hasher<IFORM, DOF> Hasher;
 
    private:
     value_type* m_data_ = nullptr;
@@ -124,29 +136,31 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
 
     mesh_type const* m_mesh_;
 
-    int m_sub_ = -1;
-    mesh_id m_shift_ {.v= 0};
+    Hasher m_hasher_;
 
    public:
-    FieldView() : m_mesh_(nullptr), m_data_(nullptr){};
+    FieldView() : m_mesh_(nullptr), m_data_(nullptr), m_data_holder_(nullptr){};
 
     explicit FieldView(this_type const& other)
         : m_data_(const_cast<value_type*>(other.data())),
           m_mesh_(other.mesh()),
           m_data_holder_(other.data_holder()),
-          m_sub_(other.m_sub_),
-          m_shift_(other.m_shift_) {}
+          m_hasher_(other.m_hasher_) {}
 
-    explicit FieldView(this_type const& other, int sub) : FieldView(other) { m_sub_ = sub; }
+    explicit FieldView(FieldView<TM, TV, IFORM, DOF> const& other, Hasher const& hasher)
+        : m_data_(const_cast<value_type*>(other.data())),
+          m_mesh_(other.mesh()),
+          m_data_holder_(other.data_holder()),
+          m_hasher_(other.m_hasher_) {}
 
-    template <int... N>
-    explicit FieldView(this_type const& other, PlaceHolder<N...> const&) : FieldView(other) {}
+    FieldView(mesh_type const* m, value_type* d = nullptr, Hasher hasher = Hasher())
+        : m_mesh_(m),
+          m_data_(d),
+          m_data_holder_(d, simpla::tags::do_nothing()),
+          m_hasher_(hasher) {}
 
-    FieldView(mesh_type const* m, value_type* d = nullptr)
-        : m_mesh_(m), m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {}
-
-    FieldView(mesh_type const* m, std::shared_ptr<value_type> const& d)
-        : m_mesh_(m), m_data_(d.get()), m_data_holder_(d) {}
+    FieldView(mesh_type const* m, std::shared_ptr<value_type> const& d, Hasher hasher = Hasher())
+        : m_mesh_(m), m_data_(d.get()), m_data_holder_(d), m_hasher_(hasher) {}
 
     virtual ~FieldView() {}
 
@@ -222,12 +236,12 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
         memcpy((void*)(m_data_), (void const*)(other.m_data_), size() * sizeof(value_type));
     };
     decltype(auto) at(mesh_id const& s) const {
-        ASSERT(m_data_ != nullptr && m_mesh_ != nullptr);
-        return m_data_[m_mesh_->hash(IFORM, DOF, s + m_shift_)];
+        ASSERT(m_data_ != nullptr);
+        return m_data_[m_hasher_(*m_mesh_, s)];
     }
     decltype(auto) at(mesh_id const& s) {
-        ASSERT(m_data_ != nullptr && m_mesh_ != nullptr);
-        return m_data_[m_mesh_->hash(IFORM, DOF, s + m_shift_)];
+        ASSERT(m_data_ != nullptr);
+        return m_data_[m_hasher_(*m_mesh_, s)];
     }
     template <typename... TID>
     value_type& at(TID&&... s) {
@@ -237,16 +251,6 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
     value_type at(TID&&... s) const {
         ASSERT(m_data_ != nullptr);
         return at(m_mesh_->pack(IFORM, DOF, std::forward<TID>(s)...));
-    }
-
-    template <typename... TID>
-    decltype(auto) get(index_type s, TID&&... args) {
-        return at(m_mesh_->pack(IFORM, DOF, s, std::forward<TID>(args)...));
-    }
-
-    template <typename... TID>
-    decltype(auto) get(index_type s, TID&&... args) const {
-        return at(m_mesh_->pack(IFORM, DOF, s, std::forward<TID>(args)...));
     }
 
     decltype(auto) operator[](mesh_id const& s) const { return at(s); }
@@ -274,10 +278,6 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
 
     decltype(auto) operator()(point_type const& x) const { return gather(x); }
 
-    //    template <typename... Args>
-    //    void assign(mesh_id const& s, Args&&... args) {
-    //        calculus_policy::assign(*m_mesh_, *this, s, std::forward<Args>(args)...);
-    //    }
     template <typename... Args>
     void assign(Args&&... args) {
         apply(tags::_assign(), std::forward<Args>(args)...);
@@ -288,17 +288,14 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
     void apply_(Range<mesh_id> const& r, TOP const& op, Args&&... args) {
         int num_com = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 
-        //        for (int i = 0; i < num_com; ++i) {
-        //            for (int j = 0; j < DOF; ++j) {
-        //                mesh::MeshEntityId tag = mesh::MeshEntityIdCoder::get_tag(IFORM, i, j);
-        //
-        //                r.foreach ([&](mesh_id s) {
-        //                    s = mesh::MeshEntityIdCoder::tag(s, tag.v);
-        //                    op(at(s), calculus_policy::get_value(*m_mesh_,
-        //                    std::forward<Args>(args), s)...);
-        //                });
-        //            }
-        //        }
+        for (int i = 0; i < num_com; ++i) {
+            for (int j = 0; j < DOF; ++j) {
+                r.foreach ([&](mesh_id s) {
+                    s=m_hasher_(s);
+                    op(at(s), calculus_policy::get_value(*m_mesh_, std::forward<Args>(args), s)...);
+                });
+            }
+        }
     }
 
     template <typename... Args>
@@ -324,17 +321,16 @@ class Field_<TM, TV, IFORM, DOF> : public FieldView<TM, TV, IFORM, DOF> {
     ~Field_() {}
 
     using typename base_type::mesh_id;
+    using typename base_type::Hasher;
     using base_type::at;
-    using base_type::get;
+    //    using base_type::get;
     using base_type::mesh;
     using base_type::deploy;
     using base_type::print;
 
-    this_type operator[](int n) const { return Field_<TM, TV, IFORM, DOF>(*this, n); }
-
-    template <int... N>
-    this_type operator[](PlaceHolder<N...> const& s) const {
-        return Field_<TM, TV, IFORM, DOF>(*this, s);
+    template <typename P>
+    this_type operator[](P const& p) const {
+        return Field_<TM, TV, IFORM, DOF>(*this, Hasher(p));
     }
 
     this_type& operator=(this_type const& rhs) {

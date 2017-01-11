@@ -246,6 +246,9 @@ class MeshBlock : public Object,
                    index_type m) const {
         return 0;
     }
+    size_type hash(int entity_type, int dof, MeshEntityId const& s) const {
+        return 0;
+    }
 
     typedef MeshEntityIdCoder m;
 

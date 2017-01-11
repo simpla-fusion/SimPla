@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     f.clear();
     g.clear();
 
-//    f(0, 2, 3, 1) = 1990;
+    //    f(0, 2, 3, 1) = 1990;
     f = 1;
     g = 2;
 
@@ -58,9 +58,9 @@ int main(int argc, char** argv) {
     CHECK(E);
     rho = diverge(E);
 
-    E[I] = 2;
+    //    E[I] = 2;
 
-//    B[2][I] = (E[0][- 1_i,1_j] * v[0][I] - E[0][J - 1] * v[0][J - 1] + E[1][I] * v[1][I] -
+//    B[2][I] = (E[0][-1_i, 1_j] * v[0][I] - E[0][J - 1] * v[0][J - 1] + E[1][I] * v[1][I] -
 //               E[1][I - 1] * v[1][I - 1]) /
 //              v[3][I];
     CHECK(E);
