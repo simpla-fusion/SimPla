@@ -115,25 +115,25 @@ std::shared_ptr<MeshBlock> MeshBlock::intersection(index_box_type const& other_b
     return create(inc_level, toolbox::intersection(m_inner_box_, other_box));
 }
 
-Range<MeshEntityId> MeshBlock::range(box_type const& b, int entityType, int dof) const {
+Range<MeshEntityId> MeshBlock::range(box_type const& b, int entityType) const {
     index_tuple l, u;
     l = point_to_index(std::get<1>(b));
     u = point_to_index(std::get<1>(b)) + 1;
-    return std::move(range(&l[0], &u[0], entityType, dof));
+    return std::move(range(&l[0], &u[0], entityType));
 }
 
-Range<MeshEntityId> MeshBlock::range(index_box_type const& b, int iform, int dof) const {
-    return std::move(range(&(std::get<0>(b)[0]), &(std::get<1>(b)[0]), iform, dof));
+Range<MeshEntityId> MeshBlock::range(index_box_type const& b, int iform) const {
+    return std::move(range(&(std::get<0>(b)[0]), &(std::get<1>(b)[0]), iform));
 }
 
-Range<MeshEntityId> MeshBlock::range(index_type const* b, index_type const* e, int entityType,
-                                     int dof) const {
+Range<MeshEntityId> MeshBlock::range(index_type const* b, index_type const* e,
+                                     int entityType) const {
     return std::move(
-        Range<MeshEntityId>(std::make_shared<ContinueRange<MeshEntityId>>(b, e, entityType, dof)));
-    //    return std::move(make_continue_range<MeshEntityId>(b, e, entityType, dof));
+        Range<MeshEntityId>(std::make_shared<ContinueRange<MeshEntityId>>(b, e, entityType)));
+    //    return std::move(make_continue_range<MeshEntityId>(b, e, entityType));
 }
 
-Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, int entityType, int dof) const {
+Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, int entityType) const {
     Range<mesh::MeshEntityId> res;
 
     /**
@@ -153,12 +153,10 @@ Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, int entityType, int dof
     m_g_dimensions_ = toolbox::dimensions(m_g_box_);
     switch (status) {
         case SP_ES_ALL:  // all valid
-            res.append(
-                std::make_shared<ContinueRange<MeshEntityId>>(m_outer_box_, entityType, dof));
+            res.append(std::make_shared<ContinueRange<MeshEntityId>>(m_outer_box_, entityType));
             break;
         case SP_ES_OWNED:
-            res.append(
-                std::make_shared<ContinueRange<MeshEntityId>>(m_inner_box_, entityType, dof));
+            res.append(std::make_shared<ContinueRange<MeshEntityId>>(m_inner_box_, entityType));
             break;
         case SP_ES_NON_LOCAL:  // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
         case SP_ES_SHARED:     //       = 0x04,                    0b000100 shared by two or more
@@ -172,38 +170,37 @@ Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, int entityType, int dof
                 res.append(std::make_shared<ContinueRange<MeshEntityId>>(
                     index_box_type{{m_outer_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
                                    {m_inner_lower_[0], m_outer_upper_[1], m_outer_upper_[2]}},
-                    entityType, dof));
+                    entityType));
                 res.append(std::make_shared<ContinueRange<MeshEntityId>>(
                     index_box_type{{m_inner_upper_[0], m_outer_lower_[1], m_outer_lower_[2]},
                                    {m_outer_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}},
-                    entityType, dof));
+                    entityType));
             }
             if (m_g_dimensions_[1] > 1) {
                 res.append(std::make_shared<ContinueRange<MeshEntityId>>(
                     index_box_type{{m_inner_lower_[0], m_outer_lower_[1], m_outer_lower_[2]},
                                    {m_inner_upper_[0], m_inner_lower_[1], m_outer_upper_[2]}},
-                    entityType, dof));
+                    entityType));
                 res.append(std::make_shared<ContinueRange<MeshEntityId>>(
                     index_box_type{{m_inner_lower_[0], m_inner_upper_[1], m_outer_lower_[2]},
                                    {m_inner_upper_[0], m_outer_upper_[1], m_outer_upper_[2]}},
-                    entityType, dof));
+                    entityType));
             }
             if (m_g_dimensions_[2] > 1) {
                 res.append(std::make_shared<ContinueRange<MeshEntityId>>(
                     index_box_type{{m_inner_lower_[0], m_inner_lower_[1], m_outer_lower_[2]},
                                    {m_inner_upper_[0], m_inner_upper_[1], m_inner_lower_[2]}},
-                    entityType, dof));
+                    entityType));
                 res.append(std::make_shared<ContinueRange<MeshEntityId>>(
                     index_box_type{{m_inner_lower_[0], m_inner_lower_[1], m_inner_upper_[2]},
                                    {m_inner_upper_[0], m_inner_upper_[1], m_outer_upper_[2]}},
-                    entityType, dof));
+                    entityType));
             }
             break;
         case SP_ES_DMZ:      //  = 0x100,
         case SP_ES_NOT_DMZ:  //  = 0x200,
         case SP_ES_LOCAL:    // = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
-            res.append(
-                std::make_shared<ContinueRange<MeshEntityId>>(m_inner_box_, entityType, dof));
+            res.append(std::make_shared<ContinueRange<MeshEntityId>>(m_inner_box_, entityType));
             break;
         case SP_ES_VALID: {
             index_tuple l, u;
@@ -215,7 +212,7 @@ Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, int entityType, int dof
                     u[i] -= 1;
                 }
             }
-            res.append(std::make_shared<ContinueRange<MeshEntityId>>(l, u, entityType, dof));
+            res.append(std::make_shared<ContinueRange<MeshEntityId>>(l, u, entityType));
             break;
         }
         //        case SP_ES_INTERFACE: //  = 0x010, //                        0b010000

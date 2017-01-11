@@ -166,6 +166,8 @@ struct extent<const T> : public index_const<extent<T>::value> {};
 template <typename T>
 struct extents : public index_sequence<> {};
 
+
+
 }  // namespace traits
 
 }  // namespace algebra

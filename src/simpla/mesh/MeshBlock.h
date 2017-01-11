@@ -300,17 +300,15 @@ class MeshBlock : public Object,
                                      nId)));
     };
 
-    virtual Range<MeshEntityId> range(MeshZoneTag status = SP_ES_ALL, int entityType = VERTEX,
-                                      int dof = 1) const;
+    virtual Range<MeshEntityId> range(MeshZoneTag status = SP_ES_ALL,
+                                      int entityType = VERTEX) const;
 
-    virtual Range<MeshEntityId> range(index_box_type const& b, int entity_type = VERTEX,
-                                      int dof = 1) const;
+    virtual Range<MeshEntityId> range(index_box_type const& b, int entity_type = VERTEX) const;
 
-    virtual Range<MeshEntityId> range(box_type const& b, int entityType = VERTEX,
-                                      int dof = 1) const;
+    virtual Range<MeshEntityId> range(box_type const& b, int entityType = VERTEX) const;
 
     virtual Range<MeshEntityId> range(index_type const* b, index_type const* e,
-                                      int entityType = VERTEX, int dof = 1) const;
+                                      int entityType = VERTEX) const;
 
     //    template<typename TFun>
     //    void foreach(TFun const &fun, MeshZoneTag tag, int const &iform = VERTEX, int

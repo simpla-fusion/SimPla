@@ -32,13 +32,16 @@ template <typename TM>
 struct mesh_traits {
     typedef TM type;
     typedef mesh::MeshEntityId id;
+    typedef Real scalar_type;
 };
 
-template <typename TM, typename TV, int... I>
-struct mesh_traits<declare::Field_<TM, TV, I...>> {
-    typedef TM type;
-    typedef mesh::MeshEntityId id;
+template <typename>
+struct field_traits {
+    static constexpr int iform =VERTEX;
+    static constexpr int dof =1;
 };
+template <typename TM, typename TV, int... I>
+struct mesh_traits<declare::Field_<TM, TV, I...>> : public mesh_traits<TM> {};
 
 namespace traits {
 
@@ -122,7 +125,7 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
     mesh_type const* m_mesh_;
 
     int m_sub_ = -1;
-    mesh_id m_shift_;
+    mesh_id m_shift_ {.v= 0};
 
    public:
     FieldView() : m_mesh_(nullptr), m_data_(nullptr){};
@@ -175,7 +178,7 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
 
     virtual size_type size() const {
         ASSERT(m_mesh_ != nullptr);
-        return m_mesh_->size(IFORM, DOF);
+        return m_mesh_->size(IFORM) * DOF;
     }
     auto data_holder() { return m_data_holder_; }
     auto data_holder() const { return m_data_holder_; }
@@ -218,26 +221,32 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
         ASSERT(!other.empty());
         memcpy((void*)(m_data_), (void const*)(other.m_data_), size() * sizeof(value_type));
     };
-
+    decltype(auto) at(mesh_id const& s) const {
+        ASSERT(m_data_ != nullptr && m_mesh_ != nullptr);
+        return m_data_[m_mesh_->hash(IFORM, DOF, s + m_shift_)];
+    }
+    decltype(auto) at(mesh_id const& s) {
+        ASSERT(m_data_ != nullptr && m_mesh_ != nullptr);
+        return m_data_[m_mesh_->hash(IFORM, DOF, s + m_shift_)];
+    }
     template <typename... TID>
     value_type& at(TID&&... s) {
-        ASSERT(m_data_ != nullptr);
-        return m_data_[m_mesh_->hash(IFORM, DOF, std::forward<TID>(s)...)];
+        return at(m_mesh_->pack(IFORM, DOF, std::forward<TID>(s)...));
     }
     template <typename... TID>
     value_type at(TID&&... s) const {
         ASSERT(m_data_ != nullptr);
-        return m_data_[m_mesh_->hash(IFORM, DOF, std::forward<TID>(s)...)];
+        return at(m_mesh_->pack(IFORM, DOF, std::forward<TID>(s)...));
     }
 
-    template <typename... Args>
-    decltype(auto) get(index_type s, Args&&... args) {
-        return m_data_[m_mesh_->hash(IFORM, DOF, s, std::forward<Args>(args)...)];
+    template <typename... TID>
+    decltype(auto) get(index_type s, TID&&... args) {
+        return at(m_mesh_->pack(IFORM, DOF, s, std::forward<TID>(args)...));
     }
 
-    template <typename... Args>
-    decltype(auto) get(index_type s, Args&&... args) const {
-        return m_data_[m_mesh_->hash(IFORM, DOF, s, std::forward<Args>(args)...)];
+    template <typename... TID>
+    decltype(auto) get(index_type s, TID&&... args) const {
+        return at(m_mesh_->pack(IFORM, DOF, s, std::forward<TID>(args)...));
     }
 
     decltype(auto) operator[](mesh_id const& s) const { return at(s); }
