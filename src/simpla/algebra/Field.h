@@ -100,7 +100,7 @@ struct PlaceHolder<N> {
 static constexpr PlaceHolder<0> I{0};
 static constexpr PlaceHolder<1> J{0};
 static constexpr PlaceHolder<2> K{0};
-
+PlaceHolder<0> operator""_p(unsigned long long n) { return PlaceHolder<0>{static_cast<int>(n)}; }
 template <typename TM, typename TV, int IFORM, int DOF>
 class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
    private:

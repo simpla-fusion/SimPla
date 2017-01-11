@@ -787,9 +787,12 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
     SP_OBJECT_HEAD(ContinueRange<mesh::MeshEntityId>, RangeBase<mesh::MeshEntityId>)
 
    public:
-    ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr)
+    ContinueRange(index_type const* b = nullptr, index_type const* e = nullptr,
+                  size_type IFORM = VERTEX, size_type dof = 1)
         : m_min_{b == nullptr ? 0 : b[0], b == nullptr ? 0 : b[1], b == nullptr ? 0 : b[2]},
-          m_max_{e == nullptr ? 1 : e[0], e == nullptr ? 1 : e[1], e == nullptr ? 1 : e[2]} {
+          m_max_{e == nullptr ? 1 : e[0], e == nullptr ? 1 : e[1], e == nullptr ? 1 : e[2]},
+          m_iform_(IFORM),
+          m_dof_(dof) {
         m_grain_size_ = 1;
         for (int i = 0; i < ndims; ++i) {
             if (m_max_[i] - m_min_[i] <= m_grain_size_[i]) {
@@ -797,13 +800,20 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
             }
         }
     }
-    ContinueRange(index_tuple const& b, index_tuple const& e) : ContinueRange(&b[0], &(e[0])) {}
+    ContinueRange(index_tuple const& b, index_tuple const& e, size_type IFORM = VERTEX,
+                  size_type dof = 1)
+        : ContinueRange(&b[0], &(e[0]), IFORM, dof) {}
 
-    ContinueRange(std::tuple<index_tuple, index_tuple> const& b)
-        : ContinueRange(std::get<0>(b), std::get<1>(b)) {}
+    ContinueRange(std::tuple<index_tuple, index_tuple> const& b, size_type IFORM = VERTEX,
+                  size_type dof = 1)
+        : ContinueRange(std::get<0>(b), std::get<1>(b), IFORM, dof) {}
 
     ContinueRange(this_type const& r)
-        : m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_) {}
+        : m_min_(r.m_min_),
+          m_max_(r.m_max_),
+          m_grain_size_(r.m_grain_size_),
+          m_iform_(r.m_iform_),
+          m_dof_(r.m_dof_) {}
 
     std::shared_ptr<base_type> split(concept::tags::split const& proportion) {
         auto res = std::make_shared<this_type>(*this);
@@ -828,10 +838,14 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
     ~ContinueRange() {}
 
     void swap(this_type& other) {
+        std::swap(m_iform_, other.m_iform_);
+        std::swap(m_dof_, other.m_dof_);
         std::swap(m_min_, other.m_min_);
         std::swap(m_max_, other.m_max_);
         std::swap(m_grain_size_, other.m_grain_size_);
     }
+
+    size_type entity_type() const { return m_iform_; }
 
     index_box_type index_box() const { return std::make_tuple(m_min_, m_max_); }
 
@@ -840,7 +854,8 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
     }
 
     size_t size() const {
-        return static_cast<size_t>((m_max_[0] - m_min_[0]) * (m_max_[1] - m_min_[1]) *
+        return static_cast<size_t>(((m_iform_ == VERTEX || m_iform_ == VOLUME) ? 1 : 3) *
+                                   (m_max_[0] - m_min_[0]) * (m_max_[1] - m_min_[1]) *
                                    (m_max_[2] - m_min_[2]));
     }
 
@@ -866,9 +881,12 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
 #pragma omp parallel for
         for (index_type i = ib; i < ie; ++i) {
             for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k) {
-                    body(M::pack_index(i, j, k));
-                }
+                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
+                    for (index_type n = 0, ne = M::m_iform_to_num_of_ele_in_cell_[r.m_iform_];
+                         n < ne; ++n)
+                        for (index_type w = 0; w < m_dof_; ++w) {
+                            body(M::pack_index(i, j, k, M::m_sub_index_to_id_[r.m_iform_][n], w));
+                        }
         }
     }
 
@@ -883,11 +901,18 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
 #pragma omp parallel for
         for (index_type i = ib; i < ie; ++i) {
             for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
-                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k) { body(i, j, k); }
+                for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
+                    for (index_type n = 0, ne = M::m_iform_to_num_of_ele_in_cell_[r.m_iform_];
+                         n < ne; ++n)
+                        for (index_type w = 0; w < m_dof_; ++w) {
+                            body(i, j, k, M::m_sub_index_to_id_[r.m_iform_][n] * m_dof_ + w);
+                        }
         }
     }
 
    private:
+    index_type m_dof_ = 1;
+    size_type m_iform_;
     index_tuple m_min_, m_max_, m_grain_size_;
 };
 

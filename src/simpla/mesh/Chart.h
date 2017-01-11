@@ -64,7 +64,7 @@ class Chart : public concept::Printable, public concept::LifeControllable {
         }
     }
     size_type size(size_type IFORM = VERTEX, size_type DOF = 1) const {
-        return m_mesh_block_->number_of_entities(IFORM, DOF);
+        return m_mesh_block_->number_of_entities(IFORM) * DOF;
     }
     template <typename... Args>
     auto hash(Args&&... args) const {
