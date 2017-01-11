@@ -29,91 +29,37 @@ struct mesh_traits {
     struct Shift {
         template <typename... Args>
         Shift(Args&&... args) {}
-        constexpr id const& operator()(TM const& m, id const& s) const {            return s;
-        }
+        constexpr id const& operator()(TM const& m, id const& s) const { return s; }
     };
 };
 }  // namespace mesh{
 
 namespace algebra {
-namespace declare {
-template <typename TM, typename TV, int...>
-class Field_;
-}  // namespace declare {
 
-template <typename TM, typename TV, int...>
+template <typename, typename, int...>
 class FieldView;
 
-template <typename>
-struct field_traits {
-    static constexpr int iform = VERTEX;
-    static constexpr int dof = 1;
-};
-template <typename TM, typename TV, int IFORM, int DOF>
-struct field_traits<declare::Field_<TM, TV, IFORM, DOF>> {
-    static constexpr bool is_field = true;
-    static constexpr int iform = IFORM;
-    static constexpr int dof = DOF;
-    typedef TV value_type;
-    typedef TM mesh_type;
-
-   private:
-    typedef std::conditional_t<DOF == 1, TV, declare::nTuple_<TV, DOF>> cell_tuple;
-
-   public:
-    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
-                               declare::nTuple_<cell_tuple, 3>>
-        field_value_type;
-};
-
-namespace traits {
-
-//***********************************************************************************************************************
-
-template <typename TM, typename TV, int... I>
-struct is_field<declare::Field_<TM, TV, I...>> : public std::integral_constant<bool, true> {};
-
-template <typename TM, typename TV, int... I>
-struct reference<declare::Field_<TM, TV, I...>> {
-    typedef declare::Field_<TM, TV, I...> const& type;
-};
-
-template <typename TM, typename TV, int... I>
-struct reference<const declare::Field_<TM, TV, I...>> {
-    typedef declare::Field_<TM, TV, I...> const& type;
-};
-
-template <typename TM, typename TV, int... I>
-struct value_type<declare::Field_<TM, TV, I...>> {
-    typedef TV type;
-};
-
-template <typename TM, typename TV, int... I>
-struct rank<declare::Field_<TM, TV, I...>> : public index_const<3> {};
-
-template <typename TM, typename TV, int IFORM, int DOF, int... I>
-struct iform<declare::Field_<TM, TV, IFORM, DOF, I...>> : public index_const<IFORM> {};
-
-template <typename TM, typename TV, int IFORM, int DOF, int... I>
-struct dof<declare::Field_<TM, TV, IFORM, DOF, I...>> : public index_const<DOF> {};
-
-template <typename T>
-struct field_value_type {
-    typedef T type;
-};
-
-template <typename T>
-using field_value_t = typename field_value_type<T>::type;
-
-template <typename TM, typename TV, int IFORM, int DOF>
-struct field_value_type<declare::Field_<TM, TV, IFORM, DOF>> {
-    typedef std::conditional_t<DOF == 1, TV, declare::nTuple_<TV, DOF>> cell_tuple;
-    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
-                               declare::nTuple_<cell_tuple, 3>>
-        type;
-};
-
-}  // namespace traits{
+// template <typename>
+// struct field_traits {
+//    static constexpr int iform = VERTEX;
+//    static constexpr int dof = 1;
+//};
+// template <typename TM, typename TV, int IFORM, int DOF>
+// struct field_traits<declare::Field_<TM, TV, int_sequence<IFORM, DOF>>> {
+//    static constexpr bool is_field = true;
+//    static constexpr int iform = IFORM;
+//    static constexpr int dof = DOF;
+//    typedef TV value_type;
+//    typedef TM mesh_type;
+//
+//   private:
+//    typedef std::conditional_t<DOF == 1, TV, declare::nTuple_<TV, DOF>> cell_tuple;
+//
+//   public:
+//    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
+//                               declare::nTuple_<cell_tuple, 3>>
+//        field_value_type;
+//};
 
 template <typename TM, typename TV, int IFORM, int DOF>
 class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
@@ -124,9 +70,18 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
     typedef TV value_type;
 
     typedef TM mesh_type;
+    static constexpr int iform = IFORM;
+    static constexpr int dof = dof;
+    typedef std::false_type is_refered_by_value;
+    typedef std::false_type is_expression;
+    typedef std::true_type is_field;
 
     typedef typename mesh::mesh_traits<mesh_type>::id mesh_id;
     typedef typename mesh::mesh_traits<mesh_type>::template Shift<IFORM, DOF> Shift;
+    typedef std::conditional_t<DOF == 1, value_type, nTuple<value_type, DOF>> cell_tuple;
+    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
+                               nTuple<cell_tuple, 3>>
+        field_value_type;
 
    private:
     value_type* m_data_ = nullptr;
@@ -146,7 +101,7 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
           m_data_holder_(other.data_holder()),
           m_shift_(other.m_shift_) {}
 
-    explicit FieldView(FieldView<TM, TV, IFORM, DOF> const& other, Shift const& hasher)
+    explicit FieldView(this_type const& other, Shift const& hasher)
         : m_data_(const_cast<value_type*>(other.data())),
           m_mesh_(other.mesh()),
           m_data_holder_(other.data_holder()),
@@ -207,10 +162,7 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
             if (this->m_data_holder_.get() == nullptr) {
                 try {
                     m_data_holder_ = std::shared_ptr<value_type>(new value_type[size()]);
-                } catch (std::bad_alloc const&) {
-                    CHECK(size());
-                    THROW_EXCEPTION_BAD_ALLOC(size());
-                };
+                } catch (std::bad_alloc const&) { THROW_EXCEPTION_BAD_ALLOC(size()); };
             }
             m_data_ = this->m_data_holder_.get();
         }
@@ -288,8 +240,9 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
             for (int j = 0; j < DOF; ++j) {
                 r.foreach ([&](mesh_id s) {
                     s = m_shift_(s);
-                    op(m_data_[m_mesh_->hash(s)],
-                        calculus_policy::get_value(*m_mesh_,std::forward<Args>(args), s)...);
+                    //                    op(m_data_[m_mesh_->hash(s)],
+                    //                       calculus_policy::get_value(*m_mesh_,
+                    //                       std::forward<Args>(args), s)...);
                 });
             }
         }
@@ -301,33 +254,34 @@ class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
     }
 
 };  // class FieldView
-
+template <int...>
+struct PlaceHolder {};
 namespace declare {
 
 template <typename TM, typename TV, int IFORM, int DOF>
-class Field_<TM, TV, IFORM, DOF> : public FieldView<TM, TV, IFORM, DOF> {
+class Field_ : public FieldView<TM, TV, IFORM, DOF> {
     typedef Field_<TM, TV, IFORM, DOF> this_type;
     typedef FieldView<TM, TV, IFORM, DOF> base_type;
 
    public:
-    typedef TV value_type;
-
     template <typename... Args>
     explicit Field_(Args&&... args) : base_type(std::forward<Args>(args)...) {}
 
     ~Field_() {}
-
+    using typename base_type::value_type;
     using typename base_type::mesh_id;
     using typename base_type::Shift;
+    using base_type::iform;
+    using base_type::dof;
     using base_type::at;
     //    using base_type::get;
     using base_type::mesh;
     using base_type::deploy;
     using base_type::print;
 
-    template <typename P>
-    this_type operator[](P const& p) const {
-        return Field_<TM, TV, IFORM, DOF>(*this, Shift(p));
+    template <int... N>
+    this_type operator[](PlaceHolder<N...> const& p) const {
+        return this_type(*this, p);
     }
 
     this_type& operator=(this_type const& rhs) {

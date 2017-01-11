@@ -29,7 +29,14 @@ struct num_of_dimension : public index_const<3> {};
 
 template <typename T>
 struct value_type {
-    typedef T type;
+   private:
+    template <typename U>
+    static auto test(int) -> typename U::value_type;
+    template <typename>
+    static T test(...);
+
+   public:
+    typedef decltype(test<T>(0)) type;
 };
 
 template <typename T>
@@ -87,49 +94,19 @@ struct is_scalar<First, Others...>
     : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {
 };
 
-template <typename...>
-struct is_field;
-
-template <typename T>
-struct is_field<T> : public std::integral_constant<bool, false> {};
-template <typename First, typename... Others>
-struct is_field<First, Others...>
-    : public std::integral_constant<bool, is_field<First>::value || is_field<Others...>::value> {};
-template <typename...>
-struct is_array;
-
-template <typename T>
-struct is_array<T> : public std::integral_constant<bool, false> {};
-
-template <typename First, typename... Others>
-struct is_array<First, Others...>
-    : public std::integral_constant<bool, (is_array<First>::value && !is_field<First>::value) ||
-                                              is_array<Others...>::value> {};
-
-template <typename...>
-struct is_nTuple;
-
-template <typename T>
-struct is_nTuple<T> : public std::integral_constant<bool, false> {};
-
-template <typename First, typename... Others>
-struct is_nTuple<First, Others...>
-    : public std::integral_constant<bool,
-                                    (is_nTuple<First>::value &&
-                                     !(is_field<Others...>::value || is_array<Others...>::value)) ||
-                                        is_nTuple<Others...>::value> {};
-template <typename...>
-struct is_expression;
-
-template <typename T>
-struct is_expression<T> : public std::integral_constant<bool, false> {};
-
-template <typename... T>
-struct is_expression<declare::Expression<T...>> : public std::integral_constant<bool, true> {};
-
 template <typename T>
 struct reference {
-    typedef T type;
+   private:
+    typedef std::true_type yes;
+    typedef std::false_type no;
+
+    template <typename U>
+    static auto test(int) -> typename U::is_refered_by_value;
+    template <typename>
+    static no test(...);
+
+   public:
+    typedef std::conditional_t<std::is_same<decltype(test<T>(0)), no>::value, T&, T> type;
 };
 template <typename T>
 using reference_t = typename reference<T>::type;
@@ -142,15 +119,105 @@ struct reference<const T[N]> {
     typedef T const* type;
 };
 
-//***********************************************************************************************************************
+//**************************************************************************************************
 
-template <typename>
-struct iform : public index_const<VERTEX> {};
 template <typename T>
-struct iform<const T> : public iform<T> {};
+struct field_value_type {
+   private:
+    typedef std::true_type yes;
+    typedef std::false_type no;
 
-template <typename>
-struct dof : public index_const<1> {};
+    template <typename U>
+    static auto test(int) -> typename U::field_value_type;
+    template <typename>
+    static no test(...);
+
+   public:
+    typedef std::conditional_t<std::is_same<decltype(test<T>(0)), no>::value, value_type_t<T>,
+                               field_value_type>
+        type;
+};
+
+
+template <typename T>
+using field_value_t = typename field_value_type<T>::type;
+
+#define HAVE_MEMBER_TYPE(_NAME_, _MEM_NAME_)             \
+    template <typename T>                                \
+    struct _NAME_<T> {                                   \
+       private:                                          \
+        typedef std::true_type yes;                      \
+        typedef std::false_type no;                      \
+                                                         \
+        template <typename U>                            \
+        static auto test(int) -> typename U::_MEM_NAME_; \
+        template <typename>                              \
+        static no test(...);                             \
+                                                         \
+       public:                                           \
+        typedef decltype(test<T>(0)) type;               \
+        static constexpr bool value = type::value;       \
+    };
+template <typename...>
+struct is_field;
+template <typename...>
+struct is_expression;
+template <typename...>
+struct is_nTuple;
+template <typename...>
+struct is_array;
+HAVE_MEMBER_TYPE(is_array, is_array)
+HAVE_MEMBER_TYPE(is_field, is_field)
+HAVE_MEMBER_TYPE(is_nTuple, is_nTuple)
+HAVE_MEMBER_TYPE(is_expression, is_expression)
+
+template <typename First, typename... Others>
+struct is_field<First, Others...>
+    : public std::integral_constant<bool, is_field<First>::value || is_field<Others...>::value> {};
+
+template <typename First, typename... Others>
+struct is_array<First, Others...>
+    : public std::integral_constant<bool, (is_array<First>::value && !is_field<First>::value) ||
+                                              is_array<Others...>::value> {};
+
+template <typename First, typename... Others>
+struct is_nTuple<First, Others...>
+    : public std::integral_constant<bool,
+                                    (is_nTuple<First>::value &&
+                                     !(is_field<Others...>::value || is_array<Others...>::value)) ||
+                                        is_nTuple<Others...>::value> {};
+
+template <typename T>
+struct is_primary_field
+    : public std::integral_constant<bool, is_field<T>::value && (!is_expression<T>::value)> {};
+
+template <typename _T>
+struct iform_ {
+   private:
+    template <typename U>
+    static auto test(int) -> std::integral_constant<int, U::iform>;
+    template <typename>
+    static std::integral_constant<int, 0> test(...);
+
+   public:
+    static constexpr int value = decltype(test<_T>(0))::value;
+};
+template <typename T>
+struct iform : public int_constant<iform_<T>::value> {};
+
+template <typename _T>
+struct dof_ {
+   private:
+    template <typename U>
+    static auto test(int) -> std::integral_constant<int, U::dof>;
+    template <typename>
+    static std::integral_constant<int, 1> test(...);
+
+   public:
+    static constexpr int value = decltype(test<_T>(0))::value;
+};
+template <typename T>
+struct dof : public int_constant<dof_<T>::value> {};
 template <typename T>
 struct dof<const T> : public dof<T> {};
 
@@ -165,8 +232,6 @@ template <typename T>
 struct extent<const T> : public index_const<extent<T>::value> {};
 template <typename T>
 struct extents : public index_sequence<> {};
-
-
 
 }  // namespace traits
 

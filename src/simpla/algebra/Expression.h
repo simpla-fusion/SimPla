@@ -102,7 +102,7 @@ struct Expression<TOP, Args...> {
     typedef Expression<TOP, Args...> this_type;
 
     typename std::tuple<traits::reference_t<Args>...> m_args_;
-
+    typedef std::true_type is_expression;
     TOP m_op_;
 
     Expression(this_type const &that) : m_args_(that.m_args_) {}

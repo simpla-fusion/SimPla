@@ -14,7 +14,6 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/mesh/EntityId.h>
-#include <simpla/mesh/MeshCommon.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/FancyStream.h>
@@ -22,10 +21,6 @@
 
 namespace simpla {
 namespace algebra {
-namespace declare {
-template <typename, typename, int...>
-struct Field_;
-}
 
 namespace calculus {
 using namespace mesh;
@@ -474,8 +469,8 @@ struct calculator<TM> {
         MeshEntityId Y = (M::_DJ);
         MeshEntityId Z = (M::_DK);
 
-        point_type r = std::get<1>(idx);
-        MeshEntityId s = std::get<0>(idx);
+        point_type r;    //= std::get<1>(idx);
+        MeshEntityId s;  //= std::get<0>(idx);
 
         return get_value(m, f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +    //
                get_value(m, f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +    //
@@ -617,32 +612,31 @@ struct calculator<TM> {
         return v;
     }
 
-    template <typename M, typename U, int... I>
-    static decltype(auto) get_value(mesh_type const& m, FieldView<M, U, I...>& f,
+    template <typename U>
+    static decltype(auto) get_value(mesh_type const& m, U& f, MeshEntityId const& s,
+                                    ENABLE_IF(traits::is_primary_field<U>::value)) {
+        return f.at(s);
+    };
+
+    template <typename... U>
+    static decltype(auto) get_value(mesh_type const& m, FieldView<U...> const& f,
                                     MeshEntityId const& s) {
         return f.at(s);
     };
 
-    template <typename M, typename U, int... I>
-    static decltype(auto) get_value(mesh_type const& m, FieldView<M, U, I...> const& f,
-                                    MeshEntityId const& s) {
-        return f.at(s);
-    };
-
-    template <typename M, typename U, int... I>
-    static decltype(auto) get_value(mesh_type const& m, FieldView<M, U, I...> const& f,
+    template <typename... U>
+    static decltype(auto) get_value(mesh_type const& m, FieldView<U...> const& f,
                                     point_type const& x) {
         return gather(m, f, x);
     };
 
-    template <typename M, typename U, int... I, typename... Args>
-    static decltype(auto) get_value(mesh_type const& m, FieldView<M, U, I...> const& f,
-                                    Args&&... s) {
+    template <typename... U, typename... Args>
+    static decltype(auto) get_value(mesh_type const& m, FieldView<U...> const& f, Args&&... s) {
         return f.at(m.pack(std::forward<Args>(s)...));
     };
 
-    template <typename M, typename U, int... I, typename... Args>
-    static decltype(auto) get_value(mesh_type const& m, FieldView<M, U, I...>& f, Args&&... s) {
+    template <typename... U, typename... Args>
+    static decltype(auto) get_value(mesh_type const& m, FieldView<U...>& f, Args&&... s) {
         return f.at(m.pack(std::forward<Args>(s)...));
     };
 
@@ -667,7 +661,7 @@ struct calculator<TM> {
     }
 
     //    template <typename M, typename U, int... I>
-    //    static decltype(auto) gather(mesh_type const& m, FieldView<M, U, I...> const& f,
+    //    static decltype(auto) gather(mesh_type const& m, FieldView<U...> const& f,
     //                                 point_type const& x) {
     //        return InterpolatePolicy<mesh_type>::gather(m, f, x);
     //    };
@@ -722,36 +716,36 @@ struct calculator<TM> {
         return (1.0 - m.distance(x1, x0) / a);
     }
 
-    template <typename V, int IFORM, int DOF, int... I, typename U>
-    static void assign(mesh_type const& m, FieldView<mesh_type, V, IFORM, DOF, I...>& f,
-                       MeshEntityId const& s, nTuple<U, DOF> const& v) {
-        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
-    }
+    //    template <int DOF, typename... U>
+    //    static void assign(mesh_type const& m, FieldView<mesh_type, U...>& f, MeshEntityId const&
+    //    s,
+    //                       nTuple<U, DOF> const& v) {
+    //        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
+    //    }
 
-    template <typename V, int DOF, int... I, typename U>
-    static void assign(mesh_type const& m, FieldView<mesh_type, V, EDGE, DOF, I...>& f,
-                       MeshEntityId const& s, nTuple<U, 3> const& v) {
-        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
-    }
-
-    template <typename V, int DOF, int... I, typename U>
-    static void assign(mesh_type const& m, FieldView<mesh_type, V, FACE, DOF, I...>& f,
-                       MeshEntityId const& s, nTuple<U, 3> const& v) {
-        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
-    }
-
-    template <typename V, int DOF, int... I, typename U>
-    static void assign(mesh_type const& m, FieldView<mesh_type, V, VOLUME, DOF, I...>& f,
-                       MeshEntityId const& s, nTuple<U, DOF> const& v) {
-        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
-    }
-
-    template <typename V, int IFORM, int DOF, int... I, typename U>
-    static void assign(mesh_type const& m, FieldView<mesh_type, V, IFORM, DOF, I...>& f,
-                       MeshEntityId const& s, U const& v) {
-        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v; }
-    }
-
+    ////    template <typename... U>
+    ////    static void assign(mesh_type const& m, FieldView<U...>& f,
+    ////                       MeshEntityId const& s, nTuple<U, 3> const& v) {
+    ////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
+    ////    }
+    ////
+    ////    template <typename V, int DOF, int... I, typename U>
+    ////    static void assign(mesh_type const& m, FieldView<mesh_type, V, FACE, DOF, I...>& f,
+    ////                       MeshEntityId const& s, nTuple<U, 3> const& v) {
+    ////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
+    ////    }
+    ////
+    ////    template <typename V, int DOF, int... I, typename U>
+    ////    static void assign(mesh_type const& m, FieldView<mesh_type, V, VOLUME, DOF, I...>& f,
+    ////                       MeshEntityId const& s, nTuple<U, DOF> const& v) {
+    ////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
+    //    }
+    //
+    //    template <typename V, int IFORM, int DOF, int... I, typename U>
+    //    static void assign(mesh_type const& m, FieldView<mesh_type, V, IFORM, DOF, I...>& f,
+    //                       MeshEntityId const& s, U const& v) {
+    //        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v; }
+    //    }
 };
 
 // template <typename TV, typename TM, int IFORM, int DOF>

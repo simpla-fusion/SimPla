@@ -7,20 +7,25 @@
 #include <simpla/toolbox/Log.h>
 
 #include <iostream>
+
+struct Foo {
+    static constexpr int iform = 1;
+};
+
+template <typename _T>
+struct iform {
+   private:
+    template <typename U>
+    static auto test(int) -> std::integral_constant<int ,U::iform>;
+    template <typename>
+    static  std::integral_constant<int ,0> test(...);
+
+   public:
+    static constexpr int value = decltype(test<_T>(0))::value;
+};
 using namespace simpla;
 int main(int argc, char **argv) {
-    CHECK((index_sequence<1, 2, 3>()));
-    CHECK((_0));
-    CHECK((_1));
-    CHECK((-_1));
-    CHECK((-_1 * _2));
-    CHECK(((_1, _2, _3) + (_4, _5)));
-    CHECK(((_0, _0, _0) + (_4, _5)));
-
-    CHECK(((_4, _5) - (_1, _2, _3)));
-
-    CHECK((_2 - _1));
-    CHECK(((_1, _0, _3)));
+    std::cout << iform<Foo>::value << std::endl;
 
     ;
 }

@@ -165,7 +165,12 @@ class MeshBlock : public Object,
 
             ;
     }
+
+    template<typename ...Args>
+    MeshEntityId pack(Args && ...args) const { return MeshEntityId(); }
+
     MeshEntityId pack(MeshEntityId const& s) const { return s; }
+
     MeshEntityId pack(index_type i, index_type j, index_type k = 0, index_type w = 0) const {
         MeshEntityId s;
         s.x = i;
