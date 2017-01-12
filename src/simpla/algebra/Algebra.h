@@ -68,7 +68,7 @@ struct reference {
     static no test(...);
 
    public:
-    typedef std::conditional_t<std::is_same<decltype(test<T>(0)), no>::value, T&, T> type;
+    typedef std::conditional_t<std::is_same<decltype(test<T>(0)), no>::value, T, T&> type;
 };
 template <typename T>
 using reference_t = typename reference<T>::type;

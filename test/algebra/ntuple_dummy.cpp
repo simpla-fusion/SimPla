@@ -36,25 +36,30 @@ int main(int argc, char** argv) {
     double d[2][3] = {{10, 20, 30}, {40, 50, 60}};
 
     nTuple<double, 2, 3> B = {{4, 5, 6}, {7, 8, 9}};
-    nTuple<double, 2, 3> A = B * 2 + 5;
+    nTuple<double, 2, 3> A, C;
+    A = 0;
+    C = d;
+
+    A =  (B + 1)/ (C -3) ;
+
     std::cout << "A=" << A << std::endl;
     std::cout << "B=" << B << std::endl;
 
-    Real res = dot(A, B);
-    Real res2 = dot(A, B) / 2;
-    std::cout << "dot(A , B  ) =" << res << std::endl;
-    std::cout << "dot(A , B  ) / 2 =" << res2 << std::endl;
-
-    std::cout << "A=" << A << std::endl;
-
-    nTuple<Real, 3> v = {1, 2, 3};
-    nTuple<Real, 3> u = {4, 5, 6};
-    nTuple<Real, 3> w = {9, 8, 7};
-    std::cout << static_cast<nTuple<Real, 3> >(cross(v, u)) << std::endl;
-    std::cout << static_cast<Real>(dot(cross(v, u), cross(v, u))) << std::endl;
-    std::cout << static_cast<Real>(dot(cross(v, u), w)) << std::endl;
-
-    nTuple<Real, 2> v2 = {1, 2};
-    nTuple<Real, 2> u2 = {1, 2};
-    std::cout << static_cast<Real>(dot(v2, u2)) << std::endl;
+    //    Real res = dot(A, B);
+    //    Real res2 = dot(A, B) / 2;
+    //    std::cout << "dot(A , B  ) =" << res << std::endl;
+    //    std::cout << "dot(A , B  ) / 2 =" << res2 << std::endl;
+    //
+    //    std::cout << "A=" << A << std::endl;
+    //
+    //    nTuple<Real, 3> v = {1, 2, 3};
+    //    nTuple<Real, 3> u = {4, 5, 6};
+    //    nTuple<Real, 3> w = {9, 8, 7};
+    //    std::cout << static_cast<nTuple<Real, 3> >(cross(v, u)) << std::endl;
+    //    std::cout << static_cast<Real>(dot(cross(v, u), cross(v, u))) << std::endl;
+    //    std::cout << static_cast<Real>(dot(cross(v, u), w)) << std::endl;
+    //
+    //    nTuple<Real, 2> v2 = {1, 2};
+    //    nTuple<Real, 2> u2 = {1, 2};
+    //    std::cout << static_cast<Real>(dot(v2, u2)) << std::endl;
 }
