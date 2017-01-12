@@ -50,7 +50,7 @@ class TestField : public testing::Test {
     typedef typename field_type::value_type value_type;
 
     typedef Real scalar_type;
-
+    typedef typename mesh_type::entity_id entity_id;
     //    typedef  traits::scalar_type_t<manifold_type> scalar_type;
 
     static constexpr int iform = algebra::traits::iform<TField>::value;
@@ -89,7 +89,9 @@ TYPED_TEST_P(TestField, assign) {
     f1 = va;
     size_type count = 0;
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform)
-        .foreach ([&](mesh::MeshEntityId const &s) { EXPECT_LE(std::abs(va - f1[s]), EPSILON); });
+        .foreach ([&](typename TestFixture::mesh_type::entity_id const &s) {
+            EXPECT_LE(std::abs(va - f1[s]), EPSILON);
+        });
 }
 
 TYPED_TEST_P(TestField, index) {
@@ -104,10 +106,12 @@ TYPED_TEST_P(TestField, index) {
     va = 2.0;
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform)
-        .foreach ([&](mesh::MeshEntityId const &s) { f1[s] = va * TestFixture::m->hash(s); });
+        .foreach ([&](typename TestFixture::mesh_type::entity_id const &s) {
+            f1[s] = va * TestFixture::m->hash(s);
+        });
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform)
-        .foreach ([&](mesh::MeshEntityId const &s) {
+        .foreach ([&](typename TestFixture::mesh_type::entity_id const &s) {
             EXPECT_LE(std::abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON);
         });
 }
@@ -134,13 +138,17 @@ TYPED_TEST_P(TestField, constant_real) {
 
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](mesh::MeshEntityId const &s) { return va * uniform_dist(gen); });
-    f2.assign([&](mesh::MeshEntityId const &s) { return vb * uniform_dist(gen); });
+    f1.assign([&](typename TestFixture::mesh_type::entity_id const &s) {
+        return va * uniform_dist(gen);
+    });
+    f2.assign([&](typename TestFixture::mesh_type::entity_id const &s) {
+        return vb * uniform_dist(gen);
+    });
 
     LOG_CMD(f3 = -f1 + f1 * a + f2 * c - f1 / b);
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform)
-        .foreach ([&](mesh::MeshEntityId const &s) {
+        .foreach ([&](typename TestFixture::mesh_type::entity_id const &s) {
             value_type expect;
             expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
 
@@ -183,12 +191,15 @@ TYPED_TEST_P(TestField, scalarField) {
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign(
-        [&](typename TestFixture::mesh_type::id_type const &s) { return va * uniform_dist(gen); });
-    f2.assign(
-        [&](typename TestFixture::mesh_type::id_type const &s) { return vb * uniform_dist(gen); });
-    f3.assign(
-        [&](typename TestFixture::mesh_type::id_type const &s) { return vc * uniform_dist(gen); });
+    f1.assign([&](typename TestFixture::mesh_type::entity_id const &s) {
+        return va * uniform_dist(gen);
+    });
+    f2.assign([&](typename TestFixture::mesh_type::entity_id const &s) {
+        return vb * uniform_dist(gen);
+    });
+    f3.assign([&](typename TestFixture::mesh_type::entity_id const &s) {
+        return vc * uniform_dist(gen);
+    });
 
     LOG_CMD(f4 = -f1 * fa + f2 * fb - f3 / fc - f1);
 
@@ -204,7 +215,7 @@ TYPED_TEST_P(TestField, scalarField) {
      *
      * */
 
-    //    TestFixture::m->foreach([&](typename TestFixture::mesh_type::id_type const &s)
+    //    TestFixture::m->foreach([&](typename TestFixture::mesh_type::entity_id const &s)
     //                            {
     //                                CHECK(fa[s]);
     //                                CHECK(fb[s]);
@@ -212,7 +223,7 @@ TYPED_TEST_P(TestField, scalarField) {
     //                            });
 
     TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform)
-        .foreach ([&](mesh::MeshEntityId const &s) {
+        .foreach ([&](typename TestFixture::mesh_type::entity_id const &s) {
             value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 
             EXPECT_DOUBLE_EQ(std::abs(res), std::abs(f4[s]));

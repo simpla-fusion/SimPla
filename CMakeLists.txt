@@ -90,7 +90,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include/)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_subdirectory(src/simpla)
-#add_subdirectory(example)
+add_subdirectory(example)
 
 add_subdirectory(test)
 
