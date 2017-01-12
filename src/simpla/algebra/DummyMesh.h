@@ -131,13 +131,13 @@ public:
 
 
     template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> auto
-    _invoke_helper(algebra::declare::Expression<TOP, Others...> const &expr, index_sequence<index...>,
+    _invoke_helper(algebra::declare::Expression<TOP, Others...> const &expr, int_sequence<index...>,
                    Idx &&... s) const
     AUTO_RETURN((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
 
     template<typename TOP, typename   ...Others, typename ...Idx> auto
     get_value(algebra::declare::Expression<TOP, Others...> const &expr, Idx &&... s) const
-    AUTO_RETURN((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)))
+    AUTO_RETURN((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)))
 
     template<typename TV, size_type IFORM, size_type DOF> void
     apply(algebra::declare::Field_ <TV, mesh_type, IFORM, DOF> &lhs, algebra::tags::_clear const &) const

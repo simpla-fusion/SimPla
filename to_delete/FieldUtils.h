@@ -26,7 +26,7 @@ template<typename ...> class Field;
 
 
 template<typename TV, typename TManifold, size_t I, typename TFun>
-void assign(Field<TV, TManifold, index_const<I>> &f, box_type const &s_b, TFun const &fun)
+void assign(Field<TV, TManifold, int_const<I>> &f, box_type const &s_b, TFun const &fun)
 {
     auto const &m = f.mesh();
     toolbox::intersection(f.mesh().box(), s_b);

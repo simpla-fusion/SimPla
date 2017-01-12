@@ -68,7 +68,7 @@ public:
     std::shared_ptr<mesh_type> m;
 
 
-//    typedef Field<value_type, manifold_type, index_const<static_cast<size_t>(iform)> > field_type;
+//    typedef Field<value_type, manifold_type, int_const<static_cast<size_t>(iform)> > field_type;
     typedef Field<value_type, mesh_type, iform> scalar_field_type;
     typedef Field<value_type, mesh_type, iform, 3> vector_field_type;
 

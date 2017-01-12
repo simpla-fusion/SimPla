@@ -35,11 +35,14 @@ struct mesh_traits {
 };
 
 template <typename>
-struct AttributeAdapter : public public concept::Object, concept::Printable {};
+struct AttributeAdapter : public Object, concept::Printable {};
 }  // namespace mesh{
 
 namespace algebra {
-
+namespace calculus {
+template <typename...>
+class calculator;
+}
 template <typename, typename, int...>
 class FieldView;
 
@@ -95,28 +98,25 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
 
     mesh_type const* m_mesh_;
 
-    Shift m_shift_;
-
    public:
     FieldView() : m_mesh_(nullptr), m_data_(nullptr), m_data_holder_(nullptr){};
 
     explicit FieldView(this_type const& other)
         : m_data_(const_cast<value_type*>(other.data())),
           m_mesh_(other.mesh()),
-          m_data_holder_(other.data_holder()),
-          m_shift_(other.m_shift_) {}
+          m_data_holder_(other.data_holder()) {}
 
-    explicit FieldView(this_type const& other, Shift const& hasher)
-        : m_data_(const_cast<value_type*>(other.data())),
-          m_mesh_(other.mesh()),
-          m_data_holder_(other.data_holder()),
-          m_shift_(other.m_shift_) {}
+    //    explicit FieldView(this_type const& other, Shift const& hasher)
+    //        : m_data_(const_cast<value_type*>(other.data())),
+    //          m_mesh_(other.mesh()),
+    //          m_data_holder_(other.data_holder()),
+    //          m_shift_(other.m_shift_) {}
+    //
+    FieldView(mesh_type const* m, value_type* d = nullptr)
+        : m_mesh_(m), m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {}
 
-    FieldView(mesh_type const* m, value_type* d = nullptr, Shift hasher = Shift())
-        : m_mesh_(m), m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()), m_shift_(hasher) {}
-
-    FieldView(mesh_type const* m, std::shared_ptr<value_type> const& d, Shift hasher = Shift())
-        : m_mesh_(m), m_data_(d.get()), m_data_holder_(d), m_shift_(hasher) {}
+    FieldView(mesh_type const* m, std::shared_ptr<value_type> const& d)
+        : m_mesh_(m), m_data_(d.get()), m_data_holder_(d) {}
 
     virtual ~FieldView() {}
 
@@ -182,6 +182,7 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
         deploy();
         memset(m_data_, 0, size() * sizeof(value_type));
     };
+    mesh_id const& shift(mesh_id const& s) const { return s; }
 
     virtual void copy(this_type const& other) {
         deploy();
@@ -190,11 +191,11 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
     };
     decltype(auto) at(mesh_id const& s) const {
         ASSERT(m_data_ != nullptr);
-        return m_data_[m_mesh_->hash(m_shift_(s))];
+        return m_data_[m_mesh_->hash(shift(s))];
     }
     decltype(auto) at(mesh_id const& s) {
         ASSERT(m_data_ != nullptr);
-        return m_data_[m_mesh_->hash(m_shift_(s))];
+        return m_data_[m_mesh_->hash(shift(s))];
     }
     template <typename... TID>
     value_type& at(TID&&... s) {
@@ -244,7 +245,7 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
         for (int i = 0; i < num_com; ++i) {
             for (int j = 0; j < DOF; ++j) {
                 r.foreach ([&](mesh_id s) {
-                    s = m_shift_(s);
+                    s = shift(s);
                     //                    op(m_data_[m_mesh_->hash(s)],
                     //                       calculus_policy::get_value(*m_mesh_,
                     //                       std::forward<Args>(args), s)...);
@@ -275,7 +276,7 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
     ~Field_() {}
     using typename base_type::value_type;
     using typename base_type::mesh_id;
-    using typename base_type::Shift;
+    //    using typename base_type::Shift;
     using base_type::iform;
     using base_type::dof;
     using base_type::at;

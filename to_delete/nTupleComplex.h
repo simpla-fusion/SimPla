@@ -296,7 +296,7 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 
 private:
     template<typename ID, size_type ... index>
-    auto _invoke_helper(ID s, index_sequence<index...>) const
+    auto _invoke_helper(ID s, int_sequence<index...>) const
     {
         return m_op_(traits::index(std::get<index>(args), s)...);
     }
@@ -304,7 +304,7 @@ private:
 public:
     template<typename ID> auto at(ID const &s) const
     {
-        return _invoke_helper(s, typename make_index_sequence<sizeof...(T) - 1>::type());
+        return _invoke_helper(s, typename make_int_sequence<sizeof...(T) - 1>::type());
     }
 
 
@@ -404,7 +404,7 @@ template<typename T, size_type ...N> struct key_type<nTuple<T, N...>> { typedef 
 template<typename T> struct extents;
 
 template<typename TV, size_type ...M>
-struct extents<nTuple<TV, M...> > : public index_sequence<M...> {};
+struct extents<nTuple<TV, M...> > : public int_sequence<M...> {};
 // public seq_concat<, traits::extents<TV>>::type { };
 
 namespace _impl
@@ -414,18 +414,18 @@ template<typename ...> struct make_pod_array;
 template<typename ...> struct make_primary_nTuple;
 
 template<typename TV>
-struct make_pod_array<TV, index_sequence<>> { typedef TV type; };
+struct make_pod_array<TV, int_sequence<>> { typedef TV type; };
 
 template<typename TV, size_type N0, size_type ... N>
-struct make_pod_array<TV, index_sequence<N0, N...>>
+struct make_pod_array<TV, int_sequence<N0, N...>>
 {
-    typedef typename make_pod_array<TV, index_sequence<N...>>::type type[N0];
+    typedef typename make_pod_array<TV, int_sequence<N...>>::type type[N0];
 };
 
 template<typename TV, size_type ... N>
-struct make_primary_nTuple<TV, index_sequence<N...>> { typedef nTuple<TV, N...> type; };
+struct make_primary_nTuple<TV, int_sequence<N...>> { typedef nTuple<TV, N...> type; };
 
-template<typename TV> struct make_primary_nTuple<TV, index_sequence<>> { typedef TV type; };
+template<typename TV> struct make_primary_nTuple<TV, int_sequence<>> { typedef TV type; };
 
 template<typename ... T> using make_pod_array_t = typename make_pod_array<T...>::type;
 
@@ -452,14 +452,14 @@ struct primary_type<nTuple<T, N...>>
 template<typename T> using ntuple_cast_t=typename primary_type<T>::type;
 
 template<typename T, size_type ...N>
-struct pod_type<nTuple<T, N...>> { typedef _impl::make_pod_array_t<T, index_sequence<N...>> type; };
+struct pod_type<nTuple<T, N...>> { typedef _impl::make_pod_array_t<T, int_sequence<N...>> type; };
 
 
 namespace _impl
 {
 template<typename ...> struct extents_helper;
 
-template<typename TOP> struct extents_helper<TOP> { typedef index_sequence<> type; };
+template<typename TOP> struct extents_helper<TOP> { typedef int_sequence<> type; };
 
 template<typename TOP, typename First, typename ...Others>
 struct extents_helper<TOP, First, Others...>
@@ -468,30 +468,30 @@ struct extents_helper<TOP, First, Others...>
             typename extents_helper<TOP, Others...>::type>::type type;
 };
 template<typename TOP, size_type ...N>
-struct extents_helper<TOP, index_sequence<N...>, index_sequence<> >
+struct extents_helper<TOP, int_sequence<N...>, int_sequence<> >
 {
-    typedef index_sequence<N...> type;
+    typedef int_sequence<N...> type;
 };
 
 template<typename TOP, size_type ...N>
-struct extents_helper<TOP, index_sequence<>, index_sequence<N...> >
+struct extents_helper<TOP, int_sequence<>, int_sequence<N...> >
 {
-    typedef index_sequence<N...> type;
+    typedef int_sequence<N...> type;
 };
 
 template<typename TOP>
-struct extents_helper<TOP, index_sequence<>, index_sequence<> >
+struct extents_helper<TOP, int_sequence<>, int_sequence<> >
 {
-    typedef index_sequence<> type;
+    typedef int_sequence<> type;
 };
 template<typename TOP, size_type ...N, size_type ...M>
-struct extents_helper<TOP, index_sequence<N...>,
-        index_sequence<M...> >
+struct extents_helper<TOP, int_sequence<N...>,
+        int_sequence<M...> >
 {
-    static_assert(std::is_same<index_sequence<N...>,
-            index_sequence<M...> >::value, "extent mismatch!");
+    static_assert(std::is_same<int_sequence<N...>,
+            int_sequence<M...> >::value, "extent mismatch!");
 
-    typedef index_sequence<N...> type;
+    typedef int_sequence<N...> type;
 };
 
 }// namespace _impl

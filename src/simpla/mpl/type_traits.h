@@ -14,9 +14,9 @@
 #include <map>
 #include <tuple>
 #include <type_traits>
-#include "simpla/concept/CheckConcept.h"
 #include "integer_sequence.h"
 #include "macro.h"
+#include "simpla/concept/CheckConcept.h"
 #include "type_cast.h"
 
 namespace simpla {
@@ -36,7 +36,7 @@ struct do_nothing {
 
 namespace _impl {
 template <typename Func, typename Tup, int... index>
-auto invoke_helper(Func&& func, Tup&& tup, index_sequence<index...>) {
+auto invoke_helper(Func&& func, Tup&& tup, int_sequence<index...>) {
     return ((func(std::get<index>(std::forward<Tup>(tup))...)));
 }
 
@@ -46,117 +46,16 @@ template <typename Func, typename Tup>
 auto invoke(Func&& func, Tup&& tup) {
     return ((_impl::invoke_helper(
         std::forward<Func>(func), std::forward<Tup>(tup),
-        make_index_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>())));
+        make_int_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>())));
 }
 
 namespace traits {
 typedef std::integral_constant<bool, true> true_t;
 typedef std::integral_constant<bool, false> false_t;
-
-template <typename T, class Enable = void>
-struct type_id {
-   private:
-    HAS_STATIC_MEMBER_FUNCTION(class_name);
-
-    static std::string name_(std::true_type) { return T::class_name(); }
-
-    static std::string name_(std::false_type) { return "unknown"; }
-
-   public:
-    static std::string name() {
-        return name_(
-            std::integral_constant<bool, has_static_member_function_class_name<T>::value>());
-    }
-};
-
-template <int I>
-struct type_id<std::integral_constant<size_t, I>> {
-    static std::string name() { return "[" + simpla::type_cast<std::string>(I) + "]"; }
-};
-
-template <int I>
-struct type_id<std::integral_constant<int, I>> {
-    static std::string name() {
-        return std::string("[") + traits::type_cast<int, std::string>::eval(I) + "]";
-    }
-};
-namespace detail {
-// CHECK_STATIC_BOOL_MEMBER(is_self_describing)
-
-template <typename T>
-struct check_static_bool_member_is_self_describing {
-   private:
-    HAS_STATIC_TYPE_MEMBER(is_self_describing)
-
-    typedef std::true_type yes;
-    typedef std::false_type no;
-
-    template <typename U>
-    static auto test(
-        int, std::enable_if_t<has_static_type_member_is_self_describing<U, bool>::value>* = nullptr)
-        -> std::integral_constant<bool, U::is_self_describing>;
-
-    template <typename>
-    static no test(...);
-
-   public:
-    static constexpr bool value = !std::is_same<decltype(test<T>(0)), no>::value;
-};
-}
-template <typename T>
-struct type_id<
-    T, typename std::enable_if_t<detail::check_static_bool_member_is_self_describing<T>::value>> {
-    static std::string name() { return T::name()(); }
-
-    static auto data_type() -> decltype(T::data_type()) { return T::data_type(); }
-};
-
-// template<typename T, int N>
-// struct type_id<T[N], void>
-//{
-//    static std::string name()
-//    {
-//        return type_id<T[N]>::name() + "[" + traits::type_cast<int, std::string>::eval(I) +
-//        "]";
-//    }
 //
-//    static auto data_type() -> decltype(T::data_type()) { return T::data_type(); }
-//};
-
-template <typename T, typename... Others>
-struct type_id_list {
-    static std::string name() {
-        return type_id_list<T>::name() + "," + type_id_list<Others...>::name();
-    }
-};
-
-template <typename T>
-struct type_id_list<T> {
-    static std::string name() { return type_id<T>::name(); }
-};
-
-#define DEFINE_TYPE_ID_NAME(_NAME_)                   \
-    template <>                                       \
-    struct type_id<_NAME_> {                          \
-        static std::string name() { return #_NAME_; } \
-    };
-
-DEFINE_TYPE_ID_NAME(double)
-
-DEFINE_TYPE_ID_NAME(float)
-
-DEFINE_TYPE_ID_NAME(int)
-
-DEFINE_TYPE_ID_NAME(long)
-
-#undef DEFINE_TYPE_ID_NAME
-
 ////////////////////////////////////////////////////////////////////////
 ///// Property queries of n-dimensional array
 ////////////////////////////////////////////////////////////////////////
-
-
-
 
 template <typename T, typename Idx = int>
 struct remove_extent {
@@ -298,7 +197,7 @@ template <int I0, int... I>
 struct assign_nested_initializer_list<I0, I...> {
     template <typename U, typename TR>
     static inline void apply(U& u, std::initializer_list<TR> const& rhs) {
-        static_assert(is_indexable<U, int>::value, " illegal type");
+        static_assert(concept::is_indexable<U, int>::value, " illegal type");
 
         auto it = rhs.begin();
         auto ie = rhs.end();
@@ -318,9 +217,8 @@ struct assign_nested_initializer_list<I0, I...> {
  */
 template <typename T, typename Idx = int>
 struct rank
-    : public index_const<(!is_indexable<T, Idx>::value) ? 0
-                                                        : 1 + rank<remove_extent<T, Idx>>::value> {
-};
+    : public int_const<(!is_indexable<T, Idx>::value) ? 0
+                                                      : 1 + rank<remove_extent<T, Idx>>::value> {};
 
 namespace _detail {
 template <bool F>
@@ -329,13 +227,13 @@ struct remove_entent_v;
 
 template <typename T, typename I0>
 remove_all_extents_t<T, I0>& get_v(T& v, I0 const* s) {
-    return _detail::remove_entent_v<is_indexable<T, I0>::value>::get(v, s);
+    return _detail::remove_entent_v<concept::is_indexable<T, I0>::value>::get(v, s);
 };
 
 template <typename T, typename I0, typename... Idx>
 remove_extents_t<T, I0, Idx...>& get_v(T& v, I0 const& s0, Idx&&... idx) {
-    return _detail::remove_entent_v<is_indexable<T, I0>::value>::get(v, s0,
-                                                                     std::forward<Idx>(idx)...);
+    return _detail::remove_entent_v<concept::is_indexable<T, I0>::value>::get(
+        v, s0, std::forward<Idx>(idx)...);
 };
 
 namespace _detail {
@@ -379,7 +277,7 @@ template <typename T>
 struct size : public std::integral_constant<size_t, 1> {};
 
 template <typename _Tp, _Tp... N>
-struct extent<integer_sequence<_Tp, N...>, 0> : public index_const<sizeof...(N)> {};
+struct extent<integer_sequence<_Tp, N...>, 0> : public int_const<sizeof...(N)> {};
 
 //**********************************************************************************************************************
 

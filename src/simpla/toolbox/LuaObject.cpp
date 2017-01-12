@@ -699,14 +699,14 @@ bool LuaObject::is_nTuple() const
 //
 //
 //template<typename T, size_t ...M>
-//auto _get_nTuple(LuaObject const &obj, LuaObject const &first, index_sequence<M...>, Properties *res)
+//auto _get_nTuple(LuaObject const &obj, LuaObject const &first, int_sequence<M...>, Properties *res)
 //-> typename std::enable_if<(sizeof...(M) >= 3), bool>::type
 //{
 //    return false;
 //};
 //
 //template<typename T, size_t ...M>
-//auto _get_nTuple(LuaObject const &obj, LuaObject const &first, index_sequence<M...>, Properties *res)
+//auto _get_nTuple(LuaObject const &obj, LuaObject const &first, int_sequence<M...>, Properties *res)
 //-> typename std::enable_if<sizeof...(M) < 3, bool>::type
 //{
 //    bool success = false;
@@ -717,31 +717,31 @@ bool LuaObject::is_nTuple() const
 //        switch (first.size())
 //        {
 //            case 1:
-//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 1>(), res);
+//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 1>(), res);
 //                break;
 //            case 2:
-//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 2>(), res);
+//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 2>(), res);
 //                break;
 //            case 3:
-//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 3>(), res);
+//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 3>(), res);
 //                break;
 //            case 4:
-//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 4>(), res);
+//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 4>(), res);
 //                break;
 //            case 5:
-//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 5>(), res);
+//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 5>(), res);
 //                break;
 //            case 6:
-//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 6>(), res);
+//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 6>(), res);
 //                break;
 //            case 7:
-//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 7>(), res);
+//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 7>(), res);
 //                break;
 //            case 8:
-//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 8>(), res);
+//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 8>(), res);
 //                break;
 //            case 9:
-//                success = _get_nTuple < T > (obj, first[0], index_sequence<M..., 9>(), res);
+//                success = _get_nTuple < T > (obj, first[0], int_sequence<M..., 9>(), res);
 //                break;
 //            default:
 //                success = false;
@@ -754,7 +754,7 @@ bool LuaObject::is_nTuple() const
 //template<typename T>
 //bool get_nTuple(LuaObject const &obj, Properties *res)
 //{
-//    return _get_nTuple<T>(obj, obj, index_sequence<>(), res);
+//    return _get_nTuple<T>(obj, obj, int_sequence<>(), res);
 //};
 //
 //

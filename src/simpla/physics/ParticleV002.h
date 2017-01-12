@@ -25,7 +25,7 @@ typedef typename simpla::tags::VERSION<0, 0, 2> V002;
 template<typename P, typename M>
 struct Particle<P, M, V002>
         : public P,
-          public Field<spPage *, M, index_const<mesh::VOLUME> >,
+          public Field<spPage *, M, int_const<mesh::VOLUME> >,
           public std::enable_shared_from_this<Particle<P, M, V002>>
 {
 private:
@@ -37,7 +37,7 @@ public:
 
     typedef M mesh_type;
     typedef P engine_type;
-    typedef Field<spPage *, M, index_const<mesh::VOLUME> > field_type;
+    typedef Field<spPage *, M, int_const<mesh::VOLUME> > field_type;
     typedef typename P::point_s value_type;
     typedef typename mesh::MeshEntityId id_type;
     typedef typename mesh::EntityRange range_type;

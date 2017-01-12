@@ -23,20 +23,20 @@
 #include <simpla/mpl/type_traits.h>
 namespace simpla {
 template <typename T, size_type... N>
-std::ostream &printNd(std::ostream &os, T const &d, index_sequence<N...> const &,
-                      ENABLE_IF((!traits::is_indexable<T, size_type>::value))) {
+std::ostream &printNd(std::ostream &os, T const &d, int_sequence<N...> const &,
+                      ENABLE_IF((!concept::is_indexable<T, size_type>::value))) {
     os << d;
     return os;
 }
 
 template <typename T, size_type M, size_type... N>
-std::ostream &printNd(std::ostream &os, T const &d, index_sequence<M, N...> const &,
-                      ENABLE_IF((traits::is_indexable<T, size_type>::value))) {
+std::ostream &printNd(std::ostream &os, T const &d, int_sequence<M, N...> const &,
+                      ENABLE_IF((concept::is_indexable<T, size_type>::value))) {
     os << "{";
-    printNd(os, d[0], index_sequence<N...>());
+    printNd(os, d[0], int_sequence<N...>());
     for (size_type i = 1; i < M; ++i) {
         os << " , ";
-        printNd(os, d[i], index_sequence<N...>());
+        printNd(os, d[i], int_sequence<N...>());
     }
     os << "}";
 
@@ -203,7 +203,7 @@ std::ostream &operator<<(std::ostream &os, std::multimap<TX, TY, Others...> cons
 }
 // template <typename T, size_type... M>
 // std::ostream &operator<<(std::ostream &os, algebra::declare::nTuple_<T, M...> const &v) {
-//    return algebra::_detail::printNd_(os, v.data_, index_sequence<M...>());
+//    return algebra::_detail::printNd_(os, v.data_, int_sequence<M...>());
 //}
 namespace _impl {
 template <typename... Args>
@@ -233,21 +233,7 @@ std::ostream &operator<<(std::ostream &os, std::tuple<T, Args...> const &v) {
     return os;
 };
 
-namespace traits {
-template <typename T>
-struct is_printable {
-   private:
-    HAS_CONST_MEMBER_FUNCTION(print);
 
-   public:
-    static constexpr bool value = has_const_member_function_print<T, std::ostream &>::value ||
-                                  has_const_member_function_print<T, std::ostream &, int>::value;
-};
-
-template <typename T>
-using is_printable_t = std::enable_if_t<is_printable<T>::value>;
-
-}  // namespace traits{
 
 //
 // template<typename T, typename ...Others>

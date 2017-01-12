@@ -24,7 +24,7 @@ template<typename ...> struct Particle;
 template<typename P, typename M, typename ...Others>
 struct Particle<P, M, Others...>
         : public P,
-          public Field<spPage *, M, simpla::index_const<mesh::VOLUME> >,
+          public Field<spPage *, M, simpla::int_const<mesh::VOLUME> >,
           public std::enable_shared_from_this<Particle<P, M, Others...>>
 {
 private:
@@ -36,7 +36,7 @@ public:
 
     typedef M mesh_type;
     typedef P engine_type;
-    typedef Field<spPage *, M, simpla::index_const<mesh::VOLUME> > field_type;
+    typedef Field<spPage *, M, simpla::int_const<mesh::VOLUME> > field_type;
     typedef typename P::point_s value_type;
     typedef typename mesh::MeshEntityId id_type;
     typedef typename mesh::MeshEntityRange range_type;

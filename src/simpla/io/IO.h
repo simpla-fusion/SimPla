@@ -74,7 +74,7 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 
 //template<typename Tuple, size_t ...Is>
 //std::string save_tuple_impl(std::string const & name, Tuple const & d,
-//		index_sequence<Is...>)
+//		int_sequence<Is...>)
 //{
 //	return std::move(write(name, std::get<Is>(d)...));
 //}
@@ -85,7 +85,7 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //{
 //	return std::move(save_tuple_impl(name, d,
 //
-//	make_index_sequence<sizeof...(T)>()
+//	make_int_sequence<sizeof...(T)>()
 //
 //	));
 //}

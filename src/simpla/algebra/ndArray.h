@@ -37,10 +37,10 @@ struct reference<const declare::ndArray_<T, I>> {
 };
 
 template <typename T, size_type I>
-struct rank<declare::ndArray_<T, I>> : public index_const<I> {};
+struct rank<declare::ndArray_<T, I>> : public int_const<I> {};
 
 // template<typename V, size_type I>
-// struct extents<declare::ndArray_<V, I> > : public index_sequence<I...> {};
+// struct extents<declare::ndArray_<V, I> > : public int_sequence<I...> {};
 
 template <typename T, size_type I>
 struct value_type<declare::ndArray_<T, I>> {
@@ -264,19 +264,19 @@ struct calculator<declare::ndArray_<V, NDIMS>> {
                    dims[NDIMS - sizeof...(TID)-1];
     }
 
-    static inline size_type hash_(fast_first_t, index_const<NDIMS>, size_type const* dims,
+    static inline size_type hash_(fast_first_t, int_const<NDIMS>, size_type const* dims,
                                   index_type const* offset, index_type const* i) {
         return 0;
     }
 
     template <size_type N>
-    static inline size_type hash_(fast_first_t, index_const<N>, size_type const* dims,
+    static inline size_type hash_(fast_first_t, int_const<N>, size_type const* dims,
                                   index_type const* offset, index_type const* i) {
 #ifndef NDEBUG
         ASSERT(i[N] - offset[N] < dims[N]);
 #endif
         return i[N] - offset[N] +
-               hash_(fast_first_t(), index_const<N + 1>(), dims, offset, i) * dims[N];
+               hash_(fast_first_t(), int_const<N + 1>(), dims, offset, i) * dims[N];
     }
     // slow first
 
@@ -288,20 +288,20 @@ struct calculator<declare::ndArray_<V, NDIMS>> {
                      std::forward<TID>(idx)...);
     }
 
-    static inline size_type hash_(slow_first_t, index_const<NDIMS>, size_type const* dims,
+    static inline size_type hash_(slow_first_t, int_const<NDIMS>, size_type const* dims,
                                   index_type const* offset, index_type const* i) {
         return 0;
     }
 
     template <size_type N>
-    static inline size_type hash_(slow_first_t, index_const<N>, size_type const* dims,
+    static inline size_type hash_(slow_first_t, int_const<N>, size_type const* dims,
                                   index_type const* offset, index_type const* i) {
 #ifndef NDEBUG
         ASSERT(i[NDIMS - N - 1] - offset[NDIMS - N - 1] >= 0);
 #endif
 
         return i[NDIMS - N - 1] - offset[NDIMS - N - 1] +
-               hash_(slow_first_t(), index_const<N + 1>(), dims, offset, i) * dims[NDIMS - N - 1];
+               hash_(slow_first_t(), int_const<N + 1>(), dims, offset, i) * dims[NDIMS - N - 1];
     }
 
     template <typename... TID>
@@ -313,7 +313,7 @@ struct calculator<declare::ndArray_<V, NDIMS>> {
 
     static inline size_type hash(size_type const* dims, index_type const* offset,
                                  index_type const* s) {
-        return hash_(std::integral_constant<bool>(), index_const<0>(), dims, offset, s);
+        return hash_(std::integral_constant<bool>(), int_const<0>(), dims, offset, s);
     }
 
    public:

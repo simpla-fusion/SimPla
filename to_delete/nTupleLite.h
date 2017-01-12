@@ -160,16 +160,16 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //template<typename T> struct rank;
 //
 //
-//template<typename T, size_type N> struct rank<nTuple<T, N>> : public index_const<rank<T>::value + 1> {};
+//template<typename T, size_type N> struct rank<nTuple<T, N>> : public int_const<rank<T>::value + 1> {};
 //
 //
-//template<typename TV, size_type N> struct extent<TV, N> : public index_const<0> {};
+//template<typename TV, size_type N> struct extent<TV, N> : public int_const<0> {};
 //
-//template<typename TV> struct extent<TV, 0> : public index_const<1> {};
+//template<typename TV> struct extent<TV, 0> : public int_const<1> {};
 //
 //template<typename TV, size_type M, size_type N> struct extent<nTuple<TV, M>, N> : public extent<TV, N - 1> {};
 //
-//template<typename TV, size_type M> struct extent<nTuple<TV, M>, 0> : public index_const<M> {};
+//template<typename TV, size_type M> struct extent<nTuple<TV, M>, 0> : public int_const<M> {};
 //
 //template<typename T, size_type I0> struct size<nTuple<T, I0> > :
 //        public std::integral_constant<size_type, I0>
@@ -191,18 +191,18 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 // *
 // */
 //template<typename>
-//struct make_extents { typedef index_sequence<> type; };
+//struct make_extents { typedef int_sequence<> type; };
 //
 //template<typename T, int N>
 //struct make_extents<T[N]>
 //{
-//    typedef traits::seq_concat<index_sequence<N>, typename make_extents<T>::type> type;
+//    typedef traits::seq_concat<int_sequence<N>, typename make_extents<T>::type> type;
 //};
 //
 //template<typename T, size_type N>
 //struct make_extents<nTuple<T, N>>
 //{
-//    typedef typename traits::seq_concat<index_sequence<N>, typename make_extents<T>::type> type;
+//    typedef typename traits::seq_concat<int_sequence<N>, typename make_extents<T>::type> type;
 //};
 //
 //template<typename TOP, typename ... T>
@@ -212,30 +212,30 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //};
 //
 //template<size_type ...N>
-//struct longest_seq<index_sequence<N...>, index_sequence<> >
+//struct longest_seq<int_sequence<N...>, int_sequence<> >
 //{
-//    typedef index_sequence<N...> type;
+//    typedef int_sequence<N...> type;
 //};
 //
 //template<size_type ...N>
-//struct longest_seq<index_sequence<>, index_sequence<N...> >
+//struct longest_seq<int_sequence<>, int_sequence<N...> >
 //{
-//    typedef index_sequence<N...> type;
+//    typedef int_sequence<N...> type;
 //};
 //
 //template<size_type ...N, size_type ...M>
-//struct longest_seq<index_sequence<N...>, index_sequence<M...> >
+//struct longest_seq<int_sequence<N...>, int_sequence<M...> >
 //{
 //
 //
-//    typedef std::conditional_t<(sizeof...(N) < sizeof...(M)), index_sequence<N...>,
-//            index_sequence<M...> > type;
+//    typedef std::conditional_t<(sizeof...(N) < sizeof...(M)), int_sequence<N...>,
+//            int_sequence<M...> > type;
 //};
 //
 //template<typename TOP>
 //struct expr_extents_helper<algebra::Expression<TOP >>
 //{
-//    typedef index_sequence<> type;
+//    typedef int_sequence<> type;
 //};
 //template<typename TOP, typename First>
 //struct expr_extents_helper<algebra::Expression<TOP, First> >

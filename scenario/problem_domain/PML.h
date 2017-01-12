@@ -27,7 +27,7 @@ class PML : public DomainBase
 public:
     typedef TM mesh_type;
 
-    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, index_const<IFORM>>;;
+    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, int_const<IFORM>>;;
 
     PML(std::shared_ptr<TM> mp);
 

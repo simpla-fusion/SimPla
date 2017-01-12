@@ -864,8 +864,9 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
     }
 
     template <typename TFun>
-    void foreach (TFun const& body,
-                  ENABLE_IF(traits::is_callable<TFun(mesh::MeshEntityId const&)>::value)) const {
+    void foreach (
+        TFun const& body,
+        ENABLE_IF((concept::is_callable<TFun, void(mesh::MeshEntityId const&)>::value))) const {
         typedef mesh::MeshEntityIdCoder M;
         ContinueRange const& r = *this;
         index_type ib = r.m_min_[0];
@@ -883,8 +884,8 @@ struct ContinueRange<mesh::MeshEntityId> : public RangeBase<mesh::MeshEntityId> 
 
     template <typename TFun>
     void foreach (TFun const& body,
-                  ENABLE_IF(traits::is_callable<TFun(index_type, index_type, index_type,
-                                                     index_type)>::value)) const {
+                  ENABLE_IF((concept::is_callable<TFun, void(index_type, index_type, index_type,
+                                                             index_type)>::value))) const {
         typedef mesh::MeshEntityIdCoder M;
         ContinueRange const& r = *this;
         index_type ib = r.m_min_[0];

@@ -145,7 +145,7 @@ struct Acceptor
 //    template<typename TFUN>
 //    inline void execute(TFUN const &f)
 //    {
-//        callFunc(f, typename make_index_sequence<sizeof...(Args)>::type());
+//        callFunc(f, typename make_int_sequence<sizeof...(Args)>::type());
 //    }
 //
 //private:

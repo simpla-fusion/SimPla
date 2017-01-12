@@ -78,13 +78,13 @@ struct reference<const declare::nTuple_<T, I0...>> {
 };
 
 template <typename T, int... I>
-struct rank<declare::nTuple_<T, I...>> : public index_const<sizeof...(I)> {};
+struct rank<declare::nTuple_<T, I...>> : public int_const<sizeof...(I)> {};
 
 template <typename V, int... I>
-struct extents<declare::nTuple_<V, I...>> : public index_sequence<I...> {};
+struct extents<declare::nTuple_<V, I...>> : public int_sequence<I...> {};
 
 template <typename V, int I0, int... I>
-struct extent<declare::nTuple_<V, I0, I...>> : public index_const<I0> {};
+struct extent<declare::nTuple_<V, I0, I...>> : public int_const<I0> {};
 
 template <typename T, int I0>
 struct value_type<declare::nTuple_<T, I0>> {
@@ -95,7 +95,6 @@ template <typename T, int... I>
 struct value_type<declare::nTuple_<T, I...>> {
     typedef T type;
 };
-
 
 template <typename T>
 struct sub_type {
@@ -108,7 +107,6 @@ template <typename T, int I0, int... I>
 struct sub_type<declare::nTuple_<T, I0, I...>> {
     typedef std::conditional_t<sizeof...(I) == 0, T, declare::nTuple_<T, I...>> type;
 };
-
 
 template <typename...>
 struct pod_type;
@@ -193,8 +191,7 @@ struct nTuple_calculator {
     };
 
     template <typename T, int... N, typename... Idx>
-    static decltype(auto) get_value(declare::nTuple_<T, N...> const& v, int s, Idx&&...
-    idx) {
+    static decltype(auto) get_value(declare::nTuple_<T, N...> const& v, int s, Idx&&... idx) {
         return get_value(v.data_[s], std::forward<Idx>(idx)...);
     };
 
@@ -209,13 +206,13 @@ struct nTuple_calculator {
 
     template <typename TOP, typename... Others, int... index, typename... Idx>
     static decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr,
-                                         index_sequence<index...>, Idx&&... s) {
+                                         int_sequence<index...>, Idx&&... s) {
         return ((expr.m_op_(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
     }
 
     template <typename TOP, typename... Others, typename... Idx>
     static decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr, Idx&&... s) {
-        return ((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)));
+        return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
 
     template <typename V, int N0, int... N, typename TOP, typename TR>
@@ -239,7 +236,7 @@ struct nTuple_<TV, N0, NOthers...> {
     typedef nTuple_<TV, N0, NOthers...> this_type;
 
     typedef calculus::nTuple_calculator calculator;
-
+    typedef std::true_type prefer_pass_by_reference;
     typedef TV value_type;
 
     typedef typename traits::sub_type_t<this_type> sub_type;
@@ -344,8 +341,7 @@ struct expr_parser<declare::nTuple_<V, N...>, declare::Expression<TOP, Args...>>
 template <typename TL, typename TR>
 struct expr_parser<Real, declare::Expression<tags::_nTuple_dot, TL, TR>> {
     static Real eval(declare::Expression<tags::_nTuple_dot, TL, TR> const& expr) {
-        static constexpr int N =
-            std::max(traits::extent<TL>::value, traits::extent<TR>::value);
+        static constexpr int N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
         Real res = 0.0;
 
         for (int i = 0; i < N; ++i) {
@@ -356,7 +352,6 @@ struct expr_parser<Real, declare::Expression<tags::_nTuple_dot, TL, TR>> {
         return res;
     };
 };
-
 
 }  // namespace calculaus{
 }  // namespace algebra

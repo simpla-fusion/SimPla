@@ -23,7 +23,7 @@ struct Expression;
 
 namespace traits {
 template <typename>
-struct num_of_dimension : public index_const<3> {};
+struct num_of_dimension : public int_const<3> {};
 
 CHECK_TYPE_MEMBER(value_type, value_type)
 
@@ -103,10 +103,10 @@ struct field_value_type {
 template <typename T>
 using field_value_t = typename field_value_type<T>::type;
 
-HAS_MEMBER_TYPE_BOOLEAN(is_array, is_array)
-HAS_MEMBER_TYPE_BOOLEAN(is_field, is_field)
-HAS_MEMBER_TYPE_BOOLEAN(is_nTuple, is_nTuple)
-HAS_MEMBER_TYPE_BOOLEAN(is_expression, is_expression)
+CHECK_BOOLEAN_TYPE_MEMBER(is_array, is_array)
+CHECK_BOOLEAN_TYPE_MEMBER(is_field, is_field)
+CHECK_BOOLEAN_TYPE_MEMBER(is_nTuple, is_nTuple)
+CHECK_BOOLEAN_TYPE_MEMBER(is_expression, is_expression)
 
 template <typename First, typename... Others>
 struct is_field<First, Others...>
@@ -128,50 +128,50 @@ template <typename T>
 struct is_primary_field
     : public std::integral_constant<bool, is_field<T>::value && (!is_expression<T>::value)> {};
 
-template <typename _T>
-struct iform_ {
-   private:
-    template <typename U>
-    static auto test(int) -> std::integral_constant<int, U::iform>;
-    template <typename>
-    static std::integral_constant<int, 0> test(...);
+CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(iform, iform, VERTEX)
+CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(dof, dof, 1)
 
-   public:
-    static constexpr int value = decltype(test<_T>(0))::value;
-};
-template <typename T>
-struct iform : public int_constant<iform_<T>::value> {};
-
-template <typename _T>
-struct dof_ {
-   private:
-    template <typename U>
-    static auto test(int) -> std::integral_constant<int, U::dof>;
-    template <typename>
-    static std::integral_constant<int, 1> test(...);
-
-   public:
-    static constexpr int value = decltype(test<_T>(0))::value;
-};
-template <typename T>
-struct dof : public int_constant<dof_<T>::value> {};
-template <typename T>
-struct dof<const T> : public dof<T> {};
+// template <typename _T>
+// struct iform_ {
+//   private:
+//    template <typename U>
+//    static auto test(int) -> std::integral_constant<int, U::iform>;
+//    template <typename>
+//    static std::integral_constant<int, 0> test(...);
+//
+//   public:
+//    static constexpr int value = decltype(test<_T>(0))::value;
+//};
+// template <typename T>
+// struct iform : public int_const<iform_<T>::value> {};
+//
+// template <typename _T>
+// struct dof_ {
+//   private:
+//    template <typename U>
+//    static auto test(int) -> std::integral_constant<int, U::dof>;
+//    template <typename>
+//    static std::integral_constant<int, 1> test(...);
+//
+//   public:
+//    static constexpr int value = decltype(test<_T>(0))::value;
+//};
+// template <typename T>
+// struct dof : public int_const<dof_<T>::value> {};
+// template <typename T>
+// struct dof<const T> : public dof<T> {};
 
 template <typename>
-struct rank : public index_const<3> {};
+struct rank : public int_const<3> {};
 template <typename T>
 struct rank<const T> : public rank<T> {};
 
 template <typename>
-struct extent : public index_const<0> {};
+struct extent : public int_const<0> {};
 template <typename T>
-struct extent<const T> : public index_const<extent<T>::value> {};
+struct extent<const T> : public int_const<extent<T>::value> {};
 template <typename T>
-struct extents : public index_sequence<> {};
-
-
-
+struct extents : public int_sequence<> {};
 
 template <typename T>
 struct scalar_type {
@@ -192,13 +192,12 @@ struct is_scalar : public std::integral_constant<bool, false> {};
 
 template <typename T>
 struct is_scalar<T>
-        : public std::integral_constant<bool, std::is_arithmetic<std::decay_t<T>>::value ||
+    : public std::integral_constant<bool, std::is_arithmetic<std::decay_t<T>>::value ||
                                               is_complex<std::decay_t<T>>::value> {};
 template <typename First, typename... Others>
 struct is_scalar<First, Others...>
-        : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {
+    : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {
 };
-
 
 }  // namespace traits
 

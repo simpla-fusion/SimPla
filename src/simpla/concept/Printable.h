@@ -6,9 +6,10 @@
 #define SIMPLA_PRINTABLE_H
 
 #include <ostream>
+#include "CheckConcept.h"
 
-namespace simpla { namespace concept
-{/**  @ingroup concept   */
+namespace simpla {
+namespace concept { /**  @ingroup concept   */
 
 /**
  * @brief a type whose instances maybe print to std::ostream  *
@@ -21,16 +22,16 @@ namespace simpla { namespace concept
  *	 ------------------------------------------------------|----------
  * 	 \code  std::ostream &print(std::ostream &os, int indent)   \endcode |
  */
-struct Printable
-{
+struct Printable {
     virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
 };
 
-inline std::ostream &operator<<(std::ostream &os, Printable const &obj)
-{
+CHECK_FUNCTION_MEMBER(is_printable, print);
+
+inline std::ostream &operator<<(std::ostream &os, Printable const &obj) {
     obj.print(os, 0);
     return os;
 }
-
-}}
-#endif //SIMPLA_PRINTABLE_H
+}
+}
+#endif  // SIMPLA_PRINTABLE_H

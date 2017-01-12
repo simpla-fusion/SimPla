@@ -146,11 +146,11 @@ class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
     std::shared_ptr<AttributeDict> m_dict_;
 };
 //
-//template <typename...>
-//class AttributeAdapter;
+// template <typename...>
+// class AttributeAdapter;
 //
-//template <typename U>
-//class AttributeAdapter<U> : public Attribute, public U {
+// template <typename U>
+// class AttributeAdapter<U> : public Attribute, public U {
 //    SP_OBJECT_HEAD(AttributeAdapter<U>, Attribute);
 //
 //    typedef algebra::traits::value_type_t<U> value_type;
@@ -159,7 +159,8 @@ class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
 //    template <typename... Args>
 //    AttributeAdapter(Args &&... args)
 //        : Attribute(nullptr,
-//                    std::make_shared<AttributeDescTemp<value_type, algebra::traits::iform<U>::value,
+//                    std::make_shared<AttributeDescTemp<value_type,
+//                    algebra::traits::iform<U>::value,
 //                                                       algebra::traits::dof<U>::value>>(
 //                        std::forward<Args>(args)...)),
 //          U() {}
@@ -200,8 +201,8 @@ class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
 //    }
 //};
 //
-//template <typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
-//using Variable =
+// template <typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
+// using Variable =
 //    AttributeAdapter<Array<TV, SIMPLA_MAXIMUM_DIMENSION +
 //                                   (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 
@@ -209,18 +210,5 @@ class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
 // using FieldVariable = AttributeAdapter<Field<TV, TM, IFORM, DOF>>;
 }
 }  // namespace data_block
-namespace simpla {
-namespace algebra {
-namespace traits {
-template <typename T>
-struct reference<mesh::AttributeAdapter<T>> {
-    typedef mesh::AttributeAdapter<T> &type;
-};
-template <typename T>
-struct reference<const mesh::AttributeAdapter<T>> {
-    typedef mesh::AttributeAdapter<T> const &type;
-};
-}
-}
-}
+
 #endif  // SIMPLA_ATTRIBUTE_H

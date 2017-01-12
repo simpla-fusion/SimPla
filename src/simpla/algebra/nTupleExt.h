@@ -8,8 +8,8 @@
 #ifndef CORE_NTUPLE_EXT_H_
 #define CORE_NTUPLE_EXT_H_
 
-#include <simpla/mpl/any.h>
 #include <simpla/concept/CheckConcept.h>
+#include <simpla/mpl/any.h>
 #include <cstddef>
 #include <sstream>
 #include <string>
@@ -137,20 +137,20 @@ inline auto NSum(T const &v, ENABLE_IF(traits::is_nTuple<T>::value)) {
 
 namespace _detail {
 template <typename T, int... N>
-std::ostream &printNd_(std::ostream &os, T const &d, index_sequence<N...> const &,
-                       ENABLE_IF((!simpla::traits::is_indexable<T, int>::value))) {
+std::ostream &printNd_(std::ostream &os, T const &d, int_sequence<N...> const &,
+                       ENABLE_IF((!simpla::concept::is_indexable<T>::value))) {
     os << d;
     return os;
 }
 
 template <typename T, int M, int... N>
-std::ostream &printNd_(std::ostream &os, T const &d, index_sequence<M, N...> const &,
-                       ENABLE_IF((simpla::traits::is_indexable<T, int>::value))) {
+std::ostream &printNd_(std::ostream &os, T const &d, int_sequence<M, N...> const &,
+                       ENABLE_IF((simpla::concept::is_indexable<T>::value))) {
     os << "{";
-    printNd_(os, d[0], index_sequence<N...>());
+    printNd_(os, d[0], int_sequence<N...>());
     for (int i = 1; i < M; ++i) {
         os << " , ";
-        printNd_(os, d[i], index_sequence<N...>());
+        printNd_(os, d[i], int_sequence<N...>());
     }
     os << "}";
 
@@ -168,7 +168,7 @@ namespace declare {
 
 template <typename T, int... M>
 std::ostream &operator<<(std::ostream &os, nTuple_<T, M...> const &v) {
-    return _detail::printNd_(os, v.data_, index_sequence<M...>());
+    return _detail::printNd_(os, v.data_, int_sequence<M...>());
 }
 
 template <typename T, int... M>
@@ -180,7 +180,7 @@ std::istream &operator>>(std::istream &is, nTuple_<T, M...> &a) {
 
 // template <typename T, int... M>
 // std::ostream &operator<<(std::ostream &os, declare::nTuple_<T, M...> const &v) {
-//    return _detail::printNd_(os, v.data_, index_sequence<M...>());
+//    return _detail::printNd_(os, v.data_, int_sequence<M...>());
 //}
 }  // namespace algebra
 

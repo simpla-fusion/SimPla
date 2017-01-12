@@ -3,7 +3,6 @@
 //
 #include <gtest/gtest.h>
 #include <simpla/concept/CheckConcept.h>
-#include <iostream>
 
 struct Foo {
     typedef double value_type;
@@ -123,5 +122,4 @@ TEST(CheckConceptTest, CheckIsCallable) {
     EXPECT_TRUE((is_callable<Foo, double(double, double)>::value));
     EXPECT_FALSE((is_callable<Goo, double&(int)>::value));
     EXPECT_FALSE((is_callable<Koo, double&(int)>::value));
-
 }

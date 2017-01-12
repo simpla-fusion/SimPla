@@ -38,7 +38,7 @@ struct AMRTest : public mesh::Worker
     mesh::Chart<TM> m_chart;
 
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1>
-    using field_type=Field<TV, TM, index_const<IFORM>, index_const<DOF>>;
+    using field_type=Field<TV, TM, int_const<IFORM>, int_const<DOF>>;
 
     Real epsilon = 1.0;
     Real mu = 1.0;

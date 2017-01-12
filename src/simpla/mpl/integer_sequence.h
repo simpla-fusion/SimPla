@@ -13,10 +13,9 @@
 #include <iostream>
 #include "simpla/concept/CheckConcept.h"
 #include "simpla/mpl/macro.h"
-#include "simpla/mpl/port_cxx14.h"
 
 namespace simpla {
-
+using namespace concept;
 //////////////////////////////////////////////////////////////////////
 /// integer_sequence
 //////////////////////////////////////////////////////////////////////
@@ -26,10 +25,10 @@ namespace simpla {
 ////template<typename _Tp, _Tp ... _I> using integer_sequence = std::integer_sequence<_Tp, _I...>;
 ////template<int ... _I> using index_sequence=std::index_sequence<_I...>;
 // using std::integer_sequence;
-// using std::index_sequence;
-// using std::make_index_sequence;
+// using std::int_sequence;
+// using std::make_int_sequence;
 // using std::make_integer_sequence;
-// using std::index_sequence_for;
+// using std::int_sequence_for;
 //#else
 /**
  *  alt. of std::integer_sequence ( C++14)
@@ -90,22 +89,22 @@ using make_integer_sequence = typename _impl::_Make_integer_sequence<_Tp, _Num>:
 
 /// Alias template index_sequence
 template <int... _Idx>
-using index_sequence = integer_sequence<int, _Idx...>;
+using int_sequence = integer_sequence<int, _Idx...>;
 
 /// Alias template make_index_sequence
 template <int _Num>
-using make_index_sequence = make_integer_sequence<int, _Num>;
+using make_int_sequence = make_integer_sequence<int, _Num>;
 
 /// Alias template index_sequence_for
 template <typename... _Types>
-using index_sequence_for = make_index_sequence<sizeof...(_Types)>;
+using int_sequence_for = make_int_sequence<sizeof...(_Types)>;
 
 //**************************************************************************
 
 //#endif
 namespace tags {
 template <int V0, int V1, int V2>
-using VERSION = integer_sequence<int, V0, V1, V2>;
+using VERSION = int_sequence<V0, V1, V2>;
 }
 
 namespace traits {
@@ -218,12 +217,12 @@ struct _seq_for<M, N...> {
 
 // namespace _impl{
 template <int N, typename... Args>
-void seq_for(index_sequence<N>, Args &&... args) {
+void seq_for(int_sequence<N>, Args &&... args) {
     _impl::_seq_for<N>::eval(std::forward<Args>(args)...);
 }
 
 template <int... N, typename... Args>
-void seq_for(index_sequence<N...>, Args &&... args) {
+void seq_for(int_sequence<N...>, Args &&... args) {
     _impl::_seq_for<N...>::eval(std::forward<Args>(args)...);
 }
 //----------------------------------------------------------------------------------------------------------------------
@@ -277,11 +276,11 @@ auto seq_reduce(integer_sequence<int, N...>, TOP const &op, Args &&... args) {
 }
 //----------------------------------------------------------------------------------------------------------------------
 
-template <typename TInts, TInts... N, typename TOP>
-void seq_for_each(integer_sequence<TInts, N...>, TOP const &op) {
+template <int... N, typename TOP>
+void seq_for_each(int_sequence<N...>, TOP const &op) {
     int ndims = sizeof...(N);
-    TInts dims[] = {N...};
-    TInts idx[ndims];
+    int dims[] = {N...};
+    int idx[ndims];
 
     for (int i = 0; i < ndims; ++i) { idx[i] = 0; }
 
@@ -330,14 +329,14 @@ struct _seq_min<_Tp, I0, I1> {
 }  // namespace _impl
 
 template <typename Tp>
-struct seq_max : public index_sequence<> {};
+struct seq_max : public int_sequence<> {};
 
 template <typename _Tp, _Tp... I>
 struct seq_max<integer_sequence<_Tp, I...>>
     : public std::integral_constant<_Tp, _impl::_seq_max<_Tp, I...>::value> {};
 
 template <typename Tp>
-struct seq_min : public index_sequence<> {};
+struct seq_min : public int_sequence<> {};
 
 template <typename _Tp, _Tp... I>
 struct seq_min<integer_sequence<_Tp, I...>>
@@ -429,9 +428,8 @@ std::ostream &operator<<(std::ostream &os, integer_sequence<_Tp> const &) {
 }
 
 template <int I>
-using index_const = std::integral_constant<int, I>;
-template <int I>
-using int_constant = std::integral_constant<int, I>;
+using int_const = std::integral_constant<int, I>;
+
 template <typename _Tp, _Tp I>
 using integral_constant = integer_sequence<_Tp, I>;
 template <int... I>

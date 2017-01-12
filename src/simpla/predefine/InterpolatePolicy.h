@@ -142,7 +142,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const <VERTEX>, TF &
+    scatter_(mesh_type const &m, int_const <VERTEX>, TF &
     f, TX const &x, TV const &u)
     {
         scatter_impl_(f, m.point_global_to_local(x, 0), u);
@@ -150,7 +150,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const <EDGE>, TF &
+    scatter_(mesh_type const &m, int_const <EDGE>, TF &
     f, TX const &x, TV const &u)
     {
 
@@ -162,7 +162,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const <FACE>, TF &f,
+    scatter_(mesh_type const &m, int_const <FACE>, TF &f,
              TX const &x, TV const &u)
     {
 
@@ -173,7 +173,7 @@ private:
 
     template<typename TF, typename TX, typename TV>
     static inline void
-    scatter_(mesh_type const &m, index_const <VOLUME>,
+    scatter_(mesh_type const &m, int_const <VOLUME>,
              TF &f, TX const &x, TV const &u)
     {
         scatter_impl_(f, m.point_global_to_local(x, 7), u);
@@ -190,54 +190,54 @@ public:
 private:
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const <VERTEX>, MeshEntityId const &s,
+    sample_(mesh_type const &m, int_const <VERTEX>, MeshEntityId const &s,
             TV const &v) { return v; }
 
     template<typename TV, size_type L> static inline TV
-    sample_(mesh_type const &m, index_const <VERTEX>, MeshEntityId const &s,
+    sample_(mesh_type const &m, int_const <VERTEX>, MeshEntityId const &s,
             nTuple <TV, L> const &v) { return v[s.w % L]; }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const <VOLUME>, MeshEntityId const &s,
+    sample_(mesh_type const &m, int_const <VOLUME>, MeshEntityId const &s,
             TV const &v) { return v; }
 
     template<typename TV, size_type L> static inline TV
-    sample_(mesh_type const &m, index_const <VOLUME>, MeshEntityId const &s,
+    sample_(mesh_type const &m, int_const <VOLUME>, MeshEntityId const &s,
             nTuple <TV, L> const &v) { return v[s.w % L]; }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const <EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
+    sample_(mesh_type const &m, int_const <EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
 
     template<typename TV>
     static inline TV
-    sample_(mesh_type const &m, index_const <FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
+    sample_(mesh_type const &m, int_const <FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v)
     {
         return v[M::sub_index(s)];
     }
 //
 //    template<typename M,int IFORM,  typename TV>
-//    static inline  TV sample_(M const & m,index_const< IFORM>, mesh_id_type s,
+//    static inline  TV sample_(M const & m,int_const< IFORM>, mesh_id_type s,
 //                                       TV const &v) { return v; }
 
 public:
 
 //    template<typename M,int IFORM,  typename TV>
 //    static inline  auto generate(TI const &s, TV const &v)
-//    AUTO_RETURN((sample_(M const & m,index_const< IFORM>(), s, v)))
+//    AUTO_RETURN((sample_(M const & m,int_const< IFORM>(), s, v)))
 
 
     template<int IFORM, typename TV>
     static inline at::value_type_t<TV>
     sample(mesh_type const &m, MeshEntityId const &s, TV const &v)
     {
-        return sample_(m, index_const<IFORM>(), s, v);
+        return sample_(m, int_const<IFORM>(), s, v);
     }
-//    AUTO_RETURN((sample_(index_const< IFORM>(), s, v)))
+//    AUTO_RETURN((sample_(int_const< IFORM>(), s, v)))
 
 
     /**
