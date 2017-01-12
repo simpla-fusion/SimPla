@@ -115,8 +115,8 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
     FieldView(mesh_type const* m, value_type* d = nullptr)
         : m_mesh_(m), m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {}
 
-    FieldView(mesh_type const* m, std::shared_ptr<value_type> const& d)
-        : m_mesh_(m), m_data_(d.get()), m_data_holder_(d) {}
+    FieldView(std::shared_ptr<mesh_type> const& m, std::shared_ptr<value_type> const& d = nullptr)
+        : m_mesh_(m.get()), m_data_(d.get()), m_data_holder_(d) {}
 
     virtual ~FieldView() {}
 
@@ -288,7 +288,8 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
     this_type operator[](PlaceHolder<N...> const& p) const {
         return this_type(*this, p);
     }
-
+    decltype(auto) operator[](mesh_id const& s) const { return at(s); }
+    decltype(auto) operator[](mesh_id const& s) { return at(s); }
     this_type& operator=(this_type const& rhs) {
         base_type::assign(rhs);
         return *this;

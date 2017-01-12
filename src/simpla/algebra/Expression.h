@@ -63,11 +63,13 @@ struct is_field<declare::Expression<TOP, Args...>> : public is_field<Args...> {}
 template <typename TOP, typename... Args>
 struct is_array<declare::Expression<TOP, Args...>> : public is_array<Args...> {};
 
-template <typename TOP, typename T0, typename... T>
-struct iform<declare::Expression<TOP, T0, T...>> : public iform<T0> {};
+template <typename TOP, typename... T>
+struct iform<declare::Expression<TOP, T...>>
+    : public int_const<seq_max<int, iform<T>::value...>::value> {};
 
-template <typename TOP, typename T0, typename... T>
-struct extent<declare::Expression<TOP, T0, T...>> : public extent<T0> {};
+template <typename TOP, typename... T>
+struct extent<declare::Expression<TOP, T...>>
+    : public int_const<seq_max<int, extent<T>::value...>::value> {};
 
 template <typename TOP, typename TL>
 struct value_type<declare::Expression<TOP, TL>> {
@@ -78,7 +80,10 @@ template <typename TOP, typename TL, typename TR>
 struct value_type<declare::Expression<TOP, TL, TR>> {
     typedef std::result_of_t<TOP(value_type_t<TL>, value_type_t<TR>)> type;
 };
-
+template <typename TOP, typename... T>
+struct value_type<declare::Expression<TOP, T...>> {
+    typedef std::result_of_t<TOP(value_type_t<T>...)> type;
+};
 }  // namespace traits
 
 namespace declare {

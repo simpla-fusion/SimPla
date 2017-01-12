@@ -26,8 +26,7 @@ struct TestAlgebra<Field<TM, TV, IFORM, DOF>> : public testing::Test {
 
     typedef TV value_type;
     typedef Field<TM, value_type, IFORM, DOF> field_type;
-    typedef Field<TM, value_type, VERTEX, 1> SCALAR_field_type;
-
+    typedef Field<TM, value_type, VERTEX, 1> scalar_field_type;
 };
 
 template <typename TM, typename TV, int IFORM, int DOF>
@@ -56,6 +55,7 @@ TYPED_TEST(TestAlgebra, iform_base) {
 
 TYPED_TEST(TestAlgebra, iform_arithmetic) {
     typedef typename TestFixture::field_type field_type;
+    typedef typename TestFixture::scalar_field_type scalar_field_type;
 
     EXPECT_EQ(sat::iform<decltype(std::declval<field_type>() * 2.0)>::value, TestFixture::iform);
     EXPECT_EQ(sat::iform<decltype(std::declval<field_type>() / 2.0)>::value, TestFixture::iform);
@@ -64,20 +64,17 @@ TYPED_TEST(TestAlgebra, iform_arithmetic) {
     EXPECT_EQ(
         sat::iform<decltype(-std::declval<field_type>() * 2 - std::declval<field_type>())>::value,
         TestFixture::iform);
-//    EXPECT_EQ(
-//        sat::iform<decltype(-std::declval<field_type>() * 2 - std::declval<field_type>())>::value,
-//        TestFixture::iform);
 
-    //    EXPECT_EQ(sat::iform<decltype(std::declval<E>() * 2)>::value, EDGE);
-    //    EXPECT_EQ(sat::iform<decltype(std::declval<E>() / 2.0)>::value, EDGE);
-    //    EXPECT_EQ(sat::iform<decltype(-std::declval<E>())>::value, EDGE);
-    //    EXPECT_EQ(sat::iform<decltype(std::declval<E>() * 2)>::value, EDGE);
-    //    EXPECT_EQ(sat::iform<decltype(-std::declval<B>() * 2)>::value, FACE);
-    //    EXPECT_EQ(sat::iform<decltype(-std::declval<vrho>() * 2)>::value, VOLUME);
-    //
-    //    EXPECT_EQ(sat::iform<decltype(std::declval<rho>() * std::declval<E>())>::value, EDGE);
-    //    EXPECT_EQ(sat::iform<decltype(std::declval<E>() / std::declval<rho>())>::value, EDGE);
-    //    EXPECT_EQ(sat::iform<decltype(std::declval<B>() / std::declval<rho>())>::value, FACE);
+    EXPECT_EQ(
+        sat::iform<decltype(std::declval<field_type>() * std::declval<scalar_field_type>())>::value,
+        TestFixture::iform);
+    EXPECT_EQ(
+        sat::iform<decltype(std::declval<field_type>() / std::declval<scalar_field_type>())>::value,
+        TestFixture::iform);
+    EXPECT_EQ(sat::iform<decltype(std::declval<field_type>() + std::declval<field_type>())>::value,
+              TestFixture::iform);
+    EXPECT_EQ(sat::iform<decltype(std::declval<field_type>() - std::declval<field_type>())>::value,
+              TestFixture::iform);
 }
 // TEST(AlgebraTest, iform_calculus) {
 //    EXPECT_EQ(sat::iform<decltype(grad(-std::declval<rho>() * 2))>::value, EDGE);

@@ -14,40 +14,35 @@
 
 #include <gtest/gtest.h>
 
+#include <simpla/algebra/all.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/mpl/type_traits.h>
+#include <simpla/predefine/CalculusPolicy.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/sp_def.h>
-#include <simpla/algebra/all.h>
-#include <simpla/predefine/CalculusPolicy.h>
 using namespace simpla;
 
-template<typename TField>
-class TestField : public testing::Test
-{
-protected:
-    virtual void SetUp()
-    {
+template <typename TField>
+class TestField : public testing::Test {
+   protected:
+    virtual void SetUp() {
         logger::set_stdout_level(10);
 
         index_tuple dims = {10, 1, 1};
         point_type xmin = {0, 0, 0};
         point_type xmax = {1, 2, 3};
-//        m->dimensions(dims);
-//        m->box(xmin, xmax);
+        //        m->dimensions(dims);
+        //        m->box(xmin, xmax);
 
         size_type gw[3] = {2, 2, 2};
         index_type lo[3] = {0, 0, 0};
-        index_type hi[3];//= {dims[0], dims[1], dims[2]};
+        index_type hi[3];  //= {dims[0], dims[1], dims[2]};
 
         m = std::make_shared<mesh_type>(nullptr, &dims[0], &xmin[0], &xmax[0]);
         m->deploy();
-
-
     }
 
-public:
-
+   public:
     typedef TField field_type;
 
     typedef typename field_type::mesh_type mesh_type;
@@ -56,35 +51,33 @@ public:
 
     typedef Real scalar_type;
 
-//    typedef  traits::scalar_type_t<manifold_type> scalar_type;
+    //    typedef  traits::scalar_type_t<manifold_type> scalar_type;
 
-    static constexpr size_type iform = algebra::traits::iform<TField>::value;
-    static constexpr size_type dof = algebra::traits::dof<TField>::value;
-
+    static constexpr int iform = algebra::traits::iform<TField>::value;
+    static constexpr int dof = algebra::traits::dof<TField>::value;
 
     value_type default_value;
 
-
     std::shared_ptr<mesh_type> m;
 
+    //    typedef Field<value_type, manifold_type, int_const<static_cast<size_t>(iform)> >
+    //    field_type;
+    typedef Field<mesh_type, value_type, iform> scalar_field_type;
+    typedef Field<mesh_type, value_type, iform, 3> vector_field_type;
 
-//    typedef Field<value_type, manifold_type, int_const<static_cast<size_t>(iform)> > field_type;
-    typedef Field<value_type, mesh_type, iform> scalar_field_type;
-    typedef Field<value_type, mesh_type, iform, 3> vector_field_type;
-
-//    auto make_scalarField() const AUTO_RETURN((field_t<value_type, manifold_type, iform>(m)))
-//
-//    auto make_vectorField() const AUTO_RETURN((field_t<nTuple<value_type, 3>, manifold_type, iform>(m)))
+    //    auto make_scalarField() const AUTO_RETURN((field_t<value_type, manifold_type, iform>(m)))
+    //
+    //    auto make_vectorField() const AUTO_RETURN((field_t<nTuple<value_type, 3>, manifold_type,
+    //    iform>(m)))
 };
 
-template<typename TField> constexpr size_type TestField<TField>::iform;
-template<typename TField> constexpr size_type TestField<TField>::dof;
+template <typename TField>
+constexpr int TestField<TField>::iform;
+template <typename TField>
+constexpr int TestField<TField>::dof;
 TYPED_TEST_CASE_P(TestField);
 
-TYPED_TEST_P(TestField, assign)
-{
-
-
+TYPED_TEST_P(TestField, assign) {
     typedef typename TestFixture::value_type value_type;
     typedef typename TestFixture::field_type field_type;
 
@@ -95,18 +88,14 @@ TYPED_TEST_P(TestField, assign)
     va = 2.0;
     f1 = va;
     size_type count = 0;
-    TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform, TestFixture::dof).foreach(
-            [&](mesh::MeshEntityId const & s) { EXPECT_LE(abs(va - f1[s]), EPSILON); });
+    TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform)
+        .foreach ([&](mesh::MeshEntityId const &s) { EXPECT_LE(std::abs(va - f1[s]), EPSILON); });
 }
 
-TYPED_TEST_P(TestField, index)
-{
-
-
+TYPED_TEST_P(TestField, index) {
     typedef typename TestFixture::value_type value_type;
 
     typename TestFixture::field_type f1(TestFixture::m);
-
 
     f1.clear();
 
@@ -114,25 +103,22 @@ TYPED_TEST_P(TestField, index)
 
     va = 2.0;
 
-    TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform).foreach(
-            [&](mesh::MeshEntityId const & s) { f1[s] = va * TestFixture::m->hash(s); });
+    TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform)
+        .foreach ([&](mesh::MeshEntityId const &s) { f1[s] = va * TestFixture::m->hash(s); });
 
-    TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform).foreach(
-            [&](mesh::MeshEntityId const & s) { EXPECT_LE(abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON); });
-
+    TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform)
+        .foreach ([&](mesh::MeshEntityId const &s) {
+            EXPECT_LE(std::abs(va * TestFixture::m->hash(s) - f1[s]), EPSILON);
+        });
 }
 
-TYPED_TEST_P(TestField, constant_real)
-{
-
-
+TYPED_TEST_P(TestField, constant_real) {
     typedef typename TestFixture::value_type value_type;
     typedef typename TestFixture::field_type field_type;
 
     typename TestFixture::field_type f1(TestFixture::m);
     typename TestFixture::field_type f2(TestFixture::m);
     typename TestFixture::field_type f3(TestFixture::m);
-
 
     f1.deploy();
     f2.deploy();
@@ -148,27 +134,22 @@ TYPED_TEST_P(TestField, constant_real)
 
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](mesh::MeshEntityId const & s) { return va * uniform_dist(gen); });
-    f2.assign([&](mesh::MeshEntityId const & s) { return vb * uniform_dist(gen); });
-
+    f1.assign([&](mesh::MeshEntityId const &s) { return va * uniform_dist(gen); });
+    f2.assign([&](mesh::MeshEntityId const &s) { return vb * uniform_dist(gen); });
 
     LOG_CMD(f3 = -f1 + f1 * a + f2 * c - f1 / b);
 
-    TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform).foreach(
-            [&](mesh::MeshEntityId const & s)
-            {
-                value_type expect;
-                expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
+    TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform)
+        .foreach ([&](mesh::MeshEntityId const &s) {
+            value_type expect;
+            expect = -f1[s] + f1[s] * a + f2[s] * c - f1[s] / b;
 
-                // FIXME： truncation error is too big . why ??
-                EXPECT_LE(abs(expect - f3[s]), EPSILON);
-            });
+            // FIXME： truncation error is too big . why ??
+            EXPECT_LE(std::abs(expect - f3[s]), EPSILON);
+        });
 }
 
-TYPED_TEST_P(TestField, scalarField)
-{
-
-
+TYPED_TEST_P(TestField, scalarField) {
     typedef typename TestFixture::value_type value_type;
 
     typename TestFixture::field_type f1(TestFixture::m);
@@ -202,42 +183,41 @@ TYPED_TEST_P(TestField, scalarField)
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](typename TestFixture::mesh_type::id_type const &s) { return va * uniform_dist(gen); });
-    f2.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vb * uniform_dist(gen); });
-    f3.assign([&](typename TestFixture::mesh_type::id_type const &s) { return vc * uniform_dist(gen); });
+    f1.assign(
+        [&](typename TestFixture::mesh_type::id_type const &s) { return va * uniform_dist(gen); });
+    f2.assign(
+        [&](typename TestFixture::mesh_type::id_type const &s) { return vb * uniform_dist(gen); });
+    f3.assign(
+        [&](typename TestFixture::mesh_type::id_type const &s) { return vc * uniform_dist(gen); });
 
     LOG_CMD(f4 = -f1 * fa + f2 * fb - f3 / fc - f1);
 
-//	Plus( Minus(Negate(Wedge(f1,fa)),Divides(f2,fb)),Multiplies(f3,fc) )
+    //	Plus( Minus(Negate(Wedge(f1,fa)),Divides(f2,fb)),Multiplies(f3,fc) )
 
-/**           (+)
- *           /   \
- *         (-)    (*)
- *        /   \    | \
- *      (^)    (/) f1 c
- *     /  \   /  \
- *-f1      a f2   b
- *
- * */
+    /**           (+)
+     *           /   \
+     *         (-)    (*)
+     *        /   \    | \
+     *      (^)    (/) f1 c
+     *     /  \   /  \
+     *-f1      a f2   b
+     *
+     * */
 
-//    TestFixture::m->foreach([&](typename TestFixture::mesh_type::id_type const &s)
-//                            {
-//                                CHECK(fa[s]);
-//                                CHECK(fb[s]);
-//                                CHECK(fc[s]);
-//                            });
+    //    TestFixture::m->foreach([&](typename TestFixture::mesh_type::id_type const &s)
+    //                            {
+    //                                CHECK(fa[s]);
+    //                                CHECK(fb[s]);
+    //                                CHECK(fc[s]);
+    //                            });
 
-    TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform, TestFixture::dof).foreach(
-            [&](mesh::MeshEntityId const & s)
-            {
-                value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
+    TestFixture::m->range(mesh::SP_ES_ALL, TestFixture::iform)
+        .foreach ([&](mesh::MeshEntityId const &s) {
+            value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 
-
-                EXPECT_DOUBLE_EQ(abs(res), abs(f4[s]));
-                EXPECT_LE(abs(res - f4[s]), EPSILON);
-            });
-
-
+            EXPECT_DOUBLE_EQ(std::abs(res), std::abs(f4[s]));
+            EXPECT_LE(std::abs(res - f4[s]), EPSILON);
+        });
 }
 
 REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField);
@@ -246,23 +226,23 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 //
 //#include "field.h"
 //#include "../geometry/domain_traits.h"
-//using namespace simpla;
+// using namespace simpla;
 //
 ////#include "../utilities/log.h"
 ////#include "../utilities/pretty_stream.h"
 ////
 ////using namespace simpla;
 ////
-//class Bundle;
-//class Container;
+// class Bundle;
+// class Container;
 //
-//class TestFIELD: public testing::TestWithParam<
+// class TestFIELD: public testing::TestWithParam<
 //		std::tuple<typename domain_traits<Bundle>::coordinate_tuple,
 //				typename Bundle::coordinate_tuple,
 //				nTuple<Bundle::NDIMS, size_t>, nTuple<Bundle::NDIMS, Real> > >
 //{
 //
-//protected:
+// protected:
 //	void SetUp()
 //	{
 //		LOGGER.set_stdout_level(LOG_INFORM);
@@ -294,7 +274,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 //		geometry.sync();
 //
 //	}
-//public:
+// public:
 //
 //	typedef Bundle domain_type;
 //	typedef Real value_type;
