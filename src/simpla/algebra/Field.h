@@ -20,18 +20,21 @@
 namespace simpla {
 namespace mesh {
 
+CHECK_TYPE_MEMBER(check_entity_id, entity_id)
+CHECK_TYPE_MEMBER(check_scalar_type, scalar_type)
+
 template <typename TM>
 struct mesh_traits {
     typedef TM type;
-    typedef size_type id;
-    typedef Real scalar_type;
+    typedef typename check_entity_id<TM>::type entity_id;
+    typedef typename check_scalar_type<TM>::type scalar_type;
 
-    template <int IFORM, int DOF>
-    struct Shift {
-        template <typename... Args>
-        Shift(Args&&... args) {}
-        constexpr id const& operator()(TM const& m, id const& s) const { return s; }
-    };
+    //    template <int IFORM, int DOF>
+    //    struct Shift {
+    //        template <typename... Args>
+    //        Shift(Args&&... args) {}
+    //        constexpr entity_id const& operator()(TM const& m, id const& s) const { return s; }
+    //    };
 };
 
 template <typename>
@@ -85,7 +88,7 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
     typedef std::false_type is_expression;
     typedef std::true_type is_field;
 
-    typedef typename mesh::mesh_traits<mesh_type>::id mesh_id;
+    typedef typename mesh::mesh_traits<mesh_type>::entity_id entity_id;
     typedef std::conditional_t<DOF == 1, value_type, nTuple<value_type, DOF>> cell_tuple;
     typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
                                nTuple<cell_tuple, 3>>
@@ -182,18 +185,18 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
         deploy();
         memset(m_data_, 0, size() * sizeof(value_type));
     };
-    mesh_id const& shift(mesh_id const& s) const { return s; }
+    entity_id const& shift(entity_id const& s) const { return s; }
 
     virtual void copy(this_type const& other) {
         deploy();
         ASSERT(!other.empty());
         memcpy((void*)(m_data_), (void const*)(other.m_data_), size() * sizeof(value_type));
     };
-    decltype(auto) at(mesh_id const& s) const {
+    decltype(auto) at(entity_id const& s) const {
         ASSERT(m_data_ != nullptr);
         return m_data_[m_mesh_->hash(shift(s))];
     }
-    decltype(auto) at(mesh_id const& s) {
+    decltype(auto) at(entity_id const& s) {
         ASSERT(m_data_ != nullptr);
         return m_data_[m_mesh_->hash(shift(s))];
     }
@@ -207,8 +210,8 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
         return at(m_mesh_->pack(IFORM, DOF, std::forward<TID>(s)...));
     }
 
-    decltype(auto) operator[](mesh_id const& s) const { return at(s); }
-    decltype(auto) operator[](mesh_id const& s) { return at(s); }
+    decltype(auto) operator[](entity_id const& s) const { return at(s); }
+    decltype(auto) operator[](entity_id const& s) { return at(s); }
     /** @name as_function  @{*/
 
     typedef calculus::template calculator<TM> calculus_policy;
@@ -239,12 +242,12 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
     //**********************************************************************************************
 
     template <typename TOP, typename... Args>
-    void apply_(Range<mesh_id> const& r, TOP const& op, Args&&... args) {
+    void apply_(Range<entity_id> const& r, TOP const& op, Args&&... args) {
         int num_com = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 
         for (int i = 0; i < num_com; ++i) {
             for (int j = 0; j < DOF; ++j) {
-                r.foreach ([&](mesh_id s) {
+                r.foreach ([&](entity_id s) {
                     s = shift(s);
                     op(m_data_[m_mesh_->hash(s)],
                        calculus_policy::get_value(*m_mesh_, std::forward<Args>(args), s)...);
@@ -274,7 +277,7 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
 
     ~Field_() {}
     using typename base_type::value_type;
-    using typename base_type::mesh_id;
+    using typename base_type::entity_id;
     //    using typename base_type::Shift;
     using base_type::iform;
     using base_type::dof;
@@ -288,8 +291,8 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
     this_type operator[](PlaceHolder<N...> const& p) const {
         return this_type(*this, p);
     }
-    decltype(auto) operator[](mesh_id const& s) const { return at(s); }
-    decltype(auto) operator[](mesh_id const& s) { return at(s); }
+    decltype(auto) operator[](entity_id const& s) const { return at(s); }
+    decltype(auto) operator[](entity_id const& s) { return at(s); }
     this_type& operator=(this_type const& rhs) {
         base_type::assign(rhs);
         return *this;

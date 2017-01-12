@@ -25,7 +25,7 @@ class DataBlock;
 class Chart : public concept::Printable, public concept::LifeControllable {
    public:
     SP_OBJECT_BASE(Chart);
-    typedef MeshEntityId mesh_id;
+    typedef MeshEntityId entity_id;
     Chart();
 
     template <typename... Args>

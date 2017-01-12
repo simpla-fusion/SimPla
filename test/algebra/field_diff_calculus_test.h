@@ -27,20 +27,20 @@ using namespace simpla;
 using namespace simpla::algebra;
 //#define CYLINDRICAL_COORDINATE_SYSTEM 1
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-typedef manifold::CylindricalManifold manifold_type;
-typedef geometry::traits::coordinate_system_t<manifold_type> cs;
-static constexpr const int RAxis = cs::RAxis;
-static constexpr const int ZAxis = cs::ZAxis;
-static constexpr const int PhiAxis = cs::PhiAxis;
-
-#else
+//#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+// typedef manifold::CylindricalManifold manifold_type;
+// typedef geometry::traits::coordinate_system_t<manifold_type> cs;
+// static constexpr const int RAxis = cs::RAxis;
+// static constexpr const int ZAxis = cs::ZAxis;
+// static constexpr const int PhiAxis = cs::PhiAxis;
+//
+//#else
 
 #include <simpla/predefine/CartesianGeometry.h>
 
 typedef mesh::CartesianGeometry mesh_type;
 
-#endif
+//#endif
 
 class FETLTest
     : public testing::TestWithParam<std::tuple<std::tuple<nTuple<Real, 3>, nTuple<Real, 3>>,
@@ -108,7 +108,7 @@ class FETLTest
 
     std::shared_ptr<mesh_type> m_p;
     mesh_type* m;
-
+    typedef typename mesh::mesh_traits<mesh_type>::entity_id entity_id;
     Real q(point_type const& x) const {
         //#ifdef CYLINDRICAL_COORDINATE_SYSTEM
         //        res = K_real[RAxis] *  x[RAxis] + K_real[ZAxis] *  x[ZAxis] + K_real[PhiAxis] *
@@ -122,8 +122,8 @@ class FETLTest
 
     virtual ~FETLTest() {}
 
-    template <size_type IFORM>
-    using field_type = Field<value_type, mesh_type, IFORM, 1>;
+    template <int IFORM>
+    using field_type = Field<mesh_type, value_type, IFORM, 1>;
 };
 
 TEST_P(FETLTest, grad0) {
@@ -144,7 +144,7 @@ TEST_P(FETLTest, grad0) {
     Real variance = 0;
     value_type average = 0.0;
 
-    m_p->range(mesh::SP_ES_OWNED, EDGE).foreach ([&](mesh::MeshEntityId const& s) {
+    m_p->range(mesh::SP_ES_OWNED, EDGE).foreach ([&](entity_id const& s) {
         int n = M::sub_index(s);
         auto x = m_p->point(s);
         value_type expect;
@@ -185,14 +185,14 @@ TEST_P(FETLTest, grad3) {
     f2.clear();
     f2b.clear();
 
-    f3.assign([&](mesh::MeshEntityId const& s) { return std::sin(q(m_p->point(s))); });
+    f3.assign([&](entity_id const& s) { return std::sin(q(m_p->point(s))); });
 
     LOG_CMD(f2 = grad(f3));
 
     Real variance = 0;
     value_type average = one * 0;
 
-    m_p->range(mesh::SP_ES_OWNED, FACE).foreach ([&](mesh::MeshEntityId const& s) {
+    m_p->range(mesh::SP_ES_OWNED, FACE).foreach ([&](entity_id const& s) {
         int n = M::sub_index(s);
         auto x = m_p->point(s);
         value_type expect;
@@ -235,15 +235,13 @@ TEST_P(FETLTest, diverge1) {
 
     nTuple<Real, 3> E{1, 1, 1};
 
-    f1.assign([&](mesh::MeshEntityId const& s) {
-        return E[M::sub_index(s)] * std::sin(q(m_p->point(s)));
-    });
+    f1.assign([&](entity_id const& s) { return E[M::sub_index(s)] * std::sin(q(m_p->point(s))); });
 
     LOG_CMD(f0 = diverge(f1));
     Real variance = 0;
     value_type average;
     average = 0;
-    m_p->range(mesh::SP_ES_OWNED, VERTEX).foreach ([&](mesh::MeshEntityId const& s) {
+    m_p->range(mesh::SP_ES_OWNED, VERTEX).foreach ([&](entity_id const& s) {
         auto x = m_p->point(s);
 
         Real cos_v = std::cos(q(x));
@@ -279,14 +277,14 @@ TEST_P(FETLTest, diverge2) {
     f3b.clear();
     f2.clear();
 
-    f2.assign([&](mesh::MeshEntityId const& s) { return std::sin(q(m_p->point(s))); });
+    f2.assign([&](entity_id const& s) { return std::sin(q(m_p->point(s))); });
 
     LOG_CMD(f3 = diverge(f2));
 
     Real variance = 0;
     value_type average = 0.0;
 
-    m_p->range(mesh::SP_ES_OWNED, VOLUME).foreach ([&](mesh::MeshEntityId const& s) {
+    m_p->range(mesh::SP_ES_OWNED, VOLUME).foreach ([&](entity_id const& s) {
 
         auto x = m_p->point(s);
 
@@ -352,13 +350,11 @@ TEST_P(FETLTest, curl1) {
 
     nTuple<Real, 3> E = {1, 1, 1};
 
-    f1.assign([&](mesh::MeshEntityId const& s) {
-        return E[M::sub_index(s)] * std::sin(q(m_p->point(s)));
-    });
+    f1.assign([&](entity_id const& s) { return E[M::sub_index(s)] * std::sin(q(m_p->point(s))); });
 
     LOG_CMD(f2 = curl(f1));
 
-    m_p->range(mesh::SP_ES_NOT_SHARED, FACE).foreach ([&](mesh::MeshEntityId const& s) {
+    m_p->range(mesh::SP_ES_NOT_SHARED, FACE).foreach ([&](entity_id const& s) {
         auto n = M::sub_index(s);
 
         auto x = m_p->point(s);
@@ -448,14 +444,12 @@ TEST_P(FETLTest, curl2) {
     average = 0.0;
     nTuple<Real, 3> E = {1, 2, 3};
 
-    f2.assign([&](mesh::MeshEntityId const& s) {
-        return E[M::sub_index(s)] * std::sin(q(m_p->point(s)));
-    });
+    f2.assign([&](entity_id const& s) { return E[M::sub_index(s)] * std::sin(q(m_p->point(s))); });
 
     LOG_CMD(f1 = curl(f2));
     f1b.clear();
 
-    m_p->range(mesh::SP_ES_NOT_SHARED, EDGE).foreach ([&](mesh::MeshEntityId const& s) {
+    m_p->range(mesh::SP_ES_NOT_SHARED, EDGE).foreach ([&](entity_id const& s) {
 
         auto n = M::sub_index(s);
         auto x = m_p->point(s);
@@ -518,7 +512,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0) {
 
     Real mean = 0.0;
     f0.clear();
-    f0.assign([&](mesh::MeshEntityId const& s) {
+    f0.assign([&](entity_id const& s) {
         auto a = uniform_dist(gen);
         mean += a * a;
         return one * a;
@@ -533,7 +527,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0) {
     Real variance_a = 0;
     Real variance_b = 0;
 
-    m_p->range(mesh::SP_ES_OWNED, FACE).foreach ([&](mesh::MeshEntityId const& s) {
+    m_p->range(mesh::SP_ES_OWNED, FACE).foreach ([&](entity_id const& s) {
         variance_a += abs(f2a[s]);
         variance_b += abs(f2b[s]);
     });
@@ -554,7 +548,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0) {
     Real mean = 0.0;
 
     f3.clear();
-    f3.assign([&](mesh::MeshEntityId const& s) {
+    f3.assign([&](entity_id const& s) {
         auto a = uniform_dist(gen);
         mean += a * a;
         return a * one;
@@ -569,7 +563,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0) {
     size_t count = 0;
     Real variance_a = 0;
     Real variance_b = 0;
-    m_p->range(mesh::SP_ES_OWNED, EDGE).foreach ([&](mesh::MeshEntityId const& s) {
+    m_p->range(mesh::SP_ES_OWNED, EDGE).foreach ([&](entity_id const& s) {
         variance_a += abs(f1a[s]);
         variance_b += abs(f1b[s]);
     });
@@ -591,7 +585,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0) {
 
     f2.clear();
     Real mean = 0.0;
-    f2.assign([&](mesh::MeshEntityId const& s) {
+    f2.assign([&](entity_id const& s) {
         auto a = uniform_dist(gen);
         mean += a * a;
         return one * a;
@@ -606,7 +600,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0) {
     Real variance_a = 0;
     Real variance_b = 0;
 
-    m_p->range(mesh::SP_ES_OWNED, VERTEX).foreach ([&](mesh::MeshEntityId const& s) {
+    m_p->range(mesh::SP_ES_OWNED, VERTEX).foreach ([&](entity_id const& s) {
         variance_b += abs(f0b[s] * f0b[s]);
         variance_a += abs(f0a[s] * f0a[s]);
     });
@@ -628,7 +622,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0) {
 
     Real mean = 0.0;
     size_type count = 0;
-    f1.assign([&](mesh::MeshEntityId const& s) {
+    f1.assign([&](entity_id const& s) {
         auto a = uniform_dist(gen);
         mean += a * a;
         return one * a;
@@ -642,7 +636,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0) {
 
     Real variance_a = 0;
     Real variance_b = 0;
-    m_p->range(mesh::SP_ES_OWNED, VOLUME).foreach ([&](mesh::MeshEntityId const& s) {
+    m_p->range(mesh::SP_ES_OWNED, VOLUME).foreach ([&](entity_id const& s) {
         variance_a += abs(f3a[s] * f3a[s]);
         variance_b += abs(f3b[s] * f3b[s]);
     });

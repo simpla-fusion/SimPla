@@ -418,7 +418,7 @@ auto curl(T const& f, int_const<EDGE> const&) {
 
 template <typename T>
 auto curl(T const& f, int_const<FACE> const&) {
-    return ((codifferential_derivative(-f)));
+    return ((-codifferential_derivative(f)));
 }
 
 template <typename T>

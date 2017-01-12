@@ -66,6 +66,8 @@ struct is_array<declare::Expression<TOP, Args...>> : public is_array<Args...> {}
 template <typename TOP, typename... T>
 struct iform<declare::Expression<TOP, T...>>
     : public int_const<seq_max<int, iform<T>::value...>::value> {};
+template <typename TOP, typename T>
+struct iform<declare::Expression<TOP, T>> : public int_const<iform<T>::value> {};
 
 template <typename TOP, typename... T>
 struct extent<declare::Expression<TOP, T...>>
@@ -108,6 +110,8 @@ struct Expression<TOP, Args...> {
 
     typename std::tuple<traits::reference_t<Args>...> m_args_;
     typedef std::true_type is_expression;
+    typedef std::false_type prefer_pass_by_reference;
+
     TOP m_op_;
 
     Expression(this_type const &that) : m_args_(that.m_args_) {}

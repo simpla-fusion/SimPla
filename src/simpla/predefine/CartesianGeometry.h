@@ -34,6 +34,7 @@ struct CartesianGeometry : public Chart {
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
+    typedef MeshEntityId entity_id;
 
     /**
      *
@@ -66,8 +67,6 @@ struct CartesianGeometry : public Chart {
      */
 
    public:
-    typedef MeshEntityId id_type;
-
     CartesianGeometry() {}
 
     CartesianGeometry(index_type const *lower, index_type const *upper, Real const *dx = nullptr,
@@ -118,14 +117,14 @@ struct CartesianGeometry : public Chart {
 template <>
 struct mesh_traits<CartesianGeometry> {
     typedef CartesianGeometry type;
-    typedef MeshEntityId id;
+    typedef MeshEntityId entity_id;
     typedef Real scalar_type;
 
     template <int IFORM, int DOF>
     struct Shift {
         template <typename... Args>
         Shift(Args &&... args) {}
-        constexpr id operator()(id const &s) const { return s; }
+        constexpr entity_id operator()(entity_id const &s) const { return s; }
     };
 };
 

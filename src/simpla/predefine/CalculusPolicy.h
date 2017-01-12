@@ -38,19 +38,19 @@ struct calculator<TM> {
     typedef calculator<mesh_type> this_type;
 
     typedef mesh::MeshEntityIdCoder M;
-    typedef typename TM::mesh_id mesh_id;
+    typedef typename TM::entity_id entity_id;
 
     template <typename TOP, int... I>
     struct expression_tag {};
 
    private:
     template <typename FExpr>
-    static decltype(auto) get_v(mesh_type const& m, FExpr const& f, mesh_id const s) {
+    static decltype(auto) get_v(mesh_type const& m, FExpr const& f, entity_id const s) {
         return get_value(m, f, s) * m.volume(s);
     }
 
     template <typename FExpr>
-    static decltype(auto) get_d(mesh_type const& m, FExpr const& f, mesh_id const s) {
+    static decltype(auto) get_d(mesh_type const& m, FExpr const& f, entity_id const s) {
         return get_value(m, f, s) * m.dual_volume(s);
     }
 
@@ -60,9 +60,9 @@ struct calculator<TM> {
 
     //! grad<0>
     template <typename TExpr>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_exterior_derivative, VERTEX>) {
-        mesh_id D = M::delta_index(s);
+        entity_id D = M::delta_index(s);
         return (get_v(m, std::get<0>(expr.m_args_), s + D) -
                 get_v(m, std::get<0>(expr.m_args_), s - D)) *
                m.inv_volume(s);
@@ -70,11 +70,11 @@ struct calculator<TM> {
 
     //! curl<1>
     template <typename TExpr>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_exterior_derivative, EDGE>) {
-        mesh_id X = M::delta_index(M::dual(s));
-        mesh_id Y = M::rotate(X);
-        mesh_id Z = M::inverse_rotate(X);
+        entity_id X = M::delta_index(M::dual(s));
+        entity_id Y = M::rotate(X);
+        entity_id Z = M::inverse_rotate(X);
 
         return ((get_v(m, std::get<0>(expr.m_args_), s + Y) -
                  get_v(m, std::get<0>(expr.m_args_), s - Y)) -
@@ -86,7 +86,7 @@ struct calculator<TM> {
     //! div<1>
 
     template <typename TExpr>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_codifferential_derivative, EDGE>) {
         return -(get_d(m, std::get<0>(expr.m_args_), s + M::_DI) -
                  get_d(m, std::get<0>(expr.m_args_), s - M::_DI) +
@@ -99,7 +99,7 @@ struct calculator<TM> {
 
     //! div<2>
     template <typename TExpr>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_exterior_derivative, FACE>) {
         return (get_v(m, std::get<0>(expr.m_args_), s + M::_DI) -
                 get_v(m, std::get<0>(expr.m_args_), s - M::_DI) +
@@ -112,11 +112,11 @@ struct calculator<TM> {
 
     //! curl<2>
     template <typename TExpr>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_codifferential_derivative, FACE>) {
-        mesh_id X = M::delta_index(s);
-        mesh_id Y = M::rotate(X);
-        mesh_id Z = M::inverse_rotate(X);
+        entity_id X = M::delta_index(s);
+        entity_id Y = M::rotate(X);
+        entity_id Z = M::inverse_rotate(X);
 
         return -((get_d(m, std::get<0>(expr.m_args_), s + Y) -
                   get_d(m, std::get<0>(expr.m_args_), s - Y)) -
@@ -128,9 +128,9 @@ struct calculator<TM> {
     //! grad<3>
 
     template <typename TExpr>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_codifferential_derivative, VOLUME>) {
-        mesh_id D = M::delta_index(M::dual(s));
+        entity_id D = M::delta_index(M::dual(s));
 
         return -(get_d(m, std::get<0>(expr.m_args_), s + D) -
                  get_d(m, std::get<0>(expr.m_args_), s - D)) *
@@ -142,7 +142,7 @@ struct calculator<TM> {
     //    <declare::Expression<tags::_codifferential_derivative, T>>
     //    get_value(mesh_type const &m,
     //    declare::Expression<tags::_codifferential_derivative, T> const &expr,
-    //              mesh_id const &s)
+    //              entity_id const &s)
     //    {
     //        static_assert(traits::iform<T>::value != VOLUME &&
     //        traits::iform<T>::value != VERTEX,
@@ -151,13 +151,13 @@ struct calculator<TM> {
     //! *Form<IR> => Form<N-IL>
 
     template <typename TExpr>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_hodge_star, VERTEX>) {
         auto const& l = std::get<0>(expr.m_args_);
         int i = M::iform(s);
-        mesh_id X = (i == VERTEX || i == VOLUME) ? M::_DI : M::delta_index(M::dual(s));
-        mesh_id Y = M::rotate(X);
-        mesh_id Z = M::inverse_rotate(X);
+        entity_id X = (i == VERTEX || i == VOLUME) ? M::_DI : M::delta_index(M::dual(s));
+        entity_id Y = M::rotate(X);
+        entity_id Z = M::inverse_rotate(X);
 
         return (get_v(m, l, ((s - X) - Y) - Z) + get_v(m, l, ((s - X) - Y) + Z) +
                 get_v(m, l, ((s - X) + Y) - Z) + get_v(m, l, ((s - X) + Y) + Z) +
@@ -173,7 +173,7 @@ struct calculator<TM> {
     //    template<typename TOP, typename T> static  traits::value_type_t
     //    <declare::Expression<TOP, T>>
     //    get_value(mesh_type const &m, declare::Expression<TOP, T> const &expr,
-    //    mesh_id const &s,
+    //    entity_id const &s,
     //    ENABLE_IF((std::is_same<TOP, tags::_p_exterior_derivative < 0>>
     //                      ::value && traits::iform<T>::value == EDGE))
     //    )
@@ -192,7 +192,7 @@ struct calculator<TM> {
     //    mesh_type const &m,
     //    declare::Expression<tags::_p_codifferential_derivative < I>, T
     //    > const &expr,
-    //    mesh_id const &s,
+    //    entity_id const &s,
     //    ENABLE_IF(traits::iform<T>::value == FACE)
     //    )
     //    {
@@ -208,35 +208,35 @@ struct calculator<TM> {
     ////! map_to
     //    template<typename T, size_t I>
     //     static T
-    //    _map_to(mesh_type const &m, T const &r, mesh_id const &s,
+    //    _map_to(mesh_type const &m, T const &r, entity_id const &s,
     //    int_sequence<VERTEX, I>,
     //          st::is_primary_t<T> *_p = nullptr) { return r; }
     //
     //    template<typename TF, size_t I>
     //     static traits::value_type_t<TF>
-    //    _map_to(mesh_type const &m, TF const &expr, mesh_id const &s,
+    //    _map_to(mesh_type const &m, TF const &expr, entity_id const &s,
     //    int_sequence<I, I>,
     //          std::enable_if_t<!st::is_primary<TF>::value>
     //          *_p = nullptr) { return get_value(m, expr, s); }
    private:
     template <typename TExpr, int I>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& f, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& f, entity_id const& s,
                                   index_sequence<I, I>) {
         return get_value(m, f, s);
     };
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                   index_sequence<VERTEX, EDGE>) {
         int n = M::sub_index(s);
-        mesh_id X = M::delta_index(s);
+        entity_id X = M::delta_index(s);
         auto l = get_value(m, expr, sw(s - X, n));
         auto r = get_value(m, expr, sw(s + X, n));
         return (l + r) * 0.5;
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                   index_sequence<VERTEX, FACE>) {
         int n = M::sub_index(s);
 
@@ -250,7 +250,7 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                   index_sequence<VERTEX, VOLUME>) {
         auto const& l = expr;
 
@@ -266,17 +266,17 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                   index_sequence<EDGE, VERTEX>) {
-        mesh_id X = M::DI(s.w, s);
+        entity_id X = M::DI(s.w, s);
         return (get_value(m, expr, sw(s - X, 0)) + get_value(m, expr, sw(s + X, 0))) * 0.5;
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                   index_sequence<FACE, VERTEX>) {
-        mesh_id Y = M::DI((s.w + 1) % 3, s);
-        mesh_id Z = M::DI((s.w + 2) % 3, s);
+        entity_id Y = M::DI((s.w + 1) % 3, s);
+        entity_id Z = M::DI((s.w + 2) % 3, s);
 
         return (get_value(m, expr, sw(s - Y - Z, 0)) + get_value(m, expr, sw(s - Y + Z, 0)) +
                 get_value(m, expr, sw(s + Y - Z, 0)) + get_value(m, expr, sw(s + Y + Z, 0))) *
@@ -284,7 +284,7 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                   index_sequence<VOLUME, VERTEX>) {
         auto const& l = expr;
 
@@ -300,7 +300,7 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                   index_sequence<VOLUME, FACE>) {
         auto X = M::delta_index(M::dual(s));
 
@@ -308,7 +308,7 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                   index_sequence<VOLUME, EDGE>) {
         auto const& l = expr;
         auto X = M::delta_index(s);
@@ -321,15 +321,15 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                   index_sequence<FACE, VOLUME>) {
-        mesh_id X = M::DI(s.w, s);
+        entity_id X = M::DI(s.w, s);
 
         return (get_value(m, expr, sw(s - X, 0)) + get_value(m, expr, sw(s + X, 0))) * 0.5;
     }
 
     template <typename TExpr>
-    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _map_to(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                   index_sequence<EDGE, VOLUME>) {
         //        auto const &l = expr;
         //
@@ -337,8 +337,8 @@ struct calculator<TM> {
         //        auto Y = M::DI(1, s);
         //        auto Z = M::DI(2, s);
 
-        mesh_id Y = M::DI((s.w + 1) % 3, s);
-        mesh_id Z = M::DI((s.w + 1) % 3, s);
+        entity_id Y = M::DI((s.w + 1) % 3, s);
+        entity_id Z = M::DI((s.w + 1) % 3, s);
 
         return (get_value(m, expr, sw(s - Y - Z, 0)) + get_value(m, expr, sw(s - Y + Z, 0)) +
                 get_value(m, expr, sw(s + Y - Z, 0)) + get_value(m, expr, sw(s + Y + Z, 0))) *
@@ -346,14 +346,14 @@ struct calculator<TM> {
     }
 
     template <typename TExpr, int IL, int IR>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<algebra::tags::_map_to<IL>, IR>) {
         return _map_to(m, std::get<0>(expr.m_args_), s, index_sequence<IL, IR>());
     }
 
     //    template<int I, typename T>
     //    static  traits::value_type_t <T>
-    //    map_to(mesh_type const &m, T const &expr, mesh_id const &s)
+    //    map_to(mesh_type const &m, T const &expr, entity_id const &s)
     //    {
     //        return _map_to(m, expr, s, int_sequence<traits::iform<T>::value,
     //        I>());
@@ -365,7 +365,7 @@ struct calculator<TM> {
     //    T
     //
     //    > const &expr,
-    //    mesh_id const &s
+    //    entity_id const &s
     //    )
     //    {
     //        return map_to<I>(m, std::get<0>(expr.m_args_), s);
@@ -375,7 +375,7 @@ struct calculator<TM> {
     //
     //! Form<IL> ^ Form<IR> => Form<IR+IL>
     template <typename TExpr, int IL, int IR>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_wedge, IL, IR>) {
         return m.inner_product(
             _map_to(m, std::get<0>(expr.m_args_), s, index_sequence<IL, IR + IL>()),
@@ -383,7 +383,7 @@ struct calculator<TM> {
     }
 
     template <typename TExpr>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_wedge, EDGE, EDGE>) {
         auto const& l = std::get<0>(expr.m_args_);
         auto const& r = std::get<1>(expr.m_args_);
@@ -395,13 +395,13 @@ struct calculator<TM> {
                 (get_value(m, l, s - Z) + get_value(m, l, s + Z)) * 0.25);
     }
 
-    static mesh_id sw(mesh_id s, u_int16_t w) {
+    static entity_id sw(entity_id s, u_int16_t w) {
         s.w = w;
         return s;
     }
 
     template <typename TExpr, int I>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_wedge, I, I>)  //
     {
         return get_value(m, std::get<0>(expr.m_args_), sw(s, (s.w + 1) % 3)) *
@@ -411,7 +411,7 @@ struct calculator<TM> {
     }
 
     template <typename TExpr, int I>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_dot, I, I>)  //
     {
         return get_value(m, std::get<0>(expr.m_args_), sw(s, 0)) *
@@ -422,7 +422,7 @@ struct calculator<TM> {
                    get_value(m, std::get<1>(expr.m_args_), sw(s, 2));
     }
     template <typename TExpr, int I, int K>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<tags::_cross, I, K>)  //
     {
         return get_value(m, std::get<0>(expr.m_args_), sw(s, (s.w + 1) % 3)) *
@@ -431,14 +431,14 @@ struct calculator<TM> {
                    get_value(m, std::get<1>(expr.m_args_), sw(s, (s.w + 1) % 3));
     }
     //    template<typename TExpr, int I> static decltype(auto)
-    //    eval(mesh_type const &m, TExpr const &expr, mesh_id const &s,
+    //    eval(mesh_type const &m, TExpr const &expr, entity_id const &s,
     //         expression_tag<tags::divides, I, VERTEX>) //
     //    AUTO_RETURN((get_value(m, std::get<0>(expr.m_args_), s) /
     //                 _map_to(m, std::get<1>(expr.m_args_), s,
     //                 int_sequence<VERTEX, I>())))
 
     //    template<typename TExpr, int I> static decltype(auto)
-    //    eval(mesh_type const &m, TExpr const &expr, mesh_id const &s,
+    //    eval(mesh_type const &m, TExpr const &expr, entity_id const &s,
     //         expression_tag<tags::multiplies, I, VERTEX>) //
     //    AUTO_RETURN((get_value(m, std::get<0>(expr.m_args_), s) *
     //                 _map_to(m, std::get<1>(expr.m_args_), s,
@@ -447,13 +447,13 @@ struct calculator<TM> {
     //**********************************************************************************************
     // for element-wise arithmetic operation
     template <typename TExpr, int... I>
-    static decltype(auto) _invoke_helper(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) _invoke_helper(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                          int_sequence<I...>) {
         return expr.m_op_(get_value(m, std::get<I>(expr.m_args_), s)...);
     }
 
     template <typename TExpr, typename TOP, int... I>
-    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
+    static decltype(auto) eval(mesh_type const& m, TExpr const& expr, entity_id const& s,
                                expression_tag<TOP, I...>) {
         return _invoke_helper(m, expr, s, make_int_sequence<sizeof...(I)>());
     }
@@ -465,12 +465,12 @@ struct calculator<TM> {
      */
     template <typename TD, typename TIDX>
     static decltype(auto) gather_impl_(mesh_type const& m, TD const& f, TIDX const& idx) {
-        mesh_id X = (M::_DI);
-        mesh_id Y = (M::_DJ);
-        mesh_id Z = (M::_DK);
+        entity_id X = (M::_DI);
+        entity_id Y = (M::_DJ);
+        entity_id Z = (M::_DK);
 
         point_type r;  //= std::get<1>(idx);
-        mesh_id s;     //= std::get<0>(idx);
+        entity_id s;   //= std::get<0>(idx);
 
         return get_value(m, f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) +    //
                get_value(m, f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) +    //
@@ -514,12 +514,12 @@ struct calculator<TM> {
    private:
     template <typename TF, typename IDX, typename TV>
     static void scatter_impl_(mesh_type const& m, TF& f, IDX const& idx, TV const& v) {
-        mesh_id X = (M::_DI);
-        mesh_id Y = (M::_DJ);
-        mesh_id Z = (M::_DK);
+        entity_id X = (M::_DI);
+        entity_id Y = (M::_DJ);
+        entity_id Z = (M::_DK);
 
         point_type r = std::get<1>(idx);
-        mesh_id s = std::get<0>(idx);
+        entity_id s = std::get<0>(idx);
 
         get_value(m, f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
         get_value(m, f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
@@ -563,32 +563,32 @@ struct calculator<TM> {
 
    private:
     template <typename TV>
-    static auto sample_(mesh_type const& m, mesh_id const& s, TV& v) {
+    static auto sample_(mesh_type const& m, entity_id const& s, TV& v) {
         return v;
     }
 
     template <typename TV, int N>
-    static auto sample_(mesh_type const& m, mesh_id const& s, nTuple<TV, N> const& v) {
+    static auto sample_(mesh_type const& m, entity_id const& s, nTuple<TV, N> const& v) {
         return v[s.w % N];
     }
 
     //    template <typename TV, int N>
-    //    static auto sample_(mesh_type const& m, mesh_id const& s, nTuple<TV, N> const& v) {
+    //    static auto sample_(mesh_type const& m, entity_id const& s, nTuple<TV, N> const& v) {
     //        return v[s.w % N];
     //    }
     //
     //    template <typename TV>
-    //    static auto sample_(mesh_type const& m, mesh_id const& s, nTuple<TV, 3> const& v) {
+    //    static auto sample_(mesh_type const& m, entity_id const& s, nTuple<TV, 3> const& v) {
     //        return v[M::sub_index(s)];
     //    }
     //
     //    template <typename TV>
-    //    static auto sample_(mesh_type const& m, mesh_id const& s, nTuple<TV, 3> const& v) {
+    //    static auto sample_(mesh_type const& m, entity_id const& s, nTuple<TV, 3> const& v) {
     //        return v[M::sub_index(s)];
     //    }
     //
     //    template<typename M,int IFORM,  typename TV>
-    //    static   TV sample_(M const & m,int_const< IFORM>, mesh_id_type
+    //    static   TV sample_(M const & m,int_const< IFORM>, entity_id_type
     //    s,
     //                                       TV const &v) { return v; }
 
@@ -598,7 +598,7 @@ struct calculator<TM> {
     //    AUTO_RETURN((sample_(M const & m,int_const< IFORM>(), s, v)))
 
     template <typename TV>
-    static decltype(auto) sample(mesh_type const& m, mesh_id const& s, TV const& v) {
+    static decltype(auto) sample(mesh_type const& m, entity_id const& s, TV const& v) {
         return sample_(m, s, v);
     }
 
@@ -607,20 +607,20 @@ struct calculator<TM> {
     /// @{
 
     template <typename T>
-    static decltype(auto) get_value(mesh_type const& m, T const& v, mesh_id const& s,
+    static decltype(auto) get_value(mesh_type const& m, T const& v, entity_id const& s,
                                     ENABLE_IF((std::is_arithmetic<T>::value))) {
         return v;
     }
 
     template <typename U>
-    static decltype(auto) get_value(mesh_type const& m, U& f, mesh_id const& s,
+    static decltype(auto) get_value(mesh_type const& m, U& f, entity_id const& s,
                                     ENABLE_IF(traits::is_primary_field<U>::value)) {
         return f.at(s);
     };
 
     template <typename... U>
     static decltype(auto) get_value(mesh_type const& m, FieldView<U...> const& f,
-                                    mesh_id const& s) {
+                                    entity_id const& s) {
         return f.at(s);
     };
 
@@ -642,20 +642,21 @@ struct calculator<TM> {
 
     template <typename TOP, typename... T>
     static auto get_value(mesh_type const& m, declare::Expression<TOP, T...> const& expr,
-                          mesh_id const& s) {
+                          entity_id const& s) {
         return eval(m, expr, s, expression_tag<TOP, algebra::traits::iform<T>::value...>());
     }
 
     template <typename TFun>
-    static auto get_value(mesh_type const& m, TFun const& fun, mesh_id const& s,
-                          ENABLE_IF((!traits::is_field<TFun>::value &&
-                                     simpla::concept::is_callable<TFun, mesh_id const&>::value))) {
+    static auto get_value(
+        mesh_type const& m, TFun const& fun, entity_id const& s,
+        ENABLE_IF((!traits::is_field<TFun>::value &&
+                   simpla::concept::is_callable<TFun, entity_id const&>::value))) {
         return sample(m, s, fun(s));
     }
 
     template <typename TFun>
     static auto get_value(
-        mesh_type const& m, TFun const& fun, mesh_id const& s,
+        mesh_type const& m, TFun const& fun, entity_id const& s,
         ENABLE_IF((!traits::is_field<TFun>::value &&
                    simpla::concept::is_callable<TFun, point_type const&>::value))) {
         return sample(m, s, fun(m.point(s)));
@@ -670,9 +671,9 @@ struct calculator<TM> {
     //**********************************************************************************************
 
     template <typename TField, typename TOP, typename... Args>
-    static void apply_(mesh_type const& m, TField& self, Range<mesh_id> const& r, TOP const& op,
+    static void apply_(mesh_type const& m, TField& self, Range<entity_id> const& r, TOP const& op,
                        Args&&... args) {
-        r.foreach ([&](mesh_id const& s) {
+        r.foreach ([&](entity_id const& s) {
             op(get_value(m, self, s), get_value(m, std::forward<Args>(args), s)...);
         });
     }
@@ -718,7 +719,7 @@ struct calculator<TM> {
     }
 
     //    template <int DOF, typename... U>
-    //    static void assign(mesh_type const& m, FieldView<mesh_type, U...>& f, mesh_id const&
+    //    static void assign(mesh_type const& m, FieldView<mesh_type, U...>& f, entity_id const&
     //    s,
     //                       nTuple<U, DOF> const& v) {
     //        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
@@ -726,25 +727,25 @@ struct calculator<TM> {
 
     ////    template <typename... U>
     ////    static void assign(mesh_type const& m, FieldView<U...>& f,
-    ////                       mesh_id const& s, nTuple<U, 3> const& v) {
+    ////                       entity_id const& s, nTuple<U, 3> const& v) {
     ////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
     ////    }
     ////
     ////    template <typename V, int DOF, int... I, typename U>
     ////    static void assign(mesh_type const& m, FieldView<mesh_type, V, FACE, DOF, I...>& f,
-    ////                       mesh_id const& s, nTuple<U, 3> const& v) {
+    ////                       entity_id const& s, nTuple<U, 3> const& v) {
     ////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[M::sub_index(s)]; }
     ////    }
     ////
     ////    template <typename V, int DOF, int... I, typename U>
     ////    static void assign(mesh_type const& m, FieldView<mesh_type, V, VOLUME, DOF, I...>& f,
-    ////                       mesh_id const& s, nTuple<U, DOF> const& v) {
+    ////                       entity_id const& s, nTuple<U, DOF> const& v) {
     ////        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v[i]; }
     //    }
     //
     //    template <typename V, int IFORM, int DOF, int... I, typename U>
     //    static void assign(mesh_type const& m, FieldView<mesh_type, V, IFORM, DOF, I...>& f,
-    //                       mesh_id const& s, U const& v) {
+    //                       entity_id const& s, U const& v) {
     //        for (int i = 0; i < DOF; ++i) { f[M::sw(s, i)] = v; }
     //    }
 };
