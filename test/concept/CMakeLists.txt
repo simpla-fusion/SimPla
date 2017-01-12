@@ -1,0 +1,3 @@
+add_executable(CheckMemberType CheckMemberType.cpp)
+add_executable(CheckMemberTypeBoolean  CheckMemberTypeBoolean.cpp)
+simpla_test(CheckConcept_test CheckConcept_test.cpp)

@@ -145,68 +145,61 @@ class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
    private:
     std::shared_ptr<AttributeDict> m_dict_;
 };
-
-template <typename...>
-class AttributeAdapter;
-
-template <typename U>
-class AttributeAdapter<U> : public Attribute, public U {
-    SP_OBJECT_HEAD(AttributeAdapter<U>, Attribute);
-
-    typedef algebra::traits::value_type_t<U> value_type;
-
-   public:
-    template <typename... Args>
-    AttributeAdapter(Args &&... args)
-        : Attribute(nullptr,
-                    std::make_shared<AttributeDescTemp<value_type, algebra::traits::iform<U>::value,
-                                                       algebra::traits::dof<U>::value>>(
-                        std::forward<Args>(args)...)),
-          U() {}
-
-    AttributeAdapter(AttributeAdapter &&) = delete;
-
-    AttributeAdapter(AttributeAdapter const &) = delete;
-
-    ~AttributeAdapter() {}
-
-    using U::operator=;
-
-    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m,
-                                                         void *p = nullptr) const {
-        return DataBlockAdapter<U>::create(m, static_cast<value_type *>(p));
-    };
-
-    virtual void accept(Patch *p) {
-        Attribute::accept(p);
-
-        //        accept(this, Attribute::data());
-        //        U::accept(Attribute::data());
-    }
-
-    virtual void clear() {
-        Attribute::clear();
-        U::clear();
-    }
-
-    virtual void pre_process() {
-        Attribute::pre_process();
-        //        U::pre_process();
-    };
-
-    virtual void post_process() {
-        //        U::post_process();
-        Attribute::post_process();
-    }
-};
-template <typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
-struct AttributeTemplate : public Attribute {
-
-    typedef TV data_type;
-
-
-}
-;
+//
+//template <typename...>
+//class AttributeAdapter;
+//
+//template <typename U>
+//class AttributeAdapter<U> : public Attribute, public U {
+//    SP_OBJECT_HEAD(AttributeAdapter<U>, Attribute);
+//
+//    typedef algebra::traits::value_type_t<U> value_type;
+//
+//   public:
+//    template <typename... Args>
+//    AttributeAdapter(Args &&... args)
+//        : Attribute(nullptr,
+//                    std::make_shared<AttributeDescTemp<value_type, algebra::traits::iform<U>::value,
+//                                                       algebra::traits::dof<U>::value>>(
+//                        std::forward<Args>(args)...)),
+//          U() {}
+//
+//    AttributeAdapter(AttributeAdapter &&) = delete;
+//
+//    AttributeAdapter(AttributeAdapter const &) = delete;
+//
+//    ~AttributeAdapter() {}
+//
+//    using U::operator=;
+//
+//    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m,
+//                                                         void *p = nullptr) const {
+//        return DataBlockAdapter<U>::create(m, static_cast<value_type *>(p));
+//    };
+//
+//    virtual void accept(Patch *p) {
+//        Attribute::accept(p);
+//
+//        //        accept(this, Attribute::data());
+//        //        U::accept(Attribute::data());
+//    }
+//
+//    virtual void clear() {
+//        Attribute::clear();
+//        U::clear();
+//    }
+//
+//    virtual void pre_process() {
+//        Attribute::pre_process();
+//        //        U::pre_process();
+//    };
+//
+//    virtual void post_process() {
+//        //        U::post_process();
+//        Attribute::post_process();
+//    }
+//};
+//
 //template <typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
 //using Variable =
 //    AttributeAdapter<Array<TV, SIMPLA_MAXIMUM_DIMENSION +

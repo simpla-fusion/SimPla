@@ -6,6 +6,7 @@
 #define SIMPLA_ALGEBRACOMMON_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/concept/CheckConcept.h>
 #include <simpla/mpl/integer_sequence.h>
 #include <simpla/mpl/type_traits.h>
 #include <utility>
@@ -19,25 +20,12 @@ namespace declare {
 template <typename...>
 struct Expression;
 }
-namespace calculus {
-template <typename, class Enable = void>
-struct calculator {};
-}
+
 namespace traits {
 template <typename>
 struct num_of_dimension : public index_const<3> {};
 
-template <typename T>
-struct value_type {
-   private:
-    template <typename U>
-    static auto test(int) -> typename U::value_type;
-    template <typename>
-    static T test(...);
-
-   public:
-    typedef decltype(test<T>(0)) type;
-};
+CHECK_MEMBER_TYPE(value_type, value_type)
 
 template <typename T>
 using value_type_t = typename value_type<T>::type;
@@ -69,39 +57,13 @@ struct value_type<T const[]> {
 };
 
 template <typename T>
-struct scalar_type {
-    typedef Real type;
-};
-
-template <typename T>
-using scalar_type_t = typename scalar_type<T>::type;
-
-template <typename...>
-struct is_complex : public std::integral_constant<bool, false> {};
-
-template <typename T>
-struct is_complex<std::complex<T>> : public std::integral_constant<bool, true> {};
-
-template <typename...>
-struct is_scalar : public std::integral_constant<bool, false> {};
-
-template <typename T>
-struct is_scalar<T>
-    : public std::integral_constant<bool, std::is_arithmetic<std::decay_t<T>>::value ||
-                                              is_complex<std::decay_t<T>>::value> {};
-template <typename First, typename... Others>
-struct is_scalar<First, Others...>
-    : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {
-};
-
-template <typename T>
 struct reference {
    private:
     typedef std::true_type yes;
     typedef std::false_type no;
 
     template <typename U>
-    static auto test(int) -> typename U::is_refered_by_value;
+    static auto test(int) -> typename U::prefer_pass_by_reference;
     template <typename>
     static no test(...);
 
@@ -138,38 +100,13 @@ struct field_value_type {
         type;
 };
 
-
 template <typename T>
 using field_value_t = typename field_value_type<T>::type;
 
-#define HAVE_MEMBER_TYPE(_NAME_, _MEM_NAME_)             \
-    template <typename T>                                \
-    struct _NAME_<T> {                                   \
-       private:                                          \
-        typedef std::true_type yes;                      \
-        typedef std::false_type no;                      \
-                                                         \
-        template <typename U>                            \
-        static auto test(int) -> typename U::_MEM_NAME_; \
-        template <typename>                              \
-        static no test(...);                             \
-                                                         \
-       public:                                           \
-        typedef decltype(test<T>(0)) type;               \
-        static constexpr bool value = type::value;       \
-    };
-template <typename...>
-struct is_field;
-template <typename...>
-struct is_expression;
-template <typename...>
-struct is_nTuple;
-template <typename...>
-struct is_array;
-HAVE_MEMBER_TYPE(is_array, is_array)
-HAVE_MEMBER_TYPE(is_field, is_field)
-HAVE_MEMBER_TYPE(is_nTuple, is_nTuple)
-HAVE_MEMBER_TYPE(is_expression, is_expression)
+HAS_MEMBER_TYPE_BOOLEAN(is_array, is_array)
+HAS_MEMBER_TYPE_BOOLEAN(is_field, is_field)
+HAS_MEMBER_TYPE_BOOLEAN(is_nTuple, is_nTuple)
+HAS_MEMBER_TYPE_BOOLEAN(is_expression, is_expression)
 
 template <typename First, typename... Others>
 struct is_field<First, Others...>
@@ -232,6 +169,36 @@ template <typename T>
 struct extent<const T> : public index_const<extent<T>::value> {};
 template <typename T>
 struct extents : public index_sequence<> {};
+
+
+
+
+template <typename T>
+struct scalar_type {
+    typedef Real type;
+};
+
+template <typename T>
+using scalar_type_t = typename scalar_type<T>::type;
+
+template <typename...>
+struct is_complex : public std::integral_constant<bool, false> {};
+
+template <typename T>
+struct is_complex<std::complex<T>> : public std::integral_constant<bool, true> {};
+
+template <typename...>
+struct is_scalar : public std::integral_constant<bool, false> {};
+
+template <typename T>
+struct is_scalar<T>
+        : public std::integral_constant<bool, std::is_arithmetic<std::decay_t<T>>::value ||
+                                              is_complex<std::decay_t<T>>::value> {};
+template <typename First, typename... Others>
+struct is_scalar<First, Others...>
+        : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {
+};
+
 
 }  // namespace traits
 

@@ -8,6 +8,7 @@
 #define SIMPLA_FIELD_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/mpl/Range.h>
 #include <simpla/toolbox/FancyStream.h>
@@ -32,6 +33,9 @@ struct mesh_traits {
         constexpr id const& operator()(TM const& m, id const& s) const { return s; }
     };
 };
+
+template <typename>
+struct AttributeAdapter : public public concept::Object, concept::Printable {};
 }  // namespace mesh{
 
 namespace algebra {
@@ -62,22 +66,23 @@ class FieldView;
 //};
 
 template <typename TM, typename TV, int IFORM, int DOF>
-class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
+class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM, TV, IFORM, DOF>> {
    private:
-    typedef FieldView<TM, TV, IFORM, DOF> this_type;
-
+    typedef FieldView<TM, TV, IFORM, DOF> field_type;
+    typedef mesh::AttributeAdapter<FieldView<TM, TV, IFORM, DOF>> attribute_type;
+    SP_OBJECT_HEAD(field_type, attribute_type)
    public:
     typedef TV value_type;
 
     typedef TM mesh_type;
     static constexpr int iform = IFORM;
     static constexpr int dof = dof;
-    typedef std::false_type is_refered_by_value;
+
+    typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
     typedef std::true_type is_field;
 
     typedef typename mesh::mesh_traits<mesh_type>::id mesh_id;
-    typedef typename mesh::mesh_traits<mesh_type>::template Shift<IFORM, DOF> Shift;
     typedef std::conditional_t<DOF == 1, value_type, nTuple<value_type, DOF>> cell_tuple;
     typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
                                nTuple<cell_tuple, 3>>

@@ -11,7 +11,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <stddef.h>
 #include <iostream>
-#include "simpla/mpl/check_concept.h"
+#include "simpla/concept/CheckConcept.h"
 #include "simpla/mpl/macro.h"
 #include "simpla/mpl/port_cxx14.h"
 
