@@ -154,30 +154,9 @@ DEFINE_TYPE_ID_NAME(long)
 ////////////////////////////////////////////////////////////////////////
 ///// Property queries of n-dimensional array
 ////////////////////////////////////////////////////////////////////////
-template <typename _T, typename _Args = int>
-struct is_indexable {
-   private:
-    typedef std::true_type yes;
-    typedef std::false_type no;
 
-    template <typename _U>
-    static auto test(int) -> decltype(std::declval<_U>()[std::declval<_Args>()]);
 
-    template <typename>
-    static no test(...);
 
-   public:
-    static constexpr bool value =
-        (!std::is_same<decltype(test<_T>(0)), no>::value) || (std::is_array<_T>::value);
-};
-
-/**
- * @ref http://en.cppreference.com/w/cpp/types/remove_extent
- * If T is '''is_indexable''' by '''S''', provides the member typedef type equal to
- * decltyp(T[S])
- * otherwise type is T. Note that if T is a multidimensional array, only the first dimension is
- * removed.
- */
 
 template <typename T, typename Idx = int>
 struct remove_extent {

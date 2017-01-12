@@ -20,15 +20,13 @@ namespace concept {
  */
 
 /**
- * @brief check the member type T::_NAME_
+ * @brief check if T has type member  T::_NAME_
  *  if T has member type _NAME_, provides the member typedef type which is the same as T::_NAME_
  *  else  provides void
  *
   EXAMPLE:
 
  @code{.cpp}
-
-
     #include <simpla/concept/CheckConcept.h>
     #include <iostream>
     using namespace simpla;
@@ -68,9 +66,9 @@ namespace concept {
 
  *
  */
-#define CHECK_TYPE_MEMBER(_FUN_NAME_, _TYPE_NAME_)                                                \
+#define CHECK_TYPE_MEMBER(_CHECKER_NAME_, _TYPE_NAME_)                                            \
     template <typename _T>                                                                        \
-    struct _FUN_NAME_ {                                                                           \
+    struct _CHECKER_NAME_ {                                                                       \
        private:                                                                                   \
         typedef std::true_type yes;                                                               \
         typedef std::false_type no;                                                               \
@@ -85,14 +83,14 @@ namespace concept {
         typedef std::conditional_t<std::is_same<result_type, no>::value, void, result_type> type; \
     };                                                                                            \
     template <typename _T>                                                                        \
-    using _FUN_NAME_##_t = typename _FUN_NAME_<_T>::type;                                         \
+    using _CHECKER_NAME_##_t = typename _CHECKER_NAME_<_T>::type;                                 \
     template <typename _T>                                                                        \
-    struct has_##_FUN_NAME_                                                                       \
+    struct has_##_CHECKER_NAME_                                                                   \
         : public std::integral_constant<                                                          \
-              bool, !std::is_same<typename _FUN_NAME_<_T>::type, void>::value> {};
+              bool, !std::is_same<typename _CHECKER_NAME_<_T>::type, void>::value> {};
 
 /**
- * @brief  check if a type has a member type as std::true_type or std::false_type
+ * @brief  check if   type T has a  type member as std::true_type or std::false_type
  *
 EXAMPLE:
  @code{.cpp}
@@ -124,10 +122,10 @@ EXAMPLE:
 
  */
 
-#define CHECK_BOOLEAN_TYPE_MEMBER(_FUN_NAME_, _MEM_NAME_)                    \
+#define CHECK_BOOLEAN_TYPE_MEMBER(_CHECKER_NAME_, _MEM_NAME_)                \
     namespace detail {                                                       \
     template <typename T>                                                    \
-    struct _FUN_NAME_ {                                                      \
+    struct _CHECKER_NAME_ {                                                  \
        private:                                                              \
         typedef std::true_type yes;                                          \
         typedef std::false_type no;                                          \
@@ -146,7 +144,7 @@ EXAMPLE:
     };                                                                       \
     }                                                                        \
     template <typename T>                                                    \
-    struct _FUN_NAME_ : public detail::_FUN_NAME_<T>::type {};
+    struct _CHECKER_NAME_ : public detail::_CHECKER_NAME_<T>::type {};
 
 /**
  * @brief check if a type T has member variable _NAME_
@@ -165,10 +163,10 @@ EXAMPLE:
  * @endcode
  */
 
-#define CHECK_STATIC_CONSTEXPR_DATA_MEMBER(_FUN_NAME_, _V_NAME_)                                  \
+#define CHECK_STATIC_CONSTEXPR_DATA_MEMBER(_CHECKER_NAME_, _V_NAME_)                              \
     namespace detail {                                                                            \
     template <typename _T>                                                                        \
-    struct _FUN_NAME_ {                                                                           \
+    struct _CHECKER_NAME_ {                                                                       \
        private:                                                                                   \
         typedef std::true_type yes;                                                               \
         typedef std::false_type no;                                                               \
@@ -183,10 +181,10 @@ EXAMPLE:
     };                                                                                            \
     }                                                                                             \
     template <typename T>                                                                         \
-    struct _FUN_NAME_ : public detail::_FUN_NAME_<T>::type {};
+    struct _CHECKER_NAME_ : public detail::_CHECKER_NAME_<T>::type {};
 
 /**
- * @brief check static member value  T::_NAME_
+ * @brief check if T has static  data member  T::_NAME_
  *
  *
  *   @code
@@ -203,26 +201,27 @@ EXAMPLE:
  * @endcode
  */
 
-#define CHECK_VALUE_OF_STATIC_CONSTEXPR_DATA_MEMBER(_FUN_NAME_, _V_NAME_, _DEFAULT_VALUE_) \
-    namespace detail {                                                                  \
-    CHECK_STATIC_CONSTEXPR_DATA_MEMBER(check_##_FUN_NAME_, _V_NAME_)                    \
-    template <typename T, bool ENABLE>                                                  \
-    struct _FUN_NAME_;                                                                  \
-    template <typename T>                                                               \
-    struct _FUN_NAME_<T, true> {                                                        \
-        static constexpr decltype(T::_V_NAME_) value = T::_V_NAME_;                     \
-    };                                                                                  \
-    template <typename T>                                                               \
-    struct _FUN_NAME_<T, false> {                                                       \
-        static constexpr decltype(_DEFAULT_VALUE_) value = _DEFAULT_VALUE_;             \
-    };                                                                                  \
-    template <typename T>                                                               \
-    constexpr decltype(T::_V_NAME_) _FUN_NAME_<T, true>::value;                         \
-    template <typename T>                                                               \
-    constexpr decltype(_DEFAULT_VALUE_) _FUN_NAME_<T, false>::value;                    \
-    }                                                                                   \
-    template <typename T>                                                               \
-    struct _FUN_NAME_ : public detail::_FUN_NAME_<T, detail::check_##_FUN_NAME_<T>::value> {};
+#define CHECK_VALUE_OF_STATIC_CONSTEXPR_DATA_MEMBER(_CHECKER_NAME_, _V_NAME_, _DEFAULT_VALUE_) \
+    namespace detail {                                                                         \
+    CHECK_STATIC_CONSTEXPR_DATA_MEMBER(check_##_CHECKER_NAME_, _V_NAME_)                       \
+    template <typename T, bool ENABLE>                                                         \
+    struct _CHECKER_NAME_;                                                                     \
+    template <typename T>                                                                      \
+    struct _CHECKER_NAME_<T, true> {                                                           \
+        static constexpr decltype(T::_V_NAME_) value = T::_V_NAME_;                            \
+    };                                                                                         \
+    template <typename T>                                                                      \
+    struct _CHECKER_NAME_<T, false> {                                                          \
+        static constexpr decltype(_DEFAULT_VALUE_) value = _DEFAULT_VALUE_;                    \
+    };                                                                                         \
+    template <typename T>                                                                      \
+    constexpr decltype(T::_V_NAME_) _CHECKER_NAME_<T, true>::value;                            \
+    template <typename T>                                                                      \
+    constexpr decltype(_DEFAULT_VALUE_) _CHECKER_NAME_<T, false>::value;                       \
+    }                                                                                          \
+    template <typename T>                                                                      \
+    struct _CHECKER_NAME_                                                                      \
+        : public detail::_CHECKER_NAME_<T, detail::check_##_CHECKER_NAME_<T>::value> {};
 
 /**
  * @brief check if T has data memeber _V_NAME_
@@ -238,32 +237,64 @@ EXAMPLE:
  }
  @endcode
  */
-#define CHECK_DATA_MEMBER(_F_NAME_, _V_NAME_)                                        \
-    namespace detail {                                                               \
-    template <typename _T, typename _D>                                              \
-    struct _F_NAME_ {                                                                \
-       private:                                                                      \
-        typedef std::true_type yes;                                                  \
-        typedef std::false_type no;                                                  \
-                                                                                     \
-        template <typename U>                                                        \
-        static auto test(int) -> decltype(std::declval<U>()._V_NAME_);               \
-        template <typename>                                                          \
-        static no test(...);                                                         \
-        typedef decltype(test<_T>(0)) check_resut;                                   \
-                                                                                     \
-       public:                                                                       \
-        static constexpr bool value =                                                \
-            (!std::is_same<check_resut, no>::value) &&                               \
-            (std::is_same<_D, void>::value || std::is_same<check_resut, _D>::value); \
-    };                                                                               \
-    }                                                                                \
-    template <typename T, typename D = void>                                         \
+#define CHECK_DATA_MEMBER(_F_NAME_, _V_NAME_)                                         \
+    namespace detail {                                                                \
+    template <typename _T, typename _D>                                               \
+    struct _F_NAME_ {                                                                 \
+       private:                                                                       \
+        typedef std::true_type yes;                                                   \
+        typedef std::false_type no;                                                   \
+                                                                                      \
+        template <typename U>                                                         \
+        static auto test(int) -> decltype(std::declval<U>()._V_NAME_);                \
+        template <typename>                                                           \
+        static no test(...);                                                          \
+        typedef decltype(test<_T>(0)) check_result;                                   \
+                                                                                      \
+       public:                                                                        \
+        static constexpr bool value =                                                 \
+            (!std::is_same<check_result, no>::value) &&                               \
+            (std::is_same<_D, void>::value || std::is_same<check_result, _D>::value); \
+    };                                                                                \
+    }                                                                                 \
+    template <typename T, typename D = void>                                          \
     struct _F_NAME_ : public std::integral_constant<bool, detail::_F_NAME_<T, D>::value> {};
 
-#define HAS_MEMBER_FUNCTION(_NAME_)                                                                \
-    template <typename _T, typename... _Args>                                                      \
-    struct has_member_function_##_NAME_ {                                                          \
+#define CHECK_FUNCTION(_CHECKER_NAME_, _FUN_NAME_)                                                \
+    namespace detail {                                                                            \
+    template <typename...>                                                                        \
+    struct _CHECKER_NAME_ {                                                                       \
+        static constexpr bool value = false;                                                      \
+    };                                                                                            \
+    template <typename _TRet, typename... _Args>                                                  \
+    struct _CHECKER_NAME_<_TRet(_Args...)> {                                                      \
+       private:                                                                                   \
+        typedef std::true_type yes;                                                               \
+        typedef std::false_type no;                                                               \
+        static auto test(_Args &&... args) -> decltype(_FUN_NAME_(std::forward<_Args>(args)...)); \
+        static no test(...);                                                                      \
+                                                                                                  \
+        typedef decltype(test(std::declval<_Args>()...)) check_result;                            \
+                                                                                                  \
+       public:                                                                                    \
+        static constexpr bool value = std::is_same<check_result, _TRet>::value;                   \
+    };                                                                                            \
+    }                                                                                             \
+    template <typename... _Args>                                                                  \
+    struct _CHECKER_NAME_                                                                         \
+        : public std::integral_constant<bool, detail::_CHECKER_NAME_<_Args...>::value> {};
+
+/**
+ * @brief
+ */
+#define CHECK_FUNCTION_MEMBER(_CHECKER_NAME_, _FUN_NAME_)                                          \
+    namespace detail {                                                                             \
+    template <typename...>                                                                         \
+    struct _CHECKER_NAME_ {                                                                        \
+        static constexpr bool value = false;                                                       \
+    };                                                                                             \
+    template <typename _T, typename _TRet, typename... _Args>                                      \
+    struct _CHECKER_NAME_<_T, _TRet(_Args...)> {                                                   \
        private:                                                                                    \
         typedef std::true_type yes;                                                                \
         typedef std::false_type no;                                                                \
@@ -271,232 +302,103 @@ EXAMPLE:
         template <typename U>                                                                      \
         static auto test(int) ->                                                                   \
             typename std::enable_if<sizeof...(_Args) == 0,                                         \
-                                    decltype(std::declval<U>()._NAME_())>::type;                   \
+                                    decltype(std::declval<U>()._FUN_NAME_())>::type;               \
                                                                                                    \
         template <typename U>                                                                      \
         static auto test(int) ->                                                                   \
-            typename std::enable_if<(sizeof...(_Args) > 0), decltype(std::declval<U>()._NAME_(     \
+            typename std::enable_if<(sizeof...(_Args) > 0), decltype(std::declval<U>()._FUN_NAME_( \
                                                                 std::declval<_Args>()...))>::type; \
                                                                                                    \
         template <typename>                                                                        \
         static no test(...);                                                                       \
                                                                                                    \
+        typedef decltype(test<_T>(0)) check_result;                                                \
+                                                                                                   \
        public:                                                                                     \
-        static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value;             \
-        typedef std::integral_constant<bool, value> value_type;                                    \
-    };
-
-#define HAS_CONST_MEMBER_FUNCTION(_NAME_)                                              \
-    template <typename _T, typename... _Args>                                          \
-    struct has_const_member_function_##_NAME_ {                                        \
-       private:                                                                        \
-        typedef std::true_type yes;                                                    \
-        typedef std::false_type no;                                                    \
-                                                                                       \
-        template <typename U>                                                          \
-        static auto test(int) ->                                                       \
-            typename std::enable_if<sizeof...(_Args) == 0,                             \
-                                    decltype(std::declval<const U>()._NAME_())>::type; \
-                                                                                       \
-        template <typename U>                                                          \
-        static auto test(int) -> typename std::enable_if<                              \
-            (sizeof...(_Args) > 0),                                                    \
-            decltype(std::declval<const U>()._NAME_(std::declval<_Args>()...))>::type; \
-                                                                                       \
-        template <typename>                                                            \
-        static no test(...);                                                           \
-                                                                                       \
-       public:                                                                         \
-        static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value; \
-        typedef std::integral_constant<bool, value> value_type;                        \
-    };
-
-#define HAS_STATIC_MEMBER_FUNCTION(_NAME_)                                                \
-    template <typename _T, typename... _Args>                                             \
-    struct has_static_member_function_##_NAME_ {                                          \
-       private:                                                                           \
-        typedef std::true_type yes;                                                       \
-        typedef std::false_type no;                                                       \
-                                                                                          \
-        template <typename U>                                                             \
-        static auto test(int) ->                                                          \
-            typename std::enable_if<sizeof...(_Args) == 0, decltype(U::_NAME_())>::type;  \
-                                                                                          \
-        template <typename U>                                                             \
-        static auto test(int) ->                                                          \
-            typename std::enable_if<(sizeof...(_Args) > 0),                               \
-                                    decltype(U::_NAME_(std::declval<_Args>()...))>::type; \
-                                                                                          \
-        template <typename>                                                               \
-        static no test(...);                                                              \
-                                                                                          \
-       public:                                                                            \
-        static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value;    \
-        typedef std::integral_constant<bool, value> value_type;                           \
-    };
-
-#define HAS_FUNCTION(_NAME_)                                                           \
-    template <typename... _Args>                                                       \
-    struct has_function_##_NAME_ {                                                     \
-       private:                                                                        \
-        typedef std::true_type yes;                                                    \
-        typedef std::false_type no;                                                    \
-                                                                                       \
-        static auto test(int) ->                                                       \
-            typename std::enable_if<sizeof...(_Args) == 0, decltype(_NAME_())>::type;  \
-                                                                                       \
-        static auto test(int) ->                                                       \
-            typename std::enable_if<(sizeof...(_Args) > 0),                            \
-                                    decltype(_NAME_(std::declval<_Args>()...))>::type; \
-                                                                                       \
-        template <typename>                                                            \
-        static no test(...);                                                           \
-                                                                                       \
-       public:                                                                         \
-        static constexpr bool value = !std::is_same<decltype(test(0)), no>::value;     \
-    };
-
-#define HAS_OPERATOR(_NAME_, _OP_)                                                       \
-    template <typename _T, typename... _Args>                                            \
-    struct has_operator_##_NAME_ {                                                       \
-       private:                                                                          \
-        typedef std::true_type yes;                                                      \
-        typedef std::false_type no;                                                      \
-                                                                                         \
-        template <typename _U>                                                           \
-        static auto test(int) ->                                                         \
-            typename std::enable_if<sizeof...(_Args) == 0,                               \
-                                    decltype(std::declval<_U>().operator _OP_())>::type; \
-                                                                                         \
-        template <typename _U>                                                           \
-        static auto test(int) -> typename std::enable_if<                                \
-            (sizeof...(_Args) > 0),                                                      \
-            decltype(std::declval<_U>().operator _OP_(std::declval<_Args>()...))>::type; \
-                                                                                         \
-        template <typename>                                                              \
-        static no test(...);                                                             \
-                                                                                         \
-       public:                                                                           \
-        static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value;   \
-    };
-
-#define HAS_TYPE(_NAME_)                                                               \
-    template <typename _T>                                                             \
-    struct has_type_##_NAME_ {                                                         \
-       private:                                                                        \
-        typedef std::true_type yes;                                                    \
-        typedef std::false_type no;                                                    \
-                                                                                       \
-        template <typename U>                                                          \
-        static auto test(int) -> typename U::_NAME_;                                   \
-        template <typename>                                                            \
-        static no test(...);                                                           \
-                                                                                       \
-       public:                                                                         \
-        static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value; \
-    };
-
-namespace _impl {
-
-// HAS_OPERATOR(sub_script, []);
-HAS_MEMBER_FUNCTION(at);
-
-}  // namespace _impl
-
-/***
- *   @brief MACRO CHECK_BOOLEAN ( _MEMBER_, _DEFAULT_VALUE_ )
- *    define
- *     template<typename T>
- *     class check_##_MEMBER_
- *     {
- static constexpr bool value;
- *     };
- *
- *     if static T::_MEMBER_ exists, then value = T::_MEMBER_
- *     else value = _DEFAULT_VALUE_
- */
-#define CHECK_BOOLEAN(_MEMBER_, _DEFAULT_VALUE_)                                                 \
-    template <typename _T_CHKBOOL_>                                                              \
-    struct check_##_MEMBER_ {                                                                    \
-       private:                                                                                  \
-        HAS_STATIC_MEMBER(_MEMBER_);                                                             \
-                                                                                                 \
-        template <typename, bool>                                                                \
-        struct check_boolean;                                                                    \
-                                                                                                 \
-        template <typename _U>                                                                   \
-        struct check_boolean<_U, true> {                                                         \
-            static constexpr bool value = (_U::_MEMBER_);                                        \
-        };                                                                                       \
-                                                                                                 \
-        template <typename _U>                                                                   \
-        struct check_boolean<_U, false> {                                                        \
-            static constexpr bool value = _DEFAULT_VALUE_;                                       \
-        };                                                                                       \
-                                                                                                 \
-       public:                                                                                   \
-        static constexpr bool value =                                                            \
-            check_boolean<_T_CHKBOOL_, has_static_member_##_MEMBER_<_T_CHKBOOL_>::value>::value; \
-    };
-
-#define CHECK_MEMBER_VALUE(_MEMBER_, _DEFAULT_VALUE_)                                          \
-    template <typename _T_CHKBOOL_>                                                            \
-    struct check_member_value_##_MEMBER_ {                                                     \
-       private:                                                                                \
-        HAS_STATIC_MEMBER(_MEMBER_);                                                           \
-                                                                                               \
-        template <typename, bool>                                                              \
-        struct check_value;                                                                    \
-                                                                                               \
-        template <typename _U>                                                                 \
-        struct check_value<_U, true> {                                                         \
-            static constexpr auto value = (_U::_MEMBER_);                                      \
-        };                                                                                     \
-                                                                                               \
-        template <typename _U>                                                                 \
-        struct check_value<_U, false> {                                                        \
-            static constexpr auto value = _DEFAULT_VALUE_;                                     \
-        };                                                                                     \
-                                                                                               \
-       public:                                                                                 \
-        static constexpr auto value =                                                          \
-            check_value<_T_CHKBOOL_, has_static_member_##_MEMBER_<_T_CHKBOOL_>::value>::value; \
-    };
-
-// template<typename _T, typename _Args>
-// struct is_indexable
-//{
-// private:
-//    typedef std::true_type yes;
-//    typedef std::false_type no;
-//
-//    template<typename _U>
-//    static auto test(int) ->
-//    decltype(std::declval<_U>()[std::declval<_Args>()]);
-//
-//    template<typename> static no test(...);
-//
-// public:
-//
-//    static constexpr bool value =
-//            (!std::is_same<decltype(test<_T>(0)), no>::value)
-//            || ((std::is_array<_T>::value)
-//                && (std::is_integral<_Args>::value));
-//
-//};
+        static constexpr bool value = std::is_same<decltype(test<_T>(0)), _TRet>::value;           \
+    };                                                                                             \
+    }                                                                                              \
+    template <typename... _Args>                                                                   \
+    struct _CHECKER_NAME_                                                                          \
+        : public std::integral_constant<bool, detail::_CHECKER_NAME_<_Args...>::value> {};
 
 /**
- * @}
+ * @brief
  */
-// namespace traits
-//{
-// template<typename ...Args> using is_callable = boost::proto::is_callable<Args...>;
-//}
+#define CHECK_STATIC_FUNCTION_MEMBER(_CHECKER_NAME_, _FUN_NAME_)                              \
+    namespace detail {                                                                        \
+    template <typename...>                                                                    \
+    struct _CHECKER_NAME_ {                                                                   \
+        static constexpr bool value = false;                                                  \
+    };                                                                                        \
+    template <typename _T, typename _TRet, typename... _Args>                                 \
+    struct _CHECKER_NAME_<_T, _TRet(_Args...)> {                                              \
+       private:                                                                               \
+        typedef std::true_type yes;                                                           \
+        typedef std::false_type no;                                                           \
+                                                                                              \
+        template <typename U>                                                                 \
+        static auto test(int) ->                                                              \
+            typename std::enable_if<sizeof...(_Args) == 0, decltype(U::_FUN_NAME_())>::type;  \
+                                                                                              \
+        template <typename U>                                                                 \
+        static auto test(int) ->                                                              \
+            typename std::enable_if<(sizeof...(_Args) > 0),                                   \
+                                    decltype(U::_FUN_NAME_(std::declval<_Args>()...))>::type; \
+                                                                                              \
+        template <typename>                                                                   \
+        static no test(...);                                                                  \
+                                                                                              \
+        typedef decltype(test<_T>(0)) check_result;                                           \
+                                                                                              \
+       public:                                                                                \
+        static constexpr bool value = std::is_same<decltype(test<_T>(0)), _TRet>::value;      \
+    };                                                                                        \
+    }                                                                                         \
+    template <typename... _Args>                                                              \
+    struct _CHECKER_NAME_                                                                     \
+        : public std::integral_constant<bool, detail::_CHECKER_NAME_<_Args...>::value> {};
+
+#define CHECK_OPERATOR(_NAME_, _OP_)             \
+    namespace detail {                           \
+    CHECK_FUNCTION_MEMBER(_NAME_, operator _OP_) \
+    }                                            \
+    template <typename... T>                     \
+    struct _NAME_ : public std::integral_constant<bool, detail::_NAME_<T...>::value> {};
+
+CHECK_OPERATOR(is_indexable, [])
+/**
+ * @ref http://en.cppreference.com/w/cpp/types/remove_extent
+ * If T is '''is_indexable''' by '''S''', provides the member typedef type equal to
+ * decltyp(T[S])
+ * otherwise type is T. Note that if T is a multidimensional array, only the first dimension is
+ * removed.
+ */
+namespace detail {
+template <typename _T>
+struct is_indexable<_T> {
+   private:
+    typedef std::true_type yes;
+    typedef std::false_type no;
+
+    template <typename _U>
+    static auto test(int) -> decltype(std::declval<_U>()[std::declval<int>()]);
+
+    template <typename>
+    static no test(...);
+
+   public:
+    static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value;
+};
+}
+
+// CHECK_OPERATOR(is_callable, ())
+
 template <typename...>
 struct is_callable;
-
-template <typename _T, typename... _Args>
-struct is_callable<_T(_Args...)> {
+//
+template <typename _T, typename _TRet, typename... _Args>
+struct is_callable<_T, _TRet(_Args...)> {
    private:
     typedef std::true_type yes;
     typedef std::false_type no;
@@ -507,44 +409,11 @@ struct is_callable<_T(_Args...)> {
     template <typename>
     static no test(...);
 
-   public:
-    typedef decltype(test<_T>(0)) type;
-    static constexpr bool value = !std::is_same<type, no>::value;
-};
-
-template <typename _T, typename... _Args, typename TRes>
-struct is_callable<_T(_Args...), TRes> {
-   private:
-    typedef std::true_type yes;
-    typedef std::false_type no;
-
-    template <typename _U>
-    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
-
-    template <typename>
-    static no test(...);
+    typedef decltype(test<_T>(0)) check_result;
 
    public:
-    typedef decltype(test<_T>(0)) type;
-    static constexpr bool value = std::is_same<type, TRes>::value;
+    static constexpr bool value = std::is_same<check_result, _TRet>::value;
 };
-// template<typename _T, typename ... _Args, class _R>
-// struct is_callable<_T(_Args...), _R>
-//{
-// private:
-//    typedef std::true_type yes;
-//    typedef std::false_type no;
-//
-//    template<typename _U>
-//    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
-//
-//    template<typename> static no test(...);
-//
-// public:
-//
-//    static constexpr bool value = (std::is_same<decltype(test<_T>()), _R>::value);
-//
-//};
 
 template <typename TFun, typename... Args>
 auto try_invoke(TFun const &fun, Args &&... args) ->
@@ -560,43 +429,6 @@ auto try_invoke(TFun const &fun, Args &&... args) ->
     return fun;
 }
 
-template <typename _T>
-struct is_iterator {
-   private:
-    typedef std::true_type yes;
-    typedef std::false_type no;
-
-    template <typename _U>
-    static auto test(int) -> decltype(std::declval<_U>().operator*());
-
-    template <typename>
-    static no test(...);
-
-   public:
-    static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value;
-};
-
-template <typename _T>
-struct is_shared_ptr {
-    static constexpr bool value = false;
-};
-template <typename T>
-struct is_shared_ptr<std::shared_ptr<T>> {
-    static constexpr bool value = true;
-};
-template <typename T>
-struct is_shared_ptr<const std::shared_ptr<T>> {
-    static constexpr bool value = true;
-};
-
-template <typename, typename>
-struct is_indexable;
-
-// std::enable_if_t<_COND_> *__p = nullptr
-
-#define CHECK_FUNCTION_SIGNATURE(_RET_, _FUN_)                                                \
-    typename std::enable_if<std::is_same<_RET_, std::result_of_t<_FUN_>>::value>::type *__p = \
-        nullptr
 }  // namespace concept
 }  // namespace simpla
 
