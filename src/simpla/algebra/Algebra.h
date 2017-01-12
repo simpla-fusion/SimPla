@@ -25,7 +25,7 @@ namespace traits {
 template <typename>
 struct num_of_dimension : public index_const<3> {};
 
-CHECK_MEMBER_TYPE(value_type, value_type)
+CHECK_TYPE_MEMBER(value_type, value_type)
 
 template <typename T>
 using value_type_t = typename value_type<T>::type;

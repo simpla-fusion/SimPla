@@ -5,8 +5,8 @@
  *      Author: salmon
  */
 
-#ifndef CORE_GPL_CHECK_CONCEPT_H_
-#define CORE_GPL_CHECK_CONCEPT_H_
+#ifndef CORE_CHECK_CONCEPT_H_
+#define CORE_CHECK_CONCEPT_H_
 
 #include <memory>
 #include <type_traits>
@@ -18,25 +18,6 @@ namespace concept {
  *  @addtogroup concept_check Concept Checking
  *  @{
  */
-/**
- * @brief
- */
-
-#define HAS_MEMBER(_NAME_)                                                             \
-    template <typename _T>                                                             \
-    struct has_member_##_NAME_ {                                                       \
-       private:                                                                        \
-        typedef std::true_type yes;                                                    \
-        typedef std::false_type no;                                                    \
-                                                                                       \
-        template <typename U>                                                          \
-        static auto test(int) -> decltype(std::declval<U>()._NAME_);                   \
-        template <typename>                                                            \
-        static no test(...);                                                           \
-                                                                                       \
-       public:                                                                         \
-        static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value; \
-    };
 
 /**
  * @brief check the member type T::_NAME_
@@ -87,7 +68,7 @@ namespace concept {
 
  *
  */
-#define CHECK_MEMBER_TYPE(_FUN_NAME_, _TYPE_NAME_)                                                \
+#define CHECK_TYPE_MEMBER(_FUN_NAME_, _TYPE_NAME_)                                                \
     template <typename _T>                                                                        \
     struct _FUN_NAME_ {                                                                           \
        private:                                                                                   \
@@ -123,7 +104,7 @@ EXAMPLE:
     struct Goo { typedef std::false_type is_foo; };
     struct Koo {};
 
-    CHECK_MEMBER_TYPE_BOOLEAN(is_foo, is_foo)
+    CHECK_BOOLEAN_TYPE_MEMBER(is_foo, is_foo)
 
     int main(int argc, char** argv) {
         std::cout << " Foo  " << (is_foo<Foo>::value ? "is" : "is not") << " foo." << std::endl;
@@ -143,7 +124,7 @@ EXAMPLE:
 
  */
 
-#define CHECK_MEMBER_TYPE_BOOLEAN(_FUN_NAME_, _MEM_NAME_)                    \
+#define CHECK_BOOLEAN_TYPE_MEMBER(_FUN_NAME_, _MEM_NAME_)                    \
     namespace detail {                                                       \
     template <typename T>                                                    \
     struct _FUN_NAME_ {                                                      \
@@ -170,12 +151,24 @@ EXAMPLE:
 /**
  * @brief check if a type T has member variable _NAME_
  *
+ * EXAMPLE:
+ * @code
+    struct Foo { static constexpr int iform = 2;};
+    struct Goo { static constexpr double iform = 2.1; };
+    struct Koo {};
+    CHECK_MEMBER_STATIC_CONSTEXPR_DATA(has_iform, iform)
+    TEST(CheckConceptTest, CheckMemberStaticConstexprData) {
+    EXPECT_TRUE(has_iform<Foo>::value);
+    EXPECT_TRUE(has_iform<Goo>::value);
+    EXPECT_FALSE(has_iform<Koo>::value);
+}
+ * @endcode
  */
 
-#define CHECK_MEMBER_STATIC_CONSTEXPR_DATA(_FUN_NAME_, _V_NAME_)                                  \
+#define CHECK_STATIC_CONSTEXPR_DATA_MEMBER(_FUN_NAME_, _V_NAME_)                                  \
     namespace detail {                                                                            \
     template <typename _T>                                                                        \
-    struct has_##_FUN_NAME_ {                                                                     \
+    struct _FUN_NAME_ {                                                                           \
        private:                                                                                   \
         typedef std::true_type yes;                                                               \
         typedef std::false_type no;                                                               \
@@ -190,10 +183,29 @@ EXAMPLE:
     };                                                                                            \
     }                                                                                             \
     template <typename T>                                                                         \
-    struct has_##_FUN_NAME_ : public detail::has_##_FUN_NAME_<T>::type {};
+    struct _FUN_NAME_ : public detail::_FUN_NAME_<T>::type {};
 
-#define CHECK_MEMBER_STATIC_CONSTEXPR_DATA_VALUE(_FUN_NAME_, _V_NAME_, _DEFAULT_VALUE_) \
+/**
+ * @brief check static member value  T::_NAME_
+ *
+ *
+ *   @code
+    struct Foo { static constexpr int iform = 2;};
+    struct Goo { static constexpr double iform = 2.1; };
+    struct Koo {};
+    CHECK_MEMBER_STATIC_CONSTEXPR_DATA_VALUE(iform_value, iform, 12)
+    TEST(CheckConceptTest, CheckMemberStaticConstexprDataValue) {
+    EXPECT_EQ(iform_value<Foo>::value, 2);
+    EXPECT_DOUBLE_EQ(iform_value<Goo>::value, 2.1);
+    EXPECT_NE(iform_value<Goo>::value, 1);
+    EXPECT_EQ(iform_value<Koo>::value, 12);
+   }
+ * @endcode
+ */
+
+#define CHECK_VALUE_OF_STATIC_CONSTEXPR_DATA_MEMBER(_FUN_NAME_, _V_NAME_, _DEFAULT_VALUE_) \
     namespace detail {                                                                  \
+    CHECK_STATIC_CONSTEXPR_DATA_MEMBER(check_##_FUN_NAME_, _V_NAME_)                    \
     template <typename T, bool ENABLE>                                                  \
     struct _FUN_NAME_;                                                                  \
     template <typename T>                                                               \
@@ -210,31 +222,44 @@ EXAMPLE:
     constexpr decltype(_DEFAULT_VALUE_) _FUN_NAME_<T, false>::value;                    \
     }                                                                                   \
     template <typename T>                                                               \
-    struct _FUN_NAME_ : public detail::_FUN_NAME_<T, has_##_FUN_NAME_<T>::value> {};
+    struct _FUN_NAME_ : public detail::_FUN_NAME_<T, detail::check_##_FUN_NAME_<T>::value> {};
 
-#define CHECK_MEMBER_DATA(_NAME_, _V_NAME_)                                                        \
-    namespace detail {                                                                             \
-    template <typename _T, typename _D>                                                            \
-    struct has_##_NAME_ {                                                                          \
-       private:                                                                                    \
-        typedef std::true_type yes;                                                                \
-        typedef std::false_type no;                                                                \
-                                                                                                   \
-        template <typename U>                                                                      \
-        static auto test(int) -> decltype(std::declval<U>()._V_NAME_);                             \
-        template <typename>                                                                        \
-        static no test(...);                                                                       \
-        typedef decltype(test<_T>(0)) check_resut;                                                 \
-                                                                                                   \
-       public:                                                                                     \
-        static constexpr bool value =                                                              \
-            (!std::is_same<check_resut, no>::value) &&                                             \
-            (std::is_same<_D, void>::value || std::is_same<check_resut, _D>::value);                 \
-    };                                                                                             \
-    }                                                                                              \
-    template <typename T, typename D = void>                                                       \
-    struct has_##_NAME_ : public std::integral_constant<bool, detail::has_##_NAME_<T, D>::value> { \
-    };
+/**
+ * @brief check if T has data memeber _V_NAME_
+ *
+ @code
+ CHECK_MEMBER_DATA(has_data, data)
+ TEST(CheckConceptTest, CheckMemberData) {
+     EXPECT_TRUE((has_data<Foo>::value));
+     EXPECT_TRUE((has_data<Foo, int>::value));
+     EXPECT_FALSE((has_data<Foo, double>::value));
+     EXPECT_FALSE((has_data<Koo>::value));
+     EXPECT_FALSE((has_data<Koo, double>::value));
+ }
+ @endcode
+ */
+#define CHECK_DATA_MEMBER(_F_NAME_, _V_NAME_)                                        \
+    namespace detail {                                                               \
+    template <typename _T, typename _D>                                              \
+    struct _F_NAME_ {                                                                \
+       private:                                                                      \
+        typedef std::true_type yes;                                                  \
+        typedef std::false_type no;                                                  \
+                                                                                     \
+        template <typename U>                                                        \
+        static auto test(int) -> decltype(std::declval<U>()._V_NAME_);               \
+        template <typename>                                                          \
+        static no test(...);                                                         \
+        typedef decltype(test<_T>(0)) check_resut;                                   \
+                                                                                     \
+       public:                                                                       \
+        static constexpr bool value =                                                \
+            (!std::is_same<check_resut, no>::value) &&                               \
+            (std::is_same<_D, void>::value || std::is_same<check_resut, _D>::value); \
+    };                                                                               \
+    }                                                                                \
+    template <typename T, typename D = void>                                         \
+    struct _F_NAME_ : public std::integral_constant<bool, detail::_F_NAME_<T, D>::value> {};
 
 #define HAS_MEMBER_FUNCTION(_NAME_)                                                                \
     template <typename _T, typename... _Args>                                                      \
@@ -575,4 +600,4 @@ struct is_indexable;
 }  // namespace concept
 }  // namespace simpla
 
-#endif /* CORE_GPL_CHECK_CONCEPT_H_ */
+#endif /* CORE_CHECK_CONCEPT_H_ */
