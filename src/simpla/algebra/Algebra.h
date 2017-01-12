@@ -93,10 +93,10 @@ struct field_value_type {
     static auto test(int) -> typename U::field_value_type;
     template <typename>
     static no test(...);
+    typedef decltype(test<T>(0)) check_result;
 
    public:
-    typedef std::conditional_t<std::is_same<decltype(test<T>(0)), no>::value, value_type_t<T>,
-                               field_value_type>
+    typedef std::conditional_t<std::is_same<check_result, no>::value, value_type_t<T>, check_result>
         type;
 };
 

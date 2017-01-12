@@ -398,7 +398,7 @@ auto diverge(T const& f, int_const<FACE> const&) {
 
 template <typename T>
 auto diverge(T const& f, int_const<EDGE> const&) {
-    return ((codifferential_derivative(-f)));
+    return ((-codifferential_derivative(f)));
 }
 
 template <typename T, int I>
@@ -421,14 +421,14 @@ auto curl(T const& f, int_const<FACE> const&) {
     return ((codifferential_derivative(-f)));
 }
 
-// template <typename T>
-// auto curl(T const& f, int_const<VERTEX> const&) {
-//    return declare::Expression<tags::_curl, const T>(f);
-//}
-// template <typename T>
-// auto curl(T const& f, int_const<VOLUME> const&) {
-//    return declare::Expression<tags::_curl, const T>(f);
-//}
+template <typename T>
+auto curl(T const& f, int_const<VERTEX> const&) {
+    return declare::Expression<tags::_curl, const T>(f);
+}
+template <typename T>
+auto curl(T const& f, int_const<VOLUME> const&) {
+    return declare::Expression<tags::_curl, const T>(f);
+}
 template <typename T>
 auto curl(T const& f) {
     return curl(f, traits::iform<T>());

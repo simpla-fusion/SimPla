@@ -79,7 +79,7 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
 
     typedef TM mesh_type;
     static constexpr int iform = IFORM;
-    static constexpr int dof = dof;
+    static constexpr int dof = DOF;
 
     typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
@@ -246,9 +246,8 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
             for (int j = 0; j < DOF; ++j) {
                 r.foreach ([&](mesh_id s) {
                     s = shift(s);
-                    //                    op(m_data_[m_mesh_->hash(s)],
-                    //                       calculus_policy::get_value(*m_mesh_,
-                    //                       std::forward<Args>(args), s)...);
+                    op(m_data_[m_mesh_->hash(s)],
+                       calculus_policy::get_value(*m_mesh_, std::forward<Args>(args), s)...);
                 });
             }
         }

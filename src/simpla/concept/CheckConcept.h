@@ -425,7 +425,24 @@ struct is_indexable : public std::integral_constant<bool, detail::is_indexable<T
 
 template <typename...>
 struct is_callable;
-//
+template <typename _T, typename... _Args>
+struct is_callable<_T, _Args...> {
+   private:
+    typedef std::true_type yes;
+    typedef std::false_type no;
+
+    template <typename _U>
+    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
+
+    template <typename>
+    static no test(...);
+
+    typedef decltype(test<_T>(0)) check_result;
+
+   public:
+    static constexpr bool value = !std::is_same<check_result, no>::value;
+};
+
 template <typename _T, typename _TRet, typename... _Args>
 struct is_callable<_T, _TRet(_Args...)> {
    private:

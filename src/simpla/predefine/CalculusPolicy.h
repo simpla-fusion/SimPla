@@ -448,14 +448,14 @@ struct calculator<TM> {
     // for element-wise arithmetic operation
     template <typename TExpr, int... I>
     static decltype(auto) _invoke_helper(mesh_type const& m, TExpr const& expr, mesh_id const& s,
-                                         index_sequence<I...>) {
+                                         int_sequence<I...>) {
         return expr.m_op_(get_value(m, std::get<I>(expr.m_args_), s)...);
     }
 
     template <typename TExpr, typename TOP, int... I>
     static decltype(auto) eval(mesh_type const& m, TExpr const& expr, mesh_id const& s,
                                expression_tag<TOP, I...>) {
-        return _invoke_helper(m, expr, s, make_index_sequence<sizeof...(I)>());
+        return _invoke_helper(m, expr, s, make_int_sequence<sizeof...(I)>());
     }
 
     ///*********************************************************************************************
