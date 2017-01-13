@@ -12,13 +12,13 @@ simpla_test(field_aritmetic_test  field_aritmetic_test.cpp)
 
 
 add_executable(field_dummy field_dummy.cpp)
-target_link_libraries(field_dummy   mesh)
+target_link_libraries(field_dummy   mesh data)
 
 add_executable(ntuple_dummy ntuple_dummy.cpp)
 
 
 add_executable(array_dummy array_dummy.cpp)
-#target_link_libraries(array_dummy toolbox)
+target_link_libraries(array_dummy data)
 
 add_executable(ntuple_bench ntuple_bench.cpp)
 target_link_libraries(ntuple_bench benchmark pthread)

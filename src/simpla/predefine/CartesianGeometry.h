@@ -79,9 +79,6 @@ struct CartesianGeometry : public Chart {
 
    private:
     nTuple<Real, 3> m_dx_, m_inv_dx_;
-
-    size_tuple m_dims_;
-
     Real m_volume_[9];
     Real m_inv_volume_[9];
     Real m_dual_volume_[9];
@@ -93,7 +90,10 @@ struct CartesianGeometry : public Chart {
     template <typename... Args>
     void apply(Args &&...) const {}
 
-    void deploy() { Chart::deploy(); };
+    void deploy() {
+        Chart::deploy();
+        initialize(0, 0);
+    };
 
     template <typename... Args>
     point_type point(index_type x, index_type y, index_type z) const {
@@ -149,6 +149,7 @@ inline void CartesianGeometry::initialize(Real data_time, Real dt) {
         *
         *\endverbatim
         */
+    size_tuple m_dims_ = mesh_block()->dimensions();
 
     m_volume_[0 /*000*/] = 1;
     m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_dx_[0];

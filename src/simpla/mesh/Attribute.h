@@ -160,11 +160,10 @@ class AttributeAdapter<U> : public Attribute, public U {
    public:
     template <typename... Args>
     AttributeAdapter(Args &&... args)
-        : Attribute(nullptr,
-                    std::make_shared<AttributeDescTemp<value_type, algebra::traits::iform<U>::value,
-                                                       algebra::traits::dof<U>::value>>(
-                        std::forward<Args>(args)...)),
-          U() {}
+        :  // Attribute(nullptr, std::make_shared<AttributeDescTemp<value_type,
+           // algebra::traits::iform<U>::value,
+           // algebra::traits::dof<U>::value>>( std::forward<Args>(args)...)),
+          U(std::forward<Args>(args)...) {}
 
     AttributeAdapter(AttributeAdapter &&) = delete;
 
@@ -174,6 +173,10 @@ class AttributeAdapter<U> : public Attribute, public U {
 
     using U::operator=;
 
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const {
+        return U::print(os, indent);
+    }
+
     virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m,
                                                          void *p = nullptr) const {
         return DataBlockAdapter<U>::create(m, static_cast<value_type *>(p));
@@ -181,9 +184,7 @@ class AttributeAdapter<U> : public Attribute, public U {
 
     virtual void accept(Patch *p) {
         Attribute::accept(p);
-
         //        accept(this, Attribute::data());
-        //        U::accept(Attribute::data());
     }
 
     virtual void clear() {
@@ -202,13 +203,9 @@ class AttributeAdapter<U> : public Attribute, public U {
     }
 };
 //
-template <typename TV, int IFORM = VERTEX, int DOF = 1>
-using Variable =
-    AttributeAdapter<Array<TV, SIMPLA_MAXIMUM_DIMENSION +
-                                   (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 
 template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
-using FieldVariable = AttributeAdapter<Field<TV, TM, IFORM, DOF>>;
+using FieldAttribute = AttributeAdapter<Field<TV, TM, IFORM, DOF>>;
 }
 }  // namespace data_block
 

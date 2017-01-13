@@ -58,7 +58,7 @@ class EMFluid : public Worker {
     virtual void set_physical_boundary_conditions_B(Real time = 0){};
 
     template <int IFORM, int DOF = 1>
-    using field_type = FieldVariable<TM, scalar_type, IFORM, DOF>;
+    using field_type = FieldAttribute<TM, scalar_type, IFORM, DOF>;
 
     typedef field_type<FACE> TB;
     typedef field_type<EDGE> TE;

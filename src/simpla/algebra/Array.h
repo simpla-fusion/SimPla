@@ -34,15 +34,14 @@ struct ArrayView : public concept::Printable {
    public:
     typedef V value_type;
 
-    typedef V* pod_type;
-    static constexpr bool SLOW_FIRST = true;
-    typedef std::integral_constant<bool, SLOW_FIRST> is_slow_first;
     typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
     typedef std::true_type is_array;
 
    private:
+    size_type m_offset_;
     size_type m_dims_[NDIMS];
+    size_type m_strides_[NDIMS];
     index_type m_lower_[NDIMS];
     index_type m_upper_[NDIMS];
 
@@ -102,12 +101,12 @@ struct ArrayView : public concept::Printable {
 
     template <typename... TID>
     value_type& at(TID&&... s) {
-        return m_data_[hash(m_dims_, m_lower_, std::forward<TID>(s)...)];
+        return m_data_[hash(std::forward<TID>(s)...)];
     }
 
     template <typename... TID>
     value_type const& at(TID&&... s) const {
-        return m_data_[hash(m_dims_, m_lower_, std::forward<TID>(s)...)];
+        return m_data_[hash(std::forward<TID>(s)...)];
     }
 
     template <typename TID>
@@ -176,82 +175,19 @@ struct ArrayView : public concept::Printable {
         }
     }
 
-    typedef std::integral_constant<bool, true> slow_first_t;
+    size_type hash() const { return 0; }
 
-    typedef std::integral_constant<bool, false> fast_first_t;
-
-    template <bool array_order>
-    static size_type hash_(std::integral_constant<bool, array_order>, size_type const* dims,
-                           index_type const* offset) {
-        return 0;
+    template <typename... Others>
+    size_type hash(index_type s, Others&&... others) const {
+        return (s - m_lower_[NDIMS - sizeof...(others)-1]) *
+                   m_strides_[NDIMS - sizeof...(others)-1] +
+               hash(std::forward<Others>(others)...);
     }
 
-    template <bool array_order>
-    static size_type hash_(std::integral_constant<bool, array_order>, size_type const* dims,
-                           index_type const* offset, index_type s) {
-        return s;
-    }
-
-    // fast first
-
-    template <typename... TID>
-    static size_type hash_(fast_first_t, size_type const* dims, index_type const* offset,
-                           index_type i0, TID&&... idx) {
-        return i0 +
-               hash_(fast_first_t(), dims, offset, std::forward<TID>(idx)...) *
-                   dims[NDIMS - sizeof...(TID)-1];
-    }
-
-    static size_type hash_(fast_first_t, int_const<NDIMS>, size_type const* dims,
-                           index_type const* offset, index_type const* i) {
-        return 0;
-    }
-
-    template <int N>
-    static size_type hash_(fast_first_t, int_const<N>, size_type const* dims,
-                           index_type const* offset, index_type const* i) {
-#ifndef NDEBUG
-        ASSERT(i[N] - offset[N] < dims[N]);
-#endif
-        return i[N] - offset[N] +
-               hash_(fast_first_t(), int_const<N + 1>(), dims, offset, i) * dims[N];
-    }
-    // slow first
-
-    template <typename... TID>
-    static size_type hash_(slow_first_t, size_type const* dims, index_type const* offset,
-                           index_type s, index_type i1, TID&&... idx) {
-        return hash_(slow_first_t(), dims, offset, s * dims[NDIMS - (sizeof...(TID) + 1)] + i1 -
-                                                       offset[NDIMS - (sizeof...(TID) + 1)],
-                     std::forward<TID>(idx)...);
-    }
-
-    static size_type hash_(slow_first_t, int_const<NDIMS>, size_type const* dims,
-                           index_type const* offset, index_type const* i) {
-        return 0;
-    }
-
-    template <int N>
-    static size_type hash_(slow_first_t, int_const<N>, size_type const* dims,
-                           index_type const* offset, index_type const* i) {
-#ifndef NDEBUG
-        ASSERT(i[NDIMS - N - 1] - offset[NDIMS - N - 1] >= 0);
-#endif
-
-        return i[NDIMS - N - 1] - offset[NDIMS - N - 1] +
-               hash_(slow_first_t(), int_const<N + 1>(), dims, offset, i) * dims[NDIMS - N - 1];
-    }
-
-    template <typename... TID>
-    static size_type hash(size_type const* dims, index_type const* offset, index_type s,
-                          TID&&... idx) {
-        static_assert(NDIMS == ((sizeof...(TID) + 1)), "illegal index number! NDIMS=");
-        return hash_(std::integral_constant<bool, SLOW_FIRST>(), dims, offset, s,
-                     std::forward<TID>(idx)...);
-    }
-
-    static size_type hash(size_type const* dims, index_type const* offset, index_type const* s) {
-        return hash_(std::integral_constant<bool, SLOW_FIRST>(), int_const<0>(), dims, offset, s);
+    size_type hash(index_type const* s) const {
+        size_type res = m_offset_;
+        for (int i = 0; i < NDIMS; ++i) { res += (s[i] - m_lower_[i]) * m_strides_[i]; }
+        return res;
     }
 
     std::ostream& print(std::ostream& os, int indent = 0) const {
@@ -311,7 +247,7 @@ struct ArrayView : public concept::Printable {
     void apply(TOP const& op, Others&&... others) {
         deploy();
         traversal_nd(m_lower_, m_upper_, [&](index_type const* idx) {
-            //             op(at(idx), calculator::get_value(std::forward<Others>(others), idx)...);
+            op(at(idx), get_value(std::forward<Others>(others), idx)...);
         });
     };
 
@@ -351,21 +287,21 @@ struct ArrayView : public concept::Printable {
 
    public:
     template <typename T>
-    static constexpr T& get_value(T& v) {
+    static constexpr decltype(auto) get_value(T& v) {
         return v;
     };
 
-    static constexpr value_type& get_value(this_type& self, index_type const* s) {
-        return self.m_data_[hash(self.m_dims_, self.m_lower_, s)];
+    static constexpr decltype(auto) get_value(this_type& self, index_type const* s) {
+        return self.at(s);
     };
 
-    static constexpr value_type const& get_value(this_type const& self, index_type const* s) {
-        return self.m_data_[hash(self.m_dims_, self.m_lower_, s)];
+    static constexpr decltype(auto) get_value(this_type const& self, index_type const* s) {
+        return self.at(s);
     };
 
     template <typename T, typename I0>
-    static constexpr auto get_value(T& v, I0 const* s,
-                                    ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
+    static constexpr decltype(auto) get_value(
+        T& v, I0 const* s, ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
         return ((get_value(v[*s], s + 1)));
     }
 
@@ -376,27 +312,30 @@ struct ArrayView : public concept::Printable {
     };
 
     template <typename TOP, typename... Others, int... index, typename... Idx>
-    static constexpr auto _invoke_helper(declare::Expression<TOP, Others...> const& expr,
-                                         int_sequence<index...>, Idx&&... s) {
+    static constexpr decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr,
+                                                   int_sequence<index...>, Idx&&... s) {
         return ((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
     }
 
     template <typename TOP, typename... Others, typename... Idx>
-    static constexpr auto get_value(declare::Expression<TOP, Others...> const& expr, Idx&&... s) {
+    static constexpr decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr,
+                                              Idx&&... s) {
         return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
 
     template <typename TOP, typename... Others, int... index>
-    static auto _invoke_helper(declare::Expression<TOP, Others...> const& expr,
-                               int_sequence<index...>, index_type const* s) {
+    static decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr,
+                                         int_sequence<index...>, index_type const* s) {
         return ((expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...)));
     }
 
     template <typename TOP, typename... Others>
-    static auto get_value(declare::Expression<TOP, Others...> const& expr, index_type const* s) {
+    static decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr,
+                                    index_type const* s) {
         return ((_invoke_helper(expr, int_sequence_for<Others...>(), s)));
     }
 };
+
 
 namespace declare {
 template <typename V, int NDIMS>
@@ -419,7 +358,6 @@ struct Array_ : public ArrayView<V, NDIMS> {
     using base_type::ndims;
     using base_type::at;
 
-
     Array_<V, NDIMS> view(index_type const* il, index_type const* iu) {
         return Array_<V, NDIMS>(*this, il, iu);
     };
@@ -429,27 +367,6 @@ struct Array_ : public ArrayView<V, NDIMS> {
     };
 };
 }  // namespace declare
-
-namespace traits {
-template <typename T, int I>
-struct rank<declare::Array_<T, I>> : public int_const<I> {};
-
-template <typename T, int I>
-struct sub_type<declare::Array_<T, I>> {
-    typedef std::conditional_t<I == 0, T, declare::Array_<T, I - 1>> type;
-};
-
-template <typename T>
-struct pod_type<declare::Array_<T, 0>> {
-    typedef pod_type_t<T> type;
-};
-template <typename T, int I>
-struct pod_type<declare::Array_<T, I>> {
-    typedef pod_type_t<declare::Array_<T, I - 1>>* type;
-};
-
-}  // namespace traits
-
 }  // namespace algebra{
 
 template <typename V, int NDIMS>

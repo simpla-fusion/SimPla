@@ -6,8 +6,8 @@
 #define SIMPLA_GEOMETRY_H
 
 #include <simpla/design_pattern/Observer.h>
-#include <simpla/mesh/MeshBlock.h>
-
+#include "Attribute.h"
+#include "MeshBlock.h"
 namespace simpla {
 namespace mesh {
 class Patch;
@@ -26,6 +26,12 @@ class Chart : public concept::Printable, public concept::LifeControllable {
    public:
     SP_OBJECT_BASE(Chart);
     typedef MeshEntityId entity_id;
+
+    template <typename TV, int IFORM = VERTEX, int DOF = 1>
+    using attribute = AttributeAdapter<
+        Array<TV, SIMPLA_MAXIMUM_DIMENSION +
+                      (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
+
     Chart();
 
     template <typename... Args>
@@ -63,8 +69,8 @@ class Chart : public concept::Printable, public concept::LifeControllable {
             return Range<MeshEntityId>();
         }
     }
-    size_type size(size_type IFORM = VERTEX, size_type DOF = 1) const {
-        return m_mesh_block_->number_of_entities(IFORM) * DOF;
+    size_type size(int IFORM = VERTEX) const {
+        return m_mesh_block_->number_of_entities(IFORM);
     }
     template <typename... Args>
     auto hash(Args&&... args) const {

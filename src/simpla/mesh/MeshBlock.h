@@ -166,8 +166,10 @@ class MeshBlock : public Object,
             ;
     }
 
-    template<typename ...Args>
-    MeshEntityId pack(Args && ...args) const { return MeshEntityId(); }
+    template <typename... Args>
+    MeshEntityId pack(Args&&... args) const {
+        return MeshEntityId();
+    }
 
     MeshEntityId pack(MeshEntityId const& s) const { return s; }
 
@@ -238,24 +240,22 @@ class MeshBlock : public Object,
     //                          m_inv_dx_[2]))};
     //    }
 
-    size_type number_of_entities(int iform) const {
+    size_type number_of_entities(int iform = VERTEX) const {
         return max_hash() * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
     }
 
     size_type max_hash() const { return toolbox::size(m_m_box_); }
-
-    // FIXME:!!!
-    size_type hash(MeshEntityId const& s) const { return 0; }
-
-    size_type hash(int entity_type, int dof, index_type i, index_type j, index_type k,
-                   index_type m) const {
-        return 0;
-    }
-    size_type hash(int entity_type, int dof, MeshEntityId const& s) const {
-        return 0;
-    }
-
     typedef MeshEntityIdCoder m;
+    // FIXME:!!!
+    size_type hash(MeshEntityId const& s) const { return hash(m::unpack_index(s)); }
+    size_type hash(index_tuple const& i) const { return hash(i[0], i[1], i[2]); }
+    size_type hash(index_type i, index_type j, index_type k, index_type m = 0) const {
+        return ((i - std::get<0>(m_outer_box_)[0]) *
+                    (std::get<1>(m_outer_box_)[1] - std::get<0>(m_outer_box_)[1]) +
+                (j - std::get<0>(m_outer_box_)[1])) *
+                   (std::get<1>(m_outer_box_)[2] - std::get<0>(m_outer_box_)[2]) +
+               (k - std::get<0>(m_outer_box_)[2]);
+    }
 
     virtual int get_adjacent_entities(int entity_type, MeshEntityId s,
                                       MeshEntityId* p = nullptr) const {
