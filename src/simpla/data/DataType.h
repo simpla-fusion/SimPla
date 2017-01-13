@@ -41,7 +41,7 @@ namespace data {
 struct DataType {
     DataType();
 
-    DataType(std::type_index t_index, size_type ele_size_in_byte, int ndims = 0,
+    DataType(std::type_index t_index, int ele_size_in_byte, int ndims = 0,
              size_type const *dims = nullptr, std::string name = "");
 
     DataType(const DataType &other);
@@ -60,23 +60,23 @@ struct DataType {
 
     virtual std::string name() const;
 
-    size_type number_of_entities() const;
+    int number_of_entities() const;
 
-    void size_in_byte(size_type);
+    void size_in_byte(int);
 
-    size_type size_in_byte() const;
+    int size_in_byte() const;
 
-    size_type ele_size_in_byte() const;
+    int ele_size_in_byte() const;
 
     int rank() const;
 
     DataType element_type() const;
 
-    size_type extent(int n) const;
+    int extent(int n) const;
 
-    void extent(size_type *d) const;
+    void extent(int *d) const;
 
-    void extent(int rank, const size_type *d);
+    void extent(int rank, const int *d);
 
     std::vector<size_t> const &extents() const;
 
@@ -111,9 +111,12 @@ struct DataType {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> pimpl_;
 };
+
 CHECK_STATIC_FUNCTION_MEMBER(has_static_member_function_data_type, data_type)
-namespace traits {
+
 CHECK_STATIC_FUNCTION_MEMBER(has_static_member_function_class_name, class_name);
+
+namespace traits {
 
 template <typename T, class Enable = void>
 struct type_id {
@@ -137,32 +140,33 @@ struct type_id<std::integral_constant<size_t, I>> {
 template <int I>
 struct type_id<std::integral_constant<int, I>> {
     static std::string name() {
-        return std::string("[") + traits::type_cast<int, std::string>::eval(I) + "]";
+        return std::string("[") + simpla::traits::type_cast<int, std::string>::eval(I) + "]";
     }
 };
-namespace detail {
+
 CHECK_BOOLEAN_TYPE_MEMBER(is_self_describing, is_self_describing)
-
+//
+// namespace detail {
+//
+// template <typename T>
+// struct check_static_bool_member_is_self_describing {
+//   private:
+//    typedef std::true_type yes;
+//    typedef std::false_type no;
+//
+//    template <typename U>
+//    static auto test(int, std::enable_if_t<is_self_describing<U>::value> * = nullptr)
+//        -> std::integral_constant<bool, U::is_self_describing>;
+//
+//    template <typename>
+//    static no test(...);
+//
+//   public:
+//    static constexpr bool value = !std::is_same<decltype(test<T>(0)), no>::value;
+//};
+//}
 template <typename T>
-struct check_static_bool_member_is_self_describing {
-   private:
-    typedef std::true_type yes;
-    typedef std::false_type no;
-
-    template <typename U>
-    static auto test(int, std::enable_if_t<is_self_describing<U>::value> * = nullptr)
-        -> std::integral_constant<bool, U::is_self_describing>;
-
-    template <typename>
-    static no test(...);
-
-   public:
-    static constexpr bool value = !std::is_same<decltype(test<T>(0)), no>::value;
-};
-}
-template <typename T>
-struct type_id<
-    T, typename std::enable_if_t<detail::check_static_bool_member_is_self_describing<T>::value>> {
+struct type_id<T, typename std::enable_if_t<is_self_describing<T>::value>> {
     static std::string name() { return T::name()(); }
 
     static auto data_type() -> decltype(T::data_type()) { return T::data_type(); }
@@ -171,7 +175,8 @@ struct type_id<
 template <typename T, int N>
 struct type_id<T[N], void> {
     static std::string name() {
-        return type_id<T[N]>::name() + "[" + traits::type_cast<int, std::string>::eval(I) + "]";
+        return type_id<T[N]>::name() + "[" + simpla::traits::type_cast<int, std::string>::eval(N) +
+               "]";
     }
 
     static auto data_type() -> decltype(T::data_type()) { return T::data_type(); }
@@ -217,13 +222,13 @@ struct DataType::create_helper {
 
         typedef typename algebra::traits::value_type<obj_type>::type element_type;
 
-        size_type ele_size_in_byte = sizeof(element_type) / sizeof(char);
+        int ele_size_in_byte = sizeof(obj_type) / sizeof(char);
 
         nTuple<size_type, 10> d;
 
         //        d = traits::seq_value<algebra::traits::extents<obj_type> >::value;
 
-        return std::move(DataType(std::type_index(typeid(element_type)), ele_size_in_byte,
+        return std::move(DataType(std::type_index(typeid(obj_type)), ele_size_in_byte,
                                   algebra::traits::rank<obj_type>::value, &d[0], name)
 
                              );
@@ -238,32 +243,30 @@ struct DataType::create_helper {
     }
 };
 
-template <typename T, size_type N>
+template <typename T, int N>
 struct DataType::create_helper<T[N]> {
     static DataType create(std::string const &name = "") {
         typedef typename std::remove_cv<T>::type obj_type;
 
         typedef typename algebra::traits::value_type<obj_type>::type element_type;
 
-        size_type ele_size_in_byte = sizeof(element_type) / sizeof(char);
+        int ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
         size_type d = N;
 
         return std::move(
-            DataType(std::type_index(typeid(element_type)), ele_size_in_byte, 1, &d, name)
-
-                );
+            DataType(std::type_index(typeid(element_type)), ele_size_in_byte, 1, &d, name));
     }
 };
 
-template <typename T, size_type N, size_type M>
+template <typename T, int N, int M>
 struct DataType::create_helper<T[N][M]> {
     static DataType create(std::string const &name = "") {
         typedef typename std::remove_cv<T>::type obj_type;
 
         typedef typename algebra::traits::value_type<obj_type>::type element_type;
 
-        size_type ele_size_in_byte = sizeof(element_type) / sizeof(char);
+        int ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
         size_type d[] = {N, M};
 
@@ -273,7 +276,7 @@ struct DataType::create_helper<T[N][M]> {
                 );
     }
 };
-}
-}  // namespace simpla { namespace data_model
+}  // namespace data_model
+}  // namespace simpla
 
 #endif /* DATA_TYPE_H_ */

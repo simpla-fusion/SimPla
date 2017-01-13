@@ -111,7 +111,7 @@ Real nearest_point_to_polygon(T0 const& p0, T1 const& p1, TP* x) {
     return std::sqrt(dist2);
 }
 
-template <typename TS, size_type N>
+template <typename TS, int N>
 void extent_box(nTuple<TS, N>* x0, nTuple<TS, N>* x1, const TS* x) {
     for (int i = 0; i < N; ++i) {
         (*x0)[i] = std::min(x[i], (*x0)[i]);
@@ -414,7 +414,7 @@ inline Vec3 reflect_point_by_plane(T0 const& x0, T1 const& p0, T2 const& p1, T3 
 //	return std::make_tuple(s, t);
 //}
 
-template <typename TS, size_type NDIMS, typename TV>
+template <typename TS, int NDIMS, typename TV>
 bool box_intersection(nTuple<TS, NDIMS> const& l_b, nTuple<TS, NDIMS> const& l_e, TV* r_b,
                       TV* r_e) {
     bool has_overlap = false;

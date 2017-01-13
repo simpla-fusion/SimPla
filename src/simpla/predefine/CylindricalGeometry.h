@@ -9,16 +9,16 @@
 #include <iomanip>
 #include <vector>
 
+#include <simpla/algebra/all.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
+#include <simpla/mesh/Attribute.h>
+#include <simpla/mesh/MeshBlock.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/mpl/type_cast.h>
 #include <simpla/mpl/type_traits.h>
-#include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/FancyStream.h>
-
-#include <simpla/mesh/Attribute.h>
-#include <simpla/mesh/MeshBlock.h>
+#include <simpla/toolbox/Log.h>
 #include "simpla/mesh/Chart.h"
 
 namespace simpla {
@@ -35,10 +35,10 @@ struct CylindricalGeometry : public Chart {
     SP_OBJECT_HEAD(CylindricalGeometry, Chart)
 
     typedef mesh::MeshEntityId id_type;
-
-    static constexpr bool is_frame_bundle = true;
-
+    static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
+    typedef mesh::MeshEntityId entity_id;
+    typedef std::true_type is_frame_bundle;
 
     static constexpr int ndims = 3;
 
@@ -46,8 +46,8 @@ struct CylindricalGeometry : public Chart {
 
     virtual ~CylindricalGeometry() {}
 
-    template <typename TV, size_type IFORM, size_type DOF>
-    using attribute = AttributeTemplate<TV, IFORM, DOF>;
+    template <typename TV, int IFORM, int DOF>
+    using attribute = Variable<TV, IFORM, DOF>;
 
     // Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF== 1) ? 0 : 1)>;
     // private:
@@ -60,7 +60,6 @@ struct CylindricalGeometry : public Chart {
    public:
     typedef mesh::MeshEntityIdCoder M;
 
-    
     template <typename... Args>
     void apply(Args &&...) const {}
 

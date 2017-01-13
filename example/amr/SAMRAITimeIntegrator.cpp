@@ -477,11 +477,11 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int nd
     return nullptr;
 }
 }  // namespace detail{
-/**
- *
- * Register conserved variables  and  register plot data with VisIt.
- *
- */
+   /**
+    *
+    * Register conserved variables  and  register plot data with VisIt.
+    *
+    */
 void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator) {
     ASSERT(integrator != nullptr);
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
@@ -497,7 +497,8 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     m_worker_->foreach ([&](mesh::Attribute *attr) {
         if (attr == nullptr) { return; }
 
-        boost::shared_ptr<SAMRAI::hier::Variable> var = detail::create_samrai_variable(3, attr);
+        boost::shared_ptr<SAMRAI::hier::Variable> var =
+            simpla::detail::create_samrai_variable(3, attr);
 
         m_samrai_variables_[attr->desc().name()] = var;
 
@@ -615,7 +616,7 @@ void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *in
 
 namespace detail {
 
-template <typename TV, size_type IFORM, size_type DOF>
+template <typename TV, int IFORM, int DOF>
 std::shared_ptr<mesh::DataBlock> create_data_block_t2(
     mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
@@ -641,14 +642,13 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t2(
     index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
                         inner_upper[2] - outer_lower[2], inner_upper[3] - outer_lower[3]};
 
-    auto res = std::make_shared<mesh::DataBlockArray<TV, IFORM, DOF, false>>(p_data->getPointer(),
-                                                                             dims, lo, hi);
+    auto res = std::make_shared<mesh::Variable<TV, IFORM, DOF>>(p_data->getPointer(), dims, lo, hi);
     //    res->update();
 
     return std::dynamic_pointer_cast<mesh::DataBlock>(res);
 }
 
-template <typename TV, size_type IFORM>
+template <typename TV, int IFORM>
 std::shared_ptr<mesh::DataBlock> create_data_block_t1(
     mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
@@ -740,7 +740,7 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
         if (attr == nullptr) { return; }
 
         p->data(attr->desc().id(),
-                detail::create_data_block(
+                simpla::detail::create_data_block(
                     attr, patch.getPatchData(m_samrai_variables_.at(attr->desc().name()),
                                              getDataContext())));
     });
@@ -1059,7 +1059,7 @@ void SAMRAITimeIntegrator::deploy() {
 
     SAMRAI::tbox::Dimension dim(ndims);
 
-    samrai_cfg = detail::convert_database(db, name());
+    samrai_cfg = simpla::detail::convert_database(db, name());
 
     /**
     * Create major algorithm and data objects which comprise application.
@@ -1203,7 +1203,7 @@ bool SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->ste
 // SAMRAI::pdat::CellData<V> type; };
 //
 //
-// template<typename V, typename M, size_type IFORM>
+// template<typename V, typename M, int IFORM>
 // class SAMRAIWrapperPatch
 //        : public SAMRAITraitsPatch<V, IFORM>::type,
 //          public mesh::DataBlockBase<V, M, IFORM>
@@ -1222,7 +1222,7 @@ bool SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->ste
 //};
 //
 //
-// template<typename V, size_type IFORM> struct SAMRAITraitsVariable;
+// template<typename V, int IFORM> struct SAMRAITraitsVariable;
 // template<typename V> struct SAMRAITraitsVariable<V, mesh::VERTEX> { typedef
 // SAMRAI::pdat::NodeVariable<V> type; };
 // template<typename V> struct SAMRAITraitsVariable<V, mesh::EDGE> { typedef
@@ -1232,7 +1232,7 @@ bool SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->ste
 // template<typename V> struct SAMRAITraitsVariable<V, mesh::VOLUME> { typedef
 // SAMRAI::pdat::CellVariable<V> type; };
 //
-// template<typename V, typename M, size_type IFORM>
+// template<typename V, typename M, int IFORM>
 // class SAMRAIWrapperAttribute
 //        : public SAMRAITraitsVariable<V, IFORM>::type,
 //          public mesh::Attribute<SAMRAIWrapperPatch<V, M, IFORM> >

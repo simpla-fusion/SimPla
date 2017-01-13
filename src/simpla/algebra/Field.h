@@ -37,7 +37,7 @@ struct mesh_traits {
     //    };
 };
 
-template <typename>
+template <typename...>
 struct AttributeAdapter : public Object, concept::Printable {};
 }  // namespace mesh{
 
@@ -72,11 +72,11 @@ class FieldView;
 //};
 
 template <typename TM, typename TV, int IFORM, int DOF>
-class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM, TV, IFORM, DOF>> {
+class FieldView<TM, TV, IFORM, DOF> {
    private:
-    typedef FieldView<TM, TV, IFORM, DOF> field_type;
-    typedef mesh::AttributeAdapter<FieldView<TM, TV, IFORM, DOF>> attribute_type;
-    SP_OBJECT_HEAD(field_type, attribute_type)
+    typedef FieldView<TM, TV, IFORM, DOF> this_type;
+    //    typedef mesh::AttributeAdapter<FieldView<TM, TV, IFORM, DOF>> attribute_type;
+    //    SP_OBJECT_HEAD(field_type, attribute_type)
    public:
     typedef TV value_type;
 
@@ -88,7 +88,9 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
     typedef std::false_type is_expression;
     typedef std::true_type is_field;
 
-    typedef typename mesh::mesh_traits<mesh_type>::entity_id entity_id;
+    //    typedef typename mesh::mesh_traits<>::entity_id entity_id;
+    typedef typename mesh_type::entity_id entity_id;
+
     typedef std::conditional_t<DOF == 1, value_type, nTuple<value_type, DOF>> cell_tuple;
     typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
                                nTuple<cell_tuple, 3>>
@@ -103,6 +105,8 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
 
    public:
     FieldView() : m_mesh_(nullptr), m_data_(nullptr), m_data_holder_(nullptr){};
+    template <typename... Args>
+    explicit FieldView(Args&&... args) {}
 
     explicit FieldView(this_type const& other)
         : m_data_(const_cast<value_type*>(other.data())),
@@ -148,6 +152,8 @@ class FieldView<TM, TV, IFORM, DOF> : public mesh::AttributeAdapter<FieldView<TM
     this_type& operator=(this_type const& rhs) = delete;
 
     virtual bool empty() const { return m_data_holder_ == nullptr && m_data_ == nullptr; }
+
+    virtual bool is_valid() const { return !empty(); }
 
     virtual size_type size() const {
         ASSERT(m_mesh_ != nullptr);

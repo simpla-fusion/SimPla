@@ -10,6 +10,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/Calculus.h>
 #include <simpla/algebra/Field.h>
+#include <simpla/algebra/all.h>
 #include <simpla/mesh/Chart.h>
 #include <simpla/mesh/EntityId.h>
 #include <simpla/mesh/Worker.h>
@@ -56,8 +57,8 @@ class EMFluid : public Worker {
 
     virtual void set_physical_boundary_conditions_B(Real time = 0){};
 
-    template <size_type IFORM, size_type DOF = 1>
-    using field_type = Field<scalar_type, TM, IFORM, DOF>;
+    template <int IFORM, int DOF = 1>
+    using field_type = Field<TM, scalar_type, IFORM, DOF>;
 
     typedef field_type<FACE> TB;
     typedef field_type<EDGE> TE;

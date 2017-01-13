@@ -9,8 +9,8 @@
 #include <simpla/data/all.h>
 #include <simpla/mpl/Range.h>
 #include <simpla/mpl/macro.h>
-#include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/FancyStream.h>
+#include <simpla/toolbox/Log.h>
 #include <cstring>
 #include <memory>
 
@@ -22,32 +22,32 @@ namespace simpla {
 namespace algebra {
 
 namespace declare {
-template <typename V, size_type NDIMS>
+template <typename V, int NDIMS>
 struct ndArray_;
 }
 namespace traits {
-template <typename T, size_type I>
+template <typename T, int I>
 struct reference<declare::ndArray_<T, I>> {
     typedef declare::ndArray_<T, I>& type;
 };
 
-template <typename T, size_type I>
+template <typename T, int I>
 struct reference<const declare::ndArray_<T, I>> {
     typedef declare::ndArray_<T, I> const& type;
 };
 
-template <typename T, size_type I>
+template <typename T, int I>
 struct rank<declare::ndArray_<T, I>> : public int_const<I> {};
 
-// template<typename V, size_type I>
+// template<typename V, int I>
 // struct extents<declare::ndArray_<V, I> > : public int_sequence<I...> {};
 
-template <typename T, size_type I>
+template <typename T, int I>
 struct value_type<declare::ndArray_<T, I>> {
     typedef T type;
 };
 
-template <typename T, size_type I>
+template <typename T, int I>
 struct sub_type<declare::ndArray_<T, I>> {
     typedef std::conditional_t<I == 0, T, declare::ndArray_<T, I - 1>> type;
 };
@@ -56,7 +56,7 @@ template <typename T>
 struct pod_type<declare::ndArray_<T, 0>> {
     typedef pod_type_t<T> type;
 };
-template <typename T, size_type I>
+template <typename T, int I>
 struct pod_type<declare::ndArray_<T, I>> {
     typedef pod_type_t<declare::ndArray_<T, I - 1>>* type;
 };
@@ -64,7 +64,7 @@ struct pod_type<declare::ndArray_<T, I>> {
 }  // namespace traits
 
 namespace declare {
-template <typename V, size_type NDIMS>
+template <typename V, int NDIMS>
 struct ndArray_ {
    private:
     typedef ndArray_<V, NDIMS> this_type;
@@ -80,7 +80,7 @@ struct ndArray_ {
     ndArray_() {}
 
     template <typename... TID>
-    explicit ndArray_(size_type N, TID&&... idx) : m_data_(N) {
+    explicit ndArray_(int N, TID&&... idx) : m_data_(N) {
         calculator::initialize(this, std::forward<TID>(idx)...);
     }
 
@@ -128,7 +128,7 @@ struct ndArray_ {
 
     index_type const* upper() const { return m_upper_; }
 
-    size_type ndims() const { return NDIMS; }
+    int ndims() const { return NDIMS; }
 
     template <typename... TID>
     value_type& at(TID&&... s) {
@@ -198,7 +198,7 @@ struct ndArray_ {
 namespace calculus {
 namespace st = simpla::traits;
 
-template <typename V, size_type NDIMS>
+template <typename V, int NDIMS>
 struct calculator<declare::ndArray_<V, NDIMS>> {
     typedef declare::ndArray_<V, NDIMS> self_type;
     typedef traits::value_type_t<self_type> value_type;
@@ -513,5 +513,7 @@ struct calculator<declare::ndArray_<V, NDIMS>> {
 };
 }  // namespace calculus{
 }  // namespace algebra{
+template <typename V, int N>
+using ndArray = algebra::declare::ndArray_<V, N>;
 }  // namespace simpla{
 #endif  // SIMPLA_NDARRAY_H

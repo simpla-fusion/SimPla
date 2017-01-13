@@ -24,11 +24,11 @@ struct DataType::pimpl_s
 
     ~pimpl_s();
 
-    size_type m_size_in_byte_ = 0;
-    size_type m_ele_size_in_byte_ = 0;
+    int m_size_in_byte_ = 0;
+    int m_ele_size_in_byte_ = 0;
     std::type_index m_t_index_;
     std::string m_name_;
-    std::vector<size_t> m_extents_;
+    std::vector<size_type> m_extents_;
 
     std::vector<std::tuple<DataType, std::string, int>> m_members_;
 
@@ -66,7 +66,7 @@ DataType::pimpl_s::pimpl_s(pimpl_s &&other)
 
 DataType::pimpl_s::~pimpl_s() {}
 
-DataType::DataType(std::type_index t_index, size_type ele_size_in_byte,
+DataType::DataType(std::type_index t_index, int ele_size_in_byte,
                    int ndims, size_type const *dims, std::string name)
         : pimpl_(new pimpl_s)
 {
@@ -139,35 +139,35 @@ bool DataType::is_valid() const
 //    return pimpl_->m_t_index_ != std::type_index(typeid(void));
 }
 
-size_type DataType::ele_size_in_byte() const
+int DataType::ele_size_in_byte() const
 {
     return pimpl_->m_ele_size_in_byte_;
 }
 
-size_type DataType::number_of_entities() const
+int DataType::number_of_entities() const
 {
-    size_type res = 1;
+    int res = 1;
     for (auto const &d : pimpl_->m_extents_) { res *= d; }
 
     return res;
 }
 
-size_type DataType::size_in_byte() const { return pimpl_->m_size_in_byte_; }
+int DataType::size_in_byte() const { return pimpl_->m_size_in_byte_; }
 
-void DataType::size_in_byte(size_type s) { pimpl_->m_size_in_byte_ = s; };
+void DataType::size_in_byte(int s) { pimpl_->m_size_in_byte_ = s; };
 
 int DataType::rank() const { return static_cast<int>(pimpl_->m_extents_.size()); }
 
-size_type DataType::extent(int n) const { return pimpl_->m_extents_[n]; }
+int DataType::extent(int n) const { return pimpl_->m_extents_[n]; }
 
 std::vector<size_t> const &DataType::extents() const { return pimpl_->m_extents_; }
 
-void DataType::extent(size_type *d) const
+void DataType::extent(int *d) const
 {
     std::copy(pimpl_->m_extents_.begin(), pimpl_->m_extents_.end(), d);
 }
 
-void DataType::extent(int rank, const size_type *d)
+void DataType::extent(int rank, const int *d)
 {
     pimpl_->m_extents_.resize(rank);
     for (int i = 0; i < rank; ++i)

@@ -13,7 +13,6 @@
 
 #include <simpla/mpl/integer_sequence.h>
 #include <simpla/mpl/macro.h>
-#include <simpla/mpl/port_cxx14.h>
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/Log.h>
 #include "Algebra.h"

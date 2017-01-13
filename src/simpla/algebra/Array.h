@@ -12,8 +12,8 @@
 #include <simpla/data/all.h>
 #include <simpla/mpl/Range.h>
 #include <simpla/mpl/macro.h>
-#include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/FancyStream.h>
+#include <simpla/toolbox/Log.h>
 
 #include "Algebra.h"
 #include "Arithmetic.h"
@@ -27,32 +27,32 @@ namespace simpla {
 namespace algebra {
 
 namespace declare {
-template <typename V, size_type NDIMS, bool SLOW_FIRST=true>
+template <typename V, int NDIMS, bool SLOW_FIRST = true>
 struct Array_;
 }
 namespace traits {
-template <typename T, size_type I>
+template <typename T, int I>
 struct reference<declare::Array_<T, I>> {
     typedef declare::Array_<T, I>& type;
 };
 
-template <typename T, size_type I>
+template <typename T, int I>
 struct reference<const declare::Array_<T, I>> {
     typedef declare::Array_<T, I> const& type;
 };
 
-template <typename T, size_type I>
+template <typename T, int I>
 struct rank<declare::Array_<T, I>> : public int_const<I> {};
 
-// template<typename V, size_type I>
+// template<typename V, int I>
 // struct extents<declare::Array_<V, I> > : public int_sequence<I...> {};
 
-template <typename T, size_type I>
+template <typename T, int I>
 struct value_type<declare::Array_<T, I>> {
     typedef T type;
 };
 
-template <typename T, size_type I>
+template <typename T, int I>
 struct sub_type<declare::Array_<T, I>> {
     typedef std::conditional_t<I == 0, T, declare::Array_<T, I - 1>> type;
 };
@@ -61,7 +61,7 @@ template <typename T>
 struct pod_type<declare::Array_<T, 0>> {
     typedef pod_type_t<T> type;
 };
-template <typename T, size_type I>
+template <typename T, int I>
 struct pod_type<declare::Array_<T, I>> {
     typedef pod_type_t<declare::Array_<T, I - 1>>* type;
 };
@@ -69,7 +69,7 @@ struct pod_type<declare::Array_<T, I>> {
 }  // namespace traits
 
 namespace declare {
-template <typename V, size_type NDIMS, bool SLOW_FIRST>
+template <typename V, int NDIMS, bool SLOW_FIRST>
 struct Array_ : public data::HeavyData {
    private:
     typedef Array_<V, NDIMS, SLOW_FIRST> this_type;
@@ -143,7 +143,7 @@ struct Array_ : public data::HeavyData {
 
     index_type const* upper() const { return m_upper_; }
 
-    size_type ndims() const { return NDIMS; }
+    int ndims() const { return NDIMS; }
 
     template <typename... TID>
     value_type& at(TID&&... s) {
@@ -213,7 +213,7 @@ struct Array_ : public data::HeavyData {
 namespace calculus {
 namespace st = simpla::traits;
 
-template <typename V, size_type NDIMS, bool SLOW_FIRST>
+template <typename V, int NDIMS, bool SLOW_FIRST>
 struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
     typedef declare::Array_<V, NDIMS, SLOW_FIRST> self_type;
     typedef traits::value_type_t<self_type> value_type;
@@ -284,7 +284,7 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
         return 0;
     }
 
-    template <size_type N>
+    template <int N>
     static inline size_type hash_(fast_first_t, int_const<N>, size_type const* dims,
                                   index_type const* offset, index_type const* i) {
 #ifndef NDEBUG
@@ -308,7 +308,7 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
         return 0;
     }
 
-    template <size_type N>
+    template <int N>
     static inline size_type hash_(slow_first_t, int_const<N>, size_type const* dims,
                                   index_type const* offset, index_type const* i) {
 #ifndef NDEBUG
@@ -349,13 +349,13 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
 
     template <typename T, typename I0>
     static constexpr inline auto get_value(T& v, I0 const* s,
-                                           ENABLE_IF((st::is_indexable<T, I0>::value))) {
+                                           ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
         return ((get_value(v[*s], s + 1)));
     }
 
     template <typename T, typename I0>
     static constexpr inline T& get_value(T& v, I0 const* s,
-                                         ENABLE_IF((!st::is_indexable<T, I0>::value))) {
+                                         ENABLE_IF((!simpla::concept::is_indexable<T, I0>::value))) {
         return v;
     };
 
@@ -385,36 +385,36 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
     //                          v, s0, std::forward<Idx>(idx)...);
     //    };
     //
-    //    template<typename T, size_type N> static constexpr inline T &
+    //    template<typename T, int N> static constexpr inline T &
     //    get_value(declare::nTuple_<T, N> &v, size_type const &s0) { return
     //    v[s0]; };
     //
-    //    template<typename T, size_type N> static constexpr inline T const &
+    //    template<typename T, int N> static constexpr inline T const &
     //    get_value(declare::nTuple_<T, N> const &v, size_type const &s0) {
     //    return v[s0]; };
    public:
-    template <typename TOP, typename... Others, size_type... index, typename... Idx>
+    template <typename TOP, typename... Others, int... index, typename... Idx>
     static constexpr inline auto _invoke_helper(declare::Expression<TOP, Others...> const& expr,
-                                                index_sequence<index...>, Idx&&... s) {
+                                                int_sequence<index...>, Idx&&... s) {
         return ((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
     }
 
     template <typename TOP, typename... Others, typename... Idx>
     static constexpr inline auto get_value(declare::Expression<TOP, Others...> const& expr,
                                            Idx&&... s) {
-        return ((_invoke_helper(expr, index_sequence_for<Others...>(), std::forward<Idx>(s)...)));
+        return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
 
-    template <typename TOP, typename... Others, size_type... index>
+    template <typename TOP, typename... Others, int... index>
     static inline auto _invoke_helper(declare::Expression<TOP, Others...> const& expr,
-                                      index_sequence<index...>, index_type const* s) {
+                                      int_sequence<index...>, index_type const* s) {
         return ((expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...)));
     }
 
     template <typename TOP, typename... Others>
     static inline auto get_value(declare::Expression<TOP, Others...> const& expr,
                                  index_type const* s) {
-        return ((_invoke_helper(expr, index_sequence_for<Others...>(), s)));
+        return ((_invoke_helper(expr, int_sequence_for<Others...>(), s)));
     }
 
     template <typename TFun>
@@ -427,7 +427,7 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
             fun(idx);
 
             ++idx[NDIMS - 1];
-            for (size_type rank = NDIMS - 1; rank > 0; --rank) {
+            for (int rank = NDIMS - 1; rank > 0; --rank) {
                 if (idx[rank] >= upper[rank]) {
                     idx[rank] = lower[rank];
                     ++idx[rank - 1];
@@ -470,7 +470,7 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
 
     static inline void split(concept::tags::split const& split, self_type& other, self_type& self) {
         self_type(other).swap(self);
-        size_type max_dims = 0;
+        int max_dims = 0;
         int n = 0;
         for (int i = 0; i < NDIMS; ++i) {
             if (self.m_dims_[i] > max_dims) {
@@ -528,6 +528,9 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
     }
 };
 }  // namespace calculus{
-} //namespace algebra{
+}  // namespace algebra{
+
+template <typename V, int NDIMS, bool SLOW_FIRST = true>
+using Array = algebra::declare::Array_<V, NDIMS, SLOW_FIRST>;
 }  // namespace simpla{
 #endif  // SIMPLA_ARRAY_H

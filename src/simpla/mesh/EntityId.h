@@ -11,7 +11,6 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/Algebra.h>
 #include <simpla/algebra/nTuple.h>
-#include <simpla/mpl/IteratorBlock.h>
 #include <simpla/mpl/Range.h>
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/Log.h>

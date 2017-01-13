@@ -9,7 +9,6 @@
 #define CORE_NTUPLE_EXT_H_
 
 #include <simpla/concept/CheckConcept.h>
-#include <simpla/mpl/any.h>
 #include <cstddef>
 #include <sstream>
 #include <string>

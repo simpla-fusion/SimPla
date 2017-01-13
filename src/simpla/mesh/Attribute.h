@@ -11,6 +11,8 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/design_pattern/Observer.h>
+#include <simpla/algebra/all.h>
+#include <simpla/algebra/Array.h>
 
 #include "DataBlock.h"
 
@@ -33,12 +35,12 @@ struct AttributeDesc : public concept::Configurable, public Object {
 
     virtual std::type_info const &value_type_info() const = 0;
 
-    virtual size_type entity_type() const = 0;
+    virtual int entity_type() const = 0;
 
-    virtual size_type dof() const = 0;
+    virtual int dof() const = 0;
 };
 
-template <typename TV, size_type IFORM, size_type DOF>
+template <typename TV, int IFORM, int DOF>
 struct AttributeDescTemp : public AttributeDesc {
     template <typename... Args>
     AttributeDescTemp(Args &&... args) : AttributeDesc(std::forward<Args>(args)...) {}
@@ -49,9 +51,9 @@ struct AttributeDescTemp : public AttributeDesc {
 
     virtual std::type_info const &value_type_info() const { return (typeid(TV)); };
 
-    virtual size_type entity_type() const { return IFORM; };
+    virtual int entity_type() const { return IFORM; };
 
-    virtual size_type dof() const { return DOF; };
+    virtual int dof() const { return DOF; };
 };
 
 class AttributeDict : public concept::Printable {
@@ -146,67 +148,67 @@ class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
     std::shared_ptr<AttributeDict> m_dict_;
 };
 //
-// template <typename...>
-// class AttributeAdapter;
-//
-// template <typename U>
-// class AttributeAdapter<U> : public Attribute, public U {
-//    SP_OBJECT_HEAD(AttributeAdapter<U>, Attribute);
-//
-//    typedef algebra::traits::value_type_t<U> value_type;
-//
-//   public:
-//    template <typename... Args>
-//    AttributeAdapter(Args &&... args)
-//        : Attribute(nullptr,
-//                    std::make_shared<AttributeDescTemp<value_type,
-//                    algebra::traits::iform<U>::value,
-//                                                       algebra::traits::dof<U>::value>>(
-//                        std::forward<Args>(args)...)),
-//          U() {}
-//
-//    AttributeAdapter(AttributeAdapter &&) = delete;
-//
-//    AttributeAdapter(AttributeAdapter const &) = delete;
-//
-//    ~AttributeAdapter() {}
-//
-//    using U::operator=;
-//
-//    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m,
-//                                                         void *p = nullptr) const {
-//        return DataBlockAdapter<U>::create(m, static_cast<value_type *>(p));
-//    };
-//
-//    virtual void accept(Patch *p) {
-//        Attribute::accept(p);
-//
-//        //        accept(this, Attribute::data());
-//        //        U::accept(Attribute::data());
-//    }
-//
-//    virtual void clear() {
-//        Attribute::clear();
-//        U::clear();
-//    }
-//
-//    virtual void pre_process() {
-//        Attribute::pre_process();
-//        //        U::pre_process();
-//    };
-//
-//    virtual void post_process() {
-//        //        U::post_process();
-//        Attribute::post_process();
-//    }
-//};
-//
-// template <typename TV, size_type IFORM = VERTEX, size_type DOF = 1>
-// using Variable =
-//    AttributeAdapter<Array<TV, SIMPLA_MAXIMUM_DIMENSION +
-//                                   (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
+ template <typename...>
+ class AttributeAdapter;
 
-// template <typename TV, typename TM, size_type IFORM = VERTEX, size_type DOF = 1>
+ template <typename U>
+ class AttributeAdapter<U> : public Attribute, public U {
+    SP_OBJECT_HEAD(AttributeAdapter<U>, Attribute);
+
+    typedef algebra::traits::value_type_t<U> value_type;
+
+   public:
+    template <typename... Args>
+    AttributeAdapter(Args &&... args)
+        : Attribute(nullptr,
+                    std::make_shared<AttributeDescTemp<value_type,
+                    algebra::traits::iform<U>::value,
+                                                       algebra::traits::dof<U>::value>>(
+                        std::forward<Args>(args)...)),
+          U() {}
+
+    AttributeAdapter(AttributeAdapter &&) = delete;
+
+    AttributeAdapter(AttributeAdapter const &) = delete;
+
+    ~AttributeAdapter() {}
+
+    using U::operator=;
+
+    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m,
+                                                         void *p = nullptr) const {
+        return DataBlockAdapter<U>::create(m, static_cast<value_type *>(p));
+    };
+
+    virtual void accept(Patch *p) {
+        Attribute::accept(p);
+
+        //        accept(this, Attribute::data());
+        //        U::accept(Attribute::data());
+    }
+
+    virtual void clear() {
+        Attribute::clear();
+        U::clear();
+    }
+
+    virtual void pre_process() {
+        Attribute::pre_process();
+        //        U::pre_process();
+    };
+
+    virtual void post_process() {
+        //        U::post_process();
+        Attribute::post_process();
+    }
+};
+//
+template <typename TV, int IFORM = VERTEX, int DOF = 1>
+using Variable =
+    AttributeAdapter<Array<TV, SIMPLA_MAXIMUM_DIMENSION +
+                                   (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
+
+// template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
 // using FieldVariable = AttributeAdapter<Field<TV, TM, IFORM, DOF>>;
 }
 }  // namespace data_block

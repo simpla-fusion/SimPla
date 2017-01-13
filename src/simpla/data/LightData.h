@@ -20,6 +20,7 @@
 #include <typeindex>
 #include <typeinfo>
 #include "DataEntity.h"
+#include "DataType.h"
 
 namespace simpla {
 namespace data {
@@ -163,6 +164,8 @@ struct LightData : public DataEntity {
               new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType&&>(value))) {}
 
     virtual ~LightData() {}
+
+    virtual DataType type_info() const { return DataType(); }
 
     LightData& swap(LightData& other) {
         std::swap(m_data_, other.m_data_);

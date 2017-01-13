@@ -8,12 +8,13 @@
 #include <simpla/concept/LifeControllable.h>
 #include <simpla/concept/Object.h>
 #include "DataEntity.h"
+#include "DataType.h"
 
 namespace simpla {
 namespace data {
 /** @ingroup data */
 /**
- * @brief  large data, which should not be passed  between modules by value, such as big matrix or
+ * @brief  large data, which should not be passed  between modules by value, such as big array
  */
 struct HeavyData : public DataEntity {
     SP_OBJECT_HEAD(HeavyData, DataEntity);
@@ -27,6 +28,12 @@ struct HeavyData : public DataEntity {
 
     virtual void deep_copy(HeavyData const& other) {}
 
+    virtual DataType type_info() const { return DataType(); }
+
+    virtual void deploy() {}
+
+    virtual void release() {}
+
     virtual void clear() {}
 
     virtual std::type_info const& value_type_info() const = 0;
@@ -35,17 +42,18 @@ struct HeavyData : public DataEntity {
 
     virtual void const* data() const { return nullptr; }
 
-    virtual size_type ndims() const { return 0; }
+    virtual int ndims() const { return 0; }
 
-    virtual index_type const* lower() const = 0;
+    virtual index_type const* shape() const { return nullptr; };
+    virtual index_type const* lower() const { return nullptr; };
+    virtual index_type const* upper() const { return nullptr; };
 
-    virtual index_type const* upper() const = 0;
-
-    virtual void load(DataTable const& d){};
-
-    virtual void save(DataTable* d) const {};
+    virtual index_type const* dimensions() const { return nullptr; };
+    virtual index_type const* start() const { return nullptr; };
+    virtual index_type const* count() const { return nullptr; };
+    virtual index_type const* stride() const { return nullptr; };
+    virtual index_type const* block() const { return nullptr; };
 };
-
 template <typename T>
 struct HeavyDataAdapter : public HeavyData, public T {
     SP_OBJECT_HEAD(HeavyDataAdapter<T>, HeavyData);
@@ -58,13 +66,17 @@ struct HeavyDataAdapter : public HeavyData, public T {
 
     virtual void deep_copy(HeavyData const& other) { UNIMPLEMENTED; }
 
+    virtual void deploy() {}
+
+    virtual void release() {}
+
     virtual void clear() { T::clear(); }
 
     virtual void* data() { return T::data(); }
 
     virtual void const* data() const { return T::data(); }
 
-    virtual size_type ndims() const {
+    virtual int ndims() const {
         UNIMPLEMENTED;
         return 0;
     }
@@ -93,13 +105,17 @@ struct HeavyDataProxy : public HeavyData {
 
     virtual void deep_copy(HeavyData const& other) { UNIMPLEMENTED; }
 
+    virtual void deploy() { m_self_->deploy(); }
+
+    virtual void release() { m_self_->release(); }
+
     virtual void clear() { m_self_->clear(); }
 
     virtual void* data() { return m_self_->data(); }
 
     virtual void const* data() const { return m_self_->data(); }
 
-    virtual size_type ndims() const {
+    virtual int ndims() const {
         UNIMPLEMENTED;
         return 0;
     }

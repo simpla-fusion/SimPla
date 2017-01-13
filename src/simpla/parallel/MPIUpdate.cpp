@@ -6,25 +6,21 @@
  */
 
 #include "MPIUpdate.h"
-#include "MPIDataType.h"
-#include "DistributedObject.h"
 #include <simpla/data/DataSet.h>
 #include <simpla/toolbox/Log.h>
 #include <cassert>
+#include "MPIDataType.h"
 
-namespace simpla { namespace parallel
-{
-
+namespace simpla {
+namespace parallel {
 
 /**
  * @param pos in {0,count} out {begin,shape}
  */
-std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
-{
+std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
     int begin = 0;
 
-    if (mpi_comm.is_valid())
-    {
+    if (mpi_comm.is_valid()) {
         int num_of_process = mpi_comm.num_of_process();
 
         int process_num = mpi_comm.process_num();
@@ -33,29 +29,19 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 
         std::vector<int> buffer;
 
-        if (process_num == 0)
-        {
-            buffer.resize(num_of_process);
-        }
+        if (process_num == 0) { buffer.resize(num_of_process); }
         MPI_Barrier(mpi_comm.comm());
 
         MPI_Gather(&count, 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, mpi_comm.comm());
 
         MPI_Barrier(mpi_comm.comm());
 
-        if (process_num == 0)
-        {
-            for (int i = 1; i < num_of_process; ++i)
-            {
-                buffer[i] += buffer[i - 1];
-            }
+        if (process_num == 0) {
+            for (int i = 1; i < num_of_process; ++i) { buffer[i] += buffer[i - 1]; }
             buffer[0] = count;
             count = buffer[num_of_process - 1];
 
-            for (int i = num_of_process - 1; i > 0; --i)
-            {
-                buffer[i] = buffer[i - 1];
-            }
+            for (int i = num_of_process - 1; i > 0; --i) { buffer[i] = buffer[i - 1]; }
             buffer[0] = 0;
         }
         MPI_Barrier(mpi_comm.comm());
@@ -63,7 +49,6 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
         MPI_Barrier(mpi_comm.comm());
         MPI_Bcast(&count, 1, m_type.type(), 0, mpi_comm.comm());
         MPI_Barrier(mpi_comm.comm());
-
     }
 
     return std::make_tuple(begin, count);
@@ -106,8 +91,6 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //                     comm, MPI_STATUS_IGNORE);
 //    }
 
-
-
 //    MPI_Datatype x_dir_type;
 //    MPI_Type_contiguous(3, MPI_INT, &x_dir_type);
 //    MPI_Type_commit(&x_dir_type);
@@ -121,7 +104,6 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //    MPI_Datatype send_type[4] = {x_dir_type, x_dir_type, y_dir_type, y_dir_type};
 //    MPI_Datatype recv_type[4] = {x_dir_type, x_dir_type, y_dir_type, y_dir_type};
 //
-
 
 //******************************************************************************************************************
 // Async
@@ -280,11 +262,6 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //           buffer[6], buffer[7], buffer[8]
 //    );
 
-
-
-
-
-
 //    int rank = spMPIRank();
 //    int size = spMPISize();
 //    int buffer[25] = {
@@ -349,22 +326,20 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //           buffer[20], buffer[21], buffer[22], buffer[23], buffer[24]
 //    );
 
-
-
-
-
 //
-//void wait_all_request(std::vector<MPI_Request> &requests)
+// void wait_all_request(std::vector<MPI_Request> &requests)
 //{
 //	if (!requests.empty())
 //	{
-//		MPI_CALL(MPI_Waitall(requests.size(), const_cast<MPI_Request *>(&(requests[0])), MPI_STATUSES_IGNORE));
+//		MPI_CALL(MPI_Waitall(requests.size(), const_cast<MPI_Request *>(&(requests[0])),
+//MPI_STATUSES_IGNORE));
 //
 //		requests.clear();
 //	}
 //}
 //
-//void sync_update_block(MPIComm &mpi_comm, std::vector<mpi_send_recv_block_s> const &send_recv_list,
+// void sync_update_block(MPIComm &mpi_comm, std::vector<mpi_send_recv_block_s> const
+// &send_recv_list,
 //		void *m_data, std::vector<MPI_Request> &requests)
 //{
 //
@@ -392,7 +367,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //}
 //
 //
-//void sync_update_varlength(MPIComm &mpi_comm, DataType const &DataType,
+// void sync_update_varlength(MPIComm &mpi_comm, DataType const &DataType,
 //		std::vector<send_recv_buffer_s> &send_recv_buffer,
 //		std::vector<MPI_Request> &requests)
 //{
@@ -408,7 +383,8 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //
 //		MPI_Request send_req;
 //
-//		MPI_CALL(MPI_Isend(item.send_data.get(), item.send_size, mpi_data_type.type(), dest, send_tag, mpi_comm.comm(),
+//		MPI_CALL(MPI_Isend(item.send_data.get(), item.send_size, mpi_data_type.type(), dest,
+//send_tag, mpi_comm.comm(),
 //				&send_req));
 //
 //		requests.push_back(std::move(send_req));
@@ -441,7 +417,8 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //
 //		MPI_Request recv_req;
 //		MPI_CALL(
-//				MPI_Irecv(item.recv_data.get(), item.recv_size, mpi_data_type.type(), > dest, recv_tag,
+//				MPI_Irecv(item.recv_data.get(), item.recv_size, mpi_data_type.type(), >
+//dest, recv_tag,
 //						mpi_comm.comm(), &recv_req));
 //
 //		requests->push_back(std::move(recv_req));
@@ -451,7 +428,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //}
 //
 //
-//void get_ghost_shape(int m_ndims_, size_t const *l_offset,
+// void get_ghost_shape(int m_ndims_, size_t const *l_offset,
 //		size_t const *l_stride, size_t const *l_count, size_t const *l_block,
 //		size_t const *m_ghost_width_,
 //		std::vector<dist_sync_connection> *dist_connect)
@@ -520,11 +497,11 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //		{
 //
 //			dist_connect->emplace_back(dist_sync_connection {coords_shift,
-//			                                                 send_offset, send_count, recv_offset, recv_count});
+//			                                                 send_offset, send_count,
+//recv_offset, recv_count});
 //		}
 //	}
 //
 //}
-
-}} //namespace simpla{namespace  parallel{
-
+}
+}  // namespace simpla{namespace  parallel{
