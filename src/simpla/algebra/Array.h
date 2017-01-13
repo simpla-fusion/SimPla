@@ -26,106 +26,61 @@
 namespace simpla {
 namespace algebra {
 
-namespace declare {
-template <typename V, int NDIMS, bool SLOW_FIRST = true>
-struct Array_;
-}
-namespace traits {
-template <typename T, int I>
-struct reference<declare::Array_<T, I>> {
-    typedef declare::Array_<T, I>& type;
-};
-
-template <typename T, int I>
-struct reference<const declare::Array_<T, I>> {
-    typedef declare::Array_<T, I> const& type;
-};
-
-template <typename T, int I>
-struct rank<declare::Array_<T, I>> : public int_const<I> {};
-
-// template<typename V, int I>
-// struct extents<declare::Array_<V, I> > : public int_sequence<I...> {};
-
-template <typename T, int I>
-struct value_type<declare::Array_<T, I>> {
-    typedef T type;
-};
-
-template <typename T, int I>
-struct sub_type<declare::Array_<T, I>> {
-    typedef std::conditional_t<I == 0, T, declare::Array_<T, I - 1>> type;
-};
-
-template <typename T>
-struct pod_type<declare::Array_<T, 0>> {
-    typedef pod_type_t<T> type;
-};
-template <typename T, int I>
-struct pod_type<declare::Array_<T, I>> {
-    typedef pod_type_t<declare::Array_<T, I - 1>>* type;
-};
-
-}  // namespace traits
-
-namespace declare {
-template <typename V, int NDIMS, bool SLOW_FIRST>
-struct Array_ : public data::HeavyData {
+template <typename V, int NDIMS>
+struct ArrayView : public concept::Printable {
    private:
-    typedef Array_<V, NDIMS, SLOW_FIRST> this_type;
-    typedef calculus::calculator<this_type> calculator;
+    typedef ArrayView<V, NDIMS> this_type;
 
    public:
     typedef V value_type;
 
     typedef V* pod_type;
+    static constexpr bool SLOW_FIRST = true;
+    typedef std::integral_constant<bool, SLOW_FIRST> is_slow_first;
+    typedef std::true_type prefer_pass_by_reference;
+    typedef std::false_type is_expression;
+    typedef std::true_type is_array;
 
-    static constexpr bool is_slow_first = SLOW_FIRST;
-
+   private:
     size_type m_dims_[NDIMS];
     index_type m_lower_[NDIMS];
     index_type m_upper_[NDIMS];
 
     value_type* m_data_;
-
-    std::shared_ptr<V> m_data_holder_;
+    std::shared_ptr<value_type> m_data_holder_;
 
    public:
-    friend calculator;
-
-    Array_() { calculator::initialize(this); }
+    ArrayView() { initialize(); }
 
     template <typename... TID>
-    explicit Array_(TID&&... idx) : m_data_(nullptr), m_data_holder_(nullptr) {
-        calculator::initialize(this, std::forward<TID>(idx)...);
+    explicit ArrayView(TID&&... idx) : m_data_(nullptr), m_data_holder_(nullptr) {
+        initialize(std::forward<TID>(idx)...);
     }
 
     template <typename... TID>
-    Array_(value_type* d, TID&&... idx)
+    ArrayView(value_type* d, TID&&... idx)
         : m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {
-        calculator::initialize(this, std::forward<TID>(idx)...);
+        initialize(std::forward<TID>(idx)...);
     }
 
     template <typename... TID>
-    Array_(std::shared_ptr<V> const& d, TID&&... idx) : m_data_holder_(d), m_dims_{idx...} {}
+    ArrayView(std::shared_ptr<V> const& d, TID&&... idx) : m_data_holder_(d), m_dims_{idx...} {}
 
     template <typename... U>
-    Array_(Expression<U...> const& expr) {
-        calculator::apply((*this), tags::_assign(), expr);
+    ArrayView(declare::Expression<U...> const& expr) {
+        apply(tags::_assign(), expr);
     }
 
-    ~Array_() {}
+    virtual ~ArrayView() {}
 
-    Array_(this_type const& other)
-        : Array_(other.m_data_holder_, other.m_dims_, other.m_lower_, other.m_upper_) {}
+    ArrayView(this_type const& other)
+        : ArrayView(other.m_data_holder_, other.m_dims_, other.m_lower_, other.m_upper_) {}
 
-    Array_(this_type&& other)
-        : Array_(std::move(other.m_data_holder_), other.m_dims_, other.m_lower_, other.m_upper_) {}
+    ArrayView(this_type&& other)
+        : ArrayView(std::move(other.m_data_holder_), other.m_dims_, other.m_lower_,
+                    other.m_upper_) {}
 
-    Array_(this_type& other, concept::tags::split const& split)
-        : m_data_(nullptr), m_data_holder_(nullptr) {
-        calculator::split(split, other, *this);
-    }
+    ArrayView(this_type& other, concept::tags::split const& s) : ArrayView(other.split(s)) {}
 
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
 
@@ -147,109 +102,77 @@ struct Array_ : public data::HeavyData {
 
     template <typename... TID>
     value_type& at(TID&&... s) {
-        return m_data_[calculator::hash(m_dims_, m_lower_, std::forward<TID>(s)...)];
+        return m_data_[hash(m_dims_, m_lower_, std::forward<TID>(s)...)];
     }
 
     template <typename... TID>
     value_type const& at(TID&&... s) const {
-        return m_data_[calculator::hash(m_dims_, m_lower_, std::forward<TID>(s)...)];
+        return m_data_[hash(m_dims_, m_lower_, std::forward<TID>(s)...)];
     }
 
     template <typename TID>
-    inline value_type& operator[](TID s) {
+    value_type& operator[](TID s) {
         return m_data_[s];
     }
 
     template <typename TID>
-    inline value_type const& operator[](TID s) const {
+    value_type const& operator[](TID s) const {
         return m_data_[s];
     }
 
     template <typename... TID>
-    inline value_type& operator()(TID&&... s) {
+    value_type& operator()(TID&&... s) {
         return at(std::forward<TID>(s)...);
     }
 
     template <typename... TID>
-    inline value_type const& operator()(TID&&... s) const {
+    value_type const& operator()(TID&&... s) const {
         return at(std::forward<TID>(s)...);
     }
 
-    virtual std::ostream& print(std::ostream& os, int indent = 0) const {
-        return calculator::print(*this, os, indent);
-    }
-
-    void deploy() { calculator::deploy(*this); }
-
-    void clear() { calculator::clear(*this); }
-
-    void reset() { calculator::reset(*this); }
-
-    void swap(this_type& other) { calculator::swap(*this, other); }
-
-    inline this_type& operator=(this_type const& rhs) {
-        calculator::apply((*this), tags::_assign(), rhs);
+    this_type& operator=(this_type const& rhs) {
+        apply(tags::_assign(), rhs);
         return (*this);
     }
 
     template <typename TR>
-    inline this_type& operator=(TR const& rhs) {
-        calculator::apply((*this), tags::_assign(), rhs);
+    this_type& operator=(TR const& rhs) {
+        apply(tags::_assign(), rhs);
         return (*this);
     }
 
-    template <typename TFun>
-    void apply(TFun const& fun) {
-        calculator::apply((*this), fun);
-    }
-
-    template <typename TFun>
-    void apply(TFun const& fun) const {
-        calculator::apply((*this), fun);
-    }
-};
-}  // namespace declare
-
-namespace calculus {
-namespace st = simpla::traits;
-
-template <typename V, int NDIMS, bool SLOW_FIRST>
-struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
-    typedef declare::Array_<V, NDIMS, SLOW_FIRST> self_type;
-    typedef traits::value_type_t<self_type> value_type;
-
-    static inline size_type size(size_type const* dims) {
+    size_type size(size_type const* dims) const {
         size_type res = 1;
         for (int i = 0; i < NDIMS; ++i) { res *= dims[i]; }
         return res;
     }
 
-    static void deploy(self_type& self) {
-        if (!self.m_data_holder_) {
-            self.m_data_holder_ =
+    void deploy() {
+        if (!m_data_holder_) {
+            m_data_holder_ =
 #ifdef NDEBUG
-                sp_alloc_array<V>(size(self.m_dims_));
+                sp_alloc_array<V>(size(m_dims_));
 #else
-                std::shared_ptr<V>(new V[size(self.m_dims_)]);
+                std::shared_ptr<V>(new V[size(m_dims_)]);
 #endif
         }
-        self.m_data_ = self.m_data_holder_.get();
+        m_data_ = m_data_holder_.get();
     };
 
-    static void clear(self_type& self) {
-        deploy(self);
+    void clear() {
+        deploy();
 
-        memset(self.m_data_, 0, size(self.dims()) * sizeof(value_type));
+        memset(m_data_, 0, size(dims()) * sizeof(value_type));
     }
 
-    static void reset(self_type& self) {
-        self.m_data_holder_.reset();
-        self.m_data_ = nullptr;
+    void reset() {
+        m_data_holder_.reset();
+        m_data_ = nullptr;
 
         for (int i = 0; i < NDIMS; ++i) {
-            self.m_dims_[i] = 0;
-            self.m_lower_[i] = 0;
-            self.m_upper_[i] = 0;
+            m_dims_[i] = 0;
+            m_lower_[i] = 0;
+            m_upper_[i] = 0;
         }
     }
 
@@ -258,35 +181,35 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
     typedef std::integral_constant<bool, false> fast_first_t;
 
     template <bool array_order>
-    static inline size_type hash_(std::integral_constant<bool, array_order>, size_type const* dims,
-                                  index_type const* offset) {
+    static size_type hash_(std::integral_constant<bool, array_order>, size_type const* dims,
+                           index_type const* offset) {
         return 0;
     }
 
     template <bool array_order>
-    static inline size_type hash_(std::integral_constant<bool, array_order>, size_type const* dims,
-                                  index_type const* offset, index_type s) {
+    static size_type hash_(std::integral_constant<bool, array_order>, size_type const* dims,
+                           index_type const* offset, index_type s) {
         return s;
     }
 
     // fast first
 
     template <typename... TID>
-    static inline size_type hash_(fast_first_t, size_type const* dims, index_type const* offset,
-                                  index_type i0, TID&&... idx) {
+    static size_type hash_(fast_first_t, size_type const* dims, index_type const* offset,
+                           index_type i0, TID&&... idx) {
         return i0 +
                hash_(fast_first_t(), dims, offset, std::forward<TID>(idx)...) *
                    dims[NDIMS - sizeof...(TID)-1];
     }
 
-    static inline size_type hash_(fast_first_t, int_const<NDIMS>, size_type const* dims,
-                                  index_type const* offset, index_type const* i) {
+    static size_type hash_(fast_first_t, int_const<NDIMS>, size_type const* dims,
+                           index_type const* offset, index_type const* i) {
         return 0;
     }
 
     template <int N>
-    static inline size_type hash_(fast_first_t, int_const<N>, size_type const* dims,
-                                  index_type const* offset, index_type const* i) {
+    static size_type hash_(fast_first_t, int_const<N>, size_type const* dims,
+                           index_type const* offset, index_type const* i) {
 #ifndef NDEBUG
         ASSERT(i[N] - offset[N] < dims[N]);
 #endif
@@ -296,21 +219,21 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
     // slow first
 
     template <typename... TID>
-    static inline size_type hash_(slow_first_t, size_type const* dims, index_type const* offset,
-                                  index_type s, index_type i1, TID&&... idx) {
+    static size_type hash_(slow_first_t, size_type const* dims, index_type const* offset,
+                           index_type s, index_type i1, TID&&... idx) {
         return hash_(slow_first_t(), dims, offset, s * dims[NDIMS - (sizeof...(TID) + 1)] + i1 -
                                                        offset[NDIMS - (sizeof...(TID) + 1)],
                      std::forward<TID>(idx)...);
     }
 
-    static inline size_type hash_(slow_first_t, int_const<NDIMS>, size_type const* dims,
-                                  index_type const* offset, index_type const* i) {
+    static size_type hash_(slow_first_t, int_const<NDIMS>, size_type const* dims,
+                           index_type const* offset, index_type const* i) {
         return 0;
     }
 
     template <int N>
-    static inline size_type hash_(slow_first_t, int_const<N>, size_type const* dims,
-                                  index_type const* offset, index_type const* i) {
+    static size_type hash_(slow_first_t, int_const<N>, size_type const* dims,
+                           index_type const* offset, index_type const* i) {
 #ifndef NDEBUG
         ASSERT(i[NDIMS - N - 1] - offset[NDIMS - N - 1] >= 0);
 #endif
@@ -320,105 +243,51 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
     }
 
     template <typename... TID>
-    static inline size_type hash(size_type const* dims, index_type const* offset, index_type s,
-                                 TID&&... idx) {
+    static size_type hash(size_type const* dims, index_type const* offset, index_type s,
+                          TID&&... idx) {
         static_assert(NDIMS == ((sizeof...(TID) + 1)), "illegal index number! NDIMS=");
         return hash_(std::integral_constant<bool, SLOW_FIRST>(), dims, offset, s,
                      std::forward<TID>(idx)...);
     }
 
-    static inline size_type hash(size_type const* dims, index_type const* offset,
-                                 index_type const* s) {
+    static size_type hash(size_type const* dims, index_type const* offset, index_type const* s) {
         return hash_(std::integral_constant<bool, SLOW_FIRST>(), int_const<0>(), dims, offset, s);
     }
 
-   public:
-    template <typename T>
-    static constexpr inline T& get_value(T& v) {
-        return v;
-    };
-
-    static constexpr inline value_type& get_value(self_type& self, index_type const* s) {
-        return self.m_data_[hash(self.m_dims_, self.m_lower_, s)];
-    };
-
-    static constexpr inline value_type const& get_value(self_type const& self,
-                                                        index_type const* s) {
-        return self.m_data_[hash(self.m_dims_, self.m_lower_, s)];
-    };
-
-    template <typename T, typename I0>
-    static constexpr inline auto get_value(T& v, I0 const* s,
-                                           ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
-        return ((get_value(v[*s], s + 1)));
+    std::ostream& print(std::ostream& os, int indent = 0) const {
+        printNdArray(os, m_data_, NDIMS, m_dims_);
+        return os;
     }
 
-    template <typename T, typename I0>
-    static constexpr inline T& get_value(T& v, I0 const* s,
-                                         ENABLE_IF((!simpla::concept::is_indexable<T, I0>::value))) {
-        return v;
+    void initialize(size_type const* dims = nullptr, const index_type* lower = nullptr,
+                    const index_type* upper = nullptr) {
+        for (int i = 0; i < NDIMS; ++i) {
+            m_dims_[i] = dims == nullptr ? 1 : dims[i];
+            m_lower_[i] = lower == nullptr ? 0 : lower[i];
+            m_upper_[i] = upper == nullptr ? static_cast<index_type>(m_dims_[i]) : upper[i];
+        }
+    }
+
+    template <typename T0>
+    void copy_(T0* dest){};
+
+    template <typename U, typename T0, typename... Others>
+    void copy_(U* dest, T0 const& s0, Others&&... others) {
+        dest[0] = static_cast<U>(s0);
+        copy_(dest + 1, std::forward<Others>(others)...);
     };
+
+    template <typename... TID>
+    void initialize(size_type s0, TID&&... idx) {
+        size_type dims[NDIMS];
+        dims[0] = s0;
+        copy_(dims + 1, std::forward<TID>(idx)...);
+        initialize(dims);
+    }
 
    private:
-    //    template<typename T, typename ...Args> static constexpr inline T &
-    //    get_value_(std::integral_constant<bool, false> const &, T &v, Args
-    //    &&...)
-    //    {
-    //        return v;
-    //    }
-    //
-    //
-    //    template<typename T, typename I0, typename ...Idx> static constexpr
-    //    inline st::remove_extents_t<T, I0, Idx...> &
-    //    get_value_(std::integral_constant<bool, true> const &, T &v, I0 const
-    //    &s0, Idx &&...idx)
-    //    {
-    //        return get_value(v[s0], std::forward<Idx>(idx)...);
-    //    };
-    // public:
-    //    template<typename T, typename I0, typename ...Idx> static constexpr
-    //    inline st::remove_extents_t<T, I0, Idx...> &
-    //    get_value(T &v, I0 const &s0, Idx &&...idx)
-    //    {
-    //        return get_value_(std::integral_constant<bool, st::is_indexable<T,
-    //        I0>::value>(),
-    //                          v, s0, std::forward<Idx>(idx)...);
-    //    };
-    //
-    //    template<typename T, int N> static constexpr inline T &
-    //    get_value(declare::nTuple_<T, N> &v, size_type const &s0) { return
-    //    v[s0]; };
-    //
-    //    template<typename T, int N> static constexpr inline T const &
-    //    get_value(declare::nTuple_<T, N> const &v, size_type const &s0) {
-    //    return v[s0]; };
-   public:
-    template <typename TOP, typename... Others, int... index, typename... Idx>
-    static constexpr inline auto _invoke_helper(declare::Expression<TOP, Others...> const& expr,
-                                                int_sequence<index...>, Idx&&... s) {
-        return ((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
-    }
-
-    template <typename TOP, typename... Others, typename... Idx>
-    static constexpr inline auto get_value(declare::Expression<TOP, Others...> const& expr,
-                                           Idx&&... s) {
-        return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
-    }
-
-    template <typename TOP, typename... Others, int... index>
-    static inline auto _invoke_helper(declare::Expression<TOP, Others...> const& expr,
-                                      int_sequence<index...>, index_type const* s) {
-        return ((expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...)));
-    }
-
-    template <typename TOP, typename... Others>
-    static inline auto get_value(declare::Expression<TOP, Others...> const& expr,
-                                 index_type const* s) {
-        return ((_invoke_helper(expr, int_sequence_for<Others...>(), s)));
-    }
-
     template <typename TFun>
-    static void traversal_nd(index_type const* lower, index_type const* upper, TFun const& fun) {
+    void traversal_nd(index_type const* lower, index_type const* upper, TFun const& fun) {
         /// FIXME: need parallelism
         index_type idx[NDIMS];
         for (int i = 0; i < NDIMS; ++i) { idx[i] = lower[i]; }
@@ -437,100 +306,153 @@ struct calculator<declare::Array_<V, NDIMS, SLOW_FIRST>> {
         }
     }
 
+   public:
     template <typename TOP, typename... Others>
-    static inline void apply(self_type& self, TOP const& op, Others&&... others) {
-        deploy(self);
-        traversal_nd(self.m_lower_, self.m_upper_, [&](index_type const* idx) {
-            op(get_value(self, idx), get_value(std::forward<Others>(others), idx)...);
+    void apply(TOP const& op, Others&&... others) {
+        deploy();
+        traversal_nd(m_lower_, m_upper_, [&](index_type const* idx) {
+            //             op(at(idx), calculator::get_value(std::forward<Others>(others), idx)...);
         });
     };
 
     template <typename TOP>
-    static inline void apply(self_type& self, TOP const& op) {
-        traversal_nd(self.m_lower_, self.m_upper_,
-                     [&](index_type const* idx) { op(get_value(self, idx)); });
+    void apply(TOP const& op) {
+        traversal_nd(m_lower_, m_upper_, [&](index_type const* idx) { op(at(idx)); });
     };
 
-    template <typename TOP>
-    static inline void apply(self_type const& self, TOP const& op) {
-        traversal_nd(self.m_lower_, self.m_upper_,
-                     [&](index_type const* idx) { op(get_value(self, idx)); });
-    };
-
-    static inline void swap(self_type& self, self_type& other) {
-        std::swap(self.m_data_, other.m_data_);
-        std::swap(self.m_data_holder_, other.m_data_holder_);
+    void swap(this_type& other) {
+        std::swap(m_data_, other.m_data_);
+        std::swap(m_data_holder_, other.m_data_holder_);
 
         for (int i = 0; i < NDIMS; ++i) {
-            std::swap(self.m_dims_, other.m_dims_);
-            std::swap(self.m_lower_, other.m_lower_);
-            std::swap(self.m_upper_, other.m_upper_);
+            std::swap(m_dims_[i], other.m_dims_[i]);
+            std::swap(m_lower_[i], other.m_lower_[i]);
+            std::swap(m_upper_[i], other.m_upper_[i]);
         }
     };
 
-    static inline void split(concept::tags::split const& split, self_type& other, self_type& self) {
-        self_type(other).swap(self);
-        int max_dims = 0;
+    this_type split(concept::tags::split const& split) {
+        this_type other(*this);
+        size_type max_dims = 0;
         int n = 0;
         for (int i = 0; i < NDIMS; ++i) {
-            if (self.m_dims_[i] > max_dims) {
+            if (m_dims_[i] > max_dims) {
                 n = i;
-                max_dims = self.m_dims_[i];
+                max_dims = m_dims_[i];
             }
         }
         other.m_upper_[n] =
             other.m_lower_[n] +
             (other.m_upper_[n] - other.m_lower_[n]) * split.left() / (split.left() + split.right());
-        self.m_lower_[n] = other.m_upper_[n];
+        m_lower_[n] = other.m_upper_[n];
+
+        return std::move(other);
     }
 
-    static declare::Array_<V, NDIMS> view(self_type& self, index_type const* il,
-                                          index_type const* iu) {
-        return declare::Array_<V, NDIMS>(self.m_data_holder_, self.m_dims_, il, iu);
+   public:
+    template <typename T>
+    static constexpr T& get_value(T& v) {
+        return v;
     };
 
-    static declare::Array_<const V, NDIMS> view(self_type const& self, index_type const* il,
-                                                index_type const* iu) {
-        return declare::Array_<V, NDIMS>(self.m_data_, self.m_dims_, il, iu);
+    static constexpr value_type& get_value(this_type& self, index_type const* s) {
+        return self.m_data_[hash(self.m_dims_, self.m_lower_, s)];
     };
 
-    static std::ostream& print(self_type const& self, std::ostream& os, int indent = 0) {
-        printNdArray(os, self.m_data_, NDIMS, self.m_dims_);
-        return os;
+    static constexpr value_type const& get_value(this_type const& self, index_type const* s) {
+        return self.m_data_[hash(self.m_dims_, self.m_lower_, s)];
+    };
+
+    template <typename T, typename I0>
+    static constexpr auto get_value(T& v, I0 const* s,
+                                    ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
+        return ((get_value(v[*s], s + 1)));
     }
 
-    static void initialize(self_type* self, size_type const* dims = nullptr,
-                           const index_type* lower = nullptr, const index_type* upper = nullptr) {
-        for (int i = 0; i < NDIMS; ++i) {
-            self->m_dims_[i] = dims == nullptr ? 1 : dims[i];
-            self->m_lower_[i] = lower == nullptr ? 0 : lower[i];
-            self->m_upper_[i] =
-                upper == nullptr ? static_cast<index_type>(self->m_dims_[i]) : upper[i];
-        }
-    }
-
-    template <typename T0>
-    static void copy_(T0* dest){};
-
-    template <typename U, typename T0, typename... Others>
-    static void copy_(U* dest, T0 const& s0, Others&&... others) {
-        dest[0] = static_cast<U>(s0);
-        copy_(dest + 1, std::forward<Others>(others)...);
+    template <typename T, typename I0>
+    static constexpr T& get_value(T& v, I0 const* s,
+                                  ENABLE_IF((!simpla::concept::is_indexable<T, I0>::value))) {
+        return v;
     };
 
-    //
-    template <typename... TID>
-    static void initialize(self_type* self, index_type s0, TID&&... idx) {
-        size_type dims[NDIMS];
-        dims[0] = s0;
-        copy_(dims + 1, std::forward<TID>(idx)...);
-        initialize(self, dims);
+    template <typename TOP, typename... Others, int... index, typename... Idx>
+    static constexpr auto _invoke_helper(declare::Expression<TOP, Others...> const& expr,
+                                         int_sequence<index...>, Idx&&... s) {
+        return ((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
+    }
+
+    template <typename TOP, typename... Others, typename... Idx>
+    static constexpr auto get_value(declare::Expression<TOP, Others...> const& expr, Idx&&... s) {
+        return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
+    }
+
+    template <typename TOP, typename... Others, int... index>
+    static auto _invoke_helper(declare::Expression<TOP, Others...> const& expr,
+                               int_sequence<index...>, index_type const* s) {
+        return ((expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...)));
+    }
+
+    template <typename TOP, typename... Others>
+    static auto get_value(declare::Expression<TOP, Others...> const& expr, index_type const* s) {
+        return ((_invoke_helper(expr, int_sequence_for<Others...>(), s)));
     }
 };
-}  // namespace calculus{
+
+namespace declare {
+template <typename V, int NDIMS>
+struct Array_ : public ArrayView<V, NDIMS> {
+   private:
+    typedef Array_<V, NDIMS> this_type;
+    typedef ArrayView<V, NDIMS> base_type;
+
+   public:
+    Array_() : base_type() {}
+
+    template <typename... Args>
+    explicit Array_(Args&&... args) : base_type(std::forward<Args>(args)...) {}
+
+    virtual ~Array_() {}
+
+    using base_type::operator=;
+    using base_type::operator[];
+    using base_type::operator();
+    using base_type::ndims;
+    using base_type::at;
+
+
+    Array_<V, NDIMS> view(index_type const* il, index_type const* iu) {
+        return Array_<V, NDIMS>(*this, il, iu);
+    };
+
+    Array_<const V, NDIMS> view(index_type const* il, index_type const* iu) const {
+        return Array_<V, NDIMS>(*this, il, iu);
+    };
+};
+}  // namespace declare
+
+namespace traits {
+template <typename T, int I>
+struct rank<declare::Array_<T, I>> : public int_const<I> {};
+
+template <typename T, int I>
+struct sub_type<declare::Array_<T, I>> {
+    typedef std::conditional_t<I == 0, T, declare::Array_<T, I - 1>> type;
+};
+
+template <typename T>
+struct pod_type<declare::Array_<T, 0>> {
+    typedef pod_type_t<T> type;
+};
+template <typename T, int I>
+struct pod_type<declare::Array_<T, I>> {
+    typedef pod_type_t<declare::Array_<T, I - 1>>* type;
+};
+
+}  // namespace traits
+
 }  // namespace algebra{
 
-template <typename V, int NDIMS, bool SLOW_FIRST = true>
-using Array = algebra::declare::Array_<V, NDIMS, SLOW_FIRST>;
+template <typename V, int NDIMS>
+using Array = simpla::algebra::declare::Array_<V, NDIMS>;
 }  // namespace simpla{
 #endif  // SIMPLA_ARRAY_H

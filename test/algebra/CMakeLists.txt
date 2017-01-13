@@ -17,7 +17,7 @@ target_link_libraries(field_dummy   mesh)
 add_executable(ntuple_dummy ntuple_dummy.cpp)
 
 
-#add_executable(array_dummy array_dummy.cpp)
+add_executable(array_dummy array_dummy.cpp)
 #target_link_libraries(array_dummy toolbox)
 
 add_executable(ntuple_bench ntuple_bench.cpp)

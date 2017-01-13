@@ -6,13 +6,13 @@
 #define SIMPLA_ATTRIBUTE_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/algebra/Array.h>
+#include <simpla/algebra/all.h>
 #include <simpla/concept/Configurable.h>
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/design_pattern/Observer.h>
-#include <simpla/algebra/all.h>
-#include <simpla/algebra/Array.h>
 
 #include "DataBlock.h"
 
@@ -148,11 +148,11 @@ class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
     std::shared_ptr<AttributeDict> m_dict_;
 };
 //
- template <typename...>
- class AttributeAdapter;
+template <typename...>
+class AttributeAdapter;
 
- template <typename U>
- class AttributeAdapter<U> : public Attribute, public U {
+template <typename U>
+class AttributeAdapter<U> : public Attribute, public U {
     SP_OBJECT_HEAD(AttributeAdapter<U>, Attribute);
 
     typedef algebra::traits::value_type_t<U> value_type;
@@ -161,8 +161,7 @@ class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
     template <typename... Args>
     AttributeAdapter(Args &&... args)
         : Attribute(nullptr,
-                    std::make_shared<AttributeDescTemp<value_type,
-                    algebra::traits::iform<U>::value,
+                    std::make_shared<AttributeDescTemp<value_type, algebra::traits::iform<U>::value,
                                                        algebra::traits::dof<U>::value>>(
                         std::forward<Args>(args)...)),
           U() {}
@@ -208,8 +207,8 @@ using Variable =
     AttributeAdapter<Array<TV, SIMPLA_MAXIMUM_DIMENSION +
                                    (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 
-// template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
-// using FieldVariable = AttributeAdapter<Field<TV, TM, IFORM, DOF>>;
+template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
+using FieldVariable = AttributeAdapter<Field<TV, TM, IFORM, DOF>>;
 }
 }  // namespace data_block
 

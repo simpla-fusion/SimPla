@@ -72,7 +72,7 @@ class FieldView;
 //};
 
 template <typename TM, typename TV, int IFORM, int DOF>
-class FieldView<TM, TV, IFORM, DOF> {
+class FieldView<TM, TV, IFORM, DOF> : public concept::Printable {
    private:
     typedef FieldView<TM, TV, IFORM, DOF> this_type;
     //    typedef mesh::AttributeAdapter<FieldView<TM, TV, IFORM, DOF>> attribute_type;
@@ -152,8 +152,6 @@ class FieldView<TM, TV, IFORM, DOF> {
     this_type& operator=(this_type const& rhs) = delete;
 
     virtual bool empty() const { return m_data_holder_ == nullptr && m_data_ == nullptr; }
-
-    virtual bool is_valid() const { return !empty(); }
 
     virtual size_type size() const {
         ASSERT(m_mesh_ != nullptr);

@@ -10,6 +10,12 @@
 using namespace simpla;
 using namespace simpla::algebra;
 
+template <typename TM, typename TV, int IFORM = VERTEX, int DOF = 1>
+struct field : public Field<TM, TV, IFORM, DOF> {
+    template <typename... Args>
+    field(Args&&...args) : Field<TM, TV, IFORM, DOF>(std::forward<Args>(args)...) {}
+};
+
 int main(int argc, char** argv) {
     index_type dims[3] = {2, 4, 3};
     Real xmin[3] = {0, 0, 0};
@@ -25,8 +31,8 @@ int main(int argc, char** argv) {
 
     mesh_type m(nullptr, &dims[0]);
     m.deploy();
-    Field<mesh_type, Real> f(&m);
-    Field<mesh_type, Real> g(&m);
+    field<mesh_type, Real> f(&m);
+    field<mesh_type, Real> g(&m);
 
     f.clear();
     g.clear();
@@ -39,30 +45,30 @@ int main(int argc, char** argv) {
     f = -g * 0.2;
 
     CHECK(f);
-    CHECK(g);
+//    CHECK(g);
 
     f = [&](point_type const& x) { return x[1] + x[2]; };
 
     g = [&](mesh::MeshEntityId const& s) { return 1.0; };
 
-    CHECK(f);
-    Field<mesh_type, Real, EDGE> E(&m);
-    Field<mesh_type, Real, FACE> B(&m);
-    Field<mesh_type, Real, VERTEX, 3> d(&m);
-    Field<mesh_type, Real, VERTEX> rho(&m);
-    Field<mesh_type, Real, VERTEX, 8> v(&m);
+//    CHECK(f);
+    field<mesh_type, Real, EDGE> E(&m);
+    field<mesh_type, Real, FACE> B(&m);
+    field<mesh_type, Real, VERTEX, 3> d(&m);
+    field<mesh_type, Real, VERTEX> rho(&m);
+    field<mesh_type, Real, VERTEX, 8> v(&m);
     E.clear();
     rho.clear();
 
     E = [&](point_type const& x) { return x; };
-    CHECK(E);
+//    CHECK(E);
     rho = diverge(E);
 
     //    E[I] = 2;
 
-//    B[2][I] = (E[0][-1_i, 1_j] * v[0][I] - E[0][J - 1] * v[0][J - 1] + E[1][I] * v[1][I] -
-//               E[1][I - 1] * v[1][I - 1]) /
-//              v[3][I];
-    CHECK(E);
+    //    B[2][I] = (E[0][-1_i, 1_j] * v[0][I] - E[0][J - 1] * v[0][J - 1] + E[1][I] * v[1][I] -
+    //               E[1][I - 1] * v[1][I - 1]) /
+    //              v[3][I];
+//    CHECK(E);
     diverge(E);
 }
