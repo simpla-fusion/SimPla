@@ -47,7 +47,7 @@ struct CylindricalGeometry : public Chart {
     virtual ~CylindricalGeometry() {}
 
     template <typename TV, int IFORM, int DOF>
-    using attribute = Variable<TV, IFORM, DOF>;
+    using attribute = ArrayAttribute<TV, IFORM, DOF>;
 
     // Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF== 1) ? 0 : 1)>;
     // private:

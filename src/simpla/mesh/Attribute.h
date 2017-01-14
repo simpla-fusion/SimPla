@@ -160,10 +160,12 @@ class AttributeAdapter<U> : public Attribute, public U {
    public:
     template <typename... Args>
     AttributeAdapter(Args &&... args)
-        :  // Attribute(nullptr, std::make_shared<AttributeDescTemp<value_type,
-           // algebra::traits::iform<U>::value,
-           // algebra::traits::dof<U>::value>>( std::forward<Args>(args)...)),
-          U(std::forward<Args>(args)...) {}
+        : Attribute(nullptr,
+                    std::make_shared<AttributeDescTemp<value_type, algebra::traits::iform<U>::value,
+                                                       algebra::traits::dof<U>::value>>(
+                        std::forward<Args>(args)...))
+    //        ,    U(std::forward<Args>(args)...)
+    {}
 
     AttributeAdapter(AttributeAdapter &&) = delete;
 
@@ -201,9 +203,15 @@ class AttributeAdapter<U> : public Attribute, public U {
         //        U::post_process();
         Attribute::post_process();
     }
+    virtual void deploy() {
+        U::deploy();
+        Attribute::deploy();
+    }
 };
 //
-
+template <typename TV, int IFORM = VERTEX, int DOF = 1>
+using ArrayAttribute =
+    AttributeAdapter<Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
 using FieldAttribute = AttributeAdapter<Field<TV, TM, IFORM, DOF>>;
 }
