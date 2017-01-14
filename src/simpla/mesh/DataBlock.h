@@ -31,9 +31,9 @@ public:
 
     virtual std::type_info const &value_type_info() const =0;
 
-    virtual size_type entity_type() const =0;
+    virtual int entity_type() const =0;
 
-    virtual size_type dof() const =0;
+    virtual int dof() const =0;
 
     virtual void clear()=0;
 
@@ -73,9 +73,9 @@ public:
     virtual std::type_info const &
     value_type_info() const { return typeid(algebra::traits::value_type_t<U>); };
 
-    virtual size_type entity_type() const { return algebra::traits::iform<U>::value; }
+    virtual int entity_type() const { return algebra::traits::iform<U>::value; }
 
-    virtual size_type dof() const { return algebra::traits::dof<U>::value; }
+    virtual int dof() const { return algebra::traits::dof<U>::value; }
 
     virtual void load(data::DataTable const &d) { /* load(*this, d); */};
 
@@ -160,13 +160,13 @@ public:
 
 };
 
-//template<typename V, size_type IFORM = VERTEX, size_type DOF = 1, bool SLOW_FIRST = false>
+//template<typename V, int IFORM = VERTEX, int DOF = 1, bool SLOW_FIRST = false>
 //using DataBlockArray=
 //DataBlockAdapter<
 //        Array < V,
 //        SIMPLA_MAXIMUM_DIMENSION + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1), SLOW_FIRST>>;
 //
-//template<typename TV, size_type IFORM, size_type DOF = 1>
+//template<typename TV, int IFORM, int DOF = 1>
 //class DataBlockArray : public DataBlock, public data::DataEntityNDArray<TV>
 //{
 //public:
@@ -185,9 +185,9 @@ public:
 //
 //    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
 //
-//    virtual size_type entity_type() const { return IFORM; }
+//    virtual int entity_type() const { return IFORM; }
 //
-//    virtual size_type dof() const { return DOF; }
+//    virtual int dof() const { return DOF; }
 //
 //    virtual void load(data::DataTable const &) { UNIMPLEMENTED; };
 //

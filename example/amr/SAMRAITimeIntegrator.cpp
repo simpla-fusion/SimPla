@@ -446,13 +446,13 @@ template <typename T>
 boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(unsigned int ndims,
                                                                    mesh::Attribute *attr) {
     static int var_depth[4] = {1, 3, 3, 1};
-    if (attr->desc().entity_type() <= VOLUME) {
+    if (attr->description().entity_type() <= VOLUME) {
         SAMRAI::tbox::Dimension d_dim(ndims);
 
         return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(
             boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(
-                d_dim, attr->desc().name(),
-                var_depth[attr->desc().entity_type()] * attr->desc().dof()));
+                d_dim, attr->description().name(),
+                var_depth[attr->description().entity_type()] * attr->description().dof()));
     } else {
         UNIMPLEMENTED;
         return nullptr;
@@ -461,17 +461,17 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(unsigned int 
 
 boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int ndims,
                                                                  mesh::Attribute *item) {
-    if (item->desc().value_type_index() == std::type_index(typeid(float))) {
+    if (item->description().value_type_index() == std::type_index(typeid(float))) {
         return create_samrai_variable_t<float>(ndims, item);
-    } else if (item->desc().value_type_index() == std::type_index(typeid(double))) {
+    } else if (item->description().value_type_index() == std::type_index(typeid(double))) {
         return create_samrai_variable_t<double>(ndims, item);
-    } else if (item->desc().value_type_index() == std::type_index(typeid(int))) {
+    } else if (item->description().value_type_index() == std::type_index(typeid(int))) {
         return create_samrai_variable_t<int>(ndims, item);
     }
     //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
     //    std::forward<Args>(args)...); }
     else {
-        RUNTIME_ERROR << " value type [" << item->desc().value_type_index().name()
+        RUNTIME_ERROR << " value type [" << item->description().value_type_index().name()
                       << "] is not supported!" << std::endl;
     }
     return nullptr;
@@ -500,7 +500,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
         boost::shared_ptr<SAMRAI::hier::Variable> var =
             simpla::detail::create_samrai_variable(3, attr);
 
-        m_samrai_variables_[attr->desc().name()] = var;
+        m_samrai_variables_[attr->description().name()] = var;
 
         //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
         //                "TENSOR"};
@@ -512,23 +512,23 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
         *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
         **/
 
-        if (attr->desc().db.check("COORDINATES", true)) {
-            VERBOSE << attr->desc().name() << " is registered as coordinate" << std::endl;
+        if (attr->description().db.check("COORDINATES", true)) {
+            VERBOSE << attr->description().name() << " is registered as coordinate" << std::endl;
             integrator->registerVariable(var, d_nghosts,
                                          SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
                                          d_grid_geometry, "", "LINEAR_REFINE");
 
-        } else if (attr->desc().db.check("FLUX", true)) {
+        } else if (attr->description().db.check("FLUX", true)) {
             integrator->registerVariable(var, d_fluxghosts,
                                          SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
                                          d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
 
-        } else if (attr->desc().db.check("INPUT", true)) {
+        } else if (attr->description().db.check("INPUT", true)) {
             integrator->registerVariable(var, d_nghosts,
                                          SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
                                          d_grid_geometry, "", "NO_REFINE");
         } else {
-            switch (attr->desc().entity_type()) {
+            switch (attr->description().entity_type()) {
                 case EDGE:
                 case FACE:
                 //                            integrator->registerVariable(var, d_nghosts,
@@ -549,32 +549,32 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
         }
 
         std::string visit_variable_type = "";
-        if ((attr->desc().entity_type() == VERTEX || attr->desc().entity_type() == VOLUME) &&
-            attr->desc().dof() == 1) {
+        if ((attr->description().entity_type() == VERTEX || attr->description().entity_type() == VOLUME) &&
+            attr->description().dof() == 1) {
             visit_variable_type = "SCALAR";
-        } else if (((attr->desc().entity_type() == EDGE || attr->desc().entity_type() == FACE) &&
-                    attr->desc().dof() == 1) ||
-                   ((attr->desc().entity_type() == VERTEX ||
-                     attr->desc().entity_type() == VOLUME) &&
-                    attr->desc().dof() == 3)) {
+        } else if (((attr->description().entity_type() == EDGE || attr->description().entity_type() == FACE) &&
+                    attr->description().dof() == 1) ||
+                   ((attr->description().entity_type() == VERTEX ||
+                     attr->description().entity_type() == VOLUME) &&
+                    attr->description().dof() == 3)) {
             visit_variable_type = "VECTOR";
-        } else if (((attr->desc().entity_type() == VERTEX ||
-                     attr->desc().entity_type() == VOLUME) &&
-                    attr->desc().dof() == 9) ||
-                   ((attr->desc().entity_type() == EDGE || attr->desc().entity_type() == FACE) &&
-                    attr->desc().dof() == 3)) {
+        } else if (((attr->description().entity_type() == VERTEX ||
+                     attr->description().entity_type() == VOLUME) &&
+                    attr->description().dof() == 9) ||
+                   ((attr->description().entity_type() == EDGE || attr->description().entity_type() == FACE) &&
+                    attr->description().dof() == 3)) {
             visit_variable_type = "TENSOR";
         } else {
-            WARNING << "Can not register attribute [" << attr->desc().name()
+            WARNING << "Can not register attribute [" << attr->description().name()
                     << "] to VisIt  writer!" << std::endl;
         }
 
-        if (visit_variable_type != "" && attr->desc().db.check("CHECK", true)) {
+        if (visit_variable_type != "" && attr->description().db.check("CHECK", true)) {
             d_visit_writer->registerPlotQuantity(
-                attr->desc().name(), visit_variable_type,
+                attr->description().name(), visit_variable_type,
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
 
-        } else if (attr->desc().db.check("COORDINATES", true)) {
+        } else if (attr->description().db.check("COORDINATES", true)) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
@@ -642,7 +642,8 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t2(
     index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
                         inner_upper[2] - outer_lower[2], inner_upper[3] - outer_lower[3]};
 
-    auto res = mesh::ArrayAttribute<TV, IFORM, DOF>::create(p_data->getPointer(), dims, lo, hi);
+    auto res =
+        std::make_shared<mesh::DataBlockAdapter<Array<TV, 4>>>(p_data->getPointer(), dims, lo, hi);
     res->deploy();
 
     return std::dynamic_pointer_cast<mesh::DataBlock>(res);
@@ -653,7 +654,7 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t1(
     mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
 
-    switch (item->desc().dof()) {
+    switch (item->description().dof()) {
         case 1:
             res = create_data_block_t2<TV, IFORM, 1>(item, pd);
             break;
@@ -674,7 +675,7 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t0(
     mesh::Attribute const *item, boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
 
-    switch (item->desc().entity_type()) {
+    switch (item->description().entity_type()) {
         case VERTEX:
             res = create_data_block_t1<TV, VERTEX>(item, pd);
             break;
@@ -697,11 +698,11 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t0(
 std::shared_ptr<mesh::DataBlock> create_data_block(mesh::Attribute const *item,
                                                    boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
-    if (item->desc().value_type_info() == typeid(float)) {
+    if (item->description().value_type_info() == typeid(float)) {
         res = create_data_block_t0<float>(item, pd);
-    } else if (item->desc().value_type_info() == typeid(double)) {
+    } else if (item->description().value_type_info() == typeid(double)) {
         res = create_data_block_t0<double>(item, pd);
-    } else if (item->desc().value_type_info() == typeid(int)) {
+    } else if (item->description().value_type_info() == typeid(int)) {
         res = create_data_block_t0<int>(item, pd);
     }
     //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
@@ -739,9 +740,9 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
     w->foreach ([&](mesh::Attribute *attr) {
         if (attr == nullptr) { return; }
 
-        p->data(attr->desc().id(),
+        p->data(attr->description().id(),
                 simpla::detail::create_data_block(
-                    attr, patch.getPatchData(m_samrai_variables_.at(attr->desc().name()),
+                    attr, patch.getPatchData(m_samrai_variables_.at(attr->description().name()),
                                              getDataContext())));
     });
     w->accept(p.get());
