@@ -642,8 +642,7 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t2(
     index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
                         inner_upper[2] - outer_lower[2], inner_upper[3] - outer_lower[3]};
 
-    auto res =
-        std::make_shared<mesh::ArrayAttribute<TV, IFORM, DOF>>(p_data->getPointer(), dims, lo, hi);
+    auto res = mesh::ArrayAttribute<TV, IFORM, DOF>::create(p_data->getPointer(), dims, lo, hi);
     res->deploy();
 
     return std::dynamic_pointer_cast<mesh::DataBlock>(res);

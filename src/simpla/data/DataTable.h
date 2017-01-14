@@ -62,15 +62,17 @@ class DataTable : public DataEntity {
 
     virtual void parse(std::string const& str);
 
+    void parse(char const* c) { parse(std::string(c)); };
+
     template <typename U>
     void parse(std::pair<std::string, U> const& k_v) {
         set_value(k_v.first, k_v.second);
     };
 
-    template <typename T0, typename... Args>
-    void parse(T0 const& a0, Args&&... args) {
+    template <typename T0, typename T1, typename... Args>
+    void parse(T0 const& a0, T1 const& a1, Args&&... args) {
         parse(a0);
-        parse(std::forward<Args>(args)...);
+        parse(a1, std::forward<Args>(args)...);
     };
 
     /**

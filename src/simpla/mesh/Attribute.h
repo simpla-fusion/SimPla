@@ -19,15 +19,12 @@
 namespace simpla {
 namespace mesh {
 class Patch;
-
+class Chart;
 class Attribute;
 class AttributeCollection;
 
 struct AttributeDesc : public concept::Configurable, public Object {
-    template <typename... Args>
-    AttributeDesc(Args &&... args) {
-        concept::Configurable::db.parse(std::forward<Args>(args)...);
-    }
+    AttributeDesc() {}
 
     virtual ~AttributeDesc() {}
 
@@ -42,8 +39,7 @@ struct AttributeDesc : public concept::Configurable, public Object {
 
 template <typename TV, int IFORM, int DOF>
 struct AttributeDescTemp : public AttributeDesc {
-    template <typename... Args>
-    AttributeDescTemp(Args &&... args) : AttributeDesc(std::forward<Args>(args)...) {}
+    AttributeDescTemp() : AttributeDesc() {}
 
     virtual ~AttributeDescTemp() {}
 
@@ -102,7 +98,7 @@ struct Attribute : public concept::Printable,
     virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m,
                                                          void *p = nullptr) const = 0;
 
-    virtual AttributeDesc const &desc() const { return *m_desc_; }
+    virtual std::shared_ptr<AttributeDesc> description() const { return m_desc_; }
 
     virtual std::shared_ptr<DataBlock> const &data_block() const { return m_data_; }
 
@@ -159,14 +155,23 @@ class AttributeAdapter<U> : public Attribute, public U {
 
    public:
     template <typename... Args>
-    AttributeAdapter(Args &&... args)
-        : Attribute(nullptr,
-                    std::make_shared<AttributeDescTemp<value_type, algebra::traits::iform<U>::value,
-                                                       algebra::traits::dof<U>::value>>(
-                        std::forward<Args>(args)...))
-    //        ,    U(std::forward<Args>(args)...)
-    {}
+    explicit AttributeAdapter(Args &&... args) : Attribute(std::forward<Args>(args)...) {}
 
+    //    template <typename... Args>
+    //    explicit AttributeAdapter(Args &&... args)
+    //        : Attribute(nullptr,
+    //                    std::make_shared<AttributeDescTemp<value_type,
+    //                    algebra::traits::iform<U>::value,
+    //                                                       algebra::traits::dof<U>::value>>(
+    //                        std::forward<Args>(args)...)) {}
+
+   private:
+    struct create_it {};
+    template <typename... Args>
+    explicit AttributeAdapter(create_it const &, Args &&... args)
+        : U(std::forward<Args>(args)...) {}
+
+   public:
     AttributeAdapter(AttributeAdapter &&) = delete;
 
     AttributeAdapter(AttributeAdapter const &) = delete;
@@ -174,6 +179,15 @@ class AttributeAdapter<U> : public Attribute, public U {
     ~AttributeAdapter() {}
 
     using U::operator=;
+
+    virtual std::shared_ptr<AttributeDesc> description() const {
+        return std::make_shared<AttributeDescTemp<value_type, algebra::traits::iform<U>::value,
+                                                  algebra::traits::dof<U>::value>>();
+    }
+    template <typename... Args>
+    static std::shared_ptr<this_type> create(Args &&... args) {
+        std::make_shared(create_it(), std::forward<Args>(args)...);
+    }
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const {
         return U::print(os, indent);
