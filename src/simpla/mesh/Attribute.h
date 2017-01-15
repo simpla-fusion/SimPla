@@ -24,32 +24,42 @@ class Attribute;
 class AttributeCollection;
 
 struct AttributeDesc : public concept::Configurable, public Object {
-    AttributeDesc() {}
+    AttributeDesc()
+        : m_value_type_index_(std::type_index(typeid(Real))), m_iform_(VERTEX), m_dof_(1) {
+        deploy();
+    }
+
+    AttributeDesc(AttributeDesc const &other) = delete;
+
+    AttributeDesc(AttributeDesc &&other) = delete;
 
     virtual ~AttributeDesc() {}
 
-    virtual std::type_index value_type_index() const = 0;
+    virtual void deploy() {
+        m_value_type_index_ = value_type_index();
+        m_iform_ = entity_type();
+        m_dof_ = dof();
+    }
 
-    virtual std::type_info const &value_type_info() const = 0;
+    template <typename ValueType, int IFORM, int DOF>
+    static std::shared_ptr<AttributeDesc> create() {
+        auto res = std::make_shared<AttributeDesc>();
+        res->m_iform_ = IFORM;
+        res->m_dof_ = DOF;
+        res->m_value_type_index_ = std::type_index(typeid(ValueType));
+        return res;
+    };
 
-    virtual int entity_type() const = 0;
+    virtual std::type_index value_type_index() const { return m_value_type_index_; };
 
-    virtual int dof() const = 0;
-};
+    virtual int entity_type() const { return m_iform_; };
 
-template <typename TV, int IFORM, int DOF>
-struct AttributeDescTemp : public AttributeDesc {
-    AttributeDescTemp() : AttributeDesc() {}
+    virtual int dof() const { return m_dof_; };
 
-    virtual ~AttributeDescTemp() {}
-
-    virtual std::type_index value_type_index() const { return std::type_index(value_type_info()); };
-
-    virtual std::type_info const &value_type_info() const { return (typeid(TV)); };
-
-    virtual int entity_type() const { return IFORM; };
-
-    virtual int dof() const { return DOF; };
+   private:
+    std::type_index m_value_type_index_;
+    int m_iform_ = VERTEX;
+    int m_dof_ = 1;
 };
 
 class AttributeDict : public concept::Printable {
@@ -98,7 +108,9 @@ struct Attribute : public concept::Printable,
     virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m,
                                                          void *p = nullptr) const = 0;
 
-    virtual AttributeDesc const &description() const { return *m_desc_; }
+    virtual std::shared_ptr<AttributeDesc> &description() { return m_desc_; }
+
+    virtual std::shared_ptr<AttributeDesc> const &description() const { return m_desc_; }
 
     virtual std::shared_ptr<DataBlock> const &data_block() const { return m_data_; }
 
@@ -180,12 +192,17 @@ class AttributeAdapter<U> : public Attribute, public U {
 
     using U::operator=;
 
-//    virtual std::shared_ptr<AttributeDesc> description() const {
-//        return std::make_shared<AttributeDescTemp<value_type, algebra::traits::iform<U>::value,
-//                                                  algebra::traits::dof<U>::value>>();
-//    }
+    virtual void deploy() {
+        if (description() == nullptr) {
+            description(AttributeDesc::create<value_type, algebra::traits::iform<U>::value,
+                                              algebra::traits::dof<U>::value>());
+        }
+        U::deploy();
+        Attribute::deploy();
+    }
+
     template <typename... Args>
-    static std::shared_ptr<this_type> create(Args &&... args) {
+    static this_type create(Args &&... args) {
         std::make_shared(create_it(), std::forward<Args>(args)...);
     }
 
@@ -216,10 +233,6 @@ class AttributeAdapter<U> : public Attribute, public U {
     virtual void post_process() {
         //        U::post_process();
         Attribute::post_process();
-    }
-    virtual void deploy() {
-        U::deploy();
-        Attribute::deploy();
     }
 };
 //
