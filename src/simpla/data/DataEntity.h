@@ -8,6 +8,7 @@
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/toolbox/Log.h>
+#include <simpla/mpl/integer_sequence.h>
 #include <typeindex>
 
 namespace simpla {
@@ -25,6 +26,8 @@ struct LightData;
  */
 struct DataEntity : public concept::Printable {
     SP_OBJECT_BASE(DataEntity);
+
+    enum { LIGHT, HEAVY, TABLE };
 
    public:
     DataEntity() {}
@@ -60,35 +63,14 @@ struct DataEntity : public concept::Printable {
     HeavyData& as_heavy();
 
     HeavyData const& as_heavy() const;
-
-//    template <typename U, typename... Args>
-//    U& as(Args&&... args) {
-//        return as_light().template as<U>(std::forward<Args>(args)...);
-//    }
-//
-//    template <typename U, typename... Args>
-//    U const& as(Args&&... args)const {
-//        return as_light().template as<U>(std::forward<Args>(args)...);
-//    };;
-    //
-    //    template <typename U, typename... Args>
-    //    U const& as(Args&&... args) const;
-    //
-    //    template <typename U>
-    //    bool equal(U const& u) const;
 };
 
-namespace traits {
 template <typename>
-struct is_light : public std::integral_constant<bool, true> {};
-template <typename U, class Enable = void>
-struct create_entity {};
-}
-
-template <typename U>
-std::shared_ptr<DataEntity> create_data_entity(U& v) {
-    return traits::create_entity<U>::eval(v);
+struct entity_traits {
+    typedef int_const<DataEntity::LIGHT> type;
 };
+
+
 
 /** @ingroup data */
 

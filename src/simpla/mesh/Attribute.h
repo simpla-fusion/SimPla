@@ -23,7 +23,9 @@ class Chart;
 class Attribute;
 class AttributeCollection;
 
-struct AttributeDesc : public concept::Configurable, public Object {
+struct AttributeDesc : public concept::Configurable,
+                       public Object,
+                       std::enable_shared_from_this<AttributeDesc> {
     AttributeDesc()
         : m_value_type_index_(std::type_index(typeid(Real))), m_iform_(VERTEX), m_dof_(1) {
         deploy();
@@ -55,6 +57,10 @@ struct AttributeDesc : public concept::Configurable, public Object {
     virtual int entity_type() const { return m_iform_; };
 
     virtual int dof() const { return m_dof_; };
+    template <typename U>
+    bool check_value_type() const {
+        return std::type_index(typeid(U)) == m_value_type_index_;
+    }
 
    private:
     std::type_index m_value_type_index_;
@@ -92,10 +98,11 @@ struct Attribute : public concept::Printable,
    public:
     SP_OBJECT_BASE(Attribute);
 
-    Attribute(std::shared_ptr<DataBlock> const &d = nullptr,
-              std::shared_ptr<AttributeDesc> const &desc = nullptr);
 
-    Attribute(AttributeCollection *p, std::shared_ptr<AttributeDesc> const &desc);
+    Attribute(const std::shared_ptr<AttributeDesc> &desc,
+              const std::shared_ptr<DataBlock> &d = nullptr);
+
+    Attribute(std::shared_ptr<AttributeDesc> const &desc, AttributeCollection *p);
 
     Attribute(Attribute const &other) = delete;
 
@@ -108,9 +115,12 @@ struct Attribute : public concept::Printable,
     virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m,
                                                          void *p = nullptr) const = 0;
 
-    virtual std::shared_ptr<AttributeDesc> &description() { return m_desc_; }
+    virtual AttributeDesc &description(std::shared_ptr<AttributeDesc> const &desc = nullptr) {
+        if (desc != nullptr) { m_desc_ = desc; }
+        return *m_desc_;
+    }
 
-    virtual std::shared_ptr<AttributeDesc> const &description() const { return m_desc_; }
+    virtual AttributeDesc const &description() const { return *m_desc_; }
 
     virtual std::shared_ptr<DataBlock> const &data_block() const { return m_data_; }
 
@@ -167,21 +177,17 @@ class AttributeAdapter<U> : public Attribute, public U {
 
    public:
     template <typename... Args>
-    explicit AttributeAdapter(Args &&... args) {}
-
-    //    template <typename... Args>
-    //    explicit AttributeAdapter(Args &&... args)
-    //        : Attribute(nullptr,
-    //                    std::make_shared<AttributeDescTemp<value_type,
-    //                    algebra::traits::iform<U>::value,
-    //                                                       algebra::traits::dof<U>::value>>(
-    //                        std::forward<Args>(args)...)) {}
+    explicit AttributeAdapter(Args &&... args)
+        : base_type(AttributeDesc::create<value_type, algebra::traits::iform<U>::value,
+                                          algebra::traits::dof<U>::value>(),std::forward<Args>(args)...)
+    {
+    }
 
    private:
-    struct create_it {};
+    struct create_new {};
     template <typename... Args>
-    explicit AttributeAdapter(create_it const &, Args &&... args)
-        : U(std::forward<Args>(args)...) {}
+    explicit AttributeAdapter(create_new const &, Args &&... args)
+        : AttributeAdapter(), U(std::forward<Args>(args)...) {}
 
    public:
     AttributeAdapter(AttributeAdapter &&) = delete;
@@ -192,22 +198,18 @@ class AttributeAdapter<U> : public Attribute, public U {
 
     using U::operator=;
 
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const {
+        return U::print(os, indent);
+    }
+
     virtual void deploy() {
-        if (description() == nullptr) {
-            description(AttributeDesc::create<value_type, algebra::traits::iform<U>::value,
-                                              algebra::traits::dof<U>::value>());
-        }
-        U::deploy();
         Attribute::deploy();
+        U::deploy();
     }
 
     template <typename... Args>
     static this_type create(Args &&... args) {
-        std::make_shared(create_it(), std::forward<Args>(args)...);
-    }
-
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const {
-        return U::print(os, indent);
+        std::make_shared(create_new(), std::forward<Args>(args)...);
     }
 
     virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m,
@@ -215,25 +217,13 @@ class AttributeAdapter<U> : public Attribute, public U {
         return DataBlockAdapter<U>::create(m, static_cast<value_type *>(p));
     };
 
-    virtual void accept(Patch *p) {
-        Attribute::accept(p);
-        //        accept(this, Attribute::data());
-    }
+    virtual void accept(Patch *p) { Attribute::accept(p); }
 
-    virtual void clear() {
-        Attribute::clear();
-        U::clear();
-    }
+    virtual void clear() { Attribute::clear(); }
 
-    virtual void pre_process() {
-        Attribute::pre_process();
-        //        U::pre_process();
-    };
+    virtual void pre_process() { Attribute::pre_process(); };
 
-    virtual void post_process() {
-        //        U::post_process();
-        Attribute::post_process();
-    }
+    virtual void post_process() { Attribute::post_process(); }
 };
 //
 template <typename TV, int IFORM = VERTEX, int DOF = 1>

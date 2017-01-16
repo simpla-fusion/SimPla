@@ -133,19 +133,11 @@ struct HeavyDataProxy : public HeavyData {
    private:
     std::shared_ptr<T> m_self_;
 };
-namespace traits {
 template <typename U>
-struct create_entity<U, std::enable_if_t<!is_light<std::remove_cv_t<U>>::value>> {
-    template <typename... Args>
-    static std::shared_ptr<DataEntity> eval(Args&&... args) {
-        return std::dynamic_pointer_cast<DataEntity>(
-            std::make_shared<HeavyDataAdapter<U>>(std::forward<Args>(args)...));
-    }
-
-    static std::shared_ptr<DataEntity> eval(std::shared_ptr<U> const& p) {
-        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<HeavyDataProxy<U>>(p));
-    }
-};
+std::shared_ptr<DataEntity> make_shared_entity(U const& c,
+                                               ENABLE_IF(entity_traits<U>::type::value ==
+                                                         DataEntity::HEAVY)) {
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<HeavyData>(c));
 }
 }  // namespace data
 

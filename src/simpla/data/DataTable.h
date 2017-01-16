@@ -20,6 +20,50 @@
 
 namespace simpla {
 namespace data {
+class KeyValue;
+template <>
+struct entity_traits<std::initializer_list<KeyValue>> {
+    typedef int_const<DataEntity::TABLE> type;
+};
+
+template <typename U>
+std::shared_ptr<DataEntity> make_shared_entity(
+    U const& c, ENABLE_IF(entity_traits<std::decay_t<U>>::type::value == DataEntity::TABLE)) {
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(c));
+}
+
+class KeyValue {
+   private:
+    std::string m_key_;
+    std::shared_ptr<DataEntity> m_value_;
+
+   public:
+    KeyValue(char const* k) : m_key_(k), m_value_(make_shared_entity(true)) {}
+    KeyValue(std::string const& k) : m_key_(k), m_value_(make_shared_entity(true)) {}
+    template <typename U>
+    KeyValue(std::string const& k, U const& u) : m_key_(k), m_value_(make_shared_entity(u)) {}
+    KeyValue(KeyValue const& other) : m_key_(other.m_key_), m_value_(other.m_value_) {}
+    KeyValue(KeyValue&& other) : m_key_(other.m_key_), m_value_(other.m_value_) {}
+    ~KeyValue() {}
+
+    template <typename U>
+    KeyValue& operator=(U const& u) {
+        m_value_ = make_shared_entity(u);
+        return *this;
+    }
+    KeyValue& operator=(std::initializer_list<KeyValue> const& u) {
+        m_value_ = make_shared_entity(u);
+        return *this;
+    }
+
+    std::string const& key() const { return m_key_; }
+    std::shared_ptr<DataEntity> const& value() const { return m_value_; }
+};
+
+inline KeyValue operator"" _(const char* c, std::size_t n) {
+    return KeyValue{std::string(c), make_shared_entity(true)};
+}
+
 /** @ingroup data */
 /**
  * @brief  a @ref DataEntity tree, a key-value table of @ref DataEntity, which is similar as Group
@@ -31,9 +75,20 @@ class DataTable : public DataEntity {
    public:
     DataTable();
 
-    DataTable(DataTable const&) = delete;
+    DataTable(std::initializer_list<KeyValue> const&);
 
-    DataTable(DataTable&&) = delete;
+    template <typename U>
+    DataTable(std::string const& key, U const& v) : DataTable() {
+        set_value(key, v);
+    };
+
+    DataTable(std::string const& key, std::shared_ptr<DataEntity> const& v) : DataTable() {
+        set_value(key, v);
+    };
+
+    //    DataTable(DataTable const&);
+
+    DataTable(DataTable&&);
 
     virtual ~DataTable();
 
@@ -62,7 +117,10 @@ class DataTable : public DataEntity {
 
     virtual void parse(std::string const& str);
 
-    void parse(char const* c) { parse(std::string(c)); };
+    template <int N>
+    void parse(char const c[N]) {
+        parse(std::string(c));
+    };
 
     template <typename U>
     void parse(std::pair<std::string, U> const& k_v) {
@@ -75,6 +133,18 @@ class DataTable : public DataEntity {
         parse(a1, std::forward<Args>(args)...);
     };
 
+    void insert(KeyValue const& k_v) { set_value(k_v.key(), k_v.value()); };
+
+    void insert(){};
+
+    template <typename... Others>
+    void insert(KeyValue const& k_v, Others&&... others) {
+        set_value(k_v.key(), k_v.value());
+        insert(std::forward<Others>(others)...);
+    };
+
+    void insert(std::initializer_list<KeyValue> const& other);
+
     /**
      *  set entity value to '''url'''
      * @param url
@@ -82,12 +152,12 @@ class DataTable : public DataEntity {
      * '''table''' as needed.
      */
 
-    virtual std::shared_ptr<DataEntity> set(std::string const& key,
-                                            std::shared_ptr<DataEntity> const& v);
+    virtual std::shared_ptr<DataEntity> set_value(std::string const& key,
+                                                  std::shared_ptr<DataEntity> const& v);
 
     template <typename U>
     auto set_value(std::string const& url, U const& v) {
-        return set(url, create_data_entity(v));
+        return set_value(url, make_shared_entity(v));
     }
 
     virtual DataTable* create_table(std::string const& url);
@@ -115,13 +185,15 @@ class DataTable : public DataEntity {
     //    {
     //        auto *p = find(url);
     //
-    //        if (p != nullptr) { return p->as<U>(); } else { return set_value(url, u)->as<U>(); }
+    //        if (p != nullptr) { return p->as<U>(); } else { return set_value(url, u)->as<U>();
+    //        }
     //    }
 
     /**
      *
      * @param key
-     * @return Returns a reference to the mapped value of the element with key equivalent to key.
+     * @return Returns a reference to the mapped value of the element with key equivalent to
+     * key.
      *      If no such element exists, an exception of type std::out_of_range is thrown.
      */
     virtual DataEntity& at(std::string const& key);
@@ -151,9 +223,10 @@ class DataTable : public DataEntity {
 
    protected:
     struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    std::shared_ptr<pimpl_s> m_pimpl_;
 };
-}
-}  // namespace simpla{namespace toolbox{
+
+}  // namespace data
+}  // namespace simpla
 
 #endif  // SIMPLA_DATATREE_H_

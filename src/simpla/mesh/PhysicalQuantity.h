@@ -36,7 +36,7 @@ public:
     template<typename ...Args>
     explicit PhysicalQuantity(Args &&...args):
             m_mesh_(nullptr),
-            m_data_(nullptr) {};
+            m_data_(nullptr), Attribute(<#initializer#>, <#initializer#>) {};
 
 
     virtual ~PhysicalQuantity() {}

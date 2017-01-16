@@ -50,6 +50,7 @@ void Worker::deploy()
 {
     concept::LifeControllable::deploy();
 //    if (m_chart_ == nullptr) { m_chart_ = clone_mesh(); }
+    ASSERT(m_chart_!=nullptr);
     m_chart_->deploy();
 }
 

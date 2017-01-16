@@ -12,12 +12,19 @@
 
 using namespace simpla;
 using namespace simpla::data;
+
 int main(int argc, char** argv) {
     DataTable db;
 
-    db.set_value("CartesianGeometry.name", "hello world!");
-    db.set_value("CartesianGeometry.value", 1.0234);
-    db.set_value("CartesianGeometry.t.second", 2);
-    db.set_value("CartesianGeometry.vec3", nTuple<Real,3>{2,3,2});
+    //    db.set("CartesianGeometry.name2"_ = std::string("hello world!"));
+    db.insert({"is_test", "not_debug"_ = false,
+            "CartesianGeometry"_ = {
+                "name"_ = "hello world!",  //
+                "is_test",
+                "value"_ = 1.0234,                  //
+                "t.second"_ = 2,                    //
+                "vec3"_ = nTuple<Real, 3>{2, 3, 2}  //
+            }});
+    db.insert({"Check"});
     std::cout << db << std::endl;
 }

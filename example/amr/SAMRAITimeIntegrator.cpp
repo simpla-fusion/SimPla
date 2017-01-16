@@ -549,10 +549,12 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
         }
 
         std::string visit_variable_type = "";
-        if ((attr->description().entity_type() == VERTEX || attr->description().entity_type() == VOLUME) &&
+        if ((attr->description().entity_type() == VERTEX ||
+             attr->description().entity_type() == VOLUME) &&
             attr->description().dof() == 1) {
             visit_variable_type = "SCALAR";
-        } else if (((attr->description().entity_type() == EDGE || attr->description().entity_type() == FACE) &&
+        } else if (((attr->description().entity_type() == EDGE ||
+                     attr->description().entity_type() == FACE) &&
                     attr->description().dof() == 1) ||
                    ((attr->description().entity_type() == VERTEX ||
                      attr->description().entity_type() == VOLUME) &&
@@ -561,7 +563,8 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
         } else if (((attr->description().entity_type() == VERTEX ||
                      attr->description().entity_type() == VOLUME) &&
                     attr->description().dof() == 9) ||
-                   ((attr->description().entity_type() == EDGE || attr->description().entity_type() == FACE) &&
+                   ((attr->description().entity_type() == EDGE ||
+                     attr->description().entity_type() == FACE) &&
                     attr->description().dof() == 3)) {
             visit_variable_type = "TENSOR";
         } else {
@@ -698,11 +701,11 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t0(
 std::shared_ptr<mesh::DataBlock> create_data_block(mesh::Attribute const *item,
                                                    boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
-    if (item->description().value_type_info() == typeid(float)) {
+    if (item->description().check_value_type<float>()) {
         res = create_data_block_t0<float>(item, pd);
-    } else if (item->description().value_type_info() == typeid(double)) {
+    } else if (item->description().check_value_type<double>()) {
         res = create_data_block_t0<double>(item, pd);
-    } else if (item->description().value_type_info() == typeid(int)) {
+    } else if (item->description().check_value_type<int>()) {
         res = create_data_block_t0<int>(item, pd);
     }
     //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,

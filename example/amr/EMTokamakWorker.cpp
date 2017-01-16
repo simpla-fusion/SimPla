@@ -78,8 +78,8 @@ void EMTokamakWorker::deploy()
     db.set_value("bound_box", geqdsk.box());
 
 
-//    model()->add_object("VACUUM", geqdsk.limiter_gobj());
-//    model()->add_object("PLASMA", geqdsk.boundary_gobj());
+    model()->add_object("VACUUM", geqdsk.limiter_gobj());
+    model()->add_object("PLASMA", geqdsk.boundary_gobj());
 
 };
 
@@ -126,23 +126,23 @@ void EMTokamakWorker::set_physical_boundary_conditions(Real data_time)
     base_type::set_physical_boundary_conditions(data_time);
     if (J_src_fun)
     {
-//        J1.assign([&](point_type const &x) { return J_src_fun(x, data_time); }, model()->select(EDGE, "J_SRC"));
+        J1.assign([&](point_type const &x) { return J_src_fun(x, data_time); }, model()->select(EDGE, "J_SRC"));
     }
     if (E_src_fun)
     {
-//        E.assign([&](point_type const &x) { return E_src_fun(x, data_time); }, model()->select(EDGE, "E_SRC"));
+        E.assign([&](point_type const &x) { return E_src_fun(x, data_time); }, model()->select(EDGE, "E_SRC"));
     }
 };
 
 void EMTokamakWorker::set_physical_boundary_conditions_E(Real time)
 {
-//    E.assign(0, model()->interface(EDGE, "PLASMA", "VACUUM"));
+    E.assign(0, model()->interface(EDGE, "PLASMA", "VACUUM"));
 }
 
 void EMTokamakWorker::set_physical_boundary_conditions_B(Real time)
 {
 
-//    B.assign(0, model()->interface(FACE, "PLASMA", "VACUUM"));
+    B.assign(0, model()->interface(FACE, "PLASMA", "VACUUM"));
 }
 
 }

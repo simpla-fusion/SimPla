@@ -66,7 +66,7 @@ class EMFluid : public Worker {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{this, "name=rho0;CHECK"};
+    field_type<VERTEX> rho0{this, {"name"_ = "rho0", "CHECK"}};
 
     field_type<EDGE> E0{this, "name=E0"};
     field_type<FACE> B0{this, "name=B0;CHECK"};

@@ -90,8 +90,17 @@ DataEntity const* DataTable::pimpl_s::search(DataTable const* t, std::string con
 
 DataTable::DataTable() : DataEntity(), m_pimpl_(new pimpl_s){};
 
+DataTable::DataTable(std::initializer_list<KeyValue> const& t) : DataTable() { insert(t); };
+
+// DataTable::DataTable(DataTable const& other) : m_pimpl_(new pimpl_s(other.m_pimpl_)){};
+
+DataTable::DataTable(DataTable&& other) : m_pimpl_(other.m_pimpl_){};
+
 DataTable::~DataTable(){};
 
+void DataTable::insert(std::initializer_list<KeyValue> const& others) {
+    for (auto const& kv : others) { insert(kv); }
+}
 std::ostream& print_kv(std::ostream& os, int indent, std::string const& k, DataEntity const& v) {
     if (v.is_table()) { os << std::endl << std::setw(indent + 1) << " "; }
     os << k << " = " << v;
@@ -129,8 +138,8 @@ DataTable* DataTable::create_table(std::string const& url) {
     return &(m_pimpl_->emplace(this, url + ".")->as_table());
 }
 
-std::shared_ptr<DataEntity> DataTable::set(std::string const& url,
-                                           std::shared_ptr<DataEntity> const& v) {
+std::shared_ptr<DataEntity> DataTable::set_value(std::string const& url,
+                                                 std::shared_ptr<DataEntity> const& v) {
     return m_pimpl_->emplace(this, url, v);
 };
 

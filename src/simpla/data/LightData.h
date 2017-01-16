@@ -405,24 +405,16 @@ struct LightData : public DataEntity {
 
         virtual const std::type_info& type() const { return typeid(ValueType); }
 
-        //----------------------------------------------------------------------------------------------
-        // SimPla extent
-
         std::ostream& print(std::ostream& os, int indent = 1) const {
             if (std::is_same<ValueType, std::string>::value) {
                 os << "\"" << m_value_ << "\"";
+            } else if (std::is_same<ValueType, bool>::value) {
+                os << std::boolalpha << m_value_ << std::noboolalpha;
             } else {
                 os << m_value_;
             }
             return os;
         }
-
-        //        virtual void* data() { return &m_value_; };
-        //
-        //        virtual void const* data() const { return &m_value_; };
-
-        //    data_model::DataType data_type() const { return data_model::DataType::template
-        //    clone<T>(); }
 
         virtual bool is_bool() const { return std::is_same<ValueType, bool>::value; }
 
@@ -489,22 +481,17 @@ struct LightData : public DataEntity {
     };
 
 };  // class LightData
-
-namespace traits {
 template <typename U>
-struct create_entity<U, std::enable_if_t<is_light<std::remove_cv_t<U>>::value>> {
-    template <typename... Args>
-    static std::shared_ptr<DataEntity> eval(Args&&... args) {
-        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<LightData>(
-            LightData::template create<U>(std::forward<Args>(args)...)));
-    }
-};
+std::shared_ptr<DataEntity> make_shared_entity(U const& c,
+                                               ENABLE_IF(entity_traits<U>::type::value ==
+                                                         DataEntity::LIGHT)) {
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<LightData>(c));
+}
 
-}  // namespace traits;
-
-std::shared_ptr<DataEntity> inline create_data_entity(char const* c) {
-    return traits::create_entity<std::string>::eval(std::string(c));
-};
+inline std::shared_ptr<DataEntity> make_shared_entity(char const* c) {
+    return std::dynamic_pointer_cast<DataEntity>(
+        std::make_shared<LightData>(LightData::template create<std::string>(std::string(c))));
+}
 
 }  // namespace data {
 }  // namespace simpla{

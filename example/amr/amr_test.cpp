@@ -3,12 +3,12 @@
 //
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/FancyStream.h>
 #include <simpla/algebra/nTupleExt.h>
 #include <simpla/mesh/Worker.h>
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/simulation/TimeIntegrator.h>
+#include <simpla/toolbox/FancyStream.h>
 #include <iostream>
 
 using namespace simpla;
@@ -27,15 +27,20 @@ int main(int argc, char** argv) {
 
     auto worker = create_worker();
 
-    worker->db.set_value("GEqdsk", std::string(argv[1]));
-    worker->db.set_value("Particles.H.m", 1.0);
-    worker->db.set_value("Particles.H.Z", 1.0);
-    worker->db.set_value("Particles.H.ratio", 0.5);
-    worker->db.set_value("Particles.D.m", 2.0);
-    worker->db.set_value("Particles.D.Z", 1.0);
-    worker->db.set_value("Particles.D.ratio", 0.5);
-    worker->db.set_value("Particles.e.m", SI_electron_proton_mass_ratio);
-    worker->db.set_value("Particles.e.Z", -1.0);
+    //    worker->db.set_value("GEqdsk", argv[1]);
+    //    worker->db.set_value("Particles.H.m", 1.0);
+    //    worker->db.set_value("Particles.H.Z", 1.0);
+    //    worker->db.set_value("Particles.H.ratio", 0.5);
+    //    worker->db.set_value("Particles.D.m", 2.0);
+    //    worker->db.set_value("Particles.D.Z", 1.0);
+    //    worker->db.set_value("Particles.D.ratio", 0.5);
+    //    worker->db.set_value("Particles.e.m", SI_electron_proton_mass_ratio);
+    //    worker->db.set_value("Particles.e.Z", -1.0);
+
+    worker->db.set("GEqdsk"_ = argv[1],
+                   "Particles"_ = {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5},
+                                   "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ = 0.5},
+                                   "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
     worker->db.print(std::cout);
     worker->deploy();
 

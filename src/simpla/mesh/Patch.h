@@ -21,7 +21,7 @@ public:
 
     void mesh(std::shared_ptr<MeshBlock> const &m) { m_mesh_ = m; }
 
-    std::shared_ptr<DataBlock> &
+    std::shared_ptr<DataBlock>
     data(id_type const &id, std::shared_ptr<DataBlock> const &p = (nullptr))
     {
         return m_data_.emplace(id, p).first->second;
