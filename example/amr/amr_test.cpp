@@ -17,7 +17,7 @@ namespace simpla {
 
 using namespace data;
 
-std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const& str);
+std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const& str = "");
 
 std::shared_ptr<mesh::Worker> create_worker();
 }  // namespace simpla
@@ -41,20 +41,20 @@ int main(int argc, char** argv) {
     //    worker->db.set_value("Particles.e.Z", -1.0);
 
     worker->db.insert("GEqdsk"_ = argv[1],
-                   "Particles"_ = {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5},
-                                   "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ = 0.5},
-                                   "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
+                      "Particles"_ = {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5},
+                                      "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ = 0.5},
+                                      "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
     worker->deploy();
 
     worker->print(std::cout);
 
-    index_box_type mesh_index_box{{0, 0, 0}, {32, 32, 32}};
-
     auto bound_box = worker->db.get_value("bound_box", box_type{{1, 0, -1}, {2, PI, 1}});
 
-    auto integrator = simpla::create_time_integrator("name=EMFluid");
+    auto integrator = simpla::create_time_integrator();
     integrator->worker() = worker;
-    integrator->db.set_value("CartesianGeometry.domain_boxes_0", mesh_index_box);
+    integrator->db.set_value("name", "EMFluid");
+    integrator->db.set_value("CartesianGeometry.domain_boxes_0",
+                             index_box_type{{0, 0, 0}, {64, 64, 64}});
     integrator->db.set_value("CartesianGeometry.periodic_dimension", nTuple<int, 3>{0, 1, 0});
     integrator->db.set_value("CartesianGeometry.x_lo", std::get<0>(bound_box));
     integrator->db.set_value("CartesianGeometry.x_up", std::get<1>(bound_box));

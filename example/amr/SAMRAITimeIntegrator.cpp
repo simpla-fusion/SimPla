@@ -86,7 +86,7 @@ struct SAMRAIWorker;
 
 struct SAMRAITimeIntegrator;
 
-std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &str) {
+std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &str="") {
     auto integrator = std::dynamic_pointer_cast<simulation::TimeIntegrator>(
         std::make_shared<SAMRAITimeIntegrator>());
 
@@ -1051,6 +1051,8 @@ boost::shared_ptr<SAMRAI::tbox::Database> convert_database(data::DataTable const
                                                            std::string const &s_name = "") {
     auto dest = boost::dynamic_pointer_cast<SAMRAI::tbox::Database>(
         boost::make_shared<SAMRAI::tbox::MemoryDatabase>(s_name));
+
+    CHECK(src);
     convert_database_r(src, dest);
     return dest;
 }
