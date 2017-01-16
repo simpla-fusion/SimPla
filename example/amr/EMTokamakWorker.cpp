@@ -60,7 +60,7 @@ void EMTokamakWorker::deploy() {
     base_type::deploy();
 
     // first run, only load configure, m_chart_=nullptr
-    geqdsk.load(db.get_value("GEqdsk", std::string("geqdsk.gfile")));
+    geqdsk.load(db.get_value("GEqdsk", "geqdsk.gfile"));
 
     db.as_table("Particles").foreach ([&](std::string const &key, data::DataEntity const &item) {
         add_particle(key, item.as_table());
@@ -68,8 +68,8 @@ void EMTokamakWorker::deploy() {
 
     db.set_value("bound_box", geqdsk.box());
 
-    model()->add_object("VACUUM", geqdsk.limiter_gobj());
-    model()->add_object("PLASMA", geqdsk.boundary_gobj());
+//    model()->add_object("VACUUM", geqdsk.limiter_gobj());
+//    model()->add_object("PLASMA", geqdsk.boundary_gobj());
 };
 
 void EMTokamakWorker::pre_process() {

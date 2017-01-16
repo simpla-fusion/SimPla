@@ -127,6 +127,7 @@ std::ostream& DataTable::print(std::ostream& os, int indent) const {
             os << " }";
         }
     }
+    ;
     return os;
 };
 

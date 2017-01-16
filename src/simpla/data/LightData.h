@@ -144,6 +144,8 @@ struct LightData : public DataEntity {
         : m_data_(new Holder<typename std::remove_cv<typename std::decay<ValueType>::type>::type>(
               value)) {}
 
+    explicit LightData(const char* value) : LightData(std::string(value)) {}
+
     LightData(const LightData& other)
         : m_data_(other.m_data_ == nullptr ? other.m_data_->clone() : nullptr) {}
 
@@ -231,9 +233,7 @@ struct LightData : public DataEntity {
 
     template <typename U>
     bool equal(U const& u) const {
-        UNIMPLEMENTED;
-        return false;
-        // return m_data_->equal(u);
+        return get<U>() == u;
     }
 
     virtual bool is_boolean() const { return m_data_ != nullptr && m_data_->is_bool(); }
@@ -287,14 +287,14 @@ struct LightData : public DataEntity {
 
     template <class U>
     U const& get() const {
-        if (!is_same<U>()) { THROW_EXCEPTION_BAD_CAST(typeid(U).name(), m_data_->type().name()); }
+        if (!is_same<U>()) { THROW_EXCEPTION_BAD_CAST(m_data_->type().name(), typeid(U).name()); }
 
         return dynamic_cast<Holder<U>*>(m_data_.get())->m_value_;
     }
 
     template <class U>
     U& get() {
-        if (!is_same<U>()) { THROW_EXCEPTION_BAD_CAST(typeid(U).name(), m_data_->type().name()); }
+        if (!is_same<U>()) { THROW_EXCEPTION_BAD_CAST(m_data_->type().name(), typeid(U).name()); }
         return dynamic_cast<Holder<U>*>(m_data_)->m_value_;
     }
 
@@ -489,8 +489,7 @@ std::shared_ptr<DataEntity> make_shared_entity(U const& c,
 }
 
 inline std::shared_ptr<DataEntity> make_shared_entity(char const* c) {
-    return std::dynamic_pointer_cast<DataEntity>(
-        std::make_shared<LightData>(LightData::template create<std::string>(std::string(c))));
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<LightData>(std::string(c)));
 }
 
 }  // namespace data {

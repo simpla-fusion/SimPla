@@ -51,6 +51,15 @@ class KeyValue {
         m_value_ = make_shared_entity(u);
         return *this;
     }
+
+    KeyValue& operator=(char const* c) {
+        m_value_ = make_shared_entity(std::string(c));
+        return *this;
+    }
+    KeyValue& operator=(char* c) {
+        m_value_ = make_shared_entity(std::string(c));
+        return *this;
+    }
     KeyValue& operator=(std::initializer_list<KeyValue> const& u) {
         m_value_ = make_shared_entity(u);
         return *this;
@@ -171,16 +180,19 @@ class DataTable : public DataEntity {
     virtual std::shared_ptr<DataEntity> get(std::string const& url);
 
     template <typename U>
-    U const& get_value(std::string const& url) const {
+    U get_value(std::string const& url) const {
         return at(url).as<U>();
     }
 
     template <typename U>
-    U const& get_value(std::string const& url, U const& u) const {
+    U get_value(std::string const& url, U const& u) const {
         auto p = find(url);
         return p == nullptr ? u : p->as_light().template as<U>();
     }
-
+    std::string get_value(std::string const& url, char const* u) const {
+        auto p = find(url);
+        return p == nullptr ? std::string(u) : p->as_light().template as<std::string>();
+    }
     //    template<typename U> U const &get_value(std::string const &url, U const &u)
     //    {
     //        auto *p = find(url);

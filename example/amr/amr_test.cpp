@@ -44,7 +44,6 @@ int main(int argc, char** argv) {
                    "Particles"_ = {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5},
                                    "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ = 0.5},
                                    "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
-    worker->db.print(std::cout);
     worker->deploy();
 
     worker->print(std::cout);
