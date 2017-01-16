@@ -47,12 +47,7 @@ class calculator;
 template <typename, typename, int...>
 class FieldView;
 template <typename TM, typename TV, int IFORM, int DOF>
-class FieldView<TM, const TV, IFORM, DOF> {
-
-
-
-
-};
+class FieldView<TM, const TV, IFORM, DOF> {};
 template <typename TM, typename TV, int IFORM, int DOF>
 class FieldView<TM, TV, IFORM, DOF> {
    private:
@@ -232,10 +227,6 @@ class FieldView<TM, TV, IFORM, DOF> {
 
     //    decltype(auto) operator()(point_type const& x) const { return gather(x); }
 
-    template <typename... Args>
-    void assign(Args&&... args) {
-        apply(tags::_assign(), std::forward<Args>(args)...);
-    }
     //**********************************************************************************************
 
     template <typename TOP, typename... Args>
@@ -247,12 +238,22 @@ class FieldView<TM, TV, IFORM, DOF> {
             });
         }
     }
-
+    template <typename... Args>
+    void apply(Range<entity_id> const& r, Args&&... args) {
+        apply_(r, std::forward<Args>(args)...);
+    }
     template <typename... Args>
     void apply(Args&&... args) {
         apply_(m_mesh_->range(), std::forward<Args>(args)...);
     }
-
+    template <typename Other>
+    void assign(Other const& other) {
+        apply_(m_mesh_->range(), tags::_assign(), other);
+    }
+    template <typename Other>
+    void assign(Range<entity_id> const& r, Other const& other) {
+        apply_(r, tags::_assign(), other);
+    }
 };  // class FieldView
 template <int...>
 struct PlaceHolder {};

@@ -23,7 +23,7 @@
 
 namespace simpla {
 namespace mesh {
-
+using namespace data;
 /**
  * @ingroup mesh
  *
@@ -34,7 +34,6 @@ struct CylindricalGeometry : public Chart {
    public:
     SP_OBJECT_HEAD(CylindricalGeometry, Chart)
 
-    typedef mesh::MeshEntityId id_type;
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
     typedef mesh::MeshEntityId entity_id;
@@ -51,11 +50,11 @@ struct CylindricalGeometry : public Chart {
 
     // Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF== 1) ? 0 : 1)>;
     // private:
-    attribute<Real, VERTEX, 3> m_vertics_{this, "name=vertics;COORDINATES"};
-    attribute<Real, VOLUME, 9> m_volume_{this, "name=volume;NO_FILL"};
-    attribute<Real, VOLUME, 9> m_dual_volume_{this, "name=dual_volume;NO_FILL"};
-    attribute<Real, VOLUME, 9> m_inv_volume_{this, "name=inv_volume;NO_FILL"};
-    attribute<Real, VOLUME, 9> m_inv_dual_volume_{this, "name=inv_dual_volume;NO_FILL"};
+    attribute<Real, VERTEX, 3> m_vertics_{{"name"_ = "vertics", "COORDINATES"}};
+    attribute<Real, VOLUME, 9> m_volume_{{"name"_ = "volume", "NO_FILL"}};
+    attribute<Real, VOLUME, 9> m_dual_volume_{{"name"_ = "dual_volume", "NO_FILL"}};
+    attribute<Real, VOLUME, 9> m_inv_volume_{{"name"_ = "inv_volume", "NO_FILL"}};
+    attribute<Real, VOLUME, 9> m_inv_dual_volume_{{"name"_ = "inv_dual_volume", "NO_FILL"}};
 
    public:
     typedef mesh::MeshEntityIdCoder M;

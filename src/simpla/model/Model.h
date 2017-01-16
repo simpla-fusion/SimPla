@@ -71,7 +71,7 @@ class Model : public Object,
     }
 
    private:
-    Chart::attribute<int, VERTEX, 9> m_tags_{"name"_ = "tags", "INPUT"};
+    Chart::attribute<int, VERTEX, 9> m_tags_{this, {"name"_ = "tags", "INPUT"}};
 
     std::shared_ptr<Chart> m_chart_ = nullptr;
 

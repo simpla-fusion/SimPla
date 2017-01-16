@@ -14,6 +14,9 @@
 using namespace simpla;
 
 namespace simpla {
+
+using namespace data;
+
 std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const& str);
 
 std::shared_ptr<mesh::Worker> create_worker();
@@ -37,7 +40,7 @@ int main(int argc, char** argv) {
     //    worker->db.set_value("Particles.e.m", SI_electron_proton_mass_ratio);
     //    worker->db.set_value("Particles.e.Z", -1.0);
 
-    worker->db.set("GEqdsk"_ = argv[1],
+    worker->db.insert("GEqdsk"_ = argv[1],
                    "Particles"_ = {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5},
                                    "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ = 0.5},
                                    "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});

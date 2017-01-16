@@ -649,24 +649,16 @@ struct calculator<TM> {
     template <typename TFun>
     static auto get_value(
         mesh_type const& m, TFun const& fun, entity_id const& s,
-        ENABLE_IF((!traits::is_field<TFun>::value &&
-                   simpla::concept::is_callable<TFun, entity_id const&>::value))) {
+        ENABLE_IF((simpla::concept::is_callable<TFun(entity_id const&)>::value))) {
         return sample(m, s, fun(s));
     }
 
     template <typename TFun>
     static auto get_value(
         mesh_type const& m, TFun const& fun, entity_id const& s,
-        ENABLE_IF((!traits::is_field<TFun>::value &&
-                   simpla::concept::is_callable<TFun, point_type const&>::value))) {
+        ENABLE_IF((simpla::concept::is_callable<TFun(point_type const&)>::value))) {
         return sample(m, s, fun(m.point(s)));
     }
-
-    //    template <typename M, typename U, int... I>
-    //    static decltype(auto) gather(mesh_type const& m, FieldView<U...> const& f,
-    //                                 point_type const& x) {
-    //        return InterpolatePolicy<mesh_type>::gather(m, f, x);
-    //    };
 
     //**********************************************************************************************
 

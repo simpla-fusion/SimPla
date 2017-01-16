@@ -69,9 +69,7 @@ class Chart : public concept::Printable, public concept::LifeControllable {
             return Range<MeshEntityId>();
         }
     }
-    size_type size(int IFORM = VERTEX) const {
-        return m_mesh_block_->number_of_entities(IFORM);
-    }
+    size_type size(int IFORM = VERTEX) const { return m_mesh_block_->number_of_entities(IFORM); }
     template <typename... Args>
     auto hash(Args&&... args) const {
         return m_mesh_block_->hash(std::forward<Args>(args)...);

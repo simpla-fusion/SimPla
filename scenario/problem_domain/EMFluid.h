@@ -18,8 +18,8 @@
 
 namespace simpla {
 using namespace mesh;
-
 using namespace algebra;
+using namespace data;
 
 template <typename TM>
 class EMFluid : public Worker {
@@ -68,17 +68,17 @@ class EMFluid : public Worker {
 
     field_type<VERTEX> rho0{this, {"name"_ = "rho0", "CHECK"}};
 
-    field_type<EDGE> E0{this, "name=E0"};
-    field_type<FACE> B0{this, "name=B0;CHECK"};
-    field_type<VERTEX, 3> B0v{this, "name=B0v"};
-    field_type<VERTEX> BB{this, "name=BB"};
-    field_type<VERTEX, 3> Ev{this, "name=Ev"};
-    field_type<VERTEX, 3> Bv{this, "name=Bv"};
-    field_type<VERTEX, 3> dE{this, "name=dE"};
+    field_type<EDGE> E0{this, {"name"_ = "E0"}};
+    field_type<FACE> B0{this, {"name"_ = "B0", "CHECK"}};
+    field_type<VERTEX, 3> B0v{this, {"name"_ = "B0v"}};
+    field_type<VERTEX> BB{this, {"name"_ = "BB"}};
+    field_type<VERTEX, 3> Ev{this, {"name"_ = "Ev"}};
+    field_type<VERTEX, 3> Bv{this, {"name"_ = "Bv"}};
+    field_type<VERTEX, 3> dE{this, {"name"_ = "dE"}};
 
-    field_type<FACE> B /*   */ {this, "name=B;CHECK"};
-    field_type<EDGE> E /*   */ {this, "name=E;CHECK"};
-    field_type<EDGE> J1 /*  */ {this, "name=J1;CHECK"};
+    field_type<FACE> B{this, {"name"_ = "B", "CHECK"}};
+    field_type<EDGE> E{this, {"name"_ = "E", "CHECK"}};
+    field_type<EDGE> J1{this, {"name"_ = "J1", "CHECK"}};
 
     struct fluid_s {
         Real mass;
@@ -121,8 +121,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::add_particle(std::stri
     auto sp = std::make_shared<fluid_s>();
     sp->mass = mass;
     sp->charge = charge;
-    sp->rho = std::make_shared<TRho>(this, name + "_rho");
-    sp->J = std::make_shared<TJv>(this, name + "_J");
+    sp->rho = TRho::make_shared(this, {"name"_ = name + "_rho"});
+    sp->J = TJv::make_shared(this, {"name"_ = name + "_J"});
     m_fluid_sp_.emplace(std::make_pair(name, sp));
     return sp;
 }

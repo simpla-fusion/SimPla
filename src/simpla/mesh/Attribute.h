@@ -12,8 +12,8 @@
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
+#include <simpla/data/all.h>
 #include <simpla/design_pattern/Observer.h>
-
 #include "DataBlock.h"
 
 namespace simpla {
@@ -51,7 +51,13 @@ struct AttributeDesc : public concept::Configurable,
         res->m_value_type_index_ = std::type_index(typeid(ValueType));
         return res;
     };
-
+    template <typename ValueType, int IFORM, int DOF>
+    static std::shared_ptr<AttributeDesc> create(
+        std::initializer_list<data::KeyValue> const &param) {
+        auto res = create<ValueType, IFORM, DOF>();
+        res->db.insert(param);
+        return res;
+    };
     virtual std::type_index value_type_index() const { return m_value_type_index_; };
 
     virtual int entity_type() const { return m_iform_; };
@@ -97,7 +103,6 @@ struct Attribute : public concept::Printable,
                    public design_pattern::Observer<void(Patch *)> {
    public:
     SP_OBJECT_BASE(Attribute);
-
 
     Attribute(const std::shared_ptr<AttributeDesc> &desc,
               const std::shared_ptr<DataBlock> &d = nullptr);
@@ -176,18 +181,23 @@ class AttributeAdapter<U> : public Attribute, public U {
     typedef algebra::traits::value_type_t<U> value_type;
 
    public:
-    template <typename... Args>
-    explicit AttributeAdapter(Args &&... args)
-        : base_type(AttributeDesc::create<value_type, algebra::traits::iform<U>::value,
-                                          algebra::traits::dof<U>::value>(),std::forward<Args>(args)...)
-    {
-    }
+//    template <typename... Args>
+//    explicit AttributeAdapter(Args &&... args)
+//        : base_type(AttributeDesc::create<value_type, algebra::traits::iform<U>::value,
+//                                          algebra::traits::dof<U>::value>()),
+//          U(std::forward<Args>(args)...) {}
 
-   private:
-    struct create_new {};
-    template <typename... Args>
-    explicit AttributeAdapter(create_new const &, Args &&... args)
-        : AttributeAdapter(), U(std::forward<Args>(args)...) {}
+    AttributeAdapter(AttributeCollection *c)
+        : base_type(AttributeDesc::create<value_type, algebra::traits::iform<U>::value,
+                                          algebra::traits::dof<U>::value>(),
+                    c) {}
+    AttributeAdapter(AttributeCollection *c, std::initializer_list<data::KeyValue> const &param)
+        : base_type(AttributeDesc::create<value_type, algebra::traits::iform<U>::value,
+                                          algebra::traits::dof<U>::value>(param),
+                    c) {}
+    AttributeAdapter(std::initializer_list<data::KeyValue> const &param)
+        : base_type(AttributeDesc::create<value_type, algebra::traits::iform<U>::value,
+                                          algebra::traits::dof<U>::value>(param)) {}
 
    public:
     AttributeAdapter(AttributeAdapter &&) = delete;
@@ -197,7 +207,15 @@ class AttributeAdapter<U> : public Attribute, public U {
     ~AttributeAdapter() {}
 
     using U::operator=;
+    template <typename... Args>
+    static std::shared_ptr<this_type> make_shared(Args &&... args) {
+        return std::make_shared<this_type>(std::forward<Args>(args)...);
+    }
 
+    static std::shared_ptr<this_type> make_shared(
+        AttributeCollection *c, std::initializer_list<data::KeyValue> const &param) {
+        return std::make_shared<this_type>(c, param);
+    }
     virtual std::ostream &print(std::ostream &os, int indent = 0) const {
         return U::print(os, indent);
     }
@@ -209,7 +227,7 @@ class AttributeAdapter<U> : public Attribute, public U {
 
     template <typename... Args>
     static this_type create(Args &&... args) {
-        std::make_shared(create_new(), std::forward<Args>(args)...);
+        std::make_shared<this_type>(std::forward<Args>(args)...);
     }
 
     virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m,
