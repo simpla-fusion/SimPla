@@ -10,17 +10,17 @@
 namespace simpla {
 namespace data {
 struct DataTable::pimpl_s {
-    static const char split_char = '.' ;
+    static const char split_char = '.';
     std::map<std::string, std::shared_ptr<DataEntity> > m_table_;
 
-    std::shared_ptr<DataEntity> emplace(DataTable* t, std::string const& url,
-                                        std::shared_ptr<DataEntity> p = nullptr);
+    std::shared_ptr<DataEntity> insert(DataTable* t, std::string const& url,
+                                       std::shared_ptr<DataEntity> p = nullptr);
 
     DataEntity const* search(DataTable const*, std::string const& url);
 };
 
-std::shared_ptr<DataEntity> DataTable::pimpl_s::emplace(DataTable* t, std::string const& url,
-                                                        std::shared_ptr<DataEntity> p) {
+std::shared_ptr<DataEntity> DataTable::pimpl_s::insert(DataTable* t, std::string const& url,
+                                                       std::shared_ptr<DataEntity> p) {
     size_type start_pos = 0;
     size_type end_pos = url.size();
     while (start_pos < end_pos) {
@@ -30,7 +30,6 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::emplace(DataTable* t, std::strin
             auto res = t->m_pimpl_->m_table_.emplace(
                 url.substr(start_pos, pos - start_pos),
                 std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>()));
-
             if (!res.first->second->is_table()) {
                 p = nullptr;
                 break;
@@ -38,15 +37,15 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::emplace(DataTable* t, std::strin
                 p = res.first->second;
                 break;
             }
-
             t = &res.first->second.get()->as_table();
             start_pos = pos + 1;
             continue;
-
-        } else {
+        } else if (p != nullptr && p->is_table()) {
             auto res = t->m_pimpl_->m_table_.emplace(url.substr(start_pos), p);
-
             p = res.first->second;
+            break;
+        } else {
+            t->m_pimpl_->m_table_[url.substr(start_pos)] = p;
             break;
         }
     }
@@ -133,16 +132,16 @@ bool DataTable::empty() const { return (m_pimpl_ != nullptr) && m_pimpl_->m_tabl
 bool DataTable::has(std::string const& url) const { return find(url) != nullptr; };
 
 DataTable* DataTable::create_table(std::string const& url) {
-    return &(m_pimpl_->emplace(this, url + ".")->as_table());
+    return &(m_pimpl_->insert(this, url + ".")->as_table());
 }
 
 std::shared_ptr<DataEntity> DataTable::set_value(std::string const& url,
                                                  std::shared_ptr<DataEntity> const& v) {
-    return m_pimpl_->emplace(this, url, v);
+    return m_pimpl_->insert(this, url, v);
 };
 
 std::shared_ptr<DataEntity> DataTable::get(std::string const& url) {
-    return m_pimpl_->emplace(this, url);
+    return m_pimpl_->insert(this, url);
 }
 
 void DataTable::parse(std::string const& str) {

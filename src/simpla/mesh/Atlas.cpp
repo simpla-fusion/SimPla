@@ -121,23 +121,23 @@ void Atlas::save(data::DataTable *) const { UNIMPLEMENTED; }
 //        case 0:
 //            if (toolbox::check_adjoining(b0, b1, dx, L))
 //            {
-//                m_adjacent_.emplace(i0, i1);
-//                m_adjacent_.emplace(i1, i0);
+//                m_adjacent_.insert(i0, i1);
+//                m_adjacent_.insert(i1, i0);
 //            }
 //            break;
 //
 //        case -1:
 //            if (toolbox::check_overlapping(b0, b1))
 //            {
-//                m_refine_.emplace(i0, i1);
-//                m_coarsen_.emplace(i1, i0);
+//                m_refine_.insert(i0, i1);
+//                m_coarsen_.insert(i1, i0);
 //            }
 //            break;
 //        case 1:
 //            if (toolbox::check_overlapping(b0, b1))
 //            {
-//                m_coarsen_.emplace(i0, i1);
-//                m_refine_.emplace(i1, i0);
+//                m_coarsen_.insert(i0, i1);
+//                m_refine_.insert(i1, i0);
 //            }
 //            break;
 //        default:
