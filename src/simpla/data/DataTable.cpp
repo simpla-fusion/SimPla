@@ -10,8 +10,7 @@
 namespace simpla {
 namespace data {
 struct DataTable::pimpl_s {
-    static const char split_char = '.';
-
+    static const char split_char = '.' ;
     std::map<std::string, std::shared_ptr<DataEntity> > m_table_;
 
     std::shared_ptr<DataEntity> emplace(DataTable* t, std::string const& url,
@@ -45,8 +44,9 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::emplace(DataTable* t, std::strin
             continue;
 
         } else {
-            auto key = url.substr(start_pos);
-            t->m_pimpl_->m_table_[key] = p;
+            auto res = t->m_pimpl_->m_table_.emplace(url.substr(start_pos), p);
+
+            p = res.first->second;
             break;
         }
     }
