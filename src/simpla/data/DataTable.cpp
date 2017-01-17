@@ -10,18 +10,18 @@
 namespace simpla {
 namespace data {
 struct DataTable::pimpl_s {
+    static const char split_char = '.';
+
     std::map<std::string, std::shared_ptr<DataEntity> > m_table_;
 
     std::shared_ptr<DataEntity> emplace(DataTable* t, std::string const& url,
-                                        std::shared_ptr<DataEntity> p = nullptr,
-                                        char split_char = '.');
+                                        std::shared_ptr<DataEntity> p = nullptr);
 
-    DataEntity const* search(DataTable const*, std::string const& url, char split_char = '.');
+    DataEntity const* search(DataTable const*, std::string const& url);
 };
 
 std::shared_ptr<DataEntity> DataTable::pimpl_s::emplace(DataTable* t, std::string const& url,
-                                                        std::shared_ptr<DataEntity> p,
-                                                        char split_char) {
+                                                        std::shared_ptr<DataEntity> p) {
     size_type start_pos = 0;
     size_type end_pos = url.size();
     while (start_pos < end_pos) {
@@ -45,9 +45,8 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::emplace(DataTable* t, std::strin
             continue;
 
         } else {
-            auto res = t->m_pimpl_->m_table_.emplace(url.substr(start_pos), p);
-
-            p = res.first->second;
+            auto key = url.substr(start_pos);
+            t->m_pimpl_->m_table_[key] = p;
             break;
         }
     }
@@ -56,8 +55,7 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::emplace(DataTable* t, std::strin
     return p;
 };
 
-DataEntity const* DataTable::pimpl_s::search(DataTable const* t, std::string const& url,
-                                             char split_char) {
+DataEntity const* DataTable::pimpl_s::search(DataTable const* t, std::string const& url) {
     size_type start_pos = 0;
     size_type end_pos = url.size();
     while (start_pos < end_pos) {
@@ -126,8 +124,7 @@ std::ostream& DataTable::print(std::ostream& os, int indent) const {
 
             os << " }";
         }
-    }
-    ;
+    };
     return os;
 };
 
