@@ -608,14 +608,13 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t2(mesh::Attribute const *ite
 
     size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
                          static_cast<size_type>(outer_upper[1] - outer_lower[1]),
-                         static_cast<size_type>(outer_upper[2] - outer_lower[2]),
-                         static_cast<size_type>(outer_upper[3] - outer_lower[3])};
+                         static_cast<size_type>(outer_upper[2] - outer_lower[2]), DOF};
 
     index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
-                        inner_lower[2] - outer_lower[2], inner_lower[3] - outer_lower[3]};
+                        inner_lower[2] - outer_lower[2], 0};
 
     index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
-                        inner_upper[2] - outer_lower[2], inner_upper[3] - outer_lower[3]};
+                        inner_upper[2] - outer_lower[2], DOF};
 
     auto res = std::make_shared<mesh::DataBlockAdapter<Array<TV, 4>>>(p_data->getPointer(), dims, lo, hi);
     res->deploy();
@@ -700,15 +699,15 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
     index_type lo[3] = {patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]};
     index_type hi[3] = {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]};
 
-    std::shared_ptr<mesh::MeshBlock> m = std::make_shared<mesh::MeshBlock>(3, lo, hi, dx, xlo);
+    std::shared_ptr<simpla::mesh::MeshBlock> m = std::make_shared<simpla::mesh::MeshBlock>(3, lo, hi, dx, xlo);
     m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
                                patch.getBox().getGlobalId().getLocalId().getValue()));
-    // m->deploy();
-    auto p = std::make_shared<mesh::Patch>();
+    m->deploy();
+    auto p = std::make_shared<simpla::mesh::Patch>();
 
     p->mesh(m);
 
-    w->foreach ([&](mesh::Attribute *attr) {
+    w->foreach ([&](simpla::mesh::Attribute *attr) {
         if (attr == nullptr) { return; }
 
         p->data(attr->description().id(),
@@ -1029,7 +1028,7 @@ void SAMRAITimeIntegrator::deploy() {
 
     grid_geometry = boost::make_shared<SAMRAI::geom::CartesianGridGeometry>(
         dim, "CartesianGeometry", samrai_cfg->getDatabase("CartesianGeometry"));
-    //    grid_geometry->printClassData(std::cout);
+    grid_geometry->printClassData(std::cout);
     //---------------------------------
 
     patch_hierarchy = boost::make_shared<SAMRAI::hier::PatchHierarchy>("PatchHierarchy", grid_geometry,
@@ -1046,7 +1045,7 @@ void SAMRAITimeIntegrator::deploy() {
         "SAMRAILevelIntegrator", samrai_cfg->getDatabase("HyperbolicLevelIntegrator"), patch_worker.get(),
         use_refined_timestepping);
 
-    //    hyp_level_integrator->printClassData(std::cout);
+    hyp_level_integrator->printClassData(std::cout);
 
     auto error_detector = boost::make_shared<SAMRAI::mesh::StandardTagAndInitialize>(
         "StandardTagAndInitialize", hyp_level_integrator.get(), samrai_cfg->getDatabase("StandardTagAndInitialize"));
@@ -1065,13 +1064,13 @@ void SAMRAITimeIntegrator::deploy() {
 
     load_balancer->setSAMRAI_MPI(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 
-    //    load_balancer->printStatistics(std::cout);
+    load_balancer->printStatistics(std::cout);
 
     auto gridding_algorithm = boost::make_shared<SAMRAI::mesh::GriddingAlgorithm>(
         patch_hierarchy, "GriddingAlgorithm", samrai_cfg->getDatabase("GriddingAlgorithm"), error_detector,
         box_generator, load_balancer);
 
-    //    gridding_algorithm->printClassData(std::cout);
+    gridding_algorithm->printClassData(std::cout);
     //---------------------------------
 
     time_integrator = boost::make_shared<SAMRAI::algs::TimeRefinementIntegrator>(
@@ -1090,7 +1089,7 @@ void SAMRAITimeIntegrator::deploy() {
     m_is_valid_ = true;
 
     MESSAGE << name() << " is deployed!" << std::endl;
-    //    time_integrator->printClassData(std::cout);
+    time_integrator->printClassData(std::cout);
 };
 
 void SAMRAITimeIntegrator::tear_down() {

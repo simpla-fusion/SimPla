@@ -59,6 +59,7 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
 void EMTokamakWorker::deploy() {
     base_type::deploy();
 
+    chart(std::make_shared<mesh_type>());
     // first run, only load configure, m_chart_=nullptr
     geqdsk.load(db.get_value("GEqdsk", "geqdsk.gfile"));
 
@@ -68,8 +69,8 @@ void EMTokamakWorker::deploy() {
 
     db.set_value("bound_box", geqdsk.box());
 
-//    model()->add_object("VACUUM", geqdsk.limiter_gobj());
-//    model()->add_object("PLASMA", geqdsk.boundary_gobj());
+    //    model()->add_object("VACUUM", geqdsk.limiter_gobj());
+    //    model()->add_object("PLASMA", geqdsk.boundary_gobj());
 };
 
 void EMTokamakWorker::pre_process() {
@@ -91,9 +92,7 @@ void EMTokamakWorker::post_process() {
 void EMTokamakWorker::initialize(Real data_time) {
     pre_process();
 
-    rho0.assign([&](point_type const &x) {
-        return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0;
-    });
+    rho0.assign([&](point_type const &x) { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0; });
 
     psi.assign([&](point_type const &x) { return geqdsk.psi(x); });
 
@@ -122,12 +121,10 @@ void EMTokamakWorker::next_time_step(Real data_time, Real dt) {
 void EMTokamakWorker::set_physical_boundary_conditions(Real data_time) {
     base_type::set_physical_boundary_conditions(data_time);
     if (J_src_fun) {
-        J1.assign(model()->select(EDGE, "J_SRC"),
-                  [&](point_type const &x) { return J_src_fun(x, data_time); });
+        J1.assign(model()->select(EDGE, "J_SRC"), [&](point_type const &x) { return J_src_fun(x, data_time); });
     }
     if (E_src_fun) {
-        E.assign(model()->select(EDGE, "E_SRC"),
-                 [&](point_type const &x) { return E_src_fun(x, data_time); });
+        E.assign(model()->select(EDGE, "E_SRC"), [&](point_type const &x) { return E_src_fun(x, data_time); });
     }
 };
 

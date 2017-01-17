@@ -51,9 +51,7 @@ class Worker : public Object,
 
     virtual void save(data::DataTable *) const { UNIMPLEMENTED; }
 
-    //    virtual std::shared_ptr<Chart> clone_mesh() const =0;
-
-    virtual Chart *chart() { return m_chart_.get(); };
+    virtual void chart(std::shared_ptr<Chart> const &c) { m_chart_ = c; };
 
     virtual Chart const *chart() const { return m_chart_.get(); };
 
@@ -73,10 +71,6 @@ class Worker : public Object,
 
     virtual void next_time_step(Real data_time, Real dt){};
 
-    //    virtual void phase(unsigned int num, Real data_time, Real dt);
-    //
-    //    virtual unsigned int next_phase(Real data_time, Real dt, unsigned int inc_phase = 0);
-
     virtual void sync();
 
     virtual void set_physical_boundary_conditions(Real time){};
@@ -88,6 +82,6 @@ class Worker : public Object,
     std::shared_ptr<Chart> m_chart_;
     std::shared_ptr<model::Model> m_model_;
 };
-}
-}
+}  // namespace mesh
+}  // namespace simpla
 #endif  // SIMPLA_WORKER_H

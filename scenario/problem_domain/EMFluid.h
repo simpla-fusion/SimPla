@@ -123,7 +123,7 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::add_particle(std::stri
     sp->charge = charge;
     sp->rho = TRho::make_shared(this, {"name"_ = name + "_rho"});
     sp->J = TJv::make_shared(this, {"name"_ = name + "_J"});
-    m_fluid_sp_.emplace(std::make_pair(name, sp));
+    m_fluid_sp_.emplace(name, sp);
     return sp;
 }
 
@@ -242,8 +242,7 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt) {
         c *= 0.5 * dt / epsilon0;
         a += 1;
 
-        dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-             (b * b * BB + a * a);
+        dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 
         for (auto& p : m_fluid_sp_) {
             Real ms = p.second->mass;

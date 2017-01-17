@@ -68,8 +68,7 @@ class FieldView<TM, TV, IFORM, DOF> {
     typedef typename mesh_type::entity_id entity_id;
 
     typedef std::conditional_t<DOF == 1, value_type, nTuple<value_type, DOF>> cell_tuple;
-    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple,
-                               nTuple<cell_tuple, 3>>
+    typedef std::conditional_t<(IFORM == VERTEX || IFORM == VOLUME), cell_tuple, nTuple<cell_tuple, 3>>
         field_value_type;
 
    private:
@@ -136,9 +135,7 @@ class FieldView<TM, TV, IFORM, DOF> {
     }
     virtual bool empty() const { return m_data_holder_ == nullptr && m_data_ == nullptr; }
 
-    virtual size_type size() const {
-        return (m_mesh_ == nullptr) ? 0UL : (m_mesh_->size(IFORM) * DOF);
-    }
+    virtual size_type size() const { return (m_mesh_ == nullptr) ? 0UL : (m_mesh_->size(IFORM) * DOF); }
 
     auto data_holder() { return m_data_holder_; }
     auto data_holder() const { return m_data_holder_; }
@@ -147,8 +144,7 @@ class FieldView<TM, TV, IFORM, DOF> {
     virtual value_type const* data() const { return m_data_; }
     virtual mesh_type const* mesh() const { return m_mesh_; }
 
-    virtual void accept(mesh_type const* m, value_type* d = nullptr,
-                        std::shared_ptr<value_type> h = nullptr) {
+    virtual void accept(mesh_type const* m, value_type* d = nullptr, std::shared_ptr<value_type> h = nullptr) {
         m_mesh_ = m;
         m_data_ = d;
         m_data_holder_ = h;
@@ -231,6 +227,8 @@ class FieldView<TM, TV, IFORM, DOF> {
 
     template <typename TOP, typename... Args>
     void apply_(Range<entity_id> const& r, TOP const& op, Args&&... args) {
+        ASSERT(m_mesh_ != nullptr);
+        ASSERT(!empty());
         for (int j = 0; j < DOF; ++j) {
             r.foreach ([&](entity_id s) {
                 s.w = j;
@@ -244,10 +242,12 @@ class FieldView<TM, TV, IFORM, DOF> {
     }
     template <typename... Args>
     void apply(Args&&... args) {
+        ASSERT(m_mesh_ != nullptr);
         apply_(m_mesh_->range(), std::forward<Args>(args)...);
     }
     template <typename Other>
     void assign(Other const& other) {
+        ASSERT(m_mesh_ != nullptr);
         apply_(m_mesh_->range(), tags::_assign(), other);
     }
     template <typename Other>

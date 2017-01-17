@@ -40,6 +40,7 @@ void Worker::accept(Patch *p) {
     //    auto id = m->id();
     //    m_chart_->move_to(p.mesh());
     //    for (auto &item:attributes()) { item->move_to(m, p.data(item->id())); }
+    ASSERT(m_chart_ != nullptr);
     m_chart_->accept(p);
     AttributeCollection::accept(p);
     pre_process();
