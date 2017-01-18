@@ -57,8 +57,7 @@ struct ArrayView : public concept::Printable {
     }
 
     template <typename... TID>
-    ArrayView(value_type* d, TID&&... idx)
-        : m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {
+    ArrayView(value_type* d, TID&&... idx) : m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {
         initialize(std::forward<TID>(idx)...);
     }
 
@@ -76,20 +75,15 @@ struct ArrayView : public concept::Printable {
         : ArrayView(other.m_data_holder_, other.m_dims_, other.m_lower_, other.m_upper_) {}
 
     ArrayView(this_type&& other)
-        : ArrayView(std::move(other.m_data_holder_), other.m_dims_, other.m_lower_,
-                    other.m_upper_) {}
+        : ArrayView(std::move(other.m_data_holder_), other.m_dims_, other.m_lower_, other.m_upper_) {}
 
     ArrayView(this_type& other, concept::tags::split const& s) : ArrayView(other.split(s)) {}
 
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
 
-    virtual void* data() { return reinterpret_cast<void*>(m_data_); }
+    std::shared_ptr<value_type>& data() { return m_data_holder_; }
 
-    virtual void const* data() const { return reinterpret_cast<void const*>(m_data_); }
-
-    std::shared_ptr<value_type>& data_holder() { return m_data_holder_; }
-
-    std::shared_ptr<value_type> const& data_holder() const { return m_data_holder_; }
+    std::shared_ptr<value_type> const& data() const { return m_data_holder_; }
 
     size_type const* dims() const { return m_dims_; }
 
@@ -179,8 +173,7 @@ struct ArrayView : public concept::Printable {
 
     template <typename... Others>
     size_type hash(index_type s, Others&&... others) const {
-        return (s - m_lower_[NDIMS - sizeof...(others)-1]) *
-                   m_strides_[NDIMS - sizeof...(others)-1] +
+        return (s - m_lower_[NDIMS - sizeof...(others)-1]) * m_strides_[NDIMS - sizeof...(others)-1] +
                hash(std::forward<Others>(others)...);
     }
 
@@ -246,9 +239,8 @@ struct ArrayView : public concept::Printable {
     template <typename TOP, typename... Others>
     void apply(TOP const& op, Others&&... others) {
         deploy();
-        traversal_nd(m_lower_, m_upper_, [&](index_type const* idx) {
-            op(at(idx), get_value(std::forward<Others>(others), idx)...);
-        });
+        traversal_nd(m_lower_, m_upper_,
+                     [&](index_type const* idx) { op(at(idx), get_value(std::forward<Others>(others), idx)...); });
     };
 
     template <typename TOP>
@@ -278,8 +270,7 @@ struct ArrayView : public concept::Printable {
             }
         }
         other.m_upper_[n] =
-            other.m_lower_[n] +
-            (other.m_upper_[n] - other.m_lower_[n]) * split.left() / (split.left() + split.right());
+            other.m_lower_[n] + (other.m_upper_[n] - other.m_lower_[n]) * split.left() / (split.left() + split.right());
         m_lower_[n] = other.m_upper_[n];
 
         return std::move(other);
@@ -291,23 +282,18 @@ struct ArrayView : public concept::Printable {
         return v;
     };
 
-    static constexpr decltype(auto) get_value(this_type& self, index_type const* s) {
-        return self.at(s);
-    };
+    static constexpr decltype(auto) get_value(this_type& self, index_type const* s) { return self.at(s); };
 
-    static constexpr decltype(auto) get_value(this_type const& self, index_type const* s) {
-        return self.at(s);
-    };
+    static constexpr decltype(auto) get_value(this_type const& self, index_type const* s) { return self.at(s); };
 
     template <typename T, typename I0>
-    static constexpr decltype(auto) get_value(
-        T& v, I0 const* s, ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
+    static constexpr decltype(auto) get_value(T& v, I0 const* s,
+                                              ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
         return ((get_value(v[*s], s + 1)));
     }
 
     template <typename T, typename I0>
-    static constexpr T& get_value(T& v, I0 const* s,
-                                  ENABLE_IF((!simpla::concept::is_indexable<T, I0>::value))) {
+    static constexpr T& get_value(T& v, I0 const* s, ENABLE_IF((!simpla::concept::is_indexable<T, I0>::value))) {
         return v;
     };
 
@@ -318,24 +304,21 @@ struct ArrayView : public concept::Printable {
     }
 
     template <typename TOP, typename... Others, typename... Idx>
-    static constexpr decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr,
-                                              Idx&&... s) {
+    static constexpr decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr, Idx&&... s) {
         return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
 
     template <typename TOP, typename... Others, int... index>
-    static decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr,
-                                         int_sequence<index...>, index_type const* s) {
+    static decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr, int_sequence<index...>,
+                                         index_type const* s) {
         return ((expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...)));
     }
 
     template <typename TOP, typename... Others>
-    static decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr,
-                                    index_type const* s) {
+    static decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr, index_type const* s) {
         return ((_invoke_helper(expr, int_sequence_for<Others...>(), s)));
     }
 };
-
 
 namespace declare {
 template <typename V, int NDIMS>
@@ -358,9 +341,7 @@ struct Array_ : public ArrayView<V, NDIMS> {
     using base_type::ndims;
     using base_type::at;
 
-    Array_<V, NDIMS> view(index_type const* il, index_type const* iu) {
-        return Array_<V, NDIMS>(*this, il, iu);
-    };
+    Array_<V, NDIMS> view(index_type const* il, index_type const* iu) { return Array_<V, NDIMS>(*this, il, iu); };
 
     Array_<const V, NDIMS> view(index_type const* il, index_type const* iu) const {
         return Array_<V, NDIMS>(*this, il, iu);

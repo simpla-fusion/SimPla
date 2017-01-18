@@ -22,21 +22,19 @@ class DataBlock;
  *   - $p$ is the projection
  *
  */
-class Chart : public concept::Printable, public concept::LifeControllable {
+class Chart : public concept::Printable, public concept::LifeControllable, public AttributeCollection {
    public:
     SP_OBJECT_BASE(Chart);
     typedef MeshEntityId entity_id;
 
     template <typename TV, int IFORM = VERTEX, int DOF = 1>
     using attribute = AttributeAdapter<
-        Array<TV, SIMPLA_MAXIMUM_DIMENSION +
-                      (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
+        Array<TV, SIMPLA_MAXIMUM_DIMENSION + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 
     Chart();
 
     template <typename... Args>
-    Chart(Args&&... args)
-        : m_mesh_block_(std::make_shared<MeshBlock>(std::forward<Args>(args)...)) {}
+    Chart(Args&&... args) : m_mesh_block_(std::make_shared<MeshBlock>(std::forward<Args>(args)...)) {}
 
     virtual ~Chart();
 

@@ -7,30 +7,23 @@
 #include <simpla/toolbox/Log.h>
 #include <typeindex>
 #include "Atlas.h"
+#include "Chart.h"
 #include "DataBlock.h"
 #include "MeshBlock.h"
-
 namespace simpla {
 namespace mesh {
 
-Attribute::Attribute(const std::shared_ptr<AttributeDesc> &desc,
-                     const std::shared_ptr<DataBlock> &d)
-    : m_desc_(desc), m_data_(d){};
-
-Attribute::Attribute(std::shared_ptr<AttributeDesc> const &desc, AttributeCollection *c)
-    : m_desc_(desc) {
-    if (c != nullptr) connect(c);
+Attribute::Attribute(Chart *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
+    : m_mesh_(m), m_desc_(desc), m_data_(d) {
+    ASSERT(m_mesh_ != nullptr);
+    connect(m_mesh_);
 };
 
 Attribute::~Attribute() { disconnect(); }
 
-void Attribute::accept(Patch *p) {
-    auto d = p->data(m_desc_->id());
+void Attribute::accept(Patch *p) { accept(p->data(m_desc_->id())); }
 
-    accept(p->mesh().get(), p->data(m_desc_->id()));
-}
-
-void Attribute::accept(MeshBlock const *m, std::shared_ptr<DataBlock> const &d) {
+void Attribute::accept(std::shared_ptr<DataBlock> const &d) {
     post_process();
     m_data_ = d;
 }
@@ -41,12 +34,6 @@ void Attribute::pre_process() {
     } else {
         concept::LifeControllable::pre_process();
     }
-
-    if (m_data_ == nullptr) { m_data_ = create_data_block(m_mesh_, nullptr); }
-
-    m_data_->pre_process();
-
-    ASSERT(m_data_ != nullptr);
 }
 
 void Attribute::post_process() {
@@ -61,13 +48,12 @@ void Attribute::post_process() {
 
 void Attribute::clear() {
     pre_process();
-    m_data_->clear();
+    if (m_data_ != nullptr) m_data_->clear();
 }
 
 std::ostream &AttributeDict::print(std::ostream &os, int indent) const {
     for (auto const &item : m_map_) {
-        os << std::setw(indent + 1) << " " << item.second->name() << " = {" << item.second << "},"
-           << std::endl;
+        os << std::setw(indent + 1) << " " << item.second->name() << " = {" << item.second << "}," << std::endl;
     }
     return os;
 };
@@ -115,8 +101,7 @@ std::shared_ptr<AttributeDesc> const &AttributeDict::get(std::string const &k) c
 
 std::shared_ptr<AttributeDesc> const &AttributeDict::get(id_type k) const { return m_map_.at(k); }
 
-AttributeCollection::AttributeCollection(std::shared_ptr<AttributeDict> const &dict)
-    : m_dict_(dict){};
+AttributeCollection::AttributeCollection(std::shared_ptr<AttributeDict> const &dict) : m_dict_(dict){};
 
 AttributeCollection::~AttributeCollection(){
 

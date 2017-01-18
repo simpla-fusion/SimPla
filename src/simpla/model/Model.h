@@ -65,15 +65,14 @@ class Model : public Object,
         return m_range_cache_.at(iform).at(tag);
     }
 
-    virtual Range<mesh::MeshEntityId> const &interface(size_type iform, int tag_in,
-                                                       int tag_out = VACUUME) const {
+    virtual Range<mesh::MeshEntityId> const &interface(size_type iform, int tag_in, int tag_out = VACUUME) const {
         return m_interface_cache_.at(iform).at(tag_in).at(tag_out);
     }
 
    private:
-    Chart::attribute<int, VERTEX, 9> m_tags_{this, {"name"_ = "tags", "INPUT"}};
+    Chart *m_chart_;
 
-    std::shared_ptr<Chart> m_chart_ = nullptr;
+    Chart::attribute<int, VERTEX, 9> m_tags_{m_chart_, {"name"_ = "tags", "INPUT"}};
 
     int m_g_obj_count_;
 

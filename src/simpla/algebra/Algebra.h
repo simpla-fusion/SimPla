@@ -96,8 +96,7 @@ struct field_value_type {
     typedef decltype(test<T>(0)) check_result;
 
    public:
-    typedef std::conditional_t<std::is_same<check_result, no>::value, value_type_t<T>, check_result>
-        type;
+    typedef std::conditional_t<std::is_same<check_result, no>::value, value_type_t<T>, check_result> type;
 };
 
 template <typename T>
@@ -119,14 +118,12 @@ struct is_array<First, Others...>
 
 template <typename First, typename... Others>
 struct is_nTuple<First, Others...>
-    : public std::integral_constant<bool,
-                                    (is_nTuple<First>::value &&
-                                     !(is_field<Others...>::value || is_array<Others...>::value)) ||
-                                        is_nTuple<Others...>::value> {};
+    : public std::integral_constant<bool, (is_nTuple<First>::value &&
+                                           !(is_field<Others...>::value || is_array<Others...>::value)) ||
+                                              is_nTuple<Others...>::value> {};
 
 template <typename T>
-struct is_primary_field
-    : public std::integral_constant<bool, is_field<T>::value && (!is_expression<T>::value)> {};
+struct is_primary_field : public std::integral_constant<bool, is_field<T>::value && (!is_expression<T>::value)> {};
 
 CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(dof, dof, 1)
 
@@ -195,13 +192,11 @@ template <typename...>
 struct is_scalar : public std::integral_constant<bool, false> {};
 
 template <typename T>
-struct is_scalar<T>
-    : public std::integral_constant<bool, std::is_arithmetic<std::decay_t<T>>::value ||
-                                              is_complex<std::decay_t<T>>::value> {};
+struct is_scalar<T> : public std::integral_constant<bool, std::is_arithmetic<std::decay_t<T>>::value ||
+                                                              is_complex<std::decay_t<T>>::value> {};
 template <typename First, typename... Others>
 struct is_scalar<First, Others...>
-    : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {
-};
+    : public std::integral_constant<bool, is_scalar<First>::value && is_scalar<Others...>::value> {};
 
 }  // namespace traits
 

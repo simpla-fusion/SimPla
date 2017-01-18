@@ -28,6 +28,8 @@ class EMFluid : public Worker {
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
+    mesh_type const* m_mesh_;
+
     explicit EMFluid() {}
 
     template <typename... Args>
@@ -66,19 +68,19 @@ class EMFluid : public Worker {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{this, {"name"_ = "rho0", "CHECK"}};
+    field_type<VERTEX> rho0{m_mesh_, {"name"_ = "rho0", "CHECK"}};
 
-    field_type<EDGE> E0{this, {"name"_ = "E0"}};
-    field_type<FACE> B0{this, {"name"_ = "B0", "CHECK"}};
-    field_type<VERTEX, 3> B0v{this, {"name"_ = "B0v"}};
-    field_type<VERTEX> BB{this, {"name"_ = "BB"}};
-    field_type<VERTEX, 3> Ev{this, {"name"_ = "Ev"}};
-    field_type<VERTEX, 3> Bv{this, {"name"_ = "Bv"}};
-    field_type<VERTEX, 3> dE{this, {"name"_ = "dE"}};
+    field_type<EDGE> E0{m_mesh_, {"name"_ = "E0"}};
+    field_type<FACE> B0{m_mesh_, {"name"_ = "B0", "CHECK"}};
+    field_type<VERTEX, 3> B0v{m_mesh_, {"name"_ = "B0v"}};
+    field_type<VERTEX> BB{m_mesh_, {"name"_ = "BB"}};
+    field_type<VERTEX, 3> Ev{m_mesh_, {"name"_ = "Ev"}};
+    field_type<VERTEX, 3> Bv{m_mesh_, {"name"_ = "Bv"}};
+    field_type<VERTEX, 3> dE{m_mesh_, {"name"_ = "dE"}};
 
-    field_type<FACE> B{this, {"name"_ = "B", "CHECK"}};
-    field_type<EDGE> E{this, {"name"_ = "E", "CHECK"}};
-    field_type<EDGE> J1{this, {"name"_ = "J1", "CHECK"}};
+    field_type<FACE> B{m_mesh_, {"name"_ = "B", "CHECK"}};
+    field_type<EDGE> E{m_mesh_, {"name"_ = "E", "CHECK"}};
+    field_type<EDGE> J1{m_mesh_, {"name"_ = "J1", "CHECK"}};
 
     struct fluid_s {
         Real mass;
@@ -121,8 +123,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::add_particle(std::stri
     auto sp = std::make_shared<fluid_s>();
     sp->mass = mass;
     sp->charge = charge;
-    sp->rho = TRho::make_shared(this, {"name"_ = name + "_rho"});
-    sp->J = TJv::make_shared(this, {"name"_ = name + "_J"});
+    sp->rho = TRho::make_shared(m_mesh_, {"name"_ = name + "_rho"});
+    sp->J = TJv::make_shared(m_mesh_, {"name"_ = name + "_J"});
     m_fluid_sp_.emplace(name, sp);
     return sp;
 }
@@ -202,12 +204,12 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt) {
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     set_physical_boundary_conditions_E(data_time);
     if (m_fluid_sp_.size() > 0) {
-        field_type<VERTEX, 3> Q{this};
-        field_type<VERTEX, 3> K{this};
+        field_type<VERTEX, 3> Q{m_mesh_};
+        field_type<VERTEX, 3> K{m_mesh_};
 
-        field_type<VERTEX> a{this};
-        field_type<VERTEX> b{this};
-        field_type<VERTEX> c{this};
+        field_type<VERTEX> a{m_mesh_};
+        field_type<VERTEX> b{m_mesh_};
+        field_type<VERTEX> c{m_mesh_};
 
         a.clear();
         b.clear();

@@ -50,11 +50,11 @@ struct CylindricalGeometry : public Chart {
 
     // Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF== 1) ? 0 : 1)>;
     // private:
-    attribute<Real, VERTEX, 3> m_vertics_{{"name"_ = "vertics", "COORDINATES"}};
-    attribute<Real, VOLUME, 9> m_volume_{{"name"_ = "volume", "NO_FILL"}};
-    attribute<Real, VOLUME, 9> m_dual_volume_{{"name"_ = "dual_volume", "NO_FILL"}};
-    attribute<Real, VOLUME, 9> m_inv_volume_{{"name"_ = "inv_volume", "NO_FILL"}};
-    attribute<Real, VOLUME, 9> m_inv_dual_volume_{{"name"_ = "inv_dual_volume", "NO_FILL"}};
+    attribute<Real, VERTEX, 3> m_vertics_{this, {"name"_ = "vertics", "COORDINATES"}};
+    attribute<Real, VOLUME, 9> m_volume_{this, {"name"_ = "volume", "NO_FILL"}};
+    attribute<Real, VOLUME, 9> m_dual_volume_{this, {"name"_ = "dual_volume", "NO_FILL"}};
+    attribute<Real, VOLUME, 9> m_inv_volume_{this, {"name"_ = "inv_volume", "NO_FILL"}};
+    attribute<Real, VOLUME, 9> m_inv_dual_volume_{this, {"name"_ = "inv_dual_volume", "NO_FILL"}};
 
    public:
     typedef mesh::MeshEntityIdCoder M;
@@ -102,32 +102,23 @@ struct CylindricalGeometry : public Chart {
         Real w6 = (1 - r) * s * t;
         Real w7 = r * s * t;
 
-        Real x = m_vertics_(i[0] /**/, i[1] /**/, i[2] /**/, 0) * w0 +
-                 m_vertics_(i[0] + 1, i[1] /**/, i[2] /**/, 0) * w1 +
-                 m_vertics_(i[0] /**/, i[1] + 1, i[2] /**/, 0) * w2 +
-                 m_vertics_(i[0] + 1, i[1] + 1, i[2] /**/, 0) * w3 +
-                 m_vertics_(i[0] /**/, i[1] /**/, i[2] + 1, 0) * w4 +
-                 m_vertics_(i[0] + 1, i[1] /**/, i[2] + 1, 0) * w5 +
-                 m_vertics_(i[0] /**/, i[1] + 1, i[2] + 1, 0) * w6 +
-                 m_vertics_(i[0] + 1, i[1] + 1, i[2] + 1, 0) * w7;
+        Real x =
+            m_vertics_(i[0] /**/, i[1] /**/, i[2] /**/, 0) * w0 + m_vertics_(i[0] + 1, i[1] /**/, i[2] /**/, 0) * w1 +
+            m_vertics_(i[0] /**/, i[1] + 1, i[2] /**/, 0) * w2 + m_vertics_(i[0] + 1, i[1] + 1, i[2] /**/, 0) * w3 +
+            m_vertics_(i[0] /**/, i[1] /**/, i[2] + 1, 0) * w4 + m_vertics_(i[0] + 1, i[1] /**/, i[2] + 1, 0) * w5 +
+            m_vertics_(i[0] /**/, i[1] + 1, i[2] + 1, 0) * w6 + m_vertics_(i[0] + 1, i[1] + 1, i[2] + 1, 0) * w7;
 
-        Real y = m_vertics_(i[0] /**/, i[1] /**/, i[2] /**/, 1) * w0 +
-                 m_vertics_(i[0] + 1, i[1] /**/, i[2] /**/, 1) * w1 +
-                 m_vertics_(i[0] /**/, i[1] + 1, i[2] /**/, 1) * w2 +
-                 m_vertics_(i[0] + 1, i[1] + 1, i[2] /**/, 1) * w3 +
-                 m_vertics_(i[0] /**/, i[1] /**/, i[2] + 1, 1) * w4 +
-                 m_vertics_(i[0] + 1, i[1] /**/, i[2] + 1, 1) * w5 +
-                 m_vertics_(i[0] /**/, i[1] + 1, i[2] + 1, 1) * w6 +
-                 m_vertics_(i[0] + 1, i[1] + 1, i[2] + 1, 1) * w7;
+        Real y =
+            m_vertics_(i[0] /**/, i[1] /**/, i[2] /**/, 1) * w0 + m_vertics_(i[0] + 1, i[1] /**/, i[2] /**/, 1) * w1 +
+            m_vertics_(i[0] /**/, i[1] + 1, i[2] /**/, 1) * w2 + m_vertics_(i[0] + 1, i[1] + 1, i[2] /**/, 1) * w3 +
+            m_vertics_(i[0] /**/, i[1] /**/, i[2] + 1, 1) * w4 + m_vertics_(i[0] + 1, i[1] /**/, i[2] + 1, 1) * w5 +
+            m_vertics_(i[0] /**/, i[1] + 1, i[2] + 1, 1) * w6 + m_vertics_(i[0] + 1, i[1] + 1, i[2] + 1, 1) * w7;
 
-        Real z = m_vertics_(i[0] /**/, i[1] /**/, i[2] /**/, 2) * w0 +
-                 m_vertics_(i[0] + 1, i[1] /**/, i[2] /**/, 2) * w1 +
-                 m_vertics_(i[0] /**/, i[1] + 1, i[2] /**/, 2) * w2 +
-                 m_vertics_(i[0] + 1, i[1] + 1, i[2] /**/, 2) * w3 +
-                 m_vertics_(i[0] /**/, i[1] /**/, i[2] + 1, 2) * w4 +
-                 m_vertics_(i[0] + 1, i[1] /**/, i[2] + 1, 2) * w5 +
-                 m_vertics_(i[0] /**/, i[1] + 1, i[2] + 1, 2) * w6 +
-                 m_vertics_(i[0] + 1, i[1] + 1, i[2] + 1, 2) * w7;
+        Real z =
+            m_vertics_(i[0] /**/, i[1] /**/, i[2] /**/, 2) * w0 + m_vertics_(i[0] + 1, i[1] /**/, i[2] /**/, 2) * w1 +
+            m_vertics_(i[0] /**/, i[1] + 1, i[2] /**/, 2) * w2 + m_vertics_(i[0] + 1, i[1] + 1, i[2] /**/, 2) * w3 +
+            m_vertics_(i[0] /**/, i[1] /**/, i[2] + 1, 2) * w4 + m_vertics_(i[0] + 1, i[1] /**/, i[2] + 1, 2) * w5 +
+            m_vertics_(i[0] /**/, i[1] + 1, i[2] + 1, 2) * w6 + m_vertics_(i[0] + 1, i[1] + 1, i[2] + 1, 2) * w7;
 
         return point_type{x, y, z};
     }

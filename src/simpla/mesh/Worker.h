@@ -36,8 +36,7 @@ class Worker : public Object,
                public concept::Printable,
                public concept::Serializable,
                public concept::Configurable,
-               public concept::LifeControllable,
-               public AttributeCollection {
+               public concept::LifeControllable {
    public:
     SP_OBJECT_HEAD(Worker, Object)
 
@@ -51,9 +50,7 @@ class Worker : public Object,
 
     virtual void save(data::DataTable *) const { UNIMPLEMENTED; }
 
-    virtual void chart(std::shared_ptr<Chart> const &c) { m_chart_ = c; };
-
-    virtual Chart const *chart() const { return m_chart_.get(); };
+    virtual Chart const *mesh() const { return m_chart_.get(); };
 
     virtual void accept(Patch *m);
 
@@ -79,7 +76,7 @@ class Worker : public Object,
     auto model() const { return m_model_; }
 
    private:
-    std::shared_ptr<Chart> m_chart_;
+    std::unique_ptr<Chart> m_chart_;
     std::shared_ptr<model::Model> m_model_;
 };
 }  // namespace mesh
