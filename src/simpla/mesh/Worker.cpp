@@ -11,7 +11,7 @@
 namespace simpla {
 namespace mesh {
 
-Worker::Worker() {}
+Worker::Worker(Mesh *m) : m_mesh_(m) {}
 
 Worker::~Worker(){};
 
@@ -51,16 +51,12 @@ void Worker::deploy() {
 }
 
 void Worker::destroy() {
-    m_mesh_.reset();
+    m_mesh_ = nullptr;
     concept::LifeControllable::destroy();
 }
 
 void Worker::pre_process() {
-    if (is_valid()) {
-        return;
-    } else {
-        concept::LifeControllable::pre_process();
-    }
+    if (!is_valid()) { concept::LifeControllable::pre_process(); }
     ASSERT(m_mesh_ != nullptr);
     m_mesh_->pre_process();
 }
@@ -68,11 +64,7 @@ void Worker::pre_process() {
 void Worker::post_process() {
     ASSERT(m_mesh_ != nullptr);
     m_mesh_->post_process();
-    if (!is_valid()) {
-        return;
-    } else {
-        concept::LifeControllable::post_process();
-    }
+    if (is_valid()) { concept::LifeControllable::post_process(); }
 }
 
 void Worker::initialize(Real data_time, Real dt) {

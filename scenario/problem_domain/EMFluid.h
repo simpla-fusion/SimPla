@@ -20,15 +20,15 @@ using namespace data;
 template <typename TM>
 class EMFluid : public mesh::Worker {
    public:
-    SP_OBJECT_BASE(EMFluid<TM>)
+    SP_OBJECT_HEAD(EMFluid<TM>, mesh::Worker)
     typedef TM mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
-    mesh_type* m_mesh_;
-
-    explicit EMFluid(mesh_type* m) : m_mesh_(m) {}
+    EMFluid(Mesh* m) : mesh::Worker(m) {}
 
     ~EMFluid() {}
+
+    using mesh::Worker::m_mesh_;
 
     virtual std::ostream& print(std::ostream& os, int indent = 1) const;
 
@@ -138,18 +138,18 @@ std::ostream& EMFluid<TM>::print(std::ostream& os, int indent) const {
 }
 
 template <typename TM>
-void EMFluid<TM>::deploy() {}
+void EMFluid<TM>::deploy() {
+    base_type::deploy();
+}
 
 template <typename TM>
-void EMFluid<TM>::destroy() {}
+void EMFluid<TM>::destroy() {
+    base_type::destroy();
+}
 
 template <typename TM>
 void EMFluid<TM>::pre_process() {
-    //    if (is_valid()) {
-    //        return;
-    //    } else {
-    //        base_type::pre_process();
-    //    }
+    if (!is_valid()) { base_type::pre_process(); }
     if (!E.is_valid()) E.clear();
     if (!B.is_valid()) B.clear();
     if (!B0.is_valid()) { B0.clear(); }
@@ -157,11 +157,7 @@ void EMFluid<TM>::pre_process() {
 
 template <typename TM>
 void EMFluid<TM>::post_process() {
-    //    if (!is_valid()) {
-    //        return;
-    //    } else {
-    //        base_type::post_process();
-    //    }
+    if (is_valid()) { base_type::post_process(); }
 }
 
 template <typename TM>
@@ -173,7 +169,7 @@ void EMFluid<TM>::initialize(Real data_time, Real dt) {
         B0v = map_to<VERTEX>(B0);
         BB = dot(B0v, B0v);
     }
-    //    base_type::initialize(data_time, 0);
+    base_type::initialize(data_time, 0);
 }
 
 template <typename TM>

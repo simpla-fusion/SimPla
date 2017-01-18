@@ -26,7 +26,7 @@ class DataBlock;
  *   - $p$ is the projection
  *
  */
-class Mesh : public concept::Printable, public concept::LifeControllable {
+class Mesh : public concept::Printable, public concept::LifeControllable, public std::enable_shared_from_this<Mesh> {
    public:
     SP_OBJECT_BASE(Mesh);
     typedef MeshEntityId entity_id;
@@ -90,17 +90,27 @@ class Mesh : public concept::Printable, public concept::LifeControllable {
         return m_mesh_block_->point(std::forward<Args>(args)...);
     }
 
-    simpla::model::Model& model() { return *m_model_; }
-    simpla::model::Model const& model() const { return *m_model_; }
+    simpla::model::Model& model() {
+        ASSERT(m_model_ != nullptr);
+        return *m_model_;
+    }
+    simpla::model::Model const& model() const {
+        ASSERT(m_model_ != nullptr);
+        return *m_model_;
+    }
 
     virtual void connect(Attribute* attr) { m_attrs_.insert(attr); };
     virtual void disconnect(Attribute* attr) { m_attrs_.erase(attr); }
     virtual void accept(Patch* p);
+    template <typename TFun>
+    void foreach_attr(TFun const& fun) {
+        for (auto attr : m_attrs_) { fun(attr); }
+    }
 
    protected:
-    std::shared_ptr<MeshBlock> m_mesh_block_;
-    std::shared_ptr<simpla::model::Model> m_model_;
+    std::unique_ptr<simpla::model::Model> m_model_;
     std::set<Attribute*> m_attrs_;
+    std::shared_ptr<MeshBlock> m_mesh_block_;
 };
 
 template <typename...>

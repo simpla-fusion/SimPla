@@ -2,14 +2,14 @@
 // Created by salmon on 16-11-24.
 //
 #include "Mesh.h"
-#include <simpla/mesh/Attribute.h>
-#include <simpla/mesh/MeshBlock.h>
+#include <simpla/model/Model.h>
+#include "Attribute.h"
+#include "MeshBlock.h"
 #include "Patch.h"
-
 namespace simpla {
 namespace mesh {
 
-Mesh::Mesh() {}
+Mesh::Mesh() : m_model_(nullptr) {}
 
 Mesh::~Mesh() {}
 
@@ -38,6 +38,7 @@ std::ostream &Mesh::print(std::ostream &os, int indent) const {
 };
 void Mesh::deploy() {
     if (m_mesh_block_ != nullptr) { m_mesh_block_->deploy(); }
+    if (m_model_ == nullptr) { m_model_ = std::make_unique<simpla::model::Model>(this); }
 };
 
 // bool Mesh::is_a(std::type_info const &info) const { return typeid(Mesh) == info; }

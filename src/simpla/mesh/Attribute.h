@@ -101,9 +101,9 @@ struct Attribute : public concept::Printable, public concept::LifeControllable {
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; };
 
-    virtual Mesh const *mesh() const { return m_mesh_; }
+    Mesh *mesh() { return m_mesh_; }
 
-    virtual Mesh *mesh() { return m_mesh_; }
+    Mesh const *mesh() const { return m_mesh_; }
 
     AttributeDesc const &description() const { return *m_desc_; }
 
@@ -139,11 +139,11 @@ class AttributeAdapter<U> : public Attribute, public U {
 
    public:
     template <typename... Args>
-    AttributeAdapter(mesh_type *c, Args &&... args)
-        : base_type(c, AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
+    AttributeAdapter(Mesh *m, Args &&... args)
+        : base_type(m, AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
 
-    AttributeAdapter(mesh_type *c, std::initializer_list<data::KeyValue> const &param)
-        : base_type(c, AttributeDesc::create<value_type, iform, dof>(param)) {}
+    AttributeAdapter(Mesh *m, std::initializer_list<data::KeyValue> const &param)
+        : base_type(m, AttributeDesc::create<value_type, iform, dof>(param)) {}
 
     AttributeAdapter(AttributeAdapter &&) = delete;
 
@@ -168,6 +168,7 @@ class AttributeAdapter<U> : public Attribute, public U {
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return U::print(os, indent); }
 
     virtual mesh_type *mesh() { return static_cast<mesh_type *>(Attribute::mesh()); };
+
     virtual mesh_type const *mesh() const { return static_cast<mesh_type const *>(Attribute::mesh()); };
 
     virtual std::shared_ptr<value_type> data() {

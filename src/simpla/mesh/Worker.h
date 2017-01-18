@@ -40,7 +40,7 @@ class Worker : public Object,
    public:
     SP_OBJECT_HEAD(Worker, Object)
 
-    Worker();
+    Worker(Mesh *);
 
     virtual ~Worker();
 
@@ -50,9 +50,9 @@ class Worker : public Object,
 
     virtual void save(data::DataTable *) const { UNIMPLEMENTED; }
 
-    virtual Mesh *mesh() { return m_mesh_.get(); };
+    virtual Mesh *mesh() { return m_mesh_; };
 
-    virtual Mesh const *mesh() const { return m_mesh_.get(); };
+    virtual Mesh const *mesh() const { return m_mesh_; };
 
     virtual void accept(Patch *m);
 
@@ -74,8 +74,7 @@ class Worker : public Object,
 
     virtual void set_physical_boundary_conditions(Real time){};
 
-   private:
-    std::unique_ptr<Mesh> m_mesh_;
+    Mesh *m_mesh_;
 };
 }  // namespace mesh
 }  // namespace simpla

@@ -19,7 +19,9 @@ Attribute::Attribute(Mesh *m, const std::shared_ptr<AttributeDesc> &desc, const 
     m_mesh_->connect(this);
 };
 
-Attribute::~Attribute() { m_mesh_->disconnect(this); }
+Attribute::~Attribute() {
+    if (m_mesh_ != nullptr) m_mesh_->disconnect(this);
+}
 
 void Attribute::accept(std::shared_ptr<DataBlock> const &d) {
     post_process();
@@ -98,9 +100,5 @@ std::shared_ptr<AttributeDesc> const &AttributeDict::get(std::string const &k) c
 }
 
 std::shared_ptr<AttributeDesc> const &AttributeDict::get(id_type k) const { return m_map_.at(k); }
-
-
-
-
 }
 }  // namespace simpla { namespace mesh

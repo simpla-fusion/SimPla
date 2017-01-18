@@ -477,7 +477,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     }
 
     //**************************************************************
-    m_worker_->foreach ([&](mesh::Attribute *attr) {
+    m_worker_->mesh()->foreach_attr([&](mesh::Attribute *attr) {
         if (attr == nullptr) { return; }
 
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, attr);
@@ -707,7 +707,7 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
 
     p->mesh(m);
 
-    w->foreach ([&](simpla::mesh::Attribute *attr) {
+    w->mesh()->foreach_attr([&](simpla::mesh::Attribute *attr) {
         if (attr == nullptr) { return; }
 
         p->data(attr->description().id(),

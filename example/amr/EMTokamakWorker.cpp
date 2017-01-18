@@ -20,9 +20,10 @@ using namespace mesh;
 // using namespace model;
 
 class EMTokamakWorker;
+std::shared_ptr<mesh::Mesh> create_mesh() { return std::make_shared<mesh::CylindricalGeometry>(); }
 
-std::shared_ptr<mesh::Worker> create_worker() {
-    return std::dynamic_pointer_cast<mesh::Worker>(std::make_shared<EMTokamakWorker>());
+std::shared_ptr<mesh::Worker> create_worker(Mesh *m) {
+    return std::dynamic_pointer_cast<mesh::Worker>(std::make_shared<EMTokamakWorker>(m));
 }
 
 class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
@@ -33,6 +34,8 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
     explicit EMTokamakWorker(Args &&... args) : base_type(std::forward<Args>(args)...) {}
 
     ~EMTokamakWorker() {}
+
+    using base_type::m_mesh_;
 
     virtual void deploy();
 
@@ -54,7 +57,7 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
 
     GEqdsk geqdsk;
 
-    field_type<VERTEX> psi{base_type::m_mesh_, {"name"_ = "psi"}};
+    field_type<VERTEX> psi{m_mesh_, {"name"_ = "psi"}};
 
     std::function<Vec3(point_type const &, Real)> J_src_fun;
 
@@ -78,19 +81,11 @@ void EMTokamakWorker::deploy() {
 };
 
 void EMTokamakWorker::pre_process() {
-    if (is_valid()) {
-        return;
-    } else {
-        base_type::pre_process();
-    }
+    if (!is_valid()) { base_type::pre_process(); }
 }
 
 void EMTokamakWorker::post_process() {
-    if (!is_valid()) {
-        return;
-    } else {
-        base_type::post_process();
-    }
+    if (is_valid()) { base_type::post_process(); }
 }
 
 void EMTokamakWorker::initialize(Real data_time) {

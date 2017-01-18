@@ -17,8 +17,9 @@ using namespace mesh;
 using namespace data;
 class GeoObject;
 
-class Model : public Object, public concept::Printable, public concept::Configurable, public concept::LifeControllable {
-    SP_OBJECT_HEAD(Model, Object)
+class Model : public concept::Printable, public concept::Configurable {
+    typedef Model this_type;
+
    public:
     enum MODEL_TAG { VACUUM = 1, PLASMA = 1 << 1, CUSTOM = 1 << 20 };
     typedef Mesh::entity_id entity_id;
