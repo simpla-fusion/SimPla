@@ -34,7 +34,7 @@ class DataBlock : public concept::Serializable, public concept::Printable, publi
 
     virtual void clear() = 0;
 
-    virtual void *data() = 0;
+    virtual void *raw_data() = 0;
     /**
      * concept::Serializable
      *    virtual void load(data::DataTable const &) =0;
@@ -59,6 +59,7 @@ class DataBlockAdapter;
 template <typename U>
 class DataBlockAdapter<U> : public DataBlock, public U {
     SP_OBJECT_HEAD(DataBlockAdapter<U>, DataBlock);
+    typedef algebra::traits::value_type_t<U> value_type;
 
    public:
     template <typename... Args>
@@ -83,7 +84,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
         os << "}";
         return os;
     }
-    virtual void *data() { return nullptr; };
+    void *raw_data() { return nullptr; };
 
     static std::shared_ptr<DataBlock> create(MeshBlock const *m, void *p) {
         return std::dynamic_pointer_cast<DataBlock>(std::make_shared<DataBlockAdapter<U>>());

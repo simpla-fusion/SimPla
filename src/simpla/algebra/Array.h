@@ -81,9 +81,9 @@ struct ArrayView : public concept::Printable {
 
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
 
-    std::shared_ptr<value_type>& data() { return m_data_holder_; }
+    virtual value_type* data() { return m_data_; }
 
-    std::shared_ptr<value_type> const& data() const { return m_data_holder_; }
+    virtual value_type const* data() const { return m_data_; }
 
     size_type const* dims() const { return m_dims_; }
 

@@ -125,6 +125,74 @@ struct Attribute : public concept::Printable, public concept::LifeControllable {
     std::shared_ptr<DataBlock> m_data_;
 };
 
+template <typename TV, int IFORM = VERTEX, int DOF = 1>
+struct DataAttribute : public Attribute,
+                       public Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)> {
+    typedef Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)> array_type;
+    typedef DataAttribute<TV, IFORM, DOF> data_attr_type;
+    SP_OBJECT_HEAD(data_attr_type, Attribute);
+    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, Mesh)
+    typedef TV value_type;
+    static constexpr int iform = IFORM;
+    static constexpr int dof = DOF;
+    typedef Mesh mesh_type;
+
+    template <typename... Args>
+    DataAttribute(Mesh *m, Args &&... args)
+        : base_type(m, AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
+
+    DataAttribute(Mesh *m, std::initializer_list<data::KeyValue> const &param)
+        : base_type(m, AttributeDesc::create<value_type, iform, dof>(param)) {}
+
+    DataAttribute(DataAttribute &&) = delete;
+
+    DataAttribute(DataAttribute const &) = delete;
+
+    virtual ~DataAttribute() {}
+
+    virtual std::shared_ptr<DataBlock> create_data_block(void *p = nullptr) const {
+        UNIMPLEMENTED;
+        return std::shared_ptr<DataBlock>(nullptr);
+    };
+
+    using array_type::operator=;
+    template <typename... Args>
+    static std::shared_ptr<this_type> make_shared(Args &&... args) {
+        return std::make_shared<this_type>(std::forward<Args>(args)...);
+    }
+
+    static std::shared_ptr<this_type> make_shared(Mesh *c, std::initializer_list<data::KeyValue> const &param) {
+        return std::make_shared<this_type>(c, param);
+    }
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return array_type::print(os, indent); }
+
+    //    virtual mesh_type *mesh() { return Attribute::mesh(); };
+    //
+    //    virtual mesh_type const *mesh() const { return Attribute::mesh(); };
+
+    virtual value_type *data() { return reinterpret_cast<value_type *>(Attribute::data_block()->raw_data()); }
+
+    virtual void deploy() {
+        Attribute::deploy();
+        array_type::deploy();
+    }
+
+    template <typename... Args>
+    static this_type create(Args &&... args) {
+        std::make_shared<this_type>(std::forward<Args>(args)...);
+    }
+
+    //    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m, void *p = nullptr) const {
+    //        return DataBlockAdapter<value_type>::create(m, static_cast<value_type *>(p));
+    //    };
+
+    virtual void clear() { array_type::clear(); }
+
+    virtual void pre_process() { Attribute::pre_process(); };
+
+    virtual void post_process() { Attribute::post_process(); }
+};
+
 template <typename...>
 class AttributeAdapter;
 
@@ -172,7 +240,7 @@ class AttributeAdapter<U> : public Attribute, public U {
     virtual mesh_type const *mesh() const { return static_cast<mesh_type const *>(Attribute::mesh()); };
 
     virtual std::shared_ptr<value_type> data() {
-        return std::shared_ptr<value_type>(reinterpret_cast<value_type *>(Attribute::data_block()->data()),
+        return std::shared_ptr<value_type>(reinterpret_cast<value_type *>(Attribute::data_block()->raw_data()),
                                            simpla::tags::do_nothing());
     }
 
@@ -197,8 +265,6 @@ class AttributeAdapter<U> : public Attribute, public U {
     virtual void post_process() { Attribute::post_process(); }
 };
 
-template <typename TV, int IFORM = VERTEX, int DOF = 1>
-using DataAttribute = AttributeAdapter<Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
 using FieldAttribute = AttributeAdapter<Field<TV, TM, IFORM, DOF>>;
 }
