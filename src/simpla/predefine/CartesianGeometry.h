@@ -13,11 +13,11 @@
 #include <iomanip>
 #include <vector>
 
-#include <simpla/mesh/Chart.h>
+#include <simpla/mesh/Mesh.h>
 #include <simpla/toolbox/MemoryPool.h>
 //#include <simpla/mesh/DataBlock.h>
 //#include <simpla/mesh/MeshBlock.h>
-//#include "simpla/mesh/Chart.h"
+//#include "simpla/mesh/Mesh.h"
 
 namespace simpla {
 namespace mesh {
@@ -28,9 +28,9 @@ namespace mesh {
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public Chart {
+struct CartesianGeometry : public Mesh {
    public:
-    SP_OBJECT_HEAD(CartesianGeometry, Chart)
+    SP_OBJECT_HEAD(CartesianGeometry, Mesh)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -71,7 +71,7 @@ struct CartesianGeometry : public Chart {
 
     CartesianGeometry(index_type const *lower, index_type const *upper, Real const *dx = nullptr,
                       Real const *origin = nullptr)
-        : Chart(3 /*NDIMS*/, lower, upper, dx, origin) {}
+        : Mesh(3 /*NDIMS*/, lower, upper, dx, origin) {}
 
     ~CartesianGeometry() {}
 
@@ -91,7 +91,7 @@ struct CartesianGeometry : public Chart {
     void apply(Args &&...) const {}
 
     void deploy() {
-        Chart::deploy();
+        Mesh::deploy();
         initialize(0, 0);
     };
 
@@ -100,9 +100,9 @@ struct CartesianGeometry : public Chart {
         return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)};
     }
 
-    virtual point_type point(MeshEntityId s) const { return Chart::point(s); }
+    virtual point_type point(MeshEntityId s) const { return Mesh::point(s); }
 
-    virtual point_type point(MeshEntityId s, point_type const &r) const { return Chart::point(s); };
+    virtual point_type point(MeshEntityId s, point_type const &r) const { return Mesh::point(s); };
 
     virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 

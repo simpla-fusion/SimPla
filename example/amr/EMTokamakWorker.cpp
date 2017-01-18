@@ -29,6 +29,11 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
    public:
     SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>);
 
+    template <typename... Args>
+    explicit EMTokamakWorker(Args &&... args) : base_type(std::forward<Args>(args)...) {}
+
+    ~EMTokamakWorker() {}
+
     virtual void deploy();
 
     virtual void pre_process();
@@ -49,7 +54,7 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
 
     GEqdsk geqdsk;
 
-    field_type<VERTEX> psi{this, {"name"_ = "psi"}};
+    field_type<VERTEX> psi{base_type::m_mesh_, {"name"_ = "psi"}};
 
     std::function<Vec3(point_type const &, Real)> J_src_fun;
 
@@ -59,8 +64,7 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
 void EMTokamakWorker::deploy() {
     base_type::deploy();
 
-    chart(std::make_shared<mesh_type>());
-    // first run, only load configure, m_chart_=nullptr
+    // first run, only load configure, m_mesh_=nullptr
     geqdsk.load(db.get_value("GEqdsk", "geqdsk.gfile"));
 
     db.as_table("Particles").foreach ([&](std::string const &key, data::DataEntity const &item) {
@@ -69,8 +73,8 @@ void EMTokamakWorker::deploy() {
 
     db.set_value("bound_box", geqdsk.box());
 
-    //    model()->add_object("VACUUM", geqdsk.limiter_gobj());
-    //    model()->add_object("PLASMA", geqdsk.boundary_gobj());
+    m_mesh_->model().add_object("VACUUM", geqdsk.limiter_gobj());
+    m_mesh_->model().add_object("PLASMA", geqdsk.boundary_gobj());
 };
 
 void EMTokamakWorker::pre_process() {
@@ -121,18 +125,18 @@ void EMTokamakWorker::next_time_step(Real data_time, Real dt) {
 void EMTokamakWorker::set_physical_boundary_conditions(Real data_time) {
     base_type::set_physical_boundary_conditions(data_time);
     if (J_src_fun) {
-        J1.assign(model()->select(EDGE, "J_SRC"), [&](point_type const &x) { return J_src_fun(x, data_time); });
+        J1.assign(m_mesh_->model().select(EDGE, "J_SRC"), [&](point_type const &x) { return J_src_fun(x, data_time); });
     }
     if (E_src_fun) {
-        E.assign(model()->select(EDGE, "E_SRC"), [&](point_type const &x) { return E_src_fun(x, data_time); });
+        E.assign(m_mesh_->model().select(EDGE, "E_SRC"), [&](point_type const &x) { return E_src_fun(x, data_time); });
     }
 };
 
 void EMTokamakWorker::set_physical_boundary_conditions_E(Real time) {
-    E.assign(model()->interface(EDGE, "PLASMA", "VACUUM"), 0);
+    E.assign(m_mesh_->model().interface(EDGE, "PLASMA", "VACUUM"), 0);
 }
 
 void EMTokamakWorker::set_physical_boundary_conditions_B(Real time) {
-    B.assign(model()->interface(FACE, "PLASMA", "VACUUM"), 0);
+    B.assign(m_mesh_->model().interface(FACE, "PLASMA", "VACUUM"), 0);
 }
 }

@@ -7,21 +7,19 @@
 #include <simpla/toolbox/Log.h>
 #include <typeindex>
 #include "Atlas.h"
-#include "Chart.h"
 #include "DataBlock.h"
+#include "Mesh.h"
 #include "MeshBlock.h"
 namespace simpla {
 namespace mesh {
 
-Attribute::Attribute(Chart *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
+Attribute::Attribute(Mesh *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
     : m_mesh_(m), m_desc_(desc), m_data_(d) {
     ASSERT(m_mesh_ != nullptr);
-    connect(m_mesh_);
+    m_mesh_->connect(this);
 };
 
-Attribute::~Attribute() { disconnect(); }
-
-void Attribute::accept(Patch *p) { accept(p->data(m_desc_->id())); }
+Attribute::~Attribute() { m_mesh_->disconnect(this); }
 
 void Attribute::accept(std::shared_ptr<DataBlock> const &d) {
     post_process();
@@ -101,14 +99,8 @@ std::shared_ptr<AttributeDesc> const &AttributeDict::get(std::string const &k) c
 
 std::shared_ptr<AttributeDesc> const &AttributeDict::get(id_type k) const { return m_map_.at(k); }
 
-AttributeCollection::AttributeCollection(std::shared_ptr<AttributeDict> const &dict) : m_dict_(dict){};
 
-AttributeCollection::~AttributeCollection(){
 
-};
 
-void AttributeCollection::connect(Attribute *attr) { base_type::connect(attr); };
-
-void AttributeCollection::disconnect(Attribute *attr) { base_type::disconnect(attr); };
 }
 }  // namespace simpla { namespace mesh

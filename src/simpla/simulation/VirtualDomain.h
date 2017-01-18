@@ -12,7 +12,7 @@ namespace parallel { struct DistributedObject; }
 
 namespace mesh
 {
-class Chart;
+class Mesh;
 
 class DataBlock;
 } //namespace get_mesh

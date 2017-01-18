@@ -13,7 +13,7 @@
 
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/Worker.h>
-#include <simpla/mesh/Chart.h>
+#include <simpla/mesh/Mesh.h>
 #include <simpla/manifold/CartesianGeometry.h>
 #include <simpla/manifold/CylindricalGeometry.h>
 #include <simpla/algebra/Field.h>
@@ -35,7 +35,7 @@ struct AMRTest : public mesh::Worker
 
     ~AMRTest() {}
 
-    mesh::Chart<TM> m_chart;
+    mesh::Mesh<TM> m_chart;
 
     template<typename TV, mesh::MeshEntityType IFORM, size_type DOF = 1>
     using field_type=Field<TV, TM, int_const<IFORM>, int_const<DOF>>;

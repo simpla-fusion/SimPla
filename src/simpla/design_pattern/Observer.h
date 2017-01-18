@@ -65,6 +65,7 @@ struct Observable
 
 
     virtual void connect(observer_type *observer) { m_observers_.insert(observer); };
+    virtual void disconnect(observer_type *observer) { m_observers_.erase(observer); }
 
     template<typename T, typename ...Args>
     typename std::enable_if<std::is_polymorphic<observer_type>::value,
@@ -79,7 +80,6 @@ struct Observable
     };
 
 
-    virtual void disconnect(observer_type *observer) { m_observers_.erase(observer); }
 
     virtual void foreach(std::function<void(observer_type &)> const &fun)
     {

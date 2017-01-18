@@ -22,14 +22,14 @@
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/model/Model.h>
 
-#include "Chart.h"
+#include "Mesh.h"
 
 namespace simpla {
 namespace mesh {
 struct MeshBlock;
 struct DataBlock;
 
-struct Chart;
+struct Mesh;
 struct Patch;
 
 class Worker : public Object,
@@ -50,7 +50,9 @@ class Worker : public Object,
 
     virtual void save(data::DataTable *) const { UNIMPLEMENTED; }
 
-    virtual Chart const *mesh() const { return m_chart_.get(); };
+    virtual Mesh *mesh() { return m_mesh_.get(); };
+
+    virtual Mesh const *mesh() const { return m_mesh_.get(); };
 
     virtual void accept(Patch *m);
 
@@ -72,12 +74,8 @@ class Worker : public Object,
 
     virtual void set_physical_boundary_conditions(Real time){};
 
-    auto model() { return m_model_; }
-    auto model() const { return m_model_; }
-
    private:
-    std::unique_ptr<Chart> m_chart_;
-    std::shared_ptr<model::Model> m_model_;
+    std::unique_ptr<Mesh> m_mesh_;
 };
 }  // namespace mesh
 }  // namespace simpla

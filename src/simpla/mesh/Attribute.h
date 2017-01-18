@@ -13,17 +13,13 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/data/all.h>
-#include <simpla/design_pattern/Observer.h>
 #include "DataBlock.h"
 
 namespace simpla {
 namespace mesh {
-class Patch;
-class Chart;
-class Attribute;
-class AttributeCollection;
+class Mesh;
 
-struct AttributeDesc : public concept::Configurable, public Object, std::enable_shared_from_this<AttributeDesc> {
+struct AttributeDesc : public Object, public concept::Configurable, public concept::Printable {
     AttributeDesc() : m_value_type_index_(std::type_index(typeid(Real))), m_iform_(VERTEX), m_dof_(1) { deploy(); }
 
     AttributeDesc(AttributeDesc const &other) = delete;
@@ -91,13 +87,11 @@ class AttributeDict : public concept::Printable {
     std::map<id_type, std::shared_ptr<AttributeDesc>> m_map_;
 };
 
-struct Attribute : public concept::Printable,
-                   public concept::LifeControllable,
-                   public design_pattern::Observer<void(Patch *)> {
+struct Attribute : public concept::Printable, public concept::LifeControllable {
    public:
     SP_OBJECT_BASE(Attribute);
 
-    Attribute(Chart *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d = nullptr);
+    Attribute(Mesh *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d = nullptr);
 
     Attribute(Attribute const &other) = delete;
 
@@ -107,17 +101,15 @@ struct Attribute : public concept::Printable,
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; };
 
-    virtual Chart const *mesh() const { return m_mesh_; }
+    virtual Mesh const *mesh() const { return m_mesh_; }
 
-    virtual Chart *mesh() { return m_mesh_; }
+    virtual Mesh *mesh() { return m_mesh_; }
 
     AttributeDesc const &description() const { return *m_desc_; }
 
     std::shared_ptr<DataBlock> const &data_block() const { return m_data_; }
 
     std::shared_ptr<DataBlock> &data_block() { return m_data_; }
-
-    void accept(Patch *p);
 
     void accept(std::shared_ptr<DataBlock> const &d);
 
@@ -128,33 +120,9 @@ struct Attribute : public concept::Printable,
     virtual void clear();
 
    private:
-    Chart *m_mesh_;
+    Mesh *m_mesh_;
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
-};
-
-class AttributeCollection : public design_pattern::Observable<void(Patch *)> {
-    typedef design_pattern::Observable<void(Patch *)> base_type;
-
-   public:
-    AttributeCollection(std::shared_ptr<AttributeDict> const &p = nullptr);
-
-    virtual ~AttributeCollection();
-
-    virtual void connect(Attribute *observer);
-
-    virtual void disconnect(Attribute *observer);
-
-    virtual void accept(Patch *p) { base_type::accept(p); }
-
-    template <typename TF>
-    void foreach (TF const &fun) {
-        design_pattern::Observable<void(Patch *)>::foreach (
-            [&](observer_type &obj) { fun(static_cast<Attribute *>(&obj)); });
-    }
-
-   private:
-    std::shared_ptr<AttributeDict> m_dict_;
 };
 
 template <typename...>
@@ -163,11 +131,11 @@ class AttributeAdapter;
 template <typename U>
 class AttributeAdapter<U> : public Attribute, public U {
     SP_OBJECT_HEAD(AttributeAdapter<U>, Attribute);
-    CHOICE_TYPE_WITH_TYPE_MEMBER(check_mesh_type, mesh_type, Chart)
+    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, Mesh)
     typedef algebra::traits::value_type_t<U> value_type;
     static constexpr int iform = algebra::traits::iform<U>::value;
     static constexpr int dof = algebra::traits::dof<U>::value;
-    typedef check_mesh_type_t<U> mesh_type;
+    typedef mesh_traits_t<U> mesh_type;
 
    public:
     template <typename... Args>
@@ -194,14 +162,14 @@ class AttributeAdapter<U> : public Attribute, public U {
         return std::make_shared<this_type>(std::forward<Args>(args)...);
     }
 
-    static std::shared_ptr<this_type> make_shared(AttributeCollection *c,
-                                                  std::initializer_list<data::KeyValue> const &param) {
+    static std::shared_ptr<this_type> make_shared(Mesh *c, std::initializer_list<data::KeyValue> const &param) {
         return std::make_shared<this_type>(c, param);
     }
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return U::print(os, indent); }
 
     virtual mesh_type *mesh() { return static_cast<mesh_type *>(Attribute::mesh()); };
     virtual mesh_type const *mesh() const { return static_cast<mesh_type const *>(Attribute::mesh()); };
+
     virtual std::shared_ptr<value_type> data() {
         return std::shared_ptr<value_type>(reinterpret_cast<value_type *>(Attribute::data_block()->data()),
                                            simpla::tags::do_nothing());
@@ -227,9 +195,9 @@ class AttributeAdapter<U> : public Attribute, public U {
 
     virtual void post_process() { Attribute::post_process(); }
 };
-//
+
 template <typename TV, int IFORM = VERTEX, int DOF = 1>
-using ArrayAttribute = AttributeAdapter<Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
+using DataAttribute = AttributeAdapter<Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
 using FieldAttribute = AttributeAdapter<Field<TV, TM, IFORM, DOF>>;
 }

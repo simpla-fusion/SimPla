@@ -22,12 +22,12 @@ std::ostream &Worker::print(std::ostream &os, int indent) const {
     os << std::setw(indent + 1) << " "
        << "Config = {" << db << "}" << std::endl;
 
-    if (m_chart_ != nullptr) {
+    if (m_mesh_ != nullptr) {
         os << std::setw(indent + 1) << " "
-           << "Chart = " << std::endl
+           << "Mesh = " << std::endl
            << std::setw(indent + 1) << " "
            << "{ " << std::endl;
-        m_chart_->print(os, indent + 1);
+        m_mesh_->print(os, indent + 1);
         os << std::setw(indent + 1) << " "
            << "}," << std::endl;
     }
@@ -38,20 +38,20 @@ void Worker::accept(Patch *p) {
     post_process();
     //    auto m = p.mesh();
     //    auto id = m->id();
-    //    m_chart_->move_to(p.mesh());
+    //    m_mesh_->move_to(p.mesh());
     //    for (auto &item:attributes()) { item->move_to(m, p.data(item->id())); }
-    ASSERT(m_chart_ != nullptr);
-    m_chart_->accept(p);
+    ASSERT(m_mesh_ != nullptr);
+    m_mesh_->accept(p);
     pre_process();
 }
 
 void Worker::deploy() {
     concept::LifeControllable::deploy();
-    if (m_chart_ != nullptr) m_chart_->deploy();
+    if (m_mesh_ != nullptr) m_mesh_->deploy();
 }
 
 void Worker::destroy() {
-    m_chart_.reset();
+    m_mesh_.reset();
     concept::LifeControllable::destroy();
 }
 
@@ -61,13 +61,13 @@ void Worker::pre_process() {
     } else {
         concept::LifeControllable::pre_process();
     }
-    ASSERT(m_chart_ != nullptr);
-    m_chart_->pre_process();
+    ASSERT(m_mesh_ != nullptr);
+    m_mesh_->pre_process();
 }
 
 void Worker::post_process() {
-    ASSERT(m_chart_ != nullptr);
-    m_chart_->post_process();
+    ASSERT(m_mesh_ != nullptr);
+    m_mesh_->post_process();
     if (!is_valid()) {
         return;
     } else {
@@ -77,12 +77,12 @@ void Worker::post_process() {
 
 void Worker::initialize(Real data_time, Real dt) {
     pre_process();
-    ASSERT(m_chart_ != nullptr);
-    m_chart_->initialize(data_time, dt);
+    ASSERT(m_mesh_ != nullptr);
+    m_mesh_->initialize(data_time, dt);
 }
 
 void Worker::finalize(Real data_time, Real dt) {
-    m_chart_->finalize(data_time, dt);
+    m_mesh_->finalize(data_time, dt);
     post_process();
 }
 

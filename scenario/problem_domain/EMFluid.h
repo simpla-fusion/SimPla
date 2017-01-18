@@ -9,11 +9,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/Calculus.h>
-#include <simpla/algebra/Field.h>
 #include <simpla/algebra/all.h>
-#include <simpla/mesh/Chart.h>
-#include <simpla/mesh/EntityId.h>
-#include <simpla/mesh/Worker.h>
 #include <simpla/physics/PhysicalConstants.h>
 
 namespace simpla {
@@ -22,18 +18,15 @@ using namespace algebra;
 using namespace data;
 
 template <typename TM>
-class EMFluid : public Worker {
+class EMFluid : public mesh::Worker {
    public:
-    SP_OBJECT_HEAD(EMFluid<TM>, Worker);
+    SP_OBJECT_BASE(EMFluid<TM>)
     typedef TM mesh_type;
-    typedef typename mesh_type::scalar_type scalar_type;
+    typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
-    mesh_type const* m_mesh_;
+    mesh_type* m_mesh_;
 
-    explicit EMFluid() {}
-
-    template <typename... Args>
-    explicit EMFluid(Args&&... args) : Worker(std::forward<Args>(args)...) {}
+    explicit EMFluid(mesh_type* m) : m_mesh_(m) {}
 
     ~EMFluid() {}
 
@@ -131,8 +124,6 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::add_particle(std::stri
 
 template <typename TM>
 std::ostream& EMFluid<TM>::print(std::ostream& os, int indent) const {
-    Worker::print(os, indent);
-
     os << std::setw(indent + 1) << " "
        << "ParticleAttribute=  " << std::endl
        << std::setw(indent + 1) << " "
@@ -147,22 +138,18 @@ std::ostream& EMFluid<TM>::print(std::ostream& os, int indent) const {
 }
 
 template <typename TM>
-void EMFluid<TM>::deploy() {
-    base_type::deploy();
-}
+void EMFluid<TM>::deploy() {}
 
 template <typename TM>
-void EMFluid<TM>::destroy() {
-    base_type::destroy();
-}
+void EMFluid<TM>::destroy() {}
 
 template <typename TM>
 void EMFluid<TM>::pre_process() {
-    if (is_valid()) {
-        return;
-    } else {
-        base_type::pre_process();
-    }
+    //    if (is_valid()) {
+    //        return;
+    //    } else {
+    //        base_type::pre_process();
+    //    }
     if (!E.is_valid()) E.clear();
     if (!B.is_valid()) B.clear();
     if (!B0.is_valid()) { B0.clear(); }
@@ -170,11 +157,11 @@ void EMFluid<TM>::pre_process() {
 
 template <typename TM>
 void EMFluid<TM>::post_process() {
-    if (!is_valid()) {
-        return;
-    } else {
-        base_type::post_process();
-    }
+    //    if (!is_valid()) {
+    //        return;
+    //    } else {
+    //        base_type::post_process();
+    //    }
 }
 
 template <typename TM>
@@ -186,7 +173,7 @@ void EMFluid<TM>::initialize(Real data_time, Real dt) {
         B0v = map_to<VERTEX>(B0);
         BB = dot(B0v, B0v);
     }
-    base_type::initialize(data_time, 0);
+    //    base_type::initialize(data_time, 0);
 }
 
 template <typename TM>

@@ -1,7 +1,7 @@
 //
 // Created by salmon on 16-11-24.
 //
-#include "Chart.h"
+#include "Mesh.h"
 #include <simpla/mesh/Attribute.h>
 #include <simpla/mesh/MeshBlock.h>
 #include "Patch.h"
@@ -9,11 +9,11 @@
 namespace simpla {
 namespace mesh {
 
-Chart::Chart() {}
+Mesh::Mesh() {}
 
-Chart::~Chart() {}
+Mesh::~Mesh() {}
 
-std::ostream &Chart::print(std::ostream &os, int indent) const {
+std::ostream &Mesh::print(std::ostream &os, int indent) const {
     os << std::setw(indent + 1) << " "
        << "Mesh = { ";
     os << "Type = \"" << get_class_name() << "\",";
@@ -36,24 +36,25 @@ std::ostream &Chart::print(std::ostream &os, int indent) const {
 
     return os;
 };
-void Chart::deploy() {
+void Mesh::deploy() {
     if (m_mesh_block_ != nullptr) { m_mesh_block_->deploy(); }
 };
 
-// bool Chart::is_a(std::type_info const &info) const { return typeid(Chart) == info; }
+// bool Mesh::is_a(std::type_info const &info) const { return typeid(Mesh) == info; }
 
-void Chart::accept(Patch *p) {
+void Mesh::accept(Patch *p) {
     post_process();
     m_mesh_block_ = p->mesh();
+    for (auto attr : m_attrs_) { attr->accept(p->data(attr->description().id())); }
     pre_process();
 };
 
-void Chart::initialize(Real data_time, Real dt) { pre_process(); }
+void Mesh::initialize(Real data_time, Real dt) { pre_process(); }
 
-void Chart::finalize(Real data_time, Real dt) { post_process(); }
+void Mesh::finalize(Real data_time, Real dt) { post_process(); }
 
-void Chart::pre_process() { ASSERT(m_mesh_block_ != nullptr); }
+void Mesh::pre_process() { ASSERT(m_mesh_block_ != nullptr); }
 
-void Chart::post_process() { m_mesh_block_.reset(); }
+void Mesh::post_process() { m_mesh_block_.reset(); }
 }
 }  // namespace simpla {namespace mesh

@@ -19,7 +19,7 @@
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/FancyStream.h>
 #include <simpla/toolbox/Log.h>
-#include "simpla/mesh/Chart.h"
+#include "simpla/mesh/Mesh.h"
 
 namespace simpla {
 namespace mesh {
@@ -30,9 +30,9 @@ using namespace data;
  * @brief Uniform structured get_mesh
  */
 
-struct CylindricalGeometry : public Chart {
+struct CylindricalGeometry : public Mesh {
    public:
-    SP_OBJECT_HEAD(CylindricalGeometry, Chart)
+    SP_OBJECT_HEAD(CylindricalGeometry, Mesh)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -45,16 +45,12 @@ struct CylindricalGeometry : public Chart {
 
     virtual ~CylindricalGeometry() {}
 
-    template <typename TV, int IFORM, int DOF>
-    using attribute = ArrayAttribute<TV, IFORM, DOF>;
-
-    // Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF== 1) ? 0 : 1)>;
-    // private:
-    attribute<Real, VERTEX, 3> m_vertics_{this, {"name"_ = "vertics", "COORDINATES"}};
-    attribute<Real, VOLUME, 9> m_volume_{this, {"name"_ = "volume", "NO_FILL"}};
-    attribute<Real, VOLUME, 9> m_dual_volume_{this, {"name"_ = "dual_volume", "NO_FILL"}};
-    attribute<Real, VOLUME, 9> m_inv_volume_{this, {"name"_ = "inv_volume", "NO_FILL"}};
-    attribute<Real, VOLUME, 9> m_inv_dual_volume_{this, {"name"_ = "inv_dual_volume", "NO_FILL"}};
+   private:
+    DataAttribute<Real, VERTEX, 3> m_vertics_{this, {"name"_ = "vertics", "COORDINATES"}};
+    DataAttribute<Real, VOLUME, 9> m_volume_{this, {"name"_ = "volume", "NO_FILL"}};
+    DataAttribute<Real, VOLUME, 9> m_dual_volume_{this, {"name"_ = "dual_volume", "NO_FILL"}};
+    DataAttribute<Real, VOLUME, 9> m_inv_volume_{this, {"name"_ = "inv_volume", "NO_FILL"}};
+    DataAttribute<Real, VOLUME, 9> m_inv_dual_volume_{this, {"name"_ = "inv_dual_volume", "NO_FILL"}};
 
    public:
     typedef mesh::MeshEntityIdCoder M;

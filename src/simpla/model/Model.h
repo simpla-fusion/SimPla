@@ -7,7 +7,8 @@
 
 #include <simpla/concept/Configurable.h>
 #include <simpla/mesh/Attribute.h>
-#include <simpla/mesh/Chart.h>
+#include <simpla/mesh/EntityId.h>
+#include <simpla/mesh/Mesh.h>
 #include "geometry/GeoObject.h"
 
 namespace simpla {
@@ -16,18 +17,12 @@ using namespace mesh;
 using namespace data;
 class GeoObject;
 
-class Model : public Object,
-              public concept::Printable,
-              public concept::Configurable,
-              public concept::LifeControllable,
-              public mesh::AttributeCollection {
-   public:
-    enum MODEL_TAG { VACUUME = 1, PLASMA = 1 << 1, CUSTOM = 1 << 20 };
-
+class Model : public Object, public concept::Printable, public concept::Configurable, public concept::LifeControllable {
     SP_OBJECT_HEAD(Model, Object)
-
-    Model();
-
+   public:
+    enum MODEL_TAG { VACUUM = 1, PLASMA = 1 << 1, CUSTOM = 1 << 20 };
+    typedef Mesh::entity_id entity_id;
+    Model(Mesh *m);
     virtual ~Model();
 
     virtual void add_object(std::string const &name, std::shared_ptr<geometry::GeoObject> const &);
@@ -52,27 +47,24 @@ class Model : public Object,
 
     virtual void post_process();
 
-    virtual Range<mesh::MeshEntityId> const &select(size_type iform, int tag);
+    Range<entity_id> const &select(int iform, int tag);
 
-    virtual Range<mesh::MeshEntityId> const &select(size_type iform, std::string const &tag);
+    Range<entity_id> const &select(int iform, std::string const &tag);
 
-    virtual Range<mesh::MeshEntityId> const &interface(size_type iform, const std::string &tag_in,
-                                                       const std::string &tag_out = "VACUUME");
+    Range<entity_id> const &interface(int iform, const std::string &tag_in, const std::string &tag_out = "VACUUM");
 
-    Range<mesh::MeshEntityId> const &interface(size_type iform, int tag_in, int tag_out);
+    Range<entity_id> const &interface(int iform, int tag_in, int tag_out);
 
-    virtual Range<mesh::MeshEntityId> const &select(size_type iform, int tag) const {
-        return m_range_cache_.at(iform).at(tag);
-    }
+    Range<entity_id> const &select(int iform, int tag) const { return m_range_cache_.at(iform).at(tag); }
 
-    virtual Range<mesh::MeshEntityId> const &interface(size_type iform, int tag_in, int tag_out = VACUUME) const {
+    Range<entity_id> const &interface(int iform, int tag_in, int tag_out = VACUUM) const {
         return m_interface_cache_.at(iform).at(tag_in).at(tag_out);
     }
 
    private:
-    Chart *m_chart_;
+    Mesh *m_mesh_;
 
-    Chart::attribute<int, VERTEX, 9> m_tags_{m_chart_, {"name"_ = "tags", "INPUT"}};
+    DataAttribute<int, VERTEX, 9> m_tags_{m_mesh_, {"name"_ = "tags", "INPUT"}};
 
     int m_g_obj_count_;
 
@@ -80,9 +72,9 @@ class Model : public Object,
 
     std::multimap<int, std::shared_ptr<geometry::GeoObject>> m_g_obj_;
 
-    std::map<id_type, std::map<int, Range<mesh::MeshEntityId>>> m_range_cache_;
+    std::map<int, std::map<int, Range<entity_id>>> m_range_cache_;
 
-    std::map<id_type, std::map<int, std::map<int, Range<mesh::MeshEntityId>>>> m_interface_cache_;
+    std::map<int, std::map<int, std::map<int, Range<entity_id>>>> m_interface_cache_;
 };
 }
 }  // namespace simpla{namespace model{

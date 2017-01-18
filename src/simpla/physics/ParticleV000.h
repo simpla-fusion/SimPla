@@ -74,7 +74,7 @@ public:
     {
     }
 
-    Particle(mesh::Chart const *m)
+    Particle(mesh::Mesh const *m)
             : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const *>(m)),
               m_data_(nullptr), m_properties_(new Properties), MeshAttribute(nullptr), MeshAttribute(nullptr)
     {
@@ -136,9 +136,9 @@ public:
         std::swap(m_properties_, other.m_properties_);
     }
 
-    virtual mesh::Chart const *get_mesh() const { return dynamic_cast<mesh::Chart const *>(m_mesh_); };
+    virtual mesh::Mesh const *get_mesh() const { return dynamic_cast<mesh::Mesh const *>(m_mesh_); };
 
-    virtual bool set_mesh(mesh::Chart const *m)
+    virtual bool set_mesh(mesh::Mesh const *m)
     {
         UNIMPLEMENTED;
         assert(m->is_a<mesh_type>());
