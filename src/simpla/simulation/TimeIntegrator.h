@@ -41,19 +41,19 @@ public:
 
     virtual void Save(data::DataTable *) const { UNIMPLEMENTED; };
 
-    virtual void update_level(int l0, int l1) { UNIMPLEMENTED; };
+    virtual void UpdateLevel(int l0, int l1) { UNIMPLEMENTED; };
 
-    virtual void advance(Real dt, int level = 0) { UNIMPLEMENTED; };
+    virtual void Advance(Real dt, int level = 0) { UNIMPLEMENTED; };
 
-    virtual size_type next_step(Real dt) { UNIMPLEMENTED; return 0;};
+    virtual size_type NextTimeStep(Real dt) { UNIMPLEMENTED; return 0;};
 
-    virtual void check_point() {};
+    virtual void CheckPoint() {};
 
     virtual size_type step() const { return 0; };
 
-    virtual bool remaining_steps() const { return 0; };
+    virtual bool remainingSteps() const { return 0; };
 
-    virtual Real time_now() const { return 0.0; }
+    virtual Real timeNow() const { return 0.0; }
 
 
 private:

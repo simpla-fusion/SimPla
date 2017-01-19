@@ -655,7 +655,7 @@ int main(int argc, char **argv)
 
     int num_of_steps = options["number_of_steps"].as<int>(20);
 
-    int check_point = options["check_point"].as<int>(1);
+    int check_point = options["CheckPoint"].as<int>(1);
 
     try
     {

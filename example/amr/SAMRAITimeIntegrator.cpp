@@ -884,13 +884,13 @@ struct SAMRAITimeIntegrator : public simulation::TimeIntegrator {
 
     virtual size_type step() const;
 
-    virtual bool remaining_steps() const;
+    virtual bool remainingSteps() const;
 
-    virtual Real time_now() const;
+    virtual Real timeNow() const;
 
-    virtual size_type next_step(Real dt_now);
+    virtual size_type NextTimeStep(Real dt_now);
 
-    virtual void check_point();
+    virtual void CheckPoint();
 
    private:
     bool m_is_valid_ = false;
@@ -1105,10 +1105,10 @@ void SAMRAITimeIntegrator::tear_down() {
 
 bool SAMRAITimeIntegrator::is_valid() const { return m_is_valid_; }
 
-size_type SAMRAITimeIntegrator::next_step(Real dt) {
+size_type SAMRAITimeIntegrator::NextTimeStep(Real dt) {
     assert(is_valid());
 
-    MESSAGE << " Time = " << time_now() << " Step = " << step() << std::endl;
+    MESSAGE << " Time = " << timeNow() << " Step = " << step() << std::endl;
     Real loop_time = time_integrator->getIntegratorTime();
     Real loop_time_end = loop_time + dt;
 
@@ -1122,18 +1122,18 @@ size_type SAMRAITimeIntegrator::next_step(Real dt) {
     return 0;
 }
 
-void SAMRAITimeIntegrator::check_point() {
+void SAMRAITimeIntegrator::CheckPoint() {
     if (visit_data_writer != nullptr) {
         visit_data_writer->writePlotData(patch_hierarchy, time_integrator->getIntegratorStep(),
                                          time_integrator->getIntegratorTime());
     }
 }
 
-Real SAMRAITimeIntegrator::time_now() const { return static_cast<Real>(time_integrator->getIntegratorTime()); }
+Real SAMRAITimeIntegrator::timeNow() const { return static_cast<Real>(time_integrator->getIntegratorTime()); }
 
 size_type SAMRAITimeIntegrator::step() const { return static_cast<size_type>(time_integrator->getIntegratorStep()); }
 
-bool SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->stepsRemaining(); }
+bool SAMRAITimeIntegrator::remainingSteps() const { return time_integrator->stepsRemaining(); }
 }  // namespace simpla
 
 // namespace simpla

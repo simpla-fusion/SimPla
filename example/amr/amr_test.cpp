@@ -63,13 +63,13 @@ int main(int argc, char** argv) {
 
     integrator->Deploy();
 
-    integrator->check_point();
+    integrator->CheckPoint();
 
     INFORM << "***********************************************" << std::endl;
 
-    while (integrator->remaining_steps()) {
-        integrator->next_step(0.01);
-        integrator->check_point();
+    while (integrator->remainingSteps()) {
+        integrator->NextTimeStep(0.01);
+        integrator->CheckPoint();
     }
 
     INFORM << "***********************************************" << std::endl;
