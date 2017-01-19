@@ -44,7 +44,7 @@ inline unsigned long count_bits(unsigned long s) {
 //
 //template <typename TV, typename TR>
 //inline TV TypeCast(TR const &obj) {
-//    return std::move(static_cast<TV>(obj));
+//    return std::Move(static_cast<TV>(obj));
 //}
 //
 //template <int...>
@@ -121,7 +121,7 @@ inline unsigned long count_bits(unsigned long s) {
 //
 //namespace _impl {
 //
-//struct GetValue {
+//struct getValue {
 //    template <typename TL, typename TI>
 //    constexpr auto operator()(TL const &v, TI const s) const {
 //        return ((traits::index(v, s)));
@@ -139,7 +139,7 @@ inline unsigned long count_bits(unsigned long s) {
 //
 //template <typename TC, typename TI>
 //struct index_of<TC, TI> {
-//    typedef typename result_of<_impl::GetValue(TC, TI)>::type type;
+//    typedef typename result_of<_impl::getValue(TC, TI)>::type type;
 //};
 //
 //

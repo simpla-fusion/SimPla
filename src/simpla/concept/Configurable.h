@@ -41,11 +41,11 @@ struct Configurable {
 
     virtual ~Configurable() {}
 
-    std::string name() const { return db.get_value("name", std::string("")); }
+    std::string name() const { return db.getValue("name", std::string("")); }
 
     template <typename... Args>
     void config(Args &&... args) {
-        concept::Configurable::db.parse(std::forward<Args>(args)...);
+        concept::Configurable::db.Parse(std::forward<Args>(args)...);
     }
 };
 }

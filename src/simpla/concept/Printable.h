@@ -20,16 +20,16 @@ namespace concept { /**  @ingroup concept   */
  *  Class \c R implementing the concept of @ref Printable must define:
  *   Pseudo-Signature                                      | Semantics
  *	 ------------------------------------------------------|----------
- * 	 \code  std::ostream &print(std::ostream &os, int indent)   \endcode |
+ * 	 \code  std::ostream &Print(std::ostream &os, int indent)   \endcode |
  */
 struct Printable {
-    virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
+    virtual std::ostream &Print(std::ostream &os, int indent) const { return os; };
 };
 
 CHECK_FUNCTION_MEMBER(is_printable, print);
 
 inline std::ostream &operator<<(std::ostream &os, Printable const &obj) {
-    obj.print(os, 0);
+    obj.Print(os, 0);
     return os;
 }
 }

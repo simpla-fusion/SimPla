@@ -65,7 +65,7 @@ class FETLTest
         //        m->m_ghost_width_(index_tuple({2, 0, 0}));
         //#endif
         //        m->box(box);
-        m_p->deploy();
+        m_p->Deploy();
         Vec3 dx;
         dx = m_p->dx();
         point_type xm;

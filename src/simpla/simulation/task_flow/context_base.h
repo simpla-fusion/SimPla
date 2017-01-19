@@ -27,7 +27,7 @@ public:
 
 	virtual std::string get_type_as_string() const =0;
 
-//	virtual std::string load(std::string const &) =0;
+//	virtual std::string Load(std::string const &) =0;
 
 	virtual std::string save(std::string const &) const =0;
 
@@ -35,9 +35,9 @@ public:
 
 	virtual void next_timestep() =0;
 
-	virtual bool pre_process() =0;
+	virtual bool PreProcess() =0;
 
-	virtual bool post_process() =0;
+	virtual bool PostProcess() =0;
 
 	virtual bool empty() const =0;
 

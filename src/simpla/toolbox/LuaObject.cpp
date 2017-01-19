@@ -73,7 +73,7 @@ LuaObject::~LuaObject()
 
 std::string LuaObject::name() const { return ""; }
 
-std::ostream &LuaObject::print(std::ostream &os, int indent) const
+std::ostream &LuaObject::Print(std::ostream &os, int indent) const
 {
 
     auto acc = L_.acc();
@@ -261,7 +261,7 @@ LuaObject::iterator::iterator(LuaState L, unsigned int G, unsigned int p, std::s
         parent_ = luaL_ref(*acc, GLOBAL_IDX_);
     }
 
-//    if (!is_table())
+//    if (!isTable())
 //    {
 //        THROW_EXCEPTION_LOGIC_ERROR("GeoObject is not indexable!");
 //    }
@@ -532,11 +532,11 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
 //
 //    if (v.size() > 0) { res = Converter<std::map<std::string, Properties>>::to(L, v); }
 //
-//    else if (v.is_boolean()) { res = Converter<bool>::to(L, v.template as<bool>()); }
+//    else if (v.isBoolean()) { res = Converter<bool>::to(L, v.template as<bool>()); }
 //
-//    else if (v.is_integral()) { res = Converter<int>::to(L, v.template as<int>()); }
+//    else if (v.isIntegral()) { res = Converter<int>::to(L, v.template as<int>()); }
 //
-//    else if (v.is_floating_point()) { res = Converter<double>::to(L, v.template as<double>()); }
+//    else if (v.isFloatingPoint()) { res = Converter<double>::to(L, v.template as<double>()); }
 //
 //    else if (v.is_string()) { res = Converter<std::string>::to(L, v.template as<std::string>()); }
 //
@@ -765,7 +765,7 @@ bool LuaObject::is_nTuple() const
 //
 //    bool success = true;
 //
-//    if (this->is_table())
+//    if (this->isTable())
 //    {
 //
 //        auto first_item = (*this->begin());
@@ -784,7 +784,7 @@ bool LuaObject::is_nTuple() const
 //                if (!success)break;
 //            }
 //        }
-//    } else if (this->is_boolean())
+//    } else if (this->isBoolean())
 //    {
 //        bool v;
 //

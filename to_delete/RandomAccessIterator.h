@@ -49,14 +49,14 @@ public:
 //    {
 //        this_type res(*this);
 //        ++(*this);
-//        return std::move(res);
+//        return std::Move(res);
 //    }
 //
 //    this_type operator--(int)
 //    {
 //        this_type res(*this);
 //        --(*this);
-//        return std::move(res);
+//        return std::Move(res);
 //    }
 
 
@@ -77,14 +77,14 @@ public:
 //    {
 //        this_type res(*this);
 //        res += n;
-//        return std::move(res);
+//        return std::Move(res);
 //    }
 //
 //    this_type operator-(difference_type const &n) const
 //    {
 //        this_type res(*this);
 //        res -= n;
-//        return std::move(res);
+//        return std::Move(res);
 //    }
 
 

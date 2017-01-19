@@ -88,7 +88,7 @@ InitValue = {
     --    Bundle={Box={{0 ,0 ,0},{LX,LY,LZ}}},
     --
     --    Value=function(x,t)
-    --      -- print(x[1],x[2],x[3])
+    --      -- Print(x[1],x[2],x[3])
     --      return   math.sin(x[1]*0.92*math.pi)*math.sin(x[2]*0.02*math.pi)
     --    end
     --
@@ -125,7 +125,7 @@ PEC = {
         Object = function(v)
             d1 = ((v[1] - LX / 2) * (v[1] - LX / 2) + (v[2] - LY / 2) * (v[2] - LY / 2)) - LY * LY * 0.04
             d2 = math.max(math.abs(v[1] - LX * 0.6) - 2, math.abs(v[2] - LY * 0.6) - 2)
-            --   print(v[1],v[2 ],v[3])
+            --   Print(v[1],v[2 ],v[3])
             return math.min(d1, d2)
         end
     }

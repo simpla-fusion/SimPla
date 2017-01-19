@@ -87,7 +87,7 @@ public:
 //    Particle(TFactory &factory, Args &&...args)
 //            : field_type(factory, std::forward<Args>(args)...), m_properties_(nullptr), m_pool_(nullptr)
 //    {
-//        pre_process();
+//        PreProcess();
 //    }
 
     template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
@@ -99,14 +99,14 @@ public:
         deploy();
     }
 
-    //copy construct
+    //Copy construct
     Particle(this_type const &other)
             : engine_type(other), field_type(other), m_properties_(other.m_properties_), m_pool_(other.m_pool_)
     {
     }
 
 
-    // move construct
+    // Move construct
     Particle(this_type &&other)
             : engine_type(other), field_type(other), m_properties_(other.m_properties_), m_pool_(other.m_pool_)
     {
@@ -149,7 +149,7 @@ public:
         return t_info == typeid(this_type) || t_info == typeid(field_type);
     };
 
-    virtual std::string get_class_name() const { return class_name(); };
+    virtual std::string getClassName() const { return class_name(); };
 
     static std::string class_name() { return "Particle<" + traits::type_id<P, M>::name() + ">"; };
 
@@ -424,7 +424,7 @@ Particle<P, M, V002>::dataset(mesh::EntityRange const &r0) const
 
         std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
 
-//        copy(r0, reinterpret_cast< value_type *>( ds.data_block.get()));
+//        Copy(r0, reinterpret_cast< value_type *>( ds.data_block.Get()));
     }
     return std::move(ds);
 };
@@ -493,10 +493,10 @@ Particle<P, M, V002>::count(range_type const &r0) const
 //template<typename P, typename M>
 //template<typename OutputIT>
 //OutputIT
-//Particle<P, M, V002>::copy(range_type const &r, OutputIT out_it) const
+//Particle<P, M, V002>::Copy(range_type const &r, OutputIT out_it) const
 //{
 //    //TODO need optimize
-//    for (auto const &s:r) { out_it = copy(s, out_it); }
+//    for (auto const &s:r) { out_it = Copy(s, out_it); }
 //    return out_it;
 //}
 
@@ -515,7 +515,7 @@ Particle<P, M, V002>::count(range_type const &r0) const
 //                for (auto const &item:r)
 //                {
 //                    typename container_type::accessor acc1;
-//                    m_attr_data_->set_value(acc1, item.first);
+//                    m_attr_data_->setValue(acc1, item.first);
 //
 //                    auto *p = acc1->second;
 //                    acc1->second = item.second;
@@ -534,7 +534,7 @@ Particle<P, M, V002>::insert(id_type const &s, TInputIterator ib, TInputIterator
     spPage **pg = &(get(s));
 
 //    for (spInputIterator __it = {0x1, 0x0, pg};
-//         spNextBlank(&__it, m_pool_.get()) != 0x0 && (ib != ie); ++ib)
+//         spNextBlank(&__it, m_pool_.Get()) != 0x0 && (ib != ie); ++ib)
 //    {
 //        *reinterpret_cast<value_type *>(__it.p) = *ib;
 //    }
@@ -543,19 +543,19 @@ Particle<P, M, V002>::insert(id_type const &s, TInputIterator ib, TInputIterator
 }
 
 //template<typename P, typename M> void
-//Particle<P, M, V002>::insert(mesh_id_type const &s, value_type const &v) { set_value(s, &v, &v + 1); }
+//Particle<P, M, V002>::insert(mesh_id_type const &s, value_type const &v) { setValue(s, &v, &v + 1); }
 //
 //
 //template<typename P, typename M> template<typename Hash, typename TRange> void
-//Particle<P, M, V002>::set_value(Hash const &hash, TRange const &v_r)
+//Particle<P, M, V002>::setValue(Hash const &hash, TRange const &v_r)
 //{
-//    parallel::parallel_for(v_r, [&](TRange const &r) { for (auto const &p: v_r) { set_value(hash(p), p); }});
+//    parallel::parallel_for(v_r, [&](TRange const &r) { for (auto const &p: v_r) { setValue(hash(p), p); }});
 //};
 //
 //template<typename P, typename M>
 //template<typename TInputIterator>
 //void
-//Particle<P, M, V002>::set_value(mesh_id_type const &s, TInputIterator ib, TInputIterator ie)
+//Particle<P, M, V002>::setValue(mesh_id_type const &s, TInputIterator ib, TInputIterator ie)
 //{
 ////    _insert(m_attr_data_.get(), s, ib, ie);
 //}
@@ -639,9 +639,9 @@ Particle<P, M, V002>::neighbour_resort(range_type const &r)
 template<typename P, typename M> template<typename ...Args> void
 Particle<P, M, V002>::update(Args &&...args)
 {
-    if (!this->is_valid()) { RUNTIME_ERROR << "Particle is not valid! [" << get_class_name() << "]" << std::endl; }
+    if (!this->is_valid()) { RUNTIME_ERROR << "Particle is not valid! [" << getClassName() << "]" << std::endl; }
     logger::Logger __logger(logger::LOG_VERBOSE);
-    __logger << "CMD:\t" << "Push   [" << get_class_name() << "]";
+    __logger << "CMD:\t" << "Push   [" << getClassName() << "]";
 
 /**
  *   |<-----------------------------     valid   --------------------------------->|
@@ -671,9 +671,9 @@ Particle<P, M, V002>::update(Args &&...args)
 template<typename P, typename M> template<typename TV, typename ...Others, typename ...Args> void
 Particle<P, M, V002>::gather_all(Field<TV, mesh_type, Others...> *res, Args &&...args) const
 {
-    if (!this->is_valid()) { RUNTIME_ERROR << "Particle is not valid! [" << get_class_name() << "]" << std::endl; }
+    if (!this->is_valid()) { RUNTIME_ERROR << "Particle is not valid! [" << getClassName() << "]" << std::endl; }
     logger::Logger __logger(logger::LOG_VERBOSE);
-    __logger << "CMD:\t" << "Gather   [" << get_class_name() << "]";
+    __logger << "CMD:\t" << "Gather   [" << getClassName() << "]";
     typedef typename traits::field_value_type<Field < TV, mesh_type, Others...>>
     ::type field_value_type;
 

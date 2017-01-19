@@ -178,7 +178,7 @@ struct any
         return *this;
     }
 
-    // move assignement
+    // Move assignement
     any &operator=(any &&rhs)
     {
         rhs.swap(*this);
@@ -355,7 +355,7 @@ private:
 //                return true;
 //            } else if (this->size() < N) { return false; }
 //
-//            for (int i = 0; i < N; ++i) { this->get(i)->as(&((*v)[i])); }
+//            for (int i = 0; i < N; ++i) { this->Get(i)->as(&((*v)[i])); }
 //
 //            return true;
 //        }

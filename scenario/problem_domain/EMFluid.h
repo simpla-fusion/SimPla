@@ -28,29 +28,29 @@ class EMFluid : public mesh::Worker {
 
     ~EMFluid() {}
 
-    using mesh::Worker::m_mesh_;
+    using base_type::m_mesh_;
 
     virtual std::ostream& print(std::ostream& os, int indent = 1) const;
 
-    virtual void next_time_step(Real data_time, Real dt);
+    virtual void NextTimeStep(Real data_time, Real dt);
 
-    virtual void deploy();
+    virtual void Deploy();
 
-    virtual void pre_process();
+    virtual void PreProcess();
 
-    virtual void initialize(Real data_time = 0, Real dt = 0.0);
+    virtual void Initialize(Real data_time = 0.0, Real dt = 0.0);
 
-    virtual void finalize(Real data_time = 0, Real dt = 0.0);
+    virtual void Finalize(Real data_time = 0, Real dt = 0.0);
 
-    virtual void post_process();
+    virtual void PostProcess();
 
-    virtual void destroy();
+    virtual void Destroy();
 
-    virtual void set_physical_boundary_conditions(Real time = 0){};
+    virtual void SetPhysicalBoundaryConditions(Real time = 0){};
 
-    virtual void set_physical_boundary_conditions_E(Real time = 0){};
+    virtual void SetPhysicalBoundaryConditionE(Real time = 0){};
 
-    virtual void set_physical_boundary_conditions_B(Real time = 0){};
+    virtual void SetPhysicalBoundaryConditionB(Real time = 0){};
 
     template <int IFORM, int DOF = 1>
     using field_type = FieldAttribute<TM, scalar_type, IFORM, DOF>;
@@ -138,54 +138,53 @@ std::ostream& EMFluid<TM>::print(std::ostream& os, int indent) const {
 }
 
 template <typename TM>
-void EMFluid<TM>::deploy() {
-    base_type::deploy();
+void EMFluid<TM>::Deploy() {
+    base_type::Deploy();
 }
 
 template <typename TM>
-void EMFluid<TM>::destroy() {
-    base_type::destroy();
+void EMFluid<TM>::Destroy() {
+    base_type::Destroy();
 }
 
 template <typename TM>
-void EMFluid<TM>::pre_process() {
-    if (!is_valid()) { base_type::pre_process(); }
-    if (!E.is_valid()) E.clear();
-    if (!B.is_valid()) B.clear();
-    if (!B0.is_valid()) { B0.clear(); }
+void EMFluid<TM>::PreProcess() {
+    if (!isValid()) { base_type::PreProcess(); }
+    if (!E.isValid()) E.Clear();
+    if (!B.isValid()) B.Clear();
+    if (!B0.isValid()) { B0.Clear(); }
 }
 
 template <typename TM>
-void EMFluid<TM>::post_process() {
-    if (is_valid()) { base_type::post_process(); }
+void EMFluid<TM>::PostProcess() {
+    if (isValid()) { base_type::PostProcess(); }
 }
 
 template <typename TM>
-void EMFluid<TM>::initialize(Real data_time, Real dt) {
-    pre_process();
-
+void EMFluid<TM>::Initialize(Real data_time, Real dt) {
+    PreProcess();
+    base_type::Initialize(data_time, 0);
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VERTEX>(E);
         B0v = map_to<VERTEX>(B0);
         BB = dot(B0v, B0v);
     }
-    base_type::initialize(data_time, 0);
 }
 
 template <typename TM>
-void EMFluid<TM>::finalize(Real data_time, Real dt) {
+void EMFluid<TM>::Finalize(Real data_time, Real dt) {
     // do sth here
-    post_process();
+    PostProcess();
 }
 
 template <typename TM>
-void EMFluid<TM>::next_time_step(Real data_time, Real dt) {
-    pre_process();
+void EMFluid<TM>::NextTimeStep(Real data_time, Real dt) {
+    PreProcess();
     DEFINE_PHYSICAL_CONST
     B -= curl(E) * (dt * 0.5);
-    set_physical_boundary_conditions_B(data_time);
+    SetPhysicalBoundaryConditionB(data_time);
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
-    set_physical_boundary_conditions_E(data_time);
+    SetPhysicalBoundaryConditionE(data_time);
     if (m_fluid_sp_.size() > 0) {
         field_type<VERTEX, 3> Q{m_mesh_};
         field_type<VERTEX, 3> K{m_mesh_};
@@ -194,13 +193,13 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt) {
         field_type<VERTEX> b{m_mesh_};
         field_type<VERTEX> c{m_mesh_};
 
-        a.clear();
-        b.clear();
-        c.clear();
+        a.Clear();
+        b.Clear();
+        c.Clear();
 
         Q = map_to<VERTEX>(E) - Ev;
-        dE.clear();
-        K.clear();
+        dE.Clear();
+        K.Clear();
         for (auto& p : m_fluid_sp_) {
             Real ms = p.second->mass;
             Real qs = p.second->charge;
@@ -244,7 +243,7 @@ void EMFluid<TM>::next_time_step(Real data_time, Real dt) {
         E += map_to<EDGE>(Ev) - E;
     }
     B -= curl(E) * (dt * 0.5);
-    set_physical_boundary_conditions_B(data_time);
+    SetPhysicalBoundaryConditionB(data_time);
 }
 
 }  // namespace simpla  {

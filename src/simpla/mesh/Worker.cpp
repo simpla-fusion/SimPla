@@ -2,11 +2,6 @@
 // Created by salmon on 16-11-4.
 //
 #include "Worker.h"
-//#include <set>
-//#include <simpla/concept/Printable.h>
-//#include <simpla/data/DataTable.h>
-//#include <simpla/mesh/MeshBlock.h>
-//#include <simpla/mesh/Attribute.h>
 
 namespace simpla {
 namespace mesh {
@@ -15,9 +10,9 @@ Worker::Worker(Mesh *m) : m_mesh_(m) {}
 
 Worker::~Worker(){};
 
-std::ostream &Worker::print(std::ostream &os, int indent) const {
+std::ostream &Worker::Print(std::ostream &os, int indent) const {
     os << std::setw(indent + 1) << " "
-       << " [" << get_class_name() << " : " << name() << "]" << std::endl;
+       << " [" << getClassName() << " : " << name() << "]" << std::endl;
 
     os << std::setw(indent + 1) << " "
        << "Config = {" << db << "}" << std::endl;
@@ -27,58 +22,53 @@ std::ostream &Worker::print(std::ostream &os, int indent) const {
            << "Mesh = " << std::endl
            << std::setw(indent + 1) << " "
            << "{ " << std::endl;
-        m_mesh_->print(os, indent + 1);
+        m_mesh_->Print(os, indent + 1);
         os << std::setw(indent + 1) << " "
            << "}," << std::endl;
     }
     return os;
 }
 
-void Worker::accept(Patch *p) {
-    post_process();
-    //    auto m = p.mesh();
-    //    auto id = m->id();
-    //    m_mesh_->move_to(p.mesh());
-    //    for (auto &item:attributes()) { item->move_to(m, p.data(item->id())); }
+void Worker::Accept(Patch *p) {
+    PostProcess();
     ASSERT(m_mesh_ != nullptr);
-    m_mesh_->accept(p);
-    pre_process();
+    m_mesh_->Accept(p);
+    PreProcess();
 }
 
-void Worker::deploy() {
-    concept::LifeControllable::deploy();
-    if (m_mesh_ != nullptr) m_mesh_->deploy();
-}
-
-void Worker::destroy() {
-    m_mesh_ = nullptr;
-    concept::LifeControllable::destroy();
-}
-
-void Worker::pre_process() {
-    if (!is_valid()) { concept::LifeControllable::pre_process(); }
+void Worker::Deploy() {
+    concept::LifeControllable::Deploy();
     ASSERT(m_mesh_ != nullptr);
-    m_mesh_->pre_process();
+    m_mesh_->Deploy();
 }
 
-void Worker::post_process() {
+void Worker::Destroy() { concept::LifeControllable::Destroy(); }
+
+void Worker::PreProcess() {
+    if (!isValid()) { concept::LifeControllable::PreProcess(); }
     ASSERT(m_mesh_ != nullptr);
-    m_mesh_->post_process();
-    if (is_valid()) { concept::LifeControllable::post_process(); }
+    m_mesh_->PreProcess();
 }
 
-void Worker::initialize(Real data_time, Real dt) {
-    pre_process();
+void Worker::PostProcess() {
     ASSERT(m_mesh_ != nullptr);
-    m_mesh_->initialize(data_time, dt);
+    m_mesh_->PostProcess();
+    if (isValid()) { concept::LifeControllable::PostProcess(); }
 }
 
-void Worker::finalize(Real data_time, Real dt) {
-    m_mesh_->finalize(data_time, dt);
-    post_process();
+void Worker::Initialize(Real data_time, Real dt) {
+    PreProcess();
+    ASSERT(m_mesh_ != nullptr);
+    m_mesh_->Initialize(data_time, dt);
 }
 
-void Worker::sync() {}
+void Worker::Finalize(Real data_time, Real dt) {
+    ASSERT(m_mesh_ != nullptr);
+    m_mesh_->Finalize(data_time, dt);
+    PostProcess();
+}
+
+void Worker::Sync() {}
 //
 // void Worker::phase(unsigned int num, Real data_time, Real dt)
 //{
@@ -111,7 +101,7 @@ void Worker::sync() {}
 //
 //    switch (start_phase)
 //    {
-//        #define NEXT_PHASE(_N_) case _N_: phase##_N_(data_time, dt);sync();++start_phase;if
+//        #define NEXT_PHASE(_N_) case _N_: phase##_N_(data_time, dt);Sync();++start_phase;if
 //        (start_phase >=end_phase )break;
 //
 //        NEXT_PHASE(0);

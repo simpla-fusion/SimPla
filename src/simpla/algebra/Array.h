@@ -49,16 +49,16 @@ struct ArrayView : public concept::Printable {
     std::shared_ptr<value_type> m_data_holder_;
 
    public:
-    ArrayView() { initialize(); }
+    ArrayView() { Initialize(); }
 
     template <typename... TID>
     explicit ArrayView(TID&&... idx) : m_data_(nullptr), m_data_holder_(nullptr) {
-        initialize(std::forward<TID>(idx)...);
+        Initialize(std::forward<TID>(idx)...);
     }
 
     template <typename... TID>
     ArrayView(value_type* d, TID&&... idx) : m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {
-        initialize(std::forward<TID>(idx)...);
+        Initialize(std::forward<TID>(idx)...);
     }
 
     template <typename... TID>
@@ -66,7 +66,7 @@ struct ArrayView : public concept::Printable {
 
     template <typename... U>
     ArrayView(declare::Expression<U...> const& expr) {
-        apply(tags::_assign(), expr);
+        Apply(tags::_assign(), expr);
     }
 
     virtual ~ArrayView() {}
@@ -124,13 +124,13 @@ struct ArrayView : public concept::Printable {
     }
 
     this_type& operator=(this_type const& rhs) {
-        apply(tags::_assign(), rhs);
+        Apply(tags::_assign(), rhs);
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        apply(tags::_assign(), rhs);
+        Apply(tags::_assign(), rhs);
         return (*this);
     }
 
@@ -140,7 +140,7 @@ struct ArrayView : public concept::Printable {
         return res;
     }
 
-    void deploy() {
+    void Deploy() {
         if (!m_data_holder_) {
             m_data_holder_ =
 #ifdef NDEBUG
@@ -152,13 +152,13 @@ struct ArrayView : public concept::Printable {
         m_data_ = m_data_holder_.get();
     };
 
-    void clear() {
-        deploy();
+    void Clear() {
+        Deploy();
 
         memset(m_data_, 0, size(dims()) * sizeof(value_type));
     }
 
-    void reset() {
+    void Reset() {
         m_data_holder_.reset();
         m_data_ = nullptr;
 
@@ -183,12 +183,12 @@ struct ArrayView : public concept::Printable {
         return res;
     }
 
-    std::ostream& print(std::ostream& os, int indent = 0) const {
+    std::ostream& Print(std::ostream &os, int indent = 0) const {
         printNdArray(os, m_data_, NDIMS, m_dims_);
         return os;
     }
 
-    void initialize(size_type const* dims = nullptr, const index_type* lower = nullptr,
+    void Initialize(size_type const* dims = nullptr, const index_type* lower = nullptr,
                     const index_type* upper = nullptr) {
         for (int i = 0; i < NDIMS; ++i) {
             m_dims_[i] = dims == nullptr ? 1 : dims[i];
@@ -207,11 +207,11 @@ struct ArrayView : public concept::Printable {
     };
 
     template <typename... TID>
-    void initialize(size_type s0, TID&&... idx) {
+    void Initialize(size_type s0, TID&&... idx) {
         size_type dims[NDIMS];
         dims[0] = s0;
         copy_(dims + 1, std::forward<TID>(idx)...);
-        initialize(dims);
+        Initialize(dims);
     }
 
    private:
@@ -237,14 +237,14 @@ struct ArrayView : public concept::Printable {
 
    public:
     template <typename TOP, typename... Others>
-    void apply(TOP const& op, Others&&... others) {
-        deploy();
+    void Apply(TOP const& op, Others&&... others) {
+        Deploy();
         traversal_nd(m_lower_, m_upper_,
-                     [&](index_type const* idx) { op(at(idx), get_value(std::forward<Others>(others), idx)...); });
+                     [&](index_type const* idx) { op(at(idx), getValue(std::forward<Others>(others), idx)...); });
     };
 
     template <typename TOP>
-    void apply(TOP const& op) {
+    void Apply(TOP const& op) {
         traversal_nd(m_lower_, m_upper_, [&](index_type const* idx) { op(at(idx)); });
     };
 
@@ -278,44 +278,44 @@ struct ArrayView : public concept::Printable {
 
    public:
     template <typename T>
-    static constexpr decltype(auto) get_value(T& v) {
+    static constexpr decltype(auto) getValue(T& v) {
         return v;
     };
 
-    static constexpr decltype(auto) get_value(this_type& self, index_type const* s) { return self.at(s); };
+    static constexpr decltype(auto) getValue(this_type& self, index_type const* s) { return self.at(s); };
 
-    static constexpr decltype(auto) get_value(this_type const& self, index_type const* s) { return self.at(s); };
+    static constexpr decltype(auto) getValue(this_type const& self, index_type const* s) { return self.at(s); };
 
     template <typename T, typename I0>
-    static constexpr decltype(auto) get_value(T& v, I0 const* s,
+    static constexpr decltype(auto) getValue(T& v, I0 const* s,
                                               ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
-        return ((get_value(v[*s], s + 1)));
+        return ((getValue(v[*s], s + 1)));
     }
 
     template <typename T, typename I0>
-    static constexpr T& get_value(T& v, I0 const* s, ENABLE_IF((!simpla::concept::is_indexable<T, I0>::value))) {
+    static constexpr T& getValue(T& v, I0 const* s, ENABLE_IF((!simpla::concept::is_indexable<T, I0>::value))) {
         return v;
     };
 
     template <typename TOP, typename... Others, int... index, typename... Idx>
     static constexpr decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr,
                                                    int_sequence<index...>, Idx&&... s) {
-        return ((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
+        return ((TOP::eval(getValue(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
     }
 
     template <typename TOP, typename... Others, typename... Idx>
-    static constexpr decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr, Idx&&... s) {
+    static constexpr decltype(auto) getValue(declare::Expression<TOP, Others...> const& expr, Idx&&... s) {
         return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
 
     template <typename TOP, typename... Others, int... index>
     static decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr, int_sequence<index...>,
                                          index_type const* s) {
-        return ((expr.m_op_(get_value(std::get<index>(expr.m_args_), s)...)));
+        return ((expr.m_op_(getValue(std::get<index>(expr.m_args_), s)...)));
     }
 
     template <typename TOP, typename... Others>
-    static decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr, index_type const* s) {
+    static decltype(auto) getValue(declare::Expression<TOP, Others...> const& expr, index_type const* s) {
         return ((_invoke_helper(expr, int_sequence_for<Others...>(), s)));
     }
 };

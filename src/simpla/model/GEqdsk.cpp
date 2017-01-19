@@ -492,9 +492,9 @@ void GEqdsk::pimpl_s::write(std::string const &url)
         XdmfInt64 s = 0;
         for (auto const &v : m_rzbbb_.data())
         {
-            points->SetValue(s * 3, 0);
-            points->SetValue(s * 3 + 1, v[0]);
-            points->SetValue(s * 3 + 2, v[1]);
+            points->setValue(s * 3, 0);
+            points->setValue(s * 3 + 1, v[0]);
+            points->setValue(s * 3 + 2, v[1]);
 
             ++s;
         }
@@ -539,9 +539,9 @@ void GEqdsk::pimpl_s::write(std::string const &url)
         XdmfInt64 s = 0;
         for (auto const &v : m_rzbbb_.data())
         {
-            points->SetValue(s * 3, 0);
-            points->SetValue(s * 3 + 1, v[0]);
-            points->SetValue(s * 3 + 2, v[1]);
+            points->setValue(s * 3, 0);
+            points->setValue(s * 3 + 1, v[0]);
+            points->setValue(s * 3 + 2, v[1]);
 
             ++s;
         }

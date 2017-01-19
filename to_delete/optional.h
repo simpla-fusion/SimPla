@@ -38,7 +38,7 @@ public:
 	{
 	}
 
-	void SetValue(value_type && v)
+	void setValue(value_type && v)
 	{
 		m_value_ = v;
 	}

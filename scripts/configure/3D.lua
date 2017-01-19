@@ -52,7 +52,7 @@ for k=0,DIMS[1] -1 do
 end    
   
 --[[  uncomment this line, if you need Cycle BC.
--- set_value BC(boundary condition), now only first two  are valid
+-- setValue BC(boundary condition), now only first two  are valid
 -- BC >= GW              
 BC= {            
         -1,-1, -- direction x 

@@ -16,42 +16,33 @@ namespace mesh {
 Attribute::Attribute(Mesh *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
     : m_mesh_(m), m_desc_(desc), m_data_(d) {
     ASSERT(m_mesh_ != nullptr);
-    m_mesh_->connect(this);
+    m_mesh_->Connect(this);
 };
 
 Attribute::~Attribute() {
-    if (m_mesh_ != nullptr) m_mesh_->disconnect(this);
+    if (m_mesh_ != nullptr) m_mesh_->Disconnect(this);
 }
 
-void Attribute::accept(std::shared_ptr<DataBlock> const &d) {
-    post_process();
+void Attribute::Accept(std::shared_ptr<DataBlock> const &d) {
+    PostProcess();
     m_data_ = d;
 }
 
-void Attribute::pre_process() {
-    if (is_valid()) {
-        return;
-    } else {
-        concept::LifeControllable::pre_process();
-    }
+void Attribute::PreProcess() {
+    if (!isValid()) { concept::LifeControllable::PreProcess(); }
 }
 
-void Attribute::post_process() {
+void Attribute::PostProcess() {
     m_data_.reset();
-    m_mesh_ = nullptr;
-    if (!is_valid()) {
-        return;
-    } else {
-        concept::LifeControllable::post_process();
-    }
+    if (isValid()) { concept::LifeControllable::PostProcess(); }
 }
 
-void Attribute::clear() {
-    pre_process();
-    if (m_data_ != nullptr) m_data_->clear();
+void Attribute::Clear() {
+    PreProcess();
+    if (m_data_ != nullptr) m_data_->Clear();
 }
 
-std::ostream &AttributeDict::print(std::ostream &os, int indent) const {
+std::ostream &AttributeDict::Print(std::ostream &os, int indent) const {
     for (auto const &item : m_map_) {
         os << std::setw(indent + 1) << " " << item.second->name() << " = {" << item.second << "}," << std::endl;
     }

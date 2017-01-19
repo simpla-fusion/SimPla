@@ -26,27 +26,27 @@ class Model : public concept::Printable, public concept::Configurable {
     Model(Mesh *m);
     virtual ~Model();
 
-    virtual void add_object(std::string const &name, std::shared_ptr<geometry::GeoObject> const &);
+    virtual void AddObject(std::string const &name, std::shared_ptr<geometry::GeoObject> const &);
 
-    virtual void remove_object(std::string const &key);
+    virtual void RemoveObject(std::string const &key);
 
-    virtual std::ostream &print(std::ostream &os, int indent) const;
+    virtual std::ostream &Print(std::ostream &os, int indent) const;
 
-    virtual void load(std::string const &);
+    virtual void Load(std::string const &);
 
-    virtual void save(std::string const &);
+    virtual void Save(std::string const &);
 
-    virtual void deploy();
+    virtual void Deploy();
 
-    virtual void pre_process();
+    virtual void PreProcess();
 
-    virtual void initialize(Real data_time = 0, Real dt = 0);
+    virtual void Initialize(Real data_time = 0, Real dt = 0);
 
-    virtual void next_time_step(Real data_time = 0, Real dt = 0);
+    virtual void NextTimeStep(Real data_time = 0, Real dt = 0);
 
-    virtual void finalize(Real data_time, Real dt);
+    virtual void Finalize(Real data_time, Real dt);
 
-    virtual void post_process();
+    virtual void PostProcess();
 
     Range<entity_id> const &select(int iform, int tag);
 

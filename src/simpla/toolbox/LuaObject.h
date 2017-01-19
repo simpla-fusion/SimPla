@@ -170,7 +170,7 @@ public:
 
     std::string name() const;
 
-    std::ostream &print(std::ostream &os, int indent = 0) const;
+    std::ostream &Print(std::ostream &os, int indent = 0) const;
 
     inline bool is_null() const { return L_.empty(); }
 
@@ -333,8 +333,8 @@ public:
 //        template<typename T, typename ...Args>
 //        inline T create_object(Args &&... args) const
 //        {
-//            if (is_null()) { return std::move(T()); }
-//            else { return std::move(T(*this, std::forward<Args>(args)...)); }
+//            if (isNull()) { return std::Move(T()); }
+//            else { return std::Move(T(*this, std::forward<Args>(args)...)); }
 //
 //        }
 

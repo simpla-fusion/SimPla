@@ -121,7 +121,7 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 //	template<typename ...Args>
 //	Holder select_from_this(Args && ...args)
 //	{
-//		return std::move(
+//		return std::Move(
 //				create_from_this<object_type>(self(), op_select(),
 //						std::forward<Args>(args)...));
 //	}
@@ -129,20 +129,20 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 //	template<typename ...Args>
 //	Holder select_from_this(Args && ...args) const
 //	{
-//		return std::move(
+//		return std::Move(
 //				create_from_this(self(), op_select(),
 //						std::forward<Args>(args)...));
 //	}
 //
 //	Holder merge_with_this(object_type && ...args) const
 //	{
-//		return std::move(
+//		return std::Move(
 //				create_from_this(self(), op_merge(),
 //						std::forward<object_type>(args)...));
 //	}
 //	Holder merge_with_this(object_type && ...args)
 //	{
-//		return std::move(
+//		return std::Move(
 //				create_from_this(self(), op_merge(),
 //						std::forward<object_type>(args)...));
 //	}

@@ -26,9 +26,9 @@ namespace simpla { namespace concept
  */
 struct Serializable
 {
-    virtual void load(data::DataTable const &) =0;
+    virtual void Load(data::DataTable const &) =0;
 
-    virtual void save(data::DataTable *) const =0;
+    virtual void Save(data::DataTable *) const =0;
 };
 
 

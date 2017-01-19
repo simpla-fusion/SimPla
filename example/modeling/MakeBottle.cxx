@@ -105,11 +105,11 @@ MakeBottle(const Standard_Real myWidth, const Standard_Real myHeight,
         gp_Pnt p0(-myWidth / 2., 0, 0);
         gp_Pnt p4(myWidth / 2., 0, 0);
 
-//    gp_array->SetValue(0, p0);
-        gp_array->SetValue(1, gp_Pnt(-myWidth / 2., -myThickness / 4., 0));
-        gp_array->SetValue(2, gp_Pnt(0, -myThickness / 2., 0));
-        gp_array->SetValue(3, gp_Pnt(myWidth / 2., -myThickness / 4., 0));
-        gp_array->SetValue(4, p4);
+//    gp_array->setValue(0, p0);
+        gp_array->setValue(1, gp_Pnt(-myWidth / 2., -myThickness / 4., 0));
+        gp_array->setValue(2, gp_Pnt(0, -myThickness / 2., 0));
+        gp_array->setValue(3, gp_Pnt(myWidth / 2., -myThickness / 4., 0));
+        gp_array->setValue(4, p4);
 
         GeomAPI_Interpolate sp(gp_array, true, 1.0e-3);
         sp.Perform();
@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 //                                                V3d_WAIT
 //    );
 
-// set_value parameters for V3d_Viewer
+// setValue parameters for V3d_Viewer
 // defines default lights -
 //   positional-light 0.3 0.0 0.0
 //   directional-light V3d_XnegYposZpos

@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     typedef mesh::CartesianGeometry mesh_type;
 
     mesh_type m(nullptr, &dims[0]);
-    m.deploy();
+    m.Deploy();
     FieldAttribute<mesh_type, Real> f(&m);
     FieldAttribute<mesh_type, Real> g(&m);
 

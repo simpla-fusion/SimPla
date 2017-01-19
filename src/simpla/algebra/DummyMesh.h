@@ -107,36 +107,36 @@ public:
 
 
     template<typename T> T &
-    get_value(T &v, id_type const &,
+    getValue(T &v, id_type const &,
               ENABLE_IF(algebra::traits::is_scalar<T>::value)) const { return v; };
 
 //    template<typename T>  auto
-//    get_value(T &v, id_type const *s, ENABLE_IF((st::is_indexable<T, id_type>::value)))
-//    AUTO_RETURN((get_value(v[*s], s + 1)))
+//    getValue(T &v, id_type const *s, ENABLE_IF((st::is_indexable<T, id_type>::value)))
+//    AUTO_RETURN((getValue(v[*s], s + 1)))
 
 
     template<typename T> auto
-    get_value(T &v, id_type const &s0,
+    getValue(T &v, id_type const &s0,
               ENABLE_IF((st::is_indexable<T, id_type>::value && !algebra::traits::is_field<T>::value))) const
     AUTO_RETURN((v[s0]));
 
     template<typename T> auto
-    get_value(T &v, id_type const &s0,
+    getValue(T &v, id_type const &s0,
               ENABLE_IF((st::is_callable<T(id_type)>::value && !algebra::traits::is_field<T>::value))) const
     AUTO_RETURN((v(s0)));
 
     template<typename T> auto
-    get_value(T &f, id_type const &s, ENABLE_IF((algebra::traits::is_field<T>::value))) const
+    getValue(T &f, id_type const &s, ENABLE_IF((algebra::traits::is_field<T>::value))) const
     AUTO_RETURN((access(f, s)));
 
 
     template<typename TOP, typename ...Others, size_type ... index, typename ...Idx> auto
     _invoke_helper(algebra::declare::Expression<TOP, Others...> const &expr, int_sequence<index...>,
                    Idx &&... s) const
-    AUTO_RETURN((TOP::eval(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
+    AUTO_RETURN((TOP::eval(getValue(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)))
 
     template<typename TOP, typename   ...Others, typename ...Idx> auto
-    get_value(algebra::declare::Expression<TOP, Others...> const &expr, Idx &&... s) const
+    getValue(algebra::declare::Expression<TOP, Others...> const &expr, Idx &&... s) const
     AUTO_RETURN((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)))
 
     template<typename TV, size_type IFORM, size_type DOF> void
@@ -148,7 +148,7 @@ public:
     template<typename TV, size_type IFORM, size_type DOF, typename TOP, typename TFun> void
     apply(algebra::declare::Field_ <TV, mesh_type, IFORM, DOF> &lhs, TOP const &, TFun const &rhs) const
     {
-        foreach([&](mesh_type::id_type const &s) { TOP::eval(get_value(lhs, s), get_value(rhs, s)); }, IFORM, DOF);
+        foreach([&](mesh_type::id_type const &s) { TOP::eval(getValue(lhs, s), getValue(rhs, s)); }, IFORM, DOF);
     }
 
 };

@@ -68,11 +68,11 @@ int main(int argc, char **argv)
                   << std::endl;
         std::cout << "<input_geom_filename> : input geometry file name" << std::endl;
         std::cout << "<whole_geom> : make mesh for whole geom or individually(1/0), default whole geom(1)" << std::endl;
-        std::cout << "{x/y/z: # ofintervals} : optional argument. # of intervals. if it is not set, set_value to 10."
+        std::cout << "{x/y/z: # ofintervals} : optional argument. # of intervals. if it is not set, setValue to 10."
                   << std::endl;
         std::cout << "<mesh_based_geom> : use mesh based geometry(1/0), default not-use(0)" << std::endl;
         std::cout
-                << "{output_mesh_filename} : optional argument. if it is not set_value, dosn't export. can output mesh file (e.g. output.vtk.)"
+                << "{output_mesh_filename} : optional argument. if it is not setValue, dosn't export. can output mesh file (e.g. output.vtk.)"
                 << std::endl;
         std::cout << "{box size increase} : optional argument. Cartesian mesh box increase form geometry. default 0.03"
                   << std::endl;
@@ -104,7 +104,7 @@ int load_and_mesh(const char *input_filename,
     time_t start_time, load_time, mesh_time, vol_frac_time,
             export_time, query_time_techX, query_time;
 
-    // start up MK and load the geometry
+    // start up MK and Load the geometry
     MKCore mk;
     time(&start_time);
     mk.load_mesh(input_filename, NULL, 0, 0, 0, true);
@@ -114,7 +114,7 @@ int load_and_mesh(const char *input_filename,
     mk.save_mesh("input.vtk");
 
 
-    // get the volumes
+    // Get the volumes
     MEntVector vols;
     mk.get_entities_by_dimension(3, vols);
 
@@ -136,7 +136,7 @@ int load_and_mesh(const char *input_filename,
         result = ebm->get_volume_fraction(vol_frac_res);
         if (!result)
         {
-            std::cerr << "Couldn't get volume fraction." << std::endl;
+            std::cerr << "Couldn't Get volume fraction." << std::endl;
             return 1;
         }
     }
@@ -171,7 +171,7 @@ int load_and_mesh(const char *input_filename,
                                          mdCutCellEdge, vnInsideCell);
         if (!result)
         {
-            std::cerr << "Couldn't get mesh information." << std::endl;
+            std::cerr << "Couldn't Get mesh information." << std::endl;
             return 1;
         }
         time(&query_time);

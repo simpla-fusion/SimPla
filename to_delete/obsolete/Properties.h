@@ -132,13 +132,13 @@ public:
 
     inline Properties &operator[](const char key[]) { return get(key); }
 
-//   template<typename T>   void operator()(std::string const &key, T &&v) { set_value(key, std::forward<T>(v)); }
+//   template<typename T>   void operator()(std::string const &key, T &&v) { setValue(key, std::forward<T>(v)); }
 //
 //    void operator()(Properties const &other) { append(other); }
 //
-//    Properties const &operator()(std::string const &key) const { return get(key); }
+//    Properties const &operator()(std::string const &key) const { return Get(key); }
 //
-//    Properties &operator()(std::string const &key) { return get(key); }
+//    Properties &operator()(std::string const &key) { return Get(key); }
 //
 //    Properties const &operator()() const   {  return *this; }
 //

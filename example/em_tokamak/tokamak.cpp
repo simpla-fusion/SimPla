@@ -663,7 +663,7 @@ int main(int argc, char **argv)
     }
     catch (std::exception const &error)
     {
-        RUNTIME_ERROR << "Context initialize error!" << error.what() << std::endl;
+        RUNTIME_ERROR << "Context Initialize error!" << error.what() << std::endl;
     }
 
 

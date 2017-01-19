@@ -190,14 +190,14 @@ private:
 //            {
 //                this_type res(*this);
 //                ++(*this);
-//                return std::move(res);
+//                return std::Move(res);
 //            }
 //
 //            this_type operator--(int)
 //            {
 //                this_type res(*this);
 //                --(*this);
-//                return std::move(res);
+//                return std::Move(res);
 //            }
 //
 //        };

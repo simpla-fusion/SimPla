@@ -147,77 +147,77 @@ namespace calculus {
 
 struct nTuple_calculator {
     template <typename T>
-    static T& get_value(T* v, int s) {
+    static T& getValue(T* v, int s) {
         return v[s];
     };
     template <typename T>
-    static T const& get_value(T const* v, int s) {
+    static T const& getValue(T const* v, int s) {
         return v[s];
     };
 
     template <typename T, typename TI, typename... Idx>
-    static decltype(auto) get_value(T* v, TI s0, Idx&&... idx) {
-        return get_value(v[s0], std::forward<Idx>(idx)...);
+    static decltype(auto) getValue(T* v, TI s0, Idx&&... idx) {
+        return getValue(v[s0], std::forward<Idx>(idx)...);
     };
 
     template <typename T>
-    static decltype(auto) get_value(T& v) {
+    static decltype(auto) getValue(T& v) {
         return v;
     };
 
     template <typename T, typename... Idx>
-    static decltype(auto) get_value(T& v, Idx&&... idx) {
+    static decltype(auto) getValue(T& v, Idx&&... idx) {
         return v;
     };
 
     template <typename T, typename TI>
-    static decltype(auto) get_value(T* v, TI const* s) {
-        return get_value(v[*s], s + 1);
+    static decltype(auto) getValue(T* v, TI const* s) {
+        return getValue(v[*s], s + 1);
     };
 
     template <typename T, int... N, typename Idx>
-    static decltype(auto) get_value(declare::nTuple_<T, N...>& v, Idx const* idx) {
-        return get_value(v.data_[idx[0]], idx + 1);
+    static decltype(auto) getValue(declare::nTuple_<T, N...>& v, Idx const* idx) {
+        return getValue(v.data_[idx[0]], idx + 1);
     };
 
     template <typename T, int... N, typename Idx>
-    static decltype(auto) get_value(declare::nTuple_<T, N...> const& v, Idx const* idx) {
-        return get_value(v.data_[idx[0]], idx + 1);
+    static decltype(auto) getValue(declare::nTuple_<T, N...> const& v, Idx const* idx) {
+        return getValue(v.data_[idx[0]], idx + 1);
     };
 
     template <typename T, int... N, typename... Idx>
-    static decltype(auto) get_value(declare::nTuple_<T, N...>& v, int s, Idx&&... idx) {
-        return get_value(v.data_[s], std::forward<Idx>(idx)...);
+    static decltype(auto) getValue(declare::nTuple_<T, N...>& v, int s, Idx&&... idx) {
+        return getValue(v.data_[s], std::forward<Idx>(idx)...);
     };
 
     template <typename T, int... N, typename... Idx>
-    static decltype(auto) get_value(declare::nTuple_<T, N...> const& v, int s, Idx&&... idx) {
-        return get_value(v.data_[s], std::forward<Idx>(idx)...);
+    static decltype(auto) getValue(declare::nTuple_<T, N...> const& v, int s, Idx&&... idx) {
+        return getValue(v.data_[s], std::forward<Idx>(idx)...);
     };
 
     template <typename... T, typename... Idx>
-    static decltype(auto) get_value(declare::Expression<tags::_nTuple_cross, T...> const& expr,
+    static decltype(auto) getValue(declare::Expression<tags::_nTuple_cross, T...> const& expr,
                                     int s, Idx&&... others) {
-        return get_value(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
-                   get_value(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
-               get_value(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
-                   get_value(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
+        return getValue(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
+                   getValue(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
+               getValue(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
+                   getValue(std::get<1>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...);
     }
 
     template <typename TOP, typename... Others, int... index, typename... Idx>
     static decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr,
                                          int_sequence<index...>, Idx&&... s) {
-        return ((expr.m_op_(get_value(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
+        return ((expr.m_op_(getValue(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
     }
 
     template <typename TOP, typename... Others, typename... Idx>
-    static decltype(auto) get_value(declare::Expression<TOP, Others...> const& expr, Idx&&... s) {
+    static decltype(auto) getValue(declare::Expression<TOP, Others...> const& expr, Idx&&... s) {
         return ((_invoke_helper(expr, int_sequence_for<Others...>(), std::forward<Idx>(s)...)));
     }
 
     template <typename V, int N0, int... N, typename TOP, typename TR>
     static void apply(TOP const& op, declare::nTuple_<V, N0, N...>& lhs, TR& rhs) {
-        for (int i = 0; i < N0; ++i) { op(get_value(lhs, i), get_value(rhs, i)); }
+        for (int i = 0; i < N0; ++i) { op(getValue(lhs, i), getValue(rhs, i)); }
     };
 };
 }
@@ -251,28 +251,28 @@ struct nTuple_<TV, N0, NOthers...> {
 
     sub_type const& at(int s) const { return data_[s]; }
 
-    value_type& at(int const* s) { return calculator::get_value(*this, s); }
+    value_type& at(int const* s) { return calculator::getValue(*this, s); }
 
-    value_type const& at(int const* s) const { return calculator::get_value(*this, s); }
+    value_type const& at(int const* s) const { return calculator::getValue(*this, s); }
 
     template <typename... Idx>
     decltype(auto) at(Idx&&... s) {
-        return calculator::get_value(*this, std::forward<Idx>(s)...);
+        return calculator::getValue(*this, std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
     decltype(auto) at(Idx&&... s) const {
-        return calculator::get_value(*this, std::forward<Idx>(s)...);
+        return calculator::getValue(*this, std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
     decltype(auto) operator()(Idx&&... s) {
-        return calculator::get_value(*this, std::forward<Idx>(s)...);
+        return calculator::getValue(*this, std::forward<Idx>(s)...);
     }
 
     template <typename... Idx>
     decltype(auto) operator()(Idx&&... s) const {
-        return calculator::get_value(*this, std::forward<Idx>(s)...);
+        return calculator::getValue(*this, std::forward<Idx>(s)...);
     }
 
     nTuple_() {}
@@ -318,8 +318,8 @@ TRes reduce(TRes init, TL const& lhs, TR const& rhs, TOP const& op, TReduction c
     static constexpr int N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
     TRes res = init;
     for (int i = 0; i < N; ++i) {
-        res = reduction(res, reduce(init, nTuple_calculator::get_value(lhs, i),
-                                    nTuple_calculator::get_value(rhs, i), op, reduction));
+        res = reduction(res, reduce(init, nTuple_calculator::getValue(lhs, i),
+                                    nTuple_calculator::getValue(rhs, i), op, reduction));
     }
 
     return res;
@@ -346,8 +346,8 @@ struct expr_parser<Real, declare::Expression<tags::_nTuple_dot, TL, TR>> {
 
         for (int i = 0; i < N; ++i) {
             res +=
-                static_cast<Real>(dot(nTuple_calculator::get_value(std::get<0>(expr.m_args_), i),
-                                      nTuple_calculator::get_value(std::get<1>(expr.m_args_), i)));
+                static_cast<Real>(dot(nTuple_calculator::getValue(std::get<0>(expr.m_args_), i),
+                                      nTuple_calculator::getValue(std::get<1>(expr.m_args_), i)));
         }
         return res;
     };

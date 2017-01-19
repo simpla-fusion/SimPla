@@ -30,30 +30,29 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
    public:
     SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>);
 
-    template <typename... Args>
-    explicit EMTokamakWorker(Args &&... args) : base_type(std::forward<Args>(args)...) {}
+    explicit EMTokamakWorker(Mesh *m) : base_type(m) {}
 
     ~EMTokamakWorker() {}
 
     using base_type::m_mesh_;
 
-    virtual void deploy();
+    virtual void Deploy();
 
-    virtual void pre_process();
+    virtual void PreProcess();
 
-    virtual void post_process();
+    virtual void PostProcess();
 
-    virtual void initialize(Real data_time);
+    virtual void Initialize(Real data_time);
 
-    virtual void finalize(Real data_time);
+    virtual void Finalize(Real data_time);
 
-    virtual void next_time_step(Real data_time, Real dt);
+    virtual void NextTimeStep(Real data_time, Real dt);
 
-    virtual void set_physical_boundary_conditions(Real data_time);
+    virtual void SetPhysicalBoundaryConditions(Real data_time);
 
-    virtual void set_physical_boundary_conditions_E(Real time);
+    virtual void SetPhysicalBoundaryConditionE(Real time);
 
-    virtual void set_physical_boundary_conditions_B(Real time);
+    virtual void SetPhysicalBoundaryConditionB(Real time);
 
     GEqdsk geqdsk;
 
@@ -64,74 +63,74 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
     std::function<Vec3(point_type const &, Real)> E_src_fun;
 };
 
-void EMTokamakWorker::deploy() {
-    base_type::deploy();
+void EMTokamakWorker::Deploy() {
+    base_type::Deploy();
 
-    // first run, only load configure, m_mesh_=nullptr
-    geqdsk.load(db.get_value("GEqdsk", "geqdsk.gfile"));
+    // first run, only Load configure, m_mesh_=nullptr
+    geqdsk.load(db.getValue("GEqdsk", "geqdsk.gfile"));
 
-    db.as_table("Particles").foreach ([&](std::string const &key, data::DataEntity const &item) {
-        add_particle(key, item.as_table());
+    db.asTable("Particles").foreach ([&](std::string const &key, data::DataEntity const &item) {
+        add_particle(key, item.asTable());
     });
 
-    db.set_value("bound_box", geqdsk.box());
+    db.setValue("bound_box", geqdsk.box());
 
-    m_mesh_->model().add_object("VACUUM", geqdsk.limiter_gobj());
-    m_mesh_->model().add_object("PLASMA", geqdsk.boundary_gobj());
+    m_mesh_->model().AddObject("VACUUM", geqdsk.limiter_gobj());
+    m_mesh_->model().AddObject("PLASMA", geqdsk.boundary_gobj());
 };
 
-void EMTokamakWorker::pre_process() {
-    if (!is_valid()) { base_type::pre_process(); }
+void EMTokamakWorker::PreProcess() {
+    if (!isValid()) { base_type::PreProcess(); }
 }
 
-void EMTokamakWorker::post_process() {
-    if (is_valid()) { base_type::post_process(); }
+void EMTokamakWorker::PostProcess() {
+    if (isValid()) { base_type::PostProcess(); }
 }
 
-void EMTokamakWorker::initialize(Real data_time) {
-    pre_process();
+void EMTokamakWorker::Initialize(Real data_time) {
+    PreProcess();
 
-    rho0.assign([&](point_type const &x) { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0; });
+    rho0.Assign([&](point_type const &x) { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0; });
 
-    psi.assign([&](point_type const &x) { return geqdsk.psi(x); });
+    psi.Assign([&](point_type const &x) { return geqdsk.psi(x); });
 
     nTuple<Real, 3> ZERO_V{0, 0, 0};
 
-    B0.assign([&](point_type const &x) { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
+    B0.Assign([&](point_type const &x) { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
 
     for (auto &item : particles()) {
-        Real ratio = db.get_value("Particles." + item.first + ".ratio", 1.0);
+        Real ratio = db.getValue("Particles." + item.first + ".ratio", 1.0);
         *item.second->rho = rho0 * ratio;
     }
 
-    base_type::initialize(data_time);
+    base_type::Initialize(data_time, 0);
 }
 
-void EMTokamakWorker::finalize(Real data_time) {
-    post_process();
-    base_type::finalize(data_time);
+void EMTokamakWorker::Finalize(Real data_time) {
+    PostProcess();
+    base_type::Finalize(data_time);
 }
 
-void EMTokamakWorker::next_time_step(Real data_time, Real dt) {
-    pre_process();
-    base_type::next_time_step(data_time, dt);
+void EMTokamakWorker::NextTimeStep(Real data_time, Real dt) {
+    PreProcess();
+    base_type::NextTimeStep(data_time, dt);
 };
 
-void EMTokamakWorker::set_physical_boundary_conditions(Real data_time) {
-    base_type::set_physical_boundary_conditions(data_time);
+void EMTokamakWorker::SetPhysicalBoundaryConditions(Real data_time) {
+    base_type::SetPhysicalBoundaryConditions(data_time);
     if (J_src_fun) {
-        J1.assign(m_mesh_->model().select(EDGE, "J_SRC"), [&](point_type const &x) { return J_src_fun(x, data_time); });
+        J1.Assign(m_mesh_->model().select(EDGE, "J_SRC"), [&](point_type const &x) { return J_src_fun(x, data_time); });
     }
     if (E_src_fun) {
-        E.assign(m_mesh_->model().select(EDGE, "E_SRC"), [&](point_type const &x) { return E_src_fun(x, data_time); });
+        E.Assign(m_mesh_->model().select(EDGE, "E_SRC"), [&](point_type const &x) { return E_src_fun(x, data_time); });
     }
 };
 
-void EMTokamakWorker::set_physical_boundary_conditions_E(Real time) {
-    E.assign(m_mesh_->model().interface(EDGE, "PLASMA", "VACUUM"), 0);
+void EMTokamakWorker::SetPhysicalBoundaryConditionE(Real time) {
+    E.Assign(m_mesh_->model().interface(EDGE, "PLASMA", "VACUUM"), 0);
 }
 
-void EMTokamakWorker::set_physical_boundary_conditions_B(Real time) {
-    B.assign(m_mesh_->model().interface(FACE, "PLASMA", "VACUUM"), 0);
+void EMTokamakWorker::SetPhysicalBoundaryConditionB(Real time) {
+    B.Assign(m_mesh_->model().interface(FACE, "PLASMA", "VACUUM"), 0);
 }
 }

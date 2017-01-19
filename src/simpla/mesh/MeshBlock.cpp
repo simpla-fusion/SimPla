@@ -25,21 +25,21 @@ MeshBlock::MeshBlock(int ndims, index_type const* lo, index_type const* up, Real
     m_global_origin_[1] = xlo == nullptr ? 0 : xlo[1] - std::get<0>(m_g_box_)[1] * m_dx_[1];
     m_global_origin_[2] = xlo == nullptr ? 0 : xlo[2] - std::get<0>(m_g_box_)[2] * m_dx_[2];
 
-    deploy();
+    Deploy();
 }
 
 MeshBlock::~MeshBlock() {}
 
-std::ostream& MeshBlock::print(std::ostream& os, int indent) const {
-    os << std::setw(indent + 1) << "type = \"" << get_class_name() << "\" ,"
+std::ostream& MeshBlock::Print(std::ostream &os, int indent) const {
+    os << std::setw(indent + 1) << "type = \"" << getClassName() << "\" ,"
        << " level = " << level() << ",  box = " << m_g_box_;
     return os;
 }
 
-void MeshBlock::deploy() {
-    if (concept::LifeControllable::is_deployed()) { return; }
+void MeshBlock::Deploy() {
+    if (concept::LifeControllable::isDeployed()) { return; }
 
-    concept::LifeControllable::deploy();
+    concept::LifeControllable::Deploy();
 
     ASSERT(m_ndims_ <= 3);
 
@@ -107,7 +107,7 @@ std::shared_ptr<MeshBlock> MeshBlock::create(int inc_level, const index_type* lo
         std::get<1>(res->m_g_box_)[2] = hi[2] >> -inc_level;
     }
     res->m_level_ += inc_level;
-    res->deploy();
+    res->Deploy();
     return res;
 }
 
@@ -130,7 +130,7 @@ Range<MeshEntityId> MeshBlock::range(index_type const* b, index_type const* e,
                                      int entityType) const {
     return std::move(
         Range<MeshEntityId>(std::make_shared<ContinueRange<MeshEntityId>>(b, e, entityType)));
-    //    return std::move(make_continue_range<MeshEntityId>(b, e, entityType));
+    //    return std::Move(make_continue_range<MeshEntityId>(b, e, entityType));
 }
 
 Range<MeshEntityId> MeshBlock::range(MeshZoneTag status, int entityType) const {

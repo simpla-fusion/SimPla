@@ -161,7 +161,7 @@ Constraints=
 	IsHard=true,
   	Value=function(x,y,z,t)	
          local tau = t*omega_ext
-         print(t)
+         Print(t)
          return { 0,0,math.sin(tau)}   
       end
 	 

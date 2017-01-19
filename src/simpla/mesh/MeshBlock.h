@@ -97,21 +97,21 @@ class MeshBlock : public Object,
 
     virtual void initialize() { DO_NOTHING; }
 
-    virtual void deploy();
+    virtual void Deploy();
 
     virtual void update() {}
 
     /** for Printable @{*/
 
-    virtual std::ostream& print(std::ostream& os, int indent = 0) const;
+    virtual std::ostream& Print(std::ostream &os, int indent = 0) const;
 
     /** @}*/
 
     /** for Serializable @{*/
 
-    virtual void load(const data::DataTable&){};
+    virtual void Load(const data::DataTable &){};
 
-    virtual void save(data::DataTable*) const {};
+    virtual void Save(data::DataTable *) const {};
 
     /** @}*/
 
@@ -156,12 +156,12 @@ class MeshBlock : public Object,
     void shift(index_type const*) {}
 
     virtual bool is_valid() {
-        return is_deployed()
+        return isDeployed()
 
-            //               &&  toolbox::is_valid(m_g_box_) &&
-            //               toolbox::is_valid(m_m_box_) &&
-            //               toolbox::is_valid(m_inner_box_) &&
-            //               toolbox::is_valid(m_outer_box_)
+            //               &&  toolbox::isValid(m_g_box_) &&
+            //               toolbox::isValid(m_m_box_) &&
+            //               toolbox::isValid(m_inner_box_) &&
+            //               toolbox::isValid(m_outer_box_)
 
             ;
     }
@@ -264,7 +264,7 @@ class MeshBlock : public Object,
 
     //    virtual index_tuple point_to_index(point_type const &g, int nId = 0) const
     //    {
-    //        return m::unpack_index(std::get<0>(m::point_global_to_local(g, nId)));
+    //        return m::unpack_index(std::Get<0>(m::point_global_to_local(g, nId)));
     //    };
 
     virtual point_type point(Real x, Real y = 0, Real z = 0) const {
@@ -325,18 +325,18 @@ class MeshBlock : public Object,
     //                 int)>::value))) const
     //    {
     //        int n = iform == VERTEX || iform == VOLUME ? 1 : 3;
-    //        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] :
-    //        std::get<0>(m_outer_box_)[0];
-    //        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] :
-    //        std::get<1>(m_outer_box_)[0];
-    //        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] :
-    //        std::get<0>(m_outer_box_)[1];
-    //        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] :
-    //        std::get<1>(m_outer_box_)[1];
-    //        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] :
-    //        std::get<0>(m_outer_box_)[2];
-    //        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] :
-    //        std::get<1>(m_outer_box_)[2];
+    //        index_type ib = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[0] :
+    //        std::Get<0>(m_outer_box_)[0];
+    //        index_type ie = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[0] :
+    //        std::Get<1>(m_outer_box_)[0];
+    //        index_type jb = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[1] :
+    //        std::Get<0>(m_outer_box_)[1];
+    //        index_type je = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[1] :
+    //        std::Get<1>(m_outer_box_)[1];
+    //        index_type kb = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[2] :
+    //        std::Get<0>(m_outer_box_)[2];
+    //        index_type ke = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[2] :
+    //        std::Get<1>(m_outer_box_)[2];
     //
     //#pragma omp parallel for
     //        for (index_type i = ib; i < ie; ++i)
@@ -355,18 +355,18 @@ class MeshBlock : public Object,
     //                 ENABLE_IF((traits::is_callable<TFun(int, int,
     //                 int)>::value)) const
     //    {
-    //        index_type ib = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[0] :
-    //        std::get<0>(m_outer_box_)[0];
-    //        index_type ie = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[0] :
-    //        std::get<1>(m_outer_box_)[0];
-    //        index_type jb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[1] :
-    //        std::get<0>(m_outer_box_)[1];
-    //        index_type je = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[1] :
-    //        std::get<1>(m_outer_box_)[1];
-    //        index_type kb = tag == SP_ES_LOCAL ? std::get<0>(m_inner_box_)[2] :
-    //        std::get<0>(m_outer_box_)[2];
-    //        index_type ke = tag == SP_ES_LOCAL ? std::get<1>(m_inner_box_)[2] :
-    //        std::get<1>(m_outer_box_)[2];
+    //        index_type ib = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[0] :
+    //        std::Get<0>(m_outer_box_)[0];
+    //        index_type ie = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[0] :
+    //        std::Get<1>(m_outer_box_)[0];
+    //        index_type jb = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[1] :
+    //        std::Get<0>(m_outer_box_)[1];
+    //        index_type je = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[1] :
+    //        std::Get<1>(m_outer_box_)[1];
+    //        index_type kb = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[2] :
+    //        std::Get<0>(m_outer_box_)[2];
+    //        index_type ke = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[2] :
+    //        std::Get<1>(m_outer_box_)[2];
     //
     //#pragma omp parallel for
     //        for (index_type i = ib; i < ie; ++i)

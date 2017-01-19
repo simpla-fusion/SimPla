@@ -28,7 +28,7 @@ template<typename T> inline auto operator _OP_(_OTHER_ const & l,  std::complex<
 //{return std::move(l _OP_ static_cast<double>(r));}                 \
 //template<typename T> inline auto operator _OP_(_OTHER_ l,  std::complex<T> const & r)                   \
 //->decltype(static_cast<double>(l) _OP_ r)                                                                        \
-//{return std::move(static_cast<double>(l) _OP_ r);}
+//{return std::Move(static_cast<double>(l) _OP_ r);}
 
 #define DEF_COMPLEX_OP_BUNDLE(_OTHER_)                                                                  \
 DEF_COMPLEX_OP(+, _OTHER_)                                                                              \

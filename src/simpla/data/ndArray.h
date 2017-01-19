@@ -48,7 +48,7 @@ class HeavyDataAdapter<ndArray<V, N>> {
     explicit HeavyDataAdapter(std::shared_ptr<value_type> const &p, Args &&... args)
         : m_holder_(p), m_data_(p.get()), m_order_(SLOW_FIRST), m_size_(0) {
         initialize(std::forward<Args>(args)...);
-        //        initialize(ndims, lo, hi, order, i_lo, i_hi);
+        //        Initialize(ndims, lo, hi, order, i_lo, i_hi);
     };
 
     HeavyDataAdapter(this_type const &other) = delete;
@@ -343,7 +343,7 @@ class HeavyDataAdapter<ndArray<V, N>> {
                     for (index_type l = m_start_[3]; l < m_start_[3] + m_count_[3]; ++l) {
                         get(i, j, k, l) = fun(i, j, k, l);
                     }
-        //        print(std::cout);
+        //        Print(std::cout);
     };
 };
 }

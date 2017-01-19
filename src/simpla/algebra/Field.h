@@ -112,7 +112,7 @@ class FieldView<TM, TV, IFORM, DOF> {
     }
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        assign(rhs);
+        Assign(rhs);
         return *this;
     }
     bool empty() const { return m_data_ == nullptr; }
@@ -123,7 +123,7 @@ class FieldView<TM, TV, IFORM, DOF> {
     virtual std::shared_ptr<value_type> data() const { return m_data_; }
     virtual mesh_type const* mesh() const { return m_mesh_; }
 
-    virtual void deploy() {
+    virtual void Deploy() {
         m_data_ = data();
         m_mesh_ = mesh();
         ASSERT(m_mesh_ != nullptr);
@@ -138,15 +138,15 @@ class FieldView<TM, TV, IFORM, DOF> {
         ASSERT(m_data_ != nullptr);
     };
 
-    void reset() { m_data_.reset(); };
+    void Reset() { m_data_.reset(); };
 
-    void clear() {
-        deploy();
+    void Clear() {
+        Deploy();
         memset(m_data_.get(), 0, size() * sizeof(value_type));
     };
 
-    void copy(this_type const& other) {
-        deploy();
+    void Copy(this_type const& other) {
+        Deploy();
         if (!other.empty()) {
             memcpy((void*)(m_data_), (void const*)(other.m_data_.get()), size() * sizeof(value_type));
         };
@@ -197,30 +197,32 @@ class FieldView<TM, TV, IFORM, DOF> {
     //**********************************************************************************************
 
     template <typename TOP, typename... Args>
-    void apply_(Range<entity_id> const& r, TOP const& op, Args&&... args) {
+    void Apply_(Range<entity_id> const& r, TOP const& op, Args&&... args) {
         ASSERT(!empty());
         for (int j = 0; j < DOF; ++j) {
             r.foreach ([&](entity_id s) {
                 s.w = j;
-                op(at(s), calculus_policy::get_value(*m_mesh_, std::forward<Args>(args), s)...);
+                op(at(s), calculus_policy::getValue(*m_mesh_, std::forward<Args>(args), s)...);
             });
         }
     }
     template <typename... Args>
-    void apply(Range<entity_id> const& r, Args&&... args) {
-        apply_(r, std::forward<Args>(args)...);
+    void Apply(Range<entity_id> const& r, Args&&... args) {
+        Apply_(r, std::forward<Args>(args)...);
     }
     template <typename... Args>
-    void apply(Args&&... args) {
-        apply_(m_mesh_->range(), std::forward<Args>(args)...);
+    void Apply(Args&&... args) {
+        Deploy();
+        Apply_(m_mesh_->range(), std::forward<Args>(args)...);
     }
     template <typename Other>
-    void assign(Other const& other) {
-        apply_(m_mesh_->range(), tags::_assign(), other);
+    void Assign(Other const& other) {
+        Deploy();
+        Apply_(m_mesh_->range(), tags::_assign(), other);
     }
     template <typename Other>
-    void assign(Range<entity_id> const& r, Other const& other) {
-        apply_(r, tags::_assign(), other);
+    void Assign(Range<entity_id> const& r, Other const& other) {
+        Apply_(r, tags::_assign(), other);
     }
 };  // class FieldView
 template <int...>

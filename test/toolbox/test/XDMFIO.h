@@ -88,7 +88,7 @@ InsertDataItemWithFun(XdmfDataItem *dataitem, unsigned int rank,
     while (idx[0] < static_cast<XdmfInt64>(pdims[0]))
     {
 
-        myArray->SetValue(s, fun(idx));
+        myArray->setValue(s, fun(idx));
         ++s;
 
         ++(idx[rank - 1]);

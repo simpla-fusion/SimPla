@@ -64,9 +64,9 @@ public:
         return data_block_type::create(m, p);
     };
 
-    virtual void pre_process()
+    virtual void PreProcess()
     {
-        if (base_type::is_valid()) { return; } else { base_type::pre_process(); }
+        if (base_type::isValid()) { return; } else { base_type::PreProcess(); }
 
 //        m_mesh_ = self_type::mesh_as<mesh_type>();
 //        m_data_ = self_type::data_as<data_block_type>();
@@ -75,9 +75,9 @@ public:
 
     }
 
-    virtual void post_process()
+    virtual void PostProcess()
     {
-        if (!base_type::is_valid()) { return; } else { base_type::post_process(); }
+        if (!base_type::isValid()) { return; } else { base_type::PostProcess(); }
 
         m_mesh_ = nullptr;
         m_data_ = nullptr;
@@ -158,7 +158,7 @@ public:
 
     void assign(this_type const &other, mesh::EntityIdRange const &r0)
     {
-        pre_process();
+        PreProcess();
 
         r0.foreach([&](mesh::MeshEntityId const &s)
                    {
@@ -171,7 +171,7 @@ public:
     template<typename Other> void
     assign(Other const &other, mesh::MeshZoneTag const &tag = mesh::SP_ES_ALL)
     {
-        pre_process();
+        PreProcess();
         if (tag == mesh::SP_ES_ALL)
         {
             assign(other, m_data_->range());
@@ -184,7 +184,7 @@ public:
     void copy(mesh::EntityIdRange const &r0, this_type const &g)
     {
         UNIMPLEMENTED;
-//        r0.assign([&](mesh::MeshEntityId const &s) { get(s) = g.get(s); });
+//        r0.Assign([&](mesh::MeshEntityId const &s) { get(s) = g.Get(s); });
     }
 
 
@@ -195,7 +195,7 @@ public:
 //
 //        this_type const &g = static_cast<this_type const & >(other);
 //
-//        copy(r0, static_cast<this_type const & >(other));
+//        Copy(r0, static_cast<this_type const & >(other));
 
     }
 

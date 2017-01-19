@@ -14,21 +14,21 @@ Model::Model(Mesh* m) : m_mesh_(m) {}
 
 Model::~Model() {}
 
-void Model::load(std::string const&) { UNIMPLEMENTED; }
+void Model::Load(std::string const&) { UNIMPLEMENTED; }
 
-void Model::save(std::string const&) { UNIMPLEMENTED; }
+void Model::Save(std::string const&) { UNIMPLEMENTED; }
 
-std::ostream& Model::print(std::ostream& os, int indent) const { return os; }
+std::ostream& Model::Print(std::ostream &os, int indent) const { return os; }
 
-void Model::deploy(){};
+void Model::Deploy(){};
 
-void Model::pre_process() {
-    m_tags_.pre_process();
-    m_tags_.clear();
+void Model::PreProcess() {
+    m_tags_.PreProcess();
+    m_tags_.Clear();
 };
 
-void Model::initialize(Real data_time, Real dt) {
-    pre_process();
+void Model::Initialize(Real data_time, Real dt) {
+    PreProcess();
 
     index_type const* lower = m_tags_.lower();
     index_type const* upper = m_tags_.upper();
@@ -75,17 +75,17 @@ void Model::initialize(Real data_time, Real dt) {
             }
 };
 
-void Model::next_time_step(Real data_time, Real dt){};
+void Model::NextTimeStep(Real data_time, Real dt){};
 
-void Model::finalize(Real data_time, Real dt) {
+void Model::Finalize(Real data_time, Real dt) {
     m_range_cache_.erase(m_mesh_->mesh_block()->id());
     m_interface_cache_.erase(m_mesh_->mesh_block()->id());
-    post_process();
+    PostProcess();
 };
 
-void Model::post_process(){};
+void Model::PostProcess(){};
 
-void Model::add_object(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
+void Model::AddObject(std::string const &key, std::shared_ptr<geometry::GeoObject> const &g_obj) {
     int id = 0;
     auto it = m_g_name_map_.find(key);
     if (it != m_g_name_map_.end()) {
@@ -98,7 +98,7 @@ void Model::add_object(std::string const& key, std::shared_ptr<geometry::GeoObje
     m_g_obj_.insert(std::make_pair(id, g_obj));
 }
 
-void Model::remove_object(std::string const& key) {
+void Model::RemoveObject(std::string const &key) {
     try {
         m_g_obj_.erase(m_g_name_map_.at(key));
     } catch (...) {}

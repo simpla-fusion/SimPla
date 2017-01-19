@@ -3,7 +3,7 @@
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
+#   You may obtain a Copy of the License at
 #
 #       http://www.apache.org/licenses/LICENSE-2.0
 #
@@ -73,13 +73,13 @@ endif( )
 #if ( NOT TBB_ROOT )
 #    message( "TBB install not found in the system.")
 #else ( )
-    # Search for 64bit libs if FIND_LIBRARY_USE_LIB64_PATHS is set_value to true in the global environment, 32bit libs else
+    # Search for 64bit libs if FIND_LIBRARY_USE_LIB64_PATHS is setValue to true in the global environment, 32bit libs else
     get_property( LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS )
 
 #    if( LIB64 )
         set(TBB_ARCH_PLATFORM intel64)
 #    else( )
-#        set_value(TBB_ARCH_PLATFORM ia32)
+#        setValue(TBB_ARCH_PLATFORM ia32)
 #    endif( )
     
 

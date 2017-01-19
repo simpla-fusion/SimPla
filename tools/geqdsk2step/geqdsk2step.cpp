@@ -115,7 +115,7 @@ void convert_geqdsk2step(GEqdsk const &geqdsk, std::string const &filename)
 
         for (size_type i = 0, ie = geqdsk.boundary().data().size() - 1; i < ie; ++i)
         {
-            gp_array->SetValue(i + 1, gp_Pnt(geqdsk.boundary().data()[i][0], 0, geqdsk.boundary().data()[i][1]));
+            gp_array->setValue(i + 1, gp_Pnt(geqdsk.boundary().data()[i][0], 0, geqdsk.boundary().data()[i][1]));
         }
 
         GeomAPI_Interpolate sp(gp_array, true, 1.0e-3);

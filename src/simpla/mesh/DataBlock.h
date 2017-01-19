@@ -32,7 +32,7 @@ class DataBlock : public concept::Serializable, public concept::Printable, publi
 
     virtual int dof() const = 0;
 
-    virtual void clear() = 0;
+    virtual void Clear() = 0;
 
     virtual void *raw_data() = 0;
     /**
@@ -47,8 +47,8 @@ class DataBlock : public concept::Serializable, public concept::Printable, publi
      *    virtual bool is_deployed() const =0;
      *    virtual bool is_valid() const =0;
      *    virtual void deploy()=0;
-     *    virtual void pre_process() =0;
-     *    virtual void post_process()=0;
+     *    virtual void PreProcess() =0;
+     *    virtual void PostProcess()=0;
      *    virtual void destroy()=0;
      */
 };
@@ -73,24 +73,24 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 
     virtual int dof() const { return algebra::traits::dof<U>::value; }
 
-    virtual void load(data::DataTable const &d){/* load(*this, d); */};
+    virtual void Load(data::DataTable const &d){/* Load(*this, d); */};
 
-    virtual void save(data::DataTable *d) const {/* save(*this, d); */};
+    virtual void Save(data::DataTable *d) const {/* Save(*this, d); */};
 
-    virtual std::ostream &print(std::ostream &os, int indent) const {
+    virtual std::ostream &Print(std::ostream &os, int indent) const {
         os << " type = \'" << value_type_info().name() << "\' "
            << ", entity type = " << (entity_type()) << ", dof = " << (dof()) << ", data_block = {";
-        U::print(os, indent + 1);
+        U::Print(os, indent + 1);
         os << "}";
         return os;
     }
     void *raw_data() { return nullptr; };
 
-    static std::shared_ptr<DataBlock> create(MeshBlock const *m, void *p) {
+    static std::shared_ptr<DataBlock> Create(MeshBlock const *m, void *p) {
         return std::dynamic_pointer_cast<DataBlock>(std::make_shared<DataBlockAdapter<U>>());
     }
 
-    virtual void clear() { U::clear(); }
+    virtual void Clear() { U::Clear(); }
     //    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<MeshBlock> const &m, void *p = nullptr)
     //    {
     //        return create(m, static_cast<value_type *>(p));
@@ -108,8 +108,8 @@ class DataBlockAdapter<U> : public DataBlock, public U {
     //            ++ndims;
     //        }
     //        auto b = m->outer_index_box();
-    //        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
-    //        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], n_dof};
+    //        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::Get<0>(b)[2], 0};
+    //        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::Get<0>(b)[2], n_dof};
     //        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
     //    };
 
@@ -125,26 +125,26 @@ class DataBlockAdapter<U> : public DataBlock, public U {
      *    virtual bool is_deployed() const =0;
      *    virtual bool is_valid() const =0;
      *    virtual void deploy()=0;
-     *    virtual void pre_process() =0;
-     *    virtual void post_process()=0;
+     *    virtual void PreProcess() =0;
+     *    virtual void PostProcess()=0;
      *    virtual void destroy()=0;
      */
-    virtual void deploy(){
-        //        U::deploy();
+    virtual void Deploy(){
+        //        U::Deploy();
     };
 
-    virtual void pre_process(){
+    virtual void PreProcess(){
         //        U::update();
     };
 
-    virtual void post_process() {
+    virtual void PostProcess() {
         //        U::update();
-        base_type::post_process();
+        base_type::PostProcess();
     };
 
-    virtual void destroy() {
-        //        U::destroy();
-        base_type::destroy();
+    virtual void Destroy() {
+        //        U::Destroy();
+        base_type::Destroy();
     };
 };
 
@@ -169,7 +169,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //
 //    virtual ~DataBlockArray() {}
 //
-//    virtual bool is_valid() { return data_entity_type::is_valid(); };
+//    virtual bool is_valid() { return data_entity_type::isValid(); };
 //
 //    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
 //
@@ -177,16 +177,16 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //
 //    virtual int dof() const { return DOF; }
 //
-//    virtual void load(data::DataTable const &) { UNIMPLEMENTED; };
+//    virtual void Load(data::DataTable const &) { UNIMPLEMENTED; };
 //
-//    virtual void save(data::DataTable *) const { UNIMPLEMENTED; };
+//    virtual void Save(data::DataTable *) const { UNIMPLEMENTED; };
 //
-//    virtual std::ostream &print(std::ostream &os, int indent) const
+//    virtual std::ostream &Print(std::ostream &os, int indent) const
 //    {
 //        os << " type = \'" << value_type_info().name() << "\' "
 //           << ", entity type = " << static_cast<int>(entity_type())
 //           << ", data_block = {";
-//        data_entity_type::print(os, indent + 1);
+//        data_entity_type::Print(os, indent + 1);
 //        os << "}";
 //        return os;
 //    }
@@ -208,37 +208,37 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //            ++ndims;
 //        }
 //        auto b = m->outer_index_box();
-//        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::get<0>(b)[2], 0};
-//        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::get<0>(b)[2], n_dof};
+//        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::Get<0>(b)[2], 0};
+//        index_type hi[4] = {std::get<1>(b)[0], std::Get<1>(b)[1], std::get<0>(b)[2], n_dof};
 //        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
 //    };
 //
-//    virtual void deploy()
+//    virtual void Deploy()
 //    {
-//        base_type::deploy();
-//        data_entity_type::deploy();
+//        base_type::Deploy();
+//        data_entity_type::Deploy();
 //    };
 //
-//    virtual void pre_process() { data_entity_type::update(); };
+//    virtual void PreProcess() { data_entity_type::update(); };
 //
 //    virtual void update() { data_entity_type::update(); };
 //
-//    virtual void destroy()
+//    virtual void Destroy()
 //    {
-//        data_entity_type::destroy();
-//        base_type::destroy();
+//        data_entity_type::Destroy();
+//        base_type::Destroy();
 //    };
 //
 //    virtual void clear() { data_entity_type::clear(); }
 //
-//    virtual void sync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
+//    virtual void Sync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
 //
 //
 //    template<typename ...Args>
-//    value_type &get(Args &&...args) { return data_entity_type::get(std::forward<Args>(args)...); }
+//    value_type &get(Args &&...args) { return data_entity_type::Get(std::forward<Args>(args)...); }
 //
 //    template<typename ...Args>
-//    value_type const &get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
+//    value_type const &Get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
 //
 //
 //    EntityIdRange Range() const

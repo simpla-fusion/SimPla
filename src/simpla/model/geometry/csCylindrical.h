@@ -267,15 +267,15 @@ struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 // */
 //        point_t1 y;
 //
-//        st::get<CartesianXAxis>(y) = st::get<CylindricalRAxis>(x)
-//                                     * std::cos(st::get<CylindricalPhiAxis>(x));
+//        st::get<CartesianXAxis>(y) = st::Get<CylindricalRAxis>(x)
+//                                     * std::cos(st::Get<CylindricalPhiAxis>(x));
 //
-//        st::get<CartesianYAxis>(y) = st::get<CylindricalRAxis>(x)
-//                                     * std::sin(st::get<CylindricalPhiAxis>(x));
+//        st::get<CartesianYAxis>(y) = st::Get<CylindricalRAxis>(x)
+//                                     * std::sin(st::Get<CylindricalPhiAxis>(x));
 //
-//        st::get<CartesianZAxis>(y) = st::get<CylindricalZAxis>(x);
+//        st::get<CartesianZAxis>(y) = st::Get<CylindricalZAxis>(x);
 //
-//        return std::move(y);
+//        return std::Move(y);
 //    }
 //
 //    point_t1 operator()(point_t0 const &x) const
@@ -304,20 +304,20 @@ struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 //    vector_t1 push_forward(point_t0 const &x0, vector_t0 const &v0)
 //    {
 //
-//        Real cos_phi = std::cos(st::get<CylindricalPhiAxis>(x0));
-//        Real sin_phi = std::cos(st::get<CylindricalPhiAxis>(x0));
-//        Real r = st::get<CylindricalRAxis>(x0);
+//        Real cos_phi = std::cos(st::Get<CylindricalPhiAxis>(x0));
+//        Real sin_phi = std::cos(st::Get<CylindricalPhiAxis>(x0));
+//        Real r = st::Get<CylindricalRAxis>(x0);
 //
-//        Real vr = st::get<CylindricalRAxis>(v0);
-//        Real vphi = st::get<CylindricalPhiAxis>(v0);
+//        Real vr = st::Get<CylindricalRAxis>(v0);
+//        Real vphi = st::Get<CylindricalPhiAxis>(v0);
 //
 //        vector_t1 u;
 //
-//        st::get<CartesianXAxis>(u) = vr * cos_phi - vphi * r * sin_phi;
-//        st::get<CartesianYAxis>(u) = vr * sin_phi + vphi * r * cos_phi;
-//        st::get<CartesianZAxis>(u) = st::get<CylindricalZAxis>(v0);
+//        st::Get<CartesianXAxis>(u) = vr * cos_phi - vphi * r * sin_phi;
+//        st::Get<CartesianYAxis>(u) = vr * sin_phi + vphi * r * cos_phi;
+//        st::Get<CartesianZAxis>(u) = st::get<CylindricalZAxis>(v0);
 //
-//        return std::move(u);
+//        return std::Move(u);
 //    }
 //
 //};
@@ -368,15 +368,15 @@ struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 //         *  \f}
 //         *
 //         */
-//        st::get<CylindricalZAxis>(y) = st::get<CartesianYAxis>(x);
-//        st::get<CylindricalRAxis>(y) = std::sqrt(
-//                st::get<CartesianXAxis>(x) * st::get<CartesianXAxis>(x)
-//                + st::get<CartesianZAxis>(x)
-//                  * st::get<CartesianZAxis>(x));
-//        st::get<CylindricalPhiAxis>(y) = std::atan2(st::get<CartesianZAxis>(x),
-//                                                    st::get<CartesianXAxis>(x));
+//        st::get<CylindricalZAxis>(y) = st::Get<CartesianYAxis>(x);
+//        st::Get<CylindricalRAxis>(y) = std::sqrt(
+//                st::get<CartesianXAxis>(x) * st::Get<CartesianXAxis>(x)
+//                + st::Get<CartesianZAxis>(x)
+//                  * st::Get<CartesianZAxis>(x));
+//        st::Get<CylindricalPhiAxis>(y) = std::atan2(st::get<CartesianZAxis>(x),
+//                                                    st::Get<CartesianXAxis>(x));
 //
-//        return std::move(y);
+//        return std::Move(y);
 //
 //    }
 //
@@ -425,23 +425,23 @@ struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 //
 //        y = map(x0);
 //
-//        Real cos_phi = std::cos(st::get<CylindricalPhiAxis>(x0));
-//        Real sin_phi = std::cos(st::get<CylindricalPhiAxis>(x0));
+//        Real cos_phi = std::cos(st::Get<CylindricalPhiAxis>(x0));
+//        Real sin_phi = std::cos(st::Get<CylindricalPhiAxis>(x0));
 //
-//        Real r = st::get<CylindricalRAxis>(x0);
+//        Real r = st::Get<CylindricalRAxis>(x0);
 //
 //        vector_t1 u;
 //
-//        Real vx = st::get<CartesianXAxis>(v0);
-//        Real vy = st::get<CartesianYAxis>(v0);
+//        Real vx = st::Get<CartesianXAxis>(v0);
+//        Real vy = st::Get<CartesianYAxis>(v0);
 //
-//        st::get<CylindricalPhiAxis>(u) = (-vx * sin_phi + vy * cos_phi) / r;
+//        st::Get<CylindricalPhiAxis>(u) = (-vx * sin_phi + vy * cos_phi) / r;
 //
-//        st::get<CylindricalRAxis>(u) = vx * cos_phi + vy * sin_phi;
+//        st::Get<CylindricalRAxis>(u) = vx * cos_phi + vy * sin_phi;
 //
-//        st::get<CylindricalZAxis>(u) = st::get<CartesianZAxis>(v0);
+//        st::Get<CylindricalZAxis>(u) = st::get<CartesianZAxis>(v0);
 //
-//        return std::move(u);
+//        return std::Move(u);
 //    }
 //
 //};

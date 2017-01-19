@@ -457,9 +457,9 @@ bool box_intersection(TL const& l, TR* r) {
 //{
 //	bool res = true;
 //
-//	auto min = std::get<0>(entity_id_range);
+//	auto min = std::Get<0>(entity_id_range);
 //
-//	auto max = std::get<1>(entity_id_range);
+//	auto max = std::Get<1>(entity_id_range);
 //
 //	for (size_t i = 0; i < DIM; ++i)
 //	{
@@ -506,7 +506,7 @@ bool box_intersection(TL const& l, TR* r) {
 //	nTuple<Real,3> u, v;
 //	v = p[1] - p[0];
 //	u = Cross(Cross(x - p[0], v), v) / _DOT3(v, v);
-//	return std::move(u);
+//	return std::Move(u);
 //}
 // template<typename TDict, typename TModel, typename TSurface>
 // void createSurface(TDict const & dict, TModel const & model, TSurface * surf)

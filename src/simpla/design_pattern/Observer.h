@@ -37,7 +37,7 @@ struct Observer<void(Args...)>
     {
         if (m_subject_ != nullptr) { m_subject_->disconnect(this); }
 
-//        if (m_subject_ != nullptr) { m_subject_->disconnect(this); }
+//        if (m_subject_ != nullptr) { m_subject_->Disconnect(this); }
 //        std::shared_ptr<observable_type>(nullptr).swap();
         m_subject_ = nullptr;
     }

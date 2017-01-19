@@ -89,7 +89,7 @@ struct SAMRAITimeIntegrator;
 std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &str = "") {
     auto integrator = std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>());
 
-    integrator->db.parse(str);
+    integrator->db.Parse(str);
 
     /** test.3d.input */
 
@@ -172,50 +172,50 @@ std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string c
     }
      */
 
-    integrator->db.set_value("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
+    integrator->db.setValue("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
 
-    integrator->db.set_value("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
-    integrator->db.set_value("CartesianGeometry.x_lo", nTuple<double, 3>{1.0, 0.0, -1.0});
-    integrator->db.set_value("CartesianGeometry.x_up", nTuple<double, 3>{2, PI, 1});
+    integrator->db.setValue("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
+    integrator->db.setValue("CartesianGeometry.x_lo", nTuple<double, 3>{1.0, 0.0, -1.0});
+    integrator->db.setValue("CartesianGeometry.x_up", nTuple<double, 3>{2, PI, 1});
     // Maximum number of levels in hierarchy.
-    integrator->db.set_value("PatchHierarchy.max_levels", int(3));
-    integrator->db.set_value("PatchHierarchy.ratio_to_coarser.level_1", nTuple<int, 3>{2, 2, 1});
-    integrator->db.set_value("PatchHierarchy.ratio_to_coarser.level_2", nTuple<int, 3>{2, 2, 1});
-    integrator->db.set_value("PatchHierarchy.ratio_to_coarser.level_3", nTuple<int, 3>{2, 2, 1});
-    integrator->db.set_value("PatchHierarchy.largest_patch_size.level_0", nTuple<int, 3>{32, 32, 32});
-    integrator->db.set_value("PatchHierarchy.smallest_patch_size.level_0", nTuple<int, 3>{4, 4, 4});
+    integrator->db.setValue("PatchHierarchy.max_levels", int(3));
+    integrator->db.setValue("PatchHierarchy.ratio_to_coarser.level_1", nTuple<int, 3>{2, 2, 1});
+    integrator->db.setValue("PatchHierarchy.ratio_to_coarser.level_2", nTuple<int, 3>{2, 2, 1});
+    integrator->db.setValue("PatchHierarchy.ratio_to_coarser.level_3", nTuple<int, 3>{2, 2, 1});
+    integrator->db.setValue("PatchHierarchy.largest_patch_size.level_0", nTuple<int, 3>{32, 32, 32});
+    integrator->db.setValue("PatchHierarchy.smallest_patch_size.level_0", nTuple<int, 3>{4, 4, 4});
 
-    integrator->db.create_table("GriddingAlgorithm");
+    integrator->db.CreateTable("GriddingAlgorithm");
     // Makes results repeatable.
-    integrator->db.set_value("BergerRigoutsos.sort_output_nodes", true);
+    integrator->db.setValue("BergerRigoutsos.sort_output_nodes", true);
     // min % of tag cells in new patch level
-    integrator->db.set_value("BergerRigoutsos.efficiency_tolerance", 0.85);
+    integrator->db.setValue("BergerRigoutsos.efficiency_tolerance", 0.85);
     // chop box if sum of volumes of smaller
     //    // boxes < efficiency * vol of large box
-    integrator->db.set_value("BergerRigoutsos.combine_efficiency", 0.95);
+    integrator->db.setValue("BergerRigoutsos.combine_efficiency", 0.95);
 
     // Refer to mesh::StandardTagAndInitialize for input
-    integrator->db.set_value("StandardTagAndInitialize.tagging_method", "GRADIENT_DETECTOR");
+    integrator->db.setValue("StandardTagAndInitialize.tagging_method", "GRADIENT_DETECTOR");
 
     // Refer to algs::HyperbolicLevelIntegrator for input
     // max cfl factor used in problem
-    integrator->db.set_value("HyperbolicLevelIntegrator.cfl", 0.9);
-    integrator->db.set_value("HyperbolicLevelIntegrator.cfl_init", 0.9);  // initial cfl factor
-    integrator->db.set_value("HyperbolicLevelIntegrator.lag_dt_computation", true);
-    integrator->db.set_value("HyperbolicLevelIntegrator.use_ghosts_to_compute_dt", true);
+    integrator->db.setValue("HyperbolicLevelIntegrator.cfl", 0.9);
+    integrator->db.setValue("HyperbolicLevelIntegrator.cfl_init", 0.9);  // initial cfl factor
+    integrator->db.setValue("HyperbolicLevelIntegrator.lag_dt_computation", true);
+    integrator->db.setValue("HyperbolicLevelIntegrator.use_ghosts_to_compute_dt", true);
 
     // Refer to algs::TimeRefinementIntegrator for input
     // initial simulation time
-    integrator->db.set_value("TimeRefinementIntegrator.start_time", 0.e0);
+    integrator->db.setValue("TimeRefinementIntegrator.start_time", 0.e0);
     // final simulation time
-    integrator->db.set_value("TimeRefinementIntegrator.end_time", 1.e0);
+    integrator->db.setValue("TimeRefinementIntegrator.end_time", 1.e0);
     // growth factor for timesteps
-    integrator->db.set_value("TimeRefinementIntegrator.grow_dt", 1.1e0);
+    integrator->db.setValue("TimeRefinementIntegrator.grow_dt", 1.1e0);
     // max number of simulation timesteps
-    integrator->db.set_value("TimeRefinementIntegrator.max_integrator_steps", 5);
+    integrator->db.setValue("TimeRefinementIntegrator.max_integrator_steps", 5);
 
     // Refer to mesh::TreeLoadBalancer for input
-    integrator->db.create_table("LoadBalancer");
+    integrator->db.CreateTable("LoadBalancer");
     return integrator;
 }
 
@@ -382,7 +382,7 @@ class SAMRAIWorker : public SAMRAI::algs::HyperbolicPatchStrategy {
 
     /*
      * We cache pointers to the grid geometry object to set up initial
-     * data_block, set_value physical boundary conditions, and register plot
+     * data_block, setValue physical boundary conditions, and register plot
      * variables.
      */
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
@@ -390,7 +390,7 @@ class SAMRAIWorker : public SAMRAI::algs::HyperbolicPatchStrategy {
     boost::shared_ptr<SAMRAI::appu::VisItDataWriter> d_visit_writer = nullptr;
 
     /*
-     * Data items used for nonuniform load balance, if used.
+     * Data items used for nonuniform Load balance, if used.
      */
     boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id;
@@ -430,7 +430,7 @@ SAMRAIWorker::~SAMRAIWorker() {}
 namespace detail {
 
 template <typename T>
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(unsigned int ndims, mesh::Attribute *attr) {
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, mesh::Attribute *attr) {
     static int var_depth[4] = {1, 3, 3, 1};
     if (attr->description().entity_type() <= VOLUME) {
         SAMRAI::tbox::Dimension d_dim(ndims);
@@ -462,9 +462,7 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int nd
 }
 }  // namespace detail{
    /**
-    *
     * Register conserved variables  and  register plot data with VisIt.
-    *
     */
 void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator) {
     ASSERT(integrator != nullptr);
@@ -477,7 +475,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     }
 
     //**************************************************************
-    m_worker_->mesh()->foreach_attr([&](mesh::Attribute *attr) {
+    m_worker_->mesh()->ForeachAttr([&](mesh::Attribute *attr) {
         if (attr == nullptr) { return; }
 
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, attr);
@@ -580,8 +578,8 @@ void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *in
             load_balancer->setWorkloadPatchDataIndex(d_workload_data_id);
         } else {
             WARNING << m_name_ << ": "
-                    << "  Unknown load balancer used in gridding algorithm."
-                    << "  Ignoring request for nonuniform load balancing." << std::endl;
+                    << "  Unknown Load balancer used in gridding algorithm."
+                    << "  Ignoring request for nonuniform Load balancing." << std::endl;
             d_use_nonuniform_workload = false;
         }
     } else {
@@ -617,7 +615,8 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t2(mesh::Attribute const *ite
                         inner_upper[2] - outer_lower[2], DOF};
 
     auto res = std::make_shared<mesh::DataBlockAdapter<Array<TV, 4>>>(p_data->getPointer(), dims, lo, hi);
-    res->deploy();
+
+    res->Deploy();
 
     return std::dynamic_pointer_cast<mesh::DataBlock>(res);
 }
@@ -702,19 +701,19 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
     std::shared_ptr<simpla::mesh::MeshBlock> m = std::make_shared<simpla::mesh::MeshBlock>(3, lo, hi, dx, xlo);
     m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
                                patch.getBox().getGlobalId().getLocalId().getValue()));
-    m->deploy();
+    m->Deploy();
     auto p = std::make_shared<simpla::mesh::Patch>();
 
     p->mesh(m);
 
-    w->mesh()->foreach_attr([&](simpla::mesh::Attribute *attr) {
+    w->mesh()->ForeachAttr([&](simpla::mesh::Attribute *attr) {
         if (attr == nullptr) { return; }
 
         p->data(attr->description().id(),
                 simpla::detail::create_data_block(
                     attr, patch.getPatchData(m_samrai_variables_.at(attr->description().name()), getDataContext())));
     });
-    w->accept(p.get());
+    w->Accept(p.get());
 }
 
 /**
@@ -730,7 +729,7 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
 void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time, const bool initial_time) {
     if (initial_time) {
         move_to(m_worker_, patch);
-        m_worker_->initialize(data_time, 0);
+        m_worker_->Initialize(data_time, 0);
     }
 
     if (d_use_nonuniform_workload) {
@@ -787,7 +786,7 @@ void SAMRAIWorker::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, con
                                                  bool at_syncronization) {
     move_to(m_worker_, patch);
 
-    m_worker_->set_physical_boundary_conditions(time);
+    m_worker_->SetPhysicalBoundaryConditions(time);
 }
 
 /*
@@ -822,7 +821,7 @@ void SAMRAIWorker::setPhysicalBoundaryConditions(SAMRAI::hier::Patch &patch, con
                                                  const SAMRAI::hier::IntVector &ghost_width_to_fill) {
     move_to(m_worker_, patch);
 
-    m_worker_->set_physical_boundary_conditions(fill_time);
+    m_worker_->SetPhysicalBoundaryConditions(fill_time);
 }
 
 /*
@@ -964,36 +963,36 @@ void SAMRAITimeIntegrator::save(data::DataTable *) const { UNIMPLEMENTED; }
 namespace detail {
 void convert_database_r(data::DataEntity const &src, boost::shared_ptr<SAMRAI::tbox::Database> &dest,
                         std::string const &key = "") {
-    if (src.is_table()) {
+    if (src.isTable()) {
         auto sub_db = key == "" ? dest : dest->putDatabase(key);
 
-        src.as_table().foreach (
+        src.asTable().foreach (
             [&](std::string const &k, data::DataEntity const &v) { convert_database_r(v, sub_db, k); });
 
     } else if (key == "") {
         return;
-    } else if (src.is_null()) {
+    } else if (src.isNull()) {
         dest->putDatabase(key);
-    } else if (src.as_light().is_boolean()) {
-        dest->putBool(key, src.as_light().as<bool>());
-    } else if (src.as_light().is_string()) {
-        dest->putString(key, src.as_light().as<std::string>());
-    } else if (src.as_light().is_floating_point()) {
-        dest->putDouble(key, src.as_light().as<double>());
-    } else if (src.as_light().is_integral()) {
-        dest->putInteger(key, src.as_light().as<int>());
-    } else if (src.as_light().type() == typeid(nTuple<bool, 3>)) {
-        dest->putBoolArray(key, &src.as_light().as<nTuple<bool, 3>>()[0], 3);
-    } else if (src.as_light().type() == typeid(nTuple<int, 3>)) {
-        dest->putIntegerArray(key, &src.as_light().as<nTuple<int, 3>>()[0], 3);
-    } else if (src.as_light().type() == typeid(nTuple<double, 3>)) {
-        dest->putDoubleArray(key, &src.as_light().as<nTuple<double, 3>>()[0], 3);
+    } else if (src.asLight().isBoolean()) {
+        dest->putBool(key, src.asLight().as<bool>());
+    } else if (src.asLight().is_string()) {
+        dest->putString(key, src.asLight().as<std::string>());
+    } else if (src.asLight().isFloatingPoint()) {
+        dest->putDouble(key, src.asLight().as<double>());
+    } else if (src.asLight().isIntegral()) {
+        dest->putInteger(key, src.asLight().as<int>());
+    } else if (src.asLight().type() == typeid(nTuple<bool, 3>)) {
+        dest->putBoolArray(key, &src.asLight().as<nTuple<bool, 3>>()[0], 3);
+    } else if (src.asLight().type() == typeid(nTuple<int, 3>)) {
+        dest->putIntegerArray(key, &src.asLight().as<nTuple<int, 3>>()[0], 3);
+    } else if (src.asLight().type() == typeid(nTuple<double, 3>)) {
+        dest->putDoubleArray(key, &src.asLight().as<nTuple<double, 3>>()[0], 3);
     }
     //    else if (src.type() == typeid(box_type)) { dest->putDoubleArray(key,
     //    &src.as<box_type>()[0], 3); }
-    else if (src.as_light().type() == typeid(index_box_type)) {
+    else if (src.asLight().type() == typeid(index_box_type)) {
         nTuple<int, 3> i_lo, i_up;
-        std::tie(i_lo, i_up) = src.as_light().as<index_box_type>();
+        std::tie(i_lo, i_up) = src.asLight().as<index_box_type>();
         SAMRAI::tbox::Dimension dim(3);
         dest->putDatabaseBox(key, SAMRAI::tbox::DatabaseBox(dim, &(i_lo[0]), &(i_up[0])));
     } else {
@@ -1009,10 +1008,10 @@ boost::shared_ptr<SAMRAI::tbox::Database> convert_database(data::DataTable const
 }
 }  // namespace detail{
 void SAMRAITimeIntegrator::deploy() {
-    if (concept::LifeControllable::is_deployed()) { return; }
-    concept::LifeControllable::deploy();
+    if (concept::LifeControllable::isDeployed()) { return; }
+    concept::LifeControllable::Deploy();
 
-    bool use_refined_timestepping = db.get_value("use_refined_timestepping", true);
+    bool use_refined_timestepping = db.getValue("use_refined_timestepping", true);
 
     SAMRAI::tbox::Dimension dim(ndims);
 
@@ -1038,7 +1037,7 @@ void SAMRAITimeIntegrator::deploy() {
     /***
      *  create hyp_level_integrator and error_detector
      */
-    ASSERT(worker()->is_deployed());
+    ASSERT(worker()->isDeployed());
     patch_worker = boost::make_shared<SAMRAIWorker>(worker(), dim, grid_geometry);
 
     hyp_level_integrator = boost::make_shared<SAMRAILevelIntegrator>(
@@ -1078,8 +1077,8 @@ void SAMRAITimeIntegrator::deploy() {
         hyp_level_integrator, gridding_algorithm);
 
     visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
-        dim, db.get_value("output_writer_name", name() + " VisIt Writer"), db.get_value("output_dir_name", name()),
-        db.get_value("visit_number_procs_per_file", int(1)));
+        dim, db.getValue("output_writer_name", name() + " VisIt Writer"), db.getValue("output_dir_name", name()),
+        db.getValue("visit_number_procs_per_file", int(1)));
 
     patch_worker->registerVisItDataWriter(visit_data_writer);
 
@@ -1163,11 +1162,11 @@ bool SAMRAITimeIntegrator::remaining_steps() const { return time_integrator->ste
 //    typedef mesh::DataBlockBase<V, M, IFORM> simpla_base_type;
 // public:
 //    SAMRAIWrapperPatch(std::shared_ptr<M> const &m, size_tuple const &gw)
-//            : samari_base_type(SAMRAI::hier::Box(samraiIndexConvert(std::get<0>(m->index_box())),
-//                                                 samraiIndexConvert(std::get<1>(m->index_box())),
+//            : samari_base_type(SAMRAI::hier::Box(samraiIndexConvert(std::Get<0>(m->index_box())),
+//                                                 samraiIndexConvert(std::Get<1>(m->index_box())),
 //                                                 SAMRAI::hier::BlockId(0)),
 //                               1, samraiIntVectorConvert(gw)),
-//              simpla_base_type(m->get()) {}
+//              simpla_base_type(m->Get()) {}
 //
 //    ~SAMRAIWrapperPatch() {}
 //};

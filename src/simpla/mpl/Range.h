@@ -66,9 +66,7 @@ struct RangeBase {
 
     virtual bool empty() const { return true; }
 
-    virtual void foreach_override(std::function<void(value_type&)> const& fun) const {
-        DO_NOTHING;
-    };
+    virtual void foreach_override(std::function<void(value_type&)> const& fun) const { DO_NOTHING; };
 
     virtual std::shared_ptr<this_type> split(concept::tags::split const& sp) {
         UNIMPLEMENTED;
@@ -77,9 +75,9 @@ struct RangeBase {
 
     template <typename TFun, typename... Args>
     void foreach (TFun const& fun, Args && ... args) const {
-        if (is_a(typeid(continue_type))) {
+        if (isA(typeid(continue_type))) {
             as<continue_type>()->foreach (fun, std::forward<Args>(args)...);
-        } else if (is_a(typeid(unordered_type))) {
+        } else if (isA(typeid(unordered_type))) {
             as<unordered_type>()->foreach (fun, std::forward<Args>(args)...);
         } else {
             foreach_override([&](value_type& v) { fun(v, std::forward<Args>(args)...); });
@@ -101,9 +99,7 @@ struct ContinueRange<T> : public RangeBase<T> {
 
     virtual bool empty() const { return true; }
 
-    virtual void foreach_override(std::function<void(value_type&)> const& fun) const {
-        UNIMPLEMENTED;
-    };
+    virtual void foreach_override(std::function<void(value_type&)> const& fun) const { UNIMPLEMENTED; };
 
     virtual std::shared_ptr<base_type> split(concept::tags::split const& sp) {
         UNIMPLEMENTED;
@@ -128,9 +124,7 @@ struct UnorderedRange<T> : public RangeBase<T> {
 
     virtual bool empty() const { return true; }
 
-    virtual void foreach_override(std::function<void(value_type&)> const& fun) const {
-        UNIMPLEMENTED;
-    };
+    virtual void foreach_override(std::function<void(value_type&)> const& fun) const { UNIMPLEMENTED; };
 
     virtual std::shared_ptr<base_type> split(concept::tags::split const& sp) {
         UNIMPLEMENTED;
@@ -153,8 +147,7 @@ struct RangeAdapter : public RangeBase<typename TOtherRange::value_type>, public
     template <typename... Args>
     RangeAdapter(Args&&... args) : TOtherRange(std::forward<Args>(args)...) {}
 
-    RangeAdapter(TOtherRange& other, concept::tags::split const& sp)
-        : TOtherRange(other.split(sp)) {}
+    RangeAdapter(TOtherRange& other, concept::tags::split const& sp) : TOtherRange(other.split(sp)) {}
 
     virtual ~RangeAdapter() {}
 
@@ -181,9 +174,7 @@ struct IteratorRange : public RangeBase<typename std::iterator_traits<TIterator>
     SP_OBJECT_HEAD(IteratorRange<TIterator>, RangeBase<value_type>)
 
    public:
-    IteratorRange(iterator const& b, iterator const& e) : m_b_(b), m_e_(e) {
-        ASSERT(std::distance(m_b_, m_e_) >= 0);
-    }
+    IteratorRange(iterator const& b, iterator const& e) : m_b_(b), m_e_(e) { ASSERT(std::distance(m_b_, m_e_) >= 0); }
 
     IteratorRange(this_type& other) : m_b_(other.m_b_), m_e_(other.m_e_) {}
 
@@ -252,9 +243,7 @@ struct Range {
     }
     size_type size() const {
         size_type res = 0;
-        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) {
-            res += (*cursor)->size();
-        }
+        for (auto* cursor = &m_next_; *cursor != nullptr; cursor = &((*cursor)->m_next_)) { res += (*cursor)->size(); }
         return res;
     }
 
@@ -282,16 +271,15 @@ Range<T> make_unordered_range(Args&&... args) {
 };
 
 template <typename TIterator>
-Range<typename std::iterator_traits<TIterator>::value_type> make_iterator_range(
-    TIterator const& b, TIterator const& e) {
+Range<typename std::iterator_traits<TIterator>::value_type> make_iterator_range(TIterator const& b,
+                                                                                TIterator const& e) {
     return Range<typename std::iterator_traits<TIterator>::value_type>(
         std::make_shared<IteratorRange<TIterator>>(b, e));
 };
 
 template <typename TOtherRange, typename... Args>
 Range<typename TOtherRange::value_type> make_range(Args&&... args) {
-    return Range<typename TOtherRange::value_type>(
-        std::make_shared<RangeAdapter<TOtherRange>>(std::forward<Args>...));
+    return Range<typename TOtherRange::value_type>(std::make_shared<RangeAdapter<TOtherRange>>(std::forward<Args>...));
 };
 }
 #endif  // SIMPLA_RANGE_H

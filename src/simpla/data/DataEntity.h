@@ -38,31 +38,31 @@ struct DataEntity : public concept::Printable {
 
     virtual ~DataEntity() {}
 
-    virtual bool is_null() const { return !(is_table() | is_light() | is_heavy()); }
+    virtual bool isNull() const { return !(isTable() | isLight() | isHeavy()); }
 
-    virtual bool is_table() const { return false; };
+    virtual bool isTable() const { return false; };
 
-    virtual bool is_light() const { return false; };
+    virtual bool isLight() const { return false; };
 
-    virtual bool is_heavy() const { return false; };
+    virtual bool isHeavy() const { return false; };
 
-    virtual std::shared_ptr<DataEntity> copy() const { return nullptr; };
+    virtual std::shared_ptr<DataEntity> Copy() const { return nullptr; };
 
-    virtual std::shared_ptr<DataEntity> move() { return nullptr; };
+    virtual std::shared_ptr<DataEntity> Move() { return nullptr; };
 
-    virtual void deep_copy(DataEntity const& other) { UNIMPLEMENTED; }
+    virtual void DeepCopy(DataEntity const &other) { UNIMPLEMENTED; }
 
-    DataTable& as_table();
+    DataTable& asTable();
 
-    DataTable const& as_table() const;
+    DataTable const& asTable() const;
 
-    LightData& as_light();
+    LightData& asLight();
 
-    LightData const& as_light() const;
+    LightData const& asLight() const;
 
-    HeavyData& as_heavy();
+    HeavyData& asHeavy();
 
-    HeavyData const& as_heavy() const;
+    HeavyData const& asHeavy() const;
 };
 
 template <typename>
@@ -87,18 +87,18 @@ struct entity_traits {
 //
 //    virtual ~LightData() {}
 //
-//    virtual bool is_light() const { return true; }
+//    virtual bool isLight() const { return true; }
 //
-//    virtual std::ostream& print(std::ostream& os, int indent) const {
-//        return m_data_.print(os, indent);
+//    virtual std::ostream& Print(std::ostream& os, int indent) const {
+//        return m_data_.Print(os, indent);
 //    };
 //
 //    void swap(LightData& other) { m_data_.swap(other.m_data_); }
 //
-//    virtual std::shared_ptr<DataEntity> copy() const { return std::make_shared<this_type>(*this);
+//    virtual std::shared_ptr<DataEntity> Copy() const { return std::make_shared<this_type>(*this);
 //    }
 //
-//    virtual std::shared_ptr<DataEntity> move() {
+//    virtual std::shared_ptr<DataEntity> Move() {
 //        auto res = std::make_shared<this_type>();
 //        res->swap(*this);
 //        return std::dynamic_pointer_cast<DataEntity>(res);
@@ -109,7 +109,7 @@ struct entity_traits {
 //        return *this;
 //    }
 //
-//    // move assignment
+//    // Move assignment
 //    LightData& operator=(LightData&& rhs) {
 //        rhs.swap(*this);
 //        LightData().swap(rhs);
@@ -147,17 +147,17 @@ struct entity_traits {
 //
 // template <typename U, typename... Args>
 // U& DataEntity::as(Args&&... args) {
-//    return as_light().template as<U>(std::forward<Args>(args)...);
+//    return asLight().template as<U>(std::forward<Args>(args)...);
 //}
 //
 // template <typename U, typename... Args>
 // U const& DataEntity::as(Args&&... args) const {
-//    return as_light().template as<U>(std::forward<Args>(args)...);
+//    return asLight().template as<U>(std::forward<Args>(args)...);
 //}
 //
 // template <typename U>
 // bool DataEntity::equal(U const& u) const {
-//    return as_light().equal(u);
+//    return asLight().equal(u);
 //}
 
 // template<typename U> std::shared_ptr<DataEntity>

@@ -13,15 +13,15 @@ Mesh::Mesh() : m_model_(nullptr) {}
 
 Mesh::~Mesh() {}
 
-std::ostream &Mesh::print(std::ostream &os, int indent) const {
+std::ostream &Mesh::Print(std::ostream &os, int indent) const {
     os << std::setw(indent + 1) << " "
        << "Mesh = { ";
-    os << "Type = \"" << get_class_name() << "\",";
+    os << "Type = \"" << getClassName() << "\",";
     if (m_mesh_block_ != nullptr) {
         os << std::endl;
         os << std::setw(indent + 1) << " "
            << " Block = {";
-        m_mesh_block_->print(os, indent + 1);
+        m_mesh_block_->Print(os, indent + 1);
         os << std::setw(indent + 1) << " "
            << "},";
     }
@@ -36,26 +36,26 @@ std::ostream &Mesh::print(std::ostream &os, int indent) const {
 
     return os;
 };
-void Mesh::deploy() {
-    if (m_mesh_block_ != nullptr) { m_mesh_block_->deploy(); }
+void Mesh::Deploy() {
+    if (m_mesh_block_ != nullptr) { m_mesh_block_->Deploy(); }
     if (m_model_ == nullptr) { m_model_ = std::make_unique<simpla::model::Model>(this); }
 };
 
 // bool Mesh::is_a(std::type_info const &info) const { return typeid(Mesh) == info; }
 
-void Mesh::accept(Patch *p) {
-    post_process();
+void Mesh::Accept(Patch *p) {
+    PostProcess();
     m_mesh_block_ = p->mesh();
-    for (auto attr : m_attrs_) { attr->accept(p->data(attr->description().id())); }
-    pre_process();
+    for (auto attr : m_attrs_) { attr->Accept(p->data(attr->description().id())); }
+    PreProcess();
 };
 
-void Mesh::initialize(Real data_time, Real dt) { pre_process(); }
+void Mesh::Initialize(Real data_time, Real dt) { PreProcess(); }
 
-void Mesh::finalize(Real data_time, Real dt) { post_process(); }
+void Mesh::Finalize(Real data_time, Real dt) { PostProcess(); }
 
-void Mesh::pre_process() { ASSERT(m_mesh_block_ != nullptr); }
+void Mesh::PreProcess() { ASSERT(m_mesh_block_ != nullptr); }
 
-void Mesh::post_process() { m_mesh_block_.reset(); }
+void Mesh::PostProcess() { m_mesh_block_.reset(); }
 }
 }  // namespace simpla {namespace mesh

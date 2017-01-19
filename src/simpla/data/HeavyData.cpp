@@ -5,15 +5,15 @@
 
 namespace simpla { namespace data
 {
-HeavyData &DataEntity::as_heavy()
+HeavyData &DataEntity::asHeavy()
 {
-    ASSERT(is_heavy());
+    ASSERT(isHeavy());
     return *static_cast<HeavyData *>(this);
 }
 
-HeavyData const &DataEntity::as_heavy() const
+HeavyData const &DataEntity::asHeavy() const
 {
-    ASSERT(is_heavy());
+    ASSERT(isHeavy());
     return *static_cast<HeavyData const *>(this);
 }
 

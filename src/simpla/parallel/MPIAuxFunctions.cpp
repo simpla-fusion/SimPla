@@ -118,8 +118,8 @@ void allreduce(void const *send_data, void *recv_data, size_t count,
 //	for (auto const & item : info)
 //	{
 //
-//		MPI_Isend( reinterpret_cast<byte_type*>(const_cast<void* >(m_send_links_))+std::get<3>(item) ,
-//				std::get<4>(item), MPI_BYTE, std::get<0>(item), std::get<1>(item),
+//		MPI_Isend( reinterpret_cast<byte_type*>(const_cast<void* >(m_send_links_))+std::Get<3>(item) ,
+//				std::get<4>(item), MPI_BYTE, std::get<0>(item), std::Get<1>(item),
 //				GLOBAL_COMM.comm(), &requests[req_count]);
 //
 //		++req_count;
@@ -131,7 +131,7 @@ void allreduce(void const *send_data, void *recv_data, size_t count,
 //	{
 //		MPI_Status status;
 //
-//		MPI_Probe(std::get<0>(item), std::get<2>(item), GLOBAL_COMM.comm(), &status);
+//		MPI_Probe(std::get<0>(item), std::Get<2>(item), GLOBAL_COMM.comm(), &status);
 //
 //		// When probe returns, the status object find the size and other
 //		// attributes of the incoming message. Get the size of the message
@@ -157,7 +157,7 @@ void allreduce(void const *send_data, void *recv_data, size_t count,
 //	for (int i = 0; i < info.size(); ++i)
 //	{
 //
-//		MPI_Irecv(m_recv_links_.get() + pos, mem_size[i], MPI_BYTE, std::get<0>(info[i]), std::get<2>(info[i]),
+//		MPI_Irecv(m_recv_links_.get() + pos, mem_size[i], MPI_BYTE, std::get<0>(info[i]), std::Get<2>(info[i]),
 //				GLOBAL_COMM.comm(), &requests[req_count] );
 //
 //		pos+= mem_size[i];

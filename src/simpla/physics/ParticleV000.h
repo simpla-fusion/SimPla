@@ -98,7 +98,7 @@ public:
     }
 
 
-    //copy construct
+    //Copy construct
     Particle(this_type const &other)
             : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
               m_data_(other.m_data_), m_properties_(other.m_properties_), MeshAttribute(nullptr), MeshAttribute(nullptr)
@@ -106,7 +106,7 @@ public:
     }
 
 
-    // move construct
+    // Move construct
     Particle(this_type &&other)
             : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
               m_data_(other.m_data_), m_properties_(other.m_properties_), MeshAttribute(nullptr), MeshAttribute(nullptr)
@@ -156,7 +156,7 @@ public:
 
     virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); };
 
-    virtual std::string get_class_name() const { return class_name(); };
+    virtual std::string getClassName() const { return class_name(); };
 
     static std::string class_name() { return "Particle<" + traits::type_id<P, M>::name() + ">"; };
 
@@ -346,7 +346,7 @@ Particle<P, M>::gather_all(Field<TV, mesh_type, Others...> *res, Args &&...args)
     //FIXME  using this->box() select entity_id_range
     if (is_valid())
     {
-        LOGGER << "Gather [" << get_class_name() << "]" << std::endl;
+        LOGGER << "Gather [" << getClassName() << "]" << std::endl;
 
         res->apply(res->entity_id_range(),
                    [&](point_type const &x)
@@ -363,7 +363,7 @@ Particle<P, M>::gather_all(Field<TV, mesh_type, Others...> *res, Args &&...args)
     }
     else
     {
-        LOGGER << "Particle is not valid! [" << get_class_name() << "]" << std::endl;
+        LOGGER << "Particle is not valid! [" << getClassName() << "]" << std::endl;
 
     }
 };

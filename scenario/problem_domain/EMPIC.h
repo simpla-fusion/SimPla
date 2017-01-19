@@ -34,7 +34,7 @@ public:
     bool is_a() const { return is_a(typeid(_UOTHER_)); }
 
 
-    virtual std::string get_class_name() const { return class_name(); }
+    virtual std::string getClassName() const { return class_name(); }
 
 
     static std::string class_name() { return "EMPIC<" + traits::type_id<TM>::name() + ">"; }
@@ -55,7 +55,7 @@ public:
 
     virtual io::IOStream &check_point(io::IOStream &os) const;
 
-//    virtual io::IOStream &save(io::IOStream &os) const;
+//    virtual io::IOStream &Save(io::IOStream &os) const;
 
 
     EntityRange limiter_boundary;
@@ -167,7 +167,7 @@ io::IOStream &EMPIC<TM>::check_point(io::IOStream &os) const
 }
 
 //template<typename TM>
-//io::IOStream &EMPIC<TM>::save(io::IOStream &os) const
+//io::IOStream &EMPIC<TM>::Save(io::IOStream &os) const
 //{
 //    os.write("H", H.dataset(), io::SP_NEW);
 //    return os;

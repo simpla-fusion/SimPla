@@ -7,39 +7,50 @@
 #ifndef SIMPLA_OBJECT_H
 #define SIMPLA_OBJECT_H
 
-#include <typeinfo>
-#include <mutex>
 #include <memory>
+#include <mutex>
+#include <typeinfo>
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/LifeClick.h>
 #include <typeindex>
 
-namespace simpla
-{
+namespace simpla {
 
-#define SP_OBJECT_BASE(_BASE_CLASS_NAME_)                                                                           \
-private: typedef _BASE_CLASS_NAME_ this_type ;        \
-public:                                                                                                             \
-virtual bool is_a(const std::type_info &info) const { return typeid(_BASE_CLASS_NAME_) == info; }                   \
-template<typename _UOTHER_> bool is_a()const {return is_a(typeid(_UOTHER_));}                                        \
-template<typename U_> U_ * as() { return (is_a(typeid(U_))) ? static_cast<U_ *>(this) : nullptr; }                   \
-template<typename U_> U_ const * as() const { return (is_a(typeid(U_))) ? static_cast<U_ const *>(this) : nullptr; } \
-virtual std::type_index typeindex() const   { return std::type_index(typeid(_BASE_CLASS_NAME_)); }                  \
-virtual std::string get_class_name() const { return __STRING(_BASE_CLASS_NAME_); }                                  \
+#define SP_OBJECT_BASE(_BASE_CLASS_NAME_)                                                            \
+   private:                                                                                          \
+    typedef _BASE_CLASS_NAME_ this_type;                                                             \
+                                                                                                     \
+   public:                                                                                           \
+    virtual bool isA(const std::type_info &info) const { return typeid(_BASE_CLASS_NAME_) == info; } \
+    template <typename _UOTHER_>                                                                     \
+    bool isA() const {                                                                               \
+        return isA(typeid(_UOTHER_));                                                                \
+    }                                                                                                \
+    template <typename U_>                                                                           \
+    U_ *as() {                                                                                       \
+        return (isA(typeid(U_))) ? static_cast<U_ *>(this) : nullptr;                                \
+    }                                                                                                \
+    template <typename U_>                                                                           \
+    U_ const *as() const {                                                                           \
+        return (isA(typeid(U_))) ? static_cast<U_ const *>(this) : nullptr;                          \
+    }                                                                                                \
+    virtual std::type_index TypeIndex() const { return std::type_index(typeid(_BASE_CLASS_NAME_)); } \
+    virtual std::string getClassName() const { return __STRING(_BASE_CLASS_NAME_); }
 
-
-
-#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                       \
-public:                                                                       \
-virtual bool is_a(std::type_info const &info)const { return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::is_a(info); }   \
-virtual std::type_index typeindex() const   { return std::type_index(typeid(_CLASS_NAME_)); }  \
-virtual std::string get_class_name() const { return __STRING(_CLASS_NAME_); } \
-private:                                                                      \
-    typedef _BASE_CLASS_NAME_ base_type;                                      \
-    typedef _CLASS_NAME_ this_type;                                           \
-public:
-
+#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                                         \
+   public:                                                                                      \
+    virtual bool isA(std::type_info const &info) const {                                        \
+        return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::isA(info);                    \
+    }                                                                                           \
+    virtual std::type_index TypeIndex() const { return std::type_index(typeid(_CLASS_NAME_)); } \
+    virtual std::string getClassName() const { return __STRING(_CLASS_NAME_); }                 \
+                                                                                                \
+   private:                                                                                     \
+    typedef _BASE_CLASS_NAME_ base_type;                                                        \
+    typedef _CLASS_NAME_ this_type;                                                             \
+                                                                                                \
+   public:
 
 /** @ingroup task_flow
  *  @addtogroup sp_object SIMPla object
@@ -100,9 +111,8 @@ public:
  *  @}
  **/
 
-class Object
-{
-public:
+class Object {
+   public:
     SP_OBJECT_BASE(Object)
 
     Object();
@@ -111,9 +121,9 @@ public:
 
     Object(Object const &) = delete;
 
-    Object &operator=(Object const &other)= delete;
+    Object &operator=(Object const &other) = delete;
 
-    virtual  ~Object();
+    virtual ~Object();
 
     void id(id_type t_id);
 
@@ -142,20 +152,14 @@ public:
 
     size_type click() const;
     /** @} */
-private:
-
+   private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
-
 };
 
+// virtual std::shared_ptr<GeoObject> clone_object()const { return std::dynamic_pointer_cast<GeoObject>(this->clone());
+// }
 
+}  // namespace simpla { namespace base
 
-//virtual std::shared_ptr<GeoObject> clone_object()const { return std::dynamic_pointer_cast<GeoObject>(this->clone()); }
-
-
-
-}//namespace simpla { namespace base
-
-
-#endif //SIMPLA_OBJECT_H
+#endif  // SIMPLA_OBJECT_H

@@ -37,42 +37,41 @@ class Worker : public Object,
                public concept::Serializable,
                public concept::Configurable,
                public concept::LifeControllable {
-   public:
     SP_OBJECT_HEAD(Worker, Object)
-
+   public:
     Worker(Mesh *);
 
     virtual ~Worker();
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
-    virtual void load(data::DataTable const &) { UNIMPLEMENTED; }
+    virtual void Load(data::DataTable const &) { UNIMPLEMENTED; }
 
-    virtual void save(data::DataTable *) const { UNIMPLEMENTED; }
+    virtual void Save(data::DataTable *) const { UNIMPLEMENTED; }
 
     virtual Mesh *mesh() { return m_mesh_; };
 
     virtual Mesh const *mesh() const { return m_mesh_; };
 
-    virtual void accept(Patch *m);
+    virtual void Accept(Patch *m);
 
-    virtual void deploy();
+    virtual void Deploy();
 
-    virtual void pre_process();
+    virtual void PreProcess();
 
-    virtual void initialize(Real data_time, Real dt);
+    virtual void Initialize(Real data_time, Real dt);
 
-    virtual void finalize(Real data_time, Real dt);
+    virtual void Finalize(Real data_time, Real dt);
 
-    virtual void post_process();
+    virtual void PostProcess();
 
-    virtual void destroy();
+    virtual void Destroy();
 
-    virtual void next_time_step(Real data_time, Real dt){};
+    virtual void NextTimeStep(Real data_time, Real dt){};
 
-    virtual void sync();
+    virtual void Sync();
 
-    virtual void set_physical_boundary_conditions(Real time){};
+    virtual void SetPhysicalBoundaryConditions(Real time){};
 
     Mesh *m_mesh_;
 };

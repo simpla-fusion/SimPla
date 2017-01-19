@@ -35,11 +35,11 @@ public:
 
     virtual std::shared_ptr<mesh::Worker> const &worker() const { return m_worker_; }
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; }
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
 
-    virtual void load(data::DataTable const &) { UNIMPLEMENTED; };
+    virtual void Load(data::DataTable const &) { UNIMPLEMENTED; };
 
-    virtual void save(data::DataTable *) const { UNIMPLEMENTED; };
+    virtual void Save(data::DataTable *) const { UNIMPLEMENTED; };
 
     virtual void update_level(int l0, int l1) { UNIMPLEMENTED; };
 

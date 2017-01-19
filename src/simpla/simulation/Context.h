@@ -60,11 +60,11 @@ public:
 
     virtual ~Context() {};
 
-    virtual std::ostream &print(std::ostream &os, int indent) const { return os; };
+    virtual std::ostream &Print(std::ostream &os, int indent) const { return os; };
 
-    virtual void load(data::DataTable const &) { UNIMPLEMENTED; }
+    virtual void Load(data::DataTable const &) { UNIMPLEMENTED; }
 
-    virtual void save(data::DataTable *) const { UNIMPLEMENTED; }
+    virtual void Save(data::DataTable *) const { UNIMPLEMENTED; }
 
     virtual void initialize(int argc = 0, char **argv = nullptr)=0;
 

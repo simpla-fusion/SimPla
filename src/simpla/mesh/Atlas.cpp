@@ -65,7 +65,7 @@ MeshBlock const *Atlas::insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock 
 };
 
 
-std::ostream &Atlas::print(std::ostream &os, int indent) const
+std::ostream &Atlas::Print(std::ostream &os, int indent) const
 {
     os << std::setw(indent) << "*" << concept::Configurable::name() << std::endl;
     for (auto const &item:m_pimpl_->m_nodes_)
@@ -73,17 +73,17 @@ std::ostream &Atlas::print(std::ostream &os, int indent) const
         os << "|" << std::setw(indent + 5 + item.second->level()) << std::setfill('-') << "> " << std::setfill(' ')
            << std::setw(10) << std::left << item.first << std::right
            << " = {";
-        item.second->print(os, indent + 1);
+        item.second->Print(os, indent + 1);
         os << "}," << std::endl;
     }
     return os;
 };
 
-void Atlas::load(const data::DataTable &) { UNIMPLEMENTED; }
+void Atlas::Load(const data::DataTable &) { UNIMPLEMENTED; }
 
-void Atlas::save(data::DataTable *) const { UNIMPLEMENTED; }
+void Atlas::Save(data::DataTable *) const { UNIMPLEMENTED; }
 //
-//void Atlas::sync(id_type id)
+//void Atlas::Sync(id_type id)
 //{
 //    unlink(id);
 //
@@ -94,7 +94,7 @@ void Atlas::save(data::DataTable *) const { UNIMPLEMENTED; }
 //        return;
 //    } else if (id != it->second->id())
 //    {
-//        m_nodes_.destroy(it);
+//        m_nodes_.Destroy(it);
 //        return;
 //    }
 //    MeshBlock const &m = *(it->second);
@@ -149,10 +149,10 @@ void Atlas::save(data::DataTable *) const { UNIMPLEMENTED; }
 //
 //void Atlas::unlink(id_type id)
 //{
-//    m_adjacent_.destroy(id);
-//    m_refine_.destroy(id);
-//    m_coarsen_.destroy(id);
-//    for (int i = 0; i < MAX_NUM_OF_LEVEL; ++i) { m_layer_[i].destroy(id); }
+//    m_adjacent_.Destroy(id);
+//    m_refine_.Destroy(id);
+//    m_coarsen_.Destroy(id);
+//    for (int i = 0; i < MAX_NUM_OF_LEVEL; ++i) { m_layer_[i].Destroy(id); }
 //}
 //
 //

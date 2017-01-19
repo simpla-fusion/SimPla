@@ -225,7 +225,7 @@ bool vtkAMRSimPlaParticlesReader::CheckParticleType(
     if (ptypes->GetNumberOfTuples() > 0 &&
         this->ParticleDataArraySelection->ArrayExists("particle_type"))
     {
-        int ptype = ptypes->GetValue(idx);
+        int ptype = ptypes->getValue(idx);
         if ((this->ParticleType == 0) || (ptype == this->ParticleType))
         {
             return true;

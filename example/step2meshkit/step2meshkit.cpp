@@ -17,14 +17,14 @@ void step2vtk(std::string const &input_filename, std::string const &output_filen
 {
 
 
-    // start up MK and load the geometry
+    // start up MK and Load the geometry
     MKCore mk;
 
     mk.load_mesh(input_filename.c_str(), NULL, 0, 0, 0, true);
 
     mk.save_mesh((input_filename + ".vtk").c_str());
 
-    // get the volumes
+    // Get the volumes
     MEntVector vols;
     mk.get_entities_by_dimension(3, vols);
     int n_interval[3] = {64, 64, 32};

@@ -179,7 +179,7 @@ struct LightData : public DataEntity {
         return *this;
     }
 
-    // move assignement
+    // Move assignement
     LightData& operator=(LightData&& rhs) {
         rhs.swap(*this);
         LightData().swap(rhs);
@@ -195,7 +195,7 @@ struct LightData : public DataEntity {
 
     virtual bool empty() const { return m_data_ == nullptr; }
 
-    virtual bool is_null() const { return m_data_ == nullptr; }
+    virtual bool isNull() const { return m_data_ == nullptr; }
 
     virtual void clear() { LightData().swap(*this); }
 
@@ -236,11 +236,11 @@ struct LightData : public DataEntity {
         return get<U>() == u;
     }
 
-    virtual bool is_boolean() const { return m_data_ != nullptr && m_data_->is_bool(); }
+    virtual bool isBoolean() const { return m_data_ != nullptr && m_data_->is_bool(); }
 
-    virtual bool is_integral() const { return m_data_ != nullptr && m_data_->is_integral(); }
+    virtual bool isIntegral() const { return m_data_ != nullptr && m_data_->is_integral(); }
 
-    virtual bool is_floating_point() const {
+    virtual bool isFloatingPoint() const {
         return m_data_ != nullptr && m_data_->is_floating_point();
     }
 
@@ -367,7 +367,7 @@ struct LightData : public DataEntity {
         //                return true;
         //            } else if (this->size() < N) { return false; }
         //
-        //            for (int i = 0; i < N; ++i) { this->get(i)->as(&((*v)[i])); }
+        //            for (int i = 0; i < N; ++i) { this->Get(i)->as(&((*v)[i])); }
         //
         //            return true;
         //        }

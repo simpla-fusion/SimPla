@@ -44,11 +44,11 @@ public:
 
     virtual ~Atlas();
 
-    virtual std::ostream &print(std::ostream &os, int indent) const;
+    virtual std::ostream &Print(std::ostream &os, int indent) const;
 
-    virtual void load(const data::DataTable &);
+    virtual void Load(const data::DataTable &);
 
-    virtual void save(data::DataTable *) const;
+    virtual void Save(data::DataTable *) const;
 
     size_type count(int level) const;
 
@@ -70,9 +70,9 @@ public:
 
     void link(id_type src, id_type dest) {};
 
-//    std::set_value<id_type> &level(int l);
+//    std::setValue<id_type> &level(int l);
 //
-//    std::set_value<id_type> const &level(int l) const;
+//    std::setValue<id_type> const &level(int l) const;
     template<typename TM, typename ... Args>
     MeshBlock const *add(Args &&...args)
     {

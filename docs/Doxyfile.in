@@ -265,7 +265,7 @@ OPTIMIZE_FOR_FORTRAN   = NO
 OPTIMIZE_OUTPUT_VHDL   = NO
 
 # Doxygen selects the parser to use depending on the extension of the files it
-# parses. With this tag you can assign which parser to use for a given
+# parses. With this tag you can Assign which parser to use for a given
 # extension. Doxygen has a built-in mapping, but you can override or extend it
 # using this tag. The format is ext=language, where ext is a file extension, and
 # language is one of the parsers supported by doxygen: IDL, Java, Javascript,
@@ -327,7 +327,7 @@ SIP_SUPPORT            = NO
 
 # For Microsoft's IDL there are propget and propput attributes to indicate
 # getter and setter methods for a property. Setting this option to YES will make
-# doxygen to replace the get and set_value methods by a property in the documentation.
+# doxygen to replace the get and setValue methods by a property in the documentation.
 # This will only work if the methods are indeed getting or setting a simple
 # type. If this is not the case, or you want to show the methods anyway, you
 # should set this option to NO.
@@ -1447,7 +1447,7 @@ MATHJAX_FORMAT         = HTML-CSS
 # is located at the same at_level as the HTML output directory, then
 # MATHJAX_RELPATH should be ../mathjax. The default m_value_ points to the MathJax
 # Content Delivery Network so you can quickly see the result without installing
-# MathJax. However, it is strongly recommended to install a local copy of
+# MathJax. However, it is strongly recommended to install a local Copy of
 # MathJax from http://www.mathjax.org before deployment.
 # The default m_value_ is: http://cdn.mathjax.org/mathjax/latest.
 # This tag requires that the tag USE_MATHJAX is set to YES.
@@ -1880,7 +1880,7 @@ PERLMOD_LATEX          = NO
 # If the PERLMOD_PRETTY tag is set to YES the Perl module output will be nicely
 # formatted so it can be parsed by a human reader. This is useful if you want to
 # understand what is going on. On the other hand, if this tag is set to NO the
-# size of the Perl module output will be much smaller and Perl will parse it
+# size of the Perl module output will be much smaller and Perl will Parse it
 # just the same.
 # The default m_value_ is: YES.
 # This tag requires that the tag GENERATE_PERLMOD is set to YES.
@@ -2071,7 +2071,7 @@ HAVE_DOT               = YES
 # The DOT_NUM_THREADS specifies the number of dot invocations doxygen is allowed
 # to run in parallel. When set to 0 doxygen will base this on the number of
 # processors available in the system. You can set it explicitly to a m_value_
-# larger than 0 to get control over the balance between CPU load and processing
+# larger than 0 to Get control over the balance between CPU Load and processing
 # speed.
 # Minimum m_value_: 0, maximum m_value_: 32, default m_value_: 0.
 # This tag requires that the tag HAVE_DOT is set to YES.
@@ -2182,7 +2182,7 @@ INCLUDED_BY_GRAPH      = YES
 # The default m_value_ is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-CALL_GRAPH             = YES
+CALL_GRAPH             = NO
 
 # If the CALLER_GRAPH tag is set to YES then doxygen will generate a caller
 # dependency graph for every global function or class method.
@@ -2193,7 +2193,7 @@ CALL_GRAPH             = YES
 # The default m_value_ is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-CALLER_GRAPH           = YES
+CALLER_GRAPH           = NO
 
 # If the GRAPHICAL_HIERARCHY tag is set to YES then doxygen will graphical
 # hierarchy of all classes instead of a textual one.

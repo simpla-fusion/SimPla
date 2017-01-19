@@ -68,7 +68,7 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //template<typename T>
 //T get_data_set_attribute(std::string const &url)
 //{
-//    return std::move(get_data_set_attribute(url).template as<T>());
+//    return std::Move(get_data_set_attribute(url).template as<T>());
 //}
 //
 
@@ -76,14 +76,14 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //std::string save_tuple_impl(std::string const & name, Tuple const & d,
 //		int_sequence<Is...>)
 //{
-//	return std::move(write(name, std::get<Is>(d)...));
+//	return std::Move(write(name, std::Get<Is>(d)...));
 //}
 //
 //template<typename ...T>
 //std::string write(std::string const & name, std::tuple<T...> const & d,
 //		size_t id = 0UL)
 //{
-//	return std::move(save_tuple_impl(name, d,
+//	return std::Move(save_tuple_impl(name, d,
 //
 //	make_int_sequence<sizeof...(T)>()
 //
@@ -101,7 +101,7 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //		std::string const & name, std::shared_ptr<TV> const & d,
 //		Args && ... args)
 //{
-//	return GLOBAL_DATA_STREAM.write(name, d.get(), make_datatype<TV>(),
+//	return GLOBAL_DATA_STREAM.write(name, d.Get(), make_datatype<TV>(),
 //			std::forward<Args>(args)...);
 //}
 //

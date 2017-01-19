@@ -24,7 +24,7 @@ struct HeavyData : public DataEntity {
 
     virtual ~HeavyData() {}
 
-    virtual bool is_heavy() const { return true; }
+    virtual bool isHeavy() const { return true; }
 
     virtual void deep_copy(HeavyData const& other) {}
 

@@ -66,7 +66,7 @@ struct AttributeDesc : public Object, public concept::Configurable, public conce
 
 class AttributeDict : public concept::Printable {
    public:
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
     std::pair<std::shared_ptr<AttributeDesc>, bool> register_attr(std::shared_ptr<AttributeDesc> const &desc);
 
@@ -99,7 +99,7 @@ struct Attribute : public concept::Printable, public concept::LifeControllable {
 
     virtual ~Attribute();
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return os; };
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; };
 
     Mesh *mesh() { return m_mesh_; }
 
@@ -111,16 +111,16 @@ struct Attribute : public concept::Printable, public concept::LifeControllable {
 
     std::shared_ptr<DataBlock> &data_block() { return m_data_; }
 
-    void accept(std::shared_ptr<DataBlock> const &d);
+    void Accept(std::shared_ptr<DataBlock> const &d);
 
-    virtual void pre_process();
+    virtual void PreProcess();
 
-    virtual void post_process();
+    virtual void PostProcess();
 
-    virtual void clear();
+    virtual void Clear();
 
    private:
-    Mesh *m_mesh_;
+    Mesh *const m_mesh_;
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
 };
@@ -164,7 +164,7 @@ struct DataAttribute : public Attribute,
     static std::shared_ptr<this_type> make_shared(Mesh *c, std::initializer_list<data::KeyValue> const &param) {
         return std::make_shared<this_type>(c, param);
     }
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return array_type::print(os, indent); }
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return array_type::Print(os, indent); }
 
     //    virtual mesh_type *mesh() { return Attribute::mesh(); };
     //
@@ -172,13 +172,13 @@ struct DataAttribute : public Attribute,
 
     virtual value_type *data() { return reinterpret_cast<value_type *>(Attribute::data_block()->raw_data()); }
 
-    virtual void deploy() {
-        Attribute::deploy();
-        array_type::deploy();
+    virtual void Deploy() {
+        Attribute::Deploy();
+        array_type::Deploy();
     }
 
     template <typename... Args>
-    static this_type create(Args &&... args) {
+    static this_type Create(Args &&... args) {
         std::make_shared<this_type>(std::forward<Args>(args)...);
     }
 
@@ -186,11 +186,11 @@ struct DataAttribute : public Attribute,
     //        return DataBlockAdapter<value_type>::create(m, static_cast<value_type *>(p));
     //    };
 
-    virtual void clear() { array_type::clear(); }
+    virtual void Clear() { array_type::Clear(); }
 
-    virtual void pre_process() { Attribute::pre_process(); };
+    virtual void PreProcess() { Attribute::PreProcess(); };
 
-    virtual void post_process() { Attribute::post_process(); }
+    virtual void PostProcess() { Attribute::PostProcess(); }
 };
 
 template <typename...>
@@ -233,7 +233,7 @@ class AttributeAdapter<U> : public Attribute, public U {
     static std::shared_ptr<this_type> make_shared(Mesh *c, std::initializer_list<data::KeyValue> const &param) {
         return std::make_shared<this_type>(c, param);
     }
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return U::print(os, indent); }
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return U::print(os, indent); }
 
     virtual mesh_type *mesh() { return static_cast<mesh_type *>(Attribute::mesh()); };
 
@@ -245,12 +245,12 @@ class AttributeAdapter<U> : public Attribute, public U {
     }
 
     virtual void deploy() {
-        Attribute::deploy();
-        U::deploy();
+        Attribute::Deploy();
+        U::Deploy();
     }
 
     template <typename... Args>
-    static this_type create(Args &&... args) {
+    static this_type Create(Args &&... args) {
         std::make_shared<this_type>(std::forward<Args>(args)...);
     }
 
@@ -258,11 +258,11 @@ class AttributeAdapter<U> : public Attribute, public U {
     //        return DataBlockAdapter<value_type>::create(m, static_cast<value_type *>(p));
     //    };
 
-    virtual void clear() { U::clear(); }
+    virtual void Clear() { U::Clear(); }
 
-    virtual void pre_process() { Attribute::pre_process(); };
+    virtual void PreProcess() { Attribute::PreProcess(); };
 
-    virtual void post_process() { Attribute::post_process(); }
+    virtual void PostProcess() { Attribute::PostProcess(); }
 };
 
 template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>

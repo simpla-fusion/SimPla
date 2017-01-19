@@ -732,7 +732,7 @@ void HDF5Stream::push_buffer(std::string const &url, data::DataSet const &ds)
             auto dest_count = std::get<4>(m_shape);
 
 
-            // copy
+            // Copy
             char *dest_p = reinterpret_cast<char *>(item.data.get());
             char const *src_p = reinterpret_cast<char *>(ds.data.get());
 
@@ -855,7 +855,7 @@ std::string HDF5Stream::write(std::string const &url, data::DataSet const &ds, i
 
     if ((ds.data == nullptr) || ds.memory_space.size() == 0)
     {
-        VERBOSE << "ignore empty m_data set_value! " << url << std::endl;
+        VERBOSE << "ignore empty m_data setValue! " << url << std::endl;
         return "";
     }
     typedef nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> index_tuple;
@@ -1066,7 +1066,7 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //	{
 //		res.id |= SP_CACHE;
 //	}
-//	return std::move(res);
+//	return std::Move(res);
 //
 //}
 
@@ -1156,9 +1156,9 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //		else
 //		{
 //			sp_make_shared_array<byte_type>(cache_memory_size * cache_depth).swap(
-//					std::get<0>(cache_[url]));
+//					std::Get<0>(cache_[url]));
 //
-//			h5_dataset & item = std::get<1>(cache_[url]);
+//			h5_dataset & item = std::Get<1>(cache_[url]);
 //
 //			item = ds;
 //
@@ -1172,8 +1172,8 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //
 //		}
 //	}
-//	auto & m_data = std::get<0>(cache_[url]);
-//	auto & item = std::get<1>(cache_[url]);
+//	auto & m_data = std::Get<0>(cache_[url]);
+//	auto & item = std::Get<1>(cache_[url]);
 //
 //	size_t memory_size = ds.DataType.ele_size_in_byte_ * item.strides[0];
 //
@@ -1183,8 +1183,8 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //	}
 //
 //	std::memcpy(
-//			reinterpret_cast<void*>(m_data.get() + item.count[0] * memory_size),
-//			ds.m_data.get(), memory_size);
+//			reinterpret_cast<void*>(m_data.Get() + item.count[0] * memory_size),
+//			ds.m_data.Get(), memory_size);
 //
 //	++item.count[0];
 //
@@ -1206,8 +1206,8 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //		return url + " is not found !";
 //	}
 //
-//	auto & m_data = std::get<0>(cache_[url]);
-//	auto & item = std::get<1>(cache_[url]);
+//	auto & m_data = std::Get<0>(cache_[url]);
+//	auto & item = std::Get<1>(cache_[url]);
 //
 //	hsize_t t_f_shape = item.f_count[0];
 //	hsize_t t_m_shape = item.m_count[0];

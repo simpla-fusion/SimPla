@@ -30,17 +30,17 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::insert(DataTable* t, std::string
             auto res = t->m_pimpl_->m_table_.emplace(
                 url.substr(start_pos, pos - start_pos),
                 std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>()));
-            if (!res.first->second->is_table()) {
+            if (!res.first->second->isTable()) {
                 p = nullptr;
                 break;
             } else if (pos == end_pos - 1) {
                 p = res.first->second;
                 break;
             }
-            t = &res.first->second.get()->as_table();
+            t = &res.first->second.get()->asTable();
             start_pos = pos + 1;
             continue;
-        } else if (p != nullptr && p->is_table()) {
+        } else if (p != nullptr && p->isTable()) {
             auto res = t->m_pimpl_->m_table_.emplace(url.substr(start_pos), p);
             p = res.first->second;
             break;
@@ -65,11 +65,11 @@ DataEntity const* DataTable::pimpl_s::search(DataTable const* t, std::string con
 
             if (pos == end_pos - 1) {
                 return it->second.get();
-            } else if (it == t->m_pimpl_->m_table_.end() || !it->second->is_table()) {
+            } else if (it == t->m_pimpl_->m_table_.end() || !it->second->isTable()) {
                 break;
             }
 
-            t = &it->second->as_table();
+            t = &it->second->asTable();
             start_pos = pos + 1;
             continue;
 
@@ -99,13 +99,13 @@ void DataTable::insert(std::initializer_list<KeyValue> const& others) {
     for (auto const& kv : others) { insert(kv); }
 }
 std::ostream& print_kv(std::ostream& os, int indent, std::string const& k, DataEntity const& v) {
-    if (v.is_table()) { os << std::endl << std::setw(indent + 1) << " "; }
+    if (v.isTable()) { os << std::endl << std::setw(indent + 1) << " "; }
     os << k << " = " << v;
     return os;
 }
 
-std::ostream& DataTable::print(std::ostream& os, int indent) const {
-    if (!DataEntity::is_null()) { DataEntity::print(os, indent + 1); }
+std::ostream& DataTable::Print(std::ostream &os, int indent) const {
+    if (!DataEntity::isNull()) { DataEntity::Print(os, indent + 1); }
 
     if (!m_pimpl_->m_table_.empty()) {
         auto it = m_pimpl_->m_table_.begin();
@@ -131,20 +131,20 @@ bool DataTable::empty() const { return (m_pimpl_ != nullptr) && m_pimpl_->m_tabl
 
 bool DataTable::has(std::string const& url) const { return find(url) != nullptr; };
 
-DataTable* DataTable::create_table(std::string const& url) {
-    return &(m_pimpl_->insert(this, url + ".")->as_table());
+DataTable* DataTable::CreateTable(std::string const &url) {
+    return &(m_pimpl_->insert(this, url + ".")->asTable());
 }
 
-std::shared_ptr<DataEntity> DataTable::set_value(std::string const& url,
-                                                 std::shared_ptr<DataEntity> const& v) {
+std::shared_ptr<DataEntity> DataTable::setValue(std::string const &url,
+                                                std::shared_ptr<DataEntity> const &v) {
     return m_pimpl_->insert(this, url, v);
 };
 
-std::shared_ptr<DataEntity> DataTable::get(std::string const& url) {
+std::shared_ptr<DataEntity> DataTable::Get(std::string const &url) {
     return m_pimpl_->insert(this, url);
 }
 
-void DataTable::parse(std::string const& str) {
+void DataTable::Parse(std::string const& str) {
     size_type start_pos = 0;
     size_type end_pos = str.size();
     while (start_pos < end_pos) {
@@ -163,9 +163,9 @@ void DataTable::parse(std::string const& str) {
         }
 
         if (value == "") {
-            set_value(key, true);
+            setValue(key, true);
         } else {
-            set_value(key, value);
+            setValue(key, value);
         }
 
         start_pos = pos0 + 1;

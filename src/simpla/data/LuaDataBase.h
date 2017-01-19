@@ -23,7 +23,7 @@ public:
 
     virtual std::string name() const { return ""; };
 
-    virtual std::ostream &print(std::ostream &os, int indent) const { return toolbox::LuaObject::print(os, indent); };
+    virtual std::ostream &Print(std::ostream &os, int indent) const { return toolbox::LuaObject::Print(os, indent); };
 
     virtual void insert(std::string const &key, std::shared_ptr<DataTable> const &v) { UNIMPLEMENTED; };
 
@@ -38,15 +38,15 @@ public:
         return t_id == typeid(LuaDataBase) || DataTable::is_a(t_id);
     }
 
-    virtual bool is_table() const;
+    virtual bool isTable() const;
 
     virtual bool empty() const;
 
-    virtual bool is_null() const;
+    virtual bool isNull() const;
 
     virtual bool has(std::string const &key) const;
 
-//    virtual void set_value(std::string const &key, std::shared_ptr<DataTable> const &v);
+//    virtual void setValue(std::string const &key, std::shared_ptr<DataTable> const &v);
 
 
     virtual DataTable &at(std::string const &key);

@@ -124,7 +124,7 @@ TEST_P(TestKineticParticle, scatter_n)
 
 }
 
-//TYPED_TEST_P(TestParticle,move){
+//TYPED_TEST_P(TestParticle,Move){
 //{
 //	GLOBAL_DATA_STREAM.cd("ParticleTest.h5:/");
 //	typedef manifold_type manifold_type;
@@ -200,7 +200,7 @@ TEST_P(TestKineticParticle, scatter_n)
 //
 //	J0=2*n0*a*(E+a* Cross(E,B)+a*a* Dot(E,B)*B)/(1.0+Dot(Bv,Bv)*a*a);
 //
-//	LOG_CMD(ion.next_time_step(dt,E, B));
+//	LOG_CMD(ion.NextTimeStep(dt,E, B));
 //
 //	LOGGER<<SAVE1(E);
 //	LOGGER<<SAVE1(B);

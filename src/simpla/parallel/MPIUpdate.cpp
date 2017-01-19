@@ -351,7 +351,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //		MPI_CALL(MPI_Isend(m_data, 1, item.send_type.type(), item.dest,
 //				item.send_tag, mpi_comm.comm(), &req));
 //
-//		requests.push_back(std::move(req));
+//		requests.push_back(std::Move(req));
 //	}
 //	for (auto const &item : send_recv_list)
 //	{
@@ -360,7 +360,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //		MPI_CALL(MPI_Irecv(m_data, 1, item.recv_type.type(), item.dest,
 //				item.recv_tag, mpi_comm.comm(), &req));
 //
-//		requests.push_back(std::move(req));
+//		requests.push_back(std::Move(req));
 //	}
 //
 //
@@ -383,11 +383,11 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //
 //		MPI_Request send_req;
 //
-//		MPI_CALL(MPI_Isend(item.send_data.get(), item.send_size, mpi_data_type.type(), dest,
+//		MPI_CALL(MPI_Isend(item.send_data.Get(), item.send_size, mpi_data_type.type(), dest,
 //send_tag, mpi_comm.comm(),
 //				&send_req));
 //
-//		requests.push_back(std::move(send_req));
+//		requests.push_back(std::Move(send_req));
 //
 //	}
 //
@@ -417,11 +417,11 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //
 //		MPI_Request recv_req;
 //		MPI_CALL(
-//				MPI_Irecv(item.recv_data.get(), item.recv_size, mpi_data_type.type(), >
+//				MPI_Irecv(item.recv_data.Get(), item.recv_size, mpi_data_type.type(), >
 //dest, recv_tag,
 //						mpi_comm.comm(), &recv_req));
 //
-//		requests->push_back(std::move(recv_req));
+//		requests->push_back(std::Move(recv_req));
 //	}
 //
 //

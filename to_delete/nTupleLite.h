@@ -88,13 +88,13 @@ private:
     template<typename TOP, typename TR>
     void assign_(TOP const *op, TR const &rhs)
     {
-        for (int i = 0; i < N0; ++i) { algebra::assign(op, data_[i], algebra::get_value(rhs, i)); }
+        for (int i = 0; i < N0; ++i) { algebra::assign(op, data_[i], algebra::getValue(rhs, i)); }
     }
 
     template<typename TR>
     void assign_(std::nullptr_t, TR const &rhs)
     {
-        for (int i = 0; i < N0; ++i) { data_[i] = algebra::get_value(rhs, i); }
+        for (int i = 0; i < N0; ++i) { data_[i] = algebra::getValue(rhs, i); }
     }
 
 public:
@@ -365,7 +365,7 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //    _detail::assigne_nTuple_helper(res, std::integral_constant<int, 1 + sizeof...(Others)>(), a0,
 //                                   std::forward<Others>(others)...);
 //
-//    return std::move(res);
+//    return std::Move(res);
 //}
 //
 //template<typename T0, typename ...Others>
@@ -376,7 +376,7 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //    _detail::assigne_nTuple_helper(res, std::integral_constant<int, 1 + sizeof...(Others)>(), a0,
 //                                   std::forward<Others>(others)...);
 //
-//    return std::move(res);
+//    return std::Move(res);
 //}
 //}//namespace traits
 
@@ -395,7 +395,7 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //template<typename T, size_type N, size_type M0, size_type ... M>
 //void swap(simpla::nTuple<T, N, M0, M...> &l, simpla::nTuple<T, N, M0, M...> &r)
 //{
-//    for (size_type s = 0; s < N; ++s) { swap(simpla::traits::get_value(l, s), simpla::traits::get_value(r, s)); }
+//    for (size_type s = 0; s < N; ++s) { swap(simpla::traits::getValue(l, s), simpla::traits::getValue(r, s)); }
 //}
 //
 //template<typename T, size_type N, size_type ... M>
@@ -405,7 +405,7 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //
 //    for (size_type s = 0; s < N; ++s)
 //    {
-//        swap(simpla::traits::get_value(l, s), simpla::traits::get_value(r, s));
+//        swap(simpla::traits::getValue(l, s), simpla::traits::getValue(r, s));
 //    }
 //}
 //

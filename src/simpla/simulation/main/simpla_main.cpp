@@ -72,13 +72,13 @@ int main(int argc, char **argv)
                         <<std::left<< std::setw(20) << "  -h, --help "     << ": Print a usage message and exit." << std::endl
                         <<std::left<< std::setw(20) << "  -v, --version "  << ": Print version information exit. " << std::endl
                         <<std::left<< std::setw(20) << "  -V, --verbose "  << ": Verbose mode.  Print debugging messages,"<<std::endl
-                        <<std::left<< std::setw(20) << "                "  << "   <-10 means quiet,  >10 means print as much as it can.(default=0)"<<std::endl
+                        <<std::left<< std::setw(20) << "                "  << "   <-10 means quiet,  >10 means Print as much as it can.(default=0)"<<std::endl
                         <<std::left<< std::setw(20) << "  --quiet "        << ": quiet mode,"<<std::endl
                         <<std::endl
                         <<std::left<< std::setw(20) << "  -o, --output  "  << ": Output file name (default: simpla.h5)." << std::endl
                         <<std::left<< std::setw(20) << "  -i, --input  "   << ": Input configure file (default:" + conf_file + ")" << std::endl
-                        <<std::left<< std::setw(20) << "  -p, --prologue " << ": Execute Lua script before configure file is load" << std::endl
-                        <<std::left<< std::setw(20) << "  -e, --epilogue " << ": Execute Lua script after configure file is load" << std::endl
+                        <<std::left<< std::setw(20) << "  -p, --prologue " << ": Execute Lua script before configure file is Load" << std::endl
+                        <<std::left<< std::setw(20) << "  -e, --epilogue " << ": Execute Lua script after configure file is Load" << std::endl
                         <<std::endl;
 
                     /* @formatter:on*/
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 
     os->open("/start/");
 
-    ctx.save(*os);
+    ctx.Save(*os);
 
     MESSAGE << DOUBLELINE << std::endl;
 
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 
     os->open("/dump/");
 
-    ctx.save(*os);
+    ctx.Save(*os);
 
     ctx.teardown();
 

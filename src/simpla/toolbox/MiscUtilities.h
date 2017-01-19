@@ -30,7 +30,7 @@ namespace simpla
 //	T v;
 //	std::istringstream os(str);
 //	os >> v;
-//	return std::move(v);
+//	return std::Move(v);
 //}
 //
 //template<typename T>

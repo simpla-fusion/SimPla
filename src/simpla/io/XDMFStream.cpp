@@ -369,8 +369,8 @@ void XDMFStream::reference_topology_geometry(std::string const &id)
 //    auto b = m.get_box();
 //    auto topology_dims = m.get_dimensions();
 //    nTuple<Real, 3> dx;
-//    dx = (std::get<1>(b) - std::get<0>(b)) / topology_dims;
-//    set_grid(3, &topology_dims[0], &std::get<0>(b)[0], &dx[0]);
+//    dx = (std::get<1>(b) - std::Get<0>(b)) / topology_dims;
+//    set_grid(3, &topology_dims[0], &std::Get<0>(b)[0], &dx[0]);
 //
 //    for (auto const &item:m.patches())
 //    {

@@ -39,7 +39,7 @@ public:
 
     virtual void deploy();
 
-    virtual std::string get_class_name() const { return class_name(); }
+    virtual std::string getClassName() const { return class_name(); }
 
     static std::string class_name() { return "PML<" + traits::type_id<TM>::name() + ">"; }
 

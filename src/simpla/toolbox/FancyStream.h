@@ -167,7 +167,7 @@ std::ostream &operator<<(std::ostream &os, std::map<T1, T2> const &p) {
 template <typename TV, typename... Others>
 std::istream &operator>>(std::istream &is, std::vector<TV, Others...> &a) {
     for (auto &v : a) { is >> v; }
-    //	std::copy(std::istream_iterator<TV>(is), std::istream_iterator<TV>(),
+    //	std::Copy(std::istream_iterator<TV>(is), std::istream_iterator<TV>(),
     // std::back_inserter(a));
     return is;
 }
@@ -237,19 +237,19 @@ std::ostream &operator<<(std::ostream &os, std::tuple<T, Args...> const &v) {
 
 //
 // template<typename T, typename ...Others>
-// std::ostream &print(std::ostream &os, T const &first, Others &&... others)
+// std::ostream &Print(std::ostream &os, T const &first, Others &&... others)
 //{
 //    os << first << " , ";
 //
-//    print(os, std::forward<Others>(others)...);
+//    Print(os, std::forward<Others>(others)...);
 //
 //    return os;
 //};
 //
 // template<typename T>
-// std::ostream &print(std::ostream &os, T const &v, traits::is_printable_t<T> *_p = nullptr)
+// std::ostream &Print(std::ostream &os, T const &v, traits::is_printable_t<T> *_p = nullptr)
 //{
-//    return v.print(os, 1);
+//    return v.Print(os, 1);
 //}
 
 /** @}*/

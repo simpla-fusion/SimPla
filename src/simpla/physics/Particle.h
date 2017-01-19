@@ -92,14 +92,14 @@ public:
         deploy();
     }
 
-    //copy construct
+    //Copy construct
     Particle(this_type const &other)
             : engine_type(other), field_type(other), m_properties_(other.m_properties_), m_pool_(other.m_pool_)
     {
     }
 
 
-    // move construct
+    // Move construct
     Particle(this_type &&other)
             : engine_type(other), field_type(other), m_properties_(other.m_properties_), m_pool_(other.m_pool_)
     {
@@ -142,7 +142,7 @@ public:
         return t_info == typeid(this_type) || t_info == typeid(field_type);
     };
 
-    virtual std::string get_class_name() const { return class_name(); };
+    virtual std::string getClassName() const { return class_name(); };
 
     static std::string class_name() { return "Particle<" + traits::type_id<P, M>::name() + ">"; };
 

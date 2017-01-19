@@ -515,7 +515,7 @@ public:
 //	/**
 //	 * This routine stores an array y2[0..n-1] with second derivatives of the interpolating function
 //	 at the tabulated points pointed to by xv, using function values pointed to by yv. If yp1 and/or
-//	 ypn are equal to 1 1099 or larger, the routine is signaled to set_value the corresponding boundary
+//	 ypn are equal to 1 1099 or larger, the routine is signaled to setValue the corresponding boundary
 //	 condition for a natural spline, with zero second derivative on that boundary; otherwise, they are
 //	 the values of the first derivatives at the endpoints.
 //	 * @_fdtd_param xv
@@ -524,7 +524,7 @@ public:
 //	 * @_fdtd_param ypn
 //	 */
 //	template<typename port_type>
-//	void sync(port_type const &xy)
+//	void Sync(port_type const &xy)
 //	{
 //		if (static_cast<void const *>(&xy) == data_)
 //			return;
@@ -581,7 +581,7 @@ public:
 //			typename container::iterator const &it,
 //			typename container::key_type const &x)
 //	{
-//		sync(xy);
+//		Sync(xy);
 //		const_cast<this_type const *>(this)->operator()(xy, it, x);
 //	}
 //

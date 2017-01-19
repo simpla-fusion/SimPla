@@ -8,20 +8,20 @@
 namespace simpla {
 namespace data {
 
-DataTable& DataEntity::as_table() { return *as<DataTable>(); }
+DataTable& DataEntity::asTable() { return *as<DataTable>(); }
 
-DataTable const& DataEntity::as_table() const { return *as<DataTable>(); }
+DataTable const& DataEntity::asTable() const { return *as<DataTable>(); }
 
-LightData& DataEntity::as_light() { return *as<LightData>(); }
+LightData& DataEntity::asLight() { return *as<LightData>(); }
 
-LightData const& DataEntity::as_light() const { return *as<LightData>(); }
+LightData const& DataEntity::asLight() const { return *as<LightData>(); }
 
-HeavyData& DataEntity::as_heavy() { return *as<HeavyData>(); }
+HeavyData& DataEntity::asHeavy() { return *as<HeavyData>(); }
 
-HeavyData const& DataEntity::as_heavy() const { return *as<HeavyData>(); }
+HeavyData const& DataEntity::asHeavy() const { return *as<HeavyData>(); }
 
 //
-// void HeavyData::sync(bool is_blocking)
+// void HeavyData::Sync(bool is_blocking)
 //{
 //#ifdef HAS_MPI
 //    //
@@ -121,9 +121,9 @@ HeavyData const& DataEntity::as_heavy() const { return *as<HeavyData>(); }
 //    &recv_count[0], nullptr);
 //    //
 //    //
-//    //                m_self_->m_dist_obj_.add_send_link(id, send_offset, std::move(send_ds));
+//    //                m_self_->m_dist_obj_.add_send_link(id, send_offset, std::Move(send_ds));
 //    //
-//    //                m_self_->m_dist_obj_.add_send_link(id, recv_offset, std::move(recv_ds));
+//    //                m_self_->m_dist_obj_.add_send_link(id, recv_offset, std::Move(recv_ds));
 //    //
 //    //
 //    //            }
@@ -138,7 +138,7 @@ HeavyData const& DataEntity::as_heavy() const { return *as<HeavyData>(); }
 //    //    }
 //
 //
-//        m_self_->m_dist_obj_.sync();
+//        m_self_->m_dist_obj_.Sync();
 //        if (is_blocking) { wait(); }
 //#endif
 //}

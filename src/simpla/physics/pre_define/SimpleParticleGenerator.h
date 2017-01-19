@@ -25,7 +25,7 @@ ParticleGeneratorPerCell<P, rectangle_distribution<3>, multi_normal_distribution
 //simple_particle_generator(EngineType const &engine, TExtents const &extents, Real T,
 //                          TFun const &fun)
 //{
-//    return std::move(
+//    return std::Move(
 //            ParticleGenerator<EngineType, rectangle_distribution<3>,
 //                    multi_normal_distribution<3>, TFun>(engine,
 //                                                        rectangle_distribution<3>(extents),

@@ -55,9 +55,6 @@ struct CylindricalGeometry : public Mesh {
    public:
     typedef mesh::MeshEntityIdCoder M;
 
-    template <typename... Args>
-    void apply(Args &&...) const {}
-
     virtual point_type point(index_type i, index_type j, index_type k) const {
         return point_type{m_vertics_(i, j, k, 0), m_vertics_(i, j, k, 1), m_vertics_(i, j, k, 2)};
     };
@@ -127,14 +124,14 @@ struct CylindricalGeometry : public Mesh {
 
     virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
 
-    virtual void initialize(Real data_time, Real dt) {
-        base_type::initialize(data_time, 0);
+    virtual void Initialize(Real data_time, Real dt) {
+        base_type::Initialize(data_time, dt);
 
-        m_vertics_.clear();
-        m_volume_.clear();
-        m_dual_volume_.clear();
-        m_inv_volume_.clear();
-        m_inv_dual_volume_.clear();
+        m_vertics_.Clear();
+        m_volume_.Clear();
+        m_dual_volume_.Clear();
+        m_inv_volume_.Clear();
+        m_inv_dual_volume_.Clear();
         /**
             *\verbatim
             *                ^y (dl)

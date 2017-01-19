@@ -110,13 +110,13 @@ struct CartesianMetric
 //         */
 //        point_t1 y;
 //
-//        st::get<CartesianXAxis1>(y) = st::get<CartesianXAxis0>(x);
+//        st::Get<CartesianXAxis1>(y) = st::get<CartesianXAxis0>(x);
 //
-//        st::get<CartesianYAxis1>(y) = st::get<CartesianYAxis0>(x);
+//        st::get<CartesianYAxis1>(y) = st::Get<CartesianYAxis0>(x);
 //
-//        st::get<CartesianZAxis1>(y) = st::get<CartesianZAxis0>(x);
+//        st::get<CartesianZAxis1>(y) = st::Get<CartesianZAxis0>(x);
 //
-//        return std::move(y);
+//        return std::Move(y);
 //    }
 //
 //    point_t1 operator()(point_t0 const &x) const
@@ -148,11 +148,11 @@ struct CartesianMetric
 //
 //        vector_t1 u;
 //
-//        st::get<CartesianXAxis1>(u) = st::get<CartesianXAxis0>(v);
-//        st::get<CartesianYAxis1>(u) = st::get<CartesianYAxis0>(v);
-//        st::get<CartesianZAxis1>(u) = st::get<CartesianZAxis0>(v);
+//        st::get<CartesianXAxis1>(u) = st::Get<CartesianXAxis0>(v);
+//        st::Get<CartesianYAxis1>(u) = st::get<CartesianYAxis0>(v);
+//        st::Get<CartesianZAxis1>(u) = st::get<CartesianZAxis0>(v);
 //
-//        return std::move(u);
+//        return std::Move(u);
 //    }
 //
 //};

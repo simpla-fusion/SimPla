@@ -264,13 +264,13 @@ REGISTER_TYPED_TEST_CASE_P(TestArray, assign, index, constant_real, scalarArray)
 //		LOGGER.set_stdout_level(LOG_INFORM);
 //		auto _fdtd_param = GetParam();
 //
-//		xmin = std::get<0>(_fdtd_param);
+//		xmin = std::Get<0>(_fdtd_param);
 //
-//		xmax = std::get<1>(_fdtd_param);
+//		xmax = std::Get<1>(_fdtd_param);
 //
-//		topology_dims = std::get<2>(_fdtd_param);
+//		topology_dims = std::Get<2>(_fdtd_param);
 //
-//		K_real = std::get<3>(_fdtd_param);
+//		K_real = std::Get<3>(_fdtd_param);
 //
 //		SetDefaultValue(&default_value);
 //
@@ -287,7 +287,7 @@ REGISTER_TYPED_TEST_CASE_P(TestArray, assign, index, constant_real, scalarArray)
 //		geometry.set_dimensions(topology_dims);
 //		geometry.set_extents(xmin, xmax);
 //
-//		geometry.sync();
+//		geometry.Sync();
 //
 //	}
 //public:

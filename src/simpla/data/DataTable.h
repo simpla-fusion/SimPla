@@ -27,8 +27,8 @@ struct entity_traits<std::initializer_list<KeyValue>> {
 };
 
 template <typename U>
-std::shared_ptr<DataEntity> make_shared_entity(
-    U const& c, ENABLE_IF(entity_traits<std::decay_t<U>>::type::value == DataEntity::TABLE)) {
+std::shared_ptr<DataEntity> make_shared_entity(U const& c, ENABLE_IF(entity_traits<std::decay_t<U>>::type::value ==
+                                                                     DataEntity::TABLE)) {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(c));
 }
 
@@ -88,12 +88,10 @@ class DataTable : public DataEntity {
 
     template <typename U>
     DataTable(std::string const& key, U const& v) : DataTable() {
-        set_value(key, v);
+        setValue(key, v);
     };
 
-    DataTable(std::string const& key, std::shared_ptr<DataEntity> const& v) : DataTable() {
-        set_value(key, v);
-    };
+    DataTable(std::string const& key, std::shared_ptr<DataEntity> const& v) : DataTable() { setValue(key, v); };
 
     //    DataTable(DataTable const&);
 
@@ -101,54 +99,53 @@ class DataTable : public DataEntity {
 
     virtual ~DataTable();
 
-    virtual std::ostream& print(std::ostream& os, int indent = 0) const;
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
 
-    virtual bool is_table() const { return true; };
+    virtual bool isTable() const { return true; };
 
     virtual bool empty() const;
 
     virtual bool has(std::string const& key) const;
 
-    virtual void foreach (
-        std::function<void(std::string const& key, DataEntity const&)> const&) const;
+    virtual void foreach (std::function<void(std::string const& key, DataEntity const&)> const&) const;
 
     virtual void foreach (std::function<void(std::string const& key, DataEntity&)> const& fun);
 
     template <typename T>
     bool check(std::string const& url, T const& v) const {
         DataEntity const* p = find(url);
-        return p != nullptr && p->as_light().equal(v);
+        return p != nullptr && p->asLight().equal(v);
     };
 
     virtual DataEntity const* find(std::string const& url) const;
 
-    virtual void parse(){};
+    virtual void Parse(){};
 
-    virtual void parse(std::string const& str);
+    virtual void Parse(std::string const& str);
 
     template <int N>
-    void parse(char const c[N]) {
-        parse(std::string(c));
+    void Parse(const char* c) {
+        Parse(std::string(c));
     };
 
     template <typename U>
-    void parse(std::pair<std::string, U> const& k_v) {
-        set_value(k_v.first, k_v.second);
+    void Parse(std::pair<std::string, U> const& k_v) {
+        setValue(k_v.first, k_v.second);
     };
 
     template <typename T0, typename T1, typename... Args>
-    void parse(T0 const& a0, T1 const& a1, Args&&... args) {
-        parse(a0);
-        parse(a1, std::forward<Args>(args)...);
+    void Parse(T0 const& a0, T1 const& a1, Args&&... args) {
+        Parse(a0);
+        Parse(a1, std::forward<Args>(args)...);
     };
 
-    void insert(KeyValue const& k_v) { set_value(k_v.key(), k_v.value()); };
+    void insert(KeyValue const& k_v) { setValue(k_v.key(), k_v.value()); };
 
     void insert(){};
 
     template <typename... Others>
     void insert(KeyValue const& k_v, Others&&... others) {
-        set_value(k_v.key(), k_v.value());
+        setValue(k_v.key(), k_v.value());
         insert(std::forward<Others>(others)...);
     };
 
@@ -161,15 +158,14 @@ class DataTable : public DataEntity {
      * '''table''' as needed.
      */
 
-    virtual std::shared_ptr<DataEntity> set_value(std::string const& key,
-                                                  std::shared_ptr<DataEntity> const& v);
+    virtual std::shared_ptr<DataEntity> setValue(std::string const& key, std::shared_ptr<DataEntity> const& v);
 
     template <typename U>
-    auto set_value(std::string const& url, U const& v) {
-        return set_value(url, make_shared_entity(v));
+    auto setValue(std::string const& url, U const& v) {
+        return setValue(url, make_shared_entity(v));
     }
 
-    virtual DataTable* create_table(std::string const& url);
+    virtual DataTable* CreateTable(std::string const& url);
 
     /**
      *
@@ -177,27 +173,27 @@ class DataTable : public DataEntity {
      * @return Returns a reference to the shared pointer of  the entity with '''url'''.
      *      If no such entity exists, create a light entity, create parent table as needed.
      */
-    virtual std::shared_ptr<DataEntity> get(std::string const& url);
+    virtual std::shared_ptr<DataEntity> Get(std::string const& url);
 
     template <typename U>
-    U get_value(std::string const& url) const {
+    U getValue(std::string const& url) const {
         return at(url).as<U>();
     }
 
     template <typename U>
-    U get_value(std::string const& url, U const& u) const {
+    U getValue(std::string const& url, U const& u) const {
         auto p = find(url);
-        return p == nullptr ? u : p->as_light().template as<U>();
+        return p == nullptr ? u : p->asLight().template as<U>();
     }
-    std::string get_value(std::string const& url, char const* u) const {
+    std::string getValue(std::string const& url, char const* u) const {
         auto p = find(url);
-        return p == nullptr ? std::string(u) : p->as_light().template as<std::string>();
+        return p == nullptr ? std::string(u) : p->asLight().template as<std::string>();
     }
-    //    template<typename U> U const &get_value(std::string const &url, U const &u)
+    //    template<typename U> U const &getValue(std::string const &url, U const &u)
     //    {
     //        auto *p = find(url);
     //
-    //        if (p != nullptr) { return p->as<U>(); } else { return set_value(url, u)->as<U>();
+    //        if (p != nullptr) { return p->as<U>(); } else { return setValue(url, u)->as<U>();
     //        }
     //    }
 
@@ -212,25 +208,25 @@ class DataTable : public DataEntity {
 
     virtual DataEntity const& at(std::string const& key) const;
 
-    LightData& as_light(std::string const& url) { return at(url).as_light(); };
+    LightData& asLight(std::string const& url) { return at(url).asLight(); };
 
-    LightData const& as_light(std::string const& url) const { return at(url).as_light(); };
+    LightData const& asLight(std::string const& url) const { return at(url).asLight(); };
 
-    HeavyData& as_heavy(std::string const& url) { return at(url).as_heavy(); };
+    HeavyData& asHeavy(std::string const& url) { return at(url).asHeavy(); };
 
-    HeavyData const& as_heavy(std::string const& url) const { return at(url).as_heavy(); };
+    HeavyData const& asHeavy(std::string const& url) const { return at(url).asHeavy(); };
 
-    DataTable& as_table(std::string const& url) { return at(url).as_table(); };
+    DataTable& asTable(std::string const& url) { return at(url).asTable(); };
 
-    DataTable const& as_table(std::string const& url) const { return at(url).as_table(); };
+    DataTable const& asTable(std::string const& url) const { return at(url).asTable(); };
 
     template <typename U>
     U& as(std::string const& url) {
-        return at(url).as_light().template as<U>();
+        return at(url).asLight().template as<U>();
     }
     template <typename U>
     U const& as(std::string const& url) const {
-        return at(url).as_light().template as<U>();
+        return at(url).asLight().template as<U>();
     }
 
    protected:

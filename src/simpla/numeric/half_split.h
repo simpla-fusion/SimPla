@@ -39,7 +39,7 @@ nTuple<T, N> half_split(nTuple<T, N> & range)
 //
 //	res[n] = half_split(entity_id_range[n]);
 //
-//	return std::move(res);
+//	return std::Move(res);
 //}
 //template<typename T, size_t N>
 //std::vector<nTuple<T, N>> split(nTuple<T, N> const & entity_id_range, size_t num)
@@ -51,7 +51,7 @@ nTuple<T, N> half_split(nTuple<T, N> & range)
 //
 //	res[n] = half_split(entity_id_range[n]);
 //
-//	return std::move(res);
+//	return std::Move(res);
 //}
 }  // namespace simpla
 

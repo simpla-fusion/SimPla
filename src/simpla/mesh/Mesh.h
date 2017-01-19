@@ -8,47 +8,45 @@
 #include <simpla/design_pattern/Observer.h>
 #include "Attribute.h"
 #include "MeshBlock.h"
+
 namespace simpla {
+
 namespace model {
 class Model;
 }  // namespace model{
 
 namespace mesh {
 class Patch;
-
 class DataBlock;
 
 /**
  *  Define:
- *   A bundle is a triple $(E, p, B)$ where $E$, $B$ are sets and $p:E→B$ a map
- *   - $E$ is called the total space
- *   - $B$ is the base space of the bundle
- *   - $p$ is the projection
+ *   A bundle is a triple \f$(E, p, B)\f$ where \f$E\f$, \f$B\f$ are sets and \f$p:E \rightarrow B\f$ a map
+ *   - \f$E\f$ is called the total space
+ *   - \f$B\f$ is the base space of the bundle
+ *   - \f$p\f$ is the projection
  *
  */
-class Mesh : public concept::Printable, public concept::LifeControllable, public std::enable_shared_from_this<Mesh> {
+class Mesh : public concept::Printable, public concept::LifeControllable {
    public:
     SP_OBJECT_BASE(Mesh);
     typedef MeshEntityId entity_id;
 
     Mesh();
 
-    template <typename... Args>
-    Mesh(Args&&... args) : m_mesh_block_(std::make_shared<MeshBlock>(std::forward<Args>(args)...)) {}
-
     virtual ~Mesh();
 
-    virtual std::ostream& print(std::ostream& os, int indent) const;
+    virtual std::ostream& Print(std::ostream &os, int indent) const;
 
-    virtual void deploy();
+    virtual void Deploy();
 
-    virtual void pre_process();
+    virtual void PreProcess();
 
-    virtual void post_process();
+    virtual void PostProcess();
 
-    virtual void initialize(Real data_time = 0, Real dt = 0);
+    virtual void Initialize(Real data_time = 0, Real dt = 0);
 
-    virtual void finalize(Real data_time = 0, Real dt = 0);
+    virtual void Finalize(Real data_time = 0, Real dt = 0);
 
     virtual std::shared_ptr<MeshBlock> const& mesh_block() const {
         ASSERT(m_mesh_block_ != nullptr);
@@ -99,11 +97,28 @@ class Mesh : public concept::Printable, public concept::LifeControllable, public
         return *m_model_;
     }
 
-    virtual void connect(Attribute* attr) { m_attrs_.insert(attr); };
-    virtual void disconnect(Attribute* attr) { m_attrs_.erase(attr); }
-    virtual void accept(Patch* p);
+    virtual void Connect(Attribute *attr) { m_attrs_.insert(attr); };
+    virtual void Disconnect(Attribute *attr) { m_attrs_.erase(attr); }
+
+    /**
+     *
+     * @brief
+     * @param p
+     *
+     * @startuml{ZipCmd_ZipComp_Communication.png}
+     *
+     * ZipCmd -> ZipComp: First Compute Request
+     * ZipCmd <-- ZipComp: First Compute Response
+     *
+     * ZipCmd -> ZipComp: Second Compute Request
+     * ZipCmd <-- ZipComp: Second Compute Response
+     *
+     * @enduml
+
+     */
+    virtual void Accept(Patch *p);
     template <typename TFun>
-    void foreach_attr(TFun const& fun) {
+    void ForeachAttr(TFun const &fun) {
         for (auto attr : m_attrs_) { fun(attr); }
     }
 
@@ -113,47 +128,7 @@ class Mesh : public concept::Printable, public concept::LifeControllable, public
     std::shared_ptr<MeshBlock> m_mesh_block_;
 };
 
-template <typename...>
-class ChartAdapter;
-
-template <typename U>
-class ChartAdapter<U> : public Mesh, public U {
-    template <typename... Args>
-    explicit ChartAdapter(Args&&... args) : U(std::forward<Args>(args)...) {}
-
-    ~ChartAdapter() {}
-
-    virtual std::ostream& print(std::ostream& os, int indent) const {
-        U::print(os, indent);
-        Mesh::print(os, indent);
-    }
-
-    virtual void accept(Patch* p) {
-        Mesh::accept(p);
-        U::accpt(p);
-    };
-
-    virtual void pre_process() {
-        Mesh::pre_process();
-        U::pre_process();
-    };
-
-    virtual void post_process() {
-        U::post_process();
-        Mesh::post_process();
-    };
-
-    virtual void initialize(Real data_time = 0, Real dt = 0) {
-        Mesh::initialize(data_time, dt);
-        U::initialize(data_time, dt);
-    }
-
-    virtual void finalize(Real data_time = 0, Real dt = 0) {
-        U::finalize(data_time, dt);
-        Mesh::finalize(data_time, dt);
-    }
-};
-}
-}  // namespace simpla { namespace mesh
+}  // namespace mesh
+}  // namespace simpla
 
 #endif  // SIMPLA_GEOMETRY_H

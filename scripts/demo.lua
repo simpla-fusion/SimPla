@@ -45,7 +45,7 @@ GW = 5
 
 omega_ext=1.9*omega_ci
 
---print( "Angle Frequency of antenna =",omega_ext )
+--Print( "Angle Frequency of antenna =",omega_ext )
 
 
 Model=
