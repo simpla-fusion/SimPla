@@ -12,7 +12,7 @@ namespace simpla {
 namespace concept { /**  @ingroup concept   */
 
 /**
- * @brief a type whose instances maybe print to std::ostream  *
+ * @brief a type whose instances can be converted to std::ostream  *
  * @details
  * ## Summary
  *

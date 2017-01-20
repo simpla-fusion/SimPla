@@ -50,23 +50,10 @@ void Worker::Deploy() {
 }
 
 void Worker::Destroy() {
+    m_mesh_.reset();
     m_patch_.reset();
     Object::Destroy();
 }
-
-void Worker::PreProcess() {
-    if (isReady()) { return; }
-    Object::PreProcess();
-    ASSERT(m_mesh_ != nullptr);
-    m_mesh_->PreProcess();
-}
-
-void Worker::PostProcess() {
-    ASSERT(m_mesh_ != nullptr);
-    m_mesh_->PostProcess();
-    Object::PostProcess();
-}
-
 void Worker::Initialize() {
     Object::Initialize();
     ASSERT(m_mesh_ != nullptr);
@@ -83,7 +70,18 @@ void Worker::Finalize() {
     m_mesh_->Finalize();
     Object::Finalize();
 }
+void Worker::PreProcess() {
+    if (isReady()) { return; }
+    Object::PreProcess();
+    ASSERT(m_mesh_ != nullptr);
+    m_mesh_->PreProcess();
+}
 
+void Worker::PostProcess() {
+    ASSERT(m_mesh_ != nullptr);
+    m_mesh_->PostProcess();
+    Object::PostProcess();
+}
 void Worker::Sync() {}
 //
 // void Worker::phase(unsigned int num, Real data_time, Real dt)

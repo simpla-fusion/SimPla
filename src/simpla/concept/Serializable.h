@@ -13,7 +13,7 @@ namespace simpla { namespace concept
 {/**  @ingroup concept   */
 
 /**
- * @brief a type whose instances maybe convert to DataEntityTable
+ * @brief a type whose instances can be converted to DataEntityTable
  * @details
  * ## Summary
  *
