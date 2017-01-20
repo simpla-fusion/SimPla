@@ -713,7 +713,7 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
                 simpla::detail::create_data_block(
                     attr, patch.getPatchData(m_samrai_variables_.at(attr->description().name()), getDataContext())));
     });
-    w->Accept(p.get());
+    w->Accept(p);
 }
 
 /**

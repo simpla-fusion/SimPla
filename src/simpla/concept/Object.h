@@ -16,7 +16,14 @@
 #include <typeindex>
 
 namespace simpla {
+/**
+ * @addtogroup concept
+ * @{
+ */
 
+/**
+ * @brief  define the common part of the base class
+ */
 #define SP_OBJECT_BASE(_BASE_CLASS_NAME_)                                                            \
    private:                                                                                          \
     typedef _BASE_CLASS_NAME_ this_type;                                                             \
@@ -38,6 +45,9 @@ namespace simpla {
     virtual std::type_index TypeIndex() const { return std::type_index(typeid(_BASE_CLASS_NAME_)); } \
     virtual std::string getClassName() const { return __STRING(_BASE_CLASS_NAME_); }
 
+/**
+ * @brief define the common part of the derived class
+ */
 #define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                                         \
    public:                                                                                      \
     virtual bool isA(std::type_info const &info) const {                                        \
@@ -53,72 +63,22 @@ namespace simpla {
    public:
 
 /**
- *  @addtogroup concept
  *
- *  @brief Object
+ *  @brief every thing is an Object
+ *
+ *  @details
+ *
  *  ## Summary
- *   - Particle distribution function is a @ref physical_object;
- *   - Electric field is a @ref physical_object
- *   - Magnetic field is a @ref physical_object;
- *   - Plasma density field is a @ref physical_object;
- *   - @ref physical_object is a geometry defined on a domain in configuration space;
- *   - @ref physical_object has properties;
- *   - @ref physical_object can be saved or loaded as dataset;
- *   - @ref physical_object may be decomposed and sync between mpi processes;
- *   - The element value of PhysicalObject may be accessed through a index of discrete grid point in the domain
+ *    Life cycle control of an object
  *
- *
- *  ## Member types
- *   Member type	 			| Semantics
- *   ---------------------------|--------------
- *   domain_type				| Domain
- *   iterator_type				| iterator of element value
- *   range_type					| entity_id_range of element value
- *
- *
- *
- *  ## Member functions
- *
- *  ### Constructor
- *
- *   Pseudo-Signature 	 			| Semantics
- *   -------------------------------|--------------
- *   `PhysicalObject()`						| Default constructor
- *   `~PhysicalObject() `					| destructor.
- *   `PhysicalObject( const PhysicalObject& ) `	| copy constructor.
- *   `PhysicalObject( PhysicalObject && ) `			| move constructor.
- *   `PhysicalObject( Domain & D ) `			| Construct a PhysicalObject on domain \f$D\f$.
- *
- *  ### Swap
- *    `swap(PhysicalObject & )`					| swap
- *
- *  ###  Fuctions
- *   Pseudo-Signature 	 			| Semantics
- *   -------------------------------|--------------
- *   `bool is_valid() `  			| _true_ if PhysicalObject is valid for accessing
- *   `sync()`					| allocate memory
- *   `DataModel()`					| return the m_data set of PhysicalObject
- *   `clear()`						| set value to zero, allocate memory if empty() is _true_
- *   `T properties(std::string name)const` | get properties[name]
- *   `properties(std::string name,T const & v) ` | set properties[name]
- *   `std::ostream& print(std::ostream & os) const` | print description to `os`
- *
- *  ### Element access
- *   Pseudo-Signature 				| Semantics
- *   -------------------------------|--------------
- *   `value_type & at(index_type s)`   			| access element on the grid points _s_ with bounds checking
- *   `value_type & operator[](index_type s) `  | access element on the grid points _s_as
- *
- *
- * ## Summary
- * Requirements for a type whose instances share ownership between multiple objects;
  *
  * ## Requirements
- *  Class \c R implementing the concept of @ref LifeControllable must define:
+ *  Class \c R implementing the concept of @ref Object must define:
  *   Pseudo-Signature                   | Semantics
  *	 -----------------------------------|----------
- * 	 \code   R()               \endcode | Constructor;
- * 	 \code  virtual ~R()       \endcode | Destructor
+ * 	 \code R()                 \endcode | Constructor;
+ * 	 \code virtual ~R()        \endcode | Destructor
+ * 	 \code id_type id()        \endcode |  return id
  *   \code bool isNull()       \endcode |  return m_state_ == NULL_STATE
  *   \code bool isBlank()      \endcode |  return m_state_ == BLANK
  *   \code bool isValid()      \endcode |  return m_state_ == VALID
@@ -154,7 +114,7 @@ class Object {
    public:
     SP_OBJECT_BASE(Object)
    public:
-    enum { NULL_STATE = 0, BLANK, VALID, READY, LOCKED };
+    enum { NULL_STATE = 0, BLANK = 1, VALID, READY, LOCKED };
     Object();
 
     Object(Object &&other);
@@ -201,7 +161,7 @@ class Object {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-
+/** @} */
 }  // namespace simpla { namespace base
 
 #endif  // SIMPLA_OBJECT_H

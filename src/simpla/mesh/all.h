@@ -4,11 +4,11 @@
 
 #ifndef SIMPLA_ALL_H
 #define SIMPLA_ALL_H
-namespace simpla{
-namespace mesh{
+namespace simpla {
+namespace mesh {
 /**
- * @addtogroup mesh{
- *
+ * @addtogroup mesh
+ *@{
  *
  * @startuml
  *
@@ -28,4 +28,4 @@ namespace mesh{
  */
 }
 }
-#endif //SIMPLA_ALL_H
+#endif  // SIMPLA_ALL_H
