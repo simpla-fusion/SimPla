@@ -475,7 +475,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     }
 
     //**************************************************************
-    m_worker_->mesh()->ForeachAttr([&](mesh::Attribute *attr) {
+    m_worker_->ForeachAttr([&](mesh::Attribute *attr) {
         if (attr == nullptr) { return; }
 
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, attr);
@@ -704,9 +704,9 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
     m->Deploy();
     auto p = std::make_shared<simpla::mesh::Patch>();
 
-    p->mesh(m);
+    p->mesh_block(m);
 
-    w->mesh()->ForeachAttr([&](simpla::mesh::Attribute *attr) {
+    w->ForeachAttr([&](simpla::mesh::Attribute *attr) {
         if (attr == nullptr) { return; }
 
         p->data(attr->description().id(),
@@ -729,7 +729,7 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
 void SAMRAIWorker::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time, const bool initial_time) {
     if (initial_time) {
         move_to(m_worker_, patch);
-        m_worker_->Initialize(data_time, 0);
+        m_worker_->Initialize();
     }
 
     if (d_use_nonuniform_workload) {
@@ -870,17 +870,17 @@ struct SAMRAITimeIntegrator : public simulation::TimeIntegrator {
 
     ~SAMRAITimeIntegrator();
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
-    virtual void load(data::DataTable const &);
+    virtual void Load(data::DataTable const &);
 
-    virtual void save(data::DataTable *) const;
+    virtual void Save(data::DataTable *) const;
 
-    virtual void deploy();
+    virtual void Deploy();
 
-    virtual void tear_down();
+    virtual void Destroy();
 
-    virtual bool is_valid() const;
+    virtual bool isValid() const;
 
     virtual size_type step() const;
 
@@ -949,16 +949,16 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::finalize();
 }
 
-std::ostream &SAMRAITimeIntegrator::print(std::ostream &os, int indent) const {
+std::ostream &SAMRAITimeIntegrator::Print(std::ostream &os, int indent) const {
     SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(os);
     if (samrai_cfg != nullptr) samrai_cfg->printClassData(os);
     if (hyp_level_integrator != nullptr) hyp_level_integrator->printClassData(os);
     return os;
 };
 
-void SAMRAITimeIntegrator::load(data::DataTable const &db) { UNIMPLEMENTED; }
+void SAMRAITimeIntegrator::Load(data::DataTable const &db) { UNIMPLEMENTED; }
 
-void SAMRAITimeIntegrator::save(data::DataTable *) const { UNIMPLEMENTED; }
+void SAMRAITimeIntegrator::Save(data::DataTable *) const { UNIMPLEMENTED; }
 
 namespace detail {
 void convert_database_r(data::DataEntity const &src, boost::shared_ptr<SAMRAI::tbox::Database> &dest,
@@ -1007,9 +1007,9 @@ boost::shared_ptr<SAMRAI::tbox::Database> convert_database(data::DataTable const
     return dest;
 }
 }  // namespace detail{
-void SAMRAITimeIntegrator::deploy() {
-    if (concept::LifeControllable::isDeployed()) { return; }
-    concept::LifeControllable::Deploy();
+void SAMRAITimeIntegrator::Deploy() {
+    if (Object::isDeployed()) { return; }
+    Object::Deploy();
 
     bool use_refined_timestepping = db.getValue("use_refined_timestepping", true);
 
@@ -1091,7 +1091,7 @@ void SAMRAITimeIntegrator::deploy() {
     time_integrator->printClassData(std::cout);
 };
 
-void SAMRAITimeIntegrator::tear_down() {
+void SAMRAITimeIntegrator::Destroy() {
     m_is_valid_ = false;
 
     visit_data_writer.reset();
@@ -1103,10 +1103,10 @@ void SAMRAITimeIntegrator::tear_down() {
     patch_worker.reset();
 }
 
-bool SAMRAITimeIntegrator::is_valid() const { return m_is_valid_; }
+bool SAMRAITimeIntegrator::isValid() const { return m_is_valid_; }
 
 size_type SAMRAITimeIntegrator::NextTimeStep(Real dt) {
-    assert(is_valid());
+    assert(isValid());
 
     MESSAGE << " Time = " << timeNow() << " Step = " << step() << std::endl;
     Real loop_time = time_integrator->getIntegratorTime();

@@ -6,7 +6,6 @@
 #define SIMPLA_DATABLOCK_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/concept/LifeControllable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/toolbox/FancyStream.h>
@@ -18,7 +17,7 @@ namespace mesh {
  */
 class MeshBlock;
 
-class DataBlock : public concept::Serializable, public concept::Printable, public concept::LifeControllable {
+class DataBlock : public Object, public concept::Serializable, public concept::Printable {
     SP_OBJECT_BASE(DataBlock);
 
    public:
@@ -43,7 +42,7 @@ class DataBlock : public concept::Serializable, public concept::Printable, publi
      * concept::Printable
      *    virtual std::ostream &print(std::ostream &os, int indent) const =0;
      *
-     * concept::LifeControllable
+     * Object
      *    virtual bool is_deployed() const =0;
      *    virtual bool is_valid() const =0;
      *    virtual void deploy()=0;
@@ -121,7 +120,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
      * concept::Printable
      *    virtual std::ostream &print(std::ostream &os, int indent) const =0;
      *
-     * concept::LifeControllable
+     * Object
      *    virtual bool is_deployed() const =0;
      *    virtual bool is_valid() const =0;
      *    virtual void deploy()=0;
@@ -169,7 +168,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //
 //    virtual ~DataBlockArray() {}
 //
-//    virtual bool is_valid() { return data_entity_type::isValid(); };
+//    virtual bool isValid() { return data_entity_type::isValid(); };
 //
 //    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
 //

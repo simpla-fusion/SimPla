@@ -10,31 +10,36 @@
 #include "DataBlock.h"
 #include "Mesh.h"
 #include "MeshBlock.h"
+#include "Worker.h"
+
 namespace simpla {
 namespace mesh {
 
 Attribute::Attribute(Mesh *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
     : m_mesh_(m), m_desc_(desc), m_data_(d) {
     ASSERT(m_mesh_ != nullptr);
-    m_mesh_->Connect(this);
+    m_owner_ = m->m_owner_;
 };
-
+Attribute::Attribute(Worker *w, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
+    : Attribute(w->m_mesh_.get(), desc, d) {
+    m_owner_ = w;
+};
 Attribute::~Attribute() {
-    if (m_mesh_ != nullptr) m_mesh_->Disconnect(this);
+    if (m_owner_ != nullptr) m_owner_->Disconnect(this);
 }
-
-void Attribute::Accept(std::shared_ptr<DataBlock> const &d) {
-    PostProcess();
+void Attribute::data_block(std::shared_ptr<DataBlock> const &d) {
+    Finalize();
     m_data_ = d;
+    Initialize();
 }
 
 void Attribute::PreProcess() {
-    if (!isValid()) { concept::LifeControllable::PreProcess(); }
+    if (!isValid()) { Object::PreProcess(); }
 }
 
 void Attribute::PostProcess() {
     m_data_.reset();
-    if (isValid()) { concept::LifeControllable::PostProcess(); }
+    if (isValid()) { Object::PostProcess(); }
 }
 
 void Attribute::Clear() {

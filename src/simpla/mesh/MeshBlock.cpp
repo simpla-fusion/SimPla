@@ -13,8 +13,7 @@ namespace mesh {
 
 MeshBlock::MeshBlock() : m_ndims_(0) {}
 
-MeshBlock::MeshBlock(int ndims, index_type const* lo, index_type const* up, Real const* dx,
-                     Real const* xlo)
+MeshBlock::MeshBlock(int ndims, index_type const* lo, index_type const* up, Real const* dx, Real const* xlo)
     : Object(),
       m_ndims_(ndims),
       m_g_box_{{lo == nullptr ? 0 : lo[0], lo == nullptr ? 0 : lo[1], lo == nullptr ? 0 : lo[2]},
@@ -30,16 +29,16 @@ MeshBlock::MeshBlock(int ndims, index_type const* lo, index_type const* up, Real
 
 MeshBlock::~MeshBlock() {}
 
-std::ostream& MeshBlock::Print(std::ostream &os, int indent) const {
+std::ostream& MeshBlock::Print(std::ostream& os, int indent) const {
     os << std::setw(indent + 1) << "type = \"" << getClassName() << "\" ,"
        << " level = " << level() << ",  box = " << m_g_box_;
     return os;
 }
 
 void MeshBlock::Deploy() {
-    if (concept::LifeControllable::isDeployed()) { return; }
+    if (Object::isDeployed()) { return; }
 
-    concept::LifeControllable::Deploy();
+    Object::Deploy();
 
     ASSERT(m_ndims_ <= 3);
 
@@ -88,8 +87,7 @@ void MeshBlock::Deploy() {
     m_m_box_ = m_outer_box_;
 }
 
-std::shared_ptr<MeshBlock> MeshBlock::create(int inc_level, const index_type* lo,
-                                             const index_type* hi) const {
+std::shared_ptr<MeshBlock> MeshBlock::create(int inc_level, const index_type* lo, const index_type* hi) const {
     auto res = std::make_shared<MeshBlock>();
     if (inc_level >= 0) {
         std::get<0>(res->m_g_box_)[0] = lo[0] << inc_level;
@@ -126,10 +124,8 @@ Range<MeshEntityId> MeshBlock::range(index_box_type const& b, int iform) const {
     return std::move(range(&(std::get<0>(b)[0]), &(std::get<1>(b)[0]), iform));
 }
 
-Range<MeshEntityId> MeshBlock::range(index_type const* b, index_type const* e,
-                                     int entityType) const {
-    return std::move(
-        Range<MeshEntityId>(std::make_shared<ContinueRange<MeshEntityId>>(b, e, entityType)));
+Range<MeshEntityId> MeshBlock::range(index_type const* b, index_type const* e, int entityType) const {
+    return std::move(Range<MeshEntityId>(std::make_shared<ContinueRange<MeshEntityId>>(b, e, entityType)));
     //    return std::Move(make_continue_range<MeshEntityId>(b, e, entityType));
 }
 

@@ -5,7 +5,6 @@
 #ifndef SIMPLA_DATAENTITYHEAVY_H
 #define SIMPLA_DATAENTITYHEAVY_H
 
-#include <simpla/concept/LifeControllable.h>
 #include <simpla/concept/Object.h>
 #include "DataEntity.h"
 #include "DataType.h"

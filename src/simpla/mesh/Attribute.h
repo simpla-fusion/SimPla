@@ -13,11 +13,13 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/data/all.h>
+
 #include "DataBlock.h"
 
 namespace simpla {
 namespace mesh {
 class Mesh;
+class Worker;
 
 struct AttributeDesc : public Object, public concept::Configurable, public concept::Printable {
     AttributeDesc() : m_value_type_index_(std::type_index(typeid(Real))), m_iform_(VERTEX), m_dof_(1) { deploy(); }
@@ -87,11 +89,12 @@ class AttributeDict : public concept::Printable {
     std::map<id_type, std::shared_ptr<AttributeDesc>> m_map_;
 };
 
-struct Attribute : public concept::Printable, public concept::LifeControllable {
+struct Attribute : public Object, public concept::Printable {
    public:
     SP_OBJECT_BASE(Attribute);
 
     Attribute(Mesh *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d = nullptr);
+    Attribute(Worker *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d = nullptr);
 
     Attribute(Attribute const &other) = delete;
 
@@ -107,6 +110,8 @@ struct Attribute : public concept::Printable, public concept::LifeControllable {
 
     AttributeDesc const &description() const { return *m_desc_; }
 
+    void data_block(std::shared_ptr<DataBlock> const &d);
+
     std::shared_ptr<DataBlock> const &data_block() const { return m_data_; }
 
     std::shared_ptr<DataBlock> &data_block() { return m_data_; }
@@ -120,6 +125,7 @@ struct Attribute : public concept::Printable, public concept::LifeControllable {
     virtual void Clear();
 
    private:
+    Worker *m_owner_;
     Mesh *const m_mesh_;
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
@@ -137,11 +143,12 @@ struct DataAttribute : public Attribute,
     static constexpr int dof = DOF;
     typedef Mesh mesh_type;
 
-    template <typename... Args>
-    DataAttribute(Mesh *m, Args &&... args)
-        : base_type(m, AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
+    template <typename TM, typename... Args>
+    DataAttribute(TM *w, Args &&... args)
+        : base_type(w, AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
 
-    DataAttribute(Mesh *m, std::initializer_list<data::KeyValue> const &param)
+    template <typename TM>
+    DataAttribute(TM *m, std::initializer_list<data::KeyValue> const &param)
         : base_type(m, AttributeDesc::create<value_type, iform, dof>(param)) {}
 
     DataAttribute(DataAttribute &&) = delete;
@@ -206,12 +213,12 @@ class AttributeAdapter<U> : public Attribute, public U {
     typedef mesh_traits_t<U> mesh_type;
 
    public:
-    template <typename... Args>
-    AttributeAdapter(Mesh *m, Args &&... args)
+    template <typename TM, typename... Args>
+    AttributeAdapter(TM *m, Args &&... args)
         : base_type(m, AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
-
-    AttributeAdapter(Mesh *m, std::initializer_list<data::KeyValue> const &param)
-        : base_type(m, AttributeDesc::create<value_type, iform, dof>(param)) {}
+    template <typename TM>
+    AttributeAdapter(TM *w, std::initializer_list<data::KeyValue> const &param)
+        : base_type(w, AttributeDesc::create<value_type, iform, dof>(param)) {}
 
     AttributeAdapter(AttributeAdapter &&) = delete;
 
@@ -230,7 +237,8 @@ class AttributeAdapter<U> : public Attribute, public U {
         return std::make_shared<this_type>(std::forward<Args>(args)...);
     }
 
-    static std::shared_ptr<this_type> make_shared(Mesh *c, std::initializer_list<data::KeyValue> const &param) {
+    template <typename TM>
+    static std::shared_ptr<this_type> make_shared(TM *c, std::initializer_list<data::KeyValue> const &param) {
         return std::make_shared<this_type>(c, param);
     }
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return U::print(os, indent); }

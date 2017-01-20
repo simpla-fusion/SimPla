@@ -12,7 +12,7 @@
 #include <typeinfo>
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/LifeClick.h>
+
 #include <typeindex>
 
 namespace simpla {
@@ -52,9 +52,10 @@ namespace simpla {
                                                                                                 \
    public:
 
-/** @ingroup task_flow
- *  @addtogroup sp_object SIMPla object
- *  @{
+/**
+ *  @addtogroup concept
+ *
+ *  @brief Object
  *  ## Summary
  *   - Particle distribution function is a @ref physical_object;
  *   - Electric field is a @ref physical_object
@@ -108,13 +109,52 @@ namespace simpla {
  *   `value_type & at(index_type s)`   			| access element on the grid points _s_ with bounds checking
  *   `value_type & operator[](index_type s) `  | access element on the grid points _s_as
  *
- *  @}
+ *
+ * ## Summary
+ * Requirements for a type whose instances share ownership between multiple objects;
+ *
+ * ## Requirements
+ *  Class \c R implementing the concept of @ref LifeControllable must define:
+ *   Pseudo-Signature                   | Semantics
+ *	 -----------------------------------|----------
+ * 	 \code   R()               \endcode | Constructor;
+ * 	 \code  virtual ~R()       \endcode | Destructor
+ *   \code bool isNull()       \endcode |  return m_state_ == NULL_STATE
+ *   \code bool isBlank()      \endcode |  return m_state_ == BLANK
+ *   \code bool isValid()      \endcode |  return m_state_ == VALID
+ *   \code bool isReady()      \endcode |  return m_state_ == READY
+ *   \code bool isLocked()     \endcode |  return m_state_ == LOCKED
+ * 	 \code void Deploy()       \endcode |  allocate memory
+ *   \code void Initialize()   \endcode |  Initial setup. This function should be invoked ONLY ONCE after Deploy()
+ *   \code void PreProcess()   \endcode |  This function should be called before operation
+ *   \code void Lock()         \endcode |  lock object for concurrent operation
+ *   \code bool TryLock()      \endcode |  return true if object is locked
+ *   \code void Unlock()       \endcode |  unlock object after concurrent operation
+ *   \code void PostProcess()  \endcode |  This function should be called after operation
+ *   \code void Finalize()     \endcode |  Finalize object. This function should be invoked ONLY ONCE  before Destroy()
+ *   \code void Destroy()      \endcode |  release memory
+ *
+ *
+  @startuml
+        [*] -->Null         : Construct
+        Null --> Blank      : Deploy
+        Blank --> Valid     : Initialize
+        Valid --> Ready     : PreProcess
+        Ready --> Locked    : lock
+        Locked  -->  Ready  : unlock
+        Ready --> Valid     : PostProcess
+        Valid --> Blank     : Finalize
+        Blank --> Null      : Destroy
+        Null --> [*]        : Destruct
+
+   @enduml
  **/
 
 class Object {
    public:
     SP_OBJECT_BASE(Object)
-
+   public:
+    enum { NULL_STATE = 0, BLANK, VALID, READY, LOCKED };
     Object();
 
     Object(Object &&other);
@@ -131,34 +171,36 @@ class Object {
 
     bool operator==(Object const &other);
 
-    /**
-     *  @name concept lockable
-     *  @{
-     */
-
     void lock();
-
     void unlock();
-
     bool try_lock();
-
-    /** @} */
-
-    /**
-     *  @name concept touch count
-     *  @{
-     */
     void touch();
-
     size_type click() const;
-    /** @} */
+
+    unsigned int state() const { return m_state_; }
+    bool isNull() const { return m_state_ == NULL_STATE; }
+    bool isBlank() const { return m_state_ == BLANK; }
+    bool isValid() const { return m_state_ >= VALID; }
+    bool isReady() const { return m_state_ == READY; }
+    bool isLocked() const { return m_state_ == LOCKED; }
+    bool isDeployed() const { return m_state_ >= BLANK; }
+
+    virtual void Deploy();      //< Initial setup. This function should be invoked ONLY ONCE
+    virtual void Initialize();  //< Initial setup. This function should be invoked _ONLY ONCE_  after Deploy()
+    virtual void PreProcess();  //< This function should be called before operation
+    virtual void Lock();
+    virtual bool TryLock();
+    virtual void Unlock();
+    virtual void PostProcess();  //< This function should be called after operation
+    virtual void Finalize();     //< Finalize object. This function should be invoked _ONLY ONCE_ before Destroy()
+    virtual void Destroy();
+
    private:
+    unsigned int m_state_ = NULL_STATE;
+
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-
-// virtual std::shared_ptr<GeoObject> clone_object()const { return std::dynamic_pointer_cast<GeoObject>(this->clone());
-// }
 
 }  // namespace simpla { namespace base
 

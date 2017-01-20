@@ -19,7 +19,7 @@ using namespace data;
 
 std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const& str = "");
 
-std::shared_ptr<mesh::Worker> create_worker(mesh::Mesh*);
+std::shared_ptr<mesh::Worker> create_worker();
 
 std::shared_ptr<mesh::Mesh> create_mesh();
 }  // namespace simpla
@@ -30,8 +30,7 @@ int main(int argc, char** argv) {
     // typedef mesh:: CylindricalGeometry mesh_type;
     // typedef AMRTest<mesh_type> work_type;
 
-    auto m = create_mesh();
-    auto worker = create_worker(m.get());
+    auto worker = create_worker();
 
     //    worker->db.setValue("GEqdsk", argv[1]);
     //    worker->db.setValue("Particles.H.m", 1.0);

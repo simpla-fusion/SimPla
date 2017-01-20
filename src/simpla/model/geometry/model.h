@@ -42,7 +42,7 @@ using Hexahedron = Primitive< 3,CoordinateSystem, tags::cube >;
 /**
  * @brief Polyline a 'polygonal chain' is a connected series of 'line segments'.
  *  More formally, a 'polygonal chain' $P$ is a curve specified by a
- *  sequence of points $\scriptstyle(A_1, A_2, \dots, A_n)$ called its
+ *  sequence of points \f$\scriptstyle(A_1, A_2, \dots, A_n)\f$ called its
  *  'vertices'. The curve itself consists of the 'line segments' connecting
  *  the consecutive vertices. A 'polygonal chain' may also be called a
  *  'polygonal curve', 'polygonal path', 'polyline',or 'piecewise linear curve'.
@@ -205,7 +205,7 @@ struct Primitive<3, CS, tags::torus>
 	length_type distance(point_type const & x) const
 	{
 		/**
-		 * d_{torus}\left(p,R,a\right)=\sqrt{\left(\sqrt{p_{x}^{2}+p_{y}^{2}}-R\right)^{2}+p_{z}^{2}}-a
+		 * \f[ d_{torus}\left(p,R,a\right)=\sqrt{\left(\sqrt{p_{x}^{2}+p_{y}^{2}}-R\right)^{2}+p_{z}^{2}}-a \f]
 		 */
 		return geometry::distance(x, m_circle_) - m_a_;
 	}
@@ -227,8 +227,9 @@ struct Primitive<3, CS, tags::cone>
 	length_type distance(point_type const & x) const
 	{
 		/**
-		 * $\theta	=	\arctan\left(\frac{r}{h}\right)$
-		 * $ d_{cone}\left(p,r,h\right)	= \max\left(\sqrt{p_{x}^{2}+p_{y}^{2}}\cos\theta-\left|p_{y}\right|\sin\theta,p_{y}-h,-p_{y}\right) $
+		 * \f[ \theta	=	\arctan\left(\frac{r}{h}\right)
+		 *  d_{cone}\left(p,r,h\right)	= \max\left(\sqrt{p_{x}^{2}+p_{y}^{2}}\cos\theta-\left|p_{y}\right|\sin\theta,p_{y}-h,-p_{y}\right)
+		 *  \f]
 		 */
 		return geometry::distance(x, m_circle_) - m_a_;
 	}
@@ -251,7 +252,9 @@ struct Primitive<3, CS, tags::box>
 	length_type distance(point_type const & x) const
 	{
 		/**
-		 * $ d_{box}=\max\left(\left|p_{x}\right|-\frac{s_{x}}{2},\left|p_{y}\right|-\frac{s_{y}}{2},\left|p_{z}\right|-\frac{s_{z}}{2}\right)$
+		 * \f[
+		 * d_{box}=\max\left(\left|p_{x}\right|-\frac{s_{x}}{2},\left|p_{y}\right|-\frac{s_{y}}{2},\left|p_{z}\right|-\frac{s_{z}}{2}\right)
+		 * \f]
 		 */
 		return geometry::distance(x, m_circle_) - m_a_;
 	}
@@ -274,7 +277,10 @@ struct Primitive<3, CS, tags::cylinder>
 	length_type distance(point_type const & x) const
 	{
 		/**
-		 * $ d_{cylinder}\left(p,r,h\right)=\max\left(\sqrt{p_{x}^{2}+p_{z}^{2}}-r,\left|p_{y}\right|-\frac{h}{2}\right)$
+		 * \f[
+		 *  d_{cylinder}\left(p,r,h\right)=\max\left(\sqrt{p_{x}^{2}+p_{z}^{2}}-r,\left|p_{y}\right|-\frac{h}{2}\right)
+		 * \f]
+		 *
 		 */
 		return geometry::distance(x, m_circle_) - m_a_;
 	}

@@ -7,7 +7,6 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/nTuple.h>
-#include <simpla/concept/LifeControllable.h>
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
@@ -73,17 +72,13 @@ namespace mesh {
  *
  */
 
-class MeshBlock : public Object,
-                  public concept::Serializable,
-                  public concept::Printable,
-                  public concept::LifeControllable {
+class MeshBlock : public Object, public concept::Serializable, public concept::Printable {
    public:
     SP_OBJECT_HEAD(MeshBlock, Object)
 
     MeshBlock();
 
-    MeshBlock(int ndims, index_type const* lo, index_type const* up, Real const* dx,
-              Real const* x_lo);
+    MeshBlock(int ndims, index_type const* lo, index_type const* up, Real const* dx, Real const* x_lo);
 
     MeshBlock(MeshBlock const&) = delete;
 
@@ -103,15 +98,15 @@ class MeshBlock : public Object,
 
     /** for Printable @{*/
 
-    virtual std::ostream& Print(std::ostream &os, int indent = 0) const;
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
 
     /** @}*/
 
     /** for Serializable @{*/
 
-    virtual void Load(const data::DataTable &){};
+    virtual void Load(const data::DataTable&){};
 
-    virtual void Save(data::DataTable *) const {};
+    virtual void Save(data::DataTable*) const {};
 
     /** @}*/
 
@@ -125,8 +120,7 @@ class MeshBlock : public Object,
      *   offset_new = b.first * 2^ (-inc_level)
      *   count_new  = b.second * 2^ (-inc_level) - offset_new
      */
-    virtual std::shared_ptr<MeshBlock> create(int inc_level, const index_type* lo,
-                                              const index_type* hi) const;
+    virtual std::shared_ptr<MeshBlock> create(int inc_level, const index_type* lo, const index_type* hi) const;
 
     virtual std::shared_ptr<MeshBlock> create(int inc_level, index_box_type const& b) const {
         return create(inc_level, &std::get<0>(b)[0], &std::get<1>(b)[0]);
@@ -154,17 +148,6 @@ class MeshBlock : public Object,
     void shift(index_type x, index_type y = 0, index_type z = 0) {}
 
     void shift(index_type const*) {}
-
-    virtual bool is_valid() {
-        return isDeployed()
-
-            //               &&  toolbox::isValid(m_g_box_) &&
-            //               toolbox::isValid(m_m_box_) &&
-            //               toolbox::isValid(m_inner_box_) &&
-            //               toolbox::isValid(m_outer_box_)
-
-            ;
-    }
 
     template <typename... Args>
     MeshEntityId pack(Args&&... args) const {
@@ -250,15 +233,13 @@ class MeshBlock : public Object,
     size_type hash(MeshEntityId const& s) const { return hash(m::unpack_index(s)); }
     size_type hash(index_tuple const& i) const { return hash(i[0], i[1], i[2]); }
     size_type hash(index_type i, index_type j, index_type k, index_type m = 0) const {
-        return ((i - std::get<0>(m_outer_box_)[0]) *
-                    (std::get<1>(m_outer_box_)[1] - std::get<0>(m_outer_box_)[1]) +
+        return ((i - std::get<0>(m_outer_box_)[0]) * (std::get<1>(m_outer_box_)[1] - std::get<0>(m_outer_box_)[1]) +
                 (j - std::get<0>(m_outer_box_)[1])) *
                    (std::get<1>(m_outer_box_)[2] - std::get<0>(m_outer_box_)[2]) +
                (k - std::get<0>(m_outer_box_)[2]);
     }
 
-    virtual int get_adjacent_entities(int entity_type, MeshEntityId s,
-                                      MeshEntityId* p = nullptr) const {
+    virtual int get_adjacent_entities(int entity_type, MeshEntityId s, MeshEntityId* p = nullptr) const {
         return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
 
@@ -295,28 +276,25 @@ class MeshBlock : public Object,
             //                m::point_global_to_local(
             point_type{std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
                        std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
-                       std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])}
-        //                        , nId)
+                       std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])}  //                        , nId)
         ;
     }
 
     virtual index_tuple point_to_index(point_type const& g, int nId = 0) const {
-        return m::unpack_index(std::get<0>(
-            m::point_global_to_local(point_type{std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
-                                                std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
-                                                std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])},
-                                     nId)));
+        return m::unpack_index(
+            std::get<0>(m::point_global_to_local(point_type{std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
+                                                            std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
+                                                            std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])},
+                                                 nId)));
     };
 
-    virtual Range<MeshEntityId> range(MeshZoneTag status = SP_ES_ALL,
-                                      int entityType = VERTEX) const;
+    virtual Range<MeshEntityId> range(MeshZoneTag status = SP_ES_ALL, int entityType = VERTEX) const;
 
     virtual Range<MeshEntityId> range(index_box_type const& b, int entity_type = VERTEX) const;
 
     virtual Range<MeshEntityId> range(box_type const& b, int entityType = VERTEX) const;
 
-    virtual Range<MeshEntityId> range(index_type const* b, index_type const* e,
-                                      int entityType = VERTEX) const;
+    virtual Range<MeshEntityId> range(index_type const* b, index_type const* e, int entityType = VERTEX) const;
 
     //    template<typename TFun>
     //    void foreach(TFun const &fun, MeshZoneTag tag, int const &iform = VERTEX, int
@@ -380,9 +358,7 @@ class MeshBlock : public Object,
 
     virtual bool is_inside(point_type const& p) const { return toolbox::is_inside(p, box()); }
 
-    virtual bool is_inside(index_tuple const& p) const {
-        return toolbox::is_inside(p, m_inner_box_);
-    }
+    virtual bool is_inside(index_tuple const& p) const { return toolbox::is_inside(p, m_inner_box_); }
 
    protected:
     id_type m_space_id_ = 0;

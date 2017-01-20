@@ -22,19 +22,21 @@ using namespace mesh;
 class EMTokamakWorker;
 std::shared_ptr<mesh::Mesh> create_mesh() { return std::make_shared<mesh::CylindricalGeometry>(); }
 
-std::shared_ptr<mesh::Worker> create_worker(Mesh *m) {
-    return std::dynamic_pointer_cast<mesh::Worker>(std::make_shared<EMTokamakWorker>(m));
+std::shared_ptr<mesh::Worker> create_worker() {
+    return std::dynamic_pointer_cast<mesh::Worker>(std::make_shared<EMTokamakWorker>());
 }
 
 class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
    public:
     SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>);
 
-    explicit EMTokamakWorker(Mesh *m) : base_type(m) {}
+    explicit EMTokamakWorker() : base_type() {}
 
     ~EMTokamakWorker() {}
 
     using base_type::m_mesh_;
+
+    virtual std::shared_ptr<Mesh> create_mesh() { return std::make_shared<mesh_type>(this); };
 
     virtual void Deploy();
 
@@ -56,7 +58,7 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
 
     GEqdsk geqdsk;
 
-    field_type<VERTEX> psi{m_mesh_, {"name"_ = "psi"}};
+    field_type<VERTEX> psi{this, {"name"_ = "psi"}};
 
     std::function<Vec3(point_type const &, Real)> J_src_fun;
 
@@ -75,8 +77,8 @@ void EMTokamakWorker::Deploy() {
 
     db.setValue("bound_box", geqdsk.box());
 
-    m_mesh_->model().AddObject("VACUUM", geqdsk.limiter_gobj());
-    m_mesh_->model().AddObject("PLASMA", geqdsk.boundary_gobj());
+    model().AddObject("VACUUM", geqdsk.limiter_gobj());
+    model().AddObject("PLASMA", geqdsk.boundary_gobj());
 };
 
 void EMTokamakWorker::PreProcess() {
@@ -103,12 +105,12 @@ void EMTokamakWorker::Initialize(Real data_time) {
         *item.second->rho = rho0 * ratio;
     }
 
-    base_type::Initialize(data_time, 0);
+    base_type::Initialize();
 }
 
 void EMTokamakWorker::Finalize(Real data_time) {
     PostProcess();
-    base_type::Finalize(data_time);
+    base_type::Finalize();
 }
 
 void EMTokamakWorker::NextTimeStep(Real data_time, Real dt) {
@@ -119,18 +121,18 @@ void EMTokamakWorker::NextTimeStep(Real data_time, Real dt) {
 void EMTokamakWorker::SetPhysicalBoundaryConditions(Real data_time) {
     base_type::SetPhysicalBoundaryConditions(data_time);
     if (J_src_fun) {
-        J1.Assign(m_mesh_->model().select(EDGE, "J_SRC"), [&](point_type const &x) { return J_src_fun(x, data_time); });
+        J1.Assign(model().select(EDGE, "J_SRC"), [&](point_type const &x) { return J_src_fun(x, data_time); });
     }
     if (E_src_fun) {
-        E.Assign(m_mesh_->model().select(EDGE, "E_SRC"), [&](point_type const &x) { return E_src_fun(x, data_time); });
+        E.Assign(model().select(EDGE, "E_SRC"), [&](point_type const &x) { return E_src_fun(x, data_time); });
     }
 };
 
 void EMTokamakWorker::SetPhysicalBoundaryConditionE(Real time) {
-    E.Assign(m_mesh_->model().interface(EDGE, "PLASMA", "VACUUM"), 0);
+    E.Assign(model().interface(EDGE, "PLASMA", "VACUUM"), 0);
 }
 
 void EMTokamakWorker::SetPhysicalBoundaryConditionB(Real time) {
-    B.Assign(m_mesh_->model().interface(FACE, "PLASMA", "VACUUM"), 0);
+    B.Assign(model().interface(FACE, "PLASMA", "VACUUM"), 0);
 }
 }

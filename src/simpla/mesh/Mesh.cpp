@@ -9,7 +9,7 @@
 namespace simpla {
 namespace mesh {
 
-Mesh::Mesh() : m_model_(nullptr) {}
+Mesh::Mesh(Worker *w) : m_owner_(w) {}
 
 Mesh::~Mesh() {}
 
@@ -36,26 +36,27 @@ std::ostream &Mesh::Print(std::ostream &os, int indent) const {
 
     return os;
 };
-void Mesh::Deploy() {
-    if (m_mesh_block_ != nullptr) { m_mesh_block_->Deploy(); }
-    if (m_model_ == nullptr) { m_model_ = std::make_unique<simpla::model::Model>(this); }
-};
+void Mesh::Deploy() { Object::Deploy(); };
+void Mesh::Destroy() { Object::Destroy(); };
 
-// bool Mesh::is_a(std::type_info const &info) const { return typeid(Mesh) == info; }
+void Mesh::mesh_block(std::shared_ptr<MeshBlock> m) {
+    Finalize();
+    m_mesh_block_ = m;
+    Initialize();
+}
 
-void Mesh::Accept(Patch *p) {
-    PostProcess();
-    m_mesh_block_ = p->mesh();
-    for (auto attr : m_attrs_) { attr->Accept(p->data(attr->description().id())); }
-    PreProcess();
-};
+void Mesh::PreProcess() {
+    Object::PreProcess();
+    ASSERT(m_mesh_block_ != nullptr);
+}
 
-void Mesh::Initialize(Real data_time, Real dt) { PreProcess(); }
+void Mesh::PostProcess() {
+    m_mesh_block_.reset();
+    Object::PostProcess();
+}
 
-void Mesh::Finalize(Real data_time, Real dt) { PostProcess(); }
+void Mesh::Initialize() { Object::Initialize(); }
 
-void Mesh::PreProcess() { ASSERT(m_mesh_block_ != nullptr); }
-
-void Mesh::PostProcess() { m_mesh_block_.reset(); }
+void Mesh::Finalize() { Object::Finalize(); }
 }
 }  // namespace simpla {namespace mesh

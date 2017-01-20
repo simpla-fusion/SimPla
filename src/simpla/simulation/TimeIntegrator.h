@@ -8,25 +8,21 @@
 #include <simpla/SIMPLA_config.h>
 #include <memory>
 
-#include <simpla/mesh/Atlas.h>
 #include <simpla/data/DataTable.h>
+#include <simpla/mesh/Atlas.h>
 
+#include <simpla/concept/Configurable.h>
 #include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
-#include <simpla/concept/Configurable.h>
-#include <simpla/concept/LifeControllable.h>
 
-namespace simpla { namespace simulation
-{
-class TimeIntegrator :
-        public Object,
-        public concept::Printable,
-        public concept::Serializable,
-        public concept::Configurable,
-        public concept::LifeControllable
-{
-public:
+namespace simpla {
+namespace simulation {
+class TimeIntegrator : public Object,
+                       public concept::Printable,
+                       public concept::Serializable,
+                       public concept::Configurable {
+   public:
     TimeIntegrator(std::shared_ptr<mesh::Worker> const &w = nullptr) : Object(), m_worker_(w) {}
 
     virtual ~TimeIntegrator() {}
@@ -45,9 +41,12 @@ public:
 
     virtual void Advance(Real dt, int level = 0) { UNIMPLEMENTED; };
 
-    virtual size_type NextTimeStep(Real dt) { UNIMPLEMENTED; return 0;};
+    virtual size_type NextTimeStep(Real dt) {
+        UNIMPLEMENTED;
+        return 0;
+    };
 
-    virtual void CheckPoint() {};
+    virtual void CheckPoint(){};
 
     virtual size_type step() const { return 0; };
 
@@ -55,11 +54,10 @@ public:
 
     virtual Real timeNow() const { return 0.0; }
 
-
-private:
+   private:
     std::shared_ptr<mesh::Worker> m_worker_;
-
 };
-}}//namespace simpla { namespace simulation
+}
+}  // namespace simpla { namespace simulation
 
-#endif //SIMPLA_TIMEINTEGRATOR_H
+#endif  // SIMPLA_TIMEINTEGRATOR_H

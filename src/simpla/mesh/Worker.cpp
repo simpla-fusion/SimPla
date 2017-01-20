@@ -2,11 +2,13 @@
 // Created by salmon on 16-11-4.
 //
 #include "Worker.h"
-
+#include "Attribute.h"
+#include "Mesh.h"
+#include "Patch.h"
 namespace simpla {
 namespace mesh {
 
-Worker::Worker(Mesh *m) : m_mesh_(m) {}
+Worker::Worker() {}
 
 Worker::~Worker(){};
 
@@ -29,23 +31,32 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
     return os;
 }
 
-void Worker::Accept(Patch *p) {
-    PostProcess();
-    ASSERT(m_mesh_ != nullptr);
-    m_mesh_->Accept(p);
-    PreProcess();
+void Worker::Accept(std::shared_ptr<Patch> p) {
+    Finalize();
+    m_patch_ = p;
+    Initialize();
+}
+void Worker::Release() {
+    Finalize();
+    m_patch_.reset();
 }
 
 void Worker::Deploy() {
-    concept::LifeControllable::Deploy();
-    ASSERT(m_mesh_ != nullptr);
+    Object::Deploy();
+    if (m_mesh_ == nullptr) { m_mesh_ = create_mesh(); };
+    if (m_patch_ == nullptr) { m_patch_ = std::make_shared<Patch>(); }
+
     m_mesh_->Deploy();
 }
 
-void Worker::Destroy() { concept::LifeControllable::Destroy(); }
+void Worker::Destroy() {
+    m_patch_.reset();
+    Object::Destroy();
+}
 
 void Worker::PreProcess() {
-    if (!isValid()) { concept::LifeControllable::PreProcess(); }
+    if (isReady()) { return; }
+    Object::PreProcess();
     ASSERT(m_mesh_ != nullptr);
     m_mesh_->PreProcess();
 }
@@ -53,26 +64,31 @@ void Worker::PreProcess() {
 void Worker::PostProcess() {
     ASSERT(m_mesh_ != nullptr);
     m_mesh_->PostProcess();
-    if (isValid()) { concept::LifeControllable::PostProcess(); }
+    Object::PostProcess();
 }
 
-void Worker::Initialize(Real data_time, Real dt) {
-    PreProcess();
+void Worker::Initialize() {
+    Object::Initialize();
     ASSERT(m_mesh_ != nullptr);
-    m_mesh_->Initialize(data_time, dt);
+    ASSERT(m_patch_ != nullptr);
+    m_mesh_->mesh_block(m_patch_->mesh_block());
+    for (auto attr : m_attrs_) { attr->data_block(m_patch_->data(attr->description().id())); }
+    m_mesh_->Initialize();
 }
 
-void Worker::Finalize(Real data_time, Real dt) {
+void Worker::Finalize() {
     ASSERT(m_mesh_ != nullptr);
-    m_mesh_->Finalize(data_time, dt);
-    PostProcess();
+    m_patch_->mesh_block(m_mesh_->mesh_block());
+    for (auto attr : m_attrs_) { m_patch_->data(attr->description().id(), attr->data_block()); }
+    m_mesh_->Finalize();
+    Object::Finalize();
 }
 
 void Worker::Sync() {}
 //
 // void Worker::phase(unsigned int num, Real data_time, Real dt)
 //{
-//    concept::LifeControllable::phase(num);
+//    Object::phase(num);
 //    switch (num)
 //    {
 //        #define PHASE(_N_) case _N_: phase##_N_(data_time, dt); break;
@@ -97,7 +113,7 @@ void Worker::Sync() {}
 // unsigned int Worker::next_phase(Real data_time, Real dt, unsigned int inc_phase)
 //{
 //    unsigned int start_phase = current_phase_num();
-//    unsigned int end_phase = concept::LifeControllable::next_phase(inc_phase);
+//    unsigned int end_phase = Object::next_phase(inc_phase);
 //
 //    switch (start_phase)
 //    {

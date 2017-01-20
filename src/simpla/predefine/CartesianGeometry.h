@@ -76,7 +76,7 @@ struct CartesianGeometry : public Mesh {
 
     ~CartesianGeometry() {}
 
-    void Initialize(Real data_time, Real dt);
+    void Initialize();
 
    private:
     nTuple<Real, 3> m_dx_, m_inv_dx_;
@@ -93,7 +93,7 @@ struct CartesianGeometry : public Mesh {
 
     void deploy() {
         Mesh::Deploy();
-        Initialize(0, 0);
+        Initialize();
     };
 
     template <typename... Args>
@@ -129,7 +129,7 @@ struct mesh_traits<CartesianGeometry> {
     };
 };
 
-inline void CartesianGeometry::Initialize(Real data_time, Real dt) {
+inline void CartesianGeometry::Initialize() {
     /**
         *\verbatim
         *                ^y

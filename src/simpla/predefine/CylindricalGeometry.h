@@ -41,7 +41,8 @@ struct CylindricalGeometry : public Mesh {
 
     static constexpr int ndims = 3;
 
-    CylindricalGeometry() {}
+    template <typename... Args>
+    explicit CylindricalGeometry(Args &&... args) : Mesh(std::forward<Args>(args)...) {}
 
     virtual ~CylindricalGeometry() {}
 
@@ -124,8 +125,8 @@ struct CylindricalGeometry : public Mesh {
 
     virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
 
-    virtual void Initialize(Real data_time, Real dt) {
-        base_type::Initialize(data_time, dt);
+    virtual void Initialize() {
+        base_type::Initialize();
 
         m_vertics_.Clear();
         m_volume_.Clear();

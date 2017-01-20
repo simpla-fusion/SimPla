@@ -13,11 +13,13 @@
 namespace simpla {
 namespace mesh {
 
-class Patch {
-   public:
-    std::shared_ptr<MeshBlock> const &mesh() const { return m_mesh_; }
+class Patch : public Object {
+    SP_OBJECT_HEAD(Patch, Object)
 
-    void mesh(std::shared_ptr<MeshBlock> const &m) { m_mesh_ = m; }
+   public:
+    std::shared_ptr<MeshBlock> const &mesh_block() const { return m_mesh_; }
+
+    void mesh_block(std::shared_ptr<MeshBlock> const &m) { m_mesh_ = m; }
 
     std::shared_ptr<DataBlock> data(id_type const &id, std::shared_ptr<DataBlock> const &p = (nullptr)) {
         return m_data_.emplace(id, p).first->second;
@@ -44,12 +46,6 @@ class Patch {
         auto &d = data(n, p);
         ASSERT(d->isA(typeid(U)));
         return static_cast<U *>(d.get());
-    }
-
-    template <typename U>
-    U const *mesh_as() const {
-        ASSERT(m_mesh_->isA(typeid(U)));
-        return static_cast<U *>(m_mesh_.get());
     }
 
    private:
