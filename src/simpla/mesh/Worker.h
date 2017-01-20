@@ -36,7 +36,7 @@ struct Patch;
  *
  *
 @startuml
-title Create/Destroy __Worker__
+title Create/Destroy
 actor  Main
 create Worker
 Main -> Worker : <<create>>
@@ -70,7 +70,7 @@ deactivate Worker
 @enduml
 
 @startuml
-title Deploy/Destroy  __Worker__
+title Deploy/Destroy
 Main -> Worker : << deploy >>
 activate Worker
    alt if Patch == nullptr
@@ -118,7 +118,7 @@ activate Worker
    activate Mesh
      Mesh -> Mesh : free MeshBlock
      Mesh --> Worker : done
-   deactivate Attribute
+   deactivate Mesh
    Worker--> Main: done
 deactivate Worker
 
