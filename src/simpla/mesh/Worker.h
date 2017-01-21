@@ -50,6 +50,7 @@ activate Worker
         Worker --> Attribute : return Mesh*
        Attribute -> Worker : register   attr
    deactivate Attribute
+   Worker --> Main : done
 deactivate Worker
     ... ~~ DO sth. ~~ ...
 Main -> Worker : << destroy >>
@@ -70,58 +71,84 @@ deactivate Worker
 @enduml
 
 @startuml
-title Deploy/Destroy
-Main -> Worker : << deploy >>
-activate Worker
-   alt if Patch == nullptr
-        create Patch
-        Worker -> Patch :<<create>>
-   end
-   Worker -> Patch          : mesh block
-   Patch --> Worker         : return mesh block
-   Worker -> Mesh           : send mesh_block
-   activate Mesh
-        Mesh -> Mesh        : Deploy
+title Initialize/Finalize
+  actor  Main
+
+participant Worker as EMWorker << Generated >>
+participant Worker as Worker << base >>
+Main -> EMWorker : << Initialize >>
+activate EMWorker
+EMWorker -> Worker : << Initialize >>
+    activate Worker
+       alt if Patch == nullptr
+            create Patch
+            Worker -> Patch :<<create>>
+       end
+       Worker -> Patch          : mesh block
+       Patch --> Worker         : return mesh block
+       Worker -> Mesh           : send mesh_block
+       activate Mesh
+            Mesh -> Mesh        : Deploy
+            activate Mesh
+            deactivate Mesh
+            Mesh --> Worker     : done
+       deactivate Mesh
+       Worker -> Patch   : find DataBlock at MeshBlock
+       activate Patch
+            Patch --> Worker    : DataBlock
+       deactivate Patch
+       Worker -> Attribute      : send DataBlock
+       activate Attribute
+            alt DataBlock == nullptr
+                Attribute -> Mesh : request MeshBlock
+                Mesh --> Attribute : MeshBlock
+                Attribute-> Attribute : create DataBlock
+                activate Attribute
+                deactivate Attribute
+            end
+            Attribute->Attribute : assign data block
+            Attribute --> Worker : done
+
+       deactivate Attribute
+       Worker --> EMWorker   : done
+    deactivate Worker
+    EMWorker->EMWorker: do ~~Initialize~~ things
+    activate EMWorker
+    deactivate EMWorker
+     EMWorker->Main: done
+deactivate EMWorker
+
+        ... ~~ DO sth. ~~ ...
+    Main ->EMWorker: << Finalize >>
+activate EMWorker
+    EMWorker->EMWorker: do ~~Finalize~~ things
+    activate EMWorker
+    deactivate EMWorker
+    EMWorker -> Worker : << Finalize >>
+    activate Worker
+        Worker->Worker: do ~~Finalize~~ thing
+        Worker->Patch : push MeshBlock
+            activate Patch
+                Patch-->Worker : done
+            deactivate Patch
+        Worker->Patch : push DataBlock
+           activate Patch
+                Patch-->Worker : done
+           deactivate Patch
+        Worker -> Mesh : << Finalize >>
         activate Mesh
+            Mesh -> Mesh : free MeshBlock
+            Mesh --> Worker : done
         deactivate Mesh
-        Mesh --> Worker     : done
-   deactivate Mesh
-   Worker -> Patch   : find DataBlock at MeshBlock
-   activate Patch
-        Patch --> Worker    : DataBlock
-   deactivate Patch
-   Worker -> Attribute      : send DataBlock
-   activate Attribute
-        alt DataBlock == nullptr
-            Attribute -> Mesh : request MeshBlock
-            Mesh --> Attribute : MeshBlock
-            Attribute-> Attribute : create DataBlock
-            activate Attribute
-            deactivate Attribute
-        end
-        Attribute->Attribute : assign data block
-        Attribute --> Worker : done
-   deactivate Attribute
+        Worker -> Attribute : << Finalize >>
+        activate Attribute
+             Attribute --> Worker : done
+       deactivate Attribute
+        Worker--> EMWorker: done
 
-   Worker --> Main   : done
-deactivate Worker
-
-    ... ~~ DO sth. ~~ ...
-Main -> Worker : << Destroy >>
-activate Worker
-   Worker -> Attribute : << Destroy >>
-   activate Attribute
-     Attribute -> Attribute : free DataBlock
-     Attribute --> Worker : done
-   deactivate Attribute
-   Worker -> Mesh : << Destroy >>
-   activate Mesh
-     Mesh -> Mesh : free MeshBlock
-     Mesh --> Worker : done
-   deactivate Mesh
-   Worker--> Main: done
-deactivate Worker
-
+    deactivate Worker
+    EMWorker--> Main: done
+deactivate EMWorker
 deactivate Main
 @enduml
  */

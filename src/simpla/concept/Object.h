@@ -80,11 +80,9 @@ namespace simpla {
  * 	 \code virtual ~R()        \endcode | Destructor
  * 	 \code id_type id()        \endcode |  return id
  *   \code bool isNull()       \endcode |  return m_state_ == NULL_STATE
- *   \code bool isBlank()      \endcode |  return m_state_ == BLANK
  *   \code bool isValid()      \endcode |  return m_state_ == VALID
  *   \code bool isReady()      \endcode |  return m_state_ == READY
  *   \code bool isLocked()     \endcode |  return m_state_ == LOCKED
- * 	 \code void Deploy()       \endcode |  allocate memory
  *   \code void Initialize()   \endcode |  Initial setup. This function should be invoked ONLY ONCE after Deploy()
  *   \code void PreProcess()   \endcode |  This function should be called before operation
  *   \code void Lock()         \endcode |  lock object for concurrent operation
@@ -92,19 +90,16 @@ namespace simpla {
  *   \code void Unlock()       \endcode |  unlock object after concurrent operation
  *   \code void PostProcess()  \endcode |  This function should be called after operation
  *   \code void Finalize()     \endcode |  Finalize object. This function should be invoked ONLY ONCE  before Destroy()
- *   \code void Destroy()      \endcode |  release memory
  *
  *
   @startuml
         [*] -->Null         : Construct
-        Null --> Blank      : Deploy
-        Blank --> Valid     : Initialize
+        Null --> Valid     : Initialize
         Valid --> Ready     : PreProcess
         Ready --> Locked    : lock
         Locked  -->  Ready  : unlock
         Ready --> Valid     : PostProcess
-        Valid --> Blank     : Finalize
-        Blank --> Null      : Destroy
+        Valid --> Null     : Finalize
         Null --> [*]        : Destruct
 
    @enduml
@@ -114,7 +109,7 @@ class Object {
    public:
     SP_OBJECT_BASE(Object)
    public:
-    enum { NULL_STATE = 0, BLANK = 1, VALID, READY, LOCKED };
+    enum { NULL_STATE = 0, VALID, READY, LOCKED };
     Object();
 
     Object(Object &&other);
@@ -139,11 +134,10 @@ class Object {
 
     unsigned int state() const { return m_state_; }
     bool isNull() const { return m_state_ == NULL_STATE; }
-    bool isBlank() const { return m_state_ == BLANK; }
     bool isValid() const { return m_state_ >= VALID; }
     bool isReady() const { return m_state_ == READY; }
     bool isLocked() const { return m_state_ == LOCKED; }
-    bool isDeployed() const { return m_state_ >= BLANK; }
+    bool isDeployed() const { return m_state_ != NULL_STATE; }
 
     virtual void Deploy();      //< Initial setup. This function should be invoked ONLY ONCE
     virtual void Initialize();  //< Initial setup. This function should be invoked _ONLY ONCE_  after Deploy()
