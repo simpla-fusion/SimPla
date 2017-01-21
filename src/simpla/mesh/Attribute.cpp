@@ -16,30 +16,42 @@ namespace simpla {
 namespace mesh {
 
 Attribute::Attribute(Mesh *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
-    : m_mesh_(m), m_desc_(desc), m_data_(d) {
+    : m_owner_(nullptr), m_mesh_(m), m_desc_(desc), m_data_(d) {
     ASSERT(m_mesh_ != nullptr);
-    m_owner_ = m->m_owner_;
 };
 Attribute::Attribute(Worker *w, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
-    : Attribute(w->m_mesh_.get(), desc, d) {
-    m_owner_ = w;
+    : m_owner_(w), m_mesh_(nullptr), m_desc_(desc), m_data_(d) {
+    if (m_owner_ != nullptr) m_owner_->Connect(this);
 };
 Attribute::~Attribute() {
     if (m_owner_ != nullptr) m_owner_->Disconnect(this);
 }
-void Attribute::data_block(std::shared_ptr<DataBlock> const &d) {
+
+void Attribute::Accept(Mesh const *m, std::shared_ptr<DataBlock> const &d) {
     Finalize();
+    m_mesh_ = m;
     m_data_ = d;
     Initialize();
 }
-
+void Attribute::Initialize() {
+    Object::Initialize();
+    // do sth. at here
+}
+void Attribute::Finalize() {
+    // do sth. at here
+    Object::Finalize();
+}
 void Attribute::PreProcess() {
-    if (!isValid()) { Object::PreProcess(); }
+    if (state() >= Object::READY) { return; }
+    Object::PreProcess();
+    // do sth. at here
 }
 
 void Attribute::PostProcess() {
+    if (state() < Object::READY) { return; }
+    // do sth. at here
     m_data_.reset();
-    if (isValid()) { Object::PostProcess(); }
+    Object::PostProcess();
 }
 
 void Attribute::Clear() {

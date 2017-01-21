@@ -139,7 +139,6 @@ class Object {
     bool isLocked() const { return m_state_ == LOCKED; }
     bool isDeployed() const { return m_state_ != NULL_STATE; }
 
-    virtual void Deploy();      //< Initial setup. This function should be invoked ONLY ONCE
     virtual void Initialize();  //< Initial setup. This function should be invoked _ONLY ONCE_  after Deploy()
     virtual void PreProcess();  //< This function should be called before operation
     virtual void Lock();
@@ -147,7 +146,6 @@ class Object {
     virtual void Unlock();
     virtual void PostProcess();  //< This function should be called after operation
     virtual void Finalize();     //< Finalize object. This function should be invoked _ONLY ONCE_ before Destroy()
-    virtual void Destroy();
 
    private:
     unsigned int m_state_ = NULL_STATE;

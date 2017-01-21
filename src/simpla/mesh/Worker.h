@@ -86,6 +86,10 @@ EMWorker -> Worker : << Initialize >>
        end
        Worker -> Patch          : mesh block
        Patch --> Worker         : return mesh block
+       alt if Mesh == nullptr
+        create Mesh
+        Worker -> Mesh :<<create>>
+       end
        Worker -> Mesh           : send mesh_block
        activate Mesh
             Mesh -> Mesh        : Deploy
@@ -97,7 +101,7 @@ EMWorker -> Worker : << Initialize >>
        activate Patch
             Patch --> Worker    : DataBlock
        deactivate Patch
-       Worker -> Attribute      : send DataBlock
+       Worker -> Attribute      : send DataBlock & Mesh
        activate Attribute
             alt DataBlock == nullptr
                 Attribute -> Mesh : request MeshBlock
@@ -171,12 +175,10 @@ class Worker : public Object, public concept::Configurable, public concept::Prin
     virtual void Accept(std::shared_ptr<Patch> p = nullptr);
     virtual void Release();
 
-    virtual void Deploy();
     virtual void Initialize();
     virtual void PreProcess();
     virtual void PostProcess();
     virtual void Finalize();
-    virtual void Destroy();
 
     virtual void NextTimeStep(Real data_time, Real dt){};
 

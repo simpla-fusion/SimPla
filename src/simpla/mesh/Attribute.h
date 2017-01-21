@@ -104,29 +104,25 @@ struct Attribute : public Object, public concept::Printable {
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; };
 
-    Mesh *mesh() { return m_mesh_; }
-
     Mesh const *mesh() const { return m_mesh_; }
 
     AttributeDesc const &description() const { return *m_desc_; }
-
-    void data_block(std::shared_ptr<DataBlock> const &d);
 
     std::shared_ptr<DataBlock> const &data_block() const { return m_data_; }
 
     std::shared_ptr<DataBlock> &data_block() { return m_data_; }
 
-    void Accept(std::shared_ptr<DataBlock> const &d);
-
+    void Accept(Mesh const *, std::shared_ptr<DataBlock> const &d);
+    virtual void Initialize();
+    virtual void Finalize();
     virtual void PreProcess();
-
     virtual void PostProcess();
 
     virtual void Clear();
 
    private:
     Worker *m_owner_;
-    Mesh *const m_mesh_;
+    Mesh const *m_mesh_;
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
 };
@@ -179,9 +175,9 @@ struct DataAttribute : public Attribute,
 
     virtual value_type *data() { return reinterpret_cast<value_type *>(Attribute::data_block()->raw_data()); }
 
-    virtual void Deploy() {
-        Attribute::Deploy();
-        array_type::Deploy();
+    virtual void Initialize() {
+        Attribute::Initialize();
+        array_type::Initialize();
     }
 
     template <typename... Args>

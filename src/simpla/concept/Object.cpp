@@ -35,7 +35,7 @@ Object::Object() : m_pimpl_(new pimpl_s), m_state_(NULL_STATE) {
 
 Object::Object(Object &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
 
-Object::~Object() { Destroy(); }
+Object::~Object() { Finalize(); }
 
 id_type Object::id() const { return m_pimpl_->m_short_id_; }
 
@@ -53,13 +53,8 @@ void Object::touch() { GLOBAL_CLICK_TOUCH(&m_pimpl_->m_click_); }
 
 size_type Object::click() const { return m_pimpl_->m_click_; }
 
-void Object::Deploy() {
-    if (m_state_ == NULL_STATE) { m_state_ = BLANK; }
-};
-
 void Object::Initialize() {
-    if (m_state_ < BLANK) { Deploy(); }
-    if (m_state_ == BLANK) {
+    if (isNull()) {
         m_state_ = VALID;
     } else {
         RUNTIME_ERROR << "Initialize should be invoked ONLY ONCE!" << std::endl;
@@ -73,7 +68,7 @@ void Object::PreProcess() {
 
 void Object::Lock() {
     // FIXME: this place should be atomic
-    if (m_state_ < READY) { PreProcess(); }
+    if (isNull()) { PreProcess(); }
     if (m_state_ == READY) { m_state_ = LOCKED; }
 }
 bool Object::TryLock() {
@@ -91,17 +86,10 @@ void Object::PostProcess() {
 }
 
 void Object::Finalize() {
-    if (m_state_ > VALID) { PostProcess(); }
-    if (m_state_ == VALID) {
-        m_state_ = BLANK;
-    } else {
+    if (!isNull()) { PostProcess(); m_state_ = NULL_STATE;}
+    else {
         RUNTIME_ERROR << "Finalize should be  invoked ONLY ONCE!" << std::endl;
     }
 }
-
-void Object::Destroy() {
-    if (m_state_ > BLANK) { Finalize(); }
-    if (m_state_ == BLANK) { m_state_ = NULL_STATE; }
-};
 
 }  // namespace simpla { namespace base

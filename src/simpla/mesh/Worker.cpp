@@ -41,25 +41,16 @@ void Worker::Release() {
     m_patch_.reset();
 }
 
-void Worker::Deploy() {
-    Object::Deploy();
-    if (m_mesh_ == nullptr) { m_mesh_ = create_mesh(); };
-    if (m_patch_ == nullptr) { m_patch_ = std::make_shared<Patch>(); }
-
-    m_mesh_->Deploy();
-}
-
-void Worker::Destroy() {
-    m_mesh_.reset();
-    m_patch_.reset();
-    Object::Destroy();
-}
 void Worker::Initialize() {
     Object::Initialize();
+    if (m_patch_ == nullptr) { m_patch_ = std::make_shared<Patch>(); }
+
+    if (m_mesh_ == nullptr) { m_mesh_ = create_mesh(); };
+
     ASSERT(m_mesh_ != nullptr);
     ASSERT(m_patch_ != nullptr);
     m_mesh_->mesh_block(m_patch_->mesh_block());
-    for (auto attr : m_attrs_) { attr->data_block(m_patch_->data(attr->description().id())); }
+    for (auto attr : m_attrs_) { attr->accept(m_mesh_.get(), m_patch_->data(attr->description().id())); }
     m_mesh_->Initialize();
 }
 
@@ -68,6 +59,9 @@ void Worker::Finalize() {
     m_patch_->mesh_block(m_mesh_->mesh_block());
     for (auto attr : m_attrs_) { m_patch_->data(attr->description().id(), attr->data_block()); }
     m_mesh_->Finalize();
+    m_mesh_.reset();
+    m_patch_.reset();
+
     Object::Finalize();
 }
 void Worker::PreProcess() {
