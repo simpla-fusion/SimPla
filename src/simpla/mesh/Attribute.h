@@ -104,7 +104,7 @@ struct Attribute : public Object, public concept::Printable {
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; };
 
-    virtual std::shared_ptr<DataBlock> create_data_block(void *p = nullptr) const = 0;
+    virtual std::shared_ptr<DataBlock> CreateDataBlock(void *p = nullptr) const = 0;
 
     AttributeDesc const &description() const { return *m_desc_; }
 
@@ -128,7 +128,7 @@ struct Attribute : public Object, public concept::Printable {
     virtual void Clear();
 
    private:
-    Worker *m_observered_;
+    Worker *m_observed_;
     Mesh const *m_mesh_;
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
@@ -161,13 +161,25 @@ struct DataAttribute : public Attribute,
     virtual ~DataAttribute() {}
 
     template <typename... Args>
-    static this_type Create(Args &&... args) {
-        std::make_shared<this_type>(std::forward<Args>(args)...);
+    static std::shared_ptr<this_type> Create(Args &&... args) {
+        return std::make_shared<this_type>(std::forward<Args>(args)...);
     }
 
-    virtual std::shared_ptr<DataBlock> create_data_block(void *p = nullptr) const {
-        UNIMPLEMENTED;
-        return std::shared_ptr<DataBlock>(nullptr);
+    virtual std::shared_ptr<DataBlock> CreateDataBlock(void *p = nullptr) const {
+        std::shared_ptr<value_type> d(nullptr);
+
+        if (p != nullptr) {
+            d = std::shared_ptr<value_type>(p, tags::do_nothing());
+        } else {
+#ifdef USE_MEMORYPOOL
+            d = sp_alloc_array<value_type>(array_type::size());
+#else
+            d = std::shared_ptr<value_type>(new value_type[array_type::size()]);
+#endif
+        }
+
+        return std::dynamic_pointer_cast<DataBlock>(
+            std::make_shared<DefaultDataBlock<value_type, IFORM, DOF>>(d, array_type::size()));
     };
 
     using array_type::operator=;
@@ -221,11 +233,20 @@ class AttributeAdapter<U> : public Attribute, public U {
 
     virtual ~AttributeAdapter() {}
 
-    virtual std::shared_ptr<DataBlock> create_data_block(void *p = nullptr) const {
+    virtual std::shared_ptr<DataBlock> CreateDataBlock(void *p = nullptr) const {
         UNIMPLEMENTED;
-        return std::shared_ptr<DataBlock>(nullptr);
-    };
 
+        if (d == nullptr) {
+            return std::make_shared<DefaultDataBlock<value_type, IFORM, DOF>>(nullptr, U::size());
+        } else {
+            return std::make_shared<DefaultDataBlock<value_type, IFORM, DOF>>(
+                std::shared_ptr<value_type>(d, tags::do_nothing()), U::size());
+        }
+    };
+    template <typename... Args>
+    static this_type Create(Args &&... args) {
+        std::make_shared<this_type>(std::forward<Args>(args)...);
+    }
     using U::operator=;
     template <typename... Args>
     static std::shared_ptr<this_type> make_shared(Args &&... args) {
@@ -245,20 +266,14 @@ class AttributeAdapter<U> : public Attribute, public U {
                                            simpla::tags::do_nothing());
     }
 
-    virtual void deploy() {
-        Attribute::Deploy();
-        U::Deploy();
+    virtual void Initialize() {
+        Attribute::Initialize();
+        U::Initialize();
     }
-
-    template <typename... Args>
-    static this_type Create(Args &&... args) {
-        std::make_shared<this_type>(std::forward<Args>(args)...);
+    virtual void Finalize() {
+        Attribute::Finalize();
+        CALL_IF_AVAIBLE(static_cast<U &>(&this), Finalize);
     }
-
-    //    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m, void *p = nullptr) const {
-    //        return DataBlockAdapter<value_type>::create(m, static_cast<value_type *>(p));
-    //    };
-
     virtual void Clear() { U::Clear(); }
 
     virtual void PreProcess() { Attribute::PreProcess(); };

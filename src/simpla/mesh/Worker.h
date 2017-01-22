@@ -104,13 +104,10 @@ EMWorker -> Worker : << Initialize >>
        Worker -> Attribute      : send DataBlock & Mesh
        activate Attribute
             alt DataBlock == nullptr
-                Attribute -> Mesh : request MeshBlock
-                Mesh --> Attribute : MeshBlock
-                Attribute-> Attribute : create DataBlock
+                Attribute-> Attribute : CreateDataBlock()
                 activate Attribute
                 deactivate Attribute
             end
-            Attribute->Attribute : assign data block
             Attribute --> Worker : done
 
        deactivate Attribute

@@ -49,7 +49,7 @@ struct ArrayView : public concept::Printable {
     std::shared_ptr<value_type> m_data_holder_;
 
    public:
-    ArrayView():Setup() {}
+    ArrayView() : Setup() {}
 
     template <typename... TID>
     explicit ArrayView(TID&&... idx) : m_data_(nullptr), m_data_holder_(nullptr) {
@@ -139,10 +139,13 @@ struct ArrayView : public concept::Printable {
         for (int i = 0; i < NDIMS; ++i) { res *= dims[i]; }
         return res;
     }
+
+    size_type size() const { return size(m_dims_); }
+
     void Clear() {
         Initialize();
 
-        memset(m_data_, 0, size(dims()) * sizeof(value_type));
+        memset(m_data_, 0, size() * sizeof(value_type));
     }
     void Initialize() {
         if (!m_data_holder_) {

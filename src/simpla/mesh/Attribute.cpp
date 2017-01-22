@@ -16,15 +16,15 @@ namespace simpla {
 namespace mesh {
 
 Attribute::Attribute(Mesh *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
-    : m_observered_(nullptr), m_mesh_(m), m_desc_(desc), m_data_(d) {
+    : m_observed_(nullptr), m_mesh_(m), m_desc_(desc), m_data_(d) {
     ASSERT(m_mesh_ != nullptr);
 };
 Attribute::Attribute(Worker *w, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
-    : m_observered_(w), m_mesh_(nullptr), m_desc_(desc), m_data_(d) {
-    if (m_observered_ != nullptr) m_observered_->Connect(this);
+    : m_observed_(w), m_mesh_(nullptr), m_desc_(desc), m_data_(d) {
+    if (m_observed_ != nullptr) m_observed_->Connect(this);
 };
 Attribute::~Attribute() {
-    if (m_observered_ != nullptr) m_observered_->Disconnect(this);
+    if (m_observed_ != nullptr) m_observed_->Disconnect(this);
 }
 void Attribute::mesh(Mesh const *m) {
     Finalize();
@@ -44,8 +44,8 @@ void Attribute::SetUp(Mesh const *m, std::shared_ptr<DataBlock> const &d) {
 /**
  *
  * @startuml
- * (*)--> "START"
- *    if "isInitialized ()" then
+ * title     Attribute::Initialize()
+ * (*)-->  if "isInitialized ()" then
  *      --> [true] (*)
  *     else
  *       --> [false] Object::Initialize()
@@ -54,7 +54,7 @@ void Attribute::SetUp(Mesh const *m, std::shared_ptr<DataBlock> const &d) {
  *         --> (*)
  *       else
  *         --> [false]  if "m_data_==nullptr" then
- *                         --> [true] m_data_= create_data_block();
+ *                         --> [true] m_data_= CreateDataBlock();
  *                      endif
  *       endif
  *       --> (*)
@@ -65,11 +65,13 @@ void Attribute::Initialize() {
     if (isInitialized()) { return; }
     Object::Initialize();
     ASSERT(m_mesh_ != nullptr);
-    if (m_data_ == nullptr) { m_data_ = create_data_block(); }
+    if (m_data_ == nullptr) { m_data_ = CreateDataBlock(); }
     ASSERT(m_data_ != nullptr && !m_data_->empty());
 }
 void Attribute::Finalize() {
     if (!isInitialized()) { return; }
+    m_mesh_ = nullptr;
+    m_data_.reset();
     Object::Finalize();
 }
 void Attribute::PreProcess() {
@@ -81,7 +83,6 @@ void Attribute::PreProcess() {
 void Attribute::PostProcess() {
     if (!isPrepared()) { return; }
     // do sth. at here
-    m_data_.reset();
     Object::PostProcess();
 }
 
@@ -92,6 +93,7 @@ void Attribute::Clear() {
 }
 
 std::ostream &AttributeDict::Print(std::ostream &os, int indent) const {
+
     for (auto const &item : m_map_) {
         os << std::setw(indent + 1) << " " << item.second->name() << " = {" << item.second << "}," << std::endl;
     }
