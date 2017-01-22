@@ -932,13 +932,13 @@ struct SAMRAITimeIntegrator : public simulation::TimeIntegrator {
 
 SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::shared_ptr<mesh::Worker> const &w) : base_type(w) {
     /*
-      * Initialize SAMRAI::tbox::MPI.
+      * Setup SAMRAI::tbox::MPI.
       */
     SAMRAI::tbox::SAMRAI_MPI::init(GLOBAL_COMM.comm());
 
     SAMRAI::tbox::SAMRAIManager::initialize();
     /*
-     * Initialize SAMRAI, enable logging, and process command line.
+     * Setup SAMRAI, enable logging, and process command line.
      */
     SAMRAI::tbox::SAMRAIManager::startup();
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());

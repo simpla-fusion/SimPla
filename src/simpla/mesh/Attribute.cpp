@@ -16,39 +16,70 @@ namespace simpla {
 namespace mesh {
 
 Attribute::Attribute(Mesh *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
-    : m_owner_(nullptr), m_mesh_(m), m_desc_(desc), m_data_(d) {
+    : m_observered_(nullptr), m_mesh_(m), m_desc_(desc), m_data_(d) {
     ASSERT(m_mesh_ != nullptr);
 };
 Attribute::Attribute(Worker *w, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
-    : m_owner_(w), m_mesh_(nullptr), m_desc_(desc), m_data_(d) {
-    if (m_owner_ != nullptr) m_owner_->Connect(this);
+    : m_observered_(w), m_mesh_(nullptr), m_desc_(desc), m_data_(d) {
+    if (m_observered_ != nullptr) m_observered_->Connect(this);
 };
 Attribute::~Attribute() {
-    if (m_owner_ != nullptr) m_owner_->Disconnect(this);
+    if (m_observered_ != nullptr) m_observered_->Disconnect(this);
+}
+void Attribute::mesh(Mesh const *m) {
+    Finalize();
+    m_mesh_ = m;
 }
 
-void Attribute::Accept(Mesh const *m, std::shared_ptr<DataBlock> const &d) {
+void Attribute::data_block(std::shared_ptr<DataBlock> const &d) {
+    Finalize();
+    m_data_ = d;
+}
+
+void Attribute::SetUp(Mesh const *m, std::shared_ptr<DataBlock> const &d) {
     Finalize();
     m_mesh_ = m;
     m_data_ = d;
-    Initialize();
 }
+/**
+ *
+ * @startuml
+ * (*)--> "START"
+ *    if "isInitialized ()" then
+ *      --> [true] (*)
+ *     else
+ *       --> [false] Object::Initialize()
+ *       if "m_mesh_==nullptr" then
+ *         -right->[true]   throw Error
+ *         --> (*)
+ *       else
+ *         --> [false]  if "m_data_==nullptr" then
+ *                         --> [true] m_data_= create_data_block();
+ *                      endif
+ *       endif
+ *       --> (*)
+ *     endif
+ * @enduml
+ */
 void Attribute::Initialize() {
+    if (isInitialized()) { return; }
     Object::Initialize();
-    // do sth. at here
+    ASSERT(m_mesh_ != nullptr);
+    if (m_data_ == nullptr) { m_data_ = create_data_block(); }
+    ASSERT(m_data_ != nullptr && !m_data_->empty());
 }
 void Attribute::Finalize() {
-    // do sth. at here
+    if (!isInitialized()) { return; }
     Object::Finalize();
 }
 void Attribute::PreProcess() {
-    if (state() >= Object::READY) { return; }
+    if (isPrepared()) { return; }
     Object::PreProcess();
     // do sth. at here
 }
 
 void Attribute::PostProcess() {
-    if (state() < Object::READY) { return; }
+    if (!isPrepared()) { return; }
     // do sth. at here
     m_data_.reset();
     Object::PostProcess();
@@ -56,7 +87,8 @@ void Attribute::PostProcess() {
 
 void Attribute::Clear() {
     PreProcess();
-    if (m_data_ != nullptr) m_data_->Clear();
+    ASSERT(m_data_ != nullptr);
+    m_data_->Clear();
 }
 
 std::ostream &AttributeDict::Print(std::ostream &os, int indent) const {

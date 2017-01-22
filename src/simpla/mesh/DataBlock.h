@@ -31,30 +31,32 @@ class DataBlock : public Object, public concept::Serializable, public concept::P
 
     virtual int dof() const = 0;
 
+    virtual void *raw_data() = 0;
+
     virtual void Clear() = 0;
 
-    virtual void *raw_data() = 0;
-    /**
-     * concept::Serializable
-     *    virtual void load(data::DataTable const &) =0;
-     *    virtual void save(data::DataTable *) const =0;
-     *
-     * concept::Printable
-     *    virtual std::ostream &print(std::ostream &os, int indent) const =0;
-     *
-     * Object
-     *    virtual bool is_deployed() const =0;
-     *    virtual bool is_valid() const =0;
-     *    virtual void deploy()=0;
-     *    virtual void PreProcess() =0;
-     *    virtual void PostProcess()=0;
-     *    virtual void destroy()=0;
-     */
+    virtual bool empty() const { return true; }
 };
 
 template <typename...>
 class DataBlockAdapter;
 
+/**
+   * concept::Serializable
+   *    virtual void load(data::DataTable const &) =0;
+   *    virtual void save(data::DataTable *) const =0;
+   *
+   * concept::Printable
+   *    virtual std::ostream &print(std::ostream &os, int indent) const =0;
+   *
+   * Object
+   *    virtual bool is_deployed() const =0;
+   *    virtual bool is_valid() const =0;
+   *    virtual void deploy()=0;
+   *    virtual void PreProcess() =0;
+   *    virtual void PostProcess()=0;
+   *    virtual void destroy()=0;
+   */
 template <typename U>
 class DataBlockAdapter<U> : public DataBlock, public U {
     SP_OBJECT_HEAD(DataBlockAdapter<U>, DataBlock);
@@ -83,68 +85,29 @@ class DataBlockAdapter<U> : public DataBlock, public U {
         os << "}";
         return os;
     }
-    void *raw_data() { return nullptr; };
-
-    static std::shared_ptr<DataBlock> Create(MeshBlock const *m, void *p) {
-        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<DataBlockAdapter<U>>());
+    virtual void *raw_data() { return nullptr; };
+    virtual bool empty() const { return U::empty(); }
+    template <typename... Args>
+    static std::shared_ptr<DataBlock> Create(Args &&... args) {
+        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<DataBlockAdapter<U>>(std::forward<Args>(args)...));
     }
 
-    virtual void Clear() { U::Clear(); }
-    //    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<MeshBlock> const &m, void *p = nullptr)
-    //    {
-    //        return create(m, static_cast<value_type *>(p));
-    //    };
-    //
-    //
-    //    static std::shared_ptr<DataBlock>
-    //    create(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)
-    //    {
-    //        index_type n_dof = DOF;
-    //        int ndims = 3;
-    //        if (IFORM == EDGE || IFORM == FACE)
-    //        {
-    //            n_dof *= 3;
-    //            ++ndims;
-    //        }
-    //        auto b = m->outer_index_box();
-    //        index_type lo[4] = {std::get<0>(b)[0], std::get<0>(b)[1], std::Get<0>(b)[2], 0};
-    //        index_type hi[4] = {std::get<1>(b)[0], std::get<1>(b)[1], std::Get<0>(b)[2], n_dof};
-    //        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
-    //    };
+    virtual void Clear() {
+        PreProcess();
+        U::Clear();
+    }
 
-    /**
-     * concept::Serializable
-     *    virtual void load(data::DataTable const &) =0;
-     *    virtual void save(data::DataTable *) const =0;
-     *
-     * concept::Printable
-     *    virtual std::ostream &print(std::ostream &os, int indent) const =0;
-     *
-     * Object
-     *    virtual bool is_deployed() const =0;
-     *    virtual bool is_valid() const =0;
-     *    virtual void deploy()=0;
-     *    virtual void PreProcess() =0;
-     *    virtual void PostProcess()=0;
-     *    virtual void destroy()=0;
-     */
-    virtual void Deploy(){
-        //        U::Deploy();
+    virtual void Initialize(){
+        //        U::Initialize();
     };
-
+    virtual void Finalize(){
+        //        U::Finalize();
+    };
     virtual void PreProcess(){
-        //        U::update();
+        //        U::PreProcess();
     };
 
-    virtual void PostProcess() {
-        //        U::update();
-        base_type::PostProcess();
-    };
-
-    virtual void Destroy() {
-        //        U::Destroy();
-        base_type::Destroy();
-    };
+    virtual void PostProcess() { U::PostProcess(); };
 };
 
 // template<typename V, int IFORM = VERTEX, int DOF = 1, bool SLOW_FIRST = false>
@@ -212,10 +175,10 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
 //    };
 //
-//    virtual void Deploy()
+//    virtual void Setup()
 //    {
-//        base_type::Deploy();
-//        data_entity_type::Deploy();
+//        base_type::Setup();
+//        data_entity_type::Setup();
 //    };
 //
 //    virtual void PreProcess() { data_entity_type::update(); };

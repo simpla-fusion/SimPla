@@ -54,42 +54,47 @@ void Object::touch() { GLOBAL_CLICK_TOUCH(&m_pimpl_->m_click_); }
 size_type Object::click() const { return m_pimpl_->m_click_; }
 
 void Object::Initialize() {
-    if (isNull()) {
-        m_state_ = VALID;
-    } else {
-        RUNTIME_ERROR << "Initialize should be invoked ONLY ONCE!" << std::endl;
-    }
+    if (isInitialized()) { return; }
+    m_state_ = INITIALIZED;
 };
 
 void Object::PreProcess() {
-    if (m_state_ < VALID) { Initialize(); }
-    if (m_state_ == VALID) { m_state_ = READY; }
+    if (isPrepared()) { return; }
+    Initialize();
+    ++m_state_;
 }
 
 void Object::Lock() {
     // FIXME: this place should be atomic
-    if (isNull()) { PreProcess(); }
-    if (m_state_ == READY) { m_state_ = LOCKED; }
+
+//    while (isLocked()) {}
+    PreProcess();
+    m_state_ = LOCKED;
 }
 bool Object::TryLock() {
-    UNIMPLEMENTED;
-    return true;
+    if (isLocked()) {
+        return false;
+    } else {
+        PreProcess();
+        m_state_ = LOCKED;
+        return true;
+    }
 }
 void Object::Unlock() {
     // FIXME: this place should be atomic
-    if (m_state_ < READY) { PreProcess(); }
-    if (m_state_ == READY) { m_state_ = LOCKED; }
+    if (isLocked()) { --m_state_; }
 }
 
 void Object::PostProcess() {
-    if (m_state_ == READY) { m_state_ = VALID; }
+    if (!isPrepared()) { return; }
+    Unlock();
+    --m_state_;
 }
 
 void Object::Finalize() {
-    if (!isNull()) { PostProcess(); m_state_ = NULL_STATE;}
-    else {
-        RUNTIME_ERROR << "Finalize should be  invoked ONLY ONCE!" << std::endl;
-    }
+    if (!isInitialized()) { return; }
+    PostProcess();
+    --m_state_;
 }
 
 }  // namespace simpla { namespace base

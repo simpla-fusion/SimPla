@@ -93,23 +93,27 @@ namespace simpla {
  *
  *
   @startuml
-        [*] -->Null         : Construct
-        Null --> Valid     : Initialize
-        Valid --> Ready     : PreProcess
-        Ready --> Locked    : lock
-        Locked  -->  Ready  : unlock
-        Ready --> Valid     : PostProcess
-        Valid --> Null     : Finalize
-        Null --> [*]        : Destruct
+         state initialized         {
+           state prepared         {
+                state locked{
+                }
+            }
+            }
+        null -->   initialized: Initialize
+        initialized --> prepared     : PreProcess
+        prepared --> locked    : lock
+        locked  -->  prepared  : unlock
+        prepared --> initialized     : PostProcess
+        initialized --> null     : Finalize
+    @enduml
 
-   @enduml
  **/
 
 class Object {
    public:
     SP_OBJECT_BASE(Object)
    public:
-    enum { NULL_STATE = 0, VALID, READY, LOCKED };
+    enum { NULL_STATE = 0, INITIALIZED, PREPARED, LOCKED };
     Object();
 
     Object(Object &&other);
@@ -134,18 +138,114 @@ class Object {
 
     unsigned int state() const { return m_state_; }
     bool isNull() const { return m_state_ == NULL_STATE; }
-    bool isValid() const { return m_state_ >= VALID; }
-    bool isReady() const { return m_state_ == READY; }
+    bool isInitialized() const { return m_state_ >= INITIALIZED; }
+    bool isPrepared() const { return m_state_ >= PREPARED; }
     bool isLocked() const { return m_state_ == LOCKED; }
-    bool isDeployed() const { return m_state_ != NULL_STATE; }
 
-    virtual void Initialize();  //< Initial setup. This function should be invoked _ONLY ONCE_  after Deploy()
+    /**
+     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after SetUp()
+       @startuml
+          title  Initialize()
+          (*) --> if "isInitialized()?" then
+                      --> [true] (*)
+                  else
+                      --> [false] "state = INITIALIZED"
+                      --> (*)
+
+                 endif
+      @enduml
+     */
+    virtual void Initialize();
+
+    /**
+     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after SetUp()
+     * @startuml
+     *    title  PreProcess()
+     *    (*) --> if "isPrepared()?" then
+     *                --> [true] (*)
+     *            else
+     *                --> [false] Initialize()
+     *                --> "state = PREPARED"
+     *                --> (*)
+     *           endif
+     * @enduml
+    */
     virtual void PreProcess();  //< This function should be called before operation
+
+    /**
+     * @startuml
+     *    title  lock()
+     *    (*) -down-> START
+     *            if "isLocked()?" then
+     *                --> [true] wait()
+     *                -up-> START
+     *            else
+     *                 -left-> [false] " state=LOCKED"
+     *                 --> (*)
+     *           endif
+     * @enduml
+     */
     virtual void Lock();
+
+    /**
+    * @startuml
+    *    title  TryLock()
+    *    (*) --> check
+     *           if "isLocked()?" then
+    *                -left->   [true] check
+    *            else
+     *                --> PreProcess()
+    *                 --> [false] " state=LOCKED"
+    *                 --> (*)
+    *           endif
+    * @enduml
+    */
     virtual bool TryLock();
+
+    /**
+     * @startuml
+     *    title  Unlock()
+     *    (*) --> if "isLocked()?" then
+     *                --> [true] "--state"
+     *                --> (*)
+     *            else
+     *                --> [false]   (*)
+     *           endif
+     * @enduml
+     */
     virtual void Unlock();
-    virtual void PostProcess();  //< This function should be called after operation
-    virtual void Finalize();     //< Finalize object. This function should be invoked _ONLY ONCE_ before Destroy()
+
+    /**
+     * @brief   This function should be called after operation
+     * @startuml
+     *    title  PostProcess()
+     *    (*) --> if "isPrepared()?" then
+     *                --> [true]  Unlock()
+     *                --> "--state "
+     *                --> (*)
+     *            else
+     *                --> [false]   (*)
+     *           endif
+     * @enduml
+     */
+    virtual void PostProcess();
+
+    /**
+     * @brief Finalize object. This function should be invoked _ONLY ONCE_ before TearDown()
+     * @startuml
+     * title  Finalize()
+     * (*) --> if "isInitialized()?" then
+     *     -->[true] PostProcess()
+     *     --> "--state "
+     *     --> (*)
+     * else
+     *     -->[false] (*)
+     * endif
+     * @enduml
+     *
+     *
+     */
+    virtual void Finalize();
 
    private:
     unsigned int m_state_ = NULL_STATE;

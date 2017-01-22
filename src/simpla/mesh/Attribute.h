@@ -104,24 +104,31 @@ struct Attribute : public Object, public concept::Printable {
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; };
 
-    Mesh const *mesh() const { return m_mesh_; }
+    virtual std::shared_ptr<DataBlock> create_data_block(void *p = nullptr) const = 0;
 
     AttributeDesc const &description() const { return *m_desc_; }
+
+    void mesh(Mesh const *);
+
+    Mesh const *mesh() const { return m_mesh_; }
+
+    void data_block(std::shared_ptr<DataBlock> const &d);
 
     std::shared_ptr<DataBlock> const &data_block() const { return m_data_; }
 
     std::shared_ptr<DataBlock> &data_block() { return m_data_; }
 
-    void Accept(Mesh const *, std::shared_ptr<DataBlock> const &d);
+    void SetUp(Mesh const *m, std::shared_ptr<DataBlock> const &d);
+
     virtual void Initialize();
-    virtual void Finalize();
     virtual void PreProcess();
     virtual void PostProcess();
+    virtual void Finalize();
 
     virtual void Clear();
 
    private:
-    Worker *m_owner_;
+    Worker *m_observered_;
     Mesh const *m_mesh_;
     std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
@@ -153,6 +160,11 @@ struct DataAttribute : public Attribute,
 
     virtual ~DataAttribute() {}
 
+    template <typename... Args>
+    static this_type Create(Args &&... args) {
+        std::make_shared<this_type>(std::forward<Args>(args)...);
+    }
+
     virtual std::shared_ptr<DataBlock> create_data_block(void *p = nullptr) const {
         UNIMPLEMENTED;
         return std::shared_ptr<DataBlock>(nullptr);
@@ -169,31 +181,18 @@ struct DataAttribute : public Attribute,
     }
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return array_type::Print(os, indent); }
 
-    //    virtual mesh_type *mesh() { return Attribute::mesh(); };
-    //
-    //    virtual mesh_type const *mesh() const { return Attribute::mesh(); };
-
     virtual value_type *data() { return reinterpret_cast<value_type *>(Attribute::data_block()->raw_data()); }
 
     virtual void Initialize() {
         Attribute::Initialize();
         array_type::Initialize();
     }
-
-    template <typename... Args>
-    static this_type Create(Args &&... args) {
-        std::make_shared<this_type>(std::forward<Args>(args)...);
+    virtual void Finalize() {
+        array_type::Finalize();
+        Attribute::Finalize();
     }
 
-    //    virtual std::shared_ptr<DataBlock> create_data_block(MeshBlock const *m, void *p = nullptr) const {
-    //        return DataBlockAdapter<value_type>::create(m, static_cast<value_type *>(p));
-    //    };
-
     virtual void Clear() { array_type::Clear(); }
-
-    virtual void PreProcess() { Attribute::PreProcess(); };
-
-    virtual void PostProcess() { Attribute::PostProcess(); }
 };
 
 template <typename...>
@@ -238,8 +237,6 @@ class AttributeAdapter<U> : public Attribute, public U {
         return std::make_shared<this_type>(c, param);
     }
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return U::print(os, indent); }
-
-    virtual mesh_type *mesh() { return static_cast<mesh_type *>(Attribute::mesh()); };
 
     virtual mesh_type const *mesh() const { return static_cast<mesh_type const *>(Attribute::mesh()); };
 

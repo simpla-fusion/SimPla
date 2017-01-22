@@ -49,16 +49,16 @@ struct ArrayView : public concept::Printable {
     std::shared_ptr<value_type> m_data_holder_;
 
    public:
-    ArrayView() { Initialize(); }
+    ArrayView():Setup() {}
 
     template <typename... TID>
     explicit ArrayView(TID&&... idx) : m_data_(nullptr), m_data_holder_(nullptr) {
-        Initialize(std::forward<TID>(idx)...);
+        Setup(std::forward<TID>(idx)...);
     }
 
     template <typename... TID>
     ArrayView(value_type* d, TID&&... idx) : m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {
-        Initialize(std::forward<TID>(idx)...);
+        Setup(std::forward<TID>(idx)...);
     }
 
     template <typename... TID>
@@ -139,8 +139,12 @@ struct ArrayView : public concept::Printable {
         for (int i = 0; i < NDIMS; ++i) { res *= dims[i]; }
         return res;
     }
+    void Clear() {
+        Initialize();
 
-    void Deploy() {
+        memset(m_data_, 0, size(dims()) * sizeof(value_type));
+    }
+    void Initialize() {
         if (!m_data_holder_) {
             m_data_holder_ =
 #ifdef NDEBUG
@@ -152,13 +156,7 @@ struct ArrayView : public concept::Printable {
         m_data_ = m_data_holder_.get();
     };
 
-    void Clear() {
-        Deploy();
-
-        memset(m_data_, 0, size(dims()) * sizeof(value_type));
-    }
-
-    void Reset() {
+    void Finalize() {
         m_data_holder_.reset();
         m_data_ = nullptr;
 
@@ -168,28 +166,7 @@ struct ArrayView : public concept::Printable {
             m_upper_[i] = 0;
         }
     }
-
-    size_type hash() const { return 0; }
-
-    template <typename... Others>
-    size_type hash(index_type s, Others&&... others) const {
-        return (s - m_lower_[NDIMS - sizeof...(others)-1]) * m_strides_[NDIMS - sizeof...(others)-1] +
-               hash(std::forward<Others>(others)...);
-    }
-
-    size_type hash(index_type const* s) const {
-        size_type res = m_offset_;
-        for (int i = 0; i < NDIMS; ++i) { res += (s[i] - m_lower_[i]) * m_strides_[i]; }
-        return res;
-    }
-
-    std::ostream& Print(std::ostream &os, int indent = 0) const {
-        printNdArray(os, m_data_, NDIMS, m_dims_);
-        return os;
-    }
-
-    void Initialize(size_type const* dims = nullptr, const index_type* lower = nullptr,
-                    const index_type* upper = nullptr) {
+    void Setup(size_type const* dims = nullptr, const index_type* lower = nullptr, const index_type* upper = nullptr) {
         for (int i = 0; i < NDIMS; ++i) {
             m_dims_[i] = dims == nullptr ? 1 : dims[i];
             m_lower_[i] = lower == nullptr ? 0 : lower[i];
@@ -207,11 +184,30 @@ struct ArrayView : public concept::Printable {
     };
 
     template <typename... TID>
-    void Initialize(size_type s0, TID&&... idx) {
+    void Setup(size_type s0, TID&&... idx) {
         size_type dims[NDIMS];
         dims[0] = s0;
         copy_(dims + 1, std::forward<TID>(idx)...);
-        Initialize(dims);
+        Setup(dims);
+    }
+
+    size_type hash() const { return 0; }
+
+    template <typename... Others>
+    size_type hash(index_type s, Others&&... others) const {
+        return (s - m_lower_[NDIMS - sizeof...(others)-1]) * m_strides_[NDIMS - sizeof...(others)-1] +
+               hash(std::forward<Others>(others)...);
+    }
+
+    size_type hash(index_type const* s) const {
+        size_type res = m_offset_;
+        for (int i = 0; i < NDIMS; ++i) { res += (s[i] - m_lower_[i]) * m_strides_[i]; }
+        return res;
+    }
+
+    std::ostream& Print(std::ostream& os, int indent = 0) const {
+        printNdArray(os, m_data_, NDIMS, m_dims_);
+        return os;
     }
 
    private:
@@ -238,7 +234,7 @@ struct ArrayView : public concept::Printable {
    public:
     template <typename TOP, typename... Others>
     void Apply(TOP const& op, Others&&... others) {
-        Deploy();
+        Initialize();
         traversal_nd(m_lower_, m_upper_,
                      [&](index_type const* idx) { op(at(idx), getValue(std::forward<Others>(others), idx)...); });
     };
@@ -288,7 +284,7 @@ struct ArrayView : public concept::Printable {
 
     template <typename T, typename I0>
     static constexpr decltype(auto) getValue(T& v, I0 const* s,
-                                              ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
+                                             ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
         return ((getValue(v[*s], s + 1)));
     }
 
