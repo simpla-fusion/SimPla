@@ -6,7 +6,7 @@
 #define SIMPLA_MODEL_H
 
 #include <simpla/concept/Configurable.h>
-#include <simpla/mesh/Attribute.h>
+#include <simpla/mesh/AttributeView.h>
 #include <simpla/mesh/EntityId.h>
 #include <simpla/mesh/Mesh.h>
 #include "geometry/GeoObject.h"

@@ -14,7 +14,7 @@
 #include <simpla/toolbox/Log.h>
 
 #include <simpla/data/DataTable.h>
-#include <simpla/mesh/Attribute.h>
+#include <simpla/mesh/AttributeView.h>
 #include <simpla/mesh/DataBlock.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/mesh/Patch.h>
@@ -430,7 +430,7 @@ SAMRAIWorker::~SAMRAIWorker() {}
 namespace detail {
 
 template <typename T>
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, mesh::Attribute *attr) {
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, mesh::AttributeView *attr) {
     static int var_depth[4] = {1, 3, 3, 1};
     if (attr->description().entity_type() <= VOLUME) {
         SAMRAI::tbox::Dimension d_dim(ndims);
@@ -444,7 +444,7 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, me
     }
 }
 
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int ndims, mesh::Attribute *item) {
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int ndims, mesh::AttributeView *item) {
     if (item->description().value_type_index() == std::type_index(typeid(float))) {
         return create_samrai_variable_t<float>(ndims, item);
     } else if (item->description().value_type_index() == std::type_index(typeid(double))) {
@@ -475,7 +475,7 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
     }
 
     //**************************************************************
-    m_worker_->ForeachAttr([&](mesh::Attribute *attr) {
+    m_worker_->ForeachAttr([&](mesh::AttributeView *attr) {
         if (attr == nullptr) { return; }
 
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, attr);
@@ -590,7 +590,7 @@ void SAMRAIWorker::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *in
 namespace detail {
 
 template <typename TV, int IFORM, int DOF>
-std::shared_ptr<mesh::DataBlock> create_data_block_t2(mesh::Attribute const *item,
+std::shared_ptr<mesh::DataBlock> create_data_block_t2(mesh::AttributeView const *item,
                                                       boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
 
@@ -622,7 +622,7 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t2(mesh::Attribute const *ite
 }
 
 template <typename TV, int IFORM>
-std::shared_ptr<mesh::DataBlock> create_data_block_t1(mesh::Attribute const *item,
+std::shared_ptr<mesh::DataBlock> create_data_block_t1(mesh::AttributeView const *item,
                                                       boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
 
@@ -643,7 +643,7 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t1(mesh::Attribute const *ite
 };
 
 template <typename TV>
-std::shared_ptr<mesh::DataBlock> create_data_block_t0(mesh::Attribute const *item,
+std::shared_ptr<mesh::DataBlock> create_data_block_t0(mesh::AttributeView const *item,
                                                       boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
 
@@ -667,7 +667,7 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t0(mesh::Attribute const *ite
     return res;
 };
 
-std::shared_ptr<mesh::DataBlock> create_data_block(mesh::Attribute const *item,
+std::shared_ptr<mesh::DataBlock> create_data_block(mesh::AttributeView const *item,
                                                    boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<mesh::DataBlock> res(nullptr);
     if (item->description().check_value_type<float>()) {
@@ -706,7 +706,7 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
 
     p->mesh_block(m);
 
-    w->ForeachAttr([&](simpla::mesh::Attribute *attr) {
+    w->ForeachAttr([&](simpla::mesh::AttributeView *attr) {
         if (attr == nullptr) { return; }
 
         p->data(attr->description().id(),

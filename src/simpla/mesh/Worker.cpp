@@ -2,7 +2,7 @@
 // Created by salmon on 16-11-4.
 //
 #include "Worker.h"
-#include "Attribute.h"
+#include "AttributeView.h"
 #include "Mesh.h"
 #include "Patch.h"
 namespace simpla {

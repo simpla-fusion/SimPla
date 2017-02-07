@@ -27,7 +27,7 @@ class Model;
 namespace mesh {
 struct MeshBlock;
 struct DataBlock;
-struct Attribute;
+struct AttributeView;
 struct Mesh;
 struct Patch;
 
@@ -35,125 +35,125 @@ struct Patch;
  * @brief
  *
  *
-@startuml
-title Create/Destroy
-actor  Main
-create Worker
-Main -> Worker : <<create>>
-activate Worker
-   create Mesh
-   Worker -> Mesh : << create >>
-   create Attribute
-   Worker -> Attribute : << create >>
-   activate Attribute
-        Attribute -> Worker : request mesh()
-        Worker --> Attribute : return Mesh*
-       Attribute -> Worker : register   attr
-   deactivate Attribute
-   Worker --> Main : done
-deactivate Worker
-    ... ~~ DO sth. ~~ ...
-Main -> Worker : << destroy >>
-activate Worker
-    Worker -> Attribute : << destroy >>
-    activate Attribute
-        Attribute -> Worker  : deregister
-        Worker --> Attribute : done
-        Attribute --> Worker : done
-    deactivate Attribute
-    Worker --> Main : done
-deactivate Worker
-
-
-   destroy Attribute
-   destroy Mesh
-   destroy Worker
-@enduml
-
-@startuml
-title Initialize/Finalize
-  actor  Main
-
-participant Worker as EMWorker << Generated >>
-participant Worker as Worker << base >>
-Main -> EMWorker : << Initialize >>
-activate EMWorker
-EMWorker -> Worker : << Initialize >>
-    activate Worker
-       alt if Patch == nullptr
-            create Patch
-            Worker -> Patch :<<create>>
-       end
-       Worker -> Patch          : mesh block
-       Patch --> Worker         : return mesh block
-       alt if Mesh == nullptr
-        create Mesh
-        Worker -> Mesh :<<create>>
-       end
-       Worker -> Mesh           : send mesh_block
-       activate Mesh
-            Mesh -> Mesh        : Deploy
-            activate Mesh
-            deactivate Mesh
-            Mesh --> Worker     : done
-       deactivate Mesh
-       Worker -> Patch   : find DataBlock at MeshBlock
-       activate Patch
-            Patch --> Worker    : DataBlock
-       deactivate Patch
-       Worker -> Attribute      : send DataBlock & Mesh
-       activate Attribute
-            alt DataBlock == nullptr
-                Attribute-> Attribute : CreateDataBlock()
-                activate Attribute
-                deactivate Attribute
-            end
-            Attribute --> Worker : done
-
-       deactivate Attribute
-       Worker --> EMWorker   : done
-    deactivate Worker
-    EMWorker->EMWorker: do ~~Initialize~~ things
-    activate EMWorker
-    deactivate EMWorker
-     EMWorker->Main: done
-deactivate EMWorker
-
-        ... ~~ DO sth. ~~ ...
-    Main ->EMWorker: << Finalize >>
-activate EMWorker
-    EMWorker->EMWorker: do ~~Finalize~~ things
-    activate EMWorker
-    deactivate EMWorker
-    EMWorker -> Worker : << Finalize >>
-    activate Worker
-        Worker->Worker: do ~~Finalize~~ thing
-        Worker->Patch : push MeshBlock
-            activate Patch
-                Patch-->Worker : done
-            deactivate Patch
-        Worker->Patch : push DataBlock
-           activate Patch
-                Patch-->Worker : done
-           deactivate Patch
-        Worker -> Mesh : << Finalize >>
-        activate Mesh
-            Mesh -> Mesh : free MeshBlock
-            Mesh --> Worker : done
-        deactivate Mesh
-        Worker -> Attribute : << Finalize >>
-        activate Attribute
-             Attribute --> Worker : done
-       deactivate Attribute
-        Worker--> EMWorker: done
-
-    deactivate Worker
-    EMWorker--> Main: done
-deactivate EMWorker
-deactivate Main
-@enduml
+ * @startuml
+ * title Create/Destroy
+ * actor  Main
+ * create Worker
+ * Main -> Worker : <<create>>
+ * activate Worker
+ *    create Mesh
+ *    Worker -> Mesh : << create >>
+ *    create Attribute
+ *    Worker -> Attribute : << create >>
+ *    activate Attribute
+ *         Attribute -> Worker : request mesh()
+ *         Worker --> Attribute : return Mesh*
+ *        Attribute -> Worker : register   attr
+ *    deactivate Attribute
+ *    Worker --> Main : done
+ * deactivate Worker
+ *     ... ~~ DO sth. ~~ ...
+ * Main -> Worker : << destroy >>
+ * activate Worker
+ *     Worker -> Attribute : << destroy >>
+ *     activate Attribute
+ *         Attribute -> Worker  : deregister
+ *         Worker --> Attribute : done
+ *         Attribute --> Worker : done
+ *     deactivate Attribute
+ *     Worker --> Main : done
+ * deactivate Worker
+ *
+ *
+ *    destroy Attribute
+ *    destroy Mesh
+ *    destroy Worker
+ * @enduml
+ *
+ * @startuml
+ * title Initialize/Finalize
+ * actor  Main
+ *
+ * participant Worker as EMWorker << Generated >>
+ * participant Worker as Worker << base >>
+ * Main -> EMWorker : << Initialize >>
+ * activate EMWorker
+ * EMWorker -> Worker : << Initialize >>
+ *     activate Worker
+ *        alt if Patch == nullptr
+ *             create Patch
+ *             Worker -> Patch :<<create>>
+ *        end
+ *        Worker -> Patch          : mesh block
+ *        Patch --> Worker         : return mesh block
+ *        alt if Mesh == nullptr
+ *         create Mesh
+ *         Worker -> Mesh :<<create>>
+ *        end
+ *        Worker -> Mesh           : send mesh_block
+ *        activate Mesh
+ *             Mesh -> Mesh        : Deploy
+ *             activate Mesh
+ *             deactivate Mesh
+ *             Mesh --> Worker     : done
+ *        deactivate Mesh
+ *        Worker -> Patch   : find DataBlock at MeshBlock
+ *        activate Patch
+ *             Patch --> Worker    : DataBlock
+ *        deactivate Patch
+ *        Worker -> Attribute      : send DataBlock & Mesh
+ *        activate Attribute
+ *             alt DataBlock == nullptr
+ *                 Attribute-> Attribute : CreateDataBlock()
+ *                 activate Attribute
+ *                 deactivate Attribute
+ *             end
+ *             Attribute --> Worker : done
+ *
+ *        deactivate Attribute
+ *        Worker --> EMWorker   : done
+ *     deactivate Worker
+ *     EMWorker->EMWorker: do ~~Initialize~~ things
+ *     activate EMWorker
+ *     deactivate EMWorker
+ *      EMWorker->Main: done
+ * deactivate EMWorker
+ *
+ *         ... ~~ DO sth. ~~ ...
+ *     Main ->EMWorker: << Finalize >>
+ * activate EMWorker
+ *     EMWorker->EMWorker: do ~~Finalize~~ things
+ *     activate EMWorker
+ *     deactivate EMWorker
+ *     EMWorker -> Worker : << Finalize >>
+ *     activate Worker
+ *         Worker->Worker: do ~~Finalize~~ thing
+ *         Worker->Patch : push MeshBlock
+ *             activate Patch
+ *                 Patch-->Worker : done
+ *             deactivate Patch
+ *         Worker->Patch : push DataBlock
+ *            activate Patch
+ *                 Patch-->Worker : done
+ *            deactivate Patch
+ *         Worker -> Mesh : << Finalize >>
+ *         activate Mesh
+ *             Mesh -> Mesh : free MeshBlock
+ *             Mesh --> Worker : done
+ *         deactivate Mesh
+ *         Worker -> Attribute : << Finalize >>
+ *         activate Attribute
+ *              Attribute --> Worker : done
+ *        deactivate Attribute
+ *         Worker--> EMWorker: done
+ *
+ *     deactivate Worker
+ *     EMWorker--> Main: done
+ * deactivate EMWorker
+ * deactivate Main
+ * @enduml
  */
-class Worker : public Object, public concept::Configurable, public concept::Printable, public concept::Serializable {
+class Worker : public Object, public concept::Configurable, public concept::Printable {
     SP_OBJECT_HEAD(Worker, Object)
    public:
     Worker();
@@ -163,10 +163,6 @@ class Worker : public Object, public concept::Configurable, public concept::Prin
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
     virtual std::shared_ptr<Mesh> create_mesh() = 0;
-
-    virtual void Load(data::DataTable const &) { UNIMPLEMENTED; }
-
-    virtual void Save(data::DataTable *) const { UNIMPLEMENTED; }
 
     std::shared_ptr<Patch> patch() { return m_patch_; }
     virtual void Accept(std::shared_ptr<Patch> p = nullptr);
@@ -183,9 +179,9 @@ class Worker : public Object, public concept::Configurable, public concept::Prin
 
     virtual void SetPhysicalBoundaryConditions(Real time){};
 
-    virtual void Connect(Attribute *attr) { m_attrs_.insert(attr); };
+    virtual void Connect(AttributeView *attr) { m_attrs_.insert(attr); };
 
-    virtual void Disconnect(Attribute *attr) { m_attrs_.erase(attr); }
+    virtual void Disconnect(AttributeView *attr) { m_attrs_.erase(attr); }
 
     template <typename TFun>
     void ForeachAttr(TFun const &fun) {
@@ -204,7 +200,7 @@ class Worker : public Object, public concept::Configurable, public concept::Prin
 
     std::shared_ptr<Patch> m_patch_;
     std::shared_ptr<Mesh> m_mesh_;
-    std::set<Attribute *> m_attrs_;
+    std::set<AttributeView *> m_attrs_;
     std::unique_ptr<simpla::model::Model> m_model_;
 };
 }  // namespace mesh

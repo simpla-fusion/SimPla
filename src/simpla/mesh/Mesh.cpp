@@ -3,7 +3,7 @@
 //
 #include "Mesh.h"
 #include <simpla/model/Model.h>
-#include "Attribute.h"
+#include "AttributeView.h"
 #include "MeshBlock.h"
 #include "Patch.h"
 namespace simpla {

@@ -2,7 +2,7 @@
 // Created by salmon on 16-12-26.
 //
 
-#include <simpla/mesh/Attribute.h>
+#include <simpla/mesh/AttributeView.h>
 #include "simpla/algebra/all.h"
 #include "simpla/predefine/CalculusPolicy.h"
 #include "simpla/predefine/CartesianGeometry.h"

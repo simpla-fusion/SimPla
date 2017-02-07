@@ -11,7 +11,7 @@
 #include "../toolbox/integer_sequence.h"
 #include "../toolbox/type_traits.h"
 #include "../toolbox/Parallel.h"
-#include "simpla/mesh/Attribute.h"
+#include "simpla/mesh/AttributeView.h"
 #include "BucketContainer.h"
 #include "ParticlePage.h"
 
@@ -31,8 +31,8 @@ struct Particle<P, M, V001>
 private:
 
     typedef Particle<P, M, V001> this_type;
-    typedef mesh::AttributeDesc::View View;
-    typedef mesh::AttributeDesc::View base_type;
+    typedef mesh::Attribute::View View;
+    typedef mesh::Attribute::View base_type;
 public:
 
     typedef M mesh_type;

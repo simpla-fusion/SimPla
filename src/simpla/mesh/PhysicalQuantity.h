@@ -6,14 +6,14 @@
 #define SIMPLA_PHYSICALQUANTITY_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/mesh/Attribute.h>
+#include <simpla/mesh/AttributeView.h>
 
 namespace simpla
 {
 
 
 template<typename TV, typename TM, size_type I, size_type DOF>
-class PhysicalQuantity : public mesh::Attribute
+class PhysicalQuantity : public mesh::AttributeView
 {
     typedef PhysicalQuantity<TV, TM, I, DOF> field_type;
 
@@ -36,7 +36,7 @@ public:
     template<typename ...Args>
     explicit PhysicalQuantity(Args &&...args):
             m_mesh_(nullptr),
-            m_data_(nullptr), Attribute(<#initializer#>, <#initializer#>) {};
+            m_data_(nullptr), AttributeView(<#initializer#>, <#initializer#>) {};
 
 
     virtual ~PhysicalQuantity() {}
@@ -45,9 +45,9 @@ public:
 
     PhysicalQuantity(this_type &&other) = delete;
 
-    virtual std::shared_ptr<mesh::Attribute> clone() const
+    virtual std::shared_ptr<mesh::AttributeView> clone() const
     {
-        return std::dynamic_pointer_cast<mesh::Attribute>(std::make_shared<this_type>());
+        return std::dynamic_pointer_cast<mesh::AttributeView>(std::make_shared<this_type>());
     };
 
     bool empty() const { return m_data_ == nullptr || m_data_->empty() || m_mesh_ == nullptr; };

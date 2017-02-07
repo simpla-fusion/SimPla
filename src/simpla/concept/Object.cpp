@@ -53,21 +53,20 @@ void Object::touch() { GLOBAL_CLICK_TOUCH(&m_pimpl_->m_click_); }
 
 size_type Object::click() const { return m_pimpl_->m_click_; }
 
-void Object::Initialize() {
-    if (isInitialized()) { return; }
-    m_state_ = INITIALIZED;
-};
-
-void Object::PreProcess() {
-    if (isPrepared()) { return; }
-    Initialize();
-    ++m_state_;
+void Object::Initialize() { m_state_ = INITIALIZED; };
+bool Object::TryInitialize() {
+    if (!isInitialized()) { Initialize(); }
+    return isInitialized();
 }
-
+void Object::PreProcess() { m_state_ = PREPARED; }
+bool Object::TryPreProcess() {
+    if (!isPrepared() && TryInitialize()) { PreProcess(); }
+    return isPrepared();
+}
 void Object::Lock() {
     // FIXME: this place should be atomic
 
-//    while (isLocked()) {}
+    //    while (isLocked()) {}
     PreProcess();
     m_state_ = LOCKED;
 }
@@ -85,16 +84,43 @@ void Object::Unlock() {
     if (isLocked()) { --m_state_; }
 }
 
-void Object::PostProcess() {
-    if (!isPrepared()) { return; }
-    Unlock();
-    --m_state_;
+void Object::PostProcess() { m_state_ = INITIALIZED; }
+bool Object::TryPostProcess() {
+    if (isPrepared()) {
+        Unlock();
+        PostProcess();
+    }
+    return isInitialized();
 }
-
-void Object::Finalize() {
-    if (!isInitialized()) { return; }
-    PostProcess();
-    --m_state_;
+void Object::Finalize() { m_state_ = NULL_STATE; }
+bool Object::TryFinalize() {
+    if (isInitialized() && TryPostProcess()) { Finalize(); }
+    return isNull();
 }
-
+unsigned int Object::NextState() {
+    switch (m_state_) {
+        case NULL_STATE:
+            Initialize();
+            break;
+        case INITIALIZED:
+            PreProcess();
+            break;
+        default:
+            break;
+    }
+    return m_state_;
+};
+unsigned int Object::PrevState() {
+    switch (m_state_) {
+        case PREPARED:
+            PostProcess();
+            break;
+        case INITIALIZED:
+            Finalize();
+            break;
+        default:
+            break;
+    }
+    return m_state_;
+};
 }  // namespace simpla { namespace base

@@ -141,11 +141,13 @@ class Object {
     bool isInitialized() const { return m_state_ >= INITIALIZED; }
     bool isPrepared() const { return m_state_ >= PREPARED; }
     bool isLocked() const { return m_state_ == LOCKED; }
+    unsigned int NextState();
+    unsigned int PrevState();
 
     /**
-     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after SetUp()
+     * @brief Initial setup.
        @startuml
-          title  Initialize()
+          title  TryInitialize()
           (*) --> if "isInitialized()?" then
                       --> [true] (*)
                   else
@@ -155,12 +157,16 @@ class Object {
                  endif
       @enduml
      */
+    bool TryInitialize();
+    /**
+     *  @brief Initial setup.
+     */
     virtual void Initialize();
 
     /**
-     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after SetUp()
+     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after Initialize()
      * @startuml
-     *    title  PreProcess()
+     *    title  TryPreProcess()
      *    (*) --> if "isPrepared()?" then
      *                --> [true] (*)
      *            else
@@ -170,6 +176,7 @@ class Object {
      *           endif
      * @enduml
     */
+    bool TryPreProcess();
     virtual void PreProcess();  //< This function should be called before operation
 
     /**
@@ -228,6 +235,7 @@ class Object {
      *           endif
      * @enduml
      */
+    bool TryPostProcess();
     virtual void PostProcess();
 
     /**
@@ -245,7 +253,9 @@ class Object {
      *
      *
      */
+
     virtual void Finalize();
+    bool TryFinalize();
 
    private:
     unsigned int m_state_ = NULL_STATE;

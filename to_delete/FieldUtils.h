@@ -12,7 +12,7 @@
 
 #include <simpla/toolbox/type_traits.h>
 
-#include <simpla/mesh/Attribute.h>
+#include <simpla/mesh/AttributeView.h>
 #include <simpla/mesh/Worker.h>
 #include <simpla/mesh/MeshCommon.h>
 

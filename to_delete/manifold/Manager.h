@@ -10,7 +10,7 @@
 #include <simpla/concept/LifeControllable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/model/Model.h>
-#include <simpla/mesh/Attribute.h>
+#include <simpla/mesh/AttributeView.h>
 #include <simpla/mesh/Worker.h>
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/Patch.h>

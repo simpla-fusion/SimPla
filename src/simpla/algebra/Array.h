@@ -76,21 +76,14 @@ struct ArrayView : public concept::Printable {
 
     ArrayView(this_type&& other)
         : ArrayView(std::move(other.m_data_holder_), other.m_dims_, other.m_lower_, other.m_upper_) {}
-
     ArrayView(this_type& other, concept::tags::split const& s) : ArrayView(other.split(s)) {}
-
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
 
     virtual value_type* data() { return m_data_; }
-
     virtual value_type const* data() const { return m_data_; }
-
     size_type const* dims() const { return m_dims_; }
-
     index_type const* lower() const { return m_lower_; }
-
     index_type const* upper() const { return m_upper_; }
-
     int ndims() const { return NDIMS; }
 
     template <typename... TID>
@@ -282,9 +275,7 @@ struct ArrayView : public concept::Printable {
     };
 
     static constexpr decltype(auto) getValue(this_type& self, index_type const* s) { return self.at(s); };
-
     static constexpr decltype(auto) getValue(this_type const& self, index_type const* s) { return self.at(s); };
-
     template <typename T, typename I0>
     static constexpr decltype(auto) getValue(T& v, I0 const* s,
                                              ENABLE_IF((simpla::concept::is_indexable<T, I0>::value))) {
