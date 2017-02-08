@@ -94,7 +94,7 @@ void Atlas::Save(data::DataTable *) const { UNIMPLEMENTED; }
 //        return;
 //    } else if (id != it->second->id())
 //    {
-//        m_nodes_.Destroy(it);
+//        m_nodes_.Finalizie(it);
 //        return;
 //    }
 //    MeshBlock const &m = *(it->second);
@@ -149,10 +149,10 @@ void Atlas::Save(data::DataTable *) const { UNIMPLEMENTED; }
 //
 //void Atlas::unlink(id_type id)
 //{
-//    m_adjacent_.Destroy(id);
-//    m_refine_.Destroy(id);
-//    m_coarsen_.Destroy(id);
-//    for (int i = 0; i < MAX_NUM_OF_LEVEL; ++i) { m_layer_[i].Destroy(id); }
+//    m_adjacent_.Finalizie(id);
+//    m_refine_.Finalizie(id);
+//    m_coarsen_.Finalizie(id);
+//    for (int i = 0; i < MAX_NUM_OF_LEVEL; ++i) { m_layer_[i].Finalizie(id); }
 //}
 //
 //

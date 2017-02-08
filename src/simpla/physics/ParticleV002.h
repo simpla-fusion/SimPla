@@ -70,7 +70,7 @@ public:
     {
     }
 
-    Particle(mesh::Mesh const *m)
+    Particle(mesh::MeshView const *m)
             : field_type(m), m_properties_(nullptr), m_pool_(nullptr)
     {
         assert(m->template is_a<mesh_type>());

@@ -3,7 +3,7 @@
 //
 #include "Worker.h"
 #include "AttributeView.h"
-#include "Mesh.h"
+#include "MeshView.h"
 #include "Patch.h"
 namespace simpla {
 namespace mesh {
@@ -19,15 +19,16 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
     os << std::setw(indent + 1) << " "
        << "Config = {" << db << "}" << std::endl;
 
-    if (m_mesh_ != nullptr) {
-        os << std::setw(indent + 1) << " "
-           << "Mesh = " << std::endl
-           << std::setw(indent + 1) << " "
-           << "{ " << std::endl;
-        m_mesh_->Print(os, indent + 1);
-        os << std::setw(indent + 1) << " "
-           << "}," << std::endl;
-    }
+    os << std::setw(indent + 1) << " "
+       << "MeshView = " << std::endl
+       << std::setw(indent + 1) << " "
+       << "{ " << std::endl;
+
+    mesh()->Print(os, indent + 1);
+
+    os << std::setw(indent + 1) << " "
+       << "}," << std::endl;
+
     return os;
 }
 
@@ -40,40 +41,75 @@ void Worker::Release() {
     Finalize();
     m_patch_.reset();
 }
-
+/**
+ * @startuml
+ * title Initialize/Finalize
+ * actor  Main
+ * participant Worker as Worker << base >>
+ * participant Worker as EMWorker << Generated >>
+ * participant Patch
+ * participant MeshView
+ * Main -> Worker : << Initialize >>
+ * activate Worker
+ * Worker -> EMWorker : << Initialize >>
+ *    activate EMWorker
+ *          create MeshView
+ *          EMWorker -> MeshView :  <<create MeshView>>
+ *          create AttributeView
+ *          EMWorker -> AttributeView :  <<create AttributeView>>
+ *          EMWorker --> Worker :Done
+ *    deactivate EMWorker
+ *    Worker -> MeshView : Set up MeshView with Patch
+ *    activate MeshView
+ *          MeshView -> Patch      : << require mesh block >>
+ *          activate Patch
+ *              Patch --> MeshView  : return mesh block
+ *          deactivate Patch
+ *          MeshView -> MeshView : Initialize
+ *          MeshView --> Worker : Done
+ *    deactivate MeshView
+ *    Worker -> AttributeView  : Set up AttributeView with Patch
+ *    activate AttributeView
+ *          AttributeView -> Worker: <<require MeshView>>
+ *          Worker --> AttributeView : return MeshView
+ *         AttributeView -> Patch   : require DataBlock  at AttributeId
+ *         Patch --> AttributeView  : return DataBlock
+ *         alt if DataBlock ==nullptr
+ *              AttributeView -> MeshView : << Create DataBlock of AttributeId >>
+ *              MeshView --> AttributeView : return DataBlock
+ *         end
+ *         AttributeView --> Worker : Done
+ *    deactivate AttributeView
+ *    Worker -> EMWorker : Initialize
+ *    activate EMWorker
+ *          EMWorker -> EMWorker : Initialize
+ *          EMWorker --> Worker   : Done
+ *    deactivate EMWorker
+ *    Worker --> Main: Done
+ * deactivate Worker
+ * @enduml
+ */
 void Worker::Initialize() {
     Object::Initialize();
-    if (m_patch_ == nullptr) { m_patch_ = std::make_shared<Patch>(); }
+    ASSERT(m_patch_ != nullptr)
+    mesh()->Accept(m_patch_);
+    mesh()->Initialize();
 
-    if (m_mesh_ == nullptr) { m_mesh_ = create_mesh(); };
-
-    ASSERT(m_mesh_ != nullptr);
-    ASSERT(m_patch_ != nullptr);
-    m_mesh_->mesh_block(m_patch_->mesh_block());
-    for (auto attr : m_attrs_) { attr->accept(m_mesh_.get(), m_patch_->data(attr->description().id())); }
-    m_mesh_->Initialize();
+    for (auto attr : m_attrs_) { attr->Accept(m_patch_); }
 }
 
 void Worker::Finalize() {
-    ASSERT(m_mesh_ != nullptr);
-    m_patch_->mesh_block(m_mesh_->mesh_block());
     for (auto attr : m_attrs_) { m_patch_->data(attr->description().id(), attr->data_block()); }
-    m_mesh_->Finalize();
-    m_mesh_.reset();
     m_patch_.reset();
-
     Object::Finalize();
 }
 void Worker::PreProcess() {
-    if (isReady()) { return; }
     Object::PreProcess();
-    ASSERT(m_mesh_ != nullptr);
-    m_mesh_->PreProcess();
+    mesh()->PreProcess();
 }
 
 void Worker::PostProcess() {
-    ASSERT(m_mesh_ != nullptr);
-    m_mesh_->PostProcess();
+    mesh()->PostProcess();
     Object::PostProcess();
 }
 void Worker::Sync() {}

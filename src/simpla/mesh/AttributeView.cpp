@@ -9,61 +9,33 @@
 #include "Atlas.h"
 #include "Attribute.h"
 #include "DataBlock.h"
-#include "Mesh.h"
 #include "MeshBlock.h"
+#include "MeshView.h"
 #include "Worker.h"
 namespace simpla {
 namespace mesh {
 
-AttributeView::AttributeView(Mesh *m, const std::shared_ptr<Attribute> &desc, const std::shared_ptr<DataBlock> &d)
-    : m_observed_(nullptr), m_mesh_(m), m_desc_(desc), m_data_(d) {
+AttributeView::AttributeView(MeshView *m, const std::shared_ptr<Attribute> &desc, const std::shared_ptr<DataBlock> &d)
+    : m_worker_(nullptr), m_mesh_(m), m_desc_(desc), m_data_(d) {
     ASSERT(m_mesh_ != nullptr);
 };
 AttributeView::AttributeView(Worker *w, const std::shared_ptr<Attribute> &desc, const std::shared_ptr<DataBlock> &d)
-    : m_observed_(w), m_mesh_(nullptr), m_desc_(desc), m_data_(d) {
-    if (m_observed_ != nullptr) m_observed_->Connect(this);
+    : m_worker_(w), m_mesh_(nullptr), m_desc_(desc), m_data_(d) {
+    if (m_worker_ != nullptr) m_worker_->Connect(this);
 };
 AttributeView::~AttributeView() {
-    if (m_observed_ != nullptr) m_observed_->Disconnect(this);
-}
-void AttributeView::mesh(Mesh const *m) {
-    Finalize();
-    m_mesh_ = m;
+    if (m_worker_ != nullptr) m_worker_->Disconnect(this);
 }
 
-void AttributeView::data_block(std::shared_ptr<DataBlock> const &d) {
+void AttributeView::Accept(std::shared_ptr<Patch> const &p) {
     Finalize();
-    m_data_ = d;
+    m_data_ = p->data(m_desc_->id());
 }
 
-void AttributeView::SetUp(Mesh const *m, std::shared_ptr<DataBlock> const &d) {
-    Finalize();
-    m_mesh_ = m;
-    m_data_ = d;
-}
-/**
- *
- * @startuml
- * title     Attribute::Initialize()
- * (*)-->  if "isInitialized ()" then
- *      --> [true] (*)
- *     else
- *       --> [false] Object::Initialize()
- *       if "m_mesh_==nullptr" then
- *         -right->[true]   throw Error
- *         --> (*)
- *       else
- *         --> [false]  if "m_data_==nullptr" then
- *                         --> [true] m_data_= CreateDataBlock();
- *                      endif
- *       endif
- *       --> (*)
- *     endif
- * @enduml
- */
 void AttributeView::Initialize() {
     if (isInitialized()) { return; }
     Object::Initialize();
+    if (m_worker_ != nullptr) { m_mesh_ = m_worker_->mesh(); };
     ASSERT(m_mesh_ != nullptr);
     if (m_data_ == nullptr) { m_data_ = CreateDataBlock(); }
     ASSERT(m_data_ != nullptr && !m_data_->empty());

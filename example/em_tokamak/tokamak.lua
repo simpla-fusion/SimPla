@@ -52,7 +52,7 @@ DisableField = true
 DisableParticle = false
 
 
-Mesh =
+MeshView =
 {
     Geometry =
     {

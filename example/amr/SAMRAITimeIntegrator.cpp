@@ -508,12 +508,11 @@ void SAMRAIWorker::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrato
             switch (attr->description().entity_type()) {
                 case EDGE:
                 case FACE:
-                //                            integrator->registerVariable(var, d_nghosts,
-                //                                                         SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                //                                                         d_grid_geometry,
-                //                                                         "CONSERVATIVE_COARSEN",
-                //                                                         "CONSERVATIVE_LINEAR_REFINE");
-                //                            break;
+                //                    integrator->registerVariable(var, d_nghosts,
+                //                    SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                //                                                 d_grid_geometry, "CONSERVATIVE_COARSEN",
+                //                                                 "CONSERVATIVE_LINEAR_REFINE");
+                //                    break;
                 case VERTEX:
                 case VOLUME:
                 default:
@@ -616,7 +615,7 @@ std::shared_ptr<mesh::DataBlock> create_data_block_t2(mesh::AttributeView const 
 
     auto res = std::make_shared<mesh::DataBlockAdapter<Array<TV, 4>>>(p_data->getPointer(), dims, lo, hi);
 
-    res->Deploy();
+    res->Initialize();
 
     return std::dynamic_pointer_cast<mesh::DataBlock>(res);
 }
@@ -701,7 +700,7 @@ void SAMRAIWorker::move_to(std::shared_ptr<mesh::Worker> &w, SAMRAI::hier::Patch
     std::shared_ptr<simpla::mesh::MeshBlock> m = std::make_shared<simpla::mesh::MeshBlock>(3, lo, hi, dx, xlo);
     m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
                                patch.getBox().getGlobalId().getLocalId().getValue()));
-    m->Deploy();
+    m->Initialize();
     auto p = std::make_shared<simpla::mesh::Patch>();
 
     p->mesh_block(m);
@@ -876,11 +875,9 @@ struct SAMRAITimeIntegrator : public simulation::TimeIntegrator {
 
     virtual void Save(data::DataTable *) const;
 
-    virtual void Deploy();
+    virtual void Initialize();
 
-    virtual void Destroy();
-
-    virtual bool isValid() const;
+    virtual void Finalize();
 
     virtual size_type step() const;
 
@@ -1007,9 +1004,9 @@ boost::shared_ptr<SAMRAI::tbox::Database> convert_database(data::DataTable const
     return dest;
 }
 }  // namespace detail{
-void SAMRAITimeIntegrator::Deploy() {
-    if (Object::isDeployed()) { return; }
-    Object::Deploy();
+void SAMRAITimeIntegrator::Initialize() {
+    if (Object::isInitialized()) { return; }
+    Object::Initialize();
 
     bool use_refined_timestepping = db.getValue("use_refined_timestepping", true);
 
@@ -1037,7 +1034,7 @@ void SAMRAITimeIntegrator::Deploy() {
     /***
      *  create hyp_level_integrator and error_detector
      */
-    ASSERT(worker()->isDeployed());
+    ASSERT(worker()->isInitialized());
     patch_worker = boost::make_shared<SAMRAIWorker>(worker(), dim, grid_geometry);
 
     hyp_level_integrator = boost::make_shared<SAMRAILevelIntegrator>(
@@ -1091,19 +1088,13 @@ void SAMRAITimeIntegrator::Deploy() {
     time_integrator->printClassData(std::cout);
 };
 
-void SAMRAITimeIntegrator::Destroy() {
+void SAMRAITimeIntegrator::Finalize() {
     m_is_valid_ = false;
-
     visit_data_writer.reset();
-
     time_integrator.reset();
-
     hyp_level_integrator.reset();
-
     patch_worker.reset();
 }
-
-bool SAMRAITimeIntegrator::isValid() const { return m_is_valid_; }
 
 size_type SAMRAITimeIntegrator::NextTimeStep(Real dt) {
     assert(isValid());

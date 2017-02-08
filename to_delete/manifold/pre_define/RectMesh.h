@@ -421,7 +421,7 @@ public:
 
     virtual index_box_type index_box(box_type const &b) const =0;
 
-}; // struct  Mesh
+}; // struct  MeshView
 }} // namespace simpla // namespace get_mesh
 
 

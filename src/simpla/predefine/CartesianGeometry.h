@@ -13,11 +13,11 @@
 #include <iomanip>
 #include <vector>
 
-#include <simpla/mesh/Mesh.h>
+#include <simpla/mesh/MeshView.h>
 #include <simpla/toolbox/MemoryPool.h>
 //#include <simpla/mesh/DataBlock.h>
 //#include <simpla/mesh/MeshBlock.h>
-//#include "simpla/mesh/Mesh.h"
+//#include "simpla/mesh/MeshView.h"
 
 namespace simpla {
 namespace mesh {
@@ -28,9 +28,9 @@ namespace mesh {
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public Mesh {
+struct CartesianGeometry : public MeshView {
    public:
-    SP_OBJECT_HEAD(CartesianGeometry, Mesh)
+    SP_OBJECT_HEAD(CartesianGeometry, MeshView)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -71,7 +71,7 @@ struct CartesianGeometry : public Mesh {
 
 //    CartesianGeometry(index_type const *lower, index_type const *upper, Real const *dx = nullptr,
 //                      Real const *origin = nullptr) {
-//        //        : Mesh(3 /*NDIMS*/, lower, upper, dx, origin)
+//        //        : MeshView(3 /*NDIMS*/, lower, upper, dx, origin)
 //    }
 
     ~CartesianGeometry() {}
@@ -92,7 +92,7 @@ struct CartesianGeometry : public Mesh {
     void apply(Args &&...) const {}
 
     void deploy() {
-        Mesh::Deploy();
+        MeshView::Initialize();
         Initialize();
     };
 
@@ -101,9 +101,9 @@ struct CartesianGeometry : public Mesh {
         return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)};
     }
 
-    virtual point_type point(MeshEntityId s) const { return Mesh::point(s); }
+    virtual point_type point(MeshEntityId s) const { return MeshView::point(s); }
 
-    virtual point_type point(MeshEntityId s, point_type const &r) const { return Mesh::point(s); };
+    virtual point_type point(MeshEntityId s, point_type const &r) const { return MeshView::point(s); };
 
     virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 
@@ -113,7 +113,7 @@ struct CartesianGeometry : public Mesh {
 
     virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
-};  // struct  Mesh
+};  // struct  MeshView
 
 template <>
 struct mesh_traits<CartesianGeometry> {

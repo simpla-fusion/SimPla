@@ -25,31 +25,26 @@ class EMFluid : public mesh::Worker {
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
     EMFluid() {}
-
     ~EMFluid() {}
 
-    using base_type::m_mesh_;
+    std::shared_ptr<simpla::model::Model> m_model_;
+    mesh_type m_mesh_;
+
+    virtual simpla::model::Model* model() { return m_model_.get(); };
+    virtual simpla::model::Model const* model() const { return m_model_.get(); };
+    virtual MeshView* mesh() { return &m_mesh_; };
+    virtual MeshView const* mesh() const { return &m_mesh_; };
 
     virtual std::ostream& print(std::ostream& os, int indent = 1) const;
 
     virtual void NextTimeStep(Real data_time, Real dt);
-
-    virtual void Deploy();
-
-    virtual void PreProcess();
-
     virtual void Initialize();
-
+    virtual void PreProcess();
+    virtual void PostProcess();
     virtual void Finalize();
 
-    virtual void PostProcess();
-
-    virtual void Destroy();
-
     virtual void SetPhysicalBoundaryConditions(Real time = 0){};
-
     virtual void SetPhysicalBoundaryConditionE(Real time = 0){};
-
     virtual void SetPhysicalBoundaryConditionB(Real time = 0){};
 
     template <int IFORM, int DOF = 1>
@@ -138,26 +133,16 @@ std::ostream& EMFluid<TM>::print(std::ostream& os, int indent) const {
 }
 
 template <typename TM>
-void EMFluid<TM>::Deploy() {
-    base_type::Deploy();
-}
-
-template <typename TM>
-void EMFluid<TM>::Destroy() {
-    base_type::Destroy();
-}
-
-template <typename TM>
 void EMFluid<TM>::PreProcess() {
-    if (!isValid()) { base_type::PreProcess(); }
-    if (!E.isValid()) E.Clear();
-    if (!B.isValid()) B.Clear();
-    if (!B0.isValid()) { B0.Clear(); }
+    base_type::PreProcess();
+    if (!E.isPrepared()) E.Clear();
+    if (!B.isPrepared()) B.Clear();
+    if (!B0.isPrepared()) { B0.Clear(); }
 }
 
 template <typename TM>
 void EMFluid<TM>::PostProcess() {
-    if (isValid()) { base_type::PostProcess(); }
+    base_type::PostProcess();
 }
 
 template <typename TM>

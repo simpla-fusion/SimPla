@@ -49,16 +49,16 @@ struct ArrayView : public concept::Printable {
     std::shared_ptr<value_type> m_data_holder_;
 
    public:
-    ArrayView() : Setup() {}
+    ArrayView() {}
 
     template <typename... TID>
     explicit ArrayView(TID&&... idx) : m_data_(nullptr), m_data_holder_(nullptr) {
-        Setup(std::forward<TID>(idx)...);
+        ArrayView(std::forward<TID>(idx)...);
     }
 
     template <typename... TID>
     ArrayView(value_type* d, TID&&... idx) : m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {
-        Setup(std::forward<TID>(idx)...);
+        ArrayView(std::forward<TID>(idx)...);
     }
 
     template <typename... TID>
@@ -137,7 +137,6 @@ struct ArrayView : public concept::Printable {
 
     void Clear() {
         Initialize();
-
         memset(m_data_, 0, size() * sizeof(value_type));
     }
     void Initialize() {

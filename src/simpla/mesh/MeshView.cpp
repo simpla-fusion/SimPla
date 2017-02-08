@@ -1,7 +1,7 @@
 //
 // Created by salmon on 16-11-24.
 //
-#include "Mesh.h"
+#include "MeshView.h"
 #include <simpla/model/Model.h>
 #include "AttributeView.h"
 #include "MeshBlock.h"
@@ -9,13 +9,13 @@
 namespace simpla {
 namespace mesh {
 
-Mesh::Mesh(Worker *w) : m_owner_(w) {}
+MeshView::MeshView(Worker *w) : m_owner_(w) {}
 
-Mesh::~Mesh() {}
+MeshView::~MeshView() {}
 
-std::ostream &Mesh::Print(std::ostream &os, int indent) const {
+std::ostream &MeshView::Print(std::ostream &os, int indent) const {
     os << std::setw(indent + 1) << " "
-       << "Mesh = { ";
+       << "MeshView = { ";
     os << "Type = \"" << getClassName() << "\",";
     if (m_mesh_block_ != nullptr) {
         os << std::endl;
@@ -36,27 +36,24 @@ std::ostream &Mesh::Print(std::ostream &os, int indent) const {
 
     return os;
 };
-void Mesh::Deploy() { Object::Deploy(); };
-void Mesh::Destroy() { Object::Destroy(); };
+void MeshView::Accept(std::shared_ptr<Patch> const &) {}
+void MeshView::Initialize() { Object::Initialize(); };
+void MeshView::Finalize() { Object::Finalize(); };
 
-void Mesh::mesh_block(std::shared_ptr<MeshBlock> m) {
+void MeshView::mesh_block(std::shared_ptr<MeshBlock> m) {
     Finalize();
     m_mesh_block_ = m;
     Initialize();
 }
 
-void Mesh::PreProcess() {
+void MeshView::PreProcess() {
     Object::PreProcess();
     ASSERT(m_mesh_block_ != nullptr);
 }
 
-void Mesh::PostProcess() {
+void MeshView::PostProcess() {
     m_mesh_block_.reset();
     Object::PostProcess();
 }
-
-void Mesh::Initialize() { Object::Initialize(); }
-
-void Mesh::Finalize() { Object::Finalize(); }
-}
-}  // namespace simpla {namespace mesh
+}  // {namespace mesh
+}  // namespace simpla

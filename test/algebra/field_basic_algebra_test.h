@@ -254,7 +254,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 //{
 //
 // protected:
-//	void SetUp()
+//	void Accept()
 //	{
 //		LOGGER.set_stdout_level(LOG_INFORM);
 //		auto _fdtd_param = GetParam();

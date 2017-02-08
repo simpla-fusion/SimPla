@@ -18,9 +18,9 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     auto center_domain = ctx->add_domain<EMFluid<mesh_type >>();
 
     center_domain->mesh()->name("Center");
-    center_domain->mesh()->dimensions(options["Mesh"]["Dimensions"].template as<index_tuple>(size_tuple{20, 20, 1}));
-    center_domain->mesh()->ghost_width(options["Mesh"]["GhostWidth"].template as<index_tuple>(size_tuple{2, 2, 2}));
-    center_domain->mesh()->box(options["Mesh"]["MeshBlock"].template as<box_type>(box_type{{{0, 0, 0}, {1, 1, 1}}}));
+    center_domain->mesh()->dimensions(options["MeshView"]["Dimensions"].template as<index_tuple>(size_tuple{20, 20, 1}));
+    center_domain->mesh()->ghost_width(options["MeshView"]["GhostWidth"].template as<index_tuple>(size_tuple{2, 2, 2}));
+    center_domain->mesh()->box(options["MeshView"]["MeshBlock"].template as<box_type>(box_type{{{0, 0, 0}, {1, 1, 1}}}));
     center_domain->deploy();
 
     auto center_mesh = center_domain->mesh();

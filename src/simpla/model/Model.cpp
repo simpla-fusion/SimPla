@@ -10,7 +10,7 @@ namespace simpla {
 namespace model {
 using namespace mesh;
 
-Model::Model(Mesh* m) : m_mesh_(m) {}
+Model::Model(MeshView* m) : m_mesh_(m) {}
 
 Model::~Model() {}
 

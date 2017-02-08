@@ -21,7 +21,7 @@ std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string c
 
 std::shared_ptr<mesh::Worker> create_worker();
 
-std::shared_ptr<mesh::Mesh> create_mesh();
+std::shared_ptr<mesh::MeshView> create_mesh();
 }  // namespace simpla
 
 int main(int argc, char** argv) {
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
                       "Particles"_ = {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5},
                                       "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ = 0.5},
                                       "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
-    worker->Deploy();
+    worker->Initialize();
 
     worker->Print(std::cout);
 
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
     integrator->db.setValue("CartesianGeometry.x_lo", std::get<0>(bound_box));
     integrator->db.setValue("CartesianGeometry.x_up", std::get<1>(bound_box));
 
-    integrator->Deploy();
+    integrator->Initialize();
 
     integrator->CheckPoint();
 

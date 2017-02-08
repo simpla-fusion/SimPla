@@ -90,9 +90,7 @@ class MeshBlock : public Object, public concept::Serializable, public concept::P
 
     int level() const { return m_level_; }
 
-    virtual void initialize() { DO_NOTHING; }
-
-    virtual void Deploy();
+    virtual void Initialize();
 
     virtual void update() {}
 

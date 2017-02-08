@@ -70,17 +70,15 @@ class FieldView<TM, TV, IFORM, DOF> {
         field_value_type;
 
    private:
-    std::shared_ptr<value_type> m_data_ = nullptr;
-
+    std::shared_ptr<value_type> m_holder_ = nullptr;
+    value_type* m_data_ = nullptr;
     mesh_type const* m_mesh_;
 
    public:
     explicit FieldView(mesh_type const* m = nullptr, std::shared_ptr<value_type> const& d = nullptr)
-        : m_mesh_(m), m_data_(d){};
-
-    FieldView(this_type const& other) : m_data_(other.m_data_), m_mesh_(other.m_mesh_) {}
-
-    FieldView(this_type&& other) : m_data_(other.m_data_), m_mesh_(other.m_mesh_) {}
+        : m_mesh_(m), m_holder_(d), m_data_(d.get()){};
+    FieldView(this_type const& other) : m_data_(other.m_data_), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_) {}
+    FieldView(this_type&& other) : m_data_(other.m_data_), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_) {}
 
     virtual ~FieldView() {}
 
@@ -91,13 +89,13 @@ class FieldView<TM, TV, IFORM, DOF> {
             int num_com = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
 
             if (num_com <= 1) {
-                printNdArray(os, m_data_.get(), 3, &dims[0]);
+                printNdArray(os, m_data_, 3, &dims[0]);
 
             } else {
                 os << "{" << std::endl;
                 for (int i = 0; i < num_com; ++i) {
                     os << "[" << i << "] =  ";
-                    printNdArray(os, m_data_.get() + i * s, 3, &dims[0]);
+                    printNdArray(os, m_data_ + i * s, 3, &dims[0]);
                     os << std::endl;
                 }
                 os << " }" << std::endl;
@@ -107,7 +105,7 @@ class FieldView<TM, TV, IFORM, DOF> {
     }
 
     this_type& operator=(this_type const& rhs) {
-        copy(rhs);
+        this->Copy(rhs);
         return *this;
     }
     template <typename TR>
@@ -119,11 +117,11 @@ class FieldView<TM, TV, IFORM, DOF> {
 
     size_type size() const { return m_mesh_->size(IFORM) * DOF; }
 
-    virtual std::shared_ptr<value_type> data() { return m_data_; }
-    virtual std::shared_ptr<value_type> data() const { return m_data_; }
+    virtual value_type* data() { return m_data_ != nullptr ? m_data_ : m_holder_.get(); }
+    virtual value_type const* data() const { return m_data_ != nullptr ? m_data_ : m_holder_.get(); }
     virtual mesh_type const* mesh() const { return m_mesh_; }
 
-    virtual void Deploy() {
+    virtual void Initialize() {
         m_data_ = data();
         m_mesh_ = mesh();
         ASSERT(m_mesh_ != nullptr);
@@ -138,33 +136,34 @@ class FieldView<TM, TV, IFORM, DOF> {
         ASSERT(m_data_ != nullptr);
     };
 
-    void Reset() { m_data_.reset(); };
+    void Reset() {
+        m_holder_.reset();
+        m_data_ = nullptr;
+    };
 
     void Clear() {
-        Deploy();
-        memset(m_data_.get(), 0, size() * sizeof(value_type));
+        Initialize();
+        memset(m_data_, 0, size() * sizeof(value_type));
     };
 
     void Copy(this_type const& other) {
-        Deploy();
-        if (!other.empty()) {
-            memcpy((void*)(m_data_), (void const*)(other.m_data_.get()), size() * sizeof(value_type));
-        };
+        Initialize();
+        if (!other.empty()) { memcpy((void*)(m_data_), (void const*)(other.m_data_), size() * sizeof(value_type)); };
     };
 
     entity_id const& shift(entity_id const& s) const { return s; }
 
-    decltype(auto) at(entity_id const& s) const { return m_data_.get()[m_mesh_->hash(shift(s))]; }
+    value_type const& at(entity_id const& s) const { return m_data_[m_mesh_->hash(shift(s))]; }
 
-    decltype(auto) at(entity_id const& s) { return m_data_.get()[m_mesh_->hash(shift(s))]; }
+    value_type& at(entity_id const& s) { return m_data_[m_mesh_->hash(shift(s))]; }
 
     template <typename... TID>
-    decltype(auto) at(TID&&... s) {
-        return m_data_.get()[(m_mesh_->hash(std::forward<TID>(s)...))];
+    value_type& at(TID&&... s) {
+        return m_data_[(m_mesh_->hash(std::forward<TID>(s)...))];
     }
     template <typename... TID>
-    decltype(auto) at(TID&&... s) const {
-        return m_data_.get()[(m_mesh_->hash(std::forward<TID>(s)...))];
+    value_type const& at(TID&&... s) const {
+        return m_data_[(m_mesh_->hash(std::forward<TID>(s)...))];
     }
     template <typename... TID>
     decltype(auto) operator()(index_type i0, TID&&... s) {
@@ -212,12 +211,12 @@ class FieldView<TM, TV, IFORM, DOF> {
     }
     template <typename... Args>
     void Apply(Args&&... args) {
-        Deploy();
+        Initialize();
         Apply_(m_mesh_->range(), std::forward<Args>(args)...);
     }
     template <typename Other>
     void Assign(Other const& other) {
-        Deploy();
+        Initialize();
         Apply_(m_mesh_->range(), tags::_assign(), other);
     }
     template <typename Other>

@@ -41,33 +41,19 @@ class Atlas :
 public:
 
     Atlas();
-
     virtual ~Atlas();
-
     virtual std::ostream &Print(std::ostream &os, int indent) const;
-
     virtual void Load(const data::DataTable &);
-
     virtual void Save(data::DataTable *) const;
-
     size_type count(int level) const;
-
     void max_level(int);
-
     int max_level() const;
-
     bool has(id_type id) const;
-
     MeshBlock *find(id_type id);
-
     MeshBlock const *find(id_type id) const;
-
     MeshBlock *at(id_type id);
-
     MeshBlock const *at(id_type id) const;
-
     MeshBlock const *insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint = nullptr);
-
     void link(id_type src, id_type dest) {};
 
 //    std::setValue<id_type> &level(int l);

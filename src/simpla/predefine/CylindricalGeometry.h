@@ -19,7 +19,7 @@
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/FancyStream.h>
 #include <simpla/toolbox/Log.h>
-#include "simpla/mesh/Mesh.h"
+#include "simpla/mesh/MeshView.h"
 
 namespace simpla {
 namespace mesh {
@@ -30,9 +30,9 @@ using namespace data;
  * @brief Uniform structured get_mesh
  */
 
-struct CylindricalGeometry : public Mesh {
+struct CylindricalGeometry : public MeshView {
    public:
-    SP_OBJECT_HEAD(CylindricalGeometry, Mesh)
+    SP_OBJECT_HEAD(CylindricalGeometry, MeshView)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -42,7 +42,7 @@ struct CylindricalGeometry : public Mesh {
     static constexpr int ndims = 3;
 
     template <typename... Args>
-    explicit CylindricalGeometry(Args &&... args) : Mesh(std::forward<Args>(args)...) {}
+    explicit CylindricalGeometry(Args &&... args) : MeshView(std::forward<Args>(args)...) {}
 
     virtual ~CylindricalGeometry() {}
 
@@ -118,11 +118,8 @@ struct CylindricalGeometry : public Mesh {
     }
 
     virtual Real volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
-
     virtual Real dual_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
-
     virtual Real inv_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
-
     virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
 
     virtual void Initialize() {
@@ -223,7 +220,7 @@ struct CylindricalGeometry : public Mesh {
                 }
     }
 
-};  // struct  Mesh
+};  // struct  MeshView
 }
 }  // namespace simpla // namespace get_mesh
 

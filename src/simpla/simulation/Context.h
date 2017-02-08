@@ -21,7 +21,7 @@
 
 
 #include <simpla/mesh/EntityIdRange.h>
-#include <simpla/mesh/Mesh.h>
+#include <simpla/mesh/MeshView.h>
 #include <simpla/mesh/DataBlock.h>
 #include <simpla/mesh/Atlas.h>
 #include <simpla/mesh/TransitionMap.h>

@@ -22,49 +22,34 @@ class DataBlock {
 
    public:
     DataBlock() {}
-
     virtual ~DataBlock() {}
+    bool empty() const { return raw_data() == nullptr; }
 
     virtual std::type_info const &value_type_info() const = 0;
-
     virtual int entity_type() const = 0;
-
     virtual int dof() const = 0;
-
     virtual void *raw_data() = 0;
-
+    virtual void const *raw_data() const = 0;
     virtual void Clear() = 0;
-
-    virtual bool empty() const { return true; }
 };
 template <typename U, int IFORM, int DOF>
 class DefaultDataBlock : public DataBlock {
     typedef U value_type;
-
    public:
     DefaultDataBlock(std::shared_ptr<value_type> d = nullptr, size_type s = 0) : m_data_(d), m_size_(s) {}
-
-    virtual ~DataBlock() {}
-
+    virtual ~DefaultDataBlock() {}
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
-
     virtual int entity_type() const { return IFORM; };
-
     virtual int dof() const { return DOF; };
-
     virtual void *raw_data() { return m_data_.get(); };
-
+    virtual void const *raw_data() const { return m_data_.get(); };
 
     virtual void Clear() {
         if (m_data_ != nullptr && m_size_ > 0) { memset(m_data_.get(), 0, sizeof(value_type) * m_size_); }
     };
 
-    virtual bool empty() const { return m_data_ == nullptr; }
-
     std::shared_ptr<value_type> data() { return m_data_; };
-
     size_type size() const { return m_size_; }
-
    private:
     std::shared_ptr<value_type> m_data_;
     size_type m_size_;
@@ -83,10 +68,6 @@ class DataBlockAdapter;
    * Object
    *    virtual bool is_deployed() const =0;
    *    virtual bool is_valid() const =0;
-   *    virtual void deploy()=0;
-   *    virtual void PreProcess() =0;
-   *    virtual void PostProcess()=0;
-   *    virtual void destroy()=0;
    */
 template <typename U>
 class DataBlockAdapter<U> : public DataBlock, public U {
@@ -96,19 +77,12 @@ class DataBlockAdapter<U> : public DataBlock, public U {
    public:
     template <typename... Args>
     explicit DataBlockAdapter(Args &&... args) : U(std::forward<Args>(args)...) {}
-
     ~DataBlockAdapter() {}
-
     virtual std::type_info const &value_type_info() const { return typeid(algebra::traits::value_type_t<U>); };
-
     virtual int entity_type() const { return algebra::traits::iform<U>::value; }
-
     virtual int dof() const { return algebra::traits::dof<U>::value; }
-
     virtual void Load(data::DataTable const &d){/* Load(*this, d); */};
-
     virtual void Save(data::DataTable *d) const {/* Save(*this, d); */};
-
     virtual std::ostream &Print(std::ostream &os, int indent) const {
         os << " type = \'" << value_type_info().name() << "\' "
            << ", entity type = " << (entity_type()) << ", dof = " << (dof()) << ", data_block = {";
@@ -116,29 +90,14 @@ class DataBlockAdapter<U> : public DataBlock, public U {
         os << "}";
         return os;
     }
-    virtual void *raw_data() { return nullptr; };
-    virtual bool empty() const { return U::empty(); }
+    virtual void *raw_data() { return reinterpret_cast<void *>(U::data()); };
+    virtual void const *raw_data() const { return reinterpret_cast<void const *>(U::data()); };
+
     template <typename... Args>
     static std::shared_ptr<DataBlock> Create(Args &&... args) {
         return std::dynamic_pointer_cast<DataBlock>(std::make_shared<DataBlockAdapter<U>>(std::forward<Args>(args)...));
     }
-
-    virtual void Clear() {
-        PreProcess();
-        U::Clear();
-    }
-
-    virtual void Initialize(){
-        //        U::Initialize();
-    };
-    virtual void Finalize(){
-        //        U::Finalize();
-    };
-    virtual void PreProcess(){
-        //        U::PreProcess();
-    };
-
-    virtual void PostProcess() { U::PostProcess(); };
+    virtual void Clear() { U::Clear(); }
 };
 
 // template<typename V, int IFORM = VERTEX, int DOF = 1, bool SLOW_FIRST = false>
@@ -216,10 +175,10 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //
 //    virtual void update() { data_entity_type::update(); };
 //
-//    virtual void Destroy()
+//    virtual void Finalizie()
 //    {
-//        data_entity_type::Destroy();
-//        base_type::Destroy();
+//        data_entity_type::Finalizie();
+//        base_type::Finalizie();
 //    };
 //
 //    virtual void clear() { data_entity_type::clear(); }

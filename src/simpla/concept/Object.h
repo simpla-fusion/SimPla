@@ -107,6 +107,7 @@ namespace simpla {
         initialized --> null     : Finalize
     @enduml
 
+
  **/
 
 class Object {
@@ -141,6 +142,8 @@ class Object {
     bool isInitialized() const { return m_state_ >= INITIALIZED; }
     bool isPrepared() const { return m_state_ >= PREPARED; }
     bool isLocked() const { return m_state_ == LOCKED; }
+    bool isValid() const { return m_state_ == PREPARED; }
+
     unsigned int NextState();
     unsigned int PrevState();
 

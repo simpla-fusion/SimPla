@@ -6,7 +6,7 @@
 #include <simpla/algebra/nTupleExt.h>
 
 #include <simpla/model/Model.h>
-#include <simpla/mesh/Mesh.h>
+#include <simpla/mesh/MeshView.h>
 
 #include <meshkit/MKCore.hpp>
 #include <meshkit/MeshOp.hpp>

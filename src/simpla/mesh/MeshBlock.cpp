@@ -24,7 +24,7 @@ MeshBlock::MeshBlock(int ndims, index_type const* lo, index_type const* up, Real
     m_global_origin_[1] = xlo == nullptr ? 0 : xlo[1] - std::get<0>(m_g_box_)[1] * m_dx_[1];
     m_global_origin_[2] = xlo == nullptr ? 0 : xlo[2] - std::get<0>(m_g_box_)[2] * m_dx_[2];
 
-    Deploy();
+    Initialize();
 }
 
 MeshBlock::~MeshBlock() {}
@@ -35,10 +35,8 @@ std::ostream& MeshBlock::Print(std::ostream& os, int indent) const {
     return os;
 }
 
-void MeshBlock::Deploy() {
-    if (Object::isDeployed()) { return; }
-
-    Object::Deploy();
+void MeshBlock::Initialize() {
+    Object::Initialize();
 
     ASSERT(m_ndims_ <= 3);
 
@@ -105,7 +103,7 @@ std::shared_ptr<MeshBlock> MeshBlock::create(int inc_level, const index_type* lo
         std::get<1>(res->m_g_box_)[2] = hi[2] >> -inc_level;
     }
     res->m_level_ += inc_level;
-    res->Deploy();
+    res->Initialize();
     return res;
 }
 

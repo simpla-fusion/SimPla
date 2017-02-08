@@ -21,25 +21,21 @@ class DataBlock;
  *   - \f$p\f$ is the projection
  *
  */
-class Mesh : public concept::Printable, public Object {
+class MeshView : public concept::Printable, public Object {
    public:
-    SP_OBJECT_BASE(Mesh);
+    SP_OBJECT_BASE(MeshView);
     typedef MeshEntityId entity_id;
 
-    Mesh(Worker *w = nullptr);
-
-    virtual ~Mesh();
-
+    MeshView(Worker *w = nullptr);
+    virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
-    virtual void mesh_block(std::shared_ptr<MeshBlock> m) ;
-    virtual void Deploy();
+    virtual void Accept(std::shared_ptr<Patch> const &) ;
+    virtual void mesh_block(std::shared_ptr<MeshBlock> m);
+    virtual void Initialize();
     virtual void PreProcess();
     virtual void PostProcess();
-    virtual void Initialize();
     virtual void Finalize();
-    virtual void Destroy();
-
 
     virtual std::shared_ptr<MeshBlock> const &mesh_block() const {
         ASSERT(m_mesh_block_ != nullptr);

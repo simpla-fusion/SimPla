@@ -8,7 +8,7 @@
 #include <simpla/concept/Configurable.h>
 #include <simpla/mesh/AttributeView.h>
 #include <simpla/mesh/EntityId.h>
-#include <simpla/mesh/Mesh.h>
+#include <simpla/mesh/MeshView.h>
 #include "geometry/GeoObject.h"
 
 namespace simpla {
@@ -22,8 +22,8 @@ class Model : public concept::Printable, public concept::Configurable {
 
    public:
     enum MODEL_TAG { VACUUM = 1, PLASMA = 1 << 1, CUSTOM = 1 << 20 };
-    typedef Mesh::entity_id entity_id;
-    Model(Mesh *m);
+    typedef MeshView::entity_id entity_id;
+    Model(MeshView *m);
     virtual ~Model();
 
     virtual void AddObject(std::string const &name, std::shared_ptr<geometry::GeoObject> const &);
@@ -63,7 +63,7 @@ class Model : public concept::Printable, public concept::Configurable {
     }
 
    private:
-    Mesh *m_mesh_;
+    MeshView *m_mesh_;
 
     DataAttribute<int, VERTEX, 9> m_tags_{m_mesh_, {"name"_ = "tags", "INPUT"}};
 
