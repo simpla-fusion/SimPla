@@ -13,11 +13,11 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/data/all.h>
-#include "Attribute.h"
+#include "AttributeDesc.h"
 #include "DataBlock.h"
 #include "Patch.h"
 namespace simpla {
-namespace mesh {
+namespace engine {
 class MeshView;
 class Worker;
 
@@ -45,14 +45,18 @@ struct AttributeView : public Object, public concept::Printable {
    public:
     SP_OBJECT_BASE(AttributeView);
 
-    AttributeView(MeshView *m, const std::shared_ptr<Attribute> &desc, const std::shared_ptr<DataBlock> &d = nullptr);
-    AttributeView(Worker *m, const std::shared_ptr<Attribute> &desc, const std::shared_ptr<DataBlock> &d = nullptr);
+    AttributeView(MeshView *m, const std::shared_ptr<AttributeDesc> &desc,
+                  const std::shared_ptr<DataBlock> &d = nullptr);
+    AttributeView(Worker *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d = nullptr);
+
+    AttributeView(Attribute const &, Domain const &) {}
+
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; };
     virtual std::shared_ptr<DataBlock> CreateDataBlock(void *p = nullptr) const = 0;
-    Attribute const &description() const { return *m_desc_; }
+    AttributeDesc const &description() const { return *m_desc_; }
     Worker const *worker() const { return m_worker_; }
     MeshView const *meshView() const { return m_mesh_; }
     std::shared_ptr<DataBlock> const &data_block() const { return m_data_; }
@@ -68,7 +72,7 @@ struct AttributeView : public Object, public concept::Printable {
    private:
     Worker *m_worker_;
     MeshView const *m_mesh_;
-    std::shared_ptr<Attribute> m_desc_ = nullptr;
+    std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
 };
 
@@ -86,10 +90,10 @@ struct DataAttribute : public AttributeView,
 
     template <typename TM, typename... Args>
     DataAttribute(TM *w, Args &&... args)
-        : base_type(w, Attribute::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
+        : base_type(w, AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
     template <typename TM>
     DataAttribute(TM *m, std::initializer_list<data::KeyValue> const &param)
-        : base_type(m, Attribute::create<value_type, iform, dof>(param)) {}
+        : base_type(m, AttributeDesc::create<value_type, iform, dof>(param)) {}
     DataAttribute(DataAttribute &&) = delete;
     DataAttribute(DataAttribute const &) = delete;
     virtual ~DataAttribute() {}
@@ -153,10 +157,10 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
    public:
     template <typename TM, typename... Args>
     AttributeViewAdapter(TM *m, Args &&... args)
-        : AttributeView(m, Attribute::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
+        : AttributeView(m, AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
     template <typename TM>
     AttributeViewAdapter(TM *w, std::initializer_list<data::KeyValue> const &param)
-        : AttributeView(w, Attribute::create<value_type, iform, dof>(param)) {}
+        : AttributeView(w, AttributeDesc::create<value_type, iform, dof>(param)) {}
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
     AttributeViewAdapter(AttributeViewAdapter const &) = delete;

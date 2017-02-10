@@ -31,8 +31,8 @@ struct Particle<P, M, V002>
 private:
 
     typedef Particle<P, M, V002> this_type;
-    typedef mesh::Attribute::View View;
-    typedef mesh::Attribute::View base_type;
+    typedef mesh::AttributeDesc::View View;
+    typedef mesh::AttributeDesc::View base_type;
 public:
 
     typedef M mesh_type;

@@ -15,14 +15,14 @@
 namespace simpla {
 namespace mesh {
 
-struct Attribute : public Object, public concept::Configurable, public concept::Printable {
-    Attribute() : m_value_type_index_(std::type_index(typeid(Real))), m_iform_(VERTEX), m_dof_(1) { deploy(); }
+struct AttributeDesc : public Object, public concept::Configurable, public concept::Printable {
+    AttributeDesc() : m_value_type_index_(std::type_index(typeid(Real))), m_iform_(VERTEX), m_dof_(1) { deploy(); }
 
-    Attribute(Attribute const &other) = delete;
+    AttributeDesc(AttributeDesc const &other) = delete;
 
-    Attribute(Attribute &&other) = delete;
+    AttributeDesc(AttributeDesc &&other) = delete;
 
-    virtual ~Attribute() {}
+    virtual ~AttributeDesc() {}
 
     virtual void deploy() {
         m_value_type_index_ = value_type_index();
@@ -31,15 +31,15 @@ struct Attribute : public Object, public concept::Configurable, public concept::
     }
 
     template <typename ValueType, int IFORM, int DOF>
-    static std::shared_ptr<Attribute> create() {
-        auto res = std::make_shared<Attribute>();
+    static std::shared_ptr<AttributeDesc> create() {
+        auto res = std::make_shared<AttributeDesc>();
         res->m_iform_ = IFORM;
         res->m_dof_ = DOF;
         res->m_value_type_index_ = std::type_index(typeid(ValueType));
         return res;
     };
     template <typename ValueType, int IFORM, int DOF>
-    static std::shared_ptr<Attribute> create(std::initializer_list<data::KeyValue> const &param) {
+    static std::shared_ptr<AttributeDesc> create(std::initializer_list<data::KeyValue> const &param) {
         auto res = create<ValueType, IFORM, DOF>();
         res->db.insert(param);
         return res;
@@ -58,22 +58,22 @@ struct Attribute : public Object, public concept::Configurable, public concept::
     std::type_index m_value_type_index_;
     int m_iform_ = VERTEX;
     int m_dof_ = 1;
-};  // class Attribute
+};  // class AttributeDesc
 
 class AttributeDict : public concept::Printable {
    public:
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    std::pair<std::shared_ptr<Attribute>, bool> register_attr(std::shared_ptr<Attribute> const &desc);
+    std::pair<std::shared_ptr<AttributeDesc>, bool> register_attr(std::shared_ptr<AttributeDesc> const &desc);
     void erase(id_type const &id);
     void erase(std::string const &id);
-    std::shared_ptr<Attribute> find(id_type const &id);
-    std::shared_ptr<Attribute> find(std::string const &id);
-    std::shared_ptr<Attribute> const &get(std::string const &k) const;
-    std::shared_ptr<Attribute> const &get(id_type k) const;
+    std::shared_ptr<AttributeDesc> find(id_type const &id);
+    std::shared_ptr<AttributeDesc> find(std::string const &id);
+    std::shared_ptr<AttributeDesc> const &get(std::string const &k) const;
+    std::shared_ptr<AttributeDesc> const &get(id_type k) const;
 
    private:
     std::map<std::string, id_type> m_key_id_;
-    std::map<id_type, std::shared_ptr<Attribute>> m_map_;
+    std::map<id_type, std::shared_ptr<AttributeDesc>> m_map_;
 };  // AttributeDict
 }
 }

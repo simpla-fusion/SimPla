@@ -3,10 +3,9 @@
 //
 #include "Worker.h"
 #include "AttributeView.h"
-#include "MeshView.h"
 #include "Patch.h"
 namespace simpla {
-namespace mesh {
+namespace engine {
 
 Worker::Worker() {}
 

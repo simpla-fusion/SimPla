@@ -83,9 +83,7 @@
 
 namespace simpla {
 struct SAMRAIWorker;
-
 struct SAMRAITimeIntegrator;
-
 std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &str = "") {
     auto integrator = std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>());
 
@@ -1176,10 +1174,10 @@ bool SAMRAITimeIntegrator::remainingSteps() const { return time_integrator->step
 // template<typename V, typename M, int IFORM>
 // class SAMRAIWrapperAttribute
 //        : public SAMRAITraitsVariable<V, IFORM>::type,
-//          public mesh::Attribute<SAMRAIWrapperPatch<V, M, IFORM> >
+//          public mesh::AttributeDesc<SAMRAIWrapperPatch<V, M, IFORM> >
 //{
 //    typedef typename SAMRAITraitsVariable<V, IFORM>::type samrai_base_type;
-//    typedef mesh::Attribute<SAMRAIWrapperPatch<V, M, IFORM>> simpla_base_type;
+//    typedef mesh::AttributeDesc<SAMRAIWrapperPatch<V, M, IFORM>> simpla_base_type;
 // public:
 //    template<typename TM>
 //    SAMRAIWrapperAttribute(std::shared_ptr<TM> const &m, std::string const &name) :
@@ -1212,7 +1210,7 @@ bool SAMRAITimeIntegrator::remainingSteps() const { return time_integrator->step
 //    ~SAMRAIWrapperAtlas() {}
 //};
 //
-// std::shared_ptr<mesh::Attribute>
+// std::shared_ptr<mesh::AttributeDesc>
 // create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, size_type
 // const &,
 //                      std::shared_ptr<mesh::Atlas> const &m, std::string const &name)
@@ -1220,7 +1218,7 @@ bool SAMRAITimeIntegrator::remainingSteps() const { return time_integrator->step
 //}
 //
 //
-// std::shared_ptr<mesh::Attribute>
+// std::shared_ptr<mesh::AttributeDesc>
 // create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, size_type
 // const &,
 //                      std::shared_ptr<mesh::MeshBlock> const &m, std::string const &name)

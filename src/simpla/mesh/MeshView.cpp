@@ -3,9 +3,6 @@
 //
 #include "MeshView.h"
 #include <simpla/model/Model.h>
-#include "AttributeView.h"
-#include "MeshBlock.h"
-#include "Patch.h"
 namespace simpla {
 namespace mesh {
 
@@ -29,7 +26,7 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
        << "}," << std::endl;
 
     os << std::setw(indent + 1) << " "
-       << "Attribute Description= { ";
+       << "AttributeDesc Description= { ";
 
     os << std::setw(indent + 1) << " "
        << "} , " << std::endl;

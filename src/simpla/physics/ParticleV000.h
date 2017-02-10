@@ -22,13 +22,13 @@ template<typename ...> struct Particle;
 
 template<typename P, typename M>
 struct Particle<P, M>
-        : public mesh::Attribute::View, public P,
+        : public mesh::AttributeDesc::View, public P,
           public std::enable_shared_from_this<Particle<P, M>>
 {
 private:
 
     typedef Particle<P, M> this_type;
-    typedef mesh::Attribute::View base_type;
+    typedef mesh::AttributeDesc::View base_type;
 public:
 
     typedef M mesh_type;

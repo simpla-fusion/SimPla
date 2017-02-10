@@ -27,10 +27,11 @@ class Model;
 namespace mesh {
 struct MeshBlock;
 struct DataBlock;
-struct AttributeView;
 struct MeshView;
+}
+namespace engine {
 struct Patch;
-
+struct AttributeView;
 /**
  * @brief
  *
@@ -124,7 +125,7 @@ class Worker : public Object, public concept::Configurable, public concept::Prin
     virtual void PreProcess();
     virtual void NextTimeStep(Real data_time, Real dt){};
     virtual void Sync();
-//    virtual void Process() = 0;
+    //    virtual void Process() = 0;
     virtual void PostProcess();
     virtual void Finalize();
     virtual void Release();
@@ -146,6 +147,7 @@ class Worker : public Object, public concept::Configurable, public concept::Prin
     std::shared_ptr<Patch> m_patch_;
     std::set<AttributeView *> m_attrs_;
 };
-}  // namespace mesh
+}  // namespace engine {
+
 }  // namespace simpla
 #endif  // SIMPLA_WORKER_H

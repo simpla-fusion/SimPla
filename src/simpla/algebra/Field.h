@@ -77,6 +77,11 @@ class FieldView<TM, TV, IFORM, DOF> {
    public:
     explicit FieldView(mesh_type const* m = nullptr, std::shared_ptr<value_type> const& d = nullptr)
         : m_mesh_(m), m_holder_(d), m_data_(d.get()){};
+
+    template <typename... Args>
+    explicit FieldView(std::shared_ptr<mesh_type> const& m, Args&&... args)
+        : FieldView(m.get(), std::forward<Args>(args)...){};
+
     FieldView(this_type const& other) : m_data_(other.m_data_), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_) {}
     FieldView(this_type&& other) : m_data_(other.m_data_), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_) {}
 
@@ -127,11 +132,12 @@ class FieldView<TM, TV, IFORM, DOF> {
         ASSERT(m_mesh_ != nullptr);
 
         if (m_data_ == nullptr) {
-            if (this->m_data_ == nullptr) {
+            if (m_holder_ == nullptr) {
                 try {
-                    m_data_ = std::shared_ptr<value_type>(new value_type[size()]);
+                    m_holder_ = std::shared_ptr<value_type>(new value_type[size()]);
                 } catch (std::bad_alloc const&) { THROW_EXCEPTION_BAD_ALLOC(size()); };
             }
+            m_data_ = m_holder_.get();
         }
         ASSERT(m_data_ != nullptr);
     };

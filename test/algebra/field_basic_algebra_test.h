@@ -39,7 +39,7 @@ class TestField : public testing::Test {
         index_type hi[3];  //= {dims[0], dims[1], dims[2]};
 
         m = std::make_shared<mesh_type>(nullptr, &dims[0], &xmin[0], &xmax[0]);
-        m->deploy();
+        m->Initialize();
     }
 
    public:
@@ -77,7 +77,7 @@ template <typename TField>
 constexpr int TestField<TField>::dof;
 TYPED_TEST_CASE_P(TestField);
 
-TYPED_TEST_P(TestField, assign) {
+TYPED_TEST_P(TestField, Assign) {
     typedef typename TestFixture::value_type value_type;
     typedef typename TestFixture::field_type field_type;
 
@@ -124,9 +124,9 @@ TYPED_TEST_P(TestField, constant_real) {
     typename TestFixture::field_type f2(TestFixture::m);
     typename TestFixture::field_type f3(TestFixture::m);
 
-    f1.deploy();
-    f2.deploy();
-    f3.deploy();
+    f1.Initialize();
+    f2.Initialize();
+    f3.Initialize();
     Real a, b, c;
     a = -1.1, b = 1.34, c = 3.2;
 
@@ -138,10 +138,10 @@ TYPED_TEST_P(TestField, constant_real) {
 
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](typename TestFixture::mesh_type::entity_id const &s) {
+    f1.Assign([&](typename TestFixture::mesh_type::entity_id const &s) {
         return va * uniform_dist(gen);
     });
-    f2.assign([&](typename TestFixture::mesh_type::entity_id const &s) {
+    f2.Assign([&](typename TestFixture::mesh_type::entity_id const &s) {
         return vb * uniform_dist(gen);
     });
 
@@ -181,23 +181,23 @@ TYPED_TEST_P(TestField, scalarField) {
     fb = (vb);
     fc = (vc);
 
-    f1.deploy();
-    f2.deploy();
-    f3.deploy();
-    f4.deploy();
+    f1.Initialize();
+    f2.Initialize();
+    f3.Initialize();
+    f4.Initialize();
     f4.Clear();
     size_type count = 0;
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.assign([&](typename TestFixture::mesh_type::entity_id const &s) {
+    f1.Assign([&](typename TestFixture::mesh_type::entity_id const &s) {
         return va * uniform_dist(gen);
     });
-    f2.assign([&](typename TestFixture::mesh_type::entity_id const &s) {
+    f2.Assign([&](typename TestFixture::mesh_type::entity_id const &s) {
         return vb * uniform_dist(gen);
     });
-    f3.assign([&](typename TestFixture::mesh_type::entity_id const &s) {
+    f3.Assign([&](typename TestFixture::mesh_type::entity_id const &s) {
         return vc * uniform_dist(gen);
     });
 
@@ -231,7 +231,7 @@ TYPED_TEST_P(TestField, scalarField) {
         });
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField);
+REGISTER_TYPED_TEST_CASE_P(TestField, Assign, index, constant_real, scalarField);
 
 //#include <gtest/gtest.h>
 //
