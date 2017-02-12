@@ -3,112 +3,72 @@
 //
 
 #include "AttributeView.h"
-#include <simpla/mesh/Patch.h>
-#include <simpla/toolbox/Log.h>
 #include <typeindex>
-#include "Atlas.h"
 #include "AttributeDesc.h"
 #include "DataBlock.h"
-#include "MeshBlock.h"
-#include "MeshView.h"
-#include "Worker.h"
+#include "DomainView.h"
+
 namespace simpla {
-namespace mesh {
+namespace engine {
 
-AttributeView::AttributeView(MeshView *m, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
-    : m_worker_(nullptr), m_mesh_(m), m_desc_(desc), m_data_(d) {
-    ASSERT(m_mesh_ != nullptr);
+struct AttributeView::pimpl_s {
+    DomainView *m_domain_ = nullptr;
+    AttributeDesc const *m_desc_;
+    std::shared_ptr<DataBlock> m_data_;
+    mesh::MeshView const *m_mesh_;
 };
-AttributeView::AttributeView(Worker *w, const std::shared_ptr<AttributeDesc> &desc, const std::shared_ptr<DataBlock> &d)
-    : m_worker_(w), m_mesh_(nullptr), m_desc_(desc), m_data_(d) {
-    if (m_worker_ != nullptr) m_worker_->Connect(this);
+AttributeView::AttributeView(DomainView *w, AttributeDesc const *desc) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_domain_ = w;
+    m_pimpl_->m_desc_ = desc;
+    m_pimpl_->m_data_ = nullptr;
+    Connect(w);
 };
-AttributeView::~AttributeView() {
-    if (m_worker_ != nullptr) m_worker_->Disconnect(this);
-}
-
-void AttributeView::Accept(std::shared_ptr<Patch> const &p) {
-    Finalize();
-    m_data_ = p->data(m_desc_->id());
-}
-
-void AttributeView::Initialize() {
-    if (isInitialized()) { return; }
-    Object::Initialize();
-    if (m_worker_ != nullptr) { m_mesh_ = m_worker_->mesh(); };
-    ASSERT(m_mesh_ != nullptr);
-    if (m_data_ == nullptr) { m_data_ = CreateDataBlock(); }
-    ASSERT(m_data_ != nullptr && !m_data_->empty());
-}
-void AttributeView::Finalize() {
-    if (!isInitialized()) { return; }
-    m_mesh_ = nullptr;
-    m_data_.reset();
-    Object::Finalize();
-}
-void AttributeView::PreProcess() {
-    if (isPrepared()) { return; }
-    Object::PreProcess();
-    // do sth. at here
-}
-
-void AttributeView::PostProcess() {
-    if (!isPrepared()) { return; }
-    // do sth. at here
-    Object::PostProcess();
-}
-
-void AttributeView::Clear() {
-    PreProcess();
-    ASSERT(m_data_ != nullptr);
-    m_data_->Clear();
-}
-
-std::ostream &AttributeDict::Print(std::ostream &os, int indent) const {
-    for (auto const &item : m_map_) {
-        os << std::setw(indent + 1) << " " << item.second->name() << " = {" << item.second << "}," << std::endl;
+AttributeView::~AttributeView() { Disconnect(); }
+AttributeDesc const &AttributeView::description() const { return *m_pimpl_->m_desc_; }
+void AttributeView::Connect(DomainView *d) {
+    Disconnect();
+    if (d != nullptr) {
+        m_pimpl_->m_domain_ = d;
+        m_pimpl_->m_domain_->Connect(this);
     }
-    return os;
 };
-
-std::pair<std::shared_ptr<AttributeDesc>, bool> AttributeDict::register_attr(std::shared_ptr<AttributeDesc> const &desc) {
-    auto res = m_map_.emplace(desc->id(), desc);
-    return std::make_pair(res.first->second, res.second);
-}
-
-void AttributeDict::erase(id_type const &id) {
-    auto it = m_map_.find(id);
-    if (it != m_map_.end()) {
-        m_key_id_.erase(it->second->name());
-        m_map_.erase(it);
+void AttributeView::Disconnect(DomainView *d) {
+    if (d != nullptr) {
+        d->Disconnect(this);
+    } else if (m_pimpl_->m_domain_ != nullptr) {
+        m_pimpl_->m_domain_->Disconnect(this);
+        m_pimpl_->m_domain_ = nullptr;
     }
 }
-
-void AttributeDict::erase(std::string const &id) {
-    auto it = m_key_id_.find(id);
-    if (it != m_key_id_.end()) { erase(it->second); }
+void AttributeView::Update() {
+    if (m_pimpl_->m_desc_ == nullptr) { m_pimpl_->m_desc_ = &description(); }
+    ASSERT(m_pimpl_->m_desc_ != nullptr);
+    Load();
 }
+std::shared_ptr<DataBlock> AttributeView::CreateDataBlock() const { return nullptr; }
 
-std::shared_ptr<AttributeDesc> AttributeDict::find(id_type const &id) {
-    auto it = m_map_.find(id);
-    if (it != m_map_.end()) {
-        return it->second;
+void AttributeView::Load() {
+    if (m_pimpl_->m_domain_ == nullptr) {
+        m_pimpl_->m_data_ = CreateDataBlock();
     } else {
-        return nullptr;
+        ASSERT(m_pimpl_->m_desc_ != nullptr);
+        m_pimpl_->m_data_ = m_pimpl_->m_domain_->data_block(m_pimpl_->m_desc_->id());
+        m_pimpl_->m_mesh_ = m_pimpl_->m_domain_->mesh();
     }
-};
-
-std::shared_ptr<AttributeDesc> AttributeDict::find(std::string const &id) {
-    auto it = m_key_id_.find(id);
-    if (it != m_key_id_.end()) {
-        return find(it->second);
-    } else {
-        return nullptr;
-    }
-};
-
-std::shared_ptr<AttributeDesc> const &AttributeDict::get(std::string const &k) const { return m_map_.at(m_key_id_.at(k)); }
-
-std::shared_ptr<AttributeDesc> const &AttributeDict::get(id_type k) const { return m_map_.at(k); }
 }
-}  // namespace simpla { namespace mesh
+void AttributeView::Unload(bool do_dump) {
+    if (m_pimpl_->m_domain_ == nullptr) {
+        m_pimpl_->m_data_.reset();
+    } else if (do_dump) {
+        ASSERT(m_pimpl_->m_desc_ != nullptr);
+        m_pimpl_->m_domain_->data_block(m_pimpl_->m_desc_->id(), m_pimpl_->m_data_);
+    }
+}
+bool AttributeView::isNull() const { return m_pimpl_->m_data_ == nullptr; }
+mesh::MeshView const *AttributeView::mesh_view() const { return m_pimpl_->m_mesh_; }
+DataBlock *AttributeView::data_block() { return m_pimpl_->m_data_.get(); }
+DataBlock const *AttributeView::data_block() const { return m_pimpl_->m_data_.get(); }
+void AttributeView::data_block(std::shared_ptr<DataBlock> const &d) { m_pimpl_->m_data_ = d; };
+
+}  //{ namespace engine
+}  // namespace simpla

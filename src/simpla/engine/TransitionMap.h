@@ -10,8 +10,8 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
 #include <simpla/toolbox/FancyStream.h>
-#include "MeshCommon.h"
-#include "MeshBlock.h"
+#include "simpla/mesh/MeshCommon.h"
+#include "simpla/mesh/MeshBlock.h"
 
 namespace simpla { namespace mesh
 {

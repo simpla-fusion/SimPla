@@ -11,7 +11,7 @@
 #include <simpla/toolbox/FancyStream.h>
 
 namespace simpla {
-namespace mesh {
+namespace engine {
 /**
  *  Base class of Data Blocks (pure virtual)
  */
@@ -35,6 +35,7 @@ class DataBlock {
 template <typename U, int IFORM, int DOF>
 class DefaultDataBlock : public DataBlock {
     typedef U value_type;
+
    public:
     DefaultDataBlock(std::shared_ptr<value_type> d = nullptr, size_type s = 0) : m_data_(d), m_size_(s) {}
     virtual ~DefaultDataBlock() {}
@@ -50,6 +51,7 @@ class DefaultDataBlock : public DataBlock {
 
     std::shared_ptr<value_type> data() { return m_data_; };
     size_type size() const { return m_size_; }
+
    private:
     std::shared_ptr<value_type> m_data_;
     size_type m_size_;

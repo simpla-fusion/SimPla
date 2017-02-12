@@ -126,7 +126,7 @@ class FieldView<TM, TV, IFORM, DOF> {
     virtual value_type const* data() const { return m_data_ != nullptr ? m_data_ : m_holder_.get(); }
     virtual mesh_type const* mesh() const { return m_mesh_; }
 
-    virtual void Initialize() {
+    virtual void Update() {
         m_data_ = data();
         m_mesh_ = mesh();
         ASSERT(m_mesh_ != nullptr);
@@ -148,12 +148,12 @@ class FieldView<TM, TV, IFORM, DOF> {
     };
 
     void Clear() {
-        Initialize();
+        Update();
         memset(m_data_, 0, size() * sizeof(value_type));
     };
 
     void Copy(this_type const& other) {
-        Initialize();
+        Update();
         if (!other.empty()) { memcpy((void*)(m_data_), (void const*)(other.m_data_), size() * sizeof(value_type)); };
     };
 
@@ -217,12 +217,12 @@ class FieldView<TM, TV, IFORM, DOF> {
     }
     template <typename... Args>
     void Apply(Args&&... args) {
-        Initialize();
+        Update();
         Apply_(m_mesh_->range(), std::forward<Args>(args)...);
     }
     template <typename Other>
     void Assign(Other const& other) {
-        Initialize();
+        Update();
         Apply_(m_mesh_->range(), tags::_assign(), other);
     }
     template <typename Other>

@@ -24,7 +24,7 @@
 #include <simpla/mesh/MeshView.h>
 #include <simpla/mesh/DataBlock.h>
 #include <simpla/mesh/Atlas.h>
-#include <simpla/mesh/TransitionMap.h>
+#include <simpla/engine/TransitionMap.h>
 #include <simpla/mesh/DomainBase.h>
 #include <simpla/toolbox/IOStream.h>
 #include <simpla/data/DataTable.h>

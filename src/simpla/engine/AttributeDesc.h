@@ -13,9 +13,12 @@
 #include <simpla/data/all.h>
 
 namespace simpla {
-namespace mesh {
+namespace engine {
 
-struct AttributeDesc : public Object, public concept::Configurable, public concept::Printable {
+struct AttributeDesc : public Object,
+                       public concept::Configurable,
+                       public concept::Printable,
+                       std::enable_shared_from_this<AttributeDesc> {
     AttributeDesc() : m_value_type_index_(std::type_index(typeid(Real))), m_iform_(VERTEX), m_dof_(1) { deploy(); }
 
     AttributeDesc(AttributeDesc const &other) = delete;

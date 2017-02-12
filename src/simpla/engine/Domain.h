@@ -4,7 +4,14 @@
 
 #ifndef SIMPLA_DOMAIN_H
 #define SIMPLA_DOMAIN_H
+
+#include <memory>
+#include <set>
 namespace simpla {
+namespace mesh {
+class MeshView;
+class MeshBlock;
+}
 namespace engine {
 class AttributeView;
 class Patch;
@@ -13,9 +20,8 @@ class Domain {
    public:
     Domain() {}
     ~Domain(){};
-    void Accept(Patch *);
-    void Connect(AttributeView *attr) { m_attrs_.insert(attr); };
-    void Disconnect(AttributeView *attr) { m_attrs_.erase(attr); }
+
+    mesh::MeshBlock const &mesh_block() const {}
     std::set<AttributeView *> m_observers_;
     std::unique_ptr<MeshView> m_mesh_;
 };

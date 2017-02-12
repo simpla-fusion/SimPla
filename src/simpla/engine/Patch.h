@@ -8,7 +8,6 @@
 #include <simpla/SIMPLA_config.h>
 #include <map>
 #include "DataBlock.h"
-#include "MeshBlock.h"
 
 namespace simpla {
 namespace mesh {

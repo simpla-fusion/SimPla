@@ -3,12 +3,13 @@
 //
 
 #include "Model.h"
-
+#include <simpla/engine/AttributeView.h>
 #include <simpla/mesh/EntityId.h>
 
 namespace simpla {
 namespace model {
 using namespace mesh;
+using namespace engine;
 
 Model::Model(MeshView* m) : m_mesh_(m) {}
 
@@ -18,7 +19,7 @@ void Model::Load(std::string const&) { UNIMPLEMENTED; }
 
 void Model::Save(std::string const&) { UNIMPLEMENTED; }
 
-std::ostream& Model::Print(std::ostream &os, int indent) const { return os; }
+std::ostream& Model::Print(std::ostream& os, int indent) const { return os; }
 
 void Model::Deploy(){};
 
@@ -85,7 +86,7 @@ void Model::Finalize(Real data_time, Real dt) {
 
 void Model::PostProcess(){};
 
-void Model::AddObject(std::string const &key, std::shared_ptr<geometry::GeoObject> const &g_obj) {
+void Model::AddObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     int id = 0;
     auto it = m_g_name_map_.find(key);
     if (it != m_g_name_map_.end()) {
@@ -98,7 +99,7 @@ void Model::AddObject(std::string const &key, std::shared_ptr<geometry::GeoObjec
     m_g_obj_.insert(std::make_pair(id, g_obj));
 }
 
-void Model::RemoveObject(std::string const &key) {
+void Model::RemoveObject(std::string const& key) {
     try {
         m_g_obj_.erase(m_g_name_map_.at(key));
     } catch (...) {}

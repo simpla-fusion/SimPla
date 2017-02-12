@@ -18,7 +18,6 @@
 #include <simpla/concept/Serializable.h>
 
 #include <simpla/model/Model.h>
-#include "MeshCommon.h"
 
 namespace simpla {
 namespace model {
@@ -131,8 +130,7 @@ class Worker : public Object, public concept::Configurable, public concept::Prin
     virtual void Release();
 
     virtual void SetPhysicalBoundaryConditions(Real time){};
-    virtual void Connect(AttributeView *attr) { m_attrs_.insert(attr); };
-    virtual void Disconnect(AttributeView *attr) { m_attrs_.erase(attr); }
+
 
     template <typename TFun>
     void ForeachAttr(TFun const &fun) {
@@ -143,6 +141,8 @@ class Worker : public Object, public concept::Configurable, public concept::Prin
     virtual MeshView *mesh() = 0;
     virtual MeshView const *mesh() const = 0;
 
+    virtual void Connect(AttributeView *attr) { m_attrs_.insert(attr); };
+    virtual void Disconnect(AttributeView *attr) { m_attrs_.erase(attr); }
    private:
     std::shared_ptr<Patch> m_patch_;
     std::set<AttributeView *> m_attrs_;

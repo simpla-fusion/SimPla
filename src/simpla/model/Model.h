@@ -6,7 +6,7 @@
 #define SIMPLA_MODEL_H
 
 #include <simpla/concept/Configurable.h>
-#include <simpla/mesh/AttributeView.h>
+#include <simpla/engine/AttributeView.h>
 #include <simpla/mesh/EntityId.h>
 #include <simpla/mesh/MeshView.h>
 #include "geometry/GeoObject.h"
@@ -15,6 +15,8 @@ namespace simpla {
 namespace model {
 using namespace mesh;
 using namespace data;
+using namespace engine;
+
 class GeoObject;
 
 class Model : public concept::Printable, public concept::Configurable {

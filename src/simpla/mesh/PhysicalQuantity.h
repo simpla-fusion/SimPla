@@ -36,7 +36,8 @@ public:
     template<typename ...Args>
     explicit PhysicalQuantity(Args &&...args):
             m_mesh_(nullptr),
-            m_data_(nullptr), AttributeView(<#initializer#>, <#initializer#>) {};
+            m_data_(nullptr), AttributeView(<#initializer#>, <#initializer#>),
+            AttributeView(<#initializer#>, nullptr, <#initializer#>) {};
 
 
     virtual ~PhysicalQuantity() {}

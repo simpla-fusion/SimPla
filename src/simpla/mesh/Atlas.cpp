@@ -4,7 +4,7 @@
  */
 
 #include "Atlas.h"
-#include "simpla/mesh/TransitionMap.h"
+#include "simpla/engine/TransitionMap.h"
 
 //#include "simpla/toolbox/BoxUtility.h"
 

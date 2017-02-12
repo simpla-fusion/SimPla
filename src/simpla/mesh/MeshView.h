@@ -30,8 +30,9 @@ class MeshView : public concept::Printable, public Object {
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
-    virtual void Accept(std::shared_ptr<Patch> const &) ;
+    virtual void Accept(std::shared_ptr<Patch> const &);
     virtual void mesh_block(std::shared_ptr<MeshBlock> m);
+    virtual void Update();
     virtual void Initialize();
     virtual void PreProcess();
     virtual void PostProcess();
