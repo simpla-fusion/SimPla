@@ -6,6 +6,7 @@
 #include "AttributeView.h"
 #include "MeshView.h"
 #include "Object.h"
+#include "Patch.h"
 #include "Worker.h"
 namespace simpla {
 namespace engine {
@@ -22,7 +23,7 @@ DomainView::~DomainView() {}
  *
  * @startuml
  * actor Main
- * Main -> DomainView : Set  MeshView as U
+ * Main -> DomainView : Set U as MeshView
  * activate DomainView
  *     alt if MeshView=nullptr
  *          create MeshView
@@ -89,7 +90,7 @@ DomainView::~DomainView() {}
  * deactivate Main
  * @enduml
  */
-void DomainView::Dispatch(Domain const &d) {
+void DomainView::Dispatch(Patch const &d) {
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
     m_pimpl_->m_mesh_->Dispatch(d.mesh_block());
 };

@@ -25,7 +25,7 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
        << std::setw(indent + 1) << " "
        << "{ " << std::endl;
 
-    mesh()->Print(os, indent + 1);
+    //    mesh()->Print(os, indent + 1);
 
     os << std::setw(indent + 1) << " "
        << "}," << std::endl;
@@ -82,7 +82,7 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
  * @enduml
  */
 
-void bool Worker::isUpdated() const {
+bool Worker::isUpdated() const {
     return m_domain_ != nullptr &&                                  //
            m_domain_->current_block_id() == m_current_block_id_ &&  //
            m_current_block_id_ != NULL_ID;

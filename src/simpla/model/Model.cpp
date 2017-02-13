@@ -105,21 +105,19 @@ void Model::RemoveObject(std::string const& key) {
     } catch (...) {}
 }
 
-Range<mesh::MeshEntityId> const& Model::select(int iform, std::string const& tag) {
-    return select(iform, m_g_name_map_.at(tag));
-}
+Range<id_type> const& Model::select(int iform, std::string const& tag) { return select(iform, m_g_name_map_.at(tag)); }
 
-Range<mesh::MeshEntityId> const& Model::select(int iform, int tag) {
-    typedef mesh::MeshEntityIdCoder M;
+Range<id_type> const& Model::select(int iform, int tag) {
+    typedef MeshEntityIdCoder M;
 
     try {
         return m_range_cache_.at(iform).at(tag);
     } catch (...) {}
 
     const_cast<this_type*>(this)->m_range_cache_[iform].emplace(
-        std::make_pair(tag, Range<MeshEntityId>(std::make_shared<UnorderedRange<MeshEntityId>>())));
+        std::make_pair(tag, Range<id_type>(std::make_shared<UnorderedRange<id_type>>())));
 
-    auto& res = *m_range_cache_.at(iform).at(tag).self().template as<UnorderedRange<MeshEntityId>>();
+    auto& res = *m_range_cache_.at(iform).at(tag).self().template as<UnorderedRange<id_type>>();
 
     index_type const* lower = m_tags_.lower();
     index_type const* upper = m_tags_.upper();
@@ -181,11 +179,11 @@ Range<mesh::MeshEntityId> const& Model::select(int iform, int tag) {
  *       = 0 on surface
  *       > 0 in surface
  */
-Range<mesh::MeshEntityId> const& Model::interface(int iform, const std::string& s_in, const std::string& s_out) {
+Range<id_type> const& Model::interface(int iform, const std::string& s_in, const std::string& s_out) {
     return interface(iform, m_g_name_map_.at(s_in), m_g_name_map_.at(s_out));
 }
 
-Range<mesh::MeshEntityId> const& Model::interface(int iform, int tag_in, int tag_out) {
+Range<id_type> const& Model::interface(int iform, int tag_in, int tag_out) {
     try {
         return m_interface_cache_.at(iform).at(tag_in).at(tag_out);
     } catch (...) {}
@@ -193,14 +191,14 @@ Range<mesh::MeshEntityId> const& Model::interface(int iform, int tag_in, int tag
     typedef mesh::MeshEntityIdCoder M;
 
     const_cast<this_type*>(this)->m_interface_cache_[iform][tag_in].emplace(
-        std::make_pair(tag_out, Range<MeshEntityId>(std::make_shared<UnorderedRange<MeshEntityId>>())));
+        std::make_pair(tag_out, Range<id_type>(std::make_shared<UnorderedRange<id_type>>())));
 
     auto& res = *const_cast<this_type*>(this)
                      ->m_interface_cache_.at(iform)
                      .at(tag_in)
                      .at(tag_out)
                      .self()
-                     .template as<UnorderedRange<MeshEntityId>>();
+                     .template as<UnorderedRange<id_type>>();
 
     index_type const* lower = m_tags_.lower();
     index_type const* upper = m_tags_.upper();

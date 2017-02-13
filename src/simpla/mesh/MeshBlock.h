@@ -103,7 +103,6 @@ class MeshBlock : public Object, public concept::Serializable, public concept::P
     /** for Serializable @{*/
 
     virtual void Load(const data::DataTable&){};
-
     virtual void Save(data::DataTable*) const {};
 
     /** @}*/
@@ -119,7 +118,6 @@ class MeshBlock : public Object, public concept::Serializable, public concept::P
      *   count_new  = b.second * 2^ (-inc_level) - offset_new
      */
     virtual std::shared_ptr<MeshBlock> create(int inc_level, const index_type* lo, const index_type* hi) const;
-
     virtual std::shared_ptr<MeshBlock> create(int inc_level, index_box_type const& b) const {
         return create(inc_level, &std::get<0>(b)[0], &std::get<1>(b)[0]);
     }
@@ -133,9 +131,7 @@ class MeshBlock : public Object, public concept::Serializable, public concept::P
     //    int level() const { return m_level_; }
 
     virtual bool is_overlap(index_box_type const&) { return true; }
-
     virtual bool is_overlap(box_type const&) { return true; }
-
     virtual bool is_overlap(MeshBlock const&) { return true; }
 
     /**

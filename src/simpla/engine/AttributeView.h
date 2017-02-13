@@ -12,9 +12,9 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include "AttributeDesc.h"
+#include "DataBlock.h"
 #include "Object.h"
 namespace simpla {
-
 namespace engine {
 class DomainView;
 class MeshView;
@@ -57,7 +57,7 @@ struct AttributeView : public concept::Printable {
     std::shared_ptr<DataBlock> &data_block();
     MeshView const *mesh_view() const;
     bool isUpdated() const;
-    void Update();
+    virtual void Update();
     bool isNull() const;
     bool empty() const { return isNull(); };
 
@@ -85,10 +85,14 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
 
    public:
     template <typename... Args>
-    AttributeViewAdapter(DomainView *m, Args &&... args)
-        : AttributeView(m), m_desc_(AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
-    AttributeViewAdapter(DomainView *w, std::initializer_list<data::KeyValue> const &param)
-        : AttributeView(w), m_desc_(AttributeDesc::create<value_type, iform, dof>(param)) {}
+    explicit AttributeViewAdapter(Args &&... args)
+        : m_desc_(AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
+    explicit AttributeViewAdapter(std::initializer_list<data::KeyValue> const &param)
+        : m_desc_(AttributeDesc::create<value_type, iform, dof>(param)) {}
+    template <typename... Args>
+    AttributeViewAdapter(DomainView *w, Args &&... args) : AttributeViewAdapter(std::forward<Args>(args)...) {
+        SetDomain(w);
+    }
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
     AttributeViewAdapter(AttributeViewAdapter const &) = delete;
@@ -121,14 +125,14 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     static std::shared_ptr<this_type> make_shared(TM *c, std::initializer_list<data::KeyValue> const &param) {
         return std::make_shared<this_type>(c, param);
     }
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return U::print(os, indent); }
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return U::Print(os, indent); }
 
     virtual mesh_type const *mesh() const {
-        static_assert(std::is_base_of<mesh::MeshView, mesh_type>::value, "mesh is  not base on MeshVew");
+        static_assert(std::is_base_of<MeshView, mesh_type>::value, "mesh is  not base on MeshVew");
         return static_cast<mesh_type const *>(mesh_view());
     };
-    virtual value_type *data() { return reinterpret_cast<value_type *>(data_block()->data()); }
-    virtual value_type const *data() const { return reinterpret_cast<value_type *>(data_block()->data()); }
+    virtual value_type *data() { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
+    virtual value_type const *data() const { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
 };
 
 template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>

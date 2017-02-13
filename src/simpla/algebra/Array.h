@@ -78,7 +78,7 @@ struct ArrayView : public concept::Printable {
         : ArrayView(std::move(other.m_data_holder_), other.m_dims_, other.m_lower_, other.m_upper_) {}
     ArrayView(this_type& other, concept::tags::split const& s) : ArrayView(other.split(s)) {}
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
-
+    void Update() {}
     virtual value_type* data() { return m_data_; }
     virtual value_type const* data() const { return m_data_; }
     size_type const* dims() const { return m_dims_; }

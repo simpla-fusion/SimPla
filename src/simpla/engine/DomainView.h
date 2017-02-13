@@ -7,9 +7,9 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
+#include <simpla/mpl/macro.h>
 #include <memory>
 #include <set>
-#include <simpla/mpl/macro.h>
 
 namespace simpla {
 namespace engine {
@@ -18,14 +18,14 @@ class Worker;
 class MeshView;
 class AttributeView;
 class DataBlock;
-
+class Patch;
 class DomainView : public concept::Printable {
    public:
-    DomainView() {}
-    virtual ~DomainView() {}
+    DomainView();
+    virtual ~DomainView();
 
     virtual std::ostream &Print(std::ostream &os, int indent) const;
-    void Dispatch(Domain const &d);
+    void Dispatch(Patch const &d);
     id_type current_block_id() const;
     bool isUpdated() const;
     virtual void Update();
