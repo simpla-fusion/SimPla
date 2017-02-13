@@ -22,43 +22,66 @@ DomainView::~DomainView() {}
  *
  * @startuml
  * actor Main
- * participant DomainView
- * participant MeshView
- * participant AttributeView
- * participant Worker
- * Main ->DomainView: Dispatch
+ * Main -> DomainView : Set  MeshView as U
+ * activate DomainView
+ *     alt if MeshView=nullptr
+ *          create MeshView
+ *     DomainView -> MeshView : create U as MeshView
+ *     MeshView --> DomainView: return MeshView
+ *     end
+ *     DomainView --> Main : Done
+ * deactivate DomainView
+ * @enduml
+ * @startuml
+ * actor Main
+ * Main -> DomainView : Dispatch
  * activate DomainView
  *     DomainView->MeshView:  Dispatch
+ *     MeshView->MeshView: SetMeshBlock
  *     activate MeshView
- *          MeshView->MeshView: SetMeshBlock
  *     deactivate MeshView
  *     MeshView -->DomainView:  Done
 *      DomainView --> Main : Done
  * deactivate DomainView
+ * @enduml
+ * @startuml
  * Main ->DomainView: Update
  * activate DomainView
  *     DomainView -> AttributeView : Update
  *     activate AttributeView
- *          AttributeView -> DomainView : get DataBlock at attr.id()
- *          activate DomainView
+ *          AttributeView -> Field : Update
+ *          Field -> AttributeView : Update
+ *          activate AttributeView
+ *               AttributeView -> DomainView : get DataBlock at attr.id()
  *               DomainView --> AttributeView : return DataBlock at attr.id()
- *          deactivate DomainView
+ *               AttributeView --> Field : return DataBlock is ready
+ *          deactivate AttributeView
+ *          alt if data_block.isNull()
+ *              Field -> Field :  create DataBlock
+ *              Field -> AttributeView : send DataBlock
+ *              AttributeView --> Field : Done
+ *          end
+ *          Field --> AttributeView : Done
  *          AttributeView --> DomainView : Done
  *     deactivate AttributeView
  *     DomainView -> MeshView : Update
  *     activate MeshView
- *          MeshView -> AttributeView : Set Initialize Value
- *          activate AttributeView
- *               AttributeView --> MeshView : Done
- *          deactivate AttributeView
+ *          alt if isFirstTime
+ *              MeshView -> AttributeView : Set Initialize Value
+ *              activate AttributeView
+ *                   AttributeView --> MeshView : Done
+ *              deactivate AttributeView
+ *          end
  *          MeshView --> DomainView : Done
  *     deactivate MeshView
  *     DomainView -> Worker : Update
  *     activate Worker
- *          Worker -> AttributeView : set initialize value
- *          activate AttributeView
- *              AttributeView --> Worker : Done
- *          deactivate AttributeView
+ *          alt if isFirstTime
+ *              Worker -> AttributeView : set initialize value
+ *              activate AttributeView
+ *                  AttributeView --> Worker : Done
+ *              deactivate AttributeView
+ *          end
  *          Worker --> DomainView : Done
  *     deactivate Worker
  *     DomainView --> Main : Done
