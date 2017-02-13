@@ -10,17 +10,19 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/Calculus.h>
 #include <simpla/algebra/all.h>
+#include <simpla/engine/AttributeView.h>
+#include <simpla/engine/Object.h>
+#include <simpla/engine/Worker.h>
 #include <simpla/physics/PhysicalConstants.h>
 
 namespace simpla {
-using namespace mesh;
 using namespace algebra;
 using namespace data;
 
 template <typename TM>
-class EMFluid : public mesh::Worker {
+class EMFluid : public engine::Worker {
    public:
-    SP_OBJECT_HEAD(EMFluid<TM>, mesh::Worker)
+    SP_OBJECT_HEAD(EMFluid<TM>, engine::Worker)
     typedef TM mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
@@ -28,14 +30,12 @@ class EMFluid : public mesh::Worker {
     ~EMFluid() {}
 
     std::shared_ptr<simpla::model::Model> m_model_;
-    mesh_type m_mesh_;
+    mesh_type* m_mesh_;
 
-    virtual simpla::model::Model* model() { return m_model_.get(); };
-    virtual simpla::model::Model const* model() const { return m_model_.get(); };
-    virtual MeshView* mesh() { return &m_mesh_; };
-    virtual MeshView const* mesh() const { return &m_mesh_; };
+    virtual mesh::MeshView* mesh() { return m_mesh_; };
+    virtual mesh::MeshView const* mesh() const { return m_mesh_; };
 
-    virtual std::ostream& print(std::ostream& os, int indent = 1) const;
+    virtual std::ostream& Print(std::ostream& os, int indent = 1) const;
 
     virtual void NextTimeStep(Real data_time, Real dt);
     virtual void Initialize();
@@ -48,7 +48,7 @@ class EMFluid : public mesh::Worker {
     virtual void SetPhysicalBoundaryConditionB(Real time = 0){};
 
     template <int IFORM, int DOF = 1>
-    using field_type = FieldAttribute<TM, scalar_type, IFORM, DOF>;
+    using field_type = engine::FieldAttribute<TM, scalar_type, IFORM, DOF>;
 
     typedef field_type<FACE> TB;
     typedef field_type<EDGE> TE;
@@ -118,7 +118,7 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::add_particle(std::stri
 }
 
 template <typename TM>
-std::ostream& EMFluid<TM>::print(std::ostream& os, int indent) const {
+std::ostream& EMFluid<TM>::Print(std::ostream& os, int indent) const {
     os << std::setw(indent + 1) << " "
        << "ParticleAttribute=  " << std::endl
        << std::setw(indent + 1) << " "

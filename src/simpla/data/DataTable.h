@@ -83,32 +83,21 @@ class DataTable : public DataEntity {
 
    public:
     DataTable();
-
     DataTable(std::initializer_list<KeyValue> const&);
-
     template <typename U>
     DataTable(std::string const& key, U const& v) : DataTable() {
         setValue(key, v);
     };
-
     DataTable(std::string const& key, std::shared_ptr<DataEntity> const& v) : DataTable() { setValue(key, v); };
-
     //    DataTable(DataTable const&);
-
     DataTable(DataTable&&);
-
     virtual ~DataTable();
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-
     virtual bool isTable() const { return true; };
-
     virtual bool empty() const;
-
     virtual bool has(std::string const& key) const;
-
     virtual void foreach (std::function<void(std::string const& key, DataEntity const&)> const&) const;
-
     virtual void foreach (std::function<void(std::string const& key, DataEntity&)> const& fun);
 
     template <typename T>
@@ -118,15 +107,10 @@ class DataTable : public DataEntity {
     };
 
     virtual DataEntity const* find(std::string const& url) const;
-
     virtual void Parse(){};
-
     virtual void Parse(std::string const& str);
 
-    template <int N>
-    void Parse(const char* c) {
-        Parse(std::string(c));
-    };
+    //    template <int N>    void Parse(const char* c) {        Parse(std::string(c));    };
 
     template <typename U>
     void Parse(std::pair<std::string, U> const& k_v) {
@@ -140,7 +124,6 @@ class DataTable : public DataEntity {
     };
 
     void insert(KeyValue const& k_v) { setValue(k_v.key(), k_v.value()); };
-
     void insert(){};
 
     template <typename... Others>

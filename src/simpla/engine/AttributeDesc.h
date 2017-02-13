@@ -7,10 +7,10 @@
 #include <simpla/SIMPLA_config.h>
 
 #include <simpla/concept/Configurable.h>
-#include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/data/all.h>
+#include <simpla/engine/Object.h>
 
 namespace simpla {
 namespace engine {
@@ -62,7 +62,12 @@ struct AttributeDesc : public Object,
     int m_iform_ = VERTEX;
     int m_dof_ = 1;
 };  // class AttributeDesc
-
+class AttributeBundle {
+   public:
+    void Connect(std::shared_ptr<AttributeDesc> const attr);
+    void Disconnect(std::shared_ptr<AttributeDesc> const attr);
+    std::set<std::shared_ptr<AttributeDesc>> m_attr_descs_;
+};
 class AttributeDict : public concept::Printable {
    public:
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;

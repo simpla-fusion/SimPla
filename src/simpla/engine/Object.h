@@ -267,6 +267,7 @@ class Object {
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 /** @} */
+#define NULL_ID static_cast<id_type>(-1)
 }  // namespace simpla { namespace base
 
 #endif  // SIMPLA_OBJECT_H

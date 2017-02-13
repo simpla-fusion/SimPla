@@ -9,17 +9,15 @@
 #include <simpla/algebra/Array.h>
 #include <simpla/algebra/all.h>
 #include <simpla/concept/Configurable.h>
-#include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include "AttributeDesc.h"
+#include "Object.h"
 namespace simpla {
 
-namespace mesh {
-class MeshView;
-}
 namespace engine {
 class DomainView;
+class MeshView;
 class DataBlock;
 class AttributeDesc;
 /**
@@ -50,27 +48,22 @@ struct AttributeView : public concept::Printable {
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
+
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; };
-    virtual std::shared_ptr<DataBlock> CreateDataBlock() const;
-
+    virtual void Initialize();
     virtual AttributeDesc const &description() const;
-    virtual void Update();
-    virtual void Load();
-    virtual void Unload(bool dump_it = false);
 
+    const std::shared_ptr<DataBlock> &data_block() const;
+    std::shared_ptr<DataBlock> &data_block();
+    MeshView const *mesh_view() const;
+    bool isUpdated() const;
+    void Update();
     bool isNull() const;
     bool empty() const { return isNull(); };
 
-    mesh::MeshView const *mesh_view() const;
-    DataBlock *data_block();
-    DataBlock const *data_block() const;
-    void data_block(std::shared_ptr<DataBlock> const &);
-
-    void Connect(DomainView *d);
-    void Disconnect(DomainView *d = nullptr);
-    void UpdateIfNull() {
-        if (isNull()) { Update(); }
-    }
+    void SetDomain(DomainView *d);
+    DomainView const *GetDomain() const;
+    void UnsetDomain();
 
    private:
     struct pimpl_s;
@@ -83,7 +76,7 @@ class AttributeViewAdapter;
 template <typename U>
 class AttributeViewAdapter<U> : public AttributeView, public U {
     SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
-    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, mesh::MeshView)
+    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshView)
     typedef algebra::traits::value_type_t<U> value_type;
     static constexpr int iform = algebra::traits::iform<U>::value;
     static constexpr int dof = algebra::traits::dof<U>::value;

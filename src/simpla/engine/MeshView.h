@@ -5,13 +5,11 @@
 #ifndef SIMPLA_GEOMETRY_H
 #define SIMPLA_GEOMETRY_H
 
-#include "MeshBlock.h"
+#include <simpla/concept/Printable.h>
+#include "Object.h"
 namespace simpla {
-
-namespace mesh {
-class Patch;
-class Worker;
-class DataBlock;
+namespace engine {
+class DomainView;
 
 /**
  *  Define:
@@ -21,17 +19,17 @@ class DataBlock;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshView : public concept::Printable, public Object {
+class MeshView : public concept::Printable {
    public:
     SP_OBJECT_BASE(MeshView);
     typedef MeshEntityId entity_id;
 
-    MeshView(Worker *w = nullptr);
+    MeshView(DomainView *w = nullptr);
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
-    virtual void Accept(std::shared_ptr<Patch> const &);
-    virtual void mesh_block(std::shared_ptr<MeshBlock> m);
+    bool isUpdated() const;
+    id_type current_block_id() const;
     virtual void Update();
     virtual void Initialize();
     virtual void PreProcess();
@@ -78,10 +76,9 @@ class MeshView : public concept::Printable, public Object {
         return m_mesh_block_->point(std::forward<Args>(args)...);
     }
 
-    Worker *m_owner_;
-
    protected:
-    std::shared_ptr<MeshBlock> m_mesh_block_;
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 }  // namespace mesh

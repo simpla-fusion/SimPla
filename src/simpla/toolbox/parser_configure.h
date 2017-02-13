@@ -9,7 +9,7 @@
 #define PARSER_CONFIGURE_H_
 
 #include <functional>
-#include <ostream> //for print
+#include <ostream> //for Print
 #include "Log.h"
 namespace simpla
 {

@@ -3,7 +3,9 @@
 //
 #include "Worker.h"
 #include "AttributeView.h"
+#include "DomainView.h"
 #include "Patch.h"
+
 namespace simpla {
 namespace engine {
 
@@ -31,15 +33,6 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
     return os;
 }
 
-void Worker::Accept(std::shared_ptr<Patch> p) {
-    Finalize();
-    m_patch_ = p;
-    Initialize();
-}
-void Worker::Release() {
-    Finalize();
-    m_patch_.reset();
-}
 /**
  * @startuml
  * title Initialize/Finalize
@@ -88,30 +81,28 @@ void Worker::Release() {
  * deactivate Worker
  * @enduml
  */
-void Worker::Initialize() {
-    Object::Initialize();
-    ASSERT(m_patch_ != nullptr)
-    mesh()->Accept(m_patch_);
-    mesh()->Initialize();
 
-    for (auto attr : m_attrs_) { attr->Accept(m_patch_); }
+void bool Worker::isUpdated() const {
+    return m_domain_ != nullptr &&                                  //
+           m_domain_->current_block_id() == m_current_block_id_ &&  //
+           m_current_block_id_ != NULL_ID;
 }
+void Worker::Update() {
+    if (!isUpdated()) {
+        Initialize();
+        if (m_domain_ != nullptr) {
+            m_current_block_id_ = m_domain_->current_block_id();
+        } else {
+            m_current_block_id_ = NULL_ID;
+        }
+    }
+}
+void Worker::Evaluate() {
+    Update();
+    Process();
+    if (m_next_ != nullptr) { m_next_->Evaluate(); }
+};
 
-void Worker::Finalize() {
-    for (auto attr : m_attrs_) { m_patch_->data(attr->description().id(), attr->data_block()); }
-    m_patch_.reset();
-    Object::Finalize();
-}
-void Worker::PreProcess() {
-    Object::PreProcess();
-    mesh()->PreProcess();
-}
-
-void Worker::PostProcess() {
-    mesh()->PostProcess();
-    Object::PostProcess();
-}
-void Worker::Sync() {}
 //
 // void Worker::phase(unsigned int num, Real data_time, Real dt)
 //{

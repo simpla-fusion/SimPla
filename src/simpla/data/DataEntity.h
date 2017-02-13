@@ -5,12 +5,11 @@
 #ifndef SIMPLA_DATAENTITY_H
 #define SIMPLA_DATAENTITY_H
 
-#include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/toolbox/Log.h>
+#include <simpla/engine/Object.h>
 #include <simpla/mpl/integer_sequence.h>
+#include <simpla/toolbox/Log.h>
 #include <typeindex>
-
 namespace simpla {
 namespace data {
 
@@ -31,37 +30,22 @@ struct DataEntity : public concept::Printable {
 
    public:
     DataEntity() {}
-
     DataEntity(DataEntity const& other) {}
-
     DataEntity(DataEntity&& other) {}
-
     virtual ~DataEntity() {}
-
     virtual bool isNull() const { return !(isTable() | isLight() | isHeavy()); }
-
     virtual bool isTable() const { return false; };
-
     virtual bool isLight() const { return false; };
-
     virtual bool isHeavy() const { return false; };
-
     virtual std::shared_ptr<DataEntity> Copy() const { return nullptr; };
-
     virtual std::shared_ptr<DataEntity> Move() { return nullptr; };
-
-    virtual void DeepCopy(DataEntity const &other) { UNIMPLEMENTED; }
+    virtual void DeepCopy(DataEntity const& other) { UNIMPLEMENTED; }
 
     DataTable& asTable();
-
     DataTable const& asTable() const;
-
     LightData& asLight();
-
     LightData const& asLight() const;
-
     HeavyData& asHeavy();
-
     HeavyData const& asHeavy() const;
 };
 
@@ -69,8 +53,6 @@ template <typename>
 struct entity_traits {
     typedef int_const<DataEntity::LIGHT> type;
 };
-
-
 
 /** @ingroup data */
 

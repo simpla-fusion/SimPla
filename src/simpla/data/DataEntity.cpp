@@ -9,16 +9,22 @@ namespace simpla {
 namespace data {
 
 DataTable& DataEntity::asTable() { return *as<DataTable>(); }
-
 DataTable const& DataEntity::asTable() const { return *as<DataTable>(); }
-
 LightData& DataEntity::asLight() { return *as<LightData>(); }
-
 LightData const& DataEntity::asLight() const { return *as<LightData>(); }
-
 HeavyData& DataEntity::asHeavy() { return *as<HeavyData>(); }
-
 HeavyData const& DataEntity::asHeavy() const { return *as<HeavyData>(); }
+
+//std::ostream& DataEntity::Print(std::ostream& os, int indent = 0) const {
+//    if (isTable()) {
+//        asTable().Print(os, indent);
+//    } else if (isLight()) {
+//        asLight().Print(os, indent);
+//    } else if (isHeavy()) {
+//        asHeavy().Print(os, indent);
+//    }
+//    return os;
+//};
 
 //
 // void HeavyData::Sync(bool is_blocking)

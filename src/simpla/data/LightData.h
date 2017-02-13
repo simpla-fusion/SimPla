@@ -28,38 +28,32 @@ namespace data {
 namespace _impl {
 
 template <typename T>
-auto _to_bool(T const& v) ->
-    typename std::enable_if<std::is_convertible<T, bool>::value, bool>::type {
+auto _to_bool(T const& v) -> typename std::enable_if<std::is_convertible<T, bool>::value, bool>::type {
     return static_cast<bool>(v);
 };
 
 template <typename T>
-auto _to_bool(T const& v) ->
-    typename std::enable_if<!std::is_convertible<T, bool>::value, bool>::type {
+auto _to_bool(T const& v) -> typename std::enable_if<!std::is_convertible<T, bool>::value, bool>::type {
     return false;
 };
 
 template <typename T>
-auto _to_integer(T const& v) ->
-    typename std::enable_if<std::is_convertible<T, int>::value, int>::type {
+auto _to_integer(T const& v) -> typename std::enable_if<std::is_convertible<T, int>::value, int>::type {
     return static_cast<int>(v);
 };
 
 template <typename T>
-auto _to_integer(T const& v) ->
-    typename std::enable_if<!std::is_convertible<T, int>::value, int>::type {
+auto _to_integer(T const& v) -> typename std::enable_if<!std::is_convertible<T, int>::value, int>::type {
     return 0;
 };
 
 template <typename T>
-auto _to_floating_point(T const& v) ->
-    typename std::enable_if<std::is_convertible<T, double>::value, double>::type {
+auto _to_floating_point(T const& v) -> typename std::enable_if<std::is_convertible<T, double>::value, double>::type {
     return static_cast<double>(v);
 };
 
 template <typename T>
-auto _to_floating_point(T const& v) ->
-    typename std::enable_if<!std::is_convertible<T, double>::value, double>::type {
+auto _to_floating_point(T const& v) -> typename std::enable_if<!std::is_convertible<T, double>::value, double>::type {
     return 0;
 };
 
@@ -82,8 +76,7 @@ auto get_bool(T* v, bool) -> typename std::enable_if<!std::is_integral<T>::value
 }
 
 template <typename T>
-auto get_integer(T* v, int other) ->
-    typename std::enable_if<std::is_integral<T>::value, bool>::type {
+auto get_integer(T* v, int other) -> typename std::enable_if<std::is_integral<T>::value, bool>::type {
     *v = other;
     return true;
 }
@@ -94,15 +87,13 @@ auto get_integer(T* v, int) -> typename std::enable_if<!std::is_integral<T>::val
 }
 
 template <typename T>
-auto get_floating_point(T* v, double other) ->
-    typename std::enable_if<std::is_floating_point<T>::value, bool>::type {
+auto get_floating_point(T* v, double other) -> typename std::enable_if<std::is_floating_point<T>::value, bool>::type {
     *v = other;
     return true;
 }
 
 template <typename T>
-auto get_floating_point(T* v, double) ->
-    typename std::enable_if<!std::is_floating_point<T>::value, bool>::type {
+auto get_floating_point(T* v, double) -> typename std::enable_if<!std::is_floating_point<T>::value, bool>::type {
     return false;
 }
 
@@ -141,13 +132,11 @@ struct LightData : public DataEntity {
 
     template <typename ValueType>
     explicit LightData(const ValueType& value)
-        : m_data_(new Holder<typename std::remove_cv<typename std::decay<ValueType>::type>::type>(
-              value)) {}
+        : m_data_(new Holder<typename std::remove_cv<typename std::decay<ValueType>::type>::type>(value)) {}
 
     explicit LightData(const char* value) : LightData(std::string(value)) {}
 
-    LightData(const LightData& other)
-        : m_data_(other.m_data_ == nullptr ? other.m_data_->clone() : nullptr) {}
+    LightData(const LightData& other) : m_data_(other.m_data_ == nullptr ? other.m_data_->clone() : nullptr) {}
 
     // Move constructor
     LightData(LightData&& other) : m_data_(nullptr) { other.m_data_.swap(m_data_); }
@@ -156,14 +145,12 @@ struct LightData : public DataEntity {
 
     // Perfect forwarding of ValueType
     template <typename ValueType>
-    explicit LightData(ValueType&& value,
-                       typename std::enable_if<!(std::is_same<LightData&, ValueType>::value ||
-                                                 std::is_const<ValueType>::value)>::type* = 0
+    explicit LightData(ValueType&& value, typename std::enable_if<!(std::is_same<LightData&, ValueType>::value ||
+                                                                    std::is_const<ValueType>::value)>::type* = 0
                        // disable if entity find type `LightData&`
                        // disable if entity find type `const ValueType&&`
                        )
-        : m_data_(
-              new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType&&>(value))) {}
+        : m_data_(new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType&&>(value))) {}
 
     virtual ~LightData() {}
 
@@ -222,7 +209,7 @@ struct LightData : public DataEntity {
 
     std::string string() const {
         std::ostringstream os;
-        this->print(os, 0);
+        this->Print(os, 0);
         return os.str();
     }
 
@@ -240,9 +227,7 @@ struct LightData : public DataEntity {
 
     virtual bool isIntegral() const { return m_data_ != nullptr && m_data_->is_integral(); }
 
-    virtual bool isFloatingPoint() const {
-        return m_data_ != nullptr && m_data_->is_floating_point();
-    }
+    virtual bool isFloatingPoint() const { return m_data_ != nullptr && m_data_->is_floating_point(); }
 
     virtual bool is_string() const { return m_data_ != nullptr && m_data_->is_string(); }
 
@@ -298,9 +283,9 @@ struct LightData : public DataEntity {
         return dynamic_cast<Holder<U>*>(m_data_)->m_value_;
     }
 
-    virtual std::ostream& print(std::ostream& os, int indent = 1) const {
+    virtual std::ostream& Print(std::ostream& os, int indent = 1) const {
         if (m_data_ != nullptr) {
-            m_data_->print(os, indent);
+            m_data_->Print(os, indent);
         } else {
             CHECK(m_data_ == nullptr);
         }
@@ -314,16 +299,13 @@ struct LightData : public DataEntity {
 
     struct PlaceHolder {
         PlaceHolder() {}
-
         virtual ~PlaceHolder() {}
-
         virtual PlaceHolder* clone() const = 0;
-
         virtual const std::type_info& type() const = 0;
         //----------------------------------------------------------------------------------------------
         // SimPla extent
 
-        virtual std::ostream& print(std::ostream& os, int indent = 1) const = 0;
+        virtual std::ostream& Print(std::ostream& os, int indent = 1) const = 0;
 
         template <typename U>
         bool is_same() const {
@@ -333,31 +315,19 @@ struct LightData : public DataEntity {
         //    virtual data_model::DataType data_type() const = 0;
 
         virtual bool is_bool() const = 0;
-
         virtual bool is_integral() const = 0;
-
         virtual bool is_floating_point() const = 0;
-
         virtual bool is_string() const = 0;
-
         virtual bool is_array() const = 0;
-
         virtual bool to_bool() const = 0;
-
         virtual int to_integer() const = 0;
-
         virtual double to_floating_point() const = 0;
-
         virtual std::string to_string() const = 0;
-
         virtual int size() const = 0;
-
         virtual std::shared_ptr<PlaceHolder> get(int) const = 0;
 
         //        virtual void* data() = 0;
-        //
         //        virtual void const* data() const = 0;
-
         //        template<typename U, size_type N>
         //        bool as(nTuple<U, N> *v) const
         //        {
@@ -394,18 +364,12 @@ struct LightData : public DataEntity {
 
        public:
         Holder(ValueType const& v) : m_value_(v) {}
-
         Holder(ValueType&& v) : m_value_(std::forward<ValueType>(v)) {}
-
         virtual ~Holder() {}
-
         Holder& operator=(const Holder&) = delete;
-
         virtual PlaceHolder* clone() const { return new Holder(m_value_); }
-
         virtual const std::type_info& type() const { return typeid(ValueType); }
-
-        std::ostream& print(std::ostream& os, int indent = 1) const {
+        std::ostream& Print(std::ostream& os, int indent = 1) const {
             if (std::is_same<ValueType, std::string>::value) {
                 os << "\"" << m_value_ << "\"";
             } else if (std::is_same<ValueType, bool>::value) {
@@ -417,21 +381,13 @@ struct LightData : public DataEntity {
         }
 
         virtual bool is_bool() const { return std::is_same<ValueType, bool>::value; }
-
         virtual bool is_integral() const { return std::is_integral<ValueType>::value; }
-
         virtual bool is_floating_point() const { return std::is_floating_point<ValueType>::value; }
-
         virtual bool is_string() const { return std::is_same<ValueType, std::string>::value; }
-
         virtual bool is_array() const { return std::is_array<ValueType>::value; }
-
         virtual int to_integer() const { return _impl::_to_integer(m_value_); };
-
         virtual double to_floating_point() const { return _impl::_to_floating_point(m_value_); };
-
         virtual bool to_bool() const { return _impl::_to_bool(m_value_); };
-
         virtual std::string to_string() const { return _impl::_to_string(m_value_); };
 
        private:
@@ -483,8 +439,7 @@ struct LightData : public DataEntity {
 };  // class LightData
 template <typename U>
 std::shared_ptr<DataEntity> make_shared_entity(U const& c,
-                                               ENABLE_IF(entity_traits<U>::type::value ==
-                                                         DataEntity::LIGHT)) {
+                                               ENABLE_IF(entity_traits<U>::type::value == DataEntity::LIGHT)) {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<LightData>(c));
 }
 

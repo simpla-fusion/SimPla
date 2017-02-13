@@ -5,7 +5,7 @@
 #ifndef SIMPLA_DATAENTITYHEAVY_H
 #define SIMPLA_DATAENTITYHEAVY_H
 
-#include <simpla/concept/Object.h>
+#include <simpla/engine/Object.h>
 #include "DataEntity.h"
 #include "DataType.h"
 
@@ -134,8 +134,7 @@ struct HeavyDataProxy : public HeavyData {
 };
 template <typename U>
 std::shared_ptr<DataEntity> make_shared_entity(U const& c,
-                                               ENABLE_IF(entity_traits<U>::type::value ==
-                                                         DataEntity::HEAVY)) {
+                                               ENABLE_IF(entity_traits<U>::type::value == DataEntity::HEAVY)) {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<HeavyData>(c));
 }
 }  // namespace data

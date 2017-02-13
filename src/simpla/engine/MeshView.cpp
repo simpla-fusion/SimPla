@@ -2,11 +2,14 @@
 // Created by salmon on 16-11-24.
 //
 #include "MeshView.h"
+#include <simpla/mesh/MeshBlock.h>
 #include <simpla/model/Model.h>
 namespace simpla {
-namespace mesh {
-
-MeshView::MeshView(Worker *w) : m_owner_(w) {}
+namespace engine {
+struct MeshView::pimpl_s {
+    std::shared_ptr<mesh::MeshBlock> m_mesh_block_;
+};
+MeshView::MeshView(DomainView *w = nullptr) : m_pimpl_(new pimpl_s) {}
 
 MeshView::~MeshView() {}
 
@@ -33,9 +36,9 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
 
     return os;
 };
-void MeshView::Accept(std::shared_ptr<Patch> const &) {}
-void MeshView::Initialize() { Object::Initialize(); };
-void MeshView::Finalize() { Object::Finalize(); };
+bool MeshView::isUpdated() const { return false; }
+void MeshView::Update() {}
+void MeshView::Initialize(){};
 
 void MeshView::mesh_block(std::shared_ptr<MeshBlock> m) {
     Finalize();

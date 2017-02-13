@@ -13,23 +13,15 @@
 #include <vector>
 
 #include <simpla/concept/Configurable.h>
-#include <simpla/concept/Object.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
+#include <simpla/engine/Object.h>
 
 #include <simpla/model/Model.h>
 
 namespace simpla {
-namespace model {
-class Model;
-}
-namespace mesh {
-struct MeshBlock;
-struct DataBlock;
-struct MeshView;
-}
 namespace engine {
-struct Patch;
+
 struct AttributeView;
 /**
  * @brief
@@ -110,44 +102,29 @@ struct AttributeView;
       --> (*)
    @enduml
  */
-class Worker : public Object, public concept::Configurable, public concept::Printable {
-    SP_OBJECT_HEAD(Worker, Object)
+class Worker : public concept::Configurable, public concept::Printable {
+    SP_OBJECT_BASE(Worker)
+
    public:
     Worker();
     virtual ~Worker();
+
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    virtual std::shared_ptr<MeshView> create_mesh() = 0;
-    std::shared_ptr<Patch> patch() { return m_patch_; }
-    virtual void Accept(std::shared_ptr<Patch> p = nullptr);
+    virtual void Initialize() = 0;
+    virtual void Process() = 0;
+    bool isUpdated() const;
+    void Update();
+    void Evaluate();
 
-    virtual void Initialize();
-    virtual void PreProcess();
-    virtual void NextTimeStep(Real data_time, Real dt){};
-    virtual void Sync();
-    //    virtual void Process() = 0;
-    virtual void PostProcess();
-    virtual void Finalize();
-    virtual void Release();
+    void SetDomain(DomainView *d) { m_domain_ = d; };
+    void UnsetDomain(DomainView *d) { m_domain_ = nullptr; };
+    DomainView const *GetDomain() const { return m_domain_; };
 
-    virtual void SetPhysicalBoundaryConditions(Real time){};
-
-
-    template <typename TFun>
-    void ForeachAttr(TFun const &fun) {
-        for (auto attr : m_attrs_) { fun(attr); }
-    }
-    virtual simpla::model::Model *model() = 0;
-    virtual simpla::model::Model const *model() const = 0;
-    virtual MeshView *mesh() = 0;
-    virtual MeshView const *mesh() const = 0;
-
-    virtual void Connect(AttributeView *attr) { m_attrs_.insert(attr); };
-    virtual void Disconnect(AttributeView *attr) { m_attrs_.erase(attr); }
    private:
-    std::shared_ptr<Patch> m_patch_;
-    std::set<AttributeView *> m_attrs_;
+    id_type m_current_block_id_ = NULL_ID;
+    std::shared_ptr<Worker> m_next_ = nullptr;
+    DomainView *m_domain_;
 };
-}  // namespace engine {
-
+}  // namespace engine
 }  // namespace simpla
 #endif  // SIMPLA_WORKER_H
