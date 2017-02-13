@@ -58,7 +58,6 @@ void AttributeView::Initialize() {
 }
 
 bool AttributeView::isNull() const { return m_pimpl_->m_data_ == nullptr; }
-MeshView const *AttributeView::mesh_view() const { return m_pimpl_->m_mesh_; }
 const std::shared_ptr<DataBlock> &AttributeView::data_block() const { return m_pimpl_->m_data_; }
 std::shared_ptr<DataBlock> &AttributeView::data_block() { return m_pimpl_->m_data_; }
 

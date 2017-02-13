@@ -55,7 +55,6 @@ struct AttributeView : public concept::Printable {
 
     const std::shared_ptr<DataBlock> &data_block() const;
     std::shared_ptr<DataBlock> &data_block();
-    MeshView const *mesh_view() const;
     bool isUpdated() const;
     virtual void Update();
     bool isNull() const;
@@ -127,10 +126,10 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     }
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return U::Print(os, indent); }
 
-    virtual mesh_type const *mesh() const {
-        static_assert(std::is_base_of<MeshView, mesh_type>::value, "mesh is  not base on MeshVew");
-        return static_cast<mesh_type const *>(mesh_view());
-    };
+//    virtual mesh_type const *mesh() const {
+//        static_assert(std::is_base_of<MeshView, mesh_type>::value, "mesh is  not base on MeshVew");
+//        return static_cast<mesh_type const *>(mesh_view());
+//    };
     virtual value_type *data() { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
     virtual value_type const *data() const { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
 };
