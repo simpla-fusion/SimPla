@@ -6,6 +6,7 @@
 #define SIMPLA_ATTRIBUTEVIEW_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/algebra/all.h>
 #include <simpla/concept/Printable.h>
 #include "AttributeDesc.h"
 #include "DataBlock.h"
@@ -22,13 +23,14 @@ class AttributeViewBundle {
    public:
     AttributeViewBundle(DomainView const *p = nullptr);
     virtual ~AttributeViewBundle();
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
+    id_type current_block_id() const;
     bool isUpdated() const;
     virtual void Update() const;
 
     void SetDomain(DomainView const *d);
     DomainView const *GetDomain() const;
-    id_type current_block_id() const;
 
     void insert(AttributeView *attr);
     void insert(AttributeViewBundle *);
@@ -81,7 +83,7 @@ struct AttributeView : public concept::Printable, public concept::Configurable {
     virtual std::type_index mesh_type_index() const;
     virtual int iform() const;
     virtual int dof() const;
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; };
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual void Initialize();
 
     bool isUpdated() const;
@@ -112,7 +114,8 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     typedef mesh_traits_t<U> mesh_type;
 
    public:
-    AttributeViewAdapter(DomainView *w, std::string const &name_s, std::initializer_list<data::KeyValue> const &param)
+    AttributeViewAdapter(AttributeViewBundle *w, std::string const &name_s,
+                         std::initializer_list<data::KeyValue> const &param)
         : AttributeView(w, name_s, param) {}
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
     AttributeViewAdapter(AttributeViewAdapter const &) = delete;

@@ -3,22 +3,18 @@
 //
 #include "MeshView.h"
 #include <simpla/model/Model.h>
+#include "AttributeView.h"
 #include "DomainView.h"
 namespace simpla {
 namespace engine {
 
 struct MeshView::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
-    DomainView *m_domain_ = nullptr;
 };
-MeshView::MeshView(DomainView *w) : m_pimpl_(new pimpl_s) {}
-
+MeshView::MeshView() : m_pimpl_(new pimpl_s) {}
 MeshView::~MeshView() {}
-
 std::ostream &MeshView::Print(std::ostream &os, int indent) const {
-    os << std::setw(indent + 1) << " "
-       << "MeshView = { ";
-    os << "Type = \"" << getClassName() << "\",";
+    os << std::setw(indent + 1) << "type = \"" << getClassName() << "\",";
     if (m_pimpl_->m_mesh_block_ != nullptr) {
         os << std::endl;
         os << std::setw(indent + 1) << " "
@@ -27,29 +23,20 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
         os << std::setw(indent + 1) << " "
            << "},";
     }
-    os << std::setw(indent + 1) << " "
-       << "}," << std::endl;
 
-    os << std::setw(indent + 1) << " "
-       << "AttributeDesc Description= { ";
-
-    os << std::setw(indent + 1) << " "
-       << "} , " << std::endl;
-
+    os << std::setw(indent + 1) << " attributes = { ";
+    AttributeViewBundle::Print(os, indent);
+    os << "}  ";
     return os;
 };
 
-id_type MeshView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
-bool MeshView::isUpdated() const {
-    return m_pimpl_->m_domain_ == nullptr || m_pimpl_->m_domain_->current_block_id() == current_block_id();
-}
 void MeshView::Update() {
-    if (isUpdated()) { return; }
-    m_pimpl_->m_mesh_block_ = GetDomain()->mesh_block();
+    if (AttributeViewBundle::isUpdated()) { return; }
+    m_pimpl_->m_mesh_block_ = AttributeViewBundle::GetDomain()->mesh_block();
     AttributeViewBundle::Update();
     Initialize();
 }
-void MeshView::Initialize(){};
+std::shared_ptr<MeshBlock> const &MeshView::mesh_block() const { return m_pimpl_->m_mesh_block_; }
 
 }  // {namespace mesh
 }  // namespace simpla

@@ -29,30 +29,30 @@ class DomainView : public concept::Printable {
     void Dispatch(Patch const &d);
     bool isUpdated() const;
     virtual void Update();
-    virtual void Evaluate();
+    //    virtual void Evaluate();
 
     void SetMesh(std::shared_ptr<MeshView> const &m);
     std::shared_ptr<MeshView> const &GetMesh() const;
 
-    void AppendWorker(std::shared_ptr<Worker> w);
-    void PrependWorker(std::shared_ptr<Worker> w);
-    void RemoveWorker(std::shared_ptr<Worker> w);
+    void AppendWorker(std::shared_ptr<Worker> const &w);
+    void PrependWorker(std::shared_ptr<Worker> const &w);
+    void RemoveWorker(std::shared_ptr<Worker> const &w);
 
     template <typename U>
     void SetMesh(std::shared_ptr<U> const &m = nullptr, ENABLE_IF((std::is_base_of<MeshView, U>::value))) {
         SetMesh(std::dynamic_pointer_cast<MeshView>(std::make_shared<U>()));
     };
     template <typename U>
-    void AppendWorker(std::shared_ptr<U> w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
+    void AppendWorker(std::shared_ptr<U> const &w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
         AppendWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
     };
     template <typename U>
-    void PrependWorker(std::shared_ptr<U> w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
+    void PrependWorker(std::shared_ptr<U> const &w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
         PrependWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
     };
     std::shared_ptr<MeshBlock> const &mesh_block() const;
     std::shared_ptr<DataBlock> data_block(id_type) const;
-    void data_block(id_type, std::shared_ptr<DataBlock>);
+    void data_block(id_type, std::shared_ptr<DataBlock> const &);
 
    private:
     struct pimpl_s;

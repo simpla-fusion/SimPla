@@ -6,13 +6,11 @@
 #define SIMPLA_GEOMETRY_H
 
 #include <simpla/concept/Printable.h>
-#include <simpla/mesh/MeshBlock.h>
 #include "AttributeView.h"
-#include "MeshBlock.h"
 #include "Object.h"
 namespace simpla {
 namespace engine {
-class DomainView;
+class MeshBlock;
 /**
  *  Define:
  *   A bundle is a triple \f$(E, p, B)\f$ where \f$E\f$, \f$B\f$ are sets and \f$p:E \rightarrow B\f$ a map
@@ -24,15 +22,12 @@ class DomainView;
 class MeshView : public AttributeViewBundle, public concept::Printable {
    public:
     SP_OBJECT_BASE(MeshView);
-    MeshView(DomainView *w = nullptr);
+    MeshView();
     virtual ~MeshView();
-    virtual std::ostream &Print(std::ostream &os, int indent) const;
-
-    //    virtual std::shared_ptr<MeshBlock> const &mesh_block() const;
-    id_type current_block_id() const;
-    bool isUpdated() const;
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
+    virtual void Initialize() = 0;
+    virtual std::shared_ptr<MeshBlock> const &mesh_block() const;
     void Update();
-    virtual void Initialize();
 
     //    template <typename... Args>
     //    Range<MeshEntityId> range(Args &&... args) const {
@@ -75,12 +70,12 @@ class MeshView : public AttributeViewBundle, public concept::Printable {
 template <typename M>
 class MeshAdapter : public MeshView, public M {
    public:
-    MeshAdapter(DomainView *w = nullptr) : engine::MeshView(w){};
+    MeshAdapter(){};
     template <typename... Args>
-    explicit MeshAdapter(Args &&... args) : M(std::forward<Args>(args)...) {}
+    explicit MeshAdapter(Args &&... args) : MeshView(), M(std::forward<Args>(args)...) {}
     ~MeshAdapter() {}
 
-    std::shared_ptr<mesh::MeshBlock> mesh_block() const final { return MeshView::mesh_block(); }
+    std::shared_ptr<MeshBlock> const &mesh_block() const final { return MeshView::mesh_block(); }
     void Initialize() final { M::Initialize(); };
 };
 }  // namespace engine

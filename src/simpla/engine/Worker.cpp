@@ -20,20 +20,10 @@ std::shared_ptr<Worker> const &Worker::next() const { return m_pimpl_->m_next_; 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
     //       << " [" << getClassName() << " : " << name() << "]" << std::endl;
-
-    os << std::setw(indent + 1) << " "
-       << "Config = {" << db << "}" << std::endl;
-
-    os << std::setw(indent + 1) << " "
-       << "MeshView = " << std::endl
-       << std::setw(indent + 1) << " "
-       << "{ " << std::endl;
-
-    //    mesh()->Print(os, indent + 1);
-
-    os << std::setw(indent + 1) << " "
-       << "}," << std::endl;
-
+    os << std::setw(indent + 1) << "  type = \"" << getClassName() << "\", config = {" << db << "},";
+    os << std::setw(indent + 1) << " attributes = { ";
+    AttributeViewBundle::Print(os, indent);
+    os << "  } , ";
     return os;
 }
 
@@ -85,7 +75,6 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
  * deactivate Worker
  * @enduml
  */
-
 
 void Worker::Update() {
     if (isUpdated()) { return; }

@@ -21,7 +21,7 @@
 
 namespace simpla {
 namespace engine {
-
+struct AttributeViewBundle;
 struct AttributeView;
 /**
  * @brief
@@ -109,17 +109,14 @@ class Worker : public AttributeViewBundle, public concept::Configurable, public 
     Worker();
     virtual ~Worker();
     std::shared_ptr<Worker> &next();
-    std::shared_ptr<Worker> const &Worker::next() const;
+    std::shared_ptr<Worker> const &next() const;
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual void Initialize() = 0;
     virtual void Process() = 0;
 
-    using AttibuteViewBundle::isUpdate;
-
     void Update();
     void Evaluate();
-
 
    private:
     struct pimpl_s;

@@ -19,17 +19,23 @@ struct AttributeViewBundle::pimpl_s {
 };
 AttributeViewBundle::AttributeViewBundle(DomainView const *d) : m_pimpl_(new pimpl_s) { SetDomain(d); }
 AttributeViewBundle::~AttributeViewBundle() {}
+std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
+    for (AttributeView *attr : m_pimpl_->m_attr_views_) {
+        attr->Print(os, indent + 1);
+        os << " ,";
+    }
+    return os;
+}
+
 void AttributeViewBundle::insert(AttributeView *attr) { m_pimpl_->m_attr_views_.insert(attr); }
 void AttributeViewBundle::erase(AttributeView *attr) { m_pimpl_->m_attr_views_.erase(attr); }
 void AttributeViewBundle::insert(AttributeViewBundle *attr_bundle) {
     m_pimpl_->m_attr_views_.insert(attr_bundle->m_pimpl_->m_attr_views_.begin(),
                                    attr_bundle->m_pimpl_->m_attr_views_.end());
 }
-
+id_type AttributeViewBundle::current_block_id() const { return m_pimpl_->m_current_block_id_; }
 bool AttributeViewBundle::isUpdated() const {
-    return m_pimpl_->m_domain_ != nullptr &&                                            //
-           m_pimpl_->m_domain_->current_block_id() == m_pimpl_->m_current_block_id_ &&  //
-           m_pimpl_->m_current_block_id_ != NULL_ID;
+    return GetDomain() == nullptr || GetDomain()->current_block_id() == current_block_id();
 }
 void AttributeViewBundle::Update() const {
     if (isUpdated()) { return; }
@@ -46,7 +52,6 @@ void AttributeViewBundle::Update() const {
 }
 void AttributeViewBundle::SetDomain(DomainView const *d) { m_pimpl_->m_domain_ = d; };
 DomainView const *AttributeViewBundle::GetDomain() const { return m_pimpl_->m_domain_; }
-id_type AttributeViewBundle::current_block_id() const { return m_pimpl_->m_current_block_id_; }
 
 void AttributeViewBundle::for_each(std::function<void(AttributeView *)> const &fun) const {
     for (auto &attr : m_pimpl_->m_attr_views_) { fun(attr); }
@@ -77,7 +82,7 @@ AttributeView::AttributeView(AttributeViewBundle *b, std::string const &name_s,
     m_pimpl_->m_bundle_ = b;
 };
 AttributeView::~AttributeView() {
-    if (m_pimpl_->m_domain_ != nullptr) { m_pimpl_->m_bundle_->erase(this); }
+    if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_bundle_->erase(this); }
 }
 std::type_index AttributeView::value_type_index() const { return std::type_index(typeid(Real)); }
 std::type_index AttributeView::mesh_type_index() const { return std::type_index(typeid(MeshView)); }
@@ -103,6 +108,7 @@ void AttributeView::Update() {
     Initialize();
     m_pimpl_->m_current_block_id_ = m_pimpl_->m_domain_->current_block_id();
 }
+
 void AttributeView::Initialize() {
     if (m_pimpl_->m_domain_ != nullptr) {
         ASSERT(m_pimpl_->m_desc_ != nullptr);
@@ -114,6 +120,11 @@ void AttributeView::Initialize() {
 bool AttributeView::isNull() const { return m_pimpl_->m_data_ == nullptr; }
 const std::shared_ptr<DataBlock> &AttributeView::data_block() const { return m_pimpl_->m_data_; }
 std::shared_ptr<DataBlock> &AttributeView::data_block() { return m_pimpl_->m_data_; }
+
+std::ostream &AttributeView::Print(std::ostream &os, int indent) const {
+    os << std::setw(indent + 1) << " " << m_pimpl_->m_desc_->name();
+    return os;
+};
 
 }  //{ namespace engine
 }  // namespace simpla
