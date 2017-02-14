@@ -6,11 +6,7 @@
 #define SIMPLA_ATTRIBUTEVIEW_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/Array.h>
-#include <simpla/algebra/all.h>
-#include <simpla/concept/Configurable.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/concept/Serializable.h>
 #include "AttributeDesc.h"
 #include "DataBlock.h"
 #include "Object.h"
@@ -20,6 +16,29 @@ class DomainView;
 class MeshView;
 class DataBlock;
 class AttributeDesc;
+class AttributeView;
+
+class AttributeViewBundle {
+   public:
+    AttributeViewBundle(DomainView const *p = nullptr);
+    virtual ~AttributeViewBundle();
+
+    bool isUpdated() const;
+    virtual void Update() const;
+
+    void SetDomain(DomainView const *d);
+    DomainView const *GetDomain() const;
+    id_type current_block_id() const;
+
+    void insert(AttributeView *attr);
+    void insert(AttributeViewBundle *);
+    void erase(AttributeView *attr);
+    void for_each(std::function<void(AttributeView *)> const &) const;
+
+   private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
+};
 /**
  * @startuml
  * title Life cycle
@@ -40,29 +59,42 @@ class AttributeDesc;
  * deactivate AttributeView
  * @enduml
  */
-struct AttributeView : public concept::Printable {
+struct AttributeView : public concept::Printable, public concept::Configurable {
    public:
     SP_OBJECT_BASE(AttributeView);
 
-    AttributeView(DomainView *w = nullptr, AttributeDesc const *desc = nullptr);
+    AttributeView(std::string const &name_s = "");
+    AttributeView(std::string const &name_s, std::initializer_list<data::KeyValue> const &param);
+    AttributeView(std::shared_ptr<AttributeDesc> const &desc);
+    AttributeView(AttributeViewBundle *b, std::string const &name_s,
+                  std::initializer_list<data::KeyValue> const &param);
+
+    template <typename... Args>
+    AttributeView(AttributeViewBundle *b, Args &&... args) : AttributeView(std::forward<Args>(args)...) {
+        b->insert(this);
+    };
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
 
+    virtual std::type_index value_type_index() const;
+    virtual std::type_index mesh_type_index() const;
+    virtual int iform() const;
+    virtual int dof() const;
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; };
     virtual void Initialize();
-    virtual AttributeDesc const &description() const;
 
-    const std::shared_ptr<DataBlock> &data_block() const;
-    std::shared_ptr<DataBlock> &data_block();
     bool isUpdated() const;
-    virtual void Update();
+    void Update();
     bool isNull() const;
     bool empty() const { return isNull(); };
 
-    void SetDomain(DomainView *d);
+    void SetDomain(DomainView const *d = nullptr);
     DomainView const *GetDomain() const;
-    void UnsetDomain();
+
+    AttributeDesc const &description() const;
+    const std::shared_ptr<DataBlock> &data_block() const;
+    std::shared_ptr<DataBlock> &data_block();
 
    private:
     struct pimpl_s;
@@ -77,28 +109,21 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
     CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshView)
     typedef algebra::traits::value_type_t<U> value_type;
-    static constexpr int iform = algebra::traits::iform<U>::value;
-    static constexpr int dof = algebra::traits::dof<U>::value;
     typedef mesh_traits_t<U> mesh_type;
-    std::shared_ptr<AttributeDesc> m_desc_;
 
    public:
-    template <typename... Args>
-    explicit AttributeViewAdapter(Args &&... args)
-        : m_desc_(AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)) {}
-    explicit AttributeViewAdapter(std::initializer_list<data::KeyValue> const &param)
-        : m_desc_(AttributeDesc::create<value_type, iform, dof>(param)) {}
-    template <typename... Args>
-    AttributeViewAdapter(DomainView *w, Args &&... args) : AttributeViewAdapter(std::forward<Args>(args)...) {
-        SetDomain(w);
-    }
-
+    AttributeViewAdapter(DomainView *w, std::string const &name_s, std::initializer_list<data::KeyValue> const &param)
+        : AttributeView(w, name_s, param) {}
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
     AttributeViewAdapter(AttributeViewAdapter const &) = delete;
     virtual ~AttributeViewAdapter() {}
-    virtual AttributeDesc const &description() const { return *m_desc_; }
+    std::ostream &Print(std::ostream &os, int indent = 0) const final { return U::Print(os, indent); }
+    std::type_index value_type_index() const final { return std::type_index(typeid(value_type)); }
+    std::type_index mesh_type_index() const final { return std::type_index(typeid(mesh_type)); }
+    int iform() const final { return algebra::traits::iform<U>::value; };
+    int dof() const final { return algebra::traits::dof<U>::value; }
 
-    virtual std::shared_ptr<DataBlock> CreateDataBlock() const {
+    std::shared_ptr<DataBlock> CreateDataBlock() const {
         std::shared_ptr<DataBlock> p = AttributeView::data_block();
 
         if (p == nullptr) {
@@ -114,24 +139,10 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
         }
         return p;
     };
-
     using U::operator=;
-    virtual void Update() {
-        AttributeView::Update();
-        U::Update();
-    }
-    template <typename TM>
-    static std::shared_ptr<this_type> make_shared(TM *c, std::initializer_list<data::KeyValue> const &param) {
-        return std::make_shared<this_type>(c, param);
-    }
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return U::Print(os, indent); }
-
-//    virtual mesh_type const *mesh() const {
-//        static_assert(std::is_base_of<MeshView, mesh_type>::value, "mesh is  not base on MeshVew");
-//        return static_cast<mesh_type const *>(mesh_view());
-//    };
-    virtual value_type *data() { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
-    virtual value_type const *data() const { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
+    void Initialize() final { U::Initialize(); }
+    value_type *data() final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
+    value_type const *data() const final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
 };
 
 template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>

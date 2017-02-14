@@ -41,8 +41,6 @@ struct Configurable {
 
     virtual ~Configurable() {}
 
-    std::string name() const { return db.getValue("name", std::string("")); }
-
     template <typename... Args>
     void config(Args &&... args) {
         concept::Configurable::db.Parse(std::forward<Args>(args)...);

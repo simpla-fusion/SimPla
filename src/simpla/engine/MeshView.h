@@ -7,6 +7,7 @@
 
 #include <simpla/concept/Printable.h>
 #include <simpla/mesh/MeshBlock.h>
+#include "AttributeView.h"
 #include "MeshBlock.h"
 #include "Object.h"
 namespace simpla {
@@ -20,24 +21,17 @@ class DomainView;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshView : public concept::Printable {
+class MeshView : public AttributeViewBundle, public concept::Printable {
    public:
     SP_OBJECT_BASE(MeshView);
     MeshView(DomainView *w = nullptr);
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
-    void SetDomain(DomainView *d);
-    DomainView const *GetDomain() const;
-    void UnsetDomain();
-
-    void Dispatch(std::shared_ptr<MeshBlock> const &);
-    virtual std::shared_ptr<MeshBlock> const &mesh_block() const;
-
+    //    virtual std::shared_ptr<MeshBlock> const &mesh_block() const;
     id_type current_block_id() const;
     bool isUpdated() const;
     void Update();
-
     virtual void Initialize();
 
     //    template <typename... Args>

@@ -10,7 +10,7 @@
 #include <simpla/mpl/macro.h>
 #include <memory>
 #include <set>
-
+#include "AttributeView.h"
 namespace simpla {
 namespace engine {
 class Domain;
@@ -23,20 +23,16 @@ class DomainView : public concept::Printable {
    public:
     DomainView();
     virtual ~DomainView();
-
     virtual std::ostream &Print(std::ostream &os, int indent) const;
-    void Dispatch(Patch const &d);
+
     id_type current_block_id() const;
+    void Dispatch(Patch const &d);
     bool isUpdated() const;
     virtual void Update();
     virtual void Evaluate();
 
     void SetMesh(std::shared_ptr<MeshView> const &m);
-    void UnsetMesh();
     std::shared_ptr<MeshView> const &GetMesh() const;
-
-    void AddAttribute(AttributeView *attr);
-    void RemoveAttribute(AttributeView *attr);
 
     void AppendWorker(std::shared_ptr<Worker> w);
     void PrependWorker(std::shared_ptr<Worker> w);
@@ -54,7 +50,7 @@ class DomainView : public concept::Printable {
     void PrependWorker(std::shared_ptr<U> w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
         PrependWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
     };
-
+    std::shared_ptr<MeshBlock> const &mesh_block() const;
     std::shared_ptr<DataBlock> data_block(id_type) const;
     void data_block(id_type, std::shared_ptr<DataBlock>);
 

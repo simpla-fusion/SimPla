@@ -9,26 +9,20 @@
 using namespace simpla::engine;
 using namespace simpla::data;
 
-struct AttrData : public AttributeView {
-    template <typename... Args>
-    AttrData(DomainView* d, Args&&... args) : AttributeView(d, std::forward<Args>(args)...) {}
-    AttrData(DomainView* d, std::initializer_list<simpla::data::KeyValue> const& param) : AttributeView(d) {
-        description().db.insert(param);
-    }
-
-    ~AttrData() {}
-    AttributeDesc& description() { return m_desc_; }
-    AttributeDesc const& description() const { return m_desc_; }
-    AttributeDesc m_desc_;
-};
+// struct AttrData : public AttributeView {
+//    template <typename... Args>
+//    AttrData(Args&&... args) : AttributeView(std::forward<Args>(args)...) {}
+//    AttrData(DomainView* d, std::initializer_list<simpla::data::KeyValue> const& param) : AttributeView(d, param) {}
+//    ~AttrData() {}
+//};
 struct Foo : public DomainView {
-    AttrData F{this, {"name"_ = "rho0", "CHECK"}};
-    AttrData EF{this, {"name"_ = "E", "CHECK"}};
+    AttributeView F{this, "rho0", {"CHECK"_ = true}};
+    AttributeView EF{this, "E", {"CHECK"_ = false}};
 };
 int main(int argc, char** argv) {
     Foo domain;
 
     domain.F.Update();
     std::cout << domain << std::endl;
-    std::cout << domain.F.description() << std::endl;
+    std::cout << domain.F.description().name() << " = " << domain.F.db << std::endl;
 }

@@ -3,6 +3,7 @@
 //
 #include "DomainView.h"
 #include <simpla/SIMPLA_config.h>
+#include <set>
 #include "AttributeView.h"
 #include "MeshView.h"
 #include "Object.h"
@@ -12,9 +13,9 @@ namespace simpla {
 namespace engine {
 struct DomainView::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
+    std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<MeshView> m_mesh_;
     std::shared_ptr<Worker> m_worker_;
-    std::set<AttributeView *> m_attrs_;
 };
 DomainView::DomainView() : m_pimpl_(new pimpl_s) {}
 DomainView::~DomainView() {}
@@ -92,21 +93,21 @@ DomainView::~DomainView() {}
  */
 void DomainView::Dispatch(Patch const &d) {
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    m_pimpl_->m_mesh_->Dispatch(d.mesh_block());
+    m_pimpl_->m_mesh_block_ = d.mesh_block();
 };
 id_type DomainView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
 
 bool DomainView::isUpdated() const {
-    return m_pimpl_->m_mesh_ != nullptr && m_pimpl_->m_mesh_->current_block_id() == m_pimpl_->m_current_block_id_ &&
-           m_pimpl_->m_current_block_id_ != NULL_ID;
+    return m_pimpl_->m_mesh_ != nullptr && m_pimpl_->m_mesh_->current_block_id() == current_block_id() &&
+           current_block_id() != NULL_ID;
 }
 void DomainView::Update() {
-    if (!isUpdated()) {
-        m_pimpl_->m_mesh_->Update();
-        for (auto &attr : m_pimpl_->m_attrs_) { attr->Update(); }
-        m_pimpl_->m_worker_->Update();
-        m_pimpl_->m_current_block_id_ = m_pimpl_->m_mesh_->current_block_id();
-    }
+    if (isUpdated()) { return; }
+    m_pimpl_->m_mesh_->SetDomain(this);
+    m_pimpl_->m_mesh_->Update();
+    m_pimpl_->m_worker_->Update();
+    m_pimpl_->m_worker_->SetDomain(this);
+    m_pimpl_->m_current_block_id_ = m_pimpl_->m_mesh_->current_block_id();
 }
 
 void DomainView::Evaluate() {
@@ -114,9 +115,7 @@ void DomainView::Evaluate() {
 }
 
 void DomainView::SetMesh(std::shared_ptr<MeshView> const &m) { m_pimpl_->m_mesh_ = m; };
-void DomainView::UnsetMesh() { m_pimpl_->m_mesh_ = nullptr; };
 std::shared_ptr<MeshView> const &DomainView::GetMesh() const { return m_pimpl_->m_mesh_; }
-
 void DomainView::AppendWorker(std::shared_ptr<Worker> w) {
     if (w == nullptr) { return; }
 };
@@ -127,21 +126,13 @@ void DomainView::RemoveWorker(std::shared_ptr<Worker> w) {
     if (w == nullptr) { return; }
 };
 
-void DomainView::AddAttribute(AttributeView *attr) {
-    //    attr->AddAttribute(this);
-    m_pimpl_->m_attrs_.insert(attr);
-};
-void DomainView::RemoveAttribute(AttributeView *attr) {
-    //    attr->RemoveAttribute(this);
-    m_pimpl_->m_attrs_.erase(attr);
-}
-
+std::shared_ptr<MeshBlock> const &DomainView : mesh_block() const { return m_pimpl_->m_mesh_block_; };
 std::shared_ptr<DataBlock> DomainView::data_block(id_type) const {}
-
 void DomainView::data_block(id_type, std::shared_ptr<DataBlock>) {}
-
 std::ostream &DomainView::Print(std::ostream &os, int indent) const {
-    for (auto const &attr : m_pimpl_->m_attrs_) { os << attr->description().db << " , "; }
+    for (auto const &attr : AttributeViewBundle::attrs()) {
+        os << attr->description().name() << " = " << attr->db << " , " << std::endl;
+    }
     os << std::endl;
     return os;
 };

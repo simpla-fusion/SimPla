@@ -8,14 +8,18 @@
 
 namespace simpla {
 namespace engine {
-
-Worker::Worker() {}
-
+struct Worker::pimpl_s {
+    std::shared_ptr<Worker> m_next_ = nullptr;
+    DomainView *m_domain_;
+};
+Worker::Worker() : m_pimpl_(new pimpl_s) {}
 Worker::~Worker(){};
+std::shared_ptr<Worker> &Worker::next() { return m_pimpl_->m_next_; }
+std::shared_ptr<Worker> const &Worker::next() const { return m_pimpl_->m_next_; }
 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
-    os << std::setw(indent + 1) << " "
-       << " [" << getClassName() << " : " << name() << "]" << std::endl;
+    //    os << std::setw(indent + 1) << " "
+    //       << " [" << getClassName() << " : " << name() << "]" << std::endl;
 
     os << std::setw(indent + 1) << " "
        << "Config = {" << db << "}" << std::endl;
@@ -82,25 +86,18 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
  * @enduml
  */
 
-bool Worker::isUpdated() const {
-    return m_domain_ != nullptr &&                                  //
-           m_domain_->current_block_id() == m_current_block_id_ &&  //
-           m_current_block_id_ != NULL_ID;
-}
+
 void Worker::Update() {
-    if (!isUpdated()) {
-        Initialize();
-        if (m_domain_ != nullptr) {
-            m_current_block_id_ = m_domain_->current_block_id();
-        } else {
-            m_current_block_id_ = NULL_ID;
-        }
-    }
+    if (isUpdated()) { return; }
+    AttributeViewBundle::Update();
+    Initialize();
+
+    if (next() != nullptr) { next()->Update(); }
 }
 void Worker::Evaluate() {
     Update();
     Process();
-    if (m_next_ != nullptr) { m_next_->Evaluate(); }
+    if (next() != nullptr) { next()->Evaluate(); }
 };
 
 //

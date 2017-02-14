@@ -102,28 +102,28 @@ struct AttributeView;
       --> (*)
    @enduml
  */
-class Worker : public concept::Configurable, public concept::Printable {
+class Worker : public AttributeViewBundle, public concept::Configurable, public concept::Printable {
     SP_OBJECT_BASE(Worker)
 
    public:
     Worker();
     virtual ~Worker();
+    std::shared_ptr<Worker> &next();
+    std::shared_ptr<Worker> const &Worker::next() const;
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual void Initialize() = 0;
     virtual void Process() = 0;
-    bool isUpdated() const;
+
+    using AttibuteViewBundle::isUpdate;
+
     void Update();
     void Evaluate();
 
-    void SetDomain(DomainView *d) { m_domain_ = d; };
-    void UnsetDomain(DomainView *d) { m_domain_ = nullptr; };
-    DomainView const *GetDomain() const { return m_domain_; };
 
    private:
-    id_type m_current_block_id_ = NULL_ID;
-    std::shared_ptr<Worker> m_next_ = nullptr;
-    DomainView *m_domain_;
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace engine
 }  // namespace simpla
