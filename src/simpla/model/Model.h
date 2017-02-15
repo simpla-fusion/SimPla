@@ -51,7 +51,7 @@ class Model : public concept::Printable, public concept::Configurable {
 
    private:
     MeshView *m_mesh_;
-    DataAttribute<int, VERTEX, 9> m_tags_{nullptr, "tags", {"INPUT"_}};
+    DataAttribute<int, VERTEX, 9> m_tags_{"tags", nullptr, {"INPUT"_}};
     int m_g_obj_count_;
     std::map<std::string, int> m_g_name_map_;
     std::multimap<int, std::shared_ptr<geometry::GeoObject>> m_g_obj_;

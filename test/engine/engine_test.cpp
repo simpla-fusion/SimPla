@@ -2,10 +2,12 @@
 // Created by salmon on 17-2-13.
 //
 #include <simpla/data/DataTable.h>
-#include <simpla/engine/AttributeDesc.h>
+
 #include <simpla/engine/AttributeView.h>
 #include <simpla/engine/DomainView.h>
+#include <simpla/engine/Patch.h>
 #include <simpla/engine/Worker.h>
+
 #include <iostream>
 using namespace simpla::engine;
 using namespace simpla::data;
@@ -26,15 +28,23 @@ struct Foo : public Worker {
     SP_OBJECT_HEAD(Foo, Worker)
 
     AttributeView F{this, "rho0", {"CHECK"_ = true}};
-    AttributeView EF{this, "E", {"CHECK"_ = false}};
+    AttributeView E{this, "E", {"CHECK"_ = false}};
 
     void Initialize() final {}
     void Process() final {}
 };
 int main(int argc, char** argv) {
-    DomainView domain;
-    domain.SetMesh<Moo>();
-    domain.AppendWorker<Foo>();
-    domain.Update();
-    std::cout << domain << std::endl;
+
+    Foo foo;
+    std::cout << "F.GUID=" << foo.F.GUID() << std::endl;
+    std::cout << "E.GUID=" << foo.E.GUID() << std::endl;
+
+//    auto patch = std::make_shared<Patch>();
+//    DomainView domain;
+//    domain.SetMesh<Moo>();
+//    domain.AppendWorker<Foo>();
+//    domain.Dispatch(patch);
+//    domain.Update();
+//
+//    std::cout << domain << std::endl;
 }

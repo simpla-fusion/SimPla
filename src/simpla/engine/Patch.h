@@ -17,13 +17,10 @@ class Patch : public Object {
 
    public:
     std::shared_ptr<MeshBlock> const &mesh_block() const { return m_mesh_; }
-
     void mesh_block(std::shared_ptr<MeshBlock> const &m) { m_mesh_ = m; }
-
     std::shared_ptr<DataBlock> data(id_type const &id, std::shared_ptr<DataBlock> const &p = (nullptr)) {
         return m_data_.emplace(id, p).first->second;
     }
-
     std::shared_ptr<DataBlock> data(id_type const &id) const {
         auto it = m_data_.find(id);
         if (it != m_data_.end()) {

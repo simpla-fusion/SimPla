@@ -23,13 +23,13 @@ class DomainView : public concept::Printable {
    public:
     DomainView();
     virtual ~DomainView();
-    virtual std::ostream &Print(std::ostream &os, int indent) const;
+    std::ostream &Print(std::ostream &os, int indent) const final;
 
     id_type current_block_id() const;
-    void Dispatch(Patch const &d);
+    void Dispatch(std::shared_ptr<Patch> const &d);
     bool isUpdated() const;
-    virtual void Update();
-    //    virtual void Evaluate();
+    void Update();
+    void Evaluate();
 
     void SetMesh(std::shared_ptr<MeshView> const &m);
     std::shared_ptr<MeshView> const &GetMesh() const;

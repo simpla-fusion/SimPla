@@ -7,8 +7,9 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
+#include <simpla/concept/Configurable.h>
 #include <simpla/concept/Printable.h>
-#include "AttributeDesc.h"
+
 #include "DataBlock.h"
 #include "Object.h"
 namespace simpla {
@@ -65,27 +66,27 @@ struct AttributeView : public concept::Printable, public concept::Configurable {
    public:
     SP_OBJECT_BASE(AttributeView);
 
-    AttributeView(std::string const &name_s = "");
-    AttributeView(std::string const &name_s, std::initializer_list<data::KeyValue> const &param);
-    AttributeView(std::shared_ptr<AttributeDesc> const &desc);
-    AttributeView(AttributeViewBundle *b, std::string const &name_s,
-                  std::initializer_list<data::KeyValue> const &param);
+    AttributeView(std::string const &name_s = "", std::type_info const &t_id = typeid(Real), int IFORM = VERTEX,
+                  int DOF = 1);
 
-    template <typename... Args>
-    AttributeView(AttributeViewBundle *b, Args &&... args) : AttributeView(std::forward<Args>(args)...) {
-        b->insert(this);
-    };
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
 
-    virtual std::type_index value_type_index() const;
-    virtual std::type_index mesh_type_index() const;
-    virtual int iform() const;
-    virtual int dof() const;
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
+    void Connect(AttributeViewBundle *b);
+    void Disconnect();
+
+    virtual std::type_index mesh_type_index() const;  //!< mesh type
     virtual void Initialize();
 
+    id_type GUID() const;              //!< global unique identifier; hash code of name,value_type_index,iform,dof
+    id_type current_block_id() const;  //!< mesh block indentifier
+    std::string const &name() const;   //!< name of attribute
+    std::type_index value_type_index() const;  //!< value type , default =Real
+    int iform() const;                         //!< iform , default =VERTEX
+    int dof() const;                           //!< dof, default =1
+
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     bool isUpdated() const;
     void Update();
     bool isNull() const;
@@ -94,7 +95,6 @@ struct AttributeView : public concept::Printable, public concept::Configurable {
     void SetDomain(DomainView const *d = nullptr);
     DomainView const *GetDomain() const;
 
-    AttributeDesc const &description() const;
     const std::shared_ptr<DataBlock> &data_block() const;
     std::shared_ptr<DataBlock> &data_block();
 
@@ -114,17 +114,17 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     typedef mesh_traits_t<U> mesh_type;
 
    public:
-    AttributeViewAdapter(AttributeViewBundle *w, std::string const &name_s,
-                         std::initializer_list<data::KeyValue> const &param)
-        : AttributeView(w, name_s, param) {}
+    AttributeViewAdapter(std::string const &name_s, AttributeViewBundle *w,
+                             std::initializer_list<data::KeyValue> const &param)
+        : AttributeView(name_s, typeid(value_type), algebra::traits::iform<U>::value, algebra::traits::dof<U>::value) {
+        AttributeView::Connect(w);
+        AttributeView::db.insert(param);
+    }
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
     AttributeViewAdapter(AttributeViewAdapter const &) = delete;
     virtual ~AttributeViewAdapter() {}
     std::ostream &Print(std::ostream &os, int indent = 0) const final { return U::Print(os, indent); }
-    std::type_index value_type_index() const final { return std::type_index(typeid(value_type)); }
     std::type_index mesh_type_index() const final { return std::type_index(typeid(mesh_type)); }
-    int iform() const final { return algebra::traits::iform<U>::value; };
-    int dof() const final { return algebra::traits::dof<U>::value; }
 
     std::shared_ptr<DataBlock> CreateDataBlock() const {
         std::shared_ptr<DataBlock> p = AttributeView::data_block();
