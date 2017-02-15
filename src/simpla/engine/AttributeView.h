@@ -17,7 +17,6 @@ namespace engine {
 class DomainView;
 class MeshView;
 class DataBlock;
-class AttributeDesc;
 class AttributeView;
 
 class AttributeViewBundle {
@@ -73,6 +72,15 @@ struct AttributeView : public concept::Printable, public concept::Configurable {
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
 
+    void SetUp() {}
+    void SetUp(AttributeViewBundle *first) { Connect(first); };
+    void SetUp(data::KeyValue const &first) { db.insert(first); };
+    template <typename First, typename Second, typename... Args>
+    void SetUp(First first, Second second, Args &&... args) {
+        SetUp(first);
+        SetUp(second, std::forward<Args>(args)...);
+    };
+
     void Connect(AttributeViewBundle *b);
     void Disconnect();
 
@@ -109,49 +117,56 @@ class AttributeViewAdapter;
 template <typename U>
 class AttributeViewAdapter<U> : public AttributeView, public U {
     SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
-    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshView)
+    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, std::nullptr_t)
     typedef algebra::traits::value_type_t<U> value_type;
     typedef mesh_traits_t<U> mesh_type;
 
    public:
-    AttributeViewAdapter(std::string const &name_s, AttributeViewBundle *w,
-                             std::initializer_list<data::KeyValue> const &param)
-        : AttributeView(name_s, typeid(value_type), algebra::traits::iform<U>::value, algebra::traits::dof<U>::value) {
-        AttributeView::Connect(w);
-        AttributeView::db.insert(param);
+    explicit AttributeViewAdapter(std::string const &name_s = "")
+        : AttributeView(name_s, typeid(value_type), algebra::traits::iform<U>::value, algebra::traits::dof<U>::value) {}
+    template <typename... Args>
+    explicit AttributeViewAdapter(std::string const &name_s, Args &&... args) : AttributeView(name_s) {
+        AttributeView::SetUp(std::forward<Args>(args)...);
     }
+
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
     AttributeViewAdapter(AttributeViewAdapter const &) = delete;
     virtual ~AttributeViewAdapter() {}
-    std::ostream &Print(std::ostream &os, int indent = 0) const final { return U::Print(os, indent); }
+    std::ostream &Print(std::ostream &os, int indent = 0) const final {
+        os << AttributeView::name() << " = {";
+        U::Print(os, indent);
+        os << "}";
+        return os;
+    }
     std::type_index mesh_type_index() const final { return std::type_index(typeid(mesh_type)); }
 
-    std::shared_ptr<DataBlock> CreateDataBlock() const {
-        std::shared_ptr<DataBlock> p = AttributeView::data_block();
-
-        if (p == nullptr) {
-            UNIMPLEMENTED;
-            std::shared_ptr<DataBlock> d(nullptr);
-            //        if (d == nullptr) {
-            //            return std::make_shared<DefaultDataBlock<value_type, iform, dof>>(nullptr, U::size());
-            //        } else {
-            //            return std::make_shared<DefaultDataBlock<value_type, iform, dof>>(
-            //                std::shared_ptr<value_type>(static_cast<value_type *>(d), simpla::tags::do_nothing()),
-            //                U::size());
-            //        }
-        }
-        return p;
-    };
+    //    std::shared_ptr<DataBlock> CreateDataBlock() const {
+    //        std::shared_ptr<DataBlock> p = AttributeView::data_block();
+    //
+    //        if (p == nullptr) {
+    //            UNIMPLEMENTED;
+    //            std::shared_ptr<DataBlock> d(nullptr);
+    //            //        if (d == nullptr) {
+    //            //            return std::make_shared<DefaultDataBlock<value_type, iform, dof>>(nullptr, U::size());
+    //            //        } else {
+    //            //            return std::make_shared<DefaultDataBlock<value_type, iform, dof>>(
+    //            //                std::shared_ptr<value_type>(static_cast<value_type *>(d),
+    //            simpla::tags::do_nothing()),
+    //            //                U::size());
+    //            //        }
+    //        }
+    //        return p;
+    //    };
     using U::operator=;
     void Initialize() final { U::Initialize(); }
-    value_type *data() final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
-    value_type const *data() const final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
+    //    value_type *data() final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
+    //    value_type const *data() const final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
 };
 
 template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
 using FieldAttribute = AttributeViewAdapter<Field<TV, TM, IFORM, DOF>>;
 
-template <typename TV, int IFORM = VERTEX, int DOF = 1>
+template <typename TV = Real, int IFORM = VERTEX, int DOF = 1>
 using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 //
 // template <typename TV, int IFORM = VERTEX, int DOF = 1>

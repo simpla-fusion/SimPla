@@ -83,13 +83,8 @@ class DataTable : public DataEntity {
 
    public:
     DataTable();
-    DataTable(std::initializer_list<KeyValue> const&);
-    template <typename U>
-    DataTable(std::string const& key, U const& v) : DataTable() {
-        setValue(key, v);
-    };
-    DataTable(std::string const& key, std::shared_ptr<DataEntity> const& v) : DataTable() { setValue(key, v); };
-    //    DataTable(DataTable const&);
+    DataTable(const std::initializer_list<simpla::data::KeyValue>& c);
+    // DataTable(DataTable const&);
     DataTable(DataTable&&);
     virtual ~DataTable();
 
@@ -99,6 +94,7 @@ class DataTable : public DataEntity {
     virtual bool has(std::string const& key) const;
     virtual void foreach (std::function<void(std::string const& key, DataEntity const&)> const&) const;
     virtual void foreach (std::function<void(std::string const& key, DataEntity&)> const& fun);
+    virtual DataEntity const* find(std::string const& url) const;
 
     template <typename T>
     bool check(std::string const& url, T const& v) const {
@@ -106,33 +102,12 @@ class DataTable : public DataEntity {
         return p != nullptr && p->asLight().equal(v);
     };
 
-    virtual DataEntity const* find(std::string const& url) const;
-    virtual void Parse(){};
-    virtual void Parse(std::string const& str);
-
-    //    template <int N>    void Parse(const char* c) {        Parse(std::string(c));    };
-
     template <typename U>
-    void Parse(std::pair<std::string, U> const& k_v) {
+    void insert(std::pair<std::string, U> const& k_v) {
         setValue(k_v.first, k_v.second);
     };
-
-    template <typename T0, typename T1, typename... Args>
-    void Parse(T0 const& a0, T1 const& a1, Args&&... args) {
-        Parse(a0);
-        Parse(a1, std::forward<Args>(args)...);
-    };
-
     void insert(KeyValue const& k_v) { setValue(k_v.key(), k_v.value()); };
-    void insert(){};
-
-    template <typename... Others>
-    void insert(KeyValue const& k_v, Others&&... others) {
-        setValue(k_v.key(), k_v.value());
-        insert(std::forward<Others>(others)...);
-    };
-
-    void insert(std::initializer_list<KeyValue> const& other);
+    void Parse(std::string const& str);
 
     /**
      *  set entity value to '''url'''

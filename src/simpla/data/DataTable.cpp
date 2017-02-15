@@ -13,8 +13,7 @@ struct DataTable::pimpl_s {
     static const char split_char = '.';
     std::map<std::string, std::shared_ptr<DataEntity> > m_table_;
 
-    std::shared_ptr<DataEntity> insert(DataTable* t, std::string const& url,
-                                       std::shared_ptr<DataEntity> p = nullptr);
+    std::shared_ptr<DataEntity> insert(DataTable* t, std::string const& url, std::shared_ptr<DataEntity> p = nullptr);
 
     DataEntity const* search(DataTable const*, std::string const& url);
 };
@@ -27,9 +26,9 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::insert(DataTable* t, std::string
         size_type pos = url.find(split_char, start_pos);
 
         if (pos != std::string::npos) {
-            auto res = t->m_pimpl_->m_table_.emplace(
-                url.substr(start_pos, pos - start_pos),
-                std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>()));
+            auto res =
+                t->m_pimpl_->m_table_.emplace(url.substr(start_pos, pos - start_pos),
+                                              std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>()));
             if (!res.first->second->isTable()) {
                 p = nullptr;
                 break;
@@ -86,25 +85,19 @@ DataEntity const* DataTable::pimpl_s::search(DataTable const* t, std::string con
 };
 
 DataTable::DataTable() : DataEntity(), m_pimpl_(new pimpl_s){};
-
-DataTable::DataTable(std::initializer_list<KeyValue> const& t) : DataTable() { insert(t); };
-
-// DataTable::DataTable(DataTable const& other) : m_pimpl_(new pimpl_s(other.m_pimpl_)){};
-
 DataTable::DataTable(DataTable&& other) : m_pimpl_(other.m_pimpl_){};
-
-DataTable::~DataTable(){};
-
-void DataTable::insert(std::initializer_list<KeyValue> const& others) {
+DataTable::DataTable(std::initializer_list<KeyValue> const& others) : DataTable() {
     for (auto const& kv : others) { insert(kv); }
 }
+DataTable::~DataTable(){};
+
 std::ostream& print_kv(std::ostream& os, int indent, std::string const& k, DataEntity const& v) {
     if (v.isTable()) { os << std::endl << std::setw(indent + 1) << " "; }
     os << k << " = " << v;
     return os;
 }
 
-std::ostream& DataTable::Print(std::ostream &os, int indent) const {
+std::ostream& DataTable::Print(std::ostream& os, int indent) const {
     if (!DataEntity::isNull()) { DataEntity::Print(os, indent + 1); }
 
     if (!m_pimpl_->m_table_.empty()) {
@@ -131,18 +124,13 @@ bool DataTable::empty() const { return (m_pimpl_ != nullptr) && m_pimpl_->m_tabl
 
 bool DataTable::has(std::string const& url) const { return find(url) != nullptr; };
 
-DataTable* DataTable::CreateTable(std::string const &url) {
-    return &(m_pimpl_->insert(this, url + ".")->asTable());
-}
+DataTable* DataTable::CreateTable(std::string const& url) { return &(m_pimpl_->insert(this, url + ".")->asTable()); }
 
-std::shared_ptr<DataEntity> DataTable::setValue(std::string const &url,
-                                                std::shared_ptr<DataEntity> const &v) {
+std::shared_ptr<DataEntity> DataTable::setValue(std::string const& url, std::shared_ptr<DataEntity> const& v) {
     return m_pimpl_->insert(this, url, v);
 };
 
-std::shared_ptr<DataEntity> DataTable::Get(std::string const &url) {
-    return m_pimpl_->insert(this, url);
-}
+std::shared_ptr<DataEntity> DataTable::Get(std::string const& url) { return m_pimpl_->insert(this, url); }
 
 void DataTable::Parse(std::string const& str) {
     size_type start_pos = 0;
@@ -172,9 +160,7 @@ void DataTable::Parse(std::string const& str) {
     }
 }
 
-DataEntity const* DataTable::find(std::string const& url) const {
-    return m_pimpl_->search(this, url);
-};
+DataEntity const* DataTable::find(std::string const& url) const { return m_pimpl_->search(this, url); };
 
 DataEntity& DataTable::at(std::string const& url) {
     DataEntity* res = const_cast<DataEntity*>(find(url));
@@ -190,8 +176,7 @@ DataEntity const& DataTable::at(std::string const& url) const {
     return *res;
 };
 
-void DataTable::foreach (
-    std::function<void(std::string const&, DataEntity const&)> const& fun) const {
+void DataTable::foreach (std::function<void(std::string const&, DataEntity const&)> const& fun) const {
     for (auto& item : m_pimpl_->m_table_) {
         fun(item.first, *std::dynamic_pointer_cast<const DataEntity>(item.second));
     }

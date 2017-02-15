@@ -9,13 +9,10 @@
 namespace simpla {
 namespace engine {
 struct Worker::pimpl_s {
-    std::shared_ptr<Worker> m_next_ = nullptr;
     DomainView *m_domain_;
 };
 Worker::Worker() : m_pimpl_(new pimpl_s) {}
 Worker::~Worker(){};
-std::shared_ptr<Worker> &Worker::next() { return m_pimpl_->m_next_; }
-std::shared_ptr<Worker> const &Worker::next() const { return m_pimpl_->m_next_; }
 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
@@ -80,13 +77,10 @@ void Worker::Update() {
     if (isUpdated()) { return; }
     AttributeViewBundle::Update();
     Initialize();
-
-    if (next() != nullptr) { next()->Update(); }
 }
 void Worker::Evaluate() {
     Update();
     Process();
-    if (next() != nullptr) { next()->Evaluate(); }
 };
 
 //

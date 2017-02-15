@@ -43,7 +43,7 @@ struct Configurable {
 
     template <typename... Args>
     void config(Args &&... args) {
-        concept::Configurable::db.Parse(std::forward<Args>(args)...);
+        concept::Configurable::db.insert(std::forward<Args>(args)...);
     }
 };
 }

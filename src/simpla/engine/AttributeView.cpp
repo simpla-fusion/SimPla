@@ -11,19 +11,17 @@
 
 namespace simpla {
 namespace engine {
+
 struct AttributeViewBundle::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
     DomainView const *m_domain_ = nullptr;
-
     std::set<AttributeView *> m_attr_views_;
 };
+
 AttributeViewBundle::AttributeViewBundle(DomainView const *d) : m_pimpl_(new pimpl_s) { SetDomain(d); }
 AttributeViewBundle::~AttributeViewBundle() {}
 std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
-    for (AttributeView *attr : m_pimpl_->m_attr_views_) {
-        attr->Print(os, indent + 1);
-        os << " ,";
-    }
+    for (AttributeView *attr : m_pimpl_->m_attr_views_) { os << "\"" << attr->name() << "\" ,"; }
     return os;
 }
 
@@ -43,7 +41,6 @@ void AttributeViewBundle::Update() const {
         attr->SetDomain(GetDomain());
         attr->Update();
     }
-
     if (GetDomain() != nullptr) {
         m_pimpl_->m_current_block_id_ = GetDomain()->current_block_id();
     } else {
@@ -78,7 +75,8 @@ id_type GeneratorAttrGUID(std::string const &name_s, std::type_info const &t_id,
     return static_cast<id_type>(std::hash<std::string>{}(str));
 }
 AttributeView::pimpl_s::pimpl_s(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF)
-    : m_name_(name_s),
+    : m_name_(name_s == "" ? ("unnamed_" + std::to_string(reinterpret_cast<size_t>(this)))
+                           : name_s),  // address pointer is used as UUID
       m_t_idx_(t_id),
       m_iform_(IFORM),
       m_dof_(DOF),

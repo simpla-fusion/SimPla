@@ -12,39 +12,26 @@
 using namespace simpla::engine;
 using namespace simpla::data;
 
-// struct AttrData : public AttributeView {
-//    template <typename... Args>
-//    AttrData(Args&&... args) : AttributeView(std::forward<Args>(args)...) {}
-//    AttrData(DomainView* d, std::initializer_list<simpla::data::KeyValue> const& param) : AttributeView(d, param) {}
-//    ~AttrData() {}
-//};
 struct Moo : public MeshView {
     SP_OBJECT_HEAD(Moo, MeshView)
-    AttributeView tags{this, "tags", {"CHECK"_ = true}};
+    DataAttribute<Real, 2, 2> tags0{"tags0"};
+    DataAttribute<Real> tags{"tags", this};
     void Initialize() final {}
 };
 
 struct Foo : public Worker {
     SP_OBJECT_HEAD(Foo, Worker)
-
-    AttributeView F{this, "rho0", {"CHECK"_ = true}};
-    AttributeView E{this, "E", {"CHECK"_ = false}};
-
+    DataAttribute<Real> F{"rho0", this, "CHECK"_ = true};
+    DataAttribute<Real> E{"E", this, "CHECK"_ = false};
     void Initialize() final {}
     void Process() final {}
 };
 int main(int argc, char** argv) {
-
-    Foo foo;
-    std::cout << "F.GUID=" << foo.F.GUID() << std::endl;
-    std::cout << "E.GUID=" << foo.E.GUID() << std::endl;
-
-//    auto patch = std::make_shared<Patch>();
-//    DomainView domain;
-//    domain.SetMesh<Moo>();
-//    domain.AppendWorker<Foo>();
-//    domain.Dispatch(patch);
-//    domain.Update();
-//
-//    std::cout << domain << std::endl;
+    auto patch = std::make_shared<Patch>();
+    DomainView domain;
+    domain.SetMesh<Moo>();
+    domain.AppendWorker<Foo>();
+    domain.Dispatch(patch);
+    domain.Update();
+    std::cout << domain << std::endl;
 }

@@ -12,10 +12,13 @@
 namespace simpla {
 namespace engine {
 struct DomainView::pimpl_s {
+    int m_state_count_ = 0;
+    int m_current_state_count_ = 0;
+    id_type m_current_block_id_ = NULL_ID;
     std::shared_ptr<MeshView> m_mesh_;
-    std::shared_ptr<Worker> m_worker_;
+    std::list<std::shared_ptr<Worker>> m_workers_;
     std::shared_ptr<Patch> m_patch_;
-    std::map<id_type, std::shared_ptr<AttributeDesc>> m_attrs_dict_;
+    //    std::map<id_type, std::shared_ptr<AttributeDesc>> m_attrs_dict_;
 };
 DomainView::DomainView() : m_pimpl_(new pimpl_s) {}
 DomainView::~DomainView() {}
@@ -91,54 +94,51 @@ DomainView::~DomainView() {}
  * deactivate Main
  * @enduml
  */
-void DomainView::Dispatch(std::shared_ptr<Patch> const &p) {
-    m_pimpl_->m_patch_ = p;
-    ASSERT(m_pimpl_->m_mesh_ != nullptr);
-};
-
-id_type DomainView::current_block_id() const {
-    return (m_pimpl_->m_patch_ == nullptr) ? NULL_ID : m_pimpl_->m_patch_->mesh_block()->id();
-}
-
+void DomainView::Dispatch(std::shared_ptr<Patch> const &p) { m_pimpl_->m_patch_ = p; };
+id_type DomainView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
 bool DomainView::isUpdated() const {
-    return (m_pimpl_->m_mesh_ != nullptr && m_pimpl_->m_mesh_->isUpdated()) &&
-           (m_pimpl_->m_worker_ != nullptr && m_pimpl_->m_worker_->isUpdated());
+    return (m_pimpl_->m_current_block_id_ ==
+            ((m_pimpl_->m_patch_ == nullptr) ? NULL_ID : m_pimpl_->m_patch_->mesh_block()->id())) &&
+           (m_pimpl_->m_current_state_count_ == m_pimpl_->m_state_count_);
 }
 void DomainView::Update() {
+    if (m_pimpl_->m_current_state_count_ < m_pimpl_->m_state_count_) {
+        //FIXME: update attr_desc
+        m_pimpl_->m_current_state_count_ = m_pimpl_->m_state_count_;
+    }
     if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<Patch>(); }
     if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->Update(); }
-    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->Update(); }
+    for (auto &item : m_pimpl_->m_workers_) { item->Update(); }
+    m_pimpl_->m_current_block_id_ = m_pimpl_->m_patch_->mesh_block()->id();
 }
 
 void DomainView::Evaluate() {
-    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->Evaluate(); }
+    for (auto &item : m_pimpl_->m_workers_) { item->Evaluate(); }
 }
 
 void DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
     m_pimpl_->m_mesh_ = m;
     m_pimpl_->m_mesh_->SetDomain(this);
+    ++m_pimpl_->m_state_count_;
 };
 std::shared_ptr<MeshView> const &DomainView::GetMesh() const { return m_pimpl_->m_mesh_; }
 void DomainView::AppendWorker(std::shared_ptr<Worker> const &w) {
     if (w == nullptr) { return; }
     w->SetDomain(this);
-    std::shared_ptr<Worker> &p = m_pimpl_->m_worker_;
-    while (p != nullptr) { p = p->next(); }
-    p = w;
+    m_pimpl_->m_workers_.push_back(w);
+    ++m_pimpl_->m_state_count_;
 };
 void DomainView::PrependWorker(std::shared_ptr<Worker> const &w) {
     if (w == nullptr) { return; }
     w->SetDomain(this);
-    w->next() = m_pimpl_->m_worker_;
-    m_pimpl_->m_worker_ = w;
+    m_pimpl_->m_workers_.push_front(w);
+    ++m_pimpl_->m_state_count_;
 };
 void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
-    std::shared_ptr<Worker> &p = m_pimpl_->m_worker_;
-    while (p != nullptr) {
-        if (p != w) { p = p->next(); }
-        p = p->next();
-        break;
-    }
+    UNIMPLEMENTED;
+    ++m_pimpl_->m_state_count_;
+    //    auto it = m_pimpl_->m_workers_.find(w);
+    //    if (it != m_pimpl_->m_workers_.end()) { m_pimpl_->m_workers_.erase(it); }
 };
 
 std::shared_ptr<MeshBlock> const &DomainView::mesh_block() const { return m_pimpl_->m_patch_->mesh_block(); };
@@ -150,9 +150,10 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
         m_pimpl_->m_mesh_->Print(os, indent);
         os << " }, " << std::endl;
     }
-    if (m_pimpl_->m_worker_ != nullptr) {
+
+    if (m_pimpl_->m_workers_.size() > 0) {
         os << " Worker = { ";
-        m_pimpl_->m_worker_->Print(os, indent);
+        for (auto &item : m_pimpl_->m_workers_) { item->Print(os, indent); }
         os << " } " << std::endl;
     }
 

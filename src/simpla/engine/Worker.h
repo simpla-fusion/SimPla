@@ -104,13 +104,9 @@ struct AttributeView;
  */
 class Worker : public AttributeViewBundle, public concept::Configurable, public concept::Printable {
     SP_OBJECT_BASE(Worker)
-
    public:
     Worker();
     virtual ~Worker();
-    std::shared_ptr<Worker> &next();
-    std::shared_ptr<Worker> const &next() const;
-
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual void Initialize() = 0;
     virtual void Process() = 0;
