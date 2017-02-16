@@ -4,7 +4,9 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/nTupleExt.h>
-#include <simpla/mesh/Worker.h>
+#include <simpla/engine/DomainView.h>
+#include <simpla/engine/Manager.h>
+#include <simpla/engine/Worker.h>
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/simulation/TimeIntegrator.h>
@@ -16,20 +18,22 @@ using namespace simpla;
 namespace simpla {
 
 using namespace data;
+using namespace engine;
 
-std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const& str = "");
+std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &str = "");
 
-std::shared_ptr<mesh::Worker> create_worker();
+std::shared_ptr<engine::Worker> create_worker();
 
-std::shared_ptr<mesh::MeshView> create_mesh();
+std::shared_ptr<engine::MeshView> create_mesh();
 }  // namespace simpla
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     logger::set_stdout_level(100);
     GLOBAL_COMM.init(argc, argv);
     // typedef mesh:: CylindricalGeometry mesh_type;
     // typedef AMRTest<mesh_type> work_type;
 
+    DomainView dview;
     auto worker = create_worker();
 
     //    worker->db.setValue("GEqdsk", argv[1]);
@@ -50,9 +54,19 @@ int main(int argc, char** argv) {
 
     worker->Print(std::cout);
 
-    auto bound_box = worker->db.getValue("bound_box", box_type{{1, 0, -1}, {2, PI, 1}});
+    dview.AppendWorker(worker);
 
+    model::Model g_model;
+    model::GEqdsk geqdsk;
+    geqdsk.load(db.getValue("GEqdsk", "geqdsk.gfile"));
+    g_model.AddObject("VACUUM", geqdsk.limiter_gobj());
+    g_model.AddObject("PLASMA", geqdsk.boundary_gobj());
+
+    auto bound_box = worker->db.getValue("bound_box", box_type{{1, 0, -1}, {2, PI, 1}});
     auto integrator = simpla::create_time_integrator();
+
+    Manager manager;
+
     integrator->worker() = worker;
     integrator->db.setValue("name", "EMFluid");
     integrator->db.setValue("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {64, 64, 64}});

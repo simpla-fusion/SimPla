@@ -6,7 +6,7 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/mesh/Atlas.h>
-#include <simpla/mesh/Worker.h>
+#include <simpla/engine/Worker.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 #include <simpla/predefine/CalculusPolicy.h>
@@ -16,14 +16,14 @@
 #include "../../scenario/problem_domain/EMFluid.h"
 
 namespace simpla {
-using namespace mesh;
+using namespace engine;
 // using namespace model;
 
 class EMTokamakWorker;
-std::shared_ptr<mesh::MeshView> create_mesh() { return std::make_shared<mesh::CylindricalGeometry>(); }
+std::shared_ptr<engine::MeshView> create_mesh() { return std::make_shared<mesh::CylindricalGeometry>(); }
 
-std::shared_ptr<mesh::Worker> create_worker() {
-    return std::dynamic_pointer_cast<mesh::Worker>(std::make_shared<EMTokamakWorker>());
+std::shared_ptr<engine::Worker> create_worker() {
+    return std::dynamic_pointer_cast<engine::Worker>(std::make_shared<EMTokamakWorker>());
 }
 
 class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
@@ -39,30 +39,19 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
     virtual void Finalize();
     virtual void Initialize(Real data_time);
     virtual void Finalize(Real data_time);
-
     virtual void NextTimeStep(Real data_time, Real dt);
-
     virtual void SetPhysicalBoundaryConditions(Real data_time);
-
     virtual void SetPhysicalBoundaryConditionE(Real time);
-
     virtual void SetPhysicalBoundaryConditionB(Real time);
 
-    GEqdsk geqdsk;
-
     field_type<VERTEX> psi{this, {"name"_ = "psi"}};
-
     std::function<Vec3(point_type const &, Real)> J_src_fun;
-
     std::function<Vec3(point_type const &, Real)> E_src_fun;
 };
 
 void EMTokamakWorker::Initialize() {
-    if (TryInitialize()) { return; };
     base_type::Initialize();
-
     // first run, only Load configure, m_mesh_=nullptr
-    geqdsk.load(db.getValue("GEqdsk", "geqdsk.gfile"));
 
     db.asTable("Particles").foreach ([&](std::string const &key, data::DataEntity const &item) {
         add_particle(key, item.asTable());
@@ -70,9 +59,7 @@ void EMTokamakWorker::Initialize() {
 
     db.setValue("bound_box", geqdsk.box());
 
-    model()->AddObject("VACUUM", geqdsk.limiter_gobj());
 
-    model()->AddObject("PLASMA", geqdsk.boundary_gobj());
 
 };
 
@@ -81,21 +68,16 @@ void EMTokamakWorker::PostProcess() { base_type::PostProcess(); }
 
 void EMTokamakWorker::Initialize(Real data_time) {
     PreProcess();
-
     rho0.Assign([&](point_type const &x) -> Real { return (geqdsk.in_boundary(x)) ? geqdsk.profile("ne", x) : 0.0; });
-
     psi.Assign([&](point_type const &x) -> Real { return geqdsk.psi(x); });
 
     nTuple<Real, 3> ZERO_V{0, 0, 0};
-
     B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
-
     for (auto &item : particles()) {
         Real ratio = db.getValue("Particles." + item.first + ".ratio", 1.0);
         *item.second->rho = rho0 * ratio;
     }
 
-    TryInitialize();
 }
 void EMTokamakWorker::Finalize() { base_type::Finalize(); }
 void EMTokamakWorker::Finalize(Real data_time) { TryFinalize(); }

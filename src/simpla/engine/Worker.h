@@ -23,6 +23,7 @@ namespace simpla {
 namespace engine {
 struct AttributeViewBundle;
 struct AttributeView;
+
 /**
  * @brief
  *
@@ -110,13 +111,23 @@ class Worker : public AttributeViewBundle, public concept::Configurable, public 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual void Initialize() = 0;
     virtual void Process() = 0;
-
     void Update();
     void Evaluate();
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
+};
+template <typename U>
+struct WorkerAdapter : public Worker, public U {
+    WorkerAdapter() {}
+    virtual ~WorkerAdapter(){};
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const {
+        U::Print(os, indent);
+        return os;
+    }
+    virtual void Initialize() { U::Initialize(); };
+    virtual void Process() { U::Process(); };
 };
 }  // namespace engine
 }  // namespace simpla
