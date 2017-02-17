@@ -127,7 +127,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //
 //    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
 //
-//    virtual int entity_type() const { return IFORM; }
+//    virtual int iform() const { return IFORM; }
 //
 //    virtual int dof() const { return DOF; }
 //
@@ -138,7 +138,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //    virtual std::ostream &Print(std::ostream &os, int indent) const
 //    {
 //        os << " type = \'" << value_type_info().name() << "\' "
-//           << ", entity type = " << static_cast<int>(entity_type())
+//           << ", entity type = " << static_cast<int>(iform())
 //           << ", data_block = {";
 //        data_entity_type::Print(os, indent + 1);
 //        os << "}";
@@ -201,7 +201,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //        index_tuple lower, upper;
 //        lower = data_entity_type::index_lower();
 //        upper = data_entity_type::index_upper();
-//        res.append(MeshEntityIdCoder::make_range(lower, upper, entity_type()));
+//        res.append(MeshEntityIdCoder::make_range(lower, upper, iform()));
 //        return res;
 //    }
 //

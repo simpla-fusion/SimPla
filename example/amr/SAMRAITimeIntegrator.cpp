@@ -11,11 +11,11 @@
 #include <simpla/engine/DataBlock.h>
 #include <simpla/engine/DomainView.h>
 #include <simpla/engine/Patch.h>
+#include <simpla/engine/TimeIntegrator.h>
 #include <simpla/engine/Worker.h>
 #include <simpla/engine/Worker.h>
 #include <simpla/mesh/MeshCommon.h>
 #include <simpla/parallel/MPIComm.h>
-#include <simpla/simulation/TimeIntegrator.h>
 #include <simpla/toolbox/Log.h>
 #include <boost/shared_ptr.hpp>
 #include <cmath>
@@ -79,25 +79,107 @@
 #include <SAMRAI/appu/VisItDataWriter.h>
 #include <SAMRAI/pdat/NodeDoubleLinearTimeInterpolateOp.h>
 #include <SAMRAI/pdat/SideVariable.h>
+#include <simpla/engine/TimeIntegrator.h>
 #include <simpla/physics/Constants.h>
 
 namespace simpla {
-struct SAMRAIWorker;
-struct SAMRAITimeIntegrator;
-using namespace simpla::engine;
+struct SAMRAIPatchDecorator : public engine::Patch {
+   public:
+    SAMRAIPatchDecorator(SAMRAI::hier::Patch &patch, boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
+                         std::map<id_type, engine::AttributeDesc> const &simpla_attrs_,
+                         std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &);
+    virtual ~SAMRAIPatchDecorator();
+    virtual std::shared_ptr<engine::DataBlock> data(id_type const &id,
+                                                    std::shared_ptr<engine::DataBlock> const &p = (nullptr));
+    virtual std::shared_ptr<engine::DataBlock> data(id_type const &id) const;
 
-std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string const &str = "") {
-    auto integrator = std::dynamic_pointer_cast<simulation::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>());
+    SAMRAI::hier::Patch &m_samrai_patch_;
+    boost::shared_ptr<SAMRAI::hier::VariableContext> const &m_ctx_;
+    std::map<id_type, engine::AttributeDesc> const &m_simpla_attrs_;
+    std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &m_samrai_variables_;
+};
+SAMRAIPatchDecorator::SAMRAIPatchDecorator(SAMRAI::hier::Patch &patch,
+                                           boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
+                                           std::map<id_type, engine::AttributeDesc> const &simpla_attrs_,
+                                           std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &var_map)
+    : m_samrai_patch_(patch), m_ctx_(ctx), m_simpla_attrs_(simpla_attrs_), m_samrai_variables_(var_map) {
+    auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
+
+    ASSERT(pgeom != nullptr);
+    const double *dx = pgeom->getDx();
+    const double *xlo = pgeom->getXLower();
+    const double *xhi = pgeom->getXUpper();
+
+    index_type lo[3] = {patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]};
+    index_type hi[3] = {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]};
+
+    std::shared_ptr<simpla::engine::MeshBlock> m = std::make_shared<simpla::engine::MeshBlock>(3, lo, hi, dx, xlo);
+    m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
+                               patch.getBox().getGlobalId().getLocalId().getValue()));
+    this->mesh_block(m);
+};
+SAMRAIPatchDecorator::~SAMRAIPatchDecorator() {}
+
+namespace detail {
+
+template <typename TV>
+std::shared_ptr<engine::DataBlock> create_data_block_t0(engine::AttributeDesc const &desc,
+                                                        boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
+    auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
+    int ndims = p_data->getDim().getValue();
+    int depth = p_data->getDepth();
+    auto outer_lower = p_data->getGhostBox().lower();
+    auto outer_upper = p_data->getGhostBox().upper();
+    auto inner_lower = p_data->getBox().lower();
+    auto inner_upper = p_data->getBox().upper();
+    size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
+                         static_cast<size_type>(outer_upper[1] - outer_lower[1]),
+                         static_cast<size_type>(outer_upper[2] - outer_lower[2]), static_cast<size_type>(desc.dof)};
+    index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
+                        inner_lower[2] - outer_lower[2], 0};
+    index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
+                        inner_upper[2] - outer_lower[2], desc.dof};
+    auto res = std::make_shared<engine::DataBlockAdapter<Array<TV, 4>>>(p_data->getPointer(), dims, lo, hi);
+    res->Initialize();
+    return std::dynamic_pointer_cast<engine::DataBlock>(res);
+};
+
+std::shared_ptr<engine::DataBlock> create_data_block(engine::AttributeDesc const &desc,
+                                                     boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
+    std::shared_ptr<engine::DataBlock> res(nullptr);
+    if (desc.value_type_index == std::type_index(typeid(float))) {
+        res = create_data_block_t0<float>(desc, pd);
+    } else if (desc.value_type_index == std::type_index(typeid(double))) {
+        res = create_data_block_t0<double>(desc, pd);
+    } else if (desc.value_type_index == std::type_index(typeid(int))) {
+        res = create_data_block_t0<int>(desc, pd);
+    }
+    //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
+    //    std::forward<Args>(args)...); }
+    else {
+        RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl;
+    }
+    ASSERT(res != nullptr);
+    return res;
+}
+}  // namespace detail
+std::shared_ptr<engine::DataBlock> SAMRAIPatchDecorator::data(id_type const &id,
+                                                              std::shared_ptr<engine::DataBlock> const &p = (nullptr)) {
+    UNIMPLEMENTED;
+}
+std::shared_ptr<engine::DataBlock> SAMRAIPatchDecorator::data(id_type const &id) const {
+    return simpla::detail::create_data_block(m_simpla_attrs_.at(id),
+                                             m_samrai_patch_.getPatchData(m_samrai_variables_.at(id), m_ctx_));
+}
+
+std::shared_ptr<engine::TimeIntegrator> create_time_integrator(std::string const &str = "") {
+    auto integrator = std::dynamic_pointer_cast<engine::TimeIntegrator>(std::make_shared<SAMRAITimeIntegrator>());
     integrator->db.Parse(str);
-
     /** test.3d.input */
-
     /**
-
     // Refer to geom::CartesianGridGeometry and its base classes for input
     CartesianGeometry{
        domain_boxes	= [ (0,0,0) , (14,9,9) ]
-
        x_lo = 0.e0 , 0.e0 , 0.e0    // lower end of computational domain.
        x_up = 30.e0 , 20.e0 , 20.e0 // upper end of computational domain.
     }
@@ -105,35 +187,28 @@ std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string c
     // Refer to hier::PatchHierarchy for input
     PatchHierarchy {
        max_levels = 3        // Maximum number of levels in hierarchy.
-
     // Note: For the following regridding information, data is required for each
     //       potential in the patch hierarchy; i.e., levels 0 thru max_levels-1.
     //       If more data values than needed are given, only the number required
     //       will be read in.  If fewer values are given, an error will result.
     //
     // Specify coarsening ratios for each level 1 through max_levels-1
-
        ratio_to_coarser {             // vector ratio to next coarser level
           level_1 = 2 , 2 , 2
           level_2 = 2 , 2 , 2
           level_3 = 2 , 2 , 2
        }
-
        largest_patch_size {
           level_0 = 40 , 40 , 40  // largest patch allowed in hierarchy
           // all finer levels will use same values as level_0...
        }
-
        smallest_patch_size {
           level_0 = 9 , 9 , 9
           // all finer levels will use same values as level_0...
        }
-
     }
-
     // Refer to mesh::GriddingAlgorithm for input
-    GriddingAlgorithm{
-    }
+    GriddingAlgorithm{}
 
     // Refer to mesh::BergerRigoutsos for input
     BergerRigoutsos {
@@ -142,13 +217,8 @@ std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string c
        combine_efficiency     = 0.95e0    // chop box if sum of volumes of smaller
                                           // boxes < efficiency * vol of large box
     }
-
     // Refer to mesh::StandardTagAndInitialize for input
-    StandardTagAndInitialize {
-       tagging_method = "GRADIENT_DETECTOR"
-    }
-
-
+    StandardTagAndInitialize {tagging_method = "GRADIENT_DETECTOR"}
     // Refer to algs::HyperbolicLevelIntegrator for input
     HyperbolicLevelIntegrator{
        cfl                       = 0.9e0    // max cfl factor used in problem
@@ -172,7 +242,6 @@ std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string c
      */
 
     integrator->db.setValue("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
-
     integrator->db.setValue("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
     integrator->db.setValue("CartesianGeometry.x_lo", nTuple<double, 3>{1.0, 0.0, -1.0});
     integrator->db.setValue("CartesianGeometry.x_up", nTuple<double, 3>{2, PI, 1});
@@ -217,17 +286,15 @@ std::shared_ptr<simulation::TimeIntegrator> create_time_integrator(std::string c
     integrator->db.CreateTable("LoadBalancer");
     return integrator;
 }
-template <>
-class DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy> : public engine::DomainView,
-                                                                 public SAMRAI::algs::HyperbolicPatchStrategy {
+class SAMRAIDomainViewAdapter : public engine::DomainView, public SAMRAI::algs::HyperbolicPatchStrategy {
    public:
-    DomainViewAdapter(std::shared_ptr<Worker> const &w, const SAMRAI::tbox::Dimension &dim,
-                      boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom);
+    SAMRAIDomainViewAdapter(const SAMRAI::tbox::Dimension &dim,
+                            boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom);
 
     /**
      * The destructor for SAMRAIWorkerHyperbolic does nothing.
      */
-    ~DomainViewAdapter();
+    ~SAMRAIDomainViewAdapter();
 
     ///
     ///  The following routines:
@@ -360,21 +427,17 @@ class DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy> : public engine::
      */
     void registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer);
 
-    /**
-     * Print all data members for SAMRAIWorkerHyperbolic class.
-     */
+    /**Print all data members for SAMRAIWorkerHyperbolic class.     */
     void printClassData(std::ostream &os) const;
 
    private:
-    void move_to(std::shared_ptr<Worker> &w, SAMRAI::hier::Patch &patch);
+    void Dispatch(SAMRAI::hier::Patch &patch);
 
-    std::shared_ptr<Worker> m_worker_;
     /*
      * The object name is used for error/warning reporting and also as a
      * string label for restart database entries.
      */
     std::string m_name_;
-
     const SAMRAI::tbox::Dimension d_dim;
 
     /*
@@ -383,7 +446,6 @@ class DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy> : public engine::
      * variables.
      */
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
-
     boost::shared_ptr<SAMRAI::appu::VisItDataWriter> d_visit_writer = nullptr;
 
     /*
@@ -392,21 +454,15 @@ class DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy> : public engine::
     boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id;
     bool d_use_nonuniform_workload;
-
-    std::map<std::string, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
-
+    std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
     boost::shared_ptr<SAMRAI::pdat::NodeVariable<double>> d_xyz;
-
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 };
 
-template <>
-DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::DomainViewAdapter(
-    std::shared_ptr<Worker> const &w, const SAMRAI::tbox::Dimension &dim,
-    boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom)
+SAMRAIDomainViewAdapter::SAMRAIDomainViewAdapter(const SAMRAI::tbox::Dimension &dim,
+                                                 boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geom)
     : SAMRAI::algs::HyperbolicPatchStrategy(),
-      m_worker_(w),
       d_dim(dim),
       d_grid_geometry(grid_geom),
       d_use_nonuniform_workload(false),
@@ -423,36 +479,37 @@ DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::DomainViewAdapter(
  *************************************************************************
  */
 
-template <>
-DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::~DomainViewAdapter() {}
+SAMRAIDomainViewAdapter::~SAMRAIDomainViewAdapter() {}
+
+void SAMRAIDomainViewAdapter::Dispatch(SAMRAI::hier::Patch &patch) {
+    engine::DomainView::Dispatch(std::dynamic_pointer_cast<engine::Patch>(std::make_shared<SAMRAIPatchDecorator>(
+        patch, getDataContext(), this->GetAttributeDict(), m_samrai_variables_)));
+}
 
 namespace detail {
 template <typename T>
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, engine::AttributeView *attr) {
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, engine::AttributeDesc const &attr) {
     static int var_depth[4] = {1, 3, 3, 1};
-    if (attr->entity_type() <= VOLUME) {
-        SAMRAI::tbox::Dimension d_dim(ndims);
-
-        return boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(
-            d_dim, attr->name(), var_depth[attr->entity_type()] * attr->dof()));
-    } else {
-        UNIMPLEMENTED;
-        return nullptr;
-    }
+    SAMRAI::tbox::Dimension d_dim(ndims);
+    return (attr.iform > VOLUME)
+               ? nullptr
+               : boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(
+                     d_dim, attr.name, var_depth[attr.iform] * attr.dof));
 }
 
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int ndims, engine::AttributeView *item) {
-    if (item->value_type_index() == std::type_index(typeid(float))) {
-        return create_samrai_variable_t<float>(ndims, item);
-    } else if (item->value_type_index() == std::type_index(typeid(double))) {
-        return create_samrai_variable_t<double>(ndims, item);
-    } else if (item->value_type_index() == std::type_index(typeid(int))) {
-        return create_samrai_variable_t<int>(ndims, item);
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int ndims,
+                                                                 engine::AttributeDesc const &desc) {
+    if (desc.value_type_index == std::type_index(typeid(float))) {
+        return create_samrai_variable_t<float>(ndims, desc);
+    } else if (desc.value_type_index == std::type_index(typeid(double))) {
+        return create_samrai_variable_t<double>(ndims, desc);
+    } else if (desc.value_type_index == std::type_index(typeid(int))) {
+        return create_samrai_variable_t<int>(ndims, desc);
     }
     //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
     //    std::forward<Args>(args)...); }
     else {
-        RUNTIME_ERROR << " value type [" << item->value_type_index().name() << "] is not supported!" << std::endl;
+        RUNTIME_ERROR << " value type [" << desc.value_type_index.name() << "] is not supported!" << std::endl;
     }
     return nullptr;
 }
@@ -460,9 +517,8 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int nd
    /**
     * Register conserved variables  and  register plot data with VisIt.
     */
-template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::registerModelVariables(
-    SAMRAI::algs::HyperbolicLevelIntegrator *integrator) {
+
+void SAMRAIDomainViewAdapter::registerModelVariables(SAMRAI::algs::HyperbolicLevelIntegrator *integrator) {
     ASSERT(integrator != nullptr);
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
 
@@ -473,13 +529,12 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::registerModelVari
     }
 
     //**************************************************************
-    m_worker_->ForeachAttr([&](engine::AttributeView *attr) {
-        if (attr == nullptr) { return; }
+    for (auto const &item : GetAttributeDict()) {
+        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, item.second);
+        m_samrai_variables_[item.second.GUID] = var;
 
-        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, attr);
-
-        m_samrai_variables_[attr->name()] = var;
-
+        engine::AttributeDesc const &attr = item.second;
+        data::DataTable &attr_db(attr.GUID());
         //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
         //                "TENSOR"};
         //                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR",
@@ -490,20 +545,20 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::registerModelVari
         *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
         **/
 
-        if (attr->db.check("COORDINATES", true)) {
-            VERBOSE << attr->name() << " is registered as coordinate" << std::endl;
+        if (attr_db.check("COORDINATES", true)) {
+            VERBOSE << attr.name << " is registered as coordinate" << std::endl;
             integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
                                          d_grid_geometry, "", "LINEAR_REFINE");
 
-        } else if (attr->db.check("FLUX", true)) {
+        } else if (attr_db.check("FLUX", true)) {
             integrator->registerVariable(var, d_fluxghosts, SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
                                          d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
 
-        } else if (attr->db.check("INPUT", true)) {
+        } else if (attr_db.check("INPUT", true)) {
             integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
                                          d_grid_geometry, "", "NO_REFINE");
         } else {
-            switch (attr->entity_type()) {
+            switch (attr.iform) {
                 case EDGE:
                 case FACE:
                 //                    integrator->registerVariable(var, d_nghosts,
@@ -518,28 +573,27 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::registerModelVari
                                                  d_grid_geometry, "", "LINEAR_REFINE");
             }
 
-            //            VERBOSE << (attr->name()) << " --  " << visit_variable_type << std::endl;
+            //            VERBOSE << (attr.name()) << " --  " << visit_variable_type << std::endl;
         }
 
         std::string visit_variable_type = "";
-        if ((attr->entity_type() == VERTEX || attr->entity_type() == VOLUME) && attr->dof() == 1) {
+        if ((attr.iform == VERTEX || attr.iform == VOLUME) && attr.dof == 1) {
             visit_variable_type = "SCALAR";
-        } else if (((attr->entity_type() == EDGE || attr->entity_type() == FACE) && attr->dof() == 1) ||
-                   ((attr->entity_type() == VERTEX || attr->entity_type() == VOLUME) && attr->dof() == 3)) {
+        } else if (((attr.iform == EDGE || attr.iform == FACE) && attr.dof == 1) ||
+                   ((attr.iform == VERTEX || attr.iform == VOLUME) && attr.dof == 3)) {
             visit_variable_type = "VECTOR";
-        } else if (((attr->entity_type() == VERTEX || attr->entity_type() == VOLUME) && attr->dof() == 9) ||
-                   ((attr->entity_type() == EDGE || attr->entity_type() == FACE) && attr->dof() == 3)) {
+        } else if (((attr.iform == VERTEX || attr.iform == VOLUME) && attr.dof == 9) ||
+                   ((attr.iform == EDGE || attr.iform == FACE) && attr.dof == 3)) {
             visit_variable_type = "TENSOR";
         } else {
-            WARNING << "Can not register attribute [" << attr->name() << "] to VisIt  writer!" << std::endl;
+            WARNING << "Can not register attribute [" << attr.name << "] to VisIt  writer!" << std::endl;
         }
 
-        if (visit_variable_type != "" && attr->db.check("CHECK", true)) {
+        if (visit_variable_type != "" && attr_db.check("CHECK", true)) {
             d_visit_writer->registerPlotQuantity(
-                attr->name(), visit_variable_type,
-                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+                attr.name, visit_variable_type, vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
 
-        } else if (attr->db.check("COORDINATES", true)) {
+        } else if (attr_db.check("COORDINATES", true)) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
@@ -553,16 +607,13 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::registerModelVari
  */
 
 template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::setupLoadBalancer(
-    SAMRAI::algs::HyperbolicLevelIntegrator *integrator, SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm) {
+void SAMRAIDomainViewAdapter::setupLoadBalancer(SAMRAI::algs::HyperbolicLevelIntegrator *integrator,
+                                                SAMRAI::mesh::GriddingAlgorithm *gridding_algorithm) {
     const SAMRAI::hier::IntVector &zero_vec = SAMRAI::hier::IntVector::getZero(d_dim);
-
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
-
     if (d_use_nonuniform_workload && gridding_algorithm) {
         auto load_balancer =
             boost::dynamic_pointer_cast<SAMRAI::mesh::CascadePartitioner>(gridding_algorithm->getLoadBalanceStrategy());
-
         if (load_balancer) {
             d_workload_variable.reset(new SAMRAI::pdat::CellVariable<double>(d_dim, "workload_variable", 1));
             d_workload_data_id =
@@ -579,136 +630,6 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::setupLoadBalancer
     }
 }
 
-namespace detail {
-
-template <typename TV, int IFORM, int DOF>
-std::shared_ptr<engine::DataBlock> create_data_block_t2(engine::AttributeView const *item,
-                                                        boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
-
-    int ndims = p_data->getDim().getValue();
-
-    int depth = p_data->getDepth();
-
-    auto outer_lower = p_data->getGhostBox().lower();
-    auto outer_upper = p_data->getGhostBox().upper();
-
-    auto inner_lower = p_data->getBox().lower();
-    auto inner_upper = p_data->getBox().upper();
-
-    size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
-                         static_cast<size_type>(outer_upper[1] - outer_lower[1]),
-                         static_cast<size_type>(outer_upper[2] - outer_lower[2]), DOF};
-
-    index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
-                        inner_lower[2] - outer_lower[2], 0};
-
-    index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
-                        inner_upper[2] - outer_lower[2], DOF};
-
-    auto res = std::make_shared<engine::DataBlockAdapter<Array<TV, 4>>>(p_data->getPointer(), dims, lo, hi);
-
-    res->Initialize();
-
-    return std::dynamic_pointer_cast<engine::DataBlock>(res);
-}
-
-template <typename TV, int IFORM>
-std::shared_ptr<engine::DataBlock> create_data_block_t1(engine::AttributeView const *item,
-                                                        boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    std::shared_ptr<engine::DataBlock> res(nullptr);
-
-    switch (item->dof()) {
-        case 1:
-            res = create_data_block_t2<TV, IFORM, 1>(item, pd);
-            break;
-        case 3:
-            res = create_data_block_t2<TV, IFORM, 3>(item, pd);
-            break;
-        case 9:
-            res = create_data_block_t2<TV, IFORM, 9>(item, pd);
-            break;
-        default:
-            UNIMPLEMENTED;
-    }
-    return res;
-};
-
-template <typename TV>
-std::shared_ptr<engine::DataBlock> create_data_block_t0(engine::AttributeView const *item,
-                                                        boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    std::shared_ptr<engine::DataBlock> res(nullptr);
-
-    switch (item->entity_type()) {
-        case VERTEX:
-            res = create_data_block_t1<TV, VERTEX>(item, pd);
-            break;
-        case EDGE:
-            res = create_data_block_t1<TV, EDGE>(item, pd);
-            break;
-        case FACE:
-            res = create_data_block_t1<TV, FACE>(item, pd);
-            break;
-        case VOLUME:
-            res = create_data_block_t1<TV, VOLUME>(item, pd);
-            break;
-        default:
-            RUNTIME_ERROR << " EntityType is not supported!" << std::endl;
-            break;
-    }
-    return res;
-};
-
-std::shared_ptr<engine::DataBlock> create_data_block(engine::AttributeView const *item,
-                                                     boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
-    std::shared_ptr<engine::DataBlock> res(nullptr);
-    if (item->check_value_type<float>()) {
-        res = create_data_block_t0<float>(item, pd);
-    } else if (item->check_value_type<double>()) {
-        res = create_data_block_t0<double>(item, pd);
-    } else if (item->check_value_type<int>()) {
-        res = create_data_block_t0<int>(item, pd);
-    }
-    //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
-    //    std::forward<Args>(args)...); }
-    else {
-        RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl;
-    }
-    ASSERT(res != nullptr);
-    return res;
-}
-}  // namespace detail
-
-template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::move_to(std::shared_ptr<Worker> &w,
-                                                                       SAMRAI::hier::Patch &patch) {
-    auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-
-    ASSERT(pgeom != nullptr);
-    const double *dx = pgeom->getDx();
-    const double *xlo = pgeom->getXLower();
-    const double *xhi = pgeom->getXUpper();
-
-    index_type lo[3] = {patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]};
-    index_type hi[3] = {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]};
-
-    std::shared_ptr<simpla::engine::MeshBlock> m = std::make_shared<simpla::engine::MeshBlock>(3, lo, hi, dx, xlo);
-    m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
-                               patch.getBox().getGlobalId().getLocalId().getValue()));
-    m->Initialize();
-    auto p = std::make_shared<simpla::engine::Patch>();
-
-    p->mesh_block(m);
-
-    w->ForeachAttr([&](simpla::engine::AttributeView *attr) {
-        if (attr == nullptr) { return; }
-
-        p->data(attr->id(), simpla::detail::create_data_block(
-                                attr, patch.getPatchData(m_samrai_variables_.at(attr->name()), getDataContext())));
-    });
-    w->Dispatch(p);
-}
-
 /**
  *
  * Set initial data for solution variables on patch interior.
@@ -719,14 +640,10 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::move_to(std::shar
  * same mesh resolution are sufficient to set data.
  *
  */
-template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::initializeDataOnPatch(SAMRAI::hier::Patch &patch,
-                                                                                     const double data_time,
-                                                                                     const bool initial_time) {
-    if (initial_time) {
-        move_to(m_worker_, patch);
-        m_worker_->Initialize();
-    }
+
+void SAMRAIDomainViewAdapter::initializeDataOnPatch(SAMRAI::hier::Patch &patch, const double data_time,
+                                                    const bool initial_time) {
+    if (initial_time) { Dispatch(patch); }
 
     if (d_use_nonuniform_workload) {
         if (!patch.checkAllocated(d_workload_data_id)) { patch.allocatePatchData(d_workload_data_id); }
@@ -751,12 +668,9 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::initializeDataOnP
  *************************************************************************
  */
 
-template <>
-double DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::computeStableDtOnPatch(SAMRAI::hier::Patch &patch,
-                                                                                        const bool initial_time,
-                                                                                        const double dt_time) {
+double SAMRAIDomainViewAdapter::computeStableDtOnPatch(SAMRAI::hier::Patch &patch, const bool initial_time,
+                                                       const double dt_time) {
     auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
-
     return pgeom->getDx()[0] / 2.0;
 }
 
@@ -770,10 +684,7 @@ double DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::computeStableDt
  *************************************************************************
  */
 
-template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::computeFluxesOnPatch(SAMRAI::hier::Patch &patch,
-                                                                                    const double time,
-                                                                                    const double dt) {}
+void SAMRAIDomainViewAdapter::computeFluxesOnPatch(SAMRAI::hier::Patch &patch, const double time, const double dt) {}
 
 /*
  *************************************************************************
@@ -784,14 +695,10 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::computeFluxesOnPa
  *************************************************************************
  */
 
-template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch,
-                                                                                             const double time,
-                                                                                             const double dt,
-                                                                                             bool at_syncronization) {
-    move_to(m_worker_, patch);
-
-    m_worker_->SetPhysicalBoundaryConditions(time);
+void SAMRAIDomainViewAdapter::conservativeDifferenceOnPatch(SAMRAI::hier::Patch &patch, const double time,
+                                                            const double dt, bool at_syncronization) {
+    Dispatch(patch);
+    //    this->SetPhysicalBoundaryConditions(time);
 }
 
 /*
@@ -802,8 +709,8 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::conservativeDiffe
  *
  *************************************************************************
  */
-template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::tagRichardsonExtrapolationCells(
+
+void SAMRAIDomainViewAdapter::tagRichardsonExtrapolationCells(
     SAMRAI::hier::Patch &patch, const int error_level_number,
     const boost::shared_ptr<SAMRAI::hier::VariableContext> &coarsened_fine,
     const boost::shared_ptr<SAMRAI::hier::VariableContext> &advanced_coarse, const double regrid_time,
@@ -819,17 +726,14 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::tagRichardsonExtr
  *************************************************************************
  */
 
-template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::tagGradientDetectorCells(
-    SAMRAI::hier::Patch &patch, const double regrid_time, const bool initial_error, const int tag_indx,
-    const bool uses_richardson_extrapolation_too) {}
+void SAMRAIDomainViewAdapter::tagGradientDetectorCells(SAMRAI::hier::Patch &patch, const double regrid_time,
+                                                       const bool initial_error, const int tag_indx,
+                                                       const bool uses_richardson_extrapolation_too) {}
 
-template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::setPhysicalBoundaryConditions(
-    SAMRAI::hier::Patch &patch, const double fill_time, const SAMRAI::hier::IntVector &ghost_width_to_fill) {
-    move_to(m_worker_, patch);
-
-    m_worker_->SetPhysicalBoundaryConditions(fill_time);
+void SAMRAIDomainViewAdapter::setPhysicalBoundaryConditions(SAMRAI::hier::Patch &patch, const double fill_time,
+                                                            const SAMRAI::hier::IntVector &ghost_width_to_fill) {
+    Dispatch(patch);
+    //    this->SetPhysicalBoundaryConditions(fill_time);
 }
 
 /*
@@ -841,9 +745,7 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::setPhysicalBounda
  *************************************************************************
  */
 
-template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::registerVisItDataWriter(
-    boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer) {
+void SAMRAIDomainViewAdapter::registerVisItDataWriter(boost::shared_ptr<SAMRAI::appu::VisItDataWriter> viz_writer) {
     TBOX_ASSERT(viz_writer);
     d_visit_writer = viz_writer;
 }
@@ -856,27 +758,20 @@ void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::registerVisItData
  *************************************************************************
  */
 
-template <>
-void DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>::printClassData(std::ostream &os) const {
+void SAMRAIDomainViewAdapter::printClassData(std::ostream &os) const {
     os << "\nSAMRAIWorkerAdapter::printClassData..." << std::endl;
-    os << "SAMRAIWorkerAdapter: this = " << (SAMRAIWorkerAdapter *)this << std::endl;
     os << "m_name_ = " << m_name_ << std::endl;
     os << "d_grid_geometry = " << d_grid_geometry.get() << std::endl;
-
     os << std::endl;
 }
 
-struct SAMRAILevelIntegrator : public SAMRAI::algs::HyperbolicLevelIntegrator {
-    template <typename... Args>
-    SAMRAILevelIntegrator(Args &&... args) : SAMRAI::algs::HyperbolicLevelIntegrator(std::forward<Args>(args)...) {}
-    virtual ~SAMRAILevelIntegrator() {}
-};
+struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
+    typedef engine::TimeIntegrator base_type;
 
-struct SAMRAITimeIntegrator : public simulation::TimeIntegrator {
-    typedef simulation::TimeIntegrator base_type;
+    typedef SAMRAIDomainViewAdapter domain_view_type;
 
    public:
-    SAMRAITimeIntegrator(std::shared_ptr<Worker> const &w = nullptr);
+    SAMRAITimeIntegrator();
     ~SAMRAITimeIntegrator();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual void Load(data::DataTable const &);
@@ -894,10 +789,10 @@ struct SAMRAITimeIntegrator : public simulation::TimeIntegrator {
     Real m_dt_now_ = 10000;
 
     boost::shared_ptr<SAMRAI::tbox::Database> samrai_cfg;
-    boost::shared_ptr<DomainViewAdapter<SAMRAI::algs::HyperbolicPatchStrategy>> patch_worker;
+    boost::shared_ptr<SAMRAIDomainViewAdapter> patch_worker;
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> patch_hierarchy;
-    boost::shared_ptr<SAMRAILevelIntegrator> hyp_level_integrator;
+    boost::shared_ptr<SAMRAI::algs::HyperbolicLevelIntegrator> hyp_level_integrator;
 
     //    boost::shared_ptr<SAMRAI::engine::StandardTagAndInitialize> error_detector;
     //    boost::shared_ptr<SAMRAI::engine::BergerRigoutsos> box_generator;
@@ -918,16 +813,11 @@ struct SAMRAITimeIntegrator : public simulation::TimeIntegrator {
     static constexpr int ndims = 3;
 };
 
-SAMRAITimeIntegrator::SAMRAITimeIntegrator(std::shared_ptr<Worker> const &w) : base_type(w) {
-    /*
-      * Setup SAMRAI::tbox::MPI.
-      */
+SAMRAITimeIntegrator::SAMRAITimeIntegrator() : base_type() {
+    /** Setup SAMRAI::tbox::MPI.      */
     SAMRAI::tbox::SAMRAI_MPI::init(GLOBAL_COMM.comm());
-
     SAMRAI::tbox::SAMRAIManager::initialize();
-    /*
-     * Setup SAMRAI, enable logging, and process command line.
-     */
+    /** Setup SAMRAI, enable logging, and process command line.     */
     SAMRAI::tbox::SAMRAIManager::startup();
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
 }
@@ -953,10 +843,8 @@ void convert_database_r(data::DataEntity const &src, boost::shared_ptr<SAMRAI::t
                         std::string const &key = "") {
     if (src.isTable()) {
         auto sub_db = key == "" ? dest : dest->putDatabase(key);
-
         src.asTable().foreach (
             [&](std::string const &k, data::DataEntity const &v) { convert_database_r(v, sub_db, k); });
-
     } else if (key == "") {
         return;
     } else if (src.isNull()) {
@@ -996,15 +884,9 @@ boost::shared_ptr<SAMRAI::tbox::Database> convert_database(data::DataTable const
 }
 }  // namespace detail{
 void SAMRAITimeIntegrator::Initialize() {
-    if (Object::isInitialized()) { return; }
-    Object::Initialize();
-
     bool use_refined_timestepping = db.getValue("use_refined_timestepping", true);
-
     SAMRAI::tbox::Dimension dim(ndims);
-
     samrai_cfg = simpla::detail::convert_database(db, name());
-
     /**
     * Create major algorithm and data objects which comprise application.
     * Each object will be initialized either from input data or restart
@@ -1028,7 +910,7 @@ void SAMRAITimeIntegrator::Initialize() {
     ASSERT(worker()->isInitialized());
     patch_worker = boost::make_shared<SAMRAIWorkerAdapter>(worker(), dim, grid_geometry);
 
-    hyp_level_integrator = boost::make_shared<SAMRAILevelIntegrator>(
+    hyp_level_integrator = boost::make_shared<SAMRAI::algs::HyperbolicLevelIntegrator>(
         "SAMRAILevelIntegrator", samrai_cfg->getDatabase("HyperbolicLevelIntegrator"), patch_worker.get(),
         use_refined_timestepping);
 
@@ -1088,14 +970,11 @@ void SAMRAITimeIntegrator::Finalize() {
 }
 
 size_type SAMRAITimeIntegrator::NextTimeStep(Real dt) {
-    assert(isValid());
-
     MESSAGE << " Time = " << timeNow() << " Step = " << step() << std::endl;
     Real loop_time = time_integrator->getIntegratorTime();
     Real loop_time_end = loop_time + dt;
 
     dt = std::min(dt, m_dt_now_);
-
     while (loop_time < loop_time_end && dt > 0 && time_integrator->stepsRemaining() > 0) {
         Real dt_new = time_integrator->advanceHierarchy(dt, false);
         loop_time += dt;
@@ -1112,118 +991,6 @@ void SAMRAITimeIntegrator::CheckPoint() {
 }
 
 Real SAMRAITimeIntegrator::timeNow() const { return static_cast<Real>(time_integrator->getIntegratorTime()); }
-
 size_type SAMRAITimeIntegrator::step() const { return static_cast<size_type>(time_integrator->getIntegratorStep()); }
-
 bool SAMRAITimeIntegrator::remainingSteps() const { return time_integrator->stepsRemaining(); }
 }  // namespace simpla
-
-// namespace simpla
-//{
-//
-// namespace detail
-//{
-//
-// template<typename V, size_type IFORM> struct SAMRAITraitsPatch;
-// template<typename V> struct SAMRAITraitsPatch<V, mesh::VERTEX> { typedef
-// SAMRAI::pdat::NodeData<V> type; };
-// template<typename V> struct SAMRAITraitsPatch<V, mesh::EDGE> { typedef SAMRAI::pdat::EdgeData<V>
-// type; };
-// template<typename V> struct SAMRAITraitsPatch<V, mesh::FACE> { typedef SAMRAI::pdat::FaceData<V>
-// type; };
-// template<typename V> struct SAMRAITraitsPatch<V, mesh::VOLUME> { typedef
-// SAMRAI::pdat::CellData<V> type; };
-//
-//
-// template<typename V, typename M, int IFORM>
-// class SAMRAIWrapperPatch
-//        : public SAMRAITraitsPatch<V, IFORM>::type,
-//          public mesh::DataBlockBase<V, M, IFORM>
-//{
-//    typedef typename SAMRAITraitsPatch<V, IFORM>::type samari_base_type;
-//    typedef mesh::DataBlockBase<V, M, IFORM> simpla_base_type;
-// public:
-//    SAMRAIWrapperPatch(std::shared_ptr<M> const &m, size_tuple const &gw)
-//            : samari_base_type(SAMRAI::hier::Box(samraiIndexConvert(std::Get<0>(m->index_box())),
-//                                                 samraiIndexConvert(std::Get<1>(m->index_box())),
-//                                                 SAMRAI::hier::BlockId(0)),
-//                               1, samraiIntVectorConvert(gw)),
-//              simpla_base_type(m->Get()) {}
-//
-//    ~SAMRAIWrapperPatch() {}
-//};
-//
-//
-// template<typename V, int IFORM> struct SAMRAITraitsVariable;
-// template<typename V> struct SAMRAITraitsVariable<V, mesh::VERTEX> { typedef
-// SAMRAI::pdat::NodeVariable<V> type; };
-// template<typename V> struct SAMRAITraitsVariable<V, mesh::EDGE> { typedef
-// SAMRAI::pdat::EdgeVariable<V> type; };
-// template<typename V> struct SAMRAITraitsVariable<V, mesh::FACE> { typedef
-// SAMRAI::pdat::FaceVariable<V> type; };
-// template<typename V> struct SAMRAITraitsVariable<V, mesh::VOLUME> { typedef
-// SAMRAI::pdat::CellVariable<V> type; };
-//
-// template<typename V, typename M, int IFORM>
-// class SAMRAIWrapperAttribute
-//        : public SAMRAITraitsVariable<V, IFORM>::type,
-//          public mesh::AttributeDesc<SAMRAIWrapperPatch<V, M, IFORM> >
-//{
-//    typedef typename SAMRAITraitsVariable<V, IFORM>::type samrai_base_type;
-//    typedef mesh::AttributeDesc<SAMRAIWrapperPatch<V, M, IFORM>> simpla_base_type;
-// public:
-//    template<typename TM>
-//    SAMRAIWrapperAttribute(std::shared_ptr<TM> const &m, std::string const &name) :
-//            samrai_base_type(SAMRAI::tbox::Dimension(M::NDIMS), name, 1), simpla_base_type(m) {}
-//
-//    ~SAMRAIWrapperAttribute() {}
-//};
-//
-//
-// class SAMRAIWrapperAtlas
-//        : public mesh::Atlas,
-//          public SAMRAI::hier::PatchHierarchy
-//{
-//
-//    typedef mesh::Atlas simpla_base_type;
-//    typedef SAMRAI::hier::PatchHierarchy samrai_base_type;
-// public:
-//    SAMRAIWrapperAtlas(std::string const &name)
-//            : samrai_base_type(name,
-//                               boost::shared_ptr<SAMRAI::hier::BaseGridGeometry>(
-//                                       new SAMRAI::geom::CartesianGridGeometry(
-//                                               SAMRAI::tbox::Dimension(3),
-//                                               "CartesianGridGeometry",
-//                                               boost::shared_ptr<SAMRAI::tbox::Database>(nullptr)))
-//    )
-//    {
-//
-//    }
-//
-//    ~SAMRAIWrapperAtlas() {}
-//};
-//
-// std::shared_ptr<mesh::AttributeDesc>
-// create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, size_type
-// const &,
-//                      std::shared_ptr<mesh::Atlas> const &m, std::string const &name)
-//{
-//}
-//
-//
-// std::shared_ptr<mesh::AttributeDesc>
-// create_attribute_impl(std::type_info const &type_info, std::type_info const &mesh_info, size_type
-// const &,
-//                      std::shared_ptr<mesh::MeshBlock> const &m, std::string const &name)
-//{
-//}
-//
-// std::shared_ptr<mesh::HeavyData>
-// create_patch_impl(std::type_info const &type_info, std::type_info const &mesh_info, size_type
-// const &,
-//                  std::shared_ptr<mesh::MeshBlock> const &m)
-//{
-//
-//}
-//}//namespace detail
-//} //namespace simpla

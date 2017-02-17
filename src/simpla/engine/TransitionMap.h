@@ -5,26 +5,26 @@
 #ifndef SIMPLA_TRANSITIONMAP_H
 #define SIMPLA_TRANSITIONMAP_H
 
-#include <type_traits>
-#include <simpla/toolbox/Log.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
 #include <simpla/toolbox/FancyStream.h>
-#include "simpla/mesh/MeshCommon.h"
-#include "simpla/mesh/MeshBlock.h"
+#include <simpla/toolbox/Log.h>
+#include <type_traits>
+#include "MeshBlock.h"
 
-namespace simpla { namespace mesh
-{
-
-
+namespace simpla {
+namespace engine {
+class DomainView;
 class MeshAttributeVisitorBase;
 
-template<typename T> class MeshAttributeVisitor;
+template <typename T>
+class MeshAttributeVisitor;
 
-template<typename ...> struct TransitionMap;
+template <typename...>
+struct TransitionMapView;
 
 /**
- *   TransitionMap: \f$\psi\f$,
+ *   TransitionMapView: \f$\psi\f$,
  *   *Mapping: Two overlapped charts \f$x\in M\f$ and \f$y\in N\f$, and a mapping
  *    \f[
  *       \psi:M\rightarrow N,\quad y=\psi\left(x\right)
@@ -37,28 +37,21 @@ template<typename ...> struct TransitionMap;
  *
  *
  */
-struct TransitionMapBase : public Object
-{
+struct TransitionMap {
+    TransitionMap(){};
+    virtual ~TransitionMap(){};
+    virtual id_type from_id() const = 0;
+    virtual id_type to_id() const = 0;
+    //    virtual point_type map(point_type const &x) const { return x; }
+    //    point_type operator()(point_type const &x) const { return map(x); }
+    //    virtual void push_forward(HeavyData const &src, HeavyData *dest) const =0;
+    //    virtual void pull_back(HeavyData const &src, HeavyData *dest) const =0;
 
-    TransitionMapBase() {};
-
-    virtual  ~TransitionMapBase() {};
-
-    virtual id_type from_id() const =0;
-
-    virtual id_type to_id() const =0;
-//    virtual point_type map(point_type const &x) const { return x; }
-//    point_type operator()(point_type const &x) const { return map(x); }
-//    virtual void push_forward(HeavyData const &src, HeavyData *dest) const =0;
-//    virtual void pull_back(HeavyData const &src, HeavyData *dest) const =0;
-
-
+    virtual void Apply(DomainView const &from, DomainView &to) const = 0;
 };
 
-
-template<typename M, typename N>
-struct TransitionMap<M, N> : public TransitionMapBase
-{
+template <typename M, typename N>
+struct TransitionMapView<M, N> : public TransitionMap {
     typedef M l_mesh_type;
     typedef M r_mesh_type;
 
@@ -71,19 +64,14 @@ struct TransitionMap<M, N> : public TransitionMapBase
 
     virtual id_type to_id() const { return m_dst_->id(); };
 
-    TransitionMap(std::shared_ptr<l_mesh_type> const &left, std::shared_ptr<r_mesh_type> const &right)
-            : m_src_(left), m_dst_(right) {}
-
-
+    TransitionMapView(std::shared_ptr<l_mesh_type> const &left, std::shared_ptr<r_mesh_type> const &right)
+        : m_src_(left), m_dst_(right) {}
 };
 
-
-template<typename TM>
-std::shared_ptr<TransitionMapBase>
-createTransitionMap(std::shared_ptr<TM> const &src, std::shared_ptr<TM> const &dest)
-{
-
+template <typename TM>
+std::shared_ptr<TransitionMap> createTransitionMapView(std::shared_ptr<TM> const &src,
+                                                       std::shared_ptr<TM> const &dest) {}
 }
-}}//namespace simpla { namespace mesh_as
+}  // namespace simpla { namespace mesh_as
 
-#endif //SIMPLA_TRANSITIONMAP_H
+#endif  // SIMPLA_TRANSITIONMAP_H

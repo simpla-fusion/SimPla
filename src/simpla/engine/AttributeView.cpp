@@ -56,36 +56,35 @@ void AttributeViewBundle::for_each(std::function<void(AttributeView *)> const &f
 
 struct AttributeView::pimpl_s {
    public:
-    pimpl_s(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF);
-    ~pimpl_s();
     AttributeViewBundle *m_bundle_ = nullptr;
     DomainView const *m_domain_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
     MeshView const *m_mesh_ = nullptr;
     id_type m_current_block_id_ = NULL_ID;
-    const std::string m_name_;
-    const std::type_index m_t_idx_;
-    const int m_iform_;
-    const int m_dof_;
-    const id_type m_GUID_ = NULL_ID;
+    AttributeDesc m_desc_;
 };
 
 id_type GeneratorAttrGUID(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF) {
     std::string str = name_s + '.' + t_id.name() + '.' + static_cast<char>(IFORM + '0') + static_cast<char>(DOF + '0');
     return static_cast<id_type>(std::hash<std::string>{}(str));
 }
-AttributeView::pimpl_s::pimpl_s(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF)
-    : m_name_(name_s == "" ? ("unnamed_" + std::to_string(reinterpret_cast<size_t>(this)))
-                           : name_s),  // address pointer is used as UUID
-      m_t_idx_(t_id),
-      m_iform_(IFORM),
-      m_dof_(DOF),
-      m_GUID_(GeneratorAttrGUID(name_s, t_id, IFORM, DOF)) {}
-AttributeView::pimpl_s::~pimpl_s() {}
-AttributeView::AttributeView(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF)
-    : m_pimpl_(new pimpl_s(name_s, t_id, IFORM, DOF)) {}
 
+AttributeView::AttributeView(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF)
+    : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_desc_.name = name_s;
+    m_pimpl_->m_desc_.value_type_index = std::type_index(t_id);
+    m_pimpl_->m_desc_.iform = IFORM;
+    m_pimpl_->m_desc_.dof = DOF;
+    m_pimpl_->m_desc_.GUID = GeneratorAttrGUID(name_s, t_id, IFORM, DOF);
+}
+AttributeView::AttributeView(AttributeDesc const &desc) : m_pimpl_(new pimpl_s) { m_pimpl_->m_desc_ = desc; };
 AttributeView::~AttributeView() { Disconnect(); }
+AttributeDesc const &AttributeView::description() const { return m_pimpl_->m_desc_; }
+id_type AttributeView::GUID() const { return m_pimpl_->m_desc_.GUID; };
+std::string const &AttributeView::name() const { return m_pimpl_->m_desc_.name; }
+std::type_index AttributeView::value_type_index() const { return m_pimpl_->m_desc_.value_type_index; }
+int AttributeView::iform() const { return m_pimpl_->m_desc_.iform; }
+int AttributeView::dof() const { return m_pimpl_->m_desc_.dof; }
 
 void AttributeView::Connect(AttributeViewBundle *b) {
     b->insert(this);
@@ -95,11 +94,6 @@ void AttributeView::Disconnect() {
     if (m_pimpl_->m_bundle_ != nullptr) m_pimpl_->m_bundle_->erase(this);
     m_pimpl_->m_bundle_ = nullptr;
 }
-id_type AttributeView::GUID() const { return m_pimpl_->m_GUID_; };
-std::string const &AttributeView::name() const { return m_pimpl_->m_name_; }
-std::type_index AttributeView::value_type_index() const { return m_pimpl_->m_t_idx_; }
-int AttributeView::iform() const { return m_pimpl_->m_iform_; }
-int AttributeView::dof() const { return m_pimpl_->m_dof_; }
 
 std::type_index AttributeView::mesh_type_index() const { return std::type_index(typeid(MeshView)); }
 

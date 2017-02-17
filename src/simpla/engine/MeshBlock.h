@@ -6,7 +6,10 @@
 #define SIMPLA_MESHBLOCK_H
 namespace simpla {
 namespace engine {
-class MeshBlock : public Object, public concept::Printable {};
+class MeshBlock {
+   public:
+    void id(id_type);
+};
 }
 }
 #endif  // SIMPLA_MESHBLOCK_H

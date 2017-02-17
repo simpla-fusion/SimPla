@@ -4,17 +4,14 @@
  */
 
 #include "Atlas.h"
-#include "simpla/engine/TransitionMap.h"
+#include "TransitionMap.h"
 
 //#include "simpla/toolbox/BoxUtility.h"
 
-namespace simpla
-{
-namespace mesh
-{
+namespace simpla {
+namespace engine {
 
-struct Atlas::pimpl_s
-{
+struct Atlas::pimpl_s {
     static constexpr int MAX_NUM_OF_LEVEL = 5;
     typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
     typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
@@ -25,13 +22,11 @@ struct Atlas::pimpl_s
     std::multimap<id_type, id_type> m_coarsen_;
     std::set<id_type> m_layer_[MAX_NUM_OF_LEVEL];
     int m_max_level_ = 0;
-
-
 };
 
-Atlas::Atlas() : m_pimpl_(new pimpl_s) {};
+Atlas::Atlas() : m_pimpl_(new pimpl_s){};
 
-Atlas::~Atlas() {};
+Atlas::~Atlas(){};
 
 size_type Atlas::count(int level) const { return m_pimpl_->m_layer_[level].size(); }
 
@@ -41,38 +36,38 @@ int Atlas::max_level() const { return m_pimpl_->m_max_level_; }
 
 bool Atlas::has(id_type id) const { return m_pimpl_->m_nodes_.find(id) != m_pimpl_->m_nodes_.end(); };
 
-MeshBlock *Atlas::find(id_type id)
-{
+MeshBlock *Atlas::find(id_type id) {
     auto it = m_pimpl_->m_nodes_.find(id);
-    if (it != m_pimpl_->m_nodes_.end()) { return it->second.get(); } else { return nullptr; }
+    if (it != m_pimpl_->m_nodes_.end()) {
+        return it->second.get();
+    } else {
+        return nullptr;
+    }
 }
 
-
-MeshBlock const *Atlas::find(id_type id) const
-{
+MeshBlock const *Atlas::find(id_type id) const {
     auto it = m_pimpl_->m_nodes_.find(id);
-    if (it != m_pimpl_->m_nodes_.end()) { return it->second.get(); } else { return nullptr; }
+    if (it != m_pimpl_->m_nodes_.end()) {
+        return it->second.get();
+    } else {
+        return nullptr;
+    }
 }
 
 MeshBlock *Atlas::at(id_type id) { return (m_pimpl_->m_nodes_.at(id)).get(); };
 
 MeshBlock const *Atlas::at(id_type id) const { return (m_pimpl_->m_nodes_.at(id)).get(); };
 
-MeshBlock const *Atlas::insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint)
-{
+MeshBlock const *Atlas::insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint) {
     m_pimpl_->m_nodes_.emplace(std::make_pair(p_m->id(), p_m));
     return p_m.get();
 };
 
-
-std::ostream &Atlas::Print(std::ostream &os, int indent) const
-{
+std::ostream &Atlas::Print(std::ostream &os, int indent) const {
     os << std::setw(indent) << "*" << concept::Configurable::name() << std::endl;
-    for (auto const &item:m_pimpl_->m_nodes_)
-    {
+    for (auto const &item : m_pimpl_->m_nodes_) {
         os << "|" << std::setw(indent + 5 + item.second->level()) << std::setfill('-') << "> " << std::setfill(' ')
-           << std::setw(10) << std::left << item.first << std::right
-           << " = {";
+           << std::setw(10) << std::left << item.first << std::right << " = {";
         item.second->Print(os, indent + 1);
         os << "}," << std::endl;
     }
@@ -83,7 +78,7 @@ void Atlas::Load(const data::DataTable &) { UNIMPLEMENTED; }
 
 void Atlas::Save(data::DataTable *) const { UNIMPLEMENTED; }
 //
-//void Atlas::Sync(id_type id)
+// void Atlas::Sync(id_type id)
 //{
 //    unlink(id);
 //
@@ -105,7 +100,7 @@ void Atlas::Save(data::DataTable *) const { UNIMPLEMENTED; }
 //    for (auto const &item:m_nodes_) { if (item.first != id) { link(id, item.first); }}
 //}
 //
-//void Atlas::link(id_type i0, id_type i1)
+// void Atlas::link(id_type i0, id_type i1)
 //{
 //    assert(has(i0) && find(i1));
 //    MeshBlock const &m0 = *at(i0);
@@ -147,7 +142,7 @@ void Atlas::Save(data::DataTable *) const { UNIMPLEMENTED; }
 //    return l0 - l1;
 //}
 //
-//void Atlas::unlink(id_type id)
+// void Atlas::unlink(id_type id)
 //{
 //    m_adjacent_.Finalizie(id);
 //    m_refine_.Finalizie(id);
@@ -156,7 +151,7 @@ void Atlas::Save(data::DataTable *) const { UNIMPLEMENTED; }
 //}
 //
 //
-//void Atlas::update_all()
+// void Atlas::update_all()
 //{
 //    for (auto ib = m_nodes_.begin(), ie = m_nodes_.end(); ib != ie; ++ib)
 //        for (auto it = ib; it != ie; ++it) { link(ib->first, it->first); }
@@ -170,24 +165,22 @@ void Atlas::Save(data::DataTable *) const { UNIMPLEMENTED; }
 //}
 //
 //
-//std::shared_ptr<TransitionMapBase>
-//Atlas::add_adjacency(MeshBlockId first, MeshBlockId second)
+// std::shared_ptr<TransitionMapBase>
+// Atlas::add_adjacency(MeshBlockId first, MeshBlockId second)
 //{
 //    return add_adjacency(get_block(first), get_block(second));
 //}
 //
-//std::shared_ptr<TransitionMapBase>
-//Atlas::add_adjacency(std::shared_ptr<const MeshBlock> first, std::shared_ptr<const MeshBlock> second)
+// std::shared_ptr<TransitionMapBase>
+// Atlas::add_adjacency(std::shared_ptr<const MeshBlock> first, std::shared_ptr<const MeshBlock> second)
 //{
 //    return add_adjacency(std::make_shared<TransitionMapBase>(*first, *second));
 //}
 //
-//std::tuple<std::shared_ptr<TransitionMapBase>, std::shared_ptr<TransitionMapBase>>
-//Atlas::add_connection(std::shared_ptr<const MeshBlock> first, std::shared_ptr<const MeshBlock> second)
+// std::tuple<std::shared_ptr<TransitionMapBase>, std::shared_ptr<TransitionMapBase>>
+// Atlas::add_connection(std::shared_ptr<const MeshBlock> first, std::shared_ptr<const MeshBlock> second)
 //{
 //    return std::make_tuple(add_adjacency(first, second), add_adjacency(second, first));
 //}
-
-
 }
-}//namespace simpla{namespace mesh_as{
+}  // namespace simpla{namespace mesh_as{

@@ -97,7 +97,7 @@ DomainView::~DomainView() {}
  * deactivate Main
  * @enduml
  */
-void DomainView::Dispatch(std::shared_ptr<Patch> const &p) { m_pimpl_->m_patch_ = p; };
+void DomainView::Dispatch(std::shared_ptr<Patch> p) { m_pimpl_->m_patch_ = p; };
 
 id_type DomainView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
 

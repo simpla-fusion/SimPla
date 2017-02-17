@@ -27,7 +27,7 @@ class DomainView : public concept::Printable {
     virtual ~DomainView();
     std::ostream &Print(std::ostream &os, int indent) const final;
     id_type current_block_id() const;
-    void Dispatch(std::shared_ptr<Patch> const &d);
+    void Dispatch(std::shared_ptr<Patch> d);
     bool isUpdated() const;
     void Update();
     void Evaluate();
@@ -57,7 +57,8 @@ class DomainView : public concept::Printable {
     std::shared_ptr<DataBlock> data_block(id_type) const;
     void data_block(id_type, std::shared_ptr<DataBlock> const &);
     void UpdateAttributeDict();
-    std::tuple<std::string, std::type_index, int, int> GetAttributeDict(id_type) const;
+    std::map<id_type, engine::AttributeDesc> const &GetAttributeDict() const;
+    data::DataTable const &attr_db(id_type) const;
 
    private:
     struct pimpl_s;

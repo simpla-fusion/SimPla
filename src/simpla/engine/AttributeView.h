@@ -16,40 +16,34 @@
 namespace simpla {
 namespace engine {
 class DomainView;
-
 class MeshView;
-
 class DataBlock;
-
 class AttributeView;
 
+struct AttributeDesc {
+    std::string name;
+    std::type_index value_type_index;
+    int iform;
+    int dof;
+    id_type GUID;
+};
+
 class AttributeViewBundle {
-public:
+   public:
     AttributeViewBundle(DomainView const *p = nullptr);
-
     virtual ~AttributeViewBundle();
-
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-
     id_type current_block_id() const;
-
     bool isUpdated() const;
-
     virtual void Update() const;
-
     void SetDomain(DomainView const *d);
-
     DomainView const *GetDomain() const;
-
     void insert(AttributeView *attr);
-
     void insert(AttributeViewBundle *);
-
     void erase(AttributeView *attr);
-
     void for_each(std::function<void(AttributeView *)> const &) const;
 
-private:
+   private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
@@ -74,33 +68,28 @@ private:
  * deactivate AttributeView
  * @enduml
  */
-struct AttributeView : public concept::Printable, public concept::Configurable {
-public:
-SP_OBJECT_BASE(AttributeView);
-
+struct AttributeView : public concept::Printable {
+   public:
+    SP_OBJECT_BASE(AttributeView);
+    data::DataTable db;
     AttributeView(std::string const &name_s = "", std::type_info const &t_id = typeid(Real), int IFORM = VERTEX,
                   int DOF = 1);
-
+    AttributeView(AttributeDesc const &);
     AttributeView(AttributeView const &other) = delete;
-
     AttributeView(AttributeView &&other) = delete;
-
     virtual ~AttributeView();
 
+    AttributeDesc const &description() const;
     void SetUp() {}
-
     void SetUp(AttributeViewBundle *first) { Connect(first); };
-
     void SetUp(data::KeyValue const &first) { db.insert(first); };
-
-    template<typename First, typename Second, typename... Args>
+    template <typename First, typename Second, typename... Args>
     void SetUp(First first, Second second, Args &&... args) {
         SetUp(first);
         SetUp(second, std::forward<Args>(args)...);
     };
 
     void Connect(AttributeViewBundle *b);
-
     void Disconnect();
 
     virtual std::type_index mesh_type_index() const;  //!< mesh type
@@ -132,28 +121,27 @@ SP_OBJECT_BASE(AttributeView);
 
     std::shared_ptr<DataBlock> &data_block();
 
-private:
+   private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-template<typename...>
+template <typename...>
 class AttributeViewAdapter;
 
-template<typename U>
+template <typename U>
 class AttributeViewAdapter<U> : public AttributeView, public U {
-SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
+    SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
 
     CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, std::nullptr_t)
     typedef algebra::traits::value_type_t<U> value_type;
     typedef mesh_traits_t<U> mesh_type;
 
-public:
+   public:
     explicit AttributeViewAdapter(std::string const &name_s = "")
-            : AttributeView(name_s, typeid(value_type), algebra::traits::iform<U>::value,
-                            algebra::traits::dof<U>::value) {}
+        : AttributeView(name_s, typeid(value_type), algebra::traits::iform<U>::value, algebra::traits::dof<U>::value) {}
 
-    template<typename... Args>
+    template <typename... Args>
     explicit AttributeViewAdapter(std::string const &name_s, Args &&... args) : AttributeView(name_s) {
         AttributeView::SetUp(std::forward<Args>(args)...);
     }
@@ -197,10 +185,10 @@ public:
     //    value_type const *data() const final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
 };
 
-template<typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
+template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
 using FieldAttribute = AttributeViewAdapter<Field<TV, TM, IFORM, DOF>>;
 
-template<typename TV = Real, int IFORM = VERTEX, int DOF = 1>
+template <typename TV = Real, int IFORM = VERTEX, int DOF = 1>
 using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
 //
 // template <typename TV, int IFORM = VERTEX, int DOF = 1>
