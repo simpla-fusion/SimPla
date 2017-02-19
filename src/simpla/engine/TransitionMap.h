@@ -49,24 +49,24 @@ struct TransitionMap {
 
     virtual void Apply(DomainView const &from, DomainView &to) const = 0;
 };
-
-template <typename M, typename N>
-struct TransitionMapView<M, N> : public TransitionMap {
-    typedef M l_mesh_type;
-    typedef M r_mesh_type;
-
-    std::shared_ptr<r_mesh_type> m_dst_;
-    std::shared_ptr<l_mesh_type> m_src_;
-    MeshBlock m_overlap_;
-    Range<MeshEntityId> m_range0_;
-
-    virtual id_type from_id() const { return m_src_->id(); };
-
-    virtual id_type to_id() const { return m_dst_->id(); };
-
-    TransitionMapView(std::shared_ptr<l_mesh_type> const &left, std::shared_ptr<r_mesh_type> const &right)
-        : m_src_(left), m_dst_(right) {}
-};
+//
+//template <typename M, typename N>
+//struct TransitionMapView<M, N> : public TransitionMap {
+//    typedef M l_mesh_type;
+//    typedef M r_mesh_type;
+//
+//    std::shared_ptr<r_mesh_type> m_dst_;
+//    std::shared_ptr<l_mesh_type> m_src_;
+//    MeshBlock m_overlap_;
+//    Range<MeshEntityId> m_range0_;
+//
+//    virtual id_type from_id() const { return m_src_->id(); };
+//
+//    virtual id_type to_id() const { return m_dst_->id(); };
+//
+//    TransitionMapView(std::shared_ptr<l_mesh_type> const &left, std::shared_ptr<r_mesh_type> const &right)
+//        : m_src_(left), m_dst_(right) {}
+//};
 
 template <typename TM>
 std::shared_ptr<TransitionMap> createTransitionMapView(std::shared_ptr<TM> const &src,

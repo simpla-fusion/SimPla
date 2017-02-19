@@ -86,8 +86,8 @@ class FieldView<TM, TV, IFORM, DOF> {
     FieldView(this_type&& other) : m_data_(other.m_data_), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_) {}
 
     virtual ~FieldView() {}
-
-    virtual std::ostream& print(std::ostream& os, int indent = 0) const {
+    virtual void Initialize() {}
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
         if (m_data_ != nullptr) {
             auto dims = m_mesh_->dimensions();
             size_type s = m_mesh_->size();
@@ -223,7 +223,7 @@ class FieldView<TM, TV, IFORM, DOF> {
     template <typename Other>
     void Assign(Other const& other) {
         Update();
-        Apply_(m_mesh_->range(), tags::_assign(), other);
+        //        Apply_(m_mesh_->range(), tags::_assign(), other);
     }
     template <typename Other>
     void Assign(Range<entity_id> const& r, Other const& other) {

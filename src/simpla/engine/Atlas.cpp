@@ -27,56 +27,56 @@ struct Atlas::pimpl_s {
 Atlas::Atlas() : m_pimpl_(new pimpl_s){};
 
 Atlas::~Atlas(){};
-
-size_type Atlas::count(int level) const { return m_pimpl_->m_layer_[level].size(); }
-
-void Atlas::max_level(int ml) { m_pimpl_->m_max_level_ = ml; }
-
-int Atlas::max_level() const { return m_pimpl_->m_max_level_; }
-
-bool Atlas::has(id_type id) const { return m_pimpl_->m_nodes_.find(id) != m_pimpl_->m_nodes_.end(); };
-
-MeshBlock *Atlas::find(id_type id) {
-    auto it = m_pimpl_->m_nodes_.find(id);
-    if (it != m_pimpl_->m_nodes_.end()) {
-        return it->second.get();
-    } else {
-        return nullptr;
-    }
-}
-
-MeshBlock const *Atlas::find(id_type id) const {
-    auto it = m_pimpl_->m_nodes_.find(id);
-    if (it != m_pimpl_->m_nodes_.end()) {
-        return it->second.get();
-    } else {
-        return nullptr;
-    }
-}
-
-MeshBlock *Atlas::at(id_type id) { return (m_pimpl_->m_nodes_.at(id)).get(); };
-
-MeshBlock const *Atlas::at(id_type id) const { return (m_pimpl_->m_nodes_.at(id)).get(); };
-
-MeshBlock const *Atlas::insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint) {
-    m_pimpl_->m_nodes_.emplace(std::make_pair(p_m->id(), p_m));
-    return p_m.get();
-};
-
-std::ostream &Atlas::Print(std::ostream &os, int indent) const {
-    os << std::setw(indent) << "*" << concept::Configurable::name() << std::endl;
-    for (auto const &item : m_pimpl_->m_nodes_) {
-        os << "|" << std::setw(indent + 5 + item.second->level()) << std::setfill('-') << "> " << std::setfill(' ')
-           << std::setw(10) << std::left << item.first << std::right << " = {";
-        item.second->Print(os, indent + 1);
-        os << "}," << std::endl;
-    }
-    return os;
-};
-
-void Atlas::Load(const data::DataTable &) { UNIMPLEMENTED; }
-
-void Atlas::Save(data::DataTable *) const { UNIMPLEMENTED; }
+//
+//size_type Atlas::count(int level) const { return m_pimpl_->m_layer_[level].size(); }
+//
+//void Atlas::max_level(int ml) { m_pimpl_->m_max_level_ = ml; }
+//
+//int Atlas::max_level() const { return m_pimpl_->m_max_level_; }
+//
+//bool Atlas::has(id_type id) const { return m_pimpl_->m_nodes_.find(id) != m_pimpl_->m_nodes_.end(); };
+//
+//MeshBlock *Atlas::find(id_type id) {
+//    auto it = m_pimpl_->m_nodes_.find(id);
+//    if (it != m_pimpl_->m_nodes_.end()) {
+//        return it->second.get();
+//    } else {
+//        return nullptr;
+//    }
+//}
+//
+//MeshBlock const *Atlas::find(id_type id) const {
+//    auto it = m_pimpl_->m_nodes_.find(id);
+//    if (it != m_pimpl_->m_nodes_.end()) {
+//        return it->second.get();
+//    } else {
+//        return nullptr;
+//    }
+//}
+//
+//MeshBlock *Atlas::at(id_type id) { return (m_pimpl_->m_nodes_.at(id)).get(); };
+//
+//MeshBlock const *Atlas::at(id_type id) const { return (m_pimpl_->m_nodes_.at(id)).get(); };
+//
+//MeshBlock const *Atlas::insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint) {
+////    m_pimpl_->m_nodes_.emplace(std::make_pair(p_m->id(), p_m));
+//    return p_m.get();
+//};
+//
+//std::ostream &Atlas::Print(std::ostream &os, int indent) const {
+////    os << std::setw(indent) << "*" << name() << std::endl;
+////    for (auto const &item : m_pimpl_->m_nodes_) {
+////        os << "|" << std::setw(indent + 5 + item.second->level()) << std::setfill('-') << "> " << std::setfill(' ')
+////           << std::setw(10) << std::left << item.first << std::right << " = {";
+////        item.second->Print(os, indent + 1);
+////        os << "}," << std::endl;
+////    }
+//    return os;
+//};
+//
+//void Atlas::Load(const data::DataTable &) { UNIMPLEMENTED; }
+//
+//void Atlas::Save(data::DataTable *) const { UNIMPLEMENTED; }
 //
 // void Atlas::Sync(id_type id)
 //{

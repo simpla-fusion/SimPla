@@ -13,7 +13,7 @@
 #include <iomanip>
 #include <vector>
 
-#include <simpla/mesh/MeshView.h>
+#include <simpla/engine/MeshView.h>
 #include <simpla/toolbox/MemoryPool.h>
 //#include <simpla/mesh/DataBlock.h>
 //#include <simpla/mesh/MeshBlock.h>
@@ -28,9 +28,9 @@ namespace mesh {
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public MeshView {
+struct CartesianGeometry : public engine::MeshView {
    public:
-    SP_OBJECT_HEAD(CartesianGeometry, MeshView)
+    SP_OBJECT_HEAD(CartesianGeometry, engine::MeshView)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -101,9 +101,11 @@ struct CartesianGeometry : public MeshView {
         return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)};
     }
 
-    virtual point_type point(MeshEntityId s) const { return MeshView::point(s); }
+    virtual point_type point(MeshEntityId s) const { return point_type(); /*MeshView::point(s); */ }
 
-    virtual point_type point(MeshEntityId s, point_type const &r) const { return MeshView::point(s); };
+    virtual point_type point(MeshEntityId s, point_type const &r) const {
+        return point_type(); /*MeshView::point(s); */
+    }
 
     virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 

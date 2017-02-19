@@ -55,7 +55,9 @@ void AttributeViewBundle::for_each(std::function<void(AttributeView *)> const &f
 }
 
 struct AttributeView::pimpl_s {
-   public:
+    template <typename... Args>
+    pimpl_s(Args &&... args) : m_desc_(std::forward<Args>(args)...) {}
+    ~pimpl_s() {}
     AttributeViewBundle *m_bundle_ = nullptr;
     DomainView const *m_domain_ = nullptr;
     std::shared_ptr<DataBlock> m_data_;
@@ -68,14 +70,21 @@ id_type GeneratorAttrGUID(std::string const &name_s, std::type_info const &t_id,
     std::string str = name_s + '.' + t_id.name() + '.' + static_cast<char>(IFORM + '0') + static_cast<char>(DOF + '0');
     return static_cast<id_type>(std::hash<std::string>{}(str));
 }
+AttributeDesc::AttributeDesc(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF)
+    : name(name_s),
+      value_type_index(std::type_index(t_id)),
+      iform(IFORM),
+      dof(DOF),
+      GUID(GeneratorAttrGUID(name_s, t_id, IFORM, DOF)) {}
+AttributeDesc::~AttributeDesc() {}
 
 AttributeView::AttributeView(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF)
-    : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_desc_.name = name_s;
-    m_pimpl_->m_desc_.value_type_index = std::type_index(t_id);
-    m_pimpl_->m_desc_.iform = IFORM;
-    m_pimpl_->m_desc_.dof = DOF;
-    m_pimpl_->m_desc_.GUID = GeneratorAttrGUID(name_s, t_id, IFORM, DOF);
+    : m_pimpl_(new pimpl_s(name_s, t_id, IFORM, DOF)) {
+    //    m_pimpl_->m_desc_.name = name_s;
+    //    m_pimpl_->m_desc_.value_type_index = std::type_index(t_id);
+    //    m_pimpl_->m_desc_.iform = IFORM;
+    //    m_pimpl_->m_desc_.dof = DOF;
+    //    m_pimpl_->m_desc_.GUID = GeneratorAttrGUID(name_s, t_id, IFORM, DOF);
 }
 AttributeView::AttributeView(AttributeDesc const &desc) : m_pimpl_(new pimpl_s) { m_pimpl_->m_desc_ = desc; };
 AttributeView::~AttributeView() { Disconnect(); }

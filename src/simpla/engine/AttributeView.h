@@ -21,6 +21,9 @@ class DataBlock;
 class AttributeView;
 
 struct AttributeDesc {
+    AttributeDesc(std::string const &name_s = "", std::type_info const &t_id = typeid(Real), int IFORM = VERTEX,
+                  int DOF = 1);
+    ~AttributeDesc();
     std::string name;
     std::type_index value_type_index;
     int iform;
@@ -104,17 +107,11 @@ struct AttributeView : public concept::Printable {
     int entity_type() const { return iform(); };
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-
+    virtual void Update();
     bool isUpdated() const;
-
-    void Update();
-
     bool isNull() const;
-
     bool empty() const { return isNull(); };
-
     void SetDomain(DomainView const *d = nullptr);
-
     DomainView const *GetDomain() const;
 
     const std::shared_ptr<DataBlock> &data_block() const;
@@ -181,6 +178,10 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     using U::operator=;
 
     void Initialize() final { U::Initialize(); }
+    void Update() {
+        AttributeView::Update();
+        U::Update();
+    }
     //    value_type *data() final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
     //    value_type const *data() const final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
 };

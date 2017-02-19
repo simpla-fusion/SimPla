@@ -56,56 +56,56 @@ namespace engine {
  *
  * @enduml
  */
-class Atlas : public concept::Printable, public concept::Serializable, public concept::Configurable {
+class Atlas : public concept::Printable {
    public:
     Atlas();
     virtual ~Atlas();
-    virtual std::ostream &Print(std::ostream &os, int indent) const;
-    virtual void Load(const data::DataTable &);
-    virtual void Save(data::DataTable *) const;
-    size_type count(int level) const;
-    void max_level(int);
-    int max_level() const;
-    bool has(id_type id) const;
-    MeshBlock *find(id_type id);
-    MeshBlock const *find(id_type id) const;
-    MeshBlock *at(id_type id);
-    MeshBlock const *at(id_type id) const;
-    MeshBlock const *insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint = nullptr);
-    void link(id_type src, id_type dest){};
-
-    //    std::setValue<id_type> &level(int l);
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
+    //    virtual void Load(const data::DataTable &);
+    //    virtual void Save(data::DataTable *) const;
+    //    size_type count(int level) const;
+    //    void max_level(int);
+    //    int max_level() const;
+    //    bool has(id_type id) const;
+    //    MeshBlock *find(id_type id);
+    //    MeshBlock const *find(id_type id) const;
+    //    MeshBlock *at(id_type id);
+    //    MeshBlock const *at(id_type id) const;
+    //    MeshBlock const *insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint = nullptr);
+    //    void link(id_type src, id_type dest){};
     //
-    //    std::setValue<id_type> const &level(int l) const;
-    template <typename TM, typename... Args>
-    MeshBlock const *add(Args &&... args) {
-        return static_cast<TM const *>(insert(std::make_shared<TM>(std::forward<Args>(args)...), nullptr));
-    };
-
-    template <typename... Args>
-    MeshBlock const *create(int inc_level, MeshBlock const *hint, Args &&... args) {
-        return insert(hint->create(inc_level, std::forward<Args>(args)...), hint);
-    };
-
-    template <typename... Args>
-    MeshBlock const *create(int inc, id_type h, Args &&... args) {
-        create(inc, at(h), std::forward<Args>(args)...);
-    };
-
-    template <typename... Args>
-    MeshBlock const *clone(Args &&... args) {
-        create(0, std::forward<Args>(args)...);
-    };
-
-    template <typename... Args>
-    MeshBlock const *refine(Args &&... args) {
-        create(1, std::forward<Args>(args)...);
-    };
-
-    template <typename... Args>
-    MeshBlock const *coarsen(Args &&... args) {
-        create(-1, std::forward<Args>(args)...);
-    };
+    //    //    std::setValue<id_type> &level(int l);
+    //    //
+    //    //    std::setValue<id_type> const &level(int l) const;
+    //    template <typename TM, typename... Args>
+    //    MeshBlock const *add(Args &&... args) {
+    //        return static_cast<TM const *>(insert(std::make_shared<TM>(std::forward<Args>(args)...), nullptr));
+    //    };
+    //
+    ////    template <typename... Args>
+    ////    MeshBlock const *create(int inc_level, MeshBlock const *hint, Args &&... args) {
+    ////        return insert(hint->create(inc_level, std::forward<Args>(args)...), hint);
+    ////    };
+    //
+    //    template <typename... Args>
+    //    MeshBlock const *create(int inc, id_type h, Args &&... args) {
+    //        create(inc, at(h), std::forward<Args>(args)...);
+    //    };
+    //
+    //    template <typename... Args>
+    //    MeshBlock const *clone(Args &&... args) {
+    //        create(0, std::forward<Args>(args)...);
+    //    };
+    //
+    //    template <typename... Args>
+    //    MeshBlock const *refine(Args &&... args) {
+    //        create(1, std::forward<Args>(args)...);
+    //    };
+    //
+    //    template <typename... Args>
+    //    MeshBlock const *coarsen(Args &&... args) {
+    //        create(-1, std::forward<Args>(args)...);
+    //    };
 
    private:
     struct pimpl_s;

@@ -6,6 +6,7 @@
 #define SIMPLA_MANAGER_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/model/Model.h>
 #include <map>
 #include "Atlas.h"
 #include "DomainView.h"
@@ -62,21 +63,26 @@ namespace engine {
 class Manager : public concept::Printable {
    public:
     data::DataTable db;
-    std::string const& name() const;
+
+    Manager();
+    virtual ~Manager();
+    std::string const &name() const;
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
     virtual void Load(data::DataTable const &) { UNIMPLEMENTED; };
     virtual void Save(data::DataTable *) const { UNIMPLEMENTED; };
 
+    model::Model const &GetModel() const;
+    model::Model &GetModel();
+
+    void SetDomainView(id_type geo_obj_id, std::unique_ptr<DomainView> &&);
+    DomainView &GetDomainView(id_type id = NULL_ID);
     void Update();
     void Evaluate();
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
-    Atlas m_atlas_;
-    std::map<id_type, std::shared_ptr<Patch>> m_patches_;
-    std::map<id_type, std::shared_ptr<DomainView>> m_views_;
 };
 template <typename U>
 struct ManagerAdapter : public Manager, public U {};

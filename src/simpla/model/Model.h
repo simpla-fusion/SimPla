@@ -25,7 +25,7 @@ class Model : public concept::Printable, public concept::Configurable {
    public:
     enum MODEL_TAG { VACUUM = 1, PLASMA = 1 << 1, CUSTOM = 1 << 20 };
     typedef id_type entity_id;
-    Model(MeshView *m);
+    Model();
     virtual ~Model();
 
     virtual void AddObject(std::string const &name, std::shared_ptr<geometry::GeoObject> const &);

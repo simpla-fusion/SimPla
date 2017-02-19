@@ -32,8 +32,8 @@ class EMFluid : public engine::Worker {
     std::shared_ptr<simpla::model::Model> m_model_;
     mesh_type* m_mesh_;
 
-    virtual mesh::MeshView* mesh() { return m_mesh_; };
-    virtual mesh::MeshView const* mesh() const { return m_mesh_; };
+    virtual engine::MeshView* mesh() { return m_mesh_; };
+    virtual engine::MeshView const* mesh() const { return m_mesh_; };
 
     virtual std::ostream& Print(std::ostream& os, int indent = 1) const;
 
@@ -56,19 +56,19 @@ class EMFluid : public engine::Worker {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{this, {"name"_ = "rho0", "CHECK"}};
+    field_type<VERTEX> rho0{"rho0", this, "CHECK"};
 
-    field_type<EDGE> E0{this, {"name"_ = "E0"}};
-    field_type<FACE> B0{this, {"name"_ = "B0", "CHECK"}};
-    field_type<VERTEX, 3> B0v{this, {"name"_ = "B0v"}};
-    field_type<VERTEX> BB{this, {"name"_ = "BB"}};
-    field_type<VERTEX, 3> Ev{this, {"name"_ = "Ev"}};
-    field_type<VERTEX, 3> Bv{this, {"name"_ = "Bv"}};
-    field_type<VERTEX, 3> dE{this, {"name"_ = "dE"}};
+    field_type<EDGE> E0{"E0", this};
+    field_type<FACE> B0{"B0", this, "CHECK"_};
+    field_type<VERTEX, 3> B0v{"B0v", this};
+    field_type<VERTEX> BB{"BB", this};
+    field_type<VERTEX, 3> Ev{"Ev", this};
+    field_type<VERTEX, 3> Bv{"Bv", this};
+    field_type<VERTEX, 3> dE{"dE", this};
 
-    field_type<FACE> B{this, {"name"_ = "B", "CHECK"}};
-    field_type<EDGE> E{this, {"name"_ = "E", "CHECK"}};
-    field_type<EDGE> J1{this, {"name"_ = "J1", "CHECK"}};
+    field_type<FACE> B{"B", this, "CHECK"_};
+    field_type<EDGE> E{"E", this, "CHECK"_};
+    field_type<EDGE> J1{"J1", this, "CHECK"_};
 
     struct fluid_s {
         Real mass;
@@ -111,8 +111,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::add_particle(std::stri
     auto sp = std::make_shared<fluid_s>();
     sp->mass = mass;
     sp->charge = charge;
-    sp->rho = TRho::make_shared(this, {"name"_ = name + "_rho"});
-    sp->J = TJv::make_shared(this, {"name"_ = name + "_J"});
+    sp->rho = std::make_shared<TRho>(name + "_rho", this);
+    sp->J = std::make_shared<TJv>(name + "_J", this);
     m_fluid_sp_.emplace(name, sp);
     return sp;
 }
@@ -134,20 +134,17 @@ std::ostream& EMFluid<TM>::Print(std::ostream& os, int indent) const {
 
 template <typename TM>
 void EMFluid<TM>::PreProcess() {
-    base_type::PreProcess();
-    if (!E.isPrepared()) E.Clear();
-    if (!B.isPrepared()) B.Clear();
-    if (!B0.isPrepared()) { B0.Clear(); }
+    base_type::Update();
+    if (!E.isUpdated()) E.Clear();
+    if (!B.isUpdated()) B.Clear();
+    if (!B0.isUpdated()) { B0.Clear(); }
 }
 
 template <typename TM>
-void EMFluid<TM>::PostProcess() {
-    base_type::PostProcess();
-}
+void EMFluid<TM>::PostProcess() {}
 
 template <typename TM>
 void EMFluid<TM>::Initialize() {
-    base_type::Initialize();
     if (m_fluid_sp_.size() > 0) {
         Ev = map_to<VERTEX>(E);
         B0v = map_to<VERTEX>(B0);
@@ -170,12 +167,12 @@ void EMFluid<TM>::NextTimeStep(Real data_time, Real dt) {
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     SetPhysicalBoundaryConditionE(data_time);
     if (m_fluid_sp_.size() > 0) {
-        field_type<VERTEX, 3> Q{this};
-        field_type<VERTEX, 3> K{this};
+        field_type<VERTEX, 3> Q{"",this};
+        field_type<VERTEX, 3> K{"",this};
 
-        field_type<VERTEX> a{this};
-        field_type<VERTEX> b{this};
-        field_type<VERTEX> c{this};
+        field_type<VERTEX> a{"",this};
+        field_type<VERTEX> b{"",this};
+        field_type<VERTEX> c{"",this};
 
         a.Clear();
         b.Clear();

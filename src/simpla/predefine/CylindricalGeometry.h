@@ -12,14 +12,14 @@
 #include <simpla/algebra/all.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
-#include <simpla/mesh/AttributeView.h>
-#include <simpla/mesh/MeshBlock.h>
+#include <simpla/engine/AttributeView.h>
+#include <simpla/engine/MeshBlock.h>
+#include <simpla/engine/MeshView.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/mpl/type_cast.h>
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/FancyStream.h>
 #include <simpla/toolbox/Log.h>
-#include "simpla/mesh/MeshView.h"
 
 namespace simpla {
 namespace mesh {
@@ -30,9 +30,9 @@ using namespace data;
  * @brief Uniform structured get_mesh
  */
 
-struct CylindricalGeometry : public MeshView {
+struct CylindricalGeometry : public engine::MeshView {
    public:
-    SP_OBJECT_HEAD(CylindricalGeometry, MeshView)
+    SP_OBJECT_HEAD(CylindricalGeometry, engine::MeshView)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -42,16 +42,16 @@ struct CylindricalGeometry : public MeshView {
     static constexpr int ndims = 3;
 
     template <typename... Args>
-    explicit CylindricalGeometry(Args &&... args) : MeshView(std::forward<Args>(args)...) {}
+    explicit CylindricalGeometry(Args &&... args) : MeshView() {}
 
     virtual ~CylindricalGeometry() {}
 
    private:
-    DataAttribute<Real, VERTEX, 3> m_vertics_{this, {"name"_ = "vertics", "COORDINATES"}};
-    DataAttribute<Real, VOLUME, 9> m_volume_{this, {"name"_ = "volume", "NO_FILL"}};
-    DataAttribute<Real, VOLUME, 9> m_dual_volume_{this, {"name"_ = "dual_volume", "NO_FILL"}};
-    DataAttribute<Real, VOLUME, 9> m_inv_volume_{this, {"name"_ = "inv_volume", "NO_FILL"}};
-    DataAttribute<Real, VOLUME, 9> m_inv_dual_volume_{this, {"name"_ = "inv_dual_volume", "NO_FILL"}};
+    engine::DataAttribute<Real, VERTEX, 3> m_vertics_{"vertics", this, "COORDINATES"_};
+    engine::DataAttribute<Real, VOLUME, 9> m_volume_{"volume", this, "NO_FILL"_};
+    engine::DataAttribute<Real, VOLUME, 9> m_dual_volume_{"dual_volume", this, "NO_FILL"_};
+    engine::DataAttribute<Real, VOLUME, 9> m_inv_volume_{"inv_volume", this, "NO_FILL"_};
+    engine::DataAttribute<Real, VOLUME, 9> m_inv_dual_volume_{"inv_dual_volume", this, "NO_FILL"_};
 
    public:
     typedef mesh::MeshEntityIdCoder M;
@@ -60,7 +60,7 @@ struct CylindricalGeometry : public MeshView {
         return point_type{m_vertics_(i, j, k, 0), m_vertics_(i, j, k, 1), m_vertics_(i, j, k, 2)};
     };
 
-    virtual point_type point(MeshEntityId s) const { return m_mesh_block_->point(s); };
+    virtual point_type point(MeshEntityId s) const { return point_type{}; /*m_mesh_block_->point(s); */ };
 
     virtual point_type point(MeshEntityId id, point_type const &pr) const {
         /**
@@ -123,7 +123,6 @@ struct CylindricalGeometry : public MeshView {
     virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
 
     virtual void Initialize() {
-        base_type::Initialize();
 
         m_vertics_.Clear();
         m_volume_.Clear();

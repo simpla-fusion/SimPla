@@ -59,6 +59,7 @@ class DomainView : public concept::Printable {
     void UpdateAttributeDict();
     std::map<id_type, engine::AttributeDesc> const &GetAttributeDict() const;
     data::DataTable const &attr_db(id_type) const;
+    data::DataTable &attr_db(id_type);
 
    private:
     struct pimpl_s;

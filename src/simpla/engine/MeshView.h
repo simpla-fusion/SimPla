@@ -28,7 +28,8 @@ class MeshView : public AttributeViewBundle, public concept::Printable {
     virtual void Initialize() = 0;
     virtual std::shared_ptr<MeshBlock> const &mesh_block() const;
     void Update();
-
+    size_type size(int IFORM = VERTEX) const { return 0; }
+  size_tuple   dimensions()const{return size_tuple{};};
     //    template <typename... Args>
     //    Range<MeshEntityId> range(Args &&... args) const {
     //        if (m_mesh_block_ != nullptr) {
