@@ -30,23 +30,28 @@ namespace concept {
  */
 
 struct Configurable {
-    data::DataTable db;
-
     Configurable() {}
-
-    template <typename... Args>
-    Configurable(Args &&... args) {
-        config(std::forward<Args>(args)...);
-    }
-
     virtual ~Configurable() {}
 
-    template <typename... Args>
-    void config(Args &&... args) {
-        concept::Configurable::db.insert(std::forward<Args>(args)...);
-    }
+    inline std::string const &name() const { return m_name_; }
+    inline void name(std::string const &s) { m_name_ = s; }
+    data::DataTable &db() {
+        Click();
+        return m_db_;
+    };
+
+    data::DataTable const &db() const { return m_db_; };
+    void Click() { ++m_click_count_; }
+    bool isUpdated() const { return m_current_click_count_ == m_click_count_; }
+    virtual void Update() { m_current_click_count_ = m_click_count_; }
+
+   private:
+    data::DataTable m_db_;
+    std::string m_name_ = "";
+    size_type m_click_count_ = 0;
+    size_type m_current_click_count_ = 0;
 };
-}
-}  // namespace  simpla::concept
+}  // namespace concept
+}  // namespace  simpla::
 
 #endif  // SIMPLA_CONFIGURABLE_H

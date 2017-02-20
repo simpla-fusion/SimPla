@@ -74,9 +74,9 @@ class Atlas : public concept::Printable {
     //    MeshBlock const *insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint = nullptr);
     //    void link(id_type src, id_type dest){};
     //
-    //    //    std::setValue<id_type> &level(int l);
+    //    //    std::SetValue<id_type> &level(int l);
     //    //
-    //    //    std::setValue<id_type> const &level(int l) const;
+    //    //    std::SetValue<id_type> const &level(int l) const;
     //    template <typename TM, typename... Args>
     //    MeshBlock const *add(Args &&... args) {
     //        return static_cast<TM const *>(insert(std::make_shared<TM>(std::forward<Args>(args)...), nullptr));

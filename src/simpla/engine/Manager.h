@@ -60,23 +60,19 @@ namespace engine {
  *  deactivate DomainView
  * @enduml
  */
-class Manager : public concept::Printable {
+class Manager : public concept::Printable, public concept::Configurable {
    public:
-    data::DataTable db;
-
     Manager();
     virtual ~Manager();
-    std::string const &name() const;
-
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
-    virtual void Load(data::DataTable const &) { UNIMPLEMENTED; };
-    virtual void Save(data::DataTable *) const { UNIMPLEMENTED; };
-
     model::Model const &GetModel() const;
     model::Model &GetModel();
-
-    void SetDomainView(id_type geo_obj_id, std::unique_ptr<DomainView> &&);
-    DomainView &GetDomainView(id_type id = NULL_ID);
+    void SetDomainView(std::string const &domain_type_name, std::shared_ptr<DomainView> const &p = nullptr);
+    void SetDomainView(id_type domain_type_id, std::shared_ptr<DomainView> const &p = nullptr);
+    DomainView const &GetDomainView(id_type id) const;
+    DomainView const &GetDomainView(std::string const &d_name) const;
+    DomainView &GetDomainView(id_type id);
+    DomainView &GetDomainView(std::string const &d_name);
     void Update();
     void Evaluate();
 

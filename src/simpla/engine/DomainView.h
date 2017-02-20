@@ -20,6 +20,7 @@ class MeshView;
 class AttributeView;
 class DataBlock;
 class Patch;
+class Manager;
 
 class DomainView : public concept::Printable {
    public:
@@ -32,34 +33,45 @@ class DomainView : public concept::Printable {
     void Update();
     void Evaluate();
 
-    void SetMesh(std::shared_ptr<MeshView> const &m);
+    Manager const *GetManager(Manager *) const;
+    Manager *SetManager(Manager *m = nullptr);
+
     std::shared_ptr<MeshView> const &GetMesh() const;
-    void AppendWorker(std::shared_ptr<Worker> const &w);
-    void PrependWorker(std::shared_ptr<Worker> const &w);
+    std::shared_ptr<Worker> &AppendWorker(std::shared_ptr<Worker> const &w);
+    std::shared_ptr<Worker> &PrependWorker(std::shared_ptr<Worker> const &w);
     void RemoveWorker(std::shared_ptr<Worker> const &w);
 
     template <typename U>
-    void SetMesh(std::shared_ptr<U> const &m = nullptr, ENABLE_IF((std::is_base_of<MeshView, U>::value))) {
-        SetMesh(std::dynamic_pointer_cast<MeshView>(std::make_shared<U>()));
+    std::shared_ptr<Worker> &AppendWorker(std::shared_ptr<U> const &w = nullptr,
+                                          ENABLE_IF((std::is_base_of<Worker, U>::value))) {
+        return AppendWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
     };
 
     template <typename U>
-    void AppendWorker(std::shared_ptr<U> const &w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
-        AppendWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
+    std::shared_ptr<Worker> &PrependWorker(std::shared_ptr<U> const &w = nullptr,
+                                           ENABLE_IF((std::is_base_of<Worker, U>::value))) {
+        return PrependWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
     };
+    std::shared_ptr<MeshView> &SetMesh(std::shared_ptr<MeshView> const &m);
 
     template <typename U>
-    void PrependWorker(std::shared_ptr<U> const &w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
-        PrependWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
+    std::shared_ptr<U> &SetMesh(std::shared_ptr<U> const &m = nullptr,
+                                ENABLE_IF((std::is_base_of<MeshView, U>::value))) {
+        return SetMesh(m != nullptr ? m : std::dynamic_pointer_cast<MeshView>(std::make_shared<U>()));
     };
-
     std::shared_ptr<MeshBlock> const &mesh_block() const;
     std::shared_ptr<DataBlock> data_block(id_type) const;
     void data_block(id_type, std::shared_ptr<DataBlock> const &);
-    void UpdateAttributeDict();
-    std::map<id_type, engine::AttributeDesc> const &GetAttributeDict() const;
+    //    void UpdateAttributeDict();
+    std::map<id_type, std::shared_ptr<engine::AttributeDesc>> const &GetAttributeDict() const;
     data::DataTable const &attr_db(id_type) const;
     data::DataTable &attr_db(id_type);
+    //    Range<id_type> const &select(int iform, int tag);
+    //    Range<id_type> const &select(int iform, std::string const &tag);
+    //    Range<id_type> const &interface(int iform, const std::string &tag_in, const std::string &tag_out = "VACUUM");
+    //    Range<id_type> const &interface(int iform, int tag_in, int tag_out);
+    //    Range<id_type> const &select(int iform, int tag) const;
+    //    Range<id_type> const &interface(int iform, int tag_in, int tag_out ) const;
 
    private:
     struct pimpl_s;

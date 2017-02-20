@@ -54,11 +54,11 @@ void EMTokamakWorker::Initialize() {
     base_type::Initialize();
     // first run, only Load configure, m_mesh_=nullptr
 
-    db.asTable("Particles").foreach ([&](std::string const &key, data::DataEntity const &item) {
+    db().asTable("Particles").foreach ([&](std::string const &key, data::DataEntity const &item) {
         add_particle(key, item.asTable());
     });
 
-    //    db.setValue("bound_box", geqdsk.box());
+    //    db.SetValue("bound_box", geqdsk.box());
 };
 
 void EMTokamakWorker::PreProcess() { base_type::PreProcess(); }
@@ -73,7 +73,7 @@ void EMTokamakWorker::Initialize(Real data_time) {
     nTuple<Real, 3> ZERO_V{0, 0, 0};
     //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
     for (auto &item : particles()) {
-        Real ratio = db.getValue("Particles." + item.first + ".ratio", 1.0);
+        Real ratio =db().GetValue("Particles." + item.first + ".ratio", 1.0);
         *item.second->rho = rho0 * ratio;
     }
 }

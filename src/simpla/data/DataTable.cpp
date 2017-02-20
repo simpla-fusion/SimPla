@@ -126,8 +126,8 @@ bool DataTable::has(std::string const& url) const { return find(url) != nullptr;
 
 DataTable* DataTable::CreateTable(std::string const& url) { return &(m_pimpl_->insert(this, url + ".")->asTable()); }
 
-std::shared_ptr<DataEntity> DataTable::setValue(std::string const& url, std::shared_ptr<DataEntity> const& v) {
-    return m_pimpl_->insert(this, url, v);
+void DataTable::SetValue(std::string const& url, std::shared_ptr<DataEntity> const& v) {
+    m_pimpl_->insert(this, url, v);
 };
 
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& url) { return m_pimpl_->insert(this, url); }
@@ -151,9 +151,9 @@ void DataTable::Parse(std::string const& str) {
         }
 
         if (value == "") {
-            setValue(key, true);
+            SetValue(key, true);
         } else {
-            setValue(key, value);
+            SetValue(key, value);
         }
 
         start_pos = pos0 + 1;

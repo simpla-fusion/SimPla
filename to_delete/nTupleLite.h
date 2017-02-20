@@ -395,7 +395,7 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //template<typename T, size_type N, size_type M0, size_type ... M>
 //void swap(simpla::nTuple<T, N, M0, M...> &l, simpla::nTuple<T, N, M0, M...> &r)
 //{
-//    for (size_type s = 0; s < N; ++s) { swap(simpla::traits::getValue(l, s), simpla::traits::getValue(r, s)); }
+//    for (size_type s = 0; s < N; ++s) { swap(simpla::traits::GetValue(l, s), simpla::traits::GetValue(r, s)); }
 //}
 //
 //template<typename T, size_type N, size_type ... M>
@@ -405,7 +405,7 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //
 //    for (size_type s = 0; s < N; ++s)
 //    {
-//        swap(simpla::traits::getValue(l, s), simpla::traits::getValue(r, s));
+//        swap(simpla::traits::GetValue(l, s), simpla::traits::GetValue(r, s));
 //    }
 //}
 //

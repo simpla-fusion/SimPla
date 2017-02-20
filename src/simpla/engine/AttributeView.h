@@ -29,6 +29,7 @@ struct AttributeDesc {
     int iform;
     int dof;
     id_type GUID;
+    data::DataTable *db;
 };
 
 class AttributeViewBundle {

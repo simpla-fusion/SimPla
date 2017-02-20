@@ -168,7 +168,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //			mesh_id_type s = (pack(y) & PRIMARY_ID_MASK)
 //					| m_id_to_shift_[face_id[zaxe]];
 //
-//			res->setValue(std::make_pair(s + m_id_to_shift_[node_id], t));
+//			res->SetValue(std::make_pair(s + m_id_to_shift_[node_id], t));
 //		}
 //
 //	};
@@ -258,7 +258,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //				mesh_id_type p = ((pack(V0 + s * u + t * v) & PRIMARY_ID_MASK)
 //						| m_id_to_shift_[edge_id[zaxe]]);
 //
-//				res->setValue(
+//				res->SetValue(
 //						std::make_pair(p + m_id_to_shift_[node_id],
 //								std::make_tuple(u, v)));
 //
@@ -268,7 +268,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //template<typename TM, typename TX>
 //int line_segment_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
 //		TX const &x0, TX const & x1, typename TM::mesh_id_type s0,
-//		typename TM::mesh_id_type s1, std::setValue<typename TM::mesh_id_type>* res,
+//		typename TM::mesh_id_type s1, std::SetValue<typename TM::mesh_id_type>* res,
 //		Real epsilon = 0.01)
 //{
 //	int count = 0;
@@ -282,7 +282,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //		auto sc = std::Get<0>(geometry.point_global_to_local(xc, node_id));
 //
-//		res->setValue(sc);
+//		res->SetValue(sc);
 //
 //		++count;
 //
@@ -299,7 +299,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //template<typename TM, typename TX>
 //void triangle_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
 //		TX const &x0, TX const & x1, TX const & x2,
-//		std::setValue<typename TM::mesh_id_type>* res)
+//		std::SetValue<typename TM::mesh_id_type>* res)
 //{
 //	typedef TM manifold_type;
 //	typedef typename manifold_type::coordinate_tuple coordinate_tuple;
@@ -318,7 +318,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //	for (size_t i = 0; i <= n0; ++i)
 //		for (size_t j = 0; j <= n1; ++j)
 //		{
-//			res->setValue(
+//			res->SetValue(
 //					std::Get<0>(
 //							geometry.point_global_to_local(
 //									x0 + dx0 * i + dx1 * j, node_id)));
@@ -421,7 +421,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //				}
 //			}
 //			if (success)
-//				res->setValue(std::make_pair(s, i0));
+//				res->SetValue(std::make_pair(s, i0));
 //		}
 //
 //	}
@@ -455,20 +455,20 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //		}
 //		else if ((code0 | code1) == 0)
 //		{
-//			res->setValue(std::make_pair(s, i0));
+//			res->SetValue(std::make_pair(s, i0));
 //		}
 //		else
 //		{
 //			intersection(geometry.coordinates(s - manifold_type::_DA),
 //					geometry.coordinates(s + manifold_type::_DA), x0, x1);
-//			res->setValue(std::make_pair(s, i0));
+//			res->SetValue(std::make_pair(s, i0));
 //		}
 //	}
 //
 //}
 //template<typename TM, typename TX>
 //void line_segment_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,
-//		TX const &x0, TX const & x1, std::setValue<typename TM::mesh_id_type>* res)
+//		TX const &x0, TX const & x1, std::SetValue<typename TM::mesh_id_type>* res)
 //{
 //	typedef TM manifold_type;
 //	typedef typename manifold_type::coordinate_tuple coordinate_tuple;
@@ -494,7 +494,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //		for (size_t i = 0; i <= m; ++i)
 //		{
 //
-//			res->setValue(std::Get<0>(geometry.point_global_to_local(
+//			res->SetValue(std::Get<0>(geometry.point_global_to_local(
 //
 //			x0 + (x1 - x0) * (static_cast<Real>(i) / static_cast<Real>(m))
 //

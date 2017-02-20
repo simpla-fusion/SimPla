@@ -30,7 +30,7 @@ template<typename ...> struct AssignmentExpression;
 //
 //    template<typename TL, typename TR, typename TI> void operator()(TL &l, TR &r, TI const &s) const
 //    {
-//        std::swap(traits::getValue(l, s), traits::getValue(r, s));
+//        std::swap(traits::GetValue(l, s), traits::GetValue(r, s));
 //    }
 //};
 //
@@ -42,8 +42,8 @@ template<typename ...> struct AssignmentExpression;
 //    {  return l _OP_ r;   }                                                                       \
 //    template<typename TL, typename TR,typename TI>                                                         \
 //    constexpr auto operator()(TL const& l, TR const & r,TI const & s) const         \
-//    ->decltype(traits::getValue(l,s) _OP_ traits::getValue( r,s) )                 \
-//    {  return traits::getValue(l,s) _OP_ traits::getValue( r,s);   }                                    \
+//    ->decltype(traits::getValue(l,s) _OP_ traits::GetValue( r,s) )                 \
+//    {  return traits::GetValue(l,s) _OP_ traits::GetValue( r,s);   }                                    \
 //};
 //
 //#define DEF_UOP(_NAME_, _OP_)                                                                                \
@@ -54,13 +54,13 @@ template<typename ...> struct AssignmentExpression;
 //    {  return  _OP_ l;   }                                                   \
 //    template<typename TL,typename TI >                                                         \
 //    constexpr auto operator()(TL const & l, TI const & s) const->decltype(_OP_ traits::getValue( l ,s)) \
-//    {  return  _OP_  traits::getValue( l ,s);   } \
+//    {  return  _OP_  traits::GetValue( l ,s);   } \
 //    template<typename TL >                                                         \
 //    static constexpr auto eval(TL const & l ) ->decltype(_OP_ l )                 \
 //    {  return  _OP_ l;   }                                                   \
 //    template<typename TL,typename TI >                                                         \
-//    static constexpr auto eval(TL const & l, TI const & s)->decltype(_OP_ traits::getValue( l ,s)) \
-//    {  return  _OP_  traits::getValue( l ,s);   } \
+//    static constexpr auto eval(TL const & l, TI const & s)->decltype(_OP_ traits::GetValue( l ,s)) \
+//    {  return  _OP_  traits::GetValue( l ,s);   } \
 //};
 //
 //DEF_BOP(plus, +)
@@ -125,7 +125,7 @@ template<typename ...> struct AssignmentExpression;
 //    { l _OP_ r ; }           \
 //    template<typename TL, typename TR,typename TI>                                                         \
 //      void operator()(TL  & l, TR const & r,TI const & s)const           \
-//    {    traits::getValue(l,s) _OP_ traits::getValue( r,s)   ;    }    \
+//    {    traits::GetValue(l,s) _OP_ traits::GetValue( r,s)   ;    }    \
 //};
 //
 ////DEF_ASSIGN_OP(_assign, =)
@@ -147,7 +147,7 @@ template<typename ...> struct AssignmentExpression;
 //    void operator()(TL &l, TR const &r) const { l = r; }
 //
 //    template<typename TL, typename TR, typename TI>
-//    void operator()(TL &l, TR const &r, TI const &s) const { traits::getValue(l, s) = traits::getValue(r, s); }
+//    void operator()(TL &l, TR const &r, TI const &s) const { traits::GetValue(l, s) = traits::GetValue(r, s); }
 //};
 //
 //struct equal_to
@@ -173,8 +173,8 @@ template<typename ...> struct AssignmentExpression;
 //    {  return std::_NAME_(l,  r);   }                                                                       \
 //    template<typename TL, typename TR,typename TI>                                                         \
 //    constexpr auto operator()(TL const& l, TR const & r,TI const & s) const         \
-//    ->decltype(std::_NAME_(traits::getValue(l,s) , traits::getValue( r,s) ))                 \
-//    {  return std::_NAME_(traits::getValue(l,s) , traits::getValue( r,s) );   }                                    \
+//    ->decltype(std::_NAME_(traits::GetValue(l,s) , traits::getValue( r,s) ))                 \
+//    {  return std::_NAME_(traits::GetValue(l,s) , traits::GetValue( r,s) );   }                                    \
 //};
 //
 //DEF_STD_BINARY_FUNCTION(atan2)
@@ -192,14 +192,14 @@ template<typename ...> struct AssignmentExpression;
 //    template<typename TL ,typename TI>                                                         \
 //    constexpr auto operator()(TL const& l, TI const & s) const         \
 //    ->decltype(std::_NAME_(traits::getValue(l,s)   ))                 \
-//    {  return std::_NAME_(traits::getValue(l,s)  );   }                                    \
+//    {  return std::_NAME_(traits::GetValue(l,s)  );   }                                    \
 //    template<typename TL >                                                         \
 //    static constexpr auto eval(TL const& l ) ->decltype(_NAME_(l ))                 \
 //    {  return std::_NAME_(l );   }                                                                       \
 //    template<typename TL ,typename TI>                                                         \
 //    static constexpr auto eval(TL const& l, TI const & s)          \
-//    ->decltype(std::_NAME_(traits::getValue(l,s)   ))                 \
-//    {  return std::_NAME_(traits::getValue(l,s)  );   }                                    \
+//    ->decltype(std::_NAME_(traits::GetValue(l,s)   ))                 \
+//    {  return std::_NAME_(traits::GetValue(l,s)  );   }                                    \
 //};
 //
 ////DEF_UNARY_FUNCTION(fabs)
@@ -244,13 +244,13 @@ template<typename ...> struct AssignmentExpression;
 //    template<typename TL> static constexpr auto eval(TL const &l) AUTO_RETURN ((l * l))
 //
 //    template<typename TL, typename TI>
-//    static constexpr auto eval(TL const &l, TI const &s) AUTO_RETURN ((_pow2::eval(traits::getValue(l, s))))
+//    static constexpr auto eval(TL const &l, TI const &s) AUTO_RETURN ((_pow2::eval(traits::GetValue(l, s))))
 //
 //    template<typename TL>
 //    constexpr TL operator()(TL const &l) const { return _pow2::eval(l); }
 //
 //    template<typename TL, typename TI>
-//    constexpr auto operator()(TL const &l, TI const &s) const AUTO_RETURN ((_pow2(traits::getValue(l, s))))
+//    constexpr auto operator()(TL const &l, TI const &s) const AUTO_RETURN ((_pow2(traits::GetValue(l, s))))
 //
 //};
 //
@@ -263,14 +263,14 @@ template<typename ...> struct AssignmentExpression;
 //
 //    template<typename TL, typename TI>
 //    constexpr auto operator()(TL const &l, TI const &s) const
-//    -> decltype(_pow2::eval(traits::getValue(l, s))) { return _identify::eval(traits::getValue(l, s)); }
+//    -> decltype(_pow2::eval(traits::GetValue(l, s))) { return _identify::eval(traits::GetValue(l, s)); }
 //
 //    template<typename TL>
 //    static constexpr TL const &eval(TL const &l) { return l; }
 //
 //    template<typename TL, typename TI>
 //    static constexpr auto eval(TL const &l, TI const &s)
-//    -> decltype(_identify::eval(traits::getValue(l, s))) { return _identify::eval(traits::getValue(l, s)); }
+//    -> decltype(_identify::eval(traits::GetValue(l, s))) { return _identify::eval(traits::GetValue(l, s)); }
 //
 //};
 //

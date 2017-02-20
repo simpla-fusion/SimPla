@@ -173,7 +173,7 @@ struct BooleanExpression<TOP, TL> : public Expression<TOP, TL> {
 //
 //    template<typename IndexType>
 //    inline auto operator[](IndexType const &s) const
-//    AUTO_RETURN (((op_(traits::getValue(lhs, s), traits::getValue(rhs,
+//    AUTO_RETURN (((op_(traits::GetValue(lhs, s), traits::GetValue(rhs,
 //    s)))))
 //
 //};
