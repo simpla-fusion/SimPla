@@ -340,7 +340,7 @@ class SAMRAI_HyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPat
     int d_workload_data_id;
     bool d_use_nonuniform_workload;
     std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
-    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double>> d_xyz;
+//    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double>> d_xyz;
     engine::Manager *m_manager_ = nullptr;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
