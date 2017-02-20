@@ -11,13 +11,13 @@ namespace engine {
 struct Worker::pimpl_s {
     DomainView *m_domain_;
 };
-Worker::Worker() : m_pimpl_(new pimpl_s) {}
+Worker::Worker() : m_pimpl_(new pimpl_s) { concept::Configurable::Click(); }
 Worker::~Worker(){};
 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
     //       << " [" << getClassName() << " : " << name() << "]" << std::endl;
-    os << std::setw(indent + 1) << "  type = \"" << getClassName() << "\", config = {" << db << "},";
+    os << std::setw(indent + 1) << "  type = \"" << getClassName() << "\", config = {" << db() << "},";
     os << std::setw(indent + 1) << " attributes = { ";
     AttributeViewBundle::Print(os, indent);
     os << "  } , ";
@@ -74,9 +74,10 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
  */
 
 void Worker::Update() {
-    if (isUpdated()) { return; }
+    if (AttributeViewBundle::isUpdated() && concept::Configurable::isUpdated()) { return; }
     AttributeViewBundle::Update();
     Initialize();
+    concept::Configurable::Update();
 }
 void Worker::Evaluate() {
     Update();

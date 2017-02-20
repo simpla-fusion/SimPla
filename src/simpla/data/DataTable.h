@@ -104,9 +104,9 @@ class DataTable : public DataEntity {
 
     template <typename U>
     void insert(std::pair<std::string, U> const& k_v) {
-        setValue(k_v.first, k_v.second);
+        SetValue(k_v.first, k_v.second);
     };
-    void insert(KeyValue const& k_v) { setValue(k_v.key(), k_v.value()); };
+    void insert(KeyValue const& k_v) { SetValue(k_v.key(), k_v.value()); };
     void Parse(std::string const& str);
 
     /**
@@ -116,11 +116,21 @@ class DataTable : public DataEntity {
      * '''table''' as needed.
      */
 
-    virtual std::shared_ptr<DataEntity> setValue(std::string const& key, std::shared_ptr<DataEntity> const& v);
+    virtual void SetValue(std::string const& key, std::shared_ptr<DataEntity> const& v);
 
+    void SetValue(KeyValue const& k_v) { SetValue(k_v.key(), k_v.value()); };
     template <typename U>
-    auto setValue(std::string const& url, U const& v) {
-        return setValue(url, make_shared_entity(v));
+    void SetValue(std::pair<std::string, U> const& k_v) {
+        SetValue(k_v.first, k_v.second);
+    };
+    template <typename U>
+    void SetValue(std::string const& url, U const& v) {
+        SetValue(url, make_shared_entity(v));
+    }
+    template <typename... Others>
+    void SetValue(KeyValue const& k_v, KeyValue const& second, Others&&... others) {
+        SetValue(k_v);
+        SetValue(second, std::forward<Others>(others)...);
     }
 
     virtual DataTable* CreateTable(std::string const& url);
@@ -134,24 +144,24 @@ class DataTable : public DataEntity {
     virtual std::shared_ptr<DataEntity> Get(std::string const& url);
 
     template <typename U>
-    U getValue(std::string const& url) const {
+    U GetValue(std::string const& url) const {
         return at(url).as<U>();
     }
 
     template <typename U>
-    U getValue(std::string const& url, U const& u) const {
+    U GetValue(std::string const& url, U const& u) const {
         auto p = find(url);
         return p == nullptr ? u : p->asLight().template as<U>();
     }
-    std::string getValue(std::string const& url, char const* u) const {
+    std::string GetValue(std::string const& url, char const* u) const {
         auto p = find(url);
         return p == nullptr ? std::string(u) : p->asLight().template as<std::string>();
     }
-    //    template<typename U> U const &getValue(std::string const &url, U const &u)
+    //    template<typename U> U const &GetValue(std::string const &url, U const &u)
     //    {
     //        auto *p = find(url);
     //
-    //        if (p != nullptr) { return p->as<U>(); } else { return setValue(url, u)->as<U>();
+    //        if (p != nullptr) { return p->as<U>(); } else { return SetValue(url, u)->as<U>();
     //        }
     //    }
 

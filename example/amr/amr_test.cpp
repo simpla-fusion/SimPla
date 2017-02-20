@@ -4,6 +4,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/nTupleExt.h>
+#include <simpla/data/DataTable.h>
 #include <simpla/engine/DomainView.h>
 #include <simpla/engine/Manager.h>
 #include <simpla/engine/TimeIntegrator.h>
@@ -13,51 +14,51 @@
 #include <simpla/physics/Constants.h>
 #include <simpla/toolbox/FancyStream.h>
 #include <iostream>
-
-using namespace simpla;
 namespace simpla {
-using namespace data;
-using namespace engine;
-std::shared_ptr<engine::TimeIntegrator> create_samrai_manager(std::string const &str = "");
+std::shared_ptr<engine::TimeIntegrator> create_time_integrator();
 std::shared_ptr<engine::Worker> create_worker();
-std::shared_ptr<engine::MeshView> create_mesh();
 }  // namespace simpla
-
+using namespace simpla;
+using namespace simpla::data;
 int main(int argc, char **argv) {
     logger::set_stdout_level(100);
     GLOBAL_COMM.init(argc, argv);
-    // typedef mesh:: CylindricalGeometry mesh_type;
-    // typedef AMRTest<mesh_type> work_type;
-    auto manager = create_samrai_manager();
-    GEqdsk geqdsk;
-    geqdsk.load(argv[1]);
-    manager->GetModel().AddObject("VACUUM", geqdsk.limiter_gobj());
-    manager->GetModel().AddObject("PLASMA", geqdsk.boundary_gobj());
+
+    auto manager = create_time_integrator();
+
+    manager->db().SetValue("name", "EMFluid");
+    manager->db().SetValue("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {64, 64, 64}});
+    manager->db().SetValue("CartesianGeometry.periodic_dimension", nTuple<int, 3>{0, 1, 0});
+
+    {
+        GEqdsk geqdsk;
+        geqdsk.load(argv[1]);
+
+        manager->GetModel().AddObject("VACUUM", geqdsk.limiter_gobj());
+        manager->GetModel().AddObject("PLASMA", geqdsk.boundary_gobj());
+
+        auto bound_box = manager->GetModel().bound_box();
+
+        manager->db().SetValue("CartesianGeometry.x_lo", std::get<0>(bound_box));
+        manager->db().SetValue("CartesianGeometry.x_up", std::get<1>(bound_box));
+    }
 
     auto worker = create_worker();
 
-    //    worker->db.setValue("GEqdsk", argv[1]);
-    //    worker->db.setValue("Particles.H.m", 1.0);
-    //    worker->db.setValue("Particles.H.Z", 1.0);
-    //    worker->db.setValue("Particles.H.ratio", 0.5);
-    //    worker->db.setValue("Particles.D.m", 2.0);
-    //    worker->db.setValue("Particles.D.Z", 1.0);
-    //    worker->db.setValue("Particles.D.ratio", 0.5);
-    //    worker->db.setValue("Particles.e.m", SI_electron_proton_mass_ratio);
-    //    worker->db.setValue("Particles.e.Z", -1.0);
-//    worker->db.insert("GEqdsk"_ = argv[1],  //
-//                      "Particles"_ = {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5},
-//                                      "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ = 0.5},
-//                                      "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
-    worker->Initialize();
-    worker->Print(std::cout);
-    manager->GetDomainView().AppendWorker(worker);
-    auto bound_box = worker->db.getValue("bound_box", box_type{{1, 0, -1}, {2, PI, 1}});
-    manager->db.setValue("name", "EMFluid");
-    manager->db.setValue("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {64, 64, 64}});
-    manager->db.setValue("CartesianGeometry.periodic_dimension", nTuple<int, 3>{0, 1, 0});
-    manager->db.setValue("CartesianGeometry.x_lo", std::get<0>(bound_box));
-    manager->db.setValue("CartesianGeometry.x_up", std::get<1>(bound_box));
+    worker->db().SetValue("Particles.H.m", 1.0);
+    worker->db().SetValue("Particles.H.Z", 1.0);
+    worker->db().SetValue("Particles.H.ratio", 0.5);
+    worker->db().SetValue("Particles.D.m", 2.0);
+    worker->db().SetValue("Particles.D.Z", 1.0);
+    worker->db().SetValue("Particles.D.ratio", 0.5);
+    worker->db().SetValue("Particles.e.m", SI_electron_proton_mass_ratio);
+    worker->db().SetValue("Particles.e.Z", -1.0);
+    worker->db().SetValue("Particles"_ = {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5},
+                                          "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ = 0.5},
+                                          "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
+
+    manager->GetDomainView("PLASMA").AppendWorker(worker);
+
     manager->Update();
     manager->CheckPoint();
     INFORM << "***********************************************" << std::endl;

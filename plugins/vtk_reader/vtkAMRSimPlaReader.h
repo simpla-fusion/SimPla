@@ -122,7 +122,7 @@ protected:
     // Description:
     // Given the variable name, return the conversion factor used to convert_database_r
     // the m_data to CGS. These conversion factors are read directly from the
-    // parameters file when the filename is setValue.
+    // parameters file when the filename is SetValue.
     double GetConversionFactor(const std::string name);
 
     // Description:

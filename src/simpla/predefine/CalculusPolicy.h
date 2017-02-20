@@ -140,7 +140,7 @@ struct calculator<TM> {
     //    template<typename T>
     //    static  decltype(auto) // traits::value_type_t
     //    <declare::Expression<tags::_codifferential_derivative, T>>
-    //    getValue(mesh_type const &m,
+    //    GetValue(mesh_type const &m,
     //    declare::Expression<tags::_codifferential_derivative, T> const &expr,
     //              entity_id const &s)
     //    {
@@ -172,7 +172,7 @@ struct calculator<TM> {
 
     //    template<typename TOP, typename T> static  traits::value_type_t
     //    <declare::Expression<TOP, T>>
-    //    getValue(mesh_type const &m, declare::Expression<TOP, T> const &expr,
+    //    GetValue(mesh_type const &m, declare::Expression<TOP, T> const &expr,
     //    entity_id const &s,
     //    ENABLE_IF((std::is_same<TOP, tags::_p_exterior_derivative < 0>>
     //                      ::value && traits::iform<T>::value == EDGE))
@@ -188,7 +188,7 @@ struct calculator<TM> {
     //    template<typename T, size_t I>
     //    static  traits::value_type_t
     //    <declare::Expression<tags::_p_codifferential_derivative < I>, T>>
-    //    getValue(
+    //    GetValue(
     //    mesh_type const &m,
     //    declare::Expression<tags::_p_codifferential_derivative < I>, T
     //    > const &expr,
@@ -217,7 +217,7 @@ struct calculator<TM> {
     //    _map_to(mesh_type const &m, TF const &expr, entity_id const &s,
     //    int_sequence<I, I>,
     //          std::enable_if_t<!st::is_primary<TF>::value>
-    //          *_p = nullptr) { return getValue(m, expr, s); }
+    //          *_p = nullptr) { return GetValue(m, expr, s); }
    private:
     template <typename TExpr, int I>
     static decltype(auto) _map_to(mesh_type const& m, TExpr const& f, entity_id const& s,
@@ -361,7 +361,7 @@ struct calculator<TM> {
     //
     //    template<int I, typename T>
     //    static  traits::value_type_t <T>
-    //    getValue(mesh_type const &m, declare::Expression<tags::_map_to < I>,
+    //    GetValue(mesh_type const &m, declare::Expression<tags::_map_to < I>,
     //    T
     //
     //    > const &expr,
@@ -433,14 +433,14 @@ struct calculator<TM> {
     //    template<typename TExpr, int I> static decltype(auto)
     //    eval(mesh_type const &m, TExpr const &expr, entity_id const &s,
     //         expression_tag<tags::divides, I, VERTEX>) //
-    //    AUTO_RETURN((getValue(m, std::Get<0>(expr.m_args_), s) /
+    //    AUTO_RETURN((GetValue(m, std::Get<0>(expr.m_args_), s) /
     //                 _map_to(m, std::Get<1>(expr.m_args_), s,
     //                 int_sequence<VERTEX, I>())))
 
     //    template<typename TExpr, int I> static decltype(auto)
     //    eval(mesh_type const &m, TExpr const &expr, entity_id const &s,
     //         expression_tag<tags::multiplies, I, VERTEX>) //
-    //    AUTO_RETURN((getValue(m, std::Get<0>(expr.m_args_), s) *
+    //    AUTO_RETURN((GetValue(m, std::Get<0>(expr.m_args_), s) *
     //                 _map_to(m, std::Get<1>(expr.m_args_), s,
     //                 int_sequence<VERTEX, I>())))
 

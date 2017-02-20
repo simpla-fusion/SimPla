@@ -111,8 +111,8 @@ public:
               ENABLE_IF(algebra::traits::is_scalar<T>::value)) const { return v; };
 
 //    template<typename T>  auto
-//    getValue(T &v, id_type const *s, ENABLE_IF((st::is_indexable<T, id_type>::value)))
-//    AUTO_RETURN((getValue(v[*s], s + 1)))
+//    GetValue(T &v, id_type const *s, ENABLE_IF((st::is_indexable<T, id_type>::value)))
+//    AUTO_RETURN((GetValue(v[*s], s + 1)))
 
 
     template<typename T> auto

@@ -46,7 +46,7 @@ public:
 
     virtual bool has(std::string const &key) const;
 
-//    virtual void setValue(std::string const &key, std::shared_ptr<DataTable> const &v);
+//    virtual void SetValue(std::string const &key, std::shared_ptr<DataTable> const &v);
 
 
     virtual DataTable &at(std::string const &key);
