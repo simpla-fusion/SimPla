@@ -72,10 +72,9 @@ class AttributeViewBundle {
  * deactivate AttributeView
  * @enduml
  */
-struct AttributeView : public concept::Printable {
+struct AttributeView : public concept::Printable, public concept::Configurable {
    public:
     SP_OBJECT_BASE(AttributeView);
-    data::DataTable db;
     AttributeView(std::string const &name_s = "", std::type_info const &t_id = typeid(Real), int IFORM = VERTEX,
                   int DOF = 1);
     AttributeView(AttributeDesc const &);
@@ -86,7 +85,7 @@ struct AttributeView : public concept::Printable {
     AttributeDesc const &description() const;
     void SetUp() {}
     void SetUp(AttributeViewBundle *first) { Connect(first); };
-    void SetUp(data::KeyValue const &first) { db.insert(first); };
+    void SetUp(data::KeyValue const &first) { db().insert(first); };
     template <typename First, typename Second, typename... Args>
     void SetUp(First first, Second second, Args &&... args) {
         SetUp(first);
@@ -101,22 +100,22 @@ struct AttributeView : public concept::Printable {
 
     id_type GUID() const;              //!< global unique identifier; hash code of name,value_type_index,iform,dof
     id_type current_block_id() const;  //!< mesh block indentifier
-    std::string const &name() const;   //!< name of attribute
     std::type_index value_type_index() const;  //!< value type , default =Real
     int iform() const;                         //!< iform , default =VERTEX
     int dof() const;                           //!< dof, default =1
     int entity_type() const { return iform(); };
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
+
     virtual void Update();
-    bool isUpdated() const;
+
     bool isNull() const;
     bool empty() const { return isNull(); };
+
     void SetDomain(DomainView const *d = nullptr);
     DomainView const *GetDomain() const;
 
     const std::shared_ptr<DataBlock> &data_block() const;
-
     std::shared_ptr<DataBlock> &data_block();
 
    private:

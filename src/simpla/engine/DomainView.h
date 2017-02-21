@@ -22,15 +22,15 @@ class DataBlock;
 class Patch;
 class Manager;
 
-class DomainView : public concept::Printable {
+class DomainView : public concept::Printable, public concept::Configurable {
    public:
     DomainView();
     virtual ~DomainView();
     std::ostream &Print(std::ostream &os, int indent) const final;
     id_type current_block_id() const;
     void Dispatch(std::shared_ptr<Patch> d);
-    bool isUpdated() const;
-    void Update();
+    virtual bool isUpdated() const;
+    virtual void Update();
     void Evaluate();
 
     Manager const *GetManager(Manager *) const;

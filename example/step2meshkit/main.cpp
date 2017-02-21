@@ -23,7 +23,6 @@ int main(int argc, char **argv)
     else if (argc >= 2) { output_file = argv[2]; }
 
     std::cout << " input  :" << input_file << std::endl;
-
     std::cout << " output :" << output_file << std::endl;
 
     step2vtk(input_file, output_file);

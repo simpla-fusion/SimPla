@@ -15,15 +15,10 @@ namespace simpla
 {
 void step2vtk(std::string const &input_filename, std::string const &output_filename)
 {
-
-
     // start up MK and Load the geometry
     MKCore mk;
-
     mk.load_mesh(input_filename.c_str(), NULL, 0, 0, 0, true);
-
     mk.save_mesh((input_filename + ".vtk").c_str());
-
     // Get the volumes
     MEntVector vols;
     mk.get_entities_by_dimension(3, vols);
@@ -34,10 +29,8 @@ void step2vtk(std::string const &input_filename, std::string const &output_filen
     ebm->use_mesh_geometry(0);
     ebm->set_num_interval(n_interval);
     ebm->increase_box(0.03);
-
     // mesh embedded boundary mesh, by calling execute
     mk.setup_and_execute();
-
     // caculate volume fraction, only for geometry input
 
 

@@ -42,7 +42,7 @@ struct Configurable {
 
     data::DataTable const &db() const { return m_db_; };
     void Click() { ++m_click_count_; }
-    bool isUpdated() const { return m_current_click_count_ == m_click_count_; }
+    virtual bool isUpdated() const { return m_current_click_count_ == m_click_count_; }
     virtual void Update() { m_current_click_count_ = m_click_count_; }
 
    private:

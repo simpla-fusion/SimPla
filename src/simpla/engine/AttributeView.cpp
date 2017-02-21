@@ -80,6 +80,7 @@ AttributeDesc::~AttributeDesc() {}
 
 AttributeView::AttributeView(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF)
     : m_pimpl_(new pimpl_s(name_s, t_id, IFORM, DOF)) {
+    concept::Configurable::name(name_s);
     //    m_pimpl_->m_desc_.name = name_s;
     //    m_pimpl_->m_desc_.value_type_index = std::type_index(t_id);
     //    m_pimpl_->m_desc_.iform = IFORM;
@@ -90,7 +91,6 @@ AttributeView::AttributeView(AttributeDesc const &desc) : m_pimpl_(new pimpl_s) 
 AttributeView::~AttributeView() { Disconnect(); }
 AttributeDesc const &AttributeView::description() const { return m_pimpl_->m_desc_; }
 id_type AttributeView::GUID() const { return m_pimpl_->m_desc_.GUID; };
-std::string const &AttributeView::name() const { return m_pimpl_->m_desc_.name; }
 std::type_index AttributeView::value_type_index() const { return m_pimpl_->m_desc_.value_type_index; }
 int AttributeView::iform() const { return m_pimpl_->m_desc_.iform; }
 int AttributeView::dof() const { return m_pimpl_->m_desc_.dof; }
@@ -106,21 +106,24 @@ void AttributeView::Disconnect() {
 
 std::type_index AttributeView::mesh_type_index() const { return std::type_index(typeid(MeshView)); }
 
-void AttributeView::SetDomain(DomainView const *d) { m_pimpl_->m_domain_ = d; };
+void AttributeView::SetDomain(DomainView const *d) {
+    concept::Configurable::Click();
+    m_pimpl_->m_domain_ = d;
+};
 DomainView const *AttributeView::GetDomain() const { return m_pimpl_->m_domain_; }
 
 id_type AttributeView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
-bool AttributeView::isUpdated() const {
-    return m_pimpl_->m_domain_ == nullptr || m_pimpl_->m_domain_->current_block_id() == current_block_id();
-}
+
 void AttributeView::Update() {
-    if (isUpdated()) { return; }
+    if (concept::Configurable::isUpdated()) { return; }
     Initialize();
     m_pimpl_->m_current_block_id_ = m_pimpl_->m_domain_ == nullptr ? NULL_ID : m_pimpl_->m_domain_->current_block_id();
+    concept::Configurable::Update();
 }
 
 void AttributeView::Initialize() {
     if (m_pimpl_->m_domain_ != nullptr) {
+        concept::Configurable::Click();
         m_pimpl_->m_data_ = m_pimpl_->m_domain_->data_block(GUID());
         m_pimpl_->m_mesh_ = m_pimpl_->m_domain_->GetMesh().get();
     }

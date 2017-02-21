@@ -28,9 +28,10 @@ class Model : public concept::Printable, public concept::Configurable {
     virtual void Update();
 
     box_type const &bound_box() const;
-    id_type GetMaterialId(std::string const &) const;
+    data::DataTable const &GetMaterial(std::string const &) const;
+    data::DataTable &GetMaterial(std::string const &);
 
-    void AddObject(std::string const &domain_type_name, std::shared_ptr<geometry::GeoObject> const &);
+    void AddObject(std::string const &material_type_name, std::shared_ptr<geometry::GeoObject> const &);
     void AddObject(id_type, std::shared_ptr<geometry::GeoObject> const &);
 
     std::shared_ptr<geometry::GeoObject> const &GetObject(std::string const &key) const;

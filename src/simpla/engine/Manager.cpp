@@ -21,12 +21,12 @@ void Manager::SetDomainView(id_type d_type_id, std::shared_ptr<DomainView> const
     m_pimpl_->m_views_[d_type_id] = p != nullptr ? p : std::make_shared<DomainView>();
 }
 void Manager::SetDomainView(std::string const &d_name, std::shared_ptr<DomainView> const &p) {
-    SetDomainView(m_pimpl_->m_model_.GetMaterialId(d_name), p);
+    SetDomainView(m_pimpl_->m_model_.GetMaterial(d_name).template GetValue<id_type>("GUID"), p);
 }
 
 DomainView const &Manager::GetDomainView(id_type d_id) const { return *m_pimpl_->m_views_.at(d_id); }
 DomainView const &Manager::GetDomainView(std::string const &d_name) const {
-    return GetDomainView(m_pimpl_->m_model_.GetMaterialId(d_name));
+    return GetDomainView(m_pimpl_->m_model_.GetMaterial(d_name).GetValue<id_type>("GUID"));
 }
 DomainView &Manager::GetDomainView(id_type d_id) {
     concept::Configurable::Click();
@@ -35,11 +35,9 @@ DomainView &Manager::GetDomainView(id_type d_id) {
     return *m_pimpl_->m_views_.at(d_id);
 }
 DomainView &Manager::GetDomainView(std::string const &d_name) {
-    return GetDomainView(m_pimpl_->m_model_.GetMaterialId(d_name));
+    return GetDomainView(m_pimpl_->m_model_.GetMaterial(d_name).GetValue<id_type>("GUID"));
 }
-void Manager::Update() {
-     concept::Configurable::Update();
-};
+void Manager::Update() { concept::Configurable::Update(); };
 void Manager::Evaluate() {
     Update();
     //    for (auto &item : m_pimpl_->m_atlas_) {}

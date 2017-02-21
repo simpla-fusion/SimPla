@@ -130,7 +130,8 @@ void DataTable::SetValue(std::string const& url, std::shared_ptr<DataEntity> con
     m_pimpl_->insert(this, url, v);
 };
 
-std::shared_ptr<DataEntity> DataTable::Get(std::string const& url) { return m_pimpl_->insert(this, url); }
+DataEntity* DataTable::Get(std::string const& url) { return m_pimpl_->insert(this, url).get(); }
+DataEntity const* DataTable::Get(std::string const& url) const { return m_pimpl_->search(this,url); }
 
 void DataTable::Parse(std::string const& str) {
     size_type start_pos = 0;
