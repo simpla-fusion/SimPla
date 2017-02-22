@@ -15,8 +15,7 @@ class MeshBlock {
     MeshBlock(Args &&... args) {}
     ~MeshBlock() {}
     size_tuple dimensions() const { return size_tuple{1, 1, 1}; }
-    void id(id_type) {}
-    id_type id() const { return NULL_ID; }
+    id_type id() const { return reinterpret_cast<id_type>(this); }
     template <typename U>
     size_type hash(U const &) const {
         return 0;

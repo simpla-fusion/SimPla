@@ -327,7 +327,7 @@ class SAMRAI_HyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPat
 
     /*
      * We cache pointers to the grid geometry object to set up initial
-     * data_block, SetValue physical boundary conditions, and register plot
+     * GetDataBlock, SetValue physical boundary conditions, and register plot
      * variables.
      */
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
@@ -410,8 +410,8 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
     SAMRAI::hier::VariableDatabase *vardb = SAMRAI::hier::VariableDatabase::getDatabase();
 
     if (!d_visit_writer) {
-        RUNTIME_ERROR << m_name_ << ": registerModelVariables() VisIt data_block writer was not registered."
-                                    "Consequently, no plot data_block will be written."
+        RUNTIME_ERROR << m_name_ << ": registerModelVariables() VisIt GetDataBlock writer was not registered."
+                                    "Consequently, no plot GetDataBlock will be written."
                       << std::endl;
     }
     //    SAMRAI::tbox::Dimension d_dim{4};
@@ -632,7 +632,7 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::setPhysicalBoundaryConditions(
 /*
  *************************************************************************
  *
- * Register VisIt data_block writer to write data_block to plot files that may
+ * Register VisIt SetDataBlock writer to write GetDataBlock to plot files that may
  * be postprocessed by the VisIt tool.
  *
  *************************************************************************

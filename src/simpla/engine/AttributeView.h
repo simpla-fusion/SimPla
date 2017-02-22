@@ -7,10 +7,9 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
-#include <simpla/concept/Configurable.h>
 #include <simpla/concept/Printable.h>
+#include <simpla/concept/StateCounter.h>
 
-#include "DataBlock.h"
 #include "Object.h"
 
 namespace simpla {
@@ -22,26 +21,41 @@ class AttributeView;
 
 struct AttributeDesc {
     AttributeDesc(std::string const &name_s = "", std::type_info const &t_id = typeid(Real), int IFORM = VERTEX,
-                  int DOF = 1);
+                  int DOF = 1, int CONTEXT = 0);
     ~AttributeDesc();
-    std::string name;
-    std::type_index value_type_index;
-    int iform;
-    int dof;
-    id_type GUID;
-    data::DataTable *db;
+    static id_type GenerateGUID(std::string const &name_s, std::type_info const &t_id, int IFORM = VERTEX, int DOF = 1,
+                                int CONTEXT = 0);
+
+    std::string const &name() const { return m_name_; }
+    const std::type_info &value_type_info() const { return m_value_type_info_; }
+    int iform() const { return m_iform_; }
+    int dof() const { return m_dof_; }
+    int context() const { return m_context_; }
+    id_type GUID() const { return m_GUID_; }
+    data::DataTable &db() { return m_db_; }
+    data::DataTable const &db() const { return m_db_; }
+
+   private:
+    const std::string m_name_;
+    const std::type_info &m_value_type_info_;
+    int m_iform_;
+    int m_dof_;
+    int m_context_;
+    id_type m_GUID_;
+    data::DataTable m_db_;
 };
 
-class AttributeViewBundle {
+class AttributeViewBundle : public concept::StateCounter {
    public:
-    AttributeViewBundle(DomainView const *p = nullptr);
+    enum { IN, OUT, IN_OUT };
+    AttributeViewBundle();
     virtual ~AttributeViewBundle();
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    id_type current_block_id() const;
-    bool isUpdated() const;
-    virtual void Update() const;
-    void SetDomain(DomainView const *d);
+    virtual void Update();
+    void SetDomain(DomainView *);
     DomainView const *GetDomain() const;
+    void SetMesh(MeshView const *);
+    MeshView const *GetMesh() const;
+
     void insert(AttributeView *attr);
     void insert(AttributeViewBundle *);
     void erase(AttributeView *attr);
@@ -72,51 +86,38 @@ class AttributeViewBundle {
  * deactivate AttributeView
  * @enduml
  */
-struct AttributeView : public concept::Printable, public concept::Configurable {
+struct AttributeView : public concept::Printable, public concept::StateCounter {
    public:
     SP_OBJECT_BASE(AttributeView);
-    AttributeView(std::string const &name_s = "", std::type_info const &t_id = typeid(Real), int IFORM = VERTEX,
-                  int DOF = 1);
-    AttributeView(AttributeDesc const &);
+    explicit AttributeView(std::shared_ptr<AttributeDesc> const &);
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
 
-    AttributeDesc const &description() const;
-    void SetUp() {}
-    void SetUp(AttributeViewBundle *first) { Connect(first); };
-    void SetUp(data::KeyValue const &first) { db().insert(first); };
-    template <typename First, typename Second, typename... Args>
-    void SetUp(First first, Second second, Args &&... args) {
-        SetUp(first);
-        SetUp(second, std::forward<Args>(args)...);
-    };
-
-    void Connect(AttributeViewBundle *b);
-    void Disconnect();
-
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual std::type_index mesh_type_index() const;  //!< mesh type
     virtual void Initialize();
+    virtual void Finalize();
 
-    id_type GUID() const;              //!< global unique identifier; hash code of name,value_type_index,iform,dof
-    id_type current_block_id() const;  //!< mesh block indentifier
-    std::type_index value_type_index() const;  //!< value type , default =Real
-    int iform() const;                         //!< iform , default =VERTEX
-    int dof() const;                           //!< dof, default =1
-    int entity_type() const { return iform(); };
-
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-
+    virtual bool isUpdated() const;
     virtual void Update();
 
     bool isNull() const;
     bool empty() const { return isNull(); };
 
-    void SetDomain(DomainView const *d = nullptr);
-    DomainView const *GetDomain() const;
+    void Connect(AttributeViewBundle *b);
+    void Disconnect();
 
-    const std::shared_ptr<DataBlock> &data_block() const;
-    std::shared_ptr<DataBlock> &data_block();
+    std::shared_ptr<AttributeDesc> const &description() const;
+    void SetMesh(MeshView const *p = nullptr);
+    MeshView const *GetMesh() const;
+    void SetDomain(DomainView *d = nullptr);
+    DomainView const *GetDomain() const;
+    DomainView *GetDomain();
+    std::shared_ptr<DataBlock> const &GetDataBlock() const;
+    std::shared_ptr<DataBlock> GetDataBlock();
+
+    virtual std::shared_ptr<DataBlock> CreateDataBlock() const = 0;
 
    private:
     struct pimpl_s;
@@ -136,21 +137,22 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
 
    public:
     explicit AttributeViewAdapter(std::string const &name_s = "")
-        : AttributeView(name_s, typeid(value_type), algebra::traits::iform<U>::value, algebra::traits::dof<U>::value) {}
+        : AttributeView(std::make_shared<AttributeDesc>(name_s, typeid(value_type), algebra::traits::iform<U>::value,
+                                                        algebra::traits::dof<U>::value)) {}
 
     template <typename... Args>
-    explicit AttributeViewAdapter(std::string const &name_s, Args &&... args) : AttributeView(name_s) {
-        AttributeView::SetUp(std::forward<Args>(args)...);
+    explicit AttributeViewAdapter(std::string const &name_s, Args &&... args)
+        : AttributeView(std::make_shared<AttributeDesc>(name_s, typeid(value_type), algebra::traits::iform<U>::value,
+                                                        algebra::traits::dof<U>::value)) {
+        //        AttributeView::SetUp(std::forward<Args>(args)...);
     }
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
-
     AttributeViewAdapter(AttributeViewAdapter const &) = delete;
-
     virtual ~AttributeViewAdapter() {}
 
     std::ostream &Print(std::ostream &os, int indent = 0) const final {
-        os << AttributeView::name() << " = {";
+        os << AttributeView::description()->name() << " = {";
         U::Print(os, indent);
         os << "}";
         return os;
@@ -158,23 +160,24 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
 
     std::type_index mesh_type_index() const final { return std::type_index(typeid(mesh_type)); }
 
-    //    std::shared_ptr<DataBlock> CreateDataBlock() const {
-    //        std::shared_ptr<DataBlock> p = AttributeView::data_block();
-    //
-    //        if (p == nullptr) {
-    //            UNIMPLEMENTED;
-    //            std::shared_ptr<DataBlock> d(nullptr);
-    //            //        if (d == nullptr) {
-    //            //            return std::make_shared<DefaultDataBlock<value_type, iform, dof>>(nullptr, U::size());
-    //            //        } else {
-    //            //            return std::make_shared<DefaultDataBlock<value_type, iform, dof>>(
-    //            //                std::shared_ptr<value_type>(static_cast<value_type *>(d),
-    //            simpla::tags::do_nothing()),
-    //            //                U::size());
-    //            //        }
-    //        }
-    //        return p;
-    //    };
+    std::shared_ptr<DataBlock> CreateDataBlock() const {
+        std::shared_ptr<DataBlock> p = AttributeView::GetDataBlock();
+
+        //        if (p == nullptr) {
+        //            UNIMPLEMENTED;
+        //            std::shared_ptr<DataBlock> d(nullptr);
+        //            //        if (d == nullptr) {
+        //            //            return std::make_shared<DefaultDataBlock<value_type, iform, dof>>(nullptr,
+        //            U::size());
+        //            //        } else {
+        //            //            return std::make_shared<DefaultDataBlock<value_type, iform, dof>>(
+        //            //                std::shared_ptr<value_type>(static_cast<value_type *>(d),
+        //                simpla::tags::do_nothing()),
+        //                //                U::size());
+        //                //        }
+        //        }
+        return p;
+    };
     using U::operator=;
 
     void Initialize() final { U::Initialize(); }
@@ -182,8 +185,8 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
         AttributeView::Update();
         U::Update();
     }
-    //    value_type *data() final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
-    //    value_type const *data() const final { return reinterpret_cast<value_type *>(data_block()->raw_data()); }
+    //    value_type *data() final { return reinterpret_cast<value_type *>(GetDataBlock()->raw_data()); }
+    //    value_type const *data() const final { return reinterpret_cast<value_type *>(GetDataBlock()->raw_data()); }
 };
 
 template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
@@ -246,7 +249,7 @@ using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == VERTEX || I
 //    }
 //    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return array_type::Print(os, indent); }
 //
-//    virtual value_type *data() { return reinterpret_cast<value_type *>(AttributeView::data_block()->raw_data()); }
+//    virtual value_type *data() { return reinterpret_cast<value_type *>(AttributeView::GetDataBlock()->raw_data()); }
 //
 //    virtual void Update() {
 //        AttributeView::Update();

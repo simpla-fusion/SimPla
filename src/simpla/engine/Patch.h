@@ -6,32 +6,30 @@
 #define SIMPLA_PATCH_H
 
 #include <simpla/SIMPLA_config.h>
-#include <map>
-#include "DataBlock.h"
-#include "MeshBlock.h"
+#include <memory>
+
+#include "Object.h"
+
 namespace simpla {
 namespace engine {
-
+class MeshBlock;
+class DataBlock;
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:
-    Patch() {}
-    virtual ~Patch() {}
+    Patch();
+    virtual ~Patch();
 
-    std::shared_ptr<MeshBlock> const &mesh_block() const { return m_mesh_; }
-    void mesh_block(std::shared_ptr<MeshBlock> const &m) { m_mesh_ = m; }
-
-    virtual std::shared_ptr<DataBlock> data(id_type const &id, std::shared_ptr<DataBlock> const &p = (nullptr)) {
-        return m_data_.emplace(id, p).first->second;
-    }
-    virtual std::shared_ptr<DataBlock> data(id_type const &id) const {
-        auto it = m_data_.find(id);
-        return (it != m_data_.end()) ? it->second : std::shared_ptr<DataBlock>(nullptr);
-    }
+    id_type GetMeshBlockId() const;
+    std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
+    void SetMeshBlock(std::shared_ptr<MeshBlock> const &m = nullptr);
+    virtual void SetDataBlock(id_type const &id, std::shared_ptr<DataBlock> const &p = nullptr);
+    virtual std::shared_ptr<DataBlock> const &GetDataBlock(id_type const &id) const;
+    virtual std::shared_ptr<DataBlock> &GetDataBlock(id_type const &id);
 
    private:
-    std::shared_ptr<MeshBlock> m_mesh_;
-    std::map<id_type, std::shared_ptr<DataBlock> > m_data_;
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace engine
 }  // namespace simpla

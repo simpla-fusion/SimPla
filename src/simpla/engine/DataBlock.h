@@ -87,7 +87,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
     virtual void Save(data::DataTable *d) const {/* Save(*this, d); */};
     virtual std::ostream &Print(std::ostream &os, int indent) const {
         os << " type = \'" << value_type_info().name() << "\' "
-           << ", entity type = " << (entity_type()) << ", dof = " << (dof()) << ", data_block = {";
+           << ", entity type = " << (entity_type()) << ", dof = " << (dof()) << ", GetDataBlock = {";
         U::Print(os, indent + 1);
         os << "}";
         return os;
@@ -139,7 +139,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //    {
 //        os << " type = \'" << value_type_info().name() << "\' "
 //           << ", entity type = " << static_cast<int>(iform())
-//           << ", data_block = {";
+//           << ", GetDataBlock = {";
 //        data_entity_type::Print(os, indent + 1);
 //        os << "}";
 //        return os;

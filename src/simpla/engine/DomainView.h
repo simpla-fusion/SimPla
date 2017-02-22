@@ -7,6 +7,7 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
+#include <simpla/concept/StateCounter.h>
 #include <simpla/mpl/macro.h>
 #include <memory>
 #include <set>
@@ -17,12 +18,13 @@ namespace engine {
 class Domain;
 class Worker;
 class MeshView;
+class MeshBlock;
 class AttributeView;
 class DataBlock;
 class Patch;
 class Manager;
 
-class DomainView : public concept::Printable, public concept::Configurable {
+class DomainView : public concept::Printable, public concept::StateCounter {
    public:
     DomainView();
     virtual ~DomainView();
@@ -55,13 +57,18 @@ class DomainView : public concept::Printable, public concept::Configurable {
     std::shared_ptr<MeshView> &SetMesh(std::shared_ptr<MeshView> const &m);
 
     template <typename U>
-    std::shared_ptr<U> &SetMesh(std::shared_ptr<U> const &m = nullptr,
-                                ENABLE_IF((std::is_base_of<MeshView, U>::value))) {
-        return SetMesh(m != nullptr ? m : std::dynamic_pointer_cast<MeshView>(std::make_shared<U>()));
+    std::shared_ptr<U> SetMesh(std::shared_ptr<U> const &m = nullptr,
+                               ENABLE_IF((std::is_base_of<MeshView, U>::value))) {
+        return std::dynamic_pointer_cast<U>(
+            SetMesh(m != nullptr ? m : std::dynamic_pointer_cast<MeshView>(std::make_shared<U>())));
     };
-    std::shared_ptr<MeshBlock> const &mesh_block() const;
-    std::shared_ptr<DataBlock> data_block(id_type) const;
-    void data_block(id_type, std::shared_ptr<DataBlock> const &);
+
+    id_type GetMeshBlockId() const;
+    std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
+    std::shared_ptr<DataBlock> const &GetDataBlock(id_type) const;
+    std::shared_ptr<DataBlock> &GetDataBlock(id_type);
+    void SetDataBlock(id_type, std::shared_ptr<DataBlock> const &);
+
     //    void UpdateAttributeDict();
     std::map<id_type, std::shared_ptr<engine::AttributeDesc>> const &GetAttributeDict() const;
     data::DataTable const &attr_db(id_type) const;
