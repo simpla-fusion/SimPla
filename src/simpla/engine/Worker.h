@@ -16,13 +16,12 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/engine/Object.h>
-
 #include <simpla/model/Model.h>
+
+#include "AttributeView.h"
 
 namespace simpla {
 namespace engine {
-struct AttributeViewBundle;
-struct AttributeView;
 
 /**
  * @brief
@@ -103,16 +102,26 @@ struct AttributeView;
       --> (*)
    @enduml
  */
-class Worker : public AttributeViewBundle, public concept::Configurable, public concept::Printable {
+class Worker : public AttributeViewBundle, public concept::Printable {
     SP_OBJECT_BASE(Worker)
    public:
     Worker();
     virtual ~Worker();
+
+    using AttributeViewBundle::SetDomain;
+    using AttributeViewBundle::GetDomain;
+    using AttributeViewBundle::SetMesh;
+    using AttributeViewBundle::GetMesh;
+
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual void Initialize() = 0;
     virtual void Process() = 0;
+    virtual bool isUpdated() const;
     virtual void Update();
-    void Evaluate();
+    virtual void Evaluate();
+
+    data::DataTable const &db() const;
+    data::DataTable &db();
 
    private:
     struct pimpl_s;

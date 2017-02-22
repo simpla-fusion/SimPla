@@ -10,16 +10,22 @@ namespace simpla {
 namespace engine {
 struct Worker::pimpl_s {
     DomainView *m_domain_;
+    data::DataTable m_db_;
 };
-Worker::Worker() : m_pimpl_(new pimpl_s) { concept::Configurable::Click(); }
+Worker::Worker() : m_pimpl_(new pimpl_s) {}
 Worker::~Worker(){};
+data::DataTable const &Worker::db() const { return m_pimpl_->m_db_; }
+data::DataTable &Worker::db() {
+    Click();
+    return m_pimpl_->m_db_;
+}
 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
     //       << " [" << getClassName() << " : " << name() << "]" << std::endl;
     os << std::setw(indent + 1) << "  type = \"" << getClassName() << "\", config = {" << db() << "},";
     os << std::setw(indent + 1) << " attributes = { ";
-    AttributeViewBundle::Print(os, indent);
+    //    AttributeViewBundle::Print(os, indent);
     os << "  } , ";
     return os;
 }
@@ -72,12 +78,12 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
  * deactivate Worker
  * @enduml
  */
-
+bool Worker::isUpdated() const { return !(AttributeViewBundle::isModified() || concept::StateCounter::isModified()); }
 void Worker::Update() {
-    if (AttributeViewBundle::isUpdated() && concept::Configurable::isUpdated()) { return; }
+    if (isUpdated()) { return; }
     AttributeViewBundle::Update();
     Initialize();
-    concept::Configurable::Update();
+    concept::StateCounter::Recount();
 }
 void Worker::Evaluate() {
     Update();

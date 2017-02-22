@@ -347,5 +347,5 @@ class HeavyDataAdapter<ndArray<V, N>> {
     };
 };
 }
-}  // namespace simpla { namespace data_block
+}  // namespace simpla { namespace GetDataBlock
 #endif  // SIMPLA_ARRAYPATCH_H

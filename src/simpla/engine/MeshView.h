@@ -6,6 +6,7 @@
 #define SIMPLA_GEOMETRY_H
 
 #include <simpla/concept/Printable.h>
+#include <simpla/concept/StateCounter.h>
 #include "AttributeView.h"
 #include "Object.h"
 namespace simpla {
@@ -25,11 +26,18 @@ class MeshView : public AttributeViewBundle, public concept::Printable {
     MeshView();
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    virtual void Initialize() = 0;
-    virtual std::shared_ptr<MeshBlock> const &mesh_block() const;
-    void Update();
+
+    id_type GetMeshBlockId() const;
+    std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
+    void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
+
+    virtual bool isUpdated() const;
+    virtual void Update();
+    virtual void Initialize();
+    virtual void Finalize();
+
     size_type size(int IFORM = VERTEX) const { return 0; }
-  size_tuple   dimensions()const{return size_tuple{};};
+    size_tuple dimensions() const { return size_tuple{}; };
     //    template <typename... Args>
     //    Range<MeshEntityId> range(Args &&... args) const {
     //        if (m_mesh_block_ != nullptr) {
@@ -76,7 +84,6 @@ class MeshAdapter : public MeshView, public M {
     explicit MeshAdapter(Args &&... args) : MeshView(), M(std::forward<Args>(args)...) {}
     ~MeshAdapter() {}
 
-    std::shared_ptr<MeshBlock> const &mesh_block() const final { return MeshView::mesh_block(); }
     void Initialize() final { M::Initialize(); };
 };
 }  // namespace engine

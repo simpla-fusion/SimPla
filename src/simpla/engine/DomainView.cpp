@@ -3,8 +3,10 @@
 //
 #include "DomainView.h"
 #include <simpla/SIMPLA_config.h>
+#include <simpla/concept/StateCounter.h>
 #include <set>
 #include "AttributeView.h"
+#include "MeshBlock.h"
 #include "MeshView.h"
 #include "Object.h"
 #include "Patch.h"
@@ -23,7 +25,6 @@ struct DomainView::pimpl_s {
     Manager *m_manager_ = nullptr;
 
     //    DataAttribute<int, VERTEX, 9> m_tags_{"tags", "INPUT"_};
-    //
     //    std::map<int, std::map<int, Range<entity_id>>> m_range_cache_;
     //    std::map<int, std::map<int, std::map<int, Range<entity_id>>>> m_interface_cache_;
 };
@@ -33,7 +34,7 @@ DomainView::~DomainView() {}
 
 Manager const *DomainView::GetManager(Manager *) const { return m_pimpl_->m_manager_; }
 Manager *DomainView::SetManager(Manager *m) {
-    concept::Configurable::Click();
+    concept::StateCounter::Click();
     m_pimpl_->m_manager_ = m;
     return m_pimpl_->m_manager_;
 }
@@ -113,15 +114,12 @@ void DomainView::Dispatch(std::shared_ptr<Patch> p) { m_pimpl_->m_patch_ = p; };
 std::map<id_type, std::shared_ptr<engine::AttributeDesc>> const &DomainView::GetAttributeDict() const {
     return m_pimpl_->m_attrs_dict_;
 };
-data::DataTable const &DomainView::attr_db(id_type id) const { return *(m_pimpl_->m_attrs_dict_.at(id)->db); };
-data::DataTable &DomainView::attr_db(id_type id) { return *(m_pimpl_->m_attrs_dict_.at(id)->db); };
+data::DataTable const &DomainView::attr_db(id_type id) const { return  (m_pimpl_->m_attrs_dict_.at(id)->db()); };
+data::DataTable &DomainView::attr_db(id_type id) { return  (m_pimpl_->m_attrs_dict_.at(id)->db()); };
 id_type DomainView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
 
 bool DomainView::isUpdated() const {
-    return concept::Configurable::isUpdated() &&
-           (m_pimpl_->m_current_block_id_ ==
-            ((m_pimpl_->m_patch_ == nullptr) ? NULL_ID : m_pimpl_->m_patch_->mesh_block()->id())) &&
-           (m_pimpl_->m_current_state_count_ == m_pimpl_->m_state_count_);
+    return (!concept::StateCounter::isModified()) && (m_pimpl_->m_current_block_id_ == GetMeshBlockId());
 }
 
 void DomainView::Update() {
@@ -132,9 +130,9 @@ void DomainView::Update() {
     if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<Patch>(); }
     if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->Update(); }
     for (auto &item : m_pimpl_->m_workers_) { item->Update(); }
-    m_pimpl_->m_current_block_id_ = m_pimpl_->m_patch_->mesh_block()->id();
+    m_pimpl_->m_current_block_id_ = m_pimpl_->m_patch_->GetMeshBlock()->id();
 
-    concept::Configurable::Update();
+    concept::StateCounter::Recount();
 }
 
 void DomainView::Evaluate() {
@@ -142,7 +140,7 @@ void DomainView::Evaluate() {
 }
 
 std::shared_ptr<MeshView> &DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
-    concept::Configurable::Click();
+    concept::StateCounter::Click();
     m_pimpl_->m_mesh_ = m;
     m_pimpl_->m_mesh_->SetDomain(this);
     ++m_pimpl_->m_state_count_;
@@ -150,9 +148,8 @@ std::shared_ptr<MeshView> &DomainView::SetMesh(std::shared_ptr<MeshView> const &
 };
 
 std::shared_ptr<MeshView> const &DomainView::GetMesh() const { return m_pimpl_->m_mesh_; }
-
 std::shared_ptr<Worker> &DomainView::AppendWorker(std::shared_ptr<Worker> const &w) {
-    concept::Configurable::Click();
+    concept::StateCounter::Click();
     ASSERT(w != nullptr);
     w->SetDomain(this);
     m_pimpl_->m_workers_.push_back(w);
@@ -161,7 +158,7 @@ std::shared_ptr<Worker> &DomainView::AppendWorker(std::shared_ptr<Worker> const 
 };
 
 std::shared_ptr<Worker> &DomainView::PrependWorker(std::shared_ptr<Worker> const &w) {
-    concept::Configurable::Click();
+    concept::StateCounter::Click();
     ASSERT(w != nullptr);
     w->SetDomain(this);
     m_pimpl_->m_workers_.push_front(w);
@@ -170,18 +167,22 @@ std::shared_ptr<Worker> &DomainView::PrependWorker(std::shared_ptr<Worker> const
 };
 
 void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
-    concept::Configurable::Click();
+    concept::StateCounter::Click();
     UNIMPLEMENTED;
     ++m_pimpl_->m_state_count_;
     //    auto it = m_pimpl_->m_workers_.find(w);
     //    if (it != m_pimpl_->m_workers_.end()) { m_pimpl_->m_workers_.erase(it); }
 };
+id_type DomainView::GetMeshBlockId() const { return GetMeshBlock() == nullptr ? NULL_ID : GetMeshBlock()->id(); }
+std::shared_ptr<MeshBlock> const &DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
+std::shared_ptr<DataBlock> const &DomainView::GetDataBlock(id_type id) const {
+    return m_pimpl_->m_patch_->GetDataBlock(id);
+}
+std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) { return m_pimpl_->m_patch_->GetDataBlock(id); }
 
-std::shared_ptr<MeshBlock> const &DomainView::mesh_block() const { return m_pimpl_->m_patch_->mesh_block(); };
-
-std::shared_ptr<DataBlock> DomainView::data_block(id_type) const {}
-
-void DomainView::data_block(id_type, std::shared_ptr<DataBlock> const &) { concept::Configurable::Click(); }
+void DomainView::SetDataBlock(id_type id, std::shared_ptr<DataBlock> const &d) {
+    m_pimpl_->m_patch_->SetDataBlock(id, d);
+}
 
 std::ostream &DomainView::Print(std::ostream &os, int indent) const {
     if (m_pimpl_->m_mesh_ != nullptr) {
