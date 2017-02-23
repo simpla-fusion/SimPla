@@ -14,15 +14,15 @@ using namespace simpla::data;
 
 struct Moo : public MeshView {
     SP_OBJECT_HEAD(Moo, MeshView)
-    DataAttribute<Real, 2, 2> tags0{"tags0"};
-    DataAttribute<Real> tags{"tags", this};
+    DataAttribute<Real, 2, 2> tags0{this,"tags0"};
+    DataAttribute<Real> tags{this, "tags"};
     void Initialize() final {}
 };
 
 struct Foo : public Worker {
     SP_OBJECT_HEAD(Foo, Worker)
-    DataAttribute<Real> F{"rho0", this, "CHECK"_ = true};
-    DataAttribute<Real> E{"E", this, "CHECK"_ = false};
+    DataAttribute<Real> F{this, "rho0", "CHECK"_ = true};
+    DataAttribute<Real> E{this, "E", "CHECK"_ = false};
     void Initialize() final {}
     void Process() final {}
 };

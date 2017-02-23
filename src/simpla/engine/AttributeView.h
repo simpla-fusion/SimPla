@@ -18,19 +18,27 @@ class DomainView;
 class MeshView;
 class DataBlock;
 class AttributeView;
+enum AttributeTag { NORMAL = 0, SCRATCH = 0b100 };
+enum AttributeLockState { READ = 0b01, WRITE = 0b10 };
 
 struct AttributeDesc {
-    AttributeDesc(std::string const &name_s = "", std::type_info const &t_id = typeid(Real), int IFORM = VERTEX,
-                  int DOF = 1, int CONTEXT = 0);
+    AttributeDesc(const std::type_info &t_id, int IFORM, int DOF, AttributeTag CONTEXT, const std::string &name_s);
+
+    template <typename... Args>
+    AttributeDesc(const std::type_info &t_id, int IFORM, int DOF, AttributeTag TAG, const std::string &name_s,
+                  Args &&... args)
+        : AttributeDesc(t_id, IFORM, DOF, TAG, name_s) {
+        db().SetValue(std::forward<Args>(args)...);
+    };
     ~AttributeDesc();
-    static id_type GenerateGUID(std::string const &name_s, std::type_info const &t_id, int IFORM = VERTEX, int DOF = 1,
-                                int CONTEXT = 0);
+
+    static id_type GenerateGUID(std::string const &s, std::type_info const &t_id, int IFORM, int DOF, AttributeTag tag);
 
     std::string const &name() const { return m_name_; }
     const std::type_info &value_type_info() const { return m_value_type_info_; }
     int iform() const { return m_iform_; }
     int dof() const { return m_dof_; }
-    int context() const { return m_context_; }
+    AttributeTag tag() const { return m_tag_; }
     id_type GUID() const { return m_GUID_; }
     data::DataTable &db() { return m_db_; }
     data::DataTable const &db() const { return m_db_; }
@@ -40,21 +48,21 @@ struct AttributeDesc {
     const std::type_info &m_value_type_info_;
     int m_iform_;
     int m_dof_;
-    int m_context_;
+    AttributeTag m_tag_;
     id_type m_GUID_;
     data::DataTable m_db_;
 };
 
 class AttributeViewBundle : public concept::StateCounter {
    public:
-    enum { IN, OUT, IN_OUT };
     AttributeViewBundle();
     virtual ~AttributeViewBundle();
     virtual void Update();
     void SetDomain(DomainView *);
-    DomainView const *GetDomain() const;
+    DomainView *GetDomain() const;
     void SetMesh(MeshView const *);
     MeshView const *GetMesh() const;
+    virtual std::ostream &Print(std::ostream &os, int indent) const;
 
     void insert(AttributeView *attr);
     void insert(AttributeViewBundle *);
@@ -89,6 +97,7 @@ class AttributeViewBundle : public concept::StateCounter {
 struct AttributeView : public concept::Printable, public concept::StateCounter {
    public:
     SP_OBJECT_BASE(AttributeView);
+
     explicit AttributeView(std::shared_ptr<AttributeDesc> const &);
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
@@ -107,7 +116,6 @@ struct AttributeView : public concept::Printable, public concept::StateCounter {
 
     void Connect(AttributeViewBundle *b);
     void Disconnect();
-
     std::shared_ptr<AttributeDesc> const &description() const;
     void SetMesh(MeshView const *p = nullptr);
     MeshView const *GetMesh() const;
@@ -136,15 +144,12 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     typedef mesh_traits_t<U> mesh_type;
 
    public:
-    explicit AttributeViewAdapter(std::string const &name_s = "")
-        : AttributeView(std::make_shared<AttributeDesc>(name_s, typeid(value_type), algebra::traits::iform<U>::value,
-                                                        algebra::traits::dof<U>::value)) {}
-
-    template <typename... Args>
-    explicit AttributeViewAdapter(std::string const &name_s, Args &&... args)
-        : AttributeView(std::make_shared<AttributeDesc>(name_s, typeid(value_type), algebra::traits::iform<U>::value,
-                                                        algebra::traits::dof<U>::value)) {
-        //        AttributeView::SetUp(std::forward<Args>(args)...);
+    template <typename T, typename... Args>
+    AttributeViewAdapter(T *b, Args &&... args)
+        : AttributeView(std::make_shared<AttributeDesc>(typeid(value_type), algebra::traits::iform<U>::value,
+                                                        algebra::traits::dof<U>::value, NORMAL,
+                                                        std::forward<Args>(args)...)) {
+        AttributeView::Connect(b);
     }
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
@@ -185,8 +190,6 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
         AttributeView::Update();
         U::Update();
     }
-    //    value_type *data() final { return reinterpret_cast<value_type *>(GetDataBlock()->raw_data()); }
-    //    value_type const *data() const final { return reinterpret_cast<value_type *>(GetDataBlock()->raw_data()); }
 };
 
 template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>

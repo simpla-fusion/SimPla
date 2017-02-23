@@ -36,31 +36,27 @@ class DomainView : public concept::Printable, public concept::StateCounter {
     void Evaluate();
 
     Manager const *GetManager(Manager *) const;
-    Manager *SetManager(Manager *m = nullptr);
+    void SetManager(Manager *m = nullptr);
 
     std::shared_ptr<MeshView> const &GetMesh() const;
-    std::shared_ptr<Worker> &AppendWorker(std::shared_ptr<Worker> const &w);
-    std::shared_ptr<Worker> &PrependWorker(std::shared_ptr<Worker> const &w);
+    void AppendWorker(std::shared_ptr<Worker> const &w);
+    void PrependWorker(std::shared_ptr<Worker> const &w);
     void RemoveWorker(std::shared_ptr<Worker> const &w);
 
     template <typename U>
-    std::shared_ptr<Worker> &AppendWorker(std::shared_ptr<U> const &w = nullptr,
-                                          ENABLE_IF((std::is_base_of<Worker, U>::value))) {
-        return AppendWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
+    void AppendWorker(std::shared_ptr<U> const &w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
+        AppendWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
     };
 
     template <typename U>
-    std::shared_ptr<Worker> &PrependWorker(std::shared_ptr<U> const &w = nullptr,
-                                           ENABLE_IF((std::is_base_of<Worker, U>::value))) {
-        return PrependWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
+    void PrependWorker(std::shared_ptr<U> const &w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
+        PrependWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
     };
-    std::shared_ptr<MeshView> &SetMesh(std::shared_ptr<MeshView> const &m);
+    void SetMesh(std::shared_ptr<MeshView> const &m);
 
     template <typename U>
-    std::shared_ptr<U> SetMesh(std::shared_ptr<U> const &m = nullptr,
-                               ENABLE_IF((std::is_base_of<MeshView, U>::value))) {
-        return std::dynamic_pointer_cast<U>(
-            SetMesh(m != nullptr ? m : std::dynamic_pointer_cast<MeshView>(std::make_shared<U>())));
+    void SetMesh(std::shared_ptr<U> const &m = nullptr, ENABLE_IF((std::is_base_of<MeshView, U>::value))) {
+        SetMesh(m != nullptr ? m : std::dynamic_pointer_cast<MeshView>(std::make_shared<U>()));
     };
 
     id_type GetMeshBlockId() const;

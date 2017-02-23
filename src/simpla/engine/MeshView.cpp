@@ -27,7 +27,7 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
     }
 
     os << std::setw(indent + 1) << " attributes = { ";
-    //    AttributeViewBundle::Print(os, indent);
+    AttributeViewBundle::Print(os, indent);
     os << "}  ";
     return os;
 };
@@ -37,10 +37,12 @@ bool MeshView::isUpdated() const {
 }
 void MeshView::Update() {
     if (isUpdated()) { return; }
+    AttributeViewBundle::SetMesh(this);
     if (GetDomain() != nullptr) { SetMeshBlock(GetDomain()->GetMeshBlock()); }
     AttributeViewBundle::Update();
-    Initialize();
     concept::StateCounter::Recount();
+
+    Initialize();
 }
 
 id_type MeshView::GetMeshBlockId() const {

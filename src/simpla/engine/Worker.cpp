@@ -25,7 +25,7 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
     //       << " [" << getClassName() << " : " << name() << "]" << std::endl;
     os << std::setw(indent + 1) << "  type = \"" << getClassName() << "\", config = {" << db() << "},";
     os << std::setw(indent + 1) << " attributes = { ";
-    //    AttributeViewBundle::Print(os, indent);
+    AttributeViewBundle::Print(os, indent + 1);
     os << "  } , ";
     return os;
 }

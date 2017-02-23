@@ -20,7 +20,10 @@ struct AttributeViewBundle::pimpl_s {
 
 AttributeViewBundle::AttributeViewBundle() : m_pimpl_(new pimpl_s) {}
 AttributeViewBundle::~AttributeViewBundle() {}
-
+std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
+    for (auto &attr : m_pimpl_->m_attr_views_) { os << attr->description()->name() << " , "; }
+    return os;
+};
 void AttributeViewBundle::insert(AttributeView *attr) {
     Click();
     m_pimpl_->m_attr_views_.insert(attr);
@@ -39,7 +42,7 @@ void AttributeViewBundle::SetDomain(DomainView *d) {
     Click();
     m_pimpl_->m_domain_ = d;
 }
-DomainView const *AttributeViewBundle::GetDomain() const { return m_pimpl_->m_domain_; }
+DomainView *AttributeViewBundle::GetDomain() const { return m_pimpl_->m_domain_; }
 void AttributeViewBundle::SetMesh(MeshView const *m) {
     Click();
     m_pimpl_->m_mesh_ = m;
@@ -47,14 +50,14 @@ void AttributeViewBundle::SetMesh(MeshView const *m) {
 MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 void AttributeViewBundle::Update() {
-    if (isModified()) {
-        for (AttributeView *attr : m_pimpl_->m_attr_views_) {
-            if (m_pimpl_->m_domain_ != nullptr) { attr->SetDomain(m_pimpl_->m_domain_); }
-            if (m_pimpl_->m_mesh_ != nullptr) { attr->SetMesh(m_pimpl_->m_mesh_); }
-        }
-    }
-    concept::StateCounter::Recount();
+    if (!isModified()) { return; }
+    //    if (m_pimpl_->m_domain_ != nullptr) { SetMesh(m_pimpl_->m_domain_->GetMesh().get()); }
+    //    for (AttributeView *attr : m_pimpl_->m_attr_views_) {
+    //        if (m_pimpl_->m_domain_ != nullptr) { attr->SetDomain(m_pimpl_->m_domain_); }
+    //        if (m_pimpl_->m_mesh_ != nullptr) { attr->SetMesh(m_pimpl_->m_mesh_); }
+    //    }
     for (AttributeView *attr : m_pimpl_->m_attr_views_) { attr->Update(); }
+    concept::StateCounter::Recount();
 }
 
 void AttributeViewBundle::for_each(std::function<void(AttributeView *)> const &fun) const {
@@ -62,19 +65,20 @@ void AttributeViewBundle::for_each(std::function<void(AttributeView *)> const &f
 }
 
 id_type AttributeDesc::GenerateGUID(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF,
-                                    int CONTEXT) {
+                                    AttributeTag tag) {
     std::string str = name_s + '.' + t_id.name() + '.' + static_cast<char>(IFORM + '0') + '.' +
-                      static_cast<char>(DOF + '0') + '.' + static_cast<char>(CONTEXT + '0');
+                      static_cast<char>(DOF + '0') + '.' + static_cast<char>(tag + '0');
     return static_cast<id_type>(std::hash<std::string>{}(str));
 }
 
-AttributeDesc::AttributeDesc(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF, int CONTEXT)
+AttributeDesc::AttributeDesc(const std::type_info &t_id, int IFORM, int DOF, AttributeTag tag,
+                             const std::string &name_s)
     : m_name_(name_s),
       m_value_type_info_(t_id),
       m_iform_(IFORM),
       m_dof_(DOF),
-      m_context_(CONTEXT),
-      m_GUID_(GenerateGUID(name_s, t_id, IFORM, DOF, CONTEXT)) {}
+      m_tag_(tag),
+      m_GUID_(GenerateGUID(name_s, t_id, IFORM, DOF, tag)) {}
 
 AttributeDesc::~AttributeDesc() {}
 
@@ -92,7 +96,12 @@ AttributeView::AttributeView(std::shared_ptr<AttributeDesc> const &desc) : m_pim
 }
 AttributeView::~AttributeView() { Disconnect(); }
 
-void AttributeView::Connect(AttributeViewBundle *b) { m_pimpl_->m_bundle_ = b; }
+void AttributeView::Connect(AttributeViewBundle *b) {
+    if (b != nullptr) {
+        m_pimpl_->m_bundle_ = b;
+        b->insert(this);
+    }
+}
 void AttributeView::Disconnect() {
     if (m_pimpl_->m_bundle_ != nullptr) m_pimpl_->m_bundle_->erase(this);
     m_pimpl_->m_bundle_ = nullptr;
