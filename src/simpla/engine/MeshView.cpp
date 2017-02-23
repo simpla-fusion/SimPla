@@ -37,7 +37,6 @@ bool MeshView::isUpdated() const {
 }
 void MeshView::Update() {
     if (isUpdated()) { return; }
-    AttributeViewBundle::SetMesh(this);
     if (GetDomain() != nullptr) { SetMeshBlock(GetDomain()->GetMeshBlock()); }
     AttributeViewBundle::Update();
     concept::StateCounter::Recount();

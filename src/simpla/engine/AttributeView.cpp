@@ -50,12 +50,15 @@ void AttributeViewBundle::SetMesh(MeshView const *m) {
 MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 void AttributeViewBundle::Update() {
-    if (!isModified()) { return; }
-    //    if (m_pimpl_->m_domain_ != nullptr) { SetMesh(m_pimpl_->m_domain_->GetMesh().get()); }
-    //    for (AttributeView *attr : m_pimpl_->m_attr_views_) {
-    //        if (m_pimpl_->m_domain_ != nullptr) { attr->SetDomain(m_pimpl_->m_domain_); }
-    //        if (m_pimpl_->m_mesh_ != nullptr) { attr->SetMesh(m_pimpl_->m_mesh_); }
-    //    }
+    if (isModified()) {
+        if (m_pimpl_->m_mesh_ == nullptr && m_pimpl_->m_domain_ != nullptr) {
+            SetMesh(m_pimpl_->m_domain_->GetMesh().get());
+        }
+        for (AttributeView *attr : m_pimpl_->m_attr_views_) {
+            if (m_pimpl_->m_domain_ != nullptr) { attr->SetDomain(m_pimpl_->m_domain_); }
+            if (m_pimpl_->m_mesh_ != nullptr) { attr->SetMesh(m_pimpl_->m_mesh_); }
+        }
+    }
     for (AttributeView *attr : m_pimpl_->m_attr_views_) { attr->Update(); }
     concept::StateCounter::Recount();
 }
@@ -141,13 +144,16 @@ bool AttributeView::isUpdated() const {
  * @enduml
  */
 void AttributeView::Update() {
-    if ((m_pimpl_->m_domain_ != nullptr) && (m_pimpl_->m_domain_->GetMeshBlockId() != m_pimpl_->m_current_block_id_)) {
-        Finalize();
-        m_pimpl_->m_data_ = m_pimpl_->m_domain_->GetDataBlock(description()->GUID());
-        m_pimpl_->m_mesh_ = m_pimpl_->m_domain_->GetMesh().get();
-        m_pimpl_->m_current_block_id_ = m_pimpl_->m_mesh_->GetMeshBlockId();
+    if (m_pimpl_->m_mesh_ == nullptr && m_pimpl_->m_domain_ != nullptr) {
+        m_pimpl_->m_mesh_ = m_pimpl_->m_domain_->GetMesh();
     }
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
+
+    if ((m_pimpl_->m_domain_ != nullptr) && (m_pimpl_->m_mesh_->GetMeshBlockId() != m_pimpl_->m_current_block_id_)) {
+        Finalize();
+        m_pimpl_->m_data_ = m_pimpl_->m_domain_->GetDataBlock(description()->GUID());
+        m_pimpl_->m_current_block_id_ = m_pimpl_->m_mesh_->GetMeshBlockId();
+    }
     if (m_pimpl_->m_data_ == nullptr) {
         m_pimpl_->m_data_ = CreateDataBlock();
         if (m_pimpl_->m_domain_ != nullptr) {

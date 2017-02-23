@@ -38,7 +38,7 @@ class DomainView : public concept::Printable, public concept::StateCounter {
     Manager const *GetManager(Manager *) const;
     void SetManager(Manager *m = nullptr);
 
-    std::shared_ptr<MeshView> const &GetMesh() const;
+    const MeshView * GetMesh() const;
     void AppendWorker(std::shared_ptr<Worker> const &w);
     void PrependWorker(std::shared_ptr<Worker> const &w);
     void RemoveWorker(std::shared_ptr<Worker> const &w);

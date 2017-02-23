@@ -140,7 +140,7 @@ void DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
     m_pimpl_->m_mesh_->SetDomain(this);
 };
 
-std::shared_ptr<MeshView> const &DomainView::GetMesh() const { return m_pimpl_->m_mesh_; }
+const MeshView * DomainView::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
 void DomainView::AppendWorker(std::shared_ptr<Worker> const &w) {
     concept::StateCounter::Click();
     ASSERT(w != nullptr);
