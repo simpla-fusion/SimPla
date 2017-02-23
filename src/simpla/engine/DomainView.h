@@ -65,6 +65,7 @@ class DomainView : public concept::Printable, public concept::StateCounter {
     std::shared_ptr<DataBlock> &GetDataBlock(id_type);
     void SetDataBlock(id_type, std::shared_ptr<DataBlock> const &);
 
+    void RegisterAttribute(AttributeDataBase *);
     //    void UpdateAttributeDict();
     std::map<id_type, std::shared_ptr<engine::AttributeDesc>> const &GetAttributeDict() const;
     data::DataTable const &attr_db(id_type) const;

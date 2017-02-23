@@ -52,7 +52,21 @@ struct AttributeDesc {
     id_type m_GUID_;
     data::DataTable m_db_;
 };
+struct AttributeDataBase : public concept::Printable {
+   public:
+    AttributeDataBase();
+    virtual ~AttributeDataBase();
 
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
+
+    bool has(id_type) const;
+    std::shared_ptr<AttributeDesc> Get(id_type) const;
+    std::shared_ptr<AttributeDesc> Set(std::shared_ptr<AttributeDesc>);
+
+   private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
+};
 class AttributeViewBundle : public concept::StateCounter {
    public:
     AttributeViewBundle();
@@ -68,6 +82,7 @@ class AttributeViewBundle : public concept::StateCounter {
     void insert(AttributeViewBundle *);
     void erase(AttributeView *attr);
     void for_each(std::function<void(AttributeView *)> const &) const;
+    void RegisterAttribute(AttributeDataBase *dbase);
 
    private:
     struct pimpl_s;
@@ -113,7 +128,7 @@ struct AttributeView : public concept::Printable, public concept::StateCounter {
 
     bool isNull() const;
     bool empty() const { return isNull(); };
-
+    void RegisterAttribute(AttributeDataBase *);
     void Connect(AttributeViewBundle *b);
     void Disconnect();
     std::shared_ptr<AttributeDesc> const &description() const;

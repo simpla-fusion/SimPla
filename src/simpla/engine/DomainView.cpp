@@ -140,7 +140,7 @@ void DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
     m_pimpl_->m_mesh_->SetDomain(this);
 };
 
-const MeshView * DomainView::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
+const MeshView *DomainView::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
 void DomainView::AppendWorker(std::shared_ptr<Worker> const &w) {
     concept::StateCounter::Click();
     ASSERT(w != nullptr);
@@ -170,6 +170,10 @@ std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) { return m_pimp
 
 void DomainView::SetDataBlock(id_type id, std::shared_ptr<DataBlock> const &d) {
     m_pimpl_->m_patch_->SetDataBlock(id, d);
+}
+void DomainView::RegisterAttribute(AttributeDataBase *dbase) {
+    m_pimpl_->m_mesh_->RegisterAttribute(dbase);
+    for (auto &item : m_pimpl_->m_workers_) { item->RegisterAttribute(dbase); }
 }
 
 std::ostream &DomainView::Print(std::ostream &os, int indent) const {

@@ -14,14 +14,16 @@ using namespace simpla::data;
 
 struct Moo : public MeshView {
     SP_OBJECT_HEAD(Moo, MeshView)
-    DataAttribute<Real, 2, 2> tags0{this,"tags0"};
+    DataAttribute<Real, 2, 2> tags0{this, "tags0"};
     DataAttribute<Real> tags{this, "tags"};
+    DataAttribute<Real> rho0{this, "rho0", "CHECK"_ = false, "TAG"_ = 12.345};
+
     void Initialize() final {}
 };
 
 struct Foo : public Worker {
     SP_OBJECT_HEAD(Foo, Worker)
-    DataAttribute<Real> F{this, "rho0", "CHECK"_ = true};
+    DataAttribute<Real> rho0{this, "rho0", "CHECK"_ = true};
     DataAttribute<Real> E{this, "E", "CHECK"_ = false};
     void Initialize() final {}
     void Process() final {}
@@ -34,4 +36,7 @@ int main(int argc, char** argv) {
     domain.Dispatch(patch);
     domain.Update();
     std::cout << domain << std::endl;
+    AttributeDataBase db;
+    domain.RegisterAttribute(&db);
+    std::cout << db << std::endl;
 }

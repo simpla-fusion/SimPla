@@ -131,7 +131,7 @@ void DataTable::SetValue(std::string const& url, std::shared_ptr<DataEntity> con
 };
 
 DataEntity* DataTable::Get(std::string const& url) { return m_pimpl_->insert(this, url).get(); }
-DataEntity const* DataTable::Get(std::string const& url) const { return m_pimpl_->search(this,url); }
+DataEntity const* DataTable::Get(std::string const& url) const { return m_pimpl_->search(this, url); }
 
 void DataTable::Parse(std::string const& str) {
     size_type start_pos = 0;
@@ -162,6 +162,7 @@ void DataTable::Parse(std::string const& str) {
 }
 
 DataEntity const* DataTable::find(std::string const& url) const { return m_pimpl_->search(this, url); };
+void DataTable::merge(DataTable& other) {}
 
 DataEntity& DataTable::at(std::string const& url) {
     DataEntity* res = const_cast<DataEntity*>(find(url));

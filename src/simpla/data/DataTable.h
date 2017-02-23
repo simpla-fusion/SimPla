@@ -95,7 +95,7 @@ class DataTable : public DataEntity {
     virtual void foreach (std::function<void(std::string const& key, DataEntity const&)> const&) const;
     virtual void foreach (std::function<void(std::string const& key, DataEntity&)> const& fun);
     virtual DataEntity const* find(std::string const& url) const;
-
+    void merge(DataTable& other);
     template <typename T>
     bool check(std::string const& url, T const& v) const {
         DataEntity const* p = find(url);

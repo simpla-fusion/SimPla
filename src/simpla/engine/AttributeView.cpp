@@ -11,7 +11,25 @@
 
 namespace simpla {
 namespace engine {
+struct AttributeDataBase::pimpl_s {
+    std::map<id_type, std::shared_ptr<AttributeDesc>> m_db_;
+};
+AttributeDataBase::AttributeDataBase() : m_pimpl_(new pimpl_s) {}
+AttributeDataBase::~AttributeDataBase() {}
+std::ostream &AttributeDataBase::Print(std::ostream &os, int indent) const {
+    for (auto const &item : m_pimpl_->m_db_) {
+        os << item.second->name() << "= { config= " << item.second->db() << "  },";
+    }
+}
 
+bool AttributeDataBase::has(id_type id) const { return m_pimpl_->m_db_.find(id) != m_pimpl_->m_db_.end(); }
+std::shared_ptr<AttributeDesc> AttributeDataBase::Get(id_type id) const { return m_pimpl_->m_db_.at(id); }
+
+std::shared_ptr<AttributeDesc> AttributeDataBase::Set(std::shared_ptr<AttributeDesc> p) {
+    auto res = m_pimpl_->m_db_.emplace(p->GUID(), p);
+    if (!res.second) { res.first->second->db().merge(p->db()); }
+    return res.first->second;
+}
 struct AttributeViewBundle::pimpl_s {
     DomainView *m_domain_ = nullptr;
     MeshView const *m_mesh_ = nullptr;
@@ -51,9 +69,7 @@ MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_;
 
 void AttributeViewBundle::Update() {
     if (isModified()) {
-        if (m_pimpl_->m_mesh_ == nullptr && m_pimpl_->m_domain_ != nullptr) {
-            SetMesh(m_pimpl_->m_domain_->GetMesh().get());
-        }
+        if (m_pimpl_->m_mesh_ == nullptr && m_pimpl_->m_domain_ != nullptr) { SetMesh(m_pimpl_->m_domain_->GetMesh()); }
         for (AttributeView *attr : m_pimpl_->m_attr_views_) {
             if (m_pimpl_->m_domain_ != nullptr) { attr->SetDomain(m_pimpl_->m_domain_); }
             if (m_pimpl_->m_mesh_ != nullptr) { attr->SetMesh(m_pimpl_->m_mesh_); }
@@ -62,7 +78,9 @@ void AttributeViewBundle::Update() {
     for (AttributeView *attr : m_pimpl_->m_attr_views_) { attr->Update(); }
     concept::StateCounter::Recount();
 }
-
+void AttributeViewBundle::RegisterAttribute(AttributeDataBase *dbase) {
+    for (auto &attr : m_pimpl_->m_attr_views_) { attr->RegisterAttribute(dbase); }
+}
 void AttributeViewBundle::for_each(std::function<void(AttributeView *)> const &fun) const {
     for (auto &attr : m_pimpl_->m_attr_views_) { fun(attr); }
 }
@@ -98,6 +116,8 @@ AttributeView::AttributeView(std::shared_ptr<AttributeDesc> const &desc) : m_pim
     m_pimpl_->m_desc_ = desc;
 }
 AttributeView::~AttributeView() { Disconnect(); }
+
+void AttributeView::RegisterAttribute(AttributeDataBase *dbase) { m_pimpl_->m_desc_ = dbase->Set(m_pimpl_->m_desc_); }
 
 void AttributeView::Connect(AttributeViewBundle *b) {
     if (b != nullptr) {
