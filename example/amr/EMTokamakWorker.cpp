@@ -45,7 +45,7 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
     virtual void SetPhysicalBoundaryConditionE(Real time);
     virtual void SetPhysicalBoundaryConditionB(Real time);
 
-    field_type<VERTEX> psi{"psi", this};
+    field_type<VERTEX> psi{this, "psi"};
     std::function<Vec3(point_type const &, Real)> J_src_fun;
     std::function<Vec3(point_type const &, Real)> E_src_fun;
 };
@@ -73,7 +73,7 @@ void EMTokamakWorker::Initialize(Real data_time) {
     nTuple<Real, 3> ZERO_V{0, 0, 0};
     //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
     for (auto &item : particles()) {
-        Real ratio =db().GetValue("Particles." + item.first + ".ratio", 1.0);
+        Real ratio = db().GetValue("Particles." + item.first + ".ratio", 1.0);
         *item.second->rho = rho0 * ratio;
     }
 }

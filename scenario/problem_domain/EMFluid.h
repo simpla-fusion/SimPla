@@ -56,19 +56,19 @@ class EMFluid : public engine::Worker {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{"rho0", this, "CHECK"};
+    field_type<VERTEX> rho0{this, "rho0"};
 
-    field_type<EDGE> E0{"E0", this};
-    field_type<FACE> B0{"B0", this, "CHECK"_};
-    field_type<VERTEX, 3> B0v{"B0v", this};
-    field_type<VERTEX> BB{"BB", this};
-    field_type<VERTEX, 3> Ev{"Ev", this};
-    field_type<VERTEX, 3> Bv{"Bv", this};
-    field_type<VERTEX, 3> dE{"dE", this};
+    field_type<EDGE> E0{this, "E0"};
+    field_type<FACE> B0{this, "B0"};
+    field_type<VERTEX, 3> B0v{this, "B0v"};
+    field_type<VERTEX> BB{this, "BB"};
+    field_type<VERTEX, 3> Ev{this, "Ev"};
+    field_type<VERTEX, 3> Bv{this, "Bv"};
+    field_type<VERTEX, 3> dE{this, "dE"};
 
-    field_type<FACE> B{"B", this, "CHECK"_};
-    field_type<EDGE> E{"E", this, "CHECK"_};
-    field_type<EDGE> J1{"J1", this, "CHECK"_};
+    field_type<FACE> B{this, "B", engine::CHECK};
+    field_type<EDGE> E{this, "E", engine::CHECK};
+    field_type<EDGE> J1{this, "J1", engine::CHECK};
 
     struct fluid_s {
         Real mass;
@@ -111,8 +111,8 @@ std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::add_particle(std::stri
     auto sp = std::make_shared<fluid_s>();
     sp->mass = mass;
     sp->charge = charge;
-    sp->rho = std::make_shared<TRho>(name + "_rho", this);
-    sp->J = std::make_shared<TJv>(name + "_J", this);
+    sp->rho = std::make_shared<TRho>(this, name + "_rho");
+    sp->J = std::make_shared<TJv>(this, name + "_J");
     m_fluid_sp_.emplace(name, sp);
     return sp;
 }
@@ -135,9 +135,9 @@ std::ostream& EMFluid<TM>::Print(std::ostream& os, int indent) const {
 template <typename TM>
 void EMFluid<TM>::PreProcess() {
     base_type::Update();
-    if (!E.isUpdated()) E.Clear();
-    if (!B.isUpdated()) B.Clear();
-    if (!B0.isUpdated()) { B0.Clear(); }
+    //    if (E.isUpdated()) E.Clear();
+    //    if (!B.isUpdated()) B.Clear();
+    //    if (!B0.isUpdated()) { B0.Clear(); }
 }
 
 template <typename TM>
@@ -167,12 +167,12 @@ void EMFluid<TM>::NextTimeStep(Real data_time, Real dt) {
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     SetPhysicalBoundaryConditionE(data_time);
     if (m_fluid_sp_.size() > 0) {
-        field_type<VERTEX, 3> Q{"",this};
-        field_type<VERTEX, 3> K{"",this};
+        field_type<VERTEX, 3> Q{this};
+        field_type<VERTEX, 3> K{this};
 
-        field_type<VERTEX> a{"",this};
-        field_type<VERTEX> b{"",this};
-        field_type<VERTEX> c{"",this};
+        field_type<VERTEX> a{this};
+        field_type<VERTEX> b{this};
+        field_type<VERTEX> c{this};
 
         a.Clear();
         b.Clear();

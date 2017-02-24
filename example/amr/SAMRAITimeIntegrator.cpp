@@ -113,9 +113,9 @@ SAMRAIPatchProxy::SAMRAIPatchProxy(SAMRAI::hier::Patch &patch, boost::shared_ptr
     index_type hi[3] = {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]};
 
     std::shared_ptr<simpla::engine::MeshBlock> m = std::make_shared<simpla::engine::MeshBlock>(3, lo, hi, dx, xlo);
-    m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
-                               patch.getBox().getGlobalId().getLocalId().getValue()));
-    this->mesh_block(m);
+    //    m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
+    //                               patch.getBox().getGlobalId().getLocalId().getValue()));
+    this->SetMeshBlock(m);
 };
 SAMRAIPatchProxy::~SAMRAIPatchProxy() {}
 
@@ -133,11 +133,11 @@ std::shared_ptr<engine::DataBlock> create_data_block_t0(engine::AttributeDesc co
     auto inner_upper = p_data->getBox().upper();
     size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
                          static_cast<size_type>(outer_upper[1] - outer_lower[1]),
-                         static_cast<size_type>(outer_upper[2] - outer_lower[2]), static_cast<size_type>(desc.dof)};
+                         static_cast<size_type>(outer_upper[2] - outer_lower[2]), static_cast<size_type>(desc.dof())};
     index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
                         inner_lower[2] - outer_lower[2], 0};
     index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
-                        inner_upper[2] - outer_lower[2], desc.dof};
+                        inner_upper[2] - outer_lower[2], desc.dof()};
     auto res = std::make_shared<engine::DataBlockAdapter<Array<TV, 4>>>(p_data->getPointer(), dims, lo, hi);
     res->Initialize();
     return std::dynamic_pointer_cast<engine::DataBlock>(res);
@@ -146,11 +146,11 @@ std::shared_ptr<engine::DataBlock> create_data_block_t0(engine::AttributeDesc co
 std::shared_ptr<engine::DataBlock> create_data_block(engine::AttributeDesc const &desc,
                                                      boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<engine::DataBlock> res(nullptr);
-    if (desc.value_type_index == std::type_index(typeid(float))) {
+    if (desc.value_type_info() == (typeid(float))) {
         res = create_data_block_t0<float>(desc, pd);
-    } else if (desc.value_type_index == std::type_index(typeid(double))) {
+    } else if (desc.value_type_info() == (typeid(double))) {
         res = create_data_block_t0<double>(desc, pd);
-    } else if (desc.value_type_index == std::type_index(typeid(int))) {
+    } else if (desc.value_type_info() == (typeid(int))) {
         res = create_data_block_t0<int>(desc, pd);
     }
     //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
@@ -340,7 +340,7 @@ class SAMRAI_HyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPat
     int d_workload_data_id;
     bool d_use_nonuniform_workload;
     std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
-//    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double>> d_xyz;
+    //    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double>> d_xyz;
     engine::Manager *m_manager_ = nullptr;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
@@ -377,25 +377,25 @@ template <typename T>
 boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, engine::AttributeDesc const &attr) {
     static int var_depth[4] = {1, 3, 3, 1};
     SAMRAI::tbox::Dimension d_dim(ndims);
-    return (attr.iform > VOLUME)
+    return (attr.iform() > VOLUME)
                ? nullptr
                : boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(
-                     d_dim, attr.name, var_depth[attr.iform] * attr.dof));
+                     d_dim, attr.name(), var_depth[attr.iform()] * attr.dof()));
 }
 
 boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int ndims,
                                                                  engine::AttributeDesc const &desc) {
-    if (desc.value_type_index == std::type_index(typeid(float))) {
+    if (desc.value_type_info() == (typeid(float))) {
         return create_samrai_variable_t<float>(ndims, desc);
-    } else if (desc.value_type_index == std::type_index(typeid(double))) {
+    } else if (desc.value_type_info() == (typeid(double))) {
         return create_samrai_variable_t<double>(ndims, desc);
-    } else if (desc.value_type_index == std::type_index(typeid(int))) {
+    } else if (desc.value_type_info() == (typeid(int))) {
         return create_samrai_variable_t<int>(ndims, desc);
     }
     //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
     //    std::forward<Args>(args)...); }
     else {
-        RUNTIME_ERROR << " value type [" << desc.value_type_index.name() << "] is not supported!" << std::endl;
+        RUNTIME_ERROR << " value type [" << desc.value_type_info().name() << "] is not supported!" << std::endl;
     }
     return nullptr;
 }
@@ -420,10 +420,10 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
     //**************************************************************
     for (auto const &item : m_domain_view_->GetAttributeDict()) {
         boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *item.second);
-        m_samrai_variables_[item.second->GUID] = var;
+        m_samrai_variables_[item.second->GUID()] = var;
 
         engine::AttributeDesc const &attr = *item.second;
-        data::DataTable &attr_db = m_domain_view_->attr_db(attr.GUID);
+        data::DataTable &attr_db = m_domain_view_->attr_db(attr.GUID());
         //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
         //                "TENSOR"};
         //                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR",
@@ -435,7 +435,7 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
         **/
 
         if (attr_db.check("COORDINATES", true)) {
-            VERBOSE << attr.name << " is registered as coordinate" << std::endl;
+            VERBOSE << attr.name() << " is registered as coordinate" << std::endl;
             integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
                                          d_grid_geometry, "", "LINEAR_REFINE");
 
@@ -447,7 +447,7 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
             integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
                                          d_grid_geometry, "", "NO_REFINE");
         } else {
-            switch (attr.iform) {
+            switch (attr.iform()) {
                 case EDGE:
                 case FACE:
                 //                    integrator->registerVariable(var, d_nghosts,
@@ -466,21 +466,22 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
         }
 
         std::string visit_variable_type = "";
-        if ((attr.iform == VERTEX || attr.iform == VOLUME) && attr.dof == 1) {
+        if ((attr.iform() == VERTEX || attr.iform() == VOLUME) && attr.dof() == 1) {
             visit_variable_type = "SCALAR";
-        } else if (((attr.iform == EDGE || attr.iform == FACE) && attr.dof == 1) ||
-                   ((attr.iform == VERTEX || attr.iform == VOLUME) && attr.dof == 3)) {
+        } else if (((attr.iform() == EDGE || attr.iform() == FACE) && attr.dof() == 1) ||
+                   ((attr.iform() == VERTEX || attr.iform() == VOLUME) && attr.dof() == 3)) {
             visit_variable_type = "VECTOR";
-        } else if (((attr.iform == VERTEX || attr.iform == VOLUME) && attr.dof == 9) ||
-                   ((attr.iform == EDGE || attr.iform == FACE) && attr.dof == 3)) {
+        } else if (((attr.iform() == VERTEX || attr.iform() == VOLUME) && attr.dof() == 9) ||
+                   ((attr.iform() == EDGE || attr.iform() == FACE) && attr.dof() == 3)) {
             visit_variable_type = "TENSOR";
         } else {
-            WARNING << "Can not register attribute [" << attr.name << "] to VisIt  writer!" << std::endl;
+            WARNING << "Can not register attribute [" << attr.name() << "] to VisIt  writer!" << std::endl;
         }
 
         if (visit_variable_type != "" && attr_db.check("CHECK", true)) {
             d_visit_writer->registerPlotQuantity(
-                attr.name, visit_variable_type, vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+                attr.name(), visit_variable_type,
+                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
 
         } else if (attr_db.check("COORDINATES", true)) {
             d_visit_writer->registerNodeCoordinates(

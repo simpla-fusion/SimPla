@@ -8,7 +8,6 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/concept/SignalConnection.h>
 #include <simpla/concept/StateCounter.h>
 
 #include "Object.h"
@@ -19,7 +18,7 @@ class DomainView;
 class MeshView;
 class DataBlock;
 class AttributeView;
-enum AttributeTag { NORMAL = 0, SCRATCH = 0b100 };
+enum AttributeTag { NORMAL = 0, SCRATCH = 0b100, INPUT = 0b1000, COORDINATES, NO_FILL, CHECK = 0x0100 };
 enum AttributeLockState { READ = 0b01, WRITE = 0b10 };
 
 struct AttributeDesc {
@@ -131,7 +130,7 @@ struct AttributeView : public concept::Printable {
     virtual ~AttributeView();
 
    protected:
-    void Config(AttributeViewBundle *b, std::string const &s = "", AttributeTag t = SCRATCH);
+    void Config(AttributeViewBundle *b, std::string const &s = "unnamed", AttributeTag t = SCRATCH);
     template <typename... Others>
     void Config(AttributeViewBundle *b, std::string const &s, AttributeTag t, Others &&... others) {
         Config(b, s, t);
@@ -180,11 +179,12 @@ template <typename U>
 class AttributeViewAdapter<U> : public AttributeView, public U {
     SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
 
-    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, std::nullptr_t)
+    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshView)
     typedef algebra::traits::value_type_t<U> value_type;
     typedef mesh_traits_t<U> mesh_type;
 
    public:
+    typedef std::true_type prefer_pass_by_reference;
     template <typename... Args>
     AttributeViewAdapter(Args &&... args) {
         AttributeView::Config(std::forward<Args>(args)...);
@@ -228,7 +228,7 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     using U::operator=;
 
     virtual mesh_type const *mesh() const {
-        static_assert(std::is_base_of<MeshView, mesh_type>::value, "illegal mesh _type");
+        static_assert(std::is_base_of<MeshView, mesh_type>::value, "illegal mesh_type");
         return static_cast<mesh_type const *>(AttributeView::GetMesh());
     }
     void Update() final {

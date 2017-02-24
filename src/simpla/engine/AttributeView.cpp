@@ -20,8 +20,9 @@ AttributeDataBase::~AttributeDataBase() {}
 std::ostream &AttributeDataBase::Print(std::ostream &os, int indent) const {
     for (auto const &item : m_pimpl_->m_db_) {
         os << std::setw(indent + 1) << " " << item.second->name() << " = {"
-           << " iform = " << item.second->iform() << ", dof = " << item.second->dof() << ", value type = \""
-           << item.second->value_type_info().name() << "\" , config= " << item.second->db() << "  }," << std::endl;
+           << " iform = " << item.second->iform() << ", dof = " << item.second->dof()
+           << ", tag = " << item.second->tag() << ", value type = \"" << item.second->value_type_info().name()
+           << "\" , config= " << item.second->db() << "  }," << std::endl;
     }
 }
 id_type AttributeDataBase::GetGUID(std::string const &s) const { return m_pimpl_->m_name_map_.at(s); }
@@ -32,6 +33,7 @@ bool AttributeDataBase::has(std::string const &s) const {
 std::shared_ptr<AttributeDesc> AttributeDataBase::Get(id_type id) const { return m_pimpl_->m_db_.at(id); }
 std::shared_ptr<AttributeDesc> AttributeDataBase::Get(std::string const &s) const { return Get(GetGUID(s)); }
 std::shared_ptr<AttributeDesc> AttributeDataBase::Set(id_type gid, std::shared_ptr<AttributeDesc> p) {
+    if (p->tag() == SCRATCH) { return nullptr; }
     auto res = m_pimpl_->m_db_.emplace(gid, p);
     if (res.second) {
         m_pimpl_->m_name_map_.emplace(p->name(), gid);

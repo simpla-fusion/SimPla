@@ -47,11 +47,11 @@ struct CylindricalGeometry : public engine::MeshView {
     virtual ~CylindricalGeometry() {}
 
    private:
-    engine::DataAttribute<Real, VERTEX, 3> m_vertics_{"vertics", this, "COORDINATES"_};
-    engine::DataAttribute<Real, VOLUME, 9> m_volume_{"volume", this, "NO_FILL"_};
-    engine::DataAttribute<Real, VOLUME, 9> m_dual_volume_{"dual_volume", this, "NO_FILL"_};
-    engine::DataAttribute<Real, VOLUME, 9> m_inv_volume_{"inv_volume", this, "NO_FILL"_};
-    engine::DataAttribute<Real, VOLUME, 9> m_inv_dual_volume_{"inv_dual_volume", this, "NO_FILL"_};
+    engine::DataAttribute<Real, VERTEX, 3> m_vertics_{this, "vertics", engine::COORDINATES};
+    engine::DataAttribute<Real, VOLUME, 9> m_volume_{this, "volume", engine::NO_FILL};
+    engine::DataAttribute<Real, VOLUME, 9> m_dual_volume_{this, "dual_volume", engine::NO_FILL};
+    engine::DataAttribute<Real, VOLUME, 9> m_inv_volume_{this, "inv_volume", engine::NO_FILL};
+    engine::DataAttribute<Real, VOLUME, 9> m_inv_dual_volume_{this, "inv_dual_volume", engine::NO_FILL};
 
    public:
     typedef mesh::MeshEntityIdCoder M;
@@ -117,13 +117,12 @@ struct CylindricalGeometry : public engine::MeshView {
         return point_type{x, y, z};
     }
 
-    virtual Real volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
-    virtual Real dual_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
-    virtual Real inv_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
-    virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_[mesh_block()->hash(s)]; }
+    virtual Real volume(MeshEntityId s) const { return m_volume_[GetMeshBlock()->hash(s)]; }
+    virtual Real dual_volume(MeshEntityId s) const { return m_volume_[GetMeshBlock()->hash(s)]; }
+    virtual Real inv_volume(MeshEntityId s) const { return m_volume_[GetMeshBlock()->hash(s)]; }
+    virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_[GetMeshBlock()->hash(s)]; }
 
     virtual void Initialize() {
-
         m_vertics_.Clear();
         m_volume_.Clear();
         m_dual_volume_.Clear();
@@ -158,12 +157,12 @@ struct CylindricalGeometry : public engine::MeshView {
         index_type je = upper[1];
         index_type kb = lower[2];
         index_type ke = upper[2];
-        auto m_dx_ = mesh_block()->dx();
+        auto m_dx_ = GetMeshBlock()->dx();
 
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) {
-                    auto x = mesh_block()->point(i, j, k);
+                    auto x = GetMeshBlock()->point(i, j, k);
                     m_vertics_(i, j, k, 0) = x[0] * std::cos(x[1]);
                     m_vertics_(i, j, k, 1) = x[0] * std::sin(x[1]);
                     m_vertics_(i, j, k, 2) = x[2];
