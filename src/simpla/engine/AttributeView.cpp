@@ -13,22 +13,41 @@ namespace simpla {
 namespace engine {
 struct AttributeDataBase::pimpl_s {
     std::map<id_type, std::shared_ptr<AttributeDesc>> m_db_;
+    std::map<std::string, id_type> m_name_map_;
 };
 AttributeDataBase::AttributeDataBase() : m_pimpl_(new pimpl_s) {}
 AttributeDataBase::~AttributeDataBase() {}
 std::ostream &AttributeDataBase::Print(std::ostream &os, int indent) const {
     for (auto const &item : m_pimpl_->m_db_) {
-        os << item.second->name() << "= { config= " << item.second->db() << "  },";
+        os << std::setw(indent + 1) << " " << item.second->name() << " = {"
+           << " iform = " << item.second->iform() << ", dof = " << item.second->dof() << ", value type = \""
+           << item.second->value_type_info().name() << "\" , config= " << item.second->db() << "  }," << std::endl;
     }
 }
-
+id_type AttributeDataBase::GetGUID(std::string const &s) const { return m_pimpl_->m_name_map_.at(s); }
 bool AttributeDataBase::has(id_type id) const { return m_pimpl_->m_db_.find(id) != m_pimpl_->m_db_.end(); }
+bool AttributeDataBase::has(std::string const &s) const {
+    return m_pimpl_->m_name_map_.find(s) != m_pimpl_->m_name_map_.end();
+}
 std::shared_ptr<AttributeDesc> AttributeDataBase::Get(id_type id) const { return m_pimpl_->m_db_.at(id); }
-
+std::shared_ptr<AttributeDesc> AttributeDataBase::Get(std::string const &s) const { return Get(GetGUID(s)); }
 std::shared_ptr<AttributeDesc> AttributeDataBase::Set(std::shared_ptr<AttributeDesc> p) {
     auto res = m_pimpl_->m_db_.emplace(p->GUID(), p);
-    if (!res.second) { res.first->second->db().merge(p->db()); }
+    if (res.second) {
+        m_pimpl_->m_name_map_.emplace(p->name(), p->GUID());
+    } else {
+        res.first->second->db().merge(p->db());
+    }
     return res.first->second;
+}
+
+void AttributeDataBase::Remove(id_type id) {
+    m_pimpl_->m_name_map_.erase(Get(id)->name());
+    m_pimpl_->m_db_.erase(id);
+}
+void AttributeDataBase::Remove(const std::string &s) {
+    m_pimpl_->m_db_.erase(GetGUID(s));
+    m_pimpl_->m_name_map_.erase(s);
 }
 struct AttributeViewBundle::pimpl_s {
     DomainView *m_domain_ = nullptr;
@@ -111,12 +130,8 @@ struct AttributeView::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
     std::shared_ptr<DataBlock> m_data_ = nullptr;
 };
-
-AttributeView::AttributeView(std::shared_ptr<AttributeDesc> const &desc) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_desc_ = desc;
-}
+AttributeView::AttributeView() : m_pimpl_(new pimpl_s) {}
 AttributeView::~AttributeView() { Disconnect(); }
-
 void AttributeView::RegisterAttribute(AttributeDataBase *dbase) { m_pimpl_->m_desc_ = dbase->Set(m_pimpl_->m_desc_); }
 
 void AttributeView::Connect(AttributeViewBundle *b) {
@@ -131,7 +146,7 @@ void AttributeView::Disconnect() {
 }
 
 std::type_index AttributeView::mesh_type_index() const { return std::type_index(typeid(MeshView)); }
-std::shared_ptr<AttributeDesc> const &AttributeView::description() const { return m_pimpl_->m_desc_; }
+std::shared_ptr<AttributeDesc> AttributeView::description() const { return m_pimpl_->m_desc_; }
 void AttributeView::SetMesh(MeshView const *p) {
     Click();
     Finalize();
@@ -188,6 +203,11 @@ void AttributeView::Initialize() {}
 void AttributeView::Finalize() {}
 
 bool AttributeView::isNull() const { return m_pimpl_->m_data_ == nullptr; }
+
+std::string const &AttributeView::name() const { return m_pimpl_->m_desc_ == nullptr ? "" : m_pimpl_->m_desc_->name(); }
+int AttributeView::iform() const { return m_pimpl_->m_desc_ == nullptr ? VERTEX : m_pimpl_->m_desc_->iform(); }
+int AttributeView::dof() const { return m_pimpl_->m_desc_ == nullptr ? 1 : m_pimpl_->m_desc_->dof(); }
+int AttributeView::tag() const { return m_pimpl_->m_desc_ == nullptr ? NORMAL : m_pimpl_->m_desc_->tag(); }
 
 std::ostream &AttributeView::Print(std::ostream &os, int indent) const {
     os << std::setw(indent + 1) << " " << description()->name();

@@ -22,7 +22,7 @@ enum AttributeTag { NORMAL = 0, SCRATCH = 0b100 };
 enum AttributeLockState { READ = 0b01, WRITE = 0b10 };
 
 struct AttributeDesc {
-    AttributeDesc(const std::type_info &t_id, int IFORM, int DOF, AttributeTag CONTEXT, const std::string &name_s);
+    AttributeDesc(const std::type_info &t_id, int IFORM, int DOF, AttributeTag TAG, const std::string &name_s);
 
     template <typename... Args>
     AttributeDesc(const std::type_info &t_id, int IFORM, int DOF, AttributeTag TAG, const std::string &name_s,
@@ -56,12 +56,16 @@ struct AttributeDataBase : public concept::Printable {
    public:
     AttributeDataBase();
     virtual ~AttributeDataBase();
-
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
     bool has(id_type) const;
+    bool has(std::string const &) const;
+    id_type GetGUID(std::string const &) const;
     std::shared_ptr<AttributeDesc> Get(id_type) const;
+    std::shared_ptr<AttributeDesc> Get(std::string const &) const;
     std::shared_ptr<AttributeDesc> Set(std::shared_ptr<AttributeDesc>);
+    void Remove(id_type);
+    void Remove(const std::string &);
 
    private:
     struct pimpl_s;
@@ -113,13 +117,33 @@ struct AttributeView : public concept::Printable, public concept::StateCounter {
    public:
     SP_OBJECT_BASE(AttributeView);
 
-    explicit AttributeView(std::shared_ptr<AttributeDesc> const &);
+    AttributeView();
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
 
+    void Setup(MeshView const *kv);
+    void Setup(DomainView const *kv);
+    void Setup(std::string const &kv);
+    void Setup(data::KeyValue const &kv);
+
+    template <typename U, typename... Others>
+    void Setup(U const &first, Others &&... others) {
+        Setup(first);
+        Setup(std::forward<Others>(others)...);
+    };
+    int tag() const;
+    std::string const &name() const;
+
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    virtual std::type_index mesh_type_index() const;  //!< mesh type
+
+    virtual std::shared_ptr<AttributeView> Clone(std::string const &s = "", int TAG = NORMAL) const = 0;
+
+    virtual std::type_info const &mesh_type_info() const = 0;   //!< mesh type
+    virtual std::type_info const &value_type_info() const = 0;  //!< value type
+    virtual int iform() const;
+    virtual int dof() const;
+
     virtual void Initialize();
     virtual void Finalize();
 
@@ -131,7 +155,7 @@ struct AttributeView : public concept::Printable, public concept::StateCounter {
     void RegisterAttribute(AttributeDataBase *);
     void Connect(AttributeViewBundle *b);
     void Disconnect();
-    std::shared_ptr<AttributeDesc> const &description() const;
+
     void SetMesh(MeshView const *p = nullptr);
     MeshView const *GetMesh() const;
     void SetDomain(DomainView *d = nullptr);
@@ -140,6 +164,7 @@ struct AttributeView : public concept::Printable, public concept::StateCounter {
     std::shared_ptr<DataBlock> const &GetDataBlock() const;
     std::shared_ptr<DataBlock> GetDataBlock();
 
+    virtual std::shared_ptr<AttributeDesc> description() const;
     virtual std::shared_ptr<DataBlock> CreateDataBlock() const = 0;
 
    private:
@@ -159,12 +184,10 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     typedef mesh_traits_t<U> mesh_type;
 
    public:
-    template <typename T, typename... Args>
-    AttributeViewAdapter(T *b, Args &&... args)
-        : AttributeView(std::make_shared<AttributeDesc>(typeid(value_type), algebra::traits::iform<U>::value,
-                                                        algebra::traits::dof<U>::value, NORMAL,
-                                                        std::forward<Args>(args)...)) {
-        AttributeView::Connect(b);
+    AttributeViewAdapter() {}
+    template <typename... Args>
+    explicit AttributeViewAdapter(Args &&... args) {
+        AttributeView::Setup(std::forward<Args>(args)...);
     }
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
@@ -177,8 +200,11 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
         os << "}";
         return os;
     }
-
-    std::type_index mesh_type_index() const final { return std::type_index(typeid(mesh_type)); }
+    virtual std::shared_ptr<AttributeView> Clone(std::string const &s = "", int TAG = NORMAL) const = 0;
+    virtual std::type_info const &mesh_type_info() const { return typeid(mesh_type); };    //!< mesh type
+    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
+    virtual int iform() const { return algebra::traits::iform<U>::value; };
+    virtual int dof() const { return algebra::traits::dof<U>::value; };
 
     std::shared_ptr<DataBlock> CreateDataBlock() const {
         std::shared_ptr<DataBlock> p = AttributeView::GetDataBlock();

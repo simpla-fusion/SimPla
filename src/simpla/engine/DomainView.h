@@ -22,7 +22,6 @@ class MeshBlock;
 class AttributeView;
 class DataBlock;
 class Patch;
-class Manager;
 
 class DomainView : public concept::Printable, public concept::StateCounter {
    public:
@@ -35,8 +34,8 @@ class DomainView : public concept::Printable, public concept::StateCounter {
     virtual void Update();
     void Evaluate();
 
-    Manager const *GetManager(Manager *) const;
-    void SetManager(Manager *m = nullptr);
+//    Manager const *GetManager(Manager *) const;
+//    void SetManager(Manager *m = nullptr);
 
     const MeshView * GetMesh() const;
     void AppendWorker(std::shared_ptr<Worker> const &w);
