@@ -8,6 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
 #include <simpla/concept/Printable.h>
+#include <simpla/concept/SignalConnection.h>
 #include <simpla/concept/StateCounter.h>
 
 #include "Object.h"
@@ -22,12 +23,12 @@ enum AttributeTag { NORMAL = 0, SCRATCH = 0b100 };
 enum AttributeLockState { READ = 0b01, WRITE = 0b10 };
 
 struct AttributeDesc {
-    AttributeDesc(const std::type_info &t_id, int IFORM, int DOF, AttributeTag TAG, const std::string &name_s);
+    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, AttributeTag TAG);
 
     template <typename... Args>
-    AttributeDesc(const std::type_info &t_id, int IFORM, int DOF, AttributeTag TAG, const std::string &name_s,
+    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, AttributeTag TAG,
                   Args &&... args)
-        : AttributeDesc(t_id, IFORM, DOF, TAG, name_s) {
+        : AttributeDesc(name_s, t_id, IFORM, DOF, TAG) {
         db().SetValue(std::forward<Args>(args)...);
     };
     ~AttributeDesc();
@@ -63,29 +64,36 @@ struct AttributeDataBase : public concept::Printable {
     id_type GetGUID(std::string const &) const;
     std::shared_ptr<AttributeDesc> Get(id_type) const;
     std::shared_ptr<AttributeDesc> Get(std::string const &) const;
-    std::shared_ptr<AttributeDesc> Set(std::shared_ptr<AttributeDesc>);
+    std::shared_ptr<AttributeDesc> Set(id_type gid, std::shared_ptr<AttributeDesc>);
     void Remove(id_type);
     void Remove(const std::string &);
+    void for_each(std::function<void(AttributeDesc *)> const &);
+    void for_each(std::function<void(AttributeDesc const *)> const &) const;
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-class AttributeViewBundle : public concept::StateCounter {
+class AttributeViewBundle : public concept::StateCounter, public concept::Printable {
    public:
     AttributeViewBundle();
     virtual ~AttributeViewBundle();
-    virtual void Update();
-    void SetDomain(DomainView *);
-    DomainView *GetDomain() const;
-    void SetMesh(MeshView const *);
-    MeshView const *GetMesh() const;
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
-    void insert(AttributeView *attr);
-    void insert(AttributeViewBundle *);
-    void erase(AttributeView *attr);
-    void for_each(std::function<void(AttributeView *)> const &) const;
+    virtual void Update();
+
+    void SetDomain(DomainView *);
+    DomainView *GetDomain();
+    DomainView const *GetDomain() const;
+    void SetMesh(MeshView const *);
+    MeshView const *GetMesh() const;
+
+    void Connect(AttributeView *attr);
+    void Disconnect(AttributeView *attr);
+
+    void Merge(AttributeViewBundle *);
+    void for_each(std::function<void(AttributeView *)> const &);
+    void for_each(std::function<void(AttributeView const *)> const &) const;
     void RegisterAttribute(AttributeDataBase *dbase);
 
    private:
@@ -113,7 +121,7 @@ class AttributeViewBundle : public concept::StateCounter {
  * deactivate AttributeView
  * @enduml
  */
-struct AttributeView : public concept::Printable, public concept::StateCounter {
+struct AttributeView : public concept::Printable {
    public:
     SP_OBJECT_BASE(AttributeView);
 
@@ -122,49 +130,42 @@ struct AttributeView : public concept::Printable, public concept::StateCounter {
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
 
-    void Setup(MeshView const *kv);
-    void Setup(DomainView const *kv);
-    void Setup(std::string const &kv);
-    void Setup(data::KeyValue const &kv);
-
-    template <typename U, typename... Others>
-    void Setup(U const &first, Others &&... others) {
-        Setup(first);
-        Setup(std::forward<Others>(others)...);
+   protected:
+    void Config(AttributeViewBundle *b, std::string const &s = "", AttributeTag t = SCRATCH);
+    template <typename... Others>
+    void Config(AttributeViewBundle *b, std::string const &s, AttributeTag t, Others &&... others) {
+        Config(b, s, t);
+        db().SetValue(std::forward<Others>(others)...);
     };
-    int tag() const;
-    std::string const &name() const;
 
+   public:
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
-    virtual std::shared_ptr<AttributeView> Clone(std::string const &s = "", int TAG = NORMAL) const = 0;
+    AttributeDesc const &description() const;
+    data::DataTable &db();
+    const data::DataTable &db() const;
+    id_type GUID() const;
+    AttributeTag tag() const;
+    std::string const &name() const;
 
-    virtual std::type_info const &mesh_type_info() const = 0;   //!< mesh type
-    virtual std::type_info const &value_type_info() const = 0;  //!< value type
     virtual int iform() const;
     virtual int dof() const;
+    virtual std::type_info const &value_type_info() const;     //!< value type
+    virtual std::type_info const &mesh_type_info() const = 0;  //!< mesh type
 
-    virtual void Initialize();
-    virtual void Finalize();
-
-    virtual bool isUpdated() const;
     virtual void Update();
 
     bool isNull() const;
     bool empty() const { return isNull(); };
     void RegisterAttribute(AttributeDataBase *);
+
     void Connect(AttributeViewBundle *b);
     void Disconnect();
 
-    void SetMesh(MeshView const *p = nullptr);
     MeshView const *GetMesh() const;
-    void SetDomain(DomainView *d = nullptr);
-    DomainView const *GetDomain() const;
-    DomainView *GetDomain();
     std::shared_ptr<DataBlock> const &GetDataBlock() const;
-    std::shared_ptr<DataBlock> GetDataBlock();
+    std::shared_ptr<DataBlock> &GetDataBlock();
 
-    virtual std::shared_ptr<AttributeDesc> description() const;
     virtual std::shared_ptr<DataBlock> CreateDataBlock() const = 0;
 
    private:
@@ -184,10 +185,9 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     typedef mesh_traits_t<U> mesh_type;
 
    public:
-    AttributeViewAdapter() {}
     template <typename... Args>
-    explicit AttributeViewAdapter(Args &&... args) {
-        AttributeView::Setup(std::forward<Args>(args)...);
+    AttributeViewAdapter(Args &&... args) {
+        AttributeView::Config(std::forward<Args>(args)...);
     }
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
@@ -195,20 +195,21 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     virtual ~AttributeViewAdapter() {}
 
     std::ostream &Print(std::ostream &os, int indent = 0) const final {
-        os << AttributeView::description()->name() << " = {";
+        os << AttributeView::description().name() << " = {";
         U::Print(os, indent);
         os << "}";
         return os;
     }
-    virtual std::shared_ptr<AttributeView> Clone(std::string const &s = "", int TAG = NORMAL) const = 0;
+    //    virtual std::shared_ptr<AttributeView> Clone(std::string const &s = "", int TAG = NORMAL) const = 0;
     virtual std::type_info const &mesh_type_info() const { return typeid(mesh_type); };    //!< mesh type
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
     virtual int iform() const { return algebra::traits::iform<U>::value; };
     virtual int dof() const { return algebra::traits::dof<U>::value; };
 
     std::shared_ptr<DataBlock> CreateDataBlock() const {
-        std::shared_ptr<DataBlock> p = AttributeView::GetDataBlock();
+        std::shared_ptr<DataBlock> p = nullptr;
 
+        // TODO: create data block!!
         //        if (p == nullptr) {
         //            UNIMPLEMENTED;
         //            std::shared_ptr<DataBlock> d(nullptr);
@@ -226,8 +227,11 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     };
     using U::operator=;
 
-    void Initialize() final { U::Initialize(); }
-    void Update() {
+    virtual mesh_type const *mesh() const {
+        static_assert(std::is_base_of<MeshView, mesh_type>::value, "illegal mesh _type");
+        return static_cast<mesh_type const *>(AttributeView::GetMesh());
+    }
+    void Update() final {
         AttributeView::Update();
         U::Update();
     }

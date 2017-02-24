@@ -455,7 +455,7 @@ Particle<P, M, V002>::dataset(mesh::EntityRange const &r0, data_model::DataSet c
 //        {
 //            size_t n = std::min(inc, num_of_element);
 //
-//            ptr.insert(std::make_pair(*it, std::make_tuple(n, v));
+//            ptr.Connect(std::make_pair(*it, std::make_tuple(n, v));
 //
 //            v += n * size_in_byte;
 //            num_of_element -= n;
@@ -543,7 +543,7 @@ Particle<P, M, V002>::insert(id_type const &s, TInputIterator ib, TInputIterator
 }
 
 //template<typename P, typename M> void
-//Particle<P, M, V002>::insert(mesh_id_type const &s, value_type const &v) { SetValue(s, &v, &v + 1); }
+//Particle<P, M, V002>::Connect(mesh_id_type const &s, value_type const &v) { SetValue(s, &v, &v + 1); }
 //
 //
 //template<typename P, typename M> template<typename Hash, typename TRange> void

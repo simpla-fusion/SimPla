@@ -29,7 +29,8 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
     os << "  } , ";
     return os;
 }
-
+void Worker::Initialize() { DO_NOTHING; }
+void Worker::Process() { DO_NOTHING; }
 /**
  * @startuml
  * title Initialize/Finalize
@@ -78,12 +79,11 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
  * deactivate Worker
  * @enduml
  */
-bool Worker::isUpdated() const { return !(AttributeViewBundle::isModified() || concept::StateCounter::isModified()); }
 void Worker::Update() {
-    if (isUpdated()) { return; }
+    if (!isModified()) { return; }
+    size_type state_tag = GetTagCount();
     AttributeViewBundle::Update();
-    Initialize();
-    concept::StateCounter::Recount();
+    if (state_tag == 0) { Initialize(); }
 }
 void Worker::Evaluate() {
     Update();

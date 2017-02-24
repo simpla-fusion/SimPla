@@ -58,7 +58,7 @@ Atlas::~Atlas(){};
 //
 //MeshBlock const *Atlas::at(id_type id) const { return (m_pimpl_->m_nodes_.at(id)).get(); };
 //
-//MeshBlock const *Atlas::insert(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint) {
+//MeshBlock const *Atlas::Connect(std::shared_ptr<MeshBlock> const &p_m, MeshBlock const *hint) {
 ////    m_pimpl_->m_nodes_.emplace(std::make_pair(p_m->id(), p_m));
 //    return p_m.get();
 //};
@@ -95,7 +95,7 @@ Atlas::~Atlas(){};
 //    MeshBlock const &m = *(it->second);
 //    assert(m.level() < MAX_NUM_OF_LEVEL);
 //    m_max_level_ = std::max(m_max_level_, m.level());
-//    m_layer_[m.level()].insert(id);
+//    m_layer_[m.level()].Connect(id);
 //
 //    for (auto const &item:m_nodes_) { if (item.first != id) { link(id, item.first); }}
 //}
@@ -116,23 +116,23 @@ Atlas::~Atlas(){};
 //        case 0:
 //            if (toolbox::check_adjoining(b0, b1, dx, L))
 //            {
-//                m_adjacent_.insert(i0, i1);
-//                m_adjacent_.insert(i1, i0);
+//                m_adjacent_.Connect(i0, i1);
+//                m_adjacent_.Connect(i1, i0);
 //            }
 //            break;
 //
 //        case -1:
 //            if (toolbox::check_overlapping(b0, b1))
 //            {
-//                m_refine_.insert(i0, i1);
-//                m_coarsen_.insert(i1, i0);
+//                m_refine_.Connect(i0, i1);
+//                m_coarsen_.Connect(i1, i0);
 //            }
 //            break;
 //        case 1:
 //            if (toolbox::check_overlapping(b0, b1))
 //            {
-//                m_coarsen_.insert(i0, i1);
-//                m_refine_.insert(i1, i0);
+//                m_coarsen_.Connect(i0, i1);
+//                m_refine_.Connect(i1, i0);
 //            }
 //            break;
 //        default:

@@ -20,7 +20,7 @@ class MeshBlock;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshView : public AttributeViewBundle, public concept::Printable {
+class MeshView : public AttributeViewBundle {
    public:
     SP_OBJECT_BASE(MeshView);
     MeshView();

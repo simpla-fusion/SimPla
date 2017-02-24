@@ -159,7 +159,7 @@ void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
     concept::StateCounter::Click();
     UNIMPLEMENTED;
     //    auto it = m_pimpl_->m_workers_.find(w);
-    //    if (it != m_pimpl_->m_workers_.end()) { m_pimpl_->m_workers_.erase(it); }
+    //    if (it != m_pimpl_->m_workers_.end()) { m_pimpl_->m_workers_.Disconnect(it); }
 };
 id_type DomainView::GetMeshBlockId() const { return GetMeshBlock() == nullptr ? NULL_ID : GetMeshBlock()->id(); }
 std::shared_ptr<MeshBlock> const &DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
@@ -241,8 +241,8 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 //};
 //
 // void Model::Finalize(Real data_time, Real dt) {
-//    m_range_cache_.erase(m_mesh_->mesh_block()->id());
-//    m_interface_cache_.erase(m_mesh_->mesh_block()->id());
+//    m_range_cache_.Disconnect(m_mesh_->mesh_block()->id());
+//    m_interface_cache_.Disconnect(m_mesh_->mesh_block()->id());
 //    PostProcess();
 //};
 //
@@ -272,7 +272,7 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 //    //    index_type ke = upper[2];
 //    //
 //    //#define _CAS(I, J, K, L) \
-////    if (I >= 0 && J >= 0 && K >= 0 && ((m_tags_(I, J, K, L) & tag) == tag)) { res.insert(M::pack_index(I, J, K, L)); }
+////    if (I >= 0 && J >= 0 && K >= 0 && ((m_tags_(I, J, K, L) & tag) == tag)) { res.Connect(M::pack_index(I, J, K, L)); }
 //    //
 //    //    switch (iform) {
 //    //        case VERTEX:
@@ -359,7 +359,7 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 //    //            for (index_type k = kb; k < ke - 1; ++k) {
 //    //                if ((m_tags_(i, j, k, 7) & v_tag) != v_tag) { continue; }
 //    //#define _CAS(I, J, K, L) \
-////    if (I >= 0 && J >= 0 && K >= 0 && m_tags_(I, J, K, L) == tag_in) { res.insert(M::pack_index(I, J, K, L)); }
+////    if (I >= 0 && J >= 0 && K >= 0 && m_tags_(I, J, K, L) == tag_in) { res.Connect(M::pack_index(I, J, K, L)); }
 //    //                switch (iform) {
 //    //                    case VERTEX:
 //    //                        _CAS(i + 0, j + 0, k + 0, 0);

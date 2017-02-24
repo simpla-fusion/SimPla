@@ -102,23 +102,18 @@ namespace engine {
       --> (*)
    @enduml
  */
-class Worker : public AttributeViewBundle, public concept::Printable {
+class Worker : public AttributeViewBundle {
     SP_OBJECT_BASE(Worker)
    public:
     Worker();
     virtual ~Worker();
 
-    using AttributeViewBundle::SetDomain;
-    using AttributeViewBundle::GetDomain;
-    using AttributeViewBundle::SetMesh;
-    using AttributeViewBundle::GetMesh;
-
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    virtual void Initialize() = 0;
-    virtual void Process() = 0;
-    virtual bool isUpdated() const;
+    virtual void Initialize();
+    virtual void Process();
     virtual void Update();
-    virtual void Evaluate();
+
+    void Evaluate();
 
     data::DataTable const &db() const;
     data::DataTable &db();

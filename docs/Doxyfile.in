@@ -225,7 +225,7 @@ TAB_SIZE               = 4
 # "sideeffect=@par Side Effects:\n"
 # will allow you to put the command \sideeffect (or @sideeffect) in the
 # documentation, which will result in a user-defined paragraph with heading
-# "Side Effects:". You can put \n's in the m_value_ part of an alias to insert
+# "Side Effects:". You can put \n's in the m_value_ part of an alias to Merge
 # newlines.
 
 ALIASES                =
@@ -2039,7 +2039,7 @@ CLASS_DIAGRAMS         = YES
 
 # You can define message sequence charts check_inside doxygen comments using the \msc
 # command. Doxygen will then run the mscgen tool (see:
-# http://www.mcternan.me.uk/mscgen/)) to produce the m_mesh_ and insert it in the
+# http://www.mcternan.me.uk/mscgen/)) to produce the m_mesh_ and Connect it in the
 # documentation. The MSCGEN_PATH tag allows you to specify the directory where
 # the mscgen tool resides. If left empty the tool is assumed to be found in the
 # default search path.

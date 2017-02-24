@@ -48,7 +48,7 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::insert(DataTable* t, std::string
             break;
         }
     }
-    if (p == nullptr) RUNTIME_ERROR << " Can not insert entity at [" << url << "]" << std::endl;
+    if (p == nullptr) RUNTIME_ERROR << " Can not Connect entity at [" << url << "]" << std::endl;
 
     return p;
 };

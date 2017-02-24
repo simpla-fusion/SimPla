@@ -167,10 +167,10 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<this_type>(p, ndims, lo, hi));
 //    };
 //
-//    virtual void Setup()
+//    virtual void Intialize()
 //    {
-//        base_type::Setup();
-//        data_entity_type::Setup();
+//        base_type::Intialize();
+//        data_entity_type::Intialize();
 //    };
 //
 //    virtual void PreProcess() { data_entity_type::update(); };

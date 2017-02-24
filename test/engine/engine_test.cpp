@@ -16,16 +16,17 @@ struct Moo : public MeshView {
     SP_OBJECT_HEAD(Moo, MeshView)
     DataAttribute<Real, 2, 2> tags0{this, "tags0"};
     DataAttribute<Real> tags{this, "tags"};
-    DataAttribute<Real> rho0{this, "rho0", "CHECK"_ = false, "TAG"_ = 12.345};
-    DataAttribute<Real> rho1{this};
+    DataAttribute<Real> rho0{this, "rho0", NORMAL, "CHECK"_ = false, "TAG"_ = 12.345};
+    DataAttribute<Real> rho1{this, "s", NORMAL};
+    DataAttribute<Real> tE{this};
+
     void Initialize() final {}
 };
 
 struct Foo : public Worker {
     SP_OBJECT_HEAD(Foo, Worker)
-    DataAttribute<Real> rho0{this, "rho0", "CHECK"_ = true};
-    DataAttribute<Real> E{this, "E", "CHECK"_ = false};
-    DataAttribute<Real> tE{this};
+    DataAttribute<Real> rho0{this, "rho0", NORMAL, "CHECK"_ = true};
+    DataAttribute<Real> E{this, "E", NORMAL, "CHECK"_ = false};
     void Initialize() final {}
     void Process() final {}
 };
