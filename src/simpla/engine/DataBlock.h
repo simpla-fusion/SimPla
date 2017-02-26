@@ -25,12 +25,13 @@ class DataBlock {
     virtual ~DataBlock() {}
     bool empty() const { return raw_data() == nullptr; }
 
-    virtual std::type_info const &value_type_info() const = 0;
-    virtual int entity_type() const = 0;
-    virtual int dof() const = 0;
-    virtual void *raw_data() = 0;
-    virtual void const *raw_data() const = 0;
-    virtual void Clear() = 0;
+    bool isInitialized() const { return true; }
+    virtual std::type_info const &value_type_info() const { return typeid(Real); };
+    virtual int entity_type() const { return 0; };
+    virtual int dof() const { return 1; };
+    virtual void *raw_data() { return nullptr; };
+    virtual void const *raw_data() const { return nullptr; };
+    virtual void Clear(){};
 };
 template <typename U, int IFORM, int DOF>
 class DefaultDataBlock : public DataBlock {

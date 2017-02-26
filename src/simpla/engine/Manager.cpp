@@ -11,7 +11,7 @@ struct Manager::pimpl_s {
     Atlas m_atlas_;
     model::Model m_model_;
     std::string m_name_;
-    AttributeDataBase m_attr_db_;
+    AttributeDict m_attr_db_;
 };
 Manager::Manager() : m_pimpl_(new pimpl_s) {}
 Manager::~Manager() {}
@@ -39,8 +39,8 @@ DomainView &Manager::GetDomainView(std::string const &d_name) {
     return GetDomainView(m_pimpl_->m_model_.GetMaterial(d_name).GetValue<id_type>("GUID"));
 }
 
-AttributeDataBase &Manager::GetAttributeDatabase() { return m_pimpl_->m_attr_db_; }
-AttributeDataBase const &Manager::GetAttributeDatabase() const { return m_pimpl_->m_attr_db_; }
+AttributeDict &Manager::GetAttributeDatabase() { return m_pimpl_->m_attr_db_; }
+AttributeDict const &Manager::GetAttributeDatabase() const { return m_pimpl_->m_attr_db_; }
 
 void Manager::Update() { concept::Configurable::Update(); };
 void Manager::Evaluate() {

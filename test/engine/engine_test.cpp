@@ -12,7 +12,7 @@
 using namespace simpla::engine;
 using namespace simpla::data;
 
-struct Moo : public MeshView {
+struct Moo : public MeshView, public AttributeViewBundle {
     SP_OBJECT_HEAD(Moo, MeshView)
     DataAttribute<Real, 2, 2> tags0{this, "tags0"};
     DataAttribute<Real> tags{this, "tags"};
@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     domain.Dispatch(patch);
     domain.Update();
     std::cout << domain << std::endl;
-    AttributeDataBase db;
+    AttributeDict db;
     domain.RegisterAttribute(&db);
     std::cout << db << std::endl;
 }

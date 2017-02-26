@@ -113,6 +113,9 @@ class Worker : public AttributeViewBundle {
     virtual void Process();
     virtual void Update();
 
+    virtual void Connect(DomainView *);
+    virtual void Disconnect(DomainView *);
+    virtual void OnNotify();
     void Evaluate();
 
     data::DataTable const &db() const;

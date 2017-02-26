@@ -11,8 +11,9 @@ namespace engine {
 
 struct MeshView::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
+    DomainView *m_domain_ = nullptr;
 };
-MeshView::MeshView() : m_pimpl_(new pimpl_s) { AttributeViewBundle::SetMesh(this); }
+MeshView::MeshView() : m_pimpl_(new pimpl_s) {}
 MeshView::~MeshView() {}
 
 std::ostream &MeshView::Print(std::ostream &os, int indent) const {
@@ -26,21 +27,26 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
            << "},";
     }
 
-    os << std::setw(indent + 1) << " attributes = { ";
-    AttributeViewBundle::Print(os, indent);
-    os << "}  ";
     return os;
 };
-bool MeshView::isUpdated() const {
-    return (!concept::StateCounter::isModified()) &&
-           ((GetDomain() == nullptr) || (GetDomain()->GetMeshBlockId() == GetMeshBlockId()));
+void MeshView::Connect(DomainView *b) {
+    if (m_pimpl_->m_domain_ != b) {
+        Disconnect();
+        m_pimpl_->m_domain_ = b;
+        if (b != nullptr) { b->SetMesh(this); }
+    }
 }
+void MeshView::Disconnect() {
+    if (m_pimpl_->m_domain_ != nullptr && m_pimpl_->m_domain_->GetMesh() == this) {
+        m_pimpl_->m_domain_->SetMesh(nullptr);
+    }
+    m_pimpl_->m_domain_ = nullptr;
+}
+void MeshView::OnNotify() { SetMeshBlock(GetDomain()->GetMeshBlock()); }
+DomainView const *MeshView::GetDomain() const { return m_pimpl_->m_domain_; }
 void MeshView::Update() {
-    if (isUpdated()) { return; }
-    if (GetDomain() != nullptr) { SetMeshBlock(GetDomain()->GetMeshBlock()); }
-    AttributeViewBundle::Update();
-    concept::StateCounter::Recount();
-
+    if (!isModified()) { return; }
+    concept::StateCounter::Tag();
     Initialize();
 }
 
@@ -51,8 +57,8 @@ std::shared_ptr<MeshBlock> const &MeshView::GetMeshBlock() const { return m_pimp
 void MeshView::SetMeshBlock(std::shared_ptr<MeshBlock> const &m) {
     if (m == m_pimpl_->m_mesh_block_) { return; }
     Finalize();
-    Click();
     m_pimpl_->m_mesh_block_ = m;
+    Click();
 }
 void MeshView::Initialize() {}
 void MeshView::Finalize() {}

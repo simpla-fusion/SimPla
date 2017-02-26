@@ -74,8 +74,8 @@ class Manager : public concept::Printable, public concept::Configurable {
     DomainView &GetDomainView(id_type id);
     DomainView &GetDomainView(std::string const &d_name);
 
-    AttributeDataBase &GetAttributeDatabase();
-    AttributeDataBase const &GetAttributeDatabase() const;
+    AttributeDict &GetAttributeDatabase();
+    AttributeDict const &GetAttributeDatabase() const;
 
     void Update();
     void Evaluate();

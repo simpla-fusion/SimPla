@@ -30,7 +30,7 @@ using namespace data;
  * @brief Uniform structured get_mesh
  */
 
-struct CylindricalGeometry : public engine::MeshView {
+struct CylindricalGeometry : public engine::MeshView, public engine::AttributeViewBundle {
    public:
     SP_OBJECT_HEAD(CylindricalGeometry, engine::MeshView)
 
@@ -42,7 +42,9 @@ struct CylindricalGeometry : public engine::MeshView {
     static constexpr int ndims = 3;
 
     template <typename... Args>
-    explicit CylindricalGeometry(Args &&... args) : MeshView() {}
+    explicit CylindricalGeometry(Args &&... args) : MeshView() {
+        engine::AttributeViewBundle::SetMesh(this);
+    }
 
     virtual ~CylindricalGeometry() {}
 

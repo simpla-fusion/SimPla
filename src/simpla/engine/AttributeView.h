@@ -52,10 +52,10 @@ struct AttributeDesc {
     id_type m_GUID_;
     data::DataTable m_db_;
 };
-struct AttributeDataBase : public concept::Printable {
+struct AttributeDict : public concept::Printable {
    public:
-    AttributeDataBase();
-    virtual ~AttributeDataBase();
+    AttributeDict();
+    virtual ~AttributeDict();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
     bool has(id_type) const;
@@ -79,13 +79,20 @@ class AttributeViewBundle : public concept::StateCounter, public concept::Printa
     virtual ~AttributeViewBundle();
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
+    virtual bool isModified();
     virtual void Update();
-
     void SetDomain(DomainView *);
     DomainView *GetDomain();
     DomainView const *GetDomain() const;
     void SetMesh(MeshView const *);
     MeshView const *GetMesh() const;
+    id_type GetMeshBlockId() const;
+    std::shared_ptr<DataBlock> GetDataBlock(id_type guid);
+    DataBlock const &GetDataBlock(id_type guid) const;
+
+    virtual void Connect(DomainView *);
+    virtual void Disconnect();
+    virtual void OnNotify();
 
     void Connect(AttributeView *attr);
     void Disconnect(AttributeView *attr);
@@ -93,7 +100,7 @@ class AttributeViewBundle : public concept::StateCounter, public concept::Printa
     void Merge(AttributeViewBundle *);
     void for_each(std::function<void(AttributeView *)> const &);
     void for_each(std::function<void(AttributeView const *)> const &) const;
-    void RegisterAttribute(AttributeDataBase *dbase);
+    void RegisterAttribute(AttributeDict *dbase);
 
    private:
     struct pimpl_s;
@@ -104,7 +111,9 @@ class AttributeViewBundle : public concept::StateCounter, public concept::Printa
  * @startuml
  * title Life cycle
  * actor Main
- *  participant AttributeView
+ * participant AttributeView
+ * participant AttributeViewBundle
+ * participant DomainView
  * participant AttributeViewAdapter as AttributeT <<T,IFORM,DOF>>
  * participant Attribute
  * Main->AttributeView: CreateDataBlock()
@@ -120,33 +129,46 @@ class AttributeViewBundle : public concept::StateCounter, public concept::Printa
  * deactivate AttributeView
  * @enduml
  */
-struct AttributeView : public concept::Printable {
+struct AttributeView : public concept::Printable, public concept::StateCounter {
    public:
     SP_OBJECT_BASE(AttributeView);
 
+   private:
     AttributeView();
+
+   public:
+    AttributeView(MeshView const *b);
+    AttributeView(AttributeViewBundle *b);
+    template <typename T>
+    AttributeView(T *b,
+                  ENABLE_IF((std::is_base_of<MeshView, T>::value && std::is_base_of<AttributeViewBundle, T>::value)))
+        : AttributeView(static_cast<AttributeViewBundle *>(b)) {
+        SetMesh(static_cast<MeshView const *>(b));
+    };
+
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
 
    protected:
-    void Config(AttributeViewBundle *b, std::string const &s = "unnamed", AttributeTag t = SCRATCH);
+    void Config(std::string const &s = "unnamed", AttributeTag t = SCRATCH);
+
     template <typename... Others>
-    void Config(AttributeViewBundle *b, std::string const &s, AttributeTag t, Others &&... others) {
-        Config(b, s, t);
+    void Config(std::string const &s, AttributeTag t, Others &&... others) {
+        Config(s, t);
         db().SetValue(std::forward<Others>(others)...);
     };
 
    public:
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
+    void RegisterDescription(AttributeDict *);
     AttributeDesc const &description() const;
     data::DataTable &db();
     const data::DataTable &db() const;
     id_type GUID() const;
     AttributeTag tag() const;
     std::string const &name() const;
-
     virtual int iform() const;
     virtual int dof() const;
     virtual std::type_info const &value_type_info() const;     //!< value type
@@ -156,16 +178,24 @@ struct AttributeView : public concept::Printable {
 
     bool isNull() const;
     bool empty() const { return isNull(); };
-    void RegisterAttribute(AttributeDataBase *);
 
+    /**
+     * @ingroup { observer
+     */
     void Connect(AttributeViewBundle *b);
     void Disconnect();
+    void OnNotify();
+    /** @}*/
+   private:
+    void SetMesh(MeshView const *);
+    void SetDataBlock(std::shared_ptr<DataBlock> const &d);
 
+   public:
     MeshView const *GetMesh() const;
-    std::shared_ptr<DataBlock> const &GetDataBlock() const;
-    std::shared_ptr<DataBlock> &GetDataBlock();
+    const DataBlock &GetDataBlock() const;
+    DataBlock &GetDataBlock();
 
-    virtual std::shared_ptr<DataBlock> CreateDataBlock() const = 0;
+    virtual void InitializeData();
 
    private:
     struct pimpl_s;
@@ -185,8 +215,8 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
 
    public:
     typedef std::true_type prefer_pass_by_reference;
-    template <typename... Args>
-    AttributeViewAdapter(Args &&... args) {
+    template <typename TB, typename... Args>
+    explicit AttributeViewAdapter(TB *b, Args &&... args) : AttributeView(b) {
         AttributeView::Config(std::forward<Args>(args)...);
     }
 
@@ -205,7 +235,7 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
     virtual int iform() const { return algebra::traits::iform<U>::value; };
     virtual int dof() const { return algebra::traits::dof<U>::value; };
-
+    void InitializeData() {}
     std::shared_ptr<DataBlock> CreateDataBlock() const {
         std::shared_ptr<DataBlock> p = nullptr;
 
@@ -225,7 +255,12 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
         //        }
         return p;
     };
-    using U::operator=;
+    template <typename TExpr>
+    this_type &operator=(TExpr const &expr) {
+        Click();
+        U::operator=(expr);
+        return *this;
+    };
 
     virtual mesh_type const *mesh() const {
         static_assert(std::is_base_of<MeshView, mesh_type>::value, "illegal mesh_type");
@@ -272,7 +307,7 @@ using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == VERTEX || I
 //        return std::make_shared<this_type>(std::forward<Args>(args)...);
 //    }
 //
-//    virtual std::shared_ptr<DataBlock> CreateDataBlock(void *p = nullptr) const {
+//    virtual std::shared_ptr<DataBlock> InitializeData(void *p = nullptr) const {
 //        std::shared_ptr<value_type> d(nullptr);
 //        if (p != nullptr) {
 //            d = std::shared_ptr<value_type>(static_cast<value_type *>(p), simpla::tags::do_nothing());

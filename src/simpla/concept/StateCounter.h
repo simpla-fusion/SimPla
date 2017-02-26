@@ -16,8 +16,8 @@ public:
     void Click() { ++m_click_count_; }
     size_type GetClickCount() const { return m_click_count_; }
     size_type GetTagCount() const { return m_tag_count_; }
-    void Recount() { m_tag_count_ = m_click_count_; }
-    void Recount(size_type c) {
+    void Tag() { m_tag_count_ = m_click_count_; }
+    void Tag(size_type c) {
         m_tag_count_ = c;
         m_click_count_ = c;
     }

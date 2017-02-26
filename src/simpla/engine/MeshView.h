@@ -20,18 +20,22 @@ class MeshBlock;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshView : public AttributeViewBundle {
+class MeshView : public concept::StateCounter {
    public:
     SP_OBJECT_BASE(MeshView);
     MeshView();
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
+    void Connect(DomainView *);
+    void Disconnect();
+    virtual void OnNotify();
+
+    DomainView const *GetDomain() const;
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
     void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
 
-    virtual bool isUpdated() const;
     virtual void Update();
     virtual void Initialize();
     virtual void Finalize();
