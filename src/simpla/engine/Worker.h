@@ -102,7 +102,7 @@ namespace engine {
       --> (*)
    @enduml
  */
-class Worker : public AttributeViewBundle {
+class Worker : public concept::StateCounter {
     SP_OBJECT_BASE(Worker)
    public:
     Worker();
@@ -114,7 +114,7 @@ class Worker : public AttributeViewBundle {
     virtual void Update();
 
     virtual void Connect(DomainView *);
-    virtual void Disconnect(DomainView *);
+    virtual void Disconnect();
     virtual void OnNotify();
     void Evaluate();
 

@@ -72,6 +72,24 @@ std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
     for (auto &attr : m_pimpl_->m_attr_views_) { os << attr->description().name() << " , "; }
     return os;
 };
+void AttributeViewBundle::Connect(DomainView *b) {
+    if (m_pimpl_->m_domain_ != b) {
+        Disconnect();
+        m_pimpl_->m_domain_ = b;
+        if (b != nullptr) { b->Connect(this); }
+    }
+}
+void AttributeViewBundle::Disconnect() {
+    if (m_pimpl_->m_domain_ != nullptr) { m_pimpl_->m_domain_->Disconnect(this); }
+    m_pimpl_->m_domain_ = nullptr;
+}
+void AttributeViewBundle::OnNotify() {
+    if (m_pimpl_->m_domain_ != nullptr) {
+
+
+    }
+}
+
 void AttributeViewBundle::Connect(AttributeView *attr) {
     if (m_pimpl_->m_attr_views_.insert(attr).second) {
         Click();

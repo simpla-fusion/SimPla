@@ -21,53 +21,38 @@ struct Observer<void(Args...)> {
     typedef Observable<void(Args...)> observable_type;
     Observer() {}
     virtual ~Observer() { Disconnect(); };
-    virtual void Connect(observable_type *subject) {
-        subject->Connect(this);
-        m_subject_ = subject;
+
+    void Connect(observable_type *subject) {
+        if (m_subject_ != subject) {
+            Disconnect();
+            m_subject_ = subject;
+            if (m_subject_ != nullptr) { m_subject_->Attach(this); }
+        }
     }
-
     void Disconnect() {
-        if (m_subject_ != nullptr) { m_subject_->Disconnect(this); }
-
-        //        if (m_subject_ != nullptr) { m_subject_->RemoveAttribute(this); }
-        //        std::shared_ptr<observable_type>(nullptr).swap();
+        if (m_subject_ != nullptr) { m_subject_->Detach(this); }
         m_subject_ = nullptr;
     }
 
-    virtual void Accept(Args...) = 0;
+    virtual void OnNotify(Args...) = 0;
 
    private:
     observable_type *m_subject_ = nullptr;
 };
 
-template <typename Signature>
-struct Observable {
-    typedef Observer<Signature> observer_type;
+template <typename... Args>
+struct Observable<void(Args...)> {
+    typedef Observer<void(Args...)> observer_type;
     std::set<observer_type *> m_observers_;
+
+   public:
     Observable() {}
     virtual ~Observable() {}
-    template <typename... Args>
-    void accept(Args &&... args) {
-        for (auto &item : m_observers_) { item->accept(std::forward<Args>(args)...); }
-    }
 
-    virtual void Connect(observer_type *observer) { m_observers_.insert(observer); };
-    virtual void Disconnect(observer_type *observer) { m_observers_.erase(observer); }
-
-    template <typename T, typename... Args>
-    typename std::enable_if<std::is_polymorphic<observer_type>::value, std::shared_ptr<T>>::type create_observer(
-        Args &&... args) {
-        auto res = std::make_shared<T>(std::forward<Args>(args)...);
-        Connect(static_cast<observer_type *>(res.get()));
-        return res;
-    };
-
-    virtual void foreach (std::function<void(observer_type &)> const &fun) {
-        for (auto &ob : m_observers_) { fun(*ob); }
-    }
-
-    virtual void foreach (std::function<void(observer_type const &)> const &fun) const {
-        for (auto const &ob : m_observers_) { fun(*ob); }
+    virtual void Attach(observer_type *observer) { m_observers_.insert(observer); };
+    virtual void Detach(observer_type *observer) { m_observers_.erase(observer); }
+    virtual void Notify(Args... args) {
+        for (auto &ob : m_observers_) { ob->OnNotify(args...); }
     }
 };
 }  // namespace design_pattern {
