@@ -13,6 +13,7 @@
 
 #include <simpla/SIMPLA_config.h>
 
+#include <simpla/design_pattern/Signal.h>
 #include <typeindex>
 
 namespace simpla {
@@ -110,162 +111,163 @@ namespace simpla {
 
  **/
 
-class Object {
+class SPObject {
    public:
-    SP_OBJECT_BASE(Object)
+    SP_OBJECT_BASE(SPObject)
    public:
-    enum { NULL_STATE = 0, INITIALIZED, PREPARED, LOCKED };
-    Object();
-
-    Object(Object &&other);
-
-    Object(Object const &) = delete;
-
-    Object &operator=(Object const &other) = delete;
-
-    virtual ~Object();
-
-    void id(id_type t_id);
+    SPObject();
+    SPObject(SPObject &&other);
+    SPObject(SPObject const &) = delete;
+    SPObject &operator=(SPObject const &other) = delete;
+    virtual ~SPObject();
 
     id_type id() const;
-
-    bool operator==(Object const &other);
+    bool operator==(SPObject const &other);
 
     void lock();
     void unlock();
     bool try_lock();
-    void touch();
-    size_type click() const;
 
-    unsigned int state() const { return m_state_; }
-    bool isNull() const { return m_state_ == NULL_STATE; }
-    bool isInitialized() const { return m_state_ >= INITIALIZED; }
-    bool isPrepared() const { return m_state_ >= PREPARED; }
-    bool isLocked() const { return m_state_ == LOCKED; }
-    bool isValid() const { return m_state_ == PREPARED; }
+    void Tag();
+    void Click();
+    void ResetTag();
+    size_type GetTagCount() const;
+    size_type GetClickCount() const;
+    bool isModified() const;
+    virtual bool Initialize();
+    virtual bool Update();
 
-    unsigned int NextState();
-    unsigned int PrevState();
-
-    /**
-     * @brief Initial setup.
-       @startuml
-          title  TryInitialize()
-          (*) --> if "isInitialized()?" then
-                      --> [true] (*)
-                  else
-                      --> [false] "state = INITIALIZED"
-                      --> (*)
-
-                 endif
-      @enduml
-     */
-    bool TryInitialize();
-    /**
-     *  @brief Initial setup.
-     */
-    virtual void Initialize();
-
-    /**
-     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after Initialize()
-     * @startuml
-     *    title  TryPreProcess()
-     *    (*) --> if "isPrepared()?" then
-     *                --> [true] (*)
-     *            else
-     *                --> [false] Initialize()
-     *                --> "state = PREPARED"
-     *                --> (*)
-     *           endif
-     * @enduml
-    */
-    bool TryPreProcess();
-    virtual void PreProcess();  //< This function should be called before operation
-
-    /**
-     * @startuml
-     *    title  lock()
-     *    (*) -down-> START
-     *            if "isLocked()?" then
-     *                --> [true] wait()
-     *                -up-> START
-     *            else
-     *                 -left-> [false] " state=LOCKED"
-     *                 --> (*)
-     *           endif
-     * @enduml
-     */
-    virtual void Lock();
-
-    /**
-    * @startuml
-    *    title  TryLock()
-    *    (*) --> check
-     *           if "isLocked()?" then
-    *                -left->   [true] check
-    *            else
-     *                --> PreProcess()
-    *                 --> [false] " state=LOCKED"
-    *                 --> (*)
-    *           endif
-    * @enduml
-    */
-    virtual bool TryLock();
-
-    /**
-     * @startuml
-     *    title  Unlock()
-     *    (*) --> if "isLocked()?" then
-     *                --> [true] "--state"
-     *                --> (*)
-     *            else
-     *                --> [false]   (*)
-     *           endif
-     * @enduml
-     */
-    virtual void Unlock();
-
-    /**
-     * @brief   This function should be called after operation
-     * @startuml
-     *    title  PostProcess()
-     *    (*) --> if "isPrepared()?" then
-     *                --> [true]  Unlock()
-     *                --> "--state "
-     *                --> (*)
-     *            else
-     *                --> [false]   (*)
-     *           endif
-     * @enduml
-     */
-    bool TryPostProcess();
-    virtual void PostProcess();
-
-    /**
-     * @brief Finalize object. This function should be invoked _ONLY ONCE_ before TearDown()
-     * @startuml
-     * title  Finalize()
-     * (*) --> if "isInitialized()?" then
-     *     -->[true] PostProcess()
-     *     --> "--state "
-     *     --> (*)
-     * else
-     *     -->[false] (*)
-     * endif
-     * @enduml
-     *
-     *
-     */
-
-    virtual void Finalize();
-    bool TryFinalize();
+    design_pattern::Signal<void()> OnInitialize;
+    design_pattern::Signal<void()> OnDestroy;
+    design_pattern::Signal<void()> OnChanged;
 
    private:
-    unsigned int m_state_ = NULL_STATE;
-
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
+
+// unsigned int state() const { return m_state_; }
+//    bool isNull() const { return m_state_ == NULL_STATE; }
+//    bool isInitialized() const { return m_state_ >= INITIALIZED; }
+//    bool isPrepared() const { return m_state_ >= PREPARED; }
+//    bool isLocked() const { return m_state_ == LOCKED; }
+//    bool isValid() const { return m_state_ == PREPARED; }
+//
+//    unsigned int NextState();
+//    unsigned int PrevState();
+//
+//    /**
+//     * @brief Initial setup.
+//       @startuml
+//          title  TryInitialize()
+//          (*) --> if "isInitialized()?" then
+//                      --> [true] (*)
+//                  else
+//                      --> [false] "state = INITIALIZED"
+//                      --> (*)
+//
+//                 endif
+//      @enduml
+//     */
+//    bool TryInitialize();
+//    /**
+//     *  @brief Initial setup.
+//     */
+//    virtual void Initialize();
+//
+//    /**
+//     * @brief Initial setup. This function should be invoked _ONLY ONCE_  after Initialize()
+//     * @startuml
+//     *    title  TryPreProcess()
+//     *    (*) --> if "isPrepared()?" then
+//     *                --> [true] (*)
+//     *            else
+//     *                --> [false] Initialize()
+//     *                --> "state = PREPARED"
+//     *                --> (*)
+//     *           endif
+//     * @enduml
+//    */
+//    bool TryPreProcess();
+//    virtual void PreProcess();  //< This function should be called before operation
+//
+//    /**
+//     * @startuml
+//     *    title  lock()
+//     *    (*) -down-> START
+//     *            if "isLocked()?" then
+//     *                --> [true] wait()
+//     *                -up-> START
+//     *            else
+//     *                 -left-> [false] " state=LOCKED"
+//     *                 --> (*)
+//     *           endif
+//     * @enduml
+//     */
+//    virtual void Lock();
+//
+//    /**
+//    * @startuml
+//    *    title  TryLock()
+//    *    (*) --> check
+//     *           if "isLocked()?" then
+//    *                -left->   [true] check
+//    *            else
+//     *                --> PreProcess()
+//    *                 --> [false] " state=LOCKED"
+//    *                 --> (*)
+//    *           endif
+//    * @enduml
+//    */
+//    virtual bool TryLock();
+//
+//    /**
+//     * @startuml
+//     *    title  Unlock()
+//     *    (*) --> if "isLocked()?" then
+//     *                --> [true] "--state"
+//     *                --> (*)
+//     *            else
+//     *                --> [false]   (*)
+//     *           endif
+//     * @enduml
+//     */
+//    virtual void Unlock();
+//
+//    /**
+//     * @brief   This function should be called after operation
+//     * @startuml
+//     *    title  PostProcess()
+//     *    (*) --> if "isPrepared()?" then
+//     *                --> [true]  Unlock()
+//     *                --> "--state "
+//     *                --> (*)
+//     *            else
+//     *                --> [false]   (*)
+//     *           endif
+//     * @enduml
+//     */
+//    bool TryPostProcess();
+//    virtual void PostProcess();
+//
+//    /**
+//     * @brief Finalize object. This function should be invoked _ONLY ONCE_ before TearDown()
+//     * @startuml
+//     * title  Finalize()
+//     * (*) --> if "isInitialized()?" then
+//     *     -->[true] PostProcess()
+//     *     --> "--state "
+//     *     --> (*)
+//     * else
+//     *     -->[false] (*)
+//     * endif
+//     * @enduml
+//     *
+//     *
+//     */
+//
+//    virtual void Finalize();
+//    bool TryFinalize();
 /** @} */
 #define NULL_ID static_cast<id_type>(-1)
 }  // namespace simpla { namespace base

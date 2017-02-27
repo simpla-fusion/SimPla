@@ -8,8 +8,8 @@
 #include "AttributeView.h"
 #include "MeshBlock.h"
 #include "MeshView.h"
-#include "Object.h"
 #include "Patch.h"
+#include "SPObject.h"
 #include "Worker.h"
 
 namespace simpla {
@@ -19,7 +19,7 @@ struct DomainView::pimpl_s {
     std::shared_ptr<MeshView> m_mesh_;
     std::list<std::shared_ptr<Worker>> m_workers_;
     std::shared_ptr<Patch> m_patch_;
-    std::map<id_type, std::shared_ptr<AttributeDesc>> m_attrs_dict_;
+    std::set<AttributeViewBundle *> m_attr_bundle_;
     //    Manager *m_manager_ = nullptr;
 
     //    DataAttribute<int, VERTEX, 9> m_tags_{"tags", "INPUT"_};
@@ -28,7 +28,9 @@ struct DomainView::pimpl_s {
 };
 
 DomainView::DomainView() : m_pimpl_(new pimpl_s) {}
-DomainView::~DomainView() {}
+DomainView::~DomainView() {
+    for (auto *item : m_pimpl_->m_attr_bundle_) { Detach(item); }
+}
 
 // Manager const *DomainView::GetManager(Manager *) const { return m_pimpl_->m_manager_; }
 // void DomainView::SetManager(Manager *m) {
@@ -108,11 +110,7 @@ DomainView::~DomainView() {}
  * @enduml
  */
 void DomainView::Dispatch(std::shared_ptr<Patch> p) { m_pimpl_->m_patch_ = p; };
-std::map<id_type, std::shared_ptr<engine::AttributeDesc>> const &DomainView::GetAttributeDict() const {
-    return m_pimpl_->m_attrs_dict_;
-};
-data::DataTable const &DomainView::attr_db(id_type id) const { return (m_pimpl_->m_attrs_dict_.at(id)->db()); };
-data::DataTable &DomainView::attr_db(id_type id) { return (m_pimpl_->m_attrs_dict_.at(id)->db()); };
+
 id_type DomainView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
 
 bool DomainView::isUpdated() const {
@@ -133,26 +131,27 @@ void DomainView::Update() {
 void DomainView::Evaluate() {
     for (auto &item : m_pimpl_->m_workers_) { item->Evaluate(); }
 }
-
+void DomainView::Attach(AttributeViewBundle *p) {
+    if (p != nullptr && m_pimpl_->m_attr_bundle_.emplace(p).second) {
+//        p->Connect(this);
+        Click();
+    }
+}
+void DomainView::Detach(AttributeViewBundle *p) {
+    if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) {
+//        p->Disconnect();
+        Click();
+    }
+}
+void DomainView::Notify() {
+    for (auto *item : m_pimpl_->m_attr_bundle_) { item->OnNotify(); }
+}
 void DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
     concept::StateCounter::Click();
     m_pimpl_->m_mesh_ = m;
 };
 
-const MeshView *DomainView::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
-void DomainView::AppendWorker(std::shared_ptr<Worker> const &w) {
-    concept::StateCounter::Click();
-    ASSERT(w != nullptr);
-    w->SetDomain(this);
-    m_pimpl_->m_workers_.push_back(w);
-};
-
-void DomainView::PrependWorker(std::shared_ptr<Worker> const &w) {
-    concept::StateCounter::Click();
-    ASSERT(w != nullptr);
-    w->SetDomain(this);
-    m_pimpl_->m_workers_.push_front(w);
-};
+MeshView &DomainView::GetMesh() const { return *m_pimpl_->m_mesh_; }
 
 void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
     concept::StateCounter::Click();
@@ -160,19 +159,14 @@ void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
     //    auto it = m_pimpl_->m_workers_.find(w);
     //    if (it != m_pimpl_->m_workers_.end()) { m_pimpl_->m_workers_.Disconnect(it); }
 };
-id_type DomainView::GetMeshBlockId() const { return GetMeshBlock() == nullptr ? NULL_ID : GetMeshBlock()->id(); }
-std::shared_ptr<MeshBlock> const &DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
-std::shared_ptr<DataBlock> const &DomainView::GetDataBlock(id_type id) const {
-    return m_pimpl_->m_patch_->GetDataBlock(id);
-}
-std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) { return m_pimpl_->m_patch_->GetDataBlock(id); }
 
-void DomainView::SetDataBlock(id_type id, std::shared_ptr<DataBlock> const &d) {
-    m_pimpl_->m_patch_->SetDataBlock(id, d);
-}
+id_type DomainView::GetMeshBlockId() const { return m_pimpl_->m_patch_->GetMeshBlock()->id(); }
+std::shared_ptr<MeshBlock> &DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
+std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) const { return m_pimpl_->m_patch_->GetDataBlock(id); }
+
 void DomainView::RegisterAttribute(AttributeDict *dbase) {
     //    m_pimpl_->m_mesh_->RegisterDescription(dbase);
-    for (auto &item : m_pimpl_->m_workers_) { item->RegisterAttribute(dbase); }
+//    for (auto &item : m_pimpl_->m_workers_) { item->RegisterAttribute(dbase); }
 }
 
 std::ostream &DomainView::Print(std::ostream &os, int indent) const {

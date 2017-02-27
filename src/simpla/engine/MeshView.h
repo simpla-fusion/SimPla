@@ -8,7 +8,7 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/StateCounter.h>
 #include "AttributeView.h"
-#include "Object.h"
+#include "SPObject.h"
 namespace simpla {
 namespace engine {
 class MeshBlock;
@@ -20,7 +20,7 @@ class MeshBlock;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshView : public concept::StateCounter {
+class MeshView : public SPObject {
    public:
     SP_OBJECT_BASE(MeshView);
     MeshView();
@@ -36,9 +36,8 @@ class MeshView : public concept::StateCounter {
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
     void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
 
-    virtual void Update();
-    virtual void Initialize();
-    virtual void Finalize();
+    virtual bool Update();
+    virtual bool Initialize();
 
     size_type size(int IFORM = VERTEX) const { return 0; }
     size_tuple dimensions() const { return size_tuple{}; };

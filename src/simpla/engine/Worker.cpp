@@ -28,8 +28,7 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
     os << "  } , ";
     return os;
 }
-void Worker::Initialize() { DO_NOTHING; }
-void Worker::Process() { DO_NOTHING; }
+bool Worker::Initialize() { DO_NOTHING; }
 /**
  * @startuml
  * title Initialize/Finalize
@@ -78,10 +77,11 @@ void Worker::Process() { DO_NOTHING; }
  * deactivate Worker
  * @enduml
  */
-void Worker::Update() {
-    if (!isModified()) { return; }
+bool Worker::Update() {
+    if (!isModified()) { return false; }
     size_type state_tag = GetTagCount();
     if (state_tag == 0) { Initialize(); }
+    return true;
 }
 void Worker::Evaluate() {
     Update();
@@ -91,7 +91,7 @@ void Worker::Evaluate() {
 //
 // void Worker::phase(unsigned int num, Real data_time, Real dt)
 //{
-//    Object::phase(num);
+//    SPObject::phase(num);
 //    switch (num)
 //    {
 //        #define PHASE(_N_) case _N_: phase##_N_(data_time, dt); break;
@@ -116,7 +116,7 @@ void Worker::Evaluate() {
 // unsigned int Worker::next_phase(Real data_time, Real dt, unsigned int inc_phase)
 //{
 //    unsigned int start_phase = current_phase_num();
-//    unsigned int end_phase = Object::next_phase(inc_phase);
+//    unsigned int end_phase = SPObject::next_phase(inc_phase);
 //
 //    switch (start_phase)
 //    {

@@ -60,93 +60,53 @@ void AttributeDict::for_each(std::function<void(AttributeDesc const *)> const &f
 }
 struct AttributeViewBundle::pimpl_s {
     DomainView *m_domain_ = nullptr;
-    MeshView const *m_mesh_ = nullptr;
-    std::set<AttributeView *> m_attr_views_;
+    mutable std::set<AttributeView *> m_attr_views_;
 };
 
 AttributeViewBundle::AttributeViewBundle() : m_pimpl_(new pimpl_s) {}
-AttributeViewBundle::~AttributeViewBundle() {
-    for (auto &attr : m_pimpl_->m_attr_views_) { attr->Disconnect(); }
-}
+AttributeViewBundle::~AttributeViewBundle() { OnDestroy(); }
 std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
     for (auto &attr : m_pimpl_->m_attr_views_) { os << attr->description().name() << " , "; }
     return os;
 };
-void AttributeViewBundle::Connect(DomainView *b) {
-    if (m_pimpl_->m_domain_ != b) {
-        Disconnect();
-        m_pimpl_->m_domain_ = b;
-        if (b != nullptr) { b->Connect(this); }
-    }
-}
-void AttributeViewBundle::Disconnect() {
-    if (m_pimpl_->m_domain_ != nullptr) { m_pimpl_->m_domain_->Disconnect(this); }
-    m_pimpl_->m_domain_ = nullptr;
-}
+
 void AttributeViewBundle::OnNotify() {
-    if (m_pimpl_->m_domain_ != nullptr) {
+    for (auto *item : m_pimpl_->m_attr_views_) { item->OnNotify(); }
+}
 
-
+void AttributeViewBundle::Attach(AttributeView *p) {
+    if (p != nullptr && m_pimpl_->m_attr_views_.emplace(p).second) {
+        p->Connect(this);
+        Click();
     }
 }
 
-void AttributeViewBundle::Connect(AttributeView *attr) {
-    if (m_pimpl_->m_attr_views_.insert(attr).second) {
-        Click();
-        attr->Connect(this);
-    };
-}
+//void AttributeViewBundle::Detach(AttributeView *p) {
+//    if (p != nullptr && m_pimpl_->m_attr_views_.erase(p) > 0) {
+//        p->Disconnect(this);
+//        Click();
+//    }
+//}
 
-void AttributeViewBundle::Disconnect(AttributeView *attr) {
-    if (m_pimpl_->m_attr_views_.erase(attr) > 0) {
-        Click();
-        attr->Disconnect();
-    };
-}
-void AttributeViewBundle::Merge(AttributeViewBundle *attr_bundle) {
-    Click();
-    m_pimpl_->m_attr_views_.insert(attr_bundle->m_pimpl_->m_attr_views_.begin(),
-                                   attr_bundle->m_pimpl_->m_attr_views_.end());
-}
-
-void AttributeViewBundle::SetDomain(DomainView *d) {
-    Click();
-    m_pimpl_->m_domain_ = d;
-}
-DomainView *AttributeViewBundle::GetDomain() { return m_pimpl_->m_domain_; }
-DomainView const *AttributeViewBundle::GetDomain() const { return m_pimpl_->m_domain_; }
-void AttributeViewBundle::SetMesh(MeshView const *m) {
-    Click();
-    m_pimpl_->m_mesh_ = m;
-}
-MeshView const *AttributeViewBundle::GetMesh() const {
-    ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    return m_pimpl_->m_mesh_;
-}
 bool AttributeViewBundle::isModified() {
-    return StateCounter::isModified() || (m_pimpl_->m_domain_ != nullptr && m_pimpl_->m_domain_->isModified());
+    return SPObject::isModified() || (m_pimpl_->m_domain_ != nullptr && m_pimpl_->m_domain_->isModified());
 }
 
-void AttributeViewBundle::Update() {
-    if (!isModified()) { return; }
-    if (m_pimpl_->m_mesh_ == nullptr && m_pimpl_->m_domain_ != nullptr) { SetMesh(m_pimpl_->m_domain_->GetMesh()); }
-    for (AttributeView *attr : m_pimpl_->m_attr_views_) { attr->Update(); }
-    concept::StateCounter::Tag();
-}
-void AttributeViewBundle::RegisterAttribute(AttributeDict *dbase) {
-    for (auto &attr : m_pimpl_->m_attr_views_) { attr->RegisterDescription(dbase); }
+bool AttributeViewBundle::Update() { return SPObject::Update(); }
+
+//void AttributeViewBundle::RegisterAttribute(AttributeDict *dbase) {
+//    for (auto &attr : m_pimpl_->m_attr_views_) { attr->RegisterDescription(dbase); }
+//}
+DomainView const &AttributeViewBundle::GetDomain() const { return *m_pimpl_->m_domain_; }
+MeshView const &AttributeViewBundle::GetMesh() const { return m_pimpl_->m_domain_->GetMesh(); }
+std::shared_ptr<DataBlock> &AttributeViewBundle::GetDataBlock(id_type guid) const {
+    return m_pimpl_->m_domain_->GetDataBlock(guid);
 }
 
-std::shared_ptr<DataBlock> AttributeViewBundle::GetDataBlock(id_type guid) {
-    return m_pimpl_->m_domain_ == nullptr ? nullptr : m_pimpl_->m_domain_->GetDataBlock(guid);
-}
-
-void AttributeViewBundle::for_each(std::function<void(AttributeView *)> const &fun) {
+void AttributeViewBundle::Accept(std::function<void(AttributeView *)> const &fun) const {
     for (auto *attr : m_pimpl_->m_attr_views_) { fun(attr); }
 }
-void AttributeViewBundle::for_each(std::function<void(AttributeView const *)> const &fun) const {
-    for (auto const *attr : m_pimpl_->m_attr_views_) { fun(attr); }
-}
+
 id_type AttributeDesc::GenerateGUID(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF,
                                     AttributeTag tag) {
     std::string str = name_s + '.' + t_id.name() + '.' + static_cast<char>(IFORM + '0') + '.' +
@@ -166,74 +126,59 @@ AttributeDesc::AttributeDesc(const std::string &name_s, const std::type_info &t_
 AttributeDesc::~AttributeDesc() {}
 
 struct AttributeView::pimpl_s {
+    AttributeViewBundle *m_bundle_;
     MeshView const *m_mesh_ = nullptr;
-    AttributeViewBundle *m_bundle_ = nullptr;
     id_type m_current_block_id_ = NULL_ID;
-    std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
-    std::shared_ptr<DataBlock> m_data_ = nullptr;
+    mutable std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
+    mutable std::shared_ptr<DataBlock> m_data_ = nullptr;
 };
 AttributeView::AttributeView() : m_pimpl_(new pimpl_s) {}
 AttributeView::AttributeView(AttributeViewBundle *b) : AttributeView() { Connect(b); };
-AttributeView::AttributeView(MeshView const *m) : AttributeView() { SetMesh(m); };
-AttributeView::~AttributeView() { Disconnect(); }
+AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
+AttributeView::~AttributeView() {}
 
 void AttributeView::Config(std::string const &s, AttributeTag t) {
     m_pimpl_->m_desc_ = std::make_shared<AttributeDesc>(s, value_type_info(), iform(), dof(), t);
 }
 
-AttributeDesc const &AttributeView::description() const { return *m_pimpl_->m_desc_; }
-data::DataTable &AttributeView::db() {
-    Click();
-    return m_pimpl_->m_desc_->db();
+AttributeDesc &AttributeView::description() const {
+    if (m_pimpl_->m_desc_ == nullptr) {
+        m_pimpl_->m_desc_ = std::make_shared<AttributeDesc>("unnamed", value_type_info(), iform(), dof(), SCRATCH);
+    }
+    return *m_pimpl_->m_desc_;
 }
-const data::DataTable &AttributeView::db() const { return m_pimpl_->m_desc_->db(); }
-
-void AttributeView::RegisterDescription(AttributeDict *dbase) {
-    m_pimpl_->m_desc_ = dbase->Set(m_pimpl_->m_desc_->GUID(), m_pimpl_->m_desc_);
-}
+id_type AttributeView::GUID() const { return description().GUID(); }
+std::string const &AttributeView::name() const { return description().name(); }
+std::type_info const &AttributeView::value_type_info() const { return description().value_type_info(); }
+int AttributeView::iform() const { return description().iform(); }
+int AttributeView::dof() const { return description().dof(); }
+AttributeTag AttributeView::tag() const { return description().tag(); }
+data::DataTable &AttributeView::db() const { return description().db(); }
 
 void AttributeView::Connect(AttributeViewBundle *b) {
-    if (m_pimpl_->m_bundle_ != b) {
-        Disconnect();
-        m_pimpl_->m_bundle_ = b;
-        if (b != nullptr) { b->Connect(this); }
-    }
-}
-void AttributeView::Disconnect() {
-    if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_bundle_->Disconnect(this); }
-    m_pimpl_->m_bundle_ = nullptr;
-}
-void AttributeView::OnNotify() {
-    if (m_pimpl_->m_bundle_ != nullptr) {
-        SetMesh(m_pimpl_->m_bundle_->GetMesh());
-        SetDataBlock(m_pimpl_->m_bundle_->GetDataBlock(GUID()));
-    } else {
-        DO_NOTHING;
-    }
+    b->OnChanged.Connect<AttributeView, &AttributeView::OnNotify>(this);
+    m_pimpl_->m_bundle_ = b;
 }
 
-void AttributeView::SetMesh(MeshView const *m) {
-    Click();
-    m_pimpl_->m_mesh_ = m;
+void AttributeView::OnNotify() {
+    //    if (m_pimpl_->m_bundle_ != nullptr) {
+    //        m_pimpl_->m_mesh_ = &m_pimpl_->m_bundle_->GetMesh();
+    //        m_pimpl_->m_data_ = m_pimpl_->m_bundle_->GetDataBlock(GUID());
+    //    } else {
+    //        DO_NOTHING;
+    //    }
 }
-void AttributeView::SetDataBlock(std::shared_ptr<DataBlock> const &d) {
-    Click();
-    m_pimpl_->m_data_ = d;
-}
-MeshView const *AttributeView::GetMesh() const {
+
+MeshView const &AttributeView::GetMesh() const {
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    return m_pimpl_->m_mesh_;
+    return *m_pimpl_->m_mesh_;
 };
 
-const DataBlock &AttributeView::GetDataBlock() const {
-    ASSERT(m_pimpl_->m_data_ != nullptr);
+DataBlock &AttributeView::GetDataBlock() const {
+    if (m_pimpl_->m_data_ == nullptr) { m_pimpl_->m_data_ = std::make_shared<DataBlock>(); };
     return *m_pimpl_->m_data_;
 }
-DataBlock &AttributeView::GetDataBlock() {
-    Click();
-    ASSERT(m_pimpl_->m_data_ != nullptr);
-    return *m_pimpl_->m_data_;
-}
+
 void AttributeView::InitializeData(){};
 
 /**
@@ -246,22 +191,9 @@ void AttributeView::InitializeData(){};
  * stop
  * @enduml
  */
-void AttributeView::Update() {
-    if (isModified()) {
-        if (m_pimpl_->m_data_ == nullptr) { m_pimpl_->m_data_ = std::make_shared<DataBlock>(); }
-        if (!m_pimpl_->m_data_->isInitialized()) { InitializeData(); }
-    }
-    concept::StateCounter::Tag();
-}
+bool AttributeView::Update() { return SPObject::Update(); }
 
 bool AttributeView::isNull() const { return m_pimpl_->m_data_ == nullptr; }
-
-id_type AttributeView::GUID() const { return m_pimpl_->m_desc_->GUID(); }
-std::string const &AttributeView::name() const { return m_pimpl_->m_desc_->name(); }
-std::type_info const &AttributeView::value_type_info() const { return typeid(Real); }
-int AttributeView::iform() const { return VERTEX; }
-int AttributeView::dof() const { return 1; }
-AttributeTag AttributeView::tag() const { return m_pimpl_->m_desc_->tag(); }
 
 std::ostream &AttributeView::Print(std::ostream &os, int indent) const {
     os << std::setw(indent + 1) << " " << description().name();

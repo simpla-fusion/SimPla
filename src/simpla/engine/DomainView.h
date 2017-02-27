@@ -34,35 +34,29 @@ class DomainView : public concept::Printable, public concept::StateCounter {
     virtual void Update();
     void Evaluate();
 
-//    Manager const *GetManager(Manager *) const;
-//    void SetManager(Manager *m = nullptr);
+    //    Manager const *GetManager(Manager *) const;
+    //    void SetManager(Manager *m = nullptr);
 
-    const MeshView * GetMesh() const;
-    void AppendWorker(std::shared_ptr<Worker> const &w);
-    void PrependWorker(std::shared_ptr<Worker> const &w);
-    void RemoveWorker(std::shared_ptr<Worker> const &w);
-
-    template <typename U>
-    void AppendWorker(std::shared_ptr<U> const &w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
-        AppendWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
-    };
-
-    template <typename U>
-    void PrependWorker(std::shared_ptr<U> const &w = nullptr, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
-        PrependWorker(std::dynamic_pointer_cast<Worker>(std::make_shared<U>()));
+    template <typename U, typename... Args>
+    U &CreateMesh(Args &&... args) {
+        auto res = std::make_shared<U>(std::forward<Args>(args)...);
+        SetMesh(std::dynamic_pointer_cast<MeshView>(res));
+        Attach(static_cast<AttributeViewBundle *>(res.get()));
+        return *res;
     };
     void SetMesh(std::shared_ptr<MeshView> const &m);
-
-    template <typename U>
-    void SetMesh(std::shared_ptr<U> const &m = nullptr, ENABLE_IF((std::is_base_of<MeshView, U>::value))) {
-        SetMesh(m != nullptr ? m : std::dynamic_pointer_cast<MeshView>(std::make_shared<U>()));
-    };
+    MeshView &GetMesh() const;
 
     id_type GetMeshBlockId() const;
-    std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
-    std::shared_ptr<DataBlock> const &GetDataBlock(id_type) const;
-    std::shared_ptr<DataBlock> &GetDataBlock(id_type);
-    void SetDataBlock(id_type, std::shared_ptr<DataBlock> const &);
+    std::shared_ptr<MeshBlock> &GetMeshBlock() const;
+    std::shared_ptr<DataBlock> &GetDataBlock(id_type) const;
+
+    void AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
+    void RemoveWorker(std::shared_ptr<Worker> const &w);
+
+    void Attach(AttributeViewBundle *);
+    void Detach(AttributeViewBundle *p = nullptr);
+    void Notify();
 
     void RegisterAttribute(AttributeDict *);
     //    void UpdateAttributeDict();

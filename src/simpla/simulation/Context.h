@@ -48,15 +48,15 @@ namespace simpla { namespace simulation
  *
  */
 class Context :
-        public Object,
+        public SPObject,
         public concept::Printable,
         public concept::Serializable
 {
 
 public:
-    SP_OBJECT_HEAD(Context, Object)const std::type_index &;
+    SP_OBJECT_HEAD(Context, SPObject)const std::type_index &;
 
-    Context() : Object() {};
+    Context() : SPObject() {};
 
     virtual ~Context() {};
 

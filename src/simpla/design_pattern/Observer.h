@@ -20,24 +20,21 @@ template <typename... Args>
 struct Observer<void(Args...)> {
     typedef Observable<void(Args...)> observable_type;
     Observer() {}
-    virtual ~Observer() { Disconnect(); };
+    virtual ~Observer() {
+        for (auto *item : m_subjects_) { Disconnect(item); }
+    };
 
-    void Connect(observable_type *subject) {
-        if (m_subject_ != subject) {
-            Disconnect();
-            m_subject_ = subject;
-            if (m_subject_ != nullptr) { m_subject_->Attach(this); }
-        }
+    void Connect(observable_type *p) {
+        if (p != nullptr && m_subjects_.emplace(p).second) { p->Attach(this); }
     }
-    void Disconnect() {
-        if (m_subject_ != nullptr) { m_subject_->Detach(this); }
-        m_subject_ = nullptr;
+    void Disconnect(observable_type *p) {
+        if (p != nullptr && m_subjects_.erase(p) > 0) { p->Detach(this); }
     }
 
     virtual void OnNotify(Args...) = 0;
 
    private:
-    observable_type *m_subject_ = nullptr;
+    std::set<observable_type *> m_subjects_;
 };
 
 template <typename... Args>
@@ -49,9 +46,9 @@ struct Observable<void(Args...)> {
     Observable() {}
     virtual ~Observable() {}
 
-    virtual void Attach(observer_type *observer) { m_observers_.insert(observer); };
-    virtual void Detach(observer_type *observer) { m_observers_.erase(observer); }
-    virtual void Notify(Args... args) {
+    void Attach(observer_type *observer) { m_observers_.emplace(observer); };
+    void Detach(observer_type *observer) { m_observers_.erase(observer); }
+    void Notify(Args... args) {
         for (auto &ob : m_observers_) { ob->OnNotify(args...); }
     }
 };

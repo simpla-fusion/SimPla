@@ -5,7 +5,7 @@
 #ifndef SIMPLA_DATAENTITYHEAVY_H
 #define SIMPLA_DATAENTITYHEAVY_H
 
-#include <simpla/engine/Object.h>
+#include <simpla/engine/SPObject.h>
 #include "DataEntity.h"
 #include "DataType.h"
 

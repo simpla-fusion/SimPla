@@ -11,7 +11,7 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/data/DataSpace.h>
 #include <simpla/data/DataTable.h>
-#include <simpla/engine/Object.h>
+#include <simpla/engine/SPObject.h>
 #include <iomanip>
 #include "BoxUtility.h"
 #include "EntityId.h"
@@ -72,9 +72,9 @@ namespace mesh {
  *
  */
 
-class MeshBlock : public Object, public concept::Serializable, public concept::Printable {
+class MeshBlock : public SPObject, public concept::Serializable, public concept::Printable {
    public:
-    SP_OBJECT_HEAD(MeshBlock, Object)
+    SP_OBJECT_HEAD(MeshBlock, SPObject)
 
     MeshBlock();
 

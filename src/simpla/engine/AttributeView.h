@@ -9,8 +9,10 @@
 #include <simpla/algebra/all.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/StateCounter.h>
+#include <simpla/design_pattern/Observer.h>
+#include <simpla/design_pattern/Signal.h>
 
-#include "Object.h"
+#include "SPObject.h"
 
 namespace simpla {
 namespace engine {
@@ -73,33 +75,25 @@ struct AttributeDict : public concept::Printable {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-class AttributeViewBundle : public concept::StateCounter, public concept::Printable {
+class AttributeViewBundle : public SPObject, public concept::Printable {
    public:
     AttributeViewBundle();
     virtual ~AttributeViewBundle();
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
     virtual bool isModified();
-    virtual void Update();
-    void SetDomain(DomainView *);
-    DomainView *GetDomain();
-    DomainView const *GetDomain() const;
-    void SetMesh(MeshView const *);
-    MeshView const *GetMesh() const;
-    id_type GetMeshBlockId() const;
-    std::shared_ptr<DataBlock> GetDataBlock(id_type guid);
-    DataBlock const &GetDataBlock(id_type guid) const;
+    virtual bool Update();
 
-    virtual void Connect(DomainView *);
-    virtual void Disconnect();
-    virtual void OnNotify();
+    DomainView const &GetDomain() const;
+    MeshView const &GetMesh() const;
+    std::shared_ptr<DataBlock> &GetDataBlock(id_type guid) const;
 
-    void Connect(AttributeView *attr);
-    void Disconnect(AttributeView *attr);
+    void Detach(AttributeView *attr);
+    void Attach(AttributeView *attr);
+    void OnNotify();
 
-    void Merge(AttributeViewBundle *);
-    void for_each(std::function<void(AttributeView *)> const &);
-    void for_each(std::function<void(AttributeView const *)> const &) const;
+    void Accept(std::function<void(AttributeView *)> const &) const;
+
     void RegisterAttribute(AttributeDict *dbase);
 
    private:
@@ -129,7 +123,7 @@ class AttributeViewBundle : public concept::StateCounter, public concept::Printa
  * deactivate AttributeView
  * @enduml
  */
-struct AttributeView : public concept::Printable, public concept::StateCounter {
+struct AttributeView : public SPObject, public concept::Printable {
    public:
     SP_OBJECT_BASE(AttributeView);
 
@@ -142,9 +136,9 @@ struct AttributeView : public concept::Printable, public concept::StateCounter {
     template <typename T>
     AttributeView(T *b,
                   ENABLE_IF((std::is_base_of<MeshView, T>::value && std::is_base_of<AttributeViewBundle, T>::value)))
-        : AttributeView(static_cast<AttributeViewBundle *>(b)) {
-        SetMesh(static_cast<MeshView const *>(b));
-    };
+        : AttributeView(static_cast<AttributeViewBundle *>(b)){
+              //        SetMesh(static_cast<MeshView const *>(b));
+          };
 
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
@@ -162,10 +156,8 @@ struct AttributeView : public concept::Printable, public concept::StateCounter {
    public:
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
-    void RegisterDescription(AttributeDict *);
-    AttributeDesc const &description() const;
-    data::DataTable &db();
-    const data::DataTable &db() const;
+    AttributeDesc &description() const;
+    data::DataTable &db() const;
     id_type GUID() const;
     AttributeTag tag() const;
     std::string const &name() const;
@@ -174,7 +166,7 @@ struct AttributeView : public concept::Printable, public concept::StateCounter {
     virtual std::type_info const &value_type_info() const;     //!< value type
     virtual std::type_info const &mesh_type_info() const = 0;  //!< mesh type
 
-    virtual void Update();
+    virtual bool Update();
 
     bool isNull() const;
     bool empty() const { return isNull(); };
@@ -183,17 +175,11 @@ struct AttributeView : public concept::Printable, public concept::StateCounter {
      * @ingroup { observer
      */
     void Connect(AttributeViewBundle *b);
-    void Disconnect();
     void OnNotify();
     /** @}*/
-   private:
-    void SetMesh(MeshView const *);
-    void SetDataBlock(std::shared_ptr<DataBlock> const &d);
 
-   public:
-    MeshView const *GetMesh() const;
-    const DataBlock &GetDataBlock() const;
-    DataBlock &GetDataBlock();
+    MeshView const &GetMesh() const;
+    DataBlock &GetDataBlock() const;
 
     virtual void InitializeData();
 
@@ -264,11 +250,15 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
 
     virtual mesh_type const *mesh() const {
         static_assert(std::is_base_of<MeshView, mesh_type>::value, "illegal mesh_type");
-        return static_cast<mesh_type const *>(AttributeView::GetMesh());
+        return static_cast<mesh_type const *>(&AttributeView::GetMesh());
     }
-    void Update() final {
-        AttributeView::Update();
-        U::Update();
+    bool Update() final {
+        if (AttributeView::Update()) {
+            U::Update();
+            return false;
+        } else {
+            return true;
+        }
     }
 };
 

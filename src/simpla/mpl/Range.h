@@ -5,7 +5,7 @@
 #ifndef SIMPLA_RANGE_H
 #define SIMPLA_RANGE_H
 
-#include <simpla/engine/Object.h>
+#include <simpla/engine/SPObject.h>
 #include <simpla/concept/Splittable.h>
 #include <simpla/toolbox/Log.h>
 #include <cstddef>

@@ -15,7 +15,7 @@
 #include <simpla/concept/Configurable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
-#include <simpla/engine/Object.h>
+#include <simpla/engine/SPObject.h>
 #include <simpla/model/Model.h>
 
 #include "AttributeView.h"
@@ -102,20 +102,17 @@ namespace engine {
       --> (*)
    @enduml
  */
-class Worker : public concept::StateCounter {
+class Worker : public AttributeViewBundle {
     SP_OBJECT_BASE(Worker)
    public:
     Worker();
     virtual ~Worker();
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    virtual void Initialize();
+    virtual bool Initialize();
     virtual void Process();
-    virtual void Update();
-
-    virtual void Connect(DomainView *);
-    virtual void Disconnect();
-    virtual void OnNotify();
+    virtual bool Update();
+    virtual void OnNotify(){};
     void Evaluate();
 
     data::DataTable const &db() const;

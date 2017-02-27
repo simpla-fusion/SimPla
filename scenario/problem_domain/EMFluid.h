@@ -11,7 +11,7 @@
 #include <simpla/algebra/Calculus.h>
 #include <simpla/algebra/all.h>
 #include <simpla/engine/AttributeView.h>
-#include <simpla/engine/Object.h>
+#include <simpla/engine/SPObject.h>
 #include <simpla/engine/Worker.h>
 #include <simpla/physics/PhysicalConstants.h>
 

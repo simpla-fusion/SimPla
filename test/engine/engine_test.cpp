@@ -20,21 +20,21 @@ struct Moo : public MeshView, public AttributeViewBundle {
     DataAttribute<Real> rho1{this, "s", NORMAL};
     DataAttribute<Real> tE{this};
 
-    void Initialize() final {}
+    bool Initialize() final { return true; }
 };
 
 struct Foo : public Worker {
     SP_OBJECT_HEAD(Foo, Worker)
     DataAttribute<Real> rho0{this, "rho0", NORMAL, "CHECK"_ = true};
     DataAttribute<Real> E{this, "E", NORMAL, "CHECK"_ = false};
-    void Initialize() final {}
+    bool Initialize() final {}
     void Process() final {}
 };
 int main(int argc, char** argv) {
     auto patch = std::make_shared<Patch>();
     DomainView domain;
-    domain.SetMesh<Moo>();
-    domain.AppendWorker<Foo>();
+//    domain.SetMesh<Moo>();
+//    domain.AppendWorker<Foo>();
     domain.Dispatch(patch);
     domain.Update();
     std::cout << domain << std::endl;

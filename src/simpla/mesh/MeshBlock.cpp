@@ -14,7 +14,7 @@ namespace mesh {
 MeshBlock::MeshBlock() : m_ndims_(0) {}
 
 MeshBlock::MeshBlock(int ndims, index_type const* lo, index_type const* up, Real const* dx, Real const* xlo)
-    : Object(),
+    : SPObject(),
       m_ndims_(ndims),
       m_g_box_{{lo == nullptr ? 0 : lo[0], lo == nullptr ? 0 : lo[1], lo == nullptr ? 0 : lo[2]},
                {up == nullptr ? 1 : up[0], up == nullptr ? 1 : up[1], up == nullptr ? 1 : up[2]}},
@@ -36,7 +36,7 @@ std::ostream& MeshBlock::Print(std::ostream& os, int indent) const {
 }
 
 void MeshBlock::Initialize() {
-    Object::Initialize();
+    SPObject::Initialize();
 
     ASSERT(m_ndims_ <= 3);
 

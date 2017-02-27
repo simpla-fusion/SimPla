@@ -8,7 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <memory>
 
-#include "Object.h"
+#include "SPObject.h"
 
 namespace simpla {
 namespace engine {
@@ -19,13 +19,9 @@ class Patch {
    public:
     Patch();
     virtual ~Patch();
-
     id_type GetMeshBlockId() const;
-    std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
-    void SetMeshBlock(std::shared_ptr<MeshBlock> const &m = nullptr);
-    virtual void SetDataBlock(id_type const &id, std::shared_ptr<DataBlock> const &p = nullptr);
-    virtual std::shared_ptr<DataBlock> const &GetDataBlock(id_type const &id) const;
-    virtual std::shared_ptr<DataBlock> &GetDataBlock(id_type const &id);
+    std::shared_ptr<MeshBlock> &GetMeshBlock() const;
+    std::shared_ptr<DataBlock> &GetDataBlock(id_type const &id) const;
 
    private:
     struct pimpl_s;
