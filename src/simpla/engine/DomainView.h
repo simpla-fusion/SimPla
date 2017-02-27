@@ -53,6 +53,10 @@ class DomainView : public concept::Printable, public concept::StateCounter {
 
     void AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
     void RemoveWorker(std::shared_ptr<Worker> const &w);
+    template <typename U>
+    void CreateWorker(int pos = -1) {
+        AddWorker(std::make_shared<U>(), pos);
+    };
 
     void Attach(AttributeViewBundle *);
     void Detach(AttributeViewBundle *p = nullptr);

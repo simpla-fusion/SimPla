@@ -47,7 +47,9 @@ void SPObject::Click() { ++m_pimpl_->m_click_; }
 void SPObject::Tag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_; }
 void SPObject::ResetTag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_ = 0; }
 bool SPObject::isModified() const { return GetTagCount() != GetClickCount(); }
-bool SPObject::Initialize() {}
+bool SPObject::Initialize() { OnInitialize(); }
+void SPObject::Finalize() { OnFinalize(); }
+void SPObject::Destroy() { OnDestroy(); }
 
 bool SPObject::Update() {
     if (!isModified()) { return false; }

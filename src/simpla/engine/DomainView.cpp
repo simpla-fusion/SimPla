@@ -133,13 +133,13 @@ void DomainView::Evaluate() {
 }
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.emplace(p).second) {
-//        p->Connect(this);
+        //        p->Connect(this);
         Click();
     }
 }
 void DomainView::Detach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) {
-//        p->Disconnect();
+        //        p->Disconnect();
         Click();
     }
 }
@@ -152,6 +152,7 @@ void DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
 };
 
 MeshView &DomainView::GetMesh() const { return *m_pimpl_->m_mesh_; }
+void DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {}
 
 void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
     concept::StateCounter::Click();
@@ -166,7 +167,7 @@ std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) const { return 
 
 void DomainView::RegisterAttribute(AttributeDict *dbase) {
     //    m_pimpl_->m_mesh_->RegisterDescription(dbase);
-//    for (auto &item : m_pimpl_->m_workers_) { item->RegisterAttribute(dbase); }
+    //    for (auto &item : m_pimpl_->m_workers_) { item->RegisterAttribute(dbase); }
 }
 
 std::ostream &DomainView::Print(std::ostream &os, int indent) const {

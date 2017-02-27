@@ -81,7 +81,7 @@ void AttributeViewBundle::Attach(AttributeView *p) {
     }
 }
 
-//void AttributeViewBundle::Detach(AttributeView *p) {
+// void AttributeViewBundle::Detach(AttributeView *p) {
 //    if (p != nullptr && m_pimpl_->m_attr_views_.erase(p) > 0) {
 //        p->Disconnect(this);
 //        Click();
@@ -94,7 +94,7 @@ bool AttributeViewBundle::isModified() {
 
 bool AttributeViewBundle::Update() { return SPObject::Update(); }
 
-//void AttributeViewBundle::RegisterAttribute(AttributeDict *dbase) {
+// void AttributeViewBundle::RegisterAttribute(AttributeDict *dbase) {
 //    for (auto &attr : m_pimpl_->m_attr_views_) { attr->RegisterDescription(dbase); }
 //}
 DomainView const &AttributeViewBundle::GetDomain() const { return *m_pimpl_->m_domain_; }
@@ -161,12 +161,12 @@ void AttributeView::Connect(AttributeViewBundle *b) {
 }
 
 void AttributeView::OnNotify() {
-    //    if (m_pimpl_->m_bundle_ != nullptr) {
-    //        m_pimpl_->m_mesh_ = &m_pimpl_->m_bundle_->GetMesh();
-    //        m_pimpl_->m_data_ = m_pimpl_->m_bundle_->GetDataBlock(GUID());
-    //    } else {
-    //        DO_NOTHING;
-    //    }
+    if (m_pimpl_->m_bundle_ != nullptr) {
+        m_pimpl_->m_mesh_ = &m_pimpl_->m_bundle_->GetMesh();
+        m_pimpl_->m_data_ = m_pimpl_->m_bundle_->GetDataBlock(GUID());
+    } else {
+        DO_NOTHING;
+    }
 }
 
 MeshView const &AttributeView::GetMesh() const {

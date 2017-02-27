@@ -136,8 +136,11 @@ class SPObject {
     bool isModified() const;
     virtual bool Initialize();
     virtual bool Update();
+    virtual void Finalize();
+    virtual void Destroy();
 
     design_pattern::Signal<void()> OnInitialize;
+    design_pattern::Signal<void()> OnFinalize;
     design_pattern::Signal<void()> OnDestroy;
     design_pattern::Signal<void()> OnChanged;
 

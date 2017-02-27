@@ -90,7 +90,7 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
 
     void Detach(AttributeView *attr);
     void Attach(AttributeView *attr);
-    void OnNotify();
+    virtual void OnNotify();
 
     void Accept(std::function<void(AttributeView *)> const &) const;
 
