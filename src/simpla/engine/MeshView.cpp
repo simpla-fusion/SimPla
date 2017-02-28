@@ -42,7 +42,7 @@ void MeshView::Disconnect() {
     //    }
     //    m_pimpl_->m_domain_ = nullptr;
 }
-void MeshView::OnNotify() { SetMeshBlock(GetDomain()->GetMeshBlock()); }
+void MeshView::OnNotify() { /*SetMeshBlock(GetDomain()->GetMeshBlock());*/ }
 DomainView const *MeshView::GetDomain() const { return m_pimpl_->m_domain_; }
 bool MeshView::Update() { return SPObject::Update(); }
 

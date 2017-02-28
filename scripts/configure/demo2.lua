@@ -136,7 +136,7 @@ Media=
      Select=function(x,y,z)
           return x>1.0 and x<2.0
         end
-     ,Op="Set"},
+     ,Op="Register"},
 }
 
 Boundary={

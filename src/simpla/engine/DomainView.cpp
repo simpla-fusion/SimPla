@@ -3,7 +3,6 @@
 //
 #include "DomainView.h"
 #include <simpla/SIMPLA_config.h>
-#include <simpla/concept/StateCounter.h>
 #include <set>
 #include "AttributeView.h"
 #include "MeshBlock.h"
@@ -17,7 +16,7 @@ namespace engine {
 struct DomainView::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
     std::shared_ptr<MeshView> m_mesh_;
-    std::list<std::shared_ptr<Worker>> m_workers_;
+    std::map<int, std::shared_ptr<Worker>> m_workers_;
     std::shared_ptr<Patch> m_patch_;
     std::set<AttributeViewBundle *> m_attr_bundle_;
     //    Manager *m_manager_ = nullptr;
@@ -109,27 +108,25 @@ DomainView::~DomainView() {
  * deactivate Main
  * @enduml
  */
-void DomainView::Dispatch(std::shared_ptr<Patch> p) { m_pimpl_->m_patch_ = p; };
+void DomainView::Dispatch(std::shared_ptr<Patch> p) {
+    m_pimpl_->m_patch_ = p;
+    Click();
+};
 
 id_type DomainView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
 
-bool DomainView::isUpdated() const {
-    return (!concept::StateCounter::isModified()) && (m_pimpl_->m_current_block_id_ == GetMeshBlockId());
-}
-
-void DomainView::Update() {
-    if (isUpdated()) { return; }
-
+bool DomainView::Update() {
+    if (!isModified()) { return false; }
     if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<Patch>(); }
     if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->OnNotify(); }
-    for (auto &item : m_pimpl_->m_workers_) { item->OnNotify(); }
+    for (auto &item : m_pimpl_->m_workers_) { item.second->OnNotify(); }
     m_pimpl_->m_current_block_id_ = m_pimpl_->m_patch_->GetMeshBlock()->id();
 
-    concept::StateCounter::Tag();
+    return SPObject::Update();
 }
 
 void DomainView::Evaluate() {
-    for (auto &item : m_pimpl_->m_workers_) { item->Evaluate(); }
+    for (auto &item : m_pimpl_->m_workers_) { item.second->Evaluate(); }
 }
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.emplace(p).second) {
@@ -139,7 +136,7 @@ void DomainView::Attach(AttributeViewBundle *p) {
 }
 void DomainView::Detach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) {
-        //        p->Disconnect();
+        //                p->Disconnect();
         Click();
     }
 }
@@ -147,15 +144,20 @@ void DomainView::Notify() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { item->OnNotify(); }
 }
 void DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
-    concept::StateCounter::Click();
+    Click();
     m_pimpl_->m_mesh_ = m;
+    Attach(static_cast<AttributeViewBundle *>(m.get()));
 };
 
 MeshView &DomainView::GetMesh() const { return *m_pimpl_->m_mesh_; }
-void DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {}
+std::pair<Worker &, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
+    Attach(static_cast<AttributeViewBundle *>(w.get()));
+    auto res = m_pimpl_->m_workers_.emplace(pos, w);
+    return std::pair<Worker &, bool>(*res.first->second, res.second);
+}
 
 void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
-    concept::StateCounter::Click();
+    Click();
     UNIMPLEMENTED;
     //    auto it = m_pimpl_->m_workers_.find(w);
     //    if (it != m_pimpl_->m_workers_.end()) { m_pimpl_->m_workers_.Disconnect(it); }
@@ -165,9 +167,10 @@ id_type DomainView::GetMeshBlockId() const { return m_pimpl_->m_patch_->GetMeshB
 std::shared_ptr<MeshBlock> &DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
 std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) const { return m_pimpl_->m_patch_->GetDataBlock(id); }
 
-void DomainView::RegisterAttribute(AttributeDict *dbase) {
-    //    m_pimpl_->m_mesh_->RegisterDescription(dbase);
-    //    for (auto &item : m_pimpl_->m_workers_) { item->RegisterAttribute(dbase); }
+void DomainView::Register(AttributeDict &dbase) {
+    for (auto &item : m_pimpl_->m_attr_bundle_) {
+        item->Accept([&](AttributeView *view) { view->Register(dbase); });
+    }
 }
 
 std::ostream &DomainView::Print(std::ostream &os, int indent) const {
@@ -179,10 +182,9 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 
     if (m_pimpl_->m_workers_.size() > 0) {
         os << " Worker = { ";
-        for (auto &item : m_pimpl_->m_workers_) { item->Print(os, indent); }
+        for (auto &item : m_pimpl_->m_workers_) { item.second->Print(os, indent); }
         os << " } " << std::endl;
     }
-
     return os;
 };
 //

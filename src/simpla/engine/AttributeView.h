@@ -23,7 +23,7 @@ class AttributeView;
 enum AttributeTag { NORMAL = 0, SCRATCH = 0b100, INPUT = 0b1000, COORDINATES, NO_FILL, CHECK = 0x0100 };
 enum AttributeLockState { READ = 0b01, WRITE = 0b10 };
 
-struct AttributeDesc {
+struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
     AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, AttributeTag TAG);
 
     template <typename... Args>
@@ -62,14 +62,22 @@ struct AttributeDict : public concept::Printable {
 
     bool has(id_type) const;
     bool has(std::string const &) const;
-    id_type GetGUID(std::string const &) const;
+    id_type GUID(std::string const &) const;
     std::shared_ptr<AttributeDesc> Get(id_type) const;
     std::shared_ptr<AttributeDesc> Get(std::string const &) const;
-    std::shared_ptr<AttributeDesc> Set(id_type gid, std::shared_ptr<AttributeDesc>);
-    void Remove(id_type);
-    void Remove(const std::string &);
-    void for_each(std::function<void(AttributeDesc *)> const &);
-    void for_each(std::function<void(AttributeDesc const *)> const &) const;
+
+    void Register(AttributeView *);
+    std::pair<std::shared_ptr<AttributeDesc>, bool> Register(std::shared_ptr<AttributeDesc> const &);
+
+    /**
+     * @brief
+     * @return true if key exists
+     */
+    bool Unregister(std::string const &key);
+    bool Unregister(id_type);
+
+    void Accept(std::function<void(AttributeDesc *)> const &);
+    void Accept(std::function<void(AttributeDesc const *)> const &) const;
 
    private:
     struct pimpl_s;
@@ -93,8 +101,6 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
     virtual void OnNotify();
 
     void Accept(std::function<void(AttributeView *)> const &) const;
-
-    void RegisterAttribute(AttributeDict *dbase);
 
    private:
     struct pimpl_s;
@@ -156,6 +162,7 @@ struct AttributeView : public SPObject, public concept::Printable {
    public:
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
+    void Register(AttributeDict &db);
     AttributeDesc &description() const;
     data::DataTable &db() const;
     id_type GUID() const;
@@ -175,6 +182,7 @@ struct AttributeView : public SPObject, public concept::Printable {
      * @ingroup { observer
      */
     void Connect(AttributeViewBundle *b);
+    void Disconnect();
     void OnNotify();
     /** @}*/
 

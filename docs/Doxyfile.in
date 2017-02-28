@@ -982,7 +982,7 @@ USE_HTAGS              = NO
 
 # If the VERBATIM_HEADERS tag is set the YES then doxygen will generate a
 # verbatim copy of the header file for each class for which an include is
-# specified. Set to NO to disable this.
+# specified. Register to NO to disable this.
 # See also: Section \class.
 # The default m_value_ is: YES.
 

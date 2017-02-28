@@ -74,7 +74,7 @@ public:
     void PrintSelf(ostream &os, vtkIndent indent);
 
     // Description:
-    // Set/Get whether m_data should be converted to CGS
+    // Register/Get whether m_data should be converted to CGS
     vtkSetMacro(ConvertToCGS, int);
 
     vtkGetMacro(ConvertToCGS, int);

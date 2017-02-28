@@ -25,37 +25,35 @@ std::ostream &AttributeDict::Print(std::ostream &os, int indent) const {
            << "\" , config= " << item.second->db() << "  }," << std::endl;
     }
 }
-id_type AttributeDict::GetGUID(std::string const &s) const { return m_pimpl_->m_name_map_.at(s); }
+
+id_type AttributeDict::GUID(std::string const &s) const { return m_pimpl_->m_name_map_.at(s); }
 bool AttributeDict::has(id_type id) const { return m_pimpl_->m_db_.find(id) != m_pimpl_->m_db_.end(); }
-bool AttributeDict::has(std::string const &s) const {
-    return m_pimpl_->m_name_map_.find(s) != m_pimpl_->m_name_map_.end();
-}
+bool AttributeDict::has(std::string const &s) const { return has(GUID(s)); }
 std::shared_ptr<AttributeDesc> AttributeDict::Get(id_type id) const { return m_pimpl_->m_db_.at(id); }
-std::shared_ptr<AttributeDesc> AttributeDict::Get(std::string const &s) const { return Get(GetGUID(s)); }
-std::shared_ptr<AttributeDesc> AttributeDict::Set(id_type gid, std::shared_ptr<AttributeDesc> p) {
-    if (p->tag() == SCRATCH) { return nullptr; }
+std::shared_ptr<AttributeDesc> AttributeDict::Get(std::string const &s) const { return Get(GUID(s)); }
+
+std::pair<std::shared_ptr<AttributeDesc>, bool> AttributeDict::Register(std::shared_ptr<AttributeDesc> const &p) {
+    auto gid = p->GUID();
     auto res = m_pimpl_->m_db_.emplace(gid, p);
     if (res.second) {
         m_pimpl_->m_name_map_.emplace(p->name(), gid);
     } else {
         res.first->second->db().merge(p->db());
     }
-    return res.first->second;
+    return std::make_pair(res.first->second, res.second);
 }
+void AttributeDict::Register(AttributeView *v) { v->Register(*this); }
 
-void AttributeDict::Remove(id_type id) {
+bool AttributeDict::Unregister(std::string const &key) { return Unregister(GUID(key)); }
+bool AttributeDict::Unregister(id_type id) {
     m_pimpl_->m_name_map_.erase(Get(id)->name());
-    m_pimpl_->m_db_.erase(id);
-}
-void AttributeDict::Remove(const std::string &s) {
-    m_pimpl_->m_db_.erase(GetGUID(s));
-    m_pimpl_->m_name_map_.erase(s);
+    return m_pimpl_->m_db_.erase(id) > 0;
 }
 
-void AttributeDict::for_each(std::function<void(AttributeDesc *)> const &fun) {
+void AttributeDict::Accept(std::function<void(AttributeDesc *)> const &fun) {
     for (auto &item : m_pimpl_->m_db_) { fun(item.second.get()); }
 }
-void AttributeDict::for_each(std::function<void(AttributeDesc const *)> const &fun) const {
+void AttributeDict::Accept(std::function<void(AttributeDesc const *)> const &fun) const {
     for (auto const &item : m_pimpl_->m_db_) { fun(item.second.get()); }
 }
 struct AttributeViewBundle::pimpl_s {
@@ -64,7 +62,7 @@ struct AttributeViewBundle::pimpl_s {
 };
 
 AttributeViewBundle::AttributeViewBundle() : m_pimpl_(new pimpl_s) {}
-AttributeViewBundle::~AttributeViewBundle() { OnDestroy(); }
+AttributeViewBundle::~AttributeViewBundle() {}
 std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
     for (auto &attr : m_pimpl_->m_attr_views_) { os << attr->description().name() << " , "; }
     return os;
@@ -81,12 +79,12 @@ void AttributeViewBundle::Attach(AttributeView *p) {
     }
 }
 
-// void AttributeViewBundle::Detach(AttributeView *p) {
-//    if (p != nullptr && m_pimpl_->m_attr_views_.erase(p) > 0) {
-//        p->Disconnect(this);
-//        Click();
-//    }
-//}
+void AttributeViewBundle::Detach(AttributeView *p) {
+    if (p != nullptr && m_pimpl_->m_attr_views_.erase(p) > 0) {
+        p->Disconnect();
+        Click();
+    }
+}
 
 bool AttributeViewBundle::isModified() {
     return SPObject::isModified() || (m_pimpl_->m_domain_ != nullptr && m_pimpl_->m_domain_->isModified());
@@ -94,7 +92,7 @@ bool AttributeViewBundle::isModified() {
 
 bool AttributeViewBundle::Update() { return SPObject::Update(); }
 
-// void AttributeViewBundle::RegisterAttribute(AttributeDict *dbase) {
+// void AttributeViewBundle::Register(AttributeDict *dbase) {
 //    for (auto &attr : m_pimpl_->m_attr_views_) { attr->RegisterDescription(dbase); }
 //}
 DomainView const &AttributeViewBundle::GetDomain() const { return *m_pimpl_->m_domain_; }
@@ -135,11 +133,13 @@ struct AttributeView::pimpl_s {
 AttributeView::AttributeView() : m_pimpl_(new pimpl_s) {}
 AttributeView::AttributeView(AttributeViewBundle *b) : AttributeView() { Connect(b); };
 AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
-AttributeView::~AttributeView() {}
+AttributeView::~AttributeView() { Disconnect(); }
 
 void AttributeView::Config(std::string const &s, AttributeTag t) {
     m_pimpl_->m_desc_ = std::make_shared<AttributeDesc>(s, value_type_info(), iform(), dof(), t);
 }
+
+void AttributeView::Register(AttributeDict &db) { m_pimpl_->m_desc_ = db.Register(m_pimpl_->m_desc_).first; };
 
 AttributeDesc &AttributeView::description() const {
     if (m_pimpl_->m_desc_ == nullptr) {
@@ -156,10 +156,13 @@ AttributeTag AttributeView::tag() const { return description().tag(); }
 data::DataTable &AttributeView::db() const { return description().db(); }
 
 void AttributeView::Connect(AttributeViewBundle *b) {
-    b->OnChanged.Connect<AttributeView, &AttributeView::OnNotify>(this);
+    if (b != m_pimpl_->m_bundle_) { b->Attach(this); }
     m_pimpl_->m_bundle_ = b;
 }
-
+void AttributeView::Disconnect() {
+    if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_bundle_->Detach(this); }
+    m_pimpl_->m_bundle_ = nullptr;
+}
 void AttributeView::OnNotify() {
     if (m_pimpl_->m_bundle_ != nullptr) {
         m_pimpl_->m_mesh_ = &m_pimpl_->m_bundle_->GetMesh();

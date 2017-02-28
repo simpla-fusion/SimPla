@@ -23,19 +23,21 @@ class AttributeView;
 class DataBlock;
 class Patch;
 
-class DomainView : public concept::Printable, public concept::StateCounter {
+class DomainView : public concept::Printable, public SPObject {
    public:
     DomainView();
     virtual ~DomainView();
     std::ostream &Print(std::ostream &os, int indent) const final;
     id_type current_block_id() const;
     void Dispatch(std::shared_ptr<Patch> d);
-    virtual bool isUpdated() const;
-    virtual void Update();
+
+    virtual bool Update();
     void Evaluate();
 
     //    Manager const *GetManager(Manager *) const;
     //    void SetManager(Manager *m = nullptr);
+
+    MeshView &GetMesh() const;
 
     template <typename U, typename... Args>
     U &CreateMesh(Args &&... args) {
@@ -44,29 +46,29 @@ class DomainView : public concept::Printable, public concept::StateCounter {
         Attach(static_cast<AttributeViewBundle *>(res.get()));
         return *res;
     };
-    void SetMesh(std::shared_ptr<MeshView> const &m);
-    MeshView &GetMesh() const;
 
+   private:
+    void SetMesh(std::shared_ptr<MeshView> const &m);
+
+   public:
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> &GetMeshBlock() const;
     std::shared_ptr<DataBlock> &GetDataBlock(id_type) const;
 
-    void AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
+    std::pair<Worker &, bool> AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
     void RemoveWorker(std::shared_ptr<Worker> const &w);
     template <typename U>
-    void CreateWorker(int pos = -1) {
-        AddWorker(std::make_shared<U>(), pos);
+    std::pair<U &, bool> CreateWorker(int pos = -1, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
+        auto res = AddWorker(std::make_shared<U>(), pos);
+        return std::pair<U &, bool>(static_cast<U &>(res.first), res.second);
     };
 
     void Attach(AttributeViewBundle *);
     void Detach(AttributeViewBundle *p = nullptr);
     void Notify();
 
-    void RegisterAttribute(AttributeDict *);
-    //    void UpdateAttributeDict();
-    std::map<id_type, std::shared_ptr<engine::AttributeDesc>> const &GetAttributeDict() const;
-    data::DataTable const &attr_db(id_type) const;
-    data::DataTable &attr_db(id_type);
+    void Register(AttributeDict &);
+
     //    Range<id_type> const &select(int iform, int tag);
     //    Range<id_type> const &select(int iform, std::string const &tag);
     //    Range<id_type> const &interface(int iform, const std::string &tag_in, const std::string &tag_out = "VACUUM");

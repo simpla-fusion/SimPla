@@ -35,10 +35,10 @@ int main(int argc, char** argv) {
     DomainView domain;
     domain.CreateMesh<Moo>();
     domain.CreateWorker<Foo>();
-//    domain.Dispatch(patch);
+    //    domain.Dispatch(patch);
     domain.Update();
-//    std::cout << domain << std::endl;
-//    AttributeDict db;
-//    domain.RegisterAttribute(&db);
-//    std::cout << db << std::endl;
+    std::cout << domain << std::endl;
+    AttributeDict db;
+    domain.Register(db);
+    std::cout << db << std::endl;
 }

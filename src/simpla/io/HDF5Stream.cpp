@@ -862,7 +862,7 @@ std::string HDF5Stream::write(std::string const &url, data::DataSet const &ds, i
 
     if (!ds.is_valid())
     {
-        WARNING << "Invalid Data Set! "
+        WARNING << "Invalid Data Register! "
                 << "[ URL = \"" << url << "\","
                 << " Data is " << ((ds.data != nullptr) ? "valid" : "invalid ") << ". "
                 << " DataType is " << ((ds.data_type.is_valid()) ? "valid" : "invalid") << ". "
