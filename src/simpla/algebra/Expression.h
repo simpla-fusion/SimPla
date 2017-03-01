@@ -38,10 +38,8 @@ struct expr_parser<TRes, TR> {
 template <typename TRes, typename TOP, typename... Args>
 struct expr_parser<TRes, declare::Expression<TOP, Args...>> {
     template <size_type... index>
-    static decltype(auto) _invoke_helper(declare::Expression<TOP, Args...> const &expr,
-                                         index_sequence<index...>) {
-        return expr.m_op_(
-            expr_parser<TRes, std::remove_cv_t<Args>>::eval(std::get<index>(expr.m_args_))...);
+    static decltype(auto) _invoke_helper(declare::Expression<TOP, Args...> const &expr, index_sequence<index...>) {
+        return expr.m_op_(expr_parser<TRes, std::remove_cv_t<Args>>::eval(std::get<index>(expr.m_args_))...);
     }
 
     static TRes eval(declare::Expression<TOP, Args...> const &expr) {
@@ -64,14 +62,12 @@ template <typename TOP, typename... Args>
 struct is_array<declare::Expression<TOP, Args...>> : public is_array<Args...> {};
 
 template <typename TOP, typename... T>
-struct iform<declare::Expression<TOP, T...>>
-    : public int_const<seq_max<int, iform<T>::value...>::value> {};
+struct iform<declare::Expression<TOP, T...>> : public int_const<seq_max<int, iform<T>::value...>::value> {};
 template <typename TOP, typename T>
 struct iform<declare::Expression<TOP, T>> : public int_const<iform<T>::value> {};
 
 template <typename TOP, typename... T>
-struct extent<declare::Expression<TOP, T...>>
-    : public int_const<seq_max<int, extent<T>::value...>::value> {};
+struct extent<declare::Expression<TOP, T...>> : public int_const<seq_max<int, extent<T>::value...>::value> {};
 
 template <typename TOP, typename TL>
 struct value_type<declare::Expression<TOP, TL>> {
@@ -111,6 +107,7 @@ struct Expression<TOP, Args...> {
     typename std::tuple<traits::reference_t<Args>...> m_args_;
     typedef std::true_type is_expression;
     typedef std::false_type prefer_pass_by_reference;
+    typedef std::true_type prefer_pass_by_value;
 
     TOP m_op_;
 

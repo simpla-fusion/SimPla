@@ -121,6 +121,8 @@ class SPObject {
     SPObject &operator=(SPObject const &other) = delete;
     virtual ~SPObject();
 
+    data::DataTable const &db() const;
+    data::DataTable &db();
     id_type id() const;
     bool operator==(SPObject const &other);
 
@@ -134,7 +136,7 @@ class SPObject {
     size_type GetTagCount() const;
     size_type GetClickCount() const;
     bool isModified() const;
-    virtual bool Initialize();
+    virtual void Initialize();
     virtual bool Update();
     virtual void Finalize();
     virtual void Destroy();

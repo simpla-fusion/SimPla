@@ -28,7 +28,7 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
     os << "  } , ";
     return os;
 }
-bool Worker::Initialize() { DO_NOTHING; }
+void Worker::Initialize() { DO_NOTHING; }
 /**
  * @startuml
  * title Initialize/Finalize

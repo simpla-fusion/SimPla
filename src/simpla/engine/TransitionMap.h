@@ -57,7 +57,7 @@ struct TransitionMap {
 //
 //    std::shared_ptr<r_mesh_type> m_dst_;
 //    std::shared_ptr<l_mesh_type> m_src_;
-//    MeshBlock m_overlap_;
+//    RectMesh m_overlap_;
 //    Range<MeshEntityId> m_range0_;
 //
 //    virtual id_type from_id() const { return m_src_->id(); };

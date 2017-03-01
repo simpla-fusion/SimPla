@@ -79,14 +79,14 @@ class EMFluid : public engine::Worker {
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
 
-    std::shared_ptr<fluid_s> add_particle(std::string const& name, data::DataTable const& d);
+    std::shared_ptr<fluid_s> AddSpecies(std::string const &name, data::DataTable const &d);
 
-    std::map<std::string, std::shared_ptr<fluid_s>>& particles() { return m_fluid_sp_; };
+    std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
 };
 
 template <typename TM>
-std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::add_particle(std::string const& name,
-                                                                       data::DataTable const& d) {
+std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const &name,
+                                                                     data::DataTable const &d) {
     Real mass;
     Real charge;
 

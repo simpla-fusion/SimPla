@@ -34,8 +34,8 @@ int main(int argc, char **argv) {
         GEqdsk geqdsk;
         geqdsk.load(argv[1]);
 
-        manager->GetModel().AddObject("VACUUM", geqdsk.limiter_gobj());
-        manager->GetModel().AddObject("PLASMA", geqdsk.boundary_gobj());
+        manager->GetModel().AddDomain("VACUUM", geqdsk.limiter_gobj());
+        manager->GetModel().AddDomain("PLASMA", geqdsk.boundary_gobj());
 
         auto bound_box = manager->GetModel().bound_box();
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
                                           "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ = 0.5},
                                           "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
 
-    manager->GetDomainView("PLASMA").AppendWorker(worker);
+    manager->GetDomainView("PLASMA").AddWorker(worker);
 
     manager->Update();
     manager->CheckPoint();

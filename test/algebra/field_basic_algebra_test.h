@@ -65,9 +65,9 @@ class TestField : public testing::Test {
     typedef Field<mesh_type, value_type, iform> scalar_field_type;
     typedef Field<mesh_type, value_type, iform, 3> vector_field_type;
 
-    //    auto make_scalarField() const AUTO_RETURN((field_t<value_type, manifold_type, iform>(m)))
+    //    auto make_scalarField() const AUTO_RETURN((field_type<value_type, manifold_type, iform>(m)))
     //
-    //    auto make_vectorField() const AUTO_RETURN((field_t<nTuple<value_type, 3>, manifold_type,
+    //    auto make_vectorField() const AUTO_RETURN((field_type<nTuple<value_type, 3>, manifold_type,
     //    iform>(m)))
 };
 

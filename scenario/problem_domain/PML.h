@@ -6,96 +6,89 @@
 #define SIMPLA_PML_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/Log.h>
-#include <simpla/physics/PhysicalConstants.h>
-#include <simpla/algebra/Field.h>
 #include <simpla/algebra/Calculus.h>
+#include <simpla/algebra/Field.h>
+#include <simpla/physics/PhysicalConstants.h>
 #include <simpla/simulation/Context.h>
+#include <simpla/toolbox/Log.h>
 
-namespace simpla
-{
+namespace simpla {
 using namespace mesh;
 
 /**
  *  @ingroup FieldSolver
  *  @brief absorb boundary condition, PML
  */
-template<typename TM>
-class PML : public DomainBase
-{
-    typedef DomainBase base_type;
-public:
+template <typename TM>
+class PML : public engine::Worker {
+    SP_OBJECT_HEAD(PML<TM>, engine::Worker);
+
+   public:
     typedef TM mesh_type;
+    typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
-    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, int_const<IFORM>>;;
+    template <int IFORM, int DOF = 1>
+    using field_type = engine::FieldAttribute<TM, scalar_type, IFORM, DOF>;
 
-    PML(std::shared_ptr<TM> mp);
-
-    PML &setup_center_domain(box_type const &center_box);
-
+    PML();
     virtual ~PML();
+    void SetCenterDomain(geometry::GeoObject const &);
+    void Initialize();
+    bool Update();
 
-    virtual void next_step(Real dt);
+    virtual void Process();
+    //    virtual std::string getClassName() const { return class_name(); }
+    //    static std::string class_name() { return "PML<" + traits::type_id<TM>::name() + ">"; }
 
-    virtual void deploy();
+    field_type<EDGE> E{this, "E"};
+    field_type<FACE> B{this, "B"};
 
-    virtual std::string getClassName() const { return class_name(); }
-
-    static std::string class_name() { return "PML<" + traits::type_id<TM>::name() + ">"; }
-
-
-    using base_type::m;
-
-
-    field_t<scalar_type, mesh::EDGE> E{m};
-    field_t<scalar_type, mesh::FACE> B{m};
-
-
-    field_t<scalar_type, mesh::EDGE> X10{m}, X11{m}, X12{m};
-    field_t<scalar_type, mesh::FACE> X20{m}, X21{m}, X22{m};
+    field_type<EDGE> X10{this}, X11{this}, X12{this};
+    field_type<FACE> X20{this}, X21{this}, X22{this};
 
     // alpha
-    field_t<scalar_type, mesh::VERTEX> a0{m};
-    field_t<scalar_type, mesh::VERTEX> a1{m};
-    field_t<scalar_type, mesh::VERTEX> a2{m};
+    field_type<VERTEX> a0{this};
+    field_type<VERTEX> a1{this};
+    field_type<VERTEX> a2{this};
     // sigma
-    field_t<scalar_type, mesh::VERTEX> s0{m};
-    field_t<scalar_type, mesh::VERTEX> s1{m};
-    field_t<scalar_type, mesh::VERTEX> s2{m};
+    field_type<VERTEX> s0{this};
+    field_type<VERTEX> s1{this};
+    field_type<VERTEX> s2{this};
 
-    field_t<scalar_type, mesh::EDGE> dX1{m};
-    field_t<scalar_type, mesh::FACE> dX2{m};
+    field_type<EDGE> dX1{this};
+    field_type<FACE> dX2{this};
 
-
-private:
-    inline Real sigma_(Real r, Real expN, Real dB)
-    {
+   private:
+    inline Real sigma_(Real r, Real expN, Real dB) {
         return static_cast<Real>((0.5 * (expN + 2.0) * 0.1 * dB * std::pow(r, expN + 1.0)));
     }
 
-    inline Real alpha_(Real r, Real expN, Real dB)
-    {
-        return static_cast<Real>(1.0 + 2.0 * std::pow(r, expN));
-    }
+    inline Real alpha_(Real r, Real expN, Real dB) { return static_cast<Real>(1.0 + 2.0 * std::pow(r, expN)); }
 };
-
-
-template<typename TM>
+template <typename TM>
+PML<TM>::PML() {}
+template <typename TM>
 PML<TM>::~PML() {}
 
-template<typename TM>
-PML<TM>::PML(std::shared_ptr<TM> mp) : base_type(mp), m(mp) { assert(mp != nullptr); }
+template <typename TM>
+void PML<TM>::Initialize() {
+    X10.Clear();
+    X11.Clear();
+    X12.Clear();
+    X20.Clear();
+    X21.Clear();
+    X22.Clear();
+    E.Clear();
+    B.Clear();
+    dX1.Clear();
+    dX2.Clear();
 
-template<typename TM>
-PML<TM> &
-PML<TM>::setup_center_domain(box_type const &center_box)
-{
-    a0.clear();
-    a1.clear();
-    a2.clear();
-    s0.clear();
-    s1.clear();
-    s2.clear();
+    a0.Clear();
+    a1.Clear();
+    a2.Clear();
+    s0.Clear();
+    s1.Clear();
+    s2.Clear();
     DEFINE_PHYSICAL_CONST
     Real dB = 100, expN = 2;
     point_type m_xmin, m_xmax;
@@ -105,57 +98,33 @@ PML<TM>::setup_center_domain(box_type const &center_box)
     std::tie(c_xmin, c_xmax) = center_box;
     auto dims = m->dimensions();
 
-    m->range(mesh::VERTEX, mesh::SP_ES_ALL).foreach(
-            [&](mesh::MeshEntityId const &s)
-            {
-                point_type x = m->point(s);
+    m->range(VERTEX, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
+        point_type x = m->point(s);
 
-#define DEF(_N_)     a##_N_[s]=1;   s##_N_[s]=0;                                                     \
-        if(dims[_N_]>1)                                                                              \
-        {                                                                                            \
-                if (x[_N_] <c_xmin[_N_])                                                             \
-                {                                                                                    \
-                    Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
-                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
-                    s##_N_[s] = sigma_(r, expN, dB) * speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
-                }                                                                                    \
-                else if (x[_N_] >c_xmax[_N_])                                                        \
-                {                                                                                    \
-                    Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                   \
-                    a##_N_[s] = alpha_(r, expN, dB);                                                 \
-                    s##_N_[s] = sigma_(r, expN, dB) * speed_of_light/ (m_xmax[_N_] - m_xmin[_N_]);  \
-                }                                                                                    \
-        }
-                DEF(0)
-                DEF(1)
-                DEF(2)
+#define DEF(_N_)                                                                            \
+    a##_N_[s] = 1;                                                                          \
+    s##_N_[s] = 0;                                                                          \
+    if (dims[_N_] > 1) {                                                                    \
+        if (x[_N_] < c_xmin[_N_]) {                                                         \
+            Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                  \
+            a##_N_[s] = alpha_(r, expN, dB);                                                \
+            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (m_xmax[_N_] - m_xmin[_N_]); \
+        } else if (x[_N_] > c_xmax[_N_]) {                                                  \
+            Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                  \
+            a##_N_[s] = alpha_(r, expN, dB);                                                \
+            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (m_xmax[_N_] - m_xmin[_N_]); \
+        }                                                                                   \
+    }
+        DEF(0)
+        DEF(1)
+        DEF(2)
 #undef DEF
-            }
-    );
-
-    return *this;
+    });
 }
 
-template<typename TM>
-void PML<TM>::deploy()
-{
-    X10.clear();
-    X11.clear();
-    X12.clear();
-    X20.clear();
-    X21.clear();
-    X22.clear();
-    E.clear();
-    B.clear();
-    dX1.clear();
-    dX2.clear();
-    global_declare(&E, "E");
-    global_declare(&B, "B");
-}
-
-template<typename TM>
-void PML<TM>::next_step(Real dt)
-{
+template <typename TM>
+void PML<TM>::Process() {
+    Real dt = GetMesh().GetDt();
     DEFINE_PHYSICAL_CONST
 
     dX2 = (X20 * (-2.0 * dt * s0) + curl_pdx(E) * dt) / (a0 + s0 * dt);
@@ -182,7 +151,6 @@ void PML<TM>::next_step(Real dt)
     X12 += dX1;
     E += dX1;
 }
-} //namespace simpla
+}  // namespace simpla
 
-
-#endif //SIMPLA_PML_H
+#endif  // SIMPLA_PML_H

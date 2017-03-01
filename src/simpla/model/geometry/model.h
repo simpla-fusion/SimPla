@@ -35,10 +35,10 @@ template<typename CoordinateSystem>
 using Tetrahedron = Primitive< 2,CoordinateSystem, tags::simplex >;
 
 template<typename CoordinateSystem>
-using Rectangle = Primitive< 2,CoordinateSystem, tags::cube >;
+using Rectangle = Primitive< 2,CoordinateSystem, tags::Cube >;
 
 template<typename CoordinateSystem>
-using Hexahedron = Primitive< 3,CoordinateSystem, tags::cube >;
+using Hexahedron = Primitive< 3,CoordinateSystem, tags::Cube >;
 /**
  * @brief Polyline a 'polygonal chain' is a connected series of 'line segments'.
  *  More formally, a 'polygonal chain' $P$ is a curve specified by a

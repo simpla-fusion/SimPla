@@ -109,14 +109,13 @@ class Worker : public AttributeViewBundle {
     virtual ~Worker();
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    virtual bool Initialize();
+    virtual void Initialize();
     virtual void Process(){};
     virtual bool Update();
     virtual void OnNotify(){};
     void Evaluate();
 
-    data::DataTable const &db() const;
-    data::DataTable &db();
+
 
    private:
     struct pimpl_s;

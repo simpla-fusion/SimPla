@@ -37,7 +37,7 @@ public:
 
 
 //    template<typename ...Args>
-//    DummyMesh(Args &&...args) //mesh::MeshBlock(std::forward<Args>(args)...)
+//    DummyMesh(Args &&...args) //mesh::RectMesh(std::forward<Args>(args)...)
 //    {}
 
     DummyMesh(size_type const *dims, Real const *lower, Real const *upper) :
@@ -56,9 +56,9 @@ public:
 
 //    template<typename TV, mesh::MeshEntityType IFORM> using data_block_type= mesh::DataBlockArray<Real, IFORM>;
 
-//    virtual std::shared_ptr<mesh::MeshBlock> clone() const
+//    virtual std::shared_ptr<mesh::RectMesh> clone() const
 //    {
-//        return std::dynamic_pointer_cast<mesh::MeshBlock>(std::make_shared<DummyMesh>());
+//        return std::dynamic_pointer_cast<mesh::RectMesh>(std::make_shared<DummyMesh>());
 //    };
 
     template<typename TID>

@@ -55,29 +55,18 @@ class Context :
 
 public:
     SP_OBJECT_HEAD(Context, SPObject)const std::type_index &;
-
     Context() : SPObject() {};
-
     virtual ~Context() {};
-
     virtual std::ostream &Print(std::ostream &os, int indent) const { return os; };
 
     virtual void Load(data::DataTable const &) { UNIMPLEMENTED; }
-
     virtual void Save(data::DataTable *) const { UNIMPLEMENTED; }
-
-    virtual void initialize(int argc = 0, char **argv = nullptr)=0;
-
+    virtual void Initialize(int argc = 0, char **argv = nullptr)=0;
     virtual void deploy() {};
-
     virtual void teardown() {};
-
     virtual bool is_valid() const { return true; };
-
     virtual toolbox::IOStream &check_point(toolbox::IOStream &os) const { return os; };
-
     virtual size_type step() const =0;
-
     virtual Real time() const =0;
 
     virtual void next_time_step(Real dt)=0;

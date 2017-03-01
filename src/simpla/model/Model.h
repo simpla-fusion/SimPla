@@ -18,25 +18,29 @@ using namespace data;
 
 class GeoObject;
 
-class Model : public concept::Printable, public concept::Configurable {
+class Model : public SPObject, public concept::Printable {
     typedef Model this_type;
 
    public:
     Model();
     virtual ~Model();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    virtual void Update();
-
+    virtual bool Update();
+    bool Valid();
     box_type const &bound_box() const;
-    data::DataTable const &GetMaterial(std::string const &) const;
-    data::DataTable &GetMaterial(std::string const &);
 
-    void AddObject(std::string const &material_type_name, std::shared_ptr<geometry::GeoObject> const &);
-    void AddObject(id_type, std::shared_ptr<geometry::GeoObject> const &);
+    std::map<std::string, id_type> &GetMaterialListByName() const;
+    std::map<id_type, std::string> &GetMaterialListById() const;
 
-    std::shared_ptr<geometry::GeoObject> const &GetObject(std::string const &key) const;
-    std::shared_ptr<geometry::GeoObject> const &GetObject(id_type) const;
-    void RemoveObject(std::string const &key);
+    id_type AddObject(geometry::GeoObject const &, std::string const &material_type_name);
+    id_type AddObject(geometry::GeoObject const &, id_type material_type_id = NULL_ID);
+    geometry::GeoObject const &GetObject(id_type) const;
+    size_type RemoveObject(id_type);
+    id_type GetObjectMaterialId(id_type) const;
+
+    geometry::GeoObject SelectObjectByMaterial(std::string const &material_type_name) const;
+    geometry::GeoObject SelectObjectByMaterial(id_type) const;
+    size_type RemoveObjectByMaterial(id_type);
 
    private:
     struct pimpl_s;

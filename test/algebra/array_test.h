@@ -68,9 +68,9 @@ public:
     typedef Array<value_type, mesh_type, iform> scalar_field_type;
     typedef Array<value_type, mesh_type, iform, 3> vector_field_type;
 
-//    auto make_scalarArray() const AUTO_RETURN((field_t<value_type, manifold_type, iform>(m)))
+//    auto make_scalarArray() const AUTO_RETURN((field_type<value_type, manifold_type, iform>(m)))
 //
-//    auto make_vectorArray() const AUTO_RETURN((field_t<nTuple<value_type, 3>, manifold_type, iform>(m)))
+//    auto make_vectorArray() const AUTO_RETURN((field_type<nTuple<value_type, 3>, manifold_type, iform>(m)))
 };
 
 template<typename TArray> constexpr size_type TestArray<TArray>::iform;

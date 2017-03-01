@@ -29,18 +29,26 @@ class GeoObject {
 
    public:
     GeoObject();
+
     virtual ~GeoObject();
+
     virtual box_type bound_box() const;
+
     bool isNull() const;
+
     virtual bool isSolid() const;
+
     virtual bool isSurface() const;
+
     virtual bool isCurve() const;
+
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
     *           `in` then 1
     *           `out` then 0
     */
     virtual int check_inside(const Real *x) const { return geometry::in_box(bound_box(), x) ? 1 : 0; };
+
     inline int check_inside(const point_type &x) const { return check_inside(&x[0]); };
 
     /**
@@ -123,6 +131,7 @@ class GeoObject {
     std::tuple<point_type, point_type, Real> nearest_point(Args &&... args) const {
         return nearest_point(bound_box(), &(args[0])...);
     };
+    virtual Real implicit_fun(point_type const &x) const = 0;
 
    private:
     template <typename T, size_t... I>
@@ -144,6 +153,51 @@ class GeoObject {
 template <typename U>
 struct GeoObjectAdapter : public GeoObject, public U {};
 
+class GeoObjectInverse : public GeoObject {
+    GeoObject m_left_;
+
+   public:
+    GeoObjectInverse(GeoObject const &l) : m_left_(l) {}
+    virtual Real implicit_fun(point_type const &x) const { return -m_left_.implicit_fun(x); }
+};
+
+class GeoObjectUnion : public GeoObject {
+    GeoObject m_left_;
+    GeoObject m_right_;
+
+   public:
+    GeoObjectUnion(GeoObject const &l, GeoObject const &r) : m_left_(l), m_right_(r) {}
+    virtual Real implicit_fun(point_type const &x) const {
+        return std::min(m_left_.implicit_fun(x), m_right_.implicit_fun(x));
+    }
+};
+
+class GeoObjectIntersection : public GeoObject {
+    GeoObject m_left_;
+    GeoObject m_right_;
+
+   public:
+    GeoObjectIntersection(GeoObject const &l, GeoObject const &r) : m_left_(l), m_right_(r) {}
+    virtual Real implicit_fun(point_type const &x) const {
+        return std::max(m_left_.implicit_fun(x), m_right_.implicit_fun(x));
+    }
+};
+class GeoObjectDifference : public GeoObject {
+    GeoObject m_left_;
+    GeoObject m_right_;
+
+   public:
+    GeoObjectDifference(GeoObject const &l, GeoObject const &r) : m_left_(l), m_right_(r) {}
+    virtual Real implicit_fun(point_type const &x) const {
+        return std::max(m_left_.implicit_fun(x), -m_right_.implicit_fun(x));
+    }
+};
+
+GeoObjectInverse operator-(GeoObject const &l) { return GeoObjectInverse(l); }
+GeoObjectInverse operator!(GeoObject const &l) { return GeoObjectInverse(l); }
+GeoObjectUnion operator+(GeoObject const &l, GeoObject const &r) { return GeoObjectUnion(l, r); }
+GeoObjectDifference operator-(GeoObject const &l, GeoObject const &r) { return GeoObjectDifference(l, r); }
+GeoObjectIntersection operator&(GeoObject const &l, GeoObject const &r) { return GeoObjectIntersection(l, r); }
 }  // namespace geometry
 }  // namespace simpla
 

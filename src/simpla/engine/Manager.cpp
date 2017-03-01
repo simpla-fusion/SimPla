@@ -15,6 +15,9 @@ struct Manager::pimpl_s {
 };
 Manager::Manager() : m_pimpl_(new pimpl_s) {}
 Manager::~Manager() {}
+
+Atlas const &Manager::GetAtlas() const { return m_pimpl_->m_atlas_; }
+Atlas &Manager::GetAtlas() { return m_pimpl_->m_atlas_; }
 model::Model &Manager::GetModel() { return m_pimpl_->m_model_; }
 model::Model const &Manager::GetModel() const { return m_pimpl_->m_model_; }
 
@@ -30,7 +33,7 @@ DomainView const &Manager::GetDomainView(std::string const &d_name) const {
     return GetDomainView(m_pimpl_->m_model_.GetMaterial(d_name).GetValue<id_type>("GUID"));
 }
 DomainView &Manager::GetDomainView(id_type d_id) {
-    concept::Configurable::Click();
+    Click();
     auto it = m_pimpl_->m_views_.find(d_id);
     if (it == m_pimpl_->m_views_.end()) { m_pimpl_->m_views_.emplace(d_id, std::make_shared<DomainView>()); }
     return *m_pimpl_->m_views_.at(d_id);
@@ -42,7 +45,7 @@ DomainView &Manager::GetDomainView(std::string const &d_name) {
 AttributeDict &Manager::GetAttributeDatabase() { return m_pimpl_->m_attr_db_; }
 AttributeDict const &Manager::GetAttributeDatabase() const { return m_pimpl_->m_attr_db_; }
 
-void Manager::Update() { concept::Configurable::Update(); };
+bool Manager::Update() { return SPObject::Update(); };
 void Manager::Evaluate() {
     Update();
     //    for (auto &item : m_pimpl_->m_atlas_) {}

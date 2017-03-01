@@ -80,9 +80,9 @@ public:
         if (!(dict["Value"])) { THROW_EXCEPTION_RUNTIME_ERROR("illegal configure file!"); }
 
         typename manifold_type::box_type b;
-        if (dict["MeshBlock"])
+        if (dict["RectMesh"])
         {
-            b = dict["MeshBlock"].template as<typename manifold_type::box_type>();
+            b = dict["RectMesh"].template as<typename manifold_type::box_type>();
         } else
         {
             b = m.box();

@@ -14,6 +14,7 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <iomanip>
 #include <ostream>
+#include <simpla/data/DataTable.h>
 
 namespace simpla {
 struct SPObject::pimpl_s {
@@ -22,6 +23,7 @@ struct SPObject::pimpl_s {
     size_type m_click_tag_ = 0;
     boost::uuids::uuid m_id_;
     id_type m_short_id_;
+    data::DataTable m_db_;
 };
 
 SPObject::SPObject() : m_pimpl_(new pimpl_s) {
@@ -33,7 +35,11 @@ SPObject::SPObject() : m_pimpl_(new pimpl_s) {
 
 SPObject::SPObject(SPObject &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
 SPObject::~SPObject() { OnDestroy(); }
-
+data::DataTable const &SPObject::db() const { return m_pimpl_->m_db_; }
+data::DataTable &SPObject::db() {
+    Click();
+    return m_pimpl_->m_db_;
+}
 id_type SPObject::id() const { return m_pimpl_->m_short_id_; }
 bool SPObject::operator==(SPObject const &other) { return m_pimpl_->m_id_ == other.m_pimpl_->m_id_; }
 
@@ -47,7 +53,7 @@ void SPObject::Click() { ++m_pimpl_->m_click_; }
 void SPObject::Tag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_; }
 void SPObject::ResetTag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_ = 0; }
 bool SPObject::isModified() const { return GetTagCount() != GetClickCount(); }
-bool SPObject::Initialize() {}
+void SPObject::Initialize() {}
 void SPObject::Finalize() {}
 void SPObject::Destroy() {}
 

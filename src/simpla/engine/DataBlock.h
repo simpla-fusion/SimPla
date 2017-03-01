@@ -146,14 +146,14 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //        return os;
 //    }
 //
-//    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<MeshBlock> const &m, void *p = nullptr)
+//    virtual std::shared_ptr<DataBlock> clone(std::shared_ptr<RectMesh> const &m, void *p = nullptr)
 //    {
 //        return create(m, static_cast<value_type *>(p));
 //    };
 //
 //
 //    static std::shared_ptr<DataBlock>
-//    create(std::shared_ptr<MeshBlock> const &m, value_type *p = nullptr)
+//    create(std::shared_ptr<RectMesh> const &m, value_type *p = nullptr)
 //    {
 //        index_type n_dof = DOF;
 //        int ndims = 3;

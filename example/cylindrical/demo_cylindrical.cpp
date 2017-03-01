@@ -20,7 +20,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     center_mesh->name("Center");
     center_mesh->dimensions(options["MeshView"]["Dimensions"].template as<index_tuple>(index_tuple{20, 20, 1}));
     center_mesh->ghost_width(options["MeshView"]["GhostWidth"].template as<index_tuple>(index_tuple{2, 2, 2}));
-    center_mesh->box(options["MeshView"]["MeshBlock"].template as<box_type>(box_type{{0, 0, 0},
+    center_mesh->box(options["MeshView"]["RectMesh"].template as<box_type>(box_type{{0, 0, 0},
                                                                            {1, 1, 1}}));
     center_mesh->deploy();
 
@@ -35,7 +35,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
         sp->J.clear();
         if (std::get<1>(item)["Density"])
         {
-            auto r = center_mesh->range(std::get<1>(item)["MeshBlock"].as<box_type>(), VERTEX);
+            auto r = center_mesh->range(std::get<1>(item)["RectMesh"].as<box_type>(), VERTEX);
             std::function<Real(point_type const &)> g_obj;
             std::get<1>(item)["Shape"].as(&g_obj);
 
@@ -94,7 +94,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     {
 
         center_domain->J_src_range = center_mesh->range(
-                options["Constraints"]["J"]["MeshBlock"].as<box_type>(), mesh::EDGE);
+                options["Constraints"]["J"]["RectMesh"].as<box_type>(), mesh::EDGE);
 
         options["Constraints"]["J"]["Value"].as(&center_domain->J_src_fun);
     }
@@ -103,7 +103,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
     {
 
         center_domain->E_src_range = center_mesh->range(
-                options["Constraints"]["E"]["MeshBlock"].as<box_type>(), mesh::EDGE);
+                options["Constraints"]["E"]["RectMesh"].as<box_type>(), mesh::EDGE);
 
         options["Constraints"]["E"]["Value"].as(&center_domain->E_src_fun);
     }
@@ -117,7 +117,7 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
 
         options["Constraints"]["PEC"]["Shape"].as(&shape_fun);
 
-        model.add(options["Constraints"]["PEC"]["MeshBlock"].as<box_type>(), shape_fun);
+        model.add(options["Constraints"]["PEC"]["RectMesh"].as<box_type>(), shape_fun);
 
         center_domain->face_boundary = model.surface(FACE);
         center_domain->edge_boundary = model.surface(EDGE);

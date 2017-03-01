@@ -279,7 +279,7 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //};
 
 //*******************************************************************
-// MeshBlock
+// RectMesh
 
 template<typename CS>
 struct tag<sgm::Box<CS>>

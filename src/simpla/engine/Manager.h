@@ -60,11 +60,16 @@ namespace engine {
  *  deactivate DomainView
  * @enduml
  */
-class Manager : public concept::Printable, public concept::Configurable {
+class Manager : public SPObject, public concept::Printable {
    public:
     Manager();
     virtual ~Manager();
+    data::DataTable db;
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
+
+    Atlas const &GetAtlas() const;
+    Atlas &GetAtlas();
+
     model::Model const &GetModel() const;
     model::Model &GetModel();
     void SetDomainView(std::string const &domain_type_name, std::shared_ptr<DomainView> const &p = nullptr);
@@ -77,7 +82,7 @@ class Manager : public concept::Printable, public concept::Configurable {
     AttributeDict &GetAttributeDatabase();
     AttributeDict const &GetAttributeDatabase() const;
 
-    void Update();
+    bool Update();
     void Evaluate();
 
    private:

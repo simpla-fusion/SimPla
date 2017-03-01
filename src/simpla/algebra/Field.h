@@ -126,7 +126,7 @@ class FieldView<TM, TV, IFORM, DOF> {
     virtual value_type const* data() const { return m_data_ != nullptr ? m_data_ : m_holder_.get(); }
     virtual mesh_type const* mesh() const { return m_mesh_; }
 
-    virtual void Update() {
+    virtual bool Update() {
         m_data_ = data();
         m_mesh_ = mesh();
         ASSERT(m_mesh_ != nullptr);
@@ -140,6 +140,7 @@ class FieldView<TM, TV, IFORM, DOF> {
             m_data_ = m_holder_.get();
         }
         ASSERT(m_data_ != nullptr);
+        return true;
     };
 
     void Reset() {

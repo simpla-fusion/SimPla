@@ -37,6 +37,7 @@ struct DataEntity : public concept::Printable {
     virtual bool isTable() const { return false; };
     virtual bool isLight() const { return false; };
     virtual bool isHeavy() const { return false; };
+    virtual void Copy(DataTable const&) const {};
     virtual std::shared_ptr<DataEntity> Copy() const { return nullptr; };
     virtual std::shared_ptr<DataEntity> Move() { return nullptr; };
     virtual void DeepCopy(DataEntity const& other) { UNIMPLEMENTED; }

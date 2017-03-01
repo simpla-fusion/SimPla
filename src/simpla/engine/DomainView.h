@@ -40,7 +40,7 @@ class DomainView : public concept::Printable, public SPObject {
     MeshView &GetMesh() const;
 
     template <typename U, typename... Args>
-    U &CreateMesh(Args &&... args) {
+    U &SetMesh(Args &&... args) {
         auto res = std::make_shared<U>(std::forward<Args>(args)...);
         SetMesh(std::dynamic_pointer_cast<MeshView>(res));
         Attach(static_cast<AttributeViewBundle *>(res.get()));
@@ -58,9 +58,9 @@ class DomainView : public concept::Printable, public SPObject {
     std::pair<Worker &, bool> AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
     void RemoveWorker(std::shared_ptr<Worker> const &w);
     template <typename U>
-    std::pair<U &, bool> CreateWorker(int pos = -1, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
+    U &AddWorker(int pos = -1, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
         auto res = AddWorker(std::make_shared<U>(), pos);
-        return std::pair<U &, bool>(static_cast<U &>(res.first), res.second);
+        return static_cast<U &>(res.first);
     };
 
     void Attach(AttributeViewBundle *);

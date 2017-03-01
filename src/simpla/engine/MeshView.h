@@ -37,7 +37,7 @@ class MeshView : public AttributeViewBundle {
     void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
 
     virtual bool Update();
-    virtual bool Initialize();
+    virtual void Initialize();
 
     size_type size(int IFORM = VERTEX) const { return 0; }
     size_tuple dimensions() const { return size_tuple{}; };

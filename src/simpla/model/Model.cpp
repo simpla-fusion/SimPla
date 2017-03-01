@@ -10,13 +10,13 @@ namespace simpla {
 namespace model {
 
 struct Model::pimpl_s {
-    std::multimap<id_type, std::shared_ptr<geometry::GeoObject>> m_g_obj_;
+    std::multimap<id_type, geometry::GeoObject> m_g_obj_;
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
 Model::Model() : m_pimpl_(new pimpl_s) {
     db().CreateTable("Material");
-    concept::Configurable::Click();
+    SPObject::Click();
 }
 
 Model::~Model() {}
@@ -25,9 +25,9 @@ std::ostream& Model::Print(std::ostream& os, int indent) const {
     os << db() << std::endl;
     return os;
 }
-void Model::Update() {
+bool Model::Update() {
     // TODO: update bound box
-    concept::Configurable::Update();
+    return SPObject::Update();
 };
 box_type const& Model::bound_box() const { return m_pimpl_->m_bound_box_; };
 data::DataTable const& Model::GetMaterial(std::string const& s) const { return db().asTable("Material." + s); }
@@ -36,15 +36,19 @@ data::DataTable& Model::GetMaterial(std::string const& s) {
     if (!db().has(url)) { db().CreateTable(url)->SetValue("GUID", std::hash<std::string>{}(s)); }
     return db().asTable(url);
 }
-
-void Model::AddObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
-    m_pimpl_->m_g_obj_.emplace(GetMaterial(key).GetValue<id_type>("GUID"), g_obj);
-    concept::Configurable::Click();
+id_type Model::AddObject(id_type id, geometry::GeoObject const &g_obj) {
+    Click();
+    m_pimpl_->m_g_obj_.emplace(id, g_obj);
 }
 
-void Model::RemoveObject(std::string const& key) {
-    m_pimpl_->m_g_obj_.erase(GetMaterial(key).GetValue<id_type>("GUID"));
-    concept::Configurable::Click();
+id_type Model::AddObject(std::string const &key, geometry::GeoObject const &g_obj) {
+    Click();
+    m_pimpl_->m_g_obj_.emplace(GetMaterial(key).GetValue<id_type>("GUID"), g_obj);
+}
+
+size_type Model::RemoveObject(std::string const& key) {
+    Click();
+    return m_pimpl_->m_g_obj_.erase(GetMaterial(key).GetValue<id_type>("GUID"));
 }
 }  // namespace model
 }  // namespace simpla{;

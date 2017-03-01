@@ -73,13 +73,13 @@ public:
     std::function<Vec3(Real, point_type const &, vector_type const &v)> J_src_fun;
 
 
-//    field_t<scalar_type, EDGE> E0/*   */{*this, "E0"};
+//    field_type<scalar_type, EDGE> E0/*   */{*this, "E0"};
     field_t<scalar_type, FACE> B0/*   */{*this, "B0"};
     field_t<scalar_type, FACE> B1/*   */{*this, "B1"};
     field_t<scalar_type, EDGE> E1/*   */{*this, "E1"};
     field_t<scalar_type, EDGE> J1/*   */{*this, "J1"};
 
-//    field_t<scalar_type, VERTEX> rho{*this, "rho"};
+//    field_type<scalar_type, VERTEX> rho{*this, "rho"};
 
     typedef particle::BorisParticle<mesh_type> particle_type;
     particle_type H{*this, "H"};
@@ -94,7 +94,7 @@ void EMPIC<TM>::init(ConfigParser const &options)
     {
         options["Constraints"]["J"]["Value"].as(&J_src_fun);
 
-        mesh::select(*m, m->range(EDGE), options["Constraints"]["J"]["MeshBlock"].as<box_type>()).swap(J_src_range);
+        mesh::select(*m, m->range(EDGE), options["Constraints"]["J"]["RectMesh"].as<box_type>()).swap(J_src_range);
 
     }
     dt(options["MeshView"]["dt"].as<Real>(1.0));

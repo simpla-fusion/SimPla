@@ -141,12 +141,15 @@ class DataTable : public DataEntity {
      * @return Returns a reference to the shared pointer of  the entity with '''url'''.
      *      If no such entity exists, create a light entity, create parent table as needed.
      */
-    virtual DataEntity* Get(std::string const& url);
-    virtual DataEntity const* Get(std::string const& url) const;
+    virtual DataEntity& Get(std::string const& url);
+    virtual const DataEntity& Get(std::string const& url) const;
+
+    virtual DataTable& GetTable(std::string const& url);
+    virtual const DataTable& GetTable(std::string const& url) const;
 
     template <typename U>
     U GetValue(std::string const& url) const {
-        return Get(url)->asLight().as<U>();
+        return Get(url).asLight().as<U>();
     }
 
     template <typename U>

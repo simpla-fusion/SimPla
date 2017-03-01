@@ -23,7 +23,7 @@ namespace tags
 ///  dimension 0,1,2,3...
 struct simplex;
 
-struct cube;
+struct Cube;
 // dimension 0,1,2,3...
 struct box;
 // dimension 0,1,2,3...,defined by two point

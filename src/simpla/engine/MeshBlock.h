@@ -13,18 +13,17 @@ class MeshBlock {
    public:
     template <typename... Args>
     MeshBlock(Args &&... args) {}
-    ~MeshBlock() {}
-    size_tuple dimensions() const { return size_tuple{1, 1, 1}; }
-    id_type id() const { return reinterpret_cast<id_type>(this); }
-    template <typename U>
-    size_type hash(U const &) const {
-        return 0;
-    }
-    point_type dx() const { return point_type{}; }
-    template <typename... Args>
-    point_type point(Args &&... args) const {
-        return point_type{};
-    }
+    MeshBlock();
+    ~MeshBlock();
+    id_type GetGUID() const;
+    int GetLevel() const;
+    size_tuple const &GetDimensions() const;
+    index_tuple const &GetOffset() const;
+    box_type const &GetBox() const;
+
+   private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 }
 }
