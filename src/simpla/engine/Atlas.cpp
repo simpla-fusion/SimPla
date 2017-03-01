@@ -13,6 +13,7 @@ namespace engine {
 
 struct Atlas::pimpl_s {
     static constexpr int MAX_NUM_OF_LEVEL = 5;
+    size_tuple m_refine_ratio_ = {2, 2, 2};
     point_type m_origin_{0, 0, 0};
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
     std::vector<point_type> m_dx_;
@@ -42,9 +43,7 @@ box_type const &Atlas::GetBox() const { return m_pimpl_->m_bound_box_; };
 
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const {}
 MeshBlock const &Atlas::AddBlock(box_type const &, int level){};
-MeshBlock const &Atlas::AddBlock(index_box_type const &, int level) {
-
-}
+MeshBlock const &Atlas::AddBlock(index_box_type const &, int level) {}
 MeshBlock const &Atlas::AddBlock(MeshBlock const &m) {
     return m_pimpl_->m_levels_[m.GetLevel()].emplace(m.GetGUID(), m).first->second;
 }

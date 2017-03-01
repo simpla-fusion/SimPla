@@ -20,7 +20,7 @@ class DomainView;
 class MeshView;
 class DataBlock;
 class AttributeView;
-enum AttributeTag { NORMAL = 0, SCRATCH = 0b100, INPUT = 0b1000, COORDINATES, NO_FILL, CHECK = 0x0100 };
+enum AttributeTag { NORMAL = 0, SCRATCH = 0b100, INPUT = 0b1000, LOCAL = 0x10, COORDINATES, NO_FILL, CHECK = 0x0100 };
 enum AttributeLockState { READ = 0b01, WRITE = 0b10 };
 
 struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {

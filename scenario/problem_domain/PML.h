@@ -13,7 +13,7 @@
 #include <simpla/toolbox/Log.h>
 
 namespace simpla {
-using namespace mesh;
+using namespace engine;
 
 /**
  *  @ingroup FieldSolver
@@ -43,20 +43,20 @@ class PML : public engine::Worker {
     field_type<EDGE> E{this, "E"};
     field_type<FACE> B{this, "B"};
 
-    field_type<EDGE> X10{this}, X11{this}, X12{this};
-    field_type<FACE> X20{this}, X21{this}, X22{this};
+    field_type<EDGE> X10{this, LOCAL}, X11{this, LOCAL}, X12{this, LOCAL};
+    field_type<FACE> X20{this, LOCAL}, X21{this, LOCAL}, X22{this, LOCAL};
 
     // alpha
-    field_type<VERTEX> a0{this};
-    field_type<VERTEX> a1{this};
-    field_type<VERTEX> a2{this};
+    field_type<VERTEX> a0{this, INPUT};
+    field_type<VERTEX> a1{this, INPUT};
+    field_type<VERTEX> a2{this, INPUT};
     // sigma
-    field_type<VERTEX> s0{this};
-    field_type<VERTEX> s1{this};
-    field_type<VERTEX> s2{this};
+    field_type<VERTEX> s0{this, INPUT};
+    field_type<VERTEX> s1{this, INPUT};
+    field_type<VERTEX> s2{this, INPUT};
 
-    field_type<EDGE> dX1{this};
-    field_type<FACE> dX2{this};
+    field_type<EDGE> dX1{this, INPUT};
+    field_type<FACE> dX2{this, INPUT};
 
    private:
     inline Real sigma_(Real r, Real expN, Real dB) {
