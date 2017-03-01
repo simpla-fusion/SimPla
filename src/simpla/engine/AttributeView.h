@@ -20,7 +20,24 @@ class DomainView;
 class MeshView;
 class DataBlock;
 class AttributeView;
-enum AttributeTag { NORMAL = 0, SCRATCH = 0b100, INPUT = 0b1000, LOCAL = 0x10, COORDINATES, NO_FILL, CHECK = 0x0100 };
+
+/**
+ *
+ *
+ *
+ *
+ *
+ */
+enum AttributeTag {
+    PRIVATE = 0b0000001,      //  only valid in one domain,  [ default no   ]
+    PUBLIC = 0b0000000,       //
+    SCRATCH = 0b0000010,      //  only valid in one  step,  [ default no   ]
+    PERSISTED = 0b0000000,    //
+    LOCAL = 0b0000101,        //  only valid in one mesh block,  do not update ghost points  [ default    no  ]
+    INPUT = 0b0001000,        //  can only be written once
+    COORDINATES = 0b0010000,  //  coordinate of mesh vertex
+
+};
 enum AttributeLockState { READ = 0b01, WRITE = 0b10 };
 
 struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {

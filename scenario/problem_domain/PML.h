@@ -30,9 +30,9 @@ class PML : public engine::Worker {
 
     PML();
     virtual ~PML();
-    void SetCenterDomain(geometry::GeoObject const &);
+    void SetCenterDomain(geometry::GeoObject const &){}
     void Initialize();
-    bool Update();
+    bool Update() { return false; }
 
     virtual void Process();
     //    virtual std::string getClassName() const { return class_name(); }
@@ -41,8 +41,8 @@ class PML : public engine::Worker {
     field_type<EDGE> E{this, "E"};
     field_type<FACE> B{this, "B"};
 
-    field_type<EDGE> X10{this, LOCAL}, X11{this, LOCAL}, X12{this, LOCAL};
-    field_type<FACE> X20{this, LOCAL}, X21{this, LOCAL}, X22{this, LOCAL};
+    field_type<EDGE> X10{this, SCRATCH}, X11{this, SCRATCH}, X12{this, SCRATCH};
+    field_type<FACE> X20{this, SCRATCH}, X21{this, SCRATCH}, X22{this, SCRATCH};
 
     // alpha
     field_type<VERTEX> a0{this, INPUT};

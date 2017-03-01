@@ -28,7 +28,9 @@ class Model : public SPObject, public concept::Printable {
     virtual bool Update();
     bool Valid();
     box_type const &bound_box() const;
-    data::DataTable const& GetMaterial(std::string const &) const;
+    data::DataTable const &GetMaterial(std::string const &) const;
+    data::DataTable &GetMaterial(std::string const &s);
+
     std::map<std::string, id_type> &GetMaterialListByName() const;
     std::map<id_type, std::string> &GetMaterialListById() const;
 
@@ -36,6 +38,8 @@ class Model : public SPObject, public concept::Printable {
     id_type AddObject(geometry::GeoObject const &, id_type material_type_id = NULL_ID);
     geometry::GeoObject const &GetObject(id_type) const;
     size_type RemoveObject(id_type);
+    size_type RemoveObject(std::string const &);
+
     id_type GetObjectMaterialId(id_type) const;
 
     geometry::GeoObject SelectObjectByMaterial(std::string const &material_type_name) const;

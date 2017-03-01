@@ -36,19 +36,24 @@ data::DataTable& Model::GetMaterial(std::string const& s) {
     if (!db().has(url)) { db().CreateTable(url)->SetValue("GetGUID", std::hash<std::string>{}(s)); }
     return db().asTable(url);
 }
-id_type Model::AddObject(id_type id, geometry::GeoObject const &g_obj) {
+id_type Model::AddObject(geometry::GeoObject const& g_obj, id_type id) {
     Click();
     m_pimpl_->m_g_obj_.emplace(id, g_obj);
 }
 
-id_type Model::AddObject(std::string const &key, geometry::GeoObject const &g_obj) {
+id_type Model::AddObject(geometry::GeoObject const& g_obj, std::string const& key) {
     Click();
     m_pimpl_->m_g_obj_.emplace(GetMaterial(key).GetValue<id_type>("GetGUID"), g_obj);
 }
+size_type Model::RemoveObject(id_type id) {
+    Click();
+    return m_pimpl_->m_g_obj_.erase(id);
+}
 
 size_type Model::RemoveObject(std::string const& key) {
-    Click();
-    return m_pimpl_->m_g_obj_.erase(GetMaterial(key).GetValue<id_type>("GetGUID"));
+    return RemoveObject(GetMaterial(key).GetValue<id_type>("GetGUID"));
 }
+
+
 }  // namespace model
 }  // namespace simpla{;

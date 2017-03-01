@@ -66,9 +66,9 @@ class EMFluid : public engine::Worker {
     field_type<VERTEX, 3> Bv{this, "Bv"};
     field_type<VERTEX, 3> dE{this, "dE"};
 
-    field_type<FACE> B{this, "B", engine::CHECK};
-    field_type<EDGE> E{this, "E", engine::CHECK};
-    field_type<EDGE> J1{this, "J1", engine::CHECK};
+    field_type<FACE> B{this, "B"};
+    field_type<EDGE> E{this, "E"};
+    field_type<EDGE> J1{this, "J1"};
 
     struct fluid_s {
         Real mass;
@@ -78,15 +78,13 @@ class EMFluid : public engine::Worker {
     };
 
     std::map<std::string, std::shared_ptr<fluid_s>> m_fluid_sp_;
-
-    std::shared_ptr<fluid_s> AddSpecies(std::string const &name, data::DataTable const &d);
-
+    std::shared_ptr<fluid_s> AddSpecies(std::string const& name, data::DataTable const& d);
     std::map<std::string, std::shared_ptr<fluid_s>>& GetSpecies() { return m_fluid_sp_; };
 };
 
 template <typename TM>
-std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const &name,
-                                                                     data::DataTable const &d) {
+std::shared_ptr<struct EMFluid<TM>::fluid_s> EMFluid<TM>::AddSpecies(std::string const& name,
+                                                                     data::DataTable const& d) {
     Real mass;
     Real charge;
 
@@ -167,12 +165,12 @@ void EMFluid<TM>::NextTimeStep(Real data_time, Real dt) {
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     SetPhysicalBoundaryConditionE(data_time);
     if (m_fluid_sp_.size() > 0) {
-        field_type<VERTEX, 3> Q{this};
-        field_type<VERTEX, 3> K{this};
+        field_type<VERTEX, 3> Q{this, SCRATCH| LOCAL};
+        field_type<VERTEX, 3> K{this, SCRATCH| LOCAL};
 
-        field_type<VERTEX> a{this};
-        field_type<VERTEX> b{this};
-        field_type<VERTEX> c{this};
+        field_type<VERTEX> a{this, SCRATCH | LOCAL};
+        field_type<VERTEX> b{this, SCRATCH | LOCAL};
+        field_type<VERTEX> c{this, SCRATCH | LOCAL};
 
         a.Clear();
         b.Clear();
