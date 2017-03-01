@@ -28,7 +28,7 @@ class Model : public SPObject, public concept::Printable {
     virtual bool Update();
     bool Valid();
     box_type const &bound_box() const;
-
+    data::DataTable const& GetMaterial(std::string const &) const;
     std::map<std::string, id_type> &GetMaterialListByName() const;
     std::map<id_type, std::string> &GetMaterialListById() const;
 

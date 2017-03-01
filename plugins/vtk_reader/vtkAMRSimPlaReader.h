@@ -105,7 +105,7 @@ protected:
     void ParseConversionFactors();
 
     // Description:
-    // Given an array name of the form "array[idx]" this method
+    // Given an array GetName of the form "array[idx]" this method
     // extracts and returns the corresponding index idx.
     int GetIndexFromArrayName(std::string arrayName);
 
@@ -120,7 +120,7 @@ protected:
     void ParseCFactor(const std::string labelString, int &idx, double &factor);
 
     // Description:
-    // Given the variable name, return the conversion factor used to convert_database_r
+    // Given the variable GetName, return the conversion factor used to convert_database_r
     // the m_data to CGS. These conversion factors are read directly from the
     // parameters file when the filename is SetValue.
     double GetConversionFactor(const std::string name);

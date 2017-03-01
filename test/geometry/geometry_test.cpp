@@ -75,7 +75,7 @@ int main{
 //	typedef typename manifold_type::coordinate_tuple coordinate_tuple;
 //	typedef Model<manifold_type> model_type;
 //
-//	static constexpr size_t iform = TInt::value;
+//	static constexpr size_t GetIFORM = TInt::value;
 //	static constexpr size_t ndims = manifold_type::ndims;
 //
 //	nTuple<Real, ndims> xmin/* = { 0.0, 0.0, 0.0, }*/;
@@ -109,7 +109,7 @@ int main{
 //
 //	std::tie(dest,std::ignore)=model.coordinates_global_to_local(x);
 //
-//	auto range=model.SelectByNGP( make_domain<TestFixture::iform>(model), x);
+//	auto range=model.SelectByNGP( make_domain<TestFixture::GetIFORM>(model), x);
 //
 //	size_t count =0;
 //
@@ -121,7 +121,7 @@ int main{
 //
 //	LOGGER<<count;
 //
-//	EXPECT_EQ(count,manifold_type::get_num_of_comp_per_cell(TestFixture::iform));
+//	EXPECT_EQ(count,manifold_type::get_num_of_comp_per_cell(TestFixture::GetIFORM));
 ////
 ////	x= min-100;
 ////
@@ -156,7 +156,7 @@ int main{
 //		v2[i] = TestFixture::points[0][i] - TestFixture::dh[i] * 2;
 //		v3[i] = TestFixture::points[1][i] + TestFixture::dh[i] * 2;
 //	}
-//	auto domain=make_domain< TestFixture:: iform>(model);
+//	auto domain=make_domain< TestFixture:: GetIFORM>(model);
 //
 //	auto f = make_field<Real>(domain);
 //
@@ -221,7 +221,7 @@ int main{
 //
 //	auto & model= TestFixture::model;
 //
-//	auto domain = make_domain<TestFixture::iform>(model);
+//	auto domain = make_domain<TestFixture::GetIFORM>(model);
 //
 //	auto f = make_field<Real>(domain);
 //
@@ -261,10 +261,10 @@ int main{
 //{
 //
 //	auto & model= TestFixture::model;
-//	static constexpr size_t iform=TestFixture::iform;
+//	static constexpr size_t GetIFORM=TestFixture::GetIFORM;
 //
 //	auto vertex_domain = make_domain<VERTEX>(model);
-//	auto domain = make_domain<TestFixture::iform>(model);
+//	auto domain = make_domain<TestFixture::GetIFORM>(model);
 //
 //	auto f = make_field<Real>(domain );
 //

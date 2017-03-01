@@ -14,6 +14,7 @@ class MeshBlock {
     template <typename... Args>
     MeshBlock(Args &&... args) {}
     MeshBlock();
+    MeshBlock(MeshBlock const &);
     ~MeshBlock();
     id_type GetGUID() const;
     int GetLevel() const;

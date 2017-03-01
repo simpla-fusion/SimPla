@@ -36,12 +36,12 @@ struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
 
     static id_type GenerateGUID(std::string const &s, std::type_info const &t_id, int IFORM, int DOF, AttributeTag tag);
 
-    std::string const &name() const { return m_name_; }
-    const std::type_info &value_type_info() const { return m_value_type_info_; }
-    int iform() const { return m_iform_; }
-    int dof() const { return m_dof_; }
-    AttributeTag tag() const { return m_tag_; }
-    id_type GUID() const { return m_GUID_; }
+    std::string const &GetName() const { return m_name_; }
+    const std::type_info &GetValueTypeInfo() const { return m_value_type_info_; }
+    int GetIFORM() const { return m_iform_; }
+    int GetDOF() const { return m_dof_; }
+    AttributeTag GetTag() const { return m_tag_; }
+    id_type GetGUID() const { return m_GUID_; }
     data::DataTable &db() { return m_db_; }
     data::DataTable const &db() const { return m_db_; }
 
@@ -152,7 +152,7 @@ struct AttributeView : public SPObject, public concept::Printable {
 
    protected:
     void Config(std::string const &s = "unnamed", AttributeTag t = SCRATCH);
-
+    void Config(AttributeTag t);
     template <typename... Others>
     void Config(std::string const &s, AttributeTag t, Others &&... others) {
         Config(s, t);
@@ -164,14 +164,13 @@ struct AttributeView : public SPObject, public concept::Printable {
 
     void Register(AttributeDict &db);
     AttributeDesc &description() const;
-    data::DataTable &db() const;
-    id_type GUID() const;
-    AttributeTag tag() const;
-    std::string const &name() const;
-    virtual int iform() const;
-    virtual int dof() const;
-    virtual std::type_info const &value_type_info() const;     //!< value type
-    virtual std::type_info const &mesh_type_info() const = 0;  //!< mesh type
+    id_type GetGUID() const;
+    AttributeTag GetTag() const;
+    std::string const &GetName() const;
+    virtual int GetIFORM() const;
+    virtual int GetDOF() const;
+    virtual std::type_info const &GetValueTypeInfo() const;     //!< value type
+    virtual std::type_info const &GetMeshTypeInfo() const = 0;  //!< mesh type
 
     virtual bool Update();
 
@@ -204,8 +203,11 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
 
     CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshView)
-    typedef algebra::traits::value_type_t<U> value_type;
     typedef mesh_traits_t<U> mesh_type;
+
+    typedef algebra::traits::value_type_t<U> value_type;
+    static const int iform = algebra::traits::iform<U>::value;
+    static const int dof = algebra::traits::dof<U>::value;
 
    public:
     typedef std::true_type prefer_pass_by_reference;
@@ -219,16 +221,16 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     virtual ~AttributeViewAdapter() {}
 
     std::ostream &Print(std::ostream &os, int indent = 0) const final {
-        os << AttributeView::description().name() << " = {";
+        os << AttributeView::description().GetName() << " = {";
         U::Print(os, indent);
         os << "}";
         return os;
     }
     //    virtual std::shared_ptr<AttributeView> Clone(std::string const &s = "", int TAG = NORMAL) const = 0;
-    virtual std::type_info const &mesh_type_info() const { return typeid(mesh_type); };    //!< mesh type
-    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
-    virtual int iform() const { return algebra::traits::iform<U>::value; };
-    virtual int dof() const { return algebra::traits::dof<U>::value; };
+    virtual std::type_info const &GetMeshTypeInfo() const { return typeid(mesh_type); };    //!< mesh type
+    virtual std::type_info const &GetValueTypeInfo() const { return typeid(value_type); };  //!< value type
+    virtual int GetIFORM() const { return iform; };
+    virtual int GetDOF() const { return dof; };
     void InitializeData() {}
     std::shared_ptr<DataBlock> CreateDataBlock() const {
         std::shared_ptr<DataBlock> p = nullptr;
@@ -238,10 +240,10 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
         //            UNIMPLEMENTED;
         //            std::shared_ptr<DataBlock> d(nullptr);
         //            //        if (d == nullptr) {
-        //            //            return std::make_shared<DefaultDataBlock<value_type, iform, dof>>(nullptr,
+        //            //            return std::make_shared<DefaultDataBlock<value_type, GetIFORM, GetDOF>>(nullptr,
         //            U::size());
         //            //        } else {
-        //            //            return std::make_shared<DefaultDataBlock<value_type, iform, dof>>(
+        //            //            return std::make_shared<DefaultDataBlock<value_type, GetIFORM, GetDOF>>(
         //            //                std::shared_ptr<value_type>(static_cast<value_type *>(d),
         //                simpla::tags::do_nothing()),
         //                //                U::size());
@@ -284,17 +286,17 @@ using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == VERTEX || I
 //    SP_OBJECT_HEAD(data_attr_type, AttributeView);
 //    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshView)
 //    typedef TV value_type;
-//    static constexpr int iform = IFORM;
-//    static constexpr int dof = DOF;
+//    static constexpr int GetIFORM = IFORM;
+//    static constexpr int GetDOF = DOF;
 //    typedef MeshView mesh_type;
 //
 //    template <typename TM, typename... Args>
 //    DataAttribute(TM *w, Args &&... args)
-//        : base_type(w, AttributeDesc::create<value_type, iform, dof>(std::forward<Args>(args)...)),
+//        : base_type(w, AttributeDesc::create<value_type, GetIFORM, GetDOF>(std::forward<Args>(args)...)),
 //          AttributeView(<#initializer #>, nullptr, <#initializer #>) {}
 //    template <typename TM>
 //    DataAttribute(TM *m, std::initializer_list<data::KeyValue> const &param)
-//        : base_type(m, AttributeDesc::create<value_type, iform, dof>(param)),
+//        : base_type(m, AttributeDesc::create<value_type, GetIFORM, GetDOF>(param)),
 //          AttributeView(<#initializer #>, nullptr, <#initializer #>) {}
 //    DataAttribute(DataAttribute &&) = delete;
 //    DataAttribute(DataAttribute const &) = delete;

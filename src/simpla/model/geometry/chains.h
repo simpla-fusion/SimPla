@@ -82,7 +82,7 @@ struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector
 //
 //	typedef typename traits::coordinate_system<primitive_type>::type coordinate_system;
 //
-//	typedef typename traits::tag<primitive_type>::type tag_type;
+//	typedef typename traits::GetTag<primitive_type>::type tag_type;
 //
 //	typedef typename traits::point_type<coordinate_system>::type point_type;
 //

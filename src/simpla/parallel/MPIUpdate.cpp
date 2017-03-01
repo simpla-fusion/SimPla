@@ -82,12 +82,12 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //
 //        MPI_Cart_shift(comm, i, 1, &r0, &r1);
 //
-//        MPI_Sendrecv(buffer + send_displaces[i * 2], 1, d_type[i], r0, tag,
-//                     buffer + recv_displaces[i * 2], 1, d_type[i], r1, tag,
+//        MPI_Sendrecv(buffer + send_displaces[i * 2], 1, d_type[i], r0, GetTag,
+//                     buffer + recv_displaces[i * 2], 1, d_type[i], r1, GetTag,
 //                     comm, MPI_STATUS_IGNORE);
 //
-//        MPI_Sendrecv(buffer + send_displaces[i * 2 + 1], 1, d_type[i], r1, tag,
-//                     buffer + recv_displaces[i * 2 + 1], 1, d_type[i], r0, tag,
+//        MPI_Sendrecv(buffer + send_displaces[i * 2 + 1], 1, d_type[i], r1, GetTag,
+//                     buffer + recv_displaces[i * 2 + 1], 1, d_type[i], r0, GetTag,
 //                     comm, MPI_STATUS_IGNORE);
 //    }
 
@@ -284,7 +284,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //    int sizes[3] = {1, 1, 1};
 //    MPI_Aint send_displs[6] = {6, 16, 1, 3, 0, 0};
 //    MPI_Aint recv_displs[6] = {1, 21, 0, 4, 0, 0};
-//    int tag = 1;
+//    int GetTag = 1;
 //
 //    for (int i = 0; i < 2; ++i)
 //    {
@@ -293,12 +293,12 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //
 //        MPI_Cart_shift(spMPIComm(), i, 1, &r0, &r1);
 //
-//        MPI_Sendrecv(buffer + send_displs[i * 2], sizes[i], d_type[i], r0, tag,
-//                     buffer + recv_displs[i * 2], sizes[i], d_type[i], r1, tag,
+//        MPI_Sendrecv(buffer + send_displs[i * 2], sizes[i], d_type[i], r0, GetTag,
+//                     buffer + recv_displs[i * 2], sizes[i], d_type[i], r1, GetTag,
 //                     spMPIComm(), MPI_STATUS_IGNORE);
 //
-//        MPI_Sendrecv(buffer + send_displs[i * 2 + 1], sizes[i], d_type[i], r1, tag,
-//                     buffer + recv_displs[i * 2 + 1], sizes[i], d_type[i], r0, tag,
+//        MPI_Sendrecv(buffer + send_displs[i * 2 + 1], sizes[i], d_type[i], r1, GetTag,
+//                     buffer + recv_displs[i * 2 + 1], sizes[i], d_type[i], r0, GetTag,
 //                     spMPIComm(), MPI_STATUS_IGNORE);
 //    }
 //
@@ -438,7 +438,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
 //
-//	for (unsigned int tag = 0, tag_e = (1U << (m_ndims_ * 2)); tag < tag_e; ++tag)
+//	for (unsigned int GetTag = 0, tag_e = (1U << (m_ndims_ * 2)); tag < tag_e; ++GetTag)
 //	{
 //		nTuple<int, 3> coords_shift;
 //
@@ -446,13 +446,13 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //
 //		for (int n = 0; n < m_ndims_; ++n)
 //		{
-//			if (((tag >> (n * 2)) & 3UL) == 3UL)
+//			if (((GetTag >> (n * 2)) & 3UL) == 3UL)
 //			{
 //				tag_is_valid = false;
 //				break;
 //			}
 //
-//			coords_shift[n] = ((tag >> (n * 2)) & 3U) - 1;
+//			coords_shift[n] = ((GetTag >> (n * 2)) & 3U) - 1;
 //
 //			switch (coords_shift[n])
 //			{

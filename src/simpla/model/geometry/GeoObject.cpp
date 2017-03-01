@@ -7,6 +7,7 @@ namespace geometry {
 
 struct GeoObject::pimpl_s {};
 GeoObject::GeoObject() : m_pimpl_(new pimpl_s) {}
+GeoObject::GeoObject(GeoObject const &) : m_pimpl_(new pimpl_s) {}
 GeoObject::~GeoObject(){};
 box_type GeoObject::bound_box() const {}
 bool GeoObject::isNull() const { return true; }

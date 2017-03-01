@@ -144,8 +144,8 @@ struct calculator<TM> {
     //    declare::Expression<tags::_codifferential_derivative, T> const &expr,
     //              entity_id const &s)
     //    {
-    //        static_assert(traits::iform<T>::value != VOLUME &&
-    //        traits::iform<T>::value != VERTEX,
+    //        static_assert(traits::GetIFORM<T>::value != VOLUME &&
+    //        traits::GetIFORM<T>::value != VERTEX,
     //                      "ERROR: grad VERTEX/VOLUME Field  ");
     //    };
     //! *Form<IR> => Form<N-IL>
@@ -175,7 +175,7 @@ struct calculator<TM> {
     //    GetValue(mesh_type const &m, declare::Expression<TOP, T> const &expr,
     //    entity_id const &s,
     //    ENABLE_IF((std::is_same<TOP, tags::_p_exterior_derivative < 0>>
-    //                      ::value && traits::iform<T>::value == EDGE))
+    //                      ::value && traits::GetIFORM<T>::value == EDGE))
     //    )
     //    {
     //        return (get_v(m, std::Get<0>(expr.m_args_), s + M::DI(I)) -
@@ -193,7 +193,7 @@ struct calculator<TM> {
     //    declare::Expression<tags::_p_codifferential_derivative < I>, T
     //    > const &expr,
     //    entity_id const &s,
-    //    ENABLE_IF(traits::iform<T>::value == FACE)
+    //    ENABLE_IF(traits::GetIFORM<T>::value == FACE)
     //    )
     //    {
     //
@@ -355,7 +355,7 @@ struct calculator<TM> {
     //    static  traits::value_type_t <T>
     //    map_to(mesh_type const &m, T const &expr, entity_id const &s)
     //    {
-    //        return _map_to(m, expr, s, int_sequence<traits::iform<T>::value,
+    //        return _map_to(m, expr, s, int_sequence<traits::GetIFORM<T>::value,
     //        I>());
     //    };
     //

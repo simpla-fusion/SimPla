@@ -398,7 +398,7 @@ SP_STATIC_CONST int sp_sub_index(id_type s) { return spm_id_to_index_[sp_node_id
 #define MAX_NUM_OF_ADJACENT_CELL   12
 
 
-SP_STATIC_CONST int spm_adjacent_cell_num_[4/* to iform*/][8/* node id*/] =
+SP_STATIC_CONST int spm_adjacent_cell_num_[4/* to GetIFORM*/][8/* node id*/] =
 
         { // VERTEX
                 {
@@ -450,7 +450,7 @@ SP_STATIC_CONST int spm_adjacent_cell_num_[4/* to iform*/][8/* node id*/] =
 
         };
 
-SP_STATIC_CONST id_type spm_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
+SP_STATIC_CONST id_type spm_adjacent_cell_matrix_[4/* to GetIFORM*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
         {
                 //To VERTEX
                 {

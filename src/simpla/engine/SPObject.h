@@ -12,10 +12,10 @@
 #include <typeinfo>
 
 #include <simpla/SIMPLA_config.h>
-
+#include <simpla/data/DataTable.h>
 #include <simpla/design_pattern/Signal.h>
 #include <typeindex>
-
+#include "SPObjectHead.h"
 namespace simpla {
 /**
  * @addtogroup concept
@@ -25,43 +25,6 @@ namespace simpla {
 /**
  * @brief  define the common part of the base class
  */
-#define SP_OBJECT_BASE(_BASE_CLASS_NAME_)                                                            \
-   private:                                                                                          \
-    typedef _BASE_CLASS_NAME_ this_type;                                                             \
-                                                                                                     \
-   public:                                                                                           \
-    virtual bool isA(const std::type_info &info) const { return typeid(_BASE_CLASS_NAME_) == info; } \
-    template <typename _UOTHER_>                                                                     \
-    bool isA() const {                                                                               \
-        return isA(typeid(_UOTHER_));                                                                \
-    }                                                                                                \
-    template <typename U_>                                                                           \
-    U_ *as() {                                                                                       \
-        return (isA(typeid(U_))) ? static_cast<U_ *>(this) : nullptr;                                \
-    }                                                                                                \
-    template <typename U_>                                                                           \
-    U_ const *as() const {                                                                           \
-        return (isA(typeid(U_))) ? static_cast<U_ const *>(this) : nullptr;                          \
-    }                                                                                                \
-    virtual std::type_index TypeIndex() const { return std::type_index(typeid(_BASE_CLASS_NAME_)); } \
-    virtual std::string getClassName() const { return __STRING(_BASE_CLASS_NAME_); }
-
-/**
- * @brief define the common part of the derived class
- */
-#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                                         \
-   public:                                                                                      \
-    virtual bool isA(std::type_info const &info) const {                                        \
-        return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::isA(info);                    \
-    }                                                                                           \
-    virtual std::type_index TypeIndex() const { return std::type_index(typeid(_CLASS_NAME_)); } \
-    virtual std::string getClassName() const { return __STRING(_CLASS_NAME_); }                 \
-                                                                                                \
-   private:                                                                                     \
-    typedef _BASE_CLASS_NAME_ base_type;                                                        \
-    typedef _CLASS_NAME_ this_type;                                                             \
-                                                                                                \
-   public:
 
 /**
  *
@@ -121,8 +84,8 @@ class SPObject {
     SPObject &operator=(SPObject const &other) = delete;
     virtual ~SPObject();
 
-    data::DataTable const &db() const;
-    data::DataTable &db();
+    simpla::data::DataTable const &db() const;
+    simpla::data::DataTable &db();
     id_type id() const;
     bool operator==(SPObject const &other);
 

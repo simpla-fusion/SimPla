@@ -60,15 +60,15 @@ class TestField : public testing::Test {
 
     std::shared_ptr<mesh_type> m;
 
-    //    typedef Field<value_type, manifold_type, int_const<static_cast<size_t>(iform)> >
+    //    typedef Field<value_type, manifold_type, int_const<static_cast<size_t>(GetIFORM)> >
     //    field_type;
     typedef Field<mesh_type, value_type, iform> scalar_field_type;
     typedef Field<mesh_type, value_type, iform, 3> vector_field_type;
 
-    //    auto make_scalarField() const AUTO_RETURN((field_type<value_type, manifold_type, iform>(m)))
+    //    auto make_scalarField() const AUTO_RETURN((field_type<value_type, manifold_type, GetIFORM>(m)))
     //
     //    auto make_vectorField() const AUTO_RETURN((field_type<nTuple<value_type, 3>, manifold_type,
-    //    iform>(m)))
+    //    GetIFORM>(m)))
 };
 
 template <typename TField>

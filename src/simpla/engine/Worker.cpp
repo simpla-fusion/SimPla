@@ -14,15 +14,10 @@ struct Worker::pimpl_s {
 };
 Worker::Worker() : m_pimpl_(new pimpl_s) {}
 Worker::~Worker(){};
-data::DataTable const &Worker::db() const { return m_pimpl_->m_db_; }
-data::DataTable &Worker::db() {
-    Click();
-    return m_pimpl_->m_db_;
-}
 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
-    //       << " [" << getClassName() << " : " << name() << "]" << std::endl;
+    //       << " [" << getClassName() << " : " << GetName() << "]" << std::endl;
     os << std::setw(indent + 1) << "  type = \"" << getClassName() << "\", config = {" << db() << "},";
     os << std::setw(indent + 1) << " attributes = { ";
     os << "  } , ";

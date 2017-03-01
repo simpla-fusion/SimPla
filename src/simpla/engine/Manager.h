@@ -64,7 +64,7 @@ class Manager : public SPObject, public concept::Printable {
    public:
     Manager();
     virtual ~Manager();
-    data::DataTable db;
+
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
 
     Atlas const &GetAtlas() const;
@@ -84,6 +84,8 @@ class Manager : public SPObject, public concept::Printable {
 
     bool Update();
     void Evaluate();
+    Real GetTime() const;
+    void Run(Real dt);
 
    private:
     struct pimpl_s;

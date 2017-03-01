@@ -6,10 +6,8 @@
 #define SIMPLA_PML_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/Calculus.h>
-#include <simpla/algebra/Field.h>
+#include <simpla/algebra/all.h>
 #include <simpla/physics/PhysicalConstants.h>
-#include <simpla/simulation/Context.h>
 #include <simpla/toolbox/Log.h>
 
 namespace simpla {
@@ -38,7 +36,7 @@ class PML : public engine::Worker {
 
     virtual void Process();
     //    virtual std::string getClassName() const { return class_name(); }
-    //    static std::string class_name() { return "PML<" + traits::type_id<TM>::name() + ">"; }
+    //    static std::string class_name() { return "PML<" + traits::type_id<TM>::GetName() + ">"; }
 
     field_type<EDGE> E{this, "E"};
     field_type<FACE> B{this, "B"};
@@ -94,32 +92,32 @@ void PML<TM>::Initialize() {
     point_type m_xmin, m_xmax;
     point_type c_xmin, c_xmax;
 
-    std::tie(m_xmin, m_xmax) = m->box();
-    std::tie(c_xmin, c_xmax) = center_box;
-    auto dims = m->dimensions();
-
-    m->range(VERTEX, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
-        point_type x = m->point(s);
-
-#define DEF(_N_)                                                                            \
-    a##_N_[s] = 1;                                                                          \
-    s##_N_[s] = 0;                                                                          \
-    if (dims[_N_] > 1) {                                                                    \
-        if (x[_N_] < c_xmin[_N_]) {                                                         \
-            Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                  \
-            a##_N_[s] = alpha_(r, expN, dB);                                                \
-            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (m_xmax[_N_] - m_xmin[_N_]); \
-        } else if (x[_N_] > c_xmax[_N_]) {                                                  \
-            Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                  \
-            a##_N_[s] = alpha_(r, expN, dB);                                                \
-            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (m_xmax[_N_] - m_xmin[_N_]); \
-        }                                                                                   \
-    }
-        DEF(0)
-        DEF(1)
-        DEF(2)
-#undef DEF
-    });
+    //    std::tie(m_xmin, m_xmax) = m->box();
+    //    std::tie(c_xmin, c_xmax) = center_box;
+    //    auto dims = m->dimensions();
+    //
+    //    m->range(VERTEX, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
+    //        point_type x = m->point(s);
+    //
+    //#define DEF(_N_)                                                                            \
+//    a##_N_[s] = 1;                                                                          \
+//    s##_N_[s] = 0;                                                                          \
+//    if (dims[_N_] > 1) {                                                                    \
+//        if (x[_N_] < c_xmin[_N_]) {                                                         \
+//            Real r = (c_xmin[_N_] - x[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                  \
+//            a##_N_[s] = alpha_(r, expN, dB);                                                \
+//            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (m_xmax[_N_] - m_xmin[_N_]); \
+//        } else if (x[_N_] > c_xmax[_N_]) {                                                  \
+//            Real r = (x[_N_] - c_xmax[_N_]) / (m_xmax[_N_] - m_xmin[_N_]);                  \
+//            a##_N_[s] = alpha_(r, expN, dB);                                                \
+//            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (m_xmax[_N_] - m_xmin[_N_]); \
+//        }                                                                                   \
+//    }
+    //        DEF(0)
+    //        DEF(1)
+    //        DEF(2)
+    //#undef DEF
+    //    });
 }
 
 template <typename TM>

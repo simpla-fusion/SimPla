@@ -120,7 +120,7 @@ bool DomainView::Update() {
     if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<Patch>(); }
     if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->OnNotify(); }
     for (auto &item : m_pimpl_->m_workers_) { item.second->OnNotify(); }
-    m_pimpl_->m_current_block_id_ = m_pimpl_->m_patch_->GetMeshBlock()->id();
+    m_pimpl_->m_current_block_id_ = m_pimpl_->m_patch_->GetMeshBlock()->GetGUID();
 
     return SPObject::Update();
 }
@@ -163,7 +163,7 @@ void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
     //    if (it != m_pimpl_->m_workers_.end()) { m_pimpl_->m_workers_.Disconnect(it); }
 };
 
-id_type DomainView::GetMeshBlockId() const { return m_pimpl_->m_patch_->GetMeshBlock()->id(); }
+id_type DomainView::GetMeshBlockId() const { return m_pimpl_->m_patch_->GetMeshBlock()->GetGUID(); }
 std::shared_ptr<MeshBlock> &DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
 std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) const { return m_pimpl_->m_patch_->GetDataBlock(id); }
 
@@ -205,12 +205,12 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 //    //        for (index_type j = jb; j < je; ++j)
 //    //            for (index_type k = kb; k < ke; ++k) {
 //    //                auto x = m_mesh_->mesh_block()->point(i, j, k);
-//    //                auto& tag = m_tags_(i, j, k, 0);
+//    //                auto& GetTag = m_tags_(i, j, k, 0);
 //    //
-//    //                tag = VACUUM;
+//    //                GetTag = VACUUM;
 //    //
 //    //                for (auto const& obj : m_g_obj_) {
-//    //                    if (obj.second->check_inside(x)) { tag |= obj.first; }
+//    //                    if (obj.second->check_inside(x)) { GetTag |= obj.first; }
 //    //                }
 //    //            }
 //    //    for (index_type i = ib; i < ie - 1; ++i)
@@ -242,20 +242,20 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 //    PostProcess();
 //};
 //
-// Range<id_type> const& Model::select(int iform, std::string const& tag) { return select(iform, m_g_name_map_.at(tag));
+// Range<id_type> const& Model::select(int GetIFORM, std::string const& GetTag) { return select(GetIFORM, m_g_name_map_.at(GetTag));
 // }
 //
-// Range<id_type> const& Model::select(int iform, int tag) {
+// Range<id_type> const& Model::select(int GetIFORM, int GetTag) {
 //    //    typedef MeshEntityIdCoder M;
 //    //
 //    //    try {
-//    //        return m_range_cache_.at(iform).at(tag);
+//    //        return m_range_cache_.at(GetIFORM).at(GetTag);
 //    //    } catch (...) {}
 //    //
-//    //    const_cast<this_type*>(this)->m_range_cache_[iform].emplace(
-//    //        std::make_pair(tag, Range<id_type>(std::make_shared<UnorderedRange<id_type>>())));
+//    //    const_cast<this_type*>(this)->m_range_cache_[GetIFORM].emplace(
+//    //        std::make_pair(GetTag, Range<id_type>(std::make_shared<UnorderedRange<id_type>>())));
 //    //
-//    //    auto& res = *m_range_cache_.at(iform).at(tag).self().template as<UnorderedRange<id_type>>();
+//    //    auto& res = *m_range_cache_.at(GetIFORM).at(GetTag).self().template as<UnorderedRange<id_type>>();
 //    //
 //    //    index_type const* lower = m_tags_.lower();
 //    //    index_type const* upper = m_tags_.upper();
@@ -268,9 +268,9 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 //    //    index_type ke = upper[2];
 //    //
 //    //#define _CAS(I, J, K, L) \
-////    if (I >= 0 && J >= 0 && K >= 0 && ((m_tags_(I, J, K, L) & tag) == tag)) { res.Connect(M::pack_index(I, J, K, L)); }
+////    if (I >= 0 && J >= 0 && K >= 0 && ((m_tags_(I, J, K, L) & GetTag) == GetTag)) { res.Connect(M::pack_index(I, J, K, L)); }
 //    //
-//    //    switch (iform) {
+//    //    switch (GetIFORM) {
 //    //        case VERTEX:
 //    //#pragma omp parallel for
 //    //            for (index_type i = ib; i < ie; ++i)
@@ -308,7 +308,7 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 //    //            break;
 //    //    }
 //    //#undef _CAS
-//    //    return m_range_cache_.at(iform).at(tag);
+//    //    return m_range_cache_.at(GetIFORM).at(GetTag);
 //    //    ;
 //}
 //
@@ -317,22 +317,22 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 // *       = 0 on surface
 // *       > 0 in surface
 // */
-// Range<id_type> const& Model::interface(int iform, const std::string& s_in, const std::string& s_out) {
-//    return interface(iform, m_g_name_map_.at(s_in), m_g_name_map_.at(s_out));
+// Range<id_type> const& Model::interface(int GetIFORM, const std::string& s_in, const std::string& s_out) {
+//    return interface(GetIFORM, m_g_name_map_.at(s_in), m_g_name_map_.at(s_out));
 //}
 //
-// Range<id_type> const& Model::interface(int iform, int tag_in, int tag_out) {
+// Range<id_type> const& Model::interface(int GetIFORM, int tag_in, int tag_out) {
 //    //    try {
-//    //        return m_interface_cache_.at(iform).at(tag_in).at(tag_out);
+//    //        return m_interface_cache_.at(GetIFORM).at(tag_in).at(tag_out);
 //    //    } catch (...) {}
 //    //
 //    //    typedef mesh::MeshEntityIdCoder M;
 //    //
-//    //    const_cast<this_type*>(this)->m_interface_cache_[iform][tag_in].emplace(
+//    //    const_cast<this_type*>(this)->m_interface_cache_[GetIFORM][tag_in].emplace(
 //    //        std::make_pair(tag_out, Range<id_type>(std::make_shared<UnorderedRange<id_type>>())));
 //    //
 //    //    auto& res = *const_cast<this_type*>(this)
-//    //                     ->m_interface_cache_.at(iform)
+//    //                     ->m_interface_cache_.at(GetIFORM)
 //    //                     .at(tag_in)
 //    //                     .at(tag_out)
 //    //                     .self()
@@ -356,7 +356,7 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 //    //                if ((m_tags_(i, j, k, 7) & v_tag) != v_tag) { continue; }
 //    //#define _CAS(I, J, K, L) \
 ////    if (I >= 0 && J >= 0 && K >= 0 && m_tags_(I, J, K, L) == tag_in) { res.Connect(M::pack_index(I, J, K, L)); }
-//    //                switch (iform) {
+//    //                switch (GetIFORM) {
 //    //                    case VERTEX:
 //    //                        _CAS(i + 0, j + 0, k + 0, 0);
 //    //                        _CAS(i + 1, j + 0, k + 0, 0);
@@ -431,7 +431,7 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 //    //#undef _CAS
 //    //            }
 //
-//    return m_interface_cache_.at(iform).at(tag_in).at(tag_out);
+//    return m_interface_cache_.at(GetIFORM).at(tag_in).at(tag_out);
 //}
 }  // namespace engine
 }  // namespace simpla

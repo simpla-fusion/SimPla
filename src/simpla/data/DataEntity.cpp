@@ -56,7 +56,7 @@ HeavyData const& DataEntity::asHeavy() const { return *as<HeavyData>(); }
 //    //    nTuple<ptrdiff_t, 3> recv_offset;
 //    //    nTuple<size_t, 3> recv_count;
 //    //
-//    //    for (unsigned int tag = 0, tag_e = (1U << (m_ndims_ * 2)); tag < tag_e; ++tag)
+//    //    for (unsigned int tag = 0, tag_e = (1U << (m_ndims_ * 2)); GetTag < tag_e; ++GetTag)
 //    //    {
 //    //        nTuple<int, 3> coord_offset;
 //    //
@@ -64,13 +64,13 @@ HeavyData const& DataEntity::asHeavy() const { return *as<HeavyData>(); }
 //    //
 //    //        for (int n = 0; n < m_ndims_; ++n)
 //    //        {
-//    //            if (((tag >> (n * 2)) & 3UL) == 3UL)
+//    //            if (((GetTag >> (n * 2)) & 3UL) == 3UL)
 //    //            {
 //    //                tag_is_valid = false;
 //    //                break;
 //    //            }
 //    //
-//    //            coord_offset[n] = ((tag >> (n * 2)) & 3U) - 1;
+//    //            coord_offset[n] = ((GetTag >> (n * 2)) & 3U) - 1;
 //    //
 //    //            switch (coord_offset[n])
 //    //            {

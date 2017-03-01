@@ -57,7 +57,7 @@ int main(int argc, char **argv)
         std::cout << "Usage: " << argv[0] <<
         "<input_geom_filename> <whole_geom> {x: # of intervals} {y: # of intervals} {z: # of intervals} {mesh_based_geom} {output_mesh_filename} {box_size_increase} {vol_frac_res}" <<
         std::endl;
-        std::cout << "<input_geom_filename> : input geometry file name" << std::endl;
+        std::cout << "<input_geom_filename> : input geometry file GetName" << std::endl;
         std::cout << "<whole_geom> : make mesh for whole geom or individually(1/0), default whole geom(1)" << std::endl;
         std::cout << "{x/y/z: # ofintervals} : optional argument. # of intervals. if it is not set, SetValue to 10." <<
         std::endl;

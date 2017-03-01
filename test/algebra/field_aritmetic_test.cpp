@@ -75,14 +75,14 @@ TYPED_TEST(TestAlgebra, iform_arithmetic) {
               TestFixture::iform);
 }
 // TEST(AlgebraTest, iform_calculus) {
-//    EXPECT_EQ(sat::iform<decltype(grad(-std::declval<rho>() * 2))>::value, EDGE);
-//    EXPECT_EQ(sat::iform<decltype(grad(-std::declval<vrho>() * 2))>::value, FACE);
+//    EXPECT_EQ(sat::GetIFORM<decltype(grad(-std::declval<rho>() * 2))>::value, EDGE);
+//    EXPECT_EQ(sat::GetIFORM<decltype(grad(-std::declval<vrho>() * 2))>::value, FACE);
 //
-//    EXPECT_EQ(sat::iform<decltype(curl(-std::declval<E>() * 2) * 3.0)>::value, FACE);
-//    EXPECT_EQ(sat::iform<decltype(curl(-std::declval<B>() * 2) * 3.0)>::value, EDGE);
+//    EXPECT_EQ(sat::GetIFORM<decltype(curl(-std::declval<E>() * 2) * 3.0)>::value, FACE);
+//    EXPECT_EQ(sat::GetIFORM<decltype(curl(-std::declval<B>() * 2) * 3.0)>::value, EDGE);
 //
-//    EXPECT_EQ(sat::iform<decltype(diverge(-std::declval<E>() * 2))>::value, VERTEX);
-//    EXPECT_EQ(sat::iform<decltype(diverge(-std::declval<B>() * 2))>::value, VOLUME);
+//    EXPECT_EQ(sat::GetIFORM<decltype(diverge(-std::declval<E>() * 2))>::value, VERTEX);
+//    EXPECT_EQ(sat::GetIFORM<decltype(diverge(-std::declval<B>() * 2))>::value, VOLUME);
 //}
 
 TEST(TestAlgebra0, iform_not_field) {
@@ -132,7 +132,7 @@ TEST(TestAlgebra0, iform_vector_calculus) {
     EXPECT_EQ((sat::iform<decltype(wedge(std::declval<f1t>(), std::declval<f2t>()))>::value),
               VOLUME);
 //    EXPECT_EQ(
-//        (sat::iform<decltype(inner_product(std::declval<f1t>(), std::declval<f1t>()))>::value),
+//        (sat::GetIFORM<decltype(inner_product(std::declval<f1t>(), std::declval<f1t>()))>::value),
 //        VERTEX);
 
     EXPECT_EQ(

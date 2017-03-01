@@ -136,7 +136,7 @@ struct iform<const T> : public int_const<iform<T>::value> {};
 // struct iform_ {
 //   private:
 //    template <typename U>
-//    static auto test(int) -> std::integral_constant<int, U::iform>;
+//    static auto test(int) -> std::integral_constant<int, U::GetIFORM>;
 //    template <typename>
 //    static std::integral_constant<int, 0> test(...);
 //
@@ -144,13 +144,13 @@ struct iform<const T> : public int_const<iform<T>::value> {};
 //    static constexpr int value = decltype(test<_T>(0))::value;
 //};
 // template <typename T>
-// struct iform : public int_const<iform_<T>::value> {};
+// struct GetIFORM : public int_const<iform_<T>::value> {};
 //
 // template <typename _T>
 // struct dof_ {
 //   private:
 //    template <typename U>
-//    static auto test(int) -> std::integral_constant<int, U::dof>;
+//    static auto test(int) -> std::integral_constant<int, U::GetDOF>;
 //    template <typename>
 //    static std::integral_constant<int, 1> test(...);
 //
@@ -158,9 +158,9 @@ struct iform<const T> : public int_const<iform<T>::value> {};
 //    static constexpr int value = decltype(test<_T>(0))::value;
 //};
 // template <typename T>
-// struct dof : public int_const<dof_<T>::value> {};
+// struct GetDOF : public int_const<dof_<T>::value> {};
 // template <typename T>
-// struct dof<const T> : public dof<T> {};
+// struct GetDOF<const T> : public GetDOF<T> {};
 
 template <typename>
 struct rank : public int_const<3> {};

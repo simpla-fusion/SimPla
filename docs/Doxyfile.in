@@ -187,7 +187,7 @@ JAVADOC_AUTOBRIEF      = NO
 
 QT_AUTOBRIEF           = NO
 
-# The MULTILINE_CPP_IS_BRIEF tag can be set to YES to make doxygen treat a
+# The MULTILINE_CPP_IS_BRIEF GetTag can be set to YES to make doxygen treat a
 # multi-line C++ special comment block (i.e. a block of //! or /// comments) as
 # a brief description. This used to be the default behavior. The new default is
 # to treat a multi-line C++ comment block as a detailed description. Set this
@@ -220,7 +220,7 @@ TAB_SIZE               = 4
 
 # This tag can be used to specify a number of aliases that act as commands in
 # the documentation. An alias has the form:
-# name=m_value_
+# GetName=m_value_
 # For example adding
 # "sideeffect=@par Side Effects:\n"
 # will allow you to put the command \sideeffect (or @sideeffect) in the
@@ -252,7 +252,7 @@ OPTIMIZE_OUTPUT_FOR_C  = YES
 
 OPTIMIZE_OUTPUT_JAVA   = NO
 
-# Set the OPTIMIZE_FOR_FORTRAN tag to YES if your project consists of Fortran
+# Set the OPTIMIZE_FOR_FORTRAN GetTag to YES if your project consists of Fortran
 # sources. Doxygen will then generate output that is tailored for Fortran.
 # The default m_value_ is: NO.
 
@@ -1986,7 +1986,7 @@ SKIP_FUNCTION_MACROS   = YES
 # where loc1 and loc2 can be relative or absolute paths or URLs. See the
 # section "Linking to external documentation" for more information about the use
 # of tag files.
-# Note: Each tag file must have a unique name (where the name does NOT include
+# Note: Each tag file must have a unique name (where the GetName does NOT include
 # the path). If a tag file is not located in the directory in which doxygen is
 # run, you must also specify the path to the tagfile here.
 

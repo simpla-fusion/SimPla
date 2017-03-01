@@ -429,7 +429,7 @@ struct MeshEntityIdCoder_ {
      */
     static constexpr int MAX_NUM_OF_ADJACENT_CELL = 12;
 
-    static constexpr int m_adjacent_cell_num_[4 /* to iform*/][8 /* node id*/] =
+    static constexpr int m_adjacent_cell_num_[4 /* to GetIFORM*/][8 /* node id*/] =
 
         {  // VERTEX
             {/* 000*/ 1,
@@ -474,7 +474,7 @@ struct MeshEntityIdCoder_ {
     };
 
     static constexpr MeshEntityId
-        m_adjacent_cell_matrix_[4 /* to iform*/][NUM_OF_NODE_ID /* node id*/]
+        m_adjacent_cell_matrix_[4 /* to GetIFORM*/][NUM_OF_NODE_ID /* node id*/]
                                [MAX_NUM_OF_ADJACENT_CELL /*id shift*/] = {
 
                                    {// To VERTEX
@@ -767,7 +767,7 @@ constexpr int MeshEntityIdCoder_<L>::m_sub_index_to_id_[4][3];
 
 template <int L>
 constexpr MeshEntityId
-    MeshEntityIdCoder_<L>::m_adjacent_cell_matrix_[4 /* to iform*/][NUM_OF_NODE_ID /* node id*/]
+    MeshEntityIdCoder_<L>::m_adjacent_cell_matrix_[4 /* to GetIFORM*/][NUM_OF_NODE_ID /* node id*/]
                                                   [MAX_NUM_OF_ADJACENT_CELL /*id shift*/];
 
 template <int L>

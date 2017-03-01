@@ -16,6 +16,7 @@ struct MeshBlock::pimpl_s {
     box_type m_box_;
 };
 MeshBlock::MeshBlock() : m_pimpl_(new pimpl_s) {}
+MeshBlock::MeshBlock(MeshBlock const &) : m_pimpl_(new pimpl_s) { UNIMPLEMENTED; }
 MeshBlock::~MeshBlock() {}
 size_tuple const &MeshBlock::GetDimensions() const { return m_pimpl_->m_dimensions_; }
 index_tuple const &MeshBlock::GetOffset() const { return m_pimpl_->m_offset_; }

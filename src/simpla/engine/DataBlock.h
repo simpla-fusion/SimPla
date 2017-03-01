@@ -88,7 +88,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
     virtual void Save(data::DataTable *d) const {/* Save(*this, d); */};
     virtual std::ostream &Print(std::ostream &os, int indent) const {
         os << " type = \'" << value_type_info().name() << "\' "
-           << ", entity type = " << (entity_type()) << ", dof = " << (dof()) << ", GetDataBlock = {";
+           << ", entity type = " << (entity_type()) << ", GetDOF = " << (dof()) << ", GetDataBlock = {";
         U::Print(os, indent + 1);
         os << "}";
         return os;
@@ -126,11 +126,11 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //
 //    virtual bool isValid() { return data_entity_type::isValid(); };
 //
-//    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
+//    virtual std::type_info const &GetValueTypeInfo() const { return typeid(value_type); };
 //
-//    virtual int iform() const { return IFORM; }
+//    virtual int GetIFORM() const { return IFORM; }
 //
-//    virtual int dof() const { return DOF; }
+//    virtual int GetDOF() const { return DOF; }
 //
 //    virtual void Load(data::DataTable const &) { UNIMPLEMENTED; };
 //
@@ -138,8 +138,8 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //
 //    virtual std::ostream &Print(std::ostream &os, int indent) const
 //    {
-//        os << " type = \'" << value_type_info().name() << "\' "
-//           << ", entity type = " << static_cast<int>(iform())
+//        os << " type = \'" << GetValueTypeInfo().GetName() << "\' "
+//           << ", entity type = " << static_cast<int>(GetIFORM())
 //           << ", GetDataBlock = {";
 //        data_entity_type::Print(os, indent + 1);
 //        os << "}";
@@ -202,7 +202,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //        index_tuple lower, upper;
 //        lower = data_entity_type::index_lower();
 //        upper = data_entity_type::index_upper();
-//        res.append(MeshEntityIdCoder::make_range(lower, upper, iform()));
+//        res.append(MeshEntityIdCoder::make_range(lower, upper, GetIFORM()));
 //        return res;
 //    }
 //

@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 
     auto manager = create_time_integrator();
 
-    manager->db().SetValue("name", "EMFluid");
+    manager->db().SetValue("GetName", "EMFluid");
     manager->db().SetValue("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {64, 64, 64}});
     manager->db().SetValue("CartesianGeometry.periodic_dimension", nTuple<int, 3>{0, 1, 0});
 

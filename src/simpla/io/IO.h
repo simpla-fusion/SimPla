@@ -73,17 +73,17 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //
 
 //template<typename Tuple, size_t ...Is>
-//std::string save_tuple_impl(std::string const & name, Tuple const & d,
+//std::string save_tuple_impl(std::string const & GetName, Tuple const & d,
 //		int_sequence<Is...>)
 //{
-//	return std::Move(write(name, std::Get<Is>(d)...));
+//	return std::Move(write(GetName, std::Get<Is>(d)...));
 //}
 //
 //template<typename ...T>
-//std::string write(std::string const & name, std::tuple<T...> const & d,
+//std::string write(std::string const & GetName, std::tuple<T...> const & d,
 //		size_t id = 0UL)
 //{
-//	return std::Move(save_tuple_impl(name, d,
+//	return std::Move(save_tuple_impl(GetName, d,
 //
 //	make_int_sequence<sizeof...(T)>()
 //
@@ -91,42 +91,42 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //}
 //
 //template<typename TV, typename ...Args>
-//std::string write(std::string const & name, TV const *m_data, Args && ...args)
+//std::string write(std::string const & GetName, TV const *m_data, Args && ...args)
 //{
-//	return GLOBAL_DATA_STREAM.write(name, m_data, make_datatype<TV>(),
+//	return GLOBAL_DATA_STREAM.write(GetName, m_data, make_datatype<TV>(),
 //			std::forward<Args>(args)...);
 //}
 //
 //template<typename TV, typename ... Args> inline std::string write(
-//		std::string const & name, std::shared_ptr<TV> const & d,
+//		std::string const & GetName, std::shared_ptr<TV> const & d,
 //		Args && ... args)
 //{
-//	return GLOBAL_DATA_STREAM.write(name, d.Get(), make_datatype<TV>(),
+//	return GLOBAL_DATA_STREAM.write(GetName, d.Get(), make_datatype<TV>(),
 //			std::forward<Args>(args)...);
 //}
 //
-//template<typename TV> std::string write(std::string const & name,
+//template<typename TV> std::string write(std::string const & GetName,
 //		std::vector<TV>const & d, size_t id = 0UL)
 //{
 //
 //	size_t s = d.size();
-//	return GLOBAL_DATA_STREAM.write(name, &d[0], make_datatype<TV>(), 1,
+//	return GLOBAL_DATA_STREAM.write(GetName, &d[0], make_datatype<TV>(), 1,
 //			nullptr, &s, nullptr, nullptr, nullptr, nullptr, id);
 //}
 //
 //template<typename TL, typename TR, typename ... Args> std::string write(
-//		std::string const & name, std::map<TL, TR>const & d, Args && ... args)
+//		std::string const & GetName, std::map<TL, TR>const & d, Args && ... args)
 //{
 //	std::vector<std::pair<TL, TR> > d_;
 //	for (auto const & p : d)
 //	{
 //		d_.emplace_back(p);
 //	}
-//	return write(name, d_, std::forward<Args>(args)...);
+//	return write(GetName, d_, std::forward<Args>(args)...);
 //}
 //
 //template<typename TV, typename ... Args> std::string write(
-//		std::string const & name, std::map<TV, TV>const & d, Args && ... args)
+//		std::string const & GetName, std::map<TV, TV>const & d, Args && ... args)
 //{
 //	std::vector<nTuple<TV, 2> > d_;
 //	for (auto const & p : d)
@@ -135,7 +135,7 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //		{ p.first, p.second }));
 //	}
 //
-//	return write(name, d_, std::forward<Args>(args)...);
+//	return write(GetName, d_, std::forward<Args>(args)...);
 //}
 /** @} */
 
@@ -146,7 +146,7 @@ std::shared_ptr<IOStream> create_from_output_url(std::string const &url);
 //#define  SAVE_(_OS_, _F_, __FLAG__)                                                         \
 //{        auto pwd = _OS_.pwd();                                                           \
 //        _OS_.open( std::string("/")+__STRING(_F_)+"/");                                                         \
-//        _OS_.write(_F_.mesh()->name(), _F_.dataset(mesh_as::SP_ES_ALL), __FLAG__);            \
+//        _OS_.write(_F_.mesh()->GetName(), _F_.dataset(mesh_as::SP_ES_ALL), __FLAG__);            \
 //        _OS_.open(pwd);                                                                     \
 //}
 //#define SAVE(_OS_, _F_) SAVE_(_OS_,_F_,::simpla::io::SP_NEW)

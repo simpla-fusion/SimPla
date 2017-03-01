@@ -48,7 +48,7 @@ DomainView const *MeshView::GetDomain() const { return m_pimpl_->m_domain_; }
 bool MeshView::Update() { return SPObject::Update(); }
 
 id_type MeshView::GetMeshBlockId() const {
-    return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->id();
+    return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }
 std::shared_ptr<MeshBlock> const &MeshView::GetMeshBlock() const { return m_pimpl_->m_mesh_block_; }
 void MeshView::SetMeshBlock(std::shared_ptr<MeshBlock> const &m) {
@@ -59,5 +59,8 @@ void MeshView::SetMeshBlock(std::shared_ptr<MeshBlock> const &m) {
     Click();
 }
 void MeshView::Initialize() { SPObject::Initialize(); }
+
+Real MeshView::GetDt() const { return 1.0; }
+
 }  // {namespace mesh
 }  // namespace simpla

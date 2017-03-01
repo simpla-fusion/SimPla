@@ -133,11 +133,11 @@ std::shared_ptr<engine::DataBlock> create_data_block_t0(engine::AttributeDesc co
     auto inner_upper = p_data->getBox().upper();
     size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
                          static_cast<size_type>(outer_upper[1] - outer_lower[1]),
-                         static_cast<size_type>(outer_upper[2] - outer_lower[2]), static_cast<size_type>(desc.dof())};
+                         static_cast<size_type>(outer_upper[2] - outer_lower[2]), static_cast<size_type>(desc.GetDOF())};
     index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
                         inner_lower[2] - outer_lower[2], 0};
     index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
-                        inner_upper[2] - outer_lower[2], desc.dof()};
+                        inner_upper[2] - outer_lower[2], desc.GetDOF()};
     auto res = std::make_shared<engine::DataBlockAdapter<Array<TV, 4>>>(p_data->getPointer(), dims, lo, hi);
     res->Initialize();
     return std::dynamic_pointer_cast<engine::DataBlock>(res);
@@ -146,14 +146,14 @@ std::shared_ptr<engine::DataBlock> create_data_block_t0(engine::AttributeDesc co
 std::shared_ptr<engine::DataBlock> create_data_block(engine::AttributeDesc const &desc,
                                                      boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<engine::DataBlock> res(nullptr);
-    if (desc.value_type_info() == (typeid(float))) {
+    if (desc.GetValueTypeInfo() == (typeid(float))) {
         res = create_data_block_t0<float>(desc, pd);
-    } else if (desc.value_type_info() == (typeid(double))) {
+    } else if (desc.GetValueTypeInfo() == (typeid(double))) {
         res = create_data_block_t0<double>(desc, pd);
-    } else if (desc.value_type_info() == (typeid(int))) {
+    } else if (desc.GetValueTypeInfo() == (typeid(int))) {
         res = create_data_block_t0<int>(desc, pd);
     }
-    //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
+    //    else if (item->GetValueTypeInfo() == typeid(long)) { attr_choice_form<long>(item,
     //    std::forward<Args>(args)...); }
     else {
         RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl;
@@ -319,7 +319,7 @@ class SAMRAI_HyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPat
    private:
     std::shared_ptr<engine::DomainView> m_domain_view_;
     /*
-     * The object name is used for error/warning reporting and also as a
+     * The object GetName is used for error/warning reporting and also as a
      * string label for restart database entries.
      */
     std::string m_name_;
@@ -377,25 +377,25 @@ template <typename T>
 boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, engine::AttributeDesc const &attr) {
     static int var_depth[4] = {1, 3, 3, 1};
     SAMRAI::tbox::Dimension d_dim(ndims);
-    return (attr.iform() > VOLUME)
+    return (attr.GetIFORM() > VOLUME)
                ? nullptr
                : boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(
-                     d_dim, attr.name(), var_depth[attr.iform()] * attr.dof()));
+                     d_dim, attr.GetName(), var_depth[attr.GetIFORM()] * attr.GetDOF()));
 }
 
 boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int ndims,
                                                                  engine::AttributeDesc const &desc) {
-    if (desc.value_type_info() == (typeid(float))) {
+    if (desc.GetValueTypeInfo() == (typeid(float))) {
         return create_samrai_variable_t<float>(ndims, desc);
-    } else if (desc.value_type_info() == (typeid(double))) {
+    } else if (desc.GetValueTypeInfo() == (typeid(double))) {
         return create_samrai_variable_t<double>(ndims, desc);
-    } else if (desc.value_type_info() == (typeid(int))) {
+    } else if (desc.GetValueTypeInfo() == (typeid(int))) {
         return create_samrai_variable_t<int>(ndims, desc);
     }
-    //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
+    //    else if (item->GetValueTypeInfo() == typeid(long)) { attr_choice_form<long>(item,
     //    std::forward<Args>(args)...); }
     else {
-        RUNTIME_ERROR << " value type [" << desc.value_type_info().name() << "] is not supported!" << std::endl;
+        RUNTIME_ERROR << " value type [" << desc.GetValueTypeInfo().name() << "] is not supported!" << std::endl;
     }
     return nullptr;
 }
@@ -420,10 +420,10 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
     //**************************************************************
 //    for (auto const &item : m_domain_view_->GetAttributeDict()) {
 //        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *item.second);
-//        m_samrai_variables_[item.second->GUID()] = var;
+//        m_samrai_variables_[item.second->GetGUID()] = var;
 //
 //        engine::AttributeDesc const &attr = *item.second;
-//        data::DataTable &attr_db = m_domain_view_->attr_db(attr.GUID());
+//        data::DataTable &attr_db = m_domain_view_->attr_db(attr.GetGUID());
 //        //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
 //        //                "TENSOR"};
 //        //                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR",
@@ -435,7 +435,7 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
 //        **/
 //
 //        if (attr_db.check("COORDINATES", true)) {
-//            VERBOSE << attr.name() << " is registered as coordinate" << std::endl;
+//            VERBOSE << attr.GetName() << " is registered as coordinate" << std::endl;
 //            integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
 //                                         d_grid_geometry, "", "LINEAR_REFINE");
 //
@@ -447,7 +447,7 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
 //            integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
 //                                         d_grid_geometry, "", "NO_REFINE");
 //        } else {
-//            switch (attr.iform()) {
+//            switch (attr.GetIFORM()) {
 //                case EDGE:
 //                case FACE:
 //                //                    integrator->registerVariable(var, d_nghosts,
@@ -462,25 +462,25 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
 //                                                 d_grid_geometry, "", "LINEAR_REFINE");
 //            }
 //
-//            //            VERBOSE << (attr.name()) << " --  " << visit_variable_type << std::endl;
+//            //            VERBOSE << (attr.GetName()) << " --  " << visit_variable_type << std::endl;
 //        }
 //
 //        std::string visit_variable_type = "";
-//        if ((attr.iform() == VERTEX || attr.iform() == VOLUME) && attr.dof() == 1) {
+//        if ((attr.GetIFORM() == VERTEX || attr.GetIFORM() == VOLUME) && attr.GetDOF() == 1) {
 //            visit_variable_type = "SCALAR";
-//        } else if (((attr.iform() == EDGE || attr.iform() == FACE) && attr.dof() == 1) ||
-//                   ((attr.iform() == VERTEX || attr.iform() == VOLUME) && attr.dof() == 3)) {
+//        } else if (((attr.GetIFORM() == EDGE || attr.GetIFORM() == FACE) && attr.GetDOF() == 1) ||
+//                   ((attr.GetIFORM() == VERTEX || attr.GetIFORM() == VOLUME) && attr.GetDOF() == 3)) {
 //            visit_variable_type = "VECTOR";
-//        } else if (((attr.iform() == VERTEX || attr.iform() == VOLUME) && attr.dof() == 9) ||
-//                   ((attr.iform() == EDGE || attr.iform() == FACE) && attr.dof() == 3)) {
+//        } else if (((attr.GetIFORM() == VERTEX || attr.GetIFORM() == VOLUME) && attr.GetDOF() == 9) ||
+//                   ((attr.GetIFORM() == EDGE || attr.GetIFORM() == FACE) && attr.GetDOF() == 3)) {
 //            visit_variable_type = "TENSOR";
 //        } else {
-//            WARNING << "Can not register attribute [" << attr.name() << "] to VisIt  writer!" << std::endl;
+//            WARNING << "Can not register attribute [" << attr.GetName() << "] to VisIt  writer!" << std::endl;
 //        }
 //
 //        if (visit_variable_type != "" && attr_db.check("CHECK", true)) {
 //            d_visit_writer->registerPlotQuantity(
-//                attr.name(), visit_variable_type,
+//                attr.GetName(), visit_variable_type,
 //                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
 //
 //        } else if (attr_db.check("COORDINATES", true)) {
@@ -797,7 +797,7 @@ SAMRAITimeIntegrator::SAMRAITimeIntegrator() : base_type() {
     db().CreateTable("GriddingAlgorithm");
     // Makes results repeatable.
     db().SetValue("BergerRigoutsos.sort_output_nodes", true);
-    // min % of tag cells in new patch level
+    // min % of GetTag cells in new patch level
     db().SetValue("BergerRigoutsos.efficiency_tolerance", 0.85);
     // chop box if sum of volumes of smaller
     //    // boxes < efficiency * vol of large box

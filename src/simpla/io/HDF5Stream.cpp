@@ -198,7 +198,7 @@ void HDF5Stream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
 //
 //        hid_t m_space = H5Screate(H5S_SCALAR);
 //
-//        hid_t a_id = H5Acreate(loc_id, name.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
+//        hid_t a_id = H5Acreate(loc_id, GetName.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
 //
 //        H5Awrite(a_id, m_type, any_v.m_data());
 //

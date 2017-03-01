@@ -189,7 +189,7 @@ class RectMesh {
     //        };
     //    }
     //
-    //    virtual point_type point_global_to_local(point_type const &x, int iform = 0) const
+    //    virtual point_type point_global_to_local(point_type const &x, int GetIFORM = 0) const
     //    {
     //        return point_type{static_cast<Real>(x[0] - floor((x[0] + 0.5 * m_dx_[0]) *
     //        m_inv_dx_[0])),
@@ -273,23 +273,23 @@ class RectMesh {
     virtual Range<MeshEntityId> range(index_type const* b, index_type const* e, int entityType = VERTEX) const;
 
     //    template<typename TFun>
-    //    void foreach(TFun const &fun, MeshZoneTag tag, int const &iform = VERTEX, int
-    //    dof = 1,
+    //    void foreach(TFun const &fun, MeshZoneTag GetTag, int const &GetIFORM = VERTEX, int
+    //    GetDOF = 1,
     //                 ENABLE_IF((traits::is_callable<TFun(int, int, int,
     //                 int)>::value))) const
     //    {
-    //        int n = iform == VERTEX || iform == VOLUME ? 1 : 3;
-    //        index_type ib = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[0] :
+    //        int n = GetIFORM == VERTEX || GetIFORM == VOLUME ? 1 : 3;
+    //        index_type ib = GetTag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[0] :
     //        std::Get<0>(m_outer_box_)[0];
-    //        index_type ie = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[0] :
+    //        index_type ie = GetTag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[0] :
     //        std::Get<1>(m_outer_box_)[0];
-    //        index_type jb = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[1] :
+    //        index_type jb = GetTag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[1] :
     //        std::Get<0>(m_outer_box_)[1];
-    //        index_type je = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[1] :
+    //        index_type je = GetTag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[1] :
     //        std::Get<1>(m_outer_box_)[1];
-    //        index_type kb = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[2] :
+    //        index_type kb = GetTag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[2] :
     //        std::Get<0>(m_outer_box_)[2];
-    //        index_type ke = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[2] :
+    //        index_type ke = GetTag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[2] :
     //        std::Get<1>(m_outer_box_)[2];
     //
     //#pragma omp parallel for
@@ -304,22 +304,22 @@ class RectMesh {
     //    }
     //
     //    template<typename TFun>
-    //    void foreach(TFun const &fun, MeshZoneTag tag, int iform = VERTEX, int dof =
+    //    void foreach(TFun const &fun, MeshZoneTag GetTag, int GetIFORM = VERTEX, int GetDOF =
     //    1,
     //                 ENABLE_IF((traits::is_callable<TFun(int, int,
     //                 int)>::value)) const
     //    {
-    //        index_type ib = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[0] :
+    //        index_type ib = GetTag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[0] :
     //        std::Get<0>(m_outer_box_)[0];
-    //        index_type ie = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[0] :
+    //        index_type ie = GetTag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[0] :
     //        std::Get<1>(m_outer_box_)[0];
-    //        index_type jb = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[1] :
+    //        index_type jb = GetTag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[1] :
     //        std::Get<0>(m_outer_box_)[1];
-    //        index_type je = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[1] :
+    //        index_type je = GetTag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[1] :
     //        std::Get<1>(m_outer_box_)[1];
-    //        index_type kb = tag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[2] :
+    //        index_type kb = GetTag == SP_ES_LOCAL ? std::Get<0>(m_inner_box_)[2] :
     //        std::Get<0>(m_outer_box_)[2];
-    //        index_type ke = tag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[2] :
+    //        index_type ke = GetTag == SP_ES_LOCAL ? std::Get<1>(m_inner_box_)[2] :
     //        std::Get<1>(m_outer_box_)[2];
     //
     //#pragma omp parallel for

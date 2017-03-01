@@ -13,7 +13,7 @@ struct Patch::pimpl_s {
 };
 Patch::Patch() : m_pimpl_(new pimpl_s) {}
 Patch::~Patch() {}
-id_type Patch::GetMeshBlockId() const { return GetMeshBlock()->id(); }
+id_type Patch::GetMeshBlockId() const { return GetMeshBlock()->GetGUID(); }
 std::shared_ptr<MeshBlock> &Patch::GetMeshBlock() const {
     if (m_pimpl_->m_mesh_ == nullptr) { m_pimpl_->m_mesh_ = std::make_shared<MeshBlock>(); }
     return m_pimpl_->m_mesh_;

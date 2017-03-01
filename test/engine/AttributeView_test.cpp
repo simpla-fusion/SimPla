@@ -15,11 +15,11 @@ TEST(TestAttribute, GUID) {
     engine::AttributeView f3("E", typeid(Real), EDGE, 1);
     engine::AttributeView f4("E", typeid(int), FACE, 1);
 
-    EXPECT_EQ(f.GUID(), f0.GUID());
-    EXPECT_NE(f.GUID(), f1.GUID());
-    EXPECT_NE(f.GUID(), f2.GUID());
-    EXPECT_NE(f.GUID(), f3.GUID());
-    EXPECT_NE(f.GUID(), f4.GUID());
+    EXPECT_EQ(f.GetGUID(), f0.GetGUID());
+    EXPECT_NE(f.GetGUID(), f1.GetGUID());
+    EXPECT_NE(f.GetGUID(), f2.GetGUID());
+    EXPECT_NE(f.GetGUID(), f3.GetGUID());
+    EXPECT_NE(f.GetGUID(), f4.GetGUID());
 }
 struct DummyMesh {};
 template <typename V, typename M, int IFORM, int DOF>
@@ -44,9 +44,9 @@ TEST(TestAttribute, GUID_Adapter) {
     TAttribute<int, DummyMesh, FACE, 1> f4{"E"};
 
     EXPECT_EQ(std::type_index(typeid(DummyMesh)).hash_code(), f.mesh_type_index().hash_code());
-    EXPECT_EQ(f.GUID(), f0.GUID());
-    EXPECT_NE(f.GUID(), f1.GUID());
-    EXPECT_NE(f.GUID(), f2.GUID());
-    EXPECT_NE(f.GUID(), f3.GUID());
-    EXPECT_NE(f.GUID(), f4.GUID());
+    EXPECT_EQ(f.GetGUID(), f0.GetGUID());
+    EXPECT_NE(f.GetGUID(), f1.GetGUID());
+    EXPECT_NE(f.GetGUID(), f2.GetGUID());
+    EXPECT_NE(f.GetGUID(), f3.GetGUID());
+    EXPECT_NE(f.GetGUID(), f4.GetGUID());
 }

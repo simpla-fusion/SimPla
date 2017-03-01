@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
     //    db.set("CartesianGeometry.name2"_ = std::string("hello world!"));
     db.insert({"is_test", "not_debug"_ = false,
             "CartesianGeometry"_ = {
-                "name"_ = "hello world!",  //
+                "GetName"_ = "hello world!",  //
                 "is_test",
                 "value"_ = 1.0234,                  //
                 "t.second"_ = 2,                    //

@@ -6,7 +6,7 @@
 #define SIMPLA_DATAENTITY_H
 
 #include <simpla/concept/Printable.h>
-#include <simpla/engine/SPObject.h>
+#include <simpla/engine/SPObjectHead.h>
 #include <simpla/mpl/integer_sequence.h>
 #include <simpla/toolbox/Log.h>
 #include <typeindex>

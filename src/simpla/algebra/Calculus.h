@@ -88,8 +88,7 @@ namespace traits {
 //******************************************************
 
 template <typename T>
-struct iform<declare::Expression<tags::_hodge_star, T>>
-    : public int_const<rank<T>::value - iform<T>::value> {};
+struct iform<declare::Expression<tags::_hodge_star, T>> : public int_const<rank<T>::value - iform<T>::value> {};
 
 template <typename T>
 struct value_type<declare::Expression<tags::_hodge_star, T>> {
@@ -98,8 +97,7 @@ struct value_type<declare::Expression<tags::_hodge_star, T>> {
 //******************************************************
 
 template <typename T0, typename T1>
-struct iform<declare::Expression<tags::_interior_product, T0, T1>>
-    : public int_const<traits::iform<T1>::value - 1> {};
+struct iform<declare::Expression<tags::_interior_product, T0, T1>> : public int_const<traits::iform<T1>::value - 1> {};
 
 template <typename T0, typename T1>
 struct value_type<declare::Expression<tags::_interior_product, T0, T1>> {
@@ -109,8 +107,7 @@ struct value_type<declare::Expression<tags::_interior_product, T0, T1>> {
 //******************************************************
 
 template <typename T0, typename T1>
-struct iform<declare::Expression<tags::_wedge, T0, T1>>
-    : public int_const<iform<T0>::value + iform<T1>::value> {};
+struct iform<declare::Expression<tags::_wedge, T0, T1>> : public int_const<iform<T0>::value + iform<T1>::value> {};
 template <typename T0, typename T1>
 struct value_type<declare::Expression<tags::_wedge, T0, T1>> {
     typedef std::result_of_t<tags::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
@@ -118,8 +115,8 @@ struct value_type<declare::Expression<tags::_wedge, T0, T1>> {
 //******************************************************`
 
 template <typename T0, typename T1>
-struct iform<declare::Expression<tags::_cross, T0, T1>>
-    : public int_const<(iform<T0>::value + iform<T1>::value) % 3> {};
+struct iform<declare::Expression<tags::_cross, T0, T1>> : public int_const<(iform<T0>::value + iform<T1>::value) % 3> {
+};
 
 template <typename T0, typename T1>
 struct value_type<declare::Expression<tags::_cross, T0, T1>> {
@@ -178,14 +175,12 @@ auto cross(TL const& l, TR const& r, ENABLE_IF(!(traits::is_field<TL, TR>::value
     return ((declare::Expression<tags::_nTuple_cross, const TL, const TR>(l, r)));
 }
 template <typename TL, typename TR>
-auto dot(TL const& lhs, TR const& rhs,
-         ENABLE_IF(!(traits::is_field<TL, TR>::value) &&
-                   !(std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
+auto dot(TL const& lhs, TR const& rhs, ENABLE_IF(!(traits::is_field<TL, TR>::value) &&
+                                                 !(std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
     return declare::Expression<tags::_nTuple_dot, const TL, const TR>(lhs, rhs);
 }
 template <typename TL, typename TR>
-auto dot(TL const& lhs, TR const& rhs,
-         ENABLE_IF((std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
+auto dot(TL const& lhs, TR const& rhs, ENABLE_IF((std::is_arithmetic<TL>::value && std::is_arithmetic<TR>::value))) {
     return lhs * rhs;
 }
 // template<typename  T>
@@ -258,8 +253,7 @@ namespace traits {
 //******************************************************
 
 template <typename T>
-struct iform<declare::Expression<tags::_exterior_derivative, T>>
-    : public int_const<iform<T>::value + 1> {};
+struct iform<declare::Expression<tags::_exterior_derivative, T>> : public int_const<iform<T>::value + 1> {};
 
 template <typename T>
 struct value_type<declare::Expression<tags::_exterior_derivative, T>> {
@@ -269,8 +263,7 @@ struct value_type<declare::Expression<tags::_exterior_derivative, T>> {
 //******************************************************
 
 template <typename T>
-struct iform<declare::Expression<tags::_codifferential_derivative, T>>
-    : public int_const<iform<T>::value - 1> {};
+struct iform<declare::Expression<tags::_codifferential_derivative, T>> : public int_const<iform<T>::value - 1> {};
 template <typename T>
 struct value_type<declare::Expression<tags::_codifferential_derivative, T>> {
     typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, value_type_t<T>)> type;
@@ -278,8 +271,7 @@ struct value_type<declare::Expression<tags::_codifferential_derivative, T>> {
 
 //******************************************************
 template <typename T, int I>
-struct iform<declare::Expression<tags::_p_exterior_derivative<I>, T>>
-    : public int_const<iform<T>::value + 1> {};
+struct iform<declare::Expression<tags::_p_exterior_derivative<I>, T>> : public int_const<iform<T>::value + 1> {};
 
 template <typename T, int I>
 struct value_type<declare::Expression<tags::_p_exterior_derivative<I>, T>> {
@@ -288,13 +280,10 @@ struct value_type<declare::Expression<tags::_p_exterior_derivative<I>, T>> {
 //******************************************************
 
 template <typename T, int I>
-struct iform<declare::Expression<tags::_p_codifferential_derivative<I>, T>>
-    : public int_const<iform<T>::value - 1> {};
+struct iform<declare::Expression<tags::_p_codifferential_derivative<I>, T>> : public int_const<iform<T>::value - 1> {};
 template <typename T, int I>
 struct value_type<declare::Expression<tags::_p_codifferential_derivative<I>, T>> {
-    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type,
-                                              typename scalar_type<T>::type)>
-        type;
+    typedef std::result_of_t<tags::multiplies(typename scalar_type<T>::type, typename scalar_type<T>::type)> type;
 };
 
 }  // namespace traits
@@ -435,14 +424,12 @@ auto curl(T const& f) {
 
 template <int I, typename U>
 auto p_exterior_derivative(U const& f) {
-    return declare::Expression<tags::_p_exterior_derivative<I>, U>(f);
+    return declare::Expression<tags::_p_exterior_derivative<I>, U const>(f);
 }
 
 template <int I, typename U>
-auto  // declare::Expression<tags::_p_exterior_derivative<I>,
-      // U>
-    p_codifferential_derivative(U const& f) {
-    return ((declare::Expression<tags::_p_exterior_derivative<I>, U>(f)));
+auto p_codifferential_derivative(U const& f) {
+    return ((declare::Expression<tags::_p_exterior_derivative<I>, U const>(f)));
 }
 
 template <typename T>
@@ -457,7 +444,7 @@ auto curl_pdx(T const& f, int_const<FACE>) {
 
 template <typename T>
 auto curl_pdx(T const& f) {
-    return ((curl_pdx(f, traits::iform<T>())));
+    return ((curl_pdx(f, algebra::traits::iform<T>())));
 }
 
 template <typename T>

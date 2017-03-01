@@ -7,15 +7,22 @@
  *    This is an example of EM plasma
  */
 
+#include <simpla/engine/Manager.h>
+//#include <simpla/io/IO.h>
+//#include <simpla/parallel/Parallel.h>
+#include <simpla/toolbox/ConfigParser.h>
+#include <simpla/toolbox/Logo.h>
+#include <simpla/toolbox/parse_command_line.h>
+
 namespace simpla {
 void create_scenario(engine::Manager *ctx, data::DataTable const &options);
 }
 using namespace simpla;
 
 int main(int argc, char **argv) {
-    parallel::init(argc, argv);
+    //    parallel::init(argc, argv);
     toolbox::ConfigParser options;
-
+    //    std::shared_ptr<toolbox::IOStream> os;
     {
         std::string output_file = "simpla.h5";
 
@@ -82,7 +89,7 @@ int main(int argc, char **argv) {
                                                << ": quiet mode," << std::endl
                                                << std::endl
                                                << std::left << std::setw(20) << "  -o, --output  "
-                                               << ": Output file name (default: simpla.h5)." << std::endl
+                                               << ": Output file GetName (default: simpla.h5)." << std::endl
                                                << std::left << std::setw(20) << "  -i, --input  "
                                                << ": Input configure file (default:" + conf_file + ")" << std::endl
                                                << std::left << std::setw(20) << "  -p, --prologue "
@@ -108,66 +115,51 @@ int main(int argc, char **argv) {
 
         options.parse(conf_file, conf_prologue, conf_epilogue);
 
-        os = toolbox::create_from_output_url(output_file);
+        //        os = toolbox::create_from_output_url(output_file);
     }
+    data::DataTable db;
+    engine::Manager ctx;
 
-    simulation::Context ctx;
-
-    create_scenario(&ctx, options);
+    create_scenario(&ctx, db);
 
     MESSAGE << DOUBLELINE << std::endl;
     MESSAGE << "INFORMATION:                                        " << std::endl;
     MESSAGE << "Context = {" << ctx << " }" << std::endl;
     MESSAGE << SINGLELINE << std::endl;
 
-    int num_of_steps = options["number_of_steps"].as<int>(1);
+    int num_of_steps = db.GetValue<int>("number_of_steps", 1);
+    int step_of_check_points = db.GetValue<int>("step_of_check_point", 1);
+    Real dt = db.GetValue<Real>("dt", 1.0);
 
-    int step_of_check_points = options["step_of_check_point"].as<int>(1);
-
-    Real dt = options["dt"].as<Real>();
-
-    os->open("/start/");
-
-    ctx.Save(*os);
+    //    os->open("/start/");
+    //    ctx.Save(*os);
 
     MESSAGE << DOUBLELINE << std::endl;
-
     TheStart();
-
-    INFORM << "\t >>> Time [" << ctx.time() << "] <<< " << std::endl;
-
-    os->open("/checkpoint/");
-
-    ctx.sync();
-
-    ctx.check_point(*os);
+    INFORM << "\t >>> Time [" << ctx.GetTime() << "] <<< " << std::endl;
+    //    os->open("/checkpoint/");
+    //    ctx.sync();
+    //    ctx.check_point(*os);
 
     size_type count = 0;
 
     while (count <= num_of_steps) {
-        ctx.run(dt);
-
-        ctx.sync();
-
-        if (count % step_of_check_points == 0) { ctx.check_point(*os); }
-
-        INFORM << "\t >>>  [ Time = " << ctx.time() << " Count = " << count << "] <<< " << std::endl;
-
+        ctx.Run(dt);
+        //        if (count % step_of_check_points == 0) { ctx.CheckPoint(*os); }
+        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " Count = " << count << "] <<< " << std::endl;
         ++count;
     }
 
     INFORM << "\t >>> Done <<< " << std::endl;
 
-    os->open("/dump/");
-
-    ctx.Save(*os);
-
-    ctx.teardown();
+    //    os->open("/dump/");
+    //    ctx.Save(*os);
+    //    ctx.teardown();
 
     MESSAGE << DOUBLELINE << std::endl;
 
     TheEnd();
-    os->close();
-    parallel::close();
+    //    os->close();
+    //    parallel::close();
     logger::close();
 }

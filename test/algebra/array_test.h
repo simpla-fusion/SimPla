@@ -55,8 +55,8 @@ public:
 
 //    typedef  traits::scalar_type_t<manifold_type> scalar_type;
 
-    static constexpr size_type iform = algebra::traits::iform<TArray>::value;
-    static constexpr size_type dof = algebra::traits::dof<TArray>::value;
+    static constexpr int iform = algebra::traits::iform<TArray>::value;
+    static constexpr int dof = algebra::traits::dof<TArray>::value;
 
 
     value_type default_value;
@@ -64,13 +64,13 @@ public:
 
 
 
-//    typedef Array<value_type, manifold_type, int_const<static_cast<size_t>(iform)> > field_type;
+//    typedef Array<value_type, manifold_type, int_const<static_cast<size_t>(GetIFORM)> > field_type;
     typedef Array<value_type, mesh_type, iform> scalar_field_type;
     typedef Array<value_type, mesh_type, iform, 3> vector_field_type;
 
-//    auto make_scalarArray() const AUTO_RETURN((field_type<value_type, manifold_type, iform>(m)))
+//    auto make_scalarArray() const AUTO_RETURN((field_type<value_type, manifold_type, GetIFORM>(m)))
 //
-//    auto make_vectorArray() const AUTO_RETURN((field_type<nTuple<value_type, 3>, manifold_type, iform>(m)))
+//    auto make_vectorArray() const AUTO_RETURN((field_type<nTuple<value_type, 3>, manifold_type, GetIFORM>(m)))
 };
 
 template<typename TArray> constexpr size_type TestArray<TArray>::iform;

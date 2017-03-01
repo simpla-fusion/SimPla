@@ -319,7 +319,7 @@ void select_boundary_by_polylines(Domain<TM...> *domain, TI const & ib,
 
 	PointInPolygon point_in_polygon(ib, ie, ZAxis);
 
-//	if (iform == VERTEX)
+//	if (GetIFORM == VERTEX)
 //	{
 //		for (auto const & item : vmap)
 //		{

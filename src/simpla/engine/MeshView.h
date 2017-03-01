@@ -30,7 +30,6 @@ class MeshView : public AttributeViewBundle {
     void Connect(DomainView *);
     void Disconnect();
     virtual void OnNotify();
-
     DomainView const *GetDomain() const;
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
@@ -38,6 +37,9 @@ class MeshView : public AttributeViewBundle {
 
     virtual bool Update();
     virtual void Initialize();
+
+    Real GetDt() const;
+
 
     size_type size(int IFORM = VERTEX) const { return 0; }
     size_tuple dimensions() const { return size_tuple{}; };

@@ -69,12 +69,12 @@ class DomainView : public concept::Printable, public SPObject {
 
     void Register(AttributeDict &);
 
-    //    Range<id_type> const &select(int iform, int tag);
-    //    Range<id_type> const &select(int iform, std::string const &tag);
-    //    Range<id_type> const &interface(int iform, const std::string &tag_in, const std::string &tag_out = "VACUUM");
-    //    Range<id_type> const &interface(int iform, int tag_in, int tag_out);
-    //    Range<id_type> const &select(int iform, int tag) const;
-    //    Range<id_type> const &interface(int iform, int tag_in, int tag_out ) const;
+    //    Range<id_type> const &select(int GetIFORM, int GetTag);
+    //    Range<id_type> const &select(int GetIFORM, std::string const &GetTag);
+    //    Range<id_type> const &interface(int GetIFORM, const std::string &tag_in, const std::string &tag_out = "VACUUM");
+    //    Range<id_type> const &interface(int GetIFORM, int tag_in, int tag_out);
+    //    Range<id_type> const &select(int GetIFORM, int GetTag) const;
+    //    Range<id_type> const &interface(int GetIFORM, int tag_in, int tag_out ) const;
 
    private:
     struct pimpl_s;
