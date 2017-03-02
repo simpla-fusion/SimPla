@@ -38,7 +38,7 @@ std::pair<std::shared_ptr<AttributeDesc>, bool> AttributeDict::Register(std::sha
     if (res.second) {
         m_pimpl_->m_name_map_.emplace(p->GetName(), gid);
     } else {
-        res.first->second->db().merge(p->db());
+//        res.first->second->db().merge(p->db());
     }
     return std::make_pair(res.first->second, res.second);
 }
@@ -106,14 +106,13 @@ void AttributeViewBundle::Accept(std::function<void(AttributeView *)> const &fun
 }
 
 id_type AttributeDesc::GenerateGUID(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF,
-                                    AttributeTag tag) {
+                                    int tag) {
     std::string str = name_s + '.' + t_id.name() + '.' + static_cast<char>(IFORM + '0') + '.' +
                       static_cast<char>(DOF + '0') + '.' + static_cast<char>(tag + '0');
     return static_cast<id_type>(std::hash<std::string>{}(str));
 }
 
-AttributeDesc::AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF,
-                             AttributeTag tag)
+AttributeDesc::AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int tag)
     : m_name_(name_s),
       m_value_type_info_(t_id),
       m_iform_(IFORM),
@@ -134,19 +133,18 @@ AttributeView::AttributeView() : m_pimpl_(new pimpl_s) {}
 AttributeView::AttributeView(AttributeViewBundle *b) : AttributeView() { Connect(b); };
 AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
 AttributeView::~AttributeView() { Disconnect(); }
-void AttributeView::Config(AttributeTag t) {
-    m_pimpl_->m_desc_ = std::make_shared<AttributeDesc>("unnamed", GetValueTypeInfo(), GetIFORM(), GetDOF(), t);
-}
 
-void AttributeView::Config(std::string const &s, AttributeTag t) {
+void AttributeView::Config(std::string const &s, int t) {
     m_pimpl_->m_desc_ = std::make_shared<AttributeDesc>(s, GetValueTypeInfo(), GetIFORM(), GetDOF(), t);
 }
+void AttributeView::Config(int t) { Config("unnamed", t); }
 
 void AttributeView::Register(AttributeDict &db) { m_pimpl_->m_desc_ = db.Register(m_pimpl_->m_desc_).first; };
 
 AttributeDesc &AttributeView::description() const {
     if (m_pimpl_->m_desc_ == nullptr) {
-        m_pimpl_->m_desc_ = std::make_shared<AttributeDesc>("unnamed", GetValueTypeInfo(), GetIFORM(), GetDOF(), SCRATCH);
+        m_pimpl_->m_desc_ =
+            std::make_shared<AttributeDesc>("unnamed", GetValueTypeInfo(), GetIFORM(), GetDOF(), SCRATCH);
     }
     return *m_pimpl_->m_desc_;
 }
@@ -155,7 +153,7 @@ std::string const &AttributeView::GetName() const { return description().GetName
 std::type_info const &AttributeView::GetValueTypeInfo() const { return description().GetValueTypeInfo(); }
 int AttributeView::GetIFORM() const { return description().GetIFORM(); }
 int AttributeView::GetDOF() const { return description().GetDOF(); }
-AttributeTag AttributeView::GetTag() const { return description().GetTag(); }
+int AttributeView::GetTag() const { return description().GetTag(); }
 
 void AttributeView::Connect(AttributeViewBundle *b) {
     if (b != m_pimpl_->m_bundle_) { b->Attach(this); }

@@ -327,7 +327,7 @@ class SAMRAI_HyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPat
 
     /*
      * We cache pointers to the grid geometry object to set up initial
-     * GetDataBlock, SetValue physical boundary conditions, and register plot
+     * GetDataBlock, Set physical boundary conditions, and register plot
      * variables.
      */
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;

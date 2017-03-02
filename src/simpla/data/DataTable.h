@@ -6,72 +6,18 @@
 #define SIMPLA_DATATREE_H_
 
 #include <simpla/SIMPLA_config.h>
-
+#include <simpla/engine/SPObjectHead.h>
 #include <iomanip>
 #include <map>
 #include <memory>
 #include <ostream>
 #include <string>
+#include <typeindex>
 #include <typeinfo>
-
 #include "DataEntity.h"
-#include "HeavyData.h"
-#include "LightData.h"
-
+#include "KeyValue.h"
 namespace simpla {
 namespace data {
-class KeyValue;
-template <>
-struct entity_traits<std::initializer_list<KeyValue>> {
-    typedef int_const<DataEntity::TABLE> type;
-};
-
-template <typename U>
-std::shared_ptr<DataEntity> make_shared_entity(U const& c, ENABLE_IF(entity_traits<std::decay_t<U>>::type::value ==
-                                                                     DataEntity::TABLE)) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(c));
-}
-
-class KeyValue {
-   private:
-    std::string m_key_;
-    std::shared_ptr<DataEntity> m_value_;
-
-   public:
-    KeyValue(char const* k) : m_key_(k), m_value_(make_shared_entity(true)) {}
-    KeyValue(std::string const& k) : m_key_(k), m_value_(make_shared_entity(true)) {}
-    template <typename U>
-    KeyValue(std::string const& k, U const& u) : m_key_(k), m_value_(make_shared_entity(u)) {}
-    KeyValue(KeyValue const& other) : m_key_(other.m_key_), m_value_(other.m_value_) {}
-    KeyValue(KeyValue&& other) : m_key_(other.m_key_), m_value_(other.m_value_) {}
-    ~KeyValue() {}
-
-    template <typename U>
-    KeyValue& operator=(U const& u) {
-        m_value_ = make_shared_entity(u);
-        return *this;
-    }
-
-    KeyValue& operator=(char const* c) {
-        m_value_ = make_shared_entity(std::string(c));
-        return *this;
-    }
-    KeyValue& operator=(char* c) {
-        m_value_ = make_shared_entity(std::string(c));
-        return *this;
-    }
-    KeyValue& operator=(std::initializer_list<KeyValue> const& u) {
-        m_value_ = make_shared_entity(u);
-        return *this;
-    }
-
-    std::string const& key() const { return m_key_; }
-    std::shared_ptr<DataEntity> const& value() const { return m_value_; }
-};
-
-inline KeyValue operator"" _(const char* c, std::size_t n) {
-    return KeyValue{std::string(c), make_shared_entity(true)};
-}
 
 /** @ingroup data */
 /**
@@ -92,22 +38,11 @@ class DataTable : public DataEntity {
     virtual bool isTable() const { return true; };
     virtual bool empty() const;
     virtual bool has(std::string const& key) const;
-    virtual void foreach (std::function<void(std::string const& key, DataEntity const&)> const&) const;
-    virtual void foreach (std::function<void(std::string const& key, DataEntity&)> const& fun);
-    virtual DataEntity const* find(std::string const& url) const;
-    void merge(DataTable& other);
-    template <typename T>
-    bool check(std::string const& url, T const& v) const {
-        DataEntity const* p = find(url);
-        return p != nullptr && p->asLight().equal(v);
-    };
+    //    virtual void foreach (std::function<void(std::string const& key, DataEntity const&)> const&) const;
+    //    virtual void foreach (std::function<void(std::string const& key, DataEntity&)> const& fun);
+    virtual std::shared_ptr<DataEntity> find(std::string const& url) const;
 
-    template <typename U>
-    void insert(std::pair<std::string, U> const& k_v) {
-        SetValue(k_v.first, k_v.second);
-    };
-    void insert(KeyValue const& k_v) { SetValue(k_v.key(), k_v.value()); };
-    void Parse(std::string const& str);
+    virtual void Merge(DataTable const&);
 
     /**
      *  set entity value to '''url'''
@@ -115,59 +50,16 @@ class DataTable : public DataEntity {
      * @return Returns a reference to the shared pointer of  the  modified entity, create parent
      * '''table''' as needed.
      */
-
-    virtual void SetValue(std::string const& key, std::shared_ptr<DataEntity> const& v);
-
-    void SetValue(KeyValue const& k_v) { SetValue(k_v.key(), k_v.value()); };
-    template <typename U>
-    void SetValue(std::pair<std::string, U> const& k_v) {
-        SetValue(k_v.first, k_v.second);
-    };
-    template <typename U>
-    void SetValue(std::string const& url, U const& v) {
-        SetValue(url, make_shared_entity(v));
-    }
-    template <typename... Others>
-    void SetValue(KeyValue const& k_v, KeyValue const& second, Others&&... others) {
-        SetValue(k_v);
-        SetValue(second, std::forward<Others>(others)...);
-    }
-
-    virtual DataTable* CreateTable(std::string const& url);
-
+    virtual void Set(std::string const& key, std::shared_ptr<DataEntity> const& v);
     /**
      *
      * @param url
      * @return Returns a reference to the shared pointer of  the entity with '''url'''.
      *      If no such entity exists, create a light entity, create parent table as needed.
      */
-    virtual DataEntity& Get(std::string const& url);
-    virtual const DataEntity& Get(std::string const& url) const;
-
-    virtual DataTable& GetTable(std::string const& url);
-    virtual const DataTable& GetTable(std::string const& url) const;
-
-    template <typename U>
-    U GetValue(std::string const& url) const {
-        return Get(url).asLight().as<U>();
-    }
-
-    template <typename U>
-    U GetValue(std::string const& url, U const& u) const {
-        auto p = find(url);
-        return p == nullptr ? u : p->asLight().template as<U>();
-    }
-    std::string GetValue(std::string const& url, char const* u) const {
-        auto p = find(url);
-        return p == nullptr ? std::string(u) : p->asLight().template as<std::string>();
-    }
-    //    template<typename U> U const &GetValue(std::string const &url, U const &u)
-    //    {
-    //        auto *p = find(url);
-    //
-    //        if (p != nullptr) { return p->as<U>(); } else { return SetValue(url, u)->as<U>();
-    //        }
-    //    }
+    virtual std::shared_ptr<DataEntity> Get(std::string const& url);
+    virtual std::shared_ptr<DataEntity> Get(std::string const& url) const;
+    virtual DataTable& CreateTable(std::string const& url);
 
     /**
      *
@@ -176,36 +68,100 @@ class DataTable : public DataEntity {
      * key.
      *      If no such element exists, an exception of type std::out_of_range is thrown.
      */
-    virtual DataEntity& at(std::string const& key);
+    DataEntity& at(std::string const& url) { return *Get(url); };
+    DataEntity const& at(std::string const& url) const { return *Get(url); };
 
-    virtual DataEntity const& at(std::string const& key) const;
-
-    LightData& asLight(std::string const& url) { return at(url).asLight(); };
-
-    LightData const& asLight(std::string const& url) const { return at(url).asLight(); };
-
-    HeavyData& asHeavy(std::string const& url) { return at(url).asHeavy(); };
-
-    HeavyData const& asHeavy(std::string const& url) const { return at(url).asHeavy(); };
-
-    DataTable& asTable(std::string const& url) { return at(url).asTable(); };
-
-    DataTable const& asTable(std::string const& url) const { return at(url).asTable(); };
+    void SetValue(KeyValue const& k_v);
+    void SetValue(std::initializer_list<KeyValue> const& c);
 
     template <typename U>
-    U& as(std::string const& url) {
-        return at(url).asLight().template as<U>();
+    void SetValue(std::string const& url, U const& v) {
+        Set(url, traits::data_cast<U>::create(v));
     }
+
     template <typename U>
-    U const& as(std::string const& url) const {
-        return at(url).asLight().template as<U>();
+    void SetValue(std::pair<std::string, U> const& k_v) {
+        SetValue(k_v.first, k_v.second);
+    };
+
+    template <typename... Others>
+    void SetValue(KeyValue const& k_v, KeyValue const& second, Others&&... others) {
+        SetValue(k_v);
+        SetValue(second, std::forward<Others>(others)...);
     }
+
+    template <typename U, typename URL>
+    U& GetValue(URL const& url) {
+        return Get(url)->GetValue<U>();
+    }
+    template <typename U, typename URL>
+    U const& GetValue(URL const& url) const {
+        return Get(url)->GetValue<U>();
+    }
+    template <typename U, typename URL>
+    U& GetValue(URL const& url, U& u) {
+        auto p = this->Get(url);
+        return p == nullptr ? u : p->GetValue<U>();
+    }
+    template <typename U, typename URL>
+    U const& GetValue(URL const& url, U const& u) const {
+        auto p = this->Get(url);
+        return p == nullptr ? u : p->GetValue<U>();
+    }
+
+    template <typename U>
+    bool Check(std::string const& url, U const& v) {
+        auto p = this->Get(url);
+        return p != nullptr && p->GetValue<U>() == v;
+    };
+    template <typename URL>
+    DataTable& GetTable(URL const& url) {
+        return *Get(url)->as<DataTable>();
+    }
+    template <typename URL>
+    DataTable const& GetTable(URL const& url) const {
+        return *Get(url)->as<DataTable>();
+    }
+    void Parse(std::string const& str);
 
    protected:
     struct pimpl_s;
     std::shared_ptr<pimpl_s> m_pimpl_;
 };
+template <typename U>
+class DataTableAdapter : public DataTable, public U {
+   public:
+    DataTableAdapter() {}
+    ~DataTableAdapter() {}
 
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { U::Print(os, indent); };
+    virtual bool isTable() const { return true; };
+    virtual bool empty() const { return U::empty(); };
+    virtual bool has(std::string const& key) const { return U::has(key); }
+    virtual void foreach (std::function<void(std::string const& key, DataEntity const&)> const&) const {
+        UNIMPLEMENTED;
+    }
+    virtual void foreach (std::function<void(std::string const& key, DataEntity&)> const& fun) { UNIMPLEMENTED; }
+    virtual std::shared_ptr<DataEntity> find(std::string const& url) const { UNIMPLEMENTED; }
+    /**
+     *  set entity value to '''url'''
+     * @param url
+     * @return Returns a reference to the shared pointer of  the  modified entity, create parent
+     * '''table''' as needed.
+     */
+
+    virtual void Set(std::string const& key, std::shared_ptr<DataEntity> const& v) { U::Set(key, v); };
+    /**
+     *
+     * @param url
+     * @return Returns a reference to the shared pointer of  the entity with '''url'''.
+     *      If no such entity exists, create a light entity, create parent table as needed.
+     */
+    virtual std::shared_ptr<DataEntity> Get(std::string const& url) { UNIMPLEMENTED; }
+    virtual std::shared_ptr<DataEntity> Get(std::string const& url) const { UNIMPLEMENTED; };
+    virtual DataTable& GetTable(std::string const& url) { return Get(url + ".")->asTable(); }
+    virtual const DataTable& GetTable(std::string const& url) const { return Get(url + ".")->asTable(); }
+};
 }  // namespace data
 }  // namespace simpla
 

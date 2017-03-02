@@ -118,14 +118,15 @@ inline bool get_string(std::string* v, std::string const& other) {
  *
  *   This an implement of 'any' with m_data type description/serialization information
  */
+template <typename U>
 struct LightData : public DataEntity {
+    SP_OBJECT_HEAD(LightData<U>, DataEntity);
+
    private:
     struct PlaceHolder;
 
     template <typename>
     struct Holder;
-
-    SP_OBJECT_HEAD(LightData, DataEntity);
 
    public:
     LightData() : m_data_(nullptr) {}
@@ -135,12 +136,9 @@ struct LightData : public DataEntity {
         : m_data_(new Holder<typename std::remove_cv<typename std::decay<ValueType>::type>::type>(value)) {}
 
     explicit LightData(const char* value) : LightData(std::string(value)) {}
-
     LightData(const LightData& other) : m_data_(other.m_data_ == nullptr ? other.m_data_->clone() : nullptr) {}
-
     // Move constructor
     LightData(LightData&& other) : m_data_(nullptr) { other.m_data_.swap(m_data_); }
-
     LightData(PlaceHolder* p) : m_data_(p) {}
 
     // Perfect forwarding of ValueType
@@ -153,10 +151,8 @@ struct LightData : public DataEntity {
         : m_data_(new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType&&>(value))) {}
 
     virtual ~LightData() {}
-
     virtual DataType type_info() const { return DataType(); }
-
-    LightData& swap(LightData& other) {
+    virtual LightData& swap(LightData& other) {
         std::swap(m_data_, other.m_data_);
         return *this;
     }
@@ -181,16 +177,9 @@ struct LightData : public DataEntity {
     }
 
     virtual bool empty() const { return m_data_ == nullptr; }
-
     virtual bool isNull() const { return m_data_ == nullptr; }
-
     virtual void clear() { LightData().swap(*this); }
-
-    //    virtual void* data() { return m_data_->data(); }
-    //
-    //    virtual void const* data() const { return m_data_->data(); }
-
-    const std::type_info& type() const { return m_data_ ? m_data_->type() : typeid(void); }
+    virtual const std::type_info& type() const { return m_data_ ? m_data_->type() : typeid(void); }
 
     template <typename U, typename... Args>
     static LightData create(Args&&... args) {
@@ -200,7 +189,7 @@ struct LightData : public DataEntity {
     //----------------------------------------------------------------------------------------------
     // SimPla extent
 
-    operator bool() const { return m_data_ != nullptr; }
+    operator bool() const { return !empty(); }
     //
     //    void const *m_data() const { return m_attr_data_ != nullptr ? m_attr_data_->m_data() :
     //    nullptr; }
@@ -224,35 +213,35 @@ struct LightData : public DataEntity {
     }
 
     virtual bool isBoolean() const { return m_data_ != nullptr && m_data_->is_bool(); }
-
     virtual bool isIntegral() const { return m_data_ != nullptr && m_data_->is_integral(); }
-
     virtual bool isFloatingPoint() const { return m_data_ != nullptr && m_data_->is_floating_point(); }
-
     virtual bool is_string() const { return m_data_ != nullptr && m_data_->is_string(); }
 
     template <class U>
     bool as(U* v) const {
-        return m_data_ != nullptr && m_data_->as(v);
+        return m_data_ != nullptr && m_data_->GetValue(v);
     }
 
     template <class U>
     operator U() const {
-        return as<U>();
+        return GetValue<U>();
+    }
+    template <class U>
+    U& GetValue() {
+        return get<U>();
+    }
+    template <class U>
+    U const& GetValue() const {
+        return get<U>();
     }
 
     template <class U>
-    U const& as() const {
-        return LightData::get<U>();
-    }
-
-    template <class U>
-    U as(U const& def_v) const {
+    U GetValue(U const& def_v) const {
         if (!empty() && this->template is_same<U>()) {
             return dynamic_cast<Holder<U>*>(m_data_)->m_value_;
         } else {
             U res;
-            if (as(&res)) {
+            if (GetValue(&res)) {
                 return std::move(res);
             } else {
                 return def_v;
@@ -261,7 +250,7 @@ struct LightData : public DataEntity {
     }
 
     template <class U>
-    U as(U const& def_v) {
+    U GetValue(U const& def_v) {
         if (!empty() && this->template is_same<U>()) {
             return dynamic_cast<Holder<U>*>(m_data_)->m_value_;
         } else {
@@ -274,13 +263,13 @@ struct LightData : public DataEntity {
     U const& get() const {
         if (!is_same<U>()) { THROW_EXCEPTION_BAD_CAST(m_data_->type().name(), typeid(U).name()); }
 
-        return dynamic_cast<Holder<U>*>(m_data_.get())->m_value_;
+        return dynamic_cast<Holder<U> const*>(m_data_.get())->m_value_;
     }
 
     template <class U>
     U& get() {
         if (!is_same<U>()) { THROW_EXCEPTION_BAD_CAST(m_data_->type().name(), typeid(U).name()); }
-        return dynamic_cast<Holder<U>*>(m_data_)->m_value_;
+        return dynamic_cast<Holder<U>*>(m_data_.get())->m_value_;
     }
 
     virtual std::ostream& Print(std::ostream& os, int indent = 1) const {
@@ -343,7 +332,7 @@ struct LightData : public DataEntity {
         //        }
 
         template <class U>
-        bool as(U* v) const {
+        bool GetValue(U* v) const {
             bool success = true;
             if (is_same<U>()) {
                 *v = dynamic_cast<Holder<U> const*>(this)->m_value_;
@@ -437,15 +426,6 @@ struct LightData : public DataEntity {
     };
 
 };  // class LightData
-template <typename U>
-std::shared_ptr<DataEntity> make_shared_entity(U const& c,
-                                               ENABLE_IF(entity_traits<U>::type::value == DataEntity::LIGHT)) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<LightData>(c));
-}
-
-inline std::shared_ptr<DataEntity> make_shared_entity(char const* c) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<LightData>(std::string(c)));
-}
 
 }  // namespace data {
 }  // namespace simpla{

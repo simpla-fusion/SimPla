@@ -30,7 +30,7 @@ class PML : public engine::Worker {
 
     PML();
     virtual ~PML();
-    void SetCenterDomain(geometry::GeoObject const &){}
+    void SetCenterDomain(geometry::GeoObject const &) {}
     void Initialize();
     bool Update() { return false; }
 
@@ -38,23 +38,23 @@ class PML : public engine::Worker {
     //    virtual std::string getClassName() const { return class_name(); }
     //    static std::string class_name() { return "PML<" + traits::type_id<TM>::GetName() + ">"; }
 
-    field_type<EDGE> E{this, "E"};
-    field_type<FACE> B{this, "B"};
+    field_type<EDGE> E{this, "E", GLOBAL};
+    field_type<FACE> B{this, "B", GLOBAL};
 
-    field_type<EDGE> X10{this, SCRATCH}, X11{this, SCRATCH}, X12{this, SCRATCH};
-    field_type<FACE> X20{this, SCRATCH}, X21{this, SCRATCH}, X22{this, SCRATCH};
+    field_type<EDGE> X10{this, PRIVATE}, X11{this, PRIVATE}, X12{this, PRIVATE};
+    field_type<FACE> X20{this, PRIVATE}, X21{this, PRIVATE}, X22{this, PRIVATE};
 
     // alpha
-    field_type<VERTEX> a0{this, INPUT};
-    field_type<VERTEX> a1{this, INPUT};
-    field_type<VERTEX> a2{this, INPUT};
+    field_type<VERTEX> a0{this, INPUT | PRIVATE};
+    field_type<VERTEX> a1{this, INPUT | PRIVATE};
+    field_type<VERTEX> a2{this, INPUT | PRIVATE};
     // sigma
-    field_type<VERTEX> s0{this, INPUT};
-    field_type<VERTEX> s1{this, INPUT};
-    field_type<VERTEX> s2{this, INPUT};
+    field_type<VERTEX> s0{this, INPUT | PRIVATE};
+    field_type<VERTEX> s1{this, INPUT | PRIVATE};
+    field_type<VERTEX> s2{this, INPUT | PRIVATE};
 
-    field_type<EDGE> dX1{this, INPUT};
-    field_type<FACE> dX2{this, INPUT};
+    field_type<EDGE> dX1{this, INPUT | PRIVATE};
+    field_type<FACE> dX2{this, INPUT | PRIVATE};
 
    private:
     inline Real sigma_(Real r, Real expN, Real dB) {

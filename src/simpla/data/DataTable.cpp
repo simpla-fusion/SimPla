@@ -15,7 +15,7 @@ struct DataTable::pimpl_s {
 
     std::shared_ptr<DataEntity> insert(DataTable* t, std::string const& url, std::shared_ptr<DataEntity> p = nullptr);
 
-    DataEntity const* search(DataTable const*, std::string const& url);
+    std::shared_ptr<DataEntity> search(DataTable const*, std::string const& url);
 };
 
 std::shared_ptr<DataEntity> DataTable::pimpl_s::insert(DataTable* t, std::string const& url,
@@ -36,7 +36,7 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::insert(DataTable* t, std::string
                 p = res.first->second;
                 break;
             }
-            t = &res.first->second.get()->asTable();
+            t = res.first->second.get()->as<DataTable>();
             start_pos = pos + 1;
             continue;
         } else if (p != nullptr && p->isTable()) {
@@ -53,7 +53,7 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::insert(DataTable* t, std::string
     return p;
 };
 
-DataEntity const* DataTable::pimpl_s::search(DataTable const* t, std::string const& url) {
+std::shared_ptr<DataEntity> DataTable::pimpl_s::search(DataTable const* t, std::string const& url) {
     size_type start_pos = 0;
     size_type end_pos = url.size();
     while (start_pos < end_pos) {
@@ -63,19 +63,19 @@ DataEntity const* DataTable::pimpl_s::search(DataTable const* t, std::string con
             auto it = t->m_pimpl_->m_table_.find(url.substr(start_pos, pos - start_pos));
 
             if (pos == end_pos - 1) {
-                return it->second.get();
+                return it->second;
             } else if (it == t->m_pimpl_->m_table_.end() || !it->second->isTable()) {
                 break;
             }
 
-            t = &it->second->asTable();
+            t = it->second->as<DataTable>();
             start_pos = pos + 1;
             continue;
 
         } else {
             auto it = t->m_pimpl_->m_table_.find(url.substr(start_pos));
 
-            if (it != t->m_pimpl_->m_table_.end()) { return it->second.get(); }
+            if (it != t->m_pimpl_->m_table_.end()) { return it->second; }
 
             break;
         }
@@ -86,9 +86,7 @@ DataEntity const* DataTable::pimpl_s::search(DataTable const* t, std::string con
 
 DataTable::DataTable() : DataEntity(), m_pimpl_(new pimpl_s){};
 DataTable::DataTable(DataTable&& other) : m_pimpl_(other.m_pimpl_){};
-DataTable::DataTable(std::initializer_list<KeyValue> const& others) : DataTable() {
-    for (auto const& kv : others) { insert(kv); }
-}
+DataTable::DataTable(std::initializer_list<KeyValue> const& others) : DataTable() { SetValue(others); }
 DataTable::~DataTable(){};
 
 std::ostream& print_kv(std::ostream& os, int indent, std::string const& k, DataEntity const& v) {
@@ -124,30 +122,28 @@ bool DataTable::empty() const { return (m_pimpl_ != nullptr) && m_pimpl_->m_tabl
 
 bool DataTable::has(std::string const& url) const { return find(url) != nullptr; };
 
-DataTable* DataTable::CreateTable(std::string const& url) { return &(m_pimpl_->insert(this, url + ".")->asTable()); }
+DataTable& DataTable::CreateTable(std::string const& url) {
+    return *(m_pimpl_->insert(this, url + ".")->as<DataTable>());
+}
 
-void DataTable::SetValue(std::string const& url, std::shared_ptr<DataEntity> const& v) {
-    m_pimpl_->insert(this, url, v);
-};
+void DataTable::Set(std::string const& url, std::shared_ptr<DataEntity> const& v) { m_pimpl_->insert(this, url, v); };
 
-DataEntity& DataTable::Get(std::string const& url) { return *m_pimpl_->insert(this, url).get(); }
-const DataEntity& DataTable::Get(std::string const& url) const { return *m_pimpl_->search(this, url); }
-DataTable& DataTable::GetTable(std::string const& url) { return Get(url).asTable(); }
-const DataTable& DataTable::GetTable(std::string const& url) const { return Get(url).asTable(); }
+std::shared_ptr<DataEntity> DataTable::Get(std::string const& url) { return m_pimpl_->insert(this, url); }
+std::shared_ptr<DataEntity> DataTable::Get(std::string const& url) const { return m_pimpl_->search(this, url); }
 
+void DataTable::SetValue(KeyValue const& k_v) { Set(k_v.key(), k_v.value()); };
+void DataTable::SetValue(std::initializer_list<KeyValue> const& c) {
+    for (auto const& item : c) { SetValue(item); }
+}
 void DataTable::Parse(std::string const& str) {
     size_type start_pos = 0;
     size_type end_pos = str.size();
     while (start_pos < end_pos) {
         size_type pos0 = str.find(';', start_pos);
         if (pos0 == std::string::npos) { pos0 = end_pos; }
-
         std::string key = str.substr(start_pos, pos0 - start_pos);
-
         size_type pos1 = key.find('=');
-
         std::string value = "";
-
         if (pos1 != std::string::npos) {
             value = key.substr(pos1 + 1);
             key = key.substr(0, pos1);
@@ -158,36 +154,38 @@ void DataTable::Parse(std::string const& str) {
         } else {
             SetValue(key, value);
         }
-
         start_pos = pos0 + 1;
     }
 }
+std::shared_ptr<DataEntity> DataTable::find(std::string const& url) const { return m_pimpl_->search(this, url); };
+void DataTable::Merge(DataTable const& other) { UNIMPLEMENTED; }
 
-DataEntity const* DataTable::find(std::string const& url) const { return m_pimpl_->search(this, url); };
-void DataTable::merge(DataTable& other) {}
-
-DataEntity& DataTable::at(std::string const& url) {
-    DataEntity* res = const_cast<DataEntity*>(find(url));
-
-    if (res == nullptr) { OUT_OF_RANGE << "Can not find URL: [" << url << "] " << std::endl; }
-
-    return *res;
-};
-
-DataEntity const& DataTable::at(std::string const& url) const {
-    DataEntity const* res = find(url);
-    if (res == nullptr) { OUT_OF_RANGE << "Can not find URL: [" << url << "] " << std::endl; }
-    return *res;
-};
-
-void DataTable::foreach (std::function<void(std::string const&, DataEntity const&)> const& fun) const {
-    for (auto& item : m_pimpl_->m_table_) {
-        fun(item.first, *std::dynamic_pointer_cast<const DataEntity>(item.second));
-    }
-}
-
-void DataTable::foreach (std::function<void(std::string const&, DataEntity&)> const& fun) {
-    for (auto& item : m_pimpl_->m_table_) { fun(item.first, *item.second); }
-};
+// DataEntity& DataTable::at(std::string const& url) {
+//    DataEntity* res = const_cast<DataEntity*>(find(url));
+//
+//    if (res == nullptr) { OUT_OF_RANGE << "Can not find URL: [" << url << "] " << std::endl; }
+//
+//    return *res;
+//};
+//
+// DataEntity const& DataTable::at(std::string const& url) const {
+//    DataEntity const* res = find(url);
+//    if (res == nullptr) { OUT_OF_RANGE << "Can not find URL: [" << url << "] " << std::endl; }
+//    return *res;
+//};
+//
+// void DataTable::foreach (std::function<void(std::string const&, DataEntity const&)> const& fun) const {
+//    for (auto& item : m_pimpl_->m_table_) {
+//        fun(item.first, *std::dynamic_pointer_cast<const DataEntity>(item.second));
+//    }
+//}
+//
+// void DataTable::foreach (std::function<void(std::string const&, DataEntity&)> const& fun) {
+//    for (auto& item : m_pimpl_->m_table_) { fun(item.first, *item.second); }
+//};
+//
+// std::shared_ptr<DataEntity> CreateDataEntity(const std::initializer_list<simpla::data::KeyValue> const& kvs) {
+//    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(kvs));
+//};
 }
 }  // namespace simpla{namespace toolbox{

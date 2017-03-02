@@ -30,11 +30,13 @@ bool Model::Update() {
     return SPObject::Update();
 };
 box_type const& Model::bound_box() const { return m_pimpl_->m_bound_box_; };
-data::DataTable const& Model::GetMaterial(std::string const& s) const { return db().asTable("Material." + s); }
+data::DataTable const& Model::GetMaterial(std::string const& s) const {
+    return *db().at("Material." + s).as<DataTable>();
+}
 data::DataTable& Model::GetMaterial(std::string const& s) {
     std::string url = "Material." + s;
-    if (!db().has(url)) { db().CreateTable(url)->SetValue("GetGUID", std::hash<std::string>{}(s)); }
-    return db().asTable(url);
+    if (!db().has(url)) { db().CreateTable(url).SetValue("GUID", std::hash<std::string>{}(s)); }
+    return *db().at(url).as<DataTable>();
 }
 id_type Model::AddObject(geometry::GeoObject const& g_obj, id_type id) {
     Click();
@@ -43,7 +45,7 @@ id_type Model::AddObject(geometry::GeoObject const& g_obj, id_type id) {
 
 id_type Model::AddObject(geometry::GeoObject const& g_obj, std::string const& key) {
     Click();
-    m_pimpl_->m_g_obj_.emplace(GetMaterial(key).GetValue<id_type>("GetGUID"), g_obj);
+    m_pimpl_->m_g_obj_.emplace(GetMaterial(key).GetValue<id_type>("GUID"), g_obj);
 }
 size_type Model::RemoveObject(id_type id) {
     Click();
@@ -51,9 +53,8 @@ size_type Model::RemoveObject(id_type id) {
 }
 
 size_type Model::RemoveObject(std::string const& key) {
-    return RemoveObject(GetMaterial(key).GetValue<id_type>("GetGUID"));
+    return RemoveObject(GetMaterial(key).GetValue<id_type>("GUID"));
 }
-
 
 }  // namespace model
 }  // namespace simpla{;

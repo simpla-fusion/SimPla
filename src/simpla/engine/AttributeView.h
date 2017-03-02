@@ -22,42 +22,51 @@ class DataBlock;
 class AttributeView;
 
 /**
+ *  permissions
  *
+ *   r : readable
+ *   w : writable
+ *   c : create/delete
  *
- *
- *
- *
+ * [ 0:false 1:true ]
+ * 0b0 0 0 0 0
+ *   | | | | |------: is shared between different domain
+ *   | | | |--------: has ghost cell
+ *   | | |----------: PERSISTENT, if false then destroy data when AttributeView is destructed
+ *   | |------------: become unmodifiable after first write
+ *   |--------------: is coordinate
  */
 enum AttributeTag {
-    PRIVATE = 0b0000001,      //  only valid in one domain,  [ default no   ]
-    PUBLIC = 0b0000000,       //
-    SCRATCH = 0b0000010,      //  only valid in one  step,  [ default no   ]
-    PERSISTED = 0b0000000,    //
-    LOCAL = 0b0000101,        //  only valid in one mesh block,  do not update ghost points  [ default    no  ]
-    INPUT = 0b0001000,        //  can only be written once
-    COORDINATES = 0b0010000,  //  coordinate of mesh vertex
-
+    SCRATCH = 0,
+    SHARED = 1,            //
+    GHOSTED = 1 << 1,      //
+    PERSISTENT = 1 << 2,   //
+    INPUT = 1 << 3,        //  can only be written once
+    COORDINATES = 1 << 4,  //  coordinate of mesh vertex
+    GLOBAL = SHARED | GHOSTED | PERSISTENT,
+    PRIVATE = GHOSTED | PERSISTENT,
+    DEFAULT_ATTRIBUTE_TAG = GLOBAL
 };
-enum AttributeLockState { READ = 0b01, WRITE = 0b10 };
+enum AttributeState { READ = 0b01, WRITE = 0b10 };
 
 struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
-    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, AttributeTag TAG);
+    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int TAG = SCRATCH);
 
     template <typename... Args>
-    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, AttributeTag TAG,
-                  Args &&... args)
+    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int TAG, Args &&... args)
         : AttributeDesc(name_s, t_id, IFORM, DOF, TAG) {
-        db().SetValue(std::forward<Args>(args)...);
+        db().Set(std::forward<Args>(args)...);
     };
     ~AttributeDesc();
 
-    static id_type GenerateGUID(std::string const &s, std::type_info const &t_id, int IFORM, int DOF, AttributeTag tag);
+    static id_type GenerateGUID(std::string const &s, std::type_info const &t_id, int IFORM, int DOF,
+                                int tag = SCRATCH);
 
     std::string const &GetName() const { return m_name_; }
     const std::type_info &GetValueTypeInfo() const { return m_value_type_info_; }
     int GetIFORM() const { return m_iform_; }
     int GetDOF() const { return m_dof_; }
-    AttributeTag GetTag() const { return m_tag_; }
+    int GetTag() const { return m_tag_; }
     id_type GetGUID() const { return m_GUID_; }
     data::DataTable &db() { return m_db_; }
     data::DataTable const &db() const { return m_db_; }
@@ -67,7 +76,7 @@ struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
     const std::type_info &m_value_type_info_;
     int m_iform_;
     int m_dof_;
-    AttributeTag m_tag_;
+    int m_tag_;
     id_type m_GUID_;
     data::DataTable m_db_;
 };
@@ -168,12 +177,13 @@ struct AttributeView : public SPObject, public concept::Printable {
     virtual ~AttributeView();
 
    protected:
-    void Config(std::string const &s = "unnamed", AttributeTag t = SCRATCH);
-    void Config(AttributeTag t);
+    void Config(std::string const &s, int t = DEFAULT_ATTRIBUTE_TAG);
+    void Config(int t = SCRATCH);
+
     template <typename... Others>
-    void Config(std::string const &s, AttributeTag t, Others &&... others) {
+    void Config(std::string const &s, int t, Others &&... others) {
         Config(s, t);
-        db().SetValue(std::forward<Others>(others)...);
+        db().Set(std::forward<Others>(others)...);
     };
 
    public:
@@ -182,7 +192,7 @@ struct AttributeView : public SPObject, public concept::Printable {
     void Register(AttributeDict &db);
     AttributeDesc &description() const;
     id_type GetGUID() const;
-    AttributeTag GetTag() const;
+    int GetTag() const;
     std::string const &GetName() const;
     virtual int GetIFORM() const;
     virtual int GetDOF() const;

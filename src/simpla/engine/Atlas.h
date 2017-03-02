@@ -13,7 +13,7 @@
 #include <simpla/concept/Serializable.h>
 #include <simpla/toolbox/Log.h>
 #include <type_traits>
-
+#include "SPObject.h"
 #include "MeshBlock.h"
 
 namespace simpla {
@@ -103,9 +103,9 @@ class Atlas : public SPObject, public concept::Printable {
     //    RectMesh const *Connect(std::shared_ptr<RectMesh> const &p_m, RectMesh const *hint = nullptr);
     //    void link(id_type src, id_type dest){};
     //
-    //    //    std::SetValue<id_type> &level(int l);
+    //    //    std::Set<id_type> &level(int l);
     //    //
-    //    //    std::SetValue<id_type> const &level(int l) const;
+    //    //    std::Set<id_type> const &level(int l) const;
     //    template <typename TM, typename... Args>
     //    RectMesh const *add(Args &&... args) {
     //        return static_cast<TM const *>(Connect(std::make_shared<TM>(std::forward<Args>(args)...), nullptr));

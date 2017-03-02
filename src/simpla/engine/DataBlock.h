@@ -114,17 +114,17 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //{
 // public:
 //    typedef DataBlockArray<TV, IFORM, DOF> block_array_type;
-//    typedef data::DataEntityNDArray<TV> data_entity_type;
+//    typedef data::DataEntityNDArray<TV> data_entity_traits;
 //    typedef TV value_type;
 //
 // SP_OBJECT_HEAD(block_array_type, DataBlock);
 //
 //    template<typename ...Args>
-//    explicit DataBlockArray(Args &&...args) : DataBlock(), data_entity_type(std::forward<Args>(args)...) {}
+//    explicit DataBlockArray(Args &&...args) : DataBlock(), data_entity_traits(std::forward<Args>(args)...) {}
 //
 //    virtual ~DataBlockArray() {}
 //
-//    virtual bool isValid() { return data_entity_type::isValid(); };
+//    virtual bool isValid() { return data_entity_traits::isValid(); };
 //
 //    virtual std::type_info const &GetValueTypeInfo() const { return typeid(value_type); };
 //
@@ -141,7 +141,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //        os << " type = \'" << GetValueTypeInfo().GetName() << "\' "
 //           << ", entity type = " << static_cast<int>(GetIFORM())
 //           << ", GetDataBlock = {";
-//        data_entity_type::Print(os, indent + 1);
+//        data_entity_traits::Print(os, indent + 1);
 //        os << "}";
 //        return os;
 //    }
@@ -171,37 +171,37 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //    virtual void Intialize()
 //    {
 //        base_type::Intialize();
-//        data_entity_type::Intialize();
+//        data_entity_traits::Intialize();
 //    };
 //
-//    virtual void PreProcess() { data_entity_type::update(); };
+//    virtual void PreProcess() { data_entity_traits::update(); };
 //
-//    virtual void update() { data_entity_type::update(); };
+//    virtual void update() { data_entity_traits::update(); };
 //
 //    virtual void Finalizie()
 //    {
-//        data_entity_type::Finalizie();
+//        data_entity_traits::Finalizie();
 //        base_type::Finalizie();
 //    };
 //
-//    virtual void clear() { data_entity_type::clear(); }
+//    virtual void clear() { data_entity_traits::clear(); }
 //
 //    virtual void Sync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
 //
 //
 //    template<typename ...Args>
-//    value_type &get(Args &&...args) { return data_entity_type::Get(std::forward<Args>(args)...); }
+//    value_type &get(Args &&...args) { return data_entity_traits::Get(std::forward<Args>(args)...); }
 //
 //    template<typename ...Args>
-//    value_type const &Get(Args &&...args) const { return data_entity_type::get(std::forward<Args>(args)...); }
+//    value_type const &Get(Args &&...args) const { return data_entity_traits::get(std::forward<Args>(args)...); }
 //
 //
 //    EntityIdRange Range() const
 //    {
 //        EntityIdRange res;
 //        index_tuple lower, upper;
-//        lower = data_entity_type::index_lower();
-//        upper = data_entity_type::index_upper();
+//        lower = data_entity_traits::index_lower();
+//        upper = data_entity_traits::index_upper();
 //        res.append(MeshEntityIdCoder::make_range(lower, upper, GetIFORM()));
 //        return res;
 //    }
