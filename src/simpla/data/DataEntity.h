@@ -90,8 +90,14 @@ struct DataEntityLight : public DataEntity {
 namespace traits {
 template <typename U>
 struct data_cast<U, std::enable_if_t<traits::data_entity_traits<U>::value == traits::LIGHT>> {
-    static U& value(DataEntity& v) { return v.as<DataEntityLight<U>>()->GetValue(); }
-    static U const& value(DataEntity const& v) { return v.as<DataEntityLight<U>>()->GetValue(); };
+    static U& value(DataEntity& v) {
+        ASSERT(v.isA(typeid(DataEntityLight<U>)));
+        return v.as<DataEntityLight<U>>()->GetValue();
+    }
+    static U const& value(DataEntity const& v) {
+        ASSERT(v.isA(typeid(DataEntityLight<U>)));
+        return v.as<DataEntityLight<U>>()->GetValue();
+    };
 
     static std::shared_ptr<DataEntity> create(U const& c) {
         return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight<U>>(c));
