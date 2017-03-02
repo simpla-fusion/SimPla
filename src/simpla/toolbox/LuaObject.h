@@ -339,13 +339,10 @@ class LuaObject : public concept::Printable {
      *
      *  \note Lua.org:createtable
      */
-    inline LuaObject new_table(std::string const &name, unsigned int narr = 0, unsigned int nrec = 0);
+    LuaObject new_table(std::string const &name, unsigned int narr = 0, unsigned int nrec = 0);
 };
 
-inline std::ostream &operator<<(std::ostream &os, LuaObject const &obj) {
-    os << obj.as<std::string>();
-    return os;
-}
+std::ostream &operator<<(std::ostream &os, LuaObject const &obj);
 }  // namespace toolbox
 
 namespace traits {

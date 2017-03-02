@@ -1,7 +1,7 @@
 //
 // Created by salmon on 16-10-28.
 //
-#include "DataTableAdapterLua.h"
+#include "DataTableLua.h"
 
 namespace simpla { namespace data
 {

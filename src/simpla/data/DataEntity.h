@@ -50,11 +50,7 @@ struct DataEntity : public concept::Printable {
     virtual void DeepCopy(DataEntity const& other) { UNIMPLEMENTED; }
 
     template <typename U>
-    U& GetValue() {
-        return traits::data_cast<U>::value(*this);
-    }
-    template <typename U>
-    U const& GetValue() const {
+    U GetValue() const {
         return traits::data_cast<U>::value(*this);
     }
     template <typename U>

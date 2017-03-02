@@ -122,8 +122,10 @@ bool DataTable::empty() const { return (m_pimpl_ != nullptr) && m_pimpl_->m_tabl
 
 bool DataTable::has(std::string const& url) const { return find(url) != nullptr; };
 
-DataTable& DataTable::CreateTable(std::string const& url) {
-    return *(m_pimpl_->insert(this, url + ".")->as<DataTable>());
+std::shared_ptr<DataTable> DataTable::CreateTable(std::string const& url) {
+    auto p = m_pimpl_->insert(this, url + ".");
+    ASSERT(p->isTable());
+    return std::dynamic_pointer_cast<DataTable>(p);
 }
 
 void DataTable::Set(std::string const& url, std::shared_ptr<DataEntity> const& v) { m_pimpl_->insert(this, url, v); };
@@ -135,6 +137,7 @@ void DataTable::SetValue(KeyValue const& k_v) { Set(k_v.key(), k_v.value()); };
 void DataTable::SetValue(std::initializer_list<KeyValue> const& c) {
     for (auto const& item : c) { SetValue(item); }
 }
+void DataTable::ParseFile(std::string const& str) { UNIMPLEMENTED; }
 void DataTable::Parse(std::string const& str) {
     size_type start_pos = 0;
     size_type end_pos = str.size();

@@ -33,7 +33,8 @@ class DataTable : public DataEntity {
     // DataTable(DataTable const&);
     DataTable(DataTable&&);
     virtual ~DataTable();
-
+    virtual void Parse(std::string const& str);
+    virtual void ParseFile(std::string const& str);
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual bool isTable() const { return true; };
     virtual bool empty() const;
@@ -59,7 +60,7 @@ class DataTable : public DataEntity {
      */
     virtual std::shared_ptr<DataEntity> Get(std::string const& url);
     virtual std::shared_ptr<DataEntity> Get(std::string const& url) const;
-    virtual DataTable& CreateTable(std::string const& url);
+    virtual std::shared_ptr<DataTable> CreateTable(std::string const& url);
 
     /**
      *
@@ -122,7 +123,6 @@ class DataTable : public DataEntity {
     DataTable const& GetTable(URL const& url) const {
         return *Get(url)->as<DataTable>();
     }
-    void Parse(std::string const& str);
 
    protected:
     struct pimpl_s;
