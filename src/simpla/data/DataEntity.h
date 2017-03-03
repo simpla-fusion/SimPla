@@ -8,101 +8,63 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/engine/SPObjectHead.h>
 #include <simpla/mpl/integer_sequence.h>
+#include <simpla/toolbox/Any.h>
 #include <simpla/toolbox/Log.h>
 #include <typeindex>
 namespace simpla {
 namespace data {
 
 /** @ingroup data */
-struct DataEntity;
 
-template <typename U>
-struct DataEntityLight;
-namespace traits {
-enum { LIGHT, HEAVY, TABLE };
-template <typename U>
-struct data_entity_traits {
-    static constexpr int value = LIGHT;
-};
-template <typename T, typename Enable = void>
-struct data_cast {};
-
-}  // namespace traits{
-   /**
-    * @brief primary object of data
-    */
+/**
+ * @brief primary object of data
+ */
 struct DataEntity : public concept::Printable {
     SP_OBJECT_BASE(DataEntity);
 
    public:
     DataEntity() {}
+    template <typename T>
+    DataEntity(T const& v) : m_data_(v) {}
+    template <typename T>
+    DataEntity(T&& v) : m_data_(v) {}
     DataEntity(DataEntity const& other) {}
     DataEntity(DataEntity&& other) {}
     virtual ~DataEntity() {}
 
     virtual bool isNull() const { return !(isTable() | isLight() | isHeavy()); }
     virtual bool isTable() const { return false; };
-    virtual bool isLight() const { return false; };
+    virtual bool isLight() const { return true; };
     virtual bool isHeavy() const { return false; };
 
-    virtual std::shared_ptr<DataEntity> Copy() const { return nullptr; };
-    virtual std::shared_ptr<DataEntity> Move() { return nullptr; };
-    virtual void DeepCopy(DataEntity const& other) { UNIMPLEMENTED; }
+    //    virtual void* data() = 0;
+    //    virtual void const* data() const = 0;
 
-    template <typename U>
-    U GetValue() const {
-        return traits::data_cast<U>::value(*this);
-    }
+    virtual void clear() { m_data_.clear(); }
+    virtual bool empty() const { return m_data_.empty(); }
+    virtual std::type_info const& type() const { return m_data_.type(); }
+
     template <typename U>
     bool isEqualTo(U const& v) const {
-        return traits::data_cast<U>::value(*this) == v;
+        return GetValue<U>() == v;
     }
-};
-template <typename U>
-struct DataEntityLight : public DataEntity {
-    typedef U value_type;
-    SP_OBJECT_HEAD(DataEntityLight<U>, DataEntity);
-
-   public:
-    DataEntityLight(U const& u) : m_value_(u){};
-    DataEntityLight(U&& u) : m_value_(u){};
-    virtual ~DataEntityLight() {}
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
-        os << m_value_;
-        return os;
-    };
-    virtual bool isLight() const { return true; };
-    value_type& GetValue() { return m_value_; }
-    value_type const& GetValue() const { return m_value_; }
-
-    virtual std::shared_ptr<DataEntity> Copy() const {
-        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight<value_type>>(m_value_));
-    };
-    virtual std::shared_ptr<DataEntity> Move() {
-        return std::dynamic_pointer_cast<DataEntity>(
-            std::make_shared<DataEntityLight<value_type>>(std::move(m_value_)));
+    template <typename U>
+    U GetValue() const {
+        return toolbox::AnyCast<U>(*this);
     }
 
    private:
-    value_type m_value_;
+    toolbox::Any m_data_;
 };
 
-namespace traits {
 template <typename U>
-struct data_cast<U, std::enable_if_t<traits::data_entity_traits<U>::value == traits::LIGHT>> {
-    static U& value(DataEntity& v) {
-        ASSERT(v.isA(typeid(DataEntityLight<U>)));
-        return v.as<DataEntityLight<U>>()->GetValue();
-    }
-    static U const& value(DataEntity const& v) {
-        ASSERT(v.isA(typeid(DataEntityLight<U>)));
-        return v.as<DataEntityLight<U>>()->GetValue();
-    };
+std::shared_ptr<DataEntity> make_shared_entity(U const& u) {
+    return std::make_shared<DataEntity>(u);
+}
 
-    static std::shared_ptr<DataEntity> create(U const& c) {
-        return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityLight<U>>(c));
-    }
-};
+template <typename U>
+DataEntity make_entity(U const& u) {
+    return DataEntity(u);
 }
 }  // namespace data {
 }  // namespace simpla {

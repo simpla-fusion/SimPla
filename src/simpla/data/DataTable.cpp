@@ -36,7 +36,7 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::insert(DataTable* t, std::string
                 p = res.first->second;
                 break;
             }
-            t = res.first->second.get()->as<DataTable>();
+            t = &(res.first->second.get()->as<DataTable>());
             start_pos = pos + 1;
             continue;
         } else if (p != nullptr && p->isTable()) {
@@ -68,7 +68,7 @@ std::shared_ptr<DataEntity> DataTable::pimpl_s::search(DataTable const* t, std::
                 break;
             }
 
-            t = it->second->as<DataTable>();
+            t = &(it->second->as<DataTable>());
             start_pos = pos + 1;
             continue;
 
@@ -91,12 +91,12 @@ DataTable::~DataTable(){};
 
 std::ostream& print_kv(std::ostream& os, int indent, std::string const& k, DataEntity const& v) {
     if (v.isTable()) { os << std::endl << std::setw(indent + 1) << " "; }
-    os << k << " = " << v;
+//    os << k << " = " << v;
     return os;
 }
 
 std::ostream& DataTable::Print(std::ostream& os, int indent) const {
-    if (!DataEntity::isNull()) { DataEntity::Print(os, indent + 1); }
+//    if (!DataEntity::isNull()) { DataEntity::Print(os, indent + 1); }
 
     if (!m_pimpl_->m_table_.empty()) {
         auto it = m_pimpl_->m_table_.begin();

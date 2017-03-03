@@ -77,7 +77,7 @@ class DataTable : public DataEntity {
 
     template <typename U>
     void SetValue(std::string const& url, U const& v) {
-        Set(url, traits::data_cast<U>::create(v));
+        Set(url, make_shared_entity(v));
     }
 
     template <typename U>
