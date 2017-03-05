@@ -7,7 +7,7 @@
 
 #include <simpla/data/DataEntity.h>
 #include <simpla/data/DataTable.h>
-#include "LuaObject.h"
+#include "simpla/toolbox/LuaObject.h"
 namespace simpla {
 namespace data {
 class DataEntityLua : public DataEntity {

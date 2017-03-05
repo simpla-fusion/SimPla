@@ -6,11 +6,29 @@
 #define SIMPLA_ANY_H
 
 #include <experimental/any>
+#include "Log.h"
+
 namespace simpla {
 namespace toolbox {
 typedef std::experimental::any Any;
 template <typename U>
-U AnyCast(Any const& a) {
+U const& AnyCast(Any const& a) {
+    ASSERT(!a.empty());
+    return *std::experimental::any_cast<U>(&a);
+};
+template <typename U>
+U const* AnyCast(Any const* a) {
+    ASSERT(a != nullptr && !a->empty());
+    return std::experimental::any_cast<U>(a);
+};
+template <typename U>
+U& AnyCast(Any& a) {
+    ASSERT(!a.empty());
+    return *std::experimental::any_cast<U>(&a);
+};
+template <typename U>
+U* AnyCast(Any* a) {
+    ASSERT(a != nullptr && !a->empty());
     return std::experimental::any_cast<U>(a);
 };
 template <typename U>
