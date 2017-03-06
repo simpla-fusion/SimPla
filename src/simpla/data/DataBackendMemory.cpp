@@ -9,7 +9,7 @@ struct DataBackendMemory::pimpl_s {
     std::map<id_type, KeyValue> m_table_;
 
     std::shared_ptr<DataTable> CreateTable() const {
-        return std::make_shared<DataTable>(static_cast<DataBackend*>(new DataBackendMemory));
+        return std::make_shared<DataTable>(std::make_shared<DataBackendMemory>());
     }
 
     id_type Hash(std::string const& s) const { return std::hash<std::string>()(s); }
@@ -36,7 +36,7 @@ std::pair<KeyValue*, std::string> DataBackendMemory::pimpl_s::Traversal(std::str
         } else {
             auto it = t->find(sub_id);
             if (it == t->end() && create_if_not_exist) {
-                auto t_table = new DataBackendMemory;
+                auto t_table = std::make_shared<DataBackendMemory>() ;
                 it = t->emplace(sub_id, KeyValue{sub_k, std::make_shared<DataTable>(t_table)}).first;
                 t = &t_table->m_pimpl_->m_table_;
             } else if (it->second.second->isTable() &&
@@ -53,7 +53,9 @@ std::pair<KeyValue*, std::string> DataBackendMemory::pimpl_s::Traversal(std::str
     return std::make_pair(p, url.substr(0, start_pos));
 };
 
-DataBackendMemory::DataBackendMemory() : m_pimpl_(new pimpl_s) {}
+DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& status) : m_pimpl_(new pimpl_s) {
+    if (url != "") { Open(url, status); }
+}
 DataBackendMemory::~DataBackendMemory() {}
 std::ostream& print_kv(std::ostream& os, int indent, KeyValue const& v) {
     if (v.second->isTable()) { os << std::endl << std::setw(indent + 1) << " "; }
@@ -85,32 +87,32 @@ std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const {
 };
 
 bool DataBackendMemory::empty() const { return m_pimpl_->m_table_.empty(); };
-void DataBackendMemory::clear() { m_pimpl_->m_table_.clear(); };
-void DataBackendMemory::reset() { m_pimpl_->m_table_.clear(); };
-DataTable* DataBackendMemory::CreateTable(std::string const& url) {
+void DataBackendMemory::Clear() { m_pimpl_->m_table_.clear(); };
+void DataBackendMemory::Reset() { m_pimpl_->m_table_.clear(); };
+std::shared_ptr<DataTable> DataBackendMemory::CreateTable(std::string const& url) {
     auto res = m_pimpl_->Traversal(url, true);
     if (res.first == nullptr || !res.first->second->isTable()) {
         RUNTIME_ERROR << " Error: can not create table! [ url:" << res.second << "]" << std::endl;
     }
-    return static_cast<DataTable*>(res.first->second.get());
+    return std::dynamic_pointer_cast<DataTable>(res.first->second);
 }
-DataEntity* DataBackendMemory::Set(std::string const& url, std::shared_ptr<DataEntity> const& v) {
+std::shared_ptr<DataEntity> DataBackendMemory::Set(std::string const& url, std::shared_ptr<DataEntity> const& v) {
     auto res = m_pimpl_->Traversal(url, true);
     if (res.first != nullptr) {
         res.first->second = v;
     } else {
         RUNTIME_ERROR << " Error: can not insert entity at [ url:" << res.second << "]" << std::endl;
     }
-    return res.first->second.get();
+    return res.first->second;
 };
 
-DataEntity* DataBackendMemory::Get(std::string const& url) {
+std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) {
     auto res = m_pimpl_->Traversal(url, false);
-    return (res.first == nullptr) ? nullptr : res.first->second.get();
+    return (res.first == nullptr) ? nullptr : res.first->second;
 }
-DataEntity const* DataBackendMemory::Get(std::string const& url) const {
+std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const {
     auto res = const_cast<pimpl_s*>(m_pimpl_.get())->Traversal(url, false);
-    return (res.first == nullptr) ? nullptr : const_cast<DataEntity const*>(res.first->second.get());
+    return (res.first == nullptr) ? nullptr : res.first->second;
 }
 bool DataBackendMemory::Erase(std::string const& url) { return false; }
 void DataBackendMemory::Open(std::string const& url, std::string const& status) { UNIMPLEMENTED; }

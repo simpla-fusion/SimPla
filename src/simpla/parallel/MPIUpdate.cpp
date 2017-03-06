@@ -334,7 +334,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //		MPI_CALL(MPI_Waitall(requests.size(), const_cast<MPI_Request *>(&(requests[0])),
 //MPI_STATUSES_IGNORE));
 //
-//		requests.clear();
+//		requests.Clear();
 //	}
 //}
 //
@@ -433,7 +433,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //		size_t const *m_ghost_width_,
 //		std::vector<dist_sync_connection> *dist_connect)
 //{
-//	dist_connect->clear();
+//	dist_connect->Clear();
 //
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;

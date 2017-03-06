@@ -184,7 +184,7 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //        base_type::Finalizie();
 //    };
 //
-//    virtual void clear() { data_entity_traits::clear(); }
+//    virtual void Clear() { data_entity_traits::Clear(); }
 //
 //    virtual void Sync(std::shared_ptr<DataBlock>, bool only_ghost = true) { UNIMPLEMENTED; };
 //

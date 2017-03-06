@@ -161,7 +161,7 @@ int main{
 //	auto f = make_field<Real>(domain);
 //
 //
-//	f.clear();
+//	f.Clear();
 //
 //	auto r=model.SelectByRectangle( domain, TestFixture::points[0],TestFixture::points[1]);
 //
@@ -225,7 +225,7 @@ int main{
 //
 //	auto f = make_field<Real>(domain);
 //
-//	f.clear();
+//	f.Clear();
 //	f=0;
 //	typename TestFixture::coordinate_tuple v0, v1, v2, v3;
 //	for (int i = 0; i < TestFixture::ndims; ++i)
@@ -270,7 +270,7 @@ int main{
 //
 //	model.Set( model.SelectByPoints(vertex_domain, TestFixture::points), "Vacuum");
 //
-//	f.clear();
+//	f.Clear();
 //
 //	for (auto s : model.SelectByMaterial(domain, "Vacuum"))
 //	{

@@ -38,7 +38,7 @@ std::shared_ptr<toolbox::IOStream> create_from_output_url(std::string const &url
 //void close()
 //{
 //    SingletonHolder<std::unique_ptr<toolbox::IOStream>>::instance()->close();
-//    SingletonHolder<std::unique_ptr<toolbox::IOStream>>::instance().reset(nullptr);
+//    SingletonHolder<std::unique_ptr<toolbox::IOStream>>::instance().Reset(nullptr);
 //}
 //
 //IOStream &global()

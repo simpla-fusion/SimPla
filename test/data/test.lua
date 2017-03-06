@@ -10,3 +10,4 @@ TWOPI = PI * 2
 k_B = 1.3806488e-23 --Boltzmann_constant
 epsilon0 = 8.8542e-12
 AAA = 199
+CCC = {c = "3",d = 5}

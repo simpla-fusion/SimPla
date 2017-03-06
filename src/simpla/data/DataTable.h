@@ -65,12 +65,14 @@ class DataTable : public DataEntity {
     SP_OBJECT_BASE(DataTable);
 
    public:
-    DataTable(DataBackend* p = nullptr);
+    DataTable(std::shared_ptr<DataBackend> p);
+    DataTable(std::string const& url = "", std::string const& status = "");
     DataTable(DataTable const&);
     DataTable(DataTable&&);
     ~DataTable();
-
+    void Update();
     void swap(DataTable& other);
+
     DataTable& operator=(DataTable const& other) {
         DataTable(other).swap(*this);
         return *this;
@@ -90,12 +92,12 @@ class DataTable : public DataEntity {
     void Close();
 
     bool empty() const;
-    void clear();
-    void reset();
-
-    DataTable* CreateTable(std::string const& url);
+    void Clear();
+    void Reset();
 
     bool Erase(std::string const& k);
+    std::shared_ptr<DataTable> CreateTable(std::string const& url);
+
     /**
      *  set entity value to '''url'''
      *  insert or assign
@@ -104,17 +106,17 @@ class DataTable : public DataEntity {
      * @param url
      * @return Returns a pointer to modified/inserted entity, create parent '''table''' as needed.
      */
-    DataEntity* Set(std::string const& k, std::shared_ptr<DataEntity> const& v);
+    std::shared_ptr<DataEntity> Set(std::string const& k, std::shared_ptr<DataEntity> const& v);
 
     /**
      * @param url
      * @return Returns a pointer to the shared pointer of  the entity with '''url'''.
      *      If no such entity exists, returns nullptr
      */
-    DataEntity* Get(std::string const& url);
-    DataEntity const* Get(std::string const& url) const;
+    std::shared_ptr<DataEntity> Get(std::string const& url);
+    std::shared_ptr<DataEntity> Get(std::string const& url) const;
 
-    DataEntity const* find(std::string const& url) const { return Get(url); };
+    std::shared_ptr<DataEntity> find(std::string const& url) const { return Get(url); };
 
     void Set(KeyValue const& c) { Set(c.first, c.second); };
     void Set(std::initializer_list<KeyValue> const& l) {
@@ -133,48 +135,50 @@ class DataTable : public DataEntity {
      *      If no such element exists, an exception of type std::out_of_range is thrown.
      */
     DataEntity const& at(std::string const& url) const {
-        auto p = Get(url);
+        std::shared_ptr<DataEntity> p = Get(url);
         if (p == nullptr) { RUNTIME_ERROR << "Can not find  entity [ url : " << url << "]" << std::endl; }
-        return *p;
+        return *p.get();
     }
     DataEntity& at(std::string const& url) {
-        auto p = Get(url);
+        std::shared_ptr<DataEntity> p = Get(url);
         if (p == nullptr) { RUNTIME_ERROR << "Can not find  entity [ url : " << url << "]" << std::endl; }
         return *p;
     };
 
     DataTable& GetTable(std::string const& url) {
-        DataEntity* p = Get(url);
+        auto p = Get(url);
         if (p == nullptr) {
             p = CreateTable(url);
         } else if (!p->isTable()) {
             RUNTIME_ERROR << "illegal convert! url:[" << url << "] is not a table !";
         }
-        return *static_cast<DataTable*>(p);
+        return *static_cast<DataTable*>(p.get());
     };
     DataTable const& GetTable(std::string const& url) const {
-        DataEntity const* p = Get(url);
+        auto p = Get(url);
         if (p == nullptr || !p->isTable()) { RUNTIME_ERROR << " url:[" << url << "] is not found or not a table !"; }
-        return *static_cast<DataTable const*>(p);
+        return *static_cast<DataTable const*>(p.get());
     };
 
     template <typename U>
     U GetValue(std::string const& url) const {
-        return at(url).GetValue<U>();
+        auto p = Get(url);
+        ASSERT(p != nullptr);
+        return p->GetValue<U>();
     }
     template <typename U>
     U GetValue(std::string const& url, U const& default_value) const {
-        auto p = find(url);
+        auto p = Get(url);
         return p == nullptr ? default_value : p->GetValue<U>();
     }
     template <typename U>
     U GetValue(std::string const& url, U const& default_value) {
-        DataEntity* p = Get(url);
+        auto p = Get(url);
         if (p == nullptr) { p = SetValue(url, default_value); }
         return p->GetValue<U>();
     }
     template <typename U>
-    DataEntity* SetValue(std::string const& url, U const& v) {
+    std::shared_ptr<DataEntity> SetValue(std::string const& url, U const& v) {
         return Set(url, make_data_entity(v));
     }
 
@@ -184,7 +188,7 @@ class DataTable : public DataEntity {
     }
 
    protected:
-    std::shared_ptr<DataBackend> m_backend_;
+    std::shared_ptr<DataBackend> m_backend_ = nullptr;
 };
 
 std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<KeyValue> const& u);

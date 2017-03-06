@@ -140,7 +140,7 @@ class LuaObject : public concept::Printable {
      */
     bool is_list() const;
     bool is_nTuple() const;
-    inline std::string get_typename() const;
+    std::string get_typename() const;
     void init();
     void parse_file(std::string const &filename);
     void parse_string(std::string const &str);

@@ -45,6 +45,7 @@ struct DataEntity : public concept::Printable {
     DataEntity(DataEntity&& other) = delete;
     virtual ~DataEntity() {}
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
+    virtual std::type_info const& type() const = 0;
 
     //    virtual void swap(DataEntity& other) = 0;
     //    DataEntity& operator=(DataEntity const& other) {
@@ -71,19 +72,9 @@ struct DataEntity : public concept::Printable {
     bool isNull() const { return !(isTable() | isLight() | isHeavy()); }
 
     virtual bool isTable() const { return false; };
-
     virtual bool isLight() const { return false; };
-
     virtual bool isHeavy() const { return false; };
-
-    //    virtual void* data() = 0;
-    //    virtual void const* data() const = 0;
-    //    virtual void reset() = 0;
-    //    virtual void clear() = 0;
-    //    virtual bool empty() const = 0;
-    virtual std::type_info const& type() const = 0;
-
-    virtual void* pointer() const { return nullptr; };
+//    virtual void* pointer() const { return nullptr; };
 
     template <typename U>
     bool isEqualTo(U const& v) const {
@@ -109,7 +100,7 @@ struct DataEntityAdapterBase : public DataEntity {
 
     virtual bool equal(U const& v) const { return value() == v; };
     virtual U value() const = 0;
-    virtual void* pointer() const = 0;
+    virtual U* pointer() const = 0;
 };
 template <typename U, typename Enable = void>
 struct DataEntityAdapter : public U, public DataEntityAdapterBase<U> {
@@ -122,7 +113,7 @@ struct DataEntityAdapter : public U, public DataEntityAdapterBase<U> {
     }
     virtual bool equal(U const& v) const { return *static_cast<U const*>(this) == v; }
     virtual U value() const { return *this; }
-    virtual void* pointer() const { return const_cast<U*>(static_cast<U const*>(this)); }
+    virtual U* pointer() const { return const_cast<U*>(static_cast<U const*>(this)); }
 };
 template <typename U>
 struct DataEntityAdapter<U, std::enable_if_t<std::is_arithmetic<U>::value>> : public DataEntityAdapterBase<U> {
@@ -135,7 +126,7 @@ struct DataEntityAdapter<U, std::enable_if_t<std::is_arithmetic<U>::value>> : pu
     }
     virtual bool equal(U const& v) const { return m_data_ == v; }
     virtual U value() const { return m_data_; }
-    virtual void* pointer() const { return &m_data_; }
+    virtual U* pointer() const { return &m_data_; }
 
    private:
     mutable U m_data_;
