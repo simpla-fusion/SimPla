@@ -196,8 +196,7 @@ struct nTuple_calculator {
     };
 
     template <typename... T, typename... Idx>
-    static decltype(auto) getValue(declare::Expression<tags::_nTuple_cross, T...> const& expr,
-                                    int s, Idx&&... others) {
+    static decltype(auto) getValue(declare::Expression<tags::_nTuple_cross, T...> const& expr, int s, Idx&&... others) {
         return getValue(std::get<0>(expr.m_args_), (s + 1) % 3, std::forward<Idx>(others)...) *
                    getValue(std::get<1>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) -
                getValue(std::get<0>(expr.m_args_), (s + 2) % 3, std::forward<Idx>(others)...) *
@@ -205,8 +204,8 @@ struct nTuple_calculator {
     }
 
     template <typename TOP, typename... Others, int... index, typename... Idx>
-    static decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr,
-                                         int_sequence<index...>, Idx&&... s) {
+    static decltype(auto) _invoke_helper(declare::Expression<TOP, Others...> const& expr, int_sequence<index...>,
+                                         Idx&&... s) {
         return ((expr.m_op_(getValue(std::get<index>(expr.m_args_), std::forward<Idx>(s)...)...)));
     }
 
@@ -318,8 +317,8 @@ TRes reduce(TRes init, TL const& lhs, TR const& rhs, TOP const& op, TReduction c
     static constexpr int N = std::max(traits::extent<TL>::value, traits::extent<TR>::value);
     TRes res = init;
     for (int i = 0; i < N; ++i) {
-        res = reduction(res, reduce(init, nTuple_calculator::getValue(lhs, i),
-                                    nTuple_calculator::getValue(rhs, i), op, reduction));
+        res = reduction(
+            res, reduce(init, nTuple_calculator::getValue(lhs, i), nTuple_calculator::getValue(rhs, i), op, reduction));
     }
 
     return res;
@@ -345,9 +344,8 @@ struct expr_parser<Real, declare::Expression<tags::_nTuple_dot, TL, TR>> {
         Real res = 0.0;
 
         for (int i = 0; i < N; ++i) {
-            res +=
-                static_cast<Real>(dot(nTuple_calculator::getValue(std::get<0>(expr.m_args_), i),
-                                      nTuple_calculator::getValue(std::get<1>(expr.m_args_), i)));
+            res += static_cast<Real>(dot(nTuple_calculator::getValue(std::get<0>(expr.m_args_), i),
+                                         nTuple_calculator::getValue(std::get<1>(expr.m_args_), i)));
         }
         return res;
     };

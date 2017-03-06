@@ -22,7 +22,7 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
         os << std::endl;
         os << std::setw(indent + 1) << " "
            << " Block = {";
-        //        m_pimpl_->m_mesh_block_->Print(os, indent + 1);
+        //        m_backend_->m_mesh_block_->Print(os, indent + 1);
         os << std::setw(indent + 1) << " "
            << "},";
     }
@@ -30,17 +30,17 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
     return os;
 };
 void MeshView::Connect(DomainView *b) {
-    //    if (m_pimpl_->m_domain_ != b) {
+    //    if (m_backend_->m_domain_ != b) {
     //        Disconnect();
-    //        m_pimpl_->m_domain_ = b;
+    //        m_backend_->m_domain_ = b;
     ////        if (b != nullptr) { b->SetMesh(this); }
     //    }
 }
 void MeshView::Disconnect() {
-    //    if (m_pimpl_->m_domain_ != nullptr && m_pimpl_->m_domain_->GetMesh() == this) {
-    //        m_pimpl_->m_domain_->SetMesh(nullptr);
+    //    if (m_backend_->m_domain_ != nullptr && m_backend_->m_domain_->GetMesh() == this) {
+    //        m_backend_->m_domain_->SetMesh(nullptr);
     //    }
-    //    m_pimpl_->m_domain_ = nullptr;
+    //    m_backend_->m_domain_ = nullptr;
 }
 void MeshView::OnNotify() { /*SetMeshBlock(GetDomainWithMaterial()->GetMeshBlock());*/
 }

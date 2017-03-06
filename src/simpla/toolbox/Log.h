@@ -410,6 +410,8 @@ std::string make_msg(Others const &... others) {
     }
 //
 //
+
+
 #define THROW_EXCEPTION_BAD_CAST(_FIRST_, _SECOND_) \
     { BAD_CAST << "Can not cast " << (_FIRST_) << " to " << (_SECOND_) << "" << std::endl; }
 //

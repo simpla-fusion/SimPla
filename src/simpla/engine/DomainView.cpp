@@ -31,10 +31,10 @@ DomainView::~DomainView() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { Detach(item); }
 }
 
-// Manager const *DomainView::GetManager(Manager *) const { return m_pimpl_->m_manager_; }
+// Manager const *DomainView::GetManager(Manager *) const { return m_backend_->m_manager_; }
 // void DomainView::SetManager(Manager *m) {
 //    concept::StateCounter::Click();
-//    m_pimpl_->m_manager_ = m;
+//    m_backend_->m_manager_ = m;
 //}
 
 /**
@@ -159,8 +159,8 @@ std::pair<Worker &, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w
 void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
     Click();
     UNIMPLEMENTED;
-    //    auto it = m_pimpl_->m_workers_.find(w);
-    //    if (it != m_pimpl_->m_workers_.end()) { m_pimpl_->m_workers_.Disconnect(it); }
+    //    auto it = m_backend_->m_workers_.find(w);
+    //    if (it != m_backend_->m_workers_.end()) { m_backend_->m_workers_.Disconnect(it); }
 };
 
 id_type DomainView::GetMeshBlockId() const { return m_pimpl_->m_patch_->GetMeshBlock()->GetGUID(); }

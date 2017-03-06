@@ -93,7 +93,7 @@ bool AttributeViewBundle::isModified() {
 bool AttributeViewBundle::Update() { return SPObject::Update(); }
 
 // void AttributeViewBundle::Register(AttributeDict *dbase) {
-//    for (auto &attr : m_pimpl_->m_attr_views_) { attr->RegisterDescription(dbase); }
+//    for (auto &attr : m_backend_->m_attr_views_) { attr->RegisterDescription(dbase); }
 //}
 DomainView const &AttributeViewBundle::GetDomain() const { return *m_pimpl_->m_domain_; }
 MeshView const &AttributeViewBundle::GetMesh() const { return m_pimpl_->m_domain_->GetMesh(); }

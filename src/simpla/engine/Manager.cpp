@@ -49,7 +49,7 @@ void Manager::Run(Real dt) {}
 bool Manager::Update() { return SPObject::Update(); };
 void Manager::Evaluate() {
     Update();
-    //    for (auto &item : m_pimpl_->m_atlas_) {}
+    //    for (auto &item : m_backend_->m_atlas_) {}
 };
 }
 }

@@ -63,17 +63,17 @@ void Atlas::Accept(std::function<void(MeshBlock const &)> const &fun, int level)
 std::map<id_type, MeshBlock> const &Atlas::GetBlockList(int level) const { return m_pimpl_->m_levels_[level]; };
 
 //
-// size_type Atlas::count(int level) const { return m_pimpl_->m_layer_[level].size(); }
+// size_type Atlas::count(int level) const { return m_backend_->m_layer_[level].size(); }
 //
-// void Atlas::max_level(int ml) { m_pimpl_->m_max_level_ = ml; }
+// void Atlas::max_level(int ml) { m_backend_->m_max_level_ = ml; }
 //
-// int Atlas::max_level() const { return m_pimpl_->m_max_level_; }
+// int Atlas::max_level() const { return m_backend_->m_max_level_; }
 //
-// bool Atlas::has(id_type id) const { return m_pimpl_->m_nodes_.find(id) != m_pimpl_->m_nodes_.end(); };
+// bool Atlas::has(id_type id) const { return m_backend_->m_nodes_.find(id) != m_backend_->m_nodes_.end(); };
 //
 // RectMesh *Atlas::find(id_type id) {
-//    auto it = m_pimpl_->m_nodes_.find(id);
-//    if (it != m_pimpl_->m_nodes_.end()) {
+//    auto it = m_backend_->m_nodes_.find(id);
+//    if (it != m_backend_->m_nodes_.end()) {
 //        return it->second.get();
 //    } else {
 //        return nullptr;
@@ -81,17 +81,17 @@ std::map<id_type, MeshBlock> const &Atlas::GetBlockList(int level) const { retur
 //}
 //
 // RectMesh const *Atlas::find(id_type id) const {
-//    auto it = m_pimpl_->m_nodes_.find(id);
-//    if (it != m_pimpl_->m_nodes_.end()) {
+//    auto it = m_backend_->m_nodes_.find(id);
+//    if (it != m_backend_->m_nodes_.end()) {
 //        return it->second.get();
 //    } else {
 //        return nullptr;
 //    }
 //}
 //
-// RectMesh *Atlas::at(id_type id) { return (m_pimpl_->m_nodes_.at(id)).get(); };
+// RectMesh *Atlas::at(id_type id) { return (m_backend_->m_nodes_.at(id)).get(); };
 //
-// RectMesh const *Atlas::at(id_type id) const { return (m_pimpl_->m_nodes_.at(id)).get(); };
+// RectMesh const *Atlas::at(id_type id) const { return (m_backend_->m_nodes_.at(id)).get(); };
 //
 // RectMesh const *Atlas::Connect(std::shared_ptr<RectMesh> const &p_m, RectMesh const *hint) {
 ////    m_pimpl_->m_nodes_.emplace(std::make_pair(p_m->id(), p_m));

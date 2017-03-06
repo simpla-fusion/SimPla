@@ -6,7 +6,7 @@
 # All text after a double hash (##) is considered a comment and is placed in
 # front of the TAG it is preceding.
 #
-# All text after a single hash (#) is considered a comment and will be ignored.
+# All text after a single Hash (#) is considered a comment and will be ignored.
 # The format is:
 # TAG = m_value_ [m_value_, ...]
 # For lists, items can also be appended using:

@@ -53,8 +53,8 @@ class MeshView : public AttributeViewBundle {
     //    }
     //    size_type size(int IFORM = VERTEX) const { return m_mesh_block_->number_of_entities(IFORM); }
     //    template <typename... Args>
-    //    auto hash(Args &&... args) const {
-    //        return m_mesh_block_->hash(std::forward<Args>(args)...);
+    //    auto Hash(Args &&... args) const {
+    //        return m_mesh_block_->Hash(std::forward<Args>(args)...);
     //    }
     //    template <typename... Args>
     //    auto pack(Args &&... args) const {

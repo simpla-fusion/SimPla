@@ -51,6 +51,8 @@ struct ArrayView : public concept::Printable {
    public:
     ArrayView() {}
 
+    ArrayView(simpla::traits::nested_initializer_list_t<value_type, NDIMS> v) { UNIMPLEMENTED; }
+
     template <typename... TID>
     explicit ArrayView(TID&&... idx) : m_data_(nullptr), m_data_holder_(nullptr) {
         ArrayView(std::forward<TID>(idx)...);

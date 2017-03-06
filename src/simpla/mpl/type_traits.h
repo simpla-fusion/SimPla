@@ -44,9 +44,8 @@ auto invoke_helper(Func&& func, Tup&& tup, int_sequence<index...>) {
 
 template <typename Func, typename Tup>
 auto invoke(Func&& func, Tup&& tup) {
-    return ((_impl::invoke_helper(
-        std::forward<Func>(func), std::forward<Tup>(tup),
-        make_int_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>())));
+    return ((_impl::invoke_helper(std::forward<Func>(func), std::forward<Tup>(tup),
+                                  make_int_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>())));
 }
 
 namespace traits {
@@ -133,8 +132,7 @@ struct remove_all_extents {
    public:
     typedef decltype(test<_T>(0)) _type;
 
-    typedef std::conditional_t<std::is_same<_type, no>::value, _T,
-                               typename remove_all_extents<_type, _Args>::type>
+    typedef std::conditional_t<std::is_same<_type, no>::value, _T, typename remove_all_extents<_type, _Args>::type>
         type;
 };
 
@@ -182,6 +180,33 @@ struct nested_initializer_list {
     typedef std::initializer_list<nested_initializer_list_t<V, N - 1>> type;
 };
 
+template <typename U>
+struct nested_initializer_list_traits {
+    static constexpr int number_of_levels = 0;
+    static void GetDims(U const& list, int* dims) {}
+};
+template <typename U>
+struct nested_initializer_list_traits<std::initializer_list<U>> {
+    static constexpr int number_of_levels = nested_initializer_list_traits<U>::number_of_levels + 1;
+    static void GetDims(std::initializer_list<U> const& list, size_t* dims) { dims[0] = list.size(); }
+};
+template <typename U>
+struct nested_initializer_list_traits<std::initializer_list<std::initializer_list<U>>> {
+    static constexpr int number_of_levels = nested_initializer_list_traits<U>::number_of_levels + 2;
+    static void GetDims(std::initializer_list<std::initializer_list<U>> const& list, size_t* dims) {
+        dims[0] = list.size();
+        size_t max_length = 0;
+        for (auto const& item : list) { max_length = (max_length < item.size()) ? item.size() : max_length; }
+        dims[1] = max_length;
+    }
+};
+//template <typename U>
+//struct nested_initializer_list_traits<std::initializer_list<std::initializer_list<std::initializer_list<U>>>> {
+//    static constexpr int number_of_levels = nested_initializer_list_traits<U>::number_of_levels + 3;
+//    static void GetDims(std::initializer_list<std::initializer_list<U>> const& list, size_t* dims) {
+//        static_assert(false, "UNIMPLEMENTED!");
+//    }
+//};
 template <int... I>
 struct assign_nested_initializer_list;
 
@@ -202,9 +227,7 @@ struct assign_nested_initializer_list<I0, I...> {
         auto it = rhs.begin();
         auto ie = rhs.end();
 
-        for (int i = 0; i < I0 && it != ie; ++i, ++it) {
-            assign_nested_initializer_list<I...>::apply(u[i], *it);
-        }
+        for (int i = 0; i < I0 && it != ie; ++i, ++it) { assign_nested_initializer_list<I...>::apply(u[i], *it); }
     }
 };
 
@@ -216,9 +239,7 @@ struct assign_nested_initializer_list<I0, I...> {
  *  For any other type, value is 0.
  */
 template <typename T, typename Idx = int>
-struct rank
-    : public int_const<(!is_indexable<T, Idx>::value) ? 0
-                                                      : 1 + rank<remove_extent<T, Idx>>::value> {};
+struct rank : public int_const<(!is_indexable<T, Idx>::value) ? 0 : 1 + rank<remove_extent<T, Idx>>::value> {};
 
 namespace _detail {
 template <bool F>
@@ -232,8 +253,7 @@ remove_all_extents_t<T, I0>& get_v(T& v, I0 const* s) {
 
 template <typename T, typename I0, typename... Idx>
 remove_extents_t<T, I0, Idx...>& get_v(T& v, I0 const& s0, Idx&&... idx) {
-    return _detail::remove_entent_v<concept::is_indexable<T, I0>::value>::get(
-        v, s0, std::forward<Idx>(idx)...);
+    return _detail::remove_entent_v<concept::is_indexable<T, I0>::value>::get(v, s0, std::forward<Idx>(idx)...);
 };
 
 namespace _detail {

@@ -547,9 +547,9 @@ Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator
 //
 //
 //template<typename P, typename M> template<typename Hash, typename TRange> void
-//Particle<P, M, V001>::Set(Hash const &hash, TRange const &v_r)
+//Particle<P, M, V001>::Set(Hash const &Hash, TRange const &v_r)
 //{
-//    parallel::parallel_for(v_r, [&](TRange const &r) { for (auto const &p: v_r) { Set(hash(p), p); }});
+//    parallel::parallel_for(v_r, [&](TRange const &r) { for (auto const &p: v_r) { Set(Hash(p), p); }});
 //};
 //
 //template<typename P, typename M>
