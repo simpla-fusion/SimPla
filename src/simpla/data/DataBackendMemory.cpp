@@ -87,27 +87,9 @@ std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const {
     return os;
 };
 DataBackend* DataBackendMemory::Copy() const { return new DataBackendMemory(*this); }
-
 bool DataBackendMemory::empty() const { return m_pimpl_->m_table_.empty(); };
 void DataBackendMemory::Clear() { m_pimpl_->m_table_.clear(); };
 void DataBackendMemory::Reset() { m_pimpl_->m_table_.clear(); };
-
-std::pair<DataEntity*, bool> DataBackendMemory::Insert(std::string const& k){
-
-};
-
-std::pair<DataEntity*, bool> DataBackendMemory::Insert(std::string const& url, DataEntity const& v,
-                                                       bool assign_is_exists) {
-    auto res = m_pimpl_->Traversal(url, true);
-    if (res.first != nullptr) {
-        res.first->second = v;
-    } else {
-        RUNTIME_ERROR << " Error: can not insert entity at [ url:" << res.second << "]" << std::endl;
-    }
-};
-DataEntity* DataBackendMemory::Find(std::string const& url) const {}
-
-bool DataBackendMemory::Erase(std::string const& url) { return false; }
 void DataBackendMemory::Open(std::string const& url, std::string const& status) { UNIMPLEMENTED; }
 void DataBackendMemory::Close() { UNIMPLEMENTED; };
 void DataBackendMemory::Flush() { UNIMPLEMENTED; };
@@ -127,5 +109,21 @@ void DataBackendMemory::Parse(std::string const& str) {
         start_pos = pos0 + 1;
     }
 }
+
+DataEntity DataBackendMemory::Get(std::string const& uri) {
+    auto it = m_pimpl_->m_table_.find(m_pimpl_->Hash(uri));
+    return std::move((it != m_pimpl_->m_table_.end()) ? DataEntity{} : it->second.second);
+}
+bool DataBackendMemory::Put(std::string const& uri, DataEntity&& v) {
+    return m_pimpl_->m_table_.insert(std::make_pair(m_pimpl_->Hash(uri), KeyValue{uri, std::forward<DataEntity>(v)}))
+        .second;
+}
+bool DataBackendMemory::Post(std::string const& uri, DataEntity&& v) {
+    return m_pimpl_->m_table_.insert(std::make_pair(m_pimpl_->Hash(uri), KeyValue{uri, std::forward<DataEntity>(v)}))
+        .second;
+}
+size_type DataBackendMemory::Delete(std::string const& uri) { return m_pimpl_->m_table_.erase(m_pimpl_->Hash(uri)); }
+size_t DataBackendMemory::Count(std::string const& uri) const { return m_pimpl_->m_table_.count(m_pimpl_->Hash(uri)); }
+
 }  // namespace data {
 }  // namespace simpla{

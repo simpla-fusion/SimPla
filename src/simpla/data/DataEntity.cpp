@@ -17,22 +17,22 @@ bool DataEntity::empty() const { return m_data_ == nullptr; }
 std::ostream& DataEntity::Print(std::ostream& os, int indent) const {
     return m_data_ == nullptr ? os : m_data_->Print(os, indent);
 }
-DataEntity& DataEntity::operator=(DataEntity const& other) {
+DataEntity & DataEntity::operator=(DataEntity const& other) {
     DataEntity(other).swap(*this);
     return *this;
 }
 
-DataEntity& DataEntity::operator[](std::string const& url) {
-    if (m_data_ == nullptr) {
-        m_data_ = new DataTable;
-    } else if (!m_data_->isA(typeid(DataTable))) {
-        RUNTIME_ERROR << "Data entity is not indexable!" << std::endl;
-    }
-    return *static_cast<DataTable*>(m_data_)->Insert(url).first;
-};
-DataEntity const& DataEntity::operator[](std::string const& url) const {
-    if (!m_data_->isA(typeid(DataTable))) { RUNTIME_ERROR << "Data entity is not indexable!" << std::endl; }
-    return (*static_cast<DataTable const*>(m_data_))[url];
-}
+//DataEntity DataEntity::operator[](std::string const& url) {
+//    if (m_data_ == nullptr) {
+//        m_data_ = new DataTable;
+//    } else if (!m_data_->isA(typeid(DataTable))) {
+//        RUNTIME_ERROR << "Data entity is not indexable!" << std::endl;
+//    }
+//    return static_cast<DataTable*>(m_data_)->Insert(url).first;
+//};
+//DataEntity DataEntity::operator[](std::string const& url) const {
+//    if (!m_data_->isA(typeid(DataTable))) { RUNTIME_ERROR << "Data entity is not indexable!" << std::endl; }
+//    return (*static_cast<DataTable const*>(m_data_))[url];
+//}
 }  // namespace get_mesh{
 }  // namespace simpla{

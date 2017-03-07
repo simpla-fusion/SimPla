@@ -16,6 +16,9 @@ namespace data {
 /**
  * @brief primary object of data
  */
+template <typename U, typename Enable = void>
+struct DataHolder;
+
 struct DataHolderBase {
     SP_OBJECT_BASE(DataHolderBase);
 
@@ -25,22 +28,32 @@ struct DataHolderBase {
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const = 0;
     virtual bool empty() const = 0;
     virtual DataHolderBase* Copy() const = 0;
-    virtual std::type_info const& type() = 0;
+    virtual std::type_info const& type() const = 0;
+
+    template <typename U>
+    U as() const {
+        return static_cast<DataHolder<U> const*>(this)->value();
+    }
+
+    template <typename U>
+    bool operator==(U const& other) const {
+        //        return static_cast<DataHolder<U> const*>(this)->equal(other);
+        return false;
+    }
 };
-template <typename U, typename Enable = void>
-struct DataHolder : public DataHolderBase {
+template <typename U>
+struct DataHolder<U> : public DataHolderBase {
     SP_OBJECT_HEAD(DataHolder<U>, DataHolderBase);
 
    public:
     DataHolder() {}
     DataHolder(U const& d) : m_value_(d) {}
-    DataHolder(U&& d) : m_value_(d) {}
+    DataHolder(U&& d) : m_value_(std::forward<U>(d)) {}
     ~DataHolder() {}
-    std::type_info const& type() { return typeid(U); };
     std::type_info const& type() const { return typeid(U); };
 
     std::ostream& Print(std::ostream& os, int indent = 0) const {
-        os << m_value_;
+        //        os << m_value_;
         return os;
     };
     this_type& operator=(U const& v) {
@@ -49,67 +62,49 @@ struct DataHolder : public DataHolderBase {
     }
     virtual bool empty() const { return false; }
     virtual DataHolderBase* Copy() const { return new DataHolder<U>(m_value_); };
-    virtual bool equal(U const& other) const { return other == m_value_; }
-
+    virtual bool equal(U const& other) const { return false; /* other == m_value_;*/ }
     virtual U value() const { return m_value_; }
-    virtual U const* pointer() const { return &m_value_; }
-    virtual U* pointer() { return &m_value_; }
 
    private:
     U m_value_;
 };
 
 struct DataEntity : public concept::Printable {
-    SP_OBJECT_BASE(DataEntity);
     DataHolderBase* m_data_ = nullptr;
 
    public:
     DataEntity(DataHolderBase* p = nullptr);
-    DataEntity(DataEntity const& other);
-    DataEntity(DataEntity&& other);
+    DataEntity(DataEntity const&);
+    DataEntity(DataEntity&&);
+
     virtual ~DataEntity();
 
-    template <typename U>
-    DataEntity(U const& u) : m_data_(new DataHolder<U>(u)){};
-    template <typename U>
-    DataEntity(U&& u) : m_data_(new DataHolder<U>(u)){};
+    //    template <typename U>
+    //    DataEntity(U const& u) : m_data_(new DataHolder<U>(u)){};
+    //    template <typename U>
+    //    DataEntity(U&& u) : m_data_(new DataHolder<U>(std::forward<U>(u))){};
 
-    std::type_info const& type() const;
     void swap(DataEntity& other);
     DataEntity& operator=(DataEntity const& other);
-    bool empty() const;
     std::ostream& Print(std::ostream& os, int indent = 0) const;
 
-    DataEntity& operator[](std::string const& key);
-    DataEntity const& operator[](std::string const& key) const;
-
-    template <typename U>
-    DataEntity& operator=(U const& other) {
-        DataEntity(other).swap(*this);
-        return *this;
-    }
-    template <typename U>
-    DataEntity& operator=(U&& other) {
-        DataEntity(other).swap(*this);
-        return *this;
-    }
+    bool empty() const;
+    std::type_info const& type() const;
 
     template <typename U>
     bool operator==(U const& v) const {
-        return (m_data_ != nullptr) && (m_data_->isA(typeid(U))) && static_cast<DataHolder<U> const*>(this)->equal(v);
+        return (!empty()) && (*m_data_ == v);
     }
 
     template <typename U>
-    U GetValue() const {
-        if (type() != typeid(U)) { THROW_EXCEPTION_BAD_CAST(type().name(), typeid(U).name()); }
-        return static_cast<DataHolder<U> const*>(m_data_)->value();
+    U as() const {
+        ASSERT(!empty());
+        return m_data_->as<U>();
     }
 
     template <typename U>
-    U GetValue(U const& default_value) const {
-        if (type() != typeid(U)) { THROW_EXCEPTION_BAD_CAST(type().name(), typeid(U).name()); }
-
-        return static_cast<DataHolder<U> const*>(m_data_)->value();
+    U as(U const& default_value) const {
+        return empty() ? default_value : as<U>();
     }
 };
 
@@ -119,9 +114,11 @@ DataEntity make_data_entity(U const& u) {
 }
 template <typename U>
 DataEntity make_data_entity(U&& u) {
-    return DataEntity(std::forward<U>(u));
+    return std::move(DataEntity(new DataHolder<U>(u)));
 }
-inline DataEntity make_data_entity(char const* u) { return DataEntity(std::string(u)); }
+inline DataEntity make_data_entity(char const* u) {
+    return std::move(DataEntity(new DataHolder<std::string>(std::string(u))));
+}
 
 }  // namespace data {
 }  // namespace simpla {

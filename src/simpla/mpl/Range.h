@@ -5,8 +5,8 @@
 #ifndef SIMPLA_RANGE_H
 #define SIMPLA_RANGE_H
 
-#include <simpla/engine/SPObject.h>
 #include <simpla/concept/Splittable.h>
+#include <simpla/engine/SPObject.h>
 #include <simpla/toolbox/Log.h>
 #include <cstddef>
 #include <iterator>
@@ -76,9 +76,9 @@ struct RangeBase {
     template <typename TFun, typename... Args>
     void foreach (TFun const& fun, Args && ... args) const {
         if (isA(typeid(continue_type))) {
-            as<continue_type>()->foreach (fun, std::forward<Args>(args)...);
+            cast_as<continue_type>()->foreach (fun, std::forward<Args>(args)...);
         } else if (isA(typeid(unordered_type))) {
-            as<unordered_type>()->foreach (fun, std::forward<Args>(args)...);
+            cast_as<unordered_type>()->foreach (fun, std::forward<Args>(args)...);
         } else {
             foreach_override([&](value_type& v) { fun(v, std::forward<Args>(args)...); });
         }

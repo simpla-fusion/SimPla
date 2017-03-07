@@ -10,6 +10,9 @@ namespace simpla {
 namespace data {
 template <typename U>
 struct DataEntityLua : public DataHolder<U> {
+    SP_OBJECT_HEAD(DataEntityLua<U>, DataHolder<U>);
+
+   public:
     DataEntityLua(DataEntityLua<U> const& other) : DataHolder<U>(other), m_obj_(other.m_obj_){};
     DataEntityLua(toolbox::LuaObject const& v) : m_obj_(v){};
     DataEntityLua(toolbox::LuaObject&& v) : m_obj_(v){};
@@ -21,9 +24,7 @@ struct DataEntityLua : public DataHolder<U> {
     };
     virtual bool empty() const { return m_obj_.empty(); };
     virtual DataHolderBase* Copy() const { return new DataEntityLua<U>(m_obj_); }
-    virtual std::type_info const& type() { return typeid(U); }
-
-    virtual bool equal(U const& v) const { return *DataHolder<U>::pointer() == v; };
+    virtual bool equal(U const& v) const { return DataHolder<U>::value() == v; };
     virtual U value() const { return m_obj_.as<U>(); };
     //    virtual U* pointer() const {
     ////        if (m_value_ == nullptr) { m_value_ = new U(m_obj_.as<U>()); }
@@ -75,13 +76,13 @@ std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
     return m_pimpl_->m_lua_obj_.Print(os, indent);
 }
 
-bool DataBackendLua::Erase(std::string const& key) { UNIMPLEMENTED; }
-// std::shared_ptr<DataEntity> DataBackendLua::Set(std::string const& key, std::shared_ptr<DataEntity> const& v) {
-//    UNIMPLEMENTED;
-//}
-std::pair<DataEntity*, bool> DataBackendLua::Insert(std::string const& k){};
-std::pair<DataEntity*, bool> DataBackendLua::Insert(std::string const& k, DataEntity const& v, bool assign_is_exists){};
-DataEntity* DataBackendLua::Find(std::string const& url) const {}
+DataEntity DataBackendLua::Get(std::string const& uri) {
+    return DataEntity(new DataEntityLua<double>{m_pimpl_->m_lua_obj_.get(uri)});
+}
+bool DataBackendLua::Put(std::string const& uri, DataEntity&& v) { return false; }
+bool DataBackendLua::Post(std::string const& uri, DataEntity&& v) { return false; }
+size_type DataBackendLua::Delete(std::string const& uri) { return 0; }
+size_t DataBackendLua::Count(std::string const& uri) const { return 0; };
 
 // std::shared_ptr<DataEntity> DataBackendLua::Get(std::string const& url) {
 //    auto obj = m_pimpl_->m_lua_obj_.get(url);

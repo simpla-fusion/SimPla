@@ -21,6 +21,8 @@ class KeyValue : public std::pair<std::string const, DataEntity> {
    public:
     KeyValue(unsigned long long int n, DataEntity const& p);
     KeyValue(std::string const& k, DataEntity const& p);
+    KeyValue(std::string const& k, DataEntity&& p);
+
     KeyValue(KeyValue const& other);
     KeyValue(KeyValue&& other);
     ~KeyValue();
@@ -56,7 +58,7 @@ DataEntity make_data_entity(std::initializer_list<KeyValue> const& u);
  *  - Proxy of DataBeckend
  */
 class DataTable : public DataHolderBase {
-    SP_OBJECT_HEAD(DataTable, DataHolderBase);
+    SP_OBJECT_BASE(DataTable);
     DataBackend* m_backend_ = nullptr;
 
    public:
@@ -65,13 +67,18 @@ class DataTable : public DataHolderBase {
     DataTable(DataTable const&);
     DataTable(DataTable&&);
     ~DataTable();
-    std::type_info const& type() { return typeid(DataTable); };
-    DataHolderBase* Copy() const;
+    std::type_info const& type() const { return typeid(DataTable); };
+
+    DataTable* Copy() const;
+    bool Update();
+
     bool empty() const;
     void swap(DataTable& other);
     DataTable& operator=(DataTable const& other);
+
     DataBackend* backend() { return m_backend_; }
     DataBackend const* backend() const { return m_backend_; }
+
     std::ostream& Print(std::ostream& os, int indent = 0) const;
     void Parse(std::string const& str);
     void Open(std::string const& url, std::string const& status = "");
@@ -79,27 +86,49 @@ class DataTable : public DataHolderBase {
     void Close();
     void Clear();
     void Reset();
-    void Update();
-    bool Erase(std::string const& k);
-    std::pair<DataEntity*, bool> Insert(std::string const& k);
-    std::pair<DataEntity*, bool> Insert(std::string const& k, DataEntity const& v, bool assign_is_exists = true);
-    DataEntity* Find(std::string const& url) const;
 
     /**
-     * @param url
-     * @return Returns a pointer to the shared pointer of  the entity with '''url'''.
-     *      If no such entity exists, returns nullptr
+     *  PUT and POST are both unsafe methods. However, PUT is idempotent, while POST is not.
+     *
+     *  HTTP/1.1 SPEC
+     *  @quota
+     *   The POST method is used to request that the origin server accept the entity enclosed in
+     *   the request as a new subordinate of the resource identified by the Request-URI in the Request-Line
+     *
+     *  @quota
+     *  The PUT method requests that the enclosed entity be stored under the supplied Request-URI.
+     *  If the Request-URI refers to an already existing resource, the enclosed entity SHOULD be considered as a
+     *  modified version of the one residing on the origin server. If the Request-URI does not point to an existing
+     *  resource, and that URI is capable of being defined as a new resource by the requesting user agent, the origin
+     *  server can create the resource with that URI."
+     *
      */
-    DataEntity& operator[](std::string const& url);
-    DataEntity const& operator[](std::string const& url) const;
 
-    //    void SetValue(KeyValue const& c);
-    //    void SetValue(std::initializer_list<KeyValue> const& l);
-    //    template <typename... Others>
-    //    void SetValue(KeyValue const& k_v, KeyValue const& second, Others&&... others) {
-    //        SetValue(k_v);
-    //        SetValue(second, std::forward<Others>(others)...);
-    //    }
+    DataEntity Get(std::string const& uri);
+    bool Put(std::string const& uri, DataEntity&& v);
+    bool Post(std::string const& uri, DataEntity&& v);
+    size_type Delete(std::string const& uri);
+    size_type Count(std::string const& uri) const;
+
+    template <typename U>
+    bool Put(std::string const& uri, U const& v) {
+        return Put(uri, DataEntity{v});
+    };
+
+    template <typename U>
+    bool Put(std::string const& uri, U&& v) {
+        return Put(uri, DataEntity{new DataHolder<U>(std::forward<U>(v))});
+    };
+
+    template <typename U>
+    bool Post(std::string const& uri, U const& v) {
+        return Post(uri, DataEntity{v});
+    };
+
+    template <typename U>
+    bool Post(std::string const& uri, U&& v) {
+        return Put(uri, DataEntity{v});
+    };
 };
 
 }  // namespace data

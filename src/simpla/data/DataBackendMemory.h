@@ -28,11 +28,12 @@ class DataBackendMemory : public DataBackend {
     virtual void Close();
     virtual void Clear();
     virtual void Reset();
-    virtual bool Erase(std::string const& k);
-    virtual std::pair<DataEntity*, bool> Insert(std::string const& k);
-    virtual std::pair<DataEntity*, bool> Insert(std::string const& k, DataEntity const& v,
-                                                bool assign_is_exists = true);
-    virtual DataEntity* Find(std::string const& url) const;
+
+    virtual DataEntity Get(std::string const& uri);
+    virtual bool Put(std::string const& uri, DataEntity&& v);
+    virtual bool Post(std::string const& uri, DataEntity&& v);
+    virtual size_type Delete(std::string const& uri);
+    virtual size_type Count(std::string const& uri) const;
 
    private:
     struct pimpl_s;

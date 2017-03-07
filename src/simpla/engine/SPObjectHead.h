@@ -15,14 +15,14 @@
         return isA(typeid(_UOTHER_));                                                                \
     }                                                                                                \
     template <typename U_>                                                                           \
-    U_ &as() {                                                                                       \
+    U_ &cast_as() {                                                                                       \
         ASSERT(isA(typeid(U_)));                                                                     \
         return *static_cast<U_ *>(this);                                                             \
     }                                                                                                \
     template <typename U_>                                                                           \
-    U_ const &as() const {                                                                           \
+    U_ const &cast_as() const {                                                                           \
         ASSERT(isA(typeid(U_)));                                                                     \
-        return static_cast<U_ const *>(this);                                                        \
+        return *static_cast<U_ const *>(this);                                                        \
     }                                                                                                \
     virtual std::type_index TypeIndex() const { return std::type_index(typeid(_BASE_CLASS_NAME_)); } \
     virtual std::string getClassName() const { return __STRING(_BASE_CLASS_NAME_); }

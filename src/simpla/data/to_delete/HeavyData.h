@@ -15,8 +15,8 @@ namespace data {
 /**
  * @brief  large data, which should not be passed  between modules by value, such as big array
  */
-struct HeavyData : public DataEntity {
-    SP_OBJECT_HEAD(HeavyData, DataEntity);
+struct HeavyData : public DataHolderBase {
+    SP_OBJECT_HEAD(HeavyData, DataHolderBase);
 
    public:
     HeavyData() {}
