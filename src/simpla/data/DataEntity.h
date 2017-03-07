@@ -53,7 +53,7 @@ struct DataHolder<U> : public DataHolderBase {
     std::type_info const& type() const { return typeid(U); };
 
     std::ostream& Print(std::ostream& os, int indent = 0) const {
-        //        os << m_value_;
+        os << m_value_;
         return os;
     };
     this_type& operator=(U const& v) {
@@ -110,15 +110,13 @@ struct DataEntity : public concept::Printable {
 
 template <typename U>
 DataEntity make_data_entity(U const& u) {
-    return DataEntity(u);
+    return DataEntity(new DataHolder<U>(u));
 }
 template <typename U>
 DataEntity make_data_entity(U&& u) {
-    return std::move(DataEntity(new DataHolder<U>(u)));
+    return (DataEntity(new DataHolder<U>(u)));
 }
-inline DataEntity make_data_entity(char const* u) {
-    return std::move(DataEntity(new DataHolder<std::string>(std::string(u))));
-}
+inline DataEntity make_data_entity(char const* u) { return (DataEntity(new DataHolder<std::string>(std::string(u)))); }
 
 }  // namespace data {
 }  // namespace simpla {

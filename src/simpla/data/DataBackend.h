@@ -33,8 +33,8 @@ class DataBackend {
     virtual void Reset() = 0;
 
     virtual DataEntity Get(std::string const& uri) = 0;
-    virtual bool Put(std::string const& uri, DataEntity&& v) = 0;
-    virtual bool Post(std::string const& uri, DataEntity&& v) = 0;
+    virtual bool Put(std::string const& uri, const DataEntity& v) = 0;
+    virtual bool Post(std::string const& uri, const DataEntity& v) = 0;
     virtual size_type Delete(std::string const& uri) = 0;
     virtual size_type Count(std::string const& uri) const = 0;
 

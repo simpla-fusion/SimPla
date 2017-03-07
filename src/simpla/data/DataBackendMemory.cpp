@@ -7,50 +7,51 @@ namespace simpla {
 namespace data {
 struct DataBackendMemory::pimpl_s {
     static constexpr char split_char = '.';
-    std::map<id_type, KeyValue> m_table_;
+    std::map<std::string, DataEntity> m_table_;
 
     id_type Hash(std::string const& s) const { return std::hash<std::string>()(s); }
-    std::pair<KeyValue*, std::string> Traversal(std::string const& url, bool create_if_not_exist = false);
+    //    std::pair<KeyValue*, std::string> Traversal(std::string const& url, bool create_if_not_exist = false);
 };
-std::pair<KeyValue*, std::string> DataBackendMemory::pimpl_s::Traversal(std::string const& url,
-                                                                        bool create_if_not_exist) {
-    {
-        auto it = m_table_.find(Hash(url));
-        if (it != m_table_.end()) { return std::make_pair(&it->second, url); }
-    }
-    size_type start_pos = 0;
-    KeyValue* p = nullptr;
-    std::map<id_type, KeyValue>* t = &m_table_;
-
-    //    while (start_pos < url.size()) {
-    //        size_type pos = url.find(split_char, start_pos);
-    //        std::string sub_k = url.substr(start_pos, pos == std::string::npos ? std::string::npos : pos - start_pos);
-    //        id_type sub_id = Hash(sub_k);
-    //        if (pos == std::string::npos) {
-    //            p = &t->emplace(Hash(sub_k), KeyValue{sub_k, nullptr}).first->second;
-    //            start_pos = std::string::npos;
-    //            break;
-    //        } else {
-    //            auto it = t->find(sub_id);
-    //            if (it == t->end() && create_if_not_exist) {
-    //                auto t_table = std::make_shared<DataBackendMemory>();
-    //                it = t->emplace(sub_id, KeyValue{sub_k, std::make_shared<DataTable>(t_table)}).first;
-    //                t = &t_table->m_pimpl_->m_table_;
-    //            } else if (it->second.second->isTable() &&
-    //                       static_cast<DataTable*>(it->second.second.get())->backend_type() ==
-    //                       typeid(DataBackendMemory)) {
-    //                t =
-    //                &static_cast<DataBackendMemory*>(static_cast<DataTable*>(it->second.second.get())->backend().get())
-    //                         ->m_pimpl_->m_table_;
-    //            } else {
-    //                break;
-    //            }
-    //        }
-    //        start_pos = pos + 1;
-    //    }
-
-    return std::make_pair(p, url.substr(0, start_pos));
-};
+// std::pair<std::string, DataEntity> DataBackendMemory::pimpl_s::Traversal(std::string const& url,
+//                                                                         bool create_if_not_exist) {
+//    {
+//        auto it = m_table_.find(url);
+//        if (it != m_table_.end()) { return std::make_pair(&it->second, url); }
+//    }
+//    size_type start_pos = 0;
+//    KeyValue* p = nullptr;
+//    std::map<std::string const, DataEntity>* t = &m_table_;
+//
+//    //    while (start_pos < url.size()) {
+//    //        size_type pos = url.find(split_char, start_pos);
+//    //        std::string sub_k = url.substr(start_pos, pos == std::string::npos ? std::string::npos : pos -
+//    start_pos);
+//    //        id_type sub_id = Hash(sub_k);
+//    //        if (pos == std::string::npos) {
+//    //            p = &t->emplace(Hash(sub_k), KeyValue{sub_k, nullptr}).first->second;
+//    //            start_pos = std::string::npos;
+//    //            break;
+//    //        } else {
+//    //            auto it = t->find(sub_id);
+//    //            if (it == t->end() && create_if_not_exist) {
+//    //                auto t_table = std::make_shared<DataBackendMemory>();
+//    //                it = t->emplace(sub_id, KeyValue{sub_k, std::make_shared<DataTable>(t_table)}).first;
+//    //                t = &t_table->m_pimpl_->m_table_;
+//    //            } else if (it->second.second->isTable() &&
+//    //                       static_cast<DataTable*>(it->second.second.get())->backend_type() ==
+//    //                       typeid(DataBackendMemory)) {
+//    //                t =
+//    // &static_cast<DataBackendMemory*>(static_cast<DataTable*>(it->second.second.get())->backend().get())
+//    //                         ->m_pimpl_->m_table_;
+//    //            } else {
+//    //                break;
+//    //            }
+//    //        }
+//    //        start_pos = pos + 1;
+//    //    }
+//
+//    return std::make_pair(p, url.substr(0, start_pos));
+//};
 
 DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& status) : m_pimpl_(new pimpl_s) {
     if (url != "") { Open(url, status); }
@@ -58,9 +59,9 @@ DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& 
 DataBackendMemory::DataBackendMemory(const DataBackendMemory&){};
 
 DataBackendMemory::~DataBackendMemory() {}
-std::ostream& print_kv(std::ostream& os, int indent, KeyValue const& v) {
+std::ostream& print_kv(std::ostream& os, int indent, std::string const& key, DataEntity const& v) {
     //    if (v.second->isTable()) { os << std::endl << std::setw(indent + 1) << " "; }
-    //    os << v.first << " = " << std::boolalpha << *v.second;
+    os << key << " = " << std::boolalpha << v;
     return os;
 }
 
@@ -72,15 +73,14 @@ std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const {
         auto ie = m_pimpl_->m_table_.end();
         if (it != ie) {
             os << "{ ";
-            print_kv(os, indent, it->second);
+            print_kv(os, indent, it->first, it->second);
             //            os << it->first << " = " << *it->second;
             ++it;
             for (; it != ie; ++it) {
                 os << " , ";
-                print_kv(os, indent, it->second);
+                print_kv(os, indent, it->first, it->second);
                 // os << " , " << it->first << " = " << *it->second;
             }
-
             os << " }";
         }
     };
@@ -111,19 +111,21 @@ void DataBackendMemory::Parse(std::string const& str) {
 }
 
 DataEntity DataBackendMemory::Get(std::string const& uri) {
-    auto it = m_pimpl_->m_table_.find(m_pimpl_->Hash(uri));
-    return std::move((it != m_pimpl_->m_table_.end()) ? DataEntity{} : it->second.second);
+    auto it = m_pimpl_->m_table_.find(uri);
+    return (it != m_pimpl_->m_table_.end()) ? it->second : DataEntity{};
 }
-bool DataBackendMemory::Put(std::string const& uri, DataEntity&& v) {
-    return m_pimpl_->m_table_.insert(std::make_pair(m_pimpl_->Hash(uri), KeyValue{uri, std::forward<DataEntity>(v)}))
-        .second;
+bool DataBackendMemory::Put(std::string const& uri, const DataEntity& v) {
+    auto p = m_pimpl_->m_table_.insert(std::make_pair(uri, v));
+    if (!p.second) { p.first->second = v; }
+    return p.second;
 }
-bool DataBackendMemory::Post(std::string const& uri, DataEntity&& v) {
-    return m_pimpl_->m_table_.insert(std::make_pair(m_pimpl_->Hash(uri), KeyValue{uri, std::forward<DataEntity>(v)}))
-        .second;
+bool DataBackendMemory::Post(std::string const& uri, const DataEntity& v) {
+    auto p = m_pimpl_->m_table_.insert(std::make_pair(uri, v));
+    if (!p.second) { p.first->second = v; }
+    return p.second;
 }
-size_type DataBackendMemory::Delete(std::string const& uri) { return m_pimpl_->m_table_.erase(m_pimpl_->Hash(uri)); }
-size_t DataBackendMemory::Count(std::string const& uri) const { return m_pimpl_->m_table_.count(m_pimpl_->Hash(uri)); }
+size_type DataBackendMemory::Delete(std::string const& uri) { return m_pimpl_->m_table_.erase(uri); }
+size_t DataBackendMemory::Count(std::string const& uri) const { return m_pimpl_->m_table_.count(uri); }
 
 }  // namespace data {
 }  // namespace simpla{

@@ -34,8 +34,8 @@ class DataBackendLua : public DataBackend {
     virtual void Reset();
 
     DataEntity Get(std::string const& uri);
-    bool Put(std::string const& uri, DataEntity&& v);
-    bool Post(std::string const& uri, DataEntity&& v);
+    bool Put(std::string const &uri, const DataEntity &v);
+    bool Post(std::string const &uri, const DataEntity &v);
     size_type Delete(std::string const &uri);
     size_t Count(std::string const& uri) const;
 

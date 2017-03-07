@@ -57,7 +57,7 @@ DataEntity make_data_entity(std::initializer_list<KeyValue> const& u);
  * @design_pattern
  *  - Proxy of DataBeckend
  */
-class DataTable : public DataHolderBase {
+class DataTable : public DataHolderBase, public concept::Printable {
     SP_OBJECT_BASE(DataTable);
     DataBackend* m_backend_ = nullptr;
 
@@ -105,20 +105,30 @@ class DataTable : public DataHolderBase {
      */
 
     DataEntity Get(std::string const& uri);
-    bool Put(std::string const& uri, DataEntity&& v);
-    bool Post(std::string const& uri, DataEntity&& v);
+    bool Put(std::string const& uri, const DataEntity& v);
+    bool Post(std::string const& uri, const DataEntity& v);
     size_type Delete(std::string const& uri);
     size_type Count(std::string const& uri) const;
 
-    template <typename U>
-    bool Put(std::string const& uri, U const& v) {
-        return Put(uri, DataEntity{v});
+    bool Put(KeyValue const& v) { return Put(v.first, v.second); };
+    template <typename... Args>
+    void Put(KeyValue const& v, Args&&... args) {
+        Put(v.first, v.second);
+        Put(std::forward<Args>(args)...);
+    };
+    void Put(std::initializer_list<KeyValue> const& v) {
+        for (auto const& item : v) { Put(item.first, item.second); }
     };
 
     template <typename U>
-    bool Put(std::string const& uri, U&& v) {
-        return Put(uri, DataEntity{new DataHolder<U>(std::forward<U>(v))});
+    bool Put(std::string const& uri, U const& v) {
+        return Put(uri, DataEntity{new DataHolder<U>(v)});
     };
+
+    //    template <typename U>
+    //    bool Put(std::string const& uri, U&& v) {
+    //        return Put(uri, DataEntity{new DataHolder<U>(std::forward<U>(v))});
+    //    };
 
     template <typename U>
     bool Post(std::string const& uri, U const& v) {

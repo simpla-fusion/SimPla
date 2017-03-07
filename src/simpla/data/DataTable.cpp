@@ -75,12 +75,10 @@ void DataTable::Clear() {
     if (Update()) m_backend_->Clear();
 }
 
-DataEntity DataTable::Get(std::string const& uri) { return std::move(Update() ? m_backend_->Get(uri) : DataEntity{}); }
-bool DataTable::Put(std::string const& uri, DataEntity&& v) {
-    return Update() ? m_backend_->Put(uri, std::forward<DataEntity>(v)) : false;
-}
-bool DataTable::Post(std::string const& uri, DataEntity&& v) {
-    return Update() ? m_backend_->Post(uri, std::forward<DataEntity>(v)) : false;
+DataEntity DataTable::Get(std::string const& uri) { return Update() ? m_backend_->Get(uri) : DataEntity{}; }
+bool DataTable::Put(std::string const& uri, const DataEntity& v) { return Update() ? m_backend_->Put(uri, v) : false; }
+bool DataTable::Post(std::string const& uri, const DataEntity& v) {
+    return Update() ? m_backend_->Post(uri, v) : false;
 }
 size_type DataTable::Delete(std::string const& uri) { return (m_backend_ == nullptr) ? 0 : m_backend_->Delete(uri); }
 size_type DataTable::Count(std::string const& uri) const {

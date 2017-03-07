@@ -79,8 +79,8 @@ std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
 DataEntity DataBackendLua::Get(std::string const& uri) {
     return DataEntity(new DataEntityLua<double>{m_pimpl_->m_lua_obj_.get(uri)});
 }
-bool DataBackendLua::Put(std::string const& uri, DataEntity&& v) { return false; }
-bool DataBackendLua::Post(std::string const& uri, DataEntity&& v) { return false; }
+bool DataBackendLua::Put(std::string const& uri, const DataEntity& v) { return false; }
+bool DataBackendLua::Post(std::string const& uri, const DataEntity& v) { return false; }
 size_type DataBackendLua::Delete(std::string const& uri) { return 0; }
 size_t DataBackendLua::Count(std::string const& uri) const { return 0; };
 

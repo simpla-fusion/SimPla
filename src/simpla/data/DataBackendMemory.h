@@ -30,8 +30,8 @@ class DataBackendMemory : public DataBackend {
     virtual void Reset();
 
     virtual DataEntity Get(std::string const& uri);
-    virtual bool Put(std::string const& uri, DataEntity&& v);
-    virtual bool Post(std::string const& uri, DataEntity&& v);
+    virtual bool Put(std::string const& uri, const DataEntity& v);
+    virtual bool Post(std::string const &uri, const DataEntity &v);
     virtual size_type Delete(std::string const& uri);
     virtual size_type Count(std::string const& uri) const;
 
