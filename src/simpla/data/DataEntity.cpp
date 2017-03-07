@@ -2,141 +2,37 @@
 // Created by salmon on 16-6-6.
 //
 #include "DataEntity.h"
+#include "DataTable.h"
 namespace simpla {
 namespace data {
-
-// std::ostream& DataEntity::Print(std::ostream& os, int indent = 0) const {
-//    if (isTable()) {
-//        asTable().Print(os, indent);
-//    } else if (isLight()) {
-//        asLight().Print(os, indent);
-//    } else if (isHeavy()) {
-//        asHeavy().Print(os, indent);
-//    }
-//    return os;
-//};
-
-//
-// void HeavyData::Sync(bool is_blocking)
-//{
-//#ifdef HAS_MPI
-//    //
-//    //    typedef typename data_model::DataSpace::index_tuple index_tuple;
-//    //
-//    //    int m_ndims_;
-//    //    index_tuple dimensions;
-//    //    index_tuple start;
-//    ////    index_tuple stride;
-//    //    index_tuple count;
-//    ////    index_tuple block;
-//    //
-//    //
-//    //
-//    //    std::tie(m_ndims_, dimensions, start, std::ignore, count, std::ignore)
-//    //            = ds->memory_space.m_global_dims_();
-//    //
-//    //
-//    //    ASSERT(start + count <= dimensions);
-//    //
-//    //    index_tuple m_ghost_width_ = start;
-//    //
-//    //
-//    //    nTuple<ptrdiff_t, 3> send_offset;
-//    //    nTuple<size_t, 3> send_count;
-//    //    nTuple<ptrdiff_t, 3> recv_offset;
-//    //    nTuple<size_t, 3> recv_count;
-//    //
-//    //    for (unsigned int tag = 0, tag_e = (1U << (m_ndims_ * 2)); GetTag < tag_e; ++GetTag)
-//    //    {
-//    //        nTuple<int, 3> coord_offset;
-//    //
-//    //        bool tag_is_valid = true;
-//    //
-//    //        for (int n = 0; n < m_ndims_; ++n)
-//    //        {
-//    //            if (((GetTag >> (n * 2)) & 3UL) == 3UL)
-//    //            {
-//    //                tag_is_valid = false;
-//    //                break;
-//    //            }
-//    //
-//    //            coord_offset[n] = ((GetTag >> (n * 2)) & 3U) - 1;
-//    //
-//    //            switch (coord_offset[n])
-//    //            {
-//    //                case 0:
-//    //                    send_offset[n] = start[n];
-//    //                    send_count[n] = count[n];
-//    //                    recv_offset[n] = start[n];
-//    //                    recv_count[n] = count[n];
-//    //
-//    //                    break;
-//    //                case -1: //left
-//    //
-//    //                    send_offset[n] = start[n];
-//    //                    send_count[n] = m_ghost_width_[n];
-//    //                    recv_offset[n] = start[n] - m_ghost_width_[n];
-//    //                    recv_count[n] = m_ghost_width_[n];
-//    //
-//    //
-//    //                    break;
-//    //                case 1: //right
-//    //                    send_offset[n] = start[n] + count[n] - m_ghost_width_[n];
-//    //                    send_count[n] = m_ghost_width_[n];
-//    //                    recv_offset[n] = start[n] + count[n];
-//    //                    recv_count[n] = m_ghost_width_[n];
-//    //
-//    //                    break;
-//    //                default:
-//    //                    tag_is_valid = false;
-//    //                    break;
-//    //            }
-//    //
-//    //            if (send_count[n] == 0 || recv_count[n] == 0)
-//    //            {
-//    //                tag_is_valid = false;
-//    //                break;
-//    //            }
-//    //
-//    //        }
-//    //
-//    //        if (tag_is_valid && (coord_offset[0] != 0 || coord_offset[1] != 0 || coord_offset[2]
-//    != 0))
-//    //        {
-//    //            try
-//    //            {
-//    //
-//    //                data_model::DataSet send_ds(*ds);
-//    //
-//    //                data_model::DataSet recv_ds(*ds);
-//    //
-//    //                send_ds.memory_space.select_hyperslab(&send_offset[0], nullptr,
-//    &send_count[0], nullptr);
-//    //
-//    //                recv_ds.memory_space.select_hyperslab(&recv_offset[0], nullptr,
-//    &recv_count[0], nullptr);
-//    //
-//    //
-//    //                m_self_->m_dist_obj_.add_send_link(id, send_offset, std::Move(send_ds));
-//    //
-//    //                m_self_->m_dist_obj_.add_send_link(id, recv_offset, std::Move(recv_ds));
-//    //
-//    //
-//    //            }
-//    //            catch (std::exception const &error)
-//    //            {
-//    //                RUNTIME_ERROR << "add communication link error" << error.what() <<
-//    std::endl;
-//    //
-//    //            }
-//    //        }
-//    //
-//    //    }
-//
-//
-//        m_self_->m_dist_obj_.Sync();
-//        if (is_blocking) { wait(); }
-//#endif
-//}
+DataEntity::DataEntity(DataHolderBase* p) : m_data_(p) {}
+DataEntity::DataEntity(DataEntity const& other) : m_data_(other.m_data_ == nullptr ? nullptr : other.m_data_->Copy()) {}
+DataEntity::DataEntity(DataEntity&& other) : m_data_(other.m_data_) { other.m_data_ = nullptr; }
+DataEntity::~DataEntity() {
+    if (m_data_ != nullptr) { delete m_data_; }
 }
-}  // namespace simpla{namespace get_mesh{
+std::type_info const& DataEntity::type() const { return m_data_ == nullptr ? typeid(void) : m_data_->type(); };
+void DataEntity::swap(DataEntity& other) { std::swap(m_data_, other.m_data_); }
+bool DataEntity::empty() const { return m_data_ == nullptr; }
+std::ostream& DataEntity::Print(std::ostream& os, int indent) const {
+    return m_data_ == nullptr ? os : m_data_->Print(os, indent);
+}
+DataEntity& DataEntity::operator=(DataEntity const& other) {
+    DataEntity(other).swap(*this);
+    return *this;
+}
+
+DataEntity& DataEntity::operator[](std::string const& url) {
+    if (m_data_ == nullptr) {
+        m_data_ = new DataTable;
+    } else if (!m_data_->isA(typeid(DataTable))) {
+        RUNTIME_ERROR << "Data entity is not indexable!" << std::endl;
+    }
+    return *static_cast<DataTable*>(m_data_)->Insert(url).first;
+};
+DataEntity const& DataEntity::operator[](std::string const& url) const {
+    if (!m_data_->isA(typeid(DataTable))) { RUNTIME_ERROR << "Data entity is not indexable!" << std::endl; }
+    return (*static_cast<DataTable const*>(m_data_))[url];
+}
+}  // namespace get_mesh{
+}  // namespace simpla{

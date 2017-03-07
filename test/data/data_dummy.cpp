@@ -7,10 +7,10 @@
 //#include <simpla/algebra/all.h>
 //#include <simpla/data/DataEntity.h>
 //#include <simpla/toolbox/DataTableLua.h>
+#include <simpla/data/DataBackendFactroy.h>
 #include <simpla/data/DataEntity.h>
 #include <simpla/data/DataEntityArray.h>
 #include <simpla/data/DataTable.h>
-#include <simpla/data/DataTableFactroy.h>
 #include <complex>
 #include <iostream>
 
@@ -44,9 +44,9 @@ int main(int argc, char** argv) {
 
     if (argc > 1) {
         DataTable lua_db(argv[1]);
-//        CHECK(lua_db.GetValue<int>("AAA"));
-//        CHECK(lua_db.GetValue<double>("epsilon0"));
-//        CHECK(lua_db.GetValue<int>("CCC.a.b"));
-        CHECK(lua_db.GetValue<int>("CCC.c"));
+        //        CHECK(lua_db.GetValue<int>("AAA"));
+        //        CHECK(lua_db.GetValue<double>("epsilon0"));
+        //        CHECK(lua_db.GetValue<int>("CCC.a.b"));
+        CHECK(lua_db["CCC.c"].GetValue<int>());
     }
 }
