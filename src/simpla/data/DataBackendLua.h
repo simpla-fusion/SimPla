@@ -22,6 +22,8 @@ class DataBackendLua : public DataBackend {
     DataBackendLua(DataBackendLua const&);
     DataBackendLua(std::string const& url, std::string const& status = "");
     virtual ~DataBackendLua();
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
+
     virtual std::type_info const& type() const { return typeid(DataBackendLua); };
     virtual std::unique_ptr<DataBackend> Copy() const;
     virtual bool empty() const;

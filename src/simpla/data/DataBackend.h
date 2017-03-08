@@ -22,6 +22,7 @@ class DataBackend {
    public:
     DataBackend() {}
     virtual ~DataBackend(){};
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; }
 
     virtual std::unique_ptr<DataBackend> Copy() const = 0;
     virtual bool empty() const = 0;

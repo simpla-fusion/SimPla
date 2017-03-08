@@ -27,7 +27,10 @@ struct DataEntity : public concept::Printable {
     DataEntity(DataEntity&&) = delete;
     virtual ~DataEntity();
 
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
+        os << "null";
+        return os;
+    };
     virtual std::type_info const& type() const { return typeid(void); };
     virtual bool empty() const { return true; }
 

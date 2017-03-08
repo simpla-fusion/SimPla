@@ -89,7 +89,12 @@ std::ostream &LuaObject::Print(std::ostream &os, int indent) const {
 
 std::string LuaObject::get_typename() const {
     auto acc = L_.acc();
-    lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+    if (is_global()) {
+        lua_pushglobaltable(*acc);
+    } else {
+        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+    }
+
     std::string res = lua_typename(*acc, -1);
     lua_pop(*acc, 1);
     return res;
@@ -126,18 +131,17 @@ void LuaObject::parse_string(std::string const &str) {
 LuaObject::iterator &LuaObject::iterator::Next() {
     if (!L_.empty()) {
         auto acc = L_.acc();
-        //        if (parent_ == -1) {
-        //            lua_pushglobaltable(*acc);
-        //        } else {
-        //            lua_rawgeti(*acc, GLOBAL_IDX_, parent_);
-        //        }
-        lua_rawgeti(*acc, GLOBAL_IDX_, parent_);
+        if (parent_ == -1) {
+            lua_pushglobaltable(*acc);
+        } else {
+            lua_rawgeti(*acc, GLOBAL_IDX_, parent_);
+        }
         int tidx = lua_gettop(*acc);
         if (lua_isnil(*acc, tidx)) { LOGIC_ERROR << (path_ + " is not iteraterable!") << std::endl; }
         if (key_ == LUA_NOREF) {
             lua_pushnil(*acc);
         } else {
-            lua_rawgeti(*acc, GLOBAL_IDX_, key_);
+            try_lua_rawgeti(*acc, GLOBAL_IDX_, key_);
         }
 
         int v, k;
@@ -216,9 +220,9 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const {
         LOGIC_ERROR << ("the entity of this iterator is invalid!") << std::endl;
     } else {
         auto acc = L_.acc();
-        lua_rawgeti(*acc, GLOBAL_IDX_, key_);
+        try_lua_rawgeti(*acc, GLOBAL_IDX_, key_);
         int key = luaL_ref(*acc, GLOBAL_IDX_);
-        lua_rawgeti(*acc, GLOBAL_IDX_, value_);
+        try_lua_rawgeti(*acc, GLOBAL_IDX_, value_);
         int value = luaL_ref(*acc, GLOBAL_IDX_);
         LuaObject(acc.get(), GLOBAL_IDX_, key, path_ + ".key").swap(res.first);
         LuaObject(acc.get(), GLOBAL_IDX_, value, path_ + ".entity").swap(res.second);
@@ -226,12 +230,36 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const {
 
     return std::move(res);
 }
+size_t LuaObject::accept(std::function<void(LuaObject const &, LuaObject const &)> const &fun) const {
+    size_t s = 0;
+    if (is_global()) {
+    } else {
+        for (auto const &item : *this) {
+            ++s;
+            fun(item.first, item.second);
+        }
+    }
+    return s;
+}
+
+//size_t LuaObject::accept(std::function<void(LuaObject const &, LuaObject const &)> const &fun) {
+//    size_t s = 0;
+//    if (is_global()) {
+//    } else {
+//        for (auto &item : *this) {
+//            ++s;
+//            fun(item.first, item.second);
+//        }
+//    }
+//    return s;
+//}
+// int LuaObject::accept(std::function<void(int, LuaObject &)> const &) const {}
 
 size_t LuaObject::size() const {
     size_t res = 0;
     if (!is_null()) {
         auto acc = L_.acc();
-        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         res = lua_rawlen(*acc, -1);
         lua_pop(*acc, 1);
     }
@@ -249,7 +277,7 @@ LuaObject LuaObject::get(std::string const &s) const noexcept {
         if (is_global()) {
             lua_getglobal(*acc, s.c_str());
         } else {
-            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+            try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
             lua_getfield(*acc, -1, s.c_str());
         }
 
@@ -275,7 +303,7 @@ LuaObject LuaObject::get(std::string const &s) const noexcept {
 //        if (is_global()) {
 //            lua_getglobal(*acc, s.c_str());
 //        } else {
-//            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+//            try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
 //            lua_getfield(*acc, -1, s.c_str());
 //        }
 //
@@ -301,9 +329,9 @@ LuaObject LuaObject::get(int s) const noexcept {
 
         auto acc = L_.acc();
 
-        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         int tidx = lua_gettop(*acc);
-        lua_rawgeti(*acc, tidx, s + 1);
+        try_lua_rawgeti(*acc, tidx, s + 1);
         int res = luaL_ref(*acc, GLOBAL_REF_IDX_);
         lua_pop(*acc, 1);
         LuaObject(acc.get(), GLOBAL_REF_IDX_, res).swap(r);
@@ -331,9 +359,9 @@ LuaObject LuaObject::at(int s) const {
 
         auto acc = L_.acc();
 
-        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         int tidx = lua_gettop(*acc);
-        lua_rawgeti(*acc, tidx, s + 1);
+        try_lua_rawgeti(*acc, tidx, s + 1);
         int res = luaL_ref(*acc, GLOBAL_REF_IDX_);
         lua_pop(*acc, 1);
 
@@ -361,7 +389,7 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
     if (!is_null()) {
         auto acc = L_.acc();
 
-        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
 
         int tidx = lua_gettop(*acc);
 
@@ -439,16 +467,16 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
 //    return 1;
 //}
 
-#define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)          \
-    bool LuaObject::_FUN_NAME_() const {               \
-        bool res = false;                              \
-        if (!L_.empty()) {                             \
-            auto acc = L_.acc();                       \
-            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_); \
-            res = _LUA_FUN_(*acc, -1);                 \
-            lua_pop(*acc, 1);                          \
-        }                                              \
-        return res;                                    \
+#define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)              \
+    bool LuaObject::_FUN_NAME_() const {                   \
+        bool res = false;                                  \
+        if (!L_.empty()) {                                 \
+            auto acc = L_.acc();                           \
+            try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_); \
+            res = _LUA_FUN_(*acc, -1);                     \
+            lua_pop(*acc, 1);                              \
+        }                                                  \
+        return res;                                        \
     }
 
 DEF_TYPE_CHECK(is_nil, lua_isnil)
@@ -490,7 +518,7 @@ DEF_TYPE_CHECK(is_table, lua_istable)
 bool LuaObject::is_number() const {
     if (L_.empty()) { return false; }
     auto acc = L_.acc();
-    lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+    try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
     bool res = lua_type(*acc, -1) == LUA_TNUMBER;
     lua_pop(*acc, 1);
     return res;
@@ -499,7 +527,7 @@ bool LuaObject::is_number() const {
 bool LuaObject::is_string() const {
     if (L_.empty()) { return false; }
     auto acc = L_.acc();
-    lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+    try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
     bool res = lua_type(*acc, -1) == LUA_TSTRING;
     lua_pop(*acc, 1);
     return res;

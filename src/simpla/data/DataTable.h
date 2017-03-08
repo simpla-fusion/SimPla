@@ -15,6 +15,7 @@ namespace data {
 template <typename U, typename Enable = void>
 class DataTableWrapper {};
 class DataBackend;
+class KeyValue;
 /** @ingroup data */
 /**
  * @brief  a @ref DataEntity tree, a key-value table of @ref DataEntity, which is similar as Group
@@ -31,6 +32,7 @@ class DataTable : public DataEntity {
     DataTable(std::unique_ptr<DataBackend>&& p);
     DataTable(const DataTable&);
     DataTable(DataTable&&);
+
     virtual ~DataTable();
     virtual bool isTable() const { return true; }
     std::type_info const& type() const { return typeid(DataTable); };
@@ -49,6 +51,7 @@ class DataTable : public DataEntity {
 
     virtual std::shared_ptr<DataEntity> Get(std::string const& key) const;
     virtual bool Set(DataTable const& other);
+    virtual bool Set(std::initializer_list<KeyValue> const& other);
     virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&);
     virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& key);

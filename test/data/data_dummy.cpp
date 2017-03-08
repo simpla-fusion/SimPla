@@ -21,17 +21,19 @@ int main(int argc, char** argv) {
     //    } else
     {
         DataTable db(argv[1]);
-//        LOGGER << "AAA =" << (*db.Get("AAA")) << std::endl;
-//        LOGGER << "CCC =" << (*db.Get("CCC")) << std::endl;
-//        db.Set("CartesianGeometry", "hello world!");
-        LOGGER << "AAA =" << *db.Get("AAA") << std::endl;
+        //        LOGGER << "AAA =" << (*db.Get("AAA")) << std::endl;
+        //        LOGGER << "CCC =" << (*db.Get("CCC")) << std::endl;
+        //        db.Set("CartesianGeometry", "hello world!");
+        LOGGER << "db: " << db << std::endl;
 
-        //        db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
+        db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
         //        db.Set("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
         //        db.Set("e", {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
-        //        db.Set("f", {"a"_, "not_debug"_ = false,
-        //                     "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello
-        //                     !"}});
+        db.Set({
+            "a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6}
+            //                "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !",
+            //                "hello!"}
+        });
         //        db.Set("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
         //        db.Set("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
         //        db.Set("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
@@ -49,7 +51,7 @@ int main(int argc, char** argv) {
         //
         //        db.Set("A", 1.1257);
         //        LOGGER << "A = " << (db.Get("A")->as<double>()) << std::endl;
-
-        //        std::cout << db << std::endl;
+        std::dynamic_pointer_cast<DataTable>(db.Get("d"))->backend()->Print(std::cout);
+        LOGGER << " db: " << db << std::endl;
     }
 }
