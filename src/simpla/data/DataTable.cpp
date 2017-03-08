@@ -15,20 +15,13 @@ DataTable::DataTable(std::shared_ptr<DataBackend> const& p)
     : m_backend_((p != nullptr) ? p : CreateDataBackendFromFile()){};
 DataTable::DataTable(std::string const& url, std::string const& status)
     : m_backend_(CreateDataBackendFromFile(url, status)){};
-
 DataTable::DataTable(const DataTable& other) : m_backend_(other.m_backend_) {}
 DataTable::DataTable(DataTable&& other) : m_backend_(other.m_backend_) { other.m_backend_.reset(); }
-
 DataTable::~DataTable(){};
 std::ostream& DataTable::Print(std::ostream& os, int indent) const { return m_backend_->Print(os, indent); }
-
 void DataTable::Open(std::string const& url, std::string const& status) {
-    if (url == "") { return; }
-    if (m_backend_ == nullptr) {
-        m_backend_ = CreateDataBackendFromFile(url, status);
-    } else {
-        m_backend_->Open(url, status);
-    }
+    Close();
+    m_backend_ = CreateDataBackendFromFile(url, status);
 }
 void DataTable::Parse(std::string const& str) { m_backend_->Parse(str); }
 void DataTable::Flush() { m_backend_->Flush(); }
