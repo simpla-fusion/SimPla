@@ -481,42 +481,27 @@ bool LuaObject::is_floating_point() const {
 }
 
 DEF_TYPE_CHECK(is_boolean, lua_isboolean)
-
 DEF_TYPE_CHECK(is_lightuserdata, lua_islightuserdata)
-
 DEF_TYPE_CHECK(is_function, lua_isfunction)
-
 DEF_TYPE_CHECK(is_thread, lua_isthread)
-
 DEF_TYPE_CHECK(is_table, lua_istable)
-
 #undef DEF_TYPE_CHECK
 
 bool LuaObject::is_number() const {
     if (L_.empty()) { return false; }
-
     auto acc = L_.acc();
-
     lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-
     bool res = lua_type(*acc, -1) == LUA_TNUMBER;
-
     lua_pop(*acc, 1);
-
     return res;
 }
 
 bool LuaObject::is_string() const {
     if (L_.empty()) { return false; }
-
     auto acc = L_.acc();
-
     lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-
     bool res = lua_type(*acc, -1) == LUA_TSTRING;
-
     lua_pop(*acc, 1);
-
     return res;
 }
 

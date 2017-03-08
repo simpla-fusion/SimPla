@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 //        LOGGER << "AAA =" << (*db.Get("AAA")) << std::endl;
 //        LOGGER << "CCC =" << (*db.Get("CCC")) << std::endl;
 //        db.Set("CartesianGeometry", "hello world!");
-        LOGGER << "AAA =" << db << std::endl;
+        LOGGER << "AAA =" << *db.Get("AAA") << std::endl;
 
         //        db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
         //        db.Set("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});

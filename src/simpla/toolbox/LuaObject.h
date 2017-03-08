@@ -189,8 +189,14 @@ class LuaObject : public concept::Printable {
 
     size_t size() const;
     bool has(std::string const &key) const;
+
+   private:
+    void push_to_self();
+
+   public:
     inline LuaObject operator[](char const s[]) const noexcept { return operator[](std::string(s)); }
     LuaObject operator[](std::string const &s) const noexcept { return get(s); };
+
     LuaObject get(std::string const &s) const noexcept;
     //! unsafe fast access, no boundary check, no path information
     LuaObject get(int s) const noexcept;
@@ -212,12 +218,7 @@ class LuaObject : public concept::Printable {
         LuaObject res;
         {
             auto acc = L_.acc();
-            if (self_ == -1) {
-                lua_pushglobaltable(*acc);
-            } else {
-                lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-            }
-//            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
             int idx = lua_gettop(*acc);
             if (!lua_isfunction(*acc, idx)) {
                 LuaObject(acc.get(), GLOBAL_REF_IDX_, self_, path_).swap(res);
@@ -287,12 +288,7 @@ class LuaObject : public concept::Printable {
     inline bool as(T *res) const {
         if (!is_null()) {
             auto acc = L_.acc();
-            if (self_ == -1) {
-                lua_pushglobaltable(*acc);
-            } else {
-                lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-            }
-//            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
             auto num = _impl::pop_from_lua(*acc, lua_gettop(*acc), res);
             lua_pop(*acc, 1);
             return num > 0;
@@ -309,11 +305,8 @@ class LuaObject : public concept::Printable {
     inline void set(std::string const &name, T const &v) {
         if (is_null()) { return; }
         auto acc = L_.acc();
-        if (self_ == -1) {
-            lua_pushglobaltable(*acc);
-        } else {
-            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        }
+
+        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(*acc, v);
         lua_setfield(*acc, -2, name.c_str());
         lua_pop(*acc, 1);
@@ -323,12 +316,7 @@ class LuaObject : public concept::Printable {
     inline void set(int s, T const &v) {
         if (is_null()) { return; }
         auto acc = L_.acc();
-        if (self_ == -1) {
-            lua_pushglobaltable(*acc);
-        } else {
-            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        }
-//        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(*acc, v);
         lua_rawseti(*acc, -2, s);
         lua_pop(*acc, 1);
@@ -338,12 +326,7 @@ class LuaObject : public concept::Printable {
     inline void add(T const &v) {
         if (is_null()) { return; }
         auto acc = L_.acc();
-        if (self_ == -1) {
-            lua_pushglobaltable(*acc);
-        } else {
-            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-        }
-//        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(*acc, v);
         size_t len = lua_rawlen(*acc, -1);
         lua_rawseti(*acc, -2, static_cast<int>(len + 1));
