@@ -19,8 +19,7 @@ class DataBackendMemory : public DataBackend {
     DataBackendMemory(std::string const& url = "", std::string const& status = "");
     DataBackendMemory(const DataBackendMemory&);
     virtual ~DataBackendMemory();
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-//    virtual DataBackend* Copy() const;
+ //    virtual DataBackend* Copy() const;
     virtual bool empty() const;
     virtual void Open(std::string const& url, std::string const& status = "");
     virtual void Parse(std::string const& str);
@@ -35,6 +34,8 @@ class DataBackendMemory : public DataBackend {
     virtual size_type Delete(std::string const& key);
     virtual size_type Count(std::string const& uri) const;
 
+    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity> const&)> const&) const ;
+    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>&)> const&);
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

@@ -43,7 +43,7 @@ class DomainView : public concept::Printable, public SPObject {
     U &SetMesh(Args &&... args) {
         auto res = std::make_shared<U>(std::forward<Args>(args)...);
         SetMesh(std::dynamic_pointer_cast<MeshView>(res));
-        Attach(static_cast<AttributeViewBundle *>(res.get()));
+        Attach(dynamic_cast<AttributeViewBundle *>(res.get()));
         return *res;
     };
 
@@ -60,7 +60,7 @@ class DomainView : public concept::Printable, public SPObject {
     template <typename U>
     U &AddWorker(int pos = -1, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
         auto res = AddWorker(std::make_shared<U>(), pos);
-        return static_cast<U &>(res.first);
+        return dynamic_cast<U &>(res.first);
     };
 
     void Attach(AttributeViewBundle *);
@@ -71,7 +71,8 @@ class DomainView : public concept::Printable, public SPObject {
 
     //    Range<id_type> const &select(int GetIFORM, int GetTag);
     //    Range<id_type> const &select(int GetIFORM, std::string const &GetTag);
-    //    Range<id_type> const &interface(int GetIFORM, const std::string &tag_in, const std::string &tag_out = "VACUUM");
+    //    Range<id_type> const &interface(int GetIFORM, const std::string &tag_in, const std::string &tag_out =
+    //    "VACUUM");
     //    Range<id_type> const &interface(int GetIFORM, int tag_in, int tag_out);
     //    Range<id_type> const &select(int GetIFORM, int GetTag) const;
     //    Range<id_type> const &interface(int GetIFORM, int tag_in, int tag_out ) const;

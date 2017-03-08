@@ -108,7 +108,7 @@ class Atlas : public SPObject, public concept::Printable {
     //    //    std::Set<id_type> const &level(int l) const;
     //    template <typename TM, typename... Args>
     //    RectMesh const *add(Args &&... args) {
-    //        return static_cast<TM const *>(Connect(std::make_shared<TM>(std::forward<Args>(args)...), nullptr));
+    //        return dynamic_cast<TM const *>(Connect(std::make_shared<TM>(std::forward<Args>(args)...), nullptr));
     //    };
     //
     ////    template <typename... Args>

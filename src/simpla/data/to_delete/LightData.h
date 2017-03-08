@@ -148,7 +148,7 @@ struct LightData : public DataEntity {
                        // disable if entity find type `LightData&`
                        // disable if entity find type `const ValueType&&`
                        )
-        : m_data_(new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType&&>(value))) {}
+        : m_data_(new Holder<typename std::decay<ValueType>::type>(dynamic_cast<ValueType&&>(value))) {}
 
     virtual ~LightData() {}
     virtual DataType type_info() const { return DataType(); }
@@ -172,7 +172,7 @@ struct LightData : public DataEntity {
     // Perfect forwarding of ValueType
     template <class ValueType>
     LightData& operator=(ValueType&& rhs) {
-        LightData(static_cast<ValueType&&>(rhs)).swap(*this);
+        LightData(dynamic_cast<ValueType&&>(rhs)).swap(*this);
         return *this;
     }
 
@@ -183,7 +183,7 @@ struct LightData : public DataEntity {
 
     template <typename U, typename... Args>
     static LightData create(Args&&... args) {
-        return LightData(static_cast<PlaceHolder*>(new Holder<U>(std::forward<Args>(args)...)));
+        return LightData(dynamic_cast<PlaceHolder*>(new Holder<U>(std::forward<Args>(args)...)));
     };
 
     //----------------------------------------------------------------------------------------------

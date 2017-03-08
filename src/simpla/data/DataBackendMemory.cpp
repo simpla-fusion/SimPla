@@ -40,10 +40,10 @@ struct DataBackendMemory::pimpl_s {
 //    //                it = t->emplace(sub_id, KeyValue{sub_k, std::make_shared<DataTable>(t_table)}).first;
 //    //                t = &t_table->m_pimpl_->m_table_;
 //    //            } else if (it->second.second->isTable() &&
-//    //                       static_cast<DataTable*>(it->second.second.get())->backend_type() ==
+//    //                       dynamic_cast<DataTable*>(it->second.second.get())->backend_type() ==
 //    //                       typeid(DataBackendMemory)) {
 //    //                t =
-//    // &static_cast<DataBackendMemory*>(static_cast<DataTable*>(it->second.second.get())->backend().get())
+//    // &dynamic_cast<DataBackendMemory*>(dynamic_cast<DataTable*>(it->second.second.get())->backend().get())
 //    //                         ->m_pimpl_->m_table_;
 //    //            } else {
 //    //                break;
@@ -61,33 +61,42 @@ DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& 
 DataBackendMemory::DataBackendMemory(const DataBackendMemory&){};
 
 DataBackendMemory::~DataBackendMemory() {}
-std::ostream& print_kv(std::ostream& os, int indent, std::string const& key, std::shared_ptr<DataEntity> const& v) {
-    os << std::endl
-       << std::setw(indent + 1) << " "
-       << "\"" << key << "\" : ";
-    v->Print(os, indent + 1);
-    return os;
+//std::ostream& print_kv(std::ostream& os, int indent, std::string const& key, std::shared_ptr<DataEntity> const& v) {
+//    os << std::endl
+//       << std::setw(indent + 1) << " "
+//       << "\"" << key << "\" : ";
+//    v->Print(os, indent + 1);
+//    return os;
+//}
+//
+//std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const {
+//    if (!m_pimpl_->m_table_.empty()) {
+//        auto it = m_pimpl_->m_table_.begin();
+//        auto ie = m_pimpl_->m_table_.end();
+//        if (it != ie) {
+//            os << " {";
+//            print_kv(os, indent + 1, it->first, it->second);
+//            ++it;
+//            for (; it != ie; ++it) {
+//                os << " , ";
+//                print_kv(os, indent + 1, it->first, it->second);
+//            }
+//            os << std::endl
+//               << std::setw(indent) << " "
+//               << " }";
+//        }
+//    };
+//    return os;
+//};
+
+void DataBackendMemory::Accept(
+    std::function<void(std::string const&, std::shared_ptr<DataEntity> const&)> const& f) const {
+    for (auto const& item : m_pimpl_->m_table_) { f(item.first, item.second); }
+}
+void DataBackendMemory::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>&)> const& f) {
+    for (auto& item : m_pimpl_->m_table_) { f(item.first, item.second); }
 }
 
-std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const {
-    if (!m_pimpl_->m_table_.empty()) {
-        auto it = m_pimpl_->m_table_.begin();
-        auto ie = m_pimpl_->m_table_.end();
-        if (it != ie) {
-            os << " {";
-            print_kv(os, indent + 1, it->first, it->second);
-            ++it;
-            for (; it != ie; ++it) {
-                os << " , ";
-                print_kv(os, indent + 1, it->first, it->second);
-            }
-            os << std::endl
-               << std::setw(indent) << " "
-               << " }";
-        }
-    };
-    return os;
-};
 // DataBackend* DataBackendMemory::Copy() const { return new DataBackendMemory(*this); }
 bool DataBackendMemory::empty() const { return m_pimpl_->m_table_.empty(); };
 void DataBackendMemory::Clear() { m_pimpl_->m_table_.clear(); };

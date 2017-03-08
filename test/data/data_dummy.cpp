@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     //        CHECK(lua_db.Get("CCC").as<double>());
     //    } else
     {
-        DataTable db(argv[1]);
+        DataTable db;
         db.Set("CartesianGeometry.name2", "hello world!");
         db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
         db.Set("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
@@ -29,6 +29,7 @@ int main(int argc, char** argv) {
                      "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello  !"}});
         db.Set("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
         db.Set("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
+        db.Set("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
 
         //        CHECK(db.Get("CartesianGeometry.name2").as<std::string>());
         //        db.Put({"Check"});

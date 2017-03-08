@@ -60,11 +60,10 @@ void DataBackendLua::Flush() {}
 void DataBackendLua::Close() {}
 void DataBackendLua::Clear() {}
 void DataBackendLua::Reset() {}
-DataBackend* DataBackendLua::Copy() const { return new DataBackendLua(*this); }
-
-std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
-    return m_pimpl_->m_lua_obj_.Print(os, indent);
-}
+std::unique_ptr<DataBackend> DataBackendLua::Copy() const { return std::make_unique<DataBackendLua>(*this); }
+// std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
+//    return m_pimpl_->m_lua_obj_.Print(os, indent);
+//}
 
 std::shared_ptr<DataEntity> DataBackendLua::Get(std::string const& key) const {
     return std::dynamic_pointer_cast<DataEntity>(

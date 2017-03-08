@@ -22,8 +22,8 @@ class DataBackend {
    public:
     DataBackend() {}
     virtual ~DataBackend(){};
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
 
+    virtual std::unique_ptr<DataBackend> Copy() const { return std::make_unique<DataBackend>(); };
     virtual bool empty() const { return true; };
     virtual void Open(std::string const& url, std::string const& status = "") {}
     virtual void Parse(std::string const& str){};
@@ -45,6 +45,9 @@ class DataBackend {
     virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
     virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
     virtual size_type Delete(std::string const& key) { return 0; }
+
+    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity> const&)> const&) const {};
+    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>&)> const&){};
 
 };  // class DataBackend {
 }  // namespace data {

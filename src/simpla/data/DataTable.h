@@ -24,21 +24,19 @@ class DataBackend;
  */
 class DataTable : public DataEntity {
     SP_OBJECT_HEAD(DataTable, DataEntity);
-    std::shared_ptr<DataBackend> m_backend_ = nullptr;
+    std::unique_ptr<DataBackend> m_backend_;
 
    public:
-    DataTable(std::shared_ptr<DataBackend> const& p = nullptr);
-    DataTable(std::string const& url, std::string const& status = "");
+    DataTable(std::string const& url = "", std::string const& status = "");
+    DataTable(std::unique_ptr<DataBackend>&& p);
+
     DataTable(const DataTable&);
     DataTable(DataTable&&);
     virtual ~DataTable();
-
     virtual bool isTable() const { return true; }
     std::type_info const& type() const { return typeid(DataTable); };
     std::shared_ptr<DataTable> Copy() const;
-
-    std::shared_ptr<DataBackend> backend() const { return m_backend_; }
-
+    DataBackend const* backend() const { return m_backend_.get(); }
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual void Parse(std::string const& str);
     virtual void Open(std::string const& url, std::string const& status = "");
@@ -55,6 +53,9 @@ class DataTable : public DataEntity {
     virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&);
     virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& key);
+
+    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity> const&)> const&) const;
+    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>&)> const&);
 
     template <typename U>
     bool Set(std::string const& uri, U const& v) {

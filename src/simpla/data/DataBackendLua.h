@@ -8,8 +8,8 @@
 #include <memory>
 #include <ostream>
 #include <string>
-#include "DataBackend.h"
 #include "../../../cmake-build-release/include/simpla/SIMPLA_config.h"
+#include "DataBackend.h"
 
 namespace simpla {
 namespace data {
@@ -23,8 +23,7 @@ class DataBackendLua : public DataBackend {
     DataBackendLua(std::string const& url = "", std::string const& status = "");
     virtual ~DataBackendLua();
     virtual std::type_info const& type() const { return typeid(DataBackendLua); };
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-    virtual DataBackend* Copy() const;
+    virtual std::unique_ptr<DataBackend> Copy() const;
     virtual bool empty() const;
     virtual void Open(std::string const& url, std::string const& status = "");
     virtual void Parse(std::string const& str);

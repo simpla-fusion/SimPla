@@ -194,9 +194,9 @@ public:
         UNIMPLEMENTED;
 //        assert(other.is_a(typeid(this_type)));
 //
-//        this_type const &g = static_cast<this_type const & >(other);
+//        this_type const &g = dynamic_cast<this_type const & >(other);
 //
-//        Copy(r0, static_cast<this_type const & >(other));
+//        Copy(r0, dynamic_cast<this_type const & >(other));
 
     }
 

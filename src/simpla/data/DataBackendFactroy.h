@@ -10,7 +10,7 @@
 namespace simpla {
 namespace data {
 class DataBackend;
-std::shared_ptr<DataBackend> CreateDataBackendFromFile(std::string const &url = "", std::string const &status = "");
+std::unique_ptr<DataBackend> CreateDataBackendFromFile(std::string const &url = "", std::string const &status = "");
 }  // namespace data{
 }  // namespace simpla{
 #endif  // SIMPLA_DATATABLEFACTROY_H
