@@ -53,8 +53,7 @@ class DataTable : public DataEntity {
     virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& key);
 
-    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity> const&)> const&) const;
-    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>&)> const&);
+    virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
     template <typename U>
     bool Set(std::string const& uri, U const& v) {

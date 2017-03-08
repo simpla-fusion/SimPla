@@ -19,7 +19,7 @@ class DataBackendMemory : public DataBackend {
     DataBackendMemory(std::string const& url = "", std::string const& status = "");
     DataBackendMemory(const DataBackendMemory&);
     virtual ~DataBackendMemory();
- //    virtual DataBackend* Copy() const;
+    virtual std::unique_ptr<DataBackend> Copy() const;
     virtual bool empty() const;
     virtual void Open(std::string const& url, std::string const& status = "");
     virtual void Parse(std::string const& str);
@@ -27,15 +27,15 @@ class DataBackendMemory : public DataBackend {
     virtual void Close();
     virtual void Clear();
     virtual void Reset();
-
+    virtual size_type count() const;
     virtual std::shared_ptr<DataEntity> Get(std::string const& key) const;
     virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&);
     virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& key);
     virtual size_type Count(std::string const& uri) const;
 
-    virtual int Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> const &)> const &) const ;
-    virtual int Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> &)> const &);
+    virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

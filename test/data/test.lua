@@ -9,5 +9,5 @@ PI = 3.141592653589793
 TWOPI = PI * 2
 k_B = 1.3806488e-23 --Boltzmann_constant
 epsilon0 = 8.8542e-12
-AAA = 199
-CCC = {c = "3",d = 5}
+AAA = {c = "3",d = {c = "3",e ={1,3,4,5} }}
+CCC = {1,3,4,5}

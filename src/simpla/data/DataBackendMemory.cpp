@@ -59,9 +59,10 @@ DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& 
     if (url != "") { Open(url, status); }
 }
 DataBackendMemory::DataBackendMemory(const DataBackendMemory&){};
-
 DataBackendMemory::~DataBackendMemory() {}
-//std::ostream& print_kv(std::ostream& os, int indent, std::string const& key, std::shared_ptr<DataEntity> const& v) {
+std::unique_ptr<DataBackend> DataBackendMemory::Copy() const { return std::make_unique<DataBackendMemory>(*this); }
+
+// std::ostream& print_kv(std::ostream& os, int indent, std::string const& key, std::shared_ptr<DataEntity> const& v) {
 //    os << std::endl
 //       << std::setw(indent + 1) << " "
 //       << "\"" << key << "\" : ";
@@ -69,7 +70,7 @@ DataBackendMemory::~DataBackendMemory() {}
 //    return os;
 //}
 //
-//std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const {
+// std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const {
 //    if (!m_pimpl_->m_table_.empty()) {
 //        auto it = m_pimpl_->m_table_.begin();
 //        auto ie = m_pimpl_->m_table_.end();
@@ -89,15 +90,11 @@ DataBackendMemory::~DataBackendMemory() {}
 //    return os;
 //};
 
-int DataBackendMemory::Accept(
-        std::function<void(std::string const &, std::shared_ptr<DataEntity> const &)> const &f) const {
+size_type DataBackendMemory::Accept(
+    std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     for (auto const& item : m_pimpl_->m_table_) { f(item.first, item.second); }
 }
-int DataBackendMemory::Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> &)> const &f) {
-    for (auto& item : m_pimpl_->m_table_) { f(item.first, item.second); }
-}
 
-// DataBackend* DataBackendMemory::Copy() const { return new DataBackendMemory(*this); }
 bool DataBackendMemory::empty() const { return m_pimpl_->m_table_.empty(); };
 void DataBackendMemory::Clear() { m_pimpl_->m_table_.clear(); };
 void DataBackendMemory::Reset() { m_pimpl_->m_table_.clear(); };
@@ -120,7 +117,7 @@ void DataBackendMemory::Parse(std::string const& str) {
         start_pos = pos0 + 1;
     }
 }
-
+size_type DataBackendMemory::count() const { return m_pimpl_->m_table_.size(); }
 std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& key) const {
     auto it = m_pimpl_->m_table_.find(key);
     return (it != m_pimpl_->m_table_.end()) ? it->second : std::make_shared<DataEntity>();

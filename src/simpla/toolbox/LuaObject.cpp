@@ -89,7 +89,6 @@ std::ostream &LuaObject::Print(std::ostream &os, int indent) const {
 
 std::string LuaObject::get_typename() const {
     auto acc = L_.acc();
-
     lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
     std::string res = lua_typename(*acc, -1);
     lua_pop(*acc, 1);
@@ -102,13 +101,9 @@ void LuaObject::init() {
         //            L_ = LuaState(luaL_newstate(), lua_close);
         auto acc = L_.acc();
         luaL_openlibs(*acc);
-
         lua_newtable(*acc);  // new table on stack
-
         GLOBAL_REF_IDX_ = lua_gettop(*acc);
-
         self_ = -1;
-
         path_ = "<GLOBAL>";
     }
 }
@@ -129,17 +124,16 @@ void LuaObject::parse_string(std::string const &str) {
 }
 
 LuaObject::iterator &LuaObject::iterator::Next() {
-    if (L_.empty()) {
-        return *this;
-    } else {
+    if (!L_.empty()) {
         auto acc = L_.acc();
-
+        //        if (parent_ == -1) {
+        //            lua_pushglobaltable(*acc);
+        //        } else {
+        //            lua_rawgeti(*acc, GLOBAL_IDX_, parent_);
+        //        }
         lua_rawgeti(*acc, GLOBAL_IDX_, parent_);
-
         int tidx = lua_gettop(*acc);
-
         if (lua_isnil(*acc, tidx)) { LOGIC_ERROR << (path_ + " is not iteraterable!") << std::endl; }
-
         if (key_ == LUA_NOREF) {
             lua_pushnil(*acc);
         } else {
@@ -147,7 +141,6 @@ LuaObject::iterator &LuaObject::iterator::Next() {
         }
 
         int v, k;
-
         if (lua_next(*acc, tidx)) {
             v = luaL_ref(*acc, GLOBAL_IDX_);
             k = luaL_ref(*acc, GLOBAL_IDX_);
@@ -157,10 +150,8 @@ LuaObject::iterator &LuaObject::iterator::Next() {
         }
         if (key_ != LUA_NOREF) { luaL_unref(*acc, GLOBAL_IDX_, key_); }
         if (value_ != LUA_NOREF) { luaL_unref(*acc, GLOBAL_IDX_, value_); }
-
         key_ = k;
         value_ = v;
-
         lua_pop(*acc, 1);
     }
     return *this;
@@ -169,21 +160,13 @@ LuaObject::iterator &LuaObject::iterator::Next() {
 LuaObject::iterator::iterator() : GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(LUA_NOREF), value_(LUA_NOREF) {}
 
 LuaObject::iterator::iterator(iterator const &r) : L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_) {
-    if (L_.empty()) {
-        return;
-    } else {
+    if (!L_.empty()) {
         auto acc = L_.acc();
-
         lua_rawgeti(*acc, GLOBAL_IDX_, r.parent_);
-
         parent_ = luaL_ref(*acc, GLOBAL_IDX_);
-
         lua_rawgeti(*acc, GLOBAL_IDX_, r.key_);
-
         key_ = luaL_ref(*acc, GLOBAL_IDX_);
-
         lua_rawgeti(*acc, GLOBAL_IDX_, r.value_);
-
         value_ = luaL_ref(*acc, GLOBAL_IDX_);
     }
 }
@@ -219,7 +202,6 @@ LuaObject::iterator::~iterator() {
         return;
     } else {
         auto acc = L_.acc();
-
         if (key_ != LUA_NOREF) { luaL_unref(*acc, GLOBAL_IDX_, key_); }
         if (value_ != LUA_NOREF) { luaL_unref(*acc, GLOBAL_IDX_, value_); }
         if (parent_ != LUA_NOREF) { luaL_unref(*acc, GLOBAL_IDX_, parent_); }
@@ -234,17 +216,11 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const {
         LOGIC_ERROR << ("the entity of this iterator is invalid!") << std::endl;
     } else {
         auto acc = L_.acc();
-
         lua_rawgeti(*acc, GLOBAL_IDX_, key_);
-
         int key = luaL_ref(*acc, GLOBAL_IDX_);
-
         lua_rawgeti(*acc, GLOBAL_IDX_, value_);
-
         int value = luaL_ref(*acc, GLOBAL_IDX_);
-
         LuaObject(acc.get(), GLOBAL_IDX_, key, path_ + ".key").swap(res.first);
-
         LuaObject(acc.get(), GLOBAL_IDX_, value, path_ + ".entity").swap(res.second);
     }
 
@@ -253,14 +229,10 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const {
 
 size_t LuaObject::size() const {
     size_t res = 0;
-
     if (!is_null()) {
         auto acc = L_.acc();
-
         lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-
         res = lua_rawlen(*acc, -1);
-
         lua_pop(*acc, 1);
     }
     return res;
@@ -294,34 +266,34 @@ LuaObject LuaObject::get(std::string const &s) const noexcept {
     return std::move(res);
 }
 
-LuaObject LuaObject::operator[](std::string const &s) const noexcept {
-    LuaObject res;
-
-    if ((is_table() || is_global())) {
-        auto acc = L_.acc();
-
-        if (is_global()) {
-            lua_getglobal(*acc, s.c_str());
-        } else {
-            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-            lua_getfield(*acc, -1, s.c_str());
-        }
-
-        if (lua_isnil(*acc, lua_gettop(*acc))) {
-            lua_pop(*acc, 1);
-        } else {
-            int id = luaL_ref(*acc, GLOBAL_REF_IDX_);
-
-            if (!is_global()) { lua_pop(*acc, 1); }
-
-            LuaObject(acc.get(), GLOBAL_REF_IDX_, id, path_ + "." + s).swap(res);
-        }
-    }
-    return std::move(res);
-}
+// LuaObject LuaObject::operator[](std::string const &s) const noexcept {
+//    LuaObject res;
+//
+//    if ((is_table() || is_global())) {
+//        auto acc = L_.acc();
+//
+//        if (is_global()) {
+//            lua_getglobal(*acc, s.c_str());
+//        } else {
+//            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+//            lua_getfield(*acc, -1, s.c_str());
+//        }
+//
+//        if (lua_isnil(*acc, lua_gettop(*acc))) {
+//            lua_pop(*acc, 1);
+//        } else {
+//            int id = luaL_ref(*acc, GLOBAL_REF_IDX_);
+//
+//            if (!is_global()) { lua_pop(*acc, 1); }
+//
+//            LuaObject(acc.get(), GLOBAL_REF_IDX_, id, path_ + "." + s).swap(res);
+//        }
+//    }
+//    return std::move(res);
+//}
 
 //! unsafe fast access, no boundary check, no path information
-LuaObject LuaObject::operator[](int s) const noexcept {
+LuaObject LuaObject::get(int s) const noexcept {
     LuaObject r;
 
     if ((is_table() || is_global())) {

@@ -12,8 +12,7 @@
 #include "DataEntity.h"
 namespace simpla {
 namespace data {
-DataTable::DataTable(std::string const& url, std::string const& args)
-    : m_backend_(CreateDataBackend(url, args)){};
+DataTable::DataTable(std::string const& url, std::string const& args) : m_backend_(CreateDataBackend(url, args)){};
 DataTable::DataTable(std::unique_ptr<DataBackend>&& p) : m_backend_(std::move(p)){};
 DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->Copy())) {}
 DataTable::DataTable(DataTable&& other) : m_backend_(std::move(other.m_backend_)) {}
@@ -37,13 +36,9 @@ bool DataTable::Set(DataTable const& other) { return false; }
 bool DataTable::Set(std::string const& key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Set(key, v); };
 bool DataTable::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Add(key, v); };
 size_type DataTable::Delete(std::string const& key) { return m_backend_->Delete(key); };
-void DataTable::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity> const&)> const& f) const {
-    const_cast<DataBackend const*>(m_backend_.get())->Accept(f);
+size_type DataTable::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
+    return m_backend_->Accept(f);
 }
-void DataTable::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>&)> const& f) {
-    const_cast<DataBackend*>(m_backend_.get())->Accept(f);
-}
-
 std::ostream& DataTable::Print(std::ostream& os, int indent) const {
     os << "{";
     m_backend_->Accept([&](std::string const& k, std::shared_ptr<DataEntity> const& v) {

@@ -21,31 +21,34 @@ int main(int argc, char** argv) {
     //    } else
     {
         DataTable db(argv[1]);
-        db.Set("CartesianGeometry.name2", "hello world!");
-        db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
-        db.Set("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-        db.Set("e", {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
-        db.Set("f", {"a"_, "not_debug"_ = false,
-                     "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello  !"}});
-        db.Set("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
-        db.Set("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
-        db.Set("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
+//        LOGGER << "AAA =" << (*db.Get("AAA")) << std::endl;
+//        LOGGER << "CCC =" << (*db.Get("CCC")) << std::endl;
+//        db.Set("CartesianGeometry", "hello world!");
+        LOGGER << "AAA =" << db << std::endl;
 
-        //        CHECK(db.Get("CartesianGeometry.name2").as<std::string>());
-        //        db.Put({"Check"});
-        LOGGER << (db) << std::endl;
-
-        db.Set("b.sub.d", nTuple<int, 3>{1, 2, 3});
-        db.Set("b.sub.e", nTuple<int, 4>{1, 2, 3, 4});
-        LOGGER << "a =" << (db.Get("a")->as<bool>(false)) << std::endl;
-
-        LOGGER << "b.sub.e  = " << ((db.Get("b.sub.e")->as<nTuple<int, 4>>())) << std::endl;
-
-        db.Set("A", 3);
-        LOGGER << "A = " << (db.Get("A")->as<int>()) << std::endl;
-
-        db.Set("A", 1.1257);
-        LOGGER << "A = " << (db.Get("A")->as<double>()) << std::endl;
+        //        db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
+        //        db.Set("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
+        //        db.Set("e", {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
+        //        db.Set("f", {"a"_, "not_debug"_ = false,
+        //                     "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello
+        //                     !"}});
+        //        db.Set("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
+        //        db.Set("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
+        //        db.Set("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
+        //
+        ////        LOGGER << (db) << std::endl;
+        //
+        //        db.Set("b.sub.d", nTuple<int, 3>{1, 2, 3});
+        //        db.Set("b.sub.e", nTuple<int, 4>{1, 2, 3, 4});
+        //        LOGGER << "a =" << (db.Get("a")->as<bool>(false)) << std::endl;
+        //
+        //        LOGGER << "b.sub.e  = " << ((db.Get("b.sub.e")->as<nTuple<int, 4>>())) << std::endl;
+        //
+        //        db.Set("A", 3);
+        //        LOGGER << "A = " << (db.Get("A")->as<int>()) << std::endl;
+        //
+        //        db.Set("A", 1.1257);
+        //        LOGGER << "A = " << (db.Get("A")->as<double>()) << std::endl;
 
         //        std::cout << db << std::endl;
     }
