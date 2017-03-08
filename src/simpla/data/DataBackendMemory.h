@@ -34,8 +34,8 @@ class DataBackendMemory : public DataBackend {
     virtual size_type Delete(std::string const& key);
     virtual size_type Count(std::string const& uri) const;
 
-    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity> const&)> const&) const ;
-    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>&)> const&);
+    virtual int Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> const &)> const &) const ;
+    virtual int Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> &)> const &);
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

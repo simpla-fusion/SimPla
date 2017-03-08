@@ -12,17 +12,16 @@
 #include "DataEntity.h"
 namespace simpla {
 namespace data {
-
+DataTable::DataTable(std::string const& url, std::string const& args)
+    : m_backend_(CreateDataBackend(url, args)){};
 DataTable::DataTable(std::unique_ptr<DataBackend>&& p) : m_backend_(std::move(p)){};
-DataTable::DataTable(std::string const& url, std::string const& status)
-    : m_backend_(CreateDataBackendFromFile(url, status)){};
 DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->Copy())) {}
 DataTable::DataTable(DataTable&& other) : m_backend_(std::move(other.m_backend_)) {}
 DataTable::~DataTable(){};
 
 void DataTable::Open(std::string const& url, std::string const& status) {
     Close();
-    m_backend_ = std::move(CreateDataBackendFromFile(url, status));
+    m_backend_ = std::move(CreateDataBackend(url, status));
 }
 void DataTable::Parse(std::string const& str) { m_backend_->Parse(str); }
 void DataTable::Flush() { m_backend_->Flush(); }

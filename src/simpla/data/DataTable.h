@@ -29,7 +29,6 @@ class DataTable : public DataEntity {
    public:
     DataTable(std::string const& url = "", std::string const& status = "");
     DataTable(std::unique_ptr<DataBackend>&& p);
-
     DataTable(const DataTable&);
     DataTable(DataTable&&);
     virtual ~DataTable();

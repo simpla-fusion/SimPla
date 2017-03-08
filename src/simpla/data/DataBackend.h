@@ -46,8 +46,17 @@ class DataBackend {
     virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
     virtual size_type Delete(std::string const& key) { return 0; }
 
-    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity> const&)> const&) const {};
-    virtual void Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>&)> const&){};
+    /**
+     * @brief
+     * @return number of affected entities
+     */
+    virtual int Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity> const&)> const&) const {
+        UNIMPLEMENTED;
+        return 0;
+    };
+    virtual int Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> &)> const &) {
+        UNIMPLEMENTED;
+    };
 
 };  // class DataBackend {
 }  // namespace data {

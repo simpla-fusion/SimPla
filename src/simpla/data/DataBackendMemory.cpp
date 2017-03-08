@@ -89,11 +89,11 @@ DataBackendMemory::~DataBackendMemory() {}
 //    return os;
 //};
 
-void DataBackendMemory::Accept(
-    std::function<void(std::string const&, std::shared_ptr<DataEntity> const&)> const& f) const {
+int DataBackendMemory::Accept(
+        std::function<void(std::string const &, std::shared_ptr<DataEntity> const &)> const &f) const {
     for (auto const& item : m_pimpl_->m_table_) { f(item.first, item.second); }
 }
-void DataBackendMemory::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>&)> const& f) {
+int DataBackendMemory::Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> &)> const &f) {
     for (auto& item : m_pimpl_->m_table_) { f(item.first, item.second); }
 }
 

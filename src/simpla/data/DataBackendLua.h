@@ -37,6 +37,8 @@ class DataBackendLua : public DataBackend {
     virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& key);
     virtual size_type Count(std::string const& uri) const;
+    virtual int Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> const &)> const &) const;
+    virtual int Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> &)> const &);
 
    private:
     struct pimpl_s;

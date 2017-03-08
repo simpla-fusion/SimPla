@@ -73,7 +73,8 @@ bool DataBackendLua::Set(std::string const& key, std::shared_ptr<DataEntity> con
 bool DataBackendLua::Add(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
 size_type DataBackendLua::Delete(std::string const& key) { return 0; }
 size_type DataBackendLua::Count(std::string const& uri) const { return 0; }
-
+int DataBackendLua::Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> const &)> const &) const {}
+int DataBackendLua::Accept(std::function<void(std::string const &, std::shared_ptr<DataEntity> &)> const &) {}
 // std::shared_ptr<DataEntity> DataBackendLua::Get(std::string const& url) {
 //    auto obj = m_pimpl_->m_lua_obj_.get(url);
 //    if (obj.is_floating_point()) {
