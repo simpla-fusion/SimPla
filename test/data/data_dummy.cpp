@@ -3,14 +3,8 @@
 //
 
 #include <simpla/SIMPLA_config.h>
-
 #include <simpla/algebra/all.h>
-//#include <simpla/data/DataEntity.h>
-//#include <simpla/toolbox/DataTableLua.h>
-#include <simpla/data/DataBackendFactroy.h>
-#include <simpla/data/DataEntity.h>
-#include <simpla/data/DataEntityArray.h>
-#include <simpla/data/DataTable.h>
+#include <simpla/data/all.h>
 #include <complex>
 #include <iostream>
 
@@ -27,28 +21,24 @@ int main(int argc, char** argv) {
     //    } else
     {
         DataTable db;
-        db.Put("CartesianGeometry.name2"_ = std::string("hello world!"));
-        db.Put("a"_, "not_debug"_ = false,
-               "c"_ =
-                   {
-                       1_ = "hello world!",  //
-                       2_ = 1.0234           //,
-                                             //               "t.second"_ = 2,                    //
-                                             //               "vec3"_ = nTuple<Real, 3>{2, 3, 2}  //
-                   }                         //            , "is_test3"_ = {1, 3, 4}
-               );
+        db.Set("CartesianGeometry.name2", "hello world!");
+        db.Set({"a"_, "not_debug"_ = false,
+                "c"_ = {" world!", "hello!", "hello !", "hello !", "hello !", "hello !", "hello !", "hello !"},
+                "d"_ = {1, 2, 3, 4, 5, 56, 6, 6},
+                "e"_ = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}}});
         //        CHECK(db.Get("CartesianGeometry.name2").as<std::string>());
         //        db.Put({"Check"});
+        LOGGER << (db) << std::endl;
+
+        db.Set("b.sub.d", nTuple<int, 3>{1, 2, 3});
+        db.Set("b.sub.e", nTuple<int, 4>{1, 2, 3, 4});
+        CHECK(db.Get("a")->as<bool>(false));
+        CHECK((db.Get("b.sub.e")->as<nTuple<int, 4>>()));
+        db.Set("A", 3);
+        CHECK(db.Get("A")->as<int>());
+        db.Set("A", 1.1257);
+        CHECK(db.Get("A")->as<double>());
+
         //        std::cout << db << std::endl;
-
-        db.Put("b.sub.d", nTuple<int, 3>{1, 2, 3});
-        db.Put("b.sub.e", nTuple<int, 4>{1, 2, 3, 4});
-        CHECK(db.Get("a").as<bool>(false));
-        db.Put("A", 1);
-        CHECK(db.Get("A").as<int>(1));
-        db.Put("A", 1.1257);
-        CHECK(db.Get("A").as<double>());
-
-//        std::cout << db << std::endl;
     }
 }

@@ -84,6 +84,8 @@ struct ArrayView : public concept::Printable {
     virtual value_type* data() { return m_data_; }
     virtual value_type const* data() const { return m_data_; }
     size_type const* dims() const { return m_dims_; }
+    size_type const* dimensions() const { return m_dims_; }
+
     index_type const* lower() const { return m_lower_; }
     index_type const* upper() const { return m_upper_; }
     int ndims() const { return NDIMS; }

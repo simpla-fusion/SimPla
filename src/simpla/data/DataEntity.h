@@ -4,119 +4,106 @@
 
 #ifndef SIMPLA_DATAENTITY_H
 #define SIMPLA_DATAENTITY_H
+
+#include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/engine/SPObjectHead.h>
 #include <simpla/toolbox/Log.h>
 #include <typeindex>
 #include <vector>
+
+#include "DataTraits.h"
+
 namespace simpla {
 namespace data {
 /** @ingroup data */
 
-/**
- * @brief primary object of data
- */
-template <typename U, typename Enable = void>
-struct DataHolder;
-
-struct DataHolderBase {
-    SP_OBJECT_BASE(DataHolderBase);
-
-   public:
-    DataHolderBase() {}
-    virtual ~DataHolderBase() {}
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const = 0;
-    virtual bool empty() const = 0;
-    virtual DataHolderBase* Copy() const = 0;
-    virtual std::type_info const& type() const = 0;
-
-    template <typename U>
-    U as() const {
-        return static_cast<DataHolder<U> const*>(this)->value();
-    }
-
-    template <typename U>
-    bool operator==(U const& other) const {
-        //        return static_cast<DataHolder<U> const*>(this)->equal(other);
-        return false;
-    }
-};
-template <typename U>
-struct DataHolder<U> : public DataHolderBase {
-    SP_OBJECT_HEAD(DataHolder<U>, DataHolderBase);
-
-   public:
-    DataHolder() {}
-    DataHolder(U const& d) : m_value_(d) {}
-    DataHolder(U&& d) : m_value_(std::forward<U>(d)) {}
-    ~DataHolder() {}
-    std::type_info const& type() const { return typeid(U); };
-
-    std::ostream& Print(std::ostream& os, int indent = 0) const {
-        os << m_value_;
-        return os;
-    };
-    this_type& operator=(U const& v) {
-        m_value_ = v;
-        return *this;
-    }
-    virtual bool empty() const { return false; }
-    virtual DataHolderBase* Copy() const { return new DataHolder<U>(m_value_); };
-    virtual bool equal(U const& other) const { return false; /* other == m_value_;*/ }
-    virtual U value() const { return m_value_; }
-
-   private:
-    U m_value_;
-};
-
 struct DataEntity : public concept::Printable {
-    DataHolderBase* m_data_ = nullptr;
+    SP_OBJECT_BASE(DataEntity);
 
    public:
-    DataEntity(DataHolderBase* p = nullptr);
-    DataEntity(DataEntity const&);
-    DataEntity(DataEntity&&);
-
+    DataEntity();
+    DataEntity(DataEntity const&) = delete;
+    DataEntity(DataEntity&&) = delete;
     virtual ~DataEntity();
 
-    //    template <typename U>
-    //    DataEntity(U const& u) : m_data_(new DataHolder<U>(u)){};
-    //    template <typename U>
-    //    DataEntity(U&& u) : m_data_(new DataHolder<U>(std::forward<U>(u))){};
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {};
+    virtual std::type_info const& type() const {};
+    virtual bool empty() const { return true; }
 
-    void swap(DataEntity& other);
-    DataEntity& operator=(DataEntity const& other);
-    std::ostream& Print(std::ostream& os, int indent = 0) const;
+    virtual bool isEntity() const { return !(isTable() || isArray()); }
+    virtual bool isTable() const { return false; }
+    virtual bool isArray() const { return false; }
+    //    DataTable& asTable() { return cast_as<DataTable>(); }
+    //    DataTable const& asTable() const { return cast_as<DataTable>(); }
+    //    DataArray& asArray() { return cast_as<DataArray>(); }
+    //    DataArray const& asArray() const { return cast_as<DataArray>(); }
 
-    bool empty() const;
-    std::type_info const& type() const;
+    virtual size_type count() const { return 0; };
+
+    /** as Array */
+    virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return std::make_shared<DataEntity>(); }
+    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const&) { return false; }
+    virtual bool Add(std::shared_ptr<DataEntity> const&) { return false; }
+    virtual int Delete(size_type idx) { return 0; }
+
+    /** as Table */
+    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const { return std::make_shared<DataEntity>(); }
+    virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
+    virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
+    virtual size_type Delete(std::string const& key) { return 0; }
+
+    template <typename Idx>
+    std::shared_ptr<DataEntity> operator[](Idx const& idx) const {
+        return Get(idx);
+    }
 
     template <typename U>
     bool operator==(U const& v) const {
-        return (!empty()) && (*m_data_ == v);
+        return (type() == typeid(U)) && cast_as<DataEntityWrapper<U>>().equal(v);
     }
 
     template <typename U>
     U as() const {
-        ASSERT(!empty());
-        return m_data_->as<U>();
+        return cast_as<DataEntityWrapper<U>>().value();
     }
-
     template <typename U>
-    U as(U const& default_value) const {
-        return empty() ? default_value : as<U>();
+    U as(U const& u) const {
+        try {
+            return cast_as<DataEntityWrapper<U>>().value();
+        } catch (...) { return u; }
     }
+    //
+    //    template <typename U>
+    //    DataArrayWrapper<U>& asArray() {
+    //        return cast_as<DataArrayWrapper<U>>();
+    //    }
+    //    template <typename U>
+    //    DataArrayWrapper<U> const& asArray() const {
+    //        return cast_as<DataArrayWrapper<U>>();
+    //    }
 };
+template <typename U>
+struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : public DataEntity {
+SP_OBJECT_HEAD(DataEntityWrapper<U>, DataEntity);
+    typedef U value_type;
 
-template <typename U>
-DataEntity make_data_entity(U const& u) {
-    return DataEntity(new DataHolder<U>(u));
-}
-template <typename U>
-DataEntity make_data_entity(U&& u) {
-    return (DataEntity(new DataHolder<U>(u)));
-}
-inline DataEntity make_data_entity(char const* u) { return (DataEntity(new DataHolder<std::string>(std::string(u)))); }
+public:
+    DataEntityWrapper() {}
+    DataEntityWrapper(value_type const& d) : m_data_(d) {}
+    DataEntityWrapper(value_type&& d) : m_data_(d) {}
+    virtual ~DataEntityWrapper() {}
+    virtual std::type_info const& type() const { return typeid(value_type); }
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
+        os << value();
+        return os;
+    }
+    virtual bool equal(value_type const& other) const { return m_data_ == other; }
+    virtual value_type value() const { return m_data_; }
+
+private:
+    value_type m_data_;
+};
 
 }  // namespace data {
 }  // namespace simpla {

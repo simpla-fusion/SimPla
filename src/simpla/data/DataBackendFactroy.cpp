@@ -7,15 +7,15 @@
 #include "DataBackendMemory.h"
 namespace simpla {
 namespace data {
-DataBackend *CreateDataBackendFromFile(std::string const &url) {
-    DataBackend *res = nullptr;
+std::shared_ptr<DataBackend> CreateDataBackendFromFile(std::string const &url, std::string const &status) {
+    std::shared_ptr<DataBackend> res = nullptr;
     std::string ext = "";
     size_type pos = url.find_last_of('.');
     if (pos != std::string::npos) { ext = url.substr(pos + 1); }
     if (ext == "lua") {
-        res = new DataBackendLua(url);
+        res = std::make_shared<DataBackendLua>(url, status);
     } else {
-        res = new DataBackendMemory(url);
+        res = std::make_shared<DataBackendMemory>(url, status);
     }
     return res;
 };

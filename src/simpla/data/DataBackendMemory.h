@@ -20,7 +20,7 @@ class DataBackendMemory : public DataBackend {
     DataBackendMemory(const DataBackendMemory&);
     virtual ~DataBackendMemory();
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-    virtual DataBackend* Copy() const;
+//    virtual DataBackend* Copy() const;
     virtual bool empty() const;
     virtual void Open(std::string const& url, std::string const& status = "");
     virtual void Parse(std::string const& str);
@@ -29,10 +29,10 @@ class DataBackendMemory : public DataBackend {
     virtual void Clear();
     virtual void Reset();
 
-    virtual DataEntity Get(std::string const& uri);
-    virtual bool Put(std::string const& uri, const DataEntity& v);
-    virtual bool Post(std::string const &uri, const DataEntity &v);
-    virtual size_type Delete(std::string const& uri);
+    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const;
+    virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&);
+    virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&);
+    virtual size_type Delete(std::string const& key);
     virtual size_type Count(std::string const& uri) const;
 
    private:

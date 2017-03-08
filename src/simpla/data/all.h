@@ -5,11 +5,15 @@
 #ifndef SIMPLA_DATA_ALL_H
 #define SIMPLA_DATA_ALL_H
 
+#include "DataArray.h"
+#include "DataBackendFactroy.h"
 #include "DataEntity.h"
 #include "DataTable.h"
+#include "DataTraits.h"
+#include "KeyValue.h"
 
-namespace simpla { namespace data
-{
+namespace simpla {
+namespace data {
 /**
  *  @addtogroup data Data
  *  @brief Unified data/metadata model.
@@ -28,6 +32,7 @@ namespace simpla { namespace data
  *   - @ref LuaDataTable
  *
  */
-}}
+}
+}
 
-#endif //SIMPLA_DATA_ALL_H
+#endif  // SIMPLA_DATA_ALL_H

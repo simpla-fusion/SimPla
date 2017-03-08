@@ -22,21 +22,29 @@ class DataBackend {
    public:
     DataBackend() {}
     virtual ~DataBackend(){};
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const = 0;
-    virtual DataBackend* Copy() const = 0;
-    virtual bool empty() const = 0;
-    virtual void Open(std::string const& url, std::string const& status = "") = 0;
-    virtual void Parse(std::string const& str) = 0;
-    virtual void Flush() = 0;
-    virtual void Close() = 0;
-    virtual void Clear() = 0;
-    virtual void Reset() = 0;
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
 
-    virtual DataEntity Get(std::string const& uri) = 0;
-    virtual bool Put(std::string const& uri, const DataEntity& v) = 0;
-    virtual bool Post(std::string const& uri, const DataEntity& v) = 0;
-    virtual size_type Delete(std::string const& uri) = 0;
-    virtual size_type Count(std::string const& uri) const = 0;
+    virtual bool empty() const { return true; };
+    virtual void Open(std::string const& url, std::string const& status = "") {}
+    virtual void Parse(std::string const& str){};
+    virtual void Flush(){};
+    virtual void Close(){};
+    virtual void Clear(){};
+    virtual void Reset(){};
+
+    virtual size_type count() const { return 0; };
+
+    /** as Array */
+    virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return std::make_shared<DataEntity>(); }
+    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const&) { return false; }
+    virtual bool Add(std::shared_ptr<DataEntity> const&) { return false; }
+    virtual int Delete(size_type idx) { return 0; }
+
+    /** as Table */
+    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const { return std::make_shared<DataEntity>(); }
+    virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
+    virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
+    virtual size_type Delete(std::string const& key) { return 0; }
 
 };  // class DataBackend {
 }  // namespace data {

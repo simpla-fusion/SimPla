@@ -33,11 +33,11 @@ class DataBackendLua : public DataBackend {
     virtual void Clear();
     virtual void Reset();
 
-    DataEntity Get(std::string const& uri);
-    bool Put(std::string const &uri, const DataEntity &v);
-    bool Post(std::string const &uri, const DataEntity &v);
-    size_type Delete(std::string const &uri);
-    size_t Count(std::string const& uri) const;
+    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const;
+    virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&);
+    virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&);
+    virtual size_type Delete(std::string const& key);
+    virtual size_type Count(std::string const& uri) const;
 
    private:
     struct pimpl_s;

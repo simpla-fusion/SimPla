@@ -2,12 +2,14 @@
 // Created by salmon on 17-3-6.
 //
 #include "DataBackendMemory.h"
+#include <iomanip>
 #include <map>
+
 namespace simpla {
 namespace data {
 struct DataBackendMemory::pimpl_s {
     static constexpr char split_char = '.';
-    std::map<std::string, DataEntity> m_table_;
+    std::map<std::string, std::shared_ptr<DataEntity>> m_table_;
 
     id_type Hash(std::string const& s) const { return std::hash<std::string>()(s); }
     //    std::pair<KeyValue*, std::string> Traversal(std::string const& url, bool create_if_not_exist = false);
@@ -59,34 +61,34 @@ DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& 
 DataBackendMemory::DataBackendMemory(const DataBackendMemory&){};
 
 DataBackendMemory::~DataBackendMemory() {}
-std::ostream& print_kv(std::ostream& os, int indent, std::string const& key, DataEntity const& v) {
+std::ostream& print_kv(std::ostream& os, int indent, std::string const& key, std::shared_ptr<DataEntity> const& v) {
     //    if (v.second->isTable()) { os << std::endl << std::setw(indent + 1) << " "; }
-    os << key << " = " << std::boolalpha << v;
+    os << std::endl
+       << std::setw(indent + 1) << " "
+       << "\"" << key << "\" : " << std::boolalpha << *v;
     return os;
 }
 
 std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const {
-    //    if (!DataEntity::isNull()) { DataEntity::Print(os, indent + 1); }
-
     if (!m_pimpl_->m_table_.empty()) {
         auto it = m_pimpl_->m_table_.begin();
         auto ie = m_pimpl_->m_table_.end();
         if (it != ie) {
-            os << "{ ";
-            print_kv(os, indent, it->first, it->second);
-            //            os << it->first << " = " << *it->second;
+            os << " {";
+            print_kv(os, indent + 1, it->first, it->second);
             ++it;
             for (; it != ie; ++it) {
                 os << " , ";
-                print_kv(os, indent, it->first, it->second);
-                // os << " , " << it->first << " = " << *it->second;
+                print_kv(os, indent + 1, it->first, it->second);
             }
-            os << " }";
+            os << std::endl
+               << std::setw(indent) << " "
+               << " }";
         }
     };
     return os;
 };
-DataBackend* DataBackendMemory::Copy() const { return new DataBackendMemory(*this); }
+// DataBackend* DataBackendMemory::Copy() const { return new DataBackendMemory(*this); }
 bool DataBackendMemory::empty() const { return m_pimpl_->m_table_.empty(); };
 void DataBackendMemory::Clear() { m_pimpl_->m_table_.clear(); };
 void DataBackendMemory::Reset() { m_pimpl_->m_table_.clear(); };
@@ -110,20 +112,21 @@ void DataBackendMemory::Parse(std::string const& str) {
     }
 }
 
-DataEntity DataBackendMemory::Get(std::string const& uri) {
-    auto it = m_pimpl_->m_table_.find(uri);
-    return (it != m_pimpl_->m_table_.end()) ? it->second : DataEntity{};
+std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& key) const {
+    auto it = m_pimpl_->m_table_.find(key);
+    return (it != m_pimpl_->m_table_.end()) ? it->second : std::make_shared<DataEntity>();
 }
-bool DataBackendMemory::Put(std::string const& uri, const DataEntity& v) {
+bool DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
     auto p = m_pimpl_->m_table_.insert(std::make_pair(uri, v));
     if (!p.second) { p.first->second = v; }
     return p.second;
 }
-bool DataBackendMemory::Post(std::string const& uri, const DataEntity& v) {
+bool DataBackendMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
     auto p = m_pimpl_->m_table_.insert(std::make_pair(uri, v));
     if (!p.second) { p.first->second = v; }
     return p.second;
 }
+
 size_type DataBackendMemory::Delete(std::string const& uri) { return m_pimpl_->m_table_.erase(uri); }
 size_t DataBackendMemory::Count(std::string const& uri) const { return m_pimpl_->m_table_.count(uri); }
 
