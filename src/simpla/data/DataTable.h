@@ -53,8 +53,6 @@ class DataTable : public DataEntity {
     virtual std::shared_ptr<DataEntity> Get(std::string const& key) const;
     virtual bool Set(DataTable const& other);
     virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&);
-    virtual bool Set(std::shared_ptr<DataEntity> const&);
-    virtual bool Add(std::shared_ptr<DataEntity> const&);
     virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& key);
 

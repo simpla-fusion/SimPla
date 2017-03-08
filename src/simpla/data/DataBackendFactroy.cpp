@@ -8,6 +8,8 @@
 namespace simpla {
 namespace data {
 std::shared_ptr<DataBackend> CreateDataBackendFromFile(std::string const &url, std::string const &status) {
+    if (url == "") { return std::make_shared<DataBackendMemory>(); }
+
     std::shared_ptr<DataBackend> res = nullptr;
     std::string ext = "";
     size_type pos = url.find_last_of('.');

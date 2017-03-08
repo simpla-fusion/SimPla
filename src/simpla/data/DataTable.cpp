@@ -12,7 +12,7 @@
 namespace simpla {
 namespace data {
 DataTable::DataTable(std::shared_ptr<DataBackend> const& p)
-    : m_backend_((p != nullptr) ? p : std::dynamic_pointer_cast<DataBackend>(std::make_shared<DataBackendMemory>())){};
+    : m_backend_((p != nullptr) ? p : CreateDataBackendFromFile()){};
 DataTable::DataTable(std::string const& url, std::string const& status)
     : m_backend_(CreateDataBackendFromFile(url, status)){};
 
@@ -41,12 +41,9 @@ void DataTable::Clear() { m_backend_->Clear(); }
 
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& key) const { return m_backend_->Get(key); };
 bool DataTable::Set(DataTable const& other) { return false; }
-bool DataTable::Set(std::shared_ptr<DataEntity> const& v) { return false; }
 bool DataTable::Set(std::string const& key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Set(key, v); };
-bool DataTable::Add(std::shared_ptr<DataEntity> const& v) { return m_backend_->Add("", v); };
 bool DataTable::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Add(key, v); };
 size_type DataTable::Delete(std::string const& key) { return m_backend_->Delete(key); };
-
 
 }  // namespace data
 }  // namespace simpla

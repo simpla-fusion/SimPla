@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     //        CHECK(lua_db.Get("CCC").as<double>());
     //    } else
     {
-        DataTable db;
+        DataTable db(argv[1]);
         db.Set("CartesianGeometry.name2", "hello world!");
         db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
         db.Set("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
