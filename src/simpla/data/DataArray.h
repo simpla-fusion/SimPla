@@ -6,10 +6,10 @@
 #define SIMPLA_DATAARRAY_H
 #include "DataEntity.h"
 #include "DataTraits.h"
-
 namespace simpla {
 namespace data {
-
+template <typename U, typename Enable = void>
+class DataArrayWrapper {};
 struct DataArray : public DataEntity {
     SP_OBJECT_HEAD(DataArray, DataEntity)
    public:
@@ -69,11 +69,6 @@ class DataArrayWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : p
     DataArrayWrapper() {}
     DataArrayWrapper(this_type const& other) : m_data_(other.m_data_) {}
     DataArrayWrapper(this_type&& other) : m_data_(other.m_data_) {}
-    DataArrayWrapper(std::initializer_list<U> const& u) : m_data_(u) {}
-    template <typename V>
-    DataArrayWrapper(std::initializer_list<V> const& u) : m_data_() {
-        for (auto const& v : u) { m_data_.push_back(v); }
-    }
 
     virtual ~DataArrayWrapper() {}
     virtual std::type_info const& type() const { return typeid(U); };
@@ -108,6 +103,33 @@ class DataArrayWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : p
     }
 };
 
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u,
+                                             ENABLE_IF(traits::is_light_data<U>::value)) {
+    auto res = std::make_shared<DataArrayWrapper<U>>();
+    for (U const& v : u) { res->Add(v); }
+    return std::dynamic_pointer_cast<DataEntity>(res);
+}
+
+inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char const*> const& u) {
+    auto res = std::make_shared<DataArrayWrapper<std::string>>();
+    for (char const* v : u) { res->Add(v); }
+    return std::dynamic_pointer_cast<DataEntity>(res);
+}
+
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u,
+                                             ENABLE_IF(!traits::is_light_data<U>::value)) {
+    auto res = std::make_shared<DataArrayWrapper<void>>();
+    for (auto const& v : u) { res->Add(make_data_entity(v)); }
+    return std::dynamic_pointer_cast<DataEntity>(res);
+}
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u) {
+    auto res = std::make_shared<DataArrayWrapper<void>>();
+    for (auto const& v : u) { res->Add(make_data_entity(v)); }
+    return std::dynamic_pointer_cast<DataEntity>(res);
+}
 }  // namespace data{
 }  // namespace simpla{
 #endif  // SIMPLA_DATAARRAY_H

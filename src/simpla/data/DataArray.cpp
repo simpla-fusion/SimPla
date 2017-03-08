@@ -12,12 +12,16 @@ DataArray::~DataArray() {}
 std::ostream& DataArray::Print(std::ostream& os, int indent) const {
     size_type ie = count();
 
-    os << std::setw(indent) << "[" << *Get(0);
-    for (size_type i = 1; i < ie; ++i) { os << " , " << *Get(i); }
-    os << std::setw(indent) << "]";
+    os << "[";
+    Get(0)->Print(os, indent + 1);
+    for (size_type i = 1; i < ie; ++i) {
+        os << " , ";
+        Get(i)->Print(os, indent + 1);
+//        if (i % 5 == 0) { os << std::endl; }
+    }
+    os << "]";
     return os;
 };
-
 
 }  // namespace data {
 }  // namespace simpla {

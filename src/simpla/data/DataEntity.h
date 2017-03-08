@@ -11,12 +11,12 @@
 #include <simpla/toolbox/Log.h>
 #include <typeindex>
 #include <vector>
-
 #include "DataTraits.h"
-
 namespace simpla {
 namespace data {
-/** @ingroup data */
+template <typename, typename Enable = void>
+class DataEntityWrapper {};
+class DataEntity;
 
 struct DataEntity : public concept::Printable {
     SP_OBJECT_BASE(DataEntity);
@@ -85,26 +85,37 @@ struct DataEntity : public concept::Printable {
 };
 template <typename U>
 struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : public DataEntity {
-SP_OBJECT_HEAD(DataEntityWrapper<U>, DataEntity);
+    SP_OBJECT_HEAD(DataEntityWrapper<U>, DataEntity);
     typedef U value_type;
 
-public:
+   public:
     DataEntityWrapper() {}
     DataEntityWrapper(value_type const& d) : m_data_(d) {}
     DataEntityWrapper(value_type&& d) : m_data_(d) {}
     virtual ~DataEntityWrapper() {}
     virtual std::type_info const& type() const { return typeid(value_type); }
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
-        os << value();
+        if (typeid(U) == typeid(std::string)) {
+            os << "\"" << value() << "\"";
+        } else {
+            os << value();
+        }
         return os;
     }
     virtual bool equal(value_type const& other) const { return m_data_ == other; }
     virtual value_type value() const { return m_data_; }
 
-private:
+   private:
     value_type m_data_;
 };
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<U>>(u));
+}
 
+inline std::shared_ptr<DataEntity> make_data_entity(char const* u) {
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<std::string>>(u));
+}
 }  // namespace data {
 }  // namespace simpla {
 #endif  // SIMPLA_DATAENTITY_H

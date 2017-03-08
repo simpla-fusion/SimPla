@@ -5,15 +5,12 @@
 #ifndef SIMPLA_KEYVALUE_H
 #define SIMPLA_KEYVALUE_H
 
-#include <memory>
-#include <string>
-#include "DataEntity.h"
+#include "DataArray.h"
+#include "DataTable.h"
 #include "DataTraits.h"
 
 namespace simpla {
 namespace data {
-class DataEntity;
-class KeyValue;
 
 class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
     typedef std::pair<std::string, std::shared_ptr<DataEntity>> base_type;
@@ -34,25 +31,20 @@ class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
         second = make_data_entity(u);
         return *this;
     }
-
     template <typename U>
     KeyValue& operator=(std::initializer_list<U> const& u) {
         second = make_data_entity(u);
         return *this;
     }
-    template <typename U>
-    KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-        second = make_data_entity(u);
-        return *this;
-    }
-    KeyValue& operator=(std::initializer_list<KeyValue> const& u) {
-        second = make_data_entity(u);
-        return *this;
-    }
+    //    template <typename U>
+    //    KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
+    //        second = make_data_entity(u);
+    //        return *this;
+    //    }
 };
 
 inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data_entity(true)}; }
-
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<KeyValue> const& u);
 }  // namespace data {
 }  // namespace simpla {
 #endif  // SIMPLA_KEYVALUE_H

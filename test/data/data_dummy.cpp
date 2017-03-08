@@ -22,22 +22,29 @@ int main(int argc, char** argv) {
     {
         DataTable db;
         db.Set("CartesianGeometry.name2", "hello world!");
-        db.Set({"a"_, "not_debug"_ = false,
-                "c"_ = {" world!", "hello!", "hello !", "hello !", "hello !", "hello !", "hello !", "hello !"},
-                "d"_ = {1, 2, 3, 4, 5, 56, 6, 6},
-                "e"_ = {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}}});
+        db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
+        db.Set("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
+        db.Set("e", {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
+        db.Set("f", {"a"_, "not_debug"_ = false,
+                     "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello  !"}});
+        db.Set("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
+        db.Set("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
+
         //        CHECK(db.Get("CartesianGeometry.name2").as<std::string>());
         //        db.Put({"Check"});
         LOGGER << (db) << std::endl;
 
         db.Set("b.sub.d", nTuple<int, 3>{1, 2, 3});
         db.Set("b.sub.e", nTuple<int, 4>{1, 2, 3, 4});
-        CHECK(db.Get("a")->as<bool>(false));
-        CHECK((db.Get("b.sub.e")->as<nTuple<int, 4>>()));
+        LOGGER << "a =" << (db.Get("a")->as<bool>(false)) << std::endl;
+
+        LOGGER << "b.sub.e  = " << ((db.Get("b.sub.e")->as<nTuple<int, 4>>())) << std::endl;
+
         db.Set("A", 3);
-        CHECK(db.Get("A")->as<int>());
+        LOGGER << "A = " << (db.Get("A")->as<int>()) << std::endl;
+
         db.Set("A", 1.1257);
-        CHECK(db.Get("A")->as<double>());
+        LOGGER << "A = " << (db.Get("A")->as<double>()) << std::endl;
 
         //        std::cout << db << std::endl;
     }

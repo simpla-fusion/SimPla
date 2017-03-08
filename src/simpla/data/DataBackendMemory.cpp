@@ -62,10 +62,10 @@ DataBackendMemory::DataBackendMemory(const DataBackendMemory&){};
 
 DataBackendMemory::~DataBackendMemory() {}
 std::ostream& print_kv(std::ostream& os, int indent, std::string const& key, std::shared_ptr<DataEntity> const& v) {
-    //    if (v.second->isTable()) { os << std::endl << std::setw(indent + 1) << " "; }
     os << std::endl
        << std::setw(indent + 1) << " "
-       << "\"" << key << "\" : " << std::boolalpha << *v;
+       << "\"" << key << "\" : ";
+    v->Print(os, indent + 1);
     return os;
 }
 

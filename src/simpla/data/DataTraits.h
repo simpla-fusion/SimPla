@@ -8,16 +8,26 @@
 #include <simpla/algebra/nTuple.h>
 #include <memory>
 #include <string>
+
 namespace simpla {
 namespace data {
 class DataEntity;
-class DataTable;
-class DataArray;
-template <typename, typename Enable = void>
-class DataEntityWrapper {};
-template <typename U, typename Enable = void>
-class DataArrayWrapper {};
-class KeyValue;
+/**
+ *  PUT and POST are both unsafe methods. However, PUT is idempotent, while POST is not.
+ *
+ *  HTTP/1.1 SPEC
+ *  @quota
+ *   The POST method is used to request that the origin server accept the entity enclosed in
+ *   the request as a new subordinate of the resource identified by the Request-URI in the Request-Line
+ *
+ *  @quota
+ *  The PUT method requests that the enclosed entity be stored under the supplied Request-URI.
+ *  If the Request-URI refers to an already existing resource, the enclosed entity SHOULD be considered as a
+ *  modified version of the one residing on the origin server. If the Request-URI does not point to an existing
+ *  resource, and that URI is capable of being defined as a new resource by the requesting user agent, the origin
+ *  server can create the resource with that URI."
+ *
+ */
 
 namespace traits {
 template <typename U>
@@ -26,27 +36,13 @@ struct is_light_data
 
 template <>
 struct is_light_data<std::string> : public std::integral_constant<bool, true> {};
+template <>
+struct is_light_data<char const*> : public std::integral_constant<bool, true> {};
 
 template <typename U, int... N>
 struct is_light_data<simpla::algebra::declare::nTuple_<U, N...>> : public std::integral_constant<bool, true> {};
 
 }  // namespace traits {
-
-template <typename U>
-std::shared_ptr<DataEntity> make_data_entity(U const& u) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<std::remove_cv_t<U>>>(u));
-}
-template <typename U>
-std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataArrayWrapper<U>>(u));
-};
-template <typename U>
-std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataArrayWrapper<void>>(u));
-};
-std::shared_ptr<DataEntity> make_data_entity(char const* u);
-std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<KeyValue> const& u);
-std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char const*> const& u);
 
 }  // namespace data {
 }  // namespace simpla {

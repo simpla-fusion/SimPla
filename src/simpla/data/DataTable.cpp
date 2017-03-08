@@ -9,16 +9,13 @@
 #include "DataBackendFactroy.h"
 #include "DataBackendMemory.h"
 #include "DataEntity.h"
-#include "KeyValue.h"
 namespace simpla {
 namespace data {
 DataTable::DataTable(std::shared_ptr<DataBackend> const& p)
     : m_backend_((p != nullptr) ? p : std::dynamic_pointer_cast<DataBackend>(std::make_shared<DataBackendMemory>())){};
 DataTable::DataTable(std::string const& url, std::string const& status)
     : m_backend_(CreateDataBackendFromFile(url, status)){};
-DataTable::DataTable(std::initializer_list<KeyValue> const& v) : DataTable() {
-    for (auto const& item : v) { m_backend_->Add(item.first, item.second); }
-};
+
 DataTable::DataTable(const DataTable& other) : m_backend_(other.m_backend_) {}
 DataTable::DataTable(DataTable&& other) : m_backend_(other.m_backend_) { other.m_backend_.reset(); }
 
@@ -49,6 +46,7 @@ bool DataTable::Set(std::string const& key, std::shared_ptr<DataEntity> const& v
 bool DataTable::Add(std::shared_ptr<DataEntity> const& v) { return m_backend_->Add("", v); };
 bool DataTable::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Add(key, v); };
 size_type DataTable::Delete(std::string const& key) { return m_backend_->Delete(key); };
+
 
 }  // namespace data
 }  // namespace simpla
