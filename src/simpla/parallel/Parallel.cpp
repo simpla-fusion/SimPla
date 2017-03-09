@@ -56,10 +56,10 @@ std::string help_message()
 
 
 ///**
-// * @_fdtd_param pos in {0,count} out {begin,m_global_dims_}
+// * @_fdtd_param pos in {0,Count} out {begin,m_global_dims_}
 // */
 //template<typename Integral>
-//std::tuple<Integral, Integral> sync_global_location(Integral count)
+//std::tuple<Integral, Integral> sync_global_location(Integral Count)
 //{
 //	Integral begin = 0;
 //
@@ -78,7 +78,7 @@ std::string help_message()
 //		if (porcess_number == 0)
 //		m_buffer.resize(num_of_process);
 //
-//		MPI_Gather(&count, 1, m_type.type(), &m_buffer[0], 1, m_type.type(), 0, communicator);
+//		MPI_Gather(&Count, 1, m_type.type(), &m_buffer[0], 1, m_type.type(), 0, communicator);
 //
 //		MPI_Barrier(communicator);
 //
@@ -88,8 +88,8 @@ std::string help_message()
 //			{
 //				m_buffer[i] += m_buffer[i - 1];
 //			}
-//			m_buffer[0] = count;
-//			count = m_buffer[num_of_process - 1];
+//			m_buffer[0] = Count;
+//			Count = m_buffer[num_of_process - 1];
 //
 //			for (int i = num_of_process - 1; i > 0; --i)
 //			{
@@ -99,10 +99,10 @@ std::string help_message()
 //		}
 //		MPI_Barrier(communicator);
 //		MPI_Scatter(&m_buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, communicator);
-//		MPI_Bcast(&count, 1, m_type.type(), 0, communicator);
+//		MPI_Bcast(&Count, 1, m_type.type(), 0, communicator);
 //	}
 //
-//	return std::make_tuple(begin, count);
+//	return std::make_tuple(begin, Count);
 //
 //}
 //inline MPI_Op get_MPI_Op(std::string const & op_c)

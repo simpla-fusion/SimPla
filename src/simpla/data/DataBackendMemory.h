@@ -18,23 +18,28 @@ class DataBackendMemory : public DataBackend {
    public:
     DataBackendMemory(std::string const& url = "", std::string const& status = "");
     DataBackendMemory(const DataBackendMemory&);
-    virtual ~DataBackendMemory();
-    virtual std::unique_ptr<DataBackend> Copy() const;
-    virtual bool empty() const;
-    virtual void Open(std::string const& url, std::string const& status = "");
-    virtual void Parse(std::string const& str);
-    virtual void Flush();
-    virtual void Close();
-    virtual void Clear();
-    virtual void Reset();
-    virtual size_type count() const;
-    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const;
-    virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&);
-    virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&);
-    virtual size_type Delete(std::string const& key);
-    virtual size_type Count(std::string const& uri) const;
+    DataBackendMemory(DataBackendMemory&&);
 
+    virtual ~DataBackendMemory();
+
+    virtual std::unique_ptr<DataBackend> Copy() const;
+    //    virtual void Initialize();
+    //    virtual void Finalize();
+    //    virtual void Flush();
+    virtual bool IsNull() const;  //!< is not initialized
+
+    virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const;
+    virtual std::shared_ptr<DataEntity> Get(id_type key) const;
+    virtual bool Set(std::string const& URI, std::shared_ptr<DataEntity> const&);
+    virtual bool Set(id_type key, std::shared_ptr<DataEntity> const&);
+    virtual bool Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
+    virtual bool Add(id_type key, std::shared_ptr<DataEntity> const&);
+    virtual size_type Delete(std::string const& URI);
+    virtual size_type Delete(id_type key);
+    virtual void DeleteAll();
+    virtual size_type Count(std::string const& uri = "") const;
     virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    virtual size_type Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const;
 
    private:
     struct pimpl_s;

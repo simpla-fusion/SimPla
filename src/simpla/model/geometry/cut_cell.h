@@ -271,7 +271,7 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //		typename TM::mesh_id_type s1, std::Set<typename TM::mesh_id_type>* res,
 //		Real epsilon = 0.01)
 //{
-//	int count = 0;
+//	int Count = 0;
 //	if ((geometry.diff_index(s0, s1) != 0)
 //			&& ((inner_product(x1 - x0, x1 - x0))
 //					> epsilon * inner_product(geometry.dx(), geometry.dx())))
@@ -284,17 +284,17 @@ size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
 //
 //		res->Set(sc);
 //
-//		++count;
+//		++Count;
 //
-//		count += line_segment_cut_cell(geometry, node_id, x0, xc, s0, sc, res,
+//		Count += line_segment_cut_cell(geometry, node_id, x0, xc, s0, sc, res,
 //				epsilon);
 //
-//		count += line_segment_cut_cell(geometry, node_id, xc, x1, sc, s1, res,
+//		Count += line_segment_cut_cell(geometry, node_id, xc, x1, sc, s1, res,
 //				epsilon);
 //
 //	}
 //
-//	return count;
+//	return Count;
 //}
 //template<typename TM, typename TX>
 //void triangle_cut_cell(TM const & geometry, typename TM::mesh_id_type node_id,

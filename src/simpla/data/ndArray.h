@@ -290,7 +290,7 @@ class HeavyDataAdapter<ndArray<V, N>> {
         index_type lb = m_lower_[3], le = m_upper_[3];
 ///******/
 //        VERBOSE << "start ={" << m_start_[0] << "," << m_start_[1] << "," << m_start_[2] << "},"
-//                << "count ={" << m_count_[0] << "," << m_count_[1] << "," << m_count_[2] << "},"
+//                << "Count ={" << m_count_[0] << "," << m_count_[1] << "," << m_count_[2] << "},"
 //                << "lower ={" << m_lower_[0] << "," << m_lower_[1] << "," << m_lower_[2] << "},"
 //                << "upper ={" << m_upper_[0] << "," << m_upper_[1] << "," << m_upper_[2] << "},"
 //                << std::endl;

@@ -18,7 +18,7 @@ struct DataArray : public DataEntity {
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual bool isArray() const { return true; }
     /** as Array */
-    virtual size_type count() const { return 0; };
+    virtual size_type Count() const { return 0; };
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return std::make_shared<DataEntity>(); }
     virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const&) { return false; }
     virtual bool Add(std::shared_ptr<DataEntity> const&) { return false; }
@@ -37,10 +37,10 @@ struct DataArrayWrapper<void> : public DataArray {
 
     virtual ~DataArrayWrapper(){};
 
-    virtual size_type count() const { return m_data_.size(); }
+    virtual size_type Count() const { return m_data_.size(); }
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return m_data_[idx]; }
     virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const& v) {
-        if (idx < count()) {
+        if (idx < Count()) {
             m_data_[idx] = v;
             return true;
         } else {
@@ -73,11 +73,11 @@ class DataArrayWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : p
     virtual ~DataArrayWrapper() {}
     virtual std::type_info const& type() const { return typeid(U); };
 
-    virtual size_type count() const { return m_data_.size(); };
+    virtual size_type Count() const { return m_data_.size(); };
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return make_data_entity(m_data_[idx]); }
 
     virtual bool Set(size_type idx, U const& v) {
-        if (count() > idx) {
+        if (Count() > idx) {
             m_data_[idx] = v;
             return true;
         } else {
@@ -94,7 +94,7 @@ class DataArrayWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : p
         return true;
     }
     virtual bool Add(std::shared_ptr<DataEntity> const& v) {
-        ASSERT(v != nullptr && !v->empty());
+//        ASSERT(v != nullptr && !v->empty());
         return Add(v->as<U>());
     }
     virtual int Delete(size_type idx) {

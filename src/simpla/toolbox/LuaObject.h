@@ -150,7 +150,7 @@ class LuaObject : public concept::Printable {
     bool is_nTuple() const;
     std::string get_typename() const;
     void init();
-    void parse_file(std::string const &filename);
+    void parse_file(std::string const &filename, std::string const &status = "");
     void parse_string(std::string const &str);
 
     class iterator {

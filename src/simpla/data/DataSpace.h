@@ -37,7 +37,7 @@ public:
             , index_tuple // dimensions
             , index_tuple // start
             , index_tuple // stride
-            , index_tuple // count
+            , index_tuple // Count
             , index_tuple // block
     > data_shape_s;
 
@@ -76,7 +76,7 @@ public:
 //                                                   index_type const *topology_dims = nullptr,
 //                                                   index_type const *start = nullptr,
 //                                                   index_type const *_stride = nullptr,
-//                                                   index_type const *count = nullptr,
+//                                                   index_type const *Count = nullptr,
 //                                                   index_type const *_block = nullptr
 //    );
 

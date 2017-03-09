@@ -44,10 +44,10 @@ void ndarray_update_ghost(void *buffer,
                           MPI_Datatype ele_type,
                           MPI_Comm comm);
 //template<typename Integral>
-//std::tuple<Integral, Integral> sync_global_location(MPIComm &mpi_comm, Integral count)
+//std::tuple<Integral, Integral> sync_global_location(MPIComm &mpi_comm, Integral Count)
 //{
 //
-//	auto res = sync_global_location(mpi_comm, static_cast<int>(count));
+//	auto res = sync_global_location(mpi_comm, static_cast<int>(Count));
 //
 //	return std::make_tuple(static_cast<Integral>(std::Get<0>(res)),
 //			static_cast<Integral>(std::Get<1>(res)));
@@ -98,7 +98,7 @@ void ndarray_update_ghost(void *buffer,
 //};
 //
 //void make_dist_connection(int m_ndims_, size_t const *m_global_start_, size_t const *stride,
-//		size_t const *count, size_t const *block, size_t const *m_ghost_width_,
+//		size_t const *Count, size_t const *block, size_t const *m_ghost_width_,
 //		std::vector<dist_sync_connection> *dist_connect);
 //
 //void get_ghost_shape(int m_ndims_, size_t const *l_offset,

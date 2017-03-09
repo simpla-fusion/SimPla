@@ -17,6 +17,7 @@ namespace data {
 template <typename, typename Enable = void>
 class DataEntityWrapper {};
 class DataEntity;
+class DataArray;
 
 struct DataEntity : public concept::Printable {
     SP_OBJECT_BASE(DataEntity);
@@ -42,24 +43,26 @@ struct DataEntity : public concept::Printable {
     //    DataArray& asArray() { return cast_as<DataArray>(); }
     //    DataArray const& asArray() const { return cast_as<DataArray>(); }
 
-    virtual size_type count() const { return 0; };
-
-    /** as Array */
-    virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return std::make_shared<DataEntity>(); }
-    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const&) { return false; }
-    virtual bool Add(std::shared_ptr<DataEntity> const&) { return false; }
-    virtual int Delete(size_type idx) { return 0; }
-
-    /** as Table */
-    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const { return std::make_shared<DataEntity>(); }
-    virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
-    virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
-    virtual size_type Delete(std::string const& key) { return 0; }
-
-    template <typename Idx>
-    std::shared_ptr<DataEntity> operator[](Idx const& idx) const {
-        return Get(idx);
-    }
+    virtual size_type Count() const { return 0; };
+    virtual std::shared_ptr<DataEntity> Copy() const {};
+    virtual std::shared_ptr<DataArray> MakeArray() const {};
+    //    /** as Array */
+    //    virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return std::make_shared<DataEntity>(); }
+    //    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const&) { return false; }
+    //    virtual bool Add(std::shared_ptr<DataEntity> const&) { return false; }
+    //    virtual int Delete(size_type idx) { return 0; }
+    //
+    //    /** as Table */
+    //    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const { return std::make_shared<DataEntity>();
+    //    }
+    //    virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
+    //    virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
+    //    virtual size_type Delete(std::string const& key) { return 0; }
+    //
+    //    template <typename Idx>
+    //    std::shared_ptr<DataEntity> operator[](Idx const& idx) const {
+    //        return Get(idx);
+    //    }
 
     template <typename U>
     bool operator==(U const& v) const {

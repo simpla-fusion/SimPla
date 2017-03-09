@@ -145,7 +145,7 @@ int main(int argc, char **argv) {
 
     while (count <= num_of_steps) {
         ctx.Run(dt);
-        //        if (count % step_of_check_points == 0) { ctx.CheckPoint(*os); }
+        //        if (Count % step_of_check_points == 0) { ctx.CheckPoint(*os); }
         INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " Count = " << count << "] <<< " << std::endl;
         ++count;
     }

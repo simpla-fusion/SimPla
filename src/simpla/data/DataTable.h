@@ -21,7 +21,7 @@ class KeyValue;
  * @brief  a @ref DataEntity tree, a key-value table of @ref DataEntity, which is similar as Group
  * in HDF5, but all node/table are DataEntity.
  * @design_pattern
- *  - Proxy of DataBeckend
+ *  - Proxy of DataBackend
  */
 class DataTable : public DataEntity {
     SP_OBJECT_HEAD(DataTable, DataEntity);
@@ -32,31 +32,38 @@ class DataTable : public DataEntity {
     DataTable(std::unique_ptr<DataBackend>&& p);
     DataTable(const DataTable&);
     DataTable(DataTable&&);
+    ~DataTable() final;
 
-    virtual ~DataTable();
-    virtual bool isTable() const { return true; }
+    void swap(DataTable&);
+
+    //******************************************************************************************************************
+    /** Interface DataEntity */
+    std::ostream& Print(std::ostream& os, int indent = 0) const;
+    bool isTable() const { return true; }
     std::type_info const& type() const { return typeid(DataTable); };
-    std::shared_ptr<DataTable> Copy() const;
+    std::shared_ptr<DataEntity> Copy() const;
     DataBackend const* backend() const { return m_backend_.get(); }
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-    virtual void Parse(std::string const& str);
-    virtual void Open(std::string const& url, std::string const& status = "");
-    virtual void Flush();
-    virtual void Close();
-    virtual void Clear();
-    virtual void Reset();
 
-    virtual bool empty() const;
-    virtual size_type count() const;
+    //******************************************************************************************************************
+    /** Interface DataBackend */
+    void Flush();
+    bool IsNull() const;
 
-    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const;
-    virtual bool Set(DataTable const& other);
-    virtual bool Set(std::initializer_list<KeyValue> const& other);
-    virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&);
-    virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&);
-    virtual size_type Delete(std::string const& key);
+    std::shared_ptr<DataEntity> Get(std::string const& URI) const;
+    std::shared_ptr<DataEntity> Get(id_type key) const;
+    bool Set(std::string const& URI, std::shared_ptr<DataEntity> const&);
+    bool Set(id_type key, std::shared_ptr<DataEntity> const&);
+    bool Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
+    bool Add(id_type key, std::shared_ptr<DataEntity> const&);
+    size_type Delete(std::string const& URI);
+    size_type Delete(id_type key);
 
-    virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    size_type Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const;
+    /** Interface End */
+    //******************************************************************************************************************
+    bool Set(DataTable const& other);
+    bool Set(std::initializer_list<KeyValue> const& other);
 
     template <typename U>
     bool Set(std::string const& uri, U const& v) {
@@ -76,14 +83,16 @@ class DataTable : public DataEntity {
     };
     template <typename U>
     bool Add(std::string const& uri, U const& v) {
-        return Add(uri, DataEntity{v});
+        return Add(uri, make_data_entity(v));
     };
-
     template <typename U>
-    bool Add(std::string const& uri, U&& v) {
-        return Set(uri, DataEntity{v});
+    bool Add(std::string const& uri, std::initializer_list<U> const& u) {
+        return Add(uri, make_data_entity(u));
     };
-
+    template <typename U>
+    bool Add(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
+        return Add(uri, make_data_entity(u));
+    };
     template <typename U>
     bool Add(U const& u) {
         return Add(make_data_entity(u));
