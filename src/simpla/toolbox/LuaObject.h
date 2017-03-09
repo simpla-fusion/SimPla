@@ -105,8 +105,10 @@ class LuaObject : public concept::Printable {
         lua_State *get() const { return const_cast<lua_State *>(m_l_->m_state_); }
     };
 
+   public:
     LuaState L_;
 
+   private:
     int GLOBAL_REF_IDX_;
     int self_;
     std::string path_;

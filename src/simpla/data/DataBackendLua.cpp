@@ -68,7 +68,6 @@ std::shared_ptr<DataEntity> make_data_array_lua(toolbox::LuaObject const& lobj) 
 }
 std::shared_ptr<DataEntity> make_data_entity_lua(toolbox::LuaObject const& lobj) {
     if (lobj.is_list()) {
-        CHECK(lobj.size());
         auto p = lobj[0];
         if (p.is_floating_point()) {
             return make_data_array_lua<double>(lobj);
@@ -96,7 +95,7 @@ std::shared_ptr<DataEntity> make_data_entity_lua(toolbox::LuaObject const& lobj)
     }
 }
 
-DataBackendLua::DataBackendLua() : m_pimpl_(new pimpl_s) {}
+DataBackendLua::DataBackendLua() : m_pimpl_(new pimpl_s) { m_pimpl_->m_lua_obj_.init(); }
 
 DataBackendLua::DataBackendLua(std::string const& url, std::string const& status) : DataBackendLua() {
     m_pimpl_->m_lua_obj_.parse_file(url, status);
@@ -240,9 +239,14 @@ size_type DataBackendLua::Delete(id_type key) {}
 void DataBackendLua::DeleteAll() {}
 size_type DataBackendLua::Count(std::string const& uri) const { return 0; }
 size_type DataBackendLua::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
-    for (auto const& item : m_pimpl_->m_lua_obj_) {
-        f(item.first.as<std::string>(), make_data_entity_lua(item.second));
-    };
+    if (m_pimpl_->m_lua_obj_.is_global()) {
+        UNSUPPORTED;
+        UNIMPLEMENTED;
+    } else {
+        for (auto const& item : m_pimpl_->m_lua_obj_) {
+            f(item.first.as<std::string>(), make_data_entity_lua(item.second));
+        };
+    }
 }
 size_type DataBackendLua::Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const {};
 
