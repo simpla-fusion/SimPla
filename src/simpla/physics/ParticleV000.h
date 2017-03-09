@@ -97,7 +97,7 @@ public:
     }
 
 
-    //Copy construct
+    //CreateNew construct
     Particle(this_type const &other)
             : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
               m_data_(other.m_data_), m_properties_(other.m_properties_), MeshAttribute(nullptr), MeshAttribute(nullptr),

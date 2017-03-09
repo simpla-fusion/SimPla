@@ -99,7 +99,7 @@ public:
         deploy();
     }
 
-    //Copy construct
+    //CreateNew construct
     Particle(this_type const &other)
             : engine_type(other), field_type(other), m_properties_(other.m_properties_), m_pool_(other.m_pool_)
     {
@@ -424,7 +424,7 @@ Particle<P, M, V001>::dataset(mesh::EntityRange const &r0) const
 
         std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
 
-//        Copy(r0, reinterpret_cast< value_type *>( ds.GetDataBlock.Get()));
+//        CreateNew(r0, reinterpret_cast< value_type *>( ds.GetDataBlock.Get()));
     }
     return std::move(ds);
 };
@@ -493,10 +493,10 @@ Particle<P, M, V001>::count(range_type const &r0) const
 //template<typename P, typename M>
 //template<typename OutputIT>
 //OutputIT
-//Particle<P, M, V001>::Copy(range_type const &r, OutputIT out_it) const
+//Particle<P, M, V001>::CreateNew(range_type const &r, OutputIT out_it) const
 //{
 //    //TODO need optimize
-//    for (auto const &s:r) { out_it = Copy(s, out_it); }
+//    for (auto const &s:r) { out_it = CreateNew(s, out_it); }
 //    return out_it;
 //}
 

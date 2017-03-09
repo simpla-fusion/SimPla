@@ -22,7 +22,7 @@ class DataBackendMemory : public DataBackend {
 
     virtual ~DataBackendMemory();
 
-    virtual std::unique_ptr<DataBackend> Copy() const;
+    virtual std::unique_ptr<DataBackend> CreateNew() const;
     //    virtual void Initialize();
     //    virtual void Finalize();
     //    virtual void Flush();

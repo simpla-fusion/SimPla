@@ -92,7 +92,7 @@ public:
         deploy();
     }
 
-    //Copy construct
+    //CreateNew construct
     Particle(this_type const &other)
             : engine_type(other), field_type(other), m_properties_(other.m_properties_), m_pool_(other.m_pool_)
     {

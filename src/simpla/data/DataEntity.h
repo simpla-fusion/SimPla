@@ -42,8 +42,7 @@ struct DataEntity : public concept::Printable {
     //    DataTable const& asTable() const { return cast_as<DataTable>(); }
     //    DataArray& asArray() { return cast_as<DataArray>(); }
     //    DataArray const& asArray() const { return cast_as<DataArray>(); }
-
-    virtual size_type Count() const { return 0; };
+    size_type Count(std::string const& uri = "") const { return 0; };
     virtual std::shared_ptr<DataEntity> Copy() const {};
     virtual std::shared_ptr<DataArray> MakeArray() const {};
     //    /** as Array */

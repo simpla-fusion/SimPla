@@ -24,7 +24,7 @@ class DataBackend {
     virtual ~DataBackend(){};
 
     virtual void Flush(){};
-    virtual std::unique_ptr<DataBackend> Copy() const = 0;
+    virtual std::unique_ptr<DataBackend> CreateNew() const = 0;
     virtual bool IsNull() const = 0;  //!< is not initialized
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const = 0;
     virtual std::shared_ptr<DataEntity> Get(id_type key) const = 0;

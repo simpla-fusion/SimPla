@@ -45,9 +45,7 @@ void LuaObject::swap(LuaObject &other) {
 LuaObject::~LuaObject() {
     if (!L_.empty()) {
         auto acc = L_.acc();
-
         if (self_ > 0) { luaL_unref(*acc, GLOBAL_REF_IDX_, self_); }
-
         if (L_.unique()) { lua_remove(*acc, GLOBAL_REF_IDX_); }
     }
 }
@@ -115,6 +113,7 @@ void LuaObject::init() {
 
 void LuaObject::parse_file(std::string const &filename, std::string const &status) {
     if (filename != "") {
+        init();
         auto acc = L_.acc();
         LUA_ERROR(luaL_dofile(*acc, filename.c_str()));
         LOGGER << "Load Lua file:[" << filename << "]" << std::endl;
@@ -230,19 +229,8 @@ std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const {
 
     return std::move(res);
 }
-size_t LuaObject::accept(std::function<void(LuaObject const &, LuaObject const &)> const &fun) const {
-    size_t s = 0;
-    if (is_global()) {
-    } else {
-        for (auto const &item : *this) {
-            ++s;
-            fun(item.first, item.second);
-        }
-    }
-    return s;
-}
 
-//size_t LuaObject::accept(std::function<void(LuaObject const &, LuaObject const &)> const &fun) {
+// size_t LuaObject::accept(std::function<void(LuaObject const &, LuaObject const &)> const &fun) {
 //    size_t s = 0;
 //    if (is_global()) {
 //    } else {
@@ -388,13 +376,9 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
     LuaObject res;
     if (!is_null()) {
         auto acc = L_.acc();
-
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
-
         int tidx = lua_gettop(*acc);
-
         lua_createtable(*acc, narr, nrec);
-
         if (name == "") {
             int len = static_cast<int>(lua_rawlen(*acc, tidx));
             lua_rawseti(*acc, tidx, len + 1);
@@ -403,7 +387,6 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
             lua_setfield(*acc, tidx, name.c_str());
             lua_getfield(*acc, tidx, name.c_str());
         }
-
         LuaObject(acc.get(), GLOBAL_REF_IDX_, luaL_ref(*acc, GLOBAL_REF_IDX_), path_ + "." + name).swap(res);
 
         lua_pop(*acc, 1);

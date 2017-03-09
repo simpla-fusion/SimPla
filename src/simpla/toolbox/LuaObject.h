@@ -190,7 +190,7 @@ class LuaObject : public concept::Printable {
     iterator begin() const { return iterator(L_, GLOBAL_REF_IDX_, self_, path_); }
     iterator end() const { return iterator(); }
 
-    size_t accept(std::function<void(LuaObject const &, LuaObject const &)> const &) const;
+    //    size_t accept(std::function<void(LuaObject const &, LuaObject const &)> const &) const;
 
     //    int accept(std::function<void(int, LuaObject &)> const &) const;
 
@@ -309,16 +309,10 @@ class LuaObject : public concept::Printable {
             return false;
         }
     }
-
-    //    bool as(Properties *res) const;
-
-    //    bool set(std::string const &key, Properties const &res) const;
-
     template <typename T>
     inline void set(std::string const &name, T const &v) {
         if (is_null()) { return; }
         auto acc = L_.acc();
-
         try_lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(*acc, v);
         lua_setfield(*acc, -2, name.c_str());

@@ -15,7 +15,7 @@ namespace simpla {
 namespace data {
 DataTable::DataTable(std::string const& url, std::string const& args) : m_backend_(CreateDataBackend(url, args)){};
 DataTable::DataTable(std::unique_ptr<DataBackend>&& p) : m_backend_(std::move(p)){};
-DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->Copy())) {}
+DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->CreateNew())) {}
 DataTable::DataTable(DataTable&& other) : m_backend_(std::move(other.m_backend_)) {}
 DataTable::~DataTable(){};
 void DataTable::swap(DataTable& other) { std::swap(m_backend_, other.m_backend_); };
@@ -31,7 +31,8 @@ bool DataTable::Set(std::initializer_list<KeyValue> const& other) {
     for (auto const& item : other) { Set(item.first, item.second); }
     return true;
 }
-
+size_type DataTable::Count(std::string const& uri) const { return m_backend_->Count(uri); }
+bool DataTable::IsNull() const { return m_backend_->IsNull(); }
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& uri) const { return m_backend_->Get(uri); };
 std::shared_ptr<DataEntity> DataTable::Get(id_type key) const { return m_backend_->Get(key); };
 bool DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return m_backend_->Set(uri, v); };

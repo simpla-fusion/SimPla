@@ -75,7 +75,7 @@ DataBackendMemory::~DataBackendMemory() {}
 //        start_pos = pos0 + 1;
 //    }
 //}
-std::unique_ptr<DataBackend> DataBackendMemory::Copy() const { return std::make_unique<DataBackendMemory>(*this); }
+std::unique_ptr<DataBackend> DataBackendMemory::CreateNew() const { return std::make_unique<DataBackendMemory>(); }
 bool DataBackendMemory::IsNull() const { return m_pimpl_ == nullptr; };
 
 std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const {
@@ -122,7 +122,7 @@ bool DataBackendMemory::Set(std::string const& url, std::shared_ptr<DataEntity> 
         auto it = m_pimpl_->m_table_.find(sub_id);
         if (it == m_pimpl_->m_table_.end()) {
             // create table if need
-            t = std::make_shared<DataTable>(this->Copy());
+            t = std::make_shared<DataTable>(this->CreateNew());
             m_pimpl_->m_table_.insert(std::make_pair(sub_id, std::make_pair(sub_k, t)));
         } else if (it->second.second->isTable()) {
             t = std::dynamic_pointer_cast<DataTable>(it->second.second);
@@ -144,7 +144,6 @@ bool DataBackendMemory::Add(std::string const& url, std::shared_ptr<DataEntity> 
     size_type end_pos = url.find(m_pimpl_->split_char);
 
     // insert or assign
-
     if (end_pos == std::string::npos) {
         id_type k = m_pimpl_->Hash(url);
         success = Add(k, v);
@@ -157,7 +156,7 @@ bool DataBackendMemory::Add(std::string const& url, std::shared_ptr<DataEntity> 
         auto it = m_pimpl_->m_table_.find(sub_id);
         if (it == m_pimpl_->m_table_.end()) {
             // create table if need
-            t = std::make_shared<DataTable>(this->Copy());
+            t = std::make_shared<DataTable>(this->CreateNew());
             m_pimpl_->m_table_.insert(std::make_pair(sub_id, std::make_pair(sub_k, t)));
         } else if (it->second.second->isTable()) {
             t = std::dynamic_pointer_cast<DataTable>(it->second.second);
@@ -206,7 +205,9 @@ size_type DataBackendMemory::Delete(std::string const& uri) { return m_pimpl_->m
 size_type DataBackendMemory::Delete(id_type key) { return m_pimpl_->m_table_.erase(key); }
 void DataBackendMemory::DeleteAll() {}
 
-size_t DataBackendMemory::Count(std::string const& uri) const { return m_pimpl_->m_table_.count(m_pimpl_->Hash(uri)); }
+size_t DataBackendMemory::Count(std::string const& uri) const {
+    return uri == "" ? m_pimpl_->m_table_.size() : m_pimpl_->m_table_.count(m_pimpl_->Hash(uri));
+}
 size_type DataBackendMemory::Accept(
     std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     for (auto const& item : m_pimpl_->m_table_) { f(item.second.first, item.second.second); }

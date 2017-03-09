@@ -48,6 +48,7 @@ class DataTable : public DataEntity {
     /** Interface DataBackend */
     void Flush();
     bool IsNull() const;
+    size_type Count(std::string const& uri = "") const;
 
     std::shared_ptr<DataEntity> Get(std::string const& URI) const;
     std::shared_ptr<DataEntity> Get(id_type key) const;

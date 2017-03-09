@@ -25,9 +25,8 @@ class DataBackendLua : public DataBackend {
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
 
 /** Interface DataBackend*/
-    virtual std::unique_ptr<DataBackend> Copy() const ;
-    virtual void Initialize() ;
-    virtual void Finalize() ;
+    virtual std::unique_ptr<DataBackend> CreateNew() const ;
+
     virtual bool IsNull() const ;  //!< is not initialized
     virtual void Flush() ;
 
