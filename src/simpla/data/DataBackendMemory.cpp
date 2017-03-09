@@ -11,9 +11,8 @@ namespace data {
 struct DataBackendMemory::pimpl_s {
     std::map<id_type, std::pair<std::string, std::shared_ptr<DataEntity>>> m_table_;
     static constexpr char split_char = '.';
-    std::pair<std::shared_ptr<DataEntity>, std::string> insert_or_assign(std::string const& uri,
-                                                                         std::shared_ptr<DataEntity>);
-    id_type Hash(std::string const& s) const { return std::hash<std::string>()(s); }
+    id_type Hash(std::string const& s) const { return m_hasher_(s); }
+    std::hash<std::string> m_hasher_;
 };
 
 DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& status) : m_pimpl_(new pimpl_s) {
@@ -30,51 +29,6 @@ DataBackendMemory::DataBackendMemory(DataBackendMemory&& other) : m_pimpl_(new p
 };
 DataBackendMemory::~DataBackendMemory() {}
 
-// std::ostream& print_kv(std::ostream& os, int indent, std::string const& key, std::shared_ptr<DataEntity> const& v) {
-//    os << std::endl
-//       << std::setw(indent + 1) << " "
-//       << "\"" << key << "\" : ";
-//    v->Print(os, indent + 1);
-//    return os;
-//}
-//
-// std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const {
-//    if (!m_pimpl_->m_table_.empty()) {
-//        auto it = m_pimpl_->m_table_.begin();
-//        auto ie = m_pimpl_->m_table_.end();
-//        if (it != ie) {
-//            os << " {";
-//            print_kv(os, indent + 1, it->first, it->second);
-//            ++it;
-//            for (; it != ie; ++it) {
-//                os << " , ";
-//                print_kv(os, indent + 1, it->first, it->second);
-//            }
-//            os << std::endl
-//               << std::setw(indent) << " "
-//               << " }";
-//        }
-//    };
-//    return os;
-//};
-//
-// std::pair<std::shared_ptr<DataEntity>, std::string> DataBackendMemory::pimpl_s::ParseURI(std::string const& str,
-//                                                                                         bool create_table_if_need) {
-//    size_type start_pos = 0;
-//    size_type end_pos = str.size();
-//    while (start_pos < end_pos) {
-//        size_type pos0 = str.find(';', start_pos);
-//        if (pos0 == std::string::npos) { pos0 = end_pos; }
-//        std::string key = str.substr(start_pos, pos0 - start_pos);
-//        size_type pos1 = key.find('=');
-//        std::string value = "";
-//        if (pos1 != std::string::npos) {
-//            value = key.substr(pos1 + 1);
-//            key = key.substr(0, pos1);
-//        }
-//        start_pos = pos0 + 1;
-//    }
-//}
 std::unique_ptr<DataBackend> DataBackendMemory::CreateNew() const { return std::make_unique<DataBackendMemory>(); }
 bool DataBackendMemory::IsNull() const { return m_pimpl_ == nullptr; };
 

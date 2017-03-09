@@ -38,30 +38,11 @@ struct DataEntity : public concept::Printable {
     virtual bool isEntity() const { return !(isTable() || isArray()); }
     virtual bool isTable() const { return false; }
     virtual bool isArray() const { return false; }
-    //    DataTable& asTable() { return cast_as<DataTable>(); }
-    //    DataTable const& asTable() const { return cast_as<DataTable>(); }
-    //    DataArray& asArray() { return cast_as<DataArray>(); }
-    //    DataArray const& asArray() const { return cast_as<DataArray>(); }
+
     size_type Count(std::string const& uri = "") const { return 0; };
     virtual std::shared_ptr<DataEntity> Copy() const {};
     virtual std::shared_ptr<DataArray> MakeArray() const {};
-    //    /** as Array */
-    //    virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return std::make_shared<DataEntity>(); }
-    //    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const&) { return false; }
-    //    virtual bool Add(std::shared_ptr<DataEntity> const&) { return false; }
-    //    virtual int Delete(size_type idx) { return 0; }
-    //
-    //    /** as Table */
-    //    virtual std::shared_ptr<DataEntity> Get(std::string const& key) const { return std::make_shared<DataEntity>();
-    //    }
-    //    virtual bool Set(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
-    //    virtual bool Add(std::string const& key, std::shared_ptr<DataEntity> const&) { return false; }
-    //    virtual size_type Delete(std::string const& key) { return 0; }
-    //
-    //    template <typename Idx>
-    //    std::shared_ptr<DataEntity> operator[](Idx const& idx) const {
-    //        return Get(idx);
-    //    }
+
 
     template <typename U>
     bool operator==(U const& v) const {
@@ -78,15 +59,7 @@ struct DataEntity : public concept::Printable {
             return cast_as<DataEntityWrapper<U>>().value();
         } catch (...) { return u; }
     }
-    //
-    //    template <typename U>
-    //    DataArrayWrapper<U>& asArray() {
-    //        return cast_as<DataArrayWrapper<U>>();
-    //    }
-    //    template <typename U>
-    //    DataArrayWrapper<U> const& asArray() const {
-    //        return cast_as<DataArrayWrapper<U>>();
-    //    }
+
 };
 template <typename U>
 struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : public DataEntity {
