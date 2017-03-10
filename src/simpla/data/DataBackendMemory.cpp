@@ -4,9 +4,9 @@
 #include "DataBackendMemory.h"
 #include <iomanip>
 #include <map>
-#include "../DataArray.h"
-#include "../DataEntity.h"
-#include "../DataTable.h"
+#include "DataArray.h"
+#include "DataEntity.h"
+#include "DataTable.h"
 namespace simpla {
 namespace data {
 struct DataBackendMemory::pimpl_s {

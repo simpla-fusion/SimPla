@@ -7,9 +7,9 @@
 
 #include <ostream>
 #include <typeindex>
-#include "../DataBackend.h"
-#include "../DataEntity.h"
-#include "../DataTable.h"
+#include "DataBackend.h"
+#include "DataEntity.h"
+#include "DataTable.h"
 namespace simpla {
 namespace data {
 class DataBackendMemory : public DataBackend {

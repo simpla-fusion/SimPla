@@ -6,6 +6,7 @@
 
 namespace simpla {
 namespace data {
+constexpr char DataBackendSAMRAI::ext[]  ;
 
 struct DataBackendSAMRAI::pimpl_s {};
 DataBackendSAMRAI::DataBackendSAMRAI() : m_pimpl_(new pimpl_s) {}

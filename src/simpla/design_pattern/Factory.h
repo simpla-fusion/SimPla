@@ -8,6 +8,7 @@
 #ifndef FACTORY_H_
 #define FACTORY_H_
 
+#include <simpla/SIMPLA_config.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/toolbox/Log.h>
 #include <iostream>
@@ -31,9 +32,9 @@ struct Factory : public std::map<TKey, std::function<TRes*(Args&&...)>> {
 
    public:
     Factory() {}
-    ~Factory() {}
+    virtual ~Factory() {}
 
-    TRes* Create(key_type const& id, Args... args) const {
+    virtual TRes* Create(key_type const& id, Args... args) const {
         auto it = this->find(id);
         //        if (it == callbacks_.end()) { RUNTIME_ERROR("Can not find id " + value_to_string(id)); }
         return (it == this->end()) ? nullptr : (it->second)(std::forward<Args>(args)...);
@@ -44,7 +45,7 @@ struct Factory : public std::map<TKey, std::function<TRes*(Args&&...)>> {
         return this->emplace(k, [&](Args&&... args) -> TRes* { return new U(std::forward<Args>(args)...); }).second;
     }
 
-    int Unregister(key_type const& k) { return base_type::erase(k); }
+    virtual void Unregister(key_type const& k) { this->erase(k); }
 };
 
 /** @} */

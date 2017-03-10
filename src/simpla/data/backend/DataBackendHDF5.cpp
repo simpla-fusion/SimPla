@@ -4,13 +4,12 @@
 
 #include "DataBackendHDF5.h"
 #include <simpla/design_pattern/SingletonHolder.h>
-#include "DataBackendFactory.h"
+#include "../DataBackendFactory.h"
 namespace simpla {
 namespace data {
 REGISTER_DATA_BACKEND_CREATOR(DataBackendHDF5, h5)
+constexpr char DataBackendHDF5::ext[];
 
-// bool DataBackendHDF5IsRegistered = SingletonHolder<DataBackendFactory>::instance().Register(
-//    "h5", [&](std::string const& uri, std::string const& args) { return new DataBackendHDF5(uri, args); });
 struct DataBackendHDF5::pimpl_s {};
 DataBackendHDF5::DataBackendHDF5() : m_pimpl_(new pimpl_s) {}
 DataBackendHDF5::DataBackendHDF5(DataBackendHDF5 const& other) : DataBackendHDF5() {} /* copy pimpl_s*/

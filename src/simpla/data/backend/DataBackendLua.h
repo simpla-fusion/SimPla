@@ -4,7 +4,6 @@
 
 #ifndef SIMPLA_LUADATABASE_H
 #define SIMPLA_LUADATABASE_H
-
 #include <simpla/SIMPLA_config.h>
 #include <memory>
 #include <ostream>
@@ -18,6 +17,8 @@ class DataEntity;
 
 class DataBackendLua : public DataBackend {
    public:
+    static constexpr char ext[] = "lua";
+
     DataBackendLua();
     DataBackendLua(DataBackendLua const&);
     DataBackendLua(std::string const& url, std::string const& status = "");
@@ -45,6 +46,7 @@ class DataBackendLua : public DataBackend {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
+
 
 }  // { namespace data {
 }  // namespace simpla

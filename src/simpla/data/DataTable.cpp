@@ -10,8 +10,8 @@
 #include "DataBackend.h"
 #include "DataEntity.h"
 #include "KeyValue.h"
-#include "backend/DataBackendMemory.h"
-#include "simpla/data/backend/DataBackendFactory.h"
+#include "DataBackendMemory.h"
+#include "DataBackendFactory.h"
 namespace simpla {
 namespace data {
 DataTable::DataTable(std::string const& url, std::string const& args)

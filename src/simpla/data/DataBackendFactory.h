@@ -20,8 +20,11 @@ class DataBackendFactory : public design_pattern::Factory<std::string, DataBacke
     typedef design_pattern::Factory<std::string, DataBackend, std::string, std::string> base_type;
 
    public:
+    DataBackendFactory();
+    virtual ~DataBackendFactory();
     std::ostream &Print(std::ostream &os, int indent = 0) const;
     DataBackend *Create(std::string const &uri, std::string const &args);
+    void RegisterDefault();
 };
 
 // static DataBackendFactory g_DataBackendFactory;g_DataBackendFactory
@@ -29,7 +32,7 @@ class DataBackendFactory : public design_pattern::Factory<std::string, DataBacke
 #define GLOBAL_DATA_BACKEND_FACTORY SingletonHolder<DataBackendFactory>::instance()
 
 #define REGISTER_DATA_BACKEND_CREATOR(__type, __ext) \
-    static const bool __type##_registered = GLOBAL_DATA_BACKEND_FACTORY. template Register<__type>(__STRING(__ext));
+    static const bool __type##_registered = GLOBAL_DATA_BACKEND_FACTORY.template Register<__type>(__STRING(__ext));
 
 }  // namespace data{
 }  // namespace simpla{

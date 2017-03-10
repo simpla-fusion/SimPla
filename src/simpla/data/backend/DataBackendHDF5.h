@@ -4,13 +4,14 @@
 
 #ifndef SIMPLA_DATABACKENDHDF5_H
 #define SIMPLA_DATABACKENDHDF5_H
-
 #include "../DataBackend.h"
 
 namespace simpla {
 namespace data {
 class DataBackendHDF5 : public DataBackend {
    public:
+    static constexpr char ext[] = "h5";
+
     DataBackendHDF5();
     DataBackendHDF5(DataBackendHDF5 const&);
     DataBackendHDF5(DataBackendHDF5&&);

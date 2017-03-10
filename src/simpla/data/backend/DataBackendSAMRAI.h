@@ -4,14 +4,13 @@
 
 #ifndef SIMPLA_DATABACKENDSAMRAI_H
 #define SIMPLA_DATABACKENDSAMRAI_H
-
-
-
 #include "../DataBackend.h"
 namespace simpla {
 namespace data {
-class DataBackendSAMRAI: public DataBackend {
-public:
+class DataBackendSAMRAI : public DataBackend {
+   public:
+    static constexpr char ext[] = "samrai";
+
     DataBackendSAMRAI();
     DataBackendSAMRAI(DataBackendSAMRAI const&);
     DataBackendSAMRAI(DataBackendSAMRAI&&);
@@ -37,11 +36,12 @@ public:
     virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
     virtual size_type Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const;
 
-private:
+   private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
+
+
 }  // namespace data{
 }  // namespace simpla{
-
-#endif //SIMPLA_DATABACKENDSAMRAI_H
+#endif  // SIMPLA_DATABACKENDSAMRAI_H
