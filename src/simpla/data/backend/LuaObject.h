@@ -23,7 +23,7 @@
 
 #include <simpla/concept/Printable.h>
 #include <simpla/mpl/type_cast.h>
-#include "Log.h"
+#include <simpla/toolbox/Log.h>
 #include "LuaObjectExt.h"
 
 extern "C" {

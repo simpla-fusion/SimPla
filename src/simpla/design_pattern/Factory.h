@@ -24,28 +24,26 @@ namespace design_pattern {
  *  \note  Modern C++ Design, Andrei Alexandrescu , Addison Wesley 2001  Charpt 8
  */
 template <typename TKey, typename TRes, typename... Args>
-struct Factory : public std::map<TKey, std::function<TRes*(Args&&...)>> {
-    typedef TKey key_type;
+struct Factory : public std::map<TKey, std::function<TRes*(Args...)>> {
     typedef std::function<TRes*(Args...)> create_fun_callback;
-    typedef std::map<key_type, create_fun_callback> CallbackMap;
-    typedef std::map<TKey, TRes*(Args...)> base_type;
+    typedef std::map<TKey, create_fun_callback> base_type;
 
    public:
     Factory() {}
     virtual ~Factory() {}
 
-    virtual TRes* Create(key_type const& id, Args... args) const {
+    TRes* Create(TKey const& id, Args... args) const {
         auto it = this->find(id);
-        //        if (it == callbacks_.end()) { RUNTIME_ERROR("Can not find id " + value_to_string(id)); }
-        return (it == this->end()) ? nullptr : (it->second)(std::forward<Args>(args)...);
+        LOGGER << " Create " << id << std::endl;
+        return (it == this->end()) ? nullptr : it->second(args...);
     }
 
     template <typename U>
-    bool Register(key_type const& k, ENABLE_IF((std::is_base_of<TRes, U>::value))) {
+    bool Register(TKey const& k, ENABLE_IF((std::is_base_of<TRes, U>::value))) {
         return this->emplace(k, [&](Args&&... args) -> TRes* { return new U(std::forward<Args>(args)...); }).second;
     }
 
-    virtual void Unregister(key_type const& k) { this->erase(k); }
+    void Unregister(TKey const& k) { this->erase(k); }
 };
 
 /** @} */

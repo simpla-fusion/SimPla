@@ -3,10 +3,9 @@
  * @author salmon
  * @date 2015-12-10.
  */
-#include <simpla/algebra/nTuple.h>
-
-#include "FancyStream.h"
 #include "LuaObject.h"
+#include <simpla/algebra/nTuple.h>
+#include <simpla/toolbox/FancyStream.h>
 #include "LuaObjectExt.h"
 
 namespace simpla {
@@ -117,7 +116,6 @@ void LuaObject::parse_file(std::string const &filename, std::string const &statu
         auto acc = L_.acc();
         LUA_ERROR(luaL_dofile(*acc, filename.c_str()));
         LOGGER << "Load Lua file:[" << filename << "]" << std::endl;
-        LOGGER << *this << std::endl;
     }
 }
 

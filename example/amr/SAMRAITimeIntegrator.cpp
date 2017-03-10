@@ -69,7 +69,6 @@
 #include <SAMRAI/tbox/SAMRAIManager.h>
 #include <SAMRAI/tbox/SAMRAI_MPI.h>
 #include <SAMRAI/tbox/Utilities.h>
-#include <SAMRAI/tbox/Utilities.h>
 
 #include <SAMRAI/appu/BoundaryUtilityStrategy.h>
 #include <SAMRAI/appu/CartesianBoundaryDefines.h>

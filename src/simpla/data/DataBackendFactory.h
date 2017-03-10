@@ -15,9 +15,10 @@ namespace simpla {
 namespace data {
 class DataBackend;
 
-class DataBackendFactory : public design_pattern::Factory<std::string, DataBackend, std::string, std::string>,
-                           public concept::Printable {
-    typedef design_pattern::Factory<std::string, DataBackend, std::string, std::string> base_type;
+class DataBackendFactory
+    : public design_pattern::Factory<std::string, DataBackend, std::string const &, std::string const &>,
+      public concept::Printable {
+    typedef design_pattern::Factory<std::string, DataBackend, std::string const &, std::string const &> base_type;
 
    public:
     DataBackendFactory();
@@ -31,8 +32,8 @@ class DataBackendFactory : public design_pattern::Factory<std::string, DataBacke
 
 #define GLOBAL_DATA_BACKEND_FACTORY SingletonHolder<DataBackendFactory>::instance()
 
-#define REGISTER_DATA_BACKEND_CREATOR(__type, __ext) \
-    static const bool __type##_registered = GLOBAL_DATA_BACKEND_FACTORY.template Register<__type>(__STRING(__ext));
+//#define REGISTER_DATA_BACKEND_CREATOR(__type, __ext)
+//    static const bool __type##_registered = GLOBAL_DATA_BACKEND_FACTORY.template Register<__type>(__STRING(__ext));
 
 }  // namespace data{
 }  // namespace simpla{

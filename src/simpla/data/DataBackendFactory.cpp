@@ -6,7 +6,6 @@
 #include "DataBackend.h"
 #include "DataBackendMemory.h"
 
-
 namespace simpla {
 namespace data {
 DataBackendFactory::DataBackendFactory() : base_type() { RegisterDefault(); };
@@ -20,12 +19,16 @@ std::ostream &DataBackendFactory::Print(std::ostream &os, int indent) const {
     return os;
 };
 DataBackend *DataBackendFactory::Create(std::string const &uri, std::string const &args) {
-    std::string ext = "";
     DataBackend *res = nullptr;
-    size_type pos = uri.find_last_of('.');
-    if (pos != std::string::npos) { ext = uri.substr(pos + 1); }
-    res = base_type::Create(ext, uri, args);
-    if (res == nullptr) { res = new DataBackendMemory(); }
+    if (uri == "") {
+        res = new DataBackendMemory();
+    } else {
+        std::string ext = "";
+        size_type pos = uri.find_last_of('.');
+        if (pos != std::string::npos) { ext = uri.substr(pos + 1); }
+        res = base_type::Create(ext, uri, args);
+        if (res == nullptr) { res = new DataBackendMemory(); }
+    }
     return res;
 }
 

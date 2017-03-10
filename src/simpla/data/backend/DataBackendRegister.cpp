@@ -9,9 +9,11 @@
 namespace simpla {
 namespace data {
 void DataBackendFactory::RegisterDefault() {
-    Register<DataBackendHDF5>(DataBackendHDF5::ext);
-    Register<DataBackendLua>(DataBackendLua::ext);
+
     Register<DataBackendSAMRAI>(DataBackendSAMRAI::ext);
+    Register<DataBackendLua>(DataBackendLua::ext);
+    Register<DataBackendHDF5>(DataBackendHDF5::ext);
+
 };
 }  // namespace data {
 }  // namespace simpla {

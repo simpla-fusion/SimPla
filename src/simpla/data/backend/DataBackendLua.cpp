@@ -3,15 +3,14 @@
 //
 #include "DataBackendLua.h"
 #include <simpla/design_pattern/SingletonHolder.h>
-#include <simpla/toolbox/LuaObject.h>
 #include "../DataArray.h"
 #include "../DataBackendFactory.h"
 #include "../DataEntity.h"
 #include "../DataTable.h"
 #include "../DataTraits.h"
+#include "LuaObject.h"
 namespace simpla {
 namespace data {
-REGISTER_DATA_BACKEND_CREATOR(DataBackendLua, lua)
 constexpr char DataBackendLua::ext[];
 
 template <typename U>

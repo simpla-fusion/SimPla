@@ -7,8 +7,7 @@
 #include "../DataBackendFactory.h"
 namespace simpla {
 namespace data {
-REGISTER_DATA_BACKEND_CREATOR(DataBackendHDF5, h5)
-constexpr char DataBackendHDF5::ext[];
+ constexpr char DataBackendHDF5::ext[];
 
 struct DataBackendHDF5::pimpl_s {};
 DataBackendHDF5::DataBackendHDF5() : m_pimpl_(new pimpl_s) {}

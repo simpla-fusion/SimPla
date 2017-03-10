@@ -41,7 +41,8 @@ struct is_light_data<char const*> : public std::integral_constant<bool, true> {}
 
 template <typename U, int... N>
 struct is_light_data<simpla::algebra::declare::nTuple_<U, N...>> : public std::integral_constant<bool, true> {};
-
+template <typename... U>
+struct is_light_data<std::tuple<U...>> : public std::integral_constant<bool, true> {};
 }  // namespace traits {
 
 }  // namespace data {
