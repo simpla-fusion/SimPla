@@ -4,8 +4,9 @@
 #include "DataBackendMemory.h"
 #include <iomanip>
 #include <map>
-#include "DataArray.h"
-#include "DataEntity.h"
+#include "../DataArray.h"
+#include "../DataEntity.h"
+#include "../DataTable.h"
 namespace simpla {
 namespace data {
 struct DataBackendMemory::pimpl_s {
@@ -14,9 +15,11 @@ struct DataBackendMemory::pimpl_s {
     id_type Hash(std::string const& s) const { return m_hasher_(s); }
     std::hash<std::string> m_hasher_;
 };
-
-DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& status) : m_pimpl_(new pimpl_s) {
-    if (url != "") { /* Open File */
+DataBackendMemory::DataBackendMemory() : m_pimpl_(new pimpl_s) {}
+DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& status) : DataBackendMemory() {
+    if (url != "") {
+        DataTable d(url, status);
+        d.Accept([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
     }
 }
 DataBackendMemory::DataBackendMemory(const DataBackendMemory& other) : m_pimpl_(new pimpl_s) {
@@ -30,7 +33,10 @@ DataBackendMemory::DataBackendMemory(DataBackendMemory&& other) : m_pimpl_(new p
 DataBackendMemory::~DataBackendMemory() {}
 
 std::unique_ptr<DataBackend> DataBackendMemory::CreateNew() const { return std::make_unique<DataBackendMemory>(); }
-bool DataBackendMemory::IsNull() const { return m_pimpl_ == nullptr; };
+std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const { return os; };
+
+bool DataBackendMemory::isNull() const { return m_pimpl_ == nullptr; };
+size_type DataBackendMemory::size() const { return m_pimpl_->m_table_.size(); }
 
 std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const {
     std::shared_ptr<DataEntity> p = nullptr;
@@ -159,9 +165,6 @@ size_type DataBackendMemory::Delete(std::string const& uri) { return m_pimpl_->m
 size_type DataBackendMemory::Delete(id_type key) { return m_pimpl_->m_table_.erase(key); }
 void DataBackendMemory::DeleteAll() {}
 
-size_t DataBackendMemory::Count(std::string const& uri) const {
-    return uri == "" ? m_pimpl_->m_table_.size() : m_pimpl_->m_table_.count(m_pimpl_->Hash(uri));
-}
 size_type DataBackendMemory::Accept(
     std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     for (auto const& item : m_pimpl_->m_table_) { f(item.second.first, item.second.second); }

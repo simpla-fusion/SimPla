@@ -478,7 +478,7 @@ void EMTokamak::next_time_step()
 
     Real t = m.time();
 
-    LOGGER << " Time = [" << t << "] Count = [" << m_count << "]" << std::endl;
+    LOGGER << " Time = [" << t << "] size = [" << m_count << "]" << std::endl;
 
 
     if (!disable_field)

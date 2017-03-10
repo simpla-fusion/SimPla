@@ -22,10 +22,10 @@ class DataBackend {
    public:
     DataBackend() {}
     virtual ~DataBackend(){};
-
     virtual void Flush(){};
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
     virtual std::unique_ptr<DataBackend> CreateNew() const = 0;
-    virtual bool IsNull() const = 0;  //!< is not initialized
+    virtual size_type size() const = 0;
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const = 0;
     virtual std::shared_ptr<DataEntity> Get(id_type key) const = 0;
     virtual bool Set(std::string const& URI, std::shared_ptr<DataEntity> const&) = 0;
@@ -35,7 +35,6 @@ class DataBackend {
     virtual size_type Delete(std::string const& URI) = 0;
     virtual size_type Delete(id_type key) = 0;
     virtual void DeleteAll() = 0;
-    virtual size_type Count(std::string const& uri = "") const = 0;
     virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const = 0;
     virtual size_type Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const = 0;
 

@@ -1,32 +1,32 @@
 //
-// Created by salmon on 17-3-6.
+// Created by salmon on 16-10-28.
 //
 
-#ifndef SIMPLA_DATABACKENDMEMORY_H
-#define SIMPLA_DATABACKENDMEMORY_H
+#ifndef SIMPLA_LUADATABASE_H
+#define SIMPLA_LUADATABASE_H
 
+#include <simpla/SIMPLA_config.h>
+#include <memory>
 #include <ostream>
-#include <typeindex>
-#include "DataBackend.h"
-#include "DataEntity.h"
-#include "DataTable.h"
+#include <string>
+#include "../DataBackend.h"
+
 namespace simpla {
 namespace data {
-class DataBackendMemory : public DataBackend {
-    SP_OBJECT_HEAD(DataBackendMemory, DataBackend);
 
+class DataEntity;
+
+class DataBackendLua : public DataBackend {
    public:
-    DataBackendMemory(std::string const& url = "", std::string const& status = "");
-    DataBackendMemory(const DataBackendMemory&);
-    DataBackendMemory(DataBackendMemory&&);
+    DataBackendLua();
+    DataBackendLua(DataBackendLua const&);
+    DataBackendLua(std::string const& url, std::string const& status = "");
+    virtual ~DataBackendLua();
 
-    virtual ~DataBackendMemory();
-
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual std::unique_ptr<DataBackend> CreateNew() const;
-    //    virtual void Initialize();
-    //    virtual void Finalize();
-    //    virtual void Flush();
-    virtual bool IsNull() const;  //!< is not initialized
+    virtual bool isNull() const;
+    virtual void Flush();
 
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const;
     virtual std::shared_ptr<DataEntity> Get(id_type key) const;
@@ -37,14 +37,14 @@ class DataBackendMemory : public DataBackend {
     virtual size_type Delete(std::string const& URI);
     virtual size_type Delete(id_type key);
     virtual void DeleteAll();
-    virtual size_type Count(std::string const& uri = "") const;
+    virtual size_type size() const;
     virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
     virtual size_type Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const;
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
-};  // class DataBackend {
-}  // namespace data {
-}  // namespace simpla{
-#endif  // SIMPLA_DATABACKENDMEMORY_H
+};
+}  // { namespace data {
+}  // namespace simpla
+#endif  // SIMPLA_LUADATABASE_H

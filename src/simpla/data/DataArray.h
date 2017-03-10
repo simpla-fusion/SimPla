@@ -40,7 +40,7 @@ struct DataArrayWrapper<void> : public DataArray {
     virtual size_type Count() const { return m_data_.size(); }
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return m_data_[idx]; }
     virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const& v) {
-        if (idx < Count()) {
+        if (idx < size()) {
             m_data_[idx] = v;
             return true;
         } else {
@@ -77,29 +77,23 @@ class DataArrayWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : p
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return make_data_entity(m_data_[idx]); }
 
     virtual bool Set(size_type idx, U const& v) {
-        if (Count() > idx) {
+        if (size() > idx) {
             m_data_[idx] = v;
             return true;
         } else {
             return false;
         }
     }
-    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const& v) {
-        ASSERT(v != nullptr && !v->empty());
-        return Set(idx, v->as<U>());
-    }
+    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const& v) { return Set(idx, v->as<U>()); }
 
     virtual bool Add(U const& v) {
         m_data_.push_back(v);
         return true;
     }
-    virtual bool Add(std::shared_ptr<DataEntity> const& v) {
-        //        ASSERT(v != nullptr && !v->empty());
-        return Add(v->as<U>());
-    }
+    virtual bool Add(std::shared_ptr<DataEntity> const& v) { return Add(v->as<U>()); }
     virtual int Delete(size_type idx) {
         m_data_.erase(m_data_.begin() + idx);
-        return 0;
+        return 1;
     }
 };
 

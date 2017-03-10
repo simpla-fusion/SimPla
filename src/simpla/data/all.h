@@ -6,12 +6,11 @@
 #define SIMPLA_DATA_ALL_H
 
 #include "DataArray.h"
-#include "DataBackendFactroy.h"
+#include "DataBackend.h"
 #include "DataEntity.h"
 #include "DataTable.h"
 #include "DataTraits.h"
 #include "KeyValue.h"
-#include "DataBackend.h"
 namespace simpla {
 namespace data {
 /**

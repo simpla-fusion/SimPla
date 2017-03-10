@@ -111,17 +111,17 @@ int main{
 //
 //	auto range=model.SelectByNGP( make_domain<TestFixture::GetIFORM>(model), x);
 //
-//	size_t Count =0;
+//	size_t size =0;
 //
 //	for(auto s :range)
 //	{
 //		EXPECT_EQ( manifold_type::get_cell_index(s),manifold_type::get_cell_index(dest));
-//		++Count;
+//		++size;
 //	}
 //
-//	LOGGER<<Count;
+//	LOGGER<<size;
 //
-//	EXPECT_EQ(Count,manifold_type::get_num_of_comp_per_cell(TestFixture::GetIFORM));
+//	EXPECT_EQ(size,manifold_type::get_num_of_comp_per_cell(TestFixture::GetIFORM));
 ////
 ////	x= min-100;
 ////

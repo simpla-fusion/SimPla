@@ -92,7 +92,7 @@ class Atlas : public SPObject, public concept::Printable {
 
     //    virtual void Load(const data::DataTable &);
     //    virtual void Save(data::DataTable *) const;
-    //    size_type Count(int level) const;
+    //    size_type size(int level) const;
     //    void max_level(int);
     //    int max_level() const;
     //    bool has(id_type id) const;

@@ -63,7 +63,7 @@ void Atlas::Accept(std::function<void(MeshBlock const &)> const &fun, int level)
 std::map<id_type, MeshBlock> const &Atlas::GetBlockList(int level) const { return m_pimpl_->m_levels_[level]; };
 
 //
-// size_type Atlas::Count(int level) const { return m_backend_->m_layer_[level].size(); }
+// size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }
 //
 // void Atlas::max_level(int ml) { m_backend_->m_max_level_ = ml; }
 //

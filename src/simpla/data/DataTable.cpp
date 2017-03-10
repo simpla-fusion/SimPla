@@ -7,21 +7,34 @@
 #include <iomanip>
 #include <string>
 #include "DataBackend.h"
-#include "DataBackendFactroy.h"
-#include "DataBackendMemory.h"
 #include "DataEntity.h"
 #include "KeyValue.h"
+#include "backend/DataBackendFactroy.h"
+#include "backend/DataBackendMemory.h"
 namespace simpla {
 namespace data {
-DataTable::DataTable(std::string const& url, std::string const& args) : m_backend_(CreateDataBackend(url, args)){};
+DataTable::DataTable(std::string const& url, std::string const& args)
+    : m_backend_(CreateDataBackend(url, args)), m_base_uri_(url == "" ? "<MEM>" : url){};
 DataTable::DataTable(std::unique_ptr<DataBackend>&& p) : m_backend_(std::move(p)){};
-DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->CreateNew())) {}
+DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->CreateNew())) { Set(other); }
 DataTable::DataTable(DataTable&& other) : m_backend_(std::move(other.m_backend_)) {}
 DataTable::~DataTable(){};
 void DataTable::swap(DataTable& other) { std::swap(m_backend_, other.m_backend_); };
 void DataTable::Flush() { m_backend_->Flush(); }
+std::shared_ptr<DataEntity> DataTable::CreateNew() const {
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(m_backend_->CreateNew()));
+}
 
-std::shared_ptr<DataEntity> DataTable::Copy() const { return std::make_shared<DataTable>(*this); }
+bool DataTable::isNull() const { return m_backend_ == nullptr; }
+size_type DataTable::size() const { return m_backend_->size(); }
+std::shared_ptr<DataEntity> DataTable::Get(std::string const& uri) const { return m_backend_->Get(uri); };
+std::shared_ptr<DataEntity> DataTable::Get(id_type key) const { return m_backend_->Get(key); };
+bool DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return m_backend_->Set(uri, v); };
+bool DataTable::Set(id_type key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Set(key, v); };
+bool DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return m_backend_->Add(uri, v); };
+bool DataTable::Add(id_type key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Add(key, v); };
+size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
+size_type DataTable::Delete(id_type key) { return m_backend_->Delete(key); };
 
 bool DataTable::Set(DataTable const& other) {
     other.Accept([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
@@ -31,16 +44,7 @@ bool DataTable::Set(std::initializer_list<KeyValue> const& other) {
     for (auto const& item : other) { Set(item.first, item.second); }
     return true;
 }
-size_type DataTable::Count(std::string const& uri) const { return m_backend_->Count(uri); }
-bool DataTable::IsNull() const { return m_backend_->IsNull(); }
-std::shared_ptr<DataEntity> DataTable::Get(std::string const& uri) const { return m_backend_->Get(uri); };
-std::shared_ptr<DataEntity> DataTable::Get(id_type key) const { return m_backend_->Get(key); };
-bool DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return m_backend_->Set(uri, v); };
-bool DataTable::Set(id_type key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Set(key, v); };
-bool DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return m_backend_->Add(uri, v); };
-bool DataTable::Add(id_type key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Add(key, v); };
-size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
-size_type DataTable::Delete(id_type key) { return m_backend_->Delete(key); };
+
 size_type DataTable::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     return m_backend_->Accept(f);
 }

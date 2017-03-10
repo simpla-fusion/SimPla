@@ -648,13 +648,13 @@ void HDF5Stream::push_buffer(std::string const &url, data::DataSet const &ds)
         auto &d_shape = item.data_space.shape();
         int &d_ndims = std::get<0>(d_shape);
         std::get<1>(d_shape)[d_ndims - 1] = 0; //topology_dims
-        std::get<4>(d_shape)[d_ndims - 1] = 0; //Count
+        std::get<4>(d_shape)[d_ndims - 1] = 0; //size
 
 
         auto &m_shape = item.memory_space.shape();
         int m_ndims = std::get<0>(m_shape);
         std::get<1>(m_shape)[m_ndims - 1] = 0; //topology_dims
-        std::get<4>(m_shape)[m_ndims - 1] = 0; //Count
+        std::get<4>(m_shape)[m_ndims - 1] = 0; //size
 
 
     } else if (item.data == nullptr)
@@ -675,7 +675,7 @@ void HDF5Stream::push_buffer(std::string const &url, data::DataSet const &ds)
             std::get<1>(d_shape)[d_ndims - 1] = 0; //topology_dims
             std::get<2>(d_shape)[d_ndims - 1] = 0; //start
             std::get<3>(d_shape)[d_ndims - 1] = 1; //stride
-            std::get<4>(d_shape)[d_ndims - 1] = 0; //Count
+            std::get<4>(d_shape)[d_ndims - 1] = 0; //size
             std::get<5>(d_shape)[d_ndims - 1] = 1; //block
 
 
@@ -687,7 +687,7 @@ void HDF5Stream::push_buffer(std::string const &url, data::DataSet const &ds)
             std::get<1>(m_shape)[m_ndims - 1] = pimpl_s::DEFAULT_MAX_BUFFER_DEPTH; //topology_dims
             std::get<2>(m_shape)[m_ndims - 1] = 0; //start
             std::get<3>(m_shape)[m_ndims - 1] = 1; //stride
-            std::get<4>(m_shape)[m_ndims - 1] = 0; //Count
+            std::get<4>(m_shape)[m_ndims - 1] = 0; //size
             std::get<5>(m_shape)[m_ndims - 1] = 1; //block
 
         } else
@@ -794,9 +794,9 @@ void HDF5Stream::push_buffer(std::string const &url, data::DataSet const &ds)
         }
 
 
-        ++std::get<1>(d_shape)[d_ndims - 1]; //Count
-        ++std::get<4>(d_shape)[d_ndims - 1]; //Count
-        ++std::get<4>(m_shape)[m_ndims - 1]; //Count
+        ++std::get<1>(d_shape)[d_ndims - 1]; //size
+        ++std::get<4>(d_shape)[d_ndims - 1]; //size
+        ++std::get<4>(m_shape)[m_ndims - 1]; //size
     }
 
 }
@@ -1021,7 +1021,7 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //
 //	std::tie(res.m_start, res.m_count) = ds.data_space.local_shape();
 //
-//	std::tie(res.start, res.Count, res.stride, res.block) =
+//	std::tie(res.start, res.size, res.stride, res.block) =
 //			ds.data_space.m_global_dims_();
 //
 //	if ((id & SP_UNORDER) == SP_UNORDER)
@@ -1045,7 +1045,7 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //			res.m_start[res.m_ndims_ + j] = 0;
 //			res.strides[res.m_ndims_ + j] = res.m_count[res.m_ndims_ + j];
 //
-//			res.Count[res.m_ndims_ + j] = 1;
+//			res.size[res.m_ndims_ + j] = 1;
 //			res.block[res.m_ndims_ + j] = ds.DataType.dimensions_[j];
 //
 //		}
@@ -1104,7 +1104,7 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //		pds->m_count[i] = pds->m_count[i - 1];
 //		pds->m_start[i] = pds->m_start[i - 1];
 //		pds->strides[i] = pds->strides[i - 1];
-//		pds->Count[i] = pds->count[i - 1];
+//		pds->size[i] = pds->count[i - 1];
 //		pds->block[i] = pds->block[i - 1];
 //
 //	}
@@ -1117,7 +1117,7 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //	pds->m_start[0] = 0;
 //	pds->strides[0] = 1;
 //
-//	pds->Count[0] = 1;
+//	pds->size[0] = 1;
 //	pds->block[0] = 1;
 //
 //	++pds->m_ndims_;
@@ -1166,7 +1166,7 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //
 //			item.m_ndims_ = ds.m_ndims_;
 //
-//			item.Count[0] = 0;
+//			item.size[0] = 0;
 //			item.m_count[0] = item.strides[0] * cache_depth + item.m_start[0];
 //			item.f_count[0] = item.f_stride[0] * cache_depth + item.f_start[0];
 //
@@ -1183,12 +1183,12 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //	}
 //
 //	std::memcpy(
-//			reinterpret_cast<void*>(m_data.Get() + item.Count[0] * memory_size),
+//			reinterpret_cast<void*>(m_data.Get() + item.size[0] * memory_size),
 //			ds.m_data.Get(), memory_size);
 //
-//	++item.Count[0];
+//	++item.size[0];
 //
-//	if (item.Count[0] * item.f_stride[0] + item.f_start[0] >= item.m_count[0])
+//	if (item.size[0] * item.f_stride[0] + item.f_start[0] >= item.m_count[0])
 //	{
 //		return flush_cache(url);
 //	}
@@ -1212,15 +1212,15 @@ std::string HDF5Stream::read(std::string const &url, data::DataSet *ds, int flag
 //	hsize_t t_f_shape = item.f_count[0];
 //	hsize_t t_m_shape = item.m_count[0];
 //
-//	item.m_count[0] = item.Count[0] * item.strides[0] + item.m_start[0];
-//	item.f_count[0] = item.Count[0] * item.f_stride[0] + item.f_start[0];
+//	item.m_count[0] = item.size[0] * item.strides[0] + item.m_start[0];
+//	item.f_count[0] = item.size[0] * item.f_stride[0] + item.f_start[0];
 //
 //	auto res = write_array(url, item);
 //
 //	item.m_count[0] = t_f_shape;
 //	item.f_count[0] = t_m_shape;
 //
-//	item.Count[0] = 0;
+//	item.size[0] = 0;
 //
 //	return res;
 //}

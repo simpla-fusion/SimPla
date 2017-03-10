@@ -26,29 +26,31 @@ class KeyValue;
 class DataTable : public DataEntity {
     SP_OBJECT_HEAD(DataTable, DataEntity);
     std::unique_ptr<DataBackend> m_backend_;
+    std::string m_base_uri_;
 
    public:
-    DataTable(std::string const& url = "", std::string const& status = "");
+    DataTable(std::string const& uri = "", std::string const& status = "");
     DataTable(std::unique_ptr<DataBackend>&& p);
     DataTable(const DataTable&);
     DataTable(DataTable&&);
     ~DataTable() final;
 
     void swap(DataTable&);
-
+    std::shared_ptr<DataEntity> CreateNew() const;
     //******************************************************************************************************************
     /** Interface DataEntity */
     std::ostream& Print(std::ostream& os, int indent = 0) const;
     bool isTable() const { return true; }
     std::type_info const& type() const { return typeid(DataTable); };
-    std::shared_ptr<DataEntity> Copy() const;
-    DataBackend const* backend() const { return m_backend_.get(); }
 
+    DataBackend const* backend() const { return m_backend_.get(); }
+    std::string const& base_uri() const { return m_base_uri_; }
     //******************************************************************************************************************
     /** Interface DataBackend */
     void Flush();
-    bool IsNull() const;
-    size_type Count(std::string const& uri = "") const;
+    bool isNull() const;
+    size_type size() const;
+
 
     std::shared_ptr<DataEntity> Get(std::string const& URI) const;
     std::shared_ptr<DataEntity> Get(id_type key) const;

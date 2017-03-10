@@ -33,16 +33,14 @@ struct DataEntity : public concept::Printable {
         return os;
     };
     virtual std::type_info const& type() const { return typeid(void); };
-    virtual bool empty() const { return true; }
 
-    virtual bool isEntity() const { return !(isTable() || isArray()); }
+    virtual bool isEntity() const { return false; }
     virtual bool isTable() const { return false; }
     virtual bool isArray() const { return false; }
-
-    size_type Count(std::string const& uri = "") const { return 0; };
-    virtual std::shared_ptr<DataEntity> Copy() const {};
-    virtual std::shared_ptr<DataArray> MakeArray() const {};
-
+    virtual bool isNull() const { return !(isEntity() || isTable() || isArray()); }
+    virtual size_type size() const { return 1; };
+    
+    virtual std::shared_ptr<DataEntity> CreateNew() const { UNIMPLEMENTED; };
 
     template <typename U>
     bool operator==(U const& v) const {
@@ -59,7 +57,6 @@ struct DataEntity : public concept::Printable {
             return cast_as<DataEntityWrapper<U>>().value();
         } catch (...) { return u; }
     }
-
 };
 template <typename U>
 struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : public DataEntity {
@@ -72,6 +69,8 @@ struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> :
     DataEntityWrapper(value_type&& d) : m_data_(d) {}
     virtual ~DataEntityWrapper() {}
     virtual std::type_info const& type() const { return typeid(value_type); }
+    virtual bool isEntity() const { return true; }
+
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
         if (typeid(U) == typeid(std::string)) {
             os << "\"" << value() << "\"";

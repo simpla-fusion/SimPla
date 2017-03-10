@@ -30,7 +30,7 @@ nTuple<T, N> half_split(nTuple<T, N> & range)
 	return std::move(res);
 }
 //template<typename T>
-//std::vector<std::tuple<T, T>> split(T const start, T const & Count, size_t num)
+//std::vector<std::tuple<T, T>> split(T const start, T const & size, size_t num)
 //{
 //	nTuple<T, N> res;
 //	res = entity_id_range;

@@ -10,7 +10,7 @@ namespace data {
 DataArray::DataArray() {}
 DataArray::~DataArray() {}
 std::ostream& DataArray::Print(std::ostream& os, int indent) const {
-    size_type ie = Count();
+    size_type ie = size();
 
     os << "[";
     Get(0)->Print(os, indent + 1);
