@@ -33,15 +33,15 @@ struct DataEntity : public concept::Printable {
         return os;
     };
     virtual std::type_info const& type() const { return typeid(void); };
-
+    virtual bool isLight() const { return true; }
+    virtual bool isHeavyBlock() const { return false; }
     virtual bool isEntity() const { return false; }
     virtual bool isTable() const { return false; }
     virtual bool isArray() const { return false; }
     virtual bool isNull() const { return !(isEntity() || isTable() || isArray()); }
-    virtual size_type size() const { return 1; };
-    
-    virtual std::shared_ptr<DataEntity> CreateNew() const { UNIMPLEMENTED; };
 
+    virtual size_type size() const { return 1; };
+    virtual std::shared_ptr<DataEntity> CreateNew() const { UNIMPLEMENTED; };
     template <typename U>
     bool operator==(U const& v) const {
         return (type() == typeid(U)) && cast_as<DataEntityWrapper<U>>().equal(v);

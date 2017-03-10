@@ -3,19 +3,54 @@
 //
 
 #include "DataBackendHDF5.h"
-#include <simpla/design_pattern/SingletonHolder.h>
-#include "../DataBackendFactory.h"
+#include <simpla/algebra/Array.h>
+#include <simpla/algebra/nTuple.h>
+
+#include "../DataArray.h"
+#include "../DataEntity.h"
+#include "../DataTable.h"
+extern "C" {
+#include <hdf5.h>
+#include <hdf5_hl.h>
+}
+
+#include <H5FDmpio.h>
+
 namespace simpla {
 namespace data {
- constexpr char DataBackendHDF5::ext[];
+constexpr char DataBackendHDF5::ext[];
+struct HDF5Status {
+    HDF5Status(std::string const& url, std::string const& status = "");
+    ~HDF5Status();
+    hid_t base_file_id_ = -1;
+    hid_t base_group_id_ = -1;
+    void Close();
+    void Open(std::string const& url, std::string const& status);
+};
+HDF5Status::HDF5Status(std::string const& url, std::string const& status) { Open(url, status); }
+HDF5Status::~HDF5Status() {
+    if (base_file_id_ != -1) { Close(); }
+}
+class HDF5Closer {
+    void* addr_;
+    size_t s_;
+    HDF5Closer(void* p, size_t s) : addr_(p), s_(s) {}
+    ~HDF5Closer() {}
+    inline void operator()(void* ptr) {
+        hid_t f = *reinterpret_cast<hid_t*>(ptr);
+        if (f != -1) { H5Fclose(f); }
+    }
+};
+struct DataBackendHDF5::pimpl_s {
+    std::shared_ptr<hid_t> m_hdf5_;
+};
+template <typename U, int NDIMS>
+class DataEntityHeavyArrayHDF5 : public DataEntityWrapper<Array<U, NDIMS>> {};
 
-struct DataBackendHDF5::pimpl_s {};
 DataBackendHDF5::DataBackendHDF5() : m_pimpl_(new pimpl_s) {}
 DataBackendHDF5::DataBackendHDF5(DataBackendHDF5 const& other) : DataBackendHDF5() {} /* copy pimpl_s*/
 DataBackendHDF5::DataBackendHDF5(DataBackendHDF5&& other) : m_pimpl_(std::move(m_pimpl_)) {}
-DataBackendHDF5::DataBackendHDF5(std::string const& uri, std::string const& status) : DataBackendHDF5() {
-    UNIMPLEMENTED;
-}
+DataBackendHDF5::DataBackendHDF5(std::string const& uri, std::string const& status) : DataBackendHDF5() {}
 DataBackendHDF5::~DataBackendHDF5() {}
 std::ostream& DataBackendHDF5::Print(std::ostream& os, int indent) const { return os; }
 

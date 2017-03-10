@@ -2,9 +2,7 @@
 // Created by salmon on 17-3-2.
 //
 #include "DataBackendLua.h"
-#include <simpla/design_pattern/SingletonHolder.h>
 #include "../DataArray.h"
-#include "../DataBackendFactory.h"
 #include "../DataEntity.h"
 #include "../DataTable.h"
 #include "../DataTraits.h"
