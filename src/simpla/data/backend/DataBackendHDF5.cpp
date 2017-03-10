@@ -18,8 +18,10 @@ extern "C" {
 
 namespace simpla {
 namespace data {
-constexpr char DataBackendHDF5::ext[];
-//struct HDF5Status {
+constexpr char DataBackendHDF5::scheme_tag[];
+std::string DataBackendHDF5::scheme() const { return scheme_tag; }
+
+// struct HDF5Status {
 //    HDF5Status(std::string const& url, std::string const& status = "");
 //    ~HDF5Status();
 //    hid_t base_file_id_ = -1;
@@ -27,11 +29,11 @@ constexpr char DataBackendHDF5::ext[];
 //    void Close();
 //    void Open(std::string const& url, std::string const& status);
 //};
-//HDF5Status::HDF5Status(std::string const& url, std::string const& status) { Open(url, status); }
-//HDF5Status::~HDF5Status() {
+// HDF5Status::HDF5Status(std::string const& url, std::string const& status) { Open(url, status); }
+// HDF5Status::~HDF5Status() {
 //    if (base_file_id_ != -1) { Close(); }
 //}
-//class HDF5Closer {
+// class HDF5Closer {
 //    void* addr_;
 //    size_t s_;
 //    HDF5Closer(void* p, size_t s) : addr_(p), s_(s) {}
@@ -42,8 +44,8 @@ constexpr char DataBackendHDF5::ext[];
 //    }
 //};
 
-//template <typename U, int NDIMS>
-//class DataEntityHeavyArrayHDF5 : public DataEntityWrapper<Array<U, NDIMS>> {};
+// template <typename U, int NDIMS>
+// class DataEntityHeavyArrayHDF5 : public DataEntityWrapper<Array<U, NDIMS>> {};
 struct DataBackendHDF5::pimpl_s {
     std::shared_ptr<hid_t> m_hdf5_;
 };
@@ -53,8 +55,9 @@ DataBackendHDF5::DataBackendHDF5(DataBackendHDF5&& other) : m_pimpl_(std::move(m
 DataBackendHDF5::DataBackendHDF5(std::string const& uri, std::string const& status) : DataBackendHDF5() {}
 DataBackendHDF5::~DataBackendHDF5() {}
 std::ostream& DataBackendHDF5::Print(std::ostream& os, int indent) const { return os; }
+DataBackend* DataBackendHDF5::Clone() const { return new DataBackendHDF5(*this); }
+DataBackend* DataBackendHDF5::Create() const { return new DataBackendHDF5(); }
 
-std::unique_ptr<DataBackend> DataBackendHDF5::CreateNew() const { return std::make_unique<DataBackendHDF5>(); }
 void DataBackendHDF5::Flush() { UNIMPLEMENTED; }
 bool DataBackendHDF5::isNull() const { UNIMPLEMENTED; }
 size_type DataBackendHDF5::size() const { UNIMPLEMENTED; }

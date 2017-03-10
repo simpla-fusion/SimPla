@@ -9,7 +9,7 @@
 #include "LuaObject.h"
 namespace simpla {
 namespace data {
-constexpr char DataBackendLua::ext[];
+constexpr char DataBackendLua::scheme_tag[];
 
 template <typename U>
 struct DataEntityLua;
@@ -119,10 +119,12 @@ bool DataBackendLua::Open(std::string const& authority, std::string const& path,
 std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
     return m_pimpl_->m_lua_obj_.Print(os, indent);
 }
+std::string DataBackendLua::scheme() const { return scheme_tag; }
 
 bool DataBackendLua::isNull() const { return m_pimpl_->m_lua_obj_.is_null(); }
 void DataBackendLua::Flush() {}
-std::unique_ptr<DataBackend> DataBackendLua::CreateNew() const { return std::make_unique<DataBackendLua>(*this); }
+DataBackend* DataBackendLua::Clone() const { return new DataBackendLua(*this); }
+DataBackend* DataBackendLua::Create() const { return new DataBackendLua(); }
 
 std::shared_ptr<DataEntity> DataBackendLua::Get(std::string const& key) const {
     return DataBackendLua::pimpl_s::make_data_entity_lua(m_pimpl_->m_lua_obj_.get(key));

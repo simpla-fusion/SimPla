@@ -9,6 +9,10 @@
 #include "DataTable.h"
 namespace simpla {
 namespace data {
+
+constexpr char DataBackendMemory::scheme_tag[];
+std::string DataBackendMemory::scheme() const { return scheme_tag; }
+
 struct DataBackendMemory::pimpl_s {
     std::map<id_type, std::pair<std::string, std::shared_ptr<DataEntity>>> m_table_;
     static constexpr char split_char = '.';
@@ -32,7 +36,12 @@ DataBackendMemory::DataBackendMemory(DataBackendMemory&& other) : m_pimpl_(new p
 };
 DataBackendMemory::~DataBackendMemory() {}
 
-std::unique_ptr<DataBackend> DataBackendMemory::CreateNew() const { return std::make_unique<DataBackendMemory>(); }
+DataBackend* DataBackendMemory::Create() const { return new DataBackendMemory; }
+
+DataBackend* DataBackendMemory::Clone() const { return new DataBackendMemory(*this); }
+
+void DataBackendMemory::Flush() {}
+
 std::ostream& DataBackendMemory::Print(std::ostream& os, int indent) const { return os; };
 
 bool DataBackendMemory::isNull() const { return m_pimpl_ == nullptr; };
@@ -82,7 +91,7 @@ bool DataBackendMemory::Set(std::string const& url, std::shared_ptr<DataEntity> 
         auto it = m_pimpl_->m_table_.find(sub_id);
         if (it == m_pimpl_->m_table_.end()) {
             // create table if need
-            t = std::make_shared<DataTable>(this->CreateNew());
+            t = std::make_shared<DataTable>(this->Clone());
             m_pimpl_->m_table_.insert(std::make_pair(sub_id, std::make_pair(sub_k, t)));
         } else if (it->second.second->isTable()) {
             t = std::dynamic_pointer_cast<DataTable>(it->second.second);
@@ -116,7 +125,7 @@ bool DataBackendMemory::Add(std::string const& url, std::shared_ptr<DataEntity> 
         auto it = m_pimpl_->m_table_.find(sub_id);
         if (it == m_pimpl_->m_table_.end()) {
             // create table if need
-            t = std::make_shared<DataTable>(this->CreateNew());
+            t = std::make_shared<DataTable>(this->Clone());
             m_pimpl_->m_table_.insert(std::make_pair(sub_id, std::make_pair(sub_k, t)));
         } else if (it->second.second->isTable()) {
             t = std::dynamic_pointer_cast<DataTable>(it->second.second);

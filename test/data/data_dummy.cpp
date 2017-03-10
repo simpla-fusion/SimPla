@@ -4,7 +4,6 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
-#include <simpla/data/DataBackendFactory.h>
 #include <simpla/data/all.h>
 #include <simpla/design_pattern/SingletonHolder.h>
 #include <complex>
@@ -18,12 +17,11 @@ int main(int argc, char** argv) {
 
     LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance() << std::endl;
 
-    DataTable db(<#initializer#>);
+    DataTable db;
     if (argc > 1) {
         DataTable lua_db(argv[1]);
         db.Set(lua_db.Get("Context")->cast_as<DataTable>());
         LOGGER << "lua:// " << *lua_db.Get("Context") << std::endl;
-
     }
     { DataTable samrai_db("samrai://"); }
 

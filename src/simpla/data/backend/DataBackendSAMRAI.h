@@ -9,7 +9,7 @@ namespace simpla {
 namespace data {
 class DataBackendSAMRAI : public DataBackend {
    public:
-    static constexpr char ext[] = "samrai";
+    static constexpr char scheme_tag[] = "samrai";
 
     DataBackendSAMRAI();
     DataBackendSAMRAI(DataBackendSAMRAI const&);
@@ -19,7 +19,9 @@ class DataBackendSAMRAI : public DataBackend {
     virtual ~DataBackendSAMRAI();
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-    virtual std::unique_ptr<DataBackend> CreateNew() const;
+    virtual std::string scheme() const;
+    virtual DataBackend* Clone() const;
+    virtual DataBackend* Create() const;
     virtual bool isNull() const;
     virtual void Flush();
 
@@ -40,7 +42,6 @@ class DataBackendSAMRAI : public DataBackend {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-
 
 }  // namespace data{
 }  // namespace simpla{

@@ -14,6 +14,7 @@ namespace simpla {
 namespace data {
 class DataBackendMemory : public DataBackend {
     SP_OBJECT_HEAD(DataBackendMemory, DataBackend);
+    static constexpr char scheme_tag[] = "mem";
 
    public:
     DataBackendMemory();
@@ -22,8 +23,10 @@ class DataBackendMemory : public DataBackend {
     DataBackendMemory(DataBackendMemory&&);
 
     virtual ~DataBackendMemory();
-
-    virtual std::unique_ptr<DataBackend> CreateNew() const;
+    virtual std::string scheme() const;
+    virtual DataBackend* Clone() const;
+    virtual DataBackend* Create() const;
+    virtual void Flush();
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual bool isNull() const;  //!< is not initialized
 

@@ -29,7 +29,8 @@ class DataTable : public DataEntity {
     std::string m_base_uri_;
 
    public:
-    DataTable(std::string const &uri);
+    DataTable();
+    DataTable(std::string const& uri);
     DataTable(DataBackend* p);
     DataTable(std::unique_ptr<DataBackend>&& p);
     DataTable(const DataTable&);
@@ -37,7 +38,9 @@ class DataTable : public DataEntity {
     ~DataTable() final;
 
     void swap(DataTable&);
-    std::shared_ptr<DataEntity> CreateNew() const;
+    static std::shared_ptr<DataTable> Create(std::string const& scheme);
+
+    std::shared_ptr<DataEntity> Clone() const;
     //******************************************************************************************************************
     /** Interface DataEntity */
     std::ostream& Print(std::ostream& os, int indent = 0) const;

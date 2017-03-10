@@ -41,7 +41,7 @@ struct DataEntity : public concept::Printable {
     virtual bool isNull() const { return !(isEntity() || isTable() || isArray()); }
 
     virtual size_type size() const { return 1; };
-    virtual std::shared_ptr<DataEntity> CreateNew() const { UNIMPLEMENTED; };
+    virtual std::shared_ptr<DataEntity> Clone() const { UNIMPLEMENTED; };
     template <typename U>
     bool operator==(U const& v) const {
         return (type() == typeid(U)) && cast_as<DataEntityWrapper<U>>().equal(v);

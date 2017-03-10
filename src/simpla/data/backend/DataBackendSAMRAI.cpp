@@ -20,7 +20,8 @@
 
 namespace simpla {
 namespace data {
-constexpr char DataBackendSAMRAI::ext[];
+constexpr char DataBackendSAMRAI::scheme_tag[];
+std::string DataBackendSAMRAI::scheme() const { return scheme_tag; }
 
 struct DataBackendSAMRAI::pimpl_s {
     boost::shared_ptr<SAMRAI::tbox::Database> m_samrai_db_ = nullptr;
@@ -45,7 +46,9 @@ std::ostream& DataBackendSAMRAI::Print(std::ostream& os, int indent) const {
     m_pimpl_->m_samrai_db_->printClassData(os);
     return os;
 }
-std::unique_ptr<DataBackend> DataBackendSAMRAI::CreateNew() const { return std::make_unique<DataBackendSAMRAI>(); }
+DataBackend* DataBackendSAMRAI::Clone() const { return new DataBackendSAMRAI(*this); }
+DataBackend* DataBackendSAMRAI::Create() const { return new DataBackendSAMRAI(); }
+
 void DataBackendSAMRAI::Flush() { UNSUPPORTED; }
 bool DataBackendSAMRAI::isNull() const { return m_pimpl_->m_samrai_db_ == nullptr; }
 size_type DataBackendSAMRAI::size() const { return m_pimpl_->m_samrai_db_->getAllKeys().size(); }

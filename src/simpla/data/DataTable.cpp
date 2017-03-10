@@ -8,22 +8,26 @@
 #include <iomanip>
 #include <string>
 #include "DataBackend.h"
-#include "DataBackendFactory.h"
+#include "DataBackendMemory.h"
 #include "DataEntity.h"
 #include "KeyValue.h"
 namespace simpla {
 namespace data {
-DataTable::DataTable(std::string const &uri)
-    : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create(uri)), m_base_uri_(uri){};
+DataTable::DataTable() : m_backend_(DataBackend::Create("")), m_base_uri_(){};
+DataTable::DataTable(std::string const& uri) : m_backend_(DataBackend::Create(uri)), m_base_uri_(uri){};
 DataTable::DataTable(DataBackend* p) : m_backend_(p){};
 DataTable::DataTable(std::unique_ptr<DataBackend>&& p) : m_backend_(std::move(p)){};
-DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->CreateNew())) { Set(other); }
+DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->Clone())) { Set(other); }
 DataTable::DataTable(DataTable&& other) : m_backend_(std::move(other.m_backend_)) {}
 DataTable::~DataTable(){};
 void DataTable::swap(DataTable& other) { std::swap(m_backend_, other.m_backend_); };
 void DataTable::Flush() { m_backend_->Flush(); }
-std::shared_ptr<DataEntity> DataTable::CreateNew() const {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(m_backend_->CreateNew()));
+
+std::shared_ptr<DataTable> DataTable::Create(std::string const& scheme) {
+    return std::make_shared<DataTable>(DataBackend::Create(scheme));
+}
+std::shared_ptr<DataEntity> DataTable::Clone() const {
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(m_backend_->Clone()));
 }
 
 bool DataTable::isNull() const { return m_backend_ == nullptr; }
@@ -40,7 +44,7 @@ size_type DataTable::Delete(id_type key) { return m_backend_->Delete(key); };
 std::shared_ptr<DataTable> DataTable::AddTable(std::string const& uri) {
     std::shared_ptr<DataEntity> res = Get(uri);
     if (res == nullptr && !res->isTable()) {
-        res = std::make_shared<DataTable>(m_backend_->CreateNew());
+        res = std::make_shared<DataTable>(m_backend_->Clone());
         Set(uri, res);
     }
     return std::dynamic_pointer_cast<DataTable>(res);

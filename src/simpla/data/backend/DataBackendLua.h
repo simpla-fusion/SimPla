@@ -16,15 +16,18 @@ namespace data {
 class DataEntity;
 
 class DataBackendLua : public DataBackend {
+    SP_OBJECT_HEAD(DataBackendLua, DataBackend)
    public:
-    static constexpr char ext[] = "lua";
+    static constexpr char scheme_tag[] = "lua";
 
     DataBackendLua();
     DataBackendLua(DataBackendLua const&);
     virtual ~DataBackendLua();
     virtual bool Open(std::string const& authority, std::string const& path, std::string const& query);
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-    virtual std::unique_ptr<DataBackend> CreateNew() const;
+    virtual std::string scheme() const;
+    virtual DataBackend* Clone() const;
+    virtual DataBackend* Create() const;
     virtual bool isNull() const;
     virtual void Flush();
 

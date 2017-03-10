@@ -267,7 +267,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
 # Doxygen selects the parser to use depending on the extension of the files it
 # parses. With this tag you can Assign which parser to use for a given
 # extension. Doxygen has a built-in mapping, but you can override or extend it
-# using this tag. The format is ext=language, where ext is a file extension, and
+# using this tag. The format is scheme_tag=language, where scheme_tag is a file extension, and
 # language is one of the parsers supported by doxygen: IDL, Java, Javascript,
 # C#, C, C++, D, PHP, Objective-C, Python, Fortran (fixed format Fortran:
 # FortranFixed, free formatted Fortran: FortranFree, unknown formatted Fortran:
@@ -889,7 +889,7 @@ FILTER_SOURCE_FILES    = NO
 # The FILTER_SOURCE_PATTERNS tag can be used to specify source filters per file
 # pattern. A pattern will override the setting for FILTER_PATTERN (if any) and
 # it is also possible to disable source filtering for a specific pattern using
-# *.ext= (so without naming a filter).
+# *.scheme_tag= (so without naming a filter).
 # This tag requires that the tag FILTER_SOURCE_FILES is set to YES.
 
 FILTER_SOURCE_PATTERNS =
@@ -1447,7 +1447,7 @@ MATHJAX_FORMAT         = HTML-CSS
 # is located at the same at_level as the HTML output directory, then
 # MATHJAX_RELPATH should be ../mathjax. The default m_value_ points to the MathJax
 # Content Delivery Network so you can quickly see the result without installing
-# MathJax. However, it is strongly recommended to install a local CreateNew of
+# MathJax. However, it is strongly recommended to install a local Clone of
 # MathJax from http://www.mathjax.org before deployment.
 # The default m_value_ is: http://cdn.mathjax.org/mathjax/latest.
 # This tag requires that the tag USE_MATHJAX is set to YES.

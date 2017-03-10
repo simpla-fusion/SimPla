@@ -196,7 +196,7 @@ public:
 //
 //        this_type const &g = dynamic_cast<this_type const & >(other);
 //
-//        CreateNew(r0, dynamic_cast<this_type const & >(other));
+//        Clone(r0, dynamic_cast<this_type const & >(other));
 
     }
 

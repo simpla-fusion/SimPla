@@ -6,12 +6,14 @@
 #define SIMPLA_DATABACKEND_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/concept/Printable.h>
+#include <simpla/design_pattern/Factory.h>
+#include <simpla/design_pattern/SingletonHolder.h>
 #include <simpla/engine/SPObjectHead.h>
 #include <simpla/toolbox/Log.h>
 #include <memory>
 #include <typeindex>
 #include <typeinfo>
-
 namespace simpla {
 namespace data {
 class DataEntity;
@@ -20,13 +22,16 @@ class DataBackend {
     SP_OBJECT_BASE(DataBackend);
 
    public:
-    DataBackend() {}
+    DataBackend(){};
     virtual ~DataBackend(){};
+    static DataBackend* Create(std::string const& uri);
 
-    virtual void Flush(){};
-    virtual bool Open(std::string const& authority, std::string const& path, std::string const& query) = 0;
+    virtual DataBackend* Create() const = 0;
+    virtual DataBackend* Clone() const = 0;
+    virtual std::string scheme() const = 0;
+    virtual void Flush() = 0;
+
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
-    virtual std::unique_ptr<DataBackend> CreateNew() const = 0;
     virtual size_type size() const = 0;
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const = 0;
     virtual std::shared_ptr<DataEntity> Get(id_type key) const = 0;
@@ -42,6 +47,18 @@ class DataBackend {
 
 };  // class DataBackend {
 
+class DataBackendFactory : public design_pattern::Factory<std::string, DataBackend>, public concept::Printable {
+    typedef design_pattern::Factory<std::string, DataBackend> base_type;
+
+   public:
+    DataBackendFactory();
+    virtual ~DataBackendFactory();
+    std::ostream& Print(std::ostream& os, int indent = 0) const;
+    DataBackend* Create(std::string const& scheme);
+    void RegisterDefault();
+};
+
+#define GLOBAL_DATA_BACKEND_FACTORY SingletonHolder<DataBackendFactory>::instance()
 }  // namespace data {
 }  // namespace simpla{
 #endif  // SIMPLA_DATABACKEND_H
