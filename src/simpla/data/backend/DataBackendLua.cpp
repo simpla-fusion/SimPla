@@ -2,13 +2,17 @@
 // Created by salmon on 17-3-2.
 //
 #include "DataBackendLua.h"
+#include <simpla/design_pattern/SingletonHolder.h>
 #include <simpla/toolbox/LuaObject.h>
 #include "../DataArray.h"
 #include "../DataEntity.h"
 #include "../DataTable.h"
 #include "../DataTraits.h"
+#include "DataBackendFactory.h"
 namespace simpla {
 namespace data {
+REGISTER_DATA_BACKEND_CREATOR(DataBackendLua, lua)
+
 template <typename U>
 struct DataEntityLua;
 template <typename U>

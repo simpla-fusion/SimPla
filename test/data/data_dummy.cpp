@@ -7,12 +7,16 @@
 #include <simpla/data/all.h>
 #include <complex>
 #include <iostream>
+#include <simpla/data/backend/DataBackendFactory.h>
+#include <simpla/design_pattern/SingletonHolder.h>
 
 using namespace simpla;
 using namespace simpla::data;
 
 int main(int argc, char** argv) {
     logger::set_stdout_level(1000);
+
+    LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance() << std::endl;
 
     DataTable db;
     if (argc > 1) {

@@ -6,10 +6,11 @@
 #define SIMPLA_DATABACKENDHDF5_H
 
 #include "../DataBackend.h"
+
 namespace simpla {
 namespace data {
-class DataBackendHDF5: public DataBackend {
-public:
+class DataBackendHDF5 : public DataBackend {
+   public:
     DataBackendHDF5();
     DataBackendHDF5(DataBackendHDF5 const&);
     DataBackendHDF5(DataBackendHDF5&&);
@@ -35,10 +36,11 @@ public:
     virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
     virtual size_type Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const;
 
-private:
+   private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
+
 }  // namespace data{
 }  // namespace simpla{
 #endif  // SIMPLA_DATABACKENDHDF5_H

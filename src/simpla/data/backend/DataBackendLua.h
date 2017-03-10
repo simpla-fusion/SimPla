@@ -45,6 +45,7 @@ class DataBackendLua : public DataBackend {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
+
 }  // { namespace data {
 }  // namespace simpla
 #endif  // SIMPLA_LUADATABASE_H

@@ -3,18 +3,20 @@
 //
 #include "DataTable.h"
 #include <simpla/SIMPLA_config.h>
+#include <simpla/design_pattern/SingletonHolder.h>
 #include <simpla/toolbox/Log.h>
 #include <iomanip>
 #include <string>
 #include "DataBackend.h"
 #include "DataEntity.h"
 #include "KeyValue.h"
-#include "backend/DataBackendFactroy.h"
 #include "backend/DataBackendMemory.h"
+#include "simpla/data/backend/DataBackendFactory.h"
 namespace simpla {
 namespace data {
 DataTable::DataTable(std::string const& url, std::string const& args)
-    : m_backend_(CreateDataBackend(url, args)), m_base_uri_(url == "" ? "<MEM>" : url){};
+    : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create(url, args)),
+      m_base_uri_(url == "" ? "<MEM>" : url){};
 DataTable::DataTable(std::unique_ptr<DataBackend>&& p) : m_backend_(std::move(p)){};
 DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->CreateNew())) { Set(other); }
 DataTable::DataTable(DataTable&& other) : m_backend_(std::move(other.m_backend_)) {}

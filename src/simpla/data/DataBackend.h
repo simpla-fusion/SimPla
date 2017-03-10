@@ -5,12 +5,12 @@
 #ifndef SIMPLA_DATABACKEND_H
 #define SIMPLA_DATABACKEND_H
 
+#include <simpla/SIMPLA_config.h>
 #include <simpla/engine/SPObjectHead.h>
 #include <simpla/toolbox/Log.h>
 #include <memory>
 #include <typeindex>
 #include <typeinfo>
-#include "../../../cmake-build-release/include/simpla/SIMPLA_config.h"
 
 namespace simpla {
 namespace data {
@@ -22,6 +22,7 @@ class DataBackend {
    public:
     DataBackend() {}
     virtual ~DataBackend(){};
+
     virtual void Flush(){};
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
     virtual std::unique_ptr<DataBackend> CreateNew() const = 0;
@@ -38,10 +39,8 @@ class DataBackend {
     virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const = 0;
     virtual size_type Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const = 0;
 
-   private:
-    id_type hash(std::string const&) const;
-
 };  // class DataBackend {
+
 }  // namespace data {
 }  // namespace simpla{
 #endif  // SIMPLA_DATABACKEND_H
