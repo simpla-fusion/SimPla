@@ -18,12 +18,14 @@ int main(int argc, char** argv) {
 
     LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance() << std::endl;
 
-    DataTable db;
+    DataTable db(<#initializer#>);
     if (argc > 1) {
         DataTable lua_db(argv[1]);
         db.Set(lua_db.Get("Context")->cast_as<DataTable>());
+        LOGGER << "lua:// " << *lua_db.Get("Context") << std::endl;
+
     }
-    //        LOGGER << "lua_db: " << *lua_db.Get("Context") << std::endl;
+    { DataTable samrai_db("samrai://"); }
 
     db.Set("CartesianGeometry", "hello world!");
     //        LOGGER << "CartesianGeometry: " << *db.Get("CartesianGeometry") << std::endl;

@@ -24,6 +24,7 @@ class DataBackend {
     virtual ~DataBackend(){};
 
     virtual void Flush(){};
+    virtual bool Open(std::string const& authority, std::string const& path, std::string const& query) = 0;
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
     virtual std::unique_ptr<DataBackend> CreateNew() const = 0;
     virtual size_type size() const = 0;

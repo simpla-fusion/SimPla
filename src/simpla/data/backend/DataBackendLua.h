@@ -21,9 +21,8 @@ class DataBackendLua : public DataBackend {
 
     DataBackendLua();
     DataBackendLua(DataBackendLua const&);
-    DataBackendLua(std::string const& url, std::string const& status = "");
     virtual ~DataBackendLua();
-
+    virtual bool Open(std::string const& authority, std::string const& path, std::string const& query);
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual std::unique_ptr<DataBackend> CreateNew() const;
     virtual bool isNull() const;
@@ -46,7 +45,6 @@ class DataBackendLua : public DataBackend {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-
 
 }  // { namespace data {
 }  // namespace simpla

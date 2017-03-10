@@ -30,7 +30,7 @@ namespace concept {
  */
 
 struct Configurable {
-    Configurable() {}
+    Configurable() : m_db_(<#initializer#>) {}
     virtual ~Configurable() {}
 
     inline std::string const &name() const { return m_name_; }

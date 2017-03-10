@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
 
         //        os = toolbox::create_from_output_url(output_file);
     }
-    data::DataTable db;
+    data::DataTable db(<#initializer#>);
     engine::Manager ctx;
 
     create_scenario(&ctx, db);

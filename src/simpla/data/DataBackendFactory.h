@@ -15,17 +15,21 @@ namespace simpla {
 namespace data {
 class DataBackend;
 
-class DataBackendFactory
-    : public design_pattern::Factory<std::string, DataBackend, std::string const &, std::string const &>,
-      public concept::Printable {
-    typedef design_pattern::Factory<std::string, DataBackend, std::string const &, std::string const &> base_type;
+class DataBackendFactory : public design_pattern::Factory<std::string, DataBackend, std::string const &>,
+                           public concept::Printable {
+    typedef design_pattern::Factory<id_type, DataBackend, std::string const &> base_type;
 
    public:
     DataBackendFactory();
     virtual ~DataBackendFactory();
     std::ostream &Print(std::ostream &os, int indent = 0) const;
-    DataBackend *Create(std::string const &uri, std::string const &args);
+    DataBackend *Create(std::string const &uri);
     void RegisterDefault();
+
+
+   private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 // static DataBackendFactory g_DataBackendFactory;g_DataBackendFactory

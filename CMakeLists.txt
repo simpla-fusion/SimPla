@@ -62,6 +62,22 @@ ENDIF (TBB_FOUND)
 SET(HDF5_PREFER_PARALLEL ON)
 SET(HDF5_USE_STATIC_LIBRARIES OFF)
 
+FIND_PACKAGE(HDF5 1.8 COMPONENTS C HL REQUIRED)
+IF (HDF5_FOUND)
+    INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
+ENDIF (HDF5_FOUND)
+
+FIND_PACKAGE(Lua 5.2 REQUIRED)
+IF (Lua_FOUND)
+    INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
+ENDIF (Lua_FOUND)
+
+
+IF (NOT SAMRAI_DIR)
+    SET(SAMRAI_DIR /pkg/SAMRAI/3.11.0-debug)
+ENDIF (NOT SAMRAI_DIR)
+FIND_PACKAGE(SAMRAI)
+INCLUDE_DIRECTORIES(${SAMRAI_INCLUDE_DIRS})
 
 
 
@@ -69,11 +85,20 @@ if (NOT IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/simpla)
     FILE(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/simpla)
 endif (NOT IS_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/include/simpla)
 
+
+
+
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/include/SIMPLA_config.h.in
         ${CMAKE_CURRENT_BINARY_DIR}/include/simpla/SIMPLA_config.h @ONLY)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/include/)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+
+
+# workaround for CLion 1.0.x
+FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
+add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp)
 
 add_subdirectory(src/simpla)
 add_subdirectory(example)
@@ -83,7 +108,3 @@ add_subdirectory(docs)
 
 #add_subdirectory(scenario)
 #add_subdirectory(sp_lite)
-
-# workaround for CLion 1.0.x
-FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp)

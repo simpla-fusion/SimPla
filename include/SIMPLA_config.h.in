@@ -27,12 +27,15 @@
 /* HDF5 library is available so use it */
 #cmakedefine HDF5_FOUND
 
+#cmakedefine LUA_FOUND
 /* BLAS library is available so use it */
 #cmakedefine BLAS_FOUND
 
 #cmakedefine LAPACK_FOUND
 
 #cmakedefine PETSC_FOUND
+
+#cmakedefine SAMRAI_FOUND
 
 #cmakedefine SIMPLA_MAXIMUM_DIMENSION @SIMPLA_MAXIMUM_DIMENSION@
 

@@ -18,6 +18,8 @@
 
 namespace simpla {
 struct SPObject::pimpl_s {
+    pimpl_s() {}
+
     std::mutex m_mutex_;
     size_type m_click_ = 0;
     size_type m_click_tag_ = 0;

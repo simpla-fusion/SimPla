@@ -29,7 +29,8 @@ class DataTable : public DataEntity {
     std::string m_base_uri_;
 
    public:
-    DataTable(std::string const& uri = "", std::string const& status = "");
+    DataTable(std::string const &uri);
+    DataTable(DataBackend* p);
     DataTable(std::unique_ptr<DataBackend>&& p);
     DataTable(const DataTable&);
     DataTable(DataTable&&);
@@ -51,6 +52,7 @@ class DataTable : public DataEntity {
     bool isNull() const;
     size_type size() const;
 
+    std::shared_ptr<DataTable> AddTable(std::string const&);
 
     std::shared_ptr<DataEntity> Get(std::string const& URI) const;
     std::shared_ptr<DataEntity> Get(id_type key) const;

@@ -114,7 +114,7 @@ SAMRAIPatchProxy::SAMRAIPatchProxy(SAMRAI::hier::Patch &patch, boost::shared_ptr
     std::shared_ptr<simpla::engine::MeshBlock> m = std::make_shared<simpla::engine::MeshBlock>(3, lo, hi, dx, xlo);
     //    m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
     //                               patch.getBox().getGlobalId().getLocalId().getValue()));
-//    this->SetMeshBlock(m);
+    //    this->SetMeshBlock(m);
 };
 SAMRAIPatchProxy::~SAMRAIPatchProxy() {}
 
@@ -132,7 +132,8 @@ std::shared_ptr<engine::DataBlock> create_data_block_t0(engine::AttributeDesc co
     auto inner_upper = p_data->getBox().upper();
     size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
                          static_cast<size_type>(outer_upper[1] - outer_lower[1]),
-                         static_cast<size_type>(outer_upper[2] - outer_lower[2]), static_cast<size_type>(desc.GetDOF())};
+                         static_cast<size_type>(outer_upper[2] - outer_lower[2]),
+                         static_cast<size_type>(desc.GetDOF())};
     index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
                         inner_lower[2] - outer_lower[2], 0};
     index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
@@ -417,76 +418,77 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
     SAMRAI::hier::IntVector d_nghosts{d_dim, 4};
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
-//    for (auto const &item : m_domain_view_->GetAttributeDict()) {
-//        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *item.second);
-//        m_samrai_variables_[item.second->GetGUID()] = var;
-//
-//        engine::AttributeDesc const &attr = *item.second;
-//        data::DataTable &attr_db = m_domain_view_->attr_db(attr.GetGUID());
-//        //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
-//        //                "TENSOR"};
-//        //                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR",
-//        //                "VECTOR", "SCALAR"};
-//
-//        /*** FIXME:
-//        *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
-//        *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
-//        **/
-//
-//        if (attr_db.check("COORDINATES", true)) {
-//            VERBOSE << attr.GetName() << " is registered as coordinate" << std::endl;
-//            integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
-//                                         d_grid_geometry, "", "LINEAR_REFINE");
-//
-//        } else if (attr_db.check("FLUX", true)) {
-//            integrator->registerVariable(var, d_fluxghosts, SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
-//                                         d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
-//
-//        } else if (attr_db.check("INPUT", true)) {
-//            integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
-//                                         d_grid_geometry, "", "NO_REFINE");
-//        } else {
-//            switch (attr.GetIFORM()) {
-//                case EDGE:
-//                case FACE:
-//                //                    integrator->registerVariable(var, d_nghosts,
-//                //                    SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-//                //                                                 d_grid_geometry, "CONSERVATIVE_COARSEN",
-//                //                                                 "CONSERVATIVE_LINEAR_REFINE");
-//                //                    break;
-//                case VERTEX:
-//                case VOLUME:
-//                default:
-//                    integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-//                                                 d_grid_geometry, "", "LINEAR_REFINE");
-//            }
-//
-//            //            VERBOSE << (attr.GetName()) << " --  " << visit_variable_type << std::endl;
-//        }
-//
-//        std::string visit_variable_type = "";
-//        if ((attr.GetIFORM() == VERTEX || attr.GetIFORM() == VOLUME) && attr.GetDOF() == 1) {
-//            visit_variable_type = "SCALAR";
-//        } else if (((attr.GetIFORM() == EDGE || attr.GetIFORM() == FACE) && attr.GetDOF() == 1) ||
-//                   ((attr.GetIFORM() == VERTEX || attr.GetIFORM() == VOLUME) && attr.GetDOF() == 3)) {
-//            visit_variable_type = "VECTOR";
-//        } else if (((attr.GetIFORM() == VERTEX || attr.GetIFORM() == VOLUME) && attr.GetDOF() == 9) ||
-//                   ((attr.GetIFORM() == EDGE || attr.GetIFORM() == FACE) && attr.GetDOF() == 3)) {
-//            visit_variable_type = "TENSOR";
-//        } else {
-//            WARNING << "Can not register attribute [" << attr.GetName() << "] to VisIt  writer!" << std::endl;
-//        }
-//
-//        if (visit_variable_type != "" && attr_db.check("CHECK", true)) {
-//            d_visit_writer->registerPlotQuantity(
-//                attr.GetName(), visit_variable_type,
-//                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-//
-//        } else if (attr_db.check("COORDINATES", true)) {
-//            d_visit_writer->registerNodeCoordinates(
-//                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-//        }
-//    };
+    //    for (auto const &item : m_domain_view_->GetAttributeDict()) {
+    //        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *item.second);
+    //        m_samrai_variables_[item.second->GetGUID()] = var;
+    //
+    //        engine::AttributeDesc const &attr = *item.second;
+    //        data::DataTable &attr_db = m_domain_view_->attr_db(attr.GetGUID());
+    //        //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
+    //        //                "TENSOR"};
+    //        //                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR",
+    //        //                "VECTOR", "SCALAR"};
+    //
+    //        /*** FIXME:
+    //        *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
+    //        *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
+    //        **/
+    //
+    //        if (attr_db.check("COORDINATES", true)) {
+    //            VERBOSE << attr.GetName() << " is registered as coordinate" << std::endl;
+    //            integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
+    //                                         d_grid_geometry, "", "LINEAR_REFINE");
+    //
+    //        } else if (attr_db.check("FLUX", true)) {
+    //            integrator->registerVariable(var, d_fluxghosts, SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
+    //                                         d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
+    //
+    //        } else if (attr_db.check("INPUT", true)) {
+    //            integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
+    //                                         d_grid_geometry, "", "NO_REFINE");
+    //        } else {
+    //            switch (attr.GetIFORM()) {
+    //                case EDGE:
+    //                case FACE:
+    //                //                    integrator->registerVariable(var, d_nghosts,
+    //                //                    SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+    //                //                                                 d_grid_geometry, "CONSERVATIVE_COARSEN",
+    //                //                                                 "CONSERVATIVE_LINEAR_REFINE");
+    //                //                    break;
+    //                case VERTEX:
+    //                case VOLUME:
+    //                default:
+    //                    integrator->registerVariable(var, d_nghosts,
+    //                    SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+    //                                                 d_grid_geometry, "", "LINEAR_REFINE");
+    //            }
+    //
+    //            //            VERBOSE << (attr.GetName()) << " --  " << visit_variable_type << std::endl;
+    //        }
+    //
+    //        std::string visit_variable_type = "";
+    //        if ((attr.GetIFORM() == VERTEX || attr.GetIFORM() == VOLUME) && attr.GetDOF() == 1) {
+    //            visit_variable_type = "SCALAR";
+    //        } else if (((attr.GetIFORM() == EDGE || attr.GetIFORM() == FACE) && attr.GetDOF() == 1) ||
+    //                   ((attr.GetIFORM() == VERTEX || attr.GetIFORM() == VOLUME) && attr.GetDOF() == 3)) {
+    //            visit_variable_type = "VECTOR";
+    //        } else if (((attr.GetIFORM() == VERTEX || attr.GetIFORM() == VOLUME) && attr.GetDOF() == 9) ||
+    //                   ((attr.GetIFORM() == EDGE || attr.GetIFORM() == FACE) && attr.GetDOF() == 3)) {
+    //            visit_variable_type = "TENSOR";
+    //        } else {
+    //            WARNING << "Can not register attribute [" << attr.GetName() << "] to VisIt  writer!" << std::endl;
+    //        }
+    //
+    //        if (visit_variable_type != "" && attr_db.check("CHECK", true)) {
+    //            d_visit_writer->registerPlotQuantity(
+    //                attr.GetName(), visit_variable_type,
+    //                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+    //
+    //        } else if (attr_db.check("COORDINATES", true)) {
+    //            d_visit_writer->registerNodeCoordinates(
+    //                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+    //        }
+    //    };
     //    integrator->printClassData(std::cout);
     //    vardb->printClassData(std::cout);
 }
@@ -667,7 +669,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     ~SAMRAITimeIntegrator();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
-    virtual void Update();
+    virtual bool Update();
     virtual void Finalize();
     virtual size_type step() const;
     virtual bool remainingSteps() const;
@@ -781,49 +783,49 @@ SAMRAITimeIntegrator::SAMRAITimeIntegrator() : base_type() {
     }
      */
 
-    db().SetValue("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
-    db().SetValue("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
-    db().SetValue("CartesianGeometry.x_lo", nTuple<double, 3>{1.0, 0.0, -1.0});
-    db().SetValue("CartesianGeometry.x_up", nTuple<double, 3>{2, PI, 1});
+    db().Set("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
+    db().Set("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
+    db().Set("CartesianGeometry.x_lo", nTuple<double, 3>{1.0, 0.0, -1.0});
+    db().Set("CartesianGeometry.x_up", nTuple<double, 3>{2, PI, 1});
     // Maximum number of levels in hierarchy.
-    db().SetValue("PatchHierarchy.max_levels", int(3));
-    db().SetValue("PatchHierarchy.ratio_to_coarser.level_1", nTuple<int, 3>{2, 2, 1});
-    db().SetValue("PatchHierarchy.ratio_to_coarser.level_2", nTuple<int, 3>{2, 2, 1});
-    db().SetValue("PatchHierarchy.ratio_to_coarser.level_3", nTuple<int, 3>{2, 2, 1});
-    db().SetValue("PatchHierarchy.largest_patch_size.level_0", nTuple<int, 3>{32, 32, 32});
-    db().SetValue("PatchHierarchy.smallest_patch_size.level_0", nTuple<int, 3>{4, 4, 4});
+    db().Set("PatchHierarchy.max_levels", int(3));
+    db().Set("PatchHierarchy.ratio_to_coarser.level_1", nTuple<int, 3>{2, 2, 1});
+    db().Set("PatchHierarchy.ratio_to_coarser.level_2", nTuple<int, 3>{2, 2, 1});
+    db().Set("PatchHierarchy.ratio_to_coarser.level_3", nTuple<int, 3>{2, 2, 1});
+    db().Set("PatchHierarchy.largest_patch_size.level_0", nTuple<int, 3>{32, 32, 32});
+    db().Set("PatchHierarchy.smallest_patch_size.level_0", nTuple<int, 3>{4, 4, 4});
 
-    db().CreateTable("GriddingAlgorithm");
+    db().AddTable("GriddingAlgorithm");
     // Makes results repeatable.
-    db().SetValue("BergerRigoutsos.sort_output_nodes", true);
+    db().Set("BergerRigoutsos.sort_output_nodes", true);
     // min % of GetTag cells in new patch level
-    db().SetValue("BergerRigoutsos.efficiency_tolerance", 0.85);
+    db().Set("BergerRigoutsos.efficiency_tolerance", 0.85);
     // chop box if sum of volumes of smaller
     //    // boxes < efficiency * vol of large box
-    db().SetValue("BergerRigoutsos.combine_efficiency", 0.95);
+    db().Set("BergerRigoutsos.combine_efficiency", 0.95);
 
     // Refer to mesh::StandardTagAndInitialize for input
-    db().SetValue("StandardTagAndInitialize.tagging_method", "GRADIENT_DETECTOR");
+    db().Set("StandardTagAndInitialize.tagging_method", "GRADIENT_DETECTOR");
 
     // Refer to algs::HyperbolicLevelIntegrator for input
     // max cfl factor used in problem
-    db().SetValue("HyperbolicLevelIntegrator.cfl", 0.9);
-    db().SetValue("HyperbolicLevelIntegrator.cfl_init", 0.9);  // initial cfl factor
-    db().SetValue("HyperbolicLevelIntegrator.lag_dt_computation", true);
-    db().SetValue("HyperbolicLevelIntegrator.use_ghosts_to_compute_dt", true);
+    db().Set("HyperbolicLevelIntegrator.cfl", 0.9);
+    db().Set("HyperbolicLevelIntegrator.cfl_init", 0.9);  // initial cfl factor
+    db().Set("HyperbolicLevelIntegrator.lag_dt_computation", true);
+    db().Set("HyperbolicLevelIntegrator.use_ghosts_to_compute_dt", true);
 
     // Refer to algs::TimeRefinementIntegrator for input
     // initial simulation time
-    db().SetValue("TimeRefinementIntegrator.start_time", 0.e0);
+    db().Set("TimeRefinementIntegrator.start_time", 0.e0);
     // final simulation time
-    db().SetValue("TimeRefinementIntegrator.end_time", 1.e0);
+    db().Set("TimeRefinementIntegrator.end_time", 1.e0);
     // growth factor for timesteps
-    db().SetValue("TimeRefinementIntegrator.grow_dt", 1.1e0);
+    db().Set("TimeRefinementIntegrator.grow_dt", 1.1e0);
     // max number of simulation timesteps
-    db().SetValue("TimeRefinementIntegrator.max_integrator_steps", 5);
+    db().Set("TimeRefinementIntegrator.max_integrator_steps", 5);
 
     // Refer to mesh::TreeLoadBalancer for input
-    db().CreateTable("LoadBalancer");
+    db().AddTable("LoadBalancer");
 }
 
 SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
@@ -838,56 +840,10 @@ std::ostream &SAMRAITimeIntegrator::Print(std::ostream &os, int indent) const {
     return os;
 };
 
-namespace detail {
-void convert_database_r(data::DataEntity const &src, boost::shared_ptr<SAMRAI::tbox::Database> &dest,
-                        std::string const &key = "") {
-    if (src.isTable()) {
-        auto sub_db = key == "" ? dest : dest->putDatabase(key);
-        src.asTable().foreach (
-            [&](std::string const &k, data::DataEntity const &v) { convert_database_r(v, sub_db, k); });
-    } else if (key == "") {
-        return;
-    } else if (src.isNull()) {
-        dest->putDatabase(key);
-    } else if (src.asLight().isBoolean()) {
-        dest->putBool(key, src.asLight().as<bool>());
-    } else if (src.asLight().is_string()) {
-        dest->putString(key, src.asLight().as<std::string>());
-    } else if (src.asLight().isFloatingPoint()) {
-        dest->putDouble(key, src.asLight().as<double>());
-    } else if (src.asLight().isIntegral()) {
-        dest->putInteger(key, src.asLight().as<int>());
-    } else if (src.asLight().type() == typeid(nTuple<bool, 3>)) {
-        dest->putBoolArray(key, &src.asLight().as<nTuple<bool, 3>>()[0], 3);
-    } else if (src.asLight().type() == typeid(nTuple<int, 3>)) {
-        dest->putIntegerArray(key, &src.asLight().as<nTuple<int, 3>>()[0], 3);
-    } else if (src.asLight().type() == typeid(nTuple<double, 3>)) {
-        dest->putDoubleArray(key, &src.asLight().as<nTuple<double, 3>>()[0], 3);
-    }
-    //    else if (src.type() == typeid(box_type)) { dest->putDoubleArray(key,
-    //    &src.as<box_type>()[0], 3); }
-    else if (src.asLight().type() == typeid(index_box_type)) {
-        nTuple<int, 3> i_lo, i_up;
-        std::tie(i_lo, i_up) = src.asLight().as<index_box_type>();
-        SAMRAI::tbox::Dimension dim(3);
-        dest->putDatabaseBox(key, SAMRAI::tbox::DatabaseBox(dim, &(i_lo[0]), &(i_up[0])));
-    } else {
-        WARNING << " Unknown type [" << src << "]" << std::endl;
-    }
-}
-
-boost::shared_ptr<SAMRAI::tbox::Database> convert_database(data::DataTable const &src, std::string const &s_name = "") {
-    auto dest =
-        boost::dynamic_pointer_cast<SAMRAI::tbox::Database>(boost::make_shared<SAMRAI::tbox::MemoryDatabase>(s_name));
-    convert_database_r(src, dest);
-    return dest;
-}
-}  // namespace detail{
-
-void SAMRAITimeIntegrator::Update() {
-    if (isUpdated()) { return; }
+bool SAMRAITimeIntegrator::Update() {
+    if (isModified()) { return; }
     engine::Manager::Update();
-    bool use_refined_timestepping = db().GetValue("use_refined_timestepping", true);
+    bool use_refined_timestepping = db().Get("use_refined_timestepping")->as<bool>(true);
     SAMRAI::tbox::Dimension dim(ndims);
     samrai_cfg = simpla::detail::convert_database(db(), name());
     samrai_cfg->printClassData(std::cout);
@@ -950,8 +906,8 @@ void SAMRAITimeIntegrator::Update() {
         hyp_level_integrator, gridding_algorithm);
 
     visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
-        dim, db().GetValue("output_writer_name", name() + " VisIt Writer"), db().GetValue("output_dir_name", name()),
-        db().GetValue("visit_number_procs_per_file", int(1)));
+        dim, db().Get("output_writer_name")->as<std::string>(name() + " VisIt Writer"),
+        db().Get("output_dir_name")->as<std::string>(name()), db().Get("visit_number_procs_per_file")->as<int>(1)));
 
     hyperbolic_patch_strategy->registerVisItDataWriter(visit_data_writer);
 

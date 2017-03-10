@@ -107,13 +107,15 @@ std::shared_ptr<DataEntity> DataBackendLua::pimpl_s::make_data_entity_lua(toolbo
 
 DataBackendLua::DataBackendLua() : m_pimpl_(new pimpl_s) { m_pimpl_->m_lua_obj_.init(); }
 
-DataBackendLua::DataBackendLua(std::string const& url, std::string const& status) : DataBackendLua() {
-    m_pimpl_->m_lua_obj_.parse_file(url, status);
-}
 DataBackendLua::DataBackendLua(DataBackendLua const& other) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_lua_obj_ = other.m_pimpl_->m_lua_obj_;
 };
 DataBackendLua::~DataBackendLua() {}
+
+bool DataBackendLua::Open(std::string const& authority, std::string const& path, std::string const& query) {
+    m_pimpl_->m_lua_obj_.parse_file(path);
+}
+
 std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
     return m_pimpl_->m_lua_obj_.Print(os, indent);
 }

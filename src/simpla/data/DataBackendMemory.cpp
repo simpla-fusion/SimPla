@@ -18,7 +18,7 @@ struct DataBackendMemory::pimpl_s {
 DataBackendMemory::DataBackendMemory() : m_pimpl_(new pimpl_s) {}
 DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& status) : DataBackendMemory() {
     if (url != "") {
-        DataTable d(url, status);
+        DataTable d(url);
         d.Accept([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
     }
 }

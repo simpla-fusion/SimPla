@@ -9,6 +9,8 @@
 namespace simpla {
 namespace engine {
 struct Worker::pimpl_s {
+    pimpl_s() {}
+
     DomainView *m_domain_;
     data::DataTable m_db_;
 };

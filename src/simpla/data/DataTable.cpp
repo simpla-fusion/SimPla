@@ -8,14 +8,14 @@
 #include <iomanip>
 #include <string>
 #include "DataBackend.h"
+#include "DataBackendFactory.h"
 #include "DataEntity.h"
 #include "KeyValue.h"
-#include "DataBackendFactory.h"
 namespace simpla {
 namespace data {
-DataTable::DataTable(std::string const& url, std::string const& args)
-    : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create(url, args)),
-      m_base_uri_(url == "" ? "<MEM>" : url){};
+DataTable::DataTable(std::string const &uri)
+    : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create(uri)), m_base_uri_(uri){};
+DataTable::DataTable(DataBackend* p) : m_backend_(p){};
 DataTable::DataTable(std::unique_ptr<DataBackend>&& p) : m_backend_(std::move(p)){};
 DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->CreateNew())) { Set(other); }
 DataTable::DataTable(DataTable&& other) : m_backend_(std::move(other.m_backend_)) {}
@@ -36,6 +36,15 @@ bool DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v
 bool DataTable::Add(id_type key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Add(key, v); };
 size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
 size_type DataTable::Delete(id_type key) { return m_backend_->Delete(key); };
+
+std::shared_ptr<DataTable> DataTable::AddTable(std::string const& uri) {
+    std::shared_ptr<DataEntity> res = Get(uri);
+    if (res == nullptr && !res->isTable()) {
+        res = std::make_shared<DataTable>(m_backend_->CreateNew());
+        Set(uri, res);
+    }
+    return std::dynamic_pointer_cast<DataTable>(res);
+};
 
 bool DataTable::Set(DataTable const& other) {
     other.Accept([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
