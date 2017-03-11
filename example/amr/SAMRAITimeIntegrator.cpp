@@ -843,7 +843,7 @@ std::ostream &SAMRAITimeIntegrator::Print(std::ostream &os, int indent) const {
 bool SAMRAITimeIntegrator::Update() {
     if (isModified()) { return; }
     engine::Manager::Update();
-    bool use_refined_timestepping = db().Get("use_refined_timestepping")->as<bool>(true);
+    bool use_refined_timestepping = db().Get("use_refined_timestepping", <#initializer#>, <#initializer#>)->as<bool>(true);
     SAMRAI::tbox::Dimension dim(ndims);
     samrai_cfg = simpla::detail::convert_database(db(), name());
     samrai_cfg->printClassData(std::cout);
@@ -906,8 +906,8 @@ bool SAMRAITimeIntegrator::Update() {
         hyp_level_integrator, gridding_algorithm);
 
     visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
-        dim, db().Get("output_writer_name")->as<std::string>(name() + " VisIt Writer"),
-        db().Get("output_dir_name")->as<std::string>(name()), db().Get("visit_number_procs_per_file")->as<int>(1)));
+            dim, db().Get("output_writer_name", <#initializer#>, <#initializer#>)->as<std::string>(name() + " VisIt Writer"),
+            db().Get("output_dir_name", <#initializer#>, <#initializer#>)->as<std::string>(name()), db().Get("visit_number_procs_per_file", <#initializer#>, <#initializer#>)->as<int>(1)));
 
     hyperbolic_patch_strategy->registerVisItDataWriter(visit_data_writer);
 

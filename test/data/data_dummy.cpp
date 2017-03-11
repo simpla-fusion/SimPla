@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
 
     DataTable db;
     if (argc > 1) {
-        DataTable lua_db(argv[1]);
+        DataTable lua_db(std::string("lua://") + argv[1]);
         db.Set(lua_db.Get("Context")->cast_as<DataTable>());
         LOGGER << "lua:// " << *lua_db.Get("Context") << std::endl;
     }
@@ -37,13 +37,13 @@ int main(int argc, char** argv) {
     db.Set("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
     db.Set("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
     db.Set("b.a", 5);
-    db.Set("b.sub.d", nTuple<int, 3>{1, 2, 3});
-    db.Set("b.sub.e", nTuple<int, 4>{1, 2, 3, 4});
-    db.Add("b.sub.c", nTuple<int, 4>{5, 6, 7, 8});
-    db.Add("b.sub.c", nTuple<int, 4>{3, 5, 3, 4});
-    db.Add("b.sub.c", "la la land");
-    db.Add("b.sub.a", {3, 5, 3, 4});
-    db.Add("b.sub.a", 9);
+    db.Set("/b/sub/d", nTuple<int, 3>{1, 2, 3});
+    db.Set("/b/sub/e", nTuple<int, 4>{1, 2, 3, 4});
+    db.Add("/b/sub/c", nTuple<int, 4>{5, 6, 7, 8});
+    db.Add("/b/sub/c", nTuple<int, 4>{3, 5, 3, 4});
+    db.Add("/b/sub/c", "la la land");
+    db.Add("/b/sub/a", {3, 5, 3, 4});
+    db.Add("/b/sub/a", 9);
 
     LOGGER << "b: " << *db.Get("b") << std::endl;
     LOGGER << "db: " << db << std::endl;

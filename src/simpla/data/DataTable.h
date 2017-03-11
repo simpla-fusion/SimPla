@@ -37,6 +37,7 @@ class DataTable : public DataEntity {
     DataTable(DataTable&&);
     ~DataTable() final;
 
+    void Connect(std::string const& uri);
     void swap(DataTable&);
     static std::shared_ptr<DataTable> Create(std::string const& scheme);
 
@@ -57,13 +58,13 @@ class DataTable : public DataEntity {
 
     std::shared_ptr<DataTable> AddTable(std::string const&);
 
-    std::shared_ptr<DataEntity> Get(std::string const& URI) const;
+    std::shared_ptr<DataEntity> Get(std::string const& path) const;
     std::shared_ptr<DataEntity> Get(id_type key) const;
-    bool Set(std::string const& URI, std::shared_ptr<DataEntity> const&);
+    bool Set(std::string const& path, std::shared_ptr<DataEntity> const&);
     bool Set(id_type key, std::shared_ptr<DataEntity> const&);
-    bool Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
+    bool Add(std::string const& path, std::shared_ptr<DataEntity> const&);
     bool Add(id_type key, std::shared_ptr<DataEntity> const&);
-    size_type Delete(std::string const& URI);
+    size_type Delete(std::string const& path);
     size_type Delete(id_type key);
 
     size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;

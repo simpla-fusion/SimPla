@@ -25,12 +25,12 @@ class DataBackend {
     DataBackend(){};
     virtual ~DataBackend(){};
     static DataBackend* Create(std::string const& uri);
-
+    virtual void Connect(std::string const&){};
+    virtual void Disconnect(){};
     virtual DataBackend* Create() const = 0;
     virtual DataBackend* Clone() const = 0;
     virtual std::string scheme() const = 0;
     virtual void Flush() = 0;
-
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
     virtual size_type size() const = 0;
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const = 0;

@@ -23,9 +23,10 @@ class DataBackendLua : public DataBackend {
     DataBackendLua();
     DataBackendLua(DataBackendLua const&);
     virtual ~DataBackendLua();
-    virtual bool Open(std::string const& authority, std::string const& path, std::string const& query);
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual std::string scheme() const;
+    virtual void Connect(std::string const&);
+    virtual void Disconnect();
     virtual DataBackend* Clone() const;
     virtual DataBackend* Create() const;
     virtual bool isNull() const;

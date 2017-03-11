@@ -6,6 +6,7 @@
 #include <simpla/design_pattern/SingletonHolder.h>
 #include <simpla/toolbox/Log.h>
 #include <iomanip>
+#include <regex>
 #include <string>
 #include "DataBackend.h"
 #include "DataBackendMemory.h"
@@ -13,8 +14,24 @@
 #include "KeyValue.h"
 namespace simpla {
 namespace data {
-DataTable::DataTable() : m_backend_(DataBackend::Create("")), m_base_uri_(){};
-DataTable::DataTable(std::string const& uri) : m_backend_(DataBackend::Create(uri)), m_base_uri_(uri){};
+DataTable::DataTable() : m_backend_(new DataBackendMemory), m_base_uri_("mem://"){};
+DataTable::DataTable(std::string const& uri) : m_backend_(nullptr), m_base_uri_(uri) {
+    static std::regex uri_regex(R"(^(([^:\/?#]+):)?(//([^?#]*)))", std::regex::extended);
+    std::smatch uri_match_result;
+
+    if (!std::regex_match(m_base_uri_, uri_match_result, uri_regex)) {
+        RUNTIME_ERROR << " illegal uri! [" << uri << "]" << std::endl;
+    }
+
+    std::string scheme = uri_match_result[2].str();
+    std::string path = uri_match_result[4].str();
+
+    std::unique_ptr<DataBackend>(DataBackend::Create(scheme)).swap(m_backend_);
+    m_backend_->Connect(path);
+    //    auto res = this->Get(path);
+    //    if (!res->isTable()) { RUNTIME_ERROR << "uri does not point  to a table! [ " << uri << " ]" << std::endl; }
+    //    res->cast_as<DataTable>().swap(*this);
+};
 DataTable::DataTable(DataBackend* p) : m_backend_(p){};
 DataTable::DataTable(std::unique_ptr<DataBackend>&& p) : m_backend_(std::move(p)){};
 DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->Clone())) { Set(other); }
@@ -32,7 +49,7 @@ std::shared_ptr<DataEntity> DataTable::Clone() const {
 
 bool DataTable::isNull() const { return m_backend_ == nullptr; }
 size_type DataTable::size() const { return m_backend_->size(); }
-std::shared_ptr<DataEntity> DataTable::Get(std::string const& uri) const { return m_backend_->Get(uri); };
+std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) const { return m_backend_->Get(path); };
 std::shared_ptr<DataEntity> DataTable::Get(id_type key) const { return m_backend_->Get(key); };
 bool DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return m_backend_->Set(uri, v); };
 bool DataTable::Set(id_type key, std::shared_ptr<DataEntity> const& v) { return m_backend_->Set(key, v); };

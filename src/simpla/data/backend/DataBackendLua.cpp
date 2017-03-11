@@ -112,10 +112,6 @@ DataBackendLua::DataBackendLua(DataBackendLua const& other) : m_pimpl_(new pimpl
 };
 DataBackendLua::~DataBackendLua() {}
 
-bool DataBackendLua::Open(std::string const& authority, std::string const& path, std::string const& query) {
-    m_pimpl_->m_lua_obj_.parse_file(path);
-}
-
 std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
     return m_pimpl_->m_lua_obj_.Print(os, indent);
 }
@@ -123,6 +119,8 @@ std::string DataBackendLua::scheme() const { return scheme_tag; }
 
 bool DataBackendLua::isNull() const { return m_pimpl_->m_lua_obj_.is_null(); }
 void DataBackendLua::Flush() {}
+void DataBackendLua::Connect(std::string const& path) { m_pimpl_->m_lua_obj_.parse_file(path); }
+void DataBackendLua::Disconnect() {}
 DataBackend* DataBackendLua::Clone() const { return new DataBackendLua(*this); }
 DataBackend* DataBackendLua::Create() const { return new DataBackendLua(); }
 
