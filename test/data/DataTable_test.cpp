@@ -2,6 +2,7 @@
 // Created by salmon on 17-1-6.
 //
 
+#include <gtest/gtest.h>
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
@@ -9,22 +10,16 @@
 #include <simpla/toolbox/FancyStream.h>
 #include <complex>
 #include <iostream>
+
 using namespace simpla;
 using namespace simpla::data;
-
-int main(int argc, char** argv) {
+TEST(DataTable, memory) {
     logger::set_stdout_level(1000);
 
     LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance().RegisteredBackend()
            << std::endl;
 
     DataTable db;
-    if (argc > 1) {
-        DataTable lua_db(std::string("lua://") + argv[1]);
-        db.Set(lua_db.Get("Context")->cast_as<DataTable>());
-        LOGGER << "lua:// " << *lua_db.Get("Context") << std::endl;
-    }
-    { DataTable samrai_db("samrai://"); }
 
     db.Set("CartesianGeometry", "hello world!");
     //        LOGGER << "CartesianGeometry: " << *db.Get("CartesianGeometry") << std::endl;
@@ -56,4 +51,23 @@ int main(int argc, char** argv) {
     //        LOGGER << "A = " << (db.Get("A")->as<int>()) << std::endl;
 
     LOGGER << "The END !" << std::endl;
+}
+
+TEST(DataTable, lua) {
+    logger::set_stdout_level(1000);
+
+    LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance().RegisteredBackend()
+           << std::endl;
+    DataTable lua_db(std::string("lua:///home/salmon/workspace/SimPla/test/data/test.lua"));
+    LOGGER << "lua:// " << *lua_db.Get("Context") << std::endl;
+}
+
+TEST(DataTable, samrai) {
+    logger::set_stdout_level(1000);
+
+    LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance().RegisteredBackend()
+           << std::endl;
+    DataTable samrai_db("samrai://");
+    samrai_db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
+    LOGGER << *samrai_db.backend() << std::endl;
 }

@@ -33,12 +33,19 @@ struct DataBackendSAMRAI::pimpl_s {
     static void set_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database>& lobj, std::string const& uri,
                                    std::shared_ptr<data::DataEntity> const& v);
 };
-DataBackendSAMRAI::DataBackendSAMRAI() : m_pimpl_(new pimpl_s) {}
-DataBackendSAMRAI::DataBackendSAMRAI(DataBackendSAMRAI const& other) : DataBackendSAMRAI() {} /* copy pimpl_s*/
-DataBackendSAMRAI::DataBackendSAMRAI(DataBackendSAMRAI&& other) : m_pimpl_(std::move(m_pimpl_)) {}
-DataBackendSAMRAI::DataBackendSAMRAI(std::string const& uri, std::string const& status) : DataBackendSAMRAI() {
+DataBackendSAMRAI::DataBackendSAMRAI() : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_samrai_db_ = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("");
+}
+DataBackendSAMRAI::DataBackendSAMRAI(DataBackendSAMRAI const& other) : m_pimpl_(new pimpl_s) {
+    UNSUPPORTED;
+    //    m_pimpl_->m_samrai_db_ = boost::make_shared<SAMRAI::tbox::MemoryDatabase>(
+    //        *boost::dynamic_pointer_cast<SAMRAI::tbox::MemoryDatabase>(other.m_pimpl_->m_samrai_db_));
+}
+DataBackendSAMRAI::DataBackendSAMRAI(std::string const& uri, std::string const& status) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_samrai_db_ = boost::make_shared<SAMRAI::tbox::MemoryDatabase>(uri);
 }
+DataBackendSAMRAI::DataBackendSAMRAI(DataBackendSAMRAI&& other) : m_pimpl_(std::move(m_pimpl_)) {}
+
 DataBackendSAMRAI::~DataBackendSAMRAI() {
     if (m_pimpl_->m_samrai_db_ != nullptr) { m_pimpl_->m_samrai_db_->close(); }
 }

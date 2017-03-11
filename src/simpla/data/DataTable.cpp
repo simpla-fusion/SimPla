@@ -16,7 +16,7 @@ namespace simpla {
 namespace data {
 DataTable::DataTable() : m_backend_(new DataBackendMemory), m_base_uri_("mem://"){};
 DataTable::DataTable(std::string const& uri) : m_backend_(nullptr), m_base_uri_(uri) {
-    static std::regex uri_regex(R"(^(([^:\/?#]+):)?(//([^?#]*)))", std::regex::extended);
+    static std::regex uri_regex(R"(^(([^:\/?#]+):)?(//(.*)))", std::regex::extended | std::regex::optimize);
     std::smatch uri_match_result;
 
     if (!std::regex_match(m_base_uri_, uri_match_result, uri_regex)) {

@@ -19,7 +19,7 @@ namespace simpla {
 namespace data {
 class DataEntity;
 
-class DataBackend {
+class DataBackend : public concept::Printable {
     SP_OBJECT_BASE(DataBackend);
 
    public:
