@@ -110,6 +110,7 @@ DataBackendLua::DataBackendLua() : m_pimpl_(new pimpl_s) { m_pimpl_->m_lua_obj_.
 DataBackendLua::DataBackendLua(DataBackendLua const& other) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_lua_obj_ = other.m_pimpl_->m_lua_obj_;
 };
+
 DataBackendLua::~DataBackendLua() {}
 
 std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
@@ -231,18 +232,13 @@ void DataBackendLua::pimpl_s::add_data_to_lua(toolbox::LuaObject& lobj, std::str
         RUNTIME_ERROR << "illegal data type for Lua :" << v.type().name() << std::endl;
     }
 }
-bool DataBackendLua::Set(std::string const& key, std::shared_ptr<DataEntity> const& v) {
+void DataBackendLua::Set(std::string const& key, std::shared_ptr<DataEntity> const& v) {
     DataBackendLua::pimpl_s::set_data_to_lua(m_pimpl_->m_lua_obj_, key, *v);
-    return true;
 }
-bool DataBackendLua::Set(id_type key, std::shared_ptr<DataEntity> const&) {}
 
-bool DataBackendLua::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) { return false; }
-bool DataBackendLua::Add(id_type key, std::shared_ptr<DataEntity> const&) {}
+void DataBackendLua::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) {}
 
 size_type DataBackendLua::Delete(std::string const& key) { return 0; }
-size_type DataBackendLua::Delete(id_type key) {}
-void DataBackendLua::DeleteAll() {}
 size_type DataBackendLua::size() const { return 0; }
 size_type DataBackendLua::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     if (m_pimpl_->m_lua_obj_.is_global()) {
@@ -254,7 +250,6 @@ size_type DataBackendLua::Accept(std::function<void(std::string const&, std::sha
         };
     }
 }
-size_type DataBackendLua::Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const {};
 
 // std::shared_ptr<DataEntity> DataBackendLua::Get(std::string const& url) {
 //    auto obj = m_pimpl_->m_lua_obj_.get(url);

@@ -137,36 +137,21 @@ std::shared_ptr<DataEntity> DataBackendSAMRAI::pimpl_s::get_data_from_samrai(
 std::shared_ptr<DataEntity> DataBackendSAMRAI::Get(std::string const& uri) const {
     pimpl_s::get_data_from_samrai(m_pimpl_->m_samrai_db_->getDatabase(uri));
 }
-std::shared_ptr<DataEntity> DataBackendSAMRAI::Get(id_type key) const {
-    pimpl_s::get_data_from_samrai(m_pimpl_->m_samrai_db_->getDatabase(std::to_string(key)));
-}
-bool DataBackendSAMRAI::Set(std::string const& URI, std::shared_ptr<DataEntity> const& v) {
+
+void DataBackendSAMRAI::Set(std::string const& URI, std::shared_ptr<DataEntity> const& v) {
     pimpl_s::set_data_to_samrai(m_pimpl_->m_samrai_db_, URI, v);
 }
-bool DataBackendSAMRAI::Set(id_type key, std::shared_ptr<DataEntity> const& v) {
-    pimpl_s::set_data_to_samrai(m_pimpl_->m_samrai_db_, std::to_string(key), v);
-}
-bool DataBackendSAMRAI::Add(std::string const& URI, std::shared_ptr<DataEntity> const& v) {
+
+void DataBackendSAMRAI::Add(std::string const& URI, std::shared_ptr<DataEntity> const& v) {
     pimpl_s::add_data_to_samrai(m_pimpl_->m_samrai_db_, URI, v);
 }
-bool DataBackendSAMRAI::Add(id_type key, std::shared_ptr<DataEntity> const& v) {
-    pimpl_s::add_data_to_samrai(m_pimpl_->m_samrai_db_, std::to_string(key), v);
-}
+
 size_type DataBackendSAMRAI::Delete(std::string const& URI) { UNSUPPORTED; }
-size_type DataBackendSAMRAI::Delete(id_type key) { UNSUPPORTED; }
-void DataBackendSAMRAI::DeleteAll() { UNSUPPORTED; }
 
 size_type DataBackendSAMRAI::Accept(
     std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& fun) const {
     auto keys = m_pimpl_->m_samrai_db_->getAllKeys();
     for (auto const& k : keys) { fun(k, pimpl_s::get_data_from_samrai(m_pimpl_->m_samrai_db_->getDatabase(k))); }
-}
-size_type DataBackendSAMRAI::Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const& fun) const {
-    UNSUPPORTED;
-    //    auto keys = m_pimpl_->m_samrai_db_->getAllKeys();
-    //    for (int i = 0, ie = keys.size(); i < ie; ++i) {
-    //        fun(keys[i], pimpl_s::get_data_from_samrai(m_pimpl_->m_samrai_db_->getDatabase(keys[i])));
-    //    }
 }
 
 }  // namespace data{

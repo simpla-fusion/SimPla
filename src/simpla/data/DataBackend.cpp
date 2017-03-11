@@ -28,6 +28,7 @@ std::vector<std::string> DataBackendFactory::RegisteredBackend() const {
 std::shared_ptr<DataBackend> DataBackend::Create(std::string const &scheme) {
     std::shared_ptr<DataBackend> res(GLOBAL_DATA_BACKEND_FACTORY.Create(scheme));
     if (res == nullptr) { res = std::make_shared<DataBackendMemory>(); }
+    return res;
 }
 
 }  // namespace data {

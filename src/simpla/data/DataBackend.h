@@ -39,7 +39,6 @@ class DataBackend : public concept::Printable, public std::enable_shared_from_th
     virtual void Set(std::string const& URI, std::shared_ptr<DataEntity> const&) = 0;
     virtual void Add(std::string const& URI, std::shared_ptr<DataEntity> const&) = 0;
     virtual size_type Delete(std::string const& URI) = 0;
-
     virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const = 0;
 
 };  // class DataBackend {
@@ -52,7 +51,7 @@ class DataBackendFactory : public design_pattern::Factory<std::string, DataBacke
     virtual ~DataBackendFactory();
     std::vector<std::string> RegisteredBackend() const;
     DataBackend* Create(std::string const& scheme);
-    void RegisterDefault(){};
+    void RegisterDefault();
 };
 
 #define GLOBAL_DATA_BACKEND_FACTORY SingletonHolder<DataBackendFactory>::instance()

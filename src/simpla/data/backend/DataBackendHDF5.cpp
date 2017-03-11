@@ -63,19 +63,11 @@ bool DataBackendHDF5::isNull() const { UNIMPLEMENTED; }
 size_type DataBackendHDF5::size() const { UNIMPLEMENTED; }
 
 std::shared_ptr<DataEntity> DataBackendHDF5::Get(std::string const& URI) const { UNIMPLEMENTED; }
-std::shared_ptr<DataEntity> DataBackendHDF5::Get(id_type key) const { UNIMPLEMENTED; }
-bool DataBackendHDF5::Set(std::string const& URI, std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
-bool DataBackendHDF5::Set(id_type key, std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
-bool DataBackendHDF5::Add(std::string const& URI, std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
-bool DataBackendHDF5::Add(id_type key, std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
+void DataBackendHDF5::Set(std::string const& URI, std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
+void DataBackendHDF5::Add(std::string const& URI, std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
 size_type DataBackendHDF5::Delete(std::string const& URI) { UNIMPLEMENTED; }
-size_type DataBackendHDF5::Delete(id_type key) { UNIMPLEMENTED; }
-void DataBackendHDF5::DeleteAll() { UNIMPLEMENTED; }
 
 size_type DataBackendHDF5::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const {
-    UNIMPLEMENTED;
-}
-size_type DataBackendHDF5::Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const {
     UNIMPLEMENTED;
 }
 

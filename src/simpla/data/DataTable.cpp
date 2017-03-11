@@ -26,7 +26,7 @@ DataTable::DataTable(std::string const& uri) : m_backend_(nullptr), m_base_uri_(
     std::string scheme = uri_match_result[2].str();
     std::string path = uri_match_result[4].str();
 
-    std::shared_ptr<DataBackend>(DataBackend::Create(scheme)).swap(m_backend_);
+    m_backend_ = DataBackend::Create(scheme);
     m_backend_->Connect(path);
     //    auto res = this->Get(path);
     //    if (!res->isTable()) { RUNTIME_ERROR << "uri does not point  to a table! [ " << uri << " ]" << std::endl; }
