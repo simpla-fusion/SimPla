@@ -33,11 +33,15 @@ TEST(DataTable, memory) {
     //    db.Set("b.a", 5);
     //    db.Set("/b/sub/1/2/3/4/d/123456", nTuple<int, 3>{1, 2, 3});
     db.Set("/b/sub/e", nTuple<int, 4>{1, 2, 3, 4});
-    db.Add("/b/sub/c", {nTuple<int, 4>{5, 6, 7, 8}});
+    db.Add("/b/sub/c", nTuple<int, 4>{5, 6, 7, 8});
     db.Add("/b/sub/c", nTuple<int, 4>{1, 5, 3, 4});
     db.Add("/b/sub/c", nTuple<int, 4>{2, 5, 3, 4});
     db.Add("/b/sub/c", nTuple<int, 4>{3, 5, 3, 4});
     db.Add("/b/sub/c", nTuple<int, 4>{4, 5, 3, 4});
+    db.Add("/b/sub/d", {1, 2});
+    db.Add("/b/sub/d", 5);
+    db.Add("/b/sub/d", 5);
+    db.Add("/b/sub/d", 5);
 
     //    db.Add("/b/sub/c", "la la land");
     db.Add("/b/sub/a", {3, 5, 3, 4});

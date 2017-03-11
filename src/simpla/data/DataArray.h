@@ -28,10 +28,7 @@ struct DataArray : public DataEntity {
     }
     virtual void Set(size_type idx, std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
     virtual void Add(std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
-    virtual int Delete(size_type idx) {
-        UNIMPLEMENTED;
-        return 0;
-    }
+    virtual void Delete(size_type idx) { UNIMPLEMENTED; }
 
     virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const&) const {
         UNIMPLEMENTED;
@@ -57,10 +54,7 @@ struct DataArrayWrapper<void> : public DataArray {
         if (idx < size()) { m_data_[idx] = v; }
     }
     virtual void Add(std::shared_ptr<DataEntity> const& v) { m_data_.push_back(v); }
-    virtual int Delete(size_type idx) {
-        m_data_.erase(m_data_.begin() + idx);
-        return 1;
-    }
+    virtual void Delete(size_type idx) { m_data_.erase(m_data_.begin() + idx); }
     virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
         for (auto const& item : m_data_) { fun(item); }
         return m_data_.size();
@@ -94,10 +88,7 @@ class DataArrayWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : p
 
     virtual void Add(U const& v) { m_data_.push_back(v); }
     virtual void Add(std::shared_ptr<DataEntity> const& v) { Add(v->as<U>()); }
-    virtual int Delete(size_type idx) {
-        //        m_data_.erase(m_data_.begin() + idx);
-        return 1;
-    }
+    virtual void Delete(size_type idx) { m_data_.erase(m_data_.begin() + idx); }
 
     virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
         for (auto const& item : m_data_) { fun(make_data_entity(item)); }

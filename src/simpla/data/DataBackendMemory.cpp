@@ -19,7 +19,10 @@ struct DataBackendMemory::pimpl_s {
     static constexpr char split_char = '.';
     static void add_or_set(DataBackendMemory* self, std::string const& uri, std::shared_ptr<DataEntity> const& v,
                            bool do_add);
+    static std::regex uri_regex;  //(R"(^(/(([^/?#:]+)/)*)*([^/?#:]*)$)", std::regex::extended | std::regex::optimize);
 };
+std::regex DataBackendMemory::pimpl_s::uri_regex(R"(^(/(([^/?#:]+)/)*)*([^/?#:]*)$)",
+                                                 std::regex::extended | std::regex::optimize);
 
 DataBackendMemory::DataBackendMemory() : m_pimpl_(new pimpl_s) {}
 DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& status) : DataBackendMemory() {
@@ -101,10 +104,9 @@ std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const
 //}
 void DataBackendMemory::pimpl_s::add_or_set(DataBackendMemory* self, std::string const& uri,
                                             std::shared_ptr<DataEntity> const& v, bool do_add) {
-    static std::regex uri_regex(R"(^(/(([^/?#:]+)/)*)*([^/?#:]*)$)", std::regex::extended | std::regex::optimize);
     std::smatch uri_match_result;
 
-    if (!std::regex_match(uri, uri_match_result, uri_regex)) {
+    if (!std::regex_match(uri, uri_match_result, DataBackendMemory::pimpl_s::uri_regex)) {
         RUNTIME_ERROR << " illegal uri : [" << uri << "]" << std::endl;
     }
 
@@ -140,20 +142,16 @@ void DataBackendMemory::pimpl_s::add_or_set(DataBackendMemory* self, std::string
     if (uri_match_result.str(4) != "") {
         auto res = t->emplace(uri_match_result.str(4), v);
         if (!res.second) {
-            if (!do_add) {
+            if (!do_add || res.first->second == nullptr) {
                 res.first->second = v;
             } else {
                 if (!res.first->second->isArray()) {
-                    RUNTIME_ERROR << "  uri : [" << uri << "] is not an array!" << std::endl;
+                    auto t_array = std::make_shared<DataArrayWrapper<void>>();
+                    t_array->Add(res.first->second);
+                    t_array->Add(v);
+                    res.first->second = t_array;
                 } else {
-                    if (!v->isArray()) {
-                        std::dynamic_pointer_cast<DataArray>(res.first->second)->Add(v);
-
-                    } else {
-                        auto p_array = std::dynamic_pointer_cast<DataArray>(res.first->second);
-                        std::dynamic_pointer_cast<DataArray>(v)->Accept(
-                            [&](std::shared_ptr<DataEntity> const& sub_v) { p_array->Add(sub_v); });
-                    }
+                    std::dynamic_pointer_cast<DataArray>(res.first->second)->Add(v);
                 }
             }
         }
