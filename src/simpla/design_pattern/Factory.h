@@ -34,7 +34,6 @@ struct Factory : public std::map<TKey, std::function<TRes*(Args...)>> {
 
     TRes* Create(TKey const& id, Args... args) const {
         auto it = this->find(id);
-        LOGGER << " Create " << id << std::endl;
         return (it == this->end()) ? nullptr : it->second(args...);
     }
 

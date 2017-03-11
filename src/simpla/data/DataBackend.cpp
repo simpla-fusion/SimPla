@@ -15,13 +15,14 @@ namespace simpla {
 namespace data {
 DataBackendFactory::DataBackendFactory() : base_type() { RegisterDefault(); };
 DataBackendFactory::~DataBackendFactory(){};
-DataBackend *DataBackendFactory::Create(std::string const &scheme) { return base_type::Create(scheme); }
-std::ostream &DataBackendFactory::Print(std::ostream &os, int indent) const {
-    os << std::setw(indent) << " "
-       << "{";
-    for (auto const &item : *this) { os << item.first << ", "; }
-    os << "}";
-    return os;
+DataBackend *DataBackendFactory::Create(std::string const &scheme) {
+    LOGGER << "Create  [ DataBackend: " << scheme << "]" << std::endl;
+    return base_type::Create(scheme);
+}
+std::vector<std::string> DataBackendFactory::RegisteredBackend() const {
+    std::vector<std::string> res;
+    for (auto const &item : *this) { res.push_back(item.first); }
+    return std::move(res);
 };
 
 DataBackend *DataBackend::Create(std::string const &scheme) {

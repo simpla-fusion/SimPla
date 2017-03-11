@@ -6,16 +6,17 @@
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
 #include <simpla/design_pattern/SingletonHolder.h>
+#include <simpla/toolbox/FancyStream.h>
 #include <complex>
 #include <iostream>
-
 using namespace simpla;
 using namespace simpla::data;
 
 int main(int argc, char** argv) {
     logger::set_stdout_level(1000);
 
-    LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance() << std::endl;
+    LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance().RegisteredBackend()
+           << std::endl;
 
     DataTable db;
     if (argc > 1) {

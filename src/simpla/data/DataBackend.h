@@ -14,6 +14,7 @@
 #include <memory>
 #include <typeindex>
 #include <typeinfo>
+#include <vector>
 namespace simpla {
 namespace data {
 class DataEntity;
@@ -53,7 +54,7 @@ class DataBackendFactory : public design_pattern::Factory<std::string, DataBacke
    public:
     DataBackendFactory();
     virtual ~DataBackendFactory();
-    std::ostream& Print(std::ostream& os, int indent = 0) const;
+    std::vector<std::string> RegisteredBackend() const;
     DataBackend* Create(std::string const& scheme);
     void RegisterDefault();
 };
