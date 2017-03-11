@@ -17,7 +17,6 @@ std::string DataBackendMemory::scheme() const { return scheme_tag; }
 struct DataBackendMemory::pimpl_s {
     typedef std::map<std::string, std::shared_ptr<DataEntity>> table_type;
     std::map<std::string, std::shared_ptr<DataEntity>> m_table_;
-    static constexpr char split_char = '.';
     static void add_or_set(DataBackendMemory* self, std::string const& uri, std::shared_ptr<DataEntity> const& v,
                            bool do_add);
     static std::regex uri_regex;  //(R"(^(/(([^/?#:]+)/)*)*([^/?#:]*)$)", std::regex::extended | std::regex::optimize);
