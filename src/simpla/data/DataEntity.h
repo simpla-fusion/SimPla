@@ -41,7 +41,11 @@ struct DataEntity : public concept::Printable {
     virtual bool isNull() const { return !(isEntity() || isTable() || isArray()); }
 
     virtual size_type size() const { return 1; };
-    virtual std::shared_ptr<DataEntity> Clone() const { UNIMPLEMENTED; };
+    virtual std::shared_ptr<DataEntity> Clone() const {
+        UNIMPLEMENTED;
+        return nullptr;
+    };
+
     template <typename U>
     bool operator==(U const& v) const {
         return (type() == typeid(U)) && cast_as<DataEntityWrapper<U>>().equal(v);
@@ -85,6 +89,7 @@ struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> :
    private:
     value_type m_data_;
 };
+
 template <typename U>
 std::shared_ptr<DataEntity> make_data_entity(U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<U>>(u));

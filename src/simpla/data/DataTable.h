@@ -25,19 +25,17 @@ class KeyValue;
  */
 class DataTable : public DataEntity {
     SP_OBJECT_HEAD(DataTable, DataEntity);
-    std::unique_ptr<DataBackend> m_backend_;
+    std::shared_ptr<DataBackend> m_backend_;
     std::string m_base_uri_;
 
    public:
     DataTable();
     DataTable(std::string const& uri);
-    DataTable(DataBackend* p);
-    DataTable(std::unique_ptr<DataBackend>&& p);
+    DataTable(std::shared_ptr<DataBackend> const& p);
     DataTable(const DataTable&);
     DataTable(DataTable&&);
     ~DataTable() final;
 
-    void Connect(std::string const& uri);
     void swap(DataTable&);
     static std::shared_ptr<DataTable> Create(std::string const& scheme);
 
@@ -57,54 +55,52 @@ class DataTable : public DataEntity {
     size_type size() const;
 
     std::shared_ptr<DataTable> AddTable(std::string const&);
-
     std::shared_ptr<DataEntity> Get(std::string const& path) const;
-    std::shared_ptr<DataEntity> Get(id_type key) const;
-    bool Set(std::string const& path, std::shared_ptr<DataEntity> const&);
-    bool Set(id_type key, std::shared_ptr<DataEntity> const&);
-    bool Add(std::string const& path, std::shared_ptr<DataEntity> const&);
-    bool Add(id_type key, std::shared_ptr<DataEntity> const&);
+    void Set(std::string const& path, std::shared_ptr<DataEntity> const&);
+    void Add(std::string const& path, std::shared_ptr<DataEntity> const&);
     size_type Delete(std::string const& path);
-    size_type Delete(id_type key);
-
     size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
-    size_type Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const;
     /** Interface End */
     //******************************************************************************************************************
-    bool Set(DataTable const& other);
-    bool Set(std::initializer_list<KeyValue> const& other);
+    void Set(DataTable const& other);
+    void Set(std::initializer_list<KeyValue> const& other);
 
     template <typename U>
-    bool Set(std::string const& uri, U const& v) {
-        return Set(uri, make_data_entity(v));
+    void Set(std::string const& uri, U const& v) {
+        Set(uri, make_data_entity(v));
     };
     template <typename U>
     bool Set(std::string const& uri, std::initializer_list<U> const& u) {
-        return Set(uri, make_data_entity(u));
+        Set(uri, make_data_entity(u));
     };
     template <typename U>
-    bool Set(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
-        return Set(uri, make_data_entity(u));
+    void Set(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
+        Set(uri, make_data_entity(u));
     };
     template <typename U>
-    bool Set(std::string const& uri, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
-        return Set(uri, make_data_entity(u));
+    void Set(std::string const& uri, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+        Set(uri, make_data_entity(u));
     };
     template <typename U>
-    bool Add(std::string const& uri, U const& v) {
-        return Add(uri, make_data_entity(v));
+    void Add(std::string const& uri, U const& v) {
+        Add(uri, make_data_entity(v));
     };
     template <typename U>
-    bool Add(std::string const& uri, std::initializer_list<U> const& u) {
-        return Add(uri, make_data_entity(u));
+    void Add(std::string const& uri, std::initializer_list<U> const& u) {
+        Add(uri, make_data_entity(u));
     };
     template <typename U>
-    bool Add(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
-        return Add(uri, make_data_entity(u));
+    void Add(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
+        Add(uri, make_data_entity(u));
     };
     template <typename U>
-    bool Add(U const& u) {
-        return Add(make_data_entity(u));
+    void Add(U const& u) {
+        Add("", make_data_entity({u}));
+    };
+
+    template <typename U>
+    void AddArray() {
+        Add(make_data_entity(std::initializer_list<U>{}));
     };
 };
 

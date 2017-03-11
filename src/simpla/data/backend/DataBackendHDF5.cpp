@@ -55,8 +55,8 @@ DataBackendHDF5::DataBackendHDF5(DataBackendHDF5&& other) : m_pimpl_(std::move(m
 DataBackendHDF5::DataBackendHDF5(std::string const& uri, std::string const& status) : DataBackendHDF5() {}
 DataBackendHDF5::~DataBackendHDF5() {}
 std::ostream& DataBackendHDF5::Print(std::ostream& os, int indent) const { return os; }
-DataBackend* DataBackendHDF5::Clone() const { return new DataBackendHDF5(*this); }
-DataBackend* DataBackendHDF5::Create() const { return new DataBackendHDF5(); }
+std::shared_ptr<DataBackend> DataBackendHDF5::Clone() const { return std::make_shared<DataBackendHDF5>(*this); }
+std::shared_ptr<DataBackend> DataBackendHDF5::Create() const { return std::make_shared<DataBackendHDF5>(); }
 
 void DataBackendHDF5::Flush() { UNIMPLEMENTED; }
 bool DataBackendHDF5::isNull() const { UNIMPLEMENTED; }

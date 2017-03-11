@@ -20,16 +20,16 @@ class DataBackendSAMRAI : public DataBackend {
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual std::string scheme() const;
-    virtual DataBackend* Clone() const;
-    virtual DataBackend* Create() const;
+    virtual std::shared_ptr<DataBackend> Clone() const;
+    virtual std::shared_ptr<DataBackend> Create() const;
     virtual bool isNull() const;
     virtual void Flush();
 
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const;
     virtual std::shared_ptr<DataEntity> Get(id_type key) const;
-    virtual bool Set(std::string const& URI, std::shared_ptr<DataEntity> const&);
+    virtual void Set(std::string const &URI, std::shared_ptr<DataEntity> const &);
     virtual bool Set(id_type key, std::shared_ptr<DataEntity> const&);
-    virtual bool Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
+    virtual void Add(std::string const &URI, std::shared_ptr<DataEntity> const &);
     virtual bool Add(id_type key, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& URI);
     virtual size_type Delete(id_type key);

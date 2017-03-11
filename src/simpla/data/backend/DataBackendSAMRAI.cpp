@@ -53,8 +53,8 @@ std::ostream& DataBackendSAMRAI::Print(std::ostream& os, int indent) const {
     m_pimpl_->m_samrai_db_->printClassData(os);
     return os;
 }
-DataBackend* DataBackendSAMRAI::Clone() const { return new DataBackendSAMRAI(*this); }
-DataBackend* DataBackendSAMRAI::Create() const { return new DataBackendSAMRAI(); }
+std::shared_ptr<DataBackend> DataBackendSAMRAI::Clone() const { return std::make_shared<DataBackendSAMRAI>(*this); }
+std::shared_ptr<DataBackend> DataBackendSAMRAI::Create() const { return std::make_shared<DataBackendSAMRAI>(); }
 
 void DataBackendSAMRAI::Flush() { UNSUPPORTED; }
 bool DataBackendSAMRAI::isNull() const { return m_pimpl_->m_samrai_db_ == nullptr; }

@@ -7,10 +7,10 @@
 #include <string>
 
 #include <simpla/toolbox/ParserURI.h>
+#include <regex>
 #include "DataBackendMemory.h"
 #include "DataEntity.h"
 #include "DataTable.h"
-
 namespace simpla {
 namespace data {
 DataBackendFactory::DataBackendFactory() : base_type() { RegisterDefault(); };
@@ -25,9 +25,9 @@ std::vector<std::string> DataBackendFactory::RegisteredBackend() const {
     return std::move(res);
 };
 
-DataBackend *DataBackend::Create(std::string const &scheme) {
-    DataBackend *res = GLOBAL_DATA_BACKEND_FACTORY.Create(scheme);
-    if (res == nullptr) { res = new DataBackendMemory; }
+std::shared_ptr<DataBackend> DataBackend::Create(std::string const &scheme) {
+    std::shared_ptr<DataBackend> res(GLOBAL_DATA_BACKEND_FACTORY.Create(scheme));
+    if (res == nullptr) { res = std::make_shared<DataBackendMemory>(); }
 }
 
 }  // namespace data {

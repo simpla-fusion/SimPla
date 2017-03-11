@@ -18,33 +18,29 @@
 namespace simpla {
 namespace data {
 class DataEntity;
-
-class DataBackend : public concept::Printable {
+class DataTable;
+class DataBackend : public concept::Printable, public std::enable_shared_from_this<DataBackend> {
     SP_OBJECT_BASE(DataBackend);
 
    public:
     DataBackend(){};
     virtual ~DataBackend(){};
-    static DataBackend* Create(std::string const& uri);
-    virtual void Connect(std::string const&){};
+    static std::shared_ptr<DataBackend> Create(std::string const& uri);
+    virtual void Connect(std::string const& path) { CHECK(path); };
     virtual void Disconnect(){};
-    virtual DataBackend* Create() const = 0;
-    virtual DataBackend* Clone() const = 0;
+    virtual std::shared_ptr<DataBackend> Create() const = 0;
+    virtual std::shared_ptr<DataBackend> Clone() const = 0;
     virtual std::string scheme() const = 0;
     virtual void Flush() = 0;
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
     virtual size_type size() const = 0;
+
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const = 0;
-    virtual std::shared_ptr<DataEntity> Get(id_type key) const = 0;
-    virtual bool Set(std::string const& URI, std::shared_ptr<DataEntity> const&) = 0;
-    virtual bool Set(id_type key, std::shared_ptr<DataEntity> const&) = 0;
-    virtual bool Add(std::string const& URI, std::shared_ptr<DataEntity> const&) = 0;
-    virtual bool Add(id_type key, std::shared_ptr<DataEntity> const&) = 0;
+    virtual void Set(std::string const& URI, std::shared_ptr<DataEntity> const&) = 0;
+    virtual void Add(std::string const& URI, std::shared_ptr<DataEntity> const&) = 0;
     virtual size_type Delete(std::string const& URI) = 0;
-    virtual size_type Delete(id_type key) = 0;
-    virtual void DeleteAll() = 0;
+
     virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const = 0;
-    virtual size_type Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const = 0;
 
 };  // class DataBackend {
 
@@ -56,7 +52,7 @@ class DataBackendFactory : public design_pattern::Factory<std::string, DataBacke
     virtual ~DataBackendFactory();
     std::vector<std::string> RegisteredBackend() const;
     DataBackend* Create(std::string const& scheme);
-    void RegisterDefault();
+    void RegisterDefault(){};
 };
 
 #define GLOBAL_DATA_BACKEND_FACTORY SingletonHolder<DataBackendFactory>::instance()

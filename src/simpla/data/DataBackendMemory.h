@@ -24,24 +24,19 @@ class DataBackendMemory : public DataBackend {
 
     virtual ~DataBackendMemory();
     virtual std::string scheme() const;
-    virtual DataBackend* Clone() const;
-    virtual DataBackend* Create() const;
+    virtual std::shared_ptr<DataBackend> Clone() const;
+    virtual std::shared_ptr<DataBackend> Create() const;
     virtual void Flush();
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual bool isNull() const;  //!< is not initialized
 
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const;
-    virtual std::shared_ptr<DataEntity> Get(id_type key) const;
-    virtual bool Set(std::string const& URI, std::shared_ptr<DataEntity> const&);
-    virtual bool Set(id_type key, std::shared_ptr<DataEntity> const&);
-    virtual bool Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
-    virtual bool Add(id_type key, std::shared_ptr<DataEntity> const&);
+    virtual void Set(std::string const& URI, std::shared_ptr<DataEntity> const&);
+    virtual void Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& URI);
-    virtual size_type Delete(id_type key);
-    virtual void DeleteAll();
     virtual size_type size() const;
+
     virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
-    virtual size_type Accept(std::function<void(id_type, std::shared_ptr<DataEntity>)> const&) const;
 
    private:
     struct pimpl_s;

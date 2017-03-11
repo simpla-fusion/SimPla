@@ -18,11 +18,25 @@ struct DataArray : public DataEntity {
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual bool isArray() const { return true; }
     /** as Array */
-    virtual size_type size() const = 0;  // { return 0; };
-    virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return std::make_shared<DataEntity>(); }
-    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const&) { return false; }
-    virtual bool Add(std::shared_ptr<DataEntity> const&) { return false; }
-    virtual int Delete(size_type idx) { return 0; }
+    virtual size_type size() const {
+        UNIMPLEMENTED;
+        return 0;
+    };
+    virtual std::shared_ptr<DataEntity> Get(size_type idx) const {
+        UNIMPLEMENTED;
+        return std::make_shared<DataEntity>();
+    }
+    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
+    virtual void Add(std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
+    virtual int Delete(size_type idx) {
+        UNIMPLEMENTED;
+        return 0;
+    }
+
+    virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const&) const {
+        UNIMPLEMENTED;
+        return 0;
+    };
 };
 template <>
 struct DataArrayWrapper<void> : public DataArray {
@@ -39,22 +53,18 @@ struct DataArrayWrapper<void> : public DataArray {
 
     virtual size_type size() const { return m_data_.size(); }
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return m_data_[idx]; }
-    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const& v) {
-        if (idx < size()) {
-            m_data_[idx] = v;
-            return true;
-        } else {
-            return false;
-        }
+    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) {
+        if (idx < size()) { m_data_[idx] = v; }
     }
-    virtual bool Add(std::shared_ptr<DataEntity> const& v) {
-        m_data_.push_back(v);
-        return true;
-    }
+    virtual void Add(std::shared_ptr<DataEntity> const& v) { m_data_.push_back(v); }
     virtual int Delete(size_type idx) {
         m_data_.erase(m_data_.begin() + idx);
         return 1;
     }
+    virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
+        for (auto const& item : m_data_) { fun(item); }
+        return m_data_.size();
+    };
 
    private:
     std::vector<std::shared_ptr<DataEntity>> m_data_;
@@ -77,25 +87,22 @@ class DataArrayWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : p
     virtual size_type size() const { return m_data_.size(); };
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return make_data_entity(m_data_[idx]); }
 
-    virtual bool Set(size_type idx, U const& v) {
-        if (size() > idx) {
-            m_data_[idx] = v;
-            return true;
-        } else {
-            return false;
-        }
+    virtual void Set(size_type idx, U const& v) {
+        if (size() > idx) { m_data_[idx] = v; }
     }
-    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const& v) { return Set(idx, v->as<U>()); }
+    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) { Set(idx, v->as<U>()); }
 
-    virtual bool Add(U const& v) {
-        m_data_.push_back(v);
-        return true;
-    }
-    virtual bool Add(std::shared_ptr<DataEntity> const& v) { return Add(v->as<U>()); }
+    virtual void Add(U const& v) { m_data_.push_back(v); }
+    virtual void Add(std::shared_ptr<DataEntity> const& v) { Add(v->as<U>()); }
     virtual int Delete(size_type idx) {
-        m_data_.erase(m_data_.begin() + idx);
+        //        m_data_.erase(m_data_.begin() + idx);
         return 1;
     }
+
+    virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
+        for (auto const& item : m_data_) { fun(make_data_entity(item)); }
+        return m_data_.size();
+    };
 };
 
 template <typename U>
@@ -105,7 +112,12 @@ std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u,
     for (U const& v : u) { res->Add(v); }
     return std::dynamic_pointer_cast<DataEntity>(res);
 }
-
+template <typename U, int... N>
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<nTuple<U, N...>> const& u) {
+    auto res = std::make_shared<DataArrayWrapper<nTuple<U, N...>>>();
+    for (nTuple<U, N...> const& v : u) { res->Add(v); }
+    return std::dynamic_pointer_cast<DataEntity>(res);
+}
 inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char const*> const& u) {
     auto res = std::make_shared<DataArrayWrapper<std::string>>();
     for (char const* v : u) { res->Add(v); }

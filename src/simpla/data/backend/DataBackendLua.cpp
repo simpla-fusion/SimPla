@@ -121,8 +121,8 @@ bool DataBackendLua::isNull() const { return m_pimpl_->m_lua_obj_.is_null(); }
 void DataBackendLua::Flush() {}
 void DataBackendLua::Connect(std::string const& path) { m_pimpl_->m_lua_obj_.parse_file(path); }
 void DataBackendLua::Disconnect() {}
-DataBackend* DataBackendLua::Clone() const { return new DataBackendLua(*this); }
-DataBackend* DataBackendLua::Create() const { return new DataBackendLua(); }
+std::shared_ptr<DataBackend> DataBackendLua::Clone() const { return std::make_shared<DataBackendLua>(*this); }
+std::shared_ptr<DataBackend> DataBackendLua::Create() const { return std::make_shared<DataBackendLua>(); }
 
 std::shared_ptr<DataEntity> DataBackendLua::Get(std::string const& key) const {
     return DataBackendLua::pimpl_s::make_data_entity_lua(m_pimpl_->m_lua_obj_.get(key));
