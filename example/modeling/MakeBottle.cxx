@@ -159,12 +159,12 @@ int main(int argc, char **argv) {
     Handle(V3d_View) aView = aViewer->CreateView();
     aView->SetWindow(aWindow);
     /////////////////////////////////////////////////////////
-    // Create document
+    // CreateNew document
     Handle(TDocStd_Document) aDoc;
     Handle(XCAFApp_Application) anApp = XCAFApp_Application::GetApplication();
     anApp->NewDocument("MDTV-XCAF", aDoc);
 
-    // Create label and add our shape
+    // CreateNew label and add our shape
     Handle(XCAFDoc_ShapeTool) myShapeTool = XCAFDoc_DocumentTool::ShapeTool(aDoc->Main());
     TDF_Label aLabel = myShapeTool->NewShape();
     myShapeTool->SetShape(aLabel, shape);

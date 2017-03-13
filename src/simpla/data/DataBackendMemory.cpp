@@ -21,14 +21,15 @@ struct DataBackendMemory::pimpl_s {
                            bool do_add);
     static std::regex uri_regex;  //(R"(^(/(([^/?#:]+)/)*)*([^/?#:]*)$)", std::regex::extended | std::regex::optimize);
     static std::regex sub_dir_regex;
-    static std::pair<table_type*, std::string> get_table(table_type* self, std::string const& uri);
+    static std::pair<table_type*, std::string> get_table(table_type* self, std::string const& uri,
+                                                         bool create_if_need = false);
 };
 std::regex DataBackendMemory::pimpl_s::uri_regex(R"(^(/(([^/?#:]+)/)*)*([^/?#:]*)$)",
                                                  std::regex::extended | std::regex::optimize);
 std::regex DataBackendMemory::pimpl_s::sub_dir_regex(R"(([^/?#:]+)/)", std::regex::extended | std::regex::optimize);
 
 std::pair<DataBackendMemory::pimpl_s::table_type*, std::string> DataBackendMemory::pimpl_s::get_table(
-    table_type* t, std::string const& uri) {
+    table_type* t, std::string const& uri, bool create_if_need) {
     bool success = false;
     std::smatch uri_match_result;
 
@@ -53,8 +54,11 @@ std::pair<DataBackendMemory::pimpl_s::table_type*, std::string> DataBackendMemor
                               << std::setw(25) << std::right << "     at here   "
                               << std::setw(&(*pos) - &(*uri.begin())) << " "
                               << " ^" << std::endl;
-            } else {
+            } else if (res->second->isTable()) {
                 result = std::dynamic_pointer_cast<DataTable>(res->second);
+                t = &(result->backend()->cast_as<DataBackendMemory>().m_pimpl_->m_table_);
+            } else if (create_if_need) {
+                result = std::dynamic_pointer_cast<DataTable>(std::make_shared<DataBackendMemory>());
                 t = &(result->backend()->cast_as<DataBackendMemory>().m_pimpl_->m_table_);
             }
         }
@@ -77,13 +81,13 @@ void DataBackendMemory::pimpl_s::add_or_set(DataBackendMemory* self, std::string
         auto pos = uri.begin();
         auto end = uri.end();
 
-        std::shared_ptr<DataTable> t_table = std::make_shared<DataTable>(self->Create());
+        std::shared_ptr<DataTable> t_table = std::make_shared<DataTable>(self->CreateNew());
         std::shared_ptr<DataTable> result(nullptr);
         for (; std::regex_search(pos, end, sub_dir_match_result, DataBackendMemory::pimpl_s::sub_dir_regex);
              pos = sub_dir_match_result.suffix().first) {
             auto k = sub_dir_match_result.str(1);
             auto res = t->emplace(k, std::dynamic_pointer_cast<DataEntity>(t_table));
-            if (res.second) { t_table = std::make_shared<DataTable>(self->Create()); }
+            if (res.second) { t_table = std::make_shared<DataTable>(self->CreateNew()); }
             if (!res.first->second->isTable()) {
                 RUNTIME_ERROR << std::endl
                               << std::setw(25) << std::right << "illegal path [/" << uri << "]" << std::endl
@@ -130,9 +134,9 @@ DataBackendMemory::DataBackendMemory(DataBackendMemory&& other) : m_pimpl_(new p
 };
 DataBackendMemory::~DataBackendMemory() {}
 
-std::shared_ptr<DataBackend> DataBackendMemory::Create() const { return std::make_shared<DataBackendMemory>(); }
+std::shared_ptr<DataBackend> DataBackendMemory::CreateNew() const { return std::make_shared<DataBackendMemory>(); }
 
-std::shared_ptr<DataBackend> DataBackendMemory::Clone() const { return std::make_shared<DataBackendMemory>(*this); }
+std::shared_ptr<DataBackend> DataBackendMemory::Duplicate() const { return std::make_shared<DataBackendMemory>(*this); }
 
 void DataBackendMemory::Flush() {}
 
@@ -144,26 +148,6 @@ size_type DataBackendMemory::size() const { return m_pimpl_->m_table_.size(); }
 std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const {
     auto res = m_pimpl_->get_table(&(m_pimpl_->m_table_), url);
     return res.first->at(res.second);
-    //    std::shared_ptr<DataEntity> p = nullptr;
-    //
-    //    size_type start_pos = 0, end_pos = 0;
-    //    while (1) {
-    //        end_pos = url.find(m_pimpl_->split_char, start_pos);
-    //        std::string key =
-    //            url.substr(start_pos, (end_pos == std::string::npos) ? std::string::npos : end_pos - start_pos);
-    //        auto res = m_pimpl_->m_table_.find(key);
-    //        if (res == m_pimpl_->m_table_.end()) {
-    //            break;
-    //        } else if (end_pos == std::string::npos) {
-    //            p = res->second;
-    //            break;
-    //        } else if (!res->second->isTable()) {
-    //            break;
-    //        } else {
-    //            start_pos = end_pos + 1;
-    //        }
-    //    }
-    //    return p;
 };
 
 // std::shared_ptr<DataTable> DataBackendMemory::pimpl_s::add_table(DataBackendMemory* self, std::string const& uri) {
@@ -175,13 +159,13 @@ std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const
 //    auto end = uri.end();
 //    auto* t = &(self->m_pimpl_->m_table_);
 //
-//    std::shared_ptr<DataTable> t_table = std::make_shared<DataTable>(self->Create());
+//    std::shared_ptr<DataTable> t_table = std::make_shared<DataTable>(self->CreateNew());
 //    std::shared_ptr<DataTable> result(nullptr);
 //    for (; std::regex_search(pos, end, sub_dir_match_result, sub_dir_regex);
 //         pos = sub_dir_match_result.suffix().first) {
 //        auto k = sub_dir_match_result.str(1);
 //        auto res = t->emplace(k, std::dynamic_pointer_cast<DataEntity>(t_table));
-//        if (res.second) { t_table = std::make_shared<DataTable>(self->Create()); }
+//        if (res.second) { t_table = std::make_shared<DataTable>(self->CreateNew()); }
 //        if (!res.first->second->isTable()) {
 //            RUNTIME_ERROR << std::endl
 //                          << std::setw(25) << std::right << "illegal path [/" << uri << "]" << std::endl
@@ -217,7 +201,7 @@ void DataBackendMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> 
 //        auto it = m_pimpl_->m_table_.find(sub_k);
 //        if (it == m_pimpl_->m_table_.end()) {
 //            // create table if need
-//            t = std::make_shared<DataTable>(this->Clone());
+//            t = std::make_shared<DataTable>(this->Duplicate());
 //            m_pimpl_->m_table_.insert(std::make_pair(sub_k, t));
 //        } else if (it->second->isTable()) {
 //            t = std::dynamic_pointer_cast<DataTable>(it->second);
@@ -246,7 +230,7 @@ void DataBackendMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> 
 //    //        auto it = m_pimpl_->m_table_.find(sub_id);
 //    //        if (it == m_pimpl_->m_table_.end()) {
 //    //            // create table if need
-//    //            t = std::make_shared<DataTable>(this->Clone());
+//    //            t = std::make_shared<DataTable>(this->Duplicate());
 //    //            m_pimpl_->m_table_.insert(std::make_pair(sub_id, std::make_pair(sub_k, t)));
 //    //        } else if (it->second.second->isTable()) {
 //    //            t = std::dynamic_pointer_cast<DataTable>(it->second.second);

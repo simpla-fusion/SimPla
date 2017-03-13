@@ -254,7 +254,7 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
         os << "}";
         return os;
     }
-    //    virtual std::shared_ptr<AttributeView> Clone(std::string const &s = "", int TAG = NORMAL) const = 0;
+    //    virtual std::shared_ptr<AttributeView> Duplicate(std::string const &s = "", int TAG = NORMAL) const = 0;
     virtual std::type_info const &GetMeshTypeInfo() const { return typeid(mesh_type); };    //!< mesh type
     virtual std::type_info const &GetValueTypeInfo() const { return typeid(value_type); };  //!< value type
     virtual int GetIFORM() const { return iform; };
@@ -331,7 +331,7 @@ using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == VERTEX || I
 //    virtual ~DataAttribute() {}
 //
 //    template <typename... Args>
-//    static std::shared_ptr<this_type> Create(Args &&... args) {
+//    static std::shared_ptr<this_type> CreateNew(Args &&... args) {
 //        return std::make_shared<this_type>(std::forward<Args>(args)...);
 //    }
 //

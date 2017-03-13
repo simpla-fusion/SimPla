@@ -20,8 +20,8 @@ class DataBackendSAMRAI : public DataBackend {
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual std::string scheme() const;
-    virtual std::shared_ptr<DataBackend> Clone() const;
-    virtual std::shared_ptr<DataBackend> Create() const;
+    virtual std::shared_ptr<DataBackend> Duplicate() const;
+    virtual std::shared_ptr<DataBackend> CreateNew() const;
     virtual bool isNull() const;
     virtual void Flush();
 

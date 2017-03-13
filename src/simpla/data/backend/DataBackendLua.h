@@ -27,8 +27,8 @@ class DataBackendLua : public DataBackend {
     virtual std::string scheme() const;
     virtual void Connect(std::string const&);
     virtual void Disconnect();
-    virtual std::shared_ptr<DataBackend> Clone() const;
-    virtual std::shared_ptr<DataBackend> Create() const;
+    virtual std::shared_ptr<DataBackend> Duplicate() const;
+    virtual std::shared_ptr<DataBackend> CreateNew() const;
     virtual bool isNull() const;
     virtual void Flush();
 

@@ -28,8 +28,14 @@ std::string DataBackendSAMRAI::scheme() const { return scheme_tag; }
 struct DataBackendSAMRAI::pimpl_s {
     boost::shared_ptr<SAMRAI::tbox::Database> m_samrai_db_ = nullptr;
     typedef boost::shared_ptr<SAMRAI::tbox::Database> table_type;
-    static std::shared_ptr<DataEntity> get_data_from_samrai(boost::shared_ptr<SAMRAI::tbox::Database> const& lobj);
 
+    static std::shared_ptr<DataBackendSAMRAI> CreateBackend(boost::shared_ptr<SAMRAI::tbox::Database> const& db) {
+        auto res = std::make_shared<DataBackendSAMRAI>();
+        res->m_pimpl_->m_samrai_db_ = db;
+        return res;
+    };
+
+    static std::shared_ptr<DataEntity> get_data_from_samrai(boost::shared_ptr<SAMRAI::tbox::Database> const& lobj);
     static void add_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database>& lobj, std::string const& uri,
                                    std::shared_ptr<data::DataEntity> const& v);
     static void set_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database>& lobj, std::string const& uri,
@@ -39,14 +45,15 @@ struct DataBackendSAMRAI::pimpl_s {
                            bool do_add);
     static std::regex uri_regex;  //(R"(^(/(([^/?#:]+)/)*)*([^/?#:]*)$)", std::regex::extended | std::regex::optimize);
     static std::regex sub_dir_regex;
-    static std::pair<table_type, std::string> get_table(table_type self, std::string const& uri);
+    static std::pair<table_type, std::string> get_table(table_type self, std::string const& uri,
+                                                        bool create_if_need = false);
 };
 std::regex DataBackendSAMRAI::pimpl_s::uri_regex(R"(^(/(([^/?#:]+)/)*)*([^/?#:]*)$)",
                                                  std::regex::extended | std::regex::optimize);
 std::regex DataBackendSAMRAI::pimpl_s::sub_dir_regex(R"(([^/?#:]+)/)", std::regex::extended | std::regex::optimize);
 
 std::pair<DataBackendSAMRAI::pimpl_s::table_type, std::string> DataBackendSAMRAI::pimpl_s::get_table(
-    table_type t, std::string const& uri) {
+    table_type t, std::string const& uri, bool create_if_need) {
     bool success = false;
     std::smatch uri_match_result;
 
@@ -59,21 +66,21 @@ std::pair<DataBackendSAMRAI::pimpl_s::table_type, std::string> DataBackendSAMRAI
 
         auto pos = uri.begin();
         auto end = uri.end();
-
         std::shared_ptr<DataTable> result(nullptr);
         for (; std::regex_search(pos, end, sub_dir_match_result, DataBackendSAMRAI::pimpl_s::sub_dir_regex);
              pos = sub_dir_match_result.suffix().first) {
             auto k = sub_dir_match_result.str(1);
-            auto res = t->find(k);
-            if (res == t->end() || !res->second->isTable()) {
+
+            if (t->isDatabase(k)) {
+                t = t->getDatabase(k);
+            } else if (!t->isDatabase(k) && create_if_need) {
+                t = t->putDatabase(k);
+            } else {
                 RUNTIME_ERROR << std::endl
                               << std::setw(25) << std::right << "illegal path [/" << uri << "]" << std::endl
                               << std::setw(25) << std::right << "     at here   "
                               << std::setw(&(*pos) - &(*uri.begin())) << " "
                               << " ^" << std::endl;
-            } else {
-                result = std::dynamic_pointer_cast<DataTable>(res->second);
-                t = (result->backend()->cast_as<DataBackendSAMRAI>().m_pimpl_->m_samrai_db_);
             }
         }
     }
@@ -86,52 +93,11 @@ void DataBackendSAMRAI::pimpl_s::add_or_set(DataBackendSAMRAI* self, std::string
     if (!std::regex_match(uri, uri_match_result, DataBackendSAMRAI::pimpl_s::uri_regex)) {
         RUNTIME_ERROR << " illegal uri : [" << uri << "]" << std::endl;
     }
-
-    auto t = (self->m_pimpl_->m_samrai_db_);
-
-    if (uri_match_result[1].length() != 0) {
-        std::smatch sub_dir_match_result;
-
-        auto pos = uri.begin();
-        auto end = uri.end();
-
-        std::shared_ptr<DataTable> t_table = self->m_pimpl_->m_samrai_db_->getDatabase();
-        std::shared_ptr<DataTable> result(nullptr);
-        for (; std::regex_search(pos, end, sub_dir_match_result, DataBackendSAMRAI::pimpl_s::sub_dir_regex);
-             pos = sub_dir_match_result.suffix().first) {
-            auto k = sub_dir_match_result.str(1);
-            auto res = t->emplace(k, std::dynamic_pointer_cast<DataEntity>(t_table));
-            if (res.second) { t_table = std::make_shared<DataTable>(self->Create()); }
-            if (!res.first->second->isTable()) {
-                RUNTIME_ERROR << std::endl
-                              << std::setw(25) << std::right << "illegal path [/" << uri << "]" << std::endl
-                              << std::setw(25) << std::right << "     at here   "
-                              << std::setw(&(*pos) - &(*uri.begin())) << " "
-                              << " ^" << std::endl;
-            } else {
-                result = std::dynamic_pointer_cast<DataTable>(res.first->second);
-                t = result->backend()->cast_as<DataBackendSAMRAI>().m_pimpl_->m_samrai_db_;
-            }
-        }
-    }
-    if (uri_match_result.str(4) != "") {
-        pimpl_s::set_data_to_samrai(m_pimpl_->m_samrai_db_, URI, v);
-
-        auto res = t->emplace(uri_match_result.str(4), v);
-        if (!res.second) {
-            if (!do_add || res.first->second == nullptr) {
-                res.first->second = v;
-            } else {
-                if (!res.first->second->isArray()) {
-                    auto t_array = std::make_shared<DataArrayWrapper<void>>();
-                    t_array->Add(res.first->second);
-                    t_array->Add(v);
-                    res.first->second = t_array;
-                } else {
-                    std::dynamic_pointer_cast<DataArray>(res.first->second)->Add(v);
-                }
-            }
-        }
+    auto res = self->m_pimpl_->get_table(self->m_pimpl_->m_samrai_db_, uri, true);
+    if (do_add) {
+        pimpl_s::add_data_to_samrai(res.first, res.second, v);
+    } else {
+        pimpl_s::set_data_to_samrai(res.first, res.second, v);
     }
 }
 
@@ -155,8 +121,8 @@ std::ostream& DataBackendSAMRAI::Print(std::ostream& os, int indent) const {
     m_pimpl_->m_samrai_db_->printClassData(os);
     return os;
 }
-std::shared_ptr<DataBackend> DataBackendSAMRAI::Clone() const { return std::make_shared<DataBackendSAMRAI>(*this); }
-std::shared_ptr<DataBackend> DataBackendSAMRAI::Create() const { return std::make_shared<DataBackendSAMRAI>(); }
+std::shared_ptr<DataBackend> DataBackendSAMRAI::Duplicate() const { return std::make_shared<DataBackendSAMRAI>(*this); }
+std::shared_ptr<DataBackend> DataBackendSAMRAI::CreateNew() const { return std::make_shared<DataBackendSAMRAI>(); }
 
 void DataBackendSAMRAI::Flush() { UNSUPPORTED; }
 bool DataBackendSAMRAI::isNull() const { return m_pimpl_->m_samrai_db_ == nullptr; }

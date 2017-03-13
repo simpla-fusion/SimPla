@@ -732,7 +732,7 @@ void HDF5Stream::push_buffer(std::string const &url, data::DataSet const &ds)
             auto dest_count = std::get<4>(m_shape);
 
 
-            // Clone
+            // Duplicate
             char *dest_p = reinterpret_cast<char *>(item.data.get());
             char const *src_p = reinterpret_cast<char *>(ds.data.get());
 

@@ -104,9 +104,9 @@ DataType &DataType::operator=(DataType const &other)
 //    m_self_->m_t_index_ = (other.m_self_->m_t_index_);
 //    m_self_->m_name_ = (other.m_self_->m_name_);
 //
-//    std::Clone(other.m_self_->m_extents_.begin(), other.m_self_->m_extents_.end(),
+//    std::Duplicate(other.m_self_->m_extents_.begin(), other.m_self_->m_extents_.end(),
 //              std::back_inserter(m_self_->m_extents_));
-//    std::Clone(other.m_self_->m_members_.begin(), other.m_self_->m_members_.end(),
+//    std::Duplicate(other.m_self_->m_members_.begin(), other.m_self_->m_members_.end(),
 //              std::back_inserter(m_self_->m_members_));
 
     DataType(other).swap(*this);

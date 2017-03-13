@@ -54,12 +54,18 @@ class DataTable : public DataEntity {
     bool isNull() const;
     size_type size() const;
 
-    std::shared_ptr<DataTable> AddTable(std::string const&);
-    std::shared_ptr<DataEntity> Get(std::string const& path) const;
-    void Set(std::string const& path, std::shared_ptr<DataEntity> const&);
-    void Add(std::string const& path, std::shared_ptr<DataEntity> const&);
-    size_type Delete(std::string const& path);
+    std::shared_ptr<DataEntity> Get(std::string const& uri) const;
+    /**
+     * @brief  set
+     * @param uri
+     * @param p
+     */
+    void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
+    void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
+    size_type Delete(std::string const& uri);
+
     size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+
     /** Interface End */
     //******************************************************************************************************************
     void Set(DataTable const& other);

@@ -24,8 +24,8 @@ class DataBackendMemory : public DataBackend {
 
     virtual ~DataBackendMemory();
     virtual std::string scheme() const;
-    virtual std::shared_ptr<DataBackend> Clone() const;
-    virtual std::shared_ptr<DataBackend> Create() const;
+    virtual std::shared_ptr<DataBackend> Duplicate() const;
+    virtual std::shared_ptr<DataBackend> CreateNew() const;
     virtual void Flush();
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual bool isNull() const;  //!< is not initialized

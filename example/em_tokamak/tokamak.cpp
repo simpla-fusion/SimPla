@@ -120,7 +120,7 @@ template<typename TP, typename TDict, typename TRange>
 std::shared_ptr<particle::ParticleBase>
 EMTokamak::create_particle(std::string const &key, TDict const &dict, TRange const &r0)
 {
-    VERBOSE << "Create particle [" << key << "]" << std::endl;
+    VERBOSE << "CreateNew particle [" << key << "]" << std::endl;
 
     auto pic = std::make_shared<TP>(m, key);
 

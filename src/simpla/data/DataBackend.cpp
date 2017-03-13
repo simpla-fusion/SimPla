@@ -15,9 +15,11 @@ namespace simpla {
 namespace data {
 DataBackendFactory::DataBackendFactory() : base_type() { RegisterDefault(); };
 DataBackendFactory::~DataBackendFactory(){};
-DataBackend *DataBackendFactory::Create(std::string const &scheme) {
-    LOGGER << "Create  [ DataBackend: " << scheme << "]" << std::endl;
-    return base_type::Create(scheme);
+std::shared_ptr<DataBackend> DataBackendFactory::Create(std::string const &scheme) {
+    LOGGER << "CreateNew  [ DataBackend: " << scheme << "]" << std::endl;
+    std::shared_ptr<DataBackend> res{base_type::Create(scheme)};
+    if (res == nullptr) { res = std::make_shared<DataBackendMemory>(); }
+    return res;
 }
 std::vector<std::string> DataBackendFactory::RegisteredBackend() const {
     std::vector<std::string> res;
@@ -25,10 +27,9 @@ std::vector<std::string> DataBackendFactory::RegisteredBackend() const {
     return std::move(res);
 };
 
-std::shared_ptr<DataBackend> DataBackend::Create(std::string const &scheme) {
-    std::shared_ptr<DataBackend> res(GLOBAL_DATA_BACKEND_FACTORY.Create(scheme));
-    if (res == nullptr) { res = std::make_shared<DataBackendMemory>(); }
-    return res;
+namespace detail {
+static std::regex uri_regex(R"(^(/(([^/?#:]+)/)*)*([^/?#:]*)$)", std::regex::extended | std::regex::optimize);
+static std::regex sub_dir_regex(R"(([^/?#:]+)/)", std::regex::extended | std::regex::optimize);
 }
 
 }  // namespace data {

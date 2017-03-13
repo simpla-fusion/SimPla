@@ -52,8 +52,6 @@ TEST(DataTable, memory) {
     LOGGER << "/b/sub/e  = " << db.Get("/b/sub/e")->as<nTuple<int, 4>>() << std::endl;
     LOGGER << "db: " << db << std::endl;
 
-    //        db.Set("A", 3);
-    //        LOGGER << "A = " << (db.Get("A")->as<int>()) << std::endl;
 }
 
 TEST(DataTable, lua) {
@@ -71,9 +69,10 @@ TEST(DataTable, samrai) {
     LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance().RegisteredBackend()
            << std::endl;
     DataTable samrai_db("samrai://ggg/b/b/c/d/a?{{123,4},{123,}}");
-    samrai_db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
+    samrai_db.Set("/d", {1, 2, 3, 4, 5, 56, 6, 6});
     samrai_db.Set("/d/e/f", "Just atest");
     samrai_db.Set("/d/e/g", {"a"_ = "Just a test", "b"_ = 1235.5});
+    samrai_db.Set("/d/e/e", 1.23456);
 
     LOGGER << *samrai_db.backend() << std::endl;
 }
