@@ -43,12 +43,11 @@ TEST(DataTable, memory) {
     db.Add("/b/sub/d", 5);
     db.Add("/b/sub/d", 5);
 
-    //    db.Add("/b/sub/c", "la la land");
+
     db.Add("/b/sub/a", {3, 5, 3, 4});
     db.Add("/b/sub/a", 9);
 
     LOGGER << "a =" << (db.Get("a")->as<bool>(false)) << std::endl;
-
     LOGGER << "/b/sub/e  = " << db.Get("/b/sub/e")->as<nTuple<int, 4>>() << std::endl;
     LOGGER << "db: " << db << std::endl;
 }

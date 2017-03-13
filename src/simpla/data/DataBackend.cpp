@@ -13,10 +13,7 @@
 #include "DataTable.h"
 namespace simpla {
 namespace data {
-DataBackendFactory::DataBackendFactory() : base_type() {
-    Register<DataBackendMemory>("mem");
-    RegisterDefault();
-};
+DataBackendFactory::DataBackendFactory() : base_type() { RegisterDefault(); };
 DataBackendFactory::~DataBackendFactory(){};
 
 /**
@@ -71,33 +68,30 @@ DataBackendFactory::~DataBackendFactory(){};
 static std::regex uri_regex(R"(^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)");
 static std::regex file_extension_regex(R"(^(.*)\.([[:alnum:]]+)$)");
 std::shared_ptr<DataBackend> DataBackendFactory::Create(std::string const &uri, std::string const &ext_param) {
-    std::string scheme = "mem";
-    std::string path = "";
+    if (uri == "" || uri == "mem://") { return std::make_shared<DataBackendMemory>(); }
 
-    if (uri != "" && uri != "mem://") {
-        scheme = "file";
-        std::smatch uri_match_result;
-        if (std::regex_match(uri, uri_match_result, uri_regex)) {
-            if (uri_match_result.str(2) != "") {
-                scheme = uri_match_result.str(2);
-                path = uri_match_result.str(4);
-            }
+    std::string scheme = "file";
+    std::string path = uri;
+    std::smatch uri_match_result;
+
+    if (std::regex_match(uri, uri_match_result, uri_regex)) {
+        if (uri_match_result.str(2) != "") {
+            scheme = uri_match_result.str(2);
+            path = uri_match_result.str(4);
         }
-
-        if (scheme == "file") {
-            if (std::regex_match(uri, uri_match_result, file_extension_regex)) {
-                scheme = uri_match_result.str(2);
-                path = uri;
-            }
-        }
-
-        if (scheme == "") { RUNTIME_ERROR << "illegal URI: [" << uri << "]" << std::endl; }
     }
-    LOGGER << "CreateNew  DataBackend [ " << scheme << " : " << path << "]" << std::endl;
 
+    if (scheme == "file") {
+        if (std::regex_match(uri, uri_match_result, file_extension_regex)) {
+            scheme = uri_match_result.str(2);
+            path = uri;
+        }
+    }
+    if (scheme == "") { RUNTIME_ERROR << "illegal URI: [" << uri << "]" << std::endl; }
+
+    LOGGER << "CreateNew  DataBackend [ " << scheme << " : " << path << "]" << std::endl;
     std::shared_ptr<DataBackend> res{base_type::Create(scheme)};
     res->Connect(path);
-
     return res;
 };
 
