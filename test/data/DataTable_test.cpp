@@ -78,9 +78,9 @@ TEST(DataTable, hdf5) {
     DataTable db("file:///home/salmon/workspace/SimPla/test/data/test.h5", "w");
     db.SetValue("/a", "just a test");
     db.SetValue("/c", {1.2346, 4.0, 5.0, 6.0, 6.1});
-//    db.SetValue({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-//                 "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
-//    db.SetValue("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
+    //    db.SetValue({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+    //                 "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
+    //    db.SetValue("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
     db.SetValue("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
     db.SetValue("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
     //    db.AddValue("/b/sub/d", {1, 2});
@@ -90,5 +90,5 @@ TEST(DataTable, hdf5) {
 
     db.SetValue("/b/sub/a", {3, 5, 3, 4});
     db.SetValue("/b/sub/b", 9);
-    //    LOGGER << "h5:// " << *h5_db.Get("/") << std::endl;
+    LOGGER << "h5:// " << *db.Get("b") << std::endl;
 }
