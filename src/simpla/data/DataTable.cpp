@@ -26,7 +26,6 @@ DataTable::~DataTable(){};
 void DataTable::swap(DataTable& other) { std::swap(m_backend_, other.m_backend_); };
 void DataTable::Flush() { m_backend_->Flush(); }
 
-
 std::shared_ptr<DataEntity> DataTable::Clone() const {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(m_backend_->Duplicate()));
 }
@@ -42,15 +41,15 @@ size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(
 //    std::shared_ptr<DataEntity> res = Get(uri);
 //    if (res == nullptr && !res->isTable()) {
 //        res = std::make_shared<DataTable>(m_backend_->Duplicate());
-//        Set(uri, res);
+//        SetValue(uri, res);
 //    }
 //    return std::dynamic_pointer_cast<DataTable>(res);
 //};
 
-void DataTable::Set(DataTable const& other) {
+void DataTable::SetValue(DataTable const& other) {
     other.Accept([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
 }
-void DataTable::Set(std::initializer_list<KeyValue> const& other) {
+void DataTable::SetValue(std::initializer_list<KeyValue> const& other) {
     for (auto const& item : other) { Set(item.first, item.second); }
 }
 

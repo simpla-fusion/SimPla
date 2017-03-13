@@ -58,7 +58,7 @@ void EMTokamakWorker::Initialize() {
         AddSpecies(key, item.asTable());
     });
 
-    //    db.Set("bound_box", geqdsk.box());
+    //    db.SetValue("bound_box", geqdsk.box());
 };
 
 void EMTokamakWorker::PreProcess() { base_type::PreProcess(); }

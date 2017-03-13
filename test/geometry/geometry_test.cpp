@@ -268,7 +268,7 @@ int main{
 //
 //	auto f = make_field<Real>(domain );
 //
-//	model.Set( model.SelectByPoints(vertex_domain, TestFixture::points), "Vacuum");
+//	model.SetValue( model.SelectByPoints(vertex_domain, TestFixture::points), "Vacuum");
 //
 //	f.Clear();
 //
@@ -312,7 +312,7 @@ int main{
 //
 //	model.Erase( model.SelectByPolylines(vertex_domain, TestFixture::points));
 //
-//	model.Set( model.SelectByPolylines(vertex_domain, TestFixture::points), "Plasma");
+//	model.SetValue( model.SelectByPolylines(vertex_domain, TestFixture::points), "Plasma");
 //
 //	for (auto s : model.SelectByMaterial( domain, "Plasma"))
 //	{

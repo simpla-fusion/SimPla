@@ -8,7 +8,7 @@ target_link_libraries(toolbox ${LUA_LIBRARIES} )
 ###########################################################
 #IF (DEFINED ENV{LUA_ROOT})
 #
-#    Set(LUA_ROOT $ENV{LUA_ROOT})
+#    SetValue(LUA_ROOT $ENV{LUA_ROOT})
 #
 #    find_path(LUA_INCLUDE_DIR
 #            NAMES lua.h

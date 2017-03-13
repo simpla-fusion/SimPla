@@ -29,7 +29,7 @@ namespace simpla
 //	{
 //		if (pred(s))
 //		{
-//			res->Set(s);
+//			res->SetValue(s);
 //		}
 //	}
 ////	std::copy_if(range.begin(), entity_id_range.end(), std::inserter(*res, res->begin()),
@@ -326,7 +326,7 @@ void select_boundary_by_polylines(Domain<TM...> *domain, TI const & ib,
 //			if (point_in_polygon(geometry.coordinates(item.first))
 //					== (id == 0 || id == 2))
 //			{
-//				domain->id_set().Set(item.first);
+//				domain->id_set().SetValue(item.first);
 //			}
 //		}
 //	}

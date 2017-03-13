@@ -84,10 +84,10 @@ class DataArrayWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : p
     virtual void Set(size_type idx, U const& v) {
         if (size() > idx) { m_data_[idx] = v; }
     }
-    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) { Set(idx, v->as<U>()); }
+    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) { Set(idx, data_cast<U>(*v)); }
 
     virtual void Add(U const& v) { m_data_.push_back(v); }
-    virtual void Add(std::shared_ptr<DataEntity> const& v) { Add(v->as<U>()); }
+    virtual void Add(std::shared_ptr<DataEntity> const& v) { Add(data_cast<U>(*v)); }
     virtual void Delete(size_type idx) { m_data_.erase(m_data_.begin() + idx); }
 
     virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {

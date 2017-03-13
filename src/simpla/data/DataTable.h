@@ -53,11 +53,6 @@ class DataTable : public DataEntity {
     size_type size() const;
 
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
-    /**
-     * @brief  set
-     * @param uri
-     * @param p
-     */
     void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
     void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
     size_type Delete(std::string const& uri);
@@ -66,39 +61,54 @@ class DataTable : public DataEntity {
 
     /** Interface End */
     //******************************************************************************************************************
-    void Set(DataTable const& other);
-    void Set(std::initializer_list<KeyValue> const& other);
 
     template <typename U>
-    void Set(std::string const& uri, U const& v) {
+    auto GetValue(std::string const& uri) const {
+        return data_cast<U>(*Get(uri));
+    }
+    template <typename U>
+    auto GetValue(std::string const& uri, U default_value) const {
+        auto p = Get(uri);
+        if (p == nullptr) { return default_value; }
+        try {
+            return data_cast<U>(*p);
+        } catch (...) { return default_value; }
+    }
+
+    void SetValue(DataTable const& other);
+
+    void SetValue(std::initializer_list<KeyValue> const& other);
+
+    template <typename U>
+    void SetValue(std::string const& uri, U const& v) {
         Set(uri, make_data_entity(v));
     };
     template <typename U>
-    bool Set(std::string const& uri, std::initializer_list<U> const& u) {
+    void SetValue(std::string const& uri, std::initializer_list<U> const& u) {
         Set(uri, make_data_entity(u));
     };
     template <typename U>
-    void Set(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
+    void SetValue(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
         Set(uri, make_data_entity(u));
     };
     template <typename U>
-    void Set(std::string const& uri, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+    void SetValue(std::string const& uri, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
         Set(uri, make_data_entity(u));
     };
     template <typename U>
-    void Add(std::string const& uri, U const& v) {
+    void AddValue(std::string const& uri, U const& v) {
         Add(uri, make_data_entity(v));
     };
     template <typename U>
-    void Add(std::string const& uri, std::initializer_list<U> const& u) {
+    void AddValue(std::string const& uri, std::initializer_list<U> const& u) {
         Add(uri, make_data_entity(u));
     };
     template <typename U>
-    void Add(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
+    void AddValue(std::string const& uri, std::initializer_list<std::initializer_list<U>> const& u) {
         Add(uri, make_data_entity(u));
     };
     template <typename U>
-    void Add(U const& u) {
+    void AddValue(U const& u) {
         Add("", make_data_entity({u}));
     };
 

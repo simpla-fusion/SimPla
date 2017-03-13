@@ -20,34 +20,34 @@ TEST(DataTable, memory) {
 
     DataTable db;
 
-    db.Set("CartesianGeometry", "hello world!");
-    db.Set("d", {1, 2, 3, 4, 5, 56, 6, 6});
-    db.Set("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
-    db.Set("e", {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
-    db.Set({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
-            "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
-    db.Set("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
-    db.Set("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
-    db.Set("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
-    db.Set("b.a", 5);
-    db.Set("/b/sub/1/2/3/4/d/123456", nTuple<int, 3>{1, 2, 3});
-    db.Set("/b/sub/e", nTuple<int, 4>{1, 2, 3, 4});
-    db.Add("/b/sub/c", nTuple<int, 4>{5, 6, 7, 8});
-    db.Add("/b/sub/c", nTuple<int, 4>{1, 5, 3, 4});
-    db.Add("/b/sub/c", nTuple<int, 4>{2, 5, 3, 4});
-    db.Add("/b/sub/c", nTuple<int, 4>{3, 5, 3, 4});
-    db.Add("/b/sub/c", nTuple<int, 4>{4, 5, 3, 4});
-    db.Add("/b/sub/d", {1, 2});
-    db.Add("/b/sub/d", 5);
-    db.Add("/b/sub/d", 5);
-    db.Add("/b/sub/d", 5);
+    db.SetValue("CartesianGeometry", "hello world!");
+    db.SetValue("d", {1, 2, 3, 4, 5, 56, 6, 6});
+    db.SetValue("g", {{{1, 2}, {3, 4}}, {{5, 5}, {6, 6}}});
+    db.SetValue("e", {{"abc", "def"}, {"abc", "def"}, {"abc", "def"}, {"abc", "def"}});
+    db.SetValue({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
+                 "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
+    db.SetValue("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
+    db.SetValue("i", {"abc"_ = 1, "abc"_ = "def", "abc"_ = 2, "abc"_ = "sadfsdf"});
+    db.SetValue("j", {"abc"_ = {"abc"_ = {"def"_ = {"abc"_ = {"abc"_ = "sadfsdf"}}}}});
+    db.SetValue("b.a", 5);
+    db.SetValue("/b/sub/1/2/3/4/d/123456", nTuple<int, 3>{1, 2, 3});
+    db.SetValue("/b/sub/e", nTuple<int, 4>{1, 2, 3, 4});
+    db.AddValue("/b/sub/c", nTuple<int, 4>{5, 6, 7, 8});
+    db.AddValue("/b/sub/c", nTuple<int, 4>{1, 5, 3, 4});
+    db.AddValue("/b/sub/c", nTuple<int, 4>{2, 5, 3, 4});
+    db.AddValue("/b/sub/c", nTuple<int, 4>{3, 5, 3, 4});
+    db.AddValue("/b/sub/c", nTuple<int, 4>{4, 5, 3, 4});
+    db.AddValue("/b/sub/d", {1, 2});
+    db.AddValue("/b/sub/d", 5);
+    db.AddValue("/b/sub/d", 5);
+    db.AddValue("/b/sub/d", 5);
 
-    db.Add("/b/sub/a", {3, 5, 3, 4});
-    db.Add("/b/sub/a", 9);
+    db.AddValue("/b/sub/a", {3, 5, 3, 4});
+    db.AddValue("/b/sub/a", 9);
     LOGGER << "db: " << db << std::endl;
 
-    LOGGER << "a =" << (db.Get("a")->as<bool>(false)) << std::endl;
-    LOGGER << "/b/sub/e  = " << db.Get("/b/sub/e")->as<nTuple<int, 4>>() << std::endl;
+    LOGGER << "a =" << (db.GetValue<bool>("a", false)) << std::endl;
+    LOGGER << "/b/sub/e  = " << db.GetValue<nTuple<int, 4>>("/b/sub/e") << std::endl;
 }
 
 TEST(DataTable, lua) {
@@ -63,10 +63,10 @@ TEST(DataTable, samrai) {
 
     LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
     DataTable samrai_db("samrai://");
-    samrai_db.Set("/d", {1, 2, 3, 4, 5, 56, 6, 6});
-    samrai_db.Set("/d/e/f", "Just atest");
-    samrai_db.Set("/d/e/g", {"a"_ = "la la land", "b"_ = 1235.5});
-    samrai_db.Set("/d/e/e", 1.23456);
+    samrai_db.SetValue("f", {1, 2, 3, 4, 5, 56, 6, 6});
+    samrai_db.SetValue("/d/e/f", "Just atest");
+    samrai_db.SetValue("/d/e/g", {"a"_ = "la la land", "b"_ = 1235.5});
+    samrai_db.SetValue("/d/e/e", 1.23456);
 
     LOGGER << *samrai_db.backend() << std::endl;
 }

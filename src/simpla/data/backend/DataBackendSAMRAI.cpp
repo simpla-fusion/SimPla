@@ -50,10 +50,9 @@ struct DataBackendSAMRAI::pimpl_s {
 
 std::pair<DataBackendSAMRAI::pimpl_s::table_type, std::string> DataBackendSAMRAI::pimpl_s::get_table(
     table_type t, std::string const& uri, bool return_if_not_exist) {
-    return HierarchicalGetTable(t, uri, [&](table_type s_t, std::string const &k) { return s_t->isDatabase(k); },
-                                [&](table_type s_t, std::string const &k) { return s_t->getDatabase(k); },
-                                [&](table_type s_t, std::string const &k)
-                                {
+    return HierarchicalGetTable(t, uri, [&](table_type s_t, std::string const& k) { return s_t->isDatabase(k); },
+                                [&](table_type s_t, std::string const& k) { return s_t->getDatabase(k); },
+                                [&](table_type s_t, std::string const& k) {
                                     return return_if_not_exist ? static_cast<table_type>(nullptr) : s_t->putDatabase(k);
                                 });
 };
@@ -106,38 +105,38 @@ void DataBackendSAMRAI::pimpl_s::set_data_to_samrai(boost::shared_ptr<SAMRAI::tb
             for (int i = 0; i < num; ++i) { d[i] = varray[i]; }
             dest->putBoolArray(uri, d, num);
         } else {
-            dest->putBool(uri, src->as<bool>());
+            dest->putBool(uri, data_cast<bool>(*src));
         }
     } else if (src->type() == typeid(std::string)) {
         if (src->isArray()) {
             auto& varray = src->cast_as<DataArrayWrapper<std::string>>().data();
             dest->putStringArray(uri, &varray[0], varray.size());
         } else {
-            dest->putString(uri, src->as<std::string>());
+            dest->putString(uri, data_cast<std::string>(*src));
         }
     } else if (src->type() == typeid(double)) {
         if (src->isArray()) {
             auto& varray = src->cast_as<DataArrayWrapper<double>>().data();
             dest->putDoubleArray(uri, &varray[0], varray.size());
         } else {
-            dest->putDouble(uri, src->as<double>());
+            dest->putDouble(uri, data_cast<double>(*src));
         }
     } else if (src->type() == typeid(int)) {
         if (src->isArray()) {
             auto& varray = src->cast_as<DataArrayWrapper<int>>().data();
             dest->putIntegerArray(uri, &varray[0], varray.size());
         } else {
-            dest->putInteger(uri, src->as<int>());
+            dest->putInteger(uri, data_cast<int>(*src));
         }
     } else if (src->type() == typeid(nTuple<bool, 3>)) {
-        dest->putBoolArray(uri, &src->as<nTuple<bool, 3>>()[0], 3);
+        dest->putBoolArray(uri, &data_cast<nTuple<bool, 3>>(*src)[0], 3);
     } else if (src->type() == typeid(nTuple<int, 3>)) {
-        dest->putIntegerArray(uri, &src->as<nTuple<int, 3>>()[0], 3);
+        dest->putIntegerArray(uri, &data_cast<nTuple<int, 3>>(*src)[0], 3);
     } else if (src->type() == typeid(nTuple<double, 3>)) {
-        dest->putDoubleArray(uri, &src->as<nTuple<double, 3>>()[0], 3);
+        dest->putDoubleArray(uri, &data_cast<nTuple<double, 3>>(*src)[0], 3);
     } else if (src->type() == typeid(std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>>)) {
         nTuple<int, 3> i_lo, i_up;
-        std::tie(i_lo, i_up) = src->as<std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>>>();
+        std::tie(i_lo, i_up) = data_cast<std::tuple<nTuple<index_type, 3>, nTuple<index_type, 3>>>(*src);
         SAMRAI::tbox::Dimension dim(3);
         dest->putDatabaseBox(uri, SAMRAI::tbox::DatabaseBox(dim, &(i_lo[0]), &(i_up[0])));
     }

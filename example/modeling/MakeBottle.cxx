@@ -99,7 +99,7 @@ TopoDS_Shape MakeBottle(const Standard_Real myWidth, const Standard_Real myHeigh
         gp_Pnt p0(-myWidth / 2., 0, 0);
         gp_Pnt p4(myWidth / 2., 0, 0);
 
-        //    gp_array->Set(0, p0);
+        //    gp_array->SetValue(0, p0);
         gp_array->SetValue(1, gp_Pnt(-myWidth / 2., -myThickness / 4., 0));
         gp_array->SetValue(2, gp_Pnt(0, -myThickness / 2., 0));
         gp_array->SetValue(3, gp_Pnt(myWidth / 2., -myThickness / 4., 0));
@@ -137,7 +137,7 @@ int main(int argc, char **argv) {
     // Type of  visualization            V3d_ZBUFFER,
     // Shading  geometry            V3d_GOURAUD,
     // Update mode          V3d_WAIT
-    // Set parameters for V3d_Viewer
+    // SetValue parameters for V3d_Viewer
     // defines default lights -
     //   positional-light 0.3 0.0 0.0
     //   directional-light V3d_XnegYposZpos

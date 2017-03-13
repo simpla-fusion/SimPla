@@ -45,22 +45,6 @@ struct DataEntity : public concept::Printable {
         UNIMPLEMENTED;
         return nullptr;
     };
-
-    template <typename U>
-    bool operator==(U const& v) const {
-        return (type() == typeid(U)) && cast_as<DataEntityWrapper<U>>().equal(v);
-    }
-
-    template <typename U>
-    U as() const {
-        return cast_as<DataEntityWrapper<U>>().value();
-    }
-    template <typename U>
-    U as(U const& u) const {
-        try {
-            return cast_as<DataEntityWrapper<U>>().value();
-        } catch (...) { return u; }
-    }
 };
 template <typename U>
 struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : public DataEntity {
@@ -89,6 +73,15 @@ struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> :
    private:
     value_type m_data_;
 };
+
+template <typename U, typename Enable = void>
+struct data_cast_traits {
+    static U eval(DataEntity const& v) { return v.cast_as<DataEntityWrapper<U>>().value(); };
+};
+template <typename U>
+U data_cast(DataEntity const& v) {
+    return data_cast_traits<U>::eval(v);
+}
 
 template <typename U>
 std::shared_ptr<DataEntity> make_data_entity(U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {

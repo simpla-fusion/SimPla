@@ -148,13 +148,13 @@ void DataBackendLua::pimpl_s::set_data_to_lua(toolbox::LuaObject& lobj, int key,
         auto const& db = dynamic_cast<DataArray const&>(v);
         for (int s = 0, se = static_cast<int>(v.size()); s < se; ++s) { set_data_to_lua(b, s, *db.Get(s)); }
     } else if (v.type() == typeid(bool)) {
-        lobj.set(key, v.as<bool>());
+        lobj.set(key, data_cast<bool>(v));
     } else if (v.type() == typeid(int)) {
-        lobj.set(key, v.as<int>());
+        lobj.set(key, data_cast<int>(v));
     } else if (v.type() == typeid(double)) {
-        lobj.set(key, v.as<double>());
+        lobj.set(key, data_cast<double>(v));
     } else if (v.type() == typeid(std::string)) {
-        lobj.set(key, v.as<std::string>());
+        lobj.set(key, data_cast<std::string>(v));
     } else {
         RUNTIME_ERROR << "illegal data type for Lua :" << v.type().name() << std::endl;
     }
@@ -172,13 +172,13 @@ void DataBackendLua::pimpl_s::set_data_to_lua(toolbox::LuaObject& lobj, std::str
         auto b = lobj.new_table(key, db.size(), 0);
         for (int s = 0, se = static_cast<int>(v.size()); s < se; ++s) { add_data_to_lua(b, *db.Get(s)); }
     } else if (v.type() == typeid(bool)) {
-        lobj.set(key, v.as<bool>());
+        lobj.set(key, data_cast<bool>(v));
     } else if (v.type() == typeid(int)) {
-        lobj.set(key, v.as<int>());
+        lobj.set(key, data_cast<int>(v));
     } else if (v.type() == typeid(double)) {
-        lobj.set(key, v.as<double>());
+        lobj.set(key, data_cast<double>(v));
     } else if (v.type() == typeid(std::string)) {
-        lobj.set(key, v.as<std::string>());
+        lobj.set(key, data_cast<std::string>(v));
     } else {
         RUNTIME_ERROR << "illegal data type for Lua :" << v.type().name() << std::endl;
     }
@@ -193,13 +193,13 @@ void DataBackendLua::pimpl_s::add_data_to_lua(toolbox::LuaObject& lobj, DataEnti
         auto b = lobj.new_table("", db.size(), 0);
         for (int s = 0, se = static_cast<int>(v.size()); s < se; ++s) { add_data_to_lua(b, *db.Get(s)); }
     } else if (v.type() == typeid(bool)) {
-        lobj.add(v.as<bool>());
+        lobj.add(data_cast<bool>(v));
     } else if (v.type() == typeid(int)) {
-        lobj.add(v.as<int>());
+        lobj.add(data_cast<int>(v));
     } else if (v.type() == typeid(double)) {
-        lobj.add(v.as<double>());
+        lobj.add(data_cast<double>(v));
     } else if (v.type() == typeid(std::string)) {
-        lobj.add(v.as<std::string>());
+        lobj.add(data_cast<std::string>(v));
     } else {
         RUNTIME_ERROR << "illegal data type for Lua :" << v.type().name() << std::endl;
     }
@@ -221,13 +221,13 @@ void DataBackendLua::pimpl_s::add_data_to_lua(toolbox::LuaObject& lobj, std::str
         auto b = lobj.new_table(key, db.size(), 0);
         for (int s = 0, se = static_cast<int>(v.size()); s < se; ++s) { add_data_to_lua(b, *db.Get(s)); }
     } else if (v.type() == typeid(bool)) {
-        lobj.set(key, v.as<bool>());
+        lobj.set(key, data_cast<bool>(v));
     } else if (v.type() == typeid(int)) {
-        lobj.set(key, v.as<int>());
+        lobj.set(key, data_cast<int>(v));
     } else if (v.type() == typeid(double)) {
-        lobj.set(key, v.as<double>());
+        lobj.set(key, data_cast<double>(v));
     } else if (v.type() == typeid(std::string)) {
-        lobj.set(key, v.as<std::string>());
+        lobj.set(key, data_cast<std::string>(v));
     } else {
         RUNTIME_ERROR << "illegal data type for Lua :" << v.type().name() << std::endl;
     }

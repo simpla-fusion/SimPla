@@ -68,11 +68,11 @@ int main(int argc, char **argv)
                   << std::endl;
         std::cout << "<input_geom_filename> : input geometry file GetName" << std::endl;
         std::cout << "<whole_geom> : make mesh for whole geom or individually(1/0), default whole geom(1)" << std::endl;
-        std::cout << "{x/y/z: # ofintervals} : optional argument. # of intervals. if it is not set, Set to 10."
+        std::cout << "{x/y/z: # ofintervals} : optional argument. # of intervals. if it is not set, SetValue to 10."
                   << std::endl;
         std::cout << "<mesh_based_geom> : use mesh based geometry(1/0), default not-use(0)" << std::endl;
         std::cout
-                << "{output_mesh_filename} : optional argument. if it is not Set, dosn't export. can output mesh file (e.g. output.vtk.)"
+                << "{output_mesh_filename} : optional argument. if it is not SetValue, dosn't export. can output mesh file (e.g. output.vtk.)"
                 << std::endl;
         std::cout << "{box size increase} : optional argument. Cartesian mesh box increase form geometry. default 0.03"
                   << std::endl;

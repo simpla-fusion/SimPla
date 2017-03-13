@@ -327,7 +327,7 @@ class SAMRAI_HyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPat
 
     /*
      * We cache pointers to the grid geometry object to set up initial
-     * GetDataBlock, Set physical boundary conditions, and register plot
+     * GetDataBlock, SetValue physical boundary conditions, and register plot
      * variables.
      */
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> d_grid_geometry = nullptr;
@@ -783,46 +783,46 @@ SAMRAITimeIntegrator::SAMRAITimeIntegrator() : base_type() {
     }
      */
 
-    db().Set("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
-    db().Set("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
-    db().Set("CartesianGeometry.x_lo", nTuple<double, 3>{1.0, 0.0, -1.0});
-    db().Set("CartesianGeometry.x_up", nTuple<double, 3>{2, PI, 1});
+    db().SetValue("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
+    db().SetValue("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
+    db().SetValue("CartesianGeometry.x_lo", nTuple<double, 3>{1.0, 0.0, -1.0});
+    db().SetValue("CartesianGeometry.x_up", nTuple<double, 3>{2, PI, 1});
     // Maximum number of levels in hierarchy.
-    db().Set("PatchHierarchy.max_levels", int(3));
-    db().Set("PatchHierarchy.ratio_to_coarser.level_1", nTuple<int, 3>{2, 2, 1});
-    db().Set("PatchHierarchy.ratio_to_coarser.level_2", nTuple<int, 3>{2, 2, 1});
-    db().Set("PatchHierarchy.ratio_to_coarser.level_3", nTuple<int, 3>{2, 2, 1});
-    db().Set("PatchHierarchy.largest_patch_size.level_0", nTuple<int, 3>{32, 32, 32});
-    db().Set("PatchHierarchy.smallest_patch_size.level_0", nTuple<int, 3>{4, 4, 4});
+    db().SetValue("PatchHierarchy.max_levels", int(3));
+    db().SetValue("PatchHierarchy.ratio_to_coarser.level_1", nTuple<int, 3>{2, 2, 1});
+    db().SetValue("PatchHierarchy.ratio_to_coarser.level_2", nTuple<int, 3>{2, 2, 1});
+    db().SetValue("PatchHierarchy.ratio_to_coarser.level_3", nTuple<int, 3>{2, 2, 1});
+    db().SetValue("PatchHierarchy.largest_patch_size.level_0", nTuple<int, 3>{32, 32, 32});
+    db().SetValue("PatchHierarchy.smallest_patch_size.level_0", nTuple<int, 3>{4, 4, 4});
 
     db().AddTable("GriddingAlgorithm");
     // Makes results repeatable.
-    db().Set("BergerRigoutsos.sort_output_nodes", true);
+    db().SetValue("BergerRigoutsos.sort_output_nodes", true);
     // min % of GetTag cells in new patch level
-    db().Set("BergerRigoutsos.efficiency_tolerance", 0.85);
+    db().SetValue("BergerRigoutsos.efficiency_tolerance", 0.85);
     // chop box if sum of volumes of smaller
     //    // boxes < efficiency * vol of large box
-    db().Set("BergerRigoutsos.combine_efficiency", 0.95);
+    db().SetValue("BergerRigoutsos.combine_efficiency", 0.95);
 
     // Refer to mesh::StandardTagAndInitialize for input
-    db().Set("StandardTagAndInitialize.tagging_method", "GRADIENT_DETECTOR");
+    db().SetValue("StandardTagAndInitialize.tagging_method", "GRADIENT_DETECTOR");
 
     // Refer to algs::HyperbolicLevelIntegrator for input
     // max cfl factor used in problem
-    db().Set("HyperbolicLevelIntegrator.cfl", 0.9);
-    db().Set("HyperbolicLevelIntegrator.cfl_init", 0.9);  // initial cfl factor
-    db().Set("HyperbolicLevelIntegrator.lag_dt_computation", true);
-    db().Set("HyperbolicLevelIntegrator.use_ghosts_to_compute_dt", true);
+    db().SetValue("HyperbolicLevelIntegrator.cfl", 0.9);
+    db().SetValue("HyperbolicLevelIntegrator.cfl_init", 0.9);  // initial cfl factor
+    db().SetValue("HyperbolicLevelIntegrator.lag_dt_computation", true);
+    db().SetValue("HyperbolicLevelIntegrator.use_ghosts_to_compute_dt", true);
 
     // Refer to algs::TimeRefinementIntegrator for input
     // initial simulation time
-    db().Set("TimeRefinementIntegrator.start_time", 0.e0);
+    db().SetValue("TimeRefinementIntegrator.start_time", 0.e0);
     // final simulation time
-    db().Set("TimeRefinementIntegrator.end_time", 1.e0);
+    db().SetValue("TimeRefinementIntegrator.end_time", 1.e0);
     // growth factor for timesteps
-    db().Set("TimeRefinementIntegrator.grow_dt", 1.1e0);
+    db().SetValue("TimeRefinementIntegrator.grow_dt", 1.1e0);
     // max number of simulation timesteps
-    db().Set("TimeRefinementIntegrator.max_integrator_steps", 5);
+    db().SetValue("TimeRefinementIntegrator.max_integrator_steps", 5);
 
     // Refer to mesh::TreeLoadBalancer for input
     db().AddTable("LoadBalancer");
