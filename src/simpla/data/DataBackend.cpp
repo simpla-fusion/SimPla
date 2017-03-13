@@ -13,6 +13,9 @@
 #include "DataTable.h"
 namespace simpla {
 namespace data {
+
+
+
 DataBackendFactory::DataBackendFactory() : base_type() { RegisterDefault(); };
 DataBackendFactory::~DataBackendFactory(){};
 
@@ -70,22 +73,20 @@ static std::regex file_extension_regex(R"(^(.*)\.([[:alnum:]]+)$)");
 std::shared_ptr<DataBackend> DataBackendFactory::Create(std::string const &uri, std::string const &ext_param) {
     if (uri == "" || uri == "mem://") { return std::make_shared<DataBackendMemory>(); }
 
-    std::string scheme = "file";
+    std::string scheme = "";
     std::string path = uri;
     std::smatch uri_match_result;
 
     if (std::regex_match(uri, uri_match_result, uri_regex)) {
-        if (uri_match_result.str(2) != "") {
-            scheme = uri_match_result.str(2);
-            path = uri_match_result.str(4);
+        for (size_type i = 0, ie = uri_match_result.size(); i < ie; ++i) {
+            std::cout << i << "\t:" << uri_match_result.str(i) << std::endl;
         }
+        scheme = (uri_match_result.str(2) == "file") ? "" : uri_match_result.str(2);
+        path = uri_match_result.str(5);
     }
 
-    if (scheme == "file") {
-        if (std::regex_match(uri, uri_match_result, file_extension_regex)) {
-            scheme = uri_match_result.str(2);
-            path = uri;
-        }
+    if (scheme == "") {
+        if (std::regex_match(path, uri_match_result, file_extension_regex)) { scheme = uri_match_result.str(2); }
     }
     if (scheme == "") { RUNTIME_ERROR << "illegal URI: [" << uri << "]" << std::endl; }
 
@@ -95,16 +96,11 @@ std::shared_ptr<DataBackend> DataBackendFactory::Create(std::string const &uri, 
     return res;
 };
 
-std::vector<std::string> DataBackendFactory::RegisteredBackend() const {
+std::vector<std::string> DataBackendFactory::GetBackendList() const {
     std::vector<std::string> res;
     for (auto const &item : *this) { res.push_back(item.first); }
     return std::move(res);
 };
-
-namespace detail {
-static std::regex uri_regex(R"(^(/(([^/?#:]+)/)*)*([^/?#:]*)$)", std::regex::extended | std::regex::optimize);
-static std::regex sub_dir_regex(R"(([^/?#:]+)/)", std::regex::extended | std::regex::optimize);
-}
 
 }  // namespace data {
 }  // namespace simpla {

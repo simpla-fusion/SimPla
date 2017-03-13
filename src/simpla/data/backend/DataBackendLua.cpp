@@ -56,13 +56,13 @@ struct DataArrayLua : public DataArrayWrapper<U> {
     virtual bool equal(U const& v) const { return m_obj_.as<U>() == v; };
     virtual U value() const { return m_obj_.as<U>(); };
 
-    virtual size_type count() const { return m_obj_.size(); };
+    virtual size_type size() const { return m_obj_.size(); };
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const {
         return DataBackendLua::pimpl_s::make_data_entity_lua(m_obj_.get(idx));
     }
-    virtual bool Set(size_type idx, std::shared_ptr<DataEntity> const&) { return false; }
-    virtual bool Add(std::shared_ptr<DataEntity> const&) { return false; }
-    virtual int Delete(size_type idx) { return 0; }
+    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const&) { return false; }
+    virtual void Add(std::shared_ptr<DataEntity> const&) { return false; }
+    virtual size_type Delete(size_type idx) { return 0; }
 
    private:
     toolbox::LuaObject m_obj_;

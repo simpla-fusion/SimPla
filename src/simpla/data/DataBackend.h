@@ -12,6 +12,7 @@
 #include <simpla/engine/SPObjectHead.h>
 #include <simpla/toolbox/Log.h>
 #include <memory>
+#include <regex>
 #include <typeindex>
 #include <typeinfo>
 #include <vector>
@@ -86,12 +87,11 @@ class DataBackendFactory : public design_pattern::Factory<std::string, DataBacke
    public:
     DataBackendFactory();
     virtual ~DataBackendFactory();
-    std::vector<std::string> RegisteredBackend() const;
+    std::vector<std::string> GetBackendList() const;
     std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param = "");
 
     void RegisterDefault();
 };
-
 #define GLOBAL_DATA_BACKEND_FACTORY SingletonHolder<DataBackendFactory>::instance()
 }  // namespace data {
 }  // namespace simpla{

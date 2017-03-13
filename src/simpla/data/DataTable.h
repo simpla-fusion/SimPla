@@ -37,8 +37,6 @@ class DataTable : public DataEntity {
     ~DataTable() final;
 
     void swap(DataTable&);
-    static std::shared_ptr<DataTable> Create(std::string const& scheme);
-
     std::shared_ptr<DataEntity> Clone() const;
     //******************************************************************************************************************
     /** Interface DataEntity */
