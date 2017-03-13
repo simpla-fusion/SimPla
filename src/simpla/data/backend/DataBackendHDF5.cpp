@@ -188,11 +188,13 @@ void DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> co
     add_or_set(res.first, res.second, src, true);
 }
 size_type DataBackendHDF5::Delete(std::string const& uri) {
-    UNIMPLEMENTED;
-    //    auto res = get_table_from_h5(m_pimpl_->m_f_id_, uri, true);
+    auto res = get_table_from_h5(m_pimpl_->m_f_id_, uri, false);
+    if (res.first == -1 || res.second == "") { return 0; }
+    if (H5Aexists(res.first, res.second.c_str())) { H5Adelete(res.first, res.second.c_str()); }
 }
 
-size_type DataBackendHDF5::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const {
+size_type DataBackendHDF5::Accept(
+    std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& fun) const {
     UNIMPLEMENTED;
 }
 
