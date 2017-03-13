@@ -37,15 +37,6 @@ void DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v
 void DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { m_backend_->Add(uri, v); };
 size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
 
-// std::shared_ptr<DataTable> DataTable::AddTable(std::string const& uri) {
-//    std::shared_ptr<DataEntity> res = Get(uri);
-//    if (res == nullptr && !res->isTable()) {
-//        res = std::make_shared<DataTable>(m_backend_->Duplicate());
-//        SetValue(uri, res);
-//    }
-//    return std::dynamic_pointer_cast<DataTable>(res);
-//};
-
 void DataTable::SetValue(DataTable const& other) {
     other.Accept([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
 }

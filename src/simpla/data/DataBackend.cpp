@@ -14,8 +14,6 @@
 namespace simpla {
 namespace data {
 
-
-
 DataBackendFactory::DataBackendFactory() : base_type() { RegisterDefault(); };
 DataBackendFactory::~DataBackendFactory(){};
 
@@ -78,9 +76,9 @@ std::shared_ptr<DataBackend> DataBackendFactory::Create(std::string const &uri, 
     std::smatch uri_match_result;
 
     if (std::regex_match(uri, uri_match_result, uri_regex)) {
-        for (size_type i = 0, ie = uri_match_result.size(); i < ie; ++i) {
-            std::cout << i << "\t:" << uri_match_result.str(i) << std::endl;
-        }
+        //        for (size_type i = 0, ie = uri_match_result.size(); i < ie; ++i) {
+        //            std::cout << i << "\t:" << uri_match_result.str(i) << std::endl;
+        //        }
         scheme = (uri_match_result.str(2) == "file") ? "" : uri_match_result.str(2);
         path = uri_match_result.str(5);
     }

@@ -51,8 +51,8 @@ namespace data {
 //};
 
 struct DataBackendHDF5::pimpl_s {
-    hid_t m_f_id_;
-    hid_t m_g_id_;
+    hid_t m_f_id_ = -1;
+    hid_t m_g_id_ = -1;
 };
 
 static std::pair<hid_t, std::string> get_table_from_h5(hid_t root, std::string const& uri,
@@ -111,46 +111,81 @@ std::shared_ptr<DataEntity> DataBackendHDF5::Get(std::string const& uri) const {
     auto res = get_table_from_h5(m_pimpl_->m_g_id_, uri, true);
     return nullptr;
 }
-void DataBackendHDF5::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
-    if (v == nullptr) { return; }
-    if (!v->isLight()) {
-        UNIMPLEMENTED;
+void add_or_set(hid_t g_id, std::string const& key, std::shared_ptr<DataEntity> const& src, bool do_add = false) {
+    if (src->isTable()) {
+        hid_t sub_gid = H5Gcreate(g_id, key.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        src->cast_as<DataTable>().Accept(
+            [&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) { add_or_set(sub_gid, k, v); });
+        H5Gclose(sub_gid);
         return;
-    }
-    auto res = get_table_from_h5(m_pimpl_->m_f_id_, uri, false);
-    if (res.first == -1 || res.second == "") { return; }
-    if (v->type() == typeid(std::string)) {
-        std::string const& s_str = data_cast<std::string>(*v);
+    } else if (src->isHeavyBlock()) {
+        return;
+    } else if (src->type() == typeid(std::string)) {
+        std::string const& s_str = data_cast<std::string>(*src);
         hid_t m_type = H5Tcopy(H5T_C_S1);
         H5Tset_size(m_type, s_str.size());
         H5Tset_strpad(m_type, H5T_STR_NULLTERM);
         hid_t m_space = H5Screate(H5S_SCALAR);
-        hid_t a_id = H5Acreate(res.first, res.second.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
+        hid_t a_id = H5Acreate(g_id, key.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
         H5Awrite(a_id, m_type, s_str.c_str());
         H5Tclose(m_type);
         H5Aclose(a_id);
     } else {
-        UNIMPLEMENTED;
-        //        hid_t m_type = convert_data_type_sp_to_h5(any_v.data_type());
-        //
-        //        hid_t m_space = H5Screate(H5S_SCALAR);
-        //
-        //        hid_t a_id = H5Acreate(loc_id, GetName.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
-        //
-        //        H5Awrite(a_id, m_type, any_v.m_data());
-        //
-        //        if (H5Tcommitted(m_type) > 0)
-        //        {
-        //            H5Tclose(m_type);
-        //        }
-        //
-        //        H5Aclose(a_id);
-        //
-        //        H5Sclose(m_space);
+        hid_t d_type;
+        hid_t d_space;
+        char* data = nullptr;
+        if (src->isArray()) {
+            hsize_t s = src->size();
+            d_space = H5Screate_simple(1, &s, NULL);
+        } else {
+            d_space = H5Screate(H5S_SCALAR);
+        }
+
+        if (false) {}
+#define DEC_TYPE(_T_, _H5_T_)                                                                 \
+    else if (src->type() == typeid(_T_)) {                                                    \
+        d_type = _H5_T_;                                                                      \
+        if (src->isArray()) {                                                                 \
+            data = reinterpret_cast<char*>(&src->cast_as<DataArrayWrapper<_T_>>().data()[0]); \
+        } else {                                                                              \
+            data = new char[sizeof(_T_)];                                                     \
+            *reinterpret_cast<_T_*>(data) = data_cast<_T_>(*src);                             \
+        }                                                                                     \
+    }
+
+        //        DEC_TYPE(bool, H5T_NATIVE_HBOOL)
+        DEC_TYPE(float, H5T_NATIVE_FLOAT)
+        DEC_TYPE(double, H5T_NATIVE_DOUBLE)
+        DEC_TYPE(int, H5T_NATIVE_INT)
+        DEC_TYPE(long, H5T_NATIVE_LONG)
+        DEC_TYPE(unsigned int, H5T_NATIVE_UINT)
+        DEC_TYPE(unsigned long, H5T_NATIVE_ULONG)
+#undef DEC_TYPE
+
+        hid_t a_id;
+        if (do_add) {
+            return;
+        } else {
+            if (H5Aexists(g_id, key.c_str())) { H5Adelete(g_id, key.c_str()); }
+            a_id = H5Acreate(g_id, key.c_str(), d_type, d_space, H5P_DEFAULT, H5P_DEFAULT);
+        }
+        H5Awrite(a_id, d_type, data);
+        H5Aclose(a_id);
+
+        if (!src->isArray()) { delete data; }
     }
 }
-void DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> const&) {
+void DataBackendHDF5::Set(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
+    if (src == nullptr) { return; }
     auto res = get_table_from_h5(m_pimpl_->m_f_id_, uri, false);
+    if (res.first == -1 || res.second == "") { return; }
+    add_or_set(res.first, res.second, src, false);
+}
+void DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
+    if (src == nullptr) { return; }
+    auto res = get_table_from_h5(m_pimpl_->m_f_id_, uri, false);
+    if (res.first == -1 || res.second == "") { return; }
+    add_or_set(res.first, res.second, src, true);
 }
 size_type DataBackendHDF5::Delete(std::string const& uri) {
     UNIMPLEMENTED;

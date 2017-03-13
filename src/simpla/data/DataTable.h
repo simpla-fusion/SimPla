@@ -26,7 +26,6 @@ class KeyValue;
 class DataTable : public DataEntity {
     SP_OBJECT_HEAD(DataTable, DataEntity);
     std::shared_ptr<DataBackend> m_backend_;
-    std::string m_base_uri_;
 
    public:
     DataTable();
@@ -45,7 +44,6 @@ class DataTable : public DataEntity {
     std::type_info const& type() const { return typeid(DataTable); };
 
     DataBackend const* backend() const { return m_backend_.get(); }
-    std::string const& base_uri() const { return m_base_uri_; }
     //******************************************************************************************************************
     /** Interface DataBackend */
     void Flush();
@@ -56,7 +54,6 @@ class DataTable : public DataEntity {
     void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
     void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
     size_type Delete(std::string const& uri);
-
     size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
     /** Interface End */
@@ -92,7 +89,8 @@ class DataTable : public DataEntity {
         Set(uri, make_data_entity(u));
     };
     template <typename U>
-    void SetValue(std::string const& uri, std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+    void SetValue(std::string const& uri,
+                  std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
         Set(uri, make_data_entity(u));
     };
     template <typename U>
