@@ -51,7 +51,6 @@ TEST(DataTable, memory) {
 
     LOGGER << "/b/sub/e  = " << db.Get("/b/sub/e")->as<nTuple<int, 4>>() << std::endl;
     LOGGER << "db: " << db << std::endl;
-
 }
 
 TEST(DataTable, lua) {
@@ -59,7 +58,7 @@ TEST(DataTable, lua) {
 
     LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance().RegisteredBackend()
            << std::endl;
-    DataTable lua_db(std::string("lua:///home/salmon/workspace/SimPla/test/data/test.lua"));
+    DataTable lua_db(std::string("/home/salmon/workspace/SimPla/test/data/test.lua"));
     LOGGER << "lua:// " << *lua_db.Get("Context") << std::endl;
 }
 
@@ -68,11 +67,20 @@ TEST(DataTable, samrai) {
 
     LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance().RegisteredBackend()
            << std::endl;
-    DataTable samrai_db("samrai://ggg/b/b/c/d/a?{{123,4},{123,}}");
+    DataTable samrai_db("samrai://");
     samrai_db.Set("/d", {1, 2, 3, 4, 5, 56, 6, 6});
     samrai_db.Set("/d/e/f", "Just atest");
     samrai_db.Set("/d/e/g", {"a"_ = "Just a test", "b"_ = 1235.5});
     samrai_db.Set("/d/e/e", 1.23456);
 
     LOGGER << *samrai_db.backend() << std::endl;
+}
+
+TEST(DataTable, hdf5) {
+    logger::set_stdout_level(1000);
+
+    LOGGER << "Registered DataBackend: " << SingletonHolder<DataBackendFactory>::instance().RegisteredBackend()
+           << std::endl;
+    DataTable lua_db("file:///home/salmon/workspace/SimPla/test/data/test.h5");
+    LOGGER << "lua:// " << *lua_db.Get("Context") << std::endl;
 }

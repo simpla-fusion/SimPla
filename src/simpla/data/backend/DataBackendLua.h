@@ -18,14 +18,11 @@ class DataEntity;
 class DataBackendLua : public DataBackend {
     SP_OBJECT_HEAD(DataBackendLua, DataBackend)
    public:
-    static constexpr char scheme_tag[] = "lua";
-
     DataBackendLua();
     DataBackendLua(DataBackendLua const&);
     virtual ~DataBackendLua();
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-    virtual std::string scheme() const;
-    virtual void Connect(std::string const&);
+    virtual void Connect(std::string const&, std::string const& param);
     virtual void Disconnect();
     virtual std::shared_ptr<DataBackend> Duplicate() const;
     virtual std::shared_ptr<DataBackend> CreateNew() const;

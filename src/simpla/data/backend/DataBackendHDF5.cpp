@@ -18,8 +18,6 @@ extern "C" {
 
 namespace simpla {
 namespace data {
-constexpr char DataBackendHDF5::scheme_tag[];
-std::string DataBackendHDF5::scheme() const { return scheme_tag; }
 
 // struct HDF5Status {
 //    HDF5Status(std::string const& url, std::string const& status = "");

@@ -22,8 +22,6 @@
 
 namespace simpla {
 namespace data {
-constexpr char DataBackendSAMRAI::scheme_tag[];
-std::string DataBackendSAMRAI::scheme() const { return scheme_tag; }
 
 struct DataBackendSAMRAI::pimpl_s {
     boost::shared_ptr<SAMRAI::tbox::Database> m_samrai_db_ = nullptr;

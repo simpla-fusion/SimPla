@@ -9,7 +9,6 @@
 #include "LuaObject.h"
 namespace simpla {
 namespace data {
-constexpr char DataBackendLua::scheme_tag[];
 
 template <typename U>
 struct DataEntityLua;
@@ -116,11 +115,12 @@ DataBackendLua::~DataBackendLua() {}
 std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
     return m_pimpl_->m_lua_obj_.Print(os, indent);
 }
-std::string DataBackendLua::scheme() const { return scheme_tag; }
 
 bool DataBackendLua::isNull() const { return m_pimpl_->m_lua_obj_.is_null(); }
 void DataBackendLua::Flush() {}
-void DataBackendLua::Connect(std::string const& path) { m_pimpl_->m_lua_obj_.parse_file(path); }
+void DataBackendLua::Connect(std::string const& path, std::string const& param) {
+    m_pimpl_->m_lua_obj_.parse_file(path);
+}
 void DataBackendLua::Disconnect() {}
 std::shared_ptr<DataBackend> DataBackendLua::Duplicate() const { return std::make_shared<DataBackendLua>(*this); }
 std::shared_ptr<DataBackend> DataBackendLua::CreateNew() const { return std::make_shared<DataBackendLua>(); }

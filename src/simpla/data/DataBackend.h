@@ -25,9 +25,8 @@ class DataBackend : public concept::Printable, public std::enable_shared_from_th
    public:
     DataBackend(){};
     virtual ~DataBackend(){};
-    virtual std::string scheme() const = 0;
 
-    virtual void Connect(std::string const& path){};
+    virtual void Connect(std::string const& path, std::string const& param = ""){};
     virtual void Disconnect(){};
     virtual void Flush() = 0;
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
@@ -88,7 +87,8 @@ class DataBackendFactory : public design_pattern::Factory<std::string, DataBacke
     DataBackendFactory();
     virtual ~DataBackendFactory();
     std::vector<std::string> RegisteredBackend() const;
-    std::shared_ptr<DataBackend> Create(std::string const& scheme);
+    std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param = "");
+
     void RegisterDefault();
 };
 

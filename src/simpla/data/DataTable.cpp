@@ -14,20 +14,10 @@
 #include "KeyValue.h"
 namespace simpla {
 namespace data {
-DataTable::DataTable() : m_backend_(new DataBackendMemory), m_base_uri_("mem://"){};
-DataTable::DataTable(std::string const& uri) : m_backend_(nullptr), m_base_uri_(uri) {
-    static std::regex uri_regex(R"(^(([^:\/?#]+):)?(//(.*)))", std::regex::extended | std::regex::optimize);
-    std::smatch uri_match_result;
-
-    if (!std::regex_match(m_base_uri_, uri_match_result, uri_regex)) {
-        RUNTIME_ERROR << " illegal uri! [" << uri << "]" << std::endl;
-    }
-
-    std::string scheme = uri_match_result[2].str();
-    std::string path = uri_match_result[4].str();
-
-    m_backend_ = GLOBAL_DATA_BACKEND_FACTORY.Create(scheme);
-    m_backend_->Connect(path);
+DataTable::DataTable() : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create("mem://")){};
+DataTable::DataTable(std::string const& uri, std::string const& param)
+    : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create(uri, param)) {
+    ;
 };
 DataTable::DataTable(std::shared_ptr<DataBackend> const& p) : m_backend_(p){};
 DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->Duplicate())) {}
@@ -36,9 +26,7 @@ DataTable::~DataTable(){};
 void DataTable::swap(DataTable& other) { std::swap(m_backend_, other.m_backend_); };
 void DataTable::Flush() { m_backend_->Flush(); }
 
-std::shared_ptr<DataTable> DataTable::Create(std::string const& scheme) {
-    return std::make_shared<DataTable>(GLOBAL_DATA_BACKEND_FACTORY.Create(scheme));
-}
+
 std::shared_ptr<DataEntity> DataTable::Clone() const {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(m_backend_->Duplicate()));
 }
@@ -50,7 +38,7 @@ void DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v
 void DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { m_backend_->Add(uri, v); };
 size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
 
-//std::shared_ptr<DataTable> DataTable::AddTable(std::string const& uri) {
+// std::shared_ptr<DataTable> DataTable::AddTable(std::string const& uri) {
 //    std::shared_ptr<DataEntity> res = Get(uri);
 //    if (res == nullptr && !res->isTable()) {
 //        res = std::make_shared<DataTable>(m_backend_->Duplicate());

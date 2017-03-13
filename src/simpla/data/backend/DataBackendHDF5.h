@@ -9,9 +9,9 @@
 namespace simpla {
 namespace data {
 class DataBackendHDF5 : public DataBackend {
-   public:
-    static constexpr char scheme_tag[] = "h5";
+    SP_OBJECT_HEAD(DataBackendHDF5, DataBackend);
 
+   public:
     DataBackendHDF5();
     DataBackendHDF5(DataBackendHDF5 const&);
     DataBackendHDF5(DataBackendHDF5&&);
@@ -20,7 +20,6 @@ class DataBackendHDF5 : public DataBackend {
     virtual ~DataBackendHDF5();
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-    virtual std::string scheme() const;
     virtual std::shared_ptr<DataBackend> Duplicate() const;
     virtual std::shared_ptr<DataBackend> CreateNew() const;
 

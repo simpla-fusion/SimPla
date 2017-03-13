@@ -30,7 +30,7 @@ class DataTable : public DataEntity {
 
    public:
     DataTable();
-    DataTable(std::string const& uri);
+    DataTable(std::string const& uri, std::string const& param = "");
     DataTable(std::shared_ptr<DataBackend> const& p);
     DataTable(const DataTable&);
     DataTable(DataTable&&);
