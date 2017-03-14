@@ -49,7 +49,7 @@ void create_scenario(engine::Manager *ctx, data::DataTable const &options) {
         auto &pml_domain = ctx->GetDomainView("Vacuum");
         auto &pml_worker = pml_domain.AddWorker<PML<mesh_type>>();
         pml_worker.SetCenterDomain(in_box);
-        pml_worker.db().Merge(options.GetTable("PML"));
+        pml_worker.db().SetValue(options.GetTable("PML"));
 
         //        index_type w = options["PML.Width"].as<index_type>(5);
         //        size_tuple dims = center_mesh->dimensions();

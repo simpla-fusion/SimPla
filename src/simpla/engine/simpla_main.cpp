@@ -10,7 +10,6 @@
 #include <simpla/engine/Manager.h>
 //#include <simpla/io/IO.h>
 //#include <simpla/parallel/Parallel.h>
-#include <simpla/toolbox/ConfigParser.h>
 #include <simpla/toolbox/Logo.h>
 #include <simpla/toolbox/parse_command_line.h>
 
@@ -21,7 +20,6 @@ using namespace simpla;
 
 int main(int argc, char **argv) {
     //    parallel::init(argc, argv);
-    toolbox::ConfigParser options;
     //    std::shared_ptr<toolbox::IOStream> os;
     {
         std::string output_file = "simpla.h5";
@@ -36,37 +34,21 @@ int main(int argc, char **argv) {
                                [&](std::string const &opt, std::string const &value) -> int {
                                    if (opt == "i" || opt == "input") {
                                        conf_file = value;
-                                   }
-
-                                   else if (opt == "prologue") {
+                                   } else if (opt == "prologue") {
                                        conf_epilogue = value;
-                                   }
-
-                                   else if (opt == "e" || opt == "execute" || opt == "epilogue") {
+                                   } else if (opt == "e" || opt == "execute" || opt == "epilogue") {
                                        conf_epilogue = value;
-                                   }
-
-                                   else if (opt == "o" || opt == "output") {
+                                   } else if (opt == "o" || opt == "output") {
                                        output_file = value;
-                                   }
-
-                                   else if (opt == "log") {
+                                   } else if (opt == "log") {
                                        logger::open_file(value);
-                                   }
-
-                                   else if (opt == "V" || opt == "verbose") {
+                                   } else if (opt == "V" || opt == "verbose") {
                                        logger::set_stdout_level(std::atoi(value.c_str()));
-                                   }
-
-                                   else if (opt == "quiet") {
+                                   } else if (opt == "quiet") {
                                        logger::set_stdout_level(logger::LOG_MESSAGE - 1);
-                                   }
-
-                                   else if (opt == "log_width") {
+                                   } else if (opt == "log_width") {
                                        logger::set_line_width(std::atoi(value.c_str()));
-                                   }
-
-                                   else if (opt == "v" || opt == "version") {
+                                   } else if (opt == "v" || opt == "version") {
                                        MESSAGE << "SIMPla " << ShowVersion();
                                        TheEnd(0);
                                        return TERMINATE;
@@ -102,7 +84,8 @@ int main(int argc, char **argv) {
                                        TheEnd(0);
                                        return TERMINATE;
                                    } else {
-                                       options.add(opt, (value == "") ? "true" : value);
+                                       //                                       options.add(opt, (value == "") ? "true"
+                                       //                                       : value);
                                    }
 
                                    return CONTINUE;
@@ -113,11 +96,11 @@ int main(int argc, char **argv) {
 
         MESSAGE << ShowLogo() << std::endl;
 
-        options.parse(conf_file, conf_prologue, conf_epilogue);
+        //        options.parse(conf_file, conf_prologue, conf_epilogue);
 
         //        os = toolbox::create_from_output_url(output_file);
     }
-    data::DataTable db(<#initializer#>);
+    data::DataTable db;
     engine::Manager ctx;
 
     create_scenario(&ctx, db);

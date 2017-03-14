@@ -54,8 +54,7 @@ struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
 
     template <typename... Args>
     AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int TAG, Args &&... args)
-        : AttributeDesc(name_s, t_id, IFORM, DOF, TAG), m_db_(<#initializer#>)
-    {
+        : AttributeDesc(name_s, t_id, IFORM, DOF, TAG) {
         db().Set(std::forward<Args>(args)...);
     };
     ~AttributeDesc();

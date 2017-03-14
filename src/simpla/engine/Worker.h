@@ -12,8 +12,7 @@
 #include <set>
 #include <vector>
 
-#include <simpla/concept/Configurable.h>
-#include <simpla/concept/Printable.h>
+ #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/engine/SPObject.h>
 #include <simpla/model/Model.h>

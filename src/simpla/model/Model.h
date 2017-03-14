@@ -5,7 +5,6 @@
 #ifndef SIMPLA_MODEL_H
 #define SIMPLA_MODEL_H
 
-#include <simpla/concept/Configurable.h>
 #include <simpla/engine/AttributeView.h>
 #include <simpla/engine/MeshView.h>
 #include <simpla/mesh/EntityId.h>

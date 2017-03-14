@@ -8,13 +8,12 @@
 #define SIMPLA_MESH_MESHATLAS_H
 
 #include <simpla/algebra/nTuple.h>
-#include <simpla/concept/Configurable.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/concept/Serializable.h>
 #include <simpla/toolbox/Log.h>
 #include <type_traits>
-#include "SPObject.h"
 #include "MeshBlock.h"
+#include "SPObject.h"
 
 namespace simpla {
 namespace engine {

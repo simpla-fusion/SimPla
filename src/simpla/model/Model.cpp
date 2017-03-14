@@ -15,7 +15,7 @@ struct Model::pimpl_s {
 };
 
 Model::Model() : m_pimpl_(new pimpl_s) {
-    db().CreateTable("Material");
+    db().GetTable("/Material/");
     SPObject::Click();
 }
 
@@ -30,13 +30,11 @@ bool Model::Update() {
     return SPObject::Update();
 };
 box_type const& Model::bound_box() const { return m_pimpl_->m_bound_box_; };
-data::DataTable const& Model::GetMaterial(std::string const& s) const {
-    return *db().at("Material." + s).as<DataTable>();
-}
+data::DataTable const& Model::GetMaterial(std::string const& s) const { return db().GetTable("/Material." + s + "/"); }
 data::DataTable& Model::GetMaterial(std::string const& s) {
     std::string url = "Material." + s;
-    if (!db().has(url)) { db().CreateTable(url).SetValue("GUID", std::hash<std::string>{}(s)); }
-    return *db().at(url).as<DataTable>();
+    if (db().Get(url) != nullptr) { db().GetTable(url).SetValue("GUID", std::hash<std::string>{}(s)); }
+    return db().GetTable(url);
 }
 id_type Model::AddObject(geometry::GeoObject const& g_obj, id_type id) {
     Click();

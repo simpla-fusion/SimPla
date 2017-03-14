@@ -59,6 +59,22 @@ class DataTable : public DataEntity {
     /** Interface End */
     //******************************************************************************************************************
 
+    bool has(std::string const& uri) const { return Get(uri) != nullptr; }
+
+    DataTable& GetTable(std::string const& uri) {
+        auto p = Get(uri);
+        if (p != nullptr) {
+            Set(uri);
+            p = Get(uri);
+        };
+        ASSERT(p != nullptr);
+        return p->cast_as<DataTable>();
+    }
+    DataTable const& GetTable(std::string const& uri) const {
+        auto p = Get(uri);
+        ASSERT(p != nullptr);
+        return p->cast_as<DataTable>();
+    }
     template <typename U>
     auto GetValue(std::string const& uri) const {
         return data_cast<U>(*Get(uri));

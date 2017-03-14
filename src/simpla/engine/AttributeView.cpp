@@ -38,7 +38,7 @@ std::pair<std::shared_ptr<AttributeDesc>, bool> AttributeDict::Register(std::sha
     if (res.second) {
         m_pimpl_->m_name_map_.emplace(p->GetName(), gid);
     } else {
-//        res.first->second->db().merge(p->db());
+        //        res.first->second->db().merge(p->db());
     }
     return std::make_pair(res.first->second, res.second);
 }
@@ -118,7 +118,8 @@ AttributeDesc::AttributeDesc(const std::string &name_s, const std::type_info &t_
       m_iform_(IFORM),
       m_dof_(DOF),
       m_tag_(tag),
-      m_GUID_(GenerateGUID(name_s, t_id, IFORM, DOF, tag)), m_db_(<#initializer#>) {}
+      m_GUID_(GenerateGUID(name_s, t_id, IFORM, DOF, tag)),
+      m_db_() {}
 
 AttributeDesc::~AttributeDesc() {}
 
