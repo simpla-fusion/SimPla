@@ -16,9 +16,7 @@ namespace simpla {
 namespace data {
 DataTable::DataTable() : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create("mem://")){};
 DataTable::DataTable(std::string const& uri, std::string const& param)
-    : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create(uri, param)) {
-    ;
-};
+    : m_backend_(GLOBAL_DATA_BACKEND_FACTORY.Create(uri, param)){};
 DataTable::DataTable(std::shared_ptr<DataBackend> const& p) : m_backend_(p){};
 DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->Duplicate())) {}
 DataTable::DataTable(DataTable&& other) : m_backend_(std::move(other.m_backend_)) {}
