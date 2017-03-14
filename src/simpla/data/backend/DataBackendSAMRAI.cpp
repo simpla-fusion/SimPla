@@ -50,11 +50,13 @@ struct DataBackendSAMRAI::pimpl_s {
 
 std::pair<DataBackendSAMRAI::pimpl_s::table_type, std::string> DataBackendSAMRAI::pimpl_s::get_table(
     table_type t, std::string const& uri, bool return_if_not_exist) {
-    return HierarchicalGetTable(t, uri, [&](table_type s_t, std::string const& k) { return s_t->isDatabase(k); },
-                                [&](table_type s_t, std::string const& k) { return s_t->getDatabase(k); },
-                                [&](table_type s_t, std::string const& k) {
-                                    return return_if_not_exist ? static_cast<table_type>(nullptr) : s_t->putDatabase(k);
-                                });
+    return HierarchicalTableForeach(t, uri, [&](table_type s_t, std::string const &k) { return s_t->isDatabase(k); },
+                                    [&](table_type s_t, std::string const &k) { return s_t->getDatabase(k); },
+                                    [&](table_type s_t, std::string const &k)
+                                    {
+                                        return return_if_not_exist ? static_cast<table_type>(nullptr)
+                                                                   : s_t->putDatabase(k);
+                                    });
 };
 
 DataBackendSAMRAI::DataBackendSAMRAI() : m_pimpl_(new pimpl_s) {

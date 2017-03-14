@@ -75,9 +75,10 @@ TEST(DataTable, hdf5) {
     logger::set_stdout_level(1000);
 
     LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
-    DataTable db("file:///home/salmon/workspace/SimPla/test/data/test.h5", "w");
-    db.SetValue("/a", "just a test");
-    db.SetValue("/c", {1.2346, 4.0, 5.0, 6.0, 6.1});
+    DataTable db("test.h5", "w");
+    db.SetValue("pi", 3.1415926);
+    db.SetValue("a", "just a test");
+//    db.SetValue("c", {1.2346, 4.0, 5.0, 6.0, 6.1});
     //    db.SetValue({"a"_, "not_debug"_ = false, "g"_ = {1, 2, 3, 4, 5, 5, 6, 6},
     //                 "c"_ = {" world!", "hello!", "hello !", "hello!", "hello !", "hello !", "hello !", "hello!"}});
     //    db.SetValue("h", {{"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}, {"abc"_ = "def"}});
@@ -88,7 +89,7 @@ TEST(DataTable, hdf5) {
     //    db.AddValue("/b/sub/d", 5);
     //    db.AddValue("/b/sub/d", 5);
 
-    db.SetValue("/b/sub/a", {3, 5, 3, 4});
+    //    db.SetValue("/b/sub/a", {3, 5, 3, 4});
     db.SetValue("/b/sub/b", 9);
-    LOGGER << "h5:// " << *db.Get("b") << std::endl;
+    LOGGER << "h5:// " << db << std::endl;
 }

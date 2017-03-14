@@ -33,9 +33,9 @@ static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::re
  * @return
  */
 template <typename T, typename FunCheckTable, typename FunGetTable, typename FunAddTable>
-std::pair<T, std::string> HierarchicalGetTable(T self, std::string const &uri, FunCheckTable const &check,
-                                               FunGetTable const &get, FunAddTable const &add,
-                                               bool return_if_not_exist = false) {
+std::pair<T, std::string> HierarchicalTableForeach(T self, std::string const &uri, FunCheckTable const &check,
+                                                   FunGetTable const &get, FunAddTable const &add,
+                                                   bool return_if_not_exist = false) {
     std::smatch uri_match_result;
 
     if (!std::regex_match(uri, uri_match_result, match_path_regex)) {

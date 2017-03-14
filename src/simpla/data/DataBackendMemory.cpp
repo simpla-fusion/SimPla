@@ -25,30 +25,30 @@ struct DataBackendMemory::pimpl_s {
 
 std::pair<DataBackendMemory::pimpl_s::table_type*, std::string> DataBackendMemory::pimpl_s::get_table(
     table_type* t, std::string const& uri, bool return_if_not_exist) {
-    return HierarchicalGetTable(t, uri,
-                                [&](table_type *s_t, std::string const &k)
-                                {
-                                    auto res = s_t->find(k);
-                                    return res != s_t->end() && res->second->isTable();
-                                },
-                                [&](table_type *s_t, std::string const &k)
-                                {
-                                    return &(std::dynamic_pointer_cast<DataTable>(s_t->find(k)->second)
-                                            ->backend()
-                                            ->cast_as<DataBackendMemory>()
-                                            .m_pimpl_->m_table_);
-                                },
-                                [&](table_type *s_t, std::string const &k)
-                                {
-                                    if (return_if_not_exist) { return static_cast<table_type *>(nullptr); }
-                                    return &(s_t->emplace(k, std::make_shared<DataTable>(
-                                                    std::make_shared<DataBackendMemory>()))
-                                            .first->second->cast_as<DataTable>()
-                                            .backend()
-                                            ->cast_as<DataBackendMemory>()
-                                            .m_pimpl_->m_table_);
+    return HierarchicalTableForeach(t, uri,
+                                    [&](table_type *s_t, std::string const &k)
+                                    {
+                                        auto res = s_t->find(k);
+                                        return res != s_t->end() && res->second->isTable();
+                                    },
+                                    [&](table_type *s_t, std::string const &k)
+                                    {
+                                        return &(std::dynamic_pointer_cast<DataTable>(s_t->find(k)->second)
+                                                ->backend()
+                                                ->cast_as<DataBackendMemory>()
+                                                .m_pimpl_->m_table_);
+                                    },
+                                    [&](table_type *s_t, std::string const &k)
+                                    {
+                                        if (return_if_not_exist) { return static_cast<table_type *>(nullptr); }
+                                        return &(s_t->emplace(k, std::make_shared<DataTable>(
+                                                        std::make_shared<DataBackendMemory>()))
+                                                .first->second->cast_as<DataTable>()
+                                                .backend()
+                                                ->cast_as<DataBackendMemory>()
+                                                .m_pimpl_->m_table_);
 
-                                });
+                                    });
 };
 
 DataBackendMemory::DataBackendMemory() : m_pimpl_(new pimpl_s) {}
