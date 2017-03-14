@@ -54,9 +54,11 @@ void EMTokamakWorker::Initialize() {
     base_type::Initialize();
     // first run, only Load configure, m_mesh_=nullptr
 
-    db().asTable("Particles").foreach ([&](std::string const &key, data::DataEntity const &item) {
-        AddSpecies(key, item.asTable());
-    });
+    db().Get("Particles")
+        ->cast_as<DataTable>()
+        .Accept([&](std::string const &key, std::shared_ptr<data::DataEntity> const &item) {
+            AddSpecies(key, item->cast_as<DataTable>());
+        });
 
     //    db.SetValue("bound_box", geqdsk.box());
 };

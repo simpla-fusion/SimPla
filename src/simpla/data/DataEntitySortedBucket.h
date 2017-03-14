@@ -6,7 +6,7 @@
 #define SIMPLA_DATAENTITYSORTEDBUCKET_H
 namespace simpla { namespace data
 {
-class DataEntitySortedBucket : public DatEntity
+class DataEntitySortedBucket : public DataEntity
 {
 
 };

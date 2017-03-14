@@ -13,9 +13,6 @@
 namespace simpla {
 namespace data {
 
-constexpr char DataBackendMemory::scheme_tag[];
-std::string DataBackendMemory::scheme() const { return scheme_tag; }
-
 struct DataBackendMemory::pimpl_s {
     typedef std::map<std::string, std::shared_ptr<DataEntity>> table_type;
     table_type m_table_;
@@ -76,7 +73,12 @@ size_type DataBackendMemory::size() const { return m_pimpl_->m_table_.size(); }
 
 std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const {
     auto res = m_pimpl_->get_table(&(m_pimpl_->m_table_), url);
-    return res.first != nullptr ? res.first->at(res.second) : std::make_shared<DataEntity>();
+    if (res.first != nullptr || res.second != "") {
+        auto it = res.first->find(res.second);
+        if (it != res.first->end()) { return it->second; }
+    }
+
+    return std::make_shared<DataEntity>();
 };
 
 void DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
@@ -88,19 +90,18 @@ void DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> 
 }
 void DataBackendMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
     auto tab_res = pimpl_s::get_table(&(m_pimpl_->m_table_), uri, false);
-    if (tab_res.second != "") {
-        auto res = tab_res.first->emplace(tab_res.second, std::make_shared<DataArrayWrapper<void>>());
-        if (res.first->second->isArray() && res.first->second->type() == v->type()) {
-        } else if (!res.first->second->isA<DataArrayWrapper<void>>()) {
-            auto t_array = std::make_shared<DataArrayWrapper<void>>();
-            t_array->Add(res.first->second);
-            res.first->second = t_array;
-        }
-        std::dynamic_pointer_cast<DataArray>(res.first->second)->Add(v);
-        //        else {
-        //            RUNTIME_ERROR << "object is not appendable!" << res.first->second->type().name() << std::endl;
-        //        }
+    if (tab_res.second == "") { return; }
+    auto res = tab_res.first->emplace(tab_res.second, std::make_shared<DataArrayWrapper<void>>());
+    if (res.first->second->isArray() && res.first->second->type() == v->type()) {
+    } else if (!res.first->second->isA<DataArrayWrapper<void>>()) {
+        auto t_array = std::make_shared<DataArrayWrapper<void>>();
+        t_array->Add(res.first->second);
+        res.first->second = t_array;
     }
+    std::dynamic_pointer_cast<DataArray>(res.first->second)->Add(v);
+    //        else {
+    //            RUNTIME_ERROR << "object is not appendable!" << res.first->second->type().name() << std::endl;
+    //        }
 }
 size_type DataBackendMemory::Delete(std::string const& uri) {
     auto res = m_pimpl_->get_table(&(m_pimpl_->m_table_), uri);

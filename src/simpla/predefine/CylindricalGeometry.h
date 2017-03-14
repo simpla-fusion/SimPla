@@ -43,7 +43,7 @@ struct CylindricalGeometry : public engine::MeshView {
 
     template <typename... Args>
     explicit CylindricalGeometry(Args &&... args) : MeshView() {
-//        engine::AttributeViewBundle::Attach(this);
+        //        engine::AttributeViewBundle::Attach(this);
     }
 
     virtual ~CylindricalGeometry() {}
@@ -119,10 +119,10 @@ struct CylindricalGeometry : public engine::MeshView {
         return point_type{x, y, z};
     }
 
-    virtual Real volume(MeshEntityId s) const { return m_volume_[GetMeshBlock()->hash(s)]; }
-    virtual Real dual_volume(MeshEntityId s) const { return m_volume_[GetMeshBlock()->hash(s)]; }
-    virtual Real inv_volume(MeshEntityId s) const { return m_volume_[GetMeshBlock()->hash(s)]; }
-    virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_[GetMeshBlock()->hash(s)]; }
+    virtual Real volume(MeshEntityId s) const { return m_volume_[0 /*GetMeshBlock()->hash(s)*/]; }
+    virtual Real dual_volume(MeshEntityId s) const { return m_volume_[0 /*GetMeshBlock()->hash(s)*/]; }
+    virtual Real inv_volume(MeshEntityId s) const { return m_volume_[0 /*GetMeshBlock()->hash(s)*/]; }
+    virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_[0 /*GetMeshBlock()->hash(s)*/]; }
 
     virtual void Initialize() {
         m_vertics_.Clear();
@@ -159,12 +159,12 @@ struct CylindricalGeometry : public engine::MeshView {
         index_type je = upper[1];
         index_type kb = lower[2];
         index_type ke = upper[2];
-        auto m_dx_ = GetMeshBlock()->dx();
+        point_type m_dx_;  // = GetMeshBlock()->dx();
 
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) {
-                    auto x = GetMeshBlock()->point(i, j, k);
+                    point_type x;  //= GetMeshBlock()->point(i, j, k);
                     m_vertics_(i, j, k, 0) = x[0] * std::cos(x[1]);
                     m_vertics_(i, j, k, 1) = x[0] * std::sin(x[1]);
                     m_vertics_(i, j, k, 2) = x[2];

@@ -17,8 +17,6 @@ class TimeIntegrator : public Manager {
     TimeIntegrator() {}
     virtual ~TimeIntegrator() {}
 
-
-
     virtual void UpdateLevel(int l0, int l1) { UNIMPLEMENTED; };
     virtual void Advance(Real dt, int level = 0) { UNIMPLEMENTED; };
     virtual size_type NextTimeStep(Real dt) { return 0; };

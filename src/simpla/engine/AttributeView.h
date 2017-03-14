@@ -43,6 +43,7 @@ enum AttributeTag {
     PERSISTENT = 1 << 2,   //
     INPUT = 1 << 3,        //  can only be written once
     COORDINATES = 1 << 4,  //  coordinate of mesh vertex
+    NO_FILL,
     GLOBAL = SHARED | GHOSTED | PERSISTENT,
     PRIVATE = GHOSTED | PERSISTENT,
     DEFAULT_ATTRIBUTE_TAG = GLOBAL

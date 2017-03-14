@@ -23,7 +23,6 @@ class DataBackendMemory : public DataBackend {
     DataBackendMemory(DataBackendMemory&&);
 
     virtual ~DataBackendMemory();
-    virtual std::string scheme() const;
     virtual std::shared_ptr<DataBackend> Duplicate() const;
     virtual std::shared_ptr<DataBackend> CreateNew() const;
     virtual void Flush();

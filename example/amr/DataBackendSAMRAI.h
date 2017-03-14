@@ -4,7 +4,7 @@
 
 #ifndef SIMPLA_DATABACKENDSAMRAI_H
 #define SIMPLA_DATABACKENDSAMRAI_H
-#include "../DataBackend.h"
+#include <simpla/data/all.h>
 namespace simpla {
 namespace data {
 class DataBackendSAMRAI : public DataBackend {
@@ -28,6 +28,8 @@ class DataBackendSAMRAI : public DataBackend {
     virtual size_type Delete(std::string const& URI);
     virtual size_type size() const;
     virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+
+    boost::shared_ptr<SAMRAI::tbox::Database> db();
 
    private:
     struct pimpl_s;

@@ -6,7 +6,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
-#include <simpla/data/DataTable.h>
+#include <simpla/data/all.h>
 #include <simpla/engine/AttributeView.h>
 #include <simpla/engine/DataBlock.h>
 #include <simpla/engine/DomainView.h>
@@ -78,10 +78,12 @@
 #include <SAMRAI/appu/VisItDataWriter.h>
 #include <SAMRAI/pdat/NodeDoubleLinearTimeInterpolateOp.h>
 #include <SAMRAI/pdat/SideVariable.h>
+#include <simpla/data/DataBackend.h>
 #include <simpla/engine/TimeIntegrator.h>
 #include <simpla/physics/Constants.h>
-
+#include "DataBackendSAMRAI.h"
 namespace simpla {
+
 struct SAMRAIPatchProxy : public engine::Patch {
    public:
     SAMRAIPatchProxy(SAMRAI::hier::Patch &patch, boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
@@ -111,7 +113,8 @@ SAMRAIPatchProxy::SAMRAIPatchProxy(SAMRAI::hier::Patch &patch, boost::shared_ptr
     index_type lo[3] = {patch.getBox().lower()[0], patch.getBox().lower()[1], patch.getBox().lower()[2]};
     index_type hi[3] = {patch.getBox().upper()[0], patch.getBox().upper()[1], patch.getBox().upper()[2]};
 
-    std::shared_ptr<simpla::engine::MeshBlock> m = std::make_shared<simpla::engine::MeshBlock>(3, lo, hi, dx, xlo);
+    //    std::shared_ptr<simpla::engine::MeshBlock> m = std::make_shared<simpla::engine::MeshBlock>(3, lo, hi, dx,
+    //    xlo);
     //    m->id(static_cast<id_type>(patch.getBox().getGlobalId().getOwnerRank() * 10000 +
     //                               patch.getBox().getGlobalId().getLocalId().getValue()));
     //    this->SetMeshBlock(m);
@@ -681,7 +684,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     bool m_is_valid_ = false;
     Real m_dt_now_ = 10000;
 
-    boost::shared_ptr<SAMRAI::tbox::Database> samrai_cfg;
+    //    boost::shared_ptr<SAMRAI::tbox::Database> samrai_cfg;
     boost::shared_ptr<SAMRAI_HyperbolicPatchStrategyAdapter> hyperbolic_patch_strategy;
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
     boost::shared_ptr<SAMRAI::hier::PatchHierarchy> patch_hierarchy;
@@ -710,6 +713,8 @@ std::shared_ptr<engine::TimeIntegrator> create_time_integrator() {
 }
 
 SAMRAITimeIntegrator::SAMRAITimeIntegrator() : base_type() {
+    data::DataTable(std::make_shared<data::DataBackendSAMRAI>()).swap(db());
+
     /** Setup SAMRAI::tbox::MPI.      */
     SAMRAI::tbox::SAMRAI_MPI::init(GLOBAL_COMM.comm());
     SAMRAI::tbox::SAMRAIManager::initialize();
@@ -783,49 +788,49 @@ SAMRAITimeIntegrator::SAMRAITimeIntegrator() : base_type() {
     }
      */
 
-    db().SetValue("CartesianGeometry.domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
-    db().SetValue("CartesianGeometry.periodic_dimension", nTuple<int, 3>{1, 1, 1});
-    db().SetValue("CartesianGeometry.x_lo", nTuple<double, 3>{1.0, 0.0, -1.0});
-    db().SetValue("CartesianGeometry.x_up", nTuple<double, 3>{2, PI, 1});
+    db().SetValue("CartesianGeometry/domain_boxes_0", {{0, 0, 0}, {16, 16, 16}});
+    db().SetValue("CartesianGeometry/periodic_dimension", {1, 1, 1});
+    db().SetValue("CartesianGeometry/x_lo", {1.0, 0.0, -1.0});
+    db().SetValue("CartesianGeometry/x_up", {2.0, PI, 1.0});
     // Maximum number of levels in hierarchy.
-    db().SetValue("PatchHierarchy.max_levels", int(3));
-    db().SetValue("PatchHierarchy.ratio_to_coarser.level_1", nTuple<int, 3>{2, 2, 1});
-    db().SetValue("PatchHierarchy.ratio_to_coarser.level_2", nTuple<int, 3>{2, 2, 1});
-    db().SetValue("PatchHierarchy.ratio_to_coarser.level_3", nTuple<int, 3>{2, 2, 1});
-    db().SetValue("PatchHierarchy.largest_patch_size.level_0", nTuple<int, 3>{32, 32, 32});
-    db().SetValue("PatchHierarchy.smallest_patch_size.level_0", nTuple<int, 3>{4, 4, 4});
+    db().SetValue("PatchHierarchy/max_levels", int(3));
+    db().SetValue("PatchHierarchy/ratio_to_coarser.level_1", {2, 2, 1});
+    db().SetValue("PatchHierarchy/ratio_to_coarser.level_2", {2, 2, 1});
+    db().SetValue("PatchHierarchy/ratio_to_coarser.level_3", {2, 2, 1});
+    db().SetValue("PatchHierarchy/largest_patch_size.level_0", {32, 32, 32});
+    db().SetValue("PatchHierarchy/smallest_patch_size.level_0", {4, 4, 4});
 
-    db().AddTable("GriddingAlgorithm");
+    db().SetValue("GriddingAlgorithm/");
     // Makes results repeatable.
-    db().SetValue("BergerRigoutsos.sort_output_nodes", true);
+    db().SetValue("BergerRigoutsos/sort_output_nodes", true);
     // min % of GetTag cells in new patch level
-    db().SetValue("BergerRigoutsos.efficiency_tolerance", 0.85);
+    db().SetValue("BergerRigoutsos/efficiency_tolerance", 0.85);
     // chop box if sum of volumes of smaller
     //    // boxes < efficiency * vol of large box
-    db().SetValue("BergerRigoutsos.combine_efficiency", 0.95);
+    db().SetValue("BergerRigoutsos/combine_efficiency", 0.95);
 
     // Refer to mesh::StandardTagAndInitialize for input
-    db().SetValue("StandardTagAndInitialize.tagging_method", "GRADIENT_DETECTOR");
+    db().SetValue("StandardTagAndInitialize/tagging_method", "GRADIENT_DETECTOR");
 
     // Refer to algs::HyperbolicLevelIntegrator for input
     // max cfl factor used in problem
-    db().SetValue("HyperbolicLevelIntegrator.cfl", 0.9);
-    db().SetValue("HyperbolicLevelIntegrator.cfl_init", 0.9);  // initial cfl factor
-    db().SetValue("HyperbolicLevelIntegrator.lag_dt_computation", true);
-    db().SetValue("HyperbolicLevelIntegrator.use_ghosts_to_compute_dt", true);
+    db().SetValue("HyperbolicLevelIntegrator/cfl", 0.9);
+    db().SetValue("HyperbolicLevelIntegrator/cfl_init", 0.9);  // initial cfl factor
+    db().SetValue("HyperbolicLevelIntegrator/lag_dt_computation", true);
+    db().SetValue("HyperbolicLevelIntegrator/use_ghosts_to_compute_dt", true);
 
     // Refer to algs::TimeRefinementIntegrator for input
     // initial simulation time
-    db().SetValue("TimeRefinementIntegrator.start_time", 0.e0);
+    db().SetValue("TimeRefinementIntegrator/start_time", 0.e0);
     // final simulation time
-    db().SetValue("TimeRefinementIntegrator.end_time", 1.e0);
+    db().SetValue("TimeRefinementIntegrator/end_time", 1.e0);
     // growth factor for timesteps
-    db().SetValue("TimeRefinementIntegrator.grow_dt", 1.1e0);
+    db().SetValue("TimeRefinementIntegrator/grow_dt", 1.1e0);
     // max number of simulation timesteps
-    db().SetValue("TimeRefinementIntegrator.max_integrator_steps", 5);
+    db().SetValue("TimeRefinementIntegrator/max_integrator_steps", 5);
 
     // Refer to mesh::TreeLoadBalancer for input
-    db().AddTable("LoadBalancer");
+    db().Set("LoadBalancer/");
 }
 
 SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
@@ -835,17 +840,19 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
 
 std::ostream &SAMRAITimeIntegrator::Print(std::ostream &os, int indent) const {
     SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(os);
-    if (samrai_cfg != nullptr) samrai_cfg->printClassData(os);
+    os << *db().backend() << std::endl;
     if (hyp_level_integrator != nullptr) hyp_level_integrator->printClassData(os);
     return os;
 };
 
 bool SAMRAITimeIntegrator::Update() {
-    if (isModified()) { return; }
+    if (isModified()) { return false; }
     engine::Manager::Update();
-    bool use_refined_timestepping = db().Get("use_refined_timestepping", <#initializer#>, <#initializer#>)->as<bool>(true);
+    bool use_refined_timestepping = SPObject::db<bool>("use_refined_timestepping", true);
     SAMRAI::tbox::Dimension dim(ndims);
-    samrai_cfg = simpla::detail::convert_database(db(), name());
+
+    auto samrai_cfg = dynamic_cast<data::DataBackendSAMRAI *>(db().backend())->db();
+    //    samrai_cfg = simpla::detail::convert_database(db(), name());
     samrai_cfg->printClassData(std::cout);
     /**
     * Create major algorithm and data objects which comprise application.
@@ -906,8 +913,8 @@ bool SAMRAITimeIntegrator::Update() {
         hyp_level_integrator, gridding_algorithm);
 
     visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
-            dim, db().Get("output_writer_name", <#initializer#>, <#initializer#>)->as<std::string>(name() + " VisIt Writer"),
-            db().Get("output_dir_name", <#initializer#>, <#initializer#>)->as<std::string>(name()), db().Get("visit_number_procs_per_file", <#initializer#>, <#initializer#>)->as<int>(1)));
+        dim, db<std::string>("output_writer_name", name() + " VisIt Writer"),
+        db<std::string>("output_dir_name", name()), db<int>("visit_number_procs_per_file", 1));
 
     hyperbolic_patch_strategy->registerVisItDataWriter(visit_data_writer);
 

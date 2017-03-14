@@ -13,12 +13,11 @@
 #include <SAMRAI/tbox/InputDatabase.h>
 #include <SAMRAI/tbox/InputManager.h>
 #include <simpla/data/DataUtility.h>
+#include <simpla/data/all.h>
 #include <simpla/toolbox/Log.h>
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
-#include "../DataArray.h"
-#include "../DataEntity.h"
-#include "../DataTable.h"
+
 #include "DataBackendSAMRAI.h"
 
 namespace simpla {
@@ -78,6 +77,8 @@ std::ostream& DataBackendSAMRAI::Print(std::ostream& os, int indent) const {
     m_pimpl_->m_samrai_db_->printClassData(os);
     return os;
 }
+
+boost::shared_ptr<SAMRAI::tbox::Database> DataBackendSAMRAI::db() { return m_pimpl_->m_samrai_db_; }
 std::shared_ptr<DataBackend> DataBackendSAMRAI::Duplicate() const { return std::make_shared<DataBackendSAMRAI>(*this); }
 std::shared_ptr<DataBackend> DataBackendSAMRAI::CreateNew() const { return std::make_shared<DataBackendSAMRAI>(); }
 

@@ -64,20 +64,20 @@ TEST(DataTable, lua) {
 //    LOGGER << "box  = " << db.GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
 }
 
-TEST(DataTable, samrai) {
-    logger::set_stdout_level(1000);
-
-    LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
-    DataTable db("samrai://");
-    //    db.SetValue("f", {1, 2, 3, 4, 5, 56, 6, 6});
-    //    db.SetValue("/d/e/f", "Just atest");
-    //    db.SetValue("/d/e/g", {"a"_ = "la la land", "b"_ = 1235.5});
-    //    db.SetValue("/d/e/e", 1.23456);
-    db.SetValue("box", {{1, 2, 3}, {4, 5, 6}});
-    LOGGER << *db.backend() << std::endl;
-    LOGGER << "box  = " << db.GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
-
-}
+//TEST(DataTable, samrai) {
+//    logger::set_stdout_level(1000);
+//
+//    LOGGER << "Registered DataBackend: " << GLOBAL_DATA_BACKEND_FACTORY.GetBackendList() << std::endl;
+//    DataTable db("samrai://");
+//    //    db.SetValue("f", {1, 2, 3, 4, 5, 56, 6, 6});
+//    //    db.SetValue("/d/e/f", "Just atest");
+//    //    db.SetValue("/d/e/g", {"a"_ = "la la land", "b"_ = 1235.5});
+//    //    db.SetValue("/d/e/e", 1.23456);
+//    db.SetValue("box", {{1, 2, 3}, {4, 5, 6}});
+//    LOGGER << *db.backend() << std::endl;
+//    LOGGER << "box  = " << db.GetValue<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>("box") << std::endl;
+//
+//}
 
 TEST(DataTable, hdf5) {
     logger::set_stdout_level(1000);

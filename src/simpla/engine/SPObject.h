@@ -83,9 +83,20 @@ class SPObject {
     SPObject(SPObject const &) = delete;
     SPObject &operator=(SPObject const &other) = delete;
     virtual ~SPObject();
+    std::string const &name() const;
+    void name(std::string const &);
 
     simpla::data::DataTable const &db() const;
     simpla::data::DataTable &db();
+    template <typename U>
+    U db(const std::string &uri) const {
+        return db().GetValue<U>(uri);
+    }
+    template <typename U>
+    U db(const std::string &uri, U const &default_value) const {
+        return db().GetValue<U>(uri, default_value);
+    }
+
     id_type id() const;
     bool operator==(SPObject const &other);
 

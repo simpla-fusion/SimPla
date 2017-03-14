@@ -47,12 +47,10 @@ struct DataArrayWrapper<void> : public DataArray {
     };
 
     virtual ~DataArrayWrapper(){};
-
+    virtual void resize(size_type s) { m_data_.resize(s); }
     virtual size_type size() const { return m_data_.size(); }
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return m_data_[idx]; }
-    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) {
-        if (idx < size()) { m_data_[idx] = v; }
-    }
+    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) { m_data_[idx] = v; }
     virtual void Add(std::shared_ptr<DataEntity> const& v) { m_data_.push_back(v); }
     virtual void Delete(size_type idx) { m_data_.erase(m_data_.begin() + idx); }
     virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
@@ -128,12 +126,7 @@ std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<std::initiali
     for (auto const& v : u) { res->Add(make_data_entity(v)); }
     return std::dynamic_pointer_cast<DataEntity>(res);
 }
-template <typename U, int N>
-std::shared_ptr<DataEntity> make_data_entity(nTuple<U, N> const& u) {
-    auto res = std::make_shared<DataArrayWrapper<U, 1>>();
-    for (int i = 0; i < N; ++i) { res->Add(u[i]); }
-    return std::dynamic_pointer_cast<DataEntity>(res);
-}
+
 template <typename U, int N>
 struct data_entity_traits<nTuple<U, N>, std::enable_if_t<traits::is_light_data<U>::value>> {
     static nTuple<U, N> from(DataEntity const& v) {
@@ -141,6 +134,12 @@ struct data_entity_traits<nTuple<U, N>, std::enable_if_t<traits::is_light_data<U
         for (int i = 0; i < N; ++i) { res[i] = data_cast<U>(*v.cast_as<DataArray>().Get(i)); };
         return std::move(res);
     };
+
+    static std::shared_ptr<DataEntity> to(nTuple<U, N> const& u) {
+        auto res = std::make_shared<DataArrayWrapper<U, 1>>();
+        for (int i = 0; i < N; ++i) { res->Add(u[i]); }
+        return std::dynamic_pointer_cast<DataEntity>(res);
+    }
 };
 template <typename U, int N, int M>
 struct data_entity_traits<nTuple<U, N, M>, std::enable_if_t<traits::is_light_data<U>::value>> {
@@ -152,28 +151,53 @@ struct data_entity_traits<nTuple<U, N, M>, std::enable_if_t<traits::is_light_dat
             };
         return std::move(res);
     };
+
+    static std::shared_ptr<DataEntity> to(nTuple<U, N, M> const& v) {
+        auto res = std::make_shared<DataArrayWrapper<void>>();
+        for (int i = 0; i < N; ++i) { res->Add(make_data_entity(v[i])); }
+        return std::dynamic_pointer_cast<DataEntity>(res);
+    };
 };
 namespace detail {
 template <typename V>
-void _helper0(DataEntity const& v, V& u) {
+void data_entity_from_helper0(DataEntity const& v, V& u) {
     u = data_cast<V>(v);
 }
 template <typename... U>
-void _helper(DataArray const&, std::tuple<U...>& v, std::integral_constant<int, 0>){};
+void data_entity_from_helper(DataArray const&, std::tuple<U...>& v, std::integral_constant<int, 0>){};
 
 template <int N, typename... U>
-void _helper(DataArray const& a, std::tuple<U...>& v, std::integral_constant<int, N>) {
-    _helper0(*a.Get(N - 1), std::get<N - 1>(v));
-    _helper(a, v, std::integral_constant<int, N - 1>());
+void data_entity_from_helper(DataArray const& a, std::tuple<U...>& v, std::integral_constant<int, N>) {
+    data_entity_from_helper0(*a.Get(N - 1), std::get<N - 1>(v));
+    data_entity_from_helper(a, v, std::integral_constant<int, N - 1>());
+};
+
+template <typename V>
+void data_entity_to_helper0(V const& src, DataArray& dest, size_type N) {
+    dest.Set(N, data_entity_traits<V>::to(src));
+}
+template <typename... U>
+void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, 0>){};
+
+template <int N, typename... U>
+void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, N>) {
+    data_entity_to_helper0(std::get<N - 1>(src), dest, N);
+    data_entity_to_helper(src, dest, std::integral_constant<int, N - 1>());
 };
 }
 template <typename... U>
 struct data_entity_traits<std::tuple<U...>> {
     static std::tuple<U...> from(DataEntity const& v) {
         std::tuple<U...> res;
-        detail::_helper(v.cast_as<DataArray>(), res, std::integral_constant<int, sizeof...(U)>());
+        detail::data_entity_from_helper(v.cast_as<DataArray>(), res, std::integral_constant<int, sizeof...(U)>());
         return std::move(res);
     };
+    static std::shared_ptr<DataEntity> to(std::tuple<U...> const& v) {
+        auto p = std::make_shared<DataArrayWrapper<void>>();
+        p->resize(sizeof...(U));
+        detail::data_entity_to_helper(v, *p, std::integral_constant<int, sizeof...(U)>());
+        return p;
+    }
 };
 }  // namespace data{
 }  // namespace simpla{

@@ -30,74 +30,66 @@ int main(int argc, char **argv) {
 
         conf_file += ".lua";
 
-        simpla::parse_cmd_line(argc, argv,
-                               [&](std::string const &opt, std::string const &value) -> int {
-                                   if (opt == "i" || opt == "input") {
-                                       conf_file = value;
-                                   } else if (opt == "prologue") {
-                                       conf_epilogue = value;
-                                   } else if (opt == "e" || opt == "execute" || opt == "epilogue") {
-                                       conf_epilogue = value;
-                                   } else if (opt == "o" || opt == "output") {
-                                       output_file = value;
-                                   } else if (opt == "log") {
-                                       logger::open_file(value);
-                                   } else if (opt == "V" || opt == "verbose") {
-                                       logger::set_stdout_level(std::atoi(value.c_str()));
-                                   } else if (opt == "quiet") {
-                                       logger::set_stdout_level(logger::LOG_MESSAGE - 1);
-                                   } else if (opt == "log_width") {
-                                       logger::set_line_width(std::atoi(value.c_str()));
-                                   } else if (opt == "v" || opt == "version") {
-                                       MESSAGE << "SIMPla " << ShowVersion();
-                                       TheEnd(0);
-                                       return TERMINATE;
-                                   } else if (opt == "h" || opt == "help") {
-                                       /* @formatter:off */
-                                       MESSAGE << ShowLogo() << std::endl
-                                               << " Usage: " << argv[0] << "   <options> ..." << std::endl
-                                               << std::endl
-                                               << " Options:" << std::endl
-                                               << std::left << std::setw(20) << "  -h, --help "
-                                               << ": Print a usage message and exit." << std::endl
-                                               << std::left << std::setw(20) << "  -v, --version "
-                                               << ": Print version information exit. " << std::endl
-                                               << std::left << std::setw(20) << "  -V, --verbose "
-                                               << ": Verbose mode.  Print debugging messages," << std::endl
-                                               << std::left << std::setw(20) << "                "
-                                               << "   <-10 means quiet,  >10 means Print as much as it can.(default=0)"
-                                               << std::endl
-                                               << std::left << std::setw(20) << "  --quiet "
-                                               << ": quiet mode," << std::endl
-                                               << std::endl
-                                               << std::left << std::setw(20) << "  -o, --output  "
-                                               << ": Output file GetName (default: simpla.h5)." << std::endl
-                                               << std::left << std::setw(20) << "  -i, --input  "
-                                               << ": Input configure file (default:" + conf_file + ")" << std::endl
-                                               << std::left << std::setw(20) << "  -p, --prologue "
-                                               << ": Execute Lua script before configure file is Load" << std::endl
-                                               << std::left << std::setw(20) << "  -e, --epilogue "
-                                               << ": Execute Lua script after configure file is Load" << std::endl
-                                               << std::endl;
+        simpla::parse_cmd_line(  //
+            argc, argv, [&](std::string const &opt, std::string const &value) -> int {
+                if (opt == "i" || opt == "input") {
+                    conf_file = value;
+                } else if (opt == "prologue") {
+                    conf_epilogue = value;
+                } else if (opt == "e" || opt == "execute" || opt == "epilogue") {
+                    conf_epilogue = value;
+                } else if (opt == "o" || opt == "output") {
+                    output_file = value;
+                } else if (opt == "log") {
+                    logger::open_file(value);
+                } else if (opt == "V" || opt == "verbose") {
+                    logger::set_stdout_level(std::atoi(value.c_str()));
+                } else if (opt == "quiet") {
+                    logger::set_stdout_level(logger::LOG_MESSAGE - 1);
+                } else if (opt == "log_width") {
+                    logger::set_line_width(std::atoi(value.c_str()));
+                } else if (opt == "v" || opt == "version") {
+                    MESSAGE << "SIMPla " << ShowVersion();
+                    TheEnd(0);
+                    return TERMINATE;
+                } else if (opt == "h" || opt == "help") {
+                    /* @formatter:off */
+                    MESSAGE << ShowLogo() << std::endl
+                            << " Usage: " << argv[0] << "   <options> ..." << std::endl
+                            << std::endl
+                            << " Options:" << std::endl
+                            << std::left << std::setw(20) << "  -h, --help "
+                            << ": Print a usage message and exit." << std::endl
+                            << std::left << std::setw(20) << "  -v, --version "
+                            << ": Print version information exit. " << std::endl
+                            << std::left << std::setw(20) << "  -V, --verbose "
+                            << ": Verbose mode.  Print debugging messages," << std::endl
+                            << std::left << std::setw(20) << "                "
+                            << "   <-10 means quiet,  >10 means Print as much as it can.(default=0)" << std::endl
+                            << std::left << std::setw(20) << "  --quiet "
+                            << ": quiet mode," << std::endl
+                            << std::endl
+                            << std::left << std::setw(20) << "  -o, --output  "
+                            << ": Output file GetName (default: simpla.h5)." << std::endl
+                            << std::left << std::setw(20) << "  -i, --input  "
+                            << ": Input configure file (default:" + conf_file + ")" << std::endl
+                            << std::left << std::setw(20) << "  -p, --prologue "
+                            << ": Execute Lua script before configure file is Load" << std::endl
+                            << std::left << std::setw(20) << "  -e, --epilogue "
+                            << ": Execute Lua script after configure file is Load" << std::endl
+                            << std::endl;
 
-                                       /* @formatter:on*/
-                                       TheEnd(0);
-                                       return TERMINATE;
-                                   } else {
-                                       //                                       options.add(opt, (value == "") ? "true"
-                                       //                                       : value);
-                                   }
-
-                                   return CONTINUE;
-
-                               }
-
-                               );
+                    /* @formatter:on*/
+                    TheEnd(0);
+                    return TERMINATE;
+                } else {
+                    // options.add(opt, (value == "") ? "true" : value);
+                }
+                return CONTINUE;
+            });
 
         MESSAGE << ShowLogo() << std::endl;
-
         //        options.parse(conf_file, conf_prologue, conf_epilogue);
-
         //        os = toolbox::create_from_output_url(output_file);
     }
     data::DataTable db;

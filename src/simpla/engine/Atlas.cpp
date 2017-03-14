@@ -16,7 +16,7 @@ struct Atlas::pimpl_s {
     size_tuple m_refine_ratio_ = {2, 2, 2};
     point_type m_origin_{0, 0, 0};
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
-    std::vector<point_type> m_dx_;
+    std::map<int, point_type> m_dx_;
 
     typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
     typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;

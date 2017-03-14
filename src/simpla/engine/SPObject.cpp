@@ -6,6 +6,7 @@
 
 #include "SPObject.h"
 
+#include <simpla/data/DataTable.h>
 #include <simpla/mpl/type_cast.h>
 #include <simpla/toolbox/LifeClick.h>
 #include <simpla/toolbox/Log.h>
@@ -14,7 +15,6 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <iomanip>
 #include <ostream>
-#include <simpla/data/DataTable.h>
 
 namespace simpla {
 struct SPObject::pimpl_s {
@@ -26,6 +26,7 @@ struct SPObject::pimpl_s {
     boost::uuids::uuid m_id_;
     id_type m_short_id_;
     data::DataTable m_db_;
+    std::string m_name_;
 };
 
 SPObject::SPObject() : m_pimpl_(new pimpl_s) {
@@ -33,6 +34,7 @@ SPObject::SPObject() : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_id_ = boost::uuids::random_generator()();
     boost::hash<boost::uuids::uuid> hasher;
     m_pimpl_->m_short_id_ = hasher(m_pimpl_->m_id_);
+    m_pimpl_->m_name_ = "unnamed";
 }
 
 SPObject::SPObject(SPObject &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
@@ -42,6 +44,13 @@ data::DataTable &SPObject::db() {
     Click();
     return m_pimpl_->m_db_;
 }
+
+std::string const &SPObject::name() const { return m_pimpl_->m_name_; }
+void SPObject::name(std::string const &s) {
+    Click();
+    m_pimpl_->m_name_ = s;
+}
+
 id_type SPObject::id() const { return m_pimpl_->m_short_id_; }
 bool SPObject::operator==(SPObject const &other) { return m_pimpl_->m_id_ == other.m_pimpl_->m_id_; }
 

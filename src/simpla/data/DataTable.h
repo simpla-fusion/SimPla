@@ -42,7 +42,7 @@ class DataTable : public DataEntity {
     std::ostream& Print(std::ostream& os, int indent = 0) const;
     bool isTable() const { return true; }
     std::type_info const& type() const { return typeid(DataTable); };
-
+    DataBackend* backend() { return m_backend_.get(); }
     DataBackend const* backend() const { return m_backend_.get(); }
     //******************************************************************************************************************
     /** Interface DataBackend */
@@ -61,36 +61,29 @@ class DataTable : public DataEntity {
 
     bool has(std::string const& uri) const { return Get(uri) != nullptr; }
 
-    DataTable& GetTable(std::string const& uri) {
-        auto p = Get(uri);
-        if (p != nullptr) {
-            Set(uri);
-            p = Get(uri);
-        };
-        ASSERT(p != nullptr);
-        return p->cast_as<DataTable>();
-    }
-    DataTable const& GetTable(std::string const& uri) const {
-        auto p = Get(uri);
-        ASSERT(p != nullptr);
-        return p->cast_as<DataTable>();
-    }
     template <typename U>
     auto GetValue(std::string const& uri) const {
         return data_cast<U>(*Get(uri));
     }
+
     template <typename U>
-    auto GetValue(std::string const& uri, U default_value) const {
+    auto GetValue(std::string const& uri, U const& default_value) const {
         auto p = Get(uri);
-        if (p == nullptr) { return default_value; }
-        try {
+        if (p == nullptr || p->isNull() || p->type() != typeid(U)) {
+            return default_value;
+        } else {
             return data_cast<U>(*p);
-        } catch (...) { return default_value; }
+        }
     }
+    void SetValue(std::shared_ptr<DataEntity> const& other) {
+        if (other != nullptr && !other->isNull()) { SetValue(other->cast_as<DataTable>()); }
+    };
 
     void SetValue(DataTable const& other);
 
     void SetValue(std::initializer_list<KeyValue> const& other);
+
+    void SetValue(std::string const& uri) { Set(uri); };
 
     template <typename U>
     void SetValue(std::string const& uri, U const& v) {

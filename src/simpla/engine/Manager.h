@@ -91,8 +91,7 @@ class Manager : public SPObject, public concept::Printable {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-template <typename U>
-struct ManagerAdapter : public Manager, public U {};
+
 }  // namespace engine{
 }  // namespace simpla{
 
