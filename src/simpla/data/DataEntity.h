@@ -18,7 +18,8 @@ template <typename, typename Enable = void>
 class DataEntityWrapper {};
 class DataEntity;
 class DataArray;
-
+template <typename U, typename Enable = void>
+struct data_entity_traits {};
 struct DataEntity : public concept::Printable {
     SP_OBJECT_BASE(DataEntity);
 
@@ -74,22 +75,24 @@ struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> :
     value_type m_data_;
 };
 
-template <typename U, typename Enable = void>
-struct data_cast_traits {
-    static U eval(DataEntity const& v) { return v.cast_as<DataEntityWrapper<U>>().value(); };
+template <typename U>
+struct data_entity_traits<U, std::enable_if_t<traits::is_light_data<U>::value>> {
+    static U from(DataEntity const& v) { return v.cast_as<DataEntityWrapper<U>>().value(); };
+    static std::shared_ptr<DataEntity> to(U const& v) { return std::make_shared<DataEntityWrapper<U>>(v); };
 };
+
 template <typename U>
 U data_cast(DataEntity const& v) {
-    return data_cast_traits<U>::eval(v);
+    return data_entity_traits<U>::from(v);
 }
 
 template <typename U>
-std::shared_ptr<DataEntity> make_data_entity(U const& u, ENABLE_IF(traits::is_light_data<U>::value)) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<U>>(u));
+std::shared_ptr<DataEntity> make_data_entity(U const& u) {
+    return data_entity_traits<U>::to(u);
 }
 
 inline std::shared_ptr<DataEntity> make_data_entity(char const* u) {
-    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<std::string>>(u));
+    return data_entity_traits<std::string>::to(std::string(u));
 }
 }  // namespace data {
 }  // namespace simpla {

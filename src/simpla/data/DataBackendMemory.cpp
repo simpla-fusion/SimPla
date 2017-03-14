@@ -25,30 +25,27 @@ struct DataBackendMemory::pimpl_s {
 
 std::pair<DataBackendMemory::pimpl_s::table_type*, std::string> DataBackendMemory::pimpl_s::get_table(
     table_type* t, std::string const& uri, bool return_if_not_exist) {
-    return HierarchicalTableForeach(t, uri,
-                                    [&](table_type *s_t, std::string const &k)
-                                    {
-                                        auto res = s_t->find(k);
-                                        return res != s_t->end() && res->second->isTable();
-                                    },
-                                    [&](table_type *s_t, std::string const &k)
-                                    {
-                                        return &(std::dynamic_pointer_cast<DataTable>(s_t->find(k)->second)
-                                                ->backend()
-                                                ->cast_as<DataBackendMemory>()
-                                                .m_pimpl_->m_table_);
-                                    },
-                                    [&](table_type *s_t, std::string const &k)
-                                    {
-                                        if (return_if_not_exist) { return static_cast<table_type *>(nullptr); }
-                                        return &(s_t->emplace(k, std::make_shared<DataTable>(
-                                                        std::make_shared<DataBackendMemory>()))
-                                                .first->second->cast_as<DataTable>()
-                                                .backend()
-                                                ->cast_as<DataBackendMemory>()
-                                                .m_pimpl_->m_table_);
+    return HierarchicalTableForeach(
+        t, uri,
+        [&](table_type* s_t, std::string const& k) {
+            auto res = s_t->find(k);
+            return res != s_t->end() && res->second->isTable();
+        },
+        [&](table_type* s_t, std::string const& k) {
+            return &(std::dynamic_pointer_cast<DataTable>(s_t->find(k)->second)
+                         ->backend()
+                         ->cast_as<DataBackendMemory>()
+                         .m_pimpl_->m_table_);
+        },
+        [&](table_type* s_t, std::string const& k) {
+            if (return_if_not_exist) { return static_cast<table_type*>(nullptr); }
+            return &(s_t->emplace(k, std::make_shared<DataTable>(std::make_shared<DataBackendMemory>()))
+                         .first->second->cast_as<DataTable>()
+                         .backend()
+                         ->cast_as<DataBackendMemory>()
+                         .m_pimpl_->m_table_);
 
-                                    });
+        });
 };
 
 DataBackendMemory::DataBackendMemory() : m_pimpl_(new pimpl_s) {}
@@ -92,17 +89,17 @@ void DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> 
 void DataBackendMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
     auto tab_res = pimpl_s::get_table(&(m_pimpl_->m_table_), uri, false);
     if (tab_res.second != "") {
-        auto res = tab_res.first->emplace(tab_res.second, v);
-        if (!res.second) {
-            if (!res.first->second->isArray()) {
-                auto t_array = std::make_shared<DataArrayWrapper<void>>();
-                t_array->Add(res.first->second);
-                t_array->Add(v);
-                res.first->second = t_array;
-            } else {
-                std::dynamic_pointer_cast<DataArray>(res.first->second)->Add(v);
-            }
+        auto res = tab_res.first->emplace(tab_res.second, std::make_shared<DataArrayWrapper<void>>());
+        if (res.first->second->isArray() && res.first->second->type() == v->type()) {
+        } else if (!res.first->second->isA<DataArrayWrapper<void>>()) {
+            auto t_array = std::make_shared<DataArrayWrapper<void>>();
+            t_array->Add(res.first->second);
+            res.first->second = t_array;
         }
+        std::dynamic_pointer_cast<DataArray>(res.first->second)->Add(v);
+        //        else {
+        //            RUNTIME_ERROR << "object is not appendable!" << res.first->second->type().name() << std::endl;
+        //        }
     }
 }
 size_type DataBackendMemory::Delete(std::string const& uri) {
