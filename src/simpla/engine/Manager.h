@@ -65,7 +65,7 @@ class Manager : public SPObject, public concept::Printable {
     Manager();
     virtual ~Manager();
 
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return db().Print(os, indent); }
 
     Atlas const &GetAtlas() const;
     Atlas &GetAtlas();

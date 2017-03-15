@@ -34,76 +34,69 @@ class DataTable : public DataEntity {
     DataTable(const DataTable&);
     DataTable(DataTable&&);
     ~DataTable() final;
-
     void swap(DataTable&);
-    std::shared_ptr<DataEntity> Duplicate() const;
     //******************************************************************************************************************
     /** Interface DataEntity */
     std::ostream& Print(std::ostream& os, int indent = 0) const;
     bool isTable() const { return true; }
     std::type_info const& type() const { return typeid(DataTable); };
-    DataBackend* backend() { return m_backend_.get(); }
-    DataBackend const* backend() const { return m_backend_.get(); }
+    std::shared_ptr<DataEntity> Duplicate() const;
     //******************************************************************************************************************
     /** Interface DataBackend */
+
+    DataBackend* backend() { return m_backend_.get(); }
+    DataBackend const* backend() const { return m_backend_.get(); }
+
     void Flush();
     bool isNull() const;
     size_type size() const;
 
-    bool has(std::string const& uri) const { return Get(uri) != nullptr; }
-
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
-
-    void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr, bool overwrite = true);
-    void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
-    void Set(DataTable const& other, bool overwrite = true);
-
-    void Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
-    void Add(std::string const& uri, DataEntity const& p);
-
+    std::shared_ptr<DataEntity> Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr,
+                                    bool overwrite = true);
+    std::shared_ptr<DataEntity> Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
     size_type Delete(std::string const& uri);
     size_type ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
-    /** Interface End */
+    /** Interface DataBackend End */
     //******************************************************************************************************************
+    bool has(std::string const& uri) const { return Get(uri) != nullptr; }
 
-    DataTable const& GetTable(std::string const& uri) const { return Get(uri)->cast_as<DataTable>(); }
-    DataTable& GetTable(std::string const& uri) { return Get(uri)->cast_as<DataTable>(); }
+    void Link(DataTable const& other);
+    void Link(std::shared_ptr<DataEntity> const& p);
+    void Set(DataTable const& other, bool overwrite = true);
+    std::shared_ptr<DataEntity> Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
+    std::shared_ptr<DataEntity> Add(std::string const& uri, DataEntity const& p);
+    DataTable const& GetTable(std::string const& uri) const;
+    DataTable& GetTable(std::string const& uri);
 
     template <typename U>
-    auto GetValue(std::string const& uri) const {
+    U GetValue(std::string const& uri) const {
         return data_cast<U>(*Get(uri));
     }
 
-//    template <typename U>
-//    auto GetValue(std::string const& uri, U const& default_value) const {
-//        auto p = Get(uri);
-//        if (p == nullptr || p->isNull() || p->type() != typeid(U)) {
-//            return default_value;
-//        } else {
-//            return data_cast<U>(*p);
-//        }
-//    }
-
     template <typename U>
-    auto GetValue(std::string const& uri, U const& default_value) {
+    U GetValue(std::string const& uri, U const& default_value) const {
         auto p = Get(uri);
         if (p == nullptr || p->isNull() || p->type() != typeid(U)) {
-            SetValue(uri, default_value);
             return default_value;
         } else {
             return data_cast<U>(*p);
         }
     }
 
+    template <typename U>
+    U GetValue(std::string const& uri, U const& default_value) {
+        return data_cast<U>(*Set(uri, make_data_entity(default_value), false));
+    }
+
     void SetValue(std::initializer_list<KeyValue> const& other);
 
-    void SetValue(std::string const& uri) { Set(uri); };
-
     template <typename U>
-    void SetValue(std::string const& uri, U const& v) {
-        Set(uri, make_data_entity(v));
+    void SetValue(std::string const& uri, U const& v, bool overwrite = false) {
+        Set(uri, make_data_entity(v), overwrite);
     };
+
     template <typename U>
     void SetValue(std::string const& uri, std::initializer_list<U> const& u) {
         Set(uri, make_data_entity(u));

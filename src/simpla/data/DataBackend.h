@@ -53,7 +53,8 @@ class DataBackend : public concept::Printable, public std::enable_shared_from_th
      * @brief  put v to uri,
      * @return
      */
-    virtual void Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite = true) = 0;
+    virtual std::shared_ptr<DataEntity> Set(std::string const& uri, std::shared_ptr<DataEntity> const& v,
+                                            bool overwrite = true) = 0;
 
     /**
      * @brief  add v to uri,
@@ -61,7 +62,7 @@ class DataBackend : public concept::Printable, public std::enable_shared_from_th
      *          else if uri is not an array then throw runtim error
      * @return
      */
-    virtual void Add(std::string const& uri, std::shared_ptr<DataEntity> const&) = 0;
+    virtual std::shared_ptr<DataEntity> Add(std::string const& uri, std::shared_ptr<DataEntity> const&) = 0;
     /**
      * @brief  delete entities selected by uri
      * @return  the number of deleted entities
@@ -90,7 +91,7 @@ class DataBackendFactory : public design_pattern::Factory<std::string, DataBacke
     std::vector<std::string> GetBackendList() const;
     std::shared_ptr<DataBackend> Create(std::string const& uri, std::string const& ext_param = "");
 
-    void RegisterDefault();
+    void RegisterDefault(){};
 };
 #define GLOBAL_DATA_BACKEND_FACTORY SingletonHolder<DataBackendFactory>::instance()
 }  // namespace data {

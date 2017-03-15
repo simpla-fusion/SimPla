@@ -22,6 +22,9 @@ DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_back
 DataTable::DataTable(DataTable&& other) : m_backend_(std::move(other.m_backend_)) {}
 DataTable::~DataTable(){};
 void DataTable::swap(DataTable& other) { std::swap(m_backend_, other.m_backend_); };
+
+//******************************************************************************************************************
+
 void DataTable::Flush() { m_backend_->Flush(); }
 
 std::shared_ptr<DataEntity> DataTable::Duplicate() const {
@@ -30,15 +33,40 @@ std::shared_ptr<DataEntity> DataTable::Duplicate() const {
 
 bool DataTable::isNull() const { return m_backend_ == nullptr; }
 size_type DataTable::size() const { return m_backend_->size(); }
+void DataTable::Link(DataTable const& other) { m_backend_ = other.m_backend_; }
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) const { return m_backend_->Get(path); };
-void DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite) {
-    m_backend_->Set(uri, v, overwrite);
+std::shared_ptr<DataEntity> DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v,
+                                           bool overwrite) {
+    return m_backend_->Set(uri, v, overwrite);
 };
-void DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { m_backend_->Add(uri, v); };
-void DataTable::Set(std::string const& uri, DataEntity const& p, bool overwrite) {
-    Set(uri, p.Duplicate(), overwrite);
+std::shared_ptr<DataEntity> DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
+    return m_backend_->Add(uri, v);
 };
-void DataTable::Add(std::string const& uri, DataEntity const& p) { Add(uri, p.Duplicate()); };
+//******************************************************************************************************************
+
+void DataTable::Link(std::shared_ptr<DataEntity> const& other) {
+    if (!other->isTable()) { RUNTIME_ERROR << "link array or entity to table" << std::endl; }
+    Link(other->cast_as<DataTable>());
+}
+
+std::shared_ptr<DataEntity> DataTable::Set(std::string const& uri, DataEntity const& p, bool overwrite) {
+    return Set(uri, p.Duplicate(), overwrite);
+};
+std::shared_ptr<DataEntity> DataTable::Add(std::string const& uri, DataEntity const& p) {
+    return Add(uri, p.Duplicate());
+};
+
+DataTable const& DataTable::GetTable(std::string const& uri) const {
+    auto p = Get(uri);
+    if (p == nullptr || !p->isTable()) { RUNTIME_ERROR << uri << " is not a table" << std::endl; }
+    return p->cast_as<DataTable>();
+}
+DataTable& DataTable::GetTable(std::string const& uri) {
+    auto p = Set(uri + "/", nullptr, false);
+    if (p == nullptr || !p->isTable()) { RUNTIME_ERROR << uri << " is not a table" << std::endl; }
+    return p->cast_as<DataTable>();
+}
+
 size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
 
 void DataTable::Set(DataTable const& other, bool overwrite) {
@@ -54,6 +82,7 @@ size_type DataTable::ForEach(std::function<void(std::string const&, std::shared_
 
 std::ostream& DataTable::Print(std::ostream& os, int indent) const {
     os << "{";
+
     m_backend_->ForEach([&](std::string const& k, std::shared_ptr<DataEntity> const& v) {
         os << std::endl
            << std::setw(indent + 1) << " "
@@ -64,7 +93,7 @@ std::ostream& DataTable::Print(std::ostream& os, int indent) const {
 
     os << std::endl
        << std::setw(indent) << " "
-       << " }";
+       << "}";
     return os;
 };
 

@@ -13,7 +13,7 @@
 #include <simpla/toolbox/parse_command_line.h>
 
 namespace simpla {
-void create_scenario(engine::Manager *ctx, data::DataTable const &options);
+void create_scenario(engine::Manager *ctx);
 }
 using namespace simpla;
 
@@ -86,17 +86,18 @@ int main(int argc, char **argv) {
 
     MESSAGE << ShowLogo() << std::endl;
 
-    MESSAGE << DOUBLELINE << std::endl;
-    MESSAGE << "INFORMATION:" << std::endl;
-    MESSAGE << "Context = {" << ctx << " }" << std::endl;
-    MESSAGE << SINGLELINE << std::endl;
+    create_scenario(&ctx);
+
+
 
     int num_of_steps = ctx.db<int>("number_of_steps", 1);
     int step_of_check_points = ctx.db<int>("step_of_check_point", 1);
     Real dt = ctx.db<Real>("dt", 1.0);
 
-    //    os->open("/start/");
-    //    ctx.Save(*os);
+    MESSAGE << DOUBLELINE << std::endl;
+    MESSAGE << "INFORMATION:" << std::endl;
+    MESSAGE << "Context : " << ctx << " " << std::endl;
+    MESSAGE << SINGLELINE << std::endl;
 
     MESSAGE << DOUBLELINE << std::endl;
     TheStart();

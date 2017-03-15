@@ -175,7 +175,7 @@ void data_entity_from_helper(DataArray const& a, std::tuple<U...>& v, std::integ
 
 template <typename V>
 void data_entity_to_helper0(V const& src, DataArray& dest, size_type N) {
-    dest.Set(N, data_entity_traits<V>::to(src));
+    dest.Set(N - 1, data_entity_traits<V>::to(src));
 }
 template <typename... U>
 void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, 0>){};

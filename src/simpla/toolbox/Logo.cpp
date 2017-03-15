@@ -14,9 +14,7 @@
 
 namespace simpla
 {
-#ifndef IDENTIFY
-#	define IDENTIFY "UNKNOWN"
-#endif
+
 static const char SIMPLA_LOGO[] = "\n"
         "\t        ____ ___ __  __ ____  _       \n"
         "\t       / ___|_ _|  \\/  |  _ \\| | __ _ \n"
@@ -30,7 +28,7 @@ static const char SIMPLA_LOGO[] = "\n"
         " SimPla, Plasma Simulator  \n"
         " " COPYRIGHT "\n"
         " Build Date: " __DATE__ " " __TIME__"                   \n"
-        " ID:" IDENTIFY "\n"
+        " ID:" SIMPLA_VERSION_IDENTIFY "\n"
         " Author: " AUTHOR "\n";
 
 

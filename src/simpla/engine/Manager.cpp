@@ -13,7 +13,10 @@ struct Manager::pimpl_s {
     std::string m_name_;
     AttributeDict m_attr_db_;
 };
-Manager::Manager() : m_pimpl_(new pimpl_s) {}
+Manager::Manager() : m_pimpl_(new pimpl_s) {
+    db().Set("Model", m_pimpl_->m_model_.db());
+    db().Set("Atlas", m_pimpl_->m_atlas_.db());
+}
 Manager::~Manager() {}
 
 Atlas const &Manager::GetAtlas() const { return m_pimpl_->m_atlas_; }

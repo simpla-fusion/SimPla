@@ -30,14 +30,16 @@ bool Model::Update() {
     return SPObject::Update();
 };
 box_type const& Model::bound_box() const { return m_pimpl_->m_bound_box_; };
-data::DataTable const& Model::GetMaterial(std::string const& s) const {
-    return db().Get("/Material." + s + "/")->cast_as<DataTable>();
-}
+data::DataTable const& Model::GetMaterial(std::string const& s) const { return db().GetTable(s); }
 data::DataTable& Model::GetMaterial(std::string const& s) {
-    std::string url = "Material." + s;
-    if (db().Get(url) != nullptr) { db().SetValue(url + "/GUID", std::hash<std::string>{}(s)); }
-    return db().Get(url)->cast_as<DataTable>();
+    Click();
+    auto& t = db().GetTable("/Material/" + s);
+    t.GetValue("GUID", std::hash<std::string>{}(s));
+    return t;
 }
+id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k).GetValue<id_type>("GUID", NULL_ID); }
+id_type Model::GetMaterialId(std::string const& k) { return GetMaterial(k).GetValue<id_type>("GUID"); }
+
 id_type Model::AddObject(geometry::GeoObject const& g_obj, id_type id) {
     Click();
     m_pimpl_->m_g_obj_.emplace(id, g_obj);
@@ -53,7 +55,9 @@ size_type Model::RemoveObject(id_type id) {
 }
 
 size_type Model::RemoveObject(std::string const& key) {
-    return RemoveObject(GetMaterial(key).GetValue<id_type>("GUID"));
+    try {
+        return RemoveObject(GetMaterial(key).GetValue<id_type>("GUID"));
+    } catch (...) { return 0; }
 }
 
 }  // namespace model
