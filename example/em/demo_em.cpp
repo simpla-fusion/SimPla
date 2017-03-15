@@ -23,9 +23,9 @@ void create_scenario(engine::Manager *ctx) {
     model::Model &model = ctx->GetModel();
     geometry::Cube in_box(ctx->db<box_type>("Model/Geometry/InnerBox", box_type{{0, 0, 0}, {1, 1, 1}}));
     geometry::Cube out_box{ctx->db<box_type>("Model/Geometry/OuterBox", box_type{{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}})};
-    id_type center_domain_id = model.AddObject(in_box, model.GetMaterialId("Plasma"));
-    id_type boundary_domain_id = model.AddObject(out_box - in_box, model.GetMaterialId("Vacuum"));
-    auto &center_domain = ctx->GetDomainView(center_domain_id /* "Plasma"*/);
+    model.AddObject("Plasma", in_box);
+    model.AddObject("Vacuum", out_box - in_box);
+    auto &center_domain = ctx->GetDomainView("Plasma");
     mesh_type &center_mesh = center_domain.SetMesh<mesh_type>();
     auto &center_worker = center_domain.AddWorker<EMFluid<mesh_type>>();
 
@@ -43,13 +43,10 @@ void create_scenario(engine::Manager *ctx) {
     //        }
     //    });
 
-    if (ctx->db().has("Worker/PML")) {
-        typedef PML<mesh_type> pml_type;
-        auto &pml_domain = ctx->GetDomainView(boundary_domain_id /*"Vacuum"*/);
-        auto &pml_worker = pml_domain.AddWorker<PML<mesh_type>>();
-        pml_worker.SetCenterDomain(in_box);
-        pml_worker.db().Link(ctx->db().GetTable("Worker/PML"));
-    }
+    typedef PML<mesh_type> pml_type;
+    auto &pml_domain = ctx->GetDomainView("Vacuum");
+    auto &pml_worker = pml_domain.AddWorker<PML<mesh_type>>();
+    pml_worker.SetCenterDomain(in_box);
 
     //    typedef std::function<vector_type(point_type const &)> field_function_type;
     //

@@ -131,6 +131,8 @@ void DomainView::Evaluate() {
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.emplace(p).second) {
         //        p->Connect(this);
+        auto &attr_db = db().GetTable("Attributes");
+        p->ForEach([&](AttributeView *v) {});
         Click();
     }
 }
@@ -150,10 +152,14 @@ void DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
 };
 
 MeshView &DomainView::GetMesh() const { return *m_pimpl_->m_mesh_; }
-std::pair<Worker &, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
-    Attach(static_cast<AttributeViewBundle *>(w.get()));
+
+std::pair<std::shared_ptr<Worker>, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
     auto res = m_pimpl_->m_workers_.emplace(pos, w);
-    return std::pair<Worker &, bool>(*res.first->second, res.second);
+    if (res.second) {
+        db().Add("Worker", std::make_shared<data::DataTable>(w->db().backend()));
+        Attach(static_cast<AttributeViewBundle *>(w.get()));
+    }
+    return std::make_pair(res.first->second, res.second);
 }
 
 void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
@@ -169,7 +175,7 @@ std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) const { return 
 
 void DomainView::Register(AttributeDict &dbase) {
     for (auto &item : m_pimpl_->m_attr_bundle_) {
-        item->Accept([&](AttributeView *view) { view->Register(dbase); });
+        item->ForEach([&](AttributeView *view) { view->Register(dbase); });
     }
 }
 
@@ -242,7 +248,8 @@ std::ostream &DomainView::Print(std::ostream &os, int indent) const {
 //    PostProcess();
 //};
 //
-// Range<id_type> const& Model::select(int GetIFORM, std::string const& GetTag) { return select(GetIFORM, m_g_name_map_.at(GetTag));
+// Range<id_type> const& Model::select(int GetIFORM, std::string const& GetTag) { return select(GetIFORM,
+// m_g_name_map_.at(GetTag));
 // }
 //
 // Range<id_type> const& Model::select(int GetIFORM, int GetTag) {

@@ -78,7 +78,7 @@ class SPObject {
    public:
     SP_OBJECT_BASE(SPObject)
    public:
-    SPObject();
+    SPObject(std::string const &s = "unnamed");
     SPObject(SPObject &&other);
     SPObject(SPObject const &) = delete;
     SPObject &operator=(SPObject const &other) = delete;

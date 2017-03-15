@@ -25,15 +25,14 @@ struct SPObject::pimpl_s {
     boost::uuids::uuid m_id_;
     id_type m_short_id_;
     data::DataTable m_db_;
-    std::string m_name_;
 };
 
-SPObject::SPObject() : m_pimpl_(new pimpl_s) {
+SPObject::SPObject(std::string const &s) : m_pimpl_(new pimpl_s) {
     auto gen = boost::uuids::random_generator();
     m_pimpl_->m_id_ = boost::uuids::random_generator()();
     boost::hash<boost::uuids::uuid> hasher;
     m_pimpl_->m_short_id_ = hasher(m_pimpl_->m_id_);
-    m_pimpl_->m_name_ = "unnamed";
+    name(s);
 }
 
 SPObject::SPObject(SPObject &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
@@ -44,11 +43,8 @@ data::DataTable &SPObject::db() {
     return m_pimpl_->m_db_;
 }
 
-std::string const &SPObject::name() const { return m_pimpl_->m_name_; }
-void SPObject::name(std::string const &s) {
-    Click();
-    m_pimpl_->m_name_ = s;
-}
+std::string const &SPObject::name() const { return db().GetValue<std::string>("name", "unnamed"); }
+void SPObject::name(std::string const &s) { db().SetValue("name", s); }
 
 id_type SPObject::id() const { return m_pimpl_->m_short_id_; }
 bool SPObject::operator==(SPObject const &other) { return m_pimpl_->m_id_ == other.m_pimpl_->m_id_; }

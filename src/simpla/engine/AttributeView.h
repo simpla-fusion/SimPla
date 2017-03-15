@@ -80,7 +80,7 @@ struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
     id_type m_GUID_;
     data::DataTable m_db_;
 };
-struct AttributeDict : public concept::Printable {
+struct AttributeDict : public SPObject, public concept::Printable {
    public:
     AttributeDict();
     virtual ~AttributeDict();
@@ -102,8 +102,8 @@ struct AttributeDict : public concept::Printable {
     bool Unregister(std::string const &key);
     bool Unregister(id_type);
 
-    void Accept(std::function<void(AttributeDesc *)> const &);
-    void Accept(std::function<void(AttributeDesc const *)> const &) const;
+    void ForEach(std::function<void(AttributeDesc *)> const &);
+    void ForEach(std::function<void(AttributeDesc const *)> const &) const;
 
    private:
     struct pimpl_s;
@@ -111,7 +111,7 @@ struct AttributeDict : public concept::Printable {
 };
 class AttributeViewBundle : public SPObject, public concept::Printable {
    public:
-    AttributeViewBundle();
+    AttributeViewBundle(std::string const &s = "");
     virtual ~AttributeViewBundle();
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
@@ -126,7 +126,7 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
     void Attach(AttributeView *attr);
     virtual void OnNotify();
 
-    void Accept(std::function<void(AttributeView *)> const &) const;
+    void ForEach(std::function<void(AttributeView *)> const &) const;
 
    private:
     struct pimpl_s;

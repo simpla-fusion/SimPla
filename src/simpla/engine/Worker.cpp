@@ -14,7 +14,7 @@ struct Worker::pimpl_s {
     DomainView *m_domain_;
     data::DataTable m_db_;
 };
-Worker::Worker() : m_pimpl_(new pimpl_s) {}
+Worker::Worker(std::string const &s) : AttributeViewBundle(s), m_pimpl_(new pimpl_s) {}
 Worker::~Worker(){};
 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {

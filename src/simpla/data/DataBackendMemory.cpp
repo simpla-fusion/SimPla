@@ -73,7 +73,7 @@ size_type DataBackendMemory::size() const { return m_pimpl_->m_table_.size(); }
 
 std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const {
     auto res = m_pimpl_->get_table(const_cast<DataBackendMemory*>(this), url);
-    if (res.first != nullptr && res.second != "") {
+    if (res.first != nullptr || res.second != "") {
         auto it = res.first->m_pimpl_->m_table_.find(res.second);
         if (it != res.first->m_pimpl_->m_table_.end()) { return it->second; }
     }

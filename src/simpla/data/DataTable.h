@@ -44,8 +44,7 @@ class DataTable : public DataEntity {
     //******************************************************************************************************************
     /** Interface DataBackend */
 
-    DataBackend* backend() { return m_backend_.get(); }
-    DataBackend const* backend() const { return m_backend_.get(); }
+    std::shared_ptr<DataBackend> backend() const { return m_backend_; }
 
     void Flush();
     bool isNull() const;
@@ -62,9 +61,11 @@ class DataTable : public DataEntity {
     //******************************************************************************************************************
     bool has(std::string const& uri) const { return Get(uri) != nullptr; }
 
-    void Link(DataTable const& other);
-    void Link(std::shared_ptr<DataEntity> const& p);
+    DataTable& Link(std::string const& uri, DataTable const& other);
+    DataTable& Link(std::string const& uri, std::shared_ptr<DataEntity> const& p);
+
     void Set(DataTable const& other, bool overwrite = true);
+
     std::shared_ptr<DataEntity> Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
     std::shared_ptr<DataEntity> Add(std::string const& uri, DataEntity const& p);
     DataTable const& GetTable(std::string const& uri) const;

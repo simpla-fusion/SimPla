@@ -54,14 +54,15 @@ class DomainView : public concept::Printable, public SPObject {
     std::shared_ptr<MeshBlock> &GetMeshBlock() const;
     std::shared_ptr<DataBlock> &GetDataBlock(id_type) const;
 
-    std::pair<Worker &, bool> AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
     void RemoveWorker(std::shared_ptr<Worker> const &w);
-    template <typename U>
-    U &AddWorker(int pos = -1, ENABLE_IF((std::is_base_of<Worker, U>::value))) {
-        auto res = AddWorker(std::make_shared<U>(), pos);
-        return dynamic_cast<U &>(res.first);
-    };
 
+    std::pair<std::shared_ptr<Worker>, bool> AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
+    template <typename U, typename... Args>
+    U &AddWorker(Args &&... args) {
+        auto res = AddWorker(std::make_shared<U>(std::forward<Args>(args)...));
+//        if (!res.second) { res.first = ; }
+        return *std::dynamic_pointer_cast<U>(res.first);
+    };
     void Attach(AttributeViewBundle *);
     void Detach(AttributeViewBundle *p = nullptr);
     void Notify();

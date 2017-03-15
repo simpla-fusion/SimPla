@@ -37,15 +37,16 @@ data::DataTable& Model::GetMaterial(std::string const& s) {
     t.GetValue("GUID", std::hash<std::string>{}(s));
     return t;
 }
-id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k).GetValue<id_type>("GUID", NULL_ID); }
-id_type Model::GetMaterialId(std::string const& k) { return GetMaterial(k).GetValue<id_type>("GUID"); }
+// id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k).GetValue<id_type>("GUID", NULL_ID);
+// }
+// id_type Model::GetMaterialId(std::string const& k) { return GetMaterial(k).GetValue<id_type>("GUID"); }
 
-id_type Model::AddObject(geometry::GeoObject const& g_obj, id_type id) {
-    Click();
-    m_pimpl_->m_g_obj_.emplace(id, g_obj);
-}
+// id_type Model::AddObject(id_type id, geometry::GeoObject const &g_obj) {
+//    Click();
+//    m_pimpl_->m_g_obj_.emplace(id, g_obj);
+//}
 
-id_type Model::AddObject(geometry::GeoObject const& g_obj, std::string const& key) {
+id_type Model::AddObject(std::string const& key, geometry::GeoObject const& g_obj) {
     Click();
     m_pimpl_->m_g_obj_.emplace(GetMaterial(key).GetValue<id_type>("GUID"), g_obj);
 }

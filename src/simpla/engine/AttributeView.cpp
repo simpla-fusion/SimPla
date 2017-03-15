@@ -35,11 +35,14 @@ std::shared_ptr<AttributeDesc> AttributeDict::Get(std::string const &s) const { 
 std::pair<std::shared_ptr<AttributeDesc>, bool> AttributeDict::Register(std::shared_ptr<AttributeDesc> const &p) {
     auto gid = p->GetGUID();
     auto res = m_pimpl_->m_db_.emplace(gid, p);
+
     if (res.second) {
         m_pimpl_->m_name_map_.emplace(p->GetName(), gid);
+        db().Link(res.first->second->GetName(), res.first->second->db());
     } else {
-        //        res.first->second->db().merge(p->db());
+        res.first->second->db().Set(p->db(), false);
     }
+
     return std::make_pair(res.first->second, res.second);
 }
 void AttributeDict::Register(AttributeView *v) { v->Register(*this); }
@@ -50,10 +53,10 @@ bool AttributeDict::Unregister(id_type id) {
     return m_pimpl_->m_db_.erase(id) > 0;
 }
 
-void AttributeDict::Accept(std::function<void(AttributeDesc *)> const &fun) {
+void AttributeDict::ForEach(std::function<void(AttributeDesc *)> const &fun) {
     for (auto &item : m_pimpl_->m_db_) { fun(item.second.get()); }
 }
-void AttributeDict::Accept(std::function<void(AttributeDesc const *)> const &fun) const {
+void AttributeDict::ForEach(std::function<void(AttributeDesc const *)> const &fun) const {
     for (auto const &item : m_pimpl_->m_db_) { fun(item.second.get()); }
 }
 struct AttributeViewBundle::pimpl_s {
@@ -61,7 +64,7 @@ struct AttributeViewBundle::pimpl_s {
     mutable std::set<AttributeView *> m_attr_views_;
 };
 
-AttributeViewBundle::AttributeViewBundle() : m_pimpl_(new pimpl_s) {}
+AttributeViewBundle::AttributeViewBundle(std::string const &s) : SPObject(s), m_pimpl_(new pimpl_s) {}
 AttributeViewBundle::~AttributeViewBundle() {}
 std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
     for (auto &attr : m_pimpl_->m_attr_views_) { os << attr->description().GetName() << " , "; }
@@ -101,7 +104,7 @@ std::shared_ptr<DataBlock> &AttributeViewBundle::GetDataBlock(id_type guid) cons
     return m_pimpl_->m_domain_->GetDataBlock(guid);
 }
 
-void AttributeViewBundle::Accept(std::function<void(AttributeView *)> const &fun) const {
+void AttributeViewBundle::ForEach(std::function<void(AttributeView *)> const &fun) const {
     for (auto *attr : m_pimpl_->m_attr_views_) { fun(attr); }
 }
 

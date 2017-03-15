@@ -65,7 +65,7 @@ class Manager : public SPObject, public concept::Printable {
     Manager();
     virtual ~Manager();
 
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return db().Print(os, indent); }
+    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
     Atlas const &GetAtlas() const;
     Atlas &GetAtlas();
@@ -76,7 +76,6 @@ class Manager : public SPObject, public concept::Printable {
     void SetDomainView(id_type domain_type_id, std::shared_ptr<DomainView> const &p = nullptr);
     DomainView const &GetDomainView(id_type id) const;
     DomainView const &GetDomainView(std::string const &d_name) const;
-    DomainView &GetDomainView(id_type id);
     DomainView &GetDomainView(std::string const &d_name);
 
     AttributeDict &GetAttributeDatabase();

@@ -10,17 +10,21 @@ struct Manager::pimpl_s {
     std::map<id_type, std::shared_ptr<DomainView>> m_views_;
     Atlas m_atlas_;
     model::Model m_model_;
-    std::string m_name_;
     AttributeDict m_attr_db_;
 };
 Manager::Manager() : m_pimpl_(new pimpl_s) {
-    db().Set("Model", m_pimpl_->m_model_.db());
-    db().Set("Atlas", m_pimpl_->m_atlas_.db());
+    db().Link("Model", m_pimpl_->m_model_.db());
+    db().Link("Atlas", m_pimpl_->m_atlas_.db());
+    db().Link("Attributes", m_pimpl_->m_attr_db_.db());
 }
 Manager::~Manager() {}
 
+std::ostream &Manager::Print(std::ostream &os, int indent) const { return db().Print(os, indent); }
+
 Atlas const &Manager::GetAtlas() const { return m_pimpl_->m_atlas_; }
+
 Atlas &Manager::GetAtlas() { return m_pimpl_->m_atlas_; }
+
 model::Model &Manager::GetModel() { return m_pimpl_->m_model_; }
 model::Model const &Manager::GetModel() const { return m_pimpl_->m_model_; }
 
@@ -35,14 +39,17 @@ DomainView const &Manager::GetDomainView(id_type d_id) const { return *m_pimpl_-
 DomainView const &Manager::GetDomainView(std::string const &d_name) const {
     return GetDomainView((m_pimpl_->m_model_.GetMaterial(d_name).GetValue<id_type>("GUID")));
 }
-DomainView &Manager::GetDomainView(id_type d_id) {
-    Click();
-    auto it = m_pimpl_->m_views_.find(d_id);
-    if (it == m_pimpl_->m_views_.end()) { m_pimpl_->m_views_.emplace(d_id, std::make_shared<DomainView>()); }
-    return *m_pimpl_->m_views_.at(d_id);
-}
 DomainView &Manager::GetDomainView(std::string const &d_name) {
-    return GetDomainView((m_pimpl_->m_model_.GetMaterial(d_name).GetValue<id_type>("GUID")));
+    Click();
+    auto d_id = m_pimpl_->m_model_.GetMaterial(d_name).GetValue<id_type>("GUID");
+    auto res = m_pimpl_->m_views_.emplace(d_id, nullptr);
+    if (res.second) {
+        res.first->second = std::make_shared<DomainView>();
+        auto &t = db().GetTable("Attributes/" + d_name);
+        t.Set(res.first->second->db());
+        res.first->second->db().Link("", t);
+    }
+    return *res.first->second;
 }
 
 AttributeDict &Manager::GetAttributeDatabase() { return m_pimpl_->m_attr_db_; }

@@ -33,7 +33,6 @@ std::shared_ptr<DataEntity> DataTable::Duplicate() const {
 
 bool DataTable::isNull() const { return m_backend_ == nullptr; }
 size_type DataTable::size() const { return m_backend_->size(); }
-void DataTable::Link(DataTable const& other) { m_backend_ = other.m_backend_; }
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) const { return m_backend_->Get(path); };
 std::shared_ptr<DataEntity> DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v,
                                            bool overwrite) {
@@ -43,10 +42,18 @@ std::shared_ptr<DataEntity> DataTable::Add(std::string const& uri, std::shared_p
     return m_backend_->Add(uri, v);
 };
 //******************************************************************************************************************
+DataTable& DataTable::Link(std::string const& uri, DataTable const& other) {
+    if (uri == "") {
+        m_backend_ = other.m_backend_;
+        return *this;
+    } else {
+        return Set(uri, std::make_shared<DataTable>(other.m_backend_), true)->cast_as<DataTable>();
+    }
+}
 
-void DataTable::Link(std::shared_ptr<DataEntity> const& other) {
+DataTable& DataTable::Link(std::string const& uri, std::shared_ptr<DataEntity> const& other) {
     if (!other->isTable()) { RUNTIME_ERROR << "link array or entity to table" << std::endl; }
-    Link(other->cast_as<DataTable>());
+    return Link(uri, other->cast_as<DataTable>());
 }
 
 std::shared_ptr<DataEntity> DataTable::Set(std::string const& uri, DataEntity const& p, bool overwrite) {
