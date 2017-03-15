@@ -7,7 +7,6 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/concept/Serializable.h>
 #include <simpla/toolbox/FancyStream.h>
 
 namespace simpla {

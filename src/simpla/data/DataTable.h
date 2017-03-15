@@ -19,9 +19,9 @@ class KeyValue;
 /** @ingroup data */
 /**
  * @brief  a @ref DataEntity tree, a key-value table of @ref DataEntity, which is similar as Group
- * in HDF5, but all node/table are DataEntity.
+ * in HDF5,  all node/table are DataEntity.
  * @design_pattern
- *  - Proxy of DataBackend
+ *  - Proxy for DataBackend
  */
 class DataTable : public DataEntity {
     SP_OBJECT_HEAD(DataTable, DataEntity);
@@ -36,7 +36,7 @@ class DataTable : public DataEntity {
     ~DataTable() final;
 
     void swap(DataTable&);
-    std::shared_ptr<DataEntity> Clone() const;
+    std::shared_ptr<DataEntity> Duplicate() const;
     //******************************************************************************************************************
     /** Interface DataEntity */
     std::ostream& Print(std::ostream& os, int indent = 0) const;
@@ -50,36 +50,51 @@ class DataTable : public DataEntity {
     bool isNull() const;
     size_type size() const;
 
+    bool has(std::string const& uri) const { return Get(uri) != nullptr; }
+
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
-    void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
+
+    void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr, bool overwrite = true);
     void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
+    void Set(DataTable const& other, bool overwrite = true);
+
+    void Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
+    void Add(std::string const& uri, DataEntity const& p);
+
     size_type Delete(std::string const& uri);
-    size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    size_type ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
     /** Interface End */
     //******************************************************************************************************************
 
-    bool has(std::string const& uri) const { return Get(uri) != nullptr; }
+    DataTable const& GetTable(std::string const& uri) const { return Get(uri)->cast_as<DataTable>(); }
+    DataTable& GetTable(std::string const& uri) { return Get(uri)->cast_as<DataTable>(); }
 
     template <typename U>
     auto GetValue(std::string const& uri) const {
         return data_cast<U>(*Get(uri));
     }
 
+//    template <typename U>
+//    auto GetValue(std::string const& uri, U const& default_value) const {
+//        auto p = Get(uri);
+//        if (p == nullptr || p->isNull() || p->type() != typeid(U)) {
+//            return default_value;
+//        } else {
+//            return data_cast<U>(*p);
+//        }
+//    }
+
     template <typename U>
-    auto GetValue(std::string const& uri, U const& default_value) const {
+    auto GetValue(std::string const& uri, U const& default_value) {
         auto p = Get(uri);
         if (p == nullptr || p->isNull() || p->type() != typeid(U)) {
+            SetValue(uri, default_value);
             return default_value;
         } else {
             return data_cast<U>(*p);
         }
     }
-    void SetValue(std::shared_ptr<DataEntity> const& other) {
-        if (other != nullptr && !other->isNull()) { SetValue(other->cast_as<DataTable>()); }
-    };
-
-    void SetValue(DataTable const& other);
 
     void SetValue(std::initializer_list<KeyValue> const& other);
 

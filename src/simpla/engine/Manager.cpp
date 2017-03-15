@@ -45,11 +45,7 @@ DomainView &Manager::GetDomainView(std::string const &d_name) {
 AttributeDict &Manager::GetAttributeDatabase() { return m_pimpl_->m_attr_db_; }
 AttributeDict const &Manager::GetAttributeDatabase() const { return m_pimpl_->m_attr_db_; }
 Real Manager::GetTime() const { return 1.0; }
-void Manager::Run(Real dt) {}
+void Manager::Run(Real dt) { Update(); }
 bool Manager::Update() { return SPObject::Update(); };
-void Manager::Evaluate() {
-    Update();
-    //    for (auto &item : m_backend_->m_atlas_) {}
-};
 }
 }

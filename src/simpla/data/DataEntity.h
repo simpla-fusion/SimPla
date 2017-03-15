@@ -41,11 +41,7 @@ struct DataEntity : public concept::Printable {
     virtual bool isArray() const { return false; }
     virtual bool isNull() const { return !(isEntity() || isTable() || isArray()); }
 
-    virtual size_type size() const { return 1; };
-    virtual std::shared_ptr<DataEntity> Clone() const {
-        UNIMPLEMENTED;
-        return nullptr;
-    };
+    virtual std::shared_ptr<DataEntity> Duplicate() const { return nullptr; };
 };
 template <typename U>
 struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : public DataEntity {
@@ -59,7 +55,7 @@ struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> :
     virtual ~DataEntityWrapper() {}
     virtual std::type_info const& type() const { return typeid(value_type); }
     virtual bool isEntity() const { return true; }
-
+    virtual std::shared_ptr<DataEntity> Duplicate() const { return std::make_shared<DataEntityWrapper<U>>(m_data_); };
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
         if (typeid(U) == typeid(std::string)) {
             os << "\"" << value() << "\"";

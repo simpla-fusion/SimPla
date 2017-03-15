@@ -31,17 +31,17 @@ class DataBackendLua : public DataBackend {
 
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const;
     virtual std::shared_ptr<DataEntity> Get(id_type key) const;
-    virtual void Set(std::string const& URI, std::shared_ptr<DataEntity> const&);
+    virtual void Set(std::string const& URI, std::shared_ptr<DataEntity> const&, bool overwrite = true);
     virtual void Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& URI);
     virtual size_type size() const;
-    virtual size_type Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    virtual size_type ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
    private:
+    static const bool m_isRegitered_;
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-
 }  // { namespace data {
 }  // namespace simpla
 #endif  // SIMPLA_LUADATABASE_H

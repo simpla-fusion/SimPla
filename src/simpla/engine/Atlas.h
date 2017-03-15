@@ -9,7 +9,6 @@
 
 #include <simpla/algebra/nTuple.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/concept/Serializable.h>
 #include <simpla/toolbox/Log.h>
 #include <type_traits>
 #include "MeshBlock.h"

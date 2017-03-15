@@ -83,7 +83,6 @@ class Manager : public SPObject, public concept::Printable {
     AttributeDict const &GetAttributeDatabase() const;
 
     bool Update();
-    void Evaluate();
     Real GetTime() const;
     void Run(Real dt);
 

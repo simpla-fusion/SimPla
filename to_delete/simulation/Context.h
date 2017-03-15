@@ -50,7 +50,6 @@ namespace simpla { namespace simulation
 class Context :
         public SPObject,
         public concept::Printable,
-        public concept::Serializable
 {
 
 public:

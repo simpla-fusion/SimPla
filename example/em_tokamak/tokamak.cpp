@@ -136,15 +136,10 @@ EMTokamak::create_particle(std::string const &key, TDict const &dict, TRange con
     pic->deploy();
 
     particle::DefaultParticleGenerator <TP> gen(*pic, pic->properties()["PIC"].template as<size_t>(10));
-
     gen.density([&](point_type const &x) { return rho0(x); });
-
     gen.temperature([&](point_type const &x) { return Temp; });
-
     pic->generate(gen, r0);
-
     pic->add_gather(J1);
-
     return std::dynamic_pointer_cast<particle::ParticleBase>(pic);
 
 }

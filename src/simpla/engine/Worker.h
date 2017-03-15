@@ -12,8 +12,7 @@
 #include <set>
 #include <vector>
 
- #include <simpla/concept/Printable.h>
-#include <simpla/concept/Serializable.h>
+#include <simpla/concept/Printable.h>
 #include <simpla/engine/SPObject.h>
 #include <simpla/model/Model.h>
 
@@ -113,8 +112,6 @@ class Worker : public AttributeViewBundle {
     virtual bool Update();
     virtual void OnNotify(){};
     void Evaluate();
-
-
 
    private:
     struct pimpl_s;

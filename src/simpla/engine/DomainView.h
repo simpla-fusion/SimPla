@@ -7,7 +7,6 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/concept/StateCounter.h>
 #include <simpla/mpl/macro.h>
 #include <memory>
 #include <set>

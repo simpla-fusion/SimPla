@@ -24,31 +24,37 @@ DataTable::~DataTable(){};
 void DataTable::swap(DataTable& other) { std::swap(m_backend_, other.m_backend_); };
 void DataTable::Flush() { m_backend_->Flush(); }
 
-std::shared_ptr<DataEntity> DataTable::Clone() const {
+std::shared_ptr<DataEntity> DataTable::Duplicate() const {
     return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataTable>(m_backend_->Duplicate()));
 }
 
 bool DataTable::isNull() const { return m_backend_ == nullptr; }
 size_type DataTable::size() const { return m_backend_->size(); }
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) const { return m_backend_->Get(path); };
-void DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) { m_backend_->Set(uri, v); };
+void DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite) {
+    m_backend_->Set(uri, v, overwrite);
+};
 void DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { m_backend_->Add(uri, v); };
+void DataTable::Set(std::string const& uri, DataEntity const& p, bool overwrite) {
+    Set(uri, p.Duplicate(), overwrite);
+};
+void DataTable::Add(std::string const& uri, DataEntity const& p) { Add(uri, p.Duplicate()); };
 size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
 
-void DataTable::SetValue(DataTable const& other) {
-    other.Accept([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
+void DataTable::Set(DataTable const& other, bool overwrite) {
+    other.ForEach([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v, overwrite); });
 }
 void DataTable::SetValue(std::initializer_list<KeyValue> const& other) {
     for (auto const& item : other) { Set(item.first, item.second); }
 }
 
-size_type DataTable::Accept(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
-    return m_backend_->Accept(f);
+size_type DataTable::ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
+    return m_backend_->ForEach(f);
 }
 
 std::ostream& DataTable::Print(std::ostream& os, int indent) const {
     os << "{";
-    m_backend_->Accept([&](std::string const& k, std::shared_ptr<DataEntity> const& v) {
+    m_backend_->ForEach([&](std::string const& k, std::shared_ptr<DataEntity> const& v) {
         os << std::endl
            << std::setw(indent + 1) << " "
            << "\"" << k << "\": ";

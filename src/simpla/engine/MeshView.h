@@ -6,7 +6,6 @@
 #define SIMPLA_GEOMETRY_H
 
 #include <simpla/concept/Printable.h>
-#include <simpla/concept/StateCounter.h>
 #include "AttributeView.h"
 #include "SPObject.h"
 namespace simpla {

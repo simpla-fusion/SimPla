@@ -6,7 +6,6 @@
 #include <iomanip>
 #include <string>
 
-#include <simpla/toolbox/ParserURI.h>
 #include <regex>
 #include "DataBackendMemory.h"
 #include "DataEntity.h"

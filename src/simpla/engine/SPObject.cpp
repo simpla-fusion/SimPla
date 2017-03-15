@@ -8,7 +8,6 @@
 
 #include <simpla/data/DataTable.h>
 #include <simpla/mpl/type_cast.h>
-#include <simpla/toolbox/LifeClick.h>
 #include <simpla/toolbox/Log.h>
 #include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid.hpp>

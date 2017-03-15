@@ -92,11 +92,11 @@ class SPObject {
     U db(const std::string &uri) const {
         return db().GetValue<U>(uri);
     }
+
     template <typename U>
-    U db(const std::string &uri, U const &default_value) const {
+    U db(const std::string &uri, U const &default_value) {
         return db().GetValue<U>(uri, default_value);
     }
-
     id_type id() const;
     bool operator==(SPObject const &other);
 

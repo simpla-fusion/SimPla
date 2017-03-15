@@ -49,7 +49,7 @@ DataBackendMemory::DataBackendMemory() : m_pimpl_(new pimpl_s) {}
 DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& status) : DataBackendMemory() {
     if (url != "") {
         DataTable d(url);
-        d.Accept([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
+        d.ForEach([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
     }
 }
 DataBackendMemory::DataBackendMemory(const DataBackendMemory& other) : m_pimpl_(new pimpl_s) {
@@ -81,11 +81,11 @@ std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const
     return std::make_shared<DataEntity>();
 };
 
-void DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
+void DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite) {
     auto tab_res = pimpl_s::get_table(&(m_pimpl_->m_table_), uri, false);
     if (tab_res.second != "") {
         auto res = tab_res.first->emplace(tab_res.second, v);
-        if (!res.second) { res.first->second = v; }
+        if (!res.second && overwrite) { res.first->second = v; }
     }
 }
 void DataBackendMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
@@ -108,7 +108,7 @@ size_type DataBackendMemory::Delete(std::string const& uri) {
     return (res.first != nullptr && res.second != "") ? res.first->erase(res.second) : 0;
 }
 
-size_type DataBackendMemory::Accept(
+size_type DataBackendMemory::ForEach(
     std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     for (auto const& item : m_pimpl_->m_table_) { f(item.first, item.second); }
 }

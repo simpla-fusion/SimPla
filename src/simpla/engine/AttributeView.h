@@ -8,7 +8,6 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/concept/StateCounter.h>
 #include <simpla/design_pattern/Observer.h>
 #include <simpla/design_pattern/Signal.h>
 

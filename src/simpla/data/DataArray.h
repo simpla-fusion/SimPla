@@ -30,7 +30,7 @@ struct DataArray : public DataEntity {
     virtual void Add(std::shared_ptr<DataEntity> const&) { UNIMPLEMENTED; }
     virtual void Delete(size_type idx) { UNIMPLEMENTED; }
 
-    virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const&) const {
+    virtual size_type ForEach(std::function<void(std::shared_ptr<DataEntity>)> const&) const {
         UNIMPLEMENTED;
         return 0;
     };
@@ -53,7 +53,7 @@ struct DataArrayWrapper<void> : public DataArray {
     virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) { m_data_[idx] = v; }
     virtual void Add(std::shared_ptr<DataEntity> const& v) { m_data_.push_back(v); }
     virtual void Delete(size_type idx) { m_data_.erase(m_data_.begin() + idx); }
-    virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
+    virtual size_type ForEach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
         for (auto const& item : m_data_) { fun(item); }
         return m_data_.size();
     };
@@ -74,6 +74,7 @@ class DataArrayWrapper<U, 1, std::enable_if_t<traits::is_light_data<U>::value>> 
 
     virtual ~DataArrayWrapper() {}
     virtual std::type_info const& type() const { return typeid(U); };
+    virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<DataArrayWrapper<U>>(*this); }
     std::vector<U>& data() { return m_data_; }
     std::vector<U> const& data() const { return m_data_; }
     virtual size_type size() const { return m_data_.size(); };
@@ -88,7 +89,7 @@ class DataArrayWrapper<U, 1, std::enable_if_t<traits::is_light_data<U>::value>> 
     virtual void Add(std::shared_ptr<DataEntity> const& v) { m_data_.push_back(data_cast<U>(*v)); }
     virtual void Delete(size_type idx) { m_data_.erase(m_data_.begin() + idx); }
 
-    virtual size_type Accept(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
+    virtual size_type ForEach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
         for (auto const& item : m_data_) { fun(make_data_entity(item)); }
         return m_data_.size();
     };
