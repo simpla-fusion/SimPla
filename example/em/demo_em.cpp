@@ -27,7 +27,6 @@ void create_scenario(engine::Manager *ctx) {
         ctx->GetDBValue<box_type>("Model/Geometry/OuterBox", box_type{{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}})};
     //    model.AddObject("Plasma", in_box);
     //    model.AddObject("Vacuum", out_box - in_box);
-    *ctx->db("AttributeDesc") = {"BBB"_ = "default"},
     *ctx->db("DomainView") = {"Center"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}},
                               "Boundary"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}}};
 

@@ -47,6 +47,10 @@ enum AttributeTag {
     PRIVATE = GHOSTED | PERSISTENT,
     DEFAULT_ATTRIBUTE_TAG = GLOBAL
 };
+inline std::ostream &operator<<(std::ostream &os, AttributeTag const &tag) {
+    os << std::bitset<32>(static_cast<unsigned long long int>(tag));
+    return os;
+}
 // enum AttributeState { READ = 0b01, WRITE = 0b10 };
 //
 // struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
@@ -83,7 +87,7 @@ enum AttributeTag {
 
 class AttributeViewBundle : public SPObject, public concept::Printable {
    public:
-    AttributeViewBundle(std::shared_ptr<data::DataTable> const &t=nullptr);
+    AttributeViewBundle(std::shared_ptr<data::DataTable> const &t = nullptr);
     virtual ~AttributeViewBundle();
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
@@ -136,21 +140,28 @@ struct AttributeView : public SPObject, public concept::Printable {
     template <typename... Args>
     AttributeView(AttributeViewBundle *b, Args &&... args) : AttributeView() {
         Config(std::forward<Args>(args)...);
-        if (db()->Get("name") != nullptr) { Connect(b); }
+        Connect(b);
     };
 
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
 
-   private:
-    void Config() {}
+    void Config() {
+        db()->SetValue("iform", GetIFORM());
+        db()->SetValue("dof", GetDOF());
+        db()->SetValue("value type", GetValueTypeInfo().name());
+        db()->SetValue("value type idx", std::type_index(GetValueTypeInfo()).hash_code());
+    }
     void Config(std::string const &s) { db()->SetValue("name", s); }
     void Config(data::KeyValue const &s) { db()->SetValue(s); }
-    template <typename T0, typename... Others>
-    void Config(T0 const &a0, Others &&... others) {
+    void Config(AttributeTag const &s) { db()->SetValue("tag", (s)); }
+    void Config(int const &s) { db()->SetValue("tag", (s)); }
+
+    template <typename T0, typename T1, typename... Others>
+    void Config(T0 const &a0, T1 const &a1, Others &&... others) {
         Config(a0);
-        Config(std::forward<Others>(others)...);
+        Config(a1, std::forward<Others>(others)...);
     }
 
    public:
@@ -201,9 +212,12 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
 
    public:
     typedef std::true_type prefer_pass_by_reference;
+
+    AttributeViewAdapter() : AttributeView() {}
     template <typename... Args>
-    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args) : AttributeView(b) {
-        //        AttributeView::Config(std::forward<Args>(args)...);
+    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
+        : AttributeView(b, std::forward<Args>(args)...) {
+        Config();
     }
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;

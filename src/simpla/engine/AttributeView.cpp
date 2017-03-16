@@ -32,7 +32,6 @@ void AttributeViewBundle::OnNotify() {
 void AttributeViewBundle::Attach(AttributeView *p) {
     if (p != nullptr && m_pimpl_->m_attr_views_.emplace(p).second) {
         p->Connect(this);
-        db()->Link("Attributes/" + p->name(), p->db("desc"));
         Click();
     }
 }

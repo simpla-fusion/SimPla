@@ -133,8 +133,10 @@ void DomainView::Attach(AttributeViewBundle *p) {
     auto res = m_pimpl_->m_attr_bundle_.emplace(p);
     if (res.second) {
         (*res.first)->ForEach([&](AttributeView *v) {
-            auto p = db()->Set("Attributes/" + v->name(), v->db(), false);
-            if (!p.second) { v->db()->Link(p.first); }
+            if (v->name() != "") {
+                auto p = db()->Set("Attributes/" + v->name(), v->db(), false);
+                if (!p.second) { v->db()->Link(p.first); }
+            }
         });
         Click();
     }
