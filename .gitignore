@@ -42,3 +42,4 @@ third_part
 .project
 .settings/
 external_project/*/src/
+cmake-build-*
