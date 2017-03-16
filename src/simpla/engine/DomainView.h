@@ -36,18 +36,17 @@ class DomainView : public concept::Printable, public SPObject {
     //    Manager const *GetManager(Manager *) const;
     //    void SetManager(Manager *m = nullptr);
 
-    MeshView &GetMesh() const;
+    std::shared_ptr<MeshView> GetMesh() const;
 
-    template <typename U, typename... Args>
-    U &SetMesh(Args &&... args) {
-        auto res = std::make_shared<U>(std::forward<Args>(args)...);
-        SetMesh(std::dynamic_pointer_cast<MeshView>(res));
-        Attach(dynamic_cast<AttributeViewBundle *>(res.get()));
-        return *res;
-    };
+//    template <typename U, typename... Args>
+//    U &SetMesh(Args &&... args) {
+//        auto res = std::make_shared<U>(std::forward<Args>(args)...);
+//        SetMesh(std::dynamic_pointer_cast<MeshView>(res));
+//        Attach(dynamic_cast<AttributeViewBundle *>(res.get()));
+//        return *res;
+//    };
 
-   private:
-    void SetMesh(std::shared_ptr<MeshView> const &m);
+    std::shared_ptr<MeshView> SetMesh(std::shared_ptr<MeshView> const &m);
 
    public:
     id_type GetMeshBlockId() const;
@@ -60,7 +59,7 @@ class DomainView : public concept::Printable, public SPObject {
     template <typename U, typename... Args>
     U &AddWorker(Args &&... args) {
         auto res = AddWorker(std::make_shared<U>(std::forward<Args>(args)...));
-//        if (!res.second) { res.first = ; }
+        //        if (!res.second) { res.first = ; }
         return *std::dynamic_pointer_cast<U>(res.first);
     };
     void Attach(AttributeViewBundle *);

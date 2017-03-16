@@ -34,8 +34,8 @@ std::shared_ptr<DataEntity> DataTable::Duplicate() const {
 bool DataTable::isNull() const { return m_backend_ == nullptr; }
 size_type DataTable::size() const { return m_backend_->size(); }
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) const { return m_backend_->Get(path); };
-std::shared_ptr<DataEntity> DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v,
-                                           bool overwrite) {
+std::pair<std::shared_ptr<DataEntity>, bool> DataTable::Set(std::string const& uri,
+                                                            std::shared_ptr<DataEntity> const& v, bool overwrite) {
     return m_backend_->Set(uri, v, overwrite);
 };
 std::shared_ptr<DataEntity> DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
@@ -47,7 +47,7 @@ DataTable& DataTable::Link(std::string const& uri, DataTable const& other) {
         m_backend_ = other.m_backend_;
         return *this;
     } else {
-        return Set(uri, std::make_shared<DataTable>(other.m_backend_), true)->cast_as<DataTable>();
+        return Set(uri, std::make_shared<DataTable>(other.m_backend_), true).first->cast_as<DataTable>();
     }
 }
 
@@ -57,21 +57,16 @@ DataTable& DataTable::Link(std::string const& uri, std::shared_ptr<DataEntity> c
 }
 
 std::shared_ptr<DataEntity> DataTable::Set(std::string const& uri, DataEntity const& p, bool overwrite) {
-    return Set(uri, p.Duplicate(), overwrite);
+    return Set(uri, p.Duplicate(), overwrite).first;
 };
 std::shared_ptr<DataEntity> DataTable::Add(std::string const& uri, DataEntity const& p) {
     return Add(uri, p.Duplicate());
 };
 
-DataTable const& DataTable::GetTable(std::string const& uri) const {
+std::shared_ptr<DataTable> DataTable::GetTable(std::string const& uri) const {
     auto p = Get(uri);
     if (p == nullptr || !p->isTable()) { RUNTIME_ERROR << uri << " is not a table" << std::endl; }
-    return p->cast_as<DataTable>();
-}
-DataTable& DataTable::GetTable(std::string const& uri) {
-    auto p = Set(uri + "/", nullptr, false);
-    if (p == nullptr || !p->isTable()) { RUNTIME_ERROR << uri << " is not a table" << std::endl; }
-    return p->cast_as<DataTable>();
+    return std::dynamic_pointer_cast<DataTable>(p);
 }
 
 size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
@@ -79,6 +74,8 @@ size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(
 void DataTable::Set(DataTable const& other, bool overwrite) {
     other.ForEach([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v, overwrite); });
 }
+void DataTable::SetValue(KeyValue const& item) { Set(item.first, item.second); }
+
 void DataTable::SetValue(std::initializer_list<KeyValue> const& other) {
     for (auto const& item : other) { Set(item.first, item.second); }
 }

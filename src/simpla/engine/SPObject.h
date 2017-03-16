@@ -78,29 +78,29 @@ class SPObject {
    public:
     SP_OBJECT_BASE(SPObject)
    public:
-    SPObject(std::string const &s = "unnamed");
+    SPObject(std::string const &s = "");
     SPObject(SPObject &&other);
     SPObject(SPObject const &) = delete;
     SPObject &operator=(SPObject const &other) = delete;
     virtual ~SPObject();
-    std::string const &name() const;
+    std::string name() const;
     void name(std::string const &);
 
-    simpla::data::DataTable const &db() const;
-    simpla::data::DataTable &db();
+    std::shared_ptr<data::DataTable> db(std::string const &uri = "") const;
+    std::shared_ptr<data::DataTable> db(std::string const &uri = "");
     template <typename U>
-    U db(const std::string &uri) const {
-        return db().GetValue<U>(uri);
+    U GetDBValue(const std::string &uri) const {
+        return db()->GetValue<U>(uri);
     }
 
     template <typename U>
-    U db(const std::string &uri, U const &default_value) const {
-        return db().GetValue<U>(uri, default_value);
+    U GetDBValue(const std::string &uri, U const &default_value) const {
+        return db()->GetValue<U>(uri, default_value);
     }
 
     template <typename U>
-    U db(const std::string &uri, U const &default_value) {
-        return db().GetValue<U>(uri, default_value);
+    U GetDBValue(const std::string &uri, U const &default_value) {
+        return db()->GetValue<U>(uri, default_value);
     }
 
     id_type id() const;

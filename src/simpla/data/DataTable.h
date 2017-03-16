@@ -51,8 +51,9 @@ class DataTable : public DataEntity {
     size_type size() const;
 
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
-    std::shared_ptr<DataEntity> Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr,
-                                    bool overwrite = true);
+    std::pair<std::shared_ptr<DataEntity>, bool> Set(std::string const& uri,
+                                                     std::shared_ptr<DataEntity> const& p = nullptr,
+                                                     bool overwrite = true);
     std::shared_ptr<DataEntity> Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
     size_type Delete(std::string const& uri);
     size_type ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
@@ -68,8 +69,7 @@ class DataTable : public DataEntity {
 
     std::shared_ptr<DataEntity> Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
     std::shared_ptr<DataEntity> Add(std::string const& uri, DataEntity const& p);
-    DataTable const& GetTable(std::string const& uri) const;
-    DataTable& GetTable(std::string const& uri);
+    std::shared_ptr<DataTable> GetTable(std::string const& uri) const;
 
     template <typename U>
     U GetValue(std::string const& uri) const {
@@ -91,6 +91,26 @@ class DataTable : public DataEntity {
         return data_cast<U>(*Set(uri, make_data_entity(default_value), false));
     }
 
+    template <typename U>
+    DataTable& operator=(U const& u) {
+        SetValue(u);
+        return *this;
+    }
+    template <typename U>
+    DataTable& operator=(std::initializer_list<U> const& u) {
+        SetValue(u);
+        return *this;
+    }
+    //    template <typename U>
+    //    void SetValue(std::pair<std::string, U> const& item) {
+    //        SetValue(item.first, item.second);
+    //    }
+    //    template <typename U>
+    //    void SetValue(std::initializer_list<std::pair<std::string, U>> const& other) {
+    //        for (auto const& item : other) { SetValue(item.first, item.second); }
+    //    }
+
+    void SetValue(KeyValue const& other);
     void SetValue(std::initializer_list<KeyValue> const& other);
 
     template <typename U>

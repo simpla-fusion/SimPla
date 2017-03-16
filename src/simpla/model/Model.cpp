@@ -15,14 +15,14 @@ struct Model::pimpl_s {
 };
 
 Model::Model() : m_pimpl_(new pimpl_s) {
-    db().Set("Material/");
+    db()->Set("Material/");
     SPObject::Click();
 }
 
 Model::~Model() {}
 
 std::ostream& Model::Print(std::ostream& os, int indent) const {
-    os << db() << std::endl;
+    os << *db() << std::endl;
     return os;
 }
 bool Model::Update() {
@@ -30,12 +30,15 @@ bool Model::Update() {
     return SPObject::Update();
 };
 box_type const& Model::bound_box() const { return m_pimpl_->m_bound_box_; };
-data::DataTable const& Model::GetMaterial(std::string const& s) const { return db().GetTable(s); }
-data::DataTable& Model::GetMaterial(std::string const& s) {
+
+id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k)->GetValue<id_type>("GUID"); }
+
+std::shared_ptr<data::DataTable> Model::GetMaterial(std::string const& s) const { return db()->GetTable(s); }
+
+std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const& s, std::shared_ptr<DataTable> const& other) {
     Click();
-    auto& t = db().GetTable("/Material/" + s);
-    t.GetValue("GUID", std::hash<std::string>{}(s));
-    return t;
+    auto t = db()->Set("/Material/" + s, other, false);
+    t->cast_as<DataTable>().SetValue("GUID", std::hash<std::string>{}(s));
 }
 // id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k).GetValue<id_type>("GUID", NULL_ID);
 // }
@@ -48,7 +51,7 @@ data::DataTable& Model::GetMaterial(std::string const& s) {
 
 id_type Model::AddObject(std::string const& key, geometry::GeoObject const& g_obj) {
     Click();
-    m_pimpl_->m_g_obj_.emplace(GetMaterial(key).GetValue<id_type>("GUID"), g_obj);
+    m_pimpl_->m_g_obj_.emplace(GetMaterialId(key), g_obj);
 }
 size_type Model::RemoveObject(id_type id) {
     Click();
@@ -57,7 +60,7 @@ size_type Model::RemoveObject(id_type id) {
 
 size_type Model::RemoveObject(std::string const& key) {
     try {
-        return RemoveObject(GetMaterial(key).GetValue<id_type>("GUID"));
+        return RemoveObject(GetMaterialId(key));
     } catch (...) { return 0; }
 }
 

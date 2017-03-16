@@ -131,7 +131,7 @@ void DomainView::Evaluate() {
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.emplace(p).second) {
         //        p->Connect(this);
-        auto &attr_db = db().GetTable("Attributes");
+        auto attr_db = db()->GetTable("Attributes");
         p->ForEach([&](AttributeView *v) {});
         Click();
     }
@@ -145,18 +145,19 @@ void DomainView::Detach(AttributeViewBundle *p) {
 void DomainView::Notify() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { item->OnNotify(); }
 }
-void DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
+std::shared_ptr<MeshView> DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
     Click();
     m_pimpl_->m_mesh_ = m;
     Attach(static_cast<AttributeViewBundle *>(m.get()));
+    return m_pimpl_->m_mesh_;
 };
 
-MeshView &DomainView::GetMesh() const { return *m_pimpl_->m_mesh_; }
+std::shared_ptr<MeshView> DomainView::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 std::pair<std::shared_ptr<Worker>, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
     auto res = m_pimpl_->m_workers_.emplace(pos, w);
     if (res.second) {
-        db().Add("Worker", std::make_shared<data::DataTable>(w->db().backend()));
+        db()->Add("Worker", std::make_shared<data::DataTable>(w->db()->backend()));
         Attach(static_cast<AttributeViewBundle *>(w.get()));
     }
     return std::make_pair(res.first->second, res.second);

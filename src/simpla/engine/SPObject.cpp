@@ -24,10 +24,11 @@ struct SPObject::pimpl_s {
     size_type m_click_tag_ = 0;
     boost::uuids::uuid m_id_;
     id_type m_short_id_;
-    data::DataTable m_db_;
+    std::shared_ptr<data::DataTable> m_db_;
 };
 
 SPObject::SPObject(std::string const &s) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_db_ = std::make_shared<data::DataTable>();
     auto gen = boost::uuids::random_generator();
     m_pimpl_->m_id_ = boost::uuids::random_generator()();
     boost::hash<boost::uuids::uuid> hasher;
@@ -37,14 +38,19 @@ SPObject::SPObject(std::string const &s) : m_pimpl_(new pimpl_s) {
 
 SPObject::SPObject(SPObject &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
 SPObject::~SPObject() { OnDestroy(); }
-data::DataTable const &SPObject::db() const { return m_pimpl_->m_db_; }
-data::DataTable &SPObject::db() {
+std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) const {
+    return uri == "" ? m_pimpl_->m_db_ : m_pimpl_->m_db_->GetTable(uri);
+}
+std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) {
     Click();
-    return m_pimpl_->m_db_;
+    return uri == "" ? m_pimpl_->m_db_
+                     : (std::dynamic_pointer_cast<data::DataTable>(m_pimpl_->m_db_->Set(uri + "/", nullptr, false)));
 }
 
-std::string const &SPObject::name() const { return db().GetValue<std::string>("name", "unnamed"); }
-void SPObject::name(std::string const &s) { db().SetValue("name", s); }
+std::string SPObject::name() const { return db()->GetValue<std::string>("name", ""); }
+void SPObject::name(std::string const &s) {
+    if (s != "") db()->SetValue("name", s);
+}
 
 id_type SPObject::id() const { return m_pimpl_->m_short_id_; }
 bool SPObject::operator==(SPObject const &other) { return m_pimpl_->m_id_ == other.m_pimpl_->m_id_; }

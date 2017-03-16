@@ -11,54 +11,7 @@
 
 namespace simpla {
 namespace engine {
-struct AttributeDict::pimpl_s {
-    std::map<id_type, std::shared_ptr<AttributeDesc>> m_db_;
-    std::map<std::string, id_type> m_name_map_;
-};
-AttributeDict::AttributeDict() : m_pimpl_(new pimpl_s) {}
-AttributeDict::~AttributeDict() {}
-std::ostream &AttributeDict::Print(std::ostream &os, int indent) const {
-    for (auto const &item : m_pimpl_->m_db_) {
-        os << std::setw(indent + 1) << " " << item.second->GetName() << " = {"
-           << " GetIFORM = " << item.second->GetIFORM() << ", GetDOF = " << item.second->GetDOF()
-           << ", GetTag = " << item.second->GetTag() << ", value type = \"" << item.second->GetValueTypeInfo().name()
-           << "\" , config= " << item.second->db() << "  }," << std::endl;
-    }
-}
 
-id_type AttributeDict::GUID(std::string const &s) const { return m_pimpl_->m_name_map_.at(s); }
-bool AttributeDict::has(id_type id) const { return m_pimpl_->m_db_.find(id) != m_pimpl_->m_db_.end(); }
-bool AttributeDict::has(std::string const &s) const { return has(GUID(s)); }
-std::shared_ptr<AttributeDesc> AttributeDict::Get(id_type id) const { return m_pimpl_->m_db_.at(id); }
-std::shared_ptr<AttributeDesc> AttributeDict::Get(std::string const &s) const { return Get(GUID(s)); }
-
-std::pair<std::shared_ptr<AttributeDesc>, bool> AttributeDict::Register(std::shared_ptr<AttributeDesc> const &p) {
-    auto gid = p->GetGUID();
-    auto res = m_pimpl_->m_db_.emplace(gid, p);
-
-    if (res.second) {
-        m_pimpl_->m_name_map_.emplace(p->GetName(), gid);
-        db().Link(res.first->second->GetName(), res.first->second->db());
-    } else {
-        res.first->second->db().Set(p->db(), false);
-    }
-
-    return std::make_pair(res.first->second, res.second);
-}
-void AttributeDict::Register(AttributeView *v) { v->Register(*this); }
-
-bool AttributeDict::Unregister(std::string const &key) { return Unregister(GUID(key)); }
-bool AttributeDict::Unregister(id_type id) {
-    m_pimpl_->m_name_map_.erase(Get(id)->GetName());
-    return m_pimpl_->m_db_.erase(id) > 0;
-}
-
-void AttributeDict::ForEach(std::function<void(AttributeDesc *)> const &fun) {
-    for (auto &item : m_pimpl_->m_db_) { fun(item.second.get()); }
-}
-void AttributeDict::ForEach(std::function<void(AttributeDesc const *)> const &fun) const {
-    for (auto const &item : m_pimpl_->m_db_) { fun(item.second.get()); }
-}
 struct AttributeViewBundle::pimpl_s {
     DomainView *m_domain_ = nullptr;
     mutable std::set<AttributeView *> m_attr_views_;
@@ -67,7 +20,7 @@ struct AttributeViewBundle::pimpl_s {
 AttributeViewBundle::AttributeViewBundle(std::string const &s) : SPObject(s), m_pimpl_(new pimpl_s) {}
 AttributeViewBundle::~AttributeViewBundle() {}
 std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
-    for (auto &attr : m_pimpl_->m_attr_views_) { os << attr->description().GetName() << " , "; }
+    for (auto &attr : m_pimpl_->m_attr_views_) { os << attr->name() << " , "; }
     return os;
 };
 
@@ -94,12 +47,8 @@ bool AttributeViewBundle::isModified() {
 }
 
 bool AttributeViewBundle::Update() { return SPObject::Update(); }
-
-// void AttributeViewBundle::Register(AttributeDict *dbase) {
-//    for (auto &attr : m_backend_->m_attr_views_) { attr->RegisterDescription(dbase); }
-//}
 DomainView const &AttributeViewBundle::GetDomain() const { return *m_pimpl_->m_domain_; }
-MeshView const &AttributeViewBundle::GetMesh() const { return m_pimpl_->m_domain_->GetMesh(); }
+MeshView const &AttributeViewBundle::GetMesh() const { return *m_pimpl_->m_domain_->GetMesh(); }
 std::shared_ptr<DataBlock> &AttributeViewBundle::GetDataBlock(id_type guid) const {
     return m_pimpl_->m_domain_->GetDataBlock(guid);
 }
@@ -107,30 +56,18 @@ std::shared_ptr<DataBlock> &AttributeViewBundle::GetDataBlock(id_type guid) cons
 void AttributeViewBundle::ForEach(std::function<void(AttributeView *)> const &fun) const {
     for (auto *attr : m_pimpl_->m_attr_views_) { fun(attr); }
 }
-
-id_type AttributeDesc::GenerateGUID(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF,
-                                    int tag) {
-    std::string str = name_s + '.' + t_id.name() + '.' + static_cast<char>(IFORM + '0') + '.' +
-                      static_cast<char>(DOF + '0') + '.' + static_cast<char>(tag + '0');
-    return static_cast<id_type>(std::hash<std::string>{}(str));
-}
-
-AttributeDesc::AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int tag)
-    : m_name_(name_s),
-      m_value_type_info_(t_id),
-      m_iform_(IFORM),
-      m_dof_(DOF),
-      m_tag_(tag),
-      m_GUID_(GenerateGUID(name_s, t_id, IFORM, DOF, tag)),
-      m_db_() {}
-
-AttributeDesc::~AttributeDesc() {}
+//
+// id_type AttributeDesc::GenerateGUID(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF,
+//                                    int tag) {
+//    std::string str = name_s + '.' + t_id.name() + '.' + static_cast<char>(IFORM + '0') + '.' +
+//                      static_cast<char>(DOF + '0') + '.' + static_cast<char>(tag + '0');
+//    return static_cast<id_type>(std::hash<std::string>{}(str));
+//}
 
 struct AttributeView::pimpl_s {
     AttributeViewBundle *m_bundle_;
     MeshView const *m_mesh_ = nullptr;
     id_type m_current_block_id_ = NULL_ID;
-    mutable std::shared_ptr<AttributeDesc> m_desc_ = nullptr;
     mutable std::shared_ptr<DataBlock> m_data_ = nullptr;
 };
 AttributeView::AttributeView() : m_pimpl_(new pimpl_s) {}
@@ -138,26 +75,8 @@ AttributeView::AttributeView(AttributeViewBundle *b) : AttributeView() { Connect
 AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
 AttributeView::~AttributeView() { Disconnect(); }
 
-void AttributeView::Config(std::string const &s, int t) {
-    m_pimpl_->m_desc_ = std::make_shared<AttributeDesc>(s, GetValueTypeInfo(), GetIFORM(), GetDOF(), t);
-}
-void AttributeView::Config(int t) { Config("unnamed", t); }
-
-void AttributeView::Register(AttributeDict &db) { m_pimpl_->m_desc_ = db.Register(m_pimpl_->m_desc_).first; };
-
-AttributeDesc &AttributeView::description() const {
-    if (m_pimpl_->m_desc_ == nullptr) {
-        m_pimpl_->m_desc_ =
-            std::make_shared<AttributeDesc>("unnamed", GetValueTypeInfo(), GetIFORM(), GetDOF(), SCRATCH);
-    }
-    return *m_pimpl_->m_desc_;
-}
-id_type AttributeView::GetGUID() const { return description().GetGUID(); }
-std::string const &AttributeView::GetName() const { return description().GetName(); }
-std::type_info const &AttributeView::GetValueTypeInfo() const { return description().GetValueTypeInfo(); }
-int AttributeView::GetIFORM() const { return description().GetIFORM(); }
-int AttributeView::GetDOF() const { return description().GetDOF(); }
-int AttributeView::GetTag() const { return description().GetTag(); }
+id_type AttributeView::GetGUID() const { return GetDBValue<id_type>("GUID"); }
+int AttributeView::GetTag() const { return GetDBValue<int>("Tag", 0); }
 
 void AttributeView::Connect(AttributeViewBundle *b) {
     if (b != m_pimpl_->m_bundle_) { b->Attach(this); }
@@ -203,7 +122,7 @@ bool AttributeView::Update() { return SPObject::Update(); }
 bool AttributeView::isNull() const { return m_pimpl_->m_data_ == nullptr; }
 
 std::ostream &AttributeView::Print(std::ostream &os, int indent) const {
-    os << std::setw(indent + 1) << " " << description().GetName();
+    os << std::setw(indent + 1) << " " << name();
     return os;
 };
 

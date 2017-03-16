@@ -88,11 +88,9 @@ int main(int argc, char **argv) {
 
     create_scenario(&ctx);
 
-
-
-    int num_of_steps = ctx.db<int>("number_of_steps", 1);
-    int step_of_check_points = ctx.db<int>("step_of_check_point", 1);
-    Real dt = ctx.db<Real>("dt", 1.0);
+    int num_of_steps = ctx.GetDBValue<int>("number_of_steps", 1);
+    int step_of_check_points = ctx.GetDBValue<int>("step_of_check_point", 1);
+    Real dt = ctx.GetDBValue<Real>("dt", 1.0);
 
     MESSAGE << DOUBLELINE << std::endl;
     MESSAGE << "INFORMATION:" << std::endl;

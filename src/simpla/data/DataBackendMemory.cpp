@@ -81,15 +81,20 @@ std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const
     return nullptr;
 };
 
-std::shared_ptr<DataEntity> DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v,
-                                                   bool overwrite) {
-    auto tab_res = pimpl_s::get_table((this), uri, false);
+std::pair<std::shared_ptr<DataEntity>, bool> DataBackendMemory::Set(std::string const& uri,
+                                                                    std::shared_ptr<DataEntity> const& v,
+                                                                    bool overwrite) {
+    auto tab_res = pimpl_s::get_table((this), uri, overwrite);
     if (tab_res.second == "") {
-        return std::make_shared<DataTable>(tab_res.first->shared_from_this());
+        return std::make_pair(std::make_shared<DataTable>(tab_res.first->shared_from_this()), false);
     } else {
         auto res = tab_res.first->m_pimpl_->m_table_.emplace(tab_res.second, v);
-        if (!res.second && overwrite) { res.first->second = v; }
-        return res.first->second;
+        if (!res.second && overwrite) {
+            res.first->second = v;
+            return std::make_pair(res.first->second, true);
+        } else {
+            return std::make_pair(res.first->second, false);
+        }
     }
 }
 std::shared_ptr<DataEntity> DataBackendMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {

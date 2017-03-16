@@ -16,18 +16,23 @@ void create_scenario(engine::Manager *ctx) {
     typedef mesh::CartesianGeometry mesh_type;
 
     engine::Atlas &atlas = ctx->GetAtlas();
+    model::Model &model = ctx->GetModel();
 
     atlas.SetOrigin(point_type({0, 0, 0}));
     atlas.SetDx(point_type({1, 1, 1}));
 
-    model::Model &model = ctx->GetModel();
-    geometry::Cube in_box(ctx->db<box_type>("Model/Geometry/InnerBox", box_type{{0, 0, 0}, {1, 1, 1}}));
-    geometry::Cube out_box{ctx->db<box_type>("Model/Geometry/OuterBox", box_type{{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}})};
-    model.AddObject("Plasma", in_box);
-    model.AddObject("Vacuum", out_box - in_box);
-    auto &center_domain = ctx->GetDomainView("Plasma");
-    mesh_type &center_mesh = center_domain.SetMesh<mesh_type>();
-    auto &center_worker = center_domain.AddWorker<EMFluid<mesh_type>>();
+    geometry::Cube in_box(ctx->GetDBValue<box_type>("Model/Geometry/InnerBox", box_type{{0, 0, 0}, {1, 1, 1}}));
+    geometry::Cube out_box{
+        ctx->GetDBValue<box_type>("Model/Geometry/OuterBox", box_type{{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}})};
+    //    model.AddObject("Plasma", in_box);
+    //    model.AddObject("Vacuum", out_box - in_box);
+
+    *ctx->db("DomainView") = {"Center"_ = {"Worker"_ = {{"name"_ = "EMFluid"}}},
+                              "Boundary"_ = {"Worker"_ = {{"name"_ = "PML"}}}};
+
+    std::cout << *ctx->db() << std::endl;
+
+    ctx->Initialize();
 
     //    options.GetTable("Particles").foreach ([&](auto const &item) {
     //        auto sp = center_worker.AddSpecies(std::get<0>(item).template as<std::string>(),
@@ -42,12 +47,11 @@ void create_scenario(engine::Manager *ctx) {
     //                std::get<1>(item)["Density"].as<std::function<Real(point_type const &)>>());
     //        }
     //    });
-
-    typedef PML<mesh_type> pml_type;
-    auto &pml_domain = ctx->GetDomainView("Vacuum");
-    auto &pml_worker = pml_domain.AddWorker<PML<mesh_type>>();
-    pml_worker.SetCenterDomain(in_box);
-
+    //
+    //    typedef PML<mesh_type> pml_type;
+    //    auto &pml_domain = ctx->GetDomainView("Vacuum");
+    //    auto &pml_worker = pml_domain.AddWorker<PML<mesh_type>>();
+    //    pml_worker.SetCenterDomain(in_box);
     //    typedef std::function<vector_type(point_type const &)> field_function_type;
     //
     //    if (options.has("InitValue")) {

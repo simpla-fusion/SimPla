@@ -36,11 +36,16 @@ class KeyValue : public std::pair<std::string, std::shared_ptr<DataEntity>> {
         second = make_data_entity(u);
         return *this;
     }
-    //    template <typename U>
-    //    KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
-    //        second = make_data_entity(u);
-    //        return *this;
-    //    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<std::initializer_list<U>> const& u) {
+        second = make_data_entity(u);
+        return *this;
+    }
+    template <typename U>
+    KeyValue& operator=(std::initializer_list<std::initializer_list<std::initializer_list<U>>> const& u) {
+        second = make_data_entity(u);
+        return *this;
+    }
 };
 
 inline KeyValue operator"" _(const char* c, std::size_t n) { return KeyValue{std::string(c), make_data_entity(true)}; }

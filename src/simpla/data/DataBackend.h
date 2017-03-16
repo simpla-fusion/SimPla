@@ -53,8 +53,9 @@ class DataBackend : public concept::Printable, public std::enable_shared_from_th
      * @brief  put v to uri,
      * @return
      */
-    virtual std::shared_ptr<DataEntity> Set(std::string const& uri, std::shared_ptr<DataEntity> const& v,
-                                            bool overwrite = true) = 0;
+    virtual std::pair<std::shared_ptr<DataEntity>, bool> Set(std::string const& uri,
+                                                             std::shared_ptr<DataEntity> const& v,
+                                                             bool overwrite = true) = 0;
 
     /**
      * @brief  add v to uri,

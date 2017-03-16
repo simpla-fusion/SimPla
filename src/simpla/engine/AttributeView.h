@@ -47,68 +47,40 @@ enum AttributeTag {
     PRIVATE = GHOSTED | PERSISTENT,
     DEFAULT_ATTRIBUTE_TAG = GLOBAL
 };
-enum AttributeState { READ = 0b01, WRITE = 0b10 };
+// enum AttributeState { READ = 0b01, WRITE = 0b10 };
+//
+// struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
+//    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int TAG = SCRATCH);
+//
+//    template <typename... Args>
+//    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int TAG, Args &&... args)
+//        : AttributeDesc(name_s, t_id, IFORM, DOF, TAG) {
+//        db().Set(std::forward<Args>(args)...);
+//    };
+//    ~AttributeDesc();
+//
+//    static id_type GenerateGUID(std::string const &s, std::type_info const &t_id, int IFORM, int DOF,
+//                                int tag = SCRATCH);
+//
+//    std::string const &GetName() const { return m_name_; }
+//    const std::type_info &GetValueTypeInfo() const { return m_value_type_info_; }
+//    int GetIFORM() const { return m_iform_; }
+//    int GetDOF() const { return m_dof_; }
+//    int GetTag() const { return m_tag_; }
+//    id_type GetGUID() const { return m_GUID_; }
+//    data::DataTable &db() { return m_db_; }
+//    data::DataTable const &db() const { return m_db_; }
+//
+//   private:
+//    const std::string m_name_;
+//    const std::type_info &m_value_type_info_;
+//    int m_iform_;
+//    int m_dof_;
+//    int m_tag_;
+//    id_type m_GUID_;
+//    data::DataTable m_db_;
+//};
 
-struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
-    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int TAG = SCRATCH);
-
-    template <typename... Args>
-    AttributeDesc(const std::string &name_s, const std::type_info &t_id, int IFORM, int DOF, int TAG, Args &&... args)
-        : AttributeDesc(name_s, t_id, IFORM, DOF, TAG) {
-        db().Set(std::forward<Args>(args)...);
-    };
-    ~AttributeDesc();
-
-    static id_type GenerateGUID(std::string const &s, std::type_info const &t_id, int IFORM, int DOF,
-                                int tag = SCRATCH);
-
-    std::string const &GetName() const { return m_name_; }
-    const std::type_info &GetValueTypeInfo() const { return m_value_type_info_; }
-    int GetIFORM() const { return m_iform_; }
-    int GetDOF() const { return m_dof_; }
-    int GetTag() const { return m_tag_; }
-    id_type GetGUID() const { return m_GUID_; }
-    data::DataTable &db() { return m_db_; }
-    data::DataTable const &db() const { return m_db_; }
-
-   private:
-    const std::string m_name_;
-    const std::type_info &m_value_type_info_;
-    int m_iform_;
-    int m_dof_;
-    int m_tag_;
-    id_type m_GUID_;
-    data::DataTable m_db_;
-};
-struct AttributeDict : public SPObject, public concept::Printable {
-   public:
-    AttributeDict();
-    virtual ~AttributeDict();
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-
-    bool has(id_type) const;
-    bool has(std::string const &) const;
-    id_type GUID(std::string const &) const;
-    std::shared_ptr<AttributeDesc> Get(id_type) const;
-    std::shared_ptr<AttributeDesc> Get(std::string const &) const;
-
-    void Register(AttributeView *);
-    std::pair<std::shared_ptr<AttributeDesc>, bool> Register(std::shared_ptr<AttributeDesc> const &);
-
-    /**
-     * @brief
-     * @return true if key exists
-     */
-    bool Unregister(std::string const &key);
-    bool Unregister(id_type);
-
-    void ForEach(std::function<void(AttributeDesc *)> const &);
-    void ForEach(std::function<void(AttributeDesc const *)> const &) const;
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
-};
 class AttributeViewBundle : public SPObject, public concept::Printable {
    public:
     AttributeViewBundle(std::string const &s = "");
@@ -165,39 +137,23 @@ struct AttributeView : public SPObject, public concept::Printable {
    public:
     AttributeView(MeshView const *b);
     AttributeView(AttributeViewBundle *b);
-    template <typename T>
-    AttributeView(T *b,
-                  ENABLE_IF((std::is_base_of<MeshView, T>::value && std::is_base_of<AttributeViewBundle, T>::value)))
-        : AttributeView(static_cast<AttributeViewBundle *>(b)){
-              //        SetMesh(static_cast<MeshView const *>(b));
-          };
+    template <typename T, typename... Args>
+    AttributeView(T *b, Args &&... args) : AttributeView(b) {
+        db()->SetValue(std::forward<Args>(args)...);
+    };
 
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
 
-   protected:
-    void Config(std::string const &s, int t = DEFAULT_ATTRIBUTE_TAG);
-    void Config(int t = SCRATCH);
-
-    template <typename... Others>
-    void Config(std::string const &s, int t, Others &&... others) {
-        Config(s, t);
-        db().Set(std::forward<Others>(others)...);
-    };
-
    public:
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-
-    void Register(AttributeDict &db);
-    AttributeDesc &description() const;
     id_type GetGUID() const;
     int GetTag() const;
-    std::string const &GetName() const;
-    virtual int GetIFORM() const;
-    virtual int GetDOF() const;
-    virtual std::type_info const &GetValueTypeInfo() const;     //!< value type
-    virtual std::type_info const &GetMeshTypeInfo() const = 0;  //!< mesh type
+    virtual int GetIFORM() const = 0;
+    virtual int GetDOF() const = 0;
+    virtual std::type_info const &GetValueTypeInfo() const = 0;  //!< value type
+    virtual std::type_info const &GetMeshTypeInfo() const = 0;   //!< mesh type
 
     virtual bool Update();
 
@@ -248,7 +204,7 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     virtual ~AttributeViewAdapter() {}
 
     std::ostream &Print(std::ostream &os, int indent = 0) const final {
-        os << AttributeView::description().GetName() << " = {";
+        os << AttributeView::name() << " = {";
         U::Print(os, indent);
         os << "}";
         return os;

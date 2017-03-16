@@ -30,7 +30,7 @@ class DataBackendMemory : public DataBackend {
     virtual bool isNull() const;  //!< is not initialized
 
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const;
-    virtual std::shared_ptr<DataEntity> Set(std::string const& URI, std::shared_ptr<DataEntity> const&,
+    virtual std::pair<std::shared_ptr<DataEntity>, bool>  Set(std::string const& URI, std::shared_ptr<DataEntity> const&,
                                             bool overwrite = true);
     virtual std::shared_ptr<DataEntity> Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& URI);
