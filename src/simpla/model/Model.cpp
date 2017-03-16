@@ -14,13 +14,8 @@ struct Model::pimpl_s {
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
-Model::Model() : m_pimpl_(new pimpl_s) {
-    db()->Set("Material/");
-    SPObject::Click();
-}
-
+Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() {}
-
 std::ostream& Model::Print(std::ostream& os, int indent) const {
     os << *db() << std::endl;
     return os;
@@ -38,7 +33,7 @@ std::shared_ptr<data::DataTable> Model::GetMaterial(std::string const& s) const 
 std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const& s, std::shared_ptr<DataTable> const& other) {
     Click();
     auto t = db()->Set("/Material/" + s, other, false);
-    t->cast_as<DataTable>().SetValue("GUID", std::hash<std::string>{}(s));
+    if (t.second) { t.first->cast_as<DataTable>().SetValue("GUID", std::hash<std::string>{}(s)); }
 }
 // id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k).GetValue<id_type>("GUID", NULL_ID);
 // }

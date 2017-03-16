@@ -7,6 +7,7 @@
 #include <simpla/engine/Manager.h>
 #include <simpla/model/geometry/Cube.h>
 #include <simpla/predefine/CartesianGeometry.h>
+//#include <simpla/predefine/CylindricalGeometry.h>
 #include "../../scenario/problem_domain/EMFluid.h"
 #include "../../scenario/problem_domain/PML.h"
 
@@ -27,9 +28,17 @@ void create_scenario(engine::Manager *ctx) {
     //    model.AddObject("Plasma", in_box);
     //    model.AddObject("Vacuum", out_box - in_box);
 
-    *ctx->db("DomainView") = {"Center"_ = {"Worker"_ = {{"name"_ = "EMFluid"}}},
-                              "Boundary"_ = {"Worker"_ = {{"name"_ = "PML"}}}};
+    *ctx->db("DomainView") = {"Center"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}},
+                              "Boundary"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}}};
 
+    Manager::RegisterMeshCreator("CartesianGeometry", [&]() { return std::make_shared<mesh::CartesianGeometry>(); });
+    //    ctx->RegisterMeshCreator("CartesianGeometry", [&]() { return std::make_shared<mesh::CylindricalGeometry>();
+    //    });
+
+    Manager::RegisterWorkerCreator("CartesianGeometry.EMFluid",
+                                   [&]() { return std::make_shared<EMFluid<mesh::CartesianGeometry>>(); });
+    Manager::RegisterWorkerCreator("CartesianGeometry.PML",
+                                   [&]() { return std::make_shared<PML<mesh::CartesianGeometry>>(); });
     std::cout << *ctx->db() << std::endl;
 
     ctx->Initialize();

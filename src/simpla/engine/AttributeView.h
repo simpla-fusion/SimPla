@@ -128,19 +128,16 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
  * @enduml
  */
 struct AttributeView : public SPObject, public concept::Printable {
-   public:
     SP_OBJECT_BASE(AttributeView);
 
-   private:
-    AttributeView();
-
    public:
-    AttributeView(MeshView const *b);
-    AttributeView(AttributeViewBundle *b);
+    AttributeView(AttributeViewBundle *b = nullptr);
+
     template <typename T, typename... Args>
-    AttributeView(T *b, Args &&... args) : AttributeView(b) {
-        db()->SetValue(std::forward<Args>(args)...);
-    };
+    AttributeView(AttributeViewBundle *b, Args &&... args)
+        : AttributeView(b){
+              //        db()->SetValue(std::forward<Args>(args)...);
+          };
 
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
@@ -195,8 +192,8 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
    public:
     typedef std::true_type prefer_pass_by_reference;
     template <typename TB, typename... Args>
-    explicit AttributeViewAdapter(TB *b, Args &&... args) : AttributeView(b) {
-        AttributeView::Config(std::forward<Args>(args)...);
+    explicit AttributeViewAdapter(TB *b, Args &&... args) {
+        //        AttributeView::Config(std::forward<Args>(args)...);
     }
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;

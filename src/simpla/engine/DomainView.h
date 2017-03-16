@@ -38,13 +38,13 @@ class DomainView : public concept::Printable, public SPObject {
 
     std::shared_ptr<MeshView> GetMesh() const;
 
-//    template <typename U, typename... Args>
-//    U &SetMesh(Args &&... args) {
-//        auto res = std::make_shared<U>(std::forward<Args>(args)...);
-//        SetMesh(std::dynamic_pointer_cast<MeshView>(res));
-//        Attach(dynamic_cast<AttributeViewBundle *>(res.get()));
-//        return *res;
-//    };
+    //    template <typename U, typename... Args>
+    //    U &SetMesh(Args &&... args) {
+    //        auto res = std::make_shared<U>(std::forward<Args>(args)...);
+    //        SetMesh(std::dynamic_pointer_cast<MeshView>(res));
+    //        Attach(dynamic_cast<AttributeViewBundle *>(res.get()));
+    //        return *res;
+    //    };
 
     std::shared_ptr<MeshView> SetMesh(std::shared_ptr<MeshView> const &m);
 
@@ -65,8 +65,6 @@ class DomainView : public concept::Printable, public SPObject {
     void Attach(AttributeViewBundle *);
     void Detach(AttributeViewBundle *p = nullptr);
     void Notify();
-
-    void Register(AttributeDict &);
 
     //    Range<id_type> const &select(int GetIFORM, int GetTag);
     //    Range<id_type> const &select(int GetIFORM, std::string const &GetTag);

@@ -70,9 +70,8 @@ struct AttributeView::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
     mutable std::shared_ptr<DataBlock> m_data_ = nullptr;
 };
-AttributeView::AttributeView() : m_pimpl_(new pimpl_s) {}
-AttributeView::AttributeView(AttributeViewBundle *b) : AttributeView() { Connect(b); };
-AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
+AttributeView::AttributeView(AttributeViewBundle *b) : m_pimpl_(new pimpl_s) { Connect(b); };
+// AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
 AttributeView::~AttributeView() { Disconnect(); }
 
 id_type AttributeView::GetGUID() const { return GetDBValue<id_type>("GUID"); }

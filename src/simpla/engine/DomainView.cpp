@@ -131,8 +131,8 @@ void DomainView::Evaluate() {
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.emplace(p).second) {
         //        p->Connect(this);
-        auto attr_db = db()->GetTable("Attributes");
-        p->ForEach([&](AttributeView *v) {});
+//        auto attr_db = db()->GetTable("Attributes");
+//        p->ForEach([&](AttributeView *v) {});
         Click();
     }
 }
@@ -173,12 +173,12 @@ void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
 id_type DomainView::GetMeshBlockId() const { return m_pimpl_->m_patch_->GetMeshBlock()->GetGUID(); }
 std::shared_ptr<MeshBlock> &DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
 std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) const { return m_pimpl_->m_patch_->GetDataBlock(id); }
-
-void DomainView::Register(AttributeDict &dbase) {
-    for (auto &item : m_pimpl_->m_attr_bundle_) {
-        item->ForEach([&](AttributeView *view) { view->Register(dbase); });
-    }
-}
+//
+//void DomainView::Register(AttributeDict &dbase) {
+//    for (auto &item : m_pimpl_->m_attr_bundle_) {
+//        item->ForEach([&](AttributeView *view) { view->Register(dbase); });
+//    }
+//}
 
 std::ostream &DomainView::Print(std::ostream &os, int indent) const {
     if (m_pimpl_->m_mesh_ != nullptr) {

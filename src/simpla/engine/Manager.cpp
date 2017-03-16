@@ -7,44 +7,47 @@
 #include "Worker.h"
 namespace simpla {
 namespace engine {
+static std::map<std::string, std::function<std::shared_ptr<MeshView>()>> g_mesh_factory_;
+static std::map<std::string, std::function<std::shared_ptr<Worker>()>> g_worker_factory_;
+
+bool Manager::RegisterMeshCreator(std::string const &k, std::function<std::shared_ptr<MeshView>()> const &fun) {
+    return g_mesh_factory_.emplace(k, fun).second;
+};
+bool Manager::RegisterWorkerCreator(std::string const &k, std::function<std::shared_ptr<Worker>()> const &fun) {
+    return g_worker_factory_.emplace(k, fun).second;
+};
+
+std::shared_ptr<MeshView> CreateMesh(std::shared_ptr<data::DataEntity> const &config) {
+    if (config->type() == typeid(std::string)) {
+        return g_mesh_factory_.at(data::data_cast<std::string>(*config))();
+    } else if (config->isTable()) {
+        auto const &t = config->cast_as<data::DataTable>();
+        auto m = g_mesh_factory_.at(t.GetValue<std::string>("name"))();
+        m->db()->Link("", t);
+        return m;
+    }
+}
+
+std::shared_ptr<Worker> CreateWorker(std::shared_ptr<MeshView> const &m,
+                                     std::shared_ptr<data::DataEntity> const &config) {
+    if (config == nullptr || config->isNull()) {
+        return nullptr;
+    } else if (config->type() == typeid(std::string)) {
+        return g_worker_factory_.at(m->name() + "." + data::data_cast<std::string>(*config))();
+    } else if (config->isTable()) {
+        auto const &t = config->cast_as<data::DataTable>();
+        auto w = g_worker_factory_.at(m->name() + "." + t.GetValue<std::string>("name"))();
+        w->db()->Link("", t);
+        return w;
+    }
+}
 
 struct Manager::pimpl_s {
     std::map<id_type, std::shared_ptr<Patch>> m_patches_;
     std::map<id_type, std::shared_ptr<DomainView>> m_views_;
     Atlas m_atlas_;
     model::Model m_model_;
-
-    std::map<std::string, std::function<std::shared_ptr<MeshView>()>> m_mesh_factory_;
-    std::map<std::string, std::function<std::shared_ptr<Worker>()>> m_worker_factory_;
-
-    std::shared_ptr<MeshView> CreateMesh(std::shared_ptr<data::DataEntity> const &config);
-
-    std::shared_ptr<Worker> CreateWorker(std::shared_ptr<MeshView> const &m,
-                                         std::shared_ptr<data::DataEntity> const &config);
 };
-
-std::shared_ptr<MeshView> Manager::pimpl_s::CreateMesh(std::shared_ptr<data::DataEntity> const &config) {
-    if (config->type() == typeid(std::string)) {
-        return m_mesh_factory_.at(data::data_cast<std::string>(*config))();
-    } else if (config->isTable()) {
-        auto const &t = config->cast_as<data::DataTable>();
-        auto m = m_mesh_factory_.at(t.GetValue<std::string>("name"))();
-        m->db()->Link("", t);
-        return m;
-    }
-}
-
-std::shared_ptr<Worker> Manager::pimpl_s::CreateWorker(std::shared_ptr<MeshView> const &m,
-                                                       std::shared_ptr<data::DataEntity> const &config) {
-    if (config->type() == typeid(std::string)) {
-        return m_worker_factory_.at(m->name() + "." + data::data_cast<std::string>(*config))();
-    } else if (config->isTable()) {
-        auto const &t = config->cast_as<data::DataTable>();
-        auto w = m_worker_factory_.at(m->name() + "." + t.GetValue<std::string>("name"))();
-        w->db()->Link("", t);
-        return w;
-    }
-}
 
 Manager::Manager() : m_pimpl_(new pimpl_s) {
     db()->Link("Model", m_pimpl_->m_model_.db());
@@ -65,24 +68,16 @@ DomainView &Manager::GetDomainView(std::string const &d_name) const {
     return *m_pimpl_->m_views_.at(m_pimpl_->m_model_.GetMaterialId(d_name));
 }
 
-bool Manager::RegisterMeshCreator(std::string const &k, std::function<std::shared_ptr<MeshView>()> const &fun) {
-    return m_pimpl_->m_mesh_factory_.emplace(k, fun).second;
-}
-
-bool Manager::RegisterWorkerCreator(std::string const &k, std::function<std::shared_ptr<Worker>()> const &fun) {
-    return m_pimpl_->m_worker_factory_.emplace(k, fun).second;
-};
-
 std::shared_ptr<DomainView> Manager::SetDomainView(std::string const &d_name,
                                                    std::shared_ptr<data::DataEntity> const &p) {
     auto p0 = db()->Set(d_name, p, false);
     auto &view_table = p0.first->cast_as<data::DataTable>();
     auto d_view = std::make_shared<DomainView>();
-    auto t_mesh = d_view->SetMesh(m_pimpl_->CreateMesh(view_table.Get("Mesh")));
+    auto t_mesh = d_view->SetMesh(CreateMesh(view_table.Get("Mesh")));
 
     auto attr_table = GetAttributeDatabase();
     view_table.Get("Worker")->cast_as<data::DataArray>().ForEach([&](std::shared_ptr<data::DataEntity> const &item) {
-        auto w = d_view->AddWorker(m_pimpl_->CreateWorker(t_mesh, item));
+        auto w = d_view->AddWorker(CreateWorker(t_mesh, item));
         w.first->db()
             ->GetTable("Attributes")
             ->ForEach([&](std::string const &k, std::shared_ptr<data::DataEntity> const &v) {

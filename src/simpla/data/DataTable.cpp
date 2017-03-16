@@ -65,7 +65,7 @@ std::shared_ptr<DataEntity> DataTable::Add(std::string const& uri, DataEntity co
 
 std::shared_ptr<DataTable> DataTable::GetTable(std::string const& uri) const {
     auto p = Get(uri);
-    if (p == nullptr || !p->isTable()) { RUNTIME_ERROR << uri << " is not a table" << std::endl; }
+    if (p == nullptr || !p->isTable()) { RUNTIME_ERROR << uri << " is not a table or not exists" << std::endl; }
     return std::dynamic_pointer_cast<DataTable>(p);
 }
 

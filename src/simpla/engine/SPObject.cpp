@@ -43,8 +43,9 @@ std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) const {
 }
 std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) {
     Click();
-    return uri == "" ? m_pimpl_->m_db_
-                     : (std::dynamic_pointer_cast<data::DataTable>(m_pimpl_->m_db_->Set(uri + "/", nullptr, false)));
+    return uri == ""
+               ? m_pimpl_->m_db_
+               : (std::dynamic_pointer_cast<data::DataTable>(m_pimpl_->m_db_->Set(uri + "/", nullptr, false).first));
 }
 
 std::string SPObject::name() const { return db()->GetValue<std::string>("name", ""); }

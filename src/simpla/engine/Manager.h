@@ -77,8 +77,8 @@ class Manager : public SPObject, public concept::Printable {
     std::shared_ptr<DomainView> SetDomainView(std::string const &d_name, std::shared_ptr<DomainView> const &p = nullptr,
                                               bool overwrite = false);
 
-    bool RegisterMeshCreator(std::string const &k, std::function<std::shared_ptr<MeshView>()> const &);
-    bool RegisterWorkerCreator(std::string const &k, std::function<std::shared_ptr<Worker>()> const &);
+    static bool RegisterMeshCreator(std::string const &k, std::function<std::shared_ptr<MeshView>()> const &);
+    static bool RegisterWorkerCreator(std::string const &k, std::function<std::shared_ptr<Worker>()> const &);
 
     void Initialize();
     bool Update();
