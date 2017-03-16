@@ -14,10 +14,11 @@ namespace engine {
 
 struct AttributeViewBundle::pimpl_s {
     DomainView *m_domain_ = nullptr;
-    mutable std::set<AttributeView *> m_attr_views_;
+    std::set<AttributeView *> m_attr_views_;
 };
 
-AttributeViewBundle::AttributeViewBundle(std::string const &s) : SPObject(s), m_pimpl_(new pimpl_s) {}
+AttributeViewBundle::AttributeViewBundle(std::shared_ptr<data::DataTable> const &t)
+    : SPObject(t), m_pimpl_(new pimpl_s) {}
 AttributeViewBundle::~AttributeViewBundle() {}
 std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
     for (auto &attr : m_pimpl_->m_attr_views_) { os << attr->name() << " , "; }
@@ -31,6 +32,7 @@ void AttributeViewBundle::OnNotify() {
 void AttributeViewBundle::Attach(AttributeView *p) {
     if (p != nullptr && m_pimpl_->m_attr_views_.emplace(p).second) {
         p->Connect(this);
+        db()->Link("Attributes/" + p->name(), p->db("desc"));
         Click();
     }
 }
@@ -70,7 +72,7 @@ struct AttributeView::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
     mutable std::shared_ptr<DataBlock> m_data_ = nullptr;
 };
-AttributeView::AttributeView(AttributeViewBundle *b) : m_pimpl_(new pimpl_s) { Connect(b); };
+AttributeView::AttributeView() : m_pimpl_(new pimpl_s){};
 // AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
 AttributeView::~AttributeView() { Disconnect(); }
 
@@ -78,7 +80,7 @@ id_type AttributeView::GetGUID() const { return GetDBValue<id_type>("GUID"); }
 int AttributeView::GetTag() const { return GetDBValue<int>("Tag", 0); }
 
 void AttributeView::Connect(AttributeViewBundle *b) {
-    if (b != m_pimpl_->m_bundle_) { b->Attach(this); }
+    if (b != nullptr && b != m_pimpl_->m_bundle_) { b->Attach(this); }
     m_pimpl_->m_bundle_ = b;
 }
 void AttributeView::Disconnect() {

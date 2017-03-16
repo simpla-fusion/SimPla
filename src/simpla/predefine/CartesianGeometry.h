@@ -67,7 +67,7 @@ struct CartesianGeometry : public engine::MeshView {
      */
 
    public:
-    CartesianGeometry() {}
+    CartesianGeometry(std::shared_ptr<data::DataTable> const &t) : engine::MeshView(t) { name("CartesianGeometry"); }
 
     CartesianGeometry(index_type const *lower, index_type const *upper, Real const *dx = nullptr,
                       Real const *origin = nullptr) {

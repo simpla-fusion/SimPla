@@ -22,14 +22,11 @@ class MeshBlock;
 class MeshView : public AttributeViewBundle {
    public:
     SP_OBJECT_BASE(MeshView);
-    MeshView();
+    MeshView(std::shared_ptr<data::DataTable> const &t = nullptr);
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
-    void Connect(DomainView *);
-    void Disconnect();
     virtual void OnNotify();
-    DomainView const *GetDomain() const;
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
     void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
@@ -38,7 +35,6 @@ class MeshView : public AttributeViewBundle {
     virtual void Initialize();
 
     Real GetDt() const;
-
 
     size_type size(int IFORM = VERTEX) const { return 0; }
     size_tuple dimensions() const { return size_tuple{}; };

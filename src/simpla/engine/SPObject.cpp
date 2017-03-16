@@ -27,13 +27,12 @@ struct SPObject::pimpl_s {
     std::shared_ptr<data::DataTable> m_db_;
 };
 
-SPObject::SPObject(std::string const &s) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_db_ = std::make_shared<data::DataTable>();
+SPObject::SPObject(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s) {
     auto gen = boost::uuids::random_generator();
     m_pimpl_->m_id_ = boost::uuids::random_generator()();
     boost::hash<boost::uuids::uuid> hasher;
     m_pimpl_->m_short_id_ = hasher(m_pimpl_->m_id_);
-    name(s);
+    m_pimpl_->m_db_ = t != nullptr ? t : std::make_shared<data::DataTable>();
 }
 
 SPObject::SPObject(SPObject &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
@@ -66,7 +65,7 @@ void SPObject::Click() { ++m_pimpl_->m_click_; }
 void SPObject::Tag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_; }
 void SPObject::ResetTag() { m_pimpl_->m_click_tag_ = m_pimpl_->m_click_ = 0; }
 bool SPObject::isModified() const { return GetTagCount() != GetClickCount(); }
-void SPObject::Initialize() {}
+void SPObject::Initialize() { Tag(); }
 void SPObject::Finalize() {}
 void SPObject::Destroy() {}
 

@@ -27,19 +27,15 @@ void create_scenario(engine::Manager *ctx) {
         ctx->GetDBValue<box_type>("Model/Geometry/OuterBox", box_type{{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}})};
     //    model.AddObject("Plasma", in_box);
     //    model.AddObject("Vacuum", out_box - in_box);
-
+    *ctx->db("AttributeDesc") = {"BBB"_ = "default"},
     *ctx->db("DomainView") = {"Center"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}},
                               "Boundary"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}}};
 
-    Manager::RegisterMeshCreator("CartesianGeometry", [&]() { return std::make_shared<mesh::CartesianGeometry>(); });
-    //    ctx->RegisterMeshCreator("CartesianGeometry", [&]() { return std::make_shared<mesh::CylindricalGeometry>();
-    //    });
+    Manager::RegisterMeshCreator<mesh::CartesianGeometry>("CartesianGeometry");
+    //    Manager::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
 
-    Manager::RegisterWorkerCreator("CartesianGeometry.EMFluid",
-                                   [&]() { return std::make_shared<EMFluid<mesh::CartesianGeometry>>(); });
-    Manager::RegisterWorkerCreator("CartesianGeometry.PML",
-                                   [&]() { return std::make_shared<PML<mesh::CartesianGeometry>>(); });
-    std::cout << *ctx->db() << std::endl;
+    Manager::RegisterWorkerCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
+    Manager::RegisterWorkerCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 
     ctx->Initialize();
 

@@ -8,12 +8,8 @@
 
 namespace simpla {
 namespace engine {
-struct Worker::pimpl_s {
-    pimpl_s() {}
-    DomainView *m_domain_;
-    data::DataTable m_db_;
-};
-Worker::Worker(std::string const &s) : AttributeViewBundle(s), m_pimpl_(new pimpl_s) {}
+struct Worker::pimpl_s {};
+Worker::Worker(std::shared_ptr<data::DataTable> const &t) : AttributeViewBundle(t), m_pimpl_(new pimpl_s) {}
 Worker::~Worker(){};
 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
@@ -24,7 +20,7 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
     os << "  } , ";
     return os;
 }
-void Worker::Initialize() { DO_NOTHING; }
+void Worker::Initialize() { Tag(); }
 /**
  * @startuml
  * title Initialize/Finalize

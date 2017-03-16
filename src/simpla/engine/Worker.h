@@ -103,7 +103,7 @@ namespace engine {
 class Worker : public AttributeViewBundle {
     SP_OBJECT_BASE(Worker)
    public:
-    Worker(std::string const &s = "");
+    Worker(std::shared_ptr<data::DataTable> const &t=nullptr);
     virtual ~Worker();
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;

@@ -63,27 +63,36 @@ namespace engine {
 class Manager : public SPObject, public concept::Printable {
    public:
     Manager();
+
     virtual ~Manager();
-
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-
     Atlas &GetAtlas() const;
     model::Model &GetModel() const;
-    DomainView &GetDomainView(std::string const &d_name) const;
-    std::shared_ptr<data::DataTable> GetAttributeDatabase() const;
+    std::shared_ptr<DomainView> GetDomainView(std::string const &d_name) const;
 
-    std::shared_ptr<DomainView> SetDomainView(std::string const &d_name, std::shared_ptr<data::DataEntity> const &p);
+    void SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p);
 
-    std::shared_ptr<DomainView> SetDomainView(std::string const &d_name, std::shared_ptr<DomainView> const &p = nullptr,
-                                              bool overwrite = false);
+    static bool RegisterMeshCreator(
+        std::string const &k,
+        std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &)> const &);
 
-    static bool RegisterMeshCreator(std::string const &k, std::function<std::shared_ptr<MeshView>()> const &);
-    static bool RegisterWorkerCreator(std::string const &k, std::function<std::shared_ptr<Worker>()> const &);
+    template <typename U>
+    static bool RegisterMeshCreator(std::string const &k) {
+        RegisterMeshCreator(k, [&](std::shared_ptr<data::DataTable> const &t) { return std::make_shared<U>(t); });
+    }
 
-    void Initialize();
-    bool Update();
+    static bool RegisterWorkerCreator(
+        std::string const &k, std::function<std::shared_ptr<Worker>(std::shared_ptr<data::DataTable> const &)> const &);
+
+    template <typename U>
+    static  bool RegisterWorkerCreator(std::string const &k) {
+        RegisterWorkerCreator(k, [&](std::shared_ptr<data::DataTable> const &t) { return std::make_shared<U>(t); });
+    }
+
     Real GetTime() const;
     void Run(Real dt);
+    void Initialize();
+    bool Update();
 
    private:
     struct pimpl_s;

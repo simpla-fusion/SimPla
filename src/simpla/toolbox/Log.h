@@ -420,7 +420,7 @@ std::string make_msg(Others const &... others) {
 
 //#ifndef NDEBUG
 #define CHECK(_MSG_)                                                                                             \
-    std::cout << "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) \
+    std::cerr << "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " << (__PRETTY_FUNCTION__) \
               << "] \n \e[1;31m\t" << __STRING((_MSG_)) << " = " << (_MSG_) << "\e[0m"
 #define SHOW(_MSG_) logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_) << "\t= " << (_MSG_) << std::endl;
 #define SHOW_HEX(_MSG_) \

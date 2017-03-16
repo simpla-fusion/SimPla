@@ -24,7 +24,7 @@ class Patch;
 
 class DomainView : public concept::Printable, public SPObject {
    public:
-    DomainView();
+    DomainView(std::shared_ptr<data::DataTable> const &p = nullptr);
     virtual ~DomainView();
     std::ostream &Print(std::ostream &os, int indent) const final;
     id_type current_block_id() const;
@@ -65,7 +65,7 @@ class DomainView : public concept::Printable, public SPObject {
     void Attach(AttributeViewBundle *);
     void Detach(AttributeViewBundle *p = nullptr);
     void Notify();
-
+    void Initialize();
     //    Range<id_type> const &select(int GetIFORM, int GetTag);
     //    Range<id_type> const &select(int GetIFORM, std::string const &GetTag);
     //    Range<id_type> const &interface(int GetIFORM, const std::string &tag_in, const std::string &tag_out =

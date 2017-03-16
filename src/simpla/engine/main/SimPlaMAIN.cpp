@@ -83,7 +83,9 @@ int main(int argc, char **argv) {
             }
             return CONTINUE;
         });
-
+#ifndef NDEBUG
+    logger::set_stdout_level(1000);
+#endif
     MESSAGE << ShowLogo() << std::endl;
 
     create_scenario(&ctx);

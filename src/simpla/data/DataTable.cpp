@@ -42,6 +42,13 @@ std::shared_ptr<DataEntity> DataTable::Add(std::string const& uri, std::shared_p
     return m_backend_->Add(uri, v);
 };
 //******************************************************************************************************************
+void DataTable::Link(std::shared_ptr<DataEntity> const& other) {
+    if (other == nullptr || !other->isTable()) { return; }
+    other->cast_as<DataTable>().ForEach([&](std::string const& k, std::shared_ptr<DataEntity> const& v) {
+        if (v->isTable()) { Link(k, v); }
+    });
+};
+
 DataTable& DataTable::Link(std::string const& uri, DataTable const& other) {
     if (uri == "") {
         m_backend_ = other.m_backend_;

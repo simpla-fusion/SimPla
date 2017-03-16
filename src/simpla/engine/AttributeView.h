@@ -83,7 +83,7 @@ enum AttributeTag {
 
 class AttributeViewBundle : public SPObject, public concept::Printable {
    public:
-    AttributeViewBundle(std::string const &s = "");
+    AttributeViewBundle(std::shared_ptr<data::DataTable> const &t=nullptr);
     virtual ~AttributeViewBundle();
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
@@ -131,17 +131,27 @@ struct AttributeView : public SPObject, public concept::Printable {
     SP_OBJECT_BASE(AttributeView);
 
    public:
-    AttributeView(AttributeViewBundle *b = nullptr);
+    AttributeView();
 
-    template <typename T, typename... Args>
-    AttributeView(AttributeViewBundle *b, Args &&... args)
-        : AttributeView(b){
-              //        db()->SetValue(std::forward<Args>(args)...);
-          };
+    template <typename... Args>
+    AttributeView(AttributeViewBundle *b, Args &&... args) : AttributeView() {
+        Config(std::forward<Args>(args)...);
+        if (db()->Get("name") != nullptr) { Connect(b); }
+    };
 
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
+
+   private:
+    void Config() {}
+    void Config(std::string const &s) { db()->SetValue("name", s); }
+    void Config(data::KeyValue const &s) { db()->SetValue(s); }
+    template <typename T0, typename... Others>
+    void Config(T0 const &a0, Others &&... others) {
+        Config(a0);
+        Config(std::forward<Others>(others)...);
+    }
 
    public:
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
@@ -191,8 +201,8 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
 
    public:
     typedef std::true_type prefer_pass_by_reference;
-    template <typename TB, typename... Args>
-    explicit AttributeViewAdapter(TB *b, Args &&... args) {
+    template <typename... Args>
+    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args) : AttributeView(b) {
         //        AttributeView::Config(std::forward<Args>(args)...);
     }
 

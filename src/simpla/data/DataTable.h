@@ -62,6 +62,7 @@ class DataTable : public DataEntity {
     //******************************************************************************************************************
     bool has(std::string const& uri) const { return Get(uri) != nullptr; }
 
+    void Link(std::shared_ptr<DataEntity> const& other);
     DataTable& Link(std::string const& uri, DataTable const& other);
     DataTable& Link(std::string const& uri, std::shared_ptr<DataEntity> const& p);
 

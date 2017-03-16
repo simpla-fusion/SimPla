@@ -26,7 +26,7 @@ struct DomainView::pimpl_s {
     //    std::map<int, std::map<int, std::map<int, Range<entity_id>>>> m_interface_cache_;
 };
 
-DomainView::DomainView() : m_pimpl_(new pimpl_s) {}
+DomainView::DomainView(std::shared_ptr<data::DataTable> const &t) : SPObject(t), m_pimpl_(new pimpl_s) {}
 DomainView::~DomainView() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { Detach(item); }
 }
@@ -129,18 +129,26 @@ void DomainView::Evaluate() {
     for (auto &item : m_pimpl_->m_workers_) { item.second->Evaluate(); }
 }
 void DomainView::Attach(AttributeViewBundle *p) {
-    if (p != nullptr && m_pimpl_->m_attr_bundle_.emplace(p).second) {
-        //        p->Connect(this);
-//        auto attr_db = db()->GetTable("Attributes");
-//        p->ForEach([&](AttributeView *v) {});
+    if (p == nullptr) { return; }
+    auto res = m_pimpl_->m_attr_bundle_.emplace(p);
+    if (res.second) {
+        (*res.first)->ForEach([&](AttributeView *v) {
+            auto p = db()->Set("Attributes/" + v->name(), v->db(), false);
+            if (!p.second) { v->db()->Link(p.first); }
+        });
         Click();
     }
 }
 void DomainView::Detach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) {
-        //                p->Disconnect();
+        //        p->Disconnect();
         Click();
     }
+}
+void DomainView::Initialize() {
+    m_pimpl_->m_mesh_->Initialize();
+    for (auto &item : m_pimpl_->m_workers_) { item.second->Initialize(); }
+    Tag();
 }
 void DomainView::Notify() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { item->OnNotify(); }
@@ -148,7 +156,7 @@ void DomainView::Notify() {
 std::shared_ptr<MeshView> DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
     Click();
     m_pimpl_->m_mesh_ = m;
-    Attach(static_cast<AttributeViewBundle *>(m.get()));
+    Attach(m.get());
     return m_pimpl_->m_mesh_;
 };
 
@@ -156,10 +164,7 @@ std::shared_ptr<MeshView> DomainView::GetMesh() const { return m_pimpl_->m_mesh_
 
 std::pair<std::shared_ptr<Worker>, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
     auto res = m_pimpl_->m_workers_.emplace(pos, w);
-    if (res.second) {
-        db()->Add("Worker", std::make_shared<data::DataTable>(w->db()->backend()));
-        Attach(static_cast<AttributeViewBundle *>(w.get()));
-    }
+    if (res.second) { Attach(res.first->second.get()); }
     return std::make_pair(res.first->second, res.second);
 }
 
@@ -174,7 +179,7 @@ id_type DomainView::GetMeshBlockId() const { return m_pimpl_->m_patch_->GetMeshB
 std::shared_ptr<MeshBlock> &DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
 std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) const { return m_pimpl_->m_patch_->GetDataBlock(id); }
 //
-//void DomainView::Register(AttributeDict &dbase) {
+// void DomainView::Register(AttributeDict &dbase) {
 //    for (auto &item : m_pimpl_->m_attr_bundle_) {
 //        item->ForEach([&](AttributeView *view) { view->Register(dbase); });
 //    }

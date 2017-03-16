@@ -78,7 +78,7 @@ class SPObject {
    public:
     SP_OBJECT_BASE(SPObject)
    public:
-    SPObject(std::string const &s = "");
+    SPObject(std::shared_ptr<data::DataTable> const &t = nullptr);
     SPObject(SPObject &&other);
     SPObject(SPObject const &) = delete;
     SPObject &operator=(SPObject const &other) = delete;
