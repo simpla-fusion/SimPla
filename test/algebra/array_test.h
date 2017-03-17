@@ -259,7 +259,7 @@ REGISTER_TYPED_TEST_CASE_P(TestArray, assign, index, constant_real, scalarArray)
 //{
 //
 //protected:
-//	void ForEach()
+//	void Foreach()
 //	{
 //		LOGGER.set_stdout_level(LOG_INFORM);
 //		auto _fdtd_param = GetParam();

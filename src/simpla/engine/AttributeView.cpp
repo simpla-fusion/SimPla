@@ -54,7 +54,7 @@ std::shared_ptr<DataBlock> &AttributeViewBundle::GetDataBlock(id_type guid) cons
     return m_pimpl_->m_domain_->GetDataBlock(guid);
 }
 
-void AttributeViewBundle::ForEach(std::function<void(AttributeView *)> const &fun) const {
+void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fun) const {
     for (auto *attr : m_pimpl_->m_attr_views_) { fun(attr); }
 }
 //

@@ -14,8 +14,6 @@
 
 #include <simpla/concept/Printable.h>
 #include <simpla/engine/SPObject.h>
-#include <simpla/model/Model.h>
-
 #include "AttributeView.h"
 
 namespace simpla {
@@ -103,7 +101,7 @@ namespace engine {
 class Worker : public AttributeViewBundle {
     SP_OBJECT_BASE(Worker)
    public:
-    Worker(std::shared_ptr<data::DataTable> const &t=nullptr);
+    Worker(std::shared_ptr<data::DataTable> const &t = nullptr);
     virtual ~Worker();
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
@@ -117,6 +115,30 @@ class Worker : public AttributeViewBundle {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
+
+struct WorkerFactory {
+   public:
+    WorkerFactory();
+
+    ~WorkerFactory();
+
+    bool RegisterCreator(std::string const &k,
+                         std::function<std::shared_ptr<Worker>(std::shared_ptr<data::DataTable> const &)> const &);
+
+    template <typename U>
+    bool RegisterCreator(std::string const &k) {
+        RegisterCreator(k, [&](std::shared_ptr<data::DataTable> const &t) { return std::make_shared<U>(t); });
+    }
+
+    std::shared_ptr<Worker> Create(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataEntity> const &p);
+
+   private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
+};
+
+#define GLOBAL_WORKER_FACTORY SingletonHolder<WorkerFactory>::instance()
+
 template <typename U>
 struct WorkerAdapter : public Worker, public U {
     WorkerAdapter() {}

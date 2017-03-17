@@ -36,7 +36,7 @@ class DataBackendMemory : public DataBackend {
     virtual size_type Delete(std::string const& URI);
     virtual size_type size() const;
 
-    virtual size_type ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    virtual size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
    private:
     struct pimpl_s;

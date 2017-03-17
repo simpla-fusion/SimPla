@@ -35,7 +35,7 @@ class DataBackendLua : public DataBackend {
     virtual void Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& URI);
     virtual size_type size() const;
-    virtual size_type ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    virtual size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
    private:
     static const bool m_isRegitered_;

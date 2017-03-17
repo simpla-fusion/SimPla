@@ -3,11 +3,11 @@
 //
 
 #include "Model.h"
-#include <simpla/engine/AttributeView.h>
-#include <simpla/engine/MeshBlock.h>
 #include <simpla/mesh/EntityId.h>
+#include "AttributeView.h"
+#include "MeshBlock.h"
 namespace simpla {
-namespace model {
+namespace engine {
 
 struct Model::pimpl_s {
     std::multimap<id_type, geometry::GeoObject> m_g_obj_;
@@ -22,10 +22,8 @@ std::ostream& Model::Print(std::ostream& os, int indent) const {
 }
 void Model::Initialize() {
     LOGGER << "Model is initializing " << std::endl;
-    LOGGER << *db() << std::endl;
     Tag();
     LOGGER << "Model is initialized " << std::endl;
-
 }
 
 bool Model::Update() {
@@ -67,5 +65,5 @@ size_type Model::RemoveObject(std::string const& key) {
     } catch (...) { return 0; }
 }
 
-}  // namespace model
+}  // namespace engine
 }  // namespace simpla{;

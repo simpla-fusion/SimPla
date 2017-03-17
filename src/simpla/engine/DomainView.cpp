@@ -5,7 +5,6 @@
 #include <simpla/SIMPLA_config.h>
 #include <set>
 #include "AttributeView.h"
-#include "DomainFactory.h"
 #include "MeshBlock.h"
 #include "MeshView.h"
 #include "Patch.h"
@@ -133,7 +132,7 @@ void DomainView::Attach(AttributeViewBundle *p) {
     if (p == nullptr) { return; }
     auto res = m_pimpl_->m_attr_bundle_.emplace(p);
     if (res.second) {
-        (*res.first)->ForEach([&](AttributeView *v) {
+        (*res.first)->Foreach([&](AttributeView *v) {
             if (v->name() != "") {
                 auto p = db()->Set("Attributes/" + v->name(), v->db(), false);
                 if (!p.second) { v->db()->Link(p.first); }
@@ -151,11 +150,11 @@ void DomainView::Detach(AttributeViewBundle *p) {
 void DomainView::Initialize() {
     LOGGER << "Domain View [" << name() << "] is initializing!" << std::endl;
 
-    if (m_pimpl_->m_mesh_ == nullptr) { SetMesh(GLOBAL_DOMAIN_FACTORY.CreateMesh(db()->Get("Mesh"))); }
+    if (m_pimpl_->m_mesh_ == nullptr) { SetMesh(GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"))); }
     auto t_worker = db()->Get("Worker");
     if (t_worker != nullptr) {
-        t_worker->cast_as<data::DataArray>().ForEach([&](std::shared_ptr<data::DataEntity> const &c) {
-            AddWorker(GLOBAL_DOMAIN_FACTORY.CreateWorker(m_pimpl_->m_mesh_, c));
+        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
+            AddWorker(GLOBAL_WORKER_FACTORY.Create(m_pimpl_->m_mesh_, c));
         });
     }
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
@@ -192,7 +191,7 @@ std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) const { return 
 //
 // void DomainView::Register(AttributeDict &dbase) {
 //    for (auto &item : m_pimpl_->m_attr_bundle_) {
-//        item->ForEach([&](AttributeView *view) { view->Register(dbase); });
+//        item->Foreach([&](AttributeView *view) { view->Register(dbase); });
 //    }
 //}
 

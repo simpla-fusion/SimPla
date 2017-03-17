@@ -44,7 +44,7 @@ std::shared_ptr<DataEntity> DataTable::Add(std::string const& uri, std::shared_p
 //******************************************************************************************************************
 void DataTable::Link(std::shared_ptr<DataEntity> const& other) {
     if (other == nullptr || !other->isTable()) { return; }
-    other->cast_as<DataTable>().ForEach([&](std::string const& k, std::shared_ptr<DataEntity> const& v) {
+    other->cast_as<DataTable>().Foreach([&](std::string const& k, std::shared_ptr<DataEntity> const& v) {
         if (v->isTable()) { Link(k, v); }
     });
 };
@@ -79,7 +79,7 @@ std::shared_ptr<DataTable> DataTable::GetTable(std::string const& uri) const {
 size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
 
 void DataTable::Set(DataTable const& other, bool overwrite) {
-    other.ForEach([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v, overwrite); });
+    other.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v, overwrite); });
 }
 void DataTable::SetValue(KeyValue const& item) { Set(item.first, item.second); }
 
@@ -87,14 +87,14 @@ void DataTable::SetValue(std::initializer_list<KeyValue> const& other) {
     for (auto const& item : other) { Set(item.first, item.second); }
 }
 
-size_type DataTable::ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
-    return m_backend_->ForEach(f);
+size_type DataTable::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
+    return m_backend_->Foreach(f);
 }
 
 std::ostream& DataTable::Print(std::ostream& os, int indent) const {
     os << "{";
 
-    m_backend_->ForEach([&](std::string const& k, std::shared_ptr<DataEntity> const& v) {
+    m_backend_->Foreach([&](std::string const& k, std::shared_ptr<DataEntity> const& v) {
         os << std::endl
            << std::setw(indent + 1) << " "
            << "\"" << k << "\": ";

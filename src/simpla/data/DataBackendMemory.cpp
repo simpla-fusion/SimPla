@@ -49,7 +49,7 @@ DataBackendMemory::DataBackendMemory() : m_pimpl_(new pimpl_s) {}
 DataBackendMemory::DataBackendMemory(std::string const& url, std::string const& status) : DataBackendMemory() {
     if (url != "") {
         DataTable d(url);
-        d.ForEach([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
+        d.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v); });
     }
 }
 DataBackendMemory::DataBackendMemory(const DataBackendMemory& other) : m_pimpl_(new pimpl_s) {
@@ -116,7 +116,7 @@ size_type DataBackendMemory::Delete(std::string const& uri) {
     return (res.first != nullptr && res.second != "") ? res.first->m_pimpl_->m_table_.erase(res.second) : 0;
 }
 
-size_type DataBackendMemory::ForEach(
+size_type DataBackendMemory::Foreach(
     std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     for (auto const& item : m_pimpl_->m_table_) { f(item.first, item.second); }
 }

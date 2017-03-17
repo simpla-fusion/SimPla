@@ -79,7 +79,7 @@ class DataBackend : public concept::Printable, public std::enable_shared_from_th
      * @brief '''for_each''' entities in this table
      * @return
      */
-    virtual size_type ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const = 0;
+    virtual size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const = 0;
 
 };  // class DataBackend {
 

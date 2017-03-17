@@ -12,7 +12,7 @@ struct Manager::pimpl_s {
     std::map<id_type, std::shared_ptr<Patch>> m_patches_;
     std::map<std::string, std::shared_ptr<DomainView>> m_views_;
     Atlas m_atlas_;
-    model::Model m_model_;
+    Model m_model_;
 };
 
 Manager::Manager() : m_pimpl_(new pimpl_s) {
@@ -26,7 +26,7 @@ std::ostream &Manager::Print(std::ostream &os, int indent) const { return db()->
 
 Atlas &Manager::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
-model::Model &Manager::GetModel() const { return m_pimpl_->m_model_; }
+Model &Manager::GetModel() const { return m_pimpl_->m_model_; }
 
 std::shared_ptr<DomainView> Manager::GetDomainView(std::string const &d_name) const {
     return m_pimpl_->m_views_.at(d_name);
@@ -48,7 +48,7 @@ void Manager::Initialize() {
     if (domain_view_list == nullptr || !domain_view_list->isTable()) { return; }
 
     auto &domain_t = domain_view_list->cast_as<data::DataTable>();
-    domain_t.ForEach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
+    domain_t.Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
         auto res = m_pimpl_->m_views_.emplace(s_key, nullptr);
 
         if (res.first->second == nullptr) {
@@ -61,6 +61,7 @@ void Manager::Initialize() {
         }
         domain_t.Set(s_key, res.first->second->db(), true);
         res.first->second->name(s_key);
+//        res.first->second->SetMesh(GetModel().GetMesh(s_key));
         res.first->second->Initialize();
     });
     SPObject::Tag();

@@ -58,6 +58,10 @@ class Atlas : public SPObject, public concept::Printable {
    public:
     Atlas();
     virtual ~Atlas();
+
+    void Decompose(std::initializer_list<size_type> const &d, int local_id = -1);
+    void Decompose(size_type const *d = nullptr, int local_id = -1);
+
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
     virtual void Initialize();
     virtual bool Update();
@@ -85,7 +89,7 @@ class Atlas : public SPObject, public concept::Printable {
     MeshBlock const &RefineBlock(id_type, index_box_type const &, int level = 0);
     MeshBlock const &RefineBlock(MeshBlock const &, index_box_type const &);
 
-    void Accept(std::function<void(MeshBlock const &)> const &fun, int level = 0) const;
+    void Foreach(std::function<void(MeshBlock const &)> const &fun, int level = 0) const;
     std::map<id_type, MeshBlock> const &GetBlockList(int level = 0) const;
 
     //    virtual void Load(const data::DataTable &);

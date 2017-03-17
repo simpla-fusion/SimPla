@@ -171,7 +171,7 @@ size_type DataBackendSAMRAI::Delete(std::string const& uri) {
     return 0;
 }
 
-size_type DataBackendSAMRAI::ForEach(
+size_type DataBackendSAMRAI::Foreach(
         std::function<void(std::string const &, std::shared_ptr<DataEntity>)> const &fun) const {
     auto keys = m_pimpl_->m_samrai_db_->getAllKeys();
     for (auto const& k : keys) { fun(k, pimpl_s::get_data_from_samrai(m_pimpl_->m_samrai_db_->getDatabase(k))); }

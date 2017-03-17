@@ -56,7 +56,7 @@ class DataTable : public DataEntity {
                                                      bool overwrite = true);
     std::shared_ptr<DataEntity> Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
     size_type Delete(std::string const& uri);
-    size_type ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
+    size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
     /** Interface DataBackend End */
     //******************************************************************************************************************

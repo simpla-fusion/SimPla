@@ -6,10 +6,10 @@
 #define SIMPLA_MANAGER_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/model/Model.h>
 #include <map>
 #include "Atlas.h"
 #include "DomainView.h"
+#include "Model.h"
 #include "Patch.h"
 
 namespace simpla {
@@ -67,11 +67,10 @@ class Manager : public SPObject, public concept::Printable {
     virtual ~Manager();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     Atlas &GetAtlas() const;
-    model::Model &GetModel() const;
+    Model &GetModel() const;
     std::shared_ptr<DomainView> GetDomainView(std::string const &d_name) const;
 
     void SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p);
-
 
     Real GetTime() const;
     void Run(Real dt);

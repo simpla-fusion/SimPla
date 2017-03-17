@@ -12,8 +12,23 @@ namespace simpla {
 namespace geometry {
 
 struct Cube : public GeoObject {
-    Cube(box_type const &) {}
+    Cube(std::initializer_list<std::initializer_list<Real>> const &v)
+    //        : GeoObject::m_bound_box_(point_type(*v.begin()), point_type(*(v.begin() + 1)))
+    {}
+    Cube(box_type const &b)
+    //            : m_bound_box_(b)
+    {}
     ~Cube() {}
+    point_type lower() const { return std::get<0>(GeoObject::bound_box()); }
+    point_type upper() const { return std::get<1>(GeoObject::bound_box()); }
+
+    virtual Real distance(point_type const &x) const { return 0; }
+    /**
+     * @brief >0 out ,=0 surface ,<0 in
+     * @param x
+     * @return
+     */
+    virtual int isInside(point_type const &x) const { return 0; }
 };
 
 // namespace traits

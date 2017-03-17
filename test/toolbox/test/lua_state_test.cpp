@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 //
 //
 //
-//    //	pt.get_child("tt").ForEach(
+//    //	pt.get_child("tt").Foreach(
 ////
 ////	[&](lua::GeoObject const& key,lua::GeoObject const&value)
 ////	{

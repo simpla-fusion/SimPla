@@ -143,7 +143,7 @@ void DataBackendLua::pimpl_s::set_data_to_lua(toolbox::LuaObject& lobj, int key,
     if (v.isTable()) {
         toolbox::LuaObject b = lobj.get(key);
         auto const& db = dynamic_cast<DataTable const&>(v);
-        db.ForEach([&](std::string const& k, std::shared_ptr<DataEntity> p) { set_data_to_lua(b, k, *p); });
+        db.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> p) { set_data_to_lua(b, k, *p); });
     } else if (v.isArray()) {
         toolbox::LuaObject b = lobj.get(key);
         auto const& db = dynamic_cast<DataArray const&>(v);
@@ -168,7 +168,7 @@ void DataBackendLua::pimpl_s::set_data_to_lua(toolbox::LuaObject& lobj, std::str
     if (v.isTable()) {
         auto const& db = v.cast_as<DataTable>();
         auto b = lobj.new_table(key, 0, db.size());
-        db.ForEach([&](std::string const& k, std::shared_ptr<DataEntity> p) { set_data_to_lua(b, k, *p); });
+        db.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> p) { set_data_to_lua(b, k, *p); });
     } else if (v.isArray()) {
         auto const& db = v.cast_as<DataArray>();
         CHECK(db.size());
@@ -190,7 +190,7 @@ void DataBackendLua::pimpl_s::add_data_to_lua(toolbox::LuaObject& lobj, DataEnti
     if (v.isTable()) {
         auto const& db = dynamic_cast<DataTable const&>(v);
         auto b = lobj.new_table("", 0, db.size());
-        db.ForEach([&](std::string const& k, std::shared_ptr<DataEntity> p) { set_data_to_lua(b, k, *p); });
+        db.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> p) { set_data_to_lua(b, k, *p); });
     } else if (v.isArray()) {
         auto const& db = dynamic_cast<DataArray const&>(v);
         auto b = lobj.new_table("", db.size(), 0);
@@ -218,7 +218,7 @@ void DataBackendLua::pimpl_s::add_data_to_lua(toolbox::LuaObject& lobj, std::str
     if (v.isTable()) {
         auto const& db = dynamic_cast<DataTable const&>(v);
         auto b = lobj.new_table(key, 0, db.size());
-        db.ForEach([&](std::string const& k, std::shared_ptr<DataEntity> p) { set_data_to_lua(b, k, *p); });
+        db.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> p) { set_data_to_lua(b, k, *p); });
     } else if (v.isArray()) {
         auto const& db = dynamic_cast<DataArray const&>(v);
         auto b = lobj.new_table(key, db.size(), 0);
@@ -243,7 +243,7 @@ void DataBackendLua::Add(std::string const& key, std::shared_ptr<DataEntity> con
 
 size_type DataBackendLua::Delete(std::string const& key) { return 0; }
 size_type DataBackendLua::size() const { return 0; }
-size_type DataBackendLua::ForEach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
+size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     if (m_pimpl_->m_lua_obj_.is_global()) {
         UNSUPPORTED;
         UNIMPLEMENTED;

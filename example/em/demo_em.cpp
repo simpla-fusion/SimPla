@@ -3,10 +3,9 @@
 //
 
 #include <simpla/engine/Atlas.h>
-#include <simpla/engine/DomainFactory.h>
 #include <simpla/engine/DomainView.h>
 #include <simpla/engine/Manager.h>
-#include <simpla/model/geometry/Cube.h>
+#include <simpla/geometry/Cube.h>
 #include <simpla/predefine/CartesianGeometry.h>
 //#include <simpla/predefine/CylindricalGeometry.h>
 #include "../../scenario/problem_domain/EMFluid.h"
@@ -15,23 +14,22 @@
 namespace simpla {
 
 void create_scenario(engine::Manager *ctx) {
-    typedef mesh::CartesianGeometry mesh_type;
+    GLOBAL_MESHVIEW_FACTORY.RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
+    //    GLOBAL_DOMAIN_FACTORY::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
+    GLOBAL_WORKER_FACTORY.RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
+    GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 
+    *ctx->db("Atlas") = {"Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}};
 
+    ctx->GetAtlas().Decompose({2, 3, 2});
+//    ctx->GetModel("Center").AddObject("InnerBox", geometry::Cube({{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}}));
+//    ctx->GetModel("Center").AddObject("OuterBox", geometry::Cube({{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}}));
 
-    *ctx->db("Atlas/") = {"Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}};
-
-    *ctx->db("Model/Geometry/") = {"InnerBox"_ = {{0, 0, 0}, {1, 1, 1}},
-                                   "OuterBox"_ = {{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}}};
+    *ctx->db("Model") = {"Center"_ = {"GeoObject"_ = {"InnerBox"}},
+                         "Boundary"_ = {"GeoObject"_ = {"+OuterBox", "-InnerBox"}}};
 
     *ctx->db("DomainView") = {"Center"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}},
                               "Boundary"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}}};
-
-    GLOBAL_DOMAIN_FACTORY.RegisterMeshCreator<mesh::CartesianGeometry>("CartesianGeometry");
-    //    GLOBAL_DOMAIN_FACTORY::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
-
-    GLOBAL_DOMAIN_FACTORY.RegisterWorkerCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
-    GLOBAL_DOMAIN_FACTORY.RegisterWorkerCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 
     ctx->Initialize();
 

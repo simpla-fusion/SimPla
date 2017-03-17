@@ -27,10 +27,9 @@ class EMFluid : public engine::Worker {
     typedef TM mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
-    EMFluid(std::shared_ptr<data::DataTable> const &t=nullptr) : engine::Worker(t) {}
+    EMFluid(std::shared_ptr<data::DataTable> const& t = nullptr) : engine::Worker(t) {}
     ~EMFluid() {}
 
-    std::shared_ptr<simpla::model::Model> m_model_;
     mesh_type* m_mesh_;
 
     virtual engine::MeshView* mesh() { return m_mesh_; };

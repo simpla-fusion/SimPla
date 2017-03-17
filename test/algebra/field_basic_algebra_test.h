@@ -254,7 +254,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, Assign, index, constant_real, scalarField)
 //{
 //
 // protected:
-//	void ForEach()
+//	void Foreach()
 //	{
 //		LOGGER.set_stdout_level(LOG_INFORM);
 //		auto _fdtd_param = GetParam();

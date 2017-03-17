@@ -102,7 +102,7 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
     void Attach(AttributeView *attr);
     virtual void OnNotify();
 
-    void ForEach(std::function<void(AttributeView *)> const &) const;
+    void Foreach(std::function<void(AttributeView *)> const &) const;
 
    private:
     struct pimpl_s;

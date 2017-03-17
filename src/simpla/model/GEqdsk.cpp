@@ -15,79 +15,68 @@
 #include <memory>
 #include <utility>
 
-#include <simpla/physics/Constants.h>
-#include <simpla/toolbox/Log.h>
-#include <simpla/toolbox/FancyStream.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
-#include <simpla/numeric/find_root.h>
+#include <simpla/geometry/Polygon.h>
 #include <simpla/numeric/Interpolation.h>
-#include "geometry/Polygon.h"
+#include <simpla/numeric/find_root.h>
+#include <simpla/physics/Constants.h>
+#include <simpla/toolbox/FancyStream.h>
+#include <simpla/toolbox/Log.h>
 
-namespace simpla
-{
+namespace simpla {
 constexpr int GEqdsk::PhiAxis;
 constexpr int GEqdsk::RAxis;
 constexpr int GEqdsk::ZAxis;
 
-struct GEqdsk::pimpl_s
-{
+struct GEqdsk::pimpl_s {
     typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
 
     typedef MultiDimensionInterpolation<BiLinearInterpolation, Real> inter2d_type;
-
 
     size_type m_nr_, m_nz_;
     Real m_rmin_, m_zmin_;
     Real m_rmax_, m_zmax_;
     bool is_valid_ = false;
     std::string m_desc_;
-//	size_t nw;//!< Number of horizontal R grid  points
-//	size_t nh;//!< Number of vertical Z grid points
-    Real m_rdim_; //!< Horizontal dimension in meter of computational box
-    Real m_zdim_; //!< Vertical dimension in meter of computational box
-    Real m_rleft_; //!< Minimum R in meter of rectangular computational box
-    Real m_zmid_; //!< Z of center of computational box in meter
-    Real m_rmaxis_ = 1.0; //!< R of magnetic axis in meter
-    Real m_zmaxis = 1.0; //!< Z of magnetic axis in meter
-//	Real simag;//!< Poloidal flux at magnetic axis in Weber / rad
-//	Real sibry;//!< Poloidal flux at the plasma boundary in Weber / rad
-    Real m_rcenter_ = 0.5; //!< R in meter of  vacuum toroidal magnetic field BCENTR
-    Real m_bcenter_ = 0.5; //!< Vacuum toroidal magnetic field in Tesla at RCENTR
-    Real m_current_ = 1.0; //!< Plasma current in Ampere
+    //	size_t nw;//!< Number of horizontal R grid  points
+    //	size_t nh;//!< Number of vertical Z grid points
+    Real m_rdim_;           //!< Horizontal dimension in meter of computational box
+    Real m_zdim_;           //!< Vertical dimension in meter of computational box
+    Real m_rleft_;          //!< Minimum R in meter of rectangular computational box
+    Real m_zmid_;           //!< Z of center of computational box in meter
+    Real m_rmaxis_ = 1.0;   //!< R of magnetic axis in meter
+    Real m_zmaxis = 1.0;    //!< Z of magnetic axis in meter
+                            //	Real simag;//!< Poloidal flux at magnetic axis in Weber / rad
+                            //	Real sibry;//!< Poloidal flux at the plasma boundary in Weber / rad
+    Real m_rcenter_ = 0.5;  //!< R in meter of  vacuum toroidal magnetic field BCENTR
+    Real m_bcenter_ = 0.5;  //!< Vacuum toroidal magnetic field in Tesla at RCENTR
+    Real m_current_ = 1.0;  //!< Plasma current in Ampere
 
-//	coordinates_type rzmin_;
-//	coordinates_type rzmax_;
+    //	coordinates_type rzmin_;
+    //	coordinates_type rzmax_;
 
-//	inter_type fpol_; //!< Poloidal current function in m-T $F=RB_T$ on flux grid
-//	inter_type pres_;//!< Plasma pressure in $nt/m^2$ on uniform flux grid
-//	inter_type ffprim_;//!< \f$FF^\prime(\psi)\f$ in $(mT)^2/(Weber/rad)$ on uniform flux grid
-//	inter_type pprim_;//!< $P^\prime(\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid
+    //	inter_type fpol_; //!< Poloidal current function in m-T $F=RB_T$ on flux grid
+    //	inter_type pres_;//!< Plasma pressure in $nt/m^2$ on uniform flux grid
+    //	inter_type ffprim_;//!< \f$FF^\prime(\psi)\f$ in $(mT)^2/(Weber/rad)$ on uniform flux grid
+    //	inter_type pprim_;//!< $P^\prime(\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid
 
-    inter2d_type m_psirz_; //!< Poloidal flux in Webber/rad on the rectangular grid points
+    inter2d_type m_psirz_;  //!< Poloidal flux in Webber/rad on the rectangular grid points
 
-//	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
+    //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
 
-
-
-    geometry::Polygon<2> m_rzbbb_; //!< R,Z of boundary points in meter
-    geometry::Polygon<2> m_rzlim_; //!< R,Z of surrounding limiter contour in meter
-
+    geometry::Polygon<2> m_rzbbb_;  //!< R,Z of boundary points in meter
+    geometry::Polygon<2> m_rzlim_;  //!< R,Z of surrounding limiter contour in meter
     std::map<std::string, inter_type> m_profile_;
-
     void load(std::string const &fname);
-
     void load_profile(std::string const &fname);
-
-//    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
-
+    //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
     void write(std::string const &);
 };
 
 void GEqdsk::load(std::string const &fname) { m_pimpl_->load(fname); }
 
-nTuple<size_type, 3> GEqdsk::dimensions() const
-{
+nTuple<size_type, 3> GEqdsk::dimensions() const {
     nTuple<size_type, 3> res;
     res[RAxis] = m_pimpl_->m_nr_;
     res[ZAxis] = m_pimpl_->m_nz_;
@@ -95,22 +84,20 @@ nTuple<size_type, 3> GEqdsk::dimensions() const
     return res;
 };
 
-void GEqdsk::pimpl_s::load(std::string const &fname)
-{
+void GEqdsk::pimpl_s::load(std::string const &fname) {
     std::ifstream inFileStream_(fname);
 
-    if (!inFileStream_.is_open())
-    {
+    if (!inFileStream_.is_open()) {
         THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
         return;
     }
 
     LOGGER << "Load GFile : [" << fname << "]" << std::endl;
 
-    int nw; //Number of horizontal R grid points
-    int nh; //Number of vertical Z grid points
-    double simag; // Poloidal flux at magnetic axis in Weber / rad
-    double sibry; // Poloidal flux at the plasma boundary in Weber / rad
+    int nw;        // Number of horizontal R grid points
+    int nh;        // Number of vertical Z grid points
+    double simag;  // Poloidal flux at magnetic axis in Weber / rad
+    double sibry;  // Poloidal flux at the plasma boundary in Weber / rad
     int idum;
     double xdum;
 
@@ -123,20 +110,15 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
     inFileStream_ >> std::setw(4) >> idum >> nw >> nh;
 
     inFileStream_ >> std::setw(16)
-
-                  >> m_rdim_ >> m_zdim_ >> m_rcenter_ >> m_rleft_ >> m_zmid_
-
-                  >> m_rmaxis_ >> m_zmaxis >> simag >> sibry >> m_bcenter_
-
-                  >> m_current_ >> simag >> xdum >> m_rmaxis_ >> xdum
-
-                  >> m_zmaxis >> xdum >> sibry >> xdum >> xdum;
+        >> m_rdim_ >> m_zdim_ >> m_rcenter_ >> m_rleft_ >> m_zmid_
+        >> m_rmaxis_ >> m_zmaxis >> simag >> sibry >> m_bcenter_
+        >> m_current_ >> simag >> xdum >> m_rmaxis_ >> xdum
+        >> m_zmaxis >> xdum >> sibry >> xdum >> xdum;
 
     m_rmin_ = m_rleft_;
     m_rmax_ = m_rleft_ + m_rdim_;
     m_zmin_ = m_zmid_ - m_zdim_ / 2;
     m_zmax_ = m_zmid_ + m_zdim_ / 2;
-
 
     m_nr_ = static_cast<size_type>(nw);
     m_nz_ = static_cast<size_type>(nh);
@@ -147,15 +129,12 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
 
     inter2d_type(dims, rzmin, rzmax).swap(m_psirz_);
 
-#define INPUT_VALUE(_NAME_)                                               \
-    for (int s = 0; s < nw; ++s)                                          \
-    {                                                                     \
-        double y;                                                         \
-        inFileStream_ >> std::setw(16) >> y;                              \
-        m_profile_[ _NAME_ ].data().emplace(                              \
-          static_cast<double>(s)                                          \
-              /static_cast<double>(nw-1), y );                            \
-    }                                                                     \
+#define INPUT_VALUE(_NAME_)                                                                         \
+    for (int s = 0; s < nw; ++s) {                                                                  \
+        double y;                                                                                   \
+        inFileStream_ >> std::setw(16) >> y;                                                        \
+        m_profile_[_NAME_].data().emplace(static_cast<double>(s) / static_cast<double>(nw - 1), y); \
+    }
 
     INPUT_VALUE("fpol");
     INPUT_VALUE("pres");
@@ -163,11 +142,10 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
     INPUT_VALUE("pprim");
 
     for (int j = 0; j < nh; ++j)
-        for (int i = 0; i < nw; ++i)
-        {
+        for (int i = 0; i < nw; ++i) {
             double v;
             inFileStream_ >> std::setw(16) >> v;
-            m_psirz_[i + j * nw] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
+            m_psirz_[i + j * nw] = (v - simag) / (sibry - simag);  // Normalize Poloidal flux
         }
 
     INPUT_VALUE("qpsi");
@@ -176,7 +154,6 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
 
     size_t n_bbbs, n_limitr;
     inFileStream_ >> std::setw(5) >> n_bbbs >> n_limitr;
-
 
     m_rzbbb_.data().resize(n_bbbs);
     m_rzlim_.data().resize(n_limitr);
@@ -187,26 +164,17 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
     m_rzbbb_.deploy();
     m_rzlim_.deploy();
 
-
     load_profile(fname + "_profiles.txt");
-
 }
 
-void GEqdsk::load_profile(std::string const &fname)
-{
-    m_pimpl_->load_profile(fname);
-}
+void GEqdsk::load_profile(std::string const &fname) { m_pimpl_->load_profile(fname); }
 
-void GEqdsk::pimpl_s::load_profile(std::string const &fname)
-{
+void GEqdsk::pimpl_s::load_profile(std::string const &fname) {
     LOGGER << "Load GFile Profiles: [" << fname << "]" << std::endl;
 
     std::ifstream inFileStream_(fname);
 
-    if (!inFileStream_.is_open())
-    {
-        THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
-    }
+    if (!inFileStream_.is_open()) { THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!"); }
 
     std::string line;
 
@@ -216,141 +184,136 @@ void GEqdsk::pimpl_s::load_profile(std::string const &fname)
     {
         std::stringstream lineStream(line);
 
-        while (lineStream)
-        {
+        while (lineStream) {
             std::string t;
             lineStream >> t;
-            if (t != "")
-                names.push_back(t);
+            if (t != "") names.push_back(t);
         };
     }
 
-    while (inFileStream_)
-    {
+    while (inFileStream_) {
         auto it = names.begin();
         auto ie = names.end();
         double psi;
-        inFileStream_ >> psi;        /// \note assume first row is psi
+        inFileStream_ >> psi;  /// \note assume first row is psi
         *it = psi;
 
-        for (++it; it != ie; ++it)
-        {
+        for (++it; it != ie; ++it) {
             double value;
             inFileStream_ >> value;
             m_profile_[*it].data().emplace(psi, value);
-
         }
     }
     std::string profile_list = "psi,B";
 
-    for (auto const &item : m_profile_)
-    {
-        profile_list += " , " + item.first;
-    }
+    for (auto const &item : m_profile_) { profile_list += " , " + item.first; }
 
     LOGGER << "GFile is ready! Profile={" << profile_list << "}" << std::endl;
 
     is_valid_ = true;
-
 }
 
 Real GEqdsk::B0() const { return m_pimpl_->m_bcenter_; }
 
-std::ostream &GEqdsk::print(std::ostream &os)
-{
+std::ostream &GEqdsk::print(std::ostream &os) {
     std::cout << "--" << m_pimpl_->m_desc_ << std::endl;
 
-//	std::cout << "nw" << "\t= " << nw
-//			<< "\t--  Number of horizontal R grid  points" << std::endl;
-//
-//	std::cout << "nh" << "\t= " << nh << "\t-- Number of vertical Z grid points"
-//			<< std::endl;
-//
-//	std::cout << "rdim" << "\t= " << rdim
-//			<< "\t-- Horizontal dimension in meter of computational box                   "
-//			<< std::endl;
-//
-//	std::cout << "zdim" << "\t= " << zdim
-//			<< "\t-- Vertical dimension in meter of computational box                   "
-//			<< std::endl;
+    //	std::cout << "nw" << "\t= " << nw
+    //			<< "\t--  Number of horizontal R grid  points" << std::endl;
+    //
+    //	std::cout << "nh" << "\t= " << nh << "\t-- Number of vertical Z grid points"
+    //			<< std::endl;
+    //
+    //	std::cout << "rdim" << "\t= " << rdim
+    //			<< "\t-- Horizontal dimension in meter of computational box                   "
+    //			<< std::endl;
+    //
+    //	std::cout << "zdim" << "\t= " << zdim
+    //			<< "\t-- Vertical dimension in meter of computational box                   "
+    //			<< std::endl;
 
-    std::cout << "rcentr" << "\t= " << m_pimpl_->m_rcenter_
+    std::cout << "rcentr"
+              << "\t= " << m_pimpl_->m_rcenter_
               << "\t--                                                                    " << std::endl;
 
-//	std::cout << "rleft" << "\t= " << rleft
-//			<< "\t-- Minimum R in meter of rectangular computational box                "
-//			<< std::endl;
-//
-//	std::cout << "zmid" << "\t= " << zmid
-//			<< "\t-- Z of center of computational box in meter                          "
-//			<< std::endl;
+    //	std::cout << "rleft" << "\t= " << rleft
+    //			<< "\t-- Minimum R in meter of rectangular computational box                "
+    //			<< std::endl;
+    //
+    //	std::cout << "zmid" << "\t= " << zmid
+    //			<< "\t-- Z of center of computational box in meter                          "
+    //			<< std::endl;
 
-    std::cout << "rmaxis" << "\t= " << m_pimpl_->m_rmaxis_
+    std::cout << "rmaxis"
+              << "\t= " << m_pimpl_->m_rmaxis_
               << "\t-- R of magnetic axis in meter                                        " << std::endl;
 
-    std::cout << "rmaxis" << "\t= " << m_pimpl_->m_zmaxis
+    std::cout << "rmaxis"
+              << "\t= " << m_pimpl_->m_zmaxis
               << "\t-- Z of magnetic axis in meter                                        " << std::endl;
 
-//	std::cout << "simag" << "\t= " << simag
-//			<< "\t-- poloidal flus ax magnetic axis in Weber / rad                      "
-//			<< std::endl;
-//
-//	std::cout << "sibry" << "\t= " << sibry
-//			<< "\t-- Poloidal flux at the plasma boundary in Weber / rad                "
-//			<< std::endl;
+    //	std::cout << "simag" << "\t= " << simag
+    //			<< "\t-- poloidal flus ax magnetic axis in Weber / rad                      "
+    //			<< std::endl;
+    //
+    //	std::cout << "sibry" << "\t= " << sibry
+    //			<< "\t-- Poloidal flux at the plasma boundary in Weber / rad                "
+    //			<< std::endl;
 
-    std::cout << "rcentr" << "\t= " << m_pimpl_->m_rcenter_
+    std::cout << "rcentr"
+              << "\t= " << m_pimpl_->m_rcenter_
               << "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               " << std::endl;
 
-    std::cout << "bcentr" << "\t= " << m_pimpl_->m_bcenter_
+    std::cout << "bcentr"
+              << "\t= " << m_pimpl_->m_bcenter_
               << "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  " << std::endl;
 
-    std::cout << "current" << "\t= " << m_pimpl_->m_current_
+    std::cout << "current"
+              << "\t= " << m_pimpl_->m_current_
               << "\t-- Plasma current in Ampere                                          " << std::endl;
 
-//	std::cout << "fpol" << "\t= "
-//			<< "\t-- Poloidal current function in m-T<< $F=RB_T$ on flux grid           "
-//			<< std::endl << fpol_.data() << std::endl;
-//
-//	std::cout << "pres" << "\t= "
-//			<< "\t-- Plasma pressure in $nt/m^2$ on uniform flux grid                   "
-//			<< std::endl << pres_.data() << std::endl;
-//
-//	std::cout << "ffprim" << "\t= "
-//			<< "\t-- $FF^\\prime(\\psi)$ in $(mT)^2/(Weber/rad)$ on uniform flux grid     "
-//			<< std::endl << ffprim_.data() << std::endl;
-//
-//	std::cout << "pprim" << "\t= "
-//			<< "\t-- $P^\\prime(\\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid    "
-//			<< std::endl << pprim_.data() << std::endl;
-//
-//	std::cout << "psizr"
-//			<< "\t-- Poloidal flus in Webber/rad on the rectangular grid points         "
-//			<< std::endl << m_psirz_.data() << std::endl;
-//
-//	std::cout << "qpsi" << "\t= "
-//			<< "\t-- q values on uniform flux grid from axis to boundary                "
-//			<< std::endl << qpsi_.data() << std::endl;
-//
-//	std::cout << "nbbbs" << "\t= " << nbbbs
-//			<< "\t-- Number of boundary points                                          "
-//			<< std::endl;
-//
-//	std::cout << "limitr" << "\t= " << limitr
-//			<< "\t-- Number of limiter points                                           "
-//			<< std::endl;
-//
-//	std::cout << "rzbbbs" << "\t= "
-//			<< "\t-- R of boundary points in meter                                      "
-//			<< std::endl << rzbbb_ << std::endl;
-//
-//	std::cout << "rzlim" << "\t= "
-//			<< "\t-- R of surrounding limiter contour in meter                          "
-//			<< std::endl << rzlim_ << std::endl;
+    //	std::cout << "fpol" << "\t= "
+    //			<< "\t-- Poloidal current function in m-T<< $F=RB_T$ on flux grid           "
+    //			<< std::endl << fpol_.data() << std::endl;
+    //
+    //	std::cout << "pres" << "\t= "
+    //			<< "\t-- Plasma pressure in $nt/m^2$ on uniform flux grid                   "
+    //			<< std::endl << pres_.data() << std::endl;
+    //
+    //	std::cout << "ffprim" << "\t= "
+    //			<< "\t-- $FF^\\prime(\\psi)$ in $(mT)^2/(Weber/rad)$ on uniform flux grid     "
+    //			<< std::endl << ffprim_.data() << std::endl;
+    //
+    //	std::cout << "pprim" << "\t= "
+    //			<< "\t-- $P^\\prime(\\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid    "
+    //			<< std::endl << pprim_.data() << std::endl;
+    //
+    //	std::cout << "psizr"
+    //			<< "\t-- Poloidal flus in Webber/rad on the rectangular grid points         "
+    //			<< std::endl << m_psirz_.data() << std::endl;
+    //
+    //	std::cout << "qpsi" << "\t= "
+    //			<< "\t-- q values on uniform flux grid from axis to boundary                "
+    //			<< std::endl << qpsi_.data() << std::endl;
+    //
+    //	std::cout << "nbbbs" << "\t= " << nbbbs
+    //			<< "\t-- Number of boundary points                                          "
+    //			<< std::endl;
+    //
+    //	std::cout << "limitr" << "\t= " << limitr
+    //			<< "\t-- Number of limiter points                                           "
+    //			<< std::endl;
+    //
+    //	std::cout << "rzbbbs" << "\t= "
+    //			<< "\t-- R of boundary points in meter                                      "
+    //			<< std::endl << rzbbb_ << std::endl;
+    //
+    //	std::cout << "rzlim" << "\t= "
+    //			<< "\t-- R of surrounding limiter contour in meter                          "
+    //			<< std::endl << rzlim_ << std::endl;
 
     return os;
 }
-
 
 GEqdsk::GEqdsk() : m_pimpl_(new pimpl_s) {}
 
@@ -358,34 +321,17 @@ GEqdsk::~GEqdsk() {}
 
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
 
+geometry::Polygon<2> const &GEqdsk::boundary() const { return m_pimpl_->m_rzbbb_; }
 
-geometry::Polygon<2> const &GEqdsk::boundary() const
-{
-    return m_pimpl_->m_rzbbb_;
-}
+geometry::Polygon<2> const &GEqdsk::limiter() const { return m_pimpl_->m_rzlim_; }
 
-geometry::Polygon<2> const &GEqdsk::limiter() const
-{
-    return m_pimpl_->m_rzlim_;
-}
+Real GEqdsk::psi(Real R, Real Z) const { return m_pimpl_->m_psirz_(R, Z); }
 
-Real GEqdsk::psi(Real R, Real Z) const
-{
-    return m_pimpl_->m_psirz_(R, Z);
-}
+nTuple<Real, 2> GEqdsk::grad_psi(Real R, Real Z) const { return m_pimpl_->m_psirz_.grad(R, Z); }
 
-nTuple<Real, 2> GEqdsk::grad_psi(Real R, Real Z) const
-{
-    return m_pimpl_->m_psirz_.grad(R, Z);
-}
+Real GEqdsk::profile(std::string const &name, Real p_psi) const { return m_pimpl_->m_profile_[name](p_psi); }
 
-Real GEqdsk::profile(std::string const &name, Real p_psi) const
-{
-    return m_pimpl_->m_profile_[name](p_psi);
-}
-
-point_type GEqdsk::magnetic_axis() const
-{
+point_type GEqdsk::magnetic_axis() const {
     point_type res;
     res[RAxis] = m_pimpl_->m_rmaxis_;
     res[ZAxis] = m_pimpl_->m_zmaxis;
@@ -393,8 +339,7 @@ point_type GEqdsk::magnetic_axis() const
     return res;
 }
 
-box_type GEqdsk::box() const
-{
+box_type GEqdsk::box() const {
     point_type lower, upper;
     lower[RAxis] = m_pimpl_->m_rmin_;
     lower[ZAxis] = m_pimpl_->m_zmin_;
@@ -409,8 +354,7 @@ box_type GEqdsk::box() const
 
 void GEqdsk::write(std::string const &url) { m_pimpl_->write(url); }
 
-void GEqdsk::pimpl_s::write(std::string const &url)
-{
+void GEqdsk::pimpl_s::write(std::string const &url) {
 #ifdef HAS_XDMF
 
     typedef nTuple<Real, 3> point_type;
@@ -421,7 +365,6 @@ void GEqdsk::pimpl_s::write(std::string const &url)
     root.Build();
 
     XdmfDomain domain;
-
 
     root.Insert(&domain);
 
@@ -470,9 +413,9 @@ void GEqdsk::pimpl_s::write(std::string const &url)
 
         grid.GetTopology()->Insert(data);
 
-        io::InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d) -> unsigned int
-                                  {
-                                      return static_cast< unsigned int>( d[1] == 0 ? d[0] : (d[0] + 1) % dims[0]);
+        io::InsertDataItemWithFun(data, 2, dims,
+                                  [&](XdmfInt64 *d) -> unsigned int {
+                                      return static_cast<unsigned int>(d[1] == 0 ? d[0] : (d[0] + 1) % dims[0]);
                                   },
 
                                   url + ".h5:/Boundary/Topology");
@@ -490,8 +433,7 @@ void GEqdsk::pimpl_s::write(std::string const &url)
         points->SetShape(2, dims);
 
         XdmfInt64 s = 0;
-        for (auto const &v : m_rzbbb_.data())
-        {
+        for (auto const &v : m_rzbbb_.data()) {
             points->setValue(s * 3, 0);
             points->setValue(s * 3 + 1, v[0]);
             points->setValue(s * 3 + 2, v[1]);
@@ -517,8 +459,8 @@ void GEqdsk::pimpl_s::write(std::string const &url)
 
         grid.GetTopology()->Insert(data);
 
-        io::InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d) -> unsigned int
-                                  {
+        io::InsertDataItemWithFun(data, 2, dims,
+                                  [&](XdmfInt64 *d) -> unsigned int {
                                       return static_cast<unsigned int>(d[1] == 0 ? d[0] : (d[0] + 1) % dims[0]);
                                   },
 
@@ -537,8 +479,7 @@ void GEqdsk::pimpl_s::write(std::string const &url)
         points->SetShape(2, dims);
 
         XdmfInt64 s = 0;
-        for (auto const &v : m_rzbbb_.data())
-        {
+        for (auto const &v : m_rzbbb_.data()) {
             points->setValue(s * 3, 0);
             points->setValue(s * 3 + 1, v[0]);
             points->setValue(s * 3 + 2, v[1]);
@@ -549,11 +490,10 @@ void GEqdsk::pimpl_s::write(std::string const &url)
         grid.Build();
     }
 
-//		root.Build();
+    //		root.Build();
     std::ofstream ss(url + ".xmf");
     ss << dom.Serialize() << std::endl;
 
-#endif // HAS_XDMF
+#endif  // HAS_XDMF
 }
 }  // namespace simpla
-

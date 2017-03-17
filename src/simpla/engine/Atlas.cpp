@@ -34,10 +34,13 @@ Atlas::~Atlas(){};
 
 void Atlas::Initialize() {
     LOGGER << "Atlas is initializing " << std::endl;
-    LOGGER << *db() << std::endl;
     Tag();
     LOGGER << "Atlas is initialized " << std::endl;
 }
+void Atlas::Decompose(size_type const *d, int local_id){
+
+};
+void Atlas::Decompose(std::initializer_list<size_type> const &d, int local_id) {}
 
 bool Atlas::Update() { return SPObject::Update(); };
 size_type Atlas::GetNumOfLevels() const { return m_pimpl_->m_levels_.size(); };
@@ -64,7 +67,7 @@ MeshBlock const &Atlas::RefineBlock(MeshBlock const &, box_type const &){};
 MeshBlock const &Atlas::RefineBlock(id_type, index_box_type const &, int level){};
 MeshBlock const &Atlas::RefineBlock(MeshBlock const &, index_box_type const &){};
 
-void Atlas::Accept(std::function<void(MeshBlock const &)> const &fun, int level) const {
+void Atlas::Foreach(std::function<void(MeshBlock const &)> const &fun, int level) const {
     for (auto const &item : m_pimpl_->m_levels_[level]) { fun(item.second); }
 };
 std::map<id_type, MeshBlock> const &Atlas::GetBlockList(int level) const { return m_pimpl_->m_levels_[level]; };

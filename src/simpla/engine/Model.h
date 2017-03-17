@@ -5,17 +5,18 @@
 #ifndef SIMPLA_MODEL_H
 #define SIMPLA_MODEL_H
 
-#include <simpla/engine/AttributeView.h>
-#include <simpla/engine/MeshView.h>
+#include <simpla/geometry/GeoObject.h>
 #include <simpla/mesh/EntityId.h>
-#include "geometry/GeoObject.h"
+#include "AttributeView.h"
+#include "MeshView.h"
 
 namespace simpla {
 namespace model {
+class GeoObject;
+}
+namespace engine {
 
 using namespace data;
-
-class GeoObject;
 
 class Model : public SPObject, public concept::Printable {
     typedef Model this_type;
@@ -26,7 +27,6 @@ class Model : public SPObject, public concept::Printable {
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual bool Update();
     virtual void Initialize();
-    bool Valid();
     box_type const &bound_box() const;
     std::shared_ptr<data::DataTable> GetMaterial(std::string const &k) const;
     std::shared_ptr<data::DataTable> SetMaterial(std::string const &k, std::shared_ptr<DataTable> const &p = nullptr);
@@ -47,11 +47,14 @@ class Model : public SPObject, public concept::Printable {
     //    geometry::GeoObject SelectObjectByMaterial(id_type) const;
     size_type RemoveObjectByMaterial(id_type);
 
+    std::shared_ptr<MeshView> GetMesh(std::string const &) const;
+    std::shared_ptr<MeshView> SetMesh(std::string const &, std::shared_ptr<engine::MeshView>);
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-}
+}  // namespace engine {
 }  // namespace simpla{namespace model{
 
 #endif  // SIMPLA_MODEL_H

@@ -8,17 +8,16 @@
 #ifndef GEQDSK_H_
 #define GEQDSK_H_
 
-#include <iostream>
 #include <simpla/SIMPLA_config.h>
-#include <simpla/toolbox/Log.h>
 #include <simpla/algebra/nTuple.h>
+#include <simpla/geometry/GeoObject.h>
+#include <simpla/geometry/Polygon.h>
+#include <simpla/geometry/Revolve.h>
 #include <simpla/mpl/type_traits.h>
-#include "geometry/GeoObject.h"
-#include "geometry/Polygon.h"
-#include "geometry/Revolve.h"
+#include <simpla/toolbox/Log.h>
+#include <iostream>
 
-namespace simpla
-{
+namespace simpla {
 
 /**
  * @ingroup model
@@ -31,14 +30,9 @@ namespace simpla
  *  default using cylindrical coordinates \f$R,Z,\phi\f$
  * \note http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
  */
-class GEqdsk
-{
-
-
-private:
-
+class GEqdsk {
+   private:
     typedef GEqdsk this_type;
-
 
     static constexpr int PhiAxis = 1;
     static constexpr int RAxis = 0;
@@ -47,8 +41,8 @@ private:
     static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;
     static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
     typedef nTuple<Real, 3> Vec3;
-public:
 
+   public:
     GEqdsk();
 
     ~GEqdsk();
@@ -101,8 +95,7 @@ public:
      * @param Z
      * @return magnetic field on cylindrical coordinates \f$\left(R,Z,\phi\right)\f$
      */
-    inline Vec3 B(Real R, Real Z) const
-    {
+    inline Vec3 B(Real R, Real Z) const {
         auto gradPsi = grad_psi(R, Z);
 
         Vec3 res;
@@ -111,18 +104,14 @@ public:
         res[PhiAxis] = profile("fpol", psi(R, Z));
 
         return std::move(res);
-
     }
 
-    inline Vec3 B(point_type const &x) const
-    {
-
+    inline Vec3 B(point_type const &x) const {
         Real R = x[RAxis];
         Real Z = x[ZAxis];
         Real Phi = x[PhiAxis];
 
         auto gradPsi = grad_psi(R, Z);
-
 
         Real v_r = gradPsi[1] / R;
 
@@ -136,32 +125,25 @@ public:
         res[ZAxis] = v_z;
         res[PhiAxis] = v_phi;
 
-
-//        res[CartesianXAxis] = v_r * std::cos(Phi) - v_phi * std::sin(Phi);
-//
-//        res[CartesianYAxis] = v_r * std::sin(Phi) + v_phi * std::cos(Phi);
-//
-//        res[CartesianZAxis] = v_z;
+        //        res[CartesianXAxis] = v_r * std::cos(Phi) - v_phi * std::sin(Phi);
+        //
+        //        res[CartesianYAxis] = v_r * std::sin(Phi) + v_phi * std::cos(Phi);
+        //
+        //        res[CartesianZAxis] = v_z;
 
         return std::move(res);
-
     }
 
+    inline Real JT(Real R, Real Z) const { return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R; }
 
-    inline Real JT(Real R, Real Z) const
-    {
-        return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R;
-    }
-
-
-//    inline Real JT(point_type const &x) const
-//    {
-//        Real R = x[RAxis];
-//        Real Z = x[ZAxis];
-//        Real Phi = x[PhiAxis];
-//
-//        return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R;
-//    }
+    //    inline Real JT(point_type const &x) const
+    //    {
+    //        Real R = x[RAxis];
+    //        Real Z = x[ZAxis];
+    //        Real Phi = x[PhiAxis];
+    //
+    //        return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R;
+    //    }
 
     /**
      *  diff_scheme the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
@@ -170,7 +152,8 @@ public:
      * @param M  \f$\theta_{i}=i2\pi/N\f$,
      * @param res points coordinats
      *
-     * @param ToPhiAxis \f$\in\left(0,1,2\right)\f$,ToPhiAxis the \f$\phi\f$ coordinates component  of result coordinats,
+     * @param ToPhiAxis \f$\in\left(0,1,2\right)\f$,ToPhiAxis the \f$\phi\f$ coordinates component  of result
+     * coordinats,
      * @param resolution
      * @return   if success return true, else return false
      *
@@ -195,17 +178,14 @@ public:
      *   1  | constant volume
      *
      */
-//    bool map_to_flux_coordiantes(std::vector<point_type> const &surface,
-//                                 std::vector<point_type> *res,
-//                                 std::function<Real(Real, Real)> const &h, size_t PhiAxis = 2);
+    //    bool map_to_flux_coordiantes(std::vector<point_type> const &surface,
+    //                                 std::vector<point_type> *res,
+    //                                 std::function<Real(Real, Real)> const &h, size_t PhiAxis = 2);
 
-
-private:
+   private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-
-
 }
 // namespace simpla
 

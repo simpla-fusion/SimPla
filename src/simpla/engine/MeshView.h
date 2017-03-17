@@ -6,6 +6,7 @@
 #define SIMPLA_GEOMETRY_H
 
 #include <simpla/concept/Printable.h>
+#include <simpla/design_pattern/SingletonHolder.h>
 #include "AttributeView.h"
 #include "SPObject.h"
 namespace simpla {
@@ -75,6 +76,28 @@ class MeshView : public AttributeViewBundle {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
+struct MeshViewFactory {
+   public:
+    MeshViewFactory();
+
+    ~MeshViewFactory();
+
+    bool RegisterCreator(std::string const &k,
+                         std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &)> const &);
+
+    template <typename U>
+    bool RegisterCreator(std::string const &k) {
+        RegisterCreator(k, [&](std::shared_ptr<data::DataTable> const &t) { return std::make_shared<U>(t); });
+    }
+
+    std::shared_ptr<MeshView> Create(std::shared_ptr<data::DataEntity> const &p);
+
+   private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
+};
+
+#define GLOBAL_MESHVIEW_FACTORY SingletonHolder<MeshViewFactory>::instance()
 
 template <typename M>
 class MeshAdapter : public MeshView, public M {
