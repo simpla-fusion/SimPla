@@ -72,22 +72,6 @@ class Manager : public SPObject, public concept::Printable {
 
     void SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p);
 
-    static bool RegisterMeshCreator(
-        std::string const &k,
-        std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &)> const &);
-
-    template <typename U>
-    static bool RegisterMeshCreator(std::string const &k) {
-        RegisterMeshCreator(k, [&](std::shared_ptr<data::DataTable> const &t) { return std::make_shared<U>(t); });
-    }
-
-    static bool RegisterWorkerCreator(
-        std::string const &k, std::function<std::shared_ptr<Worker>(std::shared_ptr<data::DataTable> const &)> const &);
-
-    template <typename U>
-    static  bool RegisterWorkerCreator(std::string const &k) {
-        RegisterWorkerCreator(k, [&](std::shared_ptr<data::DataTable> const &t) { return std::make_shared<U>(t); });
-    }
 
     Real GetTime() const;
     void Run(Real dt);

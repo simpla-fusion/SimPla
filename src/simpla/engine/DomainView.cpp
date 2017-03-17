@@ -5,14 +5,15 @@
 #include <simpla/SIMPLA_config.h>
 #include <set>
 #include "AttributeView.h"
+#include "DomainFactory.h"
 #include "MeshBlock.h"
 #include "MeshView.h"
 #include "Patch.h"
 #include "SPObject.h"
 #include "Worker.h"
-
 namespace simpla {
 namespace engine {
+
 struct DomainView::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
     std::shared_ptr<MeshView> m_mesh_;
@@ -148,8 +149,16 @@ void DomainView::Detach(AttributeViewBundle *p) {
     }
 }
 void DomainView::Initialize() {
-    m_pimpl_->m_mesh_->Initialize();
-    for (auto &item : m_pimpl_->m_workers_) { item.second->Initialize(); }
+    LOGGER << "Domain View [" << name() << "] is initializing!" << std::endl;
+
+    if (m_pimpl_->m_mesh_ == nullptr) { SetMesh(GLOBAL_DOMAIN_FACTORY.CreateMesh(db()->Get("Mesh"))); }
+    auto t_worker = db()->Get("Worker");
+    if (t_worker != nullptr) {
+        t_worker->cast_as<data::DataArray>().ForEach([&](std::shared_ptr<data::DataEntity> const &c) {
+            AddWorker(GLOBAL_DOMAIN_FACTORY.CreateWorker(m_pimpl_->m_mesh_, c));
+        });
+    }
+    LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
     Tag();
 }
 void DomainView::Notify() {

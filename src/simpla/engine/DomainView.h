@@ -27,8 +27,15 @@ class DomainView : public concept::Printable, public SPObject {
     DomainView(std::shared_ptr<data::DataTable> const &p = nullptr);
     virtual ~DomainView();
     std::ostream &Print(std::ostream &os, int indent) const final;
+
+
+
+
     id_type current_block_id() const;
     void Dispatch(std::shared_ptr<Patch> d);
+
+
+
 
     virtual bool Update();
     void Evaluate();
@@ -48,7 +55,8 @@ class DomainView : public concept::Printable, public SPObject {
 
     std::shared_ptr<MeshView> SetMesh(std::shared_ptr<MeshView> const &m);
 
-   public:
+
+
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> &GetMeshBlock() const;
     std::shared_ptr<DataBlock> &GetDataBlock(id_type) const;

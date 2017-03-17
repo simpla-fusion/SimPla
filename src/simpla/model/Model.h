@@ -25,6 +25,7 @@ class Model : public SPObject, public concept::Printable {
     virtual ~Model();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual bool Update();
+    virtual void Initialize();
     bool Valid();
     box_type const &bound_box() const;
     std::shared_ptr<data::DataTable> GetMaterial(std::string const &k) const;

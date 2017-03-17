@@ -59,7 +59,7 @@ class Atlas : public SPObject, public concept::Printable {
     Atlas();
     virtual ~Atlas();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
-
+    virtual void Initialize();
     virtual bool Update();
     size_type GetNumOfLevels() const;
 

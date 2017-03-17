@@ -32,6 +32,13 @@ struct Atlas::pimpl_s {
 Atlas::Atlas() : m_pimpl_(new pimpl_s){};
 Atlas::~Atlas(){};
 
+void Atlas::Initialize() {
+    LOGGER << "Atlas is initializing " << std::endl;
+    LOGGER << *db() << std::endl;
+    Tag();
+    LOGGER << "Atlas is initialized " << std::endl;
+}
+
 bool Atlas::Update() { return SPObject::Update(); };
 size_type Atlas::GetNumOfLevels() const { return m_pimpl_->m_levels_.size(); };
 void Atlas::SetDx(point_type const &p) { m_pimpl_->m_dx_[0] = p; };

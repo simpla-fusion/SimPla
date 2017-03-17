@@ -44,7 +44,7 @@ void MeshView::SetMeshBlock(std::shared_ptr<MeshBlock> const &m) {
         m_pimpl_->m_mesh_block_ = m;
     Click();
 }
-void MeshView::Initialize() { SPObject::Initialize(); }
+void MeshView::Initialize() {}
 
 Real MeshView::GetDt() const { return 1.0; }
 

@@ -20,6 +20,14 @@ std::ostream& Model::Print(std::ostream& os, int indent) const {
     os << *db() << std::endl;
     return os;
 }
+void Model::Initialize() {
+    LOGGER << "Model is initializing " << std::endl;
+    LOGGER << *db() << std::endl;
+    Tag();
+    LOGGER << "Model is initialized " << std::endl;
+
+}
+
 bool Model::Update() {
     // TODO: update bound box
     return SPObject::Update();
