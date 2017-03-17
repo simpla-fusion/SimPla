@@ -101,10 +101,13 @@ void Worker::Initialize() { Tag(); }
  */
 bool Worker::Update() {
     if (!isModified()) { return false; }
+    AttributeViewBundle::Update();
     size_type state_tag = GetTagCount();
     if (state_tag == 0) { Initialize(); }
     return true;
 }
+void Worker::OnNotify() { AttributeViewBundle::OnNotify(); };
+
 void Worker::Run(Real dt) {
     Update();
     Process();

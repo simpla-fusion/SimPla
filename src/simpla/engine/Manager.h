@@ -84,6 +84,8 @@ class Manager : public SPObject, public concept::Printable {
 
     std::shared_ptr<DomainView> GetDomainView(std::string const &d_name) const;
 
+    Real GetTime() const;
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

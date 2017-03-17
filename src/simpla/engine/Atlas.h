@@ -67,86 +67,78 @@ class Atlas : public SPObject, public concept::Printable {
     Atlas();
     virtual ~Atlas();
 
-    void Decompose(std::initializer_list<size_type> const &d, int local_id = -1);
-    void Decompose(size_type const *d = nullptr, int local_id = -1);
+    void Decompose(size_tuple const &d, int local_id = -1);
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
     virtual void Initialize();
     virtual bool Update();
     size_type GetNumOfLevels() const;
 
-    point_type const &GetDx(int level = 0);
-    point_type const &GetOrigin() const;
-    box_type const &GetBox() const;
+    Real GetLevelDt(int level = 0);
+    point_type GetLevelDx(int level = 0);
+    point_type GetOrigin() const;
 
     index_box_type FitIndexBox(box_type const &b, int level = 0, int flag = 0) const;
+    void SetRefineRatio(size_tuple const &v, int level = 0);
 
-    std::shared_ptr<MeshBlock> AddBlock(box_type const &, int level = 0);
-    std::shared_ptr<MeshBlock> AddBlock(index_box_type const &, int level = 0);
-    std::shared_ptr<MeshBlock> AddBlock(std::shared_ptr<MeshBlock>);
-    size_type EraseBlock(id_type, int level = 0);
-    size_type EraseBlock(std::shared_ptr<MeshBlock>);
-    std::shared_ptr<MeshBlock> GetBlock(id_type, int level = 0) const;
-    std::shared_ptr<MeshBlock> CoarsenBlock(id_type, int level = 0);
-    std::shared_ptr<MeshBlock> CoarsenBlock(std::shared_ptr<MeshBlock>);
-    std::shared_ptr<MeshBlock> RefineBlock(id_type, box_type const &, int level = 0);
-    std::shared_ptr<MeshBlock> RefineBlock(std::shared_ptr<MeshBlock>, box_type const &);
-    std::shared_ptr<MeshBlock> RefineBlock(id_type, index_box_type const &, int level = 0);
-    std::shared_ptr<MeshBlock> RefineBlock(std::shared_ptr<MeshBlock>, index_box_type const &);
+    std::shared_ptr<MeshBlock> AddBlock(index_box_type const &);
+    std::shared_ptr<MeshBlock> AddBlock(std::shared_ptr<MeshBlock> const &);
 
+    size_type Delete(id_type);
+    std::shared_ptr<MeshBlock> GetBlock(id_type) const;
+    std::shared_ptr<MeshBlock> RefineBlock(id_type, index_box_type const &);
+    std::set<id_type> const &GetBlockList(int level = 0) const;
     void Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun, int level = 0) const;
-    std::map<id_type, std::shared_ptr<MeshBlock>> const &GetBlockList(int level = 0) const;
-
-    //    virtual void Load(const data::DataTable &);
-    //    virtual void Save(data::DataTable *) const;
-    //    size_type size(int level) const;
-    //    void max_level(int);
-    //    int max_level() const;
-    //    bool has(id_type id) const;
-    //    RectMesh *find(id_type id);
-    //    RectMesh const *find(id_type id) const;
-    //    RectMesh *at(id_type id);
-    //    RectMesh const *at(id_type id) const;
-    //    RectMesh const *Connect(std::shared_ptr<RectMesh> const &p_m, RectMesh const *hint = nullptr);
-    //    void link(id_type src, id_type dest){};
-    //
-    //    //    std::SetValue<id_type> &level(int l);
-    //    //
-    //    //    std::SetValue<id_type> const &level(int l) const;
-    //    template <typename TM, typename... Args>
-    //    RectMesh const *add(Args &&... args) {
-    //        return dynamic_cast<TM const *>(Connect(std::make_shared<TM>(std::forward<Args>(args)...), nullptr));
-    //    };
-    //
-    ////    template <typename... Args>
-    ////    MeshBlock const *create(int inc_level, MeshBlock const *hint, Args &&... args) {
-    ////        return insert(hint->create(inc_level, std::forward<Args>(args)...), hint);
-    ////    };
-    //
-    //    template <typename... Args>
-    //    RectMesh const *create(int inc, id_type h, Args &&... args) {
-    //        create(inc, at(h), std::forward<Args>(args)...);
-    //    };
-    //
-    //    template <typename... Args>
-    //    RectMesh const *clone(Args &&... args) {
-    //        create(0, std::forward<Args>(args)...);
-    //    };
-    //
-    //    template <typename... Args>
-    //    RectMesh const *refine(Args &&... args) {
-    //        create(1, std::forward<Args>(args)...);
-    //    };
-    //
-    //    template <typename... Args>
-    //    RectMesh const *coarsen(Args &&... args) {
-    //        create(-1, std::forward<Args>(args)...);
-    //    };
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
+//    virtual void Load(const data::DataTable &);
+//    virtual void Save(data::DataTable *) const;
+//    size_type size(int level) const;
+//    void max_level(int);
+//    int max_level() const;
+//    bool has(id_type id) const;
+//    RectMesh *find(id_type id);
+//    RectMesh const *find(id_type id) const;
+//    RectMesh *at(id_type id);
+//    RectMesh const *at(id_type id) const;
+//    RectMesh const *Connect(std::shared_ptr<RectMesh> const &p_m, RectMesh const *hint = nullptr);
+//    void link(id_type src, id_type dest){};
+//
+//    //    std::SetValue<id_type> &level(int l);
+//    //
+//    //    std::SetValue<id_type> const &level(int l) const;
+//    template <typename TM, typename... Args>
+//    RectMesh const *add(Args &&... args) {
+//        return dynamic_cast<TM const *>(Connect(std::make_shared<TM>(std::forward<Args>(args)...), nullptr));
+//    };
+//
+////    template <typename... Args>
+////    MeshBlock const *create(int inc_level, MeshBlock const *hint, Args &&... args) {
+////        return insert(hint->create(inc_level, std::forward<Args>(args)...), hint);
+////    };
+//
+//    template <typename... Args>
+//    RectMesh const *create(int inc, id_type h, Args &&... args) {
+//        create(inc, at(h), std::forward<Args>(args)...);
+//    };
+//
+//    template <typename... Args>
+//    RectMesh const *clone(Args &&... args) {
+//        create(0, std::forward<Args>(args)...);
+//    };
+//
+//    template <typename... Args>
+//    RectMesh const *refine(Args &&... args) {
+//        create(1, std::forward<Args>(args)...);
+//    };
+//
+//    template <typename... Args>
+//    RectMesh const *coarsen(Args &&... args) {
+//        create(-1, std::forward<Args>(args)...);
+//    };
 }
 }  // namespace simpla{namespace mesh_as{
 

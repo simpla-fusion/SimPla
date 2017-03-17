@@ -108,7 +108,7 @@ class Worker : public AttributeViewBundle {
     virtual void Initialize();
     virtual void Process(){};
     virtual bool Update();
-    virtual void OnNotify(){};
+    virtual void OnNotify();
     void Run(Real dt);
 
    private:
@@ -119,12 +119,9 @@ class Worker : public AttributeViewBundle {
 struct WorkerFactory {
    public:
     WorkerFactory();
-
     ~WorkerFactory();
-
     bool RegisterCreator(std::string const &k,
                          std::function<std::shared_ptr<Worker>(std::shared_ptr<data::DataTable> const &)> const &);
-
     template <typename U>
     bool RegisterCreator(std::string const &k) {
         RegisterCreator(k, [&](std::shared_ptr<data::DataTable> const &t) { return std::make_shared<U>(t); });

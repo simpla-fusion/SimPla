@@ -18,8 +18,9 @@
 namespace simpla {
 namespace geometry {
 using namespace simpla::algebra;
-
-inline bool check_overlap(box_type const& b0, box_type const& b1) {
+template <typename T>
+inline bool check_overlap(std::tuple<nTuple<T, 3>, nTuple<T, 3>> const& b0,
+                          std::tuple<nTuple<T, 3>, nTuple<T, 3>> const& b1) {
     return (std::get<1>(b0)[0] >= std::get<0>(b1)[0]) && (std::get<1>(b1)[0] >= std::get<0>(b0)[0]) &&
            (std::get<1>(b0)[1] >= std::get<0>(b1)[1]) && (std::get<1>(b1)[1] >= std::get<0>(b0)[1]) &&
            (std::get<1>(b0)[2] >= std::get<0>(b1)[2]) && (std::get<1>(b1)[2] >= std::get<0>(b0)[2]);

@@ -94,8 +94,9 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
     virtual bool isModified();
     virtual bool Update();
 
-    DomainView const &GetDomain() const;
-    MeshView const &GetMesh() const;
+    DomainView *GetDomain() const;
+    void RegisterDomain(DomainView *);
+    std::shared_ptr<MeshView> GetMesh() const;
     std::shared_ptr<DataBlock> GetDataBlock(id_type guid) const;
 
     void Detach(AttributeView *attr);

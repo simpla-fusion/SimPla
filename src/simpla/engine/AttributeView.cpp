@@ -7,6 +7,7 @@
 #include <typeindex>
 #include "DataBlock.h"
 #include "DomainView.h"
+#include "MeshBlock.h"
 #include "MeshView.h"
 
 namespace simpla {
@@ -48,8 +49,12 @@ bool AttributeViewBundle::isModified() {
 }
 
 bool AttributeViewBundle::Update() { return SPObject::Update(); }
-DomainView const &AttributeViewBundle::GetDomain() const { return *m_pimpl_->m_domain_; }
-MeshView const &AttributeViewBundle::GetMesh() const { return *m_pimpl_->m_domain_->GetMesh(); }
+DomainView *AttributeViewBundle::GetDomain() const { return m_pimpl_->m_domain_; }
+void AttributeViewBundle::RegisterDomain(DomainView *d) { m_pimpl_->m_domain_ = d; }
+std::shared_ptr<MeshView> AttributeViewBundle::GetMesh() const {
+    ASSERT(m_pimpl_->m_domain_ != nullptr);
+    return m_pimpl_->m_domain_->GetMesh();
+}
 std::shared_ptr<DataBlock> AttributeViewBundle::GetDataBlock(id_type guid) const {
     return m_pimpl_->m_domain_->GetDataBlock(guid);
 }
@@ -67,7 +72,7 @@ void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fu
 
 struct AttributeView::pimpl_s {
     AttributeViewBundle *m_bundle_;
-    MeshView const *m_mesh_ = nullptr;
+    std::shared_ptr<MeshView> m_mesh_ = nullptr;
     id_type m_current_block_id_ = NULL_ID;
     mutable std::shared_ptr<DataBlock> m_data_ = nullptr;
 };
@@ -88,8 +93,8 @@ void AttributeView::Disconnect() {
 }
 void AttributeView::OnNotify() {
     if (m_pimpl_->m_bundle_ != nullptr) {
-        m_pimpl_->m_mesh_ = &m_pimpl_->m_bundle_->GetMesh();
-        m_pimpl_->m_data_ = m_pimpl_->m_bundle_->GetDataBlock(GetGUID());
+        m_pimpl_->m_mesh_ = m_pimpl_->m_bundle_->GetMesh();
+        m_pimpl_->m_data_ = m_pimpl_->m_bundle_->GetDataBlock(m_pimpl_->m_mesh_->GetMeshBlock()->GetGUID());
     } else {
         DO_NOTHING;
     }

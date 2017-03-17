@@ -3,8 +3,10 @@
 //
 
 #include "MeshBlock.h"
+#include <boost/functional/hash.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include "SPObject.h"
-
 namespace simpla {
 namespace engine {
 
@@ -13,16 +15,29 @@ struct MeshBlock::pimpl_s {
     id_type m_GUID_ = NULL_ID;
     size_tuple m_dimensions_{1, 1, 1};
     index_tuple m_offset_{0, 0, 0};
-    box_type m_box_;
+    index_box_type m_index_box_;
+
+    static boost::uuids::random_generator m_gen_;
+    static boost::hash<boost::uuids::uuid> m_hasher_;
 };
-MeshBlock::MeshBlock() : m_pimpl_(new pimpl_s) {}
-MeshBlock::MeshBlock(MeshBlock const &) : m_pimpl_(new pimpl_s) { UNIMPLEMENTED; }
+boost::uuids::random_generator MeshBlock::pimpl_s::m_gen_;
+boost::hash<boost::uuids::uuid> MeshBlock::pimpl_s::m_hasher_;
+MeshBlock::MeshBlock(index_box_type const &b, int level) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_index_box_ = b;
+    m_pimpl_->m_level_ = level;
+    m_pimpl_->m_GUID_ = m_pimpl_->m_hasher_(m_pimpl_->m_gen_());
+};
+MeshBlock::MeshBlock(MeshBlock const &) : m_pimpl_(new pimpl_s) {}
 MeshBlock::~MeshBlock() {}
-size_tuple const &MeshBlock::GetDimensions() const { return m_pimpl_->m_dimensions_; }
-index_tuple const &MeshBlock::GetOffset() const { return m_pimpl_->m_offset_; }
-box_type const &MeshBlock::GetBox() const { return m_pimpl_->m_box_; }
+
+index_box_type const &MeshBlock::GetIndexBox() const { return m_pimpl_->m_index_box_; }
+index_tuple MeshBlock::GetOffset() const { return std::get<0>(m_pimpl_->m_index_box_); }
+size_tuple MeshBlock::GetDimensions() const {
+    return std::get<1>(m_pimpl_->m_index_box_) - std::get<0>(m_pimpl_->m_index_box_);
+}
+
 id_type MeshBlock::GetGUID() const { return m_pimpl_->m_GUID_; }
-int MeshBlock::GetLevel() const { return m_pimpl_->m_level_; }
+size_type MeshBlock::GetLevel() const { return m_pimpl_->m_level_; }
 
 }  // namespace engine {
 }  // namespace simpla {

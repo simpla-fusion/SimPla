@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
         ctx.Advance(dt);
         ctx.Synchronize();
         //        if (size % step_of_check_points == 0) { ctx.CheckPoint(*os); }
-        //        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " size = " << count << "] <<< " << std::endl;
+        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " size = " << count << "] <<< " << std::endl;
         ++count;
     }
 

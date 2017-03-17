@@ -17,7 +17,7 @@ class DataBlock;
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:
-    Patch();
+    Patch(std::shared_ptr<MeshBlock> const &);
     virtual ~Patch();
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> GetMeshBlock() const;

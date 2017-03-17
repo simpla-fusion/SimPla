@@ -13,6 +13,7 @@ namespace engine {
 
 struct Atlas::pimpl_s {
     static constexpr int MAX_NUM_OF_LEVEL = 5;
+    size_type m_num_of_level_ = 1;
     size_tuple m_refine_ratio_ = {2, 2, 2};
     point_type m_origin_{0, 0, 0};
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
@@ -21,12 +22,11 @@ struct Atlas::pimpl_s {
     typedef typename std::multimap<id_type, id_type>::iterator link_iterator;
     typedef typename std::multimap<id_type, id_type>::const_iterator const_link_iterator;
     typedef std::pair<const_link_iterator, const_link_iterator> multi_links_type;
-    std::map<id_type, std::shared_ptr<MeshBlock>> m_nodes_;
+    std::map<id_type, std::shared_ptr<MeshBlock>> m_blocks_;
     std::multimap<id_type, id_type> m_adjacent_;
     std::multimap<id_type, id_type> m_refine_;
     std::multimap<id_type, id_type> m_coarsen_;
-    std::set<id_type> m_layer_[MAX_NUM_OF_LEVEL];
-    std::vector<std::map<id_type, std::shared_ptr<MeshBlock>>> m_layers_;
+    std::set<id_type> m_layers_[MAX_NUM_OF_LEVEL];
 };
 
 Atlas::Atlas() : m_pimpl_(new pimpl_s){};
@@ -37,39 +37,37 @@ void Atlas::Initialize() {
     Tag();
     LOGGER << "Atlas is initialized " << std::endl;
 }
-void Atlas::Decompose(size_type const *d, int local_id){
-
-};
-void Atlas::Decompose(std::initializer_list<size_type> const &d, int local_id) {}
+void Atlas::Decompose(size_tuple const &d, int local_id){};
 
 bool Atlas::Update() { return SPObject::Update(); };
-size_type Atlas::GetNumOfLevels() const { return m_pimpl_->m_layers_.size(); };
-point_type const &Atlas::GetDx(int l) { return m_pimpl_->m_dx_[l]; }
-point_type const &Atlas::GetOrigin() const { return m_pimpl_->m_origin_; };
-box_type const &Atlas::GetBox() const { return m_pimpl_->m_bound_box_; };
+size_type Atlas::GetNumOfLevels() const { return m_pimpl_->m_num_of_level_; };
+point_type Atlas::GetLevelDx(int l) { return m_pimpl_->m_dx_[l]; }
+point_type Atlas::GetOrigin() const { return m_pimpl_->m_origin_; };
 
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const {}
-std::shared_ptr<MeshBlock> Atlas::AddBlock(box_type const &, int level){};
-std::shared_ptr<MeshBlock> Atlas::AddBlock(index_box_type const &, int level) {}
-std::shared_ptr<MeshBlock> Atlas::AddBlock(std::shared_ptr<MeshBlock> m) {
-    return m_pimpl_->m_layers_[m->GetLevel()].emplace(m->GetGUID(), m).first->second;
-}
-std::shared_ptr<MeshBlock> Atlas::GetBlock(id_type id, int level) const { return m_pimpl_->m_layers_[level].at(id); };
-size_type Atlas::EraseBlock(id_type id, int level) { return m_pimpl_->m_layers_[level].erase(id); };
-size_type Atlas::EraseBlock(std::shared_ptr<MeshBlock> m) { return EraseBlock(m->GetGUID(), m->GetLevel()); };
-std::shared_ptr<MeshBlock> Atlas::CoarsenBlock(id_type, int level){};
-std::shared_ptr<MeshBlock> Atlas::CoarsenBlock(std::shared_ptr<MeshBlock>){};
-std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, box_type const &, int level){};
-std::shared_ptr<MeshBlock> Atlas::RefineBlock(std::shared_ptr<MeshBlock>, box_type const &){};
-std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, index_box_type const &, int level){};
-std::shared_ptr<MeshBlock> Atlas::RefineBlock(std::shared_ptr<MeshBlock>, index_box_type const &){};
+void Atlas::SetRefineRatio(size_tuple const &v, int level) { m_pimpl_->m_refine_ratio_ = v; }
+
+std::shared_ptr<MeshBlock> Atlas::AddBlock(std::shared_ptr<MeshBlock> const &m) {
+    auto res = m_pimpl_->m_blocks_.emplace(m->GetGUID(), m);
+    m_pimpl_->m_layers_[m->GetLevel()].emplace(m->GetGUID());
+    if (m->GetLevel() > m_pimpl_->m_num_of_level_) { m_pimpl_->m_num_of_level_ = m->GetLevel(); }
+    return res.first->second;
+};
+std::shared_ptr<MeshBlock> Atlas::AddBlock(index_box_type const &b) { return AddBlock(std::make_shared<MeshBlock>(b)); }
+std::shared_ptr<MeshBlock> Atlas::GetBlock(id_type id) const { return m_pimpl_->m_blocks_.at(id); };
+size_type Atlas::Delete(id_type id) {
+    auto p = GetBlock(id);
+    if (p != nullptr) { m_pimpl_->m_layers_[p->GetLevel()].erase(id); }
+    return m_pimpl_->m_blocks_.erase(id);
+};
+std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, index_box_type const &){
+
+};
 
 void Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun, int level) const {
-    for (auto const &item : m_pimpl_->m_layers_[level]) { fun(item.second); }
+    for (auto const &item : m_pimpl_->m_layers_[level]) { fun(m_pimpl_->m_blocks_.at(item)); }
 };
-std::map<id_type, std::shared_ptr<MeshBlock>> const &Atlas::GetBlockList(int level) const {
-    return m_pimpl_->m_layers_[level];
-};
+std::set<id_type> const &Atlas::GetBlockList(int level) const { return m_pimpl_->m_layers_[level]; };
 
 //
 // size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }

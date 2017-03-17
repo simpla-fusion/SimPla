@@ -110,6 +110,7 @@ DomainView::~DomainView() {
  */
 void DomainView::Dispatch(std::shared_ptr<Patch> p) {
     m_pimpl_->m_patch_ = p;
+    ASSERT(m_pimpl_->m_mesh_ != nullptr);
     Click();
 };
 
@@ -117,7 +118,8 @@ id_type DomainView::current_block_id() const { return m_pimpl_->m_current_block_
 
 bool DomainView::Update() {
     if (!isModified()) { return false; }
-    if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<Patch>(); }
+    ASSERT(m_pimpl_->m_patch_ != nullptr);
+    //    if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<Patch>(); }
     if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->OnNotify(); }
     for (auto &item : m_pimpl_->m_workers_) { item.second->OnNotify(); }
     m_pimpl_->m_current_block_id_ = m_pimpl_->m_patch_->GetMeshBlock()->GetGUID();
@@ -126,11 +128,13 @@ bool DomainView::Update() {
 }
 
 void DomainView::Run(Real dt) {
+    Update();
     for (auto &item : m_pimpl_->m_workers_) { item.second->Run(dt); }
 }
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p == nullptr) { return; }
     auto res = m_pimpl_->m_attr_bundle_.emplace(p);
+    p->RegisterDomain(this);
     if (res.second) {
         (*res.first)->Foreach([&](AttributeView *v) {
             if (v->name() != "") {

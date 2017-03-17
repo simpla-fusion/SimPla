@@ -122,7 +122,7 @@ void PML<TM>::Initialize() {
 
 template <typename TM>
 void PML<TM>::Process() {
-    Real dt = GetMesh().GetDt();
+    Real dt = GetMesh()->GetDt();
     DEFINE_PHYSICAL_CONST
 
     dX2 = (X20 * (-2.0 * dt * s0) + curl_pdx(E) * dt) / (a0 + s0 * dt);

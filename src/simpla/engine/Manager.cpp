@@ -15,7 +15,7 @@ struct Manager::pimpl_s {
     std::map<std::string, std::shared_ptr<AttributeView>> m_attrs_;
     Atlas m_atlas_;
     Model m_model_;
-
+    Real m_time_ = 0;
     void Synchronize(id_type src, id_type dest);
 };
 
@@ -37,7 +37,7 @@ Manager::Manager() : m_pimpl_(new pimpl_s) {
 }
 
 Manager::~Manager() {}
-
+Real Manager::GetTime() const { return m_pimpl_->m_time_; }
 std::ostream &Manager::Print(std::ostream &os, int indent) const { return db()->Print(os, indent); }
 
 Atlas &Manager::GetAtlas() const { return m_pimpl_->m_atlas_; }
@@ -57,22 +57,28 @@ void Manager::Synchronize(int from, int to) {
     auto &atlas = GetAtlas();
     for (auto const &src : atlas.GetBlockList(from)) {
         for (auto &dest : atlas.GetBlockList(from)) {
-            if (!geometry::check_overlap(src.second->GetBox(), dest.second->GetBox())) { continue; }
-            m_pimpl_->Synchronize(src.first, dest.first);
+            if (!geometry::check_overlap(atlas.GetBlock(src)->GetIndexBox(), atlas.GetBlock(dest)->GetIndexBox())) {
+                continue;
+            }
+            m_pimpl_->Synchronize(src, dest);
         }
     }
 }
 void Manager::Advance(Real dt, int level) {
     if (level >= GetAtlas().GetNumOfLevels()) { return; }
     auto &atlas = GetAtlas();
-    for (auto const &item : atlas.GetBlockList(level)) {
+    for (auto const &id : atlas.GetBlockList(level)) {
         for (auto &v : m_pimpl_->m_views_) {
             //            auto b_box = v.second->GetMesh()->GetMeshBlock()->GetBox();
-            //            if (!geometry::check_overlap(item.second->GetBox(), b_box)) { continue; }
-            v.second->Dispatch(m_pimpl_->m_patches_[item.first]);
+            //            if (!geometry::check_overlap(id.second->GetBox(), b_box)) { continue; }
+            auto m = m_pimpl_->m_atlas_.GetBlock(id);
+            auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
+            if (res.first->second == nullptr) { res.first->second = std::make_shared<Patch>(m); }
+            v.second->Dispatch(res.first->second);
             v.second->Run(dt);
         }
     }
+    m_pimpl_->m_time_ += dt;
 };
 
 bool Manager::Update() { return SPObject::Update(); };

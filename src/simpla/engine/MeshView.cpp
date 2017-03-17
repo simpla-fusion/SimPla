@@ -59,7 +59,9 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
     return os;
 };
 
-void MeshView::OnNotify() { /*SetMeshBlock(GetDomainWithMaterial()->GetMeshBlock());*/
+void MeshView::OnNotify() {
+    SetMeshBlock(GetDomain()->GetMeshBlock());
+    AttributeViewBundle::OnNotify();
 }
 bool MeshView::Update() { return SPObject::Update(); }
 
