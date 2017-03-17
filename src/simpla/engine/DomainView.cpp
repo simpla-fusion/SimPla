@@ -142,10 +142,7 @@ void DomainView::Attach(AttributeViewBundle *p) {
     }
 }
 void DomainView::Detach(AttributeViewBundle *p) {
-    if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) {
-        //        p->Disconnect();
-        Click();
-    }
+    if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) { Click(); }
 }
 void DomainView::Initialize() {
     LOGGER << "Domain View [" << name() << "] is initializing!" << std::endl;
