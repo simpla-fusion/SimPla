@@ -16,20 +16,8 @@ struct Manager::pimpl_s {
     Atlas m_atlas_;
     Model m_model_;
     Real m_time_ = 0;
-    void Synchronize(id_type src, id_type dest);
 };
 
-void Manager::pimpl_s::Synchronize(id_type src, id_type dest) {
-    auto s_it = m_patches_.find(src);
-    auto d_it = m_patches_.find(dest);
-    if (s_it == m_patches_.end() || d_it == m_patches_.end() || s_it == d_it) { return; }
-
-    auto &src_data = s_it->second->GetAllDataBlock();
-    for (auto const &item : src_data) {
-        auto dest_data = d_it->second->GetDataBlock(item.first);
-        if (dest_data == nullptr) { continue; }
-    }
-};
 
 Manager::Manager() : m_pimpl_(new pimpl_s) {
     db()->Link("Model", m_pimpl_->m_model_.db());
@@ -60,7 +48,16 @@ void Manager::Synchronize(int from, int to) {
             if (!geometry::check_overlap(atlas.GetBlock(src)->GetIndexBox(), atlas.GetBlock(dest)->GetIndexBox())) {
                 continue;
             }
-            m_pimpl_->Synchronize(src, dest);
+            auto s_it = m_pimpl_->m_patches_.find(src);
+            auto d_it = m_pimpl_->m_patches_.find(dest);
+            if (s_it == m_pimpl_->m_patches_.end() || d_it == m_pimpl_->m_patches_.end() || s_it == d_it) { continue; }
+            LOGGER << "Synchronize From " << s_it->second->GetMeshBlock()->GetIndexBox() << " to "
+                   << s_it->second->GetMeshBlock()->GetIndexBox() << " " << std::endl;
+            auto &src_data = s_it->second->GetAllDataBlock();
+            for (auto const &item : src_data) {
+                auto dest_data = d_it->second->GetDataBlock(item.first);
+                if (dest_data == nullptr) { continue; }
+            }
         }
     }
 }
@@ -75,6 +72,8 @@ void Manager::Advance(Real dt, int level) {
             auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
             if (res.first->second == nullptr) { res.first->second = std::make_shared<Patch>(m); }
             v.second->Dispatch(res.first->second);
+            LOGGER << " Run " << v.second->name() << " at " << res.first->second->GetMeshBlock()->GetIndexBox()
+                   << std::endl;
             v.second->Run(dt);
         }
     }

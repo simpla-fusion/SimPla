@@ -23,7 +23,10 @@ void create_scenario(engine::Manager *ctx) {
 
     ctx->GetAtlas().Decompose(size_tuple{2, 3, 2});
     ctx->GetAtlas().SetRefineRatio(size_tuple{2, 2, 2});
-    ctx->GetAtlas().AddBlock(index_box_type{{0, 0, 0}, {64, 64, 64}});
+    ctx->GetAtlas().AddBlock(index_box_type{{0, 0, 0}, {32, 32, 64}});
+    ctx->GetAtlas().AddBlock(index_box_type{{0, 32, 0}, {32, 64, 64}});
+    ctx->GetAtlas().AddBlock(index_box_type{{32, 0, 0}, {64, 32, 64}});
+    ctx->GetAtlas().AddBlock(index_box_type{{32, 32, 0}, {64, 64, 64}});
     //    ctx->GetModel("Center").AddObject("InnerBox", geometry::Cube({{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}}));
     //    ctx->GetModel("Center").AddObject("OuterBox", geometry::Cube({{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}}));
 
