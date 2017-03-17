@@ -105,7 +105,7 @@ bool Worker::Update() {
     if (state_tag == 0) { Initialize(); }
     return true;
 }
-void Worker::Evaluate() {
+void Worker::Run(Real dt) {
     Update();
     Process();
 };

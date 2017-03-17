@@ -20,8 +20,9 @@ class Patch {
     Patch();
     virtual ~Patch();
     id_type GetMeshBlockId() const;
-    std::shared_ptr<MeshBlock> &GetMeshBlock() const;
-    std::shared_ptr<DataBlock> &GetDataBlock(id_type const &id) const;
+    std::shared_ptr<MeshBlock> GetMeshBlock() const;
+    std::shared_ptr<DataBlock> GetDataBlock(id_type const &id) const;
+    std::map<id_type, std::shared_ptr<DataBlock>> &GetAllDataBlock() const;
 
    private:
     struct pimpl_s;

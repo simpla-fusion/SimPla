@@ -54,6 +54,14 @@ namespace engine {
  *
  * @enduml
  */
+
+/**
+ * @brief
+ *  - Define topology relation between  mesh blocks
+ *  - Atlas is defined in a dimensionless topology space , without metric information
+ *  - '''Origin''' is the origin point of continue topology space and discrete index space
+ *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
+ */
 class Atlas : public SPObject, public concept::Printable {
    public:
     Atlas();
@@ -67,30 +75,27 @@ class Atlas : public SPObject, public concept::Printable {
     virtual bool Update();
     size_type GetNumOfLevels() const;
 
-    void SetDx(point_type const &);
     point_type const &GetDx(int level = 0);
-    void SetOrigin(point_type const &);
     point_type const &GetOrigin() const;
-    void SetBox(box_type const &);
     box_type const &GetBox() const;
 
     index_box_type FitIndexBox(box_type const &b, int level = 0, int flag = 0) const;
 
-    MeshBlock const &AddBlock(box_type const &, int level = 0);
-    MeshBlock const &AddBlock(index_box_type const &, int level = 0);
-    MeshBlock const &AddBlock(MeshBlock const &);
+    std::shared_ptr<MeshBlock> AddBlock(box_type const &, int level = 0);
+    std::shared_ptr<MeshBlock> AddBlock(index_box_type const &, int level = 0);
+    std::shared_ptr<MeshBlock> AddBlock(std::shared_ptr<MeshBlock>);
     size_type EraseBlock(id_type, int level = 0);
-    size_type EraseBlock(MeshBlock const &);
-    MeshBlock const &GetBlock(id_type, int level = 0) const;
-    MeshBlock const &CoarsenBlock(id_type, int level = 0);
-    MeshBlock const &CoarsenBlock(MeshBlock const &);
-    MeshBlock const &RefineBlock(id_type, box_type const &, int level = 0);
-    MeshBlock const &RefineBlock(MeshBlock const &, box_type const &);
-    MeshBlock const &RefineBlock(id_type, index_box_type const &, int level = 0);
-    MeshBlock const &RefineBlock(MeshBlock const &, index_box_type const &);
+    size_type EraseBlock(std::shared_ptr<MeshBlock>);
+    std::shared_ptr<MeshBlock> GetBlock(id_type, int level = 0) const;
+    std::shared_ptr<MeshBlock> CoarsenBlock(id_type, int level = 0);
+    std::shared_ptr<MeshBlock> CoarsenBlock(std::shared_ptr<MeshBlock>);
+    std::shared_ptr<MeshBlock> RefineBlock(id_type, box_type const &, int level = 0);
+    std::shared_ptr<MeshBlock> RefineBlock(std::shared_ptr<MeshBlock>, box_type const &);
+    std::shared_ptr<MeshBlock> RefineBlock(id_type, index_box_type const &, int level = 0);
+    std::shared_ptr<MeshBlock> RefineBlock(std::shared_ptr<MeshBlock>, index_box_type const &);
 
-    void Foreach(std::function<void(MeshBlock const &)> const &fun, int level = 0) const;
-    std::map<id_type, MeshBlock> const &GetBlockList(int level = 0) const;
+    void Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun, int level = 0) const;
+    std::map<id_type, std::shared_ptr<MeshBlock>> const &GetBlockList(int level = 0) const;
 
     //    virtual void Load(const data::DataTable &);
     //    virtual void Save(data::DataTable *) const;

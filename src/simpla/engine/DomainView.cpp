@@ -125,8 +125,8 @@ bool DomainView::Update() {
     return SPObject::Update();
 }
 
-void DomainView::Evaluate() {
-    for (auto &item : m_pimpl_->m_workers_) { item.second->Evaluate(); }
+void DomainView::Run(Real dt) {
+    for (auto &item : m_pimpl_->m_workers_) { item.second->Run(dt); }
 }
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p == nullptr) { return; }
@@ -186,8 +186,8 @@ void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
 };
 
 id_type DomainView::GetMeshBlockId() const { return m_pimpl_->m_patch_->GetMeshBlock()->GetGUID(); }
-std::shared_ptr<MeshBlock> &DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
-std::shared_ptr<DataBlock> &DomainView::GetDataBlock(id_type id) const { return m_pimpl_->m_patch_->GetDataBlock(id); }
+std::shared_ptr<MeshBlock> DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
+std::shared_ptr<DataBlock> DomainView::GetDataBlock(id_type id) const { return m_pimpl_->m_patch_->GetDataBlock(id); }
 //
 // void DomainView::Register(AttributeDict &dbase) {
 //    for (auto &item : m_pimpl_->m_attr_bundle_) {

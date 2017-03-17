@@ -101,7 +101,6 @@ int main(int argc, char **argv) {
 
     MESSAGE << DOUBLELINE << std::endl;
     TheStart();
-    INFORM << "\t >>> Time [" << ctx.GetTime() << "] <<< " << std::endl;
     //    os->open("/checkpoint/");
     //    ctx.sync();
     //    ctx.check_point(*os);
@@ -109,9 +108,10 @@ int main(int argc, char **argv) {
     size_type count = 0;
 
     while (count <= num_of_steps) {
-        ctx.Run(dt);
+        ctx.Advance(dt);
+        ctx.Synchronize();
         //        if (size % step_of_check_points == 0) { ctx.CheckPoint(*os); }
-        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " size = " << count << "] <<< " << std::endl;
+        //        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " size = " << count << "] <<< " << std::endl;
         ++count;
     }
 

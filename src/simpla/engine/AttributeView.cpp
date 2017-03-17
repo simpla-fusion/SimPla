@@ -50,7 +50,7 @@ bool AttributeViewBundle::isModified() {
 bool AttributeViewBundle::Update() { return SPObject::Update(); }
 DomainView const &AttributeViewBundle::GetDomain() const { return *m_pimpl_->m_domain_; }
 MeshView const &AttributeViewBundle::GetMesh() const { return *m_pimpl_->m_domain_->GetMesh(); }
-std::shared_ptr<DataBlock> &AttributeViewBundle::GetDataBlock(id_type guid) const {
+std::shared_ptr<DataBlock> AttributeViewBundle::GetDataBlock(id_type guid) const {
     return m_pimpl_->m_domain_->GetDataBlock(guid);
 }
 

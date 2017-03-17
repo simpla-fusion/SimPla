@@ -26,7 +26,7 @@ struct Atlas::pimpl_s {
     std::multimap<id_type, id_type> m_refine_;
     std::multimap<id_type, id_type> m_coarsen_;
     std::set<id_type> m_layer_[MAX_NUM_OF_LEVEL];
-    std::vector<std::map<id_type, MeshBlock>> m_levels_;
+    std::vector<std::map<id_type, std::shared_ptr<MeshBlock>>> m_layers_;
 };
 
 Atlas::Atlas() : m_pimpl_(new pimpl_s){};
@@ -43,34 +43,33 @@ void Atlas::Decompose(size_type const *d, int local_id){
 void Atlas::Decompose(std::initializer_list<size_type> const &d, int local_id) {}
 
 bool Atlas::Update() { return SPObject::Update(); };
-size_type Atlas::GetNumOfLevels() const { return m_pimpl_->m_levels_.size(); };
-void Atlas::SetDx(point_type const &p) { m_pimpl_->m_dx_[0] = p; };
+size_type Atlas::GetNumOfLevels() const { return m_pimpl_->m_layers_.size(); };
 point_type const &Atlas::GetDx(int l) { return m_pimpl_->m_dx_[l]; }
-void Atlas::SetOrigin(point_type const &p) { m_pimpl_->m_origin_ = p; };
 point_type const &Atlas::GetOrigin() const { return m_pimpl_->m_origin_; };
-void Atlas::SetBox(box_type const &b) { m_pimpl_->m_bound_box_ = b; };
 box_type const &Atlas::GetBox() const { return m_pimpl_->m_bound_box_; };
 
 index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const {}
-MeshBlock const &Atlas::AddBlock(box_type const &, int level){};
-MeshBlock const &Atlas::AddBlock(index_box_type const &, int level) {}
-MeshBlock const &Atlas::AddBlock(MeshBlock const &m) {
-    return m_pimpl_->m_levels_[m.GetLevel()].emplace(m.GetGUID(), m).first->second;
+std::shared_ptr<MeshBlock> Atlas::AddBlock(box_type const &, int level){};
+std::shared_ptr<MeshBlock> Atlas::AddBlock(index_box_type const &, int level) {}
+std::shared_ptr<MeshBlock> Atlas::AddBlock(std::shared_ptr<MeshBlock> m) {
+    return m_pimpl_->m_layers_[m->GetLevel()].emplace(m->GetGUID(), m).first->second;
 }
-MeshBlock const &Atlas::GetBlock(id_type id, int level) const { return m_pimpl_->m_levels_[level].at(id); };
-size_type Atlas::EraseBlock(id_type id, int level) { return m_pimpl_->m_levels_[level].erase(id); };
-size_type Atlas::EraseBlock(MeshBlock const &m) { return EraseBlock(m.GetGUID(), m.GetLevel()); };
-MeshBlock const &Atlas::CoarsenBlock(id_type, int level){};
-MeshBlock const &Atlas::CoarsenBlock(MeshBlock const &){};
-MeshBlock const &Atlas::RefineBlock(id_type, box_type const &, int level){};
-MeshBlock const &Atlas::RefineBlock(MeshBlock const &, box_type const &){};
-MeshBlock const &Atlas::RefineBlock(id_type, index_box_type const &, int level){};
-MeshBlock const &Atlas::RefineBlock(MeshBlock const &, index_box_type const &){};
+std::shared_ptr<MeshBlock> Atlas::GetBlock(id_type id, int level) const { return m_pimpl_->m_layers_[level].at(id); };
+size_type Atlas::EraseBlock(id_type id, int level) { return m_pimpl_->m_layers_[level].erase(id); };
+size_type Atlas::EraseBlock(std::shared_ptr<MeshBlock> m) { return EraseBlock(m->GetGUID(), m->GetLevel()); };
+std::shared_ptr<MeshBlock> Atlas::CoarsenBlock(id_type, int level){};
+std::shared_ptr<MeshBlock> Atlas::CoarsenBlock(std::shared_ptr<MeshBlock>){};
+std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, box_type const &, int level){};
+std::shared_ptr<MeshBlock> Atlas::RefineBlock(std::shared_ptr<MeshBlock>, box_type const &){};
+std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, index_box_type const &, int level){};
+std::shared_ptr<MeshBlock> Atlas::RefineBlock(std::shared_ptr<MeshBlock>, index_box_type const &){};
 
-void Atlas::Foreach(std::function<void(MeshBlock const &)> const &fun, int level) const {
-    for (auto const &item : m_pimpl_->m_levels_[level]) { fun(item.second); }
+void Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun, int level) const {
+    for (auto const &item : m_pimpl_->m_layers_[level]) { fun(item.second); }
 };
-std::map<id_type, MeshBlock> const &Atlas::GetBlockList(int level) const { return m_pimpl_->m_levels_[level]; };
+std::map<id_type, std::shared_ptr<MeshBlock>> const &Atlas::GetBlockList(int level) const {
+    return m_pimpl_->m_layers_[level];
+};
 
 //
 // size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }

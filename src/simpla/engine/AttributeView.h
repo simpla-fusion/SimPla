@@ -96,7 +96,7 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
 
     DomainView const &GetDomain() const;
     MeshView const &GetMesh() const;
-    std::shared_ptr<DataBlock> &GetDataBlock(id_type guid) const;
+    std::shared_ptr<DataBlock> GetDataBlock(id_type guid) const;
 
     void Detach(AttributeView *attr);
     void Attach(AttributeView *attr);

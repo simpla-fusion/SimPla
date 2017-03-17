@@ -12,15 +12,15 @@
 
 namespace simpla {
 namespace engine {
-class TimeIntegrator : public Manager {
+class TimeIntegrator {
+    Manager* m_manger_;
+
    public:
     TimeIntegrator() {}
     virtual ~TimeIntegrator() {}
 
-    virtual void UpdateLevel(int l0, int l1) { UNIMPLEMENTED; };
-    virtual void Advance(Real dt, int level = 0) { UNIMPLEMENTED; };
+    virtual Real Advance(Real dt, int level = 0);
     virtual size_type NextTimeStep(Real dt) { return 0; };
-    virtual void CheckPoint(){};
     virtual size_type step() const { return 0; };
     virtual bool remainingSteps() const { return 0; };
     virtual Real timeNow() const { return 0.0; }

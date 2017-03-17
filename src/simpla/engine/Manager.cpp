@@ -3,6 +3,7 @@
 //
 #include "Manager.h"
 #include <simpla/data/all.h>
+#include <simpla/geometry/GeoAlgorithm.h>
 #include "MeshView.h"
 #include "Worker.h"
 namespace simpla {
@@ -11,8 +12,23 @@ namespace engine {
 struct Manager::pimpl_s {
     std::map<id_type, std::shared_ptr<Patch>> m_patches_;
     std::map<std::string, std::shared_ptr<DomainView>> m_views_;
+    std::map<std::string, std::shared_ptr<AttributeView>> m_attrs_;
     Atlas m_atlas_;
     Model m_model_;
+
+    void Synchronize(id_type src, id_type dest);
+};
+
+void Manager::pimpl_s::Synchronize(id_type src, id_type dest) {
+    auto s_it = m_patches_.find(src);
+    auto d_it = m_patches_.find(dest);
+    if (s_it == m_patches_.end() || d_it == m_patches_.end() || s_it == d_it) { return; }
+
+    auto &src_data = s_it->second->GetAllDataBlock();
+    for (auto const &item : src_data) {
+        auto dest_data = d_it->second->GetDataBlock(item.first);
+        if (dest_data == nullptr) { continue; }
+    }
 };
 
 Manager::Manager() : m_pimpl_(new pimpl_s) {
@@ -36,8 +52,29 @@ void Manager::SetDomainView(std::string const &d_name, std::shared_ptr<data::Dat
     db()->Set("DomainView/" + d_name, *p, false);
 }
 
-Real Manager::GetTime() const { return 1.0; }
-void Manager::Run(Real dt) { Update(); }
+void Manager::Synchronize(int from, int to) {
+    if (from >= GetAtlas().GetNumOfLevels() || to >= GetAtlas().GetNumOfLevels()) { return; }
+    auto &atlas = GetAtlas();
+    for (auto const &src : atlas.GetBlockList(from)) {
+        for (auto &dest : atlas.GetBlockList(from)) {
+            if (!geometry::check_overlap(src.second->GetBox(), dest.second->GetBox())) { continue; }
+            m_pimpl_->Synchronize(src.first, dest.first);
+        }
+    }
+}
+void Manager::Advance(Real dt, int level) {
+    if (level >= GetAtlas().GetNumOfLevels()) { return; }
+    auto &atlas = GetAtlas();
+    for (auto const &item : atlas.GetBlockList(level)) {
+        for (auto &v : m_pimpl_->m_views_) {
+            //            auto b_box = v.second->GetMesh()->GetMeshBlock()->GetBox();
+            //            if (!geometry::check_overlap(item.second->GetBox(), b_box)) { continue; }
+            v.second->Dispatch(m_pimpl_->m_patches_[item.first]);
+            v.second->Run(dt);
+        }
+    }
+};
+
 bool Manager::Update() { return SPObject::Update(); };
 
 void Manager::Initialize() {
@@ -46,11 +83,9 @@ void Manager::Initialize() {
     GetAtlas().Initialize();
     auto domain_view_list = db()->Get("DomainView");
     if (domain_view_list == nullptr || !domain_view_list->isTable()) { return; }
-
     auto &domain_t = domain_view_list->cast_as<data::DataTable>();
     domain_t.Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
         auto res = m_pimpl_->m_views_.emplace(s_key, nullptr);
-
         if (res.first->second == nullptr) {
             res.first->second = std::make_shared<DomainView>(
                 (item != nullptr && item->isTable()) ? std::dynamic_pointer_cast<data::DataTable>(item) : nullptr);
@@ -61,7 +96,6 @@ void Manager::Initialize() {
         }
         domain_t.Set(s_key, res.first->second->db(), true);
         res.first->second->name(s_key);
-//        res.first->second->SetMesh(GetModel().GetMesh(s_key));
         res.first->second->Initialize();
     });
     SPObject::Tag();

@@ -7,6 +7,7 @@
 
 #include <simpla/concept/Printable.h>
 #include <simpla/design_pattern/SingletonHolder.h>
+#include <simpla/geometry/GeoObject.h>
 #include "AttributeView.h"
 #include "SPObject.h"
 namespace simpla {
@@ -31,7 +32,7 @@ class MeshView : public AttributeViewBundle {
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
     void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
-
+    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
     virtual bool Update();
     virtual void Initialize();
 

@@ -28,17 +28,11 @@ class DomainView : public concept::Printable, public SPObject {
     virtual ~DomainView();
     std::ostream &Print(std::ostream &os, int indent) const final;
 
-
-
-
     id_type current_block_id() const;
     void Dispatch(std::shared_ptr<Patch> d);
 
-
-
-
     virtual bool Update();
-    void Evaluate();
+    void Run(Real dt);
 
     //    Manager const *GetManager(Manager *) const;
     //    void SetManager(Manager *m = nullptr);
@@ -55,11 +49,9 @@ class DomainView : public concept::Printable, public SPObject {
 
     std::shared_ptr<MeshView> SetMesh(std::shared_ptr<MeshView> const &m);
 
-
-
     id_type GetMeshBlockId() const;
-    std::shared_ptr<MeshBlock> &GetMeshBlock() const;
-    std::shared_ptr<DataBlock> &GetDataBlock(id_type) const;
+    std::shared_ptr<MeshBlock> GetMeshBlock() const;
+    std::shared_ptr<DataBlock> GetDataBlock(id_type) const;
 
     void RemoveWorker(std::shared_ptr<Worker> const &w);
 

@@ -109,7 +109,7 @@ class Worker : public AttributeViewBundle {
     virtual void Process(){};
     virtual bool Update();
     virtual void OnNotify(){};
-    void Evaluate();
+    void Run(Real dt);
 
    private:
     struct pimpl_s;
