@@ -32,25 +32,17 @@ class Model : public SPObject, public concept::Printable {
     std::shared_ptr<data::DataTable> SetMaterial(std::string const &k, std::shared_ptr<DataTable> const &p = nullptr);
     id_type GetMaterialId(std::string const &k) const;
 
-    //    std::map<std::string, id_type> &GetMaterialListByName() const;
-    //    std::map<id_type, std::string> &GetMaterialListById() const;
-
     id_type AddObject(std::string const &material_type_name, std::shared_ptr<geometry::GeoObject> const &);
-    id_type AddObject(id_type material_type_id, std::shared_ptr<geometry::GeoObject> const &);
-
-    std::shared_ptr<geometry::GeoObject> GetObject(id_type) const;
     std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
-    size_type RemoveObject(id_type);
-    size_type RemoveObject(std::string const &);
+    size_type DeleteObject(std::string const &);
 
     //    id_type GetObjectMaterialId(id_type) const;
 
-    geometry::GeoObject SelectObjectByMaterial(std::string const &material_type_name) const;
-    //    geometry::GeoObject SelectObjectByMaterial(id_type) const;
-    size_type RemoveObjectByMaterial(id_type);
+//    geometry::GeoObject SelectObjectByMaterial(std::string const &material_type_name) const;
+//    //    geometry::GeoObject SelectObjectByMaterial(id_type) const;
+//    size_type RemoveObjectByMaterial(id_type);
 
-    std::shared_ptr<MeshView> GetMesh(std::string const &) const;
-    std::shared_ptr<MeshView> SetMesh(std::string const &, std::shared_ptr<engine::MeshView>);
+
 
    private:
     struct pimpl_s;

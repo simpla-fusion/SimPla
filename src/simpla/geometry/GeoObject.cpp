@@ -24,7 +24,6 @@ bool GeoObjectFactory::RegisterCreator(
 std::shared_ptr<GeoObject> GeoObjectFactory::Create(std::shared_ptr<data::DataEntity> const &t) const {
     std::shared_ptr<GeoObject> res = nullptr;
     if (t == nullptr) {
-        WARNING << "Create default GeoObject failed!" << std::endl;
         res = std::make_shared<Cube>(box_type{{0, 0, 0}, {1, 1, 1}});
     } else if (t->value_type_info() == typeid(std::string)) {
         res = m_pimpl_->m_mesh_factory_.at(data::data_cast<std::string>(*t))(t);
