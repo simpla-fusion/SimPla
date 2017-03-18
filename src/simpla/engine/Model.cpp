@@ -38,8 +38,9 @@ std::shared_ptr<data::DataTable> Model::GetMaterial(std::string const& s) const 
 
 std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const& s, std::shared_ptr<DataTable> const& other) {
     Click();
-    auto t = db()->Set("/Material/" + s, other, false);
-    if (t.second) { t.first->cast_as<DataTable>().SetValue("GUID", std::hash<std::string>{}(s)); }
+    if (db()->Set("/Material/" + s, other, false) > 0) {
+        db()->Get("/Material/" + s)->cast_as<DataTable>().SetValue("GUID", std::hash<std::string>{}(s));
+    }
 }
 // id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k).GetValue<id_type>("GUID", NULL_ID);
 // }

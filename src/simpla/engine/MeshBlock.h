@@ -12,7 +12,7 @@ namespace simpla {
 namespace engine {
 class MeshBlock {
    public:
-    MeshBlock(index_box_type const &b, int level = 0);
+    MeshBlock(index_box_type const &b, size_type level = 0);
     MeshBlock(MeshBlock const &);
     ~MeshBlock();
     id_type GetGUID() const;
@@ -20,6 +20,7 @@ class MeshBlock {
     size_tuple GetDimensions() const;
     index_tuple GetOffset() const;
     index_box_type const &GetIndexBox() const;
+    box_type GetBoundBox() const;
 
    private:
     struct pimpl_s;

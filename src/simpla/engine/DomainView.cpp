@@ -138,8 +138,9 @@ void DomainView::Attach(AttributeViewBundle *p) {
     if (res.second) {
         (*res.first)->Foreach([&](AttributeView *v) {
             if (v->name() != "") {
-                auto p = db()->Set("Attributes/" + v->name(), v->db(), false);
-                if (!p.second) { v->db()->Link(p.first); }
+                if (db()->Set("Attributes/" + v->name(), v->db(), false) > 0) {
+                    v->db()->Link(db()->Get("Attributes/" + v->name()));
+                }
             }
         });
         Click();
@@ -188,7 +189,9 @@ void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
 
 id_type DomainView::GetMeshBlockId() const { return m_pimpl_->m_patch_->GetMeshBlock()->GetGUID(); }
 std::shared_ptr<MeshBlock> DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
-std::shared_ptr<DataBlock> DomainView::GetDataBlock(id_type id) const { return m_pimpl_->m_patch_->GetDataBlock(id); }
+std::shared_ptr<data::DataBlock> DomainView::GetDataBlock(id_type id) const {
+    return m_pimpl_->m_patch_->GetDataBlock(id);
+}
 //
 // void DomainView::Register(AttributeDict &dbase) {
 //    for (auto &item : m_pimpl_->m_attr_bundle_) {

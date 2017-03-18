@@ -152,7 +152,7 @@ struct BooleanExpression<TOP, TL> : public Expression<TOP, TL> {
 //{
 //    typedef AssignmentExpression<TOP, TL, TR> this_type;
 //    TL &lhs;
-//    typename traits::reference<TR>::type rhs;
+//    typename traits::reference<TR>::value_type_info rhs;
 //    TOP op_;
 //
 //    AssignmentExpression(this_type const &that) : lhs(that.lhs),

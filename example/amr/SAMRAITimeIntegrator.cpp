@@ -8,7 +8,7 @@
 #include <simpla/algebra/nTupleExt.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/AttributeView.h>
-#include <simpla/engine/DataBlock.h>
+#include <simpla/data/DataBlock.h>
 #include <simpla/engine/DomainView.h>
 #include <simpla/engine/Patch.h>
 #include <simpla/engine/TimeIntegrator.h>
@@ -159,7 +159,7 @@ std::shared_ptr<engine::DataBlock> create_data_block(engine::AttributeDesc const
     //    else if (item->GetValueTypeInfo() == typeid(long)) { attr_choice_form<long>(item,
     //    std::forward<Args>(args)...); }
     else {
-        RUNTIME_ERROR << "Unsupported m_value_ type" << std::endl;
+        RUNTIME_ERROR << "Unsupported m_value_ value_type_info" << std::endl;
     }
     ASSERT(res != nullptr);
     return res;
@@ -398,7 +398,7 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int nd
     //    else if (item->GetValueTypeInfo() == typeid(long)) { attr_choice_form<long>(item,
     //    std::forward<Args>(args)...); }
     else {
-        RUNTIME_ERROR << " value type [" << desc.GetValueTypeInfo().name() << "] is not supported!" << std::endl;
+        RUNTIME_ERROR << " value value_type_info [" << desc.GetValueTypeInfo().name() << "] is not supported!" << std::endl;
     }
     return nullptr;
 }

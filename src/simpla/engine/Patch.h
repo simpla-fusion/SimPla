@@ -6,14 +6,13 @@
 #define SIMPLA_PATCH_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/data/all.h>
 #include <memory>
-
 #include "SPObject.h"
 
 namespace simpla {
 namespace engine {
 class MeshBlock;
-class DataBlock;
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:
@@ -21,8 +20,8 @@ class Patch {
     virtual ~Patch();
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> GetMeshBlock() const;
-    std::shared_ptr<DataBlock> GetDataBlock(id_type const &id) const;
-    std::map<id_type, std::shared_ptr<DataBlock>> &GetAllDataBlock() const;
+    std::shared_ptr<data::DataBlock> GetDataBlock(id_type const &id) const;
+    std::map<id_type, std::shared_ptr<data::DataBlock>> &GetAllDataBlock() const;
 
    private:
     struct pimpl_s;

@@ -101,23 +101,23 @@ void DataBackendSAMRAI::pimpl_s::set_data_to_samrai(boost::shared_ptr<SAMRAI::tb
         dest->putDatabase(uri);
     } else if (src->isHeavyBlock()) {
     } else if (src->isArray()) {
-        if (src->type() == typeid(bool)) {
+        if (src->value_type_info() == typeid(bool)) {
             auto& varray = src->cast_as<DataArrayWrapper<bool>>().data();
             bool d[varray.size()];
             size_type num = varray.size();
             for (int i = 0; i < num; ++i) { d[i] = varray[i]; }
             dest->putBoolArray(uri, d, num);
-        } else if (src->type() == typeid(std::string)) {
+        } else if (src->value_type_info() == typeid(std::string)) {
             auto& varray = src->cast_as<DataArrayWrapper<std::string>>().data();
             dest->putStringArray(uri, &varray[0], varray.size());
-        } else if (src->type() == typeid(double)) {
+        } else if (src->value_type_info() == typeid(double)) {
             auto& varray = src->cast_as<DataArrayWrapper<double>>().data();
             dest->putDoubleArray(uri, &varray[0], varray.size());
-        } else if (src->type() == typeid(int)) {
+        } else if (src->value_type_info() == typeid(int)) {
             auto& varray = src->cast_as<DataArrayWrapper<int>>().data();
             dest->putIntegerArray(uri, &varray[0], varray.size());
         } else if (src->cast_as<DataArray>().Get(0)->isArray() && src->cast_as<DataArray>().Get(0)->size() >= 3 &&
-                   src->cast_as<DataArray>().Get(0)->type() == typeid(int)) {
+                src->cast_as<DataArray>().Get(0)->value_type_info() == typeid(int)) {
             nTuple<int, 3> i_lo = data_cast<nTuple<int, 3>>(*src->cast_as<DataArray>().Get(0));
             nTuple<int, 3> i_up = data_cast<nTuple<int, 3>>(*src->cast_as<DataArray>().Get(1));
 
@@ -125,17 +125,17 @@ void DataBackendSAMRAI::pimpl_s::set_data_to_samrai(boost::shared_ptr<SAMRAI::tb
             dest->putDatabaseBox(uri, SAMRAI::tbox::DatabaseBox(dim, &(i_lo[0]), &(i_up[0])));
         }
     } else if (src->isLight()) {
-        if (src->type() == typeid(bool)) {
+        if (src->value_type_info() == typeid(bool)) {
             dest->putBool(uri, data_cast<bool>(*src));
-        } else if (src->type() == typeid(std::string)) {
+        } else if (src->value_type_info() == typeid(std::string)) {
             dest->putString(uri, data_cast<std::string>(*src));
-        } else if (src->type() == typeid(double)) {
+        } else if (src->value_type_info() == typeid(double)) {
             dest->putDouble(uri, data_cast<double>(*src));
-        } else if (src->type() == typeid(int)) {
+        } else if (src->value_type_info() == typeid(int)) {
             dest->putInteger(uri, data_cast<int>(*src));
         }
     } else {
-        WARNING << " Unknown type " << *src << " " << std::endl;
+        WARNING << " Unknown value_type_info " << *src << " " << std::endl;
     }
 }
 void DataBackendSAMRAI::pimpl_s::add_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database>& lobj,

@@ -73,7 +73,7 @@ class DataArrayWrapper<U, 1, std::enable_if_t<traits::is_light_data<U>::value>> 
     DataArrayWrapper(this_type&& other) : m_data_(other.m_data_) {}
 
     virtual ~DataArrayWrapper() {}
-    virtual std::type_info const& type() const { return typeid(U); };
+    virtual std::type_info const& value_type_info() const { return typeid(U); };
     virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<DataArrayWrapper<U>>(*this); }
     std::vector<U>& data() { return m_data_; }
     std::vector<U> const& data() const { return m_data_; }

@@ -13,7 +13,7 @@
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/sp_def.h>
 #include "GeoAlgorithm.h"
-
+#include "GeoAlgorithm.h"
 namespace simpla {
 namespace geometry {
 template <typename TObj>
@@ -32,46 +32,47 @@ class GeoObject {
     GeoObject(){};
     GeoObject(GeoObject const &){};
     virtual ~GeoObject(){};
-    virtual box_type const &bound_box() const { return m_bound_box_; };
+    virtual box_type const &GetBoundBox() const { return m_bound_box_; };
     bool isNull() const { return true; };
     virtual bool isSolid() const { return false; };
     virtual bool isSurface() const { return false; };
     virtual bool isCurve() const { return false; };
-    virtual Real distance(point_type const &x) const { return 0; }
+    virtual Real GetDistanceTo(point_type const &x) const { return 0; }
 
+    virtual bool CheckOverlap(box_type const &b) const { return geometry::CheckOverlap(m_bound_box_, b); }
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
     *           `in` then 1
     *           `out` then 0
     */
-    virtual int check_inside(const point_type &x) const { return in_box(bound_box(), x) ? 1 : 0; };
+    virtual int CheckInside(const point_type &x) const { return in_box(GetBoundBox(), x) ? 1 : 0; };
 
-    int check_inside() const { return 0; }
+    int CheckInside() const { return 0; }
 
     /**
      * return id= 0b012345...
      */
     template <typename P0, typename... Others>
-    int check_inside(P0 const &p0, Others &&... others) const {
-        return (check_inside(p0) << (sizeof...(others))) | check_inside(std::forward<Others>(others)...);
+    int CheckInside(P0 const &p0, Others &&... others) const {
+        return (CheckInside(p0) << (sizeof...(others))) | CheckInside(std::forward<Others>(others)...);
     };
 
    private:
     template <typename T, size_t... I>
-    int check_inside_invoke_helper(T const &p_tuple, index_sequence<I...>) const {
-        return check_inside(std::get<I>(std::forward<T>(p_tuple))...);
+    int CheckInside_invoke_helper(T const &p_tuple, index_sequence<I...>) const {
+        return CheckInside(std::get<I>(std::forward<T>(p_tuple))...);
     };
 
    public:
     template <typename... Others>
-    int check_inside(std::tuple<Others...> const &p_tuple) const {
-        return check_inside_invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
+    int CheckInside(std::tuple<Others...> const &p_tuple) const {
+        return CheckInside_invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
     };
 
-    int check_inside(int num, point_type const *p_tuple) const {
+    int CheckInside(int num, point_type const *p_tuple) const {
         ASSERT(num < std::numeric_limits<int>::digits);
         int res = 0;
-        for (int i = 0; i < num; ++i) { res = (res << 1) | check_inside(&p_tuple[i][0]); }
+        for (int i = 0; i < num; ++i) { res = (res << 1) | CheckInside(&p_tuple[i][0]); }
         return res;
     };
 
@@ -84,12 +85,12 @@ class GeoObject {
       *  else if \f$ x \in \partial M \f$ then  distance = 0
       *  else > 0
       */
-    virtual std::tuple<point_type, point_type, Real> nearest_point(point_type const &x0) const {
-        return geometry::nearest_point_to_box(bound_box(), x0);
+    virtual std::tuple<point_type, point_type, Real> GetNearestPoint(point_type const &x0) const {
+        return geometry::GetNearestPointToBox(GetBoundBox(), x0);
     };
 
-    virtual std::tuple<point_type, point_type, Real> nearest_point(GeoObject const &other) const {
-        return nearest_point_box(other.bound_box());
+    virtual std::tuple<point_type, point_type, Real> GetNearestPoint(GeoObject const &other) const {
+        return GetNearestPointToBox(other.GetBoundBox());
     };
 
     /**
@@ -98,8 +99,8 @@ class GeoObject {
      * @param x1
      * @return
      */
-    virtual std::tuple<point_type, point_type, Real> nearest_point(point_type const &x0, point_type const &x1) const {
-        return geometry::nearest_point_to_box(bound_box(), x0, x1);
+    virtual std::tuple<point_type, point_type, Real> GetNearestPoint(point_type const &x0, point_type const &x1) const {
+        return geometry::GetNearestPointToBox(GetBoundBox(), x0, x1);
     };
 
     /**
@@ -109,9 +110,9 @@ class GeoObject {
      * @param x2
      * @return
      */
-    virtual std::tuple<point_type, point_type, Real> nearest_point(point_type const &x0, point_type const &x1,
-                                                                   point_type const &x2) const {
-        return geometry::nearest_point_to_box(bound_box(), x0, x1, x2);
+    virtual std::tuple<point_type, point_type, Real> GetNearestPoint(point_type const &x0, point_type const &x1,
+                                                                     point_type const &x2) const {
+        return geometry::GetNearestPointToBox(GetBoundBox(), x0, x1, x2);
     };
 
     /**
@@ -122,9 +123,9 @@ class GeoObject {
      * @param x3
      * @return
      */
-    virtual std::tuple<point_type, point_type, Real> nearest_point(point_type const &x0, point_type const &x1,
-                                                                   point_type const &x2, point_type const &x3) const {
-        return geometry::nearest_point_to_box(bound_box(), x0, x1, x2, x3);
+    virtual std::tuple<point_type, point_type, Real> GetNearestPoint(point_type const &x0, point_type const &x1,
+                                                                     point_type const &x2, point_type const &x3) const {
+        return geometry::GetNearestPointToBox(GetBoundBox(), x0, x1, x2, x3);
     };
 
     /**
@@ -135,7 +136,7 @@ class GeoObject {
      *         else return 1
      */
 
-    virtual std::tuple<point_type, point_type, Real> nearest_point_box(box_type const &b) const {
+    virtual std::tuple<point_type, point_type, Real> GetNearestPointToBox(box_type const &b) const {
         UNIMPLEMENTED;
         return std::make_tuple(
             point_type{std::numeric_limits<Real>::quiet_NaN(), std::numeric_limits<Real>::quiet_NaN(),
@@ -146,21 +147,21 @@ class GeoObject {
     };
 
     //    template <typename... Args>
-    //    std::tuple<point_type, point_type, Real> nearest_point(Args &&... args) const {
-    //        return nearest_point(bound_box(), &(args[0])...);
+    //    std::tuple<point_type, point_type, Real> GetNearestPoint(Args &&... args) const {
+    //        return GetNearestPoint(GetBoundBox(), &(args[0])...);
     //    };
     virtual Real implicit_fun(point_type const &x) const { return 0; };
     //
     //   private:
     //    template <typename T, size_t... I>
-    //    inline int nearest_point_invoke_helper(T const &p_tuple, index_sequence<I...>) const {
-    //        return nearest_point(std::get<I>(std::forward<T>(p_tuple))...);
+    //    inline int GetNearestPoint_invoke_helper(T const &p_tuple, index_sequence<I...>) const {
+    //        return GetNearestPoint(std::get<I>(std::forward<T>(p_tuple))...);
     //    };
     //
     //   public:
     //    template <typename... Others>
-    //    inline int nearest_point(std::tuple<Others...> const &p_tuple) const {
-    //        return check_inside_invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
+    //    inline int GetNearestPoint(std::tuple<Others...> const &p_tuple) const {
+    //        return CheckInside_invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
     //    };
 };
 

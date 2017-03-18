@@ -80,11 +80,11 @@ struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector
 {
 //	typedef Primitive<1, CS, tags::simplex> primitive_type;
 //
-//	typedef typename traits::coordinate_system<primitive_type>::type coordinate_system;
+//	typedef typename traits::coordinate_system<primitive_type>::value_type_info coordinate_system;
 //
-//	typedef typename traits::GetTag<primitive_type>::type tag_type;
+//	typedef typename traits::GetTag<primitive_type>::value_type_info tag_type;
 //
-//	typedef typename traits::point_type<coordinate_system>::type point_type;
+//	typedef typename traits::point_type<coordinate_system>::value_type_info point_type;
 //
 //	static constexpr size_t max_number_of_points = traits::number_of_points<
 //			primitive_type>::entity;

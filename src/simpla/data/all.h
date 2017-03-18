@@ -7,6 +7,7 @@
 
 #include "DataArray.h"
 #include "DataBackend.h"
+#include "DataBlock.h"
 #include "DataEntity.h"
 #include "DataTable.h"
 #include "DataTraits.h"

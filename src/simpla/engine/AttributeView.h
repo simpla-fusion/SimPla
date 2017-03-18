@@ -7,6 +7,8 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
+#include <simpla/data/all.h>
+
 #include <simpla/concept/Printable.h>
 #include <simpla/design_pattern/Observer.h>
 #include <simpla/design_pattern/Signal.h>
@@ -17,7 +19,6 @@ namespace simpla {
 namespace engine {
 class DomainView;
 class MeshView;
-class DataBlock;
 class AttributeView;
 
 /**
@@ -97,7 +98,7 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
     DomainView *GetDomain() const;
     void RegisterDomain(DomainView *);
     std::shared_ptr<MeshView> GetMesh() const;
-    std::shared_ptr<DataBlock> GetDataBlock(id_type guid) const;
+    std::shared_ptr<data::DataBlock> GetDataBlock(id_type guid) const;
 
     void Detach(AttributeView *attr);
     void Attach(AttributeView *attr);
@@ -151,8 +152,8 @@ struct AttributeView : public SPObject, public concept::Printable {
     void Config() {
         db()->SetValue("iform", GetIFORM());
         db()->SetValue("dof", GetDOF());
-        db()->SetValue("value type", GetValueTypeInfo().name());
-        db()->SetValue("value type idx", std::type_index(GetValueTypeInfo()).hash_code());
+        db()->SetValue("value value_type_info", GetValueTypeInfo().name());
+        db()->SetValue("value value_type_info idx", std::type_index(GetValueTypeInfo()).hash_code());
     }
     void Config(std::string const &s) { db()->SetValue("name", s); }
     void Config(data::KeyValue const &s) { db()->SetValue(s); }
@@ -188,7 +189,7 @@ struct AttributeView : public SPObject, public concept::Printable {
     /** @}*/
 
     MeshView const &GetMesh() const;
-    DataBlock &GetDataBlock() const;
+    data::DataBlock &GetDataBlock() const;
 
     virtual void InitializeData();
 
@@ -237,8 +238,8 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     virtual int GetIFORM() const { return iform; };
     virtual int GetDOF() const { return dof; };
     void InitializeData() {}
-    std::shared_ptr<DataBlock> CreateDataBlock() const {
-        std::shared_ptr<DataBlock> p = nullptr;
+    std::shared_ptr<data::DataBlock> CreateDataBlock() const {
+        std::shared_ptr<data::DataBlock> p = nullptr;
 
         // TODO: create data block!!
         //        if (p == nullptr) {

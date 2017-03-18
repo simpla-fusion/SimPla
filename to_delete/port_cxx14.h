@@ -35,7 +35,7 @@ using common_type_t = typename common_type<_Tp...>::type;
 
 /// Alias template for underlying_type
 template <typename _Tp>
-using underlying_type_t = typename underlying_type<_Tp>::type;
+using underlying_type_t = typename underlying_type<_Tp>::value_type_info;
 
 /// Alias template for result_of
 template <typename _Tp>

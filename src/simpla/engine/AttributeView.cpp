@@ -5,7 +5,7 @@
 #include "AttributeView.h"
 #include <set>
 #include <typeindex>
-#include "DataBlock.h"
+#include <simpla/data/DataBlock.h>
 #include "DomainView.h"
 #include "MeshBlock.h"
 #include "MeshView.h"
@@ -55,7 +55,7 @@ std::shared_ptr<MeshView> AttributeViewBundle::GetMesh() const {
     ASSERT(m_pimpl_->m_domain_ != nullptr);
     return m_pimpl_->m_domain_->GetMesh();
 }
-std::shared_ptr<DataBlock> AttributeViewBundle::GetDataBlock(id_type guid) const {
+std::shared_ptr<data::DataBlock> AttributeViewBundle::GetDataBlock(id_type guid) const {
     return m_pimpl_->m_domain_->GetDataBlock(guid);
 }
 
@@ -74,7 +74,7 @@ struct AttributeView::pimpl_s {
     AttributeViewBundle *m_bundle_;
     std::shared_ptr<MeshView> m_mesh_ = nullptr;
     id_type m_current_block_id_ = NULL_ID;
-    mutable std::shared_ptr<DataBlock> m_data_ = nullptr;
+    mutable std::shared_ptr<data::DataBlock> m_data_ = nullptr;
 };
 AttributeView::AttributeView() : m_pimpl_(new pimpl_s){};
 // AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
@@ -105,8 +105,8 @@ MeshView const &AttributeView::GetMesh() const {
     return *m_pimpl_->m_mesh_;
 };
 
-DataBlock &AttributeView::GetDataBlock() const {
-    if (m_pimpl_->m_data_ == nullptr) { m_pimpl_->m_data_ = std::make_shared<DataBlock>(); };
+data::DataBlock &AttributeView::GetDataBlock() const {
+    if (m_pimpl_->m_data_ == nullptr) { m_pimpl_->m_data_ = std::make_shared<data::DataBlock>(); };
     return *m_pimpl_->m_data_;
 }
 

@@ -30,7 +30,7 @@ struct DataEntityWrapper<Array<U, N>> : public DataEntity, public Array<U, N> {
     DataEntityWrapper(array_type const& d) : m_data_(d) {}
     DataEntityWrapper(array_type&& d) : m_data_(d) {}
     virtual ~DataEntityWrapper() {}
-    virtual std::type_info const& type() const { return typeid(array_type); }
+    virtual std::type_info const& value_type_info() const { return typeid(array_type); }
     virtual bool isEntity() const { return true; }
     virtual bool isLight() const { return false; }
     virtual bool isHeavyBlock() const { return false; }

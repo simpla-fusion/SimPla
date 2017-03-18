@@ -33,13 +33,12 @@ struct DataEntity : public concept::Printable {
         os << "null";
         return os;
     };
-    virtual std::type_info const& type() const { return typeid(void); };
+    virtual std::type_info const& value_type_info() const { return typeid(void); };
     virtual bool isLight() const { return true; }
     virtual bool isHeavyBlock() const { return false; }
-    virtual bool isEntity() const { return false; }
     virtual bool isTable() const { return false; }
     virtual bool isArray() const { return false; }
-    virtual bool isNull() const { return !(isEntity() || isTable() || isArray()); }
+    virtual bool isNull() const { return !(isHeavyBlock() || isLight() || isTable() || isArray()); }
 
     virtual std::shared_ptr<DataEntity> Duplicate() const { return nullptr; };
 };
@@ -53,7 +52,7 @@ struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> :
     DataEntityWrapper(value_type const& d) : m_data_(d) {}
     DataEntityWrapper(value_type&& d) : m_data_(d) {}
     virtual ~DataEntityWrapper() {}
-    virtual std::type_info const& type() const { return typeid(value_type); }
+    virtual std::type_info const& value_type_info() const { return typeid(value_type); }
     virtual bool isEntity() const { return true; }
     virtual std::shared_ptr<DataEntity> Duplicate() const { return std::make_shared<DataEntityWrapper<U>>(m_data_); };
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const {

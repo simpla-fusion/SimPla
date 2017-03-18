@@ -27,7 +27,7 @@ RectMesh::RectMesh(int ndims, index_type const* lo, index_type const* up, Real c
 RectMesh::~RectMesh() {}
 //
 //std::ostream& RectMesh::Print(std::ostream& os, int indent) const {
-//    os << std::setw(indent + 1) << "type = \"" << getClassName() << "\" ,"
+//    os << std::setw(indent + 1) << "value_type_info = \"" << getClassName() << "\" ,"
 //       << " level = " << level() << ",  box = " << m_g_box_;
 //    return os;
 //}

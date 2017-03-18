@@ -83,7 +83,7 @@ public:
     }
 
     //factory construct
-//    template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
+//    template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::value_type_info * = nullptr>
 //    Particle(TFactory &factory, Args &&...args)
 //            : field_type(factory, std::forward<Args>(args)...), m_properties_(nullptr), m_pool_(nullptr)
 //    {

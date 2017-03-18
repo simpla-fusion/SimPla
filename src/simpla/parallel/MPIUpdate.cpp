@@ -348,7 +348,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //	{
 //		MPI_Request req;
 //
-//		MPI_CALL(MPI_Isend(m_data, 1, item.send_type.type(), item.dest,
+//		MPI_CALL(MPI_Isend(m_data, 1, item.send_type.value_type_info(), item.dest,
 //				item.send_tag, mpi_comm.comm(), &req));
 //
 //		requests.push_back(std::Move(req));
@@ -357,7 +357,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //	{
 //		MPI_Request req;
 //
-//		MPI_CALL(MPI_Irecv(m_data, 1, item.recv_type.type(), item.dest,
+//		MPI_CALL(MPI_Irecv(m_data, 1, item.recv_type.value_type_info(), item.dest,
 //				item.recv_tag, mpi_comm.comm(), &req));
 //
 //		requests.push_back(std::Move(req));
@@ -383,7 +383,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //
 //		MPI_Request send_req;
 //
-//		MPI_CALL(MPI_Isend(item.send_data.Get(), item.send_size, mpi_data_type.type(), dest,
+//		MPI_CALL(MPI_Isend(item.send_data.Get(), item.send_size, mpi_data_type.value_type_info(), dest,
 //send_tag, mpi_comm.comm(),
 //				&send_req));
 //
@@ -404,7 +404,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //		// attributes of the incoming message. Get the size of the message
 //		int recv_num = 0;
 //
-//		MPI_CALL(MPI_Get_count(&status, mpi_data_type.type(), &recv_num));
+//		MPI_CALL(MPI_Get_count(&status, mpi_data_type.value_type_info(), &recv_num));
 //
 //		if (recv_num == MPI_UNDEFINED)
 //		{
@@ -417,7 +417,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count) {
 //
 //		MPI_Request recv_req;
 //		MPI_CALL(
-//				MPI_Irecv(item.recv_data.Get(), item.recv_size, mpi_data_type.type(), >
+//				MPI_Irecv(item.recv_data.Get(), item.recv_size, mpi_data_type.value_type_info(), >
 //dest, recv_tag,
 //						mpi_comm.comm(), &recv_req));
 //

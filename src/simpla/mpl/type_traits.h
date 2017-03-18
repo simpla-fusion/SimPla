@@ -222,7 +222,7 @@ template <int I0, int... I>
 struct assign_nested_initializer_list<I0, I...> {
     template <typename U, typename TR>
     static inline void apply(U& u, std::initializer_list<TR> const& rhs) {
-        static_assert(concept::is_indexable<U, int>::value, " illegal type");
+        static_assert(concept::is_indexable<U, int>::value, " illegal value_type_info");
 
         auto it = rhs.begin();
         auto ie = rhs.end();
@@ -303,16 +303,16 @@ struct extent<integer_sequence<_Tp, N...>, 0> : public int_const<sizeof...(N)> {
 
 // template<typename T>
 // struct value_type { typedef typename std::conditional<std::is_scalar<T>::value, T,
-// std::nullptr_t>::type type; };
+// std::nullptr_t>::type value_type_info; };
 //
-// template<typename T> struct value_type<std::complex<T>> { typedef std::complex<T> type; };
+// template<typename T> struct value_type<std::complex<T>> { typedef std::complex<T> value_type_info; };
 //
-// template<> struct value_type<std::string> { typedef std::string type; };
+// template<> struct value_type<std::string> { typedef std::string value_type_info; };
 //
 // template<typename _Tp, _Tp ...N> struct value_type<integer_sequence<_Tp, N...> > { typedef
-// _Tp type; };
+// _Tp value_type_info; };
 //
-// template<typename T> using value_type_t=typename value_type<T>::type;
+// template<typename T> using value_type_t=typename value_type<T>::value_type_info;
 
 template <typename T>
 struct key_type {
@@ -402,7 +402,7 @@ struct recursive_try_index_aux<0> {
 //
 //
 // template<typename U, typename TIndex>
-// typename std::remove_extent<U>::type const &
+// typename std::remove_extent<U>::value_type_info const &
 // index(U const &v, TIndex const &i, ENABLE_IF(std::is_array<U>::vaule)) { return v[i]; };
 //
 // template<typename U, typename TIndex>

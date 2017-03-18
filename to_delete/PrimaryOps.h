@@ -161,9 +161,9 @@ template<typename ...> struct AssignmentExpression;
 //    }
 //};
 //
-//template<typename TOP> struct op_traits { typedef logical_and type; };
+//template<typename TOP> struct op_traits { typedef logical_and value_type_info; };
 //
-//template<> struct op_traits<not_equal_to> { typedef logical_or type; };
+//template<> struct op_traits<not_equal_to> { typedef logical_or value_type_info; };
 //
 //#define DEF_STD_BINARY_FUNCTION(_NAME_)                                                               \
 //struct _##_NAME_                                                                             \

@@ -72,18 +72,18 @@ inline unsigned long count_bits(unsigned long s) {
 // template<unsigned Size>
 // struct make_index_tuple
 //{
-//	typedef typename make_index_tuple<Size - 1>::type::template append<Size - 1> type;
+//	typedef typename make_index_tuple<Size - 1>::type::template append<Size - 1> value_type_info;
 //};
 //
 //// Terminal case of the recursive metafunction.
 // template<>
 // struct make_index_tuple<0u>
 //{
-//	typedef index_tuple<> type;
+//	typedef index_tuple<> value_type_info;
 //};
 //
 // template<typename ... Types>
-// using to_index_tuple = typename make_index_tuple<sizeof...(Types)>::type;
+// using to_index_tuple = typename make_index_tuple<sizeof...(Types)>::value_type_info;
 //// Third-part code end
 ////******************************************************************************************************
 //
@@ -92,12 +92,12 @@ inline unsigned long count_bits(unsigned long s) {
 //HAS_MEMBER_FUNCTION(swap)
 //
 //template <typename T>
-//typename std::enable_if<has_member_function_swap<T>::value, void>::type sp_swap(T &l, T &r) {
+//typename std::enable_if<has_member_function_swap<T>::value, void>::value_type_info sp_swap(T &l, T &r) {
 //    l.swap(r);
 //}
 //
 //template <typename T>
-//typename std::enable_if<!has_member_function_swap<T>::value, void>::type sp_swap(T &l, T &r) {
+//typename std::enable_if<!has_member_function_swap<T>::value, void>::value_type_info sp_swap(T &l, T &r) {
 //    std::swap(l, r);
 //}
 //
@@ -116,7 +116,7 @@ inline unsigned long count_bits(unsigned long s) {
 //
 //template <typename F, typename... Args>
 //struct result_of<F(Args...)> {
-//    typedef typename std::result_of<F(Args...)>::type type;
+//    typedef typename std::result_of<F(Args...)>::value_type_info type;
 //};
 //
 //namespace _impl {
@@ -139,7 +139,7 @@ inline unsigned long count_bits(unsigned long s) {
 //
 //template <typename TC, typename TI>
 //struct index_of<TC, TI> {
-//    typedef typename result_of<_impl::GetValue(TC, TI)>::type type;
+//    typedef typename result_of<_impl::GetValue(TC, TI)>::value_type_info type;
 //};
 //
 //
@@ -154,15 +154,15 @@ inline unsigned long count_bits(unsigned long s) {
 //};
 //template <typename T>
 //struct sp_pod_traits {
-//    typedef T type;
+//    typedef T value_type_info;
 //};
 //
 //template <typename _Signature>
 //class sp_result_of {
-//    typedef typename std::result_of<_Signature>::type _type;
+//    typedef typename std::result_of<_Signature>::value_type_info _type;
 //
 //   public:
-//    typedef typename sp_pod_traits<_type>::type type;
+//    typedef typename sp_pod_traits<_type>::type value_type_info;
 //};
 
 }  // namespace simpla

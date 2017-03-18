@@ -158,8 +158,8 @@ struct any
     explicit any(ValueType &&value,
                  typename std::enable_if<!(std::is_same<any &, ValueType>::value ||
                                            std::is_const<ValueType>::value)>::type * = 0
-            // disable if entity find type `any&`
-            // disable if entity find type `const ValueType&&`
+            // disable if entity find value_type_info `any&`
+            // disable if entity find value_type_info `const ValueType&&`
     ) : m_data_(new Holder<typename std::decay<ValueType>::type>(static_cast<ValueType &&>(value)))
     {
     }

@@ -18,7 +18,6 @@ struct Manager::pimpl_s {
     Real m_time_ = 0;
 };
 
-
 Manager::Manager() : m_pimpl_(new pimpl_s) {
     db()->Link("Model", m_pimpl_->m_model_.db());
     db()->Link("Atlas", m_pimpl_->m_atlas_.db());
@@ -45,7 +44,7 @@ void Manager::Synchronize(int from, int to) {
     auto &atlas = GetAtlas();
     for (auto const &src : atlas.GetBlockList(from)) {
         for (auto &dest : atlas.GetBlockList(from)) {
-            if (!geometry::check_overlap(atlas.GetBlock(src)->GetIndexBox(), atlas.GetBlock(dest)->GetIndexBox())) {
+            if (!geometry::CheckOverlap(atlas.GetBlock(src)->GetIndexBox(), atlas.GetBlock(dest)->GetIndexBox())) {
                 continue;
             }
             auto s_it = m_pimpl_->m_patches_.find(src);
@@ -65,12 +64,12 @@ void Manager::Advance(Real dt, int level) {
     if (level >= GetAtlas().GetNumOfLevels()) { return; }
     auto &atlas = GetAtlas();
     for (auto const &id : atlas.GetBlockList(level)) {
+        auto mblk = m_pimpl_->m_atlas_.GetBlock(id);
+
         for (auto &v : m_pimpl_->m_views_) {
-            //            auto b_box = v.second->GetMesh()->GetMeshBlock()->GetBox();
-            //            if (!geometry::check_overlap(id.second->GetBox(), b_box)) { continue; }
-            auto m = m_pimpl_->m_atlas_.GetBlock(id);
+            if (!v.second->GetMesh()->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
             auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
-            if (res.first->second == nullptr) { res.first->second = std::make_shared<Patch>(m); }
+            if (res.first->second == nullptr) { res.first->second = std::make_shared<Patch>(mblk); }
             v.second->Dispatch(res.first->second);
             LOGGER << " Run " << v.second->name() << " at " << res.first->second->GetMeshBlock()->GetIndexBox()
                    << std::endl;

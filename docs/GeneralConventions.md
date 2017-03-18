@@ -5,7 +5,7 @@ General Conventions {#general_convertions}
   
 
 ### Concept  ###  {#concept_desc}
- @ref concept_desc :: In generic programming, a @ref concept_desc  is a description of supported operations on a type, including syntax and semantics. In this way, concepts are related to abstract base classes but concepts do not require a subtype relationship.  --  http://en.wikipedia.org/wiki/Concept_(generic_programming)  
+ @ref concept_desc :: In generic programming, a @ref concept_desc  is a description of supported operations on a value_type_info, including syntax and semantics. In this way, concepts are related to abstract base classes but concepts do not require a subtype relationship.  --  http://en.wikipedia.org/wiki/Concept_(generic_programming)  
 
 ### 6-dimensional phase-space  ###   {#phase_space_6d}
  @ref phase_space_6d ::    

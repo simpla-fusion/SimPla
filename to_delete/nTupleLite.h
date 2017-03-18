@@ -152,7 +152,7 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //struct is_ntuple<nTuple<T, N...>> { static constexpr bool value = true; };
 //
 //template<typename T, size_type N>
-//struct key_type<nTuple<T, N >> { typedef size_type type; };
+//struct key_type<nTuple<T, N >> { typedef size_type value_type_info; };
 //
 //
 ////----------------------------------------------------------------------------------------------------------------------
@@ -191,36 +191,36 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 // *
 // */
 //template<typename>
-//struct make_extents { typedef int_sequence<> type; };
+//struct make_extents { typedef int_sequence<> value_type_info; };
 //
 //template<typename T, int N>
 //struct make_extents<T[N]>
 //{
-//    typedef traits::seq_concat<int_sequence<N>, typename make_extents<T>::type> type;
+//    typedef traits::seq_concat<int_sequence<N>, typename make_extents<T>::value_type_info> type;
 //};
 //
 //template<typename T, size_type N>
 //struct make_extents<nTuple<T, N>>
 //{
-//    typedef typename traits::seq_concat<int_sequence<N>, typename make_extents<T>::type> type;
+//    typedef typename traits::seq_concat<int_sequence<N>, typename make_extents<T>::type> value_type_info;
 //};
 //
 //template<typename TOP, typename ... T>
 //struct make_extents<algebra::Expression<TOP, T...> >
 //{
-//    typedef typename expr_extents_helper<algebra::Expression<TOP, T...>>::type type;
+//    typedef typename expr_extents_helper<algebra::Expression<TOP, T...>>::type value_type_info;
 //};
 //
 //template<size_type ...N>
 //struct longest_seq<int_sequence<N...>, int_sequence<> >
 //{
-//    typedef int_sequence<N...> type;
+//    typedef int_sequence<N...> value_type_info;
 //};
 //
 //template<size_type ...N>
 //struct longest_seq<int_sequence<>, int_sequence<N...> >
 //{
-//    typedef int_sequence<N...> type;
+//    typedef int_sequence<N...> value_type_info;
 //};
 //
 //template<size_type ...N, size_type ...M>
@@ -229,27 +229,27 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //
 //
 //    typedef std::conditional_t<(sizeof...(N) < sizeof...(M)), int_sequence<N...>,
-//            int_sequence<M...> > type;
+//            int_sequence<M...> > value_type_info;
 //};
 //
 //template<typename TOP>
 //struct expr_extents_helper<algebra::Expression<TOP >>
 //{
-//    typedef int_sequence<> type;
+//    typedef int_sequence<> value_type_info;
 //};
 //template<typename TOP, typename First>
 //struct expr_extents_helper<algebra::Expression<TOP, First> >
 //{
-//    typedef typename make_extents<First>::type type;
+//    typedef typename make_extents<First>::type value_type_info;
 //};
 //template<typename TOP, typename First, typename ...Others>
 //struct expr_extents_helper<algebra::Expression<TOP, First, Others...>>
 //{
-//    typedef typename longest_seq<typename make_extents<First>::type,
-//            typename make_extents<Others>::type...>::type type;
+//    typedef typename longest_seq<typename make_extents<First>::value_type_info,
+//            typename make_extents<Others>::type...>::type value_type_info;
 //};
 //
-//template<typename T> using extents=typename _detail::make_extents<T>::type;
+//template<typename T> using extents=typename _detail::make_extents<T>::value_type_info;
 //
 //
 ////----------------------------------------------------------------------------------------------------------------------
@@ -266,28 +266,28 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //template<typename TV, typename TI>
 //struct make_pod_array<TV, integer_sequence<TI>>
 //{
-//    typedef TV type;
+//    typedef TV value_type_info;
 //};
 //template<typename TV, typename TI, TI N0, TI ... N>
 //struct make_pod_array<TV, integer_sequence<TI, N0, N...>>
 //{
 //    typedef typename make_pod_array<TV, integer_sequence<TI, N...>>
-//    ::type type[N0];
+//    ::value_type_info type[N0];
 //};
 //
 //template<typename TV, typename TI, TI ... N>
 //struct make_primary_nTuple<TV, integer_sequence<TI, N...>>
 //{
-//    typedef nTuple<TV, N...> type;
+//    typedef nTuple<TV, N...> value_type_info;
 //};
 //template<typename TV, typename TI>
 //struct make_primary_nTuple<TV, integer_sequence<TI>>
 //{
-//    typedef TV type;
+//    typedef TV value_type_info;
 //};
 //
-//template<typename ... T> using make_pod_array_t = typename make_pod_array<T...>::type;
-//template<typename ... T> using make_primary_nTuple_t = typename make_primary_nTuple<T...>::type;
+//template<typename ... T> using make_pod_array_t = typename make_pod_array<T...>::value_type_info;
+//template<typename ... T> using make_primary_nTuple_t = typename make_primary_nTuple<T...>::value_type_info;
 //
 //}// namespace _detail
 //
@@ -296,10 +296,10 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //{
 //    typedef _detail::make_primary_nTuple_t<
 //            algebra::traits::value_type_t<nTuple<T, N...>>, traits::extents<nTuple<T, N...>>>
-//            type;
+//            value_type_info;
 //};
 //
-//template<typename T> using ntuple_cast_t=typename primary_type<T>::type;
+//template<typename T> using ntuple_cast_t=typename primary_type<T>::value_type_info;
 //
 //template<typename T, size_type ...N>
 //struct pod_type<nTuple<T, N...>>
@@ -307,7 +307,7 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //    typedef _detail::make_pod_array_t<
 //            algebra::traits::value_type_t<nTuple<T, N...>>,
 //            traits::extents<nTuple<T, N...>>>
-//            type;
+//            value_type_info;
 //
 //};
 //---------------------------------------------------------------------------------------------------------------------
@@ -321,14 +321,14 @@ template<typename T, size_type M, size_type N> using Matrix=nTuple<nTuple<T, N>,
 //struct make_tensor;
 //
 //template<typename T>
-//struct make_tensor<T> { typedef T type; };
+//struct make_tensor<T> { typedef T value_type_info; };
 //
 //template<typename T, size_type N0, size_type ...N>
-//struct make_tensor<T, N0, N...> { typedef nTuple<typename make_tensor<T, N...>::type, N0> type; };
+//struct make_tensor<T, N0, N...> { typedef nTuple<typename make_tensor<T, N...>::type, N0> value_type_info; };
 //
 //}
 //
-//template<typename T, size_type ...N> using Tensor=typename _detail::make_tensor<T, N...>::type;
+//template<typename T, size_type ...N> using Tensor=typename _detail::make_tensor<T, N...>::value_type_info;
 //
 ////----------------------------------------------------------------------------------------------------------------------
 //namespace traits

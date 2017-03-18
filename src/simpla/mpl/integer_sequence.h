@@ -157,13 +157,13 @@ _Tp get(integer_sequence<_Tp, I...>) {
 // template<typename T, T ... N>
 // struct longer_integer_sequence<integer_sequence<T, N ...> >
 //{
-//	typedef integer_sequence<T, N ...> type;
+//	typedef integer_sequence<T, N ...> value_type_info;
 //};
 // template<typename T, T ... N, T ...M>
 // struct longer_integer_sequence<integer_sequence<T, N ...>,
 //		integer_sequence<T, M...>>
 //{
-//	typedef integer_sequence<T, mpl::max<T,N,M>::entity ...> type;
+//	typedef integer_sequence<T, mpl::max<T,N,M>::entity ...> value_type_info;
 //};
 //
 ////template<typename T, T ... N1, T ... N2, typename ...Others>

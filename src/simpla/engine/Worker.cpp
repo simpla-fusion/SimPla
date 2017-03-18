@@ -26,7 +26,7 @@ std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m
     std::string s_name = "";
     if (config == nullptr || config->isNull()) {
         return res;
-    } else if (config->type() == typeid(std::string)) {
+    } else if (config->value_type_info() == typeid(std::string)) {
         s_name = m->name() + "." + data::data_cast<std::string>(*config);
         res = m_pimpl_->m_worker_factory_.at(s_name)(nullptr);
     } else if (config->isTable()) {
@@ -45,7 +45,7 @@ Worker::~Worker(){};
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
     //       << " [" << getClassName() << " : " << GetName() << "]" << std::endl;
-    os << std::setw(indent + 1) << "  type = \"" << getClassName() << "\", config = {" << db() << "},";
+    os << std::setw(indent + 1) << "  value_type_info = \"" << getClassName() << "\", config = {" << db() << "},";
     os << std::setw(indent + 1) << " attributes = { ";
     os << "  } , ";
     return os;

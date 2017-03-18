@@ -19,8 +19,8 @@ struct Cube : public GeoObject {
     //            : m_bound_box_(b)
     {}
     ~Cube() {}
-    point_type lower() const { return std::get<0>(GeoObject::bound_box()); }
-    point_type upper() const { return std::get<1>(GeoObject::bound_box()); }
+    point_type lower() const { return std::get<0>(GeoObject::GetBoundBox()); }
+    point_type upper() const { return std::get<1>(GeoObject::GetBoundBox()); }
 
     virtual Real distance(point_type const &x) const { return 0; }
     /**
@@ -40,50 +40,50 @@ struct Cube : public GeoObject {
 // template<typename CS>
 // struct facet<model::Primitive<1, CS, tags::Cube>>
 //{
-//	typedef model::Primitive<0, CS> type;
+//	typedef model::Primitive<0, CS> value_type_info;
 //};
 //
 // template<typename CS>
 // struct facet<model::Primitive<2, CS, tags::Cube>>
 //{
-//	typedef model::Primitive<1, CS> type;
+//	typedef model::Primitive<1, CS> value_type_info;
 //};
 //
 // template<size_t N, typename CS>
 // struct number_of_points<model::Primitive<N, CS, tags::Cube>>
 //{
 //	static constexpr size_t value = number_of_points<
-//			typename facet<model::Primitive<N, CS, tags::Cube> >::type>::value
+//			typename facet<model::Primitive<N, CS, tags::Cube> >::value_type_info>::value
 //			* 2;
 //};
 //
 //} // namespace traits
 // template<typename CS>
-// typename traits::length_type<CS>::type distance(
+// typename traits::length_type<CS>::value_type_info distance(
 //		model::Primitive<0, CS> const & p,
 //		model::Primitive<1, CS> const & line_segment)
 //{
 //
 //}
 // template<typename CS>
-// typename traits::length_type<CS>::type distance(
+// typename traits::length_type<CS>::value_type_info distance(
 //		model::Primitive<0, CS> const & p,
 //		model::Primitive<2, CS, tags::Cube> const & rect)
 //{
 //
 //}
 // template<typename CS>
-// typename traits::length_type<CS>::type length(
+// typename traits::length_type<CS>::value_type_info length(
 //		model::Primitive<2, CS> const & rect)
 //{
 //}
 // template<typename CS>
-// typename traits::area_type<CS>::type area(
+// typename traits::area_type<CS>::value_type_info area(
 //		model::Primitive<2, CS, tags::Cube> const & rect)
 //{
 //}
 // template<typename CS>
-// typename traits::volume_type<CS>::type volume(
+// typename traits::volume_type<CS>::value_type_info volume(
 //		model::Primitive<3, CS, tags::Cube> const & poly)
 //{
 //}

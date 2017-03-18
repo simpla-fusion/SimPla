@@ -24,7 +24,8 @@ class MeshBlock;
 class MeshView : public AttributeViewBundle {
    public:
     SP_OBJECT_BASE(MeshView);
-    MeshView(std::shared_ptr<data::DataTable> const &t = nullptr);
+    MeshView(std::shared_ptr<data::DataTable> const &t = nullptr,
+             std::shared_ptr<geometry::GeoObject> const &obj = nullptr);
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
@@ -33,9 +34,9 @@ class MeshView : public AttributeViewBundle {
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
     void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
     std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
+
     virtual bool Update();
     virtual void Initialize();
-
     Real GetDt() const;
 
     size_type size(int IFORM = VERTEX) const { return 0; }

@@ -588,9 +588,9 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //		&m_self_->local_shape_.dimensions[0], & item.recv.m_global_start_[0],
 //		&item.recv.stride[0], &item.recv.size[0], &item.recv.block[0]);
 //
-//		MPI_Isend(m_data.get(), 1, send_type.type(), item.dest, item.send_tag,
+//		MPI_Isend(m_data.get(), 1, send_type.value_type_info(), item.dest, item.send_tag,
 //		comm, &request[size * 2]);
-//		MPI_Irecv(m_data.get(), 1, recv_type.type(), item.dest, item.recv_tag,
+//		MPI_Irecv(m_data.get(), 1, recv_type.value_type_info(), item.dest, item.recv_tag,
 //		comm, &request[size * 2 + 1]);
 //
 //		++size;

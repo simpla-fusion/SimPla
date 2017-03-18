@@ -78,7 +78,7 @@ std::string help_message()
 //		if (porcess_number == 0)
 //		m_buffer.resize(num_of_process);
 //
-//		MPI_Gather(&size, 1, m_type.type(), &m_buffer[0], 1, m_type.type(), 0, communicator);
+//		MPI_Gather(&size, 1, m_type.type(), &m_buffer[0], 1, m_type.value_type_info(), 0, communicator);
 //
 //		MPI_Barrier(communicator);
 //
@@ -98,8 +98,8 @@ std::string help_message()
 //			m_buffer[0] = 0;
 //		}
 //		MPI_Barrier(communicator);
-//		MPI_Scatter(&m_buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, communicator);
-//		MPI_Bcast(&size, 1, m_type.type(), 0, communicator);
+//		MPI_Scatter(&m_buffer[0], 1, m_type.type(), &begin, 1, m_type.value_type_info(), 0, communicator);
+//		MPI_Bcast(&size, 1, m_type.value_type_info(), 0, communicator);
 //	}
 //
 //	return std::make_tuple(begin, size);

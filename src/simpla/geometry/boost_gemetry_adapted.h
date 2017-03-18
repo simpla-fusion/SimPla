@@ -248,7 +248,7 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //struct indexed_access<sgm::Primitive<1, CS, sg::tags::simplex>, 0, Dimension>
 //{
 //	typedef sgm::Primitive<1, CS, sg::tags::simplex> segment_type;
-//	typedef typename sg::traits::coordinate_type<CS>::type coordinate_type;
+//	typedef typename sg::traits::coordinate_type<CS>::value_type_info coordinate_type;
 //
 //	static inline coordinate_type Get(segment_type const& s)
 //	{
@@ -265,7 +265,7 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //struct indexed_access<sgm::Primitive<1, CS, sg::tags::simplex>, 1, Dimension>
 //{
 //	typedef sgm::Primitive<1, CS, sg::tags::simplex> segment_type;
-//	typedef typename sg::traits::coordinate_type<CS>::type coordinate_type;
+//	typedef typename sg::traits::coordinate_type<CS>::value_type_info coordinate_type;
 //
 //	static inline coordinate_type Get(segment_type const& s)
 //	{

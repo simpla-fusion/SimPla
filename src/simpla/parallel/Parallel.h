@@ -107,7 +107,7 @@ void parallel_foreach(TRange const &r, Body const &body)
 }
 //
 //template<typename TRange, typename Body,
-//        typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::entity & 0x1FUL) == 0x10UL>::type * = nullptr>
+//        typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::entity & 0x1FUL) == 0x10UL>::value_type_info * = nullptr>
 //void serial_foreach(TRange const &r, Body const &body)
 //{
 //    UNIMPLEMENTED;

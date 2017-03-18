@@ -27,7 +27,7 @@ std::shared_ptr<MeshView> MeshViewFactory::Create(std::shared_ptr<data::DataEnti
     std::shared_ptr<MeshView> res = nullptr;
     if (config == nullptr) {
         return res;
-    } else if (config->type() == typeid(std::string)) {
+    } else if (config->value_type_info() == typeid(std::string)) {
         res = m_pimpl_->m_mesh_factory_.at(data::data_cast<std::string>(*config))(nullptr);
     } else if (config->isTable()) {
         auto const &t = config->cast_as<data::DataTable>();
@@ -41,12 +41,16 @@ std::shared_ptr<MeshView> MeshViewFactory::Create(std::shared_ptr<data::DataEnti
 
 struct MeshView::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
+    std::shared_ptr<geometry::GeoObject> m_geo_obj_;
 };
-MeshView::MeshView(std::shared_ptr<data::DataTable> const &t) : AttributeViewBundle(t), m_pimpl_(new pimpl_s) {}
+MeshView::MeshView(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<geometry::GeoObject> const &geo_obj)
+    : AttributeViewBundle(t), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_geo_obj_ =geo_obj;
+}
 MeshView::~MeshView() {}
 
 std::ostream &MeshView::Print(std::ostream &os, int indent) const {
-    os << std::setw(indent + 1) << "type = \"" << getClassName() << "\",";
+    os << std::setw(indent + 1) << "value_type_info = \"" << getClassName() << "\",";
     if (m_pimpl_->m_mesh_block_ != nullptr) {
         os << std::endl;
         os << std::setw(indent + 1) << " "
@@ -64,6 +68,7 @@ void MeshView::OnNotify() {
     AttributeViewBundle::OnNotify();
 }
 bool MeshView::Update() { return SPObject::Update(); }
+std::shared_ptr<geometry::GeoObject> MeshView::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
 id_type MeshView::GetMeshBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();

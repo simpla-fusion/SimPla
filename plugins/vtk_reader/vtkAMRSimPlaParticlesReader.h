@@ -47,7 +47,7 @@ public:
     void PrintSelf(ostream &os, vtkIndent indent);
 
     // Description:
-    // Returns the requested particle type.
+    // Returns the requested particle value_type_info.
     vtkSetMacro(ParticleType, int);
 
     vtkGetMacro(ParticleType, int);
@@ -75,7 +75,7 @@ protected:
     void SetupParticleDataSelections();
 
     // Description:
-    // Filter's by particle type, iff particle_type is included in
+    // Filter's by particle value_type_info, iff particle_type is included in
     // the given file.
     bool CheckParticleType(const int pIdx, vtkIntArray *ptypes);
 

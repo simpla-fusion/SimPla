@@ -301,7 +301,7 @@ void EMTokamak::initialize(int argc, char **argv) {
                 << "{"
                 << " mass =" << item.second.mass << " , "
                 << " charge = " << item.second.charge << " , "
-                << " type =   \"Fluid\" "
+                << " value_type_info =   \"Fluid\" "
                 << "}";
 
         MESSAGE << "," << std::endl;

@@ -7,11 +7,11 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
+#include <simpla/data/DataBlock.h>
 #include <simpla/mpl/macro.h>
 #include <memory>
 #include <set>
 #include "AttributeView.h"
-
 namespace simpla {
 namespace engine {
 class Domain;
@@ -19,7 +19,6 @@ class Worker;
 class MeshView;
 class MeshBlock;
 class AttributeView;
-class DataBlock;
 class Patch;
 
 class DomainView : public concept::Printable, public SPObject {
@@ -51,7 +50,7 @@ class DomainView : public concept::Printable, public SPObject {
 
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> GetMeshBlock() const;
-    std::shared_ptr<DataBlock> GetDataBlock(id_type) const;
+    std::shared_ptr<data::DataBlock> GetDataBlock(id_type) const;
 
     void RemoveWorker(std::shared_ptr<Worker> const &w);
 

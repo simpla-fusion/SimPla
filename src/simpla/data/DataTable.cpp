@@ -34,13 +34,10 @@ std::shared_ptr<DataEntity> DataTable::Duplicate() const {
 bool DataTable::isNull() const { return m_backend_ == nullptr; }
 size_type DataTable::size() const { return m_backend_->size(); }
 std::shared_ptr<DataEntity> DataTable::Get(std::string const& path) const { return m_backend_->Get(path); };
-std::pair<std::shared_ptr<DataEntity>, bool> DataTable::Set(std::string const& uri,
-                                                            std::shared_ptr<DataEntity> const& v, bool overwrite) {
+int DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite) {
     return m_backend_->Set(uri, v, overwrite);
 };
-std::shared_ptr<DataEntity> DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
-    return m_backend_->Add(uri, v);
-};
+int DataTable::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) { return m_backend_->Add(uri, v); };
 //******************************************************************************************************************
 void DataTable::Link(std::shared_ptr<DataEntity> const& other) {
     if (other == nullptr || !other->isTable()) { return; }
@@ -54,7 +51,8 @@ DataTable& DataTable::Link(std::string const& uri, DataTable const& other) {
         m_backend_ = other.m_backend_;
         return *this;
     } else {
-        return Set(uri, std::make_shared<DataTable>(other.m_backend_), true).first->cast_as<DataTable>();
+        Set(uri, std::make_shared<DataTable>(other.m_backend_), true);
+        return Get(uri)->cast_as<DataTable>();
     }
 }
 
@@ -63,12 +61,10 @@ DataTable& DataTable::Link(std::string const& uri, std::shared_ptr<DataEntity> c
     return Link(uri, other->cast_as<DataTable>());
 }
 
-std::shared_ptr<DataEntity> DataTable::Set(std::string const& uri, DataEntity const& p, bool overwrite) {
-    return Set(uri, p.Duplicate(), overwrite).first;
+int DataTable::Set(std::string const& uri, DataEntity const& p, bool overwrite) {
+    return Set(uri, p.Duplicate(), overwrite);
 };
-std::shared_ptr<DataEntity> DataTable::Add(std::string const& uri, DataEntity const& p) {
-    return Add(uri, p.Duplicate());
-};
+int DataTable::Add(std::string const& uri, DataEntity const& p) { return Add(uri, p.Duplicate()); };
 
 std::shared_ptr<DataTable> DataTable::GetTable(std::string const& uri) const {
     auto p = Get(uri);

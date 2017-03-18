@@ -6,101 +6,109 @@
 #define SIMPLA_DATABLOCK_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/concept/Printable.h>
-#include <simpla/toolbox/FancyStream.h>
-
+#include "DataEntity.h"
 namespace simpla {
-namespace engine {
+namespace data {
 /**
  *  Base class of Data Blocks (pure virtual)
  */
-class MeshBlock;
 
-class DataBlock {
-    SP_OBJECT_BASE(DataBlock);
+class DataBlock : public DataEntity {
+    SP_OBJECT_HEAD(DataBlock, DataEntity);
 
    public:
     DataBlock() {}
     virtual ~DataBlock() {}
-    bool empty() const { return raw_data() == nullptr; }
-
-    bool isInitialized() const { return true; }
+    bool empty() const { return data() == nullptr; }
+    virtual bool isHeavyBlock() const { return true; }
     virtual std::type_info const &value_type_info() const { return typeid(Real); };
-    virtual int entity_type() const { return 0; };
-    virtual int dof() const { return 1; };
-    virtual void *raw_data() { return nullptr; };
-    virtual void const *raw_data() const { return nullptr; };
+    virtual int ndims() const { return 0; }
+    virtual size_type memory_size() { return 0; }
+    virtual size_type size() const { return 0; }
+    virtual size_type const *GetGhostWidth() const { return nullptr; }
+    virtual size_type const *GetDimensions() const { return nullptr; }
+    virtual void *data() { return nullptr; };
+    virtual void const *data() const { return nullptr; };
     virtual void Clear(){};
 };
-template <typename U, int IFORM, int DOF>
+template <typename U, int NDIMS>
 class DefaultDataBlock : public DataBlock {
     typedef U value_type;
 
    public:
-    DefaultDataBlock(std::shared_ptr<value_type> d = nullptr, size_type s = 0) : m_data_(d), m_size_(s) {}
+    DefaultDataBlock(std::shared_ptr<value_type> d = nullptr, size_type const *dims = nullptr,
+                     size_type const *gw = nullptr)
+        : m_data_(d) {}
     virtual ~DefaultDataBlock() {}
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
-    virtual int entity_type() const { return IFORM; };
-    virtual int dof() const { return DOF; };
-    virtual void *raw_data() { return m_data_.get(); };
-    virtual void const *raw_data() const { return m_data_.get(); };
+    virtual size_type memory_size() {
+        size_type s = sizeof(value_type);
+        for (int i = 0; i < NDIMS; ++i) { s *= (m_dimensions_[i] + m_ghost_width_[i] * 2); }
+        return s;
+    }
+    virtual size_type size() const {
+        size_type s = 1;
+        for (int i = 0; i < NDIMS; ++i) { s *= (m_dimensions_[i]); }
+        return s;
+    }
+    virtual size_type const *GetGhostWidth() const { return m_ghost_width_; }
+    virtual size_type const *GetDimensions() const { return m_dimensions_; }
+    virtual void *data() { return m_data_.get(); };
+    virtual void const *data() const { return m_data_.get(); };
 
     virtual void Clear() {
-        if (m_data_ != nullptr && m_size_ > 0) { memset(m_data_.get(), 0, sizeof(value_type) * m_size_); }
+        if (m_data_ != nullptr && memory_size() > 0) { memset(m_data_.get(), 0, memory_size()); }
     };
-
-    std::shared_ptr<value_type> data() { return m_data_; };
-    size_type size() const { return m_size_; }
 
    private:
     std::shared_ptr<value_type> m_data_;
-    size_type m_size_;
+    size_type m_ghost_width_[NDIMS];
+    size_type m_dimensions_[NDIMS];
 };
-template <typename...>
-class DataBlockAdapter;
-
-/**
-   * concept::Serializable
-   *    virtual void load(data::DataTable const &) =0;
-   *    virtual void save(data::DataTable *) const =0;
-   *
-   * concept::Printable
-   *    virtual std::ostream &print(std::ostream &os, int indent) const =0;
-   *
-   * Object
-   *    virtual bool is_deployed() const =0;
-   *    virtual bool is_valid() const =0;
-   */
-template <typename U>
-class DataBlockAdapter<U> : public DataBlock, public U {
-    SP_OBJECT_HEAD(DataBlockAdapter<U>, DataBlock);
-    typedef algebra::traits::value_type_t<U> value_type;
-
-   public:
-    template <typename... Args>
-    explicit DataBlockAdapter(Args &&... args) : U(std::forward<Args>(args)...) {}
-    ~DataBlockAdapter() {}
-    virtual std::type_info const &value_type_info() const { return typeid(algebra::traits::value_type_t<U>); };
-    virtual int entity_type() const { return algebra::traits::iform<U>::value; }
-    virtual int dof() const { return algebra::traits::dof<U>::value; }
-    virtual void Load(data::DataTable const &d){/* Load(*this, d); */};
-    virtual void Save(data::DataTable *d) const {/* Save(*this, d); */};
-    virtual std::ostream &Print(std::ostream &os, int indent) const {
-        os << " type = \'" << value_type_info().name() << "\' "
-           << ", entity type = " << (entity_type()) << ", GetDOF = " << (dof()) << ", GetDataBlock = {";
-        U::Print(os, indent + 1);
-        os << "}";
-        return os;
-    }
-    virtual void *raw_data() { return reinterpret_cast<void *>(U::data()); };
-    virtual void const *raw_data() const { return reinterpret_cast<void const *>(U::data()); };
-
-    template <typename... Args>
-    static std::shared_ptr<DataBlock> Create(Args &&... args) {
-        return std::dynamic_pointer_cast<DataBlock>(std::make_shared<DataBlockAdapter<U>>(std::forward<Args>(args)...));
-    }
-    virtual void Clear() { U::Clear(); }
-};
+// template <typename...>
+// class DataBlockAdapter;
+//
+///**
+//   * concept::Serializable
+//   *    virtual void load(data::DataTable const &) =0;
+//   *    virtual void save(data::DataTable *) const =0;
+//   *
+//   * concept::Printable
+//   *    virtual std::ostream &print(std::ostream &os, int indent) const =0;
+//   *
+//   * Object
+//   *    virtual bool is_deployed() const =0;
+//   *    virtual bool is_valid() const =0;
+//   */
+// template <typename U>
+// class DataBlockAdapter<U> : public DataBlock, public U {
+//    SP_OBJECT_HEAD(DataBlockAdapter<U>, DataBlock);
+//    typedef algebra::traits::value_type_t<U> value_type;
+//
+//   public:
+//    template <typename... Args>
+//    explicit DataBlockAdapter(Args &&... args) : U(std::forward<Args>(args)...) {}
+//    ~DataBlockAdapter() {}
+//    virtual std::type_info const &value_type_info() const { return typeid(algebra::traits::value_type_t<U>); };
+//    virtual int entity_type() const { return algebra::traits::iform<U>::value; }
+//    virtual int dof() const { return algebra::traits::dof<U>::value; }
+//    virtual std::ostream &Print(std::ostream &os, int indent) const {
+//        os << " value_type_info = \'" << value_type_info().name() << "\' "
+//           << ", entity value_type_info = " << (entity_type()) << ", GetDOF = " << (dof()) << ", GetDataBlock = {";
+//        U::Print(os, indent + 1);
+//        os << "}";
+//        return os;
+//    }
+//    virtual void *raw_data() { return reinterpret_cast<void *>(U::data()); };
+//    virtual void const *raw_data() const { return reinterpret_cast<void const *>(U::data()); };
+//
+//    template <typename... Args>
+//    static std::shared_ptr<DataBlock> Create(Args &&... args) {
+//        return
+//        std::dynamic_pointer_cast<DataBlock>(std::make_shared<DataBlockAdapter<U>>(std::forward<Args>(args)...));
+//    }
+//    virtual void Clear() { U::Clear(); }
+//};
 
 // template<typename V, int IFORM = VERTEX, int DOF = 1, bool SLOW_FIRST = false>
 // using DataBlockArray=
@@ -137,8 +145,8 @@ class DataBlockAdapter<U> : public DataBlock, public U {
 //
 //    virtual std::ostream &Print(std::ostream &os, int indent) const
 //    {
-//        os << " type = \'" << GetValueTypeInfo().GetName() << "\' "
-//           << ", entity type = " << static_cast<int>(GetIFORM())
+//        os << " value_type_info = \'" << GetValueTypeInfo().GetName() << "\' "
+//           << ", entity value_type_info = " << static_cast<int>(GetIFORM())
 //           << ", GetDataBlock = {";
 //        data_entity_traits::Print(os, indent + 1);
 //        os << "}";

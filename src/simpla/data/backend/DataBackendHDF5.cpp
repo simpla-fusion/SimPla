@@ -78,6 +78,61 @@ std::pair<std::string, std::shared_ptr<DataEntity>> DataBackendHDF5::pimpl_s::HD
     H5Aclose(a_id);
     return std::make_pair(std::string(buffer), v);
 }
+template <template <typename> class TFun, typename... Args>
+void H5TypeDispatch(hid_t d_type, Args&&... args) {
+    H5T_class_t type_class = H5Tget_class(d_type);
+
+    if ((type_class == H5T_INTEGER || type_class == H5T_FLOAT)) {
+        if (H5Tequal(d_type, H5T_NATIVE_CHAR) > 0) {
+            TFun<char>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_SHORT) > 0) {
+            TFun<short>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_INT) > 0) {
+            TFun<int>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_LONG) > 0) {
+            TFun<double>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_LLONG) > 0) {
+            TFun<long long>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_UCHAR) > 0) {
+            TFun<unsigned char>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_USHORT) > 0) {
+            TFun<unsigned short>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_UINT) > 0) {
+            TFun<unsigned int>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_ULONG) > 0) {
+            TFun<unsigned long>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_ULLONG) > 0) {
+            TFun<unsigned long long>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_FLOAT) > 0) {
+            TFun<float>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_DOUBLE) > 0) {
+            TFun<double>(std::forward<Args>(args)...);
+        } else if (H5Tequal(d_type, H5T_NATIVE_LDOUBLE) > 0) {
+            TFun<long double>(std::forward<Args>(args)...);
+        }
+    } else if (type_class == H5T_ARRAY) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_STRING) {
+        TFun<std::string>(std::forward<Args>(args)...);
+    } else if (type_class == H5T_TIME) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_BITFIELD) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_REFERENCE) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_ENUM) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_VLEN) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_NO_CLASS) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_OPAQUE) {
+        UNIMPLEMENTED;
+    } else if (type_class == H5T_COMPOUND) {
+        UNIMPLEMENTED;
+    }
+}
+
 std::shared_ptr<DataEntity> DataBackendHDF5::pimpl_s::HDF5AttrCast(hid_t attr_id) {
     std::shared_ptr<DataEntity> res = nullptr;
     hid_t d_type = H5Aget_type(attr_id);
@@ -85,7 +140,7 @@ std::shared_ptr<DataEntity> DataBackendHDF5::pimpl_s::HDF5AttrCast(hid_t attr_id
 
     H5T_class_t type_class = H5Tget_class(d_type);
 
-    if ((type_class == H5T_INTEGER || type_class == H5T_FLOAT) && (type_class != H5T_ARRAY)) {
+    if ((type_class == H5T_INTEGER || type_class == H5T_FLOAT)) {
         if (H5Tequal(d_type, H5T_NATIVE_CHAR) > 0) {
             res = read_attr<char>(attr_id, d_type);
         } else if (H5Tequal(d_type, H5T_NATIVE_SHORT) > 0) {
@@ -146,6 +201,8 @@ std::shared_ptr<DataEntity> DataBackendHDF5::pimpl_s::HDF5AttrCast(hid_t attr_id
     H5Sclose(d_space);
     return res == nullptr ? std::make_shared<DataEntity>() : res;
 }
+template <typename U>
+std::shared_ptr<DataBlock> HDF5ReadDataSet(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name) {}
 std::shared_ptr<DataEntity> DataBackendHDF5::pimpl_s::HDF5Get(DataBackendHDF5 const* self, hid_t loc_id,
                                                               std::string const& name) {
     if (H5Lexists(loc_id, name.c_str(), H5P_DEFAULT) == 0) { return std::make_shared<DataEntity>(); }
@@ -161,9 +218,11 @@ std::shared_ptr<DataEntity> DataBackendHDF5::pimpl_s::HDF5Get(DataBackendHDF5 co
                 res = std::make_shared<DataTable>(t_backend);
                 break;
             }
-            case H5O_TYPE_DATASET:
-                UNIMPLEMENTED;
+            case H5O_TYPE_DATASET: {
+                hid_t d_id = H5Dopen(loc_id, name.c_str(), H5P_DEFAULT);
+
                 break;
+            }
             default:
                 break;
         }
@@ -194,7 +253,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
         return;
     } else if (src->isHeavyBlock()) {
         return;
-    } else if (src->type() == typeid(std::string)) {
+    } else if (src->value_type_info() == typeid(std::string)) {
         std::string const& s_str = data_cast<std::string>(*src);
         hid_t m_type = H5Tcopy(H5T_C_S1);
         H5Tset_size(m_type, s_str.size());
@@ -217,7 +276,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
 
         if (false) {}
 #define DEC_TYPE(_T_, _H5_T_)                                                                 \
-    else if (src->type() == typeid(_T_)) {                                                    \
+    else if (src->value_type_info() == typeid(_T_)) {                                                    \
         d_type = _H5_T_;                                                                      \
         if (src->isArray()) {                                                                 \
             data = reinterpret_cast<char*>(&src->cast_as<DataArrayWrapper<_T_>>().data()[0]); \
@@ -286,17 +345,19 @@ std::shared_ptr<DataEntity> DataBackendHDF5::Get(std::string const& uri) const {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, true);
     return (res.first == -1) ? nullptr : pimpl_s::HDF5Get(this, res.first, res.second);
 }
-void DataBackendHDF5::Set(std::string const& uri, std::shared_ptr<DataEntity> const& src, bool overwrite) {
-    if (src == nullptr) { return; }
+int DataBackendHDF5::Set(std::string const& uri, std::shared_ptr<DataEntity> const& src, bool overwrite) {
+    if (src == nullptr) { return 0; }
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
-    if (res.first == -1 || res.second == "") { return; }
+    if (res.first == -1 || res.second == "") { return 0; }
     pimpl_s::HDF5Set(this, res.first, res.second, src, overwrite);
+    return 1;
 }
-void DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
-    if (src == nullptr) { return; }
+int DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
+    if (src == nullptr) { return 0; }
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
-    if (res.first == -1 || res.second == "") { return; }
+    if (res.first == -1 || res.second == "") { return 0; }
     pimpl_s::HDF5Add(this, res.first, res.second, src);
+    return 1;
 }
 size_type DataBackendHDF5::Delete(std::string const& uri) {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);

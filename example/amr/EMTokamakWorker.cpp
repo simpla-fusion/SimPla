@@ -60,7 +60,7 @@ void EMTokamakWorker::Initialize() {
             AddSpecies(key, item->cast_as<DataTable>());
         });
 
-    //    db.SetValue("bound_box", geqdsk.box());
+    //    db.SetValue("GetBoundBox", geqdsk.box());
 };
 
 void EMTokamakWorker::PreProcess() { base_type::PreProcess(); }

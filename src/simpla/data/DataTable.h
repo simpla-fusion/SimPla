@@ -39,7 +39,7 @@ class DataTable : public DataEntity {
     /** Interface DataEntity */
     std::ostream& Print(std::ostream& os, int indent = 0) const;
     bool isTable() const { return true; }
-    std::type_info const& type() const { return typeid(DataTable); };
+    std::type_info const& value_type_info() const { return typeid(DataTable); };
     std::shared_ptr<DataEntity> Duplicate() const;
     //******************************************************************************************************************
     /** Interface DataBackend */
@@ -51,10 +51,8 @@ class DataTable : public DataEntity {
     size_type size() const;
 
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
-    std::pair<std::shared_ptr<DataEntity>, bool> Set(std::string const& uri,
-                                                     std::shared_ptr<DataEntity> const& p = nullptr,
-                                                     bool overwrite = true);
-    std::shared_ptr<DataEntity> Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
+    int Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr, bool overwrite = true);
+    int Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
     size_type Delete(std::string const& uri);
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
@@ -67,9 +65,9 @@ class DataTable : public DataEntity {
     DataTable& Link(std::string const& uri, std::shared_ptr<DataEntity> const& p);
 
     void Set(DataTable const& other, bool overwrite = true);
+    int Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
+    int Add(std::string const& uri, DataEntity const& p);
 
-    std::shared_ptr<DataEntity> Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
-    std::shared_ptr<DataEntity> Add(std::string const& uri, DataEntity const& p);
     std::shared_ptr<DataTable> GetTable(std::string const& uri) const;
 
     template <typename U>
@@ -80,7 +78,7 @@ class DataTable : public DataEntity {
     template <typename U>
     U GetValue(std::string const& uri, U const& default_value) const {
         auto p = Get(uri);
-        if (p == nullptr || p->isNull() || p->type() != typeid(U)) {
+        if (p == nullptr || p->isNull() || p->value_type_info() != typeid(U)) {
             return default_value;
         } else {
             return data_cast<U>(*p);
@@ -89,7 +87,8 @@ class DataTable : public DataEntity {
 
     template <typename U>
     U GetValue(std::string const& uri, U const& default_value) {
-        return data_cast<U>(*Set(uri, make_data_entity(default_value), false).first);
+        Set(uri, make_data_entity(default_value), false);
+        return data_cast<U>(*Get(uri));
     }
 
     template <typename U>

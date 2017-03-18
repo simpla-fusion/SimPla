@@ -2,7 +2,7 @@ BasedOnStyle: Google
 IndentWidth: 4
 ---
 Language: Cpp
-# Force pointers to the type for C++.
+# Force pointers to the value_type_info for C++.
 PointerAlignment: Left
 ColumnLimit: 120
 AllowShortBlocksOnASingleLine: true

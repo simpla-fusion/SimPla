@@ -405,7 +405,7 @@ template<typename T> struct extents;
 
 template<typename TV, size_type ...M>
 struct extents<nTuple<TV, M...> > : public int_sequence<M...> {};
-// public seq_concat<, traits::extents<TV>>::type { };
+// public seq_concat<, traits::extents<TV>>::value_type_info { };
 
 namespace _impl
 {
@@ -823,7 +823,7 @@ traits::value_type_t<nTuple<Expression<T...> > > reduce(TOP const &op,
 //template<typename TOP, typename ...Args>
 //auto for_each(TOP const & op, Args &&... args)
 //-> typename std::enable_if<!(mpl::logical_or<
-//		traits::is_ntuple<Args>::m_value_...>::entity),void>::type
+//		traits::is_ntuple<Args>::m_value_...>::entity),void>::value_type_info
 //{
 //	op(std::forward<Args>(args)...);
 //}

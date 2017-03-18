@@ -9,7 +9,7 @@ namespace geometry {
 //GeoObject::GeoObject() : m_pimpl_(new pimpl_s) {}
 //GeoObject::GeoObject(GeoObject const &) : m_pimpl_(new pimpl_s) {}
 //GeoObject::~GeoObject(){};
-//box_type GeoObject::bound_box() const {}
+//box_type GeoObject::GetBoundBox() const {}
 //bool GeoObject::isNull() const { return true; }
 //bool GeoObject::isSolid() const { return false; }
 //bool GeoObject::isSurface() const { return false; }
