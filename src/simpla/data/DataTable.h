@@ -109,9 +109,14 @@ class DataTable : public DataEntity {
     //    void SetValue(std::initializer_list<std::pair<std::string, U>> const& other) {
     //        for (auto const& item : other) { SetValue(item.first, item.second); }
     //    }
-
+    void SetValue(){};
     void SetValue(KeyValue const& other);
     void SetValue(std::initializer_list<KeyValue> const& other);
+    template <typename... Others>
+    void SetValue(KeyValue const& first, Others&&... others) {
+        SetValue(first);
+        SetValue(std::forward<Others>(others)...);
+    };
 
     template <typename U>
     void SetValue(std::string const& uri, U const& v, bool overwrite = false) {

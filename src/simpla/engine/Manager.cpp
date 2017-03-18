@@ -85,17 +85,17 @@ void Manager::Initialize() {
     LOGGER << "Manager " << name() << " is initializing!" << std::endl;
     GetModel().Initialize();
     GetAtlas().Initialize();
-    auto domain_view_list = db()->Get("DomainView");
-    if (domain_view_list == nullptr || !domain_view_list->isTable()) { return; }
-    auto &domain_t = domain_view_list->cast_as<data::DataTable>();
+    db()->Set("DomainView/");
+    auto &domain_t = *db()->GetTable("DomainView");
     domain_t.Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
         auto res = m_pimpl_->m_views_.emplace(s_key, nullptr);
         if (res.first->second == nullptr) {
-            res.first->second = std::make_shared<DomainView>(
-                (item != nullptr && item->isTable()) ? std::dynamic_pointer_cast<data::DataTable>(item) : nullptr);
+            res.first->second = std::make_shared<DomainView>(item);
         } else {
             if (item != nullptr && item->isTable()) {
                 res.first->second->db()->Set(*std::dynamic_pointer_cast<data::DataTable>(item));
+            } else {
+                WARNING << " ignore data entity :" << *item << std::endl;
             }
         }
         domain_t.Set(s_key, res.first->second->db(), true);

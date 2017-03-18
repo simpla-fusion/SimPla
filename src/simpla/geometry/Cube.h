@@ -8,19 +8,30 @@
 #ifndef CORE_GEOMETRY_CUBE_H_
 #define CORE_GEOMETRY_CUBE_H_
 
+#include <simpla/SIMPLA_config.h>
+#include <simpla/toolbox/sp_def.h>
+#include "GeoObject.h"
+
 namespace simpla {
 namespace geometry {
 
 struct Cube : public GeoObject {
+    SP_OBJECT_HEAD(Cube, GeoObject)
+
+    box_type m_bound_box_;
+
     Cube(std::initializer_list<std::initializer_list<Real>> const &v)
-    //        : GeoObject::m_bound_box_(point_type(*v.begin()), point_type(*(v.begin() + 1)))
-    {}
-    Cube(box_type const &b)
-    //            : m_bound_box_(b)
-    {}
-    ~Cube() {}
-    point_type lower() const { return std::get<0>(GeoObject::GetBoundBox()); }
-    point_type upper() const { return std::get<1>(GeoObject::GetBoundBox()); }
+        : m_bound_box_(point_type(*v.begin()), point_type(*(v.begin() + 1))) {}
+
+    template <typename V, typename U>
+    Cube(V const *l, U const *h) : m_bound_box_(box_type({l[0], l[1], l[2]}, {h[0], h[1], h[2]})){};
+    Cube(box_type const &b) : m_bound_box_(b) {}
+
+    virtual ~Cube() {}
+
+    virtual box_type const &GetBoundBox() const { return m_bound_box_; };
+    virtual point_type const &lower() const { return std::get<0>(m_bound_box_); }
+    virtual point_type const &upper() const { return std::get<1>(m_bound_box_); }
 
     virtual Real distance(point_type const &x) const { return 0; }
     /**

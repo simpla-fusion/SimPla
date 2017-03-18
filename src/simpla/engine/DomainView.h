@@ -23,7 +23,7 @@ class Patch;
 
 class DomainView : public concept::Printable, public SPObject {
    public:
-    DomainView(std::shared_ptr<data::DataTable> const &p = nullptr);
+    DomainView(std::shared_ptr<data::DataEntity> const &p = nullptr);
     virtual ~DomainView();
     std::ostream &Print(std::ostream &os, int indent) const final;
 

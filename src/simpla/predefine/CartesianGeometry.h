@@ -67,11 +67,15 @@ struct CartesianGeometry : public engine::MeshView {
      */
 
    public:
-    CartesianGeometry(std::shared_ptr<data::DataTable> const &t) : engine::MeshView(t) { name("CartesianGeometry"); }
+    CartesianGeometry(std::shared_ptr<data::DataTable> const &t,
+                      std::shared_ptr<geometry::GeoObject> const &g = nullptr)
+        : engine::MeshView(t, g) {
+        name("CartesianGeometry");
+    }
 
-    CartesianGeometry(index_type const *lower, index_type const *upper, Real const *dx = nullptr,
-                      Real const *origin = nullptr) {
-        //        : MeshView(3 /*NDIMS*/, lower, upper, dx, origin)
+    CartesianGeometry(Real const *lower, Real const *upper)
+        : engine::MeshView(nullptr, std::make_shared<geometry::Cube>(lower, upper)) {
+        name("CartesianGeometry");
     }
 
     ~CartesianGeometry() {}
@@ -92,7 +96,7 @@ struct CartesianGeometry : public engine::MeshView {
     void apply(Args &&...) const {}
 
     void deploy() {
-        MeshView::Initialize();
+        engine::MeshView::Initialize();
         Initialize();
     };
 

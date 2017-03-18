@@ -26,7 +26,7 @@ struct DomainView::pimpl_s {
     //    std::map<int, std::map<int, std::map<int, Range<entity_id>>>> m_interface_cache_;
 };
 
-DomainView::DomainView(std::shared_ptr<data::DataTable> const &t) : SPObject(t), m_pimpl_(new pimpl_s) {}
+DomainView::DomainView(std::shared_ptr<data::DataEntity> const &t) : SPObject(t), m_pimpl_(new pimpl_s) {}
 DomainView::~DomainView() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { Detach(item); }
 }
@@ -153,6 +153,7 @@ void DomainView::Initialize() {
     LOGGER << "Domain View [" << name() << "] is initializing!" << std::endl;
 
     if (m_pimpl_->m_mesh_ == nullptr) { SetMesh(GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"))); }
+    db()->Set("Mesh", m_pimpl_->m_mesh_->db(), true);
     auto t_worker = db()->Get("Worker");
     if (t_worker != nullptr) {
         t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {

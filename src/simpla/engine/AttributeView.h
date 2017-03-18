@@ -88,7 +88,7 @@ inline std::ostream &operator<<(std::ostream &os, AttributeTag const &tag) {
 
 class AttributeViewBundle : public SPObject, public concept::Printable {
    public:
-    AttributeViewBundle(std::shared_ptr<data::DataTable> const &t = nullptr);
+    AttributeViewBundle(std::shared_ptr<data::DataEntity> const &t = nullptr);
     virtual ~AttributeViewBundle();
     virtual std::ostream &Print(std::ostream &os, int indent) const;
 
@@ -156,8 +156,8 @@ struct AttributeView : public SPObject, public concept::Printable {
         db()->SetValue("value value_type_info idx", std::type_index(GetValueTypeInfo()).hash_code());
     }
     void Config(std::string const &s) { db()->SetValue("name", s); }
-    void Config(data::KeyValue const &s) { db()->SetValue(s); }
     void Config(AttributeTag const &s) { db()->SetValue("tag", (s)); }
+    void Config(data::KeyValue const &s) { db()->SetValue(s); }
     void Config(int const &s) { db()->SetValue("tag", (s)); }
 
     template <typename T0, typename T1, typename... Others>

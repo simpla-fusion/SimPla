@@ -2,6 +2,7 @@
 // Created by salmon on 16-11-24.
 //
 #include "MeshView.h"
+#include <simpla/geometry/Cube.h>
 #include "AttributeView.h"
 #include "DomainView.h"
 #include "MeshBlock.h"
@@ -43,9 +44,15 @@ struct MeshView::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
 };
-MeshView::MeshView(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<geometry::GeoObject> const &geo_obj)
+MeshView::MeshView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<geometry::GeoObject> const &geo_obj)
     : AttributeViewBundle(t), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_geo_obj_ =geo_obj;
+    m_pimpl_->m_geo_obj_ = geo_obj;
+    if (m_pimpl_->m_geo_obj_ == nullptr) {
+        box_type b_box{{0, 0, 0}, {1, 1, 1}};
+        if (t != nullptr && t->isTable()) { b_box = t->cast_as<data::DataTable>().GetValue<box_type>("box", b_box); }
+        m_pimpl_->m_geo_obj_ = std::make_shared<geometry::Cube>(b_box);
+    }
+    db()->SetValue("geometry_object", *m_pimpl_->m_geo_obj_);
 }
 MeshView::~MeshView() {}
 

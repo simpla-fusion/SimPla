@@ -25,13 +25,13 @@ struct GeoObjectAdapter;
  *  PlaceHolder Geometric object
  */
 class GeoObject {
-    typedef GeoObject this_type;
-    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
+    SP_OBJECT_BASE(GeoObject)
 
    public:
     GeoObject(){};
-    GeoObject(GeoObject const &){};
+    GeoObject(GeoObject const &) = delete;
     virtual ~GeoObject(){};
+    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
     virtual box_type const &GetBoundBox() const { return m_bound_box_; };
     bool isNull() const { return true; };
     virtual bool isSolid() const { return false; };
@@ -39,7 +39,7 @@ class GeoObject {
     virtual bool isCurve() const { return false; };
     virtual Real GetDistanceTo(point_type const &x) const { return 0; }
 
-    virtual bool CheckOverlap(box_type const &b) const { return geometry::CheckOverlap(m_bound_box_, b); }
+    virtual bool CheckOverlap(box_type const &b) const { return geometry::CheckOverlap(GetBoundBox(), b); }
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
     *           `in` then 1
@@ -164,56 +164,69 @@ class GeoObject {
     //        return CheckInside_invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
     //    };
 };
+//
+//template <typename U>
+//struct GeoObjectAdapter : public GeoObject, public U {};
+//
+//class GeoObjectInverse : public GeoObject {
+//    GeoObject const &m_left_;
+//
+//   public:
+//    explicit GeoObjectInverse(GeoObject const &l) : m_left_(l) {}
+//    virtual Real implicit_fun(point_type const &x) const { return -m_left_.implicit_fun(x); }
+//};
+//
+//class GeoObjectUnion : public GeoObject {
+//    GeoObject const &m_left_;
+//    GeoObject const &m_right_;
+//
+//   public:
+//    GeoObjectUnion(GeoObject const &l, GeoObject const &r) : m_left_(l), m_right_(r) {}
+//    virtual Real implicit_fun(point_type const &x) const {
+//        return std::min(m_left_.implicit_fun(x), m_right_.implicit_fun(x));
+//    }
+//};
+//
+//class GeoObjectIntersection : public GeoObject {
+//    GeoObject const &m_left_;
+//    GeoObject const &m_right_;
+//
+//   public:
+//    GeoObjectIntersection(GeoObject const &l, GeoObject const &r) : m_left_(l), m_right_(r) {}
+//    virtual Real implicit_fun(point_type const &x) const {
+//        return std::max(m_left_.implicit_fun(x), m_right_.implicit_fun(x));
+//    }
+//};
+//class GeoObjectDifference : public GeoObject {
+//    GeoObject const &m_left_;
+//    GeoObject const &m_right_;
+//
+//   public:
+//    GeoObjectDifference(GeoObject const &l, GeoObject const &r) : m_left_(l), m_right_(r) {}
+//    virtual Real implicit_fun(point_type const &x) const {
+//        return std::max(m_left_.implicit_fun(x), -m_right_.implicit_fun(x));
+//    }
+//};
+//
+//inline GeoObjectInverse operator-(GeoObject const &l) { return GeoObjectInverse(l); }
+//inline GeoObjectInverse operator!(GeoObject const &l) { return GeoObjectInverse(l); }
+//inline GeoObjectUnion operator+(GeoObject const &l, GeoObject const &r) { return GeoObjectUnion(l, r); }
+//inline GeoObjectDifference operator-(GeoObject const &l, GeoObject const &r) { return GeoObjectDifference(l, r); }
+//inline GeoObjectIntersection operator&(GeoObject const &l, GeoObject const &r) { return GeoObjectIntersection(l, r); }
 
-template <typename U>
-struct GeoObjectAdapter : public GeoObject, public U {};
-
-class GeoObjectInverse : public GeoObject {
-    GeoObject m_left_;
-
-   public:
-    GeoObjectInverse(GeoObject const &l) : m_left_(l) {}
-    virtual Real implicit_fun(point_type const &x) const { return -m_left_.implicit_fun(x); }
-};
-
-class GeoObjectUnion : public GeoObject {
-    GeoObject m_left_;
-    GeoObject m_right_;
-
-   public:
-    GeoObjectUnion(GeoObject const &l, GeoObject const &r) : m_left_(l), m_right_(r) {}
-    virtual Real implicit_fun(point_type const &x) const {
-        return std::min(m_left_.implicit_fun(x), m_right_.implicit_fun(x));
-    }
-};
-
-class GeoObjectIntersection : public GeoObject {
-    GeoObject m_left_;
-    GeoObject m_right_;
-
-   public:
-    GeoObjectIntersection(GeoObject const &l, GeoObject const &r) : m_left_(l), m_right_(r) {}
-    virtual Real implicit_fun(point_type const &x) const {
-        return std::max(m_left_.implicit_fun(x), m_right_.implicit_fun(x));
-    }
-};
-class GeoObjectDifference : public GeoObject {
-    GeoObject m_left_;
-    GeoObject m_right_;
-
-   public:
-    GeoObjectDifference(GeoObject const &l, GeoObject const &r) : m_left_(l), m_right_(r) {}
-    virtual Real implicit_fun(point_type const &x) const {
-        return std::max(m_left_.implicit_fun(x), -m_right_.implicit_fun(x));
-    }
-};
-
-inline GeoObjectInverse operator-(GeoObject const &l) { return GeoObjectInverse(l); }
-inline GeoObjectInverse operator!(GeoObject const &l) { return GeoObjectInverse(l); }
-inline GeoObjectUnion operator+(GeoObject const &l, GeoObject const &r) { return GeoObjectUnion(l, r); }
-inline GeoObjectDifference operator-(GeoObject const &l, GeoObject const &r) { return GeoObjectDifference(l, r); }
-inline GeoObjectIntersection operator&(GeoObject const &l, GeoObject const &r) { return GeoObjectIntersection(l, r); }
 }  // namespace geometry
+namespace data {
+template <typename U>
+struct data_entity_traits<U, std::enable_if_t<std::is_base_of<geometry::GeoObject, U>::value>> {
+    static U from(DataEntity const &v) { return v.cast_as<DataEntityWrapper<U>>().value(); };
+    static std::shared_ptr<DataEntity> to(U const &v) {
+        auto t = std::make_shared<DataTable>();
+        t->SetValue("type", v.getClassName());
+        t->SetValue("bound_box", v.GetBoundBox());
+        return std::dynamic_pointer_cast<DataEntity>(t);
+    };
+};
+}
 }  // namespace simpla
 
 #endif /* CORE_GEOMETRY_GEO_OBJECT_H_ */

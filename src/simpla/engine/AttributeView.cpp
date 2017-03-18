@@ -18,7 +18,7 @@ struct AttributeViewBundle::pimpl_s {
     std::set<AttributeView *> m_attr_views_;
 };
 
-AttributeViewBundle::AttributeViewBundle(std::shared_ptr<data::DataTable> const &t)
+AttributeViewBundle::AttributeViewBundle(std::shared_ptr<data::DataEntity> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {}
 AttributeViewBundle::~AttributeViewBundle() {}
 std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {

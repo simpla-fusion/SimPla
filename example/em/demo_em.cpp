@@ -19,7 +19,7 @@ void create_scenario(engine::Manager *ctx) {
     GLOBAL_WORKER_FACTORY.RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
     GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 
-    *ctx->db("Atlas") = {"Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}};
+    ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0});
 
     ctx->GetAtlas().Decompose(size_tuple{2, 3, 2});
     ctx->GetAtlas().SetRefineRatio(size_tuple{2, 2, 2});
@@ -30,11 +30,11 @@ void create_scenario(engine::Manager *ctx) {
     //    ctx->GetModel("Center").AddObject("InnerBox", geometry::Cube({{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}}));
     //    ctx->GetModel("Center").AddObject("OuterBox", geometry::Cube({{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}}));
 
-    *ctx->db("Model") = {"Center"_ = {"GeoObject"_ = {"InnerBox"}},
-                         "Boundary"_ = {"GeoObject"_ = {"+OuterBox", "-InnerBox"}}};
+    ctx->GetModel().db()->SetValue("Center"_ = {"GeoObject"_ = {"InnerBox"}},
+                                   "Boundary"_ = {"GeoObject"_ = {"+OuterBox", "-InnerBox"}});
 
-    *ctx->db("DomainView") = {"Center"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}},
-                              "Boundary"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}}};
+    ctx->db()->SetValue("DomainView", {"Center"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}},
+                                       "Boundary"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}}});
 
     ctx->Initialize();
 
