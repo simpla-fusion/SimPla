@@ -7,12 +7,18 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/data/DataBlock.h>
 #include <simpla/mpl/macro.h>
 #include <memory>
 #include <set>
 #include "AttributeView.h"
 namespace simpla {
+namespace geometry {
+class GeoObject;
+}
+namespace data {
+class DataEntity;
+class DataBlock;
+}
 namespace engine {
 class Domain;
 class Worker;
@@ -23,7 +29,8 @@ class Patch;
 
 class DomainView : public concept::Printable, public SPObject {
    public:
-    DomainView(std::shared_ptr<data::DataEntity> const &p = nullptr);
+    DomainView(std::shared_ptr<data::DataEntity> const &p = nullptr,
+               std::shared_ptr<geometry::GeoObject> const &g = nullptr);
     virtual ~DomainView();
     std::ostream &Print(std::ostream &os, int indent) const final;
 
@@ -37,7 +44,7 @@ class DomainView : public concept::Printable, public SPObject {
     //    void SetManager(Manager *m = nullptr);
 
     std::shared_ptr<MeshView> GetMesh() const;
-
+    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
     //    template <typename U, typename... Args>
     //    U &SetMesh(Args &&... args) {
     //        auto res = std::make_shared<U>(std::forward<Args>(args)...);

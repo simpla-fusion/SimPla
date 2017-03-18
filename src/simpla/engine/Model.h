@@ -37,8 +37,9 @@ class Model : public SPObject, public concept::Printable {
 
     id_type AddObject(std::string const &material_type_name, std::shared_ptr<geometry::GeoObject> const &);
     id_type AddObject(id_type material_type_id, std::shared_ptr<geometry::GeoObject> const &);
-    std::shared_ptr<geometry::GeoObject> const &GetObject(id_type) const;
-    std::shared_ptr<geometry::GeoObject> const &GetObject(std::string const &k) const;
+
+    std::shared_ptr<geometry::GeoObject> GetObject(id_type) const;
+    std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
     size_type RemoveObject(id_type);
     size_type RemoveObject(std::string const &);
 

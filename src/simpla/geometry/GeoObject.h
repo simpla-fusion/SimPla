@@ -9,10 +9,10 @@
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
 #include <simpla/algebra/nTuple.h>
+#include <simpla/design_pattern/design_pattern.h>
 #include <simpla/mpl/type_traits.h>
 #include <simpla/toolbox/Log.h>
 #include <simpla/toolbox/sp_def.h>
-#include "GeoAlgorithm.h"
 #include "GeoAlgorithm.h"
 namespace simpla {
 namespace geometry {
@@ -165,10 +165,10 @@ class GeoObject {
     //    };
 };
 //
-//template <typename U>
-//struct GeoObjectAdapter : public GeoObject, public U {};
+// template <typename U>
+// struct GeoObjectAdapter : public GeoObject, public U {};
 //
-//class GeoObjectInverse : public GeoObject {
+// class GeoObjectInverse : public GeoObject {
 //    GeoObject const &m_left_;
 //
 //   public:
@@ -176,7 +176,7 @@ class GeoObject {
 //    virtual Real implicit_fun(point_type const &x) const { return -m_left_.implicit_fun(x); }
 //};
 //
-//class GeoObjectUnion : public GeoObject {
+// class GeoObjectUnion : public GeoObject {
 //    GeoObject const &m_left_;
 //    GeoObject const &m_right_;
 //
@@ -187,7 +187,7 @@ class GeoObject {
 //    }
 //};
 //
-//class GeoObjectIntersection : public GeoObject {
+// class GeoObjectIntersection : public GeoObject {
 //    GeoObject const &m_left_;
 //    GeoObject const &m_right_;
 //
@@ -197,7 +197,7 @@ class GeoObject {
 //        return std::max(m_left_.implicit_fun(x), m_right_.implicit_fun(x));
 //    }
 //};
-//class GeoObjectDifference : public GeoObject {
+// class GeoObjectDifference : public GeoObject {
 //    GeoObject const &m_left_;
 //    GeoObject const &m_right_;
 //
@@ -208,11 +208,33 @@ class GeoObject {
 //    }
 //};
 //
-//inline GeoObjectInverse operator-(GeoObject const &l) { return GeoObjectInverse(l); }
-//inline GeoObjectInverse operator!(GeoObject const &l) { return GeoObjectInverse(l); }
-//inline GeoObjectUnion operator+(GeoObject const &l, GeoObject const &r) { return GeoObjectUnion(l, r); }
-//inline GeoObjectDifference operator-(GeoObject const &l, GeoObject const &r) { return GeoObjectDifference(l, r); }
-//inline GeoObjectIntersection operator&(GeoObject const &l, GeoObject const &r) { return GeoObjectIntersection(l, r); }
+// inline GeoObjectInverse operator-(GeoObject const &l) { return GeoObjectInverse(l); }
+// inline GeoObjectInverse operator!(GeoObject const &l) { return GeoObjectInverse(l); }
+// inline GeoObjectUnion operator+(GeoObject const &l, GeoObject const &r) { return GeoObjectUnion(l, r); }
+// inline GeoObjectDifference operator-(GeoObject const &l, GeoObject const &r) { return GeoObjectDifference(l, r); }
+// inline GeoObjectIntersection operator&(GeoObject const &l, GeoObject const &r) { return GeoObjectIntersection(l, r);
+// }
+
+struct GeoObjectFactory {
+    GeoObjectFactory();
+    ~GeoObjectFactory();
+
+    bool RegisterCreator(std::string const &k,
+                         std::function<std::shared_ptr<GeoObject>(std::shared_ptr<data::DataEntity> const &)> const &);
+
+    template <typename U>
+    bool RegisterCreator(std::string const &k) {
+        RegisterCreator(k, [&](std::shared_ptr<data::DataEntity> const &t) { return std::make_shared<U>(t); });
+    }
+
+    std::shared_ptr<GeoObject> Create(std::shared_ptr<data::DataEntity> const &p)const;
+
+   private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
+};
+
+#define GLOBAL_GEO_OBJECT_FACTORY SingletonHolder<simpla::geometry::GeoObjectFactory>::instance()
 
 }  // namespace geometry
 namespace data {

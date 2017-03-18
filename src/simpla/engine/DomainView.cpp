@@ -15,6 +15,7 @@ namespace engine {
 
 struct DomainView::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
+    std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     std::shared_ptr<MeshView> m_mesh_;
     std::map<int, std::shared_ptr<Worker>> m_workers_;
     std::shared_ptr<Patch> m_patch_;
@@ -26,7 +27,10 @@ struct DomainView::pimpl_s {
     //    std::map<int, std::map<int, std::map<int, Range<entity_id>>>> m_interface_cache_;
 };
 
-DomainView::DomainView(std::shared_ptr<data::DataEntity> const &t) : SPObject(t), m_pimpl_(new pimpl_s) {}
+DomainView::DomainView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<geometry::GeoObject> const &g)
+    : SPObject(t), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_geo_obj_ = g;
+}
 DomainView::~DomainView() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { Detach(item); }
 }
@@ -151,9 +155,10 @@ void DomainView::Detach(AttributeViewBundle *p) {
 }
 void DomainView::Initialize() {
     LOGGER << "Domain View [" << name() << "] is initializing!" << std::endl;
-
-    if (m_pimpl_->m_mesh_ == nullptr) { SetMesh(GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"))); }
-    db()->Set("Mesh", m_pimpl_->m_mesh_->db(), true);
+    if (m_pimpl_->m_mesh_ == nullptr) {
+        SetMesh(GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"), m_pimpl_->m_geo_obj_));
+    }
+    ASSERT(m_pimpl_->m_mesh_ != nullptr);
     auto t_worker = db()->Get("Worker");
     if (t_worker != nullptr) {
         t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
@@ -169,11 +174,14 @@ void DomainView::Notify() {
 std::shared_ptr<MeshView> DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
     Click();
     m_pimpl_->m_mesh_ = m;
+    db()->Set("Mesh", m_pimpl_->m_mesh_->db(), true);
+    m_pimpl_->m_geo_obj_ = m_pimpl_->m_mesh_->GetGeoObject();
     Attach(m.get());
     return m_pimpl_->m_mesh_;
 };
 
 std::shared_ptr<MeshView> DomainView::GetMesh() const { return m_pimpl_->m_mesh_; }
+std::shared_ptr<geometry::GeoObject> DomainView::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
 std::pair<std::shared_ptr<Worker>, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
     auto res = m_pimpl_->m_workers_.emplace(pos, w);

@@ -2,7 +2,7 @@
 // Created by salmon on 16-11-24.
 //
 #include "MeshView.h"
-#include <simpla/geometry/Cube.h>
+#include <simpla/geometry/GeoObject.h>
 #include "AttributeView.h"
 #include "DomainView.h"
 #include "MeshBlock.h"
@@ -11,7 +11,8 @@ namespace simpla {
 namespace engine {
 
 struct MeshViewFactory::pimpl_s {
-    std::map<std::string, std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &)>>
+    std::map<std::string, std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataEntity> const &,
+                                                                  std::shared_ptr<geometry::GeoObject> const &)>>
         m_mesh_factory_;
 };
 
@@ -20,20 +21,22 @@ MeshViewFactory::~MeshViewFactory(){};
 
 bool MeshViewFactory::RegisterCreator(
     std::string const &k,
-    std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &)> const &fun) {
+    std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataEntity> const &,
+                                            std::shared_ptr<geometry::GeoObject> const &)> const &fun) {
     return m_pimpl_->m_mesh_factory_.emplace(k, fun).second;
 };
 
-std::shared_ptr<MeshView> MeshViewFactory::Create(std::shared_ptr<data::DataEntity> const &config) {
+std::shared_ptr<MeshView> MeshViewFactory::Create(std::shared_ptr<data::DataEntity> const &config,
+                                                  std::shared_ptr<geometry::GeoObject> const &g) {
     std::shared_ptr<MeshView> res = nullptr;
     if (config == nullptr) {
+        WARNING << "Create Mesh failed!" << std::endl;
         return res;
     } else if (config->value_type_info() == typeid(std::string)) {
-        res = m_pimpl_->m_mesh_factory_.at(data::data_cast<std::string>(*config))(nullptr);
+        res = m_pimpl_->m_mesh_factory_.at(data::data_cast<std::string>(*config))(nullptr, g);
     } else if (config->isTable()) {
         auto const &t = config->cast_as<data::DataTable>();
-        res = m_pimpl_->m_mesh_factory_.at(t.GetValue<std::string>("name"))(
-            std::dynamic_pointer_cast<data::DataTable>(config));
+        res = m_pimpl_->m_mesh_factory_.at(t.GetValue<std::string>("name"))(config, g);
     }
 
     if (res != nullptr) { LOGGER << "MeshView [" << res->name() << "] is created!" << std::endl; }
@@ -48,11 +51,9 @@ MeshView::MeshView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<g
     : AttributeViewBundle(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_obj_ = geo_obj;
     if (m_pimpl_->m_geo_obj_ == nullptr) {
-        box_type b_box{{0, 0, 0}, {1, 1, 1}};
-        if (t != nullptr && t->isTable()) { b_box = t->cast_as<data::DataTable>().GetValue<box_type>("box", b_box); }
-        m_pimpl_->m_geo_obj_ = std::make_shared<geometry::Cube>(b_box);
+        m_pimpl_->m_geo_obj_ = GLOBAL_GEO_OBJECT_FACTORY.Create(db()->Get("GeometryObject"));
     }
-    db()->SetValue("geometry_object", *m_pimpl_->m_geo_obj_);
+    db()->SetValue("GeometryObject", *m_pimpl_->m_geo_obj_);
 }
 MeshView::~MeshView() {}
 

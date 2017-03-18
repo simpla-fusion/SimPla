@@ -79,18 +79,21 @@ class MeshView : public AttributeViewBundle {
 struct MeshViewFactory {
    public:
     MeshViewFactory();
-
     ~MeshViewFactory();
 
-    bool RegisterCreator(std::string const &k,
-                         std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &)> const &);
+    bool RegisterCreator(
+        std::string const &k,
+        std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataEntity> const &,
+                                                std::shared_ptr<geometry::GeoObject> const &)> const &);
 
     template <typename U>
     bool RegisterCreator(std::string const &k) {
-        RegisterCreator(k, [&](std::shared_ptr<data::DataTable> const &t) { return std::make_shared<U>(t); });
+        RegisterCreator(k, [&](std::shared_ptr<data::DataEntity> const &t,
+                               std::shared_ptr<geometry::GeoObject> const &g) { return std::make_shared<U>(t, g); });
     }
 
-    std::shared_ptr<MeshView> Create(std::shared_ptr<data::DataEntity> const &p);
+    std::shared_ptr<MeshView> Create(std::shared_ptr<data::DataEntity> const &p,
+                                     std::shared_ptr<geometry::GeoObject> const &g = nullptr);
 
    private:
     struct pimpl_s;

@@ -63,27 +63,16 @@ namespace engine {
 class Manager : public SPObject, public concept::Printable {
    public:
     Manager();
-
     virtual ~Manager();
-
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-
     virtual void Initialize();
-
     virtual bool Update();
-
     virtual void Advance(Real dt, int level = 0);
-
     virtual void Synchronize(int from_level = 0, int to_level = 0);
-
     Atlas &GetAtlas() const;
-
     Model &GetModel() const;
-
     void SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p);
-
     std::shared_ptr<DomainView> GetDomainView(std::string const &d_name) const;
-
     Real GetTime() const;
 
    private:

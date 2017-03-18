@@ -79,8 +79,6 @@ void Manager::Advance(Real dt, int level) {
     m_pimpl_->m_time_ += dt;
 };
 
-bool Manager::Update() { return SPObject::Update(); };
-
 void Manager::Initialize() {
     LOGGER << "Manager " << name() << " is initializing!" << std::endl;
     GetModel().Initialize();
@@ -88,22 +86,25 @@ void Manager::Initialize() {
     db()->Set("DomainView/");
     auto &domain_t = *db()->GetTable("DomainView");
     domain_t.Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
+
+        auto g_obj_ = GetModel().GetObject(s_key);
         auto res = m_pimpl_->m_views_.emplace(s_key, nullptr);
+
         if (res.first->second == nullptr) {
-            res.first->second = std::make_shared<DomainView>(item);
-        } else {
-            if (item != nullptr && item->isTable()) {
-                res.first->second->db()->Set(*std::dynamic_pointer_cast<data::DataTable>(item));
-            } else {
-                WARNING << " ignore data entity :" << *item << std::endl;
-            }
+            res.first->second = std::make_shared<DomainView>(item, g_obj_);
+        } else if (item != nullptr && item->isTable()) {
+            res.first->second->db()->Set(*std::dynamic_pointer_cast<data::DataTable>(item));
         }
+        // else { WARNING << " ignore data entity :" << *item << std::endl;}
+
         domain_t.Set(s_key, res.first->second->db(), true);
         res.first->second->name(s_key);
         res.first->second->Initialize();
+        GetModel().AddObject(s_key, res.first->second->GetGeoObject());
     });
     SPObject::Tag();
     LOGGER << "Manager " << name() << " is initialized!" << std::endl;
 }
+bool Manager::Update() { return SPObject::Update(); };
 }  // namespace engine {
 }  // namespace simpla {

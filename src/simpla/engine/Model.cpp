@@ -10,7 +10,7 @@ namespace simpla {
 namespace engine {
 
 struct Model::pimpl_s {
-    std::multimap<id_type, std::shared_ptr<geometry::GeoObject>> m_g_obj_;
+    std::map<id_type, std::shared_ptr<geometry::GeoObject>> m_g_obj_;
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
@@ -55,6 +55,11 @@ id_type Model::AddObject(std::string const& key, std::shared_ptr<geometry::GeoOb
     Click();
     m_pimpl_->m_g_obj_.emplace(GetMaterialId(key), g_obj);
 }
+
+std::shared_ptr<geometry::GeoObject> Model::GetObject(std::string const& k) const {
+    return m_pimpl_->m_g_obj_.at(std::hash<std::string>{}(k));
+}
+
 size_type Model::RemoveObject(id_type id) {
     Click();
     return m_pimpl_->m_g_obj_.erase(id);
