@@ -70,10 +70,11 @@ void Manager::Advance(Real dt, int level) {
             if (!v.second->GetMesh()->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
             auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
             if (res.first->second == nullptr) { res.first->second = std::make_shared<Patch>(mblk); }
-            v.second->Dispatch(res.first->second);
+            v.second->PushPatch(res.first->second);
             LOGGER << " Run " << v.second->name() << " at " << res.first->second->GetMeshBlock()->GetIndexBox()
                    << std::endl;
             v.second->Run(dt);
+            res.first->second = v.second->PopPatch();
         }
     }
     m_pimpl_->m_time_ += dt;

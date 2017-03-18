@@ -13,8 +13,6 @@ namespace engine {
 struct MeshBlock::pimpl_s {
     size_type m_level_ = 0;
     id_type m_GUID_ = NULL_ID;
-    size_tuple m_dimensions_{1, 1, 1};
-    index_tuple m_offset_{0, 0, 0};
     index_box_type m_index_box_;
 
     static boost::uuids::random_generator m_gen_;

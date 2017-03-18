@@ -20,7 +20,7 @@ namespace engine {
 class DomainView;
 class MeshView;
 class AttributeView;
-
+class Patch;
 /**
  *  permissions
  *
@@ -106,6 +106,9 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
 
     void Foreach(std::function<void(AttributeView *)> const &) const;
 
+    void PushPatch(std::shared_ptr<Patch> const &);
+    std::shared_ptr<Patch> PopPatch() const;
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
@@ -189,8 +192,8 @@ struct AttributeView : public SPObject, public concept::Printable {
     /** @}*/
 
     MeshView const &GetMesh() const;
-    data::DataBlock &GetDataBlock() const;
-
+    void PushDataBlock(std::shared_ptr<data::DataBlock> const &);
+    std::shared_ptr<data::DataBlock> PopDataBlock();
     virtual void InitializeData();
 
    private:

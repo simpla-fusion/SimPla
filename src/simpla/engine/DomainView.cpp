@@ -112,28 +112,32 @@ DomainView::~DomainView() {
  * deactivate Main
  * @enduml
  */
-void DomainView::Dispatch(std::shared_ptr<Patch> p) {
-    m_pimpl_->m_patch_ = p;
-    ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    Click();
-};
-
+void DomainView::PushPatch(std::shared_ptr<Patch> const &p) { m_pimpl_->m_patch_->Push(p); };
+std::shared_ptr<Patch> DomainView::PopPatch() const { return m_pimpl_->m_patch_; };
 id_type DomainView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
 
 bool DomainView::Update() {
     if (!isModified()) { return false; }
-    ASSERT(m_pimpl_->m_patch_ != nullptr);
+    //    ASSERT(m_pimpl_->m_patch_ != nullptr);
     //    if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<Patch>(); }
-    if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->OnNotify(); }
-    for (auto &item : m_pimpl_->m_workers_) { item.second->OnNotify(); }
-    m_pimpl_->m_current_block_id_ = m_pimpl_->m_patch_->GetMeshBlock()->GetGUID();
+    //    if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->OnNotify(); }
+    //    for (auto &item : m_pimpl_->m_workers_) { item.second->OnNotify(); }
 
     return SPObject::Update();
 }
 
 void DomainView::Run(Real dt) {
     Update();
-    for (auto &item : m_pimpl_->m_workers_) { item.second->Run(dt); }
+    m_pimpl_->m_mesh_->PushPatch(PopPatch());
+    m_pimpl_->m_mesh_->Update();
+    m_pimpl_->m_current_block_id_ = m_pimpl_->m_mesh_->GetMeshBlock()->GetGUID();
+
+    for (auto &item : m_pimpl_->m_workers_) {
+        item.second->PushPatch(PopPatch());
+        item.second->Run(dt);
+        PushPatch(item.second->PopPatch());
+    }
+    PushPatch(m_pimpl_->m_mesh_->PopPatch());
 }
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p == nullptr) { return; }

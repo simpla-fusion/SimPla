@@ -3,13 +3,13 @@
 //
 
 #include "AttributeView.h"
+#include <simpla/data/DataBlock.h>
 #include <set>
 #include <typeindex>
-#include <simpla/data/DataBlock.h>
 #include "DomainView.h"
 #include "MeshBlock.h"
 #include "MeshView.h"
-
+#include "Patch.h"
 namespace simpla {
 namespace engine {
 
@@ -58,7 +58,14 @@ std::shared_ptr<MeshView> AttributeViewBundle::GetMesh() const {
 std::shared_ptr<data::DataBlock> AttributeViewBundle::GetDataBlock(id_type guid) const {
     return m_pimpl_->m_domain_->GetDataBlock(guid);
 }
-
+void AttributeViewBundle::PushPatch(std::shared_ptr<Patch> const &p) {
+    for (auto *v : m_pimpl_->m_attr_views_) { v->PushDataBlock(p->GetDataBlock(v->GetGUID())); }
+}
+std::shared_ptr<Patch> AttributeViewBundle::PopPatch() const {
+    auto res = std::make_shared<Patch>();
+    for (auto *v : m_pimpl_->m_attr_views_) { res->SetDataBlock(v->GetGUID(), v->PopDataBlock()); }
+    return res;
+}
 void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fun) const {
     for (auto *attr : m_pimpl_->m_attr_views_) { fun(attr); }
 }
@@ -74,7 +81,7 @@ struct AttributeView::pimpl_s {
     AttributeViewBundle *m_bundle_;
     std::shared_ptr<MeshView> m_mesh_ = nullptr;
     id_type m_current_block_id_ = NULL_ID;
-    mutable std::shared_ptr<data::DataBlock> m_data_ = nullptr;
+    std::shared_ptr<data::DataBlock> m_data_ = nullptr;
 };
 AttributeView::AttributeView() : m_pimpl_(new pimpl_s){};
 // AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
@@ -104,11 +111,11 @@ MeshView const &AttributeView::GetMesh() const {
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
     return *m_pimpl_->m_mesh_;
 };
-
-data::DataBlock &AttributeView::GetDataBlock() const {
+void AttributeView::PushDataBlock(std::shared_ptr<data::DataBlock> const &d) {
+    m_pimpl_->m_data_ = d;
     if (m_pimpl_->m_data_ == nullptr) { m_pimpl_->m_data_ = std::make_shared<data::DataBlock>(); };
-    return *m_pimpl_->m_data_;
 }
+std::shared_ptr<data::DataBlock> AttributeView::PopDataBlock() { return m_pimpl_->m_data_; }
 
 void AttributeView::InitializeData(){};
 

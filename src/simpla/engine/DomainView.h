@@ -35,8 +35,9 @@ class DomainView : public concept::Printable, public SPObject {
     std::ostream &Print(std::ostream &os, int indent) const final;
 
     id_type current_block_id() const;
-    void Dispatch(std::shared_ptr<Patch> d);
 
+    void PushPatch(std::shared_ptr<Patch> const &);
+    std::shared_ptr<Patch> PopPatch() const;
     virtual bool Update();
     void Run(Real dt);
 

@@ -16,12 +16,15 @@ class MeshBlock;
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:
-    Patch(std::shared_ptr<MeshBlock> const &);
+    Patch(std::shared_ptr<MeshBlock> const &p = nullptr);
     virtual ~Patch();
     id_type GetMeshBlockId() const;
+    void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
     std::shared_ptr<MeshBlock> GetMeshBlock() const;
+    int SetDataBlock(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> GetDataBlock(id_type const &id) const;
     std::map<id_type, std::shared_ptr<data::DataBlock>> &GetAllDataBlock() const;
+    void Push(std::shared_ptr<Patch> const &) const;
 
    private:
     struct pimpl_s;
