@@ -102,12 +102,11 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
 
     void Detach(AttributeView *attr);
     void Attach(AttributeView *attr);
-    virtual void OnNotify();
 
     void Foreach(std::function<void(AttributeView *)> const &) const;
 
-    void PushPatch(std::shared_ptr<Patch> const &);
-    std::shared_ptr<Patch> PopPatch() const;
+    virtual void PushPatch(std::shared_ptr<Patch> const &);
+    virtual std::shared_ptr<Patch> PopPatch() const;
 
    private:
     struct pimpl_s;
@@ -140,24 +139,14 @@ struct AttributeView : public SPObject, public concept::Printable {
     SP_OBJECT_BASE(AttributeView);
 
    public:
-    AttributeView();
-
-    template <typename... Args>
-    AttributeView(AttributeViewBundle *b, Args &&... args) : AttributeView() {
-        Config(std::forward<Args>(args)...);
-        Connect(b);
-    };
-
+    AttributeView(AttributeViewBundle *b = nullptr, std::shared_ptr<data::DataEntity> const &p = nullptr);
+    AttributeView(std::shared_ptr<MeshView> const &m = nullptr, std::shared_ptr<data::DataEntity> const &p = nullptr);
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
 
-    void Config() {
-        db()->SetValue("iform", GetIFORM());
-        db()->SetValue("dof", GetDOF());
-        db()->SetValue("value value_type_info", GetValueTypeInfo().name());
-        db()->SetValue("value value_type_info idx", std::type_index(GetValueTypeInfo()).hash_code());
-    }
+   public:
+    void Config();
     void Config(std::string const &s) { db()->SetValue("name", s); }
     void Config(AttributeTag const &s) { db()->SetValue("tag", (s)); }
     void Config(data::KeyValue const &s) { db()->SetValue(s); }
@@ -169,7 +158,6 @@ struct AttributeView : public SPObject, public concept::Printable {
         Config(a1, std::forward<Others>(others)...);
     }
 
-   public:
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     id_type GetGUID() const;
     int GetTag() const;
@@ -218,11 +206,15 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
    public:
     typedef std::true_type prefer_pass_by_reference;
 
-    AttributeViewAdapter() : AttributeView() {}
+    AttributeViewAdapter() : AttributeView(std::make_shared<mesh_type>()) {}
+
     template <typename... Args>
-    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
-        : AttributeView(b, std::forward<Args>(args)...) {
-        Config();
+    explicit AttributeViewAdapter(std::shared_ptr<mesh_type> const &m, Args &&... args) : AttributeView(m) {
+        Config(std::forward<Args>(args)...);
+    }
+    template <typename... Args>
+    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args) : AttributeView(b) {
+        Config(std::forward<Args>(args)...);
     }
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;

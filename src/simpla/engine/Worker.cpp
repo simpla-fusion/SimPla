@@ -106,8 +106,8 @@ bool Worker::Update() {
     if (state_tag == 0) { Initialize(); }
     return true;
 }
-void Worker::OnNotify() { AttributeViewBundle::OnNotify(); };
-
+void Worker::PushPatch(std::shared_ptr<Patch> const &p) { AttributeViewBundle::PushPatch(p); }
+std::shared_ptr<Patch> Worker::PopPatch() const { return AttributeViewBundle::PopPatch(); }
 void Worker::Run(Real dt) {
     Update();
     Process();

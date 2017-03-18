@@ -7,6 +7,7 @@
 #include "DomainView.h"
 #include "MeshBlock.h"
 #include "Model.h"
+#include "Patch.h"
 namespace simpla {
 namespace engine {
 
@@ -71,13 +72,18 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
     return os;
 };
 
-void MeshView::OnNotify() {
-    SetMeshBlock(GetDomain()->GetMeshBlock());
-    AttributeViewBundle::OnNotify();
-}
+
 bool MeshView::Update() { return SPObject::Update(); }
 std::shared_ptr<geometry::GeoObject> MeshView::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
-
+void MeshView::PushPatch(std::shared_ptr<Patch> const &p) {
+    m_pimpl_->m_mesh_block_ = p->GetMeshBlock();
+    AttributeViewBundle::PushPatch(p);
+};
+std::shared_ptr<Patch> MeshView::PopPatch() const {
+    auto res = AttributeViewBundle::PopPatch();
+    res->SetMeshBlock(m_pimpl_->m_mesh_block_);
+    return res;
+}
 id_type MeshView::GetMeshBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }

@@ -26,10 +26,6 @@ std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
     return os;
 };
 
-void AttributeViewBundle::OnNotify() {
-    for (auto *item : m_pimpl_->m_attr_views_) { item->OnNotify(); }
-}
-
 void AttributeViewBundle::Attach(AttributeView *p) {
     if (p != nullptr && m_pimpl_->m_attr_views_.emplace(p).second) {
         p->Connect(this);
@@ -69,13 +65,12 @@ std::shared_ptr<Patch> AttributeViewBundle::PopPatch() const {
 void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fun) const {
     for (auto *attr : m_pimpl_->m_attr_views_) { fun(attr); }
 }
-//
-// id_type AttributeDesc::GenerateGUID(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF,
-//                                    int tag) {
-//    std::string str = name_s + '.' + t_id.name() + '.' + static_cast<char>(IFORM + '0') + '.' +
-//                      static_cast<char>(DOF + '0') + '.' + static_cast<char>(tag + '0');
-//    return static_cast<id_type>(std::hash<std::string>{}(str));
-//}
+
+id_type GenerateGUID(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF, int tag) {
+    std::string str = name_s + '.' + t_id.name() + '.' + static_cast<char>(IFORM + '0') + '.' +
+                      static_cast<char>(DOF + '0') + '.' + static_cast<char>(tag + '0');
+    return static_cast<id_type>(std::hash<std::string>{}(str));
+}
 
 struct AttributeView::pimpl_s {
     AttributeViewBundle *m_bundle_;
@@ -83,11 +78,25 @@ struct AttributeView::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
     std::shared_ptr<data::DataBlock> m_data_ = nullptr;
 };
-AttributeView::AttributeView() : m_pimpl_(new pimpl_s){};
+AttributeView::AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataEntity> const &t)
+    : SPObject(t), m_pimpl_(new pimpl_s) {
+    Connect(b);
+};
+AttributeView::AttributeView(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataEntity> const &t)
+    : SPObject(t), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_mesh_ = m;
+}
+void AttributeView::Config() {
+    db()->SetValue("iform", GetIFORM());
+    db()->SetValue("dof", GetDOF());
+    db()->SetValue("value value_type_info", GetValueTypeInfo().name());
+    db()->SetValue("value value_type_info idx", std::type_index(GetValueTypeInfo()).hash_code());
+    db()->SetValue("GUID", GenerateGUID(name(), GetValueTypeInfo(), GetIFORM(), GetDOF(), GetTag()));
+}
 // AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
 AttributeView::~AttributeView() { Disconnect(); }
 
-id_type AttributeView::GetGUID() const { return GetDBValue<id_type>("GUID"); }
+id_type AttributeView::GetGUID() const { return GetDBValue<id_type>("GUID", NULL_ID); }
 int AttributeView::GetTag() const { return GetDBValue<int>("Tag", 0); }
 
 void AttributeView::Connect(AttributeViewBundle *b) {

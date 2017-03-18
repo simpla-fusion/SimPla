@@ -35,12 +35,6 @@ DomainView::~DomainView() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { Detach(item); }
 }
 
-// Manager const *DomainView::GetManager(Manager *) const { return m_backend_->m_manager_; }
-// void DomainView::SetManager(Manager *m) {
-//    concept::StateCounter::Click();
-//    m_backend_->m_manager_ = m;
-//}
-
 /**
  *
  * @startuml
@@ -112,7 +106,7 @@ DomainView::~DomainView() {
  * deactivate Main
  * @enduml
  */
-void DomainView::PushPatch(std::shared_ptr<Patch> const &p) { m_pimpl_->m_patch_->Push(p); };
+void DomainView::PushPatch(std::shared_ptr<Patch> const &p) { m_pimpl_->m_patch_ = p; };
 std::shared_ptr<Patch> DomainView::PopPatch() const { return m_pimpl_->m_patch_; };
 id_type DomainView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
 
@@ -127,7 +121,7 @@ bool DomainView::Update() {
 }
 
 void DomainView::Run(Real dt) {
-    Update();
+
     m_pimpl_->m_mesh_->PushPatch(PopPatch());
     m_pimpl_->m_mesh_->Update();
     m_pimpl_->m_current_block_id_ = m_pimpl_->m_mesh_->GetMeshBlock()->GetGUID();
@@ -163,6 +157,8 @@ void DomainView::Initialize() {
         SetMesh(GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"), m_pimpl_->m_geo_obj_));
     }
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
+    m_pimpl_->m_geo_obj_ = m_pimpl_->m_mesh_->GetGeoObject();
+
     auto t_worker = db()->Get("Worker");
     if (t_worker != nullptr) {
         t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
@@ -172,9 +168,7 @@ void DomainView::Initialize() {
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
     Tag();
 }
-void DomainView::Notify() {
-    for (auto *item : m_pimpl_->m_attr_bundle_) { item->OnNotify(); }
-}
+
 std::shared_ptr<MeshView> DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
     Click();
     m_pimpl_->m_mesh_ = m;

@@ -108,8 +108,10 @@ class Worker : public AttributeViewBundle {
     virtual void Initialize();
     virtual void Process(){};
     virtual bool Update();
-    virtual void OnNotify();
-    void Run(Real dt);
+
+    virtual void Run(Real dt);
+    virtual void PushPatch(std::shared_ptr<Patch> const &);
+    virtual std::shared_ptr<Patch> PopPatch() const;
 
    private:
     struct pimpl_s;

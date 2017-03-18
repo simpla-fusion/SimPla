@@ -25,7 +25,11 @@ MeshBlock::MeshBlock(index_box_type const &b, size_type level) : m_pimpl_(new pi
     m_pimpl_->m_level_ = level;
     m_pimpl_->m_GUID_ = m_pimpl_->m_hasher_(m_pimpl_->m_gen_());
 };
-MeshBlock::MeshBlock(MeshBlock const &) : m_pimpl_(new pimpl_s) {}
+MeshBlock::MeshBlock(MeshBlock const &other) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_level_ = other.m_pimpl_->m_level_;
+    m_pimpl_->m_GUID_ = other.m_pimpl_->m_GUID_;
+    m_pimpl_->m_index_box_ = other.m_pimpl_->m_index_box_;
+}
 MeshBlock::~MeshBlock() {}
 
 index_box_type const &MeshBlock::GetIndexBox() const { return m_pimpl_->m_index_box_; }

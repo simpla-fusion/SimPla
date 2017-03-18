@@ -27,12 +27,13 @@ class MeshView : public AttributeViewBundle {
     MeshView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<geometry::GeoObject> const &obj = nullptr);
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    virtual void OnNotify();
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
     void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
     std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
 
+    virtual void PushPatch(std::shared_ptr<Patch> const &p);
+    virtual std::shared_ptr<Patch> PopPatch() const;
     virtual bool Update();
     virtual void Initialize();
     Real GetDt() const;

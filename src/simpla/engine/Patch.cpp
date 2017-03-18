@@ -15,14 +15,15 @@ Patch::Patch(std::shared_ptr<MeshBlock> const &m) : m_pimpl_(new pimpl_s) { m_pi
 Patch::~Patch() {}
 
 void Patch::Push(std::shared_ptr<Patch> const &other) const {
-    ASSERT(m_pimpl_->m_mesh_ == other->m_pimpl_->m_mesh_);
+    if (other == nullptr) { return; }
+    m_pimpl_->m_mesh_ = other->m_pimpl_->m_mesh_;
     m_pimpl_->m_data_.insert(other->m_pimpl_->m_data_.begin(), other->m_pimpl_->m_data_.end());
 }
 
 id_type Patch::GetMeshBlockId() const { return GetMeshBlock()->GetGUID(); }
 
 void Patch::SetMeshBlock(std::shared_ptr<MeshBlock> const &m) {
-    ASSERT(m_pimpl_->m_mesh_ == nullptr);
+    ASSERT(m_pimpl_->m_mesh_ != nullptr);
     m_pimpl_->m_mesh_ = m;
 };
 int Patch::SetDataBlock(id_type const &id, std::shared_ptr<data::DataBlock> const &d) {
