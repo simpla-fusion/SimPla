@@ -6,6 +6,7 @@
 #define SIMPLA_DATABLOCK_H
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/algebra/Array.h>
 #include "DataEntity.h"
 namespace simpla {
 namespace data {
@@ -31,54 +32,26 @@ class DataBlock : public DataEntity {
     virtual void Clear() { UNIMPLEMENTED; };
     virtual void Copy(DataBlock const &) { UNIMPLEMENTED; };
 };
+
 template <typename U, int NDIMS>
-class DataBlockWrapper : public DataBlock {
-    typedef DataBlockWrapper data_block_wrapper_type;
-    SP_OBJECT_HEAD(data_block_wrapper_type, DataBlock);
-    typedef U value_type;
-
+class DataEntityWrapper<simpla::Array<U, NDIMS>> : public DataBlock {
+    typedef simpla::Array<U, NDIMS> array_type;
+    SP_OBJECT_HEAD(DataEntityWrapper<array_type>, DataBlock);
+    typedef typename array_type::value_type value_type;
    public:
-    DataBlockWrapper(std::shared_ptr<value_type> d = nullptr, size_type const *dims = nullptr,
-                     size_type const *gw = nullptr)
-        : m_data_(d) {}
-    virtual ~DataBlockWrapper() {}
-    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
-    virtual size_type memory_size() {
-        size_type s = sizeof(value_type);
-        for (int i = 0; i < NDIMS; ++i) { s *= (m_dimensions_[i] + m_ghost_width_[i] * 2); }
-        return s;
-    }
-    virtual size_type size() const {
-        size_type s = 1;
-        for (int i = 0; i < NDIMS; ++i) { s *= (m_dimensions_[i]); }
-        return s;
-    }
-    virtual size_type const *GetGhostWidth() const { return m_ghost_width_; }
-    virtual size_type const *GetDimensions() const { return m_dimensions_; }
-    virtual value_type *data() { return m_data_.get(); };
-    virtual value_type const *data() const { return m_data_.get(); };
+    explicit DataEntityWrapper(std::shared_ptr<array_type> const &d) : m_data_(d) {}
 
-    virtual void Clear() {
-        if (m_data_ != nullptr && memory_size() > 0) { memset(m_data_.get(), 0, memory_size()); }
-    };
-    virtual void Copy(DataBlock const &other) {
-        ASSERT(other.isA(typeid(this_type)));
-        auto const &src = other.cast_as<this_type>();
-        for (int i = 0; i < NDIMS; ++i) {
-            m_ghost_width_[i] = src.m_ghost_width_[i];
-            m_dimensions_[i] = src.m_dimensions_[i];
-        }
-        m_data_ = std::shared_ptr<value_type>(new value_type[size()]);
-        memcpy(m_data_.get(), other.cast_as<this_type>().m_data_.get(), memory_size());
-    };
-    virtual void Update() {
-        if (m_data_ == nullptr) { m_data_ = std::shared_ptr<value_type>(new value_type[size()]); }
-    }
+    template <typename... Args>
+    DataEntityWrapper(Args &&... args) : m_data_(std::make_shared<array_type>(std::forward<Args>(args)...)) {}
+
+    virtual ~DataEntityWrapper() {}
+
+    virtual std::type_info const &value_type_info() const { return typeid(value_type); };
+    virtual std::shared_ptr<array_type> &data() { return m_data_; };
+    virtual std::shared_ptr<array_type> const &data() const { return m_data_; };
 
    private:
-    std::shared_ptr<value_type> m_data_;
-    size_type m_ghost_width_[NDIMS];
-    size_type m_dimensions_[NDIMS];
+    std::shared_ptr<array_type> m_data_;
 };
 // template <typename...>
 // class DataBlockAdapter;

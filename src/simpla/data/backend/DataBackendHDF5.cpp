@@ -5,8 +5,8 @@
 #include <simpla/algebra/Array.h>
 #include <simpla/algebra/nTuple.h>
 #include <regex>
-
 #include "../DataArray.h"
+#include "../DataBlock.h"
 #include "../DataEntity.h"
 #include "../DataTable.h"
 extern "C" {
@@ -276,7 +276,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
 
         if (false) {}
 #define DEC_TYPE(_T_, _H5_T_)                                                                 \
-    else if (src->value_type_info() == typeid(_T_)) {                                                    \
+    else if (src->value_type_info() == typeid(_T_)) {                                         \
         d_type = _H5_T_;                                                                      \
         if (src->isArray()) {                                                                 \
             data = reinterpret_cast<char*>(&src->cast_as<DataArrayWrapper<_T_>>().data()[0]); \

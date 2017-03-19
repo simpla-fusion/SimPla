@@ -156,9 +156,8 @@ struct AttributeView : public SPObject {
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
     virtual std::type_info const &mesh_type_info() const = 0;   //!< mesh type
 
-    virtual void SetData(std::shared_ptr<data::DataBlock> const &, std::shared_ptr<MeshBlock> const &mblk = nullptr);
-    virtual std::shared_ptr<data::DataBlock> GetData();
-    virtual std::shared_ptr<data::DataBlock> GetData() const;
+    virtual void SetData(std::shared_ptr<data::DataEntity> const &);
+    virtual std::shared_ptr<data::DataEntity> GetData() const;
     virtual bool Update();
     bool isNull() const;
     bool empty() const { return isNull(); };
@@ -225,10 +224,12 @@ class AttributeViewAdapter<U, std::enable_if_t<has_mesh_type<U>::value>> : publi
     typedef algebra::traits::value_type_t<U> value_type;
     static const int iform = algebra::traits::iform<U>::value;
     static const int dof = algebra::traits::dof<U>::value;
+    static const int NDIMS = algebra::traits::ndims<U>::value;
+    static const int num_of_sub = algebra::traits::num_of_sub<U>::value;
 
    public:
     typedef std::true_type prefer_pass_by_reference;
-
+    typedef Array<value_type, NDIMS> array_type;
     template <typename... Args>
     explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
         : AttributeView(b), U(static_cast<mesh_type const *>(b->GetMesh())) {
@@ -252,7 +253,20 @@ class AttributeViewAdapter<U, std::enable_if_t<has_mesh_type<U>::value>> : publi
         U::operator=(expr);
         return *this;
     };
-
+    virtual void SetData(std::shared_ptr<data::DataEntity> const &d) {
+        AttributeView::SetData(d);
+        if (GetDOF() == 1 && d->isHeavyBlock()) {
+            auto p = d->template cast_as<data::DataEntityWrapper<array_type>>().data();
+            U::SetData(&p);
+        } else if (d->isArray() && d->cast_as<data::DataArray>().size() == num_of_sub) {
+            std::vector<std::shared_ptr<array_type>> t_d;
+            d->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &v) {
+                t_d.push_back(v->template cast_as<data::DataEntityWrapper<array_type>>().data());
+            });
+            U::SetData(&t_d[0]);
+        }
+    }
+    virtual std::shared_ptr<data::DataEntity> GetData() const {}
     bool Update() final {
         if (AttributeView::Update()) {
             U::Update();

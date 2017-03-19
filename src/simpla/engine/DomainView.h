@@ -47,7 +47,6 @@ class DomainView : public concept::Printable, public SPObject {
     std::shared_ptr<MeshView> SetMesh(std::shared_ptr<MeshView> const &m);
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> GetMeshBlock() const;
-    std::shared_ptr<data::DataBlock> GetDataBlock(id_type) const;
 
     std::pair<std::shared_ptr<Worker>, bool> AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
     void RemoveWorker(std::shared_ptr<Worker> const &w);

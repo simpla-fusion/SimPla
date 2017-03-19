@@ -9,7 +9,6 @@
 #include <cstring>
 
 #include <simpla/concept/Splittable.h>
-#include <simpla/data/all.h>
 #include <simpla/mpl/Range.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/toolbox/FancyStream.h>

@@ -58,7 +58,7 @@ id_type GenerateGUID(std::string const &name_s, std::type_info const &t_id, int 
 
 struct AttributeView::pimpl_s {
     AttributeViewBundle *m_bundle_;
-    std::shared_ptr<data::DataBlock> m_data_ = nullptr;
+    std::shared_ptr<data::DataEntity> m_data_ = nullptr;
     MeshView const *m_mesh_ = nullptr;
 };
 AttributeView::AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataEntity> const &t)
@@ -83,12 +83,11 @@ void AttributeView::Config() {
 id_type AttributeView::GetGUID() const { return GetDBValue<id_type>("GUID", NULL_ID); }
 int AttributeView::GetTag() const { return GetDBValue<int>("Tag", 0); }
 
-void AttributeView::SetData(std::shared_ptr<data::DataBlock> const &d, std::shared_ptr<MeshBlock> const &mblk) {
+void AttributeView::SetData(std::shared_ptr<data::DataEntity> const &d) {
     m_pimpl_->m_data_ = d;
     Update();
 }
-std::shared_ptr<data::DataBlock> AttributeView::GetData() { return m_pimpl_->m_data_; }
-std::shared_ptr<data::DataBlock> AttributeView::GetData() const { return m_pimpl_->m_data_; }
+std::shared_ptr<data::DataEntity> AttributeView::GetData() const { return m_pimpl_->m_data_; }
 /**
 * @startuml
 * start

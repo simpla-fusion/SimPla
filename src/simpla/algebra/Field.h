@@ -71,7 +71,7 @@ class FieldView<TM, TV, IFORM, DOF> {
 
    private:
     mesh_type const* m_mesh_;
-    typedef ArrayView<value_type, NDIMS> sub_array_type;
+    typedef Array<value_type, NDIMS> sub_array_type;
     static constexpr int num_of_subs = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
     std::shared_ptr<sub_array_type> m_data_[num_of_subs];
 
@@ -113,7 +113,6 @@ class FieldView<TM, TV, IFORM, DOF> {
     }
 
     this_type& operator=(this_type const& rhs) {
-        SetMesh(rhs.GetMesh());
         SetData(nullptr);
         Update();
         for (int i = 0; i < num_of_subs; ++i) {
