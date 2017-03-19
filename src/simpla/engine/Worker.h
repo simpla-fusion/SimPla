@@ -98,10 +98,10 @@ namespace engine {
       --> (*)
    @enduml
  */
-class Worker : public AttributeViewBundle {
-    SP_OBJECT_BASE(Worker)
+class Worker : public SPObject, public AttributeViewBundle {
+    SP_OBJECT_HEAD(Worker, SPObject)
    public:
-    Worker(std::shared_ptr<data::DataTable> const &t = nullptr);
+    Worker(std::shared_ptr<data::DataEntity> const &t = nullptr, std::shared_ptr<MeshView> const &p = nullptr);
     virtual ~Worker();
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
@@ -110,8 +110,9 @@ class Worker : public AttributeViewBundle {
     virtual bool Update();
 
     virtual void Run(Real dt);
-    virtual void PushPatch(std::shared_ptr<Patch> const &);
-    virtual std::shared_ptr<Patch> PopPatch() const;
+    virtual std::shared_ptr<MeshView> GetMesh() const;
+    virtual void SetPatch(std::shared_ptr<Patch> const &);
+    virtual std::shared_ptr<Patch> GetPatch() const;
 
    private:
     struct pimpl_s;

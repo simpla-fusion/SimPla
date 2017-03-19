@@ -1,4 +1,4 @@
-ADD_SUBDIRECTORY(case)
+#ADD_SUBDIRECTORY(case)
 #ADD_SUBDIRECTORY(field_solver)
 #ADD_SUBDIRECTORY(contexts)
 #ADD_SUBDIRECTORY(fokker_planck)

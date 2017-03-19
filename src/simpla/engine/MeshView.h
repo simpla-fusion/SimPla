@@ -13,6 +13,7 @@
 namespace simpla {
 namespace engine {
 class MeshBlock;
+class Patch;
 /**
  *  Define:
  *   A bundle is a triple \f$(E, p, B)\f$ where \f$E\f$, \f$B\f$ are sets and \f$p:E \rightarrow B\f$ a map
@@ -21,25 +22,32 @@ class MeshBlock;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshView : public AttributeViewBundle {
+class MeshView : public SPObject, public AttributeViewBundle {
+    SP_OBJECT_HEAD(MeshView, SPObject);
+
    public:
-    SP_OBJECT_BASE(MeshView);
     MeshView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<geometry::GeoObject> const &obj = nullptr);
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
+
+    size_tuple GetGhostWidth() const;
+
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
     void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
     std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
 
-    virtual void PushPatch(std::shared_ptr<Patch> const &p);
-    virtual std::shared_ptr<Patch> PopPatch() const;
+    virtual void SetPatch(std::shared_ptr<Patch> const &p);
+    virtual std::shared_ptr<Patch> GetPatch() const;
     virtual bool Update();
     virtual void Initialize();
     Real GetDt() const;
 
     size_type size(int IFORM = VERTEX) const { return 0; }
     size_tuple dimensions() const { return size_tuple{}; };
+
+    //    template <typename U>
+    //    std::shared_ptr<data::DataBlockWrapper<U>> CreateDataBlock(int IFORM, int DOF) const;
     //    template <typename... Args>
     //    Range<MeshEntityId> range(Args &&... args) const {
     //        if (m_mesh_block_ != nullptr) {

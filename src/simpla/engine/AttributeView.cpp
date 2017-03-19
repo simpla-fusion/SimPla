@@ -18,48 +18,32 @@ struct AttributeViewBundle::pimpl_s {
     std::set<AttributeView *> m_attr_views_;
 };
 
-AttributeViewBundle::AttributeViewBundle(std::shared_ptr<data::DataEntity> const &t)
-    : SPObject(t), m_pimpl_(new pimpl_s) {}
-AttributeViewBundle::~AttributeViewBundle() {}
-std::ostream &AttributeViewBundle::Print(std::ostream &os, int indent) const {
-    for (auto &attr : m_pimpl_->m_attr_views_) { os << attr->name() << " , "; }
-    return os;
-};
-
-void AttributeViewBundle::Attach(AttributeView *p) {
-    if (p != nullptr && m_pimpl_->m_attr_views_.emplace(p).second) {
-        p->Connect(this);
-        Click();
+AttributeViewBundle::AttributeViewBundle(DomainView *d) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_domain_ = d;
+    if (m_pimpl_->m_domain_ != nullptr) { m_pimpl_->m_domain_->Attach(this); }
+}
+AttributeViewBundle::~AttributeViewBundle() {
+    if (m_pimpl_->m_domain_ != nullptr) {
+        m_pimpl_->m_domain_->Detach(this);
+        m_pimpl_->m_domain_ = nullptr;
     }
+}
+void AttributeViewBundle::Attach(AttributeView *p) {
+    if (p != nullptr) { m_pimpl_->m_attr_views_.emplace(p); }
 }
 
 void AttributeViewBundle::Detach(AttributeView *p) {
-    if (p != nullptr && m_pimpl_->m_attr_views_.erase(p) > 0) {
-        p->Disconnect();
-        Click();
-    }
+    if (p != nullptr) { m_pimpl_->m_attr_views_.erase(p); }
 }
-
-bool AttributeViewBundle::isModified() {
-    return SPObject::isModified() || (m_pimpl_->m_domain_ != nullptr && m_pimpl_->m_domain_->isModified());
-}
-
-bool AttributeViewBundle::Update() { return SPObject::Update(); }
+MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_domain_->GetMesh().get(); }
 DomainView *AttributeViewBundle::GetDomain() const { return m_pimpl_->m_domain_; }
-void AttributeViewBundle::RegisterDomain(DomainView *d) { m_pimpl_->m_domain_ = d; }
-std::shared_ptr<MeshView> AttributeViewBundle::GetMesh() const {
-    ASSERT(m_pimpl_->m_domain_ != nullptr);
-    return m_pimpl_->m_domain_->GetMesh();
+
+void AttributeViewBundle::SetPatch(std::shared_ptr<Patch> const &p) {
+    for (auto *v : m_pimpl_->m_attr_views_) { v->SetData(p->GetDataBlock(v->GetGUID())); }
 }
-std::shared_ptr<data::DataBlock> AttributeViewBundle::GetDataBlock(id_type guid) const {
-    return m_pimpl_->m_domain_->GetDataBlock(guid);
-}
-void AttributeViewBundle::PushPatch(std::shared_ptr<Patch> const &p) {
-    for (auto *v : m_pimpl_->m_attr_views_) { v->PushDataBlock(p->GetDataBlock(v->GetGUID())); }
-}
-std::shared_ptr<Patch> AttributeViewBundle::PopPatch() const {
+std::shared_ptr<Patch> AttributeViewBundle::GetPatch() const {
     auto res = std::make_shared<Patch>();
-    for (auto *v : m_pimpl_->m_attr_views_) { res->SetDataBlock(v->GetGUID(), v->PopDataBlock()); }
+    for (auto *v : m_pimpl_->m_attr_views_) { res->SetDataBlock(v->GetGUID(), v->GetData()); }
     return res;
 }
 void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fun) const {
@@ -74,59 +58,35 @@ id_type GenerateGUID(std::string const &name_s, std::type_info const &t_id, int 
 
 struct AttributeView::pimpl_s {
     AttributeViewBundle *m_bundle_;
-    std::shared_ptr<MeshView> m_mesh_ = nullptr;
-    id_type m_current_block_id_ = NULL_ID;
     std::shared_ptr<data::DataBlock> m_data_ = nullptr;
 };
 AttributeView::AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataEntity> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {
-    Connect(b);
+    if (b != nullptr && b != m_pimpl_->m_bundle_) { b->Attach(this); }
+    m_pimpl_->m_bundle_ = b;
 };
-AttributeView::AttributeView(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataEntity> const &t)
-    : SPObject(t), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_mesh_ = m;
+
+AttributeView::~AttributeView() {
+    if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_bundle_->Detach(this); }
+    m_pimpl_->m_bundle_ = nullptr;
 }
+
 void AttributeView::Config() {
     db()->SetValue("iform", GetIFORM());
     db()->SetValue("dof", GetDOF());
-    db()->SetValue("value value_type_info", GetValueTypeInfo().name());
-    db()->SetValue("value value_type_info idx", std::type_index(GetValueTypeInfo()).hash_code());
-    db()->SetValue("GUID", GenerateGUID(name(), GetValueTypeInfo(), GetIFORM(), GetDOF(), GetTag()));
+    db()->SetValue("value value_type_info", value_type_info().name());
+    db()->SetValue("value value_type_info idx", std::type_index(value_type_info()).hash_code());
+    db()->SetValue("GUID", GenerateGUID(name(), value_type_info(), GetIFORM(), GetDOF(), GetTag()));
 }
-// AttributeView::AttributeView(MeshView const *m) : AttributeView(){};
-AttributeView::~AttributeView() { Disconnect(); }
 
 id_type AttributeView::GetGUID() const { return GetDBValue<id_type>("GUID", NULL_ID); }
 int AttributeView::GetTag() const { return GetDBValue<int>("Tag", 0); }
 
-void AttributeView::Connect(AttributeViewBundle *b) {
-    if (b != nullptr && b != m_pimpl_->m_bundle_) { b->Attach(this); }
-    m_pimpl_->m_bundle_ = b;
-}
-void AttributeView::Disconnect() {
-    if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_bundle_->Detach(this); }
-    m_pimpl_->m_bundle_ = nullptr;
-}
-void AttributeView::OnNotify() {
-    if (m_pimpl_->m_bundle_ != nullptr) {
-        m_pimpl_->m_mesh_ = m_pimpl_->m_bundle_->GetMesh();
-        m_pimpl_->m_data_ = m_pimpl_->m_bundle_->GetDataBlock(m_pimpl_->m_mesh_->GetMeshBlock()->GetGUID());
-    } else {
-        DO_NOTHING;
-    }
-}
-
-MeshView const &AttributeView::GetMesh() const {
-    ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    return *m_pimpl_->m_mesh_;
-};
-void AttributeView::PushDataBlock(std::shared_ptr<data::DataBlock> const &d) {
+void AttributeView::SetData(std::shared_ptr<data::DataBlock> const &d, std::shared_ptr<MeshBlock> const &mblk) {
     m_pimpl_->m_data_ = d;
-    if (m_pimpl_->m_data_ == nullptr) { m_pimpl_->m_data_ = std::make_shared<data::DataBlock>(); };
 }
-std::shared_ptr<data::DataBlock> AttributeView::PopDataBlock() { return m_pimpl_->m_data_; }
-
-void AttributeView::InitializeData(){};
+std::shared_ptr<data::DataBlock> AttributeView::GetData() { return m_pimpl_->m_data_; }
+std::shared_ptr<data::DataBlock> AttributeView::GetData() const { return m_pimpl_->m_data_; }
 
 /**
  * @startuml
@@ -141,11 +101,6 @@ void AttributeView::InitializeData(){};
 bool AttributeView::Update() { return SPObject::Update(); }
 
 bool AttributeView::isNull() const { return m_pimpl_->m_data_ == nullptr; }
-
-std::ostream &AttributeView::Print(std::ostream &os, int indent) const {
-    os << std::setw(indent + 1) << " " << name();
-    return os;
-};
 
 }  //{ namespace engine
 }  // namespace simpla

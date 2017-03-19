@@ -38,9 +38,16 @@ std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m
     return res;
 }
 
-struct Worker::pimpl_s {};
-Worker::Worker(std::shared_ptr<data::DataTable> const &t) : AttributeViewBundle(t), m_pimpl_(new pimpl_s) {}
+struct Worker::pimpl_s {
+    std::shared_ptr<MeshView> m_mesh_ = nullptr;
+};
+Worker::Worker(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<MeshView> const &m)
+    : SPObject(t), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_mesh_ = m;
+}
 Worker::~Worker(){};
+
+std::shared_ptr<MeshView> Worker::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
@@ -101,13 +108,13 @@ void Worker::Initialize() { Tag(); }
  */
 bool Worker::Update() {
     if (!isModified()) { return false; }
-    AttributeViewBundle::Update();
+    SPObject::Update();
     size_type state_tag = GetTagCount();
     if (state_tag == 0) { Initialize(); }
     return true;
 }
-void Worker::PushPatch(std::shared_ptr<Patch> const &p) { AttributeViewBundle::PushPatch(p); }
-std::shared_ptr<Patch> Worker::PopPatch() const { return AttributeViewBundle::PopPatch(); }
+void Worker::SetPatch(std::shared_ptr<Patch> const &p) { AttributeViewBundle::SetPatch(p); }
+std::shared_ptr<Patch> Worker::GetPatch() const { return AttributeViewBundle::GetPatch(); }
 void Worker::Run(Real dt) {
     Update();
     Process();

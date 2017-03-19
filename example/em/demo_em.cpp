@@ -2,14 +2,11 @@
 // Created by salmon on 16-6-29.
 //
 
-#include <simpla/engine/Atlas.h>
-#include <simpla/engine/DomainView.h>
-#include <simpla/engine/Manager.h>
-#include <simpla/geometry/Cube.h>
-#include <simpla/predefine/CartesianGeometry.h>
-//#include <simpla/predefine/CylindricalGeometry.h>
-#include "../../scenario/problem_domain/EMFluid.h"
-#include "../../scenario/problem_domain/PML.h"
+#include <simpla/engine/all.h>
+#include <simpla/predefine/mesh/CartesianGeometry.h>
+//#include <simpla/predefine/mesh/CylindricalGeometry.h>
+#include <simpla/predefine/problem_domain/EMFluid.h>
+#include <simpla/predefine/problem_domain/PML.h>
 
 namespace simpla {
 
@@ -19,7 +16,7 @@ void create_scenario(engine::Manager *ctx) {
     GLOBAL_WORKER_FACTORY.RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
     GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 
-    ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0});
+    ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}, "Dimensions"_ = {0, 0, 0});
 
     ctx->GetAtlas().Decompose(size_tuple{2, 3, 2});
     ctx->GetAtlas().SetRefineRatio(size_tuple{2, 2, 2});

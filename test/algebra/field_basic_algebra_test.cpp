@@ -7,7 +7,7 @@
 
 #include "field_basic_algebra_test.h"
 #include <gtest/gtest.h>
-#include "simpla/predefine/CartesianGeometry.h"
+#include <simpla/predefine/mesh/CartesianGeometry.h>
 typedef simpla::mesh::CartesianGeometry mesh_type;
 
 using namespace simpla;

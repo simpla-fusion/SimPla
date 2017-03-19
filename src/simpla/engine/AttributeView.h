@@ -9,6 +9,7 @@
 #include <simpla/algebra/all.h>
 #include <simpla/data/all.h>
 
+#include <simpla/concept/CheckConcept.h>
 #include <simpla/concept/Printable.h>
 #include <simpla/design_pattern/Observer.h>
 #include <simpla/design_pattern/Signal.h>
@@ -19,6 +20,7 @@ namespace simpla {
 namespace engine {
 class DomainView;
 class MeshView;
+class MeshBlock;
 class AttributeView;
 class Patch;
 /**
@@ -86,27 +88,18 @@ inline std::ostream &operator<<(std::ostream &os, AttributeTag const &tag) {
 //    data::DataTable m_db_;
 //};
 
-class AttributeViewBundle : public SPObject, public concept::Printable {
+class AttributeViewBundle {
    public:
-    AttributeViewBundle(std::shared_ptr<data::DataEntity> const &t = nullptr);
+    AttributeViewBundle(DomainView *p = nullptr);
     virtual ~AttributeViewBundle();
-    virtual std::ostream &Print(std::ostream &os, int indent) const;
-
-    virtual bool isModified();
-    virtual bool Update();
-
     DomainView *GetDomain() const;
-    void RegisterDomain(DomainView *);
-    std::shared_ptr<MeshView> GetMesh() const;
-    std::shared_ptr<data::DataBlock> GetDataBlock(id_type guid) const;
-
     void Detach(AttributeView *attr);
     void Attach(AttributeView *attr);
+    MeshView const *GetMesh() const;
+    virtual void SetPatch(std::shared_ptr<Patch> const &);
+    virtual std::shared_ptr<Patch> GetPatch() const;
 
     void Foreach(std::function<void(AttributeView *)> const &) const;
-
-    virtual void PushPatch(std::shared_ptr<Patch> const &);
-    virtual std::shared_ptr<Patch> PopPatch() const;
 
    private:
     struct pimpl_s;
@@ -135,12 +128,11 @@ class AttributeViewBundle : public SPObject, public concept::Printable {
  * deactivate AttributeView
  * @enduml
  */
-struct AttributeView : public SPObject, public concept::Printable {
+struct AttributeView : public SPObject {
     SP_OBJECT_BASE(AttributeView);
 
    public:
     AttributeView(AttributeViewBundle *b = nullptr, std::shared_ptr<data::DataEntity> const &p = nullptr);
-    AttributeView(std::shared_ptr<MeshView> const &m = nullptr, std::shared_ptr<data::DataEntity> const &p = nullptr);
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
@@ -158,46 +150,34 @@ struct AttributeView : public SPObject, public concept::Printable {
         Config(a1, std::forward<Others>(others)...);
     }
 
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     id_type GetGUID() const;
     int GetTag() const;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
-    virtual std::type_info const &GetValueTypeInfo() const = 0;  //!< value type
-    virtual std::type_info const &GetMeshTypeInfo() const = 0;   //!< mesh type
+    virtual std::type_info const &value_type_info() const = 0;  //!< value type
+    virtual std::type_info const &mesh_type_info() const = 0;   //!< mesh type
+
+    virtual void SetData(std::shared_ptr<data::DataBlock> const &, std::shared_ptr<MeshBlock> const &mblk = nullptr);
+    virtual std::shared_ptr<data::DataBlock> GetData();
+    virtual std::shared_ptr<data::DataBlock> GetData() const;
 
     virtual bool Update();
-
     bool isNull() const;
     bool empty() const { return isNull(); };
-
-    /**
-     * @ingroup { observer
-     */
-    void Connect(AttributeViewBundle *b);
-    void Disconnect();
-    void OnNotify();
-    /** @}*/
-
-    MeshView const &GetMesh() const;
-    void PushDataBlock(std::shared_ptr<data::DataBlock> const &);
-    std::shared_ptr<data::DataBlock> PopDataBlock();
-    virtual void InitializeData();
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-template <typename...>
-class AttributeViewAdapter;
+template <typename, typename Enable = void>
+class AttributeViewAdapter {};
+
+CHECK_TYPE_MEMBER(mesh_type, mesh_type);
 
 template <typename U>
-class AttributeViewAdapter<U> : public AttributeView, public U {
+class AttributeViewAdapter<U, std::enable_if_t<!has_mesh_type<U>::value>> : public AttributeView, public U {
     SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
-
-    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshView)
-    typedef mesh_traits_t<U> mesh_type;
 
     typedef algebra::traits::value_type_t<U> value_type;
     static const int iform = algebra::traits::iform<U>::value;
@@ -206,12 +186,6 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
    public:
     typedef std::true_type prefer_pass_by_reference;
 
-    AttributeViewAdapter() : AttributeView(std::make_shared<mesh_type>()) {}
-
-    template <typename... Args>
-    explicit AttributeViewAdapter(std::shared_ptr<mesh_type> const &m, Args &&... args) : AttributeView(m) {
-        Config(std::forward<Args>(args)...);
-    }
     template <typename... Args>
     explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args) : AttributeView(b) {
         Config(std::forward<Args>(args)...);
@@ -221,37 +195,13 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
     AttributeViewAdapter(AttributeViewAdapter const &) = delete;
     virtual ~AttributeViewAdapter() {}
 
-    std::ostream &Print(std::ostream &os, int indent = 0) const final {
-        os << AttributeView::name() << " = {";
-        U::Print(os, indent);
-        os << "}";
-        return os;
-    }
     //    virtual std::shared_ptr<AttributeView> Duplicate(std::string const &s = "", int TAG = NORMAL) const = 0;
-    virtual std::type_info const &GetMeshTypeInfo() const { return typeid(mesh_type); };    //!< mesh type
-    virtual std::type_info const &GetValueTypeInfo() const { return typeid(value_type); };  //!< value type
+    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
     virtual int GetIFORM() const { return iform; };
     virtual int GetDOF() const { return dof; };
     void InitializeData() {}
-    std::shared_ptr<data::DataBlock> CreateDataBlock() const {
-        std::shared_ptr<data::DataBlock> p = nullptr;
+    virtual void Clear() { U::Clear(); }
 
-        // TODO: create data block!!
-        //        if (p == nullptr) {
-        //            UNIMPLEMENTED;
-        //            std::shared_ptr<DataBlock> d(nullptr);
-        //            //        if (d == nullptr) {
-        //            //            return std::make_shared<DefaultDataBlock<value_type, GetIFORM, GetDOF>>(nullptr,
-        //            U::size());
-        //            //        } else {
-        //            //            return std::make_shared<DefaultDataBlock<value_type, GetIFORM, GetDOF>>(
-        //            //                std::shared_ptr<value_type>(static_cast<value_type *>(d),
-        //                simpla::tags::do_nothing()),
-        //                //                U::size());
-        //                //        }
-        //        }
-        return p;
-    };
     template <typename TExpr>
     this_type &operator=(TExpr const &expr) {
         Click();
@@ -259,10 +209,51 @@ class AttributeViewAdapter<U> : public AttributeView, public U {
         return *this;
     };
 
-    virtual mesh_type const *mesh() const {
-        static_assert(std::is_base_of<MeshView, mesh_type>::value, "illegal mesh_type");
-        return static_cast<mesh_type const *>(&AttributeView::GetMesh());
+    bool Update() final {
+        if (AttributeView::Update()) {
+            U::Update();
+            return false;
+        } else {
+            return true;
+        }
     }
+};
+template <typename U>
+class AttributeViewAdapter<U, std::enable_if_t<has_mesh_type<U>::value>> : public AttributeView, public U {
+    typedef AttributeViewAdapter<U, std::enable_if_t<has_mesh_type<U>::value>> attribute_type;
+    SP_OBJECT_HEAD(attribute_type, AttributeView);
+
+    typedef typename U::mesh_type mesh_type;
+    typedef algebra::traits::value_type_t<U> value_type;
+    static const int iform = algebra::traits::iform<U>::value;
+    static const int dof = algebra::traits::dof<U>::value;
+
+   public:
+    typedef std::true_type prefer_pass_by_reference;
+
+    template <typename... Args>
+    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args) : AttributeView(b) {
+        Config(std::forward<Args>(args)...);
+    }
+
+    AttributeViewAdapter(AttributeViewAdapter &&) = delete;
+    AttributeViewAdapter(AttributeViewAdapter const &) = delete;
+    virtual ~AttributeViewAdapter() {}
+
+    virtual std::type_info const &mesh_type_info() const { return typeid(mesh_type); };    //!< mesh type
+    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
+    virtual int GetIFORM() const { return iform; };
+    virtual int GetDOF() const { return dof; };
+    //    virtual mesh_type const *GetMesh() const { return static_cast<mesh_type const *>(GetDomain()->GetMesh()); }
+    virtual void Clear() { U::Clear(); }
+
+    template <typename TExpr>
+    this_type &operator=(TExpr const &expr) {
+        Click();
+        U::operator=(expr);
+        return *this;
+    };
+
     bool Update() final {
         if (AttributeView::Update()) {
             U::Update();

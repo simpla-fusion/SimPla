@@ -40,7 +40,7 @@ SPObject::SPObject(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pi
     }
 }
 
-SPObject::SPObject(SPObject &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
+//SPObject::SPObject(SPObject &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
 SPObject::~SPObject() { OnDestroy(); }
 std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) const {
     return uri == "" ? m_pimpl_->m_db_ : m_pimpl_->m_db_->GetTable(uri);

@@ -19,7 +19,11 @@ class MeshBlock {
     size_type GetLevel() const;
     size_tuple GetDimensions() const;
     index_tuple GetOffset() const;
-    index_box_type const &GetIndexBox() const;
+    index_tuple GetGhostWidth() const;
+    index_box_type GetIndexBox(int IFORM = 0, int sub = 0) const;
+    index_box_type GetOuterIndexBox(int IFORM = 0, int sub = 0) const;
+    index_box_type GetInnerIndexBox(int IFORM = 0, int sub = 0) const;
+
     box_type GetBoundBox() const;
 
    private:

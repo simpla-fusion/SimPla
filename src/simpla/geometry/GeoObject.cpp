@@ -35,14 +35,5 @@ std::shared_ptr<GeoObject> GeoObjectFactory::Create(std::shared_ptr<data::DataEn
     return res;
 }
 
-// struct GeoObject::pimpl_s {};
-// GeoObject::GeoObject() : m_pimpl_(new pimpl_s) {}
-// GeoObject::GeoObject(GeoObject const &) : m_pimpl_(new pimpl_s) {}
-// GeoObject::~GeoObject(){};
-// box_type GeoObject::GetBoundBox() const {}
-// bool GeoObject::isNull() const { return true; }
-// bool GeoObject::isSolid() const { return false; }
-// bool GeoObject::isSurface() const { return false; }
-// bool GeoObject::isCurve() const { return false; }
 }  // namespace geometry {
 }  // namespace simpla {

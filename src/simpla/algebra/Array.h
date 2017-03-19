@@ -33,81 +33,76 @@ struct ArrayView : public concept::Printable {
 
    public:
     typedef V value_type;
-
+    static const int ndims = NDIMS;
     typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
     typedef std::true_type is_array;
 
    private:
-    size_type m_offset_;
-    size_type m_dims_[NDIMS];
-    size_type m_strides_[NDIMS];
-    index_type m_lower_[NDIMS];
-    index_type m_upper_[NDIMS];
-
-    value_type* m_data_;
-    std::shared_ptr<value_type> m_data_holder_;
+    typedef nTuple<index_type, NDIMS> m_index_tuple;
+    typedef std::tuple<m_index_tuple, m_index_tuple> m_index_box_type;
+    m_index_box_type m_index_box_;
+    std::shared_ptr<value_type> m_data_;
 
    public:
     ArrayView() {}
 
-    ArrayView(simpla::traits::nested_initializer_list_t<value_type, NDIMS> v) { UNIMPLEMENTED; }
+    ArrayView(m_index_box_type const& b, std::shared_ptr<value_type> const& d = nullptr)
+        : m_index_box_(b), m_data_(d) {}
 
-    template <typename... TID>
-    explicit ArrayView(TID&&... idx) : m_data_(nullptr), m_data_holder_(nullptr) {
-        ArrayView(std::forward<TID>(idx)...);
+    ArrayView(this_type const& other, m_index_tuple const& offset)
+        : m_index_box_(other.m_index_box_), m_data_(other.m_data_) {
+        Shift(offset);
     }
-
-    template <typename... TID>
-    ArrayView(value_type* d, TID&&... idx) : m_data_(d), m_data_holder_(d, simpla::tags::do_nothing()) {
-        ArrayView(std::forward<TID>(idx)...);
-    }
-
-    template <typename... TID>
-    ArrayView(std::shared_ptr<V> const& d, TID&&... idx) : m_data_holder_(d), m_dims_{idx...} {}
-
     template <typename... U>
     ArrayView(declare::Expression<U...> const& expr) {
-        Apply(tags::_assign(), expr);
+        Foreach(tags::_assign(), expr);
     }
 
     virtual ~ArrayView() {}
 
-    ArrayView(this_type const& other)
-        : ArrayView(other.m_data_holder_, other.m_dims_, other.m_lower_, other.m_upper_) {}
-
-    ArrayView(this_type&& other)
-        : ArrayView(std::move(other.m_data_holder_), other.m_dims_, other.m_lower_, other.m_upper_) {}
-    ArrayView(this_type& other, concept::tags::split const& s) : ArrayView(other.split(s)) {}
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
-    void Update() {}
-    virtual value_type* data() { return m_data_; }
-    virtual value_type const* data() const { return m_data_; }
-    size_type const* dims() const { return m_dims_; }
-    size_type const* dimensions() const { return m_dims_; }
 
-    index_type const* lower() const { return m_lower_; }
-    index_type const* upper() const { return m_upper_; }
-    int ndims() const { return NDIMS; }
+    void Update() {
+        if (m_data_ == nullptr) {
+            m_data_ =
+#ifdef NDEBUG
+                sp_alloc_array<V>(size());
+#else
+                std::shared_ptr<V>(new value_type[size()]);
+#endif
+        }
+    };
+
+    std::shared_ptr<value_type>& GetData() { return m_data_; }
+    std::shared_ptr<value_type> const& GetData() const { return m_data_; }
+    void SetData(std::shared_ptr<value_type> const& d) const { m_data_ = d; }
+    m_index_box_type const& GetIndexBox() const { return m_index_box_; }
+    void Shift(m_index_tuple const& offset) {
+        std::get<0>(m_index_box_) += offset;
+        std::get<1>(m_index_box_) += offset;
+    }
+
+    this_type operator()(m_index_tuple const& offset) { return this_type(*this, offset); }
 
     template <typename... TID>
     value_type& at(TID&&... s) {
-        return m_data_[hash(std::forward<TID>(s)...)];
+        return m_data_.get()[hash(std::forward<TID>(s)...)];
     }
 
     template <typename... TID>
     value_type const& at(TID&&... s) const {
-        return m_data_[hash(std::forward<TID>(s)...)];
+        return m_data_.get()[hash(std::forward<TID>(s)...)];
     }
 
     template <typename TID>
     value_type& operator[](TID s) {
-        return m_data_[s];
+        return at(s);
     }
 
     template <typename TID>
     value_type const& operator[](TID s) const {
-        return m_data_[s];
+        return at(s);
     }
 
     template <typename... TID>
@@ -121,93 +116,47 @@ struct ArrayView : public concept::Printable {
     }
 
     this_type& operator=(this_type const& rhs) {
-        Apply(tags::_assign(), rhs);
+        Foreach(tags::_assign(), rhs);
         return (*this);
     }
 
     template <typename TR>
     this_type& operator=(TR const& rhs) {
-        Apply(tags::_assign(), rhs);
+        Foreach(tags::_assign(), rhs);
         return (*this);
     }
 
-    size_type size(size_type const* dims) const {
+    size_type size() const {
         size_type res = 1;
-        for (int i = 0; i < NDIMS; ++i) { res *= dims[i]; }
+        for (int i = 0; i < NDIMS; ++i) {
+            res *= (std::get<1>(m_index_box_)[i - 1] - std::get<0>(m_index_box_)[i - 1]);
+        }
         return res;
     }
-
-    size_type size() const { return size(m_dims_); }
 
     void Clear() {
-        Initialize();
-        memset(m_data_, 0, size() * sizeof(value_type));
+        Update();
+        memset(m_data_.get(), 0, size() * sizeof(value_type));
     }
-    void Initialize() {
-        if (!m_data_holder_) {
-            m_data_holder_ =
-#ifdef NDEBUG
-                sp_alloc_array<V>(size(m_dims_));
-#else
-                std::shared_ptr<V>(new V[size(m_dims_)]);
-#endif
-        }
-        m_data_ = m_data_holder_.get();
-    };
-
-    void Finalize() {
-        m_data_holder_.reset();
-        m_data_ = nullptr;
-
-        for (int i = 0; i < NDIMS; ++i) {
-            m_dims_[i] = 0;
-            m_lower_[i] = 0;
-            m_upper_[i] = 0;
-        }
-    }
-    void Setup(size_type const* dims = nullptr, const index_type* lower = nullptr, const index_type* upper = nullptr) {
-        for (int i = 0; i < NDIMS; ++i) {
-            m_dims_[i] = dims == nullptr ? 1 : dims[i];
-            m_lower_[i] = lower == nullptr ? 0 : lower[i];
-            m_upper_[i] = upper == nullptr ? static_cast<index_type>(m_dims_[i]) : upper[i];
-        }
-    }
-
-    template <typename T0>
-    void copy_(T0* dest){};
-
-    template <typename U, typename T0, typename... Others>
-    void copy_(U* dest, T0 const& s0, Others&&... others) {
-        dest[0] = static_cast<U>(s0);
-        copy_(dest + 1, std::forward<Others>(others)...);
-    };
-
-    template <typename... TID>
-    void Setup(size_type s0, TID&&... idx) {
-        size_type dims[NDIMS];
-        dims[0] = s0;
-        copy_(dims + 1, std::forward<TID>(idx)...);
-        Setup(dims);
-    }
-
-    size_type hash() const { return 0; }
 
     template <typename... Others>
-    size_type hash(index_type s, Others&&... others) const {
-        return (s - m_lower_[NDIMS - sizeof...(others)-1]) * m_strides_[NDIMS - sizeof...(others)-1] +
-               hash(std::forward<Others>(others)...);
+    size_type hash(Others&&... others) const {
+        return hash(m_index_tuple(std::forward<Others>(others)...));
     }
-
-    size_type hash(index_type const* s) const {
-        size_type res = m_offset_;
-        for (int i = 0; i < NDIMS; ++i) { res += (s[i] - m_lower_[i]) * m_strides_[i]; }
+    size_type hash(std::initializer_list<index_type> const& idx) const { return hash(m_index_tuple(idx)); }
+    size_type hash(m_index_tuple const& idx) const {
+        size_type res = idx[0];
+        for (int i = 1; i < NDIMS; ++i) {
+            res *= (std::get<1>(m_index_box_)[i - 1] - std::get<0>(m_index_box_)[i - 1]);
+            res += idx[i] - std::get<0>(m_index_box_)[i];
+        }
         return res;
     }
 
-    std::ostream& Print(std::ostream& os, int indent = 0) const {
-        printNdArray(os, m_data_, NDIMS, m_dims_);
-        return os;
-    }
+    //    std::ostream& Print(std::ostream& os, int indent = 0) const {
+    //        printNdArray(os, m_data_, NDIMS, m_dims_);
+    //        return os;
+    //    }
 
    private:
     template <typename TFun>
@@ -232,44 +181,40 @@ struct ArrayView : public concept::Printable {
 
    public:
     template <typename TOP, typename... Others>
-    void Apply(TOP const& op, Others&&... others) {
-        Initialize();
-        traversal_nd(m_lower_, m_upper_,
+    void Foreach(TOP const& op, Others&&... others) {
+        Update();
+        traversal_nd(&std::get<0>(m_index_box_)[0], &std::get<1>(m_index_box_)[0],
                      [&](index_type const* idx) { op(at(idx), getValue(std::forward<Others>(others), idx)...); });
     };
 
     template <typename TOP>
     void Apply(TOP const& op) {
-        traversal_nd(m_lower_, m_upper_, [&](index_type const* idx) { op(at(idx)); });
+        traversal_nd(&std::get<0>(m_index_box_)[0], &std::get<1>(m_index_box_)[0],
+                     [&](index_type const* idx) { op(at(idx)); });
     };
 
     void swap(this_type& other) {
         std::swap(m_data_, other.m_data_);
-        std::swap(m_data_holder_, other.m_data_holder_);
-
-        for (int i = 0; i < NDIMS; ++i) {
-            std::swap(m_dims_[i], other.m_dims_[i]);
-            std::swap(m_lower_[i], other.m_lower_[i]);
-            std::swap(m_upper_[i], other.m_upper_[i]);
-        }
+        std::swap(m_index_box_, other.m_index_box_);
     };
 
-    this_type split(concept::tags::split const& split) {
-        this_type other(*this);
-        size_type max_dims = 0;
-        int n = 0;
-        for (int i = 0; i < NDIMS; ++i) {
-            if (m_dims_[i] > max_dims) {
-                n = i;
-                max_dims = m_dims_[i];
-            }
-        }
-        other.m_upper_[n] =
-            other.m_lower_[n] + (other.m_upper_[n] - other.m_lower_[n]) * split.left() / (split.left() + split.right());
-        m_lower_[n] = other.m_upper_[n];
-
-        return std::move(other);
-    }
+    //    this_type split(concept::tags::split const& split) {
+    //        this_type other(*this);
+    //        size_type max_dims = 0;
+    //        int n = 0;
+    //        for (int i = 0; i < NDIMS; ++i) {
+    //            if (m_dims_[i] > max_dims) {
+    //                n = i;
+    //                max_dims = m_dims_[i];
+    //            }
+    //        }
+    //        other.m_upper_[n] =
+    //            other.m_lower_[n] + (other.m_upper_[n] - other.m_lower_[n]) * split.left() / (split.left() +
+    //            split.right());
+    //        m_lower_[n] = other.m_upper_[n];
+    //
+    //        return std::move(other);
+    //    }
 
    public:
     template <typename T>

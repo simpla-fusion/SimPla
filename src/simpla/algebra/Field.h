@@ -59,7 +59,7 @@ class FieldView<TM, TV, IFORM, DOF> {
     typedef TM mesh_type;
     static constexpr int iform = IFORM;
     static constexpr int dof = DOF;
-
+    static constexpr int NDIMS = mesh_type::NDIMS;
     typedef std::true_type prefer_pass_by_reference;
     typedef std::false_type is_expression;
     typedef std::true_type is_field;
@@ -70,35 +70,40 @@ class FieldView<TM, TV, IFORM, DOF> {
         field_value_type;
 
    private:
-    std::shared_ptr<value_type> m_holder_ = nullptr;
-    value_type* m_data_ = nullptr;
-    mesh_type const* m_mesh_;
+    std::shared_ptr<mesh_type> m_mesh_;
+    typedef ArrayView<value_type, NDIMS> sub_array_type;
+    static constexpr int num_of_subs = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
+    std::shared_ptr<sub_array_type> m_data_[num_of_subs];
 
    public:
-    explicit FieldView(mesh_type const* m = nullptr, std::shared_ptr<value_type> const& d = nullptr)
-        : m_mesh_(m), m_holder_(d), m_data_(d.get()){};
+    explicit FieldView(std::shared_ptr<mesh_type> const& m = nullptr,
+                       std::shared_ptr<sub_array_type> const* d = nullptr) {
+        SetMesh(m);
+        SetData(d);
+    };
 
-    template <typename... Args>
-    explicit FieldView(std::shared_ptr<mesh_type> const& m, Args&&... args)
-        : FieldView(m.get(), std::forward<Args>(args)...){};
-
-    FieldView(this_type const& other) : m_data_(other.m_data_), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_) {}
-    FieldView(this_type&& other) : m_data_(other.m_data_), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_) {}
+    FieldView(this_type const& other) = delete;
+    FieldView(this_type&& other) = delete;
 
     virtual ~FieldView() {}
     virtual void Initialize() {}
+    virtual void Clear() { Update(); }
+
+    sub_array_type const& operator[](int i) const { return *m_data_[i % num_of_subs]; }
+    sub_array_type& operator[](int i) { return *m_data_[i % num_of_subs]; }
+
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
         if (m_data_ != nullptr) {
             auto dims = m_mesh_->dimensions();
             size_type s = m_mesh_->size();
-            int num_com = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
+//            int num_com = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
 
-            if (num_com <= 1) {
+            if (num_of_subs <= 1) {
                 printNdArray(os, m_data_, 3, &dims[0]);
 
             } else {
                 os << "{" << std::endl;
-                for (int i = 0; i < num_com; ++i) {
+                for (int i = 0; i < num_of_subs; ++i) {
                     os << "[" << i << "] =  ";
                     printNdArray(os, m_data_ + i * s, 3, &dims[0]);
                     os << std::endl;
@@ -110,7 +115,12 @@ class FieldView<TM, TV, IFORM, DOF> {
     }
 
     this_type& operator=(this_type const& rhs) {
-        this->Copy(rhs);
+        SetMesh(rhs.GetMesh());
+        SetData(nullptr);
+        Update();
+        for (int i = 0; i < num_of_subs; ++i) {
+            if (m_data_[i] == nullptr) { m_data_[i]->Copy(rhs.m_data_[i]); }
+        }
         return *this;
     }
     template <typename TR>
@@ -118,73 +128,26 @@ class FieldView<TM, TV, IFORM, DOF> {
         Assign(rhs);
         return *this;
     }
-    bool empty() const { return m_data_ == nullptr; }
+    bool empty() const { return m_data_[0] == nullptr; }
 
-    size_type size() const { return m_mesh_->size(IFORM) * DOF; }
-
-    virtual value_type* data() { return m_data_ != nullptr ? m_data_ : m_holder_.get(); }
-    virtual value_type const* data() const { return m_data_ != nullptr ? m_data_ : m_holder_.get(); }
-    virtual mesh_type const* mesh() const { return m_mesh_; }
-
-    virtual bool Update() {
-        m_data_ = data();
-        m_mesh_ = mesh();
-        ASSERT(m_mesh_ != nullptr);
-
-        if (m_data_ == nullptr) {
-            if (m_holder_ == nullptr) {
-                try {
-                    m_holder_ = std::shared_ptr<value_type>(new value_type[size()]);
-                } catch (std::bad_alloc const&) { THROW_EXCEPTION_BAD_ALLOC(size()); };
+    void Update() {
+        for (int i = 0; i < num_of_subs; ++i) {
+            if (m_data_[i] == nullptr) {
+                m_data_[i] == std::make_shared<sub_array_type>(m_mesh_->GetMeshBlock()->GetOuterIndexBox(IFORM, i));
             }
-            m_data_ = m_holder_.get();
         }
-        ASSERT(m_data_ != nullptr);
-        return true;
-    };
-
-    void Reset() {
-        m_holder_.reset();
-        m_data_ = nullptr;
-    };
-
-    void Clear() {
-        Update();
-        memset(m_data_, 0, size() * sizeof(value_type));
-    };
-
-    void Copy(this_type const& other) {
-        Update();
-        if (!other.empty()) { memcpy((void*)(m_data_), (void const*)(other.m_data_), size() * sizeof(value_type)); };
-    };
-
-    entity_id const& shift(entity_id const& s) const { return s; }
-
-    value_type const& at(entity_id const& s) const { return m_data_[m_mesh_->hash(shift(s))]; }
-
-    value_type& at(entity_id const& s) { return m_data_[m_mesh_->hash(shift(s))]; }
-
-    template <typename... TID>
-    value_type& at(TID&&... s) {
-        return m_data_[(m_mesh_->hash(std::forward<TID>(s)...))];
     }
-    template <typename... TID>
-    value_type const& at(TID&&... s) const {
-        return m_data_[(m_mesh_->hash(std::forward<TID>(s)...))];
+    void SetData(std::shared_ptr<sub_array_type> const* d = nullptr) {
+        for (int i = 0; i < num_of_subs; ++i) { m_data_[i] = (d != nullptr) ? d[i] : nullptr; }
     }
-    template <typename... TID>
-    decltype(auto) operator()(index_type i0, TID&&... s) {
-        return at(i0, std::forward<TID>(s)...);
-    }
+    std::shared_ptr<sub_array_type> const* GetData() const { return m_data_; }
 
-    template <typename... Args>
-    decltype(auto) operator()(index_type i0, Args&&... args) const {
-        return at(i0, std::forward<Args>(args)...);
-    }
+    void SetMesh(std::shared_ptr<mesh_type> const& m) { m_mesh_ = m; }
+    std::shared_ptr<mesh_type> const& GetMesh() const { return m_mesh_; }
 
-    decltype(auto) operator[](entity_id const& s) const { return at(s); }
+    value_type const& at(entity_id const& s) const { return (*m_data_[mesh_type::GetSub(s)])[mesh_type::UnpackIdx(s)]; }
 
-    decltype(auto) operator[](entity_id const& s) { return at(s); }
+    value_type& at(entity_id const& s) { return (*m_data_[mesh_type::GetSub(s)])[mesh_type::UnpackIdx(s)]; }
 
     typedef calculus::template calculator<TM> calculus_policy;
 

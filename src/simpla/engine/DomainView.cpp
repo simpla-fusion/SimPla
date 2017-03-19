@@ -121,22 +121,20 @@ bool DomainView::Update() {
 }
 
 void DomainView::Run(Real dt) {
-
-    m_pimpl_->m_mesh_->PushPatch(PopPatch());
+    m_pimpl_->m_mesh_->SetPatch(PopPatch());
     m_pimpl_->m_mesh_->Update();
     m_pimpl_->m_current_block_id_ = m_pimpl_->m_mesh_->GetMeshBlock()->GetGUID();
 
     for (auto &item : m_pimpl_->m_workers_) {
-        item.second->PushPatch(PopPatch());
+        item.second->SetPatch(PopPatch());
         item.second->Run(dt);
-        PushPatch(item.second->PopPatch());
+        PushPatch(item.second->GetPatch());
     }
-    PushPatch(m_pimpl_->m_mesh_->PopPatch());
+    PushPatch(m_pimpl_->m_mesh_->GetPatch());
 }
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p == nullptr) { return; }
     auto res = m_pimpl_->m_attr_bundle_.emplace(p);
-    p->RegisterDomain(this);
     if (res.second) {
         (*res.first)->Foreach([&](AttributeView *v) {
             if (v->name() != "") {

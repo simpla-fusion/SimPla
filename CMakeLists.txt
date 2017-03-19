@@ -78,5 +78,4 @@ add_subdirectory(test)
 #add_subdirectory(tools)
 add_subdirectory(docs)
 
-#add_subdirectory(scenario)
 #add_subdirectory(sp_lite)

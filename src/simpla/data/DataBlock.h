@@ -19,7 +19,7 @@ class DataBlock : public DataEntity {
    public:
     DataBlock() {}
     virtual ~DataBlock() {}
-    bool empty() const { return data() == nullptr; }
+    bool empty() const { return true; }
     virtual bool isHeavyBlock() const { return true; }
     virtual std::type_info const &value_type_info() const { return typeid(Real); };
     virtual int ndims() const { return 0; }
@@ -27,19 +27,21 @@ class DataBlock : public DataEntity {
     virtual size_type size() const { return 0; }
     virtual size_type const *GetGhostWidth() const { return nullptr; }
     virtual size_type const *GetDimensions() const { return nullptr; }
-    virtual void *data() { return nullptr; };
-    virtual void const *data() const { return nullptr; };
-    virtual void Clear(){};
+
+    virtual void Clear() { UNIMPLEMENTED; };
+    virtual void Copy(DataBlock const &) { UNIMPLEMENTED; };
 };
 template <typename U, int NDIMS>
-class DefaultDataBlock : public DataBlock {
+class DataBlockWrapper : public DataBlock {
+    typedef DataBlockWrapper data_block_wrapper_type;
+    SP_OBJECT_HEAD(data_block_wrapper_type, DataBlock);
     typedef U value_type;
 
    public:
-    DefaultDataBlock(std::shared_ptr<value_type> d = nullptr, size_type const *dims = nullptr,
+    DataBlockWrapper(std::shared_ptr<value_type> d = nullptr, size_type const *dims = nullptr,
                      size_type const *gw = nullptr)
         : m_data_(d) {}
-    virtual ~DefaultDataBlock() {}
+    virtual ~DataBlockWrapper() {}
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
     virtual size_type memory_size() {
         size_type s = sizeof(value_type);
@@ -53,12 +55,25 @@ class DefaultDataBlock : public DataBlock {
     }
     virtual size_type const *GetGhostWidth() const { return m_ghost_width_; }
     virtual size_type const *GetDimensions() const { return m_dimensions_; }
-    virtual void *data() { return m_data_.get(); };
-    virtual void const *data() const { return m_data_.get(); };
+    virtual value_type *data() { return m_data_.get(); };
+    virtual value_type const *data() const { return m_data_.get(); };
 
     virtual void Clear() {
         if (m_data_ != nullptr && memory_size() > 0) { memset(m_data_.get(), 0, memory_size()); }
     };
+    virtual void Copy(DataBlock const &other) {
+        ASSERT(other.isA(typeid(this_type)));
+        auto const &src = other.cast_as<this_type>();
+        for (int i = 0; i < NDIMS; ++i) {
+            m_ghost_width_[i] = src.m_ghost_width_[i];
+            m_dimensions_[i] = src.m_dimensions_[i];
+        }
+        m_data_ = std::shared_ptr<value_type>(new value_type[size()]);
+        memcpy(m_data_.get(), other.cast_as<this_type>().m_data_.get(), memory_size());
+    };
+    virtual void Update() {
+        if (m_data_ == nullptr) { m_data_ = std::shared_ptr<value_type>(new value_type[size()]); }
+    }
 
    private:
     std::shared_ptr<value_type> m_data_;

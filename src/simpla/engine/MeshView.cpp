@@ -49,7 +49,7 @@ struct MeshView::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
 };
 MeshView::MeshView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<geometry::GeoObject> const &geo_obj)
-    : AttributeViewBundle(t), m_pimpl_(new pimpl_s) {
+    : SPObject(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_obj_ = geo_obj;
     if (m_pimpl_->m_geo_obj_ == nullptr) {
         m_pimpl_->m_geo_obj_ = GLOBAL_GEO_OBJECT_FACTORY.Create(db()->Get("GeometryObject"));
@@ -72,18 +72,18 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
     return os;
 };
 
-
 bool MeshView::Update() { return SPObject::Update(); }
 std::shared_ptr<geometry::GeoObject> MeshView::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
-void MeshView::PushPatch(std::shared_ptr<Patch> const &p) {
+void MeshView::SetPatch(std::shared_ptr<Patch> const &p) {
     m_pimpl_->m_mesh_block_ = p->GetMeshBlock();
-    AttributeViewBundle::PushPatch(p);
+    AttributeViewBundle::SetPatch(p);
 };
-std::shared_ptr<Patch> MeshView::PopPatch() const {
-    auto res = AttributeViewBundle::PopPatch();
+std::shared_ptr<Patch> MeshView::GetPatch() const {
+    auto res = AttributeViewBundle::GetPatch();
     res->SetMeshBlock(m_pimpl_->m_mesh_block_);
     return res;
 }
+
 id_type MeshView::GetMeshBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }

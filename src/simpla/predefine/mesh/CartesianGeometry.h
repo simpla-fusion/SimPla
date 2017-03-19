@@ -13,7 +13,8 @@
 #include <iomanip>
 #include <vector>
 
-#include <simpla/engine/MeshView.h>
+#include <simpla/engine/all.h>
+#include <simpla/geometry/Cube.h>
 #include <simpla/toolbox/MemoryPool.h>
 //#include <simpla/mesh/DataBlock.h>
 //#include <simpla/mesh/RectMesh.h>
