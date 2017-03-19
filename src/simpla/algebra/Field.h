@@ -70,15 +70,13 @@ class FieldView<TM, TV, IFORM, DOF> {
         field_value_type;
 
    private:
-    std::shared_ptr<mesh_type> m_mesh_;
+    mesh_type const* m_mesh_;
     typedef ArrayView<value_type, NDIMS> sub_array_type;
     static constexpr int num_of_subs = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
     std::shared_ptr<sub_array_type> m_data_[num_of_subs];
 
    public:
-    explicit FieldView(std::shared_ptr<mesh_type> const& m = nullptr,
-                       std::shared_ptr<sub_array_type> const* d = nullptr) {
-        SetMesh(m);
+    explicit FieldView(mesh_type const* m, std::shared_ptr<sub_array_type> const* d = nullptr) : m_mesh_(m) {
         SetData(d);
     };
 
@@ -96,7 +94,7 @@ class FieldView<TM, TV, IFORM, DOF> {
         if (m_data_ != nullptr) {
             auto dims = m_mesh_->dimensions();
             size_type s = m_mesh_->size();
-//            int num_com = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
+            //            int num_com = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
 
             if (num_of_subs <= 1) {
                 printNdArray(os, m_data_, 3, &dims[0]);
@@ -141,9 +139,6 @@ class FieldView<TM, TV, IFORM, DOF> {
         for (int i = 0; i < num_of_subs; ++i) { m_data_[i] = (d != nullptr) ? d[i] : nullptr; }
     }
     std::shared_ptr<sub_array_type> const* GetData() const { return m_data_; }
-
-    void SetMesh(std::shared_ptr<mesh_type> const& m) { m_mesh_ = m; }
-    std::shared_ptr<mesh_type> const& GetMesh() const { return m_mesh_; }
 
     value_type const& at(entity_id const& s) const { return (*m_data_[mesh_type::GetSub(s)])[mesh_type::UnpackIdx(s)]; }
 

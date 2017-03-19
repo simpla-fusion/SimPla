@@ -98,7 +98,6 @@ class AttributeViewBundle {
     MeshView const *GetMesh() const;
     virtual void SetPatch(std::shared_ptr<Patch> const &);
     virtual std::shared_ptr<Patch> GetPatch() const;
-
     void Foreach(std::function<void(AttributeView *)> const &) const;
 
    private:
@@ -160,7 +159,6 @@ struct AttributeView : public SPObject {
     virtual void SetData(std::shared_ptr<data::DataBlock> const &, std::shared_ptr<MeshBlock> const &mblk = nullptr);
     virtual std::shared_ptr<data::DataBlock> GetData();
     virtual std::shared_ptr<data::DataBlock> GetData() const;
-
     virtual bool Update();
     bool isNull() const;
     bool empty() const { return isNull(); };
@@ -232,7 +230,8 @@ class AttributeViewAdapter<U, std::enable_if_t<has_mesh_type<U>::value>> : publi
     typedef std::true_type prefer_pass_by_reference;
 
     template <typename... Args>
-    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args) : AttributeView(b) {
+    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
+        : AttributeView(b), U(static_cast<mesh_type const *>(b->GetMesh())) {
         Config(std::forward<Args>(args)...);
     }
 

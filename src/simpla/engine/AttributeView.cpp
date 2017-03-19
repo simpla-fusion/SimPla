@@ -59,6 +59,7 @@ id_type GenerateGUID(std::string const &name_s, std::type_info const &t_id, int 
 struct AttributeView::pimpl_s {
     AttributeViewBundle *m_bundle_;
     std::shared_ptr<data::DataBlock> m_data_ = nullptr;
+    MeshView const *m_mesh_ = nullptr;
 };
 AttributeView::AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataEntity> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {
@@ -84,21 +85,24 @@ int AttributeView::GetTag() const { return GetDBValue<int>("Tag", 0); }
 
 void AttributeView::SetData(std::shared_ptr<data::DataBlock> const &d, std::shared_ptr<MeshBlock> const &mblk) {
     m_pimpl_->m_data_ = d;
+    Update();
 }
 std::shared_ptr<data::DataBlock> AttributeView::GetData() { return m_pimpl_->m_data_; }
 std::shared_ptr<data::DataBlock> AttributeView::GetData() const { return m_pimpl_->m_data_; }
-
 /**
- * @startuml
- * start
- *  if (m_domain_ == nullptr) then (yes)
- *  else   (no)
- *    : m_current_block_id = m_domain-> current_block_id();
- *  endif
- * stop
- * @enduml
- */
-bool AttributeView::Update() { return SPObject::Update(); }
+* @startuml
+* start
+*  if (m_domain_ == nullptr) then (yes)
+*  else   (no)
+*    : m_current_block_id = m_domain-> current_block_id();
+*  endif
+* stop
+* @enduml
+*/
+bool AttributeView::Update() {
+    if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_mesh_ = m_pimpl_->m_bundle_->GetMesh(); }
+    return SPObject::Update();
+}
 
 bool AttributeView::isNull() const { return m_pimpl_->m_data_ == nullptr; }
 
