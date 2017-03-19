@@ -89,14 +89,14 @@ void PML<TM>::Initialize() {
     point_type m_xmin, m_xmax;
     point_type c_xmin, c_xmax;
 
-    //    std::tie(m_xmin, m_xmax) = m->box();
-    //    std::tie(c_xmin, c_xmax) = center_box;
-    //    auto dims = m->dimensions();
-    //
-    //    m->range(VERTEX, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
-    //        point_type x = m->point(s);
-    //
-    //#define DEF(_N_)                                                                            \
+//    std::tie(m_xmin, m_xmax) = GetMesh()->box();
+//    std::tie(c_xmin, c_xmax) = center_box;
+//    auto dims = GetMesh()->dimensions();
+//
+//    GetMesh()->range(VERTEX, mesh::SP_ES_ALL).foreach ([&](id_type const &s) {
+//        point_type x = m->point(s);
+//
+//#define DEF(_N_)                                                                            \
 //    a##_N_[s] = 1;                                                                          \
 //    s##_N_[s] = 0;                                                                          \
 //    if (dims[_N_] > 1) {                                                                    \
@@ -110,11 +110,11 @@ void PML<TM>::Initialize() {
 //            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (m_xmax[_N_] - m_xmin[_N_]); \
 //        }                                                                                   \
 //    }
-    //        DEF(0)
-    //        DEF(1)
-    //        DEF(2)
-    //#undef DEF
-    //    });
+//        DEF(0)
+//        DEF(1)
+//        DEF(2)
+//#undef DEF
+//    });
 }
 
 template <typename TM>
