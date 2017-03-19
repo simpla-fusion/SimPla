@@ -101,7 +101,7 @@ namespace engine {
 class Worker : public SPObject, public AttributeViewBundle {
     SP_OBJECT_HEAD(Worker, SPObject)
    public:
-    Worker(std::shared_ptr<data::DataEntity> const &t = nullptr, std::shared_ptr<MeshView> const &p = nullptr);
+    Worker(std::shared_ptr<MeshView> const &p = nullptr, std::shared_ptr<data::DataEntity> const &t = nullptr);
     virtual ~Worker();
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
@@ -110,7 +110,7 @@ class Worker : public SPObject, public AttributeViewBundle {
     virtual bool Update();
 
     virtual void Run(Real dt);
-    virtual std::shared_ptr<MeshView> GetMesh() const;
+    virtual MeshView const *GetMesh() const;
     virtual void SetPatch(std::shared_ptr<Patch> const &);
     virtual std::shared_ptr<Patch> GetPatch() const;
 
@@ -124,10 +124,13 @@ struct WorkerFactory {
     WorkerFactory();
     ~WorkerFactory();
     bool RegisterCreator(std::string const &k,
-                         std::function<std::shared_ptr<Worker>(std::shared_ptr<data::DataTable> const &)> const &);
+                         std::function<std::shared_ptr<Worker>(std::shared_ptr<MeshView> const &,
+                                                               std::shared_ptr<data::DataTable> const &)> const &);
     template <typename U>
     bool RegisterCreator(std::string const &k) {
-        RegisterCreator(k, [&](std::shared_ptr<data::DataTable> const &t) { return std::make_shared<U>(t); });
+        RegisterCreator(k, [&](std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataTable> const &t) {
+            return std::make_shared<U>(m, t);
+        });
     }
 
     std::shared_ptr<Worker> Create(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataEntity> const &p);

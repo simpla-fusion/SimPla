@@ -28,8 +28,9 @@ class PML : public engine::Worker {
     template <int IFORM, int DOF = 1>
     using field_type = engine::FieldAttribute<TM, scalar_type, IFORM, DOF>;
 
-    PML(std::shared_ptr<data::DataTable> const &t = nullptr);
-    virtual ~PML();
+    template <typename... Args>
+    explicit PML(Args &&... args) : engine::Worker(std::forward<Args>(args)...){};
+    virtual ~PML(){};
     void SetCenterDomain(geometry::GeoObject const &) {}
     void Initialize();
     bool Update() { return false; }
@@ -63,10 +64,6 @@ class PML : public engine::Worker {
 
     inline Real alpha_(Real r, Real expN, Real dB) { return static_cast<Real>(1.0 + 2.0 * std::pow(r, expN)); }
 };
-template <typename TM>
-PML<TM>::PML(std::shared_ptr<data::DataTable> const &t) : engine::Worker(t) {}
-template <typename TM>
-PML<TM>::~PML() {}
 
 template <typename TM>
 void PML<TM>::Initialize() {

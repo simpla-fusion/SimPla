@@ -95,7 +95,7 @@ class AttributeViewBundle {
     DomainView *GetDomain() const;
     void Detach(AttributeView *attr);
     void Attach(AttributeView *attr);
-    MeshView const *GetMesh() const;
+    virtual MeshView const *GetMesh() const;
     virtual void SetPatch(std::shared_ptr<Patch> const &);
     virtual std::shared_ptr<Patch> GetPatch() const;
     void Foreach(std::function<void(AttributeView *)> const &) const;

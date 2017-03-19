@@ -21,11 +21,7 @@ void Patch::Push(std::shared_ptr<Patch> const &other) const {
 }
 
 id_type Patch::GetMeshBlockId() const { return GetMeshBlock()->GetGUID(); }
-
-void Patch::SetMeshBlock(std::shared_ptr<MeshBlock> const &m) {
-    ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    m_pimpl_->m_mesh_ = m;
-};
+void Patch::SetMeshBlock(std::shared_ptr<MeshBlock> const &m) { m_pimpl_->m_mesh_ = m; };
 int Patch::SetDataBlock(id_type const &id, std::shared_ptr<data::DataBlock> const &d) {
     auto res = m_pimpl_->m_data_.emplace(id, d);
     if (res.first->second == nullptr) { res.first->second = d; }

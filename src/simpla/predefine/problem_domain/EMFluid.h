@@ -27,7 +27,8 @@ class EMFluid : public engine::Worker {
     typedef TM mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
-    EMFluid(std::shared_ptr<data::DataEntity> const& t = nullptr) : engine::Worker(t) {}
+    template <typename... Args>
+    explicit EMFluid(Args&&... args) : engine::Worker(std::forward<Args>(args)...){};
     ~EMFluid() {}
 
     mesh_type* m_mesh_;

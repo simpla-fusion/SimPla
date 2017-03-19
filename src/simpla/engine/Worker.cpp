@@ -10,14 +10,16 @@ namespace simpla {
 namespace engine {
 
 struct WorkerFactory::pimpl_s {
-    std::map<std::string, std::function<std::shared_ptr<Worker>(std::shared_ptr<data::DataTable> const &)>>
+    std::map<std::string, std::function<std::shared_ptr<Worker>(std::shared_ptr<MeshView> const &,
+                                                                std::shared_ptr<data::DataTable> const &)>>
         m_worker_factory_;
 };
 
 WorkerFactory::WorkerFactory() : m_pimpl_(new pimpl_s){};
 WorkerFactory::~WorkerFactory(){};
 bool WorkerFactory::RegisterCreator(
-    std::string const &k, std::function<std::shared_ptr<Worker>(std::shared_ptr<data::DataTable> const &)> const &fun) {
+    std::string const &k, std::function<std::shared_ptr<Worker>(std::shared_ptr<MeshView> const &,
+                                                                std::shared_ptr<data::DataTable> const &)> const &fun) {
     return m_pimpl_->m_worker_factory_.emplace(k, fun).second;
 };
 std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m,
@@ -28,11 +30,11 @@ std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m
         return res;
     } else if (config->value_type_info() == typeid(std::string)) {
         s_name = m->name() + "." + data::data_cast<std::string>(*config);
-        res = m_pimpl_->m_worker_factory_.at(s_name)(nullptr);
+        res = m_pimpl_->m_worker_factory_.at(s_name)(m, nullptr);
     } else if (config->isTable()) {
         auto const &t = config->cast_as<data::DataTable>();
         s_name = m->name() + "." + t.GetValue<std::string>("name");
-        res = m_pimpl_->m_worker_factory_.at(s_name)(std::dynamic_pointer_cast<data::DataTable>(config));
+        res = m_pimpl_->m_worker_factory_.at(s_name)(m, std::dynamic_pointer_cast<data::DataTable>(config));
     }
     LOGGER << "Worker [" << s_name << "] is created!" << std::endl;
     return res;
@@ -41,13 +43,11 @@ std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m
 struct Worker::pimpl_s {
     std::shared_ptr<MeshView> m_mesh_ = nullptr;
 };
-Worker::Worker(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<MeshView> const &m)
+Worker::Worker(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataEntity> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_mesh_ = m;
 }
 Worker::~Worker(){};
-
-std::shared_ptr<MeshView> Worker::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
@@ -113,6 +113,7 @@ bool Worker::Update() {
     if (state_tag == 0) { Initialize(); }
     return true;
 }
+MeshView const *Worker::GetMesh() const { return m_pimpl_->m_mesh_.get(); };
 void Worker::SetPatch(std::shared_ptr<Patch> const &p) { AttributeViewBundle::SetPatch(p); }
 std::shared_ptr<Patch> Worker::GetPatch() const { return AttributeViewBundle::GetPatch(); }
 void Worker::Run(Real dt) {
