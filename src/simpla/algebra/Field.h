@@ -153,7 +153,7 @@ class FieldView<TM, TV, IFORM, DOF> {
         if (num_of_subs == 1) {
             return data::make_data_entity(m_data_[0]);
         } else {
-            std::shared_ptr<data::DataArrayWrapper<void>> t;
+            auto t = std::make_shared<data::DataArrayWrapper<void>>();
             for (int i = 0; i < num_of_subs; ++i) {
                 t->Add(data::make_data_entity(m_data_[i]));
 

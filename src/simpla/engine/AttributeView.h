@@ -23,37 +23,37 @@ class MeshView;
 class MeshBlock;
 class AttributeView;
 class Patch;
-/**
- *  permissions
- *
- *   r : readable
- *   w : writable
- *   c : create/delete
- *
- * [ 0:false 1:true ]
- * 0b0 0 0 0 0
- *   | | | | |------: is shared between different domain
- *   | | | |--------: has ghost cell
- *   | | |----------: PERSISTENT, if false then destroy data when AttributeView is destructed
- *   | |------------: become unmodifiable after first write
- *   |--------------: is coordinate
- */
-enum AttributeTag {
-    SCRATCH = 0,
-    SHARED = 1,            //
-    GHOSTED = 1 << 1,      //
-    PERSISTENT = 1 << 2,   //
-    INPUT = 1 << 3,        //  can only be written once
-    COORDINATES = 1 << 4,  //  coordinate of mesh vertex
-    NO_FILL,
-    GLOBAL = SHARED | GHOSTED | PERSISTENT,
-    PRIVATE = GHOSTED | PERSISTENT,
-    DEFAULT_ATTRIBUTE_TAG = GLOBAL
-};
-inline std::ostream &operator<<(std::ostream &os, AttributeTag const &tag) {
-    os << std::bitset<32>(static_cast<unsigned long long int>(tag));
-    return os;
-}
+///**
+// *  permissions
+// *
+// *   r : readable
+// *   w : writable
+// *   c : create/delete
+// *
+// * [ 0:false 1:true ]
+// * 0b0 0 0 0 0
+// *   | | | | |------: is shared between different domain
+// *   | | | |--------: has ghost cell
+// *   | | |----------: PERSISTENT, if false then destroy data when AttributeView is destructed
+// *   | |------------: become unmodifiable after first write
+// *   |--------------: is coordinate
+// */
+// enum AttributeTag {
+//    SCRATCH = 0,
+//    SHARED = 1,            //
+//    GHOSTED = 1 << 1,      //
+//    PERSISTENT = 1 << 2,   //
+//    INPUT = 1 << 3,        //  can only be written once
+//    COORDINATES = 1 << 4,  //  coordinate of mesh vertex
+//    NO_FILL,
+//    GLOBAL = SHARED | GHOSTED | PERSISTENT,
+//    PRIVATE = GHOSTED | PERSISTENT,
+//    DEFAULT_ATTRIBUTE_TAG = GLOBAL
+//};
+// inline std::ostream &operator<<(std::ostream &os, AttributeTag const &tag) {
+//    os << std::bitset<32>(static_cast<unsigned long long int>(tag));
+//    return os;
+//}
 // enum AttributeState { READ = 0b01, WRITE = 0b10 };
 //
 // struct AttributeDesc : public std::enable_shared_from_this<AttributeDesc> {
@@ -140,20 +140,7 @@ struct AttributeView : public SPObject {
     virtual ~AttributeView();
 
    public:
-    void Config();
-    void Config(std::string const &s) { db()->SetValue("name", s); }
-    void Config(AttributeTag const &s) { db()->SetValue("tag", (s)); }
-    void Config(data::KeyValue const &s) { db()->SetValue(s); }
-    void Config(int const &s) { db()->SetValue("tag", (s)); }
-
-    template <typename T0, typename T1, typename... Others>
-    void Config(T0 const &a0, T1 const &a1, Others &&... others) {
-        Config(a0);
-        Config(a1, std::forward<Others>(others)...);
-    }
-
     id_type GetGUID() const;
-    int GetTag() const;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
@@ -190,21 +177,18 @@ class AttributeViewAdapter<U, std::enable_if_t<!has_mesh_type<U>::value>> : publ
     typedef std::true_type prefer_pass_by_reference;
 
     template <typename... Args>
-    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args) : AttributeView(b) {
-        Config(std::forward<Args>(args)...);
-    }
+    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
+        : AttributeView(b, data::make_data_entity(std::forward<Args>(args)...)) {}
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
     AttributeViewAdapter(AttributeViewAdapter const &) = delete;
     virtual ~AttributeViewAdapter() {}
 
-    //    virtual std::shared_ptr<AttributeView> Duplicate(std::string const &s = "", int TAG = NORMAL) const = 0;
-    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
     virtual int GetIFORM() const { return iform; };
     virtual int GetDOF() const { return dof; };
-    void InitializeData() {}
+    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
+    virtual std::type_info const &mesh_type_info() const { return typeid(void); };         //!< mesh type
     virtual void Clear() { U::Clear(); }
-
     virtual void SetMesh(MeshView const *){};
     virtual MeshView const *GetMesh() const { return nullptr; };
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &d) {
@@ -213,7 +197,6 @@ class AttributeViewAdapter<U, std::enable_if_t<!has_mesh_type<U>::value>> : publ
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
         return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), U::PopData());
     };
-
     template <typename TExpr>
     this_type &operator=(TExpr const &expr) {
         Click();
@@ -247,18 +230,18 @@ class AttributeViewAdapter<U, std::enable_if_t<has_mesh_type<U>::value>> : publi
     typedef Array<value_type, NDIMS> array_type;
     template <typename... Args>
     explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
-        : AttributeView(b), U(static_cast<mesh_type const *>(b->GetMesh())) {
-        Config(std::forward<Args>(args)...);
-    }
+        : AttributeView(b, data::make_data_entity(std::forward<Args>(args)...)),
+          U(static_cast<mesh_type const *>(b->GetMesh())) {}
 
     AttributeViewAdapter(AttributeViewAdapter &&) = delete;
     AttributeViewAdapter(AttributeViewAdapter const &) = delete;
     virtual ~AttributeViewAdapter() {}
 
-    virtual std::type_info const &mesh_type_info() const { return typeid(mesh_type); };    //!< mesh type
-    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
     virtual int GetIFORM() const { return iform; };
     virtual int GetDOF() const { return dof; };
+    virtual std::type_info const &mesh_type_info() const { return typeid(mesh_type); };    //!< mesh type
+    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
+
     //    virtual mesh_type const *GetMesh() const { return static_cast<mesh_type const *>(GetDomain()->GetMesh()); }
     virtual void Clear() { U::Clear(); }
 

@@ -45,7 +45,7 @@ void AttributeViewBundle::SetMesh(MeshView const *m) {
 MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 void AttributeViewBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &p) {
-    if (GetMesh() == nullptr || GetMesh()->GetMeshBlockId() != m->GetGUID()) {
+    if (GetMesh() == nullptr || m == nullptr || GetMesh()->GetMeshBlockId() != m->GetGUID()) {
         RUNTIME_ERROR << " data and mesh mismatch!" << std::endl;
     }
 
@@ -60,12 +60,6 @@ std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> Attribu
 }
 void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fun) const {
     for (auto *attr : m_pimpl_->m_attr_views_) { fun(attr); }
-}
-
-id_type GenerateGUID(std::string const &name_s, std::type_info const &t_id, int IFORM, int DOF, int tag) {
-    std::string str = name_s + '.' + t_id.name() + '.' + static_cast<char>(IFORM + '0') + '.' +
-                      static_cast<char>(DOF + '0') + '.' + static_cast<char>(tag + '0');
-    return static_cast<id_type>(std::hash<std::string>{}(str));
 }
 
 struct AttributeView::pimpl_s {
@@ -83,16 +77,11 @@ AttributeView::~AttributeView() {
     m_pimpl_->m_bundle_ = nullptr;
 }
 
-void AttributeView::Config() {
-    db()->SetValue("iform", GetIFORM());
-    db()->SetValue("dof", GetDOF());
-    db()->SetValue("value value_type_info", value_type_info().name());
-    db()->SetValue("value value_type_info idx", std::type_index(value_type_info()).hash_code());
-    db()->SetValue("GUID", GenerateGUID(name(), value_type_info(), GetIFORM(), GetDOF(), GetTag()));
+id_type AttributeView::GetGUID() const {
+    std::string str = name() + '.' + value_type_info().name() + '.' + mesh_type_info().name() + '.' +
+                      static_cast<char>(GetIFORM() + '0') + '.' + static_cast<char>(GetDOF() + '0');
+    return static_cast<id_type>(std::hash<std::string>{}(str));
 }
-
-id_type AttributeView::GetGUID() const { return GetDBValue<id_type>("GUID", NULL_ID); }
-int AttributeView::GetTag() const { return GetDBValue<int>("Tag", 0); }
 void AttributeView::SetMesh(MeshView const *m) {
     if (m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo()) {
         m_pimpl_->m_mesh_ = m;

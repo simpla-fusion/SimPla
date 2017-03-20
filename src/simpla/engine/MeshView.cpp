@@ -81,6 +81,7 @@ void MeshView::SetMesh(MeshView const *m) {
 MeshView const *MeshView::GetMesh() const { return this; };
 
 void MeshView::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &p) {
+    ASSERT(m != nullptr);
     m_pimpl_->m_mesh_block_ = m;
     AttributeViewBundle::SetMesh(this);
     AttributeViewBundle::PushData(m, p);

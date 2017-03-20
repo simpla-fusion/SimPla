@@ -69,7 +69,7 @@ struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> :
    private:
     value_type m_data_;
 };
-
+inline std::shared_ptr<DataEntity> make_data_entity() { return nullptr; }
 template <typename U>
 struct data_entity_traits<U, std::enable_if_t<traits::is_light_data<U>::value>> {
     static U from(DataEntity const& v) { return v.cast_as<DataEntityWrapper<U>>().value(); };
@@ -92,6 +92,7 @@ std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<U> const& u) {
 inline std::shared_ptr<DataEntity> make_data_entity(char const* u) {
     return data_entity_traits<std::string>::to(std::string(u));
 }
+
 }  // namespace data {
 }  // namespace simpla {
 #endif  // SIMPLA_DATAENTITY_H

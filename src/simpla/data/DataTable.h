@@ -158,7 +158,12 @@ class DataTable : public DataEntity {
         Add(make_data_entity(std::initializer_list<U>{}));
     };
 };
-
+template <typename... Others>
+std::shared_ptr<DataEntity> make_data_entity(KeyValue const& first, Others&&... others) {
+    auto res = std::make_shared<DataTable>();
+    res->SetValue(first, std::forward<Others>(others)...);
+    return res;
+}
 }  // namespace data
 }  // namespace simpla
 

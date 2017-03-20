@@ -40,21 +40,17 @@ SPObject::SPObject(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pi
     }
 }
 
-//SPObject::SPObject(SPObject &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
+// SPObject::SPObject(SPObject &&other) : m_pimpl_(std::move(other.m_pimpl_)) {}
 SPObject::~SPObject() { OnDestroy(); }
 std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) const {
     return uri == "" ? m_pimpl_->m_db_ : m_pimpl_->m_db_->GetTable(uri);
 }
 std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) {
     Click();
-
     return uri == "" ? m_pimpl_->m_db_ : m_pimpl_->m_db_->GetTable(uri + "/");
 }
 
 std::string SPObject::name() const { return db()->GetValue<std::string>("name", ""); }
-void SPObject::name(std::string const &s) {
-    if (s != "") db()->SetValue("name", s);
-}
 
 id_type SPObject::id() const { return m_pimpl_->m_short_id_; }
 bool SPObject::operator==(SPObject const &other) { return m_pimpl_->m_id_ == other.m_pimpl_->m_id_; }

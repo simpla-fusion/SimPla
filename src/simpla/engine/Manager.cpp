@@ -73,7 +73,8 @@ void Manager::Advance(Real dt, int level) {
             auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
             if (res.first->second == nullptr) { res.first->second = std::make_shared<data::DataTable>(); }
             v.second->PushData(mblk, res.first->second);
-            LOGGER << " Run " << v.second->name() << " at " << mblk->GetIndexBox() << std::endl;
+            LOGGER << " DomainView [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
+                   << mblk->GetIndexBox() << std::endl;
             v.second->Run(dt);
             std::tie(std::ignore, res.first->second) = v.second->PopData();
         }
@@ -88,10 +89,10 @@ void Manager::Initialize() {
     db()->Set("DomainView/");
     auto &domain_t = *db()->GetTable("DomainView");
     domain_t.Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
+        item->cast_as<DataTable>().SetValue("name", item->cast_as<DataTable>().GetValue<std::string>("name", s_key));
 
         auto g_obj_ = GetModel().GetObject(s_key);
         auto view_res = m_pimpl_->m_views_.emplace(s_key, nullptr);
-
         if (view_res.first->second == nullptr) {
             view_res.first->second = std::make_shared<DomainView>(item, g_obj_);
         } else if (item != nullptr && item->isTable()) {
@@ -100,12 +101,11 @@ void Manager::Initialize() {
         // else { WARNING << " ignore data entity :" << *item << std::endl;}
 
         domain_t.Set(s_key, view_res.first->second->db(), true);
-        view_res.first->second->name(s_key);
-        view_res.first->second->Initialize(item, g_obj_);
+        view_res.first->second->Initialize(domain_t.Get(s_key), g_obj_);
         GetModel().AddObject(s_key, view_res.first->second->GetMesh()->GetGeoObject());
     });
     SPObject::Tag();
-    LOGGER << "Manager " << name() << " is initialized!" << std::endl;
+    LOGGER << "Manager [" << name() << "] is initialized!" << std::endl;
 }
 bool Manager::Update() { return SPObject::Update(); };
 }  // namespace engine {

@@ -84,8 +84,6 @@ class SPObject {
     SPObject &operator=(SPObject const &other) = delete;
     virtual ~SPObject();
     std::string name() const;
-    void name(std::string const &);
-
     std::shared_ptr<data::DataTable> db(std::string const &uri = "") const;
     std::shared_ptr<data::DataTable> db(std::string const &uri = "");
     template <typename U>

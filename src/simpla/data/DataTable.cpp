@@ -20,6 +20,7 @@ DataTable::DataTable(std::string const& uri, std::string const& param)
 DataTable::DataTable(std::shared_ptr<DataBackend> const& p) : m_backend_(p){};
 DataTable::DataTable(const DataTable& other) : m_backend_(std::move(other.m_backend_->Duplicate())) {}
 DataTable::DataTable(DataTable&& other) : m_backend_(std::move(other.m_backend_)) {}
+
 DataTable::~DataTable(){};
 void DataTable::swap(DataTable& other) { std::swap(m_backend_, other.m_backend_); };
 

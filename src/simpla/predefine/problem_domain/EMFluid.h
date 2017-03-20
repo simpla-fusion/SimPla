@@ -57,19 +57,19 @@ class EMFluid : public engine::Worker {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{this, "rho0"};
+    field_type<VERTEX> rho0{this, "name"_ = "rho0"};
 
-    field_type<EDGE> E0{this, "E0", GLOBAL};
-    field_type<FACE> B0{this, "B0", GLOBAL};
-    field_type<VERTEX, 3> B0v{this, "B0v", PRIVATE};
-    field_type<VERTEX> BB{this, "BB", PRIVATE};
-    field_type<VERTEX, 3> Ev{this, "Ev", PRIVATE};
-    field_type<VERTEX, 3> Bv{this, "Bv", PRIVATE};
-    field_type<VERTEX, 3> dE{this, "dE", PRIVATE};
+    field_type<EDGE> E0{this, "name"_ = "E0"};
+    field_type<FACE> B0{this, "name"_ = "B0"};
+    field_type<VERTEX, 3> B0v{this, "name"_ = "B0v"};
+    field_type<VERTEX> BB{this, "name"_ = "BB"};
+    field_type<VERTEX, 3> Ev{this, "name"_ = "Ev"};
+    field_type<VERTEX, 3> Bv{this, "name"_ = "Bv"};
+    field_type<VERTEX, 3> dE{this, "name"_ = "dE"};
 
-    field_type<FACE> B{this, "B", GLOBAL};
-    field_type<EDGE> E{this, "E", GLOBAL};
-    field_type<EDGE> J1{this, "J1", GLOBAL};
+    field_type<FACE> B{this, "name"_ = "B"};
+    field_type<EDGE> E{this, "name"_ = "E"};
+    field_type<EDGE> J1{this, "name"_ = "J1"};
 
     struct fluid_s {
         Real mass;
@@ -166,12 +166,12 @@ void EMFluid<TM>::NextTimeStep(Real data_time, Real dt) {
     E += (curl(B) * speed_of_light2 - J1 / epsilon0) * dt;
     SetPhysicalBoundaryConditionE(data_time);
     if (m_fluid_sp_.size() > 0) {
-        field_type<VERTEX, 3> Q{this, SCRATCH};
-        field_type<VERTEX, 3> K{this, SCRATCH};
+        field_type<VERTEX, 3> Q{this};
+        field_type<VERTEX, 3> K{this};
 
-        field_type<VERTEX> a{this, SCRATCH};
-        field_type<VERTEX> b{this, SCRATCH};
-        field_type<VERTEX> c{this, SCRATCH};
+        field_type<VERTEX> a{this};
+        field_type<VERTEX> b{this};
+        field_type<VERTEX> c{this};
 
         a.Clear();
         b.Clear();

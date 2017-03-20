@@ -106,6 +106,8 @@ MeshView const *DomainView::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
  * @enduml
  */
 void DomainView::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &d) {
+    ASSERT(m != nullptr);
+    m_pimpl_->m_mesh_block_ = m;
     if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<data::DataTable>(); }
     ASSERT(d->isTable());
     m_pimpl_->m_patch_->Set(d->cast_as<data::DataTable>());
@@ -155,10 +157,7 @@ void DomainView::Detach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) { Click(); }
 }
 void DomainView::Initialize(std::shared_ptr<data::DataEntity> const &p, std::shared_ptr<geometry::GeoObject> const &g) {
-    if (m_pimpl_->m_mesh_ != nullptr) {
-//        WARNING << "Re-initialize DomainView" << std::endl;
-        return;
-    }
+    if (m_pimpl_->m_mesh_ != nullptr || (p == nullptr && g == nullptr)) { return; }
 
     LOGGER << "Domain View [" << name() << "] is initializing!" << std::endl;
     m_pimpl_->m_mesh_ = GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"), g);
