@@ -85,7 +85,10 @@ template <typename U>
 std::shared_ptr<DataEntity> make_data_entity(U const& u) {
     return data_entity_traits<U>::to(u);
 }
-
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<U> const& u) {
+    return data_entity_traits<U>::to(u);
+}
 inline std::shared_ptr<DataEntity> make_data_entity(char const* u) {
     return data_entity_traits<std::string>::to(std::string(u));
 }

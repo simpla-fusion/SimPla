@@ -9,7 +9,8 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
-#include <simpla/engine/SPObject.h>
+#include <simpla/data/all.h>
+
 #include <simpla/mpl/Range.h>
 #include <simpla/toolbox/FancyStream.h>
 #include <simpla/toolbox/sp_def.h>
@@ -76,14 +77,17 @@ class FieldView<TM, TV, IFORM, DOF> {
     std::shared_ptr<sub_array_type> m_data_[num_of_subs];
 
    public:
-    explicit FieldView(mesh_type const* m, std::shared_ptr<sub_array_type> const* d = nullptr) : m_mesh_(m) {
-        SetData(d);
-    };
+    explicit FieldView(mesh_type const* m = nullptr, std::shared_ptr<data::DataEntity> const& d = nullptr)
+        : m_mesh_(m){};
 
     FieldView(this_type const& other) = delete;
     FieldView(this_type&& other) = delete;
 
     virtual ~FieldView() {}
+    template <typename U>
+    void SetMesh(U const* m, ENABLE_IF((std::is_base_of<U, mesh_type>::value))) {
+        m_mesh_ = dynamic_cast<mesh_type const*>(m);
+    }
     virtual void Initialize() {}
     virtual void Clear() { Update(); }
 
@@ -112,12 +116,10 @@ class FieldView<TM, TV, IFORM, DOF> {
         return os;
     }
 
-    this_type& operator=(this_type const& rhs) {
-        SetData(nullptr);
-        Update();
-        for (int i = 0; i < num_of_subs; ++i) {
-            if (m_data_[i] == nullptr) { m_data_[i]->Copy(rhs.m_data_[i]); }
-        }
+    this_type& operator=(this_type const& other) {
+        if (m_mesh_ == nullptr) { m_mesh_ = other.m_mesh_; }
+        Assign(other);
+        //        for (int i = 0; i < num_of_subs; ++i) { m_data_[i] = other.m_data_[i]; }
         return *this;
     }
     template <typename TR>
@@ -134,10 +136,32 @@ class FieldView<TM, TV, IFORM, DOF> {
             }
         }
     }
-    void SetData(std::shared_ptr<sub_array_type> const* d = nullptr) {
-        for (int i = 0; i < num_of_subs; ++i) { m_data_[i] = (d != nullptr) ? d[i] : nullptr; }
+    void PushData(std::shared_ptr<data::DataEntity> const& d = nullptr) {
+        //        ASSERT(m_mesh_->GetMeshBlock()->GetGUID() == m->GetGUID());
+        //        if (d == nullptr) { return; }
+        //
+        //        if (d->isArray() && num_of_subs > 1) {
+        //            auto& t = d->cast_as<data::DataArrayWrapper<void>>();
+        //            for (int i = 0; i < num_of_subs; ++i) {
+        //                m_data_[i] = t.Get(i)->cast_as<data::DataEntityWrapper<sub_array_type>>().data();
+        //            }
+        //        } else {
+        //            m_data_[0] = d->cast_as<data::DataEntityWrapper<sub_array_type>>().data();
+        //        }
     }
-    std::shared_ptr<sub_array_type> const* GetData() const { return m_data_; }
+    std::shared_ptr<data::DataEntity> PopData() {
+        if (num_of_subs == 1) {
+            return data::make_data_entity(m_data_[0]);
+        } else {
+            std::shared_ptr<data::DataArrayWrapper<void>> t;
+            for (int i = 0; i < num_of_subs; ++i) {
+                t->Add(data::make_data_entity(m_data_[i]));
+
+                m_data_[i].reset();
+            }
+            return t;
+        }
+    }
 
     value_type const& at(entity_id const& s) const { return (*m_data_[mesh_type::GetSub(s)])[mesh_type::UnpackIdx(s)]; }
 

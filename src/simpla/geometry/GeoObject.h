@@ -227,7 +227,7 @@ struct GeoObjectFactory {
         RegisterCreator(k, [&](std::shared_ptr<data::DataEntity> const &t) { return std::make_shared<U>(t); });
     }
 
-    std::shared_ptr<GeoObject> Create(std::shared_ptr<data::DataEntity> const &p)const;
+    std::shared_ptr<GeoObject> Create(std::shared_ptr<data::DataEntity> const &p) const;
 
    private:
     struct pimpl_s;
@@ -243,7 +243,7 @@ struct data_entity_traits<U, std::enable_if_t<std::is_base_of<geometry::GeoObjec
     static U from(DataEntity const &v) { return v.cast_as<DataEntityWrapper<U>>().value(); };
     static std::shared_ptr<DataEntity> to(U const &v) {
         auto t = std::make_shared<DataTable>();
-        t->SetValue("type", v.getClassName());
+        t->SetValue("type", v.GetClassName());
         t->SetValue("bound_box", v.GetBoundBox());
         return std::dynamic_pointer_cast<DataEntity>(t);
     };

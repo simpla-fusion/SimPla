@@ -109,10 +109,17 @@ class Worker : public SPObject, public AttributeViewBundle {
     virtual void Process(){};
     virtual bool Update();
 
+    //    virtual void SetMesh(MeshView const *);
+    //    virtual MeshView const *GetMesh() const;
+    //    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
+    //    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();
+
+    using AttributeViewBundle::SetMesh;
+    using AttributeViewBundle::GetMesh;
+    using AttributeViewBundle::PopData;
+    using AttributeViewBundle::PushData;
+
     virtual void Run(Real dt);
-    virtual MeshView const *GetMesh() const;
-    virtual void SetPatch(std::shared_ptr<Patch> const &);
-    virtual std::shared_ptr<Patch> GetPatch() const;
 
    private:
     struct pimpl_s;

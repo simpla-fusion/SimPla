@@ -70,12 +70,12 @@ struct CartesianGeometry : public engine::MeshView {
    public:
     CartesianGeometry(std::shared_ptr<data::DataEntity> const &t,
                       std::shared_ptr<geometry::GeoObject> const &g = nullptr)
-        : engine::MeshView(t, g) {
+        : engine::MeshView(g, t) {
         name("CartesianGeometry");
     }
 
     CartesianGeometry(Real const *lower, Real const *upper)
-        : engine::MeshView(nullptr, std::make_shared<geometry::Cube>(lower, upper)) {
+        : engine::MeshView(std::make_shared<geometry::Cube>(lower, upper), nullptr) {
         name("CartesianGeometry");
     }
 

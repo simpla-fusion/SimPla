@@ -15,6 +15,7 @@ namespace engine {
 
 struct AttributeViewBundle::pimpl_s {
     DomainView *m_domain_ = nullptr;
+    MeshView const *m_mesh_;
     std::set<AttributeView *> m_attr_views_;
 };
 
@@ -35,16 +36,27 @@ void AttributeViewBundle::Attach(AttributeView *p) {
 void AttributeViewBundle::Detach(AttributeView *p) {
     if (p != nullptr) { m_pimpl_->m_attr_views_.erase(p); }
 }
-MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_domain_->GetMesh().get(); }
 DomainView *AttributeViewBundle::GetDomain() const { return m_pimpl_->m_domain_; }
 
-void AttributeViewBundle::SetPatch(std::shared_ptr<Patch> const &p) {
-    for (auto *v : m_pimpl_->m_attr_views_) { v->SetData(p->GetDataBlock(v->GetGUID())); }
+void AttributeViewBundle::SetMesh(MeshView const *m) {
+    m_pimpl_->m_mesh_ = m;
+    for (auto *v : m_pimpl_->m_attr_views_) { v->SetMesh(m); }
 }
-std::shared_ptr<Patch> AttributeViewBundle::GetPatch() const {
-    auto res = std::make_shared<Patch>();
-    for (auto *v : m_pimpl_->m_attr_views_) { res->SetDataBlock(v->GetGUID(), v->GetData()); }
-    return res;
+MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
+
+void AttributeViewBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &p) {
+    if (GetMesh() == nullptr || GetMesh()->GetMeshBlockId() != m->GetGUID()) {
+        RUNTIME_ERROR << " data and mesh mismatch!" << std::endl;
+    }
+
+    ASSERT(p->isTable());
+    auto const &t = p->cast_as<data::DataTable>();
+    for (auto *v : m_pimpl_->m_attr_views_) { v->PushData(m, t.Get(std::to_string(v->GetGUID()))); }
+}
+std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> AttributeViewBundle::PopData() {
+    auto res = std::make_shared<data::DataTable>();
+    for (auto *v : m_pimpl_->m_attr_views_) { res->Set(std::to_string(v->GetGUID()), v->PopData().second); }
+    return std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(), res);
 }
 void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fun) const {
     for (auto *attr : m_pimpl_->m_attr_views_) { fun(attr); }
@@ -58,8 +70,7 @@ id_type GenerateGUID(std::string const &name_s, std::type_info const &t_id, int 
 
 struct AttributeView::pimpl_s {
     AttributeViewBundle *m_bundle_;
-    std::shared_ptr<data::DataEntity> m_data_ = nullptr;
-    MeshView const *m_mesh_ = nullptr;
+    MeshView const *m_mesh_;
 };
 AttributeView::AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataEntity> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {
@@ -82,28 +93,28 @@ void AttributeView::Config() {
 
 id_type AttributeView::GetGUID() const { return GetDBValue<id_type>("GUID", NULL_ID); }
 int AttributeView::GetTag() const { return GetDBValue<int>("Tag", 0); }
-
-void AttributeView::SetData(std::shared_ptr<data::DataEntity> const &d) {
-    m_pimpl_->m_data_ = d;
-    Update();
+void AttributeView::SetMesh(MeshView const *m) {
+    if (m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo()) {
+        m_pimpl_->m_mesh_ = m;
+    } else {
+        RUNTIME_ERROR << "Can not change the mesh type of a worker! [ from " << m_pimpl_->m_mesh_->GetClassName()
+                      << " to " << m->GetClassName() << "]" << std::endl;
+    }
 }
-std::shared_ptr<data::DataEntity> AttributeView::GetData() const { return m_pimpl_->m_data_; }
+MeshView const *AttributeView::GetMesh() const { return m_pimpl_->m_mesh_; }
 /**
-* @startuml
-* start
-*  if (m_domain_ == nullptr) then (yes)
-*  else   (no)
-*    : m_current_block_id = m_domain-> current_block_id();
-*  endif
-* stop
-* @enduml
+*@startuml
+*start
+* if (m_domain_ == nullptr) then (yes)
+* else   (no)
+*   : m_current_block_id = m_domain-> current_block_id();
+* endif
+*stop
+*@enduml
 */
-bool AttributeView::Update() {
-    if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_mesh_ = m_pimpl_->m_bundle_->GetMesh(); }
-    return SPObject::Update();
-}
+bool AttributeView::Update() { return SPObject::Update(); }
 
-bool AttributeView::isNull() const { return m_pimpl_->m_data_ == nullptr; }
+bool AttributeView::isNull() const { return false; }
 
 }  //{ namespace engine
 }  // namespace simpla

@@ -13,7 +13,7 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/design_pattern/Observer.h>
 #include <simpla/design_pattern/Signal.h>
-
+#include "MeshBlock.h"
 #include "SPObject.h"
 
 namespace simpla {
@@ -95,9 +95,12 @@ class AttributeViewBundle {
     DomainView *GetDomain() const;
     void Detach(AttributeView *attr);
     void Attach(AttributeView *attr);
+
+    virtual void SetMesh(MeshView const *);
     virtual MeshView const *GetMesh() const;
-    virtual void SetPatch(std::shared_ptr<Patch> const &);
-    virtual std::shared_ptr<Patch> GetPatch() const;
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();
+
     void Foreach(std::function<void(AttributeView *)> const &) const;
 
    private:
@@ -156,8 +159,11 @@ struct AttributeView : public SPObject {
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
     virtual std::type_info const &mesh_type_info() const = 0;   //!< mesh type
 
-    virtual void SetData(std::shared_ptr<data::DataEntity> const &);
-    virtual std::shared_ptr<data::DataEntity> GetData() const;
+    virtual void SetMesh(MeshView const *);
+    virtual MeshView const *GetMesh() const;
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &) = 0;
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() = 0;
+
     virtual bool Update();
     bool isNull() const;
     bool empty() const { return isNull(); };
@@ -198,6 +204,15 @@ class AttributeViewAdapter<U, std::enable_if_t<!has_mesh_type<U>::value>> : publ
     virtual int GetDOF() const { return dof; };
     void InitializeData() {}
     virtual void Clear() { U::Clear(); }
+
+    virtual void SetMesh(MeshView const *){};
+    virtual MeshView const *GetMesh() const { return nullptr; };
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &d) {
+        U::PushData(d);
+    };
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
+        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), U::PopData());
+    };
 
     template <typename TExpr>
     this_type &operator=(TExpr const &expr) {
@@ -253,20 +268,20 @@ class AttributeViewAdapter<U, std::enable_if_t<has_mesh_type<U>::value>> : publi
         U::operator=(expr);
         return *this;
     };
-    virtual void SetData(std::shared_ptr<data::DataEntity> const &d) {
-        AttributeView::SetData(d);
-        if (GetDOF() == 1 && d->isHeavyBlock()) {
-            auto p = d->template cast_as<data::DataEntityWrapper<array_type>>().data();
-            U::SetData(&p);
-        } else if (d->isArray() && d->cast_as<data::DataArray>().size() == num_of_sub) {
-            std::vector<std::shared_ptr<array_type>> t_d;
-            d->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &v) {
-                t_d.push_back(v->template cast_as<data::DataEntityWrapper<array_type>>().data());
-            });
-            U::SetData(&t_d[0]);
-        }
+
+    virtual void SetMesh(MeshView const *m) {
+        AttributeView::SetMesh(m);
+        U::SetMesh(GetMesh());
+    };
+
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &d) {
+        ASSERT(GetMesh()->GetMeshBlock()->GetGUID() == m->GetGUID());
+        U::PushData(d);
     }
-    virtual std::shared_ptr<data::DataEntity> GetData() const {}
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
+        return std::make_pair(GetMesh()->GetMeshBlock(), U::PopData());
+    }
+
     bool Update() final {
         if (AttributeView::Update()) {
             U::Update();

@@ -33,20 +33,20 @@ class DomainView : public concept::Printable, public SPObject {
                std::shared_ptr<geometry::GeoObject> const &g = nullptr);
     virtual ~DomainView();
     virtual std::ostream &Print(std::ostream &os, int indent) const final;
-    virtual void Initialize();
+    virtual void Initialize(std::shared_ptr<data::DataEntity> const &p = nullptr,
+                            std::shared_ptr<geometry::GeoObject> const &g = nullptr);
+    virtual void Finalize();
     virtual bool Update();
+
+    virtual void SetMesh(MeshView const *) = delete;
+
+    virtual MeshView const *GetMesh() const;
+
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
+    virtual void PushData(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> const &);
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();
+
     virtual void Run(Real dt);
-
-    id_type current_block_id() const;
-
-    void PushPatch(std::shared_ptr<Patch> const &);
-    std::shared_ptr<Patch> PopPatch() const;
-
-    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
-    std::shared_ptr<MeshView> GetMesh() const;
-    std::shared_ptr<MeshView> SetMesh(std::shared_ptr<MeshView> const &m);
-    id_type GetMeshBlockId() const;
-    std::shared_ptr<MeshBlock> GetMeshBlock() const;
 
     std::pair<std::shared_ptr<Worker>, bool> AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
     void RemoveWorker(std::shared_ptr<Worker> const &w);

@@ -31,7 +31,7 @@ std::shared_ptr<GeoObject> GeoObjectFactory::Create(std::shared_ptr<data::DataEn
         res = m_pimpl_->m_mesh_factory_.at(t->cast_as<data::DataTable>().GetValue<std::string>("name"))(t);
     }
 
-    if (res != nullptr) { LOGGER << "GeoObject [" << res->getClassName() << "] is created!" << std::endl; }
+    if (res != nullptr) { LOGGER << "GeoObject [" << res->GetClassName() << "] is created!" << std::endl; }
     return res;
 }
 

@@ -10,7 +10,7 @@ namespace simpla {
 namespace engine {
 
 struct Manager::pimpl_s {
-    std::map<id_type, std::shared_ptr<Patch>> m_patches_;
+    std::map<id_type, std::shared_ptr<data::DataEntity>> m_patches_;
     std::map<std::string, std::shared_ptr<DomainView>> m_views_;
     std::map<std::string, std::shared_ptr<AttributeView>> m_attrs_;
     Atlas m_atlas_;
@@ -50,13 +50,15 @@ void Manager::Synchronize(int from, int to) {
             auto s_it = m_pimpl_->m_patches_.find(src);
             auto d_it = m_pimpl_->m_patches_.find(dest);
             if (s_it == m_pimpl_->m_patches_.end() || d_it == m_pimpl_->m_patches_.end() || s_it == d_it) { continue; }
-            LOGGER << "Synchronize From " << s_it->second->GetMeshBlock()->GetIndexBox() << " to "
-                   << s_it->second->GetMeshBlock()->GetIndexBox() << " " << std::endl;
-            auto &src_data = s_it->second->GetAllDataBlock();
-            for (auto const &item : src_data) {
-                auto dest_data = d_it->second->GetDataBlock(item.first);
-                if (dest_data == nullptr) { continue; }
-            }
+            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetBlock(s_it->first)->GetIndexBox() << " to "
+                   << m_pimpl_->m_atlas_.GetBlock(d_it->first)->GetIndexBox() << " " << std::endl;
+            auto &src_data = s_it->second->cast_as<data::DataTable>();
+            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &dest_p) {
+                auto dest_data = d_it->second->cast_as<data::DataTable>().Get(key);
+                //                        ->cast_as<data::DataTable>();
+                if (dest_data == nullptr) { return; }
+
+            });
         }
     }
 }
@@ -69,12 +71,11 @@ void Manager::Advance(Real dt, int level) {
         for (auto &v : m_pimpl_->m_views_) {
             if (!v.second->GetMesh()->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
             auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
-            if (res.first->second == nullptr) { res.first->second = std::make_shared<Patch>(mblk); }
-            v.second->PushPatch(res.first->second);
-            LOGGER << " Run " << v.second->name() << " at " << res.first->second->GetMeshBlock()->GetIndexBox()
-                   << std::endl;
+            if (res.first->second == nullptr) { res.first->second = std::make_shared<data::DataTable>(); }
+            v.second->PushData(mblk, res.first->second);
+            LOGGER << " Run " << v.second->name() << " at " << mblk->GetIndexBox() << std::endl;
             v.second->Run(dt);
-            res.first->second = v.second->PopPatch();
+            std::tie(std::ignore, res.first->second) = v.second->PopData();
         }
     }
     m_pimpl_->m_time_ += dt;
@@ -89,19 +90,19 @@ void Manager::Initialize() {
     domain_t.Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
 
         auto g_obj_ = GetModel().GetObject(s_key);
-        auto res = m_pimpl_->m_views_.emplace(s_key, nullptr);
+        auto view_res = m_pimpl_->m_views_.emplace(s_key, nullptr);
 
-        if (res.first->second == nullptr) {
-            res.first->second = std::make_shared<DomainView>(item, g_obj_);
+        if (view_res.first->second == nullptr) {
+            view_res.first->second = std::make_shared<DomainView>(item, g_obj_);
         } else if (item != nullptr && item->isTable()) {
-            res.first->second->db()->Set(*std::dynamic_pointer_cast<data::DataTable>(item));
+            view_res.first->second->db()->Set(*std::dynamic_pointer_cast<data::DataTable>(item));
         }
         // else { WARNING << " ignore data entity :" << *item << std::endl;}
 
-        domain_t.Set(s_key, res.first->second->db(), true);
-        res.first->second->name(s_key);
-        res.first->second->Initialize();
-        GetModel().AddObject(s_key, res.first->second->GetGeoObject());
+        domain_t.Set(s_key, view_res.first->second->db(), true);
+        view_res.first->second->name(s_key);
+        view_res.first->second->Initialize(item, g_obj_);
+        GetModel().AddObject(s_key, view_res.first->second->GetMesh()->GetGeoObject());
     });
     SPObject::Tag();
     LOGGER << "Manager " << name() << " is initialized!" << std::endl;

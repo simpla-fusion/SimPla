@@ -42,7 +42,7 @@ struct CylindricalGeometry : public engine::MeshView {
     static constexpr int ndims = 3;
 
     template <typename... Args>
-    explicit CylindricalGeometry(Args &&... args) : MeshView() {
+    explicit CylindricalGeometry(Args &&... args) : MeshView(<#initializer#>, <#initializer#>) {
         //        engine::AttributeViewBundle::Attach(this);
     }
 

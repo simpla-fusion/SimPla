@@ -38,6 +38,7 @@ class DataEntityWrapper<simpla::Array<U, NDIMS>> : public DataBlock {
     typedef simpla::Array<U, NDIMS> array_type;
     SP_OBJECT_HEAD(DataEntityWrapper<array_type>, DataBlock);
     typedef typename array_type::value_type value_type;
+
    public:
     explicit DataEntityWrapper(std::shared_ptr<array_type> const &d) : m_data_(d) {}
 
@@ -53,6 +54,10 @@ class DataEntityWrapper<simpla::Array<U, NDIMS>> : public DataBlock {
    private:
     std::shared_ptr<array_type> m_data_;
 };
+template <typename U, int NDIMS>
+std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U, NDIMS>> const &p) {
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<simpla::Array<U, NDIMS>>>(p));
+}
 // template <typename...>
 // class DataBlockAdapter;
 //

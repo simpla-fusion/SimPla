@@ -41,18 +41,18 @@ std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m
 }
 
 struct Worker::pimpl_s {
-    std::shared_ptr<MeshView> m_mesh_ = nullptr;
+    MeshView const *m_mesh_ = nullptr;
 };
 Worker::Worker(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataEntity> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_mesh_ = m;
+    m_pimpl_->m_mesh_ = m.get();
 }
 Worker::~Worker(){};
 
 std::ostream &Worker::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
     //       << " [" << getClassName() << " : " << GetName() << "]" << std::endl;
-    os << std::setw(indent + 1) << "  value_type_info = \"" << getClassName() << "\", config = {" << db() << "},";
+    os << std::setw(indent + 1) << "  value_type_info = \"" << GetClassName() << "\", config = {" << db() << "},";
     os << std::setw(indent + 1) << " attributes = { ";
     os << "  } , ";
     return os;
@@ -113,9 +113,7 @@ bool Worker::Update() {
     if (state_tag == 0) { Initialize(); }
     return true;
 }
-MeshView const *Worker::GetMesh() const { return m_pimpl_->m_mesh_.get(); };
-void Worker::SetPatch(std::shared_ptr<Patch> const &p) { AttributeViewBundle::SetPatch(p); }
-std::shared_ptr<Patch> Worker::GetPatch() const { return AttributeViewBundle::GetPatch(); }
+
 void Worker::Run(Real dt) {
     Update();
     Process();

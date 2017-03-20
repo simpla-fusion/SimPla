@@ -48,7 +48,7 @@ struct MeshView::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
 };
-MeshView::MeshView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<geometry::GeoObject> const &geo_obj)
+MeshView::MeshView(const std::shared_ptr<geometry::GeoObject> &geo_obj, std::shared_ptr<data::DataEntity> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_obj_ = geo_obj;
     if (m_pimpl_->m_geo_obj_ == nullptr) {
@@ -59,7 +59,7 @@ MeshView::MeshView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<g
 MeshView::~MeshView() {}
 
 std::ostream &MeshView::Print(std::ostream &os, int indent) const {
-    os << std::setw(indent + 1) << "value_type_info = \"" << getClassName() << "\",";
+    os << std::setw(indent + 1) << "value_type_info = \"" << GetClassName() << "\",";
     if (m_pimpl_->m_mesh_block_ != nullptr) {
         os << std::endl;
         os << std::setw(indent + 1) << " "
@@ -74,27 +74,28 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
 
 bool MeshView::Update() { return SPObject::Update(); }
 std::shared_ptr<geometry::GeoObject> MeshView::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
-void MeshView::SetPatch(std::shared_ptr<Patch> const &p) {
-    m_pimpl_->m_mesh_block_ = p->GetMeshBlock();
-    AttributeViewBundle::SetPatch(p);
+
+void MeshView::SetMesh(MeshView const *m) {
+    if (m != this) { RUNTIME_ERROR << "Redefine mesh!" << std::endl; }
 };
-std::shared_ptr<Patch> MeshView::GetPatch() const {
-    auto res = AttributeViewBundle::GetPatch();
-    res->SetMeshBlock(m_pimpl_->m_mesh_block_);
-    return res;
+MeshView const *MeshView::GetMesh() const { return this; };
+
+void MeshView::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &p) {
+    m_pimpl_->m_mesh_block_ = m;
+    AttributeViewBundle::SetMesh(this);
+    AttributeViewBundle::PushData(m, p);
+    Click();
+};
+std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> MeshView::PopData() {
+    Click();
+    return AttributeViewBundle::PopData();
 }
 
 id_type MeshView::GetMeshBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }
 std::shared_ptr<MeshBlock> const &MeshView::GetMeshBlock() const { return m_pimpl_->m_mesh_block_; }
-void MeshView::SetMeshBlock(std::shared_ptr<MeshBlock> const &m) {
-    if (m == m_pimpl_->m_mesh_block_) {
-        return;
-    } else
-        m_pimpl_->m_mesh_block_ = m;
-    Click();
-}
+
 void MeshView::Initialize() {}
 
 Real MeshView::GetDt() const { return 1.0; }

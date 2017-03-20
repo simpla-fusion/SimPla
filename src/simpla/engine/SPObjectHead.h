@@ -17,31 +17,31 @@
     template <typename U_>                                                                           \
     U_ &cast_as() {                                                                                  \
         ASSERT(isA(typeid(U_)));                                                                     \
-        return *dynamic_cast<U_ *>(this);                                                             \
+        return *dynamic_cast<U_ *>(this);                                                            \
     }                                                                                                \
     template <typename U_>                                                                           \
     U_ const &cast_as() const {                                                                      \
         ASSERT(isA(typeid(U_)));                                                                     \
-        return *dynamic_cast<U_ const *>(this);                                                       \
+        return *dynamic_cast<U_ const *>(this);                                                      \
     }                                                                                                \
-    virtual std::type_index TypeIndex() const { return std::type_index(typeid(_BASE_CLASS_NAME_)); } \
-    virtual std::string getClassName() const { return __STRING(_BASE_CLASS_NAME_); }
+    virtual std::type_info const &GetTypeInfo() const { return typeid(_BASE_CLASS_NAME_); }          \
+    virtual std::string GetClassName() const { return __STRING(_BASE_CLASS_NAME_); }
 
 /**
  * @brief define the common part of the derived class
  */
-#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                                         \
-   public:                                                                                      \
-    virtual bool isA(std::type_info const &info) const {                                        \
-        return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::isA(info);                    \
-    }                                                                                           \
-    virtual std::type_index TypeIndex() const { return std::type_index(typeid(_CLASS_NAME_)); } \
-    virtual std::string getClassName() const { return __STRING(_CLASS_NAME_); }                 \
-                                                                                                \
-   private:                                                                                     \
-    typedef _BASE_CLASS_NAME_ base_type;                                                        \
-    typedef _CLASS_NAME_ this_type;                                                             \
-                                                                                                \
+#define SP_OBJECT_HEAD(_CLASS_NAME_, _BASE_CLASS_NAME_)                                \
+   public:                                                                             \
+    virtual bool isA(std::type_info const &info) const {                               \
+        return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::isA(info);           \
+    }                                                                                  \
+    virtual std::type_info const &GetTypeInfo() const { return typeid(_CLASS_NAME_); } \
+    virtual std::string GetClassName() const { return __STRING(_CLASS_NAME_); }        \
+                                                                                       \
+   private:                                                                            \
+    typedef _BASE_CLASS_NAME_ base_type;                                               \
+    typedef _CLASS_NAME_ this_type;                                                    \
+                                                                                       \
    public:
 
 #endif  // SIMPLA_SPOBJECTHEAD_H

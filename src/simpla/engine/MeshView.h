@@ -22,25 +22,27 @@ class Patch;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshView : public SPObject, public AttributeViewBundle {
+class MeshView : public SPObject, public AttributeViewBundle, public std::enable_shared_from_this<MeshView> {
     SP_OBJECT_HEAD(MeshView, SPObject);
 
    public:
-    MeshView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<geometry::GeoObject> const &obj = nullptr);
+    MeshView(const std::shared_ptr<geometry::GeoObject> &obj, std::shared_ptr<data::DataEntity> const &t = nullptr);
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
     size_tuple GetGhostWidth() const;
-
     id_type GetMeshBlockId() const;
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
-    void SetMeshBlock(std::shared_ptr<MeshBlock> const &);
     std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
 
-    virtual void SetPatch(std::shared_ptr<Patch> const &p);
-    virtual std::shared_ptr<Patch> GetPatch() const;
     virtual bool Update();
     virtual void Initialize();
+
+    virtual void SetMesh(MeshView const *);
+    virtual MeshView const *GetMesh() const;
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();
+
     Real GetDt() const;
 
     size_type size(int IFORM = VERTEX) const { return 0; }

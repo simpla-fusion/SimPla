@@ -15,25 +15,24 @@ namespace engine {
 
 struct DomainView::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
-    std::shared_ptr<geometry::GeoObject> m_geo_obj_;
+
     std::shared_ptr<MeshView> m_mesh_;
     std::map<int, std::shared_ptr<Worker>> m_workers_;
-    std::shared_ptr<Patch> m_patch_;
     std::set<AttributeViewBundle *> m_attr_bundle_;
-    //    Manager *m_manager_ = nullptr;
 
-    //    DataAttribute<int, VERTEX, 9> m_tags_{"tags", "INPUT"_};
-    //    std::map<int, std::map<int, Range<entity_id>>> m_range_cache_;
-    //    std::map<int, std::map<int, std::map<int, Range<entity_id>>>> m_interface_cache_;
+    std::shared_ptr<MeshBlock> m_mesh_block_;
+    std::shared_ptr<data::DataTable> m_patch_;
 };
 
 DomainView::DomainView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<geometry::GeoObject> const &g)
     : SPObject(t), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_geo_obj_ = g;
+    Initialize(t, g);
 }
 DomainView::~DomainView() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { Detach(item); }
+    Finalize();
 }
+MeshView const *DomainView::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
 
 /**
  *
@@ -106,31 +105,37 @@ DomainView::~DomainView() {
  * deactivate Main
  * @enduml
  */
-void DomainView::PushPatch(std::shared_ptr<Patch> const &p) { m_pimpl_->m_patch_ = p; };
-std::shared_ptr<Patch> DomainView::PopPatch() const { return m_pimpl_->m_patch_; };
-id_type DomainView::current_block_id() const { return m_pimpl_->m_current_block_id_; }
+void DomainView::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &d) {
+    if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<data::DataTable>(); }
+    ASSERT(d->isTable());
+    m_pimpl_->m_patch_->Set(d->cast_as<data::DataTable>());
+    m_pimpl_->m_current_block_id_ = m->GetGUID();
+};
+void DomainView::PushData(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> const &p) {
+    PushData(p.first, p.second);
+}
+std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> DomainView::PopData() {
+    auto res = std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(),
+                              std::dynamic_pointer_cast<data::DataEntity>(m_pimpl_->m_patch_));
+    m_pimpl_->m_patch_.reset();
+    return std::move(res);
+};
 
 bool DomainView::Update() {
     if (!isModified()) { return false; }
-    //    ASSERT(m_pimpl_->m_patch_ != nullptr);
-    //    if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<Patch>(); }
-    //    if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->OnNotify(); }
-    //    for (auto &item : m_pimpl_->m_workers_) { item.second->OnNotify(); }
-
     return SPObject::Update();
 }
 
 void DomainView::Run(Real dt) {
-    m_pimpl_->m_mesh_->SetPatch(PopPatch());
+    m_pimpl_->m_mesh_->PushData(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
     m_pimpl_->m_mesh_->Update();
-    m_pimpl_->m_current_block_id_ = m_pimpl_->m_mesh_->GetMeshBlock()->GetGUID();
 
     for (auto &item : m_pimpl_->m_workers_) {
-        item.second->SetPatch(PopPatch());
+        item.second->SetMesh(m_pimpl_->m_mesh_.get());
+        item.second->PushData(m_pimpl_->m_mesh_->GetMeshBlock(), m_pimpl_->m_patch_);
         item.second->Run(dt);
-        PushPatch(item.second->GetPatch());
+        PushData(item.second->PopData());
     }
-    PushPatch(m_pimpl_->m_mesh_->GetPatch());
 }
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p == nullptr) { return; }
@@ -149,13 +154,15 @@ void DomainView::Attach(AttributeViewBundle *p) {
 void DomainView::Detach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) { Click(); }
 }
-void DomainView::Initialize() {
-    LOGGER << "Domain View [" << name() << "] is initializing!" << std::endl;
-    if (m_pimpl_->m_mesh_ == nullptr) {
-        SetMesh(GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"), m_pimpl_->m_geo_obj_));
+void DomainView::Initialize(std::shared_ptr<data::DataEntity> const &p, std::shared_ptr<geometry::GeoObject> const &g) {
+    if (m_pimpl_->m_mesh_ != nullptr) {
+//        WARNING << "Re-initialize DomainView" << std::endl;
+        return;
     }
+
+    LOGGER << "Domain View [" << name() << "] is initializing!" << std::endl;
+    m_pimpl_->m_mesh_ = GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"), g);
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    m_pimpl_->m_geo_obj_ = m_pimpl_->m_mesh_->GetGeoObject();
 
     auto t_worker = db()->Get("Worker");
     if (t_worker != nullptr) {
@@ -166,18 +173,10 @@ void DomainView::Initialize() {
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
     Tag();
 }
-
-std::shared_ptr<MeshView> DomainView::SetMesh(std::shared_ptr<MeshView> const &m) {
-    Click();
-    m_pimpl_->m_mesh_ = m;
-    db()->Set("Mesh", m_pimpl_->m_mesh_->db(), true);
-    m_pimpl_->m_geo_obj_ = m_pimpl_->m_mesh_->GetGeoObject();
-    Attach(m.get());
-    return m_pimpl_->m_mesh_;
-};
-
-std::shared_ptr<MeshView> DomainView::GetMesh() const { return m_pimpl_->m_mesh_; }
-std::shared_ptr<geometry::GeoObject> DomainView::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
+void DomainView::Finalize() {
+    SPObject::Finalize();
+    m_pimpl_.reset(new pimpl_s);
+}
 
 std::pair<std::shared_ptr<Worker>, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
     auto res = m_pimpl_->m_workers_.emplace(pos, w);
@@ -191,18 +190,6 @@ void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
     //    auto it = m_backend_->m_workers_.find(w);
     //    if (it != m_backend_->m_workers_.end()) { m_backend_->m_workers_.Disconnect(it); }
 };
-
-id_type DomainView::GetMeshBlockId() const { return m_pimpl_->m_patch_->GetMeshBlock()->GetGUID(); }
-std::shared_ptr<MeshBlock> DomainView::GetMeshBlock() const { return m_pimpl_->m_patch_->GetMeshBlock(); };
-//std::shared_ptr<data::DataEntity> DomainView::GetDataBlock(id_type id) const {
-//    return m_pimpl_->m_patch_->GetDataBlock(id);
-//}
-//
-// void DomainView::Register(AttributeDict &dbase) {
-//    for (auto &item : m_pimpl_->m_attr_bundle_) {
-//        item->Foreach([&](AttributeView *view) { view->Register(dbase); });
-//    }
-//}
 
 std::ostream &DomainView::Print(std::ostream &os, int indent) const {
     if (m_pimpl_->m_mesh_ != nullptr) {
