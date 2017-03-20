@@ -12,6 +12,8 @@
 
 namespace simpla {
 namespace data {
+class DataEntity;
+void Serialize(std::shared_ptr<DataEntity> const &d, std::ostream &os, std::string const &type, int indent = 0);
 
 static std::regex const sub_group_regex(R"(([^/?#]+)/)", std::regex::optimize);
 static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::regex::optimize);
@@ -52,7 +54,8 @@ std::pair<T, std::string> HierarchicalTableForeach(T self, std::string const &ur
          pos = sub_match_result.suffix().first) {
         std::string k = sub_match_result.str(1);
 
-        try {
+//        try
+        {
             if (check(t, k)) {
                 t = get(t, k);
             } else if (!return_if_not_exist) {
@@ -60,13 +63,13 @@ std::pair<T, std::string> HierarchicalTableForeach(T self, std::string const &ur
             } else {
                 return std::make_pair(t, sub_match_result.suffix().str() + uri_match_result[3].str());
             }
-        } catch (...) {
-            RUNTIME_ERROR << std::endl
-                          << std::setw(25) << std::right << "illegal path [/" << uri << "]" << std::endl
-                          << std::setw(25) << std::right << "     at here   " << std::setw(&(*pos) - &(*uri.cbegin()))
-                          << " "
-                          << " ^" << std::endl;
         }
+//        catch (...) {
+//            WARNING << std::endl
+//                    << std::setw(25) << std::right << "illegal path [/" << uri << "]" << std::endl
+//                    << std::setw(25) << std::right << "     at here   " << std::setw(&(*pos) - &(*uri.cbegin())) << " "
+//                    << " ^" << std::endl;
+//        }
     }
 
     return std::make_pair(t, uri_match_result[3].str());

@@ -11,13 +11,12 @@ DataArray::DataArray() {}
 DataArray::~DataArray() {}
 std::ostream& DataArray::Print(std::ostream& os, int indent) const {
     size_type ie = size();
-
     os << "[";
     Get(0)->Print(os, indent + 1);
     for (size_type i = 1; i < ie; ++i) {
         os << " , ";
         Get(i)->Print(os, indent + 1);
-//        if (i % 5 == 0) { os << std::endl; }
+        //        if (i % 5 == 0) { os << std::endl; }
     }
     os << "]";
     return os;

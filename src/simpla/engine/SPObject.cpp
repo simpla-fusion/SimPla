@@ -35,7 +35,7 @@ SPObject::SPObject(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pi
     if (t != nullptr && t->isLight() && t->value_type_info() == typeid(std::string)) {
         m_pimpl_->m_db_->SetValue("name", data::data_cast<std::string>(*t));
     }
-    m_pimpl_->m_db_->SetValue("GUID", g_obj_hasher(g_uuid_generator()));
+    m_pimpl_->m_db_->SetValue("GUID", std::to_string(g_obj_hasher(g_uuid_generator())));
 }
 SPObject::~SPObject() { OnDestroy(); }
 std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) const {
@@ -47,8 +47,15 @@ std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) {
 }
 
 std::string SPObject::name() const { return db()->GetValue<std::string>("name", ""); }
-id_type SPObject::GetGUID() const { return db()->GetValue<id_type>("GUID", NULL_ID); }
-
+id_type SPObject::GetGUID() const {
+    // FIXME: work around some data backend do not support long int
+    auto res = db()->GetValue<std::string>("GUID", "");
+    if (res == "") {
+        return NULL_ID;
+    } else {
+        return from_string<id_type>(res);
+    }
+}
 
 void SPObject::lock() { m_pimpl_->m_mutex_.lock(); }
 void SPObject::unlock() { m_pimpl_->m_mutex_.unlock(); }

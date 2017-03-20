@@ -2,8 +2,10 @@
 // Created by salmon on 17-2-16.
 //
 #include "Manager.h"
+#include <simpla/data/DataUtility.h>
 #include <simpla/data/all.h>
 #include <simpla/geometry/GeoAlgorithm.h>
+
 #include "MeshView.h"
 #include "Worker.h"
 namespace simpla {
@@ -89,6 +91,7 @@ void Manager::Initialize() {
     db()->Set("DomainView/");
     auto &domain_t = *db()->GetTable("DomainView");
     domain_t.Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
+        if (!item->isTable()) { return; }
         item->cast_as<DataTable>().SetValue("name", item->cast_as<DataTable>().GetValue<std::string>("name", s_key));
 
         auto g_obj_ = GetModel().GetObject(s_key);
@@ -105,7 +108,8 @@ void Manager::Initialize() {
         GetModel().AddObject(s_key, view_res.first->second->GetMesh()->GetGeoObject());
     });
     SPObject::Tag();
-    LOGGER << "Manager [" << name() << "] is initialized!" << std::endl;
+
+    MESSAGE << "Manager [" << name() << "] is initialized!" << std::endl;
 }
 bool Manager::Update() { return SPObject::Update(); };
 }  // namespace engine {

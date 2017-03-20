@@ -22,6 +22,7 @@ class DataBackendLua : public DataBackend {
     DataBackendLua(DataBackendLua const&);
     virtual ~DataBackendLua();
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
+    virtual void Parser(std::string const&);
     virtual void Connect(std::string const&, std::string const& param);
     virtual void Disconnect();
     virtual std::shared_ptr<DataBackend> Duplicate() const;
@@ -38,7 +39,7 @@ class DataBackendLua : public DataBackend {
     virtual size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
    private:
-    static const bool m_isRegitered_;
+    static const bool m_isRegistered_;
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };

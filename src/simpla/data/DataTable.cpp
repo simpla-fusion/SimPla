@@ -76,7 +76,9 @@ std::shared_ptr<DataTable> DataTable::GetTable(std::string const& uri) const {
 size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
 
 void DataTable::Set(DataTable const& other, bool overwrite) {
-    other.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v, overwrite); });
+    other.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> v) {
+        Set(k, v, overwrite);
+    });
 }
 void DataTable::SetValue(KeyValue const& item) { Set(item.first, item.second); }
 
@@ -104,6 +106,7 @@ std::ostream& DataTable::Print(std::ostream& os, int indent) const {
        << "}";
     return os;
 };
+
 
 }  // namespace data
 }  // namespace simpla

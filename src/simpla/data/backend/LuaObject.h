@@ -147,8 +147,8 @@ class LuaObject : public concept::Printable {
      *  list =  table without key
      *  ntuple = list with number value
      */
-    bool is_list() const;
-    bool is_array() const { return is_list(); }
+    bool is_list() const { return is_array(); }
+    bool is_array() const;
     bool is_nTuple() const;
     std::string get_typename() const;
     void init();

@@ -9,7 +9,7 @@
 #include "LuaObject.h"
 namespace simpla {
 namespace data {
-const bool DataBackendLua::m_isRegitered_ = GLOBAL_DATA_BACKEND_FACTORY.Register<DataBackendLua>("lua");
+const bool DataBackendLua::m_isRegistered_ = GLOBAL_DATA_BACKEND_FACTORY.Register<DataBackendLua>("lua");
 template <typename U>
 struct DataEntityLua;
 template <typename U>
@@ -76,6 +76,7 @@ std::shared_ptr<DataEntity> DataBackendLua::pimpl_s::make_data_array_lua(toolbox
     for (auto const& item : lobj) { res->Add(item.second.as<U>()); }
     return std::dynamic_pointer_cast<DataEntity>(res);
 }
+
 std::shared_ptr<DataEntity> DataBackendLua::pimpl_s::make_data_entity_lua(toolbox::LuaObject const& lobj) {
     if (lobj.is_list()) {
         auto p = lobj[0];
@@ -85,6 +86,10 @@ std::shared_ptr<DataEntity> DataBackendLua::pimpl_s::make_data_entity_lua(toolbo
             return make_data_array_lua<int>(lobj);
         } else if (p.is_string()) {
             return make_data_array_lua<std::string>(lobj);
+        } else {
+            auto res = std::make_shared<DataArrayWrapper<void>>();
+            for (auto const& item : lobj) { res->Add(make_data_entity_lua(item.second)); }
+            return std::dynamic_pointer_cast<DataEntity>(res);
         }
     } else if (lobj.is_table()) {
         auto p = std::make_unique<DataBackendLua>();
@@ -119,6 +124,7 @@ std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
 
 bool DataBackendLua::isNull() const { return m_pimpl_->m_lua_obj_.is_null(); }
 void DataBackendLua::Flush() {}
+void DataBackendLua::Parser(std::string const& str) { m_pimpl_->m_lua_obj_.parse_string(str); }
 void DataBackendLua::Connect(std::string const& path, std::string const& param) {
     m_pimpl_->m_lua_obj_.parse_file(path);
 }
@@ -149,8 +155,12 @@ int DataBackendLua::pimpl_s::set_data_to_lua(toolbox::LuaObject& lobj, int key, 
         lobj.set(key, data_cast<bool>(v));
     } else if (v.value_type_info() == typeid(int)) {
         lobj.set(key, data_cast<int>(v));
+    } else if (v.value_type_info() == typeid(id_type)) {
+        lobj.set(key, static_cast<int>(data_cast<id_type>(v)));
     } else if (v.value_type_info() == typeid(double)) {
         lobj.set(key, data_cast<double>(v));
+    } else if (v.value_type_info() == typeid(float)) {
+        lobj.set(key, data_cast<float>(v));
     } else if (v.value_type_info() == typeid(std::string)) {
         lobj.set(key, data_cast<std::string>(v));
     } else {
@@ -169,7 +179,6 @@ int DataBackendLua::pimpl_s::set_data_to_lua(toolbox::LuaObject& lobj, std::stri
         db.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> p) { set_data_to_lua(b, k, *p); });
     } else if (v.isArray()) {
         auto const& db = v.cast_as<DataArray>();
-        CHECK(db.size());
         auto b = lobj.new_table(key, db.size(), 0);
         for (int s = 0, se = static_cast<int>(db.size()); s < se; ++s) { add_data_to_lua(b, *db.Get(s)); }
     } else if (v.value_type_info() == typeid(bool)) {
@@ -239,7 +248,10 @@ int DataBackendLua::Set(std::string const& key, std::shared_ptr<DataEntity> cons
 
 int DataBackendLua::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) { UNIMPLEMENTED; }
 
-size_type DataBackendLua::Delete(std::string const& key) { return 0; }
+size_type DataBackendLua::Delete(std::string const& key) {
+    UNIMPLEMENTED;
+    return 0;
+}
 size_type DataBackendLua::size() const { return 0; }
 size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     if (m_pimpl_->m_lua_obj_.is_global()) {
@@ -247,7 +259,9 @@ size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::sh
         UNIMPLEMENTED;
     } else {
         for (auto const& item : m_pimpl_->m_lua_obj_) {
-            f(item.first.as<std::string>(), DataBackendLua::pimpl_s::make_data_entity_lua(item.second));
+            if (item.first.is_string()) {
+                f(item.first.as<std::string>(), DataBackendLua::pimpl_s::make_data_entity_lua(item.second));
+            }
         };
     }
 }

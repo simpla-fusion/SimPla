@@ -193,8 +193,9 @@ struct data_entity_traits<std::tuple<U...>> {
         detail::data_entity_from_helper(v.cast_as<DataArray>(), res, std::integral_constant<int, sizeof...(U)>());
         return std::move(res);
     };
+
     static std::shared_ptr<DataEntity> to(std::tuple<U...> const& v) {
-        auto p = std::make_shared<DataArrayWrapper<void>>();
+        auto p = std::make_shared<DataArrayWrapper<void> >();
         p->resize(sizeof...(U));
         detail::data_entity_to_helper(v, *p, std::integral_constant<int, sizeof...(U)>());
         return p;

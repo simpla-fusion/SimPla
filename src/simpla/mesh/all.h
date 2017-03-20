@@ -2,8 +2,8 @@
 // Created by salmon on 17-1-20.
 //
 
-#ifndef SIMPLA_ALL_H
-#define SIMPLA_ALL_H
+#ifndef SIMPLA_MESH_ALL_H
+#define SIMPLA_MESH_ALL_H
 namespace simpla {
 namespace mesh {
 /**
@@ -28,4 +28,4 @@ namespace mesh {
  */
 }
 }
-#endif  // SIMPLA_ALL_H
+#endif  // SIMPLA_MESH_ALL_H

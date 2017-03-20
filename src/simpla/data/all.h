@@ -11,6 +11,7 @@
 #include "DataEntity.h"
 #include "DataTable.h"
 #include "DataTraits.h"
+#include "DataUtility.h"
 #include "KeyValue.h"
 namespace simpla {
 namespace data {

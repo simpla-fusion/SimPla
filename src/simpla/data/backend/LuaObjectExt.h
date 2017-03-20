@@ -98,7 +98,9 @@ DEF_LUA_TRANS(int, lua_pushinteger, lua_tointeger, lua_isnumber)
 
 DEF_LUA_TRANS(long, lua_pushinteger, lua_tointeger, lua_isnumber)
 
-DEF_LUA_TRANS(ulong, lua_pushinteger, lua_tointeger, lua_isnumber)
+//DEF_LUA_TRANS(ulong, lua_pushinteger, lua_tointeger, lua_isnumber)
+
+DEF_LUA_TRANS(size_t, lua_pushinteger, lua_tointeger, lua_isnumber)
 
 DEF_LUA_TRANS(uint, lua_pushinteger, lua_tointeger, lua_isnumber)
 

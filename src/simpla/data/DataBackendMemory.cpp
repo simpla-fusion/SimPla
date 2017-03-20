@@ -36,11 +36,9 @@ std::pair<DataBackendMemory*, std::string> DataBackendMemory::pimpl_s::get_table
         },
         [&](DataBackendMemory* s_t, std::string const& k) -> DataBackendMemory* {
             if (return_if_not_exist) { return nullptr; }
-            return &(
-                s_t->m_pimpl_->m_table_.emplace(k, std::make_shared<DataTable>(std::make_shared<DataBackendMemory>()))
-                    .first->second->cast_as<DataTable>()
-                    .backend()
-                    ->cast_as<DataBackendMemory>());
+            auto res =
+                s_t->m_pimpl_->m_table_.emplace(k, std::make_shared<DataTable>(std::make_shared<DataBackendMemory>()));
+            return &(res.first->second->cast_as<DataTable>().backend()->cast_as<DataBackendMemory>());
 
         });
 };

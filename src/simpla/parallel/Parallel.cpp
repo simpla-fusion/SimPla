@@ -4,62 +4,46 @@
  * @date    2014-7-28  AM11:11:49
  * @author salmon
  */
-
-
+#include <simpla/SIMPLA_config.h>
 #include <simpla/toolbox/parse_command_line.h>
 
-#ifdef HAS_MPI
-#include <simpla/toolbox/design_pattern/SingletonHolder.h>
+#ifdef MPI_FOUND
+#include <simpla/design_pattern/SingletonHolder.h>
 #include "MPIComm.h"
-#include "DistributedObject.h"
 #endif
 
+namespace simpla {
+namespace parallel {
 
-namespace simpla { namespace parallel
-{
-
-void init(int argc, char **argv)
-{
+void init(int argc, char **argv) {
     bool no_mpi = false;
-
-    parse_cmd_line(argc, argv,
-
-                   [&](std::string const &opt, std::string const &value) -> int
-                   {
-                       if (opt == "no-mpi") { no_mpi = true; }
-
-                       return CONTINUE;
-                   }
-
-    );
-#ifdef HAS_MPI
+    parse_cmd_line(argc, argv, [&](std::string const &opt, std::string const &value) -> int {
+        if (opt == "no-mpi") { no_mpi = true; }
+        return CONTINUE;
+    });
+#ifdef MPI_FOUND
     if (!no_mpi) { SingletonHolder<MPIComm>::instance().init(argc, argv); }
 #endif
 }
 
-void close()
-{
-#ifdef HAS_MPI
+void close() {
+#ifdef MPI_FOUND
     SingletonHolder<MPIComm>::instance().close();
 #endif
 }
 
-std::string help_message()
-{
-#ifdef HAS_MPI
-    return MPIComm::help_message();
-#endif
+std::string help_message() {
+//#ifdef MPI_FOUND
+//    return MPIComm::help_message();
+//#endif
     return "";
 };
-
-
-
 
 ///**
 // * @_fdtd_param pos in {0,size} out {begin,m_global_dims_}
 // */
-//template<typename Integral>
-//std::tuple<Integral, Integral> sync_global_location(Integral size)
+// template<typename Integral>
+// std::tuple<Integral, Integral> sync_global_location(Integral size)
 //{
 //	Integral begin = 0;
 //
@@ -105,7 +89,7 @@ std::string help_message()
 //	return std::make_tuple(begin, size);
 //
 //}
-//inline MPI_Op get_MPI_Op(std::string const & op_c)
+// inline MPI_Op get_MPI_Op(std::string const & op_c)
 //{
 //	MPI_Op op = MPI_SUM;
 //
@@ -151,5 +135,5 @@ std::string help_message()
 //	}
 //	return op;
 //}
-} //  namespace parallel
-} // namespace simpla
+}  //  namespace parallel
+}  // namespace simpla

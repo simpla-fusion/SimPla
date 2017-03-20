@@ -33,6 +33,8 @@ struct DataEntity : public concept::Printable {
         os << "null";
         return os;
     };
+    virtual void Serialize(std::ostream& os, std::string const& type) const { os << ""; }
+
     virtual std::type_info const& value_type_info() const { return typeid(void); };
     virtual bool isLight() const { return true; }
     virtual bool isHeavyBlock() const { return false; }

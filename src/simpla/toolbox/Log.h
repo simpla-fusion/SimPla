@@ -257,11 +257,8 @@ std::ostringstream &_make_msg(std::ostringstream &os, T const &first, Others con
 template <typename... Others>
 std::string make_msg(Others const &... others) {
     std::ostringstream buffer;
-
     _make_msg(buffer, (others)...);
-
     buffer << "\e[0m";
-
     return buffer.str();
 }
 /** @} */

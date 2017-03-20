@@ -514,20 +514,16 @@ bool LuaObject::is_string() const {
     return res;
 }
 
-bool LuaObject::is_list() const {
+bool LuaObject::is_array() const {
     if (!this->is_table()) { return false; }
-
     auto first_item = *this->begin();
-    if (first_item.first.is_number()) { return true; }
-
+    if (first_item.first.as<int>() == 1) { return true; }
     return false;
 }
 
 bool LuaObject::is_nTuple() const {
     if (!is_table()) { return false; }
-
     auto first_item = (*this->begin());
-
     return (first_item.first.as<int>() == 1 && (first_item.second.is_number() || first_item.second.is_nTuple()));
 }
 

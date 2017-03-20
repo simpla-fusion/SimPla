@@ -8,18 +8,18 @@
  */
 
 #include <simpla/engine/Manager.h>
-
+#include <simpla/parallel/all.h>
 #include <simpla/toolbox/Logo.h>
 #include <simpla/toolbox/parse_command_line.h>
-
 namespace simpla {
 void create_scenario(engine::Manager *ctx);
+void RegisterEverything();
 }
 using namespace simpla;
 
 int main(int argc, char **argv) {
     engine::Manager ctx;
-
+    parallel::init(argc, argv);
     std::string output_file = "simpla.h5";
 
     std::string conf_file(argv[0]);
@@ -88,43 +88,69 @@ int main(int argc, char **argv) {
 #endif
     MESSAGE << ShowLogo() << std::endl;
 
-    create_scenario(&ctx);
+    RegisterEverything();
 
-    int num_of_steps = ctx.GetDBValue<int>("number_of_steps", 1);
-    int step_of_check_points = ctx.GetDBValue<int>("step_of_check_point", 1);
-    Real dt = ctx.GetDBValue<Real>("dt", 1.0);
+    //    MPI_Barrier(GLOBAL_COMM.comm());
 
-    MESSAGE << DOUBLELINE << std::endl;
-    MESSAGE << "INFORMATION:" << std::endl;
-    MESSAGE << "Context : " << ctx << " " << std::endl;
-    MESSAGE << SINGLELINE << std::endl;
+    //    if (GLOBAL_COMM.size() > 1 && GLOBAL_COMM.rank() == 0)
+    {
+        create_scenario(&ctx);
+        ctx.Initialize();
 
-    MESSAGE << DOUBLELINE << std::endl;
-    TheStart();
-    //    os->open("/checkpoint/");
-    //    ctx.sync();
-    //    ctx.check_point(*os);
+        std::ostringstream os;
+        os << "Config=";
+        data::Serialize(ctx.db(), os, "lua");
 
-    size_type count = 0;
+        std::string buffer = os.str();
+        //        parallel::bcast_string(&buffer);
+        //    } else {
+        engine::Manager ctx2;
 
-    while (count <= num_of_steps) {
-        ctx.Advance(dt);
-        ctx.Synchronize();
-        //        if (size % step_of_check_points == 0) { ctx.CheckPoint(*os); }
-        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " size = " << count << "] <<< " << std::endl;
-        ++count;
+        //        std::string buffer;
+        //        parallel::bcast_string(&buffer);
+
+        auto t_db = std::make_shared<data::DataTable>("lua://");
+        t_db->backend()->Parser(buffer);
+        ctx2.db()->Set(*t_db->GetTable("Config"));
+        ctx2.Initialize();
+        LOGGER << *ctx2.db() << std::endl;
     }
+    //    MPI_Barrier(GLOBAL_COMM.comm());
 
-    INFORM << "\t >>> Done <<< " << std::endl;
-
-    //    os->open("/dump/");
-    //    ctx.Save(*os);
-    //    ctx.teardown();
-
-    MESSAGE << DOUBLELINE << std::endl;
+    //    int num_of_steps = ctx.GetDBValue<int>("number_of_steps", 1);
+    //    int step_of_check_points = ctx.GetDBValue<int>("step_of_check_point", 1);
+    //    Real dt = ctx.GetDBValue<Real>("dt", 1.0);
+    //
+    //    //    MESSAGE << DOUBLELINE << std::endl;
+    //    //    MESSAGE << "INFORMATION:" << std::endl;
+    //    //    MESSAGE << "Context : " << ctx << " " << std::endl;
+    //    //    MESSAGE << SINGLELINE << std::endl;
+    //
+    //    MESSAGE << DOUBLELINE << std::endl;
+    //    TheStart();
+    //    //    os->open("/checkpoint/");
+    //    //    ctx.sync();
+    //    //    ctx.check_point(*os);
+    //
+    //    size_type count = 0;
+    //
+    //    while (count <= num_of_steps) {
+    //        ctx.Advance(dt);
+    //        ctx.Synchronize();
+    //        //        if (size % step_of_check_points == 0) { ctx.CheckPoint(*os); }
+    //        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " size = " << count << "] <<< " << std::endl;
+    //        ++count;
+    //    }
+    //
+    //    INFORM << "\t >>> Done <<< " << std::endl;
+    //
+    //    //    os->open("/dump/");
+    //    //    ctx.Save(*os);
+    //    //    ctx.teardown();
+    //
+    //    MESSAGE << DOUBLELINE << std::endl;
 
     TheEnd();
-    //    os->close();
-    //    parallel::close();
+    parallel::close();
     logger::close();
 }

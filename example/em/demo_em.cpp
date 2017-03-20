@@ -5,17 +5,20 @@
 #include <simpla/engine/all.h>
 #include <simpla/predefine/mesh/CartesianGeometry.h>
 //#include <simpla/predefine/mesh/CylindricalGeometry.h>
+#include <simpla/data/all.h>
+
 #include "EMFluid.h"
 #include "PML.h"
 
 namespace simpla {
-
-void create_scenario(engine::Manager *ctx) {
+void RegisterEverything() {
     GLOBAL_MESHVIEW_FACTORY.RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
     //    GLOBAL_DOMAIN_FACTORY::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
     GLOBAL_WORKER_FACTORY.RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
     GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
+}
 
+void create_scenario(engine::Manager *ctx) {
     ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}, "Dimensions"_ = {0, 0, 0});
 
     ctx->GetAtlas().Decompose(size_tuple{2, 3, 2});
@@ -32,9 +35,6 @@ void create_scenario(engine::Manager *ctx) {
 
     ctx->db()->SetValue("DomainView", {"Center"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}},
                                        "Boundary"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}}});
-
-    ctx->Initialize();
-
     //    options.GetTable("Particles").foreach ([&](auto const &item) {
     //        auto sp = center_worker.AddSpecies(std::get<0>(item).template as<std::string>(),
     //                                           std::get<1>(item)["Mass"].template as<Real>(1.0),
