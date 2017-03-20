@@ -5,8 +5,8 @@
 #include <simpla/engine/all.h>
 #include <simpla/predefine/mesh/CartesianGeometry.h>
 //#include <simpla/predefine/mesh/CylindricalGeometry.h>
-#include <simpla/predefine/problem_domain/EMFluid.h>
-#include <simpla/predefine/problem_domain/PML.h>
+#include "EMFluid.h"
+#include "PML.h"
 
 namespace simpla {
 

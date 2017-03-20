@@ -84,6 +84,8 @@ class SPObject {
     SPObject &operator=(SPObject const &other) = delete;
     virtual ~SPObject();
     std::string name() const;
+    id_type GetGUID() const;
+
     std::shared_ptr<data::DataTable> db(std::string const &uri = "") const;
     std::shared_ptr<data::DataTable> db(std::string const &uri = "");
     template <typename U>
@@ -100,9 +102,6 @@ class SPObject {
     U GetDBValue(const std::string &uri, U const &default_value) {
         return db()->GetValue<U>(uri, default_value);
     }
-
-    id_type id() const;
-    bool operator==(SPObject const &other);
 
     void lock();
     void unlock();

@@ -36,7 +36,6 @@ void AttributeViewBundle::Attach(AttributeView *p) {
 void AttributeViewBundle::Detach(AttributeView *p) {
     if (p != nullptr) { m_pimpl_->m_attr_views_.erase(p); }
 }
-DomainView *AttributeViewBundle::GetDomain() const { return m_pimpl_->m_domain_; }
 
 void AttributeViewBundle::SetMesh(MeshView const *m) {
     m_pimpl_->m_mesh_ = m;
@@ -77,11 +76,11 @@ AttributeView::~AttributeView() {
     m_pimpl_->m_bundle_ = nullptr;
 }
 
-id_type AttributeView::GetGUID() const {
-    std::string str = name() + '.' + value_type_info().name() + '.' + mesh_type_info().name() + '.' +
-                      static_cast<char>(GetIFORM() + '0') + '.' + static_cast<char>(GetDOF() + '0');
-    return static_cast<id_type>(std::hash<std::string>{}(str));
-}
+//id_type AttributeView::GetGUID() const {
+//    std::string str = name() + '.' + value_type_info().name() + '.' + mesh_type_info().name() + '.' +
+//                      static_cast<char>(GetIFORM() + '0') + '.' + static_cast<char>(GetDOF() + '0');
+//    return static_cast<id_type>(std::hash<std::string>{}(str));
+//}
 void AttributeView::SetMesh(MeshView const *m) {
     if (m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo()) {
         m_pimpl_->m_mesh_ = m;

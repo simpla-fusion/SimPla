@@ -8,11 +8,9 @@
 #define SIMPLA_EM_FLUID_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/Calculus.h>
 #include <simpla/algebra/all.h>
-#include <simpla/engine/AttributeView.h>
-#include <simpla/engine/SPObject.h>
-#include <simpla/engine/Worker.h>
+#include <simpla/engine/all.h>
+
 #include <simpla/physics/PhysicalConstants.h>
 
 namespace simpla {
@@ -57,18 +55,18 @@ class EMFluid : public engine::Worker {
     typedef field_type<VERTEX> TRho;
     typedef field_type<VERTEX, 3> TJv;
 
-    field_type<VERTEX> rho0{this, "name"_ = "rho0"};
+    field_type<VERTEX> rho0{this};
 
-    field_type<EDGE> E0{this, "name"_ = "E0"};
-    field_type<FACE> B0{this, "name"_ = "B0"};
-    field_type<VERTEX, 3> B0v{this, "name"_ = "B0v"};
-    field_type<VERTEX> BB{this, "name"_ = "BB"};
-    field_type<VERTEX, 3> Ev{this, "name"_ = "Ev"};
-    field_type<VERTEX, 3> Bv{this, "name"_ = "Bv"};
-    field_type<VERTEX, 3> dE{this, "name"_ = "dE"};
+    field_type<EDGE> E0{this};
+    field_type<FACE> B0{this};
+    field_type<VERTEX, 3> B0v{this};
+    field_type<VERTEX> BB{this};
+    field_type<VERTEX, 3> Ev{this};
+    field_type<VERTEX, 3> Bv{this};
+    field_type<VERTEX, 3> dE{this};
 
-    field_type<FACE> B{this, "name"_ = "B"};
-    field_type<EDGE> E{this, "name"_ = "E"};
+    field_type<FACE> B{this, "name"_ = "B", "SHARED"_};
+    field_type<EDGE> E{this, "name"_ = "E", "SHARED"_};
     field_type<EDGE> J1{this, "name"_ = "J1"};
 
     struct fluid_s {

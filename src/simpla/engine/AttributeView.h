@@ -92,17 +92,14 @@ class AttributeViewBundle {
    public:
     AttributeViewBundle(DomainView *p = nullptr);
     virtual ~AttributeViewBundle();
-    DomainView *GetDomain() const;
     void Detach(AttributeView *attr);
     void Attach(AttributeView *attr);
-
     virtual void SetMesh(MeshView const *);
     virtual MeshView const *GetMesh() const;
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();
 
     void Foreach(std::function<void(AttributeView *)> const &) const;
-
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
@@ -140,7 +137,6 @@ struct AttributeView : public SPObject {
     virtual ~AttributeView();
 
    public:
-    id_type GetGUID() const;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
