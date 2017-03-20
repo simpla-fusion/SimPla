@@ -62,14 +62,13 @@ namespace engine {
  *  - '''Origin''' is the origin point of continue topology space and discrete index space
  *  - '''dx''' is the resolution ratio  of discrete mesh, x = i * dx + r where 0<= r < dx
  */
-class Atlas : public SPObject, public concept::Printable {
+class Atlas : public SPObject {
    public:
     Atlas();
     virtual ~Atlas();
 
     void Decompose(size_tuple const &d, int local_id = -1);
 
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return os; }
     virtual void Initialize();
     virtual bool Update();
     size_type GetNumOfLevels() const;

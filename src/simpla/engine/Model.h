@@ -18,13 +18,12 @@ namespace engine {
 
 using namespace data;
 
-class Model : public SPObject, public concept::Printable {
+class Model : public SPObject {
     typedef Model this_type;
 
    public:
     Model();
     virtual ~Model();
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual bool Update();
     virtual void Initialize();
     box_type const &bound_box() const;
@@ -38,11 +37,9 @@ class Model : public SPObject, public concept::Printable {
 
     //    id_type GetObjectMaterialId(id_type) const;
 
-//    geometry::GeoObject SelectObjectByMaterial(std::string const &material_type_name) const;
-//    //    geometry::GeoObject SelectObjectByMaterial(id_type) const;
-//    size_type RemoveObjectByMaterial(id_type);
-
-
+    //    geometry::GeoObject SelectObjectByMaterial(std::string const &material_type_name) const;
+    //    //    geometry::GeoObject SelectObjectByMaterial(id_type) const;
+    //    size_type RemoveObjectByMaterial(id_type);
 
    private:
     struct pimpl_s;

@@ -60,11 +60,10 @@ namespace engine {
  *  deactivate DomainView
  * @enduml
  */
-class Manager : public SPObject, public concept::Printable {
+class Manager : public SPObject {
    public:
     Manager();
     virtual ~Manager();
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual void Initialize();
     virtual bool Update();
     virtual void Advance(Real dt, int level = 0);

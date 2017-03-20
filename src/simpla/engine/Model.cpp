@@ -16,10 +16,7 @@ struct Model::pimpl_s {
 
 Model::Model() : m_pimpl_(new pimpl_s) {}
 Model::~Model() {}
-std::ostream& Model::Print(std::ostream& os, int indent) const {
-    os << *db() << std::endl;
-    return os;
-}
+
 void Model::Initialize() {
     LOGGER << "Model is initializing " << std::endl;
     Tag();

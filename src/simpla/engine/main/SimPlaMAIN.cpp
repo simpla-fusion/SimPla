@@ -18,7 +18,6 @@ void RegisterEverything();
 using namespace simpla;
 
 int main(int argc, char **argv) {
-    engine::Manager ctx;
     parallel::init(argc, argv);
     std::string output_file = "simpla.h5";
 
@@ -89,42 +88,35 @@ int main(int argc, char **argv) {
     MESSAGE << ShowLogo() << std::endl;
 
     RegisterEverything();
+    MPI_Barrier(GLOBAL_COMM.comm());
 
-    //    MPI_Barrier(GLOBAL_COMM.comm());
-
-    //    if (GLOBAL_COMM.size() > 1 && GLOBAL_COMM.rank() == 0)
-    {
+    engine::Manager ctx;
+    if (GLOBAL_COMM.rank() == 0) {
         create_scenario(&ctx);
         ctx.Initialize();
-
         std::ostringstream os;
         os << "Config=";
         data::Serialize(ctx.db(), os, "lua");
-
         std::string buffer = os.str();
-        //        parallel::bcast_string(&buffer);
-        //    } else {
-        engine::Manager ctx2;
-
-        //        std::string buffer;
-        //        parallel::bcast_string(&buffer);
-
+        parallel::bcast_string(&buffer);
+    } else {
+        std::string buffer;
+        parallel::bcast_string(&buffer);
         auto t_db = std::make_shared<data::DataTable>("lua://");
         t_db->backend()->Parser(buffer);
-        ctx2.db()->Set(*t_db->GetTable("Config"));
-        ctx2.Initialize();
-        LOGGER << *ctx2.db() << std::endl;
+        ctx.db()->Set(*t_db->GetTable("Config"));
+        ctx.Initialize();
     }
-    //    MPI_Barrier(GLOBAL_COMM.comm());
+    MPI_Barrier(GLOBAL_COMM.comm());
 
-    //    int num_of_steps = ctx.GetDBValue<int>("number_of_steps", 1);
-    //    int step_of_check_points = ctx.GetDBValue<int>("step_of_check_point", 1);
-    //    Real dt = ctx.GetDBValue<Real>("dt", 1.0);
-    //
-    //    //    MESSAGE << DOUBLELINE << std::endl;
-    //    //    MESSAGE << "INFORMATION:" << std::endl;
-    //    //    MESSAGE << "Context : " << ctx << " " << std::endl;
-    //    //    MESSAGE << SINGLELINE << std::endl;
+    int num_of_steps = ctx.GetDBValue<int>("number_of_steps", 1);
+    int step_of_check_points = ctx.GetDBValue<int>("step_of_check_point", 1);
+    Real dt = ctx.GetDBValue<Real>("dt", 1.0);
+
+    MESSAGE << DOUBLELINE << std::endl;
+    MESSAGE << "INFORMATION:" << std::endl;
+    MESSAGE << "Context : " << *ctx.db() << std::endl;
+    MESSAGE << SINGLELINE << std::endl;
     //
     //    MESSAGE << DOUBLELINE << std::endl;
     //    TheStart();
@@ -144,9 +136,7 @@ int main(int argc, char **argv) {
     //
     //    INFORM << "\t >>> Done <<< " << std::endl;
     //
-    //    //    os->open("/dump/");
-    //    //    ctx.Save(*os);
-    //    //    ctx.teardown();
+
     //
     //    MESSAGE << DOUBLELINE << std::endl;
 

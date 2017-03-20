@@ -27,7 +27,6 @@ Manager::Manager() : m_pimpl_(new pimpl_s) {
 
 Manager::~Manager() {}
 Real Manager::GetTime() const { return m_pimpl_->m_time_; }
-std::ostream &Manager::Print(std::ostream &os, int indent) const { return db()->Print(os, indent); }
 
 Atlas &Manager::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
