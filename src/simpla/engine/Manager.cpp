@@ -99,8 +99,9 @@ void Manager::Initialize() {
             view_res.first->second = std::make_shared<DomainView>(item, g_obj_);
         } else if (item != nullptr && item->isTable()) {
             view_res.first->second->db()->Set(*std::dynamic_pointer_cast<data::DataTable>(item));
+        } else {
+            WARNING << " ignore data entity [" << s_key << " :" << *item << "]" << std::endl;
         }
-        // else { WARNING << " ignore data entity :" << *item << std::endl;}
 
         domain_t.Set(s_key, view_res.first->second->db(), true);
         view_res.first->second->Initialize(domain_t.Get(s_key), g_obj_);
@@ -108,7 +109,7 @@ void Manager::Initialize() {
     });
     SPObject::Tag();
 
-    MESSAGE << "Manager [" << name() << "] is initialized!" << std::endl;
+    LOGGER << "Manager [" << name() << "] is initialized!" << std::endl;
 }
 bool Manager::Update() { return SPObject::Update(); };
 }  // namespace engine {
