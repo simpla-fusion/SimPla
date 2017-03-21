@@ -52,6 +52,8 @@ struct DataBackendHDF5::pimpl_s {
     static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name,
                         std::shared_ptr<DataTable> const&, bool overwrite = true);
     static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name,
+                        std::shared_ptr<DataArray> const&, bool overwrite = true);
+    static void HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name,
                         std::shared_ptr<DataBlock> const&, bool overwrite = true);
 
     static void HDF5Add(DataBackendHDF5 const* self, hid_t loc_id, std::string const& name,
@@ -291,13 +293,12 @@ hid_t GetHDF5DataType(std::type_info const& t_info) {
     return (v_type);
 }
 
-void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
-                                       std::shared_ptr<DataTable> const& src, bool overwrite) {
+hid_t OpenGroup(hid_t loc_id, std::string const& key, bool overwrite) {
     bool is_exist = H5Lexists(loc_id, key.c_str(), H5P_DEFAULT) != 0;
     //    H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
     H5O_info_t g_info;
     if (is_exist) { H5_ERROR(H5Oget_info_by_name(loc_id, key.c_str(), &g_info, H5P_DEFAULT)); }
-    if (is_exist && !overwrite) { return; }
+    if (is_exist && !overwrite) { return -1; }
 
     //    if (overwrite && is_exist && g_info.type != H5O_TYPE_GROUP) {
     //        H5Ldelete(loc_id, key.c_str(), H5P_DEFAULT);
@@ -310,20 +311,33 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id
     } else {
         gid = H5Gopen(loc_id, key.c_str(), H5P_DEFAULT);
     }
+    return gid;
+}
+void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
+                                       std::shared_ptr<DataTable> const& src, bool overwrite) {
+    hid_t gid = OpenGroup(loc_id, key, overwrite);
 
     src->cast_as<DataTable>().Foreach(
         [&](std::string const& k, std::shared_ptr<data::DataEntity> const& v) { HDF5Set(self, gid, k, v, overwrite); });
-    H5Gclose(gid);
+    H5_ERROR(H5Gclose(gid));
     return;
 };
+void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
+                                       std::shared_ptr<DataArray> const& t, bool overwrite) {
+    hid_t gid = OpenGroup(loc_id, key, overwrite);
 
+    auto num = t->size();
+    for (int i = 0; i < num; ++i) { HDF5Set(self, gid, std::to_string(i), t->Get(i), overwrite); }
+
+    H5_ERROR(H5Gclose(gid));
+    return;
+}
 void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
                                        std::shared_ptr<DataBlock> const& src, bool overwrite) {
     if (src->empty()) {
         LOGGER << "Write Empty DataBlock" << key << std::endl;
         return;
     }
-    LOGGER << "Write DataBlock" << key << std::endl;
     bool is_exist = H5Lexists(loc_id, key.c_str(), H5P_DEFAULT) != 0;
     //            H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
     H5O_info_t g_info;
@@ -390,8 +404,10 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
         H5Awrite(a_id, m_type, s_str.c_str());
         H5Tclose(m_type);
         H5Aclose(a_id);
-    } else if (src->value_type_info() == typeid(std::string) && src->isLight()) {
+    } else if (src->value_type_info() == typeid(std::string) && !src->isLight()) {
         UNIMPLEMENTED;
+    } else if (src->isArray() && src->cast_as<DataArray>().isA(typeid(data::DataArrayWrapper<void>))) {
+        HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataArray>(src), overwrite);
     } else {
         hid_t d_type = -1;
         hid_t d_space;

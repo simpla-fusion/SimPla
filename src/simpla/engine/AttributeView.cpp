@@ -60,12 +60,11 @@ void AttributeViewBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::sha
 
     ASSERT(p->isTable());
     auto const &t = p->cast_as<data::DataTable>();
-    for (auto *v : m_pimpl_->m_attr_views_) { v->PushData(m, t.Get(std::to_string(v->GetGUID()))); }
+    for (auto *v : m_pimpl_->m_attr_views_) { v->PushData(m, t.Get(v->name())); }
 }
 std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> AttributeViewBundle::PopData() {
     auto res = std::make_shared<data::DataTable>();
-    for (auto *v : m_pimpl_->m_attr_views_) { res->Set(std::to_string(v->GetGUID()), v->PopData().second); }
-
+    for (auto *v : m_pimpl_->m_attr_views_) { res->Set(v->name(), v->PopData().second); }
     return std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(), res);
 }
 void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fun) const {
