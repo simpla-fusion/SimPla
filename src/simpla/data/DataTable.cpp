@@ -54,7 +54,7 @@ int DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v,
         if (!overwrite && res != nullptr && !res->isTable()) {
             return 0;
         } else if (res == nullptr || !res->isTable()) {
-            res = std::make_shared<DataTable>(m_backend_->CreateNew());
+            res = std::make_shared<DataTable>();
         }
         auto& dest_table = res->cast_as<DataTable>();
         auto const& src_table = v->cast_as<DataTable>();

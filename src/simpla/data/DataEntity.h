@@ -30,7 +30,7 @@ struct DataEntity : public concept::Printable {
     virtual ~DataEntity();
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-
+    virtual bool empty() const { return true; }
     virtual std::type_info const& value_type_info() const { return typeid(void); };
     virtual bool isLight() const { return false; }
     virtual bool isBlock() const { return false; }

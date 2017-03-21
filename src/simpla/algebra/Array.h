@@ -65,7 +65,7 @@ struct ArrayView : public concept::Printable {
     }
 
     virtual ~ArrayView() {}
-
+    virtual bool empty() const { return m_data_ == nullptr; }
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
     virtual int GetNDIMS() const { return NDIMS; }
     virtual index_type const* GetInnerLowerIndex() const { return &std::get<0>(m_inner_index_box_)[0]; };

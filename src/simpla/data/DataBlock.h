@@ -20,7 +20,7 @@ class DataBlock : public DataEntity {
    public:
     DataBlock() {}
     virtual ~DataBlock() {}
-    bool empty() const { return true; }
+    virtual bool empty() const { return true; }
     virtual bool isBlock() const { return true; }
     virtual std::type_info const &value_type_info() const { return typeid(Real); };
     virtual int GetNDIMS() const { return 0; }
@@ -41,12 +41,13 @@ class DataEntityWrapper<simpla::Array<U, NDIMS>> : public DataBlock {
     typedef typename array_type::value_type value_type;
 
    public:
-    explicit DataEntityWrapper(std::shared_ptr<array_type> const &d) : m_data_(d) {}
+    explicit DataEntityWrapper(std::shared_ptr<array_type> const &d = nullptr) : m_data_(d) {}
 
     template <typename... Args>
     DataEntityWrapper(Args &&... args) : m_data_(std::make_shared<array_type>(std::forward<Args>(args)...)) {}
 
     virtual ~DataEntityWrapper() {}
+    virtual bool empty() const { return m_data_.get() == nullptr || m_data_->empty(); }
 
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
     virtual std::shared_ptr<array_type> &data() { return m_data_; };
@@ -61,7 +62,7 @@ class DataEntityWrapper<simpla::Array<U, NDIMS>> : public DataBlock {
     virtual void *GetRawData() { return m_data_->GetRawData(); }
 
    private:
-    std::shared_ptr<array_type> m_data_;
+    std::shared_ptr<array_type> m_data_ = nullptr;
 };
 template <typename U, int NDIMS>
 std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U, NDIMS>> const &p) {
