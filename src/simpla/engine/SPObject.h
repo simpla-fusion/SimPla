@@ -12,6 +12,7 @@
 #include <typeinfo>
 
 #include <simpla/SIMPLA_config.h>
+#include <simpla/concept/Configurable.h>
 #include <simpla/data/DataTable.h>
 #include <simpla/design_pattern/Signal.h>
 #include <typeindex>
@@ -74,7 +75,7 @@ namespace simpla {
 
  **/
 
-class SPObject {
+class SPObject : public concept::Configurable {
    public:
     SP_OBJECT_BASE(SPObject)
    public:
@@ -83,25 +84,7 @@ class SPObject {
     SPObject(SPObject const &) = delete;
     SPObject &operator=(SPObject const &other) = delete;
     virtual ~SPObject();
-    std::string name() const;
     id_type GetGUID() const;
-
-    std::shared_ptr<data::DataTable> db(std::string const &uri = "") const;
-    std::shared_ptr<data::DataTable> db(std::string const &uri = "");
-    template <typename U>
-    U GetDBValue(const std::string &uri) const {
-        return db()->GetValue<U>(uri);
-    }
-
-    template <typename U>
-    U GetDBValue(const std::string &uri, U const &default_value) const {
-        return db()->GetValue<U>(uri, default_value);
-    }
-
-    template <typename U>
-    U GetDBValue(const std::string &uri, U const &default_value) {
-        return db()->GetValue<U>(uri, default_value);
-    }
 
     void lock();
     void unlock();

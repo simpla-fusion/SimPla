@@ -55,7 +55,7 @@ struct Worker::pimpl_s {
     MeshView const *m_mesh_ = nullptr;
 };
 Worker::Worker(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataEntity> const &t)
-    : SPObject(t), m_pimpl_(new pimpl_s) {
+    : concept::Configurable(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_mesh_ = m.get();
 }
 Worker::~Worker(){};
@@ -68,7 +68,7 @@ std::ostream &Worker::Print(std::ostream &os, int indent) const {
     os << "  } , ";
     return os;
 }
-void Worker::Initialize() { Tag(); }
+void Worker::Initialize() {}
 /**
  * @startuml
  * title Initialize/Finalize
@@ -117,13 +117,7 @@ void Worker::Initialize() { Tag(); }
  * deactivate Worker
  * @enduml
  */
-bool Worker::Update() {
-    if (!isModified()) { return false; }
-    SPObject::Update();
-    size_type state_tag = GetTagCount();
-    if (state_tag == 0) { Initialize(); }
-    return true;
-}
+bool Worker::Update() { return true; }
 
 void Worker::Run(Real dt) {
     Update();

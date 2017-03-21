@@ -22,30 +22,16 @@ struct SPObject::pimpl_s {
     std::mutex m_mutex_;
     size_type m_click_ = 0;
     size_type m_click_tag_ = 0;
-    std::shared_ptr<data::DataTable> m_db_;
 };
 
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
-SPObject::SPObject(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_db_ = (t != nullptr && t->isTable()) ? std::dynamic_pointer_cast<data::DataTable>(t)
-                                                     : std::make_shared<data::DataTable>();
-
-    if (t != nullptr && t->isLight() && t->value_type_info() == typeid(std::string)) {
-        m_pimpl_->m_db_->SetValue("name", data::data_cast<std::string>(*t));
-    }
-    m_pimpl_->m_db_->SetValue("GUID", std::to_string(g_obj_hasher(g_uuid_generator())));
+SPObject::SPObject(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
+    db()->SetValue("GUID", std::to_string(g_obj_hasher(g_uuid_generator())));
 }
 SPObject::~SPObject() { OnDestroy(); }
-std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) const {
-    return uri == "" ? m_pimpl_->m_db_ : m_pimpl_->m_db_->GetTable(uri);
-}
-std::shared_ptr<data::DataTable> SPObject::db(std::string const &uri) {
-    Click();
-    return uri == "" ? m_pimpl_->m_db_ : m_pimpl_->m_db_->GetTable(uri + "/");
-}
 
-std::string SPObject::name() const { return db()->GetValue<std::string>("name", ""); }
+
 id_type SPObject::GetGUID() const {
     // FIXME: work around some data backend do not support long int
     auto res = db()->GetValue<std::string>("GUID", "");

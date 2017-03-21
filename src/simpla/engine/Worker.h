@@ -98,8 +98,8 @@ namespace engine {
       --> (*)
    @enduml
  */
-class Worker : public SPObject, public AttributeViewBundle {
-    SP_OBJECT_HEAD(Worker, SPObject)
+class Worker : public concept::Configurable, public AttributeViewBundle {
+    SP_OBJECT_BASE(Worker)
    public:
     Worker(std::shared_ptr<MeshView> const &p = nullptr, std::shared_ptr<data::DataEntity> const &t = nullptr);
     virtual ~Worker();

@@ -26,7 +26,7 @@ struct DomainView::pimpl_s {
 };
 
 DomainView::DomainView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<geometry::GeoObject> const &g)
-    : SPObject(t), m_pimpl_(new pimpl_s) {
+    : concept::Configurable(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_obj_ = g;
 }
 
@@ -126,10 +126,7 @@ std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> DomainV
     return (res);
 };
 
-bool DomainView::Update() {
-    if (!isModified()) { return false; }
-    return SPObject::Update();
-}
+bool DomainView::Update() { return false; }
 
 void DomainView::Run(Real dt) {
     m_pimpl_->m_mesh_->PushData(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
@@ -160,11 +157,10 @@ void DomainView::Attach(AttributeViewBundle *p) {
                 db()->Link("Attributes/" + v->name(), res);
             }
         });
-        Click();
     }
 }
 void DomainView::Detach(AttributeViewBundle *p) {
-    if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) { Click(); }
+    if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) {}
 }
 void DomainView::Initialize() {
     if (m_pimpl_->m_mesh_ != nullptr) { return; }
@@ -179,12 +175,8 @@ void DomainView::Initialize() {
         });
     }
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
-    Tag();
 }
-void DomainView::Finalize() {
-    SPObject::Finalize();
-    m_pimpl_.reset(new pimpl_s);
-}
+void DomainView::Finalize() { m_pimpl_.reset(new pimpl_s); }
 
 std::pair<std::shared_ptr<Worker>, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
     ASSERT(w != nullptr);
@@ -194,7 +186,6 @@ std::pair<std::shared_ptr<Worker>, bool> DomainView::AddWorker(std::shared_ptr<W
 }
 
 void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
-    Click();
     UNIMPLEMENTED;
     //    auto it = m_backend_->m_workers_.find(w);
     //    if (it != m_backend_->m_workers_.end()) { m_backend_->m_workers_.Disconnect(it); }

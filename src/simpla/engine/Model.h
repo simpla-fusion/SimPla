@@ -18,11 +18,11 @@ namespace engine {
 
 using namespace data;
 
-class Model : public SPObject {
+class Model : public concept::Configurable {
     typedef Model this_type;
 
    public:
-    Model();
+    Model(std::shared_ptr<data::DataEntity> const &t = nullptr);
     virtual ~Model();
     virtual bool Update();
     virtual void Initialize();

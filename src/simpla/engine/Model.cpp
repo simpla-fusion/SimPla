@@ -14,19 +14,15 @@ struct Model::pimpl_s {
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
-Model::Model() : m_pimpl_(new pimpl_s) {}
+Model::Model(std::shared_ptr<data::DataEntity> const& t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {}
 Model::~Model() {}
 
 void Model::Initialize() {
     LOGGER << "Model is initializing " << std::endl;
-    Tag();
     LOGGER << "Model is initialized " << std::endl;
 }
 
-bool Model::Update() {
-    // TODO: update bound box
-    return SPObject::Update();
-};
+bool Model::Update(){};
 box_type const& Model::bound_box() const { return m_pimpl_->m_bound_box_; };
 
 id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k)->GetValue<id_type>("GUID"); }
@@ -34,7 +30,6 @@ id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k)
 std::shared_ptr<data::DataTable> Model::GetMaterial(std::string const& s) const { return db()->GetTable(s); }
 
 std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const& s, std::shared_ptr<DataTable> const& other) {
-    Click();
     if (db()->Set("/Material/" + s, other, false) > 0) {
         db()->Get("/Material/" + s)->cast_as<DataTable>().SetValue("GUID", std::hash<std::string>{}(s));
     }
@@ -49,7 +44,6 @@ std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const& s, std::s
 //}
 
 id_type Model::AddObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
-    Click();
     m_pimpl_->m_g_obj_.emplace(key, g_obj);
 }
 

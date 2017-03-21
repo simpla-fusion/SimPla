@@ -27,7 +27,7 @@ class MeshBlock;
 class AttributeView;
 class Patch;
 
-class DomainView : public SPObject {
+class DomainView : public concept::Configurable {
    public:
     DomainView(std::shared_ptr<data::DataEntity> const &p = nullptr,
                std::shared_ptr<geometry::GeoObject> const &g = nullptr);

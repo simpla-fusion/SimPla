@@ -29,17 +29,16 @@ struct Atlas::pimpl_s {
     std::set<id_type> m_layers_[MAX_NUM_OF_LEVEL];
 };
 
-Atlas::Atlas() : m_pimpl_(new pimpl_s){};
+Atlas::Atlas(std::shared_ptr<data::DataEntity> const & t) : m_pimpl_(new pimpl_s),concept::Configurable(t){};
 Atlas::~Atlas(){};
 
 void Atlas::Initialize() {
     LOGGER << "Atlas is initializing " << std::endl;
-    Tag();
     LOGGER << "Atlas is initialized " << std::endl;
 }
 void Atlas::Decompose(size_tuple const &d, int local_id){};
 
-bool Atlas::Update() { return SPObject::Update(); };
+bool Atlas::Update() { return true; };
 size_type Atlas::GetNumOfLevels() const { return m_pimpl_->m_num_of_level_; };
 point_type Atlas::GetLevelDx(int l) { return m_pimpl_->m_dx_[l]; }
 point_type Atlas::GetOrigin() const { return m_pimpl_->m_origin_; };
