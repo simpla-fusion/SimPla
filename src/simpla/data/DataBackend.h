@@ -20,7 +20,7 @@ namespace simpla {
 namespace data {
 class DataEntity;
 class DataTable;
-class DataBackend : public concept::Printable, public std::enable_shared_from_this<DataBackend> {
+class DataBackend : public std::enable_shared_from_this<DataBackend> {
     SP_OBJECT_BASE(DataBackend);
 
    public:
@@ -28,10 +28,10 @@ class DataBackend : public concept::Printable, public std::enable_shared_from_th
     virtual ~DataBackend(){};
 
     virtual void Parser(std::string const&) { UNIMPLEMENTED; };
-    virtual void Connect(std::string const& path, std::string const& param = ""){};
+    virtual void Connect(std::string const& authority, std::string const& path = "", std::string const& query = "",
+                         std::string const& fragment = ""){};
     virtual void Disconnect(){};
     virtual void Flush() = 0;
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; };
 
     /**
      * @brief create a new backend with same scheme

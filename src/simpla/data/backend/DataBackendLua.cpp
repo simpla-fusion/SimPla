@@ -125,7 +125,9 @@ std::ostream& DataBackendLua::Print(std::ostream& os, int indent) const {
 bool DataBackendLua::isNull() const { return m_pimpl_->m_lua_obj_.is_null(); }
 void DataBackendLua::Flush() {}
 void DataBackendLua::Parser(std::string const& str) { m_pimpl_->m_lua_obj_.parse_string(str); }
-void DataBackendLua::Connect(std::string const& path, std::string const& param) {
+
+void DataBackendLua::Connect(std::string const& authority, std::string const& path, std::string const& query,
+                             std::string const& fragment) {
     m_pimpl_->m_lua_obj_.parse_file(path);
 }
 void DataBackendLua::Disconnect() {}

@@ -39,7 +39,10 @@ struct Factory : public std::map<TKey, std::function<TRes*(Args...)>> {
 
     template <typename U>
     bool Register(TKey const& k, ENABLE_IF((std::is_base_of<TRes, U>::value))) {
-        return this->emplace(k, [&](Args&&... args) -> TRes* { return new U(std::forward<Args>(args)...); }).second;
+        auto res = this->emplace(k, [&](Args&&... args) -> TRes* { return new U(std::forward<Args>(args)...); }).second;
+        if (res) { LOGGER << "Creator [ " << k << " ] is registered!" << std::endl; }
+
+        return res;
     }
 
     void Unregister(TKey const& k) { this->erase(k); }

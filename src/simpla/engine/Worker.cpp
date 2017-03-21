@@ -20,7 +20,11 @@ WorkerFactory::~WorkerFactory(){};
 bool WorkerFactory::RegisterCreator(
     std::string const &k, std::function<std::shared_ptr<Worker>(std::shared_ptr<MeshView> const &,
                                                                 std::shared_ptr<data::DataTable> const &)> const &fun) {
-    return m_pimpl_->m_worker_factory_.emplace(k, fun).second;
+    auto res = m_pimpl_->m_worker_factory_.emplace(k, fun).second;
+
+    if (res) { LOGGER << "Worker Creator [ " << k << " ] is registered!" << std::endl; }
+
+    return res;
 };
 std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m,
                                               std::shared_ptr<data::DataEntity> const &config) {

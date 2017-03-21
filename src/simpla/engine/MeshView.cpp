@@ -24,7 +24,9 @@ bool MeshViewFactory::RegisterCreator(
     std::string const &k,
     std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataEntity> const &,
                                             std::shared_ptr<geometry::GeoObject> const &)> const &fun) {
-    return m_pimpl_->m_mesh_factory_.emplace(k, fun).second;
+    auto res = m_pimpl_->m_mesh_factory_.emplace(k, fun).second;
+    if (res) { LOGGER << "Mesh Creator [ " << k << " ] is registered!" << std::endl; }
+    return res;
 };
 
 std::shared_ptr<MeshView> MeshViewFactory::Create(std::shared_ptr<data::DataEntity> const &config,

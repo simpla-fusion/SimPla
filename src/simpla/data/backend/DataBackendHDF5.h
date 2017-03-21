@@ -18,8 +18,9 @@ class DataBackendHDF5 : public DataBackend {
     DataBackendHDF5(std::string const& uri, std::string const& status = "");
 
     virtual ~DataBackendHDF5();
+    virtual void Connect(std::string const& authority, std::string const& path  , std::string const& query = "",
+                         std::string const& fragment = "") ;
 
-    virtual void Connect(std::string const& path, std::string const& param = "");
     virtual void Disconnect();
 
     virtual std::shared_ptr<DataBackend> Duplicate() const;

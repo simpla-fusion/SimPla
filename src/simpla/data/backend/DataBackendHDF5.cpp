@@ -17,6 +17,7 @@ extern "C" {
 #include <H5FDmpio.h>
 #include <simpla/data/DataUtility.h>
 #include <simpla/parallel/all.h>
+#include <sys/stat.h>
 
 namespace simpla {
 namespace data {
@@ -292,7 +293,8 @@ hid_t GetHDF5DataType(std::type_info const& t_info) {
 
 void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
                                        std::shared_ptr<DataTable> const& src, bool overwrite) {
-    bool is_exist = H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
+    bool is_exist = H5Lexists(loc_id, key.c_str(), H5P_DEFAULT) != 0;
+    //    H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
     H5O_info_t g_info;
     if (is_exist) { H5_ERROR(H5Oget_info_by_name(loc_id, key.c_str(), &g_info, H5P_DEFAULT)); }
     if (is_exist && !overwrite) { return; }
@@ -445,12 +447,17 @@ DataBackendHDF5::DataBackendHDF5(std::string const& uri, std::string const& stat
     Connect(uri, status);
 }
 DataBackendHDF5::~DataBackendHDF5() {}
-
-void DataBackendHDF5::Connect(std::string const& path, std::string const& param) {
+void DataBackendHDF5::Connect(std::string const& authority, std::string const& path, std::string const& query,
+                              std::string const& fragment) {
     Disconnect();
-    LOGGER << "Create HDF5 File: " << path << std::endl;
+
+    std::string filename = AutoIncreaseFileName(authority + "/" + path, ".h5");
+
+    LOGGER << "Create HDF5 File: [" << filename << "]" << std::endl;
+
+    mkdir(authority.c_str(), 0777);
     hid_t fid;
-    H5_ERROR(fid = H5Fcreate(path.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT));
+    H5_ERROR(fid = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT));
     m_pimpl_->m_f_id_ = std::shared_ptr<const hid_t>(new hid_t(fid), HDF5Closer);
     H5_ERROR(m_pimpl_->m_g_id_ = H5Gopen(*m_pimpl_->m_f_id_, "/", H5P_DEFAULT));
 };
@@ -518,6 +525,7 @@ size_type DataBackendHDF5::Delete(std::string const& uri) {
 //}
 size_type DataBackendHDF5::Foreach(
     std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& fun) const {
+    if (m_pimpl_->m_g_id_ == -1) { return 0; };
     H5G_info_t g_info;
     H5_ERROR(H5Gget_info(m_pimpl_->m_g_id_, &g_info));
 

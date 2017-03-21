@@ -68,7 +68,6 @@ inline std::string AutoIncrease(std::function<bool(std::string)> const & fun,
 	while (fun(res))
 	{
 		std::ostringstream os;
-
 		os << std::setw(width) << std::setfill('0') << count;
 		++count;
 		res = os.str();

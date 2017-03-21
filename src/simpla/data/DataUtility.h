@@ -74,6 +74,7 @@ std::pair<T, std::string> HierarchicalTableForeach(T self, std::string const &ur
 
     return std::make_pair(t, uri_match_result[3].str());
 };
+std::string AutoIncreaseFileName(std::string filename, std::string const &ext_str);
 
 }  // namespace data{
 }  // namespace simpla{

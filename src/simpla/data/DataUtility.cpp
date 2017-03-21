@@ -2,11 +2,13 @@
 // Created by salmon on 17-3-9.
 //
 #include "DataUtility.h"
+#include <simpla/parallel/MPIAuxFunctions.h>
+#include <simpla/parallel/MPIComm.h>
+#include <simpla/toolbox/MiscUtilities.h>
 #include "DataArray.h"
 #include "DataBlock.h"
 #include "DataEntity.h"
 #include "DataTable.h"
-
 namespace simpla {
 namespace data {
 //
@@ -66,6 +68,29 @@ void Serialize(std::shared_ptr<DataEntity> const &d, std::ostream &os, std::stri
     } else {
         UNIMPLEMENTED;
     }
+}
+
+std::string AutoIncreaseFileName(std::string filename, std::string const &ext_str) {
+    if (GLOBAL_COMM.process_num() == 0) {
+        std::string prefix = filename;
+        if (filename.size() > ext_str.size() && filename.substr(filename.size() - ext_str.size()) == ext_str) {
+            prefix = filename.substr(0, filename.size() - ext_str.size());
+        }
+
+        /// @todo auto mkdir directory
+
+        filename = prefix + AutoIncrease(
+                                [&](std::string const &suffix) -> bool {
+                                    std::string f = (prefix + suffix);
+                                    return f == "" || *(f.rbegin()) == '/' || (CheckFileExists(f + ext_str));
+                                },
+                                0, 5) +
+                   ext_str;
+    }
+
+    parallel::bcast_string(&filename);
+
+    return filename;
 }
 
 }  // namespace data{

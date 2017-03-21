@@ -66,20 +66,25 @@ DataBackendFactory::~DataBackendFactory(){};
 *
 *   */
 static std::regex uri_regex(R"(^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)");
-static std::regex file_extension_regex(R"(^(.*)\.([[:alnum:]]+)$)");
+static std::regex file_extension_regex(R"(^(.*)(\.([[:alnum:]]+))$)");
 std::shared_ptr<DataBackend> DataBackendFactory::Create(std::string const &uri, std::string const &ext_param) {
     if (uri == "" || uri == "mem://") { return std::make_shared<DataBackendMemory>(); }
 
     std::string scheme = "";
     std::string path = uri;
     std::smatch uri_match_result;
-
+    std::string authority = "";
+    std::string query = "";
+    std::string fragment = "";
     if (std::regex_match(uri, uri_match_result, uri_regex)) {
         //        for (size_type i = 0, ie = uri_match_result.size(); i < ie; ++i) {
         //            std::cout << i << "\t:" << uri_match_result.str(i) << std::endl;
         //        }
         scheme = (uri_match_result.str(2) == "file") ? "" : uri_match_result.str(2);
+        authority = uri_match_result.str(4);
         path = uri_match_result.str(5);
+        query = uri_match_result.str(7);
+        fragment = uri_match_result.str(9);
     }
 
     if (scheme == "") {
@@ -87,10 +92,10 @@ std::shared_ptr<DataBackend> DataBackendFactory::Create(std::string const &uri, 
     }
     if (scheme == "") { RUNTIME_ERROR << "illegal URI: [" << uri << "]" << std::endl; }
 
-    LOGGER << "CreateNew  DataBackend [ " << scheme << " : " << path << "]" << std::endl;
+    VERBOSE << "Create New Data Backend [ " << scheme << " : " << authority << path << " ]" << std::endl;
     std::shared_ptr<DataBackend> res{base_type::Create(scheme)};
     ASSERT(res != nullptr);
-    res->Connect(path);
+    res->Connect(authority, path, query, fragment);
     return res;
 };
 

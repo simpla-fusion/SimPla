@@ -18,8 +18,14 @@ void RegisterEverything();
 using namespace simpla;
 
 int main(int argc, char **argv) {
+#ifndef NDEBUG
+    logger::set_stdout_level(1000);
+#endif
+    RegisterEverything();
+
     parallel::init(argc, argv);
-    std::string output_file = "simpla.h5";
+
+    std::string output_file = "h5://SimPlaOutput";
 
     std::string conf_file(argv[0]);
     std::string conf_prologue = "";
@@ -82,12 +88,9 @@ int main(int argc, char **argv) {
             }
             return CONTINUE;
         });
-#ifndef NDEBUG
-    logger::set_stdout_level(1000);
-#endif
+
     MESSAGE << ShowLogo() << std::endl;
 
-    RegisterEverything();
     MPI_Barrier(GLOBAL_COMM.comm());
 
     engine::Manager ctx;
@@ -121,21 +124,19 @@ int main(int argc, char **argv) {
     MESSAGE << DOUBLELINE << std::endl;
     TheStart();
 
-    size_type count = 0;
+    size_type step = 0;
 
-    while (count <= num_of_steps) {
+    while (step <= num_of_steps) {
         ctx.Advance(dt);
         ctx.Synchronize();
-        //        if (size % step_of_check_points == 0) { ctx.CheckPoint(*os); }
-        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " size = " << count << "] <<< " << std::endl;
-        ++count;
+
+        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " Step = " << step << "] <<< " << std::endl;
+        if (step % step_of_check_points == 0) { data::DataTable(output_file).Set(*ctx.db()); };
+        ++step;
     }
-    MESSAGE << " DONE " << *ctx.db() << std::endl;
-
+    //    MESSAGE << " DONE " << *ctx.db() << std::endl;
     MESSAGE << "\t >>> Done <<< " << std::endl;
-
     MESSAGE << DOUBLELINE << std::endl;
-
     TheEnd();
     parallel::close();
     logger::close();

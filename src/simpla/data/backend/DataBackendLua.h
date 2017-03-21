@@ -23,7 +23,8 @@ class DataBackendLua : public DataBackend {
     virtual ~DataBackendLua();
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual void Parser(std::string const&);
-    virtual void Connect(std::string const&, std::string const& param);
+    void Connect(std::string const& authority, std::string const& path, std::string const& query = "",
+                 std::string const& fragment = "");
     virtual void Disconnect();
     virtual std::shared_ptr<DataBackend> Duplicate() const;
     virtual std::shared_ptr<DataBackend> CreateNew() const;
