@@ -247,9 +247,8 @@ std::shared_ptr<DataEntity> DataBackendHDF5::pimpl_s::HDF5Get(DataBackendHDF5 co
 }
 
 hid_t GetHDF5DataType(std::type_info const& t_info) {
-    hid_t res = H5T_NO_CLASS;
+    hid_t v_type = H5T_NO_CLASS;
 
-    hid_t v_type;
     if (t_info == typeid(int)) {
         v_type = H5T_NATIVE_INT;
     } else if (t_info == typeid(long)) {
@@ -289,7 +288,7 @@ hid_t GetHDF5DataType(std::type_info const& t_info) {
         RUNTIME_ERROR << "Unknown m_data type:" << t_info.name();
     }
 
-    return (res);
+    return (v_type);
 }
 
 void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
@@ -320,7 +319,11 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id
 
 void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t loc_id, std::string const& key,
                                        std::shared_ptr<DataBlock> const& src, bool overwrite) {
-    if (src->empty()) { return; }
+    if (src->empty()) {
+        LOGGER << "Write Empty DataBlock" << key << std::endl;
+        return;
+    }
+    LOGGER << "Write DataBlock" << key << std::endl;
     bool is_exist = H5Lexists(loc_id, key.c_str(), H5P_DEFAULT) != 0;
     //            H5Oexists_by_name(loc_id, key.c_str(), H5P_DEFAULT) != 0;
     H5O_info_t g_info;

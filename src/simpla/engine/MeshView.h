@@ -22,8 +22,10 @@ class Patch;
  *   - \f$p\f$ is the projection
  *
  */
-class MeshView : public SPObject, public AttributeViewBundle, public std::enable_shared_from_this<MeshView> {
-    SP_OBJECT_HEAD(MeshView, SPObject);
+class MeshView : public concept::Configurable,
+                 public AttributeViewBundle,
+                 public std::enable_shared_from_this<MeshView> {
+    SP_OBJECT_BASE(MeshView);
 
    public:
     MeshView(std::shared_ptr<data::DataEntity> const &t = nullptr,
@@ -36,7 +38,6 @@ class MeshView : public SPObject, public AttributeViewBundle, public std::enable
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
     std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
 
-    virtual bool Update();
     virtual void Initialize();
 
     virtual void SetMesh(MeshView const *);
@@ -48,6 +49,7 @@ class MeshView : public SPObject, public AttributeViewBundle, public std::enable
 
     size_type size(int IFORM = VERTEX) const { return 0; }
     size_tuple dimensions() const { return size_tuple{}; };
+
 
     //    template <typename U>
     //    std::shared_ptr<data::DataBlockWrapper<U>> CreateDataBlock(int IFORM, int DOF) const;

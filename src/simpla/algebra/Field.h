@@ -11,13 +11,13 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/data/all.h>
 
+#include <simpla/engine/MeshBlock.h>
 #include <simpla/mpl/Range.h>
 #include <simpla/toolbox/FancyStream.h>
 #include <simpla/toolbox/sp_def.h>
 #include <cstring>  // for memset
 #include "Algebra.h"
 #include "nTuple.h"
-
 namespace simpla {
 namespace mesh {
 
@@ -129,37 +129,34 @@ class FieldView<TM, TV, IFORM, DOF> {
     }
     bool empty() const { return m_data_[0] == nullptr; }
 
-    void Update() {
-        for (int i = 0; i < num_of_subs; ++i) {
-            if (m_data_[i] == nullptr) {
-                m_data_[i] == std::make_shared<sub_array_type>(m_mesh_->GetMeshBlock()->GetOuterIndexBox(IFORM, i));
+    void Update() {}
+
+    void PushData(std::shared_ptr<engine::MeshBlock> const& m, std::shared_ptr<data::DataEntity> const& d = nullptr) {
+        ASSERT(m_mesh_->GetMeshBlock()->GetGUID() == m->GetGUID());
+        if (d == nullptr) {
+            for (int i = 0; i < num_of_subs; ++i) {
+                m_data_[i] = std::make_shared<sub_array_type>(m->GetInnerIndexBox(), m->GetOuterIndexBox());
             }
+        } else if (d->isArray() && num_of_subs > 1) {
+            auto& t = d->cast_as<data::DataArrayWrapper<void>>();
+            for (int i = 0; i < num_of_subs; ++i) {
+                m_data_[i] = t.Get(i)->cast_as<data::DataEntityWrapper<sub_array_type>>().data();
+            }
+        } else {
+            m_data_[0] = d->cast_as<data::DataEntityWrapper<sub_array_type>>().data();
         }
-    }
-    void PushData(std::shared_ptr<data::DataEntity> const& d = nullptr) {
-        //        ASSERT(m_mesh_->GetMeshBlock()->GetGUID() == m->GetGUID());
-        //        if (d == nullptr) { return; }
-        //
-        //        if (d->isArray() && num_of_subs > 1) {
-        //            auto& t = d->cast_as<data::DataArrayWrapper<void>>();
-        //            for (int i = 0; i < num_of_subs; ++i) {
-        //                m_data_[i] = t.Get(i)->cast_as<data::DataEntityWrapper<sub_array_type>>().data();
-        //            }
-        //        } else {
-        //            m_data_[0] = d->cast_as<data::DataEntityWrapper<sub_array_type>>().data();
-        //        }
     }
     std::shared_ptr<data::DataEntity> PopData() {
         if (num_of_subs == 1) {
-            return data::make_data_entity(m_data_[0]);
+            return std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[0]);
         } else {
             auto t = std::make_shared<data::DataArrayWrapper<void>>();
             for (int i = 0; i < num_of_subs; ++i) {
-                t->Add(data::make_data_entity(m_data_[i]));
-
+                auto res = std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[i]);
+                t->Add(res);
                 m_data_[i].reset();
             }
-            return t;
+             return t;
         }
     }
 

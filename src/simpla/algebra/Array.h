@@ -18,9 +18,9 @@
 #include "Arithmetic.h"
 #include "Expression.h"
 
-#ifdef NDEBUG
+//#ifdef NDEBUG
 #include <simpla/toolbox/MemoryPool.h>
-#endif
+//#endif
 
 namespace simpla {
 namespace algebra {
@@ -42,16 +42,20 @@ struct ArrayView : public concept::Printable {
     typedef std::tuple<m_index_tuple, m_index_tuple> m_index_box_type;
     m_index_box_type m_inner_index_box_;
     m_index_box_type m_outer_index_box_;
-    std::shared_ptr<value_type> m_data_;
+    std::shared_ptr<value_type> m_data_ = nullptr;
 
    public:
     ArrayView() {}
 
     ArrayView(m_index_box_type const& b, std::shared_ptr<value_type> const& d = nullptr)
-        : m_inner_index_box_(b), m_outer_index_box_(b), m_data_(d) {}
+        : m_inner_index_box_(b), m_outer_index_box_(b), m_data_(d) {
+        Update();
+    }
     ArrayView(m_index_box_type const& b_in, m_index_box_type const& b_out,
               std::shared_ptr<value_type> const& d = nullptr)
-        : m_inner_index_box_(b_in), m_outer_index_box_(b_out), m_data_(d) {}
+        : m_inner_index_box_(b_in), m_outer_index_box_(b_out), m_data_(d) {
+        Update();
+    }
 
     ArrayView(this_type const& other, m_index_tuple const& offset)
         : m_inner_index_box_(other.m_inner_index_box_),
@@ -77,12 +81,11 @@ struct ArrayView : public concept::Printable {
 
     void Update() {
         if (m_data_ == nullptr) {
-            m_data_ =
-#ifdef NDEBUG
-                sp_alloc_array<V>(size());
-#else
-                std::shared_ptr<V>(new value_type[size()]);
-#endif
+            m_data_ = sp_alloc_array<value_type>(full_size());
+            //#ifdef NDEBUG
+            //#else
+            //                std::shared_ptr<V>(new value_type[size()]);
+            //#endif
         }
     };
 
@@ -141,24 +144,24 @@ struct ArrayView : public concept::Printable {
         Foreach(tags::_assign(), rhs);
         return (*this);
     }
-    size_type memory_size() const {
-        size_type res = sizeof(value_type);
+    size_type full_size() const {
+        size_type res = 1;
         for (int i = 0; i < NDIMS; ++i) {
-            res *= (std::get<1>(m_outer_index_box_)[i - 1] - std::get<0>(m_outer_index_box_)[i - 1]);
+            res *= (std::get<1>(m_outer_index_box_)[i] - std::get<0>(m_outer_index_box_)[i]);
         }
         return res;
     }
     size_type size() const {
         size_type res = 1;
         for (int i = 0; i < NDIMS; ++i) {
-            res *= (std::get<1>(m_inner_index_box_)[i - 1] - std::get<0>(m_inner_index_box_)[i - 1]);
+            res *= (std::get<1>(m_inner_index_box_)[i] - std::get<0>(m_inner_index_box_)[i]);
         }
         return res;
     }
 
     void Clear() {
         Update();
-        memset(m_data_.get(), 0, memory_size());
+        memset(m_data_.get(), 0, full_size() * sizeof(value_type));
     }
 
     template <typename... Others>

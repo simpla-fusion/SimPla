@@ -112,12 +112,12 @@ std::shared_ptr<DataTable> DataTable::GetTable(std::string const& uri) const {
 size_type DataTable::Delete(std::string const& uri) { return m_backend_->Delete(uri); };
 
 void DataTable::Set(DataTable const& other, bool overwrite) {
-    other.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> v) { Set(k, v, overwrite); });
+    other.Foreach([&](std::string const& k, std::shared_ptr<DataEntity> v) {Set(k, v, overwrite); });
 }
-void DataTable::SetValue(KeyValue const& item) { Set(item.first, item.second); }
+void DataTable::SetValue(KeyValue const& item) { Set(item.first, item.second,true); }
 
 void DataTable::SetValue(std::initializer_list<KeyValue> const& other) {
-    for (auto const& item : other) { Set(item.first, item.second); }
+    for (auto const& item : other) { Set(item.first, item.second,true); }
 }
 
 size_type DataTable::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {

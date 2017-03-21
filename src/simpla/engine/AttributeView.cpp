@@ -65,6 +65,7 @@ void AttributeViewBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::sha
 std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> AttributeViewBundle::PopData() {
     auto res = std::make_shared<data::DataTable>();
     for (auto *v : m_pimpl_->m_attr_views_) { res->Set(std::to_string(v->GetGUID()), v->PopData().second); }
+
     return std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(), res);
 }
 void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fun) const {

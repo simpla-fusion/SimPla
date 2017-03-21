@@ -134,7 +134,7 @@ int main(int argc, char **argv) {
         if (step % step_of_check_points == 0) { data::DataTable(output_file).Set(*ctx.db()); };
         ++step;
     }
-    //    MESSAGE << " DONE " << *ctx.db() << std::endl;
+    MESSAGE << " DONE " << *ctx.db()->Get("Patches") << std::endl;
     MESSAGE << "\t >>> Done <<< " << std::endl;
     MESSAGE << DOUBLELINE << std::endl;
     TheEnd();

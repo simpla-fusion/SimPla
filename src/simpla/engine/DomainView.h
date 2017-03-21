@@ -34,7 +34,6 @@ class DomainView : public concept::Configurable {
     virtual ~DomainView();
     virtual void Initialize();
     virtual void Finalize();
-    virtual bool Update();
 
     virtual void SetMesh(MeshView const *) = delete;
     virtual MeshView const *GetMesh() const;

@@ -2,7 +2,9 @@
 // Created by salmon on 16-6-6.
 //
 #include "DataEntity.h"
+#include "DataBlock.h"
 #include "DataTable.h"
+
 namespace simpla {
 namespace data {
 DataEntity::DataEntity() {}
@@ -11,7 +13,7 @@ std::ostream& DataEntity::Print(std::ostream& os, int indent) const {
     if (isLight()) {
         os << "<Light Data:" << value_type_info().name() << ">";
     } else if (isBlock()) {
-        os << "<Block:" << value_type_info().name() << ">";
+        os << "<Block:" << value_type_info().name() << "," << std::boolalpha << cast_as<DataBlock>().empty() << ">";
     } else if (isTable()) {
         os << "<Table:" << value_type_info().name() << ">";
     } else if (isArray()) {

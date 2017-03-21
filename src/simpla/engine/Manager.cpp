@@ -92,6 +92,7 @@ void Manager::Advance(Real dt, int level) {
                    << mblk->GetIndexBox() << " id= " << id << std::endl;
             v.second->Run(dt);
             auto t = v.second->PopData().second;
+
             m_pimpl_->m_patches_->Set(std::to_string(id), t);
         }
     }

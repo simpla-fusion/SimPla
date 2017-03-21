@@ -194,7 +194,9 @@ class AttributeViewAdapter<U, std::enable_if_t<!has_mesh_type<U>::value>> : publ
         U::PushData(d);
     };
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
-        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), U::PopData());
+        auto res = U::PopData();
+        CHECK(*res);
+        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), res);
     };
     template <typename TExpr>
     this_type &operator=(TExpr const &expr) {
@@ -258,10 +260,12 @@ class AttributeViewAdapter<U, std::enable_if_t<has_mesh_type<U>::value>> : publi
 
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &d) {
         ASSERT(GetMesh()->GetMeshBlock()->GetGUID() == m->GetGUID());
-        U::PushData(d);
+        U::PushData(m, d);
     }
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
-        return std::make_pair(GetMesh()->GetMeshBlock(), U::PopData());
+        auto res = U::PopData();
+
+        return std::make_pair(GetMesh()->GetMeshBlock(), res);
     }
 
     bool Update() final {

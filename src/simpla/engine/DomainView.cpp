@@ -14,8 +14,6 @@ namespace simpla {
 namespace engine {
 
 struct DomainView::pimpl_s {
-    id_type m_current_block_id_ = NULL_ID;
-
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     std::shared_ptr<MeshView> m_mesh_;
     std::map<int, std::shared_ptr<Worker>> m_workers_;
@@ -114,7 +112,6 @@ void DomainView::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<d
     if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<data::DataTable>(); }
     ASSERT(d->isTable());
     m_pimpl_->m_patch_->Set(d->cast_as<data::DataTable>());
-    m_pimpl_->m_current_block_id_ = m->GetGUID();
 };
 void DomainView::PushData(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> const &p) {
     PushData(p.first, p.second);
@@ -122,21 +119,21 @@ void DomainView::PushData(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<
 std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> DomainView::PopData() {
     auto res = std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(),
                               std::dynamic_pointer_cast<data::DataEntity>(m_pimpl_->m_patch_));
+
     m_pimpl_->m_patch_.reset();
     return (res);
 };
 
-bool DomainView::Update() { return false; }
-
 void DomainView::Run(Real dt) {
     m_pimpl_->m_mesh_->PushData(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
-    m_pimpl_->m_mesh_->Update();
 
     for (auto &item : m_pimpl_->m_workers_) {
         item.second->SetMesh(m_pimpl_->m_mesh_.get());
         item.second->PushData(m_pimpl_->m_mesh_->GetMeshBlock(), m_pimpl_->m_patch_);
         item.second->Run(dt);
-        PushData(item.second->PopData());
+        auto res = item.second->PopData();
+
+        PushData(res);  // item.second->PopData());
     }
 }
 void DomainView::Attach(AttributeViewBundle *p) {
