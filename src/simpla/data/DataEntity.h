@@ -29,18 +29,14 @@ struct DataEntity : public concept::Printable {
     DataEntity(DataEntity&&) = delete;
     virtual ~DataEntity();
 
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
-        os << "null";
-        return os;
-    };
-    virtual void Serialize(std::ostream& os, std::string const& type) const { os << ""; }
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
 
     virtual std::type_info const& value_type_info() const { return typeid(void); };
     virtual bool isLight() const { return true; }
-    virtual bool isHeavyBlock() const { return false; }
+    virtual bool isBlock() const { return false; }
     virtual bool isTable() const { return false; }
     virtual bool isArray() const { return false; }
-    virtual bool isNull() const { return !(isHeavyBlock() || isLight() || isTable() || isArray()); }
+    virtual bool isNull() const { return !(isBlock() || isLight() || isTable() || isArray()); }
 
     virtual std::shared_ptr<DataEntity> Duplicate() const { return nullptr; };
 };

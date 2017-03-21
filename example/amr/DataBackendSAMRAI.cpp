@@ -99,7 +99,7 @@ void DataBackendSAMRAI::pimpl_s::set_data_to_samrai(boost::shared_ptr<SAMRAI::tb
         return;
     } else if (src->isNull()) {
         dest->putDatabase(uri);
-    } else if (src->isHeavyBlock()) {
+    } else if (src->isBlock()) {
     } else if (src->isArray()) {
         if (src->value_type_info() == typeid(bool)) {
             auto& varray = src->cast_as<DataArrayWrapper<bool>>().data();

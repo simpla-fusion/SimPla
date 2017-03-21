@@ -89,6 +89,7 @@ std::shared_ptr<DataBackend> DataBackendFactory::Create(std::string const &uri, 
 
     LOGGER << "CreateNew  DataBackend [ " << scheme << " : " << path << "]" << std::endl;
     std::shared_ptr<DataBackend> res{base_type::Create(scheme)};
+    ASSERT(res != nullptr);
     res->Connect(path);
     return res;
 };

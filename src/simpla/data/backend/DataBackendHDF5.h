@@ -22,7 +22,6 @@ class DataBackendHDF5 : public DataBackend {
     virtual void Connect(std::string const& path, std::string const& param = "");
     virtual void Disconnect();
 
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual std::shared_ptr<DataBackend> Duplicate() const;
     virtual std::shared_ptr<DataBackend> CreateNew() const;
 
@@ -34,7 +33,7 @@ class DataBackendHDF5 : public DataBackend {
     virtual int Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
     virtual size_type Delete(std::string const& URI);
     virtual size_type size() const;
-    virtual size_type Foreach(std::function<void(std::string const &, std::shared_ptr<DataEntity>)> const &) const;
+    virtual size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
    private:
     struct pimpl_s;

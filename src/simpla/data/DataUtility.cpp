@@ -3,8 +3,10 @@
 //
 #include "DataUtility.h"
 #include "DataArray.h"
+#include "DataBlock.h"
 #include "DataEntity.h"
 #include "DataTable.h"
+
 namespace simpla {
 namespace data {
 //
@@ -45,6 +47,14 @@ void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int in
         os << "}";
     } else if (d->value_type_info() == typeid(bool)) {
         os << (data_cast<bool>(*d) ? "true" : "false");
+    } else if (d->isBlock()) {
+        auto const &blk = d->cast_as<DataBlock>();
+        int ndims = blk.GetNDIMS();
+        os << "\"{ Dimensions = { {" << blk.GetInnerLowerIndex()[0];
+        for (int i = 1; i < ndims; ++i) { os << "x" << blk.GetInnerLowerIndex()[i]; }
+        os << "} , {" << blk.GetInnerUpperIndex()[0];
+        for (int i = 1; i < ndims; ++i) { os << "x" << blk.GetInnerUpperIndex()[i]; }
+        os << "}}}\"";
     } else {
         d->Print(os, 0);
     }

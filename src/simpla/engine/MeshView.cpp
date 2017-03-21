@@ -30,16 +30,27 @@ bool MeshViewFactory::RegisterCreator(
 std::shared_ptr<MeshView> MeshViewFactory::Create(std::shared_ptr<data::DataEntity> const &config,
                                                   std::shared_ptr<geometry::GeoObject> const &g) {
     std::shared_ptr<MeshView> res = nullptr;
-    if (config == nullptr) {
-        WARNING << "Create Mesh failed!" << std::endl;
-        return res;
-    } else if (config->value_type_info() == typeid(std::string)) {
-        res = m_pimpl_->m_mesh_factory_.at(data::data_cast<std::string>(*config))(nullptr, g);
-    } else if (config->isTable()) {
-        auto const &t = config->cast_as<data::DataTable>();
-        res = m_pimpl_->m_mesh_factory_.at(t.GetValue<std::string>("name"))(config, g);
-    }
+    try {
+        std::string key = "";
+        std::shared_ptr<data::DataTable> t = nullptr;
+        if (config == nullptr) {
+            WARNING << "Create Mesh failed!" << std::endl;
+            return res;
+        } else if (config->value_type_info() == typeid(std::string)) {
+            key = data::data_cast<std::string>(*config);
+        } else if (config->isTable()) {
+            t = std::dynamic_pointer_cast<data::DataTable>(config);
+            key = t->GetValue<std::string>("name");
+        }
+        ASSERT(key != "");
+        res = m_pimpl_->m_mesh_factory_.at(key)(t, g);
+        res->db()->SetValue("name", key);
 
+    } catch (std::out_of_range const &) {
+        RUNTIME_ERROR << "Mesh creator ["
+                      << "] is missing!" << std::endl;
+        return nullptr;
+    }
     if (res != nullptr) { LOGGER << "MeshView [" << res->name() << "] is created!" << std::endl; }
     return res;
 }
@@ -48,7 +59,7 @@ struct MeshView::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
 };
-MeshView::MeshView(const std::shared_ptr<geometry::GeoObject> &geo_obj, std::shared_ptr<data::DataEntity> const &t)
+MeshView::MeshView(std::shared_ptr<data::DataEntity> const &t, const std::shared_ptr<geometry::GeoObject> &geo_obj)
     : SPObject(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_obj_ = geo_obj;
     if (m_pimpl_->m_geo_obj_ == nullptr) {

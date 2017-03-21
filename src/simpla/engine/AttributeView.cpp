@@ -38,8 +38,11 @@ void AttributeViewBundle::Detach(AttributeView *p) {
 }
 
 void AttributeViewBundle::SetMesh(MeshView const *m) {
+    if (m == nullptr) { return; }
     m_pimpl_->m_mesh_ = m;
-    for (auto *v : m_pimpl_->m_attr_views_) { v->SetMesh(m); }
+    for (auto *v : m_pimpl_->m_attr_views_) {
+        if (v != nullptr) { v->SetMesh(m); }
+    }
 }
 MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
 
@@ -62,8 +65,8 @@ void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fu
 }
 
 struct AttributeView::pimpl_s {
-    AttributeViewBundle *m_bundle_;
-    MeshView const *m_mesh_;
+    AttributeViewBundle *m_bundle_ = nullptr;
+    MeshView const *m_mesh_ = nullptr;
 };
 AttributeView::AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataEntity> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {
@@ -76,16 +79,17 @@ AttributeView::~AttributeView() {
     m_pimpl_->m_bundle_ = nullptr;
 }
 
-//id_type AttributeView::GetGUID() const {
+// id_type AttributeView::GetGUID() const {
 //    std::string str = name() + '.' + value_type_info().name() + '.' + mesh_type_info().name() + '.' +
 //                      static_cast<char>(GetIFORM() + '0') + '.' + static_cast<char>(GetDOF() + '0');
 //    return static_cast<id_type>(std::hash<std::string>{}(str));
 //}
 void AttributeView::SetMesh(MeshView const *m) {
-    if (m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo()) {
+    if (m == nullptr) { return; }
+    if ((m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo())) {
         m_pimpl_->m_mesh_ = m;
     } else {
-        RUNTIME_ERROR << "Can not change the mesh type of a worker! [ from " << m_pimpl_->m_mesh_->GetClassName()
+        RUNTIME_ERROR << "Can not change the mesh type of a worker![ from " << m_pimpl_->m_mesh_->GetClassName()
                       << " to " << m->GetClassName() << "]" << std::endl;
     }
 }

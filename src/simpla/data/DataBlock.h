@@ -21,14 +21,15 @@ class DataBlock : public DataEntity {
     DataBlock() {}
     virtual ~DataBlock() {}
     bool empty() const { return true; }
-    virtual bool isHeavyBlock() const { return true; }
+    virtual bool isBlock() const { return true; }
     virtual std::type_info const &value_type_info() const { return typeid(Real); };
-    virtual int ndims() const { return 0; }
-    virtual size_type memory_size() { return 0; }
-    virtual size_type size() const { return 0; }
-    virtual size_type const *GetGhostWidth() const { return nullptr; }
-    virtual size_type const *GetDimensions() const { return nullptr; }
-
+    virtual int GetNDIMS() const { return 0; }
+    virtual index_type const *GetInnerLowerIndex() const { return nullptr; }
+    virtual index_type const *GetInnerUpperIndex() const { return nullptr; }
+    virtual index_type const *GetOuterLowerIndex() const { return nullptr; }
+    virtual index_type const *GetOuterUpperIndex() const { return nullptr; }
+    virtual void const *GetRawData() const { return nullptr; }
+    virtual void *GetRawData() { return nullptr; }
     virtual void Clear() { UNIMPLEMENTED; };
     virtual void Copy(DataBlock const &) { UNIMPLEMENTED; };
 };
@@ -50,6 +51,14 @@ class DataEntityWrapper<simpla::Array<U, NDIMS>> : public DataBlock {
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
     virtual std::shared_ptr<array_type> &data() { return m_data_; };
     virtual std::shared_ptr<array_type> const &data() const { return m_data_; };
+
+    virtual int GetNDIMS() const { return m_data_->GetNDIMS(); }
+    virtual index_type const *GetInnerLowerIndex() const { return m_data_->GetInnerLowerIndex(); }
+    virtual index_type const *GetInnerUpperIndex() const { return m_data_->GetInnerUpperIndex(); }
+    virtual index_type const *GetOuterLowerIndex() const { return m_data_->GetOuterLowerIndex(); }
+    virtual index_type const *GetOuterUpperIndex() const { return m_data_->GetOuterUpperIndex(); }
+    virtual void const *GetRawData() const { return m_data_->GetRawData(); }
+    virtual void *GetRawData() { return m_data_->GetRawData(); }
 
    private:
     std::shared_ptr<array_type> m_data_;

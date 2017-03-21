@@ -33,7 +33,7 @@ struct DataEntityWrapper<Array<U, N>> : public DataEntity, public Array<U, N> {
     virtual std::type_info const& value_type_info() const { return typeid(array_type); }
     virtual bool isEntity() const { return true; }
     virtual bool isLight() const { return false; }
-    virtual bool isHeavyBlock() const { return false; }
+    virtual bool isBlock() const { return false; }
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
         if (typeid(U) == typeid(std::string)) {

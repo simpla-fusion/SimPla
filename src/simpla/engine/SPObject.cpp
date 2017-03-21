@@ -28,10 +28,9 @@ struct SPObject::pimpl_s {
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
 SPObject::SPObject(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s) {
-    auto gen = boost::uuids::random_generator();
-
     m_pimpl_->m_db_ = (t != nullptr && t->isTable()) ? std::dynamic_pointer_cast<data::DataTable>(t)
                                                      : std::make_shared<data::DataTable>();
+
     if (t != nullptr && t->isLight() && t->value_type_info() == typeid(std::string)) {
         m_pimpl_->m_db_->SetValue("name", data::data_cast<std::string>(*t));
     }

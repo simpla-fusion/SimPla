@@ -12,25 +12,40 @@ namespace simpla {
 namespace engine {
 
 struct Manager::pimpl_s {
-    std::map<id_type, std::shared_ptr<data::DataEntity>> m_patches_;
+    std::shared_ptr<data::DataTable> m_patches_;
     std::map<std::string, std::shared_ptr<DomainView>> m_views_;
     std::map<std::string, std::shared_ptr<AttributeView>> m_attrs_;
     Atlas m_atlas_;
     Model m_model_;
     Real m_time_ = 0;
+    std::shared_ptr<data::DataTable> m_db_;
 };
 
-Manager::Manager() : m_pimpl_(new pimpl_s) {
+Manager::Manager(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_db_ = (t != nullptr && t->isTable()) ? std::dynamic_pointer_cast<data::DataTable>(t)
+                                                     : std::make_shared<data::DataTable>();
+    if (t != nullptr && t->isLight() && t->value_type_info() == typeid(std::string)) {
+        db()->SetValue("name", data::data_cast<std::string>(*t));
+    }
+
     db()->Link("Model", m_pimpl_->m_model_.db());
     db()->Link("Atlas", m_pimpl_->m_atlas_.db());
+    m_pimpl_->m_patches_ = std::make_shared<data::DataTable>();
+    db()->Link("Patches", *m_pimpl_->m_patches_);
 }
 
 Manager::~Manager() {}
+
+std::shared_ptr<data::DataTable> Manager::db() const { return m_pimpl_->m_db_; };
+std::shared_ptr<data::DataTable> Manager::db() { return m_pimpl_->m_db_; };
+
 Real Manager::GetTime() const { return m_pimpl_->m_time_; }
 
 Atlas &Manager::GetAtlas() const { return m_pimpl_->m_atlas_; }
 
 Model &Manager::GetModel() const { return m_pimpl_->m_model_; }
+
+std::shared_ptr<data::DataTable> Manager::GetPatches() const { return m_pimpl_->m_patches_; }
 
 std::shared_ptr<DomainView> Manager::GetDomainView(std::string const &d_name) const {
     return m_pimpl_->m_views_.at(d_name);
@@ -48,14 +63,14 @@ void Manager::Synchronize(int from, int to) {
             if (!geometry::CheckOverlap(atlas.GetBlock(src)->GetIndexBox(), atlas.GetBlock(dest)->GetIndexBox())) {
                 continue;
             }
-            auto s_it = m_pimpl_->m_patches_.find(src);
-            auto d_it = m_pimpl_->m_patches_.find(dest);
-            if (s_it == m_pimpl_->m_patches_.end() || d_it == m_pimpl_->m_patches_.end() || s_it == d_it) { continue; }
-            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetBlock(s_it->first)->GetIndexBox() << " to "
-                   << m_pimpl_->m_atlas_.GetBlock(d_it->first)->GetIndexBox() << " " << std::endl;
-            auto &src_data = s_it->second->cast_as<data::DataTable>();
+            auto s_it = m_pimpl_->m_patches_->Get(std::to_string(src));
+            auto d_it = m_pimpl_->m_patches_->Get(std::to_string(dest));
+            if (s_it == nullptr || d_it == nullptr || s_it == d_it) { continue; }
+            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetBlock(src)->GetIndexBox() << " to "
+                   << m_pimpl_->m_atlas_.GetBlock(dest)->GetIndexBox() << " " << std::endl;
+            auto &src_data = s_it->cast_as<data::DataTable>();
             src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &dest_p) {
-                auto dest_data = d_it->second->cast_as<data::DataTable>().Get(key);
+                auto dest_data = d_it->cast_as<data::DataTable>().Get(key);
                 //                        ->cast_as<data::DataTable>();
                 if (dest_data == nullptr) { return; }
 
@@ -68,23 +83,22 @@ void Manager::Advance(Real dt, int level) {
     auto &atlas = GetAtlas();
     for (auto const &id : atlas.GetBlockList(level)) {
         auto mblk = m_pimpl_->m_atlas_.GetBlock(id);
-
         for (auto &v : m_pimpl_->m_views_) {
             if (!v.second->GetMesh()->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
-            auto res = m_pimpl_->m_patches_.emplace(id, nullptr);
-            if (res.first->second == nullptr) { res.first->second = std::make_shared<data::DataTable>(); }
-            v.second->PushData(mblk, res.first->second);
+            auto res = m_pimpl_->m_patches_->Get(std::to_string(id));
+            if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
+            v.second->PushData(mblk, res);
             LOGGER << " DomainView [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
-                   << mblk->GetIndexBox() << std::endl;
+                   << mblk->GetIndexBox() << " id= " << id << std::endl;
             v.second->Run(dt);
-            std::tie(std::ignore, res.first->second) = v.second->PopData();
+            auto t = v.second->PopData().second;
+            m_pimpl_->m_patches_->Set(std::to_string(id), t);
         }
     }
     m_pimpl_->m_time_ += dt;
 };
 
 void Manager::Initialize() {
-    LOGGER << "Manager " << name() << " is initializing!" << std::endl;
     GetModel().Initialize();
     GetAtlas().Initialize();
     db()->Set("DomainView/");
@@ -98,19 +112,17 @@ void Manager::Initialize() {
         if (view_res.first->second == nullptr) {
             view_res.first->second = std::make_shared<DomainView>(item, g_obj_);
         } else if (item != nullptr && item->isTable()) {
-            view_res.first->second->db()->Set(*std::dynamic_pointer_cast<data::DataTable>(item));
+            view_res.first->second->db()->Set(item->cast_as<data::DataTable>());
         } else {
             WARNING << " ignore data entity [" << s_key << " :" << *item << "]" << std::endl;
         }
+        view_res.first->second->Initialize();
+        domain_t.Link(s_key, view_res.first->second->db());
 
-        domain_t.Set(s_key, view_res.first->second->db(), true);
-        view_res.first->second->Initialize(domain_t.Get(s_key), g_obj_);
-        GetModel().AddObject(s_key, view_res.first->second->GetMesh()->GetGeoObject());
+        GetModel().AddObject(s_key, view_res.first->second->GetGeoObject());
     });
-    SPObject::Tag();
 
-    LOGGER << "Manager [" << name() << "] is initialized!" << std::endl;
+    LOGGER << "Manager is initialized!" << std::endl;
 }
-bool Manager::Update() { return SPObject::Update(); };
 }  // namespace engine {
 }  // namespace simpla {

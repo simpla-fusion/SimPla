@@ -27,21 +27,18 @@ class MeshBlock;
 class AttributeView;
 class Patch;
 
-class DomainView : public concept::Printable, public SPObject {
+class DomainView : public SPObject {
    public:
     DomainView(std::shared_ptr<data::DataEntity> const &p = nullptr,
                std::shared_ptr<geometry::GeoObject> const &g = nullptr);
     virtual ~DomainView();
-    virtual std::ostream &Print(std::ostream &os, int indent) const final;
-    virtual void Initialize(std::shared_ptr<data::DataEntity> const &p = nullptr,
-                            std::shared_ptr<geometry::GeoObject> const &g = nullptr);
+    virtual void Initialize();
     virtual void Finalize();
     virtual bool Update();
 
     virtual void SetMesh(MeshView const *) = delete;
-
     virtual MeshView const *GetMesh() const;
-
+    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
     virtual void PushData(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> const &);
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();

@@ -12,12 +12,16 @@ template <typename U, int NDIMS = 1, typename Enable = void>
 class DataArrayWrapper {};
 struct DataArray : public DataEntity {
     SP_OBJECT_HEAD(DataArray, DataEntity)
+    size_type m_dimensions_[MAX_NDIMS_OF_ARRAY] = {1, 1, 1, 1, 1, 1, 1, 1};
+
    public:
     DataArray();
     virtual ~DataArray();
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
     virtual bool isArray() const { return true; }
     /** as Array */
+    virtual size_type rank() const { return 1; };
+    virtual size_type const* dimensions() const { return m_dimensions_; };
     virtual size_type size() const {
         UNIMPLEMENTED;
         return 0;
@@ -195,7 +199,7 @@ struct data_entity_traits<std::tuple<U...>> {
     };
 
     static std::shared_ptr<DataEntity> to(std::tuple<U...> const& v) {
-        auto p = std::make_shared<DataArrayWrapper<void> >();
+        auto p = std::make_shared<DataArrayWrapper<void>>();
         p->resize(sizeof...(U));
         detail::data_entity_to_helper(v, *p, std::integral_constant<int, sizeof...(U)>());
         return p;

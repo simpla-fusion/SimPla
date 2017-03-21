@@ -16,6 +16,7 @@ namespace engine {
 struct DomainView::pimpl_s {
     id_type m_current_block_id_ = NULL_ID;
 
+    std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     std::shared_ptr<MeshView> m_mesh_;
     std::map<int, std::shared_ptr<Worker>> m_workers_;
     std::set<AttributeViewBundle *> m_attr_bundle_;
@@ -26,13 +27,15 @@ struct DomainView::pimpl_s {
 
 DomainView::DomainView(std::shared_ptr<data::DataEntity> const &t, std::shared_ptr<geometry::GeoObject> const &g)
     : SPObject(t), m_pimpl_(new pimpl_s) {
-    Initialize(t, g);
+    m_pimpl_->m_geo_obj_ = g;
 }
+
 DomainView::~DomainView() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { Detach(item); }
     Finalize();
 }
 MeshView const *DomainView::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
+std::shared_ptr<geometry::GeoObject> DomainView::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
 /**
  *
@@ -120,7 +123,7 @@ std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> DomainV
     auto res = std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(),
                               std::dynamic_pointer_cast<data::DataEntity>(m_pimpl_->m_patch_));
     m_pimpl_->m_patch_.reset();
-    return std::move(res);
+    return (res);
 };
 
 bool DomainView::Update() {
@@ -138,7 +141,6 @@ void DomainView::Run(Real dt) {
         item.second->Run(dt);
         PushData(item.second->PopData());
     }
-
 }
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p == nullptr) { return; }
@@ -157,19 +159,17 @@ void DomainView::Attach(AttributeViewBundle *p) {
 void DomainView::Detach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) { Click(); }
 }
-void DomainView::Initialize(std::shared_ptr<data::DataEntity> const &p, std::shared_ptr<geometry::GeoObject> const &g) {
-    if (m_pimpl_->m_mesh_ != nullptr || (p == nullptr && g == nullptr)) { return; }
-
-    LOGGER << "Domain View [" << name() << "] is initializing!" << std::endl;
-    m_pimpl_->m_mesh_ = GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"), g);
+void DomainView::Initialize() {
+    if (m_pimpl_->m_mesh_ != nullptr) { return; }
+    m_pimpl_->m_mesh_ = GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"), m_pimpl_->m_geo_obj_);
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
-
+    db()->Link("Mesh", m_pimpl_->m_mesh_->db());
     auto t_worker = db()->Get("Worker");
-    if (t_worker != nullptr) {
-        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
-            AddWorker(GLOBAL_WORKER_FACTORY.Create(m_pimpl_->m_mesh_, c));
-        });
-    }
+    //    if (t_worker != nullptr) {
+    //        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
+    //            auto res = AddWorker(GLOBAL_WORKER_FACTORY.Create(m_pimpl_->m_mesh_, c));
+    //        });
+    //    }
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
     Tag();
 }
@@ -191,20 +191,20 @@ void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
     //    if (it != m_backend_->m_workers_.end()) { m_backend_->m_workers_.Disconnect(it); }
 };
 
-std::ostream &DomainView::Print(std::ostream &os, int indent) const {
-    if (m_pimpl_->m_mesh_ != nullptr) {
-        os << " Mesh = { ";
-        m_pimpl_->m_mesh_->Print(os, indent);
-        os << " }, " << std::endl;
-    }
-
-    if (m_pimpl_->m_workers_.size() > 0) {
-        os << " Worker = { ";
-        for (auto &item : m_pimpl_->m_workers_) { item.second->Print(os, indent); }
-        os << " } " << std::endl;
-    }
-    return os;
-};
+// std::ostream &DomainView::Print(std::ostream &os, int indent) const {
+//    if (m_pimpl_->m_mesh_ != nullptr) {
+//        os << " Mesh = { ";
+//        m_pimpl_->m_mesh_->Print(os, indent);
+//        os << " }, " << std::endl;
+//    }
+//
+//    if (m_pimpl_->m_workers_.size() > 0) {
+//        os << " Worker = { ";
+//        for (auto &item : m_pimpl_->m_workers_) { item.second->Print(os, indent); }
+//        os << " } " << std::endl;
+//    }
+//    return os;
+//};
 //
 // void Model::Update(Real data_time, Real dt) {
 //    PreProcess();

@@ -7,7 +7,18 @@ namespace simpla {
 namespace data {
 DataEntity::DataEntity() {}
 DataEntity::~DataEntity() {}
-
+std::ostream& DataEntity::Print(std::ostream& os, int indent) const {
+    if (isLight()) {
+        os << "<Light Data:" << value_type_info().name() << ">";
+    } else if (isBlock()) {
+        os << "<Block:" << value_type_info().name() << ">";
+    } else if (isTable()) {
+        os << "<Table:" << value_type_info().name() << ">";
+    } else if (isArray()) {
+        os << "<Array:" << value_type_info().name() << ">";
+    }
+    return os;
+};
 // DataEntity DataEntity::operator[](std::string const& url) {
 //    if (m_data_ == nullptr) {
 //        m_data_ = new DataTable;

@@ -26,7 +26,8 @@ class MeshView : public SPObject, public AttributeViewBundle, public std::enable
     SP_OBJECT_HEAD(MeshView, SPObject);
 
    public:
-    MeshView(const std::shared_ptr<geometry::GeoObject> &obj, std::shared_ptr<data::DataEntity> const &t = nullptr);
+    MeshView(std::shared_ptr<data::DataEntity> const &t = nullptr,
+             const std::shared_ptr<geometry::GeoObject> &obj = nullptr);
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 

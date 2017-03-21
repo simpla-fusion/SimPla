@@ -109,36 +109,32 @@ int main(int argc, char **argv) {
     }
     MPI_Barrier(GLOBAL_COMM.comm());
 
-    int num_of_steps = ctx.GetDBValue<int>("number_of_steps", 1);
-    int step_of_check_points = ctx.GetDBValue<int>("step_of_check_point", 1);
-    Real dt = ctx.GetDBValue<Real>("dt", 1.0);
+    int num_of_steps = ctx.db()->GetValue<int>("number_of_steps", 1);
+    int step_of_check_points = ctx.db()->GetValue<int>("step_of_check_point", 1);
+    Real dt = ctx.db()->GetValue<Real>("dt", 1.0);
 
     MESSAGE << DOUBLELINE << std::endl;
     MESSAGE << "INFORMATION:" << std::endl;
     MESSAGE << "Context : " << *ctx.db() << std::endl;
     MESSAGE << SINGLELINE << std::endl;
-    //
-    //    MESSAGE << DOUBLELINE << std::endl;
-    //    TheStart();
-    //    //    os->open("/checkpoint/");
-    //    //    ctx.sync();
-    //    //    ctx.check_point(*os);
-    //
-    //    size_type count = 0;
-    //
-    //    while (count <= num_of_steps) {
-    //        ctx.Advance(dt);
-    //        ctx.Synchronize();
-    //        //        if (size % step_of_check_points == 0) { ctx.CheckPoint(*os); }
-    //        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " size = " << count << "] <<< " << std::endl;
-    //        ++count;
-    //    }
-    //
-    //    INFORM << "\t >>> Done <<< " << std::endl;
-    //
 
-    //
-    //    MESSAGE << DOUBLELINE << std::endl;
+    MESSAGE << DOUBLELINE << std::endl;
+    TheStart();
+
+    size_type count = 0;
+
+    while (count <= num_of_steps) {
+        ctx.Advance(dt);
+        ctx.Synchronize();
+        //        if (size % step_of_check_points == 0) { ctx.CheckPoint(*os); }
+        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " size = " << count << "] <<< " << std::endl;
+        ++count;
+    }
+    MESSAGE << " DONE " << *ctx.db() << std::endl;
+
+    MESSAGE << "\t >>> Done <<< " << std::endl;
+
+    MESSAGE << DOUBLELINE << std::endl;
 
     TheEnd();
     parallel::close();

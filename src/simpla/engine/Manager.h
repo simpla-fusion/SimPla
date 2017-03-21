@@ -60,16 +60,20 @@ namespace engine {
  *  deactivate DomainView
  * @enduml
  */
-class Manager : public SPObject {
+class Manager {
+    SP_OBJECT_BASE(DomainView)
+
    public:
-    Manager();
+    Manager(std::shared_ptr<data::DataEntity> const &t = nullptr);
     virtual ~Manager();
+    std::shared_ptr<data::DataTable> db() const;
+    std::shared_ptr<data::DataTable> db();
     virtual void Initialize();
-    virtual bool Update();
     virtual void Advance(Real dt, int level = 0);
     virtual void Synchronize(int from_level = 0, int to_level = 0);
     Atlas &GetAtlas() const;
     Model &GetModel() const;
+    std::shared_ptr<data::DataTable> GetPatches() const;
     void SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p);
     std::shared_ptr<DomainView> GetDomainView(std::string const &d_name) const;
     Real GetTime() const;
