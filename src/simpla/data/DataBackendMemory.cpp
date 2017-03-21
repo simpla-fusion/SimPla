@@ -17,7 +17,7 @@ struct DataBackendMemory::pimpl_s {
     typedef std::map<std::string, std::shared_ptr<DataEntity>> table_type;
     table_type m_table_;
     static std::pair<DataBackendMemory*, std::string> get_table(DataBackendMemory* self, std::string const& uri,
-                                                                bool return_if_not_exist = true);
+                                                                bool return_if_not_exist);
 };
 
 std::pair<DataBackendMemory*, std::string> DataBackendMemory::pimpl_s::get_table(DataBackendMemory* t,
@@ -70,8 +70,8 @@ bool DataBackendMemory::isNull() const { return m_pimpl_ == nullptr; };
 size_type DataBackendMemory::size() const { return m_pimpl_->m_table_.size(); }
 
 std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const {
-    auto res = m_pimpl_->get_table(const_cast<DataBackendMemory*>(this), url);
-    if (res.first != nullptr || res.second != "") {
+    auto res = m_pimpl_->get_table(const_cast<DataBackendMemory*>(this), url, true);
+    if (res.first != nullptr && res.second != "") {
         auto it = res.first->m_pimpl_->m_table_.find(res.second);
         if (it != res.first->m_pimpl_->m_table_.end()) { return it->second; }
     }
@@ -80,8 +80,8 @@ std::shared_ptr<DataEntity> DataBackendMemory::Get(std::string const& url) const
 };
 
 int DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite) {
-    auto tab_res = pimpl_s::get_table((this), uri, overwrite);
-    if (tab_res.second == "") { return 0; }
+    auto tab_res = pimpl_s::get_table((this), uri, !overwrite);
+    if (tab_res.second == "" || tab_res.first == nullptr) { return 0; }
     auto res = tab_res.first->m_pimpl_->m_table_.emplace(tab_res.second, nullptr);
     if (res.first->second == nullptr || overwrite) {
         res.first->second = v;
@@ -124,7 +124,7 @@ int DataBackendMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> c
     return 1;
 }
 size_type DataBackendMemory::Delete(std::string const& uri) {
-    auto res = m_pimpl_->get_table(const_cast<DataBackendMemory*>(this), uri);
+    auto res = m_pimpl_->get_table(const_cast<DataBackendMemory*>(this), uri, true);
     return (res.first != nullptr && res.second != "") ? res.first->m_pimpl_->m_table_.erase(res.second) : 0;
 }
 

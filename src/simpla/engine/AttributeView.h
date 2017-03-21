@@ -94,12 +94,15 @@ class AttributeViewBundle {
     virtual ~AttributeViewBundle();
     void Detach(AttributeView *attr);
     void Attach(AttributeView *attr);
+    void Connect(DomainView *);
+    void Disconnect();
     virtual void SetMesh(MeshView const *);
     virtual MeshView const *GetMesh() const;
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();
 
     void Foreach(std::function<void(AttributeView *)> const &) const;
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

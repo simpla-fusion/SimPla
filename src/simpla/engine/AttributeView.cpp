@@ -19,16 +19,23 @@ struct AttributeViewBundle::pimpl_s {
     std::set<AttributeView *> m_attr_views_;
 };
 
-AttributeViewBundle::AttributeViewBundle(DomainView *d) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_domain_ = d;
-    if (m_pimpl_->m_domain_ != nullptr) { m_pimpl_->m_domain_->Attach(this); }
-}
-AttributeViewBundle::~AttributeViewBundle() {
-    if (m_pimpl_->m_domain_ != nullptr) {
-        m_pimpl_->m_domain_->Detach(this);
-        m_pimpl_->m_domain_ = nullptr;
+AttributeViewBundle::AttributeViewBundle(DomainView *d) : m_pimpl_(new pimpl_s) { Connect(d); }
+AttributeViewBundle::~AttributeViewBundle() { Disconnect(); }
+
+void AttributeViewBundle::Connect(DomainView *d) {
+    if (d != m_pimpl_->m_domain_) {
+        Disconnect();
+        m_pimpl_->m_domain_ = d;
+        m_pimpl_->m_domain_->Attach(this);
     }
-}
+};
+void AttributeViewBundle::Disconnect() {
+    if (m_pimpl_->m_domain_ != nullptr) {
+        auto t = m_pimpl_->m_domain_;
+        m_pimpl_->m_domain_ = nullptr;
+        t->Detach(this);
+    }
+};
 void AttributeViewBundle::Attach(AttributeView *p) {
     if (p != nullptr) { m_pimpl_->m_attr_views_.emplace(p); }
 }

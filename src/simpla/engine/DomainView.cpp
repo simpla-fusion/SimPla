@@ -145,12 +145,19 @@ void DomainView::Run(Real dt) {
 void DomainView::Attach(AttributeViewBundle *p) {
     if (p == nullptr) { return; }
     auto res = m_pimpl_->m_attr_bundle_.emplace(p);
+
     if (res.second) {
+        (*res.first)->Connect(this);
         (*res.first)->Foreach([&](AttributeView *v) {
+            ASSERT(v != nullptr)
             if (v->name() != "") {
-                if (db()->Set("Attributes/" + v->name(), v->db(), false) > 0) {
-                    v->db()->Link(db()->Get("Attributes/" + v->name()));
+                auto res = db()->Get("Attributes/" + v->name());
+                if (res == nullptr || !res->isTable()) {
+                    res = v->db();
+                } else {
+                    res->cast_as<data::DataTable>().Set(*v->db());
                 }
+                db()->Link("Attributes/" + v->name(), res);
             }
         });
         Click();
@@ -165,11 +172,12 @@ void DomainView::Initialize() {
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
     db()->Link("Mesh", m_pimpl_->m_mesh_->db());
     auto t_worker = db()->Get("Worker");
-    //    if (t_worker != nullptr) {
-    //        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
-    //            auto res = AddWorker(GLOBAL_WORKER_FACTORY.Create(m_pimpl_->m_mesh_, c));
-    //        });
-    //    }
+    if (t_worker != nullptr) {
+        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
+            auto res = GLOBAL_WORKER_FACTORY.Create(m_pimpl_->m_mesh_, c);
+            AddWorker(res);
+        });
+    }
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
     Tag();
 }
@@ -179,6 +187,7 @@ void DomainView::Finalize() {
 }
 
 std::pair<std::shared_ptr<Worker>, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
+    ASSERT(w != nullptr);
     auto res = m_pimpl_->m_workers_.emplace(pos, w);
     if (res.second) { Attach(res.first->second.get()); }
     return std::make_pair(res.first->second, res.second);

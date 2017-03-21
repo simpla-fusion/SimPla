@@ -24,27 +24,27 @@ bool WorkerFactory::RegisterCreator(
 };
 std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m,
                                               std::shared_ptr<data::DataEntity> const &config) {
-    std::shared_ptr<Worker> res = nullptr;
     std::string s_name = "";
-    try {
-        std::shared_ptr<data::DataTable> d = nullptr;
-        if (config == nullptr || config->isNull()) {
-            return nullptr;
-        } else if (config->value_type_info() == typeid(std::string)) {
-            s_name = m->name() + "." + data::data_cast<std::string>(*config);
-        } else if (config->isTable()) {
-            auto const &t = config->cast_as<data::DataTable>();
-            s_name = m->name() + "." + t.GetValue<std::string>("name");
-            d = std::dynamic_pointer_cast<data::DataTable>(config);
-        }
-        res = m_pimpl_->m_worker_factory_.at(s_name)(m, d);
-    } catch (std::out_of_range const &) {
-        RUNTIME_ERROR << "Worker ["
-                      << "] is missing!" << std::endl;
+    std::shared_ptr<data::DataTable> d = nullptr;
+
+    if (config == nullptr || config->isNull()) {
+        return nullptr;
+    } else if (config->value_type_info() == typeid(std::string)) {
+        s_name = m->name() + "." + data::data_cast<std::string>(*config);
+    } else if (config->isTable()) {
+        auto const &t = config->cast_as<data::DataTable>();
+        s_name = m->name() + "." + t.GetValue<std::string>("name");
+        d = std::dynamic_pointer_cast<data::DataTable>(config);
+    }
+    auto it = m_pimpl_->m_worker_factory_.find(s_name);
+    if (it != m_pimpl_->m_worker_factory_.end()) {
+        auto res = it->second(m, d);
+        LOGGER << "Worker [" << s_name << "] is created!" << std::endl;
+        return res;
+    } else {
+        RUNTIME_ERROR << "Worker Creator[" << s_name << "] is missing!" << std::endl;
         return nullptr;
     }
-    LOGGER << "Worker [" << s_name << "] is created!" << std::endl;
-    return res;
 }
 
 struct Worker::pimpl_s {
