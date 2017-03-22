@@ -2,8 +2,8 @@
 // Created by salmon on 17-2-16.
 //
 
-#ifndef SIMPLA_MANAGER_H
-#define SIMPLA_MANAGER_H
+#ifndef SIMPLA_CONTEXT_H
+#define SIMPLA_CONTEXT_H
 
 #include <simpla/SIMPLA_config.h>
 #include <map>
@@ -30,9 +30,9 @@ namespace engine {
  * @enduml
  *
  * @startuml
- *  Manager -> DomainView: Dispatch(Domain &)
- *  DomainView -->Manager : Done
- *  Manager -> DomainView: Update()
+ *  Context -> DomainView: Dispatch(Domain &)
+ *  DomainView -->Context : Done
+ *  Context -> DomainView: Update()
  *  activate DomainView
  *      DomainView -> DomainView :Update
  *      activate DomainView
@@ -56,18 +56,17 @@ namespace engine {
  *              Worker --> DomainView : Done
  *          deactivate Worker
  *      deactivate DomainView
- *      DomainView --> Manager: Done
+ *      DomainView --> Context: Done
  *  deactivate DomainView
  * @enduml
  */
-class Manager {
+class Context : public concept::Configurable {
     SP_OBJECT_BASE(DomainView)
 
    public:
-    Manager(std::shared_ptr<data::DataEntity> const &t = nullptr);
-    virtual ~Manager();
-    std::shared_ptr<data::DataTable> db() const;
-    std::shared_ptr<data::DataTable> db();
+    Context(std::shared_ptr<data::DataEntity> const &t = nullptr);
+    virtual ~Context();
+
     virtual void Initialize();
     virtual void Advance(Real dt, int level = 0);
     virtual void Synchronize(int from_level = 0, int to_level = 0);
@@ -76,6 +75,7 @@ class Manager {
     std::shared_ptr<data::DataTable> GetPatches() const;
     void SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p);
     std::shared_ptr<DomainView> GetDomainView(std::string const &d_name) const;
+    std::map<std::string, std::shared_ptr<DomainView>> const &GetAllDomainViews() const;
     Real GetTime() const;
 
    private:
@@ -86,4 +86,4 @@ class Manager {
 }  // namespace engine{
 }  // namespace simpla{
 
-#endif  // SIMPLA_MANAGER_H
+#endif  // SIMPLA_CONTEXT_H

@@ -8,9 +8,10 @@
 #include "Atlas.h"
 #include "AttributeView.h"
 #include "DomainView.h"
-#include "Manager.h"
+#include "Context.h"
 #include "MeshView.h"
 #include "Model.h"
 #include "Patch.h"
 #include "Worker.h"
+#include "TimeIntegrator.h"
 #endif  // SIMPLA_ENGINE_ALL_H

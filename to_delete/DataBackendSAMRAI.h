@@ -4,12 +4,9 @@
 
 #ifndef SIMPLA_DATABACKENDSAMRAI_H
 #define SIMPLA_DATABACKENDSAMRAI_H
-
-#include <simpla/data/DataBackend.h>
-#include <boost/shared_ptr.hpp>
+#include <simpla/data/all.h>
 namespace simpla {
 namespace data {
-
 
 }  // namespace data{
 }  // namespace simpla{

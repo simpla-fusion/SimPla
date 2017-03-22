@@ -14,6 +14,7 @@ namespace simpla {
 namespace data {
 class DataEntity;
 void Serialize(std::shared_ptr<DataEntity> const &d, std::ostream &os, std::string const &type, int indent = 0);
+std::string AutoIncreaseFileName(std::string filename, std::string const &ext_str);
 
 static std::regex const sub_group_regex(R"(([^/?#]+)/)", std::regex::optimize);
 static std::regex const match_path_regex(R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::regex::optimize);
@@ -74,7 +75,6 @@ std::pair<T, std::string> HierarchicalTableForeach(T self, std::string const &ur
 
     return std::make_pair(t, uri_match_result[3].str());
 };
-std::string AutoIncreaseFileName(std::string filename, std::string const &ext_str);
 
 }  // namespace data{
 }  // namespace simpla{

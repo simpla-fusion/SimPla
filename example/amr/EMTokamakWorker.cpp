@@ -9,11 +9,10 @@
 #include <simpla/engine/Worker.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
-#include <simpla/predefine/CalculusPolicy.h>
-#include <simpla/predefine/CartesianGeometry.h>
-#include <simpla/predefine/CylindricalGeometry.h>
+//#include <simpla/predefine/mesh/CartesianGeometry.h>
+#include <simpla/predefine/mesh/CylindricalGeometry.h>
 #include <iostream>
-#include "../../scenario/problem_domain/EMFluid.h"
+#include "../em/EMFluid.h"
 
 namespace simpla {
 using namespace engine;
@@ -32,7 +31,6 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
     explicit EMTokamakWorker() : base_type() {}
     ~EMTokamakWorker() {}
 
-    virtual std::shared_ptr<MeshView> create_mesh() { return std::make_shared<mesh_type>(this); };
     virtual void Initialize();
     virtual void PreProcess();
     virtual void Process(){};
@@ -54,9 +52,9 @@ void EMTokamakWorker::Initialize() {
     base_type::Initialize();
     // first run, only Load configure, m_mesh_=nullptr
 
-    db().Get("Particles")
+    db()->Get("Particles")
         ->cast_as<DataTable>()
-        .Accept([&](std::string const &key, std::shared_ptr<data::DataEntity> const &item) {
+        .Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &item) {
             AddSpecies(key, item->cast_as<DataTable>());
         });
 
@@ -75,7 +73,7 @@ void EMTokamakWorker::Initialize(Real data_time) {
     nTuple<Real, 3> ZERO_V{0, 0, 0};
     //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
     for (auto &item : GetSpecies()) {
-        Real ratio = db().GetValue("Particles." + item.first + ".ratio", 1.0);
+        Real ratio = db()->GetValue("Particles." + item.first + ".ratio", 1.0);
         *item.second->rho = rho0 * ratio;
     }
 }

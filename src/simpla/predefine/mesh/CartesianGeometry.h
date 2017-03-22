@@ -83,6 +83,8 @@ struct CartesianGeometry : public engine::MeshView {
     ~CartesianGeometry() {}
 
     void Initialize();
+    virtual Range<entity_id> range() const { return Range<entity_id>(); };
+
 
    private:
     nTuple<Real, 3> m_dx_, m_inv_dx_;
@@ -121,6 +123,14 @@ struct CartesianGeometry : public engine::MeshView {
 
     virtual Real inv_dual_volume(MeshEntityId s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
+    template <typename TV>
+    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, entity_id const &s) const {
+        return a[m::node_id(s)]->at(m::unpack_index(s));
+    }
+    template <typename TV>
+    TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, entity_id const &s) const {
+        return a[m::node_id(s)]->at(m::unpack_index(s));
+    }
 };  // struct  MeshView
 
 template <>

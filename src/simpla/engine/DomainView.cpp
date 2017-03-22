@@ -34,7 +34,6 @@ DomainView::~DomainView() {
 }
 MeshView const *DomainView::GetMesh() const { return m_pimpl_->m_mesh_.get(); }
 std::shared_ptr<geometry::GeoObject> DomainView::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
-
 /**
  *
  * @startuml
@@ -128,6 +127,7 @@ void DomainView::Run(Real dt) {
     m_pimpl_->m_mesh_->PushData(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
 
     for (auto &item : m_pimpl_->m_workers_) {
+        ASSERT(m_pimpl_->m_mesh_ != nullptr);
         item.second->SetMesh(m_pimpl_->m_mesh_.get());
         item.second->PushData(m_pimpl_->m_mesh_->GetMeshBlock(), m_pimpl_->m_patch_);
         item.second->Run(dt);
@@ -145,13 +145,13 @@ void DomainView::Attach(AttributeViewBundle *p) {
         (*res.first)->Foreach([&](AttributeView *v) {
             ASSERT(v != nullptr)
             if (v->name() != "") {
-                auto res = db()->Get("Attributes/" + v->name());
-                if (res == nullptr || !res->isTable()) {
-                    res = v->db();
+                auto t = db()->Get("Attributes/" + v->name());
+                if (t == nullptr || !t->isTable()) {
+                    t = v->db();
                 } else {
-                    res->cast_as<data::DataTable>().Set(*v->db());
+                    t->cast_as<data::DataTable>().Set(*v->db());
                 }
-                db()->Link("Attributes/" + v->name(), res);
+                db()->Link("Attributes/" + v->name(), t);
             }
         });
     }

@@ -34,12 +34,12 @@ FILE(GLOB amr_test_SRC ./*.cpp)
 
 add_executable(amr_test ${amr_test_SRC})
 
-
 TARGET_LINK_LIBRARIES(amr_test
-#     ${OCE_LIBRARIES}   ${MeshKit_LIBRARIES} ${MOAB_LIBRARIES}
+        #     ${OCE_LIBRARIES}   ${MeshKit_LIBRARIES} ${MOAB_LIBRARIES}
         ${SAMRAI_LIBRARIES} netcdf
         ${HDF5_LIBRARIES} ${MPI_LIBRARIES}
-          mesh   model parallel toolbox data physics engine
+        toolbox geometry parallel data data_backend engine model physics
+
         )
 
 

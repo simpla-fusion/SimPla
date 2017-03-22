@@ -10,6 +10,7 @@
 #include <memory>
 #include "DataEntity.h"
 #include "DataTraits.h"
+#include "DataArray.h"
 namespace simpla {
 namespace data {
 template <typename U, typename Enable = void>
@@ -33,7 +34,7 @@ class DataTable : public DataEntity {
     DataTable(std::shared_ptr<DataBackend> const& p);
     DataTable(const DataTable&);
     DataTable(DataTable&&);
-    ~DataTable() final;
+    virtual ~DataTable();
     void swap(DataTable&);
     //******************************************************************************************************************
     /** Interface DataEntity */
@@ -51,9 +52,9 @@ class DataTable : public DataEntity {
     size_type size() const;
 
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
-    int Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr, bool overwrite = true);
-    int Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
-    size_type Delete(std::string const& uri);
+    void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr, bool overwrite = true);
+    void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
+    void Delete(std::string const& uri);
     size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
     /** Interface DataBackend End */
@@ -65,8 +66,8 @@ class DataTable : public DataEntity {
     DataTable& Link(std::string const& uri, std::shared_ptr<DataEntity> const& p);
 
     void Set(DataTable const& other, bool overwrite = true);
-    int Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
-    int Add(std::string const& uri, DataEntity const& p);
+    void Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
+    void Add(std::string const& uri, DataEntity const& p);
 
     std::shared_ptr<DataTable> GetTable(std::string const& uri) const;
 
@@ -85,11 +86,11 @@ class DataTable : public DataEntity {
         }
     }
 
-//    template <typename U>
-//    U GetValue(std::string const& uri, U const& default_value) {
-//        Set(uri, make_data_entity(default_value), false);
-//        return data_cast<U>(*Get(uri));
-//    }
+    //    template <typename U>
+    //    U GetValue(std::string const& uri, U const& default_value) {
+    //        Set(uri, make_data_entity(default_value), false);
+    //        return data_cast<U>(*Get(uri));
+    //    }
 
     template <typename U>
     DataTable& operator=(U const& u) {

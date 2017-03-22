@@ -34,7 +34,7 @@ int foo(double, double);
 
 int goo(double, double);
 
-CHECK_TYPE_MEMBER(value_type, value_type)
+CHECK_MEMBER_TYPE(value_type, value_type)
 TEST(CheckConceptTest, CheckTypeMember) {
     EXPECT_TRUE(has_value_type<Foo>::value);
     EXPECT_TRUE((std::is_same<value_type_t<Foo>, double>::value));
@@ -77,7 +77,7 @@ TEST(CheckConceptTest, CheckDataMember) {
     EXPECT_FALSE((has_data<Koo, double>::value));
 }
 
-CHECK_FUNCTION_MEMBER(has_member_function_foo, foo)
+CHECK_MEMBER_FUNCTION(has_member_function_foo, foo)
 TEST(CheckConceptTest, CheckFunctionMember) {
     EXPECT_TRUE((has_member_function_foo<Foo, int(double)>::value));
     EXPECT_FALSE((has_member_function_foo<Foo, void(int)>::value));

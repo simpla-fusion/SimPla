@@ -54,7 +54,7 @@ class DataBackend : public std::enable_shared_from_this<DataBackend> {
      * @brief  put v to uri,
      * @return
      */
-    virtual int Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite = true) = 0;
+    virtual void Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite = true) = 0;
 
     /**
      * @brief  add v to uri,
@@ -62,12 +62,11 @@ class DataBackend : public std::enable_shared_from_this<DataBackend> {
      *          else if uri is not an array then throw runtim error
      * @return
      */
-    virtual int Add(std::string const& uri, std::shared_ptr<DataEntity> const&) = 0;
+    virtual void Add(std::string const& uri, std::shared_ptr<DataEntity> const&) = 0;
     /**
      * @brief  delete entities selected by uri
-     * @return  the number of deleted entities
      */
-    virtual size_type Delete(std::string const& uri) = 0;
+    virtual void Delete(std::string const& uri) = 0;
 
     /**
      * @brief Get the number of entities in this table

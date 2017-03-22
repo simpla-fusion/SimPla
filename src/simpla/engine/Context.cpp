@@ -1,7 +1,7 @@
 //
 // Created by salmon on 17-2-16.
 //
-#include "Manager.h"
+#include "Context.h"
 #include <simpla/data/DataUtility.h>
 #include <simpla/data/all.h>
 #include <simpla/geometry/GeoAlgorithm.h>
@@ -11,7 +11,7 @@
 namespace simpla {
 namespace engine {
 
-struct Manager::pimpl_s {
+struct Context::pimpl_s {
     std::shared_ptr<data::DataTable> m_patches_;
     std::map<std::string, std::shared_ptr<DomainView>> m_views_;
     std::map<std::string, std::shared_ptr<AttributeView>> m_attrs_;
@@ -21,41 +21,29 @@ struct Manager::pimpl_s {
     std::shared_ptr<data::DataTable> m_db_;
 };
 
-Manager::Manager(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_db_ = (t != nullptr && t->isTable()) ? std::dynamic_pointer_cast<data::DataTable>(t)
-                                                     : std::make_shared<data::DataTable>();
-    if (t != nullptr && t->isLight() && t->value_type_info() == typeid(std::string)) {
-        db()->SetValue("name", data::data_cast<std::string>(*t));
-    }
-
+Context::Context(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
     db()->Link("Model", m_pimpl_->m_model_.db());
     db()->Link("Atlas", m_pimpl_->m_atlas_.db());
     m_pimpl_->m_patches_ = std::make_shared<data::DataTable>();
     db()->Link("Patches", *m_pimpl_->m_patches_);
 }
 
-Manager::~Manager() {}
-
-std::shared_ptr<data::DataTable> Manager::db() const { return m_pimpl_->m_db_; };
-std::shared_ptr<data::DataTable> Manager::db() { return m_pimpl_->m_db_; };
-
-Real Manager::GetTime() const { return m_pimpl_->m_time_; }
-
-Atlas &Manager::GetAtlas() const { return m_pimpl_->m_atlas_; }
-
-Model &Manager::GetModel() const { return m_pimpl_->m_model_; }
-
-std::shared_ptr<data::DataTable> Manager::GetPatches() const { return m_pimpl_->m_patches_; }
-
-std::shared_ptr<DomainView> Manager::GetDomainView(std::string const &d_name) const {
+Context::~Context() {}
+Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
+Model &Context::GetModel() const { return m_pimpl_->m_model_; }
+std::shared_ptr<data::DataTable> Context::GetPatches() const { return m_pimpl_->m_patches_; }
+std::shared_ptr<DomainView> Context::GetDomainView(std::string const &d_name) const {
     return m_pimpl_->m_views_.at(d_name);
 }
+std::map<std::string, std::shared_ptr<DomainView>> const &Context::GetAllDomainViews() const {
+    return m_pimpl_->m_views_;
+};
 
-void Manager::SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p) {
+void Context::SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p) {
     db()->Set("DomainView/" + d_name, *p, false);
 }
 
-void Manager::Synchronize(int from, int to) {
+void Context::Synchronize(int from, int to) {
     if (from >= GetAtlas().GetNumOfLevels() || to >= GetAtlas().GetNumOfLevels()) { return; }
     auto &atlas = GetAtlas();
     for (auto const &src : atlas.GetBlockList(from)) {
@@ -78,7 +66,7 @@ void Manager::Synchronize(int from, int to) {
         }
     }
 }
-void Manager::Advance(Real dt, int level) {
+void Context::Advance(Real dt, int level) {
     if (level >= GetAtlas().GetNumOfLevels()) { return; }
     auto &atlas = GetAtlas();
     for (auto const &id : atlas.GetBlockList(level)) {
@@ -92,38 +80,39 @@ void Manager::Advance(Real dt, int level) {
                    << mblk->GetIndexBox() << " id= " << id << std::endl;
             v.second->Run(dt);
             auto t = v.second->PopData().second;
-
             m_pimpl_->m_patches_->Set(std::to_string(id), t);
         }
     }
     m_pimpl_->m_time_ += dt;
 };
 
-void Manager::Initialize() {
+void Context::Initialize() {
     GetModel().Initialize();
     GetAtlas().Initialize();
     db()->Set("DomainView/");
-    auto &domain_t = *db()->GetTable("DomainView");
-    domain_t.Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
-        if (!item->isTable()) { return; }
-        item->cast_as<DataTable>().SetValue("name", item->cast_as<DataTable>().GetValue<std::string>("name", s_key));
+    auto domain_p = db()->GetTable("DomainView");
+    if (domain_p != nullptr) {
+        domain_p->Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
+            if (!item->isTable()) { return; }
+            item->cast_as<DataTable>().SetValue("name",
+                                                item->cast_as<DataTable>().GetValue<std::string>("name", s_key));
 
-        auto g_obj_ = GetModel().GetObject(s_key);
-        auto view_res = m_pimpl_->m_views_.emplace(s_key, nullptr);
-        if (view_res.first->second == nullptr) {
-            view_res.first->second = std::make_shared<DomainView>(item, g_obj_);
-        } else if (item != nullptr && item->isTable()) {
-            view_res.first->second->db()->Set(item->cast_as<data::DataTable>());
-        } else {
-            WARNING << " ignore data entity [" << s_key << " :" << *item << "]" << std::endl;
-        }
-        view_res.first->second->Initialize();
-        domain_t.Link(s_key, view_res.first->second->db());
+            auto g_obj_ = GetModel().GetObject(s_key);
+            auto view_res = m_pimpl_->m_views_.emplace(s_key, nullptr);
+            if (view_res.first->second == nullptr) {
+                view_res.first->second = std::make_shared<DomainView>(item, g_obj_);
+            } else if (item != nullptr && item->isTable()) {
+                view_res.first->second->db()->Set(item->cast_as<data::DataTable>());
+            } else {
+                WARNING << " ignore data entity [" << s_key << " :" << *item << "]" << std::endl;
+            }
+            view_res.first->second->Initialize();
+            domain_p->Link(s_key, view_res.first->second->db());
 
-        GetModel().AddObject(s_key, view_res.first->second->GetGeoObject());
-    });
-
-    LOGGER << "Manager is initialized!" << std::endl;
+            GetModel().AddObject(s_key, view_res.first->second->GetGeoObject());
+        });
+    }
+    LOGGER << "Context is initialized!" << std::endl;
 }
 }  // namespace engine {
 }  // namespace simpla {

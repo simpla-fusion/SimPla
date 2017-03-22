@@ -47,9 +47,7 @@ void AttributeViewBundle::Detach(AttributeView *p) {
 void AttributeViewBundle::SetMesh(MeshView const *m) {
     if (m == nullptr) { return; }
     m_pimpl_->m_mesh_ = m;
-    for (auto *v : m_pimpl_->m_attr_views_) {
-        if (v != nullptr) { v->SetMesh(m); }
-    }
+    for (AttributeView *v : m_pimpl_->m_attr_views_) { v->SetMesh(m); }
 }
 MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
 
@@ -65,6 +63,7 @@ void AttributeViewBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::sha
 std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> AttributeViewBundle::PopData() {
     auto res = std::make_shared<data::DataTable>();
     for (auto *v : m_pimpl_->m_attr_views_) { res->Set(v->name(), v->PopData().second); }
+
     return std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(), res);
 }
 void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fun) const {
@@ -86,11 +85,6 @@ AttributeView::~AttributeView() {
     m_pimpl_->m_bundle_ = nullptr;
 }
 
-// id_type AttributeView::GetGUID() const {
-//    std::string str = name() + '.' + value_type_info().name() + '.' + mesh_type_info().name() + '.' +
-//                      static_cast<char>(GetIFORM() + '0') + '.' + static_cast<char>(GetDOF() + '0');
-//    return static_cast<id_type>(std::hash<std::string>{}(str));
-//}
 void AttributeView::SetMesh(MeshView const *m) {
     if (m == nullptr) { return; }
     if ((m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo())) {
@@ -100,7 +94,11 @@ void AttributeView::SetMesh(MeshView const *m) {
                       << " to " << m->GetClassName() << "]" << std::endl;
     }
 }
-MeshView const *AttributeView::GetMesh() const { return m_pimpl_->m_mesh_; }
+
+MeshView const *AttributeView::GetMesh() const {
+    return m_pimpl_->m_mesh_ != nullptr ? m_pimpl_->m_mesh_
+                                        : (m_pimpl_->m_bundle_ != nullptr ? m_pimpl_->m_bundle_->GetMesh() : nullptr);
+}
 /**
 *@startuml
 *start

@@ -2,23 +2,24 @@
 // Created by salmon on 16-6-29.
 //
 
+#include <simpla/algebra/all.h>
 #include <simpla/engine/all.h>
 #include <simpla/predefine/mesh/CartesianGeometry.h>
 //#include <simpla/predefine/mesh/CylindricalGeometry.h>
 #include <simpla/data/all.h>
 
 #include "EMFluid.h"
-#include "PML.h"
+//#include "PML.h"
 
 namespace simpla {
 void RegisterEverything() {
     GLOBAL_MESHVIEW_FACTORY.RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
     //    GLOBAL_DOMAIN_FACTORY::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
     GLOBAL_WORKER_FACTORY.RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
-    GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
+//        GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 }
 
-void create_scenario(engine::Manager *ctx) {
+void create_scenario(engine::Context *ctx) {
     ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}, "Dimensions"_ = {0, 0, 0});
 
     ctx->GetAtlas().Decompose(size_tuple{2, 3, 2});
@@ -30,11 +31,11 @@ void create_scenario(engine::Manager *ctx) {
     //    ctx->GetModel("Center").AddObject("InnerBox", geometry::Cube({{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}}));
     //    ctx->GetModel("Center").AddObject("OuterBox", geometry::Cube({{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}}));
 
-    ctx->GetModel().db()->SetValue("Center"_ = {"GeoObject"_ = {"InnerBox"}},
-                                   "Boundary"_ = {"GeoObject"_ = {"+OuterBox", "-InnerBox"}});
+    ctx->GetModel().db()->SetValue("Center", {"GeoObject"_ = {"InnerBox"}});
+    ctx->GetModel().db()->SetValue("Boundary", {"GeoObject"_ = {"+OuterBox", "-InnerBox"}});
 
-    ctx->db()->SetValue("DomainView", {"Center"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}},
-                                       "Boundary"_ = {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}}});
+    ctx->db()->SetValue("DomainView/Center", {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}});
+//    ctx->db()->SetValue("DomainView/Boundary", {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}});
     //    options.GetTable("Particles").foreach ([&](auto const &item) {
     //        auto sp = center_worker.AddSpecies(std::get<0>(item).template as<std::string>(),
     //                                           std::get<1>(item)["Mass"].template as<Real>(1.0),
