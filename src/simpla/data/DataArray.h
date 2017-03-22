@@ -8,7 +8,7 @@
 #include "DataTraits.h"
 namespace simpla {
 namespace data {
-template <typename U, int NDIMS = 1, typename Enable = void>
+template <typename U, typename Enable = void>
 class DataArrayWrapper {};
 struct DataArray : public DataEntity {
     SP_OBJECT_HEAD(DataArray, DataEntity)
@@ -67,7 +67,7 @@ struct DataArrayWrapper<void> : public DataArray {
 };
 
 template <typename U>
-class DataArrayWrapper<U, 1, std::enable_if_t<traits::is_light_data<U>::value>> : public DataArray {
+class DataArrayWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : public DataArray {
     SP_OBJECT_HEAD(DataArrayWrapper<U>, DataArray);
     std::vector<U> m_data_;
 
@@ -82,6 +82,12 @@ class DataArrayWrapper<U, 1, std::enable_if_t<traits::is_light_data<U>::value>> 
     std::vector<U>& data() { return m_data_; }
     std::vector<U> const& data() const { return m_data_; }
     virtual size_type size() const { return m_data_.size(); };
+
+    virtual U const& GetValue(size_type idx) const { return m_data_[idx]; }
+    virtual U const& operator[](size_type idx) const { return m_data_[idx]; }
+    virtual U& GetValue(size_type idx) { return m_data_[idx]; }
+    virtual U& operator[](size_type idx) { return m_data_[idx]; }
+
     virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return make_data_entity(m_data_[idx]); }
 
     virtual void Set(size_type idx, U const& v) {
@@ -99,38 +105,49 @@ class DataArrayWrapper<U, 1, std::enable_if_t<traits::is_light_data<U>::value>> 
     };
 };
 
+// template <typename U>
+// std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u,
+//                                             ENABLE_IF(traits::is_light_data<U>::value)) {
+//    auto res = std::make_shared<DataArrayWrapper<U>>();
+//    for (U const& v : u) { res->Add(v); }
+//    return std::dynamic_pointer_cast<DataEntity>(res);
+//}
+
 template <typename U>
-std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u,
-                                             ENABLE_IF(traits::is_light_data<U>::value)) {
-    auto res = std::make_shared<DataArrayWrapper<U>>();
-    for (U const& v : u) { res->Add(v); }
-    return std::dynamic_pointer_cast<DataEntity>(res);
-}
-template <typename U, int... N>
-std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<nTuple<U, N...>> const& u) {
-    auto res = std::make_shared<DataArrayWrapper<nTuple<U, N...>>>();
-    for (nTuple<U, N...> const& v : u) { res->Add(v); }
-    return std::dynamic_pointer_cast<DataEntity>(res);
-}
-inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char const*> const& u) {
-    auto res = std::make_shared<DataArrayWrapper<std::string>>();
-    for (char const* v : u) { res->Add(v); }
-    return std::dynamic_pointer_cast<DataEntity>(res);
+struct data_entity_traits<std::initializer_list<U>, std::enable_if_t<traits::is_light_data<U>::value>> {
+    static std::shared_ptr<DataEntity> to(std::initializer_list<U> const& l) {
+        auto res = std::make_shared<DataArrayWrapper<U>>();
+        for (auto const& v : l) { res->Add(v); }
+        return std::dynamic_pointer_cast<DataEntity>(res);
+    };
+};
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u) {
+    return data_entity_traits<std::initializer_list<U>>::to(u);
 }
 
 template <typename U>
-std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u,
-                                             ENABLE_IF(!traits::is_light_data<U>::value)) {
-    auto res = std::make_shared<DataArrayWrapper<void>>();
-    for (auto const& v : u) { res->Add(make_data_entity(v)); }
-    return std::dynamic_pointer_cast<DataEntity>(res);
-}
-template <typename U>
-std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u) {
-    auto res = std::make_shared<DataArrayWrapper<void>>();
-    for (auto const& v : u) { res->Add(make_data_entity(v)); }
-    return std::dynamic_pointer_cast<DataEntity>(res);
-}
+struct data_entity_traits<std::initializer_list<U>, std::enable_if_t<!traits::is_light_data<U>::value>> {
+    static std::shared_ptr<DataEntity> to(std::initializer_list<U> const& l) {
+        auto res = std::make_shared<DataArrayWrapper<void>>();
+        for (auto const& v : l) { res->Add(make_data_entity(v)); }
+        return std::dynamic_pointer_cast<DataEntity>(res);
+    };
+};
+template <>
+struct data_entity_traits<std::initializer_list<char const*>> {
+    static std::vector<std::string> from(DataEntity const& a_entity) {
+        std::vector<std::string> res;
+        auto const& l = dynamic_cast<DataArrayWrapper<std::string> const&>(a_entity);
+        for (size_type i = 0, ie = l.size(); i < ie; ++i) { res.push_back(l[i]); }
+        return res;
+    };
+    static std::shared_ptr<DataEntity> to(std::initializer_list<const char*> const& l) {
+        auto res = std::make_shared<DataArrayWrapper<std::string>>();
+        for (char const* v : l) { res->Add(v); }
+        return std::dynamic_pointer_cast<DataEntity>(res);
+    };
+};
 
 template <typename U, int N>
 struct data_entity_traits<nTuple<U, N>, std::enable_if_t<traits::is_light_data<U>::value>> {
@@ -141,7 +158,7 @@ struct data_entity_traits<nTuple<U, N>, std::enable_if_t<traits::is_light_data<U
     };
 
     static std::shared_ptr<DataEntity> to(nTuple<U, N> const& u) {
-        auto res = std::make_shared<DataArrayWrapper<U, 1>>();
+        auto res = std::make_shared<DataArrayWrapper<U>>();
         for (int i = 0; i < N; ++i) { res->Add(u[i]); }
         return std::dynamic_pointer_cast<DataEntity>(res);
     }
@@ -163,6 +180,14 @@ struct data_entity_traits<nTuple<U, N, M>, std::enable_if_t<traits::is_light_dat
         return std::dynamic_pointer_cast<DataEntity>(res);
     };
 };
+
+template <typename U, int... N>
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<nTuple<U, N...>> const& u) {
+    auto res = std::make_shared<DataArrayWrapper<nTuple<U, N...>>>();
+    for (nTuple<U, N...> const& v : u) { res->Add(v); }
+    return std::dynamic_pointer_cast<DataEntity>(res);
+}
+
 namespace detail {
 template <typename V>
 void data_entity_from_helper0(DataEntity const& v, V& u) {

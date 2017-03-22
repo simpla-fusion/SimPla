@@ -9,6 +9,7 @@
 #include "../DataBlock.h"
 #include "../DataEntity.h"
 #include "../DataTable.h"
+#include "../DataUtility.h"
 extern "C" {
 #include <hdf5.h>
 #include <hdf5_hl.h>
@@ -508,13 +509,12 @@ void DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> co
 }
 void DataBackendHDF5::Delete(std::string const& uri) {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
-    if (res.first == -1 || res.second == "") { return  ; }
+    if (res.first == -1 || res.second == "") { return; }
     if (H5Aexists(res.first, res.second.c_str())) {
         H5Adelete(res.first, res.second.c_str());
     } else if (H5Lexists(res.first, res.second.c_str(), H5P_DEFAULT) != 0) {
         H5_ERROR(H5Ldelete(res.first, res.second.c_str(), H5P_DEFAULT));
     }
-
 }
 
 // size_type DataBackendHDF5::Foreach(

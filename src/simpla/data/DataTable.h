@@ -10,6 +10,7 @@
 #include <memory>
 #include "DataEntity.h"
 #include "DataTraits.h"
+#include "DataArray.h"
 namespace simpla {
 namespace data {
 template <typename U, typename Enable = void>
@@ -33,7 +34,7 @@ class DataTable : public DataEntity {
     DataTable(std::shared_ptr<DataBackend> const& p);
     DataTable(const DataTable&);
     DataTable(DataTable&&);
-    ~DataTable() final;
+    virtual ~DataTable();
     void swap(DataTable&);
     //******************************************************************************************************************
     /** Interface DataEntity */

@@ -75,6 +75,7 @@ class Manager : public concept::Configurable {
     std::shared_ptr<data::DataTable> GetPatches() const;
     void SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p);
     std::shared_ptr<DomainView> GetDomainView(std::string const &d_name) const;
+    std::map<std::string, std::shared_ptr<DomainView>> const &GetAllDomainViews() const;
     Real GetTime() const;
 
    private:

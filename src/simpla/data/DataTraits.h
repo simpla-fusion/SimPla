@@ -32,9 +32,7 @@ class DataEntity;
 namespace traits {
 template <typename U>
 struct is_light_data
-    : public std::integral_constant<
-          bool, std::is_arithmetic<U>::value || std::is_same<U, bool>::value || std::is_convertible<U, int>::value ||
-                    std::is_convertible<U, double>::value || std::is_convertible<U, bool>::value> {};
+    : public std::integral_constant<bool, std::is_arithmetic<U>::value || std::is_same<U, bool>::value> {};
 
 template <>
 struct is_light_data<std::string> : public std::integral_constant<bool, true> {};

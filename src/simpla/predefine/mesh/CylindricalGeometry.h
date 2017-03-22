@@ -118,11 +118,23 @@ struct CylindricalGeometry : public engine::MeshView {
         return point_type{x, y, z};
     }
 
-    virtual Real volume(MeshEntityId s) const { return m_volume_.at(0 /*GetMeshBlock()->hash(s)*/); }
-    virtual Real dual_volume(MeshEntityId s) const { return m_volume_.at(0 /*GetMeshBlock()->hash(s)*/); }
-    virtual Real inv_volume(MeshEntityId s) const { return m_volume_.at(0 /*GetMeshBlock()->hash(s)*/); }
-    virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_.at(0 /*GetMeshBlock()->hash(s)*/); }
+    virtual Real volume(MeshEntityId s) const { return m_volume_.at(s); }
+    virtual Real dual_volume(MeshEntityId s) const { return m_volume_.at(s); }
+    virtual Real inv_volume(MeshEntityId s) const { return m_volume_.at(s); }
+    virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_.at(s); }
 
+    typedef mesh::MeshEntityIdCoder m;
+    virtual Range<entity_id> range() const { return Range<entity_id>(); };
+
+
+    template <typename TV>
+    TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, entity_id const &s) const {
+        return a[m::node_id(s)]->at(m::unpack_index(s));
+    }
+    template <typename TV>
+    TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, entity_id const &s) const {
+        return a[m::node_id(s)]->at(m::unpack_index(s));
+    }
     virtual void Initialize() {
         m_vertics_.Clear();
         m_volume_.Clear();

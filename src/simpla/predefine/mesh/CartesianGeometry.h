@@ -83,8 +83,8 @@ struct CartesianGeometry : public engine::MeshView {
     ~CartesianGeometry() {}
 
     void Initialize();
-
     virtual Range<entity_id> range() const { return Range<entity_id>(); };
+
 
    private:
     nTuple<Real, 3> m_dx_, m_inv_dx_;

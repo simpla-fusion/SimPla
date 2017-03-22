@@ -36,6 +36,9 @@ std::shared_ptr<data::DataTable> Manager::GetPatches() const { return m_pimpl_->
 std::shared_ptr<DomainView> Manager::GetDomainView(std::string const &d_name) const {
     return m_pimpl_->m_views_.at(d_name);
 }
+std::map<std::string, std::shared_ptr<DomainView>> const &Manager::GetAllDomainViews() const {
+    return m_pimpl_->m_views_;
+};
 
 void Manager::SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p) {
     db()->Set("DomainView/" + d_name, *p, false);

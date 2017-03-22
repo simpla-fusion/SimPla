@@ -78,7 +78,7 @@ std::ostream& DataBackendSAMRAI::Print(std::ostream& os, int indent) const {
     return os;
 }
 
-boost::shared_ptr<SAMRAI::tbox::Database> DataBackendSAMRAI::db() { return m_pimpl_->m_samrai_db_; }
+boost::shared_ptr<SAMRAI::tbox::Database> DataBackendSAMRAI::samrai_db() { return m_pimpl_->m_samrai_db_; }
 std::shared_ptr<DataBackend> DataBackendSAMRAI::Duplicate() const { return std::make_shared<DataBackendSAMRAI>(*this); }
 std::shared_ptr<DataBackend> DataBackendSAMRAI::CreateNew() const { return std::make_shared<DataBackendSAMRAI>(); }
 

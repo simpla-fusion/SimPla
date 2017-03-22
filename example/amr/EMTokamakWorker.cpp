@@ -9,9 +9,8 @@
 #include <simpla/engine/Worker.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
-#include <simpla/predefine/mesh/CartesianGeometry.h>
+//#include <simpla/predefine/mesh/CartesianGeometry.h>
 #include <simpla/predefine/mesh/CylindricalGeometry.h>
-#include <simpla/predefine/policy/CalculusPolicy.h>
 #include <iostream>
 #include "../em/EMFluid.h"
 

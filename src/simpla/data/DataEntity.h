@@ -12,6 +12,7 @@
 #include <typeindex>
 #include <vector>
 #include "DataTraits.h"
+
 namespace simpla {
 namespace data {
 template <typename, typename Enable = void>
