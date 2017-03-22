@@ -19,7 +19,7 @@ void RegisterEverything() {
 //        GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 }
 
-void create_scenario(engine::Manager *ctx) {
+void create_scenario(engine::Context *ctx) {
     ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}, "Dimensions"_ = {0, 0, 0});
 
     ctx->GetAtlas().Decompose(size_tuple{2, 3, 2});

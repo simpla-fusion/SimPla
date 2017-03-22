@@ -7,12 +7,12 @@
  *    This is an example of EM plasma
  */
 
-#include <simpla/engine/Manager.h>
+#include <simpla/engine/Context.h>
 #include <simpla/parallel/all.h>
 #include <simpla/toolbox/Logo.h>
 #include <simpla/toolbox/parse_command_line.h>
 namespace simpla {
-void create_scenario(engine::Manager *ctx);
+void create_scenario(engine::Context *ctx);
 void RegisterEverything();
 }
 using namespace simpla;
@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 
     MPI_Barrier(GLOBAL_COMM.comm());
 
-    engine::Manager ctx;
+    engine::Context ctx;
     if (GLOBAL_COMM.rank() == 0) {
         create_scenario(&ctx);
         ctx.Initialize();

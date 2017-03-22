@@ -100,8 +100,13 @@ void DataTable::Add(std::string const& uri, DataEntity const& p) { Add(uri, p.Du
 
 std::shared_ptr<DataTable> DataTable::GetTable(std::string const& uri) const {
     auto p = Get(uri);
-    if (p == nullptr || !p->isTable()) { RUNTIME_ERROR << uri << " is not a table or not exists" << std::endl; }
-    return std::dynamic_pointer_cast<DataTable>(p);
+    if (p == nullptr) {
+        return nullptr;
+    } else if (p->isTable()) {
+        return std::dynamic_pointer_cast<DataTable>(p);
+    } else {
+        RUNTIME_ERROR << uri << " is not a table or not exists" << std::endl;
+    }
 }
 
 void DataTable::Delete(std::string const& uri) { m_backend_->Delete(uri); };

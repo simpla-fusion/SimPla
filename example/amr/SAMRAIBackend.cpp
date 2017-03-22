@@ -75,9 +75,11 @@
 #include <simpla/engine/TimeIntegrator.h>
 #include <simpla/physics/Constants.h>
 namespace simpla {
-namespace data {
+class SAMRAIBackend;
+static bool TIME_INTEGRATOR_SAMRAI_IS_REGISTERED =
+    SingletonHolder<engine::TimeIntegratorFactory>::instance().template RegisterCreator<SAMRAIBackend>("samrai");
 
-class DataBackendSAMRAI : public DataBackend {
+class DataBackendSAMRAI : public data::DataBackend {
    public:
     DataBackendSAMRAI();
     DataBackendSAMRAI(DataBackendSAMRAI const &);
@@ -87,25 +89,22 @@ class DataBackendSAMRAI : public DataBackend {
     virtual ~DataBackendSAMRAI();
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-    virtual std::shared_ptr<DataBackend> Duplicate() const;
-    virtual std::shared_ptr<DataBackend> CreateNew() const;
+    virtual std::shared_ptr<data::DataBackend> Duplicate() const;
+    virtual std::shared_ptr<data::DataBackend> CreateNew() const;
     virtual bool isNull() const;
     virtual void Flush();
 
-    virtual std::shared_ptr<DataEntity> Get(std::string const &URI) const;
-    virtual void Set(std::string const &uri, std::shared_ptr<DataEntity> const &v, bool overwrite = true);
-    virtual void Add(std::string const &uri, std::shared_ptr<DataEntity> const &v);
+    virtual std::shared_ptr<data::DataEntity> Get(std::string const &URI) const;
+    virtual void Set(std::string const &uri, std::shared_ptr<data::DataEntity> const &v, bool overwrite = true);
+    virtual void Add(std::string const &uri, std::shared_ptr<data::DataEntity> const &v);
     virtual void Delete(std::string const &URI);
     virtual size_type size() const;
-    virtual size_type Foreach(std::function<void(std::string const &, std::shared_ptr<DataEntity>)> const &) const;
+    virtual size_type Foreach(
+        std::function<void(std::string const &, std::shared_ptr<data::DataEntity>)> const &) const;
 
     boost::shared_ptr<SAMRAI::tbox::Database> samrai_db();
 
    private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
-};
-struct DataBackendSAMRAI::pimpl_s {
     boost::shared_ptr<SAMRAI::tbox::Database> m_samrai_db_ = nullptr;
     static std::regex sub_group_regex;
     static std::regex match_path;
@@ -114,11 +113,12 @@ struct DataBackendSAMRAI::pimpl_s {
 
     static std::shared_ptr<DataBackendSAMRAI> CreateBackend(boost::shared_ptr<SAMRAI::tbox::Database> const &db) {
         auto res = std::make_shared<DataBackendSAMRAI>();
-        res->m_pimpl_->m_samrai_db_ = db;
+        res->m_samrai_db_ = db;
         return res;
     };
 
-    static std::shared_ptr<DataEntity> get_data_from_samrai(boost::shared_ptr<SAMRAI::tbox::Database> const &lobj);
+    static std::shared_ptr<data::DataEntity> get_data_from_samrai(
+        boost::shared_ptr<SAMRAI::tbox::Database> const &lobj);
     static void add_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database> &lobj, std::string const &uri,
                                    std::shared_ptr<data::DataEntity> const &v);
     static void set_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database> &lobj, std::string const &uri,
@@ -128,52 +128,48 @@ struct DataBackendSAMRAI::pimpl_s {
                                                         bool return_if_not_exist = true);
 };
 
-std::pair<DataBackendSAMRAI::pimpl_s::table_type, std::string> DataBackendSAMRAI::pimpl_s::get_table(
-    table_type t, std::string const &uri, bool return_if_not_exist) {
-    return HierarchicalTableForeach(t, uri, [&](table_type s_t, std::string const &k) { return s_t->isDatabase(k); },
-                                    [&](table_type s_t, std::string const &k) { return s_t->getDatabase(k); },
-                                    [&](table_type s_t, std::string const &k) {
-                                        return return_if_not_exist ? static_cast<table_type>(nullptr)
-                                                                   : s_t->putDatabase(k);
-                                    });
+std::pair<DataBackendSAMRAI::table_type, std::string> DataBackendSAMRAI::get_table(table_type t, std::string const &uri,
+                                                                                   bool return_if_not_exist) {
+    return data::HierarchicalTableForeach(
+        t, uri, [&](table_type s_t, std::string const &k) { return s_t->isDatabase(k); },
+        [&](table_type s_t, std::string const &k) { return s_t->getDatabase(k); },
+        [&](table_type s_t, std::string const &k) {
+            return return_if_not_exist ? static_cast<table_type>(nullptr) : s_t->putDatabase(k);
+        });
 };
 
-DataBackendSAMRAI::DataBackendSAMRAI() : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_samrai_db_ = boost::make_shared<SAMRAI::tbox::MemoryDatabase>("");
-}
-DataBackendSAMRAI::DataBackendSAMRAI(DataBackendSAMRAI const &other) : m_pimpl_(new pimpl_s) {
-    UNSUPPORTED;
-    //    m_pimpl_->m_samrai_db_ = boost::make_shared<SAMRAI::tbox::MemoryDatabase>(
-    //        *boost::dynamic_pointer_cast<SAMRAI::tbox::MemoryDatabase>(other.m_pimpl_->m_samrai_db_));
-}
-DataBackendSAMRAI::DataBackendSAMRAI(std::string const &uri, std::string const &status) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_samrai_db_ = boost::make_shared<SAMRAI::tbox::MemoryDatabase>(uri);
-}
-DataBackendSAMRAI::DataBackendSAMRAI(DataBackendSAMRAI &&other) : m_pimpl_(std::move(m_pimpl_)) {}
+DataBackendSAMRAI::DataBackendSAMRAI() : m_samrai_db_(boost::make_shared<SAMRAI::tbox::MemoryDatabase>("")) { ; }
+DataBackendSAMRAI::DataBackendSAMRAI(DataBackendSAMRAI const &other) : m_samrai_db_(other.m_samrai_db_){};
+DataBackendSAMRAI::DataBackendSAMRAI(DataBackendSAMRAI &&other) : m_samrai_db_(other.m_samrai_db_){};
+DataBackendSAMRAI::DataBackendSAMRAI(std::string const &uri, std::string const &status)
+    : m_samrai_db_(boost::make_shared<SAMRAI::tbox::MemoryDatabase>(uri)) {}
 
 DataBackendSAMRAI::~DataBackendSAMRAI() {
-    if (m_pimpl_->m_samrai_db_ != nullptr) { m_pimpl_->m_samrai_db_->close(); }
+    if (m_samrai_db_ != nullptr) { m_samrai_db_->close(); }
 }
 std::ostream &DataBackendSAMRAI::Print(std::ostream &os, int indent) const {
-    m_pimpl_->m_samrai_db_->printClassData(os);
+    m_samrai_db_->printClassData(os);
     return os;
 }
 
-boost::shared_ptr<SAMRAI::tbox::Database> DataBackendSAMRAI::samrai_db() { return m_pimpl_->m_samrai_db_; }
-std::shared_ptr<DataBackend> DataBackendSAMRAI::Duplicate() const { return std::make_shared<DataBackendSAMRAI>(*this); }
-std::shared_ptr<DataBackend> DataBackendSAMRAI::CreateNew() const { return std::make_shared<DataBackendSAMRAI>(); }
+boost::shared_ptr<SAMRAI::tbox::Database> DataBackendSAMRAI::samrai_db() { return m_samrai_db_; }
+std::shared_ptr<data::DataBackend> DataBackendSAMRAI::Duplicate() const {
+    return std::make_shared<DataBackendSAMRAI>(*this);
+}
+std::shared_ptr<data::DataBackend> DataBackendSAMRAI::CreateNew() const {
+    return std::make_shared<DataBackendSAMRAI>();
+}
 
 void DataBackendSAMRAI::Flush() { UNSUPPORTED; }
-bool DataBackendSAMRAI::isNull() const { return m_pimpl_->m_samrai_db_ == nullptr; }
-size_type DataBackendSAMRAI::size() const { return m_pimpl_->m_samrai_db_->getAllKeys().size(); }
+bool DataBackendSAMRAI::isNull() const { return m_samrai_db_ == nullptr; }
+size_type DataBackendSAMRAI::size() const { return m_samrai_db_->getAllKeys().size(); }
 
 // namespace detail {
-void DataBackendSAMRAI::pimpl_s::set_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database> &dest,
-                                                    std::string const &uri,
-                                                    std::shared_ptr<data::DataEntity> const &src) {
+void DataBackendSAMRAI::set_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database> &dest, std::string const &uri,
+                                           std::shared_ptr<data::DataEntity> const &src) {
     if (src->isTable()) {
         auto sub_db = uri == "" ? dest : dest->putDatabase(uri);
-        src->cast_as<DataTable>().Foreach([&](std::string const &k, std::shared_ptr<data::DataEntity> const &v) {
+        src->cast_as<data::DataTable>().Foreach([&](std::string const &k, std::shared_ptr<data::DataEntity> const &v) {
             set_data_to_samrai(sub_db, k, v);
         });
     } else if (uri == "") {
@@ -183,81 +179,77 @@ void DataBackendSAMRAI::pimpl_s::set_data_to_samrai(boost::shared_ptr<SAMRAI::tb
     } else if (src->isBlock()) {
     } else if (src->isArray()) {
         if (src->value_type_info() == typeid(bool)) {
-            auto &varray = src->cast_as<DataArrayWrapper<bool>>().data();
+            auto &varray = src->cast_as<data::DataArrayWrapper<bool>>().data();
             bool d[varray.size()];
             size_type num = varray.size();
             for (int i = 0; i < num; ++i) { d[i] = varray[i]; }
             dest->putBoolArray(uri, d, num);
         } else if (src->value_type_info() == typeid(std::string)) {
-            auto &varray = src->cast_as<DataArrayWrapper<std::string>>().data();
+            auto &varray = src->cast_as<data::DataArrayWrapper<std::string>>().data();
             dest->putStringArray(uri, &varray[0], varray.size());
         } else if (src->value_type_info() == typeid(double)) {
-            auto &varray = src->cast_as<DataArrayWrapper<double>>().data();
+            auto &varray = src->cast_as<data::DataArrayWrapper<double>>().data();
             dest->putDoubleArray(uri, &varray[0], varray.size());
         } else if (src->value_type_info() == typeid(int)) {
-            auto &varray = src->cast_as<DataArrayWrapper<int>>().data();
+            auto &varray = src->cast_as<data::DataArrayWrapper<int>>().data();
             dest->putIntegerArray(uri, &varray[0], varray.size());
-        } else if (src->cast_as<DataArray>().Get(0)->isArray() && src->cast_as<DataArray>().size() >= 3 &&
-                   src->cast_as<DataArray>().Get(0)->value_type_info() == typeid(int)) {
-            nTuple<int, 3> i_lo = data_cast<nTuple<int, 3>>(*src->cast_as<DataArray>().Get(0));
-            nTuple<int, 3> i_up = data_cast<nTuple<int, 3>>(*src->cast_as<DataArray>().Get(1));
+        } else if (src->cast_as<data::DataArray>().Get(0)->isArray() && src->cast_as<data::DataArray>().size() >= 3 &&
+                   src->cast_as<data::DataArray>().Get(0)->value_type_info() == typeid(int)) {
+            nTuple<int, 3> i_lo = data::data_cast<nTuple<int, 3>>(*src->cast_as<data::DataArray>().Get(0));
+            nTuple<int, 3> i_up = data::data_cast<nTuple<int, 3>>(*src->cast_as<data::DataArray>().Get(1));
 
             SAMRAI::tbox::Dimension dim(3);
             dest->putDatabaseBox(uri, SAMRAI::tbox::DatabaseBox(dim, &(i_lo[0]), &(i_up[0])));
         }
     } else if (src->isLight()) {
         if (src->value_type_info() == typeid(bool)) {
-            dest->putBool(uri, data_cast<bool>(*src));
+            dest->putBool(uri, data::data_cast<bool>(*src));
         } else if (src->value_type_info() == typeid(std::string)) {
-            dest->putString(uri, data_cast<std::string>(*src));
+            dest->putString(uri, data::data_cast<std::string>(*src));
         } else if (src->value_type_info() == typeid(double)) {
-            dest->putDouble(uri, data_cast<double>(*src));
+            dest->putDouble(uri, data::data_cast<double>(*src));
         } else if (src->value_type_info() == typeid(int)) {
-            dest->putInteger(uri, data_cast<int>(*src));
+            dest->putInteger(uri, data::data_cast<int>(*src));
         }
     } else {
         WARNING << " Unknown value_type_info " << *src << " " << std::endl;
     }
 }
-void DataBackendSAMRAI::pimpl_s::add_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database> &lobj,
-                                                    std::string const &uri,
-                                                    std::shared_ptr<data::DataEntity> const &v) {
+void DataBackendSAMRAI::add_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database> &lobj, std::string const &uri,
+                                           std::shared_ptr<data::DataEntity> const &v) {
     UNSUPPORTED;
 }
-std::shared_ptr<DataEntity> DataBackendSAMRAI::pimpl_s::get_data_from_samrai(
+std::shared_ptr<data::DataEntity> DataBackendSAMRAI::get_data_from_samrai(
     boost::shared_ptr<SAMRAI::tbox::Database> const &lobj) {
-    return std::make_shared<DataEntity>();
+    return std::make_shared<data::DataEntity>();
 }
 
-std::shared_ptr<DataEntity> DataBackendSAMRAI::Get(std::string const &uri) const {
-    auto res = pimpl_s::get_table(m_pimpl_->m_samrai_db_, uri, true);
-    return (res.first == nullptr || res.second == "")
-               ? std::make_shared<DataEntity>()
-               : pimpl_s::get_data_from_samrai(res.first->getDatabase(res.second));
+std::shared_ptr<data::DataEntity> DataBackendSAMRAI::Get(std::string const &uri) const {
+    auto res = get_table(m_samrai_db_, uri, true);
+    return (res.first == nullptr || res.second == "") ? std::make_shared<data::DataEntity>()
+                                                      : get_data_from_samrai(res.first->getDatabase(res.second));
 }
 
-void DataBackendSAMRAI::Set(std::string const &uri, std::shared_ptr<DataEntity> const &v, bool overwrite) {
-    auto res = m_pimpl_->get_table(m_pimpl_->m_samrai_db_, uri, false);
-    if (res.first != nullptr && res.second != "") { pimpl_s::set_data_to_samrai(res.first, res.second, v); }
+void DataBackendSAMRAI::Set(std::string const &uri, std::shared_ptr<data::DataEntity> const &v, bool overwrite) {
+    auto res = get_table(m_samrai_db_, uri, false);
+    if (res.first != nullptr && res.second != "") { set_data_to_samrai(res.first, res.second, v); }
 }
 
-void DataBackendSAMRAI::Add(std::string const &uri, std::shared_ptr<DataEntity> const &v) {
-    auto res = pimpl_s::get_table(m_pimpl_->m_samrai_db_, uri, false);
-    if (res.second != "") { pimpl_s::add_data_to_samrai(res.first, res.second, v); }
+void DataBackendSAMRAI::Add(std::string const &uri, std::shared_ptr<data::DataEntity> const &v) {
+    auto res = get_table(m_samrai_db_, uri, false);
+    if (res.second != "") { add_data_to_samrai(res.first, res.second, v); }
 }
 
 void DataBackendSAMRAI::Delete(std::string const &uri) {
-    auto res = pimpl_s::get_table(m_pimpl_->m_samrai_db_, uri, true);
+    auto res = get_table(m_samrai_db_, uri, true);
     res.first->putDatabase(res.second);
 }
 
 size_type DataBackendSAMRAI::Foreach(
-    std::function<void(std::string const &, std::shared_ptr<DataEntity>)> const &fun) const {
-    auto keys = m_pimpl_->m_samrai_db_->getAllKeys();
-    for (auto const &k : keys) { fun(k, pimpl_s::get_data_from_samrai(m_pimpl_->m_samrai_db_->getDatabase(k))); }
+    std::function<void(std::string const &, std::shared_ptr<data::DataEntity>)> const &fun) const {
+    auto keys = m_samrai_db_->getAllKeys();
+    for (auto const &k : keys) { fun(k, get_data_from_samrai(m_samrai_db_->getDatabase(k))); }
 }
-
-}  // namespace data
 
 struct SAMRAIPatchProxy : public data::DataTable {
    public:
@@ -520,7 +512,7 @@ class SAMRAI_HyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPat
     bool d_use_nonuniform_workload;
     std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
     //    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double>> d_xyz;
-    engine::Manager *m_manager_ = nullptr;
+    engine::Context *m_manager_ = nullptr;
     SAMRAI::hier::IntVector d_nghosts;
     SAMRAI::hier::IntVector d_fluxghosts;
 };
@@ -852,11 +844,13 @@ struct SAMRAIBackend : public engine::TimeIntegrator {
     SP_OBJECT_HEAD(SAMRAIBackend, engine::TimeIntegrator);
 
    public:
-    SAMRAIBackend();
+    template <typename... Args>
+    SAMRAIBackend(Args &&... args) : engine::TimeIntegrator(std::forward<Args>(args)...){};
     ~SAMRAIBackend();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
     virtual bool Update();
+    virtual void Initialize();
     virtual void Finalize();
     virtual size_type step() const;
     virtual bool remainingSteps() const;
@@ -868,6 +862,7 @@ struct SAMRAIBackend : public engine::TimeIntegrator {
     bool m_is_valid_ = false;
     Real m_dt_now_ = 10000;
 
+    std::shared_ptr<data::DataTable> m_samrai_cfg_;
     //    boost::shared_ptr<SAMRAI::tbox::Database> samrai_cfg;
     boost::shared_ptr<SAMRAI_HyperbolicPatchStrategyAdapter> hyperbolic_patch_strategy;
     boost::shared_ptr<SAMRAI::geom::CartesianGridGeometry> grid_geometry;
@@ -892,12 +887,22 @@ struct SAMRAIBackend : public engine::TimeIntegrator {
 
     static constexpr int ndims = 3;
 };
-std::shared_ptr<engine::TimeIntegrator> create_time_integrator() {
-    return std::dynamic_pointer_cast<engine::TimeIntegrator>(std::make_shared<SAMRAIBackend>());
+
+SAMRAIBackend::~SAMRAIBackend() {
+    SAMRAI::tbox::SAMRAIManager::shutdown();
+    SAMRAI::tbox::SAMRAIManager::finalize();
 }
 
-SAMRAIBackend::SAMRAIBackend() : engine::TimeIntegrator() {
-    data::DataTable(std::make_shared<data::DataBackendSAMRAI>()).swap(*db());
+std::ostream &SAMRAIBackend::Print(std::ostream &os, int indent) const {
+    SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(os);
+    os << *db() << std::endl;
+    if (hyp_level_integrator != nullptr) hyp_level_integrator->printClassData(os);
+    return os;
+};
+bool SAMRAIBackend::Update() { return false; }
+
+void SAMRAIBackend::Initialize() {
+    //    data::DataTable(std::make_shared<DataBackendSAMRAI>()).swap(*db());
 
     /** Setup SAMRAI::tbox::MPI.      */
     SAMRAI::tbox::SAMRAI_MPI::init(GLOBAL_COMM.comm());
@@ -971,78 +976,64 @@ SAMRAIBackend::SAMRAIBackend() : engine::TimeIntegrator() {
        // using default TreeLoadBalancer configuration
     }
      */
+    m_samrai_cfg_ = std::make_shared<data::DataTable>(std::make_shared<DataBackendSAMRAI>());
 
-    db()->SetValue("CartesianGeometry/domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
-    db()->SetValue("CartesianGeometry/periodic_dimension", {1, 1, 1});
-    db()->SetValue("CartesianGeometry/x_lo", {1.0, 0.0, -1.0});
-    db()->SetValue("CartesianGeometry/x_up", {2.0, PI, 1.0});
+    m_samrai_cfg_->SetValue("CartesianGeometry/domain_boxes_0", {{0, 0, 0}, {16, 16, 16}});
+    m_samrai_cfg_->SetValue("CartesianGeometry/periodic_dimension", {1, 1, 1});
+    m_samrai_cfg_->SetValue("CartesianGeometry/x_lo", {1.0, 0.0, -1.0});
+    m_samrai_cfg_->SetValue("CartesianGeometry/x_up", {2.0, PI, 1.0});
     // Maximum number of levels in hierarchy.
-    db()->SetValue("PatchHierarchy/max_levels", int(3));
-    db()->SetValue("PatchHierarchy/ratio_to_coarser.level_1", {2, 2, 1});
-    db()->SetValue("PatchHierarchy/ratio_to_coarser.level_2", {2, 2, 1});
-    db()->SetValue("PatchHierarchy/ratio_to_coarser.level_3", {2, 2, 1});
-    db()->SetValue("PatchHierarchy/largest_patch_size.level_0", {32, 32, 32});
-    db()->SetValue("PatchHierarchy/smallest_patch_size.level_0", {4, 4, 4});
+    m_samrai_cfg_->SetValue("PatchHierarchy/max_levels", int(3));
+    m_samrai_cfg_->SetValue("PatchHierarchy/ratio_to_coarser.level_1", {2, 2, 1});
+    m_samrai_cfg_->SetValue("PatchHierarchy/ratio_to_coarser.level_2", {2, 2, 1});
+    m_samrai_cfg_->SetValue("PatchHierarchy/ratio_to_coarser.level_3", {2, 2, 1});
+    m_samrai_cfg_->SetValue("PatchHierarchy/largest_patch_size.level_0", {32, 32, 32});
+    m_samrai_cfg_->SetValue("PatchHierarchy/smallest_patch_size.level_0", {4, 4, 4});
 
-    db()->Set("GriddingAlgorithm/");
+    m_samrai_cfg_->Set("GriddingAlgorithm/");
     // Makes results repeatable.
-    db()->SetValue("BergerRigoutsos/sort_output_nodes", true);
+    m_samrai_cfg_->SetValue("BergerRigoutsos/sort_output_nodes", true);
     // min % of GetTag cells in new patch level
-    db()->SetValue("BergerRigoutsos/efficiency_tolerance", 0.85);
+    m_samrai_cfg_->SetValue("BergerRigoutsos/efficiency_tolerance", 0.85);
     // chop box if sum of volumes of smaller
     //    // boxes < efficiency * vol of large box
-    db()->SetValue("BergerRigoutsos/combine_efficiency", 0.95);
+    m_samrai_cfg_->SetValue("BergerRigoutsos/combine_efficiency", 0.95);
 
     // Refer to mesh::StandardTagAndInitialize for input
-    db()->SetValue("StandardTagAndInitialize/tagging_method", "GRADIENT_DETECTOR");
+    m_samrai_cfg_->SetValue("StandardTagAndInitialize/tagging_method", "GRADIENT_DETECTOR");
 
     // Refer to algs::HyperbolicLevelIntegrator for input
     // max cfl factor used in problem
-    db()->SetValue("HyperbolicLevelIntegrator/cfl", 0.9);
-    db()->SetValue("HyperbolicLevelIntegrator/cfl_init", 0.9);  // initial cfl factor
-    db()->SetValue("HyperbolicLevelIntegrator/lag_dt_computation", true);
-    db()->SetValue("HyperbolicLevelIntegrator/use_ghosts_to_compute_dt", true);
+    m_samrai_cfg_->SetValue("HyperbolicLevelIntegrator/cfl", 0.9);
+    m_samrai_cfg_->SetValue("HyperbolicLevelIntegrator/cfl_init", 0.9);  // initial cfl factor
+    m_samrai_cfg_->SetValue("HyperbolicLevelIntegrator/lag_dt_computation", true);
+    m_samrai_cfg_->SetValue("HyperbolicLevelIntegrator/use_ghosts_to_compute_dt", true);
 
     // Refer to algs::TimeRefinementIntegrator for input
     // initial simulation time
-    db()->SetValue("TimeRefinementIntegrator/start_time", 0.e0);
+    m_samrai_cfg_->SetValue("TimeRefinementIntegrator/start_time", 0.e0);
     // final simulation time
-    db()->SetValue("TimeRefinementIntegrator/end_time", 1.e0);
+    m_samrai_cfg_->SetValue("TimeRefinementIntegrator/end_time", 1.e0);
     // growth factor for timesteps
-    db()->SetValue("TimeRefinementIntegrator/grow_dt", 1.1e0);
+    m_samrai_cfg_->SetValue("TimeRefinementIntegrator/grow_dt", 1.1e0);
     // max number of simulation timesteps
-    db()->SetValue("TimeRefinementIntegrator/max_integrator_steps", 5);
+    m_samrai_cfg_->SetValue("TimeRefinementIntegrator/max_integrator_steps", 5);
 
     // Refer to mesh::TreeLoadBalancer for input
-    db()->Set("LoadBalancer/");
-}
+    m_samrai_cfg_->Set("LoadBalancer/");
 
-SAMRAIBackend::~SAMRAIBackend() {
-    SAMRAI::tbox::SAMRAIManager::shutdown();
-    SAMRAI::tbox::SAMRAIManager::finalize();
-}
-
-std::ostream &SAMRAIBackend::Print(std::ostream &os, int indent) const {
-    SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(os);
-    os << *db() << std::endl;
-    if (hyp_level_integrator != nullptr) hyp_level_integrator->printClassData(os);
-    return os;
-};
-
-bool SAMRAIBackend::Update() {
-    bool use_refined_timestepping = db()->GetValue<bool>("use_refined_timestepping", true);
+    bool use_refined_timestepping = m_samrai_cfg_->GetValue<bool>("use_refined_timestepping", true);
     SAMRAI::tbox::Dimension dim(ndims);
 
-    auto samrai_cfg = db()->backend()->cast_as<data::DataBackendSAMRAI>().samrai_db();
+    auto samrai_cfg = m_samrai_cfg_->backend()->cast_as<DataBackendSAMRAI>().samrai_db();
     //    samrai_cfg = simpla::detail::convert_database(db(), name());
-    samrai_cfg->printClassData(std::cout);
     /**
-    * Create major algorithm and data objects which comprise application.
-    * Each object will be initialized either from input data or restart
-    * files, or a combination of both.  Refer to each class constructor
-    * for details.  For more information on the composition of objects
-    * for this application, see comments at top of file.
-    */
+   * Create major algorithm and data objects which comprise application.
+   * Each object will be initialized either from input data or restart
+   * files, or a combination of both.  Refer to each class constructor
+   * for details.  For more information on the composition of objects
+   * for this application, see comments at top of file.
+   */
 
     grid_geometry = boost::make_shared<SAMRAI::geom::CartesianGridGeometry>(
         dim, "CartesianGeometry", samrai_cfg->getDatabase("CartesianGeometry"));
@@ -1138,7 +1129,13 @@ void SAMRAIBackend::CheckPoint() {
     }
 }
 
-Real SAMRAIBackend::timeNow() const { return static_cast<Real>(time_integrator->getIntegratorTime()); }
-size_type SAMRAIBackend::step() const { return static_cast<size_type>(time_integrator->getIntegratorStep()); }
-bool SAMRAIBackend::remainingSteps() const { return time_integrator->stepsRemaining(); }
+Real SAMRAIBackend::timeNow() const {
+    return time_integrator == nullptr ? 0 : static_cast<Real>(time_integrator->getIntegratorTime());
+}
+size_type SAMRAIBackend::step() const {
+    return time_integrator == nullptr ? 0 : static_cast<size_type>(time_integrator->getIntegratorStep());
+}
+bool SAMRAIBackend::remainingSteps() const {
+    return time_integrator != nullptr ? time_integrator->stepsRemaining() : false;
+}
 }  // namespace simpla

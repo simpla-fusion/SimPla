@@ -13,31 +13,33 @@
 #include <iostream>
 
 using namespace simpla;
+
+
 int main(int argc, char **argv) {
     logger::set_stdout_level(100);
     GLOBAL_COMM.init(argc, argv);
 
-    auto manager = std::make_shared<engine::Manager>();
+    auto time_integrator = GLOBAL_TIME_INTEGRATOR_FACTORY.Create("samrai");
 
-    manager->db()->SetValue("name", "EMFluid");
+    auto ctx = time_integrator->GetContext();
 
-    manager->db()->SetValue("CartesianGeometry/domain_boxes_0", {{0, 0, 0}, {64, 64, 64}});
-    manager->db()->SetValue("CartesianGeometry/periodic_dimension", {0, 1, 0});
-
+    ctx->db()->SetValue("name", "EMTokamak");
+    ctx->db()->SetValue("CartesianGeometry/domain_boxes_0", {{0, 0, 0}, {64, 64, 64}});
+    ctx->db()->SetValue("CartesianGeometry/periodic_dimension", {0, 1, 0});
     {
         GEqdsk geqdsk;
         geqdsk.load(argv[1]);
 
-        //        manager->GetModel().AddDomain("VACUUM", geqdsk.limiter_gobj());
-        //        manager->GetModel().AddDomain("PLASMA", geqdsk.boundary_gobj());
+        //        ctx->GetModel().AddDomain("VACUUM", geqdsk.limiter_gobj());
+        //        ctx->GetModel().AddDomain("PLASMA", geqdsk.boundary_gobj());
 
-        auto bound_box = manager->GetModel().bound_box();
+        auto bound_box = ctx->GetModel().bound_box();
 
-        manager->db()->SetValue("CartesianGeometry/x_lo", std::get<0>(bound_box));
-        manager->db()->SetValue("CartesianGeometry/x_up", std::get<1>(bound_box));
+        ctx->db()->SetValue("CartesianGeometry/x_lo", std::get<0>(bound_box));
+        ctx->db()->SetValue("CartesianGeometry/x_up", std::get<1>(bound_box));
     }
 
-    LOGGER << *manager->db() << std::endl;
+    LOGGER << *ctx->db() << std::endl;
 
     //    worker->db()->SetValue("Particles/H1/m", 1.0);
     //    worker->db()->SetValue("Particles/H1/Z", 1.0);
@@ -54,19 +56,16 @@ int main(int argc, char **argv) {
     //
     //
     //
-    //    manager->GetDomainView("PLASMA")->AddWorker(worker);
+    //    ctx->GetDomainView("PLASMA")->AddWorker(worker);
 
-    manager->Initialize();
+    time_integrator->Initialize();
     INFORM << "***********************************************" << std::endl;
 
-    //    while (manager->remainingSteps()) {
-    //        manager->NextTimeStep(0.01);
-    //        manager->CheckPoint();
-    //    }
+    while (time_integrator->remainingSteps()) { time_integrator->NextTimeStep(0.01); }
 
     INFORM << "***********************************************" << std::endl;
 
-    manager.reset();
+    time_integrator->Finalize();
 
     INFORM << " DONE !" << std::endl;
 
