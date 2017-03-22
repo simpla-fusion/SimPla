@@ -47,6 +47,7 @@ void AttributeViewBundle::Detach(AttributeView *p) {
 void AttributeViewBundle::SetMesh(MeshView const *m) {
     if (m == nullptr) { return; }
     m_pimpl_->m_mesh_ = m;
+    for (AttributeView *v : m_pimpl_->m_attr_views_) { v->SetMesh(m); }
 }
 MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
 
@@ -84,16 +85,20 @@ AttributeView::~AttributeView() {
     m_pimpl_->m_bundle_ = nullptr;
 }
 
-// void AttributeView::SetMesh(MeshView const *m) {
-//    if (m == nullptr) { return; }
-//    if ((m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo())) {
-//        m_pimpl_->m_mesh_ = m;
-//    } else {
-//        RUNTIME_ERROR << "Can not change the mesh type of a worker![ from " << m_pimpl_->m_mesh_->GetClassName()
-//                      << " to " << m->GetClassName() << "]" << std::endl;
-//    }
-//}
-MeshView const *AttributeView::GetMesh() const { return m_pimpl_->m_mesh_; }
+void AttributeView::SetMesh(MeshView const *m) {
+    if (m == nullptr) { return; }
+    if ((m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo())) {
+        m_pimpl_->m_mesh_ = m;
+    } else {
+        RUNTIME_ERROR << "Can not change the mesh type of a worker![ from " << m_pimpl_->m_mesh_->GetClassName()
+                      << " to " << m->GetClassName() << "]" << std::endl;
+    }
+}
+
+MeshView const *AttributeView::GetMesh() const {
+    return m_pimpl_->m_mesh_ != nullptr ? m_pimpl_->m_mesh_
+                                        : (m_pimpl_->m_bundle_ != nullptr ? m_pimpl_->m_bundle_->GetMesh() : nullptr);
+}
 /**
 *@startuml
 *start

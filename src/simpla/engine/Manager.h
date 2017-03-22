@@ -60,14 +60,13 @@ namespace engine {
  *  deactivate DomainView
  * @enduml
  */
-class Manager {
+class Manager : public concept::Configurable {
     SP_OBJECT_BASE(DomainView)
 
    public:
     Manager(std::shared_ptr<data::DataEntity> const &t = nullptr);
     virtual ~Manager();
-    std::shared_ptr<data::DataTable> db() const;
-    std::shared_ptr<data::DataTable> db();
+
     virtual void Initialize();
     virtual void Advance(Real dt, int level = 0);
     virtual void Synchronize(int from_level = 0, int to_level = 0);

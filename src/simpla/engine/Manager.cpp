@@ -21,13 +21,7 @@ struct Manager::pimpl_s {
     std::shared_ptr<data::DataTable> m_db_;
 };
 
-Manager::Manager(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_db_ = (t != nullptr && t->isTable()) ? std::dynamic_pointer_cast<data::DataTable>(t)
-                                                     : std::make_shared<data::DataTable>();
-    if (t != nullptr && t->isLight() && t->value_type_info() == typeid(std::string)) {
-        db()->SetValue("name", data::data_cast<std::string>(*t));
-    }
-
+Manager::Manager(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
     db()->Link("Model", m_pimpl_->m_model_.db());
     db()->Link("Atlas", m_pimpl_->m_atlas_.db());
     m_pimpl_->m_patches_ = std::make_shared<data::DataTable>();
@@ -35,18 +29,10 @@ Manager::Manager(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimp
 }
 
 Manager::~Manager() {}
-
-std::shared_ptr<data::DataTable> Manager::db() const { return m_pimpl_->m_db_; };
-std::shared_ptr<data::DataTable> Manager::db() { return m_pimpl_->m_db_; };
-
 Real Manager::GetTime() const { return m_pimpl_->m_time_; }
-
 Atlas &Manager::GetAtlas() const { return m_pimpl_->m_atlas_; }
-
 Model &Manager::GetModel() const { return m_pimpl_->m_model_; }
-
 std::shared_ptr<data::DataTable> Manager::GetPatches() const { return m_pimpl_->m_patches_; }
-
 std::shared_ptr<DomainView> Manager::GetDomainView(std::string const &d_name) const {
     return m_pimpl_->m_views_.at(d_name);
 }
@@ -92,7 +78,6 @@ void Manager::Advance(Real dt, int level) {
                    << mblk->GetIndexBox() << " id= " << id << std::endl;
             v.second->Run(dt);
             auto t = v.second->PopData().second;
-
             m_pimpl_->m_patches_->Set(std::to_string(id), t);
         }
     }

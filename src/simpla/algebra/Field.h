@@ -81,9 +81,10 @@ class FieldView : public engine::AttributeView {
     };
 
     template <typename... Args>
-    explicit FieldView(Args&&... args) : engine::AttributeView(std::forward<Args>(args)...) {
-        Update();
-    };
+    explicit FieldView(Args&&... args)
+        : engine::AttributeView(std::forward<Args>(args)...){
+
+          };
 
     FieldView(this_type const& other) = delete;
     FieldView(this_type&& other) = delete;
@@ -119,7 +120,8 @@ class FieldView : public engine::AttributeView {
     }
 
     void PushData(std::shared_ptr<engine::MeshBlock> const& m, std::shared_ptr<data::DataEntity> const& d = nullptr) {
-        ASSERT(m_mesh_->GetMeshBlock()->GetGUID() == m->GetGUID());
+        m_mesh_ = dynamic_cast<mesh_type const*>(engine::AttributeView::GetMesh());
+        ASSERT(m_mesh_ != nullptr && m_mesh_->GetMeshBlock()->GetGUID() == m->GetGUID());
         if (d == nullptr) {
             for (int i = 0; i < num_of_subs; ++i) {
                 m_data_[i] = std::make_shared<sub_array_type>(m->GetInnerIndexBox(), m->GetOuterIndexBox());
@@ -230,23 +232,7 @@ class FieldView : public engine::AttributeView {
 
 template <typename TM, typename TV, int IFORM, int DOF>
 std::ostream& FieldView<TM, TV, IFORM, DOF>::Print(std::ostream& os, int indent) const {
-    if (m_data_ != nullptr) {
-        auto dims = m_mesh_->dimensions();
-        size_type s = m_mesh_->size();
-        //            int num_com = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3) * DOF;
-
-        if (num_of_subs <= 1) {
-            printNdArray(os, m_data_, 3, &dims[0]);
-        } else {
-            os << "{" << std::endl;
-            for (int i = 0; i < num_of_subs; ++i) {
-                os << "[" << i << "] =  ";
-                printNdArray(os, m_data_ + i * s, 3, &dims[0]);
-                os << std::endl;
-            }
-            os << " }" << std::endl;
-        }
-    }
+    for (int i = 0; i < num_of_subs; ++i) { os << *m_data_[i] << std::endl; }
     return os;
 }
 
@@ -260,21 +246,11 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
    public:
     template <typename... Args>
     explicit Field_(Args&&... args) : base_type(std::forward<Args>(args)...) {}
-
-    ~Field_() {}
-
     Field_(this_type const& other) : base_type(other){};
     Field_(this_type&& other) : base_type(other){};
-
+    ~Field_() {}
     using base_type::operator[];
     using base_type::operator=;
-
-    //    template <int... N>
-    //    Field_<TM, const TV, IFORM, DOF> operator[](PlaceHolder<N...> const& p) const {
-    //        return Field_<TM, const TV, IFORM, DOF>(*this, p);
-    //    }
-    //    decltype(auto) operator[](entity_id const& s) const { return at(s); }
-    //    decltype(auto) operator[](entity_id const& s) { return at(s); }
 };
 
 }  // namespace declare

@@ -138,6 +138,7 @@ struct AttributeView : public SPObject {
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
+    void SetMesh(MeshView const *);
     MeshView const *GetMesh() const;
 
     virtual int GetIFORM() const = 0;
