@@ -23,11 +23,11 @@ class DataBackendSAMRAI : public DataBackend {
     virtual void Flush();
 
     virtual std::shared_ptr<DataEntity> Get(std::string const& URI) const;
-    virtual void Set(std::string const& URI, std::shared_ptr<DataEntity> const&);
-    virtual void Add(std::string const& URI, std::shared_ptr<DataEntity> const&);
-    virtual size_type Delete(std::string const& URI);
+    virtual void Set(std::string const& uri, std::shared_ptr<DataEntity> const& v, bool overwrite = true);
+    virtual void Add(std::string const& uri, std::shared_ptr<DataEntity> const& v);
+    virtual void Delete(std::string const& URI);
     virtual size_type size() const;
-    virtual size_type Foreach(std::function<void(std::string const &, std::shared_ptr<DataEntity>)> const &) const;
+    virtual size_type Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const&) const;
 
     boost::shared_ptr<SAMRAI::tbox::Database> db();
 

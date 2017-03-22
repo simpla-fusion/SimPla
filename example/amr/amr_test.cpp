@@ -24,12 +24,13 @@ int main(int argc, char **argv) {
     logger::set_stdout_level(100);
     GLOBAL_COMM.init(argc, argv);
 
-    auto manager = create_time_integrator();
+    //    auto manager = create_time_integrator();
+    auto manager = std::make_shared<engine::Manager>();
 
-    manager->name("EMFluid");
+    manager->db()->SetValue("name", "EMFluid");
 
-    manager->db().SetValue("CartesianGeometry/domain_boxes_0", {{0, 0, 0}, {64, 64, 64}});
-    manager->db().SetValue("CartesianGeometry/periodic_dimension", {0, 1, 0});
+    manager->db()->SetValue("CartesianGeometry/domain_boxes_0", {{0, 0, 0}, {64, 64, 64}});
+    manager->db()->SetValue("CartesianGeometry/periodic_dimension", {0, 1, 0});
 
     {
         GEqdsk geqdsk;
@@ -40,32 +41,30 @@ int main(int argc, char **argv) {
 
         auto bound_box = manager->GetModel().bound_box();
 
-        manager->db().SetValue("CartesianGeometry/x_lo", std::get<0>(bound_box));
-        manager->db().SetValue("CartesianGeometry/x_up", std::get<1>(bound_box));
+        manager->db()->SetValue("CartesianGeometry/x_lo", std::get<0>(bound_box));
+        manager->db()->SetValue("CartesianGeometry/x_up", std::get<1>(bound_box));
     }
 
-    LOGGER << *manager->db().backend() << std::endl;
-    LOGGER << manager->db() << std::endl;
+    LOGGER << *manager->db() << std::endl;
     auto worker = create_worker();
 
-    worker->db().SetValue("Particles/H1/m", 1.0);
-    worker->db().SetValue("Particles/H1/Z", 1.0);
-    worker->db().SetValue("Particles/H1/ratio", 0.5);
-    worker->db().SetValue("Particles/D1/m", 2.0);
-    worker->db().SetValue("Particles/D1/Z", 1.0);
-    worker->db().SetValue("Particles/D1/ratio", 0.5);
-    worker->db().SetValue("Particles/e1/m", SI_electron_proton_mass_ratio);
-    worker->db().SetValue("Particles/e1/Z", -1.0);
-    worker->db().SetValue(
+    worker->db()->SetValue("Particles/H1/m", 1.0);
+    worker->db()->SetValue("Particles/H1/Z", 1.0);
+    worker->db()->SetValue("Particles/H1/ratio", 0.5);
+    worker->db()->SetValue("Particles/D1/m", 2.0);
+    worker->db()->SetValue("Particles/D1/Z", 1.0);
+    worker->db()->SetValue("Particles/D1/ratio", 0.5);
+    worker->db()->SetValue("Particles/e1/m", SI_electron_proton_mass_ratio);
+    worker->db()->SetValue("Particles/e1/Z", -1.0);
+    worker->db()->SetValue(
         "Particles", {"H"_ = {"m"_ = 1.0, "Z"_ = 1.0, "ratio"_ = 0.5}, "D"_ = {"m"_ = 2.0, "Z"_ = 1.0, "ratio"_ = 0.5},
                       "e"_ = {"m"_ = SI_electron_proton_mass_ratio, "Z"_ = -1.0}});
 
     LOGGER << worker->db() << std::endl;
 
-    manager->GetDomainView("PLASMA").AddWorker(worker);
+    manager->GetDomainView("PLASMA")->AddWorker(worker);
 
-    manager->Update();
-    manager->CheckPoint();
+    manager->Initialize();
     INFORM << "***********************************************" << std::endl;
 
     //    while (manager->remainingSteps()) {

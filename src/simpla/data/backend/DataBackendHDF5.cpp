@@ -492,30 +492,29 @@ std::shared_ptr<DataEntity> DataBackendHDF5::Get(std::string const& uri) const {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, true);
     return (res.first == -1) ? nullptr : pimpl_s::HDF5Get(this, res.first, res.second);
 }
-int DataBackendHDF5::Set(std::string const& uri, std::shared_ptr<DataEntity> const& src, bool overwrite) {
-    if (src == nullptr) { return 0; }
+void DataBackendHDF5::Set(std::string const& uri, std::shared_ptr<DataEntity> const& src, bool overwrite) {
+    if (src == nullptr) { return; }
     ASSERT(m_pimpl_->m_g_id_ != -1);
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
-    if (res.second == "") { return 0; }
+    if (res.second == "") { return; }
     ASSERT(res.first != -1);
     pimpl_s::HDF5Set(this, m_pimpl_->m_g_id_, res.second, src, overwrite);
-    return 1;
 }
-int DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
-    if (src == nullptr) { return 0; }
+void DataBackendHDF5::Add(std::string const& uri, std::shared_ptr<DataEntity> const& src) {
+    if (src == nullptr) { return; }
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
-    if (res.first == -1 || res.second == "") { return 0; }
+    if (res.first == -1 || res.second == "") { return; }
     pimpl_s::HDF5Add(this, res.first, res.second, src);
-    return 1;
 }
-size_type DataBackendHDF5::Delete(std::string const& uri) {
+void DataBackendHDF5::Delete(std::string const& uri) {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, false);
-    if (res.first == -1 || res.second == "") { return 0; }
+    if (res.first == -1 || res.second == "") { return  ; }
     if (H5Aexists(res.first, res.second.c_str())) {
         H5Adelete(res.first, res.second.c_str());
     } else if (H5Lexists(res.first, res.second.c_str(), H5P_DEFAULT) != 0) {
         H5_ERROR(H5Ldelete(res.first, res.second.c_str(), H5P_DEFAULT));
     }
+
 }
 
 // size_type DataBackendHDF5::Foreach(

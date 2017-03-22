@@ -16,6 +16,17 @@ enum { VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3, FIBER = 6 };
 
 namespace algebra {
 
+template <typename, typename, int, int>
+class FieldView;
+namespace traits {
+template <typename T>
+struct is_primary_field : public std::integral_constant<bool, false> {};
+
+template <typename TM, typename TV, int IFORM, int DOF>
+struct is_primary_field<FieldView<TM, TV, IFORM, DOF>> : public std::integral_constant<bool, true> {};
+
+}  // namespace traits {
+
 namespace declare {
 template <typename...>
 struct Expression;
@@ -25,7 +36,7 @@ namespace traits {
 template <typename>
 struct num_of_dimension : public int_const<3> {};
 
-CHECK_TYPE_MEMBER(value_type, value_type)
+CHECK_MEMBER_TYPE(value_type, value_type)
 
 template <typename T>
 using value_type_t = typename value_type<T>::type;
@@ -121,9 +132,6 @@ struct is_nTuple<First, Others...>
     : public std::integral_constant<bool, (is_nTuple<First>::value &&
                                            !(is_field<Others...>::value || is_array<Others...>::value)) ||
                                               is_nTuple<Others...>::value> {};
-
-template <typename T>
-struct is_primary_field : public std::integral_constant<bool, is_field<T>::value && (!is_expression<T>::value)> {};
 
 CHECK_STATIC_INTEGRAL_CONSTEXPR_DATA_MEMBER(ndims, NDIMS, 1)
 

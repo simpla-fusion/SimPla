@@ -50,7 +50,6 @@ class MeshView : public concept::Configurable,
     size_type size(int IFORM = VERTEX) const { return 0; }
     size_tuple dimensions() const { return size_tuple{}; };
 
-
     //    template <typename U>
     //    std::shared_ptr<data::DataBlockWrapper<U>> CreateDataBlock(int IFORM, int DOF) const;
     //    template <typename... Args>

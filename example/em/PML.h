@@ -7,9 +7,9 @@
 
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/all.h>
+#include <simpla/engine/all.h>
 #include <simpla/physics/PhysicalConstants.h>
 #include <simpla/toolbox/Log.h>
-
 namespace simpla {
 using namespace engine;
 
@@ -26,7 +26,7 @@ class PML : public engine::Worker {
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
     template <int IFORM, int DOF = 1>
-    using field_type = engine::FieldAttribute<TM, scalar_type, IFORM, DOF>;
+    using field_type = Field<TM, scalar_type, IFORM, DOF>;
 
     template <typename... Args>
     explicit PML(Args &&... args) : engine::Worker(std::forward<Args>(args)...){};

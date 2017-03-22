@@ -26,7 +26,7 @@ struct Printable {
     virtual std::ostream &Print(std::ostream &os, int indent) const { return os; };
 };
 
-CHECK_FUNCTION_MEMBER(is_printable, print);
+CHECK_MEMBER_FUNCTION(is_printable, print);
 
 inline std::ostream &operator<<(std::ostream &os, Printable const &obj) {
     obj.Print(os, 0);

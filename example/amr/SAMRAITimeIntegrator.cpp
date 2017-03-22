@@ -6,9 +6,9 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
+#include <simpla/data/DataBlock.h>
 #include <simpla/data/all.h>
 #include <simpla/engine/AttributeView.h>
-#include <simpla/data/DataBlock.h>
 #include <simpla/engine/DomainView.h>
 #include <simpla/engine/Patch.h>
 #include <simpla/engine/TimeIntegrator.h>
@@ -87,7 +87,7 @@ namespace simpla {
 struct SAMRAIPatchProxy : public engine::Patch {
    public:
     SAMRAIPatchProxy(SAMRAI::hier::Patch &patch, boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
-                     std::map<id_type, std::shared_ptr<engine::AttributeDesc>> const &simpla_attrs_,
+                     std::map<id_type, std::shared_ptr<data::DataTable>> const &simpla_attrs_,
                      std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &samrai_variables);
     ~SAMRAIPatchProxy();
     std::shared_ptr<engine::DataBlock> data(id_type const &id, std::shared_ptr<engine::DataBlock> const &p = nullptr);
@@ -96,11 +96,11 @@ struct SAMRAIPatchProxy : public engine::Patch {
    private:
     SAMRAI::hier::Patch &m_samrai_patch_;
     boost::shared_ptr<SAMRAI::hier::VariableContext> const &m_samrai_ctx_;
-    std::map<id_type, std::shared_ptr<engine::AttributeDesc>> const &m_simpla_attrs_;
+    std::map<id_type, std::shared_ptr<data::DataTable>> const &m_simpla_attrs_;
     std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &m_samrai_variables_;
 };
 SAMRAIPatchProxy::SAMRAIPatchProxy(SAMRAI::hier::Patch &patch, boost::shared_ptr<SAMRAI::hier::VariableContext> ctx,
-                                   std::map<id_type, std::shared_ptr<engine::AttributeDesc>> const &simpla_attrs_,
+                                   std::map<id_type, std::shared_ptr<data::DataTable>> const &simpla_attrs_,
                                    std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> const &var_map)
     : m_samrai_patch_(patch), m_samrai_ctx_(ctx), m_simpla_attrs_(simpla_attrs_), m_samrai_variables_(var_map) {
     auto pgeom = boost::dynamic_pointer_cast<SAMRAI::geom::CartesianPatchGeometry>(patch.getPatchGeometry());
@@ -124,7 +124,7 @@ SAMRAIPatchProxy::~SAMRAIPatchProxy() {}
 namespace detail {
 
 template <typename TV>
-std::shared_ptr<engine::DataBlock> create_data_block_t0(engine::AttributeDesc const &desc,
+std::shared_ptr<engine::DataBlock> create_data_block_t0(data::DataTable const &desc,
                                                         boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     auto p_data = boost::dynamic_pointer_cast<SAMRAI::pdat::NodeData<TV>>(pd);
     int ndims = p_data->getDim().getValue();
@@ -136,17 +136,18 @@ std::shared_ptr<engine::DataBlock> create_data_block_t0(engine::AttributeDesc co
     size_type dims[4] = {static_cast<size_type>(outer_upper[0] - outer_lower[0]),
                          static_cast<size_type>(outer_upper[1] - outer_lower[1]),
                          static_cast<size_type>(outer_upper[2] - outer_lower[2]),
-                         static_cast<size_type>(desc.GetDOF())};
+                         static_cast<size_type>(desc.GetValue<int>("DOF"))};
     index_type lo[4] = {inner_lower[0] - outer_lower[0], inner_lower[1] - outer_lower[1],
                         inner_lower[2] - outer_lower[2], 0};
     index_type hi[4] = {inner_upper[0] - outer_lower[0], inner_upper[1] - outer_lower[1],
-                        inner_upper[2] - outer_lower[2], desc.GetDOF()};
-    auto res = std::make_shared<engine::DataBlockAdapter<Array<TV, 4>>>(p_data->getPointer(), dims, lo, hi);
-    res->Initialize();
+                        inner_upper[2] - outer_lower[2], static_cast<size_type>(desc.GetValue<int>("DOF"))};
+    auto res = std::make_shared<engine::DataEntityWrapper<simpla::Array<TV, 4>>>();
+    //p_data->getPointer(), dims, lo, hi
+//    res->Initialize();
     return std::dynamic_pointer_cast<engine::DataBlock>(res);
 };
 
-std::shared_ptr<engine::DataBlock> create_data_block(engine::AttributeDesc const &desc,
+std::shared_ptr<engine::DataBlock> create_data_block(data::DataTable const &desc,
                                                      boost::shared_ptr<SAMRAI::hier::PatchData> pd) {
     std::shared_ptr<engine::DataBlock> res(nullptr);
     if (desc.GetValueTypeInfo() == (typeid(float))) {
@@ -377,7 +378,7 @@ SAMRAI_HyperbolicPatchStrategyAdapter::~SAMRAI_HyperbolicPatchStrategyAdapter() 
 
 namespace detail {
 template <typename T>
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, engine::AttributeDesc const &attr) {
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, data::DataTable const &attr) {
     static int var_depth[4] = {1, 3, 3, 1};
     SAMRAI::tbox::Dimension d_dim(ndims);
     return (attr.GetIFORM() > VOLUME)
@@ -386,8 +387,7 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, en
                      d_dim, attr.GetName(), var_depth[attr.GetIFORM()] * attr.GetDOF()));
 }
 
-boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int ndims,
-                                                                 engine::AttributeDesc const &desc) {
+boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int ndims, data::DataTable const &desc) {
     if (desc.GetValueTypeInfo() == (typeid(float))) {
         return create_samrai_variable_t<float>(ndims, desc);
     } else if (desc.GetValueTypeInfo() == (typeid(double))) {
@@ -398,7 +398,8 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int nd
     //    else if (item->GetValueTypeInfo() == typeid(long)) { attr_choice_form<long>(item,
     //    std::forward<Args>(args)...); }
     else {
-        RUNTIME_ERROR << " value value_type_info [" << desc.GetValueTypeInfo().name() << "] is not supported!" << std::endl;
+        RUNTIME_ERROR << " value value_type_info [" << desc.GetValueTypeInfo().name() << "] is not supported!"
+                      << std::endl;
     }
     return nullptr;
 }
@@ -425,7 +426,7 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
     //        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *item.second);
     //        m_samrai_variables_[item.second->GetGUID()] = var;
     //
-    //        engine::AttributeDesc const &attr = *item.second;
+    //        data::DataTable const &attr = *item.second;
     //        data::DataTable &attr_db = m_domain_view_->attr_db(attr.GetGUID());
     //        //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
     //        //                "TENSOR"};
@@ -960,3 +961,4 @@ Real SAMRAITimeIntegrator::timeNow() const { return static_cast<Real>(time_integ
 size_type SAMRAITimeIntegrator::step() const { return static_cast<size_type>(time_integrator->getIntegratorStep()); }
 bool SAMRAITimeIntegrator::remainingSteps() const { return time_integrator->stepsRemaining(); }
 }  // namespace simpla
+

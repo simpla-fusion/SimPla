@@ -115,7 +115,7 @@ struct DataSet {
 
 //
 namespace _impl {
-CHECK_FUNCTION_MEMBER(has_member_function_data_set, data_set)
+CHECK_MEMBER_FUNCTION(has_member_function_data_set, data_set)
 
 template <typename T>
 auto create_data_set(T const &f) ->

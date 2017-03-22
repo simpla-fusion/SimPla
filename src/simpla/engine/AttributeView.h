@@ -6,12 +6,8 @@
 #define SIMPLA_ATTRIBUTEVIEW_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/all.h>
-#include <simpla/data/all.h>
-
 #include <simpla/concept/CheckConcept.h>
-#include <simpla/concept/Printable.h>
-#include <simpla/design_pattern/Observer.h>
+#include <simpla/data/all.h>
 #include <simpla/design_pattern/Signal.h>
 #include "MeshBlock.h"
 #include "SPObject.h"
@@ -134,155 +130,95 @@ struct AttributeView : public SPObject {
     SP_OBJECT_BASE(AttributeView);
 
    public:
-    AttributeView(AttributeViewBundle *b = nullptr, std::shared_ptr<data::DataEntity> const &p = nullptr);
+    AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataEntity> const &p);
+    AttributeView(AttributeViewBundle *b) : AttributeView(b, std::shared_ptr<data::DataEntity>(nullptr)){};
+    template <typename U, typename... Args>
+    explicit AttributeView(AttributeViewBundle *b, U const &first, Args &&... args)
+        : AttributeView(b, data::make_data_entity(first, std::forward<Args>(args)...)){};
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
+    MeshView const *GetMesh() const;
 
-   public:
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
     virtual std::type_info const &mesh_type_info() const = 0;   //!< mesh type
 
-    virtual void SetMesh(MeshView const *);
-    virtual MeshView const *GetMesh() const;
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &) = 0;
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() = 0;
 
     virtual bool Update();
-    bool isNull() const;
-    bool empty() const { return isNull(); };
+    virtual bool isNull() const;
+    virtual bool empty() const { return isNull(); };
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-template <typename, typename Enable = void>
-class AttributeViewAdapter {};
-
-CHECK_TYPE_MEMBER(mesh_type, mesh_type);
-
-template <typename U>
-class AttributeViewAdapter<U, std::enable_if_t<!has_mesh_type<U>::value>> : public AttributeView, public U {
-    SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
-
-    typedef algebra::traits::value_type_t<U> value_type;
-    static const int iform = algebra::traits::iform<U>::value;
-    static const int dof = algebra::traits::dof<U>::value;
-
-   public:
-    typedef std::true_type prefer_pass_by_reference;
-
-    template <typename... Args>
-    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
-        : AttributeView(b, data::make_data_entity(std::forward<Args>(args)...)) {}
-
-    AttributeViewAdapter(AttributeViewAdapter &&) = delete;
-    AttributeViewAdapter(AttributeViewAdapter const &) = delete;
-    virtual ~AttributeViewAdapter() {}
-
-    virtual int GetIFORM() const { return iform; };
-    virtual int GetDOF() const { return dof; };
-    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
-    virtual std::type_info const &mesh_type_info() const { return typeid(void); };         //!< mesh type
-    virtual void Clear() { U::Clear(); }
-    virtual void SetMesh(MeshView const *){};
-    virtual MeshView const *GetMesh() const { return nullptr; };
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &d) {
-        U::PushData(d);
-    };
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
-        auto res = U::PopData();
-        CHECK(*res);
-        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), res);
-    };
-    template <typename TExpr>
-    this_type &operator=(TExpr const &expr) {
-        Click();
-        U::operator=(expr);
-        return *this;
-    };
-
-    bool Update() final {
-        if (AttributeView::Update()) {
-            U::Update();
-            return false;
-        } else {
-            return true;
-        }
-    }
-};
-template <typename U>
-class AttributeViewAdapter<U, std::enable_if_t<has_mesh_type<U>::value>> : public AttributeView, public U {
-    typedef AttributeViewAdapter<U, std::enable_if_t<has_mesh_type<U>::value>> attribute_type;
-    SP_OBJECT_HEAD(attribute_type, AttributeView);
-
-    typedef typename U::mesh_type mesh_type;
-    typedef algebra::traits::value_type_t<U> value_type;
-    static const int iform = algebra::traits::iform<U>::value;
-    static const int dof = algebra::traits::dof<U>::value;
-    static const int NDIMS = algebra::traits::ndims<U>::value;
-    static const int num_of_sub = algebra::traits::num_of_sub<U>::value;
-
-   public:
-    typedef std::true_type prefer_pass_by_reference;
-    typedef Array<value_type, NDIMS> array_type;
-    template <typename... Args>
-    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
-        : AttributeView(b, data::make_data_entity(std::forward<Args>(args)...)),
-          U(static_cast<mesh_type const *>(b->GetMesh())) {}
-
-    AttributeViewAdapter(AttributeViewAdapter &&) = delete;
-    AttributeViewAdapter(AttributeViewAdapter const &) = delete;
-    virtual ~AttributeViewAdapter() {}
-
-    virtual int GetIFORM() const { return iform; };
-    virtual int GetDOF() const { return dof; };
-    virtual std::type_info const &mesh_type_info() const { return typeid(mesh_type); };    //!< mesh type
-    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
-
-    //    virtual mesh_type const *GetMesh() const { return static_cast<mesh_type const *>(GetDomain()->GetMesh()); }
-    virtual void Clear() { U::Clear(); }
-
-    template <typename TExpr>
-    this_type &operator=(TExpr const &expr) {
-        Click();
-        U::operator=(expr);
-        return *this;
-    };
-
-    virtual void SetMesh(MeshView const *m) {
-        AttributeView::SetMesh(m);
-        U::SetMesh(GetMesh());
-    };
-
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &d) {
-        ASSERT(GetMesh()->GetMeshBlock()->GetGUID() == m->GetGUID());
-        U::PushData(m, d);
-    }
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
-        auto res = U::PopData();
-
-        return std::make_pair(GetMesh()->GetMeshBlock(), res);
-    }
-
-    bool Update() final {
-        if (AttributeView::Update()) {
-            U::Update();
-            return false;
-        } else {
-            return true;
-        }
-    }
-};
-
-template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
-using FieldAttribute = AttributeViewAdapter<Field<TV, TM, IFORM, DOF>>;
-
-template <typename TV = Real, int IFORM = VERTEX, int DOF = 1>
-using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)>>;
+//
+// template <typename, typename Enable = void>
+// class AttributeViewAdapter {};
+//
+// CHECK_MEMBER_TYPE(mesh_type, mesh_type);
+// CHECK_MEMBER_FUNCTION(has_swap, swap)
+// template <typename U>
+// class AttributeViewAdapter<
+//    U, std::enable_if_t<std::is_copy_constructible<U>::value && traits::has_swap<U, void(U &)>::value>>
+//    : public AttributeView, public U {
+//    SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
+//
+//    typedef algebra::traits::value_type_t<U> value_type;
+//    typedef typename algebra::traits::mesh_type_t<U> mesh_type;
+//    static const int iform = algebra::traits::iform<U>::value;
+//    static const int dof = algebra::traits::dof<U>::value;
+//    static const int NDIMS = algebra::traits::ndims<U>::value;
+//    static const int num_of_sub = algebra::traits::num_of_sub<U>::value;
+//
+//   public:
+//    typedef std::true_type prefer_pass_by_reference;
+//
+//    template <typename... Args>
+//    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
+//        : AttributeView(b, data::make_data_entity(std::forward<Args>(args)...)) {}
+//
+//    AttributeViewAdapter(AttributeViewAdapter &&) = delete;
+//    AttributeViewAdapter(AttributeViewAdapter const &) = delete;
+//    virtual ~AttributeViewAdapter() {}
+//
+//    virtual int GetIFORM() const { return iform; };
+//    virtual int GetDOF() const { return dof; };
+//    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
+//    virtual std::type_info const &mesh_type_info() const { return typeid(void); };         //!< mesh type
+//    virtual void Clear() { U::Clear(); }
+//    virtual void SetMesh(MeshView const *){};
+//    virtual MeshView const *GetMesh() const { return nullptr; };
+//    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &d) {
+//        data::data_cast<U>(*d).swap(*this);
+//    };
+//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
+//        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), data::make_data_entity(*this));
+//    };
+//    template <typename TExpr>
+//    this_type &operator=(TExpr const &expr) {
+//        Click();
+//        U::operator=(expr);
+//        return *this;
+//    };
+//
+//    bool Update() final {
+//        if (!AttributeView::Update()) { return false; }
+//        return U::Update();
+//    }
+//};
+//
+// template <typename TV, typename TM, int IFORM = VERTEX, int DOF = 1>
+// using FieldAttribute = Field<TV, TM, IFORM, DOF>;
+//
+// template <typename TV = Real, int IFORM = VERTEX, int DOF = 1>
+// using DataAttribute = AttributeViewAdapter<Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 :
+// 1)>>;
 //
 // template <typename TV, int IFORM = VERTEX, int DOF = 1>
 // struct DataAttribute : public AttributeView,

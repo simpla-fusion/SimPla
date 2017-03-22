@@ -89,7 +89,7 @@ namespace concept {
         : public std::integral_constant<bool,                                                               \
                                         !std::is_same<typename _CHECKER_NAME_<_T>::type, _DEFAULT_TYPE_>::value> {};
 
-#define CHECK_TYPE_MEMBER(_CHECKER_NAME_, _TYPE_NAME_) CHOICE_TYPE_WITH_TYPE_MEMBER(_CHECKER_NAME_, _TYPE_NAME_, void)
+#define CHECK_MEMBER_TYPE(_CHECKER_NAME_, _TYPE_NAME_) CHOICE_TYPE_WITH_TYPE_MEMBER(_CHECKER_NAME_, _TYPE_NAME_, void)
 
 /**
  * @brief  check if   type T has a  type member as std::true_type or std::false_type
@@ -354,7 +354,7 @@ EXAMPLE:
     template <typename... _Args>                                                                             \
     using _CHECKER_NAME_##_t = typename _CHECKER_NAME_<_Args...>::type;
 
-#define CHECK_FUNCTION_MEMBER(_CHECKER_NAME_, _FUN_NAME_)                                                    \
+#define CHECK_MEMBER_FUNCTION(_CHECKER_NAME_, _FUN_NAME_)                                                    \
     template <typename...>                                                                                   \
     struct _detail_##_CHECKER_NAME_ {                                                                        \
         static constexpr bool value = false;                                                                 \
@@ -421,7 +421,7 @@ EXAMPLE:
 
 #define CHECK_OPERATOR(_NAME_, _OP_)             \
     namespace detail {                           \
-    CHECK_FUNCTION_MEMBER(_NAME_, operator _OP_) \
+    CHECK_MEMBER_FUNCTION(_NAME_, operator _OP_) \
     }                                            \
     template <typename... T>                     \
     struct _NAME_ : public std::integral_constant<bool, detail::_NAME_<T...>::value> {};

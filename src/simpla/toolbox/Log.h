@@ -69,7 +69,7 @@ enum tags {
     LOG_VERBOSE = 10,  //!< LOG_VERBOSE
     LOG_DEBUG = -30    //!< LOG_DEBUG
 };
-CHECK_FUNCTION_MEMBER(has_member_function_print, print);
+CHECK_MEMBER_FUNCTION(has_member_function_print, print);
 
 /**
  *

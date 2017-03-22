@@ -10,6 +10,7 @@
 #include "Array.h"
 //#include "ArrayExt.h"
 #include "Calculus.h"
+#include "CalculusPolicy.h"
 #include "Expression.h"
 #include "Field.h"
 #include "nTuple.h"

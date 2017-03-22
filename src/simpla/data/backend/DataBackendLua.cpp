@@ -244,17 +244,14 @@ int DataBackendLua::pimpl_s::add_data_to_lua(toolbox::LuaObject& lobj, std::stri
     }
     return 1;
 }
-int DataBackendLua::Set(std::string const& key, std::shared_ptr<DataEntity> const& v, bool overwrite) {
-    return DataBackendLua::pimpl_s::set_data_to_lua(m_pimpl_->m_lua_obj_, key, *v, overwrite);
+void DataBackendLua::Set(std::string const& key, std::shared_ptr<DataEntity> const& v, bool overwrite) {
+    DataBackendLua::pimpl_s::set_data_to_lua(m_pimpl_->m_lua_obj_, key, *v, overwrite);
 }
 
-int DataBackendLua::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) { UNIMPLEMENTED; }
+void DataBackendLua::Add(std::string const& key, std::shared_ptr<DataEntity> const& v) { UNIMPLEMENTED; }
+void DataBackendLua::Delete(std::string const& key) { UNIMPLEMENTED; }
+size_type DataBackendLua::size() const { return m_pimpl_->m_lua_obj_.size(); }
 
-size_type DataBackendLua::Delete(std::string const& key) {
-    UNIMPLEMENTED;
-    return 0;
-}
-size_type DataBackendLua::size() const { return 0; }
 size_type DataBackendLua::Foreach(std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     if (m_pimpl_->m_lua_obj_.is_global()) {
         UNSUPPORTED;
