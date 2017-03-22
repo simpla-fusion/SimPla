@@ -29,7 +29,7 @@ struct Atlas::pimpl_s {
     std::set<id_type> m_layers_[MAX_NUM_OF_LEVEL];
 };
 
-Atlas::Atlas(std::shared_ptr<data::DataEntity> const & t) : m_pimpl_(new pimpl_s),concept::Configurable(t){};
+Atlas::Atlas(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t){};
 Atlas::~Atlas(){};
 
 void Atlas::Initialize() {
@@ -43,7 +43,7 @@ size_type Atlas::GetNumOfLevels() const { return m_pimpl_->m_num_of_level_; };
 point_type Atlas::GetLevelDx(int l) { return m_pimpl_->m_dx_[l]; }
 point_type Atlas::GetOrigin() const { return m_pimpl_->m_origin_; };
 
-index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const {}
+index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const { return index_box_type{}; }
 void Atlas::SetRefineRatio(size_tuple const &v, int level) { m_pimpl_->m_refine_ratio_ = v; }
 
 std::shared_ptr<MeshBlock> Atlas::AddBlock(std::shared_ptr<MeshBlock> const &m) {
@@ -59,9 +59,7 @@ size_type Atlas::Delete(id_type id) {
     if (p != nullptr) { m_pimpl_->m_layers_[p->GetLevel()].erase(id); }
     return m_pimpl_->m_blocks_.erase(id);
 };
-std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, index_box_type const &){
-
-};
+std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, index_box_type const &) { return nullptr; };
 
 void Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun, int level) const {
     for (auto const &item : m_pimpl_->m_layers_[level]) { fun(m_pimpl_->m_blocks_.at(item)); }

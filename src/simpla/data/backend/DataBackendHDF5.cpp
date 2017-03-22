@@ -467,7 +467,7 @@ DataBackendHDF5::DataBackendHDF5(DataBackendHDF5 const& other) : DataBackendHDF5
     m_pimpl_->m_f_id_ = other.m_pimpl_->m_f_id_;
     m_pimpl_->m_g_id_ = other.m_pimpl_->m_g_id_;
 }
-DataBackendHDF5::DataBackendHDF5(DataBackendHDF5&& other) : m_pimpl_(std::move(m_pimpl_)) {}
+DataBackendHDF5::DataBackendHDF5(DataBackendHDF5&& other) : m_pimpl_(std::move(other.m_pimpl_)) {}
 DataBackendHDF5::DataBackendHDF5(std::string const& uri, std::string const& status) : DataBackendHDF5() {
     Connect(uri, status);
 }
@@ -503,7 +503,10 @@ std::shared_ptr<DataBackend> DataBackendHDF5::CreateNew() const {
 
 void DataBackendHDF5::Flush() { H5Fflush(*m_pimpl_->m_f_id_, H5F_SCOPE_GLOBAL); }
 bool DataBackendHDF5::isNull() const { return m_pimpl_->m_f_id_ == nullptr; }
-size_type DataBackendHDF5::size() const { UNIMPLEMENTED; }
+size_type DataBackendHDF5::size() const {
+    UNIMPLEMENTED;
+    return 0;
+}
 
 std::shared_ptr<DataEntity> DataBackendHDF5::Get(std::string const& uri) const {
     auto res = pimpl_s::HDf5GetTable(this, m_pimpl_->m_g_id_, uri, true);

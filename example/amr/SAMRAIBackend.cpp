@@ -180,8 +180,6 @@ void DataBackendSAMRAI::set_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Datab
         dest->putDatabase(uri);
     } else if (src->isBlock()) {
     } else if (src->isA(typeid(data::DataEntityWrapper<index_box_type>))) {
-
-
     } else if (src->isArray()) {
         if (src->value_type_info() == typeid(bool)) {
             auto &varray = src->cast_as<data::DataArrayWrapper<bool>>().data();
@@ -270,6 +268,7 @@ size_type DataBackendSAMRAI::Foreach(
     std::function<void(std::string const &, std::shared_ptr<data::DataEntity>)> const &fun) const {
     auto keys = m_samrai_db_->getAllKeys();
     for (auto const &k : keys) { fun(k, get_data_from_samrai(m_samrai_db_, k)); }
+    return 0;
 }
 
 struct SAMRAIPatchProxy : public data::DataTable {
@@ -357,6 +356,7 @@ std::shared_ptr<data::DataBlock> create_data_block(data::DataTable const &desc,
 }  // namespace detail
 std::shared_ptr<data::DataBlock> SAMRAIPatchProxy::data(id_type const &id, std::shared_ptr<data::DataBlock> const &p) {
     UNIMPLEMENTED;
+    return nullptr;
 }
 std::shared_ptr<data::DataBlock> SAMRAIPatchProxy::data(id_type const &id) const {
     return simpla::detail::create_data_block(*m_simpla_attrs_.at(id),

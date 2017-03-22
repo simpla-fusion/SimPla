@@ -19,23 +19,6 @@
 namespace simpla {
 namespace algebra {
 
-template <typename T, int N>
-algebra::declare::nTuple_<T, N + 1> operator,(algebra::declare::nTuple_<T, N> const &l, T const &r) {
-    algebra::declare::nTuple_<T, N + 1> res;
-    res = l;
-    res[N] = r;
-    return std::move(res);
-};
-
-template <typename T, int N, int M>
-algebra::declare::nTuple_<T, N + M> operator,(algebra::declare::nTuple_<T, N> const &l,
-                                              algebra::declare::nTuple_<T, M> const &r) {
-    algebra::declare::nTuple_<T, N + M> res;
-    res = l;
-    for (int i = 0; i < M; ++i) { res[N + i] = r[i]; }
-    return std::move(res);
-};
-
 template <typename T>
 inline T determinant(declare::nTuple_<T, 3> const &m) {
     return m[0] * m[1] * m[2];
@@ -192,6 +175,12 @@ std::istream &operator>>(std::istream &is, nTuple_<T, M...> &a) {
     _detail::input(is, a);
     return is;
 }
+template <typename T, int... M>
+std::ostream &operator<<(std::ostream &os, std::tuple<nTuple_<T, M...>, nTuple_<T, M...>> const &v) {
+    os << "{ " << std::get<0>(v) << " ," << std::get<1>(v) << "}";
+    return os;
+};
+
 }  // namespace declare
 
 // template <typename T, int... M>

@@ -22,7 +22,7 @@ void Model::Initialize() {
     LOGGER << "Model is initialized " << std::endl;
 }
 
-bool Model::Update(){};
+bool Model::Update() { return false; };
 box_type const& Model::bound_box() const { return m_pimpl_->m_bound_box_; };
 
 id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k)->GetValue<id_type>("GUID"); }
@@ -32,6 +32,7 @@ std::shared_ptr<data::DataTable> Model::GetMaterial(std::string const& s) const 
 std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const& s, std::shared_ptr<DataTable> const& other) {
     db()->Set("/Material/" + s, other, false);
     db()->Get("/Material/" + s)->cast_as<DataTable>().SetValue("GUID", std::hash<std::string>{}(s));
+    return nullptr;
 }
 // id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k).GetValue<id_type>("GUID", NULL_ID);
 // }
@@ -44,6 +45,7 @@ std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const& s, std::s
 
 id_type Model::AddObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     m_pimpl_->m_g_obj_.emplace(key, g_obj);
+    return 0;
 }
 
 std::shared_ptr<geometry::GeoObject> Model::GetObject(std::string const& k) const {

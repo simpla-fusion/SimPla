@@ -124,6 +124,7 @@ void DataBackendMemory::Delete(std::string const& uri) {
 size_type DataBackendMemory::Foreach(
     std::function<void(std::string const&, std::shared_ptr<DataEntity>)> const& f) const {
     for (auto const& item : m_pimpl_->m_table_) { f(item.first, item.second); }
+    return 0;
 }
 
 }  // namespace data {

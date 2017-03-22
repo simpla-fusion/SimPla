@@ -2,6 +2,8 @@
 // Created by salmon on 17-3-17.
 //
 #include "TimeIntegrator.h"
+
+#include <simpla/algebra/nTupleExt.h>
 #include <simpla/concept/Configurable.h>
 #include <simpla/data/all.h>
 #include "Context.h"
@@ -101,7 +103,7 @@ Real TimeIntegrator::Advance(Real dt, int level) {
         }
     }
     m_pimpl_->m_time_ += dt;
-
+    return m_pimpl_->m_time_;
     //    for (auto const &item : atlas.GetLayer(level)) {
     //        for (auto &v : m_pimpl_->m_views_) {
     //            auto b_box = v.second->GetMesh()->inner_bound_box();

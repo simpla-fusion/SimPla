@@ -101,8 +101,10 @@ struct MeshViewFactory {
 
     template <typename U>
     bool RegisterCreator(std::string const &k) {
-        RegisterCreator(k, [&](std::shared_ptr<data::DataEntity> const &t,
-                               std::shared_ptr<geometry::GeoObject> const &g) { return std::make_shared<U>(t, g); });
+        return RegisterCreator(k, [&](std::shared_ptr<data::DataEntity> const &t,
+                                      std::shared_ptr<geometry::GeoObject> const &g) -> std::shared_ptr<MeshView> {
+            return std::make_shared<U>(t, g);
+        });
     }
 
     std::shared_ptr<MeshView> Create(std::shared_ptr<data::DataEntity> const &p,

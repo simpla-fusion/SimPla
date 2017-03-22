@@ -135,8 +135,8 @@ struct WorkerFactory {
                                                                std::shared_ptr<data::DataTable> const &)> const &);
     template <typename U>
     bool RegisterCreator(std::string const &k) {
-        RegisterCreator(k, [&](std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataTable> const &t) {
-            return std::make_shared<U>(m, t);
+        return RegisterCreator(k, [&](std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataTable> const &t) {
+            return std::dynamic_pointer_cast<Worker>(std::make_shared<U>(m, t));
         });
     }
 

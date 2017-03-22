@@ -18,7 +18,8 @@
 #include <string>
 #include <utility>
 #include <vector>
-
+#include <simpla/algebra/nTuple.h>
+#include <simpla/algebra/nTupleExt.h>
 #include <simpla/mpl/integer_sequence.h>
 #include <simpla/mpl/type_traits.h>
 namespace simpla {
@@ -225,9 +226,7 @@ template <typename T, typename... Args>
 std::ostream &operator<<(std::ostream &os, std::tuple<T, Args...> const &v) {
 
     os << "{ " << std::get<0>(v);
-
     _impl::print_helper(os, v, std::integral_constant<int, sizeof...(Args)>());
-
     os << "}";
 
     return os;

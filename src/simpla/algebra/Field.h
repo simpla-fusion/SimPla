@@ -97,7 +97,10 @@ class FieldView : public engine::AttributeView {
     virtual std::type_info const& value_type_info() const { return typeid(value_type); };  //!< value type
     virtual std::type_info const& mesh_type_info() const { return typeid(mesh_type); }     //!< mesh type
 
-    virtual bool Update() { m_mesh_ = dynamic_cast<mesh_type const*>(GetMesh()); }
+    virtual bool Update() {
+        m_mesh_ = dynamic_cast<mesh_type const*>(GetMesh());
+        return false;
+    }
     virtual void Initialize() {}
     virtual void Clear() {
         Update();
