@@ -49,6 +49,7 @@ void DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v
     //    auto res = tab_res.first->m_pimpl_->m_table_.emplace(tab_res.second, nullptr);
     bool success = false;
     auto res = Get(uri);
+    if (res != nullptr && !overwrite) { return; }
     if (v == nullptr) {
     } else if (v->isTable()) {
         if (!overwrite && res != nullptr && !res->isTable()) {

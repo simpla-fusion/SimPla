@@ -42,7 +42,7 @@ struct DataEntity : public concept::Printable {
     virtual std::shared_ptr<DataEntity> Duplicate() const { return nullptr; };
 };
 template <typename U>
-struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> : public DataEntity {
+struct DataEntityWrapper<U> : public DataEntity {
     SP_OBJECT_HEAD(DataEntityWrapper<U>, DataEntity);
     typedef U value_type;
 
@@ -53,7 +53,7 @@ struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> :
     virtual ~DataEntityWrapper() {}
 
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
-    virtual bool isLight() const { return true; }
+    virtual bool isLight() const { return traits::is_light_data<value_type>::value; }
     virtual std::shared_ptr<DataEntity> Duplicate() const { return std::make_shared<DataEntityWrapper<U>>(m_data_); };
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
         if (typeid(U) == typeid(std::string)) {
@@ -65,6 +65,8 @@ struct DataEntityWrapper<U, std::enable_if_t<traits::is_light_data<U>::value>> :
     }
     virtual bool equal(value_type const& other) const { return m_data_ == other; }
     virtual value_type value() const { return m_data_; }
+      value_type& get() { return m_data_; }
+      value_type const& get() const { return m_data_; }
 
    private:
     value_type m_data_;

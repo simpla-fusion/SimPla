@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
         ctx.Advance(dt);
         ctx.Synchronize();
 
-        INFORM << "\t >>>  [ Time = " << ctx.GetTime() << " Step = " << step << "] <<< " << std::endl;
+        INFORM << "\t >>>  [ Time = " << " Step = " << step << "] <<< " << std::endl;
         if (step % step_of_check_points == 0) {
             data::DataTable(output_file).Set(ctx.db()->Get("Patches")->cast_as<data::DataTable>());
         };

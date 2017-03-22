@@ -26,6 +26,7 @@ class DataBackend : public std::enable_shared_from_this<DataBackend> {
    public:
     DataBackend(){};
     virtual ~DataBackend(){};
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; }
 
     virtual void Parser(std::string const&) { UNIMPLEMENTED; };
     virtual void Connect(std::string const& authority, std::string const& path = "", std::string const& query = "",

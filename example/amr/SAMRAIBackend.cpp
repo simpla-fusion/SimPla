@@ -80,6 +80,8 @@ static bool TIME_INTEGRATOR_SAMRAI_IS_REGISTERED =
     SingletonHolder<engine::TimeIntegratorFactory>::instance().template RegisterCreator<SAMRAIBackend>("samrai");
 
 class DataBackendSAMRAI : public data::DataBackend {
+    SP_OBJECT_HEAD(DataBackendSAMRAI, data::DataBackend);
+
    public:
     DataBackendSAMRAI();
     DataBackendSAMRAI(DataBackendSAMRAI const &);
@@ -117,8 +119,8 @@ class DataBackendSAMRAI : public data::DataBackend {
         return res;
     };
 
-    static std::shared_ptr<data::DataEntity> get_data_from_samrai(
-        boost::shared_ptr<SAMRAI::tbox::Database> const &lobj);
+    static std::shared_ptr<data::DataEntity> get_data_from_samrai(boost::shared_ptr<SAMRAI::tbox::Database> const &lobj,
+                                                                  std::string const &key);
     static void add_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database> &lobj, std::string const &uri,
                                    std::shared_ptr<data::DataEntity> const &v);
     static void set_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Database> &lobj, std::string const &uri,
@@ -177,6 +179,9 @@ void DataBackendSAMRAI::set_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Datab
     } else if (src->isNull()) {
         dest->putDatabase(uri);
     } else if (src->isBlock()) {
+    } else if (src->isA(typeid(data::DataEntityWrapper<index_box_type>))) {
+
+
     } else if (src->isArray()) {
         if (src->value_type_info() == typeid(bool)) {
             auto &varray = src->cast_as<data::DataArrayWrapper<bool>>().data();
@@ -220,14 +225,30 @@ void DataBackendSAMRAI::add_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Datab
     UNSUPPORTED;
 }
 std::shared_ptr<data::DataEntity> DataBackendSAMRAI::get_data_from_samrai(
-    boost::shared_ptr<SAMRAI::tbox::Database> const &lobj) {
-    return std::make_shared<data::DataEntity>();
+    boost::shared_ptr<SAMRAI::tbox::Database> const &lobj, std::string const &key) {
+    if (!lobj->keyExists(key)) { return nullptr; };
+    std::shared_ptr<data::DataEntity> res = nullptr;
+    switch (lobj->getArrayType(key)) {
+        case SAMRAI::tbox::Database::SAMRAI_BOOL:
+            res = data::make_data_entity(lobj->getBool(key));
+            break;
+        case SAMRAI::tbox::Database::SAMRAI_DOUBLE:
+            res = data::make_data_entity(lobj->getDouble(key));
+            break;
+        case SAMRAI::tbox::Database::SAMRAI_INT:
+            res = data::make_data_entity(lobj->getInteger(key));
+            break;
+        default:
+            break;
+    }
+
+    return res;
 }
 
 std::shared_ptr<data::DataEntity> DataBackendSAMRAI::Get(std::string const &uri) const {
     auto res = get_table(m_samrai_db_, uri, true);
     return (res.first == nullptr || res.second == "") ? std::make_shared<data::DataEntity>()
-                                                      : get_data_from_samrai(res.first->getDatabase(res.second));
+                                                      : get_data_from_samrai(res.first, res.second);
 }
 
 void DataBackendSAMRAI::Set(std::string const &uri, std::shared_ptr<data::DataEntity> const &v, bool overwrite) {
@@ -248,7 +269,7 @@ void DataBackendSAMRAI::Delete(std::string const &uri) {
 size_type DataBackendSAMRAI::Foreach(
     std::function<void(std::string const &, std::shared_ptr<data::DataEntity>)> const &fun) const {
     auto keys = m_samrai_db_->getAllKeys();
-    for (auto const &k : keys) { fun(k, get_data_from_samrai(m_samrai_db_->getDatabase(k))); }
+    for (auto const &k : keys) { fun(k, get_data_from_samrai(m_samrai_db_, k)); }
 }
 
 struct SAMRAIPatchProxy : public data::DataTable {
@@ -978,7 +999,7 @@ void SAMRAIBackend::Initialize() {
      */
     m_samrai_cfg_ = std::make_shared<data::DataTable>(std::make_shared<DataBackendSAMRAI>());
 
-    m_samrai_cfg_->SetValue("CartesianGeometry/domain_boxes_0", {{0, 0, 0}, {16, 16, 16}});
+    m_samrai_cfg_->SetValue("CartesianGeometry/domain_boxes_0", index_box_type{{0, 0, 0}, {16, 16, 16}});
     m_samrai_cfg_->SetValue("CartesianGeometry/periodic_dimension", {1, 1, 1});
     m_samrai_cfg_->SetValue("CartesianGeometry/x_lo", {1.0, 0.0, -1.0});
     m_samrai_cfg_->SetValue("CartesianGeometry/x_up", {2.0, PI, 1.0});
@@ -1021,7 +1042,7 @@ void SAMRAIBackend::Initialize() {
 
     // Refer to mesh::TreeLoadBalancer for input
     m_samrai_cfg_->Set("LoadBalancer/");
-
+    m_samrai_cfg_->backend()->Print(std::cout);
     bool use_refined_timestepping = m_samrai_cfg_->GetValue<bool>("use_refined_timestepping", true);
     SAMRAI::tbox::Dimension dim(ndims);
 
