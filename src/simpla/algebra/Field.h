@@ -154,31 +154,32 @@ class FieldView : public engine::AttributeView {
     value_type const& at(entity_id const& s) const { return m_mesh_->GetValue(m_data_, s); }
     value_type& at(entity_id const& s) { return m_mesh_->GetValue(m_data_, s); }
 
-    template <typename... Idx>
-    value_type& at(unsigned int const& n, Idx&&... idx, ENABLE_IF((NUMBER_OF_SUB > 1))) {
-        return (*m_data_[n])(std::forward<Idx>(idx)...);
+   private:
+    template <typename... Others>
+    decltype(auto) m_GetValue_(std::integral_constant<bool, true>, unsigned int n, Others&&... others) {
+        return m_data_[n]->at(std::forward<Others>(others)...);
     }
-    template <typename... Idx>
-    value_type const& at(unsigned int const& n, Idx&&... idx, ENABLE_IF((NUMBER_OF_SUB > 1))) const {
-        return (*m_data_[n])(std::forward<Idx>(idx)...);
+    template <typename... Others>
+    decltype(auto) m_GetValue_(std::integral_constant<bool, true>, unsigned int n, Others&&... others) const {
+        return m_data_[n]->at(std::forward<Others>(others)...);
+    }
+    template <typename... Others>
+    decltype(auto) m_GetValue_(std::integral_constant<bool, false>, Others&&... others) {
+        return m_data_[0]->at(std::forward<Others>(others)...);
+    }
+    template <typename... Others>
+    decltype(auto) m_GetValue_(std::integral_constant<bool, false>, Others&&... others) const {
+        return m_data_[0]->at(std::forward<Others>(others)...);
     }
 
-    template <typename... Idx>
-    value_type& at(Idx&&... idx, ENABLE_IF((NUMBER_OF_SUB <= 1))) {
-        return (*m_data_[0])(std::forward<Idx>(idx)...);
-    }
-    template <typename... Idx>
-    value_type const& at(Idx&&... idx, ENABLE_IF((NUMBER_OF_SUB <= 1))) const {
-        return (*m_data_[0])(std::forward<Idx>(idx)...);
-    }
-
+   public:
     template <typename... Idx>
     value_type& operator()(index_type i0, Idx&&... idx) {
-        return at(i0, std::forward<Idx>(idx)...);
+        return m_GetValue_(std::integral_constant<bool, (NUMBER_OF_SUB > 1)>(), i0, std::forward<Idx>(idx)...);
     }
     template <typename... Idx>
     value_type const& operator()(index_type i0, Idx&&... idx) const {
-        return at(i0, std::forward<Idx>(idx)...);
+        return m_GetValue_(std::integral_constant<bool, (NUMBER_OF_SUB > 1)>(), i0, std::forward<Idx>(idx)...);
     }
 
     typedef calculus::template calculator<TM> calculus_policy;

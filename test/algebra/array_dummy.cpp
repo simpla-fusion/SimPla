@@ -40,8 +40,7 @@ int main(int argc, char **argv) {
 
     c = a + b * 3;
 
-    d = a(I + 1, J);
-    e = b(I + 1, J - 1);
+    e = a(I + 1, J) - a(I - 1, J) + a(I, J + 1) - a(I - 1, J - 1);
     //    nTuple<double, 3> v = {1, 2, 3};
     //    Array<nTuple<double, 3>, 3> d(4, 5, 2);
     //    d = c * v;

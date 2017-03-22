@@ -16,7 +16,7 @@ void RegisterEverything() {
     GLOBAL_MESHVIEW_FACTORY.RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
     //    GLOBAL_DOMAIN_FACTORY::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
     GLOBAL_WORKER_FACTORY.RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
-    //    GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
+//        GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 }
 
 void create_scenario(engine::Manager *ctx) {
@@ -35,7 +35,7 @@ void create_scenario(engine::Manager *ctx) {
     ctx->GetModel().db()->SetValue("Boundary", {"GeoObject"_ = {"+OuterBox", "-InnerBox"}});
 
     ctx->db()->SetValue("DomainView/Center", {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}});
-    ctx->db()->SetValue("DomainView/Boundary", {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}});
+//    ctx->db()->SetValue("DomainView/Boundary", {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}});
     //    options.GetTable("Particles").foreach ([&](auto const &item) {
     //        auto sp = center_worker.AddSpecies(std::get<0>(item).template as<std::string>(),
     //                                           std::get<1>(item)["Mass"].template as<Real>(1.0),

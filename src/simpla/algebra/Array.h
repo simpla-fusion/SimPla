@@ -64,8 +64,12 @@ struct ArrayIndexShift {
     int dim_num = 0;
     index_type value = 0;
 };
-ArrayIndexShift operator+(ArrayIndexShift const& l, index_type s) { return ArrayIndexShift{l.dim_num, l.value - s}; }
-ArrayIndexShift operator-(ArrayIndexShift const& l, index_type s) { return ArrayIndexShift{l.dim_num, l.value + s}; }
+inline ArrayIndexShift operator+(ArrayIndexShift const& l, index_type s) {
+    return ArrayIndexShift{l.dim_num, l.value - s};
+}
+inline ArrayIndexShift operator-(ArrayIndexShift const& l, index_type s) {
+    return ArrayIndexShift{l.dim_num, l.value + s};
+}
 
 static const ArrayIndexShift I{0, 0};
 static const ArrayIndexShift J{1, 0};
@@ -210,8 +214,8 @@ struct ArrayView : public concept::Printable {
     virtual ~ArrayView() {}
 
     template <typename... Others>
-    this_type operator()(ArrayIndexShift const& IX, Others&&... others) const {
-        this_type res(*this);
+    declare::Array_<value_type, NDIMS> operator()(ArrayIndexShift const& IX, Others&&... others) const {
+        declare::Array_<value_type, NDIMS> res(*this);
         res.Shift(IX, std::forward<Others>(others)...);
         return std::move(res);
     }
