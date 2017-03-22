@@ -64,8 +64,8 @@ struct ArrayIndexShift {
     int dim_num = 0;
     index_type value = 0;
 };
-ArrayIndexShift operator+(ArrayIndexShift const& l, index_type s) { return ArrayIndexShift{l.dim_num, l.value + s}; }
-ArrayIndexShift operator-(ArrayIndexShift const& l, index_type s) { return ArrayIndexShift{l.dim_num, l.value - s}; }
+ArrayIndexShift operator+(ArrayIndexShift const& l, index_type s) { return ArrayIndexShift{l.dim_num, l.value - s}; }
+ArrayIndexShift operator-(ArrayIndexShift const& l, index_type s) { return ArrayIndexShift{l.dim_num, l.value + s}; }
 
 static const ArrayIndexShift I{0, 0};
 static const ArrayIndexShift J{1, 0};
@@ -176,8 +176,8 @@ struct ArrayView : public concept::Printable {
 
    public:
     ArrayView() {}
-    template <typename T>
-    explicit ArrayView(std::initializer_list<T> const& l) {
+
+    explicit ArrayView(std::initializer_list<index_type> const& l) {
         for (int i = 0; i < NDIMS; ++i) {
             std::get<0>(m_inner_index_box_)[i] = 0;
             std::get<1>(m_inner_index_box_)[i] = 1;
@@ -243,11 +243,11 @@ struct ArrayView : public concept::Printable {
     virtual void const* GetRawData() const { return m_data_.get(); };
     virtual void* GetRawData() { return m_data_.get(); };
 
-    declare::Array_<V, NDIMS> operator()(nTuple<index_type, NDIMS> const& offset) {
-        declare::Array_<V, NDIMS> res(this);
-        res.Shift(offset);
-        return std::move(res);
-    };
+    //    declare::Array_<V, NDIMS> operator()(nTuple<index_type, NDIMS> const& offset) {
+    //        declare::Array_<V, NDIMS> res(this);
+    //        res.Shift(offset);
+    //        return std::move(res);
+    //    };
     void Update() {
         if (m_data_ == nullptr) { m_data_ = sp_alloc_array<value_type>(full_size()); }
     };
