@@ -39,6 +39,7 @@ template <typename T, typename FunCheckTable, typename FunGetTable, typename Fun
 std::pair<T, std::string> HierarchicalTableForeach(T self, std::string const &uri, FunCheckTable const &check,
                                                    FunGetTable const &get, FunAddTable const &add,
                                                    bool return_if_not_exist = false) {
+    if (uri == "") { return std::make_pair(self, std::string("")); }
     std::smatch uri_match_result;
 
     if (!std::regex_match(uri, uri_match_result, match_path_regex)) {
@@ -55,7 +56,7 @@ std::pair<T, std::string> HierarchicalTableForeach(T self, std::string const &ur
          pos = sub_match_result.suffix().first) {
         std::string k = sub_match_result.str(1);
 
-//        try
+        //        try
         {
             if (check(t, k)) {
                 t = get(t, k);
@@ -65,12 +66,13 @@ std::pair<T, std::string> HierarchicalTableForeach(T self, std::string const &ur
                 return std::make_pair(t, sub_match_result.suffix().str() + uri_match_result[3].str());
             }
         }
-//        catch (...) {
-//            WARNING << std::endl
-//                    << std::setw(25) << std::right << "illegal path [/" << uri << "]" << std::endl
-//                    << std::setw(25) << std::right << "     at here   " << std::setw(&(*pos) - &(*uri.cbegin())) << " "
-//                    << " ^" << std::endl;
-//        }
+        //        catch (...) {
+        //            WARNING << std::endl
+        //                    << std::setw(25) << std::right << "illegal path [/" << uri << "]" << std::endl
+        //                    << std::setw(25) << std::right << "     at here   " << std::setw(&(*pos) -
+        //                    &(*uri.cbegin())) << " "
+        //                    << " ^" << std::endl;
+        //        }
     }
 
     return std::make_pair(t, uri_match_result[3].str());

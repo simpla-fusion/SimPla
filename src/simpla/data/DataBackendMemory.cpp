@@ -23,6 +23,7 @@ struct DataBackendMemory::pimpl_s {
 std::pair<DataBackendMemory*, std::string> DataBackendMemory::pimpl_s::get_table(DataBackendMemory* t,
                                                                                  std::string const& uri,
                                                                                  bool return_if_not_exist) {
+
     return HierarchicalTableForeach(
         t, uri,
         [&](DataBackendMemory* s_t, std::string const& k) -> bool {

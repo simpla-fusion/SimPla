@@ -35,10 +35,18 @@ struct DataEntityWrapper<void*> : public DataArray {
 
     template <typename U>
     DataEntityWrapper(std::initializer_list<U> const& v) {
-        for (auto const& item : v) { m_data_.push_back(make_data_entity(v)); }
+        for (auto const& item : v) { m_data_.push_back(make_data_entity(item)); }
     };
 
     virtual ~DataEntityWrapper(){};
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
+        if (m_data_.size() == 0) { return os; };
+        auto it = m_data_.begin();
+        os << "{ " << **it;
+        for (++it; it != m_data_.end(); ++it) { os << "," << **it; }
+        os << "}";
+        return os;
+    }
 
     std::vector<std::shared_ptr<DataEntity>>& get() { return m_data_; }
     std::vector<std::shared_ptr<DataEntity>> const& get() const { return m_data_; }
@@ -68,7 +76,6 @@ class DataArrayWithType : public DataArray {
     // DataEntity
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
     virtual bool isLight() const { return traits::is_light_data<value_type>::value; }
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; }
 
     // DataArray
     virtual std::shared_ptr<DataEntity> Get(index_type idx) const { return make_data_entity(GetValue(idx)); }
@@ -97,7 +104,14 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     virtual ~DataEntityWrapper() {}
     std::vector<U>& get() { return m_data_; }
     std::vector<U> const& get() const { return m_data_; }
-
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
+        if (m_data_.size() == 0) { return os; };
+        auto it = m_data_.begin();
+        os << "{ " << *it;
+        for (++it; it != m_data_.end(); ++it) { os << "," << *it; }
+        os << "}";
+        return os;
+    }
     // DataEntity
 
     virtual std::shared_ptr<DataEntity> Duplicate() const { return std::make_shared<DataEntityWrapper<U*>>(*this); }
@@ -123,6 +137,10 @@ template <typename U>
 std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u) {
     return std::make_shared<DataEntityWrapper<U*>>(u);
 }
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u) {
+    return std::make_shared<DataEntityWrapper<void*>>(u);
+}
 inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char const*> const& u) {
     return std::make_shared<DataEntityWrapper<std::string*>>(u);
 }
@@ -145,23 +163,18 @@ class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N>> : public DataAr
 
     // DataArray
     virtual size_type size() const { return static_cast<size_type>(N); };
-
-    virtual U const& GetValue(size_type idx) const { return m_data_[idx]; }
-    virtual U const& operator[](size_type idx) const { return m_data_[idx]; }
-    virtual U& GetValue(size_type idx) { return m_data_[idx]; }
-    virtual U& operator[](size_type idx) { return m_data_[idx]; }
-
-    virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return make_data_entity(m_data_[idx]); }
-
-    virtual void Set(size_type idx, U const& v) {
-        if (size() > idx) { m_data_[idx] = v; }
-    }
-    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) { Set(idx, data_cast<U>(*v)); }
-
     virtual size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
         for (size_type s = 0; s < N; ++s) { fun(make_data_entity(m_data_[s])); }
         return static_cast<size_type>(N);
     };
+    virtual void Add(std::shared_ptr<DataEntity> const&) = delete;
+    virtual void Delete(size_type idx) = delete;
+    // DataArrayWithType
+    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
+    virtual void Set(size_type idx, U const& v) {
+        ASSERT(size() > idx);
+        m_data_[idx] = v;
+    }
 };
 
 template <typename U, int N0, int N1, int... N>
@@ -176,69 +189,64 @@ class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N0, N1, N...>> : pu
     DataEntityWrapper(this_type&& other) : m_data_(other.m_data_) {}
 
     virtual ~DataEntityWrapper() {}
-    virtual std::type_info const& value_type_info() const { return typeid(U); };
+    tuple_type& get() { return m_data_; }
+    tuple_type const& get() const { return m_data_; }
+    // DataEntity
     virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<DataEntityWrapper<U*>>(*this); }
-    tuple_type& value() { return m_data_; }
-    tuple_type const& value() const { return m_data_; }
-    virtual size_type size() const { return N0 * N1 * (N)...; };
-
-    virtual U const& GetValue(size_type idx) const { return m_data_[idx]; }
-    virtual U const& operator[](size_type idx) const { return m_data_[idx]; }
-    virtual U& GetValue(size_type idx) { return m_data_[idx]; }
-    virtual U& operator[](size_type idx) { return m_data_[idx]; }
-
-    virtual std::shared_ptr<DataEntity> Get(size_type idx) const { return make_data_entity(m_data_[idx]); }
-
-    virtual void Set(size_type idx, U const& v) {
-        if (size() > idx) { m_data_[idx] = v; }
-    }
-    virtual void Set(size_type idx, std::shared_ptr<DataEntity> const& v) { Set(idx, data_cast<U>(*v)); }
-
-    virtual size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const { return size(); };
-};
-
-namespace detail {
-template <typename V>
-void data_entity_from_helper0(DataEntity const& v, V& u) {
-    u = data_cast<V>(v);
-}
-template <typename... U>
-void data_entity_from_helper(DataArray const&, std::tuple<U...>& v, std::integral_constant<int, 0>){};
-
-template <int N, typename... U>
-void data_entity_from_helper(DataArray const& a, std::tuple<U...>& v, std::integral_constant<int, N>) {
-    data_entity_from_helper0(*a.Get(N - 1), std::get<N - 1>(v));
-    data_entity_from_helper(a, v, std::integral_constant<int, N - 1>());
-};
-
-template <typename V>
-void data_entity_to_helper0(V const& src, DataArray& dest, size_type N) {
-    dest.Set(N - 1, data_entity_traits<V>::to(src));
-}
-template <typename... U>
-void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, 0>){};
-
-template <int N, typename... U>
-void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, N>) {
-    data_entity_to_helper0(std::get<N - 1>(src), dest, N);
-    data_entity_to_helper(src, dest, std::integral_constant<int, N - 1>());
-};
-}
-template <typename... U>
-struct data_entity_traits<std::tuple<U...>> {
-    static std::tuple<U...> from(DataEntity const& v) {
-        std::tuple<U...> res;
-        detail::data_entity_from_helper(v.cast_as<DataArray>(), res, std::integral_constant<int, sizeof...(U)>());
-        return std::move(res);
+    // DataArray
+    virtual size_type size() const {
+        UNIMPLEMENTED;
+        return N0 * N1;
+    };
+    virtual size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
+        UNIMPLEMENTED;
+        return size();
     };
 
-    static std::shared_ptr<DataEntity> to(std::tuple<U...> const& v) {
-        auto p = std::make_shared<DataEntityWrapper<void*>>();
-        p->resize(sizeof...(U));
-        detail::data_entity_to_helper(v, *p, std::integral_constant<int, sizeof...(U)>());
-        return p;
+    // DataArrayWithType
+    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
+
+    virtual void Set(size_type idx, U const& v) {
+        ASSERT(size() > idx);
+        m_data_[idx] = v;
     }
 };
+//
+// namespace detail {
+// template <typename V>
+// void data_entity_from_helper0(DataEntity const& v, V& u) {
+//    u = data_cast<V>(v);
+//}
+// template <typename... U>
+// void data_entity_from_helper(DataArray const&, std::tuple<U...>& v, std::integral_constant<int, 0>){};
+//
+// template <int N, typename... U>
+// void data_entity_from_helper(DataArray const& a, std::tuple<U...>& v, std::integral_constant<int, N>) {
+//    data_entity_from_helper0(*a.Get(N - 1), std::get<N - 1>(v));
+//    data_entity_from_helper(a, v, std::integral_constant<int, N - 1>());
+//};
+//
+// template <typename V>
+// void data_entity_to_helper0(V const& src, DataArray& dest, size_type N) {
+//    dest.Set(N - 1, data_entity_traits<V>::to(src));
+//}
+// template <typename... U>
+// void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, 0>){};
+//
+// template <int N, typename... U>
+// void data_entity_to_helper(std::tuple<U...> const& src, DataArray& dest, std::integral_constant<int, N>) {
+//    data_entity_to_helper0(std::get<N - 1>(src), dest, N);
+//    data_entity_to_helper(src, dest, std::integral_constant<int, N - 1>());
+//};
+//}
+// template <typename... U>
+// std::shared_ptr<DataEntity> make_data_entity(std::tuple<U...> const& v) {
+//    auto p = std::make_shared<DataEntityWrapper<void*>>();
+//    p->resize(sizeof...(U));
+//    detail::data_entity_to_helper(v, *p, std::integral_constant<int, sizeof...(U)>());
+//    return p;
+//}
+
 }  // namespace data{
 }  // namespace simpla{
 #endif  // SIMPLA_DATAARRAY_H

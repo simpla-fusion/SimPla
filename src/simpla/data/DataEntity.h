@@ -47,7 +47,6 @@ template <typename U>
 class DataEntityWithType : public DataEntity {
     SP_OBJECT_HEAD(DataEntityWithType<U>, DataEntity);
     typedef U value_type;
-
    public:
     DataEntityWithType() {}
     virtual ~DataEntityWithType() {}
@@ -55,8 +54,6 @@ class DataEntityWithType : public DataEntity {
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
 
     virtual bool isLight() const { return traits::is_light_data<value_type>::value; }
-
-//    virtual std::shared_ptr<DataEntity> Duplicate() const = 0;
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; }
     virtual bool equal(value_type const& other) const = 0;

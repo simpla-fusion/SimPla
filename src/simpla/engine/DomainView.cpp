@@ -165,11 +165,13 @@ void DomainView::Initialize() {
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
     db()->Link("Mesh", m_pimpl_->m_mesh_->db());
     auto t_worker = db()->Get("Worker");
-    if (t_worker != nullptr) {
-        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
-            auto res = GLOBAL_WORKER_FACTORY.Create(m_pimpl_->m_mesh_, c);
-            AddWorker(res);
-        });
+
+    if (t_worker != nullptr && t_worker->isArray()) {
+//        CHECK(*t_worker);
+//        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
+//            auto res = GLOBAL_WORKER_FACTORY.Create(m_pimpl_->m_mesh_, c);
+//            AddWorker(res);
+//        });
     }
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
 }
