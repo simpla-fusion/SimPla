@@ -67,7 +67,7 @@ MeshView::MeshView(std::shared_ptr<data::DataEntity> const &t, const std::shared
     if (m_pimpl_->m_geo_obj_ == nullptr) {
         m_pimpl_->m_geo_obj_ = GLOBAL_GEO_OBJECT_FACTORY.Create(db()->Get("GeometryObject"));
     }
-    db()->SetValue("GeometryObject", *m_pimpl_->m_geo_obj_);
+    db()->SetValue("GeometryObject", m_pimpl_->m_geo_obj_);
 }
 MeshView::~MeshView() {}
 

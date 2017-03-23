@@ -107,10 +107,10 @@ void DataBackendMemory::Set(std::string const& uri, std::shared_ptr<DataEntity> 
 void DataBackendMemory::Add(std::string const& uri, std::shared_ptr<DataEntity> const& v) {
     auto tab_res = pimpl_s::get_table(this, uri, false);
     if (tab_res.second == "") { return; }
-    auto res = tab_res.first->m_pimpl_->m_table_.emplace(tab_res.second, std::make_shared<DataArrayWrapper<void>>());
+    auto res = tab_res.first->m_pimpl_->m_table_.emplace(tab_res.second, std::make_shared<DataEntityWrapper<void*>>());
     if (res.first->second->isArray() && res.first->second->value_type_info() == v->value_type_info()) {
-    } else if (!res.first->second->isA<DataArrayWrapper<void>>()) {
-        auto t_array = std::make_shared<DataArrayWrapper<void>>();
+    } else if (!res.first->second->isA<DataEntityWrapper<void*>>()) {
+        auto t_array = std::make_shared<DataEntityWrapper<void*>>();
         t_array->Add(res.first->second);
         res.first->second = t_array;
     }

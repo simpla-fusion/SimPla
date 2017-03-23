@@ -29,8 +29,8 @@ template <typename U>
 std::shared_ptr<DataEntity> make_data_array_lua(toolbox::LuaObject const& lobj);
 std::shared_ptr<DataEntity> make_data_entity_lua(toolbox::LuaObject const& lobj);
 template <typename U>
-struct DataEntityLua : public DataEntityWrapper<U> {
-    SP_OBJECT_HEAD(DataEntityLua<U>, DataEntityWrapper<U>);
+struct DataEntityLua : public DataEntityWithType<U> {
+    SP_OBJECT_HEAD(DataEntityLua<U>, DataEntityWithType<U>);
 
    public:
     DataEntityLua(DataEntityLua<U> const& other) : m_obj_(other.m_obj_){};
@@ -46,8 +46,8 @@ struct DataEntityLua : public DataEntityWrapper<U> {
 };
 
 template <typename U>
-struct DataArrayLua : public DataArrayWrapper<U> {
-    SP_OBJECT_HEAD(DataArrayLua<U>, DataArrayWrapper<U>);
+struct DataArrayLua : public DataEntityWithType<U*> {
+    SP_OBJECT_HEAD(DataArrayLua<U>, DataEntityWithType<U*>);
 
    public:
     DataArrayLua(DataArrayLua<U> const& other) : m_obj_(other.m_obj_){};
@@ -71,7 +71,7 @@ struct DataArrayLua : public DataArrayWrapper<U> {
 template <typename U>
 std::shared_ptr<DataEntity> make_data_array_lua(toolbox::LuaObject const& lobj) {
     ASSERT(lobj.is_list());
-    auto res = std::make_shared<DataArrayWrapper<U>>();
+    auto res = std::make_shared<DataEntityWrapper<U*>>();
     for (auto const& item : lobj) { res->Add(item.second.as<U>()); }
     return std::dynamic_pointer_cast<DataEntity>(res);
 }
@@ -86,7 +86,7 @@ std::shared_ptr<DataEntity> make_data_entity_lua(toolbox::LuaObject const& lobj)
         } else if (p.is_string()) {
             return make_data_array_lua<std::string>(lobj);
         } else {
-            auto res = std::make_shared<DataArrayWrapper<void>>();
+            auto res = std::make_shared<DataEntityWrapper<void*>>();
             for (auto const& item : lobj) { res->Add(make_data_entity_lua(item.second)); }
             return std::dynamic_pointer_cast<DataEntity>(res);
         }

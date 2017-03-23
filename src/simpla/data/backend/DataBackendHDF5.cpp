@@ -407,7 +407,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
         H5Aclose(a_id);
     } else if (src->value_type_info() == typeid(std::string) && !src->isLight()) {
         UNIMPLEMENTED;
-    } else if (src->isArray() && src->cast_as<DataArray>().isA(typeid(data::DataArrayWrapper<void>))) {
+    } else if (src->isArray() && src->cast_as<DataArray>().isA(typeid(data::DataEntityWrapper<void*>))) {
         HDF5Set(self, g_id, key, std::dynamic_pointer_cast<DataArray>(src), overwrite);
     } else {
         hid_t d_type = -1;
@@ -425,7 +425,7 @@ void DataBackendHDF5::pimpl_s::HDF5Set(DataBackendHDF5 const* self, hid_t g_id, 
     else if (src->value_type_info() == typeid(_T_)) {                                         \
         d_type = _H5_T_;                                                                      \
         if (src->isArray()) {                                                                 \
-            data = reinterpret_cast<char*>(&src->cast_as<DataArrayWrapper<_T_>>().data()[0]); \
+            data = reinterpret_cast<char*>(&src->cast_as<DataEntityWrapper<_T_*>>().get()[0]); \
         } else {                                                                              \
             data = new char[sizeof(_T_)];                                                     \
             *reinterpret_cast<_T_*>(data) = data_cast<_T_>(*src);                             \

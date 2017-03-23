@@ -24,12 +24,12 @@ struct GeoObjectAdapter;
  *
  *  PlaceHolder Geometric object
  */
-class GeoObject {
+class GeoObject : public concept::Printable {
     SP_OBJECT_BASE(GeoObject)
 
    public:
     GeoObject(){};
-    GeoObject(GeoObject const &) = delete;
+    GeoObject(GeoObject const &){};
     virtual ~GeoObject(){};
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
     virtual box_type const &GetBoundBox() const { return m_bound_box_; };
@@ -37,8 +37,10 @@ class GeoObject {
     virtual bool isSolid() const { return false; };
     virtual bool isSurface() const { return false; };
     virtual bool isCurve() const { return false; };
+    virtual bool equal(GeoObject const &other) const { return this == &other; }
     virtual Real GetDistanceTo(point_type const &x) const { return 0; }
 
+    bool operator==(GeoObject const &other) const { return equal(other); }
     virtual bool CheckOverlap(box_type const &b) const { return geometry::CheckOverlap(GetBoundBox(), b); }
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$

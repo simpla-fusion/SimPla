@@ -130,12 +130,12 @@ class FieldView : public engine::AttributeView {
                 m_data_[i] = std::make_shared<sub_array_type>(m->GetInnerIndexBox(), m->GetOuterIndexBox());
             }
         } else if (d->isArray() && num_of_subs > 1) {
-            auto& t = d->cast_as<data::DataArrayWrapper<void>>();
+            auto& t = d->cast_as<data::DataEntityWrapper<void*>>();
             for (int i = 0; i < num_of_subs; ++i) {
-                m_data_[i] = t.Get(i)->cast_as<data::DataEntityWrapper<sub_array_type>>().data();
+                m_data_[i] = t.Get(i)->cast_as<data::DataEntityWrapper<sub_array_type>>().get();
             }
         } else {
-            m_data_[0] = d->cast_as<data::DataEntityWrapper<sub_array_type>>().data();
+            m_data_[0] = d->cast_as<data::DataEntityWrapper<sub_array_type>>().get();
         }
     }
     virtual std::pair<std::shared_ptr<engine::MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
@@ -143,7 +143,7 @@ class FieldView : public engine::AttributeView {
         if (num_of_subs == 1) {
             t = std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[0]);
         } else {
-            auto t_array = std::make_shared<data::DataArrayWrapper<void>>();
+            auto t_array = std::make_shared<data::DataEntityWrapper<void*>>();
             for (int i = 0; i < num_of_subs; ++i) {
                 auto res = std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[i]);
                 t_array->Add(res);

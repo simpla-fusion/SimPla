@@ -62,8 +62,8 @@ void DataTable::Set(std::string const& uri, std::shared_ptr<DataEntity> const& v
         src_table.Foreach(
             [&](std::string const& k, std::shared_ptr<DataEntity> const& v) { dest_table.Set(k, v, overwrite); });
         success = true;
-    } else if (v->isArray() && v->cast_as<DataArray>().isA(typeid(DataArrayWrapper<void>))) {
-        auto dest_array = std::make_shared<DataArrayWrapper<void>>();
+    } else if (v->isArray() && v->cast_as<DataArray>().isA(typeid(DataEntityWrapper<void*>))) {
+        auto dest_array = std::make_shared<DataEntityWrapper<void*>>();
         auto const& src_array = v->cast_as<DataArray>();
         for (size_type i = 0, ie = src_array.size(); i < ie; ++i) { dest_array->Add(src_array.Get(i)); }
         res = dest_array;

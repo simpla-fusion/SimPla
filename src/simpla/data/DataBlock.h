@@ -50,8 +50,8 @@ class DataEntityWrapper<simpla::Array<U, NDIMS>> : public DataBlock {
     virtual bool empty() const { return m_data_.get() == nullptr || m_data_->empty(); }
 
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
-    virtual std::shared_ptr<array_type> &data() { return m_data_; };
-    virtual std::shared_ptr<array_type> const &data() const { return m_data_; };
+    virtual std::shared_ptr<array_type> &get() { return m_data_; };
+    virtual std::shared_ptr<array_type> const &get() const { return m_data_; };
 
     virtual int GetNDIMS() const { return m_data_->GetNDIMS(); }
     virtual index_type const *GetInnerLowerIndex() const { return m_data_->GetInnerLowerIndex(); }

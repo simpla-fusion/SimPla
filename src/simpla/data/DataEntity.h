@@ -17,6 +17,7 @@ namespace simpla {
 namespace data {
 template <typename, typename Enable = void>
 class DataEntityWrapper {};
+
 class DataEntity;
 class DataArray;
 template <typename U, typename Enable = void>
@@ -41,20 +42,46 @@ struct DataEntity : public concept::Printable {
 
     virtual std::shared_ptr<DataEntity> Duplicate() const { return nullptr; };
 };
+
 template <typename U>
-struct DataEntityWrapper<U> : public DataEntity {
-    SP_OBJECT_HEAD(DataEntityWrapper<U>, DataEntity);
+class DataEntityWithType : public DataEntity {
+    SP_OBJECT_HEAD(DataEntityWithType<U>, DataEntity);
+    typedef U value_type;
+
+   public:
+    DataEntityWithType() {}
+    virtual ~DataEntityWithType() {}
+
+    virtual std::type_info const& value_type_info() const { return typeid(value_type); }
+
+    virtual bool isLight() const { return traits::is_light_data<value_type>::value; }
+
+//    virtual std::shared_ptr<DataEntity> Duplicate() const = 0;
+
+    virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; }
+    virtual bool equal(value_type const& other) const = 0;
+    virtual value_type value() const = 0;
+};
+template <>
+struct DataEntityWrapper<void> : public DataEntity {};
+template <typename U>
+struct DataEntityWrapper<U> : public DataEntityWithType<U> {
+    SP_OBJECT_HEAD(DataEntityWrapper<U>, DataEntityWithType<U>);
     typedef U value_type;
 
    public:
     DataEntityWrapper() {}
-    DataEntityWrapper(value_type const& d) : m_data_(d) {}
-    DataEntityWrapper(value_type&& d) : m_data_(d) {}
+    DataEntityWrapper(std::shared_ptr<value_type> const& d) : m_data_((d)) {}
+    template <typename... Args>
+    DataEntityWrapper(Args&&... args) : m_data_(std::make_shared<U>(std::forward<Args>(args)...)) {}
     virtual ~DataEntityWrapper() {}
 
     virtual std::type_info const& value_type_info() const { return typeid(value_type); }
+
     virtual bool isLight() const { return traits::is_light_data<value_type>::value; }
-    virtual std::shared_ptr<DataEntity> Duplicate() const { return std::make_shared<DataEntityWrapper<U>>(m_data_); };
+
+    virtual std::shared_ptr<DataEntity> Duplicate() const { return std::make_shared<DataEntityWrapper<U>>(*m_data_); };
+
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
         if (typeid(U) == typeid(std::string)) {
             os << "\"" << value() << "\"";
@@ -63,36 +90,37 @@ struct DataEntityWrapper<U> : public DataEntity {
         }
         return os;
     }
-    virtual bool equal(value_type const& other) const { return m_data_ == other; }
-    virtual value_type value() const { return m_data_; }
-      value_type& get() { return m_data_; }
-      value_type const& get() const { return m_data_; }
+    virtual bool equal(value_type const& other) const { return *m_data_ == other; }
+    virtual value_type value() const { return *m_data_; };
+
+    virtual std::shared_ptr<value_type>& get() { return m_data_; }
+    virtual std::shared_ptr<value_type> const& get() const { return m_data_; }
 
    private:
-    value_type m_data_;
+    std::shared_ptr<value_type> m_data_;
 };
+
 inline std::shared_ptr<DataEntity> make_data_entity() { return nullptr; }
 template <typename U>
-struct data_entity_traits<U, std::enable_if_t<traits::is_light_data<U>::value>> {
-    static U from(DataEntity const& v) { return v.cast_as<DataEntityWrapper<U>>().value(); };
-    static std::shared_ptr<DataEntity> to(U const& v) { return std::make_shared<DataEntityWrapper<U>>(v); };
-};
-
-template <typename U>
-U data_cast(DataEntity const& v) {
-    return data_entity_traits<U>::from(v);
-}
-
-template <typename U>
 std::shared_ptr<DataEntity> make_data_entity(U const& u) {
-    return data_entity_traits<U>::to(u);
+    return std::make_shared<DataEntityWrapper<U>>(u);
 }
 template <typename U>
 std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<U> const& u) {
-    return data_entity_traits<U>::to(u);
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<U>>(u));
 }
+template <typename U, typename... Args>
+std::shared_ptr<DataEntity> make_data_entity(Args&&... args) {
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<U>>(std::forward<Args>(args)...));
+}
+
+template <typename U>
+decltype(auto) data_cast(DataEntity const& v) {
+    return v.cast_as<DataEntityWrapper<U>>().value();
+}
+
 inline std::shared_ptr<DataEntity> make_data_entity(char const* u) {
-    return data_entity_traits<std::string>::to(std::string(u));
+    return std::dynamic_pointer_cast<DataEntity>(std::make_shared<DataEntityWrapper<std::string>>(u));
 }
 
 }  // namespace data {
