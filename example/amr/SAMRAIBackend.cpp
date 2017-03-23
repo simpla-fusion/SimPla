@@ -182,19 +182,19 @@ void DataBackendSAMRAI::set_data_to_samrai(boost::shared_ptr<SAMRAI::tbox::Datab
     } else if (src->isA(typeid(data::DataEntityWrapper<index_box_type>))) {
     } else if (src->isArray()) {
         if (src->value_type_info() == typeid(bool)) {
-            auto &varray = src->cast_as<data::DataArrayWrapper<bool>>().data();
+            auto &varray = src->cast_as<data::DataEntityWrapper<bool*>>().get();
             bool d[varray.size()];
             size_type num = varray.size();
             for (int i = 0; i < num; ++i) { d[i] = varray[i]; }
             dest->putBoolArray(uri, d, num);
         } else if (src->value_type_info() == typeid(std::string)) {
-            auto &varray = src->cast_as<data::DataArrayWrapper<std::string>>().data();
+            auto &varray = src->cast_as<data::DataEntityWrapper<std::string*>>().get();
             dest->putStringArray(uri, &varray[0], varray.size());
         } else if (src->value_type_info() == typeid(double)) {
-            auto &varray = src->cast_as<data::DataArrayWrapper<double>>().data();
+            auto &varray = src->cast_as<data::DataEntityWrapper<double*>>().get();
             dest->putDoubleArray(uri, &varray[0], varray.size());
         } else if (src->value_type_info() == typeid(int)) {
-            auto &varray = src->cast_as<data::DataArrayWrapper<int>>().data();
+            auto &varray = src->cast_as<data::DataEntityWrapper<int*>>().get();
             dest->putIntegerArray(uri, &varray[0], varray.size());
         } else if (src->cast_as<data::DataArray>().Get(0)->isArray() && src->cast_as<data::DataArray>().size() >= 3 &&
                    src->cast_as<data::DataArray>().Get(0)->value_type_info() == typeid(int)) {

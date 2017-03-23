@@ -47,6 +47,7 @@ template <typename U>
 class DataEntityWithType : public DataEntity {
     SP_OBJECT_HEAD(DataEntityWithType<U>, DataEntity);
     typedef U value_type;
+
    public:
     DataEntityWithType() {}
     virtual ~DataEntityWithType() {}
@@ -58,6 +59,8 @@ class DataEntityWithType : public DataEntity {
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const { return os; }
     virtual bool equal(value_type const& other) const = 0;
     virtual value_type value() const = 0;
+    virtual value_type* get() { return nullptr; }
+    virtual value_type const* get() const { return nullptr; }
 };
 template <>
 struct DataEntityWrapper<void> : public DataEntity {};
@@ -90,8 +93,8 @@ struct DataEntityWrapper<U> : public DataEntityWithType<U> {
     virtual bool equal(value_type const& other) const { return *m_data_ == other; }
     virtual value_type value() const { return *m_data_; };
 
-    virtual std::shared_ptr<value_type>& get() { return m_data_; }
-    virtual std::shared_ptr<value_type> const& get() const { return m_data_; }
+    virtual value_type* get() { return m_data_.get(); }
+    virtual value_type const* get() const { return m_data_.get(); }
 
    private:
     std::shared_ptr<value_type> m_data_;

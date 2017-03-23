@@ -9,6 +9,13 @@
 namespace simpla {
 namespace data {
 
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u);
+template <typename U>
+std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<std::initializer_list<U>> const& u);
+
+inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char const*> const& u);
+
 struct DataArray : public DataEntity {
     SP_OBJECT_HEAD(DataArray, DataEntity)
 
@@ -42,9 +49,9 @@ struct DataEntityWrapper<void*> : public DataArray {
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
-        os << "{ " << **it;
+        os << "[" << **it;
         for (++it; it != m_data_.end(); ++it) { os << "," << **it; }
-        os << "}";
+        os << "]";
         return os;
     }
 
@@ -107,9 +114,9 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const {
         if (m_data_.size() == 0) { return os; };
         auto it = m_data_.begin();
-        os << "{ " << *it;
+        os << "[" << *it;
         for (++it; it != m_data_.end(); ++it) { os << "," << *it; }
-        os << "}";
+        os << "]";
         return os;
     }
     // DataEntity
@@ -132,6 +139,80 @@ class DataEntityWrapper<U*> : public DataArrayWithType<U> {
     }
     virtual void Add(U const& v) { m_data_.push_back(v); }
 };
+//
+//template <typename U, int N>
+//class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N>> : public DataArrayWithType<U> {
+//    typedef simpla::algebra::declare::nTuple_<U, N> tuple_type;
+//    SP_OBJECT_HEAD(DataEntityWrapper<tuple_type>, DataArrayWithType<U>);
+//    tuple_type m_data_;
+//
+//   public:
+//    DataEntityWrapper() {}
+//    DataEntityWrapper(tuple_type const& other) : m_data_(other) {}
+//    DataEntityWrapper(this_type const& other) : m_data_(other.m_data_) {}
+//    DataEntityWrapper(this_type&& other) : m_data_(other.m_data_) {}
+//    virtual ~DataEntityWrapper() {}
+//    tuple_type& get() { return m_data_; }
+//    tuple_type const& get() const { return m_data_; }
+//    // DataEntity
+//    virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<this_type>(*this); }
+//
+//    // DataArray
+//    virtual size_type size() const { return static_cast<size_type>(N); };
+//    virtual size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
+//        for (size_type s = 0; s < N; ++s) { fun(make_data_entity(m_data_[s])); }
+//        return static_cast<size_type>(N);
+//    };
+//    virtual void Add(std::shared_ptr<DataEntity> const&) { UNSUPPORTED; };
+//    virtual void Delete(size_type idx) { UNSUPPORTED; };
+//    // DataArrayWithType
+//
+//    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
+//    virtual void Set(size_type idx, U const& v) {
+//        ASSERT(size() > idx);
+//        m_data_[idx] = v;
+//    }
+//    virtual void Add(U const&) { UNSUPPORTED; };
+//
+//    tuple_type value() const { return m_data_; }
+//};
+//
+//template <typename U, int N0, int N1, int... N>
+//class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N0, N1, N...>> : public DataArray {
+//    typedef simpla::algebra::declare::nTuple_<U, N0, N1, N...> tuple_type;
+//    SP_OBJECT_HEAD(tuple_type, DataArray);
+//    tuple_type m_data_;
+//
+//   public:
+//    DataEntityWrapper() {}
+//    DataEntityWrapper(this_type const& other) : m_data_(other.m_data_) {}
+//    DataEntityWrapper(this_type&& other) : m_data_(other.m_data_) {}
+//
+//    virtual ~DataEntityWrapper() {}
+//    tuple_type& get() { return m_data_; }
+//    tuple_type const& get() const { return m_data_; }
+//    // DataEntity
+//    virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<DataEntityWrapper<U*>>(*this); }
+//    // DataArray
+//    virtual size_type size() const {
+//        UNIMPLEMENTED;
+//        return N0 * N1;
+//    };
+//    virtual size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
+//        UNIMPLEMENTED;
+//        return size();
+//    };
+//    virtual void Add(std::shared_ptr<DataEntity> const&) { UNSUPPORTED; };
+//    virtual void Delete(size_type idx) { UNSUPPORTED; };
+//    // DataArrayWithType
+//    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
+//
+//    virtual void Set(size_type idx, U const& v) {
+//        ASSERT(size() > idx);
+//        m_data_[idx] = v;
+//    }
+//    virtual void Add(U const&) { UNSUPPORTED; };
+//};
 
 template <typename U>
 std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<U> const& u) {
@@ -144,73 +225,6 @@ std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<std::initiali
 inline std::shared_ptr<DataEntity> make_data_entity(std::initializer_list<char const*> const& u) {
     return std::make_shared<DataEntityWrapper<std::string*>>(u);
 }
-
-template <typename U, int N>
-class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N>> : public DataArrayWithType<U> {
-    typedef simpla::algebra::declare::nTuple_<U, N> tuple_type;
-    SP_OBJECT_HEAD(tuple_type, DataArrayWithType<U>);
-    tuple_type m_data_;
-
-   public:
-    DataEntityWrapper() {}
-    DataEntityWrapper(this_type const& other) : m_data_(other.m_data_) {}
-    DataEntityWrapper(this_type&& other) : m_data_(other.m_data_) {}
-    virtual ~DataEntityWrapper() {}
-    tuple_type& get() { return m_data_; }
-    tuple_type const& get() const { return m_data_; }
-    // DataEntity
-    virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<DataEntityWrapper<U*>>(*this); }
-
-    // DataArray
-    virtual size_type size() const { return static_cast<size_type>(N); };
-    virtual size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
-        for (size_type s = 0; s < N; ++s) { fun(make_data_entity(m_data_[s])); }
-        return static_cast<size_type>(N);
-    };
-    virtual void Add(std::shared_ptr<DataEntity> const&) = delete;
-    virtual void Delete(size_type idx) = delete;
-    // DataArrayWithType
-    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
-    virtual void Set(size_type idx, U const& v) {
-        ASSERT(size() > idx);
-        m_data_[idx] = v;
-    }
-};
-
-template <typename U, int N0, int N1, int... N>
-class DataEntityWrapper<simpla::algebra::declare::nTuple_<U, N0, N1, N...>> : public DataArray {
-    typedef simpla::algebra::declare::nTuple_<U, N0, N1, N...> tuple_type;
-    SP_OBJECT_HEAD(tuple_type, DataArray);
-    tuple_type m_data_;
-
-   public:
-    DataEntityWrapper() {}
-    DataEntityWrapper(this_type const& other) : m_data_(other.m_data_) {}
-    DataEntityWrapper(this_type&& other) : m_data_(other.m_data_) {}
-
-    virtual ~DataEntityWrapper() {}
-    tuple_type& get() { return m_data_; }
-    tuple_type const& get() const { return m_data_; }
-    // DataEntity
-    virtual std::shared_ptr<DataEntity> Duplicate() { return std::make_shared<DataEntityWrapper<U*>>(*this); }
-    // DataArray
-    virtual size_type size() const {
-        UNIMPLEMENTED;
-        return N0 * N1;
-    };
-    virtual size_type Foreach(std::function<void(std::shared_ptr<DataEntity>)> const& fun) const {
-        UNIMPLEMENTED;
-        return size();
-    };
-
-    // DataArrayWithType
-    virtual U GetValue(index_type idx) const { return m_data_[idx]; }
-
-    virtual void Set(size_type idx, U const& v) {
-        ASSERT(size() > idx);
-        m_data_[idx] = v;
-    }
-};
 //
 // namespace detail {
 // template <typename V>
