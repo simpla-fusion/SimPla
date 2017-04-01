@@ -3,8 +3,8 @@
 //
 #include <simpla/data/DataTable.h>
 
-#include <simpla/engine/AttributeView.h>
-#include <simpla/engine/DomainView.h>
+#include <simpla/engine/Attribute.h>
+#include <simpla/engine/Domain.h>
 #include <simpla/engine/Patch.h>
 #include <simpla/engine/Worker.h>
 
@@ -34,7 +34,7 @@ struct Foo : public Worker {
 };
 int main(int argc, char** argv) {
     auto patch = std::make_shared<Patch>();
-    DomainView domain;
+    Domain domain;
     domain.SetMesh<Moo>();
     domain.AddWorker<Foo>();
     //    domain.Dispatch(patch);

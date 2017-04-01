@@ -51,7 +51,7 @@ void AttributeViewBundle::SetMesh(MeshView const *m) {
 }
 MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
 
-void AttributeViewBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &p) {
+void AttributeViewBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &p) {
     if (GetMesh() == nullptr || m == nullptr || GetMesh()->GetMeshBlockId() != m->GetGUID()) {
         RUNTIME_ERROR << " data and mesh mismatch!" << std::endl;
     }
@@ -60,7 +60,7 @@ void AttributeViewBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::sha
     auto const &t = p->cast_as<data::DataTable>();
     for (auto *v : m_pimpl_->m_attr_views_) { v->PushData(m, t.Get(v->name())); }
 }
-std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> AttributeViewBundle::PopData() {
+std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> AttributeViewBundle::PopData() {
     auto res = std::make_shared<data::DataTable>();
     for (auto *v : m_pimpl_->m_attr_views_) { res->Set(v->name(), v->PopData().second); }
 
@@ -74,7 +74,7 @@ struct AttributeView::pimpl_s {
     AttributeViewBundle *m_bundle_ = nullptr;
     MeshView const *m_mesh_ = nullptr;
 };
-AttributeView::AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataEntity> const &t)
+AttributeView::AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataTable> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {
     if (b != nullptr && b != m_pimpl_->m_bundle_) { b->Attach(this); }
     m_pimpl_->m_bundle_ = b;

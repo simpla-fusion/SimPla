@@ -509,7 +509,7 @@ class SAMRAI_HyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPat
     //    void Dispatch(SAMRAI::hier::Patch &patch);
 
    private:
-    std::shared_ptr<engine::DomainView> m_domain_view_;
+    std::shared_ptr<engine::Domain> m_domain_view_;
     /*
      * The object GetName is used for error/warning reporting and also as a
      * string label for restart database entries.
@@ -559,7 +559,7 @@ SAMRAI_HyperbolicPatchStrategyAdapter::SAMRAI_HyperbolicPatchStrategyAdapter()
 SAMRAI_HyperbolicPatchStrategyAdapter::~SAMRAI_HyperbolicPatchStrategyAdapter() {}
 
 // void SAMRAI_HyperbolicPatchStrategyAdapter::Dispatch(SAMRAI::hier::Patch &patch) {
-//    engine::DomainView::Dispatch(std::dynamic_pointer_cast<engine::Patch>(
+//    engine::Domain::Dispatch(std::dynamic_pointer_cast<engine::Patch>(
 //        std::make_shared<SAMRAIPatchProxy>(patch, getDataContext(), this->GetAttributeDict(), m_samrai_variables_)));
 //}
 

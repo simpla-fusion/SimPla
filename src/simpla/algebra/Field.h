@@ -11,7 +11,7 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/data/all.h>
 
-#include <simpla/engine/AttributeView.h>
+#include <simpla/engine/Attribute.h>
 #include <simpla/engine/MeshBlock.h>
 #include <simpla/mpl/Range.h>
 #include <simpla/toolbox/FancyStream.h>
@@ -48,7 +48,7 @@ class calculator;
 }
 
 template <typename TM, typename TV, int IFORM, int DOF>
-class FieldView : public engine::AttributeView {
+class FieldView : public engine::Attribute {
    private:
     typedef FieldView<TM, TV, IFORM, DOF> this_type;
 
@@ -76,13 +76,13 @@ class FieldView : public engine::AttributeView {
 
    public:
     explicit FieldView(mesh_type* m, std::shared_ptr<data::DataEntity> const& d = nullptr)
-        : m_mesh_(m), engine::AttributeView(m, d) {
+        : m_mesh_(m), engine::Attribute(m, d) {
         Update();
     };
 
     template <typename... Args>
     explicit FieldView(Args&&... args)
-        : engine::AttributeView(std::forward<Args>(args)...){
+        : engine::Attribute(std::forward<Args>(args)...){
 
           };
 
@@ -123,7 +123,7 @@ class FieldView : public engine::AttributeView {
     }
 
     void PushData(std::shared_ptr<engine::MeshBlock> const& m, std::shared_ptr<data::DataEntity> const& d = nullptr) {
-        m_mesh_ = dynamic_cast<mesh_type const*>(engine::AttributeView::GetMesh());
+        m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh());
         ASSERT(m_mesh_ != nullptr && m_mesh_->GetMeshBlock()->GetGUID() == m->GetGUID());
         if (d == nullptr) {
             for (int i = 0; i < num_of_subs; ++i) {

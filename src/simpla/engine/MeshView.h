@@ -28,27 +28,25 @@ class MeshView : public concept::Configurable,
     SP_OBJECT_BASE(MeshView);
 
    public:
-    MeshView(std::shared_ptr<data::DataEntity> const &t = nullptr,
+    MeshView(std::shared_ptr<data::DataTable> const &t = nullptr,
              const std::shared_ptr<geometry::GeoObject> &obj = nullptr);
     virtual ~MeshView();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
+    virtual std::shared_ptr<MeshView> Clone() const = 0;
+
     size_tuple GetGhostWidth() const;
     id_type GetMeshBlockId() const;
+
     std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
-    std::shared_ptr<geometry::GeoObject> GetGeoObject() const;
+
+    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g);
+    std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
     virtual void Initialize();
 
-    virtual void SetMesh(MeshView const *);
-    virtual MeshView const *GetMesh() const;
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();
-
-    Real GetDt() const;
-
-    size_type size(int IFORM = VERTEX) const { return 0; }
-    size_tuple dimensions() const { return size_tuple{}; };
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &);
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData();
 
     //    template <typename U>
     //    std::shared_ptr<data::DataBlockWrapper<U>> CreateDataBlock(int IFORM, int DOF) const;

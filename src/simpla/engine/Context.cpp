@@ -2,12 +2,11 @@
 // Created by salmon on 17-2-16.
 //
 #include "Context.h"
-#include <simpla/data/DataUtility.h>
-#include <simpla/data/all.h>
-#include <simpla/geometry/GeoAlgorithm.h>
-
+#include "Domain.h"
 #include "MeshView.h"
 #include "Worker.h"
+#include "simpla/data/all.h"
+#include "simpla/geometry/GeoAlgorithm.h"
 namespace simpla {
 namespace engine {
 
@@ -21,7 +20,7 @@ struct Context::pimpl_s {
     std::shared_ptr<data::DataTable> m_db_;
 };
 
-Context::Context(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
+Context::Context(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
     db()->Link("Model", m_pimpl_->m_model_.db());
     db()->Link("Atlas", m_pimpl_->m_atlas_.db());
     m_pimpl_->m_patches_ = std::make_shared<data::DataTable>();
@@ -72,7 +71,7 @@ void Context::Advance(Real dt, int level) {
     for (auto const &id : atlas.GetBlockList(level)) {
         auto mblk = m_pimpl_->m_atlas_.GetBlock(id);
         for (auto &v : m_pimpl_->m_views_) {
-            if (!v.second->GetMesh()->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
+            if (!v.second->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
             auto res = m_pimpl_->m_patches_->Get(std::to_string(id));
             if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
             v.second->PushData(mblk, res);

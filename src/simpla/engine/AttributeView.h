@@ -92,10 +92,10 @@ class AttributeViewBundle {
     void Attach(AttributeView *attr);
     void Connect(DomainView *);
     void Disconnect();
-    virtual void SetMesh(MeshView const *);
-    virtual MeshView const *GetMesh() const;
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();
+    void SetMesh(MeshView const *);
+    MeshView const *GetMesh() const;
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &);
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData();
 
     void Foreach(std::function<void(AttributeView *)> const &) const;
 
@@ -130,14 +130,17 @@ struct AttributeView : public SPObject {
     SP_OBJECT_BASE(AttributeView);
 
    public:
-    AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataEntity> const &p);
-    AttributeView(AttributeViewBundle *b) : AttributeView(b, std::shared_ptr<data::DataEntity>(nullptr)){};
+    AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataTable> const &p);
+    AttributeView(AttributeViewBundle *b) : AttributeView(b, std::shared_ptr<data::DataTable>(nullptr)){};
     template <typename U, typename... Args>
     explicit AttributeView(AttributeViewBundle *b, U const &first, Args &&... args)
         : AttributeView(b, data::make_data_entity(first, std::forward<Args>(args)...)){};
     AttributeView(AttributeView const &other) = delete;
     AttributeView(AttributeView &&other) = delete;
     virtual ~AttributeView();
+
+    virtual std::shared_ptr<AttributeView> Clone() = 0;
+
     void SetMesh(MeshView const *);
     MeshView const *GetMesh() const;
 
@@ -146,8 +149,8 @@ struct AttributeView : public SPObject {
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
     virtual std::type_info const &mesh_type_info() const = 0;   //!< mesh type
 
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &) = 0;
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() = 0;
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &) = 0;
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData() = 0;
 
     virtual bool Update();
     virtual bool isNull() const;
@@ -195,10 +198,10 @@ struct AttributeView : public SPObject {
 //    virtual void Clear() { U::Clear(); }
 //    virtual void SetMesh(MeshView const *){};
 //    virtual MeshView const *GetMesh() const { return nullptr; };
-//    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &d) {
+//    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &d) {
 //        data::data_cast<U>(*d).swap(*this);
 //    };
-//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
+//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData() {
 //        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), data::make_data_entity(*this));
 //    };
 //    template <typename TExpr>

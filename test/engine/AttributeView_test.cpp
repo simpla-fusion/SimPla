@@ -3,17 +3,17 @@
 //
 
 #include <gtest/gtest.h>
-#include <simpla/engine/AttributeView.h>
+#include <simpla/engine/Attribute.h>
 
 using namespace simpla;
 
 TEST(TestAttribute, GUID) {
-    engine::AttributeView f("E", typeid(Real), FACE, 1);
-    engine::AttributeView f0("E", typeid(Real), FACE, 1);
-    engine::AttributeView f1("F", typeid(Real), FACE, 1);
-    engine::AttributeView f2("E", typeid(Real), FACE, 2);
-    engine::AttributeView f3("E", typeid(Real), EDGE, 1);
-    engine::AttributeView f4("E", typeid(int), FACE, 1);
+    engine::Attribute f("E", typeid(Real), FACE, 1);
+    engine::Attribute f0("E", typeid(Real), FACE, 1);
+    engine::Attribute f1("F", typeid(Real), FACE, 1);
+    engine::Attribute f2("E", typeid(Real), FACE, 2);
+    engine::Attribute f3("E", typeid(Real), EDGE, 1);
+    engine::Attribute f4("E", typeid(int), FACE, 1);
 
     EXPECT_EQ(f.GetGUID(), f0.GetGUID());
     EXPECT_NE(f.GetGUID(), f1.GetGUID());

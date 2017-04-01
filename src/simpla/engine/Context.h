@@ -61,10 +61,10 @@ namespace engine {
  * @enduml
  */
 class Context : public concept::Configurable {
-    SP_OBJECT_BASE(DomainView)
+    SP_OBJECT_BASE(Context)
 
    public:
-    Context(std::shared_ptr<data::DataEntity> const &t = nullptr);
+    Context(std::shared_ptr<data::DataTable> const &t = nullptr);
     virtual ~Context();
 
     virtual void Initialize();
@@ -73,10 +73,10 @@ class Context : public concept::Configurable {
     Atlas &GetAtlas() const;
     Model &GetModel() const;
     std::shared_ptr<data::DataTable> GetPatches() const;
-    void SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p);
-    std::shared_ptr<DomainView> GetDomainView(std::string const &d_name) const;
-    std::map<std::string, std::shared_ptr<DomainView>> const &GetAllDomainViews() const;
-    Real GetTime() const;
+    void SetDomain(std::string const &d_name, std::shared_ptr<data::DataTable> const &p);
+    void SetDomain(std::string const &d_name, std::shared_ptr<Domain> const &p);
+    std::shared_ptr<Domain> GetDomain(std::string const &d_name) const;
+    std::map<std::string, std::shared_ptr<Domain>> const &GetAllDomains() const;
 
    private:
     struct pimpl_s;

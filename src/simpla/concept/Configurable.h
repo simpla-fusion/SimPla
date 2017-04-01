@@ -10,14 +10,11 @@ namespace simpla {
 namespace concept {
 class Configurable {
    public:
-    Configurable(std::shared_ptr<data::DataEntity> const& t = nullptr) {
-        m_db_ = (t != nullptr && t->isTable()) ? std::dynamic_pointer_cast<data::DataTable>(t)
-                                               : std::make_shared<data::DataTable>();
+    Configurable(std::shared_ptr<data::DataTable> const& t = nullptr)
+        : m_db_((t != nullptr) ? (t) : std::make_shared<data::DataTable>()) {}
 
-        if (t != nullptr && t->isLight() && t->value_type_info() == typeid(std::string)) {
-            m_db_->SetValue("name", data::data_cast<std::string>(*t));
-        }
-    }
+    Configurable(std::string const& s_name) : Configurable() { m_db_->SetValue("name", s_name); }
+
     virtual ~Configurable() {}
     std::shared_ptr<data::DataTable> db() const { return m_db_; }
     std::shared_ptr<data::DataTable> db() { return m_db_; }

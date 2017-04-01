@@ -25,7 +25,8 @@ class MeshBlock {
     index_box_type GetInnerIndexBox(int IFORM = 0, int sub = 0) const;
 
     box_type GetBoundBox() const;
-
+    size_type size(int IFORM = VERTEX) const { return 0; }
+    size_tuple dimensions() const { return size_tuple{}; };
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

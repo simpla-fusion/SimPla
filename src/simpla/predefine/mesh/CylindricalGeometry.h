@@ -12,7 +12,7 @@
 #include <simpla/algebra/all.h>
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
-#include <simpla/engine/AttributeView.h>
+#include <simpla/engine/Attribute.h>
 #include <simpla/engine/MeshBlock.h>
 #include <simpla/engine/MeshView.h>
 #include <simpla/mpl/macro.h>
