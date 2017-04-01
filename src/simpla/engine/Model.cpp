@@ -4,7 +4,7 @@
 
 #include "Model.h"
 #include <simpla/mesh/EntityId.h>
-#include "AttributeView.h"
+#include "Attribute.h"
 #include "MeshBlock.h"
 namespace simpla {
 namespace engine {
@@ -14,7 +14,7 @@ struct Model::pimpl_s {
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
-Model::Model(std::shared_ptr<data::DataEntity> const& t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {}
+Model::Model(std::shared_ptr<data::DataTable> const& t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {}
 Model::~Model() {}
 
 void Model::Initialize() {

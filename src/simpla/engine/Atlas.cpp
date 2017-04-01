@@ -29,7 +29,7 @@ struct Atlas::pimpl_s {
     std::set<id_type> m_layers_[MAX_NUM_OF_LEVEL];
 };
 
-Atlas::Atlas(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t){};
+Atlas::Atlas(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t){};
 Atlas::~Atlas(){};
 
 void Atlas::Initialize() {

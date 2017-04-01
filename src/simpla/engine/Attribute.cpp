@@ -2,11 +2,11 @@
 // Created by salmon on 16-10-20.
 //
 
-#include "AttributeView.h"
+#include "Attribute.h"
 #include <simpla/data/DataBlock.h>
 #include <set>
 #include <typeindex>
-#include "DomainView.h"
+#include "Domain.h"
 #include "MeshBlock.h"
 #include "MeshView.h"
 #include "Patch.h"
@@ -16,7 +16,7 @@ namespace engine {
 struct AttributeViewBundle::pimpl_s {
     Domain *m_domain_ = nullptr;
     MeshView const *m_mesh_;
-    std::set<AttributeView *> m_attr_views_;
+    std::set<Attribute *> m_attr_views_;
 };
 
 AttributeViewBundle::AttributeViewBundle(Domain *d) : m_pimpl_(new pimpl_s) { Connect(d); }
@@ -36,18 +36,18 @@ void AttributeViewBundle::Disconnect() {
         t->Detach(this);
     }
 };
-void AttributeViewBundle::Attach(AttributeView *p) {
+void AttributeViewBundle::Attach(Attribute *p) {
     if (p != nullptr) { m_pimpl_->m_attr_views_.emplace(p); }
 }
 
-void AttributeViewBundle::Detach(AttributeView *p) {
+void AttributeViewBundle::Detach(Attribute *p) {
     if (p != nullptr) { m_pimpl_->m_attr_views_.erase(p); }
 }
 
 void AttributeViewBundle::SetMesh(MeshView const *m) {
     if (m == nullptr) { return; }
     m_pimpl_->m_mesh_ = m;
-    for (AttributeView *v : m_pimpl_->m_attr_views_) { v->SetMesh(m); }
+    for (Attribute *v : m_pimpl_->m_attr_views_) { v->SetMesh(m); }
 }
 MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
 
@@ -56,9 +56,7 @@ void AttributeViewBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::sha
         RUNTIME_ERROR << " data and mesh mismatch!" << std::endl;
     }
 
-    ASSERT(p->isTable());
-    auto const &t = p->cast_as<data::DataTable>();
-    for (auto *v : m_pimpl_->m_attr_views_) { v->PushData(m, t.Get(v->name())); }
+    for (auto *v : m_pimpl_->m_attr_views_) { v->PushData(m, p->GetTable(v->name())); }
 }
 std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> AttributeViewBundle::PopData() {
     auto res = std::make_shared<data::DataTable>();
@@ -66,26 +64,26 @@ std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Attribut
 
     return std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(), res);
 }
-void AttributeViewBundle::Foreach(std::function<void(AttributeView *)> const &fun) const {
+void AttributeViewBundle::Foreach(std::function<void(Attribute *)> const &fun) const {
     for (auto *attr : m_pimpl_->m_attr_views_) { fun(attr); }
 }
 
-struct AttributeView::pimpl_s {
+struct Attribute::pimpl_s {
     AttributeViewBundle *m_bundle_ = nullptr;
     MeshView const *m_mesh_ = nullptr;
 };
-AttributeView::AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataTable> const &t)
+Attribute::Attribute(AttributeViewBundle *b, std::shared_ptr<data::DataTable> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {
     if (b != nullptr && b != m_pimpl_->m_bundle_) { b->Attach(this); }
     m_pimpl_->m_bundle_ = b;
 };
 
-AttributeView::~AttributeView() {
+Attribute::~Attribute() {
     if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_bundle_->Detach(this); }
     m_pimpl_->m_bundle_ = nullptr;
 }
 
-void AttributeView::SetMesh(MeshView const *m) {
+void Attribute::SetMesh(MeshView const *m) {
     if (m == nullptr) { return; }
     if ((m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo())) {
         m_pimpl_->m_mesh_ = m;
@@ -95,7 +93,7 @@ void AttributeView::SetMesh(MeshView const *m) {
     }
 }
 
-MeshView const *AttributeView::GetMesh() const {
+MeshView const *Attribute::GetMesh() const {
     return m_pimpl_->m_mesh_ != nullptr ? m_pimpl_->m_mesh_
                                         : (m_pimpl_->m_bundle_ != nullptr ? m_pimpl_->m_bundle_->GetMesh() : nullptr);
 }
@@ -109,9 +107,9 @@ MeshView const *AttributeView::GetMesh() const {
 *stop
 *@enduml
 */
-bool AttributeView::Update() { return SPObject::Update(); }
+bool Attribute::Update() { return SPObject::Update(); }
 
-bool AttributeView::isNull() const { return false; }
+bool Attribute::isNull() const { return false; }
 
 }  //{ namespace engine
 }  // namespace simpla

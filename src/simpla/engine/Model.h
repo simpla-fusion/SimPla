@@ -7,7 +7,7 @@
 
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/mesh/EntityId.h>
-#include "AttributeView.h"
+#include "Attribute.h"
 #include "MeshView.h"
 
 namespace simpla {
@@ -22,7 +22,7 @@ class Model : public concept::Configurable {
     typedef Model this_type;
 
    public:
-    Model(std::shared_ptr<data::DataEntity> const &t = nullptr);
+    Model(std::shared_ptr<data::DataTable> const &t = nullptr);
     virtual ~Model();
     virtual bool Update();
     virtual void Initialize();

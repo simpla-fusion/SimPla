@@ -3,8 +3,8 @@
 //
 #include "MeshView.h"
 #include <simpla/geometry/GeoObject.h>
-#include "AttributeView.h"
-#include "DomainView.h"
+#include "Attribute.h"
+#include "Domain.h"
 #include "MeshBlock.h"
 #include "Model.h"
 #include "Patch.h"
@@ -106,7 +106,7 @@ std::shared_ptr<MeshBlock> const &MeshView::GetMeshBlock() const { return m_pimp
 
 void MeshView::Initialize() {}
 
-Real MeshView::GetDt() const { return 1.0; }
+//Real MeshView::GetDt() const { return 1.0; }
 
 }  // {namespace mesh
 }  // namespace simpla

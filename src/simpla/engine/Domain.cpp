@@ -4,9 +4,8 @@
 #include "Domain.h"
 #include <simpla/SIMPLA_config.h>
 #include <set>
-#include "AttributeView.h"
+#include "Attribute.h"
 #include "MeshBlock.h"
-#include "MeshView.h"
 #include "MeshView.h"
 #include "Patch.h"
 #include "SPObject.h"
@@ -24,12 +23,12 @@ struct Domain::pimpl_s {
     std::shared_ptr<data::DataTable> m_patch_;
 };
 
-Domain::Domain(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<geometry::GeoObject> const &g = nullptr)
+Domain::Domain(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<geometry::GeoObject> const &g )
     : concept::Configurable(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_obj_ = g;
 }
 
-Domain::Domain(std::shared_ptr<MeshView> const &m = nullptr) : m_pimpl_(new pimpl_s), m_pimpl_(new pimpl_s) {
+Domain::Domain(std::shared_ptr<MeshView> const &m) : m_pimpl_(new pimpl_s) {
     if (m != nullptr) { m_pimpl_->m_geo_obj_ = m->GetGeoObject(); }
 }
 
@@ -52,7 +51,7 @@ std::shared_ptr<MeshView> const &Domain::GetMeshView() const { return m_pimpl_->
 
 void Domain::SetMeshView(std::shared_ptr<MeshView> const &m) {
     m_pimpl_->m_mesh_ = m;
-    db()->("Mesh", m->db());
+    db()->Set("Mesh", m->db());
     m_pimpl_->m_geo_obj_ = m->GetGeoObject();
 };
 
@@ -174,7 +173,7 @@ void Domain::Attach(AttributeViewBundle *p) {
 
     if (res.second) {
         (*res.first)->Connect(this);
-        (*res.first)->Foreach([&](AttributeView *v) {
+        (*res.first)->Foreach([&](Attribute *v) {
             ASSERT(v != nullptr)
             if (v->name() != "") {
                 auto t = db()->Get("Attributes/" + v->name());

@@ -17,7 +17,7 @@ class TimeIntegrator : public concept::Configurable {
     SP_OBJECT_BASE(engine::TimeIntegrator);
 
    public:
-    TimeIntegrator(std::shared_ptr<Context> const &ctx = nullptr, std::shared_ptr<data::DataEntity> const &t = nullptr);
+    TimeIntegrator(std::shared_ptr<Context> const &ctx = nullptr, std::shared_ptr<data::DataTable> const &t = nullptr);
     virtual ~TimeIntegrator();
     void SetContext(std::shared_ptr<Context> const &);
     std::shared_ptr<Context> const &GetContext() const;
@@ -45,15 +45,15 @@ struct TimeIntegratorFactory {
                              std::shared_ptr<Context> const &, std::shared_ptr<data::DataEntity> const &)> const &);
     template <typename U>
     bool RegisterCreator(std::string const &k) {
-        return  RegisterCreator(k, [&](std::shared_ptr<Context> const &m, std::shared_ptr<data::DataEntity> const &t) {
+        return RegisterCreator(k, [&](std::shared_ptr<Context> const &m, std::shared_ptr<data::DataEntity> const &t) {
             return std::make_shared<U>(m, t);
         });
     }
 
     std::shared_ptr<TimeIntegrator> Create(std::string const &, std::shared_ptr<Context> const &m = nullptr,
-                                           std::shared_ptr<data::DataEntity> const &p = nullptr);
+                                           std::shared_ptr<data::DataTable> const &p = nullptr);
 
-    std::shared_ptr<TimeIntegrator> Create(std::shared_ptr<data::DataEntity> const &p = nullptr);
+    std::shared_ptr<TimeIntegrator> Create(std::shared_ptr<data::DataTable> const &p = nullptr);
 
    private:
     struct pimpl_s;

@@ -79,7 +79,7 @@ class SPObject : public concept::Configurable {
    public:
     SP_OBJECT_BASE(SPObject)
    public:
-    SPObject(std::shared_ptr<data::DataEntity> const &t = nullptr);
+    SPObject(std::shared_ptr<data::DataTable> const &t = nullptr);
     SPObject(SPObject &&other) = delete;
     SPObject(SPObject const &) = delete;
     SPObject &operator=(SPObject const &other) = delete;

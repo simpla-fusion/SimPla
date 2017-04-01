@@ -26,7 +26,7 @@ struct SPObject::pimpl_s {
 
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
-SPObject::SPObject(std::shared_ptr<data::DataEntity> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
+SPObject::SPObject(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
     db()->SetValue("GUID", std::to_string(g_obj_hasher(g_uuid_generator())));
     if (db()->Get("name") == nullptr) { db()->Set("name", db()->Get("GUID")); }
 }

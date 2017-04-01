@@ -8,7 +8,7 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/design_pattern/SingletonHolder.h>
 #include <simpla/geometry/GeoObject.h>
-#include "AttributeView.h"
+#include "Attribute.h"
 #include "SPObject.h"
 namespace simpla {
 namespace engine {

@@ -8,7 +8,7 @@
 #include <simpla/SIMPLA_config.h>
 #include <map>
 #include "Atlas.h"
-#include "DomainView.h"
+#include "Domain.h"
 #include "Model.h"
 #include "Patch.h"
 

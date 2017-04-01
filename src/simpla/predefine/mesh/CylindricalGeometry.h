@@ -41,7 +41,7 @@ struct CylindricalGeometry : public engine::MeshView {
 
     static constexpr int ndims = 3;
 
-    explicit CylindricalGeometry(std::shared_ptr<data::DataEntity> const &t = nullptr,
+    explicit CylindricalGeometry(std::shared_ptr<data::DataTable> const &t = nullptr,
                                  std::shared_ptr<geometry::GeoObject> const &g = nullptr)
         : MeshView(t, g) {}
 
@@ -125,7 +125,6 @@ struct CylindricalGeometry : public engine::MeshView {
 
     typedef mesh::MeshEntityIdCoder m;
     virtual Range<entity_id> range() const { return Range<entity_id>(); };
-
 
     template <typename TV>
     TV const &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> const *a, entity_id const &s) const {

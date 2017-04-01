@@ -64,7 +64,7 @@ namespace engine {
  */
 class Atlas : public concept::Configurable {
    public:
-    Atlas(std::shared_ptr<data::DataEntity> const &t = nullptr);
+    Atlas(std::shared_ptr<data::DataTable> const &t = nullptr);
     virtual ~Atlas();
 
     void Decompose(size_tuple const &d, int local_id = -1);

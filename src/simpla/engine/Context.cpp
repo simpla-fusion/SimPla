@@ -13,7 +13,7 @@ namespace engine {
 struct Context::pimpl_s {
     std::shared_ptr<data::DataTable> m_patches_;
     std::map<std::string, std::shared_ptr<Domain>> m_domains_;
-    std::map<std::string, std::shared_ptr<AttributeView>> m_attrs_;
+    std::map<std::string, std::shared_ptr<Attribute>> m_attrs_;
     Atlas m_atlas_;
     Model m_model_;
     Real m_time_ = 0;
@@ -41,7 +41,6 @@ void Context::SetDomain(std::string const &d_name, std::shared_ptr<Domain> const
 std::shared_ptr<Domain> Context::GetDomain(std::string const &d_name) const { return m_pimpl_->m_domains_.at(d_name); }
 std::map<std::string, std::shared_ptr<Domain>> const &Context::GetAllDomains() const { return m_pimpl_->m_domains_; };
 
-
 void Context::Initialize() {
     GetModel().Initialize();
     GetAtlas().Initialize();
@@ -56,7 +55,7 @@ void Context::Initialize() {
             auto g_obj_ = GetModel().GetObject(s_key);
             auto view_res = m_pimpl_->m_domains_.emplace(s_key, nullptr);
             if (view_res.first->second == nullptr) {
-                view_res.first->second = std::make_shared<Domain>(item, g_obj_);
+                view_res.first->second = std::make_shared<Domain>(std::dynamic_pointer_cast<DataTable>(item), g_obj_);
             } else if (item != nullptr && item->isTable()) {
                 view_res.first->second->db()->Set(item->cast_as<data::DataTable>());
             } else {
@@ -101,7 +100,7 @@ void Context::Advance(Real dt, int level) {
         auto mblk = m_pimpl_->m_atlas_.GetBlock(id);
         for (auto &v : m_pimpl_->m_domains_) {
             if (!v.second->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
-            auto res = m_pimpl_->m_patches_->Get(std::to_string(id));
+            auto res = m_pimpl_->m_patches_->GetTable(std::to_string(id));
             if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
             v.second->PushData(mblk, res);
             LOGGER << " Domain [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
@@ -113,7 +112,6 @@ void Context::Advance(Real dt, int level) {
     }
     m_pimpl_->m_time_ += dt;
 };
-
 
 }  // namespace engine {
 }  // namespace simpla {

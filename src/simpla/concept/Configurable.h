@@ -5,7 +5,7 @@
 #ifndef SIMPLA_CONFIGURABLE_H
 #define SIMPLA_CONFIGURABLE_H
 
-#include <simpla/data/DataTable.h>
+#include "simpla/data/DataTable.h"
 namespace simpla {
 namespace concept {
 class Configurable {

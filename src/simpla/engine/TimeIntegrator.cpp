@@ -34,7 +34,7 @@ bool TimeIntegratorFactory::RegisterCreator(
 
 std::shared_ptr<TimeIntegrator> TimeIntegratorFactory::Create(std::string const &s_name,
                                                               std::shared_ptr<Context> const &m,
-                                                              std::shared_ptr<data::DataEntity> const &d) {
+                                                              std::shared_ptr<data::DataTable> const &d) {
     std::string k = s_name;
     auto it = m_pimpl_->m_TimeIntegrator_factory_.find(k);
     if (it == m_pimpl_->m_TimeIntegrator_factory_.end()) {
@@ -47,7 +47,7 @@ std::shared_ptr<TimeIntegrator> TimeIntegratorFactory::Create(std::string const 
     }
 };
 
-std::shared_ptr<TimeIntegrator> TimeIntegratorFactory::Create(std::shared_ptr<data::DataEntity> const &config) {
+std::shared_ptr<TimeIntegrator> TimeIntegratorFactory::Create(std::shared_ptr<data::DataTable> const &config) {
     std::string s_name = "Default";
 
     if (config == nullptr || config->isNull()) {
@@ -64,9 +64,9 @@ struct TimeIntegrator::pimpl_s {
     Real m_time_;
 };
 
-TimeIntegrator::TimeIntegrator(std::shared_ptr<Context> const &m, std::shared_ptr<data::DataEntity> const &t)
+TimeIntegrator::TimeIntegrator(std::shared_ptr<Context> const &m, std::shared_ptr<data::DataTable> const &t)
     : concept::Configurable(t), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_ctx_ = m != nullptr ? m : std::make_shared<Context>(db()->Get("Context"));
+    m_pimpl_->m_ctx_ = m != nullptr ? m : std::make_shared<Context>(db()->GetTable("Context"));
 }
 TimeIntegrator::~TimeIntegrator() { Finalize(); }
 
@@ -90,9 +90,9 @@ Real TimeIntegrator::Advance(Real dt, int level) {
     auto &atlas = m_pimpl_->m_ctx_->GetAtlas();
     for (auto const &id : atlas.GetBlockList(level)) {
         auto mblk = atlas.GetBlock(id);
-        for (auto &v : m_pimpl_->m_ctx_->GetAllDomainViews()) {
-            if (!v.second->GetMesh()->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
-            auto res = m_pimpl_->m_ctx_->GetPatches()->Get(std::to_string(id));
+        for (auto &v : m_pimpl_->m_ctx_->GetAllDomains()) {
+            if (!v.second->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
+            auto res = m_pimpl_->m_ctx_->GetPatches()->GetTable(std::to_string(id));
             if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
             v.second->PushData(mblk, res);
             LOGGER << " Domain [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "

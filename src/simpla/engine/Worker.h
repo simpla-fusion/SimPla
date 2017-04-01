@@ -14,7 +14,7 @@
 
 #include <simpla/concept/Printable.h>
 #include <simpla/engine/SPObject.h>
-#include "AttributeView.h"
+#include "Attribute.h"
 
 namespace simpla {
 namespace engine {
@@ -101,7 +101,7 @@ namespace engine {
 class Worker : public concept::Configurable, public AttributeViewBundle {
     SP_OBJECT_BASE(Worker)
    public:
-    Worker(std::shared_ptr<MeshView> const &p = nullptr, std::shared_ptr<data::DataEntity> const &t = nullptr);
+    Worker(std::shared_ptr<MeshView> const &p = nullptr, std::shared_ptr<data::DataTable> const &t = nullptr);
     virtual ~Worker();
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;

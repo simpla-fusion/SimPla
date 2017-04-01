@@ -2,8 +2,8 @@
 // Created by salmon on 16-11-4.
 //
 #include "Worker.h"
-#include "AttributeView.h"
-#include "DomainView.h"
+#include "Attribute.h"
+#include "Domain.h"
 #include "MeshView.h"
 #include "Patch.h"
 namespace simpla {
@@ -54,7 +54,7 @@ std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m
 struct Worker::pimpl_s {
     MeshView const *m_mesh_ = nullptr;
 };
-Worker::Worker(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataEntity> const &t)
+Worker::Worker(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataTable> const &t)
     : concept::Configurable(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_mesh_ = m.get();
 }

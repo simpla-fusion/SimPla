@@ -8,20 +8,20 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/concept/Printable.h>
 #include <memory>
-#include "AttributeView.h"
+#include "Attribute.h"
 #include "simpla/geometry/GeoObject.h"
 #include "simpla/mpl/macro.h"
 
 namespace simpla {
 namespace engine {
-class AttributeView;
+class Attribute;
 class MeshView;
 class MeshBlock;
 class DataBlock;
 class Domain;
 class Worker;
 
-class Domain : public concept::Configurable, std::enable_shared_from_this<Domain> {
+class Domain : public concept::Configurable, public std::enable_shared_from_this<Domain> {
    public:
     Domain(std::shared_ptr<data::DataTable> const &m, std::shared_ptr<geometry::GeoObject> const &g = nullptr);
     Domain(std::shared_ptr<MeshView> const &m);

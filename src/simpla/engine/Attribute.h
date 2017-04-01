@@ -5,19 +5,19 @@
 #ifndef SIMPLA_ATTRIBUTEVIEW_H
 #define SIMPLA_ATTRIBUTEVIEW_H
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/concept/CheckConcept.h>
-#include <simpla/data/all.h>
-#include <simpla/design_pattern/Signal.h>
 #include "MeshBlock.h"
 #include "SPObject.h"
+#include "simpla/SIMPLA_config.h"
+#include "simpla/concept/CheckConcept.h"
+#include "simpla/data/all.h"
+#include "simpla/design_pattern/Signal.h"
 
 namespace simpla {
 namespace engine {
 class Domain;
 class MeshView;
 class MeshBlock;
-class AttributeView;
+class Attribute;
 class Patch;
 ///**
 // *  permissions
@@ -30,7 +30,7 @@ class Patch;
 // * 0b0 0 0 0 0
 // *   | | | | |------: is shared between different domain
 // *   | | | |--------: has ghost cell
-// *   | | |----------: PERSISTENT, if false then destroy data when AttributeView is destructed
+// *   | | |----------: PERSISTENT, if false then destroy data when Attribute is destructed
 // *   | |------------: become unmodifiable after first write
 // *   |--------------: is coordinate
 // */
@@ -88,8 +88,8 @@ class AttributeViewBundle {
    public:
     AttributeViewBundle(Domain *p = nullptr);
     virtual ~AttributeViewBundle();
-    void Detach(AttributeView *attr);
-    void Attach(AttributeView *attr);
+    void Detach(Attribute *attr);
+    void Attach(Attribute *attr);
     void Connect(Domain *);
     void Disconnect();
     void SetMesh(MeshView const *);
@@ -97,7 +97,7 @@ class AttributeViewBundle {
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &);
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData();
 
-    void Foreach(std::function<void(AttributeView *)> const &) const;
+    void Foreach(std::function<void(Attribute *)> const &) const;
 
    private:
     struct pimpl_s;
@@ -126,20 +126,20 @@ class AttributeViewBundle {
  * deactivate AttributeView
  * @enduml
  */
-struct AttributeView : public SPObject {
-    SP_OBJECT_BASE(AttributeView);
+struct Attribute : public SPObject {
+    SP_OBJECT_BASE(Attribute);
 
    public:
-    AttributeView(AttributeViewBundle *b, std::shared_ptr<data::DataTable> const &p);
-    AttributeView(AttributeViewBundle *b) : AttributeView(b, std::shared_ptr<data::DataTable>(nullptr)){};
+    Attribute(AttributeViewBundle *b, std::shared_ptr<data::DataTable> const &p);
+    Attribute(AttributeViewBundle *b) : Attribute(b, std::shared_ptr<data::DataTable>(nullptr)){};
     template <typename U, typename... Args>
-    explicit AttributeView(AttributeViewBundle *b, U const &first, Args &&... args)
-        : AttributeView(b, data::make_data_entity(first, std::forward<Args>(args)...)){};
-    AttributeView(AttributeView const &other) = delete;
-    AttributeView(AttributeView &&other) = delete;
-    virtual ~AttributeView();
+    explicit Attribute(AttributeViewBundle *b, U const &first, Args &&... args)
+        : Attribute(b, data::make_data_entity(first, std::forward<Args>(args)...)){};
+    Attribute(Attribute const &other) = delete;
+    Attribute(Attribute &&other) = delete;
+    virtual ~Attribute();
 
-    virtual std::shared_ptr<AttributeView> Clone() = 0;
+    virtual std::shared_ptr<Attribute> Clone() const = 0;
 
     void SetMesh(MeshView const *);
     MeshView const *GetMesh() const;
@@ -149,8 +149,8 @@ struct AttributeView : public SPObject {
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
     virtual std::type_info const &mesh_type_info() const = 0;   //!< mesh type
 
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &) = 0;
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData() = 0;
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &) = 0;
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() = 0;
 
     virtual bool Update();
     virtual bool isNull() const;
@@ -170,8 +170,8 @@ struct AttributeView : public SPObject {
 // template <typename U>
 // class AttributeViewAdapter<
 //    U, std::enable_if_t<std::is_copy_constructible<U>::value && traits::has_swap<U, void(U &)>::value>>
-//    : public AttributeView, public U {
-//    SP_OBJECT_HEAD(AttributeViewAdapter<U>, AttributeView);
+//    : public Attribute, public U {
+//    SP_OBJECT_HEAD(AttributeViewAdapter<U>, Attribute);
 //
 //    typedef algebra::traits::value_type_t<U> value_type;
 //    typedef typename algebra::traits::mesh_type_t<U> mesh_type;
@@ -185,7 +185,7 @@ struct AttributeView : public SPObject {
 //
 //    template <typename... Args>
 //    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
-//        : AttributeView(b, data::make_data_entity(std::forward<Args>(args)...)) {}
+//        : Attribute(b, data::make_data_entity(std::forward<Args>(args)...)) {}
 //
 //    AttributeViewAdapter(AttributeViewAdapter &&) = delete;
 //    AttributeViewAdapter(AttributeViewAdapter const &) = delete;
@@ -212,7 +212,7 @@ struct AttributeView : public SPObject {
 //    };
 //
 //    bool Update() final {
-//        if (!AttributeView::Update()) { return false; }
+//        if (!Attribute::Update()) { return false; }
 //        return U::Update();
 //    }
 //};
@@ -225,11 +225,11 @@ struct AttributeView : public SPObject {
 // 1)>>;
 //
 // template <typename TV, int IFORM = VERTEX, int DOF = 1>
-// struct DataAttribute : public AttributeView,
+// struct DataAttribute : public Attribute,
 //                       public Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)> {
 //    typedef Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)> array_type;
 //    typedef DataAttribute<TV, IFORM, DOF> data_attr_type;
-//    SP_OBJECT_HEAD(data_attr_type, AttributeView);
+//    SP_OBJECT_HEAD(data_attr_type, Attribute);
 //    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshView)
 //    typedef TV value_type;
 //    static constexpr int GetIFORM = IFORM;
@@ -239,11 +239,11 @@ struct AttributeView : public SPObject {
 //    template <typename TM, typename... Args>
 //    DataAttribute(TM *w, Args &&... args)
 //        : base_type(w, AttributeDesc::create<value_type, GetIFORM, GetDOF>(std::forward<Args>(args)...)),
-//          AttributeView(<#initializer #>, nullptr, <#initializer #>) {}
+//          Attribute(<#initializer #>, nullptr, <#initializer #>) {}
 //    template <typename TM>
 //    DataAttribute(TM *m, std::initializer_list<data::KeyValue> const &param)
 //        : base_type(m, AttributeDesc::create<value_type, GetIFORM, GetDOF>(param)),
-//          AttributeView(<#initializer #>, nullptr, <#initializer #>) {}
+//          Attribute(<#initializer #>, nullptr, <#initializer #>) {}
 //    DataAttribute(DataAttribute &&) = delete;
 //    DataAttribute(DataAttribute const &) = delete;
 //    virtual ~DataAttribute() {}
@@ -278,15 +278,15 @@ struct AttributeView : public SPObject {
 //    }
 //    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return array_type::Print(os, indent); }
 //
-//    virtual value_type *data() { return reinterpret_cast<value_type *>(AttributeView::GetDataBlock()->raw_data()); }
+//    virtual value_type *data() { return reinterpret_cast<value_type *>(Attribute::GetDataBlock()->raw_data()); }
 //
 //    virtual void Update() {
-//        AttributeView::Update();
+//        Attribute::Update();
 //        array_type::Update();
 //    }
 //    virtual void Finalize() {
 //        array_type::Finalize();
-//        AttributeView::Finalize();
+//        Attribute::Finalize();
 //    }
 //
 //    virtual void Clear() { array_type::Clear(); }
