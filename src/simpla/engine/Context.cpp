@@ -12,7 +12,7 @@ namespace engine {
 
 struct Context::pimpl_s {
     std::shared_ptr<data::DataTable> m_patches_;
-    std::map<std::string, std::shared_ptr<DomainView>> m_views_;
+    std::map<std::string, std::shared_ptr<Domain>> m_domains_;
     std::map<std::string, std::shared_ptr<AttributeView>> m_attrs_;
     Atlas m_atlas_;
     Model m_model_;
@@ -31,15 +31,44 @@ Context::~Context() {}
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
 std::shared_ptr<data::DataTable> Context::GetPatches() const { return m_pimpl_->m_patches_; }
-std::shared_ptr<DomainView> Context::GetDomainView(std::string const &d_name) const {
-    return m_pimpl_->m_views_.at(d_name);
-}
-std::map<std::string, std::shared_ptr<DomainView>> const &Context::GetAllDomainViews() const {
-    return m_pimpl_->m_views_;
-};
 
-void Context::SetDomainView(std::string const &d_name, std::shared_ptr<data::DataTable> const &p) {
-    db()->Set("DomainView/" + d_name, *p, false);
+void Context::SetDomain(std::string const &d_name, std::shared_ptr<Domain> const &p) {
+    auto res = m_pimpl_->m_domains_.emplace(d_name, p);
+    if (!res.second) { res.first->second = p; }
+    db()->Set("Domains/" + d_name, res.first->second->db());
+}
+
+std::shared_ptr<Domain> Context::GetDomain(std::string const &d_name) const { return m_pimpl_->m_domains_.at(d_name); }
+std::map<std::string, std::shared_ptr<Domain>> const &Context::GetAllDomains() const { return m_pimpl_->m_domains_; };
+
+
+void Context::Initialize() {
+    GetModel().Initialize();
+    GetAtlas().Initialize();
+    db()->Set("Domains/");
+    auto domain_p = db()->GetTable("Domains");
+    if (domain_p != nullptr) {
+        domain_p->Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
+            if (!item->isTable()) { return; }
+            item->cast_as<DataTable>().SetValue("name",
+                                                item->cast_as<DataTable>().GetValue<std::string>("name", s_key));
+
+            auto g_obj_ = GetModel().GetObject(s_key);
+            auto view_res = m_pimpl_->m_domains_.emplace(s_key, nullptr);
+            if (view_res.first->second == nullptr) {
+                view_res.first->second = std::make_shared<Domain>(item, g_obj_);
+            } else if (item != nullptr && item->isTable()) {
+                view_res.first->second->db()->Set(item->cast_as<data::DataTable>());
+            } else {
+                WARNING << " ignore data entity [" << s_key << " :" << *item << "]" << std::endl;
+            }
+            view_res.first->second->Initialize();
+            domain_p->Link(s_key, view_res.first->second->db());
+
+            GetModel().AddObject(s_key, view_res.first->second->GetGeoObject());
+        });
+    }
+    LOGGER << "Context is initialized!" << std::endl;
 }
 
 void Context::Synchronize(int from, int to) {
@@ -70,12 +99,12 @@ void Context::Advance(Real dt, int level) {
     auto &atlas = GetAtlas();
     for (auto const &id : atlas.GetBlockList(level)) {
         auto mblk = m_pimpl_->m_atlas_.GetBlock(id);
-        for (auto &v : m_pimpl_->m_views_) {
+        for (auto &v : m_pimpl_->m_domains_) {
             if (!v.second->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
             auto res = m_pimpl_->m_patches_->Get(std::to_string(id));
             if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
             v.second->PushData(mblk, res);
-            LOGGER << " DomainView [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
+            LOGGER << " Domain [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
                    << mblk->GetIndexBox() << " id= " << id << std::endl;
             v.second->Run(dt);
             auto t = v.second->PopData().second;
@@ -85,33 +114,6 @@ void Context::Advance(Real dt, int level) {
     m_pimpl_->m_time_ += dt;
 };
 
-void Context::Initialize() {
-    GetModel().Initialize();
-    GetAtlas().Initialize();
-    db()->Set("DomainView/");
-    auto domain_p = db()->GetTable("DomainView");
-    if (domain_p != nullptr) {
-        domain_p->Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
-            if (!item->isTable()) { return; }
-            item->cast_as<DataTable>().SetValue("name",
-                                                item->cast_as<DataTable>().GetValue<std::string>("name", s_key));
 
-            auto g_obj_ = GetModel().GetObject(s_key);
-            auto view_res = m_pimpl_->m_views_.emplace(s_key, nullptr);
-            if (view_res.first->second == nullptr) {
-                view_res.first->second = std::make_shared<DomainView>(item, g_obj_);
-            } else if (item != nullptr && item->isTable()) {
-                view_res.first->second->db()->Set(item->cast_as<data::DataTable>());
-            } else {
-                WARNING << " ignore data entity [" << s_key << " :" << *item << "]" << std::endl;
-            }
-            view_res.first->second->Initialize();
-            domain_p->Link(s_key, view_res.first->second->db());
-
-            GetModel().AddObject(s_key, view_res.first->second->GetGeoObject());
-        });
-    }
-    LOGGER << "Context is initialized!" << std::endl;
-}
 }  // namespace engine {
 }  // namespace simpla {

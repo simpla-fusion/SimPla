@@ -15,45 +15,6 @@ namespace simpla {
 namespace engine {
 
 struct Domain::pimpl_s {
-    std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &,
-                                            std::shared_ptr<geometry::GeoObject> const &)>
-        m_mesh_factory_;
-    std::shared_ptr<MeshView> m_mesh_;
-    std::shared_ptr<geometry::GeoObject> m_geo_obj_;
-};
-
-Domain::Domain() : m_pimpl_(new pimpl_s){};
-
-Domain::~Domain(){};
-
-void Domain::RegisterMeshFactory(
-    std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &,
-                                            std::shared_ptr<geometry::GeoObject> const &)> const &f) {
-    m_pimpl_->m_mesh_factory_ = f;
-};
-std::shared_ptr<DomainView> Domain::CreateView(){
-
-};
-
-void Domain::SetMeshView(std::shared_ptr<MeshView> const &m) {
-    m_pimpl_->m_mesh_ = m;
-    m_pimpl_->m_geo_obj_ = m->GetGeoObject();
-};
-
-std::shared_ptr<MeshView> &Domain::GetMeshView() const { return m_pimpl_->m_mesh_; };
-std::shared_ptr<MeshView> Domain::CreateMeshView() {
-    std::shared_ptr<MeshView> m = nullptr;
-    if (m_pimpl_->m_mesh_ != nullptr) {
-        m = m_pimpl_->m_mesh_->Duplicate();
-    } else if (m_pimpl_->m_mesh_factory_) {
-        m = m_pimpl_->m_mesh_factory_(db()->GetTable("Mesh"), GetGeoObject());
-    }
-};
-void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl_->m_geo_obj_ = g; };
-
-std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; };
-
-struct DomainView::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     std::shared_ptr<MeshView> m_mesh_;
     std::map<int, std::shared_ptr<Worker>> m_workers_;
@@ -62,17 +23,49 @@ struct DomainView::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<data::DataTable> m_patch_;
 };
-DomainView::DomainView(std::shared_ptr<MeshView> const &m = nullptr, std::shared_ptr<geometry::GeoObject> const &g)
+
+Domain::Domain(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<geometry::GeoObject> const &g = nullptr)
     : concept::Configurable(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_obj_ = g;
 }
 
-DomainView::~DomainView() {
+Domain::Domain(std::shared_ptr<MeshView> const &m = nullptr) : m_pimpl_(new pimpl_s), m_pimpl_(new pimpl_s) {
+    if (m != nullptr) { m_pimpl_->m_geo_obj_ = m->GetGeoObject(); }
+}
+
+Domain::Domain(const Domain &other) : m_pimpl_(new pimpl_s) { UNIMPLEMENTED; }
+
+Domain::~Domain() {
     for (auto *item : m_pimpl_->m_attr_bundle_) { Detach(item); }
     Finalize();
 }
-std::shared_ptr<MeshView> const &DomainView::GetMeshView() const { return m_pimpl_->m_mesh_; }
-std::shared_ptr<geometry::GeoObject> const &DomainView::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
+
+// void Domain::RegisterMeshFactory(
+//    std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &,
+//                                            std::shared_ptr<geometry::GeoObject> const &)> const &f) {
+//    m_pimpl_->m_mesh_factory_ = f;
+//};
+
+std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
+
+std::shared_ptr<MeshView> const &Domain::GetMeshView() const { return m_pimpl_->m_mesh_; }
+
+void Domain::SetMeshView(std::shared_ptr<MeshView> const &m) {
+    m_pimpl_->m_mesh_ = m;
+    db()->("Mesh", m->db());
+    m_pimpl_->m_geo_obj_ = m->GetGeoObject();
+};
+
+std::shared_ptr<Domain> Domain::Clone() const { return std::make_shared<Domain>(*this); }
+
+// std::shared_ptr<MeshView> Domain::CreateMeshView() {
+//    std::shared_ptr<MeshView> m = nullptr;
+//    if (m_pimpl_->m_mesh_ != nullptr) {
+//        m = m_pimpl_->m_mesh_->Duplicate();
+//    } else if (m_pimpl_->m_mesh_factory_) {
+//        m = m_pimpl_->m_mesh_factory_(db()->GetTable("Mesh"), GetGeoObject());
+//    }
+//};
 /**
  *
  * @startuml
@@ -144,17 +137,17 @@ std::shared_ptr<geometry::GeoObject> const &DomainView::GetGeoObject() const { r
  * deactivate Main
  * @enduml
  */
-void DomainView::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &d) {
+void Domain::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &d) {
     ASSERT(m != nullptr);
     m_pimpl_->m_mesh_block_ = m;
     if (m_pimpl_->m_patch_ == nullptr) { m_pimpl_->m_patch_ = std::make_shared<data::DataTable>(); }
     ASSERT(d->isTable());
     m_pimpl_->m_patch_->Set(d->cast_as<data::DataTable>());
 };
-void DomainView::PushData(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> const &p) {
+void Domain::PushData(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> const &p) {
     PushData(p.first, p.second);
 }
-std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> DomainView::PopData() {
+std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Domain::PopData() {
     auto res = std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(),
                               std::dynamic_pointer_cast<data::DataTable>(m_pimpl_->m_patch_));
 
@@ -162,7 +155,7 @@ std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> DomainVi
     return (res);
 };
 
-void DomainView::Run(Real dt) {
+void Domain::Run(Real dt) {
     m_pimpl_->m_mesh_->PushData(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
 
     for (auto &item : m_pimpl_->m_workers_) {
@@ -175,7 +168,7 @@ void DomainView::Run(Real dt) {
         PushData(res);  // item.second->PopData());
     }
 }
-void DomainView::Attach(AttributeViewBundle *p) {
+void Domain::Attach(AttributeViewBundle *p) {
     if (p == nullptr) { return; }
     auto res = m_pimpl_->m_attr_bundle_.emplace(p);
 
@@ -195,10 +188,10 @@ void DomainView::Attach(AttributeViewBundle *p) {
         });
     }
 }
-void DomainView::Detach(AttributeViewBundle *p) {
+void Domain::Detach(AttributeViewBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) {}
 }
-void DomainView::Initialize() {
+void Domain::Initialize() {
     if (m_pimpl_->m_mesh_ != nullptr) { return; }
     m_pimpl_->m_mesh_ = GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"), m_pimpl_->m_geo_obj_);
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
@@ -214,22 +207,22 @@ void DomainView::Initialize() {
     }
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
 }
-void DomainView::Finalize() { m_pimpl_.reset(new pimpl_s); }
+void Domain::Finalize() { m_pimpl_.reset(new pimpl_s); }
 
-std::pair<std::shared_ptr<Worker>, bool> DomainView::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
+std::pair<std::shared_ptr<Worker>, bool> Domain::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
     ASSERT(w != nullptr);
     auto res = m_pimpl_->m_workers_.emplace(pos, w);
     if (res.second) { Attach(res.first->second.get()); }
     return std::make_pair(res.first->second, res.second);
 }
 
-void DomainView::RemoveWorker(std::shared_ptr<Worker> const &w) {
+void Domain::RemoveWorker(std::shared_ptr<Worker> const &w) {
     UNIMPLEMENTED;
     //    auto it = m_backend_->m_workers_.find(w);
     //    if (it != m_backend_->m_workers_.end()) { m_backend_->m_workers_.Disconnect(it); }
 };
 
-// std::ostream &DomainView::Print(std::ostream &os, int indent) const {
+// std::ostream &Domain::Print(std::ostream &os, int indent) const {
 //    if (m_pimpl_->m_mesh_ != nullptr) {
 //        os << " Mesh = { ";
 //        m_pimpl_->m_mesh_->Print(os, indent);

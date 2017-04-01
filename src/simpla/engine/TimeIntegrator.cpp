@@ -95,7 +95,7 @@ Real TimeIntegrator::Advance(Real dt, int level) {
             auto res = m_pimpl_->m_ctx_->GetPatches()->Get(std::to_string(id));
             if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
             v.second->PushData(mblk, res);
-            LOGGER << " DomainView [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
+            LOGGER << " Domain [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
                    << mblk->GetIndexBox() << " id= " << id << std::endl;
             v.second->Run(dt);
             auto t = v.second->PopData().second;
@@ -105,7 +105,7 @@ Real TimeIntegrator::Advance(Real dt, int level) {
     m_pimpl_->m_time_ += dt;
     return m_pimpl_->m_time_;
     //    for (auto const &item : atlas.GetLayer(level)) {
-    //        for (auto &v : m_pimpl_->m_views_) {
+    //        for (auto &v : m_pimpl_->m_domains_) {
     //            auto b_box = v.second->GetMesh()->inner_bound_box();
     //            if (!geometry::check_overlap(item.second->GetBox(), b_box)) { continue; }
     //            v.second->Dispatch(m_pimpl_->m_patches_[item.first]);
@@ -114,7 +114,7 @@ Real TimeIntegrator::Advance(Real dt, int level) {
     //    }
     //    for (int i = 0; i < m_pimpl_->m_refine_ratio_; ++i) { Run(dt / m_pimpl_->m_refine_ratio_, level + 1); }
     //    for (auto const &item : atlas.GetLayer(level)) {
-    //        for (auto &v : m_pimpl_->m_views_) {
+    //        for (auto &v : m_pimpl_->m_domains_) {
     //            auto b_box = v.second->GetMesh()->GetGeoObject()->GetBoundBox();
     //            if (!geometry::check_overlap(item.second->GetBox(), b_box)) { continue; }
     //            v.second->Dispatch(m_pimpl_->m_patches_[item.first]);

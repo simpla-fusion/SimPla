@@ -14,7 +14,7 @@
 
 namespace simpla {
 namespace engine {
-class DomainView;
+class Domain;
 class MeshView;
 class MeshBlock;
 class AttributeView;
@@ -86,11 +86,11 @@ class Patch;
 
 class AttributeViewBundle {
    public:
-    AttributeViewBundle(DomainView *p = nullptr);
+    AttributeViewBundle(Domain *p = nullptr);
     virtual ~AttributeViewBundle();
     void Detach(AttributeView *attr);
     void Attach(AttributeView *attr);
-    void Connect(DomainView *);
+    void Connect(Domain *);
     void Disconnect();
     void SetMesh(MeshView const *);
     MeshView const *GetMesh() const;

@@ -73,7 +73,6 @@ class Context : public concept::Configurable {
     Atlas &GetAtlas() const;
     Model &GetModel() const;
     std::shared_ptr<data::DataTable> GetPatches() const;
-    void SetDomain(std::string const &d_name, std::shared_ptr<data::DataTable> const &p);
     void SetDomain(std::string const &d_name, std::shared_ptr<Domain> const &p);
     std::shared_ptr<Domain> GetDomain(std::string const &d_name) const;
     std::map<std::string, std::shared_ptr<Domain>> const &GetAllDomains() const;

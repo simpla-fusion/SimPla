@@ -14,15 +14,15 @@ namespace simpla {
 namespace engine {
 
 struct AttributeViewBundle::pimpl_s {
-    DomainView *m_domain_ = nullptr;
+    Domain *m_domain_ = nullptr;
     MeshView const *m_mesh_;
     std::set<AttributeView *> m_attr_views_;
 };
 
-AttributeViewBundle::AttributeViewBundle(DomainView *d) : m_pimpl_(new pimpl_s) { Connect(d); }
+AttributeViewBundle::AttributeViewBundle(Domain *d) : m_pimpl_(new pimpl_s) { Connect(d); }
 AttributeViewBundle::~AttributeViewBundle() { Disconnect(); }
 
-void AttributeViewBundle::Connect(DomainView *d) {
+void AttributeViewBundle::Connect(Domain *d) {
     if (d != m_pimpl_->m_domain_) {
         Disconnect();
         m_pimpl_->m_domain_ = d;

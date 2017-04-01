@@ -18,48 +18,19 @@ class AttributeView;
 class MeshView;
 class MeshBlock;
 class DataBlock;
-class DomainView;
+class Domain;
 class Worker;
 
-class Domain : public concept::Configurable {
+class Domain : public concept::Configurable, std::enable_shared_from_this<Domain> {
    public:
-    Domain();
-    ~Domain();
-
-    void RegisterMeshFactory(
-        std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &,
-                                                std::shared_ptr<geometry::GeoObject> const &)> const &);
-    template <typename U>
-    void RegisterMeshFactory(ENABLE_IF((std::is_base_of<MeshView, U>::value))) {
-        RegisterMeshFactory([](std::shared_ptr<data::DataTable> const &t,
-                               std::shared_ptr<geometry::GeoObject> const &g) -> std::shared_ptr<MeshView> {
-            return std::make_shared<U>(t, g);
-        });
-    };
-
-    std::shared_ptr<DomainView> CreateView();
-
-    void SetMeshView(std::shared_ptr<MeshView> const &m);
-    std::shared_ptr<MeshView> &GetMeshView() const;
-    std::shared_ptr<MeshView> CreateMeshView();
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &);
-    std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
-
-    std::pair<std::shared_ptr<Worker>, bool> AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
-    void RemoveWorker(std::shared_ptr<Worker> const &w);
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
-};
-
-class DomainView {
-   public:
-    DomainView(std::shared_ptr<MeshView> const &m = nullptr, std::shared_ptr<geometry::GeoObject> const &g = nullptr);
-    virtual ~DomainView();
+    Domain(std::shared_ptr<data::DataTable> const &m, std::shared_ptr<geometry::GeoObject> const &g = nullptr);
+    Domain(std::shared_ptr<MeshView> const &m);
+    Domain(const Domain &);
+    virtual ~Domain();
     virtual void Initialize();
     virtual void Finalize();
-
+    std::shared_ptr<Domain> Clone() const;
+    void SetMeshView(std::shared_ptr<MeshView> const &);
     std::shared_ptr<MeshView> const &GetMeshView() const;
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
