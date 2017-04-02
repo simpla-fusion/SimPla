@@ -18,9 +18,9 @@ void create_scenario(simulation::Context *ctx, toolbox::ConfigParser const &opti
 
     auto center_mesh = ctx->add_mesh<mesh_type>();
     center_mesh->name("Center");
-    center_mesh->dimensions(options["MeshView"]["Dimensions"].template as<index_tuple>(index_tuple{20, 20, 1}));
-    center_mesh->ghost_width(options["MeshView"]["GhostWidth"].template as<index_tuple>(index_tuple{2, 2, 2}));
-    center_mesh->box(options["MeshView"]["RectMesh"].template as<box_type>(box_type{{0, 0, 0},
+    center_mesh->dimensions(options["Mesh"]["Dimensions"].template as<index_tuple>(index_tuple{20, 20, 1}));
+    center_mesh->ghost_width(options["Mesh"]["GhostWidth"].template as<index_tuple>(index_tuple{2, 2, 2}));
+    center_mesh->box(options["Mesh"]["RectMesh"].template as<box_type>(box_type{{0, 0, 0},
                                                                            {1, 1, 1}}));
     center_mesh->deploy();
 

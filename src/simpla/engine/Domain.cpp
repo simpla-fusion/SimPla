@@ -6,7 +6,7 @@
 #include <set>
 #include "Attribute.h"
 #include "MeshBlock.h"
-#include "MeshView.h"
+#include "Mesh.h"
 #include "Patch.h"
 #include "SPObject.h"
 #include "Worker.h"
@@ -15,7 +15,7 @@ namespace engine {
 
 struct Domain::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
-    std::shared_ptr<MeshView> m_mesh_;
+    std::shared_ptr<Mesh> m_mesh_;
     std::map<int, std::shared_ptr<Worker>> m_workers_;
     std::set<AttributeViewBundle *> m_attr_bundle_;
 
@@ -28,7 +28,7 @@ Domain::Domain(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<geomet
     m_pimpl_->m_geo_obj_ = g;
 }
 
-Domain::Domain(std::shared_ptr<MeshView> const &m) : m_pimpl_(new pimpl_s) {
+Domain::Domain(std::shared_ptr<Mesh> const &m) : m_pimpl_(new pimpl_s) {
     if (m != nullptr) { m_pimpl_->m_geo_obj_ = m->GetGeoObject(); }
 }
 
@@ -40,16 +40,16 @@ Domain::~Domain() {
 }
 
 // void Domain::RegisterMeshFactory(
-//    std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataTable> const &,
+//    std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataTable> const &,
 //                                            std::shared_ptr<geometry::GeoObject> const &)> const &f) {
 //    m_pimpl_->m_mesh_factory_ = f;
 //};
 
 std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
-std::shared_ptr<MeshView> const &Domain::GetMeshView() const { return m_pimpl_->m_mesh_; }
+std::shared_ptr<Mesh> const &Domain::GetMeshView() const { return m_pimpl_->m_mesh_; }
 
-void Domain::SetMeshView(std::shared_ptr<MeshView> const &m) {
+void Domain::SetMeshView(std::shared_ptr<Mesh> const &m) {
     m_pimpl_->m_mesh_ = m;
     db()->Set("Mesh", m->db());
     m_pimpl_->m_geo_obj_ = m->GetGeoObject();
@@ -57,8 +57,8 @@ void Domain::SetMeshView(std::shared_ptr<MeshView> const &m) {
 
 std::shared_ptr<Domain> Domain::Clone() const { return std::make_shared<Domain>(*this); }
 
-// std::shared_ptr<MeshView> Domain::CreateMeshView() {
-//    std::shared_ptr<MeshView> m = nullptr;
+// std::shared_ptr<Mesh> Domain::CreateMeshView() {
+//    std::shared_ptr<Mesh> m = nullptr;
 //    if (m_pimpl_->m_mesh_ != nullptr) {
 //        m = m_pimpl_->m_mesh_->Duplicate();
 //    } else if (m_pimpl_->m_mesh_factory_) {

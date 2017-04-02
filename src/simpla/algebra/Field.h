@@ -80,16 +80,13 @@ class FieldView : public engine::Attribute {
     };
 
     template <typename... Args>
-    explicit FieldView(Args&&... args)
-        : engine::Attribute(std::forward<Args>(args)...){
-
-          };
+    explicit FieldView(Args&&... args) : engine::Attribute(std::forward<Args>(args)...){};
 
     FieldView(this_type const& other) = delete;
     FieldView(this_type&& other) = delete;
     virtual ~FieldView() {}
 
-    virtual std::shared_ptr<engine::Attribute> Clone() const { return std::make_shared<this_type>(*this); };
+//    virtual std::shared_ptr<engine::Attribute> Clone() const { return std::make_shared<this_type>(*this); };
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
 
@@ -140,7 +137,7 @@ class FieldView : public engine::Attribute {
         }
     }
     virtual std::pair<std::shared_ptr<engine::MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
-        std::shared_ptr<data::DataTable> t = nullptr;
+        std::shared_ptr<data::DataEntity> t = nullptr;
         if (num_of_subs == 1) {
             t = std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[0]);
         } else {
@@ -253,7 +250,7 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
     Field_(this_type const& other) : base_type(other){};
     Field_(this_type&& other) : base_type(other){};
     ~Field_() {}
-    virtual std::shared_ptr<engine::Attribute> Clone() const { return std::make_shared<this_type>(*this); };
+//    virtual std::shared_ptr<engine::Attribute> Clone() const { return std::make_shared<this_type>(*this); };
 
     using base_type::operator[];
     using base_type::operator=;

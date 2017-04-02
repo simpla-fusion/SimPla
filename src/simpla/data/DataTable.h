@@ -8,9 +8,9 @@
 #include <simpla/SIMPLA_config.h>
 #include <simpla/engine/SPObjectHead.h>
 #include <memory>
+#include "DataArray.h"
 #include "DataEntity.h"
 #include "DataTraits.h"
-#include "DataArray.h"
 namespace simpla {
 namespace data {
 template <typename U, typename Enable = void>
@@ -33,6 +33,13 @@ class DataTable : public DataEntity {
     DataTable(std::string const& uri, std::string const& param = "");
     DataTable(std::shared_ptr<DataBackend> const& p);
     DataTable(const DataTable&);
+
+    DataTable(std::initializer_list<KeyValue> const& l);
+
+    template <typename... Others>
+    explicit DataTable(KeyValue const& v, Others&&... others) : DataTable() {
+        SetValue(v, std::forward<Others>(others)...);
+    }
     DataTable(DataTable&&);
     virtual ~DataTable();
     void swap(DataTable&);
@@ -52,6 +59,7 @@ class DataTable : public DataEntity {
     size_type size() const;
 
     std::shared_ptr<DataEntity> Get(std::string const& uri) const;
+
     void Set(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr, bool overwrite = true);
     void Add(std::string const& uri, std::shared_ptr<DataEntity> const& p = nullptr);
     void Delete(std::string const& uri);

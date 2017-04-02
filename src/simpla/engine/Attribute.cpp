@@ -8,14 +8,14 @@
 #include <typeindex>
 #include "Domain.h"
 #include "MeshBlock.h"
-#include "MeshView.h"
+#include "Mesh.h"
 #include "Patch.h"
 namespace simpla {
 namespace engine {
 
 struct AttributeViewBundle::pimpl_s {
     Domain *m_domain_ = nullptr;
-    MeshView const *m_mesh_;
+    Mesh const *m_mesh_;
     std::set<Attribute *> m_attr_views_;
 };
 
@@ -44,12 +44,12 @@ void AttributeViewBundle::Detach(Attribute *p) {
     if (p != nullptr) { m_pimpl_->m_attr_views_.erase(p); }
 }
 
-void AttributeViewBundle::SetMesh(MeshView const *m) {
+void AttributeViewBundle::SetMesh(Mesh const *m) {
     if (m == nullptr) { return; }
     m_pimpl_->m_mesh_ = m;
     for (Attribute *v : m_pimpl_->m_attr_views_) { v->SetMesh(m); }
 }
-MeshView const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
+Mesh const *AttributeViewBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 void AttributeViewBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &p) {
     if (GetMesh() == nullptr || m == nullptr || GetMesh()->GetMeshBlockId() != m->GetGUID()) {
@@ -70,7 +70,7 @@ void AttributeViewBundle::Foreach(std::function<void(Attribute *)> const &fun) c
 
 struct Attribute::pimpl_s {
     AttributeViewBundle *m_bundle_ = nullptr;
-    MeshView const *m_mesh_ = nullptr;
+    Mesh const *m_mesh_ = nullptr;
 };
 Attribute::Attribute(AttributeViewBundle *b, std::shared_ptr<data::DataTable> const &t)
     : SPObject(t), m_pimpl_(new pimpl_s) {
@@ -83,7 +83,7 @@ Attribute::~Attribute() {
     m_pimpl_->m_bundle_ = nullptr;
 }
 
-void Attribute::SetMesh(MeshView const *m) {
+void Attribute::SetMesh(Mesh const *m) {
     if (m == nullptr) { return; }
     if ((m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo())) {
         m_pimpl_->m_mesh_ = m;
@@ -93,7 +93,7 @@ void Attribute::SetMesh(MeshView const *m) {
     }
 }
 
-MeshView const *Attribute::GetMesh() const {
+Mesh const *Attribute::GetMesh() const {
     return m_pimpl_->m_mesh_ != nullptr ? m_pimpl_->m_mesh_
                                         : (m_pimpl_->m_bundle_ != nullptr ? m_pimpl_->m_bundle_->GetMesh() : nullptr);
 }

@@ -31,8 +31,8 @@ class EMFluid : public engine::Worker {
 
     mesh_type* m_mesh_;
 
-    virtual engine::MeshView* mesh() { return m_mesh_; };
-    virtual engine::MeshView const* mesh() const { return m_mesh_; };
+    virtual engine::Mesh* mesh() { return m_mesh_; };
+    virtual engine::Mesh const* mesh() const { return m_mesh_; };
 
     virtual std::ostream& Print(std::ostream& os, int indent = 1) const;
 

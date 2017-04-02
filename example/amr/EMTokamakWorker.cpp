@@ -19,7 +19,7 @@ using namespace engine;
 // using namespace model;
 
 class EMTokamakWorker;
-std::shared_ptr<engine::MeshView> create_mesh() { return std::make_shared<mesh::CylindricalGeometry>(); }
+std::shared_ptr<engine::Mesh> create_mesh() { return std::make_shared<mesh::CylindricalGeometry>(); }
 
 std::shared_ptr<engine::Worker> create_worker() {
     return std::dynamic_pointer_cast<engine::Worker>(std::make_shared<EMTokamakWorker>());
@@ -43,7 +43,7 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
     virtual void SetPhysicalBoundaryConditionE(Real time);
     virtual void SetPhysicalBoundaryConditionB(Real time);
 
-    field_type<VERTEX> psi{this, "psi"};
+    field_type<VERTEX> psi{this, "name"_="psi"};
     std::function<Vec3(point_type const &, Real)> J_src_fun;
     std::function<Vec3(point_type const &, Real)> E_src_fun;
 };
@@ -104,4 +104,4 @@ void EMTokamakWorker::SetPhysicalBoundaryConditionE(Real time) {
 void EMTokamakWorker::SetPhysicalBoundaryConditionB(Real time) {
     //    B.Assign(model()->interface(FACE, "PLASMA", "VACUUM"), 0);
 }
-}
+}//namespace simpla {

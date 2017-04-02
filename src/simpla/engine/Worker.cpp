@@ -4,13 +4,13 @@
 #include "Worker.h"
 #include "Attribute.h"
 #include "Domain.h"
-#include "MeshView.h"
+#include "Mesh.h"
 #include "Patch.h"
 namespace simpla {
 namespace engine {
 
 struct WorkerFactory::pimpl_s {
-    std::map<std::string, std::function<std::shared_ptr<Worker>(std::shared_ptr<MeshView> const &,
+    std::map<std::string, std::function<std::shared_ptr<Worker>(std::shared_ptr<Mesh> const &,
                                                                 std::shared_ptr<data::DataTable> const &)>>
         m_worker_factory_;
 };
@@ -18,7 +18,7 @@ struct WorkerFactory::pimpl_s {
 WorkerFactory::WorkerFactory() : m_pimpl_(new pimpl_s){};
 WorkerFactory::~WorkerFactory(){};
 bool WorkerFactory::RegisterCreator(
-    std::string const &k, std::function<std::shared_ptr<Worker>(std::shared_ptr<MeshView> const &,
+    std::string const &k, std::function<std::shared_ptr<Worker>(std::shared_ptr<Mesh> const &,
                                                                 std::shared_ptr<data::DataTable> const &)> const &fun) {
     auto res = m_pimpl_->m_worker_factory_.emplace(k, fun).second;
 
@@ -26,7 +26,7 @@ bool WorkerFactory::RegisterCreator(
 
     return res;
 };
-std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m,
+std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<Mesh> const &m,
                                               std::shared_ptr<data::DataEntity> const &config) {
     std::string s_name = "";
     std::shared_ptr<data::DataTable> d = nullptr;
@@ -52,9 +52,9 @@ std::shared_ptr<Worker> WorkerFactory::Create(std::shared_ptr<MeshView> const &m
 }
 
 struct Worker::pimpl_s {
-    MeshView const *m_mesh_ = nullptr;
+    Mesh const *m_mesh_ = nullptr;
 };
-Worker::Worker(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataTable> const &t)
+Worker::Worker(std::shared_ptr<Mesh> const &m, std::shared_ptr<data::DataTable> const &t)
     : concept::Configurable(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_mesh_ = m.get();
 }

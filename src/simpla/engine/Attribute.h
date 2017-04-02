@@ -15,7 +15,7 @@
 namespace simpla {
 namespace engine {
 class Domain;
-class MeshView;
+class Mesh;
 class MeshBlock;
 class Attribute;
 class Patch;
@@ -92,8 +92,8 @@ class AttributeViewBundle {
     void Attach(Attribute *attr);
     void Connect(Domain *);
     void Disconnect();
-    void SetMesh(MeshView const *);
-    MeshView const *GetMesh() const;
+    void SetMesh(Mesh const *);
+    Mesh const *GetMesh() const;
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &);
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData();
 
@@ -134,15 +134,15 @@ struct Attribute : public SPObject {
     Attribute(AttributeViewBundle *b) : Attribute(b, std::shared_ptr<data::DataTable>(nullptr)){};
     template <typename U, typename... Args>
     explicit Attribute(AttributeViewBundle *b, U const &first, Args &&... args)
-        : Attribute(b, data::make_data_entity(first, std::forward<Args>(args)...)){};
+        : Attribute(b, std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
     Attribute(Attribute const &other) = delete;
     Attribute(Attribute &&other) = delete;
     virtual ~Attribute();
 
-    virtual std::shared_ptr<Attribute> Clone() const = 0;
+//    virtual std::shared_ptr<Attribute> Clone() const = 0;
 
-    void SetMesh(MeshView const *);
-    MeshView const *GetMesh() const;
+    void SetMesh(Mesh const *);
+    Mesh const *GetMesh() const;
 
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
@@ -196,8 +196,8 @@ struct Attribute : public SPObject {
 //    virtual std::type_info const &value_type_info() const { return typeid(value_type); };  //!< value type
 //    virtual std::type_info const &mesh_type_info() const { return typeid(void); };         //!< mesh type
 //    virtual void Clear() { U::Clear(); }
-//    virtual void SetMesh(MeshView const *){};
-//    virtual MeshView const *GetMesh() const { return nullptr; };
+//    virtual void SetMesh(Mesh const *){};
+//    virtual Mesh const *GetMesh() const { return nullptr; };
 //    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &d) {
 //        data::data_cast<U>(*d).swap(*this);
 //    };
@@ -230,11 +230,11 @@ struct Attribute : public SPObject {
 //    typedef Array<TV, 3 + (((IFORM == VERTEX || IFORM == VOLUME) && DOF == 1) ? 0 : 1)> array_type;
 //    typedef DataAttribute<TV, IFORM, DOF> data_attr_type;
 //    SP_OBJECT_HEAD(data_attr_type, Attribute);
-//    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, MeshView)
+//    CHOICE_TYPE_WITH_TYPE_MEMBER(mesh_traits, mesh_type, Mesh)
 //    typedef TV value_type;
 //    static constexpr int GetIFORM = IFORM;
 //    static constexpr int GetDOF = DOF;
-//    typedef MeshView mesh_type;
+//    typedef Mesh mesh_type;
 //
 //    template <typename TM, typename... Args>
 //    DataAttribute(TM *w, Args &&... args)
@@ -273,7 +273,7 @@ struct Attribute : public SPObject {
 //    static std::shared_ptr<this_type> make_shared(Args &&... args) {
 //        return std::make_shared<this_type>(std::forward<Args>(args)...);
 //    }
-//    static std::shared_ptr<this_type> make_shared(MeshView *c, std::initializer_list<data::KeyValue> const &param) {
+//    static std::shared_ptr<this_type> make_shared(Mesh *c, std::initializer_list<data::KeyValue> const &param) {
 //        return std::make_shared<this_type>(c, param);
 //    }
 //    virtual std::ostream &Print(std::ostream &os, int indent = 0) const { return array_type::Print(os, indent); }

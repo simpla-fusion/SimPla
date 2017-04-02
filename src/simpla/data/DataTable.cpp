@@ -23,6 +23,10 @@ DataTable::DataTable(std::shared_ptr<DataBackend> const& p) : m_backend_(p) { AS
 DataTable::DataTable(const DataTable& other) : m_backend_(other.m_backend_->Duplicate()) {
     ASSERT(m_backend_ != nullptr);
 }
+DataTable::DataTable(std::initializer_list<KeyValue> const& l) : DataTable() {
+    for (auto const& item : l) { Set(item.first, item.second); }
+}
+
 DataTable::DataTable(DataTable&& other) : m_backend_(other.m_backend_) { ASSERT(m_backend_ != nullptr); }
 
 DataTable::~DataTable(){};
@@ -101,10 +105,12 @@ void DataTable::Add(std::string const& uri, DataEntity const& p) { Add(uri, p.Du
 
 std::shared_ptr<DataTable> DataTable::GetTable(std::string const& uri) const {
     auto p = Get(uri);
-    if (p != nullptr && p->isTable()) {
+    if (p == nullptr) {
+        return nullptr;
+    } else if (p->isTable()) {
         return std::dynamic_pointer_cast<DataTable>(p);
     } else {
-        RUNTIME_ERROR << uri << " is not a table or not exists" << std::endl;
+        RUNTIME_ERROR << uri << " is not a table!" << std::endl;
         return nullptr;
     }
 }

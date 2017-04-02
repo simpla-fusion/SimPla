@@ -8,7 +8,7 @@
 #include <simpla/geometry/GeoObject.h>
 #include <simpla/mesh/EntityId.h>
 #include "Attribute.h"
-#include "MeshView.h"
+#include "Mesh.h"
 
 namespace simpla {
 namespace model {

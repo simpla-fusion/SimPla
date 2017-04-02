@@ -12,7 +12,7 @@ namespace engine {
 
 struct TimeIntegratorFactory::pimpl_s {
     std::map<std::string, std::function<std::shared_ptr<TimeIntegrator>(std::shared_ptr<Context> const &,
-                                                                        std::shared_ptr<data::DataEntity> const &)>>
+                                                                        std::shared_ptr<data::DataTable> const &)>>
         m_TimeIntegrator_factory_;
 };
 
@@ -24,7 +24,7 @@ TimeIntegratorFactory::~TimeIntegratorFactory(){};
 bool TimeIntegratorFactory::RegisterCreator(
     std::string const &k,
     std::function<std::shared_ptr<TimeIntegrator>(std::shared_ptr<Context> const &,
-                                                  std::shared_ptr<data::DataEntity> const &)> const &fun) {
+                                                  std::shared_ptr<data::DataTable> const &)> const &fun) {
     auto res = m_pimpl_->m_TimeIntegrator_factory_.emplace(k, fun).second;
 
     if (res) { LOGGER << "TimeIntegrator Creator [ " << k << " ] is registered!" << std::endl; }

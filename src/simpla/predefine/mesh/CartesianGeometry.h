@@ -18,7 +18,7 @@
 #include <simpla/toolbox/MemoryPool.h>
 //#include <simpla/mesh/DataBlock.h>
 //#include <simpla/mesh/RectMesh.h>
-//#include "simpla/mesh/MeshView.h"
+//#include "simpla/mesh/Mesh.h"
 
 namespace simpla {
 namespace mesh {
@@ -29,7 +29,7 @@ namespace mesh {
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public engine::MeshView {
+struct CartesianGeometry : public engine::Mesh {
    public:
     SP_OBJECT_HEAD(CartesianGeometry, engine::MeshView)
 
@@ -70,12 +70,12 @@ struct CartesianGeometry : public engine::MeshView {
    public:
     CartesianGeometry(std::shared_ptr<data::DataEntity> const &t,
                       std::shared_ptr<geometry::GeoObject> const &g = nullptr)
-        : engine::MeshView(t, g) {
+        : engine::Mesh(t, g) {
         db()->SetValue("name", "CartesianGeometry");
     }
 
     CartesianGeometry(Real const *lower, Real const *upper)
-        : engine::MeshView(nullptr, std::make_shared<geometry::Cube>(lower, upper)) {
+        : engine::Mesh(nullptr, std::make_shared<geometry::Cube>(lower, upper)) {
         db()->SetValue("name", "CartesianGeometry");
         CHECK(*db());
     }
@@ -100,7 +100,7 @@ struct CartesianGeometry : public engine::MeshView {
     void apply(Args &&...) const {}
 
     void deploy() {
-        engine::MeshView::Initialize();
+        engine::Mesh::Initialize();
         Initialize();
     };
 
@@ -109,10 +109,10 @@ struct CartesianGeometry : public engine::MeshView {
         return point_type{static_cast<Real>(x), static_cast<Real>(y), static_cast<Real>(z)};
     }
 
-    virtual point_type point(MeshEntityId s) const { return point_type(); /*MeshView::point(s); */ }
+    virtual point_type point(MeshEntityId s) const { return point_type(); /*Mesh::point(s); */ }
 
     virtual point_type point(MeshEntityId s, point_type const &r) const {
-        return point_type(); /*MeshView::point(s); */
+        return point_type(); /*Mesh::point(s); */
     }
 
     virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
@@ -131,7 +131,7 @@ struct CartesianGeometry : public engine::MeshView {
     TV &GetValue(std::shared_ptr<simpla::Array<TV, NDIMS>> *a, entity_id const &s) const {
         return a[m::node_id(s)]->at(m::unpack_index(s));
     }
-};  // struct  MeshView
+};  // struct  Mesh
 
 template <>
 struct mesh_traits<CartesianGeometry> {

@@ -101,7 +101,7 @@ namespace engine {
 class Worker : public concept::Configurable, public AttributeViewBundle {
     SP_OBJECT_BASE(Worker)
    public:
-    Worker(std::shared_ptr<MeshView> const &p = nullptr, std::shared_ptr<data::DataTable> const &t = nullptr);
+    Worker(std::shared_ptr<Mesh> const &p = nullptr, std::shared_ptr<data::DataTable> const &t = nullptr);
     virtual ~Worker();
 
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
@@ -109,8 +109,8 @@ class Worker : public concept::Configurable, public AttributeViewBundle {
     virtual void Process(){};
     virtual bool Update();
 
-    //    virtual void SetMesh(MeshView const *);
-    //    virtual MeshView const *GetMesh() const;
+    //    virtual void SetMesh(Mesh const *);
+    //    virtual Mesh const *GetMesh() const;
     //    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
     //    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();
 
@@ -131,16 +131,16 @@ struct WorkerFactory {
     WorkerFactory();
     ~WorkerFactory();
     bool RegisterCreator(std::string const &k,
-                         std::function<std::shared_ptr<Worker>(std::shared_ptr<MeshView> const &,
+                         std::function<std::shared_ptr<Worker>(std::shared_ptr<Mesh> const &,
                                                                std::shared_ptr<data::DataTable> const &)> const &);
     template <typename U>
     bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, [&](std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataTable> const &t) {
+        return RegisterCreator(k, [&](std::shared_ptr<Mesh> const &m, std::shared_ptr<data::DataTable> const &t) {
             return std::dynamic_pointer_cast<Worker>(std::make_shared<U>(m, t));
         });
     }
 
-    std::shared_ptr<Worker> Create(std::shared_ptr<MeshView> const &m, std::shared_ptr<data::DataEntity> const &p);
+    std::shared_ptr<Worker> Create(std::shared_ptr<Mesh> const &m, std::shared_ptr<data::DataEntity> const &p);
 
    private:
     struct pimpl_s;

@@ -42,10 +42,10 @@ struct TimeIntegratorFactory {
     ~TimeIntegratorFactory();
     bool RegisterCreator(std::string const &k,
                          std::function<std::shared_ptr<TimeIntegrator>(
-                             std::shared_ptr<Context> const &, std::shared_ptr<data::DataEntity> const &)> const &);
+                             std::shared_ptr<Context> const &, std::shared_ptr<data::DataTable> const &)> const &);
     template <typename U>
     bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, [&](std::shared_ptr<Context> const &m, std::shared_ptr<data::DataEntity> const &t) {
+        return RegisterCreator(k, [&](std::shared_ptr<Context> const &m, std::shared_ptr<data::DataTable> const &t) {
             return std::make_shared<U>(m, t);
         });
     }

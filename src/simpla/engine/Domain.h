@@ -15,7 +15,7 @@
 namespace simpla {
 namespace engine {
 class Attribute;
-class MeshView;
+class Mesh;
 class MeshBlock;
 class DataBlock;
 class Domain;
@@ -24,14 +24,14 @@ class Worker;
 class Domain : public concept::Configurable, public std::enable_shared_from_this<Domain> {
    public:
     Domain(std::shared_ptr<data::DataTable> const &m, std::shared_ptr<geometry::GeoObject> const &g = nullptr);
-    Domain(std::shared_ptr<MeshView> const &m);
+    Domain(std::shared_ptr<Mesh> const &m);
     Domain(const Domain &);
     virtual ~Domain();
     virtual void Initialize();
     virtual void Finalize();
     std::shared_ptr<Domain> Clone() const;
-    void SetMeshView(std::shared_ptr<MeshView> const &);
-    std::shared_ptr<MeshView> const &GetMeshView() const;
+    void SetMeshView(std::shared_ptr<Mesh> const &);
+    std::shared_ptr<Mesh> const &GetMeshView() const;
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &);

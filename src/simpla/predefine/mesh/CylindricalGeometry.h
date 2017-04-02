@@ -13,8 +13,8 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
 #include <simpla/engine/Attribute.h>
+#include <simpla/engine/Mesh.h>
 #include <simpla/engine/MeshBlock.h>
-#include <simpla/engine/MeshView.h>
 #include <simpla/mpl/macro.h>
 #include <simpla/mpl/type_cast.h>
 #include <simpla/mpl/type_traits.h>
@@ -30,9 +30,9 @@ using namespace data;
  * @brief Uniform structured get_mesh
  */
 
-struct CylindricalGeometry : public engine::MeshView {
+struct CylindricalGeometry : public engine::Mesh {
    public:
-    SP_OBJECT_HEAD(CylindricalGeometry, engine::MeshView)
+    SP_OBJECT_HEAD(CylindricalGeometry, engine::Mesh)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -43,9 +43,10 @@ struct CylindricalGeometry : public engine::MeshView {
 
     explicit CylindricalGeometry(std::shared_ptr<data::DataTable> const &t = nullptr,
                                  std::shared_ptr<geometry::GeoObject> const &g = nullptr)
-        : MeshView(t, g) {}
-
+        : Mesh(t, g) {}
+    CylindricalGeometry(CylindricalGeometry const &other) : Mesh(other.db(), other.GetGeoObject()) { UNIMPLEMENTED; }
     virtual ~CylindricalGeometry() {}
+    virtual std::shared_ptr<engine::Mesh> Clone() const { return std::make_shared<this_type>(*this); };
 
    private:
     Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics", "COORDINATES"_};
@@ -230,7 +231,7 @@ struct CylindricalGeometry : public engine::MeshView {
                 }
     }
 
-};  // struct  MeshView
+};  // struct  Mesh
 }
 }  // namespace simpla // namespace get_mesh
 

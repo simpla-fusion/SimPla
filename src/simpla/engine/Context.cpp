@@ -3,7 +3,7 @@
 //
 #include "Context.h"
 #include "Domain.h"
-#include "MeshView.h"
+#include "Mesh.h"
 #include "Worker.h"
 #include "simpla/data/all.h"
 #include "simpla/geometry/GeoAlgorithm.h"

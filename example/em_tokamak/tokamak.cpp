@@ -146,7 +146,7 @@ void EMTokamak::initialize(int argc, char **argv) {
 
         Real phi0 = 0, phi1 = TWOPI;
 
-        if (options["MeshView"]["Geometry"]["Box"].as(&box)) {
+        if (options["Mesh"]["Geometry"]["Box"].as(&box)) {
             phi0 = traits::get<0>(box)[2];
             phi1 = traits::get<1>(box)[2];
         }
@@ -160,12 +160,12 @@ void EMTokamak::initialize(int argc, char **argv) {
 
         m.box(box);
 
-        auto dims = options["MeshView"]["Geometry"]["Topology"]["Dimensions"].template as<nTuple<size_t, 3>>();
+        auto dims = options["Mesh"]["Geometry"]["Topology"]["Dimensions"].template as<nTuple<size_t, 3>>();
 
         m.dimensions(dims);
         m.ghost_width(index_tuple({2, 2, 0}));
 
-        m.dt(options["MeshView"]["dt"].template as<Real>(1.0));
+        m.dt(options["Mesh"]["dt"].template as<Real>(1.0));
     }
 
     m.deploy();

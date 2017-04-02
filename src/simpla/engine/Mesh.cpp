@@ -1,7 +1,7 @@
 //
 // Created by salmon on 16-11-24.
 //
-#include "MeshView.h"
+#include "Mesh.h"
 #include <simpla/geometry/GeoObject.h>
 #include "Attribute.h"
 #include "Domain.h"
@@ -12,7 +12,7 @@ namespace simpla {
 namespace engine {
 
 struct MeshViewFactory::pimpl_s {
-    std::map<std::string, std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataEntity> const &,
+    std::map<std::string, std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataEntity> const &,
                                                                   std::shared_ptr<geometry::GeoObject> const &)>>
         m_mesh_factory_;
 };
@@ -22,16 +22,16 @@ MeshViewFactory::~MeshViewFactory(){};
 
 bool MeshViewFactory::RegisterCreator(
     std::string const &k,
-    std::function<std::shared_ptr<MeshView>(std::shared_ptr<data::DataEntity> const &,
+    std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataEntity> const &,
                                             std::shared_ptr<geometry::GeoObject> const &)> const &fun) {
     auto res = m_pimpl_->m_mesh_factory_.emplace(k, fun).second;
     if (res) { LOGGER << "Mesh Creator [ " << k << " ] is registered!" << std::endl; }
     return res;
 };
 
-std::shared_ptr<MeshView> MeshViewFactory::Create(std::shared_ptr<data::DataEntity> const &config,
+std::shared_ptr<Mesh> MeshViewFactory::Create(std::shared_ptr<data::DataEntity> const &config,
                                                   std::shared_ptr<geometry::GeoObject> const &g) {
-    std::shared_ptr<MeshView> res = nullptr;
+    std::shared_ptr<Mesh> res = nullptr;
     try {
         std::string key = "";
         std::shared_ptr<data::DataTable> t = nullptr;
@@ -53,15 +53,15 @@ std::shared_ptr<MeshView> MeshViewFactory::Create(std::shared_ptr<data::DataEnti
                       << "] is missing!" << std::endl;
         return nullptr;
     }
-    if (res != nullptr) { LOGGER << "MeshView [" << res->name() << "] is created!" << std::endl; }
+    if (res != nullptr) { LOGGER << "Mesh [" << res->name() << "] is created!" << std::endl; }
     return res;
 }
 
-struct MeshView::pimpl_s {
+struct Mesh::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
 };
-MeshView::MeshView(std::shared_ptr<data::DataTable> const &t, const std::shared_ptr<geometry::GeoObject> &geo_obj)
+Mesh::Mesh(std::shared_ptr<data::DataTable> const &t, const std::shared_ptr<geometry::GeoObject> &geo_obj)
     : concept::Configurable(t), m_pimpl_(new pimpl_s) {
     AttributeViewBundle::SetMesh(this);
     m_pimpl_->m_geo_obj_ = geo_obj;
@@ -70,9 +70,9 @@ MeshView::MeshView(std::shared_ptr<data::DataTable> const &t, const std::shared_
     }
     db()->SetValue("GeometryObject", m_pimpl_->m_geo_obj_);
 }
-MeshView::~MeshView() {}
+Mesh::~Mesh() {}
 
-std::ostream &MeshView::Print(std::ostream &os, int indent) const {
+std::ostream &Mesh::Print(std::ostream &os, int indent) const {
     os << std::setw(indent + 1) << "value_type_info = \"" << GetClassName() << "\",";
     if (m_pimpl_->m_mesh_block_ != nullptr) {
         os << std::endl;
@@ -85,28 +85,28 @@ std::ostream &MeshView::Print(std::ostream &os, int indent) const {
 
     return os;
 };
-void MeshView::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl_->m_geo_obj_ = g; }
+void Mesh::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl_->m_geo_obj_ = g; }
 
-std::shared_ptr<geometry::GeoObject> const &MeshView::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
+std::shared_ptr<geometry::GeoObject> const &Mesh::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
-void MeshView::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &p) {
+void Mesh::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &p) {
     ASSERT(m != nullptr);
     m_pimpl_->m_mesh_block_ = m;
     AttributeViewBundle::SetMesh(this);
     AttributeViewBundle::PushData(m, p);
 };
-std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> MeshView::PopData() {
+std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Mesh::PopData() {
     return AttributeViewBundle::PopData();
 }
 
-id_type MeshView::GetMeshBlockId() const {
+id_type Mesh::GetMeshBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }
-std::shared_ptr<MeshBlock> const &MeshView::GetMeshBlock() const { return m_pimpl_->m_mesh_block_; }
+std::shared_ptr<MeshBlock> const &Mesh::GetMeshBlock() const { return m_pimpl_->m_mesh_block_; }
 
-void MeshView::Initialize() {}
+void Mesh::Initialize() {}
 
-//Real MeshView::GetDt() const { return 1.0; }
+//Real Mesh::GetDt() const { return 1.0; }
 
 }  // {namespace mesh
 }  // namespace simpla

@@ -12,7 +12,7 @@
 using namespace simpla::engine;
 using namespace simpla::data;
 
-struct Moo : public MeshView {
+struct Moo : public Mesh {
     SP_OBJECT_HEAD(Moo, MeshView)
 
     Moo() {}
