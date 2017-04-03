@@ -5,8 +5,8 @@
 #include <simpla/SIMPLA_config.h>
 #include <set>
 #include "Attribute.h"
-#include "MeshBlock.h"
 #include "Mesh.h"
+#include "MeshBlock.h"
 #include "Patch.h"
 #include "SPObject.h"
 #include "Worker.h"
@@ -21,9 +21,11 @@ struct Domain::pimpl_s {
 
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<data::DataTable> m_patch_;
+
+    std::set<Attribute *> m_attrs_;
 };
 
-Domain::Domain(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<geometry::GeoObject> const &g )
+Domain::Domain(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<geometry::GeoObject> const &g)
     : concept::Configurable(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_geo_obj_ = g;
 }
@@ -56,6 +58,7 @@ void Domain::SetMeshView(std::shared_ptr<Mesh> const &m) {
 };
 
 std::shared_ptr<Domain> Domain::Clone() const { return std::make_shared<Domain>(*this); }
+std::set<Attribute *> const &Domain::GetAttributes() const { return m_pimpl_->m_attrs_; };
 
 // std::shared_ptr<Mesh> Domain::CreateMeshView() {
 //    std::shared_ptr<Mesh> m = nullptr;
@@ -192,17 +195,21 @@ void Domain::Detach(AttributeViewBundle *p) {
 }
 void Domain::Initialize() {
     if (m_pimpl_->m_mesh_ != nullptr) { return; }
-    m_pimpl_->m_mesh_ = GLOBAL_MESHVIEW_FACTORY.Create(db()->Get("Mesh"), m_pimpl_->m_geo_obj_);
+    m_pimpl_->m_mesh_ = GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("Mesh"), m_pimpl_->m_geo_obj_);
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
     db()->Link("Mesh", m_pimpl_->m_mesh_->db());
     auto t_worker = db()->Get("Worker");
 
     if (t_worker != nullptr && t_worker->isArray()) {
-        //        CHECK(*t_worker);
-        //        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataTable> const &c) {
-        //            auto res = GLOBAL_WORKER_FACTORY.Create(m_pimpl_->m_mesh_, c);
-        //            AddWorker(res);
-        //        });
+        CHECK(*t_worker);
+        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
+            auto res = GLOBAL_WORKER_FACTORY.Create(m_pimpl_->m_mesh_, c);
+            AddWorker(res);
+        });
+    }
+
+    for (auto const &b : m_pimpl_->m_attr_bundle_) {
+        b->Foreach([&](Attribute *attr) { m_pimpl_->m_attrs_.insert(attr); });
     }
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
 }

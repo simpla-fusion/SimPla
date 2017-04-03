@@ -17,10 +17,7 @@ struct Model::pimpl_s {
 Model::Model(std::shared_ptr<data::DataTable> const& t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {}
 Model::~Model() {}
 
-void Model::Initialize() {
-    LOGGER << "Model is initializing " << std::endl;
-    LOGGER << "Model is initialized " << std::endl;
-}
+void Model::Initialize() { LOGGER << "Model is initialized " << std::endl; }
 
 bool Model::Update() { return false; };
 box_type const& Model::bound_box() const { return m_pimpl_->m_bound_box_; };

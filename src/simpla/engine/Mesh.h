@@ -22,14 +22,12 @@ class Patch;
  *   - \f$p\f$ is the projection
  *
  */
-class Mesh : public concept::Configurable,
-                 public AttributeViewBundle,
-                 public std::enable_shared_from_this<Mesh> {
+class Mesh : public concept::Configurable, public AttributeViewBundle, public std::enable_shared_from_this<Mesh> {
     SP_OBJECT_BASE(Mesh);
 
    public:
     Mesh(std::shared_ptr<data::DataTable> const &t = nullptr,
-             const std::shared_ptr<geometry::GeoObject> &obj = nullptr);
+         const std::shared_ptr<geometry::GeoObject> &obj = nullptr);
     virtual ~Mesh();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
@@ -92,21 +90,20 @@ struct MeshViewFactory {
     MeshViewFactory();
     ~MeshViewFactory();
 
-    bool RegisterCreator(
-        std::string const &k,
-        std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataEntity> const &,
-                                                std::shared_ptr<geometry::GeoObject> const &)> const &);
+    bool RegisterCreator(std::string const &k,
+                         std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataTable> const &,
+                                                             std::shared_ptr<geometry::GeoObject> const &)> const &);
 
     template <typename U>
     bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, [&](std::shared_ptr<data::DataEntity> const &t,
+        return RegisterCreator(k, [&](std::shared_ptr<data::DataTable> const &t,
                                       std::shared_ptr<geometry::GeoObject> const &g) -> std::shared_ptr<Mesh> {
             return std::make_shared<U>(t, g);
         });
     }
 
-    std::shared_ptr<Mesh> Create(std::shared_ptr<data::DataEntity> const &p,
-                                     std::shared_ptr<geometry::GeoObject> const &g = nullptr);
+    std::shared_ptr<Mesh> Create(std::shared_ptr<data::DataTable> const &p,
+                                 std::shared_ptr<geometry::GeoObject> const &g = nullptr);
 
    private:
     struct pimpl_s;

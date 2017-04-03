@@ -31,7 +31,7 @@ namespace mesh {
 
 struct CartesianGeometry : public engine::Mesh {
    public:
-    SP_OBJECT_HEAD(CartesianGeometry, engine::MeshView)
+    SP_OBJECT_HEAD(CartesianGeometry, engine::Mesh)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -68,7 +68,7 @@ struct CartesianGeometry : public engine::Mesh {
      */
 
    public:
-    CartesianGeometry(std::shared_ptr<data::DataEntity> const &t,
+    CartesianGeometry(std::shared_ptr<data::DataTable> const &t,
                       std::shared_ptr<geometry::GeoObject> const &g = nullptr)
         : engine::Mesh(t, g) {
         db()->SetValue("name", "CartesianGeometry");
@@ -79,12 +79,12 @@ struct CartesianGeometry : public engine::Mesh {
         db()->SetValue("name", "CartesianGeometry");
         CHECK(*db());
     }
+    CartesianGeometry(CartesianGeometry const &) { UNIMPLEMENTED; }
+    virtual ~CartesianGeometry() {}
 
-    ~CartesianGeometry() {}
-
+    std::shared_ptr<engine::Mesh> Clone() const { return std::make_shared<this_type>(*this); }
     void Initialize();
     virtual Range<entity_id> range() const { return Range<entity_id>(); };
-
 
    private:
     nTuple<Real, 3> m_dx_, m_inv_dx_;
@@ -111,9 +111,7 @@ struct CartesianGeometry : public engine::Mesh {
 
     virtual point_type point(MeshEntityId s) const { return point_type(); /*Mesh::point(s); */ }
 
-    virtual point_type point(MeshEntityId s, point_type const &r) const {
-        return point_type(); /*Mesh::point(s); */
-    }
+    virtual point_type point(MeshEntityId s, point_type const &r) const { return point_type(); /*Mesh::point(s); */ }
 
     virtual Real volume(MeshEntityId s) const { return m_volume_[m::node_id(s)]; }
 

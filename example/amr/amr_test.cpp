@@ -9,11 +9,12 @@
 #include <simpla/model/GEqdsk.h>
 #include <simpla/parallel/MPIComm.h>
 #include <simpla/physics/Constants.h>
+
 #include <simpla/toolbox/FancyStream.h>
 #include <iostream>
 
 using namespace simpla;
-
+using namespace simpla::data;
 
 int main(int argc, char **argv) {
     logger::set_stdout_level(100);
@@ -23,9 +24,9 @@ int main(int argc, char **argv) {
 
     auto ctx = time_integrator->GetContext();
 
-    ctx->db()->SetValue("name", "EMTokamak");
-    ctx->db()->SetValue("CartesianGeometry/domain_boxes_0", {{0, 0, 0}, {64, 64, 64}});
-    ctx->db()->SetValue("CartesianGeometry/periodic_dimension", {0, 1, 0});
+    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},
+                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});
+
     {
         GEqdsk geqdsk;
         geqdsk.load(argv[1]);
@@ -34,12 +35,7 @@ int main(int argc, char **argv) {
         //        ctx->GetModel().AddDomain("PLASMA", geqdsk.boundary_gobj());
 
         auto bound_box = ctx->GetModel().bound_box();
-
-        ctx->db()->SetValue("CartesianGeometry/x_lo", std::get<0>(bound_box));
-        ctx->db()->SetValue("CartesianGeometry/x_up", std::get<1>(bound_box));
     }
-
-    LOGGER << *ctx->db() << std::endl;
 
     //    worker->db()->SetValue("Particles/H1/m", 1.0);
     //    worker->db()->SetValue("Particles/H1/Z", 1.0);
@@ -58,6 +54,7 @@ int main(int argc, char **argv) {
     //
     //    ctx->GetDomainView("PLASMA")->AddWorker(worker);
 
+    time_integrator->SetContext(ctx);
     time_integrator->Initialize();
     INFORM << "***********************************************" << std::endl;
 

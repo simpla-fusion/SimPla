@@ -12,8 +12,8 @@ namespace simpla {
 namespace engine {
 
 struct MeshViewFactory::pimpl_s {
-    std::map<std::string, std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataEntity> const &,
-                                                                  std::shared_ptr<geometry::GeoObject> const &)>>
+    std::map<std::string, std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataTable> const &,
+                                                              std::shared_ptr<geometry::GeoObject> const &)>>
         m_mesh_factory_;
 };
 
@@ -22,15 +22,15 @@ MeshViewFactory::~MeshViewFactory(){};
 
 bool MeshViewFactory::RegisterCreator(
     std::string const &k,
-    std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataEntity> const &,
-                                            std::shared_ptr<geometry::GeoObject> const &)> const &fun) {
+    std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataTable> const &,
+                                        std::shared_ptr<geometry::GeoObject> const &)> const &fun) {
     auto res = m_pimpl_->m_mesh_factory_.emplace(k, fun).second;
     if (res) { LOGGER << "Mesh Creator [ " << k << " ] is registered!" << std::endl; }
     return res;
 };
 
-std::shared_ptr<Mesh> MeshViewFactory::Create(std::shared_ptr<data::DataEntity> const &config,
-                                                  std::shared_ptr<geometry::GeoObject> const &g) {
+std::shared_ptr<Mesh> MeshViewFactory::Create(std::shared_ptr<data::DataTable> const &config,
+                                              std::shared_ptr<geometry::GeoObject> const &g) {
     std::shared_ptr<Mesh> res = nullptr;
     try {
         std::string key = "";
@@ -106,7 +106,7 @@ std::shared_ptr<MeshBlock> const &Mesh::GetMeshBlock() const { return m_pimpl_->
 
 void Mesh::Initialize() {}
 
-//Real Mesh::GetDt() const { return 1.0; }
+// Real Mesh::GetDt() const { return 1.0; }
 
 }  // {namespace mesh
 }  // namespace simpla

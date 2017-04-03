@@ -32,10 +32,7 @@ struct Atlas::pimpl_s {
 Atlas::Atlas(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t){};
 Atlas::~Atlas(){};
 
-void Atlas::Initialize() {
-    LOGGER << "Atlas is initializing " << std::endl;
-    LOGGER << "Atlas is initialized " << std::endl;
-}
+void Atlas::Initialize() { LOGGER << "Atlas is initialized " << std::endl; }
 void Atlas::Decompose(size_tuple const &d, int local_id){};
 
 bool Atlas::Update() { return true; };

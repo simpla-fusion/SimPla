@@ -71,12 +71,16 @@ TimeIntegrator::TimeIntegrator(std::shared_ptr<Context> const &m, std::shared_pt
 TimeIntegrator::~TimeIntegrator() { Finalize(); }
 
 void TimeIntegrator::Initialize() {
-    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->Initialize(); }
+    if (m_pimpl_->m_ctx_ != nullptr) {
+        m_pimpl_->m_ctx_->Initialize();
+        CHECK(*m_pimpl_->m_ctx_->db());
+    }
 }
 void TimeIntegrator::Finalize() { m_pimpl_->m_ctx_.reset(); }
 void TimeIntegrator::SetContext(std::shared_ptr<Context> const &c) {
     Finalize();
     m_pimpl_->m_ctx_ = c;
+    db()->Set("Context", m_pimpl_->m_ctx_->db(), true);
 }
 std::shared_ptr<Context> const &TimeIntegrator::GetContext() const { return m_pimpl_->m_ctx_; }
 

@@ -33,6 +33,7 @@ class Domain : public concept::Configurable, public std::enable_shared_from_this
     void SetMeshView(std::shared_ptr<Mesh> const &);
     std::shared_ptr<Mesh> const &GetMeshView() const;
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
+    std::set<Attribute *> const &GetAttributes() const;
 
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &);
     virtual void PushData(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> const &);
@@ -42,7 +43,6 @@ class Domain : public concept::Configurable, public std::enable_shared_from_this
 
     std::pair<std::shared_ptr<Worker>, bool> AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
     void RemoveWorker(std::shared_ptr<Worker> const &w);
-
     void Attach(AttributeViewBundle *);
     void Detach(AttributeViewBundle *p = nullptr);
 
