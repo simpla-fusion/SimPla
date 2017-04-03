@@ -433,12 +433,13 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
     SAMRAI::hier::IntVector d_nghosts{d_dim, 4};
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
-    for (auto const &item : m_domain_->GetAttributes()) {
-        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *item->db());
-        m_samrai_variables_[item->GetGUID()] = var;
+    m_domain_->db()->Get("Attributes")->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<DataEntity> const &v) {
+        auto attr_db = std::dynamic_pointer_cast<data::DataTable>(v);
+        CHECK(*attr_db);
+        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *attr_db);
+        m_samrai_variables_[from_string<id_type>(attr_db->GetValue<std::string>("GUID"))] = var;
 
         //        data::DataTable const &attr = *item->db();
-        auto attr_db = item->db();
         //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
         //                "TENSOR"};
         //                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR",
@@ -448,7 +449,6 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
         *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
         *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
         **/
-
         if (attr_db->Check("COORDINATES", true)) {
             VERBOSE << attr_db->GetValue<std::string>("name", "unnamed") << " is registered as coordinate" << std::endl;
             integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
@@ -504,7 +504,7 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }
-    };
+    });
     //    integrator->printClassData(std::cout);
     //    vardb->printClassData(std::cout);
 }
