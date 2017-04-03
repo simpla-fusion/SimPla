@@ -13,7 +13,6 @@ namespace engine {
 struct Context::pimpl_s {
     std::shared_ptr<data::DataTable> m_patches_;
     std::map<std::string, std::shared_ptr<Domain>> m_domains_;
-    std::map<std::string, std::shared_ptr<Attribute>> m_attrs_;
     Atlas m_atlas_;
     Model m_model_;
     Real m_time_ = 0;
@@ -67,7 +66,8 @@ void Context::Initialize() {
             GetModel().AddObject(s_key, view_res.first->second->GetGeoObject());
         });
     }
-    LOGGER << "Context is initialized!" << std::endl;
+
+     LOGGER << "Context is initialized!" << std::endl;
 }
 
 void Context::Synchronize(int from, int to) {

@@ -353,7 +353,7 @@ class SAMRAI_HyperbolicPatchStrategyAdapter : public SAMRAI::algs::HyperbolicPat
     boost::shared_ptr<SAMRAI::pdat::CellVariable<double>> d_workload_variable;
     int d_workload_data_id;
     bool d_use_nonuniform_workload;
-    std::map<id_type, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
+    std::map<std::string, boost::shared_ptr<SAMRAI::hier::Variable>> m_samrai_variables_;
     //    boost::shared_ptr<SAMRAI::pdat::NodeVariable<double>> d_xyz;
     engine::Context *m_manager_ = nullptr;
     SAMRAI::hier::IntVector d_nghosts;
@@ -433,78 +433,83 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
     SAMRAI::hier::IntVector d_nghosts{d_dim, 4};
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
-    m_domain_->db()->Get("Attributes")->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<DataEntity> const &v) {
-        auto attr_db = std::dynamic_pointer_cast<data::DataTable>(v);
-        CHECK(*attr_db);
-        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *attr_db);
-        m_samrai_variables_[from_string<id_type>(attr_db->GetValue<std::string>("GUID"))] = var;
+    m_domain_->db()
+        ->GetTable("Attributes")
+        ->Foreach([&](std::string const &k_name, std::shared_ptr<DataEntity> const &v) {
+            auto attr_db = std::dynamic_pointer_cast<data::DataTable>(v);
+            CHECK(*attr_db);
+            boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *attr_db);
+            m_samrai_variables_[k_name] = var;
 
-        //        data::DataTable const &attr = *item->db();
-        //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
-        //                "TENSOR"};
-        //                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR",
-        //                "VECTOR", "SCALAR"};
+            //        data::DataTable const &attr = *item->db();
+            //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
+            //                "TENSOR"};
+            //                static const char visit_variable_type2[4][10] = {"SCALAR", "VECTOR",
+            //                "VECTOR", "SCALAR"};
 
-        /*** FIXME:
-        *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
-        *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
-        **/
-        if (attr_db->Check("COORDINATES", true)) {
-            VERBOSE << attr_db->GetValue<std::string>("name", "unnamed") << " is registered as coordinate" << std::endl;
-            integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
-                                         d_grid_geometry, "", "LINEAR_REFINE");
+            /*** FIXME:
+            *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
+            *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
+            **/
+            if (attr_db->Check("COORDINATES", true)) {
+                VERBOSE << attr_db->GetValue<std::string>("name", "unnamed") << " is registered as coordinate"
+                        << std::endl;
+                integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
+                                             d_grid_geometry, "", "LINEAR_REFINE");
 
-        } else if (attr_db->Check("FLUX", true)) {
-            integrator->registerVariable(var, d_fluxghosts, SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
-                                         d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
+            } else if (attr_db->Check("FLUX", true)) {
+                integrator->registerVariable(var, d_fluxghosts, SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
+                                             d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
 
-        } else if (attr_db->Check("INPUT", true)) {
-            integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
-                                         d_grid_geometry, "", "NO_REFINE");
-        } else {
-            switch (attr_db->GetValue<int>("IFORM", VERTEX)) {
-                case EDGE:
-                case FACE:
-                //                    integrator->registerVariable(var, d_nghosts,
-                //                    SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                //                                                 d_grid_geometry, "CONSERVATIVE_COARSEN",
-                //                                                 "CONSERVATIVE_LINEAR_REFINE");
-                //                    break;
-                case VERTEX:
-                case VOLUME:
-                default:
-                    integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
-                                                 d_grid_geometry, "", "LINEAR_REFINE");
+            } else if (attr_db->Check("INPUT", true)) {
+                integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
+                                             d_grid_geometry, "", "NO_REFINE");
+            } else {
+                switch (attr_db->GetValue<int>("IFORM", VERTEX)) {
+                    case EDGE:
+                    case FACE:
+                    //                    integrator->registerVariable(var, d_nghosts,
+                    //                    SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                    //                                                 d_grid_geometry, "CONSERVATIVE_COARSEN",
+                    //                                                 "CONSERVATIVE_LINEAR_REFINE");
+                    //                    break;
+                    case VERTEX:
+                    case VOLUME:
+                    default:
+                        integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::TIME_DEP,
+                                                     d_grid_geometry, "", "LINEAR_REFINE");
+                }
+
+                //            VERBOSE << (attr_db->GetValue<std::string>("name","unnamed")()) << " --  " <<
+                //            visit_variable_type << std::endl;
             }
 
-            //            VERBOSE << (attr_db->GetValue<std::string>("name","unnamed")()) << " --  " <<
-            //            visit_variable_type << std::endl;
-        }
+            std::string visit_variable_type = "";
+            if ((attr_db->Check("IFORM", VERTEX) || attr_db->Check("IFORM", VOLUME)) && attr_db->Check("DOF", 1)) {
+                visit_variable_type = "SCALAR";
+            } else if (((attr_db->Check("IFORM", EDGE) || attr_db->Check("IFORM", FACE)) && attr_db->Check("DOF", 1)) ||
+                       ((attr_db->Check("IFORM", VERTEX) || attr_db->Check("IFORM", VOLUME)) &&
+                        attr_db->Check("DOF", 3))) {
+                visit_variable_type = "VECTOR";
+            } else if (((attr_db->Check("IFORM", VERTEX) || attr_db->Check("IFORM", VOLUME)) &&
+                        attr_db->Check("DOF", 9)) ||
+                       ((attr_db->Check("IFORM", EDGE) || attr_db->Check("IFORM", FACE)) && attr_db->Check("DOF", 3))) {
+                visit_variable_type = "TENSOR";
+            } else {
+                WARNING << "Can not register attribute [" << attr_db->GetValue<std::string>("name", "unnamed")
+                        << "] to VisIt writer !" << std::endl;
+            }
 
-        std::string visit_variable_type = "";
-        if ((attr_db->Check("IFORM", VERTEX) || attr_db->Check("IFORM", VOLUME)) && attr_db->Check("DOF", 1)) {
-            visit_variable_type = "SCALAR";
-        } else if (((attr_db->Check("IFORM", EDGE) || attr_db->Check("IFORM", FACE)) && attr_db->Check("DOF", 1)) ||
-                   ((attr_db->Check("IFORM", VERTEX) || attr_db->Check("IFORM", VOLUME)) && attr_db->Check("DOF", 3))) {
-            visit_variable_type = "VECTOR";
-        } else if (((attr_db->Check("IFORM", VERTEX) || attr_db->Check("IFORM", VOLUME)) && attr_db->Check("DOF", 9)) ||
-                   ((attr_db->Check("IFORM", EDGE) || attr_db->Check("IFORM", FACE)) && attr_db->Check("DOF", 3))) {
-            visit_variable_type = "TENSOR";
-        } else {
-            WARNING << "Can not register attribute [" << attr_db->GetValue<std::string>("name", "unnamed")
-                    << "] to VisIt writer !" << std::endl;
-        }
+            if (visit_variable_type != "" && attr_db->Check("CHECK", true)) {
+                d_visit_writer->registerPlotQuantity(
+                    attr_db->GetValue<std::string>("name", "unnamed"), visit_variable_type,
+                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
 
-        if (visit_variable_type != "" && attr_db->Check("CHECK", true)) {
-            d_visit_writer->registerPlotQuantity(
-                attr_db->GetValue<std::string>("name", "unnamed"), visit_variable_type,
-                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-
-        } else if (attr_db->Check("COORDINATES", true)) {
-            d_visit_writer->registerNodeCoordinates(
-                vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
-        }
-    });
+            } else if (attr_db->Check("COORDINATES", true)) {
+                d_visit_writer->registerNodeCoordinates(
+                    vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
+            }
+        });
     //    integrator->printClassData(std::cout);
     //    vardb->printClassData(std::cout);
 }

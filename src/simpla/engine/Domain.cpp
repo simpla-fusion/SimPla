@@ -21,8 +21,6 @@ struct Domain::pimpl_s {
 
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<data::DataTable> m_patch_;
-
-    std::set<Attribute *> m_attrs_;
 };
 
 Domain::Domain(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<geometry::GeoObject> const &g)
@@ -58,7 +56,7 @@ void Domain::SetMeshView(std::shared_ptr<Mesh> const &m) {
 };
 
 std::shared_ptr<Domain> Domain::Clone() const { return std::make_shared<Domain>(*this); }
-std::set<Attribute *> const &Domain::GetAttributes() const { return m_pimpl_->m_attrs_; };
+
 
 // std::shared_ptr<Mesh> Domain::CreateMeshView() {
 //    std::shared_ptr<Mesh> m = nullptr;
@@ -207,9 +205,6 @@ void Domain::Initialize() {
         });
     }
 
-    for (auto const &b : m_pimpl_->m_attr_bundle_) {
-        b->Foreach([&](Attribute *attr) { m_pimpl_->m_attrs_.insert(attr); });
-    }
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
 }
 void Domain::Finalize() { m_pimpl_.reset(new pimpl_s); }
