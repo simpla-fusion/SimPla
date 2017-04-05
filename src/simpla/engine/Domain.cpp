@@ -148,7 +148,7 @@ void Domain::PushData(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data
     PushData(p.first, p.second);
 }
 std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Domain::PopData() {
-    auto res = std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(),
+    auto res = std::make_pair(m_pimpl_->m_mesh_->GetBlock(),
                               std::dynamic_pointer_cast<data::DataTable>(m_pimpl_->m_patch_));
 
     m_pimpl_->m_patch_.reset();
@@ -156,17 +156,17 @@ std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Domain::
 };
 
 void Domain::Run(Real dt) {
-    m_pimpl_->m_mesh_->PushData(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
-
-    for (auto &item : m_pimpl_->m_workers_) {
-        ASSERT(m_pimpl_->m_mesh_ != nullptr);
-        item.second->SetMesh(m_pimpl_->m_mesh_.get());
-        item.second->PushData(m_pimpl_->m_mesh_->GetMeshBlock(), m_pimpl_->m_patch_);
-        item.second->Run(dt);
-        auto res = item.second->PopData();
-
-        PushData(res);  // item.second->PopData());
-    }
+//    m_pimpl_->m_mesh_->PushData(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
+//
+//    for (auto &item : m_pimpl_->m_workers_) {
+//        ASSERT(m_pimpl_->m_mesh_ != nullptr);
+//        item.second->SetMesh(m_pimpl_->m_mesh_.get());
+//        item.second->PushData(m_pimpl_->m_mesh_->GetBlock(), m_pimpl_->m_patch_);
+//        item.second->Run(dt);
+//        auto res = item.second->PopData();
+//
+//        PushData(res);  // item.second->PopData());
+//    }
 }
 void Domain::Attach(AttributeBundle *p) {
     if (p == nullptr) { return; }

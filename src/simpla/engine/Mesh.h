@@ -31,20 +31,20 @@ class Mesh : public concept::Configurable, public AttributeBundle, public std::e
     virtual ~Mesh();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
-    virtual std::shared_ptr<Mesh> Clone() const = 0;
+    virtual Mesh *Clone() const = 0;
 
-    size_tuple GetGhostWidth() const;
-    id_type GetMeshBlockId() const;
+    id_type GetBlockId() const;
 
-    std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
+    std::shared_ptr<MeshBlock> const &GetBlock() const;
 
     void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g);
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
     virtual void Initialize();
+    virtual void Finalize();
 
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &);
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData();
+    virtual void PushData(std::shared_ptr<Patch>, Real time_now = 0);
+    virtual std::shared_ptr<Patch> PopData();
 
     //    template <typename U>
     //    std::shared_ptr<data::DataBlockWrapper<U>> CreateDataBlock(int IFORM, int DOF) const;

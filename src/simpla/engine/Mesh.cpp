@@ -89,22 +89,24 @@ void Mesh::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl
 
 std::shared_ptr<geometry::GeoObject> const &Mesh::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
-void Mesh::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &p) {
-    ASSERT(m != nullptr);
-    m_pimpl_->m_mesh_block_ = m;
-    AttributeBundle::SetMesh(this);
-    AttributeBundle::PushData(m, p);
+void Mesh::PushData(std::shared_ptr<Patch> p, Real time_now) {
+    AttributeBundle::PushData(p);
+    m_pimpl_->m_mesh_block_ = p->PopMeshBlock();
 };
-std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Mesh::PopData() {
-    return AttributeBundle::PopData();
+std::shared_ptr<Patch> Mesh::PopData() {
+    auto res = AttributeBundle::PopData();
+    res->PushMeshBlock(m_pimpl_->m_mesh_block_);
+    m_pimpl_->m_mesh_block_.reset();
+    return res;
 }
 
-id_type Mesh::GetMeshBlockId() const {
+id_type Mesh::GetBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }
-std::shared_ptr<MeshBlock> const &Mesh::GetMeshBlock() const { return m_pimpl_->m_mesh_block_; }
+std::shared_ptr<MeshBlock> const &Mesh::GetBlock() const { return m_pimpl_->m_mesh_block_; }
 
 void Mesh::Initialize() {}
+void Mesh::Finalize() {}
 
 // Real Mesh::GetDt() const { return 1.0; }
 

@@ -24,12 +24,17 @@ class DataBlock : public DataEntity {
     virtual bool isBlock() const { return true; }
     virtual std::type_info const &value_type_info() const { return typeid(Real); };
     virtual int GetNDIMS() const { return 0; }
-    virtual index_type const *GetInnerLowerIndex() const { return nullptr; }
-    virtual index_type const *GetInnerUpperIndex() const { return nullptr; }
-    virtual index_type const *GetOuterLowerIndex() const { return nullptr; }
-    virtual index_type const *GetOuterUpperIndex() const { return nullptr; }
-    virtual void const *GetRawData() const { return nullptr; }
-    virtual void *GetRawData() { return nullptr; }
+    virtual void SetDepth(int d) {}
+    virtual size_t GetDepth() const { return 1; }
+
+    virtual index_type const *GetInnerLowerIndex(int depth = 0) const { return nullptr; }
+    virtual index_type const *GetInnerUpperIndex(int depth = 0) const { return nullptr; }
+    virtual index_type const *GetOuterLowerIndex(int depth = 0) const { return nullptr; }
+    virtual index_type const *GetOuterUpperIndex(int depth = 0) const { return nullptr; }
+
+    virtual void const *GetRawData(int depth = 0) const { return nullptr; }
+    virtual void *GetRawData(int depth = 0) { return nullptr; }
+
     virtual void Clear() { UNIMPLEMENTED; };
     virtual void Copy(DataBlock const &) { UNIMPLEMENTED; };
 };
@@ -41,28 +46,38 @@ class DataEntityWrapper<simpla::Array<U, NDIMS>> : public DataBlock {
     typedef typename array_type::value_type value_type;
 
    public:
-    explicit DataEntityWrapper(std::shared_ptr<array_type> const &d) : m_data_(d) {}
-
-    //    template <typename... Args>
-    //    DataEntityWrapper(Args &&... args) : m_data_(std::make_shared<array_type>(std::forward<Args>(args)...)) {}
-
+    DataEntityWrapper() {}
     virtual ~DataEntityWrapper() {}
-    virtual bool empty() const { return m_data_.get() == nullptr || m_data_->empty(); }
+    virtual bool empty() const { return m_data_.size() == 0; }
 
     virtual std::type_info const &value_type_info() const { return typeid(value_type); };
-    virtual std::shared_ptr<array_type> &get() { return m_data_; };
-    virtual std::shared_ptr<array_type> const &get() const { return m_data_; };
+    //    virtual std::shared_ptr<array_type> &get() { return m_data_; };
+    //    virtual std::shared_ptr<array_type> const &get() const { return m_data_; };
 
-    virtual int GetNDIMS() const { return m_data_->GetNDIMS(); }
-    virtual index_type const *GetInnerLowerIndex() const { return m_data_->GetInnerLowerIndex(); }
-    virtual index_type const *GetInnerUpperIndex() const { return m_data_->GetInnerUpperIndex(); }
-    virtual index_type const *GetOuterLowerIndex() const { return m_data_->GetOuterLowerIndex(); }
-    virtual index_type const *GetOuterUpperIndex() const { return m_data_->GetOuterUpperIndex(); }
-    virtual void const *GetRawData() const { return m_data_->GetRawData(); }
-    virtual void *GetRawData() { return m_data_->GetRawData(); }
+    virtual int GetNDIMS() const { return NDIMS; }
+    virtual void SetDepth(int d) { m_data_.resize(d); }
+    virtual size_t GetDepth() const { return m_data_.size(); }
+
+    virtual index_type const *GetInnerLowerIndex(int depth = 0) const { return m_data_[depth]->GetInnerLowerIndex(); }
+    virtual index_type const *GetInnerUpperIndex(int depth = 0) const { return m_data_[depth]->GetInnerUpperIndex(); }
+    virtual index_type const *GetOuterLowerIndex(int depth = 0) const { return m_data_[depth]->GetOuterLowerIndex(); }
+    virtual index_type const *GetOuterUpperIndex(int depth = 0) const { return m_data_[depth]->GetOuterUpperIndex(); }
+    virtual void const *GetRawData(int depth = 0) const { return m_data_[depth]->GetRawData(); }
+    virtual void *GetRawData(int depth = 0) { return m_data_[depth]->GetRawData(); }
+
+    array_type &get(int depth = 0) {
+        ASSERT(depth < GetDepth());
+        return m_data_[depth];
+    }
+    array_type const &get(int depth = 0) const {
+        ASSERT(depth < GetDepth());
+        return m_data_[depth];
+    }
+    array_type &operator[](int depth) { return m_data_[depth]; }
+    array_type const &operator[](int depth) const { return m_data_[depth]; }
 
    private:
-    std::shared_ptr<array_type> m_data_ = nullptr;
+    std::vector<array_type> m_data_;
 };
 template <typename U, int NDIMS>
 std::shared_ptr<DataEntity> make_data_entity(std::shared_ptr<simpla::Array<U, NDIMS>> const &p) {

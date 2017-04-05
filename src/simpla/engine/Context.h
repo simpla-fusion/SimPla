@@ -8,9 +8,9 @@
 #include <simpla/SIMPLA_config.h>
 #include <map>
 #include "Atlas.h"
-#include "Domain.h"
 #include "Model.h"
 #include "Patch.h"
+#include "Worker.h"
 
 namespace simpla {
 namespace engine {
@@ -68,16 +68,20 @@ class Context : public concept::Configurable {
     virtual ~Context();
 
     virtual void Initialize();
+    virtual void Finalize();
+    bool IsInitialized() const;
+
     virtual void Advance(Real dt, int level = 0);
     virtual void Synchronize(int from_level = 0, int to_level = 0);
+
     Atlas &GetAtlas() const;
     Model &GetModel() const;
 
     std::shared_ptr<data::DataTable> GetPatches() const;
 
-    void SetDomain(std::string const &d_name, std::shared_ptr<Domain> const &p);
-    std::shared_ptr<Domain> GetDomain(std::string const &d_name) const;
-    std::map<std::string, std::shared_ptr<Domain>> const &GetAllDomains() const;
+    bool SetWorker(std::string const &d_name, std::shared_ptr<Worker> const &p);
+    void RemoveWorker(std::string const &d_name);
+    std::shared_ptr<Worker> GetWorker(std::string const &d_name) const;
 
     bool RegisterAttribute(std::string const &key, std::shared_ptr<Attribute> const &);
     template <typename TV, int IFORM = VERTEX, int DOF = 1>

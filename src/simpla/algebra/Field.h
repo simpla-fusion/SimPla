@@ -82,15 +82,18 @@ class FieldView : public engine::Attribute {
     template <typename... Args>
     explicit FieldView(Args&&... args) : engine::Attribute(std::forward<Args>(args)...){};
 
-    FieldView(this_type const& other) = delete;
-    FieldView(this_type&& other) = delete;
+    FieldView(this_type const& other) : engine::Attribute(other){};
+    FieldView(this_type&& other) : engine::Attribute(other){};
     virtual ~FieldView() {}
+    virtual this_type* Clone() const { return new this_type(*this); };
+    void swap(this_type& other) { engine::Attribute::swap(other); };
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
 
     virtual std::shared_ptr<engine::Attribute> GetDescription() const {
         return std::make_shared<engine::AttributeDesc<TV, IFORM, DOF>>(db());
     };
+
     virtual int GetIFORM() const { return IFORM; };
     virtual int GetDOF() const { return DOF; };
     virtual std::type_info const& value_type_info() const { return typeid(value_type); };  //!< value type
@@ -120,36 +123,37 @@ class FieldView : public engine::Attribute {
         return *this;
     }
 
-    void PushData(std::shared_ptr<engine::MeshBlock> const& m, std::shared_ptr<data::DataEntity> const& d = nullptr) {
-        m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh());
-        ASSERT(m_mesh_ != nullptr && m_mesh_->GetMeshBlock()->GetGUID() == m->GetGUID());
-        if (d == nullptr) {
-            for (int i = 0; i < num_of_subs; ++i) {
-                m_data_[i] = std::make_shared<sub_array_type>(m->GetInnerIndexBox(), m->GetOuterIndexBox());
-            }
-        } else if (d->isArray() && num_of_subs > 1) {
-            auto& t = d->cast_as<data::DataEntityWrapper<void*>>();
-            for (int i = 0; i < num_of_subs; ++i) {
-                m_data_[i] = t.Get(i)->cast_as<data::DataEntityWrapper<sub_array_type>>().get();
-            }
-        } else {
-            m_data_[0] = d->cast_as<data::DataEntityWrapper<sub_array_type>>().get();
-        }
+    void PushData(std::shared_ptr<data::DataBlock> const& d) {
+        //        m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh());
+        //        ASSERT(m_mesh_ != nullptr && m_mesh_->GetMeshBlock()->GetGUID() == m->GetGUID());
+        //        if (d == nullptr) {
+        //            for (int i = 0; i < num_of_subs; ++i) {
+        //                m_data_[i] = std::make_shared<sub_array_type>(m->GetInnerIndexBox(), m->GetOuterIndexBox());
+        //            }
+        //        } else if (d->isArray() && num_of_subs > 1) {
+        //            auto& t = d->cast_as<data::DataEntityWrapper<void*>>();
+        //            for (int i = 0; i < num_of_subs; ++i) {
+        //                m_data_[i] = t.Get(i)->cast_as<data::DataEntityWrapper<sub_array_type>>().get();
+        //            }
+        //        } else {
+        //            m_data_[0] = d->cast_as<data::DataEntityWrapper<sub_array_type>>().get();
+        //        }
     }
-    virtual std::pair<std::shared_ptr<engine::MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
-        std::shared_ptr<data::DataEntity> t = nullptr;
-        if (num_of_subs == 1) {
-            t = std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[0]);
-        } else {
-            auto t_array = std::make_shared<data::DataEntityWrapper<void*>>();
-            for (int i = 0; i < num_of_subs; ++i) {
-                auto res = std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[i]);
-                t_array->Add(res);
-                m_data_[i].reset();
-                t = t_array;
-            }
-        }
-        return std::make_pair(m_mesh_->GetMeshBlock(), t);
+    virtual std::shared_ptr<data::DataBlock> PopData() {
+        //        std::shared_ptr<data::DataEntity> t = nullptr;
+        //        if (num_of_subs == 1) {
+        //            t = std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[0]);
+        //        } else {
+        //            auto t_array = std::make_shared<data::DataEntityWrapper<void*>>();
+        //            for (int i = 0; i < num_of_subs; ++i) {
+        //                auto res = std::make_shared<data::DataEntityWrapper<sub_array_type>>(m_data_[i]);
+        //                t_array->Add(res);
+        //                m_data_[i].reset();
+        //                t = t_array;
+        //            }
+        //        }
+        //        return std::make_pair(m_mesh_->GetMeshBlock(), t);
+        return nullptr;
     }
     sub_array_type const& operator[](unsigned int i) const { return *m_data_[i % num_of_subs]; }
     sub_array_type& operator[](unsigned int i) { return *m_data_[i % num_of_subs]; }
@@ -250,7 +254,7 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
     Field_(this_type const& other) : base_type(other){};
     Field_(this_type&& other) : base_type(other){};
     ~Field_() {}
-    //    virtual std::shared_ptr<engine::Attribute> Clone() const { return std::make_shared<this_type>(*this); };
+    virtual this_type* Clone() const { return new this_type(*this); };
 
     using base_type::operator[];
     using base_type::operator=;

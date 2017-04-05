@@ -82,7 +82,7 @@ struct CartesianGeometry : public engine::Mesh {
     CartesianGeometry(CartesianGeometry const &) { UNIMPLEMENTED; }
     virtual ~CartesianGeometry() {}
 
-    std::shared_ptr<engine::Mesh> Clone() const { return std::make_shared<this_type>(*this); }
+    this_type *Clone() const { return new this_type(*this); }
     void Initialize();
     virtual Range<entity_id> range() const { return Range<entity_id>(); };
 
@@ -166,7 +166,7 @@ inline void CartesianGeometry::Initialize() {
         *
         *\endverbatim
         */
-    size_tuple m_dims_ = GetMeshBlock()->GetDimensions();
+    size_tuple m_dims_ = GetBlock()->GetDimensions();
 
     m_volume_[0 /*000*/] = 1;
     m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_dx_[0];

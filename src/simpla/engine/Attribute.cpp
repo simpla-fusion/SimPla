@@ -51,18 +51,17 @@ void AttributeBundle::SetMesh(Mesh const *m) {
 }
 Mesh const *AttributeBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
 
-void AttributeBundle::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &p) {
-    if (GetMesh() == nullptr || m == nullptr || GetMesh()->GetMeshBlockId() != m->GetGUID()) {
+void AttributeBundle::PushData(std::shared_ptr<Patch> p) {
+    if (GetMesh() == nullptr || GetMesh()->GetBlockId() != p->GetBlockId()) {
         RUNTIME_ERROR << " data and mesh mismatch!" << std::endl;
     }
 
-    for (auto *v : m_pimpl_->m_attributes_) { v->PushData(m, p->GetTable(v->name())); }
+    for (auto *v : m_pimpl_->m_attributes_) { v->PushData(p->PopData(v->GetGUID())); }
 }
-std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> AttributeBundle::PopData() {
-    auto res = std::make_shared<data::DataTable>();
-    for (auto *v : m_pimpl_->m_attributes_) { res->Set(v->name(), v->PopData().second); }
-
-    return std::make_pair(m_pimpl_->m_mesh_->GetMeshBlock(), res);
+std::shared_ptr<Patch> AttributeBundle::PopData() {
+    auto res = std::make_shared<Patch>();
+    for (auto *v : m_pimpl_->m_attributes_) { res->PushData(v->GetGUID(), v->PopData()); }
+    return res;
 }
 
 std::set<Attribute *> const &AttributeBundle::GetAllAttributes() const { return m_pimpl_->m_attributes_; }
@@ -77,7 +76,14 @@ Attribute::Attribute(AttributeBundle *b, std::shared_ptr<data::DataTable> const 
     if (b != nullptr && b != m_pimpl_->m_bundle_) { b->Attach(this); }
     m_pimpl_->m_bundle_ = b;
 };
-
+Attribute::Attribute(Attribute const &other) : m_pimpl_(new pimpl_s), concept::Configurable(other) {
+    m_pimpl_->m_bundle_ = other.m_pimpl_->m_bundle_;
+    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+}
+Attribute::Attribute(Attribute &&other) : m_pimpl_(new pimpl_s), concept::Configurable(other) {
+    m_pimpl_->m_bundle_ = other.m_pimpl_->m_bundle_;
+    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+}
 Attribute::~Attribute() {
     if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_bundle_->Detach(this); }
     m_pimpl_->m_bundle_ = nullptr;

@@ -94,8 +94,8 @@ class AttributeBundle {
     void Disconnect();
     void SetMesh(Mesh const *);
     Mesh const *GetMesh() const;
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &);
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData();
+    virtual void PushData(std::shared_ptr<Patch>);
+    virtual std::shared_ptr<Patch> PopData();
     std::set<Attribute *> const &GetAllAttributes() const;
 
    private:
@@ -137,11 +137,11 @@ struct Attribute : public concept::Configurable {
     template <typename U, typename... Args>
     explicit Attribute(AttributeBundle *b, U const &first, Args &&... args)
         : Attribute(b, std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
-    Attribute(Attribute const &other) = delete;
-    Attribute(Attribute &&other) = delete;
+    Attribute(Attribute const &other);
+    Attribute(Attribute &&other);
     virtual ~Attribute();
-
-    //    virtual std::shared_ptr<Attribute> Clone() const = 0;
+    id_type GetGUID();
+    virtual Attribute *Clone() const = 0;
     virtual std::shared_ptr<Attribute> GetDescription() const = 0;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
@@ -150,10 +150,8 @@ struct Attribute : public concept::Configurable {
     void SetMesh(Mesh const *);
     Mesh const *GetMesh() const;
 
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &){};
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
-        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), std::shared_ptr<data::DataEntity>(nullptr));
-    }
+    virtual void PushData(std::shared_ptr<data::DataBlock> const &){};
+    virtual std::shared_ptr<data::DataBlock> PopData() { return nullptr; }
 
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
@@ -164,12 +162,17 @@ struct Attribute : public concept::Configurable {
 };
 template <typename TV, int IFORM, int DOF>
 struct AttributeDesc : public Attribute {
+    typedef AttributeDesc<TV, IFORM, DOF> desc_type;
+    SP_OBJECT_HEAD(desc_type, Attribute);
+
+   public:
     AttributeDesc(std::shared_ptr<data::DataTable> const &t = nullptr) : Attribute(t) {}
     ~AttributeDesc() {}
 
     virtual std::shared_ptr<Attribute> GetDescription() const {
         return std::make_shared<AttributeDesc<TV, IFORM, DOF>>();
     };
+    virtual Attribute *Clone() const { return new this_type; };
 
     virtual int GetIFORM() const { return IFORM; };
     virtual int GetDOF() const { return DOF; };

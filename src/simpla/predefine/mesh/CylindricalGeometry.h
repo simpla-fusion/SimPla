@@ -46,7 +46,7 @@ struct CylindricalGeometry : public engine::Mesh {
         : Mesh(t, g) {}
     CylindricalGeometry(CylindricalGeometry const &other) : Mesh(other.db(), other.GetGeoObject()) { UNIMPLEMENTED; }
     virtual ~CylindricalGeometry() {}
-    virtual std::shared_ptr<engine::Mesh> Clone() const { return std::make_shared<this_type>(*this); };
+    this_type *Clone() const { return new this_type(*this); }
 
    private:
     Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics", "COORDINATES"_};
@@ -161,8 +161,8 @@ struct CylindricalGeometry : public engine::Mesh {
             *
             *\endverbatim
             */
-        auto const *lower = &(std::get<0>(GetMeshBlock()->GetOuterIndexBox())[0]);
-        auto const *upper = &(std::get<1>(GetMeshBlock()->GetOuterIndexBox())[0]);
+        auto const *lower = &(std::get<0>(GetBlock()->GetOuterIndexBox())[0]);
+        auto const *upper = &(std::get<1>(GetBlock()->GetOuterIndexBox())[0]);
 
         index_type ib = lower[0];
         index_type ie = upper[0];
@@ -170,12 +170,12 @@ struct CylindricalGeometry : public engine::Mesh {
         index_type je = upper[1];
         index_type kb = lower[2];
         index_type ke = upper[2];
-        point_type m_dx_;  // = GetMeshBlock()->dx();
+        point_type m_dx_;  // = GetBlock()->dx();
 
         for (index_type i = ib; i < ie; ++i)
             for (index_type j = jb; j < je; ++j)
                 for (index_type k = kb; k < ke; ++k) {
-                    point_type x;  //= GetMeshBlock()->point(i, j, k);
+                    point_type x;  //= GetBlock()->point(i, j, k);
                     m_vertics_(i, j, k, 0) = x[0] * std::cos(x[1]);
                     m_vertics_(i, j, k, 1) = x[0] * std::sin(x[1]);
                     m_vertics_(i, j, k, 2) = x[2];
