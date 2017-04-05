@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
     size_type step = 0;
 
     while (step <= num_of_steps) {
-        ctx.Advance(dt);
+        ctx.Advance(0, dt, 0);
         ctx.Synchronize();
 
         INFORM << "\t >>>  [ Time = " << " Step = " << step << "] <<< " << std::endl;

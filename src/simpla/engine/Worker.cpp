@@ -28,10 +28,9 @@ Worker *Worker::Clone() const { return new Worker(*this); };
 
 std::vector<Attribute *> Worker::GetAttributes() const { return std::vector<Attribute *>(); }
 std::shared_ptr<Mesh> const &Worker::GetMesh() const { return m_pimpl_->m_mesh_; }
-void Worker::PushData(std::shared_ptr<Patch> p, Real time_now) {
-    m_pimpl_->m_mesh_->PushData(p, time_now);
+void Worker::PushData(std::shared_ptr<Patch> p) {
+    m_pimpl_->m_mesh_->PushData(p);
     for (auto *attr : m_pimpl_->m_attr_) { attr->PushData(p->PopData(attr->GetGUID())); }
-    Initialize(time_now);
 }
 std::shared_ptr<Patch> Worker::PopData() {
     auto p = std::make_shared<Patch>();
@@ -40,8 +39,8 @@ std::shared_ptr<Patch> Worker::PopData() {
     return p;
 }
 
-void Worker::Initialize(Real time_now ) {}
-void Worker::Advance(Real time, Real dt) {}
+void Worker::Initialize(Real time_now) {}
+void Worker::Advance(Real time_now, Real dt) { Initialize(time_now); }
 void Worker::Finalize() {}
 }  // namespace engine{
 

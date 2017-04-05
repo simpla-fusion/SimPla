@@ -89,7 +89,7 @@ void Mesh::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl
 
 std::shared_ptr<geometry::GeoObject> const &Mesh::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
-void Mesh::PushData(std::shared_ptr<Patch> p, Real time_now) {
+void Mesh::PushData(std::shared_ptr<Patch> p) {
     AttributeBundle::PushData(p);
     m_pimpl_->m_mesh_block_ = p->PopMeshBlock();
 };

@@ -71,13 +71,13 @@ class Context : public concept::Configurable {
     virtual void Finalize();
     bool IsInitialized() const;
 
-    virtual void Advance(Real dt, int level = 0);
+    virtual void Advance(Real time_now, Real dt, int level = 0);
     virtual void Synchronize(int from_level = 0, int to_level = 0);
 
     Atlas &GetAtlas() const;
     Model &GetModel() const;
 
-    std::shared_ptr<data::DataTable> GetPatches() const;
+    std::map<id_type, std::shared_ptr<Patch>> const &GetPatches() const;
 
     bool SetWorker(std::string const &d_name, std::shared_ptr<Worker> const &p);
     void RemoveWorker(std::string const &d_name);

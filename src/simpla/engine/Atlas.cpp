@@ -33,6 +33,8 @@ Atlas::Atlas(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s),
 Atlas::~Atlas(){};
 
 void Atlas::Initialize() { LOGGER << "Atlas is initialized " << std::endl; }
+void Atlas::Finalize() {}
+
 void Atlas::Decompose(size_tuple const &d, int local_id){};
 
 bool Atlas::Update() { return true; };
@@ -61,7 +63,7 @@ std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, index_box_type const &) {
 void Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun, int level) const {
     for (auto const &item : m_pimpl_->m_layers_[level]) { fun(m_pimpl_->m_blocks_.at(item)); }
 };
-std::set<id_type> const &Atlas::GetBlockList(int level) const { return m_pimpl_->m_layers_[level]; };
+std::set<std::shared_ptr<MeshBlock>> Atlas::Level(int level) const { return m_pimpl_->m_layers_[level]; };
 
 //
 // size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }

@@ -70,6 +70,7 @@ class Atlas : public concept::Configurable {
     void Decompose(size_tuple const &d, int local_id = -1);
 
     virtual void Initialize();
+    virtual void Finalize();
     virtual bool Update();
     size_type GetNumOfLevels() const;
 
@@ -86,7 +87,7 @@ class Atlas : public concept::Configurable {
     size_type Delete(id_type);
     std::shared_ptr<MeshBlock> GetBlock(id_type) const;
     std::shared_ptr<MeshBlock> RefineBlock(id_type, index_box_type const &);
-    std::set<id_type> const &GetBlockList(int level = 0) const;
+    std::set<std::shared_ptr<MeshBlock>> const &Level(int level = 0) const;
     void Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun, int level = 0) const;
 
    private:

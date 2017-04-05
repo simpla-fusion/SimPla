@@ -12,8 +12,8 @@ namespace simpla {
 namespace engine {
 
 struct Context::pimpl_s {
-    std::shared_ptr<data::DataTable> m_patches_;
-    std::map<std::string, std::shared_ptr<Worker>> m_worker_;
+    std::map<id_type, std::shared_ptr<Patch>> m_patches_;
+    std::map<std::string, std::shared_ptr<Worker>> m_workers_;
     std::map<std::string, std::shared_ptr<Attribute>> m_global_attributes_;
     Atlas m_atlas_;
     Model m_model_;
@@ -24,28 +24,26 @@ struct Context::pimpl_s {
 Context::Context(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
     db()->Link("Model", m_pimpl_->m_model_.db());
     db()->Link("Atlas", m_pimpl_->m_atlas_.db());
-    m_pimpl_->m_patches_ = std::make_shared<data::DataTable>();
-    db()->Link("Patches", *m_pimpl_->m_patches_);
 }
 
 Context::~Context() {}
 Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 Model &Context::GetModel() const { return m_pimpl_->m_model_; }
-std::shared_ptr<data::DataTable> Context::GetPatches() const { return m_pimpl_->m_patches_; }
+std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
 
 bool Context::SetWorker(std::string const &d_name, std::shared_ptr<Worker> const &p) {
     ASSERT(!IsInitialized());
 
-    auto res = m_pimpl_->m_worker_.emplace(d_name, p);
+    auto res = m_pimpl_->m_workers_.emplace(d_name, p);
     if (!res.second) { res.first->second = p; }
     db()->Set("Workers/" + d_name, res.first->second->db());
     return res.second;
 }
 void Context::RemoveWorker(std::string const &k) {
     ASSERT(!IsInitialized());
-    m_pimpl_->m_worker_.erase(k);
+    m_pimpl_->m_workers_.erase(k);
 }
-std::shared_ptr<Worker> Context::GetWorker(std::string const &d_name) const { return m_pimpl_->m_worker_.at(d_name); }
+std::shared_ptr<Worker> Context::GetWorker(std::string const &d_name) const { return m_pimpl_->m_workers_.at(d_name); }
 
 std::map<std::string, std::shared_ptr<Attribute>> const &Context::GetAllAttributes() const {
     return m_pimpl_->m_global_attributes_;
@@ -67,32 +65,24 @@ void Context::Initialize() {
 
     GetModel().Initialize();
     GetAtlas().Initialize();
-    db()->Set("Workers/");
-    auto domain_p = db()->GetTable("Workers");
-    if (domain_p != nullptr) {
-        domain_p->Foreach([&](std::string const &s_key, std::shared_ptr<data::DataEntity> const &item) {
-            if (!item->isTable()) { return; }
-            item->cast_as<DataTable>().SetValue("name",
-                                                item->cast_as<DataTable>().GetValue<std::string>("name", s_key));
-
-            auto g_obj_ = GetModel().GetObject(s_key);
-            auto view_res = m_pimpl_->m_worker_.emplace(s_key, nullptr);
-            if (view_res.first->second == nullptr) {
-//                view_res.first->second = std::make_shared<Worker>(std::dynamic_pointer_cast<DataTable>(item), g_obj_);
-            } else if (item != nullptr && item->isTable()) {
-                view_res.first->second->db()->Set(item->cast_as<data::DataTable>());
-            } else {
-                WARNING << " ignore data entity [" << s_key << " :" << *item << "]" << std::endl;
-            }
-            view_res.first->second->Initialize();
-            domain_p->Link(s_key, view_res.first->second->db());
-            GetModel().AddObject(s_key, view_res.first->second->GetMesh()->GetGeoObject());
-        });
+    auto workers_t = db()->GetTable("Workers");
+    for (auto const &item : GetModel().GetAll()) {
+        auto worker_res = m_pimpl_->m_workers_.emplace(item.first, nullptr);
+        if (worker_res.first->second == nullptr) {
+            worker_res.first->second = std::make_shared<Worker>(workers_t->GetTable(item.first), item.second);
+        }
+        workers_t->Link(item.first, worker_res.first->second->db());
+        // TODO register attributes
     }
     m_pimpl_->m_is_initialized_ = true;
     LOGGER << "Context is initialized!" << std::endl;
 }
-void Context::Finalize() { m_pimpl_->m_is_initialized_ = false; }
+void Context::Finalize() {
+    m_pimpl_->m_is_initialized_ = false;
+    for (auto const &item : m_pimpl_->m_workers_) { item.second->Finalize(); }
+    GetModel().Finalize();
+    GetAtlas().Finalize();
+}
 bool Context::IsInitialized() const { return m_pimpl_->m_is_initialized_; }
 
 void Context::Synchronize(int from, int to) {
@@ -103,38 +93,43 @@ void Context::Synchronize(int from, int to) {
             if (!geometry::CheckOverlap(atlas.GetBlock(src)->GetIndexBox(), atlas.GetBlock(dest)->GetIndexBox())) {
                 continue;
             }
-            auto s_it = m_pimpl_->m_patches_->Get(std::to_string(src));
-            auto d_it = m_pimpl_->m_patches_->Get(std::to_string(dest));
-            if (s_it == nullptr || d_it == nullptr || s_it == d_it) { continue; }
-            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetBlock(src)->GetIndexBox() << " to "
-                   << m_pimpl_->m_atlas_.GetBlock(dest)->GetIndexBox() << " " << std::endl;
-            auto &src_data = s_it->cast_as<data::DataTable>();
-            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &dest_p) {
-                auto dest_data = d_it->cast_as<data::DataTable>().Get(key);
-                //                        ->cast_as<data::DataTable>();
-                if (dest_data == nullptr) { return; }
-
-            });
+            auto s_it = m_pimpl_->m_patches_.find(src);
+            auto d_it = m_pimpl_->m_patches_.find(dest);
+            if (s_it == m_pimpl_->m_patches_.end() || d_it == m_pimpl_->m_patches_.end() || s_it == d_it) { continue; }
+            //            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetBlock(src)->GetIndexBox() << " to "
+            //                   << m_pimpl_->m_atlas_.GetBlock(dest)->GetIndexBox() << " " << std::endl;
+            //            auto &src_data = s_it->cast_as<data::DataTable>();
+            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &dest_p)
+            //            {
+            //                auto dest_data = d_it->cast_as<data::DataTable>().Get(key);
+            //                //                        ->cast_as<data::DataTable>();
+            //                if (dest_data == nullptr) { return; }
+            //
+            //            });
         }
     }
 }
-void Context::Advance(Real dt, int level) {
+void Context::Advance(Real time_now, Real dt, int level) {
     if (level >= GetAtlas().GetNumOfLevels()) { return; }
-    auto &atlas = GetAtlas();
-    for (auto const &id : atlas.GetBlockList(level)) {
-        auto mblk = m_pimpl_->m_atlas_.GetBlock(id);
-        for (auto &v : m_pimpl_->m_worker_) {
-            if (!v.second->GetMesh()->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
-            auto res = m_pimpl_->m_patches_->GetTable(std::to_string(id));
-            if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
-//            v.second->PushData(mblk, res);
-            LOGGER << " Worker [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
-                   << mblk->GetIndexBox() << " id= " << id << std::endl;
-            v.second->Advance(0, dt);
-//            m_pimpl_->m_patches_->Set(std::to_string(id), v.second->PopData());
+
+    for (auto const &g_item : GetModel().GetAll()) {
+        auto w = m_pimpl_->m_workers_.find(g_item.first);
+        if (w == m_pimpl_->m_workers_.end()) { continue; }
+        for (auto const &mblk : GetAtlas().Level(level)) {
+            if (!g_item.second->CheckOverlap(mblk->GetBoundBox())) { continue; }
+
+            auto p = m_pimpl_->m_patches_[mblk->GetGUID()];
+            if (p == nullptr) {
+                p = std::make_shared<Patch>();
+                p->PushMeshBlock(mblk);
+            }
+            w->second->PushData(p);
+            LOGGER << " Worker [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
+                   << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
+            w->second->Advance(time_now, dt);
+            m_pimpl_->m_patches_[mblk->GetGUID()] = w->second->PopData();
         }
     }
-    //    m_pimpl_->m_time_ += dt;
 };
 
 }  // namespace engine {

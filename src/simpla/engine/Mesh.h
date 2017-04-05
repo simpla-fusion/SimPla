@@ -43,7 +43,7 @@ class Mesh : public concept::Configurable, public AttributeBundle, public std::e
     virtual void Initialize();
     virtual void Finalize();
 
-    virtual void PushData(std::shared_ptr<Patch>, Real time_now = 0);
+    virtual void PushData(std::shared_ptr<Patch>);
     virtual std::shared_ptr<Patch> PopData();
 
     //    template <typename U>

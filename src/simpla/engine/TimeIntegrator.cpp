@@ -48,7 +48,7 @@ Real TimeIntegrator::CurrentTime() const { return m_backend_->CurrentTime(); }
 //    m_pimpl_->m_time_ += dt;
 //    return m_pimpl_->m_time_;
 //    //    for (auto const &item : atlas.GetLayer(level)) {
-//    //        for (auto &v : m_pimpl_->m_worker_) {
+//    //        for (auto &v : m_pimpl_->m_workers_) {
 //    //            auto b_box = v.second->GetMesh()->inner_bound_box();
 //    //            if (!geometry::check_overlap(item.second->GetBox(), b_box)) { continue; }
 //    //            v.second->Dispatch(m_pimpl_->m_patches_[item.first]);
@@ -57,7 +57,7 @@ Real TimeIntegrator::CurrentTime() const { return m_backend_->CurrentTime(); }
 //    //    }
 //    //    for (int i = 0; i < m_pimpl_->m_refine_ratio_; ++i) { Run(dt / m_pimpl_->m_refine_ratio_, level + 1); }
 //    //    for (auto const &item : atlas.GetLayer(level)) {
-//    //        for (auto &v : m_pimpl_->m_worker_) {
+//    //        for (auto &v : m_pimpl_->m_workers_) {
 //    //            auto b_box = v.second->GetMesh()->GetGeoObject()->GetBoundBox();
 //    //            if (!geometry::check_overlap(item.second->GetBox(), b_box)) { continue; }
 //    //            v.second->Dispatch(m_pimpl_->m_patches_[item.first]);

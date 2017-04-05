@@ -18,6 +18,7 @@ Model::Model(std::shared_ptr<data::DataTable> const& t) : m_pimpl_(new pimpl_s),
 Model::~Model() {}
 
 void Model::Initialize() { LOGGER << "Model is initialized " << std::endl; }
+void Model::Finalize() {}
 
 bool Model::Update() { return false; };
 box_type const& Model::bound_box() const { return m_pimpl_->m_bound_box_; };
