@@ -24,19 +24,23 @@ int main(int argc, char **argv) {
 
     auto ctx = time_integrator->GetContext();
 
-    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},
-                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});
+    //    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},
+    //                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});
 
-    {
-        GEqdsk geqdsk;
-        geqdsk.load(argv[1]);
+    //    ctx->RegisterAttribute<int>("tag");
+    ctx->RegisterAttribute<double, EDGE>("E");
+    ctx->RegisterAttribute<double, FACE>("B");
 
-        //        ctx->GetModel().AddDomain("VACUUM", geqdsk.limiter_gobj());
-        //        ctx->GetModel().AddDomain("PLASMA", geqdsk.boundary_gobj());
-
-        auto bound_box = ctx->GetModel().bound_box();
-    }
-
+    //    {
+    //        GEqdsk geqdsk;
+    //        geqdsk.load(argv[1]);
+    //
+    //        //        ctx->GetModel().AddDomain("VACUUM", geqdsk.limiter_gobj());
+    //        //        ctx->GetModel().AddDomain("PLASMA", geqdsk.boundary_gobj());
+    //
+    //        auto bound_box = ctx->GetModel().bound_box();
+    //    }
+    //
     //    worker->db()->SetValue("Particles/H1/m", 1.0);
     //    worker->db()->SetValue("Particles/H1/Z", 1.0);
     //    worker->db()->SetValue("Particles/H1/ratio", 0.5);
@@ -54,7 +58,6 @@ int main(int argc, char **argv) {
     //
     //    ctx->GetDomainView("PLASMA")->AddWorker(worker);
 
-    time_integrator->SetContext(ctx);
     time_integrator->Initialize();
     INFORM << "***********************************************" << std::endl;
 

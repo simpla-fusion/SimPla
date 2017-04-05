@@ -63,7 +63,7 @@ struct Mesh::pimpl_s {
 };
 Mesh::Mesh(std::shared_ptr<data::DataTable> const &t, const std::shared_ptr<geometry::GeoObject> &geo_obj)
     : concept::Configurable(t), m_pimpl_(new pimpl_s) {
-    AttributeViewBundle::SetMesh(this);
+    AttributeBundle::SetMesh(this);
     m_pimpl_->m_geo_obj_ = geo_obj;
     if (m_pimpl_->m_geo_obj_ == nullptr) {
         m_pimpl_->m_geo_obj_ = GLOBAL_GEO_OBJECT_FACTORY.Create(db()->Get("GeometryObject"));
@@ -92,11 +92,11 @@ std::shared_ptr<geometry::GeoObject> const &Mesh::GetGeoObject() const { return 
 void Mesh::PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &p) {
     ASSERT(m != nullptr);
     m_pimpl_->m_mesh_block_ = m;
-    AttributeViewBundle::SetMesh(this);
-    AttributeViewBundle::PushData(m, p);
+    AttributeBundle::SetMesh(this);
+    AttributeBundle::PushData(m, p);
 };
 std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Mesh::PopData() {
-    return AttributeViewBundle::PopData();
+    return AttributeBundle::PopData();
 }
 
 id_type Mesh::GetMeshBlockId() const {

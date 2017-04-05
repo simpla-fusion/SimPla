@@ -16,19 +16,16 @@ struct TimeIntegratorFactory::pimpl_s {
         m_TimeIntegrator_factory_;
 };
 
-TimeIntegratorFactory::TimeIntegratorFactory()
-    : m_pimpl_(new pimpl_s){
+TimeIntegratorFactory::TimeIntegratorFactory() : m_pimpl_(new pimpl_s){};
 
-      };
 TimeIntegratorFactory::~TimeIntegratorFactory(){};
+
 bool TimeIntegratorFactory::RegisterCreator(
     std::string const &k,
     std::function<std::shared_ptr<TimeIntegrator>(std::shared_ptr<Context> const &,
                                                   std::shared_ptr<data::DataTable> const &)> const &fun) {
     auto res = m_pimpl_->m_TimeIntegrator_factory_.emplace(k, fun).second;
-
     if (res) { LOGGER << "TimeIntegrator Creator [ " << k << " ] is registered!" << std::endl; }
-
     return res;
 };
 
@@ -65,16 +62,13 @@ struct TimeIntegrator::pimpl_s {
 };
 
 TimeIntegrator::TimeIntegrator(std::shared_ptr<Context> const &m, std::shared_ptr<data::DataTable> const &t)
-    : concept::Configurable(t), m_pimpl_(new pimpl_s) {
+    : Schedule(t), m_pimpl_(new pimpl_s) {
     m_pimpl_->m_ctx_ = m != nullptr ? m : std::make_shared<Context>(db()->GetTable("Context"));
 }
 TimeIntegrator::~TimeIntegrator() { Finalize(); }
 
 void TimeIntegrator::Initialize() {
-    if (m_pimpl_->m_ctx_ != nullptr) {
-        m_pimpl_->m_ctx_->Initialize();
-        CHECK(*m_pimpl_->m_ctx_->db());
-    }
+    if (m_pimpl_->m_ctx_ != nullptr) { m_pimpl_->m_ctx_->Initialize(); }
 }
 void TimeIntegrator::Finalize() { m_pimpl_->m_ctx_.reset(); }
 void TimeIntegrator::SetContext(std::shared_ptr<Context> const &c) {
@@ -84,28 +78,31 @@ void TimeIntegrator::SetContext(std::shared_ptr<Context> const &c) {
 }
 std::shared_ptr<Context> const &TimeIntegrator::GetContext() const { return m_pimpl_->m_ctx_; }
 
-size_type TimeIntegrator::NextTimeStep(Real dt) { return 0; };
-size_type TimeIntegrator::step() const { return 0; };
-bool TimeIntegrator::remainingSteps() const { return 0; };
-Real TimeIntegrator::timeNow() const { return 0.0; }
+size_type TimeIntegrator::NextTimeStep(Real dt) {
+    m_pimpl_->m_time_ += dt;
+    //    Schedule::NextTask()->Run(dt);
+    return 1;
+};
+bool TimeIntegrator::remainingSteps() const { return false; }
+Real TimeIntegrator::timeNow() const { return m_pimpl_->m_time_; }
 
 Real TimeIntegrator::Advance(Real dt, int level) {
     if (level >= m_pimpl_->m_ctx_->GetAtlas().GetNumOfLevels()) { return m_pimpl_->m_time_; }
     auto &atlas = m_pimpl_->m_ctx_->GetAtlas();
-    for (auto const &id : atlas.GetBlockList(level)) {
-        auto mblk = atlas.GetBlock(id);
-        for (auto &v : m_pimpl_->m_ctx_->GetAllDomains()) {
-            if (!v.second->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
-            auto res = m_pimpl_->m_ctx_->GetPatches()->GetTable(std::to_string(id));
-            if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
-            v.second->PushData(mblk, res);
-            LOGGER << " Domain [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
-                   << mblk->GetIndexBox() << " id= " << id << std::endl;
-            v.second->Run(dt);
-            auto t = v.second->PopData().second;
-            m_pimpl_->m_ctx_->GetPatches()->Set(std::to_string(id), t);
-        }
-    }
+//    for (auto const &id : atlas.GetBlockList(level)) {
+//        auto mblk = atlas.GetBlock(id);
+//        for (auto &v : m_pimpl_->m_ctx_->GetAllDomains()) {
+//            if (!v.second->GetGeoObject()->CheckOverlap(mblk->GetBoundBox())) { continue; }
+//            auto res = m_pimpl_->m_ctx_->GetPatches()->GetTable(std::to_string(id));
+//            if (res == nullptr) { res = std::make_shared<data::DataTable>(); }
+//            v.second->PushData(mblk, res);
+//            LOGGER << " Domain [ " << std::setw(10) << std::left << v.second->name() << " ] is applied on "
+//                   << mblk->GetIndexBox() << " id= " << id << std::endl;
+//            v.second->Run(dt);
+//            auto t = v.second->PopData().second;
+//            m_pimpl_->m_ctx_->GetPatches()->Set(std::to_string(id), t);
+//        }
+//    }
     m_pimpl_->m_time_ += dt;
     return m_pimpl_->m_time_;
     //    for (auto const &item : atlas.GetLayer(level)) {

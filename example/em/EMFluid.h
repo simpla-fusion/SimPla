@@ -7,11 +7,10 @@
 #ifndef SIMPLA_EM_FLUID_H
 #define SIMPLA_EM_FLUID_H
 
-#include <simpla/SIMPLA_config.h>
-#include <simpla/algebra/all.h>
-#include <simpla/engine/all.h>
-
-#include <simpla/physics/PhysicalConstants.h>
+#include "simpla/SIMPLA_config.h"
+#include "simpla/algebra/all.h"
+#include "simpla/engine/all.h"
+#include "simpla/physics/PhysicalConstants.h"
 
 namespace simpla {
 using namespace algebra;
@@ -19,14 +18,14 @@ using namespace data;
 using namespace engine;
 
 template <typename TM>
-class EMFluid : public engine::Worker {
+class EMFluid : public engine::Task {
    public:
-    SP_OBJECT_HEAD(EMFluid<TM>, engine::Worker)
+    SP_OBJECT_HEAD(EMFluid<TM>, engine::Task)
     typedef TM mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
     template <typename... Args>
-    explicit EMFluid(Args&&... args) : engine::Worker(std::forward<Args>(args)...){};
+    explicit EMFluid(Args&&... args) : engine::Task(std::forward<Args>(args)...){};
     ~EMFluid() {}
 
     mesh_type* m_mesh_;

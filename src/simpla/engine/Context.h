@@ -72,11 +72,22 @@ class Context : public concept::Configurable {
     virtual void Synchronize(int from_level = 0, int to_level = 0);
     Atlas &GetAtlas() const;
     Model &GetModel() const;
+
     std::shared_ptr<data::DataTable> GetPatches() const;
+
     void SetDomain(std::string const &d_name, std::shared_ptr<Domain> const &p);
     std::shared_ptr<Domain> GetDomain(std::string const &d_name) const;
     std::map<std::string, std::shared_ptr<Domain>> const &GetAllDomains() const;
-    std::shared_ptr<data::DataArray> GetAttributes() const;
+
+    bool RegisterAttribute(std::string const &key, std::shared_ptr<Attribute> const &);
+    template <typename TV, int IFORM = VERTEX, int DOF = 1>
+    bool RegisterAttribute(std::string const &key) {
+        return RegisterAttribute(key, std::make_shared<AttributeDesc<TV, IFORM, DOF>>());
+    };
+
+    void DeregisterAttribute(std::string const &key);
+    std::shared_ptr<Attribute> const &GetAttribute(std::string const &key) const;
+    std::map<std::string, std::shared_ptr<Attribute>> const &GetAllAttributes() const;
 
    private:
     struct pimpl_s;

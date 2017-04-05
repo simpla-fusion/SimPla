@@ -13,5 +13,5 @@
 #include "Model.h"
 #include "Patch.h"
 #include "TimeIntegrator.h"
-#include "Worker.h"
+#include "Task.h"
 #endif  // SIMPLA_ENGINE_ALL_H

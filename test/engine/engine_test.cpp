@@ -6,7 +6,7 @@
 #include <simpla/engine/Attribute.h>
 #include <simpla/engine/Domain.h>
 #include <simpla/engine/Patch.h>
-#include <simpla/engine/Worker.h>
+#include <simpla/engine/Task.h>
 
 #include <iostream>
 using namespace simpla::engine;
@@ -25,8 +25,8 @@ struct Moo : public Mesh {
     void Initialize() final {}
 };
 
-struct Foo : public Worker {
-    SP_OBJECT_HEAD(Foo, Worker)
+struct Foo : public Task {
+    SP_OBJECT_HEAD(Foo, Task)
     DataAttribute<Real> rho0{this, "rho0", "CHECK"_ = true};
     DataAttribute<Real> E{this, "E", "CHECK"_ = false};
     void Initialize() final {}

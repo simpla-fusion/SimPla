@@ -9,15 +9,16 @@
 #include "MeshBlock.h"
 #include "Patch.h"
 #include "SPObject.h"
-#include "Worker.h"
+#include "Task.h"
 namespace simpla {
 namespace engine {
 
 struct Domain::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     std::shared_ptr<Mesh> m_mesh_;
-    std::map<int, std::shared_ptr<Worker>> m_workers_;
-    std::set<AttributeViewBundle *> m_attr_bundle_;
+    std::map<int, std::shared_ptr<Task>> m_workers_;
+    std::set<AttributeBundle *> m_attr_bundle_;
+    std::set<Attribute *> m_attributes_;
 
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<data::DataTable> m_patch_;
@@ -56,7 +57,6 @@ void Domain::SetMeshView(std::shared_ptr<Mesh> const &m) {
 };
 
 std::shared_ptr<Domain> Domain::Clone() const { return std::make_shared<Domain>(*this); }
-
 
 // std::shared_ptr<Mesh> Domain::CreateMeshView() {
 //    std::shared_ptr<Mesh> m = nullptr;
@@ -168,13 +168,13 @@ void Domain::Run(Real dt) {
         PushData(res);  // item.second->PopData());
     }
 }
-void Domain::Attach(AttributeViewBundle *p) {
+void Domain::Attach(AttributeBundle *p) {
     if (p == nullptr) { return; }
     auto res = m_pimpl_->m_attr_bundle_.emplace(p);
 
     if (res.second) {
         (*res.first)->Connect(this);
-        (*res.first)->Foreach([&](Attribute *v) {
+        for (Attribute *v : (*res.first)->GetAllAttributes()) {
             ASSERT(v != nullptr)
             if (v->name() != "") {
                 auto t = db()->Get("Attributes/" + v->name());
@@ -185,18 +185,21 @@ void Domain::Attach(AttributeViewBundle *p) {
                 }
                 db()->Link("Attributes/" + v->name(), t);
             }
-        });
+        };
     }
 }
-void Domain::Detach(AttributeViewBundle *p) {
+void Domain::Detach(AttributeBundle *p) {
     if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) {}
 }
+
+std::set<Attribute *> const &Domain::GetAllAttributes() const { return m_pimpl_->m_attributes_; }
+
 void Domain::Initialize() {
     if (m_pimpl_->m_mesh_ != nullptr) { return; }
     m_pimpl_->m_mesh_ = GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("Mesh"), m_pimpl_->m_geo_obj_);
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
     db()->Link("Mesh", m_pimpl_->m_mesh_->db());
-    auto t_worker = db()->Get("Worker");
+    auto t_worker = db()->Get("Task");
 
     if (t_worker != nullptr && t_worker->isArray()) {
         t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
@@ -204,19 +207,21 @@ void Domain::Initialize() {
             AddWorker(res);
         });
     }
-
+    for (auto const &attr_bundle : m_pimpl_->m_attr_bundle_) {
+        for (auto *v : attr_bundle->GetAllAttributes()) { m_pimpl_->m_attributes_.insert(v); }
+    }
     LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
 }
 void Domain::Finalize() { m_pimpl_.reset(new pimpl_s); }
 
-std::pair<std::shared_ptr<Worker>, bool> Domain::AddWorker(std::shared_ptr<Worker> const &w, int pos) {
+std::pair<std::shared_ptr<Task>, bool> Domain::AddWorker(std::shared_ptr<Task> const &w, int pos) {
     ASSERT(w != nullptr);
     auto res = m_pimpl_->m_workers_.emplace(pos, w);
     if (res.second) { Attach(res.first->second.get()); }
     return std::make_pair(res.first->second, res.second);
 }
 
-void Domain::RemoveWorker(std::shared_ptr<Worker> const &w) {
+void Domain::RemoveWorker(std::shared_ptr<Task> const &w) {
     UNIMPLEMENTED;
     //    auto it = m_backend_->m_workers_.find(w);
     //    if (it != m_backend_->m_workers_.end()) { m_backend_->m_workers_.Disconnect(it); }
@@ -230,7 +235,7 @@ void Domain::RemoveWorker(std::shared_ptr<Worker> const &w) {
 //    }
 //
 //    if (m_pimpl_->m_workers_.size() > 0) {
-//        os << " Worker = { ";
+//        os << " Task = { ";
 //        for (auto &item : m_pimpl_->m_workers_) { item.second->Print(os, indent); }
 //        os << " } " << std::endl;
 //    }

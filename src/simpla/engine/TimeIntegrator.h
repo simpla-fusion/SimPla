@@ -10,10 +10,11 @@
 #include <simpla/design_pattern/SingletonHolder.h>
 #include <memory>
 #include "SPObject.h"
+#include "Schedule.h"
 namespace simpla {
 namespace engine {
 class Context;
-class TimeIntegrator : public concept::Configurable {
+class TimeIntegrator : public Schedule {
     SP_OBJECT_BASE(engine::TimeIntegrator);
 
    public:
@@ -27,7 +28,6 @@ class TimeIntegrator : public concept::Configurable {
 
     virtual Real Advance(Real dt, int level = 0);
     virtual size_type NextTimeStep(Real dt);
-    virtual size_type step() const;
     virtual bool remainingSteps() const;
     virtual Real timeNow() const;
 

@@ -19,7 +19,7 @@ class Mesh;
 class MeshBlock;
 class DataBlock;
 class Domain;
-class Worker;
+class Task;
 
 class Domain : public concept::Configurable, public std::enable_shared_from_this<Domain> {
    public:
@@ -40,10 +40,12 @@ class Domain : public concept::Configurable, public std::enable_shared_from_this
 
     virtual void Run(Real dt);
 
-    std::pair<std::shared_ptr<Worker>, bool> AddWorker(std::shared_ptr<Worker> const &w, int pos = -1);
-    void RemoveWorker(std::shared_ptr<Worker> const &w);
-    void Attach(AttributeViewBundle *);
-    void Detach(AttributeViewBundle *p = nullptr);
+    std::pair<std::shared_ptr<Task>, bool> AddWorker(std::shared_ptr<Task> const &w, int pos = -1);
+    void RemoveWorker(std::shared_ptr<Task> const &w);
+    void Attach(AttributeBundle *);
+    void Detach(AttributeBundle *p = nullptr);
+
+    std::set<Attribute *> const &GetAllAttributes() const;
 
    private:
     struct pimpl_s;

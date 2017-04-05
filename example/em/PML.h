@@ -18,7 +18,7 @@ using namespace engine;
  *  @brief absorb boundary condition, PML
  */
 template <typename TM>
-class PML : public engine::Worker {
+class PML : public engine::Task {
     SP_OBJECT_HEAD(PML<TM>, engine::Worker);
 
    public:
@@ -29,7 +29,7 @@ class PML : public engine::Worker {
     using field_type = Field<TM, scalar_type, IFORM, DOF>;
 
     template <typename... Args>
-    explicit PML(Args &&... args) : engine::Worker(std::forward<Args>(args)...){};
+    explicit PML(Args &&... args) : engine::Task(std::forward<Args>(args)...){};
     virtual ~PML(){};
     void SetCenterDomain(geometry::GeoObject const &) {}
     void Initialize();

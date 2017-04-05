@@ -84,10 +84,10 @@ class Patch;
 //    data::DataTable m_db_;
 //};
 
-class AttributeViewBundle {
+class AttributeBundle {
    public:
-    AttributeViewBundle(Domain *p = nullptr);
-    virtual ~AttributeViewBundle();
+    AttributeBundle(Domain *p = nullptr);
+    virtual ~AttributeBundle();
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
     void Connect(Domain *);
@@ -96,8 +96,7 @@ class AttributeViewBundle {
     Mesh const *GetMesh() const;
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &);
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData();
-
-    void Foreach(std::function<void(Attribute *)> const &) const;
+    std::set<Attribute *> const &GetAllAttributes() const;
 
    private:
     struct pimpl_s;
@@ -130,24 +129,24 @@ struct Attribute : public SPObject {
     SP_OBJECT_BASE(Attribute);
 
    public:
-    Attribute(AttributeViewBundle *b, std::shared_ptr<data::DataTable> const &p);
-    Attribute(AttributeViewBundle *b) : Attribute(b, std::shared_ptr<data::DataTable>(nullptr)){};
+    Attribute();
+    Attribute(AttributeBundle *b, std::shared_ptr<data::DataTable> const &p);
+    Attribute(AttributeBundle *b) : Attribute(b, std::shared_ptr<data::DataTable>(nullptr)){};
     template <typename U, typename... Args>
-    explicit Attribute(AttributeViewBundle *b, U const &first, Args &&... args)
+    explicit Attribute(AttributeBundle *b, U const &first, Args &&... args)
         : Attribute(b, std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
     Attribute(Attribute const &other) = delete;
     Attribute(Attribute &&other) = delete;
     virtual ~Attribute();
 
-//    virtual std::shared_ptr<Attribute> Clone() const = 0;
-
-    void SetMesh(Mesh const *);
-    Mesh const *GetMesh() const;
+    //    virtual std::shared_ptr<Attribute> Clone() const = 0;
 
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
-    virtual std::type_info const &mesh_type_info() const = 0;   //!< mesh type
+
+    void SetMesh(Mesh const *);
+    Mesh const *GetMesh() const;
 
     virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &) = 0;
     virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() = 0;
@@ -159,6 +158,20 @@ struct Attribute : public SPObject {
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
+};
+template <typename TV = double, int IFORM = VERTEX, int DOF = 1>
+struct AttributeDesc : public Attribute {
+    AttributeDesc() : Attribute() {}
+    ~AttributeDesc() {}
+    virtual int GetIFORM() const { return IFORM; };
+    virtual int GetDOF() const { return DOF; };
+    virtual std::type_info const &value_type_info() const { return typeid(TV); };   //!< value type
+    virtual std::type_info const &mesh_type_info() const { return typeid(void); };  //!< mesh type
+
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &){};
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
+        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), std::shared_ptr<data::DataEntity>(nullptr));
+    }
 };
 
 //
@@ -184,7 +197,7 @@ struct Attribute : public SPObject {
 //    typedef std::true_type prefer_pass_by_reference;
 //
 //    template <typename... Args>
-//    explicit AttributeViewAdapter(AttributeViewBundle *b, Args &&... args)
+//    explicit AttributeViewAdapter(AttributeBundle *b, Args &&... args)
 //        : Attribute(b, data::make_data_entity(std::forward<Args>(args)...)) {}
 //
 //    AttributeViewAdapter(AttributeViewAdapter &&) = delete;

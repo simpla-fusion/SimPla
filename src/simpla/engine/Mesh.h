@@ -22,7 +22,7 @@ class Patch;
  *   - \f$p\f$ is the projection
  *
  */
-class Mesh : public concept::Configurable, public AttributeViewBundle, public std::enable_shared_from_this<Mesh> {
+class Mesh : public concept::Configurable, public AttributeBundle, public std::enable_shared_from_this<Mesh> {
     SP_OBJECT_BASE(Mesh);
 
    public:

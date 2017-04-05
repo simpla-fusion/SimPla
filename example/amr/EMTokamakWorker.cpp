@@ -6,7 +6,7 @@
 
 #include <simpla/algebra/all.h>
 #include <simpla/engine/Atlas.h>
-#include <simpla/engine/Worker.h>
+#include <simpla/engine/Task.h>
 #include <simpla/model/GEqdsk.h>
 #include <simpla/physics/Constants.h>
 //#include <simpla/predefine/mesh/CartesianGeometry.h>
@@ -21,8 +21,8 @@ using namespace engine;
 class EMTokamakWorker;
 std::shared_ptr<engine::Mesh> create_mesh() { return std::make_shared<mesh::CylindricalGeometry>(); }
 
-std::shared_ptr<engine::Worker> create_worker() {
-    return std::dynamic_pointer_cast<engine::Worker>(std::make_shared<EMTokamakWorker>());
+std::shared_ptr<engine::Task> create_worker() {
+    return std::dynamic_pointer_cast<engine::Task>(std::make_shared<EMTokamakWorker>());
 }
 
 class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {

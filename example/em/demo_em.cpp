@@ -35,7 +35,7 @@ void create_scenario(engine::Context *ctx) {
     ctx->GetModel().db()->SetValue("Boundary", {"GeoObject"_ = {"+OuterBox", "-InnerBox"}});
 
     ctx->db()->SetValue("Domain/Center", {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}});
-    //    ctx->db()->SetValue("Domain/Boundary", {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "PML"}}});
+    //    ctx->db()->SetValue("Domain/Boundary", {"Mesh"_ = "CartesianGeometry", "Task"_ = {{"name"_ = "PML"}}});
     //    options.GetTable("Particles").foreach ([&](auto const &item) {
     //        auto sp = center_worker.AddSpecies(std::get<0>(item).template as<std::string>(),
     //                                           std::get<1>(item)["Mass"].template as<Real>(1.0),

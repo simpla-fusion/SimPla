@@ -4,7 +4,7 @@
 #include "Context.h"
 #include "Domain.h"
 #include "Mesh.h"
-#include "Worker.h"
+#include "Task.h"
 #include "simpla/data/all.h"
 #include "simpla/geometry/GeoAlgorithm.h"
 namespace simpla {
@@ -13,10 +13,9 @@ namespace engine {
 struct Context::pimpl_s {
     std::shared_ptr<data::DataTable> m_patches_;
     std::map<std::string, std::shared_ptr<Domain>> m_domains_;
+    std::map<std::string, std::shared_ptr<Attribute>> m_global_attributes_;
     Atlas m_atlas_;
     Model m_model_;
-    Real m_time_ = 0;
-    std::shared_ptr<data::DataTable> m_db_;
 };
 
 Context::Context(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
@@ -39,7 +38,16 @@ void Context::SetDomain(std::string const &d_name, std::shared_ptr<Domain> const
 
 std::shared_ptr<Domain> Context::GetDomain(std::string const &d_name) const { return m_pimpl_->m_domains_.at(d_name); }
 std::map<std::string, std::shared_ptr<Domain>> const &Context::GetAllDomains() const { return m_pimpl_->m_domains_; };
-
+std::map<std::string, std::shared_ptr<Attribute>> const &Context::GetAllAttributes() const {
+    return m_pimpl_->m_global_attributes_;
+};
+bool Context::RegisterAttribute(std::string const &key, std::shared_ptr<Attribute> const &v) {
+    return m_pimpl_->m_global_attributes_.emplace(key, v).second;
+}
+void Context::DeregisterAttribute(std::string const &key) { m_pimpl_->m_global_attributes_.erase(key); }
+std::shared_ptr<Attribute> const &Context::GetAttribute(std::string const &key) const {
+    return m_pimpl_->m_global_attributes_.at(key);
+}
 void Context::Initialize() {
     GetModel().Initialize();
     GetAtlas().Initialize();
@@ -62,12 +70,11 @@ void Context::Initialize() {
             }
             view_res.first->second->Initialize();
             domain_p->Link(s_key, view_res.first->second->db());
-
             GetModel().AddObject(s_key, view_res.first->second->GetGeoObject());
         });
     }
 
-     LOGGER << "Context is initialized!" << std::endl;
+    LOGGER << "Context is initialized!" << std::endl;
 }
 
 void Context::Synchronize(int from, int to) {
@@ -110,7 +117,7 @@ void Context::Advance(Real dt, int level) {
             m_pimpl_->m_patches_->Set(std::to_string(id), t);
         }
     }
-    m_pimpl_->m_time_ += dt;
+    //    m_pimpl_->m_time_ += dt;
 };
 
 }  // namespace engine {
