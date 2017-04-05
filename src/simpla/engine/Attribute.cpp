@@ -71,9 +71,9 @@ struct Attribute::pimpl_s {
     AttributeBundle *m_bundle_ = nullptr;
     Mesh const *m_mesh_ = nullptr;
 };
-Attribute::Attribute() : m_pimpl_(new pimpl_s) {}
+Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {}
 Attribute::Attribute(AttributeBundle *b, std::shared_ptr<data::DataTable> const &t)
-    : SPObject(t), m_pimpl_(new pimpl_s) {
+    : concept::Configurable(t), m_pimpl_(new pimpl_s) {
     if (b != nullptr && b != m_pimpl_->m_bundle_) { b->Attach(this); }
     m_pimpl_->m_bundle_ = b;
 };
@@ -97,17 +97,6 @@ Mesh const *Attribute::GetMesh() const {
     return m_pimpl_->m_mesh_ != nullptr ? m_pimpl_->m_mesh_
                                         : (m_pimpl_->m_bundle_ != nullptr ? m_pimpl_->m_bundle_->GetMesh() : nullptr);
 }
-/**
-*@startuml
-*start
-* if (m_domain_ == nullptr) then (yes)
-* else   (no)
-*   : m_current_block_id = m_domain-> current_block_id();
-* endif
-*stop
-*@enduml
-*/
-bool Attribute::Update() { return SPObject::Update(); }
 
 bool Attribute::isNull() const { return false; }
 

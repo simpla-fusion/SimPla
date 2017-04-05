@@ -20,9 +20,9 @@ int main(int argc, char **argv) {
     logger::set_stdout_level(100);
     GLOBAL_COMM.init(argc, argv);
 
-    auto time_integrator = GLOBAL_TIME_INTEGRATOR_FACTORY.Create("samrai");
+    engine::TimeIntegrator time_integrator("samrai");
 
-    auto ctx = time_integrator->GetContext();
+    auto &ctx = time_integrator.GetContext();
 
     //    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},
     //                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});
@@ -58,14 +58,14 @@ int main(int argc, char **argv) {
     //
     //    ctx->GetDomainView("PLASMA")->AddWorker(worker);
 
-    time_integrator->Initialize();
+    time_integrator.Initialize();
     INFORM << "***********************************************" << std::endl;
 
-    while (time_integrator->remainingSteps()) { time_integrator->NextTimeStep(0.01); }
+    while (time_integrator.RemainingSteps()) { time_integrator.NextTimeStep(0.01); }
 
     INFORM << "***********************************************" << std::endl;
 
-    time_integrator->Finalize();
+    time_integrator.Finalize();
 
     INFORM << " DONE !" << std::endl;
 

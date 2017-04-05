@@ -16,6 +16,7 @@ class Configurable {
     Configurable(std::string const& s_name) : Configurable() { m_db_->SetValue("name", s_name); }
 
     virtual ~Configurable() {}
+    void ResetDB(std::shared_ptr<data::DataTable> const& d) { m_db_ = d; }
     std::shared_ptr<data::DataTable> db() const { return m_db_; }
     std::shared_ptr<data::DataTable> db() { return m_db_; }
     std::string name() const { return db()->GetValue<std::string>("name", ""); }

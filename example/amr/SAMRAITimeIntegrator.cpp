@@ -13,11 +13,11 @@
 #include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/all.h"
 #include "simpla/data/all.h"
+#include "simpla/engine/TimeIntegratorBackend.h"
 #include "simpla/engine/all.h"
 #include "simpla/mesh/MeshCommon.h"
 #include "simpla/parallel/MPIComm.h"
 #include "simpla/toolbox/Log.h"
-
 //#include <simpla/predefine/mesh/CylindricalGeometry.h>
 // Headers for SAMRAI
 #include <SAMRAI/SAMRAI_config.h>
@@ -84,7 +84,8 @@ using namespace simpla::data;
 class SAMRAITimeIntegrator;
 
 static bool TIME_INTEGRATOR_SAMRAI_IS_REGISTERED =
-    SingletonHolder<engine::TimeIntegratorFactory>::instance().template RegisterCreator<SAMRAITimeIntegrator>("samrai");
+    SingletonHolder<engine::TimeIntegratorBackendFactory>::instance().template RegisterCreator<SAMRAITimeIntegrator>(
+        "samrai");
 
 static bool Mesh_CartesianGeometry_IS_REGISTERED =
     GLOBAL_MESHVIEW_FACTORY.RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
@@ -686,22 +687,21 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::printClassData(std::ostream &os) con
 /**
  * class SAMRAITimeIntegrator
  */
-struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
-    SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::TimeIntegrator);
+struct SAMRAITimeIntegrator : public engine::TimeIntegratorBackend {
+    SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::TimeIntegratorBackend);
 
    public:
-    template <typename... Args>
-    SAMRAITimeIntegrator(Args &&... args) : engine::TimeIntegrator(std::forward<Args>(args)...){};
+    SAMRAITimeIntegrator() : engine::TimeIntegratorBackend(){};
     ~SAMRAITimeIntegrator();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
-    virtual bool Update();
     virtual void Initialize();
     virtual void Finalize();
-    virtual size_type step() const;
-    virtual bool remainingSteps() const;
-    virtual Real timeNow() const;
-    virtual size_type NextTimeStep(Real dt_now);
+    virtual void NextTimeStep(Real dt_now);
+
+    virtual bool RemainingSteps() const;
+    virtual Real CurrentTime() const;
+    virtual size_type StepNumber() const;
     virtual void CheckPoint();
 
    private:
@@ -717,7 +717,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
     //    boost::shared_ptr<SAMRAI::engine::BergerRigoutsos> box_generator;
     //    boost::shared_ptr<SAMRAI::engine::CascadePartitioner> load_balancer;
     //    boost::shared_ptr<SAMRAI::engine::GriddingAlgorithm> gridding_algorithm;
-    boost::shared_ptr<SAMRAI::algs::TimeRefinementIntegrator> time_integrator;
+    boost::shared_ptr<SAMRAI::algs::TimeRefinementIntegrator> m_time_refinement_integrator_;
     // VisItDataWriter is only present if HDF is available
     boost::shared_ptr<SAMRAI::appu::VisItDataWriter> visit_data_writer;
 
@@ -738,13 +738,12 @@ SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
 }
 std::ostream &SAMRAITimeIntegrator::Print(std::ostream &os, int indent) const {
     SAMRAI::hier::VariableDatabase::getDatabase()->printClassData(os);
-    os << *db() << std::endl;
+    //    os << *db() << std::endl;
     if (hyp_level_integrator != nullptr) hyp_level_integrator->printClassData(os);
     return os;
 };
-bool SAMRAITimeIntegrator::Update() { return false; }
 void SAMRAITimeIntegrator::Initialize() {
-    engine::TimeIntegrator::Initialize();
+    //    engine::TimeIntegrator::Initialize();
 
     //    data::DataTable(std::make_shared<DataBackendSAMRAI>()).swap(*db());
 
@@ -891,8 +890,7 @@ void SAMRAITimeIntegrator::Initialize() {
     /***
      *  create hyp_level_integrator and error_detector
      */
-    hyperbolic_patch_strategy =
-        boost::make_shared<SAMRAI_HyperbolicPatchStrategyAdapter>(engine::TimeIntegrator::GetContext(), grid_geometry);
+    hyperbolic_patch_strategy = boost::make_shared<SAMRAI_HyperbolicPatchStrategyAdapter>(GetContext(), grid_geometry);
     //    visit_data_writer = boost::make_shared<SAMRAI::appu::VisItDataWriter>(
     //            dim, db()->GetValue<std::string>("output_writer_name", name() + " VisIt Writer"),
     //            db()->GetValue<std::string>("output_dir_name", name()),
@@ -947,51 +945,52 @@ void SAMRAITimeIntegrator::Initialize() {
     TimeRefinementIntegrator->putDouble("grow_dt", 1.1e0);              // growth factor for timesteps
     TimeRefinementIntegrator->putInteger("max_integrator_steps", 100);  // max number of simulation timesteps
 
-    time_integrator = boost::make_shared<SAMRAI::algs::TimeRefinementIntegrator>(
+    m_time_refinement_integrator_ = boost::make_shared<SAMRAI::algs::TimeRefinementIntegrator>(
         "TimeRefinementIntegrator", TimeRefinementIntegrator, patch_hierarchy, hyp_level_integrator,
         gridding_algorithm);
 
-    // time_integrator->printClassData(std::cout);
+    // m_time_refinement_integrator_->printClassData(std::cout);
 
-    m_dt_now_ = time_integrator->initializeHierarchy();
+    m_dt_now_ = m_time_refinement_integrator_->initializeHierarchy();
     m_is_valid_ = true;
 
-    MESSAGE << name() << " is initialized!" << std::endl;
+    //    MESSAGE << m_pimpl_->m_ctx_->name() << " is initialized!" << std::endl;
 };
 void SAMRAITimeIntegrator::Finalize() {
     m_is_valid_ = false;
     visit_data_writer.reset();
-    time_integrator.reset();
+    m_time_refinement_integrator_.reset();
     hyp_level_integrator.reset();
     hyperbolic_patch_strategy.reset();
 }
-size_type SAMRAITimeIntegrator::NextTimeStep(Real dt) {
-    MESSAGE << " Time = " << timeNow() << " Step = " << step() << std::endl;
-    Real loop_time = time_integrator->getIntegratorTime();
+void SAMRAITimeIntegrator::NextTimeStep(Real dt) {
+    MESSAGE << " Time = " << CurrentTime() << " Step = " << StepNumber() << std::endl;
+    Real loop_time = m_time_refinement_integrator_->getIntegratorTime();
     Real loop_time_end = loop_time + dt;
 
     dt = std::min(dt, m_dt_now_);
-    while (loop_time < loop_time_end && dt > 0 && time_integrator->stepsRemaining() > 0) {
-        Real dt_new = time_integrator->advanceHierarchy(dt, false);
+    while (loop_time < loop_time_end && dt > 0 && m_time_refinement_integrator_->stepsRemaining() > 0) {
+        Real dt_new = m_time_refinement_integrator_->advanceHierarchy(dt, false);
         loop_time += dt;
         dt = std::min(dt_new, loop_time_end - loop_time);
     }
-    return 0;
 }
 void SAMRAITimeIntegrator::CheckPoint() {
     if (visit_data_writer != nullptr) {
-        visit_data_writer->writePlotData(patch_hierarchy, time_integrator->getIntegratorStep(),
-                                         time_integrator->getIntegratorTime());
+        visit_data_writer->writePlotData(patch_hierarchy, m_time_refinement_integrator_->getIntegratorStep(),
+                                         m_time_refinement_integrator_->getIntegratorTime());
     }
 }
-Real SAMRAITimeIntegrator::timeNow() const {
-    return time_integrator == nullptr ? 0 : static_cast<Real>(time_integrator->getIntegratorTime());
+Real SAMRAITimeIntegrator::CurrentTime() const {
+    return m_time_refinement_integrator_ == nullptr ? 0 : m_time_refinement_integrator_->getIntegratorTime();
 }
-size_type SAMRAITimeIntegrator::step() const {
-    return time_integrator == nullptr ? 0 : static_cast<size_type>(time_integrator->getIntegratorStep());
+size_type SAMRAITimeIntegrator::StepNumber() const {
+    return m_time_refinement_integrator_ == nullptr
+               ? 0
+               : static_cast<size_type>(m_time_refinement_integrator_->getIntegratorStep());
 }
-bool SAMRAITimeIntegrator::remainingSteps() const {
-    return time_integrator != nullptr ? time_integrator->stepsRemaining() : false;
+bool SAMRAITimeIntegrator::RemainingSteps() const {
+    return m_time_refinement_integrator_ != nullptr ? m_time_refinement_integrator_->stepsRemaining() : false;
 }
 }  // namespace simpla
 

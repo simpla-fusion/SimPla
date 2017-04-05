@@ -102,7 +102,8 @@ class AttributeBundle {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-
+template <typename TV = double, int IFORM = VERTEX, int DOF = 1>
+struct AttributeDesc;
 /**
  * @startuml
  * title Life cycle
@@ -125,11 +126,12 @@ class AttributeBundle {
  * deactivate AttributeView
  * @enduml
  */
-struct Attribute : public SPObject {
+struct Attribute : public concept::Configurable {
     SP_OBJECT_BASE(Attribute);
 
    public:
-    Attribute();
+    Attribute(std::shared_ptr<data::DataTable> const &t = nullptr);
+
     Attribute(AttributeBundle *b, std::shared_ptr<data::DataTable> const &p);
     Attribute(AttributeBundle *b) : Attribute(b, std::shared_ptr<data::DataTable>(nullptr)){};
     template <typename U, typename... Args>
@@ -140,7 +142,7 @@ struct Attribute : public SPObject {
     virtual ~Attribute();
 
     //    virtual std::shared_ptr<Attribute> Clone() const = 0;
-
+    virtual std::shared_ptr<Attribute> GetDescription() const = 0;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
@@ -148,10 +150,11 @@ struct Attribute : public SPObject {
     void SetMesh(Mesh const *);
     Mesh const *GetMesh() const;
 
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &) = 0;
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() = 0;
+    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &){};
+    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
+        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), std::shared_ptr<data::DataEntity>(nullptr));
+    }
 
-    virtual bool Update();
     virtual bool isNull() const;
     virtual bool empty() const { return isNull(); };
 
@@ -159,19 +162,18 @@ struct Attribute : public SPObject {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-template <typename TV = double, int IFORM = VERTEX, int DOF = 1>
+template <typename TV, int IFORM, int DOF>
 struct AttributeDesc : public Attribute {
-    AttributeDesc() : Attribute() {}
+    AttributeDesc(std::shared_ptr<data::DataTable> const &t = nullptr) : Attribute(t) {}
     ~AttributeDesc() {}
+
+    virtual std::shared_ptr<Attribute> GetDescription() const {
+        return std::make_shared<AttributeDesc<TV, IFORM, DOF>>();
+    };
+
     virtual int GetIFORM() const { return IFORM; };
     virtual int GetDOF() const { return DOF; };
-    virtual std::type_info const &value_type_info() const { return typeid(TV); };   //!< value type
-    virtual std::type_info const &mesh_type_info() const { return typeid(void); };  //!< mesh type
-
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &){};
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData() {
-        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), std::shared_ptr<data::DataEntity>(nullptr));
-    }
+    virtual std::type_info const &value_type_info() const { return typeid(TV); };
 };
 
 //

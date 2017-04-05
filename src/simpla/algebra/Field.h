@@ -86,14 +86,14 @@ class FieldView : public engine::Attribute {
     FieldView(this_type&& other) = delete;
     virtual ~FieldView() {}
 
-//    virtual std::shared_ptr<engine::Attribute> Clone() const { return std::make_shared<this_type>(*this); };
-
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
 
+    virtual std::shared_ptr<engine::Attribute> GetDescription() const {
+        return std::make_shared<engine::AttributeDesc<TV, IFORM, DOF>>(db());
+    };
     virtual int GetIFORM() const { return IFORM; };
     virtual int GetDOF() const { return DOF; };
     virtual std::type_info const& value_type_info() const { return typeid(value_type); };  //!< value type
-    virtual std::type_info const& mesh_type_info() const { return typeid(mesh_type); }     //!< mesh type
 
     virtual bool Update() {
         m_mesh_ = dynamic_cast<mesh_type const*>(GetMesh());
@@ -250,7 +250,7 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
     Field_(this_type const& other) : base_type(other){};
     Field_(this_type&& other) : base_type(other){};
     ~Field_() {}
-//    virtual std::shared_ptr<engine::Attribute> Clone() const { return std::make_shared<this_type>(*this); };
+    //    virtual std::shared_ptr<engine::Attribute> Clone() const { return std::make_shared<this_type>(*this); };
 
     using base_type::operator[];
     using base_type::operator=;
