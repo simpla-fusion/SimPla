@@ -54,12 +54,23 @@ step_of_check_point = 10
 omega_ext = omega_pe * 0.8
 
 
-MeshView =
-{
-    Dimensions = { NX, NY, NZ }, -- Dimensions[?]=1 => ignored dimension
-    GhostWidth = { 2, 2, 2 }, -- GhostWidth[?]=0 => cycle boundary
-    Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
+Geometry = {
+    Center = {
+        Type = "Cube",
+        Box = { { 0, 0, 0 }, { 1, 1, 1 } }
+    }
 }
+
+Mesh = {
+    Type = "Cartesian",
+    Origin = { 0, 0, 0 }, -- Dimensions[?]=1 => ignored dimension
+    Dx = { 0.1, 0.1, 0.1 }, -- Dimensions[?]=1 => ignored dimension
+    GhostWidth = { 2, 2, 2 }, -- GhostWidth[?]=0 => cycle boundary
+}
+Worker = { Type = "EMFluid" }
+
+
+
 
 dt = 0.5 * (LX / NX) / c
 

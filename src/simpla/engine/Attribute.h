@@ -140,7 +140,7 @@ struct Attribute : public concept::Configurable {
     Attribute(Attribute const &other);
     Attribute(Attribute &&other);
     virtual ~Attribute();
-    id_type GetGUID();
+    id_type GetGUID() const;
     virtual Attribute *Clone() const = 0;
     virtual std::shared_ptr<Attribute> GetDescription() const = 0;
     virtual int GetIFORM() const = 0;

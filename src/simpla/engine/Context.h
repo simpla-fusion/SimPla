@@ -64,11 +64,11 @@ class Context : public concept::Configurable {
     SP_OBJECT_BASE(Context)
 
    public:
-    Context(std::shared_ptr<data::DataTable> const &t = nullptr);
-    virtual ~Context();
+    Context(std::shared_ptr<data::DataTable> const &t);
+    ~Context();
 
-    virtual void Initialize();
-    virtual void Finalize();
+    void Initialize();
+    void Finalize();
     bool IsInitialized() const;
 
     virtual void Advance(Real time_now, Real dt, int level = 0);
@@ -79,8 +79,8 @@ class Context : public concept::Configurable {
 
     std::map<id_type, std::shared_ptr<Patch>> const &GetPatches() const;
 
-    bool SetWorker(std::string const &d_name, std::shared_ptr<Worker> const &p);
-    void RemoveWorker(std::string const &d_name);
+    bool RegisterWorker(std::string const &d_name, std::shared_ptr<Worker> const &p);
+    void DeregisterWorker(std::string const &d_name);
     std::shared_ptr<Worker> GetWorker(std::string const &d_name) const;
 
     bool RegisterAttribute(std::string const &key, std::shared_ptr<Attribute> const &);

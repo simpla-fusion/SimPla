@@ -12,41 +12,25 @@ namespace simpla {
 namespace engine {
 
 struct MeshViewFactory::pimpl_s {
-    std::map<std::string, std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataTable> const &,
-                                                              std::shared_ptr<geometry::GeoObject> const &)>>
-        m_mesh_factory_;
+    std::map<std::string, std::function<Mesh *(std::shared_ptr<data::DataTable> const &)>> m_mesh_factory_;
 };
 
 MeshViewFactory::MeshViewFactory() : m_pimpl_(new pimpl_s){};
 MeshViewFactory::~MeshViewFactory(){};
 
-bool MeshViewFactory::RegisterCreator(
-    std::string const &k,
-    std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataTable> const &,
-                                        std::shared_ptr<geometry::GeoObject> const &)> const &fun) {
+bool MeshViewFactory::RegisterCreator(std::string const &k,
+                                      std::function<Mesh *(std::shared_ptr<data::DataTable> const &)> const &fun) {
     auto res = m_pimpl_->m_mesh_factory_.emplace(k, fun).second;
     if (res) { LOGGER << "Mesh Creator [ " << k << " ] is registered!" << std::endl; }
     return res;
 };
 
-std::shared_ptr<Mesh> MeshViewFactory::Create(std::shared_ptr<data::DataTable> const &config,
-                                              std::shared_ptr<geometry::GeoObject> const &g) {
-    std::shared_ptr<Mesh> res = nullptr;
+Mesh *MeshViewFactory::Create(std::shared_ptr<data::DataTable> const &config) {
+    Mesh *res = nullptr;
     try {
-        std::string key = "";
-        std::shared_ptr<data::DataTable> t = nullptr;
-        if (config == nullptr) {
-            WARNING << "Create Mesh failed!" << std::endl;
-            return res;
-        } else if (config->value_type_info() == typeid(std::string)) {
-            key = data::data_cast<std::string>(*config);
-        } else if (config->isTable()) {
-            t = std::dynamic_pointer_cast<data::DataTable>(config);
-            key = t->GetValue<std::string>("name");
+        if (config != nullptr) {
+            res = m_pimpl_->m_mesh_factory_.at(config->GetValue<std::string>("name", ""))(config);
         }
-        ASSERT(key != "");
-        res = m_pimpl_->m_mesh_factory_.at(key)(t, g);
-        res->db()->SetValue("name", key);
 
     } catch (std::out_of_range const &) {
         RUNTIME_ERROR << "Mesh creator ["
@@ -61,14 +45,8 @@ struct Mesh::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
 };
-Mesh::Mesh(std::shared_ptr<data::DataTable> const &t, const std::shared_ptr<geometry::GeoObject> &geo_obj)
-    : concept::Configurable(t), m_pimpl_(new pimpl_s) {
+Mesh::Mesh(std::shared_ptr<data::DataTable> const &t) : concept::Configurable(t), m_pimpl_(new pimpl_s) {
     AttributeBundle::SetMesh(this);
-    m_pimpl_->m_geo_obj_ = geo_obj;
-    if (m_pimpl_->m_geo_obj_ == nullptr) {
-        m_pimpl_->m_geo_obj_ = GLOBAL_GEO_OBJECT_FACTORY.Create(db()->Get("GeometryObject"));
-    }
-    db()->SetValue("GeometryObject", m_pimpl_->m_geo_obj_);
 }
 Mesh::~Mesh() {}
 
@@ -86,9 +64,7 @@ std::ostream &Mesh::Print(std::ostream &os, int indent) const {
     return os;
 };
 void Mesh::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl_->m_geo_obj_ = g; }
-
 std::shared_ptr<geometry::GeoObject> const &Mesh::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
-
 void Mesh::PushData(std::shared_ptr<Patch> p) {
     AttributeBundle::PushData(p);
     m_pimpl_->m_mesh_block_ = p->PopMeshBlock();

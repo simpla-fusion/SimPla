@@ -29,9 +29,12 @@ class Model : public concept::Configurable {
     virtual void Finalize();
 
     box_type const &bound_box() const;
-    std::shared_ptr<data::DataTable> GetMaterial(std::string const &k) const;
+    std::shared_ptr<data::DataTable> GetMaterial(std::string const &k = "") const;
     std::shared_ptr<data::DataTable> SetMaterial(std::string const &k, std::shared_ptr<DataTable> const &p = nullptr);
     id_type GetMaterialId(std::string const &k) const;
+
+    std::pair<std::shared_ptr<geometry::GeoObject>, bool> AddObject(std::string const &material_type_name,
+                                                                    std::shared_ptr<data::DataTable> const &);
 
     id_type AddObject(std::string const &material_type_name, std::shared_ptr<geometry::GeoObject> const &);
     std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;

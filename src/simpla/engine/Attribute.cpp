@@ -88,6 +88,7 @@ Attribute::~Attribute() {
     if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_bundle_->Detach(this); }
     m_pimpl_->m_bundle_ = nullptr;
 }
+id_type Attribute::GetGUID() const { return db()->GetValue<id_type>("GUID", NULL_ID); };
 
 void Attribute::SetMesh(Mesh const *m) {
     if (m == nullptr) { return; }

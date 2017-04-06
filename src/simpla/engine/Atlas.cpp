@@ -26,7 +26,7 @@ struct Atlas::pimpl_s {
     std::multimap<id_type, id_type> m_adjacent_;
     std::multimap<id_type, id_type> m_refine_;
     std::multimap<id_type, id_type> m_coarsen_;
-    std::set<id_type> m_layers_[MAX_NUM_OF_LEVEL];
+    std::set<std::shared_ptr<MeshBlock>> m_layers_[MAX_NUM_OF_LEVEL];
 };
 
 Atlas::Atlas(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t){};
@@ -46,24 +46,23 @@ index_box_type Atlas::FitIndexBox(box_type const &b, int level, int flag) const 
 void Atlas::SetRefineRatio(size_tuple const &v, int level) { m_pimpl_->m_refine_ratio_ = v; }
 
 std::shared_ptr<MeshBlock> Atlas::AddBlock(std::shared_ptr<MeshBlock> const &m) {
-    auto res = m_pimpl_->m_blocks_.emplace(m->GetGUID(), m);
-    m_pimpl_->m_layers_[m->GetLevel()].emplace(m->GetGUID());
+    auto res = m_pimpl_->m_layers_[m->GetLevel()].emplace(m);
     if (m->GetLevel() > m_pimpl_->m_num_of_level_) { m_pimpl_->m_num_of_level_ = m->GetLevel(); }
-    return res.first->second;
+    return *res.first;
 };
 std::shared_ptr<MeshBlock> Atlas::AddBlock(index_box_type const &b) { return AddBlock(std::make_shared<MeshBlock>(b)); }
 std::shared_ptr<MeshBlock> Atlas::GetBlock(id_type id) const { return m_pimpl_->m_blocks_.at(id); };
 size_type Atlas::Delete(id_type id) {
     auto p = GetBlock(id);
-    if (p != nullptr) { m_pimpl_->m_layers_[p->GetLevel()].erase(id); }
+    if (p != nullptr) { m_pimpl_->m_layers_[p->GetLevel()].erase(p); }
     return m_pimpl_->m_blocks_.erase(id);
 };
 std::shared_ptr<MeshBlock> Atlas::RefineBlock(id_type, index_box_type const &) { return nullptr; };
 
 void Atlas::Foreach(std::function<void(std::shared_ptr<MeshBlock> const &)> const &fun, int level) const {
-    for (auto const &item : m_pimpl_->m_layers_[level]) { fun(m_pimpl_->m_blocks_.at(item)); }
+    for (auto const &item : m_pimpl_->m_layers_[level]) { fun(item); }
 };
-std::set<std::shared_ptr<MeshBlock>> Atlas::Level(int level) const { return m_pimpl_->m_layers_[level]; };
+std::set<std::shared_ptr<MeshBlock>> const &Atlas::Level(int level) const { return m_pimpl_->m_layers_[level]; };
 
 //
 // size_type Atlas::size(int level) const { return m_backend_->m_layer_[level].size(); }

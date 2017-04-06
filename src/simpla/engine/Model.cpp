@@ -10,7 +10,7 @@ namespace simpla {
 namespace engine {
 
 struct Model::pimpl_s {
-    std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_g_obj_;
+    std::map<std::string, std::shared_ptr<geometry::GeoObject>> m_g_objs_;
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 };
 
@@ -25,7 +25,9 @@ box_type const& Model::bound_box() const { return m_pimpl_->m_bound_box_; };
 
 id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k)->GetValue<id_type>("GUID"); }
 
-std::shared_ptr<data::DataTable> Model::GetMaterial(std::string const& s) const { return db()->GetTable(s); }
+std::shared_ptr<data::DataTable> Model::GetMaterial(std::string const& s) const {
+    return s == "" ? db() : db()->GetTable(s);
+}
 
 std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const& s, std::shared_ptr<DataTable> const& other) {
     db()->Set("/Material/" + s, other, false);
@@ -38,20 +40,27 @@ std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const& s, std::s
 
 // id_type Model::AddObject(id_type id, geometry::GeoObject const &g_obj) {
 //    Click();
-//    m_pimpl_->m_g_obj_.emplace(id, g_obj);
+//    m_pimpl_->m_g_objs_.emplace(id, g_obj);
 //}
-
+std::pair<std::shared_ptr<geometry::GeoObject>, bool> Model::AddObject(std::string const& key,
+                                                                       std::shared_ptr<data::DataTable> const& cfg) {
+    auto geo = m_pimpl_->m_g_objs_.emplace(key, nullptr);
+    if (geo.first->second == nullptr) {}
+};
 id_type Model::AddObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
-    m_pimpl_->m_g_obj_.emplace(key, g_obj);
+    m_pimpl_->m_g_objs_.emplace(key, g_obj);
     return 0;
 }
 
 std::shared_ptr<geometry::GeoObject> Model::GetObject(std::string const& k) const {
-    auto it = m_pimpl_->m_g_obj_.find(k);
-    return it == m_pimpl_->m_g_obj_.end() ? nullptr : it->second;
+    auto it = m_pimpl_->m_g_objs_.find(k);
+    return it == m_pimpl_->m_g_objs_.end() ? nullptr : it->second;
 }
 
-size_type Model::DeleteObject(std::string const& key) { return m_pimpl_->m_g_obj_.erase(key); }
+size_type Model::DeleteObject(std::string const& key) { return m_pimpl_->m_g_objs_.erase(key); }
+std::map<std::string, std::shared_ptr<geometry::GeoObject>> const& Model::GetAll() const {
+    return m_pimpl_->m_g_objs_;
+};
 
 }  // namespace engine
 }  // namespace simpla{;

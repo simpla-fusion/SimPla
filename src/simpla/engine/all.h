@@ -14,4 +14,14 @@
 #include "Patch.h"
 #include "TimeIntegrator.h"
 #include "Task.h"
+/**
+ * @startuml
+ * GeoObject "n" --* "1" Material
+ * Material "1" *-- "1" Worker
+ * Mesh   "m"  o-- "n" Patch
+ * Worker   "n" *-- "1" Mesh
+ * Worker   "1" *-- "n" Task
+ * @enduml
+ *
+ */
 #endif  // SIMPLA_ENGINE_ALL_H

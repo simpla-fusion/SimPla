@@ -22,19 +22,15 @@ class Patch;
  *   - \f$p\f$ is the projection
  *
  */
-class Mesh : public concept::Configurable, public AttributeBundle, public std::enable_shared_from_this<Mesh> {
+class Mesh : public concept::Configurable, public AttributeBundle {
     SP_OBJECT_BASE(Mesh);
 
    public:
-    Mesh(std::shared_ptr<data::DataTable> const &t = nullptr,
-         const std::shared_ptr<geometry::GeoObject> &obj = nullptr);
+    Mesh(std::shared_ptr<data::DataTable> const &t = nullptr);
     virtual ~Mesh();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
-
     virtual Mesh *Clone() const = 0;
-
     id_type GetBlockId() const;
-
     std::shared_ptr<MeshBlock> const &GetBlock() const;
 
     void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g);
@@ -90,20 +86,14 @@ struct MeshViewFactory {
     MeshViewFactory();
     ~MeshViewFactory();
 
-    bool RegisterCreator(std::string const &k,
-                         std::function<std::shared_ptr<Mesh>(std::shared_ptr<data::DataTable> const &,
-                                                             std::shared_ptr<geometry::GeoObject> const &)> const &);
+    bool RegisterCreator(std::string const &k, std::function<Mesh *(std::shared_ptr<data::DataTable> const &)> const &);
 
     template <typename U>
     bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, [&](std::shared_ptr<data::DataTable> const &t,
-                                      std::shared_ptr<geometry::GeoObject> const &g) -> std::shared_ptr<Mesh> {
-            return std::make_shared<U>(t, g);
-        });
+        return RegisterCreator(k, [&](std::shared_ptr<data::DataTable> const &t) -> Mesh * { return new U(t); });
     }
 
-    std::shared_ptr<Mesh> Create(std::shared_ptr<data::DataTable> const &p,
-                                 std::shared_ptr<geometry::GeoObject> const &g = nullptr);
+    Mesh *Create(std::shared_ptr<data::DataTable> const &p);
 
    private:
     struct pimpl_s;

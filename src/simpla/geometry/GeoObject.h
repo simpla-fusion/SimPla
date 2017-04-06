@@ -222,14 +222,14 @@ struct GeoObjectFactory {
     ~GeoObjectFactory();
 
     bool RegisterCreator(std::string const &k,
-                         std::function<std::shared_ptr<GeoObject>(std::shared_ptr<data::DataEntity> const &)> const &);
+                         std::function<GeoObject *(std::shared_ptr<data::DataEntity> const &)> const &);
 
     template <typename U>
     bool RegisterCreator(std::string const &k) {
-        RegisterCreator(k, [&](std::shared_ptr<data::DataEntity> const &t) { return std::make_shared<U>(t); });
+        RegisterCreator(k, [&](std::shared_ptr<data::DataEntity> const &t) { return new U(t); });
     }
 
-    std::shared_ptr<GeoObject> Create(std::shared_ptr<data::DataEntity> const &p) const;
+    GeoObject *Create(std::shared_ptr<data::DataEntity> const &p) const;
 
    private:
     struct pimpl_s;

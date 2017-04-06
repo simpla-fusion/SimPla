@@ -9,6 +9,9 @@
 #include "simpla/concept/Configurable.h"
 #include "simpla/data/all.h"
 namespace simpla {
+namespace geometry {
+class GeoObject;
+}
 namespace engine {
 class Mesh;
 class Patch;
@@ -19,14 +22,13 @@ class Attribute;
 */
 class Worker : public concept::Configurable {
    public:
-    Worker(std::shared_ptr<data::DataTable> const &p = nullptr, std::shared_ptr<Mesh> const &m = nullptr);
-    Worker(std::shared_ptr<data::DataTable> const &p, std::shared_ptr<geometry::GeoObject> const &g);
+    Worker(const std::shared_ptr<Mesh> &m, const std::shared_ptr<DataTable> &p);
     Worker(Worker const &);
     virtual ~Worker();
     virtual void swap(Worker &);
     virtual Worker *Clone() const;
 
-    virtual void PushData(std::shared_ptr<Patch>);
+    virtual void PushData(std::shared_ptr<Patch> const &);
     virtual std::shared_ptr<Patch> PopData();
 
     virtual void Initialize(Real time_now = 0);
