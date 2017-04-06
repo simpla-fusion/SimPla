@@ -11,36 +11,6 @@
 namespace simpla {
 namespace engine {
 
-struct MeshViewFactory::pimpl_s {
-    std::map<std::string, std::function<Mesh *(std::shared_ptr<data::DataTable> const &)>> m_mesh_factory_;
-};
-
-MeshViewFactory::MeshViewFactory() : m_pimpl_(new pimpl_s){};
-MeshViewFactory::~MeshViewFactory(){};
-
-bool MeshViewFactory::RegisterCreator(std::string const &k,
-                                      std::function<Mesh *(std::shared_ptr<data::DataTable> const &)> const &fun) {
-    auto res = m_pimpl_->m_mesh_factory_.emplace(k, fun).second;
-    if (res) { LOGGER << "Mesh Creator [ " << k << " ] is registered!" << std::endl; }
-    return res;
-};
-
-Mesh *MeshViewFactory::Create(std::shared_ptr<data::DataTable> const &config) {
-    Mesh *res = nullptr;
-    try {
-        if (config != nullptr) {
-            res = m_pimpl_->m_mesh_factory_.at(config->GetValue<std::string>("name", ""))(config);
-        }
-
-    } catch (std::out_of_range const &) {
-        RUNTIME_ERROR << "Mesh creator ["
-                      << "] is missing!" << std::endl;
-        return nullptr;
-    }
-    if (res != nullptr) { LOGGER << "Mesh [" << res->name() << "] is created!" << std::endl; }
-    return res;
-}
-
 struct Mesh::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
@@ -84,6 +54,31 @@ std::shared_ptr<MeshBlock> const &Mesh::GetBlock() const { return m_pimpl_->m_me
 void Mesh::Initialize() {}
 void Mesh::Finalize() {}
 
+struct MeshViewFactory {
+    std::map<std::string, std::function<Mesh *()>> m_mesh_factory_;
+};
+
+bool Mesh::RegisterCreator(std::string const &k, std::function<Mesh *()> const &fun) {
+    auto res = SingletonHolder<MeshViewFactory>::instance().m_mesh_factory_.emplace(k, fun).second;
+    if (res) { LOGGER << "Mesh Creator [ " << k << " ] is registered!" << std::endl; }
+    return res;
+}
+Mesh *Mesh::Create(std::shared_ptr<data::DataTable> const &config) {
+    Mesh *res = nullptr;
+    try {
+        if (config != nullptr) {
+            res = SingletonHolder<MeshViewFactory>::instance().m_mesh_factory_.at(
+                config->GetValue<std::string>("name", ""))();
+            res->db() = config;
+        }
+
+    } catch (std::out_of_range const &) {
+        RUNTIME_ERROR << "Mesh creator  [] is missing!" << std::endl;
+        return nullptr;
+    }
+    if (res != nullptr) { LOGGER << "Mesh [" << res->name() << "] is created!" << std::endl; }
+    return res;
+}
 // Real Mesh::GetDt() const { return 1.0; }
 
 }  // {namespace mesh

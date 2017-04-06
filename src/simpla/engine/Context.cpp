@@ -19,9 +19,13 @@ struct Context::pimpl_s {
     bool m_is_initialized_ = false;
 };
 
-Context::Context(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
+Context::Context() : m_pimpl_(new pimpl_s), concept::Configurable() {
     db()->Link("Model", m_pimpl_->m_model_.db());
     db()->Link("Atlas", m_pimpl_->m_atlas_.db());
+}
+Context::Context(std::shared_ptr<data::DataTable> const &cfg) : Context() {
+
+
 }
 
 Context::~Context() {}
@@ -63,23 +67,24 @@ void Context::Initialize() {
 
     GetModel().Initialize();
     GetAtlas().Initialize();
-    auto workers_t = db()->GetTable("Workers");
-    GetModel().GetMaterial().Foreach([]() {
-
-    });
-
-    for (auto const &item : GetModel().GetAllMaterial()) {}
-
-    db()->GetTable("Domains")->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &v) {
-        if (!v->isTable()) { return; }
-        auto const &t = v->cast_as<data::DataTable>();
-
-        std::shared_ptr m(GLOBAL_MESHVIEW_FACTORY.Create(t.GetTable("Mesh"),
-                                                         GetModel().AddObject(key, t.GetTable("Geometry")).first));
-
-        m_pimpl_->m_workers_.emplace(key, std::make_shared<Worker>(t.GetTable("Worker"), m));
-
-    });
+    //    auto workers_t = db()->GetTable("Workers");
+    //    GetModel().GetMaterial().Foreach([]() {
+    //
+    //    });
+    //
+    //    for (auto const &item : GetModel().GetAllMaterial()) {}
+    //
+    //    db()->GetTable("Domains")->Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &v) {
+    //        if (!v->isTable()) { return; }
+    //        auto const &t = v->cast_as<data::DataTable>();
+    //
+    //        std::shared_ptr m(GLOBAL_MESHVIEW_FACTORY.Create(t.GetTable("Mesh"),
+    //                                                         GetModel().AddObject(key,
+    //                                                         t.GetTable("Geometry")).first));
+    //
+    //        m_pimpl_->m_workers_.emplace(key, std::make_shared<Worker>(t.GetTable("Worker"), m));
+    //
+    //    });
     //    for (auto const &item : GetModel().GetAll()) {
     //        auto worker_res = m_pimpl_->m_workers_.emplace(item.first, nullptr);
     //        if (worker_res.first->second == nullptr) {

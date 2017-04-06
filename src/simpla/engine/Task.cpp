@@ -9,41 +9,27 @@
 namespace simpla {
 namespace engine {
 
-struct WorkerFactory::pimpl_s {
-    std::map<std::string, std::function<std::shared_ptr<Task>(std::shared_ptr<Mesh> const &,
-                                                                std::shared_ptr<data::DataTable> const &)>>
-        m_worker_factory_;
+struct TaskFactory {
+    std::map<std::string, std::function<Task *()>> m_task_factory_;
 };
-
-WorkerFactory::WorkerFactory() : m_pimpl_(new pimpl_s){};
-WorkerFactory::~WorkerFactory(){};
-bool WorkerFactory::RegisterCreator(
-    std::string const &k, std::function<std::shared_ptr<Task>(std::shared_ptr<Mesh> const &,
-                                                                std::shared_ptr<data::DataTable> const &)> const &fun) {
-    auto res = m_pimpl_->m_worker_factory_.emplace(k, fun).second;
+bool Task::RegisterCreator(std::string const &k, std::function<Task *()> const &fun) {
+    auto res = SingletonHolder<TaskFactory>::instance().m_task_factory_.emplace(k, fun).second;
 
     if (res) { LOGGER << "Task Creator [ " << k << " ] is registered!" << std::endl; }
 
     return res;
-};
-std::shared_ptr<Task> WorkerFactory::Create(std::shared_ptr<Mesh> const &m,
-                                              std::shared_ptr<data::DataEntity> const &config) {
-    std::string s_name = "";
-    std::shared_ptr<data::DataTable> d = nullptr;
-
-    if (config == nullptr || config->isNull()) {
-        return nullptr;
-    } else if (config->value_type_info() == typeid(std::string)) {
-        s_name = m->name() + "." + data::data_cast<std::string>(*config);
-    } else if (config->isTable()) {
-        auto const &t = config->cast_as<data::DataTable>();
-        s_name = m->name() + "." + t.GetValue<std::string>("name");
-        d = std::dynamic_pointer_cast<data::DataTable>(config);
-    }
-    auto it = m_pimpl_->m_worker_factory_.find(s_name);
-    if (it != m_pimpl_->m_worker_factory_.end()) {
-        auto res = it->second(m, d);
-        LOGGER << "Task [" << s_name << "] is created!" << std::endl;
+}
+Task *Task::Create(std::string const &s_name) {
+//    std::string s_name = "";
+//    std::shared_ptr<data::DataTable> d = nullptr;
+//
+//    if (config != nullptr) { s_name = m->name() + "." + config->GetValue<std::string>("name"); }
+    auto it = SingletonHolder<TaskFactory>::instance().m_task_factory_.find(s_name);
+    if (it != SingletonHolder<TaskFactory>::instance().m_task_factory_.end()) {
+        auto res = it->second();
+//        res->db() = config;
+//        res->SetMesh(m.get());
+//        LOGGER << "Task [" << s_name << "] is created!" << std::endl;
         return res;
     } else {
         RUNTIME_ERROR << "Task Creator[" << s_name << "] is missing!" << std::endl;
@@ -69,6 +55,7 @@ std::ostream &Task::Print(std::ostream &os, int indent) const {
     return os;
 }
 void Task::Initialize() {}
+
 /**
  * @startuml
  * title Initialize/Finalize

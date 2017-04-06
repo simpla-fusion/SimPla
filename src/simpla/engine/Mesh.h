@@ -76,42 +76,19 @@ class Mesh : public concept::Configurable, public AttributeBundle {
     //    decltype(auto) point(Args &&... args) const {
     //        return m_mesh_block_->point(std::forward<Args>(args)...);
     //    }
+    static bool RegisterCreator(std::string const &k, std::function<Mesh *()> const &);
+    static Mesh *Create(std::shared_ptr<data::DataTable> const &);
+
+    template <typename U>
+    static bool RegisterCreator(std::string const &k) {
+        return RegisterCreator(k, [&]() { return new U; });
+    }
 
    protected:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-struct MeshViewFactory {
-   public:
-    MeshViewFactory();
-    ~MeshViewFactory();
 
-    bool RegisterCreator(std::string const &k, std::function<Mesh *(std::shared_ptr<data::DataTable> const &)> const &);
-
-    template <typename U>
-    bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, [&](std::shared_ptr<data::DataTable> const &t) -> Mesh * { return new U(t); });
-    }
-
-    Mesh *Create(std::shared_ptr<data::DataTable> const &p);
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
-};
-
-#define GLOBAL_MESHVIEW_FACTORY SingletonHolder<MeshViewFactory>::instance()
-
-template <typename M>
-class MeshAdapter : public Mesh, public M {
-   public:
-    MeshAdapter(){};
-    template <typename... Args>
-    explicit MeshAdapter(Args &&... args) : Mesh(), M(std::forward<Args>(args)...) {}
-    ~MeshAdapter() {}
-
-    void Initialize() final { M::Initialize(); };
-};
 }  // namespace engine
 }  // namespace simpla
 

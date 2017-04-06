@@ -22,7 +22,7 @@ class Attribute;
 */
 class Worker : public concept::Configurable {
    public:
-    Worker(const std::shared_ptr<Mesh> &m, const std::shared_ptr<DataTable> &p);
+    Worker(const std::shared_ptr<Mesh> &m);
     Worker(Worker const &);
     virtual ~Worker();
     virtual void swap(Worker &);

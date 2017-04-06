@@ -18,8 +18,8 @@ class Configurable {
 
     virtual void swap(Configurable& other) { std::swap(m_db_, other.m_db_); }
 
-    std::shared_ptr<data::DataTable> db() const { return m_db_; }
-    std::shared_ptr<data::DataTable> db() { return m_db_; }
+    std::shared_ptr<data::DataTable> const& db() const { return m_db_; }
+    std::shared_ptr<data::DataTable>& db() { return m_db_; }
     std::string name() const { return db()->GetValue<std::string>("name", ""); }
 
    private:

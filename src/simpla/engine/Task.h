@@ -120,45 +120,19 @@ class Task : public concept::Configurable, public AttributeBundle {
 
     virtual void Run(Real dt);
 
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
-};
+    static bool RegisterCreator(std::string const &k, std::function<Task *()> const &);
+    static Task *Create(std::string const &k);
 
-struct WorkerFactory {
-   public:
-    WorkerFactory();
-    ~WorkerFactory();
-    bool RegisterCreator(std::string const &k,
-                         std::function<std::shared_ptr<Task>(std::shared_ptr<Mesh> const &,
-                                                             std::shared_ptr<data::DataTable> const &)> const &);
     template <typename U>
-    bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, [&](std::shared_ptr<Mesh> const &m, std::shared_ptr<data::DataTable> const &t) {
-            return std::dynamic_pointer_cast<Task>(std::make_shared<U>(m, t));
-        });
+    static bool RegisterCreator(std::string const &k) {
+        return RegisterCreator(k, [&]() { return new U; });
     }
-
-    std::shared_ptr<Task> Create(std::shared_ptr<Mesh> const &m, std::shared_ptr<data::DataEntity> const &p);
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
-#define GLOBAL_WORKER_FACTORY SingletonHolder<WorkerFactory>::instance()
-
-template <typename U>
-struct WorkerAdapter : public Task, public U {
-    WorkerAdapter() {}
-    virtual ~WorkerAdapter(){};
-    virtual std::ostream &Print(std::ostream &os, int indent = 0) const {
-        U::Print(os, indent);
-        return os;
-    }
-    virtual void Initialize() { U::Initialize(); };
-    virtual void Process() { U::Process(); };
-};
 }  // namespace engine
 }  // namespace simpla
 #endif  // SIMPLA_TASK_H

@@ -13,9 +13,9 @@
 
 namespace simpla {
 void RegisterEverything() {
-    GLOBAL_MESHVIEW_FACTORY.RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
+    Mesh::RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
     //    GLOBAL_DOMAIN_FACTORY::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
-    GLOBAL_WORKER_FACTORY.RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
+    Task::RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
     //        GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 }
 

@@ -64,7 +64,8 @@ class Context : public concept::Configurable {
     SP_OBJECT_BASE(Context)
 
    public:
-    Context(std::shared_ptr<data::DataTable> const &t);
+    Context();
+    Context(std::shared_ptr<data::DataTable> const &);
     ~Context();
 
     void Initialize();
@@ -97,7 +98,6 @@ class Context : public concept::Configurable {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-
 }  // namespace engine{
 }  // namespace simpla{
 

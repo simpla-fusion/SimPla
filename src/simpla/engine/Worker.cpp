@@ -15,8 +15,7 @@ struct Worker::pimpl_s {
     std::vector<Attribute *> m_attr_;
     std::vector<std::shared_ptr<Task>> m_tasks_;
 };
-Worker::Worker(const std::shared_ptr<Mesh> &m, const std::shared_ptr<data::DataTable> &t)
-    : m_pimpl_(new pimpl_s), concept::Configurable(t) {
+Worker::Worker(const std::shared_ptr<Mesh> &m) : m_pimpl_(new pimpl_s), concept::Configurable() {
     m_pimpl_->m_mesh_.reset(m->Clone());
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
 }

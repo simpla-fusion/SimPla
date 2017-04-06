@@ -29,7 +29,7 @@ struct Atlas::pimpl_s {
     std::set<std::shared_ptr<MeshBlock>> m_layers_[MAX_NUM_OF_LEVEL];
 };
 
-Atlas::Atlas(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t){};
+Atlas::Atlas() : m_pimpl_(new pimpl_s), concept::Configurable(){};
 Atlas::~Atlas(){};
 
 void Atlas::Initialize() { LOGGER << "Atlas is initialized " << std::endl; }

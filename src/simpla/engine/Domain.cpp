@@ -196,14 +196,14 @@ std::set<Attribute *> const &Domain::GetAllAttributes() const { return m_pimpl_-
 
 void Domain::Initialize() {
     if (m_pimpl_->m_mesh_ != nullptr) { return; }
-    m_pimpl_->m_mesh_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("Mesh"), m_pimpl_->m_geo_obj_));
+    m_pimpl_->m_mesh_.reset(Mesh::Create(db()->GetTable("Mesh")));
     ASSERT(m_pimpl_->m_mesh_ != nullptr);
     db()->Link("Mesh", m_pimpl_->m_mesh_->db());
     auto t_worker = db()->Get("Task");
 
     if (t_worker != nullptr && t_worker->isArray()) {
         t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
-            auto res = GLOBAL_WORKER_FACTORY.Create(m_pimpl_->m_mesh_, c);
+            std::shared_ptr<Task> res(Task::Create(GetMeshView(),std::dynamic_pointer_cast<data::DataTable>(c)));
             AddWorker(res);
         });
     }
