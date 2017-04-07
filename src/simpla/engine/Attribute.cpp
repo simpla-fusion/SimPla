@@ -14,96 +14,73 @@ namespace simpla {
 namespace engine {
 
 struct AttributeBundle::pimpl_s {
-    Domain *m_domain_ = nullptr;
     Mesh const *m_mesh_;
     std::set<Attribute *> m_attributes_;
 };
 
-AttributeBundle::AttributeBundle(Domain *d) : m_pimpl_(new pimpl_s) { Connect(d); }
-AttributeBundle::~AttributeBundle() { Disconnect(); }
-
-void AttributeBundle::Connect(Domain *d) {
-    if (d != m_pimpl_->m_domain_) {
-        Disconnect();
-        m_pimpl_->m_domain_ = d;
-        m_pimpl_->m_domain_->Attach(this);
-    }
+AttributeBundle::AttributeBundle() : m_pimpl_(new pimpl_s) {}
+AttributeBundle::~AttributeBundle() {}
+void AttributeBundle::Register(AttributeBundle *other) {
+    for (Attribute *attr : m_pimpl_->m_attributes_) { other->Attach(attr); }
 };
-void AttributeBundle::Disconnect() {
-    if (m_pimpl_->m_domain_ != nullptr) {
-        auto t = m_pimpl_->m_domain_;
-        m_pimpl_->m_domain_ = nullptr;
-        t->Detach(this);
-    }
+void AttributeBundle::Deregister(AttributeBundle *other) {
+    for (Attribute *attr : m_pimpl_->m_attributes_) { other->Detach(attr); }
 };
-void AttributeBundle::Attach(Attribute *p) {
-    if (p != nullptr) { m_pimpl_->m_attributes_.emplace(p); }
-}
 
-void AttributeBundle::Detach(Attribute *p) {
-    if (p != nullptr) { m_pimpl_->m_attributes_.erase(p); }
-}
+void AttributeBundle::Attach(Attribute *p) { m_pimpl_->m_attributes_.emplace(p); }
+void AttributeBundle::Detach(Attribute *p) { m_pimpl_->m_attributes_.erase(p); }
 
-void AttributeBundle::SetMesh(Mesh const *m) {
-    if (m == nullptr) { return; }
-    m_pimpl_->m_mesh_ = m;
-    for (Attribute *v : m_pimpl_->m_attributes_) { v->SetMesh(m); }
+void AttributeBundle::Push(const std::shared_ptr<Patch> &p) {
+    for (auto *v : m_pimpl_->m_attributes_) { v->PushData(p->Pop(v->GetGUID())); }
 }
-Mesh const *AttributeBundle::GetMesh() const { return m_pimpl_->m_mesh_; }
-
-void AttributeBundle::PushData(std::shared_ptr<Patch> p) {
-    if (GetMesh() == nullptr || GetMesh()->GetBlockId() != p->GetBlockId()) {
-        RUNTIME_ERROR << " data and mesh mismatch!" << std::endl;
-    }
-
-    for (auto *v : m_pimpl_->m_attributes_) { v->PushData(p->PopData(v->GetGUID())); }
-}
-std::shared_ptr<Patch> AttributeBundle::PopData() {
+std::shared_ptr<Patch> AttributeBundle::Pop() {
     auto res = std::make_shared<Patch>();
-    for (auto *v : m_pimpl_->m_attributes_) { res->PushData(v->GetGUID(), v->PopData()); }
+    for (auto *v : m_pimpl_->m_attributes_) { res->Push(v->GetGUID(), v->PopData()); }
     return res;
 }
 
-std::set<Attribute *> const &AttributeBundle::GetAllAttributes() const { return m_pimpl_->m_attributes_; }
+std::set<Attribute *> const &AttributeBundle::GetAll() const { return m_pimpl_->m_attributes_; }
 
 struct Attribute::pimpl_s {
-    AttributeBundle *m_bundle_ = nullptr;
+    std::set<AttributeBundle *> m_bundle_;
     Mesh const *m_mesh_ = nullptr;
+    Range<mesh::MeshEntityId> m_range_;
 };
 Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {}
 Attribute::Attribute(AttributeBundle *b, std::shared_ptr<data::DataTable> const &t)
     : concept::Configurable(t), m_pimpl_(new pimpl_s) {
-    if (b != nullptr && b != m_pimpl_->m_bundle_) { b->Attach(this); }
-    m_pimpl_->m_bundle_ = b;
+    Register(b);
 };
 Attribute::Attribute(Attribute const &other) : m_pimpl_(new pimpl_s), concept::Configurable(other) {
-    m_pimpl_->m_bundle_ = other.m_pimpl_->m_bundle_;
+    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
     m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
 }
 Attribute::Attribute(Attribute &&other) : m_pimpl_(new pimpl_s), concept::Configurable(other) {
-    m_pimpl_->m_bundle_ = other.m_pimpl_->m_bundle_;
+    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
+    for (auto *b : m_pimpl_->m_bundle_) { other.Deregister(b); }
     m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
 }
 Attribute::~Attribute() {
-    if (m_pimpl_->m_bundle_ != nullptr) { m_pimpl_->m_bundle_->Detach(this); }
-    m_pimpl_->m_bundle_ = nullptr;
+    for (auto *b : m_pimpl_->m_bundle_) { Deregister(b); }
 }
-id_type Attribute::GetGUID() const { return db()->GetValue<id_type>("GUID", NULL_ID); };
 
-void Attribute::SetMesh(Mesh const *m) {
-    if (m == nullptr) { return; }
-    if ((m_pimpl_->m_mesh_ == nullptr || m_pimpl_->m_mesh_->GetTypeInfo() == m->GetTypeInfo())) {
-        m_pimpl_->m_mesh_ = m;
-    } else {
-        RUNTIME_ERROR << "Can not change the mesh type of a worker![ from " << m_pimpl_->m_mesh_->GetClassName()
-                      << " to " << m->GetClassName() << "]" << std::endl;
+void Attribute::Register(AttributeBundle *attr_b) {
+    if (attr_b != nullptr) {
+        auto res = m_pimpl_->m_bundle_.emplace(attr_b);
+        if (res.second) { attr_b->Attach(this); }
     }
 }
-
-Mesh const *Attribute::GetMesh() const {
-    return m_pimpl_->m_mesh_ != nullptr ? m_pimpl_->m_mesh_
-                                        : (m_pimpl_->m_bundle_ != nullptr ? m_pimpl_->m_bundle_->GetMesh() : nullptr);
+void Attribute::Deregister(AttributeBundle *attr_b) {
+    if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
+
+id_type Attribute::GetGUID() const { return db()->GetValue<id_type>("GUID", NULL_ID); };
+
+void Attribute::SetMesh(Mesh const *m) { m_pimpl_->m_mesh_ = m; }
+Mesh const *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }
+
+void Attribute::SetRange(Range<mesh::MeshEntityId> const &r) { m_pimpl_->m_range_ = r; }
+Range<mesh::MeshEntityId> const &Attribute::GetRange() const { return m_pimpl_->m_range_; }
 
 bool Attribute::isNull() const { return false; }
 

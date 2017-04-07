@@ -82,11 +82,11 @@ void Context::Initialize() {
     //                                                         GetModel().AddObject(key,
     //                                                         t.GetTable("Geometry")).first));
     //
-    //        m_pimpl_->m_workers_.emplace(key, std::make_shared<Worker>(t.GetTable("Worker"), m));
+    //        m_pimpl_->m_worker_.emplace(key, std::make_shared<Worker>(t.GetTable("Worker"), m));
     //
     //    });
     //    for (auto const &item : GetModel().GetAll()) {
-    //        auto worker_res = m_pimpl_->m_workers_.emplace(item.first, nullptr);
+    //        auto worker_res = m_pimpl_->m_worker_.emplace(item.first, nullptr);
     //        if (worker_res.first->second == nullptr) {
     //            worker_res.first->second = std::make_shared<Worker>(workers_t->GetTable(item.first), nullptr,
     //            item.second);
@@ -146,11 +146,11 @@ void Context::Advance(Real time_now, Real dt, int level) {
                 p = std::make_shared<Patch>();
                 p->PushMeshBlock(mblk);
             }
-            w->second->PushData(p);
+            w->second->Push(p);
             LOGGER << " Worker [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
                    << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
             w->second->Advance(time_now, dt);
-            m_pimpl_->m_patches_[mblk->GetGUID()] = w->second->PopData();
+            m_pimpl_->m_patches_[mblk->GetGUID()] = w->second->Pop();
         }
     }
 };

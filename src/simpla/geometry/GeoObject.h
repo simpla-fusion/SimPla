@@ -32,14 +32,14 @@ class GeoObject : public concept::Printable {
     GeoObject(GeoObject const &){};
     virtual ~GeoObject(){};
 
-    static bool RegisterCreator(std::string const &k, std::function<GeoObject *()> const &);
+    static bool RegisterCreator(std::string const &k,
+                                std::function<GeoObject *(std::shared_ptr<data::DataTable> const &)> const &);
     static GeoObject *Create(std::shared_ptr<data::DataTable> const &);
 
     template <typename U>
     static bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, [&]() { return new U; });
+        return RegisterCreator(k, [&](std::shared_ptr<data::DataTable> const &t) { return new U(t); });
     }
-
 
     box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
     virtual box_type const &GetBoundBox() const { return m_bound_box_; };
@@ -58,7 +58,6 @@ class GeoObject : public concept::Printable {
     *           `out` then 0
     */
     virtual int CheckInside(const point_type &x) const { return in_box(GetBoundBox(), x) ? 1 : 0; };
-
     int CheckInside() const { return 0; }
 
     /**
@@ -226,27 +225,6 @@ class GeoObject : public concept::Printable {
 // inline GeoObjectDifference operator-(GeoObject const &l, GeoObject const &r) { return GeoObjectDifference(l, r); }
 // inline GeoObjectIntersection operator&(GeoObject const &l, GeoObject const &r) { return GeoObjectIntersection(l, r);
 // }
-
-struct GeoObjectFactory {
-    GeoObjectFactory();
-    ~GeoObjectFactory();
-
-    bool RegisterCreator(std::string const &k,
-                         std::function<GeoObject *(std::shared_ptr<data::DataEntity> const &)> const &);
-
-    template <typename U>
-    bool RegisterCreator(std::string const &k) {
-        RegisterCreator(k, [&](std::shared_ptr<data::DataEntity> const &t) { return new U(t); });
-    }
-
-    GeoObject *Create(std::shared_ptr<data::DataEntity> const &p) const;
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
-};
-
-#define GLOBAL_GEO_OBJECT_FACTORY SingletonHolder<simpla::geometry::GeoObjectFactory>::instance()
 
 }  // namespace geometry
 namespace data {

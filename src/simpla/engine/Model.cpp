@@ -34,18 +34,12 @@ std::shared_ptr<data::DataTable> Model::SetMaterial(std::string const& s, std::s
     db()->Get("/Material/" + s)->cast_as<DataTable>().SetValue("GUID", std::hash<std::string>{}(s));
     return nullptr;
 }
-// id_type Model::GetMaterialId(std::string const& k) const { return GetMaterial(k).GetValue<id_type>("GUID", NULL_ID);
-// }
-// id_type Model::GetMaterialId(std::string const& k) { return GetMaterial(k).GetValue<id_type>("GUID"); }
 
-// id_type Model::AddObject(id_type id, geometry::GeoObject const &g_obj) {
-//    Click();
-//    m_pimpl_->m_g_objs_.emplace(id, g_obj);
-//}
 std::pair<std::shared_ptr<geometry::GeoObject>, bool> Model::AddObject(std::string const& key,
                                                                        std::shared_ptr<data::DataTable> const& cfg) {
     auto geo = m_pimpl_->m_g_objs_.emplace(key, nullptr);
-    if (geo.first->second == nullptr) {}
+    //    if (geo.first->second == nullptr) {}
+    return std::make_pair(geo.first->second, false);
 };
 id_type Model::AddObject(std::string const& key, std::shared_ptr<geometry::GeoObject> const& g_obj) {
     m_pimpl_->m_g_objs_.emplace(key, g_obj);

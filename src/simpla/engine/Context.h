@@ -65,34 +65,19 @@ class Context : public concept::Configurable {
 
    public:
     Context();
-    Context(std::shared_ptr<data::DataTable> const &);
     ~Context();
 
     void Initialize();
     void Finalize();
     bool IsInitialized() const;
 
-    virtual void Advance(Real time_now, Real dt, int level = 0);
-    virtual void Synchronize(int from_level = 0, int to_level = 0);
+    void Advance(Real time_now, Real dt, int level = 0);
+    void Synchronize(int from_level = 0, int to_level = 0);
 
     Atlas &GetAtlas() const;
     Model &GetModel() const;
-
-    std::map<id_type, std::shared_ptr<Patch>> const &GetPatches() const;
-
-    bool RegisterWorker(std::string const &d_name, std::shared_ptr<Worker> const &p);
-    void DeregisterWorker(std::string const &d_name);
-    std::shared_ptr<Worker> GetWorker(std::string const &d_name) const;
-
-    bool RegisterAttribute(std::string const &key, std::shared_ptr<Attribute> const &);
-    template <typename TV, int IFORM = VERTEX, int DOF = 1>
-    bool RegisterAttribute(std::string const &key) {
-        return RegisterAttribute(key, std::make_shared<AttributeDesc<TV, IFORM, DOF>>());
-    };
-
-    void DeregisterAttribute(std::string const &key);
-    std::shared_ptr<Attribute> const &GetAttribute(std::string const &key) const;
-    std::map<std::string, std::shared_ptr<Attribute>> const &GetAllAttributes() const;
+    std::map<std::string, std::shared_ptr<Domain>> &GetDomains() const;
+    std::map<std::string, std::shared_ptr<Attribute>> const &GetAttributes() const;
 
    private:
     struct pimpl_s;

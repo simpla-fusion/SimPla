@@ -40,13 +40,6 @@ class Model : public concept::Configurable {
     std::shared_ptr<geometry::GeoObject> GetObject(std::string const &k) const;
     size_type DeleteObject(std::string const &);
     std::map<std::string, std::shared_ptr<geometry::GeoObject>> const &GetAll() const;
-
-    //    id_type GetObjectMaterialId(id_type) const;
-
-    //    geometry::GeoObject SelectObjectByMaterial(std::string const &material_type_name) const;
-    //    //    geometry::GeoObject SelectObjectByMaterial(id_type) const;
-    //    size_type RemoveObjectByMaterial(id_type);
-
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

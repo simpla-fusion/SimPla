@@ -83,27 +83,29 @@ class Patch;
 //    id_type m_GUID_;
 //    data::DataTable m_db_;
 //};
-
+template <typename TV = double, int IFORM = VERTEX, int DOF = 1>
+struct AttributeDesc;
 class AttributeBundle {
    public:
-    AttributeBundle(Domain *p = nullptr);
+    AttributeBundle();
     virtual ~AttributeBundle();
+
+    void Register(AttributeBundle *);
+    void Deregister(AttributeBundle *);
+
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
-    void Connect(Domain *);
-    void Disconnect();
-    void SetMesh(Mesh const *);
-    Mesh const *GetMesh() const;
-    virtual void PushData(std::shared_ptr<Patch>);
-    virtual std::shared_ptr<Patch> PopData();
-    std::set<Attribute *> const &GetAllAttributes() const;
+
+    void Push(const std::shared_ptr<Patch> &);
+    std::shared_ptr<Patch> Pop();
+
+    std::set<Attribute *> const &GetAll() const;
 
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
-template <typename TV = double, int IFORM = VERTEX, int DOF = 1>
-struct AttributeDesc;
+
 /**
  * @startuml
  * title Life cycle
@@ -140,6 +142,10 @@ struct Attribute : public concept::Configurable {
     Attribute(Attribute const &other);
     Attribute(Attribute &&other);
     virtual ~Attribute();
+
+    void Register(AttributeBundle *);
+    void Deregister(AttributeBundle *);
+
     id_type GetGUID() const;
     virtual Attribute *Clone() const = 0;
     virtual std::shared_ptr<Attribute> GetDescription() const = 0;
@@ -149,6 +155,9 @@ struct Attribute : public concept::Configurable {
 
     void SetMesh(Mesh const *);
     Mesh const *GetMesh() const;
+
+    void SetRange(Range<mesh::MeshEntityId> const &);
+    Range<mesh::MeshEntityId> const &GetRange() const;
 
     virtual void PushData(std::shared_ptr<data::DataBlock> const &){};
     virtual std::shared_ptr<data::DataBlock> PopData() { return nullptr; }
@@ -166,7 +175,7 @@ struct AttributeDesc : public Attribute {
     SP_OBJECT_HEAD(desc_type, Attribute);
 
    public:
-    AttributeDesc(std::shared_ptr<data::DataTable> const &t = nullptr) : Attribute(t) {}
+    AttributeDesc(std::string const &k) : Attribute() { db().SetValue("name", k); }
     ~AttributeDesc() {}
 
     virtual std::shared_ptr<Attribute> GetDescription() const {
@@ -216,10 +225,10 @@ struct AttributeDesc : public Attribute {
 //    virtual void Clear() { U::Clear(); }
 //    virtual void SetMesh(Mesh const *){};
 //    virtual Mesh const *GetMesh() const { return nullptr; };
-//    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &d) {
+//    virtual void Push(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &d) {
 //        data::data_cast<U>(*d).swap(*this);
 //    };
-//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData() {
+//    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopPatch() {
 //        return std::make_pair(std::shared_ptr<MeshBlock>(nullptr), data::make_data_entity(*this));
 //    };
 //    template <typename TExpr>

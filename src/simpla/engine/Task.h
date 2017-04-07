@@ -97,26 +97,18 @@ namespace engine {
       --> (*)
    @enduml
  */
-class Task : public concept::Configurable, public AttributeBundle {
+class Task : public concept::Configurable {
     SP_OBJECT_BASE(Task)
    public:
-    Task(std::shared_ptr<Mesh> const &p = nullptr, std::shared_ptr<data::DataTable> const &t = nullptr);
+    Task(std::shared_ptr<data::DataTable> const &t = nullptr);
+    Task(Task const &other);
     virtual ~Task();
-
+    virtual void swap(Task &other);
+    virtual void Register(AttributeBundle *);
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual void Initialize();
     virtual void Process(){};
     virtual bool Update();
-
-    //    virtual void SetMesh(Mesh const *);
-    //    virtual Mesh const *GetMesh() const;
-    //    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataEntity> const &);
-    //    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataEntity>> PopData();
-
-    using AttributeBundle::SetMesh;
-    using AttributeBundle::GetMesh;
-    using AttributeBundle::PopData;
-    using AttributeBundle::PushData;
 
     virtual void Run(Real dt);
 
@@ -127,10 +119,6 @@ class Task : public concept::Configurable, public AttributeBundle {
     static bool RegisterCreator(std::string const &k) {
         return RegisterCreator(k, [&]() { return new U; });
     }
-
-   private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 }  // namespace engine

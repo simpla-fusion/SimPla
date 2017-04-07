@@ -8,17 +8,12 @@
 #ifndef SIMPLA_CORECTMESH_H
 #define SIMPLA_CORECTMESH_H
 
-#include <simpla/mesh/EntityId.h>
-#include <simpla/mesh/MeshCommon.h>
 #include <iomanip>
 #include <vector>
-
-#include <simpla/engine/all.h>
-#include <simpla/geometry/Cube.h>
-#include <simpla/toolbox/MemoryPool.h>
-//#include <simpla/mesh/DataBlock.h>
-//#include <simpla/mesh/RectMesh.h>
-//#include "simpla/mesh/Mesh.h"
+#include "simpla/engine/all.h"
+#include "simpla/geometry/Cube.h"
+#include "simpla/mesh/EntityId.h"
+#include "simpla/mesh/MeshCommon.h"
 
 namespace simpla {
 namespace mesh {
@@ -68,18 +63,14 @@ struct CartesianGeometry : public engine::Mesh {
      */
 
    public:
-    CartesianGeometry(std::shared_ptr<data::DataTable> const &t,
-                      std::shared_ptr<geometry::GeoObject> const &g = nullptr)
-        : engine::Mesh(t, g) {
-        db()->SetValue("name", "CartesianGeometry");
+    CartesianGeometry() : engine::Mesh() {}
+    CartesianGeometry(Real const *lower, Real const *upper) : CartesianGeometry() {
+        SetGeoObject(std::make_shared<geometry::Cube>(lower, upper));
     }
-
-    CartesianGeometry(Real const *lower, Real const *upper)
-        : engine::Mesh(nullptr, std::make_shared<geometry::Cube>(lower, upper)) {
-        db()->SetValue("name", "CartesianGeometry");
-        CHECK(*db());
+    CartesianGeometry(CartesianGeometry const &other) : engine::Mesh(other) {
+        SetGeoObject(other.GetGeoObject());
+        UNIMPLEMENTED;
     }
-    CartesianGeometry(CartesianGeometry const &) { UNIMPLEMENTED; }
     virtual ~CartesianGeometry() {}
 
     this_type *Clone() const { return new this_type(*this); }

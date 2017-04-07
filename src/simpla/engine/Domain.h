@@ -14,42 +14,42 @@
 
 namespace simpla {
 namespace engine {
-class Attribute;
-class Mesh;
-class MeshBlock;
-class DataBlock;
-class Domain;
-class Task;
-
-class Domain : public concept::Configurable, public std::enable_shared_from_this<Domain> {
+// class Attribute;
+// class Mesh;
+// class MeshBlock;
+// class DataBlock;
+// class Domain;
+// class Task;
+//
+class Domain : public concept::Configurable {
    public:
-    Domain(std::shared_ptr<data::DataTable> const &m, std::shared_ptr<geometry::GeoObject> const &g = nullptr);
-    Domain(std::shared_ptr<Mesh> const &m);
+    Domain(std::shared_ptr<geometry::GeoObject> const &g = nullptr,
+           std::shared_ptr<data::DataTable> const &t = nullptr);
     Domain(const Domain &);
-    virtual ~Domain();
-    virtual void Initialize();
-    virtual void Finalize();
-    std::shared_ptr<Domain> Clone() const;
+    Domain(Domain &&);
+    ~Domain();
+
+    void swap(Domain &);
+    void Initialize();
+    void Finalize();
+
+    AttributeBundle const &GetAttributes() const;
+
     void SetMeshView(std::shared_ptr<Mesh> const &);
     std::shared_ptr<Mesh> const &GetMeshView() const;
+
+    void SetWorker(std::shared_ptr<Worker> const &);
+    std::shared_ptr<Worker> const &GetWorker() const;
+
+    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &) const;
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
-    virtual void PushData(std::shared_ptr<MeshBlock> const &m, std::shared_ptr<data::DataTable> const &);
-    virtual void PushData(std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> const &);
-    virtual std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> PopData();
-
-    virtual void Run(Real dt);
-
-    std::pair<std::shared_ptr<Task>, bool> AddWorker(std::shared_ptr<Task> const &w, int pos = -1);
-    void RemoveWorker(std::shared_ptr<Task> const &w);
-    void Attach(AttributeBundle *);
-    void Detach(AttributeBundle *p = nullptr);
-
-    std::set<Attribute *> const &GetAllAttributes() const;
+    void Push(std::shared_ptr<Patch> const &);
+    std::shared_ptr<Patch> Pop();
 
    private:
     struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    std::shared_ptr<pimpl_s> m_pimpl_;
 };
 }  // namespace engine {
 }  // namespace simpla {

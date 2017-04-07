@@ -30,23 +30,18 @@ using namespace data;
  * @brief Uniform structured get_mesh
  */
 
-struct CylindricalGeometry : public engine::Mesh {
+struct CylindricalGeometry : public engine::Mesh, public engine::AttributeBundle {
    public:
     SP_OBJECT_HEAD(CylindricalGeometry, engine::Mesh)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
     typedef mesh::MeshEntityId entity_id;
-    typedef std::true_type is_frame_bundle;
-
-    static constexpr int ndims = 3;
-
-    explicit CylindricalGeometry(std::shared_ptr<data::DataTable> const &t = nullptr,
-                                 std::shared_ptr<geometry::GeoObject> const &g = nullptr)
-        : Mesh(t, g) {}
-    CylindricalGeometry(CylindricalGeometry const &other) : Mesh(other.db(), other.GetGeoObject()) { UNIMPLEMENTED; }
+    CylindricalGeometry() : Mesh() {}
+    CylindricalGeometry(CylindricalGeometry const &other) : engine::Mesh(other) {}
     virtual ~CylindricalGeometry() {}
     this_type *Clone() const { return new this_type(*this); }
+    virtual void Register(engine::AttributeBundle *other) { engine::AttributeBundle::Register(other); }
 
    private:
     Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics", "COORDINATES"_};

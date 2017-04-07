@@ -20,16 +20,16 @@ bool Task::RegisterCreator(std::string const &k, std::function<Task *()> const &
     return res;
 }
 Task *Task::Create(std::string const &s_name) {
-//    std::string s_name = "";
-//    std::shared_ptr<data::DataTable> d = nullptr;
-//
-//    if (config != nullptr) { s_name = m->name() + "." + config->GetValue<std::string>("name"); }
+    //    std::string s_name = "";
+    //    std::shared_ptr<data::DataTable> d = nullptr;
+    //
+    //    if (config != nullptr) { s_name = m->name() + "." + config->GetValue<std::string>("name"); }
     auto it = SingletonHolder<TaskFactory>::instance().m_task_factory_.find(s_name);
     if (it != SingletonHolder<TaskFactory>::instance().m_task_factory_.end()) {
         auto res = it->second();
-//        res->db() = config;
-//        res->SetMesh(m.get());
-//        LOGGER << "Task [" << s_name << "] is created!" << std::endl;
+        //        res->db() = config;
+        //        res->SetMesh(m.get());
+        //        LOGGER << "Task [" << s_name << "] is created!" << std::endl;
         return res;
     } else {
         RUNTIME_ERROR << "Task Creator[" << s_name << "] is missing!" << std::endl;
@@ -37,15 +37,12 @@ Task *Task::Create(std::string const &s_name) {
     }
 }
 
-struct Task::pimpl_s {
-    Mesh const *m_mesh_ = nullptr;
-};
-Task::Task(std::shared_ptr<Mesh> const &m, std::shared_ptr<data::DataTable> const &t)
-    : concept::Configurable(t), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_mesh_ = m.get();
-}
-Task::~Task(){};
+Task::Task(std::shared_ptr<data::DataTable> const &t) : concept::Configurable(t) {}
 
+Task::Task(Task const &other) : concept::Configurable(other){};
+Task::~Task() {}
+void Task::swap(Task &other) { concept::Configurable::swap(other); }
+void Task::Register(AttributeBundle *) {}
 std::ostream &Task::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
     //       << " [" << getClassName() << " : " << GetName() << "]" << std::endl;

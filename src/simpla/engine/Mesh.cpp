@@ -15,9 +15,12 @@ struct Mesh::pimpl_s {
     std::shared_ptr<MeshBlock> m_mesh_block_;
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
 };
-Mesh::Mesh(std::shared_ptr<data::DataTable> const &t) : concept::Configurable(t), m_pimpl_(new pimpl_s) {
-    AttributeBundle::SetMesh(this);
-}
+Mesh::Mesh() : concept::Configurable(), m_pimpl_(new pimpl_s) {}
+Mesh::Mesh(Mesh const &other) : m_pimpl_(new pimpl_s), concept::Configurable(other.db()) {
+    m_pimpl_->m_mesh_block_ = other.m_pimpl_->m_mesh_block_;
+    m_pimpl_->m_geo_obj_ = other.m_pimpl_->m_geo_obj_;
+};
+
 Mesh::~Mesh() {}
 
 std::ostream &Mesh::Print(std::ostream &os, int indent) const {
@@ -30,26 +33,21 @@ std::ostream &Mesh::Print(std::ostream &os, int indent) const {
         os << std::setw(indent + 1) << " "
            << "},";
     }
-
     return os;
 };
-void Mesh::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl_->m_geo_obj_ = g; }
-std::shared_ptr<geometry::GeoObject> const &Mesh::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
-void Mesh::PushData(std::shared_ptr<Patch> p) {
-    AttributeBundle::PushData(p);
-    m_pimpl_->m_mesh_block_ = p->PopMeshBlock();
-};
-std::shared_ptr<Patch> Mesh::PopData() {
-    auto res = AttributeBundle::PopData();
-    res->PushMeshBlock(m_pimpl_->m_mesh_block_);
-    m_pimpl_->m_mesh_block_.reset();
-    return res;
-}
 
+void Mesh::Register(AttributeBundle *) {}
+
+void Mesh::SetBlock(const std::shared_ptr<MeshBlock> &m) { m_pimpl_->m_mesh_block_ = m; }
+std::shared_ptr<MeshBlock> const &Mesh::GetBlock() const { return m_pimpl_->m_mesh_block_; }
 id_type Mesh::GetBlockId() const {
     return m_pimpl_->m_mesh_block_ == nullptr ? NULL_ID : m_pimpl_->m_mesh_block_->GetGUID();
 }
-std::shared_ptr<MeshBlock> const &Mesh::GetBlock() const { return m_pimpl_->m_mesh_block_; }
+
+Range<mesh::MeshEntityId> Mesh::GetRange(std::shared_ptr<geometry::GeoObject> const &, int iform) const {
+    return Range<mesh::MeshEntityId>();
+};
+// Range<mesh::MeshEntityId> Mesh::range(int IFORM) const { return m_pimpl_->m_mesh_block_->range(IFORM); }
 
 void Mesh::Initialize() {}
 void Mesh::Finalize() {}
