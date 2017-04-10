@@ -16,26 +16,26 @@
 #include "Task.h"
 #include "TimeIntegrator.h"
 /**
+ *
  * @startuml
- * class GeoObject{
- * }
- * class Atlas{
- *      Chart * m_chart_
- *      std::map<Chart*,Domain *> m_domains_[]
- *      Patch * Pop(index_box_type,GeoObject)
- *      void Push(Patch *)
- *      id_type AddBlock(index_box_type,Chart *)
- *      index_box_type  GetBlock(id_type,Chart *)
- * }
+ *
  * note right of Atlas
  *    <latex>\mathcal{A}\equiv\left\{ \mathcal{O}_{\alpha},\varphi_{\alpha}\right\} </latex>
  *      <latex>X=\bigcup_{\alpha} \mathcal{O}_{\alpha} </latex>
  *  The set <latex> \mathcal{O} </latex> is known as <b>coordinate patch </b>,
  * If <latex> \mathcal{O} = \bar{\varphi} ^{-1} \left[ \mathbb{Z} \right]^n  </latex>, it is called as  <b>Mesh Block</b>.
  * end note
+ *
+ * class GeoObject{
+ * }
+ * class Atlas{
+ *      Patch * Pop(index_box_type,int level)
+ *      void Push(Patch *)
+ *      id_type AddBlock(index_box_type,int level)
+ *      index_box_type  GetBlock(id_type)
+ * }
  * Atlas o-- "0..*" Patch
- * Atlas o-- "0..*" Domain
-
+ * Atlas o-- "0..*" Chart
  *
  * class Domain{
  *      GeoObject * m_geo_object_
@@ -43,10 +43,9 @@
  *      Worker * m_worker_
  *      bool CheckOverlap(index_box_type)
  * }
- * Domain *-- Chart
  * Domain *-- GeoObject
  * Domain *-- Worker
- *
+ * Domain *-- "1" Chart
  *
  * class IdRange{
  * }
@@ -65,7 +64,6 @@
  * ConcreteWorker -up-|> Worker
  * ConcreteWorker o-- Field
  *
-
  *
  * class Chart{
  *      point_type origin;
@@ -86,6 +84,11 @@
  *    an n-tuple of real numbers - its coordinates.
  *    The boundary of Chart is not defined.
  * end note
+ *
+ * class MeshBlock{
+ * }
+ * MeshBlock .. DataBlock
+ *
  * abstract  Mesh {
  *      {abstract} GeoObject boundary()const
  *      Range range(iform)
@@ -97,11 +100,15 @@
  * note right of Mesh
  *    <latex>\left\{ \mathcal{O}_{\alpha},\varphi_{\alpha}\right\} </latex>
  * end note
- *
- * Mesh *-- GeoObject
  * Mesh *-- Chart
- * Mesh *-- IdRange
+ * Mesh *-- MeshBlock
+ * Mesh *-- GeoObject
  *
+ * class Patch {
+ * }
+ * Patch *-- "1" Mesh
+ * Patch *-- "1" MeshBlock
+ * Patch *-- "0..*" DataBlock
  * class IdRange{
  * }
  *
@@ -147,15 +154,13 @@
  * Chart <|-- CylindricalGeometry
  * MeshView .. CylindricalGeometry
  * MeshView .. CartesianGeometry
- * Patch *-- "1" Mesh
- * Patch *-- "0..*" DataBlock
  *
  * Patch <..> Domain : push/pop
- * DataBlock <..> Attribute : push/pop
  *
  * @enduml
  * @startuml
- *
+ * DataBlock <..> Attribute : push/pop
+
  *
  *
  * @enduml
