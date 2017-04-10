@@ -97,7 +97,7 @@ void Context::Initialize() {
 
     //    std::shared_ptr<geometry::GeoObject> geo = g;
     //    if (geo == nullptr) { geo.reset(GLOBAL_GEO_OBJECT_FACTORY.Create(db()->GetTable("Geometry"))); }
-    //    m_pimpl_->m_mesh_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("Mesh"), geo));
+    //    m_pimpl_->m_chart_.reset(GLOBAL_MESHVIEW_FACTORY.Create(db()->GetTable("Mesh"), geo));
     //
     //    m_pimpl_->m_is_initialized_ = true;
     //    LOGGER << "Context is initialized!" << std::endl;

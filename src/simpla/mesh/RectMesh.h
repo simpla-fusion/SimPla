@@ -172,7 +172,7 @@ class RectMesh {
 
     point_type const& inv_dx() const { return m_inv_dx_; }
 
-    //    virtual point_type point(MeshEntityId const &s) const { return point(s.x >> 1, s.y >> 1,
+    //    virtual point_type point(EntityId const &s) const { return point(s.x >> 1, s.y >> 1,
     //    s.z >> 1); }
     //
     virtual point_type point(index_tuple const& x) const { return point(x[0], x[1], x[2]); };
@@ -244,7 +244,7 @@ class RectMesh {
         return std::move(point(p[0], p[1], p[2]));
     }
 
-    virtual  // std::tuple<MeshEntityId, point_type>
+    virtual  // std::tuple<EntityId, point_type>
         point_type
         point_global_to_local(point_type const& g, int nId = 0) const {
         return

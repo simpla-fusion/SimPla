@@ -121,7 +121,7 @@ Range<MeshEntityId> RectMesh::range(index_box_type const& b, int iform) const {
 
 Range<MeshEntityId> RectMesh::range(index_type const* b, index_type const* e, int entityType) const {
     return std::move(Range<MeshEntityId>(std::make_shared<ContinueRange<MeshEntityId>>(b, e, entityType)));
-    //    return std::Move(make_continue_range<MeshEntityId>(b, e, entityType));
+    //    return std::Move(make_continue_range<EntityId>(b, e, entityType));
 }
 
 Range<MeshEntityId> RectMesh::range(MeshZoneTag status, int entityType) const {

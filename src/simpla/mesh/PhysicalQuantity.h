@@ -69,7 +69,7 @@ public:
     {
         if (base_type::isValid()) { return; } else { base_type::PreProcess(); }
 
-//        m_mesh_ = self_type::mesh_as<mesh_type>();
+//        m_chart_ = self_type::mesh_as<mesh_type>();
 //        m_value_ = self_type::data_as<data_block_type>();
         ASSERT(m_data_ != nullptr);
         ASSERT(m_mesh_ != nullptr);
@@ -185,7 +185,7 @@ public:
     void copy(mesh::EntityIdRange const &r0, this_type const &g)
     {
         UNIMPLEMENTED;
-//        r0.Assign([&](mesh::MeshEntityId const &s) { get(s) = g.Get(s); });
+//        r0.Assign([&](mesh::EntityId const &s) { get(s) = g.Get(s); });
     }
 
 

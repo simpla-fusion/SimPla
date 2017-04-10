@@ -4,8 +4,8 @@
  */
 
 #include "Atlas.h"
+#include "Chart.h"
 #include "TransitionMap.h"
-
 //#include "simpla/toolbox/BoxUtility.h"
 
 namespace simpla {
@@ -27,10 +27,22 @@ struct Atlas::pimpl_s {
     std::multimap<id_type, id_type> m_refine_;
     std::multimap<id_type, id_type> m_coarsen_;
     std::set<std::shared_ptr<MeshBlock>> m_layers_[MAX_NUM_OF_LEVEL];
+
+    std::shared_ptr<Chart> m_chart_;
 };
 
-Atlas::Atlas() : m_pimpl_(new pimpl_s), concept::Configurable(){};
+Atlas::Atlas() : m_pimpl_(new pimpl_s){};
 Atlas::~Atlas(){};
+
+void Atlas::SetChart(std::shared_ptr<Chart> const &m) { m_pimpl_->m_chart_ = m; };
+std::shared_ptr<Chart> const &Atlas::GetChart() const { return m_pimpl_->m_chart_; }
+
+std::shared_ptr<Patch> Atlas::Pop(id_type box_id, std::shared_ptr<Domain> const &g) const {
+
+};
+void Atlas::Push(std::shared_ptr<Patch> const &) {
+
+}
 
 void Atlas::Initialize() { LOGGER << "Atlas is initialized " << std::endl; }
 void Atlas::Finalize() {}

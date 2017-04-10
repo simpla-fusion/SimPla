@@ -283,7 +283,7 @@ struct MeshEntityIdCoder_ {
                                      static_cast<index_type>(node_id(s) * dof + s.w)};
     }
     //    template<typename T>
-    //    static constexpr T type_cast(MeshEntityId s)
+    //    static constexpr T type_cast(EntityId s)
     //    {
     //        return static_cast<T>(unpack(s));
     //    }

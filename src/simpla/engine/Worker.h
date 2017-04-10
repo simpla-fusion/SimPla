@@ -13,7 +13,7 @@ namespace simpla {
 namespace engine {
 class Mesh;
 
-class AttributeBundle;
+class AttributeGroup;
 /**
 * @brief
 */
@@ -25,8 +25,10 @@ class Worker : public concept::Configurable {
     virtual void swap(Worker &);
     virtual Worker *Clone() const;
 
-    virtual void Register(AttributeBundle *);
-    virtual void Deregister(AttributeBundle *);
+    virtual void Register(AttributeGroup *);
+    virtual void Deregister(AttributeGroup *);
+    virtual void Push(const std::shared_ptr<Patch> &p);
+    virtual std::shared_ptr<Patch> Pop() const;
 
     virtual void Initialize(Real time_now = 0);
     virtual void Advance(Real time = 0, Real dt = 0);

@@ -11,25 +11,26 @@
 #include "SPObject.h"
 
 namespace simpla {
+template <typename>
+class Range;
 namespace geometry {
 class GeoObject;
 }
 namespace engine {
-class MeshBlock;
+
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:
     Patch();
     virtual ~Patch();
-    id_type GetBlockId() const;
-    std::shared_ptr<MeshBlock> const &GetMeshBlock() const;
-    void PushMeshBlock(std::shared_ptr<MeshBlock> const &);
-    std::shared_ptr<MeshBlock> PopMeshBlock();
-    int Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
-    std::shared_ptr<data::DataBlock> Pop(id_type const &id);
 
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g);
-    std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
+    id_type GetBlockId() const;
+
+    void PushMesh(std::shared_ptr<Mesh> const &);
+    std::shared_ptr<Mesh> PopMesh() const;
+
+    int Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
+    std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;
 
    private:
     struct pimpl_s;

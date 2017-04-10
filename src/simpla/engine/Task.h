@@ -104,7 +104,7 @@ class Task : public concept::Configurable {
     Task(Task const &other);
     virtual ~Task();
     virtual void swap(Task &other);
-    virtual void Register(AttributeBundle *);
+    virtual void Register(AttributeGroup *);
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual void Initialize();
     virtual void Process(){};

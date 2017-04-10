@@ -22,7 +22,7 @@ typedef union {
 } MeshEntityId;
 
 
-// typedef MeshEntityId64 MeshEntityId;
+// typedef MeshEntityId64 EntityId;
 
 #define MAX_POLYGON 20
 

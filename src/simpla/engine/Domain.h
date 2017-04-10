@@ -9,22 +9,23 @@
 #include <simpla/concept/Printable.h>
 #include <memory>
 #include "Attribute.h"
-#include "simpla/geometry/GeoObject.h"
+#include "Chart.h"
 #include "simpla/mpl/macro.h"
 
 namespace simpla {
 namespace engine {
 // class Attribute;
-// class Mesh;
+class Mesh;
+class Patch;
 // class MeshBlock;
 // class DataBlock;
 // class Domain;
 // class Task;
 //
-class Domain : public concept::Configurable {
+class Domain : public SPObject {
+    SP_OBJECT_HEAD(Domain, SPObject)
    public:
-    Domain(std::shared_ptr<geometry::GeoObject> const &g = nullptr,
-           std::shared_ptr<data::DataTable> const &t = nullptr);
+    Domain(std::shared_ptr<Mesh> const &g = nullptr, std::shared_ptr<data::DataTable> const &t = nullptr);
     Domain(const Domain &);
     Domain(Domain &&);
     ~Domain();
@@ -33,18 +34,21 @@ class Domain : public concept::Configurable {
     void Initialize();
     void Finalize();
 
-    AttributeBundle const &GetAttributes() const;
+    AttributeGroup const &GetAttributes() const;
 
-    void SetMeshView(std::shared_ptr<Mesh> const &);
-    std::shared_ptr<Mesh> const &GetMeshView() const;
+    //    void SetChart(std::shared_ptr<Chart> const &);
+    //    std::shared_ptr<Chart> const &GetChart() const;
+    //
+    //    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &) const;
+    //    std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
+
+    void SetMesh(std::shared_ptr<Mesh> const &);
+    std::shared_ptr<Mesh> const &GetMesh() const;
 
     void SetWorker(std::shared_ptr<Worker> const &);
     std::shared_ptr<Worker> const &GetWorker() const;
 
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &) const;
-    std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
-
-    void Push(std::shared_ptr<Patch> const &);
+    void Push(const std::shared_ptr<Patch> &);
     std::shared_ptr<Patch> Pop();
 
    private:

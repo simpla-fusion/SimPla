@@ -17,75 +17,145 @@
 #include "TimeIntegrator.h"
 /**
  * @startuml
+ * class GeoObject{
+ * }
+ * class Atlas{
+ *      Chart * m_chart_
+ *      std::map<Chart*,Domain *> m_domains_[]
+ *      Patch * Pop(index_box_type,GeoObject)
+ *      void Push(Patch *)
+ *      id_type AddBlock(index_box_type,Chart *)
+ *      index_box_type  GetBlock(id_type,Chart *)
+ * }
+ * note right of Atlas
+ *    <latex>\mathcal{A}\equiv\left\{ \mathcal{O}_{\alpha},\varphi_{\alpha}\right\} </latex>
+ *      <latex>X=\bigcup_{\alpha} \mathcal{O}_{\alpha} </latex>
+ *  The set <latex> \mathcal{O} </latex> is known as <b>coordinate patch </b>,
+ * If <latex> \mathcal{O} = \bar{\varphi} ^{-1} \left[ \mathbb{Z} \right]^n  </latex>, it is called as  <b>Mesh Block</b>.
+ * end note
+ * Atlas o-- "0..*" Patch
+ * Atlas o-- "0..*" Domain
+
+ *
+ * class Domain{
+ *      GeoObject * m_geo_object_
+ *      Chart * m_chart_
+ *      Worker * m_worker_
+ *      bool CheckOverlap(index_box_type)
+ * }
+ * Domain *-- Chart
+ * Domain *-- GeoObject
+ * Domain *-- Worker
+ *
+ *
+ * class IdRange{
+ * }
+ *
  * class Worker{
- * virtual void Register(AttributeBundle*)
+ *      void SetMesh(Mesh*)
+ *      {abstract} void Register(AttributeGroup *);
+ *      {abstract} void Deregister(AttributeGroup *);
+ *      {abstract} void Push(Patch const &);
+ *      {abstract} void Pop(Patch *) const;
  * }
- * class Field<TMesh>{
+ *
+ * class ConcreteWorker<Mesh>{
+ *      void Register(AttributeGroup*)
  * }
- * class TaskTemplate<TMesh>{
+ * ConcreteWorker -up-|> Worker
+ * ConcreteWorker o-- Field
+ *
+
+ *
+ * class Chart{
+ *      point_type origin;
+ *      point_type dx;
+ *      Chart* Coarsen(int)const
+ *      Chart* Refine(int)const
+ *      Chart* Shift(point_type)const
+ *      Chart* Rotate(Real a[])const
+ *      {abstract} Mesh * CreateView(index_box_type)const
  * }
- * class Task{
- *      virtual void Register(AttributeBundle*)
+ * note bottom of Chart
+ *   <b>Chart/Local Coordinates</b>
+ *   A homeomorphism
+ *     <latex>\varphi:\mathcal{O}\rightarrow\mathbb{R}^{n}\left[x^{0},...,x^{n-1}\right] </latex>
+ *     <latex>\bar{\varphi}:\mathcal{O}\rightarrow\mathbb{Z}^{n}\left[x^{0},...,x^{n-1}\right] </latex>
+ *    is called a <b>chart</b> or alternatively <b>local coordinates</b>.
+ *    Each point <latex> x\in\mathcal{O} </latex> is then uniquely associated with
+ *    an n-tuple of real numbers - its coordinates.
+ *    The boundary of Chart is not defined.
+ * end note
+ * abstract  Mesh {
+ *      {abstract} GeoObject boundary()const
+ *      Range range(iform)
+ *      {abstract} void Register(AttributeGroup *);
+ *      {abstract} void Deregister(AttributeGroup *);
+ *      {abstract} void Push(Patch const &);
+ *      {abstract} void Pop(Patch *) const;
  * }
- * class Mesh {
- *      virtual void Register(AttributeBundle*)
+ * note right of Mesh
+ *    <latex>\left\{ \mathcal{O}_{\alpha},\varphi_{\alpha}\right\} </latex>
+ * end note
+ *
+ * Mesh *-- GeoObject
+ * Mesh *-- Chart
+ * Mesh *-- IdRange
+ *
+ * class IdRange{
  * }
+ *
+ * class MeshView<TGeometry> {
+ *      GeoObject boundary()const
+ *      void Register(AttributeGroup*)
+ *      point_type vertex(index_tuple)const
+ *      std::pair<index_tuple,point_type> map(point_type const &)const
+ * }
+ *
+ *
+ *
+ *
  * class Attribute {
- *      Attribute(AttributeBundle*);
- *      void Register(AttributeBundle*)
+ *      void Register(AttributeGroup*)
  *      void SetMesh(Mesh *);
- *      void SetRange(IdRange *);
+ *      {abstract} int GetIFORM()const;
+ *      {abstract} int GetDOF()const
  *      Push(DataBlock);
  *      DataBlock Pop();
  * }
- * class AttributeBundle {
- *      void Register(AttributeBundle*);
+ * Attribute *-- Mesh
+ *
+ * class AttributeGroup {
+ *      void Register(AttributeGroup*);
  *      void Detach(Attribute *attr);
  *      void Attach(Attribute *attr);
- *      virtual void Push(Patch );
- *      virtual Patch Pop();
+ *      void Push(Patch );
+ *      Patch Pop();
  * }
- * class IndexSpace{
- *      point_type origin;
- *      point_type dx;
+ * AttributeGroup o-- Attribute
+
+ * class Field<Mesh>{
+  *    int GetIFORM()const;
+ *     int GetDOF()const
  * }
- * Context o-- "0..*" Domain
- * Context o-- "0..*" Mesh
- * Context o-- "0..*" GeoObject
- * Context *-- "1" Atlas
- * Context *-- "1" AttributeBundle
- * Atlas o-- "0..*" Patch
- * Domain *-- "1" GeoObject
- * Domain *-- "1" Mesh
- * Domain o-- "0..*" Worker
- * Domain *-- "1" AttributeBundle
- * Domain ..> IdRange: create
- * GeoObject  .. Mesh
- * IdRange . (GeoObject,Mesh)
- * IdRange --* Attribute
- * Worker *--  Mesh
- * Worker o--  Attribute
- * Attribute *-- Mesh
- * IndexSpace "1" o-- "0..*" MeshBlock
- * Patch *-- "1" MeshBlock
- * Patch *-- "0..*" DataBlock
- * DataBlock ..> MeshBlock
- * Mesh *-- "1" IndexSpace
- * Attribute <|-- Field
  *
- * TMesh --|> Mesh
- * Field .. TMesh
- * TaskTemplate --|> Task
- * TaskTemplate .. TMesh
- * TaskTemplate o-- Field
- * Worker o-- Task
- * Patch <..> AttributeBundle : push/pop
- * DataBlock <..>Attribute : push/pop
- * MeshBlock <..> Mesh: push/pop
+ * Field -up-|> Attribute
+ *
+ *
+ * MeshView -up-|> Mesh
+ * Chart <|-- CartesianGeometry
+ * Chart <|-- CylindricalGeometry
+ * MeshView .. CylindricalGeometry
+ * MeshView .. CartesianGeometry
+ * Patch *-- "1" Mesh
+ * Patch *-- "0..*" DataBlock
+ *
+ * Patch <..> Domain : push/pop
+ * DataBlock <..> Attribute : push/pop
+ *
  * @enduml
  * @startuml
- * :Domain1:
- * (Domain2)
+ *
  *
  *
  * @enduml

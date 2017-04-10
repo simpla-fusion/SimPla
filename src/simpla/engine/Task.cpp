@@ -42,7 +42,7 @@ Task::Task(std::shared_ptr<data::DataTable> const &t) : concept::Configurable(t)
 Task::Task(Task const &other) : concept::Configurable(other){};
 Task::~Task() {}
 void Task::swap(Task &other) { concept::Configurable::swap(other); }
-void Task::Register(AttributeBundle *) {}
+void Task::Register(AttributeGroup *) {}
 std::ostream &Task::Print(std::ostream &os, int indent) const {
     //    os << std::setw(indent + 1) << " "
     //       << " [" << getClassName() << " : " << GetName() << "]" << std::endl;

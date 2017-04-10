@@ -13,6 +13,7 @@
 #include <simpla/algebra/nTuple.h>
 #include <simpla/algebra/nTupleExt.h>
 #include <simpla/engine/Attribute.h>
+#include <simpla/engine/Chart.h>
 #include <simpla/engine/Mesh.h>
 #include <simpla/engine/MeshBlock.h>
 #include <simpla/mpl/macro.h>
@@ -22,26 +23,28 @@
 #include <simpla/toolbox/Log.h>
 
 namespace simpla {
-namespace mesh {
+namespace engine {
 using namespace data;
+
+struct CylindricalCoordinates : public Chart {};
 /**
  * @ingroup mesh
  *
  * @brief Uniform structured get_mesh
  */
 
-struct CylindricalGeometry : public engine::Mesh, public engine::AttributeBundle {
+struct MeshView<CylindricalCoordinates> : public engine::Mesh, public engine::AttributeGroup {
    public:
-    SP_OBJECT_HEAD(CylindricalGeometry, engine::Mesh)
+    SP_OBJECT_HEAD(MeshView<CylindricalCoordinates>, engine::Mesh)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
     typedef mesh::MeshEntityId entity_id;
-    CylindricalGeometry() : Mesh() {}
-    CylindricalGeometry(CylindricalGeometry const &other) : engine::Mesh(other) {}
-    virtual ~CylindricalGeometry() {}
+    MeshView() : Mesh() {}
+    MeshView(this_type const &other) : engine::Mesh(other) {}
+    virtual ~MeshView() {}
     this_type *Clone() const { return new this_type(*this); }
-    virtual void Register(engine::AttributeBundle *other) { engine::AttributeBundle::Register(other); }
+    virtual void Register(AttributeGroup *other) { AttributeGroup::Register(other); }
 
    private:
     Field<this_type, Real, VERTEX, 3> m_vertics_{this, "name"_ = "vertics", "COORDINATES"_};
@@ -57,9 +60,9 @@ struct CylindricalGeometry : public engine::Mesh, public engine::AttributeBundle
         return point_type{m_vertics_(i, j, k, 0), m_vertics_(i, j, k, 1), m_vertics_(i, j, k, 2)};
     };
 
-    virtual point_type point(MeshEntityId s) const { return point_type{}; /*m_mesh_block_->point(s); */ };
+    virtual point_type point(entity_id s) const { return point_type{}; /*m_mesh_block_->point(s); */ };
 
-    virtual point_type point(MeshEntityId id, point_type const &pr) const {
+    virtual point_type point(entity_id id, point_type const &pr) const {
         /**
           *\verbatim
           *                ^s (dl)
@@ -81,7 +84,7 @@ struct CylindricalGeometry : public engine::Mesh, public engine::AttributeBundle
           *\endverbatim
           */
 
-        auto i = MeshEntityIdCoder::unpack_index(id);
+        auto i = mesh::MeshEntityIdCoder::unpack_index(id);
         Real r = pr[0], s = pr[1], t = pr[2];
 
         Real w0 = (1 - r) * (1 - s) * (1 - t);
@@ -114,10 +117,10 @@ struct CylindricalGeometry : public engine::Mesh, public engine::AttributeBundle
         return point_type{x, y, z};
     }
 
-    virtual Real volume(MeshEntityId s) const { return m_volume_.at(s); }
-    virtual Real dual_volume(MeshEntityId s) const { return m_volume_.at(s); }
-    virtual Real inv_volume(MeshEntityId s) const { return m_volume_.at(s); }
-    virtual Real inv_dual_volume(MeshEntityId s) const { return m_volume_.at(s); }
+    virtual Real volume(entity_id s) const { return m_volume_.at(s); }
+    virtual Real dual_volume(entity_id s) const { return m_volume_.at(s); }
+    virtual Real inv_volume(entity_id s) const { return m_volume_.at(s); }
+    virtual Real inv_dual_volume(entity_id s) const { return m_volume_.at(s); }
 
     typedef mesh::MeshEntityIdCoder m;
     virtual Range<entity_id> range() const { return Range<entity_id>(); };

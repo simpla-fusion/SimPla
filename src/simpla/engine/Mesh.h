@@ -14,6 +14,7 @@ namespace simpla {
 namespace engine {
 class MeshBlock;
 class Patch;
+class IdRange;
 /**
  *  Define:
  *   A bundle is a triple \f$(E, p, B)\f$ where \f$E\f$, \f$B\f$ are sets and \f$p:E \rightarrow B\f$ a map
@@ -31,13 +32,16 @@ class Mesh : public concept::Configurable {
     virtual ~Mesh();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual Mesh *Clone() const = 0;
-    virtual void Register(AttributeBundle *);
+
+    virtual void Register(AttributeGroup *);
+    virtual void Deregister(AttributeGroup *);
+    virtual void Push(Patch const &);
+    virtual void Pop(Patch *) const;
 
     id_type GetBlockId() const;
-    void SetBlock(const std::shared_ptr<MeshBlock> &);
+    //    void SetBlock(const std::shared_ptr<MeshBlock> &);
     std::shared_ptr<MeshBlock> const &GetBlock() const;
-
-    Range<mesh::MeshEntityId> GetRange(std::shared_ptr<geometry::GeoObject> const &, int iform) const;
+    std::shared_ptr<IdRange> const &GetRange(int iform) const;
 
     virtual void Initialize();
     virtual void Finalize();
@@ -54,14 +58,16 @@ class Mesh : public concept::Configurable {
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;
 };
+template <typename...>
+class MeshView;
 //    template <typename U>
 //    std::shared_ptr<data::DataBlockWrapper<U>> CreateDataBlock(int IFORM, int DOF) const;
 //    template <typename... Args>
-//    Range<MeshEntityId> range(Args &&... args) const {
+//    Range<EntityId> range(Args &&... args) const {
 //        if (m_mesh_block_ != nullptr) {
 //            return m_mesh_block_->range(std::forward<Args>(args)...);
 //        } else {
-//            return Range<MeshEntityId>();
+//            return Range<EntityId>();
 //        }
 //    }
 //    size_type size(int IFORM = VERTEX) const { return m_mesh_block_->number_of_entities(IFORM); }

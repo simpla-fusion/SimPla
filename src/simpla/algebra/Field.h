@@ -124,8 +124,8 @@ class FieldView : public engine::Attribute {
     }
 
     void PushData(std::shared_ptr<data::DataBlock> const& d) {
-        //        m_mesh_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh());
-        //        ASSERT(m_mesh_ != nullptr && m_mesh_->GetMeshBlock()->GetGUID() == m->GetGUID());
+        //        m_chart_ = dynamic_cast<mesh_type const*>(engine::Attribute::GetMesh());
+        //        ASSERT(m_chart_ != nullptr && m_chart_->GetMeshBlock()->GetGUID() == m->GetGUID());
         //        if (d == nullptr) {
         //            for (int i = 0; i < num_of_subs; ++i) {
         //                m_data_[i] = std::make_shared<sub_array_type>(m->GetInnerIndexBox(), m->GetOuterIndexBox());
@@ -152,7 +152,7 @@ class FieldView : public engine::Attribute {
         //                t = t_array;
         //            }
         //        }
-        //        return std::make_pair(m_mesh_->GetMeshBlock(), t);
+        //        return std::make_pair(m_chart_->GetMeshBlock(), t);
         return nullptr;
     }
     sub_array_type const& operator[](unsigned int i) const { return *m_data_[i % num_of_subs]; }

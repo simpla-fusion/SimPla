@@ -15,20 +15,21 @@ namespace simpla {
 namespace engine {
 
 struct Domain::pimpl_s {
-    std::shared_ptr<geometry::GeoObject> m_geo_obj_ = nullptr;
+    //    std::shared_ptr<geometry::GeoObject> m_geo_obj_ = nullptr;
+    //    std::shared_ptr<Chart> m_chart_ = nullptr;
     std::shared_ptr<Mesh> m_mesh_ = nullptr;
     std::shared_ptr<Worker> m_worker_ = nullptr;
-    AttributeBundle m_attr_bundle_;
+    AttributeGroup m_attr_bundle_;
 };
 
-Domain::Domain(std::shared_ptr<geometry::GeoObject> const &g, std::shared_ptr<data::DataTable> const &t)
+Domain::Domain(std::shared_ptr<Mesh> const &g, std::shared_ptr<data::DataTable> const &t)
     : concept::Configurable(t), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_geo_obj_ = g;
+    m_pimpl_->m_mesh_ = g;
 }
 
 Domain::Domain(const Domain &other) : m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_geo_obj_ = other.m_pimpl_->m_geo_obj_;
-    m_pimpl_->m_mesh_.reset(other.m_pimpl_->m_mesh_->Clone());
+    //    m_pimpl_->m_geo_obj_ = other.m_pimpl_->m_geo_obj_;
+    //    m_pimpl_->m_chart_ = other.m_pimpl_->m_chart_;
     m_pimpl_->m_worker_.reset(other.m_pimpl_->m_worker_->Clone());
     m_pimpl_->m_worker_->Register(&m_pimpl_->m_attr_bundle_);
 }
@@ -37,30 +38,27 @@ Domain::~Domain() { Finalize(); }
 
 void Domain::swap(Domain &other) { std::swap(m_pimpl_, other.m_pimpl_); }
 
-AttributeBundle const &Domain::GetAttributes() const { return m_pimpl_->m_attr_bundle_; }
+AttributeGroup const &Domain::GetAttributes() const { return m_pimpl_->m_attr_bundle_; }
 
-void Domain::Push(std::shared_ptr<Patch> const &p) {
-    m_pimpl_->m_mesh_->SetBlock(p->GetMeshBlock());
-    m_pimpl_->m_attr_bundle_.Push(p);
-    m_pimpl_->m_worker_->SetMesh( m_pimpl_->m_mesh_);
-    for (auto *v : m_pimpl_->m_attr_bundle_.GetAll()) {
-        v->SetMesh(m_pimpl_->m_mesh_.get());
-        v->SetRange(m_pimpl_->m_mesh_->GetRange(m_pimpl_->m_geo_obj_, v->GetIFORM()));
+// void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) const { m_pimpl_->m_geo_obj_ = g; }
+// std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
+//
+// void Domain::SetChart(std::shared_ptr<Chart> const &m) {
+//    m_pimpl_->m_chart_ = m;
+//    db()->Link("Mesh", m->db());
+//};
+// std::shared_ptr<Chart> const &Domain::GetChart() const { return m_pimpl_->m_chart_; }
+
+void Domain::SetMesh(std::shared_ptr<Mesh> const &m) {
+    if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->Deregister(&m_pimpl_->m_attr_bundle_); }
+    m_pimpl_->m_mesh_ = m;
+
+    if (m_pimpl_->m_mesh_ != nullptr) {
+        db()->Link("Mesh", m_pimpl_->m_mesh_->db());
+        m_pimpl_->m_worker_->Register(&m_pimpl_->m_attr_bundle_);
     }
 }
-std::shared_ptr<Patch> Domain::Pop() {
-    auto p = m_pimpl_->m_attr_bundle_.Pop();
-    p->PushMeshBlock(m_pimpl_->m_mesh_->GetBlock());
-    return p;
-}
-void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) const { m_pimpl_->m_geo_obj_ = g; }
-std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
-
-void Domain::SetMeshView(std::shared_ptr<Mesh> const &m) {
-    m_pimpl_->m_mesh_ = m;
-    db()->Link("Mesh", m->db());
-};
-std::shared_ptr<Mesh> const &Domain::GetMeshView() const { return m_pimpl_->m_mesh_; }
+std::shared_ptr<Mesh> const &Domain::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 void Domain::SetWorker(std::shared_ptr<Worker> const &w) {
     if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->Deregister(&m_pimpl_->m_attr_bundle_); }
@@ -68,11 +66,14 @@ void Domain::SetWorker(std::shared_ptr<Worker> const &w) {
     m_pimpl_->m_worker_ = w;
 
     if (m_pimpl_->m_worker_ != nullptr) {
-        db()->Link("Mesh", w->db());
+        db()->Link("Worker", w->db());
         m_pimpl_->m_worker_->Register(&m_pimpl_->m_attr_bundle_);
     }
 }
 std::shared_ptr<Worker> const &Domain::GetWorker() const { return m_pimpl_->m_worker_; }
+
+void Domain::Push(const std::shared_ptr<Patch> &p) { m_pimpl_->m_worker_->Push(p); }
+std::shared_ptr<Patch> Domain::Pop() { return m_pimpl_->m_worker_->Pop(); }
 
 // Domain *Domain::Clone() const { return new Domain(*this); }
 //
@@ -88,26 +89,27 @@ std::shared_ptr<Worker> const &Domain::GetWorker() const { return m_pimpl_->m_wo
 //}
 // std::pair<std::shared_ptr<MeshBlock>, std::shared_ptr<data::DataTable>> Domain::Pop() {
 //    auto res =
-//        std::make_pair(m_pimpl_->m_mesh_->GetBlock(), std::dynamic_pointer_cast<data::DataTable>(m_pimpl_->m_patch_));
+//        std::make_pair(m_pimpl_->m_chart_->GetBlock(),
+//        std::dynamic_pointer_cast<data::DataTable>(m_pimpl_->m_patch_));
 //
 //    m_pimpl_->m_patch_.reset();
 //    return (res);
 //};
 //
 // void Domain::Run(Real dt) {
-//    //    m_pimpl_->m_mesh_->Push(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
+//    //    m_pimpl_->m_chart_->Push(m_pimpl_->m_mesh_block_, m_pimpl_->m_patch_);
 //    //
 //    //    for (auto &item : m_pimpl_->m_worker_) {
-//    //        ASSERT(m_pimpl_->m_mesh_ != nullptr);
-//    //        item.second->SetMesh(m_pimpl_->m_mesh_.get());
-//    //        item.second->Push(m_pimpl_->m_mesh_->GetBlock(), m_pimpl_->m_patch_);
+//    //        ASSERT(m_pimpl_->m_chart_ != nullptr);
+//    //        item.second->SetMesh(m_pimpl_->m_chart_.get());
+//    //        item.second->Push(m_pimpl_->m_chart_->GetBlock(), m_pimpl_->m_patch_);
 //    //        item.second->Run(dt);
 //    //        auto res = item.second->PopPatch();
 //    //
 //    //        Push(res);  // item.second->PopPatch());
 //    //    }
 //}
-// void Domain::Attach(AttributeBundle *p) {
+// void Domain::Attach(AttributeGroup *p) {
 //    if (p == nullptr) { return; }
 //    auto res = m_pimpl_->m_attr_bundle_.emplace(p);
 //
@@ -127,17 +129,21 @@ std::shared_ptr<Worker> const &Domain::GetWorker() const { return m_pimpl_->m_wo
 //        };
 //    }
 //}
-// void Domain::Detach(AttributeBundle *p) {
+// void Domain::Detach(AttributeGroup *p) {
 //    if (p != nullptr && m_pimpl_->m_attr_bundle_.erase(p) > 0) {}
 //}
 //
 // std::set<Attribute *> const &Domain::GetAllAttributes() const { return m_pimpl_->m_attributes_; }
 //
 void Domain::Initialize() {
-    //    if (m_pimpl_->m_mesh_ != nullptr) { return; }
-    //    m_pimpl_->m_mesh_.reset(Mesh::Create(db()->GetTable("Mesh")));
-    //    ASSERT(m_pimpl_->m_mesh_ != nullptr);
-    //    db()->Link("Mesh", m_pimpl_->m_mesh_->db());
+    auto m = m_pimpl_->m_chart_->CreateView(nullptr, m_pimpl_->m_geo_obj_);
+    m_pimpl_->m_worker_->SetMesh(m);
+    for (auto *v : m_pimpl_->m_attr_bundle_.GetAll()) { v->SetMesh(m.get()); }
+
+    //    if (m_pimpl_->m_chart_ != nullptr) { return; }
+    //    m_pimpl_->m_chart_.reset(Mesh::Create(db()->GetTable("Mesh")));
+    //    ASSERT(m_pimpl_->m_chart_ != nullptr);
+    //    db()->Link("Mesh", m_pimpl_->m_chart_->db());
     //    auto t_worker = db()->Get("Task");
     //
     //    if (t_worker != nullptr && t_worker->isArray()) {
@@ -168,9 +174,9 @@ void Domain::Finalize() { m_pimpl_.reset(new pimpl_s); }
 //};
 //
 // std::ostream &Domain::Print(std::ostream &os, int indent) const {
-//    if (m_pimpl_->m_mesh_ != nullptr) {
+//    if (m_pimpl_->m_chart_ != nullptr) {
 //        os << " Mesh = { ";
-//        m_pimpl_->m_mesh_->Print(os, indent);
+//        m_pimpl_->m_chart_->Print(os, indent);
 //        os << " }, " << std::endl;
 //    }
 //
@@ -198,7 +204,7 @@ void Domain::Finalize() { m_pimpl_.reset(new pimpl_s); }
 //    //    for (index_type i = ib; i < ie; ++i)
 //    //        for (index_type j = jb; j < je; ++j)
 //    //            for (index_type k = kb; k < ke; ++k) {
-//    //                auto x = m_mesh_->mesh_block()->point(i, j, k);
+//    //                auto x = m_chart_->mesh_block()->point(i, j, k);
 //    //                auto& GetTag = m_tags_(i, j, k, 0);
 //    //
 //    //                GetTag = VACUUM;
@@ -231,8 +237,8 @@ void Domain::Finalize() { m_pimpl_.reset(new pimpl_s); }
 //};
 //
 // void Model::Finalize(Real data_time, Real dt) {
-//    m_range_cache_.Disconnect(m_mesh_->mesh_block()->id());
-//    m_interface_cache_.Disconnect(m_mesh_->mesh_block()->id());
+//    m_range_cache_.Disconnect(m_chart_->mesh_block()->id());
+//    m_interface_cache_.Disconnect(m_chart_->mesh_block()->id());
 //    PostProcess();
 //};
 //

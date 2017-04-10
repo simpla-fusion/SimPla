@@ -50,7 +50,7 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
 
 void EMTokamakWorker::Initialize() {
     base_type::Initialize();
-    // first run, only Load configure, m_mesh_=nullptr
+    // first run, only Load configure, m_chart_=nullptr
 
     db()->Get("Particles")
         ->cast_as<DataTable>()

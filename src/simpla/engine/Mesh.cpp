@@ -36,7 +36,7 @@ std::ostream &Mesh::Print(std::ostream &os, int indent) const {
     return os;
 };
 
-void Mesh::Register(AttributeBundle *) {}
+void Mesh::Register(AttributeGroup *) {}
 
 void Mesh::SetBlock(const std::shared_ptr<MeshBlock> &m) { m_pimpl_->m_mesh_block_ = m; }
 std::shared_ptr<MeshBlock> const &Mesh::GetBlock() const { return m_pimpl_->m_mesh_block_; }
@@ -47,7 +47,7 @@ id_type Mesh::GetBlockId() const {
 Range<mesh::MeshEntityId> Mesh::GetRange(std::shared_ptr<geometry::GeoObject> const &, int iform) const {
     return Range<mesh::MeshEntityId>();
 };
-// Range<mesh::MeshEntityId> Mesh::range(int IFORM) const { return m_pimpl_->m_mesh_block_->range(IFORM); }
+// Range<mesh::EntityId> Mesh::range(int IFORM) const { return m_pimpl_->m_mesh_block_->range(IFORM); }
 
 void Mesh::Initialize() {}
 void Mesh::Finalize() {}
@@ -79,5 +79,12 @@ Mesh *Mesh::Create(std::shared_ptr<data::DataTable> const &config) {
 }
 // Real Mesh::GetDt() const { return 1.0; }
 
+void Mesh::Push(Patch const &p) {
+    SetRange(VERTEX, p.GetRange(VERTEX));
+    SetRange(EDGE, p.GetRange(EDGE));
+    SetRange(FACE, p.GetRange(FACE));
+    SetRange(VOLUME, p.GetRange(VOLUME));
+}
+void Mesh::Pop(Patch *p) const {}
 }  // {namespace mesh
 }  // namespace simpla

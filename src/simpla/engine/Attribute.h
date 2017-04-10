@@ -85,13 +85,13 @@ class Patch;
 //};
 template <typename TV = double, int IFORM = VERTEX, int DOF = 1>
 struct AttributeDesc;
-class AttributeBundle {
+class AttributeGroup {
    public:
-    AttributeBundle();
-    virtual ~AttributeBundle();
+    AttributeGroup();
+    virtual ~AttributeGroup();
 
-    void Register(AttributeBundle *);
-    void Deregister(AttributeBundle *);
+    void Register(AttributeGroup *);
+    void Deregister(AttributeGroup *);
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
@@ -134,17 +134,17 @@ struct Attribute : public concept::Configurable {
    public:
     Attribute(std::shared_ptr<data::DataTable> const &t = nullptr);
 
-    Attribute(AttributeBundle *b, std::shared_ptr<data::DataTable> const &p);
-    Attribute(AttributeBundle *b) : Attribute(b, std::shared_ptr<data::DataTable>(nullptr)){};
+    Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &p);
+    Attribute(AttributeGroup *b) : Attribute(b, std::shared_ptr<data::DataTable>(nullptr)){};
     template <typename U, typename... Args>
-    explicit Attribute(AttributeBundle *b, U const &first, Args &&... args)
+    explicit Attribute(AttributeGroup *b, U const &first, Args &&... args)
         : Attribute(b, std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
     Attribute(Attribute const &other);
     Attribute(Attribute &&other);
     virtual ~Attribute();
 
-    void Register(AttributeBundle *);
-    void Deregister(AttributeBundle *);
+    void Register(AttributeGroup *);
+    void Deregister(AttributeGroup *);
 
     id_type GetGUID() const;
     virtual Attribute *Clone() const = 0;
@@ -155,9 +155,6 @@ struct Attribute : public concept::Configurable {
 
     void SetMesh(Mesh const *);
     Mesh const *GetMesh() const;
-
-    void SetRange(Range<mesh::MeshEntityId> const &);
-    Range<mesh::MeshEntityId> const &GetRange() const;
 
     virtual void PushData(std::shared_ptr<data::DataBlock> const &){};
     virtual std::shared_ptr<data::DataBlock> PopData() { return nullptr; }
@@ -211,7 +208,7 @@ struct AttributeDesc : public Attribute {
 //    typedef std::true_type prefer_pass_by_reference;
 //
 //    template <typename... Args>
-//    explicit AttributeViewAdapter(AttributeBundle *b, Args &&... args)
+//    explicit AttributeViewAdapter(AttributeGroup *b, Args &&... args)
 //        : Attribute(b, data::make_data_entity(std::forward<Args>(args)...)) {}
 //
 //    AttributeViewAdapter(AttributeViewAdapter &&) = delete;

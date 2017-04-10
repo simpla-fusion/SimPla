@@ -23,10 +23,20 @@ void Worker::swap(Worker &other) {
     std::swap(m_pimpl_->m_mesh_, other.m_pimpl_->m_mesh_);
 }
 Worker *Worker::Clone() const { return new Worker(*this); };
-void Worker::Register(AttributeBundle *) {}
-void Worker::Deregister(AttributeBundle *) {}
+
 void Worker::SetMesh(std::shared_ptr<Mesh> const &m) { m_pimpl_->m_mesh_ = m; }
 std::shared_ptr<Mesh> const &Worker::GetMesh() const { return m_pimpl_->m_mesh_; }
+
+void Worker::Register(AttributeGroup *) {}
+void Worker::Deregister(AttributeGroup *) {}
+
+void Worker::Push(const std::shared_ptr<Patch> &p) { SetMesh(p->PopMesh()); }
+std::shared_ptr<Patch> Worker::Pop() const {
+    auto p = std::make_shared<Patch>();
+    p->PushMesh(GetMesh());
+    return p;
+}
+
 void Worker::Initialize(Real time_now) {}
 void Worker::Advance(Real time_now, Real dt) { Initialize(time_now); }
 void Worker::Finalize() {}
