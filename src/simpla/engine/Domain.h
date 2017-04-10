@@ -25,7 +25,7 @@ class Patch;
 class Domain : public SPObject {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
-    Domain(std::shared_ptr<Mesh> const &g = nullptr, std::shared_ptr<data::DataTable> const &t = nullptr);
+    Domain(std::shared_ptr<data::DataTable> const &t = nullptr);
     Domain(const Domain &);
     Domain(Domain &&);
     ~Domain();
@@ -36,20 +36,27 @@ class Domain : public SPObject {
 
     AttributeGroup const &GetAttributes() const;
 
-    //    void SetChart(std::shared_ptr<Chart> const &);
-    //    std::shared_ptr<Chart> const &GetChart() const;
-    //
-    //    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &) const;
-    //    std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
+    void SetChart(std::shared_ptr<Chart> const &);
+    std::shared_ptr<Chart> const &GetChart() const;
 
-    void SetMesh(std::shared_ptr<Mesh> const &);
-    std::shared_ptr<Mesh> const &GetMesh() const;
+    /**
+     * @brief  Set geometric boudary
+     * @param geo_object define the boundary of Domain
+     * @param pos -1 domain is inside geo_object,
+     *             0 domain is on the boundary
+     *             1 domain is outside  geo_object,
+     */
+    enum { INSIDE = -1, BOUNDARY = 0, OUTSIDE = 1 };
+    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const & geo_object, int pos = INSIDE) const;
+    std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
     void SetWorker(std::shared_ptr<Worker> const &);
     std::shared_ptr<Worker> const &GetWorker() const;
 
-    void Push(const std::shared_ptr<Patch> &);
-    std::shared_ptr<Patch> Pop();
+    void Push(Patch);
+    Patch Pop();
+
+    bool isValid() const;
 
    private:
     struct pimpl_s;

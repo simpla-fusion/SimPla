@@ -29,19 +29,22 @@
  * class GeoObject{
  * }
  * class Atlas{
- *      Patch * Pop(index_box_type,int level)
+  *      Patch * Pop(index_box_type,int level)
  *      void Push(Patch *)
  *      id_type AddBlock(index_box_type,int level)
  *      index_box_type  GetBlock(id_type)
  * }
  * Atlas o-- "0..*" Patch
- * Atlas o-- "0..*" Chart
+ * Atlas o-- "0..*" MeshBlock
  *
  * class Domain{
  *      GeoObject * m_geo_object_
  *      Chart * m_chart_
  *      Worker * m_worker_
- *      bool CheckOverlap(index_box_type)
+ *      int CheckOverlap(MeshBlock)
+ *      void Push(Patch)
+ *      Patch Pop()
+ *      Worker & GetWorker()
  * }
  * Domain *-- GeoObject
  * Domain *-- Worker
@@ -60,6 +63,8 @@
  *
  * class ConcreteWorker<Mesh>{
  *      void Register(AttributeGroup*)
+ *      void Initialize(Real time_now)
+ *      void Run(Real time_now,Real dt)
  * }
  * ConcreteWorker -up-|> Worker
  * ConcreteWorker o-- Field
@@ -84,7 +89,7 @@
  *    an n-tuple of real numbers - its coordinates.
  *    The boundary of Chart is not defined.
  * end note
- *
+ * Chart *-- "0..*" MeshBlock
  * class MeshBlock{
  * }
  * MeshBlock .. DataBlock
@@ -101,12 +106,11 @@
  *    <latex>\left\{ \mathcal{O}_{\alpha},\varphi_{\alpha}\right\} </latex>
  * end note
  * Mesh *-- Chart
- * Mesh *-- MeshBlock
  * Mesh *-- GeoObject
- *
+ * Mesh *-- IdRange
+ * Mesh <.. Domain :create
  * class Patch {
  * }
- * Patch *-- "1" Mesh
  * Patch *-- "1" MeshBlock
  * Patch *-- "0..*" DataBlock
  * class IdRange{
@@ -130,7 +134,6 @@
  *      Push(DataBlock);
  *      DataBlock Pop();
  * }
- * Attribute *-- Mesh
  *
  * class AttributeGroup {
  *      void Register(AttributeGroup*);
@@ -156,7 +159,7 @@
  * MeshView .. CartesianGeometry
  *
  * Patch <..> Domain : push/pop
- *
+ * DataBlock <..> Attribute : push/pop
  * @enduml
  * @startuml
  * DataBlock <..> Attribute : push/pop

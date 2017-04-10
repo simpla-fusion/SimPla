@@ -27,8 +27,8 @@ class Worker : public concept::Configurable {
 
     virtual void Register(AttributeGroup *);
     virtual void Deregister(AttributeGroup *);
-    virtual void Push(const std::shared_ptr<Patch> &p);
-    virtual std::shared_ptr<Patch> Pop() const;
+    virtual void Push(Patch p);
+    virtual Patch Pop() const;
 
     virtual void Initialize(Real time_now = 0);
     virtual void Advance(Real time = 0, Real dt = 0);

@@ -15,18 +15,17 @@ namespace simpla {
 namespace engine {
 
 struct Domain::pimpl_s {
-    //    std::shared_ptr<geometry::GeoObject> m_geo_obj_ = nullptr;
-    //    std::shared_ptr<Chart> m_chart_ = nullptr;
-    std::shared_ptr<Mesh> m_mesh_ = nullptr;
+    std::shared_ptr<geometry::GeoObject> m_geo_obj_ = nullptr;
+    std::shared_ptr<Chart> m_chart_ = nullptr;
     std::shared_ptr<Worker> m_worker_ = nullptr;
     AttributeGroup m_attr_bundle_;
+    std::shared_ptr<MeshBlock> m_mesh_block_ = nullptr;
+    int m_pos_ = -1;
 };
 
-Domain::Domain(std::shared_ptr<Mesh> const &g, std::shared_ptr<data::DataTable> const &t)
-    : concept::Configurable(t), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_mesh_ = g;
+Domain::Domain(std::shared_ptr<data::DataTable> const &t) : concept::Configurable(t), m_pimpl_(new pimpl_s) {
+    // TODO: create domain
 }
-
 Domain::Domain(const Domain &other) : m_pimpl_(new pimpl_s) {
     //    m_pimpl_->m_geo_obj_ = other.m_pimpl_->m_geo_obj_;
     //    m_pimpl_->m_chart_ = other.m_pimpl_->m_chart_;
@@ -40,25 +39,32 @@ void Domain::swap(Domain &other) { std::swap(m_pimpl_, other.m_pimpl_); }
 
 AttributeGroup const &Domain::GetAttributes() const { return m_pimpl_->m_attr_bundle_; }
 
-// void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) const { m_pimpl_->m_geo_obj_ = g; }
-// std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
-//
-// void Domain::SetChart(std::shared_ptr<Chart> const &m) {
-//    m_pimpl_->m_chart_ = m;
-//    db()->Link("Mesh", m->db());
-//};
-// std::shared_ptr<Chart> const &Domain::GetChart() const { return m_pimpl_->m_chart_; }
-
-void Domain::SetMesh(std::shared_ptr<Mesh> const &m) {
-    if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->Deregister(&m_pimpl_->m_attr_bundle_); }
-    m_pimpl_->m_mesh_ = m;
-
-    if (m_pimpl_->m_mesh_ != nullptr) {
-        db()->Link("Mesh", m_pimpl_->m_mesh_->db());
-        m_pimpl_->m_worker_->Register(&m_pimpl_->m_attr_bundle_);
-    }
+void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g, int pos) const {
+    m_pimpl_->m_geo_obj_ = g;
+    m_pimpl_->m_pos_ = pos;
 }
-std::shared_ptr<Mesh> const &Domain::GetMesh() const { return m_pimpl_->m_mesh_; }
+std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
+
+void Domain::SetChart(std::shared_ptr<Chart> const &m) {
+    m_pimpl_->m_chart_ = m;
+    db()->Link("Mesh", m->db());
+};
+bool Domain::isValid() const {
+    return m_pimpl_->m_pos_ == m_pimpl_->m_geo_obj_->CheckOverlap(m_pimpl_->m_mesh_block_->GetBoundBox());
+};
+
+std::shared_ptr<Chart> const &Domain::GetChart() const { return m_pimpl_->m_chart_; }
+
+// void Domain::SetMesh(std::shared_ptr<Mesh> const &m) {
+//    if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->Deregister(&m_pimpl_->m_attr_bundle_); }
+//    m_pimpl_->m_mesh_ = m;
+//
+//    if (m_pimpl_->m_mesh_ != nullptr) {
+//        db()->Link("Mesh", m_pimpl_->m_mesh_->db());
+//        m_pimpl_->m_worker_->Register(&m_pimpl_->m_attr_bundle_);
+//    }
+//}
+// std::shared_ptr<Mesh> const &Domain::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 void Domain::SetWorker(std::shared_ptr<Worker> const &w) {
     if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->Deregister(&m_pimpl_->m_attr_bundle_); }
@@ -72,8 +78,17 @@ void Domain::SetWorker(std::shared_ptr<Worker> const &w) {
 }
 std::shared_ptr<Worker> const &Domain::GetWorker() const { return m_pimpl_->m_worker_; }
 
-void Domain::Push(const std::shared_ptr<Patch> &p) { m_pimpl_->m_worker_->Push(p); }
-std::shared_ptr<Patch> Domain::Pop() { return m_pimpl_->m_worker_->Pop(); }
+void Domain::Push(Patch p) {
+    auto m = p.GetMesh();
+    if (m == nullptr) {
+        m = m_pimpl_->m_chart_->CreateView(p.GetBlock());
+        m->SetGeoObject(m_pimpl_->m_geo_obj_);
+        m->Initialize();
+    }
+    m_pimpl_->m_worker_->SetMesh(m);
+    m_pimpl_->m_worker_->Push(std::move(p));
+}
+Patch Domain::Pop() { return std::move(m_pimpl_->m_worker_->Pop()); }
 
 // Domain *Domain::Clone() const { return new Domain(*this); }
 //

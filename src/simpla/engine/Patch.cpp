@@ -17,8 +17,8 @@ Patch::~Patch() {}
 
 id_type Patch::GetBlockId() const { return m_pimpl_->m_mesh_ != nullptr ? m_pimpl_->m_mesh_->GetBlockId() : NULL_ID; }
 
-void Patch::PushMesh(std::shared_ptr<Mesh> const &m) { m_pimpl_->m_mesh_ = m; };
-std::shared_ptr<Mesh> Patch::PopMesh() const { return m_pimpl_->m_mesh_; }
+void Patch::SetMesh(std::shared_ptr<Mesh> const &m) { m_pimpl_->m_mesh_ = m; };
+std::shared_ptr<Mesh> Patch::GetMesh() const { return m_pimpl_->m_mesh_; }
 
 int Patch::Push(id_type const &id, std::shared_ptr<data::DataBlock> const &d) {
     auto res = m_pimpl_->m_data_.emplace(id, d);

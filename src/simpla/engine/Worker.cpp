@@ -30,11 +30,11 @@ std::shared_ptr<Mesh> const &Worker::GetMesh() const { return m_pimpl_->m_mesh_;
 void Worker::Register(AttributeGroup *) {}
 void Worker::Deregister(AttributeGroup *) {}
 
-void Worker::Push(const std::shared_ptr<Patch> &p) { SetMesh(p->PopMesh()); }
-std::shared_ptr<Patch> Worker::Pop() const {
-    auto p = std::make_shared<Patch>();
-    p->PushMesh(GetMesh());
-    return p;
+void Worker::Push(Patch p) { SetMesh(p.GetMesh()); }
+Patch Worker::Pop() const {
+    Patch p;
+    p.SetMesh(GetMesh());
+    return std::move(p);
 }
 
 void Worker::Initialize(Real time_now) {}

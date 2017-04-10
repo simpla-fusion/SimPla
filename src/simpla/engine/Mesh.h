@@ -41,6 +41,10 @@ class Mesh : public concept::Configurable {
     id_type GetBlockId() const;
     //    void SetBlock(const std::shared_ptr<MeshBlock> &);
     std::shared_ptr<MeshBlock> const &GetBlock() const;
+
+    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &);
+    std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
+
     std::shared_ptr<IdRange> const &GetRange(int iform) const;
 
     virtual void Initialize();

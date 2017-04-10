@@ -22,12 +22,13 @@ class Patch {
     SP_OBJECT_BASE(Patch)
    public:
     Patch();
+    Patch(Patch const &);
+    Patch(Patch &&);
     virtual ~Patch();
 
     id_type GetBlockId() const;
-
-    void PushMesh(std::shared_ptr<Mesh> const &);
-    std::shared_ptr<Mesh> PopMesh() const;
+    void SetBlock(std::shared_ptr<MeshBlock> const &);
+    std::shared_ptr<MeshBlock> GetBlock() const;
 
     int Push(id_type const &id, std::shared_ptr<data::DataBlock> const &);
     std::shared_ptr<data::DataBlock> Pop(id_type const &id) const;

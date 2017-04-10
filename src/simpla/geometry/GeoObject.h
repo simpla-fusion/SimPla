@@ -51,7 +51,15 @@ class GeoObject : public concept::Printable {
     virtual Real GetDistanceTo(point_type const &x) const { return 0; }
 
     bool operator==(GeoObject const &other) const { return equal(other); }
-    virtual bool CheckOverlap(box_type const &b) const { return geometry::CheckOverlap(GetBoundBox(), b); }
+
+    /**
+     * @brief
+     * @param b
+     * @return  -1 full in-side
+     *          0  overlap
+     *          1 full out-side
+     */
+    virtual int CheckOverlap(box_type const &b) const { return geometry::CheckOverlap(GetBoundBox(), b); }
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
     *           `in` then 1

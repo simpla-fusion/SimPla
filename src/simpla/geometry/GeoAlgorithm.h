@@ -18,9 +18,15 @@
 namespace simpla {
 namespace geometry {
 using namespace simpla::algebra;
+
+/**
+ * @return  -1 full in-side
+ *          0  overlap
+ *          1 full out-side
+ */
 template <typename U, typename V>
-inline bool CheckOverlap(std::tuple<nTuple<U, 3>, nTuple<V, 3>> const& b0,
-                          std::tuple<nTuple<U, 3>, nTuple<V, 3>> const& b1) {
+inline int CheckOverlap(std::tuple<nTuple<U, 3>, nTuple<V, 3>> const& b0,
+                        std::tuple<nTuple<U, 3>, nTuple<V, 3>> const& b1) {
     return (std::get<1>(b0)[0] >= std::get<0>(b1)[0]) && (std::get<1>(b1)[0] >= std::get<0>(b0)[0]) &&
            (std::get<1>(b0)[1] >= std::get<0>(b1)[1]) && (std::get<1>(b1)[1] >= std::get<0>(b0)[1]) &&
            (std::get<1>(b0)[2] >= std::get<0>(b1)[2]) && (std::get<1>(b1)[2] >= std::get<0>(b0)[2]);
@@ -154,8 +160,7 @@ auto bound_box(T0 const& p0, T1 const& p1) -> std::tuple<decltype(*p0), decltype
  *         dist= |P,Q|
  */
 template <typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Real> GetNearestLineToLine(T0 const& P0, T1 const& P1, T2 const& Q0, T3 const& Q1,
-                                                  int flag = 0) {
+std::tuple<Real, Real> GetNearestLineToLine(T0 const& P0, T1 const& P1, T2 const& Q0, T3 const& Q1, int flag = 0) {
     Real s = 0.0;
     Real t = 0.0;
     Real dist = 0.0;
@@ -207,7 +212,7 @@ std::tuple<Real, Real> GetNearestLineToLine(T0 const& P0, T1 const& P1, T2 const
  */
 template <typename T0, typename T1, typename T2, typename T3>
 std::tuple<Real, Real, Real> GetNearestPointToPlane(T0 const& P0, T1 const& Q0, T2 const& Q1, T3 const& Q2,
-                                                          int flag = 0) {}
+                                                    int flag = 0) {}
 
 /**
  *
@@ -228,7 +233,7 @@ std::tuple<Real, Real, Real> GetNearestPointToPlane(T0 const& P0, T1 const& Q0, 
  */
 template <typename T0, typename T1, typename T2, typename T3, typename T4>
 std::tuple<Real, Real, Real, Real> GetDistanceFromLineToPlane(T0 const& P0, T1 const& P1, T2 const& Q0, T3 const& Q1,
-                                                               T4 const& Q2) {}
+                                                              T4 const& Q2) {}
 
 /**
  *
@@ -248,7 +253,7 @@ std::tuple<Real, Real, Real, Real> GetDistanceFromLineToPlane(T0 const& P0, T1 c
  */
 template <typename TI, typename TX>
 std::tuple<Real, Real, TI, TI> GetDistanceFromLineToPolylines(TX const& x, TI const& ib, TI const& ie,
-                                                                Vec3 normal_vec = Vec3({0, 0, 1})) {
+                                                              Vec3 normal_vec = Vec3({0, 0, 1})) {
     auto it = make_cycle_iterator(ib, ie);
 
     Real min_dist2 = std::numeric_limits<Real>::max();
