@@ -31,16 +31,16 @@ class Serializable {
         return RegisterCreator(k, []() { return new U; });
     };
 
-    static TObj *Create(std::string const &k) {
-        TObj *res = nullptr;
+    static std::shared_ptr<TObj> Create(std::string const &k) {
+        std::shared_ptr<TObj> res = nullptr;
         try {
-            res = SingletonHolder<ObjectFactory>::instance().m_factory_.at(k)();
+            res.reset(SingletonHolder<ObjectFactory>::instance().m_factory_.at(k)());
         } catch (std::out_of_range const &) { RUNTIME_ERROR << "Missing object creator  [" << k << "]!" << std::endl; }
 
         if (res != nullptr) { LOGGER << "Object [" << k << "] is created!" << std::endl; }
         return res;
     }
-    static TObj *Create(std::shared_ptr<data::DataTable> const &cfg) {
+    static std::shared_ptr<TObj> Create(std::shared_ptr<data::DataTable> const &cfg) {
         if (cfg == nullptr) { return nullptr; }
         auto res = Create(cfg->GetValue<std::string>("Type", "unnamed"));
         res->Deserialize(cfg);

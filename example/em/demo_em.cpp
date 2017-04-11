@@ -12,19 +12,17 @@
 
 namespace simpla {
 
-static bool ChartCartesianGeometry_IS_REGISTERED =
-    Chart::RegisterCreator<simpla::mesh::CartesianGeometry>("CartesianGeometry");
-static bool WorkerCartesianGeometryEMFluid_IS_REGISTERED =
-    Worker::RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
-static bool WorkerCartesianGeometryPEC_IS_REGISTERED =
+static bool _PRE_REGISTERED =
+    Chart::RegisterCreator<simpla::mesh::CartesianGeometry>("CartesianGeometry") &&
+    Worker::RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid") &&
     Worker::RegisterCreator<PEC<mesh::CartesianGeometry>>("CartesianGeometry.PEC");
 
 void create_scenario(engine::Context *ctx) {
     auto domain = std::make_shared<Domain>();
-    domain->SetGeoObject(std::shared_ptr<geometry::Cube>(new geometry::Cube{{-0.1, 0.2, 0.0}, {1.2, 1.3, 1.4}}));
-    domain->SetChart(std::shared_ptr<Chart>(Chart::Create("CartesianGeometry")));
-    domain->SetWorker(std::shared_ptr<Worker>(Worker::Create("CartesianGeometry.EMFluid")));
-    domain->AddBoundaryCondition(std::shared_ptr<Worker>(Worker::Create("CartesianGeometry.PEC")));
+    domain->SetGeoObject(new geometry::Cube{{-0.1, 0.2, 0.0}, {1.2, 1.3, 1.4}});
+    domain->SetChart(Chart::Create("CartesianGeometry"));
+    domain->SetWorker(Worker::Create("CartesianGeometry.EMFluid"));
+    domain->AddBoundaryCondition(Worker::Create("CartesianGeometry.PEC"));
 
     std::cout << *domain->Serialize() << std::endl;
     //    ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}, "Dimensions"_ = {0, 0,

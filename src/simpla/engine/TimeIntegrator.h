@@ -34,7 +34,7 @@ class TimeIntegrator : public Schedule, public concept::Serializable<TimeIntegra
     Real CurrentTime() const;
 
    private:
-    std::unique_ptr<TimeIntegratorBackend> m_backend_;
+    std::shared_ptr<TimeIntegratorBackend> m_backend_;
 };
 
 }  //{ namespace engine

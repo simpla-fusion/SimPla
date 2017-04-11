@@ -36,8 +36,8 @@ class Domain : public SPObject, public concept::Serializable<Domain> {
 
     void SetChart(std::shared_ptr<Chart> const &);
     std::shared_ptr<Chart> const &GetChart() const;
-
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &geo_object) const;
+    void SetGeoObject(geometry::GeoObject *g);
+    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &geo_object)  ;
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
     void SetWorker(std::shared_ptr<Worker> const &);

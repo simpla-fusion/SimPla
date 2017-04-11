@@ -28,15 +28,18 @@ struct GeoObjectAdapter;
  */
 class GeoObject : public concept::Serializable<GeoObject> {
     SP_OBJECT_BASE(GeoObject)
+    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
 
    public:
     GeoObject(){};
-    GeoObject(GeoObject const &){};
+    GeoObject(GeoObject const &) = delete;
+    GeoObject(GeoObject &&) = delete;
     virtual ~GeoObject(){};
 
-    box_type m_bound_box_{{0, 0, 0}, {1, 1, 1}};
     virtual box_type const &GetBoundBox() const { return m_bound_box_; };
+
     bool isNull() const { return true; };
+
     virtual bool isSolid() const { return false; };
     virtual bool isSurface() const { return false; };
     virtual bool isCurve() const { return false; };
@@ -46,12 +49,12 @@ class GeoObject : public concept::Serializable<GeoObject> {
     bool operator==(GeoObject const &other) const { return equal(other); }
 
     /**
-     * @brief
-     * @param b
-     * @return  -1 full in-side
-     *          0  overlap
-     *          1 full out-side
-     */
+    * @brief
+    * @param b
+    * @return  -1 full in-side
+    *          0  overlap
+    *          1 full out-side
+    */
     virtual int CheckOverlap(box_type const &b) const { return geometry::CheckOverlap(GetBoundBox(), b); }
     /**
     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$

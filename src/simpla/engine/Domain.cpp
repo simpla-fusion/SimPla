@@ -33,13 +33,14 @@ std::shared_ptr<data::DataTable> Domain::Serialize() const {
     return res;
 }
 void Domain::Deserialize(std::shared_ptr<data::DataTable> const &t) {
-    m_pimpl_->m_chart_.reset(Chart::Create(t->GetTable("Chart")));
-    m_pimpl_->m_geo_obj_.reset(geometry::GeoObject::Create(t->GetTable("GeoObject")));
-    m_pimpl_->m_worker_.reset(Worker::Create(t->GetTable("Worker")));
+    m_pimpl_->m_chart_ = Chart::Create(t->GetTable("Chart"));
+    m_pimpl_->m_geo_obj_ = geometry::GeoObject::Create(t->GetTable("GeoObject"));
+    m_pimpl_->m_worker_ = Worker::Create(t->GetTable("Worker"));
     // TODO: unfinished
 }
 
-void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) const { m_pimpl_->m_geo_obj_ = g; }
+void Domain::SetGeoObject(geometry::GeoObject *g) { m_pimpl_->m_geo_obj_.reset(g); }
+void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl_->m_geo_obj_ = g; }
 std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
 void Domain::SetChart(std::shared_ptr<Chart> const &m) { m_pimpl_->m_chart_ = m; };
