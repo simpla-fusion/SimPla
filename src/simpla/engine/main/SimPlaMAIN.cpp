@@ -21,7 +21,6 @@ int main(int argc, char **argv) {
 #ifndef NDEBUG
     logger::set_stdout_level(1000);
 #endif
-    RegisterEverything();
 
     parallel::init(argc, argv);
 
@@ -118,7 +117,7 @@ int main(int argc, char **argv) {
 
     MESSAGE << DOUBLELINE << std::endl;
     MESSAGE << "INFORMATION:" << std::endl;
-    MESSAGE << "Context : " << *ctx.db() << std::endl;
+    //    MESSAGE << "Context : " << *ctx.db() << std::endl;
     MESSAGE << SINGLELINE << std::endl;
 
     MESSAGE << DOUBLELINE << std::endl;
@@ -130,10 +129,9 @@ int main(int argc, char **argv) {
         ctx.Advance(0, dt, 0);
         ctx.Synchronize();
 
-        INFORM << "\t >>>  [ Time = " << " Step = " << step << "] <<< " << std::endl;
-        if (step % step_of_check_points == 0) {
-            data::DataTable(output_file).Set(ctx.db()->Get("Patches")->cast_as<data::DataTable>());
-        };
+        INFORM << "\t >>>  [ Time = "
+               << " Step = " << step << "] <<< " << std::endl;
+        if (step % step_of_check_points == 0) { data::DataTable(output_file).Set(ctx.db()->GetTable("Patches")); };
         ++step;
     }
     MESSAGE << "\t >>> Done <<< " << std::endl;

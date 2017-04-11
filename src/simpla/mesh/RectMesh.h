@@ -10,6 +10,7 @@
 #include <simpla/concept/Printable.h>
 #include <simpla/data/DataSpace.h>
 #include <simpla/data/DataTable.h>
+#include <simpla/engine/Mesh.h>
 #include <simpla/engine/SPObject.h>
 #include <iomanip>
 #include "BoxUtility.h"
@@ -71,7 +72,7 @@ namespace mesh {
  *
  */
 
-class RectMesh {
+class RectMesh : public simpla::engine::Mesh {
    public:
     SP_OBJECT_BASE(RectMesh)
 

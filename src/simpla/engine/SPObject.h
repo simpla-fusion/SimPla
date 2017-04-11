@@ -75,16 +75,17 @@ namespace simpla {
 
  **/
 
-class SPObject : public concept::Configurable {
+class SPObject {
    public:
     SP_OBJECT_BASE(SPObject)
    public:
-    SPObject(std::shared_ptr<data::DataTable> const &t = nullptr);
+    SPObject();
     SPObject(SPObject &&other) = delete;
     SPObject(SPObject const &) = delete;
     SPObject &operator=(SPObject const &other) = delete;
     virtual ~SPObject();
     id_type GetGUID() const;
+    std::string const &GetName() const;
 
     void lock();
     void unlock();

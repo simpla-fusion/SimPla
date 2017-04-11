@@ -90,9 +90,9 @@ class FieldView : public engine::Attribute {
 
     virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
 
-    virtual std::shared_ptr<engine::Attribute> GetDescription() const {
-        return std::make_shared<engine::AttributeDesc<TV, IFORM, DOF>>(db());
-    };
+//    virtual std::shared_ptr<engine::Attribute> GetDescription() const {
+//        return std::make_shared<engine::AttributeDesc<TV, IFORM, DOF>>(db());
+//    };
 
     virtual int GetIFORM() const { return IFORM; };
     virtual int GetDOF() const { return DOF; };

@@ -35,7 +35,7 @@ std::set<Attribute *> const &AttributeGroup::GetAll() const { return m_pimpl_->m
 struct Attribute::pimpl_s {
     std::set<AttributeGroup *> m_bundle_;
     Mesh const *m_mesh_ = nullptr;
-    Range<EntityId> m_range_;
+    Range<mesh::MeshEntityId> m_range_;
 };
 Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {}
 Attribute::Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &t)

@@ -18,20 +18,20 @@ using namespace data;
 using namespace engine;
 
 template <typename TM>
-class EMFluid : public engine::Task {
+class EMFluid : public engine::Worker {
    public:
-    SP_OBJECT_HEAD(EMFluid<TM>, engine::Task)
+    SP_OBJECT_HEAD(EMFluid<TM>, engine::Worker)
     typedef TM mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
     template <typename... Args>
-    explicit EMFluid(Args&&... args) : engine::Task(std::forward<Args>(args)...){};
+    explicit EMFluid(Args&&... args) : engine::Worker(std::forward<Args>(args)...){};
     ~EMFluid() {}
 
     mesh_type* m_mesh_;
 
-    virtual engine::Mesh* mesh() { return m_mesh_; };
-    virtual engine::Mesh const* mesh() const { return m_mesh_; };
+//    virtual engine::Mesh* mesh() { return m_mesh_; };
+//    virtual engine::Mesh const* mesh() const { return m_mesh_; };
 
     virtual std::ostream& Print(std::ostream& os, int indent = 1) const;
 
@@ -130,7 +130,7 @@ std::ostream& EMFluid<TM>::Print(std::ostream& os, int indent) const {
 
 template <typename TM>
 void EMFluid<TM>::PreProcess() {
-    base_type::Update();
+    //    base_type::Update();
     //    if (E.isUpdated()) E.Clear();
     //    if (!B.isUpdated()) B.Clear();
     //    if (!B0.isUpdated()) { B0.Clear(); }

@@ -80,6 +80,8 @@ class DataTable : public DataEntity {
     DataTable& Link(std::string const& uri, DataTable const& other);
     DataTable& Link(std::string const& uri, std::shared_ptr<DataEntity> const& p);
 
+    void Set(std::shared_ptr<DataTable> const& other, bool overwrite = true);
+
     void Set(DataTable const& other, bool overwrite = true);
     void Set(std::string const& uri, DataEntity const& p, bool overwrite = true);
     void Add(std::string const& uri, DataEntity const& p);

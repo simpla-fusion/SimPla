@@ -14,7 +14,7 @@ namespace simpla {
 namespace engine {
 class MeshBlock;
 class Patch;
-class IdRange;
+class Chart;
 /**
  *  Define:
  *   A bundle is a triple \f$(E, p, B)\f$ where \f$E\f$, \f$B\f$ are sets and \f$p:E \rightarrow B\f$ a map
@@ -35,17 +35,18 @@ class Mesh : public concept::Configurable {
 
     virtual void Register(AttributeGroup *);
     virtual void Deregister(AttributeGroup *);
-    virtual void Push(Patch const &);
-    virtual void Pop(Patch *) const;
+    virtual void Push(const std::shared_ptr<Patch> &);
+    virtual std::shared_ptr<Patch> Pop() const;
 
     id_type GetBlockId() const;
-    //    void SetBlock(const std::shared_ptr<MeshBlock> &);
+    void SetBlock(const std::shared_ptr<MeshBlock> &);
     std::shared_ptr<MeshBlock> const &GetBlock() const;
+//    std::shared_ptr<IdRange> const &GetRange(int iform) const;
 
     void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &);
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
-
-    std::shared_ptr<IdRange> const &GetRange(int iform) const;
+    void SetChart(std::shared_ptr<Chart> const &c);
+    std::shared_ptr<Chart> const &GetChart() const;
 
     virtual void Initialize();
     virtual void Finalize();

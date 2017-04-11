@@ -6,18 +6,20 @@
 #define SIMPLA_WORKER_H
 
 #include <memory>
-#include "simpla/concept/Configurable.h"
+#include "Attribute.h"
+#include "simpla/concept/Serializable.h"
 #include "simpla/data/all.h"
 namespace simpla {
 
 namespace engine {
 class Mesh;
-
+class Patch;
 class AttributeGroup;
 /**
 * @brief
 */
-class Worker : public concept::Configurable {
+class Worker : public concept::Serializable<Worker>, public AttributeGroup {
+    SP_OBJECT_BASE(engine::Worker)
    public:
     Worker();
     Worker(Worker const &);
@@ -27,8 +29,8 @@ class Worker : public concept::Configurable {
 
     virtual void Register(AttributeGroup *);
     virtual void Deregister(AttributeGroup *);
-    virtual void Push(Patch p);
-    virtual Patch Pop() const;
+    virtual void Push(Patch &p);
+    virtual void Pop(Patch *);
 
     virtual void Initialize(Real time_now = 0);
     virtual void Advance(Real time = 0, Real dt = 0);

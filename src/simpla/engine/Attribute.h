@@ -90,14 +90,14 @@ class AttributeGroup {
     AttributeGroup();
     virtual ~AttributeGroup();
 
-    void Register(AttributeGroup *);
-    void Deregister(AttributeGroup *);
+    virtual void Register(AttributeGroup *);
+    virtual void Deregister(AttributeGroup *);
 
     void Detach(Attribute *attr);
     void Attach(Attribute *attr);
 
-    void Push(const std::shared_ptr<Patch> &);
-    std::shared_ptr<Patch> Pop();
+    //    virtual void Push(const std::shared_ptr<Patch> &);
+    //    virtual std::shared_ptr<Patch> Pop();
 
     std::set<Attribute *> const &GetAll() const;
 
@@ -147,8 +147,8 @@ struct Attribute : public concept::Configurable {
     void Deregister(AttributeGroup *);
 
     id_type GetGUID() const;
-    virtual Attribute *Clone() const = 0;
-    virtual std::shared_ptr<Attribute> GetDescription() const = 0;
+    //    virtual Attribute *Clone() const = 0;
+//    virtual std::shared_ptr<Attribute> GetDescription() const = 0;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
@@ -172,13 +172,14 @@ struct AttributeDesc : public Attribute {
     SP_OBJECT_HEAD(desc_type, Attribute);
 
    public:
+    AttributeDesc(std::shared_ptr<data::DataTable> const &t) : Attribute(t) {}
     AttributeDesc(std::string const &k) : Attribute() { db().SetValue("name", k); }
     ~AttributeDesc() {}
 
     virtual std::shared_ptr<Attribute> GetDescription() const {
         return std::make_shared<AttributeDesc<TV, IFORM, DOF>>();
     };
-    virtual Attribute *Clone() const { return new this_type; };
+    //    virtual Attribute *Clone() const { return new this_type; };
 
     virtual int GetIFORM() const { return IFORM; };
     virtual int GetDOF() const { return DOF; };

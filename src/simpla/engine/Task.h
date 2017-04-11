@@ -117,7 +117,7 @@ class Task : public concept::Configurable {
 
     template <typename U>
     static bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, [&]() { return new U; });
+        return RegisterCreator(k, [&]() -> Task * { return new U; });
     }
 };
 

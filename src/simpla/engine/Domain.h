@@ -17,46 +17,36 @@ namespace engine {
 // class Attribute;
 class Mesh;
 class Patch;
+class Worker;
 // class MeshBlock;
 // class DataBlock;
 // class Domain;
 // class Task;
 //
-class Domain : public SPObject {
+class Domain : public SPObject, public concept::Serializable<Domain> {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
     Domain(std::shared_ptr<data::DataTable> const &t = nullptr);
-    Domain(const Domain &);
-    Domain(Domain &&);
+    Domain(const Domain &) = delete;
+    Domain(Domain &&) = delete;
     ~Domain();
 
-    void swap(Domain &);
-    void Initialize();
-    void Finalize();
-
-    AttributeGroup const &GetAttributes() const;
+    virtual std::shared_ptr<data::DataTable> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<data::DataTable> const &);
 
     void SetChart(std::shared_ptr<Chart> const &);
     std::shared_ptr<Chart> const &GetChart() const;
 
-    /**
-     * @brief  Set geometric boudary
-     * @param geo_object define the boundary of Domain
-     * @param pos -1 domain is inside geo_object,
-     *             0 domain is on the boundary
-     *             1 domain is outside  geo_object,
-     */
-    enum { INSIDE = -1, BOUNDARY = 0, OUTSIDE = 1 };
-    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const & geo_object, int pos = INSIDE) const;
+    void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &geo_object) const;
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
-    void SetWorker(std::shared_ptr<Worker> const &);
-    std::shared_ptr<Worker> const &GetWorker() const;
+    void SetWorker(std::shared_ptr<Worker> const &, id_type id = NULL_ID);
+    std::shared_ptr<Worker> const &GetWorker(id_type id = NULL_ID) const;
 
-    void Push(Patch);
-    Patch Pop();
+    //    void Register(AttributeGroup *);
+    //    void Deregister(AttributeGroup *);
 
-    bool isValid() const;
+    void Update(Patch *);
 
    private:
     struct pimpl_s;

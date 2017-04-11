@@ -76,8 +76,8 @@ class Context : public concept::Configurable {
 
     Atlas &GetAtlas() const;
     Model &GetModel() const;
-    std::map<std::string, std::shared_ptr<Domain>> &GetDomains() const;
-    std::map<std::string, std::shared_ptr<Attribute>> const &GetAttributes() const;
+    //    std::map<std::string, std::shared_ptr<Domain>> &GetDomains() const;
+    //    std::map<std::string, std::shared_ptr<Attribute>> const &GetAttributes() const;
 
    private:
     struct pimpl_s;

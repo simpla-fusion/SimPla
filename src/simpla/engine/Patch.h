@@ -17,13 +17,13 @@ namespace geometry {
 class GeoObject;
 }
 namespace engine {
-
+class MeshBlock;
 class Patch {
     SP_OBJECT_BASE(Patch)
    public:
     Patch();
-    Patch(Patch const &);
-    Patch(Patch &&);
+    //    Patch(Patch const &);
+    //    Patch(Patch &&);
     virtual ~Patch();
 
     id_type GetBlockId() const;

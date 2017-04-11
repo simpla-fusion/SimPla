@@ -24,9 +24,9 @@ namespace mesh {
  * @brief Uniform structured get_mesh
  */
 
-struct CartesianGeometry : public engine::Mesh {
+struct CartesianGeometry : public engine::Chart {
    public:
-    SP_OBJECT_HEAD(CartesianGeometry, engine::Mesh)
+    SP_OBJECT_HEAD(CartesianGeometry, engine::Chart)
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
@@ -63,17 +63,23 @@ struct CartesianGeometry : public engine::Mesh {
      */
 
    public:
-    CartesianGeometry() : engine::Mesh() {}
-    CartesianGeometry(Real const *lower, Real const *upper) : CartesianGeometry() {
-        SetGeoObject(std::make_shared<geometry::Cube>(lower, upper));
-    }
-    CartesianGeometry(CartesianGeometry const &other) : engine::Mesh(other) {
-        SetGeoObject(other.GetGeoObject());
-        UNIMPLEMENTED;
-    }
+    CartesianGeometry() : engine::Chart() {}
+    //    CartesianGeometry(Real const *lower, Real const *upper) : CartesianGeometry() {
+    //        SetGeoObject(std::make_shared<geometry::Cube>(lower, upper));
+    //    }
+    //    CartesianGeometry(CartesianGeometry const &other) : engine::Mesh(other) {
+    //        SetGeoObject(other.GetGeoObject());
+    //        UNIMPLEMENTED;
+    //    }
     virtual ~CartesianGeometry() {}
+    virtual std::shared_ptr<data::DataTable> Serialize() const {
+        auto p = engine::Chart::Serialize();
+        p->SetValue<std::string>("Type", "CartesianGeometry");
+        return p;
+    };
+    virtual void Deserialize(std::shared_ptr<data::DataTable> const &d) { engine::Chart::Deserialize(d); }
 
-    this_type *Clone() const { return new this_type(*this); }
+    //    this_type *Clone() const { return new this_type(*this); }
     void Initialize();
     virtual Range<entity_id> range() const { return Range<entity_id>(); };
 
@@ -91,7 +97,7 @@ struct CartesianGeometry : public engine::Mesh {
     void apply(Args &&...) const {}
 
     void deploy() {
-        engine::Mesh::Initialize();
+        //        engine::Mesh::Initialize();
         Initialize();
     };
 
@@ -157,47 +163,47 @@ inline void CartesianGeometry::Initialize() {
         *
         *\endverbatim
         */
-    size_tuple m_dims_ = GetBlock()->GetDimensions();
-
-    m_volume_[0 /*000*/] = 1;
-    m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_dx_[0];
-    m_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_dx_[1];
-    m_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_dx_[2];
-    m_volume_[3 /*011*/] = m_volume_[1] * m_volume_[2];
-    m_volume_[5 /*101*/] = m_volume_[4] * m_volume_[1];
-    m_volume_[6 /*110*/] = m_volume_[4] * m_volume_[2];
-    m_volume_[7 /*111*/] = m_volume_[1] * m_volume_[2] * m_volume_[4];
-
-    m_dual_volume_[0 /*000*/] = m_volume_[7];
-    m_dual_volume_[1 /*001*/] = m_volume_[6];
-    m_dual_volume_[2 /*010*/] = m_volume_[5];
-    m_dual_volume_[4 /*100*/] = m_volume_[3];
-    m_dual_volume_[3 /*011*/] = m_volume_[4];
-    m_dual_volume_[5 /*101*/] = m_volume_[2];
-    m_dual_volume_[6 /*110*/] = m_volume_[1];
-    m_dual_volume_[7 /*111*/] = m_volume_[0];
-
-    m_inv_volume_[0 /*000*/] = 1;
-    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_inv_dx_[0];
-    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_inv_dx_[1];
-    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_inv_dx_[2];
-    m_inv_volume_[3 /*011*/] = m_inv_volume_[2] * m_inv_volume_[1];
-    m_inv_volume_[5 /*101*/] = m_inv_volume_[4] * m_inv_volume_[1];
-    m_inv_volume_[6 /*110*/] = m_inv_volume_[4] * m_inv_volume_[2];
-    m_inv_volume_[7 /*111*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
-
-    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 0 : m_inv_volume_[1];
-    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 0 : m_inv_volume_[2];
-    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 0 : m_inv_volume_[4];
-
-    m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
-    m_inv_dual_volume_[1 /*001*/] = m_inv_volume_[6];
-    m_inv_dual_volume_[2 /*010*/] = m_inv_volume_[5];
-    m_inv_dual_volume_[4 /*100*/] = m_inv_volume_[3];
-    m_inv_dual_volume_[3 /*011*/] = m_inv_volume_[4];
-    m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
-    m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
-    m_inv_dual_volume_[7 /*111*/] = m_inv_volume_[0];
+    //    size_tuple m_dims_ = GetBlock()->GetDimensions();
+    //
+    //    m_volume_[0 /*000*/] = 1;
+    //    m_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_dx_[0];
+    //    m_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_dx_[1];
+    //    m_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_dx_[2];
+    //    m_volume_[3 /*011*/] = m_volume_[1] * m_volume_[2];
+    //    m_volume_[5 /*101*/] = m_volume_[4] * m_volume_[1];
+    //    m_volume_[6 /*110*/] = m_volume_[4] * m_volume_[2];
+    //    m_volume_[7 /*111*/] = m_volume_[1] * m_volume_[2] * m_volume_[4];
+    //
+    //    m_dual_volume_[0 /*000*/] = m_volume_[7];
+    //    m_dual_volume_[1 /*001*/] = m_volume_[6];
+    //    m_dual_volume_[2 /*010*/] = m_volume_[5];
+    //    m_dual_volume_[4 /*100*/] = m_volume_[3];
+    //    m_dual_volume_[3 /*011*/] = m_volume_[4];
+    //    m_dual_volume_[5 /*101*/] = m_volume_[2];
+    //    m_dual_volume_[6 /*110*/] = m_volume_[1];
+    //    m_dual_volume_[7 /*111*/] = m_volume_[0];
+    //
+    //    m_inv_volume_[0 /*000*/] = 1;
+    //    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 1 : m_inv_dx_[0];
+    //    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 1 : m_inv_dx_[1];
+    //    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 1 : m_inv_dx_[2];
+    //    m_inv_volume_[3 /*011*/] = m_inv_volume_[2] * m_inv_volume_[1];
+    //    m_inv_volume_[5 /*101*/] = m_inv_volume_[4] * m_inv_volume_[1];
+    //    m_inv_volume_[6 /*110*/] = m_inv_volume_[4] * m_inv_volume_[2];
+    //    m_inv_volume_[7 /*111*/] = m_inv_volume_[1] * m_inv_volume_[2] * m_inv_volume_[4];
+    //
+    //    m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 0 : m_inv_volume_[1];
+    //    m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 0 : m_inv_volume_[2];
+    //    m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 0 : m_inv_volume_[4];
+    //
+    //    m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
+    //    m_inv_dual_volume_[1 /*001*/] = m_inv_volume_[6];
+    //    m_inv_dual_volume_[2 /*010*/] = m_inv_volume_[5];
+    //    m_inv_dual_volume_[4 /*100*/] = m_inv_volume_[3];
+    //    m_inv_dual_volume_[3 /*011*/] = m_inv_volume_[4];
+    //    m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
+    //    m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
+    //    m_inv_dual_volume_[7 /*111*/] = m_inv_volume_[0];
 }
 }  // namespace  mesh
 }  // namespace simpla

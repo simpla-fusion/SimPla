@@ -22,25 +22,20 @@ struct SPObject::pimpl_s {
     std::mutex m_mutex_;
     size_type m_click_ = 0;
     size_type m_click_tag_ = 0;
+    id_type m_id_ = NULL_ID;
+    std::string m_name_ = "unnamed";
 };
 
 static boost::hash<boost::uuids::uuid> g_obj_hasher;
 static boost::uuids::random_generator g_uuid_generator;
-SPObject::SPObject(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {
-    db()->SetValue("GUID", std::to_string(g_obj_hasher(g_uuid_generator())));
-    if (db()->Get("name") == nullptr) { db()->Set("name", db()->Get("GUID")); }
+SPObject::SPObject() : m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_id_ = g_obj_hasher(g_uuid_generator());
+    m_pimpl_->m_name_ = std::to_string(m_pimpl_->m_id_);
 }
 SPObject::~SPObject() { OnDestroy(); }
 
-id_type SPObject::GetGUID() const {
-    // FIXME: work around some data backend do not support long int
-    auto res = db()->GetValue<std::string>("GUID", "");
-    if (res == "") {
-        return NULL_ID;
-    } else {
-        return from_string<id_type>(res);
-    }
-}
+id_type SPObject::GetGUID() const { return m_pimpl_->m_id_; }
+std::string const& SPObject::GetName() const { return m_pimpl_->m_name_; }
 
 void SPObject::lock() { m_pimpl_->m_mutex_.lock(); }
 void SPObject::unlock() { m_pimpl_->m_mutex_.unlock(); }

@@ -15,44 +15,36 @@ namespace simpla {
 namespace engine {
 
 struct Domain::pimpl_s {
-    std::shared_ptr<geometry::GeoObject> m_geo_obj_ = nullptr;
     std::shared_ptr<Chart> m_chart_ = nullptr;
-    std::shared_ptr<Worker> m_worker_ = nullptr;
-    AttributeGroup m_attr_bundle_;
-    std::shared_ptr<MeshBlock> m_mesh_block_ = nullptr;
-    int m_pos_ = -1;
+    std::vector<std::shared_ptr<geometry::GeoObject>> m_geo_obj_;
+    std::map<id_type, std::shared_ptr<Worker>> m_worker_;
 };
 
-Domain::Domain(std::shared_ptr<data::DataTable> const &t) : concept::Configurable(t), m_pimpl_(new pimpl_s) {
-    // TODO: create domain
+Domain::Domain(std::shared_ptr<data::DataTable> const &cfg) : SPObject(), m_pimpl_(new pimpl_s) {
+    m_pimpl_->m_geo_obj_.push_back(nullptr);
+
+    // TODO: create domain from config
 }
-Domain::Domain(const Domain &other) : m_pimpl_(new pimpl_s) {
-    //    m_pimpl_->m_geo_obj_ = other.m_pimpl_->m_geo_obj_;
-    //    m_pimpl_->m_chart_ = other.m_pimpl_->m_chart_;
-    m_pimpl_->m_worker_.reset(other.m_pimpl_->m_worker_->Clone());
-    m_pimpl_->m_worker_->Register(&m_pimpl_->m_attr_bundle_);
-}
-Domain::Domain(Domain &&other) : m_pimpl_(other.m_pimpl_) {}
+
 Domain::~Domain() { Finalize(); }
 
-void Domain::swap(Domain &other) { std::swap(m_pimpl_, other.m_pimpl_); }
-
-AttributeGroup const &Domain::GetAttributes() const { return m_pimpl_->m_attr_bundle_; }
-
-void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g, int pos) const {
-    m_pimpl_->m_geo_obj_ = g;
-    m_pimpl_->m_pos_ = pos;
+std::shared_ptr<data::DataTable> Domain::Serialize() const {
+    auto res = std::make_shared<data::DataTable>();
+    res->SetValue("Type", "Domain");
+    res->Link("Chart", m_pimpl_->m_chart_->Serialize());
+    res->Link("GeoObject", m_pimpl_->m_geo_obj_[0]->Serialize());
+    return res;
 }
-std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
+void Domain::Deserialize(std::shared_ptr<data::DataTable> const &t) {
+    m_pimpl_->m_chart_.reset(Chart::Create(t->GetTable("Chart")));
+    m_pimpl_->m_geo_obj_[0].reset(geometry::GeoObject::Create(t->GetTable("GeoObject")));
+    // TODO: unfinished
+}
 
-void Domain::SetChart(std::shared_ptr<Chart> const &m) {
-    m_pimpl_->m_chart_ = m;
-    db()->Link("Mesh", m->db());
-};
-bool Domain::isValid() const {
-    return m_pimpl_->m_pos_ == m_pimpl_->m_geo_obj_->CheckOverlap(m_pimpl_->m_mesh_block_->GetBoundBox());
-};
+void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) const { m_pimpl_->m_geo_obj_[0] = g; }
+std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_[0]; }
 
+void Domain::SetChart(std::shared_ptr<Chart> const &m) { m_pimpl_->m_chart_ = m; };
 std::shared_ptr<Chart> const &Domain::GetChart() const { return m_pimpl_->m_chart_; }
 
 // void Domain::SetMesh(std::shared_ptr<Mesh> const &m) {
@@ -66,29 +58,30 @@ std::shared_ptr<Chart> const &Domain::GetChart() const { return m_pimpl_->m_char
 //}
 // std::shared_ptr<Mesh> const &Domain::GetMesh() const { return m_pimpl_->m_mesh_; }
 
-void Domain::SetWorker(std::shared_ptr<Worker> const &w) {
-    if (m_pimpl_->m_worker_ != nullptr) { m_pimpl_->m_worker_->Deregister(&m_pimpl_->m_attr_bundle_); }
+void Domain::SetWorker(std::shared_ptr<Worker> const &w, id_type id) {
+    auto res = m_pimpl_->m_worker_.emplace(id, w);
+    if (!res.second) { res.first->second = w; }
 
-    m_pimpl_->m_worker_ = w;
-
-    if (m_pimpl_->m_worker_ != nullptr) {
-        db()->Link("Worker", w->db());
-        m_pimpl_->m_worker_->Register(&m_pimpl_->m_attr_bundle_);
-    }
+    //        res.first->second->Deregister(&m_pimpl_->m_attr_bundle_);
+    //
+    //    if (w != nullptr) {
+    //        db()->Link("Worker", w->db());
+    //        //        res.first->second->Register(&m_pimpl_->m_attr_bundle_);
+    //    }
 }
-std::shared_ptr<Worker> const &Domain::GetWorker() const { return m_pimpl_->m_worker_; }
+std::shared_ptr<Worker> const &Domain::GetWorker(id_type id) const { return m_pimpl_->m_worker_.at(id); }
 
-void Domain::Push(Patch p) {
-    auto m = p.GetMesh();
-    if (m == nullptr) {
-        m = m_pimpl_->m_chart_->CreateView(p.GetBlock());
-        m->SetGeoObject(m_pimpl_->m_geo_obj_);
-        m->Initialize();
-    }
-    m_pimpl_->m_worker_->SetMesh(m);
-    m_pimpl_->m_worker_->Push(std::move(p));
+void Domain::Update(Patch *p) {
+    //    auto m = p.GetMesh();
+    //    if (m == nullptr) {
+    //        m = m_pimpl_->m_chart_->CreateView(p.GetBlock());
+    //        m->SetGeoObject(m_pimpl_->m_geo_obj_);
+    //        m->Initialize();
+    //    }
+    //    m_pimpl_->m_worker_->SetMesh(m);
+    //    m_pimpl_->m_worker_->Push(std::move(p));
+    //    return std::move(m_pimpl_->m_worker_[m_pimpl_->m_geo_obj_->GetGUID()]->Pop());
 }
-Patch Domain::Pop() { return std::move(m_pimpl_->m_worker_->Pop()); }
 
 // Domain *Domain::Clone() const { return new Domain(*this); }
 //
@@ -150,30 +143,29 @@ Patch Domain::Pop() { return std::move(m_pimpl_->m_worker_->Pop()); }
 //
 // std::set<Attribute *> const &Domain::GetAllAttributes() const { return m_pimpl_->m_attributes_; }
 //
-void Domain::Initialize() {
-    auto m = m_pimpl_->m_chart_->CreateView(nullptr, m_pimpl_->m_geo_obj_);
-    m_pimpl_->m_worker_->SetMesh(m);
-    for (auto *v : m_pimpl_->m_attr_bundle_.GetAll()) { v->SetMesh(m.get()); }
-
-    //    if (m_pimpl_->m_chart_ != nullptr) { return; }
-    //    m_pimpl_->m_chart_.reset(Mesh::Create(db()->GetTable("Mesh")));
-    //    ASSERT(m_pimpl_->m_chart_ != nullptr);
-    //    db()->Link("Mesh", m_pimpl_->m_chart_->db());
-    //    auto t_worker = db()->Get("Task");
-    //
-    //    if (t_worker != nullptr && t_worker->isArray()) {
-    //        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
-    //            std::shared_ptr<Task> res(
-    //                Task::Create(std::dynamic_pointer_cast<data::DataTable>(c)->GetValue<std::string>("name", "")));
-    //            AddWorker(res);
-    //        });
-    //    }
-    //    for (auto const &attr_bundle : m_pimpl_->m_attr_bundle_) {
-    //        for (auto *v : attr_bundle->GetAllAttributes()) { m_pimpl_->m_attributes_.insert(v); }
-    //    }
-    //    LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
-}
-void Domain::Finalize() { m_pimpl_.reset(new pimpl_s); }
+// void Domain::Initialize() {
+//    auto m = m_pimpl_->m_chart_->CreateView(nullptr, m_pimpl_->m_geo_obj_);
+//    m_pimpl_->m_worker_->SetMesh(m);
+//    for (auto *v : m_pimpl_->m_attr_bundle_.GetAll()) { v->SetMesh(m.get()); }
+//
+//    if (m_pimpl_->m_chart_ != nullptr) { return; }
+//    m_pimpl_->m_chart_.reset(Mesh::Create(db()->GetTable("Mesh")));
+//    ASSERT(m_pimpl_->m_chart_ != nullptr);
+//    db()->Link("Mesh", m_pimpl_->m_chart_->db());
+//    auto t_worker = db()->Get("Task");
+//
+//    if (t_worker != nullptr && t_worker->isArray()) {
+//        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
+//            std::shared_ptr<Task> res(
+//                Task::Create(std::dynamic_pointer_cast<data::DataTable>(c)->GetValue<std::string>("name", "")));
+//            AddWorker(res);
+//        });
+//    }
+//    for (auto const &attr_bundle : m_pimpl_->m_attr_bundle_) {
+//        for (auto *v : attr_bundle->GetAllAttributes()) { m_pimpl_->m_attributes_.insert(v); }
+//    }
+//    LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
+//}
 //
 // std::pair<std::shared_ptr<Task>, bool> Domain::AddWorker(std::shared_ptr<Task> const &w, int pos) {
 //    ASSERT(w != nullptr);

@@ -12,29 +12,35 @@
 //#include "PML.h"
 
 namespace simpla {
-void RegisterEverything() {
-    Mesh::RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
-    //    GLOBAL_DOMAIN_FACTORY::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
-    Task::RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
-    //        GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
-}
+
+static bool ChartCartesianGeometry_IS_REGISTERED =
+    Chart::RegisterCreator<simpla::mesh::CartesianGeometry>("CartesianGeometry");
+static bool WorkerCartesianGeometryEMFluid_IS_REGISTERED =
+    Worker::RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
 
 void create_scenario(engine::Context *ctx) {
-    ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}, "Dimensions"_ = {0, 0, 0});
+    //    CHECK(ChartCartesianGeometry_IS_REGISTERED);
+    //    CHECK(WorkerCartesianGeometryEMFluid_IS_REGISTERED);
+    auto domain = std::make_shared<Domain>();
+    domain->SetGeoObject(std::shared_ptr<geometry::Cube>(new geometry::Cube{{-0.1, 0.2, 0.0}, {1.2, 1.3, 1.4}}));
+    domain->SetChart(std::shared_ptr<Chart>(Chart::Create("CartesianGeometry")));
+    domain->SetWorker(std::shared_ptr<Worker>(Worker::Create("CartesianGeometry.EMFluid")));
 
-    ctx->GetAtlas().Decompose(size_tuple{2, 3, 2});
-    ctx->GetAtlas().SetRefineRatio(size_tuple{2, 2, 2});
-    ctx->GetAtlas().AddBlock(index_box_type{{0, 0, 0}, {32, 32, 64}});
-    ctx->GetAtlas().AddBlock(index_box_type{{0, 32, 0}, {32, 64, 64}});
-    ctx->GetAtlas().AddBlock(index_box_type{{32, 0, 0}, {64, 32, 64}});
-    ctx->GetAtlas().AddBlock(index_box_type{{32, 32, 0}, {64, 64, 64}});
+    std::cout << *domain->Serialize() << std::endl;
+    //    ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}, "Dimensions"_ = {0, 0,
+    //    0});
+    //
+    //    ctx->GetAtlas().Decompose(size_tuple{2, 3, 2});
+    //    ctx->GetAtlas().SetRefineRatio(size_tuple{2, 2, 2});
+    //    ctx->GetAtlas().AddBlock(index_box_type{{0, 0, 0}, {32, 32, 64}});
+    //    ctx->GetAtlas().AddBlock(index_box_type{{0, 32, 0}, {32, 64, 64}});
+    //    ctx->GetAtlas().AddBlock(index_box_type{{32, 0, 0}, {64, 32, 64}});
+    //    ctx->GetAtlas().AddBlock(index_box_type{{32, 32, 0}, {64, 64, 64}});
     //    ctx->GetModel("Center").AddObject("InnerBox", geometry::Cube({{0.0, 0.0, 0.0}, {1.0, 1.0, 1.0}}));
     //    ctx->GetModel("Center").AddObject("OuterBox", geometry::Cube({{-0.1, -0.1, -0.1}, {1.1, 1.1, 1.1}}));
-
-    ctx->GetModel().db()->SetValue("Center", {"GeoObject"_ = {"InnerBox"}});
-    ctx->GetModel().db()->SetValue("Boundary", {"GeoObject"_ = {"+OuterBox", "-InnerBox"}});
-
-    ctx->db()->SetValue("Domain/Center", {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}});
+    //    ctx->GetModel().db()->SetValue("Center", {"GeoObject"_ = {"InnerBox"}});
+    //    ctx->GetModel().db()->SetValue("Boundary", {"GeoObject"_ = {"+OuterBox", "-InnerBox"}});
+    //    ctx->db()->SetValue("Domain/Center", {"Mesh"_ = "CartesianGeometry", "Worker"_ = {{"name"_ = "EMFluid"}}});
     //    ctx->db()->SetValue("Domain/Boundary", {"Mesh"_ = "CartesianGeometry", "Task"_ = {{"name"_ = "PML"}}});
     //    options.GetTable("Particles").foreach ([&](auto const &item) {
     //        auto sp = center_worker.AddSpecies(std::get<0>(item).template as<std::string>(),
