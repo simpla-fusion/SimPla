@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     domain.SetMesh<Moo>();
     domain.AddWorker<Foo>();
     //    domain.Dispatch(patch);
-    domain.Update();
+    domain.Update(nullptr, 0, 0);
     std::cout << domain << std::endl;
     AttributeDict db;
     domain.Register(db);

@@ -186,7 +186,7 @@
  * Chart <|-- CartesianGeometry
  * Chart <|-- CylindricalGeometry
  *
- * Patch <..> Worker : push/pop
+ * Patch <..> Domain : push/pop
  * DataBlock <..> Attribute : push/pop
  * @enduml
 

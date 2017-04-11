@@ -7,10 +7,11 @@
 
 #include "SPObject.h"
 #include "simpla/SIMPLA_config.h"
+#include "simpla/concept/Serializable.h"
 namespace simpla {
 namespace engine {
 class Context;
-class TimeIntegratorBackend : public concept::Configurable {
+class TimeIntegratorBackend : public concept::Serializable<TimeIntegratorBackend> {
     SP_OBJECT_BASE(TimeIntegratorBackend);
 
    public:
@@ -46,23 +47,23 @@ struct DummyTimeIntegratorBackend : public TimeIntegratorBackend {
     virtual Real CurrentTime() const { return 0.0; };
     virtual size_type StepNumber() const { return 0; };
 };
-
-struct TimeIntegratorBackendFactory {
-   public:
-    TimeIntegratorBackendFactory();
-    ~TimeIntegratorBackendFactory();
-    bool RegisterCreator(std::string const &k, std::function<TimeIntegratorBackend *()> const &);
-    template <typename U>
-    bool RegisterCreator(std::string const &k) {
-        return RegisterCreator(k, [&]() { return new U; });
-    }
-
-    TimeIntegratorBackend *Create(std::shared_ptr<data::DataTable> const &p);
-
-   private:
-    std::map<std::string, std::function<TimeIntegratorBackend *()>> m_TimeIntegrator_factory_;
-};
-#define GLOBAL_TIME_INTEGRATOR_FACTORY SingletonHolder<simpla::engine::TimeIntegratorBackendFactory>::instance()
+//
+//struct TimeIntegratorBackendFactory {
+//   public:
+//    TimeIntegratorBackendFactory();
+//    ~TimeIntegratorBackendFactory();
+//    bool RegisterCreator(std::string const &k, std::function<TimeIntegratorBackend *()> const &);
+//    template <typename U>
+//    bool RegisterCreator(std::string const &k) {
+//        return RegisterCreator(k, [&]() { return new U; });
+//    }
+//
+//    TimeIntegratorBackend *Create(std::shared_ptr<data::DataTable> const &p);
+//
+//   private:
+//    std::map<std::string, std::function<TimeIntegratorBackend *()>> m_TimeIntegrator_factory_;
+//};
+//#define GLOBAL_TIME_INTEGRATOR_FACTORY SingletonHolder<simpla::engine::TimeIntegratorBackendFactory>::instance()
 }  // namespace engine{
 }  // namespace simpla{
 

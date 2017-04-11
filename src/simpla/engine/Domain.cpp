@@ -16,33 +16,31 @@ namespace engine {
 
 struct Domain::pimpl_s {
     std::shared_ptr<Chart> m_chart_ = nullptr;
-    std::vector<std::shared_ptr<geometry::GeoObject>> m_geo_obj_;
-    std::map<id_type, std::shared_ptr<Worker>> m_worker_;
+    std::shared_ptr<geometry::GeoObject> m_geo_obj_ = nullptr;
+    std::shared_ptr<Worker> m_worker_ = nullptr;
+    std::map<std::shared_ptr<geometry::GeoObject>, std::shared_ptr<Worker>> m_boundary_;
 };
 
-Domain::Domain(std::shared_ptr<data::DataTable> const &cfg) : SPObject(), m_pimpl_(new pimpl_s) {
-    m_pimpl_->m_geo_obj_.push_back(nullptr);
-
-    // TODO: create domain from config
-}
-
+Domain::Domain() : SPObject(), m_pimpl_(new pimpl_s) {}
 Domain::~Domain() { Finalize(); }
 
 std::shared_ptr<data::DataTable> Domain::Serialize() const {
     auto res = std::make_shared<data::DataTable>();
     res->SetValue("Type", "Domain");
-    res->Link("Chart", m_pimpl_->m_chart_->Serialize());
-    res->Link("GeoObject", m_pimpl_->m_geo_obj_[0]->Serialize());
+    if (m_pimpl_->m_chart_ != nullptr) { res->Link("Chart", m_pimpl_->m_chart_->Serialize()); }
+    if (m_pimpl_->m_geo_obj_ != nullptr) { res->Link("GeoObject", m_pimpl_->m_geo_obj_->Serialize()); }
+    if (m_pimpl_->m_worker_ != nullptr) { res->Link("Worker", m_pimpl_->m_worker_->Serialize()); }
     return res;
 }
 void Domain::Deserialize(std::shared_ptr<data::DataTable> const &t) {
     m_pimpl_->m_chart_.reset(Chart::Create(t->GetTable("Chart")));
-    m_pimpl_->m_geo_obj_[0].reset(geometry::GeoObject::Create(t->GetTable("GeoObject")));
+    m_pimpl_->m_geo_obj_.reset(geometry::GeoObject::Create(t->GetTable("GeoObject")));
+    m_pimpl_->m_worker_.reset(Worker::Create(t->GetTable("Worker")));
     // TODO: unfinished
 }
 
-void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) const { m_pimpl_->m_geo_obj_[0] = g; }
-std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_[0]; }
+void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) const { m_pimpl_->m_geo_obj_ = g; }
+std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
 void Domain::SetChart(std::shared_ptr<Chart> const &m) { m_pimpl_->m_chart_ = m; };
 std::shared_ptr<Chart> const &Domain::GetChart() const { return m_pimpl_->m_chart_; }
@@ -58,20 +56,34 @@ std::shared_ptr<Chart> const &Domain::GetChart() const { return m_pimpl_->m_char
 //}
 // std::shared_ptr<Mesh> const &Domain::GetMesh() const { return m_pimpl_->m_mesh_; }
 
-void Domain::SetWorker(std::shared_ptr<Worker> const &w, id_type id) {
-    auto res = m_pimpl_->m_worker_.emplace(id, w);
-    if (!res.second) { res.first->second = w; }
+void Domain::SetWorker(std::shared_ptr<Worker> const &w) { m_pimpl_->m_worker_ = w; }
+std::shared_ptr<Worker> const &Domain::GetWorker() const { return m_pimpl_->m_worker_; }
 
-    //        res.first->second->Deregister(&m_pimpl_->m_attr_bundle_);
-    //
-    //    if (w != nullptr) {
-    //        db()->Link("Worker", w->db());
-    //        //        res.first->second->Register(&m_pimpl_->m_attr_bundle_);
-    //    }
+void Domain::AddBoundaryCondition(std::shared_ptr<Worker> const &w, std::shared_ptr<geometry::GeoObject> const &g) {
+    m_pimpl_->m_boundary_.emplace(g, w);
 }
-std::shared_ptr<Worker> const &Domain::GetWorker(id_type id) const { return m_pimpl_->m_worker_.at(id); }
-
-void Domain::Update(Patch *p) {
+void Domain::Update(Patch *p, Real time_now, Real time_dt) {
+    box_type mblk_box = m_pimpl_->m_chart_->inv_map(p->GetBlock()->GetBoundBox());
+    switch (m_pimpl_->m_geo_obj_->CheckOverlap(mblk_box)) {
+        case -1:
+            m_pimpl_->m_worker_->Push(*p);
+            m_pimpl_->m_worker_->Advance(time_now, time_dt);
+            m_pimpl_->m_worker_->Pop(p);
+            break;
+        case 0:
+            for (auto &item : m_pimpl_->m_boundary_) {
+                if (item.first == nullptr || item.first->CheckOverlap(mblk_box) < 1) {
+                    item.second->Push(*p);
+                    item.second->Advance(time_now, time_dt);
+                    item.second->Pop(p);
+                }
+            }
+            break;
+        case 1:
+        default:
+            // DO NOTHING
+            break;
+    };
     //    auto m = p.GetMesh();
     //    if (m == nullptr) {
     //        m = m_pimpl_->m_chart_->CreateView(p.GetBlock());

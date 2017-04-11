@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
         ctx.Initialize();
         std::ostringstream os;
         os << "Config=";
-        data::Serialize(ctx.db(), os, "lua");
+        data::Serialize(ctx.Serialize(), os, "lua");
         std::string buffer = os.str();
         parallel::bcast_string(&buffer);
     } else {
@@ -106,14 +106,14 @@ int main(int argc, char **argv) {
         parallel::bcast_string(&buffer);
         auto t_db = std::make_shared<data::DataTable>("lua://");
         t_db->backend()->Parser(buffer);
-        ctx.db()->Set(*t_db->GetTable("Config"));
+        ctx.Deserialize(t_db->GetTable("Config"));
         ctx.Initialize();
     }
     MPI_Barrier(GLOBAL_COMM.comm());
 
-    int num_of_steps = ctx.db()->GetValue<int>("number_of_steps", 1);
-    int step_of_check_points = ctx.db()->GetValue<int>("step_of_check_point", 1);
-    Real dt = ctx.db()->GetValue<Real>("dt", 1.0);
+    int num_of_steps = 10;         // ctx.db()->GetValue<int>("number_of_steps", 1);
+    int step_of_check_points = 2;  // ctx.db()->GetValue<int>("step_of_check_point", 1);
+    Real dt = 1.0;                 // ctx.db()->GetValue<Real>("dt", 1.0);
 
     MESSAGE << DOUBLELINE << std::endl;
     MESSAGE << "INFORMATION:" << std::endl;
@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
 
         INFORM << "\t >>>  [ Time = "
                << " Step = " << step << "] <<< " << std::endl;
-        if (step % step_of_check_points == 0) { data::DataTable(output_file).Set(ctx.db()->GetTable("Patches")); };
+//        if (step % step_of_check_points == 0) { data::DataTable(output_file).Set(ctx.db()->GetTable("Patches")); };
         ++step;
     }
     MESSAGE << "\t >>> Done <<< " << std::endl;

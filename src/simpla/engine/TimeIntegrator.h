@@ -6,7 +6,7 @@
 #define SIMPLA_TIMEINTEGRATOR_H
 
 #include <simpla/SIMPLA_config.h>
-#include <simpla/concept/Configurable.h>
+#include <simpla/concept/Serializable.h>
 #include <simpla/design_pattern/SingletonHolder.h>
 #include <memory>
 #include "SPObject.h"
@@ -15,7 +15,7 @@ namespace simpla {
 namespace engine {
 class Context;
 class TimeIntegratorBackend;
-class TimeIntegrator : public Schedule {
+class TimeIntegrator : public Schedule, public concept::Serializable<TimeIntegrator> {
     SP_OBJECT_BASE(engine::TimeIntegrator);
 
    public:

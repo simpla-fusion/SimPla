@@ -18,7 +18,7 @@ using namespace engine;
  *  @brief absorb boundary condition, PML
  */
 template <typename TM>
-class PML : public engine::Task {
+class PML : public engine::Worker {
     SP_OBJECT_HEAD(PML<TM>, engine::Worker);
 
    public:

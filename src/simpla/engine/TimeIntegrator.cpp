@@ -15,7 +15,7 @@ TimeIntegrator::TimeIntegrator(std::string const &s_engine, std::shared_ptr<Cont
     : TimeIntegrator(std::make_shared<data::DataTable>("Backend"_ = s_engine), ctx){};
 
 TimeIntegrator::TimeIntegrator(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<Context> const &ctx)
-    : Schedule(t), m_backend_(GLOBAL_TIME_INTEGRATOR_FACTORY.Create(Schedule::db())) {
+    : Schedule(t), m_backend_(TimeIntegratorBackend::Create(Schedule::db())) {
     m_backend_->SetContext(ctx);
 }
 

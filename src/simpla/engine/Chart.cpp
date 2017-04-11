@@ -12,6 +12,7 @@ struct Chart::pimpl_s {
     int m_level_ = 0;
     point_type m_origin_{0, 0, 0};
     point_type m_dx_{1, 1, 1};
+    point_type m_inv_dx_{1, 1, 1};
 };
 
 Chart::Chart() : m_pimpl_(new pimpl_s) {}
@@ -28,7 +29,23 @@ std::shared_ptr<data::DataTable> Chart::Serialize() const {
 void Chart::Deserialize(std::shared_ptr<data::DataTable> const &d) {
     m_pimpl_->m_dx_ = d->GetValue<point_type>("Dx");
     m_pimpl_->m_origin_ = d->GetValue<point_type>("Origin");
+    m_pimpl_->m_inv_dx_ = 1.0 / m_pimpl_->m_dx_;
 }
+
+point_type Chart::map(point_type const &x) const {
+    point_type res;
+    res = (x - m_pimpl_->m_origin_) * m_pimpl_->m_inv_dx_;
+    return std::move(res);
+}
+point_type Chart::inv_map(point_type const &x) const {
+    point_type res;
+    res = x * m_pimpl_->m_dx_ + m_pimpl_->m_origin_;
+    return std::move(res);
+}
+box_type Chart::map(box_type const &b) const { return std::make_tuple(map(std::get<0>(b)), map(std::get<1>(b))); };
+box_type Chart::inv_map(box_type const &b) const {
+    return std::make_tuple(inv_map(std::get<0>(b)), inv_map(std::get<1>(b)));
+};
 
 // int Chart::GetLevel() const { return m_pimpl_->m_level_; }
 //

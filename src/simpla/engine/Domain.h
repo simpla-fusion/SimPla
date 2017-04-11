@@ -26,7 +26,7 @@ class Worker;
 class Domain : public SPObject, public concept::Serializable<Domain> {
     SP_OBJECT_HEAD(Domain, SPObject)
    public:
-    Domain(std::shared_ptr<data::DataTable> const &t = nullptr);
+    Domain();
     Domain(const Domain &) = delete;
     Domain(Domain &&) = delete;
     ~Domain();
@@ -40,13 +40,15 @@ class Domain : public SPObject, public concept::Serializable<Domain> {
     void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &geo_object) const;
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
-    void SetWorker(std::shared_ptr<Worker> const &, id_type id = NULL_ID);
-    std::shared_ptr<Worker> const &GetWorker(id_type id = NULL_ID) const;
+    void SetWorker(std::shared_ptr<Worker> const &);
+    std::shared_ptr<Worker> const &GetWorker() const;
+
+    void AddBoundaryCondition(std::shared_ptr<Worker> const &, std::shared_ptr<geometry::GeoObject> const &g = nullptr);
 
     //    void Register(AttributeGroup *);
     //    void Deregister(AttributeGroup *);
 
-    void Update(Patch *);
+    void Update(Patch *, Real time_now = 0, Real time_dt = 0);
 
    private:
     struct pimpl_s;

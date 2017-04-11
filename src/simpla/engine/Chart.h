@@ -27,6 +27,11 @@ class Chart : public concept::Serializable<Chart> {
     point_type const &GetOrigin() const;
     point_type const &GetDx() const;
 
+    point_type map(point_type const &) const;
+    point_type inv_map(point_type const &) const;
+    box_type map(box_type const &) const;
+    box_type inv_map(box_type const &) const;
+
    private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> m_pimpl_;

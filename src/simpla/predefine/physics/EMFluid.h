@@ -28,10 +28,16 @@ class EMFluid : public engine::Worker {
     explicit EMFluid(Args&&... args) : engine::Worker(std::forward<Args>(args)...){};
     ~EMFluid() {}
 
+    virtual std::shared_ptr<data::DataTable> Serialize() const {
+        auto res = std::make_shared<data::DataTable>();
+        res->SetValue<std::string>("Type", "EMFluid");
+        return res;
+    };
+    virtual void Deserialize(std::shared_ptr<data::DataTable> const& t) { UNIMPLEMENTED; }
     mesh_type* m_mesh_;
 
-//    virtual engine::Mesh* mesh() { return m_mesh_; };
-//    virtual engine::Mesh const* mesh() const { return m_mesh_; };
+    //    virtual engine::Mesh* mesh() { return m_mesh_; };
+    //    virtual engine::Mesh const* mesh() const { return m_mesh_; };
 
     virtual std::ostream& Print(std::ostream& os, int indent = 1) const;
 

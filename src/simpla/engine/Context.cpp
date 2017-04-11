@@ -19,12 +19,7 @@ struct Context::pimpl_s {
     bool m_is_initialized_ = false;
 };
 
-Context::Context() : m_pimpl_(new pimpl_s), concept::Configurable() {
-    db()->Link("Model", m_pimpl_->m_model_.db());
-    //    db()->Link("Atlas", m_pimpl_->m_atlas_.db());
-}
-// Context::Context(std::shared_ptr<data::DataTable> const &cfg) : Context() {}
-//
+Context::Context() : m_pimpl_(new pimpl_s) {}
 Context::~Context() {}
 // Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
 // Model &Context::GetModel() const { return m_pimpl_->m_model_; }
@@ -109,48 +104,51 @@ void Context::Finalize() {
 bool Context::IsInitialized() const { return m_pimpl_->m_is_initialized_; }
 
 void Context::Synchronize(int from, int to) {
-//    if (from >= GetAtlas().GetNumOfLevels() || to >= GetAtlas().GetNumOfLevels()) { return; }
-//    auto &atlas = GetAtlas();
-//    for (auto const &src : atlas.Level(from)) {
-//        for (auto const &dest : atlas.Level(from)) {
-//            if (!geometry::CheckOverlap(src->GetIndexBox(), dest->GetIndexBox())) { continue; }
-//            auto s_it = m_pimpl_->m_patches_.find(src->GetGUID());
-//            auto d_it = m_pimpl_->m_patches_.find(dest->GetGUID());
-//            if (s_it == m_pimpl_->m_patches_.end() || d_it == m_pimpl_->m_patches_.end() || s_it == d_it) { continue; }
-//            //            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetBlock(src)->GetIndexBox() << " to "
-//            //                   << m_pimpl_->m_atlas_.GetBlock(dest)->GetIndexBox() << " " << std::endl;
-//            //            auto &src_data = s_it->cast_as<data::DataTable>();
-//            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &dest_p)
-//            //            {
-//            //                auto dest_data = d_it->cast_as<data::DataTable>().Get(key);
-//            //                //                        ->cast_as<data::DataTable>();
-//            //                if (dest_data == nullptr) { return; }
-//            //
-//            //            });
-//        }
-//    }
+    //    if (from >= GetAtlas().GetNumOfLevels() || to >= GetAtlas().GetNumOfLevels()) { return; }
+    //    auto &atlas = GetAtlas();
+    //    for (auto const &src : atlas.Level(from)) {
+    //        for (auto const &dest : atlas.Level(from)) {
+    //            if (!geometry::CheckOverlap(src->GetIndexBox(), dest->GetIndexBox())) { continue; }
+    //            auto s_it = m_pimpl_->m_patches_.find(src->GetGUID());
+    //            auto d_it = m_pimpl_->m_patches_.find(dest->GetGUID());
+    //            if (s_it == m_pimpl_->m_patches_.end() || d_it == m_pimpl_->m_patches_.end() || s_it == d_it) {
+    //            continue; }
+    //            //            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetBlock(src)->GetIndexBox() << " to
+    //            "
+    //            //                   << m_pimpl_->m_atlas_.GetBlock(dest)->GetIndexBox() << " " << std::endl;
+    //            //            auto &src_data = s_it->cast_as<data::DataTable>();
+    //            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const
+    //            &dest_p)
+    //            //            {
+    //            //                auto dest_data = d_it->cast_as<data::DataTable>().Get(key);
+    //            //                //                        ->cast_as<data::DataTable>();
+    //            //                if (dest_data == nullptr) { return; }
+    //            //
+    //            //            });
+    //        }
+    //    }
 }
-void Context::Advance(Real time_now, Real dt, int level) {
-//    if (level >= GetAtlas().GetNumOfLevels()) { return; }
-//
-//    for (auto const &g_item : GetModel().GetAll()) {
-//        auto w = m_pimpl_->m_workers_.find(g_item.first);
-//        if (w == m_pimpl_->m_workers_.end()) { continue; }
-//        for (auto const &mblk : GetAtlas().Level(level)) {
-//            if (!g_item.second->CheckOverlap(mblk->GetBoundBox())) { continue; }
-//
-//            auto p = m_pimpl_->m_patches_[mblk->GetGUID()];
-//            if (p == nullptr) {
-//                p = std::make_shared<Patch>();
-//                //                p->PushMeshBlock(mblk);
-//            }
-//            w->second->Push(p);
-//            LOGGER << " Worker [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
-//                   << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
-//            w->second->Advance(time_now, dt);
-//            m_pimpl_->m_patches_[mblk->GetGUID()] = w->second->Pop();
-//        }
-//    }
+void Context::Advance(Real time_now, Real dt, int level){
+    //    if (level >= GetAtlas().GetNumOfLevels()) { return; }
+    //
+    //    for (auto const &g_item : GetModel().GetAll()) {
+    //        auto w = m_pimpl_->m_workers_.find(g_item.first);
+    //        if (w == m_pimpl_->m_workers_.end()) { continue; }
+    //        for (auto const &mblk : GetAtlas().Level(level)) {
+    //            if (!g_item.second->CheckOverlap(mblk->GetBoundBox())) { continue; }
+    //
+    //            auto p = m_pimpl_->m_patches_[mblk->GetGUID()];
+    //            if (p == nullptr) {
+    //                p = std::make_shared<Patch>();
+    //                //                p->PushMeshBlock(mblk);
+    //            }
+    //            w->second->Push(p);
+    //            LOGGER << " Worker [ " << std::setw(10) << std::left << w->second->name() << " ] is applied on "
+    //                   << mblk->GetIndexBox() << " GeoObject id= " << g_item.first << std::endl;
+    //            w->second->Advance(time_now, dt);
+    //            m_pimpl_->m_patches_[mblk->GetGUID()] = w->second->Pop();
+    //        }
+    //    }
 };
 
 }  // namespace engine {
