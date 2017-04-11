@@ -23,23 +23,28 @@
 #include <simpla/toolbox/Log.h>
 
 namespace simpla {
+namespace mesh {
+
+struct CylindricalGeometry : public engine::Chart {
+    static constexpr unsigned int NDIMS = 3;
+    typedef mesh::MeshEntityId entity_id;
+};
+}
 namespace engine {
 using namespace data;
 
-struct CylindricalCoordinates : public Chart {};
 /**
  * @ingroup mesh
- *
  * @brief Uniform structured get_mesh
  */
-
-struct MeshView<CylindricalCoordinates> : public engine::Mesh, public engine::AttributeGroup {
+template <>
+struct MeshView<mesh::CylindricalGeometry> : public engine::Mesh, public engine::AttributeGroup {
    public:
-    SP_OBJECT_HEAD(MeshView<CylindricalCoordinates>, engine::Mesh)
+    SP_OBJECT_HEAD(MeshView<mesh::CylindricalGeometry>, engine::Mesh)
+    typedef mesh::MeshEntityId entity_id;
 
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
-    typedef mesh::MeshEntityId entity_id;
     MeshView() : Mesh() {}
     MeshView(this_type const &other) : engine::Mesh(other) {}
     virtual ~MeshView() {}

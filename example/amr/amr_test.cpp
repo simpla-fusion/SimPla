@@ -28,8 +28,8 @@ int main(int argc, char **argv) {
     //                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});
 
     //    ctx->RegisterAttribute<int>("tag");
-    ctx->RegisterAttribute<double, EDGE>("E");
-    ctx->RegisterAttribute<double, FACE>("B");
+    //    ctx->RegisterAttribute<double, EDGE>("E");
+    //    ctx->RegisterAttribute<double, FACE>("B");
 
     //    {
     //        GEqdsk geqdsk;

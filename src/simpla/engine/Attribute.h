@@ -9,9 +9,9 @@
 #include "SPObject.h"
 #include "simpla/SIMPLA_config.h"
 #include "simpla/concept/CheckConcept.h"
+#include "simpla/concept/Serializable.h"
 #include "simpla/data/all.h"
 #include "simpla/design_pattern/Signal.h"
-
 namespace simpla {
 namespace engine {
 class Domain;
@@ -128,7 +128,7 @@ class AttributeGroup {
  * deactivate AttributeView
  * @enduml
  */
-struct Attribute : public concept::Configurable {
+struct Attribute : public SPObject, public concept::Configurable, public concept::Serializable<Attribute> {
     SP_OBJECT_BASE(Attribute);
 
    public:
@@ -139,16 +139,14 @@ struct Attribute : public concept::Configurable {
     template <typename U, typename... Args>
     explicit Attribute(AttributeGroup *b, U const &first, Args &&... args)
         : Attribute(b, std::make_shared<data::DataTable>(first, std::forward<Args>(args)...)){};
-    Attribute(Attribute const &other);
-    Attribute(Attribute &&other);
+    Attribute(Attribute const &other) = delete;
+    Attribute(Attribute &&other) = delete;
     virtual ~Attribute();
 
     void Register(AttributeGroup *);
     void Deregister(AttributeGroup *);
-
-    id_type GetGUID() const;
     //    virtual Attribute *Clone() const = 0;
-//    virtual std::shared_ptr<Attribute> GetDescription() const = 0;
+    //    virtual std::shared_ptr<Attribute> GetDescription() const = 0;
     virtual int GetIFORM() const = 0;
     virtual int GetDOF() const = 0;
     virtual std::type_info const &value_type_info() const = 0;  //!< value type
@@ -173,7 +171,7 @@ struct AttributeDesc : public Attribute {
 
    public:
     AttributeDesc(std::shared_ptr<data::DataTable> const &t) : Attribute(t) {}
-    AttributeDesc(std::string const &k) : Attribute() { db().SetValue("name", k); }
+    AttributeDesc(std::string const &k) : Attribute() {}
     ~AttributeDesc() {}
 
     virtual std::shared_ptr<Attribute> GetDescription() const {

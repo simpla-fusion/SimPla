@@ -74,6 +74,7 @@ class Context : public concept::Serializable<Context> {
     void Advance(Real time_now, Real dt, int level = 0);
     void Synchronize(int from_level = 0, int to_level = 0);
 
+    void Register(AttributeGroup *);
     Atlas &GetAtlas() const;
     Model &GetModel() const;
     //    std::map<std::string, std::shared_ptr<Domain>> &GetDomains() const;

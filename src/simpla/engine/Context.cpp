@@ -21,8 +21,11 @@ struct Context::pimpl_s {
 
 Context::Context() : m_pimpl_(new pimpl_s) {}
 Context::~Context() {}
-// Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
-// Model &Context::GetModel() const { return m_pimpl_->m_model_; }
+Atlas &Context::GetAtlas() const { return m_pimpl_->m_atlas_; }
+Model &Context::GetModel() const { return m_pimpl_->m_model_; }
+
+void Context::Register(AttributeGroup *) {}
+
 // std::map<id_type, std::shared_ptr<Patch>> const &Context::GetPatches() const { return m_pimpl_->m_patches_; }
 //
 // bool Context::RegisterWorker(std::string const &d_name, std::shared_ptr<Worker> const &p) {

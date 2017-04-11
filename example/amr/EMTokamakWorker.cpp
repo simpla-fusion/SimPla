@@ -11,23 +11,18 @@
 #include <simpla/physics/Constants.h>
 //#include <simpla/predefine/mesh/CartesianGeometry.h>
 #include <simpla/predefine/mesh/CylindricalGeometry.h>
+#include <simpla/predefine/physics/EMFluid.h>
 #include <iostream>
-#include "../em/EMFluid.h"
 
 namespace simpla {
 using namespace engine;
 // using namespace model;
 
 class EMTokamakWorker;
-std::shared_ptr<engine::Mesh> create_mesh() { return std::make_shared<mesh::CylindricalGeometry>(); }
 
-std::shared_ptr<engine::Task> create_worker() {
-    return std::dynamic_pointer_cast<engine::Task>(std::make_shared<EMTokamakWorker>());
-}
-
-class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
+class EMTokamakWorker : public EMFluid<engine::MeshView<mesh::CylindricalGeometry>> {
    public:
-    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<mesh::CylindricalGeometry>);
+    SP_OBJECT_HEAD(EMTokamakWorker, EMFluid<engine::MeshView<mesh::CylindricalGeometry>>);
     explicit EMTokamakWorker() : base_type() {}
     ~EMTokamakWorker() {}
 
@@ -43,7 +38,7 @@ class EMTokamakWorker : public EMFluid<mesh::CylindricalGeometry> {
     virtual void SetPhysicalBoundaryConditionE(Real time);
     virtual void SetPhysicalBoundaryConditionB(Real time);
 
-    field_type<VERTEX> psi{this, "name"_="psi"};
+    field_type<VERTEX> psi{this, "name"_ = "psi"};
     std::function<Vec3(point_type const &, Real)> J_src_fun;
     std::function<Vec3(point_type const &, Real)> E_src_fun;
 };
@@ -52,11 +47,11 @@ void EMTokamakWorker::Initialize() {
     base_type::Initialize();
     // first run, only Load configure, m_chart_=nullptr
 
-    db()->Get("Particles")
-        ->cast_as<DataTable>()
-        .Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &item) {
-            AddSpecies(key, item->cast_as<DataTable>());
-        });
+    //    db()->Get("Particles")
+    //        ->cast_as<DataTable>()
+    //        .Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &item) {
+    //            AddSpecies(key, item->cast_as<DataTable>());
+    //        });
 
     //    db.SetValue("GetBoundBox", geqdsk.box());
 };
@@ -70,12 +65,12 @@ void EMTokamakWorker::Initialize(Real data_time) {
     //    });
     //    psi.Assign([&](point_type const &x) -> Real { return geqdsk.psi(x); });
 
-    nTuple<Real, 3> ZERO_V{0, 0, 0};
-    //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
-    for (auto &item : GetSpecies()) {
-        Real ratio = db()->GetValue("Particles." + item.first + ".ratio", 1.0);
-        *item.second->rho = rho0 * ratio;
-    }
+    //    nTuple<Real, 3> ZERO_V{0, 0, 0};
+    //    //    B0.Assign([&](point_type const &x) -> Vec3 { return (geqdsk.in_limiter(x)) ? geqdsk.B(x) : ZERO_V; });
+    //    for (auto &item : GetSpecies()) {
+    ////        Real ratio = db()->GetValue("Particles." + item.first + ".ratio", 1.0);
+    //        *item.second->rho = rho0 * ratio;
+    //    }
 }
 void EMTokamakWorker::Finalize() { base_type::Finalize(); }
 void EMTokamakWorker::Finalize(Real data_time) {}
@@ -104,4 +99,4 @@ void EMTokamakWorker::SetPhysicalBoundaryConditionE(Real time) {
 void EMTokamakWorker::SetPhysicalBoundaryConditionB(Real time) {
     //    B.Assign(model()->interface(FACE, "PLASMA", "VACUUM"), 0);
 }
-}//namespace simpla {
+}  // namespace simpla {

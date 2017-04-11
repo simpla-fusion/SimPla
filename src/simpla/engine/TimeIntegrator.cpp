@@ -12,7 +12,9 @@ namespace simpla {
 namespace engine {
 
 TimeIntegrator::TimeIntegrator(std::string const &s_engine, std::shared_ptr<Context> const &ctx)
-    : TimeIntegrator(std::make_shared<data::DataTable>("Backend"_ = s_engine), ctx){};
+    : Schedule(), m_backend_(TimeIntegratorBackend::Create(s_engine)) {
+    m_backend_->SetContext(ctx);
+};
 
 TimeIntegrator::TimeIntegrator(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<Context> const &ctx)
     : Schedule(t), m_backend_(TimeIntegratorBackend::Create(Schedule::db())) {

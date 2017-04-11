@@ -23,7 +23,7 @@ class Chart;
  *   - \f$p\f$ is the projection
  *
  */
-class Mesh : public concept::Configurable {
+class Mesh : public concept::Serializable<Mesh> {
     SP_OBJECT_BASE(Mesh);
 
    public:
@@ -32,7 +32,7 @@ class Mesh : public concept::Configurable {
     virtual ~Mesh();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
     virtual Mesh *Clone() const = 0;
-
+    Range<mesh::MeshEntityId> range(int iform) const;
     virtual void Register(AttributeGroup *);
     virtual void Deregister(AttributeGroup *);
     virtual void Push(const std::shared_ptr<Patch> &);
@@ -41,7 +41,7 @@ class Mesh : public concept::Configurable {
     id_type GetBlockId() const;
     void SetBlock(const std::shared_ptr<MeshBlock> &);
     std::shared_ptr<MeshBlock> const &GetBlock() const;
-//    std::shared_ptr<IdRange> const &GetRange(int iform) const;
+    //    std::shared_ptr<IdRange> const &GetRange(int iform) const;
 
     void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &);
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;

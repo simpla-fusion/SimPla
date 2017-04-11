@@ -37,20 +37,19 @@ struct Attribute::pimpl_s {
     Mesh const *m_mesh_ = nullptr;
     Range<mesh::MeshEntityId> m_range_;
 };
-Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t) {}
-Attribute::Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &t)
-    : concept::Configurable(t), m_pimpl_(new pimpl_s) {
+Attribute::Attribute(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s) {}
+Attribute::Attribute(AttributeGroup *b, std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s) {
     Register(b);
 };
-Attribute::Attribute(Attribute const &other) : m_pimpl_(new pimpl_s), concept::Configurable(other) {
-    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
-    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
-}
-Attribute::Attribute(Attribute &&other) : m_pimpl_(new pimpl_s), concept::Configurable(other) {
-    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
-    for (auto *b : m_pimpl_->m_bundle_) { other.Deregister(b); }
-    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
-}
+// Attribute::Attribute(Attribute const &other) : m_pimpl_(new pimpl_s)  {
+//    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
+//    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+//}
+// Attribute::Attribute(Attribute &&other) : m_pimpl_(new pimpl_s)  {
+//    for (auto *b : other.m_pimpl_->m_bundle_) { Register(b); }
+//    for (auto *b : m_pimpl_->m_bundle_) { other.Deregister(b); }
+//    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+//}
 Attribute::~Attribute() {
     for (auto *b : m_pimpl_->m_bundle_) { Deregister(b); }
 }
@@ -64,8 +63,6 @@ void Attribute::Register(AttributeGroup *attr_b) {
 void Attribute::Deregister(AttributeGroup *attr_b) {
     if (m_pimpl_->m_bundle_.erase(attr_b) > 0) { attr_b->Detach(this); };
 }
-
-id_type Attribute::GetGUID() const { return db()->GetValue<id_type>("GUID", NULL_ID); };
 
 void Attribute::SetMesh(Mesh const *m) { m_pimpl_->m_mesh_ = m; }
 Mesh const *Attribute::GetMesh() const { return m_pimpl_->m_mesh_; }

@@ -82,17 +82,14 @@ class FieldView : public engine::Attribute {
     template <typename... Args>
     explicit FieldView(Args&&... args) : engine::Attribute(std::forward<Args>(args)...){};
 
-    FieldView(this_type const& other) : engine::Attribute(other){};
-    FieldView(this_type&& other) : engine::Attribute(other){};
+    FieldView(this_type const& other) = delete;
+    FieldView(this_type&& other) = delete;
     virtual ~FieldView() {}
-    virtual this_type* Clone() const { return new this_type(*this); };
-    void swap(this_type& other) { engine::Attribute::swap(other); };
+    //    virtual this_type* Clone() const { return new this_type(*this); };
 
-    virtual std::ostream& Print(std::ostream& os, int indent = 0) const;
-
-//    virtual std::shared_ptr<engine::Attribute> GetDescription() const {
-//        return std::make_shared<engine::AttributeDesc<TV, IFORM, DOF>>(db());
-//    };
+    //    virtual std::shared_ptr<engine::Attribute> GetDescription() const {
+    //        return std::make_shared<engine::AttributeDesc<TV, IFORM, DOF>>(db());
+    //    };
 
     virtual int GetIFORM() const { return IFORM; };
     virtual int GetDOF() const { return DOF; };
@@ -235,11 +232,11 @@ class FieldView : public engine::Attribute {
     }
 };  // class FieldView
 
-template <typename TM, typename TV, int IFORM, int DOF>
-std::ostream& FieldView<TM, TV, IFORM, DOF>::Print(std::ostream& os, int indent) const {
-    for (int i = 0; i < num_of_subs; ++i) { os << *m_data_[i] << std::endl; }
-    return os;
-}
+// template <typename TM, typename TV, int IFORM, int DOF>
+// std::ostream& FieldView<TM, TV, IFORM, DOF>::Print(std::ostream& os, int indent) const {
+//    for (int i = 0; i < num_of_subs; ++i) { os << *m_data_[i] << std::endl; }
+//    return os;
+//}
 
 namespace declare {
 
@@ -251,10 +248,9 @@ class Field_ : public FieldView<TM, TV, IFORM, DOF> {
    public:
     template <typename... Args>
     explicit Field_(Args&&... args) : base_type(std::forward<Args>(args)...) {}
-    Field_(this_type const& other) : base_type(other){};
-    Field_(this_type&& other) : base_type(other){};
+    Field_(this_type const& other) = delete;
+    Field_(this_type&& other) = delete;
     ~Field_() {}
-    virtual this_type* Clone() const { return new this_type(*this); };
 
     using base_type::operator[];
     using base_type::operator=;

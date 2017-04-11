@@ -3,13 +3,11 @@
 //
 
 // Headers for SimPla
-#include <simpla/predefine/mesh/CartesianGeometry.h>
 #include <boost/shared_ptr.hpp>
 #include <cmath>
 #include <map>
 #include <memory>
 #include <string>
-#include "../em/EMFluid.h"
 #include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/all.h"
 #include "simpla/data/all.h"
@@ -17,6 +15,9 @@
 #include "simpla/engine/all.h"
 #include "simpla/mesh/MeshCommon.h"
 #include "simpla/parallel/MPIComm.h"
+#include "simpla/predefine/mesh/CartesianGeometry.h"
+#include "simpla/predefine/physics/EMFluid.h"
+
 #include "simpla/toolbox/Log.h"
 //#include <simpla/predefine/mesh/CylindricalGeometry.h>
 // Headers for SAMRAI
@@ -84,14 +85,12 @@ using namespace simpla::data;
 class SAMRAITimeIntegrator;
 
 static bool TIME_INTEGRATOR_SAMRAI_IS_REGISTERED =
-    SingletonHolder<engine::TimeIntegratorBackendFactory>::instance().template RegisterCreator<SAMRAITimeIntegrator>(
-        "samrai");
+    engine::TimeIntegratorBackend::RegisterCreator<SAMRAITimeIntegrator>("samrai");
 
-static bool Mesh_CartesianGeometry_IS_REGISTERED =
-    GLOBAL_MESHVIEW_FACTORY.RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
+static bool Mesh_CartesianGeometry_IS_REGISTERED = Chart::RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
 //    GLOBAL_DOMAIN_FACTORY::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
 static bool CartesianGeometry_EMFluid_IS_REGISTERED =
-    GLOBAL_WORKER_FACTORY.RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
+    Worker::RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
 //        GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 
 struct SAMRAIPatchProxy : public data::DataTable {
@@ -399,7 +398,7 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable_t(int ndims, At
     return (attr.GetIFORM() > VOLUME)
                ? nullptr
                : boost::dynamic_pointer_cast<SAMRAI::hier::Variable>(boost::make_shared<SAMRAI::pdat::NodeVariable<T>>(
-                     d_dim, attr.name(), var_depth[attr.GetIFORM()] * attr.GetDOF()));
+                     d_dim, attr.GetName(), var_depth[attr.GetIFORM()] * attr.GetDOF()));
 }
 
 boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int ndims, Attribute const &attr) {
@@ -413,7 +412,7 @@ boost::shared_ptr<SAMRAI::hier::Variable> create_samrai_variable(unsigned int nd
     //    else if (item->value_type_info() == typeid(long)) { attr_choice_form<long>(item,
     //    std::forward<Args>(args)...); }
     else {
-        RUNTIME_ERROR << " attr [" << attr.name() << "] is not supported!" << std::endl;
+        RUNTIME_ERROR << " attr [" << attr.GetName() << "] is not supported!" << std::endl;
     }
     return nullptr;
 }
@@ -438,9 +437,12 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
     SAMRAI::hier::IntVector d_nghosts{d_dim, 4};
     SAMRAI::hier::IntVector d_fluxghosts{d_dim, 1};
     //**************************************************************
-    for (auto const &item : m_ctx_->GetAllAttributes()) {
-        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *item.second);
-        m_samrai_variables_[item.first] = var;
+
+    AttributeGroup attr_grp;
+    m_ctx_->Register(&attr_grp);
+    for (Attribute *v : attr_grp.GetAll()) {
+        boost::shared_ptr<SAMRAI::hier::Variable> var = simpla::detail::create_samrai_variable(3, *v);
+        m_samrai_variables_[v->GetName()] = var;
 
         //        data::DataTable const &attr = *item->db();
         //                static const char visit_variable_type[3][10] = {"SCALAR", "VECTOR",
@@ -452,20 +454,20 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
         *  1. SAMRAI Visit Writer only support NODE and CELL variable (double,float ,int)
         *  2. SAMRAI   SAMRAI::algs::HyperbolicLevelIntegrator->registerVariable only support double
         **/
-        if (item.second->db()->Check("COORDINATES", true)) {
-            VERBOSE << item.first << " is registered as coordinate" << std::endl;
+        if (v->db()->Check("COORDINATES", true)) {
+            VERBOSE << v->GetName() << " is registered as coordinate" << std::endl;
             integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
                                          d_grid_geometry, "", "LINEAR_REFINE");
 
-        } else if (item.second->db()->Check("FLUX", true)) {
+        } else if (v->db()->Check("FLUX", true)) {
             integrator->registerVariable(var, d_fluxghosts, SAMRAI::algs::HyperbolicLevelIntegrator::FLUX,
                                          d_grid_geometry, "CONSERVATIVE_COARSEN", "NO_REFINE");
 
-        } else if (item.second->db()->Check("INPUT", true)) {
+        } else if (v->db()->Check("INPUT", true)) {
             integrator->registerVariable(var, d_nghosts, SAMRAI::algs::HyperbolicLevelIntegrator::INPUT,
                                          d_grid_geometry, "", "NO_REFINE");
         } else {
-            switch (item.second->GetIFORM()) {
+            switch (v->GetIFORM()) {
                 case EDGE:
                 case FACE:
                 //                    integrator->registerVariable(var, d_nghosts,
@@ -480,33 +482,29 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::registerModelVariables(
                                                  d_grid_geometry, "", "LINEAR_REFINE");
             }
 
-            //            VERBOSE << (item.second->db()->GetValue<std::string>("name","unnamed")()) << " --  " <<
+            //            VERBOSE << (v->db()->GetValue<std::string>("name","unnamed")()) << " --  " <<
             //            visit_variable_type << std::endl;
         }
 
         std::string visit_variable_type = "";
-        if ((item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) && (item.second->GetDOF() == 1)) {
+        if ((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && (v->GetDOF() == 1)) {
             visit_variable_type = "SCALAR";
-        } else if (((item.second->GetIFORM() == EDGE || item.second->GetIFORM() == FACE) &&
-                    (item.second->GetDOF() == 1)) ||
-                   ((item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) &&
-                    (item.second->GetDOF() == 3))) {
+        } else if (((v->GetIFORM() == EDGE || v->GetIFORM() == FACE) && (v->GetDOF() == 1)) ||
+                   ((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && (v->GetDOF() == 3))) {
             visit_variable_type = "VECTOR";
-        } else if (((item.second->GetIFORM() == VERTEX || item.second->GetIFORM() == VOLUME) &&
-                    item.second->GetDOF() == 9) ||
-                   ((item.second->GetIFORM() == EDGE || item.second->GetIFORM() == FACE) &&
-                    item.second->GetDOF() == 3)) {
+        } else if (((v->GetIFORM() == VERTEX || v->GetIFORM() == VOLUME) && v->GetDOF() == 9) ||
+                   ((v->GetIFORM() == EDGE || v->GetIFORM() == FACE) && v->GetDOF() == 3)) {
             visit_variable_type = "TENSOR";
         } else {
-            WARNING << "Can not register attribute [" << item.first << "] to VisIt writer !" << std::endl;
+            WARNING << "Can not register attribute [" << v->GetName() << "] to VisIt writer !" << std::endl;
         }
 
-        if (visit_variable_type != "" && item.second->db()->Check("CHECK", true)) {
+        if (visit_variable_type != "" && v->db()->Check("CHECK", true)) {
             d_visit_writer->registerPlotQuantity(
-                item.first, visit_variable_type,
+                v->GetName(), visit_variable_type,
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
 
-        } else if (item.second->db()->Check("COORDINATES", true)) {
+        } else if (v->db()->Check("COORDINATES", true)) {
             d_visit_writer->registerNodeCoordinates(
                 vardb->mapVariableAndContextToIndex(var, integrator->getPlotContext()));
         }

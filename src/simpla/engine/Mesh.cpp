@@ -16,8 +16,8 @@ struct Mesh::pimpl_s {
     std::shared_ptr<geometry::GeoObject> m_geo_obj_;
     std::shared_ptr<Chart> m_chart_;
 };
-Mesh::Mesh() : concept::Configurable(), m_pimpl_(new pimpl_s) {}
-Mesh::Mesh(Mesh const &other) : m_pimpl_(new pimpl_s), concept::Configurable(other.db()) {
+Mesh::Mesh() : m_pimpl_(new pimpl_s) {}
+Mesh::Mesh(Mesh const &other) : m_pimpl_(new pimpl_s) {
     m_pimpl_->m_mesh_block_ = other.m_pimpl_->m_mesh_block_;
     m_pimpl_->m_geo_obj_ = other.m_pimpl_->m_geo_obj_;
 };
@@ -59,32 +59,31 @@ std::shared_ptr<Chart> const &Mesh::GetChart() const { return m_pimpl_->m_chart_
 
 void Mesh::Initialize() {}
 void Mesh::Finalize() {}
-
-struct MeshViewFactory {
-    std::map<std::string, std::function<Mesh *()>> m_mesh_factory_;
-};
-
-bool Mesh::RegisterCreator(std::string const &k, std::function<Mesh *()> const &fun) {
-    auto res = SingletonHolder<MeshViewFactory>::instance().m_mesh_factory_.emplace(k, fun).second;
-    if (res) { LOGGER << "Mesh Creator [ " << k << " ] is registered!" << std::endl; }
-    return res;
-}
-Mesh *Mesh::Create(std::shared_ptr<data::DataTable> const &config) {
-    Mesh *res = nullptr;
-    try {
-        if (config != nullptr) {
-            res = SingletonHolder<MeshViewFactory>::instance().m_mesh_factory_.at(
-                config->GetValue<std::string>("name", ""))();
-            res->db() = config;
-        }
-
-    } catch (std::out_of_range const &) {
-        RUNTIME_ERROR << "Mesh creator  [] is missing!" << std::endl;
-        return nullptr;
-    }
-    if (res != nullptr) { LOGGER << "Mesh [" << res->name() << "] is created!" << std::endl; }
-    return res;
-}
+//
+//struct MeshViewFactory {
+//    std::map<std::string, std::function<Mesh *()>> m_mesh_factory_;
+//};
+//
+//bool Mesh::RegisterCreator(std::string const &k, std::function<Mesh *()> const &fun) {
+//    auto res = SingletonHolder<MeshViewFactory>::instance().m_mesh_factory_.emplace(k, fun).second;
+//    if (res) { LOGGER << "Mesh Creator [ " << k << " ] is registered!" << std::endl; }
+//    return res;
+//}
+//Mesh *Mesh::Create(std::shared_ptr<data::DataTable> const &config) {
+//    Mesh *res = nullptr;
+//    try {
+//        if (config != nullptr) {
+//            res = SingletonHolder<MeshViewFactory>::instance().m_mesh_factory_.at(
+//                config->GetValue<std::string>("name", ""))();
+//        }
+//
+//    } catch (std::out_of_range const &) {
+//        RUNTIME_ERROR << "Mesh creator  [] is missing!" << std::endl;
+//        return nullptr;
+//    }
+//    if (res != nullptr) { LOGGER << "Mesh [" << res->GetName() << "] is created!" << std::endl; }
+//    return res;
+//}
 // Real Mesh::GetDt() const { return 1.0; }
 
 void Mesh::Push(const std::shared_ptr<Patch> &p) {
