@@ -28,6 +28,8 @@ struct CartesianGeometry : public engine::Chart {
    public:
     SP_OBJECT_HEAD(CartesianGeometry, engine::Chart)
 
+    static bool is_register;
+
     static constexpr unsigned int NDIMS = 3;
     typedef Real scalar_type;
     typedef MeshEntityId entity_id;
@@ -127,6 +129,7 @@ struct CartesianGeometry : public engine::Chart {
         return a[m::node_id(s)]->at(m::unpack_index(s));
     }
 };  // struct  Mesh
+bool CartesianGeometry::is_register = engine::Chart::RegisterCreator<CartesianGeometry>("CartesianGeometry");
 
 template <>
 struct mesh_traits<CartesianGeometry> {

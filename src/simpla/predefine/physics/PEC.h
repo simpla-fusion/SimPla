@@ -22,6 +22,8 @@ class PEC : public engine::Worker {
     SP_OBJECT_HEAD(PEC<TM>, engine::Worker);
 
    public:
+    static const bool is_register;
+
     typedef TM mesh_type;
     typedef algebra::traits::scalar_type_t<mesh_type> scalar_type;
 
@@ -46,6 +48,8 @@ class PEC : public engine::Worker {
 
    private:
 };
+template <typename TM>
+const bool PEC<TM>::is_register = engine::Worker::RegisterCreator<PEC<TM>>(std::string("PEC<") + TM::ClassName() + ">");
 
 template <typename TM>
 void PEC<TM>::Initialize() {}

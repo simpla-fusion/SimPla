@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
     auto patch = std::make_shared<Patch>();
     Domain domain;
     domain.SetMesh<Moo>();
-    domain.AddWorker<Foo>();
+    domain.SetWorker<Foo>();
     //    domain.Dispatch(patch);
     domain.Update(nullptr, 0, 0);
     std::cout << domain << std::endl;

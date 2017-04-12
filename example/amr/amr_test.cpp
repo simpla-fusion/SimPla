@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     //
     //
     //
-    //    ctx->GetDomainView("PLASMA")->AddWorker(worker);
+    //    ctx->GetDomainView("PLASMA")->SetWorker(worker);
 
     time_integrator.Initialize();
     INFORM << "***********************************************" << std::endl;

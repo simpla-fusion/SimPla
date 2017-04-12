@@ -8,12 +8,13 @@
  */
 
 #include <simpla/engine/Context.h>
+#include <simpla/engine/TimeIntegrator.h>
 #include <simpla/parallel/all.h>
 #include <simpla/toolbox/Logo.h>
 #include <simpla/toolbox/parse_command_line.h>
+
 namespace simpla {
-void create_scenario(engine::Context *ctx);
-void RegisterEverything();
+std::shared_ptr<engine::Schedule> create_scenario(int argc, char **argv);
 }
 using namespace simpla;
 
@@ -91,14 +92,13 @@ int main(int argc, char **argv) {
     MESSAGE << ShowLogo() << std::endl;
 
     MPI_Barrier(GLOBAL_COMM.comm());
-
-    engine::Context ctx;
+    std::shared_ptr<engine::Schedule> time_ctrl;
     if (GLOBAL_COMM.rank() == 0) {
-        create_scenario(&ctx);
-        ctx.Initialize();
+        time_ctrl = create_scenario(argc, argv);
         std::ostringstream os;
-        os << "Config=";
-        data::Serialize(ctx.Serialize(), os, "lua");
+        os << "Config={";
+        data::Serialize(time_ctrl->Serialize(), os, "lua");
+        os << "}";
         std::string buffer = os.str();
         parallel::bcast_string(&buffer);
     } else {
@@ -106,37 +106,20 @@ int main(int argc, char **argv) {
         parallel::bcast_string(&buffer);
         auto t_db = std::make_shared<data::DataTable>("lua://");
         t_db->backend()->Parser(buffer);
-        ctx.Deserialize(t_db->GetTable("Config"));
-        ctx.Initialize();
+        time_ctrl = engine::Schedule::Create(t_db->GetTable("Schedule"));
     }
     MPI_Barrier(GLOBAL_COMM.comm());
 
-    int num_of_steps = 10;         // ctx.db()->GetValue<int>("number_of_steps", 1);
-    int step_of_check_points = 2;  // ctx.db()->GetValue<int>("step_of_check_point", 1);
-    Real dt = 1.0;                 // ctx.db()->GetValue<Real>("dt", 1.0);
+    VERBOSE << DOUBLELINE << std::endl;
+    VERBOSE << std::endl << " Schedule : " << *time_ctrl->Serialize() << std::endl;
+    VERBOSE << DOUBLELINE << std::endl;
 
-    MESSAGE << DOUBLELINE << std::endl;
-    MESSAGE << "INFORMATION:" << std::endl;
-    //    MESSAGE << "Context : " << *ctx.db() << std::endl;
-    MESSAGE << SINGLELINE << std::endl;
-
-    MESSAGE << DOUBLELINE << std::endl;
     TheStart();
-
-    size_type step = 0;
-
-    while (step <= num_of_steps) {
-        ctx.Advance(0, dt, 0);
-        ctx.Synchronize();
-
-        INFORM << "\t >>>  [ Time = "
-               << " Step = " << step << "] <<< " << std::endl;
-//        if (step % step_of_check_points == 0) { data::DataTable(output_file).Set(ctx.db()->GetTable("Patches")); };
-        ++step;
-    }
-    MESSAGE << "\t >>> Done <<< " << std::endl;
-    MESSAGE << DOUBLELINE << std::endl;
+    time_ctrl->Run();
     TheEnd();
+
+    VERBOSE << DOUBLELINE << std::endl;
+
     parallel::close();
     logger::close();
 }

@@ -45,7 +45,12 @@ class DataTable : public DataEntity {
     void swap(DataTable&);
     //******************************************************************************************************************
     /** Interface DataEntity */
+
+    std::shared_ptr<DataTable> Serialize() const;
+    void Deserialize(std::shared_ptr<DataTable> const&);
     std::ostream& Serialize(std::ostream& os, int indent = 0) const;
+    std::istream& Deserialize(std::istream& is);
+
     bool isTable() const { return true; }
     std::type_info const& value_type_info() const { return typeid(DataTable); };
     std::shared_ptr<DataEntity> Duplicate() const;

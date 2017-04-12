@@ -68,22 +68,7 @@ class Atlas {
    public:
     Atlas();
     virtual ~Atlas();
-
     void Decompose(size_tuple const &d, int local_id = -1);
-
-//    id_type AddChart(std::shared_ptr<Chart> const &);
-//    std::shared_ptr<Chart> const &GetChart(id_type) const;
-//
-//    id_type AddDomain(id_type chart_id, std::shared_ptr<geometry::GeoObject> const &);
-//    id_type AddDomain(std::shared_ptr<Domain> const &);
-//    std::shared_ptr<Domain> const &GetDomain(id_type) const;
-//
-//    std::shared_ptr<Patch> Pop(id_type, id_type domain_id = NULL_ID) const;
-//    void Push(std::shared_ptr<Patch> const &);
-
-    virtual void Initialize();
-    virtual void Finalize();
-    virtual bool Update();
 
     size_type GetNumOfLevels() const;
     point_type GetLevelDx(int level = 0);

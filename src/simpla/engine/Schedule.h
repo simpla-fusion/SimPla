@@ -6,19 +6,32 @@
 #define SIMPLA_SCHEDULE_H
 
 #include <memory>
-#include "Task.h"
+#include "Attribute.h"
+
 #include "simpla/data/all.h"
 namespace simpla {
 namespace engine {
-class Schedule : public concept::Configurable {
+class Context;
+class Worker;
+
+class Schedule : public data::Serializable {
+    SP_OBJECT_BASE(Schedule);
+
    public:
-    Schedule(std::shared_ptr<data::DataTable> const &t = nullptr);
+    Schedule();
     virtual ~Schedule();
-    //    virtual std::shared_ptr<Task> NextTask() const;
-    void AddTask(id_type mesh_id, std::shared_ptr<Task> const &);
-    void RemoveTask(id_type);
-    std::list<std::shared_ptr<Task>> const *GetTasks(id_type mesh_id) const;
-    void RegisterAttributes(std::set<Attribute *> *) const;
+
+    void SetNumberOfSteps(size_type s = 1);
+    virtual void Synchronize(int from_level = 0, int to_level = 0);
+    virtual void NextStep();
+    virtual bool Done() const;
+    void Run();
+
+    std::shared_ptr<data::DataTable> Serialize() const;
+    void Deserialize(std::shared_ptr<data::DataTable>);
+
+    void SetContext(std::shared_ptr<Context>);
+    std::shared_ptr<Context> GetContext() const;
 
    private:
     struct pimpl_s;

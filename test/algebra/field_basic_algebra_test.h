@@ -44,11 +44,8 @@ class TestField : public testing::Test {
 
    public:
     typedef TField field_type;
-
     typedef typename field_type::mesh_type mesh_type;
-
     typedef typename field_type::value_type value_type;
-
     typedef Real scalar_type;
     typedef typename mesh_type::entity_id entity_id;
     //    typedef  traits::scalar_type_t<manifold_type> scalar_type;

@@ -2,34 +2,65 @@
 // Created by salmon on 17-3-17.
 //
 #include "TimeIntegrator.h"
-
-#include <simpla/algebra/nTupleExt.h>
-#include <simpla/concept/Configurable.h>
-#include <simpla/data/all.h>
 #include "Context.h"
-#include "TimeIntegratorBackend.h"
+#include "simpla/algebra/nTupleExt.h"
+#include "simpla/data/all.h"
 namespace simpla {
 namespace engine {
 
-TimeIntegrator::TimeIntegrator(std::string const &s_engine, std::shared_ptr<Context> const &ctx)
-    : Schedule(), m_backend_(TimeIntegratorBackend::Create(s_engine)) {
-    m_backend_->SetContext(ctx);
+TimeIntegratorBackend::TimeIntegratorBackend(){};
+
+TimeIntegratorBackend::~TimeIntegratorBackend(){};
+
+Real TimeIntegratorBackend::Advance(Context* ctx, Real time_now, Real time_dt) {
+    // void Domain::Update(Patch *p, Real time_now, Real time_dt);
+
+    return time_now + time_dt;
 };
 
-TimeIntegrator::TimeIntegrator(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<Context> const &ctx)
-    : Schedule(t), m_backend_(TimeIntegratorBackend::Create(Schedule::db())) {
-    m_backend_->SetContext(ctx);
+void TimeIntegratorBackend::Synchronize(Context* ctx, int from_level, int to_level) {}
+
+TimeIntegrator::TimeIntegrator(std::string const& k) : Schedule(), m_backend_(TimeIntegratorBackend::Create(k)){};
+
+TimeIntegrator::~TimeIntegrator() {}
+
+std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
+    auto p = Schedule::Serialize();
+
+    if (m_backend_ != nullptr) { p->SetValue("Backend", m_backend_->GetClassName()); }
+
+    p->SetValue("TimeBegin", GetTime());
+    p->SetValue("TimeEnd", GetTimeEnd());
+    p->SetValue("TimeStep", GetTimeStep());
+    return p;
 }
 
-TimeIntegrator::~TimeIntegrator() { Finalize(); }
+void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> p) {
+    Schedule::Deserialize(p);
+    SetTime(p->GetValue("TimeBegin", 0.0));
+    SetTimeEnd(p->GetValue("TimeEnd", 1.0));
+    SetTimeStep(p->GetValue("TimeStep", 0.1));
+    m_backend_ = TimeIntegratorBackend::Create(p->GetValue<std::string>("Backend", ""));
+};
 
-std::shared_ptr<Context> &TimeIntegrator::GetContext() { return m_backend_->GetContext(); }
-std::shared_ptr<Context> const &TimeIntegrator::GetContext() const { return m_backend_->GetContext(); }
-void TimeIntegrator::Initialize() { m_backend_->Initialize(); }
-void TimeIntegrator::Finalize() { m_backend_->Finalize(); }
-void TimeIntegrator::NextTimeStep(Real dt) { m_backend_->NextTimeStep(dt); };
-bool TimeIntegrator::RemainingSteps() const { return m_backend_->RemainingSteps(); }
-Real TimeIntegrator::CurrentTime() const { return m_backend_->CurrentTime(); }
+Real TimeIntegrator::Advance(Real time_dt) {
+    if (m_backend_ == nullptr) {
+        m_time_now_ += time_dt;
+        return m_time_now_;
+    }
+
+    if (std::abs(time_dt) < std::numeric_limits<Real>::min()) { time_dt = m_time_step_; }
+    time_dt = std::min(std::min(time_dt, m_time_step_), m_time_end_ - m_time_now_);
+    m_time_now_ = m_backend_->Advance(GetContext().get(), m_time_now_, time_dt);
+    return m_time_now_;
+};
+
+void TimeIntegrator::Synchronize(int from_level, int to_level) {
+    if (m_backend_ == nullptr) { return; }
+    m_backend_->Synchronize(GetContext().get(), from_level, to_level);
+}
+
+void TimeIntegrator::NextStep() { Advance(m_time_step_); }
 
 //    if (level >= m_pimpl_->m_ctx_->GetAtlas().GetNumOfLevels()) { return m_pimpl_->m_time_; }
 //    auto &atlas = m_pimpl_->m_ctx_->GetAtlas();

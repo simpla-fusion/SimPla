@@ -5,19 +5,18 @@
 #ifndef SIMPLA_ENABLECREATEFROMDATATABLE_H
 #define SIMPLA_ENABLECREATEFROMDATATABLE_H
 
-
 #include <iostream>
 #include <memory>
 #include <string>
+#include "DataTable.h"
 #include "simpla/concept/CheckConcept.h"
 #include "simpla/design_pattern/SingletonHolder.h"
-
-namespace simpla{
-namespace data{
-
+namespace simpla {
+namespace data {
+class DataTable;
 template <typename TObj>
 class EnableCreateFromDataTable {
-public:
+   public:
     EnableCreateFromDataTable(){};
     virtual ~EnableCreateFromDataTable() {}
 
@@ -34,11 +33,22 @@ public:
 
     static std::shared_ptr<TObj> Create(std::string const &k) {
         std::shared_ptr<TObj> res = nullptr;
-        try {
-            res.reset(SingletonHolder<ObjectFactory>::instance().m_factory_.at(k)());
-        } catch (std::out_of_range const &) { RUNTIME_ERROR << "Missing object creator  [" << k << "]!" << std::endl; }
-
-        if (res != nullptr) { LOGGER << "Object [" << k << "] is created!" << std::endl; }
+        if (k == "") {
+            res = std::make_shared<TObj>();
+        } else {
+            try {
+                res.reset(SingletonHolder<ObjectFactory>::instance().m_factory_.at(k)());
+            } catch (std::out_of_range const &) {
+                std::ostringstream oss;
+                oss << "Can not find " << TObj::ClassName() << "::" << k << " is in registered creators. [ ";
+                for (auto const &item : SingletonHolder<ObjectFactory>::instance().m_factory_) {
+                    oss << item.first << ",";
+                }
+                oss << "]" << std::endl;
+                RUNTIME_ERROR << oss.str() << std::endl;
+            }
+        }
+        if (res != nullptr) { LOGGER << TObj::ClassName() << "::" << k << "  is created!" << std::endl; }
         return res;
     }
     static std::shared_ptr<TObj> Create(std::shared_ptr<DataTable> const &cfg) {
@@ -48,12 +58,9 @@ public:
         return res;
     }
 };
-template <typename U>
-std::shared_ptr<U> Deserialize(std::shared_ptr<DataTable> const &d,
-                               ENABLE_IF((std::is_base_of<EnableCreateFromDataTable<U>, U>::value))) {
-return U::Create(d);
-}
-}//namespace data{
+#define REGISTER_CREATOR(_BASE_CLASS_NAME_, _CLASS_NAME_) \
+    bool _CLASS_NAME_##_IS_REGISTERED_ = _BASE_CLASS_NAME_::RegisterCreator<_CLASS_NAME_>(__STRING(_CLASS_NAME_));
 
-}//namespace simpla{
-#endif //SIMPLA_ENABLECREATEFROMDATATABLE_H
+}  // namespace data{
+}  // namespace simpla{
+#endif  // SIMPLA_ENABLECREATEFROMDATATABLE_H

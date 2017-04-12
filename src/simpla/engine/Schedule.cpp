@@ -2,34 +2,73 @@
 // Created by salmon on 17-4-5.
 //
 #include "Schedule.h"
+#include <simpla/toolbox/Logo.h>
 #include <map>
 #include <string>
 #include "Attribute.h"
+#include "Context.h"
 #include "Task.h"
 #include "simpla/data/all.h"
 namespace simpla {
 namespace engine {
 struct Schedule::pimpl_s {
-    bool m_isEnd_ = false;
-    size_type m_step_counter_ = 0;
-    std::shared_ptr<Task> m_first_task_;
-    std::shared_ptr<Task> m_next_task_ = nullptr;
-    std::map<std::string, std::shared_ptr<Attribute>> m_attributes_;
-    std::map<id_type, std::list<std::shared_ptr<Task>>> m_tasks_;
+    std::shared_ptr<Context> m_ctx_;
+    size_type m_step_ = 0;
+    size_type m_max_step_ = 1;
 };
-Schedule::Schedule(std::shared_ptr<data::DataTable> const &t) : m_pimpl_(new pimpl_s), concept::Configurable(t){};
+Schedule::Schedule() : m_pimpl_(new pimpl_s) { m_pimpl_->m_ctx_ = std::make_shared<Context>(); };
 Schedule::~Schedule(){};
 
-void Schedule::AddTask(id_type mesh_id, std::shared_ptr<Task> const &t) { m_pimpl_->m_tasks_[mesh_id].push_back(t); }
-void Schedule::RemoveTask(id_type mesh_id) { m_pimpl_->m_tasks_.erase(mesh_id); };
-std::list<std::shared_ptr<Task>> const *Schedule::GetTasks(id_type mesh_id) const {
-    try {
-        return &m_pimpl_->m_tasks_.at(mesh_id);
-    } catch (...) { return nullptr; }
-};
+void Schedule::SetNumberOfSteps(size_type s) { m_pimpl_->m_max_step_ = s; }
+void Schedule::NextStep() {}
+bool Schedule::Done() const { return m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
+void Schedule::Run() {
+    while (!Done()) {
+        Synchronize();
+        NextStep();
+        VERBOSE << " [ STEP:" << std::setw(5) << m_pimpl_->m_step_ << " ] " << std::endl;
+        ++m_pimpl_->m_step_;
+    }
 
-void Schedule::RegisterAttributes(std::set<Attribute *> *) const {}
-// size_type Schedule::NumberOfSteps() const { return m_pimpl_->m_step_counter_; }
+    //        if (step % step_of_check_points == 0) {
+    //        data::DataTable(output_file).Set(ctx.db()->GetTable("Patches")); };
+}
+
+std::shared_ptr<data::DataTable> Schedule::Serialize() const {
+    auto res = std::make_shared<data::DataTable>();
+    if (m_pimpl_->m_ctx_ != nullptr) { res->Link("Context", m_pimpl_->m_ctx_->Serialize()); }
+    return res;
+}
+void Schedule::Deserialize(std::shared_ptr<data::DataTable> t) {
+    if (m_pimpl_->m_ctx_ == nullptr) { m_pimpl_->m_ctx_ = std::make_shared<Context>(); }
+    m_pimpl_->m_ctx_->Deserialize(t->GetTable("Context"));
+}
+
+void Schedule::SetContext(std::shared_ptr<Context> ctx) { m_pimpl_->m_ctx_ = ctx; }
+
+std::shared_ptr<Context> Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
+
+void Schedule::Synchronize(int from_level, int to_level) {
+    auto &atlas = GetContext()->GetAtlas();
+    if (from_level >= atlas.GetNumOfLevels() || to_level >= atlas.GetNumOfLevels()) { return; }
+    for (auto const &src : atlas.Level(from_level)) {
+        for (auto const &dest : atlas.Level(from_level)) {
+            if (!geometry::CheckOverlap(src->GetIndexBox(), dest->GetIndexBox())) { continue; }
+            //            auto s_it = m_pimpl_->m_patches_.find(src->GetGUID());
+            //            auto d_it = m_pimpl_->m_patches_.find(dest->GetGUID());
+            //            if (s_it == m_pimpl_->m_patches_.end() || d_it == m_pimpl_->m_patches_.end() || s_it == d_it)
+            //            { continue; }
+            //            LOGGER << "Synchronize From " << m_pimpl_->m_atlas_.GetBlock(src)->GetIndexBox() << " to   "
+            //                   << m_pimpl_->m_atlas_.GetBlock(dest)->GetIndexBox() << " " << std::endl;
+            //            auto &src_data = s_it->cast_as<data::DataTable>();
+            //            src_data.Foreach([&](std::string const &key, std::shared_ptr<data::DataEntity> const &dest_p)
+            //            {
+            //                auto dest_data = d_it->cast_as<data::DataTable>().Get(key);
+            //                if (dest_data == nullptr) { return; }
+            //            });
+        }
+    }
+}
 
 }  // namespace engine{
 }  // namespace simpla{

@@ -16,7 +16,8 @@ namespace data {
 // std::regex match_path_regex=std::regex (R"(^(/?([/\S]+/)*)?([^/]+)?$)", std::regex::optimize);
 
 void SerializeLua(std::shared_ptr<DataEntity> const &d, std::ostream &os, int indent = 0) {
-    if (d->isTable()) {
+    if (d == nullptr) {
+    } else if (d->isTable()) {
         DataTable const &t = d->cast_as<DataTable>();
 
         os << "{";

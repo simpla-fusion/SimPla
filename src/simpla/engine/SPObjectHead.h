@@ -25,7 +25,9 @@
         return *dynamic_cast<U_ const *>(this);                                                      \
     }                                                                                                \
     virtual std::type_info const &GetTypeInfo() const { return typeid(_BASE_CLASS_NAME_); }          \
-    virtual std::string GetClassName() const { return __STRING(_BASE_CLASS_NAME_); }
+    virtual std::string GetClassName() const { return __STRING(_BASE_CLASS_NAME_); } \
+    static std::string  ClassName()   { return __STRING(_BASE_CLASS_NAME_); }
+
 
 /**
  * @brief define the common part of the derived class
@@ -37,6 +39,7 @@
     }                                                                                  \
     virtual std::type_info const &GetTypeInfo() const { return typeid(_CLASS_NAME_); } \
     virtual std::string GetClassName() const { return __STRING(_CLASS_NAME_); }        \
+    static std::string ClassName() { return __STRING(_CLASS_NAME_); }                  \
                                                                                        \
    private:                                                                            \
     typedef _BASE_CLASS_NAME_ base_type;                                               \

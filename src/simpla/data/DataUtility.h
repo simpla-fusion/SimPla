@@ -9,10 +9,20 @@
 #include <iomanip>
 #include <regex>
 #include <string>
-
+#include "EnableCreateFromDataTable.h"
 namespace simpla {
 namespace data {
 class DataEntity;
+
+template <typename U>
+std::shared_ptr<DataTable> const &Serialize(U const &u, ENABLE_IF((std::is_base_of<Serializable, U>::value))) {
+    return u.Serialize();
+}
+template <typename U>
+std::shared_ptr<U> Deserialize(std::shared_ptr<DataTable> const &d,
+                               ENABLE_IF((std::is_base_of<EnableCreateFromDataTable<U>, U>::value))) {
+    return U::Create(d);
+}
 void Serialize(std::shared_ptr<DataEntity> const &d, std::ostream &os, std::string const &type, int indent = 0);
 std::string AutoIncreaseFileName(std::string filename, std::string const &ext_str);
 

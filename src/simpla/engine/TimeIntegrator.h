@@ -12,27 +12,44 @@
 namespace simpla {
 namespace engine {
 class Context;
-class TimeIntegratorBackend;
-class TimeIntegrator : public Schedule, public data::Serializable {
-    SP_OBJECT_BASE(engine::TimeIntegrator);
+struct TimeIntegratorBackend : public data::Serializable,
+                               public data::EnableCreateFromDataTable<TimeIntegratorBackend> {
+    SP_OBJECT_BASE(engine::TimeIntegratorBackend);
+
+    TimeIntegratorBackend();
+    virtual ~TimeIntegratorBackend();
+    virtual Real Advance(Context *ctx, Real time_now, Real time_dt);
+    virtual void Synchronize(Context *ctx, int from_level = 0, int to_level = 0);
+};
+struct TimeIntegrator : public Schedule {
+    SP_OBJECT_HEAD(TimeIntegrator,  Schedule);
 
    public:
-    TimeIntegrator(std::string const &s_engine = "", std::shared_ptr<Context> const &ctx = nullptr);
-    TimeIntegrator(std::shared_ptr<data::DataTable> const &t, std::shared_ptr<Context> const &ctx = nullptr);
+    TimeIntegrator(std::string const &k = "");
     ~TimeIntegrator();
+    std::shared_ptr<data::DataTable> Serialize() const;
+    void Deserialize(std::shared_ptr<data::DataTable>);
 
-    std::shared_ptr<Context> &GetContext();
-    std::shared_ptr<Context> const &GetContext() const;
+    Real Advance(Real time_dt = 0.0);
+    void Synchronize(int from_level = 0, int to_level = 0);
 
-    void Initialize();
-    void Finalize();
-    void NextTimeStep(Real dt);
+    void NextStep();
+    bool Done() const { return m_time_now_ >= m_time_end_; }
 
-    bool RemainingSteps() const;
-    Real CurrentTime() const;
+    void SetTime(Real t) { m_time_now_ = t; }
+    void SetTimeEnd(Real t) { m_time_end_ = t; }
+    void SetTimeStep(Real t) { m_time_step_ = t; };
+
+    Real GetTime() const { return m_time_now_; }
+    Real GetTimeEnd() const { return m_time_end_; }
+    Real GetTimeStep() const { return m_time_step_; }
 
    private:
     std::shared_ptr<TimeIntegratorBackend> m_backend_;
+
+    Real m_time_now_ = 0.0;
+    Real m_time_end_ = 1.0;
+    Real m_time_step_ = 0.1;
 };
 
 }  //{ namespace engine

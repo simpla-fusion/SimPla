@@ -9,8 +9,8 @@
 #include <memory>
 #include "Attribute.h"
 #include "Chart.h"
-#include "simpla/mpl/macro.h"
 #include "simpla/geometry/GeoObject.h"
+#include "simpla/mpl/macro.h"
 namespace simpla {
 namespace engine {
 // class Attribute;
@@ -33,16 +33,30 @@ class Domain : public SPObject, public data::Serializable {
     virtual std::shared_ptr<data::DataTable> Serialize() const;
     virtual void Deserialize(std::shared_ptr<data::DataTable> const &);
 
+    void SetChart(std::string const &w);
+    void SetChart(std::shared_ptr<data::DataTable> const &w);
     void SetChart(std::shared_ptr<Chart> const &);
     std::shared_ptr<Chart> const &GetChart() const;
-    void SetGeoObject(geometry::GeoObject *g);
+
     void SetGeoObject(std::shared_ptr<geometry::GeoObject> const &geo_object);
+    void SetGeoObject(std::shared_ptr<data::DataTable> const &w);
     std::shared_ptr<geometry::GeoObject> const &GetGeoObject() const;
 
     void SetWorker(std::shared_ptr<Worker> const &);
+    template <typename T>
+    void SetWorker(T const &t) {
+        return SetWorker(CreateWorker(t));
+    }
     std::shared_ptr<Worker> const &GetWorker() const;
 
+    std::shared_ptr<Worker> CreateWorker(std::string const &w) const;
+    std::shared_ptr<Worker> CreateWorker(std::shared_ptr<data::DataTable> w) const;
+
     void AddBoundaryCondition(std::shared_ptr<Worker> const &, std::shared_ptr<geometry::GeoObject> const &g = nullptr);
+    template <typename T>
+    void AddBoundaryCondition(T const &t, std::shared_ptr<geometry::GeoObject> const &g = nullptr) {
+        AddBoundaryCondition(CreateWorker(t), g);
+    };
 
     //    void Register(AttributeGroup *);
     //    void Deregister(AttributeGroup *);

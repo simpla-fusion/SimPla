@@ -1,1 +1,0 @@
-add_library(simpla_main ../../engine/simpla_main.cpp)

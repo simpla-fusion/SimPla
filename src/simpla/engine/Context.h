@@ -67,16 +67,18 @@ class Context : public data::Serializable {
     Context();
     ~Context();
 
-    void Initialize();
-    void Finalize();
-    bool IsInitialized() const;
-
-    void Advance(Real time_now, Real dt, int level = 0);
-    void Synchronize(int from_level = 0, int to_level = 0);
+    virtual std::shared_ptr<DataTable> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<DataTable>);
 
     void Register(AttributeGroup *);
+
     Atlas &GetAtlas() const;
     Model &GetModel() const;
+
+    void SetDomain(std::string const &k, std::shared_ptr<Domain>);
+    std::shared_ptr<Domain> CreateDomain(std::string const &k);
+    std::shared_ptr<Domain> GetDomain(std::string const &k) const;
+
     //    std::map<std::string, std::shared_ptr<Domain>> &GetDomains() const;
     //    std::map<std::string, std::shared_ptr<Attribute>> const &GetAttributes() const;
 

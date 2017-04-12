@@ -39,26 +39,26 @@ void Domain::Deserialize(std::shared_ptr<data::DataTable> const &t) {
     // TODO: unfinished
 }
 
-void Domain::SetGeoObject(geometry::GeoObject *g) { m_pimpl_->m_geo_obj_.reset(g); }
 void Domain::SetGeoObject(std::shared_ptr<geometry::GeoObject> const &g) { m_pimpl_->m_geo_obj_ = g; }
+void Domain::SetGeoObject(std::shared_ptr<data::DataTable> const &w) { SetGeoObject(geometry::GeoObject::Create(w)); };
+
 std::shared_ptr<geometry::GeoObject> const &Domain::GetGeoObject() const { return m_pimpl_->m_geo_obj_; }
 
 void Domain::SetChart(std::shared_ptr<Chart> const &m) { m_pimpl_->m_chart_ = m; };
 std::shared_ptr<Chart> const &Domain::GetChart() const { return m_pimpl_->m_chart_; }
-
-// void Domain::SetMesh(std::shared_ptr<Mesh> const &m) {
-//    if (m_pimpl_->m_mesh_ != nullptr) { m_pimpl_->m_mesh_->Deregister(&m_pimpl_->m_attr_bundle_); }
-//    m_pimpl_->m_mesh_ = m;
-//
-//    if (m_pimpl_->m_mesh_ != nullptr) {
-//        db()->Link("Mesh", m_pimpl_->m_mesh_->db());
-//        m_pimpl_->m_worker_->Register(&m_pimpl_->m_attr_bundle_);
-//    }
-//}
-// std::shared_ptr<Mesh> const &Domain::GetMesh() const { return m_pimpl_->m_mesh_; }
+void Domain::SetChart(std::string const &w) { SetChart(Chart::Create(w)); }
+void Domain::SetChart(std::shared_ptr<data::DataTable> const &w) { SetChart(Chart::Create(w)); }
 
 void Domain::SetWorker(std::shared_ptr<Worker> const &w) { m_pimpl_->m_worker_ = w; }
 std::shared_ptr<Worker> const &Domain::GetWorker() const { return m_pimpl_->m_worker_; }
+
+std::shared_ptr<Worker> Domain::CreateWorker(std::string const &k) const {
+    return Worker::Create(k + "<" + m_pimpl_->m_chart_->GetClassName() + ">");
+}
+std::shared_ptr<Worker> Domain::CreateWorker(std::shared_ptr<data::DataTable> w) const {
+    w->SetValue("Type", w->GetValue<std::string>("Type", "null") + "<" + m_pimpl_->m_chart_->GetClassName() + ">");
+    return Worker::Create(w);
+};
 
 void Domain::AddBoundaryCondition(std::shared_ptr<Worker> const &w, std::shared_ptr<geometry::GeoObject> const &g) {
     m_pimpl_->m_boundary_.emplace(g, w);
@@ -171,7 +171,7 @@ void Domain::Update(Patch *p, Real time_now, Real time_dt) {
 //        t_worker->cast_as<data::DataArray>().Foreach([&](std::shared_ptr<data::DataEntity> const &c) {
 //            std::shared_ptr<Task> res(
 //                Task::Create(std::dynamic_pointer_cast<data::DataTable>(c)->GetValue<std::string>("name", "")));
-//            AddWorker(res);
+//            SetWorker(res);
 //        });
 //    }
 //    for (auto const &attr_bundle : m_pimpl_->m_attr_bundle_) {
@@ -180,7 +180,7 @@ void Domain::Update(Patch *p, Real time_now, Real time_dt) {
 //    LOGGER << "Domain View [" << name() << "] is initialized!" << std::endl;
 //}
 //
-// std::pair<std::shared_ptr<Task>, bool> Domain::AddWorker(std::shared_ptr<Task> const &w, int pos) {
+// std::pair<std::shared_ptr<Task>, bool> Domain::SetWorker(std::shared_ptr<Task> const &w, int pos) {
 //    ASSERT(w != nullptr);
 //    auto res = m_pimpl_->m_worker_.emplace(pos, w);
 //    if (res.second) { Attach(res.first->second.get()); }

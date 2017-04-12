@@ -8,16 +8,16 @@
 #include <memory>
 #include "simpla/SIMPLA_config.h"
 #include "simpla/data/DataTable.h"
+#include "simpla/data/EnableCreateFromDataTable.h"
 #include "simpla/data/Serializable.h"
 #include "simpla/toolbox/sp_def.h"
-#include "simpla/data/EnableCreateFromDataTable.h"
 
 namespace simpla {
 namespace engine {
 class Mesh;
 class MeshBlock;
 class Chart : public data::Serializable, public data::EnableCreateFromDataTable<Chart> {
-    SP_OBJECT_BASE(Chart)
+    SP_OBJECT_BASE(engine::Chart)
    public:
     Chart();
     virtual ~Chart();

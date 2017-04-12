@@ -29,6 +29,9 @@ struct CylindricalGeometry : public engine::Chart {
     static constexpr unsigned int NDIMS = 3;
     typedef mesh::MeshEntityId entity_id;
 };
+
+REGISTER_CREATOR( engine::Chart, CylindricalGeometry)
+
 }
 namespace engine {
 using namespace data;
