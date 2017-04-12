@@ -17,11 +17,13 @@ struct Schedule::pimpl_s {
     size_type m_max_step_ = 1;
 };
 Schedule::Schedule() : m_pimpl_(new pimpl_s) { m_pimpl_->m_ctx_ = std::make_shared<Context>(); };
-Schedule::~Schedule(){};
+Schedule::~Schedule() { Finalize(); };
 
 void Schedule::SetNumberOfSteps(size_type s) { m_pimpl_->m_max_step_ = s; }
 void Schedule::NextStep() {}
 bool Schedule::Done() const { return m_pimpl_->m_step_ >= m_pimpl_->m_max_step_; }
+void Schedule::CheckPoint() { DO_NOTHING; }
+
 void Schedule::Run() {
     while (!Done()) {
         Synchronize();
@@ -48,6 +50,9 @@ void Schedule::SetContext(std::shared_ptr<Context> ctx) { m_pimpl_->m_ctx_ = ctx
 
 std::shared_ptr<Context> Schedule::GetContext() const { return m_pimpl_->m_ctx_; }
 
+void Schedule::Initialize() {}
+void Schedule::Update() {}
+void Schedule::Finalize() {}
 void Schedule::Synchronize(int from_level, int to_level) {
     auto &atlas = GetContext()->GetAtlas();
     if (from_level >= atlas.GetNumOfLevels() || to_level >= atlas.GetNumOfLevels()) { return; }

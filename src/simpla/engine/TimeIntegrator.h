@@ -12,29 +12,22 @@
 namespace simpla {
 namespace engine {
 class Context;
-struct TimeIntegratorBackend : public data::Serializable,
-                               public data::EnableCreateFromDataTable<TimeIntegratorBackend> {
-    SP_OBJECT_BASE(engine::TimeIntegratorBackend);
 
-    TimeIntegratorBackend();
-    virtual ~TimeIntegratorBackend();
-    virtual Real Advance(Context *ctx, Real time_now, Real time_dt);
-    virtual void Synchronize(Context *ctx, int from_level = 0, int to_level = 0);
-};
 struct TimeIntegrator : public Schedule {
-    SP_OBJECT_HEAD(TimeIntegrator,  Schedule);
+    SP_OBJECT_HEAD(TimeIntegrator, Schedule);
+    static bool is_register;
 
    public:
     TimeIntegrator(std::string const &k = "");
     ~TimeIntegrator();
-    std::shared_ptr<data::DataTable> Serialize() const;
-    void Deserialize(std::shared_ptr<data::DataTable>);
+    virtual std::shared_ptr<data::DataTable> Serialize() const;
+    virtual void Deserialize(std::shared_ptr<data::DataTable>);
 
-    Real Advance(Real time_dt = 0.0);
-    void Synchronize(int from_level = 0, int to_level = 0);
+    virtual void NextStep();
+    virtual bool Done() const { return m_time_now_ >= m_time_end_; }
 
-    void NextStep();
-    bool Done() const { return m_time_now_ >= m_time_end_; }
+    virtual Real Advance(Real time_dt = 0.0);
+    virtual void Synchronize(int from_level = 0, int to_level = 0);
 
     void SetTime(Real t) { m_time_now_ = t; }
     void SetTimeEnd(Real t) { m_time_end_ = t; }
@@ -45,8 +38,6 @@ struct TimeIntegrator : public Schedule {
     Real GetTimeStep() const { return m_time_step_; }
 
    private:
-    std::shared_ptr<TimeIntegratorBackend> m_backend_;
-
     Real m_time_now_ = 0.0;
     Real m_time_end_ = 1.0;
     Real m_time_step_ = 0.1;

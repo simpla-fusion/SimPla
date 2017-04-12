@@ -38,10 +38,9 @@ TARGET_LINK_LIBRARIES(amr_test
         #     ${OCE_LIBRARIES}   ${MeshKit_LIBRARIES} ${MOAB_LIBRARIES}
         ${SAMRAI_LIBRARIES} netcdf
         ${HDF5_LIBRARIES} ${MPI_LIBRARIES}
-        toolbox geometry parallel data data_backend engine model physics
+        toolbox geometry parallel data data_backend engine model physics SimPlaMAIN
 
         )
-
 
 
 

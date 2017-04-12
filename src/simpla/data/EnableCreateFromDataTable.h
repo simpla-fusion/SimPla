@@ -40,7 +40,7 @@ class EnableCreateFromDataTable {
                 res.reset(SingletonHolder<ObjectFactory>::instance().m_factory_.at(k)());
             } catch (std::out_of_range const &) {
                 std::ostringstream oss;
-                oss << "Can not find " << TObj::ClassName() << "::" << k << " is in registered creators. [ ";
+                oss <<  TObj::ClassName() << "::" << k << " is not registered. [ ";
                 for (auto const &item : SingletonHolder<ObjectFactory>::instance().m_factory_) {
                     oss << item.first << ",";
                 }

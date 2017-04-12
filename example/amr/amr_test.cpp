@@ -15,14 +15,14 @@
 
 using namespace simpla;
 using namespace simpla::data;
+namespace simpla {
+std::shared_ptr<engine::Schedule> CREATE_SCHEDULE(int argc, char **argv) {
+    auto time_integrator = std::dynamic_pointer_cast<engine::TimeIntegrator>(engine::Schedule::Create("SAMRAI"));
+    time_integrator->Initialize();
+    auto ctx = time_integrator->GetContext();
 
-int main(int argc, char **argv) {
-    logger::set_stdout_level(100);
-    GLOBAL_COMM.init(argc, argv);
-
-    engine::TimeIntegrator time_integrator("samrai");
-
-    auto &ctx = time_integrator.GetContext();
+    time_integrator->Update();
+    return time_integrator;
 
     //    ctx->db()->SetValue("Domains", {"Center"_ = {"name"_ = "Center", "Mesh"_ = {"name"_ = "CartesianGeometry"},
     //                                                 "Worker"_ = {{"name"_ = "EMFluid"}}}});
@@ -57,17 +57,5 @@ int main(int argc, char **argv) {
     //
     //
     //    ctx->GetDomainView("PLASMA")->SetWorker(worker);
-
-    time_integrator.Initialize();
-    INFORM << "***********************************************" << std::endl;
-
-    while (time_integrator.RemainingSteps()) { time_integrator.NextTimeStep(0.01); }
-
-    INFORM << "***********************************************" << std::endl;
-
-    time_integrator.Finalize();
-
-    INFORM << " DONE !" << std::endl;
-
-    GLOBAL_COMM.close();
 }
+}  // namespace simpla{

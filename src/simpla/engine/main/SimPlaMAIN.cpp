@@ -14,7 +14,7 @@
 #include <simpla/toolbox/parse_command_line.h>
 
 namespace simpla {
-std::shared_ptr<engine::Schedule> create_scenario(int argc, char **argv);
+std::shared_ptr<engine::Schedule> CREATE_SCHEDULE(int argc, char **argv);
 }
 using namespace simpla;
 
@@ -94,7 +94,7 @@ int main(int argc, char **argv) {
     MPI_Barrier(GLOBAL_COMM.comm());
     std::shared_ptr<engine::Schedule> time_ctrl;
     if (GLOBAL_COMM.rank() == 0) {
-        time_ctrl = create_scenario(argc, argv);
+        time_ctrl = CREATE_SCHEDULE(argc, argv);
         std::ostringstream os;
         os << "Config={";
         data::Serialize(time_ctrl->Serialize(), os, "lua");
@@ -117,7 +117,6 @@ int main(int argc, char **argv) {
     TheStart();
     time_ctrl->Run();
     TheEnd();
-
     VERBOSE << DOUBLELINE << std::endl;
 
     parallel::close();

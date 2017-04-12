@@ -14,17 +14,31 @@ namespace engine {
 class Context;
 class Worker;
 
-class Schedule : public data::Serializable {
+class Schedule : public data::Serializable, public data::EnableCreateFromDataTable<Schedule> {
     SP_OBJECT_BASE(Schedule);
 
    public:
     Schedule();
     virtual ~Schedule();
+    /**
+     * make object configurable;
+     */
+    virtual void Initialize();
+    /**
+     * effectuate the configuration
+     */
+    virtual void Update();
+    /**
+     * Release all resource, make object unconfigurable
+     */
+    virtual void Finalize();
 
-    void SetNumberOfSteps(size_type s = 1);
     virtual void Synchronize(int from_level = 0, int to_level = 0);
     virtual void NextStep();
     virtual bool Done() const;
+    virtual void CheckPoint();
+    void SetNumberOfSteps(size_type s = 1);
+
     void Run();
 
     std::shared_ptr<data::DataTable> Serialize() const;

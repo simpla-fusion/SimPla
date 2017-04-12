@@ -15,8 +15,8 @@ namespace simpla {
 static bool _PRE_REGISTERED =
     EMFluid<mesh::CartesianGeometry>::is_register && PEC<mesh::CartesianGeometry>::is_register;
 
-void create_scenario(std::shared_ptr<engine::Schedule>& time_ctrl, int argc, char** argv) {
-    auto* time_ctrl = new engine::TimeIntegrator;
+std::shared_ptr<engine::Schedule> CREATE_SCHEDULE(int argc, char** argv) {
+    auto time_ctrl = std::dynamic_pointer_cast<TimeIntegrator>(Schedule::Create("TimeIntegrator"));
 
     time_ctrl->SetTime(0);
     time_ctrl->SetTimeEnd(1);
@@ -28,7 +28,7 @@ void create_scenario(std::shared_ptr<engine::Schedule>& time_ctrl, int argc, cha
     domain->SetWorker("EMFluid");
     domain->AddBoundaryCondition("PEC");
 
-    return std::shared_ptr<engine::Schedule>(time_ctrl);
+    return (time_ctrl);
 }
 
 //    ctx->GetAtlas().db()->SetValue("Origin"_ = {0.0, 0.0, 0.0}, "Dx"_ = {1.0, 1.0, 1.0}, "Dimensions"_ = {0, 0,

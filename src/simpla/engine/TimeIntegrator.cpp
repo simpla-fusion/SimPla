@@ -7,28 +7,15 @@
 #include "simpla/data/all.h"
 namespace simpla {
 namespace engine {
+bool TimeIntegrator::is_register = engine::Schedule::RegisterCreator<TimeIntegrator>("TimeIntegrator");
 
-TimeIntegratorBackend::TimeIntegratorBackend(){};
-
-TimeIntegratorBackend::~TimeIntegratorBackend(){};
-
-Real TimeIntegratorBackend::Advance(Context* ctx, Real time_now, Real time_dt) {
-    // void Domain::Update(Patch *p, Real time_now, Real time_dt);
-
-    return time_now + time_dt;
-};
-
-void TimeIntegratorBackend::Synchronize(Context* ctx, int from_level, int to_level) {}
-
-TimeIntegrator::TimeIntegrator(std::string const& k) : Schedule(), m_backend_(TimeIntegratorBackend::Create(k)){};
+TimeIntegrator::TimeIntegrator(std::string const& k) : Schedule(){};
 
 TimeIntegrator::~TimeIntegrator() {}
 
 std::shared_ptr<data::DataTable> TimeIntegrator::Serialize() const {
     auto p = Schedule::Serialize();
-
-    if (m_backend_ != nullptr) { p->SetValue("Backend", m_backend_->GetClassName()); }
-
+    p->SetValue("Type", GetClassName());
     p->SetValue("TimeBegin", GetTime());
     p->SetValue("TimeEnd", GetTimeEnd());
     p->SetValue("TimeStep", GetTimeStep());
@@ -40,25 +27,16 @@ void TimeIntegrator::Deserialize(std::shared_ptr<data::DataTable> p) {
     SetTime(p->GetValue("TimeBegin", 0.0));
     SetTimeEnd(p->GetValue("TimeEnd", 1.0));
     SetTimeStep(p->GetValue("TimeStep", 0.1));
-    m_backend_ = TimeIntegratorBackend::Create(p->GetValue<std::string>("Backend", ""));
 };
 
 Real TimeIntegrator::Advance(Real time_dt) {
-    if (m_backend_ == nullptr) {
-        m_time_now_ += time_dt;
-        return m_time_now_;
-    }
-
     if (std::abs(time_dt) < std::numeric_limits<Real>::min()) { time_dt = m_time_step_; }
     time_dt = std::min(std::min(time_dt, m_time_step_), m_time_end_ - m_time_now_);
-    m_time_now_ = m_backend_->Advance(GetContext().get(), m_time_now_, time_dt);
+    m_time_now_ += time_dt;
     return m_time_now_;
 };
 
-void TimeIntegrator::Synchronize(int from_level, int to_level) {
-    if (m_backend_ == nullptr) { return; }
-    m_backend_->Synchronize(GetContext().get(), from_level, to_level);
-}
+void TimeIntegrator::Synchronize(int from_level, int to_level) {}
 
 void TimeIntegrator::NextStep() { Advance(m_time_step_); }
 

@@ -11,7 +11,6 @@
 #include "simpla/SIMPLA_config.h"
 #include "simpla/algebra/all.h"
 #include "simpla/data/all.h"
-#include "simpla/engine/TimeIntegratorBackend.h"
 #include "simpla/engine/all.h"
 #include "simpla/mesh/MeshCommon.h"
 #include "simpla/parallel/MPIComm.h"
@@ -84,13 +83,11 @@ using namespace simpla::data;
 
 class SAMRAITimeIntegrator;
 
-static bool TIME_INTEGRATOR_SAMRAI_IS_REGISTERED =
-    engine::TimeIntegratorBackend::RegisterCreator<SAMRAITimeIntegrator>("samrai");
-
-static bool Mesh_CartesianGeometry_IS_REGISTERED = Chart::RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
-//    GLOBAL_DOMAIN_FACTORY::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
-static bool CartesianGeometry_EMFluid_IS_REGISTERED =
-    Worker::RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
+// static bool Mesh_CartesianGeometry_IS_REGISTERED =
+// Chart::RegisterCreator<mesh::CartesianGeometry>("CartesianGeometry");
+////    GLOBAL_DOMAIN_FACTORY::RegisterMeshCreator<mesh::CylindricalGeometry>("CartesianGeometry");
+// static bool CartesianGeometry_EMFluid_IS_REGISTERED =
+//    Worker::RegisterCreator<EMFluid<mesh::CartesianGeometry>>("CartesianGeometry.EMFluid");
 //        GLOBAL_WORKER_FACTORY.RegisterCreator<PML<mesh::CartesianGeometry>>("CartesianGeometry.PML");
 
 struct SAMRAIPatchProxy : public data::DataTable {
@@ -685,21 +682,23 @@ void SAMRAI_HyperbolicPatchStrategyAdapter::printClassData(std::ostream &os) con
 /**
  * class SAMRAITimeIntegrator
  */
-struct SAMRAITimeIntegrator : public engine::TimeIntegratorBackend {
-    SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::TimeIntegratorBackend);
+struct SAMRAITimeIntegrator : public engine::TimeIntegrator {
+    SP_OBJECT_HEAD(SAMRAITimeIntegrator, engine::TimeIntegrator);
+    static bool is_register;
 
    public:
-    SAMRAITimeIntegrator() : engine::TimeIntegratorBackend(){};
+    SAMRAITimeIntegrator() : engine::TimeIntegrator(){};
     ~SAMRAITimeIntegrator();
     virtual std::ostream &Print(std::ostream &os, int indent = 0) const;
 
+    virtual void Synchronize(int from_level = 0, int to_level = 0);
     virtual void Initialize();
+    virtual void Update();
     virtual void Finalize();
-    virtual void NextTimeStep(Real dt_now);
+    virtual Real Advance(Real time_dt = 0.0);
 
-    virtual bool RemainingSteps() const;
-    virtual Real CurrentTime() const;
-    virtual size_type StepNumber() const;
+    virtual bool Done() const;
+
     virtual void CheckPoint();
 
    private:
@@ -729,6 +728,7 @@ struct SAMRAITimeIntegrator : public engine::TimeIntegratorBackend {
 
     static constexpr int ndims = 3;
 };
+bool SAMRAITimeIntegrator::is_register = engine::Schedule::RegisterCreator<SAMRAITimeIntegrator>("SAMRAI");
 
 SAMRAITimeIntegrator::~SAMRAITimeIntegrator() {
     SAMRAI::tbox::SAMRAIManager::shutdown();
@@ -740,17 +740,20 @@ std::ostream &SAMRAITimeIntegrator::Print(std::ostream &os, int indent) const {
     if (hyp_level_integrator != nullptr) hyp_level_integrator->printClassData(os);
     return os;
 };
+
 void SAMRAITimeIntegrator::Initialize() {
-    //    engine::TimeIntegrator::Initialize();
-
-    //    data::DataTable(std::make_shared<DataBackendSAMRAI>()).swap(*db());
-
+    engine::TimeIntegrator::Initialize();
     /** Setup SAMRAI::tbox::MPI.      */
     SAMRAI::tbox::SAMRAI_MPI::init(GLOBAL_COMM.comm());
     SAMRAI::tbox::SAMRAIManager::initialize();
     /** Setup SAMRAI, enable logging, and process command line.     */
     SAMRAI::tbox::SAMRAIManager::startup();
+    //
+    //    data::DataTable(std::make_shared<DataBackendSAMRAI>()).swap(*db());
     //    const SAMRAI::tbox::SAMRAI_MPI & mpi(SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld());
+}
+
+void SAMRAITimeIntegrator::Update() {
     /** test.3d.input */
     /**
     // Refer to geom::CartesianGridGeometry and its base classes for input
@@ -961,8 +964,9 @@ void SAMRAITimeIntegrator::Finalize() {
     hyp_level_integrator.reset();
     hyperbolic_patch_strategy.reset();
 }
-void SAMRAITimeIntegrator::NextTimeStep(Real dt) {
-    MESSAGE << " Time = " << CurrentTime() << " Step = " << StepNumber() << std::endl;
+void SAMRAITimeIntegrator::Synchronize(int from_level, int to_level) {}
+
+Real SAMRAITimeIntegrator::Advance(Real dt) {
     Real loop_time = m_time_refinement_integrator_->getIntegratorTime();
     Real loop_time_end = loop_time + dt;
 
@@ -972,6 +976,7 @@ void SAMRAITimeIntegrator::NextTimeStep(Real dt) {
         loop_time += dt;
         dt = std::min(dt_new, loop_time_end - loop_time);
     }
+    return loop_time_end;
 }
 void SAMRAITimeIntegrator::CheckPoint() {
     if (visit_data_writer != nullptr) {
@@ -979,15 +984,8 @@ void SAMRAITimeIntegrator::CheckPoint() {
                                          m_time_refinement_integrator_->getIntegratorTime());
     }
 }
-Real SAMRAITimeIntegrator::CurrentTime() const {
-    return m_time_refinement_integrator_ == nullptr ? 0 : m_time_refinement_integrator_->getIntegratorTime();
-}
-size_type SAMRAITimeIntegrator::StepNumber() const {
-    return m_time_refinement_integrator_ == nullptr
-               ? 0
-               : static_cast<size_type>(m_time_refinement_integrator_->getIntegratorStep());
-}
-bool SAMRAITimeIntegrator::RemainingSteps() const {
+
+bool SAMRAITimeIntegrator::Done() const {
     return m_time_refinement_integrator_ != nullptr ? m_time_refinement_integrator_->stepsRemaining() : false;
 }
 }  // namespace simpla
